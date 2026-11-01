@@ -1,0 +1,62 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT class_key, level, save, value FROM save_exception ORDER BY class_key, level, save",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "class_key",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "save_exception",
+            "name": "class_key"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "level",
+        "type_info": "Int2",
+        "origin": {
+          "Table": {
+            "table": "save_exception",
+            "name": "level"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "save",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "save_exception",
+            "name": "save"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "value",
+        "type_info": "Int2",
+        "origin": {
+          "Table": {
+            "table": "save_exception",
+            "name": "value"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "00fc83df18447ea774584fc3c0f047fa85a7055fb2ff58ad61c82ac3358a1cdd"
+}

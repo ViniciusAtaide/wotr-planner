@@ -47,6 +47,20 @@ _Avoid_: Caster level (a different thing), spellcasting level
 Progress along a mythic path, 1–10, separate from character level.
 _Avoid_: Mythic level, tier
 
+### Classes
+
+**Progression**:
+How a class's BAB or one of its saves grows with class level: full, ¾ or ½ BAB, and a good or poor save. Base and prestige classes use different save formulas. The class stores its progressions and the rules compute the numbers; archetypes never change them.
+_Avoid_: BAB table, save column
+
+**Save exception**:
+A save cell the guide prints differently from the class's progression (a paladin's Will +20 at 20), kept exactly as printed.
+_Avoid_: Override, typo fix
+
+**Archetype row**:
+One level where an archetype differs from its base class. Its grants replace the base class row's in full, and its spell levels replace the base row's when it sets them. A level without one is the base class's row.
+_Avoid_: Archetype table (it isn't a full copy), override row
+
 ### Choices
 
 **Feat slot**:

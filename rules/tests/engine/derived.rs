@@ -1,6 +1,8 @@
 //! Derived state at a character level: class levels, BAB, saves, ability scores, skills, spell-level access.
 
-use rules::{Ability, ClassChoice, ClassKey, LevelUp, SkillPoints, SubraceKey};
+use rules::{
+    Ability, ClassChoice, ClassKey, Engine, LevelUp, Save, SaveException, SkillPoints, SubraceKey,
+};
 
 use crate::support::*;
 
@@ -23,6 +25,39 @@ fn multiclass_bab_and_saves_add_up_the_class_tables() {
     assert_eq!(at_6.class_level(&class("rogue")), 3);
     assert_eq!(at_6.class_level(&class("wizard")), 1);
     assert_eq!(at_6.character_level, 6);
+}
+
+#[test]
+fn prestige_classes_use_the_prestige_save_formula() {
+    let sheet = engine().evaluate(&arcane_trickster_build(vec![class("wizard")]));
+
+    // Rogue 3 (+2, F1 R3 W1) + Wizard 3 (+1, F1 R1 W3) + Arcane Trickster 1 (½ BAB +0; prestige poor
+    // ⌊(1+1)/3⌋ = 0, good ⌊(1+1)/2⌋ = 1).
+    let at_7 = sheet.at(7).unwrap();
+    assert_eq!((at_7.bab, at_7.fort, at_7.reflex, at_7.will), (3, 2, 5, 5));
+    // Arcane Trickster 2: +1, F1 R1 W1.
+    let at_8 = sheet.at(8).unwrap();
+    assert_eq!((at_8.bab, at_8.fort, at_8.reflex, at_8.will), (4, 3, 5, 5));
+}
+
+#[test]
+fn a_save_exception_replaces_the_formula_at_its_level_only() {
+    let mut data = world();
+    let wizard = data
+        .classes
+        .iter_mut()
+        .find(|c| c.key == class("wizard"))
+        .unwrap();
+    wizard.save_exceptions.push(SaveException {
+        level: 2,
+        save: Save::Will,
+        value: 9,
+    });
+    let sheet = Engine::new(data).evaluate(&build("elf", &times("wizard", 3)));
+
+    let will: Vec<_> = (1..=3).map(|level| sheet.at(level).unwrap().will).collect();
+    assert_eq!(will, [2, 9, 3]);
+    assert_eq!(sheet.at(2).unwrap().fort, 0, "only the Will cell");
 }
 
 #[test]

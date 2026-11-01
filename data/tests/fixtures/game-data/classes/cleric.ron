@@ -4,11 +4,15 @@ Class(
     name: "Cleric",
     guide: "cleric",
     skill_points: 2,
+    bab: ThreeQuarters,
+    fort: Good,
+    reflex: Poor,
+    will: Good,
     class_skills: ["persuasion", "knowledge-arcana"],
     levels: [
-        (level: 1, bab: 0, fort: 2, reflex: 0, will: 2, divine_spell_level: 1),
-        (level: 2, bab: 1, fort: 3, reflex: 0, will: 3, divine_spell_level: 1),
-        (level: 3, bab: 2, fort: 3, reflex: 1, will: 3, divine_spell_level: 2),
+        (level: 1, divine_spell_level: 1),
+        (level: 2, divine_spell_level: 1),
+        (level: 3, divine_spell_level: 2),
     ],
     archetypes: [
         (
@@ -17,11 +21,6 @@ Class(
             name: "Herald",
             guide: "cleric#herald",
             class_skills: [],
-            levels: [
-                (level: 1, bab: 0, fort: 2, reflex: 0, will: 2, divine_spell_level: 1),
-                (level: 2, bab: 1, fort: 3, reflex: 0, will: 3, divine_spell_level: 1),
-                (level: 3, bab: 2, fort: 3, reflex: 1, will: 3, divine_spell_level: 2),
-            ],
         ),
     ],
 )

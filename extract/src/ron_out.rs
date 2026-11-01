@@ -5,8 +5,9 @@ use std::path::PathBuf;
 
 use ron::ser::PrettyConfig;
 use rules::{
-    Archetype, Class, ClassLevelRow, Feat, Feature, FeatureSelection, GameData, MythicAbility,
-    MythicFeat, MythicPath, MythicRankRow, Prerequisite, Race, SelectionOption, Skill,
+    Archetype, ArchetypeLevelRow, Class, ClassLevelRow, Feat, Feature, FeatureSelection, GameData,
+    MythicAbility, MythicFeat, MythicPath, MythicRankRow, Prerequisite, Race, SelectionOption,
+    Skill,
 };
 use serde::Serialize;
 
@@ -315,15 +316,25 @@ fn selections(indent: usize, selections: &[FeatureSelection]) -> String {
 fn level_row(row: &ClassLevelRow) -> String {
     let mut fields = Fields::new();
     fields.0.push(format!("level: {}", row.level));
-    fields.0.push(format!("bab: {}", row.bab));
-    fields.0.push(format!("fort: {}", row.fort));
-    fields.0.push(format!("reflex: {}", row.reflex));
-    fields.0.push(format!("will: {}", row.will));
     fields
         .number("arcane_spell_level", row.arcane_spell_level)
         .number("divine_spell_level", row.divine_spell_level)
         .flag("advances_arcane", row.advances_arcane)
         .flag("advances_divine", row.advances_divine)
+        .items("features", &row.features)
+        .items("feat_slots", &row.feat_slots)
+        .items("selections", &row.selections)
+        .line()
+}
+
+/// An archetype's row: its spell levels, when it sets them, right after the level.
+fn archetype_level_row(row: &ArchetypeLevelRow) -> String {
+    let mut fields = Fields::new();
+    fields.0.push(format!("level: {}", row.level));
+    if let Some(spell_levels) = &row.spell_levels {
+        fields.field("spell_levels", spell_levels);
+    }
+    fields
         .items("features", &row.features)
         .items("feat_slots", &row.feat_slots)
         .items("selections", &row.selections)
@@ -364,7 +375,7 @@ fn archetype(archetype: &Archetype) -> String {
         nested(
             "levels",
             12,
-            archetype.levels.iter().map(level_row).collect(),
+            archetype.levels.iter().map(archetype_level_row).collect(),
         ),
     ];
     fields.block("", 8, &blocks)
@@ -380,6 +391,12 @@ fn class_file(class: &Class) -> String {
     fields
         .0
         .push(format!("skill_points: {}", class.skill_points));
+    fields
+        .field("bab", &class.bab)
+        .field("fort", &class.fort)
+        .field("reflex", &class.reflex)
+        .field("will", &class.will)
+        .items("save_exceptions", &class.save_exceptions);
     if !class.class_skills.is_empty() {
         fields.field("class_skills", &class.class_skills);
     }

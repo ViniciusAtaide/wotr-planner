@@ -2,7 +2,7 @@
 //!
 //! The text values match the domains and CHECK constraints in `migrations/20261031000000_game_data.sql`.
 
-use rules::{Ability, Alignment, FeatCategory, SpellType};
+use rules::{Ability, Alignment, BabProgression, FeatCategory, Save, SaveProgression, SpellType};
 
 /// A row that doesn't fit the `rules` types (should be impossible given the constraints).
 pub(crate) fn corrupt(message: impl Into<String>) -> sqlx::Error {
@@ -62,6 +62,23 @@ text_column!(Alignment, alignment_from, alignment_text {
     LawfulEvil => "lawful_evil",
     NeutralEvil => "neutral_evil",
     ChaoticEvil => "chaotic_evil",
+});
+
+text_column!(BabProgression, bab_progression_from, bab_progression_text {
+    Full => "full",
+    ThreeQuarters => "three_quarters",
+    Half => "half",
+});
+
+text_column!(SaveProgression, save_progression_from, save_progression_text {
+    Good => "good",
+    Poor => "poor",
+});
+
+text_column!(Save, save_from, save_text {
+    Fortitude => "fortitude",
+    Reflex => "reflex",
+    Will => "will",
 });
 
 text_column!(FeatCategory, feat_category_from, feat_category_text {

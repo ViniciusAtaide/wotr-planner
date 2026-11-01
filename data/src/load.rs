@@ -10,16 +10,18 @@ use std::collections::{BTreeSet, HashMap};
 use std::hash::Hash;
 
 use rules::{
-    AbilityModifier, Archetype, ArchetypeKey, Class, ClassKey, ClassLevelRow, Feat, FeatKey,
-    FeatSlot, Feature, FeatureKey, FeatureSelection, FeatureSelectionKey, GameData, GuideRef,
-    MythicAbility, MythicAbilityKey, MythicAscension, MythicFeat, MythicFeatKey, MythicPath,
-    MythicPathKey, MythicRankRow, PathSwitch, Progression, Race, RaceKey, SelectionOption,
-    SelectionOptionKey, Skill, SkillKey, Subrace, SubraceKey,
+    AbilityModifier, Archetype, ArchetypeKey, ArchetypeLevelRow, Class, ClassKey, ClassLevelRow,
+    Feat, FeatKey, FeatSlot, Feature, FeatureKey, FeatureSelection, FeatureSelectionKey, GameData,
+    GuideRef, MythicAbility, MythicAbilityKey, MythicAscension, MythicFeat, MythicFeatKey,
+    MythicPath, MythicPathKey, MythicRankRow, PathSwitch, Progression, Race, RaceKey,
+    SaveException, SelectionOption, SelectionOptionKey, Skill, SkillKey, SpellLevels, Subrace,
+    SubraceKey,
 };
 use sqlx::PgConnection;
 
 use crate::columns::{
-    FeatSlotKind, ability_from, corrupt, feat_category_from, feat_slot_kind_from, to_i8, to_u8,
+    FeatSlotKind, ability_from, bab_progression_from, corrupt, feat_category_from,
+    feat_slot_kind_from, save_from, save_progression_from, to_i8, to_u8,
 };
 use crate::prerequisites::Trees;
 use crate::{Database, Error};
@@ -74,7 +76,8 @@ async fn load(db: &Database) -> Result<GameData, sqlx::Error> {
     feat_slots.finish("feat_slot")?;
     grants.features.finish("granted_feature")?;
     grants.selections.finish("granted_selection")?;
-    levels.finish("class_level")?;
+    levels.class_rows.finish("class_level")?;
+    levels.archetype_rows.finish("class_level")?;
     features.finish("feature")?;
     selections.finish("feature_selection")?;
     class_skills.finish("class_skill")?;
@@ -381,36 +384,89 @@ async fn load_grants(conn: &mut PgConnection) -> Result<Grants, sqlx::Error> {
     Ok(grants)
 }
 
+/// The level rows of classes (by class) and of archetypes (by archetype).
+struct Levels {
+    class_rows: Grouped<Owner, ClassLevelRow>,
+    archetype_rows: Grouped<Owner, ArchetypeLevelRow>,
+}
+
 async fn load_levels(
     conn: &mut PgConnection,
     grants: &mut Grants,
     feat_slots: &mut Grouped<Owner, FeatSlot>,
-) -> Result<Grouped<Owner, ClassLevelRow>, sqlx::Error> {
-    let mut levels = Grouped::new();
+) -> Result<Levels, sqlx::Error> {
+    let mut levels = Levels {
+        class_rows: Grouped::new(),
+        archetype_rows: Grouped::new(),
+    };
     for row in sqlx::query!(
-        "SELECT id, class_key, archetype_key, level, bab, fort, reflex, will, arcane_spell_level,
-            divine_spell_level, advances_arcane, advances_divine
+        "SELECT id, class_key, archetype_key, level, arcane_spell_level, divine_spell_level,
+            advances_arcane, advances_divine
         FROM class_level ORDER BY level"
     )
     .fetch_all(&mut *conn)
     .await?
     {
         let id = Owner::ClassLevel(row.id);
-        let level = ClassLevelRow {
-            level: to_u8(row.level, "class_level.level")?,
-            bab: to_u8(row.bab, "class_level.bab")?,
-            fort: to_u8(row.fort, "class_level.fort")?,
-            reflex: to_u8(row.reflex, "class_level.reflex")?,
-            will: to_u8(row.will, "class_level.will")?,
-            arcane_spell_level: to_u8(row.arcane_spell_level, "class_level.arcane_spell_level")?,
-            divine_spell_level: to_u8(row.divine_spell_level, "class_level.divine_spell_level")?,
-            advances_arcane: row.advances_arcane,
-            advances_divine: row.advances_divine,
-            features: grants.features.take(&id),
-            feat_slots: feat_slots.take(&id),
-            selections: grants.selections.take(&id),
+        let level = to_u8(row.level, "class_level.level")?;
+        let spell_levels = match (row.arcane_spell_level, row.divine_spell_level) {
+            (Some(arcane), Some(divine)) => Some(SpellLevels {
+                arcane: to_u8(arcane, "class_level.arcane_spell_level")?,
+                divine: to_u8(divine, "class_level.divine_spell_level")?,
+            }),
+            (None, None) => None,
+            _ => {
+                return Err(corrupt(format!(
+                    "class_level {}: one spell level set",
+                    row.id
+                )));
+            }
         };
-        levels.push(class_owner(row.class_key, row.archetype_key), level);
+        let (features, feat_slots, selections) = (
+            grants.features.take(&id),
+            feat_slots.take(&id),
+            grants.selections.take(&id),
+        );
+        match (
+            row.archetype_key,
+            spell_levels,
+            row.advances_arcane,
+            row.advances_divine,
+        ) {
+            (None, Some(spells), Some(advances_arcane), Some(advances_divine)) => {
+                levels.class_rows.push(
+                    Owner::Class(row.class_key),
+                    ClassLevelRow {
+                        level,
+                        arcane_spell_level: spells.arcane,
+                        divine_spell_level: spells.divine,
+                        advances_arcane,
+                        advances_divine,
+                        features,
+                        feat_slots,
+                        selections,
+                    },
+                );
+            }
+            (Some(archetype), spell_levels, None, None) => {
+                levels.archetype_rows.push(
+                    Owner::Archetype(archetype),
+                    ArchetypeLevelRow {
+                        level,
+                        spell_levels,
+                        features,
+                        feat_slots,
+                        selections,
+                    },
+                );
+            }
+            _ => {
+                return Err(corrupt(format!(
+                    "class_level {}: the wrong columns for a class or an archetype row",
+                    row.id
+                )));
+            }
+        }
     }
     Ok(levels)
 }
@@ -524,7 +580,7 @@ struct Parts<'a> {
     features: &'a mut Grouped<Owner, Feature>,
     selections: &'a mut Grouped<Owner, FeatureSelection>,
     class_skills: &'a mut Grouped<Owner, SkillKey>,
-    levels: &'a mut Grouped<Owner, ClassLevelRow>,
+    levels: &'a mut Levels,
 }
 
 /// Base classes and prestige classes.
@@ -566,14 +622,32 @@ async fn load_classes(
                 class_skills: row.overrides_class_skills.then_some(class_skills),
                 features: parts.features.take(&owner),
                 selections: parts.selections.take(&owner),
-                levels: parts.levels.take(&owner),
+                levels: parts.levels.archetype_rows.take(&owner),
+            },
+        );
+    }
+
+    let mut save_exceptions = Grouped::new();
+    for row in sqlx::query!(
+        "SELECT class_key, level, save, value FROM save_exception ORDER BY class_key, level, save"
+    )
+    .fetch_all(&mut *conn)
+    .await?
+    {
+        save_exceptions.push(
+            row.class_key,
+            SaveException {
+                level: to_u8(row.level, "save_exception.level")?,
+                save: save_from(&row.save)?,
+                value: to_u8(row.value, "save_exception.value")?,
             },
         );
     }
 
     let (mut classes, mut prestige_classes) = (Vec::new(), Vec::new());
     for row in sqlx::query!(
-        "SELECT key, is_prestige, name, summary, guide, skill_points, prerequisite_root_id
+        "SELECT key, is_prestige, name, summary, guide, skill_points, bab, fort, reflex, will,
+            prerequisite_root_id
         FROM class ORDER BY key"
     )
     .fetch_all(&mut *conn)
@@ -582,6 +656,11 @@ async fn load_classes(
         let owner = Owner::Class(row.key.clone());
         let class = Class {
             archetypes: archetypes.take(&row.key),
+            save_exceptions: save_exceptions.take(&row.key),
+            bab: bab_progression_from(&row.bab)?,
+            fort: save_progression_from(&row.fort)?,
+            reflex: save_progression_from(&row.reflex)?,
+            will: save_progression_from(&row.will)?,
             key: ClassKey(row.key),
             name: row.name,
             summary: row.summary,
@@ -591,7 +670,7 @@ async fn load_classes(
             prerequisite: trees.get(row.prerequisite_root_id)?,
             features: parts.features.take(&owner),
             selections: parts.selections.take(&owner),
-            levels: parts.levels.take(&owner),
+            levels: parts.levels.class_rows.take(&owner),
         };
         if row.is_prestige {
             prestige_classes.push(class);
@@ -600,6 +679,7 @@ async fn load_classes(
         }
     }
     archetypes.finish("archetype")?;
+    save_exceptions.finish("save_exception")?;
     Ok((classes, prestige_classes))
 }
 

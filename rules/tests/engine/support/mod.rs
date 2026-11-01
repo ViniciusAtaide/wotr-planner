@@ -364,17 +364,24 @@ fn feats() -> Vec<Feat> {
     ]
 }
 
-fn row(level: u8, bab: u8, fort: u8, reflex: u8, will: u8) -> ClassLevelRow {
+fn row(level: u8) -> ClassLevelRow {
     ClassLevelRow {
         level,
-        bab,
-        fort,
-        reflex,
-        will,
         arcane_spell_level: 0,
         divine_spell_level: 0,
         advances_arcane: false,
         advances_divine: false,
+        features: vec![],
+        feat_slots: vec![],
+        selections: vec![],
+    }
+}
+
+/// An archetype's row at one level: no grants and the base class's spell levels until filled in.
+fn archetype_row(level: u8) -> ArchetypeLevelRow {
+    ArchetypeLevelRow {
+        level,
+        spell_levels: None,
         features: vec![],
         feat_slots: vec![],
         selections: vec![],
@@ -394,7 +401,7 @@ fn plain_feature(key: &str, name: &str) -> Feature {
 fn fighter() -> Class {
     let levels = (1..=20)
         .map(|l| {
-            let mut r = row(l, l, 2 + l / 2, l / 3, l / 3);
+            let mut r = row(l);
             if l == 1 || l % 2 == 0 {
                 r.feat_slots.push(FeatSlot::CombatFeat);
             }
@@ -404,10 +411,13 @@ fn fighter() -> Class {
             r
         })
         .collect();
-    // Armiger: no Combat feat slots; an order selection at 1 and a fixed-list bonus slot at 2.
+    // Armiger: no Combat feat slots and no Bravery, so a row at 1 and every even level (empty ones take the
+    // fighter's grants away); an order selection at 1 and a fixed-list bonus slot at 2. Odd levels from 3 are the
+    // fighter's.
     let armiger_levels = (1..=20)
+        .filter(|l| l % 2 == 0 || *l == 1)
         .map(|l| {
-            let mut r = row(l, l, 2 + l / 2, l / 3, l / 3);
+            let mut r = archetype_row(l);
             if l == 1 {
                 r.selections
                     .push(FeatureSelectionKey::new("fighter/armiger/order"));
@@ -427,6 +437,11 @@ fn fighter() -> Class {
         summary: String::new(),
         guide: guide("fighter"),
         skill_points: 2,
+        bab: BabProgression::Full,
+        fort: SaveProgression::Good,
+        reflex: SaveProgression::Poor,
+        will: SaveProgression::Poor,
+        save_exceptions: vec![],
         class_skills: BTreeSet::from([skill("athletics")]),
         prerequisite: None,
         features: vec![plain_feature("fighter/bravery", "Bravery")],
@@ -476,7 +491,7 @@ fn rogue() -> Class {
     let talents = FeatureSelectionKey::new("rogue/rogue-talents");
     let levels = (1..=20)
         .map(|l| {
-            let mut r = row(l, l * 3 / 4, l / 3, 2 + l / 2, l / 3);
+            let mut r = row(l);
             if l % 2 == 1 {
                 r.features.push(feature("rogue/sneak-attack"));
             } else {
@@ -485,11 +500,15 @@ fn rogue() -> Class {
             r
         })
         .collect();
-    // Eldritch Scoundrel: arcane spells from level 1, the first Sneak Attack moves to level 2.
+    // Eldritch Scoundrel: arcane spells from level 1 (so a row at every level), the first Sneak Attack moves to
+    // level 2.
     let scoundrel_levels = (1..=20)
         .map(|l| {
-            let mut r = row(l, l * 3 / 4, l / 3, 2 + l / 2, l / 3);
-            r.arcane_spell_level = l.div_ceil(3).min(6);
+            let mut r = archetype_row(l);
+            r.spell_levels = Some(SpellLevels {
+                arcane: l.div_ceil(3).min(6),
+                divine: 0,
+            });
             if l == 2 || (l % 2 == 1 && l > 1) {
                 r.features.push(feature("rogue/sneak-attack"));
             }
@@ -505,6 +524,11 @@ fn rogue() -> Class {
         summary: String::new(),
         guide: guide("rogue"),
         skill_points: 8,
+        bab: BabProgression::ThreeQuarters,
+        fort: SaveProgression::Poor,
+        reflex: SaveProgression::Good,
+        will: SaveProgression::Poor,
+        save_exceptions: vec![],
         class_skills: BTreeSet::from([skill("athletics"), skill("mobility"), skill("persuasion")]),
         prerequisite: None,
         features: vec![plain_feature("rogue/sneak-attack", "Sneak Attack")],
@@ -556,7 +580,7 @@ fn rogue() -> Class {
 fn wizard() -> Class {
     let levels = (1..=20)
         .map(|l| {
-            let mut r = row(l, l / 2, l / 3, l / 3, 2 + l / 2);
+            let mut r = row(l);
             r.arcane_spell_level = l.div_ceil(2).min(9);
             if l % 5 == 0 {
                 r.feat_slots.push(FeatSlot::Category(FeatCategory::Magic));
@@ -570,6 +594,11 @@ fn wizard() -> Class {
         summary: String::new(),
         guide: guide("wizard"),
         skill_points: 2,
+        bab: BabProgression::Half,
+        fort: SaveProgression::Poor,
+        reflex: SaveProgression::Poor,
+        will: SaveProgression::Good,
+        save_exceptions: vec![],
         class_skills: BTreeSet::from([skill("knowledge-arcana")]),
         prerequisite: None,
         features: vec![],
@@ -584,7 +613,7 @@ fn wizard() -> Class {
 fn monk() -> Class {
     let levels = (1..=20)
         .map(|l| {
-            let mut r = row(l, l * 3 / 4, 2 + l / 2, 2 + l / 2, 2 + l / 2);
+            let mut r = row(l);
             if l == 1 || l % 4 == 2 {
                 r.feat_slots.push(FeatSlot::OneOf {
                     feats: BTreeSet::from([feat("crane-style"), feat("dodge")]),
@@ -600,6 +629,11 @@ fn monk() -> Class {
         summary: String::new(),
         guide: guide("monk"),
         skill_points: 4,
+        bab: BabProgression::ThreeQuarters,
+        fort: SaveProgression::Good,
+        reflex: SaveProgression::Good,
+        will: SaveProgression::Good,
+        save_exceptions: vec![],
         class_skills: BTreeSet::from([skill("mobility")]),
         prerequisite: None,
         features: vec![],
@@ -613,7 +647,7 @@ fn monk() -> Class {
 fn cleric() -> Class {
     let levels = (1..=20)
         .map(|l| {
-            let mut r = row(l, l * 3 / 4, 2 + l / 2, l / 3, 2 + l / 2);
+            let mut r = row(l);
             r.divine_spell_level = l.div_ceil(2).min(9);
             r
         })
@@ -624,6 +658,11 @@ fn cleric() -> Class {
         summary: String::new(),
         guide: guide("cleric"),
         skill_points: 2,
+        bab: BabProgression::ThreeQuarters,
+        fort: SaveProgression::Good,
+        reflex: SaveProgression::Poor,
+        will: SaveProgression::Good,
+        save_exceptions: vec![],
         class_skills: BTreeSet::from([skill("persuasion")]),
         prerequisite: None,
         features: vec![],
@@ -637,7 +676,7 @@ fn cleric() -> Class {
 fn mystic_theurge() -> Class {
     let levels = (1..=10)
         .map(|l| {
-            let mut r = row(l, l / 2, l / 3, l / 3, 2 + l / 2);
+            let mut r = row(l);
             r.advances_arcane = true;
             r.advances_divine = true;
             r
@@ -649,6 +688,11 @@ fn mystic_theurge() -> Class {
         summary: String::new(),
         guide: guide("prestige-classes#mystic-theurge"),
         skill_points: 2,
+        bab: BabProgression::Half,
+        fort: SaveProgression::Poor,
+        reflex: SaveProgression::Poor,
+        will: SaveProgression::Good,
+        save_exceptions: vec![],
         class_skills: BTreeSet::from([skill("knowledge-arcana")]),
         prerequisite: Some(Prerequisite::All(vec![
             Prerequisite::SpellLevel {
@@ -671,7 +715,7 @@ fn mystic_theurge() -> Class {
 fn arcane_trickster() -> Class {
     let levels = (1..=10)
         .map(|l| {
-            let mut r = row(l, l / 2, l / 3, 2 + l / 2, 2 + l / 2);
+            let mut r = row(l);
             r.advances_arcane = true;
             if l % 2 == 0 {
                 r.features.push(feature("rogue/sneak-attack"));
@@ -685,6 +729,11 @@ fn arcane_trickster() -> Class {
         summary: String::new(),
         guide: guide("prestige-classes#arcane-trickster"),
         skill_points: 4,
+        bab: BabProgression::Half,
+        fort: SaveProgression::Poor,
+        reflex: SaveProgression::Good,
+        will: SaveProgression::Good,
+        save_exceptions: vec![],
         class_skills: BTreeSet::from([skill("mobility")]),
         prerequisite: Some(Prerequisite::All(vec![
             Prerequisite::SkillRanks {

@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, class_key, archetype_key, level, bab, fort, reflex, will, arcane_spell_level,\n            divine_spell_level, advances_arcane, advances_divine\n        FROM class_level ORDER BY level",
+  "query": "SELECT id, class_key, archetype_key, level, arcane_spell_level, divine_spell_level,\n            advances_arcane, advances_divine\n        FROM class_level ORDER BY level",
   "describe": {
     "columns": [
       {
@@ -49,50 +49,6 @@
       },
       {
         "ordinal": 4,
-        "name": "bab",
-        "type_info": "Int2",
-        "origin": {
-          "Table": {
-            "table": "class_level",
-            "name": "bab"
-          }
-        }
-      },
-      {
-        "ordinal": 5,
-        "name": "fort",
-        "type_info": "Int2",
-        "origin": {
-          "Table": {
-            "table": "class_level",
-            "name": "fort"
-          }
-        }
-      },
-      {
-        "ordinal": 6,
-        "name": "reflex",
-        "type_info": "Int2",
-        "origin": {
-          "Table": {
-            "table": "class_level",
-            "name": "reflex"
-          }
-        }
-      },
-      {
-        "ordinal": 7,
-        "name": "will",
-        "type_info": "Int2",
-        "origin": {
-          "Table": {
-            "table": "class_level",
-            "name": "will"
-          }
-        }
-      },
-      {
-        "ordinal": 8,
         "name": "arcane_spell_level",
         "type_info": "Int2",
         "origin": {
@@ -103,7 +59,7 @@
         }
       },
       {
-        "ordinal": 9,
+        "ordinal": 5,
         "name": "divine_spell_level",
         "type_info": "Int2",
         "origin": {
@@ -114,7 +70,7 @@
         }
       },
       {
-        "ordinal": 10,
+        "ordinal": 6,
         "name": "advances_arcane",
         "type_info": "Bool",
         "origin": {
@@ -125,7 +81,7 @@
         }
       },
       {
-        "ordinal": 11,
+        "ordinal": 7,
         "name": "advances_divine",
         "type_info": "Bool",
         "origin": {
@@ -144,15 +100,11 @@
       false,
       true,
       false,
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-      false
+      true,
+      true,
+      true,
+      true
     ]
   },
-  "hash": "dc6eabbc566bbd6e1150fe5f5305e1dca9068bbc1a0e65fe87bcbb89b7aac0ca"
+  "hash": "cc34f694770e7c8cb3c97df20a0df8a64b96a9c5dad4903be0a0ba46f25a327a"
 }

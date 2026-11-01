@@ -1,0 +1,24 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO save_exception (class_key, level, save, value) VALUES ($1, $2, $3, $4)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Int2",
+        "Text",
+        {
+          "Custom": {
+            "name": "u8",
+            "kind": {
+              "Domain": "Int2"
+            }
+          }
+        }
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "d25a8767587373a91f5d8bae8cd9b699af38e0f911581a67551da27504946db8"
+}

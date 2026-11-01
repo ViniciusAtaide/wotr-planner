@@ -3,8 +3,9 @@
 use std::collections::BTreeSet;
 
 use rules::{
-    ArchetypeKey, ClassKey, DataAt, DataIssue, DataProblem, FeatKey, FeatureKey,
-    FeatureSelectionKey, GameData, MythicPathKey, Prerequisite, RaceKey, SelectionOptionKey,
+    ArchetypeKey, ArchetypeLevelRow, ClassKey, DataAt, DataIssue, DataProblem, FeatKey, FeatSlot,
+    FeatureKey, FeatureSelectionKey, GameData, MythicPathKey, Prerequisite, RaceKey, Save,
+    SaveException, SelectionOptionKey, SpellLevels,
 };
 
 use crate::support::*;
@@ -24,6 +25,11 @@ fn class_mut<'a>(data: &'a mut GameData, key: &str) -> &'a mut rules::Class {
         .unwrap()
 }
 
+fn sorted(mut issues: Vec<(DataAt, DataIssue)>) -> Vec<(DataAt, DataIssue)> {
+    issues.sort();
+    issues
+}
+
 fn at_class(key: &str) -> DataAt {
     DataAt::Class(ClassKey::new(key))
 }
@@ -37,21 +43,143 @@ fn the_test_world_has_no_problems() {
     assert_eq!(issues(&world()), []);
 }
 
+fn at_armiger() -> DataAt {
+    DataAt::Archetype(ArchetypeKey::new("fighter/armiger"))
+}
+
 #[test]
 fn level_rows_run_from_1_with_none_missing() {
     let mut data = world();
     class_mut(&mut data, "wizard").levels.remove(4);
+    assert_eq!(
+        issues(&data),
+        [(at_class("wizard"), DataIssue::LevelRowsNotContiguous)]
+    );
+}
+
+#[test]
+fn an_archetype_row_is_at_one_of_its_class_levels_once() {
+    let mut data = world();
+    let armiger = &mut class_mut(&mut data, "fighter").archetypes[0];
+    // Rows are kept only where the archetype differs, so gaps are fine; outside 1..=20 or twice isn't.
+    armiger.levels[0].level = 0;
+    let mut row_21 = armiger.levels[1].clone();
+    row_21.level = 21;
+    let twice = armiger.levels[1].clone();
+    armiger.levels.extend([row_21, twice]);
+    assert_eq!(
+        issues(&data),
+        sorted(vec![
+            (at_armiger(), DataIssue::ArchetypeRowOutsideClass(0)),
+            (at_armiger(), DataIssue::ArchetypeRowOutsideClass(21)),
+            (at_armiger(), DataIssue::DuplicateArchetypeRow(2)),
+        ])
+    );
+}
+
+#[test]
+fn an_archetype_row_differs_from_the_base_row() {
+    let mut data = world();
     let fighter = class_mut(&mut data, "fighter");
-    fighter.archetypes[0].levels[0].level = 0;
+    let base_3 = fighter.levels[2].clone();
+    let base_5 = fighter.levels[4].clone();
+    let armiger = &mut fighter.archetypes[0];
+    // Level 3: the fighter's grants, written in another order, and no spell levels of its own.
+    armiger.levels.push(ArchetypeLevelRow {
+        level: 3,
+        spell_levels: None,
+        features: base_3.features.iter().rev().cloned().collect(),
+        feat_slots: base_3.feat_slots.clone(),
+        selections: base_3.selections.clone(),
+    });
+    // Level 5: the fighter's grants and the fighter's spell levels set again.
+    armiger.levels.push(ArchetypeLevelRow {
+        level: 5,
+        spell_levels: Some(base_5.spell_levels()),
+        features: base_5.features.clone(),
+        feat_slots: base_5.feat_slots.clone(),
+        selections: base_5.selections.clone(),
+    });
+    // Level 7: its own grants, but a spell override equal to the fighter's.
+    armiger.levels.push(ArchetypeLevelRow {
+        level: 7,
+        spell_levels: Some(SpellLevels::default()),
+        features: vec![],
+        feat_slots: vec![FeatSlot::CombatFeat],
+        selections: vec![],
+    });
     assert_eq!(
         issues(&data),
         [
-            (at_class("wizard"), DataIssue::LevelRowsNotContiguous),
-            (
-                DataAt::Archetype(ArchetypeKey::new("fighter/armiger")),
-                DataIssue::LevelRowsNotContiguous
-            ),
+            (at_armiger(), DataIssue::ArchetypeRowSameAsBase(3)),
+            (at_armiger(), DataIssue::ArchetypeRowSameAsBase(5)),
+            (at_armiger(), DataIssue::SpellOverrideSameAsBase(7)),
         ]
+    );
+}
+
+#[test]
+fn a_spell_override_stays_in_range() {
+    let mut data = world();
+    let rogue = class_mut(&mut data, "rogue");
+    rogue.archetypes[0].levels[19].spell_levels = Some(SpellLevels {
+        arcane: 10,
+        divine: 0,
+    });
+    assert_eq!(
+        issues(&data),
+        [(
+            DataAt::Archetype(ArchetypeKey::new("rogue/eldritch-scoundrel")),
+            DataIssue::SpellLevelOutOfRange(10)
+        )]
+    );
+}
+
+#[test]
+fn a_save_exception_differs_from_the_formula_at_one_of_the_class_levels() {
+    let mut data = world();
+    let exception = |level, save, value| SaveException { level, save, value };
+    // Wizard: poor Fortitude, good Will. The base formula gives Will +3 at 2 and Fortitude +1 at 3.
+    class_mut(&mut data, "wizard").save_exceptions = vec![
+        exception(2, Save::Will, 4),
+        exception(2, Save::Will, 5),
+        exception(3, Save::Fortitude, 1),
+        exception(21, Save::Reflex, 9),
+    ];
+    // Arcane Trickster (prestige): good Reflex, ⌊(1+1)/2⌋ = +1 at 1.
+    class_mut(&mut data, "arcane-trickster").save_exceptions = vec![exception(1, Save::Reflex, 1)];
+    assert_eq!(
+        issues(&data),
+        sorted(vec![
+            (
+                at_class("arcane-trickster"),
+                DataIssue::SaveExceptionSameAsFormula {
+                    level: 1,
+                    save: Save::Reflex
+                }
+            ),
+            (
+                at_class("wizard"),
+                DataIssue::DuplicateSaveException {
+                    level: 2,
+                    save: Save::Will
+                }
+            ),
+            (
+                at_class("wizard"),
+                DataIssue::SaveExceptionSameAsFormula {
+                    level: 3,
+                    save: Save::Fortitude
+                }
+            ),
+            (
+                at_class("wizard"),
+                DataIssue::SaveExceptionOutsideClass {
+                    level: 21,
+                    save: Save::Reflex
+                }
+            ),
+        ])
     );
 }
 
@@ -63,6 +191,7 @@ fn only_base_classes_have_archetypes() {
         .archetypes
         .push(rules::Archetype {
             key: ArchetypeKey::new("arcane-trickster/x"),
+            levels: vec![],
             ..armiger
         });
     assert_eq!(

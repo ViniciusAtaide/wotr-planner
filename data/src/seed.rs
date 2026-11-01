@@ -3,12 +3,15 @@
 use std::collections::BTreeSet;
 
 use rules::{
-    AbilityModifier, Archetype, Class, ClassLevelRow, FeatSlot, Feature, FeatureKey,
-    FeatureSelection, FeatureSelectionKey, GameData, MythicPath, Race, SkillKey,
+    AbilityModifier, Archetype, ArchetypeLevelRow, Class, ClassLevelRow, FeatSlot, Feature,
+    FeatureKey, FeatureSelection, FeatureSelectionKey, GameData, MythicPath, Race, SkillKey,
 };
 use sqlx::PgConnection;
 
-use crate::columns::{FeatSlotKind, ability_text, feat_category_text, feat_slot_kind_text};
+use crate::columns::{
+    FeatSlotKind, ability_text, bab_progression_text, feat_category_text, feat_slot_kind_text,
+    save_progression_text, save_text,
+};
 use crate::{Database, Error, prerequisites};
 
 /// Checks `data` ([`GameData::check`]), then deletes every game table's rows and loads `data` in
@@ -30,7 +33,8 @@ async fn insert_all(db: &Database, data: &GameData, hash: &str) -> Result<(), sq
     // Every foreign key is deferred, so the order of the inserts below doesn't matter to them.
     sqlx::query!(
         "TRUNCATE game_data_seed, mythic_ascension, prerequisite_node, skill, race, subrace,
-            ability_modifier, feat, class, archetype, class_skill, mythic_ability, mythic_feat,
+            ability_modifier, feat, class, save_exception, archetype, class_skill, mythic_ability,
+            mythic_feat,
             mythic_path, path_switch, path_switch_kept_rank, feature, feature_selection,
             selection_option, class_level, mythic_rank, granted_feature, granted_selection,
             feat_slot, feat_slot_option
@@ -226,19 +230,34 @@ async fn insert_class(
 ) -> Result<(), sqlx::Error> {
     let root = prerequisites::insert(conn, class.prerequisite.as_ref()).await?;
     sqlx::query!(
-        "INSERT INTO class
-            (key, is_prestige, name, summary, guide, skill_points, prerequisite_root_id)
-        VALUES ($1, $2, $3, $4, $5, $6, $7)",
+        "INSERT INTO class (key, is_prestige, name, summary, guide, skill_points, bab, fort, reflex,
+            will, prerequisite_root_id)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
         class.key.as_str(),
         is_prestige,
         class.name,
         class.summary,
         class.guide.0,
         i16::from(class.skill_points),
+        bab_progression_text(class.bab),
+        save_progression_text(class.fort),
+        save_progression_text(class.reflex),
+        save_progression_text(class.will),
         root,
     )
     .execute(&mut *conn)
     .await?;
+    for exception in class.save_exceptions.iter() {
+        sqlx::query!(
+            "INSERT INTO save_exception (class_key, level, save, value) VALUES ($1, $2, $3, $4)",
+            class.key.as_str(),
+            i16::from(exception.level),
+            save_text(exception.save),
+            i16::from(exception.value),
+        )
+        .execute(&mut *conn)
+        .await?;
+    }
     let owner = ClassOwner {
         class: class.key.as_str(),
         archetype: None,
@@ -283,7 +302,7 @@ async fn insert_archetype(
     }
     insert_features(conn, Owner::Class(owner), &archetype.features).await?;
     insert_selections(conn, Owner::Class(owner), &archetype.selections).await?;
-    insert_levels(conn, owner, &archetype.levels).await
+    insert_archetype_levels(conn, owner, &archetype.levels).await
 }
 
 async fn insert_class_skills(
@@ -379,21 +398,44 @@ async fn insert_levels(
 ) -> Result<(), sqlx::Error> {
     for row in levels.iter() {
         let id = sqlx::query_scalar!(
-            "INSERT INTO class_level (class_key, archetype_key, level, bab, fort, reflex,
-                will, arcane_spell_level, divine_spell_level, advances_arcane, advances_divine)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+            "INSERT INTO class_level (class_key, archetype_key, level, arcane_spell_level,
+                divine_spell_level, advances_arcane, advances_divine)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
             RETURNING id",
             owner.class,
             owner.archetype,
             i16::from(row.level),
-            i16::from(row.bab),
-            i16::from(row.fort),
-            i16::from(row.reflex),
-            i16::from(row.will),
             i16::from(row.arcane_spell_level),
             i16::from(row.divine_spell_level),
             row.advances_arcane,
             row.advances_divine,
+        )
+        .fetch_one(&mut *conn)
+        .await?;
+        let grantor = SlotOwner::ClassLevel(id);
+        insert_grants(conn, grantor, &row.features, &row.selections).await?;
+        insert_feat_slots(conn, grantor, &row.feat_slots).await?;
+    }
+    Ok(())
+}
+
+/// An archetype's rows: spell levels only where it sets its own, and no advances flags.
+async fn insert_archetype_levels(
+    conn: &mut PgConnection,
+    owner: ClassOwner<'_>,
+    levels: &[ArchetypeLevelRow],
+) -> Result<(), sqlx::Error> {
+    for row in levels.iter() {
+        let id = sqlx::query_scalar!(
+            "INSERT INTO class_level (class_key, archetype_key, level, arcane_spell_level,
+                divine_spell_level)
+            VALUES ($1, $2, $3, $4, $5)
+            RETURNING id",
+            owner.class,
+            owner.archetype,
+            i16::from(row.level),
+            row.spell_levels.map(|spells| i16::from(spells.arcane)),
+            row.spell_levels.map(|spells| i16::from(spells.divine)),
         )
         .fetch_one(&mut *conn)
         .await?;

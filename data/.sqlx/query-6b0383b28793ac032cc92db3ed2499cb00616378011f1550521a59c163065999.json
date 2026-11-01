@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT key, is_prestige, name, summary, guide, skill_points, prerequisite_root_id\n        FROM class ORDER BY key",
+  "query": "SELECT key, is_prestige, name, summary, guide, skill_points, bab, fort, reflex, will,\n            prerequisite_root_id\n        FROM class ORDER BY key",
   "describe": {
     "columns": [
       {
@@ -71,6 +71,50 @@
       },
       {
         "ordinal": 6,
+        "name": "bab",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "class",
+            "name": "bab"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "fort",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "class",
+            "name": "fort"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "reflex",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "class",
+            "name": "reflex"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "will",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "class",
+            "name": "will"
+          }
+        }
+      },
+      {
+        "ordinal": 10,
         "name": "prerequisite_root_id",
         "type_info": "Int8",
         "origin": {
@@ -91,8 +135,12 @@
       false,
       false,
       false,
+      false,
+      false,
+      false,
+      false,
       true
     ]
   },
-  "hash": "5dd4ba9a0d98a0f1ae5cbd083fca350c4782b4f6a4eee4cbfe68a60cfaa082fa"
+  "hash": "6b0383b28793ac032cc92db3ed2499cb00616378011f1550521a59c163065999"
 }

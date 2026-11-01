@@ -10,7 +10,9 @@ use std::collections::HashSet;
 use std::fmt;
 
 use crate::engine::{BASE_LEVEL_CAP, PATH_SWITCH_RANK};
-use crate::game_data::{Class, ClassLevelRow, FeatSlot, FeatureSelection, GameData, MythicPath};
+use crate::game_data::{
+    Archetype, Class, ClassLevelRow, FeatSlot, FeatureSelection, GameData, MythicPath, Save,
+};
 use crate::keys::{
     ArchetypeKey, ClassKey, FeatKey, FeatureKey, FeatureSelectionKey, MythicAbilityKey,
     MythicFeatKey, MythicPathKey, RaceKey, SelectionOptionKey, SkillKey, SubraceKey,
@@ -131,6 +133,30 @@ pub enum DataIssue {
     RankOutOfRange(u8),
     /// A spell level above 9.
     SpellLevelOutOfRange(u8),
+    /// An archetype row at a level its base class doesn't have.
+    ArchetypeRowOutsideClass(u8),
+    /// Two archetype rows at one level.
+    DuplicateArchetypeRow(u8),
+    /// An archetype row that changes nothing: the base row's grants and no spell levels of its own (or the base
+    /// row's). Leave the level out instead.
+    ArchetypeRowSameAsBase(u8),
+    /// An archetype row whose spell levels are the base row's anyway. Leave them out instead.
+    SpellOverrideSameAsBase(u8),
+    /// A save exception at a level the class doesn't have.
+    SaveExceptionOutsideClass {
+        level: u8,
+        save: Save,
+    },
+    /// Two save exceptions for one cell.
+    DuplicateSaveException {
+        level: u8,
+        save: Save,
+    },
+    /// A save exception the class's progression gives anyway.
+    SaveExceptionSameAsFormula {
+        level: u8,
+        save: Save,
+    },
     /// A race or a mythic rank that grants a feat slot ignoring prerequisites. Only a class's (or archetype's)
     /// level rows can: the bonus list is the class's own.
     BonusListOutsideAClass,
@@ -165,6 +191,32 @@ impl fmt::Display for DataProblem {
             DataIssue::SpellLevelOutOfRange(level) => {
                 write!(f, "spell level {level} is above {MAX_SPELL_LEVEL}")
             }
+            DataIssue::ArchetypeRowOutsideClass(level) => {
+                write!(
+                    f,
+                    "a row at level {level}, which the base class doesn't have"
+                )
+            }
+            DataIssue::DuplicateArchetypeRow(level) => write!(f, "two rows at level {level}"),
+            DataIssue::ArchetypeRowSameAsBase(level) => write!(
+                f,
+                "the row at level {level} is the base class's; leave the level out"
+            ),
+            DataIssue::SpellOverrideSameAsBase(level) => write!(
+                f,
+                "the spell levels at level {level} are the base class's; leave them out"
+            ),
+            DataIssue::SaveExceptionOutsideClass { level, save } => write!(
+                f,
+                "a {save:?} exception at level {level}, which the class doesn't have"
+            ),
+            DataIssue::DuplicateSaveException { level, save } => {
+                write!(f, "two {save:?} exceptions at level {level}")
+            }
+            DataIssue::SaveExceptionSameAsFormula { level, save } => write!(
+                f,
+                "the {save:?} exception at level {level} is what the progression gives anyway"
+            ),
             DataIssue::BonusListOutsideAClass => f.write_str(
                 "a feat slot that ignores prerequisites is granted outside a class's level rows",
             ),
@@ -339,6 +391,54 @@ impl Checker {
         }
     }
 
+    /// An archetype stores only the levels where it differs from its base class, each once.
+    fn archetype_rows(&mut self, at: &DataAt, class: &Class, archetype: &Archetype) {
+        let mut seen = HashSet::new();
+        for row in &archetype.levels {
+            if !seen.insert(row.level) {
+                self.problem(at, DataIssue::DuplicateArchetypeRow(row.level));
+            }
+            let Some(base) = class.levels.iter().find(|base| base.level == row.level) else {
+                self.problem(at, DataIssue::ArchetypeRowOutsideClass(row.level));
+                continue;
+            };
+            if let Some(spells) = row.spell_levels {
+                for spell_level in [spells.arcane, spells.divine] {
+                    if spell_level > MAX_SPELL_LEVEL {
+                        self.problem(at, DataIssue::SpellLevelOutOfRange(spell_level));
+                    }
+                }
+            }
+            let same_spells = row
+                .spell_levels
+                .is_none_or(|spells| spells == base.spell_levels());
+            let same_grants = sorted(&row.features) == sorted(&base.features)
+                && sorted(&row.feat_slots) == sorted(&base.feat_slots)
+                && sorted(&row.selections) == sorted(&base.selections);
+            if same_spells && same_grants {
+                self.problem(at, DataIssue::ArchetypeRowSameAsBase(row.level));
+            } else if row.spell_levels == Some(base.spell_levels()) {
+                self.problem(at, DataIssue::SpellOverrideSameAsBase(row.level));
+            }
+        }
+    }
+
+    /// A save exception is a guide cell the progression doesn't give, at one of the class's levels, once.
+    fn save_exceptions(&mut self, at: &DataAt, class: &Class, prestige: bool) {
+        let mut seen = HashSet::new();
+        for exception in &class.save_exceptions {
+            let (level, save) = (exception.level, exception.save);
+            if !seen.insert((level, save)) {
+                self.problem(at, DataIssue::DuplicateSaveException { level, save });
+            }
+            if !class.levels.iter().any(|row| row.level == level) {
+                self.problem(at, DataIssue::SaveExceptionOutsideClass { level, save });
+            } else if class.save_progression(save).save(level, prestige) == exception.value {
+                self.problem(at, DataIssue::SaveExceptionSameAsFormula { level, save });
+            }
+        }
+    }
+
     fn class(&mut self, class: &Class, prestige: bool) {
         let at = DataAt::Class(class.key.clone());
         self.key(&at);
@@ -348,6 +448,7 @@ impl Checker {
         }
         self.selections(&class.selections);
         self.rows(&at, &class.levels, prestige);
+        self.save_exceptions(&at, class, prestige);
         if prestige && !class.archetypes.is_empty() {
             self.problem(&at, DataIssue::ArchetypeOnPrestigeClass);
         }
@@ -359,7 +460,7 @@ impl Checker {
                 self.key(&DataAt::Feature(feature.key.clone()));
             }
             self.selections(&archetype.selections);
-            self.rows(&at, &archetype.levels, false);
+            self.archetype_rows(&at, class, archetype);
         }
     }
 
@@ -391,4 +492,11 @@ impl Checker {
             }
         }
     }
+}
+
+/// A multiset's items in order, for comparing two of them.
+fn sorted<T: Ord>(items: &[T]) -> Vec<&T> {
+    let mut items: Vec<&T> = items.iter().collect();
+    items.sort();
+    items
 }

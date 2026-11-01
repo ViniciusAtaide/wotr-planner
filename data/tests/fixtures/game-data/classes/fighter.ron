@@ -5,14 +5,18 @@ Class(
     summary: "Martial class with many bonus combat feats.",
     guide: "fighter",
     skill_points: 2,
+    bab: Full,
+    fort: Good,
+    reflex: Poor,
+    will: Poor,
     class_skills: ["athletics"],
     features: [
         (key: "fighter/bravery", name: "Bravery", guide: "fighter#bravery"),
     ],
     levels: [
-        (level: 1, bab: 1, fort: 2, reflex: 0, will: 0, feat_slots: [CombatFeat]),
-        (level: 2, bab: 2, fort: 3, reflex: 0, will: 0, features: ["fighter/bravery"], feat_slots: [CombatFeat]),
-        (level: 3, bab: 3, fort: 3, reflex: 1, will: 1),
+        (level: 1, feat_slots: [CombatFeat]),
+        (level: 2, features: ["fighter/bravery"], feat_slots: [CombatFeat]),
+        (level: 3),
     ],
     archetypes: [
         (
@@ -36,9 +40,9 @@ Class(
                 ),
             ],
             levels: [
-                (level: 1, bab: 1, fort: 2, reflex: 0, will: 0, selections: ["fighter/armiger/order"]),
-                (level: 2, bab: 2, fort: 3, reflex: 0, will: 0, features: ["fighter/armiger/armigers-mastery"], feat_slots: [OneOf(feats: ["power-attack", "combat-expertise"])]),
-                (level: 3, bab: 3, fort: 3, reflex: 1, will: 1, feat_slots: [Category(Teamwork)]),
+                (level: 1, selections: ["fighter/armiger/order"]),
+                (level: 2, features: ["fighter/armiger/armigers-mastery"], feat_slots: [OneOf(feats: ["power-attack", "combat-expertise"])]),
+                (level: 3, feat_slots: [Category(Teamwork)]),
             ],
         ),
     ],

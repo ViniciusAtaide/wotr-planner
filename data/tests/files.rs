@@ -6,7 +6,8 @@ use std::fs;
 
 use common::{copy_fixture, fixture_dir};
 use rules::{
-    Ability, ClassKey, FeatKey, FeatSlot, FeatureKey, GameData, MythicPathKey, Prerequisite,
+    Ability, ArchetypeLevelRow, BabProgression, ClassKey, FeatKey, FeatSlot, FeatureKey, GameData,
+    MythicPathKey, Prerequisite, Save, SaveException, SaveProgression, SpellLevels,
 };
 
 fn read_fixture() -> GameData {
@@ -62,6 +63,79 @@ fn reads_every_fixture_file() {
         ]
     );
     assert_eq!(data.progression.mythic_ascensions.len(), 10);
+}
+
+#[test]
+fn reads_class_progressions_and_only_the_archetype_rows_that_differ() {
+    let data = read_fixture();
+    let class = |key: &str| {
+        data.classes
+            .iter()
+            .chain(&data.prestige_classes)
+            .find(|c| c.key.as_str() == key)
+            .unwrap()
+    };
+    let fighter = class("fighter");
+    assert_eq!(
+        (fighter.bab, fighter.fort, fighter.reflex, fighter.will),
+        (
+            BabProgression::Full,
+            SaveProgression::Good,
+            SaveProgression::Poor,
+            SaveProgression::Poor
+        )
+    );
+    assert_eq!(fighter.save_exceptions, []);
+    assert_eq!(class("mystic-theurge").bab, BabProgression::Half);
+
+    // The herald's rows were all the cleric's, so it stores none.
+    let herald = &class("cleric").archetypes[0];
+    assert_eq!(herald.key.as_str(), "cleric/herald");
+    assert_eq!(herald.levels, []);
+
+    // The Eldritch Scoundrel casts arcane spells the rogue doesn't.
+    let scoundrel = &class("rogue").archetypes[0];
+    assert_eq!(
+        scoundrel.levels[0],
+        ArchetypeLevelRow {
+            level: 1,
+            spell_levels: Some(SpellLevels {
+                arcane: 1,
+                divine: 0
+            }),
+            features: vec![FeatureKey::new("rogue/eldritch-scoundrel/spells")],
+            feat_slots: vec![],
+            selections: vec![],
+        }
+    );
+}
+
+#[test]
+fn reads_save_exceptions() {
+    let dir = copy_fixture();
+    let fighter = dir.path().join("classes/fighter.ron");
+    let text = fs::read_to_string(&fighter).unwrap();
+    fs::write(
+        &fighter,
+        text.replacen(
+            "    will: Poor,\n",
+            "    will: Poor,\n    save_exceptions: [(level: 2, save: Will, value: 1)],\n",
+            1,
+        ),
+    )
+    .unwrap();
+
+    let data = data::read_game_data_files(dir.path()).unwrap();
+    let fighter = data.classes.iter().find(|c| c.key.as_str() == "fighter");
+    assert_eq!(
+        fighter.unwrap().save_exceptions,
+        [SaveException {
+            level: 2,
+            save: Save::Will,
+            value: 1
+        }]
+    );
+    assert_eq!(data.check(), []);
 }
 
 #[test]
@@ -213,77 +287,4 @@ fn checking_the_files_lists_the_data_problems() {
         "{error}"
     );
     assert!(error.to_string().contains("athletics"), "{error}");
-}
-
-/// Archetypes whose BAB, saves or spell levels are allowed to differ from their base class's at the same level,
-/// with the column that differs. Everything else must match: an archetype's full rows repeat those numbers, and
-/// this catches a copy that drifted.
-const ARCHETYPE_NUMBERS_ALLOWED_TO_DIFFER: &[(&str, &str)] = &[
-    // Eldritch Scoundrel casts arcane spells; the rogue doesn't.
-    ("rogue/eldritch-scoundrel", "arcane_spell_level"),
-];
-
-/// Every archetype row number that differs from the base class's at the same level and isn't allow-listed.
-fn archetype_differences(data: &GameData) -> Vec<String> {
-    let mut differences = Vec::new();
-    for class in &data.classes {
-        for archetype in &class.archetypes {
-            for row in &archetype.levels {
-                let Some(base) = class.levels.iter().find(|r| r.level == row.level) else {
-                    continue;
-                };
-                let columns = [
-                    ("bab", row.bab, base.bab),
-                    ("fort", row.fort, base.fort),
-                    ("reflex", row.reflex, base.reflex),
-                    ("will", row.will, base.will),
-                    (
-                        "arcane_spell_level",
-                        row.arcane_spell_level,
-                        base.arcane_spell_level,
-                    ),
-                    (
-                        "divine_spell_level",
-                        row.divine_spell_level,
-                        base.divine_spell_level,
-                    ),
-                ];
-                for (column, archetype_value, base_value) in columns {
-                    let allowed = ARCHETYPE_NUMBERS_ALLOWED_TO_DIFFER
-                        .contains(&(archetype.key.as_str(), column));
-                    if archetype_value != base_value && !allowed {
-                        differences.push(format!(
-                            "{} level {}: {column} {archetype_value}, base class {base_value}",
-                            archetype.key, row.level
-                        ));
-                    }
-                }
-            }
-        }
-    }
-    differences
-}
-
-#[test]
-fn archetype_numbers_match_the_base_class_unless_allow_listed() {
-    let differences = archetype_differences(&read_fixture());
-    assert!(differences.is_empty(), "{differences:#?}");
-}
-
-#[test]
-fn the_archetype_check_catches_a_drifted_copy() {
-    let dir = copy_fixture();
-    let fighter = dir.path().join("classes/fighter.ron");
-    let text = fs::read_to_string(&fighter).unwrap();
-    // The armiger's level 3 row is the last `(level: 3, bab: 3` in the file.
-    let at = text.rfind("(level: 3, bab: 3").unwrap();
-    let mut edited = text.clone();
-    edited.replace_range(at..at + "(level: 3, bab: 3".len(), "(level: 3, bab: 2");
-    fs::write(&fighter, edited).unwrap();
-
-    let data = data::read_game_data_files(dir.path()).unwrap();
-    assert_eq!(
-        archetype_differences(&data),
-        ["fighter/armiger level 3: bab 2, base class 3"]
-    );
 }

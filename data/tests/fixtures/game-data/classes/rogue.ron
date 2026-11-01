@@ -4,6 +4,10 @@ Class(
     name: "Rogue",
     guide: "rogue",
     skill_points: 8,
+    bab: ThreeQuarters,
+    fort: Poor,
+    reflex: Good,
+    will: Poor,
     class_skills: ["athletics", "mobility", "persuasion"],
     features: [
         (key: "rogue/sneak-attack", name: "Sneak Attack", summary: "Extra damage against flanked foes.", guide: "rogue#sneak-attack"),
@@ -33,9 +37,9 @@ Class(
         ),
     ],
     levels: [
-        (level: 1, bab: 0, fort: 0, reflex: 2, will: 0, features: ["rogue/sneak-attack"]),
-        (level: 2, bab: 1, fort: 0, reflex: 3, will: 0, selections: ["rogue/rogue-talents"]),
-        (level: 3, bab: 2, fort: 1, reflex: 3, will: 1, features: ["rogue/sneak-attack"]),
+        (level: 1, features: ["rogue/sneak-attack"]),
+        (level: 2, selections: ["rogue/rogue-talents"]),
+        (level: 3, features: ["rogue/sneak-attack"]),
     ],
     archetypes: [
         (
@@ -49,9 +53,9 @@ Class(
                 (key: "rogue/eldritch-scoundrel/spells", name: "Spells", guide: "rogue#eldritch-scoundrel-spells"),
             ],
             levels: [
-                (level: 1, bab: 0, fort: 0, reflex: 2, will: 0, arcane_spell_level: 1, features: ["rogue/eldritch-scoundrel/spells"]),
-                (level: 2, bab: 1, fort: 0, reflex: 3, will: 0, arcane_spell_level: 1, features: ["rogue/sneak-attack"]),
-                (level: 3, bab: 2, fort: 1, reflex: 3, will: 1, arcane_spell_level: 1, selections: ["rogue/rogue-talents"]),
+                (level: 1, spell_levels: (arcane: 1, divine: 0), features: ["rogue/eldritch-scoundrel/spells"]),
+                (level: 2, spell_levels: (arcane: 1, divine: 0), features: ["rogue/sneak-attack"]),
+                (level: 3, spell_levels: (arcane: 1, divine: 0), selections: ["rogue/rogue-talents"]),
             ],
         ),
     ],

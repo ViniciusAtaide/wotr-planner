@@ -151,6 +151,13 @@ fn canonicalize_rows(rows: &mut [ClassLevelRow]) {
     }
 }
 
+fn canonicalize_archetype_rows(rows: &mut [ArchetypeLevelRow]) {
+    rows.sort_by_key(|r| r.level);
+    for row in rows {
+        sort_grants(&mut row.features, &mut row.feat_slots, &mut row.selections);
+    }
+}
+
 /// The grants of a class level row or a mythic rank row are multisets: sorted by value.
 fn sort_grants(
     features: &mut [FeatureKey],
@@ -167,13 +174,14 @@ impl Class {
         canonicalize_prerequisite(&mut self.prerequisite);
         sort_by_key(&mut self.features, |f| f.key.clone());
         canonicalize_selections(&mut self.selections);
+        self.save_exceptions.sort();
         canonicalize_rows(&mut self.levels);
         sort_by_key(&mut self.archetypes, |a| a.key.clone());
         for archetype in &mut self.archetypes {
             canonicalize_prerequisite(&mut archetype.prerequisite);
             sort_by_key(&mut archetype.features, |f| f.key.clone());
             canonicalize_selections(&mut archetype.selections);
-            canonicalize_rows(&mut archetype.levels);
+            canonicalize_archetype_rows(&mut archetype.levels);
         }
     }
 }
@@ -359,6 +367,14 @@ pub struct Class {
     pub summary: String,
     pub guide: GuideRef,
     pub skill_points: u8,
+    /// How the base attack bonus grows with class level. Archetypes never change it.
+    pub bab: BabProgression,
+    pub fort: SaveProgression,
+    pub reflex: SaveProgression,
+    pub will: SaveProgression,
+    /// The guide's save cells that its own progression doesn't give (paladin's Will +20 at 20), kept as printed.
+    #[serde(default)]
+    pub save_exceptions: Vec<SaveException>,
     #[serde(default)]
     pub class_skills: BTreeSet<SkillKey>,
     /// Entry prerequisites: a prestige class's, or a base class's alignment rule.
@@ -375,7 +391,8 @@ pub struct Class {
     pub archetypes: Vec<Archetype>,
 }
 
-/// An archetype. Its level rows replace the base class's in full.
+/// An archetype. It stores only the levels where it differs from its base class: see
+/// [`effective_row`](crate::effective_row).
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Archetype {
@@ -397,19 +414,143 @@ pub struct Archetype {
     pub features: Vec<Feature>,
     #[serde(default)]
     pub selections: Vec<FeatureSelection>,
-    pub levels: Vec<ClassLevelRow>,
+    /// The levels where the archetype differs from its base class, each at most once. A level left out is the
+    /// base class's row.
+    #[serde(default)]
+    pub levels: Vec<ArchetypeLevelRow>,
 }
 
-/// What one Class level of a class, archetype or prestige class gives.
+/// One level where an archetype differs from its base class. Its grants replace the base row's in full (an
+/// empty list takes the base row's away), and its spell levels replace the base row's when set.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ArchetypeLevelRow {
+    pub level: u8,
+    /// `None`: the base class's spell levels at this level.
+    #[serde(default)]
+    pub spell_levels: Option<SpellLevels>,
+    #[serde(default)]
+    pub features: Vec<FeatureKey>,
+    #[serde(default)]
+    pub feat_slots: Vec<FeatSlot>,
+    /// One Feature selection slot per entry.
+    #[serde(default)]
+    pub selections: Vec<FeatureSelectionKey>,
+}
+
+/// The highest arcane and divine spell levels castable at a Class level; 0 when none.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct SpellLevels {
+    pub arcane: u8,
+    pub divine: u8,
+}
+
+impl SpellLevels {
+    /// Whether any spells are castable.
+    pub fn any(self) -> bool {
+        self.arcane > 0 || self.divine > 0
+    }
+}
+
+/// How a class's base attack bonus grows: the guide's full, ¾ and ½ columns.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+pub enum BabProgression {
+    Full,
+    ThreeQuarters,
+    Half,
+}
+
+impl BabProgression {
+    /// The base attack bonus at a class level: `L`, `⌊3L/4⌋` or `⌊L/2⌋`, for base and prestige classes alike.
+    pub fn bab(self, class_level: u8) -> u8 {
+        let level = u16::from(class_level);
+        let bab = match self {
+            Self::Full => level,
+            Self::ThreeQuarters => level * 3 / 4,
+            Self::Half => level / 2,
+        };
+        u8::try_from(bab).unwrap_or(u8::MAX)
+    }
+}
+
+/// How one of a class's saves grows: good or poor.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+pub enum SaveProgression {
+    Good,
+    Poor,
+}
+
+impl SaveProgression {
+    /// The save bonus at a class level. Base classes: good `2 + ⌊L/2⌋`, poor `⌊L/3⌋`. Prestige classes: good
+    /// `⌊(L+1)/2⌋`, poor `⌊(L+1)/3⌋`.
+    pub fn save(self, class_level: u8, prestige: bool) -> u8 {
+        let level = u16::from(class_level);
+        let bonus = match (self, prestige) {
+            (Self::Good, false) => 2 + level / 2,
+            (Self::Poor, false) => level / 3,
+            (Self::Good, true) => level.div_ceil(2),
+            (Self::Poor, true) => (level + 1) / 3,
+        };
+        u8::try_from(bonus).unwrap_or(u8::MAX)
+    }
+}
+
+/// One of the three saving throws.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+pub enum Save {
+    Fortitude,
+    Reflex,
+    Will,
+}
+
+impl Save {
+    pub const ALL: [Save; 3] = [Save::Fortitude, Save::Reflex, Save::Will];
+}
+
+/// A save cell the guide prints differently from the class's progression, kept as printed.
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct SaveException {
+    pub level: u8,
+    pub save: Save,
+    pub value: u8,
+}
+
+impl Class {
+    /// The progression of one save.
+    pub fn save_progression(&self, save: Save) -> SaveProgression {
+        match save {
+            Save::Fortitude => self.fort,
+            Save::Reflex => self.reflex,
+            Save::Will => self.will,
+        }
+    }
+
+    /// The base attack bonus at a class level.
+    pub fn base_attack_bonus(&self, class_level: u8) -> u8 {
+        self.bab.bab(class_level)
+    }
+
+    /// One save at a class level: the guide's cell when it's an exception, else the progression's formula
+    /// (`prestige` picks the prestige formula).
+    pub fn save_bonus(&self, save: Save, class_level: u8, prestige: bool) -> u8 {
+        self.save_exceptions
+            .iter()
+            .find(|exception| exception.level == class_level && exception.save == save)
+            .map_or_else(
+                || self.save_progression(save).save(class_level, prestige),
+                |exception| exception.value,
+            )
+    }
+}
+
+/// What one Class level of a class or prestige class gives. BAB and saves aren't here: they follow from the
+/// class's progressions.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ClassLevelRow {
     pub level: u8,
-    /// Base attack bonus at this Class level (the first number of "+6 / +1").
-    pub bab: u8,
-    pub fort: u8,
-    pub reflex: u8,
-    pub will: u8,
     /// Highest arcane spell level castable at this Class level; 0 when none.
     #[serde(default)]
     pub arcane_spell_level: u8,
@@ -429,6 +570,15 @@ pub struct ClassLevelRow {
     /// One Feature selection slot per entry.
     #[serde(default)]
     pub selections: Vec<FeatureSelectionKey>,
+}
+
+impl ClassLevelRow {
+    pub fn spell_levels(&self) -> SpellLevels {
+        SpellLevels {
+            arcane: self.arcane_spell_level,
+            divine: self.divine_spell_level,
+        }
+    }
 }
 
 /// A named ability that a class, archetype or mythic path grants, such as Sneak Attack.

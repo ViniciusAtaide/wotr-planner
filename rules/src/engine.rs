@@ -9,8 +9,8 @@ use std::collections::{BTreeSet, HashMap, HashSet};
 
 use crate::build::{AbilityScores, Build, Edit, FeatSource, LevelUp, Pick, SlotId};
 use crate::game_data::{
-    Ability, AbilityModifier, Archetype, Class, ClassLevelRow, Feat, FeatSlot, FeatureSelection,
-    GameData, MythicAbility, MythicFeat, MythicPath, Race, SelectionOption,
+    Ability, AbilityModifier, Archetype, Class, Feat, FeatSlot, FeatureSelection, GameData,
+    MythicAbility, MythicFeat, MythicPath, Race, Save, SelectionOption, SpellLevels,
 };
 use crate::keys::{
     ArchetypeKey, ClassKey, FeatKey, FeatureKey, FeatureSelectionKey, MythicAbilityKey,
@@ -85,6 +85,65 @@ pub fn mythic_pick_kind(rank: u8) -> MythicPickKind {
     } else {
         MythicPickKind::Feat
     }
+}
+
+/// What one Class level gives a character of a class, with or without an archetype: the base class's row, or
+/// the archetype's row at that level when it has one. BAB and saves come from the class's progressions instead
+/// ([`Class::base_attack_bonus`], [`Class::save_bonus`]).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct EffectiveRow<'a> {
+    pub level: u8,
+    pub spell_levels: SpellLevels,
+    /// Prestige classes only: this level advances the chosen arcane class's spellcasting.
+    pub advances_arcane: bool,
+    /// Prestige classes only: this level advances the chosen divine class's spellcasting.
+    pub advances_divine: bool,
+    pub features: &'a [FeatureKey],
+    pub feat_slots: &'a [FeatSlot],
+    pub selections: &'a [FeatureSelectionKey],
+}
+
+/// The row in force at one level of `class`, taken with `archetype` (which must be one of the class's): the
+/// archetype's row at that level replaces the base row's grants in full, and its spell levels when it sets them;
+/// a level the archetype leaves out is the base row. `None` past the class's table. The one place rows merge.
+pub fn effective_row<'a>(
+    class: &'a Class,
+    archetype: Option<&'a Archetype>,
+    level: u8,
+) -> Option<EffectiveRow<'a>> {
+    let base = class.levels.iter().find(|row| row.level == level)?;
+    let base_row = EffectiveRow {
+        level,
+        spell_levels: base.spell_levels(),
+        advances_arcane: base.advances_arcane,
+        advances_divine: base.advances_divine,
+        features: &base.features,
+        feat_slots: &base.feat_slots,
+        selections: &base.selections,
+    };
+    let Some(own) =
+        archetype.and_then(|archetype| archetype.levels.iter().find(|row| row.level == level))
+    else {
+        return Some(base_row);
+    };
+    Some(EffectiveRow {
+        spell_levels: own.spell_levels.unwrap_or(base_row.spell_levels),
+        features: &own.features,
+        feat_slots: &own.feat_slots,
+        selections: &own.selections,
+        ..base_row
+    })
+}
+
+/// Every row of a class's table, in level order, as [`effective_row`] gives it.
+fn effective_rows<'a>(
+    class: &'a Class,
+    archetype: Option<&'a Archetype>,
+) -> impl Iterator<Item = EffectiveRow<'a>> {
+    class
+        .levels
+        .iter()
+        .filter_map(move |row| effective_row(class, archetype, row.level))
 }
 
 /// What a Build gives at each of its levels.
@@ -378,14 +437,27 @@ impl Engine {
         (owner.key == class.key).then(|| &owner.archetypes[a])
     }
 
-    /// The level rows in force for a class: the archetype's when it belongs to that class, else the class's.
-    fn rows<'a>(
+    /// The row in force at one level of a class taken with an archetype key (ignored unless it's the class's).
+    fn row<'a>(
         &'a self,
         class: &'a Class,
         archetype: Option<&ArchetypeKey>,
-    ) -> &'a [ClassLevelRow] {
-        self.archetype_of(class, archetype)
-            .map_or(&class.levels, |archetype| &archetype.levels)
+        level: u8,
+    ) -> Option<EffectiveRow<'a>> {
+        effective_row(class, self.archetype_of(class, archetype), level)
+    }
+
+    /// Whether a class taken with an archetype key casts spells of each type at any level: (arcane, divine).
+    fn casts(&self, class: &Class, archetype: Option<&ArchetypeKey>) -> (bool, bool) {
+        effective_rows(class, self.archetype_of(class, archetype)).fold(
+            (false, false),
+            |(arcane, divine), row| {
+                (
+                    arcane || row.spell_levels.arcane > 0,
+                    divine || row.spell_levels.divine > 0,
+                )
+            },
+        )
     }
 
     /// Walks the whole Build.
@@ -496,8 +568,7 @@ impl Engine {
         archetype: Option<&Archetype>,
         taken: bool,
     ) -> Result<(), Issue> {
-        let rows = archetype.map_or(&class.levels, |archetype| &archetype.levels);
-        let cap = u8::try_from(rows.len()).unwrap_or(u8::MAX);
+        let cap = class_level_cap(class);
         if state.class_level(&class.key) >= cap {
             return Err(Issue::ClassLevelCap { cap });
         }
@@ -870,9 +941,10 @@ impl<'a> Walker<'a> {
                 continue;
             };
             let held = self.state.classes.iter().find(|c| &c.class == key);
-            let rows = engine.rows(class, held.and_then(|c| c.archetype.as_ref()));
-            let arcane = advances_arcane && rows.iter().any(|row| row.arcane_spell_level > 0);
-            let divine = advances_divine && rows.iter().any(|row| row.divine_spell_level > 0);
+            let (casts_arcane, casts_divine) =
+                engine.casts(class, held.and_then(|c| c.archetype.as_ref()));
+            let arcane = advances_arcane && casts_arcane;
+            let divine = advances_divine && casts_divine;
             serves.push((held.is_some() && arcane, held.is_some() && divine));
         }
         let fits = match serves.as_slice() {
@@ -918,14 +990,13 @@ impl<'a> Walker<'a> {
         let Some((class, _)) = class else {
             return class_level;
         };
-        let rows = engine.rows(class, self.state.classes[index].archetype.as_ref());
-        // The class table's length is the class level cap (20 for base classes, 10 for prestige classes).
-        let cap = u8::try_from(rows.len()).unwrap_or(u8::MAX);
+        let cap = class_level_cap(class);
         if class_level > cap {
             self.problem(Choice::Class { level }, Issue::ClassLevelCap { cap });
         }
-        if let Some(row) = row_at(rows, class_level) {
-            for feature in &row.features {
+        let archetype = self.state.classes[index].archetype.as_ref();
+        if let Some(row) = engine.row(class, archetype, class_level) {
+            for feature in row.features {
                 add_feature(&mut self.state, feature);
             }
         }
@@ -1013,12 +1084,11 @@ impl<'a> Walker<'a> {
                 .iter()
                 .find(|c| c.class == level_up.class)
         {
-            let rows = engine.rows(class, entry.archetype.as_ref());
-            let grants: Vec<&ClassLevelRow> = row_at(rows, entry.level).into_iter().collect();
-            for (index, slot) in grants.iter().flat_map(|row| &row.feat_slots).enumerate() {
+            let row = engine.row(class, entry.archetype.as_ref(), entry.level);
+            for (index, slot) in row.iter().flat_map(|row| row.feat_slots).enumerate() {
                 slots.push((SlotKind::Feat(slot.clone()), feat(FeatSource::Class, index)));
             }
-            for (index, selection) in grants.iter().flat_map(|row| &row.selections).enumerate() {
+            for (index, selection) in row.iter().flat_map(|row| row.selections).enumerate() {
                 selections.push((
                     SlotKind::Selection(selection.clone()),
                     SlotId::Selection {
@@ -1269,35 +1339,37 @@ impl<'a> Walker<'a> {
 
     // ---- Tables -------------------------------------------------------------------------------------------
 
-    /// BAB, saves, spell-level access and caster level, from every class's row at its class level.
+    /// BAB and saves from every class's progressions at its class level; spell-level access and caster level
+    /// from its row at its class level plus the prestige levels that advance it.
     fn recompute_tables(&mut self) {
         let engine = self.engine;
         let state = &self.state;
         let (mut bab, mut fort, mut reflex, mut will) = (0u8, 0u8, 0u8, 0u8);
         let (mut arcane, mut divine, mut caster_level) = (0u8, 0u8, 0u8);
         for entry in &state.classes {
-            let Some((class, _)) = engine.class(&entry.class) else {
+            let Some((class, prestige)) = engine.class(&entry.class) else {
                 continue;
             };
-            let rows = engine.rows(class, entry.archetype.as_ref());
-            if let Some(row) = row_at(rows, entry.level) {
-                bab = bab.saturating_add(row.bab);
-                fort = fort.saturating_add(row.fort);
-                reflex = reflex.saturating_add(row.reflex);
-                will = will.saturating_add(row.will);
+            // A level past the class's table (already a problem) adds none.
+            if entry.level <= class_level_cap(class) {
+                let level = entry.level;
+                bab = bab.saturating_add(class.base_attack_bonus(level));
+                let [f, r, w] = Save::ALL.map(|save| class.save_bonus(save, level, prestige));
+                fort = fort.saturating_add(f);
+                reflex = reflex.saturating_add(r);
+                will = will.saturating_add(w);
             }
 
             // Spellcasting: this class's own level plus the prestige levels that advance it.
-            let casts_arcane = rows.iter().any(|row| row.arcane_spell_level > 0);
-            let casts_divine = rows.iter().any(|row| row.divine_spell_level > 0);
+            let archetype = entry.archetype.as_ref();
+            let (casts_arcane, casts_divine) = engine.casts(class, archetype);
             let advanced =
                 advancing_levels(engine, state, &entry.class, casts_arcane, casts_divine);
             let effective = entry.level.saturating_add(advanced);
-            let top = rows.iter().map(|row| row.level).max().unwrap_or(0);
-            if let Some(row) = row_at(rows, effective.min(top)) {
-                arcane = arcane.max(row.arcane_spell_level);
-                divine = divine.max(row.divine_spell_level);
-                if row.arcane_spell_level > 0 || row.divine_spell_level > 0 {
+            if let Some(row) = engine.row(class, archetype, effective.min(class_level_cap(class))) {
+                arcane = arcane.max(row.spell_levels.arcane);
+                divine = divine.max(row.spell_levels.divine);
+                if row.spell_levels.any() {
                     caster_level = caster_level.max(effective);
                 }
             }
@@ -1421,7 +1493,8 @@ fn point_buy_cost(score: u8) -> Option<i8> {
     COSTS.get(usize::from(score.checked_sub(7)?)).copied()
 }
 
-/// The row for one class level.
-fn row_at(rows: &[ClassLevelRow], level: u8) -> Option<&ClassLevelRow> {
-    rows.iter().find(|row| row.level == level)
+/// A class's level cap: the length of its table (20 for base classes, 10 for prestige classes). An archetype
+/// has its base class's table.
+fn class_level_cap(class: &Class) -> u8 {
+    u8::try_from(class.levels.len()).unwrap_or(u8::MAX)
 }

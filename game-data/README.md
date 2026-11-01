@@ -29,11 +29,18 @@ in the data: catalogs are sorted by key, class levels by level, mythic ranks by 
 What follows from a rule is code in the `rules` crate, not data: each mythic rank's general pick (odd ranks a
 mythic ability, even ranks a mythic feat), the path choice at MR 3 and the switch at MR 8, which feat categories
 are Combat feats (`FeatCategory::is_combat`), the skill rank cap (the Character level), the rank after a path
-switch (one above the highest kept rank), and each class's level cap (its number of level rows).
+switch (one above the highest kept rank), each class's level cap (its number of level rows; an archetype has its
+class's), and BAB and saves (from the class's progressions).
 
-- Level rows run `level: 1`, `2`, … with none missing; what taking a class grants goes in row 1. An archetype
-  repeats every row of its base class, and its BAB, saves and spell levels must match the base class's unless
-  `data/tests/files.rs` allow-lists the difference.
+- A class's level rows run `level: 1`, `2`, … with none missing; what taking a class grants goes in row 1. Rows
+  hold no BAB or saves: the class names its progressions (`bab: Full`/`ThreeQuarters`/`Half`, and `fort`, `reflex`,
+  `will`: `Good`/`Poor`) and the rules compute the numbers, with the prestige save formula for prestige classes. A
+  save cell the guide prints differently goes in `save_exceptions: [(level: 20, save: Will, value: 20)]`, exactly as
+  printed; the check refuses one the progression gives anyway.
+- An archetype has a row only at the levels where it differs from its base class. A row's `features`, `feat_slots`
+  and `selections` replace the base row's in full (a row with none takes them away), and
+  `spell_levels: (arcane: 1, divine: 0)` replaces the base row's spell levels when set. A level without a row is
+  the base class's. The check refuses a row that changes nothing and spell levels equal to the base row's.
 - Only prestige classes set `advances_arcane`/`advances_divine`, and only base classes have archetypes.
 - A selection option's key extends its selection's: `rogue/rogue-talents/fast-stealth`.
 - Feat slots are `General`, `CombatFeat`, `Category(Teamwork)` or a fixed list,

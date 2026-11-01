@@ -4,6 +4,10 @@ Class(
     name: "Arcane Trickster",
     guide: "prestige-classes#arcane-trickster",
     skill_points: 4,
+    bab: Half,
+    fort: Poor,
+    reflex: Good,
+    will: Good,
     class_skills: ["mobility", "knowledge-arcana"],
     prerequisite: All([
         Any([
@@ -19,7 +23,7 @@ Class(
         (key: "arcane-trickster/ranged-legerdemain", name: "Ranged Legerdemain", guide: "prestige-classes#ranged-legerdemain"),
     ],
     levels: [
-        (level: 1, bab: 0, fort: 0, reflex: 1, will: 1, advances_arcane: true, features: ["arcane-trickster/ranged-legerdemain"]),
-        (level: 2, bab: 1, fort: 1, reflex: 1, will: 1, advances_arcane: true, features: ["rogue/sneak-attack"]),
+        (level: 1, advances_arcane: true, features: ["arcane-trickster/ranged-legerdemain"]),
+        (level: 2, advances_arcane: true, features: ["rogue/sneak-attack"]),
     ],
 )

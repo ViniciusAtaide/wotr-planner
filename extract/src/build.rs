@@ -8,18 +8,19 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use rules::{
-    Ability, AbilityModifier, Archetype, ArchetypeKey, Class, ClassKey, ClassLevelRow, DataAt,
-    Feat, FeatCategory, FeatKey, FeatSlot, Feature, FeatureKey, FeatureSelection,
-    FeatureSelectionKey, GameData, GuideRef, MythicAbility, MythicAbilityKey, MythicAscension,
-    MythicFeat, MythicFeatKey, MythicPath, MythicPathKey, MythicRankRow, Prerequisite, Progression,
-    Race, RaceKey, SelectionOption, SelectionOptionKey, Skill, SkillKey, SpellType, Subrace,
-    SubraceKey,
+    Ability, AbilityModifier, Archetype, ArchetypeKey, BabProgression, Class, ClassKey,
+    ClassLevelRow, DataAt, Feat, FeatCategory, FeatKey, FeatSlot, Feature, FeatureKey,
+    FeatureSelection, FeatureSelectionKey, GameData, GuideRef, MythicAbility, MythicAbilityKey,
+    MythicAscension, MythicFeat, MythicFeatKey, MythicPath, MythicPathKey, MythicRankRow,
+    Prerequisite, Progression, Race, RaceKey, SaveProgression, SelectionOption, SelectionOptionKey,
+    Skill, SkillKey, SpellType, Subrace, SubraceKey,
 };
 
 use crate::grammar::{self, Cond, Unparsed};
 use crate::guide::{BASE_CLASSES, Guide, OTHER_PATHS, PATH_PAGES};
 use crate::html::{Block, Page, Section};
 use crate::names::{norm, number_forms, slug};
+use crate::progressions::{self, Numbers};
 use crate::prose;
 use crate::report::{Kind, Report};
 use crate::resolve::{Catalog, Context, all};
@@ -123,6 +124,10 @@ pub fn extract(guide: &Guide) -> Extraction {
     };
     builder.resolve_prerequisites(&mut data);
     crate::references::drop_dangling(&mut data, &mut builder.report);
+    // Only now, with the dangling grants gone, is a row that matches its base class's known to.
+    for class in &mut data.classes {
+        progressions::sparse_archetype_rows(class);
+    }
     for problem in data.check() {
         builder.report.add_about(
             Kind::Cell,
@@ -520,6 +525,12 @@ impl<'g> Builder<'g> {
             summary: String::new(),
             guide: GuideRef::new(page.slug.clone()),
             skill_points: 0,
+            // Set from the table below.
+            bab: BabProgression::Full,
+            fort: SaveProgression::Good,
+            reflex: SaveProgression::Good,
+            will: SaveProgression::Good,
+            save_exceptions: Vec::new(),
             class_skills: BTreeSet::new(),
             prerequisite: None,
             features: Vec::new(),
@@ -564,7 +575,9 @@ impl<'g> Builder<'g> {
             path: false,
         };
         class.selections = base_selections;
-        class.levels = self.level_rows(page, &base_rows, None, base_spell_type, &base_scope);
+        let base_levels = self.level_rows(page, &base_rows, None, base_spell_type, &base_scope);
+        self.set_progressions(&mut class, &base_levels, false, &base_scope.guide);
+        class.levels = base_levels.iter().map(|(_, row)| row.clone()).collect();
 
         for (section, rows) in archetype_sections.iter().zip(&archetype_rows) {
             let prefix = format!("{slug_name}/{}", section.anchor);
@@ -610,7 +623,22 @@ impl<'g> Builder<'g> {
             } else {
                 own_type.or(base_spell_type)
             };
-            let levels = self.level_rows(page, rows, Some(&class.levels), spell_type, &scope);
+            let levels = self.level_rows(page, rows, Some(&base_levels), spell_type, &scope);
+            for (numbers, row) in &levels {
+                let base = base_levels.iter().find(|(_, base)| base.level == row.level);
+                if base.is_some_and(|(base, _)| base != numbers) {
+                    self.report.add(
+                        Kind::Cell,
+                        scope.guide.clone(),
+                        format!("level {}", row.level),
+                        "BAB or saves differ from the base class's; the base class's progressions are used",
+                    );
+                }
+            }
+            let levels = levels
+                .into_iter()
+                .map(|(_, row)| progressions::full_archetype_row(row))
+                .collect();
 
             let (skill_points, class_skills) =
                 match archetype_skills(&skill_rows, &root.name, &section.name) {
@@ -674,15 +702,48 @@ impl<'g> Builder<'g> {
         merged.into_values().collect()
     }
 
-    /// Level rows from a parsed table. Numbers missing from an archetype's table come from its base class's rows.
+    /// A class's BAB and save progressions from its table's numbers. A save cell they don't give is kept as an
+    /// exception; a BAB cell they don't give is reported.
+    fn set_progressions(
+        &mut self,
+        class: &mut Class,
+        levels: &[(Numbers, ClassLevelRow)],
+        prestige: bool,
+        guide: &str,
+    ) {
+        let numbers: Vec<(u8, Numbers)> = levels
+            .iter()
+            .map(|(numbers, row)| (row.level, *numbers))
+            .collect();
+        let found = progressions::progressions(&numbers, prestige);
+        for level in found.bab_misfits {
+            self.report.add(
+                Kind::Cell,
+                guide.to_owned(),
+                format!("level {level}"),
+                format!(
+                    "BAB doesn't follow the class's {:?} progression, whose value is used",
+                    found.bab
+                ),
+            );
+        }
+        class.bab = found.bab;
+        class.fort = found.fort;
+        class.reflex = found.reflex;
+        class.will = found.will;
+        class.save_exceptions = found.save_exceptions;
+    }
+
+    /// Level rows from a parsed table, each with its BAB and save cells. Numbers missing from an archetype's table
+    /// come from its base class's rows.
     fn level_rows(
         &mut self,
         page: &Page,
         rows: &[Row],
-        base: Option<&[ClassLevelRow]>,
+        base: Option<&[(Numbers, ClassLevelRow)]>,
         spell_type: Option<SpellType>,
         scope: &Scope<'g>,
-    ) -> Vec<ClassLevelRow> {
+    ) -> Vec<(Numbers, ClassLevelRow)> {
         let mut out = Vec::new();
         let has_spell_columns = rows.iter().any(|row| row.spell_level > 0);
         // A table leaves out levels that grant nothing; an archetype has every level of its base class.
@@ -709,13 +770,15 @@ impl<'g> Builder<'g> {
                 .iter()
                 .find(|row| row.level == blank.level)
                 .unwrap_or(blank);
-            let base_row = base.and_then(|base| base.iter().find(|r| r.level == row.level));
+            let base_row = base.and_then(|base| base.iter().find(|(_, r)| r.level == row.level));
+            let base_numbers = base_row.map(|(numbers, _)| *numbers);
+            let base_row = base_row.map(|(_, row)| row);
             let number = |own: Option<u8>, from_base: Option<u8>| own.or(from_base);
             let (bab, fort, reflex, will) = (
-                number(row.bab, base_row.map(|r| r.bab)),
-                number(row.fort, base_row.map(|r| r.fort)),
-                number(row.reflex, base_row.map(|r| r.reflex)),
-                number(row.will, base_row.map(|r| r.will)),
+                number(row.bab, base_numbers.map(|n| n.bab)),
+                number(row.fort, base_numbers.map(|n| n.fort)),
+                number(row.reflex, base_numbers.map(|n| n.reflex)),
+                number(row.will, base_numbers.map(|n| n.will)),
             );
             let (Some(bab), Some(fort), Some(reflex), Some(will)) = (bab, fort, reflex, will)
             else {
@@ -732,12 +795,14 @@ impl<'g> Builder<'g> {
             } else {
                 base_row.map_or(0, |r| r.arcane_spell_level.max(r.divine_spell_level))
             };
-            let mut level_row = ClassLevelRow {
-                level: row.level,
+            let numbers = Numbers {
                 bab,
                 fort,
                 reflex,
                 will,
+            };
+            let mut level_row = ClassLevelRow {
+                level: row.level,
                 arcane_spell_level: 0,
                 divine_spell_level: 0,
                 advances_arcane: false,
@@ -758,7 +823,7 @@ impl<'g> Builder<'g> {
                     Granted::Slots(slots) => level_row.feat_slots.extend(slots),
                 }
             }
-            out.push(level_row);
+            out.push((numbers, level_row));
         }
         out
     }
@@ -1186,7 +1251,8 @@ impl<'g> Builder<'g> {
             archetype_anchor: None,
             path: false,
         };
-        let mut levels = self.level_rows(page, &rows, None, None, &scope);
+        let numbered = self.level_rows(page, &rows, None, None, &scope);
+        let mut levels: Vec<ClassLevelRow> = numbered.iter().map(|(_, row)| row.clone()).collect();
         // A CL column's "+1" advances the spellcasting the class's requirements name.
         let (arcane, divine) = prose::prestige_advances(section);
         let mut advances = false;
@@ -1241,19 +1307,27 @@ impl<'g> Builder<'g> {
         }
 
         let (skill_points, class_skills) = self.prestige_skills(page, section);
-        Class {
+        let mut class = Class {
             key,
             name: section.name.clone(),
             summary: String::new(),
             guide: GuideRef::new(page.guide(&section.anchor)),
             skill_points,
+            // Set from the table below.
+            bab: BabProgression::Full,
+            fort: SaveProgression::Good,
+            reflex: SaveProgression::Good,
+            will: SaveProgression::Good,
+            save_exceptions: Vec::new(),
             class_skills,
             prerequisite: None,
             features: Vec::new(),
             selections,
             levels,
             archetypes: Vec::new(),
-        }
+        };
+        self.set_progressions(&mut class, &numbered, true, &page.guide(&section.anchor));
+        class
     }
 
     fn prestige_skills(&mut self, page: &Page, section: &Section) -> (u8, BTreeSet<SkillKey>) {

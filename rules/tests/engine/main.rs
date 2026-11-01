@@ -3,6 +3,7 @@
 mod support;
 
 mod advances;
+mod archetype_rows;
 mod bonus_feats;
 mod canonical;
 mod check;

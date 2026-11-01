@@ -4,13 +4,17 @@ Class(
     name: "Mystic Theurge",
     guide: "prestige-classes#mystic-theurge",
     skill_points: 2,
+    bab: Half,
+    fort: Poor,
+    reflex: Poor,
+    will: Good,
     class_skills: ["knowledge-arcana"],
     prerequisite: All([
         SpellLevel(spell_type: Arcane, level: 2),
         SpellLevel(spell_type: Divine, level: 2),
     ]),
     levels: [
-        (level: 1, bab: 0, fort: 0, reflex: 0, will: 1, advances_arcane: true, advances_divine: true),
-        (level: 2, bab: 1, fort: 1, reflex: 1, will: 1, advances_arcane: true, advances_divine: true),
+        (level: 1, advances_arcane: true, advances_divine: true),
+        (level: 2, advances_arcane: true, advances_divine: true),
     ],
 )

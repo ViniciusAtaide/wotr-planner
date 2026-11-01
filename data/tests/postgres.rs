@@ -29,6 +29,35 @@ async fn files_to_postgres_to_game_data_equals_files_to_game_data(pool: PgPool) 
     assert_eq!(from_postgres, from_files);
 }
 
+/// The fixture has no save exceptions, so add one, and the archetype rows that set spell levels and the ones that
+/// don't both come back.
+#[sqlx::test]
+async fn save_exceptions_and_archetype_rows_round_trip(pool: PgPool) {
+    let db = Database::from(pool);
+    let dir = copy_fixture();
+    let fighter = dir.path().join("classes/fighter.ron");
+    let text = fs::read_to_string(&fighter).unwrap();
+    fs::write(
+        &fighter,
+        text.replacen(
+            "    will: Poor,\n",
+            "    will: Poor,\n    save_exceptions: [(level: 2, save: Will, value: 1), (level: 3, save: Reflex, value: 4)],\n",
+            1,
+        ),
+    )
+    .unwrap();
+    let from_files = data::read_game_data_files(dir.path()).unwrap();
+    let fighter = from_files
+        .classes
+        .iter()
+        .find(|c| c.key.as_str() == "fighter");
+    assert_eq!(fighter.unwrap().save_exceptions.len(), 2);
+
+    data::seed(&db, dir.path()).await.unwrap();
+
+    assert_eq!(data::load_game_data(&db).await.unwrap(), from_files);
+}
+
 #[sqlx::test]
 async fn seeding_again_replaces_the_previous_data(pool: PgPool) {
     let db = Database::from(pool);
@@ -86,10 +115,10 @@ async fn the_seed_refuses_data_that_fails_the_data_check(pool: PgPool) {
     let broken = copy_fixture();
     let fighter = broken.path().join("classes/fighter.ron");
     let text = fs::read_to_string(&fighter).unwrap();
-    // The fighter's own level 2 row goes missing.
+    // The fighter's own level 2 row goes missing, so the Armiger's row there is outside its class too.
     let row = text
         .lines()
-        .find(|line| line.trim_start().starts_with("(level: 2, bab: 2"))
+        .find(|line| line.starts_with("        (level: 2,"))
         .unwrap();
     fs::write(&fighter, text.replacen(&format!("{row}\n"), "", 1)).unwrap();
 
@@ -100,7 +129,10 @@ async fn the_seed_refuses_data_that_fails_the_data_check(pool: PgPool) {
     };
     assert_eq!(
         problems.iter().map(|p| &p.at).collect::<Vec<_>>(),
-        [&DataAt::Class(ClassKey::new("fighter"))]
+        [
+            &DataAt::Class(ClassKey::new("fighter")),
+            &DataAt::Archetype(ArchetypeKey::new("fighter/armiger"))
+        ]
     );
     assert!(error.to_string().contains("class fighter"), "{error}");
     assert_eq!(
@@ -418,12 +450,38 @@ async fn the_schema_rejects_values_outside_their_domain_and_misplaced_keys(pool:
 
     // A level row for the fighter that names the rogue's archetype.
     let error = rejected(
-        "INSERT INTO class_level (class_key, archetype_key, level, bab, fort, reflex, will,
-            arcane_spell_level, divine_spell_level, advances_arcane, advances_divine)
-        VALUES ('fighter', 'rogue/eldritch-scoundrel', 4, 4, 4, 1, 1, 0, 0, false, false)",
+        "INSERT INTO class_level (class_key, archetype_key, level)
+        VALUES ('fighter', 'rogue/eldritch-scoundrel', 4)",
     )
     .await;
     assert!(error.contains("foreign key"), "{error}");
+
+    // A class row has spell levels and advances flags; an archetype row has no advances flags, and
+    // sets both spell levels or neither.
+    for sql in [
+        "INSERT INTO class_level (class_key, level, advances_arcane, advances_divine)
+        VALUES ('fighter', 4, false, false)",
+        "INSERT INTO class_level (class_key, level, arcane_spell_level, divine_spell_level)
+        VALUES ('fighter', 4, 0, 0)",
+        "INSERT INTO class_level (class_key, archetype_key, level, advances_arcane, advances_divine)
+        VALUES ('fighter', 'fighter/armiger', 4, false, false)",
+        "INSERT INTO class_level (class_key, archetype_key, level, arcane_spell_level)
+        VALUES ('fighter', 'fighter/armiger', 4, 1)",
+    ] {
+        let error = rejected(sql).await;
+        assert!(error.contains("check constraint"), "{sql}: {error}");
+    }
+
+    // Progressions and saves are closed sets.
+    let error = rejected("UPDATE class SET bab = 'quarter' WHERE key = 'fighter'").await;
+    assert!(error.contains("bab_progression"), "{error}");
+    let error = rejected("UPDATE class SET will = 'great' WHERE key = 'fighter'").await;
+    assert!(error.contains("save_progression"), "{error}");
+    let error = rejected(
+        "INSERT INTO save_exception (class_key, level, save, value) VALUES ('fighter', 2, 'luck', 1)",
+    )
+    .await;
+    assert!(error.contains("check constraint"), "{error}");
 
     // Kept ranks belong to a path's switch rule, so a path without one can't have them.
     let error =

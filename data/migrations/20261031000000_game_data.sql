@@ -11,7 +11,8 @@
 -- - No derived values. Order comes from natural keys and `rules::GameData` is made canonical in
 --   Rust, so nothing depends on insertion order. Rule-based facts (odd mythic ranks give an
 --   ability, the path is chosen at MR 3, which feat categories are combat feats, the rank after a
---   path switch, class level caps) live in the `rules` crate, not in columns.
+--   path switch, class level caps, BAB and saves from a class's progressions) live in the `rules`
+--   crate, not in columns. Archetypes store only the levels where they differ from their class.
 -- - True sets are unique on their natural key. Multisets (granted features and selections, feat
 --   slots, ability modifiers) have a surrogate `id` and no other key, so duplicates can be stored.
 --   `class_level` and `mythic_rank` also have an `id`, as the target of their grants' foreign keys,
@@ -39,6 +40,12 @@ CREATE DOMAIN text_key AS TEXT CHECK (VALUE ~ '^[a-z0-9]+(-[a-z0-9]+)*(/[a-z0-9]
 CREATE DOMAIN ability AS TEXT CHECK (VALUE IN (
     'strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'
 ));
+
+-- `rules::BabProgression`: full, ¾ or ½ base attack bonus.
+CREATE DOMAIN bab_progression AS TEXT CHECK (VALUE IN ('full', 'three_quarters', 'half'));
+
+-- `rules::SaveProgression`: a good or a poor save.
+CREATE DOMAIN save_progression AS TEXT CHECK (VALUE IN ('good', 'poor'));
 
 -- `rules::FeatCategory`.
 CREATE DOMAIN feat_category AS TEXT CHECK (VALUE IN (
@@ -184,7 +191,8 @@ CREATE TABLE feat (
 
 -- classes/, prestige/ --------------------------------------------------------------------------
 
--- A base class or a prestige class.
+-- A base class or a prestige class. BAB and saves are progressions; `rules` computes the numbers
+-- (base and prestige classes have different save formulas).
 CREATE TABLE class (
     key text_key PRIMARY KEY,
     is_prestige BOOLEAN NOT NULL,
@@ -192,7 +200,22 @@ CREATE TABLE class (
     summary TEXT NOT NULL,
     guide TEXT NOT NULL,
     skill_points u8 NOT NULL,
+    bab bab_progression NOT NULL,
+    fort save_progression NOT NULL,
+    reflex save_progression NOT NULL,
+    will save_progression NOT NULL,
     prerequisite_root_id BIGINT UNIQUE REFERENCES prerequisite_node (id) DEFERRABLE INITIALLY DEFERRED
+);
+
+-- `rules::SaveException`: a save cell the guide prints differently from the class's progression,
+-- kept as printed. `rules::GameData::check` keeps the level in the class's table and the value off
+-- the formula's.
+CREATE TABLE save_exception (
+    class_key TEXT NOT NULL REFERENCES class (key) DEFERRABLE INITIALLY DEFERRED,
+    level SMALLINT NOT NULL CHECK (level BETWEEN 1 AND 40),
+    save TEXT NOT NULL CHECK (save IN ('fortitude', 'reflex', 'will')),
+    value u8 NOT NULL,
+    PRIMARY KEY (class_key, level, save)
 );
 
 CREATE TABLE archetype (
@@ -312,25 +335,29 @@ CREATE TABLE selection_option (
 
 -- Progression rows -----------------------------------------------------------------------------
 
--- `rules::ClassLevelRow`: one Class level of a class (`archetype_key` NULL) or of one of its
--- archetypes. An archetype's rows replace its base class's in full. A table's row count is the
--- class level cap.
+-- One Class level of a class (`archetype_key` NULL: `rules::ClassLevelRow`) or of one of its
+-- archetypes (`rules::ArchetypeLevelRow`). A class's row count is its class level cap. An archetype
+-- has rows only at the levels where it differs from its class: its grants replace the class row's
+-- in full, and its spell levels replace the class row's when set (NULL: the class row's). Only a
+-- class row says whether it advances spellcasting.
 CREATE TABLE class_level (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     class_key TEXT NOT NULL REFERENCES class (key) DEFERRABLE INITIALLY DEFERRED,
     archetype_key TEXT,
     level SMALLINT NOT NULL CHECK (level BETWEEN 1 AND 40),
-    bab u8 NOT NULL,
-    fort u8 NOT NULL,
-    reflex u8 NOT NULL,
-    will u8 NOT NULL,
-    arcane_spell_level SMALLINT NOT NULL CHECK (arcane_spell_level BETWEEN 0 AND 9),
-    divine_spell_level SMALLINT NOT NULL CHECK (divine_spell_level BETWEEN 0 AND 9),
-    advances_arcane BOOLEAN NOT NULL,
-    advances_divine BOOLEAN NOT NULL,
+    arcane_spell_level SMALLINT CHECK (arcane_spell_level BETWEEN 0 AND 9),
+    divine_spell_level SMALLINT CHECK (divine_spell_level BETWEEN 0 AND 9),
+    advances_arcane BOOLEAN,
+    advances_divine BOOLEAN,
     FOREIGN KEY (archetype_key, class_key) REFERENCES archetype (key, class_key)
         DEFERRABLE INITIALLY DEFERRED,
-    UNIQUE NULLS NOT DISTINCT (class_key, archetype_key, level)
+    UNIQUE NULLS NOT DISTINCT (class_key, archetype_key, level),
+    -- Spell levels are set together, and always on a class row.
+    CHECK ((arcane_spell_level IS NULL) = (divine_spell_level IS NULL)),
+    CHECK (archetype_key IS NOT NULL OR arcane_spell_level IS NOT NULL),
+    -- The advances flags are on class rows only.
+    CHECK ((archetype_key IS NULL) = (advances_arcane IS NOT NULL)),
+    CHECK ((archetype_key IS NULL) = (advances_divine IS NOT NULL))
 );
 
 -- `rules::MythicRankRow`: what one Mythic rank of a path gives beyond the general picks. The rank is
