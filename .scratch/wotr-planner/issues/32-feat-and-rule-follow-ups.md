@@ -137,3 +137,7 @@ The oracle's grants named in decision 6 (Weapon Mastery) were built in ticket 31
 
 **User, 2026-11-01:**
 2. The slayer's combat style works as the ranger's: the slayer picks one of the ranger's combat styles, and each of its three combat style feats (2 or 4, 6 or 8, 10 or later) comes from that style's list for the stage. Built in [ticket 33](33-option-follow-ups.md) as a scope addition.
+
+**User, 2026-11-01 ("all recommended"):**
+1. The Dual Heritage and Kindred Raised half-elves don't get Adaptability, as their subrace tables say. [Ticket 35](35-second-follow-ups.md).
+3–7. Kept as built.

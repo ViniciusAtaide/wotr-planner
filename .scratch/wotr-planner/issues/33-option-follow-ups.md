@@ -128,3 +128,16 @@ Real-data tests (`game_data.rs`, 14 new, red on HEAD's data first; 3 older ones 
 7. **A ranger/slayer** shares one style (the slayer's selection offers the ranger's five keys, so a ranger's style means no slayer pick), and the slayer's feats then come from the list of the stage the *ranger* levels reach (a style's list follows the selection it was taken through). The guide doesn't settle the multiclass: one style or two, and whose levels?
 8. **The Elemental group** is the user's decision 30-1; the guide states only the Draconic rule. The bloodrager's dragons and elements aren't grouped (neither Second Bloodrager Bloodline nor the bloodrager page says so).
 9. **The Dual-Cursed's level-1 slots** are numbered by key (its revelation is index 0, before the mystery), though the revelation is checked after the mystery; the sheet lists them in checking order. Fortune's "At 5th level" is its effect, not a prerequisite (no "Prerequisites" line).
+
+## Decisions on the open questions
+
+**User, 2026-11-01 ("all recommended"):**
+1. Expanded Element keeps its "each option once" flag, as built.
+2. Impossible Domain: a Living Deity's extra domain is levelled by arcanist levels from the pick, not from 20. A Hellknight holding Pentamic Faith's domain qualifies (the guide's prerequisite is "Domain"), levelled by Hellknight levels. [Ticket 35](35-second-follow-ups.md).
+3. The Signifer's order is offered only to a character who holds no order, like the Hellknight's. Ticket 35.
+4. Second Animal Focus stays a daily choice, as built.
+5. The Divine Hunter's Animal and Scalykind companion stays, as built.
+6. The Separatist can't take an alignment domain that conflicts with its own alignment; the deity rule stays out. Ticket 35.
+7. A ranger/slayer shares one combat style, but the slayer's combat style feats come from the stage of the slayer talent's own window, not the ranger's levels. Ticket 35.
+8. The bloodrager's draconic and elemental bloodlines are grouped too, so a second bloodline can't be a second dragon. Ticket 35.
+9. The Dual-Cursed's slot numbering and Fortune's "at 5th level" stay as built.
