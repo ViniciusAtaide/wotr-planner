@@ -1,7 +1,7 @@
 // Hand-written test fixture: small and simplified, not checked against the guide.
 [
     (
-        key: "race:human",
+        key: "human",
         name: "Human",
         summary: "Versatile; +2 to one ability and a bonus feat.",
         guide: "character-creation#human",
@@ -9,7 +9,7 @@
         feat_slots: [General],
     ),
     (
-        key: "race:elf",
+        key: "elf",
         name: "Elf",
         guide: "character-creation#elf",
         ability_modifiers: [
@@ -19,7 +19,7 @@
         ],
         subraces: [
             (
-                key: "subrace:elf/blightborn",
+                key: "elf/blightborn",
                 name: "Blightborn",
                 guide: "character-creation#elf-blightborn",
                 ability_modifiers: [
@@ -31,7 +31,7 @@
         ],
     ),
     (
-        key: "race:dwarf",
+        key: "dwarf",
         name: "Dwarf",
         guide: "character-creation#dwarf",
         ability_modifiers: [

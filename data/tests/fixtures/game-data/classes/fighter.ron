@@ -1,43 +1,43 @@
 // Hand-written test fixture: small and simplified, not checked against the guide.
 Class(
-    key: "class:fighter",
+    key: "fighter",
     name: "Fighter",
     summary: "Martial class with many bonus combat feats.",
     guide: "fighter",
     skill_points: 2,
-    class_skills: ["skill:athletics"],
+    class_skills: ["athletics"],
     features: [
-        (key: "feature:fighter/bravery", name: "Bravery", guide: "fighter#bravery"),
+        (key: "fighter/bravery", name: "Bravery", guide: "fighter#bravery"),
     ],
     levels: [
         (level: 1, bab: 1, fort: 2, reflex: 0, will: 0, feat_slots: [CombatFeat]),
-        (level: 2, bab: 2, fort: 3, reflex: 0, will: 0, features: ["feature:fighter/bravery"], feat_slots: [CombatFeat]),
+        (level: 2, bab: 2, fort: 3, reflex: 0, will: 0, features: ["fighter/bravery"], feat_slots: [CombatFeat]),
         (level: 3, bab: 3, fort: 3, reflex: 1, will: 1),
     ],
     archetypes: [
         (
-            key: "archetype:fighter/armiger",
+            key: "fighter/armiger",
             name: "Armiger",
             guide: "fighter#armiger",
             skill_points: 4,
-            class_skills: ["skill:athletics", "skill:persuasion"],
+            class_skills: ["athletics", "persuasion"],
             features: [
-                (key: "feature:fighter/armiger/armigers-mastery", name: "Armiger's Mastery", guide: "fighter#armigers-mastery"),
+                (key: "fighter/armiger/armigers-mastery", name: "Armiger's Mastery", guide: "fighter#armigers-mastery"),
             ],
             selections: [
                 (
-                    key: "selection:fighter/armiger/order",
+                    key: "fighter/armiger/order",
                     name: "Order",
                     guide: "fighter#order",
                     options: [
-                        (key: "selection:fighter/armiger/order/order-of-the-cockatrice", name: "Order of the Cockatrice", guide: "fighter#order-of-the-cockatrice"),
-                        (key: "selection:fighter/armiger/order/order-of-the-dragon", name: "Order of the Dragon", guide: "fighter#order-of-the-dragon"),
+                        (key: "fighter/armiger/order/order-of-the-cockatrice", name: "Order of the Cockatrice", guide: "fighter#order-of-the-cockatrice"),
+                        (key: "fighter/armiger/order/order-of-the-dragon", name: "Order of the Dragon", guide: "fighter#order-of-the-dragon"),
                     ],
                 ),
             ],
             levels: [
-                (level: 1, bab: 1, fort: 2, reflex: 0, will: 0, selections: ["selection:fighter/armiger/order"]),
-                (level: 2, bab: 2, fort: 3, reflex: 0, will: 0, features: ["feature:fighter/armiger/armigers-mastery"], feat_slots: [OneOf(feats: ["feat:power-attack", "feat:combat-expertise"])]),
+                (level: 1, bab: 1, fort: 2, reflex: 0, will: 0, selections: ["fighter/armiger/order"]),
+                (level: 2, bab: 2, fort: 3, reflex: 0, will: 0, features: ["fighter/armiger/armigers-mastery"], feat_slots: [OneOf(feats: ["power-attack", "combat-expertise"])]),
                 (level: 3, bab: 3, fort: 3, reflex: 1, will: 1, feat_slots: [Category(Teamwork)]),
             ],
         ),

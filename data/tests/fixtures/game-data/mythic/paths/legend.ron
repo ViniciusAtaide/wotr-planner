@@ -1,6 +1,6 @@
 // Hand-written test fixture: small and simplified, not checked against the guide.
 MythicPath(
-    key: "path:legend",
+    key: "legend",
     name: "Legend",
     guide: "other-mythic-paths#legend",
     switch: (kept_ranks: [1, 2], further_ascensions: false, level_cap: 40),

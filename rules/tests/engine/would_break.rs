@@ -14,19 +14,17 @@ fn breaks(build: &Build, edit: Edit) -> Vec<Choice> {
 
 /// Elf fighter 5: Power Attack (F1 bonus), Cleave (L1), Great Cleave (F4 bonus), Cleaving Finish (L5).
 fn cleave_chain() -> Build {
-    let mut build = build("race:elf", &times("class:fighter", 5));
+    let mut build = build("elf", &times("fighter", 5));
     build
         .picks
-        .insert(class_slot(1, 0), pick_feat("feat:power-attack"));
+        .insert(class_slot(1, 0), pick_feat("power-attack"));
+    build.picks.insert(general_slot(1), pick_feat("cleave"));
     build
         .picks
-        .insert(general_slot(1), pick_feat("feat:cleave"));
+        .insert(class_slot(4, 0), pick_feat("great-cleave"));
     build
         .picks
-        .insert(class_slot(4, 0), pick_feat("feat:great-cleave"));
-    build
-        .picks
-        .insert(general_slot(5), pick_feat("feat:cleaving-finish"));
+        .insert(general_slot(5), pick_feat("cleaving-finish"));
     assert!(engine().validate(&build).is_empty());
     build
 }
@@ -47,7 +45,7 @@ fn removing_cleave_breaks_great_cleave_and_what_depends_on_it() {
             &build,
             Edit::Pick {
                 slot: general_slot(1),
-                pick: pick_feat("feat:toughness"),
+                pick: pick_feat("toughness"),
             }
         ),
         [
@@ -77,7 +75,7 @@ fn the_reason_is_the_one_at_the_broken_pick() {
         Problem {
             at: Choice::Slot(class_slot(4, 0)),
             issue: Issue::Unmet(Unmet::Condition {
-                needs: rules::Prerequisite::Feat(feat("feat:cleave")),
+                needs: rules::Prerequisite::Feat(feat("cleave")),
                 has: None,
             }),
         }
@@ -93,7 +91,7 @@ fn a_class_change_breaks_picks_in_slots_it_takes_away() {
             &build,
             Edit::Class {
                 level: 4,
-                class: class("class:wizard"),
+                class: class("wizard"),
                 choice: None,
             }
         ),
@@ -114,9 +112,9 @@ fn an_archetype_change_breaks_picks_in_replaced_slots() {
             &build,
             Edit::Class {
                 level: 1,
-                class: class("class:fighter"),
+                class: class("fighter"),
                 choice: Some(ClassChoice {
-                    archetype: Some(ArchetypeKey::new("archetype:fighter/armiger")),
+                    archetype: Some(ArchetypeKey::new("fighter/armiger")),
                     ..ClassChoice::default()
                 }),
             }
@@ -134,19 +132,19 @@ fn an_archetype_change_breaks_picks_in_replaced_slots() {
 fn an_earlier_edit_can_break_a_prestige_class_entry() {
     // Rogue 3 / Wizard 3, Mobility 4 by level 4, then Arcane Trickster.
     let mut build = build(
-        "race:elf",
+        "elf",
         &[
-            "class:rogue",
-            "class:rogue",
-            "class:rogue",
-            "class:wizard",
-            "class:wizard",
-            "class:wizard",
-            "class:arcane-trickster",
+            "rogue",
+            "rogue",
+            "rogue",
+            "wizard",
+            "wizard",
+            "wizard",
+            "arcane-trickster",
         ],
     );
     for level in &mut build.levels[..4] {
-        level.skill_ranks.insert(skill("skill:mobility"), 1);
+        level.skill_ranks.insert(skill("mobility"), 1);
     }
     assert!(engine().validate(&build).is_empty());
     assert_eq!(
@@ -154,7 +152,7 @@ fn an_earlier_edit_can_break_a_prestige_class_entry() {
             &build,
             Edit::SkillRanks {
                 level: 4,
-                skill: skill("skill:mobility"),
+                skill: skill("mobility"),
                 ranks: 0,
             }
         ),
@@ -171,7 +169,7 @@ fn the_edited_choice_itself_is_not_reported() {
             &build,
             Edit::Pick {
                 slot: general_slot(3),
-                pick: pick_feat("feat:outflank"),
+                pick: pick_feat("outflank"),
             }
         ),
         []
@@ -184,7 +182,7 @@ fn the_picker_asks_what_the_chosen_option_would_break() {
     let options = engine().options(&build, &general_slot(1)).unwrap();
     let toughness = options
         .iter()
-        .find(|o| o.pick.key() == "feat:toughness")
+        .find(|o| o.pick.key() == "toughness")
         .unwrap();
     assert_eq!(toughness.status, Ok(()));
 
@@ -198,7 +196,7 @@ fn the_picker_asks_what_the_chosen_option_would_break() {
             },
         )
     };
-    assert_eq!(would_break(&pick_feat("feat:cleave")), []);
+    assert_eq!(would_break(&pick_feat("cleave")), []);
     assert_eq!(
         would_break(&toughness.pick),
         [

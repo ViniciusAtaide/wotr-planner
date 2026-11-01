@@ -10,8 +10,8 @@ use std::fs;
 use common::{copy_fixture, fixture_dir};
 use data::{Database, GameDataStatus};
 use rules::{
-    Ability, AbilityModifier, Alignment, ArchetypeKey, ClassKey, Feat, FeatCategory, FeatKey,
-    FeatureKey, GuideRef, MythicAbilityKey, MythicFeatKey, Prerequisite, RaceKey,
+    Ability, AbilityModifier, Alignment, ArchetypeKey, ClassKey, DataAt, Feat, FeatCategory,
+    FeatKey, FeatureKey, GuideRef, MythicAbilityKey, MythicFeatKey, Prerequisite, RaceKey,
     SelectionOptionKey, SkillKey, SpellType,
 };
 use sqlx::PgPool;
@@ -60,7 +60,7 @@ async fn a_seed_that_fails_leaves_the_previous_data_in_place(pool: PgPool) {
     let text = fs::read_to_string(&feats).unwrap();
     fs::write(
         &feats,
-        text.replace("Feat(\"feat:power-attack\")", "Feat(\"feat:no-such-feat\")"),
+        text.replace("Feat(\"power-attack\")", "Feat(\"no-such-feat\")"),
     )
     .unwrap();
 
@@ -99,10 +99,10 @@ async fn the_seed_refuses_data_that_fails_the_data_check(pool: PgPool) {
         panic!("{error}");
     };
     assert_eq!(
-        problems.iter().map(|p| p.at.as_str()).collect::<Vec<_>>(),
-        ["class:fighter"]
+        problems.iter().map(|p| &p.at).collect::<Vec<_>>(),
+        [&DataAt::Class(ClassKey::new("fighter"))]
     );
-    assert!(error.to_string().contains("class:fighter"), "{error}");
+    assert!(error.to_string().contains("class fighter"), "{error}");
     assert_eq!(
         data::game_data_status(&db, &fixture_dir()).await.unwrap(),
         GameDataStatus::NeverSeeded
@@ -146,23 +146,21 @@ async fn status_is_stale_once_a_data_file_changes_after_seeding(pool: PgPool) {
 fn every_prerequisite_variant() -> Vec<Prerequisite> {
     use Prerequisite as P;
     let leaves = vec![
-        P::Feat(FeatKey::new("feat:power-attack")),
-        P::MythicFeat(MythicFeatKey::new("mythic-feat:power-attack-mythic")),
-        P::MythicAbility(MythicAbilityKey::new("mythic-ability:mythic-charge")),
+        P::Feat(FeatKey::new("power-attack")),
+        P::MythicFeat(MythicFeatKey::new("power-attack-mythic")),
+        P::MythicAbility(MythicAbilityKey::new("mythic-charge")),
         P::ClassLevel {
-            class: ClassKey::new("class:fighter"),
+            class: ClassKey::new("fighter"),
             level: 2,
         },
-        P::Archetype(ArchetypeKey::new("archetype:rogue/eldritch-scoundrel")),
+        P::Archetype(ArchetypeKey::new("rogue/eldritch-scoundrel")),
         P::Feature {
-            feature: FeatureKey::new("feature:rogue/sneak-attack"),
+            feature: FeatureKey::new("rogue/sneak-attack"),
             count: 2,
         },
-        P::SelectionOption(SelectionOptionKey::new(
-            "selection:rogue/rogue-talents/combat-trick",
-        )),
+        P::SelectionOption(SelectionOptionKey::new("rogue/rogue-talents/combat-trick")),
         P::SkillRanks {
-            skill: SkillKey::new("skill:mobility"),
+            skill: SkillKey::new("mobility"),
             ranks: 4,
         },
         P::AbilityScore {
@@ -177,7 +175,7 @@ fn every_prerequisite_variant() -> Vec<Prerequisite> {
         P::CasterLevel(5),
         P::CharacterLevel(7),
         P::Alignment(Alignment::LawfulNeutral),
-        P::Race(RaceKey::new("race:dwarf")),
+        P::Race(RaceKey::new("dwarf")),
     ];
     let groups = vec![
         P::Any(vec![P::BaseAttackBonus(1), P::CasterLevel(1)]),
@@ -214,7 +212,7 @@ async fn every_prerequisite_variant_round_trips(pool: PgPool) {
     let db = Database::from(pool);
     let mut game_data = data::read_game_data_files(&fixture_dir()).unwrap();
     game_data.feats.push(Feat {
-        key: FeatKey::new("feat:everything"),
+        key: FeatKey::new("everything"),
         name: "Everything".into(),
         category: FeatCategory::Miscellaneous,
         summary: String::new(),
@@ -237,7 +235,7 @@ async fn rows_the_loader_cannot_place_are_an_error(pool: PgPool) {
     // A fixed-list option on a general slot, which has no list.
     sqlx::query(
         "INSERT INTO feat_slot_option (feat_slot_id, feat_key)
-        SELECT id, 'feat:toughness' FROM feat_slot WHERE kind = 'general' LIMIT 1",
+        SELECT id, 'toughness' FROM feat_slot WHERE kind = 'general' LIMIT 1",
     )
     .execute(&pool)
     .await
@@ -255,7 +253,7 @@ async fn class_skills_under_an_archetype_that_keeps_the_base_list_are_an_error(p
     // Eldritch Scoundrel keeps the rogue's class skills, so it can't list its own.
     sqlx::query(
         "INSERT INTO class_skill (class_key, archetype_key, skill_key)
-        VALUES ('class:rogue', 'archetype:rogue/eldritch-scoundrel', 'skill:athletics')",
+        VALUES ('rogue', 'rogue/eldritch-scoundrel', 'athletics')",
     )
     .execute(&pool)
     .await
@@ -295,15 +293,15 @@ async fn every_prerequisite_node_belongs_to_exactly_one_owner(pool: PgPool) {
         // One tree shared by a feat and a class.
         (
             "UPDATE class SET prerequisite_root_id =
-                (SELECT prerequisite_root_id FROM feat WHERE key = 'feat:power-attack')
-            WHERE key = 'class:fighter'",
+                (SELECT prerequisite_root_id FROM feat WHERE key = 'power-attack')
+            WHERE key = 'fighter'",
             "prerequisite_node",
         ),
         // An owner pointing into the middle of another tree.
         (
             "UPDATE class SET prerequisite_root_id =
                 (SELECT id FROM prerequisite_node WHERE parent_id IS NOT NULL LIMIT 1)
-            WHERE key = 'class:fighter'",
+            WHERE key = 'fighter'",
             "parent",
         ),
     ] {
@@ -332,13 +330,13 @@ async fn a_prerequisite_node_must_fill_exactly_its_own_columns(pool: PgPool) {
         // A skill-ranks condition without its skill.
         "INSERT INTO prerequisite_node (kind, amount) VALUES ('skill_ranks', 4)",
         // A class-level condition without its level.
-        "INSERT INTO prerequisite_node (kind, class_key) VALUES ('class_level', 'class:fighter')",
+        "INSERT INTO prerequisite_node (kind, class_key) VALUES ('class_level', 'fighter')",
         // An at-least group without its n.
         "INSERT INTO prerequisite_node (kind) VALUES ('at_least')",
         // A group carrying a condition's value.
         "INSERT INTO prerequisite_node (kind, ability) VALUES ('all', 'strength')",
         // A feat condition with a stray amount.
-        "INSERT INTO prerequisite_node (kind, feat_key, amount) VALUES ('feat', 'feat:power-attack', 1)",
+        "INSERT INTO prerequisite_node (kind, feat_key, amount) VALUES ('feat', 'power-attack', 1)",
         // An ability score condition with a stray spell type.
         "INSERT INTO prerequisite_node (kind, ability, spell_type, amount)
             VALUES ('ability_score', 'strength', 'arcane', 13)",
@@ -352,7 +350,7 @@ async fn a_prerequisite_node_must_fill_exactly_its_own_columns(pool: PgPool) {
 async fn an_ability_modifier_without_an_ability_is_the_chosen_kind(pool: PgPool) {
     let db = Database::from(pool.clone());
     data::seed(&db, &fixture_dir()).await.unwrap();
-    sqlx::query("INSERT INTO ability_modifier (race_key, amount) VALUES ('race:dwarf', 2)")
+    sqlx::query("INSERT INTO ability_modifier (race_key, amount) VALUES ('dwarf', 2)")
         .execute(&pool)
         .await
         .unwrap();
@@ -362,7 +360,7 @@ async fn an_ability_modifier_without_an_ability_is_the_chosen_kind(pool: PgPool)
     let dwarf = loaded
         .races
         .iter()
-        .find(|race| race.key.as_str() == "race:dwarf")
+        .find(|race| race.key.as_str() == "dwarf")
         .unwrap();
     assert!(
         dwarf
@@ -392,15 +390,28 @@ async fn the_schema_rejects_values_outside_their_domain_and_misplaced_keys(pool:
     };
 
     // A u8 above 255, and an ability that isn't one.
-    let error = rejected("UPDATE class SET skill_points = 256 WHERE key = 'class:fighter'").await;
+    let error = rejected("UPDATE class SET skill_points = 256 WHERE key = 'fighter'").await;
     assert!(error.contains("u8"), "{error}");
-    let error = rejected("UPDATE skill SET ability = 'luck' WHERE key = 'skill:mobility'").await;
+    let error = rejected("UPDATE skill SET ability = 'luck' WHERE key = 'mobility'").await;
     assert!(error.contains("ability"), "{error}");
+
+    // A key is a lowercase slug, `/`-separated after an owner, with no type prefix.
+    for key in ["skill:stealth", "Stealth", "stealth/", "two  words", ""] {
+        let sql = format!(
+            "INSERT INTO skill (key, name, ability) VALUES ('{key}', 'Stealth', 'dexterity')"
+        );
+        let error = rejected(sql.leak()).await;
+        assert!(error.contains("text_key"), "{key:?}: {error}");
+    }
+    sqlx::query("INSERT INTO skill (key, name, ability) VALUES ('stealth-2/x', 'X', 'dexterity')")
+        .execute(&pool)
+        .await
+        .expect("a slug with an owner is a valid key");
 
     // An option whose key is outside its selection's.
     let error = rejected(
         "INSERT INTO selection_option (key, selection_key, name, summary, guide)
-        VALUES ('selection:fighter/stray', 'selection:rogue/rogue-talents', 'Stray', '', 'x')",
+        VALUES ('fighter/stray', 'rogue/rogue-talents', 'Stray', '', 'x')",
     )
     .await;
     assert!(error.contains("check constraint"), "{error}");
@@ -409,29 +420,26 @@ async fn the_schema_rejects_values_outside_their_domain_and_misplaced_keys(pool:
     let error = rejected(
         "INSERT INTO class_level (class_key, archetype_key, level, bab, fort, reflex, will,
             arcane_spell_level, divine_spell_level, advances_arcane, advances_divine)
-        VALUES ('class:fighter', 'archetype:rogue/eldritch-scoundrel', 4, 4, 4, 1, 1, 0, 0, false, false)",
+        VALUES ('fighter', 'rogue/eldritch-scoundrel', 4, 4, 4, 1, 1, 0, 0, false, false)",
     )
     .await;
     assert!(error.contains("foreign key"), "{error}");
 
     // Kept ranks belong to a path's switch rule, so a path without one can't have them.
     let error =
-        rejected("INSERT INTO path_switch_kept_rank (path_key, rank) VALUES ('path:trickster', 1)")
+        rejected("INSERT INTO path_switch_kept_rank (path_key, rank) VALUES ('trickster', 1)")
             .await;
     assert!(error.contains("foreign key"), "{error}");
 
     // A switch's level cap runs 20-40.
-    let error =
-        rejected("UPDATE path_switch SET level_cap = 41 WHERE path_key = 'path:legend'").await;
+    let error = rejected("UPDATE path_switch SET level_cap = 41 WHERE path_key = 'legend'").await;
     assert!(error.contains("check constraint"), "{error}");
 
     // A path's rank row and a switch's kept rank name a Mythic rank the ascension table has.
-    let error =
-        rejected("INSERT INTO mythic_rank (path_key, rank) VALUES ('path:legend', 11)").await;
+    let error = rejected("INSERT INTO mythic_rank (path_key, rank) VALUES ('legend', 11)").await;
     assert!(error.contains("foreign key"), "{error}");
     let error =
-        rejected("INSERT INTO path_switch_kept_rank (path_key, rank) VALUES ('path:legend', 11)")
-            .await;
+        rejected("INSERT INTO path_switch_kept_rank (path_key, rank) VALUES ('legend', 11)").await;
     assert!(error.contains("foreign key"), "{error}");
 
     // Only a fixed-list slot can ignore prerequisites.

@@ -8,11 +8,12 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use rules::{
-    Ability, AbilityModifier, Archetype, ArchetypeKey, Class, ClassKey, ClassLevelRow, Feat,
-    FeatCategory, FeatKey, FeatSlot, Feature, FeatureKey, FeatureSelection, FeatureSelectionKey,
-    GameData, GuideRef, MythicAbility, MythicAbilityKey, MythicAscension, MythicFeat,
-    MythicFeatKey, MythicPath, MythicPathKey, MythicRankRow, Prerequisite, Progression, Race,
-    RaceKey, SelectionOption, SelectionOptionKey, Skill, SkillKey, SpellType, Subrace, SubraceKey,
+    Ability, AbilityModifier, Archetype, ArchetypeKey, Class, ClassKey, ClassLevelRow, DataAt,
+    Feat, FeatCategory, FeatKey, FeatSlot, Feature, FeatureKey, FeatureSelection,
+    FeatureSelectionKey, GameData, GuideRef, MythicAbility, MythicAbilityKey, MythicAscension,
+    MythicFeat, MythicFeatKey, MythicPath, MythicPathKey, MythicRankRow, Prerequisite, Progression,
+    Race, RaceKey, SelectionOption, SelectionOptionKey, Skill, SkillKey, SpellType, Subrace,
+    SubraceKey,
 };
 
 use crate::grammar::{self, Cond, Unparsed};
@@ -123,9 +124,9 @@ pub fn extract(guide: &Guide) -> Extraction {
     builder.resolve_prerequisites(&mut data);
     crate::references::drop_dangling(&mut data, &mut builder.report);
     for problem in data.check() {
-        builder.report.add(
+        builder.report.add_about(
             Kind::Cell,
-            problem.at.clone(),
+            &problem.at,
             "",
             format!("fails the data check: {problem}"),
         );
@@ -138,7 +139,8 @@ pub fn extract(guide: &Guide) -> Extraction {
 
 /// Prerequisite lines waiting for the whole catalog.
 struct Pending {
-    owner: String,
+    /// The entity the prerequisite belongs to. Keys carry no type prefix, so the kind is part of the owner.
+    owner: DataAt,
     at: String,
     conds: Vec<(String, Result<Cond, Unparsed>)>,
     context: Context,
@@ -248,7 +250,7 @@ impl<'g> Builder<'g> {
                         .add(Kind::Cell, page.guide("skills"), name, "no ability ticked");
                     continue;
                 };
-                let key = SkillKey::new(format!("skill:{}", slug(&name)));
+                let key = SkillKey::new(slug(&name));
                 self.catalog.skills.insert(norm(&name), key.clone());
                 skills.push(Skill { key, name, ability });
             }
@@ -278,7 +280,7 @@ impl<'g> Builder<'g> {
                         SKILL_COLUMNS
                             .iter()
                             .find(|(abbr, _)| abbr == column)
-                            .map(|(_, name)| SkillKey::new(format!("skill:{}", slug(name))))
+                            .map(|(_, name)| SkillKey::new(slug(name)))
                     })
                     .collect();
                 rows_out.push((row[0].clone(), points, skills));
@@ -305,7 +307,7 @@ impl<'g> Builder<'g> {
                     .push(subrace(page, race, entry, sub, modifiers));
                 continue;
             }
-            let key = RaceKey::new(format!("race:{}", entry.anchor));
+            let key = RaceKey::new(entry.anchor.clone());
             self.catalog.races.insert(norm(&entry.name), key.clone());
             let mut race = Race {
                 key,
@@ -388,10 +390,16 @@ impl<'g> Builder<'g> {
         category: FeatCategory,
         extra: Vec<Prerequisite>,
     ) -> Feat {
-        let key = FeatKey::new(format!("feat:{}", entry.anchor));
+        let key = FeatKey::new(entry.anchor.clone());
         self.catalog.feats.insert(norm(&entry.name), key.clone());
         self.feat_names.push((entry.name.clone(), key.clone()));
-        self.prerequisites_of(page, entry, key.as_str(), Context::default(), extra);
+        self.prerequisites_of(
+            page,
+            entry,
+            &DataAt::Feat(key.clone()),
+            Context::default(),
+            extra,
+        );
         Feat {
             key,
             name: entry.name.clone(),
@@ -422,7 +430,7 @@ impl<'g> Builder<'g> {
         &mut self,
         page: &Page,
         entry: &Section,
-        owner: &str,
+        owner: &DataAt,
         context: Context,
         extra: Vec<Prerequisite>,
     ) {
@@ -446,7 +454,7 @@ impl<'g> Builder<'g> {
             return;
         }
         self.pending.push(Pending {
-            owner: owner.to_owned(),
+            owner: owner.clone(),
             at: page.guide(&entry.anchor),
             conds: lines
                 .into_iter()
@@ -467,7 +475,7 @@ impl<'g> Builder<'g> {
         let guide = self.guide;
         let page = guide.page(slug_name);
         let root = page.root.children.first().expect("a class page has an h2");
-        let class_key = ClassKey::new(format!("class:{slug_name}"));
+        let class_key = ClassKey::new(slug_name.to_owned());
         self.catalog
             .classes
             .insert(norm(&root.name), class_key.clone());
@@ -534,7 +542,7 @@ impl<'g> Builder<'g> {
                 class.class_skills = skills;
             }
         }
-        self.class_alignment(page, root, class_key.as_str());
+        self.class_alignment(page, root, &DataAt::Class(class_key.clone()));
 
         let base_selections =
             self.selections(page, root, slug_name, &granted_names, &class_key, None);
@@ -560,7 +568,7 @@ impl<'g> Builder<'g> {
 
         for (section, rows) in archetype_sections.iter().zip(&archetype_rows) {
             let prefix = format!("{slug_name}/{}", section.anchor);
-            let archetype_key = ArchetypeKey::new(format!("archetype:{prefix}"));
+            let archetype_key = ArchetypeKey::new(prefix.to_owned());
             self.catalog
                 .archetypes
                 .entry(norm(&section.name))
@@ -612,7 +620,7 @@ impl<'g> Builder<'g> {
                     ),
                     None => (None, None),
                 };
-            self.archetype_requirements(page, section, archetype_key.as_str());
+            self.archetype_requirements(page, section, &DataAt::Archetype(archetype_key.clone()));
             class.archetypes.push(Archetype {
                 key: archetype_key,
                 name: section.name.clone(),
@@ -771,10 +779,7 @@ impl<'g> Builder<'g> {
             }
         }
         if let Some(heading) = find_heading(scope, name) {
-            let key = FeatureKey::new(format!(
-                "feature:{}/{}",
-                heading.prefix, heading.section.anchor
-            ));
+            let key = FeatureKey::new(format!("{}/{}", heading.prefix, heading.section.anchor));
             self.define_feature(
                 &key,
                 heading.owner.clone(),
@@ -792,7 +797,7 @@ impl<'g> Builder<'g> {
                 ignores_prerequisites: true,
             }]);
         }
-        let key = FeatureKey::new(format!("feature:{}/{}", scope.prefix, slug(name)));
+        let key = FeatureKey::new(format!("{}/{}", scope.prefix, slug(name)));
         let owner = scope
             .owner
             .clone()
@@ -1005,7 +1010,7 @@ impl<'g> Builder<'g> {
         class: &ClassKey,
         extra: Vec<Prerequisite>,
     ) -> FeatureSelection {
-        let key = FeatureSelectionKey::new(format!("selection:{prefix}/{}", heading.anchor));
+        let key = FeatureSelectionKey::new(format!("{prefix}/{}", heading.anchor));
         let mut selection = FeatureSelection {
             key: key.clone(),
             name: heading.name.clone(),
@@ -1039,7 +1044,7 @@ impl<'g> Builder<'g> {
             self.prerequisites_of(
                 page,
                 child,
-                key.as_str(),
+                &DataAt::SelectionOption(key.clone()),
                 Context {
                     own_class: class.cloned(),
                 },
@@ -1073,7 +1078,7 @@ impl<'g> Builder<'g> {
         self.feat_named(&text[start..end])
     }
 
-    fn class_alignment(&mut self, page: &Page, section: &Section, owner: &str) {
+    fn class_alignment(&mut self, page: &Page, section: &Section, owner: &DataAt) {
         for item in section.list_items() {
             if item.to_ascii_lowercase().starts_with("alignment must be") {
                 self.queue_requirement(page, section, owner, item, None, Vec::new());
@@ -1082,7 +1087,7 @@ impl<'g> Builder<'g> {
     }
 
     /// An archetype's race and alignment rules from its bullets.
-    fn archetype_requirements(&mut self, page: &Page, section: &Section, owner: &str) {
+    fn archetype_requirements(&mut self, page: &Page, section: &Section, owner: &DataAt) {
         let mut conds = Vec::new();
         for item in section.list_items() {
             let lower = item.to_ascii_lowercase();
@@ -1104,7 +1109,7 @@ impl<'g> Builder<'g> {
         }
         if !conds.is_empty() {
             self.pending.push(Pending {
-                owner: owner.to_owned(),
+                owner: owner.clone(),
                 at: page.guide(&section.anchor),
                 conds,
                 context: Context::default(),
@@ -1118,14 +1123,14 @@ impl<'g> Builder<'g> {
         &mut self,
         page: &Page,
         section: &Section,
-        owner: &str,
+        owner: &DataAt,
         item: &str,
         context: Option<Context>,
         extra: Vec<Prerequisite>,
     ) {
         let parsed = grammar::parse_line(item);
         self.pending.push(Pending {
-            owner: owner.to_owned(),
+            owner: owner.clone(),
             at: page.guide(&section.anchor),
             conds: vec![(item.to_owned(), parsed)],
             context: context.unwrap_or_default(),
@@ -1148,10 +1153,9 @@ impl<'g> Builder<'g> {
             .filter(|s| s.level == 3 && has_progression_table(s))
             .collect();
         for section in &sections {
-            self.catalog.classes.insert(
-                norm(&section.name),
-                ClassKey::new(format!("class:{}", section.anchor)),
-            );
+            self.catalog
+                .classes
+                .insert(norm(&section.name), ClassKey::new(section.anchor.clone()));
         }
         sections
             .into_iter()
@@ -1160,7 +1164,7 @@ impl<'g> Builder<'g> {
     }
 
     fn prestige_class(&mut self, page: &'g Page, section: &'g Section) -> Class {
-        let key = ClassKey::new(format!("class:{}", section.anchor));
+        let key = ClassKey::new(section.anchor.clone());
         let rows = self.level_table(page, section, &section.anchor);
         let mut granted: BTreeSet<String> = BTreeSet::new();
         for row in &rows {
@@ -1227,7 +1231,7 @@ impl<'g> Builder<'g> {
         }
         if !conds.is_empty() {
             self.pending.push(Pending {
-                owner: key.as_str().to_owned(),
+                owner: DataAt::Class(key.clone()),
                 at: page.guide(&section.anchor),
                 conds,
                 context: Context::default(),
@@ -1318,11 +1322,17 @@ impl<'g> Builder<'g> {
         for group in section.children.iter().filter(|s| s.level == 4) {
             let group_name = group.name.trim_end_matches(" Abilities").to_owned();
             for entry in &group.children {
-                let key = MythicAbilityKey::new(format!("mythic-ability:{}", entry.anchor));
+                let key = MythicAbilityKey::new(entry.anchor.clone());
                 self.catalog
                     .mythic_abilities
                     .insert(norm(&entry.name), key.clone());
-                self.prerequisites_of(page, entry, key.as_str(), Context::default(), Vec::new());
+                self.prerequisites_of(
+                    page,
+                    entry,
+                    &DataAt::MythicAbility(key.clone()),
+                    Context::default(),
+                    Vec::new(),
+                );
                 out.push(MythicAbility {
                     key,
                     name: entry.name.clone(),
@@ -1345,11 +1355,17 @@ impl<'g> Builder<'g> {
         for group in section.children.iter().filter(|s| s.level == 4) {
             let group_name = group.name.trim_end_matches(" Feats").to_owned();
             for entry in &group.children {
-                let key = MythicFeatKey::new(format!("mythic-feat:{}", entry.anchor));
+                let key = MythicFeatKey::new(entry.anchor.clone());
                 self.catalog
                     .mythic_feats
                     .insert(norm(&entry.name), key.clone());
-                self.prerequisites_of(page, entry, key.as_str(), Context::default(), Vec::new());
+                self.prerequisites_of(
+                    page,
+                    entry,
+                    &DataAt::MythicFeat(key.clone()),
+                    Context::default(),
+                    Vec::new(),
+                );
                 out.push(MythicFeat {
                     key,
                     name: entry.name.clone(),
@@ -1403,7 +1419,7 @@ impl<'g> Builder<'g> {
         guide: String,
         shared: &[Heading<'g>],
     ) -> MythicPath {
-        let key = MythicPathKey::new(format!("path:{slug_name}"));
+        let key = MythicPathKey::new(slug_name.to_owned());
         let mut rows = Vec::new();
         for table in section.tables() {
             let is_progression = table.first().is_some_and(|header| {
@@ -1439,8 +1455,7 @@ impl<'g> Builder<'g> {
                 .iter()
                 .any(|form| granted.contains(form));
             if named && !mostly_granted(candidate, &granted) {
-                let key =
-                    FeatureSelectionKey::new(format!("selection:{slug_name}/{}", candidate.anchor));
+                let key = FeatureSelectionKey::new(format!("{slug_name}/{}", candidate.anchor));
                 let mut selection = FeatureSelection {
                     key,
                     name: candidate.name.clone(),
@@ -1557,9 +1572,9 @@ impl<'g> Builder<'g> {
     }
 
     /// Queues extra conditions for an owner (prose rules).
-    pub fn add_prerequisite(&mut self, owner: &str, at: String, extra: Vec<Prerequisite>) {
+    pub fn add_prerequisite(&mut self, owner: &DataAt, at: String, extra: Vec<Prerequisite>) {
         self.pending.push(Pending {
-            owner: owner.to_owned(),
+            owner: owner.clone(),
             at,
             conds: Vec::new(),
             context: Context::default(),
@@ -1569,7 +1584,7 @@ impl<'g> Builder<'g> {
     }
 
     fn resolve_prerequisites(&mut self, data: &mut GameData) {
-        let mut resolved: BTreeMap<String, Vec<Prerequisite>> = BTreeMap::new();
+        let mut resolved: BTreeMap<DataAt, Vec<Prerequisite>> = BTreeMap::new();
         for pending in std::mem::take(&mut self.pending) {
             let conditions = resolved.entry(pending.owner.clone()).or_default();
             conditions.extend(pending.extra);
@@ -1603,48 +1618,48 @@ impl<'g> Builder<'g> {
                 }
             }
         }
-        let mut take = |key: &str| -> Option<Prerequisite> {
-            let mut conditions = resolved.remove(key)?;
+        let mut take = |owner: DataAt| -> Option<Prerequisite> {
+            let mut conditions = resolved.remove(&owner)?;
             conditions.sort();
             conditions.dedup();
             all(conditions)
         };
         for feat in &mut data.feats {
-            feat.prerequisite = take(feat.key.as_str());
+            feat.prerequisite = take(DataAt::Feat(feat.key.clone()));
         }
         for class in data.classes.iter_mut().chain(&mut data.prestige_classes) {
-            class.prerequisite = take(class.key.as_str());
+            class.prerequisite = take(DataAt::Class(class.key.clone()));
             for selection in &mut class.selections {
                 for option in &mut selection.options {
-                    option.prerequisite = take(option.key.as_str());
+                    option.prerequisite = take(DataAt::SelectionOption(option.key.clone()));
                 }
             }
             for archetype in &mut class.archetypes {
-                archetype.prerequisite = take(archetype.key.as_str());
+                archetype.prerequisite = take(DataAt::Archetype(archetype.key.clone()));
                 for selection in &mut archetype.selections {
                     for option in &mut selection.options {
-                        option.prerequisite = take(option.key.as_str());
+                        option.prerequisite = take(DataAt::SelectionOption(option.key.clone()));
                     }
                 }
             }
         }
         for ability in &mut data.mythic_abilities {
-            ability.prerequisite = take(ability.key.as_str());
+            ability.prerequisite = take(DataAt::MythicAbility(ability.key.clone()));
         }
         for feat in &mut data.mythic_feats {
-            feat.prerequisite = take(feat.key.as_str());
+            feat.prerequisite = take(DataAt::MythicFeat(feat.key.clone()));
         }
         for path in &mut data.mythic_paths {
             for selection in &mut path.selections {
                 for option in &mut selection.options {
-                    option.prerequisite = take(option.key.as_str());
+                    option.prerequisite = take(DataAt::SelectionOption(option.key.clone()));
                 }
             }
         }
         for owner in resolved.keys() {
-            self.report.add(
+            self.report.add_about(
                 Kind::Prerequisite,
-                owner.clone(),
+                owner,
                 "",
                 "prerequisites for something the data doesn't have",
             );
@@ -1661,14 +1676,14 @@ fn subrace(
     sub: &str,
     modifiers: Vec<AbilityModifier>,
 ) -> Subrace {
-    let race_slug = race.key.as_str().trim_start_matches("race:");
+    let race_slug = race.key.as_str();
     let sub_slug = slug(sub.trim_end_matches(')'));
     let sub_slug = sub_slug
         .strip_prefix(&format!("{race_slug}-"))
         .unwrap_or(&sub_slug)
         .to_owned();
     Subrace {
-        key: SubraceKey::new(format!("subrace:{race_slug}/{sub_slug}")),
+        key: SubraceKey::new(format!("{race_slug}/{sub_slug}")),
         name: entry.name.clone(),
         summary: String::new(),
         guide: GuideRef::new(page.guide(&entry.anchor)),

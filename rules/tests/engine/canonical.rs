@@ -60,16 +60,7 @@ fn canonical_game_data_does_not_depend_on_list_order() {
 fn canonical_catalogs_are_ordered_by_key() {
     let data = reversed(world()).canonical();
     let keys: Vec<_> = data.classes.iter().map(|c| c.key.as_str()).collect();
-    assert_eq!(
-        keys,
-        [
-            "class:cleric",
-            "class:fighter",
-            "class:monk",
-            "class:rogue",
-            "class:wizard"
-        ]
-    );
+    assert_eq!(keys, ["cleric", "fighter", "monk", "rogue", "wizard"]);
     let levels: Vec<_> = data.classes[0].levels.iter().map(|r| r.level).collect();
     assert_eq!(levels, (1..=20).collect::<Vec<_>>());
 }

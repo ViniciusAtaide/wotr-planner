@@ -1,57 +1,57 @@
 // Hand-written test fixture: small and simplified, not checked against the guide.
 Class(
-    key: "class:rogue",
+    key: "rogue",
     name: "Rogue",
     guide: "rogue",
     skill_points: 8,
-    class_skills: ["skill:athletics", "skill:mobility", "skill:persuasion"],
+    class_skills: ["athletics", "mobility", "persuasion"],
     features: [
-        (key: "feature:rogue/sneak-attack", name: "Sneak Attack", summary: "Extra damage against flanked foes.", guide: "rogue#sneak-attack"),
+        (key: "rogue/sneak-attack", name: "Sneak Attack", summary: "Extra damage against flanked foes.", guide: "rogue#sneak-attack"),
     ],
     selections: [
         (
-            key: "selection:rogue/rogue-talents",
+            key: "rogue/rogue-talents",
             name: "Rogue Talents",
             guide: "rogue#rogue-talents",
             options: [
                 (
-                    key: "selection:rogue/rogue-talents/combat-trick",
+                    key: "rogue/rogue-talents/combat-trick",
                     name: "Combat Trick",
                     guide: "rogue#combat-trick",
-                    feat: "feat:combat-expertise",
+                    feat: "combat-expertise",
                 ),
                 (
-                    key: "selection:rogue/rogue-talents/crippling-strike",
+                    key: "rogue/rogue-talents/crippling-strike",
                     name: "Crippling Strike",
                     guide: "rogue#crippling-strike",
                     prerequisite: All([
-                        ClassLevel(class: "class:rogue", level: 10),
-                        SelectionOption("selection:rogue/rogue-talents/combat-trick"),
+                        ClassLevel(class: "rogue", level: 10),
+                        SelectionOption("rogue/rogue-talents/combat-trick"),
                     ]),
                 ),
             ],
         ),
     ],
     levels: [
-        (level: 1, bab: 0, fort: 0, reflex: 2, will: 0, features: ["feature:rogue/sneak-attack"]),
-        (level: 2, bab: 1, fort: 0, reflex: 3, will: 0, selections: ["selection:rogue/rogue-talents"]),
-        (level: 3, bab: 2, fort: 1, reflex: 3, will: 1, features: ["feature:rogue/sneak-attack"]),
+        (level: 1, bab: 0, fort: 0, reflex: 2, will: 0, features: ["rogue/sneak-attack"]),
+        (level: 2, bab: 1, fort: 0, reflex: 3, will: 0, selections: ["rogue/rogue-talents"]),
+        (level: 3, bab: 2, fort: 1, reflex: 3, will: 1, features: ["rogue/sneak-attack"]),
     ],
     archetypes: [
         (
-            key: "archetype:rogue/eldritch-scoundrel",
+            key: "rogue/eldritch-scoundrel",
             name: "Eldritch Scoundrel",
             summary: "A rogue who casts arcane spells.",
             guide: "rogue#eldritch-scoundrel",
-            prerequisite: Any([Race("race:human"), Race("race:elf")]),
+            prerequisite: Any([Race("human"), Race("elf")]),
             skill_points: 4,
             features: [
-                (key: "feature:rogue/eldritch-scoundrel/spells", name: "Spells", guide: "rogue#eldritch-scoundrel-spells"),
+                (key: "rogue/eldritch-scoundrel/spells", name: "Spells", guide: "rogue#eldritch-scoundrel-spells"),
             ],
             levels: [
-                (level: 1, bab: 0, fort: 0, reflex: 2, will: 0, arcane_spell_level: 1, features: ["feature:rogue/eldritch-scoundrel/spells"]),
-                (level: 2, bab: 1, fort: 0, reflex: 3, will: 0, arcane_spell_level: 1, features: ["feature:rogue/sneak-attack"]),
-                (level: 3, bab: 2, fort: 1, reflex: 3, will: 1, arcane_spell_level: 1, selections: ["selection:rogue/rogue-talents"]),
+                (level: 1, bab: 0, fort: 0, reflex: 2, will: 0, arcane_spell_level: 1, features: ["rogue/eldritch-scoundrel/spells"]),
+                (level: 2, bab: 1, fort: 0, reflex: 3, will: 0, arcane_spell_level: 1, features: ["rogue/sneak-attack"]),
+                (level: 3, bab: 2, fort: 1, reflex: 3, will: 1, arcane_spell_level: 1, selections: ["rogue/rogue-talents"]),
             ],
         ),
     ],

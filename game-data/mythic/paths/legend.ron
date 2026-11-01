@@ -1,5 +1,5 @@
 MythicPath(
-    key: "path:legend",
+    key: "legend",
     name: "Legend",
     guide: "other-mythic-paths#legend",
     switch: (kept_ranks: [1, 2], further_ascensions: false, level_cap: Some(40)),

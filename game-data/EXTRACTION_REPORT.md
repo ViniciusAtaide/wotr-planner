@@ -1,43 +1,27 @@
 # Extraction report
 
-What the extractor couldn't turn into data from the guide pages saved on 2026-10-31, with where each item is (`page#anchor`). Fix an item by editing the `.ron` files, check with `cargo run -p data --bin seed -- --check-only`, then delete its line here. 82 items.
+**Hand-fixed on 2026-11-01** by tickets 17–20 (feats, base classes, prestige classes, mythic). Remaining: Feats 2, Base classes 56, Prestige classes 12, Mythic 9, Races and skills 0. Items marked *narrowed* are partly fixed; items marked *new* were found during the hand-fix.
 
-## Feats (4)
+What the extractor couldn't turn into data from the guide pages saved on 2026-10-31, with where each item is (`page#anchor`). Fix an item by editing the `.ron` files, check with `cargo run -p data --bin seed -- --check-only`, then delete its line here. 79 items.
 
-### Prerequisite lines (4)
+## Feats (2)
 
-Each line is left out of its prerequisite, so it doesn't block any pick. A group (`or`, "One of") with an unresolved member is left out whole.
-
-- `feats#armor-focus`: "Armor Proficiency (Light. Medium or Heavy)" (nothing named "Armor Proficiency (Light. Medium or Heavy)")
-- `feats#disruptive`: "Fighter Level 6 or Arcane bloodline" (nothing named "Arcane bloodline")
-- `feats#extra-channel`: "Channel (Cleric) or Channel Positive Energy (Empyreal Sorcerer / Hospitaler)" (nothing named "Channel (Cleric)")
-- `feats#extra-slayer-talent`: "Slayer Talents or Talented Slayer" (nothing named "Talented Slayer")
-
-## Base classes (64)
-
-### Prerequisite lines (11)
+### Prerequisite lines (2)
 
 Each line is left out of its prerequisite, so it doesn't block any pick. A group (`or`, "One of") with an unresolved member is left out whole.
 
-- `arcanist#icy-tomb`: "Icy Missile" (nothing named "Icy Missile")
-- `hunter#push-and-bite`: "Favorite New Toy" (nothing named "Favorite New Toy")
-- `shaman#battle-master`: "Battle" (nothing named "Battle")
-- `shaman#battle-ward`: "Battle" (nothing named "Battle")
-- `shaman#beckoning-chill`: "Waves" (nothing named "Waves")
-- `shaman#entangling-curse`: "Nature" (nothing named "Nature")
-- `shaman#friend-to-animals`: "Nature" (nothing named "Nature")
-- `shaman#hampering-hex`: "Battle" (nothing named "Battle")
-- `shaman#hypothermia`: "Frost" (nothing named "Frost")
-- `shaman#metal-curse`: "Stone" (nothing named "Stone")
-- `shaman#stone-stability`: "Stone" (nothing named "Stone")
+- `feats#disruptive`: "Fighter Level 6 or Arcane bloodline" (nothing named "Arcane bloodline"; sorcerer bloodlines aren't a selection in the data)
+- `feats#extra-slayer-talent`: "Slayer Talents or Talented Slayer" (nothing named "Talented Slayer"; it appears on no saved page)
+
+## Base classes (56)
 
 ### Entry requirements (1)
 
 Left out of the class's or archetype's prerequisite.
 
-- `cleric`: "Alignment must be within 1 place of their chosen deity." (nothing named "Alignment must be within 1 place of their chosen deity.")
+- `cleric`: "Alignment must be within 1 place of their chosen deity." (nothing named "Alignment must be within 1 place of their chosen deity."; deities aren't data)
 
-### Progression table cells (40)
+### Progression table cells (39)
 
 The cell's text, and how it was stored instead.
 
@@ -62,7 +46,6 @@ The cell's text, and how it was stored instead.
 - `cavalier#order-of-the-shroud`: "Order of the Shroud" (a progression table under a feature heading isn't read, so what it grants is missing)
 - `cavalier#order-of-the-star`: "Order of the Star" (a progression table under a feature heading isn't read, so what it grants is missing)
 - `cavalier#order-of-the-sword`: "Order of the Sword" (a progression table under a feature heading isn't read, so what it grants is missing)
-- `monk#student-of-stone`:  (a feat list with no known feats was dropped)
 - `sorcerer#abyssal`: "Abyssal" (a progression table under a feature heading isn't read, so what it grants is missing)
 - `sorcerer#arcane`: "Arcane" (a progression table under a feature heading isn't read, so what it grants is missing)
 - `sorcerer#celestial`: "Celestial" (a progression table under a feature heading isn't read, so what it grants is missing)
@@ -82,13 +65,12 @@ The cell's text, and how it was stored instead.
 - `wizard#transmuter`: "Transmuter" (a progression table under a feature heading isn't read, so what it grants is missing)
 - `wizard#universalist`: "Universalist" (a progression table under a feature heading isn't read, so what it grants is missing)
 
-### Bonus feat slots (9)
+### Bonus feat slots (8)
 
 The slot as stored, and why it needs a look.
 
-- `cavalier#tactician-bonus-feat`: "Tactician - Bonus Feat" (the list names no feats; stored as a general slot)
-- `character-creation#bloodlines`: "Bloodline Feat" (each bloodline has its own list; stored as one list of every bloodline's feats, checking prerequisites)
-- `ranger#nomad`: "Archery Feat" (no list found for this slot; stored as a general slot)
+- `character-creation#bloodlines`: "Bloodline Feat" (*narrowed*: now one list per class, sorcerer 34 feats and bloodrager 28, checking prerequisites; the bloodline held can't narrow it, because bloodlines aren't a selection)
+- `cleric#crusader-bonus-feats`: "Bonus Feat" (*new*: only the BAB and fighter-level prerequisites are skipped; stored as skipping all of them, since a slot can't skip some)
 - `sorcerer#crossblooded`: "Bonus Feat" (no list found for this slot; stored as a general slot)
 - `sorcerer#empyreal-sorcerer`: "Bonus Feat" (no list found for this slot; stored as a general slot)
 - `sorcerer#geomancer`: "Bonus Feat" (no list found for this slot; stored as a general slot)
@@ -96,41 +78,51 @@ The slot as stored, and why it needs a look.
 - `sorcerer#sage-sorcerer`: "Bonus Feat" (no list found for this slot; stored as a general slot)
 - `sorcerer#sylvan-sorcerer`: "Bonus Feat" (no list found for this slot; stored as a general slot)
 
-### Prose-only rules (3)
+### Prose-only rules (8)
 
 Rules stated only in prose that the current data types can't hold.
 
 - `barbarian#rage-powers`:  (totem rage powers are exclusive: one totem line per character. The data has no "not" prerequisite, so only the Lesser, plain, Greater chain is checked)
-- `kineticist#kineticist-bonus-feat`:  (a wild talent that grants a bonus feat slot; a selection option can't grant a slot)
-- `slayer#advanced-talents`:  (from 10th level slayer talents may be advanced rogue talents; the slayer talent list is prose, not option headings, so the selection isn't built)
+- `kineticist#kineticist-bonus-feat`:  (a wild talent that grants a bonus feat slot; a selection option can't grant a slot. The kineticist has no selections: wild talents and Elemental Focus aren't data)
+- `rogue#discovery`:  (*new*: from 10th level the Underground Chemist may take alchemist discoveries instead of rogue talents; a slot takes one selection, so only rogue talents are offered)
+- `rogue#fey-tricks`:  (*new*: the Sylvan Trickster's even-level pick is a rogue talent or a witch hex, major from 10, grand from 18; a slot takes one selection, so only rogue talents are offered)
+- `rogue#skill-focus-master-of-all`:  (*new*: one `skill-focus` feat key can't be held more than once, so the Master of All's three Skill Focus grants are stored as features)
+- `rogue#sneak-attack-eldritch-scoundrel`:  (*new*: read from prose as dice at 1, 3, 7, 11, 15, 19; the reading needs checking)
+- `shaman`:  (*new*: the Second Spirit mythic ability and Wandering Hex give another spirit's hexes; not modelled)
+- `slayer#slayer-talents`:  (*new*: a slayer may instead take a ranger combat style feat three times, at 2 or 4, 6 or 8, and 10+; not offered, since nothing limits how many options carrying a feat are taken)
 
-## Prestige classes (7)
+## Prestige classes (12)
 
 ### Entry requirements (4)
 
 Left out of the class's or archetype's prerequisite.
 
-- `prestige-classes#dragon-disciple`: "Must have a Draconic bloodline or no known bloodline" (doesn't parse)
-- `prestige-classes#dragon-disciple`: "Required special: Able to cast 1st level arcane spells spontaneously" (nothing named "Able to cast 1st level arcane spells spontaneously")
-- `prestige-classes#loremaster`: "Required feats: Metamagic (any), Skill Focus (Knowledge: Arcana or Knowledge: World)" (nothing named "Metamagic (any)")
-- `prestige-classes#winter-witch`: "Required classes: Druid (Winter Child), Shaman (Frost Spirit) or Witch (Winter Patron)" (nothing named "Druid (Winter Child)")
+- `prestige-classes#assassin`: "Alignment must be neutral or evil" (*new*: ambiguous; stored as any alignment with a neutral part, or evil, which includes Neutral Good. Read as "not good", Neutral Good would be excluded)
+- `prestige-classes#dragon-disciple`: "Must have a Draconic bloodline or no known bloodline" (doesn't parse; there's no "not" or "no bloodline" condition)
+- `prestige-classes#dragon-disciple`: "Required special: Able to cast 1st level arcane spells spontaneously" (*narrowed*: `SpellLevel(Arcane, 1)` is stored; there's no spontaneous-caster condition)
+- `prestige-classes#winter-witch`: "Required classes: Druid (Winter Child), Shaman (Frost Spirit) or Witch (Winter Patron)" (*narrowed*: stored as `Any` of the Winter Child archetype, the witch's Winter patron and `ClassLevel(class: "shaman", level: 1)`; the shaman branch is a stand-in for the Frost spirit's selection option, `shaman/spirit/frost`)
 
-### Prose-only rules (3)
+### Prose-only rules (8)
 
 Rules stated only in prose that the current data types can't hold.
 
+- `prestige-classes#blood-of-dragons`:  (*new*: Dragon Disciple levels continue the sorcerer bloodline progression, and a non-sorcerer picks a Draconic bloodline; neither is in the data)
+- `prestige-classes#diverse-training`:  (*new*: Eldritch Knight levels count as Fighter levels and caster levels for feat prerequisites)
+- `prestige-classes#frost-power`:  (*new*: Winter Witch levels stack with Shaman and Witch levels for hexes, including Major and Grand hex access)
 - `prestige-classes#hellknight-signifer`:  (advances one class's spellcasting, arcane or divine: stored as advancing both, which the engine reads as one of each)
+- `prestige-classes#increased-damage-reduction`:  (*new*: "may be selected twice"; a selection option can't be held twice)
 - `prestige-classes#loremaster`:  (advances one class's spellcasting, arcane or divine: stored as advancing both, which the engine reads as one of each)
+- `prestige-classes#order`, `prestige-classes#order-hellknight-signifer`:  (*new*: a Hellknight who wasn't an Armiger, and every Signifer, picks one of seven orders, but there's no selection for it, so Pentamic Faith is closed to a non-Armiger Hellknight)
 - `prestige-classes#winter-witch`:  (advances one class's spellcasting, arcane or divine: stored as advancing both, which the engine reads as one of each)
 
-## Mythic (7)
+## Mythic (9)
 
 ### Prerequisite lines (2)
 
 Each line is left out of its prerequisite, so it doesn't block any pick. A group (`or`, "One of") with an unresolved member is left out whole.
 
-- `mythic-paths#destiny-beyond-birth`: "Racial attribute penalty" (nothing named "Racial attribute penalty")
-- `mythic-paths#second-bloodrager-bloodline`: "Bloodrager Bloodline" (nothing named "Bloodrager Bloodline")
+- `gold-dragon#annihilating-breath`, `#decaying-breath`, `#enlightening-breath`, `#rejuvenating-breath`: "Mythic Rank: 9", "Vow of Dahak", "Uncorrupted" (*new*: no mythic-rank or story-flag condition; MR 8 and 9 share character level 17, so `CharacterLevel` can't stand in)
+- `mythic-paths#domain-zealot`: "Domain" (*new*: a druid has a domain only if Nature Bond took one, and Nature Bond isn't a choice in the data; `ClassLevel(druid, 1)` lets every druid in)
 
 ### Bonus feat slots (1)
 
@@ -138,16 +130,17 @@ The slot as stored, and why it needs a look.
 
 - `gold-dragon`: "Dragon Feats" (three feats chosen without prerequisites; slots outside a class can't skip prerequisites, so stored as three general slots)
 
-### Prose-only rules (4)
+### Prose-only rules (6)
 
 Rules stated only in prose that the current data types can't hold.
 
 - `gold-dragon`:  (the switch drops the previous path's own powers from MR 3-7 but keeps the mythic abilities and feats; the data keeps whole ranks, so MR 1-7 are kept in full)
 - `other-mythic-paths#devil`:  (the Devil switch is open only to an Aeon or Azata; a path switch has no prerequisite in the data)
-- `other-mythic-paths#legend`:  (no rank table: the path's ranks are prose only)
+- `other-mythic-paths#devil`:  (*new*: switching from Aeon loses the Enforcing Gaze picks, and from Azata the dragon companion; MR 1-7 are kept in full)
+- `other-mythic-paths#legend`:  (*new*: the Legend effects, +4 to every ability score and Corruption Resistance, are never granted; a switch with no further ascensions applies no rank row)
+- `other-mythic-paths#legend`:  (*new*: feats unlocked by Trickster's Perception II are kept after becoming a Legend, but the data drops the MR 3-7 Trickster picks, so those feats show as broken)
 - `other-mythic-paths#swarm-that-walks`:  (the switch drops the previous path's own powers from MR 3-7 but keeps the mythic abilities and feats; the data keeps whole ranks, so MR 1-7 are kept in full)
 
 ## Races and skills (0)
 
 Nothing left.
-

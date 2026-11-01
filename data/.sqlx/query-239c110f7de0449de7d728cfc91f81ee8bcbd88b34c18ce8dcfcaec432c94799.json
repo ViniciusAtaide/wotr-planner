@@ -5,7 +5,14 @@
     "columns": [],
     "parameters": {
       "Left": [
-        "Text",
+        {
+          "Custom": {
+            "name": "text_key",
+            "kind": {
+              "Domain": "Text"
+            }
+          }
+        },
         "Text",
         "Text",
         "Text",

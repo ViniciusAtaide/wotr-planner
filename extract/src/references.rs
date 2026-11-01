@@ -1,34 +1,38 @@
 //! The last pass: every key the data refers to must exist, or the seed's foreign keys fail. Dangling references
 //! are dropped and reported.
+//!
+//! Keys carry no type prefix, so a reference must exist as its own kind: a feature called `trick` doesn't satisfy
+//! a reference to a feat called `trick`.
 
 use std::collections::BTreeSet;
 
-use rules::{FeatSlot, GameData, Prerequisite};
+use rules::{DataAt, FeatSlot, Feature, FeatureSelection, GameData, Prerequisite};
 
 use crate::report::{Kind, Report};
 
+/// Every defined key, with its kind.
 #[derive(Default)]
 struct Keys {
-    all: BTreeSet<String>,
+    all: BTreeSet<DataAt>,
 }
 
 impl Keys {
-    fn has(&self, key: &str) -> bool {
-        self.all.contains(key)
+    fn has(&self, at: DataAt) -> bool {
+        self.all.contains(&at)
     }
 
     /// Whether a leaf condition's references exist.
     fn leaf_ok(&self, prerequisite: &Prerequisite) -> bool {
         match prerequisite {
-            Prerequisite::Feat(key) => self.has(key.as_str()),
-            Prerequisite::MythicFeat(key) => self.has(key.as_str()),
-            Prerequisite::MythicAbility(key) => self.has(key.as_str()),
-            Prerequisite::ClassLevel { class, .. } => self.has(class.as_str()),
-            Prerequisite::Archetype(key) => self.has(key.as_str()),
-            Prerequisite::Feature { feature, .. } => self.has(feature.as_str()),
-            Prerequisite::SelectionOption(key) => self.has(key.as_str()),
-            Prerequisite::SkillRanks { skill, .. } => self.has(skill.as_str()),
-            Prerequisite::Race(key) => self.has(key.as_str()),
+            Prerequisite::Feat(key) => self.has(DataAt::Feat(key.clone())),
+            Prerequisite::MythicFeat(key) => self.has(DataAt::MythicFeat(key.clone())),
+            Prerequisite::MythicAbility(key) => self.has(DataAt::MythicAbility(key.clone())),
+            Prerequisite::ClassLevel { class, .. } => self.has(DataAt::Class(class.clone())),
+            Prerequisite::Archetype(key) => self.has(DataAt::Archetype(key.clone())),
+            Prerequisite::Feature { feature, .. } => self.has(DataAt::Feature(feature.clone())),
+            Prerequisite::SelectionOption(key) => self.has(DataAt::SelectionOption(key.clone())),
+            Prerequisite::SkillRanks { skill, .. } => self.has(DataAt::Skill(skill.clone())),
+            Prerequisite::Race(key) => self.has(DataAt::Race(key.clone())),
             _ => true,
         }
     }
@@ -75,68 +79,62 @@ impl Keys {
 }
 
 fn keys(data: &GameData) -> Keys {
-    let mut keys = Keys::default();
-    let mut add = |key: &str| {
-        keys.all.insert(key.to_owned());
+    let mut all = BTreeSet::new();
+    all.extend(data.skills.iter().map(|s| DataAt::Skill(s.key.clone())));
+    all.extend(data.races.iter().map(|r| DataAt::Race(r.key.clone())));
+    all.extend(data.feats.iter().map(|f| DataAt::Feat(f.key.clone())));
+    let mut features_and_selections = |features: &[Feature], selections: &[FeatureSelection]| {
+        all.extend(features.iter().map(|f| DataAt::Feature(f.key.clone())));
+        for selection in selections {
+            all.insert(DataAt::FeatureSelection(selection.key.clone()));
+            all.extend(
+                selection
+                    .options
+                    .iter()
+                    .map(|o| DataAt::SelectionOption(o.key.clone())),
+            );
+        }
     };
-    for skill in &data.skills {
-        add(skill.key.as_str());
-    }
-    for race in &data.races {
-        add(race.key.as_str());
-    }
-    for feat in &data.feats {
-        add(feat.key.as_str());
-    }
     for class in data.classes.iter().chain(&data.prestige_classes) {
-        add(class.key.as_str());
-        for feature in &class.features {
-            add(feature.key.as_str());
-        }
-        for selection in &class.selections {
-            add(selection.key.as_str());
-            for option in &selection.options {
-                add(option.key.as_str());
-            }
-        }
+        features_and_selections(&class.features, &class.selections);
         for archetype in &class.archetypes {
-            add(archetype.key.as_str());
-            for feature in &archetype.features {
-                add(feature.key.as_str());
-            }
-            for selection in &archetype.selections {
-                add(selection.key.as_str());
-                for option in &selection.options {
-                    add(option.key.as_str());
-                }
-            }
+            features_and_selections(&archetype.features, &archetype.selections);
         }
-    }
-    for ability in &data.mythic_abilities {
-        add(ability.key.as_str());
-    }
-    for feat in &data.mythic_feats {
-        add(feat.key.as_str());
     }
     for path in &data.mythic_paths {
-        add(path.key.as_str());
-        for feature in &path.features {
-            add(feature.key.as_str());
-        }
-        for selection in &path.selections {
-            add(selection.key.as_str());
-            for option in &selection.options {
-                add(option.key.as_str());
-            }
-        }
+        features_and_selections(&path.features, &path.selections);
     }
-    keys
+    for class in data.classes.iter().chain(&data.prestige_classes) {
+        all.insert(DataAt::Class(class.key.clone()));
+        all.extend(
+            class
+                .archetypes
+                .iter()
+                .map(|a| DataAt::Archetype(a.key.clone())),
+        );
+    }
+    all.extend(
+        data.mythic_abilities
+            .iter()
+            .map(|a| DataAt::MythicAbility(a.key.clone())),
+    );
+    all.extend(
+        data.mythic_feats
+            .iter()
+            .map(|f| DataAt::MythicFeat(f.key.clone())),
+    );
+    all.extend(
+        data.mythic_paths
+            .iter()
+            .map(|p| DataAt::MythicPath(p.key.clone())),
+    );
+    Keys { all }
 }
 
 fn prune_slots(keys: &Keys, slots: &mut Vec<FeatSlot>, at: &str, report: &mut Report) {
     slots.retain_mut(|slot| {
         if let FeatSlot::OneOf { feats, .. } = slot {
-            feats.retain(|feat| keys.has(feat.as_str()));
+            feats.retain(|feat| keys.has(DataAt::Feat(feat.clone())));
             if feats.is_empty() {
                 report.add(
                     Kind::Cell,
@@ -186,14 +184,19 @@ pub fn drop_dangling(data: &mut GameData, report: &mut Report) {
     for class in data.classes.iter_mut().chain(&mut data.prestige_classes) {
         prune_prerequisite(&keys, &mut class.prerequisite, &class.guide.0, report);
         for row in &mut class.levels {
-            row.features.retain(|key| keys.has(key.as_str()));
-            row.selections.retain(|key| keys.has(key.as_str()));
+            row.features
+                .retain(|key| keys.has(DataAt::Feature(key.clone())));
+            row.selections
+                .retain(|key| keys.has(DataAt::FeatureSelection(key.clone())));
             prune_slots(&keys, &mut row.feat_slots, &class.guide.0, report);
         }
         for selection in &mut class.selections {
             for option in &mut selection.options {
                 prune_prerequisite(&keys, &mut option.prerequisite, &option.guide.0, report);
-                option.feat = option.feat.take().filter(|feat| keys.has(feat.as_str()));
+                option.feat = option
+                    .feat
+                    .take()
+                    .filter(|feat| keys.has(DataAt::Feat(feat.clone())));
             }
         }
         for archetype in &mut class.archetypes {
@@ -204,22 +207,29 @@ pub fn drop_dangling(data: &mut GameData, report: &mut Report) {
                 report,
             );
             for row in &mut archetype.levels {
-                row.features.retain(|key| keys.has(key.as_str()));
-                row.selections.retain(|key| keys.has(key.as_str()));
+                row.features
+                    .retain(|key| keys.has(DataAt::Feature(key.clone())));
+                row.selections
+                    .retain(|key| keys.has(DataAt::FeatureSelection(key.clone())));
                 prune_slots(&keys, &mut row.feat_slots, &archetype.guide.0, report);
             }
             for selection in &mut archetype.selections {
                 for option in &mut selection.options {
                     prune_prerequisite(&keys, &mut option.prerequisite, &option.guide.0, report);
-                    option.feat = option.feat.take().filter(|feat| keys.has(feat.as_str()));
+                    option.feat = option
+                        .feat
+                        .take()
+                        .filter(|feat| keys.has(DataAt::Feat(feat.clone())));
                 }
             }
         }
     }
     for path in &mut data.mythic_paths {
         for row in &mut path.ranks {
-            row.features.retain(|key| keys.has(key.as_str()));
-            row.selections.retain(|key| keys.has(key.as_str()));
+            row.features
+                .retain(|key| keys.has(DataAt::Feature(key.clone())));
+            row.selections
+                .retain(|key| keys.has(DataAt::FeatureSelection(key.clone())));
             prune_slots(&keys, &mut row.feat_slots, &path.guide.0, report);
         }
         for selection in &mut path.selections {

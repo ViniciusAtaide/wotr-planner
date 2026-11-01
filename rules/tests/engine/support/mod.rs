@@ -126,14 +126,14 @@ pub fn world() -> GameData {
         progression: progression(),
         races: races(),
         skills: vec![
-            skill_row("skill:athletics", "Athletics", Ability::Strength),
-            skill_row("skill:mobility", "Mobility", Ability::Dexterity),
+            skill_row("athletics", "Athletics", Ability::Strength),
+            skill_row("mobility", "Mobility", Ability::Dexterity),
             skill_row(
-                "skill:knowledge-arcana",
+                "knowledge-arcana",
                 "Knowledge (Arcana)",
                 Ability::Intelligence,
             ),
-            skill_row("skill:persuasion", "Persuasion", Ability::Charisma),
+            skill_row("persuasion", "Persuasion", Ability::Charisma),
         ],
         feats: feats(),
         classes: vec![fighter(), rogue(), wizard(), cleric(), monk()],
@@ -181,7 +181,7 @@ fn races() -> Vec<Race> {
     let fixed = |ability, amount| AbilityModifier::Fixed { ability, amount };
     vec![
         Race {
-            key: RaceKey::new("race:human"),
+            key: RaceKey::new("human"),
             name: "Human".into(),
             summary: String::new(),
             guide: guide("character-creation#human"),
@@ -190,7 +190,7 @@ fn races() -> Vec<Race> {
             subraces: vec![],
         },
         Race {
-            key: RaceKey::new("race:elf"),
+            key: RaceKey::new("elf"),
             name: "Elf".into(),
             summary: String::new(),
             guide: guide("character-creation#elf"),
@@ -201,7 +201,7 @@ fn races() -> Vec<Race> {
             ],
             feat_slots: vec![],
             subraces: vec![Subrace {
-                key: SubraceKey::new("subrace:elf/blightborn"),
+                key: SubraceKey::new("elf/blightborn"),
                 name: "Blightborn".into(),
                 summary: String::new(),
                 guide: guide("character-creation#elf-blightborn"),
@@ -213,7 +213,7 @@ fn races() -> Vec<Race> {
             }],
         },
         Race {
-            key: RaceKey::new("race:dwarf"),
+            key: RaceKey::new("dwarf"),
             name: "Dwarf".into(),
             summary: String::new(),
             guide: guide("character-creation#dwarf"),
@@ -231,10 +231,10 @@ fn races() -> Vec<Race> {
 fn feat_row(key: &str, category: FeatCategory, prerequisite: Option<Prerequisite>) -> Feat {
     Feat {
         key: feat(key),
-        name: key.trim_start_matches("feat:").into(),
+        name: key.into(),
         category,
         summary: String::new(),
-        guide: guide(&format!("feats#{}", key.trim_start_matches("feat:"))),
+        guide: guide(&format!("feats#{key}")),
         prerequisite,
     }
 }
@@ -252,53 +252,46 @@ fn feats() -> Vec<Feat> {
     use Prerequisite::*;
     vec![
         feat_row(
-            "feat:power-attack",
+            "power-attack",
             Weapon,
             Some(needs_score(Ability::Strength, 13)),
         ),
         feat_row(
-            "feat:cleave",
+            "cleave",
             Weapon,
-            Some(All(vec![
-                needs_feat("feat:power-attack"),
-                BaseAttackBonus(1),
-            ])),
+            Some(All(vec![needs_feat("power-attack"), BaseAttackBonus(1)])),
         ),
         feat_row(
-            "feat:great-cleave",
+            "great-cleave",
             Weapon,
-            Some(All(vec![needs_feat("feat:cleave"), BaseAttackBonus(4)])),
+            Some(All(vec![needs_feat("cleave"), BaseAttackBonus(4)])),
         ),
         // Invented third link so a chain of two dependants can be tested.
+        feat_row("cleaving-finish", Weapon, Some(needs_feat("great-cleave"))),
         feat_row(
-            "feat:cleaving-finish",
-            Weapon,
-            Some(needs_feat("feat:great-cleave")),
-        ),
-        feat_row(
-            "feat:combat-expertise",
+            "combat-expertise",
             CombatManoeuvres,
             Some(needs_score(Ability::Intelligence, 13)),
         ),
         feat_row(
-            "feat:dodge",
+            "dodge",
             Miscellaneous,
             Some(needs_score(Ability::Dexterity, 13)),
         ),
-        feat_row("feat:toughness", Miscellaneous, None),
-        feat_row("feat:weapon-focus", Weapon, Some(BaseAttackBonus(1))),
-        feat_row("feat:skill-focus", Skill, None),
+        feat_row("toughness", Miscellaneous, None),
+        feat_row("weapon-focus", Weapon, Some(BaseAttackBonus(1))),
+        feat_row("skill-focus", Skill, None),
         feat_row(
-            "feat:arcane-strike",
+            "arcane-strike",
             Magic,
             Some(SpellLevel {
                 spell_type: SpellType::Arcane,
                 level: 1,
             }),
         ),
-        feat_row("feat:spell-penetration", Magic, Some(CasterLevel(5))),
+        feat_row("spell-penetration", Magic, Some(CasterLevel(5))),
         feat_row(
-            "feat:outflank",
+            "outflank",
             Teamwork,
             Some(All(vec![
                 BaseAttackBonus(4),
@@ -307,13 +300,13 @@ fn feats() -> Vec<Feat> {
         ),
         // "Combat Expertise, or Sneak Attack and Intelligence 13."
         feat_row(
-            "feat:dirty-trick",
+            "dirty-trick",
             CombatManoeuvres,
             Some(Any(vec![
-                needs_feat("feat:combat-expertise"),
+                needs_feat("combat-expertise"),
                 All(vec![
                     Feature {
-                        feature: feature("feature:rogue/sneak-attack"),
+                        feature: feature("rogue/sneak-attack"),
                         count: 1,
                     },
                     needs_score(Ability::Intelligence, 13),
@@ -322,61 +315,51 @@ fn feats() -> Vec<Feat> {
         ),
         // "Two of: Power Attack, Dirty Trick, (Cleave or Rogue 3)", and Fighter 2.
         feat_row(
-            "feat:critical-mastery",
+            "critical-mastery",
             Weapon,
             Some(All(vec![
                 AtLeast(
                     2,
                     vec![
-                        needs_feat("feat:power-attack"),
-                        needs_feat("feat:dirty-trick"),
+                        needs_feat("power-attack"),
+                        needs_feat("dirty-trick"),
                         Any(vec![
-                            needs_feat("feat:cleave"),
+                            needs_feat("cleave"),
                             ClassLevel {
-                                class: class("class:rogue"),
+                                class: class("rogue"),
                                 level: 3,
                             },
                         ]),
                     ],
                 ),
                 ClassLevel {
-                    class: class("class:fighter"),
+                    class: class("fighter"),
                     level: 2,
                 },
             ])),
         ),
         feat_row(
-            "feat:breadth-of-experience",
+            "breadth-of-experience",
             Skill,
             Some(All(vec![
-                Any(vec![
-                    Race(RaceKey::new("race:elf")),
-                    Race(RaceKey::new("race:dwarf")),
-                ]),
+                Any(vec![Race(RaceKey::new("elf")), Race(RaceKey::new("dwarf"))]),
                 CharacterLevel(2),
             ])),
         ),
         feat_row(
-            "feat:deft-maneuvers",
+            "deft-maneuvers",
             CombatManoeuvres,
             Some(SkillRanks {
-                skill: skill("skill:mobility"),
+                skill: skill("mobility"),
                 ranks: 3,
             }),
         ),
         // Simplified: the game's Crane Style also needs Improved Unarmed Strike.
+        feat_row("crane-style", UnarmedCombat, Some(needs_feat("dodge"))),
         feat_row(
-            "feat:crane-style",
+            "crane-wing",
             UnarmedCombat,
-            Some(needs_feat("feat:dodge")),
-        ),
-        feat_row(
-            "feat:crane-wing",
-            UnarmedCombat,
-            Some(All(vec![
-                needs_feat("feat:crane-style"),
-                needs_feat("feat:dodge"),
-            ])),
+            Some(All(vec![needs_feat("crane-style"), needs_feat("dodge")])),
         ),
     ]
 }
@@ -416,7 +399,7 @@ fn fighter() -> Class {
                 r.feat_slots.push(FeatSlot::CombatFeat);
             }
             if l % 4 == 2 {
-                r.features.push(feature("feature:fighter/bravery"));
+                r.features.push(feature("fighter/bravery"));
             }
             r
         })
@@ -427,14 +410,11 @@ fn fighter() -> Class {
             let mut r = row(l, l, 2 + l / 2, l / 3, l / 3);
             if l == 1 {
                 r.selections
-                    .push(FeatureSelectionKey::new("selection:fighter/armiger/order"));
+                    .push(FeatureSelectionKey::new("fighter/armiger/order"));
             }
             if l == 2 {
                 r.feat_slots.push(FeatSlot::OneOf {
-                    feats: BTreeSet::from([
-                        feat("feat:power-attack"),
-                        feat("feat:combat-expertise"),
-                    ]),
+                    feats: BTreeSet::from([feat("power-attack"), feat("combat-expertise")]),
                     ignores_prerequisites: false,
                 });
             }
@@ -442,18 +422,18 @@ fn fighter() -> Class {
         })
         .collect();
     Class {
-        key: class("class:fighter"),
+        key: class("fighter"),
         name: "Fighter".into(),
         summary: String::new(),
         guide: guide("fighter"),
         skill_points: 2,
-        class_skills: BTreeSet::from([skill("skill:athletics")]),
+        class_skills: BTreeSet::from([skill("athletics")]),
         prerequisite: None,
-        features: vec![plain_feature("feature:fighter/bravery", "Bravery")],
+        features: vec![plain_feature("fighter/bravery", "Bravery")],
         selections: vec![],
         levels,
         archetypes: vec![Archetype {
-            key: ArchetypeKey::new("archetype:fighter/armiger"),
+            key: ArchetypeKey::new("fighter/armiger"),
             name: "Armiger".into(),
             summary: String::new(),
             guide: guide("fighter#armiger"),
@@ -462,13 +442,13 @@ fn fighter() -> Class {
             class_skills: None,
             features: vec![],
             selections: vec![FeatureSelection {
-                key: FeatureSelectionKey::new("selection:fighter/armiger/order"),
+                key: FeatureSelectionKey::new("fighter/armiger/order"),
                 name: "Order".into(),
                 summary: String::new(),
                 guide: guide("fighter#order"),
                 options: vec![
-                    selection_option("selection:fighter/armiger/order/cockatrice", None, None),
-                    selection_option("selection:fighter/armiger/order/dragon", None, None),
+                    selection_option("fighter/armiger/order/cockatrice", None, None),
+                    selection_option("fighter/armiger/order/dragon", None, None),
                 ],
             }],
             levels: armiger_levels,
@@ -493,12 +473,12 @@ fn selection_option(
 
 /// Rogue: 3/4 BAB, good Reflex, Sneak Attack at odd levels, a rogue talent at even levels.
 fn rogue() -> Class {
-    let talents = FeatureSelectionKey::new("selection:rogue/rogue-talents");
+    let talents = FeatureSelectionKey::new("rogue/rogue-talents");
     let levels = (1..=20)
         .map(|l| {
             let mut r = row(l, l * 3 / 4, l / 3, 2 + l / 2, l / 3);
             if l % 2 == 1 {
-                r.features.push(feature("feature:rogue/sneak-attack"));
+                r.features.push(feature("rogue/sneak-attack"));
             } else {
                 r.selections.push(talents.clone());
             }
@@ -511,7 +491,7 @@ fn rogue() -> Class {
             let mut r = row(l, l * 3 / 4, l / 3, 2 + l / 2, l / 3);
             r.arcane_spell_level = l.div_ceil(3).min(6);
             if l == 2 || (l % 2 == 1 && l > 1) {
-                r.features.push(feature("feature:rogue/sneak-attack"));
+                r.features.push(feature("rogue/sneak-attack"));
             }
             if l % 2 == 0 {
                 r.selections.push(talents.clone());
@@ -520,18 +500,14 @@ fn rogue() -> Class {
         })
         .collect();
     Class {
-        key: class("class:rogue"),
+        key: class("rogue"),
         name: "Rogue".into(),
         summary: String::new(),
         guide: guide("rogue"),
         skill_points: 8,
-        class_skills: BTreeSet::from([
-            skill("skill:athletics"),
-            skill("skill:mobility"),
-            skill("skill:persuasion"),
-        ]),
+        class_skills: BTreeSet::from([skill("athletics"), skill("mobility"), skill("persuasion")]),
         prerequisite: None,
-        features: vec![plain_feature("feature:rogue/sneak-attack", "Sneak Attack")],
+        features: vec![plain_feature("rogue/sneak-attack", "Sneak Attack")],
         selections: vec![FeatureSelection {
             key: talents.clone(),
             name: "Rogue Talents".into(),
@@ -539,35 +515,33 @@ fn rogue() -> Class {
             guide: guide("rogue#rogue-talents"),
             options: vec![
                 selection_option(
-                    "selection:rogue/rogue-talents/combat-trick",
-                    Some(feat("feat:combat-expertise")),
+                    "rogue/rogue-talents/combat-trick",
+                    Some(feat("combat-expertise")),
                     None,
                 ),
                 selection_option(
-                    "selection:rogue/rogue-talents/crippling-strike",
+                    "rogue/rogue-talents/crippling-strike",
                     None,
                     Some(Prerequisite::All(vec![
                         Prerequisite::ClassLevel {
-                            class: class("class:rogue"),
+                            class: class("rogue"),
                             level: 10,
                         },
-                        Prerequisite::SelectionOption(option(
-                            "selection:rogue/rogue-talents/combat-trick",
-                        )),
+                        Prerequisite::SelectionOption(option("rogue/rogue-talents/combat-trick")),
                     ])),
                 ),
-                selection_option("selection:rogue/rogue-talents/fast-stealth", None, None),
+                selection_option("rogue/rogue-talents/fast-stealth", None, None),
             ],
         }],
         levels,
         archetypes: vec![Archetype {
-            key: ArchetypeKey::new("archetype:rogue/eldritch-scoundrel"),
+            key: ArchetypeKey::new("rogue/eldritch-scoundrel"),
             name: "Eldritch Scoundrel".into(),
             summary: String::new(),
             guide: guide("rogue#eldritch-scoundrel"),
             prerequisite: Some(Prerequisite::Any(vec![
-                Prerequisite::Race(RaceKey::new("race:human")),
-                Prerequisite::Race(RaceKey::new("race:elf")),
+                Prerequisite::Race(RaceKey::new("human")),
+                Prerequisite::Race(RaceKey::new("elf")),
             ])),
             skill_points: Some(4),
             class_skills: None,
@@ -591,12 +565,12 @@ fn wizard() -> Class {
         })
         .collect();
     Class {
-        key: class("class:wizard"),
+        key: class("wizard"),
         name: "Wizard".into(),
         summary: String::new(),
         guide: guide("wizard"),
         skill_points: 2,
-        class_skills: BTreeSet::from([skill("skill:knowledge-arcana")]),
+        class_skills: BTreeSet::from([skill("knowledge-arcana")]),
         prerequisite: None,
         features: vec![],
         selections: vec![],
@@ -613,7 +587,7 @@ fn monk() -> Class {
             let mut r = row(l, l * 3 / 4, 2 + l / 2, 2 + l / 2, 2 + l / 2);
             if l == 1 || l % 4 == 2 {
                 r.feat_slots.push(FeatSlot::OneOf {
-                    feats: BTreeSet::from([feat("feat:crane-style"), feat("feat:dodge")]),
+                    feats: BTreeSet::from([feat("crane-style"), feat("dodge")]),
                     ignores_prerequisites: true,
                 });
             }
@@ -621,12 +595,12 @@ fn monk() -> Class {
         })
         .collect();
     Class {
-        key: class("class:monk"),
+        key: class("monk"),
         name: "Monk".into(),
         summary: String::new(),
         guide: guide("monk"),
         skill_points: 4,
-        class_skills: BTreeSet::from([skill("skill:mobility")]),
+        class_skills: BTreeSet::from([skill("mobility")]),
         prerequisite: None,
         features: vec![],
         selections: vec![],
@@ -645,12 +619,12 @@ fn cleric() -> Class {
         })
         .collect();
     Class {
-        key: class("class:cleric"),
+        key: class("cleric"),
         name: "Cleric".into(),
         summary: String::new(),
         guide: guide("cleric"),
         skill_points: 2,
-        class_skills: BTreeSet::from([skill("skill:persuasion")]),
+        class_skills: BTreeSet::from([skill("persuasion")]),
         prerequisite: None,
         features: vec![],
         selections: vec![],
@@ -670,12 +644,12 @@ fn mystic_theurge() -> Class {
         })
         .collect();
     Class {
-        key: class("class:mystic-theurge"),
+        key: class("mystic-theurge"),
         name: "Mystic Theurge".into(),
         summary: String::new(),
         guide: guide("prestige-classes#mystic-theurge"),
         skill_points: 2,
-        class_skills: BTreeSet::from([skill("skill:knowledge-arcana")]),
+        class_skills: BTreeSet::from([skill("knowledge-arcana")]),
         prerequisite: Some(Prerequisite::All(vec![
             Prerequisite::SpellLevel {
                 spell_type: SpellType::Arcane,
@@ -700,21 +674,21 @@ fn arcane_trickster() -> Class {
             let mut r = row(l, l / 2, l / 3, 2 + l / 2, 2 + l / 2);
             r.advances_arcane = true;
             if l % 2 == 0 {
-                r.features.push(feature("feature:rogue/sneak-attack"));
+                r.features.push(feature("rogue/sneak-attack"));
             }
             r
         })
         .collect();
     Class {
-        key: class("class:arcane-trickster"),
+        key: class("arcane-trickster"),
         name: "Arcane Trickster".into(),
         summary: String::new(),
         guide: guide("prestige-classes#arcane-trickster"),
         skill_points: 4,
-        class_skills: BTreeSet::from([skill("skill:mobility")]),
+        class_skills: BTreeSet::from([skill("mobility")]),
         prerequisite: Some(Prerequisite::All(vec![
             Prerequisite::SkillRanks {
-                skill: skill("skill:mobility"),
+                skill: skill("mobility"),
                 ranks: 4,
             },
             Prerequisite::SpellLevel {
@@ -722,7 +696,7 @@ fn arcane_trickster() -> Class {
                 level: 2,
             },
             Prerequisite::Feature {
-                feature: feature("feature:rogue/sneak-attack"),
+                feature: feature("rogue/sneak-attack"),
                 count: 2,
             },
         ])),
@@ -743,18 +717,18 @@ fn mythic_abilities() -> Vec<MythicAbility> {
         prerequisite,
     };
     vec![
-        ability("mythic-ability:mythic-charge", None),
+        ability("mythic-charge", None),
         ability(
-            "mythic-ability:limitless-smite",
+            "limitless-smite",
             Some(Prerequisite::ClassLevel {
-                class: class("class:fighter"),
+                class: class("fighter"),
                 level: 1,
             }),
         ),
-        ability("mythic-ability:unstoppable", None),
-        ability("mythic-ability:inspired-strike", None),
-        ability("mythic-ability:dimensional-retribution", None),
-        ability("mythic-ability:abundant-casting", None),
+        ability("unstoppable", None),
+        ability("inspired-strike", None),
+        ability("dimensional-retribution", None),
+        ability("abundant-casting", None),
     ]
 }
 
@@ -768,23 +742,17 @@ fn mythic_feats() -> Vec<MythicFeat> {
         prerequisite,
     };
     vec![
-        mythic_feat(
-            "mythic-feat:power-attack-mythic",
-            Some(needs_feat("feat:power-attack")),
-        ),
-        mythic_feat(
-            "mythic-feat:toughness-mythic",
-            Some(needs_feat("feat:toughness")),
-        ),
-        mythic_feat("mythic-feat:extra-mythic-ability", None),
-        mythic_feat("mythic-feat:improved-critical-mythic", None),
-        mythic_feat("mythic-feat:dodge-mythic", None),
-        mythic_feat("mythic-feat:cleave-mythic", Some(needs_feat("feat:cleave"))),
+        mythic_feat("power-attack-mythic", Some(needs_feat("power-attack"))),
+        mythic_feat("toughness-mythic", Some(needs_feat("toughness"))),
+        mythic_feat("extra-mythic-ability", None),
+        mythic_feat("improved-critical-mythic", None),
+        mythic_feat("dodge-mythic", None),
+        mythic_feat("cleave-mythic", Some(needs_feat("cleave"))),
     ]
 }
 
 fn trickster() -> MythicPath {
-    let tricks = FeatureSelectionKey::new("selection:trickster/tricks");
+    let tricks = FeatureSelectionKey::new("trickster/tricks");
     let rank = |rank, features: Vec<FeatureKey>, feat_slots, selections| MythicRankRow {
         rank,
         features,
@@ -792,12 +760,12 @@ fn trickster() -> MythicPath {
         selections,
     };
     MythicPath {
-        key: path("path:trickster"),
+        key: path("trickster"),
         name: "Trickster".into(),
         summary: String::new(),
         guide: guide("trickster"),
         features: vec![plain_feature(
-            "feature:trickster/trickster-tricks",
+            "trickster/trickster-tricks",
             "Trickster Tricks",
         )],
         selections: vec![FeatureSelection {
@@ -806,23 +774,23 @@ fn trickster() -> MythicPath {
             summary: String::new(),
             guide: guide("trickster#tricks"),
             options: vec![
-                selection_option("selection:trickster/tricks/perception-1", None, None),
+                selection_option("trickster/tricks/perception-1", None, None),
                 selection_option(
-                    "selection:trickster/tricks/perception-2",
+                    "trickster/tricks/perception-2",
                     None,
                     Some(Prerequisite::SelectionOption(option(
-                        "selection:trickster/tricks/perception-1",
+                        "trickster/tricks/perception-1",
                     ))),
                 ),
-                selection_option("selection:trickster/tricks/athletics-1", None, None),
-                selection_option("selection:trickster/tricks/mobility-1", None, None),
-                selection_option("selection:trickster/tricks/persuasion-1", None, None),
+                selection_option("trickster/tricks/athletics-1", None, None),
+                selection_option("trickster/tricks/mobility-1", None, None),
+                selection_option("trickster/tricks/persuasion-1", None, None),
             ],
         }],
         ranks: vec![
             rank(
                 3,
-                vec![feature("feature:trickster/trickster-tricks")],
+                vec![feature("trickster/trickster-tricks")],
                 vec![],
                 vec![tricks.clone()],
             ),
@@ -830,7 +798,7 @@ fn trickster() -> MythicPath {
                 4,
                 vec![],
                 vec![FeatSlot::OneOf {
-                    feats: BTreeSet::from([feat("feat:toughness"), feat("feat:dodge")]),
+                    feats: BTreeSet::from([feat("toughness"), feat("dodge")]),
                     ignores_prerequisites: false,
                 }],
                 vec![],
@@ -845,7 +813,7 @@ fn trickster() -> MythicPath {
 
 fn legend() -> MythicPath {
     MythicPath {
-        key: path("path:legend"),
+        key: path("legend"),
         name: "Legend".into(),
         summary: String::new(),
         guide: guide("other-mythic-paths#legend"),
@@ -863,15 +831,15 @@ fn legend() -> MythicPath {
 /// A switch path that keeps everything and carries on ascending.
 fn gold_dragon() -> MythicPath {
     MythicPath {
-        key: path("path:gold-dragon"),
+        key: path("gold-dragon"),
         name: "Gold Dragon".into(),
         summary: String::new(),
         guide: guide("other-mythic-paths#gold-dragon"),
-        features: vec![plain_feature("feature:gold-dragon/breath", "Breath")],
+        features: vec![plain_feature("gold-dragon/breath", "Breath")],
         selections: vec![],
         ranks: vec![MythicRankRow {
             rank: 8,
-            features: vec![feature("feature:gold-dragon/breath")],
+            features: vec![feature("gold-dragon/breath")],
             feat_slots: vec![],
             selections: vec![],
         }],

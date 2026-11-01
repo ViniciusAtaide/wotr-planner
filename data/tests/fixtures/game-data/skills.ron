@@ -1,7 +1,7 @@
 // Hand-written test fixture: small and simplified, not checked against the guide.
 [
-    (key: "skill:athletics", name: "Athletics", ability: Strength),
-    (key: "skill:mobility", name: "Mobility", ability: Dexterity),
-    (key: "skill:knowledge-arcana", name: "Knowledge (Arcana)", ability: Intelligence),
-    (key: "skill:persuasion", name: "Persuasion", ability: Charisma),
+    (key: "athletics", name: "Athletics", ability: Strength),
+    (key: "mobility", name: "Mobility", ability: Dexterity),
+    (key: "knowledge-arcana", name: "Knowledge (Arcana)", ability: Intelligence),
+    (key: "persuasion", name: "Persuasion", ability: Charisma),
 ]

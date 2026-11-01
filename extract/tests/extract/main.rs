@@ -3,5 +3,6 @@
 
 mod grammar;
 mod output;
+mod references;
 mod report;
 mod tables;

@@ -32,7 +32,7 @@ fn needs_feat(key: &str) -> Issue {
 
 /// A dwarf monk with Dexterity 12, so Dodge (Dex 13) and Crane Style (Dodge) are out of reach in a general slot.
 fn clumsy_monk(levels: usize) -> Build {
-    let mut build = build("race:dwarf", &times("class:monk", levels));
+    let mut build = build("dwarf", &times("monk", levels));
     build.start.ability_scores.dexterity = 12;
     build
 }
@@ -40,16 +40,16 @@ fn clumsy_monk(levels: usize) -> Build {
 #[test]
 fn a_bonus_list_pick_ignores_the_feats_prerequisites() {
     let build = clumsy_monk(1);
-    let crane_style = pick_feat("feat:crane-style");
+    let crane_style = pick_feat("crane-style");
 
     // A general slot checks that Crane Style needs Dodge; the monk's bonus slot doesn't.
     assert_eq!(
         status_of(&options(&build, &general_slot(1)), &crane_style),
-        Err(needs_feat("feat:dodge"))
+        Err(needs_feat("dodge"))
     );
     let bonus = options(&build, &class_slot(1, 0));
     assert_eq!(status_of(&bonus, &crane_style), Ok(()));
-    assert_eq!(status_of(&bonus, &pick_feat("feat:dodge")), Ok(()));
+    assert_eq!(status_of(&bonus, &pick_feat("dodge")), Ok(()));
 
     let mut picked = build;
     picked.picks.insert(class_slot(1, 0), crane_style);
@@ -61,18 +61,16 @@ fn a_bonus_list_slot_still_takes_only_its_list_and_no_feat_already_held() {
     let mut build = clumsy_monk(2);
     build
         .picks
-        .insert(class_slot(1, 0), pick_feat("feat:crane-style"));
+        .insert(class_slot(1, 0), pick_feat("crane-style"));
     let offered = options(&build, &class_slot(2, 0));
     let keys: Vec<_> = offered.iter().map(|o| o.pick.key()).collect();
-    assert_eq!(keys, ["feat:crane-style", "feat:dodge"]);
+    assert_eq!(keys, ["crane-style", "dodge"]);
     assert_eq!(
-        status_of(&offered, &pick_feat("feat:crane-style")),
+        status_of(&offered, &pick_feat("crane-style")),
         Err(Issue::AlreadyHeld)
     );
 
-    build
-        .picks
-        .insert(class_slot(2, 0), pick_feat("feat:toughness"));
+    build.picks.insert(class_slot(2, 0), pick_feat("toughness"));
     assert_eq!(
         engine().validate(&build),
         [Problem {
@@ -88,17 +86,15 @@ fn a_follow_on_feat_checks_its_prerequisites_and_sees_the_bonus_pick_as_held() {
     let mut build = clumsy_monk(3);
     build
         .picks
-        .insert(class_slot(1, 0), pick_feat("feat:crane-style"));
-    let crane_wing = pick_feat("feat:crane-wing");
+        .insert(class_slot(1, 0), pick_feat("crane-style"));
+    let crane_wing = pick_feat("crane-wing");
     assert_eq!(
         status_of(&options(&build, &general_slot(3)), &crane_wing),
-        Err(needs_feat("feat:dodge"))
+        Err(needs_feat("dodge"))
     );
 
     // Dodge from the bonus slot at 2, without Dex 13, completes it.
-    build
-        .picks
-        .insert(class_slot(2, 0), pick_feat("feat:dodge"));
+    build.picks.insert(class_slot(2, 0), pick_feat("dodge"));
     assert_eq!(
         status_of(&options(&build, &general_slot(3)), &crane_wing),
         Ok(())
@@ -107,24 +103,24 @@ fn a_follow_on_feat_checks_its_prerequisites_and_sees_the_bonus_pick_as_held() {
 
 #[test]
 fn a_fighter_combat_feat_slot_still_checks_prerequisites() {
-    let mut build = build("race:dwarf", &["class:fighter"]);
+    let mut build = build("dwarf", &["fighter"]);
     build.start.ability_scores.dexterity = 12;
     assert_eq!(
         status_of(
             &options(&build, &class_slot(1, 0)),
-            &pick_feat("feat:crane-style")
+            &pick_feat("crane-style")
         ),
-        Err(needs_feat("feat:dodge"))
+        Err(needs_feat("dodge"))
     );
 
     build
         .picks
-        .insert(class_slot(1, 0), pick_feat("feat:crane-style"));
+        .insert(class_slot(1, 0), pick_feat("crane-style"));
     assert_eq!(
         engine().validate(&build),
         [Problem {
             at: Choice::Slot(class_slot(1, 0)),
-            issue: needs_feat("feat:dodge"),
+            issue: needs_feat("dodge"),
         }]
     );
 }
@@ -132,19 +128,19 @@ fn a_fighter_combat_feat_slot_still_checks_prerequisites() {
 #[test]
 fn a_fixed_list_that_is_not_a_bonus_list_still_checks_prerequisites() {
     // The Armiger's level-2 slot is a fixed list (Power Attack or Combat Expertise) that checks them.
-    let mut build = build("race:dwarf", &times("class:fighter", 2));
+    let mut build = build("dwarf", &times("fighter", 2));
     build.start.ability_scores.intelligence = 12;
     build.class_choices.insert(
-        class("class:fighter"),
+        class("fighter"),
         ClassChoice {
-            archetype: Some(ArchetypeKey::new("archetype:fighter/armiger")),
+            archetype: Some(ArchetypeKey::new("fighter/armiger")),
             ..ClassChoice::default()
         },
     );
     assert_eq!(
         status_of(
             &options(&build, &class_slot(2, 0)),
-            &pick_feat("feat:combat-expertise")
+            &pick_feat("combat-expertise")
         ),
         Err(Issue::Unmet(Unmet::Condition {
             needs: Prerequisite::AbilityScore {
@@ -159,14 +155,12 @@ fn a_fixed_list_that_is_not_a_bonus_list_still_checks_prerequisites() {
 #[test]
 fn would_break_never_reports_a_bonus_list_pick() {
     // Dwarf monk 3 with Dex 14: Dodge (L1), Crane Style in the bonus slot at 2, Crane Wing (L3).
-    let mut build = build("race:dwarf", &times("class:monk", 3));
-    build.picks.insert(general_slot(1), pick_feat("feat:dodge"));
+    let mut build = build("dwarf", &times("monk", 3));
+    build.picks.insert(general_slot(1), pick_feat("dodge"));
     build
         .picks
-        .insert(class_slot(2, 0), pick_feat("feat:crane-style"));
-    build
-        .picks
-        .insert(general_slot(3), pick_feat("feat:crane-wing"));
+        .insert(class_slot(2, 0), pick_feat("crane-style"));
+    build.picks.insert(general_slot(3), pick_feat("crane-wing"));
     assert_eq!(engine().validate(&build), []);
 
     // Removing Dodge breaks Crane Wing, which needs it, but not Crane Style in the bonus slot.

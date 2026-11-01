@@ -13,14 +13,14 @@ fn at(problems: &[Problem]) -> Vec<(Choice, Issue)> {
 
 #[test]
 fn keys_missing_from_the_game_data_are_reported_not_fatal() {
-    let mut build = build("race:elf", &["class:fighter", "class:removed-class"]);
+    let mut build = build("elf", &["fighter", "removed-class"]);
     build
         .picks
-        .insert(general_slot(1), pick_feat("feat:removed-feat"));
+        .insert(general_slot(1), pick_feat("removed-feat"));
     build.levels[0]
         .skill_ranks
-        .insert(skill("skill:removed-skill"), 1);
-    build.mythic_path = Some(path("path:removed"));
+        .insert(skill("removed-skill"), 1);
+    build.mythic_path = Some(path("removed"));
     let problems = engine().validate(&build);
 
     assert!(problems.iter().all(Problem::is_unknown_key), "{problems:?}");
@@ -30,17 +30,17 @@ fn keys_missing_from_the_game_data_are_reported_not_fatal() {
             (
                 Choice::SkillRanks {
                     level: 1,
-                    skill: skill("skill:removed-skill")
+                    skill: skill("removed-skill")
                 },
-                Issue::UnknownKey("skill:removed-skill".into())
+                Issue::UnknownKey("removed-skill".into())
             ),
             (
                 Choice::Slot(general_slot(1)),
-                Issue::UnknownKey("feat:removed-feat".into())
+                Issue::UnknownKey("removed-feat".into())
             ),
             (
                 Choice::Class { level: 2 },
-                Issue::UnknownKey("class:removed-class".into())
+                Issue::UnknownKey("removed-class".into())
             ),
         ]
     );
@@ -49,13 +49,11 @@ fn keys_missing_from_the_game_data_are_reported_not_fatal() {
 
 #[test]
 fn picks_that_no_longer_qualify_are_reported_with_their_reason() {
-    let mut build = build("race:elf", &["class:fighter"]);
+    let mut build = build("elf", &["fighter"]);
     build
         .picks
-        .insert(class_slot(1, 0), pick_feat("feat:power-attack"));
-    build
-        .picks
-        .insert(general_slot(1), pick_feat("feat:cleave"));
+        .insert(class_slot(1, 0), pick_feat("power-attack"));
+    build.picks.insert(general_slot(1), pick_feat("cleave"));
     assert_eq!(engine().validate(&build), []);
 
     // The game data changes: Power Attack now needs Str 18.
@@ -63,7 +61,7 @@ fn picks_that_no_longer_qualify_are_reported_with_their_reason() {
     let power_attack = data
         .feats
         .iter_mut()
-        .find(|f| f.key == feat("feat:power-attack"))
+        .find(|f| f.key == feat("power-attack"))
         .unwrap();
     power_attack.prerequisite = Some(Prerequisite::AbilityScore {
         ability: Ability::Strength,
@@ -87,7 +85,7 @@ fn picks_that_no_longer_qualify_are_reported_with_their_reason() {
             (
                 Choice::Slot(general_slot(1)),
                 Issue::Unmet(Unmet::Condition {
-                    needs: Prerequisite::Feat(feat("feat:power-attack")),
+                    needs: Prerequisite::Feat(feat("power-attack")),
                     has: None,
                 })
             ),
@@ -97,10 +95,8 @@ fn picks_that_no_longer_qualify_are_reported_with_their_reason() {
 
 #[test]
 fn a_pick_for_a_slot_that_no_longer_exists_is_reported() {
-    let mut build = build("race:elf", &times("class:wizard", 2));
-    build
-        .picks
-        .insert(general_slot(2), pick_feat("feat:toughness"));
+    let mut build = build("elf", &times("wizard", 2));
+    build.picks.insert(general_slot(2), pick_feat("toughness"));
     assert_eq!(
         at(&engine().validate(&build)),
         [(Choice::Slot(general_slot(2)), Issue::NoSuchSlot)]
@@ -109,27 +105,19 @@ fn a_pick_for_a_slot_that_no_longer_exists_is_reported() {
 
 #[test]
 fn skill_ranks_are_capped_at_the_character_level() {
-    let mut build = build("race:elf", &times("class:rogue", 3));
-    build.levels[0]
-        .skill_ranks
-        .insert(skill("skill:mobility"), 1);
-    build.levels[1]
-        .skill_ranks
-        .insert(skill("skill:mobility"), 1);
-    build.levels[2]
-        .skill_ranks
-        .insert(skill("skill:mobility"), 1);
+    let mut build = build("elf", &times("rogue", 3));
+    build.levels[0].skill_ranks.insert(skill("mobility"), 1);
+    build.levels[1].skill_ranks.insert(skill("mobility"), 1);
+    build.levels[2].skill_ranks.insert(skill("mobility"), 1);
     assert_eq!(engine().validate(&build), []);
 
-    build.levels[0]
-        .skill_ranks
-        .insert(skill("skill:athletics"), 2);
+    build.levels[0].skill_ranks.insert(skill("athletics"), 2);
     assert_eq!(
         at(&engine().validate(&build)),
         [(
             Choice::SkillRanks {
                 level: 1,
-                skill: skill("skill:athletics")
+                skill: skill("athletics")
             },
             Issue::SkillRankCap { cap: 1, ranks: 2 }
         )]
@@ -139,13 +127,8 @@ fn skill_ranks_are_capped_at_the_character_level() {
 #[test]
 fn skill_points_cannot_be_overspent() {
     // Wizard: 2 + Int 13 (+1) = 3 points.
-    let mut build = build("race:dwarf", &["class:wizard"]);
-    for key in [
-        "skill:athletics",
-        "skill:mobility",
-        "skill:persuasion",
-        "skill:knowledge-arcana",
-    ] {
+    let mut build = build("dwarf", &["wizard"]);
+    for key in ["athletics", "mobility", "persuasion", "knowledge-arcana"] {
         build.levels[0].skill_ranks.insert(skill(key), 1);
     }
     assert_eq!(
@@ -162,10 +145,7 @@ fn skill_points_cannot_be_overspent() {
 
 #[test]
 fn levels_above_20_need_the_legend_switch() {
-    let build = build(
-        "race:elf",
-        &[times("class:fighter", 20), vec!["class:rogue"]].concat(),
-    );
+    let build = build("elf", &[times("fighter", 20), vec!["rogue"]].concat());
     assert_eq!(
         at(&engine().validate(&build)),
         [(
@@ -178,7 +158,7 @@ fn levels_above_20_need_the_legend_switch() {
 #[test]
 fn class_entry_prerequisites_are_checked_on_the_first_level() {
     // Arcane Trickster straight away: no Mobility, no spells, no Sneak Attack.
-    let build = build("race:elf", &["class:arcane-trickster"]);
+    let build = build("elf", &["arcane-trickster"]);
     let problems = engine().validate(&build);
     assert_eq!(problems.len(), 1);
     assert_eq!(problems[0].at, Choice::Class { level: 1 });
@@ -189,16 +169,14 @@ fn class_entry_prerequisites_are_checked_on_the_first_level() {
 
     // An archetype whose race prerequisite fails: Eldritch Scoundrel is for humans and elves.
     let mut dwarf = rules::Build {
-        levels: vec![LevelUp::new(class("class:rogue"))],
+        levels: vec![LevelUp::new(class("rogue"))],
         ..build.clone()
     };
-    dwarf.start.race = Some(rules::RaceKey::new("race:dwarf"));
+    dwarf.start.race = Some(rules::RaceKey::new("dwarf"));
     dwarf.class_choices.insert(
-        class("class:rogue"),
+        class("rogue"),
         rules::ClassChoice {
-            archetype: Some(rules::ArchetypeKey::new(
-                "archetype:rogue/eldritch-scoundrel",
-            )),
+            archetype: Some(rules::ArchetypeKey::new("rogue/eldritch-scoundrel")),
             ..rules::ClassChoice::default()
         },
     );
@@ -209,14 +187,14 @@ fn class_entry_prerequisites_are_checked_on_the_first_level() {
             .map(|p| p.at)
             .collect::<Vec<_>>(),
         [Choice::Archetype {
-            class: class("class:rogue")
+            class: class("rogue")
         }]
     );
 }
 
 #[test]
 fn the_point_buy_must_fit_the_budget() {
-    let mut build = build("race:elf", &["class:fighter"]);
+    let mut build = build("elf", &["fighter"]);
     build.start.ability_scores = scores([18, 18, 10, 10, 10, 10]);
     assert_eq!(
         at(&engine().validate(&build)),
@@ -234,18 +212,18 @@ fn the_point_buy_must_fit_the_budget() {
 
 #[test]
 fn a_switch_only_path_cannot_be_chosen_at_mr_3() {
-    let mut build = build("race:elf", &times("class:fighter", 9));
-    build.mythic_path = Some(path("path:legend"));
+    let mut build = build("elf", &times("fighter", 9));
+    build.mythic_path = Some(path("legend"));
     assert_eq!(
         at(&engine().validate(&build)),
         [(Choice::MythicPath, Issue::NotChoosable)]
     );
     // And a path without a switch rule cannot be switched to.
-    build.mythic_path = Some(path("path:trickster"));
+    build.mythic_path = Some(path("trickster"));
     build
         .levels
-        .extend((0..8).map(|_| LevelUp::new(class("class:fighter"))));
-    build.path_switch = Some(path("path:trickster"));
+        .extend((0..8).map(|_| LevelUp::new(class("fighter"))));
+    build.path_switch = Some(path("trickster"));
     assert_eq!(
         at(&engine().validate(&build)),
         [(Choice::PathSwitch, Issue::NotChoosable)]
@@ -254,13 +232,9 @@ fn a_switch_only_path_cannot_be_chosen_at_mr_3() {
 
 #[test]
 fn a_duplicate_pick_is_already_held() {
-    let mut build = build("race:elf", &times("class:fighter", 3));
-    build
-        .picks
-        .insert(class_slot(1, 0), pick_feat("feat:toughness"));
-    build
-        .picks
-        .insert(general_slot(3), pick_feat("feat:toughness"));
+    let mut build = build("elf", &times("fighter", 3));
+    build.picks.insert(class_slot(1, 0), pick_feat("toughness"));
+    build.picks.insert(general_slot(3), pick_feat("toughness"));
     assert_eq!(
         at(&engine().validate(&build)),
         [(Choice::Slot(general_slot(3)), Issue::AlreadyHeld)]

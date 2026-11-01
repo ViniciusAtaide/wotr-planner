@@ -28,31 +28,19 @@ pub fn files(data: &GameData) -> Vec<(PathBuf, String)> {
     ];
     for class in &data.classes {
         files.push((
-            format!(
-                "classes/{}.ron",
-                class.key.as_str().trim_start_matches("class:")
-            )
-            .into(),
+            format!("classes/{}.ron", class.key).into(),
             class_file(class),
         ));
     }
     for class in &data.prestige_classes {
         files.push((
-            format!(
-                "prestige/{}.ron",
-                class.key.as_str().trim_start_matches("class:")
-            )
-            .into(),
+            format!("prestige/{}.ron", class.key).into(),
             class_file(class),
         ));
     }
     for path in &data.mythic_paths {
         files.push((
-            format!(
-                "mythic/paths/{}.ron",
-                path.key.as_str().trim_start_matches("path:")
-            )
-            .into(),
+            format!("mythic/paths/{}.ron", path.key).into(),
             path_file(path),
         ));
     }

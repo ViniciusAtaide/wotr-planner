@@ -2,11 +2,14 @@
 
 use std::collections::BTreeSet;
 
-use rules::{DataIssue, DataProblem, FeatKey, GameData, Prerequisite, SelectionOptionKey};
+use rules::{
+    ArchetypeKey, ClassKey, DataAt, DataIssue, DataProblem, FeatKey, FeatureKey,
+    FeatureSelectionKey, GameData, MythicPathKey, Prerequisite, RaceKey, SelectionOptionKey,
+};
 
 use crate::support::*;
 
-fn issues(data: &GameData) -> Vec<(String, DataIssue)> {
+fn issues(data: &GameData) -> Vec<(DataAt, DataIssue)> {
     data.check()
         .into_iter()
         .map(|DataProblem { at, issue }| (at, issue))
@@ -21,6 +24,14 @@ fn class_mut<'a>(data: &'a mut GameData, key: &str) -> &'a mut rules::Class {
         .unwrap()
 }
 
+fn at_class(key: &str) -> DataAt {
+    DataAt::Class(ClassKey::new(key))
+}
+
+fn at_path(key: &str) -> DataAt {
+    DataAt::MythicPath(MythicPathKey::new(key))
+}
+
 #[test]
 fn the_test_world_has_no_problems() {
     assert_eq!(issues(&world()), []);
@@ -29,17 +40,17 @@ fn the_test_world_has_no_problems() {
 #[test]
 fn level_rows_run_from_1_with_none_missing() {
     let mut data = world();
-    class_mut(&mut data, "class:wizard").levels.remove(4);
-    let fighter = class_mut(&mut data, "class:fighter");
+    class_mut(&mut data, "wizard").levels.remove(4);
+    let fighter = class_mut(&mut data, "fighter");
     fighter.archetypes[0].levels[0].level = 0;
     assert_eq!(
         issues(&data),
         [
+            (at_class("wizard"), DataIssue::LevelRowsNotContiguous),
             (
-                "archetype:fighter/armiger".into(),
+                DataAt::Archetype(ArchetypeKey::new("fighter/armiger")),
                 DataIssue::LevelRowsNotContiguous
             ),
-            ("class:wizard".into(), DataIssue::LevelRowsNotContiguous),
         ]
     );
 }
@@ -48,16 +59,16 @@ fn level_rows_run_from_1_with_none_missing() {
 fn only_base_classes_have_archetypes() {
     let mut data = world();
     let armiger = data.classes[1].archetypes[0].clone();
-    class_mut(&mut data, "class:arcane-trickster")
+    class_mut(&mut data, "arcane-trickster")
         .archetypes
         .push(rules::Archetype {
-            key: rules::ArchetypeKey::new("archetype:arcane-trickster/x"),
+            key: ArchetypeKey::new("arcane-trickster/x"),
             ..armiger
         });
     assert_eq!(
         issues(&data),
         [(
-            "class:arcane-trickster".into(),
+            at_class("arcane-trickster"),
             DataIssue::ArchetypeOnPrestigeClass
         )]
     );
@@ -66,11 +77,11 @@ fn only_base_classes_have_archetypes() {
 #[test]
 fn only_prestige_classes_advance_spellcasting() {
     let mut data = world();
-    class_mut(&mut data, "class:wizard").levels[2].advances_divine = true;
+    class_mut(&mut data, "wizard").levels[2].advances_divine = true;
     assert_eq!(
         issues(&data),
         [(
-            "class:wizard".into(),
+            at_class("wizard"),
             DataIssue::AdvancesOnBaseClass { level: 3 }
         )]
     );
@@ -87,40 +98,84 @@ fn a_prerequisite_group_has_children_and_at_least_fits_them() {
             Prerequisite::CasterLevel(1),
         ],
     ));
-    let first = data.feats[0].key.to_string();
-    let second = data.feats[1].key.to_string();
+    let first = DataAt::Feat(data.feats[0].key.clone());
+    let second = DataAt::Feat(data.feats[1].key.clone());
     let mut found = issues(&data);
-    found.sort_by(|a, b| a.0.cmp(&b.0));
+    found.sort();
     let mut expected = vec![
         (first, DataIssue::EmptyPrerequisiteGroup),
         (second, DataIssue::AtLeastOutOfRange { n: 3, children: 2 }),
     ];
-    expected.sort_by(|a, b| a.0.cmp(&b.0));
+    expected.sort();
     assert_eq!(found, expected);
 }
 
 #[test]
-fn keys_are_unique() {
+fn keys_are_unique_within_each_kind() {
     let mut data = world();
     let copy = data.feats[0].clone();
     data.feats.push(copy.clone());
     assert_eq!(
         issues(&data),
-        [(copy.key.to_string(), DataIssue::DuplicateKey)]
+        [(DataAt::Feat(copy.key), DataIssue::DuplicateKey)]
+    );
+}
+
+/// Keys carry no type prefix, so a feat, a feature and a selection may share one: each kind has its own table.
+#[test]
+fn different_kinds_may_share_a_key() {
+    let mut data = world();
+    let rogue = class_mut(&mut data, "rogue");
+    let mut talents_feature = rogue.features[0].clone();
+    talents_feature.key = FeatureKey::new("rogue/rogue-talents");
+    let mut power_attack_feature = rogue.features[0].clone();
+    power_attack_feature.key = FeatureKey::new("power-attack");
+    rogue
+        .features
+        .extend([talents_feature, power_attack_feature]);
+    assert_eq!(
+        rogue.selections[0].key,
+        FeatureSelectionKey::new("rogue/rogue-talents")
+    );
+    assert!(
+        data.feats
+            .iter()
+            .any(|f| f.key == FeatKey::new("power-attack"))
+    );
+
+    assert_eq!(issues(&data), []);
+}
+
+/// Base and prestige classes are one kind (one `class` table), so they can't share a key.
+#[test]
+fn a_prestige_class_cant_reuse_a_base_class_key() {
+    let mut data = world();
+    class_mut(&mut data, "mystic-theurge").key = ClassKey::new("wizard");
+    assert_eq!(
+        issues(&data),
+        [(at_class("wizard"), DataIssue::DuplicateKey)]
     );
 }
 
 #[test]
 fn a_selection_options_key_starts_with_its_selection_key() {
     let mut data = world();
-    let talents = &mut class_mut(&mut data, "class:rogue").selections[0];
-    talents.options[0].key = SelectionOptionKey::new("selection:fighter/stray");
+    let talents = &mut class_mut(&mut data, "rogue").selections[0];
+    talents.options[0].key = SelectionOptionKey::new("fighter/stray");
+    // Sharing only the text before the `/` isn't enough.
+    talents.options[1].key = SelectionOptionKey::new("rogue/rogue-talents-x");
     assert_eq!(
         issues(&data),
-        [(
-            "selection:fighter/stray".into(),
-            DataIssue::OptionOutsideItsSelection
-        )]
+        [
+            (
+                DataAt::SelectionOption(SelectionOptionKey::new("fighter/stray")),
+                DataIssue::OptionOutsideItsSelection
+            ),
+            (
+                DataAt::SelectionOption(SelectionOptionKey::new("rogue/rogue-talents-x")),
+                DataIssue::OptionOutsideItsSelection
+            ),
+        ]
     );
 }
 
@@ -132,7 +187,7 @@ fn ranks_and_levels_stay_in_range() {
     let legend = data
         .mythic_paths
         .iter_mut()
-        .find(|p| p.key.as_str() == "path:legend")
+        .find(|p| p.key.as_str() == "legend")
         .unwrap();
     let switch = legend.switch.as_mut().unwrap();
     switch.level_cap = Some(41);
@@ -140,44 +195,57 @@ fn ranks_and_levels_stay_in_range() {
     let trickster = data
         .mythic_paths
         .iter_mut()
-        .find(|p| p.key.as_str() == "path:trickster")
+        .find(|p| p.key.as_str() == "trickster")
         .unwrap();
     trickster.ranks[0].rank = 0;
-    class_mut(&mut data, "class:wizard").levels[19].arcane_spell_level = 10;
+    class_mut(&mut data, "wizard").levels[19].arcane_spell_level = 10;
 
-    let mut found = issues(&data);
-    found.sort_by(|a, b| a.0.cmp(&b.0));
     assert_eq!(
-        found,
+        issues(&data),
         [
-            ("class:wizard".into(), DataIssue::SpellLevelOutOfRange(10)),
-            ("path:legend".into(), DataIssue::LevelOutOfRange(41)),
-            ("path:legend".into(), DataIssue::RankOutOfRange(8)),
-            ("path:trickster".into(), DataIssue::RankOutOfRange(0)),
-            ("progression".into(), DataIssue::LevelOutOfRange(41)),
-            ("progression".into(), DataIssue::RankOutOfRange(11)),
+            (DataAt::Progression, DataIssue::LevelOutOfRange(41)),
+            (DataAt::Progression, DataIssue::RankOutOfRange(11)),
+            (at_class("wizard"), DataIssue::SpellLevelOutOfRange(10)),
+            (at_path("legend"), DataIssue::LevelOutOfRange(41)),
+            (at_path("legend"), DataIssue::RankOutOfRange(8)),
+            (at_path("trickster"), DataIssue::RankOutOfRange(0)),
         ]
     );
 }
 
 #[test]
-fn problems_read_as_sentences() {
-    let problem = DataProblem {
-        at: FeatKey::new("feat:cleave").to_string(),
+fn problems_read_as_sentences_that_name_the_kind() {
+    let problem = |at| DataProblem {
+        at,
         issue: DataIssue::DuplicateKey,
     };
-    assert_eq!(problem.to_string(), "feat:cleave: the key is used twice");
+    assert_eq!(
+        problem(DataAt::Feat(FeatKey::new("cleave"))).to_string(),
+        "feat cleave: the key is used twice"
+    );
+    assert_eq!(
+        problem(DataAt::Feature(FeatureKey::new("cleave"))).to_string(),
+        "feature cleave: the key is used twice"
+    );
+    assert_eq!(
+        DataProblem {
+            at: DataAt::Progression,
+            issue: DataIssue::RankOutOfRange(11),
+        }
+        .to_string(),
+        "progression: Mythic rank 11 is out of range"
+    );
 }
 
 #[test]
 fn only_class_levels_grant_bonus_list_slots() {
     let bonus_list = rules::FeatSlot::OneOf {
-        feats: BTreeSet::from([FeatKey::new("feat:dodge")]),
+        feats: BTreeSet::from([FeatKey::new("dodge")]),
         ignores_prerequisites: true,
     };
     let mut data = world();
     // A class's and an archetype's level rows may grant one.
-    class_mut(&mut data, "class:fighter").archetypes[0].levels[4]
+    class_mut(&mut data, "fighter").archetypes[0].levels[4]
         .feat_slots
         .push(bonus_list.clone());
     assert_eq!(issues(&data), []);
@@ -186,28 +254,29 @@ fn only_class_levels_grant_bonus_list_slots() {
     let human = data
         .races
         .iter_mut()
-        .find(|r| r.key.as_str() == "race:human")
+        .find(|r| r.key.as_str() == "human")
         .unwrap();
     human.feat_slots.push(bonus_list.clone());
     let trickster = data
         .mythic_paths
         .iter_mut()
-        .find(|p| p.key.as_str() == "path:trickster")
+        .find(|p| p.key.as_str() == "trickster")
         .unwrap();
     trickster.ranks[1].feat_slots.push(bonus_list);
+    let human = DataAt::Race(RaceKey::new("human"));
     assert_eq!(
         issues(&data),
         [
-            ("path:trickster".into(), DataIssue::BonusListOutsideAClass),
-            ("race:human".into(), DataIssue::BonusListOutsideAClass),
+            (human.clone(), DataIssue::BonusListOutsideAClass),
+            (at_path("trickster"), DataIssue::BonusListOutsideAClass),
         ]
     );
     assert_eq!(
         DataProblem {
-            at: "race:human".into(),
+            at: human,
             issue: DataIssue::BonusListOutsideAClass,
         }
         .to_string(),
-        "race:human: a feat slot that ignores prerequisites is granted outside a class's level rows"
+        "race human: a feat slot that ignores prerequisites is granted outside a class's level rows"
     );
 }

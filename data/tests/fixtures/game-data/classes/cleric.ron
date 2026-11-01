@@ -1,10 +1,10 @@
 // Hand-written test fixture: small and simplified, not checked against the guide.
 Class(
-    key: "class:cleric",
+    key: "cleric",
     name: "Cleric",
     guide: "cleric",
     skill_points: 2,
-    class_skills: ["skill:persuasion", "skill:knowledge-arcana"],
+    class_skills: ["persuasion", "knowledge-arcana"],
     levels: [
         (level: 1, bab: 0, fort: 2, reflex: 0, will: 2, divine_spell_level: 1),
         (level: 2, bab: 1, fort: 3, reflex: 0, will: 3, divine_spell_level: 1),
@@ -13,7 +13,7 @@ Class(
     archetypes: [
         (
             // Same skill points as the cleric, and no class skills at all.
-            key: "archetype:cleric/herald",
+            key: "cleric/herald",
             name: "Herald",
             guide: "cleric#herald",
             class_skills: [],

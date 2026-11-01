@@ -103,14 +103,13 @@ mod tests {
             name: Some("A".into()),
             ..Build::default()
         };
-        build.levels.push(LevelUp::new(ClassKey::new("class:x")));
+        build.levels.push(LevelUp::new(ClassKey::new("x")));
         build
             .class_choices
-            .insert(ClassKey::new("class:x"), ClassChoice::default());
-        build.picks.insert(
-            SlotId::Mythic { rank: 1 },
-            Pick::Feat(FeatKey::new("feat:y")),
-        );
+            .insert(ClassKey::new("x"), ClassChoice::default());
+        build
+            .picks
+            .insert(SlotId::Mythic { rank: 1 }, Pick::Feat(FeatKey::new("y")));
         let body = postcard::to_allocvec(&build).unwrap();
         assert_eq!(
             body,
@@ -119,15 +118,15 @@ mod tests {
                 0, 0, 0, 0, // start: race, subrace, racial ability, alignment all None
                 10, 10, 10, 10, 10, 10, // point-buy scores
                 1,  // one level
-                7, b'c', b'l', b'a', b's', b's', b':', b'x', // class
+                1, b'x', // class
                 0, 0, // no ability increase, no skill ranks
                 1, // one class choice
-                7, b'c', b'l', b'a', b's', b's', b':', b'x', // for the class
+                1, b'x', // for the class
                 0, 0, // archetype None, no advances
                 0, 0, // mythic path, path switch: None
                 1, // one pick
                 2, 1, // SlotId::Mythic { rank: 1 }
-                0, 6, b'f', b'e', b'a', b't', b':', b'y', // Pick::Feat("feat:y")
+                0, 1, b'y', // Pick::Feat("y")
             ]
         );
     }

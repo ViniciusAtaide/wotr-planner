@@ -2,12 +2,19 @@
 //!
 //! The seed refuses data with problems, so the database and the engine can rely on these rules. References to
 //! missing keys are left to the database's foreign keys.
+//!
+//! Keys carry no type prefix, so two kinds may share one (a feat and a feature both `power-attack`): each kind is
+//! its own table, and a [`DataAt`] names the kind as well as the key.
 
 use std::collections::HashSet;
 use std::fmt;
 
 use crate::engine::{BASE_LEVEL_CAP, PATH_SWITCH_RANK};
 use crate::game_data::{Class, ClassLevelRow, FeatSlot, FeatureSelection, GameData, MythicPath};
+use crate::keys::{
+    ArchetypeKey, ClassKey, FeatKey, FeatureKey, FeatureSelectionKey, MythicAbilityKey,
+    MythicFeatKey, MythicPathKey, RaceKey, SelectionOptionKey, SkillKey, SubraceKey,
+};
 use crate::prerequisite::Prerequisite;
 
 /// The highest Character level on any path (Legend).
@@ -20,15 +27,87 @@ const MAX_SPELL_LEVEL: u8 = 9;
 /// One mistake in the game data.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct DataProblem {
-    /// The key of the entity at fault (`class:wizard`), or `progression` for the mythic ascension table.
-    pub at: String,
+    pub at: DataAt,
     pub issue: DataIssue,
+}
+
+/// Where a data problem is: an entity, by its kind and key, or the mythic ascension table.
+///
+/// Uniqueness is per kind, so this is also what a duplicate key is a duplicate of. Base and prestige classes are
+/// one kind.
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum DataAt {
+    /// The mythic ascension table (`progression.ron`).
+    Progression,
+    Race(RaceKey),
+    Subrace(SubraceKey),
+    Skill(SkillKey),
+    Feat(FeatKey),
+    Class(ClassKey),
+    Archetype(ArchetypeKey),
+    Feature(FeatureKey),
+    FeatureSelection(FeatureSelectionKey),
+    SelectionOption(SelectionOptionKey),
+    MythicAbility(MythicAbilityKey),
+    MythicFeat(MythicFeatKey),
+    MythicPath(MythicPathKey),
+}
+
+impl DataAt {
+    /// The kind of entity, as a reader would name it: `feat`, `selection option`.
+    pub fn kind(&self) -> &'static str {
+        match self {
+            DataAt::Progression => "progression",
+            DataAt::Race(_) => "race",
+            DataAt::Subrace(_) => "subrace",
+            DataAt::Skill(_) => "skill",
+            DataAt::Feat(_) => "feat",
+            DataAt::Class(_) => "class",
+            DataAt::Archetype(_) => "archetype",
+            DataAt::Feature(_) => "feature",
+            DataAt::FeatureSelection(_) => "selection",
+            DataAt::SelectionOption(_) => "selection option",
+            DataAt::MythicAbility(_) => "mythic ability",
+            DataAt::MythicFeat(_) => "mythic feat",
+            DataAt::MythicPath(_) => "mythic path",
+        }
+    }
+
+    /// The entity's key; `None` for the mythic ascension table.
+    pub fn key(&self) -> Option<&str> {
+        Some(match self {
+            DataAt::Progression => return None,
+            DataAt::Race(key) => key.as_str(),
+            DataAt::Subrace(key) => key.as_str(),
+            DataAt::Skill(key) => key.as_str(),
+            DataAt::Feat(key) => key.as_str(),
+            DataAt::Class(key) => key.as_str(),
+            DataAt::Archetype(key) => key.as_str(),
+            DataAt::Feature(key) => key.as_str(),
+            DataAt::FeatureSelection(key) => key.as_str(),
+            DataAt::SelectionOption(key) => key.as_str(),
+            DataAt::MythicAbility(key) => key.as_str(),
+            DataAt::MythicFeat(key) => key.as_str(),
+            DataAt::MythicPath(key) => key.as_str(),
+        })
+    }
+}
+
+/// `feat power-attack`, `selection option rogue/rogue-talents/fast-stealth`, `progression`.
+impl fmt::Display for DataAt {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.kind())?;
+        match self.key() {
+            Some(key) => write!(f, " {key}"),
+            None => Ok(()),
+        }
+    }
 }
 
 /// What's wrong.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum DataIssue {
-    /// Two entities share a key.
+    /// Two entities of one kind share a key.
     DuplicateKey,
     /// A class or archetype table doesn't run 1, 2, … n with none missing (or has no rows, or more than 40).
     LevelRowsNotContiguous,
@@ -99,18 +178,20 @@ impl GameData {
         let mut check = Checker::default();
         check.progression(self);
         for race in &self.races {
-            check.key(race.key.as_str());
-            check.no_bonus_list(race.key.as_str(), &race.feat_slots);
+            let at = DataAt::Race(race.key.clone());
+            check.key(&at);
+            check.no_bonus_list(&at, &race.feat_slots);
             for subrace in &race.subraces {
-                check.key(subrace.key.as_str());
+                check.key(&DataAt::Subrace(subrace.key.clone()));
             }
         }
         for skill in &self.skills {
-            check.key(skill.key.as_str());
+            check.key(&DataAt::Skill(skill.key.clone()));
         }
         for feat in &self.feats {
-            check.key(feat.key.as_str());
-            check.prerequisite(feat.key.as_str(), feat.prerequisite.as_ref());
+            let at = DataAt::Feat(feat.key.clone());
+            check.key(&at);
+            check.prerequisite(&at, feat.prerequisite.as_ref());
         }
         for class in &self.classes {
             check.class(class, false);
@@ -119,12 +200,14 @@ impl GameData {
             check.class(class, true);
         }
         for ability in &self.mythic_abilities {
-            check.key(ability.key.as_str());
-            check.prerequisite(ability.key.as_str(), ability.prerequisite.as_ref());
+            let at = DataAt::MythicAbility(ability.key.clone());
+            check.key(&at);
+            check.prerequisite(&at, ability.prerequisite.as_ref());
         }
         for feat in &self.mythic_feats {
-            check.key(feat.key.as_str());
-            check.prerequisite(feat.key.as_str(), feat.prerequisite.as_ref());
+            let at = DataAt::MythicFeat(feat.key.clone());
+            check.key(&at);
+            check.prerequisite(&at, feat.prerequisite.as_ref());
         }
         for path in &self.mythic_paths {
             check.path(path);
@@ -136,55 +219,57 @@ impl GameData {
 
 #[derive(Default)]
 struct Checker {
-    keys: HashSet<String>,
+    /// Every key seen, with its kind: a key may repeat across kinds but not within one.
+    keys: HashSet<DataAt>,
     problems: Vec<DataProblem>,
 }
 
 impl Checker {
-    fn problem(&mut self, at: &str, issue: DataIssue) {
+    fn problem(&mut self, at: &DataAt, issue: DataIssue) {
         self.problems.push(DataProblem {
-            at: at.to_owned(),
+            at: at.clone(),
             issue,
         });
     }
 
-    fn key(&mut self, key: &str) {
-        if !self.keys.insert(key.to_owned()) {
-            self.problem(key, DataIssue::DuplicateKey);
+    fn key(&mut self, at: &DataAt) {
+        if !self.keys.insert(at.clone()) {
+            self.problem(at, DataIssue::DuplicateKey);
         }
     }
 
     /// Slots granted outside a class's level rows check prerequisites: the bonus list is the class's own.
-    fn no_bonus_list(&mut self, at: &str, slots: &[FeatSlot]) {
+    fn no_bonus_list(&mut self, at: &DataAt, slots: &[FeatSlot]) {
         if slots.iter().any(FeatSlot::ignores_prerequisites) {
             self.problem(at, DataIssue::BonusListOutsideAClass);
         }
     }
 
-    fn level(&mut self, at: &str, level: u8) {
+    fn level(&mut self, at: &DataAt, level: u8) {
         if !(1..=MAX_CHARACTER_LEVEL).contains(&level) {
             self.problem(at, DataIssue::LevelOutOfRange(level));
         }
     }
 
-    fn rank(&mut self, at: &str, rank: u8) {
+    fn rank(&mut self, at: &DataAt, rank: u8) {
         if !(1..=MAX_MYTHIC_RANK).contains(&rank) {
             self.problem(at, DataIssue::RankOutOfRange(rank));
         }
     }
 
     fn progression(&mut self, data: &GameData) {
+        let at = DataAt::Progression;
         let mut ranks = HashSet::new();
         for ascension in &data.progression.mythic_ascensions {
-            self.rank("progression", ascension.rank);
-            self.level("progression", ascension.character_level);
+            self.rank(&at, ascension.rank);
+            self.level(&at, ascension.character_level);
             if !ranks.insert(ascension.rank) {
-                self.problem("progression", DataIssue::RankOutOfRange(ascension.rank));
+                self.problem(&at, DataIssue::RankOutOfRange(ascension.rank));
             }
         }
     }
 
-    fn prerequisite(&mut self, at: &str, prerequisite: Option<&Prerequisite>) {
+    fn prerequisite(&mut self, at: &DataAt, prerequisite: Option<&Prerequisite>) {
         let Some(prerequisite) = prerequisite else {
             return;
         };
@@ -214,22 +299,25 @@ impl Checker {
 
     fn selections(&mut self, selections: &[FeatureSelection]) {
         for selection in selections {
-            self.key(selection.key.as_str());
+            self.key(&DataAt::FeatureSelection(selection.key.clone()));
             for option in &selection.options {
-                let key = option.key.as_str();
-                self.key(key);
-                let inside = key
+                let at = DataAt::SelectionOption(option.key.clone());
+                self.key(&at);
+                // `rogue/rogue-talents/fast-stealth` extends `rogue/rogue-talents`.
+                let inside = option
+                    .key
+                    .as_str()
                     .strip_prefix(selection.key.as_str())
                     .is_some_and(|rest| rest.starts_with('/'));
                 if !inside {
-                    self.problem(key, DataIssue::OptionOutsideItsSelection);
+                    self.problem(&at, DataIssue::OptionOutsideItsSelection);
                 }
-                self.prerequisite(key, option.prerequisite.as_ref());
+                self.prerequisite(&at, option.prerequisite.as_ref());
             }
         }
     }
 
-    fn rows(&mut self, at: &str, rows: &[ClassLevelRow], prestige: bool) {
+    fn rows(&mut self, at: &DataAt, rows: &[ClassLevelRow], prestige: bool) {
         let contiguous = !rows.is_empty()
             && rows.len() <= usize::from(MAX_CHARACTER_LEVEL)
             && rows
@@ -252,54 +340,54 @@ impl Checker {
     }
 
     fn class(&mut self, class: &Class, prestige: bool) {
-        let at = class.key.as_str();
-        self.key(at);
-        self.prerequisite(at, class.prerequisite.as_ref());
+        let at = DataAt::Class(class.key.clone());
+        self.key(&at);
+        self.prerequisite(&at, class.prerequisite.as_ref());
         for feature in &class.features {
-            self.key(feature.key.as_str());
+            self.key(&DataAt::Feature(feature.key.clone()));
         }
         self.selections(&class.selections);
-        self.rows(at, &class.levels, prestige);
+        self.rows(&at, &class.levels, prestige);
         if prestige && !class.archetypes.is_empty() {
-            self.problem(at, DataIssue::ArchetypeOnPrestigeClass);
+            self.problem(&at, DataIssue::ArchetypeOnPrestigeClass);
         }
         for archetype in &class.archetypes {
-            let at = archetype.key.as_str();
-            self.key(at);
-            self.prerequisite(at, archetype.prerequisite.as_ref());
+            let at = DataAt::Archetype(archetype.key.clone());
+            self.key(&at);
+            self.prerequisite(&at, archetype.prerequisite.as_ref());
             for feature in &archetype.features {
-                self.key(feature.key.as_str());
+                self.key(&DataAt::Feature(feature.key.clone()));
             }
             self.selections(&archetype.selections);
-            self.rows(at, &archetype.levels, false);
+            self.rows(&at, &archetype.levels, false);
         }
     }
 
     fn path(&mut self, path: &MythicPath) {
-        let at = path.key.as_str();
-        self.key(at);
+        let at = DataAt::MythicPath(path.key.clone());
+        self.key(&at);
         for feature in &path.features {
-            self.key(feature.key.as_str());
+            self.key(&DataAt::Feature(feature.key.clone()));
         }
         self.selections(&path.selections);
         let mut ranks = HashSet::new();
         for row in &path.ranks {
-            self.rank(at, row.rank);
+            self.rank(&at, row.rank);
             if !ranks.insert(row.rank) {
-                self.problem(at, DataIssue::RankOutOfRange(row.rank));
+                self.problem(&at, DataIssue::RankOutOfRange(row.rank));
             }
-            self.no_bonus_list(at, &row.feat_slots);
+            self.no_bonus_list(&at, &row.feat_slots);
         }
         if let Some(switch) = &path.switch {
             for &rank in &switch.kept_ranks {
                 if !(1..PATH_SWITCH_RANK).contains(&rank) {
-                    self.problem(at, DataIssue::RankOutOfRange(rank));
+                    self.problem(&at, DataIssue::RankOutOfRange(rank));
                 }
             }
             if let Some(cap) = switch.level_cap
                 && !(BASE_LEVEL_CAP..=MAX_CHARACTER_LEVEL).contains(&cap)
             {
-                self.problem(at, DataIssue::LevelOutOfRange(cap));
+                self.problem(&at, DataIssue::LevelOutOfRange(cap));
             }
         }
     }

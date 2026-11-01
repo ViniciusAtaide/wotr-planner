@@ -35,18 +35,21 @@ switch (one above the highest kept rank), and each class's level cap (its number
   repeats every row of its base class, and its BAB, saves and spell levels must match the base class's unless
   `data/tests/files.rs` allow-lists the difference.
 - Only prestige classes set `advances_arcane`/`advances_divine`, and only base classes have archetypes.
-- A selection option's key extends its selection's: `selection:rogue/rogue-talents/fast-stealth`.
+- A selection option's key extends its selection's: `rogue/rogue-talents/fast-stealth`.
 - Feat slots are `General`, `CombatFeat`, `Category(Teamwork)` or a fixed list,
-  `OneOf(feats: ["feat:crane-style", "feat:dodge"])`. A list that is the class's own bonus-feat list (a monk's
+  `OneOf(feats: ["crane-style", "dodge"])`. A list that is the class's own bonus-feat list (a monk's
   bonus feats, a ranger's combat style) adds `ignores_prerequisites: true`: the pick skips the feat's
   prerequisites. Only class and archetype level rows may set it; left out, prerequisites are checked.
 
-- Keys are readable text from the guide's anchors: `feat:power-attack`, `class:rogue`,
-  `archetype:rogue/dark-lurker`, `selection:rogue/rogue-talents/fast-stealth`.
+- Keys are readable text from the guide's anchors: `power-attack` (a feat), `rogue` (a class),
+  `rogue/dark-lurker` (an archetype), `rogue/rogue-talents/fast-stealth` (a selection option). A key has no type
+  prefix: where it sits says what it names, so keys of two kinds may be equal (the feature and the selection
+  `shaman/spirit`). Things a class or path owns start with the owner's key. A key is lowercase letters, digits
+  and `-`, in `/`-separated parts (the schema checks this).
 - `guide` fields are `page#anchor` links into the guide. Store a short summary in our own words, never the
   guide's text.
 - Prerequisites are `All([...])`, `Any([...])` and `AtLeast(n, [...])` over single conditions such as
-  `Feat("feat:power-attack")` or `AbilityScore(ability: Strength, score: 13)`. A missing `prerequisite`
+  `Feat("power-attack")` or `AbilityScore(ability: Strength, score: 13)`. A missing `prerequisite`
   means there is none.
 
 ## Seeding

@@ -5,6 +5,8 @@
 use std::collections::BTreeMap;
 use std::fmt::Write as _;
 
+use rules::DataAt;
+
 use crate::guide::PATH_PAGES;
 
 /// The part of the data an item belongs to: each has its own section in the report.
@@ -36,17 +38,9 @@ impl Category {
         }
     }
 
-    /// The category of a `page#anchor` link, or of a data key (`feat:dodge`) for a data-check problem.
+    /// The category of a `page#anchor` link.
     pub fn of(at: &str) -> Category {
         let (page, anchor) = at.split_once('#').unwrap_or((at, ""));
-        if let Some((prefix, _)) = page.split_once(':') {
-            return match prefix {
-                "feat" => Category::Feats,
-                "race" | "subrace" | "skill" => Category::RacesAndSkills,
-                "path" | "mythic-ability" | "mythic-feat" => Category::Mythic,
-                _ => Category::BaseClasses,
-            };
-        }
         match page {
             "feats" => Category::Feats,
             "prestige-classes" => Category::PrestigeClasses,
@@ -57,6 +51,24 @@ impl Category {
             _ if PATH_PAGES.contains(&page) => Category::Mythic,
             // The base class pages.
             _ => Category::BaseClasses,
+        }
+    }
+
+    /// The category of a data entity, for an item about the data rather than a guide page. Keys carry no type
+    /// prefix, so the kind comes from [`DataAt`]. A class may be a prestige class; it's filed with the base classes.
+    pub fn of_data(at: &DataAt) -> Category {
+        match at {
+            DataAt::Feat(_) => Category::Feats,
+            DataAt::Race(_) | DataAt::Subrace(_) | DataAt::Skill(_) => Category::RacesAndSkills,
+            DataAt::Progression
+            | DataAt::MythicAbility(_)
+            | DataAt::MythicFeat(_)
+            | DataAt::MythicPath(_) => Category::Mythic,
+            DataAt::Class(_)
+            | DataAt::Archetype(_)
+            | DataAt::Feature(_)
+            | DataAt::FeatureSelection(_)
+            | DataAt::SelectionOption(_) => Category::BaseClasses,
         }
     }
 }
@@ -106,8 +118,9 @@ impl Kind {
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Item {
     pub kind: Kind,
-    /// `page#anchor`.
+    /// `page#anchor`, or a data entity (`feat dodge`).
     pub at: String,
+    pub category: Category,
     /// The guide's text for the item (a prerequisite line or cell; short facts, never prose).
     pub text: String,
     pub why: String,
@@ -119,6 +132,7 @@ pub struct Report {
 }
 
 impl Report {
+    /// An item at a `page#anchor` link.
     pub fn add(
         &mut self,
         kind: Kind,
@@ -126,9 +140,28 @@ impl Report {
         text: impl Into<String>,
         why: impl Into<String>,
     ) {
+        let at = at.into();
         self.items.push(Item {
             kind,
-            at: at.into(),
+            category: Category::of(&at),
+            at,
+            text: text.into(),
+            why: why.into(),
+        });
+    }
+
+    /// An item about a data entity, such as a data-check problem: filed by the entity's kind.
+    pub fn add_about(
+        &mut self,
+        kind: Kind,
+        at: &DataAt,
+        text: impl Into<String>,
+        why: impl Into<String>,
+    ) {
+        self.items.push(Item {
+            kind,
+            at: at.to_string(),
+            category: Category::of_data(at),
             text: text.into(),
             why: why.into(),
         });
@@ -157,7 +190,7 @@ impl Report {
         let mut by_category: BTreeMap<Category, BTreeMap<Kind, Vec<&Item>>> = BTreeMap::new();
         for item in &items {
             by_category
-                .entry(Category::of(&item.at))
+                .entry(item.category)
                 .or_default()
                 .entry(item.kind)
                 .or_default()

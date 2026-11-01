@@ -6,9 +6,9 @@ use crate::support::*;
 
 /// `classes` in order, with `prestige` advancing `advances`, and Mobility 1 at each of the first four levels.
 fn with_advances(classes: &[&str], prestige: &str, advances: &[&str]) -> Build {
-    let mut build = build("race:elf", classes);
+    let mut build = build("elf", classes);
     for level in build.levels.iter_mut().take(4) {
-        level.skill_ranks.insert(skill("skill:mobility"), 1);
+        level.skill_ranks.insert(skill("mobility"), 1);
     }
     build.class_choices.insert(
         class(prestige),
@@ -35,23 +35,19 @@ fn advances_problems(build: &Build, prestige: &str) -> Vec<Issue> {
 }
 
 const THEURGE: [&str; 8] = [
-    "class:wizard",
-    "class:wizard",
-    "class:wizard",
-    "class:cleric",
-    "class:cleric",
-    "class:cleric",
-    "class:mystic-theurge",
-    "class:mystic-theurge",
+    "wizard",
+    "wizard",
+    "wizard",
+    "cleric",
+    "cleric",
+    "cleric",
+    "mystic-theurge",
+    "mystic-theurge",
 ];
 
 #[test]
 fn a_mystic_theurge_advances_one_arcane_and_one_divine_class() {
-    let build = with_advances(
-        &THEURGE,
-        "class:mystic-theurge",
-        &["class:wizard", "class:cleric"],
-    );
+    let build = with_advances(&THEURGE, "mystic-theurge", &["wizard", "cleric"]);
     assert_eq!(engine().validate(&build), []);
 
     // Wizard 3 / Cleric 3 / Mystic Theurge 2 casts as a wizard 5 and a cleric 5.
@@ -66,28 +62,26 @@ fn a_mystic_theurge_advances_one_arcane_and_one_divine_class() {
 fn a_mystic_theurge_cannot_advance_two_arcane_classes() {
     let mut build = with_advances(
         &[
-            "class:wizard",
-            "class:wizard",
-            "class:wizard",
-            "class:rogue",
-            "class:rogue",
-            "class:rogue",
-            "class:mystic-theurge",
+            "wizard",
+            "wizard",
+            "wizard",
+            "rogue",
+            "rogue",
+            "rogue",
+            "mystic-theurge",
         ],
-        "class:mystic-theurge",
-        &["class:wizard", "class:rogue"],
+        "mystic-theurge",
+        &["wizard", "rogue"],
     );
     build.class_choices.insert(
-        class("class:rogue"),
+        class("rogue"),
         ClassChoice {
-            archetype: Some(rules::ArchetypeKey::new(
-                "archetype:rogue/eldritch-scoundrel",
-            )),
+            archetype: Some(rules::ArchetypeKey::new("rogue/eldritch-scoundrel")),
             ..ClassChoice::default()
         },
     );
     assert_eq!(
-        advances_problems(&build, "class:mystic-theurge"),
+        advances_problems(&build, "mystic-theurge"),
         [Issue::NotAllowed]
     );
 }
@@ -96,18 +90,12 @@ fn a_mystic_theurge_cannot_advance_two_arcane_classes() {
 fn an_advanced_class_must_already_be_taken() {
     // The cleric levels come after the Mystic Theurge entry.
     let build = with_advances(
-        &[
-            "class:wizard",
-            "class:wizard",
-            "class:wizard",
-            "class:mystic-theurge",
-            "class:cleric",
-        ],
-        "class:mystic-theurge",
-        &["class:wizard", "class:cleric"],
+        &["wizard", "wizard", "wizard", "mystic-theurge", "cleric"],
+        "mystic-theurge",
+        &["wizard", "cleric"],
     );
     assert_eq!(
-        advances_problems(&build, "class:mystic-theurge"),
+        advances_problems(&build, "mystic-theurge"),
         [Issue::NotAllowed]
     );
 }
@@ -116,36 +104,29 @@ fn an_advanced_class_must_already_be_taken() {
 fn an_advanced_class_must_cast_what_the_prestige_class_advances() {
     // A plain rogue casts nothing, and Arcane Trickster advances only arcane spellcasting.
     let rogue_wizard = [
-        "class:rogue",
-        "class:rogue",
-        "class:rogue",
-        "class:wizard",
-        "class:wizard",
-        "class:wizard",
-        "class:cleric",
-        "class:arcane-trickster",
+        "rogue",
+        "rogue",
+        "rogue",
+        "wizard",
+        "wizard",
+        "wizard",
+        "cleric",
+        "arcane-trickster",
     ];
-    for advances in ["class:rogue", "class:cleric"] {
-        let build = with_advances(&rogue_wizard, "class:arcane-trickster", &[advances]);
+    for advances in ["rogue", "cleric"] {
+        let build = with_advances(&rogue_wizard, "arcane-trickster", &[advances]);
         assert_eq!(
-            advances_problems(&build, "class:arcane-trickster"),
+            advances_problems(&build, "arcane-trickster"),
             [Issue::NotAllowed],
             "{advances}"
         );
     }
-    let build = with_advances(&rogue_wizard, "class:arcane-trickster", &["class:wizard"]);
-    assert_eq!(advances_problems(&build, "class:arcane-trickster"), []);
+    let build = with_advances(&rogue_wizard, "arcane-trickster", &["wizard"]);
+    assert_eq!(advances_problems(&build, "arcane-trickster"), []);
 }
 
 #[test]
 fn only_a_class_that_advances_spellcasting_takes_advances() {
-    let build = with_advances(
-        &["class:wizard", "class:fighter"],
-        "class:fighter",
-        &["class:wizard"],
-    );
-    assert_eq!(
-        advances_problems(&build, "class:fighter"),
-        [Issue::NotAllowed]
-    );
+    let build = with_advances(&["wizard", "fighter"], "fighter", &["wizard"]);
+    assert_eq!(advances_problems(&build, "fighter"), [Issue::NotAllowed]);
 }

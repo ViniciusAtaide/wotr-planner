@@ -2,7 +2,7 @@
 //! where they can't.
 
 use rules::{
-    Class, FeatCategory, FeatKey, FeatSlot, FeatureKey, FeatureSelectionKey, MythicPath,
+    Class, DataAt, FeatCategory, FeatKey, FeatSlot, FeatureKey, FeatureSelectionKey, MythicPath,
     PathSwitch, Prerequisite, SelectionOptionKey,
 };
 
@@ -19,11 +19,11 @@ const MERGES: [(&str, &str, &str, &str); 3] = [
         "rogue",
         "advanced-rogue-talents",
         "rogue-talents",
-        "feature:rogue/advanced-talents",
+        "rogue/advanced-talents",
     ),
     // Major hexes from 10th level and grand hexes from 18th become hex options.
-    ("witch", "major-hexes", "hex", "feature:witch/major-hexes"),
-    ("witch", "grand-hexes", "hex", "feature:witch/grand-hexes"),
+    ("witch", "major-hexes", "hex", "witch/major-hexes"),
+    ("witch", "grand-hexes", "hex", "witch/grand-hexes"),
 ];
 
 /// Whether a heading's options are folded into another selection rather than being one of their own.
@@ -36,7 +36,7 @@ pub fn is_merged_list(prefix: &str, anchor: &str) -> bool {
 /// The Trickster bonus feats open at the Perception II trick.
 pub fn trickster_feat_gate() -> Prerequisite {
     Prerequisite::SelectionOption(SelectionOptionKey::new(
-        "selection:trickster/improved-mythic-trick/perception-ii",
+        "trickster/improved-mythic-trick/perception-ii",
     ))
 }
 
@@ -185,11 +185,11 @@ pub fn apply(
         }
         let Some(class) = classes
             .iter_mut()
-            .find(|class| class.key.as_str() == format!("class:{class_slug}"))
+            .find(|class| class.key.as_str() == class_slug)
         else {
             continue;
         };
-        let selection_key = FeatureSelectionKey::new(format!("selection:{class_slug}/{into}"));
+        let selection_key = FeatureSelectionKey::new(format!("{class_slug}/{into}"));
         let class_key = class.key.clone();
         let Some(selection) = class
             .selections
@@ -255,10 +255,7 @@ pub fn apply(
 
 /// Trickster tiers: an Improved trick needs the plain one for the same skill, a Greater trick the Improved one.
 fn trickster_tiers(builder: &mut Builder, paths: &[MythicPath]) {
-    let Some(trickster) = paths
-        .iter()
-        .find(|path| path.key.as_str() == "path:trickster")
-    else {
+    let Some(trickster) = paths.iter().find(|path| path.key.as_str() == "trickster") else {
         return;
     };
     let tiers = [
@@ -270,7 +267,7 @@ fn trickster_tiers(builder: &mut Builder, paths: &[MythicPath]) {
         trickster
             .selections
             .iter()
-            .find(|selection| selection.key.as_str() == format!("selection:trickster/{anchor}"))
+            .find(|selection| selection.key.as_str() == format!("trickster/{anchor}"))
             .map(|selection| {
                 selection
                     .options
@@ -294,7 +291,7 @@ fn trickster_tiers(builder: &mut Builder, paths: &[MythicPath]) {
                 .find(|(lower_skill, _, _)| *lower_skill == skill)
             {
                 Some((_, previous, _)) => builder.add_prerequisite(
-                    key.as_str(),
+                    &DataAt::SelectionOption(key.clone()),
                     guide,
                     vec![Prerequisite::SelectionOption(previous.clone())],
                 ),

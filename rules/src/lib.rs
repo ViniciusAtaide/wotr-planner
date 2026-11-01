@@ -11,7 +11,7 @@ mod problem;
 mod state;
 
 pub use build::*;
-pub use check::{DataIssue, DataProblem};
+pub use check::{DataAt, DataIssue, DataProblem};
 pub use codec::*;
 pub use engine::*;
 pub use game_data::*;

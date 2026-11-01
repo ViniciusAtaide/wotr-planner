@@ -13,8 +13,9 @@ use rules::{
 
 use crate::support::*;
 
-fn key(prefix: &'static str) -> impl Strategy<Value = String> {
-    "[a-z][a-z0-9/-]{0,24}".prop_map(move |rest| format!("{prefix}:{rest}"))
+/// A text key of any kind: `power-attack`, `rogue/eldritch-scoundrel`.
+fn key() -> impl Strategy<Value = String> {
+    "[a-z][a-z0-9/-]{0,24}"
 }
 
 fn ability() -> impl Strategy<Value = Ability> {
@@ -38,8 +39,8 @@ fn alignment() -> impl Strategy<Value = Alignment> {
 
 fn start() -> impl Strategy<Value = BuildStart> {
     (
-        option::of(key("race").prop_map(RaceKey)),
-        option::of(key("subrace").prop_map(SubraceKey)),
+        option::of(key().prop_map(RaceKey)),
+        option::of(key().prop_map(SubraceKey)),
         option::of(ability()),
         option::of(alignment()),
         prop::array::uniform6(any::<u8>()),
@@ -55,9 +56,9 @@ fn start() -> impl Strategy<Value = BuildStart> {
 
 fn level_up() -> impl Strategy<Value = LevelUp> {
     (
-        key("class").prop_map(ClassKey),
+        key().prop_map(ClassKey),
         option::of(ability()),
-        btree_map(key("skill").prop_map(SkillKey), any::<u8>(), 0..4),
+        btree_map(key().prop_map(SkillKey), any::<u8>(), 0..4),
     )
         .prop_map(|(class, ability_increase, skill_ranks)| LevelUp {
             class,
@@ -68,8 +69,8 @@ fn level_up() -> impl Strategy<Value = LevelUp> {
 
 fn class_choice() -> impl Strategy<Value = ClassChoice> {
     (
-        option::of(key("archetype").prop_map(ArchetypeKey)),
-        btree_set(key("class").prop_map(ClassKey), 0..3),
+        option::of(key().prop_map(ArchetypeKey)),
+        btree_set(key().prop_map(ClassKey), 0..3),
     )
         .prop_map(|(archetype, advances)| ClassChoice {
             archetype,
@@ -98,10 +99,10 @@ fn slot_id() -> impl Strategy<Value = SlotId> {
 
 fn pick() -> impl Strategy<Value = Pick> {
     prop_oneof![
-        key("feat").prop_map(|k| Pick::Feat(rules::FeatKey(k))),
-        key("selection").prop_map(|k| Pick::SelectionOption(rules::SelectionOptionKey(k))),
-        key("mythic-ability").prop_map(|k| Pick::MythicAbility(rules::MythicAbilityKey(k))),
-        key("mythic-feat").prop_map(|k| Pick::MythicFeat(rules::MythicFeatKey(k))),
+        key().prop_map(|k| Pick::Feat(rules::FeatKey(k))),
+        key().prop_map(|k| Pick::SelectionOption(rules::SelectionOptionKey(k))),
+        key().prop_map(|k| Pick::MythicAbility(rules::MythicAbilityKey(k))),
+        key().prop_map(|k| Pick::MythicFeat(rules::MythicFeatKey(k))),
     ]
 }
 
@@ -110,9 +111,9 @@ fn any_build() -> impl Strategy<Value = Build> {
         option::of(".{0,40}"),
         start(),
         vec(level_up(), 0..40),
-        btree_map(key("class").prop_map(ClassKey), class_choice(), 0..4),
-        option::of(key("path").prop_map(MythicPathKey)),
-        option::of(key("path").prop_map(MythicPathKey)),
+        btree_map(key().prop_map(ClassKey), class_choice(), 0..4),
+        option::of(key().prop_map(MythicPathKey)),
+        option::of(key().prop_map(MythicPathKey)),
         btree_map(slot_id(), pick(), 0..40),
     )
         .prop_map(
@@ -142,46 +143,36 @@ proptest! {
 
 /// The Build frozen in [`V1_LINK`]. Never change either: old links must keep decoding.
 fn v1_build() -> Build {
-    let mut build = build(
-        "race:human",
-        &["class:fighter", "class:fighter", "class:rogue"],
-    );
+    let mut build = build("human", &["fighter", "fighter", "rogue"]);
     build.name = Some("Cleaver".into());
     build.start.racial_ability = Some(Ability::Strength);
-    build.levels[0]
-        .skill_ranks
-        .insert(skill("skill:athletics"), 1);
-    build
-        .picks
-        .insert(race_slot(0), pick_feat("feat:power-attack"));
-    build
-        .picks
-        .insert(class_slot(1, 0), pick_feat("feat:cleave"));
-    build
-        .picks
-        .insert(general_slot(1), pick_feat("feat:toughness"));
+    build.levels[0].skill_ranks.insert(skill("athletics"), 1);
+    build.picks.insert(race_slot(0), pick_feat("power-attack"));
+    build.picks.insert(class_slot(1, 0), pick_feat("cleave"));
+    build.picks.insert(general_slot(1), pick_feat("toughness"));
     build.picks.insert(
         selection_slot(3, 0),
-        pick_option("selection:rogue/rogue-talents/combat-trick"),
+        pick_option("rogue/rogue-talents/combat-trick"),
     );
     build.picks.insert(
         SlotId::Mythic { rank: 1 },
-        pick_mythic_ability("mythic-ability:mythic-charge"),
+        pick_mythic_ability("mythic-charge"),
     );
     build.class_choices.insert(
-        class("class:rogue"),
+        class("rogue"),
         ClassChoice {
-            archetype: Some(ArchetypeKey::new("archetype:rogue/eldritch-scoundrel")),
+            archetype: Some(ArchetypeKey::new("rogue/eldritch-scoundrel")),
             ..ClassChoice::default()
         },
     );
-    build.mythic_path = Some(path("path:trickster"));
+    build.mythic_path = Some(path("trickster"));
     build
 }
 
 /// `encode_build(&v1_build())` as format version 1 produced it (2026-10-31, miniz_oxide 0.9.1, level 9). Regenerated
-/// once, before any link shipped, when archetype and advancement moved into `Build::class_choices`.
-const V1_LINK: &str = "AV2PwU7DMAyG7Q4E2liBOyeOSNXuufIknuc1UdOkil1Q356S7TDtYun7ZP2_jU_fUehHCm4LsTg_j5QAAR_e2pf99nmz50iq7hx6b1IAX3UIMToyH8UCK94twO7CJfezAOAt4icV9mLLJBdxkHgqwdh3ynlOpyIRsJ3WcGcl8KD_iY_rOQDvZyFzU_6V0pEZ8QC4-l3VXH8AbADaKizPvU-iihvAL5UobCGna2udnVGUZHrgPB7JulrYYPMxLuYDd3QMMdjirsieSi9_";
+/// before any link shipped: when archetype and advancement moved into `Build::class_choices`, and on 2026-11-01 when
+/// keys lost their type prefix (`feat:power-attack` became `power-attack`).
+const V1_LINK: &str = "AT1OWw6CMBDcBRExYPz00ws0HMKT1GWlDYWadqvx9mJJ_JmZTDIPrG-O9YsDVibNegEE3J1PbXc8lPXDjkY4ADZajGOxFPFvQhX8mBgAN4GXTD27IVghoyL5tAyB3ZqXYGmKv1i1LgC0T__moLSIpglwtfaUfwAWAI34NJqFY8QS8Lr1ZlSiHS8Se_LzXYvKvQUW3fwRY0mR0WHkLw";
 
 #[test]
 fn a_version_1_link_still_decodes() {
@@ -210,7 +201,7 @@ fn a_link_with_keys_the_game_data_lacks_decodes_and_reports_them() {
     let mut build = v1_build();
     build
         .picks
-        .insert(general_slot(3), pick_feat("feat:cut-in-a-later-patch"));
+        .insert(general_slot(3), pick_feat("cut-in-a-later-patch"));
     let decoded = decode_build(&encode_build(&build)).expect("unknown keys still decode");
     assert_eq!(decoded, build);
 
@@ -221,6 +212,34 @@ fn a_link_with_keys_the_game_data_lacks_decodes_and_reports_them() {
         .map(|p| p.at)
         .collect();
     assert_eq!(unknown, [rules::Choice::Slot(general_slot(3))]);
+}
+
+/// Keys carry no type prefix, so a feat, a mythic feat and a selection option may share one: the [`Pick`] variant
+/// tells them apart.
+#[test]
+fn picks_of_different_kinds_with_the_same_key_stay_apart_in_a_link() {
+    let mut build = v1_build();
+    build
+        .picks
+        .insert(general_slot(3), pick_feat("power-attack"));
+    build
+        .picks
+        .insert(SlotId::Mythic { rank: 2 }, pick_mythic_feat("power-attack"));
+    build
+        .picks
+        .insert(selection_slot(5, 0), pick_option("power-attack"));
+
+    let decoded = decode_build(&encode_build(&build)).unwrap();
+
+    assert_eq!(decoded.picks[&general_slot(3)], pick_feat("power-attack"));
+    assert_eq!(
+        decoded.picks[&SlotId::Mythic { rank: 2 }],
+        pick_mythic_feat("power-attack")
+    );
+    assert_eq!(
+        decoded.picks[&selection_slot(5, 0)],
+        pick_option("power-attack")
+    );
 }
 
 #[test]
@@ -242,11 +261,11 @@ fn bad_links_are_errors_not_panics() {
 #[test]
 fn a_full_40_level_build_makes_a_link_of_a_few_hundred_characters() {
     let mut build = build(
-        "race:human",
-        &[times("class:fighter", 20), times("class:rogue", 20)].concat(),
+        "human",
+        &[times("fighter", 20), times("rogue", 20)].concat(),
     );
-    build.mythic_path = Some(path("path:trickster"));
-    build.path_switch = Some(path("path:legend"));
+    build.mythic_path = Some(path("trickster"));
+    build.path_switch = Some(path("legend"));
     let feats: Vec<_> = engine()
         .data()
         .feats
@@ -265,7 +284,7 @@ fn a_full_40_level_build_makes_a_link_of_a_few_hundred_characters() {
         }
         build.levels[usize::from(level) - 1]
             .skill_ranks
-            .insert(skill("skill:mobility"), 1);
+            .insert(skill("mobility"), 1);
     }
     let code = encode_build(&build);
     assert!(code.len() < 800, "{} characters", code.len());

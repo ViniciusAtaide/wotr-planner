@@ -22,7 +22,7 @@ fn option_for<'a>(
 
 #[test]
 fn class_options_list_every_class_with_its_archetypes_then_prestige_classes() {
-    let options = engine().class_options(&build("race:elf", &[]), 1).unwrap();
+    let options = engine().class_options(&build("elf", &[]), 1).unwrap();
     let listed: Vec<(&str, Option<&str>)> = options
         .iter()
         .map(|o| {
@@ -35,40 +35,35 @@ fn class_options_list_every_class_with_its_archetypes_then_prestige_classes() {
     assert_eq!(
         listed,
         [
-            ("class:cleric", None),
-            ("class:fighter", None),
-            ("class:fighter", Some("archetype:fighter/armiger")),
-            ("class:monk", None),
-            ("class:rogue", None),
-            ("class:rogue", Some("archetype:rogue/eldritch-scoundrel")),
-            ("class:wizard", None),
-            ("class:arcane-trickster", None),
-            ("class:mystic-theurge", None),
+            ("cleric", None),
+            ("fighter", None),
+            ("fighter", Some("fighter/armiger")),
+            ("monk", None),
+            ("rogue", None),
+            ("rogue", Some("rogue/eldritch-scoundrel")),
+            ("wizard", None),
+            ("arcane-trickster", None),
+            ("mystic-theurge", None),
         ]
     );
 }
 
 #[test]
 fn a_class_option_is_locked_by_its_entry_prerequisites_before_that_level() {
-    let mut dwarf = build("race:dwarf", &[]);
-    dwarf.start.race = Some(rules::RaceKey::new("race:dwarf"));
+    let mut dwarf = build("dwarf", &[]);
+    dwarf.start.race = Some(rules::RaceKey::new("dwarf"));
     let options = engine().class_options(&dwarf, 1).unwrap();
 
-    assert_eq!(option_for(&options, "class:rogue", None).status, Ok(()));
+    assert_eq!(option_for(&options, "rogue", None).status, Ok(()));
     // Eldritch Scoundrel is for humans and elves.
-    let Err(Issue::Unmet(unmet)) = &option_for(
-        &options,
-        "class:rogue",
-        Some("archetype:rogue/eldritch-scoundrel"),
-    )
-    .status
+    let Err(Issue::Unmet(unmet)) =
+        &option_for(&options, "rogue", Some("rogue/eldritch-scoundrel")).status
     else {
         panic!("the scoundrel should be locked");
     };
     assert_eq!(unmet.conditions().len(), 2);
     // Arcane Trickster: no Mobility, no spells, no Sneak Attack.
-    let Err(Issue::Unmet(unmet)) = &option_for(&options, "class:arcane-trickster", None).status
-    else {
+    let Err(Issue::Unmet(unmet)) = &option_for(&options, "arcane-trickster", None).status else {
         panic!("Arcane Trickster should be locked");
     };
     assert_eq!(unmet.conditions().len(), 3);
@@ -78,23 +73,16 @@ fn a_class_option_is_locked_by_its_entry_prerequisites_before_that_level() {
 fn class_options_at_a_later_level_see_the_build_up_to_it() {
     // Rogue 3 / Wizard 3 with Mobility 4: Arcane Trickster opens at level 7, not at level 6.
     let mut build = build(
-        "race:elf",
-        &[
-            "class:rogue",
-            "class:rogue",
-            "class:rogue",
-            "class:wizard",
-            "class:wizard",
-            "class:wizard",
-        ],
+        "elf",
+        &["rogue", "rogue", "rogue", "wizard", "wizard", "wizard"],
     );
     for level in &mut build.levels[..4] {
-        level.skill_ranks.insert(skill("skill:mobility"), 1);
+        level.skill_ranks.insert(skill("mobility"), 1);
     }
     let at = |level| {
         option_for(
             &engine().class_options(&build, level).unwrap(),
-            "class:arcane-trickster",
+            "arcane-trickster",
             None,
         )
         .status
@@ -119,45 +107,42 @@ fn class_options_at_a_later_level_see_the_build_up_to_it() {
 
 #[test]
 fn a_class_already_taken_is_offered_only_with_its_archetype() {
-    let mut build = build("race:elf", &times("class:fighter", 2));
+    let mut build = build("elf", &times("fighter", 2));
     build.class_choices.insert(
-        class("class:fighter"),
+        class("fighter"),
         ClassChoice {
-            archetype: Some(ArchetypeKey::new("archetype:fighter/armiger")),
+            archetype: Some(ArchetypeKey::new("fighter/armiger")),
             ..ClassChoice::default()
         },
     );
     let options = engine().class_options(&build, 2).unwrap();
     let fighters: Vec<_> = options
         .iter()
-        .filter(|o| o.class == class("class:fighter"))
+        .filter(|o| o.class == class("fighter"))
         .map(|o| o.archetype.clone())
         .collect();
-    assert_eq!(
-        fighters,
-        [Some(ArchetypeKey::new("archetype:fighter/armiger"))]
-    );
+    assert_eq!(fighters, [Some(ArchetypeKey::new("fighter/armiger"))]);
 }
 
 #[test]
 fn a_class_at_the_end_of_its_table_is_locked() {
-    let mut capped = build("race:elf", &times("class:fighter", 20));
-    capped.path_switch = Some(path("path:legend"));
+    let mut capped = build("elf", &times("fighter", 20));
+    capped.path_switch = Some(path("legend"));
     let options = engine().class_options(&capped, 21).unwrap();
     assert_eq!(
-        option_for(&options, "class:fighter", None).status,
+        option_for(&options, "fighter", None).status,
         Err(Issue::ClassLevelCap { cap: 20 })
     );
-    assert_eq!(option_for(&options, "class:rogue", None).status, Ok(()));
+    assert_eq!(option_for(&options, "rogue", None).status, Ok(()));
 }
 
 #[test]
 fn the_path_at_mr_3_is_any_path_without_a_switch_rule() {
-    let options = engine().path_options(&build("race:elf", &[]));
+    let options = engine().path_options(&build("elf", &[]));
     assert_eq!(
         options,
         [PathOption {
-            path: path("path:trickster"),
+            path: path("trickster"),
             status: Ok(())
         }]
     );
@@ -166,9 +151,9 @@ fn the_path_at_mr_3_is_any_path_without_a_switch_rule() {
 #[test]
 fn the_switch_at_mr_8_is_any_path_with_a_switch_rule() {
     let options: Vec<MythicPathKey> = engine()
-        .switch_options(&build("race:elf", &[]))
+        .switch_options(&build("elf", &[]))
         .into_iter()
         .map(|o| o.path)
         .collect();
-    assert_eq!(options, [path("path:gold-dragon"), path("path:legend")]);
+    assert_eq!(options, [path("gold-dragon"), path("legend")]);
 }

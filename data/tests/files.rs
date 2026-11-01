@@ -31,10 +31,10 @@ fn reads_every_fixture_file() {
             .map(|c| c.key.clone())
             .collect::<Vec<_>>(),
         [
-            ClassKey::new("class:cleric"),
-            ClassKey::new("class:fighter"),
-            ClassKey::new("class:monk"),
-            ClassKey::new("class:rogue")
+            ClassKey::new("cleric"),
+            ClassKey::new("fighter"),
+            ClassKey::new("monk"),
+            ClassKey::new("rogue")
         ]
     );
     assert_eq!(data.archetypes().count(), 3);
@@ -44,8 +44,8 @@ fn reads_every_fixture_file() {
             .map(|c| c.key.clone())
             .collect::<Vec<_>>(),
         [
-            ClassKey::new("class:arcane-trickster"),
-            ClassKey::new("class:mystic-theurge")
+            ClassKey::new("arcane-trickster"),
+            ClassKey::new("mystic-theurge")
         ]
     );
     assert_eq!(data.mythic_abilities.len(), 2);
@@ -56,9 +56,9 @@ fn reads_every_fixture_file() {
             .map(|p| p.key.clone())
             .collect::<Vec<_>>(),
         [
-            MythicPathKey::new("path:gold-dragon"),
-            MythicPathKey::new("path:legend"),
-            MythicPathKey::new("path:trickster")
+            MythicPathKey::new("gold-dragon"),
+            MythicPathKey::new("legend"),
+            MythicPathKey::new("trickster")
         ]
     );
     assert_eq!(data.progression.mythic_ascensions.len(), 10);
@@ -72,15 +72,15 @@ fn reads_whether_a_fixed_list_slot_ignores_prerequisites() {
         class.unwrap().levels[level - 1].feat_slots.clone()
     };
     let monk_list = FeatSlot::OneOf {
-        feats: [FeatKey::new("feat:crane-style"), FeatKey::new("feat:dodge")].into(),
+        feats: [FeatKey::new("crane-style"), FeatKey::new("dodge")].into(),
         ignores_prerequisites: true,
     };
-    assert_eq!(slot_at("class:monk", 1), [monk_list]);
+    assert_eq!(slot_at("monk", 1), [monk_list]);
 
     // Left out, it's unset: the Armiger's list checks prerequisites.
     let armiger = data
         .archetypes()
-        .find(|a| a.key.as_str() == "archetype:fighter/armiger")
+        .find(|a| a.key.as_str() == "fighter/armiger")
         .unwrap();
     let armiger = &armiger.levels[1].feat_slots;
     assert!(
@@ -101,15 +101,15 @@ fn reads_nested_prerequisites_as_trees() {
     let dirty_trick = data
         .feats
         .iter()
-        .find(|f| f.key == FeatKey::new("feat:dirty-trick"))
+        .find(|f| f.key == FeatKey::new("dirty-trick"))
         .unwrap();
 
     // As written in the file; group children are a set, so compare canonical forms.
     let mut expected = Prerequisite::Any(vec![
-        Prerequisite::Feat(FeatKey::new("feat:combat-expertise")),
+        Prerequisite::Feat(FeatKey::new("combat-expertise")),
         Prerequisite::All(vec![
             Prerequisite::Feature {
-                feature: FeatureKey::new("feature:rogue/sneak-attack"),
+                feature: FeatureKey::new("rogue/sneak-attack"),
                 count: 1,
             },
             Prerequisite::AbilityScore {
@@ -204,11 +204,7 @@ fn checking_the_files_lists_the_data_problems() {
     let skills = dir.path().join("skills.ron");
     let text = fs::read_to_string(&skills).unwrap();
     // Two skills with one key.
-    fs::write(
-        &skills,
-        text.replacen("skill:mobility", "skill:athletics", 1),
-    )
-    .unwrap();
+    fs::write(&skills, text.replacen("mobility", "athletics", 1)).unwrap();
 
     let error = data::check_game_data_files(dir.path()).unwrap_err();
 
@@ -216,7 +212,7 @@ fn checking_the_files_lists_the_data_problems() {
         matches!(&error, data::Error::Invalid(problems) if problems.len() == 1),
         "{error}"
     );
-    assert!(error.to_string().contains("skill:athletics"), "{error}");
+    assert!(error.to_string().contains("athletics"), "{error}");
 }
 
 /// Archetypes whose BAB, saves or spell levels are allowed to differ from their base class's at the same level,
@@ -224,7 +220,7 @@ fn checking_the_files_lists_the_data_problems() {
 /// this catches a copy that drifted.
 const ARCHETYPE_NUMBERS_ALLOWED_TO_DIFFER: &[(&str, &str)] = &[
     // Eldritch Scoundrel casts arcane spells; the rogue doesn't.
-    ("archetype:rogue/eldritch-scoundrel", "arcane_spell_level"),
+    ("rogue/eldritch-scoundrel", "arcane_spell_level"),
 ];
 
 /// Every archetype row number that differs from the base class's at the same level and isn't allow-listed.
@@ -288,6 +284,6 @@ fn the_archetype_check_catches_a_drifted_copy() {
     let data = data::read_game_data_files(dir.path()).unwrap();
     assert_eq!(
         archetype_differences(&data),
-        ["archetype:fighter/armiger level 3: bab 2, base class 3"]
+        ["fighter/armiger level 3: bab 2, base class 3"]
     );
 }

@@ -1,7 +1,11 @@
-//! Text keys that identify game entities, such as `feat:power-attack` or `archetype:rogue/dark-lurker`.
+//! Text keys that identify game entities, such as `power-attack` (a feat) or `rogue/dark-lurker` (an archetype).
 //!
 //! Keys come from the guide's anchors and stay the same across re-seeds, so saved Builds can refer to them.
 //! In the data files and in JSON each key is a plain string.
+//!
+//! A key carries no type prefix: its Rust type (and its table) says what kind of thing it names, so keys of two
+//! kinds may be equal (a feat and a feature both `power-attack`). Keys of things that belong to a class or path
+//! start with their owner (`rogue/eldritch-scoundrel`), which keeps names unique where the guide reuses them.
 
 use std::fmt;
 
@@ -33,50 +37,50 @@ macro_rules! text_key {
 }
 
 text_key!(
-    /// `race:elf`
+    /// `elf`
     RaceKey
 );
 text_key!(
-    /// `subrace:elf/blightborn`
+    /// `elf/blightborn`
     SubraceKey
 );
 text_key!(
-    /// `skill:mobility`
+    /// `mobility`
     SkillKey
 );
 text_key!(
-    /// `feat:power-attack`
+    /// `power-attack`
     FeatKey
 );
 text_key!(
-    /// `class:rogue` for a base class, `class:arcane-trickster` for a prestige class.
+    /// `rogue` for a base class, `arcane-trickster` for a prestige class.
     ClassKey
 );
 text_key!(
-    /// `archetype:rogue/dark-lurker`
+    /// `rogue/dark-lurker`
     ArchetypeKey
 );
 text_key!(
-    /// `feature:rogue/sneak-attack`, `feature:trickster/trickster-tricks`
+    /// `rogue/sneak-attack`, `trickster/trickster-tricks`
     FeatureKey
 );
 text_key!(
-    /// `selection:rogue/rogue-talents`: the list a Feature selection picks from.
+    /// `rogue/rogue-talents`: the list a Feature selection picks from.
     FeatureSelectionKey
 );
 text_key!(
-    /// `selection:rogue/rogue-talents/fast-stealth`: one option of a Feature selection.
+    /// `rogue/rogue-talents/fast-stealth`: one option of a Feature selection. It extends its selection's key.
     SelectionOptionKey
 );
 text_key!(
-    /// `mythic-ability:mythic-charge`
+    /// `mythic-charge`
     MythicAbilityKey
 );
 text_key!(
-    /// `mythic-feat:power-attack-mythic`
+    /// `power-attack-mythic`
     MythicFeatKey
 );
 text_key!(
-    /// `path:trickster`
+    /// `trickster`
     MythicPathKey
 );

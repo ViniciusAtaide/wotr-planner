@@ -51,8 +51,8 @@ fn a_switch_leaves_the_rank_one_above_the_highest_rank_it_keeps() {
 #[test]
 fn class_levels_are_capped_at_the_length_of_the_class_table() {
     // Fighter's table has 20 rows and Mystic Theurge's 10, Legend or not.
-    let mut build = build("race:elf", &times("class:fighter", 21));
-    build.path_switch = Some(path("path:legend"));
+    let mut build = build("elf", &times("fighter", 21));
+    build.path_switch = Some(path("legend"));
     let problems: Vec<_> = engine()
         .validate(&build)
         .into_iter()
@@ -69,8 +69,8 @@ fn class_levels_are_capped_at_the_length_of_the_class_table() {
 
 #[test]
 fn the_legend_switch_raises_the_character_level_cap_to_40() {
-    let mut build = build("race:elf", &times("class:fighter", 17));
-    build.path_switch = Some(path("path:legend"));
+    let mut build = build("elf", &times("fighter", 17));
+    build.path_switch = Some(path("legend"));
     assert_eq!(engine().evaluate(&build).level_cap, 40);
     build.path_switch = None;
     assert_eq!(engine().evaluate(&build).level_cap, 20);

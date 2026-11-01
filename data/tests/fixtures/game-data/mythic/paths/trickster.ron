@@ -1,29 +1,29 @@
 // Hand-written test fixture: small and simplified, not checked against the guide.
 MythicPath(
-    key: "path:trickster",
+    key: "trickster",
     name: "Trickster",
     guide: "trickster",
     features: [
-        (key: "feature:trickster/trickster-tricks", name: "Trickster Tricks", guide: "trickster#trickster-tricks"),
+        (key: "trickster/trickster-tricks", name: "Trickster Tricks", guide: "trickster#trickster-tricks"),
     ],
     selections: [
         (
-            key: "selection:trickster/tricks",
+            key: "trickster/tricks",
             name: "Trickster Tricks",
             guide: "trickster#trickster-tricks",
             options: [
-                (key: "selection:trickster/tricks/perception-1", name: "Perception I", guide: "trickster#perception-i"),
+                (key: "trickster/tricks/perception-1", name: "Perception I", guide: "trickster#perception-i"),
                 (
-                    key: "selection:trickster/tricks/perception-2",
+                    key: "trickster/tricks/perception-2",
                     name: "Perception II",
                     guide: "trickster#perception-ii",
-                    prerequisite: SelectionOption("selection:trickster/tricks/perception-1"),
+                    prerequisite: SelectionOption("trickster/tricks/perception-1"),
                 ),
             ],
         ),
     ],
     ranks: [
-        (rank: 3, features: ["feature:trickster/trickster-tricks"], selections: ["selection:trickster/tricks"]),
-        (rank: 4, feat_slots: [OneOf(feats: ["feat:toughness", "feat:dirty-trick"])], selections: ["selection:trickster/tricks"]),
+        (rank: 3, features: ["trickster/trickster-tricks"], selections: ["trickster/tricks"]),
+        (rank: 4, feat_slots: [OneOf(feats: ["toughness", "dirty-trick"])], selections: ["trickster/tricks"]),
     ],
 )

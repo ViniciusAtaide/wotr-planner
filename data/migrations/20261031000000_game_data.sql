@@ -5,7 +5,9 @@
 -- place; fix the `game-data/*.ron` files and reseed.
 --
 -- Conventions:
--- - Game entities use readable text keys from the guide's anchors (`feat:power-attack`).
+-- - Game entities use readable text keys from the guide's anchors (`power-attack`), with no type
+--   prefix: the table says what a key names, so two tables may hold the same key. Keys of things
+--   owned by a class or path start with the owner (`rogue/eldritch-scoundrel`).
 -- - No derived values. Order comes from natural keys and `rules::GameData` is made canonical in
 --   Rust, so nothing depends on insertion order. Rule-based facts (odd mythic ranks give an
 --   ability, the path is chosen at MR 3, which feat categories are combat feats, the rank after a
@@ -29,6 +31,9 @@
 
 -- An unsigned game number (`u8` in `rules`).
 CREATE DOMAIN u8 AS SMALLINT CHECK (VALUE BETWEEN 0 AND 255);
+
+-- A text key: a lowercase slug, or slugs joined by `/` after an owner (`rogue/rogue-talents/fast-stealth`).
+CREATE DOMAIN text_key AS TEXT CHECK (VALUE ~ '^[a-z0-9]+(-[a-z0-9]+)*(/[a-z0-9]+(-[a-z0-9]+)*)*$');
 
 -- `rules::Ability`.
 CREATE DOMAIN ability AS TEXT CHECK (VALUE IN (
@@ -137,20 +142,20 @@ CREATE INDEX prerequisite_node_parent_id ON prerequisite_node (parent_id);
 -- races.ron, skills.ron, feats.ron -------------------------------------------------------------
 
 CREATE TABLE skill (
-    key TEXT PRIMARY KEY CHECK (key LIKE 'skill:%'),
+    key text_key PRIMARY KEY,
     name TEXT NOT NULL,
     ability ability NOT NULL
 );
 
 CREATE TABLE race (
-    key TEXT PRIMARY KEY CHECK (key LIKE 'race:%'),
+    key text_key PRIMARY KEY,
     name TEXT NOT NULL,
     summary TEXT NOT NULL,
     guide TEXT NOT NULL
 );
 
 CREATE TABLE subrace (
-    key TEXT PRIMARY KEY CHECK (key LIKE 'subrace:%'),
+    key text_key PRIMARY KEY,
     race_key TEXT NOT NULL REFERENCES race (key) DEFERRABLE INITIALLY DEFERRED,
     name TEXT NOT NULL,
     summary TEXT NOT NULL,
@@ -169,7 +174,7 @@ CREATE TABLE ability_modifier (
 );
 
 CREATE TABLE feat (
-    key TEXT PRIMARY KEY CHECK (key LIKE 'feat:%'),
+    key text_key PRIMARY KEY,
     name TEXT NOT NULL,
     category feat_category NOT NULL,
     summary TEXT NOT NULL,
@@ -181,7 +186,7 @@ CREATE TABLE feat (
 
 -- A base class or a prestige class.
 CREATE TABLE class (
-    key TEXT PRIMARY KEY CHECK (key LIKE 'class:%'),
+    key text_key PRIMARY KEY,
     is_prestige BOOLEAN NOT NULL,
     name TEXT NOT NULL,
     summary TEXT NOT NULL,
@@ -191,7 +196,7 @@ CREATE TABLE class (
 );
 
 CREATE TABLE archetype (
-    key TEXT PRIMARY KEY CHECK (key LIKE 'archetype:%'),
+    key text_key PRIMARY KEY,
     class_key TEXT NOT NULL REFERENCES class (key) DEFERRABLE INITIALLY DEFERRED,
     name TEXT NOT NULL,
     summary TEXT NOT NULL,
@@ -219,7 +224,7 @@ CREATE TABLE class_skill (
 -- mythic/ --------------------------------------------------------------------------------------
 
 CREATE TABLE mythic_ability (
-    key TEXT PRIMARY KEY CHECK (key LIKE 'mythic-ability:%'),
+    key text_key PRIMARY KEY,
     name TEXT NOT NULL,
     group_name TEXT NOT NULL,
     summary TEXT NOT NULL,
@@ -228,7 +233,7 @@ CREATE TABLE mythic_ability (
 );
 
 CREATE TABLE mythic_feat (
-    key TEXT PRIMARY KEY CHECK (key LIKE 'mythic-feat:%'),
+    key text_key PRIMARY KEY,
     name TEXT NOT NULL,
     group_name TEXT NOT NULL,
     summary TEXT NOT NULL,
@@ -237,7 +242,7 @@ CREATE TABLE mythic_feat (
 );
 
 CREATE TABLE mythic_path (
-    key TEXT PRIMARY KEY CHECK (key LIKE 'path:%'),
+    key text_key PRIMARY KEY,
     name TEXT NOT NULL,
     summary TEXT NOT NULL,
     guide TEXT NOT NULL
@@ -263,7 +268,7 @@ CREATE TABLE path_switch_kept_rank (
 
 -- A named ability of a class, archetype or mythic path, such as Sneak Attack.
 CREATE TABLE feature (
-    key TEXT PRIMARY KEY CHECK (key LIKE 'feature:%'),
+    key text_key PRIMARY KEY,
     class_key TEXT REFERENCES class (key) DEFERRABLE INITIALLY DEFERRED,
     archetype_key TEXT,
     path_key TEXT REFERENCES mythic_path (key) DEFERRABLE INITIALLY DEFERRED,
@@ -279,7 +284,7 @@ CREATE TABLE feature (
 
 -- The fixed list a Feature selection picks from (rogue talents, a path's picks).
 CREATE TABLE feature_selection (
-    key TEXT PRIMARY KEY CHECK (key LIKE 'selection:%'),
+    key text_key PRIMARY KEY,
     class_key TEXT REFERENCES class (key) DEFERRABLE INITIALLY DEFERRED,
     archetype_key TEXT,
     path_key TEXT REFERENCES mythic_path (key) DEFERRABLE INITIALLY DEFERRED,
@@ -293,9 +298,9 @@ CREATE TABLE feature_selection (
 );
 
 -- One option of a Feature selection. Its key extends the selection's:
--- `selection:rogue/rogue-talents/fast-stealth`.
+-- `rogue/rogue-talents/fast-stealth`.
 CREATE TABLE selection_option (
-    key TEXT PRIMARY KEY,
+    key text_key PRIMARY KEY,
     selection_key TEXT NOT NULL REFERENCES feature_selection (key) DEFERRABLE INITIALLY DEFERRED,
     name TEXT NOT NULL,
     summary TEXT NOT NULL,

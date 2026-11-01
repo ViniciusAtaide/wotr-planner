@@ -1,25 +1,25 @@
 // Hand-written test fixture: small and simplified, not checked against the guide.
 Class(
-    key: "class:arcane-trickster",
+    key: "arcane-trickster",
     name: "Arcane Trickster",
     guide: "prestige-classes#arcane-trickster",
     skill_points: 4,
-    class_skills: ["skill:mobility", "skill:knowledge-arcana"],
+    class_skills: ["mobility", "knowledge-arcana"],
     prerequisite: All([
         Any([
             Alignment(NeutralGood), Alignment(ChaoticGood), Alignment(TrueNeutral),
             Alignment(ChaoticNeutral), Alignment(NeutralEvil), Alignment(ChaoticEvil),
         ]),
-        SkillRanks(skill: "skill:mobility", ranks: 4),
-        SkillRanks(skill: "skill:knowledge-arcana", ranks: 4),
+        SkillRanks(skill: "mobility", ranks: 4),
+        SkillRanks(skill: "knowledge-arcana", ranks: 4),
         SpellLevel(spell_type: Arcane, level: 2),
-        Feature(feature: "feature:rogue/sneak-attack", count: 2),
+        Feature(feature: "rogue/sneak-attack", count: 2),
     ]),
     features: [
-        (key: "feature:arcane-trickster/ranged-legerdemain", name: "Ranged Legerdemain", guide: "prestige-classes#ranged-legerdemain"),
+        (key: "arcane-trickster/ranged-legerdemain", name: "Ranged Legerdemain", guide: "prestige-classes#ranged-legerdemain"),
     ],
     levels: [
-        (level: 1, bab: 0, fort: 0, reflex: 1, will: 1, advances_arcane: true, features: ["feature:arcane-trickster/ranged-legerdemain"]),
-        (level: 2, bab: 1, fort: 1, reflex: 1, will: 1, advances_arcane: true, features: ["feature:rogue/sneak-attack"]),
+        (level: 1, bab: 0, fort: 0, reflex: 1, will: 1, advances_arcane: true, features: ["arcane-trickster/ranged-legerdemain"]),
+        (level: 2, bab: 1, fort: 1, reflex: 1, will: 1, advances_arcane: true, features: ["rogue/sneak-attack"]),
     ],
 )

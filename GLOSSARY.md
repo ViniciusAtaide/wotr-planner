@@ -66,7 +66,7 @@ A class-specific choice from a fixed list, such as a rogue talent, rage power or
 _Avoid_: Talent (unqualified), class pick
 
 **Selection option**:
-One entry in a Feature selection's list, such as Fast Stealth among the rogue talents. Its key extends the selection's (`selection:rogue/rogue-talents/fast-stealth`).
+One entry in a Feature selection's list, such as Fast Stealth among the rogue talents. Its key extends the selection's (`rogue/rogue-talents/fast-stealth` extends `rogue/rogue-talents`).
 _Avoid_: Option (unqualified), talent
 
 **Slot**:

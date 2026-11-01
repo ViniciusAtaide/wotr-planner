@@ -38,21 +38,21 @@ fn mythic_slot_kinds(sheet: &Sheet, rank: u8) -> Vec<(SlotId, SlotKind)> {
 
 /// A 20-level fighter on the Trickster path, with a general mythic pick at every rank.
 fn trickster_build(levels: usize) -> Build {
-    let mut build = build("race:human", &times("class:fighter", levels));
-    build.mythic_path = Some(path("path:trickster"));
+    let mut build = build("human", &times("fighter", levels));
+    build.mythic_path = Some(path("trickster"));
     let abilities = [
-        "mythic-ability:mythic-charge",
-        "mythic-ability:limitless-smite",
-        "mythic-ability:unstoppable",
-        "mythic-ability:inspired-strike",
-        "mythic-ability:dimensional-retribution",
+        "mythic-charge",
+        "limitless-smite",
+        "unstoppable",
+        "inspired-strike",
+        "dimensional-retribution",
     ];
     let feats = [
-        "mythic-feat:extra-mythic-ability",
-        "mythic-feat:improved-critical-mythic",
-        "mythic-feat:dodge-mythic",
-        "mythic-feat:power-attack-mythic",
-        "mythic-feat:toughness-mythic",
+        "extra-mythic-ability",
+        "improved-critical-mythic",
+        "dodge-mythic",
+        "power-attack-mythic",
+        "toughness-mythic",
     ];
     for (i, key) in abilities.iter().enumerate() {
         let rank = 2 * i as u8 + 1;
@@ -69,13 +69,11 @@ fn trickster_build(levels: usize) -> Build {
     // What the mythic feats need.
     build
         .picks
-        .insert(general_slot(1), pick_feat("feat:power-attack"));
-    build
-        .picks
-        .insert(race_slot(0), pick_feat("feat:toughness"));
+        .insert(general_slot(1), pick_feat("power-attack"));
+    build.picks.insert(race_slot(0), pick_feat("toughness"));
     build.picks.insert(
         SlotId::PathSelection { rank: 3, index: 0 },
-        pick_option("selection:trickster/tricks/perception-1"),
+        pick_option("trickster/tricks/perception-1"),
     );
     build
 }
@@ -131,37 +129,34 @@ fn the_general_mythic_pick_alternates_ability_and_feat() {
 fn the_path_is_chosen_at_mr_3_and_adds_its_own_picks() {
     let sheet = engine().evaluate(&trickster_build(11));
     assert_eq!(sheet.at(8).unwrap().mythic_path, None);
-    assert_eq!(
-        sheet.at(9).unwrap().mythic_path,
-        Some(path("path:trickster"))
-    );
+    assert_eq!(sheet.at(9).unwrap().mythic_path, Some(path("trickster")));
     assert_eq!(sheet.ranks[1].path, None);
-    assert_eq!(sheet.ranks[2].path, Some(path("path:trickster")));
+    assert_eq!(sheet.ranks[2].path, Some(path("trickster")));
     assert_eq!(
         mythic_slot_kinds(&sheet, 3),
         [
             (SlotId::Mythic { rank: 3 }, SlotKind::MythicAbility),
             (
                 SlotId::PathSelection { rank: 3, index: 0 },
-                SlotKind::Selection(FeatureSelectionKey::new("selection:trickster/tricks"))
+                SlotKind::Selection(FeatureSelectionKey::new("trickster/tricks"))
             ),
         ]
     );
     assert_eq!(
         mythic_slot_kinds(&sheet, 4)[1].1,
         SlotKind::Feat(FeatSlot::OneOf {
-            feats: [feat("feat:dodge"), feat("feat:toughness")].into(),
+            feats: [feat("dodge"), feat("toughness")].into(),
             ignores_prerequisites: false,
         })
     );
     let at_9 = sheet.at(9).unwrap();
     assert_eq!(
-        at_9.feature_count(&feature("feature:trickster/trickster-tricks")),
+        at_9.feature_count(&feature("trickster/trickster-tricks")),
         1
     );
     assert!(
         at_9.selection_options
-            .contains(&option("selection:trickster/tricks/perception-1"))
+            .contains(&option("trickster/tricks/perception-1"))
     );
 }
 
@@ -170,31 +165,31 @@ fn a_legend_switch_at_mr_8_keeps_mr_1_and_2_and_stays_at_rank_3() {
     let mut build = trickster_build(40);
     // Fighter 20 then Rogue 20.
     for level in &mut build.levels[20..] {
-        level.class = class("class:rogue");
+        level.class = class("rogue");
     }
-    build.path_switch = Some(path("path:legend"));
+    build.path_switch = Some(path("legend"));
     let sheet = engine().evaluate(&build);
 
     // Before the switch everything up to MR 7 is held.
     let at_16 = sheet.at(16).unwrap();
     assert_eq!(at_16.mythic_rank, 7);
     assert_eq!(at_16.mythic_abilities.len(), 4);
-    assert_eq!(at_16.mythic_path, Some(path("path:trickster")));
+    assert_eq!(at_16.mythic_path, Some(path("trickster")));
 
     // From level 17: only the MR 1 ability and MR 2 feat remain, the rank is 3, and the Trickster's picks are gone.
     let at_17 = sheet.at(17).unwrap();
     assert_eq!(at_17.mythic_rank, 3);
-    assert_eq!(at_17.mythic_path, Some(path("path:legend")));
+    assert_eq!(at_17.mythic_path, Some(path("legend")));
     assert_eq!(
         at_17.mythic_abilities,
-        [MythicAbilityKey::new("mythic-ability:mythic-charge")].into()
+        [MythicAbilityKey::new("mythic-charge")].into()
     );
     assert_eq!(
         at_17.mythic_feats,
-        [MythicFeatKey::new("mythic-feat:extra-mythic-ability")].into()
+        [MythicFeatKey::new("extra-mythic-ability")].into()
     );
     assert_eq!(
-        at_17.feature_count(&feature("feature:trickster/trickster-tricks")),
+        at_17.feature_count(&feature("trickster/trickster-tricks")),
         0
     );
     assert!(at_17.selection_options.is_empty());
@@ -230,29 +225,26 @@ fn a_legend_switch_at_mr_8_keeps_mr_1_and_2_and_stays_at_rank_3() {
         .map(|level| level.character_level)
         .collect();
     assert_eq!(increases, [20, 24, 28, 32, 36, 40]);
-    assert_eq!(sheet.at(40).unwrap().class_level(&class("class:rogue")), 20);
+    assert_eq!(sheet.at(40).unwrap().class_level(&class("rogue")), 20);
     assert!(sheet.problems.is_empty(), "{:?}", sheet.problems);
 }
 
 #[test]
 fn a_switch_that_keeps_ascending_takes_over_from_mr_8() {
     let mut build = trickster_build(20);
-    build.path_switch = Some(path("path:gold-dragon"));
+    build.path_switch = Some(path("gold-dragon"));
     let sheet = engine().evaluate(&build);
 
     let at_17 = sheet.at(17).unwrap();
-    assert_eq!(at_17.mythic_path, Some(path("path:gold-dragon")));
+    assert_eq!(at_17.mythic_path, Some(path("gold-dragon")));
     assert_eq!(at_17.mythic_rank, 9);
-    assert_eq!(
-        at_17.feature_count(&feature("feature:gold-dragon/breath")),
-        1
-    );
+    assert_eq!(at_17.feature_count(&feature("gold-dragon/breath")), 1);
     // Gold Dragon keeps MR 1-7, including the Trickster's own picks.
     assert_eq!(
-        at_17.feature_count(&feature("feature:trickster/trickster-tricks")),
+        at_17.feature_count(&feature("trickster/trickster-tricks")),
         1
     );
     assert_eq!(sheet.at(20).unwrap().mythic_rank, 10);
-    assert_eq!(sheet.ranks[7].path, Some(path("path:gold-dragon")));
+    assert_eq!(sheet.ranks[7].path, Some(path("gold-dragon")));
     assert_eq!(sheet.level_cap, 20);
 }
