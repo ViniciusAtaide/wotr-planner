@@ -412,9 +412,9 @@ fn a_trickster_who_becomes_a_legend_keeps_the_feats_perception_ii_unlocked() {
     assert!(
         !at_20
             .selection_options
-            .contains(&option("trickster/tricks/perception-2"))
+            .contains_key(&option("trickster/tricks/perception-2"))
     );
-    assert!(at_20.feats.contains(&feat("stat-focus")));
+    assert!(at_20.feats.contains_key(&feat("stat-focus")));
 }
 
 #[test]
@@ -497,18 +497,20 @@ fn gold_dragons_dragon_feats_are_three_picks_of_any_feat_ignoring_prerequisites(
     assert!(sheet.problems.is_empty(), "{:?}", sheet.problems);
     let at_17 = sheet.at(17).unwrap();
     for key in ["great-cleave", "crane-wing", "cleaving-finish"] {
-        assert!(at_17.feats.contains(&feat(key)), "{key}");
+        assert!(at_17.feats.contains_key(&feat(key)), "{key}");
     }
 
-    // Every feat of the data is offered, and each one not held is open.
+    // Every feat of the data is offered (a parameterised one once per value), and each one not held is open.
     let options = engine().options(&build, &slot(0)).unwrap();
-    assert_eq!(options.len(), world().feats.len());
+    let offered: std::collections::BTreeSet<_> =
+        options.iter().map(|option| option.pick.key()).collect();
+    assert_eq!(offered.len(), world().feats.len());
     let held = engine().state_before(&build, &slot(0)).unwrap().feats;
     for option in options {
-        let rules::Pick::Feat(key) = &option.pick else {
+        let rules::Pick::Feat { feat: key, .. } = &option.pick else {
             panic!("{option:?}")
         };
-        let expected = if held.contains(key) {
+        let expected = if held.contains_key(key) {
             Err(Issue::AlreadyHeld)
         } else {
             Ok(())
@@ -546,10 +548,10 @@ fn an_option_can_grant_several_feats() {
     let sheet = engine().evaluate(&build);
     assert!(sheet.problems.is_empty(), "{:?}", sheet.problems);
     let at_8 = sheet.at(8).unwrap();
-    assert!(!at_8.feats.contains(&feat("shield-proficiency")));
+    assert!(!at_8.feats.contains_key(&feat("shield-proficiency")));
     let at_9 = sheet.at(9).unwrap();
-    assert!(at_9.feats.contains(&feat("shield-proficiency")));
-    assert!(at_9.feats.contains(&feat("tower-shield-proficiency")));
+    assert!(at_9.feats.contains_key(&feat("shield-proficiency")));
+    assert!(at_9.feats.contains_key(&feat("tower-shield-proficiency")));
 }
 
 #[test]
@@ -566,14 +568,20 @@ fn a_switch_dropping_an_option_drops_its_feats_but_not_the_same_feats_held_other
             .at(16)
             .unwrap()
             .feats
-            .contains(&feat("shield-proficiency"))
+            .contains_key(&feat("shield-proficiency"))
     );
     for key in ["shield-proficiency", "tower-shield-proficiency"] {
-        assert!(!rogue.at(17).unwrap().feats.contains(&feat(key)), "{key}");
+        assert!(
+            !rogue.at(17).unwrap().feats.contains_key(&feat(key)),
+            "{key}"
+        );
     }
     // A fighter's class grants them at level 1 too: they stay.
     let fighter = switched("fighter");
     for key in ["shield-proficiency", "tower-shield-proficiency"] {
-        assert!(fighter.at(17).unwrap().feats.contains(&feat(key)), "{key}");
+        assert!(
+            fighter.at(17).unwrap().feats.contains_key(&feat(key)),
+            "{key}"
+        );
     }
 }

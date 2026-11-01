@@ -1,8 +1,8 @@
 # Extraction report
 
-**Hand-fixed on 2026-11-01** by tickets 17–20 (feats, base classes, prestige classes, mythic). Remaining: Feats 2, Base classes 54, Prestige classes 12, Mythic 2, Races and skills 0. Items marked *narrowed* are partly fixed; items marked *new* were found during the hand-fix. Ticket 25 (shared selection options) fixed `rogue#discovery` and `rogue#fey-tricks`. Ticket 26 (mythic path rules) fixed the Dragon Feats slot, the five switch items (partial keeps, Devil's previous paths and drops, Legend's effects, the Trickster's Perception II feats) and the breaths' "Mythic Rank: 9".
+**Hand-fixed on 2026-11-01** by tickets 17–20 (feats, base classes, prestige classes, mythic). Remaining: Feats 2, Base classes 53, Prestige classes 11, Mythic 2, Races and skills 0. Items marked *narrowed* are partly fixed; items marked *new* were found during the hand-fix. Ticket 25 (shared selection options) fixed `rogue#discovery` and `rogue#fey-tricks`. Ticket 26 (mythic path rules) fixed the Dragon Feats slot, the five switch items (partial keeps, Devil's previous paths and drops, Legend's effects, the Trickster's Perception II feats) and the breaths' "Mythic Rank: 9". Ticket 27 (repeatable and parameterised feats) fixed the Master of All's three Skill Focus and the Stalwart Defender's Increased Damage Reduction "twice".
 
-What the extractor couldn't turn into data from the guide pages saved on 2026-10-31, with where each item is (`page#anchor`). Fix an item by editing the `.ron` files, check with `cargo run -p data --bin seed -- --check-only`, then delete its line here. 70 items.
+What the extractor couldn't turn into data from the guide pages saved on 2026-10-31, with where each item is (`page#anchor`). Fix an item by editing the `.ron` files, check with `cargo run -p data --bin seed -- --check-only`, then delete its line here. 68 items.
 
 ## Feats (2)
 
@@ -13,7 +13,7 @@ Each line is left out of its prerequisite, so it doesn't block any pick. A group
 - `feats#disruptive`: "Fighter Level 6 or Arcane bloodline" (nothing named "Arcane bloodline"; sorcerer bloodlines aren't a selection in the data)
 - `feats#extra-slayer-talent`: "Slayer Talents or Talented Slayer" (nothing named "Talented Slayer"; it appears on no saved page)
 
-## Base classes (54)
+## Base classes (53)
 
 ### Entry requirements (1)
 
@@ -78,18 +78,17 @@ The slot as stored, and why it needs a look.
 - `sorcerer#sage-sorcerer`: "Bonus Feat" (no list found for this slot; stored as a general slot)
 - `sorcerer#sylvan-sorcerer`: "Bonus Feat" (no list found for this slot; stored as a general slot)
 
-### Prose-only rules (6)
+### Prose-only rules (5)
 
 Rules stated only in prose that the current data types can't hold.
 
 - `barbarian#rage-powers`:  (totem rage powers are exclusive: one totem line per character. The data has no "not" prerequisite, so only the Lesser, plain, Greater chain is checked)
 - `kineticist#kineticist-bonus-feat`:  (a wild talent that grants a bonus feat slot; a selection option can't grant a slot. The kineticist has no selections: wild talents and Elemental Focus aren't data)
-- `rogue#skill-focus-master-of-all`:  (*new*: one `skill-focus` feat key can't be held more than once, so the Master of All's three Skill Focus grants are stored as features)
 - `rogue#sneak-attack-eldritch-scoundrel`:  (*new*: read from prose as dice at 1, 3, 7, 11, 15, 19; the reading needs checking)
 - `shaman`:  (*new*: the Second Spirit mythic ability and Wandering Hex give another spirit's hexes; not modelled)
-- `slayer#slayer-talents`:  (*new*: a slayer may instead take a ranger combat style feat three times, at 2 or 4, 6 or 8, and 10+; not offered, since nothing limits how many options carrying a feat are taken)
+- `slayer#slayer-talents`:  (*new*: a slayer may instead take a ranger combat style feat three times, at 2 or 4, 6 or 8, and 10+; not offered: options can repeat since ticket 27, but nothing limits how many picks a group of options gets at which levels)
 
-## Prestige classes (12)
+## Prestige classes (11)
 
 ### Entry requirements (4)
 
@@ -100,7 +99,7 @@ Left out of the class's or archetype's prerequisite.
 - `prestige-classes#dragon-disciple`: "Required special: Able to cast 1st level arcane spells spontaneously" (*narrowed*: `SpellLevel(Arcane, 1)` is stored; there's no spontaneous-caster condition)
 - `prestige-classes#winter-witch`: "Required classes: Druid (Winter Child), Shaman (Frost Spirit) or Witch (Winter Patron)" (*narrowed*: stored as `Any` of the Winter Child archetype, the witch's Winter patron and `ClassLevel(class: "shaman", level: 1)`; the shaman branch is a stand-in for the Frost spirit's selection option, `shaman/spirit/frost`)
 
-### Prose-only rules (8)
+### Prose-only rules (7)
 
 Rules stated only in prose that the current data types can't hold.
 
@@ -108,7 +107,6 @@ Rules stated only in prose that the current data types can't hold.
 - `prestige-classes#diverse-training`:  (*new*: Eldritch Knight levels count as Fighter levels and caster levels for feat prerequisites)
 - `prestige-classes#frost-power`:  (*new*: Winter Witch levels stack with Shaman and Witch levels for hexes, including Major and Grand hex access)
 - `prestige-classes#hellknight-signifer`:  (advances one class's spellcasting, arcane or divine: stored as advancing both, which the engine reads as one of each)
-- `prestige-classes#increased-damage-reduction`:  (*new*: "may be selected twice"; a selection option can't be held twice)
 - `prestige-classes#loremaster`:  (advances one class's spellcasting, arcane or divine: stored as advancing both, which the engine reads as one of each)
 - `prestige-classes#order`, `prestige-classes#order-hellknight-signifer`:  (*new*: a Hellknight who wasn't an Armiger, and every Signifer, picks one of seven orders, but there's no selection for it, so Pentamic Faith is closed to a non-Armiger Hellknight)
 - `prestige-classes#winter-witch`:  (advances one class's spellcasting, arcane or divine: stored as advancing both, which the engine reads as one of each)

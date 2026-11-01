@@ -3,8 +3,9 @@
 //! The text values match the domains and CHECK constraints in `migrations/20261031000000_game_data.sql`.
 
 use rules::{
-    Ability, Alignment, BabProgression, FeatCategory, MythicAbilityGroup, MythicFeatGroup, Save,
-    SaveProgression, SpellType,
+    Ability, Alignment, ArmourType, BabProgression, Energy, FeatCategory, MythicAbilityGroup,
+    MythicFeatGroup, ParameterKind, Repeat, Save, SaveProgression, SpellSchool, SpellType,
+    WeaponProficiency,
 };
 
 /// A row that doesn't fit the `rules` types (should be impossible given the constraints).
@@ -117,6 +118,70 @@ text_column!(MythicFeatGroup, mythic_feat_group_from, mythic_feat_group_text {
     CombatManoeuvre => "combat_manoeuvre",
 });
 
+text_column!(WeaponProficiency, weapon_proficiency_from, weapon_proficiency_text {
+    Simple => "simple",
+    Martial => "martial",
+    Exotic => "exotic",
+});
+
+text_column!(ParameterKind, parameter_kind_from, parameter_kind_text {
+    Skill => "skill",
+    Weapon => "weapon",
+    ExoticWeapon => "exotic_weapon",
+    SpellSchool => "spell_school",
+    Energy => "energy",
+    ArmourType => "armour_type",
+});
+
+text_column!(SpellSchool, spell_school_from, spell_school_text {
+    Abjuration => "abjuration",
+    Conjuration => "conjuration",
+    Divination => "divination",
+    Enchantment => "enchantment",
+    Evocation => "evocation",
+    Illusion => "illusion",
+    Necromancy => "necromancy",
+    Transmutation => "transmutation",
+});
+
+text_column!(Energy, energy_from, energy_text {
+    Acid => "acid",
+    Cold => "cold",
+    Electricity => "electricity",
+    Fire => "fire",
+});
+
+text_column!(ArmourType, armour_type_from, armour_type_text {
+    Light => "light",
+    Medium => "medium",
+    Heavy => "heavy",
+});
+
+/// A [`Repeat`] as its `repeat` and `repeat_times` columns.
+pub(crate) fn repeat_columns(repeat: Repeat) -> (&'static str, Option<i16>) {
+    match repeat {
+        Repeat::Once => ("once", None),
+        Repeat::Times(times) => ("times", Some(times.into())),
+        Repeat::Unlimited => ("unlimited", None),
+        Repeat::PerValue => ("per_value", None),
+    }
+}
+
+/// The [`Repeat`] in a `repeat` and a `repeat_times` column.
+pub(crate) fn repeat_from(repeat: &str, times: Option<i16>) -> Result<Repeat, sqlx::Error> {
+    Ok(match (repeat, times) {
+        ("once", None) => Repeat::Once,
+        ("times", Some(times)) => Repeat::Times(to_u8(times, "repeat_times")?),
+        ("unlimited", None) => Repeat::Unlimited,
+        ("per_value", None) => Repeat::PerValue,
+        (other, times) => {
+            return Err(corrupt(format!(
+                "repeat {other:?} with repeat_times {times:?}"
+            )));
+        }
+    })
+}
+
 /// `prerequisite_node.kind`: a group or the kind of a single condition.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(crate) enum NodeKind {
@@ -139,6 +204,8 @@ pub(crate) enum NodeKind {
     MythicRank,
     Alignment,
     Race,
+    FeatFor,
+    FeatForSameValue,
 }
 
 impl NodeKind {
@@ -167,6 +234,8 @@ text_column!(NodeKind, node_kind_from, node_kind_text {
     MythicRank => "mythic_rank",
     Alignment => "alignment",
     Race => "race",
+    FeatFor => "feat_for",
+    FeatForSameValue => "feat_for_same_value",
 });
 
 /// `feat_slot.kind`: which `rules::FeatSlot` variant a row is.

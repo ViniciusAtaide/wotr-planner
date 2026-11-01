@@ -12,7 +12,7 @@ use sqlx::PgConnection;
 use crate::columns::{
     AbilityBonusKind, FeatSlotKind, ability_bonus_kind_text, ability_text, bab_progression_text,
     feat_category_text, feat_slot_kind_text, mythic_ability_group_text, mythic_feat_group_text,
-    save_progression_text, save_text,
+    parameter_kind_text, repeat_columns, save_progression_text, save_text, weapon_proficiency_text,
 };
 use crate::{Database, Error, prerequisites};
 
@@ -34,7 +34,7 @@ async fn insert_all(db: &Database, data: &GameData, hash: &str) -> Result<(), sq
 
     // Every foreign key is deferred, so the order of the inserts below doesn't matter to them.
     sqlx::query!(
-        "TRUNCATE game_data_seed, mythic_ascension, prerequisite_node, skill, race, subrace,
+        "TRUNCATE game_data_seed, mythic_ascension, prerequisite_node, skill, weapon, race, subrace,
             ability_modifier, feat, class, save_exception, archetype, class_skill, mythic_ability,
             mythic_feat,
             mythic_path, path_switch, path_switch_from, path_switch_drop, path_switch_feature,
@@ -57,20 +57,35 @@ async fn insert_all(db: &Database, data: &GameData, hash: &str) -> Result<(), sq
         .execute(&mut *conn)
         .await?;
     }
+    for weapon in data.weapons.iter() {
+        sqlx::query!(
+            "INSERT INTO weapon (key, name, proficiency) VALUES ($1, $2, $3)",
+            weapon.key.as_str(),
+            weapon.name,
+            weapon.proficiency.map(weapon_proficiency_text),
+        )
+        .execute(&mut *conn)
+        .await?;
+    }
     for race in data.races.iter() {
         insert_race(conn, race).await?;
     }
     for feat in data.feats.iter() {
         let root = prerequisites::insert(conn, feat.prerequisite.as_ref()).await?;
+        let (repeat, repeat_times) = repeat_columns(feat.repeat);
         sqlx::query!(
-            "INSERT INTO feat (key, name, category, summary, guide, prerequisite_root_id)
-            VALUES ($1, $2, $3, $4, $5, $6)",
+            "INSERT INTO feat (key, name, category, summary, guide, prerequisite_root_id, parameter,
+                repeat, repeat_times)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
             feat.key.as_str(),
             feat.name,
             feat_category_text(feat.category),
             feat.summary,
             feat.guide.0,
             root,
+            feat.parameter.map(parameter_kind_text),
+            repeat,
+            repeat_times,
         )
         .execute(&mut *conn)
         .await?;
@@ -397,16 +412,20 @@ async fn insert_selections(
         .await?;
         for option in selection.options.iter() {
             let root = prerequisites::insert(conn, option.prerequisite.as_ref()).await?;
+            let (repeat, repeat_times) = repeat_columns(option.repeat);
             sqlx::query!(
                 "INSERT INTO selection_option (key, selection_key, name, summary, guide,
-                    prerequisite_root_id)
-                VALUES ($1, $2, $3, $4, $5, $6)",
+                    prerequisite_root_id, chosen_feat_key, repeat, repeat_times)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
                 option.key.as_str(),
                 selection.key.as_str(),
                 option.name,
                 option.summary,
                 option.guide.0,
                 root,
+                option.chosen_feat.as_ref().map(FeatKey::as_str),
+                repeat,
+                repeat_times,
             )
             .execute(&mut *conn)
             .await?;

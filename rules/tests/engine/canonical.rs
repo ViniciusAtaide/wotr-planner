@@ -75,7 +75,8 @@ fn counts_summarise_each_catalog() {
         [
             ("Races", 3),
             ("Skills", 4),
-            ("Feats", 24),
+            ("Weapons", 5),
+            ("Feats", 32),
             ("Classes", 6),
             ("Archetypes", 2),
             ("Prestige classes", 2),

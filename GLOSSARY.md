@@ -76,11 +76,11 @@ A point in a Build where one feat is chosen. A **general slot** accepts any feat
 _Avoid_: Feat pick, feat choice
 
 **Feat list**:
-A named fixed list of two or more feats that a bonus slot picks from, such as the monk's bonus feats at 1, 6 and 10 (one list per stage), or a list of every feat (Gold Dragon's Dragon Feats), which names none. It belongs to the class, archetype or path whose file defines it, and says whether picks from it ignore prerequisites (see **Bonus-list slot**).
+A named fixed list of two or more feats that a bonus slot picks from, such as the monk's bonus feats at 1, 6 and 10 (one list per stage), or a list of every feat (Gold Dragon's Dragon Feats), which names none. A list of one Parameterised feat is a bonus feat of the player's choosing (the warpriest's Weapon Focus "in a weapon of his choosing", the Master of All's Skill Focus): the pick names the Parameter. It belongs to the class, archetype or path whose file defines it, and says whether picks from it ignore prerequisites (see **Bonus-list slot**).
 _Avoid_: Option list, fixed-list slot (the slot names the list)
 
 **Granted feat**:
-A feat a class level gives outright, with no slot and no pick, so it isn't in the Build or its link: a wizard's Scribe Scrolls at 1, a fighter's Armor, Shield and Weapon Proficiency feats. It's held from that level on whatever its prerequisites; one already held adds nothing, and picking it later is "already held".
+A feat a class level gives outright, with no slot and no pick, so it isn't in the Build or its link: a wizard's Scribe Scrolls at 1, a fighter's Armor, Shield and Weapon Proficiency feats. It's held from that level on whatever its prerequisites; one already held adds nothing, and picking it later is "already held". A granted Parameterised feat is held for every value (All-skilled: Exotic Weapon Proficiency in every exotic weapon).
 _Avoid_: Bonus feat (that's a slot), one-feat list
 
 **Bonus-list slot**:
@@ -96,8 +96,20 @@ A class-specific choice from a fixed list, such as a rogue talent, rage power or
 _Avoid_: Talent (unqualified), class pick
 
 **Selection option**:
-One entry in a Feature selection's list, such as Fast Stealth among the rogue talents. Its key extends the selection's (`rogue/rogue-talents/fast-stealth` extends `rogue/rogue-talents`). It may grant feats, held while it is: one (a rogue talent that is the feat of that name) or several (the Azata's All-skilled: every weapon, armour and shield proficiency).
+One entry in a Feature selection's list, such as Fast Stealth among the rogue talents. Its key extends the selection's (`rogue/rogue-talents/fast-stealth` extends `rogue/rogue-talents`). It may grant feats, held while it is: one (a rogue talent that is the feat of that name) or several (the Azata's All-skilled: every weapon, armour and shield proficiency). One that is a Parameterised feat of the player's choosing (the rogue talent Weapon Focus) is its **chosen feat**, and the option's pick names the Parameter. It may Repeat.
 _Avoid_: Option (unqualified), talent
+
+**Parameterised feat**:
+A feat taken for something the player chooses, which the guide words as "choose a single weapon" or "select one skill": Weapon Focus, Skill Focus, Spell Focus, Elemental Focus, Armor Focus, Improved Critical, Exotic Weapon Proficiency and the Greater and Specialization feats that follow them. Each pick names its Parameter, and a prerequisite can need the feat for one value ("Weapon Focus (Dueling Sword)") or for the pick's own ("Weapon Specialization: a weapon for which you have already selected Weapon Focus"). "Weapon Focus" on its own is the feat in any value.
+_Avoid_: Feat with a subtype, feat variant
+
+**Parameter**:
+What one pick of a Parameterised feat is taken for: a skill (from `skills.ron`), a weapon (from `weapons.ron`, or only an exotic one for Exotic Weapon Proficiency), a school of magic, an energy type or an armour type. The Parameter is part of the Pick and of the link.
+_Avoid_: Subtype, argument, option (that's a Selection option)
+
+**Repeat**:
+How many times a feat or Selection option can be held: once (the default, and what the guide means when it says nothing), a fixed number ("up to 3 times": Extra Hex, Increased Damage Reduction), any number ("may be taken multiple times": Extra Ki), or once per value of its Parameter ("must be applied to a different weapon each time": Weapon Focus, Skill Focus).
+_Avoid_: Stacking, max picks
 
 **Shared option**:
 A Selection option that one Feature selection offers from another's list, such as the rogue talents a slayer's talents offer. It keeps the key of the selection that defines it, so a character holds it once whichever slot took it, and its prerequisite is the same in both (a gate on one class's feature accepts each sharing class's).
@@ -108,7 +120,7 @@ One place in a Build where something is picked: a Feat slot, a Feature selection
 _Avoid_: Choice point, cell
 
 **Pick**:
-What fills a slot: a feat, a selection option, a mythic ability or a mythic feat.
+What fills a slot: a feat, a selection option, a mythic ability or a mythic feat. A pick of a Parameterised feat, or of an option with a chosen feat, also names its Parameter (Weapon Focus (Longsword)).
 _Avoid_: Choice (that is any decision in a Build), selection
 
 **Prerequisite**:

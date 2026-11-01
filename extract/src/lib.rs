@@ -11,6 +11,7 @@ pub mod guide;
 pub mod html;
 pub mod names;
 pub mod output;
+pub mod parameters;
 pub mod proficiencies;
 pub mod progressions;
 pub mod prose;

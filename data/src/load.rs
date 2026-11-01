@@ -15,14 +15,15 @@ use rules::{
     FeatureSelection, FeatureSelectionKey, GameData, GuideRef, MythicAbility, MythicAbilityKey,
     MythicAscension, MythicFeat, MythicFeatKey, MythicPath, MythicPathKey, MythicRankRow,
     PathSwitch, Progression, Race, RaceKey, SaveException, SelectionOption, SelectionOptionKey,
-    Skill, SkillKey, SpellLevels, Subrace, SubraceKey,
+    Skill, SkillKey, SpellLevels, Subrace, SubraceKey, Weapon, WeaponKey,
 };
 use sqlx::PgConnection;
 
 use crate::columns::{
     AbilityBonusKind, FeatSlotKind, ability_bonus_kind_from, ability_from, bab_progression_from,
     corrupt, feat_category_from, feat_slot_kind_from, mythic_ability_group_from,
-    mythic_feat_group_from, save_from, save_progression_from, to_i8, to_u8,
+    mythic_feat_group_from, parameter_kind_from, repeat_from, save_from, save_progression_from,
+    to_i8, to_u8, weapon_proficiency_from,
 };
 use crate::prerequisites::Trees;
 use crate::{Database, Error};
@@ -45,6 +46,7 @@ async fn load(db: &Database) -> Result<GameData, sqlx::Error> {
         mythic_ascensions: load_mythic_ascensions(conn).await?,
     };
     let skills = load_skills(conn).await?;
+    let weapons = load_weapons(conn).await?;
     let mut feat_slots = load_feat_slots(conn).await?;
     let races = load_races(conn, &mut feat_slots).await?;
     let feats = load_feats(conn, &mut trees).await?;
@@ -98,6 +100,7 @@ async fn load(db: &Database) -> Result<GameData, sqlx::Error> {
         progression,
         races,
         skills,
+        weapons,
         feats,
         classes,
         prestige_classes,
@@ -180,6 +183,25 @@ async fn load_mythic_ascensions(
             Ok(MythicAscension {
                 rank: to_u8(row.rank, "mythic_ascension.rank")?,
                 character_level: to_u8(row.character_level, "mythic_ascension.character_level")?,
+            })
+        })
+        .collect()
+}
+
+async fn load_weapons(conn: &mut PgConnection) -> Result<Vec<Weapon>, sqlx::Error> {
+    sqlx::query!("SELECT key, name, proficiency FROM weapon ORDER BY key")
+        .fetch_all(&mut *conn)
+        .await?
+        .into_iter()
+        .map(|row| {
+            Ok(Weapon {
+                key: WeaponKey(row.key),
+                name: row.name,
+                proficiency: row
+                    .proficiency
+                    .as_deref()
+                    .map(weapon_proficiency_from)
+                    .transpose()?,
             })
         })
         .collect()
@@ -316,7 +338,8 @@ async fn load_races(
 
 async fn load_feats(conn: &mut PgConnection, trees: &mut Trees) -> Result<Vec<Feat>, sqlx::Error> {
     sqlx::query!(
-        "SELECT key, name, category, summary, guide, prerequisite_root_id
+        "SELECT key, name, category, summary, guide, prerequisite_root_id, parameter, repeat,
+            repeat_times
         FROM feat ORDER BY key"
     )
     .fetch_all(&mut *conn)
@@ -329,6 +352,12 @@ async fn load_feats(conn: &mut PgConnection, trees: &mut Trees) -> Result<Vec<Fe
             category: feat_category_from(&row.category)?,
             summary: row.summary,
             guide: GuideRef(row.guide),
+            parameter: row
+                .parameter
+                .as_deref()
+                .map(parameter_kind_from)
+                .transpose()?,
+            repeat: repeat_from(&row.repeat, row.repeat_times)?,
             prerequisite: trees.get(row.prerequisite_root_id)?,
         })
     })
@@ -565,7 +594,8 @@ async fn load_selections(
 
     let mut options = Grouped::new();
     for row in sqlx::query!(
-        "SELECT key, selection_key, name, summary, guide, prerequisite_root_id
+        "SELECT key, selection_key, name, summary, guide, prerequisite_root_id, chosen_feat_key,
+            repeat, repeat_times
         FROM selection_option ORDER BY key"
     )
     .fetch_all(&mut *conn)
@@ -575,6 +605,8 @@ async fn load_selections(
             row.selection_key,
             SelectionOption {
                 feats: option_feats.take(&row.key).into_iter().collect(),
+                chosen_feat: row.chosen_feat_key.map(FeatKey),
+                repeat: repeat_from(&row.repeat, row.repeat_times)?,
                 key: SelectionOptionKey(row.key),
                 name: row.name,
                 summary: row.summary,

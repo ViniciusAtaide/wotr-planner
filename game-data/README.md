@@ -15,6 +15,7 @@ example of the layout.
 | `progression.ron` | `Progression`: the mythic rank table (the Character level of each Mythic rank) |
 | `races.ron` | `Vec<Race>`, with subraces |
 | `skills.ron` | `Vec<Skill>` |
+| `weapons.ron` | `Vec<Weapon>`: the weapons a feat can be taken for, from the guide's simple, martial and exotic lists (`proficiency`), plus Sawtooth Saber and what Weapon Focus names besides weapons |
 | `feats.ron` | `Vec<Feat>` |
 | `classes/<class>.ron` | one base `Class`, with its features, feature selections, level rows and archetypes |
 | `prestige/<class>.ron` | one prestige `Class` |
@@ -80,13 +81,23 @@ class's), and BAB and saves (from the class's progressions).
   the feat's prerequisites. Only class and archetype rows, and a path's ranks naming the path's own list, may name
   such a list; left out, prerequisites are checked. A list of every feat (Gold Dragon's Dragon Feats: "any three
   feats") sets `every_feat: true` and names no feats. The check refuses a list of fewer than two feats (unless
-  it's every feat) and one no slot names.
+  it's every feat, or its one feat takes a value) and one no slot names. A bonus feat of the player's choosing
+  (the warpriest's "Weapon Focus as a bonus feat in a weapon of his choosing", the Master of All's Skill Focus at
+  3, 9 and 15) is a bonus list of that one parameterised feat: the pick names the value.
 - A feat the class gives outright is a granted feat, not a slot: `feats: ["scribe-scrolls"]` on the level row
   (class or archetype). It's held with no pick, whatever its prerequisites, and it's in no Build or link. Classes
   grant their Armor, Shield and Weapon Proficiency feats this way, from each class page's proficiency text; a
   `<class>-proficiencies` feature stays only where it says more than those feats (named weapons, bombs, casting
   in armour, or a prerequisite names it).
 
+- A feat the guide says to take for something names what: `parameter: Weapon` (also `ExoticWeapon`, `Skill`,
+  `SpellSchool`, `Energy`, `ArmourType`), and each pick of it names a value. How often a feat can be taken is
+  `repeat:`, left out for once: `PerValue` (once per value: Weapon Focus, Skill Focus), `Times(3)` ("up to 3
+  times"), `Unlimited` ("may be taken multiple times"). A feat the guide doesn't say repeats is taken once, even a
+  parameterised one. A selection option may repeat too (`repeat: Times(3)`, never `PerValue`), and one that is a
+  parameterised feat of the player's choosing names it as `chosen_feat: "weapon-focus"` (its pick names the
+  value); a parameterised feat in an option's `feats` or a row's `feats` is held for every value (All-skilled:
+  Exotic Weapon Proficiency in every exotic weapon).
 - Keys are readable text from the guide's anchors: `power-attack` (a feat), `rogue` (a class),
   `rogue/dark-lurker` (an archetype), `rogue/rogue-talents/fast-stealth` (a selection option). A key has no type
   prefix: where it sits says what it names, so keys of two kinds may be equal (the feature and the selection
@@ -96,7 +107,11 @@ class's), and BAB and saves (from the class's progressions).
   guide's text.
 - Prerequisites are `All([...])`, `Any([...])` and `AtLeast(n, [...])` over single conditions such as
   `Feat("power-attack")`, `AbilityScore(ability: Strength, score: 13)` or `MythicRank(9)`. A missing
-  `prerequisite` means there is none.
+  `prerequisite` means there is none. `Feat("weapon-focus")` is the feat for any value; `FeatFor(feat:
+  "weapon-focus", value: Weapon("dueling-sword"))` needs one value (`Skill("mobility")`,
+  `SpellSchool(Conjuration)`, `Energy(Fire)`, `ArmourType(Light)`), and `FeatForSameValue("weapon-focus")` the
+  value of the pick being checked (Weapon Specialization), only in a parameterised feat's or a chosen-feat option's
+  prerequisite.
 
 ## Seeding
 

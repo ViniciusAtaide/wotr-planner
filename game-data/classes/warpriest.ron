@@ -51,8 +51,11 @@ Class(
             ],
         ),
     ],
+    feat_lists: [
+        (key: "warpriest/weapon-focus", name: "Weapon Focus", guide: "warpriest#sacred-weapon", ignores_prerequisites: true, feats: ["weapon-focus"]),
+    ],
     levels: [
-        (level: 1, divine_spell_level: 1, features: ["warpriest/sacred-weapon", "warpriest/spontaneous-casting"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency", "weapon-focus"], selections: ["warpriest/blessings", "warpriest/blessings"]),
+        (level: 1, divine_spell_level: 1, features: ["warpriest/sacred-weapon", "warpriest/spontaneous-casting"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], feat_slots: [OneOf(list: "warpriest/weapon-focus")], selections: ["warpriest/blessings", "warpriest/blessings"]),
         (level: 2, divine_spell_level: 1, features: ["warpriest/fervor"]),
         (level: 3, divine_spell_level: 1, feat_slots: [CombatFeat]),
         (level: 4, divine_spell_level: 2, features: ["warpriest/channel-energy", "warpriest/sacred-weapon"]),
@@ -84,7 +87,7 @@ Class(
                 (key: "warpriest/champion-of-the-faith/smite", name: "Smite", guide: "warpriest#smite"),
             ],
             levels: [
-                (level: 1, features: ["warpriest/champion-of-the-faith/chosen-alignment", "warpriest/sacred-weapon", "warpriest/spontaneous-casting"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency", "weapon-focus"], selections: ["warpriest/blessings"]),
+                (level: 1, features: ["warpriest/champion-of-the-faith/chosen-alignment", "warpriest/sacred-weapon", "warpriest/spontaneous-casting"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], feat_slots: [OneOf(list: "warpriest/weapon-focus")], selections: ["warpriest/blessings"]),
                 (level: 4, features: ["warpriest/champion-of-the-faith/sacred-weapon-aligned-weapon", "warpriest/champion-of-the-faith/smite"]),
                 (level: 8),
                 (level: 12, features: ["warpriest/champion-of-the-faith/sacred-weapon-aligned-weapon"], feat_slots: [CombatFeat]),
@@ -151,7 +154,7 @@ Class(
                 (key: "warpriest/feral-champion/wild-shape-wolf", name: "Wild Shape (Wolf)", guide: "warpriest#feral-champion"),
             ],
             levels: [
-                (level: 1, features: ["warpriest/feral-champion/feral-blessing", "warpriest/sacred-weapon", "warpriest/spontaneous-casting"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency", "weapon-focus"]),
+                (level: 1, features: ["warpriest/feral-champion/feral-blessing", "warpriest/sacred-weapon", "warpriest/spontaneous-casting"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], feat_slots: [OneOf(list: "warpriest/weapon-focus")]),
                 (level: 7, features: ["warpriest/feral-champion/wild-shape-wolf"]),
                 (level: 9, features: ["warpriest/feral-champion/wild-shape-leopard"], feat_slots: [CombatFeat]),
                 (level: 10, features: ["warpriest/feral-champion/feral-blessing"]),

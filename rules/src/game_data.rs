@@ -14,8 +14,9 @@ use serde::{Deserialize, Serialize};
 use crate::keys::{
     ArchetypeKey, ClassKey, FeatKey, FeatListKey, FeatureKey, FeatureSelectionKey,
     MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey, SelectionOptionKey, SkillKey,
-    SubraceKey,
+    SubraceKey, WeaponKey,
 };
+use crate::parameter::{ParameterKind, Repeat};
 use crate::prerequisite::Prerequisite;
 
 /// The guide every [`GuideRef`] points into.
@@ -44,6 +45,8 @@ pub struct GameData {
     pub progression: Progression,
     pub races: Vec<Race>,
     pub skills: Vec<Skill>,
+    /// The weapons a parameterised feat can be taken for.
+    pub weapons: Vec<Weapon>,
     pub feats: Vec<Feat>,
     /// Base classes, each with its archetypes.
     pub classes: Vec<Class>,
@@ -78,10 +81,11 @@ impl GameData {
     }
 
     /// How much of each kind of thing the data holds, labelled, as a quick check that seeding worked.
-    pub fn counts(&self) -> [(&'static str, usize); 9] {
+    pub fn counts(&self) -> [(&'static str, usize); 10] {
         [
             ("Races", self.races.len()),
             ("Skills", self.skills.len()),
+            ("Weapons", self.weapons.len()),
             ("Feats", self.feats.len()),
             ("Classes", self.classes.len()),
             ("Archetypes", self.archetypes().count()),
@@ -107,6 +111,7 @@ impl GameData {
             }
         }
         sort_by_key(&mut self.skills, |s| s.key.clone());
+        sort_by_key(&mut self.weapons, |w| w.key.clone());
         sort_by_key(&mut self.feats, |f| f.key.clone());
         for feat in &mut self.feats {
             canonicalize_prerequisite(&mut feat.prerequisite);
@@ -338,6 +343,25 @@ pub struct Skill {
     pub ability: Ability,
 }
 
+/// A weapon, as the guide's weapon lists name it (Weapon Focus is taken for one).
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Weapon {
+    pub key: WeaponKey,
+    pub name: String,
+    /// The proficiency feat whose list names it; `None` for what no proficiency list names (unarmed strike, rays).
+    #[serde(default)]
+    pub proficiency: Option<WeaponProficiency>,
+}
+
+/// The guide's three weapon proficiency lists.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+pub enum WeaponProficiency {
+    Simple,
+    Martial,
+    Exotic,
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Feat {
@@ -347,6 +371,13 @@ pub struct Feat {
     #[serde(default)]
     pub summary: String,
     pub guide: GuideRef,
+    /// What the feat is taken for, when the guide says to choose one (Weapon Focus: a weapon). Each pick of it then
+    /// names a value of this kind.
+    #[serde(default)]
+    pub parameter: Option<ParameterKind>,
+    /// How many times it can be taken (Weapon Focus: once per weapon; Extra Hex: three times).
+    #[serde(default)]
+    pub repeat: Repeat,
     /// `None`: the guide lists no prerequisites, so there are none.
     #[serde(default)]
     pub prerequisite: Option<Prerequisite>,
@@ -612,7 +643,8 @@ pub struct ClassLevelRow {
     #[serde(default)]
     pub features: Vec<FeatureKey>,
     /// Granted feats: held from this level on with no slot and no pick, whatever their prerequisites (Scribe
-    /// Scrolls, a class's armour and shield proficiencies). One already held adds nothing.
+    /// Scrolls, a class's armour and shield proficiencies). One already held adds nothing. A parameterised one is
+    /// held for every value; a bonus feat of the player's choosing is a one-feat bonus list instead.
     #[serde(default)]
     pub feats: BTreeSet<FeatKey>,
     #[serde(default)]
@@ -694,9 +726,17 @@ pub struct SelectionOption {
     pub summary: String,
     pub guide: GuideRef,
     /// The feats this option grants ("This is the feat of the same name"; All-skilled: every weapon, armour and
-    /// shield proficiency).
+    /// shield proficiency). A parameterised one is held for every value (All-skilled: Exotic Weapon Proficiency in
+    /// every exotic weapon).
     #[serde(default)]
     pub feats: BTreeSet<FeatKey>,
+    /// A parameterised feat this option grants for the value its pick names (the rogue talent Weapon Focus: one
+    /// weapon of the player's choosing).
+    #[serde(default)]
+    pub chosen_feat: Option<FeatKey>,
+    /// How many times it can be taken (Increased Damage Reduction: three times). Never `PerValue`.
+    #[serde(default)]
+    pub repeat: Repeat,
     #[serde(default)]
     pub prerequisite: Option<Prerequisite>,
 }

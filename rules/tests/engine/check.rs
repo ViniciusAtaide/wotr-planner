@@ -5,7 +5,7 @@ use std::collections::BTreeSet;
 use rules::{
     ArchetypeKey, ArchetypeLevelRow, ClassKey, DataAt, DataIssue, DataProblem, FeatKey,
     FeatListKey, FeatSlot, FeatureKey, FeatureSelectionKey, GameData, MythicPathKey, Prerequisite,
-    RaceKey, Save, SaveException, SelectionOptionKey, SpellLevels,
+    RaceKey, Repeat, Save, SaveException, SelectionOptionKey, SpellLevels,
 };
 
 use crate::support::*;
@@ -671,6 +671,142 @@ fn a_switch_is_open_from_paths_chosen_at_mr_3_only() {
         [(
             at_path("devil"),
             DataIssue::SwitchFromASwitchPath(rules::MythicPathKey::new("legend"))
+        )]
+    );
+}
+
+fn feat_mut<'a>(data: &'a mut GameData, key: &str) -> &'a mut rules::Feat {
+    data.feats
+        .iter_mut()
+        .find(|f| f.key.as_str() == key)
+        .unwrap()
+}
+
+fn rogue_talent_mut<'a>(data: &'a mut GameData, key: &str) -> &'a mut rules::SelectionOption {
+    class_mut(data, "rogue").selections[0]
+        .options
+        .iter_mut()
+        .find(|o| o.key.as_str() == key)
+        .unwrap()
+}
+
+fn at_feat(key: &str) -> DataAt {
+    DataAt::Feat(FeatKey::new(key))
+}
+
+fn at_option(key: &str) -> DataAt {
+    DataAt::SelectionOption(SelectionOptionKey::new(key))
+}
+
+#[test]
+fn repeats_and_chosen_feats_fit_their_feats() {
+    let mut data = world();
+    // Once per value, but the feat takes none.
+    feat_mut(&mut data, "toughness").repeat = Repeat::PerValue;
+    // "Up to once" is just once.
+    feat_mut(&mut data, "dodge").repeat = Repeat::Times(1);
+    // An option takes no value of its own.
+    rogue_talent_mut(&mut data, "rogue/rogue-talents/fast-stealth").repeat = Repeat::PerValue;
+    // A chosen feat is one that takes a value.
+    rogue_talent_mut(&mut data, "rogue/rogue-talents/weapon-focus").chosen_feat =
+        Some(FeatKey::new("toughness"));
+    assert_eq!(
+        sorted(issues(&data)),
+        sorted(vec![
+            (at_feat("toughness"), DataIssue::PerValueWithoutParameter),
+            (at_feat("dodge"), DataIssue::TimesOutOfRange(1)),
+            (
+                at_option("rogue/rogue-talents/fast-stealth"),
+                DataIssue::PerValueWithoutParameter
+            ),
+            (
+                at_option("rogue/rogue-talents/weapon-focus"),
+                DataIssue::ChosenFeatNotParameterised
+            ),
+        ])
+    );
+}
+
+#[test]
+fn a_value_in_a_prerequisite_fits_its_feat() {
+    let weapon_focus = FeatKey::new("weapon-focus");
+    let mut data = world();
+    // A value for a feat that takes none, one of another kind, and a weapon that isn't exotic.
+    feat_mut(&mut data, "dodge").prerequisite = Some(Prerequisite::FeatFor {
+        feat: FeatKey::new("toughness"),
+        value: weapon("longsword"),
+    });
+    feat_mut(&mut data, "toughness").prerequisite = Some(Prerequisite::FeatFor {
+        feat: FeatKey::new("skill-focus"),
+        value: weapon("longsword"),
+    });
+    feat_mut(&mut data, "power-attack").prerequisite = Some(Prerequisite::FeatFor {
+        feat: FeatKey::new("exotic-weapon-proficiency"),
+        value: weapon("longsword"),
+    });
+    // "The same value" where the pick takes none: an unparameterised feat, a class, an option without a chosen
+    // feat.
+    feat_mut(&mut data, "cleave").prerequisite =
+        Some(Prerequisite::FeatForSameValue(weapon_focus.clone()));
+    class_mut(&mut data, "fighter").prerequisite =
+        Some(Prerequisite::FeatForSameValue(weapon_focus.clone()));
+    rogue_talent_mut(&mut data, "rogue/rogue-talents/fast-stealth").prerequisite =
+        Some(Prerequisite::FeatForSameValue(weapon_focus.clone()));
+    // ... or one of another kind: a skill isn't a weapon.
+    feat_mut(&mut data, "skill-focus").prerequisite =
+        Some(Prerequisite::FeatForSameValue(weapon_focus.clone()));
+    // Fine: the rogue talent Weapon Focus's pick names a weapon, and a weapon is a weapon whatever the feat.
+    rogue_talent_mut(&mut data, "rogue/rogue-talents/weapon-focus").prerequisite = Some(
+        Prerequisite::FeatForSameValue(FeatKey::new("exotic-weapon-proficiency")),
+    );
+    assert_eq!(
+        sorted(issues(&data)),
+        sorted(vec![
+            (
+                at_feat("dodge"),
+                DataIssue::ValueOfWrongKind(FeatKey::new("toughness"))
+            ),
+            (
+                at_feat("toughness"),
+                DataIssue::ValueOfWrongKind(FeatKey::new("skill-focus"))
+            ),
+            (
+                at_feat("power-attack"),
+                DataIssue::ValueOfWrongKind(FeatKey::new("exotic-weapon-proficiency"))
+            ),
+            (at_feat("cleave"), DataIssue::SameValueWithoutValue),
+            (at_class("fighter"), DataIssue::SameValueWithoutValue),
+            (
+                at_option("rogue/rogue-talents/fast-stealth"),
+                DataIssue::SameValueWithoutValue
+            ),
+            (
+                at_feat("skill-focus"),
+                DataIssue::ValueOfWrongKind(weapon_focus.clone())
+            ),
+        ])
+    );
+    assert_eq!(
+        DataProblem {
+            at: at_feat("cleave"),
+            issue: DataIssue::SameValueWithoutValue,
+        }
+        .to_string(),
+        "feat cleave: \"the same value\" in a prerequisite whose pick takes no value"
+    );
+}
+
+#[test]
+fn a_one_feat_list_is_a_bonus_feat_of_the_players_choosing() {
+    // The rogue's Skill Focus list holds one feat: fine, the pick names the skill. One unparameterised feat isn't.
+    let mut data = world();
+    assert_eq!(issues(&data), []);
+    class_mut(&mut data, "rogue").feat_lists[0].feats = BTreeSet::from([FeatKey::new("dodge")]);
+    assert_eq!(
+        issues(&data),
+        [(
+            DataAt::FeatList(FeatListKey::new("rogue/skill-focus")),
+            DataIssue::FeatListTooShort
         )]
     );
 }

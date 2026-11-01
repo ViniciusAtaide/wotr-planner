@@ -55,10 +55,10 @@ fn a_shared_talent_taken_in_a_slayer_slot_is_held_under_the_rogue_talents_key() 
     assert!(
         state
             .selection_options
-            .contains(&option("rogue/rogue-talents/combat-trick"))
+            .contains_key(&option("rogue/rogue-talents/combat-trick"))
     );
     // The option's feat comes with it, as in the rogue's own slot.
-    assert!(state.feats.contains(&feat("combat-expertise")));
+    assert!(state.feats.contains_key(&feat("combat-expertise")));
 }
 
 #[test]

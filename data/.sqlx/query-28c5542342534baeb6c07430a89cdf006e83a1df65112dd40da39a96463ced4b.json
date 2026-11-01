@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT key, name, category, summary, guide, prerequisite_root_id\n        FROM feat ORDER BY key",
+  "query": "SELECT key, name, category, summary, guide, prerequisite_root_id, parameter, repeat,\n            repeat_times\n        FROM feat ORDER BY key",
   "describe": {
     "columns": [
       {
@@ -68,6 +68,39 @@
             "name": "prerequisite_root_id"
           }
         }
+      },
+      {
+        "ordinal": 6,
+        "name": "parameter",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "feat",
+            "name": "parameter"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "repeat",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "feat",
+            "name": "repeat"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "repeat_times",
+        "type_info": "Int2",
+        "origin": {
+          "Table": {
+            "table": "feat",
+            "name": "repeat_times"
+          }
+        }
       }
     ],
     "parameters": {
@@ -79,8 +112,11 @@
       false,
       false,
       false,
+      true,
+      true,
+      false,
       true
     ]
   },
-  "hash": "ec09227b9cbf70c4dd6f872a7c36db2d7059cd913b4ac4c67ede2932a93e168a"
+  "hash": "28c5542342534baeb6c07430a89cdf006e83a1df65112dd40da39a96463ced4b"
 }

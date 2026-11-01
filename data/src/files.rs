@@ -2,7 +2,7 @@
 //!
 //! Layout (relative to the data folder):
 //!
-//! - `progression.ron`, `races.ron`, `skills.ron`, `feats.ron`
+//! - `progression.ron`, `races.ron`, `skills.ron`, `weapons.ron`, `feats.ron`
 //! - `classes/<class>.ron`, `prestige/<class>.ron`
 //! - `mythic/abilities.ron`, `mythic/feats.ron`
 //! - `mythic/paths/<path>.ron`
@@ -21,10 +21,11 @@ use rules::GameData;
 use serde::de::DeserializeOwned;
 use sha2::{Digest, Sha256};
 
-const SINGLE_FILES: [&str; 6] = [
+const SINGLE_FILES: [&str; 7] = [
     "progression.ron",
     "races.ron",
     "skills.ron",
+    "weapons.ron",
     "feats.ron",
     "mythic/abilities.ron",
     "mythic/feats.ron",
@@ -85,6 +86,7 @@ pub fn read_game_data_files(dir: &Path) -> Result<GameData, FilesError> {
         progression: read(&dir.join("progression.ron"))?,
         races: read(&dir.join("races.ron"))?,
         skills: read(&dir.join("skills.ron"))?,
+        weapons: read(&dir.join("weapons.ron"))?,
         feats: read(&dir.join("feats.ron"))?,
         classes: read_folder(&dir.join("classes"))?,
         prestige_classes: read_folder(&dir.join("prestige"))?,

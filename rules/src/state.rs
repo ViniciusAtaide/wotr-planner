@@ -8,6 +8,7 @@ use crate::keys::{
     ArchetypeKey, ClassKey, FeatKey, FeatureKey, MythicAbilityKey, MythicFeatKey, MythicPathKey,
     RaceKey, SelectionOptionKey, SkillKey,
 };
+use crate::parameter::Parameter;
 use crate::prerequisite::Prerequisite;
 use crate::problem::Unmet;
 
@@ -36,10 +37,16 @@ pub struct CharacterState {
     /// advance them). Checked only where the guide states a caster level.
     pub caster_level: u8,
     pub skill_ranks: BTreeMap<SkillKey, u8>,
-    pub feats: BTreeSet<FeatKey>,
+    /// Each feat held, with how many picks and grants hold it (Extra Hex taken twice: 2). A class grant and a pick
+    /// may both hold one, so losing one of them keeps the feat.
+    pub feats: BTreeMap<FeatKey, u8>,
+    /// Each parameterised feat held, with the values it's held for and how many picks and grants hold each
+    /// (Weapon Focus: Longsword 1, Dagger 1).
+    pub feat_values: BTreeMap<FeatKey, BTreeMap<Parameter, u8>>,
     /// Each feature with the number of times it has been granted ("Sneak Attack: 3").
     pub features: BTreeMap<FeatureKey, u8>,
-    pub selection_options: BTreeSet<SelectionOptionKey>,
+    /// Each selection option held, with how many times it was taken (Increased Damage Reduction: 2).
+    pub selection_options: BTreeMap<SelectionOptionKey, u8>,
     pub mythic_abilities: BTreeSet<MythicAbilityKey>,
     pub mythic_feats: BTreeSet<MythicFeatKey>,
     /// The Mythic rank reached: 3 after a Legend switch, whatever the rank before.
@@ -84,8 +91,35 @@ impl CharacterState {
         }
     }
 
-    /// Evaluates a Prerequisite against this state.
+    /// How many picks and grants hold a feat; 0 when none.
+    pub fn feat_count(&self, feat: &FeatKey) -> u8 {
+        self.feats.get(feat).copied().unwrap_or(0)
+    }
+
+    /// Whether a parameterised feat is held for a value.
+    pub fn has_feat_for(&self, feat: &FeatKey, value: &Parameter) -> bool {
+        self.feat_values
+            .get(feat)
+            .is_some_and(|values| values.contains_key(value))
+    }
+
+    /// How many times a selection option was taken; 0 when never.
+    pub fn option_count(&self, option: &SelectionOptionKey) -> u8 {
+        self.selection_options.get(option).copied().unwrap_or(0)
+    }
+
+    /// Evaluates a Prerequisite against this state, for a pick with no value: a `FeatForSameValue` fails.
     pub fn check(&self, prerequisite: &Prerequisite) -> Result<(), Unmet> {
+        self.check_for(prerequisite, None)
+    }
+
+    /// Evaluates a Prerequisite against this state for a pick taken for `value` (`FeatForSameValue` compares with
+    /// it).
+    pub fn check_for(
+        &self,
+        prerequisite: &Prerequisite,
+        value: Option<&Parameter>,
+    ) -> Result<(), Unmet> {
         use Prerequisite as P;
         let numeric = |has: u8, needs: u8| (has >= needs, Some(has));
         let flag = |holds: bool| (holds, None);
@@ -93,7 +127,7 @@ impl CharacterState {
             P::All(children) => {
                 let mut failed: Vec<Unmet> = children
                     .iter()
-                    .filter_map(|c| self.check(c).err())
+                    .filter_map(|c| self.check_for(c, value).err())
                     .collect();
                 return match failed.len() {
                     0 => Ok(()),
@@ -104,7 +138,7 @@ impl CharacterState {
             P::Any(children) => {
                 let mut failed = Vec::with_capacity(children.len());
                 for child in children {
-                    match self.check(child) {
+                    match self.check_for(child, value) {
                         Ok(()) => return Ok(()),
                         Err(unmet) => failed.push(unmet),
                     }
@@ -114,7 +148,7 @@ impl CharacterState {
             P::AtLeast(needed, children) => {
                 let failed: Vec<Unmet> = children
                     .iter()
-                    .filter_map(|c| self.check(c).err())
+                    .filter_map(|c| self.check_for(c, value).err())
                     .collect();
                 let met = u8::try_from(children.len() - failed.len()).unwrap_or(u8::MAX);
                 return if met >= *needed {
@@ -127,7 +161,11 @@ impl CharacterState {
                     })
                 };
             }
-            P::Feat(feat) => flag(self.feats.contains(feat)),
+            P::Feat(feat) => flag(self.feats.contains_key(feat)),
+            P::FeatFor { feat, value } => flag(self.has_feat_for(feat, value)),
+            P::FeatForSameValue(feat) => {
+                flag(value.is_some_and(|value| self.has_feat_for(feat, value)))
+            }
             P::MythicFeat(feat) => flag(self.mythic_feats.contains(feat)),
             P::MythicAbility(ability) => flag(self.mythic_abilities.contains(ability)),
             P::ClassLevel { class, level } => numeric(self.class_level(class), *level),
@@ -137,7 +175,7 @@ impl CharacterState {
                     .any(|c| c.archetype.as_ref() == Some(archetype)),
             ),
             P::Feature { feature, count } => numeric(self.feature_count(feature), *count),
-            P::SelectionOption(option) => flag(self.selection_options.contains(option)),
+            P::SelectionOption(option) => flag(self.selection_options.contains_key(option)),
             P::SkillRanks { skill, ranks } => numeric(self.skill_ranks(skill), *ranks),
             P::AbilityScore { ability, score } => {
                 numeric(self.ability_scores.get(*ability), *score)

@@ -16,6 +16,8 @@ fn feat(key: &str, prerequisite: Option<Prerequisite>) -> Feat {
         category: FeatCategory::Miscellaneous,
         summary: String::new(),
         guide: GuideRef::new(format!("feats#{key}")),
+        parameter: None,
+        repeat: rules::Repeat::Once,
         prerequisite,
     }
 }
@@ -30,6 +32,7 @@ fn a_reference_must_exist_as_its_own_kind() {
         },
         races: vec![],
         skills: vec![],
+        weapons: vec![],
         feats: vec![
             feat("dodge", None),
             feat(
@@ -97,6 +100,8 @@ fn an_option_beside_the_feat_it_grants_is_dropped() {
         summary: String::new(),
         guide: GuideRef::new(key),
         feats: feat.map(FeatKey::new).into_iter().collect(),
+        chosen_feat: None,
+        repeat: rules::Repeat::Once,
         prerequisite: None,
     };
     let rogue = Class {
@@ -134,6 +139,7 @@ fn an_option_beside_the_feat_it_grants_is_dropped() {
         },
         races: vec![],
         skills: vec![],
+        weapons: vec![],
         feats: vec![
             feat(
                 "dazzling-display",

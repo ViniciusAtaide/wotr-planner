@@ -109,7 +109,7 @@ mod tests {
             .insert(ClassKey::new("x"), ClassChoice::default());
         build
             .picks
-            .insert(SlotId::Mythic { rank: 1 }, Pick::Feat(FeatKey::new("y")));
+            .insert(SlotId::Mythic { rank: 1 }, Pick::feat(FeatKey::new("y")));
         let body = postcard::to_allocvec(&build).unwrap();
         assert_eq!(
             body,
@@ -126,7 +126,7 @@ mod tests {
                 0, 0, // mythic path, path switch: None
                 1, // one pick
                 2, 1, // SlotId::Mythic { rank: 1 }
-                0, 1, b'y', // Pick::Feat("y")
+                0, 1, b'y', 0, // Pick::Feat { feat: "y", parameter: None }
             ]
         );
     }

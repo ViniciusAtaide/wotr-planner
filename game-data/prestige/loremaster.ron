@@ -9,7 +9,7 @@ Class(
     will: Good,
     save_exceptions: [(level: 4, save: Will, value: 3)],
     class_skills: ["knowledge-arcana", "knowledge-world", "lore-nature", "lore-religion", "persuasion", "use-magic-device"],
-    prerequisite: All([Any([SpellLevel(spell_type: Arcane, level: 3), SpellLevel(spell_type: Divine, level: 3)]), Any([Feat("metamagic-bolster-spell"), Feat("metamagic-completely-normal-spell"), Feat("metamagic-empower-spell"), Feat("metamagic-extend-spell"), Feat("metamagic-heighten-spell"), Feat("metamagic-intensified-spell"), Feat("metamagic-maximise-spell"), Feat("metamagic-persistent-spell"), Feat("metamagic-piercing-spell"), Feat("metamagic-quicken-spell"), Feat("metamagic-reach-spell"), Feat("metamagic-selective-spell")]), Feat("skill-focus"), CharacterLevel(6)]),
+    prerequisite: All([Any([FeatFor(feat: "skill-focus", value: Skill("knowledge-arcana")), FeatFor(feat: "skill-focus", value: Skill("knowledge-world"))]), Any([SpellLevel(spell_type: Arcane, level: 3), SpellLevel(spell_type: Divine, level: 3)]), Any([Feat("metamagic-bolster-spell"), Feat("metamagic-completely-normal-spell"), Feat("metamagic-empower-spell"), Feat("metamagic-extend-spell"), Feat("metamagic-heighten-spell"), Feat("metamagic-intensified-spell"), Feat("metamagic-maximise-spell"), Feat("metamagic-persistent-spell"), Feat("metamagic-piercing-spell"), Feat("metamagic-quicken-spell"), Feat("metamagic-reach-spell"), Feat("metamagic-selective-spell")]), CharacterLevel(6)]),
     features: [
         (key: "loremaster/greater-lore", name: "Greater Lore", guide: "prestige-classes#greater-lore"),
         (key: "loremaster/lore", name: "Lore", guide: "prestige-classes#lore"),

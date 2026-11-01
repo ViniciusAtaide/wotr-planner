@@ -15,6 +15,7 @@ mod feat_lists;
 mod granted_feats;
 mod mythic;
 mod options;
+mod parameters;
 mod path_rules;
 mod pickers;
 mod shared_options;

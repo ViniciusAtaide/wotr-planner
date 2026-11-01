@@ -10,9 +10,10 @@ use std::fs;
 use common::{copy_fixture, fixture_dir};
 use data::{Database, GameDataStatus};
 use rules::{
-    Ability, AbilityModifier, Alignment, ArchetypeKey, ClassKey, DataAt, Feat, FeatCategory,
-    FeatKey, FeatureKey, GuideRef, MythicAbilityKey, MythicFeatKey, Prerequisite, RaceKey,
-    SelectionOptionKey, SkillKey, SpellType,
+    Ability, AbilityModifier, Alignment, ArchetypeKey, ArmourType, ClassKey, DataAt, Energy, Feat,
+    FeatCategory, FeatKey, FeatureKey, GuideRef, MythicAbilityKey, MythicFeatKey, Parameter,
+    ParameterKind, Prerequisite, RaceKey, Repeat, SelectionOptionKey, SkillKey, SpellSchool,
+    SpellType, WeaponKey,
 };
 use sqlx::PgPool;
 
@@ -254,6 +255,28 @@ fn every_prerequisite_variant() -> Vec<Prerequisite> {
         P::MythicRank(9),
         P::Alignment(Alignment::LawfulNeutral),
         P::Race(RaceKey::new("dwarf")),
+        // One per value column.
+        P::FeatFor {
+            feat: FeatKey::new("skill-focus"),
+            value: Parameter::Skill(SkillKey::new("mobility")),
+        },
+        P::FeatFor {
+            feat: FeatKey::new("weapon-focus"),
+            value: Parameter::Weapon(WeaponKey::new("dueling-sword")),
+        },
+        P::FeatFor {
+            feat: FeatKey::new("spell-focus"),
+            value: Parameter::SpellSchool(SpellSchool::Necromancy),
+        },
+        P::FeatFor {
+            feat: FeatKey::new("elemental-focus"),
+            value: Parameter::Energy(Energy::Cold),
+        },
+        P::FeatFor {
+            feat: FeatKey::new("armor-focus"),
+            value: Parameter::ArmourType(ArmourType::Medium),
+        },
+        P::FeatForSameValue(FeatKey::new("weapon-focus")),
     ];
     let groups = vec![
         P::Any(vec![P::BaseAttackBonus(1), P::CasterLevel(1)]),
@@ -280,7 +303,9 @@ fn every_prerequisite_variant() -> Vec<Prerequisite> {
             | P::CharacterLevel(_)
             | P::MythicRank(_)
             | P::Alignment(_)
-            | P::Race(_) => {}
+            | P::Race(_)
+            | P::FeatFor { .. }
+            | P::FeatForSameValue(_) => {}
         }
     }
     all
@@ -296,6 +321,9 @@ async fn every_prerequisite_variant_round_trips(pool: PgPool) {
         category: FeatCategory::Miscellaneous,
         summary: String::new(),
         guide: GuideRef::new("feats#everything"),
+        // Taken for a weapon, so "the same weapon" means something.
+        parameter: Some(ParameterKind::Weapon),
+        repeat: Repeat::Times(2),
         prerequisite: Some(Prerequisite::All(every_prerequisite_variant())),
     });
     let game_data = game_data.canonical();
@@ -403,6 +431,16 @@ async fn a_prerequisite_node_must_fill_exactly_its_own_columns(pool: PgPool) {
         // An ability score condition with a stray spell type.
         "INSERT INTO prerequisite_node (kind, ability, spell_type, amount)
             VALUES ('ability_score', 'strength', 'arcane', 13)",
+        // A feat for a value, without the value or with two.
+        "INSERT INTO prerequisite_node (kind, feat_key) VALUES ('feat_for', 'weapon-focus')",
+        "INSERT INTO prerequisite_node (kind, feat_key, weapon_key, energy)
+            VALUES ('feat_for', 'weapon-focus', 'dagger', 'fire')",
+        // A feat for a value with a stray amount.
+        "INSERT INTO prerequisite_node (kind, feat_key, spell_school, amount)
+            VALUES ('feat_for', 'spell-focus', 'evocation', 1)",
+        // "The same value" names no value of its own.
+        "INSERT INTO prerequisite_node (kind, feat_key, skill_key)
+            VALUES ('feat_for_same_value', 'skill-focus', 'mobility')",
     ] {
         let error = insert(invalid).await.unwrap_err().to_string();
         assert!(error.contains("check constraint"), "{invalid}: {error}");
@@ -473,8 +511,8 @@ async fn the_schema_rejects_values_outside_their_domain_and_misplaced_keys(pool:
 
     // An option whose key is outside its selection's.
     let error = rejected(
-        "INSERT INTO selection_option (key, selection_key, name, summary, guide)
-        VALUES ('fighter/stray', 'rogue/rogue-talents', 'Stray', '', 'x')",
+        "INSERT INTO selection_option (key, selection_key, name, summary, guide, repeat)
+        VALUES ('fighter/stray', 'rogue/rogue-talents', 'Stray', '', 'x', 'once')",
     )
     .await;
     assert!(error.contains("check constraint"), "{error}");
@@ -660,4 +698,75 @@ async fn the_schema_rejects_values_outside_their_domain_and_misplaced_keys(pool:
     assert!(error.contains("mythic_ability_group"), "{error}");
     let error = rejected("UPDATE mythic_feat SET group_name = 'healing'").await;
     assert!(error.contains("mythic_feat_group"), "{error}");
+}
+
+#[sqlx::test]
+async fn the_schema_keeps_repeats_and_parameters_consistent(pool: PgPool) {
+    let db = Database::from(pool.clone());
+    data::seed(&db, &fixture_dir()).await.unwrap();
+    let rejected = |sql: &'static str| {
+        let pool = pool.clone();
+        async move {
+            let mut tx = pool.begin().await.unwrap();
+            let update = sqlx::query(sql).execute(&mut *tx).await;
+            // Foreign keys are deferred: they fail at commit.
+            let result = match update {
+                Ok(_) => tx.commit().await.map(|_| ()),
+                Err(error) => Err(error),
+            };
+            result.unwrap_err().to_string()
+        }
+    };
+    for (sql, expected) in [
+        // `times` carries its number, and only `times` does; a number is 2 or more.
+        (
+            "UPDATE feat SET repeat = 'times' WHERE key = 'toughness'",
+            "check constraint",
+        ),
+        (
+            "UPDATE feat SET repeat_times = 3 WHERE key = 'toughness'",
+            "check constraint",
+        ),
+        (
+            "UPDATE feat SET repeat_times = 1 WHERE key = 'extra-rage'",
+            "check constraint",
+        ),
+        // Once per value needs a value.
+        (
+            "UPDATE feat SET repeat = 'per_value' WHERE key = 'toughness'",
+            "check constraint",
+        ),
+        (
+            "UPDATE feat SET parameter = 'colour' WHERE key = 'weapon-focus'",
+            "parameter_kind",
+        ),
+        // An option takes no value of its own.
+        (
+            "UPDATE selection_option SET repeat = 'per_value'
+            WHERE key = 'rogue/rogue-talents/combat-trick'",
+            "check constraint",
+        ),
+        // A chosen feat and a weapon in a prerequisite are real.
+        (
+            "UPDATE selection_option SET chosen_feat_key = 'no-such-feat'
+            WHERE key = 'rogue/rogue-talents/combat-trick'",
+            "foreign key",
+        ),
+        (
+            "UPDATE prerequisite_node SET weapon_key = 'spork' WHERE weapon_key IS NOT NULL",
+            "foreign key",
+        ),
+        (
+            "UPDATE weapon SET proficiency = 'legendary' WHERE key = 'dagger'",
+            "check constraint",
+        ),
+        (
+            "UPDATE prerequisite_node SET spell_school = 'chronomancy'
+            WHERE spell_school IS NOT NULL",
+            "spell_school",
+        ),
+    ] {
+        let error = rejected(sql).await;
+        assert!(error.contains(expected), "{sql}: {error}");
+    }
 }

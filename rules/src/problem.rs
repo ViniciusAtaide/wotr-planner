@@ -68,8 +68,18 @@ pub enum Issue {
     UnknownKey(String),
     /// The prerequisites aren't met at that point of the Build.
     Unmet(Unmet),
-    /// Already held: taken earlier in the Build (or earlier at the same level).
+    /// Already held: taken earlier in the Build (or earlier at the same level). For a feat taken once per value,
+    /// already held for this value.
     AlreadyHeld,
+    /// Already taken as many times as it can be (Extra Hex: 3).
+    MaxTimes {
+        times: u8,
+    },
+    /// A pick of a parameterised feat, or of an option with a chosen feat, that names no value.
+    ParameterMissing,
+    /// A value the pick can't be taken for: one of another kind (a skill for Weapon Focus, a simple weapon for
+    /// Exotic Weapon Proficiency), or any value for a pick that takes none.
+    WrongParameter,
     /// Not one of the things this choice accepts: a feat outside the slot's list, an archetype of another class, a
     /// subrace of another race.
     NotAllowed,

@@ -12,6 +12,7 @@ use crate::keys::{
     ArchetypeKey, ClassKey, FeatKey, MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey,
     SelectionOptionKey, SkillKey, SubraceKey,
 };
+use crate::parameter::Parameter;
 use crate::problem::Choice;
 
 /// A plan for one character: the Build start, one Level-up per character level, each class's archetype and
@@ -192,24 +193,73 @@ impl SlotId {
     }
 }
 
-/// What fills a slot.
+/// What fills a slot. A pick of a parameterised feat names what it's taken for (Weapon Focus (Longsword)), and so
+/// does a pick of an option with a chosen feat (the rogue talent Weapon Focus).
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub enum Pick {
-    Feat(FeatKey),
+    Feat {
+        feat: FeatKey,
+        parameter: Option<Parameter>,
+    },
     /// An option of a Feature selection.
-    SelectionOption(SelectionOptionKey),
+    SelectionOption {
+        option: SelectionOptionKey,
+        parameter: Option<Parameter>,
+    },
     MythicAbility(MythicAbilityKey),
     MythicFeat(MythicFeatKey),
 }
 
 impl Pick {
+    /// A feat taken for nothing in particular.
+    pub fn feat(feat: FeatKey) -> Self {
+        Pick::Feat {
+            feat,
+            parameter: None,
+        }
+    }
+
+    /// A parameterised feat taken for `value`.
+    pub fn feat_for(feat: FeatKey, value: Parameter) -> Self {
+        Pick::Feat {
+            feat,
+            parameter: Some(value),
+        }
+    }
+
+    /// An option with no chosen feat.
+    pub fn option(option: SelectionOptionKey) -> Self {
+        Pick::SelectionOption {
+            option,
+            parameter: None,
+        }
+    }
+
+    /// An option whose chosen feat is taken for `value`.
+    pub fn option_for(option: SelectionOptionKey, value: Parameter) -> Self {
+        Pick::SelectionOption {
+            option,
+            parameter: Some(value),
+        }
+    }
+
     /// The text key, for display and for "removed from game data" messages.
     pub fn key(&self) -> &str {
         match self {
-            Pick::Feat(key) => key.as_str(),
-            Pick::SelectionOption(key) => key.as_str(),
+            Pick::Feat { feat, .. } => feat.as_str(),
+            Pick::SelectionOption { option, .. } => option.as_str(),
             Pick::MythicAbility(key) => key.as_str(),
             Pick::MythicFeat(key) => key.as_str(),
+        }
+    }
+
+    /// What the pick is taken for, if anything.
+    pub fn parameter(&self) -> Option<&Parameter> {
+        match self {
+            Pick::Feat { parameter, .. } | Pick::SelectionOption { parameter, .. } => {
+                parameter.as_ref()
+            }
+            Pick::MythicAbility(_) | Pick::MythicFeat(_) => None,
         }
     }
 }

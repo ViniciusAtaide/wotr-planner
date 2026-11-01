@@ -20,6 +20,8 @@ fn option(key: &str, anchor: &str, prerequisite: Option<Prerequisite>) -> Select
         summary: String::new(),
         guide: GuideRef::new(anchor),
         feats: BTreeSet::new(),
+        chosen_feat: None,
+        repeat: rules::Repeat::Once,
         prerequisite,
     }
 }
@@ -126,6 +128,7 @@ fn data(classes: Vec<Class>, feats: Vec<Feat>) -> GameData {
         },
         races: vec![],
         skills: vec![],
+        weapons: vec![],
         feats,
         classes,
         prestige_classes: vec![],
@@ -198,6 +201,8 @@ fn rogue_and_slayer() -> GameData {
         category: FeatCategory::Class,
         summary: String::new(),
         guide: GuideRef::new("feats#extra-slayer-talent"),
+        parameter: None,
+        repeat: rules::Repeat::Once,
         prerequisite: Some(taken("slayer/slayer-talents/opportunist")),
     };
     data(vec![rogue, slayer], vec![feat])

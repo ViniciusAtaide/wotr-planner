@@ -49,6 +49,10 @@ text_key!(
     SkillKey
 );
 text_key!(
+    /// `longsword`: a weapon a parameterised feat is taken for.
+    WeaponKey
+);
+text_key!(
     /// `power-attack`
     FeatKey
 );

@@ -9,7 +9,7 @@ Class(
     will: Good,
     save_exceptions: [(level: 4, save: Will, value: 3)],
     class_skills: ["knowledge-arcana", "knowledge-world", "perception"],
-    prerequisite: All([Feat("combat-expertise"), Feat("dodge"), Feat("skill-focus"), BaseAttackBonus(5), CharacterLevel(6)]),
+    prerequisite: All([Any([FeatFor(feat: "skill-focus", value: Skill("knowledge-arcana")), FeatFor(feat: "skill-focus", value: Skill("knowledge-world")), FeatFor(feat: "skill-focus", value: Skill("lore-nature")), FeatFor(feat: "skill-focus", value: Skill("lore-religion"))]), Feat("combat-expertise"), Feat("dodge"), BaseAttackBonus(5), CharacterLevel(6)]),
     features: [
         (key: "student-of-war/additional-class-skill", name: "Additional Class Skill", guide: "prestige-classes#additional-class-skill"),
         (key: "student-of-war/anticipate", name: "Anticipate", guide: "prestige-classes#anticipate"),

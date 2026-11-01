@@ -1,4 +1,5 @@
-// Hand-written test fixture: small and simplified, not checked against the guide. Combat Trick grants two feats.
+// Hand-written test fixture: small and simplified, not checked against the guide. Combat Trick grants two feats,
+// the talent Weapon Focus grants it for the pick's weapon, Resiliency repeats, and level 3 picks a Skill Focus.
 Class(
     key: "rogue",
     name: "Rogue",
@@ -33,13 +34,30 @@ Class(
                         SelectionOption("rogue/rogue-talents/combat-trick"),
                     ]),
                 ),
+                (
+                    // Weapon Focus in a weapon of the player's choosing.
+                    key: "rogue/rogue-talents/weapon-focus",
+                    name: "Weapon Focus",
+                    guide: "rogue#weapon-focus",
+                    chosen_feat: "weapon-focus",
+                ),
+                (
+                    key: "rogue/rogue-talents/resiliency",
+                    name: "Resiliency",
+                    guide: "rogue#resiliency",
+                    repeat: Times(2),
+                ),
             ],
         ),
+    ],
+    feat_lists: [
+        // A bonus feat of the player's choosing: one parameterised feat, the pick names the skill.
+        (key: "rogue/skill-focus", name: "Skill Focus", guide: "rogue#skill-focus", ignores_prerequisites: true, feats: ["skill-focus"]),
     ],
     levels: [
         (level: 1, features: ["rogue/sneak-attack"]),
         (level: 2, selections: ["rogue/rogue-talents"]),
-        (level: 3, features: ["rogue/sneak-attack"]),
+        (level: 3, features: ["rogue/sneak-attack"], feat_slots: [OneOf(list: "rogue/skill-focus")]),
     ],
     archetypes: [
         (

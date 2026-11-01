@@ -1,0 +1,8 @@
+// Hand-written test fixture: small and simplified, not checked against the guide. One weapon per proficiency list,
+// and one no list names.
+[
+    (key: "dagger", name: "Dagger", proficiency: Simple),
+    (key: "longsword", name: "Longsword", proficiency: Martial),
+    (key: "dueling-sword", name: "Dueling Sword", proficiency: Exotic),
+    (key: "unarmed-strike", name: "Unarmed Strike"),
+]

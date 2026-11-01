@@ -5,6 +5,7 @@ mod feat_lists;
 mod grammar;
 mod mythic_paths;
 mod output;
+mod parameters;
 mod proficiencies;
 mod progressions;
 mod references;

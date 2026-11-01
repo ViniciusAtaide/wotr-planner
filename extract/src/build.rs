@@ -12,8 +12,9 @@ use rules::{
     ClassLevelRow, DataAt, Feat, FeatCategory, FeatKey, FeatSlot, Feature, FeatureKey,
     FeatureSelection, FeatureSelectionKey, GameData, GuideRef, MythicAbility, MythicAbilityGroup,
     MythicAbilityKey, MythicAscension, MythicFeat, MythicFeatGroup, MythicFeatKey, MythicPath,
-    MythicPathKey, MythicRankRow, Prerequisite, Progression, Race, RaceKey, SaveProgression,
-    SelectionOption, SelectionOptionKey, Skill, SkillKey, SpellType, Subrace, SubraceKey,
+    MythicPathKey, MythicRankRow, Prerequisite, Progression, Race, RaceKey, Repeat,
+    SaveProgression, SelectionOption, SelectionOptionKey, Skill, SkillKey, SpellType, Subrace,
+    SubraceKey,
 };
 
 use crate::feat_lists::{self, PendingLists};
@@ -116,6 +117,7 @@ pub fn extract(guide: &Guide) -> Extraction {
         progression,
         races,
         skills,
+        weapons: crate::parameters::weapons(guide),
         feats,
         classes,
         prestige_classes,
@@ -129,6 +131,7 @@ pub fn extract(guide: &Guide) -> Extraction {
     feat_lists::grant_lone_feats(&mut data, &builder.lists);
     crate::proficiencies::apply(&mut data);
     crate::shared_options::apply(&mut data);
+    crate::parameters::apply(&mut data);
     // Only now, with the dangling grants gone and the grants complete, is a row that matches its base class's
     // known to.
     for class in &mut data.classes {
@@ -136,6 +139,8 @@ pub fn extract(guide: &Guide) -> Extraction {
     }
     // And only with the rows sparse is it known which archetype alone uses a list.
     feat_lists::name_lists(&mut data, &builder.lists);
+    // The one-feat lists of the bonus feats of the player's choosing aren't the guide's tables' lists.
+    crate::parameters::add_lists(&mut data);
     for problem in data.check() {
         builder.report.add_about(
             Kind::Cell,
@@ -422,6 +427,8 @@ impl<'g> Builder<'g> {
             category,
             summary: String::new(),
             guide: GuideRef::new(page.guide(&entry.anchor)),
+            parameter: None,
+            repeat: Repeat::Once,
             prerequisite: None,
         }
     }
@@ -1134,6 +1141,8 @@ impl<'g> Builder<'g> {
                 summary: String::new(),
                 guide: GuideRef::new(page.guide(&child.anchor)),
                 feats: feat.into_iter().collect(),
+                chosen_feat: None,
+                repeat: Repeat::Once,
                 prerequisite: None,
             });
         }

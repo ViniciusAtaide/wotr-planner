@@ -60,6 +60,7 @@ fn every_feat_list_of_the_data_is_listed_once() {
         keys,
         [
             "fighter/armiger/bonus-feats",
+            "rogue/skill-focus",
             "monk/bonus-feats",
             "trickster/bonus-feats",
             "gold-dragon/dragon-feats"

@@ -47,7 +47,13 @@ fn a_wizards_scribe_scrolls_is_held_with_no_pick() {
     let build = build("dwarf", &["wizard"]);
     let sheet = engine().evaluate(&build);
 
-    assert!(sheet.at(1).unwrap().feats.contains(&feat("scribe-scrolls")));
+    assert!(
+        sheet
+            .at(1)
+            .unwrap()
+            .feats
+            .contains_key(&feat("scribe-scrolls"))
+    );
     // No slot asks for it: the wizard's first level has only the general slot.
     let kinds: Vec<SlotKind> = sheet.levels[0]
         .slots
@@ -70,7 +76,7 @@ fn a_granted_feat_ignores_its_prerequisites() {
             .at(1)
             .unwrap()
             .feats
-            .contains(&feat("improved-unarmed-strike"))
+            .contains_key(&feat("improved-unarmed-strike"))
     );
     assert_eq!(sheet.problems, []);
 }
@@ -119,7 +125,15 @@ fn a_grant_of_a_feat_already_held_adds_nothing_and_breaks_nothing() {
     let sheet = engine().evaluate(&build);
 
     assert_eq!(sheet.problems, []);
-    let held = |level| sheet.at(level).unwrap().feats.clone();
+    let held = |level| {
+        sheet
+            .at(level)
+            .unwrap()
+            .feats
+            .keys()
+            .cloned()
+            .collect::<std::collections::BTreeSet<_>>()
+    };
     assert!(held(1).contains(&feat("shield-proficiency")));
     assert_eq!(
         held(2).difference(&held(1)).cloned().collect::<Vec<_>>(),
@@ -151,7 +165,7 @@ fn an_archetype_row_replaces_the_base_rows_granted_feats() {
             .at(1)
             .unwrap()
             .feats
-            .contains(&feat("shield-proficiency"))
+            .contains_key(&feat("shield-proficiency"))
     );
     assert_eq!(
         status_of(

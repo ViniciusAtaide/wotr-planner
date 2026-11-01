@@ -65,6 +65,27 @@ CREATE DOMAIN feat_category AS TEXT CHECK (VALUE IN (
     'mounted_combat', 'combat_manoeuvres', 'teamwork', 'skill', 'class', 'racial'
 ));
 
+-- `rules::SpellSchool`: the eight schools of magic.
+CREATE DOMAIN spell_school AS TEXT CHECK (VALUE IN (
+    'abjuration', 'conjuration', 'divination', 'enchantment', 'evocation', 'illusion', 'necromancy',
+    'transmutation'
+));
+
+-- `rules::Energy`: the energy types Elemental Focus lists.
+CREATE DOMAIN energy AS TEXT CHECK (VALUE IN ('acid', 'cold', 'electricity', 'fire'));
+
+-- `rules::ArmourType`: the armour types Armor Focus lists.
+CREATE DOMAIN armour_type AS TEXT CHECK (VALUE IN ('light', 'medium', 'heavy'));
+
+-- `rules::ParameterKind`: what a parameterised feat is taken for.
+CREATE DOMAIN parameter_kind AS TEXT CHECK (VALUE IN (
+    'skill', 'weapon', 'exotic_weapon', 'spell_school', 'energy', 'armour_type'
+));
+
+-- `rules::Repeat` without its number: how many times a feat or an option can be held. `times` carries its
+-- number in a `repeat_times` column.
+CREATE DOMAIN repeat_kind AS TEXT CHECK (VALUE IN ('once', 'times', 'unlimited', 'per_value'));
+
 -- One row: the hash of the data files the tables were last seeded from.
 CREATE TABLE game_data_seed (
     singleton BOOLEAN PRIMARY KEY DEFAULT TRUE CHECK (singleton),
@@ -94,7 +115,8 @@ CREATE TABLE prerequisite_node (
         'all', 'any', 'at_least',
         'feat', 'mythic_feat', 'mythic_ability', 'class_level', 'archetype', 'feature',
         'selection_option', 'skill_ranks', 'ability_score', 'base_attack_bonus', 'spell_level',
-        'caster_level', 'character_level', 'mythic_rank', 'alignment', 'race'
+        'caster_level', 'character_level', 'mythic_rank', 'alignment', 'race', 'feat_for',
+        'feat_for_same_value'
     )),
     -- References to other game entities (foreign keys added below, once the tables exist).
     feat_key TEXT,
@@ -106,6 +128,7 @@ CREATE TABLE prerequisite_node (
     selection_option_key TEXT,
     skill_key TEXT,
     race_key TEXT,
+    weapon_key TEXT,
     -- Values.
     ability ability,
     spell_type TEXT CHECK (spell_type IN ('arcane', 'divine')),
@@ -114,7 +137,12 @@ CREATE TABLE prerequisite_node (
         'chaotic_neutral', 'lawful_evil', 'neutral_evil', 'chaotic_evil'
     )),
     amount u8,
-    -- Each kind fills exactly the columns listed for it, and every other column is NULL. `amount` is
+    spell_school spell_school,
+    energy energy,
+    armour_type armour_type,
+    -- Each kind fills exactly the columns listed for it, and every other column is NULL. `feat_for`
+    -- (`rules::Prerequisite::FeatFor`: a parameterised feat held for one value) fills `feat_key` and
+    -- exactly one value column: `skill_key`, `weapon_key`, `spell_school`, `energy` or `armour_type`. `amount` is
     -- `at_least`'s n, the level of `class_level`, `spell_level`, `caster_level` and `character_level`,
     -- `mythic_rank`'s rank,
     -- `feature`'s count (granted at least that many times), `skill_ranks`' ranks, `ability_score`'s
@@ -130,10 +158,14 @@ CREATE TABLE prerequisite_node (
             CASE WHEN selection_option_key IS NOT NULL THEN 'selection_option_key' END,
             CASE WHEN skill_key IS NOT NULL THEN 'skill_key' END,
             CASE WHEN race_key IS NOT NULL THEN 'race_key' END,
+            CASE WHEN weapon_key IS NOT NULL THEN 'weapon_key' END,
             CASE WHEN ability IS NOT NULL THEN 'ability' END,
             CASE WHEN spell_type IS NOT NULL THEN 'spell_type' END,
             CASE WHEN alignment IS NOT NULL THEN 'alignment' END,
-            CASE WHEN amount IS NOT NULL THEN 'amount' END
+            CASE WHEN amount IS NOT NULL THEN 'amount' END,
+            CASE WHEN spell_school IS NOT NULL THEN 'spell_school' END,
+            CASE WHEN energy IS NOT NULL THEN 'energy' END,
+            CASE WHEN armour_type IS NOT NULL THEN 'armour_type' END
         ], NULL) = CASE kind
             WHEN 'all' THEN '{}'::TEXT[]
             WHEN 'any' THEN '{}'
@@ -154,6 +186,15 @@ CREATE TABLE prerequisite_node (
             WHEN 'mythic_rank' THEN '{amount}'
             WHEN 'alignment' THEN '{alignment}'
             WHEN 'race' THEN '{race_key}'
+            WHEN 'feat_for_same_value' THEN '{feat_key}'
+            -- `feat_key` and the one value column that is set; none or two set can't match.
+            WHEN 'feat_for' THEN ARRAY['feat_key', COALESCE(
+                CASE WHEN skill_key IS NOT NULL THEN 'skill_key' END,
+                CASE WHEN weapon_key IS NOT NULL THEN 'weapon_key' END,
+                CASE WHEN spell_school IS NOT NULL THEN 'spell_school' END,
+                CASE WHEN energy IS NOT NULL THEN 'energy' END,
+                CASE WHEN armour_type IS NOT NULL THEN 'armour_type' END
+            )]
         END
     )
 );
@@ -194,13 +235,30 @@ CREATE TABLE ability_modifier (
     CHECK (num_nonnulls(race_key, subrace_key) = 1)
 );
 
+-- `rules::Weapon`: a weapon a parameterised feat can be taken for, from the guide's weapon lists.
+-- `proficiency` is the proficiency feat whose list names it; NULL for what no list names (unarmed strike,
+-- rays).
+CREATE TABLE weapon (
+    key text_key PRIMARY KEY,
+    name TEXT NOT NULL,
+    proficiency TEXT CHECK (proficiency IN ('simple', 'martial', 'exotic'))
+);
+
+-- A feat. `parameter` is what a parameterised feat is taken for (NULL: nothing; each pick of it names a
+-- value of this kind). `repeat` is how many times it can be taken: `times` up to `repeat_times`, `per_value`
+-- once for each value of its parameter.
 CREATE TABLE feat (
     key text_key PRIMARY KEY,
     name TEXT NOT NULL,
     category feat_category NOT NULL,
     summary TEXT NOT NULL,
     guide TEXT NOT NULL,
-    prerequisite_root_id BIGINT UNIQUE REFERENCES prerequisite_node (id) DEFERRABLE INITIALLY DEFERRED
+    prerequisite_root_id BIGINT UNIQUE REFERENCES prerequisite_node (id) DEFERRABLE INITIALLY DEFERRED,
+    parameter parameter_kind,
+    repeat repeat_kind NOT NULL,
+    repeat_times u8 CHECK (repeat_times >= 2),
+    CHECK ((repeat = 'times') = (repeat_times IS NOT NULL)),
+    CHECK (repeat <> 'per_value' OR parameter IS NOT NULL)
 );
 
 -- classes/, prestige/ --------------------------------------------------------------------------
@@ -376,7 +434,9 @@ CREATE TABLE path_switch_feature (
 );
 
 -- One option of a Feature selection. Its key extends the selection's:
--- `rogue/rogue-talents/fast-stealth`.
+-- `rogue/rogue-talents/fast-stealth`. `chosen_feat_key` is a parameterised feat the option grants for the
+-- value its pick names (the rogue talent Weapon Focus); `rules::GameData::check` keeps it parameterised.
+-- `repeat` is as on `feat`, never `per_value`: an option takes no value of its own.
 CREATE TABLE selection_option (
     key text_key PRIMARY KEY,
     selection_key TEXT NOT NULL REFERENCES feature_selection (key) DEFERRABLE INITIALLY DEFERRED,
@@ -384,11 +444,16 @@ CREATE TABLE selection_option (
     summary TEXT NOT NULL,
     guide TEXT NOT NULL,
     prerequisite_root_id BIGINT UNIQUE REFERENCES prerequisite_node (id) DEFERRABLE INITIALLY DEFERRED,
+    chosen_feat_key TEXT REFERENCES feat (key) DEFERRABLE INITIALLY DEFERRED,
+    repeat repeat_kind NOT NULL CHECK (repeat <> 'per_value'),
+    repeat_times u8 CHECK (repeat_times >= 2),
+    CHECK ((repeat = 'times') = (repeat_times IS NOT NULL)),
     CHECK (starts_with(key, selection_key || '/'))
 );
 
 -- A feat a selection option grants (`rules::SelectionOption::feats`): a rogue talent that is the feat
--- of the same name, or the Azata's All-skilled with every weapon, armour and shield proficiency.
+-- of the same name, or the Azata's All-skilled with every weapon, armour and shield proficiency. A
+-- parameterised one is held for every value (All-skilled: Exotic Weapon Proficiency in every exotic weapon).
 CREATE TABLE selection_option_feat (
     option_key TEXT NOT NULL REFERENCES selection_option (key) DEFERRABLE INITIALLY DEFERRED,
     feat_key TEXT NOT NULL REFERENCES feat (key) DEFERRABLE INITIALLY DEFERRED,
@@ -410,8 +475,9 @@ CREATE TABLE selection_shared_option (
 -- from it skips the feat's prerequisites. `every_feat` is TRUE on a list of every feat (Gold Dragon's
 -- Dragon Feats), which has no members of its own: they would copy the `feat` table.
 -- `rules::GameData::check` keeps bonus lists to class level rows and their own path's ranks, and
--- refuses a list of fewer than two feats (a lone feat is a `granted_feat`) unless it's `every_feat`,
--- an `every_feat` list with members, and a list no slot names.
+-- refuses a list of fewer than two feats (a lone feat is a `granted_feat`) unless it's `every_feat` or
+-- its one feat is parameterised (a bonus feat of the player's choosing: the warpriest's Weapon Focus, the
+-- pick names the weapon), an `every_feat` list with members, and a list no slot names.
 CREATE TABLE feat_list (
     key text_key PRIMARY KEY,
     class_key TEXT REFERENCES class (key) DEFERRABLE INITIALLY DEFERRED,
@@ -492,7 +558,7 @@ CREATE TABLE granted_selection (
 );
 
 -- A feat a class level grants outright (`rules::ClassLevelRow::feats`): held with no slot and no
--- pick, whatever its prerequisites.
+-- pick, whatever its prerequisites; a parameterised one for every value.
 CREATE TABLE granted_feat (
     class_level_id BIGINT NOT NULL REFERENCES class_level (id) DEFERRABLE INITIALLY DEFERRED,
     feat_key TEXT NOT NULL REFERENCES feat (key) DEFERRABLE INITIALLY DEFERRED,
@@ -525,4 +591,5 @@ ALTER TABLE prerequisite_node
     ADD FOREIGN KEY (feature_key) REFERENCES feature (key) DEFERRABLE INITIALLY DEFERRED,
     ADD FOREIGN KEY (selection_option_key) REFERENCES selection_option (key) DEFERRABLE INITIALLY DEFERRED,
     ADD FOREIGN KEY (skill_key) REFERENCES skill (key) DEFERRABLE INITIALLY DEFERRED,
-    ADD FOREIGN KEY (race_key) REFERENCES race (key) DEFERRABLE INITIALLY DEFERRED;
+    ADD FOREIGN KEY (race_key) REFERENCES race (key) DEFERRABLE INITIALLY DEFERRED,
+    ADD FOREIGN KEY (weapon_key) REFERENCES weapon (key) DEFERRABLE INITIALLY DEFERRED;

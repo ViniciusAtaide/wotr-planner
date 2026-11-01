@@ -7,6 +7,7 @@ use crate::keys::{
     ArchetypeKey, ClassKey, FeatKey, FeatureKey, MythicAbilityKey, MythicFeatKey, RaceKey,
     SelectionOptionKey, SkillKey,
 };
+use crate::parameter::Parameter;
 
 /// A condition that must hold before a feat, selection option, mythic pick, class or
 /// archetype can be chosen.
@@ -24,8 +25,17 @@ pub enum Prerequisite {
     /// At least `n` children must hold.
     AtLeast(u8, Vec<Prerequisite>),
 
-    /// Another feat.
+    /// Another feat (a parameterised one for any value: "Spell Focus (any)").
     Feat(FeatKey),
+    /// A parameterised feat held for this value ("Weapon Focus (Dueling Sword)").
+    FeatFor {
+        feat: FeatKey,
+        value: Parameter,
+    },
+    /// A parameterised feat held for the value of the pick being checked ("Choose a single weapon for which you
+    /// have already selected Weapon Focus"). Only in the prerequisite of a parameterised feat, or of an option
+    /// with a chosen feat.
+    FeatForSameValue(FeatKey),
     MythicFeat(MythicFeatKey),
     MythicAbility(MythicAbilityKey),
     /// A Class level in a base or prestige class ("Fighter level: 8").

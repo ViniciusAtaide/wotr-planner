@@ -25,7 +25,7 @@ Class(
                 (key: "stalwart-defender/defensive-powers/clear-mind", name: "Clear Mind", guide: "prestige-classes#clear-mind"),
                 (key: "stalwart-defender/defensive-powers/fearless-defense", name: "Fearless Defense", guide: "prestige-classes#fearless-defense", prerequisite: ClassLevel(class: "stalwart-defender", level: 4)),
                 (key: "stalwart-defender/defensive-powers/immobile", name: "Immobile", guide: "prestige-classes#immobile", prerequisite: ClassLevel(class: "stalwart-defender", level: 4)),
-                (key: "stalwart-defender/defensive-powers/increased-damage-reduction", name: "Increased Damage Reduction", guide: "prestige-classes#increased-damage-reduction", prerequisite: ClassLevel(class: "stalwart-defender", level: 6)),
+                (key: "stalwart-defender/defensive-powers/increased-damage-reduction", name: "Increased Damage Reduction", guide: "prestige-classes#increased-damage-reduction", repeat: Times(2), prerequisite: ClassLevel(class: "stalwart-defender", level: 6)),
                 (key: "stalwart-defender/defensive-powers/internal-fortitude", name: "Internal Fortitude", guide: "prestige-classes#internal-fortitude"),
                 (key: "stalwart-defender/defensive-powers/mighty-resilience", name: "Mighty Resilience", guide: "prestige-classes#mighty-resilience", prerequisite: ClassLevel(class: "stalwart-defender", level: 6)),
                 (key: "stalwart-defender/defensive-powers/renewed-defense", name: "Renewed Defense", guide: "prestige-classes#renewed-defense"),

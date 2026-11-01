@@ -9,8 +9,8 @@ use common::{copy_fixture, fixture_dir};
 use rules::{
     Ability, AbilityBonus, ArchetypeLevelRow, BabProgression, ClassKey, FeatKey, FeatListKey,
     FeatSlot, FeatureKey, FeatureSelectionKey, GameData, MythicAbilityGroup, MythicFeatGroup,
-    MythicPathKey, Prerequisite, Save, SaveException, SaveProgression, SelectionOptionKey,
-    SpellLevels,
+    MythicPathKey, Parameter, ParameterKind, Prerequisite, Repeat, Save, SaveException,
+    SaveProgression, SelectionOptionKey, SpellLevels, WeaponKey, WeaponProficiency,
 };
 
 fn read_fixture() -> GameData {
@@ -28,7 +28,8 @@ fn reads_every_fixture_file() {
         "Dwarf, Elf, Human"
     );
     assert_eq!(data.skills.len(), 4);
-    assert_eq!(data.feats.len(), 16);
+    assert_eq!(data.weapons.len(), 4);
+    assert_eq!(data.feats.len(), 29);
     assert_eq!(
         data.classes
             .iter()
@@ -53,7 +54,7 @@ fn reads_every_fixture_file() {
         ]
     );
     assert_eq!(data.mythic_abilities.len(), 2);
-    assert_eq!(data.mythic_feats.len(), 2);
+    assert_eq!(data.mythic_feats.len(), 3);
     assert_eq!(
         data.mythic_paths
             .iter()
@@ -173,6 +174,12 @@ fn reads_feat_lists_and_the_slots_that_name_them() {
                 true,
                 vec!["crane-style", "dodge"]
             ),
+            (
+                "rogue/skill-focus",
+                "Skill Focus",
+                true,
+                vec!["skill-focus"]
+            ),
             ("gold-dragon/dragon-feats", "Dragon Feats", true, vec![]),
             (
                 "trickster/bonus-feats",
@@ -245,10 +252,14 @@ fn reads_mythic_groups() {
         groups,
         [MythicAbilityGroup::Class, MythicAbilityGroup::Melee]
     );
-    assert!(
-        data.mythic_feats
-            .iter()
-            .all(|f| f.group == MythicFeatGroup::Melee)
+    let groups: Vec<MythicFeatGroup> = data.mythic_feats.iter().map(|f| f.group).collect();
+    assert_eq!(
+        groups,
+        [
+            MythicFeatGroup::ArmourAndShield,
+            MythicFeatGroup::Melee,
+            MythicFeatGroup::Melee
+        ]
     );
 }
 
@@ -438,5 +449,88 @@ fn reads_the_mythic_path_rules() {
             FeatKey::new("dirty-trick")
         ]
         .into()
+    );
+}
+
+#[test]
+fn reads_weapons_and_what_feats_are_taken_for() {
+    let data = read_fixture();
+    let weapons: Vec<(&str, Option<WeaponProficiency>)> = data
+        .weapons
+        .iter()
+        .map(|w| (w.key.as_str(), w.proficiency))
+        .collect();
+    assert_eq!(
+        weapons,
+        [
+            ("dagger", Some(WeaponProficiency::Simple)),
+            ("dueling-sword", Some(WeaponProficiency::Exotic)),
+            ("longsword", Some(WeaponProficiency::Martial)),
+            ("unarmed-strike", None),
+        ]
+    );
+    let feat = |key: &str| data.feats.iter().find(|f| f.key.as_str() == key).unwrap();
+    assert_eq!(feat("weapon-focus").parameter, Some(ParameterKind::Weapon));
+    assert_eq!(feat("weapon-focus").repeat, Repeat::PerValue);
+    assert_eq!(
+        feat("spell-focus").parameter,
+        Some(ParameterKind::SpellSchool)
+    );
+    assert_eq!(feat("extra-rage").repeat, Repeat::Times(3));
+    assert_eq!(feat("extra-ki").repeat, Repeat::Unlimited);
+    // Left out: nothing to take it for, taken once.
+    assert_eq!(feat("toughness").parameter, None);
+    assert_eq!(feat("toughness").repeat, Repeat::Once);
+    assert_eq!(
+        feat("weapon-specialization").prerequisite,
+        Some(Prerequisite::All(vec![
+            Prerequisite::FeatForSameValue(FeatKey::new("weapon-focus")),
+            Prerequisite::ClassLevel {
+                class: ClassKey::new("fighter"),
+                level: 4
+            },
+        ]))
+    );
+    assert_eq!(
+        feat("aldori-dueling-mastery").prerequisite,
+        Some(Prerequisite::FeatFor {
+            feat: FeatKey::new("weapon-focus"),
+            value: Parameter::Weapon(WeaponKey::new("dueling-sword")),
+        })
+    );
+}
+
+#[test]
+fn reads_an_options_chosen_feat_and_repeat_and_defaults_them() {
+    let data = read_fixture();
+    let rogue = data
+        .classes
+        .iter()
+        .find(|c| c.key.as_str() == "rogue")
+        .unwrap();
+    let option = |key: &str| {
+        rogue.selections[0]
+            .options
+            .iter()
+            .find(|o| o.key.as_str() == key)
+            .unwrap()
+    };
+    assert_eq!(
+        option("rogue/rogue-talents/weapon-focus").chosen_feat,
+        Some(FeatKey::new("weapon-focus"))
+    );
+    assert_eq!(
+        option("rogue/rogue-talents/resiliency").repeat,
+        Repeat::Times(2)
+    );
+    let trick = option("rogue/rogue-talents/combat-trick");
+    assert_eq!(
+        (trick.chosen_feat.clone(), trick.repeat),
+        (None, Repeat::Once)
+    );
+    // A bonus feat of the player's choosing: a one-feat list of a parameterised feat.
+    assert_eq!(
+        rogue.feat_lists[0].feats,
+        BTreeSet::from([FeatKey::new("skill-focus")])
     );
 }

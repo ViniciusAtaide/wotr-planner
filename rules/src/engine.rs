@@ -11,13 +11,14 @@ use crate::build::{AbilityScores, Build, Edit, FeatSource, LevelUp, Pick, SlotId
 use crate::game_data::{
     Ability, AbilityBonus, AbilityModifier, Archetype, Class, Feat, FeatList, FeatSlot,
     FeatureSelection, GameData, MythicAbility, MythicFeat, MythicPath, PathSwitch, Race, Save,
-    SelectionOption, SpellLevels,
+    SelectionOption, SpellLevels, Weapon, WeaponProficiency,
 };
 use crate::keys::{
     ArchetypeKey, ClassKey, FeatKey, FeatListKey, FeatureKey, FeatureSelectionKey,
     MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey, SelectionOptionKey, SkillKey,
-    SubraceKey,
+    SubraceKey, WeaponKey,
 };
+use crate::parameter::{ArmourType, Energy, Parameter, ParameterKind, Repeat, SpellSchool};
 use crate::problem::{Choice, Issue, Problem, Unmet};
 use crate::state::{CharacterState, ClassLevels};
 
@@ -39,6 +40,7 @@ pub struct Engine {
     races: HashMap<RaceKey, usize>,
     subraces: HashMap<SubraceKey, (usize, usize)>,
     skills: HashMap<SkillKey, usize>,
+    weapons: HashMap<WeaponKey, usize>,
     feats: HashMap<FeatKey, usize>,
     feat_lists: HashMap<FeatListKey, FeatList>,
     selections: HashMap<FeatureSelectionKey, SelectionAt>,
@@ -368,6 +370,7 @@ impl Engine {
             .collect();
         let mut engine = Self {
             skills: index(&data.skills, |s| &s.key),
+            weapons: index(&data.weapons, |w| &w.key),
             feats: index(&data.feats, |f| &f.key),
             feat_lists,
             mythic_abilities: index(&data.mythic_abilities, |a| &a.key),
@@ -415,6 +418,94 @@ impl Engine {
 
     fn feat(&self, key: &FeatKey) -> Option<&Feat> {
         self.feats.get(key).map(|&index| &self.data.feats[index])
+    }
+
+    fn weapon(&self, key: &WeaponKey) -> Option<&Weapon> {
+        self.weapons
+            .get(key)
+            .map(|&index| &self.data.weapons[index])
+    }
+
+    /// Every value of a kind, in key (or declaration) order: the skills, weapons, exotic weapons, schools, energy
+    /// types or armour types.
+    pub fn parameter_values(&self, kind: ParameterKind) -> Vec<Parameter> {
+        match kind {
+            ParameterKind::Skill => self
+                .data
+                .skills
+                .iter()
+                .map(|skill| Parameter::Skill(skill.key.clone()))
+                .collect(),
+            ParameterKind::Weapon | ParameterKind::ExoticWeapon => self
+                .data
+                .weapons
+                .iter()
+                .filter(|weapon| {
+                    kind == ParameterKind::Weapon
+                        || weapon.proficiency == Some(WeaponProficiency::Exotic)
+                })
+                .map(|weapon| Parameter::Weapon(weapon.key.clone()))
+                .collect(),
+            ParameterKind::SpellSchool => SpellSchool::ALL.map(Parameter::SpellSchool).to_vec(),
+            ParameterKind::Energy => Energy::ALL.map(Parameter::Energy).to_vec(),
+            ParameterKind::ArmourType => ArmourType::ALL.map(Parameter::ArmourType).to_vec(),
+        }
+    }
+
+    /// Whether a pick's value fits what it takes (`kind`: `None` when it takes none). An unknown skill or weapon is
+    /// an unknown key.
+    fn check_value(
+        &self,
+        kind: Option<ParameterKind>,
+        value: Option<&Parameter>,
+    ) -> Result<(), Issue> {
+        use ParameterKind as K;
+        let (kind, value) = match (kind, value) {
+            (None, None) => return Ok(()),
+            (None, Some(_)) => return Err(Issue::WrongParameter),
+            (Some(_), None) => return Err(Issue::ParameterMissing),
+            (Some(kind), Some(value)) => (kind, value),
+        };
+        let fits = match (kind, value) {
+            (K::Skill, Parameter::Skill(key)) => {
+                if !self.skills.contains_key(key) {
+                    return Err(Issue::UnknownKey(key.to_string()));
+                }
+                true
+            }
+            (K::Weapon | K::ExoticWeapon, Parameter::Weapon(key)) => {
+                let weapon = self
+                    .weapon(key)
+                    .ok_or_else(|| Issue::UnknownKey(key.to_string()))?;
+                kind == K::Weapon || weapon.proficiency == Some(WeaponProficiency::Exotic)
+            }
+            (K::SpellSchool, Parameter::SpellSchool(_))
+            | (K::Energy, Parameter::Energy(_))
+            | (K::ArmourType, Parameter::ArmourType(_)) => true,
+            _ => false,
+        };
+        if fits {
+            Ok(())
+        } else {
+            Err(Issue::WrongParameter)
+        }
+    }
+
+    /// The values a grant with no pick holds a feat for: every value of a parameterised one, none otherwise.
+    fn every_value(&self, feat: &FeatKey) -> Vec<Parameter> {
+        self.feat(feat)
+            .and_then(|feat| feat.parameter)
+            .map(|kind| self.parameter_values(kind))
+            .unwrap_or_default()
+    }
+
+    /// What an option's pick takes: its chosen feat's kind, or nothing.
+    fn option_parameter(&self, option: &SelectionOption) -> Option<ParameterKind> {
+        option
+            .chosen_feat
+            .as_ref()
+            .and_then(|feat| self.feat(feat))
+            .and_then(|feat| feat.parameter)
     }
 
     /// A feat list by key, wherever it's defined.
@@ -533,12 +624,20 @@ impl Engine {
         let probed = self.probe(build, Probe::Slot(slot));
         let (state, kind) = (probed.state?, probed.kind?);
         let candidates: Vec<Pick> = match &kind {
+            // A parameterised feat once per value.
             SlotKind::Feat(feat_slot) => self
                 .data
                 .feats
                 .iter()
                 .filter(|feat| self.slot_accepts(feat_slot, feat))
-                .map(|feat| Pick::Feat(feat.key.clone()))
+                .flat_map(|feat| match feat.parameter {
+                    None => vec![Pick::feat(feat.key.clone())],
+                    Some(kind) => self
+                        .parameter_values(kind)
+                        .into_iter()
+                        .map(|value| Pick::feat_for(feat.key.clone(), value))
+                        .collect(),
+                })
                 .collect(),
             SlotKind::Selection(key) => self
                 .selection(key)
@@ -556,8 +655,18 @@ impl Engine {
                         )
                         .collect();
                     keys.sort();
+                    // An option with a chosen feat once per value.
                     keys.into_iter()
-                        .map(|key| Pick::SelectionOption(key.clone()))
+                        .flat_map(|key| {
+                            match self.option(key).and_then(|o| self.option_parameter(o)) {
+                                None => vec![Pick::option(key.clone())],
+                                Some(kind) => self
+                                    .parameter_values(kind)
+                                    .into_iter()
+                                    .map(|value| Pick::option_for(key.clone(), value))
+                                    .collect(),
+                            }
+                        })
                         .collect()
                 })
                 .unwrap_or_default(),
@@ -718,7 +827,8 @@ impl Engine {
 /// Something held that a Path switch can take away again.
 #[derive(Clone, Debug)]
 enum Held {
-    Feat(FeatKey),
+    /// A feat, for these values (none for an unparameterised feat).
+    Feat(FeatKey, Vec<Parameter>),
     Feature(FeatureKey),
     SelectionOption(SelectionOptionKey),
     MythicAbility(MythicAbilityKey),
@@ -794,9 +904,6 @@ struct Walker<'a> {
     problems: Vec<Problem>,
     /// What Mythic ascensions granted, by rank and source, so a Path switch can drop it.
     rank_grants: Vec<RankGrant>,
-    /// How many sources hold each feat (a class grant and a path pick may both give Shield Proficiency), so
-    /// dropping one source keeps a feat another still gives.
-    feat_holds: HashMap<FeatKey, u8>,
     ranks: Vec<RankSheet>,
     level_cap: u8,
     /// Set by a switch to a path without further ascensions.
@@ -831,7 +938,6 @@ impl<'a> Walker<'a> {
             state: CharacterState::default(),
             problems: Vec::new(),
             rank_grants: Vec::new(),
-            feat_holds: HashMap::new(),
             ranks,
             level_cap: BASE_LEVEL_CAP,
             ascensions_over: false,
@@ -1132,9 +1238,11 @@ impl<'a> Walker<'a> {
             for feature in row.features {
                 add_feature(&mut self.state, feature);
             }
-            // Granted feats skip their prerequisites; one already held adds nothing.
+            // Granted feats skip their prerequisites; one already held adds nothing. A parameterised one is held
+            // for every value.
             for feat in row.feats {
-                self.hold(Held::Feat(feat.clone()), None);
+                let values = engine.every_value(feat);
+                self.hold(Held::Feat(feat.clone(), values), None);
             }
         }
         class_level
@@ -1304,11 +1412,26 @@ impl<'a> Walker<'a> {
     fn hold_pick(&mut self, pick: &Pick, source: Option<&GrantSource>) {
         let mut held = vec![];
         match pick {
-            Pick::Feat(key) => held.push(Held::Feat(key.clone())),
-            Pick::SelectionOption(key) => {
+            Pick::Feat {
+                feat: key,
+                parameter,
+            } => held.push(Held::Feat(key.clone(), parameter.iter().cloned().collect())),
+            Pick::SelectionOption {
+                option: key,
+                parameter,
+            } => {
                 held.push(Held::SelectionOption(key.clone()));
                 if let Some(option) = self.engine.option(key) {
-                    held.extend(option.feats.iter().cloned().map(Held::Feat));
+                    // Its feats for every value; its chosen feat for the pick's.
+                    for feat in &option.feats {
+                        held.push(Held::Feat(feat.clone(), self.engine.every_value(feat)));
+                    }
+                    if let Some(feat) = &option.chosen_feat {
+                        held.push(Held::Feat(
+                            feat.clone(),
+                            parameter.iter().cloned().collect(),
+                        ));
+                    }
                 }
             }
             Pick::MythicAbility(key) => held.push(Held::MythicAbility(key.clone())),
@@ -1323,10 +1446,18 @@ impl<'a> Walker<'a> {
     fn hold(&mut self, item: Held, source: Option<GrantSource>) {
         let state = &mut self.state;
         match &item {
-            Held::Feat(key) => {
-                let holds = self.feat_holds.entry(key.clone()).or_default();
+            Held::Feat(key, values) => {
+                let holds = state.feats.entry(key.clone()).or_default();
                 *holds = holds.saturating_add(1);
-                state.feats.insert(key.clone());
+                for value in values {
+                    let holds = state
+                        .feat_values
+                        .entry(key.clone())
+                        .or_default()
+                        .entry(value.clone())
+                        .or_default();
+                    *holds = holds.saturating_add(1);
+                }
             }
             Held::Feature(key) => {
                 add_feature(state, key);
@@ -1335,7 +1466,8 @@ impl<'a> Walker<'a> {
                 }
             }
             Held::SelectionOption(key) => {
-                state.selection_options.insert(key.clone());
+                let times = state.selection_options.entry(key.clone()).or_default();
+                *times = times.saturating_add(1);
             }
             Held::MythicAbility(key) => {
                 state.mythic_abilities.insert(key.clone());
@@ -1352,11 +1484,25 @@ impl<'a> Walker<'a> {
     fn release(&mut self, item: &Held) {
         let state = &mut self.state;
         match item {
-            Held::Feat(key) => {
-                let holds = self.feat_holds.entry(key.clone()).or_default();
-                *holds = holds.saturating_sub(1);
-                if *holds == 0 {
-                    state.feats.remove(key);
+            Held::Feat(key, values) => {
+                if let Some(holds) = state.feats.get_mut(key) {
+                    *holds = holds.saturating_sub(1);
+                    if *holds == 0 {
+                        state.feats.remove(key);
+                    }
+                }
+                if let Some(held) = state.feat_values.get_mut(key) {
+                    for value in values {
+                        if let Some(holds) = held.get_mut(value) {
+                            *holds = holds.saturating_sub(1);
+                            if *holds == 0 {
+                                held.remove(value);
+                            }
+                        }
+                    }
+                    if held.is_empty() {
+                        state.feat_values.remove(key);
+                    }
                 }
             }
             Held::Feature(key) => {
@@ -1371,7 +1517,12 @@ impl<'a> Walker<'a> {
                 }
             }
             Held::SelectionOption(key) => {
-                state.selection_options.remove(key);
+                if let Some(times) = state.selection_options.get_mut(key) {
+                    *times = times.saturating_sub(1);
+                    if *times == 0 {
+                        state.selection_options.remove(key);
+                    }
+                }
             }
             Held::MythicAbility(key) => {
                 state.mythic_abilities.remove(key);
@@ -1611,8 +1762,9 @@ impl<'a> Walker<'a> {
     }
 }
 
-/// Whether `pick` may fill a slot of `kind` for a character in `state`: a known key, accepted by the slot, not
-/// already held, prerequisites met (unless the slot is a bonus-list slot). Checked in that order.
+/// Whether `pick` may fill a slot of `kind` for a character in `state`: a known key, accepted by the slot, a value
+/// that fits what it takes, not already held (as often as it repeats), prerequisites met for the pick's value
+/// (unless the slot is a bonus-list slot). Checked in that order.
 pub(crate) fn check_pick(
     engine: &Engine,
     state: &CharacterState,
@@ -1620,8 +1772,9 @@ pub(crate) fn check_pick(
     pick: &Pick,
 ) -> Result<(), Issue> {
     let unknown = || Issue::UnknownKey(pick.key().to_owned());
+    let value = pick.parameter();
     let prerequisite = match (kind, pick) {
-        (_, Pick::Feat(key)) => {
+        (_, Pick::Feat { feat: key, .. }) => {
             let feat = engine.feat(key).ok_or_else(unknown)?;
             let SlotKind::Feat(slot) = kind else {
                 return Err(Issue::NotAllowed);
@@ -1629,15 +1782,14 @@ pub(crate) fn check_pick(
             if !engine.slot_accepts(slot, feat) {
                 return Err(Issue::NotAllowed);
             }
-            if state.feats.contains(key) {
-                return Err(Issue::AlreadyHeld);
-            }
+            engine.check_value(feat.parameter, value)?;
+            check_repeat(state, key, feat.repeat, value)?;
             if engine.slot_ignores_prerequisites(slot) {
                 return Ok(());
             }
             feat.prerequisite.as_ref()
         }
-        (_, Pick::SelectionOption(key)) => {
+        (_, Pick::SelectionOption { option: key, .. }) => {
             let option = engine.option(key).ok_or_else(unknown)?;
             let SlotKind::Selection(selection) = kind else {
                 return Err(Issue::NotAllowed);
@@ -1649,8 +1801,21 @@ pub(crate) fn check_pick(
             {
                 return Err(Issue::NotAllowed);
             }
-            if state.selection_options.contains(key) {
-                return Err(Issue::AlreadyHeld);
+            engine.check_value(engine.option_parameter(option), value)?;
+            match option.repeat {
+                Repeat::Times(times) if state.option_count(key) >= times => {
+                    return Err(Issue::MaxTimes { times });
+                }
+                Repeat::Once | Repeat::PerValue if state.option_count(key) > 0 => {
+                    return Err(Issue::AlreadyHeld);
+                }
+                _ => {}
+            }
+            // The chosen feat for a value it's held for already would add nothing.
+            if let Some(feat) = option.chosen_feat.as_ref()
+                && let Some(chosen) = engine.feat(feat)
+            {
+                check_repeat(state, feat, chosen.repeat, value)?;
             }
             option.prerequisite.as_ref()
         }
@@ -1676,8 +1841,33 @@ pub(crate) fn check_pick(
         }
     };
     match prerequisite {
-        Some(prerequisite) => state.check(prerequisite).map_err(Issue::Unmet),
+        Some(prerequisite) => state.check_for(prerequisite, value).map_err(Issue::Unmet),
         None => Ok(()),
+    }
+}
+
+/// Whether a feat can be held once more, for `value`: once at all, once per value, or up to its number of times.
+fn check_repeat(
+    state: &CharacterState,
+    feat: &FeatKey,
+    repeat: Repeat,
+    value: Option<&Parameter>,
+) -> Result<(), Issue> {
+    let held = match repeat {
+        Repeat::Once => state.feat_count(feat) > 0,
+        Repeat::PerValue => value.is_some_and(|value| state.has_feat_for(feat, value)),
+        Repeat::Times(times) => {
+            if state.feat_count(feat) >= times {
+                return Err(Issue::MaxTimes { times });
+            }
+            false
+        }
+        Repeat::Unlimited => false,
+    };
+    if held {
+        Err(Issue::AlreadyHeld)
+    } else {
+        Ok(())
     }
 }
 

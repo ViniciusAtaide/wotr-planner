@@ -33,11 +33,26 @@ pub fn feat_list(key: &str) -> FeatListKey {
     FeatListKey::new(key)
 }
 
+pub fn weapon(key: &str) -> Parameter {
+    Parameter::Weapon(WeaponKey::new(key))
+}
+pub fn skill_value(key: &str) -> Parameter {
+    Parameter::Skill(skill(key))
+}
+
 pub fn pick_feat(key: &str) -> Pick {
-    Pick::Feat(feat(key))
+    Pick::feat(feat(key))
+}
+/// A parameterised feat taken for `value`.
+pub fn pick_feat_for(key: &str, value: Parameter) -> Pick {
+    Pick::feat_for(feat(key), value)
 }
 pub fn pick_option(key: &str) -> Pick {
-    Pick::SelectionOption(option(key))
+    Pick::option(option(key))
+}
+/// An option whose chosen feat is taken for `value`.
+pub fn pick_option_for(key: &str, value: Parameter) -> Pick {
+    Pick::option_for(option(key), value)
 }
 pub fn pick_mythic_ability(key: &str) -> Pick {
     Pick::MythicAbility(MythicAbilityKey::new(key))
@@ -138,6 +153,7 @@ pub fn world() -> GameData {
             ),
             skill_row("persuasion", "Persuasion", Ability::Charisma),
         ],
+        weapons: weapons(),
         feats: feats(),
         classes: vec![fighter(), rogue(), slayer(), wizard(), cleric(), monk()],
         prestige_classes: vec![arcane_trickster(), mystic_theurge()],
@@ -238,6 +254,22 @@ fn races() -> Vec<Race> {
     ]
 }
 
+/// Five weapons, one per kind of entry: simple, martial, two exotic, and one no proficiency list names.
+fn weapons() -> Vec<Weapon> {
+    let weapon = |key: &str, proficiency| Weapon {
+        key: WeaponKey::new(key),
+        name: key.into(),
+        proficiency,
+    };
+    vec![
+        weapon("dagger", Some(WeaponProficiency::Simple)),
+        weapon("longsword", Some(WeaponProficiency::Martial)),
+        weapon("dueling-sword", Some(WeaponProficiency::Exotic)),
+        weapon("bastard-sword", Some(WeaponProficiency::Exotic)),
+        weapon("unarmed-strike", None),
+    ]
+}
+
 fn feat_row(key: &str, category: FeatCategory, prerequisite: Option<Prerequisite>) -> Feat {
     Feat {
         key: feat(key),
@@ -245,7 +277,32 @@ fn feat_row(key: &str, category: FeatCategory, prerequisite: Option<Prerequisite
         category,
         summary: String::new(),
         guide: guide(&format!("feats#{key}")),
+        parameter: None,
+        repeat: Repeat::Once,
         prerequisite,
+    }
+}
+
+/// A parameterised feat.
+fn param_feat_row(
+    key: &str,
+    category: FeatCategory,
+    parameter: ParameterKind,
+    repeat: Repeat,
+    prerequisite: Option<Prerequisite>,
+) -> Feat {
+    Feat {
+        parameter: Some(parameter),
+        repeat,
+        ..feat_row(key, category, prerequisite)
+    }
+}
+
+/// A feat taken more than once, for nothing in particular.
+fn repeat_feat_row(key: &str, category: FeatCategory, repeat: Repeat) -> Feat {
+    Feat {
+        repeat,
+        ..feat_row(key, category, None)
     }
 }
 
@@ -289,8 +346,76 @@ fn feats() -> Vec<Feat> {
             Some(needs_score(Ability::Dexterity, 13)),
         ),
         feat_row("toughness", Miscellaneous, None),
-        feat_row("weapon-focus", Weapon, Some(BaseAttackBonus(1))),
-        feat_row("skill-focus", Skill, None),
+        // Once per weapon, as the guide says.
+        param_feat_row(
+            "weapon-focus",
+            Weapon,
+            ParameterKind::Weapon,
+            Repeat::PerValue,
+            Some(BaseAttackBonus(1)),
+        ),
+        // "Choose a single weapon for which you have already selected Weapon Focus."
+        param_feat_row(
+            "weapon-specialization",
+            Weapon,
+            ParameterKind::Weapon,
+            Repeat::PerValue,
+            Some(All(vec![
+                FeatForSameValue(feat("weapon-focus")),
+                ClassLevel {
+                    class: class("fighter"),
+                    level: 4,
+                },
+            ])),
+        ),
+        feat_row(
+            "aldori-dueling-mastery",
+            Weapon,
+            Some(FeatFor {
+                feat: feat("weapon-focus"),
+                value: weapon("dueling-sword"),
+            }),
+        ),
+        param_feat_row(
+            "exotic-weapon-proficiency",
+            Weapon,
+            ParameterKind::ExoticWeapon,
+            Repeat::PerValue,
+            Some(BaseAttackBonus(1)),
+        ),
+        param_feat_row(
+            "skill-focus",
+            Skill,
+            ParameterKind::Skill,
+            Repeat::PerValue,
+            None,
+        ),
+        feat_row(
+            "acrobatic-spellcaster",
+            Magic,
+            Some(FeatFor {
+                feat: feat("skill-focus"),
+                value: skill_value("mobility"),
+            }),
+        ),
+        // Parameterised but taken once: the guide doesn't say it repeats.
+        param_feat_row(
+            "spell-focus",
+            Magic,
+            ParameterKind::SpellSchool,
+            Repeat::Once,
+            None,
+        ),
+        feat_row(
+            "augment-summoning",
+            Magic,
+            Some(FeatFor {
+                feat: feat("spell-focus"),
+                value: Parameter::SpellSchool(SpellSchool::Conjuration),
+            }),
+        ),
+        repeat_feat_row("extra-rogue-talent", Class, Repeat::Times(3)),
+        repeat_feat_row("extra-ki", Class, Repeat::Unlimited),
         feat_row(
             "arcane-strike",
             Magic,
@@ -548,6 +673,8 @@ fn selection_option(
         summary: String::new(),
         guide: guide(key),
         feats: feat.into_iter().collect(),
+        chosen_feat: None,
+        repeat: Repeat::Once,
         prerequisite,
     }
 }
@@ -562,6 +689,11 @@ fn rogue() -> Class {
                 r.features.push(feature("rogue/sneak-attack"));
             } else {
                 r.selections.push(talents.clone());
+            }
+            if l == 3 {
+                r.feat_slots.push(FeatSlot::OneOf {
+                    list: feat_list("rogue/skill-focus"),
+                });
             }
             r
         })
@@ -622,9 +754,20 @@ fn rogue() -> Class {
                     ])),
                 ),
                 selection_option("rogue/rogue-talents/fast-stealth", None, None),
+                // Weapon Focus in a weapon of the player's choosing.
+                SelectionOption {
+                    chosen_feat: Some(feat("weapon-focus")),
+                    ..selection_option("rogue/rogue-talents/weapon-focus", None, None)
+                },
+                // Invented, like Increased Damage Reduction: taken up to twice.
+                SelectionOption {
+                    repeat: Repeat::Times(2),
+                    ..selection_option("rogue/rogue-talents/resiliency", None, None)
+                },
             ],
         }],
-        feat_lists: vec![],
+        // A Skill Focus of the player's choosing at 3, like the Master of All's.
+        feat_lists: vec![list("rogue/skill-focus", true, &["skill-focus"])],
         levels,
         archetypes: vec![Archetype {
             key: ArchetypeKey::new("rogue/eldritch-scoundrel"),
@@ -978,6 +1121,12 @@ fn trickster() -> MythicPath {
                     ]),
                     ..selection_option("trickster/tricks/all-armour", None, None)
                 },
+                // Like All-skilled's Exotic Weapon Proficiency: every value of a parameterised feat.
+                selection_option(
+                    "trickster/tricks/all-weapons",
+                    Some(feat("exotic-weapon-proficiency")),
+                    None,
+                ),
             ],
         }],
         feat_lists: vec![list(

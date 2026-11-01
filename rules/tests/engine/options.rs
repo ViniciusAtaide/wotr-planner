@@ -50,6 +50,9 @@ fn fighter_bonus_slots_offer_only_combat_feats() {
         "dodge",
         "toughness",
         "weapon-focus",
+        "weapon-specialization",
+        "aldori-dueling-mastery",
+        "exotic-weapon-proficiency",
         "dirty-trick",
         "critical-mastery",
         "deft-maneuvers",
@@ -64,8 +67,12 @@ fn fighter_bonus_slots_offer_only_combat_feats() {
     .collect();
     assert_eq!(offered, expected);
 
-    // The general slot at the same level offers everything, Magic and Skill feats included.
-    let general = options(&build, &general_slot(1));
+    // The general slot at the same level offers everything, Magic and Skill feats included (a parameterised feat
+    // once per value).
+    let general: BTreeSet<_> = options(&build, &general_slot(1))
+        .into_iter()
+        .map(|option| option.pick.key().to_owned())
+        .collect();
     assert_eq!(general.len(), engine().data().feats.len());
 
     // A non-combat feat in the bonus slot doesn't qualify.
@@ -199,12 +206,19 @@ fn feature_selection_options_come_from_the_selection_list() {
     let build = build("elf", &times("rogue", 2));
     let offered = options(&build, &selection_slot(2, 0));
     let keys: Vec<_> = offered.iter().map(|o| o.pick.key()).collect();
+    // An option with a chosen feat comes once per value (Weapon Focus: the five weapons).
     assert_eq!(
         keys,
         [
             "rogue/rogue-talents/combat-trick",
             "rogue/rogue-talents/crippling-strike",
             "rogue/rogue-talents/fast-stealth",
+            "rogue/rogue-talents/resiliency",
+            "rogue/rogue-talents/weapon-focus",
+            "rogue/rogue-talents/weapon-focus",
+            "rogue/rogue-talents/weapon-focus",
+            "rogue/rogue-talents/weapon-focus",
+            "rogue/rogue-talents/weapon-focus",
         ]
     );
     assert_eq!(
@@ -241,7 +255,7 @@ fn an_option_that_grants_a_feat_makes_the_feat_held() {
             .at(2)
             .unwrap()
             .feats
-            .contains(&feat("combat-expertise"))
+            .contains_key(&feat("combat-expertise"))
     );
     assert_eq!(
         status_of(

@@ -9,7 +9,7 @@ use std::collections::BTreeSet;
 use rules::{
     Archetype, ArchetypeLevelRow, Class, ClassLevelRow, Feat, FeatKey, FeatList, Feature,
     FeatureSelection, GameData, MythicAbility, MythicFeat, MythicPath, MythicRankRow, PathSwitch,
-    Prerequisite, Race, SelectionOption, Skill,
+    Prerequisite, Race, Repeat, SelectionOption, Skill, Weapon,
 };
 use serde::Serialize;
 
@@ -19,6 +19,7 @@ pub fn files(data: &GameData) -> Vec<(PathBuf, String)> {
         ("progression.ron".into(), progression(data)),
         ("races.ron".into(), list(&data.races, race)),
         ("skills.ron".into(), list(&data.skills, skill)),
+        ("weapons.ron".into(), list(&data.weapons, weapon)),
         ("feats.ron".into(), list(&data.feats, feat)),
         (
             "mythic/abilities.ron".into(),
@@ -145,6 +146,14 @@ impl Fields {
         self
     }
 
+    /// A repeat other than once.
+    fn repeat(&mut self, repeat: Repeat) -> &mut Self {
+        if repeat != Repeat::Once {
+            self.field("repeat", &repeat);
+        }
+        self
+    }
+
     fn prerequisite(&mut self, value: &Option<Prerequisite>) -> &mut Self {
         if let Some(prerequisite) = value {
             self.field("prerequisite", prerequisite);
@@ -214,6 +223,16 @@ fn skill(skill: &Skill) -> String {
         .line()
 }
 
+/// A weapon, with its proficiency list when one names it.
+fn weapon(weapon: &Weapon) -> String {
+    let mut fields = Fields::new();
+    fields.field("key", &weapon.key).field("name", &weapon.name);
+    if let Some(proficiency) = &weapon.proficiency {
+        fields.field("proficiency", proficiency);
+    }
+    fields.line()
+}
+
 fn race(race: &Race) -> String {
     let subraces: Vec<String> = race
         .subraces
@@ -239,13 +258,20 @@ fn race(race: &Race) -> String {
     fields.block("", 4, &[nested("subraces", 8, subraces)])
 }
 
+/// A feat on one line: what it's taken for and how often only when the guide says.
 fn feat(feat: &Feat) -> String {
-    Fields::new()
+    let mut fields = Fields::new();
+    fields
         .field("key", &feat.key)
         .field("name", &feat.name)
         .field("category", &feat.category)
         .text("summary", &feat.summary)
-        .field("guide", &feat.guide)
+        .field("guide", &feat.guide);
+    if let Some(parameter) = &feat.parameter {
+        fields.field("parameter", parameter);
+    }
+    fields
+        .repeat(feat.repeat)
         .prerequisite(&feat.prerequisite)
         .line()
 }
@@ -324,7 +350,13 @@ fn option(option: &SelectionOption) -> String {
     if !option.feats.is_empty() {
         fields.field("feats", &option.feats);
     }
-    fields.prerequisite(&option.prerequisite).line()
+    if let Some(feat) = &option.chosen_feat {
+        fields.field("chosen_feat", feat);
+    }
+    fields
+        .repeat(option.repeat)
+        .prerequisite(&option.prerequisite)
+        .line()
 }
 
 /// A feat list on one line: key, name, guide, the bonus-list and every-feat flags when set, then its feats (none on

@@ -6,14 +6,15 @@
 use std::collections::HashMap;
 
 use rules::{
-    ArchetypeKey, ClassKey, FeatKey, FeatureKey, MythicAbilityKey, MythicFeatKey, Prerequisite,
-    RaceKey, SelectionOptionKey, SkillKey,
+    ArchetypeKey, ClassKey, FeatKey, FeatureKey, MythicAbilityKey, MythicFeatKey, Parameter,
+    Prerequisite, RaceKey, SelectionOptionKey, SkillKey, WeaponKey,
 };
 use sqlx::PgConnection;
 
 use crate::columns::{
-    NodeKind, ability_from, ability_text, alignment_from, alignment_text, corrupt, node_kind_from,
-    node_kind_text, spell_type_from, spell_type_text, to_u8,
+    NodeKind, ability_from, ability_text, alignment_from, alignment_text, armour_type_from,
+    armour_type_text, corrupt, energy_from, energy_text, node_kind_from, node_kind_text,
+    spell_school_from, spell_school_text, spell_type_from, spell_type_text, to_u8,
 };
 
 /// The columns of one `prerequisite_node` row, apart from its place in the tree.
@@ -28,10 +29,14 @@ struct Node {
     selection_option_key: Option<String>,
     skill_key: Option<String>,
     race_key: Option<String>,
+    weapon_key: Option<String>,
     ability: Option<&'static str>,
     spell_type: Option<&'static str>,
     alignment: Option<&'static str>,
     amount: Option<i16>,
+    spell_school: Option<&'static str>,
+    energy: Option<&'static str>,
+    armour_type: Option<&'static str>,
 }
 
 impl Node {
@@ -47,10 +52,40 @@ impl Node {
             selection_option_key: None,
             skill_key: None,
             race_key: None,
+            weapon_key: None,
             ability: None,
             spell_type: None,
             alignment: None,
             amount: None,
+            spell_school: None,
+            energy: None,
+            armour_type: None,
+        }
+    }
+
+    /// Fills the one column that holds `value`.
+    fn with_value(self, value: &Parameter) -> Self {
+        match value {
+            Parameter::Skill(skill) => Self {
+                skill_key: Some(skill.as_str().to_owned()),
+                ..self
+            },
+            Parameter::Weapon(weapon) => Self {
+                weapon_key: Some(weapon.as_str().to_owned()),
+                ..self
+            },
+            Parameter::SpellSchool(school) => Self {
+                spell_school: Some(spell_school_text(*school)),
+                ..self
+            },
+            Parameter::Energy(energy) => Self {
+                energy: Some(energy_text(*energy)),
+                ..self
+            },
+            Parameter::ArmourType(armour) => Self {
+                armour_type: Some(armour_type_text(*armour)),
+                ..self
+            },
         }
     }
 
@@ -74,6 +109,15 @@ impl Node {
             P::Feat(feat) => Self {
                 feat_key: key(feat.as_str()),
                 ..Self::of(NodeKind::Feat)
+            },
+            P::FeatFor { feat, value } => Self {
+                feat_key: key(feat.as_str()),
+                ..Self::of(NodeKind::FeatFor)
+            }
+            .with_value(value),
+            P::FeatForSameValue(feat) => Self {
+                feat_key: key(feat.as_str()),
+                ..Self::of(NodeKind::FeatForSameValue)
             },
             P::MythicFeat(feat) => Self {
                 mythic_feat_key: key(feat.as_str()),
@@ -145,8 +189,9 @@ pub(crate) async fn insert(
             "INSERT INTO prerequisite_node (
                 parent_id, kind, feat_key, mythic_feat_key, mythic_ability_key,
                 class_key, archetype_key, feature_key, selection_option_key, skill_key, race_key,
-                ability, spell_type, alignment, amount
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+                weapon_key, ability, spell_type, alignment, amount, spell_school, energy, armour_type
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17,
+                $18, $19)
             RETURNING id",
             parent_id,
             node_kind_text(node.kind),
@@ -159,10 +204,14 @@ pub(crate) async fn insert(
             node.selection_option_key,
             node.skill_key,
             node.race_key,
+            node.weapon_key,
             node.ability,
             node.spell_type,
             node.alignment,
             node.amount,
+            node.spell_school,
+            node.energy,
+            node.armour_type,
         )
         .fetch_one(&mut *conn)
         .await?;
@@ -187,10 +236,35 @@ struct StoredNode {
     selection_option_key: Option<String>,
     skill_key: Option<String>,
     race_key: Option<String>,
+    weapon_key: Option<String>,
     ability: Option<String>,
     spell_type: Option<String>,
     alignment: Option<String>,
     amount: Option<i16>,
+    spell_school: Option<String>,
+    energy: Option<String>,
+    armour_type: Option<String>,
+}
+
+impl StoredNode {
+    /// The value of a `feat_for` node: whichever value column is set (the CHECK allows exactly one).
+    fn value(&self) -> Option<Result<Parameter, sqlx::Error>> {
+        if let Some(skill) = &self.skill_key {
+            return Some(Ok(Parameter::Skill(SkillKey(skill.clone()))));
+        }
+        if let Some(weapon) = &self.weapon_key {
+            return Some(Ok(Parameter::Weapon(WeaponKey(weapon.clone()))));
+        }
+        if let Some(school) = &self.spell_school {
+            return Some(spell_school_from(school).map(Parameter::SpellSchool));
+        }
+        if let Some(energy) = &self.energy {
+            return Some(energy_from(energy).map(Parameter::Energy));
+        }
+        self.armour_type
+            .as_ref()
+            .map(|armour| armour_type_from(armour).map(Parameter::ArmourType))
+    }
 }
 
 /// Every stored prerequisite tree, to look up by root id.
@@ -206,8 +280,8 @@ impl Trees {
     pub(crate) async fn load(conn: &mut PgConnection) -> Result<Self, sqlx::Error> {
         let rows = sqlx::query!(
             "SELECT id, parent_id, kind, feat_key, mythic_feat_key, mythic_ability_key, class_key,
-                archetype_key, feature_key, selection_option_key, skill_key, race_key, ability,
-                spell_type, alignment, amount
+                archetype_key, feature_key, selection_option_key, skill_key, race_key, weapon_key,
+                ability, spell_type, alignment, amount, spell_school, energy, armour_type
             FROM prerequisite_node
             ORDER BY id"
         )
@@ -237,10 +311,14 @@ impl Trees {
                     selection_option_key: row.selection_option_key,
                     skill_key: row.skill_key,
                     race_key: row.race_key,
+                    weapon_key: row.weapon_key,
                     ability: row.ability,
                     spell_type: row.spell_type,
                     alignment: row.alignment,
                     amount: row.amount,
+                    spell_school: row.spell_school,
+                    energy: row.energy,
+                    armour_type: row.armour_type,
                 },
             );
         }
@@ -377,6 +455,13 @@ impl Trees {
                 P::Alignment(alignment_from(&text(&node.alignment, "alignment")?)?)
             }
             NodeKind::Race => P::Race(RaceKey(text(&node.race_key, "race_key")?)),
+            NodeKind::FeatFor => P::FeatFor {
+                feat: FeatKey(text(&node.feat_key, "feat_key")?),
+                value: node.value().ok_or_else(|| missing("the value"))??,
+            },
+            NodeKind::FeatForSameValue => {
+                P::FeatForSameValue(FeatKey(text(&node.feat_key, "feat_key")?))
+            }
         })
     }
 }

@@ -155,7 +155,7 @@ fn the_path_is_chosen_at_mr_3_and_adds_its_own_picks() {
     );
     assert!(
         at_9.selection_options
-            .contains(&option("trickster/tricks/perception-1"))
+            .contains_key(&option("trickster/tricks/perception-1"))
     );
 }
 

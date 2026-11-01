@@ -124,6 +124,6 @@ The switch rules, from the guide's prose:
 2. **Skill points.** Feature bonuses count in `ability_scores`, which skill points also read, so a Legend's +4 Intelligence adds 2 skill points a level from 18. The ticket names ability prerequisites only; say if skill points should use the base scores instead.
 3. **Perfect Mind's other floors**: "Your base attack bonus is at least 15" and "your rank in any skill is at least your mythic rank" also feed prerequisites (BAB, skill ranks) and aren't modelled.
 4. **Destiny Beyond Birth** (a mythic feat: "You no longer suffer your racial [penalty] to an ability score") changes the character's own scores too, but it isn't a feature; modelling it needs a bonus on mythic feats (or a "no racial penalty" kind).
-5. **Exotic Weapon Proficiency** is one parameterised feat ("one of the following weapons"); All-skilled grants the key, which ticket 27 (parameterised feats) may need to read as every weapon.
+5. **Exotic Weapon Proficiency** is one parameterised feat ("one of the following weapons"); All-skilled grants the key, which ticket 27 (parameterised feats) may need to read as every weapon. *(Answered in [ticket 27](27-repeatable-and-parameterised-feats.md): a grant with no pick holds a parameterised feat for every value, so All-skilled holds it in all 16 exotic weapons.)*
 6. Still out: the Azata's dragon and the Swarm's companions are dropped as the guide says, but other companions aren't modelled; the Gold Dragon breaths' story conditions stay out (decision R5).
 

@@ -8,7 +8,7 @@ Class(
     reflex: Good,
     will: Poor,
     class_skills: ["knowledge-world", "mobility", "perception", "persuasion"],
-    prerequisite: All([Feat("dazzling-display"), Feat("weapon-finesse"), Feat("weapon-focus"), SkillRanks(skill: "knowledge-world", ranks: 3), SkillRanks(skill: "mobility", ranks: 3), SkillRanks(skill: "perception", ranks: 3), SkillRanks(skill: "persuasion", ranks: 5), CharacterLevel(6)]),
+    prerequisite: All([Feat("dazzling-display"), Feat("weapon-finesse"), FeatFor(feat: "weapon-focus", value: Weapon("dueling-sword")), SkillRanks(skill: "knowledge-world", ranks: 3), SkillRanks(skill: "mobility", ranks: 3), SkillRanks(skill: "perception", ranks: 3), SkillRanks(skill: "persuasion", ranks: 5), CharacterLevel(6)]),
     features: [
         (key: "aldori-swordlord/adaptive-tactics", name: "Adaptive Tactics", guide: "prestige-classes#adaptive-tactics"),
         (key: "aldori-swordlord/confounding-duelist", name: "Confounding Duelist", guide: "prestige-classes#confounding-duelist"),

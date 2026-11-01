@@ -12,13 +12,14 @@ use std::fmt;
 use crate::engine::{BASE_LEVEL_CAP, PATH_CHOICE_RANK, PATH_SWITCH_RANK};
 use crate::game_data::{
     Archetype, Class, ClassLevelRow, FeatList, FeatSlot, Feature, FeatureSelection, GameData,
-    MythicPath, Save,
+    MythicPath, Save, WeaponProficiency,
 };
 use crate::keys::{
     ArchetypeKey, ClassKey, FeatKey, FeatListKey, FeatureKey, FeatureSelectionKey,
     MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey, SelectionOptionKey, SkillKey,
-    SubraceKey,
+    SubraceKey, WeaponKey,
 };
+use crate::parameter::{Parameter, ParameterKind, Repeat};
 use crate::prerequisite::Prerequisite;
 
 /// The highest Character level on any path (Legend).
@@ -183,6 +184,18 @@ pub enum DataIssue {
     /// A selection that shares an option keyed under its own key: an own option is offered already, and
     /// anything else under its key isn't another selection's.
     SharesOwnOption(SelectionOptionKey),
+    /// A feat or option taken once per value that takes none: an option, or an unparameterised feat.
+    PerValueWithoutParameter,
+    /// `Times(n)` with `n` below 2: once is the default.
+    TimesOutOfRange(u8),
+    /// An option's chosen feat that takes no value.
+    ChosenFeatNotParameterised,
+    /// A prerequisite naming a value the feat isn't taken for: a feat that takes none, a value of another kind,
+    /// or "the same value" when the pick's value is of another kind.
+    ValueOfWrongKind(FeatKey),
+    /// "The same value" in a prerequisite whose pick takes no value: a class's, an archetype's, an unparameterised
+    /// feat's or an option's without a chosen feat.
+    SameValueWithoutValue,
 }
 
 impl fmt::Display for DataProblem {
@@ -261,6 +274,21 @@ impl fmt::Display for DataProblem {
             DataIssue::SwitchFromASwitchPath(path) => {
                 write!(f, "the switch is open from {path}, which is itself a switch")
             }
+            DataIssue::PerValueWithoutParameter => {
+                f.write_str("taken once per value, but it takes no value")
+            }
+            DataIssue::TimesOutOfRange(times) => {
+                write!(f, "taken up to {times} times; a repeat is 2 or more")
+            }
+            DataIssue::ChosenFeatNotParameterised => {
+                f.write_str("the chosen feat takes no value")
+            }
+            DataIssue::ValueOfWrongKind(feat) => {
+                write!(f, "a prerequisite names a value {feat} isn't taken for")
+            }
+            DataIssue::SameValueWithoutValue => f.write_str(
+                "\"the same value\" in a prerequisite whose pick takes no value",
+            ),
             DataIssue::SharesOwnOption(option) => {
                 write!(
                     f,
@@ -279,6 +307,16 @@ impl GameData {
                 .feat_lists()
                 .map(|list| (list.key.clone(), list.ignores_prerequisites))
                 .collect(),
+            parameters: self
+                .feats
+                .iter()
+                .map(|feat| (feat.key.clone(), feat.parameter))
+                .collect(),
+            weapons: self
+                .weapons
+                .iter()
+                .map(|weapon| (weapon.key.clone(), weapon.proficiency))
+                .collect(),
             ..Checker::default()
         };
         check.progression(self);
@@ -296,7 +334,8 @@ impl GameData {
         for feat in &self.feats {
             let at = DataAt::Feat(feat.key.clone());
             check.key(&at);
-            check.prerequisite(&at, feat.prerequisite.as_ref());
+            check.repeat(&at, feat.repeat, feat.parameter.is_some());
+            check.prerequisite(&at, feat.prerequisite.as_ref(), feat.parameter);
         }
         for class in &self.classes {
             check.class(class, false);
@@ -307,12 +346,12 @@ impl GameData {
         for ability in &self.mythic_abilities {
             let at = DataAt::MythicAbility(ability.key.clone());
             check.key(&at);
-            check.prerequisite(&at, ability.prerequisite.as_ref());
+            check.prerequisite(&at, ability.prerequisite.as_ref(), None);
         }
         for feat in &self.mythic_feats {
             let at = DataAt::MythicFeat(feat.key.clone());
             check.key(&at);
-            check.prerequisite(&at, feat.prerequisite.as_ref());
+            check.prerequisite(&at, feat.prerequisite.as_ref(), None);
         }
         let switches: HashSet<&MythicPathKey> = self
             .mythic_paths
@@ -344,6 +383,10 @@ struct Checker {
     lists: HashMap<FeatListKey, bool>,
     /// The lists some slot names.
     named_lists: HashSet<FeatListKey>,
+    /// Every feat, with what it's taken for.
+    parameters: HashMap<FeatKey, Option<ParameterKind>>,
+    /// Every weapon, with its proficiency list.
+    weapons: HashMap<WeaponKey, Option<WeaponProficiency>>,
     problems: Vec<DataProblem>,
 }
 
@@ -422,11 +465,17 @@ impl Checker {
             if !owned_by(list.key.as_str(), owner) {
                 self.problem(&at, DataIssue::KeyOutsideItsOwner);
             }
+            // A list of one parameterised feat is a bonus feat of the player's choosing: the pick names the value.
+            let one_choice = list.feats.len() == 1
+                && list
+                    .feats
+                    .iter()
+                    .all(|feat| self.parameters.get(feat).is_some_and(Option::is_some));
             if list.every_feat {
                 if !list.feats.is_empty() {
                     self.problem(&at, DataIssue::EveryFeatListWithFeats);
                 }
-            } else if list.feats.len() < 2 {
+            } else if list.feats.len() < 2 && !one_choice {
                 self.problem(&at, DataIssue::FeatListTooShort);
             }
         }
@@ -456,7 +505,44 @@ impl Checker {
         }
     }
 
-    fn prerequisite(&mut self, at: &DataAt, prerequisite: Option<&Prerequisite>) {
+    /// How many times a feat or option repeats: once per value only with a value, a number of times from 2.
+    fn repeat(&mut self, at: &DataAt, repeat: Repeat, takes_value: bool) {
+        match repeat {
+            Repeat::PerValue if !takes_value => {
+                self.problem(at, DataIssue::PerValueWithoutParameter);
+            }
+            Repeat::Times(times) if times < 2 => {
+                self.problem(at, DataIssue::TimesOutOfRange(times));
+            }
+            _ => {}
+        }
+    }
+
+    /// Whether a value is one a feat of `kind` is taken for. An unknown weapon is the foreign keys' business.
+    fn fits(&self, kind: ParameterKind, value: &Parameter) -> bool {
+        use ParameterKind as K;
+        match (kind, value) {
+            (K::Skill, Parameter::Skill(_))
+            | (K::Weapon, Parameter::Weapon(_))
+            | (K::SpellSchool, Parameter::SpellSchool(_))
+            | (K::Energy, Parameter::Energy(_))
+            | (K::ArmourType, Parameter::ArmourType(_)) => true,
+            (K::ExoticWeapon, Parameter::Weapon(weapon)) => self
+                .weapons
+                .get(weapon)
+                .is_none_or(|proficiency| *proficiency == Some(WeaponProficiency::Exotic)),
+            _ => false,
+        }
+    }
+
+    /// A prerequisite's groups and values. `takes` is what the owner's pick names (`None`: nothing), which "the
+    /// same value" compares with.
+    fn prerequisite(
+        &mut self,
+        at: &DataAt,
+        prerequisite: Option<&Prerequisite>,
+        takes: Option<ParameterKind>,
+    ) {
         let Some(prerequisite) = prerequisite else {
             return;
         };
@@ -474,13 +560,34 @@ impl Checker {
                 }
                 children
             }
+            Prerequisite::FeatFor { feat, value } => {
+                // An unknown feat is the foreign keys' business.
+                if let Some(kind) = self.parameters.get(feat).copied()
+                    && !kind.is_some_and(|kind| self.fits(kind, value))
+                {
+                    self.problem(at, DataIssue::ValueOfWrongKind(feat.clone()));
+                }
+                return;
+            }
+            Prerequisite::FeatForSameValue(feat) => {
+                let Some(takes) = takes else {
+                    self.problem(at, DataIssue::SameValueWithoutValue);
+                    return;
+                };
+                if let Some(kind) = self.parameters.get(feat).copied()
+                    && !kind.is_some_and(|kind| same_values(kind, takes))
+                {
+                    self.problem(at, DataIssue::ValueOfWrongKind(feat.clone()));
+                }
+                return;
+            }
             _ => return,
         };
         if children.is_empty() {
             self.problem(at, DataIssue::EmptyPrerequisiteGroup);
         }
         for child in children {
-            self.prerequisite(at, Some(child));
+            self.prerequisite(at, Some(child), takes);
         }
     }
 
@@ -500,7 +607,16 @@ impl Checker {
                 if !owned_by(option.key.as_str(), selection.key.as_str()) {
                     self.problem(&at, DataIssue::OptionOutsideItsSelection);
                 }
-                self.prerequisite(&at, option.prerequisite.as_ref());
+                // An option takes a value only for its chosen feat, which must take one.
+                let takes = option.chosen_feat.as_ref().and_then(|feat| {
+                    let kind = self.parameters.get(feat).copied();
+                    if kind == Some(None) {
+                        self.problem(&at, DataIssue::ChosenFeatNotParameterised);
+                    }
+                    kind.flatten()
+                });
+                self.repeat(&at, option.repeat, false);
+                self.prerequisite(&at, option.prerequisite.as_ref(), takes);
             }
         }
     }
@@ -581,7 +697,7 @@ impl Checker {
     fn class(&mut self, class: &Class, prestige: bool) {
         let at = DataAt::Class(class.key.clone());
         self.key(&at);
-        self.prerequisite(&at, class.prerequisite.as_ref());
+        self.prerequisite(&at, class.prerequisite.as_ref(), None);
         self.owned(
             class.key.as_str(),
             &class.features,
@@ -596,7 +712,7 @@ impl Checker {
         for archetype in &class.archetypes {
             let at = DataAt::Archetype(archetype.key.clone());
             self.key(&at);
-            self.prerequisite(&at, archetype.prerequisite.as_ref());
+            self.prerequisite(&at, archetype.prerequisite.as_ref(), None);
             self.owned(
                 archetype.key.as_str(),
                 &archetype.features,
@@ -647,6 +763,13 @@ impl Checker {
             }
         }
     }
+}
+
+/// Whether two kinds take the same sort of value: a weapon is a weapon whether the feat takes any or only exotic
+/// ones.
+fn same_values(a: ParameterKind, b: ParameterKind) -> bool {
+    let weapon = |kind| matches!(kind, ParameterKind::Weapon | ParameterKind::ExoticWeapon);
+    a == b || (weapon(a) && weapon(b))
 }
 
 /// A multiset's items in order, for comparing two of them.

@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO weapon (key, name, proficiency) VALUES ($1, $2, $3)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        {
+          "Custom": {
+            "name": "text_key",
+            "kind": {
+              "Domain": "Text"
+            }
+          }
+        },
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "1307bd60ec00cf23c8761b4b06ef1512566ade74f5309e8aa2f558eaab8149c6"
+}

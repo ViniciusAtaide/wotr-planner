@@ -103,6 +103,7 @@ fn data(classes: Vec<Class>) -> GameData {
         },
         races: vec![],
         skills: vec![],
+        weapons: vec![],
         feats: vec![],
         classes,
         prestige_classes: vec![],

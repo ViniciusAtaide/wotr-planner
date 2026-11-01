@@ -6,9 +6,9 @@ use proptest::collection::{btree_map, btree_set, vec};
 use proptest::option;
 use proptest::prelude::*;
 use rules::{
-    Ability, AbilityScores, Alignment, ArchetypeKey, Build, BuildStart, ClassChoice, ClassKey,
-    DecodeError, FeatSource, LevelUp, MythicPathKey, Pick, RaceKey, SkillKey, SlotId, SubraceKey,
-    decode_build, encode_build,
+    Ability, AbilityScores, Alignment, ArchetypeKey, ArmourType, Build, BuildStart, ClassChoice,
+    ClassKey, DecodeError, Energy, FeatSource, LevelUp, MythicPathKey, Parameter, Pick, RaceKey,
+    SkillKey, SlotId, SpellSchool, SubraceKey, decode_build, encode_build,
 };
 
 use crate::support::*;
@@ -97,10 +97,38 @@ fn slot_id() -> impl Strategy<Value = SlotId> {
     ]
 }
 
+fn spell_school() -> impl Strategy<Value = SpellSchool> {
+    prop::sample::select(SpellSchool::ALL.to_vec())
+}
+
+fn energy() -> impl Strategy<Value = Energy> {
+    prop::sample::select(Energy::ALL.to_vec())
+}
+
+fn armour_type() -> impl Strategy<Value = ArmourType> {
+    prop::sample::select(ArmourType::ALL.to_vec())
+}
+
+fn parameter() -> impl Strategy<Value = Parameter> {
+    prop_oneof![
+        key().prop_map(|k| Parameter::Skill(SkillKey(k))),
+        key().prop_map(|k| Parameter::Weapon(rules::WeaponKey(k))),
+        spell_school().prop_map(Parameter::SpellSchool),
+        energy().prop_map(Parameter::Energy),
+        armour_type().prop_map(Parameter::ArmourType),
+    ]
+}
+
 fn pick() -> impl Strategy<Value = Pick> {
     prop_oneof![
-        key().prop_map(|k| Pick::Feat(rules::FeatKey(k))),
-        key().prop_map(|k| Pick::SelectionOption(rules::SelectionOptionKey(k))),
+        (key(), option::of(parameter())).prop_map(|(k, parameter)| Pick::Feat {
+            feat: rules::FeatKey(k),
+            parameter
+        }),
+        (key(), option::of(parameter())).prop_map(|(k, parameter)| Pick::SelectionOption {
+            option: rules::SelectionOptionKey(k),
+            parameter
+        }),
         key().prop_map(|k| Pick::MythicAbility(rules::MythicAbilityKey(k))),
         key().prop_map(|k| Pick::MythicFeat(rules::MythicFeatKey(k))),
     ]
@@ -149,7 +177,10 @@ fn v1_build() -> Build {
     build.levels[0].skill_ranks.insert(skill("athletics"), 1);
     build.picks.insert(race_slot(0), pick_feat("power-attack"));
     build.picks.insert(class_slot(1, 0), pick_feat("cleave"));
-    build.picks.insert(general_slot(1), pick_feat("toughness"));
+    build.picks.insert(
+        general_slot(1),
+        pick_feat_for("weapon-focus", weapon("longsword")),
+    );
     build.picks.insert(
         selection_slot(3, 0),
         pick_option("rogue/rogue-talents/combat-trick"),
@@ -170,9 +201,10 @@ fn v1_build() -> Build {
 }
 
 /// `encode_build(&v1_build())` as format version 1 produced it (2026-10-31, miniz_oxide 0.9.1, level 9). Regenerated
-/// before any link shipped: when archetype and advancement moved into `Build::class_choices`, and on 2026-11-01 when
-/// keys lost their type prefix (`feat:power-attack` became `power-attack`).
-const V1_LINK: &str = "AT1OWw6CMBDcBRExYPz00ws0HMKT1GWlDYWadqvx9mJJ_JmZTDIPrG-O9YsDVibNegEE3J1PbXc8lPXDjkY4ADZajGOxFPFvQhX8mBgAN4GXTD27IVghoyL5tAyB3ZqXYGmKv1i1LgC0T__moLSIpglwtfaUfwAWAI34NJqFY8QS8Lr1ZlSiHS8Se_LzXYvKvQUW3fwRY0mR0WHkLw";
+/// before any link shipped: when archetype and advancement moved into `Build::class_choices`, on 2026-11-01 when
+/// keys lost their type prefix (`feat:power-attack` became `power-attack`), and on 2026-11-01 again when a feat or
+/// option pick gained its parameter (Weapon Focus (Longsword)).
+const V1_LINK: &str = "AT2OS67CMAxF7fL6-AgQQ4ZsIGIRrMS4polIE-S4VOyeUCQm_lzr-lxcXqLQUxRbPw6UAAH_DvvtbrNaLG-h9yYKuCbzUSxwwZ8IreZ-FAD8Dnic21lip8HYu8J5TJ1KrH7TwPfysbWVALB95EnUkRnxvb6o2j_PQerS1Psk9MjJ3TKPBXEdc-rLlLXDBeDpC5qrM4qSrJw5D1cyN4OgwWY3vMwHduxJe3kD";
 
 #[test]
 fn a_version_1_link_still_decodes() {
@@ -277,10 +309,10 @@ fn a_full_40_level_build_makes_a_link_of_a_few_hundred_characters() {
         if level % 2 == 1 {
             build
                 .picks
-                .insert(general_slot(level), Pick::Feat(feat.clone()));
+                .insert(general_slot(level), Pick::feat(feat.clone()));
         }
         if level <= 20 && (level == 1 || level % 2 == 0) {
-            build.picks.insert(class_slot(level, 0), Pick::Feat(feat));
+            build.picks.insert(class_slot(level, 0), Pick::feat(feat));
         }
         build.levels[usize::from(level) - 1]
             .skill_ranks
