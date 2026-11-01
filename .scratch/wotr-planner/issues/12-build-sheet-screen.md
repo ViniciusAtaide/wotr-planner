@@ -2,7 +2,7 @@
 
 Type: task
 Status: open
-Blocked by: 09, 10, 11, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38
+Blocked by: 09, 10, 11, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39
 Map: [WotR Build Planner](../map.md)
 
 ## Question
@@ -16,7 +16,7 @@ Build the Leptos screen chosen in [Level-up screen behaviour](06-level-up-screen
   - a bottom sheet below 600px and a modal above
   - search and category chips
   - locked options hidden behind "Show N locked", with reasons
-  - options, class changes and Clear that would break a later pick are disabled with "Would break: …"
+  - a pick shows a remove ("×") control only when no later pick depends on it, so a chain is removed from the leaves inward (Cleaving Finish, then Cleave, then Power Attack); class changes and other earlier choices with dependants offer no change control ([ticket 39](39-impossible-states-not-validation.md))
 - **The sheet is the summary** (user, 2026-10-31): there's no separate summary screen. A finished Build's summary is the same grid and Mythic track, showing class, feats, mythic feats and abilities up to level 20 (40 on Legend). A shared link opens on the same sheet.
 - **Skill ranks:** per level, capped at character level.
 - **State:** the Build lives in the URL fragment (`/#b=…`) and is rewritten with `history.replaceState` on every edit. `/` with no fragment is a blank Build. Opening a stale link shows the "Game data changed" banner, with broken picks and removed keys marked. The rules engine runs in the browser on `GameData` loaded once.
