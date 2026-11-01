@@ -379,20 +379,6 @@ CREATE TABLE background (
     note TEXT NOT NULL
 );
 
--- The class skills of a class (`archetype_key` NULL), of an archetype that overrides them, or of a
--- background.
-CREATE TABLE class_skill (
-    class_key TEXT REFERENCES class (key) DEFERRABLE INITIALLY DEFERRED,
-    archetype_key TEXT,
-    background_key TEXT REFERENCES background (key) DEFERRABLE INITIALLY DEFERRED,
-    skill_key TEXT NOT NULL REFERENCES skill (key) DEFERRABLE INITIALLY DEFERRED,
-    FOREIGN KEY (archetype_key, class_key) REFERENCES archetype (key, class_key)
-        DEFERRABLE INITIALLY DEFERRED,
-    CHECK (num_nonnulls(class_key, background_key) = 1),
-    CHECK (archetype_key IS NULL OR class_key IS NOT NULL),
-    UNIQUE NULLS NOT DISTINCT (class_key, archetype_key, background_key, skill_key)
-);
-
 -- mythic/ --------------------------------------------------------------------------------------
 
 CREATE TABLE mythic_ability (
@@ -660,15 +646,30 @@ CREATE TABLE feat_list_member (
 );
 
 -- `rules::OptionLevelRow`: what an option gives at one option level. Its features, selections and feats
--- are `granted_*` rows, its feat slots `feat_slot` rows and its chosen feats
--- `option_level_chosen_feat` rows; `feat_list_key` is the option's feat list from this level on, which
--- an `option_list` feat slot picks from.
+-- are `granted_*` rows, its feat slots `feat_slot` rows, its chosen feats `option_level_chosen_feat`
+-- rows and its class skills `class_skill` rows; `feat_list_key` is the option's feat list from this
+-- level on, which an `option_list` feat slot picks from.
 CREATE TABLE option_level (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     option_key TEXT NOT NULL REFERENCES selection_option (key) DEFERRABLE INITIALLY DEFERRED,
     level SMALLINT NOT NULL CHECK (level BETWEEN 1 AND 40),
     feat_list_key TEXT REFERENCES feat_list (key) DEFERRABLE INITIALLY DEFERRED,
     UNIQUE (option_key, level)
+);
+
+-- The class skills of a class (`archetype_key` NULL), of an archetype that overrides them, of a
+-- background, or of an option level (`rules::OptionLevelRow::class_skills`: held with the row).
+CREATE TABLE class_skill (
+    class_key TEXT REFERENCES class (key) DEFERRABLE INITIALLY DEFERRED,
+    archetype_key TEXT,
+    background_key TEXT REFERENCES background (key) DEFERRABLE INITIALLY DEFERRED,
+    option_level_id BIGINT REFERENCES option_level (id) DEFERRABLE INITIALLY DEFERRED,
+    skill_key TEXT NOT NULL REFERENCES skill (key) DEFERRABLE INITIALLY DEFERRED,
+    FOREIGN KEY (archetype_key, class_key) REFERENCES archetype (key, class_key)
+        DEFERRABLE INITIALLY DEFERRED,
+    CHECK (num_nonnulls(class_key, background_key, option_level_id) = 1),
+    CHECK (archetype_key IS NULL OR class_key IS NOT NULL),
+    UNIQUE NULLS NOT DISTINCT (class_key, archetype_key, background_key, option_level_id, skill_key)
 );
 
 -- Progression rows -----------------------------------------------------------------------------

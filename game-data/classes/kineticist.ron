@@ -11,15 +11,9 @@ Class(
     features: [
         (key: "kineticist/burn", name: "Burn", guide: "kineticist#burn"),
         (key: "kineticist/composite-specialization", name: "Composite Specialization", guide: "kineticist#composite-specialization"),
-        (key: "kineticist/element/air/class-skill-lore-nature", name: "Class Skill: Lore (Nature)", guide: "kineticist#elemental-focus-air"),
         (key: "kineticist/element/air/enveloping-winds", name: "Enveloping Winds", guide: "kineticist#enveloping-winds"),
-        (key: "kineticist/element/earth/class-skill-athletics", name: "Class Skill: Athletics", guide: "kineticist#elemental-focus-earth"),
-        (key: "kineticist/element/earth/class-skill-knowledge-world", name: "Class Skill: Knowledge (World)", guide: "kineticist#elemental-focus-earth"),
         (key: "kineticist/element/earth/flesh-of-stone", name: "Flesh of Stone", guide: "kineticist#flesh-of-stone"),
-        (key: "kineticist/element/fire/class-skill-lore-nature", name: "Class Skill: Lore (Nature)", guide: "kineticist#elemental-focus-fire"),
         (key: "kineticist/element/fire/searing-flesh", name: "Searing Flesh", guide: "kineticist#searing-flesh"),
-        (key: "kineticist/element/water/class-skill-athletics", name: "Class Skill: Athletics", guide: "kineticist#elemental-focus-water"),
-        (key: "kineticist/element/water/class-skill-lore-nature", name: "Class Skill: Lore (Nature)", guide: "kineticist#elemental-focus-water"),
         (key: "kineticist/element/water/shroud-of-water", name: "Shroud of Water", guide: "kineticist#shroud-of-water"),
         (key: "kineticist/elemental-overflow", name: "Elemental Overflow", guide: "kineticist#elemental-overflow"),
         (key: "kineticist/gather-power", name: "Gather Power", guide: "kineticist#gather-power"),
@@ -46,7 +40,7 @@ Class(
                     guide: "kineticist#elemental-focus-air",
                     repeat: Times(2),
                     levels: [
-                        (level: 1, features: ["kineticist/element/air/class-skill-lore-nature"], feat_list: "kineticist/element/air/wild-talent-feats"),
+                        (level: 1, feat_list: "kineticist/element/air/wild-talent-feats", class_skills: ["lore-nature"]),
                         (level: 2, features: ["kineticist/element/air/enveloping-winds"]),
                     ],
                 ),
@@ -56,7 +50,7 @@ Class(
                     guide: "kineticist#elemental-focus-earth",
                     repeat: Times(2),
                     levels: [
-                        (level: 1, features: ["kineticist/element/earth/class-skill-athletics", "kineticist/element/earth/class-skill-knowledge-world"], feat_list: "kineticist/element/earth/wild-talent-feats"),
+                        (level: 1, feat_list: "kineticist/element/earth/wild-talent-feats", class_skills: ["athletics", "knowledge-world"]),
                         (level: 2, features: ["kineticist/element/earth/flesh-of-stone"]),
                     ],
                 ),
@@ -66,7 +60,7 @@ Class(
                     guide: "kineticist#elemental-focus-fire",
                     repeat: Times(2),
                     levels: [
-                        (level: 1, features: ["kineticist/element/fire/class-skill-lore-nature"], feat_list: "kineticist/element/fire/wild-talent-feats"),
+                        (level: 1, feat_list: "kineticist/element/fire/wild-talent-feats", class_skills: ["lore-nature"]),
                         (level: 2, features: ["kineticist/element/fire/searing-flesh"]),
                     ],
                 ),
@@ -76,7 +70,7 @@ Class(
                     guide: "kineticist#elemental-focus-water",
                     repeat: Times(2),
                     levels: [
-                        (level: 1, features: ["kineticist/element/water/class-skill-athletics", "kineticist/element/water/class-skill-lore-nature"], feat_list: "kineticist/element/water/wild-talent-feats"),
+                        (level: 1, feat_list: "kineticist/element/water/wild-talent-feats", class_skills: ["athletics", "lore-nature"]),
                         (level: 2, features: ["kineticist/element/water/shroud-of-water"]),
                     ],
                 ),

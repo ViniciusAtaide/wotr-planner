@@ -651,6 +651,16 @@ fn reads_options_with_rows_by_option_level_and_defaults_them() {
             level: 1,
             features: vec![FeatureKey::new("sorcerer/bloodline/abyssal/claws")],
             feat_list: Some(FeatListKey::new("sorcerer/bloodline/abyssal-feats")),
+            class_skills: BTreeSet::from([SkillKey::new("athletics")]),
+            ..OptionLevelRow::default()
+        }
+    );
+    // Ticket 37: an option row's class skills, and a row holding nothing else.
+    assert_eq!(
+        bloodline.options[1].levels[2],
+        OptionLevelRow {
+            level: 9,
+            class_skills: BTreeSet::from([SkillKey::new("mobility"), SkillKey::new("persuasion")]),
             ..OptionLevelRow::default()
         }
     );

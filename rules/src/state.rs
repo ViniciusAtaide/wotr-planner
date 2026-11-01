@@ -41,8 +41,8 @@ pub struct CharacterState {
     /// advance them). Checked only where the guide states a caster level.
     pub caster_level: u8,
     pub skill_ranks: BTreeMap<SkillKey, u8>,
-    /// The class skills: each class taken's (an archetype's list where it replaces its class's) and the
-    /// background's.
+    /// The class skills: each class taken's (an archetype's list where it replaces its class's), the
+    /// background's and those of the option rows held (an oracle's mystery, a kineticist's element).
     pub class_skills: BTreeSet<SkillKey>,
     /// The class levels a feat's prerequisites see, for each class another class's levels count as there
     /// (Diverse Training: fighter 1 + Eldritch Knight 3 is fighter 4). Classes left out are their class level.

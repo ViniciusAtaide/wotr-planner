@@ -1534,6 +1534,22 @@ fn offered_at(build: &Build, slot: &SlotId) -> BTreeSet<String> {
         .collect()
 }
 
+fn has_class_skill(state: &CharacterState, skill: &str) -> bool {
+    state.class_skills.contains(&SkillKey::new(skill))
+}
+
+/// Holds `skill` as a class skill from `level` on, not before.
+fn class_skill_from_level(build: &Build, level: u8, skill: &str) {
+    assert!(
+        !has_class_skill(&at(build, level - 1), skill),
+        "{skill} before {level}"
+    );
+    assert!(
+        has_class_skill(&at(build, level), skill),
+        "{skill} at {level}"
+    );
+}
+
 /// Holds `feature` from `level` on, not before.
 fn from_level(build: &Build, level: u8, feature: &str) {
     assert!(
@@ -1687,10 +1703,8 @@ fn a_blight_druid_skips_the_animal_domains_companion_and_a_winter_child_holds_ic
         &at(&blight, 4),
         "cleric/domain/animal/animal-companion"
     ));
-    assert!(holds(
-        &at(&blight, 1),
-        "cleric/domain/animal/class-skill-lore-nature"
-    ));
+    // Its 1st-level row holds only Lore (Nature), which a druid has anyway.
+    assert!(has_class_skill(&at(&blight, 1), "lore-nature"));
 
     let winter = druid(Some("druid/winter-child"), 8);
     assert_eq!(engine().validate(&winter), []);
@@ -1783,10 +1797,7 @@ fn weapon_mastery_grants_improved_critical_at_8_in_its_weapon() {
 #[test]
 fn an_oracle_holds_the_mysterys_class_skill_and_final_revelation() {
     let build = oracle("battle", 20);
-    assert!(holds(
-        &at(&build, 1),
-        "oracle/mystery/battle/class-skill-perception"
-    ));
+    assert!(has_class_skill(&at(&build, 1), "perception"));
     from_level(&build, 20, "oracle/mystery/battle/battle-final-revelation");
     // "he does not gain additional class skills from his choice of mystery" (Divine Herbalist).
     let herbalist = with_option(
@@ -1796,10 +1807,7 @@ fn an_oracle_holds_the_mysterys_class_skill_and_final_revelation() {
         "oracle/mystery/battle",
     );
     assert_eq!(engine().validate(&herbalist), []);
-    assert!(!holds(
-        &at(&herbalist, 1),
-        "oracle/mystery/battle/class-skill-perception"
-    ));
+    assert!(!has_class_skill(&at(&herbalist, 1), "perception"));
     // "Must select the Wind Mystery": held with no pick.
     let whisperer = archetype_build("oracle", "oracle/wind-whisperer", 1);
     assert_eq!(
@@ -1854,14 +1862,8 @@ fn a_kineticist_holds_the_elements_class_skills_list_and_defensive_talent() {
     let build = kineticist("earth", 2);
     assert_eq!(engine().validate(&build), []);
     let one = at(&build, 1);
-    assert!(holds(
-        &one,
-        "kineticist/element/earth/class-skill-athletics"
-    ));
-    assert!(holds(
-        &one,
-        "kineticist/element/earth/class-skill-knowledge-world"
-    ));
+    assert!(has_class_skill(&one, "athletics"));
+    assert!(has_class_skill(&one, "knowledge-world"));
     assert_eq!(
         one.option_feat_lists
             .get(&SelectionOptionKey::new("kineticist/element/earth")),
@@ -2784,7 +2786,7 @@ fn a_living_deitys_maneuver_mastery_and_second_mystery_count_arcanist_levels() {
     );
     let build = with_mythic_selection(build, "second-mystery", "oracle/mystery/flame");
     assert_eq!(problems(&build), []);
-    from_level(&build, 6, "oracle/mystery/flame/class-skill-athletics");
+    class_skill_from_level(&build, 6, "athletics");
     from_level(&build, 20, "oracle/mystery/flame/flame-final-revelation");
 }
 
@@ -3437,4 +3439,324 @@ fn the_background_none_grants_nothing() {
     let without = engine().evaluate(&wizard_with(None));
     assert_eq!(with_none.at(1), without.at(1));
     assert_eq!(with_none.problems, without.problems);
+}
+
+// ---- options' class skills (ticket 37) ------------------------------------------------------------------------
+
+/// The class skills at level 1 of a Build of `class` (with `archetype`) picking `option` in its first selection slot.
+fn class_skills_at_1(
+    class: &str,
+    archetype: Option<&str>,
+    option: Option<&str>,
+) -> BTreeSet<String> {
+    let mut build = match archetype {
+        Some(archetype) => archetype_build(class, archetype, 1),
+        None => build(class, 1),
+    };
+    if let Some(option) = option {
+        build.picks.insert(selection_slot(1), pick(option));
+    }
+    let sheet = engine().evaluate(&build);
+    assert_eq!(sheet.problems, [], "{class} {archetype:?} {option:?}");
+    sheet
+        .at(1)
+        .unwrap()
+        .class_skills
+        .iter()
+        .map(|skill| skill.to_string())
+        .collect()
+}
+
+fn skill_set(keys: &[&str]) -> BTreeSet<String> {
+    keys.iter().map(|key| (*key).to_owned()).collect()
+}
+
+#[test]
+fn an_oracle_holds_its_mysterys_class_skills_and_one_without_it_doesnt() {
+    let oracle = skill_set(&[
+        "knowledge-arcana",
+        "knowledge-world",
+        "lore-nature",
+        "lore-religion",
+        "persuasion",
+    ]);
+    assert_eq!(class_skills_at_1("oracle", None, None), oracle);
+    for (mystery, skills) in [
+        ("battle", &["perception"][..]),
+        ("bones", &["stealth"]),
+        ("flame", &["athletics", "mobility"]),
+        ("nature", &["athletics"]),
+        ("stone", &["athletics"]),
+        ("waves", &["athletics", "mobility"]),
+        ("wind", &["mobility", "stealth"]),
+        ("ancestor", &[]),
+        ("life", &[]),
+    ] {
+        let held = class_skills_at_1("oracle", None, Some(&format!("oracle/mystery/{mystery}")));
+        let expected: BTreeSet<String> = oracle.iter().cloned().chain(skill_set(skills)).collect();
+        assert_eq!(held, expected, "{mystery}");
+    }
+    // A Divine Herbalist "does not gain additional class skills from his choice of mystery".
+    assert_eq!(
+        class_skills_at_1(
+            "oracle",
+            Some("oracle/divine-herbalist"),
+            Some("oracle/mystery/flame")
+        ),
+        oracle
+    );
+}
+
+#[test]
+fn a_kineticist_holds_its_elements_class_skills_and_one_without_it_doesnt() {
+    let kineticist = skill_set(&[
+        "mobility",
+        "perception",
+        "persuasion",
+        "stealth",
+        "use-magic-device",
+    ]);
+    assert_eq!(class_skills_at_1("kineticist", None, None), kineticist);
+    for (element, skills) in [
+        ("air", &["lore-nature"][..]),
+        ("earth", &["athletics", "knowledge-world"]),
+        ("fire", &["lore-nature"]),
+        ("water", &["athletics", "lore-nature"]),
+    ] {
+        let held = class_skills_at_1(
+            "kineticist",
+            None,
+            Some(&format!("kineticist/element/{element}")),
+        );
+        let expected: BTreeSet<String> = kineticist
+            .iter()
+            .cloned()
+            .chain(skill_set(skills))
+            .collect();
+        assert_eq!(held, expected, "{element}");
+    }
+}
+
+#[test]
+fn a_cavalier_holds_its_orders_class_skill() {
+    let cavalier = skill_set(&["athletics", "mobility", "persuasion"]);
+    assert_eq!(class_skills_at_1("cavalier", None, None), cavalier);
+    for (order, skill) in [
+        ("order-of-the-lion", "knowledge-world"),
+        ("order-of-the-shroud", "lore-religion"),
+        ("order-of-the-star", "lore-religion"),
+        ("order-of-the-sword", "lore-religion"),
+    ] {
+        let held = class_skills_at_1("cavalier", None, Some(&format!("cavalier/order/{order}")));
+        let expected: BTreeSet<String> =
+            cavalier.iter().cloned().chain([skill.to_owned()]).collect();
+        assert_eq!(held, expected, "{order}");
+    }
+}
+
+#[test]
+fn a_cleric_holds_both_domains_class_skills() {
+    let mut cleric = build("cleric", 1);
+    cleric
+        .picks
+        .insert(selection_slot(1), pick("cleric/domain/knowledge"));
+    cleric.picks.insert(
+        SlotId::Selection { level: 1, index: 1 },
+        pick("cleric/domain/trickery"),
+    );
+    let sheet = engine().evaluate(&cleric);
+    assert_eq!(sheet.problems, []);
+    let held: BTreeSet<String> = sheet
+        .at(1)
+        .unwrap()
+        .class_skills
+        .iter()
+        .map(|s| s.to_string())
+        .collect();
+    assert_eq!(
+        held,
+        skill_set(&[
+            "knowledge-arcana",
+            "knowledge-world",
+            "lore-nature",
+            "lore-religion",
+            "persuasion",
+            "stealth",
+            "trickery",
+        ])
+    );
+}
+
+#[test]
+fn a_sorcerer_holds_its_bloodlines_class_skill() {
+    let sorcerer = skill_set(&["knowledge-arcana", "persuasion", "use-magic-device"]);
+    assert_eq!(class_skills_at_1("sorcerer", None, None), sorcerer);
+    for (bloodline, skill) in [
+        ("abyssal", "athletics"),
+        ("celestial", "lore-religion"),
+        ("draconic-red", "perception"),
+        ("elemental-fire", "mobility"),
+        ("fey", "lore-nature"),
+        ("infernal", "knowledge-world"),
+        ("serpentine", "stealth"),
+        ("undead", "lore-religion"),
+    ] {
+        let held = class_skills_at_1(
+            "sorcerer",
+            None,
+            Some(&format!("sorcerer/bloodline/{bloodline}")),
+        );
+        let expected: BTreeSet<String> =
+            sorcerer.iter().cloned().chain([skill.to_owned()]).collect();
+        assert_eq!(held, expected, "{bloodline}");
+    }
+}
+
+/// Every option row's class skills, as `option level: skills`.
+fn option_row_class_skills() -> Vec<(String, u8, Vec<String>)> {
+    let mut rows = Vec::new();
+    for class in DATA.classes.iter().chain(&DATA.prestige_classes) {
+        let selections = class
+            .selections
+            .iter()
+            .chain(class.archetypes.iter().flat_map(|a| &a.selections));
+        for selection in selections {
+            for option in &selection.options {
+                for row in &option.levels {
+                    if !row.class_skills.is_empty() {
+                        rows.push((
+                            option.key.to_string(),
+                            row.level,
+                            row.class_skills.iter().map(|s| s.to_string()).collect(),
+                        ));
+                    }
+                }
+            }
+        }
+    }
+    rows.sort();
+    rows
+}
+
+#[test]
+fn options_class_skills_are_the_guides_on_their_first_row() {
+    let rows = option_row_class_skills();
+    let mut expected: Vec<(String, u8, Vec<String>)> = Vec::new();
+    let mut add = |option: String, skills: &[&str]| {
+        expected.push((option, 1, skills.iter().map(|s| (*s).to_owned()).collect()));
+    };
+    for (bloodline, skill) in [
+        ("abyssal", "athletics"),
+        ("celestial", "lore-religion"),
+        ("fey", "lore-nature"),
+        ("infernal", "knowledge-world"),
+        ("serpentine", "stealth"),
+        ("undead", "lore-religion"),
+    ] {
+        add(format!("sorcerer/bloodline/{bloodline}"), &[skill]);
+    }
+    for colour in [
+        "black", "blue", "brass", "bronze", "copper", "gold", "green", "red", "silver", "white",
+    ] {
+        add(
+            format!("sorcerer/bloodline/draconic-{colour}"),
+            &["perception"],
+        );
+    }
+    for element in ["air", "earth", "fire", "water"] {
+        add(
+            format!("sorcerer/bloodline/elemental-{element}"),
+            &["mobility"],
+        );
+    }
+    for (mystery, skills) in [
+        ("battle", &["perception"][..]),
+        ("bones", &["stealth"]),
+        ("flame", &["athletics", "mobility"]),
+        ("nature", &["athletics"]),
+        ("stone", &["athletics"]),
+        ("waves", &["athletics", "mobility"]),
+        ("wind", &["mobility", "stealth"]),
+    ] {
+        add(format!("oracle/mystery/{mystery}"), skills);
+    }
+    for (domain, skills) in [
+        ("animal", &["lore-nature"][..]),
+        (
+            "knowledge",
+            &[
+                "knowledge-arcana",
+                "knowledge-world",
+                "lore-nature",
+                "lore-religion",
+            ],
+        ),
+        ("trickery", &["stealth", "trickery"]),
+    ] {
+        add(format!("cleric/domain/{domain}"), skills);
+    }
+    for (element, skills) in [
+        ("air", &["lore-nature"][..]),
+        ("earth", &["athletics", "knowledge-world"]),
+        ("fire", &["lore-nature"]),
+        ("water", &["athletics", "lore-nature"]),
+    ] {
+        add(format!("kineticist/element/{element}"), skills);
+    }
+    add(
+        "cavalier/order/order-of-the-lion".into(),
+        &["knowledge-world"],
+    );
+    for order in ["shroud", "star", "sword"] {
+        add(
+            format!("cavalier/order/order-of-the-{order}"),
+            &["lore-religion"],
+        );
+    }
+    expected.sort();
+    assert_eq!(rows, expected);
+}
+
+#[test]
+fn no_feature_stands_for_a_fixed_class_skill() {
+    let features: Vec<(&str, &str)> = DATA
+        .classes
+        .iter()
+        .chain(&DATA.prestige_classes)
+        .flat_map(|class| {
+            class
+                .features
+                .iter()
+                .chain(class.archetypes.iter().flat_map(|a| &a.features))
+        })
+        .map(|feature| (feature.key.as_str(), feature.name.as_str()))
+        .filter(|(_, name)| name.starts_with("Class Skill") || *name == "Skills")
+        .collect();
+    // What's left names no skill (a choice, or the guide doesn't say which), or is the Sohei's, whose archetype keeps
+    // the monk's list (ticket 37's open questions).
+    assert_eq!(
+        features,
+        [
+            ("monk/sohei/skills", "Skills"),
+            ("sorcerer/bloodline/arcane/class-skill", "Class Skill"),
+            ("sorcerer/overwhelming-mage/class-skill", "Class Skill"),
+            ("sorcerer/sage-sorcerer/class-skill", "Class Skill"),
+            ("sorcerer/seeker-sorcerer/class-skill", "Class Skill"),
+        ]
+    );
+    // The archetypes whose feature only repeated their own list still hold the skill.
+    for (class, archetype, skill) in [
+        ("sorcerer", "sorcerer/empyreal-sorcerer", "lore-religion"),
+        ("sorcerer", "sorcerer/sylvan-sorcerer", "lore-nature"),
+    ] {
+        let sheet = engine().evaluate(&archetype_build(class, archetype, 1));
+        assert!(
+            sheet
+                .at(1)
+                .unwrap()
+                .class_skills
+                .contains(&SkillKey::new(skill)),
+            "{archetype}"
+        );
+    }
 }

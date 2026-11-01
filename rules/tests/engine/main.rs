@@ -17,6 +17,7 @@ mod feat_lists;
 mod follow_ups;
 mod granted_feats;
 mod mythic;
+mod option_class_skills;
 mod option_follow_ups;
 mod option_levels;
 mod options;

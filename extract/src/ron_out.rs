@@ -490,6 +490,9 @@ fn option_level_row(row: &OptionLevelRow) -> String {
     if let Some(list) = &row.feat_list {
         fields.field("feat_list", list);
     }
+    if !row.class_skills.is_empty() {
+        fields.field("class_skills", &row.class_skills);
+    }
     fields.line()
 }
 

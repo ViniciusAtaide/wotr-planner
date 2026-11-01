@@ -1065,6 +1065,8 @@ enum Held {
     MythicAbility(MythicAbilityKey),
     /// A mythic feat, for its value when it's parameterised.
     MythicFeat(MythicFeatKey, Option<Parameter>),
+    /// A class skill, from a class, the background or an option row.
+    ClassSkill(SkillKey),
 }
 
 /// Where a Mythic ascension's grant came from, for what a Path switch keeps.
@@ -1145,6 +1147,9 @@ struct Walker<'a> {
     /// For each class and feature another class's levels count toward (Frost Power: witch, Major Hexes), how many
     /// grants of it those levels hold now: the class's rows past its own level that they reach.
     counted_features: BTreeMap<(ClassKey, FeatureKey), u8>,
+    /// How many sources (classes, the background, option rows) give each class skill, so one taken back (a
+    /// replaced row) leaves the skill while another gives it.
+    class_skill_holds: BTreeMap<SkillKey, u8>,
     /// Each option held through a selection with option levels, in the order taken.
     holdings: Vec<Holding>,
     /// Feature selections and feat slots that options' rows granted at this level and that have no slot yet, each
@@ -1212,6 +1217,7 @@ impl<'a> Walker<'a> {
             ascensions_over: false,
             racial_penalties: Vec::new(),
             counted_features: BTreeMap::new(),
+            class_skill_holds: BTreeMap::new(),
             holdings: Vec::new(),
             pending: Vec::new(),
             granting: None,
@@ -1343,9 +1349,9 @@ impl<'a> Walker<'a> {
             self.problem(Choice::Background, Issue::UnknownKey(key.to_string()));
             return;
         };
-        self.state
-            .class_skills
-            .extend(background.class_skills.iter().cloned());
+        for skill in &background.class_skills {
+            self.hold(Held::ClassSkill(skill.clone()), None);
+        }
         for feat in &background.feats {
             let values = engine.every_value(feat);
             self.hold(Held::Feat(feat.clone(), values), None);
@@ -1549,7 +1555,9 @@ impl<'a> Walker<'a> {
                         .archetype_of(class, archetype)
                         .and_then(|archetype| archetype.class_skills.as_ref())
                         .unwrap_or(&class.class_skills);
-                    self.state.class_skills.extend(skills.iter().cloned());
+                    for skill in skills {
+                        self.hold(Held::ClassSkill(skill.clone()), None);
+                    }
                 }
                 self.state.classes.push(ClassLevels {
                     class: level_up.class.clone(),
@@ -2007,8 +2015,8 @@ impl<'a> Walker<'a> {
         }
     }
 
-    /// Holds an option row's features, feats and chosen feats (for `parameter`, the value the option's pick named;
-    /// from `source`) and queues its selections and feat slots as `option`'s. Returns what it holds.
+    /// Holds an option row's features, feats, chosen feats (for `parameter`, the value the option's pick named) and
+    /// class skills (from `source`) and queues its selections and feat slots as `option`'s. Returns what it holds.
     fn grant_row(
         &mut self,
         row: &'a crate::game_data::OptionLevelRow,
@@ -2030,6 +2038,11 @@ impl<'a> Walker<'a> {
                 row.chosen_feats
                     .iter()
                     .map(|feat| Held::Feat(feat.clone(), parameter.into_iter().cloned().collect())),
+            )
+            .chain(
+                row.class_skills
+                    .iter()
+                    .map(|skill| Held::ClassSkill(skill.clone())),
             )
             .collect();
         for item in &held {
@@ -2242,6 +2255,11 @@ impl<'a> Walker<'a> {
                         .insert(value.clone());
                 }
             }
+            Held::ClassSkill(key) => {
+                let holds = self.class_skill_holds.entry(key.clone()).or_default();
+                *holds = holds.saturating_add(1);
+                state.class_skills.insert(key.clone());
+            }
         }
         match &item {
             Held::Feature(key) if self.engine.feature_floors.contains_key(key) => {
@@ -2338,6 +2356,15 @@ impl<'a> Walker<'a> {
                 if !left {
                     state.mythic_feat_values.remove(key);
                     state.mythic_feats.remove(key);
+                }
+            }
+            Held::ClassSkill(key) => {
+                if let Some(holds) = self.class_skill_holds.get_mut(key) {
+                    *holds = holds.saturating_sub(1);
+                    if *holds == 0 {
+                        self.class_skill_holds.remove(key);
+                        state.class_skills.remove(key);
+                    }
                 }
             }
         }

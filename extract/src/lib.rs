@@ -13,6 +13,7 @@ pub mod grammar;
 pub mod guide;
 pub mod html;
 pub mod names;
+pub mod option_class_skills;
 pub mod option_families;
 pub mod option_follow_ups;
 pub mod option_levels;

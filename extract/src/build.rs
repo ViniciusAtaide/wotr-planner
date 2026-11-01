@@ -167,6 +167,9 @@ pub fn extract(guide: &Guide) -> Extraction {
     crate::second_follow_ups::apply(guide, &mut data);
     // The user's backgrounds (ticket 34): the guide doesn't list them, so the extractor carries the user's table.
     data.backgrounds = crate::backgrounds::backgrounds(&data);
+    // Options' class skills (ticket 37): the "Class Skill: …" features become their option rows' class skills. It
+    // settles no item of an extraction's report.
+    crate::option_class_skills::apply(guide, &mut data);
     for problem in data.check() {
         builder.report.add_about(
             Kind::Cell,

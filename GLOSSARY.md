@@ -20,7 +20,7 @@ A Build start choice from the user's list (38 backgrounds in eight groups, plus 
 _Avoid_: Origin, history
 
 **Class skill**:
-A skill a character's classes (an archetype's list where it replaces its class's) or its **Background** make class skills, held from the level the class is first taken (the background's from the start). An option's "Class Skill: …" feature (a mystery's, an element's) is a feature, not counted here.
+A skill a character's classes (an archetype's list where it replaces its class's), its **Background** or the option rows it holds make class skills: a class's from the level it's first taken, the background's from the start, an option row's while the row is held (an oracle's Flame mystery: Athletics and Mobility at option level 1; a Divine Herbalist, whose mystery skips that row, gets none). Shown on the sheet; nothing else depends on them.
 _Avoid_: Trained skill
 
 **Level-up**:

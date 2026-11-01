@@ -1294,6 +1294,54 @@ async fn the_schema_keeps_backgrounds_and_their_skills_and_feats_consistent(pool
 }
 
 #[sqlx::test]
+async fn the_schema_keeps_option_levels_class_skills_consistent(pool: PgPool) {
+    let db = Database::from(pool.clone());
+    data::seed(&db, &fixture_dir()).await.unwrap();
+    let rejected = |sql: &'static str| {
+        let pool = pool.clone();
+        async move {
+            let mut tx = pool.begin().await.unwrap();
+            let update = sqlx::query(sql).execute(&mut *tx).await;
+            // Foreign keys are deferred: they fail at commit.
+            let result = match update {
+                Ok(_) => tx.commit().await.map(|_| ()),
+                Err(error) => Err(error),
+            };
+            result.unwrap_err().to_string()
+        }
+    };
+    for (sql, expected) in [
+        // An option level's class skill has that one owner: not a background or a class besides, not none.
+        (
+            "UPDATE class_skill SET background_key = 'shackles-corsair' WHERE option_level_id IS NOT NULL",
+            "check constraint",
+        ),
+        (
+            "UPDATE class_skill SET class_key = 'sorcerer' WHERE option_level_id IS NOT NULL",
+            "check constraint",
+        ),
+        (
+            "UPDATE class_skill SET option_level_id = NULL WHERE option_level_id IS NOT NULL",
+            "check constraint",
+        ),
+        (
+            "UPDATE class_skill SET option_level_id = -1
+            WHERE option_level_id IS NOT NULL AND skill_key = 'athletics'",
+            "foreign key",
+        ),
+        // Each skill once per option level.
+        (
+            "INSERT INTO class_skill (option_level_id, skill_key)
+            SELECT option_level_id, skill_key FROM class_skill WHERE option_level_id IS NOT NULL",
+            "unique constraint",
+        ),
+    ] {
+        let error = rejected(sql).await;
+        assert!(error.contains(expected), "{sql}: {error}");
+    }
+}
+
+#[sqlx::test]
 async fn every_background_group_round_trips(pool: PgPool) {
     let db = Database::from(pool);
     let mut game_data = data::read_game_data_files(&fixture_dir()).unwrap();

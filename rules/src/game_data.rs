@@ -1077,6 +1077,9 @@ pub struct OptionLevelRow {
     /// ranger style's list per stage).
     #[serde(default)]
     pub feat_list: Option<FeatListKey>,
+    /// Skills that are class skills while the row is held (an oracle's Flame mystery: Athletics and Mobility).
+    #[serde(default)]
+    pub class_skills: BTreeSet<SkillKey>,
 }
 
 /// The guide's group headings under "Mythic Abilities".

@@ -56,8 +56,15 @@ async fn load(db: &Database) -> Result<GameData, sqlx::Error> {
     let mut grants = load_grants(conn).await?;
     let mut levels = load_levels(conn, &mut grants, &mut feat_slots).await?;
     let mut features = load_features(conn).await?;
-    let mut selections = load_selections(conn, &mut trees, &mut grants, &mut feat_slots).await?;
     let mut class_skills = load_class_skills(conn).await?;
+    let mut selections = load_selections(
+        conn,
+        &mut trees,
+        &mut grants,
+        &mut feat_slots,
+        &mut class_skills,
+    )
+    .await?;
     let (classes, prestige_classes) = load_classes(
         conn,
         &mut trees,
@@ -652,6 +659,7 @@ async fn load_selections(
     trees: &mut Trees,
     grants: &mut Grants,
     feat_slots: &mut Grouped<Owner, FeatSlot>,
+    class_skills: &mut Grouped<Owner, SkillKey>,
 ) -> Result<Grouped<Owner, FeatureSelection>, sqlx::Error> {
     let mut chosen_feats = Grouped::new();
     for row in sqlx::query!(
@@ -684,6 +692,7 @@ async fn load_selections(
                 feat_slots: feat_slots.take(&id),
                 selections: grants.selections.take(&id),
                 feat_list: row.feat_list_key.map(FeatListKey),
+                class_skills: class_skills.take(&id).into_iter().collect(),
             },
         );
     }
@@ -917,7 +926,8 @@ async fn load_class_skills(
 ) -> Result<Grouped<Owner, SkillKey>, sqlx::Error> {
     let mut skills = Grouped::new();
     for row in sqlx::query!(
-        "SELECT class_key, archetype_key, background_key, skill_key FROM class_skill ORDER BY skill_key"
+        "SELECT class_key, archetype_key, background_key, option_level_id, skill_key FROM class_skill
+        ORDER BY skill_key"
     )
     .fetch_all(&mut *conn)
     .await?
@@ -928,6 +938,7 @@ async fn load_class_skills(
                 row.class_key
                     .map(|class_key| class_owner(class_key, row.archetype_key)),
                 row.background_key.map(Owner::Background),
+                row.option_level_id.map(Owner::OptionLevel),
             ],
         )?;
         skills.push(owner, SkillKey(row.skill_key));

@@ -1946,6 +1946,15 @@ fn option_row(level: u8, features: &[&str]) -> OptionLevelRow {
         feat_slots: vec![],
         selections: vec![],
         feat_list: None,
+        class_skills: BTreeSet::new(),
+    }
+}
+
+/// `row` with `skills` as its class skills.
+fn with_class_skills(row: OptionLevelRow, skills: &[&str]) -> OptionLevelRow {
+    OptionLevelRow {
+        class_skills: skills.iter().map(|key| skill(key)).collect(),
+        ..row
     }
 }
 
@@ -1991,8 +2000,9 @@ const BLOODLINES: [&str; 4] = [
 
 /// Sorcerer: 1/2 BAB, good Will, spontaneous arcane spell-level access like the wizard's, a bloodline at 1
 /// (levelled by sorcerer and Dragon Disciple levels) whose feat list the 7, 13 and 19 bonus slots pick from.
-/// Four bloodlines: Abyssal (powers at 1, 3, 15 and 20, +2 Strength at 9, 13 and 17, Toughness at 15), Arcane
-/// (a school at 15), and two Draconic ones. Archetypes: Seeker (skips 3, 9 and 15), Crossblooded (a second
+/// Four bloodlines: Abyssal (powers and the class skill Athletics at 1, powers at 3, 15 and 20, +2 Strength at 9,
+/// 13 and 17, Toughness at 15), Arcane (a school at 15), and two Draconic ones (the class skill Persuasion at 1,
+/// invented: the real one is Perception). Archetypes: Seeker (skips 3, 9 and 15), Crossblooded (a second
 /// bloodline's feat list), Sage (Arcane only, its own 1st-level row) and an invented Primalist (at 3 and 9, the
 /// bloodline row or two rogue talents).
 fn sorcerer() -> Class {
@@ -2025,15 +2035,18 @@ fn sorcerer() -> Class {
         ..levelled_option(
             key,
             vec![
-                with_list(
-                    option_row(
-                        1,
-                        &[
-                            "sorcerer/bloodline/draconic/arcana",
-                            "sorcerer/bloodline/draconic/claws",
-                        ],
+                with_class_skills(
+                    with_list(
+                        option_row(
+                            1,
+                            &[
+                                "sorcerer/bloodline/draconic/arcana",
+                                "sorcerer/bloodline/draconic/claws",
+                            ],
+                        ),
+                        "sorcerer/bloodline/draconic-feats",
                     ),
-                    "sorcerer/bloodline/draconic-feats",
+                    &["persuasion"],
                 ),
                 option_row(3, &["sorcerer/bloodline/draconic/resistances"]),
                 option_row(20, &["sorcerer/bloodline/draconic/power-of-wyrms"]),
@@ -2050,15 +2063,18 @@ fn sorcerer() -> Class {
                 ..levelled_option(
                     "sorcerer/bloodline/abyssal",
                     vec![
-                        with_list(
-                            option_row(
-                                1,
-                                &[
-                                    "sorcerer/bloodline/abyssal/arcana",
-                                    "sorcerer/bloodline/abyssal/claws",
-                                ],
+                        with_class_skills(
+                            with_list(
+                                option_row(
+                                    1,
+                                    &[
+                                        "sorcerer/bloodline/abyssal/arcana",
+                                        "sorcerer/bloodline/abyssal/claws",
+                                    ],
+                                ),
+                                "sorcerer/bloodline/abyssal-feats",
                             ),
-                            "sorcerer/bloodline/abyssal-feats",
+                            &["athletics"],
                         ),
                         option_row(3, &["sorcerer/bloodline/abyssal/resistances"]),
                         option_row(9, &[strength]),

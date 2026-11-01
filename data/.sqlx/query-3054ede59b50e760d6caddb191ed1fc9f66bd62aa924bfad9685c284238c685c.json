@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT class_key, archetype_key, background_key, skill_key FROM class_skill ORDER BY skill_key",
+  "query": "SELECT class_key, archetype_key, background_key, option_level_id, skill_key FROM class_skill\n        ORDER BY skill_key",
   "describe": {
     "columns": [
       {
@@ -38,6 +38,17 @@
       },
       {
         "ordinal": 3,
+        "name": "option_level_id",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "class_skill",
+            "name": "option_level_id"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
         "name": "skill_key",
         "type_info": "Text",
         "origin": {
@@ -55,8 +66,9 @@
       true,
       true,
       true,
+      true,
       false
     ]
   },
-  "hash": "e2e1874a7a6095d17438aa8eb6165d0e4be85b262e8d89fd1d49f8fcfa3691c2"
+  "hash": "3054ede59b50e760d6caddb191ed1fc9f66bd62aa924bfad9685c284238c685c"
 }

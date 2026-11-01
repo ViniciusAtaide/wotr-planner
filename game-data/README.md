@@ -87,8 +87,10 @@ class's), and BAB and saves (from the class's progressions).
   a pick.
 - An option that grants over class levels (a bloodline, school, order, spirit, way or combat style) is a block
   with `levels: [...]`, one row per line, by **option level**: `(level: 9, features: [...], feats: ["wings"],
-  selections: ["sorcerer/bloodline/arcane/school-power"], feat_list: "sorcerer/bloodline/abyssal/feats")`. A row's
-  `feat_list` is the option's list from that level on (one per stage for a ranger style). Its selection says
+  selections: ["sorcerer/bloodline/arcane/school-power"], feat_list: "sorcerer/bloodline/abyssal/feats",
+  class_skills: ["athletics"])`. A row's `feat_list` is the option's list from that level on (one per stage for a
+  ranger style); its `class_skills` are class skills while the row is held (ticket 37), so an archetype that skips
+  the row (Divine Herbalist) or a lists-only holding (Crossblooded's second bloodline) gives none. Its selection says
   which classes' levels make the option level, `option_levels: ["dragon-disciple", "sorcerer"]` (an option taken
   late gets every row up to its level at once), and an archetype that changes the grant has its own selection
   that shares the options it allows: `skipped_levels: [3, 9, 15]` (Seeker; its own rows replace them),
@@ -145,8 +147,7 @@ class's), and BAB and saves (from the class's progressions).
     groups.
 - The second group of options with rows (ticket 31, `extract::option_families`, read from the guide's prose):
   - **Domains** are one selection, `cleric/domain` (37 options, rows by cleric levels: the power at 1, the one
-    at 6 or 8, the Animal and Scalykind companion at 4, class skills as "Class Skill: …" features as for the
-    bloodlines). The cleric's level 1 grants it twice (once for an archetype that "May only select a single
+    at 6 or 8, the Animal and Scalykind companion at 4, class skills on row 1 as for the bloodlines). The cleric's level 1 grants it twice (once for an archetype that "May only select a single
     domain"). Every other class takes domains through a selection of its own that shares them and is levelled by
     its own class: `inquisitor/domain`, `druid/domain` (through Nature Bond), `hunter/divine-hunter/domain`,
     `hellknight/pentamic-faith` (through the Pentamic Faith discipline's row), the Living Deity's
@@ -161,6 +162,11 @@ class's), and BAB and saves (from the class's progressions).
   - **Elements**, `kineticist/element`: class skills and the wild-talent bonus feat list at 1, the defensive talent
     at 2; `kineticist/expanded-element` at 7 and 15 holds a second element (or the first again, `repeat:
     Times(2)`) for its list only.
+- Options' class skills (ticket 37, `extract::option_class_skills`, the user's decision on ticket 34's first open
+  question): the "Class Skill: …" features of the bloodlines, mysteries, domains and elements, and the cavalier
+  orders' "Skills", became their rows' `class_skills`; the Empyreal and Sylvan Sorcerers' went (their own lists
+  hold the skill). Left as features, for the user: the Arcane bloodline's and the Sage, Overwhelming Mage and
+  Seeker Sorcerers' "Class Skill" (a choice, or no skill named), and the Sohei's "Skills".
 - The slayer's talents (`slayer/slayer-talents`, levelled by slayer) include three combat style feats, one per
   window the guide gives ("2 or 4, 6 or 8 and 10 or greater"): each is taken once and its row 1 grants
   `slayer/combat-style` (one of the ranger's five styles, levelled by slayer, `only_without_option`: the first

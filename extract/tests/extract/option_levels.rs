@@ -107,9 +107,10 @@ fn the_option_tables_and_the_lines_they_state_are_settled_report_items() {
 
 #[test]
 fn the_files_write_options_with_rows_and_read_them_back() {
-    // The data crate's fixture holds every shape: option rows with features, feats, selections and a feat list,
-    // option levels, skipped levels, list-only and only-without-option selections, pools, a replaced row, an
-    // option-row feature, a daily choice, spontaneous casting, an option-list slot and a mythic ability's grants.
+    // The data crate's fixture holds every shape: option rows with features, feats, selections, a feat list and
+    // class skills (and a row of class skills only), option levels, skipped levels, list-only and
+    // only-without-option selections, pools, a replaced row, an option-row feature, a daily choice, spontaneous
+    // casting, an option-list slot and a mythic ability's grants.
     let fixture =
         std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../data/tests/fixtures/game-data");
     let data = data::read_game_data_files(&fixture).unwrap();
@@ -125,7 +126,8 @@ fn the_files_write_options_with_rows_and_read_them_back() {
     assert!(
         sorcerer.contains(
             "                    levels: [\n                        (level: 1, features: \
-             [\"sorcerer/bloodline/abyssal/claws\"], feat_list: \"sorcerer/bloodline/abyssal-feats\"),\n"
+             [\"sorcerer/bloodline/abyssal/claws\"], feat_list: \"sorcerer/bloodline/abyssal-feats\", \
+             class_skills: [\"athletics\"]),\n"
         ),
         "{sorcerer}"
     );

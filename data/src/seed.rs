@@ -574,6 +574,15 @@ async fn insert_selections(
                 insert_grants(conn, owner, &row.features, &row.selections).await?;
                 insert_granted_feats(conn, owner, &row.feats).await?;
                 insert_feat_slots(conn, owner, &row.feat_slots).await?;
+                for skill in row.class_skills.iter() {
+                    sqlx::query!(
+                        "INSERT INTO class_skill (option_level_id, skill_key) VALUES ($1, $2)",
+                        id,
+                        skill.as_str(),
+                    )
+                    .execute(&mut *conn)
+                    .await?;
+                }
                 for feat in row.chosen_feats.iter() {
                     sqlx::query!(
                         "INSERT INTO option_level_chosen_feat (option_level_id, feat_key) VALUES ($1, $2)",

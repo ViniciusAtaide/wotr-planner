@@ -42,7 +42,7 @@ Class(
                     guide: "sorcerer#abyssal",
                     pool: "sorcerer/abyssal-powers",
                     levels: [
-                        (level: 1, features: ["sorcerer/bloodline/abyssal/claws"], feat_list: "sorcerer/bloodline/abyssal-feats"),
+                        (level: 1, features: ["sorcerer/bloodline/abyssal/claws"], feat_list: "sorcerer/bloodline/abyssal-feats", class_skills: ["athletics"]),
                         (level: 3, features: ["sorcerer/bloodline/abyssal/strength-of-the-abyss"], feats: ["toughness"], selections: ["sorcerer/school"]),
                     ],
                 ),
@@ -56,6 +56,7 @@ Class(
                     levels: [
                         (level: 1, features: ["sorcerer/bloodline/draconic/arcana", "sorcerer/bloodline/draconic/claws"]),
                         (level: 3, feat_slots: [CombatFeat, OneOf(list: "sorcerer/bloodline/abyssal-feats")]),
+                        (level: 9, class_skills: ["mobility", "persuasion"]),
                     ],
                 ),
             ],
