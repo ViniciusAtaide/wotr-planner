@@ -106,3 +106,10 @@ Real-data tests (`game_data.rs`, 7 new, red on HEAD's data first: 6 failures, `t
 1. **The bloodrager's groups are apart from the sorcerer's.** The guide's "single draconic bloodline" is the sorcerer's (about doubling the Bloodline Arcana); the decision groups the bloodrager's own. So a sorcerer/bloodrager may hold a sorcerer dragon and a bloodrager dragon. Should one Draconic group span both classes?
 2. **Impossible Domain's levels with two sources.** A Living Deity with cleric levels too takes the higher of its arcanist levels and its cleric domains' levels. Fine? (Equal at arcanist 20, where the way's own domains come.)
 3. **Who else has a "Domain".** The prerequisite now accepts a cleric, inquisitor, Divine Hunter, Living Deity or Pentamic Faith Hellknight (by the discipline whose row grants the domain). Other domain holders (a druid's Nature Bond domain, the Blight Druid, the Winter Child) still don't qualify. Should they ("Prerequisites: Domain")?
+
+## Decisions on the open questions
+
+**User, 2026-11-01 ("all recommended"):**
+1. The sorcerer's and bloodrager's groups stay apart: the guide states the one-dragon rule only for the sorcerer.
+2. A Living Deity with cleric levels levels its extra domain by the higher of the two, as built.
+3. The druid's Nature Bond domain, the Blight Druid's and the Winter Child's domains qualify for Impossible Domain ("Prerequisites: Domain"), its domain levelled by druid levels. [Ticket 36](36-impossible-domain-druids.md).
