@@ -74,7 +74,11 @@ fn a_wizards_scribe_scrolls_is_held_with_no_pick() {
 fn a_granted_feat_ignores_its_prerequisites() {
     // Improved Unarmed Strike needs Dex 13 here; a monk with Dex 12 still holds it.
     let mut build = build("dwarf", &["monk"]);
-    build.start.ability_scores.dexterity = 12;
+    build.start.ability_scores = build
+        .start
+        .ability_scores
+        .with(rules::Ability::Dexterity, 12)
+        .unwrap();
     let sheet = engine().evaluate(&build);
 
     assert!(

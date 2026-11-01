@@ -110,6 +110,11 @@ pub fn scores(values: [u8; 6]) -> AbilityScores {
     }
 }
 
+/// A point buy in the order Str, Dex, Con, Int, Wis, Cha; it must fit (scores 7 to 18, at most 25 points).
+pub fn point_buy(values: [u8; 6]) -> PointBuy {
+    PointBuy::try_from(scores(values)).expect("a point buy that fits")
+}
+
 /// A Build of the given race with Str 16, Dex 14, Con 12, Int 13, Wis 10, Cha 8 (21 of 25 points), true neutral,
 /// and one Level-up per class key.
 pub fn build(race: &str, classes: &[&str]) -> Build {
@@ -117,7 +122,7 @@ pub fn build(race: &str, classes: &[&str]) -> Build {
         start: BuildStart {
             race: Some(RaceKey::new(race)),
             alignment: Some(Alignment::TrueNeutral),
-            ability_scores: scores([16, 14, 12, 13, 10, 8]),
+            ability_scores: point_buy([16, 14, 12, 13, 10, 8]),
             ..BuildStart::default()
         },
         ..Build::default()

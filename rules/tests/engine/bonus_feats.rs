@@ -33,7 +33,11 @@ fn needs_feat(key: &str) -> Issue {
 /// A dwarf monk with Dexterity 12, so Dodge (Dex 13) and Crane Style (Dodge) are out of reach in a general slot.
 fn clumsy_monk(levels: usize) -> Build {
     let mut build = build("dwarf", &times("monk", levels));
-    build.start.ability_scores.dexterity = 12;
+    build.start.ability_scores = build
+        .start
+        .ability_scores
+        .with(rules::Ability::Dexterity, 12)
+        .unwrap();
     build
 }
 
@@ -104,7 +108,11 @@ fn a_follow_on_feat_checks_its_prerequisites_and_sees_the_bonus_pick_as_held() {
 #[test]
 fn a_fighter_combat_feat_slot_still_checks_prerequisites() {
     let mut build = build("dwarf", &["fighter"]);
-    build.start.ability_scores.dexterity = 12;
+    build.start.ability_scores = build
+        .start
+        .ability_scores
+        .with(rules::Ability::Dexterity, 12)
+        .unwrap();
     assert_eq!(
         status_of(
             &options(&build, &class_slot(1, 0)),
@@ -129,7 +137,11 @@ fn a_fighter_combat_feat_slot_still_checks_prerequisites() {
 fn a_fixed_list_that_is_not_a_bonus_list_still_checks_prerequisites() {
     // The Armiger's level-2 slot is a fixed list (Power Attack or Combat Expertise) that checks them.
     let mut build = build("dwarf", &times("fighter", 2));
-    build.start.ability_scores.intelligence = 12;
+    build.start.ability_scores = build
+        .start
+        .ability_scores
+        .with(rules::Ability::Intelligence, 12)
+        .unwrap();
     build.class_choices.insert(
         class("fighter"),
         ClassChoice {
@@ -153,7 +165,7 @@ fn a_fixed_list_that_is_not_a_bonus_list_still_checks_prerequisites() {
 }
 
 #[test]
-fn would_break_never_reports_a_bonus_list_pick() {
+fn a_bonus_list_pick_never_depends_on_anything() {
     // Dwarf monk 3 with Dex 14: Dodge (L1), Crane Style in the bonus slot at 2, Crane Wing (L3).
     let mut build = build("dwarf", &times("monk", 3));
     build.picks.insert(general_slot(1), pick_feat("dodge"));
@@ -163,11 +175,16 @@ fn would_break_never_reports_a_bonus_list_pick() {
     build.picks.insert(general_slot(3), pick_feat("crane-wing"));
     assert_eq!(engine().validate(&build), []);
 
-    // Removing Dodge breaks Crane Wing, which needs it, but not Crane Style in the bonus slot.
-    let broken: Vec<Choice> = engine()
-        .would_break(&build, &Edit::Clear(general_slot(1)))
-        .into_iter()
-        .map(|problem| problem.at)
-        .collect();
-    assert_eq!(broken, [Choice::Slot(general_slot(3))]);
+    // Crane Wing needs Dodge, so Dodge stays.
+    let removable = engine().removable(&build);
+    assert!(!removable.contains(&Choice::Slot(general_slot(1))));
+    assert!(removable.contains(&Choice::Slot(general_slot(3))));
+
+    // Without Crane Wing, Dodge may go: Crane Style in the bonus slot ignores its prerequisites.
+    build.apply(&Edit::Clear(general_slot(3)));
+    assert!(
+        engine()
+            .removable(&build)
+            .contains(&Choice::Slot(general_slot(1)))
+    );
 }

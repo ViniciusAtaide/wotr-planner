@@ -274,7 +274,11 @@ fn an_option_that_grants_a_feat_makes_the_feat_held() {
 #[test]
 fn ability_scores_skill_ranks_spell_levels_and_caster_level_are_checked() {
     let mut build = build("dwarf", &times("wizard", 5));
-    build.start.ability_scores.dexterity = 12;
+    build.start.ability_scores = build
+        .start
+        .ability_scores
+        .with(rules::Ability::Dexterity, 12)
+        .unwrap();
     build.levels[0].skill_ranks.insert(skill("mobility"), 1);
     let offered = options(&build, &general_slot(1));
     assert_eq!(

@@ -7,7 +7,8 @@ use crate::game_data::Ability;
 use crate::keys::{ClassKey, MythicPathKey, SkillKey};
 use crate::prerequisite::Prerequisite;
 
-/// One choice in a Build that doesn't hold up.
+/// One choice in a Build that doesn't hold up. A Build the planner's edits make has none: only a stale link (the
+/// game data changed since it was made) has problems, which the stale-link banner shows.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Problem {
     pub at: Choice,
@@ -28,7 +29,10 @@ pub enum Choice {
     Subrace,
     Alignment,
     Background,
-    AbilityScores,
+    /// One point-buy score.
+    AbilityScore {
+        ability: Ability,
+    },
     /// The class taken at a character level (its entry prerequisites, on first entry).
     Class {
         level: u8,
@@ -62,7 +66,9 @@ pub enum Choice {
     Slot(SlotId),
 }
 
-/// Why a choice doesn't hold up.
+/// Why a choice doesn't hold up, or why a picker's option can't be taken. Only what a stale link can hold is a
+/// reason here: what only a hand-edited link could hold is kept out by the types and the link decoder (a point
+/// buy that doesn't fit, ranks above the character level, an ability increase on a level without one).
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Issue {
     /// The key isn't in the current game data.
@@ -73,9 +79,7 @@ pub enum Issue {
     /// already held for this value.
     AlreadyHeld,
     /// Already taken as many times as it can be (Extra Hex: 3).
-    MaxTimes {
-        times: u8,
-    },
+    MaxTimes { times: u8 },
     /// A pick of a parameterised feat, or of an option with a chosen feat, that names no value.
     ParameterMissing,
     /// A value the pick can't be taken for: one of another kind (a skill for Weapon Focus, a simple weapon for
@@ -87,40 +91,19 @@ pub enum Issue {
     /// A pick for a slot the Build doesn't have (any more).
     NoSuchSlot,
     /// The character level is above the cap (20, or the switched-to path's).
-    LevelCap {
-        cap: u8,
-    },
+    LevelCap { cap: u8 },
     /// The class level is above the class's table or the path's cap.
-    ClassLevelCap {
-        cap: u8,
-    },
-    /// Total ranks in a skill above the cap (the character level).
-    SkillRankCap {
-        cap: u8,
-        ranks: u8,
-    },
-    SkillPointsOverspent {
-        available: u8,
-        spent: u8,
-    },
-    /// The point buy costs more than the budget.
-    PointBuy {
-        cost: u8,
-        budget: u8,
-    },
-    /// A point-buy score outside 7..=18.
-    ScoreOutOfRange {
-        ability: Ability,
-        score: u8,
-    },
+    ClassLevelCap { cap: u8 },
+    /// More ranks than the Level-up's skill points (the class's, or the Intelligence modifier, changed).
+    SkillPointsOverspent { available: u8, spent: u8 },
     /// A path that can't be taken this way: a switch-only path at MR 3, or a path without a switch rule at MR 8.
     NotChoosable,
     /// A Path switch open only from other paths than the Build's (Devil: from Aeon or Azata).
-    NotFromPath {
-        from: BTreeSet<MythicPathKey>,
-    },
-    /// An ability increase at a level that has none.
-    NoAbilityIncrease,
+    NotFromPath { from: BTreeSet<MythicPathKey> },
+    /// A picker's option that would break a later choice (a later pick of the same feat, or one that needs what
+    /// the option replaces): the later choice comes off first, as choices come off from the leaves inward
+    /// ([`Engine::removable`](crate::Engine::removable)). Never a problem of a Build's.
+    BreaksLater,
 }
 
 /// Why a Prerequisite fails, shaped like the part of the tree that fails.

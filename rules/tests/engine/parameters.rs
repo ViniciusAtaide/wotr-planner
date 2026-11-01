@@ -5,8 +5,8 @@
 use std::collections::BTreeMap;
 
 use rules::{
-    Build, Choice, Edit, Issue, Parameter, Pick, Prerequisite, Problem, SlotId, SlotOption,
-    SpellSchool, Unmet,
+    Build, Choice, Issue, Parameter, Pick, Prerequisite, Problem, SlotId, SlotOption, SpellSchool,
+    Unmet,
 };
 
 use crate::support::*;
@@ -143,7 +143,7 @@ fn weapon_specialization_checks_the_matching_weapon() {
 }
 
 #[test]
-fn removing_weapon_focus_breaks_the_specialization_in_its_weapon() {
+fn weapon_focus_stays_while_the_specialization_in_its_weapon_needs_it() {
     let mut build = build("elf", &times("fighter", 4));
     build.picks.insert(
         class_slot(1, 0),
@@ -153,22 +153,21 @@ fn removing_weapon_focus_breaks_the_specialization_in_its_weapon() {
         class_slot(4, 0),
         pick_feat_for("weapon-specialization", weapon("longsword")),
     );
-    let broken = engine().would_break(&build, &Edit::Clear(class_slot(1, 0)));
+    let removable = engine().removable(&build);
+    assert!(!removable.contains(&Choice::Slot(class_slot(1, 0))));
+    assert!(removable.contains(&Choice::Slot(class_slot(4, 0))));
+    // Refocusing on another weapon is locked too; the same weapon stays open.
+    let options = options(&build, &class_slot(1, 0));
     assert_eq!(
-        broken.iter().map(|p| p.at.clone()).collect::<Vec<_>>(),
-        [Choice::Slot(class_slot(4, 0))]
-    );
-    // Refocusing on another weapon breaks it too.
-    let broken = engine().would_break(
-        &build,
-        &Edit::Pick {
-            slot: class_slot(1, 0),
-            pick: pick_feat_for("weapon-focus", weapon("dagger")),
-        },
+        status_of(&options, &pick_feat_for("weapon-focus", weapon("dagger"))),
+        Err(Issue::BreaksLater)
     );
     assert_eq!(
-        broken.iter().map(|p| p.at.clone()).collect::<Vec<_>>(),
-        [Choice::Slot(class_slot(4, 0))]
+        status_of(
+            &options,
+            &pick_feat_for("weapon-focus", weapon("longsword"))
+        ),
+        Ok(())
     );
 }
 

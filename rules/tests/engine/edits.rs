@@ -1,7 +1,7 @@
 //! Edits to a Build, as the sheet makes them: class changes keep each class's archetype and spellcasting choice,
 //! and levels come off the end.
 
-use rules::{ArchetypeKey, Build, ClassChoice, Edit};
+use rules::{Ability, ArchetypeKey, Build, ClassChoice, Edit};
 
 use crate::support::*;
 
@@ -144,4 +144,42 @@ fn set_name_names_and_unnames_the_build() {
     assert_eq!(build.name.as_deref(), Some("Cleaver"));
     build.apply(&Edit::SetName(None));
     assert_eq!(build.name, None);
+}
+
+#[test]
+fn an_ability_increase_goes_only_on_a_level_that_has_one() {
+    let mut build = build("elf", &times("fighter", 4));
+    let before = build.clone();
+    build.apply(&Edit::AbilityIncrease {
+        level: 3,
+        ability: Some(Ability::Strength),
+    });
+    assert_eq!(build, before);
+    build.apply(&Edit::AbilityIncrease {
+        level: 4,
+        ability: Some(Ability::Strength),
+    });
+    assert_eq!(build.levels[3].ability_increase, Some(Ability::Strength));
+}
+
+#[test]
+fn skill_ranks_never_go_above_the_character_level() {
+    let mut build = build("elf", &times("rogue", 3));
+    let ranks = |level, ranks| Edit::SkillRanks {
+        level,
+        skill: skill("mobility"),
+        ranks,
+    };
+    // Two ranks at level 1 is one too many.
+    build.apply(&ranks(1, 2));
+    assert!(build.levels[0].skill_ranks.is_empty());
+    // None at 1 and two at 2 fits; then one at 1 would make three by level 2.
+    build.apply(&ranks(2, 2));
+    build.apply(&ranks(1, 1));
+    assert!(build.levels[0].skill_ranks.is_empty());
+    assert_eq!(build.levels[1].skill_ranks[&skill("mobility")], 2);
+    // Fewer ranks always fit.
+    build.apply(&ranks(2, 1));
+    build.apply(&ranks(1, 1));
+    assert_eq!(build.levels[0].skill_ranks[&skill("mobility")], 1);
 }

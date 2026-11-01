@@ -1,6 +1,6 @@
 //! Whole-Build validation, as when a link is opened: picks that no longer qualify, and keys the game data lacks.
 
-use rules::{Ability, Choice, Engine, Issue, LevelUp, Prerequisite, Problem, Unmet};
+use rules::{Ability, Choice, Engine, Issue, LevelUp, PointBuy, Prerequisite, Problem, Unmet};
 
 use crate::support::*;
 
@@ -104,27 +104,6 @@ fn a_pick_for_a_slot_that_no_longer_exists_is_reported() {
 }
 
 #[test]
-fn skill_ranks_are_capped_at_the_character_level() {
-    let mut build = build("elf", &times("rogue", 3));
-    build.levels[0].skill_ranks.insert(skill("mobility"), 1);
-    build.levels[1].skill_ranks.insert(skill("mobility"), 1);
-    build.levels[2].skill_ranks.insert(skill("mobility"), 1);
-    assert_eq!(engine().validate(&build), []);
-
-    build.levels[0].skill_ranks.insert(skill("athletics"), 2);
-    assert_eq!(
-        at(&engine().validate(&build)),
-        [(
-            Choice::SkillRanks {
-                level: 1,
-                skill: skill("athletics")
-            },
-            Issue::SkillRankCap { cap: 1, ranks: 2 }
-        )]
-    );
-}
-
-#[test]
 fn skill_points_cannot_be_overspent() {
     // Wizard: 2 + Int 13 (+1) = 3 points.
     let mut build = build("dwarf", &["wizard"]);
@@ -192,22 +171,24 @@ fn class_entry_prerequisites_are_checked_on_the_first_level() {
     );
 }
 
+/// A point buy that doesn't fit can't be made, so it's no problem of a Build's: the type holds only scores from 7 to
+/// 18 costing at most 25 points (and a link with another doesn't decode).
 #[test]
-fn the_point_buy_must_fit_the_budget() {
-    let mut build = build("elf", &["fighter"]);
-    build.start.ability_scores = scores([18, 18, 10, 10, 10, 10]);
-    assert_eq!(
-        at(&engine().validate(&build)),
-        [(
-            Choice::AbilityScores,
-            Issue::PointBuy {
-                cost: 34,
-                budget: 25
-            }
-        )]
-    );
-    build.start.ability_scores = scores([18, 14, 14, 7, 10, 7]);
-    assert_eq!(engine().validate(&build), []);
+fn a_point_buy_holds_only_scores_from_7_to_18_within_the_budget() {
+    // 17 + 5 + 5 - 4 + 0 - 4 = 19 points.
+    assert!(PointBuy::try_from(scores([18, 14, 14, 7, 10, 7])).is_ok());
+    // 17 + 17 = 34 points.
+    assert!(PointBuy::try_from(scores([18, 18, 10, 10, 10, 10])).is_err());
+    assert!(PointBuy::try_from(scores([19, 10, 10, 10, 10, 10])).is_err());
+    assert!(PointBuy::try_from(scores([6, 10, 10, 10, 10, 10])).is_err());
+
+    let point_buy = PointBuy::default();
+    assert_eq!(point_buy.get(Ability::Strength), 10);
+    let strong = point_buy.with(Ability::Strength, 18).unwrap();
+    assert_eq!(strong.get(Ability::Strength), 18);
+    assert_eq!(strong.cost(), 17);
+    assert_eq!(point_buy.with(Ability::Strength, 19), None);
+    assert_eq!(strong.with(Ability::Dexterity, 18), None);
 }
 
 #[test]

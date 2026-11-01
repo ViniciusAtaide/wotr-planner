@@ -2,8 +2,13 @@
 //!
 //! Everything is stored as game-data text keys, so a Build survives re-seeds and can name things that no longer
 //! exist (the engine reports those rather than failing). The URL codec serialises this type as is.
+//!
+//! The rules no game data changes are kept by the types and edits rather than reported: a [`PointBuy`] holds only
+//! scores that fit, and [`Build::apply`] never puts ranks in a skill above the character level or an ability
+//! increase on a level without one ([`Build::keeps_fixed_rules`]). A link that breaks them doesn't decode.
 
 use std::collections::{BTreeMap, BTreeSet};
+use std::fmt;
 
 use serde::{Deserialize, Serialize};
 
@@ -47,7 +52,7 @@ pub struct BuildStart {
     /// `None` until one is chosen; the background "None" is a key like any other.
     pub background: Option<BackgroundKey>,
     /// The point-buy scores, before racial modifiers.
-    pub ability_scores: AbilityScores,
+    pub ability_scores: PointBuy,
 }
 
 /// The six ability scores.
@@ -111,6 +116,88 @@ impl AbilityScores {
     pub fn modifier(&self, ability: Ability) -> i8 {
         (i16::from(self.get(ability)) - 10).div_euclid(2) as i8
     }
+}
+
+/// The point-buy budget at Build start.
+pub const POINT_BUY_BUDGET: u8 = 25;
+
+/// The point-buy scores: each from 7 to 18, costing at most [`POINT_BUY_BUDGET`] points (Pathfinder's table; 7 to 9
+/// refund points). Only scores that fit make one, so a Build never holds a point buy the planner can't make. In a
+/// link it's the six scores, as [`AbilityScores`] are.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(try_from = "AbilityScores", into = "AbilityScores")]
+pub struct PointBuy(AbilityScores);
+
+impl Default for PointBuy {
+    /// All 10s: nothing spent.
+    fn default() -> Self {
+        Self(AbilityScores::default())
+    }
+}
+
+impl PointBuy {
+    pub fn scores(&self) -> AbilityScores {
+        self.0
+    }
+
+    pub fn get(&self, ability: Ability) -> u8 {
+        self.0.get(ability)
+    }
+
+    /// The points spent (less those 7 to 9 refund), at most the budget.
+    pub fn cost(&self) -> i8 {
+        AbilityScores::ABILITIES
+            .into_iter()
+            .map(|ability| point_buy_cost(self.get(ability)).unwrap_or(0))
+            .sum()
+    }
+
+    /// The point buy with one score changed, if it still fits.
+    pub fn with(&self, ability: Ability, score: u8) -> Option<Self> {
+        let mut scores = self.0;
+        *scores.get_mut(ability) = score;
+        Self::try_from(scores).ok()
+    }
+}
+
+impl TryFrom<AbilityScores> for PointBuy {
+    type Error = NotAPointBuy;
+
+    fn try_from(scores: AbilityScores) -> Result<Self, NotAPointBuy> {
+        let mut cost = 0i16;
+        for ability in AbilityScores::ABILITIES {
+            cost += i16::from(point_buy_cost(scores.get(ability)).ok_or(NotAPointBuy)?);
+        }
+        if cost > i16::from(POINT_BUY_BUDGET) {
+            return Err(NotAPointBuy);
+        }
+        Ok(Self(scores))
+    }
+}
+
+impl From<PointBuy> for AbilityScores {
+    fn from(point_buy: PointBuy) -> Self {
+        point_buy.0
+    }
+}
+
+/// Scores that make no point buy: one outside 7 to 18, or more than the budget in all.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct NotAPointBuy;
+
+impl fmt::Display for NotAPointBuy {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "a point buy has every score from 7 to 18 and costs at most {POINT_BUY_BUDGET} points"
+        )
+    }
+}
+
+/// The cost of one point-buy score (Pathfinder's table; 7 to 9 refund points), or `None` outside 7..=18.
+fn point_buy_cost(score: u8) -> Option<i8> {
+    const COSTS: [i8; 12] = [-4, -2, -1, 0, 1, 2, 3, 5, 7, 10, 13, 17];
+    COSTS.get(usize::from(score.checked_sub(7)?)).copied()
 }
 
 /// The choices made once for a class, when it's first taken.
@@ -338,7 +425,8 @@ pub enum Edit {
 }
 
 impl Edit {
-    /// The choices this edit sets directly. Their own problems are the picker's business, not a would-break.
+    /// The choices this edit sets directly. Their own problems are the picker's business; an edit is allowed when
+    /// it breaks no other choice ([`Engine::allows`](crate::Engine::allows)).
     pub fn choices(&self) -> Vec<Choice> {
         match self {
             Edit::Pick { slot, .. } | Edit::Clear(slot) => vec![Choice::Slot(slot.clone())],
@@ -366,13 +454,15 @@ impl Edit {
                 },
                 Choice::SkillPoints { level: *level },
             ],
-            Edit::Start(_) => vec![
+            Edit::Start(_) => [
                 Choice::Race,
                 Choice::Subrace,
                 Choice::Alignment,
                 Choice::Background,
-                Choice::AbilityScores,
-            ],
+            ]
+            .into_iter()
+            .chain(AbilityScores::ABILITIES.map(|ability| Choice::AbilityScore { ability }))
+            .collect(),
             Edit::MythicPath(_) => vec![Choice::MythicPath],
             Edit::PathSwitch(_) => vec![Choice::PathSwitch],
             // Nothing after the last level can depend on it, and a name breaks nothing.
@@ -383,7 +473,8 @@ impl Edit {
 
 impl Build {
     /// Applies an edit. Edits naming a level the Build doesn't have (other than the next one, for a class) do
-    /// nothing.
+    /// nothing, and so do edits that would break a fixed rule ([`keeps_fixed_rules`](Self::keeps_fixed_rules)):
+    /// an ability increase on a level without one, or ranks that take a skill above the character level.
     pub fn apply(&mut self, edit: &Edit) {
         match edit {
             Edit::Pick { slot, pick } => {
@@ -411,6 +502,9 @@ impl Build {
                 self.drop_unused_class_choices();
             }
             Edit::AbilityIncrease { level, ability } => {
+                if ability.is_some() && !has_ability_increase(*level) {
+                    return;
+                }
                 if let Some(level_up) = self.level_mut(*level) {
                     level_up.ability_increase = *ability;
                 }
@@ -420,12 +514,21 @@ impl Build {
                 skill,
                 ranks,
             } => {
-                if let Some(level_up) = self.level_mut(*level) {
-                    if *ranks == 0 {
-                        level_up.skill_ranks.remove(skill);
-                    } else {
-                        level_up.skill_ranks.insert(skill.clone(), *ranks);
-                    }
+                let Some(level_up) = self.level_mut(*level) else {
+                    return;
+                };
+                let before = if *ranks == 0 {
+                    level_up.skill_ranks.remove(skill)
+                } else {
+                    level_up.skill_ranks.insert(skill.clone(), *ranks)
+                };
+                if !self.keeps_fixed_rules()
+                    && let Some(level_up) = self.level_mut(*level)
+                {
+                    match before {
+                        Some(before) => level_up.skill_ranks.insert(skill.clone(), before),
+                        None => level_up.skill_ranks.remove(skill),
+                    };
                 }
             }
             Edit::Start(start) => self.start = start.clone(),
@@ -447,10 +550,38 @@ impl Build {
         self.levels.get_mut(usize::from(level).checked_sub(1)?)
     }
 
+    /// Whether the Build keeps the rules no game data changes, which the planner's edits never break: ranks in a
+    /// skill never above the character level, and an ability increase only at every 4th level. (A [`PointBuy`]
+    /// can't break its own.) A link whose Build breaks them doesn't decode, so the engine doesn't check them.
+    pub fn keeps_fixed_rules(&self) -> bool {
+        let mut totals: BTreeMap<&SkillKey, usize> = BTreeMap::new();
+        for (index, level_up) in self.levels.iter().enumerate() {
+            let level = index + 1;
+            if level_up.ability_increase.is_some()
+                && !u8::try_from(level).is_ok_and(has_ability_increase)
+            {
+                return false;
+            }
+            for (skill, ranks) in &level_up.skill_ranks {
+                let total = totals.entry(skill).or_default();
+                *total += usize::from(*ranks);
+                if *total > level {
+                    return false;
+                }
+            }
+        }
+        true
+    }
+
     /// Forgets the choices of classes no level takes any more, so a link carries no dead choices.
     fn drop_unused_class_choices(&mut self) {
         let levels = &self.levels;
         self.class_choices
             .retain(|class, _| levels.iter().any(|level| &level.class == class));
     }
+}
+
+/// Whether a character level has the +1 ability increase: every 4th level.
+pub fn has_ability_increase(level: u8) -> bool {
+    level % 4 == 0
 }

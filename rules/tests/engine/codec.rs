@@ -8,7 +8,7 @@ use proptest::prelude::*;
 use rules::{
     Ability, AbilityScores, Alignment, ArchetypeKey, ArmourType, BackgroundKey, Build, BuildStart,
     ClassChoice, ClassKey, DecodeError, Energy, FeatSource, LevelUp, MythicPathKey, Parameter,
-    Pick, RaceKey, SkillKey, SlotId, SpellSchool, SubraceKey, decode_build, encode_build,
+    Pick, PointBuy, RaceKey, SkillKey, SlotId, SpellSchool, SubraceKey, decode_build, encode_build,
 };
 
 use crate::support::*;
@@ -44,18 +44,42 @@ fn start() -> impl Strategy<Value = BuildStart> {
         option::of(ability()),
         option::of(alignment()),
         option::of(key().prop_map(BackgroundKey)),
-        prop::array::uniform6(any::<u8>()),
+        point_buy_strategy(),
     )
         .prop_map(
-            |(race, subrace, racial_ability, alignment, background, s)| BuildStart {
+            |(race, subrace, racial_ability, alignment, background, ability_scores)| BuildStart {
                 race,
                 subrace,
                 racial_ability,
                 alignment,
                 background,
-                ability_scores: scores(s),
+                ability_scores,
             },
         )
+}
+
+/// Any point buy: scores from 7 to 18 within the budget.
+fn point_buy_strategy() -> impl Strategy<Value = PointBuy> {
+    prop::array::uniform6(7u8..=18)
+        .prop_filter_map("over the budget", |s| PointBuy::try_from(scores(s)).ok())
+}
+
+/// Levels as the planner makes them: an ability increase only at every 4th level, and a skill's ranks never above
+/// the character level.
+fn possible(mut levels: Vec<LevelUp>) -> Vec<LevelUp> {
+    let mut totals: BTreeMap<SkillKey, u8> = BTreeMap::new();
+    for (index, level) in levels.iter_mut().enumerate() {
+        let number = u8::try_from(index + 1).unwrap();
+        if number % 4 != 0 {
+            level.ability_increase = None;
+        }
+        for (skill, ranks) in &mut level.skill_ranks {
+            let total = totals.entry(skill.clone()).or_default();
+            *ranks = (*ranks).min(number - *total);
+            *total += *ranks;
+        }
+    }
+    levels
 }
 
 fn level_up() -> impl Strategy<Value = LevelUp> {
@@ -160,7 +184,7 @@ fn any_build() -> impl Strategy<Value = Build> {
             |(name, start, levels, class_choices, mythic_path, path_switch, picks)| Build {
                 name,
                 start,
-                levels,
+                levels: possible(levels),
                 class_choices,
                 mythic_path,
                 path_switch,
@@ -323,6 +347,42 @@ fn bad_links_are_errors_not_panics() {
     let mut shortened = code.clone();
     shortened.truncate(code.len() / 2);
     assert!(decode_build(&shortened).is_err());
+}
+
+#[test]
+fn a_hand_edited_link_with_ranks_above_the_level_or_a_misplaced_increase_does_not_decode() {
+    // Two ranks at level 1.
+    let mut ranks = v1_build();
+    ranks.levels[0].skill_ranks.insert(skill("athletics"), 2);
+    assert_eq!(
+        decode_build(&encode_build(&ranks)),
+        Err(DecodeError::Format)
+    );
+    // One at level 1 and two more at level 2: three at level 2.
+    let mut ranks = v1_build();
+    ranks.levels[1].skill_ranks.insert(skill("athletics"), 2);
+    assert_eq!(
+        decode_build(&encode_build(&ranks)),
+        Err(DecodeError::Format)
+    );
+    // One more at level 2 fits.
+    ranks.levels[1].skill_ranks.insert(skill("athletics"), 1);
+    assert_eq!(decode_build(&encode_build(&ranks)), Ok(ranks));
+
+    // An ability increase at level 3, which has none.
+    let mut increase = v1_build();
+    increase.levels[2].ability_increase = Some(Ability::Strength);
+    assert_eq!(
+        decode_build(&encode_build(&increase)),
+        Err(DecodeError::Format)
+    );
+    // At level 4 it decodes.
+    increase.levels[2].ability_increase = None;
+    increase.levels.push(LevelUp {
+        ability_increase: Some(Ability::Strength),
+        ..LevelUp::new(class("rogue"))
+    });
+    assert_eq!(decode_build(&encode_build(&increase)), Ok(increase));
 }
 
 #[test]

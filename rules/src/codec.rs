@@ -8,6 +8,9 @@
 //! Every key is a text key, so a link names things the game data may no longer have; decoding never looks at the
 //! game data, and [`Engine::validate`](crate::Engine::validate) reports such keys.
 //!
+//! A link whose Build no planner could make, whatever the game data, doesn't decode: a point buy that doesn't fit,
+//! ranks above the character level, an ability increase on a level without one. Only a hand-edited link has one.
+//!
 //! Changing [`Build`]'s serde shape (field order, enum variant order, types) changes version 1's format. Don't:
 //! add a version 2 with its own frozen types and keep decoding version 1. The frozen v1 test vector guards this.
 
@@ -34,7 +37,8 @@ pub enum DecodeError {
     UnsupportedVersion(u8),
     /// The body isn't valid DEFLATE data, or inflates past the size limit.
     Decompress,
-    /// The inflated body isn't a Build of this version.
+    /// The inflated body isn't a Build of this version, or is one no planner makes (a hand-edited link: see the
+    /// module docs).
     Format,
 }
 
@@ -50,7 +54,9 @@ impl fmt::Display for DecodeError {
                 )
             }
             DecodeError::Decompress => f.write_str("the link's Build data is damaged"),
-            DecodeError::Format => f.write_str("the link's Build data doesn't describe a Build"),
+            DecodeError::Format => {
+                f.write_str("the link's Build data doesn't describe a Build the planner can make")
+            }
         }
     }
 }
@@ -84,7 +90,7 @@ fn decode_v1(body: &[u8]) -> Result<Build, DecodeError> {
     let inflated = miniz_oxide::inflate::decompress_to_vec_with_limit(body, MAX_INFLATED)
         .map_err(|_| DecodeError::Decompress)?;
     match postcard::take_from_bytes::<Build>(&inflated) {
-        Ok((build, [])) => Ok(build),
+        Ok((build, [])) if build.keeps_fixed_rules() => Ok(build),
         _ => Err(DecodeError::Format),
     }
 }
@@ -130,5 +136,33 @@ mod tests {
                 0, 1, b'y', 0, // Pick::Feat { feat: "y", parameter: None }
             ]
         );
+    }
+
+    /// A link made by hand around a version 1 body.
+    fn link(body: &[u8]) -> String {
+        let mut bytes = vec![CODEC_VERSION];
+        bytes.extend(miniz_oxide::deflate::compress_to_vec(body, 9));
+        URL_SAFE_NO_PAD.encode(bytes)
+    }
+
+    /// A point buy no planner makes (a score of 19, or 34 points) can't be read into a Build.
+    #[test]
+    fn a_hand_edited_point_buy_does_not_decode() {
+        let body = postcard::to_allocvec(&Build::default()).unwrap();
+        // Name, race, subrace, racial ability, alignment, background: all None; then the six scores.
+        assert_eq!(body[..12], [0, 0, 0, 0, 0, 0, 10, 10, 10, 10, 10, 10]);
+        assert_eq!(decode_build(&link(&body)), Ok(Build::default()));
+
+        let mut nineteen = body.clone();
+        nineteen[6] = 19;
+        assert_eq!(decode_build(&link(&nineteen)), Err(DecodeError::Format));
+
+        let mut over_budget = body.clone();
+        over_budget[6..8].copy_from_slice(&[18, 18]);
+        assert_eq!(decode_build(&link(&over_budget)), Err(DecodeError::Format));
+
+        let mut fits = body;
+        fits[6..12].copy_from_slice(&[18, 14, 14, 7, 10, 7]);
+        assert!(decode_build(&link(&fits)).is_ok());
     }
 }

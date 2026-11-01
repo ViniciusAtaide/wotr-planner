@@ -178,9 +178,9 @@ The sheet's tab for Mythic ranks 1–10 at their fixed character levels, with th
 _Avoid_: Mythic tab, mythic levels
 
 **Problem**:
-A choice in a Build that doesn't hold up, where it is and why: an unmet prerequisite, a key missing from the game data, a pick for a slot that's gone, a cap exceeded. Opening a stale link marks problems; editing blocks them.
+A choice in a Build that doesn't hold up, where it is and why: an unmet prerequisite, a key missing from the game data, a pick for a slot that's gone, a cap exceeded. Only a stale link has problems (the game data changed since it was made): opening it marks them, and the sheet offers no edit that would make one. A link no planner could make (a point buy that doesn't fit, ranks above the character level, an ability increase on a level without one) doesn't open.
 _Avoid_: Error, violation
 
-**Would-break**:
-The problems an edit would cause later in the Build, chains included (removing Cleave breaks Great Cleave and what needs it). The sheet blocks such edits and says what they'd break.
-_Avoid_: Conflict, side effect
+**Removable**:
+A choice the sheet may remove or change now: no later choice depends on it, or it's broken (a stale link's broken pick can always go). Choices come off from the leaves inward: of Power Attack, Cleave and Great Cleave, Great Cleave first, then Cleave. A picker locks an option that would break a later choice.
+_Avoid_: Would-break, conflict

@@ -110,7 +110,7 @@ fn an_archetype_that_replaces_its_classs_skills_gives_its_own() {
 fn a_backgrounds_feat_is_held_from_the_start_whatever_its_prerequisites() {
     // Dex 10: the world's Improved Unarmed Strike needs 13, but a granted feat skips its prerequisites.
     let mut build = wizard(Some("martial-disciple"));
-    build.start.ability_scores = scores([16, 10, 12, 14, 10, 10]);
+    build.start.ability_scores = point_buy([16, 10, 12, 14, 10, 10]);
     assert_eq!(engine().validate(&build), []);
     let state = engine()
         .state_before(&build, &general_slot(1))
@@ -183,15 +183,13 @@ fn an_unknown_background_is_reported() {
 }
 
 #[test]
-fn changing_the_background_would_break_what_its_feat_allowed() {
+fn a_background_whose_feat_a_pick_needs_is_not_changeable() {
     let mut build = wizard(Some("guard"));
+    assert!(engine().removable(&build).contains(&Choice::Background));
     build.picks.insert(general_slot(1), armor_focus_light());
+    assert!(!engine().removable(&build).contains(&Choice::Background));
+    // Nor may it become a background without light armour.
     let mut start = build.start.clone();
     start.background = Some(BackgroundKey::new("shackles-corsair"));
-    let broken: Vec<Choice> = engine()
-        .would_break(&build, &Edit::Start(start))
-        .into_iter()
-        .map(|problem| problem.at)
-        .collect();
-    assert_eq!(broken, [Choice::Slot(general_slot(1))]);
+    assert!(!engine().allows(&build, &Edit::Start(start)));
 }

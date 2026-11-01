@@ -355,7 +355,7 @@ fn the_highest_score_is_taken_before_the_floors_and_a_tie_goes_to_the_first_in_s
     // Provisional (ticket 26, open question): the guide doesn't say which of two equal highest scores gets the
     // bonus.
     let mut build = mythic_build("trickster", 17);
-    build.start.ability_scores = scores([14, 16, 12, 16, 10, 8]);
+    build.start.ability_scores = point_buy([14, 16, 12, 16, 10, 8]);
     build.path_switch = Some(path("gold-dragon"));
     let after_8 = engine().state_before(&build, &path_selection(8)).unwrap();
     assert_eq!(scores_of(&after_8), [14, 20, 14, 16, 14, 14]);
@@ -500,18 +500,21 @@ fn gold_dragons_dragon_feats_are_three_picks_of_any_feat_ignoring_prerequisites(
         assert!(at_17.feats.contains_key(&feat(key)), "{key}");
     }
 
-    // Every feat of the data is offered (a parameterised one once per value), and each one not held is open.
-    let options = engine().options(&build, &slot(0)).unwrap();
+    // Every feat of the data is offered (a parameterised one once per value), and each one not held is open, but
+    // for Cleaving Finish, which the third pick takes. (The second slot: nothing depends on Crane Wing.)
+    let options = engine().options(&build, &slot(1)).unwrap();
     let offered: std::collections::BTreeSet<_> =
         options.iter().map(|option| option.pick.key()).collect();
     assert_eq!(offered.len(), world().feats.len());
-    let held = engine().state_before(&build, &slot(0)).unwrap().feats;
+    let held = engine().state_before(&build, &slot(1)).unwrap().feats;
     for option in options {
         let rules::Pick::Feat { feat: key, .. } = &option.pick else {
             panic!("{option:?}")
         };
         let expected = if held.contains_key(key) {
             Err(Issue::AlreadyHeld)
+        } else if key == &feat("cleaving-finish") {
+            Err(Issue::BreaksLater)
         } else {
             Ok(())
         };
