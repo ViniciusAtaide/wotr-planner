@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO selection_shared_option (selection_key, option_key) VALUES ($1, $2)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "008f95a0be330cbba42b2a06276cd525fa17fa446ce5c7e3539a4b9d35bb2719"
+}

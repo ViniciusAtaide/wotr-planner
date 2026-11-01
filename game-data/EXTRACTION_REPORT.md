@@ -1,8 +1,8 @@
 # Extraction report
 
-**Hand-fixed on 2026-11-01** by tickets 17–20 (feats, base classes, prestige classes, mythic). Remaining: Feats 2, Base classes 56, Prestige classes 12, Mythic 9, Races and skills 0. Items marked *narrowed* are partly fixed; items marked *new* were found during the hand-fix.
+**Hand-fixed on 2026-11-01** by tickets 17–20 (feats, base classes, prestige classes, mythic). Remaining: Feats 2, Base classes 54, Prestige classes 12, Mythic 9, Races and skills 0. Items marked *narrowed* are partly fixed; items marked *new* were found during the hand-fix. Ticket 25 (shared selection options) fixed `rogue#discovery` and `rogue#fey-tricks`.
 
-What the extractor couldn't turn into data from the guide pages saved on 2026-10-31, with where each item is (`page#anchor`). Fix an item by editing the `.ron` files, check with `cargo run -p data --bin seed -- --check-only`, then delete its line here. 79 items.
+What the extractor couldn't turn into data from the guide pages saved on 2026-10-31, with where each item is (`page#anchor`). Fix an item by editing the `.ron` files, check with `cargo run -p data --bin seed -- --check-only`, then delete its line here. 77 items.
 
 ## Feats (2)
 
@@ -13,7 +13,7 @@ Each line is left out of its prerequisite, so it doesn't block any pick. A group
 - `feats#disruptive`: "Fighter Level 6 or Arcane bloodline" (nothing named "Arcane bloodline"; sorcerer bloodlines aren't a selection in the data)
 - `feats#extra-slayer-talent`: "Slayer Talents or Talented Slayer" (nothing named "Talented Slayer"; it appears on no saved page)
 
-## Base classes (56)
+## Base classes (54)
 
 ### Entry requirements (1)
 
@@ -78,14 +78,12 @@ The slot as stored, and why it needs a look.
 - `sorcerer#sage-sorcerer`: "Bonus Feat" (no list found for this slot; stored as a general slot)
 - `sorcerer#sylvan-sorcerer`: "Bonus Feat" (no list found for this slot; stored as a general slot)
 
-### Prose-only rules (8)
+### Prose-only rules (6)
 
 Rules stated only in prose that the current data types can't hold.
 
 - `barbarian#rage-powers`:  (totem rage powers are exclusive: one totem line per character. The data has no "not" prerequisite, so only the Lesser, plain, Greater chain is checked)
 - `kineticist#kineticist-bonus-feat`:  (a wild talent that grants a bonus feat slot; a selection option can't grant a slot. The kineticist has no selections: wild talents and Elemental Focus aren't data)
-- `rogue#discovery`:  (*new*: from 10th level the Underground Chemist may take alchemist discoveries instead of rogue talents; a slot takes one selection, so only rogue talents are offered)
-- `rogue#fey-tricks`:  (*new*: the Sylvan Trickster's even-level pick is a rogue talent or a witch hex, major from 10, grand from 18; a slot takes one selection, so only rogue talents are offered)
 - `rogue#skill-focus-master-of-all`:  (*new*: one `skill-focus` feat key can't be held more than once, so the Master of All's three Skill Focus grants are stored as features)
 - `rogue#sneak-attack-eldritch-scoundrel`:  (*new*: read from prose as dice at 1, 3, 7, 11, 15, 19; the reading needs checking)
 - `shaman`:  (*new*: the Second Spirit mythic ability and Wandering Hex give another spirit's hexes; not modelled)

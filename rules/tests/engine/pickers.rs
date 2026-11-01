@@ -41,6 +41,7 @@ fn class_options_list_every_class_with_its_archetypes_then_prestige_classes() {
             ("monk", None),
             ("rogue", None),
             ("rogue", Some("rogue/eldritch-scoundrel")),
+            ("slayer", None),
             ("wizard", None),
             ("arcane-trickster", None),
             ("mystic-theurge", None),

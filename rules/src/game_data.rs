@@ -622,7 +622,8 @@ pub struct Feature {
     pub guide: GuideRef,
 }
 
-/// The fixed list a Feature selection picks from, such as rogue talents or a path's picks.
+/// The fixed list a Feature selection picks from, such as rogue talents or a path's picks: its own options plus
+/// the ones it shares from other selections (a slayer's talents include the rogue's).
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct FeatureSelection {
@@ -631,7 +632,20 @@ pub struct FeatureSelection {
     #[serde(default)]
     pub summary: String,
     pub guide: GuideRef,
+    /// The options this selection defines, each keyed under it.
     pub options: Vec<SelectionOption>,
+    /// Other selections' options this one offers too. A shared option keeps its one key, so holding it through
+    /// either selection holds it once, and its prerequisite is the same in both (where a class's own feature
+    /// gates it, the data accepts each sharing class's with an `Any`).
+    #[serde(default)]
+    pub shared_options: BTreeSet<SelectionOptionKey>,
+}
+
+impl FeatureSelection {
+    /// Whether a pick of `option` may fill this selection's slot: one of its own options, or one it shares.
+    pub fn offers(&self, option: &SelectionOptionKey) -> bool {
+        self.shared_options.contains(option) || self.options.iter().any(|own| &own.key == option)
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]

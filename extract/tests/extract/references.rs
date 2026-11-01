@@ -121,6 +121,7 @@ fn an_option_beside_the_feat_it_grants_is_dropped() {
                 option("rogue/rogue-talents/weapon-focus", Some("weapon-focus")),
                 option("rogue/rogue-talents/fast-stealth", None),
             ],
+            shared_options: Default::default(),
         }],
         feat_lists: vec![],
         levels: vec![],

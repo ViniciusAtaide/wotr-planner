@@ -349,6 +349,16 @@ CREATE TABLE selection_option (
     CHECK (starts_with(key, selection_key || '/'))
 );
 
+-- Another selection's option that a selection offers too (`rules::FeatureSelection::shared_options`): the
+-- slayer's talents share the rogue's. The option keeps its one key and prerequisite, so a character holds it
+-- once whichever selection took it. A selection's own options are its `selection_option` rows, never shared.
+CREATE TABLE selection_shared_option (
+    selection_key TEXT NOT NULL REFERENCES feature_selection (key) DEFERRABLE INITIALLY DEFERRED,
+    option_key TEXT NOT NULL REFERENCES selection_option (key) DEFERRABLE INITIALLY DEFERRED,
+    PRIMARY KEY (selection_key, option_key),
+    CHECK (NOT starts_with(option_key, selection_key || '/'))
+);
+
 -- `rules::FeatList`: a named list of feats a `one_of` feat slot picks from, owned like a feature.
 -- `ignores_prerequisites` is TRUE on a bonus list, a class's own (the monk's bonus feats): a pick from
 -- it skips the feat's prerequisites. `rules::GameData::check` keeps those to class level rows, and

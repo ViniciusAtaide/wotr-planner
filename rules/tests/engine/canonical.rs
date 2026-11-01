@@ -60,7 +60,10 @@ fn canonical_game_data_does_not_depend_on_list_order() {
 fn canonical_catalogs_are_ordered_by_key() {
     let data = reversed(world()).canonical();
     let keys: Vec<_> = data.classes.iter().map(|c| c.key.as_str()).collect();
-    assert_eq!(keys, ["cleric", "fighter", "monk", "rogue", "wizard"]);
+    assert_eq!(
+        keys,
+        ["cleric", "fighter", "monk", "rogue", "slayer", "wizard"]
+    );
     let levels: Vec<_> = data.classes[0].levels.iter().map(|r| r.level).collect();
     assert_eq!(levels, (1..=20).collect::<Vec<_>>());
 }
@@ -73,7 +76,7 @@ fn counts_summarise_each_catalog() {
             ("Races", 3),
             ("Skills", 4),
             ("Feats", 23),
-            ("Classes", 5),
+            ("Classes", 6),
             ("Archetypes", 2),
             ("Prestige classes", 2),
             ("Mythic abilities", 6),

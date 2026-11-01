@@ -139,7 +139,7 @@ pub fn world() -> GameData {
             skill_row("persuasion", "Persuasion", Ability::Charisma),
         ],
         feats: feats(),
-        classes: vec![fighter(), rogue(), wizard(), cleric(), monk()],
+        classes: vec![fighter(), rogue(), slayer(), wizard(), cleric(), monk()],
         prestige_classes: vec![arcane_trickster(), mystic_theurge()],
         mythic_abilities: mythic_abilities(),
         mythic_feats: mythic_feats(),
@@ -499,6 +499,7 @@ fn fighter() -> Class {
                 name: "Order".into(),
                 summary: String::new(),
                 guide: guide("fighter#order"),
+                shared_options: BTreeSet::new(),
                 options: vec![
                     selection_option("fighter/armiger/order/cockatrice", None, None),
                     selection_option("fighter/armiger/order/dragon", None, None),
@@ -580,6 +581,7 @@ fn rogue() -> Class {
             name: "Rogue Talents".into(),
             summary: String::new(),
             guide: guide("rogue#rogue-talents"),
+            shared_options: BTreeSet::new(),
             options: vec![
                 selection_option(
                     "rogue/rogue-talents/combat-trick",
@@ -618,6 +620,60 @@ fn rogue() -> Class {
             feat_lists: vec![],
             levels: scoundrel_levels,
         }],
+    }
+}
+
+/// Slayer: full BAB, good Fortitude and Reflex, a slayer talent at even levels. Slayer talents share the rogue's
+/// three talents and add Slayer Camouflage, which needs the rogue's Fast Stealth.
+fn slayer() -> Class {
+    let talents = FeatureSelectionKey::new("slayer/slayer-talents");
+    let levels = (1..=20)
+        .map(|l| {
+            let mut r = row(l);
+            if l % 2 == 0 {
+                r.selections.push(talents.clone());
+            }
+            r
+        })
+        .collect();
+    Class {
+        key: class("slayer"),
+        name: "Slayer".into(),
+        summary: String::new(),
+        guide: guide("slayer"),
+        skill_points: 6,
+        bab: BabProgression::Full,
+        fort: SaveProgression::Good,
+        reflex: SaveProgression::Good,
+        will: SaveProgression::Poor,
+        save_exceptions: vec![],
+        class_skills: BTreeSet::from([skill("athletics"), skill("mobility")]),
+        prerequisite: None,
+        features: vec![],
+        selections: vec![FeatureSelection {
+            key: talents,
+            name: "Slayer Talents".into(),
+            summary: String::new(),
+            guide: guide("slayer#slayer-talents"),
+            options: vec![selection_option(
+                "slayer/slayer-talents/slayer-camouflage",
+                None,
+                Some(Prerequisite::SelectionOption(option(
+                    "rogue/rogue-talents/fast-stealth",
+                ))),
+            )],
+            shared_options: [
+                "rogue/rogue-talents/combat-trick",
+                "rogue/rogue-talents/crippling-strike",
+                "rogue/rogue-talents/fast-stealth",
+            ]
+            .into_iter()
+            .map(option)
+            .collect(),
+        }],
+        feat_lists: vec![],
+        levels,
+        archetypes: vec![],
     }
 }
 
@@ -878,6 +934,7 @@ fn trickster() -> MythicPath {
             name: "Trickster Tricks".into(),
             summary: String::new(),
             guide: guide("trickster#tricks"),
+            shared_options: BTreeSet::new(),
             options: vec![
                 selection_option("trickster/tricks/perception-1", None, None),
                 selection_option(

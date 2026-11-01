@@ -37,8 +37,8 @@ async fn insert_all(db: &Database, data: &GameData, hash: &str) -> Result<(), sq
             ability_modifier, feat, class, save_exception, archetype, class_skill, mythic_ability,
             mythic_feat,
             mythic_path, path_switch, path_switch_kept_rank, feature, feature_selection,
-            selection_option, feat_list, feat_list_member, class_level, mythic_rank,
-            granted_feature, granted_selection, granted_feat, feat_slot
+            selection_option, selection_shared_option, feat_list, feat_list_member, class_level,
+            mythic_rank, granted_feature, granted_selection, granted_feat, feat_slot
         RESTART IDENTITY"
     )
     .execute(&mut *conn)
@@ -386,6 +386,15 @@ async fn insert_selections(
                 option.guide.0,
                 option.feat.as_ref().map(|feat| feat.as_str()),
                 root,
+            )
+            .execute(&mut *conn)
+            .await?;
+        }
+        for option in selection.shared_options.iter() {
+            sqlx::query!(
+                "INSERT INTO selection_shared_option (selection_key, option_key) VALUES ($1, $2)",
+                selection.key.as_str(),
+                option.as_str(),
             )
             .execute(&mut *conn)
             .await?;

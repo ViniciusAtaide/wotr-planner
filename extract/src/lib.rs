@@ -18,4 +18,5 @@ pub mod references;
 pub mod report;
 pub mod resolve;
 pub mod ron_out;
+pub mod shared_options;
 pub mod tables;

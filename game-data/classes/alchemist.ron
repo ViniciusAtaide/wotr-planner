@@ -43,7 +43,7 @@ Class(
                 (key: "alchemist/discovery/greater-mutagen", name: "Greater Mutagen", guide: "alchemist#greater-mutagen", prerequisite: ClassLevel(class: "alchemist", level: 12)),
                 (key: "alchemist/discovery/holy-bombs", name: "Holy Bombs", guide: "alchemist#holy-bombs", prerequisite: ClassLevel(class: "alchemist", level: 8)),
                 (key: "alchemist/discovery/infusion", name: "Infusion", guide: "alchemist#infusion"),
-                (key: "alchemist/discovery/mummification", name: "Mummification", guide: "alchemist#mummification", prerequisite: All([ClassLevel(class: "alchemist", level: 10), SelectionOption("alchemist/discovery/preserve-organs")])),
+                (key: "alchemist/discovery/mummification", name: "Mummification", guide: "alchemist#mummification", prerequisite: All([Any([ClassLevel(class: "alchemist", level: 10), Feature(feature: "rogue/underground-chemist/discovery", count: 1)]), SelectionOption("alchemist/discovery/preserve-organs")])),
                 (key: "alchemist/discovery/nauseating-flesh", name: "Nauseating Flesh", guide: "alchemist#nauseating-flesh"),
                 (key: "alchemist/discovery/precise-bomb", name: "Precise Bomb", guide: "alchemist#precise-bomb"),
                 (key: "alchemist/discovery/preserve-organs", name: "Preserve Organs", guide: "alchemist#preserve-organs"),

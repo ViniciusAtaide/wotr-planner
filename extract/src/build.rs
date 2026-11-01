@@ -128,6 +128,7 @@ pub fn extract(guide: &Guide) -> Extraction {
     crate::references::drop_redundant_alternatives(&mut data);
     feat_lists::grant_lone_feats(&mut data, &builder.lists);
     crate::proficiencies::apply(&mut data);
+    crate::shared_options::apply(&mut data);
     // Only now, with the dangling grants gone and the grants complete, is a row that matches its base class's
     // known to.
     for class in &mut data.classes {
@@ -1092,6 +1093,7 @@ impl<'g> Builder<'g> {
             summary: String::new(),
             guide: GuideRef::new(page.guide(&heading.anchor)),
             options: Vec::new(),
+            shared_options: BTreeSet::new(),
         };
         self.add_options(page, heading, &mut selection, Some(class), extra);
         selection
@@ -1569,6 +1571,7 @@ impl<'g> Builder<'g> {
                     summary: String::new(),
                     guide: GuideRef::new(page.guide(&candidate.anchor)),
                     options: Vec::new(),
+                    shared_options: BTreeSet::new(),
                 };
                 self.add_options(page, candidate, &mut selection, None, Vec::new());
                 selections.push(selection);

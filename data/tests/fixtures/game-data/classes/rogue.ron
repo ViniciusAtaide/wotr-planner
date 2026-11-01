@@ -52,10 +52,24 @@ Class(
             features: [
                 (key: "rogue/eldritch-scoundrel/spells", name: "Spells", guide: "rogue#eldritch-scoundrel-spells"),
             ],
+            selections: [
+                (
+                    key: "rogue/eldritch-scoundrel/arcane-talents",
+                    name: "Arcane Talents",
+                    guide: "rogue#arcane-talents",
+                    options: [
+                        (key: "rogue/eldritch-scoundrel/arcane-talents/minor-magic", name: "Minor Magic", guide: "rogue#minor-magic"),
+                    ],
+                    shared_options: [
+                        "rogue/rogue-talents/combat-trick",
+                        "rogue/rogue-talents/crippling-strike",
+                    ],
+                ),
+            ],
             levels: [
                 (level: 1, spell_levels: (arcane: 1, divine: 0), features: ["rogue/eldritch-scoundrel/spells"]),
                 (level: 2, spell_levels: (arcane: 1, divine: 0), features: ["rogue/sneak-attack"]),
-                (level: 3, spell_levels: (arcane: 1, divine: 0), selections: ["rogue/rogue-talents"]),
+                (level: 3, spell_levels: (arcane: 1, divine: 0), selections: ["rogue/eldritch-scoundrel/arcane-talents"]),
             ],
         ),
     ],

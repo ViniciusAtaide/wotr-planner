@@ -172,6 +172,9 @@ pub enum DataIssue {
     FeatListTooShort,
     /// A feat list no slot names.
     UnusedFeatList,
+    /// A selection that shares an option keyed under its own key: an own option is offered already, and
+    /// anything else under its key isn't another selection's.
+    SharesOwnOption(SelectionOptionKey),
 }
 
 impl fmt::Display for DataProblem {
@@ -239,6 +242,12 @@ impl fmt::Display for DataProblem {
                 f.write_str("a list of fewer than two feats; grant a lone feat instead")
             }
             DataIssue::UnusedFeatList => f.write_str("no feat slot names this list"),
+            DataIssue::SharesOwnOption(option) => {
+                write!(
+                    f,
+                    "shares {option}, which is keyed under the selection itself"
+                )
+            }
         }
     }
 }
@@ -444,17 +453,18 @@ impl Checker {
 
     fn selections(&mut self, selections: &[FeatureSelection]) {
         for selection in selections {
-            self.key(&DataAt::FeatureSelection(selection.key.clone()));
+            let selection_at = DataAt::FeatureSelection(selection.key.clone());
+            self.key(&selection_at);
+            for shared in &selection.shared_options {
+                if owned_by(shared.as_str(), selection.key.as_str()) {
+                    self.problem(&selection_at, DataIssue::SharesOwnOption(shared.clone()));
+                }
+            }
             for option in &selection.options {
                 let at = DataAt::SelectionOption(option.key.clone());
                 self.key(&at);
                 // `rogue/rogue-talents/fast-stealth` extends `rogue/rogue-talents`.
-                let inside = option
-                    .key
-                    .as_str()
-                    .strip_prefix(selection.key.as_str())
-                    .is_some_and(|rest| rest.starts_with('/'));
-                if !inside {
+                if !owned_by(option.key.as_str(), selection.key.as_str()) {
                     self.problem(&at, DataIssue::OptionOutsideItsSelection);
                 }
                 self.prerequisite(&at, option.prerequisite.as_ref());

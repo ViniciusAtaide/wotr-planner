@@ -16,6 +16,7 @@ mod granted_feats;
 mod mythic;
 mod options;
 mod pickers;
+mod shared_options;
 mod slots;
 mod validation;
 mod would_break;

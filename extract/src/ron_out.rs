@@ -324,9 +324,14 @@ fn selections(indent: usize, selections: &[FeatureSelection]) -> String {
         } else {
             nested("options", indent + 8, options)
         };
+        let shared = nested(
+            "shared_options",
+            indent + 8,
+            selection.shared_options.iter().map(inline).collect(),
+        );
         out.push_str(&format!(
             "{pad}    {},\n",
-            fields.block("", indent + 4, &[options])
+            fields.block("", indent + 4, &[options, shared])
         ));
     }
     out.push_str(&format!("{pad}],\n"));

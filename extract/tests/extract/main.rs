@@ -8,4 +8,5 @@ mod proficiencies;
 mod progressions;
 mod references;
 mod report;
+mod shared_options;
 mod tables;

@@ -1,0 +1,12 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "TRUNCATE game_data_seed, mythic_ascension, prerequisite_node, skill, race, subrace,\n            ability_modifier, feat, class, save_exception, archetype, class_skill, mythic_ability,\n            mythic_feat,\n            mythic_path, path_switch, path_switch_kept_rank, feature, feature_selection,\n            selection_option, selection_shared_option, feat_list, feat_list_member, class_level,\n            mythic_rank, granted_feature, granted_selection, granted_feat, feat_slot\n        RESTART IDENTITY",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": []
+  },
+  "hash": "5b950bd631a90eaf079d953d0c0d0bcacc704705e3757f6a5981b42f0cd0d18e"
+}

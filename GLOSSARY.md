@@ -84,12 +84,16 @@ Any feat outside the class, racial, skill, teamwork and magic categories. These 
 _Avoid_: Fighter feat, martial feat
 
 **Feature selection**:
-A class-specific choice from a fixed list, such as a rogue talent, rage power or hex.
+A class-specific choice from a fixed list, such as a rogue talent, rage power or hex. The list is its own Selection options plus any Shared options.
 _Avoid_: Talent (unqualified), class pick
 
 **Selection option**:
 One entry in a Feature selection's list, such as Fast Stealth among the rogue talents. Its key extends the selection's (`rogue/rogue-talents/fast-stealth` extends `rogue/rogue-talents`).
 _Avoid_: Option (unqualified), talent
+
+**Shared option**:
+A Selection option that one Feature selection offers from another's list, such as the rogue talents a slayer's talents offer. It keeps the key of the selection that defines it, so a character holds it once whichever slot took it, and its prerequisite is the same in both (a gate on one class's feature accepts each sharing class's).
+_Avoid_: Copied option, alias
 
 **Slot**:
 One place in a Build where something is picked: a Feat slot, a Feature selection slot, or a Mythic ascension's mythic ability, mythic feat or path pick. Each has a stable id naming its level or rank.

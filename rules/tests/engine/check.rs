@@ -432,6 +432,41 @@ fn a_selection_options_key_starts_with_its_selection_key() {
     );
 }
 
+/// A selection shares another selection's options, never its own (the schema's CHECK on
+/// `selection_shared_option`): an own option is offered already.
+#[test]
+fn a_selection_shares_only_other_selections_options() {
+    let mut data = world();
+    let talents = &mut class_mut(&mut data, "slayer").selections[0];
+    talents.shared_options.insert(SelectionOptionKey::new(
+        "slayer/slayer-talents/slayer-camouflage",
+    ));
+    // Any key under the selection's own counts, even one that isn't an option.
+    talents
+        .shared_options
+        .insert(SelectionOptionKey::new("slayer/slayer-talents/ghost"));
+    // Sharing only the text before the `/` is fine.
+    talents
+        .shared_options
+        .insert(SelectionOptionKey::new("slayer/slayer-talents-x/other"));
+    let at = DataAt::FeatureSelection(FeatureSelectionKey::new("slayer/slayer-talents"));
+    assert_eq!(
+        issues(&data),
+        [
+            (
+                at.clone(),
+                DataIssue::SharesOwnOption(SelectionOptionKey::new("slayer/slayer-talents/ghost"))
+            ),
+            (
+                at,
+                DataIssue::SharesOwnOption(SelectionOptionKey::new(
+                    "slayer/slayer-talents/slayer-camouflage"
+                ))
+            ),
+        ]
+    );
+}
+
 #[test]
 fn ranks_and_levels_stay_in_range() {
     let mut data = world();

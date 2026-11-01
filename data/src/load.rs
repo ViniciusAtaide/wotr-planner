@@ -546,6 +546,17 @@ async fn load_selections(
         );
     }
 
+    let mut shared = Grouped::new();
+    for row in sqlx::query!(
+        "SELECT selection_key, option_key FROM selection_shared_option
+        ORDER BY selection_key, option_key"
+    )
+    .fetch_all(&mut *conn)
+    .await?
+    {
+        shared.push(row.selection_key, SelectionOptionKey(row.option_key));
+    }
+
     let mut selections = Grouped::new();
     for row in sqlx::query!(
         "SELECT key, class_key, archetype_key, path_key, name, summary, guide
@@ -566,6 +577,7 @@ async fn load_selections(
             owner,
             FeatureSelection {
                 options: options.take(&row.key),
+                shared_options: shared.take(&row.key).into_iter().collect(),
                 key: FeatureSelectionKey(row.key),
                 name: row.name,
                 summary: row.summary,
@@ -574,6 +586,7 @@ async fn load_selections(
         );
     }
     options.finish("selection_option")?;
+    shared.finish("selection_shared_option")?;
     Ok(selections)
 }
 

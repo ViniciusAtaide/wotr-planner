@@ -45,6 +45,16 @@ class's), and BAB and saves (from the class's progressions).
 - A selection option's key extends its selection's: `rogue/rogue-talents/fast-stealth`. A feature's, a
   selection's and a feat list's key starts with its owner's (the archetype's when an archetype defines it), and
   the schema checks it: Hard to Kill is each path's own `aeon/hard-to-kill`, not one shared key.
+- An option is defined once, in the selection whose list it is, and another selection that offers it lists its
+  key in `shared_options: [...]` after its own `options` (one key per line): the slayer's talents share the 36
+  rogue talents, the shaman's hexes the witch's 11 shared hexes, the Sylvan Trickster's Fey Tricks the rogue
+  talents and every witch hex, and the Underground Chemist's Discovery (her rogue-talent slots from 10th level)
+  the rogue talents and six alchemist discoveries. Never copy an option: a copy is a second key, so a character
+  could take it twice. A shared option's prerequisite is the same in every selection, so where it names the
+  defining class's feature or level it accepts each sharing class's with an `Any`
+  (`Any([Feature(feature: "rogue/advanced-talents", count: 1), Feature(feature: "slayer/advanced-talents", count: 1)])`).
+  A selection may share no option of its own (the schema checks it), and one made only of shared options has
+  `options: []`.
 - Mythic abilities and feats name their group as the guide heads it: `group: Melee`, `ArmourAndShield`,
   `CombatManoeuvre` and so on.
 - Feat slots are `General`, `CombatFeat`, `Category(Teamwork)` or a named list, `OneOf(list: "monk/bonus-feats-1")`.

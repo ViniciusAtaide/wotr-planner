@@ -580,6 +580,29 @@ async fn the_schema_rejects_values_outside_their_domain_and_misplaced_keys(pool:
         "{error}"
     );
 
+    // A selection shares another selection's existing options, each once, and never one keyed under itself.
+    let error = rejected(
+        "INSERT INTO selection_shared_option (selection_key, option_key)
+        VALUES ('rogue/rogue-talents', 'rogue/rogue-talents/combat-trick')",
+    )
+    .await;
+    assert!(error.contains("check constraint"), "{error}");
+    let error = rejected(
+        "INSERT INTO selection_shared_option (selection_key, option_key)
+        VALUES ('rogue/eldritch-scoundrel/arcane-talents', 'rogue/rogue-talents/ghost')",
+    )
+    .await;
+    assert!(error.contains("foreign key"), "{error}");
+    let error = rejected(
+        "INSERT INTO selection_shared_option (selection_key, option_key)
+        VALUES ('rogue/eldritch-scoundrel/arcane-talents', 'rogue/rogue-talents/combat-trick')",
+    )
+    .await;
+    assert!(
+        error.contains("unique") || error.contains("duplicate"),
+        "{error}"
+    );
+
     // Mythic groups are the guide's headings.
     let error = rejected("UPDATE mythic_ability SET group_name = 'armour_and_shield'").await;
     assert!(error.contains("mythic_ability_group"), "{error}");

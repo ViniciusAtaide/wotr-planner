@@ -8,8 +8,8 @@ use std::fs;
 use common::{copy_fixture, fixture_dir};
 use rules::{
     Ability, ArchetypeLevelRow, BabProgression, ClassKey, FeatKey, FeatListKey, FeatSlot,
-    FeatureKey, GameData, MythicAbilityGroup, MythicFeatGroup, MythicPathKey, Prerequisite, Save,
-    SaveException, SaveProgression, SpellLevels,
+    FeatureKey, FeatureSelectionKey, GameData, MythicAbilityGroup, MythicFeatGroup, MythicPathKey,
+    Prerequisite, Save, SaveException, SaveProgression, SelectionOptionKey, SpellLevels,
 };
 
 fn read_fixture() -> GameData {
@@ -187,6 +187,34 @@ fn reads_feat_lists_and_the_slots_that_name_them() {
             list: FeatListKey::new("monk/bonus-feats")
         }]
     );
+}
+
+#[test]
+fn reads_a_selections_shared_options_and_defaults_them_to_none() {
+    let data = read_fixture();
+    let rogue = data
+        .classes
+        .iter()
+        .find(|c| c.key.as_str() == "rogue")
+        .unwrap();
+    // The rogue's talents share nothing: left out, `shared_options` is empty.
+    assert_eq!(rogue.selections[0].shared_options, BTreeSet::new());
+    let arcane_talents = &rogue.archetypes[0].selections[0];
+    assert_eq!(
+        arcane_talents.key,
+        FeatureSelectionKey::new("rogue/eldritch-scoundrel/arcane-talents")
+    );
+    assert_eq!(
+        arcane_talents.shared_options,
+        BTreeSet::from([
+            SelectionOptionKey::new("rogue/rogue-talents/combat-trick"),
+            SelectionOptionKey::new("rogue/rogue-talents/crippling-strike"),
+        ])
+    );
+    assert!(arcane_talents.offers(&SelectionOptionKey::new(
+        "rogue/eldritch-scoundrel/arcane-talents/minor-magic"
+    )));
+    assert!(!arcane_talents.offers(&SelectionOptionKey::new("rogue/rogue-talents/fast-stealth")));
 }
 
 #[test]

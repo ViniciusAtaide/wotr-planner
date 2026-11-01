@@ -496,8 +496,8 @@ impl Engine {
         self.probe(build, Probe::Slot(slot)).state
     }
 
-    /// Every option a slot accepts, in key order, each with whether it can be picked at that point of the Build
-    /// and why not. `None` when the Build has no such slot.
+    /// Every option a slot accepts, in key order (a selection's own options and the ones it shares), each with
+    /// whether it can be picked at that point of the Build and why not. `None` when the Build has no such slot.
     ///
     /// One walk, up to the slot's level. Would-break isn't computed here: that costs a walk of the whole Build
     /// per option, so the picker asks [`would_break`](Self::would_break) only for the option the player taps.
@@ -515,10 +515,21 @@ impl Engine {
             SlotKind::Selection(key) => self
                 .selection(key)
                 .map(|selection| {
-                    selection
+                    // Own options and shared ones, in key order. A shared key the data lacks offers nothing.
+                    let mut keys: Vec<&SelectionOptionKey> = selection
                         .options
                         .iter()
-                        .map(|option| Pick::SelectionOption(option.key.clone()))
+                        .map(|option| &option.key)
+                        .chain(
+                            selection
+                                .shared_options
+                                .iter()
+                                .filter(|key| self.options.contains_key(*key)),
+                        )
+                        .collect();
+                    keys.sort();
+                    keys.into_iter()
+                        .map(|key| Pick::SelectionOption(key.clone()))
                         .collect()
                 })
                 .unwrap_or_default(),
@@ -1447,7 +1458,11 @@ pub(crate) fn check_pick(
             let SlotKind::Selection(selection) = kind else {
                 return Err(Issue::NotAllowed);
             };
-            if engine.options.get(key).map(|(owner, _)| owner) != Some(selection) {
+            // Its own option or one it shares; a shared option keeps its one key, so it's held once.
+            if !engine
+                .selection(selection)
+                .is_some_and(|selection| selection.offers(key))
+            {
                 return Err(Issue::NotAllowed);
             }
             if state.selection_options.contains(key) {

@@ -282,6 +282,16 @@ pub fn drop_redundant_alternatives(data: &mut GameData) {
             }
         }
     }
+    for prerequisite in prerequisites_mut(data) {
+        if let Some(taken) = prerequisite.take() {
+            *prerequisite = Some(without_redundant(taken, &option_feats));
+        }
+    }
+}
+
+/// Every prerequisite in the data: feats', mythic abilities' and feats', classes' and archetypes' entry
+/// prerequisites, and every selection option's.
+pub fn prerequisites_mut(data: &mut GameData) -> Vec<&mut Option<Prerequisite>> {
     let mut prerequisites: Vec<&mut Option<Prerequisite>> = Vec::new();
     prerequisites.extend(data.feats.iter_mut().map(|f| &mut f.prerequisite));
     prerequisites.extend(
@@ -307,11 +317,7 @@ pub fn drop_redundant_alternatives(data: &mut GameData) {
             prerequisites.extend(selection.options.iter_mut().map(|o| &mut o.prerequisite));
         }
     }
-    for prerequisite in prerequisites {
-        if let Some(taken) = prerequisite.take() {
-            *prerequisite = Some(without_redundant(taken, &option_feats));
-        }
-    }
+    prerequisites
 }
 
 fn without_redundant(
