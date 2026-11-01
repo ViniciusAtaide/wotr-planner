@@ -65,18 +65,4 @@ Scaling numbers stay in summaries, so this isn't modelled. Sources the user list
 
 ## Backgrounds
 
-Each background gives skills. The data has no backgrounds.
-
-| Skill | Backgrounds |
-| --- | --- |
-| Athletics | any Craftsman background, Shackles Corsair, Ustalavic Peasant |
-| Mobility | Martial Disciple, River Kingdoms Daredevil, Shackles Corsair, Warrior of the Linnorm Kings, Acrobat |
-| Stealth | Mwangi Hunter, Pickpocket, Bounty Hunter |
-| Trickery | any Street Urchin background, Courtier, Varisian Explorer |
-| Knowledge (Arcana) | Alkentar Alchemist, Chelaxian Diabolist, Nexial Scholar, Scholar (Arcane) |
-| Knowledge (World) | Emissary, Osirian Historian, Varisian Explorer, Mercenary |
-| Lore (Nature) | Healer (Int instead of Wis), any Wanderer background, Farmhand, Mwangi Hunter, Qadiran Wanderer |
-| Lore (Religion) | Healer (Int instead of Wis), any other Oblate background, Gebbite Necromancer, Mendevian Orphan, Scholar (Divine) |
-| Perception | Qadiran Wanderer, Hunter, Guard |
-| Persuasion | any Noble background, Acolyte (Wis instead of Cha), Aldori Swordsman, Andoren Diplomat, Mugger, Gladiator |
-| Use Magic Device | Scholar (Arcane or Divine) |
+The user's full list, with what each background grants, is in [backgrounds-from-user.md](backgrounds-from-user.md). It replaces the per-skill background column the user gave first, which named some backgrounds only by group and spelt a few differently.
