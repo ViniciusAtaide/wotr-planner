@@ -34,6 +34,10 @@ switch (one above the highest kept rank), and each class's level cap (its number
   `data/tests/files.rs` allow-lists the difference.
 - Only prestige classes set `advances_arcane`/`advances_divine`, and only base classes have archetypes.
 - A selection option's key extends its selection's: `selection:rogue/rogue-talents/fast-stealth`.
+- Feat slots are `General`, `CombatFeat`, `Category(Teamwork)` or a fixed list,
+  `OneOf(feats: ["feat:crane-style", "feat:dodge"])`. A list that is the class's own bonus-feat list (a monk's
+  bonus feats, a ranger's combat style) adds `ignores_prerequisites: true`: the pick skips the feat's
+  prerequisites. Only class and archetype level rows may set it; left out, prerequisites are checked.
 
 - Keys are readable text from the guide's anchors: `feat:power-attack`, `class:rogue`,
   `archetype:rogue/dark-lurker`, `selection:rogue/rogue-talents/fast-stealth`.

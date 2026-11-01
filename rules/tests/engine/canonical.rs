@@ -65,6 +65,7 @@ fn canonical_catalogs_are_ordered_by_key() {
         [
             "class:cleric",
             "class:fighter",
+            "class:monk",
             "class:rogue",
             "class:wizard"
         ]
@@ -80,8 +81,8 @@ fn counts_summarise_each_catalog() {
         [
             ("Races", 3),
             ("Skills", 4),
-            ("Feats", 16),
-            ("Classes", 4),
+            ("Feats", 18),
+            ("Classes", 5),
             ("Archetypes", 2),
             ("Prestige classes", 2),
             ("Mythic abilities", 6),

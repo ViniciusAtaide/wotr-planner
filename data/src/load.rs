@@ -200,22 +200,28 @@ async fn load_feat_slots(conn: &mut PgConnection) -> Result<Grouped<Owner, FeatS
 
     let mut slots = Grouped::new();
     for row in sqlx::query!(
-        "SELECT id, race_key, class_level_id, mythic_rank_id, kind, category
+        "SELECT id, race_key, class_level_id, mythic_rank_id, kind, category, ignores_prerequisites
         FROM feat_slot ORDER BY id"
     )
     .fetch_all(&mut *conn)
     .await?
     {
-        let slot = match (feat_slot_kind_from(&row.kind)?, row.category) {
-            (FeatSlotKind::General, None) => FeatSlot::General,
-            (FeatSlotKind::CombatFeat, None) => FeatSlot::CombatFeat,
-            (FeatSlotKind::Category, Some(category)) => {
+        let columns = (
+            feat_slot_kind_from(&row.kind)?,
+            row.category,
+            row.ignores_prerequisites,
+        );
+        let slot = match columns {
+            (FeatSlotKind::General, None, false) => FeatSlot::General,
+            (FeatSlotKind::CombatFeat, None, false) => FeatSlot::CombatFeat,
+            (FeatSlotKind::Category, Some(category), false) => {
                 FeatSlot::Category(feat_category_from(&category)?)
             }
-            (FeatSlotKind::OneOf, None) => {
-                FeatSlot::OneOf(options.take(&row.id).into_iter().collect())
-            }
-            (kind, _) => {
+            (FeatSlotKind::OneOf, None, ignores_prerequisites) => FeatSlot::OneOf {
+                feats: options.take(&row.id).into_iter().collect(),
+                ignores_prerequisites,
+            },
+            (kind, _, _) => {
                 return Err(corrupt(format!(
                     "feat_slot {}: a {kind:?} slot with the wrong columns",
                     row.id

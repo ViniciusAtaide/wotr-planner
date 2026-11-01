@@ -112,4 +112,26 @@
         category: Miscellaneous,
         guide: "feats#toughness",
     ),
+    (
+        key: "feat:dodge",
+        name: "Dodge",
+        category: Miscellaneous,
+        guide: "feats#dodge",
+        prerequisite: AbilityScore(ability: Dexterity, score: 13),
+    ),
+    (
+        // Simplified: the game's Crane Style also needs Improved Unarmed Strike.
+        key: "feat:crane-style",
+        name: "Crane Style",
+        category: UnarmedCombat,
+        guide: "feats#crane-style",
+        prerequisite: Feat("feat:dodge"),
+    ),
+    (
+        key: "feat:crane-wing",
+        name: "Crane Wing",
+        category: UnarmedCombat,
+        guide: "feats#crane-wing",
+        prerequisite: All([Feat("feat:crane-style"), Feat("feat:dodge")]),
+    ),
 ]

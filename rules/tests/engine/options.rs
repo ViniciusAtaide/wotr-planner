@@ -45,6 +45,8 @@ fn fighter_bonus_slots_offer_only_combat_feats() {
         "feat:great-cleave",
         "feat:cleaving-finish",
         "feat:combat-expertise",
+        "feat:crane-style",
+        "feat:crane-wing",
         "feat:dodge",
         "feat:toughness",
         "feat:weapon-focus",

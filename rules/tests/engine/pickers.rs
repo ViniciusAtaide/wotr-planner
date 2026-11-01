@@ -38,6 +38,7 @@ fn class_options_list_every_class_with_its_archetypes_then_prestige_classes() {
             ("class:cleric", None),
             ("class:fighter", None),
             ("class:fighter", Some("archetype:fighter/armiger")),
+            ("class:monk", None),
             ("class:rogue", None),
             ("class:rogue", Some("archetype:rogue/eldritch-scoundrel")),
             ("class:wizard", None),

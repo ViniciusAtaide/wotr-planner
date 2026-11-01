@@ -50,8 +50,12 @@ _Avoid_: Mythic level, tier
 ### Choices
 
 **Feat slot**:
-A point in a Build where one feat is chosen. A **general slot** accepts any feat whose prerequisites are met. A **bonus slot** accepts only feats from one class's list.
+A point in a Build where one feat is chosen. A **general slot** accepts any feat whose prerequisites are met. A **bonus slot** accepts only some feats: any Combat feat, any feat of one category, or one feat from a fixed list.
 _Avoid_: Feat pick, feat choice
+
+**Bonus-list slot**:
+A bonus slot that draws from the class's own fixed bonus-feat list, such as a monk's bonus feats, a ranger's combat style or a kineticist's. Its pick ignores the feat's prerequisites (it must still be on the list and not already held) and counts as held afterwards, so a follow-on feat such as Crane Wing still checks its own. Every other feat slot checks prerequisites, a fighter's "any Combat feat" slot included. In the data it's a fixed-list slot with `ignores_prerequisites` set.
+_Avoid_: Free feat, prerequisite-free slot
 
 **Combat feat**:
 Any feat outside the class, racial, skill, teamwork and magic categories. These are the feats a fighter's bonus slots accept.

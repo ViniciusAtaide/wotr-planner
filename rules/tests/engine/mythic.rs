@@ -149,9 +149,10 @@ fn the_path_is_chosen_at_mr_3_and_adds_its_own_picks() {
     );
     assert_eq!(
         mythic_slot_kinds(&sheet, 4)[1].1,
-        SlotKind::Feat(FeatSlot::OneOf(
-            [feat("feat:dodge"), feat("feat:toughness")].into()
-        ))
+        SlotKind::Feat(FeatSlot::OneOf {
+            feats: [feat("feat:dodge"), feat("feat:toughness")].into(),
+            ignores_prerequisites: false,
+        })
     );
     let at_9 = sheet.at(9).unwrap();
     assert_eq!(

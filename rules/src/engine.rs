@@ -561,7 +561,7 @@ impl Engine {
             FeatSlot::General => true,
             FeatSlot::CombatFeat => feat.category.is_combat(),
             FeatSlot::Category(category) => feat.category == *category,
-            FeatSlot::OneOf(feats) => feats.contains(&feat.key),
+            FeatSlot::OneOf { feats, .. } => feats.contains(&feat.key),
         }
     }
 }
@@ -1314,7 +1314,7 @@ impl<'a> Walker<'a> {
 }
 
 /// Whether `pick` may fill a slot of `kind` for a character in `state`: a known key, accepted by the slot, not
-/// already held, prerequisites met. Checked in that order.
+/// already held, prerequisites met (unless the slot is a bonus-list slot). Checked in that order.
 pub(crate) fn check_pick(
     engine: &Engine,
     state: &CharacterState,
@@ -1333,6 +1333,9 @@ pub(crate) fn check_pick(
             }
             if state.feats.contains(key) {
                 return Err(Issue::AlreadyHeld);
+            }
+            if slot.ignores_prerequisites() {
+                return Ok(());
             }
             feat.prerequisite.as_ref()
         }

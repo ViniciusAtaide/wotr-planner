@@ -168,3 +168,46 @@ fn problems_read_as_sentences() {
     };
     assert_eq!(problem.to_string(), "feat:cleave: the key is used twice");
 }
+
+#[test]
+fn only_class_levels_grant_bonus_list_slots() {
+    let bonus_list = rules::FeatSlot::OneOf {
+        feats: BTreeSet::from([FeatKey::new("feat:dodge")]),
+        ignores_prerequisites: true,
+    };
+    let mut data = world();
+    // A class's and an archetype's level rows may grant one.
+    class_mut(&mut data, "class:fighter").archetypes[0].levels[4]
+        .feat_slots
+        .push(bonus_list.clone());
+    assert_eq!(issues(&data), []);
+
+    // A race and a mythic rank may not: the list is a class's own.
+    let human = data
+        .races
+        .iter_mut()
+        .find(|r| r.key.as_str() == "race:human")
+        .unwrap();
+    human.feat_slots.push(bonus_list.clone());
+    let trickster = data
+        .mythic_paths
+        .iter_mut()
+        .find(|p| p.key.as_str() == "path:trickster")
+        .unwrap();
+    trickster.ranks[1].feat_slots.push(bonus_list);
+    assert_eq!(
+        issues(&data),
+        [
+            ("path:trickster".into(), DataIssue::BonusListOutsideAClass),
+            ("race:human".into(), DataIssue::BonusListOutsideAClass),
+        ]
+    );
+    assert_eq!(
+        DataProblem {
+            at: "race:human".into(),
+            issue: DataIssue::BonusListOutsideAClass,
+        }
+        .to_string(),
+        "race:human: a feat slot that ignores prerequisites is granted outside a class's level rows"
+    );
+}

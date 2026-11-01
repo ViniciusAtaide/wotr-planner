@@ -7,7 +7,7 @@ use std::collections::HashSet;
 use std::fmt;
 
 use crate::engine::{BASE_LEVEL_CAP, PATH_SWITCH_RANK};
-use crate::game_data::{Class, ClassLevelRow, FeatureSelection, GameData, MythicPath};
+use crate::game_data::{Class, ClassLevelRow, FeatSlot, FeatureSelection, GameData, MythicPath};
 use crate::prerequisite::Prerequisite;
 
 /// The highest Character level on any path (Legend).
@@ -52,6 +52,9 @@ pub enum DataIssue {
     RankOutOfRange(u8),
     /// A spell level above 9.
     SpellLevelOutOfRange(u8),
+    /// A race or a mythic rank that grants a feat slot ignoring prerequisites. Only a class's (or archetype's)
+    /// level rows can: the bonus list is the class's own.
+    BonusListOutsideAClass,
 }
 
 impl fmt::Display for DataProblem {
@@ -83,6 +86,9 @@ impl fmt::Display for DataProblem {
             DataIssue::SpellLevelOutOfRange(level) => {
                 write!(f, "spell level {level} is above {MAX_SPELL_LEVEL}")
             }
+            DataIssue::BonusListOutsideAClass => f.write_str(
+                "a feat slot that ignores prerequisites is granted outside a class's level rows",
+            ),
         }
     }
 }
@@ -94,6 +100,7 @@ impl GameData {
         check.progression(self);
         for race in &self.races {
             check.key(race.key.as_str());
+            check.no_bonus_list(race.key.as_str(), &race.feat_slots);
             for subrace in &race.subraces {
                 check.key(subrace.key.as_str());
             }
@@ -144,6 +151,13 @@ impl Checker {
     fn key(&mut self, key: &str) {
         if !self.keys.insert(key.to_owned()) {
             self.problem(key, DataIssue::DuplicateKey);
+        }
+    }
+
+    /// Slots granted outside a class's level rows check prerequisites: the bonus list is the class's own.
+    fn no_bonus_list(&mut self, at: &str, slots: &[FeatSlot]) {
+        if slots.iter().any(FeatSlot::ignores_prerequisites) {
+            self.problem(at, DataIssue::BonusListOutsideAClass);
         }
     }
 
@@ -274,6 +288,7 @@ impl Checker {
             if !ranks.insert(row.rank) {
                 self.problem(at, DataIssue::RankOutOfRange(row.rank));
             }
+            self.no_bonus_list(at, &row.feat_slots);
         }
         if let Some(switch) = &path.switch {
             for &rank in &switch.kept_ranks {

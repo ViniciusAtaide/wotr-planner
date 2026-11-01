@@ -23,6 +23,8 @@ A working, locally run Leptos app at `~/code/wotr-planner` for planning Pathfind
   - Committing extracted facts is OK.
   - **One migration while prototyping** (user, 2026-10-31). Schema changes edit the initial migration, then the dev database is dropped and reseeded; there are no fix-up migrations. Only one agent at a time does this. The steps are in the repo's `CLAUDE.md`.
   - **No derived values in the database** (user, 2026-10-31). Anything computable from other columns or a simple rule belongs in Rust, not in a column. Examples: a `position` that equals `rank − 1`, or ability/feat counts that follow `rank % 2`.
+- **Rules followed:** the game's intended, current (patched) behaviour. Known exploits are not modelled.
+- **Order** (user, 2026-10-31): finish the data layer (saved guide pages, extraction, checking the data against the guide) before the UI. [Build the planning sheet screen](issues/12-build-sheet-screen.md) waits on [Extract the guide into data files](issues/10-extract-guide.md).
 - **Rules:** the rules live in a plain Rust crate with no DB or Leptos code, running in the browser. The browser loads the game data once, filters choices immediately, and decodes and encodes the Build from the URL.
 - **Mobile:** design mobile-first. The main targets are the Galaxy Z Fold 7 cover screen (folded, tall and narrow, ~21:9) and inner screen (unfolded, nearly square, ~6:5). Desktop is secondary. Both Fold screens must work for touch: no hover-only interactions, and tap targets large enough for a thumb. The layout should adapt when the phone is folded or unfolded without losing the user's place.
 - **Builds and links:** no accounts and no saved-build table. The URL fragment encodes every choice, updates live, and is the share link. `/` with no fragment is a blank Build.
@@ -57,10 +59,12 @@ A working, locally run Leptos app at `~/code/wotr-planner` for planning Pathfind
 - [Build the rules engine](issues/11-rules-engine.md): `rules::Engine::new(GameData)` walks a `Build` (Build start, Level-ups, picks keyed by stable `SlotId`) into a `Sheet`: per-level state, slots, Mythic track and problems. It also gives `options` (with `Unmet` reasons and `would_break`), `would_break(edit)` and `validate` (unknown keys reported, not fatal). Broken picks don't count as held, so breakage cascades. The link is base64url(version 1 ++ deflate(postcard(Build))), with a frozen v1 vector. On the user's request, the database stores no derived values: `position` is gone from every table (none kept), `mythic_ascension` is `(rank, character_level)` with the odd/even pick rule in Rust, and `GameData::canonicalize` makes equality order-free. *(2026-10-31: superseded in part by ticket 14 below: class choices moved to `Build.class_choices`, `options` carries no `would_break`, and the drop-positions migration was folded into the one migration.)*
 - [Apply the schema and layering review](issues/14-review-fixes.md): archetype and spellcasting advancement live per class in `Build.class_choices` (validated: held casters, one arcane plus one divine), and rule facts (combat feats, MR 3/8, rank after a switch, class caps from table length, no row 0) moved from data into `rules`. `GameData::check` gates every seed, and the schema uses domains, a `path_switch` table and class→archetype composite FKs. The sheet gets `class_options`/`path_options`/`switch_options`, `RemoveLevel`/`SetName`, and a one-walk `options` with would-break asked per tapped option. The server serves one `Arc<GameData>`, and `data` hides sqlx behind `Database` and `data::Error`.
 - [Apply the normalization review](issues/15-normalization-fixes.md): `ability_modifier` has no `kind` (a NULL ability is the chosen kind), the level cap lives on the switch (`PathSwitch.level_cap`, `path_switch.level_cap`), path ranks and kept ranks reference `mythic_ascension (rank)`, and `prerequisite_node` has one per-kind CHECK that names its columns and says what `amount` means. The loader now rejects class skills under an archetype that keeps its class's list, and prerequisite nodes outside exactly one owner's tree (`Trees::finish`). Still 25 tables.
+- [Save the guide pages](issues/08-save-guide-pages.md): all 38 pages are saved in the git-ignored `guide-cache/` (stamped 2026-10-31), each verified by its canonical link; `character-building` and `appendix-default-builds` were dropped as unnecessary.
+- [Bonus feats ignore prerequisites](issues/16-bonus-feats-ignore-prerequisites.md): a **Bonus-list slot** is `FeatSlot::OneOf { feats, ignores_prerequisites: true }` (column `feat_slot.ignores_prerequisites`, CHECK only on `one_of`; `GameData::check` allows it only on class/archetype level rows). The engine skips the feat's prerequisites there but still checks the list and already-held, the pick counts as held, so follow-on feats check theirs, and would-break never flags it. Fighter, category, general and other fixed-list slots still check.
 
 ## Not yet specified
 
-- **Checking the data:** how we confirm the extracted data matches the guide, by spot checks or golden builds.
+- **Checking the data:** how we confirm the extracted data matches the guide, by spot checks or golden builds. The guide's sample-build pages aren't saved (the user dropped them), so golden builds would have to come from elsewhere. That page does hold independent BAB, ability-score and skill-rank prerequisite tables, which would cross-check the extracted feats if it's ever saved.
 - **End-to-end smoke tests:** tooling and which flows to cover.
 - **Schema questions for the real guide data:** these wait on [the extraction](issues/10-extract-guide.md) (ticket 10), deferred by [ticket 15](issues/15-normalization-fixes.md):
   - archetype level rows that repeat the base class (the earlier decision to keep full rows stands until real data shows how often archetypes differ);
@@ -69,12 +73,13 @@ A working, locally run Leptos app at `~/code/wotr-planner` for planning Pathfind
   - whether options are shared across selections;
   - a `one_of` feat slot vs a feat-granting selection;
   - whether `level_cap` and `further_ascensions` are independent;
-  - whether mythic `group_name` is a closed set.
+  - whether mythic `group_name` is a closed set;
+  - whether every class's BAB and saves follow full/¾/½ BAB and good/poor saves. If so, store a progression type per class instead of per-level numbers. The character-building page's BAB table matches the standard progressions.
 
 ## Out of scope
 
 - Spells known or prepared: not part of the class/feat/mythic summary.
-- Gear and companions: not part of a character's build choices.
+- Gear and companions: not part of a character's build choices. This includes gear bonuses toward ability-score prerequisites, which check natural scores only (user, 2026-10-31).
 - Deployment: this map ends with the app running locally.
 - User accounts: Builds are anonymous and exist only as their link.
 - Reproducing the guide's full text: copyright; store a summary and a link instead.

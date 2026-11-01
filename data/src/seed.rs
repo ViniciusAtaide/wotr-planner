@@ -518,17 +518,19 @@ async fn insert_feat_slots(
                 Some(feat_category_text(*category)),
                 Vec::new(),
             ),
-            FeatSlot::OneOf(feats) => (FeatSlotKind::OneOf, None, feats.iter().collect()),
+            FeatSlot::OneOf { feats, .. } => (FeatSlotKind::OneOf, None, feats.iter().collect()),
         };
         let id = sqlx::query_scalar!(
-            "INSERT INTO feat_slot (race_key, class_level_id, mythic_rank_id, kind, category)
-            VALUES ($1, $2, $3, $4, $5)
+            "INSERT INTO feat_slot
+                (race_key, class_level_id, mythic_rank_id, kind, category, ignores_prerequisites)
+            VALUES ($1, $2, $3, $4, $5, $6)
             RETURNING id",
             race_key,
             class_level_id,
             mythic_rank_id,
             feat_slot_kind_text(kind),
             category,
+            slot.ignores_prerequisites(),
         )
         .fetch_one(&mut *conn)
         .await?;

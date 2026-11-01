@@ -433,4 +433,10 @@ async fn the_schema_rejects_values_outside_their_domain_and_misplaced_keys(pool:
         rejected("INSERT INTO path_switch_kept_rank (path_key, rank) VALUES ('path:legend', 11)")
             .await;
     assert!(error.contains("foreign key"), "{error}");
+
+    // Only a fixed-list slot can ignore prerequisites.
+    let error =
+        rejected("UPDATE feat_slot SET ignores_prerequisites = TRUE WHERE kind = 'combat_feat'")
+            .await;
+    assert!(error.contains("check constraint"), "{error}");
 }

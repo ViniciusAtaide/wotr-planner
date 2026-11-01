@@ -13,7 +13,7 @@ fn at(problems: &[Problem]) -> Vec<(Choice, Issue)> {
 
 #[test]
 fn keys_missing_from_the_game_data_are_reported_not_fatal() {
-    let mut build = build("race:elf", &["class:fighter", "class:monk"]);
+    let mut build = build("race:elf", &["class:fighter", "class:removed-class"]);
     build
         .picks
         .insert(general_slot(1), pick_feat("feat:removed-feat"));
@@ -40,7 +40,7 @@ fn keys_missing_from_the_game_data_are_reported_not_fatal() {
             ),
             (
                 Choice::Class { level: 2 },
-                Issue::UnknownKey("class:monk".into())
+                Issue::UnknownKey("class:removed-class".into())
             ),
         ]
     );

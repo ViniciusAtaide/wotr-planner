@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, race_key, class_level_id, mythic_rank_id, kind, category\n        FROM feat_slot ORDER BY id",
+  "query": "SELECT id, race_key, class_level_id, mythic_rank_id, kind, category, ignores_prerequisites\n        FROM feat_slot ORDER BY id",
   "describe": {
     "columns": [
       {
@@ -68,6 +68,17 @@
             "name": "category"
           }
         }
+      },
+      {
+        "ordinal": 6,
+        "name": "ignores_prerequisites",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "feat_slot",
+            "name": "ignores_prerequisites"
+          }
+        }
       }
     ],
     "parameters": {
@@ -79,8 +90,9 @@
       true,
       true,
       false,
-      true
+      true,
+      false
     ]
   },
-  "hash": "8374f053f4288b7bf78ca5c813170a4e9719d66e309e5806c885bd0902d7583d"
+  "hash": "ca01f934767044256ed096fe195de1ce7e81a0387446dc778eceed979fa13109"
 }

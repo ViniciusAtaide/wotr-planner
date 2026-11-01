@@ -37,7 +37,7 @@ Class(
             ],
             levels: [
                 (level: 1, bab: 1, fort: 2, reflex: 0, will: 0, selections: ["selection:fighter/armiger/order"]),
-                (level: 2, bab: 2, fort: 3, reflex: 0, will: 0, features: ["feature:fighter/armiger/armigers-mastery"], feat_slots: [OneOf(["feat:power-attack", "feat:combat-expertise"])]),
+                (level: 2, bab: 2, fort: 3, reflex: 0, will: 0, features: ["feature:fighter/armiger/armigers-mastery"], feat_slots: [OneOf(feats: ["feat:power-attack", "feat:combat-expertise"])]),
                 (level: 3, bab: 3, fort: 3, reflex: 1, will: 1, feat_slots: [Category(Teamwork)]),
             ],
         ),

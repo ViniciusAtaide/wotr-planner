@@ -3,6 +3,7 @@
 mod support;
 
 mod advances;
+mod bonus_feats;
 mod canonical;
 mod check;
 mod codec;

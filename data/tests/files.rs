@@ -5,7 +5,9 @@ mod common;
 use std::fs;
 
 use common::{copy_fixture, fixture_dir};
-use rules::{Ability, ClassKey, FeatKey, FeatureKey, GameData, MythicPathKey, Prerequisite};
+use rules::{
+    Ability, ClassKey, FeatKey, FeatSlot, FeatureKey, GameData, MythicPathKey, Prerequisite,
+};
 
 fn read_fixture() -> GameData {
     data::read_game_data_files(&fixture_dir()).expect("fixture reads")
@@ -22,7 +24,7 @@ fn reads_every_fixture_file() {
         "Dwarf, Elf, Human"
     );
     assert_eq!(data.skills.len(), 4);
-    assert_eq!(data.feats.len(), 12);
+    assert_eq!(data.feats.len(), 15);
     assert_eq!(
         data.classes
             .iter()
@@ -31,6 +33,7 @@ fn reads_every_fixture_file() {
         [
             ClassKey::new("class:cleric"),
             ClassKey::new("class:fighter"),
+            ClassKey::new("class:monk"),
             ClassKey::new("class:rogue")
         ]
     );
@@ -59,6 +62,37 @@ fn reads_every_fixture_file() {
         ]
     );
     assert_eq!(data.progression.mythic_ascensions.len(), 10);
+}
+
+#[test]
+fn reads_whether_a_fixed_list_slot_ignores_prerequisites() {
+    let data = read_fixture();
+    let slot_at = |class: &str, level: usize| {
+        let class = data.classes.iter().find(|c| c.key.as_str() == class);
+        class.unwrap().levels[level - 1].feat_slots.clone()
+    };
+    let monk_list = FeatSlot::OneOf {
+        feats: [FeatKey::new("feat:crane-style"), FeatKey::new("feat:dodge")].into(),
+        ignores_prerequisites: true,
+    };
+    assert_eq!(slot_at("class:monk", 1), [monk_list]);
+
+    // Left out, it's unset: the Armiger's list checks prerequisites.
+    let armiger = data
+        .archetypes()
+        .find(|a| a.key.as_str() == "archetype:fighter/armiger")
+        .unwrap();
+    let armiger = &armiger.levels[1].feat_slots;
+    assert!(
+        matches!(
+            armiger.as_slice(),
+            [FeatSlot::OneOf {
+                ignores_prerequisites: false,
+                ..
+            }]
+        ),
+        "{armiger:?}"
+    );
 }
 
 #[test]
@@ -155,6 +189,34 @@ fn the_hash_does_not_depend_on_where_the_folder_is() {
 #[test]
 fn the_fixture_passes_the_data_check() {
     assert_eq!(read_fixture().check(), []);
+}
+
+#[test]
+fn checking_the_files_needs_no_database_and_passes_the_fixture() {
+    let data = data::check_game_data_files(&fixture_dir()).unwrap();
+
+    assert_eq!(data, read_fixture());
+}
+
+#[test]
+fn checking_the_files_lists_the_data_problems() {
+    let dir = copy_fixture();
+    let skills = dir.path().join("skills.ron");
+    let text = fs::read_to_string(&skills).unwrap();
+    // Two skills with one key.
+    fs::write(
+        &skills,
+        text.replacen("skill:mobility", "skill:athletics", 1),
+    )
+    .unwrap();
+
+    let error = data::check_game_data_files(dir.path()).unwrap_err();
+
+    assert!(
+        matches!(&error, data::Error::Invalid(problems) if problems.len() == 1),
+        "{error}"
+    );
+    assert!(error.to_string().contains("skill:athletics"), "{error}");
 }
 
 /// Archetypes whose BAB, saves or spell levels are allowed to differ from their base class's at the same level,

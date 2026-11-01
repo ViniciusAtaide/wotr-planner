@@ -315,7 +315,8 @@ pub struct Feat {
     pub prerequisite: Option<Prerequisite>,
 }
 
-/// A Feat slot granted by a race, a class level or a mythic rank.
+/// A Feat slot granted by a race, a class level or a mythic rank. Every slot checks the picked feat's
+/// prerequisites, except a bonus-list slot.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum FeatSlot {
     /// A general slot: any feat whose prerequisites are met.
@@ -325,7 +326,27 @@ pub enum FeatSlot {
     /// A bonus slot for any feat of one category ("Bonus Teamwork Feat").
     Category(FeatCategory),
     /// A bonus slot for one feat from a fixed list.
-    OneOf(BTreeSet<FeatKey>),
+    OneOf {
+        feats: BTreeSet<FeatKey>,
+        /// Set on a bonus-list slot, one that draws from the class's own bonus-feat list (a monk's bonus feats, a
+        /// ranger's combat style): the pick ignores the feat's prerequisites. It still has to be on the list and
+        /// not already held, and it counts as held afterwards. Unset, the prerequisites are checked.
+        #[serde(default)]
+        ignores_prerequisites: bool,
+    },
+}
+
+impl FeatSlot {
+    /// Whether a pick here ignores the feat's prerequisites: only a bonus-list slot does.
+    pub fn ignores_prerequisites(&self) -> bool {
+        matches!(
+            self,
+            FeatSlot::OneOf {
+                ignores_prerequisites: true,
+                ..
+            }
+        )
+    }
 }
 
 /// A base class or a prestige class.

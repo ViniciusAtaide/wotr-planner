@@ -101,10 +101,10 @@ fn an_archetype_chosen_on_entry_replaces_the_class_rows() {
     );
     assert_eq!(
         kind_of(&sheet.levels[1], &class_slot(2, 0)),
-        SlotKind::Feat(FeatSlot::OneOf(BTreeSet::from([
-            feat("feat:combat-expertise"),
-            feat("feat:power-attack"),
-        ])))
+        SlotKind::Feat(FeatSlot::OneOf {
+            feats: BTreeSet::from([feat("feat:combat-expertise"), feat("feat:power-attack")]),
+            ignores_prerequisites: false,
+        })
     );
 }
 

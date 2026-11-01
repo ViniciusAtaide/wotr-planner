@@ -1,0 +1,15 @@
+// Hand-written test fixture: small and simplified, not checked against the guide.
+Class(
+    key: "class:monk",
+    name: "Monk",
+    summary: "Unarmed martial class whose bonus feats come from its own list.",
+    guide: "monk",
+    skill_points: 4,
+    class_skills: ["skill:mobility", "skill:athletics"],
+    levels: [
+        // A bonus-list slot: Crane Style is on the monk's list, so a monk can take it without Dodge.
+        (level: 1, bab: 0, fort: 2, reflex: 2, will: 2, feat_slots: [OneOf(feats: ["feat:crane-style", "feat:dodge"], ignores_prerequisites: true)]),
+        (level: 2, bab: 1, fort: 3, reflex: 3, will: 3, feat_slots: [OneOf(feats: ["feat:crane-style", "feat:dodge"], ignores_prerequisites: true)]),
+        (level: 3, bab: 2, fort: 3, reflex: 3, will: 3),
+    ],
+)

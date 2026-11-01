@@ -24,6 +24,6 @@ MythicPath(
     ],
     ranks: [
         (rank: 3, features: ["feature:trickster/trickster-tricks"], selections: ["selection:trickster/tricks"]),
-        (rank: 4, feat_slots: [OneOf(["feat:toughness", "feat:dirty-trick"])], selections: ["selection:trickster/tricks"]),
+        (rank: 4, feat_slots: [OneOf(feats: ["feat:toughness", "feat:dirty-trick"])], selections: ["selection:trickster/tricks"]),
     ],
 )

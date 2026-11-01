@@ -136,7 +136,7 @@ pub fn world() -> GameData {
             skill_row("skill:persuasion", "Persuasion", Ability::Charisma),
         ],
         feats: feats(),
-        classes: vec![fighter(), rogue(), wizard(), cleric()],
+        classes: vec![fighter(), rogue(), wizard(), cleric(), monk()],
         prestige_classes: vec![arcane_trickster(), mystic_theurge()],
         mythic_abilities: mythic_abilities(),
         mythic_feats: mythic_feats(),
@@ -364,6 +364,20 @@ fn feats() -> Vec<Feat> {
                 ranks: 3,
             }),
         ),
+        // Simplified: the game's Crane Style also needs Improved Unarmed Strike.
+        feat_row(
+            "feat:crane-style",
+            UnarmedCombat,
+            Some(needs_feat("feat:dodge")),
+        ),
+        feat_row(
+            "feat:crane-wing",
+            UnarmedCombat,
+            Some(All(vec![
+                needs_feat("feat:crane-style"),
+                needs_feat("feat:dodge"),
+            ])),
+        ),
     ]
 }
 
@@ -416,10 +430,13 @@ fn fighter() -> Class {
                     .push(FeatureSelectionKey::new("selection:fighter/armiger/order"));
             }
             if l == 2 {
-                r.feat_slots.push(FeatSlot::OneOf(BTreeSet::from([
-                    feat("feat:power-attack"),
-                    feat("feat:combat-expertise"),
-                ])));
+                r.feat_slots.push(FeatSlot::OneOf {
+                    feats: BTreeSet::from([
+                        feat("feat:power-attack"),
+                        feat("feat:combat-expertise"),
+                    ]),
+                    ignores_prerequisites: false,
+                });
             }
             r
         })
@@ -580,6 +597,36 @@ fn wizard() -> Class {
         guide: guide("wizard"),
         skill_points: 2,
         class_skills: BTreeSet::from([skill("skill:knowledge-arcana")]),
+        prerequisite: None,
+        features: vec![],
+        selections: vec![],
+        levels,
+        archetypes: vec![],
+    }
+}
+
+/// Monk: 3/4 BAB, good saves, a bonus-list slot (Crane Style or Dodge, prerequisites ignored) at 1 and at 2, 6,
+/// 10, 14 and 18.
+fn monk() -> Class {
+    let levels = (1..=20)
+        .map(|l| {
+            let mut r = row(l, l * 3 / 4, 2 + l / 2, 2 + l / 2, 2 + l / 2);
+            if l == 1 || l % 4 == 2 {
+                r.feat_slots.push(FeatSlot::OneOf {
+                    feats: BTreeSet::from([feat("feat:crane-style"), feat("feat:dodge")]),
+                    ignores_prerequisites: true,
+                });
+            }
+            r
+        })
+        .collect();
+    Class {
+        key: class("class:monk"),
+        name: "Monk".into(),
+        summary: String::new(),
+        guide: guide("monk"),
+        skill_points: 4,
+        class_skills: BTreeSet::from([skill("skill:mobility")]),
         prerequisite: None,
         features: vec![],
         selections: vec![],
@@ -782,10 +829,10 @@ fn trickster() -> MythicPath {
             rank(
                 4,
                 vec![],
-                vec![FeatSlot::OneOf(BTreeSet::from([
-                    feat("feat:toughness"),
-                    feat("feat:dodge"),
-                ]))],
+                vec![FeatSlot::OneOf {
+                    feats: BTreeSet::from([feat("feat:toughness"), feat("feat:dodge")]),
+                    ignores_prerequisites: false,
+                }],
                 vec![],
             ),
             rank(5, vec![], vec![], vec![tricks.clone()]),

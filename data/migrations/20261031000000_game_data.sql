@@ -364,8 +364,13 @@ CREATE TABLE feat_slot (
     mythic_rank_id BIGINT REFERENCES mythic_rank (id) DEFERRABLE INITIALLY DEFERRED,
     kind TEXT NOT NULL CHECK (kind IN ('general', 'combat_feat', 'category', 'one_of')),
     category feat_category,
+    -- TRUE on a bonus-list slot, one drawing from the class's own bonus-feat list: the pick ignores
+    -- the feat's prerequisites. Only a `one_of` slot can be one; `rules::GameData::check` keeps
+    -- them to class level rows.
+    ignores_prerequisites BOOLEAN NOT NULL,
     CHECK (num_nonnulls(race_key, class_level_id, mythic_rank_id) = 1),
-    CHECK ((kind = 'category') = (category IS NOT NULL))
+    CHECK ((kind = 'category') = (category IS NOT NULL)),
+    CHECK (kind = 'one_of' OR NOT ignores_prerequisites)
 );
 
 -- The feats a `one_of` feat slot accepts.
