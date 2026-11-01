@@ -7,8 +7,8 @@ use std::sync::LazyLock;
 use rules::{
     Ability, Advancement, ArchetypeKey, ArmourType, Build, CharacterState, ClassChoice, ClassKey,
     CountsAs, CountsToward, Engine, FeatKey, FeatSlot, FeatSource, FeatureKey, GameData, Issue,
-    LevelUp, MythicPathKey, Parameter, ParameterKind, Pick, Prerequisite, Problem, RankStatus,
-    Repeat, SelectionOptionKey, SkillKey, SlotId, SlotKind, SlotOption, SpellSchool, Story, Unmet,
+    LevelUp, MythicPathKey, Parameter, ParameterKind, Pick, Prerequisite, RankStatus, Repeat,
+    SelectionOptionKey, SkillKey, SlotId, SlotKind, SlotOption, SpellSchool, Story, Unmet,
     WeaponKey, WeaponProficiency,
 };
 
@@ -17,6 +17,29 @@ static DATA: LazyLock<GameData> =
 
 fn engine() -> Engine {
     Engine::new(DATA.clone())
+}
+
+/// Why the pick in `slot` can't be taken there, for a Build that only that pick makes impossible (it's possible
+/// without it): what the slot's picker says of it, or `None` when the picker doesn't offer it at all.
+fn why_not(build: &Build, slot: &SlotId) -> Option<Issue> {
+    let engine = engine();
+    assert!(!engine.is_possible(build), "the Build is possible");
+    let mut rest = build.clone();
+    let pick = rest.picks.remove(slot).expect("a pick in the slot");
+    assert!(engine.is_possible(&rest), "impossible without {slot:?} too");
+    let status = engine
+        .options(&rest, slot)?
+        .into_iter()
+        .find(|option| option.pick == pick)?
+        .status;
+    Some(status.expect_err("the picker offers it"))
+}
+
+/// The Build without the pick in `slot`.
+fn without(build: &Build, slot: &SlotId) -> Build {
+    let mut build = build.clone();
+    build.picks.remove(slot);
+    build
 }
 
 /// A Build of `levels` levels of one class, with no picks.
@@ -85,7 +108,7 @@ fn a_fighter_can_take_shield_focus() {
     assert_eq!(status, Some(Ok(())));
 
     fighter.picks.insert(bonus, shield_focus);
-    assert_eq!(engine().validate(&fighter), []);
+    assert!(engine().is_possible(&fighter));
 }
 
 #[test]
@@ -213,11 +236,8 @@ fn a_rogue_slayer_cannot_take_one_talent_twice() {
     );
     build.picks.insert(selection_slot(4), talent);
     assert_eq!(
-        engine().validate(&build),
-        [Problem {
-            at: rules::Choice::Slot(selection_slot(4)),
-            issue: Issue::AlreadyHeld,
-        }]
+        why_not(&build, &selection_slot(4)),
+        Some(Issue::AlreadyHeld)
     );
 }
 
@@ -346,8 +366,8 @@ fn an_aeon_gaze_needing_rank_5_opens_at_mr_5() {
 fn a_legend_has_4_more_in_every_score_from_the_switch() {
     let mut build = mythic("trickster", 18);
     build.path_switch = Some(MythicPathKey::new("legend"));
+    assert!(engine().is_possible(&build));
     let sheet = engine().evaluate(&build);
-    assert_eq!(sheet.problems, []);
     let (before, after) = (sheet.at(16).unwrap(), sheet.at(17).unwrap());
     for ability in [Ability::Strength, Ability::Charisma] {
         assert_eq!(
@@ -390,8 +410,8 @@ fn a_devil_from_aeon_loses_the_gaze_picks_and_keeps_the_rest() {
         pick("aeon/enforcing-gaze/enforcing-gaze-attack"),
     );
     build.path_switch = Some(MythicPathKey::new("devil"));
+    assert!(engine().is_possible(&build));
     let sheet = engine().evaluate(&build);
-    assert_eq!(sheet.problems, []);
     let at_17 = sheet.at(17).unwrap();
     assert!(at_17.selection_options.is_empty());
     assert_eq!(
@@ -426,8 +446,8 @@ fn a_gold_dragon_takes_three_dragon_feats_ignoring_prerequisites_and_rises_in_ev
     // Annihilating Breath needs MR 9: open at the MR 9 pick, not at MR 8's, though both come at 17.
     let annihilating = "gold-dragon/improved-gold-dragon-breath/annihilating-breath";
     build.picks.insert(path_selection(9), pick(annihilating));
+    assert!(engine().is_possible(&build));
     let sheet = engine().evaluate(&build);
-    assert_eq!(sheet.problems, []);
     let status = engine()
         .options(&build, &path_selection(8))
         .unwrap()
@@ -451,8 +471,8 @@ fn all_skilled_grants_every_weapon_armour_and_shield_proficiency() {
     build
         .picks
         .insert(path_selection(4), pick("azata/superpowers/all-skilled"));
+    assert!(engine().is_possible(&build));
     let sheet = engine().evaluate(&build);
-    assert_eq!(sheet.problems, []);
     let feats = &sheet.at(11).unwrap().feats;
     for feat in [
         "simple-weapon-proficiency",
@@ -631,29 +651,23 @@ fn weapon_focus_is_taken_once_per_weapon_and_specialization_needs_the_same_weapo
         class_slot(4),
         Pick::feat_for(FeatKey::new("weapon-specialization"), weapon("rapier")),
     );
-    let problems = engine().evaluate(&build).problems;
     assert_eq!(
-        problems
-            .iter()
-            .map(|p| (&p.at, &p.issue))
-            .collect::<Vec<_>>(),
-        [
-            (&rules::Choice::Slot(class_slot(2)), &Issue::AlreadyHeld),
-            (
-                &rules::Choice::Slot(class_slot(4)),
-                &Issue::Unmet(Unmet::Condition {
-                    needs: Prerequisite::FeatForSameValue(FeatKey::new("weapon-focus")),
-                    has: None,
-                })
-            ),
-        ]
+        why_not(&without(&build, &class_slot(4)), &class_slot(2)),
+        Some(Issue::AlreadyHeld)
+    );
+    assert_eq!(
+        why_not(&without(&build, &class_slot(2)), &class_slot(4)),
+        Some(Issue::Unmet(Unmet::Condition {
+            needs: Prerequisite::FeatForSameValue(FeatKey::new("weapon-focus")),
+            has: None,
+        }))
     );
     build.picks.insert(
         class_slot(4),
         Pick::feat_for(FeatKey::new("weapon-specialization"), weapon("longsword")),
     );
     build.picks.remove(&class_slot(2));
-    assert_eq!(engine().evaluate(&build).problems, []);
+    assert!(engine().is_possible(&build));
     assert_eq!(
         values_at(&build, 4, "weapon-focus"),
         BTreeSet::from([weapon("dagger"), weapon("longsword")])
@@ -772,7 +786,7 @@ fn a_warpriest_takes_weapon_focus_in_a_weapon_of_his_choosing() {
             slot,
             Pick::feat_for(FeatKey::new("weapon-focus"), weapon("longsword")),
         );
-        assert_eq!(engine().evaluate(&build).problems, [], "{archetype:?}");
+        assert!(engine().is_possible(&build), "{archetype:?}");
         assert_eq!(
             values_at(&build, 1, "weapon-focus"),
             BTreeSet::from([weapon("longsword")])
@@ -794,7 +808,7 @@ fn a_master_of_all_takes_three_skill_focus_in_three_skills() {
             Pick::feat_for(FeatKey::new("skill-focus"), skill(skill_)),
         );
     }
-    assert_eq!(engine().evaluate(&build).problems, []);
+    assert!(engine().is_possible(&build));
     assert_eq!(
         values_at(&build, 15, "skill-focus"),
         BTreeSet::from([skill("mobility"), skill("perception"), skill("persuasion")])
@@ -804,15 +818,7 @@ fn a_master_of_all_takes_three_skill_focus_in_three_skills() {
         class_slot(15),
         Pick::feat_for(FeatKey::new("skill-focus"), skill("mobility")),
     );
-    assert_eq!(
-        engine()
-            .evaluate(&build)
-            .problems
-            .into_iter()
-            .map(|p| p.issue)
-            .collect::<Vec<_>>(),
-        [Issue::AlreadyHeld]
-    );
+    assert_eq!(why_not(&build, &class_slot(15)), Some(Issue::AlreadyHeld));
 }
 
 #[test]
@@ -827,7 +833,7 @@ fn the_rogue_talents_weapon_focus_and_skill_focus_name_their_value() {
     build
         .picks
         .insert(selection_slot(2), talent("weapon-focus", weapon("rapier")));
-    assert_eq!(engine().evaluate(&build).problems, []);
+    assert!(engine().is_possible(&build));
     assert_eq!(
         values_at(&build, 2, "weapon-focus"),
         BTreeSet::from([weapon("rapier")])
@@ -835,7 +841,7 @@ fn the_rogue_talents_weapon_focus_and_skill_focus_name_their_value() {
     build
         .picks
         .insert(selection_slot(2), talent("skill-focus", skill("stealth")));
-    assert_eq!(engine().evaluate(&build).problems, []);
+    assert!(engine().is_possible(&build));
     assert_eq!(
         values_at(&build, 2, "skill-focus"),
         BTreeSet::from([skill("stealth")])
@@ -936,16 +942,8 @@ fn rage_powers_discoveries_incense_and_mutations_repeat_as_the_guide_says() {
         build.picks.insert(selection_slot(*level), reduction());
     }
     assert_eq!(
-        engine()
-            .evaluate(&build)
-            .problems
-            .into_iter()
-            .map(|p| (p.at, p.issue))
-            .collect::<Vec<_>>(),
-        [(
-            rules::Choice::Slot(selection_slot(later[3])),
-            Issue::MaxTimes { times: 3 }
-        )]
+        why_not(&build, &selection_slot(later[3])),
+        Some(Issue::MaxTimes { times: 3 })
     );
 }
 
@@ -966,19 +964,6 @@ fn classes(keys: &[&str]) -> Build {
         build.levels.push(LevelUp::new(ClassKey::new(*key)));
     }
     build
-}
-
-fn advances_problems(build: &Build, prestige: &str) -> Vec<Issue> {
-    engine()
-        .validate(build)
-        .into_iter()
-        .filter(|p| {
-            p.at == rules::Choice::Advances {
-                class: ClassKey::new(prestige),
-            }
-        })
-        .map(|p| p.issue)
-        .collect()
 }
 
 #[test]
@@ -1018,10 +1003,22 @@ fn signifer_loremaster_and_winter_witch_advance_one_class_arcane_or_divine() {
             },
         );
     };
+    // What the Loremaster's entry needs: Skill Focus (Knowledge (Arcana)), a metamagic feat and 3rd-level spells.
+    both.picks.insert(
+        general_slot(1),
+        feat_pick(
+            "skill-focus",
+            Parameter::Skill(SkillKey::new("knowledge-arcana")),
+        ),
+    );
+    both.picks.insert(
+        general_slot(3),
+        Pick::feat(FeatKey::new("metamagic-extend-spell")),
+    );
     choose(&mut both, &["wizard", "cleric"]);
-    assert_eq!(advances_problems(&both, "loremaster"), [Issue::NotAllowed]);
+    assert!(!engine().is_possible(&both));
     choose(&mut both, &["cleric"]);
-    assert_eq!(advances_problems(&both, "loremaster"), []);
+    assert!(engine().is_possible(&both));
 }
 
 #[test]
@@ -1303,7 +1300,7 @@ const ABYSSAL: &str = "sorcerer/bloodline/abyssal";
 #[test]
 fn a_sorcerer_holds_the_bloodlines_powers_at_1_3_9_15_and_20() {
     let build = with_option(build("sorcerer", 20), 1, 0, ABYSSAL);
-    assert_eq!(engine().validate(&build), []);
+    assert!(engine().is_possible(&build));
     let powers = [
         (1, "sorcerer/bloodline/abyssal/grow-claws"),
         (3, "sorcerer/bloodline/abyssal/demon-resistances"),
@@ -1365,7 +1362,7 @@ fn a_seeker_skips_the_bloodline_rows_at_3_9_and_15() {
         0,
         ABYSSAL,
     );
-    assert_eq!(engine().validate(&build), []);
+    assert!(engine().is_possible(&build));
     let at_20 = at(&build, 20);
     assert!(holds(&at_20, "sorcerer/bloodline/abyssal/grow-claws"));
     assert!(holds(&at_20, "sorcerer/bloodline/abyssal/demonic-might"));
@@ -1394,20 +1391,19 @@ fn a_sorcerer_5_dragon_disciple_5_has_bloodline_level_10() {
     }
     let build = with_option(build, 1, 0, red);
     // Only the minimum character level stands in the way of entering at 6 (it's checked before the level).
-    let entry: Vec<Problem> = engine()
-        .validate(&build)
+    let entry = engine()
+        .class_options(&build, 6)
+        .unwrap()
         .into_iter()
-        .filter(|p| p.at == rules::Choice::Class { level: 6 })
-        .collect();
+        .find(|option| option.class == ClassKey::new("dragon-disciple"))
+        .unwrap()
+        .status;
     assert_eq!(
         entry,
-        [Problem {
-            at: rules::Choice::Class { level: 6 },
-            issue: Issue::Unmet(Unmet::Condition {
-                needs: Prerequisite::CharacterLevel(6),
-                has: Some(5),
-            }),
-        }]
+        Err(Issue::Unmet(Unmet::Condition {
+            needs: Prerequisite::CharacterLevel(6),
+            has: Some(5),
+        }))
     );
     let at_10 = at(&build, 10);
     assert_eq!(at_10.option_level(&SelectionOptionKey::new(red)), 10);
@@ -1419,7 +1415,7 @@ fn a_sorcerer_5_dragon_disciple_5_has_bloodline_level_10() {
 #[test]
 fn a_wizard_holds_the_schools_first_level_power_at_1() {
     let build = with_option(build("wizard", 1), 1, 0, "wizard/school/universalist");
-    assert_eq!(engine().validate(&build), []);
+    assert!(engine().is_possible(&build));
     assert!(holds(
         &at(&build, 1),
         "wizard/school/universalist/hand-of-the-apprentice"
@@ -1568,7 +1564,7 @@ fn cleric(domains: [&str; 2], levels: usize) -> Build {
 #[test]
 fn a_cleric_8_holds_both_domains_second_powers() {
     let build = cleric(["fire", "nobility"], 8);
-    assert_eq!(engine().validate(&build), []);
+    assert!(engine().is_possible(&build));
     for power in [
         "cleric/domain/fire/fire-bolt",
         "cleric/domain/nobility/inspiring-word",
@@ -1579,7 +1575,7 @@ fn a_cleric_8_holds_both_domains_second_powers() {
     from_level(&build, 8, "cleric/domain/nobility/inspiring-command");
     // Two picks of one domain aren't two domains.
     let twice = cleric(["fire", "fire"], 1);
-    assert_eq!(engine().validate(&twice).len(), 1);
+    assert!(why_not(&twice, &SlotId::Selection { level: 1, index: 1 }).is_some());
 }
 
 #[test]
@@ -1646,7 +1642,7 @@ fn the_animal_domains_companion_comes_at_4_and_opens_boon_companion() {
         revelation_slot(1),
         "oracle/revelations/nature/animal-companion",
     );
-    assert_eq!(engine().validate(&nature), []);
+    assert!(engine().is_possible(&nature));
     assert_eq!(at(&nature, 1).check(&boon_companion), Ok(()));
 }
 
@@ -1672,7 +1668,7 @@ fn a_druid_with_the_weather_domain_holds_lightning_lord_at_8_and_others_dont() {
         "Air, Animal, Earth, Fire, Ice, Plant, Water and Weather"
     );
     let weather = domain("weather", 8);
-    assert_eq!(engine().validate(&weather), []);
+    assert!(engine().is_possible(&weather));
     from_level(&weather, 8, "cleric/domain/weather/lightning-lord");
     // A druid with an animal companion holds no domain powers and no second companion at 4.
     let companion = with_option(
@@ -1698,7 +1694,7 @@ fn a_blight_druid_skips_the_animal_domains_companion_and_a_winter_child_holds_ic
         0,
         "cleric/domain/animal",
     );
-    assert_eq!(engine().validate(&blight), []);
+    assert!(engine().is_possible(&blight));
     assert!(!holds(
         &at(&blight, 4),
         "cleric/domain/animal/animal-companion"
@@ -1707,7 +1703,7 @@ fn a_blight_druid_skips_the_animal_domains_companion_and_a_winter_child_holds_ic
     assert!(has_class_skill(&at(&blight, 4), "lore-nature"));
 
     let winter = druid(Some("druid/winter-child"), 8);
-    assert_eq!(engine().validate(&winter), []);
+    assert!(engine().is_possible(&winter));
     assert!(holds(&at(&winter, 1), "cleric/domain/ice/icicle"));
     from_level(&winter, 8, "cleric/domain/ice/body-of-ice");
 }
@@ -1715,7 +1711,7 @@ fn a_blight_druid_skips_the_animal_domains_companion_and_a_winter_child_holds_ic
 #[test]
 fn an_inquisitors_domain_runs_on_inquisitor_levels() {
     let build = with_option(build("inquisitor", 6), 1, 0, "cleric/domain/luck");
-    assert_eq!(engine().validate(&build), []);
+    assert!(engine().is_possible(&build));
     from_level(&build, 6, "cleric/domain/luck/divine-fortune");
     let huntsmaster = archetype_build("inquisitor", "inquisitor/sacred-huntsmaster", 1);
     let domains = offered(&huntsmaster, 1);
@@ -1770,7 +1766,7 @@ fn an_oracles_revelation_slot_offers_only_its_mysterys_revelations() {
         revelation_slot(3),
         pick("oracle/revelations/battle/combat-healer"),
     );
-    assert_eq!(engine().validate(&early).len(), 1);
+    assert!(why_not(&early, &revelation_slot(3)).is_some());
 }
 
 #[test]
@@ -1783,7 +1779,7 @@ fn weapon_mastery_grants_improved_critical_at_8_in_its_weapon() {
             weapon("longsword"),
         ),
     );
-    assert_eq!(engine().validate(&build), []);
+    assert!(engine().is_possible(&build));
     assert!(at(&build, 1).has_feat_for(&FeatKey::new("weapon-focus"), &weapon("longsword")));
     let critical = FeatKey::new("improved-critical");
     assert!(!at(&build, 7).has_feat_for(&critical, &weapon("longsword")));
@@ -1806,7 +1802,7 @@ fn an_oracle_holds_the_mysterys_class_skill_and_final_revelation() {
         0,
         "oracle/mystery/battle",
     );
-    assert_eq!(engine().validate(&herbalist), []);
+    assert!(engine().is_possible(&herbalist));
     assert!(!has_class_skill(&at(&herbalist, 1), "perception"));
     // "Must select the Wind Mystery": held with no pick.
     let whisperer = archetype_build("oracle", "oracle/wind-whisperer", 1);
@@ -1821,7 +1817,7 @@ fn a_warpriest_10_holds_both_major_blessings() {
     let build = build("warpriest", 10);
     let build = with_option(build, 1, 0, "warpriest/blessings/fire");
     let build = with_option(build, 1, 1, "warpriest/blessings/luck");
-    assert_eq!(engine().validate(&build), []);
+    assert!(engine().is_possible(&build));
     for blessing in ["fire", "luck"] {
         assert!(holds(
             &at(&build, 1),
@@ -1840,7 +1836,7 @@ fn a_warpriest_10_holds_both_major_blessings() {
     ));
     // "A Feral Champion must take the Animal Domain blessing and does not gain a second."
     let feral = archetype_build("warpriest", "warpriest/feral-champion", 10);
-    assert_eq!(engine().validate(&feral), []);
+    assert!(engine().is_possible(&feral));
     from_level(
         &feral,
         10,
@@ -1860,7 +1856,7 @@ fn kineticist(element: &str, levels: usize) -> Build {
 #[test]
 fn a_kineticist_holds_the_elements_class_skills_list_and_defensive_talent() {
     let build = kineticist("earth", 2);
-    assert_eq!(engine().validate(&build), []);
+    assert!(engine().is_possible(&build));
     let one = at(&build, 1);
     assert!(has_class_skill(&one, "athletics"));
     assert!(has_class_skill(&one, "knowledge-world"));
@@ -1879,7 +1875,7 @@ fn a_kineticist_holds_the_elements_class_skills_list_and_defensive_talent() {
         0,
         "kineticist/element/earth",
     );
-    assert_eq!(engine().validate(&knight), []);
+    assert!(engine().is_possible(&knight));
     from_level(&knight, 4, "kineticist/element/earth/flesh-of-stone");
 }
 
@@ -1893,7 +1889,7 @@ fn expanded_element_takes_a_second_element_or_the_first_again_but_not_three_time
     build
         .picks
         .insert(selection_slot(15), pick("kineticist/element/water"));
-    assert_eq!(engine().validate(&build), []);
+    assert!(engine().is_possible(&build));
     assert_eq!(
         at(&build, 7).option_count(&SelectionOptionKey::new("kineticist/element/fire")),
         2
@@ -1906,7 +1902,10 @@ fn expanded_element_takes_a_second_element_or_the_first_again_but_not_three_time
     build
         .picks
         .insert(selection_slot(15), pick("kineticist/element/fire"));
-    assert_eq!(engine().validate(&build).len(), 1, "a third Fire");
+    assert!(
+        why_not(&build, &selection_slot(15)).is_some(),
+        "a third Fire"
+    );
 }
 
 #[test]
@@ -1928,8 +1927,7 @@ fn a_living_deity_takes_a_mystery_revelations_and_two_domains_at_20() {
     let build = with_pick(build, option_slot(1, 2), "oracle/oracles-curse/plagued");
     let build = with_pick(build, option_slot(20, 0), "cleric/domain/fire");
     let build = with_pick(build, option_slot(20, 1), "cleric/domain/luck");
-    let problems: Vec<Problem> = engine().validate(&build);
-    assert_eq!(problems, []);
+    assert!(engine().is_possible(&build));
     from_level(&build, 20, "oracle/mystery/battle/battle-final-revelation");
     let twenty = at(&build, 20);
     assert!(holds(&twenty, "cleric/domain/fire/fire-resistance"));
@@ -2008,8 +2006,8 @@ fn race_slot() -> SlotId {
     }
 }
 
-fn problems(build: &Build) -> Vec<Problem> {
-    engine().evaluate(build).problems
+fn possible(build: &Build) -> bool {
+    engine().is_possible(build)
 }
 
 fn feat_pick(key: &str, value: Parameter) -> Pick {
@@ -2023,11 +2021,8 @@ fn mythic_feat(key: &str) -> &'static rules::MythicFeat {
         .unwrap_or_else(|| panic!("no mythic feat {key}"))
 }
 
-fn unmet(slot: SlotId, needs: Prerequisite, has: Option<u8>) -> Problem {
-    Problem {
-        at: rules::Choice::Slot(slot),
-        issue: Issue::Unmet(Unmet::Condition { needs, has }),
-    }
+fn unmet(needs: Prerequisite, has: Option<u8>) -> Option<Issue> {
+    Some(Issue::Unmet(Unmet::Condition { needs, has }))
 }
 
 #[test]
@@ -2041,7 +2036,7 @@ fn a_human_warpriest_takes_dazzling_display_at_1_on_the_class_slots_weapon_focus
     build
         .picks
         .insert(race_slot(), Pick::feat(FeatKey::new("dazzling-display")));
-    assert_eq!(problems(&build), []);
+    assert!(possible(&build));
 }
 
 #[test]
@@ -2056,7 +2051,7 @@ fn a_human_druid_with_a_companion_takes_boon_companion_at_1() {
     build
         .picks
         .insert(race_slot(), Pick::feat(FeatKey::new("boon-companion")));
-    assert_eq!(problems(&build), []);
+    assert!(possible(&build));
 }
 
 #[test]
@@ -2083,7 +2078,7 @@ fn weapon_focus_and_greater_weapon_focus_each_in_two_weapons() {
     ] {
         fighter.picks.insert(slot, feat_pick(key, weapon(value)));
     }
-    assert_eq!(problems(&fighter), []);
+    assert!(possible(&fighter));
     assert_eq!(
         values_at(&fighter, 10, "greater-weapon-focus"),
         BTreeSet::from([weapon("dagger"), weapon("longsword")])
@@ -2093,13 +2088,7 @@ fn weapon_focus_and_greater_weapon_focus_each_in_two_weapons() {
         class_slot(10),
         feat_pick("greater-weapon-focus", weapon("longsword")),
     );
-    assert_eq!(
-        problems(&fighter),
-        [Problem {
-            at: rules::Choice::Slot(class_slot(10)),
-            issue: Issue::AlreadyHeld,
-        }]
-    );
+    assert_eq!(why_not(&fighter, &class_slot(10)), Some(Issue::AlreadyHeld));
 }
 
 #[test]
@@ -2110,7 +2099,7 @@ fn exotic_weapon_proficiency_can_take_the_sawtooth_saber() {
         general_slot(1),
         feat_pick("exotic-weapon-proficiency", weapon("sawtooth-saber")),
     );
-    assert_eq!(problems(&fighter), []);
+    assert!(possible(&fighter));
 }
 
 #[test]
@@ -2120,23 +2109,22 @@ fn armor_focus_heavy_needs_heavy_armour_proficiency() {
     // A fighter has every armour proficiency.
     let mut fighter = build("fighter", 1);
     fighter.picks.insert(class_slot(1), focus(A::Heavy));
-    assert_eq!(problems(&fighter), []);
+    assert!(possible(&fighter));
     // A cleric has light and medium only.
     let mut cleric = build("cleric", 3);
     cleric.picks.insert(general_slot(3), focus(A::Heavy));
     assert_eq!(
-        problems(&cleric),
-        [unmet(
-            general_slot(3),
+        why_not(&cleric, &general_slot(3)),
+        unmet(
             Prerequisite::FeatIfValue {
                 value: Parameter::ArmourType(A::Heavy),
                 feat: FeatKey::new("armor-proficiency-heavy-armor"),
             },
             None
-        )]
+        )
     );
     cleric.picks.insert(general_slot(3), focus(A::Medium));
-    assert_eq!(problems(&cleric), []);
+    assert!(possible(&cleric));
 }
 
 #[test]
@@ -2154,7 +2142,7 @@ fn improved_critical_mythic_in_a_longsword_needs_improved_critical_in_a_longswor
             weapon("longsword"),
         ),
     );
-    assert_eq!(problems(&fighter), []);
+    assert!(possible(&fighter));
     fighter.picks.insert(
         mythic.clone(),
         Pick::mythic_feat_for(
@@ -2163,12 +2151,11 @@ fn improved_critical_mythic_in_a_longsword_needs_improved_critical_in_a_longswor
         ),
     );
     assert_eq!(
-        problems(&fighter),
-        [unmet(
-            mythic,
+        why_not(&fighter, &mythic),
+        unmet(
             Prerequisite::FeatForSameValue(FeatKey::new("improved-critical")),
             None
-        )]
+        )
     );
 }
 
@@ -2217,7 +2204,7 @@ fn the_mythic_feats_that_pick_a_value_take_one_once_per_value() {
 #[test]
 fn a_mantis_zealot_holds_its_sawtooth_saber_feats_at_1_4_8_and_12() {
     let zealot = archetype_build("warpriest", "warpriest/mantis-zealot", 12);
-    assert_eq!(problems(&zealot), []);
+    assert!(possible(&zealot));
     let saber = || BTreeSet::from([weapon("sawtooth-saber")]);
     for (level, key) in [
         (1, "weapon-focus"),
@@ -2274,7 +2261,7 @@ fn a_zen_archers_way_of_the_bow_is_weapon_focus_in_a_bow_and_specialization_in_i
         selection_slot(2),
         Pick::option_for(SelectionOptionKey::new(way), weapon("short-bow")),
     );
-    assert_eq!(problems(&archer), []);
+    assert!(possible(&archer));
     assert_eq!(
         values_at(&archer, 2, "weapon-focus"),
         BTreeSet::from([weapon("short-bow")])
@@ -2302,7 +2289,7 @@ fn a_battle_master_shaman_specialises_at_8_and_greater_focuses_at_16_in_one_weap
             weapon("spear"),
         ),
     );
-    assert_eq!(problems(&shaman), []);
+    assert!(possible(&shaman));
     assert_eq!(
         values_at(&shaman, 7, "weapon-specialization"),
         BTreeSet::new()
@@ -2358,29 +2345,25 @@ fn a_slayer_takes_three_combat_style_feats_and_not_a_fourth() {
         SlotId::OptionSelection { level: 4, index: 0 },
         pick("ranger/combat-style-feat/archery-feats"),
     );
-    assert_eq!(problems(&slayer), []);
+    assert!(possible(&slayer));
     // A fourth: each window's talent is taken once, and the first window is past.
     slayer.picks.insert(selection_slot(12), style(10));
     assert_eq!(
-        problems(&slayer),
-        [Problem {
-            at: rules::Choice::Slot(selection_slot(12)),
-            issue: Issue::AlreadyHeld,
-        }]
+        why_not(&slayer, &selection_slot(12)),
+        Some(Issue::AlreadyHeld)
     );
     // And the first window is past at 6.
     let mut late = build("slayer", 6);
     late.picks.insert(selection_slot(6), style(2));
     assert_eq!(
-        problems(&late),
-        [unmet(
-            selection_slot(6),
+        why_not(&late, &selection_slot(6)),
+        unmet(
             Prerequisite::Not(Box::new(Prerequisite::ClassLevel {
                 class: ClassKey::new("slayer"),
                 level: 6,
             })),
             None
-        )]
+        )
     );
 }
 
@@ -2420,7 +2403,7 @@ fn destiny_beyond_birth_removes_a_dwarfs_charisma_penalty() {
         SlotId::Mythic { rank: 2 },
         Pick::mythic_feat(rules::MythicFeatKey::new("destiny-beyond-birth")),
     );
-    assert_eq!(problems(&dwarf), []);
+    assert!(possible(&dwarf));
     let sheet = engine().evaluate(&dwarf);
     assert_eq!(sheet.at(6).unwrap().ability_scores.charisma, 8);
     assert_eq!(sheet.at(7).unwrap().ability_scores.charisma, 10);
@@ -2519,22 +2502,17 @@ fn one_of_group(group: rules::OptionGroup) -> Issue {
 #[test]
 fn a_crossblooded_sorcerer_cant_take_red_after_blue() {
     let blue_red = crossblooded("draconic-blue", "draconic-red");
+    let second = SlotId::Selection { level: 1, index: 1 };
     assert_eq!(
-        problems(&blue_red),
-        [Problem {
-            at: rules::Choice::Slot(SlotId::Selection { level: 1, index: 1 }),
-            issue: one_of_group(rules::OptionGroup::Draconic),
-        }]
+        why_not(&blue_red, &second),
+        Some(one_of_group(rules::OptionGroup::Draconic))
     );
     // Two Elemental bloodlines neither; a dragon and an element are fine ("Elemental and Draconic bloodlines").
     assert_eq!(
-        problems(&crossblooded("elemental-air", "elemental-fire"))[0].issue,
-        one_of_group(rules::OptionGroup::Elemental)
+        why_not(&crossblooded("elemental-air", "elemental-fire"), &second),
+        Some(one_of_group(rules::OptionGroup::Elemental))
     );
-    assert_eq!(
-        problems(&crossblooded("draconic-blue", "elemental-fire")),
-        []
-    );
+    assert!(possible(&crossblooded("draconic-blue", "elemental-fire")));
     // Nor through Second Bloodline.
     let mut second = with_option(
         build("sorcerer", 6),
@@ -2563,7 +2541,7 @@ fn a_crossblooded_sorcerer_cant_take_red_after_blue() {
 #[test]
 fn a_crossblooded_sorcerers_second_bloodline_gives_its_arcana() {
     let build = crossblooded("arcane", "abyssal");
-    assert_eq!(problems(&build), []);
+    assert!(possible(&build));
     let one = at(&build, 1);
     assert!(holds(&one, "sorcerer/bloodline/arcane/arcane-arcana"));
     assert!(holds(&one, "sorcerer/bloodline/abyssal/demonic-arcana"));
@@ -2648,7 +2626,7 @@ fn separatist(levels: usize) -> Build {
 #[test]
 fn a_separatists_second_domain_comes_two_levels_late() {
     let one = separatist(1);
-    assert_eq!(problems(&one), []);
+    assert!(possible(&one));
     let at_1 = at(&one, 1);
     assert!(holds(&at_1, "cleric/domain/fire/fire-bolt"));
     assert!(!holds(&at_1, "cleric/domain/luck/bit-of-luck"));
@@ -2669,7 +2647,7 @@ fn a_divine_hunter_8_holds_its_domains_level_8_power() {
         0,
         "cleric/domain/nobility",
     );
-    assert_eq!(problems(&build), []);
+    assert!(possible(&build));
     from_level(&build, 8, "cleric/domain/nobility/inspiring-command");
 }
 
@@ -2708,7 +2686,7 @@ fn a_living_deity_with_impossible_domain_holds_a_third_domain() {
         "oracle/revelations/battle/battlecry",
     );
     let build = with_mythic_selection(build, "impossible-domain", "cleric/domain/nobility");
-    assert_eq!(problems(&build), []);
+    assert!(possible(&build));
     let twenty = at(&build, 20);
     for domain in ["fire", "luck", "nobility"] {
         assert_eq!(
@@ -2725,7 +2703,7 @@ fn a_living_deity_with_impossible_domain_holds_a_third_domain() {
         "impossible-domain",
         "cleric/domain/nobility",
     );
-    assert_eq!(problems(&cleric), []);
+    assert!(possible(&cleric));
     from_level(&cleric, 6, "cleric/domain/nobility/inspiring-word");
     from_level(&cleric, 8, "cleric/domain/nobility/inspiring-command");
 }
@@ -2737,8 +2715,8 @@ fn cinder_dance_needs_no_lame_curse() {
         let build = with_option(build, 1, 1, &format!("oracle/oracles-curse/{curse}"));
         with_option(build, 1, 2, "oracle/revelations/flame/cinder-dance")
     };
-    assert_eq!(problems(&flame("plagued")), []);
-    assert_eq!(problems(&flame("lame")).len(), 1);
+    assert!(possible(&flame("plagued")));
+    assert!(!possible(&flame("lame")));
 }
 
 #[test]
@@ -2785,7 +2763,7 @@ fn a_living_deitys_maneuver_mastery_and_second_mystery_count_arcanist_levels() {
         "oracle/revelations/battle/battlecry",
     );
     let build = with_mythic_selection(build, "second-mystery", "oracle/mystery/flame");
-    assert_eq!(problems(&build), []);
+    assert!(possible(&build));
     class_skill_from_level(&build, 6, "athletics");
     from_level(&build, 20, "oracle/mystery/flame/flame-final-revelation");
 }
@@ -2809,13 +2787,13 @@ fn a_champion_of_the_faiths_alignment_blessing_is_his_own_alignment() {
             slot,
             pick(&format!("warpriest/blessings/{blessing}-domain")),
         );
-        problems(&build).len()
+        possible(&build)
     };
-    assert_eq!(champion(rules::Alignment::LawfulGood, "good"), 0);
-    assert_eq!(champion(rules::Alignment::LawfulGood, "law"), 0);
-    assert_eq!(champion(rules::Alignment::LawfulGood, "evil"), 1);
-    assert_eq!(champion(rules::Alignment::TrueNeutral, "chaos"), 1);
-    assert_eq!(champion(rules::Alignment::ChaoticEvil, "chaos"), 0);
+    assert!(champion(rules::Alignment::LawfulGood, "good"));
+    assert!(champion(rules::Alignment::LawfulGood, "law"));
+    assert!(!champion(rules::Alignment::LawfulGood, "evil"));
+    assert!(!champion(rules::Alignment::TrueNeutral, "chaos"));
+    assert!(champion(rules::Alignment::ChaoticEvil, "chaos"));
     // A warpriest's own blessings don't check it.
     let blessings = with_option(
         build("warpriest", 1),
@@ -2824,7 +2802,7 @@ fn a_champion_of_the_faiths_alignment_blessing_is_his_own_alignment() {
         "warpriest/blessings/evil-domain",
     );
     assert_eq!(blessings.start.alignment, None);
-    assert_eq!(problems(&blessings), []);
+    assert!(possible(&blessings));
 }
 
 #[test]
@@ -2854,11 +2832,11 @@ fn expanded_element_at_15_isnt_the_7th_level_element() {
     build
         .picks
         .insert(selection_slot(15), pick("kineticist/element/water"));
-    assert_eq!(problems(&build).len(), 1, "the 7th-level element again");
+    assert!(!possible(&build), "the 7th-level element again");
     build
         .picks
         .insert(selection_slot(15), pick("kineticist/element/fire"));
-    assert_eq!(problems(&build), []);
+    assert!(possible(&build));
 }
 
 #[test]
@@ -2881,13 +2859,7 @@ fn a_slayer_who_picked_archery_cant_take_two_weapon_fighting_through_a_combat_st
         feat_slot(2),
         Pick::feat(FeatKey::new("two-weapon-fighting")),
     );
-    assert_eq!(
-        problems(&slayer),
-        [Problem {
-            at: rules::Choice::Slot(feat_slot(2)),
-            issue: Issue::NotAllowed,
-        }]
-    );
+    assert_eq!(why_not(&slayer, &feat_slot(2)), None);
     // The second talent picks no style; its feat comes from Archery's list of the second stage.
     slayer
         .picks
@@ -2906,7 +2878,7 @@ fn a_slayer_who_picked_archery_cant_take_two_weapon_fighting_through_a_combat_st
     slayer
         .picks
         .insert(feat_slot(6), Pick::feat(FeatKey::new("manyshot")));
-    assert_eq!(problems(&slayer), []);
+    assert!(possible(&slayer));
 }
 
 // ---- second follow-ups (ticket 35) ----------------------------------------------------------------------------
@@ -2957,7 +2929,7 @@ fn living_deity_with_impossible_domain(levels: usize) -> Build {
 #[test]
 fn a_living_deity_with_impossible_domain_holds_the_domains_level_1_power_before_arcanist_20() {
     let build = living_deity_with_impossible_domain(8);
-    assert_eq!(problems(&build), []);
+    assert!(possible(&build));
     // Arcanist levels from the pick: its 1st-level power at 6, its 8th-level one at 8.
     from_level(&build, 6, "cleric/domain/nobility/inspiring-word");
     from_level(&build, 8, "cleric/domain/nobility/inspiring-command");
@@ -3002,7 +2974,7 @@ fn pentamic_hellknight() -> Build {
 #[test]
 fn a_hellknight_3_with_pentamic_faiths_domain_can_take_impossible_domain() {
     let build = pentamic_hellknight();
-    assert_eq!(problems(&build), []);
+    assert!(possible(&build));
     let mythic = SlotId::Mythic { rank: 3 };
     let status = engine()
         .options(&build, &mythic)
@@ -3021,7 +2993,7 @@ fn a_hellknight_3_with_pentamic_faiths_domain_can_take_impossible_domain() {
         SlotId::MythicSelection { rank: 3, index: 0 },
         pick("cleric/domain/war"),
     );
-    assert_eq!(problems(&build), []);
+    assert!(possible(&build));
     let nine = at(&build, 9);
     assert_eq!(
         nine.option_level(&SelectionOptionKey::new("cleric/domain/war")),
@@ -3086,23 +3058,22 @@ fn a_lawful_good_separatist_cant_take_chaos_or_evil_as_his_second_domain() {
             &format!("cleric/domain/{domain}"),
         );
         build.start.alignment = Some(alignment);
-        problems(&build).len()
+        possible(&build)
     };
     let lawful_good = rules::Alignment::LawfulGood;
-    assert_eq!(separatist(lawful_good, "chaos"), 1);
-    assert_eq!(separatist(lawful_good, "evil"), 1);
-    assert_eq!(separatist(lawful_good, "good"), 0);
-    assert_eq!(separatist(lawful_good, "law"), 0);
+    assert!(!separatist(lawful_good, "chaos"));
+    assert!(!separatist(lawful_good, "evil"));
+    assert!(separatist(lawful_good, "good"));
+    assert!(separatist(lawful_good, "law"));
     // A true neutral has none that conflicts; a chaotic evil can't take Law or Good.
     for domain in ["chaos", "evil", "good", "law"] {
-        assert_eq!(
+        assert!(
             separatist(rules::Alignment::TrueNeutral, domain),
-            0,
             "{domain}"
         );
     }
-    assert_eq!(separatist(rules::Alignment::ChaoticEvil, "law"), 1);
-    assert_eq!(separatist(rules::Alignment::ChaoticEvil, "good"), 1);
+    assert!(!separatist(rules::Alignment::ChaoticEvil, "law"));
+    assert!(!separatist(rules::Alignment::ChaoticEvil, "good"));
     // His first domain, a cleric's, isn't checked against it here.
     let mut first = with_option(
         archetype_build("cleric", "cleric/separatist", 1),
@@ -3111,7 +3082,7 @@ fn a_lawful_good_separatist_cant_take_chaos_or_evil_as_his_second_domain() {
         "cleric/domain/chaos",
     );
     first.start.alignment = Some(lawful_good);
-    assert_eq!(problems(&first), []);
+    assert!(possible(&first));
 }
 
 #[test]
@@ -3199,7 +3170,7 @@ fn a_bloodrager_with_a_dragon_bloodline_cant_take_a_second_dragon_through_second
     );
     both.levels.push(LevelUp::new(ClassKey::new("bloodrager")));
     let both = with_option(both, 2, 0, "bloodrager/bloodline/draconic-blue");
-    assert_eq!(problems(&both), []);
+    assert!(possible(&both));
 }
 
 // ---- Impossible Domain and the druid (ticket 36) ---------------------------------------------------------------
@@ -3248,7 +3219,7 @@ fn no_druid_can_take_impossible_domain_whatever_its_domain() {
         ("animal companion", companion, None),
     ] {
         let build = then_fighter_3(build);
-        assert_eq!(problems(&build), [], "{name}");
+        assert!(possible(&build), "{name}");
         // Each holds its druid's domain at druid level 3, so only being a druid's keeps it out.
         if let Some(domain) = domain {
             assert_eq!(
@@ -3397,7 +3368,7 @@ fn an_aldori_swordsman_holds_exotic_weapon_proficiency_in_the_dueling_sword() {
     let weapon = |key: &str| Parameter::Weapon(WeaponKey::new(key));
     assert!(state.has_feat_for(&proficiency, &weapon("dueling-sword")));
     assert!(!state.has_feat_for(&proficiency, &weapon("bastard-sword")));
-    assert_eq!(sheet.problems, []);
+    assert!(engine().is_possible(&wizard_with(Some("aldori-swordsman"))));
 }
 
 #[test]
@@ -3409,7 +3380,7 @@ fn a_guard_can_take_armor_proficiency_medium_armor_at_level_1() {
     guard
         .picks
         .insert(general_slot_1(), Pick::feat(FeatKey::new(medium)));
-    assert_eq!(engine().validate(&guard), []);
+    assert!(engine().is_possible(&guard));
 }
 
 #[test]
@@ -3438,7 +3409,7 @@ fn the_background_none_grants_nothing() {
     let with_none = engine().evaluate(&wizard_with(Some("none")));
     let without = engine().evaluate(&wizard_with(None));
     assert_eq!(with_none.at(1), without.at(1));
-    assert_eq!(with_none.problems, without.problems);
+    assert!(engine().is_possible(&wizard_with(Some("none"))));
 }
 
 // ---- options' class skills (ticket 37) ------------------------------------------------------------------------
@@ -3456,8 +3427,11 @@ fn class_skills_at_1(
     if let Some(option) = option {
         build.picks.insert(selection_slot(1), pick(option));
     }
+    assert!(
+        engine().is_possible(&build),
+        "{class} {archetype:?} {option:?}"
+    );
     let sheet = engine().evaluate(&build);
-    assert_eq!(sheet.problems, [], "{class} {archetype:?} {option:?}");
     sheet
         .at(1)
         .unwrap()
@@ -3564,8 +3538,8 @@ fn a_cleric_holds_both_domains_class_skills() {
         SlotId::Selection { level: 1, index: 1 },
         pick("cleric/domain/trickery"),
     );
+    assert!(engine().is_possible(&cleric));
     let sheet = engine().evaluate(&cleric);
-    assert_eq!(sheet.problems, []);
     let held: BTreeSet<String> = sheet
         .at(1)
         .unwrap()
@@ -3792,8 +3766,8 @@ fn an_overwhelming_mage_and_a_seeker_hold_their_bloodlines_class_skill_and_no_cl
                 0,
                 &format!("sorcerer/bloodline/{bloodline}"),
             );
+            assert!(engine().is_possible(&build), "{archetype} {bloodline}");
             let sheet = engine().evaluate(&build);
-            assert_eq!(sheet.problems, [], "{archetype} {bloodline}");
             let state = sheet.at(1).unwrap();
             let held: BTreeSet<String> = state.class_skills.iter().map(|s| s.to_string()).collect();
             let expected: BTreeSet<String> =
@@ -3829,8 +3803,8 @@ fn a_sohei_holds_lore_nature_as_a_class_skill_and_a_plain_monk_doesnt() {
             None => build("monk", 1),
         };
         monk.start.alignment = Some(rules::Alignment::LawfulNeutral);
+        assert!(engine().is_possible(&monk), "{archetype:?}");
         let sheet = engine().evaluate(&monk);
-        assert_eq!(sheet.problems, [], "{archetype:?}");
         sheet.at(1).cloned().unwrap()
     };
     let skills = |state: &CharacterState| -> BTreeSet<String> {
@@ -3870,8 +3844,8 @@ fn engine_without_class_skill(class: &str, skill: &str) -> Engine {
 
 /// `engine` gives `skill` as a class skill from `level` on, not before.
 fn class_skill_from_level_by(engine: &Engine, build: &Build, level: u8, skill: &str) {
+    assert!(engine.is_possible(build));
     let sheet = engine.evaluate(build);
-    assert_eq!(sheet.problems, []);
     let has = |level: u8| {
         sheet
             .at(level)
@@ -3886,7 +3860,7 @@ fn class_skill_from_level_by(engine: &Engine, build: &Build, level: u8, skill: &
 #[test]
 fn the_animal_domains_lore_nature_comes_with_its_companion_at_the_holders_4th_domain_level() {
     let animal = cleric(["animal", "fire"], 4);
-    assert_eq!(engine().validate(&animal), []);
+    assert!(engine().is_possible(&animal));
     class_skill_from_level(&animal, 4, "lore-nature");
     from_level(&animal, 4, "cleric/domain/animal/animal-companion");
     // A Separatist's second domain runs two levels behind: cleric 6.
@@ -3909,7 +3883,7 @@ fn the_animal_domains_lore_nature_comes_with_its_companion_at_the_holders_4th_do
         option_slot(1, 0),
         "cleric/domain/animal",
     );
-    assert_eq!(engine().validate(&druid), []);
+    assert!(engine().is_possible(&druid));
     assert!(has_class_skill(&at(&druid, 1), "lore-nature"));
     class_skill_from_level_by(
         &engine_without_class_skill("druid", "lore-nature"),
@@ -3918,7 +3892,7 @@ fn the_animal_domains_lore_nature_comes_with_its_companion_at_the_holders_4th_do
         "lore-nature",
     );
     let inquisitor = with_option(build("inquisitor", 4), 1, 0, "cleric/domain/animal");
-    assert_eq!(engine().validate(&inquisitor), []);
+    assert!(engine().is_possible(&inquisitor));
     class_skill_from_level_by(
         &engine_without_class_skill("inquisitor", "lore-nature"),
         &inquisitor,

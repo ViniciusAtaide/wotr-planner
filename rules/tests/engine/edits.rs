@@ -127,7 +127,7 @@ fn remove_level_takes_off_the_last_level_with_its_picks_and_unused_class_choices
         [general_slot(1)]
     );
     assert!(build.class_choices.is_empty());
-    assert_eq!(engine().validate(&build), []);
+    assert!(engine().is_possible(&build));
 }
 
 #[test]

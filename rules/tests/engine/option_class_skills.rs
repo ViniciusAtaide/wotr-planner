@@ -134,7 +134,7 @@ fn an_option_taken_late_gives_its_class_skills_from_the_pick() {
         SlotId::MythicSelection { rank: 1, index: 0 },
         pick_option(ABYSSAL),
     );
-    assert_eq!(engine().validate(&build), []);
+    assert!(engine().is_possible(&build));
     assert_eq!(class_skills(&build, 5), strings(&["knowledge-arcana"]));
     assert_eq!(
         class_skills(&build, 6),
@@ -153,7 +153,7 @@ fn an_archetype_skipping_the_row_gets_none_of_its_class_skills() {
         strings(&["knowledge-arcana", "mobility"])
     );
     let sage = with(&["sorcerer"], Some("sorcerer/sage"), &[]);
-    assert_eq!(engine.validate(&sage), []);
+    assert!(engine.is_possible(&sage));
     assert_eq!(
         class_skills_with(&engine, &sage, 1),
         strings(&["knowledge-arcana"])
@@ -173,7 +173,7 @@ fn a_second_bloodline_giving_only_its_lists_gives_no_class_skills() {
         )
     };
     let second = crossblooded(ARCANE, ABYSSAL);
-    assert_eq!(engine().validate(&second), []);
+    assert!(engine().is_possible(&second));
     assert_eq!(class_skills(&second, 1), strings(&["knowledge-arcana"]));
     let first = crossblooded(ABYSSAL, ARCANE);
     assert_eq!(

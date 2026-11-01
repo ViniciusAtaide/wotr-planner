@@ -1,4 +1,4 @@
-//! What can be wrong with a choice in a Build, and where.
+//! Where a choice sits in a Build, and why a picker's option can't be taken.
 
 use std::collections::BTreeSet;
 
@@ -7,22 +7,8 @@ use crate::game_data::Ability;
 use crate::keys::{ClassKey, MythicPathKey, SkillKey};
 use crate::prerequisite::Prerequisite;
 
-/// One choice in a Build that doesn't hold up. A Build the planner's edits make has none: only a stale link (the
-/// game data changed since it was made) has problems, which the stale-link banner shows.
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct Problem {
-    pub at: Choice,
-    pub issue: Issue,
-}
-
-impl Problem {
-    /// A key the current game data doesn't have ("removed from game data" on the stale-link banner).
-    pub fn is_unknown_key(&self) -> bool {
-        matches!(self.issue, Issue::UnknownKey(_))
-    }
-}
-
-/// Where a choice sits in a Build.
+/// Where a choice sits in a Build: what [`Engine::removable`](crate::Engine::removable) answers for, and where a
+/// walk finds a choice an edit would break (which locks the edit).
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Choice {
     Race,
@@ -66,13 +52,11 @@ pub enum Choice {
     Slot(SlotId),
 }
 
-/// Why a choice doesn't hold up, or why a picker's option can't be taken. Only what a stale link can hold is a
-/// reason here: what only a hand-edited link could hold is kept out by the types and the link decoder (a point
-/// buy that doesn't fit, ranks above the character level, an ability increase on a level without one).
+/// Why a picker's option can't be taken. A Build the sheet holds is always possible, and a link to one that isn't
+/// opens nothing ([`Engine::open_link`](crate::Engine::open_link)), so these are only the reasons a picker shows,
+/// and [`NotAllowed`](Self::NotAllowed), which the walk needs to lock an edit.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Issue {
-    /// The key isn't in the current game data.
-    UnknownKey(String),
     /// The prerequisites aren't met at that point of the Build.
     Unmet(Unmet),
     /// Already held: taken earlier in the Build (or earlier at the same level). For a feat taken once per value,
@@ -80,29 +64,18 @@ pub enum Issue {
     AlreadyHeld,
     /// Already taken as many times as it can be (Extra Hex: 3).
     MaxTimes { times: u8 },
-    /// A pick of a parameterised feat, or of an option with a chosen feat, that names no value.
-    ParameterMissing,
-    /// A value the pick can't be taken for: one of another kind (a skill for Weapon Focus, a simple weapon for
-    /// Exotic Weapon Proficiency), or any value for a pick that takes none.
-    WrongParameter,
-    /// Not one of the things this choice accepts: a feat outside the slot's list, an archetype of another class, a
-    /// subrace of another race.
+    /// Not a pick the slot takes: a feat outside its list, an option outside its selection, a key the game data
+    /// lacks, or a value of the wrong kind (or none where one is needed). No picker shows it, since a picker offers
+    /// only what its slot takes; it's how a walk finds a pick that an earlier change left in the wrong slot (another
+    /// class at the level, another option held).
     NotAllowed,
-    /// A pick for a slot the Build doesn't have (any more).
-    NoSuchSlot,
-    /// The character level is above the cap (20, or the switched-to path's).
-    LevelCap { cap: u8 },
-    /// The class level is above the class's table or the path's cap.
+    /// The class level would go above the class's table.
     ClassLevelCap { cap: u8 },
-    /// More ranks than the Level-up's skill points (the class's, or the Intelligence modifier, changed).
-    SkillPointsOverspent { available: u8, spent: u8 },
-    /// A path that can't be taken this way: a switch-only path at MR 3, or a path without a switch rule at MR 8.
-    NotChoosable,
     /// A Path switch open only from other paths than the Build's (Devil: from Aeon or Azata).
     NotFromPath { from: BTreeSet<MythicPathKey> },
     /// A picker's option that would break a later choice (a later pick of the same feat, or one that needs what
     /// the option replaces): the later choice comes off first, as choices come off from the leaves inward
-    /// ([`Engine::removable`](crate::Engine::removable)). Never a problem of a Build's.
+    /// ([`Engine::removable`](crate::Engine::removable)).
     BreaksLater,
 }
 

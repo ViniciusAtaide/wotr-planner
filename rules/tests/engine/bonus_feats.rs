@@ -2,8 +2,8 @@
 //! but still count as held. Every other feat slot checks them.
 
 use rules::{
-    Ability, ArchetypeKey, Build, Choice, ClassChoice, Edit, Issue, Pick, Prerequisite, Problem,
-    SlotId, SlotOption, Unmet,
+    Ability, ArchetypeKey, Build, Choice, ClassChoice, Edit, Issue, Pick, Prerequisite, SlotId,
+    SlotOption, Unmet,
 };
 
 use crate::support::*;
@@ -57,7 +57,7 @@ fn a_bonus_list_pick_ignores_the_feats_prerequisites() {
 
     let mut picked = build;
     picked.picks.insert(class_slot(1, 0), crane_style);
-    assert_eq!(engine().validate(&picked), []);
+    assert!(engine().is_possible(&picked));
 }
 
 #[test]
@@ -74,14 +74,9 @@ fn a_bonus_list_slot_still_takes_only_its_list_and_no_feat_already_held() {
         Err(Issue::AlreadyHeld)
     );
 
+    // Toughness isn't on the list: the picker doesn't offer it.
     build.picks.insert(class_slot(2, 0), pick_feat("toughness"));
-    assert_eq!(
-        engine().validate(&build),
-        [Problem {
-            at: Choice::Slot(class_slot(2, 0)),
-            issue: Issue::NotAllowed,
-        }]
-    );
+    assert_eq!(why_not(&build, &class_slot(2, 0)), None);
 }
 
 #[test]
@@ -125,11 +120,8 @@ fn a_fighter_combat_feat_slot_still_checks_prerequisites() {
         .picks
         .insert(class_slot(1, 0), pick_feat("crane-style"));
     assert_eq!(
-        engine().validate(&build),
-        [Problem {
-            at: Choice::Slot(class_slot(1, 0)),
-            issue: needs_feat("dodge"),
-        }]
+        why_not(&build, &class_slot(1, 0)),
+        Some(needs_feat("dodge"))
     );
 }
 
@@ -173,7 +165,7 @@ fn a_bonus_list_pick_never_depends_on_anything() {
         .picks
         .insert(class_slot(2, 0), pick_feat("crane-style"));
     build.picks.insert(general_slot(3), pick_feat("crane-wing"));
-    assert_eq!(engine().validate(&build), []);
+    assert!(engine().is_possible(&build));
 
     // Crane Wing needs Dodge, so Dodge stays.
     let removable = engine().removable(&build);

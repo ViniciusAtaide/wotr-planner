@@ -3,9 +3,7 @@
 
 use std::collections::BTreeSet;
 
-use rules::{
-    ArmourType, BackgroundKey, Build, Choice, ClassChoice, Edit, Issue, Parameter, Problem,
-};
+use rules::{ArmourType, BackgroundKey, Build, Choice, ClassChoice, Edit, Issue, Parameter};
 
 use crate::support::*;
 
@@ -111,7 +109,7 @@ fn a_backgrounds_feat_is_held_from_the_start_whatever_its_prerequisites() {
     // Dex 10: the world's Improved Unarmed Strike needs 13, but a granted feat skips its prerequisites.
     let mut build = wizard(Some("martial-disciple"));
     build.start.ability_scores = point_buy([16, 10, 12, 14, 10, 10]);
-    assert_eq!(engine().validate(&build), []);
+    assert!(engine().is_possible(&build));
     let state = engine()
         .state_before(&build, &general_slot(1))
         .expect("level 1's general slot");
@@ -134,21 +132,14 @@ fn armor_focus_light() -> rules::Pick {
 fn a_backgrounds_feat_counts_for_prerequisites() {
     let mut guard = wizard(Some("guard"));
     guard.picks.insert(general_slot(1), armor_focus_light());
-    assert_eq!(engine().validate(&guard), []);
+    assert!(engine().is_possible(&guard));
 
     let mut plain = wizard(None);
     plain.picks.insert(general_slot(1), armor_focus_light());
-    let problems = engine().validate(&plain);
-    assert!(
-        matches!(
-            problems.as_slice(),
-            [Problem {
-                at: Choice::Slot(slot),
-                issue: Issue::Unmet(_)
-            }] if *slot == general_slot(1)
-        ),
-        "{problems:?}"
-    );
+    assert!(matches!(
+        why_not(&plain, &general_slot(1)),
+        Some(Issue::Unmet(_))
+    ));
 }
 
 #[test]
@@ -165,22 +156,10 @@ fn the_background_none_grants_nothing() {
     let none = engine().evaluate(&wizard(Some("none")));
     let plain = engine().evaluate(&wizard(None));
     assert_eq!(none.at(1), plain.at(1));
-    assert_eq!(none.problems, []);
+    assert!(engine().is_possible(&wizard(Some("none"))));
 }
 
 // ---- the choice -----------------------------------------------------------------------------------------------
-
-#[test]
-fn an_unknown_background_is_reported() {
-    let build = wizard(Some("cut-in-a-later-patch"));
-    assert_eq!(
-        engine().validate(&build),
-        [Problem {
-            at: Choice::Background,
-            issue: Issue::UnknownKey("cut-in-a-later-patch".into())
-        }]
-    );
-}
 
 #[test]
 fn a_background_whose_feat_a_pick_needs_is_not_changeable() {

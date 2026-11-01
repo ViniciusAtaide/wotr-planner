@@ -1,13 +1,14 @@
 //! The rules engine: walks a Build level by level against the game data.
 //!
-//! One walk produces everything: the state at each level, the slots and their picks, the Mythic track, and every
-//! problem. Picks are checked in Build order against the state just before their slot, and a pick that fails
-//! doesn't count as held, so a broken pick also breaks whatever depended on it (removing Cleave breaks Great
-//! Cleave, which breaks anything needing Great Cleave).
+//! One walk produces everything: the state at each level, the slots and their picks, the Mythic track, and the
+//! choices that don't hold up. Picks are checked in Build order against the state just before their slot, and a
+//! pick that fails doesn't count as held, so a broken pick also breaks whatever depended on it (removing Cleave
+//! breaks Great Cleave, which breaks anything needing Great Cleave).
 //!
 //! The sheet only ever holds a possible Build: it offers no edit that would break another choice
 //! ([`Engine::allows`]), so choices come off from the leaves inward ([`Engine::removable`]) and the pickers lock
-//! what would break a later choice. Problems are what a stale link holds, for the stale-link banner.
+//! what would break a later choice. A link to a Build that isn't possible opens nothing ([`Engine::open_link`]):
+//! the walk says only whether a choice fails, never why.
 
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 
@@ -15,6 +16,8 @@ use crate::build::{
     AbilityScores, Build, BuildStart, ClassChoice, Edit, FeatSource, LevelUp, Pick, SlotId,
     has_ability_increase,
 };
+use crate::choice::{Choice, Issue, Unmet};
+use crate::codec::{StaleLink, decode_build};
 use crate::game_data::{
     Ability, AbilityBonus, AbilityModifier, Advancement, Archetype, Background, Class,
     CountsToward, Feat, FeatList, FeatSlot, FeatValue, FeatureSelection, GameData, LevelFrom,
@@ -28,7 +31,6 @@ use crate::keys::{
 };
 use crate::parameter::{ArmourType, Energy, Parameter, ParameterKind, Repeat, SpellSchool};
 use crate::prerequisite::{Prerequisite, Story};
-use crate::problem::{Choice, Issue, Problem, Unmet};
 use crate::state::{CharacterState, ClassLevels};
 
 /// The highest character level without a path that raises it.
@@ -183,9 +185,6 @@ pub struct Sheet {
     pub ranks: Vec<RankSheet>,
     /// The character level cap at the end of the Build: 20, or 40 after a Legend switch.
     pub level_cap: u8,
-    /// Everything that doesn't hold up, in Build order. Within a level, picks for slots the level doesn't have
-    /// come after its slots.
-    pub problems: Vec<Problem>,
 }
 
 /// One row of the sheet.
@@ -506,42 +505,22 @@ impl Engine {
         }
     }
 
-    /// Whether a pick's value fits what it takes (`kind`: `None` when it takes none). An unknown skill or weapon is
-    /// an unknown key.
-    fn check_value(
-        &self,
-        kind: Option<ParameterKind>,
-        value: Option<&Parameter>,
-    ) -> Result<(), Issue> {
+    /// Whether a pick's value fits what it takes (`kind`: `None` when it takes none): a known value of that kind,
+    /// or none for a pick that takes none.
+    fn value_fits(&self, kind: Option<ParameterKind>, value: Option<&Parameter>) -> bool {
         use ParameterKind as K;
-        let (kind, value) = match (kind, value) {
-            (None, None) => return Ok(()),
-            (None, Some(_)) => return Err(Issue::WrongParameter),
-            (Some(_), None) => return Err(Issue::ParameterMissing),
-            (Some(kind), Some(value)) => (kind, value),
-        };
-        let fits = match (kind, value) {
-            (K::Skill, Parameter::Skill(key)) => {
-                if !self.skills.contains_key(key) {
-                    return Err(Issue::UnknownKey(key.to_string()));
-                }
-                true
+        match (kind, value) {
+            (None, None) => true,
+            (Some(K::Skill), Some(Parameter::Skill(key))) => self.skills.contains_key(key),
+            (Some(kind @ (K::Weapon | K::ExoticWeapon)), Some(Parameter::Weapon(key))) => {
+                self.weapon(key).is_some_and(|weapon| {
+                    kind == K::Weapon || weapon.proficiency == Some(WeaponProficiency::Exotic)
+                })
             }
-            (K::Weapon | K::ExoticWeapon, Parameter::Weapon(key)) => {
-                let weapon = self
-                    .weapon(key)
-                    .ok_or_else(|| Issue::UnknownKey(key.to_string()))?;
-                kind == K::Weapon || weapon.proficiency == Some(WeaponProficiency::Exotic)
-            }
-            (K::SpellSchool, Parameter::SpellSchool(_))
-            | (K::Energy, Parameter::Energy(_))
-            | (K::ArmourType, Parameter::ArmourType(_)) => true,
+            (Some(K::SpellSchool), Some(Parameter::SpellSchool(_)))
+            | (Some(K::Energy), Some(Parameter::Energy(_)))
+            | (Some(K::ArmourType), Some(Parameter::ArmourType(_))) => true,
             _ => false,
-        };
-        if fits {
-            Ok(())
-        } else {
-            Err(Issue::WrongParameter)
         }
     }
 
@@ -623,6 +602,21 @@ impl Engine {
         self.paths
             .get(key)
             .map(|&index| &self.data.mythic_paths[index])
+    }
+
+    /// The Build's path, when it's one that can be chosen at MR 3: a path without a switch rule.
+    fn chosen_path(&self, build: &Build) -> Option<&MythicPath> {
+        self.path(build.mythic_path.as_ref()?)
+            .filter(|path| path.switch.is_none())
+    }
+
+    /// The Build's Path switch with its rule, when it's a path with one, open from the Build's path.
+    fn chosen_switch(&self, build: &Build) -> Option<(&MythicPath, &PathSwitch)> {
+        let path = self.path(build.path_switch.as_ref()?)?;
+        let switch = path.switch.as_ref()?;
+        switch
+            .open_from(build.mythic_path.as_ref())
+            .then_some((path, switch))
     }
 
     /// The archetype when it exists and belongs to `class`.
@@ -812,10 +806,45 @@ impl Engine {
         Walker::new(self, build, Some(probe)).run().probed
     }
 
-    /// Every problem in the Build: picks that no longer qualify, and keys missing from the game data. Used when a
-    /// link is opened, for the stale-link banner. A Build the sheet's edits made has none.
-    pub fn validate(&self, build: &Build) -> Vec<Problem> {
-        self.evaluate(build).problems
+    /// Whether every choice in the Build holds up with the current game data: every key known, every pick in a
+    /// slot the Build reaches and fitting it there, every rule kept. Every Build the sheet's edits make is.
+    pub fn is_possible(&self, build: &Build) -> bool {
+        Walker::new(self, build, None).run().failed.is_empty()
+    }
+
+    /// Opens a link: its Build when it decodes and [is possible](Self::is_possible), and otherwise the one generic
+    /// error, whatever the reason (the game data changed since the link was made, or the link is damaged or
+    /// hand-edited). The sheet then shows a blank Build.
+    pub fn open_link(&self, code: &str) -> Result<Build, StaleLink> {
+        decode_build(code)
+            .ok()
+            .filter(|build| self.is_possible(build))
+            .ok_or(StaleLink)
+    }
+
+    /// Applies an edit as the sheet makes it: [`Build::apply`], then the picks of the Mythic ranks the Build no
+    /// longer reaches go, so the Build holds only what the sheet shows. Removing a level drops the picks of the
+    /// ranks it reached (MR 8 and 9 with level 17), and a switch that ends the ascensions drops the picks of the
+    /// ranks from the switch rank on (Legend: MR 8 to 10). The picks a switch takes away at earlier ranks stay, as
+    /// the Mythic track shows them ([`RankSheet::dropped_slots`]).
+    pub fn apply(&self, build: &mut Build, edit: &Edit) {
+        build.apply(edit);
+        let levels = build.levels.len();
+        let ascensions_end = self
+            .chosen_switch(build)
+            .is_some_and(|(_, switch)| !switch.further_ascensions);
+        build
+            .picks
+            .retain(|slot, _| match (slot.level(), slot.rank()) {
+                (Some(level), _) => usize::from(level) <= levels,
+                (None, Some(rank)) => {
+                    !(ascensions_end && rank >= PATH_SWITCH_RANK)
+                        && self
+                            .ascension_level(rank)
+                            .is_some_and(|level| usize::from(level) <= levels)
+                }
+                (None, None) => true,
+            });
     }
 
     /// The state just before a slot is filled, or `None` when the Build has no such slot.
@@ -1055,42 +1084,37 @@ impl Engine {
             .collect()
     }
 
-    /// Whether an edit keeps the Build possible: it breaks no other choice that holds up now (the choices it sets
-    /// are the pickers' business). Choices a stale link already broke don't count. The sheet offers only edits
-    /// this allows; [`options`](Self::options) and the class and path pickers fold it into each option's status.
+    /// Whether an edit keeps a possible Build possible: it breaks no other choice (the choices it sets are the
+    /// pickers' business). The edit is applied as [`apply`](Self::apply) does it. The sheet offers only edits this
+    /// allows; [`options`](Self::options) and the class and path pickers fold it into each option's status.
     ///
     /// Costs one walk of the Build, then one from the first level the edit changes.
     pub fn allows(&self, build: &Build, edit: &Edit) -> bool {
         Recheck::new(self, build).keeps(edit, &[])
     }
 
-    /// The choices in the Build the sheet may remove or change now: each that no later choice depends on, and
-    /// each that's broken (a stale link's broken pick shows its remove control whatever depends on it, since
-    /// removing it is how the link gets fixed). A choice depends on another when taking the other back would break
-    /// it, so a chain comes off from the leaves inward: of Power Attack, Cleave and Great Cleave, only Great
-    /// Cleave, then Cleave, then Power Attack.
+    /// The choices in a possible Build the sheet may remove or change now: each that no later choice depends on.
+    /// A choice depends on another when taking the other back would break it, so a chain comes off from the leaves
+    /// inward: of Power Attack, Cleave and Great Cleave, only Great Cleave, then Cleave, then Power Attack.
     ///
     /// Taking a choice back means: a pick cleared; a level taken by no class (what its class row gives goes, and
     /// the levels of its class after it each move down one); a class's archetype or advanced classes unchosen; a
     /// point-buy score at 7; a level's ability increase or a skill's ranks at a level gone; the race (with its
     /// subrace and racial ability), subrace, alignment, background, path or Path switch unchosen. A level's own
     /// skill points don't count against changing its class: the class picker locks a class with too few.
-    /// Choices of a class no level takes aren't choices.
     ///
     /// Costs one walk of the Build, then for each choice a walk from its level (the Build start's: all of it).
     pub fn removable(&self, build: &Build) -> BTreeSet<Choice> {
         let recheck = Recheck::new(self, build);
         self.withdrawals(build)
             .into_iter()
-            .filter(|(choice, edit, own)| {
-                recheck.broken.contains(choice) || recheck.keeps(edit, own.as_slice())
-            })
+            .filter(|(_, edit, own)| recheck.keeps(edit, own.as_slice()))
             .map(|(choice, ..)| choice)
             .collect()
     }
 
-    /// Each choice in the Build, with the edit that takes it back and any other choice whose own problems that
-    /// edit doesn't count (see [`removable`](Self::removable)).
+    /// Each choice in the Build, with the edit that takes it back and any other choice whose failing that edit
+    /// doesn't count (see [`removable`](Self::removable)).
     fn withdrawals(&self, build: &Build) -> Vec<(Choice, Edit, Vec<Choice>)> {
         let mut withdrawals = Vec::new();
         let start = |change: &dyn Fn(&mut BuildStart)| {
@@ -1246,12 +1270,17 @@ impl Engine {
 
     /// The character level of a Mythic rank's ascension; 0 (the whole walk) for a rank the data lacks.
     fn rank_level(&self, rank: u8) -> u8 {
+        self.ascension_level(rank).unwrap_or(0)
+    }
+
+    /// The character level of a Mythic rank's ascension, if the data has the rank.
+    fn ascension_level(&self, rank: u8) -> Option<u8> {
         self.data
             .progression
             .mythic_ascensions
             .iter()
             .find(|ascension| ascension.rank == rank)
-            .map_or(0, |ascension| ascension.character_level)
+            .map(|ascension| ascension.character_level)
     }
 
     /// Whether a feat slot accepts a feat, ignoring prerequisites. A list the data lacks accepts none, and so does
@@ -1362,7 +1391,10 @@ struct Walker<'a> {
     engine: &'a Engine,
     build: &'a Build,
     state: CharacterState,
-    problems: Vec<Problem>,
+    /// The choices that don't hold up, in walk order.
+    failed: Vec<Choice>,
+    /// The slots the walk has reached, so a pick for any other is found at the end.
+    reached: HashSet<SlotId>,
     /// What Mythic ascensions granted, by rank and source, so a Path switch can drop it.
     rank_grants: Vec<RankGrant>,
     ranks: Vec<RankSheet>,
@@ -1416,17 +1448,17 @@ struct Holding {
 struct Walk {
     sheet: Sheet,
     probed: Probed,
+    failed: Vec<Choice>,
 }
 
-/// A Build walked once and paused before each level, so an edit is walked only from the first level it changes.
+/// A possible Build walked once and paused before each level, so an edit is walked only from the first level it
+/// changes.
 struct Recheck<'a> {
     engine: &'a Engine,
     build: &'a Build,
     /// `paused[i]` is the walk just before character level `i + 1` (after the Build start); the last one is after
     /// the last level.
     paused: Vec<Walker<'a>>,
-    /// The choices the Build already has problems at.
-    broken: HashSet<Choice>,
 }
 
 impl<'a> Recheck<'a> {
@@ -1438,24 +1470,18 @@ impl<'a> Recheck<'a> {
             paused.push(walker.clone());
             walker.level(u8::try_from(index + 1).unwrap_or(u8::MAX), level_up);
         }
-        let broken = walker
-            .problems
-            .iter()
-            .map(|problem| problem.at.clone())
-            .collect();
         paused.push(walker);
         Self {
             engine,
             build,
             paused,
-            broken,
         }
     }
 
-    /// Whether `edit` breaks no choice that holds up now, other than the ones it sets and `own`.
+    /// Whether `edit` breaks no choice, other than the ones it sets and `own`.
     fn keeps(&self, edit: &Edit, own: &[Choice]) -> bool {
         let mut edited = self.build.clone();
-        edited.apply(edit);
+        self.engine.apply(&mut edited, edit);
         if &edited == self.build {
             return true;
         }
@@ -1473,11 +1499,9 @@ impl<'a> Recheck<'a> {
             }
         };
         let set = edit.choices();
-        walk.sheet.problems.iter().all(|problem| {
-            self.broken.contains(&problem.at)
-                || set.contains(&problem.at)
-                || own.contains(&problem.at)
-        })
+        walk.failed
+            .iter()
+            .all(|choice| set.contains(choice) || own.contains(choice))
     }
 
     /// A picker's status for an option open at its point of the Build: `Ok`, or [`Issue::BreaksLater`].
@@ -1509,7 +1533,8 @@ impl<'a> Walker<'a> {
             engine,
             build,
             state: CharacterState::default(),
-            problems: Vec::new(),
+            failed: Vec::new(),
+            reached: HashSet::new(),
             rank_grants: Vec::new(),
             ranks,
             level_cap: BASE_LEVEL_CAP,
@@ -1527,8 +1552,10 @@ impl<'a> Walker<'a> {
         }
     }
 
-    fn problem(&mut self, at: Choice, issue: Issue) {
-        self.problems.push(Problem { at, issue });
+    /// Notes a choice that doesn't hold up. Only whether one does matters (it locks an edit, and makes a link
+    /// stale), never why.
+    fn fail(&mut self, at: Choice) {
+        self.failed.push(at);
     }
 
     fn run(mut self) -> Walk {
@@ -1553,14 +1580,40 @@ impl<'a> Walker<'a> {
         {
             self.probed.state = Some(self.state.clone());
         }
+        self.check_unreached();
         Walk {
             sheet: Sheet {
                 levels,
                 ranks: self.ranks,
                 level_cap: self.level_cap,
-                problems: self.problems,
             },
             probed: self.probed,
+            failed: self.failed,
+        }
+    }
+
+    /// The choices no level checked: a pick for a slot the walk didn't reach (one a level doesn't have, past the
+    /// last level, or at a rank not reached), a class choice for a class no level takes, and the path and switch,
+    /// which must be ones the Build could take even while their ranks aren't reached.
+    fn check_unreached(&mut self) {
+        let build = self.build;
+        for slot in build.picks.keys() {
+            if !self.reached.contains(slot) {
+                self.fail(Choice::Slot(slot.clone()));
+            }
+        }
+        for class in build.class_choices.keys() {
+            if !build.levels.iter().any(|level| &level.class == class) {
+                self.fail(Choice::Archetype {
+                    class: class.clone(),
+                });
+            }
+        }
+        if build.mythic_path.is_some() && self.engine.chosen_path(build).is_none() {
+            self.fail(Choice::MythicPath);
+        }
+        if build.path_switch.is_some() && self.engine.chosen_switch(build).is_none() {
+            self.fail(Choice::PathSwitch);
         }
     }
 
@@ -1576,7 +1629,7 @@ impl<'a> Walker<'a> {
             Some(key) => {
                 let race = engine.race(key);
                 if race.is_none() {
-                    self.problem(Choice::Race, Issue::UnknownKey(key.to_string()));
+                    self.fail(Choice::Race);
                 }
                 race
             }
@@ -1584,15 +1637,12 @@ impl<'a> Walker<'a> {
         };
         let subrace = match &start.subrace {
             Some(key) => match engine.subraces.get(key) {
-                None => {
-                    self.problem(Choice::Subrace, Issue::UnknownKey(key.to_string()));
-                    None
-                }
                 Some(&(r, s)) if race.is_some_and(|race| race.key == engine.data.races[r].key) => {
                     Some(&engine.data.races[r].subraces[s])
                 }
-                Some(_) => {
-                    self.problem(Choice::Subrace, Issue::NotAllowed);
+                // A key the data lacks, or a subrace of another race.
+                _ => {
+                    self.fail(Choice::Subrace);
                     None
                 }
             },
@@ -1631,7 +1681,7 @@ impl<'a> Walker<'a> {
             return;
         };
         let Some(background) = engine.background(key) else {
-            self.problem(Choice::Background, Issue::UnknownKey(key.to_string()));
+            self.fail(Choice::Background);
             return;
         };
         for skill in &background.class_skills {
@@ -1658,12 +1708,7 @@ impl<'a> Walker<'a> {
             self.probed.state = Some(self.state.clone());
         }
         if level > self.level_cap {
-            self.problem(
-                Choice::CharacterLevel { level },
-                Issue::LevelCap {
-                    cap: self.level_cap,
-                },
-            );
+            self.fail(Choice::CharacterLevel { level });
         }
         // Entry prerequisites are checked against the character before this level.
         self.check_class_entry(level, level_up);
@@ -1687,10 +1732,7 @@ impl<'a> Walker<'a> {
 
         let level_slots = self.level_slots(level, level_up);
         let level_slots = self.grant_selections(level_slots);
-        let mut slots = self.fill_all(level_slots, None, |id| {
-            matches!(id, SlotId::Feat { .. } | SlotId::Selection { .. })
-                && id.level() == Some(level)
-        });
+        let mut slots = self.fill_all(level_slots, None);
         slots.extend(self.fill_pending(level));
 
         let mut mythic_ranks = Vec::new();
@@ -1705,19 +1747,6 @@ impl<'a> Walker<'a> {
                 mythic_ranks.push(rank);
             }
             slots.extend(self.fill_pending(level));
-        }
-        let stray: Vec<SlotId> = self
-            .build
-            .picks
-            .keys()
-            .filter(|id| {
-                matches!(id, SlotId::OptionSelection { level: l, .. } | SlotId::OptionFeat { level: l, .. } if *l == level)
-            })
-            .filter(|id| !slots.iter().any(|slot| &slot.id == *id))
-            .cloned()
-            .collect();
-        for id in stray {
-            self.problem(Choice::Slot(id), Issue::NoSuchSlot);
         }
 
         LevelSheet {
@@ -1740,34 +1769,29 @@ impl<'a> Walker<'a> {
         }
         let engine = self.engine;
         let Some((class, _)) = engine.class(&level_up.class) else {
-            self.problem(
-                Choice::Class { level },
-                Issue::UnknownKey(level_up.class.to_string()),
-            );
+            self.fail(Choice::Class { level });
             return;
         };
         if let Some(prerequisite) = &class.prerequisite
-            && let Err(unmet) = self.state.check(prerequisite)
+            && self.state.check(prerequisite).is_err()
         {
-            self.problem(Choice::Class { level }, Issue::Unmet(unmet));
+            self.fail(Choice::Class { level });
         }
         let choice = self.build.class_choices.get(&level_up.class);
-        let at_archetype = || Choice::Archetype {
-            class: level_up.class.clone(),
-        };
         if let Some(key) = choice.and_then(|choice| choice.archetype.as_ref()) {
-            match engine.archetypes.get(key) {
-                None => self.problem(at_archetype(), Issue::UnknownKey(key.to_string())),
-                Some(_) => match engine.archetype_of(class, Some(key)) {
-                    None => self.problem(at_archetype(), Issue::NotAllowed),
-                    Some(archetype) => {
-                        if let Some(prerequisite) = &archetype.prerequisite
-                            && let Err(unmet) = self.state.check(prerequisite)
-                        {
-                            self.problem(at_archetype(), Issue::Unmet(unmet));
-                        }
-                    }
-                },
+            // A key the data lacks, an archetype of another class, or one whose prerequisites aren't met.
+            let holds = engine
+                .archetype_of(class, Some(key))
+                .is_some_and(|archetype| {
+                    archetype
+                        .prerequisite
+                        .as_ref()
+                        .is_none_or(|prerequisite| self.state.check(prerequisite).is_ok())
+                });
+            if !holds {
+                self.fail(Choice::Archetype {
+                    class: level_up.class.clone(),
+                });
             }
         }
         if let Some(choice) = choice
@@ -1778,19 +1802,16 @@ impl<'a> Walker<'a> {
     }
 
     /// A prestige class advances at most one arcane and one divine class (one class in all when it advances
-    /// `Either`), each already taken and casting the spells it advances. Unknown keys are reported one by one; anything else wrong is one `NotAllowed`.
+    /// `Either`), each already taken and casting the spells it advances.
     fn check_advances(&mut self, prestige: &Class, advances: &BTreeSet<ClassKey>) {
         let engine = self.engine;
-        let at = || Choice::Advances {
-            class: prestige.key.clone(),
-        };
         let advances_arcane = prestige.levels.iter().any(|row| row.advances_arcane);
         let advances_divine = prestige.levels.iter().any(|row| row.advances_divine);
         // For each named class: (can take the arcane advancement, can take the divine one).
         let mut serves = Vec::new();
         for key in advances {
             let Some((class, _)) = engine.class(key) else {
-                self.problem(at(), Issue::UnknownKey(key.to_string()));
+                serves.push((false, false));
                 continue;
             };
             let held = self.state.classes.iter().find(|c| &c.class == key);
@@ -1807,7 +1828,9 @@ impl<'a> Walker<'a> {
             _ => false,
         };
         if !fits {
-            self.problem(at(), Issue::NotAllowed);
+            self.fail(Choice::Advances {
+                class: prestige.key.clone(),
+            });
         }
     }
 
@@ -1857,7 +1880,7 @@ impl<'a> Walker<'a> {
         };
         let cap = class_level_cap(class);
         if class_level > cap {
-            self.problem(Choice::Class { level }, Issue::ClassLevelCap { cap });
+            self.fail(Choice::Class { level });
         }
         let archetype = self.state.classes[index].archetype.as_ref();
         if let Some(row) = engine.row(class, archetype, class_level) {
@@ -1934,17 +1957,14 @@ impl<'a> Walker<'a> {
     }
 
     /// The Level-up's ranks and its skill points. Ranks never go above the character level
-    /// (`Build::keeps_fixed_rules`), so only unknown skills and overspent points are problems.
+    /// (`Build::keeps_fixed_rules`), so only unknown skills and overspent points fail.
     fn skill_ranks(&mut self, level: u8, level_up: &LevelUp) -> SkillPoints {
         for (skill, ranks) in &level_up.skill_ranks {
             if !self.engine.skills.contains_key(skill) {
-                self.problem(
-                    Choice::SkillRanks {
-                        level,
-                        skill: skill.clone(),
-                    },
-                    Issue::UnknownKey(skill.to_string()),
-                );
+                self.fail(Choice::SkillRanks {
+                    level,
+                    skill: skill.clone(),
+                });
             }
             let total = self.state.skill_ranks.entry(skill.clone()).or_default();
             *total = total.saturating_add(*ranks);
@@ -1971,10 +1991,7 @@ impl<'a> Walker<'a> {
             .values()
             .fold(0u8, |sum, ranks| sum.saturating_add(*ranks));
         if spent > available {
-            self.problem(
-                Choice::SkillPoints { level },
-                Issue::SkillPointsOverspent { available, spent },
-            );
+            self.fail(Choice::SkillPoints { level });
         }
         SkillPoints { available, spent }
     }
@@ -2383,29 +2400,12 @@ impl<'a> Walker<'a> {
         }
     }
 
-    /// Fills a Level-up's or Mythic ascension's slots in order, then reports the picks that `belongs` says are
-    /// its own but that fill none of its slots.
-    fn fill_all(
-        &mut self,
-        slots: Vec<(SlotKind, SlotId)>,
-        rank: Option<u8>,
-        belongs: impl Fn(&SlotId) -> bool,
-    ) -> Vec<Slot> {
-        let slots: Vec<Slot> = slots
+    /// Fills a Level-up's or Mythic ascension's slots in order.
+    fn fill_all(&mut self, slots: Vec<(SlotKind, SlotId)>, rank: Option<u8>) -> Vec<Slot> {
+        slots
             .into_iter()
             .map(|(kind, id)| self.fill(id, kind, rank))
-            .collect();
-        let stray: Vec<SlotId> = self
-            .build
-            .picks
-            .keys()
-            .filter(|id| belongs(id) && !slots.iter().any(|slot| &slot.id == *id))
-            .cloned()
-            .collect();
-        for id in stray {
-            self.problem(Choice::Slot(id), Issue::NoSuchSlot);
-        }
-        slots
+            .collect()
     }
 
     /// Checks the slot's pick against the state just before it and, when it holds, adds it to the state.
@@ -2425,11 +2425,12 @@ impl<'a> Walker<'a> {
             self.probed.state = Some(self.state.clone());
             self.probed.kind = Some(kind.clone());
         }
+        self.reached.insert(id.clone());
         let pick = self.build.picks.get(&id).cloned();
         if let Some(pick) = &pick {
             match self.check_pick(&kind, pick) {
                 Ok(()) => self.hold_pick(&kind, pick, source.as_ref()),
-                Err(issue) => self.problem(Choice::Slot(id.clone()), issue),
+                Err(_) => self.fail(Choice::Slot(id.clone())),
             }
         }
         Slot { id, kind, pick }
@@ -2679,24 +2680,17 @@ impl<'a> Walker<'a> {
         }
         let engine = self.engine;
         if rank == PATH_SWITCH_RANK
-            && let Some(key) = &self.build.path_switch
-            && self.switch_path(rank, key)
+            && let Some((path, switch)) = engine.chosen_switch(self.build)
+            && self.switch_path(rank, path, switch)
         {
             return false;
         }
+        // A path or switch that can't be taken doesn't happen (`check_unreached` fails it).
         if rank == PATH_CHOICE_RANK
-            && let Some(key) = &self.build.mythic_path
+            && let Some(path) = engine.chosen_path(self.build)
         {
-            match engine.path(key) {
-                None => self.problem(Choice::MythicPath, Issue::UnknownKey(key.to_string())),
-                Some(path) if path.switch.is_some() => {
-                    self.problem(Choice::MythicPath, Issue::NotChoosable);
-                }
-                Some(path) => {
-                    self.state.mythic_path = Some(path.key.clone());
-                    self.grant_rows_before_the_choice(path);
-                }
-            }
+            self.state.mythic_path = Some(path.key.clone());
+            self.grant_rows_before_the_choice(path);
         }
         self.state.mythic_rank = rank;
 
@@ -2769,9 +2763,7 @@ impl<'a> Walker<'a> {
             }
         }
         let mut slots = vec![general];
-        slots.extend(self.fill_all(slot_kinds, Some(rank), |id| {
-            id.rank() == Some(rank) && !matches!(id, SlotId::Mythic { .. })
-        }));
+        slots.extend(self.fill_all(slot_kinds, Some(rank)));
 
         let path = self.state.mythic_path.clone();
         if let Some(sheet) = self.ranks.iter_mut().find(|sheet| sheet.rank == rank) {
@@ -2802,26 +2794,8 @@ impl<'a> Walker<'a> {
     }
 
     /// Switches path at the switch rank. Returns whether the ascensions end here (a switch without further
-    /// ascensions, such as Legend). A switch the Build's path can't take is a problem and doesn't happen.
-    fn switch_path(&mut self, rank: u8, key: &MythicPathKey) -> bool {
-        let Some(path) = self.engine.path(key) else {
-            self.problem(Choice::PathSwitch, Issue::UnknownKey(key.to_string()));
-            return false;
-        };
-        let Some(switch) = &path.switch else {
-            self.problem(Choice::PathSwitch, Issue::NotChoosable);
-            return false;
-        };
-        if !switch.open_from(self.state.mythic_path.as_ref()) {
-            self.problem(
-                Choice::PathSwitch,
-                Issue::NotFromPath {
-                    from: switch.from.clone(),
-                },
-            );
-            return false;
-        }
-
+    /// ascensions, such as Legend).
+    fn switch_path(&mut self, rank: u8, path: &'a MythicPath, switch: &'a PathSwitch) -> bool {
         let (dropped, kept): (Vec<_>, Vec<_>) = std::mem::take(&mut self.rank_grants)
             .into_iter()
             .partition(|grant| switch_drops(switch, grant));
@@ -2939,7 +2913,7 @@ impl<'a> Walker<'a> {
             let Some((class, prestige)) = engine.class(&entry.class) else {
                 continue;
             };
-            // A level past the class's table (already a problem) adds none.
+            // A level past the class's table (which fails) adds none.
             if entry.level <= class_level_cap(class) {
                 let level = entry.level;
                 bab = bab.saturating_add(class.base_attack_bonus(level));
@@ -3005,18 +2979,18 @@ pub(crate) fn check_pick(
     kind: &SlotKind,
     pick: &Pick,
 ) -> Result<(), Issue> {
-    let unknown = || Issue::UnknownKey(pick.key().to_owned());
     let value = pick.parameter();
     let prerequisite = match (kind, pick) {
         (_, Pick::Feat { feat: key, .. }) => {
-            let feat = engine.feat(key).ok_or_else(unknown)?;
+            let feat = engine.feat(key).ok_or(Issue::NotAllowed)?;
             let SlotKind::Feat(slot) = kind else {
                 return Err(Issue::NotAllowed);
             };
-            if !engine.slot_accepts_in(slot, feat, state) {
+            if !engine.slot_accepts_in(slot, feat, state)
+                || !engine.value_fits(feat.parameter, value)
+            {
                 return Err(Issue::NotAllowed);
             }
-            engine.check_value(feat.parameter, value)?;
             check_repeat(state, key, feat.repeat, value)?;
             if engine.slot_ignores_in(slot, feat, state) {
                 return Ok(());
@@ -3024,7 +2998,7 @@ pub(crate) fn check_pick(
             feat.prerequisite.as_ref()
         }
         (_, Pick::SelectionOption { option: key, .. }) => {
-            let option = engine.option(key).ok_or_else(unknown)?;
+            let option = engine.option(key).ok_or(Issue::NotAllowed)?;
             let SlotKind::Selection(selection) = kind else {
                 return Err(Issue::NotAllowed);
             };
@@ -3036,12 +3010,10 @@ pub(crate) fn check_pick(
             if !engine.offers(through, key, state) {
                 return Err(Issue::NotAllowed);
             }
-            engine.check_value(engine.option_parameter(option), value)?;
-            if let Some(value) = value
-                && !option.values.is_empty()
-                && !option.values.contains(value)
-            {
-                return Err(Issue::WrongParameter);
+            let listed =
+                value.is_none_or(|value| option.values.is_empty() || option.values.contains(value));
+            if !engine.value_fits(engine.option_parameter(option), value) || !listed {
+                return Err(Issue::NotAllowed);
             }
             match option.repeat {
                 Repeat::Times(times) if state.option_count(key) >= times => {
@@ -3065,7 +3037,7 @@ pub(crate) fn check_pick(
             option.prerequisite.as_ref()
         }
         (_, Pick::MythicAbility(key)) => {
-            let ability = engine.mythic_ability(key).ok_or_else(unknown)?;
+            let ability = engine.mythic_ability(key).ok_or(Issue::NotAllowed)?;
             if kind != &SlotKind::MythicAbility {
                 return Err(Issue::NotAllowed);
             }
@@ -3075,11 +3047,10 @@ pub(crate) fn check_pick(
             ability.prerequisite.as_ref()
         }
         (_, Pick::MythicFeat { feat: key, .. }) => {
-            let feat = engine.mythic_feat(key).ok_or_else(unknown)?;
-            if kind != &SlotKind::MythicFeat {
+            let feat = engine.mythic_feat(key).ok_or(Issue::NotAllowed)?;
+            if kind != &SlotKind::MythicFeat || !engine.value_fits(feat.parameter, value) {
                 return Err(Issue::NotAllowed);
             }
-            engine.check_value(feat.parameter, value)?;
             let held = match (feat.repeat, value) {
                 (Repeat::PerValue, Some(value)) => state.has_mythic_feat_for(key, value),
                 _ => state.mythic_feats.contains(key),

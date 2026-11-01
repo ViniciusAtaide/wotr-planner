@@ -42,13 +42,7 @@ fn a_subrace_without_the_races_slot_gets_none() {
         race_slot(0),
         pick_feat_for("skill-focus", skill_value("mobility")),
     );
-    assert_eq!(
-        engine().validate(&picked),
-        [rules::Problem {
-            at: rules::Choice::Slot(race_slot(0)),
-            issue: rules::Issue::NoSuchSlot
-        }]
-    );
+    assert_eq!(why_not(&picked, &race_slot(0)), None);
 }
 
 #[test]
@@ -59,7 +53,7 @@ fn a_subraces_own_slot_may_name_the_races_list() {
         race_slot(0),
         pick_feat_for("skill-focus", skill_value("mobility")),
     );
-    assert_eq!(engine().validate(&build), []);
+    assert!(engine().is_possible(&build));
 }
 
 // ---- Impossible Domain for a Living Deity ---------------------------------------------------------------------
@@ -91,7 +85,7 @@ fn false_god(levels: usize) -> Build {
 #[test]
 fn a_living_deitys_impossible_domain_runs_on_the_ways_levels_from_the_pick() {
     let build = false_god(9);
-    assert_eq!(engine().validate(&build), []);
+    assert!(engine().is_possible(&build));
     let sheet = engine().evaluate(&build);
     let at_6 = sheet.at(6).unwrap();
     assert_eq!(at_6.option_level(&option(WAR_DOMAIN)), 6);
@@ -135,11 +129,5 @@ fn a_ranger_slayers_combat_style_feat_comes_from_the_windows_stage() {
     build
         .picks
         .insert(feat_slot.clone(), pick_feat("great-cleave"));
-    assert_eq!(
-        engine().validate(&build),
-        [rules::Problem {
-            at: rules::Choice::Slot(feat_slot),
-            issue: rules::Issue::NotAllowed
-        }]
-    );
+    assert_eq!(why_not(&build, &feat_slot), None);
 }

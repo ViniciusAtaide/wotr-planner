@@ -3,7 +3,7 @@
 
 use std::collections::BTreeSet;
 
-use rules::{Build, Choice, ClassChoice, Issue, Prerequisite, SlotId, Story, Unmet};
+use rules::{Build, ClassChoice, Issue, Prerequisite, SlotId, Story, Unmet};
 
 use crate::support::*;
 
@@ -20,17 +20,15 @@ fn with_advances(classes: &[&str], prestige: &str, advances: &[&str]) -> Build {
     build
 }
 
-fn advances_problems(build: &Build, prestige: &str) -> Vec<Issue> {
-    engine()
-        .validate(build)
-        .into_iter()
-        .filter(|p| {
-            p.at == Choice::Advances {
-                class: class(prestige),
-            }
-        })
-        .map(|p| p.issue)
-        .collect()
+/// Whether the Build is possible with `prestige` advancing `advances` instead.
+fn possible_advancing(build: &Build, prestige: &str, advances: &[&str]) -> bool {
+    let mut build = build.clone();
+    build
+        .class_choices
+        .get_mut(&class(prestige))
+        .unwrap()
+        .advances = advances.iter().map(|key| class(key)).collect();
+    engine().is_possible(&build)
 }
 
 fn status(build: &Build, slot: &SlotId, key: &str) -> Result<(), Issue> {
@@ -52,7 +50,7 @@ fn a_winter_witch_advances_one_class_arcane_or_divine() {
         "winter-witch",
         &["witch"],
     );
-    assert_eq!(engine().validate(&arcane), []);
+    assert!(engine().is_possible(&arcane));
     // Witch 3 / Winter Witch 2 casts as a witch 5.
     assert_eq!(
         engine().evaluate(&arcane).at(5).unwrap().arcane_spell_level,
@@ -64,7 +62,7 @@ fn a_winter_witch_advances_one_class_arcane_or_divine() {
         "winter-witch",
         &["cleric"],
     );
-    assert_eq!(engine().validate(&divine), []);
+    assert!(engine().is_possible(&divine));
     assert_eq!(
         engine().evaluate(&divine).at(5).unwrap().divine_spell_level,
         3
@@ -86,10 +84,8 @@ fn a_winter_witch_cannot_advance_an_arcane_and_a_divine_class() {
         "winter-witch",
         &["witch", "cleric"],
     );
-    assert_eq!(
-        advances_problems(&build, "winter-witch"),
-        [Issue::NotAllowed]
-    );
+    assert!(!engine().is_possible(&build));
+    assert!(possible_advancing(&build, "winter-witch", &["witch"]));
 }
 
 // ---- levels counting as another class's -----------------------------------------------------------------------
@@ -123,7 +119,7 @@ fn eldritch_knight_levels_count_as_fighter_levels_for_feat_prerequisites() {
         general_slot(7),
         pick_feat_for("weapon-specialization", weapon("longsword")),
     );
-    assert_eq!(engine().validate(&build), []);
+    assert!(engine().is_possible(&build));
 
     let at_7 = engine().evaluate(&build).at(7).cloned().unwrap();
     assert_eq!(at_7.class_level(&class("fighter")), 1);
@@ -187,7 +183,7 @@ fn winter_witch_levels_stack_with_witch_levels_for_major_hexes() {
     classes.push("winter-witch");
     classes.push("witch");
     let build = with_advances(&classes, "winter-witch", &["witch"]);
-    assert_eq!(engine().validate(&build), []);
+    assert!(engine().is_possible(&build));
 
     assert_eq!(hexes_held(&build, 9), (0, 0));
     assert_eq!(hexes_held(&build, 10), (1, 0));

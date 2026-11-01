@@ -28,7 +28,7 @@ Open: whether the link *contains* the choices (encoded in the URL) or *refers to
 - Not answered, so the recommendations are taken unless the user objects:
   - **Q7:** text keys, in a versioned compact binary format, compressed and made URL-safe.
   - **Q8:** the Build goes in the URL fragment (`/#b=…`).
-  - **Q9:** stale links open with a banner, with broken picks and removed keys marked.
+  - **Q9:** stale links open with a banner, with broken picks and removed keys marked. *(Reversed by the user, 2026-11-01, built in [ticket 40](40-stale-links-generic-error.md): a stale link gets one generic error.)*
   - **Q11:** an optional name inside the URL.
 
 ## Answer
@@ -37,5 +37,4 @@ Open: whether the link *contains* the choices (encoded in the URL) or *refers to
 - **Encoding:** a format-version byte, then the Build (game-data text keys such as `feat:power-attack`, plus an optional name) in a compact binary serialisation, then compression and base64url. Text keys keep links valid across reseeds, and the version byte allows future format changes. Expect roughly 300–800 characters for a 40-level Build.
 - **Opening a link:** decoded in the browser by the `rules` crate; the server never sees it.
 - **`/` with no fragment:** a blank new Build. Nothing is kept in local storage.
-- **Stale links**, when game data changed since the link was made: the link opens anyway with a banner. Picks that no longer qualify are marked with their reason, and keys that no longer exist show as "removed from game data". Fixing them updates the URL. This is the only place problems are marked instead of blocked. A broken pick always shows its remove ("×") control, whatever depends on it, since removing it is how the player fixes the link ([ticket 39](39-impossible-states-not-validation.md)).
-- **Hand-edited links** whose Build no planner could make, whatever the game data (a point buy outside 7–18 or over 25 points, ranks above the character level, an ability increase on a level without one), don't decode: "this link can't be read" ([ticket 39](39-impossible-states-not-validation.md)).
+- **Stale links**, when game data changed since the link was made, and **hand-edited or damaged links**: a link that doesn't decode, or whose Build isn't possible with the current game data (a key gone, a pick that no longer fits, any rule broken, a pick for a slot or rank the Build doesn't reach), opens nothing. The sheet shows one generic error, "This link no longer works with the current game data", and a blank Build: no banner, no marked picks, no reasons ([ticket 40](40-stale-links-generic-error.md), reversing Q9's banner and [ticket 39](39-impossible-states-not-validation.md)'s × on broken picks). `rules` checks it in one call, `Engine::open_link`.

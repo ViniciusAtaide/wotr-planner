@@ -5,25 +5,13 @@
 use std::collections::BTreeMap;
 
 use rules::{
-    Build, Choice, Issue, Parameter, Pick, Prerequisite, Problem, SlotId, SlotOption, SpellSchool,
-    Unmet,
+    Build, Choice, Issue, Parameter, Pick, Prerequisite, SlotId, SlotOption, SpellSchool, Unmet,
 };
 
 use crate::support::*;
 
 fn spell_school(school: SpellSchool) -> Parameter {
     Parameter::SpellSchool(school)
-}
-
-fn problems(build: &Build) -> Vec<Problem> {
-    engine().evaluate(build).problems
-}
-
-fn at(slot: SlotId, issue: Issue) -> Problem {
-    Problem {
-        at: Choice::Slot(slot),
-        issue,
-    }
 }
 
 fn options(build: &Build, slot: &SlotId) -> Vec<SlotOption> {
@@ -66,7 +54,7 @@ fn weapon_focus_can_be_taken_for_two_weapons() {
         general_slot(1),
         pick_feat_for("weapon-focus", weapon("dagger")),
     );
-    assert_eq!(problems(&build), []);
+    assert!(engine().is_possible(&build));
     assert_eq!(
         values_at(&build, 1, "weapon-focus"),
         BTreeMap::from([(weapon("dagger"), 1), (weapon("longsword"), 1)])
@@ -87,7 +75,7 @@ fn weapon_focus_cant_be_taken_twice_for_one_weapon() {
         general_slot(1),
         pick_feat_for("weapon-focus", weapon("longsword")),
     );
-    assert_eq!(problems(&build), [at(general_slot(1), Issue::AlreadyHeld)]);
+    assert_eq!(why_not(&build, &general_slot(1)), Some(Issue::AlreadyHeld));
     assert_eq!(
         values_at(&build, 1, "weapon-focus"),
         BTreeMap::from([(weapon("longsword"), 1)])
@@ -126,20 +114,17 @@ fn weapon_specialization_checks_the_matching_weapon() {
         pick_feat_for("weapon-specialization", weapon("dagger")),
     );
     assert_eq!(
-        problems(&build),
-        [at(
-            class_slot(4, 0),
-            Issue::Unmet(Unmet::Condition {
-                needs: Prerequisite::FeatForSameValue(feat("weapon-focus")),
-                has: None,
-            })
-        )]
+        why_not(&build, &class_slot(4, 0)),
+        Some(Issue::Unmet(Unmet::Condition {
+            needs: Prerequisite::FeatForSameValue(feat("weapon-focus")),
+            has: None,
+        }))
     );
     build.picks.insert(
         class_slot(4, 0),
         pick_feat_for("weapon-specialization", weapon("longsword")),
     );
-    assert_eq!(problems(&build), []);
+    assert!(engine().is_possible(&build));
 }
 
 #[test]
@@ -218,56 +203,40 @@ fn a_prerequisite_can_need_a_feat_for_one_value() {
 
 #[test]
 fn a_parameterised_feat_needs_a_value_of_its_kind() {
-    let mut build = build("elf", &["fighter"]);
-    build
-        .picks
-        .insert(class_slot(1, 0), pick_feat("weapon-focus"));
-    build.picks.insert(
-        general_slot(1),
-        pick_feat_for("skill-focus", weapon("longsword")),
-    );
-    assert_eq!(
-        problems(&build),
-        [
-            at(class_slot(1, 0), Issue::ParameterMissing),
-            at(general_slot(1), Issue::WrongParameter),
-        ]
-    );
-
-    // Exotic Weapon Proficiency takes only an exotic weapon.
-    build.picks.insert(
-        class_slot(1, 0),
-        pick_feat_for("exotic-weapon-proficiency", weapon("longsword")),
-    );
-    // A feat that takes no value takes none.
-    build.picks.insert(
-        general_slot(1),
-        pick_feat_for("toughness", weapon("longsword")),
-    );
-    assert_eq!(
-        problems(&build),
-        [
-            at(class_slot(1, 0), Issue::WrongParameter),
-            at(general_slot(1), Issue::WrongParameter),
-        ]
-    );
-
-    // A weapon or skill the data lacks is an unknown key, like any other.
-    build.picks.insert(
-        class_slot(1, 0),
-        pick_feat_for("weapon-focus", weapon("spork")),
-    );
-    build.picks.insert(
-        general_slot(1),
-        pick_feat_for("skill-focus", skill_value("juggling")),
-    );
-    assert_eq!(
-        problems(&build),
-        [
-            at(class_slot(1, 0), Issue::UnknownKey("spork".into())),
-            at(general_slot(1), Issue::UnknownKey("juggling".into())),
-        ]
-    );
+    // Each of these alone makes the Build impossible, and no picker offers it.
+    let bad = [
+        // No value.
+        (class_slot(1, 0), pick_feat("weapon-focus")),
+        // A value of another kind.
+        (
+            general_slot(1),
+            pick_feat_for("skill-focus", weapon("longsword")),
+        ),
+        // Exotic Weapon Proficiency takes only an exotic weapon.
+        (
+            class_slot(1, 0),
+            pick_feat_for("exotic-weapon-proficiency", weapon("longsword")),
+        ),
+        // A feat that takes no value takes none.
+        (
+            general_slot(1),
+            pick_feat_for("toughness", weapon("longsword")),
+        ),
+        // A weapon or skill the data lacks.
+        (
+            class_slot(1, 0),
+            pick_feat_for("weapon-focus", weapon("spork")),
+        ),
+        (
+            general_slot(1),
+            pick_feat_for("skill-focus", skill_value("juggling")),
+        ),
+    ];
+    for (slot, pick) in bad {
+        let mut build = build("elf", &["fighter"]);
+        build.picks.insert(slot.clone(), pick.clone());
+        assert_eq!(why_not(&build, &slot), None, "{pick:?}");
+    }
 }
 
 #[test]
@@ -338,30 +307,27 @@ fn a_parameterised_feat_taken_once_is_held_for_one_value() {
         general_slot(3),
         pick_feat_for("spell-focus", spell_school(SpellSchool::Conjuration)),
     );
-    assert_eq!(problems(&build), [at(general_slot(3), Issue::AlreadyHeld)]);
+    assert_eq!(why_not(&build, &general_slot(3)), Some(Issue::AlreadyHeld));
 
     // Augment Summoning needs Spell Focus (Conjuration), not any school.
     build
         .picks
         .insert(general_slot(3), pick_feat("augment-summoning"));
     assert_eq!(
-        problems(&build),
-        [at(
-            general_slot(3),
-            Issue::Unmet(Unmet::Condition {
-                needs: Prerequisite::FeatFor {
-                    feat: feat("spell-focus"),
-                    value: spell_school(SpellSchool::Conjuration),
-                },
-                has: None,
-            })
-        )]
+        why_not(&build, &general_slot(3)),
+        Some(Issue::Unmet(Unmet::Condition {
+            needs: Prerequisite::FeatFor {
+                feat: feat("spell-focus"),
+                value: spell_school(SpellSchool::Conjuration),
+            },
+            has: None,
+        }))
     );
     build.picks.insert(
         general_slot(1),
         pick_feat_for("spell-focus", spell_school(SpellSchool::Conjuration)),
     );
-    assert_eq!(problems(&build), []);
+    assert!(engine().is_possible(&build));
 }
 
 // ---- repeats --------------------------------------------------------------------------------------------------
@@ -376,8 +342,8 @@ fn a_feat_repeats_up_to_its_number_of_times() {
             .insert(general_slot(level), pick_feat("extra-rogue-talent"));
     }
     assert_eq!(
-        problems(&build),
-        [at(general_slot(7), Issue::MaxTimes { times: 3 })]
+        why_not(&build, &general_slot(7)),
+        Some(Issue::MaxTimes { times: 3 })
     );
     let state = engine().evaluate(&build).at(7).unwrap().clone();
     assert_eq!(state.feat_count(&feat("extra-rogue-talent")), 3);
@@ -388,14 +354,14 @@ fn a_feat_repeats_up_to_its_number_of_times() {
             .picks
             .insert(general_slot(level), pick_feat("extra-ki"));
     }
-    assert_eq!(problems(&build), []);
+    assert!(engine().is_possible(&build));
     let state = engine().evaluate(&build).at(7).unwrap().clone();
     assert_eq!(state.feat_count(&feat("extra-ki")), 4);
 
     // A feat that doesn't repeat still can't be taken twice.
     build.picks.insert(general_slot(1), pick_feat("toughness"));
     build.picks.insert(general_slot(3), pick_feat("toughness"));
-    assert_eq!(problems(&build), [at(general_slot(3), Issue::AlreadyHeld)]);
+    assert_eq!(why_not(&build, &general_slot(3)), Some(Issue::AlreadyHeld));
 }
 
 #[test]
@@ -409,8 +375,8 @@ fn an_option_repeats_up_to_its_number_of_times() {
         );
     }
     assert_eq!(
-        problems(&build),
-        [at(selection_slot(6, 0), Issue::MaxTimes { times: 2 })]
+        why_not(&build, &selection_slot(6, 0)),
+        Some(Issue::MaxTimes { times: 2 })
     );
     let state = engine().evaluate(&build).at(6).unwrap().clone();
     assert_eq!(
@@ -439,14 +405,14 @@ fn a_one_feat_bonus_list_picks_the_value() {
     build
         .picks
         .insert(general_slot(3), pick_feat("acrobatic-spellcaster"));
-    assert_eq!(problems(&build), []);
+    assert!(engine().is_possible(&build));
 
     // A second Skill Focus in another skill from a general slot.
     build.picks.insert(
         general_slot(1),
         pick_feat_for("skill-focus", skill_value("persuasion")),
     );
-    assert_eq!(problems(&build), []);
+    assert!(engine().is_possible(&build));
     assert_eq!(
         values_at(&build, 3, "skill-focus"),
         BTreeMap::from([(skill_value("mobility"), 1), (skill_value("persuasion"), 1)])
@@ -460,13 +426,15 @@ fn a_one_feat_bonus_list_picks_the_value() {
             .all(|option| option.pick.key() == "skill-focus")
     );
     assert_eq!(offered.len(), 4);
+    assert!(
+        offered
+            .iter()
+            .all(|option| option.pick.parameter().is_some())
+    );
     build
         .picks
         .insert(class_slot(3, 0), pick_feat("skill-focus"));
-    assert_eq!(
-        problems(&build)[0],
-        at(class_slot(3, 0), Issue::ParameterMissing)
-    );
+    assert!(!engine().is_possible(&build));
 }
 
 #[test]
@@ -477,7 +445,7 @@ fn an_option_with_a_chosen_feat_holds_it_for_the_picks_value() {
         selection_slot(2, 0),
         pick_option_for("rogue/rogue-talents/weapon-focus", weapon("dagger")),
     );
-    assert_eq!(problems(&build), []);
+    assert!(engine().is_possible(&build));
     assert_eq!(
         values_at(&build, 2, "weapon-focus"),
         BTreeMap::from([(weapon("dagger"), 1)])
@@ -488,27 +456,18 @@ fn an_option_with_a_chosen_feat_holds_it_for_the_picks_value() {
         selection_slot(2, 0),
         pick_option("rogue/rogue-talents/weapon-focus"),
     );
-    assert_eq!(
-        problems(&build),
-        [at(selection_slot(2, 0), Issue::ParameterMissing)]
-    );
+    assert_eq!(why_not(&build, &selection_slot(2, 0)), None);
     build.picks.insert(
         selection_slot(2, 0),
         pick_option_for("rogue/rogue-talents/weapon-focus", skill_value("mobility")),
     );
-    assert_eq!(
-        problems(&build),
-        [at(selection_slot(2, 0), Issue::WrongParameter)]
-    );
+    assert_eq!(why_not(&build, &selection_slot(2, 0)), None);
     // An option without a chosen feat takes none.
     build.picks.insert(
         selection_slot(2, 0),
         pick_option_for("rogue/rogue-talents/fast-stealth", weapon("dagger")),
     );
-    assert_eq!(
-        problems(&build),
-        [at(selection_slot(2, 0), Issue::WrongParameter)]
-    );
+    assert_eq!(why_not(&build, &selection_slot(2, 0)), None);
 
     // Weapon Focus (Dagger) taken at 1 already (from a fighter level: a rogue 1 has BAB 0), so the talent can't
     // give it again.
@@ -522,8 +481,8 @@ fn an_option_with_a_chosen_feat_holds_it_for_the_picks_value() {
         pick_option_for("rogue/rogue-talents/weapon-focus", weapon("dagger")),
     );
     assert_eq!(
-        problems(&build),
-        [at(selection_slot(3, 0), Issue::AlreadyHeld)]
+        why_not(&build, &selection_slot(3, 0)),
+        Some(Issue::AlreadyHeld)
     );
     // The talent's picker offers it once per weapon.
     let offered = options(&build, &selection_slot(3, 0));
@@ -558,7 +517,7 @@ fn a_grant_with_no_pick_holds_a_parameterised_feat_for_every_value() {
         SlotId::PathSelection { rank: 3, index: 0 },
         pick_option("trickster/tricks/all-weapons"),
     );
-    assert_eq!(problems(&build), []);
+    assert!(engine().is_possible(&build));
     assert_eq!(
         values_at(&build, 9, "exotic-weapon-proficiency"),
         BTreeMap::from([(weapon("bastard-sword"), 1), (weapon("dueling-sword"), 1)])
@@ -568,7 +527,7 @@ fn a_grant_with_no_pick_holds_a_parameterised_feat_for_every_value() {
         general_slot(11),
         pick_feat_for("exotic-weapon-proficiency", weapon("dueling-sword")),
     );
-    assert_eq!(problems(&build), [at(general_slot(11), Issue::AlreadyHeld)]);
+    assert_eq!(why_not(&build, &general_slot(11)), Some(Issue::AlreadyHeld));
 }
 
 #[test]
@@ -585,7 +544,7 @@ fn a_switch_that_drops_an_every_value_grant_keeps_a_value_a_pick_holds() {
         pick_option("trickster/tricks/all-weapons"),
     );
     build.path_switch = Some(path("gold-dragon"));
-    assert_eq!(problems(&build), []);
+    assert!(engine().is_possible(&build));
     assert_eq!(
         values_at(&build, 16, "exotic-weapon-proficiency"),
         BTreeMap::from([(weapon("bastard-sword"), 2), (weapon("dueling-sword"), 1)])

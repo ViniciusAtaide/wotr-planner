@@ -5,11 +5,12 @@
 //! compressed with raw DEFLATE. The version byte stays outside the compression so a later version can change
 //! anything after it.
 //!
-//! Every key is a text key, so a link names things the game data may no longer have; decoding never looks at the
-//! game data, and [`Engine::validate`](crate::Engine::validate) reports such keys.
+//! Every key is a text key, so a link may name things the game data no longer has; decoding never looks at the
+//! game data. A link whose Build no planner could make, whatever the game data, doesn't decode: a point buy that
+//! doesn't fit, ranks above the character level, an ability increase on a level without one.
 //!
-//! A link whose Build no planner could make, whatever the game data, doesn't decode: a point buy that doesn't fit,
-//! ranks above the character level, an ability increase on a level without one. Only a hand-edited link has one.
+//! The sheet opens a link with [`Engine::open_link`](crate::Engine::open_link): a link that doesn't decode, or whose
+//! Build isn't possible with the current game data, is a [`StaleLink`], one generic error with no reason.
 //!
 //! Changing [`Build`]'s serde shape (field order, enum variant order, types) changes version 1's format. Don't:
 //! add a version 2 with its own frozen types and keep decoding version 1. The frozen v1 test vector guards this.
@@ -62,6 +63,20 @@ impl fmt::Display for DecodeError {
 }
 
 impl std::error::Error for DecodeError {}
+
+/// A link that opens nothing: it doesn't decode, or its Build isn't possible with the current game data (a key
+/// gone, a pick that no longer fits, a rule broken). The sheet shows this one message and a blank Build; it never
+/// says why.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct StaleLink;
+
+impl fmt::Display for StaleLink {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("This link no longer works with the current game data")
+    }
+}
+
+impl std::error::Error for StaleLink {}
 
 /// The link code for a Build, in the current format version.
 pub fn encode_build(build: &Build) -> String {

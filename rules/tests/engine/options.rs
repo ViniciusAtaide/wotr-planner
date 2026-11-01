@@ -2,7 +2,7 @@
 
 use std::collections::BTreeSet;
 
-use rules::{Ability, Build, Choice, Issue, Pick, Prerequisite, SlotId, SlotOption, Unmet};
+use rules::{Ability, Build, Issue, Pick, Prerequisite, SlotId, SlotOption, Unmet};
 
 use crate::support::*;
 
@@ -80,18 +80,12 @@ fn fighter_bonus_slots_offer_only_combat_feats() {
         .collect();
     assert_eq!(general.len(), engine().data().feats.len());
 
-    // A non-combat feat in the bonus slot doesn't qualify.
+    // A non-combat feat in the bonus slot doesn't qualify: the picker doesn't offer it.
     let mut build = build;
     build
         .picks
         .insert(class_slot(1, 0), pick_feat("skill-focus"));
-    assert_eq!(
-        engine().validate(&build),
-        [rules::Problem {
-            at: Choice::Slot(class_slot(1, 0)),
-            issue: Issue::NotAllowed,
-        }]
-    );
+    assert_eq!(why_not(&build, &class_slot(1, 0)), None);
 }
 
 #[test]

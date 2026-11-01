@@ -174,13 +174,13 @@ The one planning screen and its summary: a grid with a row per character level a
 _Avoid_: Level-up screen, summary page, character sheet
 
 **Mythic track**:
-The sheet's tab for Mythic ranks 1–10 at their fixed character levels, with the path at MR 3 and any Path switch at MR 8. MR 1 and 2 show the path chosen at MR 3. A rank is reached, partly dropped by a switch (its general pick or the old path's grants lost, or a grant the switch drops by name), dropped (both lost), or never reached; the picks a switch took away are marked.
+The sheet's tab for Mythic ranks 1–10 at their fixed character levels, with the path at MR 3 and any Path switch at MR 8. MR 1 and 2 show the path chosen at MR 3. A rank is reached, partly dropped by a switch (its general pick or the old path's grants lost, or a grant the switch drops by name), dropped (both lost), or never reached; the picks a switch took away are marked. A rank the Build doesn't reach holds no picks: Remove level and a switch that ends the ascensions (Legend: MR 8 to 10) drop them.
 _Avoid_: Mythic tab, mythic levels
 
-**Problem**:
-A choice in a Build that doesn't hold up, where it is and why: an unmet prerequisite, a key missing from the game data, a pick for a slot that's gone, a cap exceeded. Only a stale link has problems (the game data changed since it was made): opening it marks them, and the sheet offers no edit that would make one. A link no planner could make (a point buy that doesn't fit, ranks above the character level, an ability increase on a level without one) doesn't open.
-_Avoid_: Error, violation
+**Stale link**:
+A link whose Build the current game data can't hold: a key the data no longer has, a pick that no longer fits, a pick for a slot or Mythic rank the Build doesn't reach, or a rule broken (the game data changed since the link was made). A damaged or hand-edited link counts the same. It opens nothing: the sheet shows one generic error, "This link no longer works with the current game data", and a blank Build, never a reason. Every Build the sheet's edits make is possible, so nothing on the sheet is ever marked broken.
+_Avoid_: Problem, broken pick, stale-link banner
 
 **Removable**:
-A choice the sheet may remove or change now: no later choice depends on it, or it's broken (a stale link's broken pick can always go). Choices come off from the leaves inward: of Power Attack, Cleave and Great Cleave, Great Cleave first, then Cleave. A picker locks an option that would break a later choice.
+A choice the sheet may remove or change now: no later choice depends on it. Choices come off from the leaves inward: of Power Attack, Cleave and Great Cleave, Great Cleave first, then Cleave. A picker locks an option that would break a later choice.
 _Avoid_: Would-break, conflict

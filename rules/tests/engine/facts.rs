@@ -3,7 +3,7 @@
 
 use std::collections::BTreeSet;
 
-use rules::{Choice, FeatCategory, Issue, PATH_CHOICE_RANK, PATH_SWITCH_RANK, PathSwitch};
+use rules::{FeatCategory, Issue, PATH_CHOICE_RANK, PATH_SWITCH_RANK, PathSwitch};
 
 use crate::support::*;
 
@@ -57,19 +57,18 @@ fn a_switch_leaves_the_rank_one_above_the_general_picks_it_keeps() {
 fn class_levels_are_capped_at_the_length_of_the_class_table() {
     // Fighter's table has 20 rows and Mystic Theurge's 10, Legend or not.
     let mut build = build("elf", &times("fighter", 21));
+    build.mythic_path = Some(path("trickster"));
     build.path_switch = Some(path("legend"));
-    let problems: Vec<_> = engine()
-        .validate(&build)
+    assert!(!engine().is_possible(&build));
+    build.levels.pop();
+    assert!(engine().is_possible(&build));
+    let fighter = engine()
+        .class_options(&build, 21)
+        .unwrap()
         .into_iter()
-        .map(|p| (p.at, p.issue))
-        .collect();
-    assert_eq!(
-        problems,
-        [(
-            Choice::Class { level: 21 },
-            Issue::ClassLevelCap { cap: 20 }
-        )]
-    );
+        .find(|option| option.class == class("fighter") && option.archetype.is_none())
+        .unwrap();
+    assert_eq!(fighter.status, Err(Issue::ClassLevelCap { cap: 20 }));
 }
 
 #[test]

@@ -1,24 +1,26 @@
 //! A Build: the choices a player makes, and nothing derived from them.
 //!
-//! Everything is stored as game-data text keys, so a Build survives re-seeds and can name things that no longer
-//! exist (the engine reports those rather than failing). The URL codec serialises this type as is.
+//! Everything is stored as game-data text keys, so a Build survives re-seeds. A link may name things that no longer
+//! exist; it then opens nothing ([`Engine::open_link`](crate::Engine::open_link)). The URL codec serialises this
+//! type as is.
 //!
-//! The rules no game data changes are kept by the types and edits rather than reported: a [`PointBuy`] holds only
-//! scores that fit, and [`Build::apply`] never puts ranks in a skill above the character level or an ability
-//! increase on a level without one ([`Build::keeps_fixed_rules`]). A link that breaks them doesn't decode.
+//! The rules no game data changes are kept by the types and edits rather than checked by the engine: a
+//! [`PointBuy`] holds only scores that fit, and [`Build::apply`] never puts ranks in a skill above the character
+//! level or an ability increase on a level without one ([`Build::keeps_fixed_rules`]). A link that breaks them
+//! doesn't decode.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
 use serde::{Deserialize, Serialize};
 
+use crate::choice::Choice;
 use crate::game_data::{Ability, Alignment};
 use crate::keys::{
     ArchetypeKey, BackgroundKey, ClassKey, FeatKey, MythicAbilityKey, MythicFeatKey, MythicPathKey,
     RaceKey, SelectionOptionKey, SkillKey, SubraceKey,
 };
 use crate::parameter::Parameter;
-use crate::problem::Choice;
 
 /// A plan for one character: the Build start, one Level-up per character level, each class's archetype and
 /// spellcasting choice, and every pick, keyed by the slot it fills.
@@ -418,14 +420,17 @@ pub enum Edit {
     },
     Start(BuildStart),
     MythicPath(Option<MythicPathKey>),
+    /// Set the Path switch ([`Engine::apply`](crate::Engine::apply) also drops the picks of the ranks a switch
+    /// without further ascensions ends: Legend's MR 8 to 10).
     PathSwitch(Option<MythicPathKey>),
-    /// Remove the last Level-up, with the picks of its slots.
+    /// Remove the last Level-up, with the picks of its slots ([`Engine::apply`](crate::Engine::apply) also drops
+    /// the picks of the Mythic ranks it reached).
     RemoveLevel,
     SetName(Option<String>),
 }
 
 impl Edit {
-    /// The choices this edit sets directly. Their own problems are the picker's business; an edit is allowed when
+    /// The choices this edit sets directly. Whether they fit is the picker's business; an edit is allowed when
     /// it breaks no other choice ([`Engine::allows`](crate::Engine::allows)).
     pub fn choices(&self) -> Vec<Choice> {
         match self {
@@ -474,7 +479,9 @@ impl Edit {
 impl Build {
     /// Applies an edit. Edits naming a level the Build doesn't have (other than the next one, for a class) do
     /// nothing, and so do edits that would break a fixed rule ([`keeps_fixed_rules`](Self::keeps_fixed_rules)):
-    /// an ability increase on a level without one, or ranks that take a skill above the character level.
+    /// an ability increase on a level without one, or ranks that take a skill above the character level. The sheet
+    /// applies edits through [`Engine::apply`](crate::Engine::apply), which also drops the picks of the Mythic ranks
+    /// the Build no longer reaches (that needs the game data's ascension table).
     pub fn apply(&mut self, edit: &Edit) {
         match edit {
             Edit::Pick { slot, pick } => {
@@ -536,7 +543,6 @@ impl Build {
             Edit::PathSwitch(path) => self.path_switch = path.clone(),
             Edit::RemoveLevel => {
                 if self.levels.pop().is_some() {
-                    // Mythic picks stay: a rank no level reaches is ignored, and comes back with the level.
                     let removed = u8::try_from(self.levels.len() + 1).unwrap_or(u8::MAX);
                     self.picks.retain(|slot, _| slot.level() != Some(removed));
                     self.drop_unused_class_choices();
@@ -552,7 +558,7 @@ impl Build {
 
     /// Whether the Build keeps the rules no game data changes, which the planner's edits never break: ranks in a
     /// skill never above the character level, and an ability increase only at every 4th level. (A [`PointBuy`]
-    /// can't break its own.) A link whose Build breaks them doesn't decode, so the engine doesn't check them.
+    /// can't break its own.) A link whose Build breaks them doesn't decode, so the engine's walk doesn't check them.
     pub fn keeps_fixed_rules(&self) -> bool {
         let mut totals: BTreeMap<&SkillKey, usize> = BTreeMap::new();
         for (index, level_up) in self.levels.iter().enumerate() {

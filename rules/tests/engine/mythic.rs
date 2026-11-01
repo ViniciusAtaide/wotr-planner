@@ -1,7 +1,7 @@
 //! Mythic ascensions: the general pick at each rank, the path at MR 3, and the Path switch.
 
 use rules::{
-    Build, FeatSlot, FeatureSelectionKey, MythicAbilityKey, MythicFeatKey, MythicPickKind,
+    Build, Edit, FeatSlot, FeatureSelectionKey, MythicAbilityKey, MythicFeatKey, MythicPickKind,
     RankStatus, Sheet, SlotId, SlotKind, mythic_pick_kind,
 };
 
@@ -166,7 +166,8 @@ fn a_legend_switch_at_mr_8_keeps_mr_1_and_2_and_stays_at_rank_3() {
     for level in &mut build.levels[20..] {
         level.class = class("rogue");
     }
-    build.path_switch = Some(path("legend"));
+    // The switch drops the picks of MR 8 to 10, which it ends.
+    engine().apply(&mut build, &Edit::PathSwitch(Some(path("legend"))));
     let sheet = engine().evaluate(&build);
 
     // Before the switch everything up to MR 7 is held.
@@ -225,7 +226,7 @@ fn a_legend_switch_at_mr_8_keeps_mr_1_and_2_and_stays_at_rank_3() {
         .collect();
     assert_eq!(increases, [20, 24, 28, 32, 36, 40]);
     assert_eq!(sheet.at(40).unwrap().class_level(&class("rogue")), 20);
-    assert!(sheet.problems.is_empty(), "{:?}", sheet.problems);
+    assert!(engine().is_possible(&build));
 }
 
 #[test]

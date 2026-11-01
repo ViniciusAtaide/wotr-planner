@@ -91,10 +91,7 @@ fn a_crossblooded_sorcerer_cant_take_a_second_draconic_bloodline() {
     assert_eq!(status(&build, &selection_slot(1, 1), ABYSSAL), Ok(()));
     // The first pick saw no other dragon.
     assert_eq!(status(&build, &selection_slot(1, 0), GOLD), Ok(()));
-    let problems = engine().validate(&build);
-    assert_eq!(problems.len(), 1);
-    assert_eq!(problems[0].at, rules::Choice::Slot(selection_slot(1, 1)));
-    assert_eq!(problems[0].issue, one_draconic());
+    assert_eq!(why_not(&build, &selection_slot(1, 1)), Some(one_draconic()));
 }
 
 #[test]
@@ -125,7 +122,7 @@ fn an_option_of_a_group_is_held_in_the_states_groups() {
 #[test]
 fn crossblooded_second_bloodline_gives_its_arcana_too() {
     let build = crossblooded(ARCANE, ABYSSAL, 3);
-    assert_eq!(engine().validate(&build), []);
+    assert!(engine().is_possible(&build));
     let at_1 = at(&build, 1);
     assert!(holds(&at_1, "sorcerer/bloodline/abyssal/arcana"));
     assert!(!holds(&at_1, "sorcerer/bloodline/abyssal/claws"));
@@ -157,7 +154,7 @@ fn kineticist(first: &str, seventh: &str) -> Build {
 #[test]
 fn expanded_element_at_15_cant_take_the_7th_level_element_again() {
     let build = kineticist(AIR, FIRE);
-    assert_eq!(engine().validate(&build), []);
+    assert!(engine().is_possible(&build));
     let fifteenth = selection_slot(15, 0);
     assert_eq!(status(&build, &fifteenth, FIRE), Err(Issue::AlreadyHeld));
     // The 1st-level element (a second time) or a third.
@@ -172,7 +169,7 @@ fn expanded_element_at_15_cant_take_the_7th_level_element_again() {
 #[test]
 fn an_element_doubled_at_7_isnt_taken_a_third_time() {
     let build = kineticist(AIR, AIR);
-    assert_eq!(engine().validate(&build), []);
+    assert!(engine().is_possible(&build));
     let fifteenth = selection_slot(15, 0);
     assert_eq!(
         status(&build, &fifteenth, AIR),
@@ -196,7 +193,7 @@ fn a_separatists_second_domain_lags_two_levels_behind() {
             (selection_slot(1, 1), WAR_DOMAIN),
         ],
     );
-    assert_eq!(engine().validate(&build), []);
+    assert!(engine().is_possible(&build));
     let at_1 = at(&build, 1);
     assert!(holds(&at_1, "cleric/domain/fire/fire-bolt"));
     assert!(!holds(&at_1, "cleric/domain/war/battle-rage"));
@@ -228,7 +225,7 @@ fn impossible_domain_levels_its_domain_like_the_domains_held() {
     );
     let slot = SlotId::MythicSelection { rank: 1, index: 0 };
     build.picks.insert(slot.clone(), pick_option(WAR_DOMAIN));
-    assert_eq!(engine().validate(&build), []);
+    assert!(engine().is_possible(&build));
     let at_6 = at(&build, 6);
     assert!(holds(&at_6, "cleric/domain/war/battle-rage"));
     assert_eq!(at_6.option_level(&option(WAR_DOMAIN)), 6);
@@ -265,7 +262,7 @@ fn a_maneuver_comes_at_its_revelations_option_level() {
     build
         .picks
         .insert(maneuver, pick_option("cleric/maneuver-mastery/trip"));
-    assert_eq!(engine().validate(&build), []);
+    assert!(engine().is_possible(&build));
     let combat_expertise = feat("combat-expertise");
     assert_eq!(at(&build, 6).feat_count(&combat_expertise), 0);
     let at_7 = at(&build, 7);
@@ -314,12 +311,16 @@ fn a_pool_selection_is_checked_after_the_selection_it_draws_on() {
             (selection_slot(1, 0), "cleric/fire-revelations/fire-breath"),
         ],
     );
-    assert_eq!(engine().validate(&build), []);
+    assert!(engine().is_possible(&build));
     let sheet = engine().evaluate(&build);
     let order: Vec<&SlotId> = sheet.levels[0].slots.iter().map(|slot| &slot.id).collect();
     assert_eq!(order[..2], [&selection_slot(1, 1), &selection_slot(1, 0)]);
     build.picks.remove(&selection_slot(1, 1));
-    assert_eq!(engine().validate(&build).len(), 1, "no domain, no pool");
+    assert_eq!(
+        why_not(&build, &selection_slot(1, 0)),
+        None,
+        "no domain, no pool"
+    );
 }
 
 // ---- the selection picked through -----------------------------------------------------------------------------
@@ -347,7 +348,7 @@ fn a_champions_alignment_blessing_matches_his_alignment() {
         status(&neutral, &selection_slot(1, 0), "warpriest/blessings/war"),
         Ok(())
     );
-    assert_eq!(engine().validate(&champion(Alignment::NeutralGood)), []);
+    assert!(engine().is_possible(&champion(Alignment::NeutralGood)));
 }
 
 #[test]
@@ -358,7 +359,7 @@ fn a_warpriests_blessing_doesnt_check_his_alignment() {
         &[(selection_slot(2, 0), GOOD)],
     );
     assert_eq!(build.start.alignment, Some(Alignment::TrueNeutral));
-    assert_eq!(engine().validate(&build), []);
+    assert!(engine().is_possible(&build));
 }
 
 // ---- the slayer's combat style (ticket 32's decision 2) ------------------------------------------------------
@@ -394,15 +395,9 @@ fn a_slayer_picks_one_ranger_style_with_his_first_combat_style_feat() {
     // The feat comes from the style's list of the stage.
     assert_eq!(offered(&build, &option_feat(2)), ["dodge", "toughness"]);
     build.picks.insert(option_feat(2), pick_feat("crane-wing"));
-    assert_eq!(
-        engine().validate(&build),
-        [rules::Problem {
-            at: rules::Choice::Slot(option_feat(2)),
-            issue: Issue::NotAllowed
-        }]
-    );
+    assert_eq!(why_not(&build, &option_feat(2)), None);
     build.picks.insert(option_feat(2), pick_feat("toughness"));
-    assert_eq!(engine().validate(&build), []);
+    assert!(engine().is_possible(&build));
     // The second talent picks no style: the feat comes from the same style's next list.
     build.picks.insert(selection_slot(6, 0), slayer_talent(6));
     let sheet = engine().evaluate(&build);

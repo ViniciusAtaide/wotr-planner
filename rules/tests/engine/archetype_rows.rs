@@ -138,5 +138,5 @@ fn an_archetype_has_its_base_class_level_cap_however_few_rows_it_stores() {
         "fighter",
         "fighter/armiger",
     );
-    assert_eq!(engine().validate(&build), []);
+    assert!(engine().is_possible(&build));
 }

@@ -142,6 +142,32 @@ pub fn engine() -> Engine {
     Engine::new(world())
 }
 
+// ---- impossible Builds ----------------------------------------------------------------------------------------
+
+/// The Build without the pick in `slot`.
+pub fn without(build: &Build, slot: &SlotId) -> Build {
+    let mut build = build.clone();
+    build.picks.remove(slot);
+    build
+}
+
+/// Why the pick in `slot` can't be taken there, for a Build that only that pick makes impossible (it's possible
+/// without it): what the slot's picker says of it, or `None` when the picker doesn't offer it at all (a slot the
+/// Build doesn't have, or a pick the slot doesn't take).
+pub fn why_not(build: &Build, slot: &SlotId) -> Option<Issue> {
+    let engine = engine();
+    assert!(!engine.is_possible(build), "the Build is possible");
+    let rest = without(build, slot);
+    assert!(engine.is_possible(&rest), "impossible without {slot:?} too");
+    let pick = &build.picks[slot];
+    let status = engine
+        .options(&rest, slot)?
+        .into_iter()
+        .find(|option| &option.pick == pick)?
+        .status;
+    Some(status.expect_err("the picker offers it"))
+}
+
 // ---- the world ------------------------------------------------------------------------------------------------
 
 pub fn world() -> GameData {

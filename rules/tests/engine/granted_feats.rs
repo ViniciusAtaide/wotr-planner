@@ -67,7 +67,7 @@ fn a_wizards_scribe_scrolls_is_held_with_no_pick() {
             SlotKind::Feat(FeatSlot::General),
         ]
     );
-    assert_eq!(engine().validate(&build), []);
+    assert!(engine().is_possible(&build));
 }
 
 #[test]
@@ -88,7 +88,7 @@ fn a_granted_feat_ignores_its_prerequisites() {
             .feats
             .contains_key(&feat("improved-unarmed-strike"))
     );
-    assert_eq!(sheet.problems, []);
+    assert!(engine().is_possible(&build));
 }
 
 #[test]
@@ -101,7 +101,7 @@ fn a_fighter_can_take_shield_focus() {
         Ok(())
     );
     fighter.picks.insert(class_slot(1, 0), shield_focus.clone());
-    assert_eq!(engine().validate(&fighter), []);
+    assert!(engine().is_possible(&fighter));
 
     // A rogue has no Shield Proficiency.
     assert_eq!(
@@ -134,7 +134,7 @@ fn a_grant_of_a_feat_already_held_adds_nothing_and_breaks_nothing() {
         .insert(general_slot(1), pick_feat("shield-proficiency"));
     let sheet = engine().evaluate(&build);
 
-    assert_eq!(sheet.problems, []);
+    assert!(engine().is_possible(&build));
     let held = |level| {
         sheet
             .at(level)

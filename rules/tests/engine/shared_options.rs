@@ -2,7 +2,7 @@
 //! slayer's talents include the rogue's). A shared option keeps the one key of the selection that defines it, so
 //! a character holds it once, whichever class's slot took it.
 
-use rules::{Build, Choice, Engine, Issue, Pick, Prerequisite, SlotId, SlotOption, Unmet};
+use rules::{Build, Engine, Issue, Pick, Prerequisite, SlotId, SlotOption, Unmet};
 
 use crate::support::*;
 
@@ -58,8 +58,8 @@ fn a_shared_talent_taken_in_a_slayer_slot_is_held_under_the_rogue_talents_key() 
         selection_slot(2, 0),
         pick_option("rogue/rogue-talents/combat-trick"),
     );
+    assert!(engine().is_possible(&build));
     let sheet = engine().evaluate(&build);
-    assert_eq!(sheet.problems, []);
     let state = sheet.at(2).unwrap();
     assert!(
         state
@@ -90,8 +90,8 @@ fn a_rogue_slayer_cannot_take_one_talent_twice() {
         .picks
         .insert(selection_slot(4, 0), fast_stealth.clone());
     assert_eq!(
-        engine().validate(&build),
-        [problem(selection_slot(4, 0), Issue::AlreadyHeld)]
+        why_not(&build, &selection_slot(4, 0)),
+        Some(Issue::AlreadyHeld)
     );
 
     // Slayer first, then rogue.
@@ -103,8 +103,8 @@ fn a_rogue_slayer_cannot_take_one_talent_twice() {
         .picks
         .insert(selection_slot(4, 0), fast_stealth.clone());
     assert_eq!(
-        engine().validate(&build),
-        [problem(selection_slot(4, 0), Issue::AlreadyHeld)]
+        why_not(&build, &selection_slot(4, 0)),
+        Some(Issue::AlreadyHeld)
     );
 }
 
@@ -119,19 +119,16 @@ fn an_own_option_that_needs_a_shared_one_sees_it_taken_in_either_classs_slot() {
         selection_slot(4, 0),
         pick_option("slayer/slayer-talents/slayer-camouflage"),
     );
-    assert_eq!(engine().validate(&build), []);
+    assert!(engine().is_possible(&build));
 
     // Without Fast Stealth it's unmet, and dropping the rogue's pick would break it.
     build.picks.remove(&selection_slot(2, 0));
     assert_eq!(
-        engine().validate(&build),
-        [problem(
-            selection_slot(4, 0),
-            Issue::Unmet(Unmet::Condition {
-                needs: Prerequisite::SelectionOption(option("rogue/rogue-talents/fast-stealth")),
-                has: None,
-            })
-        )]
+        why_not(&build, &selection_slot(4, 0)),
+        Some(Issue::Unmet(Unmet::Condition {
+            needs: Prerequisite::SelectionOption(option("rogue/rogue-talents/fast-stealth")),
+            has: None,
+        }))
     );
 }
 
@@ -142,10 +139,7 @@ fn a_selection_refuses_an_option_it_neither_defines_nor_shares() {
     let offered = options(&engine(), &build, &selection_slot(2, 0));
     assert!(offered.iter().all(|o| o.pick != camouflage));
     build.picks.insert(selection_slot(2, 0), camouflage);
-    assert_eq!(
-        engine().validate(&build),
-        [problem(selection_slot(2, 0), Issue::NotAllowed)]
-    );
+    assert_eq!(why_not(&build, &selection_slot(2, 0)), None);
 }
 
 /// The data makes a class-dependent prerequisite an `Any` over each class's version (decision S4, option (a)).
@@ -211,11 +205,4 @@ fn a_shared_options_any_over_each_classs_level_lets_either_class_qualify() {
 
 fn build_of(classes: &[&str]) -> Build {
     build("elf", classes)
-}
-
-fn problem(slot: SlotId, issue: Issue) -> rules::Problem {
-    rules::Problem {
-        at: Choice::Slot(slot),
-        issue,
-    }
 }

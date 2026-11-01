@@ -287,22 +287,15 @@ mod base64_check {
     }
 }
 
+/// Decoding never looks at the game data; opening the link does (`stale_links.rs`).
 #[test]
-fn a_link_with_keys_the_game_data_lacks_decodes_and_reports_them() {
+fn a_link_with_keys_the_game_data_lacks_still_decodes() {
     let mut build = v1_build();
     build
         .picks
         .insert(general_slot(3), pick_feat("cut-in-a-later-patch"));
     let decoded = decode_build(&encode_build(&build)).expect("unknown keys still decode");
     assert_eq!(decoded, build);
-
-    let unknown: Vec<_> = engine()
-        .validate(&decoded)
-        .into_iter()
-        .filter(rules::Problem::is_unknown_key)
-        .map(|p| p.at)
-        .collect();
-    assert_eq!(unknown, [rules::Choice::Slot(general_slot(3))]);
 }
 
 /// Keys carry no type prefix, so a feat, a mythic feat and a selection option may share one: the [`Pick`] variant

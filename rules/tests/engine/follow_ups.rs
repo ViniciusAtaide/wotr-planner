@@ -6,22 +6,11 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use rules::{
-    ArmourType, Build, Choice, FeatSlot, Issue, MythicFeatKey, Parameter, Pick, Prerequisite,
-    Problem, SkillKey, SlotId, SlotKind, SlotOption, SpellSchool, Unmet,
+    ArmourType, Build, FeatSlot, Issue, MythicFeatKey, Parameter, Pick, Prerequisite, SkillKey,
+    SlotId, SlotKind, SlotOption, SpellSchool, Unmet,
 };
 
 use crate::support::*;
-
-fn problems(build: &Build) -> Vec<Problem> {
-    engine().evaluate(build).problems
-}
-
-fn at(slot: SlotId, issue: Issue) -> Problem {
-    Problem {
-        at: Choice::Slot(slot),
-        issue,
-    }
-}
 
 fn options(build: &Build, slot: &SlotId) -> Vec<SlotOption> {
     engine()
@@ -93,7 +82,7 @@ fn a_human_warpriests_race_slot_takes_dazzling_display_on_the_class_slots_weapon
     build
         .picks
         .insert(race_slot(0), pick_feat("dazzling-display"));
-    assert_eq!(problems(&build), []);
+    assert!(engine().is_possible(&build));
 }
 
 #[test]
@@ -106,7 +95,7 @@ fn a_human_druid_with_a_companion_takes_boon_companion_at_level_1() {
     build
         .picks
         .insert(race_slot(0), pick_feat("boon-companion"));
-    assert_eq!(problems(&build), []);
+    assert!(engine().is_possible(&build));
 }
 
 // ---- mythic feats with a value --------------------------------------------------------------------------------
@@ -133,14 +122,11 @@ fn spell_focus_mythic_needs_spell_focus_in_the_same_school() {
         pick_mythic_feat_for("spell-focus-mythic", school(SpellSchool::Conjuration)),
     );
     assert_eq!(
-        problems(&build),
-        [at(
-            SlotId::Mythic { rank: 4 },
-            Issue::Unmet(Unmet::Condition {
-                needs: Prerequisite::FeatForSameValue(feat("spell-focus")),
-                has: None,
-            })
-        )]
+        why_not(&build, &SlotId::Mythic { rank: 4 }),
+        Some(Issue::Unmet(Unmet::Condition {
+            needs: Prerequisite::FeatForSameValue(feat("spell-focus")),
+            has: None,
+        }))
     );
     let state = engine().evaluate(&build).at(11).unwrap().clone();
     assert_eq!(
@@ -164,7 +150,7 @@ fn a_parameterised_mythic_feat_names_its_value_and_repeats_once_per_value() {
         SlotId::Mythic { rank: 4 },
         pick_mythic_feat_for("school-mastery", school(SpellSchool::Illusion)),
     );
-    assert_eq!(problems(&build), []);
+    assert!(engine().is_possible(&build));
     assert_eq!(
         engine().evaluate(&build).at(11).unwrap().mythic_feat_values,
         BTreeMap::from([(
@@ -180,26 +166,20 @@ fn a_parameterised_mythic_feat_names_its_value_and_repeats_once_per_value() {
         pick_mythic_feat_for("school-mastery", school(SpellSchool::Evocation)),
     );
     assert_eq!(
-        problems(&build),
-        [at(SlotId::Mythic { rank: 4 }, Issue::AlreadyHeld)]
+        why_not(&build, &SlotId::Mythic { rank: 4 }),
+        Some(Issue::AlreadyHeld)
     );
     build.picks.insert(
         SlotId::Mythic { rank: 4 },
         pick_mythic_feat("school-mastery"),
     );
-    assert_eq!(
-        problems(&build),
-        [at(SlotId::Mythic { rank: 4 }, Issue::ParameterMissing)]
-    );
+    assert_eq!(why_not(&build, &SlotId::Mythic { rank: 4 }), None);
     // A mythic feat that takes no value takes none.
     build.picks.insert(
         SlotId::Mythic { rank: 4 },
         pick_mythic_feat_for("toughness-mythic", school(SpellSchool::Evocation)),
     );
-    assert_eq!(
-        problems(&build),
-        [at(SlotId::Mythic { rank: 4 }, Issue::WrongParameter)]
-    );
+    assert_eq!(why_not(&build, &SlotId::Mythic { rank: 4 }), None);
 }
 
 #[test]
@@ -234,17 +214,14 @@ fn armor_focus_needs_the_armour_proficiency_of_the_armour_type_it_is_taken_for()
         pick_feat_for("armor-focus", armour(ArmourType::Light)),
     );
     assert_eq!(
-        problems(&build),
-        [at(
-            general_slot(3),
-            Issue::Unmet(Unmet::Condition {
-                needs: Prerequisite::FeatIfValue {
-                    value: armour(ArmourType::Light),
-                    feat: feat("armor-proficiency-light"),
-                },
-                has: None,
-            })
-        )]
+        why_not(&build, &general_slot(3)),
+        Some(Issue::Unmet(Unmet::Condition {
+            needs: Prerequisite::FeatIfValue {
+                value: armour(ArmourType::Light),
+                feat: feat("armor-proficiency-light"),
+            },
+            has: None,
+        }))
     );
 }
 
@@ -260,7 +237,7 @@ fn a_mantis_zealot_holds_its_weapon_feats_in_its_one_weapon() {
             ..Default::default()
         },
     );
-    assert_eq!(problems(&build), []);
+    assert!(engine().is_possible(&build));
     assert_eq!(
         values_at(&build, 1, "weapon-focus"),
         BTreeMap::from([(weapon("dueling-sword"), 1)])
@@ -328,10 +305,7 @@ fn the_way_of_the_bow_offers_only_its_listed_weapons() {
         selection_slot(2, 0),
         pick_option_for(WAY, weapon("bastard-sword")),
     );
-    assert_eq!(
-        problems(&build),
-        [at(selection_slot(2, 0), Issue::WrongParameter)]
-    );
+    assert_eq!(why_not(&build, &selection_slot(2, 0)), None);
 }
 
 #[test]
@@ -341,7 +315,7 @@ fn the_way_of_the_bow_gives_weapon_focus_at_2_and_weapon_specialization_in_the_s
         selection_slot(2, 0),
         pick_option_for(WAY, weapon("longsword")),
     );
-    assert_eq!(problems(&build), []);
+    assert!(engine().is_possible(&build));
     assert_eq!(
         values_at(&build, 2, "weapon-focus"),
         BTreeMap::from([(weapon("longsword"), 1)])
@@ -363,7 +337,7 @@ fn an_option_can_take_a_value_for_its_rows_alone() {
         selection_slot(2, 0),
         pick_option_for("slayer/slayer-talents/battle-master", weapon("dagger")),
     );
-    assert_eq!(problems(&build), []);
+    assert!(engine().is_possible(&build));
     assert_eq!(
         values_at(&build, 7, "weapon-specialization"),
         BTreeMap::new()
@@ -376,10 +350,7 @@ fn an_option_can_take_a_value_for_its_rows_alone() {
         selection_slot(2, 0),
         pick_option("slayer/slayer-talents/battle-master"),
     );
-    assert_eq!(
-        problems(&build),
-        [at(selection_slot(2, 0), Issue::ParameterMissing)]
-    );
+    assert_eq!(why_not(&build, &selection_slot(2, 0)), None);
 }
 
 // ---- a race's own feat list -----------------------------------------------------------------------------------
@@ -422,14 +393,14 @@ fn a_slayer_talent_at_2_can_be_a_combat_style_feat_from_the_first_list() {
         .picks
         .insert(style_slot(2), pick_option("ranger/combat-style/archery"));
     build.picks.insert(option_feat(2), pick_feat("toughness"));
-    assert_eq!(problems(&build), []);
+    assert!(engine().is_possible(&build));
     let state = engine().evaluate(&build).at(2).unwrap().clone();
     assert_eq!(state.feat_count(&feat("toughness")), 1);
     // Great Cleave comes with the second list.
     build
         .picks
         .insert(option_feat(2), pick_feat("great-cleave"));
-    assert_eq!(problems(&build), [at(option_feat(2), Issue::NotAllowed)]);
+    assert_eq!(why_not(&build, &option_feat(2)), None);
 }
 
 #[test]
@@ -438,33 +409,27 @@ fn each_combat_style_feat_comes_in_its_own_window_of_levels() {
     let mut build = slayer(6);
     build.picks.insert(selection_slot(6, 0), combat_style(2));
     assert_eq!(
-        problems(&build),
-        [at(
-            selection_slot(6, 0),
-            Issue::Unmet(Unmet::Condition {
-                needs: Prerequisite::Not(Box::new(Prerequisite::ClassLevel {
-                    class: class("slayer"),
-                    level: 6,
-                })),
-                has: None,
-            })
-        )]
+        why_not(&build, &selection_slot(6, 0)),
+        Some(Issue::Unmet(Unmet::Condition {
+            needs: Prerequisite::Not(Box::new(Prerequisite::ClassLevel {
+                class: class("slayer"),
+                level: 6,
+            })),
+            has: None,
+        }))
     );
     // The second at 6 or 8, not before.
     let mut build = slayer(4);
     build.picks.insert(selection_slot(4, 0), combat_style(6));
     assert_eq!(
-        problems(&build),
-        [at(
-            selection_slot(4, 0),
-            Issue::Unmet(Unmet::Condition {
-                needs: Prerequisite::ClassLevel {
-                    class: class("slayer"),
-                    level: 6,
-                },
-                has: Some(4),
-            })
-        )]
+        why_not(&build, &selection_slot(4, 0)),
+        Some(Issue::Unmet(Unmet::Condition {
+            needs: Prerequisite::ClassLevel {
+                class: class("slayer"),
+                level: 6,
+            },
+            has: Some(4),
+        }))
     );
 }
 
@@ -485,11 +450,11 @@ fn a_slayer_takes_three_combat_style_feats_at_most() {
     build
         .picks
         .insert(option_feat(10), pick_feat("great-cleave"));
-    assert_eq!(problems(&build), []);
+    assert!(engine().is_possible(&build));
     build.picks.insert(selection_slot(12, 0), combat_style(10));
     assert_eq!(
-        problems(&build),
-        [at(selection_slot(12, 0), Issue::AlreadyHeld)]
+        why_not(&build, &selection_slot(12, 0)),
+        Some(Issue::AlreadyHeld)
     );
 }
 
@@ -534,7 +499,7 @@ fn destiny_beyond_birth_removes_the_races_ability_penalty() {
         SlotId::Mythic { rank: 2 },
         pick_mythic_feat("destiny-beyond-birth"),
     );
-    assert_eq!(problems(&build), []);
+    assert!(engine().is_possible(&build));
     let sheet = engine().evaluate(&build);
     // Elf: Con 12 - 2. The bonuses stay (Dex and Int +2).
     assert_eq!(sheet.at(6).unwrap().ability_scores.constitution, 10);

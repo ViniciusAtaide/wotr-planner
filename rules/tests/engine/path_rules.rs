@@ -1,16 +1,19 @@
 //! The mythic path rules (ticket 26): MR 1–2 granted on choosing the path, what a Path switch keeps and drops,
 //! the switch's previous-path condition, ability bonuses from features, Legend and the Trickster's Perception II
-//! feats, the Mythic rank prerequisite, Gold Dragon's Dragon Feats and an option granting several feats.
+//! feats, the Mythic rank prerequisite, Gold Dragon's Dragon Feats and an option granting several feats. A switch
+//! that ends the ascensions, and Remove level, drop the picks of the ranks the Build no longer reaches (ticket 40).
+
+use std::collections::BTreeSet;
 
 use rules::{
-    Ability, Build, Choice, FeatSlot, Issue, MythicAbilityKey, MythicFeatKey, Prerequisite,
+    Ability, Build, Edit, FeatSlot, Issue, MythicAbilityKey, MythicFeatKey, Prerequisite,
     RankStatus, SlotId, SlotKind, Unmet,
 };
 
 use crate::support::*;
 
-/// A fighter of `levels` levels on `path` (chosen at MR 3) with a general mythic pick at every rank, and the
-/// feats the mythic feats need.
+/// A fighter of `levels` levels on `path` (chosen at MR 3) with a general mythic pick at every rank it reaches, and
+/// the feats the mythic feats need.
 fn mythic_build(path_key: &str, levels: usize) -> Build {
     let mut build = build("human", &times("fighter", levels));
     build.mythic_path = Some(path(path_key));
@@ -44,6 +47,18 @@ fn mythic_build(path_key: &str, levels: usize) -> Build {
         .picks
         .insert(general_slot(1), pick_feat("power-attack"));
     build.picks.insert(race_slot(0), pick_feat("toughness"));
+    // Only the ranks the Build reaches.
+    let reached: Vec<u8> = engine()
+        .data()
+        .progression
+        .mythic_ascensions
+        .iter()
+        .filter(|ascension| usize::from(ascension.character_level) <= levels)
+        .map(|ascension| ascension.rank)
+        .collect();
+    build
+        .picks
+        .retain(|slot, _| slot.rank().is_none_or(|rank| reached.contains(&rank)));
     build
 }
 
@@ -131,7 +146,7 @@ fn gold_dragon_keeps_the_general_picks_of_mr_1_to_7_but_the_old_paths_grants_of_
     );
     build.path_switch = Some(path("gold-dragon"));
     let sheet = engine().evaluate(&build);
-    assert!(sheet.problems.is_empty(), "{:?}", sheet.problems);
+    assert!(engine().is_possible(&build));
 
     let at_17 = sheet.at(17).unwrap();
     assert_eq!(at_17.mythic_path, Some(path("gold-dragon")));
@@ -201,6 +216,87 @@ fn a_legend_switch_keeps_the_old_paths_mr_1_and_2_rows_and_drops_every_pick_of_m
     );
 }
 
+/// The ranks of the Build's mythic picks.
+fn pick_ranks(build: &Build) -> Vec<u8> {
+    let ranks: BTreeSet<u8> = build.picks.keys().filter_map(SlotId::rank).collect();
+    ranks.into_iter().collect()
+}
+
+#[test]
+fn choosing_the_legend_switch_drops_the_picks_of_the_ranks_it_takes_away() {
+    let engine = engine();
+    let mut build = mythic_build("trickster", 20);
+    build.picks.insert(
+        path_selection(3),
+        pick_option("trickster/tricks/perception-1"),
+    );
+    assert!(engine.is_possible(&build));
+
+    // Gold Dragon ascends on: every pick stays.
+    let mut gold = build.clone();
+    engine.apply(&mut gold, &Edit::PathSwitch(Some(path("gold-dragon"))));
+    assert_eq!(gold.picks, build.picks);
+
+    // Legend ends the ascensions at MR 8: the picks of MR 8, 9 and 10 go. MR 3-7's stay, as the picks the switch
+    // drops (the Mythic track marks them).
+    build.picks.insert(
+        path_selection(9),
+        pick_option("trickster/tricks/athletics-1"),
+    );
+    assert!(engine.is_possible(&build));
+    assert_eq!(pick_ranks(&build), (1..=10).collect::<Vec<_>>());
+    engine.apply(&mut build, &Edit::PathSwitch(Some(path("legend"))));
+    assert_eq!(build.path_switch, Some(path("legend")));
+    assert_eq!(pick_ranks(&build), (1..=7).collect::<Vec<_>>());
+    assert!(build.picks.contains_key(&path_selection(3)));
+    assert!(engine.is_possible(&build));
+
+    // Taking the switch back brings the ranks back, empty.
+    engine.apply(&mut build, &Edit::PathSwitch(None));
+    assert_eq!(pick_ranks(&build), (1..=7).collect::<Vec<_>>());
+    assert_eq!(engine.evaluate(&build).ranks[9].status, RankStatus::Reached);
+    assert!(engine.is_possible(&build));
+}
+
+#[test]
+fn removing_a_level_drops_its_picks_and_the_picks_of_the_ranks_it_no_longer_reaches() {
+    let engine = engine();
+    let mut build = mythic_build("trickster", 19);
+    build.picks.insert(
+        path_selection(9),
+        pick_option("trickster/tricks/athletics-1"),
+    );
+    build.picks.insert(general_slot(17), pick_feat("dodge"));
+    assert!(engine.is_possible(&build));
+    assert_eq!(pick_ranks(&build), (1..=10).collect::<Vec<_>>());
+
+    // Level 19 reaches MR 10.
+    engine.apply(&mut build, &Edit::RemoveLevel);
+    assert_eq!(pick_ranks(&build), (1..=9).collect::<Vec<_>>());
+    engine.apply(&mut build, &Edit::RemoveLevel);
+    assert_eq!(pick_ranks(&build), (1..=9).collect::<Vec<_>>());
+    // Level 17 reaches MR 8 and 9: its own pick goes with theirs.
+    engine.apply(&mut build, &Edit::RemoveLevel);
+    assert_eq!(build.levels.len(), 16);
+    assert_eq!(pick_ranks(&build), (1..=7).collect::<Vec<_>>());
+    assert!(!build.picks.contains_key(&general_slot(17)));
+    assert!(engine.is_possible(&build));
+
+    // Adding the levels back brings the ranks back, empty.
+    for level in 17..=19 {
+        engine.apply(
+            &mut build,
+            &Edit::Class {
+                level,
+                class: class("fighter"),
+                choice: None,
+            },
+        );
+    }
+    assert_eq!(pick_ranks(&build), (1..=7).collect::<Vec<_>>());
+    assert!(engine.is_possible(&build));
+}
+
 #[test]
 fn devil_from_aeon_keeps_mr_1_to_7_but_loses_the_gaze_picks_and_extra_gaze() {
     let mut build = mythic_build("aeon", 20);
@@ -217,7 +313,7 @@ fn devil_from_aeon_keeps_mr_1_to_7_but_loses_the_gaze_picks_and_extra_gaze() {
     }
     build.path_switch = Some(path("devil"));
     let sheet = engine().evaluate(&build);
-    assert!(sheet.problems.is_empty(), "{:?}", sheet.problems);
+    assert!(engine().is_possible(&build));
 
     let at_16 = sheet.at(16).unwrap();
     assert_eq!(at_16.selection_options.len(), 4);
@@ -266,21 +362,10 @@ fn devil_from_aeon_keeps_mr_1_to_7_but_loses_the_gaze_picks_and_extra_gaze() {
 fn the_devil_switch_is_open_only_from_its_previous_paths() {
     let mut from_trickster = mythic_build("trickster", 20);
     from_trickster.path_switch = Some(path("devil"));
-    let sheet = engine().evaluate(&from_trickster);
+    assert!(!engine().is_possible(&from_trickster));
     let expected = Issue::NotFromPath {
         from: [path("aeon")].into(),
     };
-    assert_eq!(
-        sheet
-            .problems
-            .iter()
-            .map(|p| (p.at.clone(), p.issue.clone()))
-            .collect::<Vec<_>>(),
-        [(Choice::PathSwitch, expected.clone())]
-    );
-    // A switch that doesn't hold doesn't happen: the Trickster carries on to MR 10.
-    assert_eq!(sheet.at(17).unwrap().mythic_path, Some(path("trickster")));
-    assert_eq!(sheet.at(20).unwrap().mythic_rank, 10);
 
     let status = |build: &Build, key: &str| {
         engine()
@@ -298,7 +383,7 @@ fn the_devil_switch_is_open_only_from_its_previous_paths() {
 
     let mut from_aeon = mythic_build("aeon", 20);
     from_aeon.path_switch = Some(path("devil"));
-    assert_eq!(engine().validate(&from_aeon), []);
+    assert!(engine().is_possible(&from_aeon));
 }
 
 // ---- Ability bonuses from features ------------------------------------------------------------------------------
@@ -395,7 +480,7 @@ fn perception_legend() -> Build {
         path_selection(5),
         pick_option("trickster/tricks/perception-2"),
     );
-    build.path_switch = Some(path("legend"));
+    engine().apply(&mut build, &Edit::PathSwitch(Some(path("legend"))));
     build
 }
 
@@ -406,7 +491,7 @@ fn a_trickster_who_becomes_a_legend_keeps_the_feats_perception_ii_unlocked() {
         .picks
         .insert(general_slot(15), pick_feat("stat-focus"));
     let sheet = engine().evaluate(&build);
-    assert!(sheet.problems.is_empty(), "{:?}", sheet.problems);
+    assert!(engine().is_possible(&build));
     let at_20 = sheet.at(20).unwrap();
     // Perception II itself is gone with the Trickster's MR 3-7, the feat it unlocked stays.
     assert!(
@@ -424,9 +509,13 @@ fn after_the_legend_switch_a_perception_ii_feat_cant_be_taken_again() {
     build
         .picks
         .insert(general_slot(19), pick_feat("stat-focus"));
-    let problems = engine().validate(&build);
-    assert_eq!(problems.len(), 1, "{problems:?}");
-    assert_eq!(problems[0].at, Choice::Slot(general_slot(19)));
+    assert_eq!(
+        why_not(&build, &general_slot(19)),
+        Some(Issue::Unmet(Unmet::Condition {
+            needs: Prerequisite::SelectionOption(option("trickster/tricks/perception-2")),
+            has: None,
+        }))
+    );
 }
 
 // ---- The Mythic rank prerequisite -------------------------------------------------------------------------------
@@ -494,7 +583,7 @@ fn gold_dragons_dragon_feats_are_three_picks_of_any_feat_ignoring_prerequisites(
     // Cleaving Finish needs Great Cleave, held from the first pick on.
     build.picks.insert(slot(2), pick_feat("cleaving-finish"));
     let sheet = engine().evaluate(&build);
-    assert!(sheet.problems.is_empty(), "{:?}", sheet.problems);
+    assert!(engine().is_possible(&build));
     let at_17 = sheet.at(17).unwrap();
     for key in ["great-cleave", "crane-wing", "cleaving-finish"] {
         assert!(at_17.feats.contains_key(&feat(key)), "{key}");
@@ -549,7 +638,7 @@ fn an_option_can_grant_several_feats() {
         .picks
         .insert(general_slot(11), pick_feat("shield-focus"));
     let sheet = engine().evaluate(&build);
-    assert!(sheet.problems.is_empty(), "{:?}", sheet.problems);
+    assert!(engine().is_possible(&build));
     let at_8 = sheet.at(8).unwrap();
     assert!(!at_8.feats.contains_key(&feat("shield-proficiency")));
     let at_9 = sheet.at(9).unwrap();

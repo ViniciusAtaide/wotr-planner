@@ -73,7 +73,7 @@ const RED: &str = "sorcerer/bloodline/draconic-red";
 #[test]
 fn a_sorcerer_holds_the_bloodlines_rows_as_sorcerer_levels_reach_them() {
     let build = sorcerer(ABYSSAL, 20);
-    assert_eq!(engine().validate(&build), []);
+    assert!(engine().is_possible(&build));
     assert!(holds(&at(&build, 1), "sorcerer/bloodline/abyssal/claws"));
     assert!(!holds(
         &at(&build, 2),
@@ -132,7 +132,7 @@ fn a_seeker_skips_the_bloodline_rows_at_3_9_and_15() {
         Some(("sorcerer", "sorcerer/seeker")),
         &[(selection_slot(1, 0), ABYSSAL)],
     );
-    assert_eq!(engine().validate(&build), []);
+    assert!(engine().is_possible(&build));
     assert!(holds(&at(&build, 1), "sorcerer/bloodline/abyssal/claws"));
     assert!(!holds(
         &at(&build, 3),
@@ -180,7 +180,7 @@ fn an_option_row_can_grant_a_selection_slot() {
     build
         .picks
         .insert(slot.clone(), pick_option("sorcerer/school-power/evocation"));
-    assert_eq!(engine().validate(&build), []);
+    assert!(engine().is_possible(&build));
     assert_eq!(
         at(&build, 15).option_count(&option("sorcerer/school-power/evocation")),
         1
@@ -188,7 +188,7 @@ fn an_option_row_can_grant_a_selection_slot() {
 }
 
 #[test]
-fn a_pick_for_an_option_rows_slot_the_build_lacks_is_reported() {
+fn a_pick_for_an_option_rows_slot_the_build_lacks_makes_it_impossible() {
     let mut build = sorcerer(ARCANE, 14);
     let slot = SlotId::OptionSelection {
         level: 14,
@@ -197,10 +197,7 @@ fn a_pick_for_an_option_rows_slot_the_build_lacks_is_reported() {
     build
         .picks
         .insert(slot.clone(), pick_option("sorcerer/school-power/evocation"));
-    let problems = engine().validate(&build);
-    assert_eq!(problems.len(), 1);
-    assert_eq!(problems[0].at, rules::Choice::Slot(slot));
-    assert_eq!(problems[0].issue, Issue::NoSuchSlot);
+    assert_eq!(why_not(&build, &slot), None);
 }
 
 // ---- options taken late, and twice ------------------------------------------------------------------------
@@ -222,7 +219,7 @@ fn second_bloodline(bloodline: &str, second: &str, levels: usize) -> Build {
 #[test]
 fn an_option_taken_late_gets_every_row_up_to_its_level_at_once() {
     let build = second_bloodline(ABYSSAL, ARCANE, 7);
-    assert_eq!(engine().validate(&build), []);
+    assert!(engine().is_possible(&build));
     let at_6 = at(&build, 6);
     assert!(holds(&at_6, "sorcerer/bloodline/arcane/arcane-bond"));
     assert!(holds(
@@ -265,7 +262,7 @@ fn crossblooded_second_bloodline_adds_only_its_feat_list() {
             (selection_slot(1, 1), ARCANE),
         ],
     );
-    assert_eq!(engine().validate(&build), []);
+    assert!(engine().is_possible(&build));
     let at_3 = at(&build, 3);
     assert!(holds(&at_3, "sorcerer/bloodline/abyssal/resistances"));
     assert!(!holds(&at_3, "sorcerer/bloodline/arcane/arcane-bond"));
@@ -292,7 +289,7 @@ fn a_selection_offering_one_option_is_granted_with_no_pick() {
         Some(("sorcerer", "sorcerer/sage")),
         &[],
     );
-    assert_eq!(engine().validate(&build), []);
+    assert!(engine().is_possible(&build));
     let sheet = engine().evaluate(&build);
     assert_eq!(
         sheet.levels[0]
@@ -328,7 +325,7 @@ fn sorcerer_then_dragon_disciple(bloodline: &str, sorcerer: usize, disciple: usi
 #[test]
 fn dragon_disciple_levels_continue_a_sorcerers_bloodline() {
     let build = sorcerer_then_dragon_disciple(RED, 5, 5);
-    assert_eq!(engine().validate(&build), []);
+    assert!(engine().is_possible(&build));
     assert_eq!(at(&build, 10).option_level(&option(RED)), 10);
     // A sorcerer with a Draconic bloodline picks none on entry.
     let sheet = engine().evaluate(&build);
@@ -344,7 +341,7 @@ fn a_bard_picks_a_draconic_bloodline_on_entering_dragon_disciple() {
         None,
         &[(selection_slot(6, 0), "sorcerer/bloodline/draconic-gold")],
     );
-    assert_eq!(engine().validate(&build), []);
+    assert!(engine().is_possible(&build));
     let gold = option("sorcerer/bloodline/draconic-gold");
     assert_eq!(at(&build, 7).option_level(&gold), 2);
     assert!(!holds(
@@ -431,7 +428,7 @@ fn bloodline_ascendance_grants_the_bloodlines_20th_level_row() {
         SlotId::Mythic { rank: 1 },
         pick_mythic_ability("bloodline-ascendance"),
     );
-    assert_eq!(engine().validate(&build), []);
+    assert!(engine().is_possible(&build));
     assert!(!holds(
         &at(&build, 5),
         "sorcerer/bloodline/abyssal/demonic-might"
@@ -463,7 +460,7 @@ fn primalist(choice: &str) -> Build {
 #[test]
 fn a_primalist_takes_the_bloodline_row_or_two_talents_instead() {
     let power = primalist("bloodline-power");
-    assert_eq!(engine().validate(&power), []);
+    assert!(engine().is_possible(&power));
     assert!(holds(
         &at(&power, 3),
         "sorcerer/bloodline/abyssal/resistances"
@@ -480,7 +477,7 @@ fn a_primalist_takes_the_bloodline_row_or_two_talents_instead() {
         SlotId::OptionSelection { level: 3, index: 1 },
         pick_option("rogue/rogue-talents/fast-stealth"),
     );
-    assert_eq!(engine().validate(&talents), []);
+    assert!(engine().is_possible(&talents));
     let at_3 = at(&talents, 3);
     assert!(!holds(&at_3, "sorcerer/bloodline/abyssal/resistances"));
     assert_eq!(
@@ -514,7 +511,7 @@ fn a_style_slot_follows_the_style_picked_at_the_same_level_and_grows_with_it() {
         &[(selection_slot(2, 0), "ranger/combat-style/archery")],
     );
     build.picks.insert(class_slot(2, 0), pick_feat("dodge"));
-    assert_eq!(engine().validate(&build), []);
+    assert!(engine().is_possible(&build));
     let sheet = engine().evaluate(&build);
     let ids: Vec<SlotId> = sheet.levels[1]
         .slots
@@ -572,8 +569,8 @@ fn a_pool_selection_offers_the_held_options_pool() {
         pick_option("cleric/fire-revelations/fire-breath"),
     );
     assert_eq!(
-        engine().validate(&water)[0].issue,
-        Issue::NotAllowed,
+        why_not(&water, &slot),
+        None,
         "a fire revelation without the fire domain"
     );
 }
@@ -585,7 +582,7 @@ fn a_wizard_holds_the_schools_first_power_at_1() {
         None,
         &[(selection_slot(1, 0), "wizard/school/universalist")],
     );
-    assert_eq!(engine().validate(&build), []);
+    assert!(engine().is_possible(&build));
     assert!(holds(&at(&build, 1), "wizard/hand-of-the-apprentice"));
 }
 
@@ -625,7 +622,7 @@ fn a_path_switch_drops_an_option_a_dropped_pick_took() {
         SlotId::MythicSelection { rank: 3, index: 0 },
         pick_option(ARCANE),
     );
-    assert_eq!(engine().validate(&build), []);
+    assert!(engine().is_possible(&build));
     let at_16 = at(&build, 16);
     assert!(holds(
         &at_16,
@@ -686,7 +683,7 @@ fn an_option_rows_feat_slot_is_a_slot_at_the_level_that_reaches_it() {
 
     let mut build = cleric_with("cleric/domain/war", 8);
     build.picks.insert(slot.clone(), pick_feat("toughness"));
-    assert_eq!(engine().validate(&build), []);
+    assert!(engine().is_possible(&build));
     assert_eq!(
         at(&build, 8).feat_count(&rules::FeatKey::new("toughness")),
         1
@@ -698,10 +695,7 @@ fn an_option_rows_feat_slot_is_a_slot_at_the_level_that_reaches_it() {
 
     let mut fire = cleric_with("cleric/domain/fire", 8);
     fire.picks.insert(slot.clone(), pick_feat("toughness"));
-    let problems = engine().validate(&fire);
-    assert_eq!(problems.len(), 1);
-    assert_eq!(problems[0].at, rules::Choice::Slot(slot));
-    assert_eq!(problems[0].issue, Issue::NoSuchSlot);
+    assert_eq!(why_not(&fire, &slot), None);
 }
 
 #[test]
@@ -714,7 +708,7 @@ fn an_option_rows_chosen_feat_is_held_for_the_value_its_pick_named() {
             weapon("longsword"),
         ),
     );
-    assert_eq!(engine().validate(&build), []);
+    assert!(engine().is_possible(&build));
     let specialization = rules::FeatKey::new("weapon-specialization");
     let seven = at(&build, 7);
     assert!(seven.has_feat_for(&rules::FeatKey::new("weapon-focus"), &weapon("longsword")));

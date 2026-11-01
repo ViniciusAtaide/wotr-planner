@@ -1,10 +1,7 @@
 //! Which choices the sheet may remove or change now: those no later choice depends on, so a chain comes off from
-//! the leaves inward, and broken ones, so a stale link can always be fixed. The pickers lock what would break a
-//! later choice.
+//! the leaves inward. The pickers lock what would break a later choice.
 
-use rules::{
-    Ability, ArchetypeKey, Build, Choice, ClassChoice, Edit, Engine, Issue, Prerequisite, SlotId,
-};
+use rules::{Ability, ArchetypeKey, Build, Choice, ClassChoice, Edit, Engine, Issue, SlotId};
 
 use crate::support::*;
 
@@ -33,7 +30,7 @@ fn cleave_chain() -> Build {
     build
         .picks
         .insert(general_slot(5), pick_feat("cleaving-finish"));
-    assert!(engine().validate(&build).is_empty());
+    assert!(engine().is_possible(&build));
     build
 }
 
@@ -53,7 +50,7 @@ fn a_chain_comes_off_from_the_leaves_inward() {
             std::slice::from_ref(&leaf)
         );
         build.apply(&Edit::Clear(leaf));
-        assert_eq!(engine.validate(&build), []);
+        assert!(engine.is_possible(&build));
     }
     assert_eq!(removable_picks(&engine, &build), []);
 }
@@ -108,7 +105,7 @@ fn an_archetype_a_later_pick_depends_on_isnt_changeable() {
         selection_slot(1, 0),
         pick_option("fighter/armiger/order/cockatrice"),
     );
-    assert_eq!(engine.validate(&build), []);
+    assert!(engine.is_possible(&build));
     let removable = engine.removable(&build);
     assert!(!removable.contains(&archetype));
     assert!(removable.contains(&Choice::Slot(selection_slot(1, 0))));
@@ -153,7 +150,7 @@ fn skill_ranks_a_prestige_class_needs_are_not_removable() {
     for level in &mut build.levels[..4] {
         level.skill_ranks.insert(skill("mobility"), 1);
     }
-    assert!(engine().validate(&build).is_empty());
+    assert!(engine().is_possible(&build));
     let removable = engine().removable(&build);
     for level in 1..=4 {
         assert!(
@@ -174,7 +171,7 @@ fn a_switch_the_levels_past_20_need_is_not_removable() {
     let mut build = build("elf", &times("fighter", 20));
     build.mythic_path = Some(path("trickster"));
     build.path_switch = Some(path("legend"));
-    assert_eq!(engine.validate(&build), []);
+    assert!(engine.is_possible(&build));
     assert!(engine.removable(&build).contains(&Choice::PathSwitch));
 
     build.apply(&Edit::Class {
@@ -182,42 +179,8 @@ fn a_switch_the_levels_past_20_need_is_not_removable() {
         class: class("rogue"),
         choice: None,
     });
-    assert_eq!(engine.validate(&build), []);
+    assert!(engine.is_possible(&build));
     assert!(!engine.removable(&build).contains(&Choice::PathSwitch));
-}
-
-#[test]
-fn a_stale_links_broken_pick_is_removable_even_with_dependants() {
-    let mut build = build("elf", &times("fighter", 3));
-    build
-        .picks
-        .insert(class_slot(1, 0), pick_feat("power-attack"));
-    build.picks.insert(general_slot(1), pick_feat("cleave"));
-    build.picks.insert(general_slot(3), pick_feat("toughness"));
-    // Today Cleave needs Power Attack, so Power Attack stays.
-    assert!(
-        !engine()
-            .removable(&build)
-            .contains(&Choice::Slot(class_slot(1, 0)))
-    );
-
-    // The game data changes: Power Attack now needs Str 18, which breaks it and Cleave with it.
-    let mut data = world();
-    let power_attack = data
-        .feats
-        .iter_mut()
-        .find(|f| f.key == feat("power-attack"))
-        .unwrap();
-    power_attack.prerequisite = Some(Prerequisite::AbilityScore {
-        ability: Ability::Strength,
-        score: 18,
-    });
-    let stale = Engine::new(data);
-    assert_eq!(stale.validate(&build).len(), 2);
-    assert_eq!(
-        removable_picks(&stale, &build),
-        [class_slot(1, 0), general_slot(1), general_slot(3)]
-    );
 }
 
 #[test]
@@ -282,7 +245,7 @@ fn the_switch_picker_locks_a_switch_the_levels_past_20_need() {
     let mut build = build("elf", &[times("fighter", 20), vec!["rogue"]].concat());
     build.mythic_path = Some(path("trickster"));
     build.path_switch = Some(path("legend"));
-    assert_eq!(engine.validate(&build), []);
+    assert!(engine.is_possible(&build));
     let status = |key: &str| {
         engine
             .switch_options(&build)
@@ -304,7 +267,7 @@ fn an_edit_is_allowed_when_every_other_choice_still_holds() {
     for key in ["athletics", "mobility", "persuasion"] {
         build.levels[0].skill_ranks.insert(skill(key), 1);
     }
-    assert_eq!(engine.validate(&build), []);
+    assert!(engine.is_possible(&build));
     let lower = |ability: Ability, score: u8| {
         let mut start = build.start.clone();
         start.ability_scores = start.ability_scores.with(ability, score).unwrap();

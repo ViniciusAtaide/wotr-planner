@@ -3,6 +3,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use crate::build::AbilityScores;
+use crate::choice::Unmet;
 use crate::game_data::{Alignment, OptionGroup, SpellType};
 use crate::keys::{
     ArchetypeKey, ClassKey, FeatKey, FeatListKey, FeatureKey, FeatureSelectionKey,
@@ -10,7 +11,6 @@ use crate::keys::{
 };
 use crate::parameter::Parameter;
 use crate::prerequisite::Prerequisite;
-use crate::problem::Unmet;
 
 /// Everything derived from a Build up to some point: the end of a character level, or just before a slot.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
