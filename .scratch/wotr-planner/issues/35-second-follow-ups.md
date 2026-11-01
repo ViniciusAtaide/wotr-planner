@@ -113,3 +113,5 @@ Real-data tests (`game_data.rs`, 7 new, red on HEAD's data first: 6 failures, `t
 1. The sorcerer's and bloodrager's groups stay apart: the guide states the one-dragon rule only for the sorcerer.
 2. A Living Deity with cleric levels levels its extra domain by the higher of the two, as built.
 3. The druid's Nature Bond domain, the Blight Druid's and the Winter Child's domains qualify for Impossible Domain ("Prerequisites: Domain"), its domain levelled by druid levels. [Ticket 36](36-impossible-domain-druids.md).
+
+**User, 2026-11-01 (reversing decision 3):** the druid page says "If you choose a domain, you can't take the Impossible Domain mythic ability", so no druid domain qualifies. [Ticket 36](36-impossible-domain-druids.md) pins it with tests and changes no data.

@@ -3199,3 +3199,69 @@ fn a_bloodrager_with_a_dragon_bloodline_cant_take_a_second_dragon_through_second
     let both = with_option(both, 2, 0, "bloodrager/bloodline/draconic-blue");
     assert_eq!(problems(&both), []);
 }
+
+// ---- Impossible Domain and the druid (ticket 36) ---------------------------------------------------------------
+
+/// `levels` of one class (and an archetype), then fighter 3: Mythic rank 1 at character level 6.
+fn then_fighter_3(mut build: Build) -> Build {
+    build
+        .class_choices
+        .insert(ClassKey::new("fighter"), ClassChoice::default());
+    for _ in 0..3 {
+        build.levels.push(LevelUp::new(ClassKey::new("fighter")));
+    }
+    build
+}
+
+/// Impossible Domain's status in the Mythic rank 1 slot.
+fn impossible_domain_at_mr_1(build: &Build) -> Option<Result<(), Issue>> {
+    engine()
+        .options(build, &SlotId::Mythic { rank: 1 })
+        .unwrap()
+        .into_iter()
+        .find(|option| option.pick.key() == "impossible-domain")
+        .map(|option| option.status)
+}
+
+#[test]
+fn no_druid_can_take_impossible_domain_whatever_its_domain() {
+    // "If you choose a domain, you can't take the Impossible Domain mythic ability." (the druid's page)
+    let nature_bond = with_pick(
+        with_option(druid(None, 3), 1, 0, "druid/nature-bond/domain"),
+        option_slot(1, 0),
+        "cleric/domain/weather",
+    );
+    let blight = with_option(
+        druid(Some("druid/blight-druid"), 3),
+        1,
+        0,
+        "cleric/domain/death",
+    );
+    let winter = druid(Some("druid/winter-child"), 3);
+    let companion = with_option(druid(None, 3), 1, 0, "druid/nature-bond/animal-companion");
+    for (name, build, domain) in [
+        ("Nature Bond", nature_bond, Some("weather")),
+        ("Blight Druid", blight, Some("death")),
+        ("Winter Child", winter, Some("ice")),
+        ("animal companion", companion, None),
+    ] {
+        let build = then_fighter_3(build);
+        assert_eq!(problems(&build), [], "{name}");
+        // Each holds its druid's domain at druid level 3, so only being a druid's keeps it out.
+        if let Some(domain) = domain {
+            assert_eq!(
+                at(&build, 6)
+                    .option_level(&SelectionOptionKey::new(format!("cleric/domain/{domain}"))),
+                3,
+                "{name}"
+            );
+        }
+        let status = impossible_domain_at_mr_1(&build);
+        assert!(matches!(status, Some(Err(_))), "{name}: {status:?}");
+    }
+    // A cleric 3 / fighter 3 can.
+    assert_eq!(
+        impossible_domain_at_mr_1(&then_fighter_3(cleric(["air", "fire"], 3))),
+        Some(Ok(()))
+    );
+}

@@ -128,6 +128,8 @@ class's), and BAB and saves (from the class's progressions).
     OtherOptions` (`cleric/impossible-domain`): that option's level counts as one of the other options', so a Living
     Deity's Impossible Domain runs on arcanist levels from the pick. Impossible Domain's prerequisite also accepts
     `SelectionOption("hellknight/disciplines/pentamic-faith")`, whose domain is levelled by Hellknight levels.
+    It names no druid (ticket 36): the druid's page says a druid who chooses a domain can't take Impossible Domain,
+    so neither the Nature Bond domain nor the Blight Druid's or Winter Child's qualifies; the module asserts this.
   - `hellknight-signifer/order` is `only_without_option`, as `hellknight/order`.
   - The Chaos, Evil, Good and Law domains: `Any([Not(PickedThrough("cleric/separatist/domain")), Alignment(...),
     ...])`, the six alignments that don't conflict, when taken as the Separatist's second domain.

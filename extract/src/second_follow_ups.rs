@@ -13,6 +13,9 @@
 //!   stage (2, 6, 10), whoever levels the style (`OptionList.at_level`).
 //! - **Bloodrager groups** (33-8): the bloodrager's ten Draconic and four Elemental bloodlines are groups of their
 //!   own, so a Second Bloodrager Bloodline can't be a second dragon (or element).
+//! - **No druid takes Impossible Domain** (ticket 36, the user following the guide): the druid's page says a druid
+//!   who chooses a domain can't, so no druid domain (Nature Bond, Blight Druid, Winter Child) is in its
+//!   prerequisite. A guard only: it changes no data.
 //!
 //! Each rule asserts the guide phrase it rests on (the user's decisions aside) and what it finds in the data, so it
 //! fails loudly on data it doesn't expect. [`apply`] runs on the finished data of an extraction and, through ticket
@@ -33,6 +36,7 @@ pub fn apply(guide: &Guide, data: &mut GameData) -> Log {
     let mut log = Log::new();
     half_elf_subraces(guide, data, &mut log);
     impossible_domain(guide, data, &mut log);
+    no_druid_impossible_domain(guide, data, &mut log);
     signifer(guide, data, &mut log);
     separatist(guide, data, &mut log);
     slayer_window_stages(guide, data, &mut log);
@@ -125,6 +129,45 @@ fn impossible_domain(guide: &Guide, data: &mut GameData, log: &mut Log) {
     log.push(format!(
         "impossible-domain: a Hellknight with Pentamic Faith's domain ({discipline}) may take it"
     ));
+}
+
+/// "If you choose a domain, you can't take the Impossible Domain mythic ability." (the druid's characteristics,
+/// after its Nature Bond domains; the Blight Druid's and Winter Child's domains are the druid's under an
+/// archetype). Asserts the phrase and that no druid source is among Impossible Domain's prerequisites; changes no
+/// data. Public so ticket 36's check runs it alone over `game-data/`.
+pub fn no_druid_impossible_domain(guide: &Guide, data: &GameData, log: &mut Log) {
+    let phrase = "If you choose a domain, you can't take the Impossible Domain mythic ability.";
+    let druid = page(guide, "druid")
+        .root
+        .walk()
+        .into_iter()
+        .find(|section| section.name == "Druid")
+        .expect("the druid's section");
+    let text = druid.text();
+    assert!(text.contains(phrase), "druid: no {phrase:?} in {text:?}");
+    let ability = data
+        .mythic_abilities
+        .iter()
+        .find(|ability| ability.key == MythicAbilityKey::new("impossible-domain"))
+        .expect("Impossible Domain");
+    let Some(Prerequisite::Any(children)) = &ability.prerequisite else {
+        panic!("Impossible Domain: {:?}", ability.prerequisite);
+    };
+    let druids = |child: &&Prerequisite| match child {
+        Prerequisite::ClassLevel { class, .. } => class.as_str() == "druid",
+        Prerequisite::Archetype(archetype) => archetype.as_str().starts_with("druid/"),
+        Prerequisite::SelectionOption(option) => option.as_str().starts_with("druid/"),
+        _ => false,
+    };
+    let found: Vec<_> = children.iter().filter(druids).collect();
+    assert!(
+        found.is_empty(),
+        "impossible-domain: druid sources {found:?}"
+    );
+    log.push(
+        "impossible-domain: no druid domain qualifies (Nature Bond, Blight Druid, Winter Child)"
+            .to_owned(),
+    );
 }
 
 /// The Hellknight's "If the character was not previously an Armiger, they must choose one of the seven Hellknight
