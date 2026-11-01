@@ -128,6 +128,14 @@
         prerequisite: Feat("dodge"),
     ),
     (
+        // The monk grants it at level 1, so a monk without Dexterity 13 holds it anyway.
+        key: "improved-unarmed-strike",
+        name: "Improved Unarmed Strike",
+        category: UnarmedCombat,
+        guide: "feats#improved-unarmed-strike",
+        prerequisite: AbilityScore(ability: Dexterity, score: 13),
+    ),
+    (
         key: "crane-wing",
         name: "Crane Wing",
         category: UnarmedCombat,

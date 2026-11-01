@@ -13,7 +13,6 @@ Class(
         (key: "witch/familiar", name: "Familiar", guide: "witch#familiar"),
         (key: "witch/grand-hexes", name: "Grand Hexes", guide: "witch#grand-hexes"),
         (key: "witch/major-hexes", name: "Major Hexes", guide: "witch#major-hexes"),
-        (key: "witch/witch-proficiencies", name: "Witch Proficiencies", guide: "witch#witch-proficiencies"),
     ],
     selections: [
         (
@@ -71,7 +70,7 @@ Class(
         ),
     ],
     levels: [
-        (level: 1, arcane_spell_level: 1, features: ["witch/cantrips", "witch/familiar", "witch/witch-proficiencies"], selections: ["witch/hex", "witch/patron"]),
+        (level: 1, arcane_spell_level: 1, features: ["witch/cantrips", "witch/familiar"], feats: ["simple-weapon-proficiency"], selections: ["witch/hex", "witch/patron"]),
         (level: 2, arcane_spell_level: 1, selections: ["witch/hex"]),
         (level: 3, arcane_spell_level: 2),
         (level: 4, arcane_spell_level: 2, selections: ["witch/hex"]),
@@ -103,7 +102,7 @@ Class(
                 (key: "witch/elemental-witch/elemental-ray", name: "Elemental Ray", guide: "witch#elemental-ray"),
             ],
             levels: [
-                (level: 1, features: ["witch/elemental-witch/cantrips", "witch/elemental-witch/elemental-patron", "witch/elemental-witch/elemental-ray", "witch/familiar", "witch/witch-proficiencies"]),
+                (level: 1, features: ["witch/elemental-witch/cantrips", "witch/elemental-witch/elemental-patron", "witch/elemental-witch/elemental-ray", "witch/familiar"], feats: ["simple-weapon-proficiency"]),
                 (level: 10, features: ["witch/major-hexes"]),
                 (level: 11, features: ["witch/elemental-witch/elemental-ray"]),
                 (level: 14),
@@ -122,7 +121,7 @@ Class(
                 (key: "witch/hag-of-gyronna/sunder-hope", name: "Sunder Hope", guide: "witch#sunder-hope"),
             ],
             levels: [
-                (level: 1, features: ["witch/familiar", "witch/hag-of-gyronna/cantrips", "witch/hag-of-gyronna/dark-pact", "witch/witch-proficiencies"], selections: ["witch/hex"]),
+                (level: 1, features: ["witch/familiar", "witch/hag-of-gyronna/cantrips", "witch/hag-of-gyronna/dark-pact"], feats: ["simple-weapon-proficiency"], selections: ["witch/hex"]),
                 (level: 2, features: ["witch/hag-of-gyronna/curdle-thoughts"]),
                 (level: 8, features: ["witch/hag-of-gyronna/sunder-hope"]),
                 (level: 12, features: ["witch/hag-of-gyronna/hag-crony"]),
@@ -141,7 +140,7 @@ Class(
                 (key: "witch/hagbound/vile-curse", name: "Vile Curse", guide: "witch#vile-curse"),
             ],
             levels: [
-                (level: 1, features: ["witch/familiar", "witch/hagbound/cantrips", "witch/hagbound/hagbound-patron", "witch/hagbound/hags-claws", "witch/witch-proficiencies"]),
+                (level: 1, features: ["witch/familiar", "witch/hagbound/cantrips", "witch/hagbound/hagbound-patron", "witch/hagbound/hags-claws"], feats: ["simple-weapon-proficiency"]),
                 (level: 2, features: ["witch/hagbound/hunched-muscle"]),
                 (level: 8),
                 (level: 10, features: ["witch/hagbound/vile-curse", "witch/major-hexes"]),
@@ -158,7 +157,7 @@ Class(
                 (key: "witch/hex-channeler/channel-energy", name: "Channel Energy", guide: "witch#channel-energy"),
             ],
             levels: [
-                (level: 1, features: ["witch/familiar", "witch/hex-channeler/cantrips", "witch/witch-proficiencies"], selections: ["witch/hex", "witch/patron"]),
+                (level: 1, features: ["witch/familiar", "witch/hex-channeler/cantrips"], feats: ["simple-weapon-proficiency"], selections: ["witch/hex", "witch/patron"]),
                 (level: 2, features: ["witch/hex-channeler/channel-energy"]),
             ],
         ),
@@ -172,7 +171,7 @@ Class(
                 (key: "witch/keen-eyed-adventurer/improved-cantrips", name: "Improved Cantrips", guide: "witch#improved-cantrips"),
             ],
             levels: [
-                (level: 1, features: ["witch/familiar", "witch/keen-eyed-adventurer/improved-cantrips", "witch/witch-proficiencies"], selections: ["witch/patron"]),
+                (level: 1, features: ["witch/familiar", "witch/keen-eyed-adventurer/improved-cantrips"], feats: ["simple-weapon-proficiency"], selections: ["witch/patron"]),
                 (level: 6, features: ["witch/keen-eyed-adventurer/elemental-vortex"]),
                 (level: 20, features: ["witch/keen-eyed-adventurer/cantrip-mastery"]),
             ],
@@ -187,7 +186,7 @@ Class(
                 (key: "witch/ley-line-guardian/ley-line-powered", name: "Ley Line Powered", guide: "witch#ley-line-powered"),
             ],
             levels: [
-                (level: 1, features: ["witch/ley-line-guardian/cantrips", "witch/ley-line-guardian/conduit-surge", "witch/ley-line-guardian/ley-line-powered", "witch/witch-proficiencies"], selections: ["witch/patron"]),
+                (level: 1, features: ["witch/ley-line-guardian/cantrips", "witch/ley-line-guardian/conduit-surge", "witch/ley-line-guardian/ley-line-powered"], feats: ["simple-weapon-proficiency"], selections: ["witch/patron"]),
                 (level: 8),
             ],
         ),
@@ -201,7 +200,7 @@ Class(
                 (key: "witch/stigmatized-witch/curse", name: "Curse", guide: "witch#curse"),
             ],
             levels: [
-                (level: 1, features: ["witch/familiar", "witch/stigmatized-witch/cantrips", "witch/stigmatized-witch/curse", "witch/witch-proficiencies"], selections: ["witch/hex"]),
+                (level: 1, features: ["witch/familiar", "witch/stigmatized-witch/cantrips", "witch/stigmatized-witch/curse"], feats: ["simple-weapon-proficiency"], selections: ["witch/hex"]),
             ],
         ),
         (
@@ -216,7 +215,7 @@ Class(
                 (key: "witch/witch-of-the-veil/shrouded-step", name: "Shrouded Step", guide: "witch#shrouded-step"),
             ],
             levels: [
-                (level: 1, features: ["witch/familiar", "witch/witch-of-the-veil/cantrips", "witch/witch-of-the-veil/deception-witch-of-the-veil", "witch/witch-of-the-veil/secrecy", "witch/witch-proficiencies"], selections: ["witch/hex"]),
+                (level: 1, features: ["witch/familiar", "witch/witch-of-the-veil/cantrips", "witch/witch-of-the-veil/deception-witch-of-the-veil", "witch/witch-of-the-veil/secrecy"], feats: ["simple-weapon-proficiency"], selections: ["witch/hex"]),
                 (level: 2, features: ["witch/witch-of-the-veil/shrouded-step"]),
                 (level: 8),
                 (level: 16),

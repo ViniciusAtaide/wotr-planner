@@ -19,7 +19,7 @@ Class(
         (key: "cleric/domain-ability-2", name: "Domain Ability (2)", guide: "cleric"),
     ],
     levels: [
-        (level: 1, divine_spell_level: 1, features: ["cleric/channel-energy", "cleric/cleric-proficiencies", "cleric/domain-abilities-1", "cleric/domain-abilities-2"]),
+        (level: 1, divine_spell_level: 1, features: ["cleric/channel-energy", "cleric/cleric-proficiencies", "cleric/domain-abilities-1", "cleric/domain-abilities-2"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"]),
         (level: 2, divine_spell_level: 1),
         (level: 3, divine_spell_level: 2),
         (level: 4, divine_spell_level: 2, features: ["cleric/animal-companion"]),
@@ -48,7 +48,6 @@ Class(
             prerequisite: Any([Alignment(LawfulGood), Alignment(NeutralGood), Alignment(ChaoticGood)]),
             features: [
                 (key: "cleric/angelfire-apostle/animal-companion", name: "Animal Companion", guide: "cleric#angelfire-apostle"),
-                (key: "cleric/angelfire-apostle/apostle-proficiencies", name: "Apostle Proficiencies", guide: "cleric#apostle-proficiencies"),
                 (key: "cleric/angelfire-apostle/channel-positive-energy", name: "Channel Positive Energy", guide: "cleric#angelfire-apostle"),
                 (key: "cleric/angelfire-apostle/cleansing-flames", name: "Cleansing Flames", guide: "cleric#cleansing-flames"),
                 (key: "cleric/angelfire-apostle/domain-abilities", name: "Domain Abilities", guide: "cleric#angelfire-apostle"),
@@ -58,7 +57,7 @@ Class(
                 (key: "cleric/angelfire-apostle/versatile-healing-channel", name: "Versatile Healing Channel", guide: "cleric#versatile-healing-channel"),
             ],
             levels: [
-                (level: 1, features: ["cleric/angelfire-apostle/apostle-proficiencies", "cleric/angelfire-apostle/channel-positive-energy", "cleric/angelfire-apostle/domain-abilities", "cleric/angelfire-apostle/domain-abilities-2", "cleric/diminished-spellcasting"], feat_slots: [OneOf(feats: ["extra-channel"], ignores_prerequisites: true)]),
+                (level: 1, features: ["cleric/angelfire-apostle/channel-positive-energy", "cleric/angelfire-apostle/domain-abilities", "cleric/angelfire-apostle/domain-abilities-2", "cleric/diminished-spellcasting"], feats: ["armor-proficiency-light-armor", "extra-channel", "shield-proficiency", "simple-weapon-proficiency"]),
                 (level: 4, features: ["cleric/angelfire-apostle/animal-companion"]),
                 (level: 5, features: ["cleric/angelfire-apostle/versatile-healing-channel"]),
                 (level: 6, features: ["cleric/angelfire-apostle/domain-ability", "cleric/angelfire-apostle/domain-ability-2"]),
@@ -75,15 +74,20 @@ Class(
                 (key: "cleric/crusader/domain-abilities", name: "Domain Abilities", guide: "cleric#crusader"),
                 (key: "cleric/crusader/domain-ability", name: "Domain Ability", guide: "cleric#crusader"),
             ],
+            feat_lists: [
+                (key: "cleric/crusader/bonus-feats-1", name: "Crusader Bonus Feats", guide: "cleric#crusader-bonus-feats", ignores_prerequisites: true, feats: ["armor-proficiency-heavy-armor", "martial-weapons-proficiency", "shield-bash", "shield-focus", "tower-shield-proficiency", "weapon-focus"]),
+                (key: "cleric/crusader/bonus-feats-10", name: "Crusader Bonus Feats (from level 10)", guide: "cleric#crusader-bonus-feats", ignores_prerequisites: true, feats: ["armor-proficiency-heavy-armor", "greater-weapon-focus", "improved-critical", "martial-weapons-proficiency", "shield-bash", "shield-focus", "tower-shield-proficiency", "weapon-focus", "weapon-specialization"]),
+                (key: "cleric/crusader/bonus-feats-20", name: "Crusader Bonus Feats (level 20)", guide: "cleric#crusader-bonus-feats", ignores_prerequisites: true, feats: ["armor-proficiency-heavy-armor", "greater-weapon-focus", "greater-weapon-specialization", "improved-critical", "martial-weapons-proficiency", "shield-bash", "shield-focus", "tower-shield-proficiency", "weapon-focus", "weapon-specialization"]),
+            ],
             levels: [
-                (level: 1, features: ["cleric/channel-energy", "cleric/cleric-proficiencies", "cleric/crusader/domain-abilities", "cleric/diminished-spellcasting"], feat_slots: [OneOf(feats: ["armor-proficiency-heavy-armor", "martial-weapons-proficiency", "shield-bash", "shield-focus", "tower-shield-proficiency", "weapon-focus"], ignores_prerequisites: true)]),
+                (level: 1, features: ["cleric/channel-energy", "cleric/cleric-proficiencies", "cleric/crusader/domain-abilities", "cleric/diminished-spellcasting"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"], feat_slots: [OneOf(list: "cleric/crusader/bonus-feats-1")]),
                 (level: 4, features: ["cleric/crusader/animal-companion"]),
-                (level: 5, feat_slots: [OneOf(feats: ["armor-proficiency-heavy-armor", "martial-weapons-proficiency", "shield-bash", "shield-focus", "tower-shield-proficiency", "weapon-focus"], ignores_prerequisites: true)]),
+                (level: 5, feat_slots: [OneOf(list: "cleric/crusader/bonus-feats-1")]),
                 (level: 6, features: ["cleric/crusader/domain-ability"]),
                 (level: 8, features: ["cleric/crusader/domain-ability"]),
-                (level: 10, feat_slots: [OneOf(feats: ["armor-proficiency-heavy-armor", "greater-weapon-focus", "improved-critical", "martial-weapons-proficiency", "shield-bash", "shield-focus", "tower-shield-proficiency", "weapon-focus", "weapon-specialization"], ignores_prerequisites: true)]),
-                (level: 15, feat_slots: [OneOf(feats: ["armor-proficiency-heavy-armor", "greater-weapon-focus", "improved-critical", "martial-weapons-proficiency", "shield-bash", "shield-focus", "tower-shield-proficiency", "weapon-focus", "weapon-specialization"], ignores_prerequisites: true)]),
-                (level: 20, feat_slots: [OneOf(feats: ["armor-proficiency-heavy-armor", "greater-weapon-focus", "greater-weapon-specialization", "improved-critical", "martial-weapons-proficiency", "shield-bash", "shield-focus", "tower-shield-proficiency", "weapon-focus", "weapon-specialization"], ignores_prerequisites: true)]),
+                (level: 10, feat_slots: [OneOf(list: "cleric/crusader/bonus-feats-10")]),
+                (level: 15, feat_slots: [OneOf(list: "cleric/crusader/bonus-feats-10")]),
+                (level: 20, feat_slots: [OneOf(list: "cleric/crusader/bonus-feats-20")]),
             ],
         ),
         (
@@ -92,16 +96,18 @@ Class(
             guide: "cleric#demonbane-priest",
             features: [
                 (key: "cleric/demonbane-priest/animal-companion", name: "Animal Companion", guide: "cleric#demonbane-priest"),
-                (key: "cleric/demonbane-priest/demonbane-proficiencies", name: "Demonbane Proficiencies", guide: "cleric#demonbane-proficiencies"),
                 (key: "cleric/demonbane-priest/demonic-knowledge", name: "Demonic Knowledge", guide: "cleric#demonic-knowledge"),
                 (key: "cleric/demonbane-priest/domain-abilities", name: "Domain Abilities", guide: "cleric#demonbane-priest"),
                 (key: "cleric/demonbane-priest/domain-ability", name: "Domain Ability", guide: "cleric#demonbane-priest"),
             ],
+            feat_lists: [
+                (key: "cleric/demonbane-priest/bonus-feats", name: "Demonbane Priest Bonus Feats", guide: "cleric#demonbane-priest-bonus-feats", ignores_prerequisites: true, feats: ["allied-spellcaster", "back-to-back", "coordinated-defense", "coordinated-maneuvers", "greater-spell-penetration", "outflank", "precise-strike", "seize-the-moment", "shake-it-off", "shield-wall", "shielded-caster", "spell-chain", "spell-penetration", "tandem-trip", "volley-fire"]),
+            ],
             levels: [
-                (level: 1, features: ["cleric/channel-energy", "cleric/demonbane-priest/demonbane-proficiencies", "cleric/demonbane-priest/demonic-knowledge", "cleric/demonbane-priest/domain-abilities", "cleric/diminished-spellcasting"]),
-                (level: 4, features: ["cleric/demonbane-priest/animal-companion"], feat_slots: [OneOf(feats: ["allied-spellcaster", "back-to-back", "coordinated-defense", "coordinated-maneuvers", "greater-spell-penetration", "outflank", "precise-strike", "seize-the-moment", "shake-it-off", "shield-wall", "shielded-caster", "spell-chain", "spell-penetration", "tandem-trip", "volley-fire"], ignores_prerequisites: true)]),
+                (level: 1, features: ["cleric/channel-energy", "cleric/demonbane-priest/demonic-knowledge", "cleric/demonbane-priest/domain-abilities", "cleric/diminished-spellcasting"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"]),
+                (level: 4, features: ["cleric/demonbane-priest/animal-companion"], feat_slots: [OneOf(list: "cleric/demonbane-priest/bonus-feats")]),
                 (level: 6, features: ["cleric/demonbane-priest/domain-ability"]),
-                (level: 8, features: ["cleric/demonbane-priest/domain-ability"], feat_slots: [OneOf(feats: ["allied-spellcaster", "back-to-back", "coordinated-defense", "coordinated-maneuvers", "greater-spell-penetration", "outflank", "precise-strike", "seize-the-moment", "shake-it-off", "shield-wall", "shielded-caster", "spell-chain", "spell-penetration", "tandem-trip", "volley-fire"], ignores_prerequisites: true)]),
+                (level: 8, features: ["cleric/demonbane-priest/domain-ability"], feat_slots: [OneOf(list: "cleric/demonbane-priest/bonus-feats")]),
             ],
         ),
         (
@@ -142,7 +148,7 @@ Class(
                 (key: "cleric/herald-caller/numerous-heralds", name: "Numerous Heralds", guide: "cleric#numerous-heralds"),
             ],
             levels: [
-                (level: 1, features: ["cleric/channel-energy", "cleric/cleric-proficiencies", "cleric/herald-caller/call-heralds", "cleric/herald-caller/domain-abilities"]),
+                (level: 1, features: ["cleric/channel-energy", "cleric/cleric-proficiencies", "cleric/herald-caller/call-heralds", "cleric/herald-caller/domain-abilities"], feats: ["armor-proficiency-light-armor", "simple-weapon-proficiency"]),
                 (level: 4, features: ["cleric/herald-caller/animal-companion", "cleric/herald-caller/mighty-heralds"]),
                 (level: 6, features: ["cleric/herald-caller/domain-ability"]),
                 (level: 8, features: ["cleric/herald-caller/domain-ability", "cleric/herald-caller/numerous-heralds"]),
@@ -163,7 +169,7 @@ Class(
                 (key: "cleric/priest-of-balance/quickened-equilibrium", name: "Quickened Equilibrium", guide: "cleric#quickened-equilibrium"),
             ],
             levels: [
-                (level: 1, features: ["cleric/cleric-proficiencies", "cleric/priest-of-balance/channel-negative-energy", "cleric/priest-of-balance/channel-positive-energy", "cleric/priest-of-balance/domain-abilities", "cleric/priest-of-balance/energy-equilibrium"]),
+                (level: 1, features: ["cleric/cleric-proficiencies", "cleric/priest-of-balance/channel-negative-energy", "cleric/priest-of-balance/channel-positive-energy", "cleric/priest-of-balance/domain-abilities", "cleric/priest-of-balance/energy-equilibrium"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"]),
                 (level: 4, features: ["cleric/priest-of-balance/animal-companion"]),
                 (level: 6, features: ["cleric/priest-of-balance/domain-ability"]),
                 (level: 8, features: ["cleric/priest-of-balance/domain-ability"]),
@@ -182,7 +188,7 @@ Class(
                 (key: "cleric/separatist/forbidden-rites", name: "Forbidden Rites", guide: "cleric#forbidden-rites"),
             ],
             levels: [
-                (level: 1, features: ["cleric/channel-energy", "cleric/cleric-proficiencies", "cleric/separatist/domain-abilities", "cleric/separatist/forbidden-rites"]),
+                (level: 1, features: ["cleric/channel-energy", "cleric/cleric-proficiencies", "cleric/separatist/domain-abilities", "cleric/separatist/forbidden-rites"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"]),
                 (level: 4, features: ["cleric/separatist/animal-companion"]),
                 (level: 6, features: ["cleric/separatist/animal-companion", "cleric/separatist/domain-ability"]),
                 (level: 8, features: ["cleric/separatist/domain-ability", "cleric/separatist/domain-ability"]),

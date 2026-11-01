@@ -5,11 +5,13 @@
 //! the [`output`] folder rules.
 
 pub mod build;
+pub mod feat_lists;
 pub mod grammar;
 pub mod guide;
 pub mod html;
 pub mod names;
 pub mod output;
+pub mod proficiencies;
 pub mod progressions;
 pub mod prose;
 pub mod references;

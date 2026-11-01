@@ -64,11 +64,19 @@ _Avoid_: Archetype table (it isn't a full copy), override row
 ### Choices
 
 **Feat slot**:
-A point in a Build where one feat is chosen. A **general slot** accepts any feat whose prerequisites are met. A **bonus slot** accepts only some feats: any Combat feat, any feat of one category, or one feat from a fixed list.
+A point in a Build where one feat is chosen. A **general slot** accepts any feat whose prerequisites are met. A **bonus slot** accepts only some feats: any Combat feat, any feat of one category, or one feat from a **Feat list**. A feat the class gives with no choice is a **Granted feat**, not a slot.
 _Avoid_: Feat pick, feat choice
 
+**Feat list**:
+A named fixed list of two or more feats that a bonus slot picks from, such as the monk's bonus feats at 1, 6 and 10 (one list per stage). It belongs to the class, archetype or path whose file defines it, and says whether picks from it ignore prerequisites (see **Bonus-list slot**).
+_Avoid_: Option list, fixed-list slot (the slot names the list)
+
+**Granted feat**:
+A feat a class level gives outright, with no slot and no pick, so it isn't in the Build or its link: a wizard's Scribe Scrolls at 1, a fighter's Armor, Shield and Weapon Proficiency feats. It's held from that level on whatever its prerequisites; one already held adds nothing, and picking it later is "already held".
+_Avoid_: Bonus feat (that's a slot), one-feat list
+
 **Bonus-list slot**:
-A bonus slot that draws from the class's own fixed bonus-feat list, such as a monk's bonus feats, a ranger's combat style or a kineticist's. Its pick ignores the feat's prerequisites (it must still be on the list and not already held) and counts as held afterwards, so a follow-on feat such as Crane Wing still checks its own. Every other feat slot checks prerequisites, a fighter's "any Combat feat" slot included. In the data it's a fixed-list slot with `ignores_prerequisites` set.
+A bonus slot that draws from the class's own fixed bonus-feat list, such as a monk's bonus feats, a ranger's combat style or a kineticist's. Its pick ignores the feat's prerequisites (it must still be on the list and not already held) and counts as held afterwards, so a follow-on feat such as Crane Wing still checks its own. Every other feat slot checks prerequisites, a fighter's "any Combat feat" slot included. In the data the flag is the **Feat list**'s: `ignores_prerequisites` on the list the slot names.
 _Avoid_: Free feat, prerequisite-free slot
 
 **Combat feat**:

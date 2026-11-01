@@ -70,6 +70,15 @@ pub fn path_switch(path: &str) -> Option<PathSwitch> {
     }
 }
 
+/// A path table's cell as the heading that describes it is named: five paths print "Bypass Epic DR" for the
+/// `mythic-paths` page's Bypass Epic Damage Reduction.
+pub fn path_cell(cell: &str) -> &str {
+    match cell {
+        "Bypass Epic DR" => "Bypass Epic Damage Reduction",
+        other => other,
+    }
+}
+
 /// A name for matching across the guide's spellings ("Eldritich Scoundrel").
 pub fn fix_name(name: &str) -> String {
     norm(name).replace("eldritich", "eldritch")
@@ -119,10 +128,7 @@ pub fn special_bonus_slots(
              prerequisites",
         );
         let _ = scope;
-        return Some(vec![FeatSlot::OneOf {
-            feats,
-            ignores_prerequisites: false,
-        }]);
+        return Some(vec![builder.lists.slot(feats, false)]);
     }
     None
 }

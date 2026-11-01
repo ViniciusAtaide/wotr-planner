@@ -5,9 +5,10 @@ MythicPath(
     features: [
         (key: "angel/angelic-halo", name: "Angelic Halo", guide: "angel#angelic-halo"),
         (key: "angel/astral-devas-x4", name: "Astral Devas x4", guide: "angel"),
-        (key: "angel/bypass-epic-dr", name: "Bypass Epic DR", guide: "angel"),
+        (key: "angel/bypass-epic-damage-reduction", name: "Bypass Epic Damage Reduction", guide: "mythic-paths#bypass-epic-damage-reduction"),
         (key: "angel/close-to-the-heavens", name: "Close to the Heavens", guide: "angel#close-to-the-heavens"),
         (key: "angel/halos-holy-aura", name: "Halo\'s Holy Aura", guide: "angel#halos-holy-aura"),
+        (key: "angel/hard-to-kill", name: "Hard to Kill", guide: "mythic-paths#hard-to-kill"),
         (key: "angel/heavens-breath", name: "Heaven\'s Breath", guide: "angel#heavens-breath"),
         (key: "angel/summon-astral-deva", name: "Summon Astral Deva", guide: "angel#summon-astral-deva"),
         (key: "angel/summon-astral-devas", name: "Summon Astral Devas", guide: "angel#summon-astral-devas"),
@@ -62,8 +63,8 @@ MythicPath(
         ),
     ],
     ranks: [
-        (rank: 1, features: ["angel/bypass-epic-dr", "angel/close-to-the-heavens"]),
-        (rank: 2, features: ["angel/heavens-breath", "angel/summon-spirit-paladin", "mythic/hard-to-kill"]),
+        (rank: 1, features: ["angel/bypass-epic-damage-reduction", "angel/close-to-the-heavens"]),
+        (rank: 2, features: ["angel/heavens-breath", "angel/summon-spirit-paladin", "angel/hard-to-kill"]),
         (rank: 3, features: ["angel/angelic-halo", "angel/summon-spirit-paladins", "angel/sword-of-heaven"]),
         (rank: 4, features: ["angel/summon-movanic-deva"], selections: ["angel/improved-sword-of-heaven"]),
         (rank: 5, features: ["angel/summon-movanic-devas"], selections: ["angel/improved-angelic-halo"]),

@@ -27,7 +27,7 @@ Class(
         (key: "druid/woodland-stride", name: "Woodland Stride", guide: "druid#woodland-stride"),
     ],
     levels: [
-        (level: 1, divine_spell_level: 1, features: ["druid/animal-companion", "druid/domain-abilities", "druid/druid-proficiencies", "druid/nature-sense", "druid/spontaneous-summoning"]),
+        (level: 1, divine_spell_level: 1, features: ["druid/animal-companion", "druid/domain-abilities", "druid/druid-proficiencies", "druid/nature-sense", "druid/spontaneous-summoning"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency"]),
         (level: 2, divine_spell_level: 1, features: ["druid/woodland-stride"]),
         (level: 3, divine_spell_level: 2),
         (level: 4, divine_spell_level: 2, features: ["druid/animal-companion", "druid/resist-natures-lure", "druid/wild-shape-wolf"]),
@@ -66,7 +66,7 @@ Class(
                 (key: "druid/blight-druid/wild-shape-wolf", name: "Wild Shape (Wolf)", guide: "druid#blight-druid"),
             ],
             levels: [
-                (level: 1, features: ["druid/blight-druid/domain-abilities", "druid/druid-proficiencies", "druid/nature-sense", "druid/spontaneous-summoning"]),
+                (level: 1, features: ["druid/blight-druid/domain-abilities", "druid/druid-proficiencies", "druid/nature-sense", "druid/spontaneous-summoning"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency"]),
                 (level: 4, features: ["druid/blight-druid/wild-shape-wolf"]),
                 (level: 5, features: ["druid/blight-druid/miasma"]),
                 (level: 6, features: ["druid/blight-druid/domain-ability", "druid/blight-druid/wild-shape-leopard-small-elemental"]),
@@ -98,7 +98,7 @@ Class(
                 (key: "druid/defender-of-the-true-world/wild-shape-wolf", name: "Wild Shape (Wolf)", guide: "druid#defender-of-the-true-world"),
             ],
             levels: [
-                (level: 1, features: ["druid/defender-of-the-true-world/animal-companion", "druid/defender-of-the-true-world/domain-abilities", "druid/defender-of-the-true-world/enemy-of-the-fey", "druid/druid-proficiencies", "druid/nature-sense"]),
+                (level: 1, features: ["druid/defender-of-the-true-world/animal-companion", "druid/defender-of-the-true-world/domain-abilities", "druid/defender-of-the-true-world/enemy-of-the-fey", "druid/druid-proficiencies", "druid/nature-sense"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency"]),
                 (level: 3, features: ["druid/defender-of-the-true-world/fey-stalker"]),
                 (level: 4, features: ["druid/defender-of-the-true-world/animal-companion", "druid/defender-of-the-true-world/feybane", "druid/defender-of-the-true-world/wild-shape-wolf"]),
                 (level: 6, features: ["druid/defender-of-the-true-world/domain-ability", "druid/defender-of-the-true-world/wild-shape-leopard-small-elemental"]),
@@ -122,7 +122,7 @@ Class(
                 (key: "druid/drovier/communal-aspect-greater", name: "Communal Aspect (Greater)", guide: "druid#drovier"),
             ],
             levels: [
-                (level: 1, features: ["druid/drovier/animal-companion", "druid/druid-proficiencies", "druid/nature-sense", "druid/spontaneous-summoning"]),
+                (level: 1, features: ["druid/drovier/animal-companion", "druid/druid-proficiencies", "druid/nature-sense", "druid/spontaneous-summoning"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency"]),
                 (level: 4, features: ["druid/drovier/communal-aspect", "druid/resist-natures-lure"]),
                 (level: 6, features: ["druid/drovier/communal-aspect-greater"]),
                 (level: 8, features: ["druid/drovier/communal-aspect-aspect-of-the-falcon"]),
@@ -151,7 +151,7 @@ Class(
                 (key: "druid/elemental-rampager/wild-shape-wolf", name: "Wild Shape (Wolf)", guide: "druid#elemental-rampager"),
             ],
             levels: [
-                (level: 1, features: ["druid/druid-proficiencies", "druid/elemental-rampager/claws", "druid/elemental-rampager/rampage", "druid/nature-sense", "druid/spontaneous-summoning"]),
+                (level: 1, features: ["druid/druid-proficiencies", "druid/elemental-rampager/claws", "druid/elemental-rampager/rampage", "druid/nature-sense", "druid/spontaneous-summoning"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency"]),
                 (level: 4, features: ["druid/elemental-rampager/elemental-damage", "druid/elemental-rampager/elemental-rampage", "druid/elemental-rampager/energy-resistance", "druid/elemental-rampager/wild-shape-wolf"]),
                 (level: 6, features: ["druid/elemental-rampager/wild-shape-leopard-small-elemental"]),
                 (level: 8, features: ["druid/elemental-rampager/wild-shape-bear-medium-elemental"]),
@@ -188,7 +188,7 @@ Class(
                 (key: "druid/feyspeaker/wild-shape-wolf", name: "Wild Shape (Wolf)", guide: "druid#feyspeaker"),
             ],
             levels: [
-                (level: 1, features: ["druid/druid-proficiencies", "druid/feyspeaker/animal-companion", "druid/feyspeaker/domain-abilities", "druid/nature-sense"]),
+                (level: 1, features: ["druid/druid-proficiencies", "druid/feyspeaker/animal-companion", "druid/feyspeaker/domain-abilities", "druid/nature-sense"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency"]),
                 (level: 4, features: ["druid/feyspeaker/animal-companion", "druid/feyspeaker/fey-magic-i", "druid/resist-natures-lure"]),
                 (level: 6, features: ["druid/feyspeaker/domain-ability", "druid/feyspeaker/fey-magic-ii", "druid/feyspeaker/wild-shape-wolf"]),
                 (level: 8, features: ["druid/feyspeaker/fey-magic-iii", "druid/feyspeaker/lightning-lord", "druid/feyspeaker/wild-shape-leopard"]),
@@ -213,7 +213,7 @@ Class(
                 (key: "druid/primal-druid/wild-shape-wolf", name: "Wild Shape (Wolf)", guide: "druid#primal-druid"),
             ],
             levels: [
-                (level: 1, features: ["druid/druid-proficiencies", "druid/primal-druid/animal-companion-primal-druid", "druid/primal-druid/primal-size", "druid/spontaneous-summoning"]),
+                (level: 1, features: ["druid/druid-proficiencies", "druid/primal-druid/animal-companion-primal-druid", "druid/primal-druid/primal-size", "druid/spontaneous-summoning"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency"]),
                 (level: 4, features: ["druid/primal-druid/wild-shape-wolf", "druid/resist-natures-lure"]),
                 (level: 6, features: ["druid/primal-druid/wild-shape-leopard-small-elemental"]),
                 (level: 8, features: ["druid/primal-druid/wild-shape-bear-medium-elemental"]),
@@ -241,7 +241,7 @@ Class(
                 (key: "druid/winter-child/snowcaster", name: "Snowcaster", guide: "druid#snowcaster"),
             ],
             levels: [
-                (level: 1, features: ["druid/druid-proficiencies", "druid/nature-sense", "druid/winter-child/call-a-feast", "druid/winter-child/domain-ability-icicle", "druid/winter-child/ice-in-the-blood"]),
+                (level: 1, features: ["druid/druid-proficiencies", "druid/nature-sense", "druid/winter-child/call-a-feast", "druid/winter-child/domain-ability-icicle", "druid/winter-child/ice-in-the-blood"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency"]),
                 (level: 4, features: ["druid/winter-child/arctic-native", "druid/winter-child/blizzard-servant"]),
                 (level: 6, features: ["druid/winter-child/blizzard-servant-winters-advance"]),
                 (level: 8, features: ["druid/winter-child/domain-ability-body-of-ice"]),

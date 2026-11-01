@@ -16,7 +16,6 @@ Class(
         (key: "warpriest/sacred-armor", name: "Sacred Armor", guide: "warpriest#sacred-armor"),
         (key: "warpriest/sacred-weapon", name: "Sacred Weapon", guide: "warpriest#sacred-weapon"),
         (key: "warpriest/spontaneous-casting", name: "Spontaneous Casting", guide: "warpriest#spontaneous-casting"),
-        (key: "warpriest/warpriest-proficiencies", name: "Warpriest Proficiencies", guide: "warpriest#warpriest-proficiencies"),
     ],
     selections: [
         (
@@ -53,7 +52,7 @@ Class(
         ),
     ],
     levels: [
-        (level: 1, divine_spell_level: 1, features: ["warpriest/sacred-weapon", "warpriest/spontaneous-casting", "warpriest/warpriest-proficiencies"], feat_slots: [OneOf(feats: ["weapon-focus"], ignores_prerequisites: true)], selections: ["warpriest/blessings", "warpriest/blessings"]),
+        (level: 1, divine_spell_level: 1, features: ["warpriest/sacred-weapon", "warpriest/spontaneous-casting"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency", "weapon-focus"], selections: ["warpriest/blessings", "warpriest/blessings"]),
         (level: 2, divine_spell_level: 1, features: ["warpriest/fervor"]),
         (level: 3, divine_spell_level: 1, feat_slots: [CombatFeat]),
         (level: 4, divine_spell_level: 2, features: ["warpriest/channel-energy", "warpriest/sacred-weapon"]),
@@ -85,7 +84,7 @@ Class(
                 (key: "warpriest/champion-of-the-faith/smite", name: "Smite", guide: "warpriest#smite"),
             ],
             levels: [
-                (level: 1, features: ["warpriest/champion-of-the-faith/chosen-alignment", "warpriest/sacred-weapon", "warpriest/spontaneous-casting", "warpriest/warpriest-proficiencies"], feat_slots: [OneOf(feats: ["weapon-focus"], ignores_prerequisites: true)], selections: ["warpriest/blessings"]),
+                (level: 1, features: ["warpriest/champion-of-the-faith/chosen-alignment", "warpriest/sacred-weapon", "warpriest/spontaneous-casting"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency", "weapon-focus"], selections: ["warpriest/blessings"]),
                 (level: 4, features: ["warpriest/champion-of-the-faith/sacred-weapon-aligned-weapon", "warpriest/champion-of-the-faith/smite"]),
                 (level: 8),
                 (level: 12, features: ["warpriest/champion-of-the-faith/sacred-weapon-aligned-weapon"], feat_slots: [CombatFeat]),
@@ -107,7 +106,7 @@ Class(
                 (key: "warpriest/cult-leader/well-hidden", name: "Well Hidden", guide: "warpriest#well-hidden"),
             ],
             levels: [
-                (level: 1, features: ["warpriest/cult-leader/cult-leader-proficiencies", "warpriest/cult-leader/well-hidden", "warpriest/sacred-weapon", "warpriest/spontaneous-casting"], selections: ["warpriest/blessings", "warpriest/blessings"]),
+                (level: 1, features: ["warpriest/cult-leader/cult-leader-proficiencies", "warpriest/cult-leader/well-hidden", "warpriest/sacred-weapon", "warpriest/spontaneous-casting"], feats: ["armor-proficiency-light-armor", "simple-weapon-proficiency"], selections: ["warpriest/blessings", "warpriest/blessings"]),
                 (level: 3, features: ["warpriest/cult-leader/sneak-attack"]),
                 (level: 4, features: ["warpriest/cult-leader/enthrall", "warpriest/sacred-weapon"]),
                 (level: 6, features: ["warpriest/cult-leader/sneak-attack"], feat_slots: [CombatFeat]),
@@ -125,14 +124,19 @@ Class(
                 (key: "warpriest/disenchanter/banish-enchantment", name: "Banish Enchantment", guide: "warpriest#banish-enchantment"),
                 (key: "warpriest/disenchanter/mystic-interference", name: "Mystic Interference", guide: "warpriest#mystic-interference"),
             ],
+            feat_lists: [
+                (key: "warpriest/disenchanter/bonus-feats-12", name: "Bonus Feat (Disenchanter, from level 12)", guide: "warpriest#bonus-feat-disenchanter", ignores_prerequisites: true, feats: ["destructive-dispel", "dispel-synergy", "great-fortitude", "improved-great-fortitude", "improved-iron-will", "improved-lightning-reflexes", "iron-will", "lightning-reflexes", "ray-shield", "skill-focus", "spell-focus"]),
+                (key: "warpriest/disenchanter/bonus-feats-3", name: "Bonus Feat (Disenchanter)", guide: "warpriest#bonus-feat-disenchanter", ignores_prerequisites: true, feats: ["great-fortitude", "iron-will", "lightning-reflexes", "skill-focus", "spell-focus"]),
+                (key: "warpriest/disenchanter/bonus-feats-9", name: "Bonus Feat (Disenchanter, from level 9)", guide: "warpriest#bonus-feat-disenchanter", ignores_prerequisites: true, feats: ["dispel-synergy", "great-fortitude", "improved-great-fortitude", "improved-iron-will", "improved-lightning-reflexes", "iron-will", "lightning-reflexes", "skill-focus", "spell-focus"]),
+            ],
             levels: [
-                (level: 3, feat_slots: [OneOf(feats: ["great-fortitude", "iron-will", "lightning-reflexes", "skill-focus", "spell-focus"], ignores_prerequisites: true)]),
+                (level: 3, feat_slots: [OneOf(list: "warpriest/disenchanter/bonus-feats-3")]),
                 (level: 4, features: ["warpriest/disenchanter/mystic-interference", "warpriest/sacred-weapon"]),
                 (level: 6, features: ["warpriest/disenchanter/banish-enchantment"]),
-                (level: 9, feat_slots: [OneOf(feats: ["dispel-synergy", "great-fortitude", "improved-great-fortitude", "improved-iron-will", "improved-lightning-reflexes", "iron-will", "lightning-reflexes", "skill-focus", "spell-focus"], ignores_prerequisites: true)]),
-                (level: 12, features: ["warpriest/sacred-weapon"], feat_slots: [OneOf(feats: ["destructive-dispel", "dispel-synergy", "great-fortitude", "improved-great-fortitude", "improved-iron-will", "improved-lightning-reflexes", "iron-will", "lightning-reflexes", "ray-shield", "skill-focus", "spell-focus"], ignores_prerequisites: true)]),
-                (level: 15, feat_slots: [OneOf(feats: ["destructive-dispel", "dispel-synergy", "great-fortitude", "improved-great-fortitude", "improved-iron-will", "improved-lightning-reflexes", "iron-will", "lightning-reflexes", "ray-shield", "skill-focus", "spell-focus"], ignores_prerequisites: true)]),
-                (level: 18, feat_slots: [OneOf(feats: ["destructive-dispel", "dispel-synergy", "great-fortitude", "improved-great-fortitude", "improved-iron-will", "improved-lightning-reflexes", "iron-will", "lightning-reflexes", "ray-shield", "skill-focus", "spell-focus"], ignores_prerequisites: true)]),
+                (level: 9, feat_slots: [OneOf(list: "warpriest/disenchanter/bonus-feats-9")]),
+                (level: 12, features: ["warpriest/sacred-weapon"], feat_slots: [OneOf(list: "warpriest/disenchanter/bonus-feats-12")]),
+                (level: 15, feat_slots: [OneOf(list: "warpriest/disenchanter/bonus-feats-12")]),
+                (level: 18, feat_slots: [OneOf(list: "warpriest/disenchanter/bonus-feats-12")]),
             ],
         ),
         (
@@ -147,7 +151,7 @@ Class(
                 (key: "warpriest/feral-champion/wild-shape-wolf", name: "Wild Shape (Wolf)", guide: "warpriest#feral-champion"),
             ],
             levels: [
-                (level: 1, features: ["warpriest/feral-champion/feral-blessing", "warpriest/sacred-weapon", "warpriest/spontaneous-casting", "warpriest/warpriest-proficiencies"], feat_slots: [OneOf(feats: ["weapon-focus"], ignores_prerequisites: true)]),
+                (level: 1, features: ["warpriest/feral-champion/feral-blessing", "warpriest/sacred-weapon", "warpriest/spontaneous-casting"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency", "weapon-focus"]),
                 (level: 7, features: ["warpriest/feral-champion/wild-shape-wolf"]),
                 (level: 9, features: ["warpriest/feral-champion/wild-shape-leopard"], feat_slots: [CombatFeat]),
                 (level: 10, features: ["warpriest/feral-champion/feral-blessing"]),
@@ -173,7 +177,7 @@ Class(
                 (key: "warpriest/mantis-zealot/saber-fighting", name: "Saber Fighting", guide: "warpriest#saber-fighting"),
             ],
             levels: [
-                (level: 1, features: ["warpriest/mantis-zealot/mantis-zealot-proficiencies", "warpriest/mantis-zealot/red-shroud", "warpriest/mantis-zealot/saber-fighting", "warpriest/sacred-weapon", "warpriest/spontaneous-casting"]),
+                (level: 1, features: ["warpriest/mantis-zealot/mantis-zealot-proficiencies", "warpriest/mantis-zealot/red-shroud", "warpriest/mantis-zealot/saber-fighting", "warpriest/sacred-weapon", "warpriest/spontaneous-casting"], feats: ["armor-proficiency-light-armor", "martial-weapons-proficiency", "simple-weapon-proficiency"]),
                 (level: 3, features: ["warpriest/mantis-zealot/deadly-fascination"]),
                 (level: 4, features: ["warpriest/mantis-zealot/mantis-swarm", "warpriest/mantis-zealot/saber-fighting", "warpriest/sacred-weapon"]),
                 (level: 7, features: ["warpriest/mantis-zealot/fading", "warpriest/mantis-zealot/red-shroud-swift-action"]),
@@ -216,7 +220,7 @@ Class(
                 (key: "warpriest/shieldbearer/shield-adept", name: "Shield Adept", guide: "warpriest#shield-adept"),
             ],
             levels: [
-                (level: 1, features: ["warpriest/shieldbearer/sacred-shield", "warpriest/shieldbearer/shield-adept", "warpriest/spontaneous-casting", "warpriest/warpriest-proficiencies"], feat_slots: [OneOf(feats: ["shield-bash"], ignores_prerequisites: true)], selections: ["warpriest/blessings", "warpriest/blessings"]),
+                (level: 1, features: ["warpriest/shieldbearer/sacred-shield", "warpriest/shieldbearer/shield-adept", "warpriest/spontaneous-casting"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-bash", "shield-proficiency", "simple-weapon-proficiency"], selections: ["warpriest/blessings", "warpriest/blessings"]),
                 (level: 4, features: ["warpriest/shieldbearer/channel-energy-shieldbearer", "warpriest/shieldbearer/sacred-shield"]),
                 (level: 7, features: ["warpriest/shieldbearer/sacred-weapon-shieldbearer"]),
                 (level: 8, features: ["warpriest/shieldbearer/sacred-shield"]),

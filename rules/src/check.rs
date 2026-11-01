@@ -6,16 +6,18 @@
 //! Keys carry no type prefix, so two kinds may share one (a feat and a feature both `power-attack`): each kind is
 //! its own table, and a [`DataAt`] names the kind as well as the key.
 
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::fmt;
 
 use crate::engine::{BASE_LEVEL_CAP, PATH_SWITCH_RANK};
 use crate::game_data::{
-    Archetype, Class, ClassLevelRow, FeatSlot, FeatureSelection, GameData, MythicPath, Save,
+    Archetype, Class, ClassLevelRow, FeatList, FeatSlot, Feature, FeatureSelection, GameData,
+    MythicPath, Save,
 };
 use crate::keys::{
-    ArchetypeKey, ClassKey, FeatKey, FeatureKey, FeatureSelectionKey, MythicAbilityKey,
-    MythicFeatKey, MythicPathKey, RaceKey, SelectionOptionKey, SkillKey, SubraceKey,
+    ArchetypeKey, ClassKey, FeatKey, FeatListKey, FeatureKey, FeatureSelectionKey,
+    MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey, SelectionOptionKey, SkillKey,
+    SubraceKey,
 };
 use crate::prerequisite::Prerequisite;
 
@@ -53,6 +55,7 @@ pub enum DataAt {
     MythicAbility(MythicAbilityKey),
     MythicFeat(MythicFeatKey),
     MythicPath(MythicPathKey),
+    FeatList(FeatListKey),
 }
 
 impl DataAt {
@@ -72,6 +75,7 @@ impl DataAt {
             DataAt::MythicAbility(_) => "mythic ability",
             DataAt::MythicFeat(_) => "mythic feat",
             DataAt::MythicPath(_) => "mythic path",
+            DataAt::FeatList(_) => "feat list",
         }
     }
 
@@ -91,6 +95,7 @@ impl DataAt {
             DataAt::MythicAbility(key) => key.as_str(),
             DataAt::MythicFeat(key) => key.as_str(),
             DataAt::MythicPath(key) => key.as_str(),
+            DataAt::FeatList(key) => key.as_str(),
         })
     }
 }
@@ -160,6 +165,13 @@ pub enum DataIssue {
     /// A race or a mythic rank that grants a feat slot ignoring prerequisites. Only a class's (or archetype's)
     /// level rows can: the bonus list is the class's own.
     BonusListOutsideAClass,
+    /// A feature, selection or feat list whose key doesn't start with its owner's key (the class, archetype or
+    /// path that defines it) and a `/`.
+    KeyOutsideItsOwner,
+    /// A feat list of fewer than two feats: a lone feat is granted, not picked.
+    FeatListTooShort,
+    /// A feat list no slot names.
+    UnusedFeatList,
 }
 
 impl fmt::Display for DataProblem {
@@ -220,6 +232,13 @@ impl fmt::Display for DataProblem {
             DataIssue::BonusListOutsideAClass => f.write_str(
                 "a feat slot that ignores prerequisites is granted outside a class's level rows",
             ),
+            DataIssue::KeyOutsideItsOwner => {
+                f.write_str("the key doesn't start with its owner's key")
+            }
+            DataIssue::FeatListTooShort => {
+                f.write_str("a list of fewer than two feats; grant a lone feat instead")
+            }
+            DataIssue::UnusedFeatList => f.write_str("no feat slot names this list"),
         }
     }
 }
@@ -227,7 +246,13 @@ impl fmt::Display for DataProblem {
 impl GameData {
     /// Every problem in the data, ordered by where it is. Empty when the data can be seeded.
     pub fn check(&self) -> Vec<DataProblem> {
-        let mut check = Checker::default();
+        let mut check = Checker {
+            lists: self
+                .feat_lists()
+                .map(|list| (list.key.clone(), list.ignores_prerequisites))
+                .collect(),
+            ..Checker::default()
+        };
         check.progression(self);
         for race in &self.races {
             let at = DataAt::Race(race.key.clone());
@@ -264,6 +289,14 @@ impl GameData {
         for path in &self.mythic_paths {
             check.path(path);
         }
+        for list in self.feat_lists() {
+            if !check.named_lists.contains(&list.key) {
+                check.problem(
+                    &DataAt::FeatList(list.key.clone()),
+                    DataIssue::UnusedFeatList,
+                );
+            }
+        }
         check.problems.sort();
         check.problems
     }
@@ -273,7 +306,17 @@ impl GameData {
 struct Checker {
     /// Every key seen, with its kind: a key may repeat across kinds but not within one.
     keys: HashSet<DataAt>,
+    /// Every feat list, with whether it ignores prerequisites.
+    lists: HashMap<FeatListKey, bool>,
+    /// The lists some slot names.
+    named_lists: HashSet<FeatListKey>,
     problems: Vec<DataProblem>,
+}
+
+/// Whether `key` is `owner/…`.
+fn owned_by(key: &str, owner: &str) -> bool {
+    key.strip_prefix(owner)
+        .is_some_and(|rest| rest.starts_with('/'))
 }
 
 impl Checker {
@@ -290,10 +333,60 @@ impl Checker {
         }
     }
 
+    /// Notes the lists the slots name.
+    fn slots(&mut self, slots: &[FeatSlot]) {
+        for slot in slots {
+            if let FeatSlot::OneOf { list } = slot {
+                self.named_lists.insert(list.clone());
+            }
+        }
+    }
+
     /// Slots granted outside a class's level rows check prerequisites: the bonus list is the class's own.
     fn no_bonus_list(&mut self, at: &DataAt, slots: &[FeatSlot]) {
-        if slots.iter().any(FeatSlot::ignores_prerequisites) {
+        self.slots(slots);
+        let ignores = slots.iter().any(|slot| match slot {
+            FeatSlot::OneOf { list } => self.lists.get(list).copied().unwrap_or(false),
+            _ => false,
+        });
+        if ignores {
             self.problem(at, DataIssue::BonusListOutsideAClass);
+        }
+    }
+
+    /// What `owner` defines: features, selections (and their options) and feat lists, each keyed under it.
+    fn owned(
+        &mut self,
+        owner: &str,
+        features: &[Feature],
+        selections: &[FeatureSelection],
+        lists: &[FeatList],
+    ) {
+        for feature in features {
+            let at = DataAt::Feature(feature.key.clone());
+            self.key(&at);
+            if !owned_by(feature.key.as_str(), owner) {
+                self.problem(&at, DataIssue::KeyOutsideItsOwner);
+            }
+        }
+        for selection in selections {
+            if !owned_by(selection.key.as_str(), owner) {
+                self.problem(
+                    &DataAt::FeatureSelection(selection.key.clone()),
+                    DataIssue::KeyOutsideItsOwner,
+                );
+            }
+        }
+        self.selections(selections);
+        for list in lists {
+            let at = DataAt::FeatList(list.key.clone());
+            self.key(&at);
+            if !owned_by(list.key.as_str(), owner) {
+                self.problem(&at, DataIssue::KeyOutsideItsOwner);
+            }
+            if list.feats.len() < 2 {
+                self.problem(&at, DataIssue::FeatListTooShort);
+            }
         }
     }
 
@@ -380,6 +473,7 @@ impl Checker {
             self.problem(at, DataIssue::LevelRowsNotContiguous);
         }
         for row in rows {
+            self.slots(&row.feat_slots);
             if !prestige && (row.advances_arcane || row.advances_divine) {
                 self.problem(at, DataIssue::AdvancesOnBaseClass { level: row.level });
             }
@@ -395,6 +489,7 @@ impl Checker {
     fn archetype_rows(&mut self, at: &DataAt, class: &Class, archetype: &Archetype) {
         let mut seen = HashSet::new();
         for row in &archetype.levels {
+            self.slots(&row.feat_slots);
             if !seen.insert(row.level) {
                 self.problem(at, DataIssue::DuplicateArchetypeRow(row.level));
             }
@@ -413,6 +508,7 @@ impl Checker {
                 .spell_levels
                 .is_none_or(|spells| spells == base.spell_levels());
             let same_grants = sorted(&row.features) == sorted(&base.features)
+                && row.feats == base.feats
                 && sorted(&row.feat_slots) == sorted(&base.feat_slots)
                 && sorted(&row.selections) == sorted(&base.selections);
             if same_spells && same_grants {
@@ -443,10 +539,12 @@ impl Checker {
         let at = DataAt::Class(class.key.clone());
         self.key(&at);
         self.prerequisite(&at, class.prerequisite.as_ref());
-        for feature in &class.features {
-            self.key(&DataAt::Feature(feature.key.clone()));
-        }
-        self.selections(&class.selections);
+        self.owned(
+            class.key.as_str(),
+            &class.features,
+            &class.selections,
+            &class.feat_lists,
+        );
         self.rows(&at, &class.levels, prestige);
         self.save_exceptions(&at, class, prestige);
         if prestige && !class.archetypes.is_empty() {
@@ -456,10 +554,12 @@ impl Checker {
             let at = DataAt::Archetype(archetype.key.clone());
             self.key(&at);
             self.prerequisite(&at, archetype.prerequisite.as_ref());
-            for feature in &archetype.features {
-                self.key(&DataAt::Feature(feature.key.clone()));
-            }
-            self.selections(&archetype.selections);
+            self.owned(
+                archetype.key.as_str(),
+                &archetype.features,
+                &archetype.selections,
+                &archetype.feat_lists,
+            );
             self.archetype_rows(&at, class, archetype);
         }
     }
@@ -467,10 +567,12 @@ impl Checker {
     fn path(&mut self, path: &MythicPath) {
         let at = DataAt::MythicPath(path.key.clone());
         self.key(&at);
-        for feature in &path.features {
-            self.key(&DataAt::Feature(feature.key.clone()));
-        }
-        self.selections(&path.selections);
+        self.owned(
+            path.key.as_str(),
+            &path.features,
+            &path.selections,
+            &path.feat_lists,
+        );
         let mut ranks = HashSet::new();
         for row in &path.ranks {
             self.rank(&at, row.rank);

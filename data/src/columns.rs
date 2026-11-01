@@ -2,7 +2,10 @@
 //!
 //! The text values match the domains and CHECK constraints in `migrations/20261031000000_game_data.sql`.
 
-use rules::{Ability, Alignment, BabProgression, FeatCategory, Save, SaveProgression, SpellType};
+use rules::{
+    Ability, Alignment, BabProgression, FeatCategory, MythicAbilityGroup, MythicFeatGroup, Save,
+    SaveProgression, SpellType,
+};
 
 /// A row that doesn't fit the `rules` types (should be impossible given the constraints).
 pub(crate) fn corrupt(message: impl Into<String>) -> sqlx::Error {
@@ -94,6 +97,24 @@ text_column!(FeatCategory, feat_category_from, feat_category_text {
     Skill => "skill",
     Class => "class",
     Racial => "racial",
+});
+
+text_column!(MythicAbilityGroup, mythic_ability_group_from, mythic_ability_group_text {
+    Melee => "melee",
+    Ranged => "ranged",
+    Magic => "magic",
+    Healing => "healing",
+    Miscellaneous => "miscellaneous",
+    Class => "class",
+});
+
+text_column!(MythicFeatGroup, mythic_feat_group_from, mythic_feat_group_text {
+    Melee => "melee",
+    Ranged => "ranged",
+    ArmourAndShield => "armour_and_shield",
+    Magic => "magic",
+    Miscellaneous => "miscellaneous",
+    CombatManoeuvre => "combat_manoeuvre",
 });
 
 /// `prerequisite_node.kind`: a group or the kind of a single condition.

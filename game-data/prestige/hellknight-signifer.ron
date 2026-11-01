@@ -20,7 +20,7 @@ Class(
         (key: "hellknight-signifer/signifier-armor-training", name: "Signifier Armor Training", guide: "prestige-classes#signifer-armor-training"),
     ],
     levels: [
-        (level: 1, advances_arcane: true, advances_divine: true, features: ["hellknight-signifer/hellknight-signifer-spellcasting", "hellknight-signifer/order"], feat_slots: [OneOf(feats: ["armor-proficiency-heavy-armor"], ignores_prerequisites: true)]),
+        (level: 1, advances_arcane: true, advances_divine: true, features: ["hellknight-signifer/hellknight-signifer-spellcasting", "hellknight-signifer/order"], feats: ["armor-proficiency-heavy-armor"]),
         (level: 2, advances_arcane: true, advances_divine: true, features: ["hellknight-signifer/arcane-armor-expertise"]),
         (level: 3, advances_arcane: true, advances_divine: true, features: ["hellknight-signifer/signifier-armor-training"]),
         (level: 4, advances_arcane: true, advances_divine: true, features: ["hellknight-signifer/assiduous-gaze"]),

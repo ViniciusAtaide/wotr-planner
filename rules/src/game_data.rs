@@ -12,8 +12,9 @@ use std::collections::BTreeSet;
 use serde::{Deserialize, Serialize};
 
 use crate::keys::{
-    ArchetypeKey, ClassKey, FeatKey, FeatureKey, FeatureSelectionKey, MythicAbilityKey,
-    MythicFeatKey, MythicPathKey, RaceKey, SelectionOptionKey, SkillKey, SubraceKey,
+    ArchetypeKey, ClassKey, FeatKey, FeatListKey, FeatureKey, FeatureSelectionKey,
+    MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey, SelectionOptionKey, SkillKey,
+    SubraceKey,
 };
 use crate::prerequisite::Prerequisite;
 
@@ -59,6 +60,23 @@ impl GameData {
         self.classes.iter().flat_map(|class| &class.archetypes)
     }
 
+    /// Every feat list: each class's (base, then prestige), each of its archetypes', then each path's.
+    pub fn feat_lists(&self) -> impl Iterator<Item = &FeatList> {
+        let classes = self
+            .classes
+            .iter()
+            .chain(&self.prestige_classes)
+            .flat_map(|class| {
+                class.feat_lists.iter().chain(
+                    class
+                        .archetypes
+                        .iter()
+                        .flat_map(|archetype| &archetype.feat_lists),
+                )
+            });
+        classes.chain(self.mythic_paths.iter().flat_map(|path| &path.feat_lists))
+    }
+
     /// How much of each kind of thing the data holds, labelled, as a quick check that seeding worked.
     pub fn counts(&self) -> [(&'static str, usize); 9] {
         [
@@ -74,9 +92,9 @@ impl GameData {
         ]
     }
 
-    /// Sorts every list into its one canonical order: catalogs by key, class level rows by level, mythic rank rows
-    /// and ascensions by rank, and multisets (granted features and selections, feat slots, ability modifiers,
-    /// prerequisite children) by value.
+    /// Sorts every list into its one canonical order: catalogs (feat lists included) by key, class level rows by
+    /// level, mythic rank rows and ascensions by rank, and multisets (granted features and selections, feat slots,
+    /// ability modifiers, prerequisite children) by value.
     pub fn canonicalize(&mut self) {
         self.progression.mythic_ascensions.sort_by_key(|a| a.rank);
         sort_by_key(&mut self.races, |r| r.key.clone());
@@ -110,6 +128,7 @@ impl GameData {
         for path in &mut self.mythic_paths {
             sort_by_key(&mut path.features, |f| f.key.clone());
             canonicalize_selections(&mut path.selections);
+            sort_by_key(&mut path.feat_lists, |l| l.key.clone());
             path.ranks.sort_by_key(|r| r.rank);
             for row in &mut path.ranks {
                 sort_grants(&mut row.features, &mut row.feat_slots, &mut row.selections);
@@ -174,6 +193,7 @@ impl Class {
         canonicalize_prerequisite(&mut self.prerequisite);
         sort_by_key(&mut self.features, |f| f.key.clone());
         canonicalize_selections(&mut self.selections);
+        sort_by_key(&mut self.feat_lists, |l| l.key.clone());
         self.save_exceptions.sort();
         canonicalize_rows(&mut self.levels);
         sort_by_key(&mut self.archetypes, |a| a.key.clone());
@@ -181,6 +201,7 @@ impl Class {
             canonicalize_prerequisite(&mut archetype.prerequisite);
             sort_by_key(&mut archetype.features, |f| f.key.clone());
             canonicalize_selections(&mut archetype.selections);
+            sort_by_key(&mut archetype.feat_lists, |l| l.key.clone());
             canonicalize_archetype_rows(&mut archetype.levels);
         }
     }
@@ -324,7 +345,7 @@ pub struct Feat {
 }
 
 /// A Feat slot granted by a race, a class level or a mythic rank. Every slot checks the picked feat's
-/// prerequisites, except a bonus-list slot.
+/// prerequisites, except a bonus-list slot (a `OneOf` whose list ignores them).
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum FeatSlot {
     /// A general slot: any feat whose prerequisites are met.
@@ -333,28 +354,26 @@ pub enum FeatSlot {
     CombatFeat,
     /// A bonus slot for any feat of one category ("Bonus Teamwork Feat").
     Category(FeatCategory),
-    /// A bonus slot for one feat from a fixed list.
-    OneOf {
-        feats: BTreeSet<FeatKey>,
-        /// Set on a bonus-list slot, one that draws from the class's own bonus-feat list (a monk's bonus feats, a
-        /// ranger's combat style): the pick ignores the feat's prerequisites. It still has to be on the list and
-        /// not already held, and it counts as held afterwards. Unset, the prerequisites are checked.
-        #[serde(default)]
-        ignores_prerequisites: bool,
-    },
+    /// A bonus slot for one feat from a named list.
+    OneOf { list: FeatListKey },
 }
 
-impl FeatSlot {
-    /// Whether a pick here ignores the feat's prerequisites: only a bonus-list slot does.
-    pub fn ignores_prerequisites(&self) -> bool {
-        matches!(
-            self,
-            FeatSlot::OneOf {
-                ignores_prerequisites: true,
-                ..
-            }
-        )
-    }
+/// A named fixed list of feats that a [`FeatSlot::OneOf`] picks from, such as a monk's bonus feats. It belongs to
+/// the class, archetype or path whose file defines it (its key starts with the owner's), and any row may name
+/// it. A list that grows with level (the monk's at 1, 6 and 10) is one list per stage. A lone feat is never a
+/// list: the row grants it (`feats`).
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct FeatList {
+    pub key: FeatListKey,
+    pub name: String,
+    pub guide: GuideRef,
+    /// Set on a bonus list, the class's own bonus-feat list (a monk's bonus feats, a ranger's combat style): a
+    /// pick from it ignores the feat's prerequisites. It still has to be on the list and not already held, and it
+    /// counts as held afterwards. Unset, the prerequisites are checked.
+    #[serde(default)]
+    pub ignores_prerequisites: bool,
+    pub feats: BTreeSet<FeatKey>,
 }
 
 /// A base class or a prestige class.
@@ -384,6 +403,8 @@ pub struct Class {
     pub features: Vec<Feature>,
     #[serde(default)]
     pub selections: Vec<FeatureSelection>,
+    #[serde(default)]
+    pub feat_lists: Vec<FeatList>,
     /// One row per Class level, 1 up to the class's last level with none missing. The number of rows is the
     /// class level cap. What taking the class grants is in row 1.
     pub levels: Vec<ClassLevelRow>,
@@ -414,6 +435,8 @@ pub struct Archetype {
     pub features: Vec<Feature>,
     #[serde(default)]
     pub selections: Vec<FeatureSelection>,
+    #[serde(default)]
+    pub feat_lists: Vec<FeatList>,
     /// The levels where the archetype differs from its base class, each at most once. A level left out is the
     /// base class's row.
     #[serde(default)]
@@ -431,6 +454,9 @@ pub struct ArchetypeLevelRow {
     pub spell_levels: Option<SpellLevels>,
     #[serde(default)]
     pub features: Vec<FeatureKey>,
+    /// Granted feats: see [`ClassLevelRow::feats`].
+    #[serde(default)]
+    pub feats: BTreeSet<FeatKey>,
     #[serde(default)]
     pub feat_slots: Vec<FeatSlot>,
     /// One Feature selection slot per entry.
@@ -565,6 +591,10 @@ pub struct ClassLevelRow {
     pub advances_divine: bool,
     #[serde(default)]
     pub features: Vec<FeatureKey>,
+    /// Granted feats: held from this level on with no slot and no pick, whatever their prerequisites (Scribe
+    /// Scrolls, a class's armour and shield proficiencies). One already held adds nothing.
+    #[serde(default)]
+    pub feats: BTreeSet<FeatKey>,
     #[serde(default)]
     pub feat_slots: Vec<FeatSlot>,
     /// One Feature selection slot per entry.
@@ -619,14 +649,81 @@ pub struct SelectionOption {
     pub prerequisite: Option<Prerequisite>,
 }
 
+/// The guide's group headings under "Mythic Abilities".
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+pub enum MythicAbilityGroup {
+    Melee,
+    Ranged,
+    Magic,
+    Healing,
+    Miscellaneous,
+    Class,
+}
+
+impl MythicAbilityGroup {
+    pub const ALL: [Self; 6] = [
+        Self::Melee,
+        Self::Ranged,
+        Self::Magic,
+        Self::Healing,
+        Self::Miscellaneous,
+        Self::Class,
+    ];
+
+    /// The heading as the guide prints it, without "Abilities".
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::Melee => "Melee",
+            Self::Ranged => "Ranged",
+            Self::Magic => "Magic",
+            Self::Healing => "Healing",
+            Self::Miscellaneous => "Miscellaneous",
+            Self::Class => "Class",
+        }
+    }
+}
+
+/// The guide's group headings under "Mythic Feats".
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+pub enum MythicFeatGroup {
+    Melee,
+    Ranged,
+    ArmourAndShield,
+    Magic,
+    Miscellaneous,
+    CombatManoeuvre,
+}
+
+impl MythicFeatGroup {
+    pub const ALL: [Self; 6] = [
+        Self::Melee,
+        Self::Ranged,
+        Self::ArmourAndShield,
+        Self::Magic,
+        Self::Miscellaneous,
+        Self::CombatManoeuvre,
+    ];
+
+    /// The heading as the guide prints it, without "Feats".
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::Melee => "Melee",
+            Self::Ranged => "Ranged",
+            Self::ArmourAndShield => "Armour and Shield",
+            Self::Magic => "Magic",
+            Self::Miscellaneous => "Miscellaneous",
+            Self::CombatManoeuvre => "Combat Manoeuvre",
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct MythicAbility {
     pub key: MythicAbilityKey,
     pub name: String,
-    /// The guide's group heading (Melee, Ranged, Magic, ...). Display only.
-    #[serde(default)]
-    pub group: String,
+    /// The guide's group heading. Display only.
+    pub group: MythicAbilityGroup,
     #[serde(default)]
     pub summary: String,
     pub guide: GuideRef,
@@ -640,8 +737,7 @@ pub struct MythicFeat {
     pub key: MythicFeatKey,
     pub name: String,
     /// The guide's group heading. Display only.
-    #[serde(default)]
-    pub group: String,
+    pub group: MythicFeatGroup,
     #[serde(default)]
     pub summary: String,
     pub guide: GuideRef,
@@ -662,6 +758,8 @@ pub struct MythicPath {
     /// The path's own picks.
     #[serde(default)]
     pub selections: Vec<FeatureSelection>,
+    #[serde(default)]
+    pub feat_lists: Vec<FeatList>,
     /// The path's rank table: its own picks on top of the general ones in [`MythicAscension`].
     #[serde(default)]
     pub ranks: Vec<MythicRankRow>,

@@ -53,6 +53,10 @@ fn fighter_bonus_slots_offer_only_combat_feats() {
         "dirty-trick",
         "critical-mastery",
         "deft-maneuvers",
+        "improved-unarmed-strike",
+        "shield-focus",
+        "shield-proficiency",
+        "tower-shield-proficiency",
     ]
     .into_iter()
     .map(String::from)

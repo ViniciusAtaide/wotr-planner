@@ -15,7 +15,6 @@ Class(
         (key: "oracle/curse-4", name: "Curse 4", guide: "oracle"),
         (key: "oracle/final-revelation", name: "Final Revelation", guide: "oracle#final-revelation"),
         (key: "oracle/mystery", name: "Mystery", guide: "oracle#mystery"),
-        (key: "oracle/oracle-proficiencies", name: "Oracle Proficiencies", guide: "oracle#oracle-proficiencies"),
         (key: "oracle/revelation", name: "Revelation", guide: "oracle#revelation"),
     ],
     selections: [
@@ -37,7 +36,7 @@ Class(
         ),
     ],
     levels: [
-        (level: 1, divine_spell_level: 1, features: ["oracle/additional-spells", "oracle/mystery", "oracle/oracle-proficiencies", "oracle/revelation"], selections: ["oracle/oracles-curse"]),
+        (level: 1, divine_spell_level: 1, features: ["oracle/additional-spells", "oracle/mystery", "oracle/revelation"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"], selections: ["oracle/oracles-curse"]),
         (level: 2, divine_spell_level: 1),
         (level: 3, divine_spell_level: 1, features: ["oracle/revelation"]),
         (level: 4, divine_spell_level: 2),
@@ -72,7 +71,7 @@ Class(
                 (key: "oracle/divine-herbalist/master-herbalist", name: "Master Herbalist", guide: "oracle#master-herbalist"),
             ],
             levels: [
-                (level: 1, features: ["oracle/additional-spells", "oracle/divine-herbalist/healers-way", "oracle/divine-herbalist/master-herbalist", "oracle/mystery", "oracle/oracle-proficiencies"], feat_slots: [OneOf(feats: ["brew-potions"], ignores_prerequisites: true)], selections: ["oracle/oracles-curse"]),
+                (level: 1, features: ["oracle/additional-spells", "oracle/divine-herbalist/healers-way", "oracle/divine-herbalist/master-herbalist", "oracle/mystery"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "brew-potions", "shield-proficiency", "simple-weapon-proficiency"], selections: ["oracle/oracles-curse"]),
                 (level: 5, features: ["oracle/divine-herbalist/curse-2"]),
                 (level: 7, features: ["oracle/divine-herbalist/master-healing-technique"]),
                 (level: 10, features: ["oracle/divine-herbalist/curse-3"]),
@@ -91,7 +90,7 @@ Class(
                 (key: "oracle/dual-cursed-oracle/second-curse", name: "Second Curse", guide: "oracle#second-curse"),
             ],
             levels: [
-                (level: 1, features: ["oracle/additional-spells", "oracle/dual-cursed-oracle/second-curse", "oracle/mystery", "oracle/oracle-proficiencies", "oracle/revelation"], selections: ["oracle/oracles-curse"]),
+                (level: 1, features: ["oracle/additional-spells", "oracle/dual-cursed-oracle/second-curse", "oracle/mystery", "oracle/revelation"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"], selections: ["oracle/oracles-curse"]),
                 (level: 2, features: ["oracle/dual-cursed-oracle/dual-cursed-oracle-bonus-spells"]),
                 (level: 5, features: ["oracle/dual-cursed-oracle/curse-2", "oracle/revelation"]),
                 (level: 10, features: ["oracle/dual-cursed-oracle/curse-3"]),
@@ -112,7 +111,7 @@ Class(
                 (key: "oracle/enlightened-philosopher/skill-focus-knowledge-world", name: "Skill Focus - Knowledge World", guide: "oracle#enlightened-philosopher"),
             ],
             levels: [
-                (level: 1, features: ["oracle/additional-spells", "oracle/enlightened-philosopher/skill-focus-knowledge-world", "oracle/mystery", "oracle/oracle-proficiencies", "oracle/revelation"], selections: ["oracle/oracles-curse"]),
+                (level: 1, features: ["oracle/additional-spells", "oracle/enlightened-philosopher/skill-focus-knowledge-world", "oracle/mystery", "oracle/revelation"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"], selections: ["oracle/oracles-curse"]),
                 (level: 5, features: ["oracle/enlightened-philosopher/curse-2"]),
                 (level: 7, features: ["oracle/enlightened-philosopher/mental-acuity"]),
                 (level: 10, features: ["oracle/enlightened-philosopher/curse-3"]),
@@ -133,7 +132,7 @@ Class(
                 (key: "oracle/lone-strider/recluses-stride", name: "Recluse\'s Stride", guide: "oracle#lone-strider"),
             ],
             levels: [
-                (level: 1, features: ["oracle/additional-spells", "oracle/lone-strider/mystery-lone-strider", "oracle/lone-strider/recluses-stride", "oracle/oracle-proficiencies"], selections: ["oracle/oracles-curse"]),
+                (level: 1, features: ["oracle/additional-spells", "oracle/lone-strider/mystery-lone-strider", "oracle/lone-strider/recluses-stride"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"], selections: ["oracle/oracles-curse"]),
                 (level: 5, features: ["oracle/lone-strider/curse-2"]),
                 (level: 7, features: ["oracle/lone-strider/fade-from-memory"]),
                 (level: 10, features: ["oracle/lone-strider/curse-3"]),
@@ -152,7 +151,7 @@ Class(
                 (key: "oracle/possessed-oracle/two-minds", name: "Two Minds", guide: "oracle#two-minds"),
             ],
             levels: [
-                (level: 1, features: ["oracle/additional-spells", "oracle/mystery", "oracle/oracle-proficiencies", "oracle/possessed-oracle/powerless-prophecy", "oracle/possessed-oracle/two-minds"]),
+                (level: 1, features: ["oracle/additional-spells", "oracle/mystery", "oracle/possessed-oracle/powerless-prophecy", "oracle/possessed-oracle/two-minds"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"]),
                 (level: 5, features: ["oracle/possessed-oracle/curse-2"]),
                 (level: 10, features: ["oracle/possessed-oracle/curse-3"]),
                 (level: 15, features: ["oracle/possessed-oracle/curse-4", "oracle/revelation"]),
@@ -172,12 +171,12 @@ Class(
                 (key: "oracle/purifier/sin-eater", name: "Sin Eater", guide: "oracle#sin-eater"),
             ],
             levels: [
-                (level: 1, features: ["oracle/mystery", "oracle/oracle-proficiencies", "oracle/revelation"], selections: ["oracle/oracles-curse"]),
+                (level: 1, features: ["oracle/mystery", "oracle/revelation"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"], selections: ["oracle/oracles-curse"]),
                 (level: 3),
                 (level: 5, features: ["oracle/purifier/curse-2", "oracle/purifier/sacred-scourge"]),
                 (level: 7, features: ["oracle/purifier/celestial-armor"]),
                 (level: 10, features: ["oracle/purifier/curse-3"]),
-                (level: 11, features: ["oracle/purifier/sin-eater"]),
+                (level: 11, features: ["oracle/purifier/sin-eater"], feats: ["armor-proficiency-heavy-armor"]),
                 (level: 15, features: ["oracle/purifier/curse-4", "oracle/revelation"]),
             ],
         ),
@@ -193,7 +192,7 @@ Class(
                 (key: "oracle/seeker/seekers-trapfinding", name: "Seeker\'s Trapfinding", guide: "oracle#seekers-trapfinding"),
             ],
             levels: [
-                (level: 1, features: ["oracle/additional-spells", "oracle/mystery", "oracle/oracle-proficiencies", "oracle/revelation", "oracle/seeker/seekers-trapfinding"], selections: ["oracle/oracles-curse"]),
+                (level: 1, features: ["oracle/additional-spells", "oracle/mystery", "oracle/revelation", "oracle/seeker/seekers-trapfinding"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"], selections: ["oracle/oracles-curse"]),
                 (level: 3),
                 (level: 5, features: ["oracle/seeker/curse-2"], feat_slots: [Category(Magic)]),
                 (level: 10, features: ["oracle/seeker/curse-3"], feat_slots: [Category(Magic)]),
@@ -215,7 +214,7 @@ Class(
                 (key: "oracle/wind-whisperer/wind-final-revelation", name: "Wind Final Revelation", guide: "oracle#wind-whisperer"),
             ],
             levels: [
-                (level: 1, features: ["oracle/additional-spells", "oracle/oracle-proficiencies", "oracle/revelation", "oracle/wind-whisperer/wind"], selections: ["oracle/oracles-curse"]),
+                (level: 1, features: ["oracle/additional-spells", "oracle/revelation", "oracle/wind-whisperer/wind"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"], selections: ["oracle/oracles-curse"]),
                 (level: 5, features: ["oracle/wind-whisperer/curse-2"]),
                 (level: 7, features: ["oracle/wind-whisperer/haste-of-the-wind"]),
                 (level: 10, features: ["oracle/wind-whisperer/curse-3"]),

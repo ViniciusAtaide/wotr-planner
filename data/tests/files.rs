@@ -2,12 +2,14 @@
 
 mod common;
 
+use std::collections::BTreeSet;
 use std::fs;
 
 use common::{copy_fixture, fixture_dir};
 use rules::{
-    Ability, ArchetypeLevelRow, BabProgression, ClassKey, FeatKey, FeatSlot, FeatureKey, GameData,
-    MythicPathKey, Prerequisite, Save, SaveException, SaveProgression, SpellLevels,
+    Ability, ArchetypeLevelRow, BabProgression, ClassKey, FeatKey, FeatListKey, FeatSlot,
+    FeatureKey, GameData, MythicAbilityGroup, MythicFeatGroup, MythicPathKey, Prerequisite, Save,
+    SaveException, SaveProgression, SpellLevels,
 };
 
 fn read_fixture() -> GameData {
@@ -25,7 +27,7 @@ fn reads_every_fixture_file() {
         "Dwarf, Elf, Human"
     );
     assert_eq!(data.skills.len(), 4);
-    assert_eq!(data.feats.len(), 15);
+    assert_eq!(data.feats.len(), 16);
     assert_eq!(
         data.classes
             .iter()
@@ -104,6 +106,7 @@ fn reads_class_progressions_and_only_the_archetype_rows_that_differ() {
                 divine: 0
             }),
             features: vec![FeatureKey::new("rogue/eldritch-scoundrel/spells")],
+            feats: BTreeSet::new(),
             feat_slots: vec![],
             selections: vec![],
         }
@@ -139,33 +142,83 @@ fn reads_save_exceptions() {
 }
 
 #[test]
-fn reads_whether_a_fixed_list_slot_ignores_prerequisites() {
+fn reads_feat_lists_and_the_slots_that_name_them() {
     let data = read_fixture();
-    let slot_at = |class: &str, level: usize| {
-        let class = data.classes.iter().find(|c| c.key.as_str() == class);
-        class.unwrap().levels[level - 1].feat_slots.clone()
-    };
-    let monk_list = FeatSlot::OneOf {
-        feats: [FeatKey::new("crane-style"), FeatKey::new("dodge")].into(),
-        ignores_prerequisites: true,
-    };
-    assert_eq!(slot_at("monk", 1), [monk_list]);
+    let lists: Vec<(&str, &str, bool, Vec<&str>)> = data
+        .feat_lists()
+        .map(|list| {
+            (
+                list.key.as_str(),
+                list.name.as_str(),
+                list.ignores_prerequisites,
+                list.feats.iter().map(FeatKey::as_str).collect(),
+            )
+        })
+        .collect();
+    // Each in its owner's file: the monk's, the Armiger's (inside the fighter's file) and the trickster's. Left
+    // out, `ignores_prerequisites` is unset.
+    assert_eq!(
+        lists,
+        [
+            (
+                "fighter/armiger/bonus-feats",
+                "Armiger Bonus Feats",
+                false,
+                vec!["combat-expertise", "power-attack"]
+            ),
+            (
+                "monk/bonus-feats",
+                "Monk Bonus Feats",
+                true,
+                vec!["crane-style", "dodge"]
+            ),
+            (
+                "trickster/bonus-feats",
+                "Trickster Bonus Feats",
+                false,
+                vec!["dirty-trick", "toughness"]
+            ),
+        ]
+    );
+    let monk = data.classes.iter().find(|c| c.key.as_str() == "monk");
+    assert_eq!(
+        monk.unwrap().levels[0].feat_slots,
+        [FeatSlot::OneOf {
+            list: FeatListKey::new("monk/bonus-feats")
+        }]
+    );
+}
 
-    // Left out, it's unset: the Armiger's list checks prerequisites.
+#[test]
+fn reads_granted_feats_on_class_and_archetype_rows() {
+    let data = read_fixture();
+    let monk = data.classes.iter().find(|c| c.key.as_str() == "monk");
+    assert_eq!(
+        monk.unwrap().levels[0].feats,
+        BTreeSet::from([FeatKey::new("improved-unarmed-strike")])
+    );
     let armiger = data
         .archetypes()
         .find(|a| a.key.as_str() == "fighter/armiger")
         .unwrap();
-    let armiger = &armiger.levels[1].feat_slots;
+    assert_eq!(
+        armiger.levels[0].feats,
+        BTreeSet::from([FeatKey::new("armiger-drill")])
+    );
+}
+
+#[test]
+fn reads_mythic_groups() {
+    let data = read_fixture();
+    let groups: Vec<MythicAbilityGroup> = data.mythic_abilities.iter().map(|a| a.group).collect();
+    assert_eq!(
+        groups,
+        [MythicAbilityGroup::Class, MythicAbilityGroup::Melee]
+    );
     assert!(
-        matches!(
-            armiger.as_slice(),
-            [FeatSlot::OneOf {
-                ignores_prerequisites: false,
-                ..
-            }]
-        ),
-        "{armiger:?}"
+        data.mythic_feats
+            .iter()
+            .all(|f| f.group == MythicFeatGroup::Melee)
     );
 }
 

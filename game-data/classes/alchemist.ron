@@ -64,7 +64,7 @@ Class(
         ),
     ],
     levels: [
-        (level: 1, features: ["alchemist/alchemist-proficiencies", "alchemist/bomb", "alchemist/mutagen"], feat_slots: [OneOf(feats: ["brew-potions"], ignores_prerequisites: true), OneOf(feats: ["throw-anything"], ignores_prerequisites: true)]),
+        (level: 1, features: ["alchemist/alchemist-proficiencies", "alchemist/bomb", "alchemist/mutagen"], feats: ["armor-proficiency-light-armor", "brew-potions", "simple-weapon-proficiency", "throw-anything"]),
         (level: 2, features: ["alchemist/poison-resistance"], selections: ["alchemist/discovery"]),
         (level: 3),
         (level: 4, selections: ["alchemist/discovery"]),
@@ -114,7 +114,7 @@ Class(
                 (key: "alchemist/grenadier/staggering-blast", name: "Staggering Blast", guide: "alchemist#staggering-blast"),
             ],
             levels: [
-                (level: 1, features: ["alchemist/alchemist-proficiencies", "alchemist/bomb", "alchemist/mutagen"], feat_slots: [OneOf(feats: ["brew-potions"], ignores_prerequisites: true), OneOf(feats: ["martial-weapons-proficiency"], ignores_prerequisites: true), OneOf(feats: ["throw-anything"], ignores_prerequisites: true)]),
+                (level: 1, features: ["alchemist/alchemist-proficiencies", "alchemist/bomb", "alchemist/mutagen"], feats: ["armor-proficiency-light-armor", "brew-potions", "martial-weapons-proficiency", "simple-weapon-proficiency", "throw-anything"]),
                 (level: 2, features: ["alchemist/grenadier/alchemical-weapon", "alchemist/grenadier/precise-bomb"], selections: ["alchemist/discovery"]),
                 (level: 5, features: ["alchemist/poison-resistance"]),
                 (level: 6, features: ["alchemist/grenadier/alchemical-weapon-swift", "alchemist/grenadier/directed-blast"], selections: ["alchemist/discovery"]),
@@ -146,7 +146,7 @@ Class(
                 ),
             ],
             levels: [
-                (level: 1, features: ["alchemist/alchemist-proficiencies", "alchemist/bomb"], feat_slots: [OneOf(feats: ["brew-potions"], ignores_prerequisites: true), OneOf(feats: ["throw-anything"], ignores_prerequisites: true)], selections: ["alchemist/incense-synthesizer/incense-fog"]),
+                (level: 1, features: ["alchemist/alchemist-proficiencies", "alchemist/bomb"], feats: ["armor-proficiency-light-armor", "brew-potions", "simple-weapon-proficiency", "throw-anything"], selections: ["alchemist/incense-synthesizer/incense-fog"]),
                 (level: 3, selections: ["alchemist/incense-synthesizer/incense-fog"]),
                 (level: 6, selections: ["alchemist/discovery", "alchemist/incense-synthesizer/incense-fog"]),
                 (level: 9, selections: ["alchemist/incense-synthesizer/incense-fog"]),
@@ -170,7 +170,7 @@ Class(
                 (key: "alchemist/metamorph/shapechanger-dragonkind-ii", name: "Shapechanger - Dragonkind II", guide: "alchemist#metamorph"),
             ],
             levels: [
-                (level: 1, features: ["alchemist/alchemist-proficiencies", "alchemist/mutagen"], feat_slots: [OneOf(feats: ["brew-potions"], ignores_prerequisites: true)]),
+                (level: 1, features: ["alchemist/alchemist-proficiencies", "alchemist/mutagen"], feats: ["armor-proficiency-light-armor", "brew-potions", "simple-weapon-proficiency"]),
                 (level: 3, features: ["alchemist/metamorph/adaptive-physiology"]),
                 (level: 4, features: ["alchemist/metamorph/shapechanger-beast-shape-i"], selections: ["alchemist/discovery"]),
                 (level: 9, features: ["alchemist/metamorph/shapechanger-beast-shape-ii"]),
@@ -212,7 +212,7 @@ Class(
                 (key: "alchemist/reanimator/simple-reanimation", name: "Simple Reanimation", guide: "alchemist#simple-reanimation"),
             ],
             levels: [
-                (level: 1, features: ["alchemist/alchemist-proficiencies", "alchemist/mutagen", "alchemist/reanimator/bomb-reanimator", "alchemist/reanimator/corpse-studying"], feat_slots: [OneOf(feats: ["brew-potions"], ignores_prerequisites: true), OneOf(feats: ["throw-anything"], ignores_prerequisites: true)]),
+                (level: 1, features: ["alchemist/alchemist-proficiencies", "alchemist/mutagen", "alchemist/reanimator/bomb-reanimator", "alchemist/reanimator/corpse-studying"], feats: ["armor-proficiency-light-armor", "brew-potions", "simple-weapon-proficiency", "throw-anything"]),
                 (level: 5, features: ["alchemist/reanimator/simple-reanimation"]),
                 (level: 11, features: ["alchemist/reanimator/improved-reanimation"]),
                 (level: 15, features: ["alchemist/reanimator/greater-reanimation"]),
@@ -228,7 +228,7 @@ Class(
                 (key: "alchemist/vivisectionist/sneak-attack", name: "Sneak Attack", guide: "alchemist#sneak-attack"),
             ],
             levels: [
-                (level: 1, features: ["alchemist/alchemist-proficiencies", "alchemist/mutagen", "alchemist/vivisectionist/sneak-attack"], feat_slots: [OneOf(feats: ["brew-potions"], ignores_prerequisites: true), OneOf(feats: ["throw-anything"], ignores_prerequisites: true)]),
+                (level: 1, features: ["alchemist/alchemist-proficiencies", "alchemist/mutagen", "alchemist/vivisectionist/sneak-attack"], feats: ["armor-proficiency-light-armor", "brew-potions", "simple-weapon-proficiency", "throw-anything"]),
                 (level: 2, features: ["alchemist/poison-resistance", "alchemist/vivisectionist/medical-discovery"]),
                 (level: 3, features: ["alchemist/vivisectionist/sneak-attack"]),
                 (level: 4, features: ["alchemist/vivisectionist/medical-discovery"]),

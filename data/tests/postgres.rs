@@ -58,6 +58,51 @@ async fn save_exceptions_and_archetype_rows_round_trip(pool: PgPool) {
     assert_eq!(data::load_game_data(&db).await.unwrap(), from_files);
 }
 
+/// A feature or selection granted twice by one row is one `granted_*` row with a count of 2, and reads back as
+/// two grants.
+#[sqlx::test]
+async fn repeated_grants_are_stored_as_counts_and_read_back_in_full(pool: PgPool) {
+    let db = Database::from(pool.clone());
+    let dir = copy_fixture();
+    let rogue = dir.path().join("classes/rogue.ron");
+    let text = fs::read_to_string(&rogue).unwrap();
+    let text = text
+        .replacen(
+            r#"(level: 1, features: ["rogue/sneak-attack"]),"#,
+            r#"(level: 1, features: ["rogue/sneak-attack", "rogue/sneak-attack"]),"#,
+            1,
+        )
+        .replacen(
+            r#"(level: 2, selections: ["rogue/rogue-talents"]),"#,
+            r#"(level: 2, selections: ["rogue/rogue-talents", "rogue/rogue-talents", "rogue/rogue-talents"]),"#,
+            1,
+        );
+    fs::write(&rogue, text).unwrap();
+    let from_files = data::read_game_data_files(dir.path()).unwrap();
+
+    data::seed(&db, dir.path()).await.unwrap();
+
+    let counts: Vec<(String, i16)> = sqlx::query_as(
+        "SELECT g.feature_key, g.count FROM granted_feature g
+        JOIN class_level l ON l.id = g.class_level_id
+        WHERE l.class_key = 'rogue' AND l.archetype_key IS NULL AND l.level = 1",
+    )
+    .fetch_all(&pool)
+    .await
+    .unwrap();
+    assert_eq!(counts, [("rogue/sneak-attack".to_owned(), 2)]);
+    let counts: Vec<(String, i16)> = sqlx::query_as(
+        "SELECT g.selection_key, g.count FROM granted_selection g
+        JOIN class_level l ON l.id = g.class_level_id
+        WHERE l.class_key = 'rogue' AND l.archetype_key IS NULL AND l.level = 2",
+    )
+    .fetch_all(&pool)
+    .await
+    .unwrap();
+    assert_eq!(counts, [("rogue/rogue-talents".to_owned(), 3)]);
+    assert_eq!(data::load_game_data(&db).await.unwrap(), from_files);
+}
+
 #[sqlx::test]
 async fn seeding_again_replaces_the_previous_data(pool: PgPool) {
     let db = Database::from(pool);
@@ -258,24 +303,6 @@ async fn every_prerequisite_variant_round_trips(pool: PgPool) {
         .unwrap();
 
     assert_eq!(data::load_game_data(&db).await.unwrap(), game_data);
-}
-
-#[sqlx::test]
-async fn rows_the_loader_cannot_place_are_an_error(pool: PgPool) {
-    let db = Database::from(pool.clone());
-    data::seed(&db, &fixture_dir()).await.unwrap();
-    // A fixed-list option on a general slot, which has no list.
-    sqlx::query(
-        "INSERT INTO feat_slot_option (feat_slot_id, feat_key)
-        SELECT id, 'toughness' FROM feat_slot WHERE kind = 'general' LIMIT 1",
-    )
-    .execute(&pool)
-    .await
-    .unwrap();
-
-    let error = data::load_game_data(&db).await.unwrap_err().to_string();
-
-    assert!(error.contains("feat_slot_option"), "{error}");
 }
 
 #[sqlx::test]
@@ -500,9 +527,62 @@ async fn the_schema_rejects_values_outside_their_domain_and_misplaced_keys(pool:
         rejected("INSERT INTO path_switch_kept_rank (path_key, rank) VALUES ('legend', 11)").await;
     assert!(error.contains("foreign key"), "{error}");
 
-    // Only a fixed-list slot can ignore prerequisites.
-    let error =
-        rejected("UPDATE feat_slot SET ignores_prerequisites = TRUE WHERE kind = 'combat_feat'")
-            .await;
+    // Only a fixed-list slot names a list, and it always does.
+    let error = rejected(
+        "UPDATE feat_slot SET feat_list_key = 'monk/bonus-feats' WHERE kind = 'combat_feat'",
+    )
+    .await;
     assert!(error.contains("check constraint"), "{error}");
+    let error = rejected("UPDATE feat_slot SET feat_list_key = NULL WHERE kind = 'one_of'").await;
+    assert!(error.contains("check constraint"), "{error}");
+
+    // Features, selections and feat lists are keyed under their owner: the archetype when there is one, else
+    // the class or the path.
+    for sql in [
+        "INSERT INTO feature (key, class_key, name, summary, guide)
+        VALUES ('rogue/stray', 'fighter', 'Stray', '', 'x')",
+        "INSERT INTO feature (key, class_key, archetype_key, name, summary, guide)
+        VALUES ('fighter/stray', 'fighter', 'fighter/armiger', 'Stray', '', 'x')",
+        "INSERT INTO feature (key, path_key, name, summary, guide)
+        VALUES ('mythic/stray', 'trickster', 'Stray', '', 'x')",
+        "INSERT INTO feature_selection (key, path_key, name, summary, guide)
+        VALUES ('legend/stray', 'trickster', 'Stray', '', 'x')",
+        "INSERT INTO feat_list (key, class_key, name, guide, ignores_prerequisites)
+        VALUES ('fighter-list', 'fighter', 'Stray', 'x', false)",
+    ] {
+        let error = rejected(sql).await;
+        assert!(error.contains("check constraint"), "{sql}: {error}");
+    }
+    sqlx::query(
+        "INSERT INTO feature (key, class_key, archetype_key, name, summary, guide)
+        VALUES ('fighter/armiger/x', 'fighter', 'fighter/armiger', 'X', '', 'x')",
+    )
+    .execute(&pool)
+    .await
+    .expect("an archetype's feature under the archetype's key");
+
+    // A grant is counted at least once, and each row grants a feature or a selection in one row.
+    let error = rejected("UPDATE granted_feature SET count = 0").await;
+    assert!(error.contains("check constraint"), "{error}");
+    let error = rejected(
+        "INSERT INTO granted_feature (class_level_id, feature_key, count)
+        SELECT class_level_id, feature_key, 1 FROM granted_feature WHERE class_level_id IS NOT NULL LIMIT 1",
+    )
+    .await;
+    assert!(error.contains("unique"), "{error}");
+    let error = rejected(
+        "INSERT INTO granted_feat (class_level_id, feat_key)
+        SELECT class_level_id, feat_key FROM granted_feat LIMIT 1",
+    )
+    .await;
+    assert!(
+        error.contains("unique") || error.contains("duplicate"),
+        "{error}"
+    );
+
+    // Mythic groups are the guide's headings.
+    let error = rejected("UPDATE mythic_ability SET group_name = 'armour_and_shield'").await;
+    assert!(error.contains("mythic_ability_group"), "{error}");
+    let error = rejected("UPDATE mythic_feat SET group_name = 'healing'").await;
+    assert!(error.contains("mythic_feat_group"), "{error}");
 }

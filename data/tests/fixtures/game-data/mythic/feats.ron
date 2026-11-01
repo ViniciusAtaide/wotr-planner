@@ -3,14 +3,14 @@
     (
         key: "power-attack-mythic",
         name: "Power Attack (Mythic)",
-        group: "Melee",
+        group: Melee,
         guide: "mythic-paths#power-attack-mythic",
         prerequisite: Feat("power-attack"),
     ),
     (
         key: "two-weapon-fighting-mythic",
         name: "Two-Weapon Fighting (Mythic)",
-        group: "Melee",
+        group: Melee,
         guide: "mythic-paths#two-weapon-fighting-mythic",
         prerequisite: All([
             Feat("two-weapon-fighting"),

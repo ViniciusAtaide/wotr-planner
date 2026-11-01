@@ -1,0 +1,24 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO granted_feature (class_level_id, mythic_rank_id, feature_key, count)\n            VALUES ($1, $2, $3, $4)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int8",
+        "Int8",
+        "Text",
+        {
+          "Custom": {
+            "name": "u8",
+            "kind": {
+              "Domain": "Int2"
+            }
+          }
+        }
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "74c8f5f1727b6dbf67ed00935d107ac471d6be1547f8b4ebcacf062ed66770df"
+}

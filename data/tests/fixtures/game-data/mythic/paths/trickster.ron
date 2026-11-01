@@ -22,8 +22,11 @@ MythicPath(
             ],
         ),
     ],
+    feat_lists: [
+        (key: "trickster/bonus-feats", name: "Trickster Bonus Feats", guide: "trickster#trickster-bonus-feats", feats: ["dirty-trick", "toughness"]),
+    ],
     ranks: [
         (rank: 3, features: ["trickster/trickster-tricks"], selections: ["trickster/tricks"]),
-        (rank: 4, feat_slots: [OneOf(feats: ["toughness", "dirty-trick"])], selections: ["trickster/tricks"]),
+        (rank: 4, feat_slots: [OneOf(list: "trickster/bonus-feats")], selections: ["trickster/tricks"]),
     ],
 )

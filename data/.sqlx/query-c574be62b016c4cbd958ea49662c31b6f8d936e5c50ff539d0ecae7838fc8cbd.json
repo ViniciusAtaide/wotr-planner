@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO feat_list_member (feat_list_key, feat_key) VALUES ($1, $2)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "c574be62b016c4cbd958ea49662c31b6f8d936e5c50ff539d0ecae7838fc8cbd"
+}

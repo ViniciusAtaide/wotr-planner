@@ -6,11 +6,12 @@ MythicPath(
         (key: "aeon/aeon-bane", name: "Aeon Bane", guide: "aeon#aeon-bane"),
         (key: "aeon/aeon-companion-immunities", name: "Aeon Companion Immunities", guide: "aeon#aeon-companion-immunities"),
         (key: "aeon/aeon-immunities", name: "Aeon Immunities", guide: "aeon#aeon-immunities"),
-        (key: "aeon/bypass-epic-dr", name: "Bypass Epic DR", guide: "aeon"),
+        (key: "aeon/bypass-epic-damage-reduction", name: "Bypass Epic Damage Reduction", guide: "mythic-paths#bypass-epic-damage-reduction"),
         (key: "aeon/enforcing-gaze-extra-gaze", name: "Enforcing Gaze - Extra Gaze", guide: "aeon#enforcing-gaze-extra-gaze"),
         (key: "aeon/enforcing-gaze-perpetual", name: "Enforcing Gaze - Perpetual", guide: "aeon#enforcing-gaze-perpetual"),
         (key: "aeon/force-reality", name: "Force Reality", guide: "aeon#force-reality"),
         (key: "aeon/greater-aeons-bane", name: "Greater Aeon\'s Bane", guide: "aeon#greater-aeons-bane"),
+        (key: "aeon/hard-to-kill", name: "Hard to Kill", guide: "mythic-paths#hard-to-kill"),
         (key: "aeon/improved-aeons-bane", name: "Improved Aeon\'s Bane", guide: "aeon#improved-aeons-bane"),
         (key: "aeon/mythic-suppression", name: "Mythic Suppression", guide: "aeon#mythic-suppression"),
         (key: "aeon/summon-adamantine-golem", name: "Summon Adamantine Golem", guide: "aeon#summon-adamantine-golem"),
@@ -21,7 +22,6 @@ MythicPath(
         (key: "aeon/summon-iron-golem", name: "Summon Iron Golem", guide: "aeon#summon-iron-golem"),
         (key: "aeon/summon-stone-golem", name: "Summon Stone Golem", guide: "aeon#summon-stone-golem"),
         (key: "aeon/summon-wood-golem", name: "Summon Wood Golem", guide: "aeon#summon-wood-golem"),
-        (key: "mythic/hard-to-kill", name: "Hard to Kill", guide: "mythic-paths#hard-to-kill"),
     ],
     selections: [
         (
@@ -50,8 +50,8 @@ MythicPath(
         ),
     ],
     ranks: [
-        (rank: 1, features: ["aeon/bypass-epic-dr", "aeon/force-reality"]),
-        (rank: 2, features: ["aeon/force-reality", "aeon/summon-wood-golem", "mythic/hard-to-kill"]),
+        (rank: 1, features: ["aeon/bypass-epic-damage-reduction", "aeon/force-reality"]),
+        (rank: 2, features: ["aeon/force-reality", "aeon/summon-wood-golem", "aeon/hard-to-kill"]),
         (rank: 3, features: ["aeon/aeon-immunities", "aeon/summon-axiomite"], selections: ["aeon/enforcing-gaze"]),
         (rank: 4, features: ["aeon/aeon-bane", "aeon/summon-stone-golem"], selections: ["aeon/enforcing-gaze"]),
         (rank: 5, features: ["aeon/aeon-immunities", "aeon/mythic-suppression", "aeon/summon-iron-golem"], selections: ["aeon/enforcing-gaze"]),

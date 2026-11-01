@@ -3,7 +3,7 @@ MythicPath(
     name: "Demon",
     guide: "demon",
     features: [
-        (key: "demon/bypass-epic-dr", name: "Bypass Epic DR", guide: "demon"),
+        (key: "demon/bypass-epic-damage-reduction", name: "Bypass Epic Damage Reduction", guide: "mythic-paths#bypass-epic-damage-reduction"),
         (key: "demon/close-to-the-abyss", name: "Close to the Abyss", guide: "demon#close-to-the-abyss"),
         (key: "demon/deadly-natural-weapons", name: "Deadly Natural Weapons", guide: "demon#deadly-natural-weapons"),
         (key: "demon/demonic-charge", name: "Demonic Charge", guide: "demon#demonic-charge"),
@@ -11,6 +11,7 @@ MythicPath(
         (key: "demon/demonic-rage", name: "Demonic Rage", guide: "demon#demonic-rage"),
         (key: "demon/demonkind", name: "Demonkind", guide: "demon#demonkind"),
         (key: "demon/extra-minor-aspect", name: "Extra Minor Aspect", guide: "demon#extra-minor-aspect"),
+        (key: "demon/hard-to-kill", name: "Hard to Kill", guide: "mythic-paths#hard-to-kill"),
         (key: "demon/oolooddroo", name: "Oolooddroo", guide: "demon"),
         (key: "demon/paianjai", name: "Paianjai", guide: "demon"),
         (key: "demon/summon-babau", name: "Summon Babau", guide: "demon#summon-babau"),
@@ -66,8 +67,8 @@ MythicPath(
         ),
     ],
     ranks: [
-        (rank: 1, features: ["demon/bypass-epic-dr", "demon/close-to-the-abyss"]),
-        (rank: 2, features: ["demon/demonkind", "demon/summon-babau", "mythic/hard-to-kill"]),
+        (rank: 1, features: ["demon/bypass-epic-damage-reduction", "demon/close-to-the-abyss"]),
+        (rank: 2, features: ["demon/demonkind", "demon/summon-babau", "demon/hard-to-kill"]),
         (rank: 3, features: ["demon/demonic-charge", "demon/demonic-claws", "demon/demonic-rage", "demon/summon-vrock"]),
         (rank: 4, features: ["demon/summon-gibrileth"], selections: ["demon/demonic-aspect"]),
         (rank: 5, features: ["demon/extra-minor-aspect", "demon/oolooddroo", "demon/true-demonkind"], selections: ["demon/demonic-aspect", "demon/major-demonic-aspect", "demon/major-demonic-aspect"]),

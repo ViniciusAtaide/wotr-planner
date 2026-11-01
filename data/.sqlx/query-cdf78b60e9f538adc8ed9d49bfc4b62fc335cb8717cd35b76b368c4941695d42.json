@@ -1,16 +1,16 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT feat_slot_id, feat_key FROM feat_slot_option ORDER BY feat_slot_id, feat_key",
+  "query": "SELECT feat_list_key, feat_key FROM feat_list_member ORDER BY feat_list_key, feat_key",
   "describe": {
     "columns": [
       {
         "ordinal": 0,
-        "name": "feat_slot_id",
-        "type_info": "Int8",
+        "name": "feat_list_key",
+        "type_info": "Text",
         "origin": {
           "Table": {
-            "table": "feat_slot_option",
-            "name": "feat_slot_id"
+            "table": "feat_list_member",
+            "name": "feat_list_key"
           }
         }
       },
@@ -20,7 +20,7 @@
         "type_info": "Text",
         "origin": {
           "Table": {
-            "table": "feat_slot_option",
+            "table": "feat_list_member",
             "name": "feat_key"
           }
         }
@@ -34,5 +34,5 @@
       false
     ]
   },
-  "hash": "ede37041e6b968470085f0967ec6dd248bc3bdc4abf836334831c29040d1ab3f"
+  "hash": "cdf78b60e9f538adc8ed9d49bfc4b62fc335cb8717cd35b76b368c4941695d42"
 }

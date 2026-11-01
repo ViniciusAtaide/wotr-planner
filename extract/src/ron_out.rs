@@ -4,10 +4,12 @@
 use std::path::PathBuf;
 
 use ron::ser::PrettyConfig;
+use std::collections::BTreeSet;
+
 use rules::{
-    Archetype, ArchetypeLevelRow, Class, ClassLevelRow, Feat, Feature, FeatureSelection, GameData,
-    MythicAbility, MythicFeat, MythicPath, MythicRankRow, Prerequisite, Race, SelectionOption,
-    Skill,
+    Archetype, ArchetypeLevelRow, Class, ClassLevelRow, Feat, FeatKey, FeatList, Feature,
+    FeatureSelection, GameData, MythicAbility, MythicFeat, MythicPath, MythicRankRow, Prerequisite,
+    Race, SelectionOption, Skill,
 };
 use serde::Serialize;
 
@@ -136,6 +138,13 @@ impl Fields {
         self
     }
 
+    fn set(&mut self, name: &str, values: &BTreeSet<FeatKey>) -> &mut Self {
+        if !values.is_empty() {
+            self.field(name, values);
+        }
+        self
+    }
+
     fn prerequisite(&mut self, value: &Option<Prerequisite>) -> &mut Self {
         if let Some(prerequisite) = value {
             self.field("prerequisite", prerequisite);
@@ -245,7 +254,7 @@ fn mythic_ability(ability: &MythicAbility) -> String {
     Fields::new()
         .field("key", &ability.key)
         .field("name", &ability.name)
-        .text("group", &ability.group)
+        .field("group", &ability.group)
         .text("summary", &ability.summary)
         .field("guide", &ability.guide)
         .prerequisite(&ability.prerequisite)
@@ -256,7 +265,7 @@ fn mythic_feat(feat: &MythicFeat) -> String {
     Fields::new()
         .field("key", &feat.key)
         .field("name", &feat.name)
-        .text("group", &feat.group)
+        .field("group", &feat.group)
         .text("summary", &feat.summary)
         .field("guide", &feat.guide)
         .prerequisite(&feat.prerequisite)
@@ -283,6 +292,17 @@ fn option(option: &SelectionOption) -> String {
         fields.field("feat", feat);
     }
     fields.prerequisite(&option.prerequisite).line()
+}
+
+/// A feat list on one line: key, name, guide, the bonus-list flag when set, then its feats.
+fn feat_list(list: &FeatList) -> String {
+    Fields::new()
+        .field("key", &list.key)
+        .field("name", &list.name)
+        .field("guide", &list.guide)
+        .flag("ignores_prerequisites", list.ignores_prerequisites)
+        .field("feats", &list.feats)
+        .line()
 }
 
 fn selections(indent: usize, selections: &[FeatureSelection]) -> String {
@@ -322,6 +342,7 @@ fn level_row(row: &ClassLevelRow) -> String {
         .flag("advances_arcane", row.advances_arcane)
         .flag("advances_divine", row.advances_divine)
         .items("features", &row.features)
+        .set("feats", &row.feats)
         .items("feat_slots", &row.feat_slots)
         .items("selections", &row.selections)
         .line()
@@ -336,6 +357,7 @@ fn archetype_level_row(row: &ArchetypeLevelRow) -> String {
     }
     fields
         .items("features", &row.features)
+        .set("feats", &row.feats)
         .items("feat_slots", &row.feat_slots)
         .items("selections", &row.selections)
         .line()
@@ -373,6 +395,11 @@ fn archetype(archetype: &Archetype) -> String {
         ),
         selections(12, &archetype.selections),
         nested(
+            "feat_lists",
+            12,
+            archetype.feat_lists.iter().map(feat_list).collect(),
+        ),
+        nested(
             "levels",
             12,
             archetype.levels.iter().map(archetype_level_row).collect(),
@@ -404,6 +431,11 @@ fn class_file(class: &Class) -> String {
     let blocks = [
         nested("features", 4, class.features.iter().map(feature).collect()),
         selections(4, &class.selections),
+        nested(
+            "feat_lists",
+            4,
+            class.feat_lists.iter().map(feat_list).collect(),
+        ),
         nested("levels", 4, class.levels.iter().map(level_row).collect()),
         nested(
             "archetypes",
@@ -427,6 +459,11 @@ fn path_file(path: &MythicPath) -> String {
     let blocks = [
         nested("features", 4, path.features.iter().map(feature).collect()),
         selections(4, &path.selections),
+        nested(
+            "feat_lists",
+            4,
+            path.feat_lists.iter().map(feat_list).collect(),
+        ),
         nested("ranks", 4, path.ranks.iter().map(rank_row).collect()),
     ];
     format!("{}\n", fields.block("MythicPath", 0, &blocks))

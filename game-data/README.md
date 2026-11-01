@@ -37,16 +37,29 @@ class's), and BAB and saves (from the class's progressions).
   `will`: `Good`/`Poor`) and the rules compute the numbers, with the prestige save formula for prestige classes. A
   save cell the guide prints differently goes in `save_exceptions: [(level: 20, save: Will, value: 20)]`, exactly as
   printed; the check refuses one the progression gives anyway.
-- An archetype has a row only at the levels where it differs from its base class. A row's `features`, `feat_slots`
-  and `selections` replace the base row's in full (a row with none takes them away), and
+- An archetype has a row only at the levels where it differs from its base class. A row's `features`, `feats`,
+  `feat_slots` and `selections` replace the base row's in full (a row with none takes them away), and
   `spell_levels: (arcane: 1, divine: 0)` replaces the base row's spell levels when set. A level without a row is
   the base class's. The check refuses a row that changes nothing and spell levels equal to the base row's.
 - Only prestige classes set `advances_arcane`/`advances_divine`, and only base classes have archetypes.
-- A selection option's key extends its selection's: `rogue/rogue-talents/fast-stealth`.
-- Feat slots are `General`, `CombatFeat`, `Category(Teamwork)` or a fixed list,
-  `OneOf(feats: ["crane-style", "dodge"])`. A list that is the class's own bonus-feat list (a monk's
-  bonus feats, a ranger's combat style) adds `ignores_prerequisites: true`: the pick skips the feat's
-  prerequisites. Only class and archetype level rows may set it; left out, prerequisites are checked.
+- A selection option's key extends its selection's: `rogue/rogue-talents/fast-stealth`. A feature's, a
+  selection's and a feat list's key starts with its owner's (the archetype's when an archetype defines it), and
+  the schema checks it: Hard to Kill is each path's own `aeon/hard-to-kill`, not one shared key.
+- Mythic abilities and feats name their group as the guide heads it: `group: Melee`, `ArmourAndShield`,
+  `CombatManoeuvre` and so on.
+- Feat slots are `General`, `CombatFeat`, `Category(Teamwork)` or a named list, `OneOf(list: "monk/bonus-feats-1")`.
+  The lists are in the file of the class, archetype or path that owns them, in a `feat_lists: [...]` block before
+  its `levels`/`ranks`: `(key: "monk/bonus-feats-1", name: "Monk Bonus Feats", guide: "monk#monk-bonus-feats",
+  ignores_prerequisites: true, feats: ["crane-style", "dodge"])`. The key starts with the owner's key; any row may
+  name any list. A list that grows with level is one list per stage. A list that is the class's own bonus-feat
+  list (a monk's bonus feats, a ranger's combat style) sets `ignores_prerequisites: true`: a pick from it skips
+  the feat's prerequisites. Only class and archetype rows may name such a list; left out, prerequisites are
+  checked. The check refuses a list of fewer than two feats and one no slot names.
+- A feat the class gives outright is a granted feat, not a slot: `feats: ["scribe-scrolls"]` on the level row
+  (class or archetype). It's held with no pick, whatever its prerequisites, and it's in no Build or link. Classes
+  grant their Armor, Shield and Weapon Proficiency feats this way, from each class page's proficiency text; a
+  `<class>-proficiencies` feature stays only where it says more than those feats (named weapons, bombs, casting
+  in armour, or a prerequisite names it).
 
 - Keys are readable text from the guide's anchors: `power-attack` (a feat), `rogue` (a class),
   `rogue/dark-lurker` (an archetype), `rogue/rogue-talents/fast-stealth` (a selection option). A key has no type

@@ -3,9 +3,10 @@ MythicPath(
     name: "Azata",
     guide: "azata",
     features: [
-        (key: "azata/bypass-epic-dr", name: "Bypass Epic DR", guide: "azata"),
+        (key: "azata/bypass-epic-damage-reduction", name: "Bypass Epic Damage Reduction", guide: "mythic-paths#bypass-epic-damage-reduction"),
         (key: "azata/dragon-companion", name: "Dragon Companion", guide: "azata#dragon-companion"),
         (key: "azata/freedoms-child", name: "Freedom\'s Child", guide: "azata#freedoms-child"),
+        (key: "azata/hard-to-kill", name: "Hard to Kill", guide: "mythic-paths#hard-to-kill"),
         (key: "azata/instrument-of-freedom", name: "Instrument of Freedom", guide: "azata#instrument-of-freedom"),
         (key: "azata/song-of-broken-chains", name: "Song of Broken Chains", guide: "azata#song-of-broken-chains"),
         (key: "azata/song-of-courageous-defender", name: "Song of Courageous Defender", guide: "azata#song-of-courageous-defender"),
@@ -37,8 +38,8 @@ MythicPath(
         ),
     ],
     ranks: [
-        (rank: 1, features: ["azata/bypass-epic-dr", "azata/instrument-of-freedom"]),
-        (rank: 2, features: ["azata/freedoms-child", "azata/summon-azata-bralani", "mythic/hard-to-kill"]),
+        (rank: 1, features: ["azata/bypass-epic-damage-reduction", "azata/instrument-of-freedom"]),
+        (rank: 2, features: ["azata/freedoms-child", "azata/summon-azata-bralani", "azata/hard-to-kill"]),
         (rank: 3, features: ["azata/dragon-companion", "azata/song-of-heroic-resolve", "azata/summon-mastodon"]),
         (rank: 4, features: ["azata/summon-movanic-deva"], selections: ["azata/superpowers"]),
         (rank: 5, features: ["azata/song-of-broken-chains", "azata/summon-azata-ghael"]),

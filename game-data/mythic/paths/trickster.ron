@@ -3,9 +3,10 @@ MythicPath(
     name: "Trickster",
     guide: "trickster",
     features: [
-        (key: "mythic/bypass-epic-damage-reduction", name: "Bypass Epic Damage Reduction", guide: "mythic-paths#bypass-epic-damage-reduction"),
         (key: "trickster/bit-of-fun", name: "Bit of Fun", guide: "trickster#bit-of-fun"),
+        (key: "trickster/bypass-epic-damage-reduction", name: "Bypass Epic Damage Reduction", guide: "mythic-paths#bypass-epic-damage-reduction"),
         (key: "trickster/creative-approach", name: "Creative Approach", guide: "trickster#creative-approach"),
+        (key: "trickster/hard-to-kill", name: "Hard to Kill", guide: "mythic-paths#hard-to-kill"),
         (key: "trickster/sneak-attack", name: "Sneak Attack", guide: "trickster#sneak-attack"),
         (key: "trickster/sneaky-quack", name: "Sneaky Quack", guide: "trickster#sneaky-quack"),
         (key: "trickster/summon-nixie-prankster", name: "Summon Nixie Prankster", guide: "trickster#summon-nixie-prankster"),
@@ -74,8 +75,8 @@ MythicPath(
         ),
     ],
     ranks: [
-        (rank: 1, features: ["mythic/bypass-epic-damage-reduction", "trickster/bit-of-fun"]),
-        (rank: 2, features: ["mythic/hard-to-kill", "trickster/creative-approach", "trickster/summon-will-o-wisp"]),
+        (rank: 1, features: ["trickster/bypass-epic-damage-reduction", "trickster/bit-of-fun"]),
+        (rank: 2, features: ["trickster/hard-to-kill", "trickster/creative-approach", "trickster/summon-will-o-wisp"]),
         (rank: 3, features: ["trickster/sneak-attack", "trickster/sneak-attack", "trickster/sneaky-quack", "trickster/summon-nixie-prankster"], selections: ["trickster/mythic-trick"]),
         (rank: 4, features: ["trickster/summon-redcaps"], selections: ["trickster/improved-mythic-trick", "trickster/mythic-trick"]),
         (rank: 5, features: ["trickster/sneak-attack", "trickster/summon-wild-hunt-archer"], selections: ["trickster/mythic-trick"]),

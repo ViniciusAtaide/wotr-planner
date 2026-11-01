@@ -10,12 +10,13 @@ use std::collections::{BTreeMap, BTreeSet};
 use rules::{
     Ability, AbilityModifier, Archetype, ArchetypeKey, BabProgression, Class, ClassKey,
     ClassLevelRow, DataAt, Feat, FeatCategory, FeatKey, FeatSlot, Feature, FeatureKey,
-    FeatureSelection, FeatureSelectionKey, GameData, GuideRef, MythicAbility, MythicAbilityKey,
-    MythicAscension, MythicFeat, MythicFeatKey, MythicPath, MythicPathKey, MythicRankRow,
-    Prerequisite, Progression, Race, RaceKey, SaveProgression, SelectionOption, SelectionOptionKey,
-    Skill, SkillKey, SpellType, Subrace, SubraceKey,
+    FeatureSelection, FeatureSelectionKey, GameData, GuideRef, MythicAbility, MythicAbilityGroup,
+    MythicAbilityKey, MythicAscension, MythicFeat, MythicFeatGroup, MythicFeatKey, MythicPath,
+    MythicPathKey, MythicRankRow, Prerequisite, Progression, Race, RaceKey, SaveProgression,
+    SelectionOption, SelectionOptionKey, Skill, SkillKey, SpellType, Subrace, SubraceKey,
 };
 
+use crate::feat_lists::{self, PendingLists};
 use crate::grammar::{self, Cond, Unparsed};
 use crate::guide::{BASE_CLASSES, Guide, OTHER_PATHS, PATH_PAGES};
 use crate::html::{Block, Page, Section};
@@ -123,11 +124,17 @@ pub fn extract(guide: &Guide) -> Extraction {
         mythic_paths,
     };
     builder.resolve_prerequisites(&mut data);
-    crate::references::drop_dangling(&mut data, &mut builder.report);
-    // Only now, with the dangling grants gone, is a row that matches its base class's known to.
+    crate::references::drop_dangling(&mut data, &mut builder.lists, &mut builder.report);
+    crate::references::drop_redundant_alternatives(&mut data);
+    feat_lists::grant_lone_feats(&mut data, &builder.lists);
+    crate::proficiencies::apply(&mut data);
+    // Only now, with the dangling grants gone and the grants complete, is a row that matches its base class's
+    // known to.
     for class in &mut data.classes {
         progressions::sparse_archetype_rows(class);
     }
+    // And only with the rows sparse is it known which archetype alone uses a list.
+    feat_lists::name_lists(&mut data, &builder.lists);
     for problem in data.check() {
         builder.report.add_about(
             Kind::Cell,
@@ -160,8 +167,6 @@ pub enum FeatureOwner {
     Class(ClassKey),
     Archetype(ClassKey, ArchetypeKey),
     Path(MythicPathKey),
-    /// A feature from the `mythic-paths` page that any path's table grants: defined on the first path that does.
-    Mythic,
 }
 
 /// A heading a table cell can name.
@@ -194,6 +199,8 @@ enum Granted {
     Feature(FeatureKey),
     Selection(FeatureSelectionKey),
     Slots(Vec<FeatSlot>),
+    /// A feat the class grants outright.
+    Feat(FeatKey),
 }
 
 pub struct Builder<'g> {
@@ -205,6 +212,8 @@ pub struct Builder<'g> {
     pub features: BTreeMap<FeatureKey, (FeatureOwner, Feature)>,
     /// Feat names, for bonus lists and granted feats.
     feat_names: Vec<(String, FeatKey)>,
+    /// The fixed feat lists of bonus slots, named once the data is complete.
+    pub lists: PendingLists,
 }
 
 impl<'g> Builder<'g> {
@@ -216,6 +225,7 @@ impl<'g> Builder<'g> {
             pending: Vec::new(),
             features: BTreeMap::new(),
             feat_names: Vec::new(),
+            lists: PendingLists::default(),
         }
     }
 
@@ -535,6 +545,7 @@ impl<'g> Builder<'g> {
             prerequisite: None,
             features: Vec::new(),
             selections: Vec::new(),
+            feat_lists: Vec::new(),
             levels: Vec::new(),
             archetypes: Vec::new(),
         };
@@ -659,6 +670,7 @@ impl<'g> Builder<'g> {
                 class_skills,
                 features: Vec::new(),
                 selections,
+                feat_lists: Vec::new(),
                 levels,
             });
         }
@@ -808,6 +820,7 @@ impl<'g> Builder<'g> {
                 advances_arcane: false,
                 advances_divine: false,
                 features: Vec::new(),
+                feats: BTreeSet::new(),
                 feat_slots: Vec::new(),
                 selections: Vec::new(),
             };
@@ -821,6 +834,9 @@ impl<'g> Builder<'g> {
                     Granted::Feature(key) => level_row.features.push(key),
                     Granted::Selection(key) => level_row.selections.push(key),
                     Granted::Slots(slots) => level_row.feat_slots.extend(slots),
+                    Granted::Feat(feat) => {
+                        level_row.feats.insert(feat);
+                    }
                 }
             }
             out.push((numbers, level_row));
@@ -856,11 +872,8 @@ impl<'g> Builder<'g> {
         if !scope.path
             && let Some(feat) = self.feat_named(name)
         {
-            // A feat the class grants outright: a one-feat list that ignores the feat's prerequisites.
-            return Granted::Slots(vec![FeatSlot::OneOf {
-                feats: [feat].into(),
-                ignores_prerequisites: true,
-            }]);
+            // A feat the class grants outright, whatever its prerequisites.
+            return Granted::Feat(feat);
         }
         let key = FeatureKey::new(format!("{}/{}", scope.prefix, slug(name)));
         let owner = scope
@@ -997,10 +1010,7 @@ impl<'g> Builder<'g> {
             // D1: a class's own fixed bonus list ignores prerequisites unless the guide says otherwise.
             true
         };
-        vec![FeatSlot::OneOf {
-            feats,
-            ignores_prerequisites: ignores,
-        }]
+        vec![self.lists.slot(feats, ignores)]
     }
 
     /// Feats named in a prose list, each with the Class level its sentence opens at ("At 6th level, …").
@@ -1323,6 +1333,7 @@ impl<'g> Builder<'g> {
             prerequisite: None,
             features: Vec::new(),
             selections,
+            feat_lists: Vec::new(),
             levels,
             archetypes: Vec::new(),
         };
@@ -1394,7 +1405,19 @@ impl<'g> Builder<'g> {
         };
         let mut out = Vec::new();
         for group in section.children.iter().filter(|s| s.level == 4) {
-            let group_name = group.name.trim_end_matches(" Abilities").to_owned();
+            let heading = group.name.trim_end_matches(" Abilities");
+            let Some(group_name) = MythicAbilityGroup::ALL
+                .into_iter()
+                .find(|g| g.name() == heading)
+            else {
+                self.report.add(
+                    Kind::Cell,
+                    page.guide(&group.anchor),
+                    &group.name,
+                    "not one of the mythic ability groups; its abilities are left out",
+                );
+                continue;
+            };
             for entry in &group.children {
                 let key = MythicAbilityKey::new(entry.anchor.clone());
                 self.catalog
@@ -1410,7 +1433,7 @@ impl<'g> Builder<'g> {
                 out.push(MythicAbility {
                     key,
                     name: entry.name.clone(),
-                    group: group_name.clone(),
+                    group: group_name,
                     summary: String::new(),
                     guide: GuideRef::new(page.guide(&entry.anchor)),
                     prerequisite: None,
@@ -1427,7 +1450,19 @@ impl<'g> Builder<'g> {
         };
         let mut out = Vec::new();
         for group in section.children.iter().filter(|s| s.level == 4) {
-            let group_name = group.name.trim_end_matches(" Feats").to_owned();
+            let heading = group.name.trim_end_matches(" Feats");
+            let Some(group_name) = MythicFeatGroup::ALL
+                .into_iter()
+                .find(|g| g.name() == heading)
+            else {
+                self.report.add(
+                    Kind::Cell,
+                    page.guide(&group.anchor),
+                    &group.name,
+                    "not one of the mythic feat groups; its feats are left out",
+                );
+                continue;
+            };
             for entry in &group.children {
                 let key = MythicFeatKey::new(entry.anchor.clone());
                 self.catalog
@@ -1443,7 +1478,7 @@ impl<'g> Builder<'g> {
                 out.push(MythicFeat {
                     key,
                     name: entry.name.clone(),
-                    group: group_name.clone(),
+                    group: group_name,
                     summary: String::new(),
                     guide: GuideRef::new(page.guide(&entry.anchor)),
                     prerequisite: None,
@@ -1456,18 +1491,16 @@ impl<'g> Builder<'g> {
     fn mythic_paths(&mut self) -> Vec<MythicPath> {
         let guide = self.guide;
         let mythic_page = guide.page("mythic-paths");
-        let shared: Vec<Heading<'g>> = mythic_page
-            .root
-            .find("first-ascension")
-            .map(|section| headings(mythic_page, section, "mythic", &FeatureOwner::Mythic))
-            .unwrap_or_default();
+        // The `mythic-paths` page's own headings (Hard to Kill, Bypass Epic Damage Reduction): each path whose
+        // table grants one gets its own copy, keyed under the path.
+        let shared = mythic_page.root.find("first-ascension");
         let mut paths = Vec::new();
         for slug_name in PATH_PAGES {
             let page = guide.page(slug_name);
             let Some(section) = page.root.children.first() else {
                 continue;
             };
-            paths.push(self.mythic_path(page, section, slug_name, page.slug.clone(), &shared));
+            paths.push(self.mythic_path(page, section, slug_name, page.slug.clone(), shared));
         }
         let other = guide.page("other-mythic-paths");
         for anchor in OTHER_PATHS {
@@ -1480,7 +1513,7 @@ impl<'g> Builder<'g> {
                 );
                 continue;
             };
-            paths.push(self.mythic_path(other, section, anchor, other.guide(anchor), &shared));
+            paths.push(self.mythic_path(other, section, anchor, other.guide(anchor), shared));
         }
         paths
     }
@@ -1491,7 +1524,7 @@ impl<'g> Builder<'g> {
         section: &'g Section,
         slug_name: &str,
         guide: String,
-        shared: &[Heading<'g>],
+        shared: Option<&'g Section>,
     ) -> MythicPath {
         let key = MythicPathKey::new(slug_name.to_owned());
         let mut rows = Vec::new();
@@ -1550,7 +1583,13 @@ impl<'g> Builder<'g> {
             archetype_anchor: None,
             path: true,
         };
-        scope.headings.extend(shared.iter().cloned());
+        if let Some(shared) = shared {
+            let mythic_page = self.guide.page("mythic-paths");
+            let owner = FeatureOwner::Path(key.clone());
+            scope
+                .headings
+                .extend(headings(mythic_page, shared, slug_name, &owner));
+        }
         let mut ranks = Vec::new();
         for row in &rows {
             let mut rank_row = MythicRankRow {
@@ -1560,10 +1599,11 @@ impl<'g> Builder<'g> {
                 selections: Vec::new(),
             };
             for grant in &row.grants {
-                match self.grant(page, &scope, &grant.name, row.level) {
+                match self.grant(page, &scope, prose::path_cell(&grant.name), row.level) {
                     Granted::Feature(feature) => rank_row.features.push(feature),
                     Granted::Selection(selection) => rank_row.selections.push(selection),
                     Granted::Slots(slots) => rank_row.feat_slots.extend(slots),
+                    Granted::Feat(_) => unreachable!("a path's table grants a feat as a feature"),
                 }
             }
             ranks.push(rank_row);
@@ -1583,6 +1623,7 @@ impl<'g> Builder<'g> {
             guide: GuideRef::new(guide),
             features: Vec::new(),
             selections,
+            feat_lists: Vec::new(),
             ranks,
             switch: prose::path_switch(slug_name),
         }
@@ -1596,17 +1637,7 @@ impl<'g> Builder<'g> {
         prestige: &mut [Class],
         paths: &mut [MythicPath],
     ) {
-        let mut first_path_with: BTreeMap<FeatureKey, MythicPathKey> = BTreeMap::new();
-        for path in paths.iter() {
-            for row in &path.ranks {
-                for feature in &row.features {
-                    first_path_with
-                        .entry(feature.clone())
-                        .or_insert_with(|| path.key.clone());
-                }
-            }
-        }
-        for (key, (owner, feature)) in std::mem::take(&mut self.features) {
+        for (owner, feature) in std::mem::take(&mut self.features).into_values() {
             let feature = feature.clone();
             match owner {
                 FeatureOwner::Class(class) => {
@@ -1630,14 +1661,6 @@ impl<'g> Builder<'g> {
                 }
                 FeatureOwner::Path(path) => {
                     if let Some(path) = paths.iter_mut().find(|p| p.key == path) {
-                        path.features.push(feature);
-                    }
-                }
-                FeatureOwner::Mythic => {
-                    let Some(path_key) = first_path_with.get(&key) else {
-                        continue;
-                    };
-                    if let Some(path) = paths.iter_mut().find(|p| &p.key == path_key) {
                         path.features.push(feature);
                     }
                 }

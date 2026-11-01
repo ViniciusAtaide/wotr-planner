@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO feat_slot_option (feat_slot_id, feat_key) VALUES ($1, $2)",
+  "query": "INSERT INTO granted_feat (class_level_id, feat_key) VALUES ($1, $2)",
   "describe": {
     "columns": [],
     "parameters": {
@@ -11,5 +11,5 @@
     },
     "nullable": []
   },
-  "hash": "1a22adaf32e9e4277d18130588ea6d9da5fbb45619447b8456756eec0a8a7840"
+  "hash": "e7e1705d248cb7295ce598c72eb499eab71c39c5536bf7fc833412faa1fa3acf"
 }

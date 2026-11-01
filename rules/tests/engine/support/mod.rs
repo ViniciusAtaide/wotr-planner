@@ -29,6 +29,9 @@ pub fn feature(key: &str) -> FeatureKey {
 pub fn option(key: &str) -> SelectionOptionKey {
     SelectionOptionKey::new(key)
 }
+pub fn feat_list(key: &str) -> FeatListKey {
+    FeatListKey::new(key)
+}
 
 pub fn pick_feat(key: &str) -> Pick {
     Pick::Feat(feat(key))
@@ -356,6 +359,24 @@ fn feats() -> Vec<Feat> {
         ),
         // Simplified: the game's Crane Style also needs Improved Unarmed Strike.
         feat_row("crane-style", UnarmedCombat, Some(needs_feat("dodge"))),
+        // Invented prerequisite, so a monk's grant of it shows that grants skip prerequisites.
+        feat_row(
+            "improved-unarmed-strike",
+            UnarmedCombat,
+            Some(needs_score(Ability::Dexterity, 13)),
+        ),
+        feat_row("scribe-scrolls", Magic, Some(CasterLevel(1))),
+        feat_row("shield-proficiency", ArmourAndShield, None),
+        feat_row(
+            "tower-shield-proficiency",
+            ArmourAndShield,
+            Some(needs_feat("shield-proficiency")),
+        ),
+        feat_row(
+            "shield-focus",
+            ArmourAndShield,
+            Some(needs_feat("shield-proficiency")),
+        ),
         feat_row(
             "crane-wing",
             UnarmedCombat,
@@ -372,6 +393,7 @@ fn row(level: u8) -> ClassLevelRow {
         advances_arcane: false,
         advances_divine: false,
         features: vec![],
+        feats: BTreeSet::new(),
         feat_slots: vec![],
         selections: vec![],
     }
@@ -383,8 +405,19 @@ fn archetype_row(level: u8) -> ArchetypeLevelRow {
         level,
         spell_levels: None,
         features: vec![],
+        feats: BTreeSet::new(),
         feat_slots: vec![],
         selections: vec![],
+    }
+}
+
+fn list(key: &str, ignores_prerequisites: bool, feats: &[&str]) -> FeatList {
+    FeatList {
+        key: feat_list(key),
+        name: key.into(),
+        guide: guide(key),
+        ignores_prerequisites,
+        feats: feats.iter().map(|key| feat(key)).collect(),
     }
 }
 
@@ -397,11 +430,16 @@ fn plain_feature(key: &str, name: &str) -> Feature {
     }
 }
 
-/// Fighter: full BAB, good Fortitude, a Combat feat bonus slot at 1 and every even level.
+/// Fighter: full BAB, good Fortitude, Shield and Tower Shield Proficiency granted at 1, a Combat feat bonus slot
+/// at 1 and every even level.
 fn fighter() -> Class {
     let levels = (1..=20)
         .map(|l| {
             let mut r = row(l);
+            if l == 1 {
+                r.feats =
+                    BTreeSet::from([feat("shield-proficiency"), feat("tower-shield-proficiency")]);
+            }
             if l == 1 || l % 2 == 0 {
                 r.feat_slots.push(FeatSlot::CombatFeat);
             }
@@ -411,9 +449,9 @@ fn fighter() -> Class {
             r
         })
         .collect();
-    // Armiger: no Combat feat slots and no Bravery, so a row at 1 and every even level (empty ones take the
-    // fighter's grants away); an order selection at 1 and a fixed-list bonus slot at 2. Odd levels from 3 are the
-    // fighter's.
+    // Armiger: no Combat feat slots, no Bravery and no granted proficiencies, so a row at 1 and every even level
+    // (empty ones take the fighter's grants away); an order selection at 1 and a fixed-list bonus slot at 2. Odd
+    // levels from 3 are the fighter's.
     let armiger_levels = (1..=20)
         .filter(|l| l % 2 == 0 || *l == 1)
         .map(|l| {
@@ -424,8 +462,7 @@ fn fighter() -> Class {
             }
             if l == 2 {
                 r.feat_slots.push(FeatSlot::OneOf {
-                    feats: BTreeSet::from([feat("power-attack"), feat("combat-expertise")]),
-                    ignores_prerequisites: false,
+                    list: feat_list("fighter/armiger/bonus-feats"),
                 });
             }
             r
@@ -446,6 +483,7 @@ fn fighter() -> Class {
         prerequisite: None,
         features: vec![plain_feature("fighter/bravery", "Bravery")],
         selections: vec![],
+        feat_lists: vec![],
         levels,
         archetypes: vec![Archetype {
             key: ArchetypeKey::new("fighter/armiger"),
@@ -466,6 +504,11 @@ fn fighter() -> Class {
                     selection_option("fighter/armiger/order/dragon", None, None),
                 ],
             }],
+            feat_lists: vec![list(
+                "fighter/armiger/bonus-feats",
+                false,
+                &["combat-expertise", "power-attack"],
+            )],
             levels: armiger_levels,
         }],
     }
@@ -557,6 +600,7 @@ fn rogue() -> Class {
                 selection_option("rogue/rogue-talents/fast-stealth", None, None),
             ],
         }],
+        feat_lists: vec![],
         levels,
         archetypes: vec![Archetype {
             key: ArchetypeKey::new("rogue/eldritch-scoundrel"),
@@ -571,17 +615,22 @@ fn rogue() -> Class {
             class_skills: None,
             features: vec![],
             selections: vec![],
+            feat_lists: vec![],
             levels: scoundrel_levels,
         }],
     }
 }
 
-/// Wizard: 1/2 BAB, good Will, full arcane spell-level access, a Magic bonus slot every 5 levels.
+/// Wizard: 1/2 BAB, good Will, full arcane spell-level access, Scribe Scrolls granted at 1, a Magic bonus slot
+/// every 5 levels.
 fn wizard() -> Class {
     let levels = (1..=20)
         .map(|l| {
             let mut r = row(l);
             r.arcane_spell_level = l.div_ceil(2).min(9);
+            if l == 1 {
+                r.feats.insert(feat("scribe-scrolls"));
+            }
             if l % 5 == 0 {
                 r.feat_slots.push(FeatSlot::Category(FeatCategory::Magic));
             }
@@ -603,21 +652,24 @@ fn wizard() -> Class {
         prerequisite: None,
         features: vec![],
         selections: vec![],
+        feat_lists: vec![],
         levels,
         archetypes: vec![],
     }
 }
 
-/// Monk: 3/4 BAB, good saves, a bonus-list slot (Crane Style or Dodge, prerequisites ignored) at 1 and at 2, 6,
-/// 10, 14 and 18.
+/// Monk: 3/4 BAB, good saves, Improved Unarmed Strike granted at 1, a bonus-list slot (Crane Style or Dodge,
+/// prerequisites ignored) at 1 and at 2, 6, 10, 14 and 18.
 fn monk() -> Class {
     let levels = (1..=20)
         .map(|l| {
             let mut r = row(l);
+            if l == 1 {
+                r.feats.insert(feat("improved-unarmed-strike"));
+            }
             if l == 1 || l % 4 == 2 {
                 r.feat_slots.push(FeatSlot::OneOf {
-                    feats: BTreeSet::from([feat("crane-style"), feat("dodge")]),
-                    ignores_prerequisites: true,
+                    list: feat_list("monk/bonus-feats"),
                 });
             }
             r
@@ -638,6 +690,7 @@ fn monk() -> Class {
         prerequisite: None,
         features: vec![],
         selections: vec![],
+        feat_lists: vec![list("monk/bonus-feats", true, &["crane-style", "dodge"])],
         levels,
         archetypes: vec![],
     }
@@ -667,6 +720,7 @@ fn cleric() -> Class {
         prerequisite: None,
         features: vec![],
         selections: vec![],
+        feat_lists: vec![],
         levels,
         archetypes: vec![],
     }
@@ -706,6 +760,7 @@ fn mystic_theurge() -> Class {
         ])),
         features: vec![],
         selections: vec![],
+        feat_lists: vec![],
         levels,
         archetypes: vec![],
     }
@@ -751,6 +806,7 @@ fn arcane_trickster() -> Class {
         ])),
         features: vec![],
         selections: vec![],
+        feat_lists: vec![],
         levels,
         archetypes: vec![],
     }
@@ -760,7 +816,7 @@ fn mythic_abilities() -> Vec<MythicAbility> {
     let ability = |key: &str, prerequisite| MythicAbility {
         key: MythicAbilityKey::new(key),
         name: key.into(),
-        group: String::new(),
+        group: MythicAbilityGroup::Melee,
         summary: String::new(),
         guide: guide(key),
         prerequisite,
@@ -785,7 +841,7 @@ fn mythic_feats() -> Vec<MythicFeat> {
     let mythic_feat = |key: &str, prerequisite| MythicFeat {
         key: MythicFeatKey::new(key),
         name: key.into(),
-        group: String::new(),
+        group: MythicFeatGroup::Melee,
         summary: String::new(),
         guide: guide(key),
         prerequisite,
@@ -836,6 +892,11 @@ fn trickster() -> MythicPath {
                 selection_option("trickster/tricks/persuasion-1", None, None),
             ],
         }],
+        feat_lists: vec![list(
+            "trickster/bonus-feats",
+            false,
+            &["dodge", "toughness"],
+        )],
         ranks: vec![
             rank(
                 3,
@@ -847,8 +908,7 @@ fn trickster() -> MythicPath {
                 4,
                 vec![],
                 vec![FeatSlot::OneOf {
-                    feats: BTreeSet::from([feat("toughness"), feat("dodge")]),
-                    ignores_prerequisites: false,
+                    list: feat_list("trickster/bonus-feats"),
                 }],
                 vec![],
             ),
@@ -868,6 +928,7 @@ fn legend() -> MythicPath {
         guide: guide("other-mythic-paths#legend"),
         features: vec![],
         selections: vec![],
+        feat_lists: vec![],
         ranks: vec![],
         switch: Some(PathSwitch {
             kept_ranks: BTreeSet::from([1, 2]),
@@ -886,6 +947,7 @@ fn gold_dragon() -> MythicPath {
         guide: guide("other-mythic-paths#gold-dragon"),
         features: vec![plain_feature("gold-dragon/breath", "Breath")],
         selections: vec![],
+        feat_lists: vec![],
         ranks: vec![MythicRankRow {
             rank: 8,
             features: vec![feature("gold-dragon/breath")],

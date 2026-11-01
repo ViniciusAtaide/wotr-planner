@@ -145,8 +145,7 @@ fn the_path_is_chosen_at_mr_3_and_adds_its_own_picks() {
     assert_eq!(
         mythic_slot_kinds(&sheet, 4)[1].1,
         SlotKind::Feat(FeatSlot::OneOf {
-            feats: [feat("dodge"), feat("toughness")].into(),
-            ignores_prerequisites: false,
+            list: feat_list("trickster/bonus-feats"),
         })
     );
     let at_9 = sheet.at(9).unwrap();

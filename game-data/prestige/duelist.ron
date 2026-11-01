@@ -27,7 +27,7 @@ Class(
         (level: 1, features: ["duelist/canny-defense", "duelist/precise-strike"]),
         (level: 2, features: ["duelist/improved-reaction", "duelist/parry"]),
         (level: 3, features: ["duelist/enhanced-mobility"]),
-        (level: 4, features: ["duelist/grace"], feat_slots: [OneOf(feats: ["combat-reflexes"], ignores_prerequisites: true)]),
+        (level: 4, features: ["duelist/grace"], feats: ["combat-reflexes"]),
         (level: 5, features: ["duelist/riposte"]),
         (level: 6, features: ["duelist/acrobatic-movement"]),
         (level: 7, features: ["duelist/elaborate-defense"]),

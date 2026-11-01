@@ -23,7 +23,6 @@ Class(
         (key: "shifter/shifter-claws-1d8", name: "Shifter Claws (1d8)", guide: "shifter"),
         (key: "shifter/shifter-claws-adamantine-and-universal", name: "Shifter Claws (adamantine and universal)", guide: "shifter"),
         (key: "shifter/shifter-claws-cold-iron-magic-and-silver", name: "Shifter Claws (cold iron, magic and silver)", guide: "shifter"),
-        (key: "shifter/shifter-proficiencies", name: "Shifter Proficiencies", guide: "shifter#shifter-proficiencies"),
         (key: "shifter/shifters-fury", name: "Shifter\'s Fury", guide: "shifter#shifters-fury"),
         (key: "shifter/track", name: "Track", guide: "shifter#track"),
         (key: "shifter/woodland-grace", name: "Woodland Grace", guide: "shifter#woodland-grace"),
@@ -48,7 +47,7 @@ Class(
         ),
     ],
     levels: [
-        (level: 1, features: ["shifter/shifter-claws", "shifter/shifter-proficiencies"], selections: ["shifter/shifter-aspect"]),
+        (level: 1, features: ["shifter/shifter-claws"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"], selections: ["shifter/shifter-aspect"]),
         (level: 2, features: ["shifter/defensive-instinct", "shifter/track"]),
         (level: 3, features: ["shifter/shifter-claws-cold-iron-magic-and-silver", "shifter/woodland-grace"]),
         (level: 4, features: ["shifter/major-form"]),
@@ -86,7 +85,7 @@ Class(
                 (key: "shifter/child-of-the-manticore/manticore-shape", name: "Manticore Shape", guide: "shifter#manticore-shape"),
             ],
             levels: [
-                (level: 1, features: ["shifter/child-of-the-manticore/grow-spikes", "shifter/child-of-the-manticore/manticore-aspect", "shifter/shifter-proficiencies"]),
+                (level: 1, features: ["shifter/child-of-the-manticore/grow-spikes", "shifter/child-of-the-manticore/manticore-aspect"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"]),
                 (level: 3, features: ["shifter/child-of-the-manticore/grow-spikes-cold-iron-magic-and-silver", "shifter/woodland-grace"]),
                 (level: 4, features: ["shifter/child-of-the-manticore/manticore-shape"]),
                 (level: 5),
@@ -137,7 +136,7 @@ Class(
                 ),
             ],
             levels: [
-                (level: 1, features: ["shifter/dragonblood-shifter/draconic-aspect-selection", "shifter/shifter-claws", "shifter/shifter-proficiencies"]),
+                (level: 1, features: ["shifter/dragonblood-shifter/draconic-aspect-selection", "shifter/shifter-claws"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"]),
                 (level: 3, features: ["shifter/dragonblood-shifter/shifter-claws-cold-iron-magic-and-silver", "shifter/woodland-grace"]),
                 (level: 4),
                 (level: 5),
@@ -172,7 +171,7 @@ Class(
                 (key: "shifter/feyform-shifter/shifter-claws-cold-iron-magic-and-silver", name: "Shifter Claws (cold iron, magic and silver)", guide: "shifter#feyform-shifter"),
             ],
             levels: [
-                (level: 1, features: ["shifter/feyform-shifter/fey-aspect", "shifter/shifter-claws", "shifter/shifter-proficiencies"]),
+                (level: 1, features: ["shifter/feyform-shifter/fey-aspect", "shifter/shifter-claws"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"]),
                 (level: 3, features: ["shifter/feyform-shifter/shifter-claws-cold-iron-magic-and-silver", "shifter/woodland-grace"]),
                 (level: 4, features: ["shifter/feyform-shifter/fey-shape"]),
                 (level: 5),
@@ -206,7 +205,7 @@ Class(
                 (key: "shifter/fiendflesh-shifter/shifter-claws-cold-iron-magic-and-silver", name: "Shifter Claws (cold iron, magic and silver)", guide: "shifter#fiendflesh-shifter"),
             ],
             levels: [
-                (level: 1, features: ["shifter/fiendflesh-shifter/fiendish-aspect", "shifter/shifter-claws", "shifter/shifter-proficiencies"]),
+                (level: 1, features: ["shifter/fiendflesh-shifter/fiendish-aspect", "shifter/shifter-claws"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"]),
                 (level: 2, features: ["shifter/fiendflesh-shifter/fiendish-resilience", "shifter/track"]),
                 (level: 3, features: ["shifter/fiendflesh-shifter/shifter-claws-cold-iron-magic-and-silver", "shifter/woodland-grace"]),
                 (level: 4),
@@ -238,7 +237,7 @@ Class(
                 (key: "shifter/griffonheart-shifter/shifter-claws-cold-iron-magic-and-silver", name: "Shifter Claws (cold iron, magic and silver)", guide: "shifter#griffonheart-shifter"),
             ],
             levels: [
-                (level: 1, features: ["shifter/griffonheart-shifter/griffon-aspect", "shifter/shifter-claws", "shifter/shifter-proficiencies"]),
+                (level: 1, features: ["shifter/griffonheart-shifter/griffon-aspect", "shifter/shifter-claws"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"]),
                 (level: 3, features: ["shifter/griffonheart-shifter/shifter-claws-cold-iron-magic-and-silver", "shifter/woodland-grace"]),
                 (level: 4, features: ["shifter/griffonheart-shifter/griffon-form"], feat_slots: [CombatFeat]),
                 (level: 5, features: ["shifter/griffonheart-shifter/griffon-aspect"]),
@@ -270,7 +269,7 @@ Class(
                 (key: "shifter/rageshaper/terrible-slam-cold-iron-magic-and-silver", name: "Terrible Slam (cold iron, magic and silver)", guide: "shifter#rageshaper"),
             ],
             levels: [
-                (level: 1, features: ["shifter/rageshaper/devastating-form", "shifter/rageshaper/terrible-slam", "shifter/shifter-proficiencies"]),
+                (level: 1, features: ["shifter/rageshaper/devastating-form", "shifter/rageshaper/terrible-slam"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"]),
                 (level: 2, features: ["shifter/rageshaper/invulnerable-defenses", "shifter/track"]),
                 (level: 3, features: ["shifter/rageshaper/terrible-slam-cold-iron-magic-and-silver", "shifter/woodland-grace"]),
                 (level: 4),
@@ -303,7 +302,7 @@ Class(
                 (key: "shifter/weretouched/shifter-claws-cold-iron-magic-and-silver", name: "Shifter Claws (cold iron, magic and silver)", guide: "shifter#weretouched"),
             ],
             levels: [
-                (level: 1, features: ["shifter/shifter-claws", "shifter/shifter-proficiencies", "shifter/weretouched/lycanthropic-aspect"]),
+                (level: 1, features: ["shifter/shifter-claws", "shifter/weretouched/lycanthropic-aspect"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"]),
                 (level: 2, features: ["shifter/defensive-instinct", "shifter/weretouched/lycanthrophic-tracker"]),
                 (level: 3, features: ["shifter/weretouched/shifter-claws-cold-iron-magic-and-silver"]),
                 (level: 4, features: ["shifter/weretouched/major-lycanthrophic-form"]),

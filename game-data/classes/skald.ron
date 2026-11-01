@@ -28,7 +28,7 @@ Class(
         (key: "skald/well-versed", name: "Well Versed", guide: "skald"),
     ],
     levels: [
-        (level: 1, arcane_spell_level: 1, features: ["skald/bardic-knowledge", "skald/inspired-rage", "skald/raging-song", "skald/skald-proficiencies"], feat_slots: [Category(Magic), OneOf(feats: ["scribe-scrolls"], ignores_prerequisites: true)]),
+        (level: 1, arcane_spell_level: 1, features: ["skald/bardic-knowledge", "skald/inspired-rage", "skald/raging-song", "skald/skald-proficiencies"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "scribe-scrolls", "shield-proficiency", "simple-weapon-proficiency"], feat_slots: [Category(Magic)]),
         (level: 2, arcane_spell_level: 1, features: ["skald/skald-talents", "skald/well-versed"]),
         (level: 3, arcane_spell_level: 1, features: ["skald/rage-powers"]),
         (level: 4, arcane_spell_level: 2, features: ["skald/uncanny-dodge"]),
@@ -65,7 +65,7 @@ Class(
                 (key: "skald/battle-scion/well-versed", name: "Well Versed", guide: "skald#battle-scion"),
             ],
             levels: [
-                (level: 1, features: ["skald/battle-scion/bardic-knowledge-battle-scion", "skald/battle-scion/courtly-presence", "skald/inspired-rage", "skald/skald-proficiencies"], feat_slots: [Category(Magic), OneOf(feats: ["scribe-scrolls"], ignores_prerequisites: true)]),
+                (level: 1, features: ["skald/battle-scion/bardic-knowledge-battle-scion", "skald/battle-scion/courtly-presence", "skald/inspired-rage", "skald/skald-proficiencies"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "scribe-scrolls", "shield-proficiency", "simple-weapon-proficiency"], feat_slots: [Category(Magic)]),
                 (level: 2, features: ["skald/battle-scion/well-versed", "skald/skald-talents"]),
                 (level: 3, features: ["skald/battle-scion/battle-prowess"]),
                 (level: 4, features: ["skald/battle-scion/uncanny-dodge"]),
@@ -95,7 +95,7 @@ Class(
                 (key: "skald/battle-singer/well-versed", name: "Well Versed", guide: "skald#battle-singer"),
             ],
             levels: [
-                (level: 1, features: ["skald/battle-singer/bardic-knowledge", "skald/inspired-rage", "skald/raging-song", "skald/skald-proficiencies"], feat_slots: [Category(Magic), OneOf(feats: ["scribe-scrolls"], ignores_prerequisites: true)]),
+                (level: 1, features: ["skald/battle-singer/bardic-knowledge", "skald/inspired-rage", "skald/raging-song", "skald/skald-proficiencies"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "scribe-scrolls", "shield-proficiency", "simple-weapon-proficiency"], feat_slots: [Category(Magic)]),
                 (level: 2, features: ["skald/battle-singer/well-versed", "skald/skald-talents"]),
                 (level: 3, features: ["skald/battle-singer/battle-song-first-verse"]),
                 (level: 4, features: ["skald/battle-singer/uncanny-dodge"]),
@@ -122,7 +122,7 @@ Class(
                 (key: "skald/court-poet/uncanny-dodge", name: "Uncanny Dodge", guide: "skald#court-poet"),
             ],
             levels: [
-                (level: 1, features: ["skald/court-poet/bardic-knowledge", "skald/court-poet/insightful-contemplation", "skald/raging-song", "skald/skald-proficiencies"], feat_slots: [Category(Magic), OneOf(feats: ["scribe-scrolls"], ignores_prerequisites: true)]),
+                (level: 1, features: ["skald/court-poet/bardic-knowledge", "skald/court-poet/insightful-contemplation", "skald/raging-song", "skald/skald-proficiencies"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "scribe-scrolls", "shield-proficiency", "simple-weapon-proficiency"], feat_slots: [Category(Magic)]),
                 (level: 2, features: ["skald/court-poet/handling-the-crowd", "skald/skald-talents"]),
                 (level: 3),
                 (level: 4, features: ["skald/court-poet/insightful-spell", "skald/court-poet/uncanny-dodge"]),
@@ -155,7 +155,7 @@ Class(
                 (key: "skald/demon-dancer/well-versed", name: "Well Versed", guide: "skald#demon-dancer"),
             ],
             levels: [
-                (level: 1, features: ["skald/demon-dancer/bardic-knowledge", "skald/inspired-rage", "skald/raging-song", "skald/skald-proficiencies"], feat_slots: [Category(Magic), OneOf(feats: ["scribe-scrolls"], ignores_prerequisites: true)]),
+                (level: 1, features: ["skald/demon-dancer/bardic-knowledge", "skald/inspired-rage", "skald/raging-song", "skald/skald-proficiencies"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "scribe-scrolls", "shield-proficiency", "simple-weapon-proficiency"], feat_slots: [Category(Magic)]),
                 (level: 2, features: ["skald/demon-dancer/well-versed", "skald/skald-talents"]),
                 (level: 3, features: ["skald/demon-dancer/fiendish-maw"]),
                 (level: 4, features: ["skald/demon-dancer/uncanny-dodge"]),
@@ -181,7 +181,7 @@ Class(
                 (key: "skald/herald-of-the-horn/well-versed", name: "Well Versed", guide: "skald#herald-of-the-horn"),
             ],
             levels: [
-                (level: 1, features: ["skald/herald-of-the-horn/arcane-bond-object", "skald/herald-of-the-horn/bardic-knowledge", "skald/inspired-rage", "skald/skald-proficiencies"], feat_slots: [Category(Magic), OneOf(feats: ["scribe-scrolls"], ignores_prerequisites: true)]),
+                (level: 1, features: ["skald/herald-of-the-horn/arcane-bond-object", "skald/herald-of-the-horn/bardic-knowledge", "skald/inspired-rage", "skald/skald-proficiencies"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "scribe-scrolls", "shield-proficiency", "simple-weapon-proficiency"], feat_slots: [Category(Magic)]),
                 (level: 2, features: ["skald/herald-of-the-horn/well-versed", "skald/skald-talents"]),
                 (level: 4, features: ["skald/herald-of-the-horn/uncanny-dodge"]),
                 (level: 7, features: ["skald/herald-of-the-horn/horn-call", "skald/raging-song-move-action", "skald/skald-talents"]),
@@ -208,7 +208,7 @@ Class(
                 (key: "skald/hunt-caller/uncanny-dodge", name: "Uncanny Dodge", guide: "skald#hunt-caller"),
             ],
             levels: [
-                (level: 1, features: ["skald/hunt-caller/bardic-knowledge", "skald/inspired-rage", "skald/raging-song", "skald/skald-proficiencies"], feat_slots: [Category(Magic), OneOf(feats: ["scribe-scrolls"], ignores_prerequisites: true)]),
+                (level: 1, features: ["skald/hunt-caller/bardic-knowledge", "skald/inspired-rage", "skald/raging-song", "skald/skald-proficiencies"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "scribe-scrolls", "shield-proficiency", "simple-weapon-proficiency"], feat_slots: [Category(Magic)]),
                 (level: 2, features: ["skald/skald-talents"]),
                 (level: 4, features: ["skald/hunt-caller/uncanny-dodge"]),
                 (level: 6, features: ["skald/hunt-caller/inspire-scent", "skald/hunt-caller/scent"]),
@@ -236,7 +236,7 @@ Class(
                 (key: "skald/inciter/uncanny-dodge", name: "Uncanny Dodge", guide: "skald#inciter"),
             ],
             levels: [
-                (level: 1, features: ["skald/inciter/insult", "skald/inciter/mind-games", "skald/inciter/serpents-tongue", "skald/inspired-rage", "skald/skald-proficiencies"], feat_slots: [Category(Magic)]),
+                (level: 1, features: ["skald/inciter/insult", "skald/inciter/mind-games", "skald/inciter/serpents-tongue", "skald/inspired-rage", "skald/skald-proficiencies"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], feat_slots: [Category(Magic)]),
                 (level: 2, features: ["skald/inciter/sneak-attack"]),
                 (level: 4, features: ["skald/inciter/uncanny-dodge", "skald/skald-talents"]),
                 (level: 6, features: ["skald/rage-powers"]),

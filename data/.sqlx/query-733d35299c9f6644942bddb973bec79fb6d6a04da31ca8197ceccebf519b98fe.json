@@ -14,7 +14,14 @@
           }
         },
         "Text",
-        "Text",
+        {
+          "Custom": {
+            "name": "mythic_feat_group",
+            "kind": {
+              "Domain": "Text"
+            }
+          }
+        },
         "Text",
         "Text",
         "Int8"

@@ -4,10 +4,14 @@
 //! Keys carry no type prefix, so a reference must exist as its own kind: a feature called `trick` doesn't satisfy
 //! a reference to a feat called `trick`.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
-use rules::{DataAt, FeatSlot, Feature, FeatureSelection, GameData, Prerequisite};
+use rules::{
+    DataAt, FeatKey, FeatSlot, Feature, FeatureSelection, GameData, Prerequisite,
+    SelectionOptionKey,
+};
 
+use crate::feat_lists::PendingLists;
 use crate::report::{Kind, Report};
 
 /// Every defined key, with its kind.
@@ -131,9 +135,17 @@ fn keys(data: &GameData) -> Keys {
     Keys { all }
 }
 
-fn prune_slots(keys: &Keys, slots: &mut Vec<FeatSlot>, at: &str, report: &mut Report) {
+fn prune_slots(
+    keys: &Keys,
+    lists: &mut PendingLists,
+    slots: &mut Vec<FeatSlot>,
+    at: &str,
+    report: &mut Report,
+) {
     slots.retain_mut(|slot| {
-        if let FeatSlot::OneOf { feats, .. } = slot {
+        if let FeatSlot::OneOf { list } = slot
+            && let Some(feats) = lists.feats_mut(list)
+        {
             feats.retain(|feat| keys.has(DataAt::Feat(feat.clone())));
             if feats.is_empty() {
                 report.add(
@@ -169,8 +181,9 @@ fn prune_prerequisite(
     }
 }
 
-/// Drops every reference to a key the data doesn't define, reporting each.
-pub fn drop_dangling(data: &mut GameData, report: &mut Report) {
+/// Drops every reference to a key the data doesn't define, reporting each. Feat lists are still pending: their
+/// feats are pruned in `lists`.
+pub fn drop_dangling(data: &mut GameData, lists: &mut PendingLists, report: &mut Report) {
     let keys = keys(data);
     for feat in &mut data.feats {
         prune_prerequisite(&keys, &mut feat.prerequisite, &feat.guide.0, report);
@@ -188,7 +201,8 @@ pub fn drop_dangling(data: &mut GameData, report: &mut Report) {
                 .retain(|key| keys.has(DataAt::Feature(key.clone())));
             row.selections
                 .retain(|key| keys.has(DataAt::FeatureSelection(key.clone())));
-            prune_slots(&keys, &mut row.feat_slots, &class.guide.0, report);
+            row.feats.retain(|key| keys.has(DataAt::Feat(key.clone())));
+            prune_slots(&keys, lists, &mut row.feat_slots, &class.guide.0, report);
         }
         for selection in &mut class.selections {
             for option in &mut selection.options {
@@ -211,7 +225,14 @@ pub fn drop_dangling(data: &mut GameData, report: &mut Report) {
                     .retain(|key| keys.has(DataAt::Feature(key.clone())));
                 row.selections
                     .retain(|key| keys.has(DataAt::FeatureSelection(key.clone())));
-                prune_slots(&keys, &mut row.feat_slots, &archetype.guide.0, report);
+                row.feats.retain(|key| keys.has(DataAt::Feat(key.clone())));
+                prune_slots(
+                    &keys,
+                    lists,
+                    &mut row.feat_slots,
+                    &archetype.guide.0,
+                    report,
+                );
             }
             for selection in &mut archetype.selections {
                 for option in &mut selection.options {
@@ -230,12 +251,103 @@ pub fn drop_dangling(data: &mut GameData, report: &mut Report) {
                 .retain(|key| keys.has(DataAt::Feature(key.clone())));
             row.selections
                 .retain(|key| keys.has(DataAt::FeatureSelection(key.clone())));
-            prune_slots(&keys, &mut row.feat_slots, &path.guide.0, report);
+            prune_slots(&keys, lists, &mut row.feat_slots, &path.guide.0, report);
         }
         for selection in &mut path.selections {
             for option in &mut selection.options {
                 prune_prerequisite(&keys, &mut option.prerequisite, &option.guide.0, report);
             }
         }
+    }
+}
+
+/// In an `Any`, an option that grants a feat the same `Any` names adds nothing: holding the option holds the feat
+/// (a rogue talent "Weapon Focus" beside the feat Weapon Focus). Drops such options; an `Any` left with one
+/// condition becomes it.
+pub fn drop_redundant_alternatives(data: &mut GameData) {
+    let mut option_feats: BTreeMap<SelectionOptionKey, FeatKey> = BTreeMap::new();
+    let classes = data.classes.iter().chain(&data.prestige_classes);
+    let selections = classes
+        .flat_map(|class| {
+            class
+                .selections
+                .iter()
+                .chain(class.archetypes.iter().flat_map(|a| &a.selections))
+        })
+        .chain(data.mythic_paths.iter().flat_map(|path| &path.selections));
+    for selection in selections {
+        for option in &selection.options {
+            if let Some(feat) = &option.feat {
+                option_feats.insert(option.key.clone(), feat.clone());
+            }
+        }
+    }
+    let mut prerequisites: Vec<&mut Option<Prerequisite>> = Vec::new();
+    prerequisites.extend(data.feats.iter_mut().map(|f| &mut f.prerequisite));
+    prerequisites.extend(
+        data.mythic_abilities
+            .iter_mut()
+            .map(|a| &mut a.prerequisite),
+    );
+    prerequisites.extend(data.mythic_feats.iter_mut().map(|f| &mut f.prerequisite));
+    for class in data.classes.iter_mut().chain(&mut data.prestige_classes) {
+        prerequisites.push(&mut class.prerequisite);
+        for selection in &mut class.selections {
+            prerequisites.extend(selection.options.iter_mut().map(|o| &mut o.prerequisite));
+        }
+        for archetype in &mut class.archetypes {
+            prerequisites.push(&mut archetype.prerequisite);
+            for selection in &mut archetype.selections {
+                prerequisites.extend(selection.options.iter_mut().map(|o| &mut o.prerequisite));
+            }
+        }
+    }
+    for path in &mut data.mythic_paths {
+        for selection in &mut path.selections {
+            prerequisites.extend(selection.options.iter_mut().map(|o| &mut o.prerequisite));
+        }
+    }
+    for prerequisite in prerequisites {
+        if let Some(taken) = prerequisite.take() {
+            *prerequisite = Some(without_redundant(taken, &option_feats));
+        }
+    }
+}
+
+fn without_redundant(
+    prerequisite: Prerequisite,
+    option_feats: &BTreeMap<SelectionOptionKey, FeatKey>,
+) -> Prerequisite {
+    let children = |children: Vec<Prerequisite>| -> Vec<Prerequisite> {
+        children
+            .into_iter()
+            .map(|child| without_redundant(child, option_feats))
+            .collect()
+    };
+    match prerequisite {
+        Prerequisite::All(list) => Prerequisite::All(children(list)),
+        Prerequisite::AtLeast(n, list) => Prerequisite::AtLeast(n, children(list)),
+        Prerequisite::Any(list) => {
+            let list = children(list);
+            let feats: BTreeSet<&FeatKey> = list
+                .iter()
+                .filter_map(|child| match child {
+                    Prerequisite::Feat(feat) => Some(feat),
+                    _ => None,
+                })
+                .collect();
+            let redundant = |child: &Prerequisite| {
+                matches!(child, Prerequisite::SelectionOption(option)
+                    if option_feats.get(option).is_some_and(|feat| feats.contains(feat)))
+            };
+            let mut kept: Vec<Prerequisite> =
+                list.iter().filter(|c| !redundant(c)).cloned().collect();
+            if kept.len() == 1 {
+                kept.pop().expect("one")
+            } else {
+                Prerequisite::Any(kept)
+            }
+        }
+        leaf => leaf,
     }
 }

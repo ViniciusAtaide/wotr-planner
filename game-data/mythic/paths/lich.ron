@@ -3,9 +3,10 @@ MythicPath(
     name: "Lich",
     guide: "lich",
     features: [
-        (key: "lich/bypass-epic-dr", name: "Bypass Epic DR", guide: "lich"),
+        (key: "lich/bypass-epic-damage-reduction", name: "Bypass Epic Damage Reduction", guide: "mythic-paths#bypass-epic-damage-reduction"),
         (key: "lich/danse-macabre", name: "Danse Macabre", guide: "lich#danse-macabre"),
         (key: "lich/dark-rites", name: "Dark Rites", guide: "lich#dark-rites"),
+        (key: "lich/hard-to-kill", name: "Hard to Kill", guide: "mythic-paths#hard-to-kill"),
         (key: "lich/lord-beyond-the-grave", name: "Lord Beyond the Grave", guide: "lich#lord-beyond-the-grave"),
         (key: "lich/negative-energy-insight", name: "Negative Energy Insight", guide: "lich#negative-energy-insight"),
         (key: "lich/summon-ecorche", name: "Summon Ecorche", guide: "lich#summon-ecorche"),
@@ -64,8 +65,8 @@ MythicPath(
         ),
     ],
     ranks: [
-        (rank: 1, features: ["lich/bypass-epic-dr", "lich/danse-macabre"]),
-        (rank: 2, features: ["lich/negative-energy-insight", "lich/summon-spectre", "mythic/hard-to-kill"]),
+        (rank: 1, features: ["lich/bypass-epic-damage-reduction", "lich/danse-macabre"]),
+        (rank: 2, features: ["lich/negative-energy-insight", "lich/summon-spectre", "lich/hard-to-kill"]),
         (rank: 3, features: ["lich/summon-fallen"], selections: ["lich/lich-powers", "lich/skeletal-champion"]),
         (rank: 4, features: ["lich/lord-beyond-the-grave", "lich/summon-plague-beast-mastodon"], selections: ["lich/skeleton-upgrade"]),
         (rank: 5, features: ["lich/dark-rites", "lich/summon-plague-beast-mastodons"]),

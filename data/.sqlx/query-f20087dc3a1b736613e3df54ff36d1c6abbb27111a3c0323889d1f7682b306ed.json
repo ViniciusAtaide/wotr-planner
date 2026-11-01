@@ -1,0 +1,27 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO feat_list\n                (key, class_key, archetype_key, path_key, name, guide, ignores_prerequisites)\n            VALUES ($1, $2, $3, $4, $5, $6, $7)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        {
+          "Custom": {
+            "name": "text_key",
+            "kind": {
+              "Domain": "Text"
+            }
+          }
+        },
+        "Text",
+        "Text",
+        "Text",
+        "Text",
+        "Text",
+        "Bool"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "f20087dc3a1b736613e3df54ff36d1c6abbb27111a3c0323889d1f7682b306ed"
+}

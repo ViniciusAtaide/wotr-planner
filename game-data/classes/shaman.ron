@@ -12,7 +12,6 @@ Class(
         (key: "shaman/greater-spirit-ability", name: "Greater Spirit Ability", guide: "shaman"),
         (key: "shaman/manifestation", name: "Manifestation", guide: "shaman#manifestation"),
         (key: "shaman/orisons", name: "Orisons", guide: "shaman"),
-        (key: "shaman/shaman-proficiencies", name: "Shaman Proficiencies", guide: "shaman#shaman-proficiencies"),
         (key: "shaman/spirit", name: "Spirit", guide: "shaman#spirit"),
         (key: "shaman/spirit-ability", name: "Spirit Ability", guide: "shaman"),
         (key: "shaman/spirit-animal", name: "Spirit Animal", guide: "shaman#spirit-animal"),
@@ -82,7 +81,7 @@ Class(
         ),
     ],
     levels: [
-        (level: 1, divine_spell_level: 1, features: ["shaman/orisons", "shaman/shaman-proficiencies", "shaman/spirit", "shaman/spirit-ability", "shaman/spirit-animal"], selections: ["shaman/spirit"]),
+        (level: 1, divine_spell_level: 1, features: ["shaman/orisons", "shaman/spirit", "shaman/spirit-ability", "shaman/spirit-animal"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "simple-weapon-proficiency"], selections: ["shaman/spirit"]),
         (level: 2, divine_spell_level: 1, selections: ["shaman/hex"]),
         (level: 3, divine_spell_level: 2),
         (level: 4, divine_spell_level: 2, features: ["shaman/wandering-spirit"], selections: ["shaman/hex"]),
@@ -120,7 +119,7 @@ Class(
                 (key: "shaman/possessed-shaman/wandering-spirit-true-ability", name: "Wandering Spirit - True Ability", guide: "shaman#possessed-shaman"),
             ],
             levels: [
-                (level: 1, features: ["shaman/possessed-shaman/orisons", "shaman/possessed-shaman/shared-skills", "shaman/possessed-shaman/spirit-ability", "shaman/shaman-proficiencies", "shaman/spirit", "shaman/spirit-animal"], selections: ["shaman/spirit"]),
+                (level: 1, features: ["shaman/possessed-shaman/orisons", "shaman/possessed-shaman/shared-skills", "shaman/possessed-shaman/spirit-ability", "shaman/spirit", "shaman/spirit-animal"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "simple-weapon-proficiency"], selections: ["shaman/spirit"]),
                 (level: 2, features: ["shaman/possessed-shaman/crowded-vessel"]),
                 (level: 6, features: ["shaman/possessed-shaman/wandering-skills"]),
                 (level: 8, features: ["shaman/possessed-shaman/greater-spirit-ability"], selections: ["shaman/hex"]),
@@ -176,7 +175,7 @@ Class(
                 ),
             ],
             levels: [
-                (level: 1, features: ["shaman/prophet-of-pestilence/orisons", "shaman/prophet-of-pestilence/pestilence-spirit", "shaman/prophet-of-pestilence/plagues-caress", "shaman/shaman-proficiencies"]),
+                (level: 1, features: ["shaman/prophet-of-pestilence/orisons", "shaman/prophet-of-pestilence/pestilence-spirit", "shaman/prophet-of-pestilence/plagues-caress"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "simple-weapon-proficiency"]),
                 (level: 2, features: ["shaman/prophet-of-pestilence/plague-of-abaddon"], selections: ["shaman/prophet-of-pestilence/carrier-of-disease"]),
                 (level: 4, features: ["shaman/prophet-of-pestilence/mutating-spirit"], selections: ["shaman/hex"]),
                 (level: 6, selections: ["shaman/prophet-of-pestilence/carrier-of-disease"]),
@@ -202,7 +201,7 @@ Class(
                 (key: "shaman/shadow-shaman/true-spirit-ability", name: "True Spirit Ability", guide: "shaman#shadow-shaman"),
             ],
             levels: [
-                (level: 1, features: ["shaman/shadow-shaman/orisons", "shaman/shadow-shaman/spirit-ability", "shaman/shaman-proficiencies", "shaman/spirit", "shaman/spirit-animal"], selections: ["shaman/spirit"]),
+                (level: 1, features: ["shaman/shadow-shaman/orisons", "shaman/shadow-shaman/spirit-ability", "shaman/spirit", "shaman/spirit-animal"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "simple-weapon-proficiency"], selections: ["shaman/spirit"]),
                 (level: 3, features: ["shaman/shadow-shaman/sneak-attack"]),
                 (level: 4, features: ["shaman/shadow-shaman/shadows"]),
                 (level: 6, features: ["shaman/shadow-shaman/sneak-attack"]),
@@ -229,7 +228,7 @@ Class(
                 (key: "shaman/spirit-hunter/true-spirit-ability", name: "True Spirit Ability", guide: "shaman#spirit-hunter"),
             ],
             levels: [
-                (level: 1, features: ["shaman/shaman-proficiencies", "shaman/spirit", "shaman/spirit-hunter/object-bond", "shaman/spirit-hunter/orisons", "shaman/spirit-hunter/spirit-ability", "shaman/spirit-hunter/spirit-weapon-enchantment"], selections: ["shaman/spirit"]),
+                (level: 1, features: ["shaman/spirit", "shaman/spirit-hunter/object-bond", "shaman/spirit-hunter/orisons", "shaman/spirit-hunter/spirit-ability", "shaman/spirit-hunter/spirit-weapon-enchantment"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "simple-weapon-proficiency"], selections: ["shaman/spirit"]),
                 (level: 4, selections: ["shaman/hex"]),
                 (level: 6),
                 (level: 8, features: ["shaman/spirit-hunter/greater-spirit-ability"], selections: ["shaman/hex"]),
@@ -256,7 +255,7 @@ Class(
                 (key: "shaman/spirit-warden/wandering-spirit-true-ability", name: "Wandering Spirit - True Ability", guide: "shaman#spirit-warden"),
             ],
             levels: [
-                (level: 1, features: ["shaman/shaman-proficiencies", "shaman/spirit", "shaman/spirit-animal", "shaman/spirit-warden/orisons", "shaman/spirit-warden/restless-magic", "shaman/spirit-warden/spirit-ability", "shaman/spirit-warden/unnatural-mien"], selections: ["shaman/spirit"]),
+                (level: 1, features: ["shaman/spirit", "shaman/spirit-animal", "shaman/spirit-warden/orisons", "shaman/spirit-warden/restless-magic", "shaman/spirit-warden/spirit-ability", "shaman/spirit-warden/unnatural-mien"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "simple-weapon-proficiency"], selections: ["shaman/spirit"]),
                 (level: 2, features: ["shaman/spirit-warden/rebuke-spirits"]),
                 (level: 8, features: ["shaman/spirit-warden/greater-spirit-ability"], selections: ["shaman/hex"]),
                 (level: 10, features: ["shaman/spirit-warden/laugh-at-death"]),
@@ -279,7 +278,7 @@ Class(
                 (key: "shaman/unsworn-shaman/wandering-spirit-true-ability", name: "Wandering Spirit - True Ability", guide: "shaman#unsworn-shaman"),
             ],
             levels: [
-                (level: 1, features: ["shaman/shaman-proficiencies", "shaman/spirit-animal", "shaman/unsworn-shaman/minor-spirit", "shaman/unsworn-shaman/orisons"]),
+                (level: 1, features: ["shaman/spirit-animal", "shaman/unsworn-shaman/minor-spirit", "shaman/unsworn-shaman/orisons"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "simple-weapon-proficiency"]),
                 (level: 2, features: ["shaman/wandering-spirit"]),
                 (level: 4, features: ["shaman/unsworn-shaman/minor-spirit"]),
                 (level: 6, features: ["shaman/unsworn-shaman/wandering-spirit-2"]),
@@ -306,7 +305,7 @@ Class(
                 (key: "shaman/wildland-shaman/paragon-of-battle", name: "Paragon of Battle", guide: "shaman#wildland-shaman"),
             ],
             levels: [
-                (level: 1, features: ["shaman/shaman-proficiencies", "shaman/wildland-shaman/animal-companion", "shaman/wildland-shaman/battle-spirit", "shaman/wildland-shaman/orisons"]),
+                (level: 1, features: ["shaman/wildland-shaman/animal-companion", "shaman/wildland-shaman/battle-spirit", "shaman/wildland-shaman/orisons"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "simple-weapon-proficiency"]),
                 (level: 4, selections: ["shaman/hex"]),
                 (level: 6, features: ["shaman/wildland-shaman/battle-hex"]),
                 (level: 8, features: ["shaman/wildland-shaman/enemies-bane"], selections: ["shaman/hex"]),
@@ -331,7 +330,7 @@ Class(
                 (key: "shaman/witch-doctor/wandering-spirit-true-ability", name: "Wandering Spirit - True Ability", guide: "shaman#witch-doctor"),
             ],
             levels: [
-                (level: 1, features: ["shaman/shaman-proficiencies", "shaman/spirit", "shaman/spirit-animal", "shaman/witch-doctor/orisons", "shaman/witch-doctor/spirit-ability"], selections: ["shaman/spirit"]),
+                (level: 1, features: ["shaman/spirit", "shaman/spirit-animal", "shaman/witch-doctor/orisons", "shaman/witch-doctor/spirit-ability"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "simple-weapon-proficiency"], selections: ["shaman/spirit"]),
                 (level: 4, features: ["shaman/wandering-spirit", "shaman/witch-doctor/channel-energy"]),
                 (level: 8, features: ["shaman/witch-doctor/counter-curse", "shaman/witch-doctor/greater-spirit-ability"]),
                 (level: 12, features: ["shaman/witch-doctor/wandering-spirit-greater-ability"], selections: ["shaman/hex"]),

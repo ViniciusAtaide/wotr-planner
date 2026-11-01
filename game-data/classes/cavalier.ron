@@ -11,7 +11,6 @@ Class(
     features: [
         (key: "cavalier/animal-companion", name: "Animal Companion", guide: "cavalier#animal-companion"),
         (key: "cavalier/banner", name: "Banner", guide: "cavalier#banner"),
-        (key: "cavalier/cavalier-proficiencies", name: "Cavalier Proficiencies", guide: "cavalier#cavalier-proficiencies"),
         (key: "cavalier/cavaliers-charge", name: "Cavalier\'s Charge", guide: "cavalier#cavaliers-charge"),
         (key: "cavalier/challenge", name: "Challenge", guide: "cavalier#challenge"),
         (key: "cavalier/demanding-challenge", name: "Demanding Challenge", guide: "cavalier#demanding-challenge"),
@@ -24,7 +23,7 @@ Class(
         (key: "cavalier/tactician", name: "Tactician", guide: "cavalier#tactician"),
     ],
     levels: [
-        (level: 1, features: ["cavalier/animal-companion", "cavalier/cavalier-proficiencies", "cavalier/challenge", "cavalier/order", "cavalier/tactician"], feat_slots: [Category(Teamwork)]),
+        (level: 1, features: ["cavalier/animal-companion", "cavalier/challenge", "cavalier/order", "cavalier/tactician"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], feat_slots: [Category(Teamwork)]),
         (level: 2, features: ["cavalier/order-ability"]),
         (level: 3, features: ["cavalier/cavaliers-charge"]),
         (level: 4),
@@ -52,11 +51,10 @@ Class(
             guide: "cavalier#beast-rider",
             features: [
                 (key: "cavalier/beast-rider/animal-companion-beast-rider", name: "Animal Companion (Beast Rider)", guide: "cavalier#animal-companion-beast-rider"),
-                (key: "cavalier/beast-rider/beast-rider-proficiencies", name: "Beast Rider Proficiencies", guide: "cavalier#beast-rider-proficiencies"),
                 (key: "cavalier/beast-rider/order-ability", name: "Order Ability", guide: "cavalier#beast-rider"),
             ],
             levels: [
-                (level: 1, features: ["cavalier/beast-rider/animal-companion-beast-rider", "cavalier/beast-rider/beast-rider-proficiencies", "cavalier/challenge", "cavalier/order", "cavalier/tactician"], feat_slots: [Category(Teamwork)]),
+                (level: 1, features: ["cavalier/beast-rider/animal-companion-beast-rider", "cavalier/challenge", "cavalier/order", "cavalier/tactician"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], feat_slots: [Category(Teamwork)]),
                 (level: 2, features: ["cavalier/beast-rider/order-ability"]),
                 (level: 8, features: ["cavalier/beast-rider/order-ability"]),
                 (level: 15, features: ["cavalier/beast-rider/order-ability"]),
@@ -73,7 +71,7 @@ Class(
                 (key: "cavalier/cavalier-of-the-paw/giant-slayer", name: "Giant Slayer", guide: "cavalier#giant-slayer"),
             ],
             levels: [
-                (level: 1, features: ["cavalier/animal-companion", "cavalier/cavalier-proficiencies", "cavalier/challenge", "cavalier/tactician"], feat_slots: [Category(Teamwork)]),
+                (level: 1, features: ["cavalier/animal-companion", "cavalier/challenge", "cavalier/tactician"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], feat_slots: [Category(Teamwork)]),
                 (level: 2, features: ["cavalier/cavalier-of-the-paw/danger-ward"]),
                 (level: 8, features: ["cavalier/cavalier-of-the-paw/canine-ferocity"], feat_slots: [Category(MountedCombat)]),
                 (level: 15, features: ["cavalier/cavalier-of-the-paw/giant-slayer"]),
@@ -93,7 +91,7 @@ Class(
                 (key: "cavalier/disciple-of-the-pike/weapon-training-spears-polearms", name: "Weapon Training (Spears / Polearms)", guide: "cavalier#weapon-training-spears-polearms"),
             ],
             levels: [
-                (level: 1, features: ["cavalier/cavalier-proficiencies", "cavalier/challenge", "cavalier/disciple-of-the-pike/bigger-they-are", "cavalier/order", "cavalier/tactician"], feat_slots: [Category(Teamwork)]),
+                (level: 1, features: ["cavalier/challenge", "cavalier/disciple-of-the-pike/bigger-they-are", "cavalier/order", "cavalier/tactician"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], feat_slots: [Category(Teamwork)]),
                 (level: 2, features: ["cavalier/disciple-of-the-pike/order-ability"]),
                 (level: 3, features: ["cavalier/disciple-of-the-pike/pike-charge"]),
                 (level: 4, features: ["cavalier/disciple-of-the-pike/monster-hunter"]),
@@ -115,7 +113,7 @@ Class(
                 (key: "cavalier/fearsome-leader/order-ability", name: "Order Ability", guide: "cavalier#fearsome-leader"),
             ],
             levels: [
-                (level: 1, features: ["cavalier/animal-companion", "cavalier/cavalier-proficiencies", "cavalier/challenge", "cavalier/fearsome-leader/fearsome-inspiration", "cavalier/order"], feat_slots: [OneOf(feats: ["dazzling-display"], ignores_prerequisites: true)]),
+                (level: 1, features: ["cavalier/animal-companion", "cavalier/challenge", "cavalier/fearsome-leader/fearsome-inspiration", "cavalier/order"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "dazzling-display", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
                 (level: 2, features: ["cavalier/fearsome-leader/order-ability"]),
                 (level: 3, features: ["cavalier/cavaliers-charge", "cavalier/fearsome-leader/fearmonger"]),
                 (level: 8, features: ["cavalier/fearsome-leader/order-ability"]),
@@ -133,7 +131,7 @@ Class(
                 (key: "cavalier/gendarme/transfixing-charge", name: "Transfixing Charge", guide: "cavalier#transfixing-charge"),
             ],
             levels: [
-                (level: 1, features: ["cavalier/animal-companion", "cavalier/cavalier-proficiencies", "cavalier/challenge", "cavalier/order"], feat_slots: [CombatFeat]),
+                (level: 1, features: ["cavalier/animal-companion", "cavalier/challenge", "cavalier/order"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], feat_slots: [CombatFeat]),
                 (level: 2, features: ["cavalier/gendarme/order-ability"]),
                 (level: 3, features: ["cavalier/cavaliers-charge"], feat_slots: [CombatFeat]),
                 (level: 8, features: ["cavalier/gendarme/order-ability"]),
@@ -148,7 +146,6 @@ Class(
             name: "Ghost Rider",
             guide: "cavalier#ghost-rider",
             features: [
-                (key: "cavalier/ghost-rider/cavleier-proficiencies", name: "Cavleier Proficiencies", guide: "cavalier#ghost-rider"),
                 (key: "cavalier/ghost-rider/etheric-tether", name: "Etheric Tether", guide: "cavalier#etheric-tether"),
                 (key: "cavalier/ghost-rider/frightful-gaze", name: "Frightful Gaze", guide: "cavalier#frightful-gaze"),
                 (key: "cavalier/ghost-rider/ghost-mount", name: "Ghost Mount", guide: "cavalier#ghost-mount"),
@@ -160,7 +157,7 @@ Class(
                 (key: "cavalier/ghost-rider/spiritual-bond", name: "Spiritual Bond", guide: "cavalier#spiritual-bond"),
             ],
             levels: [
-                (level: 1, features: ["cavalier/challenge", "cavalier/ghost-rider/cavleier-proficiencies", "cavalier/ghost-rider/etheric-tether", "cavalier/ghost-rider/frightful-gaze", "cavalier/ghost-rider/ghost-mount", "cavalier/order"]),
+                (level: 1, features: ["cavalier/challenge", "cavalier/ghost-rider/etheric-tether", "cavalier/ghost-rider/frightful-gaze", "cavalier/ghost-rider/ghost-mount", "cavalier/order"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
                 (level: 2, features: ["cavalier/ghost-rider/order-ability"]),
                 (level: 3, features: ["cavalier/ghost-rider/magic-attacks"]),
                 (level: 5, features: ["cavalier/ghost-rider/spirited-mount"]),
@@ -184,7 +181,7 @@ Class(
                 (key: "cavalier/knight-of-the-wall/soul-shield", name: "Soul Shield", guide: "cavalier#soul-shield"),
             ],
             levels: [
-                (level: 1, features: ["cavalier/animal-companion", "cavalier/cavalier-proficiencies", "cavalier/challenge", "cavalier/order"], feat_slots: [OneOf(feats: ["shield-focus"], ignores_prerequisites: true)]),
+                (level: 1, features: ["cavalier/animal-companion", "cavalier/challenge", "cavalier/order"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-focus", "shield-proficiency", "simple-weapon-proficiency"]),
                 (level: 2, features: ["cavalier/knight-of-the-wall/order-ability"]),
                 (level: 4, features: ["cavalier/knight-of-the-wall/deflective-shield"]),
                 (level: 8, features: ["cavalier/knight-of-the-wall/order-ability"]),
@@ -205,7 +202,7 @@ Class(
                 (key: "cavalier/standard-bearer/order-ability", name: "Order Ability", guide: "cavalier#standard-bearer"),
             ],
             levels: [
-                (level: 1, features: ["cavalier/cavalier-proficiencies", "cavalier/challenge", "cavalier/order", "cavalier/standard-bearer/banner-standard-bearer", "cavalier/tactician"], feat_slots: [Category(Teamwork)]),
+                (level: 1, features: ["cavalier/challenge", "cavalier/order", "cavalier/standard-bearer/banner-standard-bearer", "cavalier/tactician"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], feat_slots: [Category(Teamwork)]),
                 (level: 2, features: ["cavalier/standard-bearer/order-ability"]),
                 (level: 5, features: ["cavalier/standard-bearer/animal-companion-standard-bearer"]),
                 (level: 8, features: ["cavalier/standard-bearer/order-ability"]),

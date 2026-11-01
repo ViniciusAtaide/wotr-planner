@@ -3,9 +3,9 @@
 use std::collections::BTreeSet;
 
 use rules::{
-    ArchetypeKey, ArchetypeLevelRow, ClassKey, DataAt, DataIssue, DataProblem, FeatKey, FeatSlot,
-    FeatureKey, FeatureSelectionKey, GameData, MythicPathKey, Prerequisite, RaceKey, Save,
-    SaveException, SelectionOptionKey, SpellLevels,
+    ArchetypeKey, ArchetypeLevelRow, ClassKey, DataAt, DataIssue, DataProblem, FeatKey,
+    FeatListKey, FeatSlot, FeatureKey, FeatureSelectionKey, GameData, MythicPathKey, Prerequisite,
+    RaceKey, Save, SaveException, SelectionOptionKey, SpellLevels,
 };
 
 use crate::support::*;
@@ -45,6 +45,18 @@ fn the_test_world_has_no_problems() {
 
 fn at_armiger() -> DataAt {
     DataAt::Archetype(ArchetypeKey::new("fighter/armiger"))
+}
+
+fn fighter_level(data: &GameData, level: u8) -> rules::ClassLevelRow {
+    data.classes
+        .iter()
+        .find(|c| c.key.as_str() == "fighter")
+        .unwrap()
+        .levels
+        .iter()
+        .find(|row| row.level == level)
+        .unwrap()
+        .clone()
 }
 
 #[test]
@@ -89,6 +101,7 @@ fn an_archetype_row_differs_from_the_base_row() {
         level: 3,
         spell_levels: None,
         features: base_3.features.iter().rev().cloned().collect(),
+        feats: base_3.feats.clone(),
         feat_slots: base_3.feat_slots.clone(),
         selections: base_3.selections.clone(),
     });
@@ -97,6 +110,7 @@ fn an_archetype_row_differs_from_the_base_row() {
         level: 5,
         spell_levels: Some(base_5.spell_levels()),
         features: base_5.features.clone(),
+        feats: base_5.feats.clone(),
         feat_slots: base_5.feat_slots.clone(),
         selections: base_5.selections.clone(),
     });
@@ -105,9 +119,22 @@ fn an_archetype_row_differs_from_the_base_row() {
         level: 7,
         spell_levels: Some(SpellLevels::default()),
         features: vec![],
+        feats: BTreeSet::new(),
         feat_slots: vec![FeatSlot::CombatFeat],
         selections: vec![],
     });
+    // Level 9: the fighter's grants plus a granted feat, which is a difference.
+    let base_9 = fighter_level(&data, 9);
+    class_mut(&mut data, "fighter").archetypes[0]
+        .levels
+        .push(ArchetypeLevelRow {
+            level: 9,
+            spell_levels: None,
+            features: base_9.features.clone(),
+            feats: BTreeSet::from([FeatKey::new("toughness")]),
+            feat_slots: base_9.feat_slots.clone(),
+            selections: base_9.selections.clone(),
+        });
     assert_eq!(
         issues(&data),
         [
@@ -250,29 +277,126 @@ fn keys_are_unique_within_each_kind() {
     );
 }
 
-/// Keys carry no type prefix, so a feat, a feature and a selection may share one: each kind has its own table.
+/// Keys carry no type prefix, so a feature and a selection may share one (the real data's `shaman/spirit`): each
+/// kind has its own table.
 #[test]
 fn different_kinds_may_share_a_key() {
     let mut data = world();
     let rogue = class_mut(&mut data, "rogue");
     let mut talents_feature = rogue.features[0].clone();
     talents_feature.key = FeatureKey::new("rogue/rogue-talents");
-    let mut power_attack_feature = rogue.features[0].clone();
-    power_attack_feature.key = FeatureKey::new("power-attack");
-    rogue
-        .features
-        .extend([talents_feature, power_attack_feature]);
+    rogue.features.push(talents_feature);
     assert_eq!(
         rogue.selections[0].key,
         FeatureSelectionKey::new("rogue/rogue-talents")
     );
-    assert!(
-        data.feats
-            .iter()
-            .any(|f| f.key == FeatKey::new("power-attack"))
-    );
 
     assert_eq!(issues(&data), []);
+}
+
+/// What a class, archetype or path owns has a key that starts with the owner's key and a `/`.
+#[test]
+fn owned_keys_start_with_their_owners_key() {
+    let mut data = world();
+    let fighter = class_mut(&mut data, "fighter");
+    fighter.features[0].key = FeatureKey::new("power-attack");
+    // An archetype's own: under the archetype's key, not just the class's.
+    let mut stray = fighter.features[0].clone();
+    stray.key = FeatureKey::new("fighter/stray");
+    fighter.archetypes[0].features.push(stray);
+    fighter.archetypes[0].selections[0].key = FeatureSelectionKey::new("fighter/order");
+    for option in &mut fighter.archetypes[0].selections[0].options {
+        option.key = SelectionOptionKey::new(option.key.as_str().replace("armiger/", ""));
+    }
+    let trickster = data
+        .mythic_paths
+        .iter_mut()
+        .find(|p| p.key.as_str() == "trickster")
+        .unwrap();
+    trickster.features[0].key = FeatureKey::new("tricksters/tricks");
+    let monk = class_mut(&mut data, "monk");
+    monk.feat_lists[0].key = FeatListKey::new("monk-bonus-feats");
+    for row in &mut monk.levels {
+        for slot in &mut row.feat_slots {
+            *slot = FeatSlot::OneOf {
+                list: FeatListKey::new("monk-bonus-feats"),
+            };
+        }
+    }
+    assert_eq!(
+        issues(&data),
+        [
+            (
+                DataAt::Feature(FeatureKey::new("fighter/stray")),
+                DataIssue::KeyOutsideItsOwner
+            ),
+            (
+                DataAt::Feature(FeatureKey::new("power-attack")),
+                DataIssue::KeyOutsideItsOwner
+            ),
+            (
+                DataAt::Feature(FeatureKey::new("tricksters/tricks")),
+                DataIssue::KeyOutsideItsOwner
+            ),
+            (
+                DataAt::FeatureSelection(FeatureSelectionKey::new("fighter/order")),
+                DataIssue::KeyOutsideItsOwner
+            ),
+            (
+                DataAt::FeatList(FeatListKey::new("monk-bonus-feats")),
+                DataIssue::KeyOutsideItsOwner
+            ),
+        ]
+    );
+    assert_eq!(
+        DataProblem {
+            at: DataAt::Feature(FeatureKey::new("power-attack")),
+            issue: DataIssue::KeyOutsideItsOwner,
+        }
+        .to_string(),
+        "feature power-attack: the key doesn't start with its owner's key"
+    );
+}
+
+#[test]
+fn a_feat_list_holds_two_feats_or_more_and_some_slot_names_it() {
+    let mut data = world();
+    let monk = class_mut(&mut data, "monk");
+    monk.feat_lists[0].feats = BTreeSet::from([FeatKey::new("dodge")]);
+    let mut unused = monk.feat_lists[0].clone();
+    unused.key = FeatListKey::new("monk/unused");
+    unused.feats = BTreeSet::from([FeatKey::new("dodge"), FeatKey::new("toughness")]);
+    monk.feat_lists.push(unused);
+    let at = |key: &str| DataAt::FeatList(FeatListKey::new(key));
+    assert_eq!(
+        issues(&data),
+        [
+            (at("monk/bonus-feats"), DataIssue::FeatListTooShort),
+            (at("monk/unused"), DataIssue::UnusedFeatList),
+        ]
+    );
+    assert_eq!(
+        DataProblem {
+            at: at("monk/bonus-feats"),
+            issue: DataIssue::FeatListTooShort,
+        }
+        .to_string(),
+        "feat list monk/bonus-feats: a list of fewer than two feats; grant a lone feat instead"
+    );
+}
+
+#[test]
+fn feat_list_keys_are_unique_across_owners() {
+    let mut data = world();
+    let copy = class_mut(&mut data, "monk").feat_lists[0].clone();
+    class_mut(&mut data, "wizard").feat_lists.push(copy.clone());
+    assert_eq!(
+        issues(&data),
+        [
+            (DataAt::FeatList(copy.key.clone()), DataIssue::DuplicateKey),
+            (DataAt::FeatList(copy.key), DataIssue::KeyOutsideItsOwner),
+        ]
+    );
 }
 
 /// Base and prestige classes are one kind (one `class` table), so they can't share a key.
@@ -368,9 +492,9 @@ fn problems_read_as_sentences_that_name_the_kind() {
 
 #[test]
 fn only_class_levels_grant_bonus_list_slots() {
+    // The monk's list ignores prerequisites.
     let bonus_list = rules::FeatSlot::OneOf {
-        feats: BTreeSet::from([FeatKey::new("dodge")]),
-        ignores_prerequisites: true,
+        list: FeatListKey::new("monk/bonus-feats"),
     };
     let mut data = world();
     // A class's and an archetype's level rows may grant one.

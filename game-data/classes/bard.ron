@@ -28,7 +28,7 @@ Class(
         (key: "bard/well-versed", name: "Well Versed", guide: "bard#well-versed"),
     ],
     levels: [
-        (level: 1, arcane_spell_level: 1, features: ["bard/bard-proficiencies", "bard/bardic-knowledge", "bard/inspire-courage"]),
+        (level: 1, arcane_spell_level: 1, features: ["bard/bard-proficiencies", "bard/bardic-knowledge", "bard/inspire-courage"], feats: ["armor-proficiency-light-armor", "shield-proficiency", "simple-weapon-proficiency"]),
         (level: 2, arcane_spell_level: 1, features: ["bard/bard-talents", "bard/well-versed"]),
         (level: 3, arcane_spell_level: 1, features: ["bard/inspire-competence"]),
         (level: 4, arcane_spell_level: 2),
@@ -65,7 +65,7 @@ Class(
                 (key: "bard/archaeologist/uncanny-dodge", name: "Uncanny Dodge", guide: "bard#uncanny-dodge"),
             ],
             levels: [
-                (level: 1, features: ["bard/archaeologist/archaeologists-luck", "bard/archaeologist/detect-magic", "bard/bard-proficiencies", "bard/bardic-knowledge"]),
+                (level: 1, features: ["bard/archaeologist/archaeologists-luck", "bard/archaeologist/detect-magic", "bard/bard-proficiencies", "bard/bardic-knowledge"], feats: ["armor-proficiency-light-armor", "shield-proficiency", "simple-weapon-proficiency"]),
                 (level: 2, features: ["bard/archaeologist/clever-explorer", "bard/archaeologist/uncanny-dodge", "bard/bard-talents"]),
                 (level: 3, features: ["bard/archaeologist/danger-sense"]),
                 (level: 6, features: ["bard/archaeologist/confident-explorer", "bard/archaeologist/evasion", "bard/bard-talents"]),
@@ -100,8 +100,8 @@ Class(
                 (key: "bard/beast-tamer/summon-natures-ally-viii", name: "Summon Nature\'s Ally VIII", guide: "bard#beast-tamer"),
             ],
             levels: [
-                (level: 1, features: ["bard/bard-proficiencies", "bard/bardic-knowledge", "bard/beast-tamer/beast-call", "bard/beast-tamer/inspire-ferocity", "bard/beast-tamer/spontaneous-summoning", "bard/beast-tamer/summon-natures-ally-i"]),
-                (level: 2, features: ["bard/well-versed"], feat_slots: [OneOf(feats: ["augment-summoning"], ignores_prerequisites: true)]),
+                (level: 1, features: ["bard/bard-proficiencies", "bard/bardic-knowledge", "bard/beast-tamer/beast-call", "bard/beast-tamer/inspire-ferocity", "bard/beast-tamer/spontaneous-summoning", "bard/beast-tamer/summon-natures-ally-i"], feats: ["armor-proficiency-light-armor", "shield-proficiency", "simple-weapon-proficiency"]),
+                (level: 2, features: ["bard/well-versed"], feats: ["augment-summoning"]),
                 (level: 3, features: ["bard/beast-tamer/summon-natures-ally-ii"]),
                 (level: 5, features: ["bard/beast-tamer/summon-natures-ally-iii", "bard/lore-master"]),
                 (level: 7, features: ["bard/bardic-performance-move-action", "bard/beast-tamer/summon-natures-ally-iv"]),
@@ -130,7 +130,7 @@ Class(
                 (key: "bard/chelaxian-diva/vindictive-soliloquy", name: "Vindictive Soliloquy", guide: "bard#vindictive-soliloquy"),
             ],
             levels: [
-                (level: 1, features: ["bard/bard-proficiencies", "bard/chelaxian-diva/famous", "bard/inspire-courage"]),
+                (level: 1, features: ["bard/bard-proficiencies", "bard/chelaxian-diva/famous", "bard/inspire-courage"], feats: ["armor-proficiency-light-armor", "shield-proficiency", "simple-weapon-proficiency"]),
                 (level: 2, features: ["bard/bard-talents", "bard/chelaxian-diva/devastating-aria"]),
                 (level: 3, features: ["bard/chelaxian-diva/tragedy-of-false-hope"]),
                 (level: 5, features: ["bard/chelaxian-diva/prima-donna"]),
@@ -168,7 +168,7 @@ Class(
                 (key: "bard/flame-dancer/fire-dance", name: "Fire Dance", guide: "bard#fire-dance"),
             ],
             levels: [
-                (level: 1, features: ["bard/bard-proficiencies", "bard/bardic-knowledge", "bard/flame-dancer/detect-magic", "bard/inspire-courage"]),
+                (level: 1, features: ["bard/bard-proficiencies", "bard/bardic-knowledge", "bard/flame-dancer/detect-magic", "bard/inspire-courage"], feats: ["armor-proficiency-light-armor", "shield-proficiency", "simple-weapon-proficiency"]),
                 (level: 3, features: ["bard/flame-dancer/fire-dance"]),
                 (level: 8, features: ["bard/flame-dancer/fan-the-flames"]),
             ],
@@ -185,7 +185,7 @@ Class(
                 (key: "bard/thundercaller/thunder-call", name: "Thunder Call", guide: "bard#thunder-call"),
             ],
             levels: [
-                (level: 1, features: ["bard/bard-proficiencies", "bard/inspire-courage", "bard/thundercaller/bound-to-the-land"]),
+                (level: 1, features: ["bard/bard-proficiencies", "bard/inspire-courage", "bard/thundercaller/bound-to-the-land"], feats: ["armor-proficiency-light-armor", "shield-proficiency", "simple-weapon-proficiency"]),
                 (level: 3, features: ["bard/thundercaller/thunder-call"]),
                 (level: 6, features: ["bard/bard-talents", "bard/fascinate", "bard/thundercaller/incite-rage"]),
                 (level: 8, features: ["bard/thundercaller/storm-call"]),
@@ -203,7 +203,7 @@ Class(
                 (key: "bard/tranquil-whisperer/tranquil-senses", name: "Tranquil Senses", guide: "bard#tranquil-senses"),
             ],
             levels: [
-                (level: 1, features: ["bard/bard-proficiencies", "bard/bardic-knowledge", "bard/tranquil-whisperer/inspire-tranquility"]),
+                (level: 1, features: ["bard/bard-proficiencies", "bard/bardic-knowledge", "bard/tranquil-whisperer/inspire-tranquility"], feats: ["armor-proficiency-light-armor", "shield-proficiency", "simple-weapon-proficiency"]),
                 (level: 2, features: ["bard/bard-talents"]),
                 (level: 3),
                 (level: 7, features: ["bard/bardic-performance-move-action", "bard/tranquil-whisperer/saving-tranquility"]),

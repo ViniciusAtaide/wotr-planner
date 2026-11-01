@@ -39,9 +39,12 @@ Class(
                     ],
                 ),
             ],
+            feat_lists: [
+                (key: "fighter/armiger/bonus-feats", name: "Armiger Bonus Feats", guide: "fighter#armiger", feats: ["combat-expertise", "power-attack"]),
+            ],
             levels: [
-                (level: 1, selections: ["fighter/armiger/order"]),
-                (level: 2, features: ["fighter/armiger/armigers-mastery"], feat_slots: [OneOf(feats: ["power-attack", "combat-expertise"])]),
+                (level: 1, feats: ["armiger-drill"], selections: ["fighter/armiger/order"]),
+                (level: 2, features: ["fighter/armiger/armigers-mastery"], feat_slots: [OneOf(list: "fighter/armiger/bonus-feats")]),
                 (level: 3, feat_slots: [Category(Teamwork)]),
             ],
         ),

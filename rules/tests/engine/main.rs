@@ -11,6 +11,8 @@ mod codec;
 mod derived;
 mod edits;
 mod facts;
+mod feat_lists;
+mod granted_feats;
 mod mythic;
 mod options;
 mod pickers;

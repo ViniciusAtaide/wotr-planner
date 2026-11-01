@@ -67,7 +67,7 @@ Class(
         ),
     ],
     levels: [
-        (level: 1, features: ["slayer/slayer-proficiencies", "slayer/studied-target"]),
+        (level: 1, features: ["slayer/slayer-proficiencies", "slayer/studied-target"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
         (level: 2, selections: ["slayer/slayer-talents"]),
         (level: 3, features: ["slayer/sneak-attack"]),
         (level: 4, selections: ["slayer/slayer-talents"]),
@@ -100,7 +100,7 @@ Class(
                 (key: "slayer/arcane-enforcer/greater-exploits", name: "Greater Exploits", guide: "slayer#arcane-enforcer"),
             ],
             levels: [
-                (level: 1, features: ["slayer/arcane-enforcer/arcane-reservoir", "slayer/arcane-enforcer/arcanist-exploits", "slayer/slayer-proficiencies", "slayer/studied-target"]),
+                (level: 1, features: ["slayer/arcane-enforcer/arcane-reservoir", "slayer/arcane-enforcer/arcanist-exploits", "slayer/slayer-proficiencies", "slayer/studied-target"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
                 (level: 4, features: ["slayer/arcane-enforcer/arcanist-exploits"]),
                 (level: 7, features: ["slayer/arcane-enforcer/arcanist-exploits", "slayer/studied-target-swift"]),
                 (level: 10, features: ["slayer/advanced-talents", "slayer/arcane-enforcer/arcanist-exploits"]),
@@ -149,7 +149,7 @@ Class(
                 ),
             ],
             levels: [
-                (level: 1, features: ["slayer/bloodseeker/bloodseekers-cursed-lineage", "slayer/slayer-proficiencies", "slayer/studied-target"]),
+                (level: 1, features: ["slayer/bloodseeker/bloodseekers-cursed-lineage", "slayer/slayer-proficiencies", "slayer/studied-target"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
                 (level: 2, features: ["slayer/bloodseeker/blood-pool", "slayer/bloodseeker/bloodlust", "slayer/bloodseeker/sharp-teeth"], selections: ["slayer/bloodseeker/nocturnal-abilities"]),
                 (level: 4, selections: ["slayer/bloodseeker/nocturnal-abilities"]),
                 (level: 6, features: ["slayer/sneak-attack"], selections: ["slayer/bloodseeker/nocturnal-abilities"]),
@@ -173,7 +173,7 @@ Class(
                 (key: "slayer/deliverer/divine-anathema", name: "Divine Anathema", guide: "slayer#divine-anathema"),
             ],
             levels: [
-                (level: 1, features: ["slayer/deliverer/deity", "slayer/slayer-proficiencies", "slayer/studied-target"]),
+                (level: 1, features: ["slayer/deliverer/deity", "slayer/slayer-proficiencies", "slayer/studied-target"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
                 (level: 2, features: ["slayer/deliverer/determined-zeal"]),
                 (level: 10, features: ["slayer/advanced-talents", "slayer/deliverer/divine-anathema"]),
             ],
@@ -188,7 +188,7 @@ Class(
                 (key: "slayer/executioner/painful-strike", name: "Painful Strike", guide: "slayer#painful-strike"),
             ],
             levels: [
-                (level: 1, features: ["slayer/executioner/focused-killer", "slayer/slayer-proficiencies", "slayer/studied-target"]),
+                (level: 1, features: ["slayer/executioner/focused-killer", "slayer/slayer-proficiencies", "slayer/studied-target"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
                 (level: 4, features: ["slayer/executioner/painful-strike"]),
                 (level: 10, features: ["slayer/advanced-talents", "slayer/executioner/assassinate"], selections: ["slayer/slayer-talents"]),
                 (level: 14, selections: ["slayer/slayer-talents"]),
@@ -217,7 +217,7 @@ Class(
                 ),
             ],
             levels: [
-                (level: 1, features: ["slayer/slayer-proficiencies"], selections: ["slayer/imitator/imitation"]),
+                (level: 1, features: ["slayer/slayer-proficiencies"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], selections: ["slayer/imitator/imitation"]),
                 (level: 3, features: ["slayer/imitator/sneak-attack-imitator"]),
                 (level: 4),
                 (level: 6, selections: ["slayer/slayer-talents"]),
@@ -251,10 +251,9 @@ Class(
             features: [
                 (key: "slayer/stygian-slayer/invisibiliy", name: "Invisibiliy", guide: "slayer#stygian-slayer"),
                 (key: "slayer/stygian-slayer/shadowy-mist-form", name: "Shadowy Mist Form", guide: "slayer#shadowy-mist-form"),
-                (key: "slayer/stygian-slayer/stygian-slayer-proficiencies", name: "Stygian Slayer Proficiencies", guide: "slayer#stygian-slayer-proficiencies"),
             ],
             levels: [
-                (level: 1, features: ["slayer/studied-target", "slayer/stygian-slayer/stygian-slayer-proficiencies"]),
+                (level: 1, features: ["slayer/studied-target"], feats: ["armor-proficiency-light-armor", "martial-weapons-proficiency", "simple-weapon-proficiency"]),
                 (level: 4, features: ["slayer/stygian-slayer/invisibiliy"]),
                 (level: 10, features: ["slayer/advanced-talents", "slayer/stygian-slayer/shadowy-mist-form"]),
             ],

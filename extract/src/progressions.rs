@@ -122,6 +122,7 @@ pub fn sparse_archetype_rows(class: &mut Class) {
             }
             row.spell_levels.is_some()
                 || sorted(&row.features) != sorted(&base.features)
+                || row.feats != base.feats
                 || sorted(&row.feat_slots) != sorted(&base.feat_slots)
                 || sorted(&row.selections) != sorted(&base.selections)
         });
@@ -137,6 +138,7 @@ pub fn full_archetype_row(row: rules::ClassLevelRow) -> ArchetypeLevelRow {
             divine: row.divine_spell_level,
         }),
         features: row.features,
+        feats: row.feats,
         feat_slots: row.feat_slots,
         selections: row.selections,
     }

@@ -10,10 +10,14 @@ Class(
     reflex: Good,
     will: Good,
     class_skills: ["mobility", "athletics"],
+    feat_lists: [
+        (key: "monk/bonus-feats", name: "Monk Bonus Feats", guide: "monk#monk-bonus-feats", ignores_prerequisites: true, feats: ["crane-style", "dodge"]),
+    ],
     levels: [
-        // A bonus-list slot: Crane Style is on the monk's list, so a monk can take it without Dodge.
-        (level: 1, feat_slots: [OneOf(feats: ["crane-style", "dodge"], ignores_prerequisites: true)]),
-        (level: 2, feat_slots: [OneOf(feats: ["crane-style", "dodge"], ignores_prerequisites: true)]),
+        // A granted feat, held with no pick whatever its prerequisites; and a bonus-list slot: Crane Style is on
+        // the monk's list, so a monk can take it without Dodge.
+        (level: 1, feats: ["improved-unarmed-strike"], feat_slots: [OneOf(list: "monk/bonus-feats")]),
+        (level: 2, feat_slots: [OneOf(list: "monk/bonus-feats")]),
         (level: 3),
     ],
 )

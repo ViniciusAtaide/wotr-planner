@@ -44,7 +44,7 @@ Class(
         ),
     ],
     levels: [
-        (level: 1, divine_spell_level: 1, features: ["inquisitor/domain-abilities", "inquisitor/inquisitor-proficiencies", "inquisitor/orisons", "inquisitor/stern-gaze"], selections: ["inquisitor/judgment"]),
+        (level: 1, divine_spell_level: 1, features: ["inquisitor/domain-abilities", "inquisitor/inquisitor-proficiencies", "inquisitor/orisons", "inquisitor/stern-gaze"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"], selections: ["inquisitor/judgment"]),
         (level: 2, divine_spell_level: 1, features: ["inquisitor/cunning-initiative"]),
         (level: 3, divine_spell_level: 1, features: ["inquisitor/solo-tactics"], feat_slots: [Category(Teamwork)]),
         (level: 4, divine_spell_level: 2, features: ["inquisitor/animal-companion"]),
@@ -76,7 +76,7 @@ Class(
                 (key: "inquisitor/faith-hunter/sworn-enemy-smite", name: "Sworn Enemy - Smite", guide: "inquisitor#sworn-enemy-smite"),
             ],
             levels: [
-                (level: 1, features: ["inquisitor/faith-hunter/orisons", "inquisitor/faith-hunter/sworn-enemy", "inquisitor/inquisitor-proficiencies", "inquisitor/stern-gaze"], selections: ["inquisitor/judgment"]),
+                (level: 1, features: ["inquisitor/faith-hunter/orisons", "inquisitor/faith-hunter/sworn-enemy", "inquisitor/inquisitor-proficiencies", "inquisitor/stern-gaze"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"], selections: ["inquisitor/judgment"]),
                 (level: 4),
                 (level: 6, features: ["inquisitor/faith-hunter/sworn-enemy-smite"], feat_slots: [Category(Teamwork)]),
                 (level: 8, features: ["inquisitor/second-judgment"]),
@@ -96,7 +96,7 @@ Class(
                 (key: "inquisitor/judge/sentence", name: "Sentence", guide: "inquisitor#sentence"),
             ],
             levels: [
-                (level: 1, features: ["inquisitor/inquisitor-proficiencies", "inquisitor/judge/domain-abilities", "inquisitor/judge/orisons", "inquisitor/stern-gaze"], selections: ["inquisitor/judgment"]),
+                (level: 1, features: ["inquisitor/inquisitor-proficiencies", "inquisitor/judge/domain-abilities", "inquisitor/judge/orisons", "inquisitor/stern-gaze"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"], selections: ["inquisitor/judgment"]),
                 (level: 3, features: ["inquisitor/judge/judgment-aura"]),
                 (level: 4, features: ["inquisitor/judge/animal-companion"]),
                 (level: 5, features: ["inquisitor/judge/sentence"]),
@@ -124,7 +124,7 @@ Class(
                 (key: "inquisitor/living-grimoire/word-of-god", name: "Word of God", guide: "inquisitor#word-of-god"),
             ],
             levels: [
-                (level: 1, features: ["inquisitor/inquisitor-proficiencies", "inquisitor/living-grimoire/domain-abilities", "inquisitor/living-grimoire/holy-book", "inquisitor/living-grimoire/orisons", "inquisitor/living-grimoire/spellbook", "inquisitor/stern-gaze"]),
+                (level: 1, features: ["inquisitor/inquisitor-proficiencies", "inquisitor/living-grimoire/domain-abilities", "inquisitor/living-grimoire/holy-book", "inquisitor/living-grimoire/orisons", "inquisitor/living-grimoire/spellbook", "inquisitor/stern-gaze"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"]),
                 (level: 4, features: ["inquisitor/living-grimoire/animal-companion", "inquisitor/living-grimoire/sacred-word"]),
                 (level: 5, features: ["inquisitor/living-grimoire/blessed-script"]),
                 (level: 6, features: ["inquisitor/living-grimoire/domain-ability"], feat_slots: [Category(Teamwork)]),
@@ -156,7 +156,7 @@ Class(
                 (key: "inquisitor/monster-tactician/summon-tactics", name: "Summon Tactics", guide: "inquisitor#summon-tactics"),
             ],
             levels: [
-                (level: 1, features: ["inquisitor/inquisitor-proficiencies", "inquisitor/monster-tactician/domain-abilities", "inquisitor/monster-tactician/orisons", "inquisitor/monster-tactician/summon-monster", "inquisitor/monster-tactician/summon-monster-i", "inquisitor/stern-gaze"]),
+                (level: 1, features: ["inquisitor/inquisitor-proficiencies", "inquisitor/monster-tactician/domain-abilities", "inquisitor/monster-tactician/orisons", "inquisitor/monster-tactician/summon-monster", "inquisitor/monster-tactician/summon-monster-i", "inquisitor/stern-gaze"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"]),
                 (level: 3, features: ["inquisitor/monster-tactician/summon-monster-ii", "inquisitor/solo-tactics"], feat_slots: [Category(Teamwork)]),
                 (level: 4, features: ["inquisitor/monster-tactician/animal-companion"]),
                 (level: 5, features: ["inquisitor/bane", "inquisitor/monster-tactician/summon-monster-iii", "inquisitor/monster-tactician/summon-tactics"]),
@@ -185,7 +185,7 @@ Class(
                 (key: "inquisitor/sacred-huntsmaster/orisons", name: "Orisons", guide: "inquisitor#sacred-huntsmaster"),
             ],
             levels: [
-                (level: 1, features: ["inquisitor/inquisitor-proficiencies", "inquisitor/sacred-huntsmaster/animal-companion", "inquisitor/sacred-huntsmaster/domain-abilities", "inquisitor/sacred-huntsmaster/orisons", "inquisitor/stern-gaze"]),
+                (level: 1, features: ["inquisitor/inquisitor-proficiencies", "inquisitor/sacred-huntsmaster/animal-companion", "inquisitor/sacred-huntsmaster/domain-abilities", "inquisitor/sacred-huntsmaster/orisons", "inquisitor/stern-gaze"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"]),
                 (level: 3, features: ["inquisitor/sacred-huntsmaster/hunter-tactics"], feat_slots: [Category(Teamwork)]),
                 (level: 4),
                 (level: 5, features: ["inquisitor/bane", "inquisitor/sacred-huntsmaster/favored-enemy"]),
@@ -212,7 +212,7 @@ Class(
                 (key: "inquisitor/sanctified-slayer/studied-target-swift", name: "Studied Target (Swift)", guide: "inquisitor#sanctified-slayer"),
             ],
             levels: [
-                (level: 1, features: ["inquisitor/inquisitor-proficiencies", "inquisitor/sanctified-slayer/domain-abilities", "inquisitor/sanctified-slayer/orisons", "inquisitor/sanctified-slayer/studied-target", "inquisitor/stern-gaze"]),
+                (level: 1, features: ["inquisitor/inquisitor-proficiencies", "inquisitor/sanctified-slayer/domain-abilities", "inquisitor/sanctified-slayer/orisons", "inquisitor/sanctified-slayer/studied-target", "inquisitor/stern-gaze"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"]),
                 (level: 4, features: ["inquisitor/sanctified-slayer/animal-companion", "inquisitor/sanctified-slayer/sneak-attack"]),
                 (level: 6, features: ["inquisitor/sanctified-slayer/domain-ability"], feat_slots: [Category(Teamwork)]),
                 (level: 7, features: ["inquisitor/sanctified-slayer/sneak-attack", "inquisitor/sanctified-slayer/studied-target-swift"]),
@@ -239,7 +239,7 @@ Class(
                 (key: "inquisitor/tactical-leader/swift-tactician", name: "Swift Tactician", guide: "inquisitor#swift-tactician"),
             ],
             levels: [
-                (level: 1, features: ["inquisitor/inquisitor-proficiencies", "inquisitor/tactical-leader/domain-abilities", "inquisitor/tactical-leader/leaders-words", "inquisitor/tactical-leader/orisons"], selections: ["inquisitor/judgment"]),
+                (level: 1, features: ["inquisitor/inquisitor-proficiencies", "inquisitor/tactical-leader/domain-abilities", "inquisitor/tactical-leader/leaders-words", "inquisitor/tactical-leader/orisons"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"], selections: ["inquisitor/judgment"]),
                 (level: 3, features: ["inquisitor/tactical-leader/swift-tactician"], feat_slots: [Category(Teamwork)]),
                 (level: 4, features: ["inquisitor/tactical-leader/animal-companion"]),
                 (level: 6, features: ["inquisitor/tactical-leader/domain-ability"]),

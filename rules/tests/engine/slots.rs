@@ -1,7 +1,5 @@
 //! Slots at each level: general slots, bonus slots from race, class and archetype, Feature selection slots.
 
-use std::collections::BTreeSet;
-
 use rules::{ArchetypeKey, FeatSlot, FeatureSelectionKey, LevelSheet, SlotId, SlotKind};
 
 use crate::support::*;
@@ -94,8 +92,7 @@ fn an_archetype_chosen_on_entry_replaces_the_class_rows() {
     assert_eq!(
         kind_of(&sheet.levels[1], &class_slot(2, 0)),
         SlotKind::Feat(FeatSlot::OneOf {
-            feats: BTreeSet::from([feat("combat-expertise"), feat("power-attack")]),
-            ignores_prerequisites: false,
+            list: feat_list("fighter/armiger/bonus-feats"),
         })
     );
 }

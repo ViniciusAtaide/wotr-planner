@@ -10,7 +10,6 @@ Class(
     class_skills: ["knowledge-arcana", "knowledge-world", "lore-nature", "lore-religion", "use-magic-device"],
     features: [
         (key: "arcanist/arcane-reservoir", name: "Arcane Reservoir", guide: "arcanist#arcane-reservoir"),
-        (key: "arcanist/arcanist-proficiencies", name: "Arcanist Proficiencies", guide: "arcanist#arcanist-proficiencies"),
         (key: "arcanist/cantrips", name: "Cantrips", guide: "arcanist"),
         (key: "arcanist/consume-spells", name: "Consume Spells", guide: "arcanist#consume-spells"),
         (key: "arcanist/magical-supremacy", name: "Magical Supremacy", guide: "arcanist#magical-supremacy"),
@@ -54,7 +53,7 @@ Class(
         ),
     ],
     levels: [
-        (level: 1, arcane_spell_level: 1, features: ["arcanist/arcane-reservoir", "arcanist/arcanist-proficiencies", "arcanist/cantrips", "arcanist/consume-spells"], selections: ["arcanist/arcanist-exploits"]),
+        (level: 1, arcane_spell_level: 1, features: ["arcanist/arcane-reservoir", "arcanist/cantrips", "arcanist/consume-spells"], feats: ["simple-weapon-proficiency"], selections: ["arcanist/arcanist-exploits"]),
         (level: 2, arcane_spell_level: 1),
         (level: 3, arcane_spell_level: 1, selections: ["arcanist/arcanist-exploits"]),
         (level: 4, arcane_spell_level: 2),
@@ -87,7 +86,7 @@ Class(
                 (key: "arcanist/brown-fur-transmuter/transmutation-supremacy", name: "Transmutation Supremacy", guide: "arcanist#transmutation-supremacy"),
             ],
             levels: [
-                (level: 1, features: ["arcanist/arcane-reservoir", "arcanist/arcanist-proficiencies", "arcanist/brown-fur-transmuter/cantrips", "arcanist/consume-spells"], selections: ["arcanist/arcanist-exploits"]),
+                (level: 1, features: ["arcanist/arcane-reservoir", "arcanist/brown-fur-transmuter/cantrips", "arcanist/consume-spells"], feats: ["simple-weapon-proficiency"], selections: ["arcanist/arcanist-exploits"]),
                 (level: 3, features: ["arcanist/brown-fur-transmuter/powerful-change"]),
                 (level: 9, features: ["arcanist/brown-fur-transmuter/shared-transmutation"]),
                 (level: 20, features: ["arcanist/brown-fur-transmuter/transmutation-supremacy"]),
@@ -106,7 +105,7 @@ Class(
                 (key: "arcanist/eldritch-font/improved-surge", name: "Improved Surge", guide: "arcanist#improved-surge"),
             ],
             levels: [
-                (level: 1, features: ["arcanist/arcane-reservoir", "arcanist/arcanist-proficiencies", "arcanist/consume-spells", "arcanist/eldritch-font/cantrips", "arcanist/eldritch-font/font-of-power"], selections: ["arcanist/arcanist-exploits"]),
+                (level: 1, features: ["arcanist/arcane-reservoir", "arcanist/consume-spells", "arcanist/eldritch-font/cantrips", "arcanist/eldritch-font/font-of-power"], feats: ["simple-weapon-proficiency"], selections: ["arcanist/arcanist-exploits"]),
                 (level: 3, features: ["arcanist/eldritch-font/eldritch-surge"]),
                 (level: 7, features: ["arcanist/eldritch-font/improved-surge"]),
                 (level: 13, features: ["arcanist/eldritch-font/greater-surge"]),
@@ -123,7 +122,7 @@ Class(
                 (key: "arcanist/magic-deceiver/ways-of-the-deceiver", name: "Ways of the Deceiver", guide: "arcanist#ways-of-the-deceiver"),
             ],
             levels: [
-                (level: 1, features: ["arcanist/arcanist-proficiencies", "arcanist/magic-deceiver/cantrips", "arcanist/magic-deceiver/magic-fusion", "arcanist/magic-deceiver/ways-of-the-deceiver"]),
+                (level: 1, features: ["arcanist/magic-deceiver/cantrips", "arcanist/magic-deceiver/magic-fusion", "arcanist/magic-deceiver/ways-of-the-deceiver"], feats: ["simple-weapon-proficiency"]),
                 (level: 3),
                 (level: 5),
                 (level: 7),
@@ -145,7 +144,7 @@ Class(
                 (key: "arcanist/nature-mage/nature-magic", name: "Nature Magic", guide: "arcanist#nature-magic"),
             ],
             levels: [
-                (level: 1, features: ["arcanist/arcane-reservoir", "arcanist/arcanist-proficiencies", "arcanist/consume-spells", "arcanist/nature-mage/cantrips", "arcanist/nature-mage/nature-magic"], selections: ["arcanist/arcanist-exploits"]),
+                (level: 1, features: ["arcanist/arcane-reservoir", "arcanist/consume-spells", "arcanist/nature-mage/cantrips", "arcanist/nature-mage/nature-magic"], feats: ["simple-weapon-proficiency"], selections: ["arcanist/arcanist-exploits"]),
             ],
         ),
         (
@@ -162,7 +161,7 @@ Class(
                 (key: "arcanist/phantasmal-mage/metamagic-supremacy", name: "Metamagic Supremacy", guide: "arcanist#phantasmal-mage"),
             ],
             levels: [
-                (level: 1, features: ["arcanist/arcane-reservoir", "arcanist/arcanist-proficiencies", "arcanist/consume-spells", "arcanist/phantasmal-mage/arcane-metamagic", "arcanist/phantasmal-mage/cantrips"], selections: ["arcanist/arcanist-exploits"]),
+                (level: 1, features: ["arcanist/arcane-reservoir", "arcanist/consume-spells", "arcanist/phantasmal-mage/arcane-metamagic", "arcanist/phantasmal-mage/cantrips"], feats: ["simple-weapon-proficiency"], selections: ["arcanist/arcanist-exploits"]),
                 (level: 5, features: ["arcanist/phantasmal-mage/arcane-metamagic-i"]),
                 (level: 11, features: ["arcanist/phantasmal-mage/arcane-metamagic-ii"], selections: ["arcanist/greater-exploits"]),
                 (level: 17, features: ["arcanist/phantasmal-mage/arcane-metamagic-iii"]),
@@ -179,7 +178,7 @@ Class(
                 (key: "arcanist/unlettered-arcanist/witch-spells", name: "Witch Spells", guide: "arcanist#witch-spells"),
             ],
             levels: [
-                (level: 1, features: ["arcanist/arcane-reservoir", "arcanist/arcanist-proficiencies", "arcanist/consume-spells", "arcanist/unlettered-arcanist/cantrips", "arcanist/unlettered-arcanist/familiar", "arcanist/unlettered-arcanist/witch-spells"], selections: ["arcanist/arcanist-exploits"]),
+                (level: 1, features: ["arcanist/arcane-reservoir", "arcanist/consume-spells", "arcanist/unlettered-arcanist/cantrips", "arcanist/unlettered-arcanist/familiar", "arcanist/unlettered-arcanist/witch-spells"], feats: ["simple-weapon-proficiency"], selections: ["arcanist/arcanist-exploits"]),
             ],
         ),
         (
@@ -192,7 +191,7 @@ Class(
                 (key: "arcanist/white-mage/spontaneous-healing-ii", name: "Spontaneous Healing II", guide: "arcanist#white-mage"),
             ],
             levels: [
-                (level: 1, features: ["arcanist/arcane-reservoir", "arcanist/arcanist-proficiencies", "arcanist/consume-spells", "arcanist/white-mage/cantrips", "arcanist/white-mage/spontaneous-healing"], selections: ["arcanist/arcanist-exploits"]),
+                (level: 1, features: ["arcanist/arcane-reservoir", "arcanist/consume-spells", "arcanist/white-mage/cantrips", "arcanist/white-mage/spontaneous-healing"], feats: ["simple-weapon-proficiency"], selections: ["arcanist/arcanist-exploits"]),
                 (level: 9),
                 (level: 10, features: ["arcanist/white-mage/spontaneous-healing-ii"]),
             ],

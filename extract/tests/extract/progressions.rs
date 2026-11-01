@@ -93,6 +93,7 @@ fn row(level: u8, features: &[&str]) -> ClassLevelRow {
         advances_arcane: false,
         advances_divine: false,
         features: features.iter().map(|f| FeatureKey::new(*f)).collect(),
+        feats: Default::default(),
         feat_slots: vec![],
         selections: vec![],
     }
@@ -103,6 +104,7 @@ fn full_row(level: u8, arcane: u8, features: &[&str]) -> ArchetypeLevelRow {
         level,
         spell_levels: Some(SpellLevels { arcane, divine: 0 }),
         features: features.iter().map(|f| FeatureKey::new(*f)).collect(),
+        feats: Default::default(),
         feat_slots: vec![],
         selections: vec![],
     }
@@ -125,11 +127,13 @@ fn an_archetype_keeps_only_the_rows_that_differ_from_its_base_class() {
         prerequisite: None,
         features: vec![],
         selections: vec![],
+        feat_lists: vec![],
         levels: vec![
             row(1, &["rogue/sneak-attack", "rogue/trapfinding"]),
             row(2, &["rogue/evasion"]),
             row(3, &["rogue/sneak-attack"]),
             row(4, &["rogue/talent"]),
+            row(5, &["rogue/sneak-attack"]),
         ],
         archetypes: vec![Archetype {
             key: ArchetypeKey::new("rogue/x"),
@@ -141,6 +145,7 @@ fn an_archetype_keeps_only_the_rows_that_differ_from_its_base_class() {
             class_skills: None,
             features: vec![],
             selections: vec![],
+            feat_lists: vec![],
             levels: vec![
                 // The base row, grants in another order: dropped.
                 full_row(1, 0, &["rogue/trapfinding", "rogue/sneak-attack"]),
@@ -150,6 +155,11 @@ fn an_archetype_keeps_only_the_rows_that_differ_from_its_base_class() {
                 full_row(3, 1, &["rogue/sneak-attack"]),
                 // The base row's grants taken away: kept, empty.
                 full_row(4, 0, &[]),
+                // The base row's features plus a granted feat: kept.
+                ArchetypeLevelRow {
+                    feats: [rules::FeatKey::new("endurance")].into(),
+                    ..full_row(5, 0, &["rogue/sneak-attack"])
+                },
             ],
         }],
     };
@@ -159,12 +169,18 @@ fn an_archetype_keeps_only_the_rows_that_differ_from_its_base_class() {
     expected_2.spell_levels = None;
     let mut expected_4 = full_row(4, 0, &[]);
     expected_4.spell_levels = None;
+    let expected_5 = ArchetypeLevelRow {
+        spell_levels: None,
+        feats: [rules::FeatKey::new("endurance")].into(),
+        ..full_row(5, 0, &["rogue/sneak-attack"])
+    };
     assert_eq!(
         class.archetypes[0].levels,
         [
             expected_2,
             full_row(3, 1, &["rogue/sneak-attack"]),
-            expected_4
+            expected_4,
+            expected_5
         ]
     );
 }

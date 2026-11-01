@@ -76,12 +76,14 @@ fn an_archetype_row_keeps_the_base_spell_levels_unless_it_sets_its_own() {
     let mut archetype = class_in(&world(), "fighter").archetypes[0].clone();
     archetype.key = ArchetypeKey::new("cleric/herald");
     archetype.selections.clear();
+    archetype.feat_lists.clear();
     archetype.levels = vec![
         // Grants something but leaves the spell levels alone.
         ArchetypeLevelRow {
             level: 3,
             spell_levels: None,
             features: vec![feature("fighter/bravery")],
+            feats: Default::default(),
             feat_slots: vec![],
             selections: vec![],
         },
@@ -90,6 +92,7 @@ fn an_archetype_row_keeps_the_base_spell_levels_unless_it_sets_its_own() {
             level: 5,
             spell_levels: Some(SpellLevels::default()),
             features: vec![],
+            feats: Default::default(),
             feat_slots: vec![],
             selections: vec![],
         },

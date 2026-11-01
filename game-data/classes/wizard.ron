@@ -19,7 +19,7 @@ Class(
         (key: "wizard/wizard-proficiencies", name: "Wizard Proficiencies", guide: "wizard#wizard-proficiencies"),
     ],
     levels: [
-        (level: 1, arcane_spell_level: 1, feat_slots: [Category(Magic), OneOf(feats: ["scribe-scrolls"], ignores_prerequisites: true)]),
+        (level: 1, arcane_spell_level: 1, feats: ["scribe-scrolls"], feat_slots: [Category(Magic)]),
         (level: 2, arcane_spell_level: 1),
         (level: 3, arcane_spell_level: 2),
         (level: 4, arcane_spell_level: 2),
@@ -51,7 +51,7 @@ Class(
                 (key: "wizard/arcane-bomber/spellblast", name: "Spellblast", guide: "wizard#arcane-bomber"),
             ],
             levels: [
-                (level: 1, features: ["wizard/arcane-bomber/arcane-bombs", "wizard/arcane-bomber/cantrips", "wizard/arcane-bomber/spellblast", "wizard/wizard-proficiencies"], feat_slots: [Category(Magic), OneOf(feats: ["scribe-scrolls"], ignores_prerequisites: true)]),
+                (level: 1, features: ["wizard/arcane-bomber/arcane-bombs", "wizard/arcane-bomber/cantrips", "wizard/arcane-bomber/spellblast", "wizard/wizard-proficiencies"], feats: ["scribe-scrolls"], feat_slots: [Category(Magic)]),
             ],
         ),
         (
@@ -77,7 +77,7 @@ Class(
                 ),
             ],
             levels: [
-                (level: 1, features: ["wizard/cruromancer/cantrips", "wizard/grave-touch", "wizard/power-over-undead", "wizard/wizard-proficiencies"], feat_slots: [Category(Magic), OneOf(feats: ["scribe-scrolls"], ignores_prerequisites: true)], selections: ["wizard/cruromancer/blood-infusion"]),
+                (level: 1, features: ["wizard/cruromancer/cantrips", "wizard/grave-touch", "wizard/power-over-undead", "wizard/wizard-proficiencies"], feats: ["scribe-scrolls"], feat_slots: [Category(Magic)], selections: ["wizard/cruromancer/blood-infusion"]),
                 (level: 5, features: ["wizard/cruromancer/commanding-infusion"]),
                 (level: 8, features: ["wizard/life-sight"]),
                 (level: 20, features: ["wizard/cruromancer/perfect-infusion"], feat_slots: [Category(Magic)]),
@@ -94,7 +94,7 @@ Class(
                 (key: "wizard/elemental-specialist/intense-spells-spell-penetration", name: "Intense Spells - Spell Penetration", guide: "wizard#elemental-specialist"),
             ],
             levels: [
-                (level: 1, features: ["wizard/elemental-specialist/arcane-bond", "wizard/elemental-specialist/cantrips", "wizard/elemental-specialist/focused-element", "wizard/force-missile", "wizard/intense-spells", "wizard/wizard-proficiencies"], feat_slots: [Category(Magic), OneOf(feats: ["scribe-scrolls"], ignores_prerequisites: true)]),
+                (level: 1, features: ["wizard/elemental-specialist/arcane-bond", "wizard/elemental-specialist/cantrips", "wizard/elemental-specialist/focused-element", "wizard/force-missile", "wizard/intense-spells", "wizard/wizard-proficiencies"], feats: ["scribe-scrolls"], feat_slots: [Category(Magic)]),
                 (level: 8, features: ["wizard/elemental-wall"]),
                 (level: 20, features: ["wizard/elemental-specialist/intense-spells-spell-penetration"], feat_slots: [Category(Magic)]),
             ],
@@ -110,7 +110,7 @@ Class(
                 (key: "wizard/exploiter-wizard/greater-exploits", name: "Greater Exploits", guide: "wizard#exploiter-wizard"),
             ],
             levels: [
-                (level: 1, features: ["wizard/exploiter-wizard/arcane-reservoir", "wizard/exploiter-wizard/cantrips", "wizard/exploiter-wizard/exploiter-exploits", "wizard/wizard-proficiencies"], feat_slots: [Category(Magic), OneOf(feats: ["scribe-scrolls"], ignores_prerequisites: true)]),
+                (level: 1, features: ["wizard/exploiter-wizard/arcane-reservoir", "wizard/exploiter-wizard/cantrips", "wizard/exploiter-wizard/exploiter-exploits", "wizard/wizard-proficiencies"], feats: ["scribe-scrolls"], feat_slots: [Category(Magic)]),
                 (level: 5, features: ["wizard/exploiter-wizard/exploiter-exploits"], feat_slots: [Category(Magic)]),
                 (level: 9, features: ["wizard/exploiter-wizard/exploiter-exploits"]),
                 (level: 13, features: ["wizard/exploiter-wizard/exploiter-exploits", "wizard/exploiter-wizard/greater-exploits"]),
@@ -132,7 +132,7 @@ Class(
                 (key: "wizard/scroll-savant/specialisation-ability", name: "Specialisation ability", guide: "wizard#scroll-savant"),
             ],
             levels: [
-                (level: 1, features: ["wizard/scroll-savant/arcane-bond", "wizard/scroll-savant/cantrips", "wizard/scroll-savant/scroll-focus", "wizard/scroll-savant/specialisation-abilities", "wizard/wizard-proficiencies"], feat_slots: [OneOf(feats: ["scribe-scrolls"], ignores_prerequisites: true)]),
+                (level: 1, features: ["wizard/scroll-savant/arcane-bond", "wizard/scroll-savant/cantrips", "wizard/scroll-savant/scroll-focus", "wizard/scroll-savant/specialisation-abilities", "wizard/wizard-proficiencies"], feats: ["scribe-scrolls"]),
                 (level: 5, features: ["wizard/scroll-savant/scroll-specialization"]),
                 (level: 8, features: ["wizard/scroll-savant/specialisation-ability"]),
                 (level: 10, features: ["wizard/scroll-savant/scroll-mastery"]),
@@ -153,7 +153,7 @@ Class(
                 (key: "wizard/shadowcaster/umbral-mind", name: "Umbral Mind", guide: "wizard#umbral-mind"),
             ],
             levels: [
-                (level: 1, features: ["wizard/shadowcaster/cantrips", "wizard/shadowcaster/shadow-spells", "wizard/shadowcaster/specialisation-abilities", "wizard/wizard-proficiencies"], feat_slots: [Category(Magic), OneOf(feats: ["scribe-scrolls"], ignores_prerequisites: true)]),
+                (level: 1, features: ["wizard/shadowcaster/cantrips", "wizard/shadowcaster/shadow-spells", "wizard/shadowcaster/specialisation-abilities", "wizard/wizard-proficiencies"], feats: ["scribe-scrolls"], feat_slots: [Category(Magic)]),
                 (level: 5, features: ["wizard/shadowcaster/shadowsight"]),
                 (level: 7, features: ["wizard/shadowcaster/summon-shadow"]),
                 (level: 8, features: ["wizard/shadowcaster/specialisation-ability"]),
@@ -177,7 +177,7 @@ Class(
                 (key: "wizard/spell-master/object-bond", name: "Object Bond", guide: "wizard#spell-master"),
             ],
             levels: [
-                (level: 1, features: ["wizard/hand-of-the-apprentice", "wizard/spell-master/cantrips", "wizard/spell-master/focused-spells", "wizard/spell-master/object-bond", "wizard/wizard-proficiencies"], feat_slots: [Category(Magic), OneOf(feats: ["scribe-scrolls"], ignores_prerequisites: true)]),
+                (level: 1, features: ["wizard/hand-of-the-apprentice", "wizard/spell-master/cantrips", "wizard/spell-master/focused-spells", "wizard/spell-master/object-bond", "wizard/wizard-proficiencies"], feats: ["scribe-scrolls"], feat_slots: [Category(Magic)]),
                 (level: 5, features: ["wizard/spell-master/item-bond-specialization"]),
                 (level: 8, features: ["wizard/spell-master/mm-extend-and-reach-spell"]),
                 (level: 12, features: ["wizard/spell-master/mm-empower"]),
@@ -197,7 +197,7 @@ Class(
                 (key: "wizard/thassilonian-specialist/specialisation-ability", name: "Specialisation ability", guide: "wizard#thassilonian-specialist"),
             ],
             levels: [
-                (level: 1, features: ["wizard/thassilonian-specialist/arcane-bond", "wizard/thassilonian-specialist/cantrips", "wizard/thassilonian-specialist/specialisation-abilities", "wizard/wizard-proficiencies"], feat_slots: [Category(Magic), OneOf(feats: ["scribe-scrolls"], ignores_prerequisites: true)]),
+                (level: 1, features: ["wizard/thassilonian-specialist/arcane-bond", "wizard/thassilonian-specialist/cantrips", "wizard/thassilonian-specialist/specialisation-abilities", "wizard/wizard-proficiencies"], feats: ["scribe-scrolls"], feat_slots: [Category(Magic)]),
                 (level: 8, features: ["wizard/thassilonian-specialist/specialisation-ability"]),
             ],
         ),

@@ -1,10 +1,10 @@
 // Hand-written test fixture: small and simplified, not checked against the guide.
 [
-    (key: "mythic-charge", name: "Mythic Charge", group: "Melee", guide: "mythic-paths#mythic-charge"),
+    (key: "mythic-charge", name: "Mythic Charge", group: Melee, guide: "mythic-paths#mythic-charge"),
     (
         key: "limitless-smite",
         name: "Limitless Smite",
-        group: "Class",
+        group: Class,
         guide: "mythic-paths#limitless-smite",
         prerequisite: ClassLevel(class: "fighter", level: 1),
     ),

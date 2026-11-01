@@ -27,7 +27,7 @@ Class(
         (key: "kineticist/wild-talents", name: "Wild Talents", guide: "kineticist#wild-talents"),
     ],
     levels: [
-        (level: 1, features: ["kineticist/burn", "kineticist/class-skills", "kineticist/gather-power", "kineticist/infusion", "kineticist/kinetic-blast"]),
+        (level: 1, features: ["kineticist/burn", "kineticist/class-skills", "kineticist/gather-power", "kineticist/infusion", "kineticist/kinetic-blast"], feats: ["armor-proficiency-light-armor", "simple-weapon-proficiency"]),
         (level: 2, features: ["kineticist/defensive-wild-talent", "kineticist/wild-talents"]),
         (level: 3, features: ["kineticist/elemental-overflow", "kineticist/infusion"]),
         (level: 4, features: ["kineticist/wild-talents"]),
@@ -67,7 +67,7 @@ Class(
                 (key: "kineticist/blood-kineticist/wrack", name: "Wrack", guide: "kineticist#wrack"),
             ],
             levels: [
-                (level: 1, features: ["kineticist/blood-kineticist/class-skills", "kineticist/blood-kineticist/wrack", "kineticist/burn", "kineticist/gather-power", "kineticist/kinetic-blast"]),
+                (level: 1, features: ["kineticist/blood-kineticist/class-skills", "kineticist/blood-kineticist/wrack", "kineticist/burn", "kineticist/gather-power", "kineticist/kinetic-blast"], feats: ["armor-proficiency-light-armor", "simple-weapon-proficiency"]),
                 (level: 2, features: ["kineticist/blood-kineticist/defensive-wild-talent", "kineticist/wild-talents"]),
                 (level: 5, features: ["kineticist/blood-kineticist/bleeding-infusion", "kineticist/blood-kineticist/metakinesis-empowered", "kineticist/infusion-specialization"]),
                 (level: 7, features: ["kineticist/blood-kineticist/blood-blast"]),
@@ -92,7 +92,7 @@ Class(
                 (key: "kineticist/dark-elementalist/soul-power", name: "Soul Power", guide: "kineticist#soul-power"),
             ],
             levels: [
-                (level: 1, features: ["kineticist/dark-elementalist/class-skills", "kineticist/dark-elementalist/dark-studies", "kineticist/dark-elementalist/soul-power", "kineticist/gather-power", "kineticist/infusion", "kineticist/kinetic-blast"]),
+                (level: 1, features: ["kineticist/dark-elementalist/class-skills", "kineticist/dark-elementalist/dark-studies", "kineticist/dark-elementalist/soul-power", "kineticist/gather-power", "kineticist/infusion", "kineticist/kinetic-blast"], feats: ["armor-proficiency-light-armor", "simple-weapon-proficiency"]),
                 (level: 2, features: ["kineticist/dark-elementalist/defensive-wild-talent", "kineticist/wild-talents"]),
                 (level: 5, features: ["kineticist/dark-elementalist/metakinesis-empowered", "kineticist/infusion", "kineticist/infusion-specialization"]),
                 (level: 9, features: ["kineticist/dark-elementalist/metakinesis-maximized", "kineticist/infusion"]),
@@ -114,7 +114,7 @@ Class(
                 (key: "kineticist/elemental-engine/metakinesis-quicken", name: "Metakinesis - Quicken", guide: "kineticist#elemental-engine"),
             ],
             levels: [
-                (level: 1, features: ["kineticist/burn", "kineticist/elemental-engine/class-skills", "kineticist/gather-power", "kineticist/infusion", "kineticist/kinetic-blast"]),
+                (level: 1, features: ["kineticist/burn", "kineticist/elemental-engine/class-skills", "kineticist/gather-power", "kineticist/infusion", "kineticist/kinetic-blast"], feats: ["armor-proficiency-light-armor", "simple-weapon-proficiency"]),
                 (level: 2, features: ["kineticist/elemental-engine/defensive-wild-talent", "kineticist/wild-talents"]),
                 (level: 3, features: ["kineticist/elemental-engine/burnout", "kineticist/elemental-overflow", "kineticist/infusion"]),
                 (level: 5, features: ["kineticist/elemental-engine/metakinesis-empowered", "kineticist/infusion", "kineticist/infusion-specialization"]),
@@ -139,7 +139,7 @@ Class(
                 (key: "kineticist/kinetic-knight/knights-resolve", name: "Knight\'s Resolve", guide: "kineticist#knights-resolve"),
             ],
             levels: [
-                (level: 1, features: ["kineticist/burn", "kineticist/gather-power", "kineticist/kinetic-blast", "kineticist/kinetic-knight/class-skills", "kineticist/kinetic-knight/elemental-bastion", "kineticist/kinetic-knight/elemental-blade", "kineticist/kinetic-knight/kinetic-warrior"]),
+                (level: 1, features: ["kineticist/burn", "kineticist/gather-power", "kineticist/kinetic-blast", "kineticist/kinetic-knight/class-skills", "kineticist/kinetic-knight/elemental-bastion", "kineticist/kinetic-knight/elemental-blade", "kineticist/kinetic-knight/kinetic-warrior"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"]),
                 (level: 2, features: ["kineticist/wild-talents"]),
                 (level: 3, features: ["kineticist/elemental-overflow", "kineticist/kinetic-knight/knights-resolve"]),
                 (level: 4, features: ["kineticist/kinetic-knight/defensive-wild-talent", "kineticist/wild-talents"]),
@@ -166,7 +166,7 @@ Class(
                 (key: "kineticist/kinetic-sharpshooter/metakinesis-quicken", name: "Metakinesis - Quicken", guide: "kineticist#kinetic-sharpshooter"),
             ],
             levels: [
-                (level: 1, features: ["kineticist/burn", "kineticist/kinetic-blast", "kineticist/kinetic-sharpshooter/charged-ammunition", "kineticist/kinetic-sharpshooter/class-skills", "kineticist/kinetic-sharpshooter/kinetic-sharpshooter-proficiencies"]),
+                (level: 1, features: ["kineticist/burn", "kineticist/kinetic-blast", "kineticist/kinetic-sharpshooter/charged-ammunition", "kineticist/kinetic-sharpshooter/class-skills", "kineticist/kinetic-sharpshooter/kinetic-sharpshooter-proficiencies"], feats: ["armor-proficiency-light-armor", "simple-weapon-proficiency"]),
                 (level: 2, features: ["kineticist/kinetic-sharpshooter/defensive-wild-talent", "kineticist/wild-talents"]),
                 (level: 3, features: ["kineticist/elemental-overflow", "kineticist/kinetic-sharpshooter/infusion-kinetic-sharpshooter", "kineticist/kinetic-sharpshooter/kinetic-quiver"]),
                 (level: 5, features: ["kineticist/infusion-specialization", "kineticist/kinetic-sharpshooter/infusion-kinetic-sharpshooter", "kineticist/kinetic-sharpshooter/metakinesis-empowered"]),
@@ -192,7 +192,7 @@ Class(
                 (key: "kineticist/overwhelming-soul/overwhelming-power", name: "Overwhelming Power", guide: "kineticist#overwhelming-power"),
             ],
             levels: [
-                (level: 1, features: ["kineticist/gather-power", "kineticist/infusion", "kineticist/kinetic-blast", "kineticist/overwhelming-soul/class-skills", "kineticist/overwhelming-soul/mental-prowess", "kineticist/overwhelming-soul/mind-over-matter"]),
+                (level: 1, features: ["kineticist/gather-power", "kineticist/infusion", "kineticist/kinetic-blast", "kineticist/overwhelming-soul/class-skills", "kineticist/overwhelming-soul/mental-prowess", "kineticist/overwhelming-soul/mind-over-matter"], feats: ["armor-proficiency-light-armor", "simple-weapon-proficiency"]),
                 (level: 2, features: ["kineticist/overwhelming-soul/defensive-wild-talent", "kineticist/wild-talents"]),
                 (level: 3, features: ["kineticist/infusion", "kineticist/overwhelming-soul/overwhelming-power"]),
                 (level: 5, features: ["kineticist/infusion", "kineticist/infusion-specialization", "kineticist/overwhelming-soul/metakinesis-empowered"]),
@@ -215,7 +215,7 @@ Class(
                 (key: "kineticist/psychokineticist/mind-burn", name: "Mind Burn", guide: "kineticist#mind-burn"),
             ],
             levels: [
-                (level: 1, features: ["kineticist/gather-power", "kineticist/infusion", "kineticist/kinetic-blast", "kineticist/psychokineticist/class-skills", "kineticist/psychokineticist/emotional-intensity", "kineticist/psychokineticist/mind-burn"]),
+                (level: 1, features: ["kineticist/gather-power", "kineticist/infusion", "kineticist/kinetic-blast", "kineticist/psychokineticist/class-skills", "kineticist/psychokineticist/emotional-intensity", "kineticist/psychokineticist/mind-burn"], feats: ["armor-proficiency-light-armor", "simple-weapon-proficiency"]),
                 (level: 2, features: ["kineticist/psychokineticist/defensive-wild-talent", "kineticist/wild-talents"]),
                 (level: 3, features: ["kineticist/infusion", "kineticist/psychokineticist/mental-overflow"]),
                 (level: 5, features: ["kineticist/infusion", "kineticist/infusion-specialization", "kineticist/psychokineticist/metakinesis-empowered"]),

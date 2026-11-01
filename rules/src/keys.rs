@@ -73,6 +73,10 @@ text_key!(
     SelectionOptionKey
 );
 text_key!(
+    /// `monk/bonus-feats-6`: a named list of feats that a fixed-list Feat slot picks from.
+    FeatListKey
+);
+text_key!(
     /// `mythic-charge`
     MythicAbilityKey
 );

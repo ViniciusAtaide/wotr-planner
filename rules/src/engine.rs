@@ -9,12 +9,13 @@ use std::collections::{BTreeSet, HashMap, HashSet};
 
 use crate::build::{AbilityScores, Build, Edit, FeatSource, LevelUp, Pick, SlotId};
 use crate::game_data::{
-    Ability, AbilityModifier, Archetype, Class, Feat, FeatSlot, FeatureSelection, GameData,
-    MythicAbility, MythicFeat, MythicPath, Race, Save, SelectionOption, SpellLevels,
+    Ability, AbilityModifier, Archetype, Class, Feat, FeatList, FeatSlot, FeatureSelection,
+    GameData, MythicAbility, MythicFeat, MythicPath, Race, Save, SelectionOption, SpellLevels,
 };
 use crate::keys::{
-    ArchetypeKey, ClassKey, FeatKey, FeatureKey, FeatureSelectionKey, MythicAbilityKey,
-    MythicFeatKey, MythicPathKey, RaceKey, SelectionOptionKey, SkillKey, SubraceKey,
+    ArchetypeKey, ClassKey, FeatKey, FeatListKey, FeatureKey, FeatureSelectionKey,
+    MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey, SelectionOptionKey, SkillKey,
+    SubraceKey,
 };
 use crate::problem::{Choice, Issue, Problem, Unmet};
 use crate::state::{CharacterState, ClassLevels};
@@ -38,6 +39,7 @@ pub struct Engine {
     subraces: HashMap<SubraceKey, (usize, usize)>,
     skills: HashMap<SkillKey, usize>,
     feats: HashMap<FeatKey, usize>,
+    feat_lists: HashMap<FeatListKey, FeatList>,
     selections: HashMap<FeatureSelectionKey, SelectionAt>,
     options: HashMap<SelectionOptionKey, (FeatureSelectionKey, usize)>,
     mythic_abilities: HashMap<MythicAbilityKey, usize>,
@@ -99,6 +101,7 @@ pub struct EffectiveRow<'a> {
     /// Prestige classes only: this level advances the chosen divine class's spellcasting.
     pub advances_divine: bool,
     pub features: &'a [FeatureKey],
+    pub feats: &'a BTreeSet<FeatKey>,
     pub feat_slots: &'a [FeatSlot],
     pub selections: &'a [FeatureSelectionKey],
 }
@@ -118,6 +121,7 @@ pub fn effective_row<'a>(
         advances_arcane: base.advances_arcane,
         advances_divine: base.advances_divine,
         features: &base.features,
+        feats: &base.feats,
         feat_slots: &base.feat_slots,
         selections: &base.selections,
     };
@@ -129,6 +133,7 @@ pub fn effective_row<'a>(
     Some(EffectiveRow {
         spell_levels: own.spell_levels.unwrap_or(base_row.spell_levels),
         features: &own.features,
+        feats: &own.feats,
         feat_slots: &own.feat_slots,
         selections: &own.selections,
         ..base_row
@@ -330,9 +335,14 @@ impl Engine {
                 subraces.insert(subrace.key.clone(), (r, s));
             }
         }
+        let feat_lists = data
+            .feat_lists()
+            .map(|list| (list.key.clone(), list.clone()))
+            .collect();
         let mut engine = Self {
             skills: index(&data.skills, |s| &s.key),
             feats: index(&data.feats, |f| &f.key),
+            feat_lists,
             mythic_abilities: index(&data.mythic_abilities, |a| &a.key),
             mythic_feats: index(&data.mythic_feats, |f| &f.key),
             paths: index(&data.mythic_paths, |p| &p.key),
@@ -377,6 +387,11 @@ impl Engine {
 
     fn feat(&self, key: &FeatKey) -> Option<&Feat> {
         self.feats.get(key).map(|&index| &self.data.feats[index])
+    }
+
+    /// A feat list by key, wherever it's defined.
+    pub fn feat_list(&self, key: &FeatListKey) -> Option<&FeatList> {
+        self.feat_lists.get(key)
     }
 
     fn selection(&self, key: &FeatureSelectionKey) -> Option<&FeatureSelection> {
@@ -626,13 +641,26 @@ impl Engine {
             .collect()
     }
 
-    /// Whether a feat slot accepts a feat, ignoring prerequisites.
+    /// Whether a feat slot accepts a feat, ignoring prerequisites. A list the data lacks accepts none.
     pub fn slot_accepts(&self, slot: &FeatSlot, feat: &Feat) -> bool {
         match slot {
             FeatSlot::General => true,
             FeatSlot::CombatFeat => feat.category.is_combat(),
             FeatSlot::Category(category) => feat.category == *category,
-            FeatSlot::OneOf { feats, .. } => feats.contains(&feat.key),
+            FeatSlot::OneOf { list } => self
+                .feat_list(list)
+                .is_some_and(|list| list.feats.contains(&feat.key)),
+        }
+    }
+
+    /// Whether a pick in this slot ignores the feat's prerequisites: only a bonus-list slot's does, one whose list
+    /// ignores them.
+    pub fn slot_ignores_prerequisites(&self, slot: &FeatSlot) -> bool {
+        match slot {
+            FeatSlot::OneOf { list } => self
+                .feat_list(list)
+                .is_some_and(|list| list.ignores_prerequisites),
+            _ => false,
         }
     }
 }
@@ -958,7 +986,8 @@ impl<'a> Walker<'a> {
         }
     }
 
-    /// Adds one level of the Level-up's class and the features its row grants. Returns the class level reached.
+    /// Adds one level of the Level-up's class and the features and feats its row grants. Returns the class level
+    /// reached.
     fn take_class_level(&mut self, level: u8, level_up: &LevelUp) -> u8 {
         let engine = self.engine;
         let class = engine.class(&level_up.class);
@@ -999,6 +1028,8 @@ impl<'a> Walker<'a> {
             for feature in row.features {
                 add_feature(&mut self.state, feature);
             }
+            // Granted feats skip their prerequisites; one already held adds nothing.
+            self.state.feats.extend(row.feats.iter().cloned());
         }
         class_level
     }
@@ -1406,7 +1437,7 @@ pub(crate) fn check_pick(
             if state.feats.contains(key) {
                 return Err(Issue::AlreadyHeld);
             }
-            if slot.ignores_prerequisites() {
+            if engine.slot_ignores_prerequisites(slot) {
                 return Ok(());
             }
             feat.prerequisite.as_ref()

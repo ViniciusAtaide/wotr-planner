@@ -67,7 +67,7 @@ Class(
         ),
     ],
     levels: [
-        (level: 1, features: ["rogue/rogue-proficiencies", "rogue/sneak-attack", "rogue/trapfinding"], feat_slots: [OneOf(feats: ["weapon-finesse"], ignores_prerequisites: true)]),
+        (level: 1, features: ["rogue/rogue-proficiencies", "rogue/sneak-attack", "rogue/trapfinding"], feats: ["armor-proficiency-light-armor", "simple-weapon-proficiency", "weapon-finesse"]),
         (level: 2, features: ["rogue/evasion"], selections: ["rogue/rogue-talents"]),
         (level: 3, features: ["rogue/danger-sense", "rogue/finesse-training", "rogue/sneak-attack"]),
         (level: 4, features: ["rogue/debilitating-injury", "rogue/uncanny-dodge"], selections: ["rogue/rogue-talents"]),
@@ -99,9 +99,9 @@ Class(
                 (key: "rogue/dark-lurker/instinctual-sense", name: "Instinctual Sense", guide: "rogue#instinctual-sense"),
             ],
             levels: [
-                (level: 2, features: ["rogue/dark-lurker/blade-from-the-shadows"], feat_slots: [OneOf(feats: ["blind-fight"], ignores_prerequisites: true)]),
-                (level: 8, features: ["rogue/improved-uncanny-dodge"], feat_slots: [OneOf(feats: ["improved-blind-fight"], ignores_prerequisites: true)]),
-                (level: 14, features: ["rogue/dark-lurker/blade-from-the-shadows-full-attack"], feat_slots: [OneOf(feats: ["greater-blind-fight"], ignores_prerequisites: true)]),
+                (level: 2, features: ["rogue/dark-lurker/blade-from-the-shadows"], feats: ["blind-fight"]),
+                (level: 8, features: ["rogue/improved-uncanny-dodge"], feats: ["improved-blind-fight"]),
+                (level: 14, features: ["rogue/dark-lurker/blade-from-the-shadows-full-attack"], feats: ["greater-blind-fight"]),
                 (level: 20, features: ["rogue/dark-lurker/instinctual-sense", "rogue/master-strike"]),
             ],
         ),
@@ -116,7 +116,7 @@ Class(
                 (key: "rogue/eldritch-scoundrel/sneak-attack-eldritch-scoundrel", name: "Sneak Attack (Eldritch Scoundrel)", guide: "rogue#sneak-attack-eldritch-scoundrel"),
             ],
             levels: [
-                (level: 1, spell_levels: (arcane: 1, divine: 0), features: ["rogue/eldritch-scoundrel/cantrips", "rogue/eldritch-scoundrel/sneak-attack-eldritch-scoundrel", "rogue/rogue-proficiencies", "rogue/trapfinding"], feat_slots: [OneOf(feats: ["scribe-scrolls"], ignores_prerequisites: true), OneOf(feats: ["weapon-finesse"], ignores_prerequisites: true)]),
+                (level: 1, spell_levels: (arcane: 1, divine: 0), features: ["rogue/eldritch-scoundrel/cantrips", "rogue/eldritch-scoundrel/sneak-attack-eldritch-scoundrel", "rogue/rogue-proficiencies", "rogue/trapfinding"], feats: ["scribe-scrolls", "simple-weapon-proficiency", "weapon-finesse"]),
                 (level: 2, spell_levels: (arcane: 1, divine: 0), features: ["rogue/evasion"], selections: ["rogue/rogue-talents"]),
                 (level: 3, spell_levels: (arcane: 1, divine: 0), features: ["rogue/danger-sense", "rogue/eldritch-scoundrel/sneak-attack-eldritch-scoundrel", "rogue/finesse-training"]),
                 (level: 4, spell_levels: (arcane: 2, divine: 0), features: ["rogue/debilitating-injury"]),
@@ -147,7 +147,7 @@ Class(
                 (key: "rogue/knife-master/sneak-stab", name: "Sneak Stab", guide: "rogue#sneak-stab"),
             ],
             levels: [
-                (level: 1, features: ["rogue/knife-master/sneak-stab", "rogue/rogue-proficiencies", "rogue/sneak-attack"], feat_slots: [OneOf(feats: ["weapon-finesse"], ignores_prerequisites: true)]),
+                (level: 1, features: ["rogue/knife-master/sneak-stab", "rogue/rogue-proficiencies", "rogue/sneak-attack"], feats: ["armor-proficiency-light-armor", "simple-weapon-proficiency", "weapon-finesse"]),
                 (level: 3, features: ["rogue/finesse-training", "rogue/knife-master/blade-sense", "rogue/sneak-attack"]),
             ],
         ),
@@ -163,7 +163,7 @@ Class(
                 (key: "rogue/master-of-all/sneak-attack-master-of-all", name: "Sneak Attack (Master of All)", guide: "rogue#sneak-attack-master-of-all"),
             ],
             levels: [
-                (level: 1, features: ["rogue/master-of-all/bardic-knowledge", "rogue/master-of-all/sneak-attack-master-of-all", "rogue/rogue-proficiencies", "rogue/trapfinding"], feat_slots: [OneOf(feats: ["weapon-finesse"], ignores_prerequisites: true)]),
+                (level: 1, features: ["rogue/master-of-all/bardic-knowledge", "rogue/master-of-all/sneak-attack-master-of-all", "rogue/rogue-proficiencies", "rogue/trapfinding"], feats: ["armor-proficiency-light-armor", "simple-weapon-proficiency", "weapon-finesse"]),
                 (level: 3, features: ["rogue/danger-sense", "rogue/finesse-training", "rogue/master-of-all/skill-focus-master-of-all"]),
                 (level: 5, features: ["rogue/master-of-all/sneak-attack-master-of-all"]),
                 (level: 7, features: ["rogue/master-of-all/sneak-attack-master-of-all"]),
@@ -185,11 +185,11 @@ Class(
                 (key: "rogue/rowdy/vital-force", name: "Vital Force", guide: "rogue#vital-force"),
             ],
             levels: [
-                (level: 1, features: ["rogue/rogue-proficiencies", "rogue/rowdy/vital-force", "rogue/sneak-attack", "rogue/trapfinding"], feat_slots: [OneOf(feats: ["martial-weapons-proficiency"], ignores_prerequisites: true), OneOf(feats: ["vital-strike"], ignores_prerequisites: true)]),
+                (level: 1, features: ["rogue/rogue-proficiencies", "rogue/rowdy/vital-force", "rogue/sneak-attack", "rogue/trapfinding"], feats: ["armor-proficiency-light-armor", "martial-weapons-proficiency", "simple-weapon-proficiency", "vital-strike"]),
                 (level: 2, selections: ["rogue/rogue-talents"]),
                 (level: 3, features: ["rogue/danger-sense", "rogue/sneak-attack"]),
-                (level: 6, feat_slots: [OneOf(feats: ["improved-vital-strike"], ignores_prerequisites: true)], selections: ["rogue/rogue-talents"]),
-                (level: 11, features: ["rogue/sneak-attack"], feat_slots: [OneOf(feats: ["greater-vital-strike"], ignores_prerequisites: true)]),
+                (level: 6, feats: ["improved-vital-strike"], selections: ["rogue/rogue-talents"]),
+                (level: 11, features: ["rogue/sneak-attack"], feats: ["greater-vital-strike"]),
                 (level: 19, features: ["rogue/sneak-attack"]),
             ],
         ),
@@ -227,7 +227,7 @@ Class(
                 (key: "rogue/thug/frightening", name: "Frightening", guide: "rogue#frightening"),
             ],
             levels: [
-                (level: 1, features: ["rogue/rogue-proficiencies", "rogue/sneak-attack", "rogue/thug/frightening"], feat_slots: [OneOf(feats: ["weapon-finesse"], ignores_prerequisites: true)]),
+                (level: 1, features: ["rogue/rogue-proficiencies", "rogue/sneak-attack", "rogue/thug/frightening"], feats: ["armor-proficiency-light-armor", "simple-weapon-proficiency", "weapon-finesse"]),
                 (level: 3, features: ["rogue/finesse-training", "rogue/sneak-attack", "rogue/thug/brutal-beating"]),
             ],
         ),
@@ -241,8 +241,8 @@ Class(
                 (key: "rogue/underground-chemist/precise-splash-weapons", name: "Precise Splash Weapons", guide: "rogue#precise-splash-weapons"),
             ],
             levels: [
-                (level: 1, features: ["rogue/rogue-proficiencies", "rogue/sneak-attack", "rogue/trapfinding"], feat_slots: [OneOf(feats: ["brew-potions"], ignores_prerequisites: true), OneOf(feats: ["weapon-finesse"], ignores_prerequisites: true)]),
-                (level: 2, features: ["rogue/underground-chemist/chemical-weapons"], feat_slots: [OneOf(feats: ["throw-anything"], ignores_prerequisites: true)], selections: ["rogue/rogue-talents"]),
+                (level: 1, features: ["rogue/rogue-proficiencies", "rogue/sneak-attack", "rogue/trapfinding"], feats: ["armor-proficiency-light-armor", "brew-potions", "simple-weapon-proficiency", "weapon-finesse"]),
+                (level: 2, features: ["rogue/underground-chemist/chemical-weapons"], feats: ["throw-anything"], selections: ["rogue/rogue-talents"]),
                 (level: 4, features: ["rogue/debilitating-injury", "rogue/uncanny-dodge", "rogue/underground-chemist/precise-splash-weapons"]),
                 (level: 10, features: ["rogue/advanced-talents", "rogue/underground-chemist/discovery"], selections: ["rogue/rogue-talents"]),
             ],

@@ -7,14 +7,16 @@
 -- Conventions:
 -- - Game entities use readable text keys from the guide's anchors (`power-attack`), with no type
 --   prefix: the table says what a key names, so two tables may hold the same key. Keys of things
---   owned by a class or path start with the owner (`rogue/eldritch-scoundrel`).
+--   owned by a class, archetype or path start with the owner (`rogue/eldritch-scoundrel`), and
+--   `feature`, `feature_selection`, `feat_list` and `selection_option` check it.
 -- - No derived values. Order comes from natural keys and `rules::GameData` is made canonical in
 --   Rust, so nothing depends on insertion order. Rule-based facts (odd mythic ranks give an
 --   ability, the path is chosen at MR 3, which feat categories are combat feats, the rank after a
 --   path switch, class level caps, BAB and saves from a class's progressions) live in the `rules`
 --   crate, not in columns. Archetypes store only the levels where they differ from their class.
--- - True sets are unique on their natural key. Multisets (granted features and selections, feat
---   slots, ability modifiers) have a surrogate `id` and no other key, so duplicates can be stored.
+-- - True sets are unique on their natural key. Granted features and selections are multisets stored
+--   as counts: one row per (grantor, key) with `count >= 1`, which the loader expands. Feat slots and
+--   ability modifiers have a surrogate `id` and no other key, so duplicates can be stored.
 --   `class_level` and `mythic_rank` also have an `id`, as the target of their grants' foreign keys,
 --   and keep their natural key UNIQUE. `prerequisite_node.id` is what `parent_id` and the owners'
 --   `prerequisite_root_id` point at.
@@ -46,6 +48,16 @@ CREATE DOMAIN bab_progression AS TEXT CHECK (VALUE IN ('full', 'three_quarters',
 
 -- `rules::SaveProgression`: a good or a poor save.
 CREATE DOMAIN save_progression AS TEXT CHECK (VALUE IN ('good', 'poor'));
+
+-- `rules::MythicAbilityGroup`: the guide's headings under "Mythic Abilities".
+CREATE DOMAIN mythic_ability_group AS TEXT CHECK (VALUE IN (
+    'melee', 'ranged', 'magic', 'healing', 'miscellaneous', 'class'
+));
+
+-- `rules::MythicFeatGroup`: the guide's headings under "Mythic Feats".
+CREATE DOMAIN mythic_feat_group AS TEXT CHECK (VALUE IN (
+    'melee', 'ranged', 'armour_and_shield', 'magic', 'miscellaneous', 'combat_manoeuvre'
+));
 
 -- `rules::FeatCategory`.
 CREATE DOMAIN feat_category AS TEXT CHECK (VALUE IN (
@@ -249,7 +261,7 @@ CREATE TABLE class_skill (
 CREATE TABLE mythic_ability (
     key text_key PRIMARY KEY,
     name TEXT NOT NULL,
-    group_name TEXT NOT NULL,
+    group_name mythic_ability_group NOT NULL,
     summary TEXT NOT NULL,
     guide TEXT NOT NULL,
     prerequisite_root_id BIGINT UNIQUE REFERENCES prerequisite_node (id) DEFERRABLE INITIALLY DEFERRED
@@ -258,7 +270,7 @@ CREATE TABLE mythic_ability (
 CREATE TABLE mythic_feat (
     key text_key PRIMARY KEY,
     name TEXT NOT NULL,
-    group_name TEXT NOT NULL,
+    group_name mythic_feat_group NOT NULL,
     summary TEXT NOT NULL,
     guide TEXT NOT NULL,
     prerequisite_root_id BIGINT UNIQUE REFERENCES prerequisite_node (id) DEFERRABLE INITIALLY DEFERRED
@@ -289,7 +301,8 @@ CREATE TABLE path_switch_kept_rank (
 
 -- Features and feature selections --------------------------------------------------------------
 
--- A named ability of a class, archetype or mythic path, such as Sneak Attack.
+-- A named ability of a class, archetype or mythic path, such as Sneak Attack. Another owner's rows
+-- may grant it (a prestige class granting Sneak Attack).
 CREATE TABLE feature (
     key text_key PRIMARY KEY,
     class_key TEXT REFERENCES class (key) DEFERRABLE INITIALLY DEFERRED,
@@ -302,7 +315,9 @@ CREATE TABLE feature (
         DEFERRABLE INITIALLY DEFERRED,
     -- A class (or one of its archetypes) or a path.
     CHECK (num_nonnulls(class_key, path_key) = 1),
-    CHECK (archetype_key IS NULL OR class_key IS NOT NULL)
+    CHECK (archetype_key IS NULL OR class_key IS NOT NULL),
+    -- Keyed under its owner: the archetype when set, else the class or the path.
+    CHECK (starts_with(key, COALESCE(archetype_key, class_key, path_key) || '/'))
 );
 
 -- The fixed list a Feature selection picks from (rogue talents, a path's picks).
@@ -317,7 +332,8 @@ CREATE TABLE feature_selection (
     FOREIGN KEY (archetype_key, class_key) REFERENCES archetype (key, class_key)
         DEFERRABLE INITIALLY DEFERRED,
     CHECK (num_nonnulls(class_key, path_key) = 1),
-    CHECK (archetype_key IS NULL OR class_key IS NOT NULL)
+    CHECK (archetype_key IS NULL OR class_key IS NOT NULL),
+    CHECK (starts_with(key, COALESCE(archetype_key, class_key, path_key) || '/'))
 );
 
 -- One option of a Feature selection. Its key extends the selection's:
@@ -331,6 +347,31 @@ CREATE TABLE selection_option (
     feat_key TEXT REFERENCES feat (key) DEFERRABLE INITIALLY DEFERRED,
     prerequisite_root_id BIGINT UNIQUE REFERENCES prerequisite_node (id) DEFERRABLE INITIALLY DEFERRED,
     CHECK (starts_with(key, selection_key || '/'))
+);
+
+-- `rules::FeatList`: a named list of feats a `one_of` feat slot picks from, owned like a feature.
+-- `ignores_prerequisites` is TRUE on a bonus list, a class's own (the monk's bonus feats): a pick from
+-- it skips the feat's prerequisites. `rules::GameData::check` keeps those to class level rows, and
+-- refuses a list of fewer than two feats (a lone feat is a `granted_feat`) and one no slot names.
+CREATE TABLE feat_list (
+    key text_key PRIMARY KEY,
+    class_key TEXT REFERENCES class (key) DEFERRABLE INITIALLY DEFERRED,
+    archetype_key TEXT,
+    path_key TEXT REFERENCES mythic_path (key) DEFERRABLE INITIALLY DEFERRED,
+    name TEXT NOT NULL,
+    guide TEXT NOT NULL,
+    ignores_prerequisites BOOLEAN NOT NULL,
+    FOREIGN KEY (archetype_key, class_key) REFERENCES archetype (key, class_key)
+        DEFERRABLE INITIALLY DEFERRED,
+    CHECK (num_nonnulls(class_key, path_key) = 1),
+    CHECK (archetype_key IS NULL OR class_key IS NOT NULL),
+    CHECK (starts_with(key, COALESCE(archetype_key, class_key, path_key) || '/'))
+);
+
+CREATE TABLE feat_list_member (
+    feat_list_key TEXT NOT NULL REFERENCES feat_list (key) DEFERRABLE INITIALLY DEFERRED,
+    feat_key TEXT NOT NULL REFERENCES feat (key) DEFERRABLE INITIALLY DEFERRED,
+    PRIMARY KEY (feat_list_key, feat_key)
 );
 
 -- Progression rows -----------------------------------------------------------------------------
@@ -369,26 +410,37 @@ CREATE TABLE mythic_rank (
     UNIQUE (path_key, rank)
 );
 
--- A feature granted by a class level or a mythic rank. The feature may belong to another class
--- (a prestige class granting Sneak Attack).
+-- A feature granted by a class level or a mythic rank, `count` times (Trickster MR 3: Sneak Attack
+-- twice). The feature may belong to another class (a prestige class granting Sneak Attack).
 CREATE TABLE granted_feature (
-    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     class_level_id BIGINT REFERENCES class_level (id) DEFERRABLE INITIALLY DEFERRED,
     mythic_rank_id BIGINT REFERENCES mythic_rank (id) DEFERRABLE INITIALLY DEFERRED,
     feature_key TEXT NOT NULL REFERENCES feature (key) DEFERRABLE INITIALLY DEFERRED,
-    CHECK (num_nonnulls(class_level_id, mythic_rank_id) = 1)
+    count u8 NOT NULL CHECK (count >= 1),
+    CHECK (num_nonnulls(class_level_id, mythic_rank_id) = 1),
+    UNIQUE NULLS NOT DISTINCT (class_level_id, mythic_rank_id, feature_key)
 );
 
--- One Feature selection slot granted by a class level or a mythic rank.
+-- `count` Feature selection slots granted by a class level or a mythic rank.
 CREATE TABLE granted_selection (
-    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     class_level_id BIGINT REFERENCES class_level (id) DEFERRABLE INITIALLY DEFERRED,
     mythic_rank_id BIGINT REFERENCES mythic_rank (id) DEFERRABLE INITIALLY DEFERRED,
     selection_key TEXT NOT NULL REFERENCES feature_selection (key) DEFERRABLE INITIALLY DEFERRED,
-    CHECK (num_nonnulls(class_level_id, mythic_rank_id) = 1)
+    count u8 NOT NULL CHECK (count >= 1),
+    CHECK (num_nonnulls(class_level_id, mythic_rank_id) = 1),
+    UNIQUE NULLS NOT DISTINCT (class_level_id, mythic_rank_id, selection_key)
 );
 
--- `rules::FeatSlot` granted by a race, a class level or a mythic rank.
+-- A feat a class level grants outright (`rules::ClassLevelRow::feats`): held with no slot and no
+-- pick, whatever its prerequisites.
+CREATE TABLE granted_feat (
+    class_level_id BIGINT NOT NULL REFERENCES class_level (id) DEFERRABLE INITIALLY DEFERRED,
+    feat_key TEXT NOT NULL REFERENCES feat (key) DEFERRABLE INITIALLY DEFERRED,
+    PRIMARY KEY (class_level_id, feat_key)
+);
+
+-- `rules::FeatSlot` granted by a race, a class level or a mythic rank. A `one_of` slot names the
+-- list it picks from.
 CREATE TABLE feat_slot (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     race_key TEXT REFERENCES race (key) DEFERRABLE INITIALLY DEFERRED,
@@ -396,20 +448,10 @@ CREATE TABLE feat_slot (
     mythic_rank_id BIGINT REFERENCES mythic_rank (id) DEFERRABLE INITIALLY DEFERRED,
     kind TEXT NOT NULL CHECK (kind IN ('general', 'combat_feat', 'category', 'one_of')),
     category feat_category,
-    -- TRUE on a bonus-list slot, one drawing from the class's own bonus-feat list: the pick ignores
-    -- the feat's prerequisites. Only a `one_of` slot can be one; `rules::GameData::check` keeps
-    -- them to class level rows.
-    ignores_prerequisites BOOLEAN NOT NULL,
+    feat_list_key TEXT REFERENCES feat_list (key) DEFERRABLE INITIALLY DEFERRED,
     CHECK (num_nonnulls(race_key, class_level_id, mythic_rank_id) = 1),
     CHECK ((kind = 'category') = (category IS NOT NULL)),
-    CHECK (kind = 'one_of' OR NOT ignores_prerequisites)
-);
-
--- The feats a `one_of` feat slot accepts.
-CREATE TABLE feat_slot_option (
-    feat_slot_id BIGINT NOT NULL REFERENCES feat_slot (id) DEFERRABLE INITIALLY DEFERRED,
-    feat_key TEXT NOT NULL REFERENCES feat (key) DEFERRABLE INITIALLY DEFERRED,
-    PRIMARY KEY (feat_slot_id, feat_key)
+    CHECK ((kind = 'one_of') = (feat_list_key IS NOT NULL))
 );
 
 -- Prerequisite references, now that every referenced table exists. ----------------------------
