@@ -18,6 +18,32 @@
         ]),
     ),
     (
+        // Ticket 32: a mythic feat taken for a value, once per value, needing its base feat in the same value.
+        key: "spell-focus-mythic",
+        name: "Spell Focus (Mythic)",
+        group: Magic,
+        guide: "mythic-paths#spell-focus-mythic",
+        parameter: SpellSchool,
+        repeat: PerValue,
+        prerequisite: FeatForSameValue("spell-focus"),
+    ),
+    (
+        key: "extra-mythic-power",
+        name: "Extra Mythic Power",
+        group: Miscellaneous,
+        guide: "mythic-paths#extra-mythic-power",
+        repeat: Times(2),
+    ),
+    (
+        // A `Not` prerequisite: not from character level 11.
+        key: "destiny-beyond-birth",
+        name: "Destiny Beyond Birth",
+        group: Miscellaneous,
+        guide: "mythic-paths#destiny-beyond-birth",
+        removes_racial_penalty: true,
+        prerequisite: Not(CharacterLevel(11)),
+    ),
+    (
         key: "mythic-armor-focus-light-armor-assault",
         name: "Mythic Armor Focus (Light Armor) - Assault",
         group: ArmourAndShield,

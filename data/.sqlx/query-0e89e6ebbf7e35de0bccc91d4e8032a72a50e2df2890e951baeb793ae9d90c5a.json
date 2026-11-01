@@ -1,0 +1,58 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO mythic_feat\n                (key, name, group_name, summary, guide, prerequisite_root_id, parameter, repeat,\n                repeat_times, removes_racial_penalty)\n            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        {
+          "Custom": {
+            "name": "text_key",
+            "kind": {
+              "Domain": "Text"
+            }
+          }
+        },
+        "Text",
+        {
+          "Custom": {
+            "name": "mythic_feat_group",
+            "kind": {
+              "Domain": "Text"
+            }
+          }
+        },
+        "Text",
+        "Text",
+        "Int8",
+        {
+          "Custom": {
+            "name": "parameter_kind",
+            "kind": {
+              "Domain": "Text"
+            }
+          }
+        },
+        {
+          "Custom": {
+            "name": "repeat_kind",
+            "kind": {
+              "Domain": "Text"
+            }
+          }
+        },
+        {
+          "Custom": {
+            "name": "u8",
+            "kind": {
+              "Domain": "Int2"
+            }
+          }
+        },
+        "Bool"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "0e89e6ebbf7e35de0bccc91d4e8032a72a50e2df2890e951baeb793ae9d90c5a"
+}

@@ -11,12 +11,12 @@ use std::hash::Hash;
 
 use rules::{
     AbilityBonus, AbilityModifier, Archetype, ArchetypeKey, ArchetypeLevelRow, Class, ClassKey,
-    ClassLevelRow, CountsAs, CountsToward, Feat, FeatKey, FeatList, FeatListKey, FeatSlot, Feature,
-    FeatureKey, FeatureSelection, FeatureSelectionKey, GameData, GuideRef, MythicAbility,
-    MythicAbilityKey, MythicAscension, MythicFeat, MythicFeatKey, MythicPath, MythicPathKey,
-    MythicRankRow, OptionLevelRow, OptionRow, PathSwitch, Progression, Race, RaceKey,
-    SaveException, SelectionOption, SelectionOptionKey, Skill, SkillKey, SpellLevels, Subrace,
-    SubraceKey, Weapon, WeaponKey,
+    ClassLevelRow, CountsAs, CountsToward, Feat, FeatKey, FeatList, FeatListKey, FeatSlot,
+    FeatValue, Feature, FeatureKey, FeatureSelection, FeatureSelectionKey, GameData, GuideRef,
+    MythicAbility, MythicAbilityKey, MythicAscension, MythicFeat, MythicFeatKey, MythicPath,
+    MythicPathKey, MythicRankRow, OptionLevelRow, OptionRow, PathSwitch, Progression, Race,
+    RaceKey, SaveException, SelectionOption, SelectionOptionKey, Skill, SkillKey, SpellLevels,
+    Subrace, SubraceKey, Weapon, WeaponKey,
 };
 use sqlx::PgConnection;
 
@@ -24,7 +24,7 @@ use crate::columns::{
     AbilityBonusKind, FeatSlotKind, ability_bonus_kind_from, ability_from, advancement_from,
     bab_progression_from, corrupt, feat_category_from, feat_slot_kind_from,
     mythic_ability_group_from, mythic_feat_group_from, parameter_kind_from, repeat_from, save_from,
-    save_progression_from, to_i8, to_u8, weapon_proficiency_from,
+    save_progression_from, to_i8, to_u8, value_from, weapon_proficiency_from,
 };
 use crate::prerequisites::Trees;
 use crate::{Database, Error};
@@ -49,13 +49,13 @@ async fn load(db: &Database) -> Result<GameData, sqlx::Error> {
     let skills = load_skills(conn).await?;
     let weapons = load_weapons(conn).await?;
     let mut feat_slots = load_feat_slots(conn).await?;
-    let races = load_races(conn, &mut feat_slots).await?;
+    let mut feat_lists = load_feat_lists(conn).await?;
+    let races = load_races(conn, &mut feat_slots, &mut feat_lists).await?;
     let feats = load_feats(conn, &mut trees).await?;
     let mut grants = load_grants(conn).await?;
     let mut levels = load_levels(conn, &mut grants, &mut feat_slots).await?;
     let mut features = load_features(conn).await?;
     let mut selections = load_selections(conn, &mut trees, &mut grants, &mut feat_slots).await?;
-    let mut feat_lists = load_feat_lists(conn).await?;
     let mut class_skills = load_class_skills(conn).await?;
     let (classes, prestige_classes) = load_classes(
         conn,
@@ -88,6 +88,7 @@ async fn load(db: &Database) -> Result<GameData, sqlx::Error> {
     grants.features.finish("granted_feature")?;
     grants.selections.finish("granted_selection")?;
     grants.feats.finish("granted_feat")?;
+    grants.feats_for.finish("granted_feat")?;
     levels.class_rows.finish("class_level")?;
     levels.archetype_rows.finish("class_level")?;
     features.finish("feature")?;
@@ -277,6 +278,7 @@ async fn load_feat_slots(conn: &mut PgConnection) -> Result<Grouped<Owner, FeatS
 async fn load_races(
     conn: &mut PgConnection,
     feat_slots: &mut Grouped<Owner, FeatSlot>,
+    feat_lists: &mut Grouped<Owner, FeatList>,
 ) -> Result<Vec<Race>, sqlx::Error> {
     let mut modifiers = Grouped::new();
     for row in sqlx::query!(
@@ -332,6 +334,7 @@ async fn load_races(
             Race {
                 ability_modifiers: modifiers.take(&owner),
                 feat_slots: feat_slots.take(&owner),
+                feat_lists: feat_lists.take(&owner),
                 subraces: subraces.take(&row.key),
                 key: RaceKey(row.key),
                 name: row.name,
@@ -374,11 +377,12 @@ async fn load_feats(conn: &mut PgConnection, trees: &mut Trees) -> Result<Vec<Fe
 }
 
 /// Features, selections and feats granted by class levels and mythic ranks. A counted grant comes back as
-/// that many entries.
+/// that many entries. A feat granted for one value is in `feats_for`.
 struct Grants {
     features: Grouped<Owner, FeatureKey>,
     selections: Grouped<Owner, FeatureSelectionKey>,
     feats: Grouped<Owner, FeatKey>,
+    feats_for: Grouped<Owner, FeatValue>,
 }
 
 async fn load_grants(conn: &mut PgConnection) -> Result<Grants, sqlx::Error> {
@@ -386,6 +390,7 @@ async fn load_grants(conn: &mut PgConnection) -> Result<Grants, sqlx::Error> {
         features: Grouped::new(),
         selections: Grouped::new(),
         feats: Grouped::new(),
+        feats_for: Grouped::new(),
     };
     for row in sqlx::query!(
         "SELECT class_level_id, mythic_rank_id, option_level_id, mythic_ability_key, feature_key,
@@ -435,7 +440,9 @@ async fn load_grants(conn: &mut PgConnection) -> Result<Grants, sqlx::Error> {
         }
     }
     for row in sqlx::query!(
-        "SELECT class_level_id, option_level_id, feat_key FROM granted_feat ORDER BY feat_key"
+        "SELECT class_level_id, option_level_id, feat_key, skill_key, weapon_key, spell_school, energy,
+            armour_type
+        FROM granted_feat ORDER BY feat_key"
     )
     .fetch_all(&mut *conn)
     .await?
@@ -447,7 +454,17 @@ async fn load_grants(conn: &mut PgConnection) -> Result<Grants, sqlx::Error> {
                 row.option_level_id.map(Owner::OptionLevel),
             ],
         )?;
-        grants.feats.push(owner, FeatKey(row.feat_key));
+        let feat = FeatKey(row.feat_key);
+        match value_from(
+            row.skill_key,
+            row.weapon_key,
+            row.spell_school,
+            row.energy,
+            row.armour_type,
+        )? {
+            None => grants.feats.push(owner, feat),
+            Some(value) => grants.feats_for.push(owner, FeatValue { feat, value }),
+        }
     }
     Ok(grants)
 }
@@ -490,9 +507,10 @@ async fn load_levels(
                 )));
             }
         };
-        let (features, feats, feat_slots, selections) = (
+        let (features, feats, feats_for, feat_slots, selections) = (
             grants.features.take(&id),
             grants.feats.take(&id).into_iter().collect(),
+            grants.feats_for.take(&id).into_iter().collect(),
             feat_slots.take(&id),
             grants.selections.take(&id),
         );
@@ -513,6 +531,7 @@ async fn load_levels(
                         advances_divine,
                         features,
                         feats,
+                        feats_for,
                         feat_slots,
                         selections,
                     },
@@ -526,6 +545,7 @@ async fn load_levels(
                         spell_levels,
                         features,
                         feats,
+                        feats_for,
                         feat_slots,
                         selections,
                     },
@@ -572,7 +592,8 @@ async fn load_features(conn: &mut PgConnection) -> Result<Grouped<Owner, Feature
     let mut features = Grouped::new();
     for row in sqlx::query!(
         "SELECT key, class_key, archetype_key, path_key, name, summary, guide,
-            option_row_selection_key, option_row_level, daily_choice
+            option_row_selection_key, option_row_level, daily_choice, bab_floor,
+            skill_ranks_at_least_mythic_rank
         FROM feature ORDER BY key"
     )
     .fetch_all(&mut *conn)
@@ -603,6 +624,11 @@ async fn load_features(conn: &mut PgConnection) -> Result<Grouped<Owner, Feature
                     _ => return Err(corrupt("a feature with half an option row")),
                 },
                 daily_choice: row.daily_choice,
+                bab_floor: row
+                    .bab_floor
+                    .map(|floor| to_u8(floor, "feature.bab_floor"))
+                    .transpose()?,
+                skill_ranks_at_least_mythic_rank: row.skill_ranks_at_least_mythic_rank,
             },
         );
     }
@@ -661,10 +687,29 @@ async fn load_selections(
         option_feats.push(row.option_key, FeatKey(row.feat_key));
     }
 
+    let mut option_values = Grouped::new();
+    for row in sqlx::query!(
+        "SELECT option_key, skill_key, weapon_key, spell_school, energy, armour_type
+        FROM selection_option_value ORDER BY option_key"
+    )
+    .fetch_all(&mut *conn)
+    .await?
+    {
+        let value = value_from(
+            row.skill_key,
+            row.weapon_key,
+            row.spell_school,
+            row.energy,
+            row.armour_type,
+        )?
+        .ok_or_else(|| corrupt("a selection_option_value row with no value"))?;
+        option_values.push(row.option_key, value);
+    }
+
     let mut options = Grouped::new();
     for row in sqlx::query!(
         "SELECT key, selection_key, name, summary, guide, prerequisite_root_id, chosen_feat_key,
-            repeat, repeat_times, pool_key, replaces_row_of_key
+            parameter, repeat, repeat_times, pool_key, replaces_row_of_key
         FROM selection_option ORDER BY key"
     )
     .fetch_all(&mut *conn)
@@ -675,6 +720,12 @@ async fn load_selections(
             SelectionOption {
                 feats: option_feats.take(&row.key).into_iter().collect(),
                 chosen_feat: row.chosen_feat_key.map(FeatKey),
+                parameter: row
+                    .parameter
+                    .as_deref()
+                    .map(parameter_kind_from)
+                    .transpose()?,
+                values: option_values.take(&row.key).into_iter().collect(),
                 repeat: repeat_from(&row.repeat, row.repeat_times)?,
                 levels: option_levels_of(&mut option_rows, &row.key),
                 key: SelectionOptionKey(row.key),
@@ -756,6 +807,7 @@ async fn load_selections(
         );
     }
     options.finish("selection_option")?;
+    option_values.finish("selection_option_value")?;
     option_feats.finish("selection_option_feat")?;
     option_rows.finish("option_level")?;
     chosen_feats.finish("option_level_chosen_feat")?;
@@ -778,7 +830,7 @@ async fn load_feat_lists(conn: &mut PgConnection) -> Result<Grouped<Owner, FeatL
 
     let mut lists = Grouped::new();
     for row in sqlx::query!(
-        "SELECT key, class_key, archetype_key, path_key, name, guide, ignores_prerequisites,
+        "SELECT key, class_key, archetype_key, path_key, race_key, name, guide, ignores_prerequisites,
             every_feat
         FROM feat_list ORDER BY key"
     )
@@ -791,6 +843,7 @@ async fn load_feat_lists(conn: &mut PgConnection) -> Result<Grouped<Owner, FeatL
                 row.class_key
                     .map(|class| class_owner(class, row.archetype_key)),
                 row.path_key.map(Owner::Path),
+                row.race_key.map(Owner::Race),
             ],
         )?;
         lists.push(
@@ -1002,7 +1055,8 @@ async fn load_mythic_feats(
     trees: &mut Trees,
 ) -> Result<Vec<MythicFeat>, sqlx::Error> {
     sqlx::query!(
-        "SELECT key, name, group_name, summary, guide, prerequisite_root_id
+        "SELECT key, name, group_name, summary, guide, prerequisite_root_id, parameter, repeat,
+            repeat_times, removes_racial_penalty
         FROM mythic_feat ORDER BY key"
     )
     .fetch_all(&mut *conn)
@@ -1015,6 +1069,13 @@ async fn load_mythic_feats(
             group: mythic_feat_group_from(&row.group_name)?,
             summary: row.summary,
             guide: GuideRef(row.guide),
+            parameter: row
+                .parameter
+                .as_deref()
+                .map(parameter_kind_from)
+                .transpose()?,
+            repeat: repeat_from(&row.repeat, row.repeat_times)?,
+            removes_racial_penalty: row.removes_racial_penalty,
             prerequisite: trees.get(row.prerequisite_root_id)?,
         })
     })

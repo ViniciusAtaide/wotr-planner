@@ -47,6 +47,14 @@ Class(
                     guide: "rogue#resiliency",
                     repeat: Times(2),
                 ),
+                (
+                    // Ticket 32: a pick naming a value of its own, from a short list.
+                    key: "rogue/rogue-talents/weapon-training",
+                    name: "Weapon Training",
+                    guide: "rogue#weapon-training",
+                    parameter: Weapon,
+                    values: [Weapon("dagger"), Weapon("longsword")],
+                ),
             ],
         ),
     ],
@@ -55,7 +63,8 @@ Class(
         (key: "rogue/skill-focus", name: "Skill Focus", guide: "rogue#skill-focus", ignores_prerequisites: true, feats: ["skill-focus"]),
     ],
     levels: [
-        (level: 1, features: ["rogue/sneak-attack"]),
+        // Ticket 32: a feat granted for one value.
+        (level: 1, features: ["rogue/sneak-attack"], feats_for: [(feat: "weapon-focus", value: Weapon("dagger"))]),
         (level: 2, selections: ["rogue/rogue-talents"]),
         (level: 3, features: ["rogue/sneak-attack"], feat_slots: [OneOf(list: "rogue/skill-focus")]),
     ],
@@ -85,7 +94,7 @@ Class(
                 ),
             ],
             levels: [
-                (level: 1, spell_levels: (arcane: 1, divine: 0), features: ["rogue/eldritch-scoundrel/spells"]),
+                (level: 1, spell_levels: (arcane: 1, divine: 0), features: ["rogue/eldritch-scoundrel/spells"], feats_for: [(feat: "skill-focus", value: Skill("mobility"))]),
                 (level: 2, spell_levels: (arcane: 1, divine: 0), features: ["rogue/sneak-attack"]),
                 (level: 3, spell_levels: (arcane: 1, divine: 0), selections: ["rogue/eldritch-scoundrel/arcane-talents"]),
             ],

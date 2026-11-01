@@ -10,8 +10,9 @@ use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use crate::build::{AbilityScores, Build, Edit, FeatSource, LevelUp, Pick, SlotId};
 use crate::game_data::{
     Ability, AbilityBonus, AbilityModifier, Advancement, Archetype, Class, CountsToward, Feat,
-    FeatList, FeatSlot, FeatureSelection, GameData, MythicAbility, MythicFeat, MythicPath,
-    OptionRow, PathSwitch, Race, Save, SelectionOption, SpellLevels, Weapon, WeaponProficiency,
+    FeatList, FeatSlot, FeatValue, FeatureSelection, GameData, MythicAbility, MythicFeat,
+    MythicPath, OptionRow, PathSwitch, Race, Save, SelectionOption, SpellLevels, Weapon,
+    WeaponProficiency,
 };
 use crate::keys::{
     ArchetypeKey, ClassKey, FeatKey, FeatListKey, FeatureKey, FeatureSelectionKey,
@@ -55,6 +56,9 @@ pub struct Engine {
     feature_rows: HashMap<FeatureKey, OptionRow>,
     /// Every feature that is a daily choice.
     daily_choices: HashSet<FeatureKey>,
+    /// The features that set a floor for prerequisites (Perfect Mind): a BAB floor, and whether every skill's ranks
+    /// are at least the Mythic rank.
+    feature_floors: HashMap<FeatureKey, (Option<u8>, bool)>,
 }
 
 /// Where a class is: an index into the base or the prestige classes.
@@ -112,6 +116,7 @@ pub struct EffectiveRow<'a> {
     pub advances_divine: bool,
     pub features: &'a [FeatureKey],
     pub feats: &'a BTreeSet<FeatKey>,
+    pub feats_for: &'a BTreeSet<FeatValue>,
     pub feat_slots: &'a [FeatSlot],
     pub selections: &'a [FeatureSelectionKey],
 }
@@ -132,6 +137,7 @@ pub fn effective_row<'a>(
         advances_divine: base.advances_divine,
         features: &base.features,
         feats: &base.feats,
+        feats_for: &base.feats_for,
         feat_slots: &base.feat_slots,
         selections: &base.selections,
     };
@@ -144,6 +150,7 @@ pub fn effective_row<'a>(
         spell_levels: own.spell_levels.unwrap_or(base_row.spell_levels),
         features: &own.features,
         feats: &own.feats,
+        feats_for: &own.feats_for,
         feat_slots: &own.feat_slots,
         selections: &own.selections,
         ..base_row
@@ -185,7 +192,8 @@ pub struct LevelSheet {
     /// Whether this level has the +1 ability increase.
     pub ability_increase: bool,
     pub skill_points: SkillPoints,
-    /// Feat and Feature selection slots, in the order picks are checked: race, class, general, selections.
+    /// Feat and Feature selection slots, in the order picks are checked: the class's selections, the class's feat
+    /// slots, the race's, the general slot, then the slots the options' rows grant.
     pub slots: Vec<Slot>,
     /// The Mythic ranks reached at this level (two at 17).
     pub mythic_ranks: Vec<u8>,
@@ -385,6 +393,18 @@ impl Engine {
             .filter(|feature| feature.daily_choice)
             .map(|feature| feature.key.clone())
             .collect();
+        let feature_floors = features
+            .iter()
+            .filter(|feature| {
+                feature.bab_floor.is_some() || feature.skill_ranks_at_least_mythic_rank
+            })
+            .map(|feature| {
+                (
+                    feature.key.clone(),
+                    (feature.bab_floor, feature.skill_ranks_at_least_mythic_rank),
+                )
+            })
+            .collect();
         let mut engine = Self {
             skills: index(&data.skills, |s| &s.key),
             weapons: index(&data.weapons, |w| &w.key),
@@ -396,6 +416,7 @@ impl Engine {
             feature_bonuses,
             feature_rows,
             daily_choices,
+            feature_floors,
             options: HashMap::new(),
             data,
             classes,
@@ -518,13 +539,24 @@ impl Engine {
             .unwrap_or_default()
     }
 
-    /// What an option's pick takes: its chosen feat's kind, or nothing.
+    /// What an option's pick takes: its chosen feat's kind, else its own, else nothing.
     fn option_parameter(&self, option: &SelectionOption) -> Option<ParameterKind> {
         option
             .chosen_feat
             .as_ref()
             .and_then(|feat| self.feat(feat))
             .and_then(|feat| feat.parameter)
+            .or(option.parameter)
+    }
+
+    /// The values an option's pick may name: its own list, else every value of its kind.
+    fn option_values(&self, option: &SelectionOption) -> Vec<Parameter> {
+        if !option.values.is_empty() {
+            return option.values.iter().cloned().collect();
+        }
+        self.option_parameter(option)
+            .map(|kind| self.parameter_values(kind))
+            .unwrap_or_default()
     }
 
     /// A feat list by key, wherever it's defined.
@@ -718,6 +750,14 @@ impl Engine {
         }
         let offered = selection.offered();
         match <[&SelectionOptionKey; 1]>::try_from(offered.into_iter().collect::<Vec<_>>()) {
+            // An option whose pick names a value still needs the pick (the Zen Archer's Way of the Bow).
+            Ok([option])
+                if self
+                    .option(option)
+                    .is_some_and(|o| self.option_parameter(o).is_some()) =>
+            {
+                None
+            }
             Ok([option]) => Some(option.clone()),
             Err(_) => None,
         }
@@ -789,15 +829,13 @@ impl Engine {
                     keys.sort();
                     // An option with a chosen feat once per value.
                     keys.into_iter()
-                        .flat_map(|key| {
-                            match self.option(key).and_then(|o| self.option_parameter(o)) {
-                                None => vec![Pick::option(key.clone())],
-                                Some(kind) => self
-                                    .parameter_values(kind)
-                                    .into_iter()
-                                    .map(|value| Pick::option_for(key.clone(), value))
-                                    .collect(),
-                            }
+                        .flat_map(|key| match self.option(key) {
+                            Some(option) if self.option_parameter(option).is_some() => self
+                                .option_values(option)
+                                .into_iter()
+                                .map(|value| Pick::option_for(key.clone(), value))
+                                .collect(),
+                            _ => vec![Pick::option(key.clone())],
                         })
                         .collect()
                 })
@@ -812,7 +850,14 @@ impl Engine {
                 .data
                 .mythic_feats
                 .iter()
-                .map(|feat| Pick::MythicFeat(feat.key.clone()))
+                .flat_map(|feat| match feat.parameter {
+                    None => vec![Pick::mythic_feat(feat.key.clone())],
+                    Some(kind) => self
+                        .parameter_values(kind)
+                        .into_iter()
+                        .map(|value| Pick::mythic_feat_for(feat.key.clone(), value))
+                        .collect(),
+                })
                 .collect(),
         };
         Some(
@@ -837,7 +882,9 @@ impl Engine {
             Pick::MythicAbility(key) => self
                 .mythic_ability(key)
                 .and_then(|a| a.prerequisite.as_ref()),
-            Pick::MythicFeat(key) => self.mythic_feat(key).and_then(|f| f.prerequisite.as_ref()),
+            Pick::MythicFeat { feat: key, .. } => {
+                self.mythic_feat(key).and_then(|f| f.prerequisite.as_ref())
+            }
         };
         prerequisite.map(Prerequisite::stories).unwrap_or_default()
     }
@@ -982,7 +1029,8 @@ enum Held {
     Feature(FeatureKey),
     SelectionOption(SelectionOptionKey),
     MythicAbility(MythicAbilityKey),
-    MythicFeat(MythicFeatKey),
+    /// A mythic feat, for its value when it's parameterised.
+    MythicFeat(MythicFeatKey, Option<Parameter>),
 }
 
 /// Where a Mythic ascension's grant came from, for what a Path switch keeps.
@@ -1058,6 +1106,8 @@ struct Walker<'a> {
     level_cap: u8,
     /// Set by a switch to a path without further ascensions.
     ascensions_over: bool,
+    /// The race's ability penalties applied at Build start, which Destiny Beyond Birth gives back.
+    racial_penalties: Vec<(Ability, u8)>,
     /// For each class and feature another class's levels count toward (Frost Power: witch, Major Hexes), how many
     /// grants of it those levels hold now: the class's rows past its own level that they reach.
     counted_features: BTreeMap<(ClassKey, FeatureKey), u8>,
@@ -1120,6 +1170,7 @@ impl<'a> Walker<'a> {
             ranks,
             level_cap: BASE_LEVEL_CAP,
             ascensions_over: false,
+            racial_penalties: Vec::new(),
             counted_features: BTreeMap::new(),
             holdings: Vec::new(),
             pending: Vec::new(),
@@ -1230,6 +1281,9 @@ impl<'a> Walker<'a> {
             if let Some(ability) = ability {
                 let score = scores.get_mut(ability);
                 *score = score.saturating_add_signed(amount);
+                if amount < 0 {
+                    self.racial_penalties.push((ability, amount.unsigned_abs()));
+                }
             }
         }
         self.state.base_ability_scores = scores;
@@ -1452,6 +1506,12 @@ impl<'a> Walker<'a> {
                 let values = engine.every_value(feat);
                 self.hold(Held::Feat(feat.clone(), values), None);
             }
+            for granted in row.feats_for {
+                self.hold(
+                    Held::Feat(granted.feat.clone(), vec![granted.value.clone()]),
+                    None,
+                );
+            }
         }
         class_level
     }
@@ -1564,8 +1624,10 @@ impl<'a> Walker<'a> {
         SkillPoints { available, spent }
     }
 
-    /// The slots of a Level-up, in checking order: race (level 1), class rows, the general slot (odd levels),
-    /// Feature selections, then the class row's option-list feat slots (which depend on the selections).
+    /// The slots of a Level-up, in checking order: the class row's Feature selections, its feat slots (option-list
+    /// ones last, since they depend on the selections), the race's (level 1), then the general slot (odd levels).
+    /// So a race or general pick can rely on what the class grants at the same level (a human warpriest's Dazzling
+    /// Display on the class's Weapon Focus).
     fn level_slots(&self, level: u8, level_up: &LevelUp) -> Vec<(SlotKind, SlotId)> {
         let engine = self.engine;
         let mut slots = Vec::new();
@@ -1574,14 +1636,8 @@ impl<'a> Walker<'a> {
             source,
             index: u8::try_from(index).unwrap_or(u8::MAX),
         };
-        if level == 1
-            && let Some(race) = self.state.race.as_ref().and_then(|key| engine.race(key))
-        {
-            for (index, slot) in race.feat_slots.iter().enumerate() {
-                slots.push((SlotKind::Feat(slot.clone()), feat(FeatSource::Race, index)));
-            }
-        }
         let mut selections = Vec::new();
+        let mut class_slots = Vec::new();
         let mut option_lists = Vec::new();
         if let Some((class, _)) = engine.class(&level_up.class)
             && let Some(entry) = self
@@ -1596,7 +1652,7 @@ impl<'a> Walker<'a> {
                 if matches!(slot, FeatSlot::OptionList { .. }) {
                     option_lists.push(kind);
                 } else {
-                    slots.push(kind);
+                    class_slots.push(kind);
                 }
             }
             for (index, selection) in row.iter().flat_map(|row| row.selections).enumerate() {
@@ -1609,14 +1665,22 @@ impl<'a> Walker<'a> {
                 ));
             }
         }
+        slots.extend(selections);
+        slots.extend(class_slots);
+        slots.extend(option_lists);
+        if level == 1
+            && let Some(race) = self.state.race.as_ref().and_then(|key| engine.race(key))
+        {
+            for (index, slot) in race.feat_slots.iter().enumerate() {
+                slots.push((SlotKind::Feat(slot.clone()), feat(FeatSource::Race, index)));
+            }
+        }
         if level % 2 == 1 {
             slots.push((
                 SlotKind::Feat(FeatSlot::General),
                 feat(FeatSource::General, 0),
             ));
         }
-        slots.extend(selections);
-        slots.extend(option_lists);
         slots
     }
 
@@ -1963,7 +2027,13 @@ impl<'a> Walker<'a> {
                     }
                 }
             }
-            Pick::MythicFeat(key) => self.hold(Held::MythicFeat(key.clone()), source.cloned()),
+            Pick::MythicFeat {
+                feat: key,
+                parameter,
+            } => self.hold(
+                Held::MythicFeat(key.clone(), parameter.clone()),
+                source.cloned(),
+            ),
         }
     }
 
@@ -1997,9 +2067,25 @@ impl<'a> Walker<'a> {
             Held::MythicAbility(key) => {
                 state.mythic_abilities.insert(key.clone());
             }
-            Held::MythicFeat(key) => {
+            Held::MythicFeat(key, value) => {
                 state.mythic_feats.insert(key.clone());
+                if let Some(value) = value {
+                    state
+                        .mythic_feat_values
+                        .entry(key.clone())
+                        .or_default()
+                        .insert(value.clone());
+                }
             }
+        }
+        match &item {
+            Held::Feature(key) if self.engine.feature_floors.contains_key(key) => {
+                self.refresh_floors();
+            }
+            Held::MythicFeat(key, _) if self.removes_penalty(key) => {
+                self.refresh_ability_scores();
+            }
+            _ => {}
         }
         let option_row = match &item {
             Held::Feature(key) => self.engine.feature_rows.get(key),
@@ -2062,10 +2148,52 @@ impl<'a> Walker<'a> {
             Held::MythicAbility(key) => {
                 state.mythic_abilities.remove(key);
             }
-            Held::MythicFeat(key) => {
-                state.mythic_feats.remove(key);
+            Held::MythicFeat(key, value) => {
+                // A parameterised one stays held while it's held for another value.
+                let values = state.mythic_feat_values.get_mut(key);
+                let left = match (values, value) {
+                    (Some(values), Some(value)) => {
+                        values.remove(value);
+                        !values.is_empty()
+                    }
+                    _ => false,
+                };
+                if !left {
+                    state.mythic_feat_values.remove(key);
+                    state.mythic_feats.remove(key);
+                }
             }
         }
+        match item {
+            Held::Feature(key) if self.engine.feature_floors.contains_key(key) => {
+                self.refresh_floors();
+            }
+            Held::MythicFeat(key, _) if self.removes_penalty(key) => {
+                self.refresh_ability_scores();
+            }
+            _ => {}
+        }
+    }
+
+    /// Whether a mythic feat removes the race's ability penalty (Destiny Beyond Birth).
+    fn removes_penalty(&self, key: &MythicFeatKey) -> bool {
+        self.engine
+            .mythic_feat(key)
+            .is_some_and(|feat| feat.removes_racial_penalty)
+    }
+
+    /// The floors prerequisites see, from the features held (Perfect Mind: BAB 15, skill ranks at the Mythic rank).
+    fn refresh_floors(&mut self) {
+        let engine = self.engine;
+        let (mut bab, mut skills) = (0u8, false);
+        for key in self.state.features.keys() {
+            if let Some((floor, at_rank)) = engine.feature_floors.get(key) {
+                bab = bab.max(floor.unwrap_or(0));
+                skills |= *at_rank;
+            }
+        }
+        self.state.bab_floor = bab;
+        self.state.skill_ranks_at_least_mythic_rank = skills;
     }
 
     // ---- Mythic ascension ---------------------------------------------------------------------------------
@@ -2292,9 +2420,22 @@ impl<'a> Walker<'a> {
         }
     }
 
-    /// The character's own scores: the base scores with the bonuses of every feature held, once per grant.
+    /// The character's own scores: the base scores with the bonuses of every feature held, once per grant, and
+    /// without the race's penalties while a mythic feat removes them (Destiny Beyond Birth).
     fn refresh_ability_scores(&mut self) {
         let engine = self.engine;
+        let mut base = self.state.base_ability_scores;
+        if self
+            .state
+            .mythic_feats
+            .iter()
+            .any(|key| self.removes_penalty(key))
+        {
+            for (ability, penalty) in &self.racial_penalties {
+                let score = base.get_mut(*ability);
+                *score = score.saturating_add(*penalty);
+            }
+        }
         let bonuses = self
             .state
             .features
@@ -2304,7 +2445,7 @@ impl<'a> Walker<'a> {
                 Some(std::iter::repeat_n(bonuses, usize::from(*count)).flatten())
             })
             .flatten();
-        self.state.ability_scores = with_bonuses(self.state.base_ability_scores, bonuses);
+        self.state.ability_scores = with_bonuses(base, bonuses);
     }
 
     // ---- Tables -------------------------------------------------------------------------------------------
@@ -2419,6 +2560,12 @@ pub(crate) fn check_pick(
                 return Err(Issue::NotAllowed);
             }
             engine.check_value(engine.option_parameter(option), value)?;
+            if let Some(value) = value
+                && !option.values.is_empty()
+                && !option.values.contains(value)
+            {
+                return Err(Issue::WrongParameter);
+            }
             match option.repeat {
                 Repeat::Times(times) if state.option_count(key) >= times => {
                     return Err(Issue::MaxTimes { times });
@@ -2446,12 +2593,17 @@ pub(crate) fn check_pick(
             }
             ability.prerequisite.as_ref()
         }
-        (_, Pick::MythicFeat(key)) => {
+        (_, Pick::MythicFeat { feat: key, .. }) => {
             let feat = engine.mythic_feat(key).ok_or_else(unknown)?;
             if kind != &SlotKind::MythicFeat {
                 return Err(Issue::NotAllowed);
             }
-            if state.mythic_feats.contains(key) {
+            engine.check_value(feat.parameter, value)?;
+            let held = match (feat.repeat, value) {
+                (Repeat::PerValue, Some(value)) => state.has_mythic_feat_for(key, value),
+                _ => state.mythic_feats.contains(key),
+            };
+            if held {
                 return Err(Issue::AlreadyHeld);
             }
             feat.prerequisite.as_ref()

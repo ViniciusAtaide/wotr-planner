@@ -3,6 +3,7 @@
 
 mod class_rules;
 mod feat_lists;
+mod follow_ups;
 mod grammar;
 mod mythic_paths;
 mod option_families;

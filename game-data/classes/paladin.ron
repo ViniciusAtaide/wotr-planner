@@ -207,6 +207,8 @@ Class(
             key: "paladin/tortured-crusader",
             name: "Tortured Crusader",
             guide: "paladin#tortured-crusader",
+            skill_points: 3,
+            class_skills: ["athletics", "knowledge-arcana", "knowledge-world", "lore-nature", "lore-religion", "perception", "persuasion"],
             features: [
                 (key: "paladin/tortured-crusader/all-is-darkness", name: "All is Darkness", guide: "paladin#all-is-darkness"),
                 (key: "paladin/tortured-crusader/alone-in-the-dark", name: "Alone in the Dark", guide: "paladin#alone-in-the-dark"),

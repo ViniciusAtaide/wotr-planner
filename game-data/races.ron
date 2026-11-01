@@ -61,7 +61,10 @@
         name: "Half-Elf",
         guide: "character-creation#half-elf",
         ability_modifiers: [Chosen(amount: 2)],
-        feat_slots: [General],
+        feat_slots: [OneOf(list: "half-elf/adaptability")],
+        feat_lists: [
+            (key: "half-elf/adaptability", name: "Adaptability", guide: "character-creation#half-elf", ignores_prerequisites: true, feats: ["skill-focus"]),
+        ],
         subraces: [
             (key: "half-elf/dual-heritage", name: "Half-Elf (Dual Heritage)", guide: "character-creation#half-elf-dual-heritage", ability_modifiers: [Chosen(amount: 2)]),
             (key: "half-elf/kindred-raised", name: "Half-Elf (Kindred Raised", guide: "character-creation#half-elf-kindred-raised", ability_modifiers: [Chosen(amount: 2)]),

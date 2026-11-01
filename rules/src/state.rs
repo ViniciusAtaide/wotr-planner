@@ -63,6 +63,12 @@ pub struct CharacterState {
     pub option_feat_lists: BTreeMap<SelectionOptionKey, FeatListKey>,
     pub mythic_abilities: BTreeSet<MythicAbilityKey>,
     pub mythic_feats: BTreeSet<MythicFeatKey>,
+    /// Each parameterised mythic feat held, with the values it's held for (Improved Critical (Mythic): Longsword).
+    pub mythic_feat_values: BTreeMap<MythicFeatKey, BTreeSet<Parameter>>,
+    /// The base attack bonus prerequisites see at least (Perfect Mind: 15); 0 when no feature sets one.
+    pub bab_floor: u8,
+    /// Set while a feature makes every skill's ranks at least the Mythic rank for prerequisites (Perfect Mind).
+    pub skill_ranks_at_least_mythic_rank: bool,
     /// The Mythic rank reached: 3 after a Legend switch, whatever the rank before.
     pub mythic_rank: u8,
     pub mythic_path: Option<MythicPathKey>,
@@ -91,6 +97,28 @@ impl CharacterState {
 
     pub fn skill_ranks(&self, skill: &SkillKey) -> u8 {
         self.skill_ranks.get(skill).copied().unwrap_or(0)
+    }
+
+    /// The ranks in a skill that prerequisites see: the ranks, or the Mythic rank under Perfect Mind when higher.
+    pub fn prerequisite_skill_ranks(&self, skill: &SkillKey) -> u8 {
+        let floor = if self.skill_ranks_at_least_mythic_rank {
+            self.mythic_rank
+        } else {
+            0
+        };
+        self.skill_ranks(skill).max(floor)
+    }
+
+    /// The base attack bonus that prerequisites see: the BAB, or a feature's floor when higher (Perfect Mind).
+    pub fn prerequisite_bab(&self) -> u8 {
+        self.bab.max(self.bab_floor)
+    }
+
+    /// Whether a parameterised mythic feat is held for a value.
+    pub fn has_mythic_feat_for(&self, feat: &MythicFeatKey, value: &Parameter) -> bool {
+        self.mythic_feat_values
+            .get(feat)
+            .is_some_and(|values| values.contains(value))
     }
 
     /// How many times a feature has been granted; 0 when never.
@@ -231,6 +259,10 @@ impl CharacterState {
             P::FeatForSameValue(feat) => {
                 flag(value.is_some_and(|value| self.has_feat_for(feat, value)))
             }
+            P::FeatIfValue { value: when, feat } => {
+                flag(value != Some(when) || self.feats.contains_key(feat))
+            }
+            P::Not(child) => flag(self.check_in(child, value, for_feat).is_err()),
             P::MythicFeat(feat) => flag(self.mythic_feats.contains(feat)),
             P::MythicAbility(ability) => flag(self.mythic_abilities.contains(ability)),
             P::ClassLevel { class, level } => {
@@ -249,11 +281,11 @@ impl CharacterState {
             P::Feature { feature, count } => numeric(self.feature_count(feature), *count),
             P::SelectionOption(option) => flag(self.selection_options.contains_key(option)),
             P::NoOptionFrom(selection) => flag(!self.holds_option_of(selection)),
-            P::SkillRanks { skill, ranks } => numeric(self.skill_ranks(skill), *ranks),
+            P::SkillRanks { skill, ranks } => numeric(self.prerequisite_skill_ranks(skill), *ranks),
             P::AbilityScore { ability, score } => {
                 numeric(self.ability_scores.get(*ability), *score)
             }
-            P::BaseAttackBonus(bab) => numeric(self.bab, *bab),
+            P::BaseAttackBonus(bab) => numeric(self.prerequisite_bab(), *bab),
             P::SpellLevel { spell_type, level } => numeric(self.spell_level(*spell_type), *level),
             P::SpontaneousSpellLevel { spell_type, level } => {
                 numeric(self.spontaneous_spell_level(*spell_type), *level)

@@ -26,6 +26,8 @@ fn option(key: &str, anchor: &str, prerequisite: Option<Prerequisite>) -> Select
         levels: vec![],
         pool: None,
         replaces_row_of: None,
+        parameter: None,
+        values: Default::default(),
     }
 }
 
@@ -70,6 +72,7 @@ fn row(level: u8, features: &[&str], selections: &[&str]) -> ClassLevelRow {
             .iter()
             .map(|s| FeatureSelectionKey::new(*s))
             .collect(),
+        feats_for: Default::default(),
     }
 }
 
@@ -83,6 +86,7 @@ fn full_row(level: u8, features: &[&str], selections: &[&str]) -> ArchetypeLevel
         feats: row.feats,
         feat_slots: vec![],
         selections: row.selections,
+        feats_for: Default::default(),
     }
 }
 

@@ -58,7 +58,7 @@ pub fn pick_mythic_ability(key: &str) -> Pick {
     Pick::MythicAbility(MythicAbilityKey::new(key))
 }
 pub fn pick_mythic_feat(key: &str) -> Pick {
-    Pick::MythicFeat(MythicFeatKey::new(key))
+    Pick::mythic_feat(MythicFeatKey::new(key))
 }
 
 // ---- slots ----------------------------------------------------------------------------------------------------
@@ -166,6 +166,8 @@ pub fn world() -> GameData {
             sorcerer(),
             bard(),
             ranger(),
+            warpriest(),
+            druid(),
         ],
         prestige_classes: vec![
             arcane_trickster(),
@@ -223,6 +225,19 @@ fn skill_row(key: &str, name: &str, ability: Ability) -> Skill {
 fn races() -> Vec<Race> {
     let fixed = |ability, amount| AbilityModifier::Fixed { ability, amount };
     vec![
+        // Adaptability: Skill Focus as a bonus feat at 1, from the race's own one-feat list.
+        Race {
+            key: RaceKey::new("half-elf"),
+            name: "Half-Elf".into(),
+            summary: String::new(),
+            guide: guide("character-creation#half-elf"),
+            ability_modifiers: vec![AbilityModifier::Chosen { amount: 2 }],
+            feat_slots: vec![FeatSlot::OneOf {
+                list: feat_list("half-elf/adaptability"),
+            }],
+            feat_lists: vec![list("half-elf/adaptability", true, &["skill-focus"])],
+            subraces: vec![],
+        },
         Race {
             key: RaceKey::new("human"),
             name: "Human".into(),
@@ -230,6 +245,7 @@ fn races() -> Vec<Race> {
             guide: guide("character-creation#human"),
             ability_modifiers: vec![AbilityModifier::Chosen { amount: 2 }],
             feat_slots: vec![FeatSlot::General],
+            feat_lists: vec![],
             subraces: vec![],
         },
         Race {
@@ -243,6 +259,7 @@ fn races() -> Vec<Race> {
                 fixed(Ability::Constitution, -2),
             ],
             feat_slots: vec![],
+            feat_lists: vec![],
             subraces: vec![Subrace {
                 key: SubraceKey::new("elf/blightborn"),
                 name: "Blightborn".into(),
@@ -266,6 +283,7 @@ fn races() -> Vec<Race> {
                 fixed(Ability::Charisma, -2),
             ],
             feat_slots: vec![],
+            feat_lists: vec![],
             subraces: vec![],
         },
     ]
@@ -537,6 +555,35 @@ fn feats() -> Vec<Feat> {
             UnarmedCombat,
             Some(All(vec![needs_feat("crane-style"), needs_feat("dodge")])),
         ),
+        // Weapon Focus in any weapon, as the guide's Dazzling Display needs.
+        feat_row("dazzling-display", Weapon, Some(needs_feat("weapon-focus"))),
+        // The druid's companion through Nature Bond.
+        feat_row(
+            "boon-companion",
+            Miscellaneous,
+            Some(SelectionOption(option(
+                "druid/nature-bond/animal-companion",
+            ))),
+        ),
+        feat_row("armor-proficiency-light", ArmourAndShield, None),
+        feat_row("armor-proficiency-heavy", ArmourAndShield, None),
+        // "Armor Proficiency (Light, Medium or Heavy)": the one of the armour type taken.
+        param_feat_row(
+            "armor-focus",
+            ArmourAndShield,
+            ParameterKind::ArmourType,
+            Repeat::PerValue,
+            Some(All(vec![
+                FeatIfValue {
+                    value: Parameter::ArmourType(ArmourType::Light),
+                    feat: feat("armor-proficiency-light"),
+                },
+                FeatIfValue {
+                    value: Parameter::ArmourType(ArmourType::Heavy),
+                    feat: feat("armor-proficiency-heavy"),
+                },
+            ])),
+        ),
     ]
 }
 
@@ -549,6 +596,7 @@ fn row(level: u8) -> ClassLevelRow {
         advances_divine: false,
         features: vec![],
         feats: BTreeSet::new(),
+        feats_for: BTreeSet::new(),
         feat_slots: vec![],
         selections: vec![],
     }
@@ -561,6 +609,7 @@ fn archetype_row(level: u8) -> ArchetypeLevelRow {
         spell_levels: None,
         features: vec![],
         feats: BTreeSet::new(),
+        feats_for: BTreeSet::new(),
         feat_slots: vec![],
         selections: vec![],
     }
@@ -586,6 +635,8 @@ fn plain_feature(key: &str, name: &str) -> Feature {
         ability_bonuses: vec![],
         option_row: None,
         daily_choice: false,
+        bab_floor: None,
+        skill_ranks_at_least_mythic_rank: false,
     }
 }
 
@@ -702,6 +753,8 @@ fn selection_option(
         guide: guide(key),
         feats: feat.into_iter().collect(),
         chosen_feat: None,
+        parameter: None,
+        values: BTreeSet::new(),
         repeat: Repeat::Once,
         prerequisite,
         levels: vec![],
@@ -863,13 +916,36 @@ fn slayer() -> Class {
             name: "Slayer Talents".into(),
             summary: String::new(),
             guide: guide("slayer#slayer-talents"),
-            options: vec![selection_option(
-                "slayer/slayer-talents/slayer-camouflage",
-                None,
-                Some(Prerequisite::SelectionOption(option(
-                    "rogue/rogue-talents/fast-stealth",
-                ))),
-            )],
+            options: vec![
+                selection_option(
+                    "slayer/slayer-talents/slayer-camouflage",
+                    None,
+                    Some(Prerequisite::SelectionOption(option(
+                        "rogue/rogue-talents/fast-stealth",
+                    ))),
+                ),
+                // "Three times in total and at certain levels: 2 or 4, 6 or 8 and 10 or greater."
+                combat_style(2, Some(slayer_level_below(6))),
+                combat_style(
+                    6,
+                    Some(Prerequisite::All(vec![
+                        slayer_level(6),
+                        slayer_level_below(10),
+                    ])),
+                ),
+                combat_style(10, Some(slayer_level(10))),
+                // Like the shaman's Battle Master: Weapon Specialization at 8 in a weapon of choice.
+                SelectionOption {
+                    parameter: Some(ParameterKind::Weapon),
+                    ..levelled_option(
+                        "slayer/slayer-talents/battle-master",
+                        vec![OptionLevelRow {
+                            chosen_feats: BTreeSet::from([feat("weapon-specialization")]),
+                            ..option_row(8, &[])
+                        }],
+                    )
+                },
+            ],
             shared_options: [
                 "rogue/rogue-talents/combat-trick",
                 "rogue/rogue-talents/crippling-strike",
@@ -878,15 +954,58 @@ fn slayer() -> Class {
             .into_iter()
             .map(option)
             .collect(),
-            option_levels: BTreeSet::new(),
+            option_levels: BTreeSet::from([class("slayer")]),
             skipped_levels: BTreeSet::new(),
             feat_lists_only: false,
             only_without_option: false,
             pool_of: None,
         }],
-        feat_lists: vec![],
+        feat_lists: vec![
+            list(
+                "slayer/combat-style-feats-2",
+                true,
+                &["dodge", "power-attack"],
+            ),
+            list(
+                "slayer/combat-style-feats-6",
+                true,
+                &["cleave", "dodge", "power-attack"],
+            ),
+            list(
+                "slayer/combat-style-feats-10",
+                true,
+                &["cleave", "dodge", "great-cleave", "power-attack"],
+            ),
+        ],
         levels,
         archetypes: vec![],
+    }
+}
+
+fn slayer_level(level: u8) -> Prerequisite {
+    Prerequisite::ClassLevel {
+        class: class("slayer"),
+        level,
+    }
+}
+
+fn slayer_level_below(level: u8) -> Prerequisite {
+    Prerequisite::Not(Box::new(slayer_level(level)))
+}
+
+/// A slayer talent that is a combat style feat from one stage's list, a bonus feat slot at once.
+fn combat_style(stage: u8, prerequisite: Option<Prerequisite>) -> SelectionOption {
+    SelectionOption {
+        prerequisite,
+        ..levelled_option(
+            &format!("slayer/slayer-talents/combat-style-feat-{stage}"),
+            vec![OptionLevelRow {
+                feat_slots: vec![FeatSlot::OneOf {
+                    list: feat_list(&format!("slayer/combat-style-feats-{stage}")),
+                }],
+                ..option_row(1, &[])
+            }],
+        )
     }
 }
 
@@ -997,6 +1116,132 @@ fn monk() -> Class {
         features: vec![],
         selections: vec![],
         feat_lists: vec![list("monk/bonus-feats", true, &["crane-style", "dodge"])],
+        levels,
+        archetypes: vec![zen_archer()],
+    }
+}
+
+/// Zen Archer: Way of the Bow at 2, a pick of its one option, Weapon Focus in a dagger or a longsword (the world's
+/// stand-ins for the guide's bows), and Weapon Specialization in the same weapon at 6.
+fn zen_archer() -> Archetype {
+    let way = "monk/zen-archer/way-of-the-bow";
+    let mut row_2 = archetype_row(2);
+    row_2.feat_slots.push(FeatSlot::OneOf {
+        list: feat_list("monk/bonus-feats"),
+    });
+    row_2.selections.push(FeatureSelectionKey::new(way));
+    Archetype {
+        selections: vec![levelled_selection(
+            way,
+            &["monk"],
+            vec![SelectionOption {
+                chosen_feat: Some(feat("weapon-focus")),
+                values: BTreeSet::from([weapon("dagger"), weapon("longsword")]),
+                ..levelled_option(
+                    "monk/zen-archer/way-of-the-bow/weapon-focus",
+                    vec![OptionLevelRow {
+                        chosen_feats: BTreeSet::from([feat("weapon-specialization")]),
+                        ..option_row(6, &[])
+                    }],
+                )
+            }],
+            &[],
+        )],
+        levels: vec![row_2],
+        ..archetype("monk/zen-archer")
+    }
+}
+
+/// Warpriest: a Weapon Focus of the player's choosing at 1 (a one-feat bonus list). Mantis Zealot: Weapon Focus
+/// (Dueling Sword) at 1 and Weapon Specialization (Dueling Sword) at 4 instead.
+fn warpriest() -> Class {
+    let levels = (1..=20)
+        .map(|l| {
+            let mut r = row(l);
+            if l == 1 {
+                r.feat_slots.push(FeatSlot::OneOf {
+                    list: feat_list("warpriest/weapon-focus"),
+                });
+            }
+            r
+        })
+        .collect();
+    let dueling_sword = |key: &str| FeatValue {
+        feat: feat(key),
+        value: weapon("dueling-sword"),
+    };
+    let mut zealot_1 = archetype_row(1);
+    zealot_1.feats_for.insert(dueling_sword("weapon-focus"));
+    let mut zealot_4 = archetype_row(4);
+    zealot_4
+        .feats_for
+        .insert(dueling_sword("weapon-specialization"));
+    Class {
+        key: class("warpriest"),
+        name: "Warpriest".into(),
+        summary: String::new(),
+        guide: guide("warpriest"),
+        skill_points: 2,
+        bab: BabProgression::ThreeQuarters,
+        fort: SaveProgression::Good,
+        reflex: SaveProgression::Poor,
+        will: SaveProgression::Good,
+        save_exceptions: vec![],
+        advances: Advancement::Each,
+        spontaneous: false,
+        counts_as: BTreeSet::new(),
+        class_skills: BTreeSet::new(),
+        prerequisite: None,
+        features: vec![],
+        selections: vec![],
+        feat_lists: vec![list("warpriest/weapon-focus", true, &["weapon-focus"])],
+        levels,
+        archetypes: vec![Archetype {
+            levels: vec![zealot_1, zealot_4],
+            ..archetype("warpriest/mantis-zealot")
+        }],
+    }
+}
+
+/// Druid: Nature Bond at 1, an animal companion or a domain.
+fn druid() -> Class {
+    let nature_bond = FeatureSelectionKey::new("druid/nature-bond");
+    let levels = (1..=20)
+        .map(|l| {
+            let mut r = row(l);
+            if l == 1 {
+                r.selections.push(nature_bond.clone());
+            }
+            r
+        })
+        .collect();
+    Class {
+        key: class("druid"),
+        name: "Druid".into(),
+        summary: String::new(),
+        guide: guide("druid"),
+        skill_points: 4,
+        bab: BabProgression::ThreeQuarters,
+        fort: SaveProgression::Good,
+        reflex: SaveProgression::Poor,
+        will: SaveProgression::Good,
+        save_exceptions: vec![],
+        advances: Advancement::Each,
+        spontaneous: false,
+        counts_as: BTreeSet::new(),
+        class_skills: BTreeSet::new(),
+        prerequisite: None,
+        features: vec![],
+        selections: vec![levelled_selection(
+            "druid/nature-bond",
+            &[],
+            vec![
+                selection_option("druid/nature-bond/animal-companion", None, None),
+                selection_option("druid/nature-bond/domain", None, None),
+            ],
+            &[],
+        )],
+        feat_lists: vec![],
         levels,
         archetypes: vec![],
     }
@@ -1919,6 +2164,9 @@ fn mythic_feats() -> Vec<MythicFeat> {
         group: MythicFeatGroup::Melee,
         summary: String::new(),
         guide: guide(key),
+        parameter: None,
+        repeat: Repeat::Once,
+        removes_racial_penalty: false,
         prerequisite,
     };
     vec![
@@ -1928,6 +2176,25 @@ fn mythic_feats() -> Vec<MythicFeat> {
         mythic_feat("improved-critical-mythic", None),
         mythic_feat("dodge-mythic", None),
         mythic_feat("cleave-mythic", Some(needs_feat("cleave"))),
+        // "Select a school in which you have taken a Spell Focus."
+        MythicFeat {
+            parameter: Some(ParameterKind::SpellSchool),
+            repeat: Repeat::PerValue,
+            ..mythic_feat(
+                "spell-focus-mythic",
+                Some(Prerequisite::FeatForSameValue(feat("spell-focus"))),
+            )
+        },
+        // "Select one school of magic": no prerequisite.
+        MythicFeat {
+            parameter: Some(ParameterKind::SpellSchool),
+            repeat: Repeat::PerValue,
+            ..mythic_feat("school-mastery", None)
+        },
+        MythicFeat {
+            removes_racial_penalty: true,
+            ..mythic_feat("destiny-beyond-birth", None)
+        },
     ]
 }
 
@@ -2085,13 +2352,18 @@ fn gold_dragon() -> MythicPath {
                     AbilityBonus::Highest { amount: 4 },
                 ],
             ),
-            bonus_feature(
-                "gold-dragon/perfect-mind",
-                vec![
-                    AbilityBonus::AtLeast { score: 18 },
-                    AbilityBonus::Highest { amount: 2 },
-                ],
-            ),
+            // Also "your base attack bonus is at least 15" and "your rank in any skill is at least your mythic rank".
+            Feature {
+                bab_floor: Some(15),
+                skill_ranks_at_least_mythic_rank: true,
+                ..bonus_feature(
+                    "gold-dragon/perfect-mind",
+                    vec![
+                        AbilityBonus::AtLeast { score: 18 },
+                        AbilityBonus::Highest { amount: 2 },
+                    ],
+                )
+            },
             bonus_feature(
                 "gold-dragon/perfect-soul",
                 vec![AbilityBonus::Highest { amount: 2 }],

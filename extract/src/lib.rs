@@ -7,6 +7,7 @@
 pub mod build;
 pub mod class_rules;
 pub mod feat_lists;
+pub mod follow_ups;
 pub mod grammar;
 pub mod guide;
 pub mod html;

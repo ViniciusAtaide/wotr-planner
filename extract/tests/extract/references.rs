@@ -65,6 +65,8 @@ fn a_reference_must_exist_as_its_own_kind() {
                 ability_bonuses: vec![],
                 option_row: None,
                 daily_choice: false,
+                bab_floor: None,
+                skill_ranks_at_least_mythic_rank: false,
             }],
             selections: vec![],
             feat_lists: vec![],
@@ -108,6 +110,8 @@ fn an_option_beside_the_feat_it_grants_is_dropped() {
         levels: vec![],
         pool: None,
         replaces_row_of: None,
+        parameter: None,
+        values: Default::default(),
     };
     let rogue = Class {
         key: ClassKey::new("rogue"),

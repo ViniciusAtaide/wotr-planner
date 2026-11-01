@@ -374,6 +374,8 @@ pub(crate) fn feature(key: &FeatureKey, name: &str, guide: String) -> Feature {
         ability_bonuses: Vec::new(),
         option_row: None,
         daily_choice: false,
+        bab_floor: None,
+        skill_ranks_at_least_mythic_rank: false,
     }
 }
 
@@ -395,6 +397,8 @@ pub(crate) fn option(
         levels,
         pool: None,
         replaces_row_of: None,
+        parameter: None,
+        values: Default::default(),
     }
 }
 
@@ -1484,6 +1488,7 @@ fn take_family(data: &mut GameData, family: &Family, takes: &Takes, log: &mut Lo
                         .filter(|s| **s != selection_key)
                         .cloned()
                         .collect(),
+                    feats_for: Default::default(),
                 });
                 archetype.levels.sort_by_key(|row| row.level);
                 log.push(format!("{}: takes no {selection_key}", archetype.key));
@@ -1622,6 +1627,7 @@ fn take_family(data: &mut GameData, family: &Family, takes: &Takes, log: &mut Lo
                 feats: base.feats.clone(),
                 feat_slots: base.feat_slots.clone(),
                 selections: base.selections.clone(),
+                feats_for: Default::default(),
             });
             archetype.levels.sort_by_key(|row| row.level);
         }

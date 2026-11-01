@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT key, selection_key, name, summary, guide, prerequisite_root_id, chosen_feat_key,\n            repeat, repeat_times, pool_key, replaces_row_of_key\n        FROM selection_option ORDER BY key",
+  "query": "SELECT key, selection_key, name, summary, guide, prerequisite_root_id, chosen_feat_key,\n            parameter, repeat, repeat_times, pool_key, replaces_row_of_key\n        FROM selection_option ORDER BY key",
   "describe": {
     "columns": [
       {
@@ -82,6 +82,17 @@
       },
       {
         "ordinal": 7,
+        "name": "parameter",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "selection_option",
+            "name": "parameter"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
         "name": "repeat",
         "type_info": "Text",
         "origin": {
@@ -92,7 +103,7 @@
         }
       },
       {
-        "ordinal": 8,
+        "ordinal": 9,
         "name": "repeat_times",
         "type_info": "Int2",
         "origin": {
@@ -103,7 +114,7 @@
         }
       },
       {
-        "ordinal": 9,
+        "ordinal": 10,
         "name": "pool_key",
         "type_info": "Text",
         "origin": {
@@ -114,7 +125,7 @@
         }
       },
       {
-        "ordinal": 10,
+        "ordinal": 11,
         "name": "replaces_row_of_key",
         "type_info": "Text",
         "origin": {
@@ -136,11 +147,12 @@
       false,
       true,
       true,
+      true,
       false,
       true,
       true,
       true
     ]
   },
-  "hash": "5b0363b8479e8eee015eec95f85ab0b22b166f03948619666d1dab56420578a8"
+  "hash": "5d9ea8c73bf5b149e36e914d1efadf82b97d7926e50888dd275f83c487000dba"
 }

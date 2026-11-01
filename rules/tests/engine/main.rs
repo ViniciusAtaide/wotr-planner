@@ -13,6 +13,7 @@ mod derived;
 mod edits;
 mod facts;
 mod feat_lists;
+mod follow_ups;
 mod granted_feats;
 mod mythic;
 mod option_levels;

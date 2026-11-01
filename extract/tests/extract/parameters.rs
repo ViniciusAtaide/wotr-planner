@@ -281,6 +281,7 @@ fn row(level: u8) -> ClassLevelRow {
         feats: BTreeSet::new(),
         feat_slots: vec![],
         selections: vec![],
+        feats_for: Default::default(),
     }
 }
 
@@ -292,6 +293,7 @@ fn archetype_row(level: u8) -> ArchetypeLevelRow {
         feats: BTreeSet::new(),
         feat_slots: vec![],
         selections: vec![],
+        feats_for: Default::default(),
     }
 }
 
@@ -346,6 +348,8 @@ fn feature(key: &str) -> Feature {
         ability_bonuses: vec![],
         option_row: None,
         daily_choice: false,
+        bab_floor: None,
+        skill_ranks_at_least_mythic_rank: false,
     }
 }
 
@@ -467,6 +471,8 @@ fn the_files_write_weapons_parameters_repeats_and_chosen_feats() {
         levels: vec![],
         pool: None,
         replaces_row_of: None,
+        parameter: None,
+        values: Default::default(),
     };
     talents.selections.push(FeatureSelection {
         key: FeatureSelectionKey::new("rogue/rogue-talents"),

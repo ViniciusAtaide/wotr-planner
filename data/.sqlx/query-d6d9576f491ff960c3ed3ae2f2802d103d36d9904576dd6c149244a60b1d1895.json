@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT key, class_key, archetype_key, path_key, name, summary, guide,\n            option_row_selection_key, option_row_level, daily_choice\n        FROM feature ORDER BY key",
+  "query": "SELECT key, class_key, archetype_key, path_key, name, summary, guide,\n            option_row_selection_key, option_row_level, daily_choice, bab_floor,\n            skill_ranks_at_least_mythic_rank\n        FROM feature ORDER BY key",
   "describe": {
     "columns": [
       {
@@ -112,6 +112,28 @@
             "name": "daily_choice"
           }
         }
+      },
+      {
+        "ordinal": 10,
+        "name": "bab_floor",
+        "type_info": "Int2",
+        "origin": {
+          "Table": {
+            "table": "feature",
+            "name": "bab_floor"
+          }
+        }
+      },
+      {
+        "ordinal": 11,
+        "name": "skill_ranks_at_least_mythic_rank",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "feature",
+            "name": "skill_ranks_at_least_mythic_rank"
+          }
+        }
       }
     ],
     "parameters": {
@@ -127,8 +149,10 @@
       false,
       true,
       true,
+      false,
+      true,
       false
     ]
   },
-  "hash": "7b74b2d5ad4b9a8efec6c531ddbb27932c94a1a54bc278b48d34cef974cdba4c"
+  "hash": "d6d9576f491ff960c3ed3ae2f2802d103d36d9904576dd6c149244a60b1d1895"
 }

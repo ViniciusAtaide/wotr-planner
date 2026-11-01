@@ -243,9 +243,28 @@ Class(
             features: [
                 (key: "monk/zen-archer/flurry-of-blows-zen-archer", name: "Flurry of Blows (Zen Archer)", guide: "monk#flurry-of-blows-zen-archer"),
                 (key: "monk/zen-archer/ki-arrows", name: "Ki Arrows", guide: "monk#ki-arrows"),
-                (key: "monk/zen-archer/way-of-the-bow", name: "Way of the Bow", guide: "monk#way-of-the-bow"),
                 (key: "monk/zen-archer/zen-archer-proficiencies", name: "Zen Archer Proficiencies", guide: "monk#zen-archer-proficiencies"),
                 (key: "monk/zen-archer/zen-archery", name: "Zen Archery", guide: "monk#zen-archery"),
+            ],
+            selections: [
+                (
+                    key: "monk/zen-archer/way-of-the-bow",
+                    name: "Way of the Bow",
+                    guide: "monk#way-of-the-bow",
+                    option_levels: ["monk"],
+                    options: [
+                        (
+                            key: "monk/zen-archer/way-of-the-bow/bow",
+                            name: "Bow",
+                            guide: "monk#way-of-the-bow",
+                            chosen_feat: "weapon-focus",
+                            values: [Weapon("long-bow"), Weapon("short-bow")],
+                            levels: [
+                                (level: 6, chosen_feats: ["weapon-specialization"]),
+                            ],
+                        ),
+                    ],
+                ),
             ],
             feat_lists: [
                 (key: "monk/zen-archer/bonus-feats-1", name: "Bonus Feat (Zen Archer)", guide: "monk#bonus-feat-zen-archer", ignores_prerequisites: true, feats: ["combat-reflexes", "crane-style", "deflect-arrows", "dodge", "point-blank-shot", "precise-shot", "rapid-shot"]),
@@ -254,7 +273,7 @@ Class(
             ],
             levels: [
                 (level: 1, features: ["monk/ac-bonus", "monk/unarmed-strike", "monk/zen-archer/flurry-of-blows-zen-archer", "monk/zen-archer/zen-archer-proficiencies"], feats: ["improved-unarmed-strike", "perfect-strike"], feat_slots: [OneOf(list: "monk/zen-archer/bonus-feats-1")]),
-                (level: 2, features: ["monk/zen-archer/way-of-the-bow"], feat_slots: [OneOf(list: "monk/zen-archer/bonus-feats-1")]),
+                (level: 2, feat_slots: [OneOf(list: "monk/zen-archer/bonus-feats-1")], selections: ["monk/zen-archer/way-of-the-bow"]),
                 (level: 3, features: ["monk/fast-movement", "monk/ki-pool", "monk/ki-strike-magic", "monk/zen-archer/zen-archery"], feats: ["point-blank-master"]),
                 (level: 4, features: ["monk/ki-power"]),
                 (level: 5, features: ["monk/zen-archer/ki-arrows"]),

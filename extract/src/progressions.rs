@@ -141,6 +141,7 @@ pub fn full_archetype_row(row: rules::ClassLevelRow) -> ArchetypeLevelRow {
         feats: row.feats,
         feat_slots: row.feat_slots,
         selections: row.selections,
+        feats_for: row.feats_for,
     }
 }
 

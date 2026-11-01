@@ -37,6 +37,15 @@ fn a_slayer_talent_slot_offers_its_own_options_and_the_shared_rogue_talents_in_k
             "rogue/rogue-talents/combat-trick",
             "rogue/rogue-talents/crippling-strike",
             "rogue/rogue-talents/fast-stealth",
+            // Battle Master once per weapon.
+            "slayer/slayer-talents/battle-master",
+            "slayer/slayer-talents/battle-master",
+            "slayer/slayer-talents/battle-master",
+            "slayer/slayer-talents/battle-master",
+            "slayer/slayer-talents/battle-master",
+            "slayer/slayer-talents/combat-style-feat-10",
+            "slayer/slayer-talents/combat-style-feat-2",
+            "slayer/slayer-talents/combat-style-feat-6",
             "slayer/slayer-talents/slayer-camouflage",
         ]
     );

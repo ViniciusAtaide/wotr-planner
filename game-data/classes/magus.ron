@@ -309,7 +309,6 @@ Class(
                 (key: "magus/sword-saint/arcane-weapon-4", name: "Arcane Weapon +4", guide: "magus#sword-saint"),
                 (key: "magus/sword-saint/arcane-weapon-5", name: "Arcane Weapon +5", guide: "magus#sword-saint"),
                 (key: "magus/sword-saint/canny-defense", name: "Canny Defense", guide: "magus#canny-defense"),
-                (key: "magus/sword-saint/chosen-weapon", name: "Chosen Weapon", guide: "magus#chosen-weapon"),
                 (key: "magus/sword-saint/critical-perfection", name: "Critical Perfection", guide: "magus#critical-perfection"),
                 (key: "magus/sword-saint/detect-magic", name: "Detect Magic", guide: "magus#sword-saint"),
                 (key: "magus/sword-saint/fighter-training-sword-saint", name: "Fighter Training (Sword Saint)", guide: "magus#fighter-training-sword-saint"),
@@ -321,8 +320,11 @@ Class(
                 (key: "magus/sword-saint/sword-saint-proficiencies", name: "Sword Saint Proficiencies", guide: "magus#sword-saint-proficiencies"),
                 (key: "magus/sword-saint/weapon-mastery", name: "Weapon Mastery", guide: "magus#weapon-mastery"),
             ],
+            feat_lists: [
+                (key: "magus/sword-saint/chosen-weapon", name: "Chosen Weapon", guide: "magus#chosen-weapon", ignores_prerequisites: true, feats: ["weapon-focus"]),
+            ],
             levels: [
-                (level: 1, features: ["magus/arcane-pool", "magus/spell-combat", "magus/sword-saint/canny-defense", "magus/sword-saint/chosen-weapon", "magus/sword-saint/detect-magic", "magus/sword-saint/sword-saint-proficiencies"], feats: ["simple-weapon-proficiency"]),
+                (level: 1, features: ["magus/arcane-pool", "magus/spell-combat", "magus/sword-saint/canny-defense", "magus/sword-saint/detect-magic", "magus/sword-saint/sword-saint-proficiencies"], feats: ["simple-weapon-proficiency"], feat_slots: [OneOf(list: "magus/sword-saint/chosen-weapon")]),
                 (level: 4, features: ["magus/sword-saint/perfect-strike"]),
                 (level: 5, features: ["magus/sword-saint/arcane-weapon-2"], feat_slots: [General]),
                 (level: 7, features: ["magus/sword-saint/fighter-training-sword-saint", "magus/sword-saint/lightning-draw"]),

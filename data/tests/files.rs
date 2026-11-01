@@ -7,11 +7,12 @@ use std::fs;
 
 use common::{copy_fixture, fixture_dir};
 use rules::{
-    Ability, AbilityBonus, Advancement, ArchetypeLevelRow, BabProgression, ClassKey, CountsAs,
-    CountsToward, FeatKey, FeatListKey, FeatSlot, FeatureKey, FeatureSelectionKey, GameData,
-    MythicAbilityGroup, MythicFeatGroup, MythicPathKey, OptionLevelRow, OptionRow, Parameter,
-    ParameterKind, Prerequisite, Repeat, Save, SaveException, SaveProgression, SelectionOptionKey,
-    SpellLevels, Story, WeaponKey, WeaponProficiency,
+    Ability, AbilityBonus, Advancement, ArchetypeLevelRow, ArmourType, BabProgression, ClassKey,
+    CountsAs, CountsToward, FeatKey, FeatListKey, FeatSlot, FeatValue, FeatureKey,
+    FeatureSelectionKey, GameData, MythicAbilityGroup, MythicFeatGroup, MythicPathKey,
+    OptionLevelRow, OptionRow, Parameter, ParameterKind, Prerequisite, Repeat, Save, SaveException,
+    SaveProgression, SelectionOptionKey, SkillKey, SpellLevels, Story, WeaponKey,
+    WeaponProficiency,
 };
 
 fn read_fixture() -> GameData {
@@ -26,7 +27,7 @@ fn reads_every_fixture_file() {
     let names = |items: Vec<&str>| items.join(", ");
     assert_eq!(
         names(data.races.iter().map(|r| r.name.as_str()).collect()),
-        "Dwarf, Elf, Human"
+        "Dwarf, Elf, Half-Elf, Human"
     );
     assert_eq!(data.skills.len(), 4);
     assert_eq!(data.weapons.len(), 4);
@@ -58,7 +59,7 @@ fn reads_every_fixture_file() {
         ]
     );
     assert_eq!(data.mythic_abilities.len(), 4);
-    assert_eq!(data.mythic_feats.len(), 3);
+    assert_eq!(data.mythic_feats.len(), 6);
     assert_eq!(
         data.mythic_paths
             .iter()
@@ -113,6 +114,10 @@ fn reads_class_progressions_and_only_the_archetype_rows_that_differ() {
             }),
             features: vec![FeatureKey::new("rogue/eldritch-scoundrel/spells")],
             feats: BTreeSet::new(),
+            feats_for: BTreeSet::from([FeatValue {
+                feat: FeatKey::new("skill-focus"),
+                value: Parameter::Skill(SkillKey::new("mobility")),
+            }]),
             feat_slots: vec![],
             selections: vec![],
         }
@@ -161,11 +166,18 @@ fn reads_feat_lists_and_the_slots_that_name_them() {
             )
         })
         .collect();
-    // Each in its owner's file: the monk's, the Armiger's (inside the fighter's file), the Gold Dragon's and the
-    // trickster's. Left out, `ignores_prerequisites` and `every_feat` are unset, and `feats` is empty.
+    // Each in its owner's file: the half-elf's (in the races file), the monk's, the Armiger's (inside the fighter's
+    // file), the Gold Dragon's and the trickster's. Left out, `ignores_prerequisites` and `every_feat` are unset,
+    // and `feats` is empty.
     assert_eq!(
         lists,
         [
+            (
+                "half-elf/adaptability",
+                "Adaptability",
+                true,
+                vec!["skill-focus"]
+            ),
             (
                 "fighter/armiger/bonus-feats",
                 "Armiger Bonus Feats",
@@ -271,8 +283,11 @@ fn reads_mythic_groups() {
     assert_eq!(
         groups,
         [
+            MythicFeatGroup::Miscellaneous,
+            MythicFeatGroup::Miscellaneous,
             MythicFeatGroup::ArmourAndShield,
             MythicFeatGroup::Melee,
+            MythicFeatGroup::Magic,
             MythicFeatGroup::Melee
         ]
     );
@@ -768,4 +783,127 @@ fn reads_options_with_rows_by_option_level_and_defaults_them() {
             .all(|f| f.option_row.is_none() && !f.daily_choice)
     );
     assert!(rogue.archetypes.iter().all(|a| a.spontaneous.is_none()));
+}
+
+#[test]
+fn reads_values_granted_asked_about_and_offered_and_defaults_them() {
+    let data = read_fixture();
+    // A race's own list.
+    let half_elf = data
+        .races
+        .iter()
+        .find(|r| r.key.as_str() == "half-elf")
+        .unwrap();
+    assert_eq!(
+        half_elf.feat_slots,
+        [FeatSlot::OneOf {
+            list: FeatListKey::new("half-elf/adaptability")
+        }]
+    );
+    assert_eq!(
+        half_elf.feat_lists[0].feats,
+        BTreeSet::from([FeatKey::new("skill-focus")])
+    );
+    assert!(
+        data.races
+            .iter()
+            .filter(|r| r.key.as_str() != "half-elf")
+            .all(|r| r.feat_lists.is_empty())
+    );
+
+    // A feat granted for one value on a class row; none elsewhere.
+    let rogue = data
+        .classes
+        .iter()
+        .find(|c| c.key.as_str() == "rogue")
+        .unwrap();
+    assert_eq!(
+        rogue.levels[0].feats_for,
+        BTreeSet::from([FeatValue {
+            feat: FeatKey::new("weapon-focus"),
+            value: Parameter::Weapon(WeaponKey::new("dagger")),
+        }])
+    );
+    assert!(rogue.levels[1].feats_for.is_empty());
+
+    // An option's own value from a short list; others take none.
+    let talents = &rogue.selections[0].options;
+    let training = talents
+        .iter()
+        .find(|o| o.key.as_str() == "rogue/rogue-talents/weapon-training")
+        .unwrap();
+    assert_eq!(training.parameter, Some(ParameterKind::Weapon));
+    assert_eq!(
+        training.values,
+        BTreeSet::from([
+            Parameter::Weapon(WeaponKey::new("dagger")),
+            Parameter::Weapon(WeaponKey::new("longsword"))
+        ])
+    );
+    assert!(
+        talents
+            .iter()
+            .filter(|o| o.key != training.key)
+            .all(|o| o.parameter.is_none() && o.values.is_empty())
+    );
+
+    // Mythic feats: a value, a repeat, the racial penalty; defaults elsewhere.
+    let mythic = |key: &str| {
+        data.mythic_feats
+            .iter()
+            .find(|f| f.key.as_str() == key)
+            .unwrap()
+    };
+    let spell_focus = mythic("spell-focus-mythic");
+    assert_eq!(spell_focus.parameter, Some(ParameterKind::SpellSchool));
+    assert_eq!(spell_focus.repeat, Repeat::PerValue);
+    assert_eq!(mythic("extra-mythic-power").repeat, Repeat::Times(2));
+    assert!(mythic("destiny-beyond-birth").removes_racial_penalty);
+    let power_attack = mythic("power-attack-mythic");
+    assert_eq!(
+        (
+            power_attack.parameter,
+            power_attack.repeat,
+            power_attack.removes_racial_penalty
+        ),
+        (None, Repeat::Once, false)
+    );
+    assert_eq!(
+        mythic("destiny-beyond-birth").prerequisite,
+        Some(Prerequisite::Not(Box::new(Prerequisite::CharacterLevel(
+            11
+        ))))
+    );
+
+    // Armor Focus asks about the pick's value.
+    let armor_focus = data
+        .feats
+        .iter()
+        .find(|f| f.key.as_str() == "armor-focus")
+        .unwrap();
+    assert!(matches!(
+        &armor_focus.prerequisite,
+        Some(Prerequisite::All(children)) if children.contains(&Prerequisite::FeatIfValue {
+            value: Parameter::ArmourType(ArmourType::Heavy),
+            feat: FeatKey::new("toughness"),
+        })
+    ));
+
+    // A feature's floors; none elsewhere.
+    let features: Vec<&rules::Feature> =
+        data.mythic_paths.iter().flat_map(|p| &p.features).collect();
+    let might = features
+        .iter()
+        .find(|f| f.key.as_str() == "gold-dragon/dragon-might")
+        .unwrap();
+    assert_eq!(
+        (might.bab_floor, might.skill_ranks_at_least_mythic_rank),
+        (Some(15), true)
+    );
+    assert!(
+        features
+            .iter()
+            .filter(|f| f.key != might.key)
+            .all(|f| f.bab_floor.is_none() && !f.skill_ranks_at_least_mythic_rank)
+    );
 }

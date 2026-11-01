@@ -204,6 +204,8 @@ pub fn path_rules(paths: &mut [MythicPath]) {
                     ability_bonuses: Vec::new(),
                     option_row: None,
                     daily_choice: false,
+                    bab_floor: None,
+                    skill_ranks_at_least_mythic_rank: false,
                 };
                 path.features
                     .push(feature("legend/legend", "Legend", "legend"));

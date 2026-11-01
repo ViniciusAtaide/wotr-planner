@@ -10,7 +10,7 @@ MythicPath(
     features: [
         (key: "gold-dragon/breath", name: "Breath Weapon", guide: "other-mythic-paths#gold-dragon-breath"),
         (key: "gold-dragon/perfect-body", name: "Perfect Body", guide: "gold-dragon#perfect-body", ability_bonuses: [Highest(amount: 4), AtLeast(score: 14)]),
-        (key: "gold-dragon/dragon-might", name: "Dragon Might", guide: "gold-dragon#dragon-might", ability_bonuses: [Fixed(ability: Strength, amount: 2), Fixed(ability: Constitution, amount: 2)]),
+        (key: "gold-dragon/dragon-might", name: "Dragon Might", guide: "gold-dragon#dragon-might", ability_bonuses: [Fixed(ability: Strength, amount: 2), Fixed(ability: Constitution, amount: 2)], bab_floor: 15, skill_ranks_at_least_mythic_rank: true),
     ],
     selections: [
         (

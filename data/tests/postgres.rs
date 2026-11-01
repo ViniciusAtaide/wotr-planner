@@ -69,8 +69,8 @@ async fn repeated_grants_are_stored_as_counts_and_read_back_in_full(pool: PgPool
     let text = fs::read_to_string(&rogue).unwrap();
     let text = text
         .replacen(
-            r#"(level: 1, features: ["rogue/sneak-attack"]),"#,
-            r#"(level: 1, features: ["rogue/sneak-attack", "rogue/sneak-attack"]),"#,
+            r#"(level: 1, features: ["rogue/sneak-attack"],"#,
+            r#"(level: 1, features: ["rogue/sneak-attack", "rogue/sneak-attack"],"#,
             1,
         )
         .replacen(
@@ -279,6 +279,11 @@ fn every_prerequisite_variant() -> Vec<Prerequisite> {
             value: Parameter::ArmourType(ArmourType::Medium),
         },
         P::FeatForSameValue(FeatKey::new("weapon-focus")),
+        // Ticket 32: the pick's value asked about (stored like `FeatFor`; the fixture's Armor Focus has two more).
+        P::FeatIfValue {
+            value: Parameter::Weapon(WeaponKey::new("dagger")),
+            feat: FeatKey::new("dodge"),
+        },
         P::Story(Story::VowOfDahak),
         P::Story(Story::Uncorrupted),
         P::NoOptionFrom(FeatureSelectionKey::new("sorcerer/bloodline")),
@@ -290,6 +295,12 @@ fn every_prerequisite_variant() -> Vec<Prerequisite> {
     let groups = vec![
         P::Any(vec![P::BaseAttackBonus(1), P::CasterLevel(1)]),
         P::AtLeast(1, vec![P::CharacterLevel(2), P::CasterLevel(2)]),
+        // A `not` of a leaf and of a group.
+        P::Not(Box::new(P::CharacterLevel(12))),
+        P::Not(Box::new(P::All(vec![
+            P::BaseAttackBonus(3),
+            P::Not(Box::new(P::CasterLevel(3))),
+        ]))),
     ];
     let all = [leaves, groups].concat();
     for prerequisite in &all {
@@ -297,6 +308,7 @@ fn every_prerequisite_variant() -> Vec<Prerequisite> {
             P::All(_)
             | P::Any(_)
             | P::AtLeast(..)
+            | P::Not(_)
             | P::Feat(_)
             | P::MythicFeat(_)
             | P::MythicAbility(_)
@@ -315,6 +327,7 @@ fn every_prerequisite_variant() -> Vec<Prerequisite> {
             | P::Race(_)
             | P::FeatFor { .. }
             | P::FeatForSameValue(_)
+            | P::FeatIfValue { .. }
             | P::Story(_)
             | P::NoOptionFrom(_)
             | P::SpontaneousSpellLevel { .. } => {}
@@ -380,6 +393,23 @@ async fn a_prerequisite_leaf_with_children_is_an_error(pool: PgPool) {
     let error = data::load_game_data(&db).await.unwrap_err().to_string();
 
     assert!(error.contains("children"), "{error}");
+}
+
+#[sqlx::test]
+async fn a_not_with_two_children_is_an_error(pool: PgPool) {
+    let db = Database::from(pool.clone());
+    data::seed(&db, &fixture_dir()).await.unwrap();
+    sqlx::query(
+        "INSERT INTO prerequisite_node (parent_id, kind, amount)
+        SELECT id, 'base_attack_bonus', 1 FROM prerequisite_node WHERE kind = 'not' LIMIT 1",
+    )
+    .execute(&pool)
+    .await
+    .unwrap();
+
+    let error = data::load_game_data(&db).await.unwrap_err().to_string();
+
+    assert!(error.contains("a not has 2 children"), "{error}");
 }
 
 #[sqlx::test]
@@ -641,12 +671,15 @@ async fn the_schema_rejects_values_outside_their_domain_and_misplaced_keys(pool:
     // Features, selections and feat lists are keyed under their owner: the archetype when there is one, else
     // the class or the path.
     for sql in [
-        "INSERT INTO feature (key, class_key, name, summary, guide, daily_choice)
-        VALUES ('rogue/stray', 'fighter', 'Stray', '', 'x', false)",
-        "INSERT INTO feature (key, class_key, archetype_key, name, summary, guide, daily_choice)
-        VALUES ('fighter/stray', 'fighter', 'fighter/armiger', 'Stray', '', 'x', false)",
-        "INSERT INTO feature (key, path_key, name, summary, guide, daily_choice)
-        VALUES ('mythic/stray', 'trickster', 'Stray', '', 'x', false)",
+        "INSERT INTO feature (key, class_key, name, summary, guide, daily_choice,
+            skill_ranks_at_least_mythic_rank)
+        VALUES ('rogue/stray', 'fighter', 'Stray', '', 'x', false, false)",
+        "INSERT INTO feature (key, class_key, archetype_key, name, summary, guide, daily_choice,
+            skill_ranks_at_least_mythic_rank)
+        VALUES ('fighter/stray', 'fighter', 'fighter/armiger', 'Stray', '', 'x', false, false)",
+        "INSERT INTO feature (key, path_key, name, summary, guide, daily_choice,
+            skill_ranks_at_least_mythic_rank)
+        VALUES ('mythic/stray', 'trickster', 'Stray', '', 'x', false, false)",
         "INSERT INTO feature_selection (key, path_key, name, summary, guide, feat_lists_only,
             only_without_option)
         VALUES ('legend/stray', 'trickster', 'Stray', '', 'x', false, false)",
@@ -657,8 +690,9 @@ async fn the_schema_rejects_values_outside_their_domain_and_misplaced_keys(pool:
         assert!(error.contains("check constraint"), "{sql}: {error}");
     }
     sqlx::query(
-        "INSERT INTO feature (key, class_key, archetype_key, name, summary, guide, daily_choice)
-        VALUES ('fighter/armiger/x', 'fighter', 'fighter/armiger', 'X', '', 'x', false)",
+        "INSERT INTO feature (key, class_key, archetype_key, name, summary, guide, daily_choice,
+            skill_ranks_at_least_mythic_rank)
+        VALUES ('fighter/armiger/x', 'fighter', 'fighter/armiger', 'X', '', 'x', false, false)",
     )
     .execute(&pool)
     .await
@@ -938,6 +972,105 @@ async fn the_schema_keeps_option_levels_and_their_grants_consistent(pool: PgPool
         (
             "UPDATE prerequisite_node SET selection_key = 'sorcerer/bloodline'
             WHERE kind = 'spontaneous_spell_level'",
+            "check constraint",
+        ),
+    ] {
+        let error = rejected(sql).await;
+        assert!(error.contains(expected), "{sql}: {error}");
+    }
+}
+
+#[sqlx::test]
+async fn the_schema_keeps_values_granted_offered_and_asked_about_consistent(pool: PgPool) {
+    let db = Database::from(pool.clone());
+    data::seed(&db, &fixture_dir()).await.unwrap();
+    let rejected = |sql: &'static str| {
+        let pool = pool.clone();
+        async move {
+            let mut tx = pool.begin().await.unwrap();
+            let update = sqlx::query(sql).execute(&mut *tx).await;
+            // Foreign keys are deferred: they fail at commit.
+            let result = match update {
+                Ok(_) => tx.commit().await.map(|_| ()),
+                Err(error) => Err(error),
+            };
+            result.unwrap_err().to_string()
+        }
+    };
+    for (sql, expected) in [
+        // A feat granted for a value: one value column at most, a known value, on a class level only.
+        (
+            "UPDATE granted_feat SET skill_key = 'mobility' WHERE weapon_key IS NOT NULL",
+            "check constraint",
+        ),
+        (
+            "UPDATE granted_feat SET weapon_key = 'no-such-weapon' WHERE weapon_key IS NOT NULL",
+            "foreign key",
+        ),
+        (
+            "UPDATE granted_feat SET energy = 'sonic' WHERE weapon_key IS NOT NULL",
+            "check constraint",
+        ),
+        (
+            "UPDATE granted_feat SET armour_type = 'light' WHERE option_level_id IS NOT NULL",
+            "check constraint",
+        ),
+        // An option's values: exactly one column each, known values; its own parameter never beside a chosen
+        // feat.
+        (
+            "UPDATE selection_option_value SET weapon_key = NULL",
+            "check constraint",
+        ),
+        (
+            "UPDATE selection_option_value SET spell_school = 'evocation'",
+            "check constraint",
+        ),
+        (
+            "UPDATE selection_option_value SET option_key = 'no-such/option'",
+            "foreign key",
+        ),
+        (
+            "UPDATE selection_option SET parameter = 'weapon' WHERE chosen_feat_key IS NOT NULL",
+            "check constraint",
+        ),
+        (
+            "UPDATE selection_option SET parameter = 'colour' WHERE parameter IS NOT NULL",
+            "check constraint",
+        ),
+        // A mythic feat's repeat is as consistent as a feat's.
+        (
+            "UPDATE mythic_feat SET parameter = NULL WHERE repeat = 'per_value'",
+            "check constraint",
+        ),
+        (
+            "UPDATE mythic_feat SET repeat_times = NULL WHERE repeat = 'times'",
+            "check constraint",
+        ),
+        // A race's feat list: one owner, keyed under it.
+        (
+            "UPDATE feat_list SET class_key = 'fighter' WHERE race_key IS NOT NULL",
+            "check constraint",
+        ),
+        (
+            "UPDATE feat_list SET race_key = 'elf' WHERE race_key IS NOT NULL",
+            "check constraint",
+        ),
+        // A feature's BAB floor is a game number.
+        (
+            "UPDATE feature SET bab_floor = 300 WHERE bab_floor IS NOT NULL",
+            "check constraint",
+        ),
+        // `not` fills no column, `feat_if_value` a feat and one value.
+        (
+            "UPDATE prerequisite_node SET amount = 1 WHERE kind = 'not'",
+            "check constraint",
+        ),
+        (
+            "UPDATE prerequisite_node SET armour_type = NULL WHERE kind = 'feat_if_value'",
+            "check constraint",
+        ),
+        (
+            "UPDATE prerequisite_node SET weapon_key = 'dagger' WHERE kind = 'feat_if_value'",
             "check constraint",
         ),
     ] {

@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT key, name, group_name, summary, guide, prerequisite_root_id\n        FROM mythic_feat ORDER BY key",
+  "query": "SELECT key, name, group_name, summary, guide, prerequisite_root_id, parameter, repeat,\n            repeat_times, removes_racial_penalty\n        FROM mythic_feat ORDER BY key",
   "describe": {
     "columns": [
       {
@@ -68,6 +68,50 @@
             "name": "prerequisite_root_id"
           }
         }
+      },
+      {
+        "ordinal": 6,
+        "name": "parameter",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "mythic_feat",
+            "name": "parameter"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "repeat",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "mythic_feat",
+            "name": "repeat"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "repeat_times",
+        "type_info": "Int2",
+        "origin": {
+          "Table": {
+            "table": "mythic_feat",
+            "name": "repeat_times"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "removes_racial_penalty",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "mythic_feat",
+            "name": "removes_racial_penalty"
+          }
+        }
       }
     ],
     "parameters": {
@@ -79,8 +123,12 @@
       false,
       false,
       false,
-      true
+      true,
+      true,
+      false,
+      true,
+      false
     ]
   },
-  "hash": "ba7ec125ac5c8c755693ecf50d75e3747bf4fa1f6aa6c812c027bd043fcd7243"
+  "hash": "2a48f5dc181cc9099b3e58782c1a5ce40b721fdf86c33c797f1f413e90792b54"
 }

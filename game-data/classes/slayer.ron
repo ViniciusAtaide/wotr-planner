@@ -24,8 +24,36 @@ Class(
             key: "slayer/slayer-talents",
             name: "Slayer Talents",
             guide: "slayer#slayer-talents",
+            option_levels: ["slayer"],
             options: [
-                (key: "slayer/slayer-talents/slayer-camouflage", name: "Slayer Camouflage", guide: "slayer#slayer-camouflage", prerequisite: All([SelectionOption("rogue/rogue-talents/terrain-mastery"), Feature(feature: "slayer/advanced-talents", count: 1)])),
+                (
+                    key: "slayer/slayer-talents/combat-style-feat-10",
+                    name: "Combat Style Feat (10th level or later)",
+                    guide: "slayer#slayer-talents",
+                    prerequisite: ClassLevel(class: "slayer", level: 10),
+                    levels: [
+                        (level: 1, feat_slots: [OneOf(list: "slayer/combat-style-feats-10")]),
+                    ],
+                ),
+                (
+                    key: "slayer/slayer-talents/combat-style-feat-2",
+                    name: "Combat Style Feat (2nd or 4th level)",
+                    guide: "slayer#slayer-talents",
+                    prerequisite: Not(ClassLevel(class: "slayer", level: 6)),
+                    levels: [
+                        (level: 1, feat_slots: [OneOf(list: "slayer/combat-style-feats-2")]),
+                    ],
+                ),
+                (
+                    key: "slayer/slayer-talents/combat-style-feat-6",
+                    name: "Combat Style Feat (6th or 8th level)",
+                    guide: "slayer#slayer-talents",
+                    prerequisite: All([Not(ClassLevel(class: "slayer", level: 10)), ClassLevel(class: "slayer", level: 6)]),
+                    levels: [
+                        (level: 1, feat_slots: [OneOf(list: "slayer/combat-style-feats-6")]),
+                    ],
+                ),
+                (key: "slayer/slayer-talents/slayer-camouflage", name: "Slayer Camouflage", guide: "slayer#slayer-camouflage", prerequisite: All([Feature(feature: "slayer/advanced-talents", count: 1), SelectionOption("rogue/rogue-talents/terrain-mastery")])),
                 (key: "slayer/slayer-talents/trapfinding", name: "Trapfinding", guide: "slayer#trapfinding"),
             ],
             shared_options: [
@@ -67,6 +95,11 @@ Class(
                 "rogue/rogue-talents/wearying-strike",
             ],
         ),
+    ],
+    feat_lists: [
+        (key: "slayer/combat-style-feats-10", name: "Combat Style Feats (from level 10)", guide: "slayer#slayer-talents", ignores_prerequisites: true, feats: ["bashing-finish", "cleave", "cleaving-finish", "cornugon-smash", "critical-focus", "dazzling-display", "dodge", "double-slice", "dreadful-carnage", "great-cleave", "great-fortitude", "greater-two-weapon-fighting", "improved-critical", "improved-precise-shot", "improved-two-weapon-fighting", "intimidating-prowess", "iron-will", "lightning-reflexes", "manyshot", "point-blank-master", "point-blank-shot", "power-attack", "precise-shot", "rapid-shot", "shatter-defenses", "shield-bash", "shield-focus", "shield-master", "skill-focus", "toughness", "two-weapon-fighting"]),
+        (key: "slayer/combat-style-feats-2", name: "Combat Style Feats (from level 2)", guide: "slayer#slayer-talents", ignores_prerequisites: true, feats: ["cleave", "dazzling-display", "dodge", "double-slice", "great-fortitude", "intimidating-prowess", "iron-will", "lightning-reflexes", "point-blank-shot", "power-attack", "precise-shot", "rapid-shot", "shield-bash", "shield-focus", "toughness", "two-weapon-fighting"]),
+        (key: "slayer/combat-style-feats-6", name: "Combat Style Feats (from level 6)", guide: "slayer#slayer-talents", ignores_prerequisites: true, feats: ["cleave", "cleaving-finish", "cornugon-smash", "dazzling-display", "dodge", "double-slice", "great-cleave", "great-fortitude", "improved-precise-shot", "improved-two-weapon-fighting", "intimidating-prowess", "iron-will", "lightning-reflexes", "manyshot", "point-blank-master", "point-blank-shot", "power-attack", "precise-shot", "rapid-shot", "shatter-defenses", "shield-bash", "shield-focus", "shield-master", "toughness", "two-weapon-fighting"]),
     ],
     levels: [
         (level: 1, features: ["slayer/slayer-proficiencies", "slayer/studied-target"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),

@@ -26,6 +26,8 @@ pub enum Prerequisite {
     Any(Vec<Prerequisite>),
     /// At least `n` children must hold.
     AtLeast(u8, Vec<Prerequisite>),
+    /// The child must not hold (a slayer's first combat style feat: not yet slayer level 6).
+    Not(Box<Prerequisite>),
 
     /// Another feat (a parameterised one for any value: "Spell Focus (any)").
     Feat(FeatKey),
@@ -38,6 +40,13 @@ pub enum Prerequisite {
     /// have already selected Weapon Focus"). Only in the prerequisite of a parameterised feat, or of an option
     /// with a chosen feat.
     FeatForSameValue(FeatKey),
+    /// When the pick being checked is taken for `value`, `feat` is needed too; for any other value it holds
+    /// ("Armor Focus (Heavy)" needs heavy armour proficiency). Only in the prerequisite of a pick that takes a
+    /// value.
+    FeatIfValue {
+        value: Parameter,
+        feat: FeatKey,
+    },
     MythicFeat(MythicFeatKey),
     MythicAbility(MythicAbilityKey),
     /// A Class level in a base or prestige class ("Fighter level: 8").
@@ -126,6 +135,7 @@ impl Prerequisite {
                     child.collect_stories(stories);
                 }
             }
+            Prerequisite::Not(child) => child.collect_stories(stories),
             Prerequisite::Story(story) => {
                 stories.insert(*story);
             }
@@ -135,14 +145,17 @@ impl Prerequisite {
 
     /// Sorts every group's children, recursively, so equal trees compare equal.
     pub fn canonicalize(&mut self) {
-        if let Prerequisite::All(children)
-        | Prerequisite::Any(children)
-        | Prerequisite::AtLeast(_, children) = self
-        {
-            for child in children.iter_mut() {
-                child.canonicalize();
+        match self {
+            Prerequisite::All(children)
+            | Prerequisite::Any(children)
+            | Prerequisite::AtLeast(_, children) => {
+                for child in children.iter_mut() {
+                    child.canonicalize();
+                }
+                children.sort();
             }
-            children.sort();
+            Prerequisite::Not(child) => child.canonicalize(),
+            _ => {}
         }
     }
 }

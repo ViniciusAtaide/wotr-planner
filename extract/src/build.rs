@@ -151,6 +151,13 @@ pub fn extract(guide: &Guide) -> Extraction {
     // The second group (ticket 31): domains, mysteries and revelations, blessings, elements. It settles no item of
     // an extraction's report (the hand-kept report's kineticist and Hellknight items narrow).
     crate::option_families::apply(guide, &mut data);
+    // The user's decisions on tickets 26-28 and skill facts (ticket 32), on the finished data. It settles the Armor
+    // Focus line of an extraction's report (and the hand-kept report's slayer item).
+    crate::follow_ups::apply(guide, &mut data);
+    builder
+        .report
+        .items
+        .retain(|item| !crate::follow_ups::settled(&item.at, &item.text));
     for problem in data.check() {
         builder.report.add_about(
             Kind::Cell,
@@ -348,6 +355,7 @@ impl<'g> Builder<'g> {
                 ability_modifiers: modifiers,
                 feat_slots,
                 subraces: Vec::new(),
+                feat_lists: Vec::new(),
             };
             for child in &entry.children {
                 let (modifiers, _) = self.racial_table(page, child);
@@ -845,6 +853,7 @@ impl<'g> Builder<'g> {
                 feats: BTreeSet::new(),
                 feat_slots: Vec::new(),
                 selections: Vec::new(),
+                feats_for: Default::default(),
             };
             match spell_type {
                 Some(SpellType::Arcane) => level_row.arcane_spell_level = spell_level,
@@ -925,6 +934,8 @@ impl<'g> Builder<'g> {
             ability_bonuses: Vec::new(),
             option_row: None,
             daily_choice: false,
+            bab_floor: None,
+            skill_ranks_at_least_mythic_rank: false,
         };
         let mut names = vec![norm(name)];
         // "Sneak Attack (Eldritch Scoundrel)" is also a "Sneak Attack".
@@ -1168,6 +1179,8 @@ impl<'g> Builder<'g> {
                 levels: Vec::new(),
                 pool: None,
                 replaces_row_of: None,
+                parameter: None,
+                values: Default::default(),
             });
         }
         self.catalog
@@ -1523,6 +1536,9 @@ impl<'g> Builder<'g> {
                     summary: String::new(),
                     guide: GuideRef::new(page.guide(&entry.anchor)),
                     prerequisite: None,
+                    parameter: None,
+                    removes_racial_penalty: false,
+                    repeat: Default::default(),
                 });
             }
         }

@@ -135,7 +135,10 @@ fn pick() -> impl Strategy<Value = Pick> {
             parameter
         }),
         key().prop_map(|k| Pick::MythicAbility(rules::MythicAbilityKey(k))),
-        key().prop_map(|k| Pick::MythicFeat(rules::MythicFeatKey(k))),
+        (key(), option::of(parameter())).prop_map(|(k, parameter)| Pick::MythicFeat {
+            feat: rules::MythicFeatKey(k),
+            parameter
+        }),
     ]
 }
 
@@ -206,6 +209,13 @@ fn v1_build() -> Build {
         SlotId::OptionFeat { level: 8, index: 0 },
         pick_feat("toughness"),
     );
+    build.picks.insert(
+        SlotId::Mythic { rank: 2 },
+        Pick::mythic_feat_for(
+            rules::MythicFeatKey::new("school-mastery"),
+            Parameter::SpellSchool(rules::SpellSchool::Evocation),
+        ),
+    );
     build.class_choices.insert(
         class("rogue"),
         ClassChoice {
@@ -221,8 +231,9 @@ fn v1_build() -> Build {
 /// before any link shipped: when archetype and advancement moved into `Build::class_choices`, on 2026-11-01 when
 /// keys lost their type prefix (`feat:power-attack` became `power-attack`), on 2026-11-01 again when a feat or
 /// option pick gained its parameter (Weapon Focus (Longsword)), on 2026-11-01 once more for the slots of option
-/// rows and of a mythic ability's selections, and on 2026-11-01 for an option row's feat slot (ticket 31).
-const V1_LINK: &str = "AXVPW07DQAy0W9IkqEV8wh8XWOUQnMTdONlVN-vK6xBxe5ZU4o8fP8Yazwy2n4npixWbsC6UAQGfXl_Ol-fu2E5xDsYK2JOFxBZ9wT8QGpV5ZQB8DPi2t4HTqNF8cMXLmkflVPmm0d_KL62rCgDnu2ysjszI3-qLip38bqQuh3rfmO6S3SR-LYh9kjyXTXTEI-DHQ2ivzihxtjJ4Wa5kbheCAx4uy7eF6J0PpDM3_9EmKuaqMUoW4FTDvxdRz8o6XJPImGLmgdRTZmg7gN5knUPmUuAH";
+/// rows and of a mythic ability's selections, on 2026-11-01 for an option row's feat slot (ticket 31), and on
+/// 2026-11-01 when a mythic feat pick gained its parameter (ticket 32: School Mastery (Evocation)).
+const V1_LINK: &str = "AXVQS27CQAy1wzcVoC7bXS8wyiF6EuOYTMRkjDxOEbfvEKTuuvH_fWTcfSehHzHcxHmiDAi4fj8djm_71e4yDtHFAFvymMRHLvg3hI3pMAsAvgr8WFInqbfROYbCOufeJFW828jX8oS1VQHgcNO7WCB34mulqLMtL0Zq09T9XeimOVyU54LYJs1Duav1uAL8egktMTglyV461ulMHhYhaLA5Tg-PIweOZIM0zepUOKqmMNHTxwOb9eY_rks9CfWKkkfY1o98FjUWE-vOSbVPY5aOjCkL7PYAres8xCylwC8";
 
 #[test]
 fn a_version_1_link_still_decodes() {

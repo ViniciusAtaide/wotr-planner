@@ -61,6 +61,11 @@ fn fighter_bonus_slots_offer_only_combat_feats() {
         "shield-proficiency",
         "tower-shield-proficiency",
         "stat-focus",
+        "dazzling-display",
+        "armor-proficiency-light",
+        "armor-proficiency-heavy",
+        "armor-focus",
+        "boon-companion",
     ]
     .into_iter()
     .map(String::from)
@@ -174,14 +179,16 @@ fn an_at_least_prerequisite_counts_the_branches_that_hold() {
 
 #[test]
 fn options_see_earlier_picks_of_the_same_level_but_not_later_ones() {
-    // Human fighter 1: race slot, then the fighter slot, then the general slot.
+    // Human fighter 1: the fighter slot, then the race slot, then the general slot.
     let mut build = build("human", &["fighter"]);
-    build.picks.insert(race_slot(0), pick_feat("power-attack"));
+    build
+        .picks
+        .insert(class_slot(1, 0), pick_feat("power-attack"));
     assert_eq!(
-        status_of(&options(&build, &class_slot(1, 0)), &pick_feat("cleave")),
+        status_of(&options(&build, &race_slot(0)), &pick_feat("cleave")),
         Ok(())
     );
-    // Power Attack is already held from the race slot.
+    // Power Attack is already held from the fighter slot.
     assert_eq!(
         status_of(
             &options(&build, &general_slot(1)),
@@ -189,14 +196,12 @@ fn options_see_earlier_picks_of_the_same_level_but_not_later_ones() {
         ),
         Err(Issue::AlreadyHeld)
     );
-    // The race slot comes first, so it doesn't see a later pick of Power Attack.
+    // The fighter slot comes first, so it doesn't see a later pick of Power Attack.
     let mut later = build.clone();
-    later.picks.remove(&race_slot(0));
-    later
-        .picks
-        .insert(general_slot(1), pick_feat("power-attack"));
+    later.picks.remove(&class_slot(1, 0));
+    later.picks.insert(race_slot(0), pick_feat("power-attack"));
     assert_eq!(
-        status_of(&options(&later, &race_slot(0)), &pick_feat("cleave")),
+        status_of(&options(&later, &class_slot(1, 0)), &pick_feat("cleave")),
         Err(Issue::Unmet(needs_feat("power-attack")))
     );
 }
@@ -347,7 +352,11 @@ fn mythic_slots_offer_mythic_abilities_or_feats_by_rank() {
         )))
     );
     let feats = options(&build, &SlotId::Mythic { rank: 2 });
-    assert!(feats.iter().all(|o| matches!(o.pick, Pick::MythicFeat(_))));
+    assert!(
+        feats
+            .iter()
+            .all(|o| matches!(o.pick, Pick::MythicFeat { .. }))
+    );
 }
 
 #[test]

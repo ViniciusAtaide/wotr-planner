@@ -4,16 +4,16 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use rules::{
     AbilityBonus, AbilityModifier, Archetype, ArchetypeLevelRow, Class, ClassLevelRow,
-    CountsToward, FeatKey, FeatList, FeatListKey, FeatSlot, Feature, FeatureKey, FeatureSelection,
-    FeatureSelectionKey, GameData, MythicPath, Race, SkillKey,
+    CountsToward, FeatKey, FeatList, FeatListKey, FeatSlot, FeatValue, Feature, FeatureKey,
+    FeatureSelection, FeatureSelectionKey, GameData, MythicPath, Race, SkillKey,
 };
 use sqlx::PgConnection;
 
 use crate::columns::{
-    AbilityBonusKind, FeatSlotKind, ability_bonus_kind_text, ability_text, advancement_text,
-    bab_progression_text, feat_category_text, feat_slot_kind_text, mythic_ability_group_text,
-    mythic_feat_group_text, parameter_kind_text, repeat_columns, save_progression_text, save_text,
-    weapon_proficiency_text,
+    AbilityBonusKind, FeatSlotKind, ValueColumns, ability_bonus_kind_text, ability_text,
+    advancement_text, bab_progression_text, feat_category_text, feat_slot_kind_text,
+    mythic_ability_group_text, mythic_feat_group_text, parameter_kind_text, repeat_columns,
+    save_progression_text, save_text, weapon_proficiency_text,
 };
 use crate::{Database, Error, prerequisites};
 
@@ -40,7 +40,8 @@ async fn insert_all(db: &Database, data: &GameData, hash: &str) -> Result<(), sq
             mythic_feat,
             mythic_path, path_switch, path_switch_from, path_switch_drop, path_switch_feature,
             feature, feature_ability_bonus, feature_selection, selection_level_class,
-            selection_skipped_level, selection_option, selection_option_feat, selection_shared_option,
+            selection_skipped_level, selection_option, selection_option_value, selection_option_feat,
+            selection_shared_option,
             option_level, feat_list, feat_list_member, class_level, mythic_rank, granted_feature,
             granted_selection, granted_feat, option_level_chosen_feat, feat_slot
         RESTART IDENTITY"
@@ -118,16 +119,22 @@ async fn insert_all(db: &Database, data: &GameData, hash: &str) -> Result<(), sq
     }
     for feat in data.mythic_feats.iter() {
         let root = prerequisites::insert(conn, feat.prerequisite.as_ref()).await?;
+        let (repeat, repeat_times) = repeat_columns(feat.repeat);
         sqlx::query!(
             "INSERT INTO mythic_feat
-                (key, name, group_name, summary, guide, prerequisite_root_id)
-            VALUES ($1, $2, $3, $4, $5, $6)",
+                (key, name, group_name, summary, guide, prerequisite_root_id, parameter, repeat,
+                repeat_times, removes_racial_penalty)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
             feat.key.as_str(),
             feat.name,
             mythic_feat_group_text(feat.group),
             feat.summary,
             feat.guide.0,
             root,
+            feat.parameter.map(parameter_kind_text),
+            repeat,
+            repeat_times,
+            feat.removes_racial_penalty,
         )
         .execute(&mut *conn)
         .await?;
@@ -169,6 +176,7 @@ async fn insert_race(conn: &mut PgConnection, race: &Race) -> Result<(), sqlx::E
     .execute(&mut *conn)
     .await?;
     insert_ability_modifiers(conn, Some(race.key.as_str()), None, &race.ability_modifiers).await?;
+    insert_feat_lists(conn, Owner::Race(race.key.as_str()), &race.feat_lists).await?;
     insert_feat_slots(conn, SlotOwner::Race(race.key.as_str()), &race.feat_slots).await?;
 
     for subrace in race.subraces.iter() {
@@ -228,11 +236,12 @@ struct ClassOwner<'a> {
     archetype: Option<&'a str>,
 }
 
-/// Who a feature, a feature selection or a feat list belongs to.
+/// Who a feature, a feature selection or a feat list belongs to (a race owns feat lists only).
 #[derive(Clone, Copy)]
 enum Owner<'a> {
     Class(ClassOwner<'a>),
     Path(&'a str),
+    Race(&'a str),
 }
 
 impl<'a> Owner<'a> {
@@ -241,6 +250,15 @@ impl<'a> Owner<'a> {
         match self {
             Self::Class(owner) => (Some(owner.class), owner.archetype, None),
             Self::Path(key) => (None, None, Some(key)),
+            Self::Race(_) => (None, None, None),
+        }
+    }
+
+    /// The `race_key` column of a race's feat list.
+    fn race(self) -> Option<&'a str> {
+        match self {
+            Self::Race(key) => Some(key),
+            _ => None,
         }
     }
 }
@@ -377,8 +395,9 @@ async fn insert_features(
         sqlx::query!(
             "INSERT INTO feature
                 (key, class_key, archetype_key, path_key, name, summary, guide,
-                option_row_selection_key, option_row_level, daily_choice)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
+                option_row_selection_key, option_row_level, daily_choice, bab_floor,
+                skill_ranks_at_least_mythic_rank)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
             feature.key.as_str(),
             class_key,
             archetype_key,
@@ -392,6 +411,8 @@ async fn insert_features(
                 .map(|row| row.selection.as_str()),
             feature.option_row.as_ref().map(|row| i16::from(row.level)),
             feature.daily_choice,
+            feature.bab_floor.map(i16::from),
+            feature.skill_ranks_at_least_mythic_rank,
         )
         .execute(&mut *conn)
         .await?;
@@ -467,9 +488,9 @@ async fn insert_selections(
             let (repeat, repeat_times) = repeat_columns(option.repeat);
             sqlx::query!(
                 "INSERT INTO selection_option (key, selection_key, name, summary, guide,
-                    prerequisite_root_id, chosen_feat_key, repeat, repeat_times, pool_key,
+                    prerequisite_root_id, chosen_feat_key, parameter, repeat, repeat_times, pool_key,
                     replaces_row_of_key)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
                 option.key.as_str(),
                 selection.key.as_str(),
                 option.name,
@@ -477,6 +498,7 @@ async fn insert_selections(
                 option.guide.0,
                 root,
                 option.chosen_feat.as_ref().map(FeatKey::as_str),
+                option.parameter.map(parameter_kind_text),
                 repeat,
                 repeat_times,
                 option.pool.as_ref().map(FeatureSelectionKey::as_str),
@@ -512,6 +534,22 @@ async fn insert_selections(
                     .await?;
                 }
             }
+            for value in option.values.iter() {
+                let value = ValueColumns::of(value);
+                sqlx::query!(
+                    "INSERT INTO selection_option_value
+                        (option_key, skill_key, weapon_key, spell_school, energy, armour_type)
+                    VALUES ($1, $2, $3, $4, $5, $6)",
+                    option.key.as_str(),
+                    value.skill_key,
+                    value.weapon_key,
+                    value.spell_school,
+                    value.energy,
+                    value.armour_type,
+                )
+                .execute(&mut *conn)
+                .await?;
+            }
             for feat in option.feats.iter() {
                 sqlx::query!(
                     "INSERT INTO selection_option_feat (option_key, feat_key) VALUES ($1, $2)",
@@ -544,13 +582,14 @@ async fn insert_feat_lists(
     for list in lists.iter() {
         sqlx::query!(
             "INSERT INTO feat_list
-                (key, class_key, archetype_key, path_key, name, guide, ignores_prerequisites,
+                (key, class_key, archetype_key, path_key, race_key, name, guide, ignores_prerequisites,
                 every_feat)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
             list.key.as_str(),
             class_key,
             archetype_key,
             path_key,
+            owner.race(),
             list.name,
             list.guide.0,
             list.ignores_prerequisites,
@@ -595,7 +634,34 @@ async fn insert_levels(
         let grantor = SlotOwner::ClassLevel(id);
         insert_grants(conn, grantor, &row.features, &row.selections).await?;
         insert_granted_feats(conn, grantor, &row.feats).await?;
+        insert_granted_feats_for(conn, id, &row.feats_for).await?;
         insert_feat_slots(conn, grantor, &row.feat_slots).await?;
+    }
+    Ok(())
+}
+
+/// A class level's feats granted for one value: `granted_feat` rows with their value column set.
+async fn insert_granted_feats_for(
+    conn: &mut PgConnection,
+    class_level_id: i64,
+    feats: &BTreeSet<FeatValue>,
+) -> Result<(), sqlx::Error> {
+    for granted in feats.iter() {
+        let value = ValueColumns::of(&granted.value);
+        sqlx::query!(
+            "INSERT INTO granted_feat (class_level_id, feat_key, skill_key, weapon_key, spell_school,
+                energy, armour_type)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)",
+            class_level_id,
+            granted.feat.as_str(),
+            value.skill_key,
+            value.weapon_key,
+            value.spell_school,
+            value.energy,
+            value.armour_type,
+        )
+        .execute(&mut *conn)
+        .await?;
     }
     Ok(())
 }
@@ -643,6 +709,7 @@ async fn insert_archetype_levels(
         let grantor = SlotOwner::ClassLevel(id);
         insert_grants(conn, grantor, &row.features, &row.selections).await?;
         insert_granted_feats(conn, grantor, &row.feats).await?;
+        insert_granted_feats_for(conn, id, &row.feats_for).await?;
         insert_feat_slots(conn, grantor, &row.feat_slots).await?;
     }
     Ok(())

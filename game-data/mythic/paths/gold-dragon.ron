@@ -7,7 +7,7 @@ MythicPath(
         (key: "gold-dragon/gold-dragon-breath", name: "Gold Dragon Breath", guide: "gold-dragon#gold-dragon-breath"),
         (key: "gold-dragon/gold-dragon-form", name: "Gold Dragon Form", guide: "gold-dragon#gold-dragon-form"),
         (key: "gold-dragon/perfect-body", name: "Perfect Body", guide: "gold-dragon#perfect-body", ability_bonuses: [Highest(amount: 4), AtLeast(score: 14)]),
-        (key: "gold-dragon/perfect-mind", name: "Perfect Mind", guide: "gold-dragon#perfect-mind", ability_bonuses: [Highest(amount: 2), AtLeast(score: 18)]),
+        (key: "gold-dragon/perfect-mind", name: "Perfect Mind", guide: "gold-dragon#perfect-mind", ability_bonuses: [Highest(amount: 2), AtLeast(score: 18)], bab_floor: Some(15), skill_ranks_at_least_mythic_rank: true),
         (key: "gold-dragon/perfect-soul", name: "Perfect Soul", guide: "gold-dragon#perfect-soul", ability_bonuses: [Highest(amount: 2)]),
         (key: "gold-dragon/wings", name: "Wings", guide: "gold-dragon"),
     ],

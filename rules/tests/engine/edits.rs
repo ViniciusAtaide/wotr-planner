@@ -59,7 +59,7 @@ fn setting_an_archetype_on_a_later_level_applies_to_the_class() {
     // The armiger's rows apply from Fighter 1: an order selection instead of a Combat feat slot.
     let sheet = engine().evaluate(&build);
     let ids: Vec<_> = sheet.levels[0].slots.iter().map(|s| s.id.clone()).collect();
-    assert_eq!(ids, [general_slot(1), selection_slot(1, 0)]);
+    assert_eq!(ids, [selection_slot(1, 0), general_slot(1)]);
 }
 
 #[test]

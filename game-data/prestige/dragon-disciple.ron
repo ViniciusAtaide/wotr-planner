@@ -7,7 +7,7 @@ Class(
     fort: Good,
     reflex: Poor,
     will: Good,
-    class_skills: ["knowledge-arcana", "lore-nature", "lore-religion", "mobility", "perception", "persuasion"],
+    class_skills: ["knowledge-arcana", "knowledge-world", "lore-nature", "lore-religion", "mobility", "perception", "persuasion"],
     prerequisite: All([Any([All([NoOptionFrom("bloodrager/bloodline"), NoOptionFrom("sorcerer/bloodline")]), SelectionOption("sorcerer/bloodline/draconic-black"), SelectionOption("sorcerer/bloodline/draconic-blue"), SelectionOption("sorcerer/bloodline/draconic-brass"), SelectionOption("sorcerer/bloodline/draconic-bronze"), SelectionOption("sorcerer/bloodline/draconic-copper"), SelectionOption("sorcerer/bloodline/draconic-gold"), SelectionOption("sorcerer/bloodline/draconic-green"), SelectionOption("sorcerer/bloodline/draconic-red"), SelectionOption("sorcerer/bloodline/draconic-silver"), SelectionOption("sorcerer/bloodline/draconic-white")]), SkillRanks(skill: "knowledge-arcana", ranks: 5), SpontaneousSpellLevel(spell_type: Arcane, level: 1), CharacterLevel(6)]),
     features: [
         (key: "dragon-disciple/arcane-spellcasting", name: "Arcane Spellcasting", guide: "prestige-classes#arcane-spellcasting-dragon-disciple"),

@@ -26,6 +26,7 @@ fn row(level: u8, slots: Vec<FeatSlot>) -> ClassLevelRow {
         feats: BTreeSet::new(),
         feat_slots: slots,
         selections: vec![],
+        feats_for: Default::default(),
     }
 }
 
@@ -37,6 +38,7 @@ fn archetype_row(level: u8, slots: Vec<FeatSlot>) -> ArchetypeLevelRow {
         feats: BTreeSet::new(),
         feat_slots: slots,
         selections: vec![],
+        feats_for: Default::default(),
     }
 }
 

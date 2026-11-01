@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO feat_list\n                (key, class_key, archetype_key, path_key, name, guide, ignores_prerequisites,\n                every_feat)\n            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+  "query": "INSERT INTO feat_list\n                (key, class_key, archetype_key, path_key, race_key, name, guide, ignores_prerequisites,\n                every_feat)\n            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
   "describe": {
     "columns": [],
     "parameters": {
@@ -18,11 +18,12 @@
         "Text",
         "Text",
         "Text",
+        "Text",
         "Bool",
         "Bool"
       ]
     },
     "nullable": []
   },
-  "hash": "c8cbc2ac54cbd9a175a348265f85e98bc44947cdb8cc47f624e467efec93ded8"
+  "hash": "8cb0ced89a8b1ca8cb9282416d04f5301a6bc2e7127f5b753af628b589f80fae"
 }

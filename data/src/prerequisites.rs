@@ -111,6 +111,7 @@ impl Node {
             P::AtLeast(n, children) => {
                 return (Self::of(NodeKind::AtLeast).with_amount(*n), children);
             }
+            P::Not(child) => return (Self::of(NodeKind::Not), std::slice::from_ref(&**child)),
             P::Feat(feat) => Self {
                 feat_key: key(feat.as_str()),
                 ..Self::of(NodeKind::Feat)
@@ -124,6 +125,11 @@ impl Node {
                 feat_key: key(feat.as_str()),
                 ..Self::of(NodeKind::FeatForSameValue)
             },
+            P::FeatIfValue { value, feat } => Self {
+                feat_key: key(feat.as_str()),
+                ..Self::of(NodeKind::FeatIfValue)
+            }
+            .with_value(value),
             P::MythicFeat(feat) => Self {
                 mythic_feat_key: key(feat.as_str()),
                 ..Self::of(NodeKind::MythicFeat)
@@ -269,7 +275,8 @@ struct StoredNode {
 }
 
 impl StoredNode {
-    /// The value of a `feat_for` node: whichever value column is set (the CHECK allows exactly one).
+    /// The value of a `feat_for` or `feat_if_value` node: whichever value column is set (the CHECK allows exactly
+    /// one).
     fn value(&self) -> Option<Result<Parameter, sqlx::Error>> {
         if let Some(skill) = &self.skill_key {
             return Some(Ok(Parameter::Skill(SkillKey(skill.clone()))));
@@ -436,6 +443,15 @@ impl Trees {
             NodeKind::All => P::All(children()?),
             NodeKind::Any => P::Any(children()?),
             NodeKind::AtLeast => P::AtLeast(amount()?, children()?),
+            NodeKind::Not => match <[Prerequisite; 1]>::try_from(children()?) {
+                Ok([child]) => P::Not(Box::new(child)),
+                Err(children) => {
+                    return Err(corrupt(format!(
+                        "prerequisite_node {id}: a not has {} children, not one",
+                        children.len()
+                    )));
+                }
+            },
             NodeKind::Feat => P::Feat(FeatKey(text(&node.feat_key, "feat_key")?)),
             NodeKind::MythicFeat => P::MythicFeat(MythicFeatKey(text(
                 &node.mythic_feat_key,
@@ -487,6 +503,10 @@ impl Trees {
             NodeKind::FeatForSameValue => {
                 P::FeatForSameValue(FeatKey(text(&node.feat_key, "feat_key")?))
             }
+            NodeKind::FeatIfValue => P::FeatIfValue {
+                value: node.value().ok_or_else(|| missing("the value"))??,
+                feat: FeatKey(text(&node.feat_key, "feat_key")?),
+            },
             NodeKind::Story => P::Story(story_from(&text(&node.story, "story")?)?),
             NodeKind::NoOptionFrom => P::NoOptionFrom(FeatureSelectionKey(text(
                 &node.selection_key,

@@ -22,6 +22,8 @@ fn feature(key: &str) -> Feature {
         ability_bonuses: vec![],
         option_row: None,
         daily_choice: false,
+        bab_floor: None,
+        skill_ranks_at_least_mythic_rank: false,
     }
 }
 
@@ -133,6 +135,8 @@ fn the_path_rules_add_legends_features_the_ability_bonuses_all_skilled_and_drago
             levels: vec![],
             pool: None,
             replaces_row_of: None,
+            parameter: None,
+            values: Default::default(),
         }],
         shared_options: BTreeSet::new(),
         option_levels: BTreeSet::new(),
@@ -278,6 +282,8 @@ fn the_new_shapes_are_written_on_one_line_each_and_read_back() {
             levels: vec![],
             pool: None,
             replaces_row_of: None,
+            parameter: None,
+            values: Default::default(),
         }],
         shared_options: BTreeSet::new(),
         option_levels: BTreeSet::new(),

@@ -22,6 +22,7 @@ fn row(level: u8) -> ClassLevelRow {
         feats: BTreeSet::new(),
         feat_slots: vec![],
         selections: vec![],
+        feats_for: Default::default(),
     }
 }
 
@@ -71,6 +72,8 @@ fn feature(key: &str) -> Feature {
         ability_bonuses: vec![],
         option_row: None,
         daily_choice: false,
+        bab_floor: None,
+        skill_ranks_at_least_mythic_rank: false,
     }
 }
 
@@ -86,6 +89,7 @@ fn archetype(key: &str, own: &[&str], first: Vec<FeatureKey>) -> Archetype {
         feats: BTreeSet::new(),
         feat_slots: vec![],
         selections: vec![],
+        feats_for: Default::default(),
     };
     level_1.features.sort();
     Archetype {

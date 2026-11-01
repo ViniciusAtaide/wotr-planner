@@ -466,7 +466,6 @@ Class(
                 (key: "oracle/enlightened-philosopher/curse-4", name: "Curse 4", guide: "oracle#enlightened-philosopher"),
                 (key: "oracle/enlightened-philosopher/final-revelation-enlightened-philosopher", name: "Final Revelation (Enlightened Philosopher)", guide: "oracle#final-revelation-enlightened-philosopher"),
                 (key: "oracle/enlightened-philosopher/mental-acuity", name: "Mental Acuity", guide: "oracle#mental-acuity"),
-                (key: "oracle/enlightened-philosopher/skill-focus-knowledge-world", name: "Skill Focus - Knowledge World", guide: "oracle#enlightened-philosopher"),
             ],
             selections: [
                 (
@@ -490,7 +489,7 @@ Class(
                 ),
             ],
             levels: [
-                (level: 1, features: ["oracle/additional-spells", "oracle/enlightened-philosopher/skill-focus-knowledge-world"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"], selections: ["oracle/enlightened-philosopher/mystery", "oracle/oracles-curse", "oracle/revelation"]),
+                (level: 1, features: ["oracle/additional-spells"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"], feats_for: [(feat: "skill-focus", value: Skill("knowledge-world"))], selections: ["oracle/enlightened-philosopher/mystery", "oracle/oracles-curse", "oracle/revelation"]),
                 (level: 5, features: ["oracle/enlightened-philosopher/curse-2"]),
                 (level: 7, features: ["oracle/enlightened-philosopher/mental-acuity"]),
                 (level: 10, features: ["oracle/enlightened-philosopher/curse-3"]),

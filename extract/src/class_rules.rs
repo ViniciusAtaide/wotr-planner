@@ -143,6 +143,8 @@ pub fn nature_bond(data: &mut GameData) {
         levels: Vec::new(),
         pool: None,
         replaces_row_of: None,
+        parameter: None,
+        values: Default::default(),
     };
     druid.selections.push(FeatureSelection {
         key: selection,

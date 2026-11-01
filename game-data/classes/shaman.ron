@@ -57,9 +57,20 @@ Class(
             key: "shaman/hex",
             name: "Hex",
             guide: "shaman#hex",
+            option_levels: ["shaman"],
             options: [
                 (key: "shaman/hex/air-barrier", name: "Air Barrier", guide: "shaman#air-barrier", prerequisite: SelectionOption("shaman/spirit/wind")),
-                (key: "shaman/hex/battle-master", name: "Battle Master", guide: "shaman#battle-master", prerequisite: Any([Archetype("shaman/wildland-shaman"), SelectionOption("shaman/spirit/battle")])),
+                (
+                    key: "shaman/hex/battle-master",
+                    name: "Battle Master",
+                    guide: "shaman#battle-master",
+                    parameter: Weapon,
+                    prerequisite: Any([Archetype("shaman/wildland-shaman"), SelectionOption("shaman/spirit/battle")]),
+                    levels: [
+                        (level: 8, chosen_feats: ["weapon-specialization"]),
+                        (level: 16, chosen_feats: ["greater-weapon-focus"]),
+                    ],
+                ),
                 (key: "shaman/hex/battle-ward", name: "Battle Ward", guide: "shaman#battle-ward", prerequisite: Any([Archetype("shaman/wildland-shaman"), SelectionOption("shaman/spirit/battle")])),
                 (key: "shaman/hex/beckoning-chill", name: "Beckoning Chill", guide: "shaman#beckoning-chill", prerequisite: SelectionOption("shaman/spirit/waves")),
                 (key: "shaman/hex/bone-lock", name: "Bone Lock", guide: "shaman#bone-lock", prerequisite: SelectionOption("shaman/spirit/bones")),

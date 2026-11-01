@@ -31,6 +31,17 @@
         ],
     ),
     (
+        // Ticket 32: a race's own one-feat list (Adaptability: Skill Focus as a bonus feat at 1).
+        key: "half-elf",
+        name: "Half-Elf",
+        guide: "character-creation#half-elf",
+        ability_modifiers: [Chosen(amount: 2)],
+        feat_slots: [OneOf(list: "half-elf/adaptability")],
+        feat_lists: [
+            (key: "half-elf/adaptability", name: "Adaptability", guide: "character-creation#half-elf", ignores_prerequisites: true, feats: ["skill-focus"]),
+        ],
+    ),
+    (
         key: "dwarf",
         name: "Dwarf",
         guide: "character-creation#dwarf",

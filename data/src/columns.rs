@@ -192,12 +192,78 @@ pub(crate) fn repeat_from(repeat: &str, times: Option<i16>) -> Result<Repeat, sq
     })
 }
 
+/// The value columns of a `rules::Parameter` (`skill_key`, `weapon_key`, `spell_school`, `energy`,
+/// `armour_type`): exactly one is set.
+#[derive(Default)]
+pub(crate) struct ValueColumns<'a> {
+    pub(crate) skill_key: Option<&'a str>,
+    pub(crate) weapon_key: Option<&'a str>,
+    pub(crate) spell_school: Option<&'static str>,
+    pub(crate) energy: Option<&'static str>,
+    pub(crate) armour_type: Option<&'static str>,
+}
+
+impl<'a> ValueColumns<'a> {
+    pub(crate) fn of(value: &'a rules::Parameter) -> Self {
+        use rules::Parameter as P;
+        match value {
+            P::Skill(skill) => Self {
+                skill_key: Some(skill.as_str()),
+                ..Self::default()
+            },
+            P::Weapon(weapon) => Self {
+                weapon_key: Some(weapon.as_str()),
+                ..Self::default()
+            },
+            P::SpellSchool(school) => Self {
+                spell_school: Some(spell_school_text(*school)),
+                ..Self::default()
+            },
+            P::Energy(energy) => Self {
+                energy: Some(energy_text(*energy)),
+                ..Self::default()
+            },
+            P::ArmourType(armour) => Self {
+                armour_type: Some(armour_type_text(*armour)),
+                ..Self::default()
+            },
+        }
+    }
+}
+
+/// The value the value columns of a row hold: whichever is set, or `None`.
+pub(crate) fn value_from(
+    skill_key: Option<String>,
+    weapon_key: Option<String>,
+    spell_school: Option<String>,
+    energy: Option<String>,
+    armour_type: Option<String>,
+) -> Result<Option<rules::Parameter>, sqlx::Error> {
+    use rules::Parameter as P;
+    Ok(
+        match (skill_key, weapon_key, spell_school, energy, armour_type) {
+            (None, None, None, None, None) => None,
+            (Some(skill), None, None, None, None) => Some(P::Skill(rules::SkillKey(skill))),
+            (None, Some(weapon), None, None, None) => Some(P::Weapon(rules::WeaponKey(weapon))),
+            (None, None, Some(school), None, None) => {
+                Some(P::SpellSchool(spell_school_from(&school)?))
+            }
+            (None, None, None, Some(energy), None) => Some(P::Energy(energy_from(&energy)?)),
+            (None, None, None, None, Some(armour)) => {
+                Some(P::ArmourType(armour_type_from(&armour)?))
+            }
+            _ => return Err(corrupt("a row sets two value columns".to_owned())),
+        },
+    )
+}
+
 /// `prerequisite_node.kind`: a group or the kind of a single condition.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(crate) enum NodeKind {
     All,
     Any,
     AtLeast,
+    Not,
     Feat,
     MythicFeat,
     MythicAbility,
@@ -216,6 +282,7 @@ pub(crate) enum NodeKind {
     Race,
     FeatFor,
     FeatForSameValue,
+    FeatIfValue,
     Story,
     NoOptionFrom,
     SpontaneousSpellLevel,
@@ -223,7 +290,7 @@ pub(crate) enum NodeKind {
 
 impl NodeKind {
     pub(crate) fn is_group(self) -> bool {
-        matches!(self, Self::All | Self::Any | Self::AtLeast)
+        matches!(self, Self::All | Self::Any | Self::AtLeast | Self::Not)
     }
 }
 
@@ -231,6 +298,7 @@ text_column!(NodeKind, node_kind_from, node_kind_text {
     All => "all",
     Any => "any",
     AtLeast => "at_least",
+    Not => "not",
     Feat => "feat",
     MythicFeat => "mythic_feat",
     MythicAbility => "mythic_ability",
@@ -249,6 +317,7 @@ text_column!(NodeKind, node_kind_from, node_kind_text {
     Race => "race",
     FeatFor => "feat_for",
     FeatForSameValue => "feat_for_same_value",
+    FeatIfValue => "feat_if_value",
     Story => "story",
     NoOptionFrom => "no_option_from",
     SpontaneousSpellLevel => "spontaneous_spell_level",

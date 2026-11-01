@@ -80,6 +80,7 @@ fn an_archetype_row_keeps_the_base_spell_levels_unless_it_sets_its_own() {
     archetype.levels = vec![
         // Grants something but leaves the spell levels alone.
         ArchetypeLevelRow {
+            feats_for: Default::default(),
             level: 3,
             spell_levels: None,
             features: vec![feature("fighter/bravery")],
@@ -89,6 +90,7 @@ fn an_archetype_row_keeps_the_base_spell_levels_unless_it_sets_its_own() {
         },
         // Loses spellcasting from 5.
         ArchetypeLevelRow {
+            feats_for: Default::default(),
             level: 5,
             spell_levels: Some(SpellLevels::default()),
             features: vec![],

@@ -98,6 +98,7 @@ fn an_archetype_row_differs_from_the_base_row() {
     let armiger = &mut fighter.archetypes[0];
     // Level 3: the fighter's grants, written in another order, and no spell levels of its own.
     armiger.levels.push(ArchetypeLevelRow {
+        feats_for: Default::default(),
         level: 3,
         spell_levels: None,
         features: base_3.features.iter().rev().cloned().collect(),
@@ -107,6 +108,7 @@ fn an_archetype_row_differs_from_the_base_row() {
     });
     // Level 5: the fighter's grants and the fighter's spell levels set again.
     armiger.levels.push(ArchetypeLevelRow {
+        feats_for: Default::default(),
         level: 5,
         spell_levels: Some(base_5.spell_levels()),
         features: base_5.features.clone(),
@@ -116,6 +118,7 @@ fn an_archetype_row_differs_from_the_base_row() {
     });
     // Level 7: its own grants, but a spell override equal to the fighter's.
     armiger.levels.push(ArchetypeLevelRow {
+        feats_for: Default::default(),
         level: 7,
         spell_levels: Some(SpellLevels::default()),
         features: vec![],
@@ -128,6 +131,7 @@ fn an_archetype_row_differs_from_the_base_row() {
     class_mut(&mut data, "fighter").archetypes[0]
         .levels
         .push(ArchetypeLevelRow {
+            feats_for: Default::default(),
             level: 9,
             spell_levels: None,
             features: base_9.features.clone(),
@@ -573,8 +577,8 @@ fn only_class_levels_and_a_paths_own_ranks_grant_bonus_list_slots() {
             issue: DataIssue::MisplacedBonusList,
         }
         .to_string(),
-        "race human: a feat slot that ignores prerequisites is granted outside a class's level rows or its own \
-         path's ranks"
+        "race human: a feat slot that ignores prerequisites is granted outside a class's level rows from a list \
+         that isn't the grantor's own"
     );
 }
 
@@ -1029,4 +1033,150 @@ fn an_option_rows_bonus_slot_names_its_list() {
         list: FeatListKey::new("cleric/war-feats"),
     }];
     assert_eq!(issues(&data), []);
+}
+
+// ---- ticket 32: values asked about, granted and offered ---------------------------------------------------------
+
+fn mythic_feat_mut<'a>(data: &'a mut GameData, key: &str) -> &'a mut rules::MythicFeat {
+    data.mythic_feats
+        .iter_mut()
+        .find(|f| f.key.as_str() == key)
+        .unwrap()
+}
+
+fn slayer_talent_mut<'a>(data: &'a mut GameData, key: &str) -> &'a mut rules::SelectionOption {
+    class_mut(data, "slayer").selections[0]
+        .options
+        .iter_mut()
+        .find(|o| o.key.as_str() == key)
+        .unwrap()
+}
+
+#[test]
+fn a_prerequisite_asking_about_the_picks_value_is_on_a_pick_that_takes_one_of_its_kind() {
+    let if_light = || Prerequisite::FeatIfValue {
+        value: rules::Parameter::ArmourType(rules::ArmourType::Light),
+        feat: FeatKey::new("armor-proficiency-light"),
+    };
+    let mut data = world();
+    // A feat that takes no value, and one that takes a weapon.
+    feat_mut(&mut data, "dodge").prerequisite = Some(if_light());
+    feat_mut(&mut data, "weapon-focus").prerequisite = Some(if_light());
+    // Fine: the parameterised mythic feat takes a school, and asks about one.
+    mythic_feat_mut(&mut data, "spell-focus-mythic").prerequisite =
+        Some(Prerequisite::FeatIfValue {
+            value: rules::Parameter::SpellSchool(rules::SpellSchool::Evocation),
+            feat: FeatKey::new("toughness"),
+        });
+    assert_eq!(
+        sorted(issues(&data)),
+        sorted(vec![
+            (at_feat("dodge"), DataIssue::SameValueWithoutValue),
+            (at_feat("weapon-focus"), DataIssue::IfValueOfWrongKind),
+        ])
+    );
+    assert_eq!(
+        DataProblem {
+            at: at_feat("weapon-focus"),
+            issue: DataIssue::IfValueOfWrongKind,
+        }
+        .to_string(),
+        "feat weapon-focus: a prerequisite asks about a value of a kind the pick doesn't take"
+    );
+}
+
+#[test]
+fn a_mythic_feat_repeats_per_value_only_with_a_value() {
+    let mut data = world();
+    mythic_feat_mut(&mut data, "toughness-mythic").repeat = Repeat::PerValue;
+    mythic_feat_mut(&mut data, "dodge-mythic").prerequisite =
+        Some(Prerequisite::FeatForSameValue(FeatKey::new("weapon-focus")));
+    let at = |key: &str| DataAt::MythicFeat(rules::MythicFeatKey::new(key));
+    assert_eq!(
+        sorted(issues(&data)),
+        sorted(vec![
+            (at("toughness-mythic"), DataIssue::PerValueWithoutParameter),
+            (at("dodge-mythic"), DataIssue::SameValueWithoutValue),
+        ])
+    );
+}
+
+#[test]
+fn a_feat_granted_for_a_value_takes_a_value_of_that_kind() {
+    let mut data = world();
+    let mut row = fighter_level(&data, 3);
+    row.feats_for.insert(rules::FeatValue {
+        feat: FeatKey::new("skill-focus"),
+        value: weapon("longsword"),
+    });
+    row.feats_for.insert(rules::FeatValue {
+        feat: FeatKey::new("toughness"),
+        value: weapon("longsword"),
+    });
+    class_mut(&mut data, "fighter").levels[2] = row;
+    assert_eq!(
+        sorted(issues(&data)),
+        sorted(vec![
+            (
+                at_class("fighter"),
+                DataIssue::ValueOfWrongKind(FeatKey::new("skill-focus"))
+            ),
+            (
+                at_class("fighter"),
+                DataIssue::ValueOfWrongKind(FeatKey::new("toughness"))
+            ),
+        ])
+    );
+}
+
+#[test]
+fn an_option_takes_one_kind_of_value_and_lists_only_values_of_it() {
+    let mut data = world();
+    // A value of its own beside a chosen feat's.
+    rogue_talent_mut(&mut data, "rogue/rogue-talents/weapon-focus").parameter =
+        Some(rules::ParameterKind::Weapon);
+    // Values for a pick that takes none, and values of another kind.
+    rogue_talent_mut(&mut data, "rogue/rogue-talents/fast-stealth").values =
+        BTreeSet::from([weapon("dagger")]);
+    slayer_talent_mut(&mut data, "slayer/slayer-talents/battle-master").values =
+        BTreeSet::from([skill_value("mobility")]);
+    assert_eq!(
+        sorted(issues(&data)),
+        sorted(vec![
+            (
+                at_option("rogue/rogue-talents/weapon-focus"),
+                DataIssue::ParameterBesideChosenFeat
+            ),
+            (
+                at_option("rogue/rogue-talents/fast-stealth"),
+                DataIssue::OptionValueOfWrongKind
+            ),
+            (
+                at_option("slayer/slayer-talents/battle-master"),
+                DataIssue::OptionValueOfWrongKind
+            ),
+        ])
+    );
+}
+
+#[test]
+fn a_race_may_name_its_own_bonus_list_only() {
+    // The world's half-elf names its own Adaptability list; another race may not.
+    let mut data = world();
+    assert_eq!(issues(&data), []);
+    let human = data
+        .races
+        .iter_mut()
+        .find(|r| r.key.as_str() == "human")
+        .unwrap();
+    human.feat_slots.push(FeatSlot::OneOf {
+        list: FeatListKey::new("half-elf/adaptability"),
+    });
+    assert_eq!(
+        issues(&data),
+        [(
+            DataAt::Race(RaceKey::new("human")),
+            DataIssue::MisplacedBonusList
+        )]
+    );
 }

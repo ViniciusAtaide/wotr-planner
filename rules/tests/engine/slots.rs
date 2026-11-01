@@ -87,7 +87,7 @@ fn an_archetype_chosen_on_entry_replaces_the_class_rows() {
 
     assert_eq!(
         slot_ids(&sheet.levels[0]),
-        [general_slot(1), selection_slot(1, 0)]
+        [selection_slot(1, 0), general_slot(1)]
     );
     assert_eq!(
         kind_of(&sheet.levels[1], &class_slot(2, 0)),

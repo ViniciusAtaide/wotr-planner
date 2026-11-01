@@ -63,7 +63,17 @@ fn canonical_catalogs_are_ordered_by_key() {
     assert_eq!(
         keys,
         [
-            "bard", "cleric", "fighter", "monk", "ranger", "rogue", "slayer", "sorcerer", "witch",
+            "bard",
+            "cleric",
+            "druid",
+            "fighter",
+            "monk",
+            "ranger",
+            "rogue",
+            "slayer",
+            "sorcerer",
+            "warpriest",
+            "witch",
             "wizard"
         ]
     );
@@ -76,15 +86,15 @@ fn counts_summarise_each_catalog() {
     assert_eq!(
         world().counts(),
         [
-            ("Races", 3),
+            ("Races", 4),
             ("Skills", 4),
             ("Weapons", 5),
-            ("Feats", 32),
-            ("Classes", 10),
-            ("Archetypes", 6),
+            ("Feats", 37),
+            ("Classes", 12),
+            ("Archetypes", 8),
             ("Prestige classes", 5),
             ("Mythic abilities", 8),
-            ("Mythic feats", 6),
+            ("Mythic feats", 9),
             ("Mythic paths", 6),
         ]
     );

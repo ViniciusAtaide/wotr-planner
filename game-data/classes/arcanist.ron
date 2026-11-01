@@ -272,6 +272,7 @@ Class(
                             key: "arcanist/magic-deceiver/ways-of-the-deceiver/razmiri-infiltrator",
                             name: "Razmiri Infiltrator",
                             guide: "arcanist#razmiri-infiltrator",
+                            prerequisite: Any([Alignment(TrueNeutral), Alignment(LawfulEvil), Alignment(NeutralEvil), Alignment(ChaoticEvil)]),
                             levels: [
                                 (level: 1, features: ["arcanist/magic-deceiver/ways-of-the-deceiver/razmiri-infiltrator/acolyte-of-the-first-step", "arcanist/magic-deceiver/ways-of-the-deceiver/razmiri-infiltrator/razmiri-mask"]),
                                 (level: 2, features: ["arcanist/magic-deceiver/ways-of-the-deceiver/razmiri-infiltrator/trick-magic"]),

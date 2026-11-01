@@ -96,6 +96,7 @@ fn row(level: u8, features: &[&str]) -> ClassLevelRow {
         feats: Default::default(),
         feat_slots: vec![],
         selections: vec![],
+        feats_for: Default::default(),
     }
 }
 
@@ -107,6 +108,7 @@ fn full_row(level: u8, arcane: u8, features: &[&str]) -> ArchetypeLevelRow {
         feats: Default::default(),
         feat_slots: vec![],
         selections: vec![],
+        feats_for: Default::default(),
     }
 }
 

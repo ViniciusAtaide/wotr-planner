@@ -13,9 +13,9 @@ example of the layout.
 | File | Holds |
 | --- | --- |
 | `progression.ron` | `Progression`: the mythic rank table (the Character level of each Mythic rank) |
-| `races.ron` | `Vec<Race>`, with subraces |
+| `races.ron` | `Vec<Race>`, with subraces and the race's own feat lists (the half-elf's Adaptability) |
 | `skills.ron` | `Vec<Skill>` |
-| `weapons.ron` | `Vec<Weapon>`: the weapons a feat can be taken for, from the guide's simple, martial and exotic lists (`proficiency`), plus Sawtooth Saber and what Weapon Focus names besides weapons |
+| `weapons.ron` | `Vec<Weapon>`: the weapons a feat can be taken for, from the guide's simple, martial and exotic lists (`proficiency`; the Sawtooth Saber is exotic, from Weapon Finesse's list), plus what Weapon Focus names besides weapons (unarmed strike, touch attacks, rays), each natural attack the guide names (bite, claw, gore, hoof, slam, spike, tail, talon, wing), Kinetic Blast and Bomb |
 | `feats.ron` | `Vec<Feat>` |
 | `classes/<class>.ron` | one base `Class`, with its features, feature selections, level rows and archetypes |
 | `prestige/<class>.ron` | one prestige `Class` |
@@ -73,6 +73,11 @@ class's), and BAB and saves (from the class's progressions).
 - A selection option that grants feats names them: `feats: ["weapon-focus"]` (a rogue talent that is the feat of
   the same name), or several (the Azata's All-skilled: every weapon, armour and shield proficiency). Picking the
   option holds them.
+- An option whose pick names a value without granting a feat for it says what kind: `parameter: Weapon` (the
+  shaman's Battle Master, whose rows grant `chosen_feats` for that weapon at 8 and 16); never beside a
+  `chosen_feat`, whose kind it is then. An option may limit its values: `values: [Weapon("long-bow"),
+  Weapon("short-bow")]` (the Zen Archer's Way of the Bow). A selection with one option that takes a value is still
+  a pick.
 - An option that grants over class levels (a bloodline, school, order, spirit, way or combat style) is a block
   with `levels: [...]`, one row per line, by **option level**: `(level: 9, features: [...], feats: ["wings"],
   selections: ["sorcerer/bloodline/arcane/school-power"], feat_list: "sorcerer/bloodline/abyssal/feats")`. A row's
@@ -112,6 +117,9 @@ class's), and BAB and saves (from the class's progressions).
   - **Elements**, `kineticist/element`: class skills and the wild-talent bonus feat list at 1, the defensive talent
     at 2; `kineticist/expanded-element` at 7 and 15 holds a second element (or the first again, `repeat:
     Times(2)`) for its list only.
+- The slayer's talents (`slayer/slayer-talents`, levelled by slayer) include three combat style feats, one per
+  window the guide gives ("2 or 4, 6 or 8 and 10 or greater"): each is taken once and its row 1 is a bonus slot
+  from `slayer/combat-style-feats-2`, `-6` or `-10`, the ranger styles' lists of that stage put together.
 - A path's switch rule: `switch: (from: ["aeon", "azata"], kept_through_rank: 7, path_kept_through_rank: 7,
   dropped_features: [...], dropped_selections: [...], features: [...], further_ascensions: true, level_cap:
   Some(40))`. The general picks (mythic abilities and feats) of MR 1 to `kept_through_rank` stay, and the old
@@ -121,7 +129,8 @@ class's), and BAB and saves (from the class's progressions).
 - A feature that changes the character's own ability scores lists `ability_bonuses`: `Fixed(ability: Strength,
   amount: 4)`, `Every(amount: 4)` (Legend), `Highest(amount: 4)` (the highest score) and `AtLeast(score: 14)`
   (every score at least). They count toward ability-score prerequisites while the feature is held; gear never
-  does.
+  does. A feature can also set floors that prerequisites see while it's held: `bab_floor: Some(15)` and
+  `skill_ranks_at_least_mythic_rank: true` (Perfect Mind).
 - Mythic abilities and feats name their group as the guide heads it: `group: Melee`, `ArmourAndShield`,
   `CombatManoeuvre` and so on.
 - Feat slots are `General`, `CombatFeat`, `Category(Teamwork)` or a named list, `OneOf(list: "monk/bonus-feats-1")`.
@@ -135,18 +144,24 @@ class's), and BAB and saves (from the class's progressions).
   feats") sets `every_feat: true` and names no feats. The check refuses a list of fewer than two feats (unless
   it's every feat, or its one feat takes a value) and one no slot names. A bonus feat of the player's choosing
   (the warpriest's "Weapon Focus as a bonus feat in a weapon of his choosing", the Master of All's Skill Focus at
-  3, 9 and 15) is a bonus list of that one parameterised feat: the pick names the value.
+  3, 9 and 15, the Sword Saint's Chosen Weapon) is a bonus list of that one parameterised feat: the pick names the
+  value. A race may own lists too, in a `feat_lists` block before its subraces, and its slots may name only its
+  own (the half-elf's Adaptability: Skill Focus as a bonus feat).
 - A feat the class gives outright is a granted feat, not a slot: `feats: ["scribe-scrolls"]` on the level row
-  (class or archetype). It's held with no pick, whatever its prerequisites, and it's in no Build or link. Classes
+  (class or archetype). It's held with no pick, whatever its prerequisites, and it's in no Build or link. A
+  parameterised one granted for one value is `feats_for: [(feat: "weapon-focus", value: Weapon("sawtooth-saber"))]`
+  (the Mantis Zealot; the Chirurgeon's and the Enlightened Philosopher's Skill Focus). Classes
   grant their Armor, Shield and Weapon Proficiency feats this way, from each class page's proficiency text; a
   `<class>-proficiencies` feature stays only where it says more than those feats (named weapons, bombs, casting
   in armour, or a prerequisite names it).
 
 - A feat the guide says to take for something names what: `parameter: Weapon` (also `ExoticWeapon`, `Skill`,
   `SpellSchool`, `Energy`, `ArmourType`), and each pick of it names a value. How often a feat can be taken is
-  `repeat:`, left out for once: `PerValue` (once per value: Weapon Focus, Skill Focus), `Times(3)` ("up to 3
-  times"), `Unlimited` ("may be taken multiple times"). A feat the guide doesn't say repeats is taken once, even a
-  parameterised one. A selection option may repeat too (`repeat: Times(3)`, never `PerValue`), and one that is a
+  `repeat:`, left out for once: `PerValue` (once per value: every parameterised feat, by the user's decision),
+  `Times(3)` ("up to 3 times"), `Unlimited` ("may be taken multiple times"). A mythic feat takes `parameter` and
+  `repeat` the same way (Improved Critical (Mythic): a weapon, once per weapon), and `removes_racial_penalty: true`
+  (Destiny Beyond Birth) gives back the race's ability penalties while it's held. A selection option may repeat too
+  (`repeat: Times(3)`, never `PerValue`), and one that is a
   parameterised feat of the player's choosing names it as `chosen_feat: "weapon-focus"` (its pick names the
   value); a parameterised feat in an option's `feats` or a row's `feats` is held for every value (All-skilled:
   Exotic Weapon Proficiency in every exotic weapon).
@@ -163,7 +178,9 @@ class's), and BAB and saves (from the class's progressions).
   "weapon-focus", value: Weapon("dueling-sword"))` needs one value (`Skill("mobility")`,
   `SpellSchool(Conjuration)`, `Energy(Fire)`, `ArmourType(Light)`), and `FeatForSameValue("weapon-focus")` the
   value of the pick being checked (Weapon Specialization), only in a parameterised feat's or a chosen-feat option's
-  prerequisite. `Story(VowOfDahak)` and `Story(Uncorrupted)` are story conditions: out of scope, they always hold
+  prerequisite. `FeatIfValue(value: ArmourType(Heavy), feat: "armor-proficiency-heavy-armor")` needs the feat only
+  when the pick is taken for that value (Armor Focus: the proficiency of its armour type). `Not(...)` holds when
+  its one child doesn't (the slayer's combat style talents: `Not(ClassLevel(class: "slayer", level: 6))`). `Story(VowOfDahak)` and `Story(Uncorrupted)` are story conditions: out of scope, they always hold
   and the sheet shows them as a note, so they go in an `All` (`All([MythicRank(9), Story(VowOfDahak)])`), never
   as one choice of an `Any` or `AtLeast` (the check refuses that).
 - A `//` comment line is allowed anywhere and is kept for readers only: the Crusader's bonus lists carry one saying

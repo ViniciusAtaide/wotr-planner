@@ -26,6 +26,8 @@ fn feature(key: &str) -> Feature {
         ability_bonuses: vec![],
         option_row: None,
         daily_choice: false,
+        bab_floor: None,
+        skill_ranks_at_least_mythic_rank: false,
     }
 }
 
@@ -40,6 +42,7 @@ fn row(level: u8, granted: &[&str]) -> ClassLevelRow {
         feats: BTreeSet::new(),
         feat_slots: vec![],
         selections: vec![],
+        feats_for: Default::default(),
     }
 }
 
@@ -52,6 +55,7 @@ fn full_row(level: u8, granted: &[&str]) -> ArchetypeLevelRow {
         feats: BTreeSet::new(),
         feat_slots: vec![],
         selections: vec![],
+        feats_for: Default::default(),
     }
 }
 

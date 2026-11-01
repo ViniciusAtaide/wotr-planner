@@ -6,13 +6,13 @@
 //! Keys carry no type prefix, so two kinds may share one (a feat and a feature both `power-attack`): each kind is
 //! its own table, and a [`DataAt`] names the kind as well as the key.
 
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeSet, HashMap, HashSet};
 use std::fmt;
 
 use crate::engine::{BASE_LEVEL_CAP, PATH_CHOICE_RANK, PATH_SWITCH_RANK};
 use crate::game_data::{
-    Advancement, Archetype, Class, ClassLevelRow, CountsToward, FeatList, FeatSlot, Feature,
-    FeatureSelection, GameData, MythicPath, Save, SelectionOption, WeaponProficiency,
+    Advancement, Archetype, Class, ClassLevelRow, CountsToward, FeatList, FeatSlot, FeatValue,
+    Feature, FeatureSelection, GameData, MythicPath, Save, SelectionOption, WeaponProficiency,
 };
 use crate::keys::{
     ArchetypeKey, ClassKey, FeatKey, FeatListKey, FeatureKey, FeatureSelectionKey,
@@ -163,9 +163,9 @@ pub enum DataIssue {
         level: u8,
         save: Save,
     },
-    /// A feat slot ignoring prerequisites where its list isn't the grantor's own: on a race, or on a path rank
-    /// with another owner's list. Class and archetype level rows may name any bonus list; a path's rank rows only
-    /// the path's own (Gold Dragon's Dragon Feats).
+    /// A feat slot ignoring prerequisites where its list isn't the grantor's own: on a race or a path rank with
+    /// another owner's list. Class and archetype level rows may name any bonus list; a race only its own (the
+    /// half-elf's Adaptability), a path's rank rows only the path's own (Gold Dragon's Dragon Feats).
     MisplacedBonusList,
     /// A feature, selection or feat list whose key doesn't start with its owner's key (the class, archetype or
     /// path that defines it) and a `/`.
@@ -214,6 +214,12 @@ pub enum DataIssue {
     /// An option row's chosen feat that doesn't take the kind of value the option's pick names (or the option's
     /// pick names none).
     RowChosenFeatOfOtherKind(FeatKey),
+    /// A prerequisite asking about the pick's value (`FeatIfValue`) with a value of a kind the pick doesn't take.
+    IfValueOfWrongKind,
+    /// An option with a chosen feat that also names what its pick takes: the chosen feat's kind says it.
+    ParameterBesideChosenFeat,
+    /// An option listing values its pick doesn't take: it takes none, or they're of another kind.
+    OptionValueOfWrongKind,
 }
 
 impl fmt::Display for DataProblem {
@@ -272,8 +278,8 @@ impl fmt::Display for DataProblem {
                 "the {save:?} exception at level {level} is what the progression gives anyway"
             ),
             DataIssue::MisplacedBonusList => f.write_str(
-                "a feat slot that ignores prerequisites is granted outside a class's level rows or its own \
-                 path's ranks",
+                "a feat slot that ignores prerequisites is granted outside a class's level rows from a list \
+                 that isn't the grantor's own",
             ),
             DataIssue::KeyOutsideItsOwner => {
                 f.write_str("the key doesn't start with its owner's key")
@@ -327,6 +333,15 @@ impl fmt::Display for DataProblem {
                 f,
                 "offers {option}, which has rows by option level, but names no classes whose levels count"
             ),
+            DataIssue::IfValueOfWrongKind => f.write_str(
+                "a prerequisite asks about a value of a kind the pick doesn't take",
+            ),
+            DataIssue::ParameterBesideChosenFeat => f.write_str(
+                "names what its pick takes beside a chosen feat, whose kind says it already",
+            ),
+            DataIssue::OptionValueOfWrongKind => {
+                f.write_str("lists values of a kind its pick doesn't take")
+            }
             DataIssue::PoolSelectionWithOptions => {
                 f.write_str("a pool selection with options of its own or shared")
             }
@@ -364,7 +379,8 @@ impl GameData {
         for race in &self.races {
             let at = DataAt::Race(race.key.clone());
             check.key(&at);
-            check.no_bonus_list(&at, &race.feat_slots, None);
+            check.owned(race.key.as_str(), &[], &[], &race.feat_lists);
+            check.no_bonus_list(&at, &race.feat_slots, Some(race.key.as_str()));
             for subrace in &race.subraces {
                 check.key(&DataAt::Subrace(subrace.key.clone()));
             }
@@ -392,7 +408,8 @@ impl GameData {
         for feat in &self.mythic_feats {
             let at = DataAt::MythicFeat(feat.key.clone());
             check.key(&at);
-            check.prerequisite(&at, feat.prerequisite.as_ref(), None);
+            check.repeat(&at, feat.repeat, feat.parameter.is_some());
+            check.prerequisite(&at, feat.prerequisite.as_ref(), feat.parameter);
         }
         let switches: HashSet<&MythicPathKey> = self
             .mythic_paths
@@ -463,7 +480,7 @@ impl Checker {
     }
 
     /// Slots granted outside a class's level rows check prerequisites, unless the bonus list is the grantor's own
-    /// (`owner`: a path's key; `None` for a race, which owns no list).
+    /// (`owner`: a race's or a path's key).
     fn no_bonus_list(&mut self, at: &DataAt, slots: &[FeatSlot], owner: Option<&str>) {
         self.slots(slots);
         let misplaced = slots.iter().any(|slot| match slot {
@@ -635,6 +652,20 @@ impl Checker {
                 }
                 return;
             }
+            Prerequisite::FeatIfValue { value, .. } => {
+                match takes {
+                    None => self.problem(at, DataIssue::SameValueWithoutValue),
+                    Some(takes) if !self.fits(takes, value) => {
+                        self.problem(at, DataIssue::IfValueOfWrongKind);
+                    }
+                    Some(_) => {}
+                }
+                return;
+            }
+            Prerequisite::Not(child) => {
+                self.prerequisite(at, Some(child), takes);
+                return;
+            }
             _ => return,
         };
         if children.is_empty() {
@@ -661,7 +692,7 @@ impl Checker {
                 if !owned_by(option.key.as_str(), selection.key.as_str()) {
                     self.problem(&at, DataIssue::OptionOutsideItsSelection);
                 }
-                // An option takes a value only for its chosen feat, which must take one.
+                // An option takes a value for its chosen feat, which must take one, or of its own kind.
                 let takes = option.chosen_feat.as_ref().and_then(|feat| {
                     let kind = self.parameters.get(feat).copied();
                     if kind == Some(None) {
@@ -669,6 +700,17 @@ impl Checker {
                     }
                     kind.flatten()
                 });
+                if option.chosen_feat.is_some() && option.parameter.is_some() {
+                    self.problem(&at, DataIssue::ParameterBesideChosenFeat);
+                }
+                let takes = takes.or(option.parameter);
+                if !option.values.is_empty()
+                    && !takes.is_some_and(|takes| {
+                        option.values.iter().all(|value| self.fits(takes, value))
+                    })
+                {
+                    self.problem(&at, DataIssue::OptionValueOfWrongKind);
+                }
                 self.repeat(&at, option.repeat, false);
                 self.prerequisite(&at, option.prerequisite.as_ref(), takes);
                 let mut levels = HashSet::new();
@@ -780,6 +822,7 @@ impl Checker {
         }
         for row in rows {
             self.slots(&row.feat_slots);
+            self.feats_for(at, &row.feats_for);
             if !prestige && (row.advances_arcane || row.advances_divine) {
                 self.problem(at, DataIssue::AdvancesOnBaseClass { level: row.level });
             }
@@ -791,11 +834,24 @@ impl Checker {
         }
     }
 
+    /// A feat granted for one value takes a value of that kind. An unknown feat is the foreign keys' business.
+    fn feats_for(&mut self, at: &DataAt, granted: &BTreeSet<FeatValue>) {
+        for granted in granted {
+            let (feat, value) = (&granted.feat, &granted.value);
+            if let Some(kind) = self.parameters.get(feat).copied()
+                && !kind.is_some_and(|kind| self.fits(kind, value))
+            {
+                self.problem(at, DataIssue::ValueOfWrongKind(feat.clone()));
+            }
+        }
+    }
+
     /// An archetype stores only the levels where it differs from its base class, each once.
     fn archetype_rows(&mut self, at: &DataAt, class: &Class, archetype: &Archetype) {
         let mut seen = HashSet::new();
         for row in &archetype.levels {
             self.slots(&row.feat_slots);
+            self.feats_for(at, &row.feats_for);
             if !seen.insert(row.level) {
                 self.problem(at, DataIssue::DuplicateArchetypeRow(row.level));
             }
@@ -815,6 +871,7 @@ impl Checker {
                 .is_none_or(|spells| spells == base.spell_levels());
             let same_grants = sorted(&row.features) == sorted(&base.features)
                 && row.feats == base.feats
+                && row.feats_for == base.feats_for
                 && sorted(&row.feat_slots) == sorted(&base.feat_slots)
                 && sorted(&row.selections) == sorted(&base.selections);
             if same_spells && same_grants {

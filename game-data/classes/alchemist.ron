@@ -93,11 +93,10 @@ Class(
             features: [
                 (key: "alchemist/chirurgeon/infused-curative", name: "Infused Curative", guide: "alchemist#infused-curative"),
                 (key: "alchemist/chirurgeon/power-over-death", name: "Power Over Death", guide: "alchemist#power-over-death"),
-                (key: "alchemist/chirurgeon/skill-focus-lore-religion", name: "Skill Focus - Lore (Religion)", guide: "alchemist#chirurgeon"),
             ],
             levels: [
                 (level: 2, features: ["alchemist/chirurgeon/infused-curative"], selections: ["alchemist/discovery"]),
-                (level: 5, features: ["alchemist/chirurgeon/skill-focus-lore-religion"]),
+                (level: 5, feats_for: [(feat: "skill-focus", value: Skill("lore-religion"))]),
                 (level: 10, features: ["alchemist/chirurgeon/power-over-death"], selections: ["alchemist/discovery"]),
             ],
         ),
@@ -133,7 +132,7 @@ Class(
                     guide: "alchemist#incense-fog",
                     options: [
                         (key: "alchemist/incense-synthesizer/incense-fog/incense-fog-clarifying-incense", name: "Incense Fog - Clarifying Incense", guide: "alchemist#incense-fog-clarifying-incense", repeat: Times(3)),
-                        (key: "alchemist/incense-synthesizer/incense-fog/incense-fog-greater-sacred-incense", name: "Incense Fog - Greater Sacred Incense", guide: "alchemist#incense-fog-greater-sacred-incense", prerequisite: All([SelectionOption("alchemist/incense-synthesizer/incense-fog/incense-fog-sacred-incense"), ClassLevel(class: "alchemist", level: 12)])),
+                        (key: "alchemist/incense-synthesizer/incense-fog/incense-fog-greater-sacred-incense", name: "Incense Fog - Greater Sacred Incense", guide: "alchemist#incense-fog-greater-sacred-incense", prerequisite: All([ClassLevel(class: "alchemist", level: 12), SelectionOption("alchemist/incense-synthesizer/incense-fog/incense-fog-sacred-incense")])),
                         (key: "alchemist/incense-synthesizer/incense-fog/incense-fog-improved-incense", name: "Incense Fog - Improved Incense", guide: "alchemist#incense-fog-improved-incense", repeat: Times(2), prerequisite: ClassLevel(class: "alchemist", level: 6)),
                         (key: "alchemist/incense-synthesizer/incense-fog/incense-fog-increased-range", name: "Incense Fog - Increased Range", guide: "alchemist#incense-fog-increased-range"),
                         (key: "alchemist/incense-synthesizer/incense-fog/incense-fog-neutralizing-incense", name: "Incense Fog - Neutralizing Incense", guide: "alchemist#incense-fog-neutralizing-incense", repeat: Times(3)),

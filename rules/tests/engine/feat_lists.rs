@@ -59,8 +59,12 @@ fn every_feat_list_of_the_data_is_listed_once() {
     assert_eq!(
         keys,
         [
+            "half-elf/adaptability",
             "fighter/armiger/bonus-feats",
             "rogue/skill-focus",
+            "slayer/combat-style-feats-2",
+            "slayer/combat-style-feats-6",
+            "slayer/combat-style-feats-10",
             "monk/bonus-feats",
             "sorcerer/bloodline/abyssal-feats",
             "sorcerer/bloodline/arcane-feats",
@@ -68,6 +72,7 @@ fn every_feat_list_of_the_data_is_listed_once() {
             "ranger/combat-style/archery-2",
             "ranger/combat-style/archery-6",
             "ranger/combat-style/crane-2",
+            "warpriest/weapon-focus",
             "trickster/bonus-feats",
             "gold-dragon/dragon-feats"
         ]

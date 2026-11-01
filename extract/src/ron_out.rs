@@ -8,8 +8,9 @@ use std::collections::BTreeSet;
 
 use rules::{
     Advancement, Archetype, ArchetypeLevelRow, Class, ClassLevelRow, Feat, FeatKey, FeatList,
-    Feature, FeatureSelection, GameData, MythicAbility, MythicFeat, MythicPath, MythicRankRow,
-    OptionLevelRow, PathSwitch, Prerequisite, Race, Repeat, SelectionOption, Skill, Weapon,
+    FeatValue, Feature, FeatureSelection, GameData, MythicAbility, MythicFeat, MythicPath,
+    MythicRankRow, OptionLevelRow, PathSwitch, Prerequisite, Race, Repeat, SelectionOption, Skill,
+    Weapon,
 };
 use serde::Serialize;
 
@@ -146,6 +147,14 @@ impl Fields {
         self
     }
 
+    /// Feats granted for a value, when there are any.
+    fn values(&mut self, name: &str, values: &BTreeSet<FeatValue>) -> &mut Self {
+        if !values.is_empty() {
+            self.field(name, values);
+        }
+        self
+    }
+
     /// A repeat other than once.
     fn repeat(&mut self, repeat: Repeat) -> &mut Self {
         if repeat != Repeat::Once {
@@ -263,7 +272,12 @@ fn race(race: &Race) -> String {
         .field("guide", &race.guide)
         .items("ability_modifiers", &race.ability_modifiers)
         .items("feat_slots", &race.feat_slots);
-    fields.block("", 4, &[nested("subraces", 8, subraces)])
+    let lists = nested(
+        "feat_lists",
+        8,
+        race.feat_lists.iter().map(feat_list).collect(),
+    );
+    fields.block("", 4, &[lists, nested("subraces", 8, subraces)])
 }
 
 /// A feat on one line: what it's taken for and how often only when the guide says.
@@ -297,13 +311,22 @@ fn mythic_ability(ability: &MythicAbility) -> String {
         .line()
 }
 
+/// A mythic feat on one line: what it's taken for, how often and whether it removes the racial penalty only when
+/// set.
 fn mythic_feat(feat: &MythicFeat) -> String {
-    Fields::new()
+    let mut fields = Fields::new();
+    fields
         .field("key", &feat.key)
         .field("name", &feat.name)
         .field("group", &feat.group)
         .text("summary", &feat.summary)
-        .field("guide", &feat.guide)
+        .field("guide", &feat.guide);
+    if let Some(parameter) = &feat.parameter {
+        fields.field("parameter", parameter);
+    }
+    fields
+        .repeat(feat.repeat)
+        .flag("removes_racial_penalty", feat.removes_racial_penalty)
         .prerequisite(&feat.prerequisite)
         .line()
 }
@@ -319,7 +342,16 @@ fn feature(feature: &Feature) -> String {
     if let Some(row) = &feature.option_row {
         fields.field("option_row", row);
     }
-    fields.flag("daily_choice", feature.daily_choice).line()
+    fields.flag("daily_choice", feature.daily_choice);
+    if let Some(floor) = feature.bab_floor {
+        fields.0.push(format!("bab_floor: Some({floor})"));
+    }
+    fields
+        .flag(
+            "skill_ranks_at_least_mythic_rank",
+            feature.skill_ranks_at_least_mythic_rank,
+        )
+        .line()
 }
 
 /// A switch rule on one line: the previous paths, drops and granted features only when set, the level cap only
@@ -367,6 +399,12 @@ fn option(option: &SelectionOption, indent: usize) -> String {
     }
     if let Some(feat) = &option.chosen_feat {
         fields.field("chosen_feat", feat);
+    }
+    if let Some(parameter) = &option.parameter {
+        fields.field("parameter", parameter);
+    }
+    if !option.values.is_empty() {
+        fields.field("values", &option.values);
     }
     fields
         .repeat(option.repeat)
@@ -475,6 +513,7 @@ fn level_row(row: &ClassLevelRow) -> String {
         .flag("advances_divine", row.advances_divine)
         .items("features", &row.features)
         .set("feats", &row.feats)
+        .values("feats_for", &row.feats_for)
         .items("feat_slots", &row.feat_slots)
         .items("selections", &row.selections)
         .line()
@@ -490,6 +529,7 @@ fn archetype_level_row(row: &ArchetypeLevelRow) -> String {
     fields
         .items("features", &row.features)
         .set("feats", &row.feats)
+        .values("feats_for", &row.feats_for)
         .items("feat_slots", &row.feat_slots)
         .items("selections", &row.selections)
         .line()

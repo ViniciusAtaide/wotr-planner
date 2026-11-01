@@ -16,7 +16,7 @@ use crate::keys::{
     MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey, SelectionOptionKey, SkillKey,
     SubraceKey, WeaponKey,
 };
-use crate::parameter::{ParameterKind, Repeat};
+use crate::parameter::{Parameter, ParameterKind, Repeat};
 use crate::prerequisite::Prerequisite;
 
 /// The guide every [`GuideRef`] points into.
@@ -63,8 +63,9 @@ impl GameData {
         self.classes.iter().flat_map(|class| &class.archetypes)
     }
 
-    /// Every feat list: each class's (base, then prestige), each of its archetypes', then each path's.
+    /// Every feat list: each race's, each class's (base, then prestige), each of its archetypes', then each path's.
     pub fn feat_lists(&self) -> impl Iterator<Item = &FeatList> {
+        let races = self.races.iter().flat_map(|race| &race.feat_lists);
         let classes = self
             .classes
             .iter()
@@ -77,7 +78,9 @@ impl GameData {
                         .flat_map(|archetype| &archetype.feat_lists),
                 )
             });
-        classes.chain(self.mythic_paths.iter().flat_map(|path| &path.feat_lists))
+        races
+            .chain(classes)
+            .chain(self.mythic_paths.iter().flat_map(|path| &path.feat_lists))
     }
 
     /// How much of each kind of thing the data holds, labelled, as a quick check that seeding worked.
@@ -105,6 +108,7 @@ impl GameData {
         for race in &mut self.races {
             race.ability_modifiers.sort();
             race.feat_slots.sort();
+            sort_by_key(&mut race.feat_lists, |l| l.key.clone());
             sort_by_key(&mut race.subraces, |s| s.key.clone());
             for subrace in &mut race.subraces {
                 subrace.ability_modifiers.sort();
@@ -314,6 +318,10 @@ pub struct Race {
     /// Extra Feat slots at character level 1 (a human's bonus feat is a `General` slot).
     #[serde(default)]
     pub feat_slots: Vec<FeatSlot>,
+    /// The race's own feat lists, which its slots may name (a half-elf's Adaptability: Skill Focus as a bonus
+    /// feat).
+    #[serde(default)]
+    pub feat_lists: Vec<FeatList>,
     #[serde(default)]
     pub subraces: Vec<Subrace>,
 }
@@ -569,6 +577,9 @@ pub struct ArchetypeLevelRow {
     /// Granted feats: see [`ClassLevelRow::feats`].
     #[serde(default)]
     pub feats: BTreeSet<FeatKey>,
+    /// Feats granted for one value: see [`ClassLevelRow::feats_for`].
+    #[serde(default)]
+    pub feats_for: BTreeSet<FeatValue>,
     #[serde(default)]
     pub feat_slots: Vec<FeatSlot>,
     /// One Feature selection slot per entry.
@@ -708,11 +719,23 @@ pub struct ClassLevelRow {
     /// held for every value; a bonus feat of the player's choosing is a one-feat bonus list instead.
     #[serde(default)]
     pub feats: BTreeSet<FeatKey>,
+    /// Parameterised feats granted for one value, as `feats` grants them otherwise (Mantis Zealot: Weapon Focus
+    /// (Sawtooth Saber)).
+    #[serde(default)]
+    pub feats_for: BTreeSet<FeatValue>,
     #[serde(default)]
     pub feat_slots: Vec<FeatSlot>,
     /// One Feature selection slot per entry.
     #[serde(default)]
     pub selections: Vec<FeatureSelectionKey>,
+}
+
+/// A parameterised feat for one value (Weapon Focus (Sawtooth Saber)).
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct FeatValue {
+    pub feat: FeatKey,
+    pub value: Parameter,
 }
 
 impl ClassLevelRow {
@@ -746,6 +769,13 @@ pub struct Feature {
     /// Abjurer's Resistance): it isn't part of a Build, so the sheet shows a note instead of a pick.
     #[serde(default)]
     pub daily_choice: bool,
+    /// For prerequisites, the base attack bonus is at least this while the feature is held (Perfect Mind: 15).
+    #[serde(default)]
+    pub bab_floor: Option<u8>,
+    /// For prerequisites, the ranks in every skill are at least the Mythic rank while the feature is held (Perfect
+    /// Mind).
+    #[serde(default)]
+    pub skill_ranks_at_least_mythic_rank: bool,
 }
 
 /// One option level's row of whatever option a selection holds.
@@ -843,6 +873,14 @@ pub struct SelectionOption {
     /// weapon of the player's choosing).
     #[serde(default)]
     pub chosen_feat: Option<FeatKey>,
+    /// What the pick names when the option has no chosen feat (the shaman's Battle Master: a weapon, for the feats
+    /// its rows grant). With a chosen feat, the pick names a value of that feat's kind instead.
+    #[serde(default)]
+    pub parameter: Option<ParameterKind>,
+    /// The values the pick may name; empty: any of its kind (the Zen Archer's Way of the Bow: a longbow or a
+    /// shortbow).
+    #[serde(default)]
+    pub values: BTreeSet<Parameter>,
     /// How many times it can be taken (Increased Damage Reduction: three times). Never `PerValue`.
     #[serde(default)]
     pub repeat: Repeat,
@@ -986,6 +1024,16 @@ pub struct MythicFeat {
     #[serde(default)]
     pub summary: String,
     pub guide: GuideRef,
+    /// What the mythic feat is taken for, as on a feat (Improved Critical (Mythic): a weapon).
+    #[serde(default)]
+    pub parameter: Option<ParameterKind>,
+    /// How many times it can be taken, as on a feat.
+    #[serde(default)]
+    pub repeat: Repeat,
+    /// The race's ability penalties no longer apply to the character's own scores while it's held (Destiny Beyond
+    /// Birth).
+    #[serde(default)]
+    pub removes_racial_penalty: bool,
     #[serde(default)]
     pub prerequisite: Option<Prerequisite>,
 }
