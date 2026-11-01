@@ -266,6 +266,11 @@ fn apply_share(data: &mut GameData, share: &Share) {
                 guide: GuideRef::new(new.guide),
                 options: Vec::new(),
                 shared_options: keys,
+                option_levels: BTreeSet::new(),
+                skipped_levels: BTreeSet::new(),
+                feat_lists_only: false,
+                only_without_option: false,
+                pool_of: None,
             });
             let Some(rule) = share.slots else {
                 return;

@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO class (key, is_prestige, name, summary, guide, skill_points, bab, fort, reflex,\n            will, advances, prerequisite_root_id)\n        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
+  "query": "INSERT INTO class (key, is_prestige, name, summary, guide, skill_points, bab, fort, reflex,\n            will, advances, spontaneous, prerequisite_root_id)\n        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)",
   "describe": {
     "columns": [],
     "parameters": {
@@ -58,10 +58,11 @@
           }
         },
         "Text",
+        "Bool",
         "Int8"
       ]
     },
     "nullable": []
   },
-  "hash": "5be9f690540e4f67d6f804916bedf7704faa2dcb1d911a35a8d0efdec82f8c77"
+  "hash": "15c85d151c45a9f1ecdb4c3e9d24ad194ffa22822c3c3c6482ee9071ac86ddc2"
 }

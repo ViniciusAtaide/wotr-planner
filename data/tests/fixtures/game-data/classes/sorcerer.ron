@@ -1,0 +1,135 @@
+// Hand-written test fixture: small and simplified, not checked against the guide. Every shape of an option with
+// rows by option level (ticket 30).
+Class(
+    key: "sorcerer",
+    name: "Sorcerer",
+    guide: "sorcerer",
+    skill_points: 2,
+    bab: Half,
+    fort: Poor,
+    reflex: Poor,
+    will: Good,
+    spontaneous: true,
+    class_skills: ["knowledge-arcana"],
+    features: [
+        (key: "sorcerer/bloodline/abyssal/claws", name: "Claws", guide: "character-creation#grow-claws-abyssal"),
+        (
+            key: "sorcerer/bloodline/abyssal/strength-of-the-abyss",
+            name: "Strength of the Abyss",
+            guide: "character-creation#strength-of-the-abyss",
+            ability_bonuses: [Fixed(ability: Strength, amount: 2)],
+        ),
+        (key: "sorcerer/bloodline/draconic/claws", name: "Claws", guide: "character-creation#grow-claws-draconic"),
+        (
+            key: "sorcerer/bloodline-ascendance",
+            name: "Bloodline Ascendance",
+            guide: "mythic-paths#bloodline-ascendance",
+            option_row: (selection: "sorcerer/bloodline", level: 3),
+        ),
+        (key: "sorcerer/mixed-bloodline", name: "Mixed Bloodline", guide: "bloodrager#mixed-bloodline", daily_choice: true),
+    ],
+    selections: [
+        (
+            key: "sorcerer/bloodline",
+            name: "Bloodline",
+            guide: "character-creation#bloodlines",
+            option_levels: ["fighter", "sorcerer"],
+            options: [
+                (
+                    key: "sorcerer/bloodline/abyssal",
+                    name: "Abyssal",
+                    guide: "sorcerer#abyssal",
+                    pool: "sorcerer/abyssal-powers",
+                    levels: [
+                        (level: 1, features: ["sorcerer/bloodline/abyssal/claws"], feat_list: "sorcerer/bloodline/abyssal-feats"),
+                        (level: 3, features: ["sorcerer/bloodline/abyssal/strength-of-the-abyss"], feats: ["toughness"], selections: ["sorcerer/school"]),
+                    ],
+                ),
+                (
+                    key: "sorcerer/bloodline/draconic-red",
+                    name: "Draconic (Red)",
+                    guide: "sorcerer#draconic",
+                    prerequisite: NoOptionFrom("sorcerer/bloodline"),
+                    levels: [(level: 1, features: ["sorcerer/bloodline/draconic/claws"])],
+                ),
+            ],
+        ),
+        (
+            key: "sorcerer/school",
+            name: "School",
+            guide: "character-creation#school-power",
+            options: [
+                (key: "sorcerer/school/evocation", name: "Evocation", guide: "character-creation#school-power"),
+                (key: "sorcerer/school/necromancy", name: "Necromancy", guide: "character-creation#school-power"),
+            ],
+        ),
+        (
+            key: "sorcerer/abyssal-powers",
+            name: "Abyssal Powers",
+            guide: "sorcerer#abyssal",
+            options: [
+                (key: "sorcerer/abyssal-powers/rage", name: "Rage", guide: "sorcerer#abyssal"),
+                (key: "sorcerer/abyssal-powers/fear", name: "Fear", guide: "sorcerer#abyssal"),
+            ],
+        ),
+        (key: "sorcerer/power", name: "Power", guide: "sorcerer", pool_of: "sorcerer/bloodline", options: []),
+    ],
+    feat_lists: [
+        (key: "sorcerer/bloodline/abyssal-feats", name: "Abyssal Bloodline Feats", guide: "character-creation#abyssal-bloodline", feats: ["power-attack", "toughness"]),
+    ],
+    levels: [
+        (level: 1, arcane_spell_level: 1, selections: ["sorcerer/bloodline"]),
+        (level: 2, arcane_spell_level: 1, selections: ["sorcerer/power"]),
+        (level: 3, arcane_spell_level: 2, feat_slots: [OptionList(selection: "sorcerer/bloodline")]),
+    ],
+    archetypes: [
+        (
+            key: "sorcerer/seeker",
+            name: "Seeker",
+            guide: "sorcerer#seeker-sorcerer",
+            spontaneous: false,
+            selections: [
+                (
+                    key: "sorcerer/seeker/bloodline",
+                    name: "Bloodline (Seeker)",
+                    guide: "sorcerer#seeker-sorcerer",
+                    shared_options: ["sorcerer/bloodline/abyssal", "sorcerer/bloodline/draconic-red"],
+                    option_levels: ["sorcerer"],
+                    skipped_levels: [3],
+                    options: [],
+                ),
+                (
+                    key: "sorcerer/seeker/second-bloodline",
+                    name: "Second Bloodline (Seeker)",
+                    guide: "sorcerer#crossblooded",
+                    shared_options: ["sorcerer/bloodline/abyssal"],
+                    option_levels: ["sorcerer"],
+                    feat_lists_only: true,
+                    only_without_option: true,
+                    options: [],
+                ),
+                (
+                    key: "sorcerer/seeker/choice",
+                    name: "Choice",
+                    guide: "sorcerer#seeker-sorcerer",
+                    option_levels: ["sorcerer"],
+                    options: [
+                        (
+                            key: "sorcerer/seeker/choice/talents",
+                            name: "Talents",
+                            guide: "sorcerer#seeker-sorcerer",
+                            repeat: Unlimited,
+                            replaces_row_of: "sorcerer/bloodline",
+                            levels: [(level: 1, selections: ["sorcerer/school", "sorcerer/school"])],
+                        ),
+                        (key: "sorcerer/seeker/choice/power", name: "Power", guide: "sorcerer#seeker-sorcerer"),
+                    ],
+                ),
+            ],
+            levels: [
+                (level: 1, selections: ["sorcerer/seeker/bloodline", "sorcerer/seeker/second-bloodline"]),
+                (level: 2, selections: ["sorcerer/seeker/choice"]),
+            ],
+        ),
+    ],
+)

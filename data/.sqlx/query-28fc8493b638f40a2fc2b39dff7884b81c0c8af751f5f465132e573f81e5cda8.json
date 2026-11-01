@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, race_key, class_level_id, mythic_rank_id, kind, category, feat_list_key\n        FROM feat_slot ORDER BY id",
+  "query": "SELECT id, race_key, class_level_id, mythic_rank_id, kind, category, feat_list_key,\n            selection_key\n        FROM feat_slot ORDER BY id",
   "describe": {
     "columns": [
       {
@@ -79,6 +79,17 @@
             "name": "feat_list_key"
           }
         }
+      },
+      {
+        "ordinal": 7,
+        "name": "selection_key",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "feat_slot",
+            "name": "selection_key"
+          }
+        }
       }
     ],
     "parameters": {
@@ -91,8 +102,9 @@
       true,
       false,
       true,
+      true,
       true
     ]
   },
-  "hash": "6012c7497917227506a8cb9cabb76d8417276ea5e4865267fc67097f5ac16264"
+  "hash": "28fc8493b638f40a2fc2b39dff7884b81c0c8af751f5f465132e573f81e5cda8"
 }

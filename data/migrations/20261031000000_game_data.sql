@@ -116,7 +116,7 @@ CREATE TABLE prerequisite_node (
         'feat', 'mythic_feat', 'mythic_ability', 'class_level', 'archetype', 'feature',
         'selection_option', 'skill_ranks', 'ability_score', 'base_attack_bonus', 'spell_level',
         'caster_level', 'character_level', 'mythic_rank', 'alignment', 'race', 'feat_for',
-        'feat_for_same_value', 'story'
+        'feat_for_same_value', 'story', 'no_option_from', 'spontaneous_spell_level'
     )),
     -- References to other game entities (foreign keys added below, once the tables exist).
     feat_key TEXT,
@@ -129,6 +129,7 @@ CREATE TABLE prerequisite_node (
     skill_key TEXT,
     race_key TEXT,
     weapon_key TEXT,
+    selection_key TEXT,
     -- Values.
     ability ability,
     spell_type TEXT CHECK (spell_type IN ('arcane', 'divine')),
@@ -146,7 +147,7 @@ CREATE TABLE prerequisite_node (
     -- (`rules::Prerequisite::FeatFor`: a parameterised feat held for one value) fills `feat_key` and
     -- exactly one value column: `skill_key`, `weapon_key`, `spell_school`, `energy` or `armour_type`. `amount` is
     -- `at_least`'s n, the level of `class_level`, `spell_level`, `caster_level` and `character_level`,
-    -- `mythic_rank`'s rank,
+    -- `mythic_rank`'s rank, `spontaneous_spell_level`'s level,
     -- `feature`'s count (granted at least that many times), `skill_ranks`' ranks, `ability_score`'s
     -- score and `base_attack_bonus`'s BAB.
     CHECK (
@@ -161,6 +162,7 @@ CREATE TABLE prerequisite_node (
             CASE WHEN skill_key IS NOT NULL THEN 'skill_key' END,
             CASE WHEN race_key IS NOT NULL THEN 'race_key' END,
             CASE WHEN weapon_key IS NOT NULL THEN 'weapon_key' END,
+            CASE WHEN selection_key IS NOT NULL THEN 'selection_key' END,
             CASE WHEN ability IS NOT NULL THEN 'ability' END,
             CASE WHEN spell_type IS NOT NULL THEN 'spell_type' END,
             CASE WHEN alignment IS NOT NULL THEN 'alignment' END,
@@ -184,6 +186,10 @@ CREATE TABLE prerequisite_node (
             WHEN 'ability_score' THEN '{ability, amount}'
             WHEN 'base_attack_bonus' THEN '{amount}'
             WHEN 'spell_level' THEN '{spell_type, amount}'
+            -- `rules::Prerequisite::SpontaneousSpellLevel`: spell-level access through a spontaneous caster.
+            WHEN 'spontaneous_spell_level' THEN '{spell_type, amount}'
+            -- `rules::Prerequisite::NoOptionFrom`: no option of this selection held.
+            WHEN 'no_option_from' THEN '{selection_key}'
             WHEN 'caster_level' THEN '{amount}'
             WHEN 'character_level' THEN '{amount}'
             WHEN 'mythic_rank' THEN '{amount}'
@@ -284,6 +290,8 @@ CREATE TABLE class (
     reflex save_progression NOT NULL,
     will save_progression NOT NULL,
     advances TEXT NOT NULL CHECK (advances IN ('each', 'either')),
+    -- Its spells are cast spontaneously rather than prepared (`rules::Class::spontaneous`).
+    spontaneous BOOLEAN NOT NULL,
     prerequisite_root_id BIGINT UNIQUE REFERENCES prerequisite_node (id) DEFERRABLE INITIALLY DEFERRED
 );
 
@@ -325,6 +333,8 @@ CREATE TABLE archetype (
     -- FALSE: same class skills as the base class. TRUE: the archetype's `class_skill` rows
     -- replace the base class's (possibly with none).
     overrides_class_skills BOOLEAN NOT NULL,
+    -- NULL: casts like its class. Set: spontaneously or not (Eldritch Scion: a spontaneous magus).
+    spontaneous BOOLEAN,
     -- The target of the composite foreign keys below: an archetype row names its own class.
     UNIQUE (key, class_key)
 );
@@ -402,6 +412,14 @@ CREATE TABLE feature (
     name TEXT NOT NULL,
     summary TEXT NOT NULL,
     guide TEXT NOT NULL,
+    -- `rules::Feature::option_row`: the row at `option_row_level` of the option held in
+    -- `option_row_selection_key`, which the feature grants (Bloodline Ascendance: the bloodline's 20th). Both or
+    -- neither.
+    option_row_selection_key TEXT,
+    option_row_level SMALLINT CHECK (option_row_level BETWEEN 1 AND 40),
+    -- The game asks for this choice every day, so it isn't part of a Build (Mixed Bloodline).
+    daily_choice BOOLEAN NOT NULL,
+    CHECK ((option_row_selection_key IS NULL) = (option_row_level IS NULL)),
     FOREIGN KEY (archetype_key, class_key) REFERENCES archetype (key, class_key)
         DEFERRABLE INITIALLY DEFERRED,
     -- A class (or one of its archetypes) or a path.
@@ -423,7 +441,12 @@ CREATE TABLE feature_ability_bonus (
     UNIQUE NULLS NOT DISTINCT (feature_key, kind, ability)
 );
 
--- The fixed list a Feature selection picks from (rogue talents, a path's picks).
+-- The fixed list a Feature selection picks from (rogue talents, a path's picks). An option held through
+-- it gets its `option_level` rows as the levels of the classes in `selection_level_class` reach them,
+-- except at its `selection_skipped_level`s; `feat_lists_only`: only the option's feat lists count
+-- (Crossblooded's second bloodline); `only_without_option`: a level grants it only to a character holding
+-- none of its options (Dragon Disciple's bloodline); `pool_of_key`: it has no options of its own and offers
+-- the pools of the options held in that selection (`rules::GameData::check` keeps it without options).
 CREATE TABLE feature_selection (
     key text_key PRIMARY KEY,
     class_key TEXT REFERENCES class (key) DEFERRABLE INITIALLY DEFERRED,
@@ -432,11 +455,30 @@ CREATE TABLE feature_selection (
     name TEXT NOT NULL,
     summary TEXT NOT NULL,
     guide TEXT NOT NULL,
+    feat_lists_only BOOLEAN NOT NULL,
+    only_without_option BOOLEAN NOT NULL,
+    pool_of_key TEXT REFERENCES feature_selection (key) DEFERRABLE INITIALLY DEFERRED,
+    CHECK (pool_of_key <> key),
     FOREIGN KEY (archetype_key, class_key) REFERENCES archetype (key, class_key)
         DEFERRABLE INITIALLY DEFERRED,
     CHECK (num_nonnulls(class_key, path_key) = 1),
     CHECK (archetype_key IS NULL OR class_key IS NOT NULL),
     CHECK (starts_with(key, COALESCE(archetype_key, class_key, path_key) || '/'))
+);
+
+-- The classes whose levels add up to the option level of an option held through a selection
+-- (`rules::FeatureSelection::option_levels`: a sorcerer's bloodline, sorcerer and Dragon Disciple).
+CREATE TABLE selection_level_class (
+    selection_key TEXT NOT NULL REFERENCES feature_selection (key) DEFERRABLE INITIALLY DEFERRED,
+    class_key TEXT NOT NULL REFERENCES class (key) DEFERRABLE INITIALLY DEFERRED,
+    PRIMARY KEY (selection_key, class_key)
+);
+
+-- An option level whose row an option held through the selection doesn't get (Seeker: 3, 9 and 15).
+CREATE TABLE selection_skipped_level (
+    selection_key TEXT NOT NULL REFERENCES feature_selection (key) DEFERRABLE INITIALLY DEFERRED,
+    level SMALLINT NOT NULL CHECK (level BETWEEN 1 AND 40),
+    PRIMARY KEY (selection_key, level)
 );
 
 -- An old path's feature or selection a switch takes away whatever its rank (Devil: the Aeon's gaze
@@ -470,6 +512,11 @@ CREATE TABLE selection_option (
     chosen_feat_key TEXT REFERENCES feat (key) DEFERRABLE INITIALLY DEFERRED,
     repeat repeat_kind NOT NULL CHECK (repeat <> 'per_value'),
     repeat_times u8 CHECK (repeat_times >= 2),
+    -- The selection whose options a pool selection offers while this option is held (a mystery's revelations).
+    pool_key TEXT REFERENCES feature_selection (key) DEFERRABLE INITIALLY DEFERRED,
+    -- Picking it skips the row, at the level reached, of the option held in this selection (a Primalist's rage
+    -- powers instead of the bloodline power).
+    replaces_row_of_key TEXT REFERENCES feature_selection (key) DEFERRABLE INITIALLY DEFERRED,
     CHECK ((repeat = 'times') = (repeat_times IS NOT NULL)),
     CHECK (starts_with(key, selection_key || '/'))
 );
@@ -523,6 +570,17 @@ CREATE TABLE feat_list_member (
     PRIMARY KEY (feat_list_key, feat_key)
 );
 
+-- `rules::OptionLevelRow`: what an option gives at one option level. Its features, selections and feats
+-- are `granted_*` rows; `feat_list_key` is the option's feat list from this level on, which an
+-- `option_list` feat slot picks from.
+CREATE TABLE option_level (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    option_key TEXT NOT NULL REFERENCES selection_option (key) DEFERRABLE INITIALLY DEFERRED,
+    level SMALLINT NOT NULL CHECK (level BETWEEN 1 AND 40),
+    feat_list_key TEXT REFERENCES feat_list (key) DEFERRABLE INITIALLY DEFERRED,
+    UNIQUE (option_key, level)
+);
+
 -- Progression rows -----------------------------------------------------------------------------
 
 -- One Class level of a class (`archetype_key` NULL: `rules::ClassLevelRow`) or of one of its
@@ -559,48 +617,60 @@ CREATE TABLE mythic_rank (
     UNIQUE (path_key, rank)
 );
 
--- A feature granted by a class level or a mythic rank, `count` times (Trickster MR 3: Sneak Attack
--- twice). The feature may belong to another class (a prestige class granting Sneak Attack).
+-- A feature granted by a class level, a mythic rank, an option level or a mythic ability, `count` times
+-- (Trickster MR 3: Sneak Attack twice). The feature may belong to another class (a prestige class
+-- granting Sneak Attack).
 CREATE TABLE granted_feature (
     class_level_id BIGINT REFERENCES class_level (id) DEFERRABLE INITIALLY DEFERRED,
     mythic_rank_id BIGINT REFERENCES mythic_rank (id) DEFERRABLE INITIALLY DEFERRED,
+    option_level_id BIGINT REFERENCES option_level (id) DEFERRABLE INITIALLY DEFERRED,
+    mythic_ability_key TEXT REFERENCES mythic_ability (key) DEFERRABLE INITIALLY DEFERRED,
     feature_key TEXT NOT NULL REFERENCES feature (key) DEFERRABLE INITIALLY DEFERRED,
     count u8 NOT NULL CHECK (count >= 1),
-    CHECK (num_nonnulls(class_level_id, mythic_rank_id) = 1),
-    UNIQUE NULLS NOT DISTINCT (class_level_id, mythic_rank_id, feature_key)
+    CHECK (num_nonnulls(class_level_id, mythic_rank_id, option_level_id, mythic_ability_key) = 1),
+    UNIQUE NULLS NOT DISTINCT (class_level_id, mythic_rank_id, option_level_id, mythic_ability_key,
+        feature_key)
 );
 
--- `count` Feature selection slots granted by a class level or a mythic rank.
+-- `count` Feature selection slots granted by a class level, a mythic rank, an option level or a mythic
+-- ability (Second Bloodline).
 CREATE TABLE granted_selection (
     class_level_id BIGINT REFERENCES class_level (id) DEFERRABLE INITIALLY DEFERRED,
     mythic_rank_id BIGINT REFERENCES mythic_rank (id) DEFERRABLE INITIALLY DEFERRED,
+    option_level_id BIGINT REFERENCES option_level (id) DEFERRABLE INITIALLY DEFERRED,
+    mythic_ability_key TEXT REFERENCES mythic_ability (key) DEFERRABLE INITIALLY DEFERRED,
     selection_key TEXT NOT NULL REFERENCES feature_selection (key) DEFERRABLE INITIALLY DEFERRED,
     count u8 NOT NULL CHECK (count >= 1),
-    CHECK (num_nonnulls(class_level_id, mythic_rank_id) = 1),
-    UNIQUE NULLS NOT DISTINCT (class_level_id, mythic_rank_id, selection_key)
+    CHECK (num_nonnulls(class_level_id, mythic_rank_id, option_level_id, mythic_ability_key) = 1),
+    UNIQUE NULLS NOT DISTINCT (class_level_id, mythic_rank_id, option_level_id, mythic_ability_key,
+        selection_key)
 );
 
--- A feat a class level grants outright (`rules::ClassLevelRow::feats`): held with no slot and no
--- pick, whatever its prerequisites; a parameterised one for every value.
+-- A feat a class level or an option level grants outright (`rules::ClassLevelRow::feats`): held with no
+-- slot and no pick, whatever its prerequisites; a parameterised one for every value.
 CREATE TABLE granted_feat (
-    class_level_id BIGINT NOT NULL REFERENCES class_level (id) DEFERRABLE INITIALLY DEFERRED,
+    class_level_id BIGINT REFERENCES class_level (id) DEFERRABLE INITIALLY DEFERRED,
+    option_level_id BIGINT REFERENCES option_level (id) DEFERRABLE INITIALLY DEFERRED,
     feat_key TEXT NOT NULL REFERENCES feat (key) DEFERRABLE INITIALLY DEFERRED,
-    PRIMARY KEY (class_level_id, feat_key)
+    CHECK (num_nonnulls(class_level_id, option_level_id) = 1),
+    UNIQUE NULLS NOT DISTINCT (class_level_id, option_level_id, feat_key)
 );
 
 -- `rules::FeatSlot` granted by a race, a class level or a mythic rank. A `one_of` slot names the
--- list it picks from.
+-- list it picks from; an `option_list` slot the selection whose held options' lists it picks from.
 CREATE TABLE feat_slot (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     race_key TEXT REFERENCES race (key) DEFERRABLE INITIALLY DEFERRED,
     class_level_id BIGINT REFERENCES class_level (id) DEFERRABLE INITIALLY DEFERRED,
     mythic_rank_id BIGINT REFERENCES mythic_rank (id) DEFERRABLE INITIALLY DEFERRED,
-    kind TEXT NOT NULL CHECK (kind IN ('general', 'combat_feat', 'category', 'one_of')),
+    kind TEXT NOT NULL CHECK (kind IN ('general', 'combat_feat', 'category', 'one_of', 'option_list')),
     category feat_category,
     feat_list_key TEXT REFERENCES feat_list (key) DEFERRABLE INITIALLY DEFERRED,
+    selection_key TEXT REFERENCES feature_selection (key) DEFERRABLE INITIALLY DEFERRED,
     CHECK (num_nonnulls(race_key, class_level_id, mythic_rank_id) = 1),
     CHECK ((kind = 'category') = (category IS NOT NULL)),
-    CHECK ((kind = 'one_of') = (feat_list_key IS NOT NULL))
+    CHECK ((kind = 'one_of') = (feat_list_key IS NOT NULL)),
+    CHECK ((kind = 'option_list') = (selection_key IS NOT NULL))
 );
 
 -- Prerequisite references, now that every referenced table exists. ----------------------------
@@ -615,7 +685,12 @@ ALTER TABLE prerequisite_node
     ADD FOREIGN KEY (selection_option_key) REFERENCES selection_option (key) DEFERRABLE INITIALLY DEFERRED,
     ADD FOREIGN KEY (skill_key) REFERENCES skill (key) DEFERRABLE INITIALLY DEFERRED,
     ADD FOREIGN KEY (race_key) REFERENCES race (key) DEFERRABLE INITIALLY DEFERRED,
-    ADD FOREIGN KEY (weapon_key) REFERENCES weapon (key) DEFERRABLE INITIALLY DEFERRED;
+    ADD FOREIGN KEY (weapon_key) REFERENCES weapon (key) DEFERRABLE INITIALLY DEFERRED,
+    ADD FOREIGN KEY (selection_key) REFERENCES feature_selection (key) DEFERRABLE INITIALLY DEFERRED;
 
 ALTER TABLE class_counts_as
     ADD FOREIGN KEY (feature_key) REFERENCES feature (key) DEFERRABLE INITIALLY DEFERRED;
+
+ALTER TABLE feature
+    ADD FOREIGN KEY (option_row_selection_key) REFERENCES feature_selection (key)
+        DEFERRABLE INITIALLY DEFERRED;

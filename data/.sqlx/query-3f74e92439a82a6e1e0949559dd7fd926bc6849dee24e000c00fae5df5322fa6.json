@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO granted_feat (class_level_id, option_level_id, feat_key) VALUES ($1, $2, $3)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int8",
+        "Int8",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "3f74e92439a82a6e1e0949559dd7fd926bc6849dee24e000c00fae5df5322fa6"
+}

@@ -24,6 +24,8 @@ fn feature(key: &str) -> Feature {
         summary: String::new(),
         guide: GuideRef::new(key),
         ability_bonuses: vec![],
+        option_row: None,
+        daily_choice: false,
     }
 }
 
@@ -79,6 +81,7 @@ fn class(
         feat_lists: vec![],
         levels,
         archetypes,
+        spontaneous: false,
     }
 }
 
@@ -95,6 +98,7 @@ fn archetype(key: &str, levels: Vec<ArchetypeLevelRow>) -> Archetype {
         selections: vec![],
         feat_lists: vec![],
         levels,
+        spontaneous: None,
     }
 }
 

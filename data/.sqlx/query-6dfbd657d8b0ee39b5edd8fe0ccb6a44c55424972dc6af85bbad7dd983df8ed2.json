@@ -1,0 +1,62 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, option_key, level, feat_list_key FROM option_level ORDER BY option_key, level",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "option_level",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "option_key",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "option_level",
+            "name": "option_key"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "level",
+        "type_info": "Int2",
+        "origin": {
+          "Table": {
+            "table": "option_level",
+            "name": "level"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "feat_list_key",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "option_level",
+            "name": "feat_list_key"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "6dfbd657d8b0ee39b5edd8fe0ccb6a44c55424972dc6af85bbad7dd983df8ed2"
+}

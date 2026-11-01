@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, parent_id, kind, feat_key, mythic_feat_key, mythic_ability_key, class_key,\n                archetype_key, feature_key, selection_option_key, skill_key, race_key, weapon_key,\n                ability, spell_type, alignment, amount, spell_school, energy, armour_type, story\n            FROM prerequisite_node\n            ORDER BY id",
+  "query": "SELECT id, parent_id, kind, feat_key, mythic_feat_key, mythic_ability_key, class_key,\n                archetype_key, feature_key, selection_option_key, skill_key, race_key, weapon_key,\n                ability, spell_type, alignment, amount, spell_school, energy, armour_type, story,\n                selection_key\n            FROM prerequisite_node\n            ORDER BY id",
   "describe": {
     "columns": [
       {
@@ -233,6 +233,17 @@
             "name": "story"
           }
         }
+      },
+      {
+        "ordinal": 21,
+        "name": "selection_key",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "prerequisite_node",
+            "name": "selection_key"
+          }
+        }
       }
     ],
     "parameters": {
@@ -259,8 +270,9 @@
       true,
       true,
       true,
+      true,
       true
     ]
   },
-  "hash": "355109439794914e6daae90a342e973c2d3d128e39719aa300be195bd5985736"
+  "hash": "50774848b119051c64aa7f17b0b5959da66b51690cad6b942fcbe3a0f5904a86"
 }

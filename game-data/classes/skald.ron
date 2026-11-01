@@ -8,6 +8,7 @@ Class(
     reflex: Poor,
     will: Good,
     class_skills: ["athletics", "knowledge-arcana", "knowledge-world", "lore-nature", "lore-religion", "mobility", "perception", "persuasion", "use-magic-device"],
+    spontaneous: true,
     features: [
         (key: "skald/bardic-knowledge", name: "Bardic Knowledge", guide: "skald"),
         (key: "skald/damage-reduction", name: "Damage Reduction", guide: "skald#damage-reduction"),

@@ -9,9 +9,9 @@ use common::{copy_fixture, fixture_dir};
 use rules::{
     Ability, AbilityBonus, Advancement, ArchetypeLevelRow, BabProgression, ClassKey, CountsAs,
     CountsToward, FeatKey, FeatListKey, FeatSlot, FeatureKey, FeatureSelectionKey, GameData,
-    MythicAbilityGroup, MythicFeatGroup, MythicPathKey, Parameter, ParameterKind, Prerequisite,
-    Repeat, Save, SaveException, SaveProgression, SelectionOptionKey, SpellLevels, Story,
-    WeaponKey, WeaponProficiency,
+    MythicAbilityGroup, MythicFeatGroup, MythicPathKey, OptionLevelRow, OptionRow, Parameter,
+    ParameterKind, Prerequisite, Repeat, Save, SaveException, SaveProgression, SelectionOptionKey,
+    SpellLevels, Story, WeaponKey, WeaponProficiency,
 };
 
 fn read_fixture() -> GameData {
@@ -40,10 +40,11 @@ fn reads_every_fixture_file() {
             ClassKey::new("cleric"),
             ClassKey::new("fighter"),
             ClassKey::new("monk"),
-            ClassKey::new("rogue")
+            ClassKey::new("rogue"),
+            ClassKey::new("sorcerer")
         ]
     );
-    assert_eq!(data.archetypes().count(), 3);
+    assert_eq!(data.archetypes().count(), 4);
     assert_eq!(
         data.prestige_classes
             .iter()
@@ -56,7 +57,7 @@ fn reads_every_fixture_file() {
             ClassKey::new("mystic-theurge")
         ]
     );
-    assert_eq!(data.mythic_abilities.len(), 2);
+    assert_eq!(data.mythic_abilities.len(), 4);
     assert_eq!(data.mythic_feats.len(), 3);
     assert_eq!(
         data.mythic_paths
@@ -183,6 +184,12 @@ fn reads_feat_lists_and_the_slots_that_name_them() {
                 true,
                 vec!["skill-focus"]
             ),
+            (
+                "sorcerer/bloodline/abyssal-feats",
+                "Abyssal Bloodline Feats",
+                false,
+                vec!["power-attack", "toughness"]
+            ),
             ("gold-dragon/dragon-feats", "Dragon Feats", true, vec![]),
             (
                 "trickster/bonus-feats",
@@ -253,7 +260,12 @@ fn reads_mythic_groups() {
     let groups: Vec<MythicAbilityGroup> = data.mythic_abilities.iter().map(|a| a.group).collect();
     assert_eq!(
         groups,
-        [MythicAbilityGroup::Class, MythicAbilityGroup::Melee]
+        [
+            MythicAbilityGroup::Class,
+            MythicAbilityGroup::Class,
+            MythicAbilityGroup::Melee,
+            MythicAbilityGroup::Class
+        ]
     );
     let groups: Vec<MythicFeatGroup> = data.mythic_feats.iter().map(|f| f.group).collect();
     assert_eq!(
@@ -582,4 +594,155 @@ fn reads_advancement_counts_as_and_story_conditions_and_defaults_them() {
             Prerequisite::Story(Story::VowOfDahak),
         ]))
     );
+}
+
+#[test]
+fn reads_options_with_rows_by_option_level_and_defaults_them() {
+    let data = read_fixture();
+    let sorcerer = data
+        .classes
+        .iter()
+        .find(|c| c.key.as_str() == "sorcerer")
+        .unwrap();
+    assert!(sorcerer.spontaneous);
+    let selection = |key: &str| {
+        sorcerer
+            .selections
+            .iter()
+            .find(|s| s.key.as_str() == key)
+            .unwrap()
+    };
+    let bloodline = selection("sorcerer/bloodline");
+    assert_eq!(
+        bloodline
+            .option_levels
+            .iter()
+            .map(ClassKey::as_str)
+            .collect::<Vec<_>>(),
+        ["fighter", "sorcerer"]
+    );
+    let abyssal = &bloodline.options[0];
+    assert_eq!(
+        abyssal.pool.as_ref().map(FeatureSelectionKey::as_str),
+        Some("sorcerer/abyssal-powers")
+    );
+    assert_eq!(
+        abyssal.levels[0],
+        OptionLevelRow {
+            level: 1,
+            features: vec![FeatureKey::new("sorcerer/bloodline/abyssal/claws")],
+            feats: BTreeSet::new(),
+            selections: vec![],
+            feat_list: Some(FeatListKey::new("sorcerer/bloodline/abyssal-feats")),
+        }
+    );
+    assert_eq!(
+        abyssal.levels[1].feats,
+        BTreeSet::from([FeatKey::new("toughness")])
+    );
+    assert_eq!(
+        abyssal.levels[1].selections,
+        [FeatureSelectionKey::new("sorcerer/school")]
+    );
+    assert_eq!(
+        sorcerer.levels[2].feat_slots,
+        [FeatSlot::OptionList {
+            selection: FeatureSelectionKey::new("sorcerer/bloodline")
+        }]
+    );
+    let ascendance = sorcerer
+        .features
+        .iter()
+        .find(|f| f.key.as_str() == "sorcerer/bloodline-ascendance")
+        .unwrap();
+    assert_eq!(
+        ascendance.option_row,
+        Some(OptionRow {
+            selection: FeatureSelectionKey::new("sorcerer/bloodline"),
+            level: 3,
+        })
+    );
+    assert!(
+        sorcerer
+            .features
+            .iter()
+            .any(|f| f.key.as_str() == "sorcerer/mixed-bloodline" && f.daily_choice)
+    );
+    let power = sorcerer
+        .selections
+        .iter()
+        .find(|s| s.key.as_str() == "sorcerer/power")
+        .unwrap();
+    assert_eq!(
+        power.pool_of.as_ref().map(FeatureSelectionKey::as_str),
+        Some("sorcerer/bloodline")
+    );
+
+    let seeker = &sorcerer.archetypes[0];
+    assert_eq!(seeker.spontaneous, Some(false));
+    let [own, choice, second] = &seeker.selections[..] else {
+        panic!("three selections");
+    };
+    assert_eq!(own.skipped_levels, BTreeSet::from([3]));
+    assert!(second.feat_lists_only && second.only_without_option);
+    assert!(!own.feat_lists_only && !own.only_without_option);
+    assert_eq!(
+        choice
+            .options
+            .iter()
+            .find(|o| o.key.as_str() == "sorcerer/seeker/choice/talents")
+            .unwrap()
+            .replaces_row_of
+            .as_ref()
+            .map(FeatureSelectionKey::as_str),
+        Some("sorcerer/bloodline")
+    );
+
+    let ascendance = data
+        .mythic_abilities
+        .iter()
+        .find(|a| a.key.as_str() == "bloodline-ascendance")
+        .unwrap();
+    assert_eq!(
+        ascendance.features,
+        [FeatureKey::new("sorcerer/bloodline-ascendance")]
+    );
+    let second = data
+        .mythic_abilities
+        .iter()
+        .find(|a| a.key.as_str() == "second-bloodline")
+        .unwrap();
+    assert_eq!(
+        second.selections,
+        [FeatureSelectionKey::new("sorcerer/bloodline")]
+    );
+
+    // Everything else defaults to none.
+    let fighter = data
+        .classes
+        .iter()
+        .find(|c| c.key.as_str() == "fighter")
+        .unwrap();
+    assert!(!fighter.spontaneous);
+    let rogue = data
+        .classes
+        .iter()
+        .find(|c| c.key.as_str() == "rogue")
+        .unwrap();
+    let talents = &rogue.selections[0];
+    assert!(talents.option_levels.is_empty() && talents.skipped_levels.is_empty());
+    assert!(talents.pool_of.is_none() && !talents.feat_lists_only);
+    assert!(
+        talents
+            .options
+            .iter()
+            .all(|o| o.levels.is_empty() && o.pool.is_none())
+    );
+    assert!(
+        rogue
+            .features
+            .iter()
+            .all(|f| f.option_row.is_none() && !f.daily_choice)
+    );
+    assert!(rogue.archetypes.iter().all(|a| a.spontaneous.is_none()));
 }

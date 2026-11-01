@@ -11,9 +11,9 @@ use common::{copy_fixture, fixture_dir};
 use data::{Database, GameDataStatus};
 use rules::{
     Ability, AbilityModifier, Alignment, ArchetypeKey, ArmourType, ClassKey, DataAt, Energy, Feat,
-    FeatCategory, FeatKey, FeatureKey, GuideRef, MythicAbilityKey, MythicFeatKey, Parameter,
-    ParameterKind, Prerequisite, RaceKey, Repeat, SelectionOptionKey, SkillKey, SpellSchool,
-    SpellType, Story, WeaponKey,
+    FeatCategory, FeatKey, FeatureKey, FeatureSelectionKey, GuideRef, MythicAbilityKey,
+    MythicFeatKey, Parameter, ParameterKind, Prerequisite, RaceKey, Repeat, SelectionOptionKey,
+    SkillKey, SpellSchool, SpellType, Story, WeaponKey,
 };
 use sqlx::PgPool;
 
@@ -281,6 +281,11 @@ fn every_prerequisite_variant() -> Vec<Prerequisite> {
         P::FeatForSameValue(FeatKey::new("weapon-focus")),
         P::Story(Story::VowOfDahak),
         P::Story(Story::Uncorrupted),
+        P::NoOptionFrom(FeatureSelectionKey::new("sorcerer/bloodline")),
+        P::SpontaneousSpellLevel {
+            spell_type: SpellType::Arcane,
+            level: 2,
+        },
     ];
     let groups = vec![
         P::Any(vec![P::BaseAttackBonus(1), P::CasterLevel(1)]),
@@ -310,7 +315,9 @@ fn every_prerequisite_variant() -> Vec<Prerequisite> {
             | P::Race(_)
             | P::FeatFor { .. }
             | P::FeatForSameValue(_)
-            | P::Story(_) => {}
+            | P::Story(_)
+            | P::NoOptionFrom(_)
+            | P::SpontaneousSpellLevel { .. } => {}
         }
     }
     all
@@ -634,14 +641,15 @@ async fn the_schema_rejects_values_outside_their_domain_and_misplaced_keys(pool:
     // Features, selections and feat lists are keyed under their owner: the archetype when there is one, else
     // the class or the path.
     for sql in [
-        "INSERT INTO feature (key, class_key, name, summary, guide)
-        VALUES ('rogue/stray', 'fighter', 'Stray', '', 'x')",
-        "INSERT INTO feature (key, class_key, archetype_key, name, summary, guide)
-        VALUES ('fighter/stray', 'fighter', 'fighter/armiger', 'Stray', '', 'x')",
-        "INSERT INTO feature (key, path_key, name, summary, guide)
-        VALUES ('mythic/stray', 'trickster', 'Stray', '', 'x')",
-        "INSERT INTO feature_selection (key, path_key, name, summary, guide)
-        VALUES ('legend/stray', 'trickster', 'Stray', '', 'x')",
+        "INSERT INTO feature (key, class_key, name, summary, guide, daily_choice)
+        VALUES ('rogue/stray', 'fighter', 'Stray', '', 'x', false)",
+        "INSERT INTO feature (key, class_key, archetype_key, name, summary, guide, daily_choice)
+        VALUES ('fighter/stray', 'fighter', 'fighter/armiger', 'Stray', '', 'x', false)",
+        "INSERT INTO feature (key, path_key, name, summary, guide, daily_choice)
+        VALUES ('mythic/stray', 'trickster', 'Stray', '', 'x', false)",
+        "INSERT INTO feature_selection (key, path_key, name, summary, guide, feat_lists_only,
+            only_without_option)
+        VALUES ('legend/stray', 'trickster', 'Stray', '', 'x', false, false)",
         "INSERT INTO feat_list (key, class_key, name, guide, ignores_prerequisites, every_feat)
         VALUES ('fighter-list', 'fighter', 'Stray', 'x', false, false)",
     ] {
@@ -649,8 +657,8 @@ async fn the_schema_rejects_values_outside_their_domain_and_misplaced_keys(pool:
         assert!(error.contains("check constraint"), "{sql}: {error}");
     }
     sqlx::query(
-        "INSERT INTO feature (key, class_key, archetype_key, name, summary, guide)
-        VALUES ('fighter/armiger/x', 'fighter', 'fighter/armiger', 'X', '', 'x')",
+        "INSERT INTO feature (key, class_key, archetype_key, name, summary, guide, daily_choice)
+        VALUES ('fighter/armiger/x', 'fighter', 'fighter/armiger', 'X', '', 'x', false)",
     )
     .execute(&pool)
     .await
@@ -827,6 +835,95 @@ async fn the_schema_keeps_advancement_and_counts_as_consistent(pool: PgPool) {
         // A story node fills its own column only.
         (
             "UPDATE prerequisite_node SET amount = 1 WHERE kind = 'story'",
+            "check constraint",
+        ),
+    ] {
+        let error = rejected(sql).await;
+        assert!(error.contains(expected), "{sql}: {error}");
+    }
+}
+
+#[sqlx::test]
+async fn the_schema_keeps_option_levels_and_their_grants_consistent(pool: PgPool) {
+    let db = Database::from(pool.clone());
+    data::seed(&db, &fixture_dir()).await.unwrap();
+    let rejected = |sql: &'static str| {
+        let pool = pool.clone();
+        async move {
+            let mut tx = pool.begin().await.unwrap();
+            let update = sqlx::query(sql).execute(&mut *tx).await;
+            // Foreign keys are deferred: they fail at commit.
+            let result = match update {
+                Ok(_) => tx.commit().await.map(|_| ()),
+                Err(error) => Err(error),
+            };
+            result.unwrap_err().to_string()
+        }
+    };
+    for (sql, expected) in [
+        // An option row's selection and level are set together.
+        (
+            "UPDATE feature SET option_row_level = NULL WHERE option_row_level IS NOT NULL",
+            "check constraint",
+        ),
+        (
+            "UPDATE feature SET option_row_selection_key = 'no-such/selection'
+            WHERE option_row_level IS NOT NULL",
+            "foreign key",
+        ),
+        // One row per option level.
+        (
+            "UPDATE option_level SET level = 1 WHERE level = 3",
+            "unique constraint",
+        ),
+        (
+            "UPDATE option_level SET level = 41 WHERE level = 3",
+            "check constraint",
+        ),
+        // A grant has exactly one owner, now one of four.
+        (
+            "UPDATE granted_feature SET class_level_id = (SELECT min(id) FROM class_level)
+            WHERE option_level_id IS NOT NULL",
+            "check constraint",
+        ),
+        (
+            "UPDATE granted_selection SET mythic_ability_key = 'mythic-charge'
+            WHERE option_level_id IS NOT NULL",
+            "check constraint",
+        ),
+        (
+            "UPDATE granted_feat SET class_level_id = NULL WHERE class_level_id IS NOT NULL",
+            "check constraint",
+        ),
+        // An option-list slot names a selection, and only it does.
+        (
+            "UPDATE feat_slot SET selection_key = NULL WHERE kind = 'option_list'",
+            "check constraint",
+        ),
+        (
+            "UPDATE feat_slot SET selection_key = 'sorcerer/bloodline' WHERE kind = 'general'",
+            "check constraint",
+        ),
+        (
+            "UPDATE feature_selection SET pool_of_key = key WHERE pool_of_key IS NOT NULL",
+            "check constraint",
+        ),
+        (
+            "UPDATE selection_skipped_level SET level = 0",
+            "check constraint",
+        ),
+        (
+            "UPDATE selection_level_class SET class_key = 'no-such-class' WHERE class_key = 'fighter'",
+            "foreign key",
+        ),
+        // The new prerequisite leaves fill their own columns only.
+        (
+            "UPDATE prerequisite_node SET selection_key = NULL WHERE kind = 'no_option_from'",
+            "check constraint",
+        ),
+        (
+            "UPDATE prerequisite_node SET selection_key = 'sorcerer/bloodline'
+            WHERE kind = 'spontaneous_spell_level'",
             "check constraint",
         ),
     ] {

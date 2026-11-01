@@ -205,6 +205,12 @@ pub enum DataIssue {
     CountsTowardUngrantedFeature(FeatureKey),
     /// A story condition under `Any` or `AtLeast`, where it would hold the group by itself: it never blocks.
     StoryNotRequired,
+    /// Two rows of an option at one option level.
+    DuplicateOptionRow(u8),
+    /// A selection offering an option with rows by option level, but naming no classes whose levels make one.
+    OptionRowsWithoutLevels(SelectionOptionKey),
+    /// A pool selection (it offers the pools of the options held in another) with options of its own or shared.
+    PoolSelectionWithOptions,
 }
 
 impl fmt::Display for DataProblem {
@@ -309,6 +315,14 @@ impl fmt::Display for DataProblem {
             DataIssue::StoryNotRequired => f.write_str(
                 "a story condition inside \"any of\" or \"at least\", where it would hold the group by itself",
             ),
+            DataIssue::DuplicateOptionRow(level) => write!(f, "two rows at option level {level}"),
+            DataIssue::OptionRowsWithoutLevels(option) => write!(
+                f,
+                "offers {option}, which has rows by option level, but names no classes whose levels count"
+            ),
+            DataIssue::PoolSelectionWithOptions => {
+                f.write_str("a pool selection with options of its own or shared")
+            }
             DataIssue::SharesOwnOption(option) => {
                 write!(
                     f,
@@ -383,6 +397,7 @@ impl GameData {
             check.path(path, &switches);
         }
         check.counts_toward_features(self);
+        check.option_levels(self);
         for list in self.feat_lists() {
             if !check.named_lists.contains(&list.key) {
                 check.problem(
@@ -469,6 +484,9 @@ impl Checker {
             self.key(&at);
             if !owned_by(feature.key.as_str(), owner) {
                 self.problem(&at, DataIssue::KeyOutsideItsOwner);
+            }
+            if let Some(row) = &feature.option_row {
+                self.level(&at, row.level);
             }
         }
         for selection in selections {
@@ -646,6 +664,63 @@ impl Checker {
                 });
                 self.repeat(&at, option.repeat, false);
                 self.prerequisite(&at, option.prerequisite.as_ref(), takes);
+                let mut levels = HashSet::new();
+                for row in &option.levels {
+                    self.level(&at, row.level);
+                    if !levels.insert(row.level) {
+                        self.problem(&at, DataIssue::DuplicateOptionRow(row.level));
+                    }
+                    if let Some(list) = &row.feat_list {
+                        self.named_lists.insert(list.clone());
+                    }
+                }
+            }
+            for level in &selection.skipped_levels {
+                self.level(&selection_at, *level);
+            }
+            if selection.pool_of.is_some()
+                && !(selection.options.is_empty() && selection.shared_options.is_empty())
+            {
+                self.problem(&selection_at, DataIssue::PoolSelectionWithOptions);
+            }
+        }
+    }
+
+    /// A selection offering an option with rows names the classes whose levels make its option level.
+    fn option_levels(&mut self, data: &GameData) {
+        let selections: Vec<&FeatureSelection> = data
+            .classes
+            .iter()
+            .chain(&data.prestige_classes)
+            .flat_map(|class| {
+                class.selections.iter().chain(
+                    class
+                        .archetypes
+                        .iter()
+                        .flat_map(|archetype| &archetype.selections),
+                )
+            })
+            .chain(data.mythic_paths.iter().flat_map(|path| &path.selections))
+            .collect();
+        let with_rows: HashSet<&SelectionOptionKey> = selections
+            .iter()
+            .flat_map(|selection| &selection.options)
+            .filter(|option| !option.levels.is_empty())
+            .map(|option| &option.key)
+            .collect();
+        for selection in selections {
+            if !selection.option_levels.is_empty() {
+                continue;
+            }
+            if let Some(option) = selection
+                .offered()
+                .into_iter()
+                .find(|option| with_rows.contains(option))
+            {
+                self.problem(
+                    &DataAt::FeatureSelection(selection.key.clone()),
+                    DataIssue::OptionRowsWithoutLevels(option.clone()),
+                );
             }
         }
     }

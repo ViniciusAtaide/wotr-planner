@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO selection_level_class (selection_key, class_key) VALUES ($1, $2)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "2b96dfe5468198e6d24db2d340d3dcdb3ca631afc5d204bb10ad63ed92509dec"
+}

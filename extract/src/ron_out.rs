@@ -9,7 +9,7 @@ use std::collections::BTreeSet;
 use rules::{
     Advancement, Archetype, ArchetypeLevelRow, Class, ClassLevelRow, Feat, FeatKey, FeatList,
     Feature, FeatureSelection, GameData, MythicAbility, MythicFeat, MythicPath, MythicRankRow,
-    PathSwitch, Prerequisite, Race, Repeat, SelectionOption, Skill, Weapon,
+    OptionLevelRow, PathSwitch, Prerequisite, Race, Repeat, SelectionOption, Skill, Weapon,
 };
 use serde::Serialize;
 
@@ -292,6 +292,8 @@ fn mythic_ability(ability: &MythicAbility) -> String {
         .text("summary", &ability.summary)
         .field("guide", &ability.guide)
         .prerequisite(&ability.prerequisite)
+        .items("features", &ability.features)
+        .items("selections", &ability.selections)
         .line()
 }
 
@@ -307,13 +309,17 @@ fn mythic_feat(feat: &MythicFeat) -> String {
 }
 
 fn feature(feature: &Feature) -> String {
-    Fields::new()
+    let mut fields = Fields::new();
+    fields
         .field("key", &feature.key)
         .field("name", &feature.name)
         .text("summary", &feature.summary)
         .field("guide", &feature.guide)
-        .items("ability_bonuses", &feature.ability_bonuses)
-        .line()
+        .items("ability_bonuses", &feature.ability_bonuses);
+    if let Some(row) = &feature.option_row {
+        fields.field("option_row", row);
+    }
+    fields.flag("daily_choice", feature.daily_choice).line()
 }
 
 /// A switch rule on one line: the previous paths, drops and granted features only when set, the level cap only
@@ -348,7 +354,8 @@ fn switch(switch: &PathSwitch) -> String {
     fields.line()
 }
 
-fn option(option: &SelectionOption) -> String {
+/// An option on one line, or, with rows by option level, a block with a row per line at `indent`.
+fn option(option: &SelectionOption, indent: usize) -> String {
     let mut fields = Fields::new();
     fields
         .field("key", &option.key)
@@ -363,8 +370,35 @@ fn option(option: &SelectionOption) -> String {
     }
     fields
         .repeat(option.repeat)
-        .prerequisite(&option.prerequisite)
-        .line()
+        .prerequisite(&option.prerequisite);
+    if let Some(pool) = &option.pool {
+        fields.field("pool", pool);
+    }
+    if let Some(selection) = &option.replaces_row_of {
+        fields.field("replaces_row_of", selection);
+    }
+    if option.levels.is_empty() {
+        return fields.line();
+    }
+    let rows = nested(
+        "levels",
+        indent + 4,
+        option.levels.iter().map(option_level_row).collect(),
+    );
+    fields.block("", indent, &[rows])
+}
+
+fn option_level_row(row: &OptionLevelRow) -> String {
+    let mut fields = Fields::new();
+    fields.0.push(format!("level: {}", row.level));
+    fields
+        .items("features", &row.features)
+        .set("feats", &row.feats)
+        .items("selections", &row.selections);
+    if let Some(list) = &row.feat_list {
+        fields.field("feat_list", list);
+    }
+    fields.line()
 }
 
 /// A feat list on one line: key, name, guide, the bonus-list and every-feat flags when set, then its feats (none on
@@ -393,7 +427,23 @@ fn selections(indent: usize, selections: &[FeatureSelection]) -> String {
             .field("name", &selection.name)
             .text("summary", &selection.summary)
             .field("guide", &selection.guide);
-        let options = selection.options.iter().map(option).collect();
+        if !selection.option_levels.is_empty() {
+            fields.field("option_levels", &selection.option_levels);
+        }
+        if !selection.skipped_levels.is_empty() {
+            fields.field("skipped_levels", &selection.skipped_levels);
+        }
+        fields
+            .flag("feat_lists_only", selection.feat_lists_only)
+            .flag("only_without_option", selection.only_without_option);
+        if let Some(pool_of) = &selection.pool_of {
+            fields.field("pool_of", pool_of);
+        }
+        let options = selection
+            .options
+            .iter()
+            .map(|o| option(o, indent + 12))
+            .collect();
         let options = if selection.options.is_empty() {
             format!("{pad}        options: [],\n")
         } else {
@@ -467,6 +517,9 @@ fn archetype(archetype: &Archetype) -> String {
     if let Some(skills) = &archetype.class_skills {
         fields.field("class_skills", skills);
     }
+    if let Some(spontaneous) = archetype.spontaneous {
+        fields.0.push(format!("spontaneous: Some({spontaneous})"));
+    }
     let blocks = [
         nested(
             "features",
@@ -515,6 +568,7 @@ fn class_file(class: &Class) -> String {
     if class.advances != Advancement::Each {
         fields.field("advances", &class.advances);
     }
+    fields.flag("spontaneous", class.spontaneous);
     if !class.counts_as.is_empty() {
         fields.field("counts_as", &class.counts_as);
     }

@@ -6,8 +6,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::game_data::{Ability, Alignment, SpellType};
 use crate::keys::{
-    ArchetypeKey, ClassKey, FeatKey, FeatureKey, MythicAbilityKey, MythicFeatKey, RaceKey,
-    SelectionOptionKey, SkillKey,
+    ArchetypeKey, ClassKey, FeatKey, FeatureKey, FeatureSelectionKey, MythicAbilityKey,
+    MythicFeatKey, RaceKey, SelectionOptionKey, SkillKey,
 };
 use crate::parameter::Parameter;
 
@@ -53,6 +53,8 @@ pub enum Prerequisite {
     },
     /// An option already taken from a Feature selection ("Beast Totem, Lesser").
     SelectionOption(SelectionOptionKey),
+    /// No option held that this selection offers ("no known bloodline": none of the sorcerer's bloodlines).
+    NoOptionFrom(FeatureSelectionKey),
     SkillRanks {
         skill: SkillKey,
         ranks: u8,
@@ -64,6 +66,12 @@ pub enum Prerequisite {
     BaseAttackBonus(u8),
     /// Spell-level access: can cast spells of this level and type. Not the same as caster level.
     SpellLevel {
+        spell_type: SpellType,
+        level: u8,
+    },
+    /// Spell-level access through a class that casts spontaneously ("Able to cast 1st level arcane spells
+    /// spontaneously").
+    SpontaneousSpellLevel {
         spell_type: SpellType,
         level: u8,
     },

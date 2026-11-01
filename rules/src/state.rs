@@ -5,8 +5,8 @@ use std::collections::{BTreeMap, BTreeSet};
 use crate::build::AbilityScores;
 use crate::game_data::{Alignment, SpellType};
 use crate::keys::{
-    ArchetypeKey, ClassKey, FeatKey, FeatureKey, MythicAbilityKey, MythicFeatKey, MythicPathKey,
-    RaceKey, SelectionOptionKey, SkillKey,
+    ArchetypeKey, ClassKey, FeatKey, FeatListKey, FeatureKey, FeatureSelectionKey,
+    MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey, SelectionOptionKey, SkillKey,
 };
 use crate::parameter::Parameter;
 use crate::prerequisite::Prerequisite;
@@ -33,6 +33,10 @@ pub struct CharacterState {
     pub arcane_spell_level: u8,
     /// Spell-level access: the highest divine spell level castable; 0 when none.
     pub divine_spell_level: u8,
+    /// The highest arcane spell level castable through a class that casts spontaneously; 0 when none.
+    pub spontaneous_arcane_spell_level: u8,
+    /// The highest divine spell level castable through a class that casts spontaneously; 0 when none.
+    pub spontaneous_divine_spell_level: u8,
     /// The highest effective class level among classes that can cast (class levels plus prestige levels that
     /// advance them). Checked only where the guide states a caster level.
     pub caster_level: u8,
@@ -50,6 +54,13 @@ pub struct CharacterState {
     pub features: BTreeMap<FeatureKey, u8>,
     /// Each selection option held, with how many times it was taken (Increased Damage Reduction: 2).
     pub selection_options: BTreeMap<SelectionOptionKey, u8>,
+    /// The option level of each option held through a selection with option levels (a sorcerer 5 / Dragon
+    /// Disciple 5's bloodline: 10).
+    pub option_levels: BTreeMap<SelectionOptionKey, u8>,
+    /// The feat list in force of each option held that has one: what its [`FeatSlot::OptionList`] slots offer.
+    ///
+    /// [`FeatSlot::OptionList`]: crate::FeatSlot::OptionList
+    pub option_feat_lists: BTreeMap<SelectionOptionKey, FeatListKey>,
     pub mythic_abilities: BTreeSet<MythicAbilityKey>,
     pub mythic_feats: BTreeSet<MythicFeatKey>,
     /// The Mythic rank reached: 3 after a Legend switch, whatever the rank before.
@@ -92,6 +103,29 @@ impl CharacterState {
             SpellType::Arcane => self.arcane_spell_level,
             SpellType::Divine => self.divine_spell_level,
         }
+    }
+
+    /// Spell-level access through spontaneous casting.
+    pub fn spontaneous_spell_level(&self, spell_type: SpellType) -> u8 {
+        match spell_type {
+            SpellType::Arcane => self.spontaneous_arcane_spell_level,
+            SpellType::Divine => self.spontaneous_divine_spell_level,
+        }
+    }
+
+    /// The option level of a held option; 0 when it isn't held through a selection with option levels.
+    pub fn option_level(&self, option: &SelectionOptionKey) -> u8 {
+        self.option_levels.get(option).copied().unwrap_or(0)
+    }
+
+    /// Whether any option of this selection is held (its own options, keyed under it, wherever they were taken).
+    pub fn holds_option_of(&self, selection: &FeatureSelectionKey) -> bool {
+        self.selection_options.keys().any(|option| {
+            option
+                .as_str()
+                .strip_prefix(selection.as_str())
+                .is_some_and(|rest| rest.starts_with('/'))
+        })
     }
 
     /// How many picks and grants hold a feat; 0 when none.
@@ -214,12 +248,16 @@ impl CharacterState {
             ),
             P::Feature { feature, count } => numeric(self.feature_count(feature), *count),
             P::SelectionOption(option) => flag(self.selection_options.contains_key(option)),
+            P::NoOptionFrom(selection) => flag(!self.holds_option_of(selection)),
             P::SkillRanks { skill, ranks } => numeric(self.skill_ranks(skill), *ranks),
             P::AbilityScore { ability, score } => {
                 numeric(self.ability_scores.get(*ability), *score)
             }
             P::BaseAttackBonus(bab) => numeric(self.bab, *bab),
             P::SpellLevel { spell_type, level } => numeric(self.spell_level(*spell_type), *level),
+            P::SpontaneousSpellLevel { spell_type, level } => {
+                numeric(self.spontaneous_spell_level(*spell_type), *level)
+            }
             P::CasterLevel(level) => numeric(self.caster_level, *level),
             P::CharacterLevel(level) => numeric(self.character_level, *level),
             P::MythicRank(rank) => numeric(self.mythic_rank, *rank),

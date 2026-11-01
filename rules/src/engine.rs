@@ -11,7 +11,7 @@ use crate::build::{AbilityScores, Build, Edit, FeatSource, LevelUp, Pick, SlotId
 use crate::game_data::{
     Ability, AbilityBonus, AbilityModifier, Advancement, Archetype, Class, CountsToward, Feat,
     FeatList, FeatSlot, FeatureSelection, GameData, MythicAbility, MythicFeat, MythicPath,
-    PathSwitch, Race, Save, SelectionOption, SpellLevels, Weapon, WeaponProficiency,
+    OptionRow, PathSwitch, Race, Save, SelectionOption, SpellLevels, Weapon, WeaponProficiency,
 };
 use crate::keys::{
     ArchetypeKey, ClassKey, FeatKey, FeatListKey, FeatureKey, FeatureSelectionKey,
@@ -51,6 +51,10 @@ pub struct Engine {
     paths: HashMap<MythicPathKey, usize>,
     /// The ability bonuses of every feature that has some.
     feature_bonuses: HashMap<FeatureKey, Vec<AbilityBonus>>,
+    /// The option row of every feature that grants one (Bloodline Ascendance).
+    feature_rows: HashMap<FeatureKey, OptionRow>,
+    /// Every feature that is a daily choice.
+    daily_choices: HashSet<FeatureKey>,
 }
 
 /// Where a class is: an index into the base or the prestige classes.
@@ -353,7 +357,7 @@ impl Engine {
             .feat_lists()
             .map(|list| (list.key.clone(), list.clone()))
             .collect();
-        let feature_bonuses = data
+        let features: Vec<&crate::game_data::Feature> = data
             .classes
             .iter()
             .chain(&data.prestige_classes)
@@ -366,8 +370,20 @@ impl Engine {
                 )
             })
             .chain(data.mythic_paths.iter().flat_map(|path| &path.features))
+            .collect();
+        let feature_bonuses = features
+            .iter()
             .filter(|feature| !feature.ability_bonuses.is_empty())
             .map(|feature| (feature.key.clone(), feature.ability_bonuses.clone()))
+            .collect();
+        let feature_rows = features
+            .iter()
+            .filter_map(|feature| Some((feature.key.clone(), feature.option_row.clone()?)))
+            .collect();
+        let daily_choices = features
+            .iter()
+            .filter(|feature| feature.daily_choice)
+            .map(|feature| feature.key.clone())
             .collect();
         let mut engine = Self {
             skills: index(&data.skills, |s| &s.key),
@@ -378,6 +394,8 @@ impl Engine {
             mythic_feats: index(&data.mythic_feats, |f| &f.key),
             paths: index(&data.mythic_paths, |p| &p.key),
             feature_bonuses,
+            feature_rows,
+            daily_choices,
             options: HashMap::new(),
             data,
             classes,
@@ -595,6 +613,116 @@ impl Engine {
         )
     }
 
+    /// Whether a class taken with an archetype key casts spontaneously: the archetype's say, else the class's.
+    fn spontaneous(&self, class: &Class, archetype: Option<&ArchetypeKey>) -> bool {
+        self.archetype_of(class, archetype)
+            .and_then(|archetype| archetype.spontaneous)
+            .unwrap_or(class.spontaneous)
+    }
+
+    /// Whether a selection's slot offers `option` to a character in `state`: its own and shared options, or for
+    /// a pool selection, the pools of the options held that it draws on.
+    fn offers(
+        &self,
+        selection: &FeatureSelection,
+        option: &SelectionOptionKey,
+        state: &CharacterState,
+    ) -> bool {
+        match &selection.pool_of {
+            None => selection.offers(option),
+            Some(_) => self.pools(selection, state).contains(option),
+        }
+    }
+
+    /// The options a pool selection offers now: the pools of the options held that its `pool_of` selection
+    /// offers. Empty for any other selection.
+    fn pools(
+        &self,
+        selection: &FeatureSelection,
+        state: &CharacterState,
+    ) -> BTreeSet<SelectionOptionKey> {
+        let Some(source) = selection
+            .pool_of
+            .as_ref()
+            .and_then(|key| self.selection(key))
+        else {
+            return BTreeSet::new();
+        };
+        state
+            .selection_options
+            .keys()
+            .filter(|held| source.offers(held))
+            .filter_map(|held| self.option(held)?.pool.as_ref())
+            .filter_map(|pool| self.selection(pool))
+            .flat_map(|pool| pool.offered())
+            .filter(|key| self.options.contains_key(*key))
+            .cloned()
+            .collect()
+    }
+
+    /// The lists a feat slot picks from for a character in `state`: a `OneOf`'s list, or the lists in force of
+    /// the options held that an `OptionList`'s selection offers. Empty for the other slots.
+    fn slot_lists(&self, slot: &FeatSlot, state: &CharacterState) -> Vec<&FeatList> {
+        match slot {
+            FeatSlot::OneOf { list } => self.feat_list(list).into_iter().collect(),
+            FeatSlot::OptionList { selection } => {
+                let Some(selection) = self.selection(selection) else {
+                    return Vec::new();
+                };
+                state
+                    .option_feat_lists
+                    .iter()
+                    .filter(|(option, _)| selection.offers(option))
+                    .filter_map(|(_, list)| self.feat_list(list))
+                    .collect()
+            }
+            _ => Vec::new(),
+        }
+    }
+
+    /// [`slot_accepts`](Self::slot_accepts) for a character in `state`, which an `OptionList` slot needs.
+    fn slot_accepts_in(&self, slot: &FeatSlot, feat: &Feat, state: &CharacterState) -> bool {
+        match slot {
+            FeatSlot::OneOf { .. } | FeatSlot::OptionList { .. } => self
+                .slot_lists(slot, state)
+                .iter()
+                .any(|list| list.contains(&feat.key)),
+            _ => self.slot_accepts(slot, feat),
+        }
+    }
+
+    /// Whether a pick of `feat` in this slot ignores its prerequisites, for a character in `state`: when a bonus
+    /// list the slot offers it from ignores them.
+    fn slot_ignores_in(&self, slot: &FeatSlot, feat: &Feat, state: &CharacterState) -> bool {
+        self.slot_lists(slot, state)
+            .iter()
+            .any(|list| list.ignores_prerequisites && list.contains(&feat.key))
+    }
+
+    /// The daily choices a character holds (Mixed Bloodline): the sheet shows each as a note, since the game asks
+    /// for it again every day and a Build doesn't record it.
+    pub fn daily_choices(&self, state: &CharacterState) -> Vec<FeatureKey> {
+        state
+            .features
+            .keys()
+            .filter(|feature| self.daily_choices.contains(*feature))
+            .cloned()
+            .collect()
+    }
+
+    /// The one option a selection offers, when it offers exactly one: then it's granted with no pick.
+    fn single_option(&self, selection: &FeatureSelectionKey) -> Option<SelectionOptionKey> {
+        let selection = self.selection(selection)?;
+        if selection.pool_of.is_some() {
+            return None;
+        }
+        let offered = selection.offered();
+        match <[&SelectionOptionKey; 1]>::try_from(offered.into_iter().collect::<Vec<_>>()) {
+            Ok([option]) => Some(option.clone()),
+            Err(_) => None,
+        }
+    }
+
     /// Walks the whole Build.
     pub fn evaluate(&self, build: &Build) -> Sheet {
         Walker::new(self, build, None).run().sheet
@@ -630,7 +758,7 @@ impl Engine {
                 .data
                 .feats
                 .iter()
-                .filter(|feat| self.slot_accepts(feat_slot, feat))
+                .filter(|feat| self.slot_accepts_in(feat_slot, feat, &state))
                 .flat_map(|feat| match feat.parameter {
                     None => vec![Pick::feat(feat.key.clone())],
                     Some(kind) => self
@@ -643,7 +771,9 @@ impl Engine {
             SlotKind::Selection(key) => self
                 .selection(key)
                 .map(|selection| {
-                    // Own options and shared ones, in key order. A shared key the data lacks offers nothing.
+                    // Own options and shared ones (a pool selection's: the held options' pools), in key order. A
+                    // shared key the data lacks offers nothing.
+                    let pools = self.pools(selection, &state);
                     let mut keys: Vec<&SelectionOptionKey> = selection
                         .options
                         .iter()
@@ -654,6 +784,7 @@ impl Engine {
                                 .iter()
                                 .filter(|key| self.options.contains_key(*key)),
                         )
+                        .chain(&pools)
                         .collect();
                     keys.sort();
                     // An option with a chosen feat once per value.
@@ -817,7 +948,8 @@ impl Engine {
             .collect()
     }
 
-    /// Whether a feat slot accepts a feat, ignoring prerequisites. A list the data lacks accepts none.
+    /// Whether a feat slot accepts a feat, ignoring prerequisites. A list the data lacks accepts none, and so does
+    /// an `OptionList` slot here: its lists depend on the options held, which [`options`](Self::options) sees.
     pub fn slot_accepts(&self, slot: &FeatSlot, feat: &Feat) -> bool {
         match slot {
             FeatSlot::General => true,
@@ -826,6 +958,7 @@ impl Engine {
             FeatSlot::OneOf { list } => self
                 .feat_list(list)
                 .is_some_and(|list| list.contains(&feat.key)),
+            FeatSlot::OptionList { .. } => false,
         }
     }
 
@@ -928,8 +1061,30 @@ struct Walker<'a> {
     /// For each class and feature another class's levels count toward (Frost Power: witch, Major Hexes), how many
     /// grants of it those levels hold now: the class's rows past its own level that they reach.
     counted_features: BTreeMap<(ClassKey, FeatureKey), u8>,
+    /// Each option held through a selection with option levels, in the order taken.
+    holdings: Vec<Holding>,
+    /// Feature selections that options' rows granted at this level and that have no slot yet.
+    pending: Vec<FeatureSelectionKey>,
+    /// How many option-row selection slots this level has so far.
+    option_slots: u8,
     probe: Option<Probe<'a>>,
     probed: Probed,
+}
+
+/// One option held through a selection with option levels: which of its rows it has got, and what each holds.
+#[derive(Clone, Debug)]
+struct Holding {
+    /// The selection it was taken through, which says which class levels make its level.
+    selection: FeatureSelectionKey,
+    option: SelectionOptionKey,
+    /// The rows got so far, by option level, with what each holds.
+    applied: BTreeMap<u8, Vec<Held>>,
+    /// Option levels it never gets the rows of: its selection's skipped levels and the rows a pick replaced.
+    skipped: BTreeSet<u8>,
+    /// Only its feat lists count (Crossblooded's second bloodline).
+    lists_only: bool,
+    /// The Mythic ascension whose pick took it, if any, so a Path switch can drop it.
+    source: Option<GrantSource>,
 }
 
 struct Walk {
@@ -962,6 +1117,9 @@ impl<'a> Walker<'a> {
             level_cap: BASE_LEVEL_CAP,
             ascensions_over: false,
             counted_features: BTreeMap::new(),
+            holdings: Vec::new(),
+            pending: Vec::new(),
+            option_slots: 0,
             probe,
             probed: Probed::default(),
         }
@@ -1108,11 +1266,18 @@ impl<'a> Walker<'a> {
             (_, None) => {}
         }
         self.recompute_tables();
+        // Options' rows this level reaches, before any slot is filled.
+        self.option_slots = 0;
+        self.advance_holdings();
         let skill_points = self.skill_ranks(level, level_up);
 
-        let slots = self.fill_all(self.level_slots(level, level_up), None, |id| {
-            id.level() == Some(level)
+        let level_slots = self.level_slots(level, level_up);
+        let level_slots = self.grant_selections(level_slots);
+        let mut slots = self.fill_all(level_slots, None, |id| {
+            matches!(id, SlotId::Feat { .. } | SlotId::Selection { .. })
+                && id.level() == Some(level)
         });
+        slots.extend(self.fill_pending(level));
 
         let mut mythic_ranks = Vec::new();
         let due: Vec<u8> = self
@@ -1125,6 +1290,18 @@ impl<'a> Walker<'a> {
             if self.ascend(rank) {
                 mythic_ranks.push(rank);
             }
+            slots.extend(self.fill_pending(level));
+        }
+        let stray: Vec<SlotId> = self
+            .build
+            .picks
+            .keys()
+            .filter(|id| matches!(id, SlotId::OptionSelection { level: l, .. } if *l == level))
+            .filter(|id| !slots.iter().any(|slot| &slot.id == *id))
+            .cloned()
+            .collect();
+        for id in stray {
+            self.problem(Choice::Slot(id), Issue::NoSuchSlot);
         }
 
         LevelSheet {
@@ -1257,8 +1434,9 @@ impl<'a> Walker<'a> {
         }
         let archetype = self.state.classes[index].archetype.as_ref();
         if let Some(row) = engine.row(class, archetype, class_level) {
+            // Through `hold`, so a feature's ability bonus counts (Dragon Disciple's Strength +2).
             for feature in row.features {
-                add_feature(&mut self.state, feature);
+                self.hold(Held::Feature(feature.clone()), None);
             }
             // Granted feats skip their prerequisites; one already held adds nothing. A parameterised one is held
             // for every value.
@@ -1378,8 +1556,8 @@ impl<'a> Walker<'a> {
         SkillPoints { available, spent }
     }
 
-    /// The slots of a Level-up, in checking order: race (level 1), class rows, the general slot (odd levels), then
-    /// Feature selections.
+    /// The slots of a Level-up, in checking order: race (level 1), class rows, the general slot (odd levels),
+    /// Feature selections, then the class row's option-list feat slots (which depend on the selections).
     fn level_slots(&self, level: u8, level_up: &LevelUp) -> Vec<(SlotKind, SlotId)> {
         let engine = self.engine;
         let mut slots = Vec::new();
@@ -1396,6 +1574,7 @@ impl<'a> Walker<'a> {
             }
         }
         let mut selections = Vec::new();
+        let mut option_lists = Vec::new();
         if let Some((class, _)) = engine.class(&level_up.class)
             && let Some(entry) = self
                 .state
@@ -1405,7 +1584,12 @@ impl<'a> Walker<'a> {
         {
             let row = engine.row(class, entry.archetype.as_ref(), entry.level);
             for (index, slot) in row.iter().flat_map(|row| row.feat_slots).enumerate() {
-                slots.push((SlotKind::Feat(slot.clone()), feat(FeatSource::Class, index)));
+                let kind = (SlotKind::Feat(slot.clone()), feat(FeatSource::Class, index));
+                if matches!(slot, FeatSlot::OptionList { .. }) {
+                    option_lists.push(kind);
+                } else {
+                    slots.push(kind);
+                }
             }
             for (index, selection) in row.iter().flat_map(|row| row.selections).enumerate() {
                 selections.push((
@@ -1424,7 +1608,249 @@ impl<'a> Walker<'a> {
             ));
         }
         slots.extend(selections);
+        slots.extend(option_lists);
         slots
+    }
+
+    /// Settles the Feature selection slots in `slots` before they're filled: a selection granted only to a
+    /// character holding none of its options gets no slot when one is held, and a selection offering exactly one
+    /// option is granted that option with no pick. The rest stay slots.
+    fn grant_selections(&mut self, slots: Vec<(SlotKind, SlotId)>) -> Vec<(SlotKind, SlotId)> {
+        let mut kept = Vec::with_capacity(slots.len());
+        for (kind, id) in slots {
+            match &kind {
+                SlotKind::Selection(selection) => {
+                    if self.grant_without_slot(selection, None) {
+                        continue;
+                    }
+                    kept.push((kind, id));
+                }
+                _ => kept.push((kind, id)),
+            }
+        }
+        kept
+    }
+
+    /// Whether a granted selection needs no slot: it's for characters without its options and one is held, or it
+    /// offers one option, which is then held (through it, from `source`).
+    fn grant_without_slot(
+        &mut self,
+        selection: &FeatureSelectionKey,
+        source: Option<&GrantSource>,
+    ) -> bool {
+        let engine = self.engine;
+        let Some(defined) = engine.selection(selection) else {
+            return false;
+        };
+        if defined.only_without_option
+            && defined
+                .offered()
+                .iter()
+                .any(|option| self.state.option_count(option) > 0)
+        {
+            return true;
+        }
+        let Some(option) = engine.single_option(selection) else {
+            return false;
+        };
+        if self.state.option_count(&option) == 0 {
+            self.take_option(selection, &option, None, source);
+        }
+        true
+    }
+
+    /// Fills the selection slots that options' rows granted at this level, in order, until none are left (a pick
+    /// can grant more).
+    fn fill_pending(&mut self, level: u8) -> Vec<Slot> {
+        let mut slots = Vec::new();
+        while !self.pending.is_empty() {
+            let selection = self.pending.remove(0);
+            if self.grant_without_slot(&selection, None) {
+                continue;
+            }
+            let id = SlotId::OptionSelection {
+                level,
+                index: self.option_slots,
+            };
+            self.option_slots = self.option_slots.saturating_add(1);
+            slots.push(self.fill(id, SlotKind::Selection(selection), None));
+        }
+        slots
+    }
+
+    // ---- Options with rows --------------------------------------------------------------------------------
+
+    /// Holds an option taken through a selection: the option, its feats (every value) and chosen feat (the pick's
+    /// value), then its rows when the selection has option levels, and the row it replaces.
+    fn take_option(
+        &mut self,
+        selection: &FeatureSelectionKey,
+        option: &SelectionOptionKey,
+        parameter: Option<&Parameter>,
+        source: Option<&GrantSource>,
+    ) {
+        let engine = self.engine;
+        self.hold(Held::SelectionOption(option.clone()), source.cloned());
+        let Some(defined) = engine.option(option) else {
+            return;
+        };
+        for feat in &defined.feats {
+            self.hold(
+                Held::Feat(feat.clone(), engine.every_value(feat)),
+                source.cloned(),
+            );
+        }
+        if let Some(feat) = &defined.chosen_feat {
+            self.hold(
+                Held::Feat(feat.clone(), parameter.iter().cloned().cloned().collect()),
+                source.cloned(),
+            );
+        }
+        if let Some(through) = engine.selection(selection)
+            && !through.option_levels.is_empty()
+        {
+            self.holdings.push(Holding {
+                selection: selection.clone(),
+                option: option.clone(),
+                applied: BTreeMap::new(),
+                skipped: through.skipped_levels.clone(),
+                lists_only: through.feat_lists_only,
+                source: source.cloned(),
+            });
+            self.advance(self.holdings.len() - 1);
+        }
+        if let Some(target) = &defined.replaces_row_of {
+            self.replace_row(target);
+        }
+    }
+
+    /// The option level of a holding: the levels of the classes its selection names.
+    fn holding_level(&self, holding: &Holding) -> u8 {
+        self.engine
+            .selection(&holding.selection)
+            .map_or(0, |selection| {
+                selection.option_levels.iter().fold(0u8, |sum, class| {
+                    sum.saturating_add(self.state.class_level(class))
+                })
+            })
+    }
+
+    fn advance_holdings(&mut self) {
+        for index in 0..self.holdings.len() {
+            self.advance(index);
+        }
+    }
+
+    /// Gives a holding every row up to its option level that it hasn't had or skipped, and sets its level and
+    /// feat list in the state.
+    fn advance(&mut self, index: usize) {
+        let engine = self.engine;
+        let holding = &self.holdings[index];
+        let Some(option) = engine.option(&holding.option) else {
+            return;
+        };
+        let level = self.holding_level(holding);
+        let key = holding.option.clone();
+        let source = holding.source.clone();
+        let list = option
+            .levels
+            .iter()
+            .filter(|row| row.level <= level)
+            .filter_map(|row| row.feat_list.clone())
+            .next_back();
+        self.state.option_levels.insert(key.clone(), level);
+        match list {
+            Some(list) => {
+                self.state.option_feat_lists.insert(key, list);
+            }
+            None => {
+                self.state.option_feat_lists.remove(&key);
+            }
+        }
+        for row in option.levels.iter().filter(|row| row.level <= level) {
+            let holding = &self.holdings[index];
+            if holding.applied.contains_key(&row.level) || holding.skipped.contains(&row.level) {
+                continue;
+            }
+            let held = if holding.lists_only {
+                Vec::new()
+            } else {
+                self.grant_row(row, source.as_ref())
+            };
+            self.holdings[index].applied.insert(row.level, held);
+        }
+    }
+
+    /// Holds an option row's features and feats (from `source`) and queues its selections. Returns what it holds.
+    fn grant_row(
+        &mut self,
+        row: &'a crate::game_data::OptionLevelRow,
+        source: Option<&GrantSource>,
+    ) -> Vec<Held> {
+        let engine = self.engine;
+        let held: Vec<Held> = row
+            .features
+            .iter()
+            .map(|feature| Held::Feature(feature.clone()))
+            .chain(
+                row.feats
+                    .iter()
+                    .map(|feat| Held::Feat(feat.clone(), engine.every_value(feat))),
+            )
+            .collect();
+        for item in &held {
+            self.hold(item.clone(), source.cloned());
+        }
+        self.pending.extend(row.selections.iter().cloned());
+        held
+    }
+
+    /// Skips, in each option held that `target` offers, the row at the level it has reached, taking back what it
+    /// gave (a Primalist's rage powers instead of that level's bloodline power).
+    fn replace_row(&mut self, target: &FeatureSelectionKey) {
+        let Some(target) = self.engine.selection(target) else {
+            return;
+        };
+        for index in 0..self.holdings.len() {
+            let holding = &self.holdings[index];
+            if holding.lists_only || !target.offers(&holding.option) {
+                continue;
+            }
+            let level = self.holding_level(holding);
+            let holding = &mut self.holdings[index];
+            holding.skipped.insert(level);
+            if let Some(held) = holding.applied.remove(&level) {
+                for item in &held {
+                    self.release(item);
+                }
+            }
+        }
+    }
+
+    /// A feature's option row (Bloodline Ascendance): the row at its level of each option held that its selection
+    /// offers, unless already had.
+    fn grant_option_row(&mut self, row: &OptionRow, source: Option<&GrantSource>) {
+        let engine = self.engine;
+        let Some(selection) = engine.selection(&row.selection) else {
+            return;
+        };
+        for index in 0..self.holdings.len() {
+            let holding = &self.holdings[index];
+            if holding.lists_only
+                || !selection.offers(&holding.option)
+                || holding.applied.contains_key(&row.level)
+            {
+                continue;
+            }
+            let Some(option_row) = engine
+                .option(&holding.option)
+                .and_then(|option| option.levels.iter().find(|r| r.level == row.level))
+            else {
+                continue;
+            };
+            let held = self.grant_row(option_row, source);
+            self.holdings[index].applied.insert(row.level, held);
+        }
     }
 
     /// Fills a Level-up's or Mythic ascension's slots in order, then reports the picks that `belongs` says are
@@ -1456,7 +1882,7 @@ impl<'a> Walker<'a> {
     fn fill(&mut self, id: SlotId, kind: SlotKind, rank: Option<u8>) -> Slot {
         let source = rank.map(|rank| GrantSource {
             rank,
-            from_path: !matches!(id, SlotId::Mythic { .. }),
+            from_path: !matches!(id, SlotId::Mythic { .. } | SlotId::MythicSelection { .. }),
             selection: match &kind {
                 SlotKind::Selection(selection) => Some(selection.clone()),
                 _ => None,
@@ -1472,7 +1898,7 @@ impl<'a> Walker<'a> {
         let pick = self.build.picks.get(&id).cloned();
         if let Some(pick) = &pick {
             match self.check_pick(&kind, pick) {
-                Ok(()) => self.hold_pick(pick, source.as_ref()),
+                Ok(()) => self.hold_pick(&kind, pick, source.as_ref()),
                 Err(issue) => self.problem(Choice::Slot(id.clone()), issue),
             }
         }
@@ -1483,36 +1909,33 @@ impl<'a> Walker<'a> {
         check_pick(self.engine, &self.state, kind, pick)
     }
 
-    fn hold_pick(&mut self, pick: &Pick, source: Option<&GrantSource>) {
-        let mut held = vec![];
+    fn hold_pick(&mut self, kind: &SlotKind, pick: &Pick, source: Option<&GrantSource>) {
         match pick {
             Pick::Feat {
                 feat: key,
                 parameter,
-            } => held.push(Held::Feat(key.clone(), parameter.iter().cloned().collect())),
+            } => self.hold(
+                Held::Feat(key.clone(), parameter.iter().cloned().collect()),
+                source.cloned(),
+            ),
             Pick::SelectionOption {
                 option: key,
                 parameter,
             } => {
-                held.push(Held::SelectionOption(key.clone()));
-                if let Some(option) = self.engine.option(key) {
-                    // Its feats for every value; its chosen feat for the pick's.
-                    for feat in &option.feats {
-                        held.push(Held::Feat(feat.clone(), self.engine.every_value(feat)));
-                    }
-                    if let Some(feat) = &option.chosen_feat {
-                        held.push(Held::Feat(
-                            feat.clone(),
-                            parameter.iter().cloned().collect(),
-                        ));
+                // Its feats for every value; its chosen feat for the pick's; its rows.
+                if let SlotKind::Selection(selection) = kind {
+                    self.take_option(selection, key, parameter.as_ref(), source);
+                }
+            }
+            Pick::MythicAbility(key) => {
+                self.hold(Held::MythicAbility(key.clone()), source.cloned());
+                if let Some(ability) = self.engine.mythic_ability(key) {
+                    for feature in &ability.features {
+                        self.hold(Held::Feature(feature.clone()), source.cloned());
                     }
                 }
             }
-            Pick::MythicAbility(key) => held.push(Held::MythicAbility(key.clone())),
-            Pick::MythicFeat(key) => held.push(Held::MythicFeat(key.clone())),
-        }
-        for item in held {
-            self.hold(item, source.cloned());
+            Pick::MythicFeat(key) => self.hold(Held::MythicFeat(key.clone()), source.cloned()),
         }
     }
 
@@ -1550,8 +1973,18 @@ impl<'a> Walker<'a> {
                 state.mythic_feats.insert(key.clone());
             }
         }
-        if let Some(source) = source {
-            self.rank_grants.push(RankGrant { source, item });
+        let option_row = match &item {
+            Held::Feature(key) => self.engine.feature_rows.get(key),
+            _ => None,
+        };
+        if let Some(source) = &source {
+            self.rank_grants.push(RankGrant {
+                source: source.clone(),
+                item,
+            });
+        }
+        if let Some(row) = option_row {
+            self.grant_option_row(row, source.as_ref());
         }
     }
 
@@ -1637,13 +2070,46 @@ impl<'a> Walker<'a> {
         }
         self.state.mythic_rank = rank;
 
-        let mut slot_kinds = vec![(
+        // The general pick first: a mythic ability it holds may grant selection slots (Second Bloodline).
+        let general_id = SlotId::Mythic { rank };
+        let ability = match self.build.picks.get(&general_id) {
+            Some(Pick::MythicAbility(key)) if !self.state.mythic_abilities.contains(key) => {
+                Some(key)
+            }
+            _ => None,
+        };
+        let general = self.fill(
+            general_id,
             match mythic_pick_kind(rank) {
                 MythicPickKind::Ability => SlotKind::MythicAbility,
                 MythicPickKind::Feat => SlotKind::MythicFeat,
             },
-            SlotId::Mythic { rank },
-        )];
+            Some(rank),
+        );
+        let mut slot_kinds = Vec::new();
+        if let Some(ability) = ability
+            .filter(|key| self.state.mythic_abilities.contains(*key))
+            .and_then(|key| engine.mythic_ability(key))
+        {
+            let source = GrantSource {
+                rank,
+                from_path: false,
+                selection: None,
+                slot: None,
+            };
+            for (index, selection) in ability.selections.iter().enumerate() {
+                if self.grant_without_slot(selection, Some(&source)) {
+                    continue;
+                }
+                slot_kinds.push((
+                    SlotKind::Selection(selection.clone()),
+                    SlotId::MythicSelection {
+                        rank,
+                        index: u8::try_from(index).unwrap_or(u8::MAX),
+                    },
+                ));
+            }
+        }
         let path = self
             .state
             .mythic_path
@@ -1672,7 +2138,10 @@ impl<'a> Walker<'a> {
                 ));
             }
         }
-        let slots = self.fill_all(slot_kinds, Some(rank), |id| id.rank() == Some(rank));
+        let mut slots = vec![general];
+        slots.extend(self.fill_all(slot_kinds, Some(rank), |id| {
+            id.rank() == Some(rank) && !matches!(id, SlotId::Mythic { .. })
+        }));
 
         let path = self.state.mythic_path.clone();
         if let Some(sheet) = self.ranks.iter_mut().find(|sheet| sheet.rank == rank) {
@@ -1730,6 +2199,25 @@ impl<'a> Walker<'a> {
         for grant in &dropped {
             self.release(&grant.item);
         }
+        // An option a dropped pick took goes with it; what its rows gave was dropped with the pick's grants.
+        let (gone, holdings): (Vec<Holding>, Vec<Holding>) = std::mem::take(&mut self.holdings)
+            .into_iter()
+            .partition(|holding| {
+                holding.source.as_ref().is_some_and(|source| {
+                    switch_drops(
+                        switch,
+                        &RankGrant {
+                            source: source.clone(),
+                            item: Held::SelectionOption(holding.option.clone()),
+                        },
+                    )
+                })
+            });
+        self.holdings = holdings;
+        for holding in gone {
+            self.state.option_levels.remove(&holding.option);
+            self.state.option_feat_lists.remove(&holding.option);
+        }
         for sheet in &mut self.ranks {
             if sheet.rank >= rank || sheet.status != RankStatus::Reached {
                 continue;
@@ -1776,14 +2264,17 @@ impl<'a> Walker<'a> {
         }
     }
 
-    /// The character's own scores: the base scores with the bonuses of every feature held.
+    /// The character's own scores: the base scores with the bonuses of every feature held, once per grant.
     fn refresh_ability_scores(&mut self) {
         let engine = self.engine;
         let bonuses = self
             .state
             .features
-            .keys()
-            .filter_map(|key| engine.feature_bonuses.get(key))
+            .iter()
+            .filter_map(|(key, count)| {
+                let bonuses = engine.feature_bonuses.get(key)?;
+                Some(std::iter::repeat_n(bonuses, usize::from(*count)).flatten())
+            })
             .flatten();
         self.state.ability_scores = with_bonuses(self.state.base_ability_scores, bonuses);
     }
@@ -1797,6 +2288,7 @@ impl<'a> Walker<'a> {
         let state = &self.state;
         let (mut bab, mut fort, mut reflex, mut will) = (0u8, 0u8, 0u8, 0u8);
         let (mut arcane, mut divine, mut caster_level) = (0u8, 0u8, 0u8);
+        let (mut spontaneous_arcane, mut spontaneous_divine) = (0u8, 0u8);
         for entry in &state.classes {
             let Some((class, prestige)) = engine.class(&entry.class) else {
                 continue;
@@ -1820,6 +2312,10 @@ impl<'a> Walker<'a> {
             if let Some(row) = engine.row(class, archetype, effective.min(class_level_cap(class))) {
                 arcane = arcane.max(row.spell_levels.arcane);
                 divine = divine.max(row.spell_levels.divine);
+                if engine.spontaneous(class, archetype) {
+                    spontaneous_arcane = spontaneous_arcane.max(row.spell_levels.arcane);
+                    spontaneous_divine = spontaneous_divine.max(row.spell_levels.divine);
+                }
                 if row.spell_levels.any() {
                     caster_level = caster_level.max(effective);
                 }
@@ -1848,6 +2344,8 @@ impl<'a> Walker<'a> {
         state.will = will;
         state.arcane_spell_level = arcane;
         state.divine_spell_level = divine;
+        state.spontaneous_arcane_spell_level = spontaneous_arcane;
+        state.spontaneous_divine_spell_level = spontaneous_divine;
         state.caster_level = caster_level;
     }
 }
@@ -1869,12 +2367,12 @@ pub(crate) fn check_pick(
             let SlotKind::Feat(slot) = kind else {
                 return Err(Issue::NotAllowed);
             };
-            if !engine.slot_accepts(slot, feat) {
+            if !engine.slot_accepts_in(slot, feat, state) {
                 return Err(Issue::NotAllowed);
             }
             engine.check_value(feat.parameter, value)?;
             check_repeat(state, key, feat.repeat, value)?;
-            if engine.slot_ignores_prerequisites(slot) {
+            if engine.slot_ignores_in(slot, feat, state) {
                 return Ok(());
             }
             feat.prerequisite.as_ref()
@@ -1884,10 +2382,11 @@ pub(crate) fn check_pick(
             let SlotKind::Selection(selection) = kind else {
                 return Err(Issue::NotAllowed);
             };
-            // Its own option or one it shares; a shared option keeps its one key, so it's held once.
+            // Its own option or one it shares (or one of a held option's pool); a shared option keeps its one key, so
+            // it's held once.
             if !engine
                 .selection(selection)
-                .is_some_and(|selection| selection.offers(key))
+                .is_some_and(|selection| engine.offers(selection, key, state))
             {
                 return Err(Issue::NotAllowed);
             }

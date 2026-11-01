@@ -8,6 +8,7 @@ Class(
     reflex: Good,
     will: Good,
     class_skills: ["athletics", "knowledge-arcana", "knowledge-world", "lore-nature", "lore-religion", "mobility", "perception", "persuasion", "stealth", "trickery", "use-magic-device"],
+    spontaneous: true,
     features: [
         (key: "bard/bard-proficiencies", name: "Bard Proficiencies", guide: "bard#bard-proficiencies"),
         (key: "bard/bard-talents", name: "Bard Talents", guide: "bard#bard-talents"),

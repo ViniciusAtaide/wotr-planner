@@ -63,7 +63,8 @@ fn canonical_catalogs_are_ordered_by_key() {
     assert_eq!(
         keys,
         [
-            "cleric", "fighter", "monk", "rogue", "slayer", "witch", "wizard"
+            "bard", "cleric", "fighter", "monk", "ranger", "rogue", "slayer", "sorcerer", "witch",
+            "wizard"
         ]
     );
     let levels: Vec<_> = data.classes[0].levels.iter().map(|r| r.level).collect();
@@ -79,10 +80,10 @@ fn counts_summarise_each_catalog() {
             ("Skills", 4),
             ("Weapons", 5),
             ("Feats", 32),
-            ("Classes", 7),
-            ("Archetypes", 2),
-            ("Prestige classes", 4),
-            ("Mythic abilities", 6),
+            ("Classes", 10),
+            ("Archetypes", 6),
+            ("Prestige classes", 5),
+            ("Mythic abilities", 8),
             ("Mythic feats", 6),
             ("Mythic paths", 6),
         ]

@@ -62,6 +62,12 @@ fn every_feat_list_of_the_data_is_listed_once() {
             "fighter/armiger/bonus-feats",
             "rogue/skill-focus",
             "monk/bonus-feats",
+            "sorcerer/bloodline/abyssal-feats",
+            "sorcerer/bloodline/arcane-feats",
+            "sorcerer/bloodline/draconic-feats",
+            "ranger/combat-style/archery-2",
+            "ranger/combat-style/archery-6",
+            "ranger/combat-style/crane-2",
             "trickster/bonus-feats",
             "gold-dragon/dragon-feats"
         ]

@@ -73,6 +73,26 @@ class's), and BAB and saves (from the class's progressions).
 - A selection option that grants feats names them: `feats: ["weapon-focus"]` (a rogue talent that is the feat of
   the same name), or several (the Azata's All-skilled: every weapon, armour and shield proficiency). Picking the
   option holds them.
+- An option that grants over class levels (a bloodline, school, order, spirit, way or combat style) is a block
+  with `levels: [...]`, one row per line, by **option level**: `(level: 9, features: [...], feats: ["wings"],
+  selections: ["sorcerer/bloodline/arcane/school-power"], feat_list: "sorcerer/bloodline/abyssal/feats")`. A row's
+  `feat_list` is the option's list from that level on (one per stage for a ranger style). Its selection says
+  which classes' levels make the option level, `option_levels: ["dragon-disciple", "sorcerer"]` (an option taken
+  late gets every row up to its level at once), and an archetype that changes the grant has its own selection
+  that shares the options it allows: `skipped_levels: [3, 9, 15]` (Seeker; its own rows replace them),
+  `feat_lists_only: true` (Crossblooded's second bloodline), only some options (Hag-Riven), or one option, which
+  is then granted with no pick (a Sage Sorcerer's Arcane bloodline). `only_without_option: true` grants the
+  selection only to a character holding none of its options (Dragon Disciple's Blood of Dragons). A bonus slot
+  that picks from the held option's list is `OptionList(selection: "sorcerer/bloodline")`. The option features
+  are the class's (`sorcerer/bloodline/abyssal/grow-claws`; the ten dragons share `sorcerer/bloodline/draconic/...`).
+  Spells stay out. A Primalist's choice replaces the bloodline's row with `replaces_row_of:
+  "bloodrager/bloodline"`; a feature can grant one row of a held option, `option_row: (selection:
+  "sorcerer/bloodline", level: 20)` (Bloodline Ascendance); a mythic ability grants `features` and `selections`
+  (Second Bloodline). A choice the game asks for every day is `daily_choice: true` on its feature (Mixed
+  Bloodline). A class (or archetype, `spontaneous: Some(true)`) that casts spontaneously says `spontaneous: true`,
+  which `SpontaneousSpellLevel(spell_type: Arcane, level: 1)` checks; `NoOptionFrom("sorcerer/bloodline")` needs
+  none of that selection's options held. A selection with `pool_of` offers the pools (`pool`) of the options held
+  in another (ticket 31's revelations). `extract::option_levels` reads all this from the guide.
 - A path's switch rule: `switch: (from: ["aeon", "azata"], kept_through_rank: 7, path_kept_through_rank: 7,
   dropped_features: [...], dropped_selections: [...], features: [...], further_ascensions: true, level_cap:
   Some(40))`. The general picks (mythic abilities and feats) of MR 1 to `kept_through_rank` stay, and the old

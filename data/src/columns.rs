@@ -217,6 +217,8 @@ pub(crate) enum NodeKind {
     FeatFor,
     FeatForSameValue,
     Story,
+    NoOptionFrom,
+    SpontaneousSpellLevel,
 }
 
 impl NodeKind {
@@ -248,6 +250,8 @@ text_column!(NodeKind, node_kind_from, node_kind_text {
     FeatFor => "feat_for",
     FeatForSameValue => "feat_for_same_value",
     Story => "story",
+    NoOptionFrom => "no_option_from",
+    SpontaneousSpellLevel => "spontaneous_spell_level",
 });
 
 /// `feat_slot.kind`: which `rules::FeatSlot` variant a row is.
@@ -257,6 +261,7 @@ pub(crate) enum FeatSlotKind {
     CombatFeat,
     Category,
     OneOf,
+    OptionList,
 }
 
 text_column!(FeatSlotKind, feat_slot_kind_from, feat_slot_kind_text {
@@ -264,6 +269,7 @@ text_column!(FeatSlotKind, feat_slot_kind_from, feat_slot_kind_text {
     CombatFeat => "combat_feat",
     Category => "category",
     OneOf => "one_of",
+    OptionList => "option_list",
 });
 
 /// `feature_ability_bonus.kind`: which `rules::AbilityBonus` variant a row is.

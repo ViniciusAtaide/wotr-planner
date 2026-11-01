@@ -6,8 +6,8 @@
 use std::collections::HashMap;
 
 use rules::{
-    ArchetypeKey, ClassKey, FeatKey, FeatureKey, MythicAbilityKey, MythicFeatKey, Parameter,
-    Prerequisite, RaceKey, SelectionOptionKey, SkillKey, WeaponKey,
+    ArchetypeKey, ClassKey, FeatKey, FeatureKey, FeatureSelectionKey, MythicAbilityKey,
+    MythicFeatKey, Parameter, Prerequisite, RaceKey, SelectionOptionKey, SkillKey, WeaponKey,
 };
 use sqlx::PgConnection;
 
@@ -39,6 +39,7 @@ struct Node {
     energy: Option<&'static str>,
     armour_type: Option<&'static str>,
     story: Option<&'static str>,
+    selection_key: Option<String>,
 }
 
 impl Node {
@@ -63,6 +64,7 @@ impl Node {
             energy: None,
             armour_type: None,
             story: None,
+            selection_key: None,
         }
     }
 
@@ -174,6 +176,14 @@ impl Node {
                 story: Some(story_text(*story)),
                 ..Self::of(NodeKind::Story)
             },
+            P::NoOptionFrom(selection) => Self {
+                selection_key: key(selection.as_str()),
+                ..Self::of(NodeKind::NoOptionFrom)
+            },
+            P::SpontaneousSpellLevel { spell_type, level } => Self {
+                spell_type: Some(spell_type_text(*spell_type)),
+                ..Self::of(NodeKind::SpontaneousSpellLevel).with_amount(*level)
+            },
         };
         (node, &[])
     }
@@ -197,9 +207,9 @@ pub(crate) async fn insert(
                 parent_id, kind, feat_key, mythic_feat_key, mythic_ability_key,
                 class_key, archetype_key, feature_key, selection_option_key, skill_key, race_key,
                 weapon_key, ability, spell_type, alignment, amount, spell_school, energy, armour_type,
-                story
+                story, selection_key
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17,
-                $18, $19, $20)
+                $18, $19, $20, $21)
             RETURNING id",
             parent_id,
             node_kind_text(node.kind),
@@ -221,6 +231,7 @@ pub(crate) async fn insert(
             node.energy,
             node.armour_type,
             node.story,
+            node.selection_key,
         )
         .fetch_one(&mut *conn)
         .await?;
@@ -254,6 +265,7 @@ struct StoredNode {
     energy: Option<String>,
     armour_type: Option<String>,
     story: Option<String>,
+    selection_key: Option<String>,
 }
 
 impl StoredNode {
@@ -291,7 +303,8 @@ impl Trees {
         let rows = sqlx::query!(
             "SELECT id, parent_id, kind, feat_key, mythic_feat_key, mythic_ability_key, class_key,
                 archetype_key, feature_key, selection_option_key, skill_key, race_key, weapon_key,
-                ability, spell_type, alignment, amount, spell_school, energy, armour_type, story
+                ability, spell_type, alignment, amount, spell_school, energy, armour_type, story,
+                selection_key
             FROM prerequisite_node
             ORDER BY id"
         )
@@ -330,6 +343,7 @@ impl Trees {
                     energy: row.energy,
                     armour_type: row.armour_type,
                     story: row.story,
+                    selection_key: row.selection_key,
                 },
             );
         }
@@ -474,6 +488,14 @@ impl Trees {
                 P::FeatForSameValue(FeatKey(text(&node.feat_key, "feat_key")?))
             }
             NodeKind::Story => P::Story(story_from(&text(&node.story, "story")?)?),
+            NodeKind::NoOptionFrom => P::NoOptionFrom(FeatureSelectionKey(text(
+                &node.selection_key,
+                "selection_key",
+            )?)),
+            NodeKind::SpontaneousSpellLevel => P::SpontaneousSpellLevel {
+                spell_type: spell_type_from(&text(&node.spell_type, "spell_type")?)?,
+                level: amount()?,
+            },
         })
     }
 }

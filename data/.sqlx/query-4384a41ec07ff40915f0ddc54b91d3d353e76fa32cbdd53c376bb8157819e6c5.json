@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT key, is_prestige, name, summary, guide, skill_points, bab, fort, reflex, will,\n            advances, prerequisite_root_id\n        FROM class ORDER BY key",
+  "query": "SELECT key, is_prestige, name, summary, guide, skill_points, bab, fort, reflex, will,\n            advances, spontaneous, prerequisite_root_id\n        FROM class ORDER BY key",
   "describe": {
     "columns": [
       {
@@ -126,6 +126,17 @@
       },
       {
         "ordinal": 11,
+        "name": "spontaneous",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "class",
+            "name": "spontaneous"
+          }
+        }
+      },
+      {
+        "ordinal": 12,
         "name": "prerequisite_root_id",
         "type_info": "Int8",
         "origin": {
@@ -151,8 +162,9 @@
       false,
       false,
       false,
+      false,
       true
     ]
   },
-  "hash": "200022a65729559fc882dd2ff558a02f60fd5c15829d5ed39ea2197a8da3cb40"
+  "hash": "4384a41ec07ff40915f0ddc54b91d3d353e76fa32cbdd53c376bb8157819e6c5"
 }

@@ -140,6 +140,9 @@ pub fn nature_bond(data: &mut GameData) {
         chosen_feat: None,
         repeat: Repeat::Once,
         prerequisite: None,
+        levels: Vec::new(),
+        pool: None,
+        replaces_row_of: None,
     };
     druid.selections.push(FeatureSelection {
         key: selection,
@@ -151,6 +154,11 @@ pub fn nature_bond(data: &mut GameData) {
             option("domain", "Domain"),
         ],
         shared_options: BTreeSet::new(),
+        option_levels: BTreeSet::new(),
+        skipped_levels: BTreeSet::new(),
+        feat_lists_only: false,
+        only_without_option: false,
+        pool_of: None,
     });
 
     // Boon Companion and Mythical Beast: "Animal Companion".

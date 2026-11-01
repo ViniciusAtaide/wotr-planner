@@ -53,6 +53,7 @@ fn archetype(key: &str, levels: Vec<ArchetypeLevelRow>) -> Archetype {
         selections: vec![],
         feat_lists: vec![],
         levels,
+        spontaneous: None,
     }
 }
 
@@ -77,6 +78,7 @@ fn class(levels: Vec<ClassLevelRow>, archetypes: Vec<Archetype>) -> Class {
         feat_lists: vec![],
         levels,
         archetypes,
+        spontaneous: false,
     }
 }
 

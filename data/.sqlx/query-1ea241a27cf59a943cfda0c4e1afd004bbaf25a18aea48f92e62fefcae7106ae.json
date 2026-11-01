@@ -1,0 +1,38 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT selection_key, class_key FROM selection_level_class ORDER BY selection_key, class_key",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "selection_key",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "selection_level_class",
+            "name": "selection_key"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "class_key",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "selection_level_class",
+            "name": "class_key"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "1ea241a27cf59a943cfda0c4e1afd004bbaf25a18aea48f92e62fefcae7106ae"
+}

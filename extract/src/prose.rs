@@ -202,6 +202,8 @@ pub fn path_rules(paths: &mut [MythicPath]) {
                     summary: String::new(),
                     guide: GuideRef::new(format!("other-mythic-paths#{anchor}")),
                     ability_bonuses: Vec::new(),
+                    option_row: None,
+                    daily_choice: false,
                 };
                 path.features
                     .push(feature("legend/legend", "Legend", "legend"));

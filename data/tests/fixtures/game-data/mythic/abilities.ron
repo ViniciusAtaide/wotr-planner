@@ -8,4 +8,20 @@
         guide: "mythic-paths#limitless-smite",
         prerequisite: ClassLevel(class: "fighter", level: 1),
     ),
+    (
+        key: "bloodline-ascendance",
+        name: "Bloodline Ascendance",
+        group: Class,
+        guide: "mythic-paths#bloodline-ascendance",
+        prerequisite: ClassLevel(class: "sorcerer", level: 1),
+        features: ["sorcerer/bloodline-ascendance"],
+    ),
+    (
+        key: "second-bloodline",
+        name: "Second Bloodline",
+        group: Class,
+        guide: "mythic-paths#second-bloodline",
+        prerequisite: SpontaneousSpellLevel(spell_type: Arcane, level: 1),
+        selections: ["sorcerer/bloodline"],
+    ),
 ]

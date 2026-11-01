@@ -316,6 +316,7 @@ fn class(key: &str, levels: Vec<ClassLevelRow>, archetypes: Vec<Archetype>) -> C
         feat_lists: vec![],
         levels,
         archetypes,
+        spontaneous: false,
     }
 }
 
@@ -332,6 +333,7 @@ fn archetype(key: &str, features: Vec<Feature>, levels: Vec<ArchetypeLevelRow>) 
         selections: vec![],
         feat_lists: vec![],
         levels,
+        spontaneous: None,
     }
 }
 
@@ -342,6 +344,8 @@ fn feature(key: &str) -> Feature {
         summary: String::new(),
         guide: GuideRef::new(key),
         ability_bonuses: vec![],
+        option_row: None,
+        daily_choice: false,
     }
 }
 
@@ -460,6 +464,9 @@ fn the_files_write_weapons_parameters_repeats_and_chosen_feats() {
         chosen_feat: chosen_feat.map(feat_key),
         repeat,
         prerequisite: None,
+        levels: vec![],
+        pool: None,
+        replaces_row_of: None,
     };
     talents.selections.push(FeatureSelection {
         key: FeatureSelectionKey::new("rogue/rogue-talents"),
@@ -475,6 +482,11 @@ fn the_files_write_weapons_parameters_repeats_and_chosen_feats() {
             ),
         ],
         shared_options: BTreeSet::new(),
+        option_levels: BTreeSet::new(),
+        skipped_levels: BTreeSet::new(),
+        feat_lists_only: false,
+        only_without_option: false,
+        pool_of: None,
     });
     let data = GameData {
         progression: rules::Progression {

@@ -9,6 +9,7 @@ Class(
     will: Poor,
     save_exceptions: [(level: 7, save: Will, value: 3)],
     class_skills: ["athletics", "knowledge-world", "lore-nature", "perception", "persuasion", "stealth"],
+    spontaneous: true,
     features: [
         (key: "hunter/animal-companion", name: "Animal Companion", guide: "hunter#animal-companion"),
         (key: "hunter/hunter-tactics", name: "Hunter Tactics", guide: "hunter#hunter-tactics"),

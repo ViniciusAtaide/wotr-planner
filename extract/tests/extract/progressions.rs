@@ -35,7 +35,7 @@ fn a_base_class_table_gives_its_progressions() {
         ]
     );
     assert_eq!(found.save_exceptions, []);
-    assert_eq!(found.bab_misfits, []);
+    assert_eq!(found.bab_misfits, Vec::<u8>::new());
 }
 
 #[test]
@@ -163,7 +163,9 @@ fn an_archetype_keeps_only_the_rows_that_differ_from_its_base_class() {
                     ..full_row(5, 0, &["rogue/sneak-attack"])
                 },
             ],
+            spontaneous: None,
         }],
+        spontaneous: false,
     };
     sparse_archetype_rows(&mut class);
 

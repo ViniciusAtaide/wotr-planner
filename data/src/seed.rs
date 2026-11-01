@@ -4,7 +4,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use rules::{
     AbilityBonus, AbilityModifier, Archetype, ArchetypeLevelRow, Class, ClassLevelRow,
-    CountsToward, FeatKey, FeatList, FeatSlot, Feature, FeatureKey, FeatureSelection,
+    CountsToward, FeatKey, FeatList, FeatListKey, FeatSlot, Feature, FeatureKey, FeatureSelection,
     FeatureSelectionKey, GameData, MythicPath, Race, SkillKey,
 };
 use sqlx::PgConnection;
@@ -39,9 +39,10 @@ async fn insert_all(db: &Database, data: &GameData, hash: &str) -> Result<(), sq
             ability_modifier, feat, class, save_exception, class_counts_as, archetype, class_skill, mythic_ability,
             mythic_feat,
             mythic_path, path_switch, path_switch_from, path_switch_drop, path_switch_feature,
-            feature, feature_ability_bonus, feature_selection, selection_option,
-            selection_option_feat, selection_shared_option, feat_list, feat_list_member,
-            class_level, mythic_rank, granted_feature, granted_selection, granted_feat, feat_slot
+            feature, feature_ability_bonus, feature_selection, selection_level_class,
+            selection_skipped_level, selection_option, selection_option_feat, selection_shared_option,
+            option_level, feat_list, feat_list_member, class_level, mythic_rank, granted_feature,
+            granted_selection, granted_feat, feat_slot
         RESTART IDENTITY"
     )
     .execute(&mut *conn)
@@ -112,6 +113,8 @@ async fn insert_all(db: &Database, data: &GameData, hash: &str) -> Result<(), sq
         )
         .execute(&mut *conn)
         .await?;
+        let owner = SlotOwner::MythicAbility(ability.key.as_str());
+        insert_grants(conn, owner, &ability.features, &ability.selections).await?;
     }
     for feat in data.mythic_feats.iter() {
         let root = prerequisites::insert(conn, feat.prerequisite.as_ref()).await?;
@@ -250,8 +253,8 @@ async fn insert_class(
     let root = prerequisites::insert(conn, class.prerequisite.as_ref()).await?;
     sqlx::query!(
         "INSERT INTO class (key, is_prestige, name, summary, guide, skill_points, bab, fort, reflex,
-            will, advances, prerequisite_root_id)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
+            will, advances, spontaneous, prerequisite_root_id)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)",
         class.key.as_str(),
         is_prestige,
         class.name,
@@ -263,6 +266,7 @@ async fn insert_class(
         save_progression_text(class.reflex),
         save_progression_text(class.will),
         advancement_text(class.advances),
+        class.spontaneous,
         root,
     )
     .execute(&mut *conn)
@@ -317,8 +321,8 @@ async fn insert_archetype(
     let root = prerequisites::insert(conn, archetype.prerequisite.as_ref()).await?;
     sqlx::query!(
         "INSERT INTO archetype (key, class_key, name, summary, guide,
-            prerequisite_root_id, skill_points, overrides_class_skills)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+            prerequisite_root_id, skill_points, overrides_class_skills, spontaneous)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
         archetype.key.as_str(),
         class.key.as_str(),
         archetype.name,
@@ -327,6 +331,7 @@ async fn insert_archetype(
         root,
         archetype.skill_points.map(i16::from),
         archetype.class_skills.is_some(),
+        archetype.spontaneous,
     )
     .execute(&mut *conn)
     .await?;
@@ -371,8 +376,9 @@ async fn insert_features(
     for feature in features.iter() {
         sqlx::query!(
             "INSERT INTO feature
-                (key, class_key, archetype_key, path_key, name, summary, guide)
-            VALUES ($1, $2, $3, $4, $5, $6, $7)",
+                (key, class_key, archetype_key, path_key, name, summary, guide,
+                option_row_selection_key, option_row_level, daily_choice)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
             feature.key.as_str(),
             class_key,
             archetype_key,
@@ -380,6 +386,12 @@ async fn insert_features(
             feature.name,
             feature.summary,
             feature.guide.0,
+            feature
+                .option_row
+                .as_ref()
+                .map(|row| row.selection.as_str()),
+            feature.option_row.as_ref().map(|row| i16::from(row.level)),
+            feature.daily_choice,
         )
         .execute(&mut *conn)
         .await?;
@@ -416,8 +428,9 @@ async fn insert_selections(
     for selection in selections.iter() {
         sqlx::query!(
             "INSERT INTO feature_selection
-                (key, class_key, archetype_key, path_key, name, summary, guide)
-            VALUES ($1, $2, $3, $4, $5, $6, $7)",
+                (key, class_key, archetype_key, path_key, name, summary, guide, feat_lists_only,
+                only_without_option, pool_of_key)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
             selection.key.as_str(),
             class_key,
             archetype_key,
@@ -425,16 +438,38 @@ async fn insert_selections(
             selection.name,
             selection.summary,
             selection.guide.0,
+            selection.feat_lists_only,
+            selection.only_without_option,
+            selection.pool_of.as_ref().map(FeatureSelectionKey::as_str),
         )
         .execute(&mut *conn)
         .await?;
+        for class in selection.option_levels.iter() {
+            sqlx::query!(
+                "INSERT INTO selection_level_class (selection_key, class_key) VALUES ($1, $2)",
+                selection.key.as_str(),
+                class.as_str(),
+            )
+            .execute(&mut *conn)
+            .await?;
+        }
+        for level in selection.skipped_levels.iter() {
+            sqlx::query!(
+                "INSERT INTO selection_skipped_level (selection_key, level) VALUES ($1, $2)",
+                selection.key.as_str(),
+                i16::from(*level),
+            )
+            .execute(&mut *conn)
+            .await?;
+        }
         for option in selection.options.iter() {
             let root = prerequisites::insert(conn, option.prerequisite.as_ref()).await?;
             let (repeat, repeat_times) = repeat_columns(option.repeat);
             sqlx::query!(
                 "INSERT INTO selection_option (key, selection_key, name, summary, guide,
-                    prerequisite_root_id, chosen_feat_key, repeat, repeat_times)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
+                    prerequisite_root_id, chosen_feat_key, repeat, repeat_times, pool_key,
+                    replaces_row_of_key)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
                 option.key.as_str(),
                 selection.key.as_str(),
                 option.name,
@@ -444,9 +479,29 @@ async fn insert_selections(
                 option.chosen_feat.as_ref().map(FeatKey::as_str),
                 repeat,
                 repeat_times,
+                option.pool.as_ref().map(FeatureSelectionKey::as_str),
+                option
+                    .replaces_row_of
+                    .as_ref()
+                    .map(FeatureSelectionKey::as_str),
             )
             .execute(&mut *conn)
             .await?;
+            for row in option.levels.iter() {
+                let id = sqlx::query_scalar!(
+                    "INSERT INTO option_level (option_key, level, feat_list_key)
+                    VALUES ($1, $2, $3)
+                    RETURNING id",
+                    option.key.as_str(),
+                    i16::from(row.level),
+                    row.feat_list.as_ref().map(FeatListKey::as_str),
+                )
+                .fetch_one(&mut *conn)
+                .await?;
+                let owner = SlotOwner::OptionLevel(id);
+                insert_grants(conn, owner, &row.features, &row.selections).await?;
+                insert_granted_feats(conn, owner, &row.feats).await?;
+            }
             for feat in option.feats.iter() {
                 sqlx::query!(
                     "INSERT INTO selection_option_feat (option_key, feat_key) VALUES ($1, $2)",
@@ -529,21 +584,24 @@ async fn insert_levels(
         .await?;
         let grantor = SlotOwner::ClassLevel(id);
         insert_grants(conn, grantor, &row.features, &row.selections).await?;
-        insert_granted_feats(conn, id, &row.feats).await?;
+        insert_granted_feats(conn, grantor, &row.feats).await?;
         insert_feat_slots(conn, grantor, &row.feat_slots).await?;
     }
     Ok(())
 }
 
+/// A class level's or an option level's granted feats.
 async fn insert_granted_feats(
     conn: &mut PgConnection,
-    class_level_id: i64,
+    owner: SlotOwner<'_>,
     feats: &BTreeSet<FeatKey>,
 ) -> Result<(), sqlx::Error> {
+    let columns = owner.columns();
     for feat in feats.iter() {
         sqlx::query!(
-            "INSERT INTO granted_feat (class_level_id, feat_key) VALUES ($1, $2)",
-            class_level_id,
+            "INSERT INTO granted_feat (class_level_id, option_level_id, feat_key) VALUES ($1, $2, $3)",
+            columns.class_level_id,
+            columns.option_level_id,
             feat.as_str(),
         )
         .execute(&mut *conn)
@@ -574,7 +632,7 @@ async fn insert_archetype_levels(
         .await?;
         let grantor = SlotOwner::ClassLevel(id);
         insert_grants(conn, grantor, &row.features, &row.selections).await?;
-        insert_granted_feats(conn, id, &row.feats).await?;
+        insert_granted_feats(conn, grantor, &row.feats).await?;
         insert_feat_slots(conn, grantor, &row.feat_slots).await?;
     }
     Ok(())
@@ -663,21 +721,49 @@ async fn insert_mythic_path(conn: &mut PgConnection, path: &MythicPath) -> Resul
     Ok(())
 }
 
-/// Who a feat slot, granted feature or granted selection belongs to.
+/// Who a feat slot, granted feature, granted selection or granted feat belongs to.
 #[derive(Clone, Copy)]
 enum SlotOwner<'a> {
     Race(&'a str),
     ClassLevel(i64),
     MythicRank(i64),
+    OptionLevel(i64),
+    MythicAbility(&'a str),
+}
+
+/// The owner columns of a grant: exactly one is set.
+#[derive(Default)]
+struct OwnerColumns<'a> {
+    race_key: Option<&'a str>,
+    class_level_id: Option<i64>,
+    mythic_rank_id: Option<i64>,
+    option_level_id: Option<i64>,
+    mythic_ability_key: Option<&'a str>,
 }
 
 impl<'a> SlotOwner<'a> {
-    /// `(race_key, class_level_id, mythic_rank_id)` columns.
-    fn columns(self) -> (Option<&'a str>, Option<i64>, Option<i64>) {
+    fn columns(self) -> OwnerColumns<'a> {
         match self {
-            Self::Race(key) => (Some(key), None, None),
-            Self::ClassLevel(id) => (None, Some(id), None),
-            Self::MythicRank(id) => (None, None, Some(id)),
+            Self::Race(key) => OwnerColumns {
+                race_key: Some(key),
+                ..OwnerColumns::default()
+            },
+            Self::ClassLevel(id) => OwnerColumns {
+                class_level_id: Some(id),
+                ..OwnerColumns::default()
+            },
+            Self::MythicRank(id) => OwnerColumns {
+                mythic_rank_id: Some(id),
+                ..OwnerColumns::default()
+            },
+            Self::OptionLevel(id) => OwnerColumns {
+                option_level_id: Some(id),
+                ..OwnerColumns::default()
+            },
+            Self::MythicAbility(key) => OwnerColumns {
+                mythic_ability_key: Some(key),
+                ..OwnerColumns::default()
+            },
         }
     }
 }
@@ -698,13 +784,16 @@ async fn insert_grants(
     features: &[FeatureKey],
     selections: &[FeatureSelectionKey],
 ) -> Result<(), sqlx::Error> {
-    let (_, class_level_id, mythic_rank_id) = owner.columns();
+    let columns = owner.columns();
     for (feature, count) in counted(features.iter().map(FeatureKey::as_str)) {
         sqlx::query!(
-            "INSERT INTO granted_feature (class_level_id, mythic_rank_id, feature_key, count)
-            VALUES ($1, $2, $3, $4)",
-            class_level_id,
-            mythic_rank_id,
+            "INSERT INTO granted_feature (class_level_id, mythic_rank_id, option_level_id,
+                mythic_ability_key, feature_key, count)
+            VALUES ($1, $2, $3, $4, $5, $6)",
+            columns.class_level_id,
+            columns.mythic_rank_id,
+            columns.option_level_id,
+            columns.mythic_ability_key,
             feature,
             count,
         )
@@ -713,10 +802,13 @@ async fn insert_grants(
     }
     for (selection, count) in counted(selections.iter().map(FeatureSelectionKey::as_str)) {
         sqlx::query!(
-            "INSERT INTO granted_selection (class_level_id, mythic_rank_id, selection_key, count)
-            VALUES ($1, $2, $3, $4)",
-            class_level_id,
-            mythic_rank_id,
+            "INSERT INTO granted_selection (class_level_id, mythic_rank_id, option_level_id,
+                mythic_ability_key, selection_key, count)
+            VALUES ($1, $2, $3, $4, $5, $6)",
+            columns.class_level_id,
+            columns.mythic_rank_id,
+            columns.option_level_id,
+            columns.mythic_ability_key,
             selection,
             count,
         )
@@ -731,28 +823,37 @@ async fn insert_feat_slots(
     owner: SlotOwner<'_>,
     slots: &[FeatSlot],
 ) -> Result<(), sqlx::Error> {
-    let (race_key, class_level_id, mythic_rank_id) = owner.columns();
+    let columns = owner.columns();
     for slot in slots.iter() {
-        let (kind, category, list) = match slot {
-            FeatSlot::General => (FeatSlotKind::General, None, None),
-            FeatSlot::CombatFeat => (FeatSlotKind::CombatFeat, None, None),
+        let (kind, category, list, selection) = match slot {
+            FeatSlot::General => (FeatSlotKind::General, None, None, None),
+            FeatSlot::CombatFeat => (FeatSlotKind::CombatFeat, None, None, None),
             FeatSlot::Category(category) => (
                 FeatSlotKind::Category,
                 Some(feat_category_text(*category)),
                 None,
+                None,
             ),
-            FeatSlot::OneOf { list } => (FeatSlotKind::OneOf, None, Some(list.as_str())),
+            FeatSlot::OneOf { list } => (FeatSlotKind::OneOf, None, Some(list.as_str()), None),
+            FeatSlot::OptionList { selection } => (
+                FeatSlotKind::OptionList,
+                None,
+                None,
+                Some(selection.as_str()),
+            ),
         };
         sqlx::query!(
             "INSERT INTO feat_slot
-                (race_key, class_level_id, mythic_rank_id, kind, category, feat_list_key)
-            VALUES ($1, $2, $3, $4, $5, $6)",
-            race_key,
-            class_level_id,
-            mythic_rank_id,
+                (race_key, class_level_id, mythic_rank_id, kind, category, feat_list_key,
+                selection_key)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)",
+            columns.race_key,
+            columns.class_level_id,
+            columns.mythic_rank_id,
             feat_slot_kind_text(kind),
             category,
             list,
+            selection,
         )
         .execute(&mut *conn)
         .await?;

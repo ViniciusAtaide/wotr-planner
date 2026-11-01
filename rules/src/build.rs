@@ -171,23 +171,32 @@ pub enum SlotId {
     PathFeat { rank: u8, index: u8 },
     /// A Feature selection slot from the mythic path's rank table.
     PathSelection { rank: u8, index: u8 },
+    /// A Feature selection slot from the rows of options held, reached at a character level (the Arcane
+    /// bloodline's school at option level 15), in the order the level reaches them.
+    OptionSelection { level: u8, index: u8 },
+    /// A Feature selection slot granted by the general mythic pick of a Mythic rank (Second Bloodline).
+    MythicSelection { rank: u8, index: u8 },
 }
 
 impl SlotId {
     /// The Mythic rank, for slots that belong to a Mythic ascension.
     pub fn rank(&self) -> Option<u8> {
         match *self {
-            SlotId::Feat { .. } | SlotId::Selection { .. } => None,
+            SlotId::Feat { .. } | SlotId::Selection { .. } | SlotId::OptionSelection { .. } => None,
             SlotId::Mythic { rank }
             | SlotId::PathFeat { rank, .. }
-            | SlotId::PathSelection { rank, .. } => Some(rank),
+            | SlotId::PathSelection { rank, .. }
+            | SlotId::MythicSelection { rank, .. } => Some(rank),
         }
     }
 
-    /// The character level, for slots that belong to a Level-up.
+    /// The character level, for slots that belong to a Level-up (an option row's slot belongs to the level that
+    /// reaches the row).
     pub fn level(&self) -> Option<u8> {
         match *self {
-            SlotId::Feat { level, .. } | SlotId::Selection { level, .. } => Some(level),
+            SlotId::Feat { level, .. }
+            | SlotId::Selection { level, .. }
+            | SlotId::OptionSelection { level, .. } => Some(level),
             _ => None,
         }
     }

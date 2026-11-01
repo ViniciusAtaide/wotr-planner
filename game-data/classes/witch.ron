@@ -195,6 +195,7 @@ Class(
             name: "Stigmatized Witch",
             guide: "witch#stigmatized-witch",
             skill_points: 3,
+            spontaneous: Some(true),
             features: [
                 (key: "witch/stigmatized-witch/cantrips", name: "Cantrips", guide: "witch#stigmatized-witch"),
                 (key: "witch/stigmatized-witch/curse", name: "Curse", guide: "witch#curse"),

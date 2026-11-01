@@ -20,7 +20,7 @@ fn kind_of(level: &LevelSheet, id: &SlotId) -> SlotKind {
 
 #[test]
 fn a_general_slot_comes_at_every_odd_character_level() {
-    let sheet = engine().evaluate(&build("elf", &times("wizard", 4)));
+    let sheet = engine().evaluate(&build("elf", &times("bard", 4)));
     assert_eq!(slot_ids(&sheet.levels[0]), [general_slot(1)]);
     assert_eq!(slot_ids(&sheet.levels[1]), []);
     assert_eq!(slot_ids(&sheet.levels[2]), [general_slot(3)]);
@@ -33,7 +33,7 @@ fn a_general_slot_comes_at_every_odd_character_level() {
 
 #[test]
 fn a_human_gets_a_bonus_general_slot_at_level_1_only() {
-    let sheet = engine().evaluate(&build("human", &times("wizard", 3)));
+    let sheet = engine().evaluate(&build("human", &times("bard", 3)));
     // Race slots come first, then class slots, then the general slot.
     assert_eq!(slot_ids(&sheet.levels[0]), [race_slot(0), general_slot(1)]);
     assert_eq!(
@@ -42,7 +42,7 @@ fn a_human_gets_a_bonus_general_slot_at_level_1_only() {
     );
     assert_eq!(slot_ids(&sheet.levels[2]), [general_slot(3)]);
 
-    let elf = engine().evaluate(&build("elf", &["wizard"]));
+    let elf = engine().evaluate(&build("elf", &["bard"]));
     assert_eq!(slot_ids(&elf.levels[0]), [general_slot(1)]);
 }
 

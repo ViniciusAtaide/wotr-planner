@@ -94,6 +94,10 @@ fn slot_id() -> impl Strategy<Value = SlotId> {
         any::<u8>().prop_map(|rank| SlotId::Mythic { rank }),
         (any::<u8>(), any::<u8>()).prop_map(|(rank, index)| SlotId::PathFeat { rank, index }),
         (any::<u8>(), any::<u8>()).prop_map(|(rank, index)| SlotId::PathSelection { rank, index }),
+        (any::<u8>(), any::<u8>())
+            .prop_map(|(level, index)| SlotId::OptionSelection { level, index }),
+        (any::<u8>(), any::<u8>())
+            .prop_map(|(rank, index)| SlotId::MythicSelection { rank, index }),
     ]
 }
 
@@ -189,6 +193,14 @@ fn v1_build() -> Build {
         SlotId::Mythic { rank: 1 },
         pick_mythic_ability("mythic-charge"),
     );
+    build.picks.insert(
+        SlotId::OptionSelection { level: 3, index: 0 },
+        pick_option("rogue/rogue-talents/fast-stealth"),
+    );
+    build.picks.insert(
+        SlotId::MythicSelection { rank: 1, index: 0 },
+        pick_option("sorcerer/bloodline/arcane"),
+    );
     build.class_choices.insert(
         class("rogue"),
         ClassChoice {
@@ -202,9 +214,10 @@ fn v1_build() -> Build {
 
 /// `encode_build(&v1_build())` as format version 1 produced it (2026-10-31, miniz_oxide 0.9.1, level 9). Regenerated
 /// before any link shipped: when archetype and advancement moved into `Build::class_choices`, on 2026-11-01 when
-/// keys lost their type prefix (`feat:power-attack` became `power-attack`), and on 2026-11-01 again when a feat or
-/// option pick gained its parameter (Weapon Focus (Longsword)).
-const V1_LINK: &str = "AT2OS67CMAxF7fL6-AgQQ4ZsIGIRrMS4polIE-S4VOyeUCQm_lzr-lxcXqLQUxRbPw6UAAH_DvvtbrNaLG-h9yYKuCbzUSxwwZ8IreZ-FAD8Dnic21lip8HYu8J5TJ1KrH7TwPfysbWVALB95EnUkRnxvb6o2j_PQerS1Psk9MjJ3TKPBXEdc-rLlLXDBeDpC5qrM4qSrJw5D1cyN4OgwWY3vMwHduxJe3kD";
+/// keys lost their type prefix (`feat:power-attack` became `power-attack`), on 2026-11-01 again when a feat or
+/// option pick gained its parameter (Weapon Focus (Longsword)), and on 2026-11-01 once more for the slots of option
+/// rows and of a mythic ability's selections.
+const V1_LINK: &str = "AXVPSW7DMAwknTpuiqTosb31A4If0ZcwNG0JkaWAomv091UcILdcuAwxnBnsfqLQryi2fpkpAQK-fLwfT2-vu24MkzdRwAOZj2KBCz5AaDVPiwDgfcDPrfUSBw3G3hXOSxpUYuWbBr6UG62rCgDHa15FHZkRX-qLiu15M1KXpt5XoWtObsy8FMRDzGkqa9YBd4Dfd6GtOqMoyUrPeT6TuU0IGmxO85_5wI496STtM9pIxVw1RtE87Gv4r5KVRUX7c8x5iCFJT8qUBP4B";
 
 #[test]
 fn a_version_1_link_still_decodes() {

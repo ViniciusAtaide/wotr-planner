@@ -124,6 +124,8 @@ impl GameData {
         sort_by_key(&mut self.mythic_abilities, |a| a.key.clone());
         for ability in &mut self.mythic_abilities {
             canonicalize_prerequisite(&mut ability.prerequisite);
+            ability.features.sort();
+            ability.selections.sort();
         }
         sort_by_key(&mut self.mythic_feats, |f| f.key.clone());
         for feat in &mut self.mythic_feats {
@@ -172,6 +174,11 @@ fn canonicalize_selections(selections: &mut [FeatureSelection]) {
         sort_by_key(&mut selection.options, |o| o.key.clone());
         for option in &mut selection.options {
             canonicalize_prerequisite(&mut option.prerequisite);
+            option.levels.sort_by_key(|row| row.level);
+            for row in &mut option.levels {
+                row.features.sort();
+                row.selections.sort();
+            }
         }
     }
 }
@@ -395,6 +402,10 @@ pub enum FeatSlot {
     Category(FeatCategory),
     /// A bonus slot for one feat from a named list.
     OneOf { list: FeatListKey },
+    /// A bonus slot whose list comes from a held option: the list in force of each option held that `selection`
+    /// offers (a sorcerer's bloodline feat; a Crossblooded sorcerer's slot offers both bloodlines' lists).
+    /// Checked after the level's Feature selections, since it depends on them.
+    OptionList { selection: FeatureSelectionKey },
 }
 
 /// A named fixed list of feats that a [`FeatSlot::OneOf`] picks from, such as a monk's bonus feats. It belongs to
@@ -450,6 +461,10 @@ pub struct Class {
     /// Entry prerequisites: a prestige class's, or a base class's alignment rule.
     #[serde(default)]
     pub prerequisite: Option<Prerequisite>,
+    /// Whether its spells are cast spontaneously rather than prepared (sorcerer, bard). Dragon Disciple's entry
+    /// checks it ([`Prerequisite::SpontaneousSpellLevel`]).
+    #[serde(default)]
+    pub spontaneous: bool,
     /// Prestige classes: how many classes the rows' spellcasting advancement serves (Mystic Theurge: one of each
     /// spell type; Loremaster: one, arcane or divine).
     #[serde(default)]
@@ -523,6 +538,9 @@ pub struct Archetype {
     /// `None`: same as the base class. `Some`: replaces the base class's list (possibly with none).
     #[serde(default)]
     pub class_skills: Option<BTreeSet<SkillKey>>,
+    /// `None`: casts like the base class. `Some`: spontaneously or not (Eldritch Scion: a spontaneous magus).
+    #[serde(default)]
+    pub spontaneous: Option<bool>,
     /// Features this archetype adds (it can also grant the base class's).
     #[serde(default)]
     pub features: Vec<Feature>,
@@ -715,9 +733,26 @@ pub struct Feature {
     pub summary: String,
     pub guide: GuideRef,
     /// What the feature does to the character's own ability scores while it's held (Legend: +4 to every score).
-    /// They count toward ability-score prerequisites like point buy and level increases do; gear never does.
+    /// They count toward ability-score prerequisites like point buy and level increases do; gear never does. A
+    /// feature granted more than once adds them once per grant (Strength of the Abyss: +2 at 9, 13 and 17).
     #[serde(default)]
     pub ability_bonuses: Vec<AbilityBonus>,
+    /// The row at one option level of the option held in a selection, which the feature grants while it's held
+    /// (Bloodline Ascendance: the bloodline's 20th-level row).
+    #[serde(default)]
+    pub option_row: Option<OptionRow>,
+    /// Set when the game asks for this choice again every day (Mixed Bloodline, a shaman's Wandering Spirit, an
+    /// Abjurer's Resistance): it isn't part of a Build, so the sheet shows a note instead of a pick.
+    #[serde(default)]
+    pub daily_choice: bool,
+}
+
+/// One option level's row of whatever option a selection holds.
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct OptionRow {
+    pub selection: FeatureSelectionKey,
+    pub level: u8,
 }
 
 /// A permanent change a feature makes to the character's own ability scores, as the guide states it.
@@ -750,12 +785,43 @@ pub struct FeatureSelection {
     /// gates it, the data accepts each sharing class's with an `Any`).
     #[serde(default)]
     pub shared_options: BTreeSet<SelectionOptionKey>,
+    /// The classes whose levels add up to the option level of an option held through this selection (a
+    /// sorcerer's bloodline: sorcerer and Dragon Disciple levels). An option's rows apply as its level reaches
+    /// them, and an option taken late gets every row up to its level at once.
+    #[serde(default)]
+    pub option_levels: BTreeSet<ClassKey>,
+    /// Option levels whose rows an option held through this selection doesn't get (Seeker: 3, 9 and 15); the
+    /// archetype's own rows replace them.
+    #[serde(default)]
+    pub skipped_levels: BTreeSet<u8>,
+    /// Set when an option held through this selection gives only its feat lists (Crossblooded's second
+    /// bloodline).
+    #[serde(default)]
+    pub feat_lists_only: bool,
+    /// Set when a level grants this selection only to a character holding none of the options it offers (Dragon
+    /// Disciple: a sorcerer's Draconic bloodline continues, anyone else picks one).
+    #[serde(default)]
+    pub only_without_option: bool,
+    /// Set on a selection with no options of its own: it offers the pools of the options held that this
+    /// selection offers (an oracle's revelations come from the mystery held).
+    #[serde(default)]
+    pub pool_of: Option<FeatureSelectionKey>,
 }
 
 impl FeatureSelection {
-    /// Whether a pick of `option` may fill this selection's slot: one of its own options, or one it shares.
+    /// Whether a pick of `option` may fill this selection's slot: one of its own options, or one it shares. (A
+    /// pool selection's offer depends on what's held: see `Engine`.)
     pub fn offers(&self, option: &SelectionOptionKey) -> bool {
         self.shared_options.contains(option) || self.options.iter().any(|own| &own.key == option)
+    }
+
+    /// Every option it offers, own and shared, in key order.
+    pub fn offered(&self) -> BTreeSet<&SelectionOptionKey> {
+        self.options
+            .iter()
+            .map(|option| &option.key)
+            .chain(&self.shared_options)
+            .collect()
     }
 }
 
@@ -781,6 +847,36 @@ pub struct SelectionOption {
     pub repeat: Repeat,
     #[serde(default)]
     pub prerequisite: Option<Prerequisite>,
+    /// What the option gives by option level (a bloodline's powers at 1, 3, 9, 15 and 20), each level at most
+    /// once. The selection it's held through says which class levels make up its level.
+    #[serde(default)]
+    pub levels: Vec<OptionLevelRow>,
+    /// The selection whose options this option opens to a pool selection (a mystery's revelations).
+    #[serde(default)]
+    pub pool: Option<FeatureSelectionKey>,
+    /// Picking this option skips the row, at the level reached, of the option held in that selection (a
+    /// Primalist's two rage powers instead of the bloodline power).
+    #[serde(default)]
+    pub replaces_row_of: Option<FeatureSelectionKey>,
+}
+
+/// What an option gives at one option level.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct OptionLevelRow {
+    pub level: u8,
+    #[serde(default)]
+    pub features: Vec<FeatureKey>,
+    /// Granted feats, as on a class level row (a bloodline's Wings at 15).
+    #[serde(default)]
+    pub feats: BTreeSet<FeatKey>,
+    /// One Feature selection slot per entry (the Arcane bloodline's school at 15).
+    #[serde(default)]
+    pub selections: Vec<FeatureSelectionKey>,
+    /// The option's feat list from this level on, for [`FeatSlot::OptionList`] slots (a bloodline's feats; a
+    /// ranger style's list per stage).
+    #[serde(default)]
+    pub feat_list: Option<FeatListKey>,
 }
 
 /// The guide's group headings under "Mythic Abilities".
@@ -863,6 +959,12 @@ pub struct MythicAbility {
     pub guide: GuideRef,
     #[serde(default)]
     pub prerequisite: Option<Prerequisite>,
+    /// Features the ability grants while it's held (Bloodline Ascendance).
+    #[serde(default)]
+    pub features: Vec<FeatureKey>,
+    /// Feature selection slots the ability grants when it's picked (Second Bloodline: another bloodline).
+    #[serde(default)]
+    pub selections: Vec<FeatureSelectionKey>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]

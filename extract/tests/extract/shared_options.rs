@@ -23,6 +23,9 @@ fn option(key: &str, anchor: &str, prerequisite: Option<Prerequisite>) -> Select
         chosen_feat: None,
         repeat: rules::Repeat::Once,
         prerequisite,
+        levels: vec![],
+        pool: None,
+        replaces_row_of: None,
     }
 }
 
@@ -34,6 +37,11 @@ fn selection(key: &str, options: Vec<SelectionOption>) -> FeatureSelection {
         guide: GuideRef::new(key),
         options,
         shared_options: BTreeSet::new(),
+        option_levels: BTreeSet::new(),
+        skipped_levels: BTreeSet::new(),
+        feat_lists_only: false,
+        only_without_option: false,
+        pool_of: None,
     }
 }
 
@@ -104,6 +112,7 @@ fn class(
         feat_lists: vec![],
         levels,
         archetypes,
+        spontaneous: false,
     }
 }
 
@@ -120,6 +129,7 @@ fn archetype(key: &str, levels: Vec<ArchetypeLevelRow>) -> Archetype {
         selections: vec![],
         feat_lists: vec![],
         levels,
+        spontaneous: None,
     }
 }
 

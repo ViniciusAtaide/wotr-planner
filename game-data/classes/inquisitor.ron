@@ -8,6 +8,7 @@ Class(
     reflex: Poor,
     will: Good,
     class_skills: ["athletics", "knowledge-arcana", "knowledge-world", "lore-nature", "lore-religion", "mobility", "perception", "persuasion", "stealth", "trickery", "use-magic-device"],
+    spontaneous: true,
     features: [
         (key: "inquisitor/animal-companion", name: "Animal Companion", guide: "inquisitor"),
         (key: "inquisitor/bane", name: "Bane", guide: "inquisitor#bane"),

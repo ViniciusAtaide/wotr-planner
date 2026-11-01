@@ -1,12 +1,14 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO granted_selection (class_level_id, mythic_rank_id, selection_key, count)\n            VALUES ($1, $2, $3, $4)",
+  "query": "INSERT INTO granted_selection (class_level_id, mythic_rank_id, option_level_id,\n                mythic_ability_key, selection_key, count)\n            VALUES ($1, $2, $3, $4, $5, $6)",
   "describe": {
     "columns": [],
     "parameters": {
       "Left": [
         "Int8",
         "Int8",
+        "Int8",
+        "Text",
         "Text",
         {
           "Custom": {
@@ -20,5 +22,5 @@
     },
     "nullable": []
   },
-  "hash": "96c54080bf999651be0dc83fc4b27576ea17e8d519256bbbe4780bd679914769"
+  "hash": "516cc66f7a5295583a3725a164d024c859466b2e027bafe56f5cf4821a1e8c9b"
 }

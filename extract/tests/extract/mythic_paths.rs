@@ -20,6 +20,8 @@ fn feature(key: &str) -> Feature {
         summary: String::new(),
         guide: GuideRef::new(key),
         ability_bonuses: vec![],
+        option_row: None,
+        daily_choice: false,
     }
 }
 
@@ -128,8 +130,16 @@ fn the_path_rules_add_legends_features_the_ability_bonuses_all_skilled_and_drago
             chosen_feat: None,
             repeat: rules::Repeat::Once,
             prerequisite: None,
+            levels: vec![],
+            pool: None,
+            replaces_row_of: None,
         }],
         shared_options: BTreeSet::new(),
+        option_levels: BTreeSet::new(),
+        skipped_levels: BTreeSet::new(),
+        feat_lists_only: false,
+        only_without_option: false,
+        pool_of: None,
     });
     let mut dragon = path(
         "gold-dragon",
@@ -265,8 +275,16 @@ fn the_new_shapes_are_written_on_one_line_each_and_read_back() {
             chosen_feat: None,
             repeat: rules::Repeat::Once,
             prerequisite: Some(Prerequisite::MythicRank(9)),
+            levels: vec![],
+            pool: None,
+            replaces_row_of: None,
         }],
         shared_options: BTreeSet::new(),
+        option_levels: BTreeSet::new(),
+        skipped_levels: BTreeSet::new(),
+        feat_lists_only: false,
+        only_without_option: false,
+        pool_of: None,
     });
     let data = rules::GameData {
         progression: rules::Progression {

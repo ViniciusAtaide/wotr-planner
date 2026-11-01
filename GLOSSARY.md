@@ -96,11 +96,11 @@ Any feat outside the class, racial, skill, teamwork and magic categories. These 
 _Avoid_: Fighter feat, martial feat
 
 **Feature selection**:
-A class-specific choice from a fixed list, such as a rogue talent, rage power or hex. The list is its own Selection options plus any Shared options.
+A class-specific choice from a fixed list, such as a rogue talent, rage power or hex. The list is its own Selection options plus any Shared options. One that offers a single option grants it with no pick (a Sage Sorcerer's Arcane bloodline); one for options with rows names the classes whose levels make their Option level, and may be held twice (a mythic Second Bloodline).
 _Avoid_: Talent (unqualified), class pick
 
 **Selection option**:
-One entry in a Feature selection's list, such as Fast Stealth among the rogue talents. Its key extends the selection's (`rogue/rogue-talents/fast-stealth` extends `rogue/rogue-talents`). It may grant feats, held while it is: one (a rogue talent that is the feat of that name) or several (the Azata's All-skilled: every weapon, armour and shield proficiency). One that is a Parameterised feat of the player's choosing (the rogue talent Weapon Focus) is its **chosen feat**, and the option's pick names the Parameter. It may Repeat.
+One entry in a Feature selection's list, such as Fast Stealth among the rogue talents. Its key extends the selection's (`rogue/rogue-talents/fast-stealth` extends `rogue/rogue-talents`). It may grant feats, held while it is: one (a rogue talent that is the feat of that name) or several (the Azata's All-skilled: every weapon, armour and shield proficiency). One that is a Parameterised feat of the player's choosing (the rogue talent Weapon Focus) is its **chosen feat**, and the option's pick names the Parameter. It may Repeat. It may grant over class levels: see **Option level**.
 _Avoid_: Option (unqualified), talent
 
 **Parameterised feat**:
@@ -114,6 +114,18 @@ _Avoid_: Subtype, argument, option (that's a Selection option)
 **Repeat**:
 How many times a feat or Selection option can be held: once (the default, and what the guide means when it says nothing), a fixed number ("up to 3 times": Extra Hex, Increased Damage Reduction), any number ("may be taken multiple times": Extra Ki), or once per value of its Parameter ("must be applied to a different weapon each time": Weapon Focus, Skill Focus).
 _Avoid_: Stacking, max picks
+
+**Option level**:
+The level of a Selection option that grants over class levels (a bloodline, a wizard school, a cavalier order, a shaman spirit, a Magic Deceiver way, a ranger combat style): the levels of the classes its Feature selection names, added up. A sorcerer 5 / Dragon Disciple 5 has bloodline level 10; a bard who picked a Draconic bloodline on entering Dragon Disciple has the Dragon Disciple's levels. The option's **rows** (its features, granted feats, nested selections and its feat list from that level on) apply as its level reaches them, and one taken late (Second Bloodline) gets every row up to its level at once. An archetype can skip option levels (a Seeker: 3, 9 and 15), and its own rows replace them.
+_Avoid_: Bloodline level (one family's name for it), subclass level
+
+**Option list slot**:
+A bonus Feat slot on a class's row whose Feat list is the held option's: a sorcerer's bloodline feat at 7, 13 and 19, a bloodrager's at 6, 9, …, a ranger's combat style feat (a list per stage). With two options held (a Crossblooded sorcerer's second bloodline gives only its list) it offers both lists. It's checked after the level's Feature selections, since a style picked at 2 is what the slot at 2 draws on.
+_Avoid_: Bloodline slot (the families share it), dynamic list
+
+**Daily choice**:
+A choice the game asks for again every day, so it isn't part of a Build and has no slot: a Mixed-Blood Rager's bloodline, a shaman's Wandering Spirit, an Abjurer's Resistance. The sheet shows it as a note.
+_Avoid_: Daily pick, rest choice
 
 **Shared option**:
 A Selection option that one Feature selection offers from another's list, such as the rogue talents a slayer's talents offer. It keeps the key of the selection that defines it, so a character holds it once whichever slot took it, and its prerequisite is the same in both (a gate on one class's feature accepts each sharing class's).

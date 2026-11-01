@@ -58,6 +58,7 @@ fn class(key: &str, levels: Vec<ClassLevelRow>, archetypes: Vec<Archetype>) -> C
         feat_lists: vec![],
         levels,
         archetypes,
+        spontaneous: false,
     }
 }
 
@@ -68,6 +69,8 @@ fn feature(key: &str) -> Feature {
         summary: String::new(),
         guide: GuideRef::new(key),
         ability_bonuses: vec![],
+        option_row: None,
+        daily_choice: false,
     }
 }
 
@@ -97,6 +100,7 @@ fn archetype(key: &str, own: &[&str], first: Vec<FeatureKey>) -> Archetype {
         selections: vec![],
         feat_lists: vec![],
         levels: vec![level_1],
+        spontaneous: None,
     }
 }
 
@@ -221,6 +225,8 @@ fn druid_world() -> GameData {
         summary: String::new(),
         guide: GuideRef::new("mythic-paths#mythical-beast"),
         prerequisite: Some(companions),
+        features: vec![],
+        selections: vec![],
     });
     data
 }

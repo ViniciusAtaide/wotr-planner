@@ -9,7 +9,7 @@ Class(
     will: Good,
     save_exceptions: [(level: 4, save: Will, value: 3)],
     class_skills: ["knowledge-arcana", "knowledge-world", "lore-nature", "persuasion", "use-magic-device"],
-    prerequisite: All([Any([Archetype("druid/winter-child"), ClassLevel(class: "shaman", level: 1), SelectionOption("witch/patron/winter")]), Any([SpellLevel(spell_type: Arcane, level: 3), SpellLevel(spell_type: Divine, level: 3)]), SkillRanks(skill: "knowledge-arcana", ranks: 5), CharacterLevel(6)]),
+    prerequisite: All([Any([Archetype("druid/winter-child"), SelectionOption("shaman/spirit/frost"), SelectionOption("witch/patron/winter")]), Any([SpellLevel(spell_type: Arcane, level: 3), SpellLevel(spell_type: Divine, level: 3)]), SkillRanks(skill: "knowledge-arcana", ranks: 5), CharacterLevel(6)]),
     advances: Either,
     counts_as: [(class: "witch", toward: Feature("witch/grand-hexes")), (class: "witch", toward: Feature("witch/major-hexes"))],
     features: [

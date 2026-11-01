@@ -163,12 +163,16 @@ pub fn world() -> GameData {
             cleric(),
             monk(),
             witch(),
+            sorcerer(),
+            bard(),
+            ranger(),
         ],
         prestige_classes: vec![
             arcane_trickster(),
             mystic_theurge(),
             eldritch_knight(),
             winter_witch(),
+            dragon_disciple(),
         ],
         mythic_abilities: mythic_abilities(),
         mythic_feats: mythic_feats(),
@@ -580,6 +584,8 @@ fn plain_feature(key: &str, name: &str) -> Feature {
         summary: String::new(),
         guide: guide(key),
         ability_bonuses: vec![],
+        option_row: None,
+        daily_choice: false,
     }
 }
 
@@ -640,6 +646,7 @@ fn fighter() -> Class {
         will: SaveProgression::Poor,
         save_exceptions: vec![],
         advances: Advancement::Each,
+        spontaneous: false,
         counts_as: BTreeSet::new(),
         class_skills: BTreeSet::from([skill("athletics")]),
         prerequisite: None,
@@ -655,6 +662,7 @@ fn fighter() -> Class {
             prerequisite: None,
             skill_points: Some(4),
             class_skills: None,
+            spontaneous: None,
             features: vec![],
             selections: vec![FeatureSelection {
                 key: FeatureSelectionKey::new("fighter/armiger/order"),
@@ -662,6 +670,11 @@ fn fighter() -> Class {
                 summary: String::new(),
                 guide: guide("fighter#order"),
                 shared_options: BTreeSet::new(),
+                option_levels: BTreeSet::new(),
+                skipped_levels: BTreeSet::new(),
+                feat_lists_only: false,
+                only_without_option: false,
+                pool_of: None,
                 options: vec![
                     selection_option("fighter/armiger/order/cockatrice", None, None),
                     selection_option("fighter/armiger/order/dragon", None, None),
@@ -691,6 +704,9 @@ fn selection_option(
         chosen_feat: None,
         repeat: Repeat::Once,
         prerequisite,
+        levels: vec![],
+        pool: None,
+        replaces_row_of: None,
     }
 }
 
@@ -743,6 +759,7 @@ fn rogue() -> Class {
         will: SaveProgression::Poor,
         save_exceptions: vec![],
         advances: Advancement::Each,
+        spontaneous: false,
         counts_as: BTreeSet::new(),
         class_skills: BTreeSet::from([skill("athletics"), skill("mobility"), skill("persuasion")]),
         prerequisite: None,
@@ -753,6 +770,11 @@ fn rogue() -> Class {
             summary: String::new(),
             guide: guide("rogue#rogue-talents"),
             shared_options: BTreeSet::new(),
+            option_levels: BTreeSet::new(),
+            skipped_levels: BTreeSet::new(),
+            feat_lists_only: false,
+            only_without_option: false,
+            pool_of: None,
             options: vec![
                 selection_option(
                     "rogue/rogue-talents/combat-trick",
@@ -797,6 +819,7 @@ fn rogue() -> Class {
             ])),
             skill_points: Some(4),
             class_skills: None,
+            spontaneous: None,
             features: vec![],
             selections: vec![],
             feat_lists: vec![],
@@ -830,6 +853,7 @@ fn slayer() -> Class {
         will: SaveProgression::Poor,
         save_exceptions: vec![],
         advances: Advancement::Each,
+        spontaneous: false,
         counts_as: BTreeSet::new(),
         class_skills: BTreeSet::from([skill("athletics"), skill("mobility")]),
         prerequisite: None,
@@ -854,6 +878,11 @@ fn slayer() -> Class {
             .into_iter()
             .map(option)
             .collect(),
+            option_levels: BTreeSet::new(),
+            skipped_levels: BTreeSet::new(),
+            feat_lists_only: false,
+            only_without_option: false,
+            pool_of: None,
         }],
         feat_lists: vec![],
         levels,
@@ -870,6 +899,7 @@ fn wizard() -> Class {
             r.arcane_spell_level = l.div_ceil(2).min(9);
             if l == 1 {
                 r.feats.insert(feat("scribe-scrolls"));
+                r.selections.push(FeatureSelectionKey::new("wizard/school"));
             }
             if l % 5 == 0 {
                 r.feat_slots.push(FeatSlot::Category(FeatCategory::Magic));
@@ -889,11 +919,42 @@ fn wizard() -> Class {
         will: SaveProgression::Good,
         save_exceptions: vec![],
         advances: Advancement::Each,
+        spontaneous: false,
         counts_as: BTreeSet::new(),
         class_skills: BTreeSet::from([skill("knowledge-arcana")]),
         prerequisite: None,
-        features: vec![],
-        selections: vec![],
+        features: vec![
+            plain_feature("wizard/hand-of-the-apprentice", "Hand of the Apprentice"),
+            plain_feature("wizard/metamagic-mastery", "Metamagic Mastery"),
+            Feature {
+                daily_choice: true,
+                ..plain_feature("wizard/resistance", "Resistance")
+            },
+            plain_feature("wizard/protective-ward", "Protective Ward"),
+            plain_feature("wizard/energy-absorption", "Energy Absorption"),
+        ],
+        // A school at 1, levelled by wizard levels; the Abjurer's Resistance is chosen anew each day.
+        selections: vec![levelled_selection(
+            "wizard/school",
+            &["wizard"],
+            vec![
+                levelled_option(
+                    "wizard/school/universalist",
+                    vec![
+                        option_row(1, &["wizard/hand-of-the-apprentice"]),
+                        option_row(8, &["wizard/metamagic-mastery"]),
+                    ],
+                ),
+                levelled_option(
+                    "wizard/school/abjurer",
+                    vec![
+                        option_row(1, &["wizard/protective-ward", "wizard/resistance"]),
+                        option_row(6, &["wizard/energy-absorption"]),
+                    ],
+                ),
+            ],
+            &[],
+        )],
         feat_lists: vec![],
         levels,
         archetypes: vec![],
@@ -929,6 +990,7 @@ fn monk() -> Class {
         will: SaveProgression::Good,
         save_exceptions: vec![],
         advances: Advancement::Each,
+        spontaneous: false,
         counts_as: BTreeSet::new(),
         class_skills: BTreeSet::from([skill("mobility")]),
         prerequisite: None,
@@ -946,6 +1008,13 @@ fn cleric() -> Class {
         .map(|l| {
             let mut r = row(l);
             r.divine_spell_level = l.div_ceil(2).min(9);
+            if l == 1 {
+                r.selections.push(FeatureSelectionKey::new("cleric/domain"));
+            }
+            if l == 3 {
+                r.selections
+                    .push(FeatureSelectionKey::new("cleric/revelation"));
+            }
             r
         })
         .collect();
@@ -961,11 +1030,47 @@ fn cleric() -> Class {
         will: SaveProgression::Good,
         save_exceptions: vec![],
         advances: Advancement::Each,
+        spontaneous: false,
         counts_as: BTreeSet::new(),
         class_skills: BTreeSet::from([skill("persuasion")]),
         prerequisite: None,
         features: vec![],
-        selections: vec![],
+        // An invented pool: a domain at 1, and at 3 a revelation from the held domain's own list.
+        selections: vec![
+            levelled_selection(
+                "cleric/domain",
+                &["cleric"],
+                vec![
+                    SelectionOption {
+                        pool: Some(FeatureSelectionKey::new("cleric/fire-revelations")),
+                        ..selection_option("cleric/domain/fire", None, None)
+                    },
+                    SelectionOption {
+                        pool: Some(FeatureSelectionKey::new("cleric/water-revelations")),
+                        ..selection_option("cleric/domain/water", None, None)
+                    },
+                ],
+                &[],
+            ),
+            FeatureSelection {
+                pool_of: Some(FeatureSelectionKey::new("cleric/domain")),
+                ..levelled_selection("cleric/revelation", &[], vec![], &[])
+            },
+            FeatureSelection {
+                options: vec![
+                    selection_option("cleric/fire-revelations/burning-hands", None, None),
+                    selection_option("cleric/fire-revelations/fire-breath", None, None),
+                ],
+                ..levelled_selection("cleric/fire-revelations", &[], vec![], &[])
+            },
+            FeatureSelection {
+                options: vec![
+                    selection_option("cleric/water-revelations/icy-skin", None, None),
+                    selection_option("cleric/water-revelations/wave", None, None),
+                ],
+                ..levelled_selection("cleric/water-revelations", &[], vec![], &[])
+            },
+        ],
         feat_lists: vec![],
         levels,
         archetypes: vec![],
@@ -994,6 +1099,7 @@ fn mystic_theurge() -> Class {
         will: SaveProgression::Good,
         save_exceptions: vec![],
         advances: Advancement::Each,
+        spontaneous: false,
         counts_as: BTreeSet::new(),
         class_skills: BTreeSet::from([skill("knowledge-arcana")]),
         prerequisite: Some(Prerequisite::All(vec![
@@ -1038,6 +1144,7 @@ fn arcane_trickster() -> Class {
         will: SaveProgression::Good,
         save_exceptions: vec![],
         advances: Advancement::Each,
+        spontaneous: false,
         counts_as: BTreeSet::new(),
         class_skills: BTreeSet::from([skill("mobility")]),
         prerequisite: Some(Prerequisite::All(vec![
@@ -1100,6 +1207,7 @@ fn witch() -> Class {
         will: SaveProgression::Good,
         save_exceptions: vec![],
         advances: Advancement::Each,
+        spontaneous: false,
         counts_as: BTreeSet::new(),
         class_skills: BTreeSet::from([skill("knowledge-arcana")]),
         prerequisite: None,
@@ -1113,6 +1221,11 @@ fn witch() -> Class {
             summary: String::new(),
             guide: guide("witch#hex"),
             shared_options: BTreeSet::new(),
+            option_levels: BTreeSet::new(),
+            skipped_levels: BTreeSet::new(),
+            feat_lists_only: false,
+            only_without_option: false,
+            pool_of: None,
             options: vec![
                 selection_option("witch/hex/slumber", None, None),
                 selection_option("witch/hex/misfortune", None, None),
@@ -1155,6 +1268,7 @@ fn eldritch_knight() -> Class {
         will: SaveProgression::Poor,
         save_exceptions: vec![],
         advances: Advancement::Each,
+        spontaneous: false,
         counts_as: BTreeSet::from([CountsAs {
             class: class("fighter"),
             toward: CountsToward::FeatPrerequisites,
@@ -1199,6 +1313,7 @@ fn winter_witch() -> Class {
         will: SaveProgression::Good,
         save_exceptions: vec![],
         advances: Advancement::Either,
+        spontaneous: false,
         counts_as: BTreeSet::from([
             toward_witch("witch/major-hexes"),
             toward_witch("witch/grand-hexes"),
@@ -1230,6 +1345,8 @@ fn mythic_abilities() -> Vec<MythicAbility> {
         summary: String::new(),
         guide: guide(key),
         prerequisite,
+        features: vec![],
+        selections: vec![],
     };
     vec![
         ability("mythic-charge", None),
@@ -1244,7 +1361,530 @@ fn mythic_abilities() -> Vec<MythicAbility> {
         ability("inspired-strike", None),
         ability("dimensional-retribution", None),
         ability("abundant-casting", None),
+        // The sorcerer's 20th-level bloodline row, whatever the level.
+        MythicAbility {
+            features: vec![feature("sorcerer/bloodline-ascendance")],
+            ..ability(
+                "bloodline-ascendance",
+                Some(Prerequisite::ClassLevel {
+                    class: class("sorcerer"),
+                    level: 1,
+                }),
+            )
+        },
+        // A second bloodline, a full pick on the same class levels.
+        MythicAbility {
+            selections: vec![FeatureSelectionKey::new("sorcerer/bloodline")],
+            ..ability(
+                "second-bloodline",
+                Some(Prerequisite::ClassLevel {
+                    class: class("sorcerer"),
+                    level: 1,
+                }),
+            )
+        },
     ]
+}
+
+// ---- options with rows by option level ------------------------------------------------------------------------
+
+fn option_row(level: u8, features: &[&str]) -> OptionLevelRow {
+    OptionLevelRow {
+        level,
+        features: features.iter().map(|key| feature(key)).collect(),
+        feats: BTreeSet::new(),
+        selections: vec![],
+        feat_list: None,
+    }
+}
+
+/// A selection whose options have rows: `levels` are the classes whose levels make the option level.
+fn levelled_selection(
+    key: &str,
+    levels: &[&str],
+    options: Vec<SelectionOption>,
+    shared: &[&str],
+) -> FeatureSelection {
+    FeatureSelection {
+        key: FeatureSelectionKey::new(key),
+        name: key.into(),
+        summary: String::new(),
+        guide: guide(key),
+        options,
+        shared_options: shared.iter().map(|key| option(key)).collect(),
+        option_levels: levels.iter().map(|key| class(key)).collect(),
+        skipped_levels: BTreeSet::new(),
+        feat_lists_only: false,
+        only_without_option: false,
+        pool_of: None,
+    }
+}
+
+fn levelled_option(key: &str, levels: Vec<OptionLevelRow>) -> SelectionOption {
+    SelectionOption {
+        levels,
+        ..selection_option(key, None, None)
+    }
+}
+
+const BLOODLINES: [&str; 4] = [
+    "sorcerer/bloodline/abyssal",
+    "sorcerer/bloodline/arcane",
+    "sorcerer/bloodline/draconic-gold",
+    "sorcerer/bloodline/draconic-red",
+];
+
+/// Sorcerer: 1/2 BAB, good Will, spontaneous arcane spell-level access like the wizard's, a bloodline at 1
+/// (levelled by sorcerer and Dragon Disciple levels) whose feat list the 7, 13 and 19 bonus slots pick from.
+/// Four bloodlines: Abyssal (powers at 1, 3, 15 and 20, +2 Strength at 9, 13 and 17, Toughness at 15), Arcane
+/// (a school at 15), and two Draconic ones. Archetypes: Seeker (skips 3, 9 and 15), Crossblooded (a second
+/// bloodline's feat list), Sage (Arcane only, its own 1st-level row) and an invented Primalist (at 3 and 9, the
+/// bloodline row or two rogue talents).
+fn sorcerer() -> Class {
+    let bloodline = FeatureSelectionKey::new("sorcerer/bloodline");
+    let levels = (1..=20)
+        .map(|l| {
+            let mut r = row(l);
+            r.arcane_spell_level = l.div_ceil(2).min(9);
+            if l == 1 {
+                r.selections.push(bloodline.clone());
+            }
+            if [7, 13, 19].contains(&l) {
+                r.feat_slots.push(FeatSlot::OptionList {
+                    selection: bloodline.clone(),
+                });
+            }
+            r
+        })
+        .collect();
+    let with_list = |mut row: OptionLevelRow, list: &str| {
+        row.feat_list = Some(feat_list(list));
+        row
+    };
+    let draconic = |key: &str| {
+        levelled_option(
+            key,
+            vec![
+                with_list(
+                    option_row(1, &["sorcerer/bloodline/draconic/claws"]),
+                    "sorcerer/bloodline/draconic-feats",
+                ),
+                option_row(3, &["sorcerer/bloodline/draconic/resistances"]),
+                option_row(20, &["sorcerer/bloodline/draconic/power-of-wyrms"]),
+            ],
+        )
+    };
+    let strength = "sorcerer/bloodline/abyssal/strength-of-the-abyss";
+    let bloodlines = levelled_selection(
+        "sorcerer/bloodline",
+        &["sorcerer", "dragon-disciple"],
+        vec![
+            levelled_option(
+                "sorcerer/bloodline/abyssal",
+                vec![
+                    with_list(
+                        option_row(1, &["sorcerer/bloodline/abyssal/claws"]),
+                        "sorcerer/bloodline/abyssal-feats",
+                    ),
+                    option_row(3, &["sorcerer/bloodline/abyssal/resistances"]),
+                    option_row(9, &[strength]),
+                    option_row(13, &[strength]),
+                    OptionLevelRow {
+                        feats: BTreeSet::from([feat("toughness")]),
+                        ..option_row(15, &["sorcerer/bloodline/abyssal/added-summonings"])
+                    },
+                    option_row(17, &[strength]),
+                    option_row(20, &["sorcerer/bloodline/abyssal/demonic-might"]),
+                ],
+            ),
+            levelled_option(
+                "sorcerer/bloodline/arcane",
+                vec![
+                    with_list(
+                        option_row(1, &["sorcerer/bloodline/arcane/arcane-bond"]),
+                        "sorcerer/bloodline/arcane-feats",
+                    ),
+                    option_row(3, &["sorcerer/bloodline/arcane/combat-casting-adept"]),
+                    OptionLevelRow {
+                        selections: vec![FeatureSelectionKey::new("sorcerer/school-power")],
+                        ..option_row(15, &[])
+                    },
+                    option_row(20, &["sorcerer/bloodline/arcane/apotheosis"]),
+                ],
+            ),
+            draconic("sorcerer/bloodline/draconic-gold"),
+            draconic("sorcerer/bloodline/draconic-red"),
+        ],
+        &[],
+    );
+    let school_power = FeatureSelection {
+        options: vec![
+            selection_option("sorcerer/school-power/evocation", None, None),
+            selection_option("sorcerer/school-power/necromancy", None, None),
+        ],
+        ..levelled_selection("sorcerer/school-power", &[], vec![], &[])
+    };
+    let features = [
+        "sorcerer/bloodline/abyssal/claws",
+        "sorcerer/bloodline/abyssal/resistances",
+        "sorcerer/bloodline/abyssal/added-summonings",
+        "sorcerer/bloodline/abyssal/demonic-might",
+        "sorcerer/bloodline/arcane/arcane-bond",
+        "sorcerer/bloodline/arcane/combat-casting-adept",
+        "sorcerer/bloodline/arcane/apotheosis",
+        "sorcerer/bloodline/draconic/claws",
+        "sorcerer/bloodline/draconic/resistances",
+        "sorcerer/bloodline/draconic/power-of-wyrms",
+    ]
+    .into_iter()
+    .map(|key| plain_feature(key, key))
+    .chain([
+        bonus_feature(
+            strength,
+            vec![AbilityBonus::Fixed {
+                ability: Ability::Strength,
+                amount: 2,
+            }],
+        ),
+        Feature {
+            option_row: Some(OptionRow {
+                selection: bloodline.clone(),
+                level: 20,
+            }),
+            ..plain_feature("sorcerer/bloodline-ascendance", "Bloodline Ascendance")
+        },
+    ])
+    .collect();
+
+    // Seeker: the bloodline without its 3, 9 and 15 rows.
+    let seeker = Archetype {
+        selections: vec![FeatureSelection {
+            skipped_levels: BTreeSet::from([3, 9, 15]),
+            ..levelled_selection(
+                "sorcerer/seeker/bloodline",
+                &["sorcerer", "dragon-disciple"],
+                vec![],
+                &BLOODLINES,
+            )
+        }],
+        levels: vec![ArchetypeLevelRow {
+            selections: vec![FeatureSelectionKey::new("sorcerer/seeker/bloodline")],
+            ..archetype_row(1)
+        }],
+        ..archetype("sorcerer/seeker")
+    };
+    // Crossblooded: a second bloodline that gives only its feat list.
+    let crossblooded = Archetype {
+        selections: vec![FeatureSelection {
+            feat_lists_only: true,
+            ..levelled_selection(
+                "sorcerer/crossblooded/second-bloodline",
+                &["sorcerer", "dragon-disciple"],
+                vec![],
+                &BLOODLINES,
+            )
+        }],
+        levels: vec![ArchetypeLevelRow {
+            selections: vec![
+                bloodline.clone(),
+                FeatureSelectionKey::new("sorcerer/crossblooded/second-bloodline"),
+            ],
+            ..archetype_row(1)
+        }],
+        ..archetype("sorcerer/crossblooded")
+    };
+    // Sage: the Arcane bloodline, granted with no pick, with Arcane Bolt instead of its 1st-level row.
+    let sage = Archetype {
+        features: vec![plain_feature("sorcerer/sage/arcane-bolt", "Arcane Bolt")],
+        selections: vec![FeatureSelection {
+            skipped_levels: BTreeSet::from([1]),
+            ..levelled_selection(
+                "sorcerer/sage/bloodline",
+                &["sorcerer", "dragon-disciple"],
+                vec![],
+                &["sorcerer/bloodline/arcane"],
+            )
+        }],
+        levels: vec![ArchetypeLevelRow {
+            features: vec![feature("sorcerer/sage/arcane-bolt")],
+            selections: vec![FeatureSelectionKey::new("sorcerer/sage/bloodline")],
+            ..archetype_row(1)
+        }],
+        ..archetype("sorcerer/sage")
+    };
+    // Primalist (invented on a sorcerer): at 3 and 9, the bloodline row or two rogue talents instead of it.
+    let choice = FeatureSelectionKey::new("sorcerer/primalist/primal-choice");
+    let primalist = Archetype {
+        selections: vec![levelled_selection(
+            "sorcerer/primalist/primal-choice",
+            &["sorcerer"],
+            vec![
+                selection_option(
+                    "sorcerer/primalist/primal-choice/bloodline-power",
+                    None,
+                    None,
+                ),
+                SelectionOption {
+                    repeat: Repeat::Unlimited,
+                    replaces_row_of: Some(bloodline.clone()),
+                    levels: vec![OptionLevelRow {
+                        selections: vec![
+                            FeatureSelectionKey::new("rogue/rogue-talents"),
+                            FeatureSelectionKey::new("rogue/rogue-talents"),
+                        ],
+                        ..option_row(1, &[])
+                    }],
+                    ..selection_option("sorcerer/primalist/primal-choice/talents", None, None)
+                },
+            ],
+            &[],
+        )],
+        levels: [3, 9]
+            .into_iter()
+            .map(|level| ArchetypeLevelRow {
+                selections: vec![choice.clone()],
+                ..archetype_row(level)
+            })
+            .collect(),
+        ..archetype("sorcerer/primalist")
+    };
+    Class {
+        key: class("sorcerer"),
+        name: "Sorcerer".into(),
+        summary: String::new(),
+        guide: guide("sorcerer"),
+        skill_points: 2,
+        bab: BabProgression::Half,
+        fort: SaveProgression::Poor,
+        reflex: SaveProgression::Poor,
+        will: SaveProgression::Good,
+        save_exceptions: vec![],
+        advances: Advancement::Each,
+        spontaneous: true,
+        counts_as: BTreeSet::new(),
+        class_skills: BTreeSet::from([skill("knowledge-arcana")]),
+        prerequisite: None,
+        features,
+        selections: vec![bloodlines, school_power],
+        feat_lists: vec![
+            list(
+                "sorcerer/bloodline/abyssal-feats",
+                false,
+                &["cleave", "power-attack"],
+            ),
+            list(
+                "sorcerer/bloodline/arcane-feats",
+                false,
+                &["arcane-strike", "spell-penetration"],
+            ),
+            list(
+                "sorcerer/bloodline/draconic-feats",
+                false,
+                &["power-attack", "toughness"],
+            ),
+        ],
+        levels,
+        archetypes: vec![crossblooded, primalist, sage, seeker],
+    }
+}
+
+/// An archetype with nothing of its own yet.
+fn archetype(key: &str) -> Archetype {
+    Archetype {
+        key: ArchetypeKey::new(key),
+        name: key.into(),
+        summary: String::new(),
+        guide: guide(key),
+        prerequisite: None,
+        skill_points: None,
+        class_skills: None,
+        spontaneous: None,
+        features: vec![],
+        selections: vec![],
+        feat_lists: vec![],
+        levels: vec![],
+    }
+}
+
+/// Bard: 3/4 BAB, spontaneous arcane spell-level access from 1 (a way into Dragon Disciple without a bloodline).
+fn bard() -> Class {
+    let levels = (1..=20)
+        .map(|l| {
+            let mut r = row(l);
+            r.arcane_spell_level = l.div_ceil(3).min(6);
+            r
+        })
+        .collect();
+    Class {
+        key: class("bard"),
+        name: "Bard".into(),
+        summary: String::new(),
+        guide: guide("bard"),
+        skill_points: 6,
+        bab: BabProgression::ThreeQuarters,
+        fort: SaveProgression::Poor,
+        reflex: SaveProgression::Good,
+        will: SaveProgression::Good,
+        save_exceptions: vec![],
+        advances: Advancement::Each,
+        spontaneous: true,
+        counts_as: BTreeSet::new(),
+        class_skills: BTreeSet::from([skill("persuasion")]),
+        prerequisite: None,
+        features: vec![],
+        selections: vec![],
+        feat_lists: vec![],
+        levels,
+        archetypes: vec![],
+    }
+}
+
+/// Ranger: full BAB, a combat style at 2 whose list grows at 6 (option levels are ranger levels), and a style
+/// bonus slot at 2, 6 and 10 that picks from it, ignoring prerequisites.
+fn ranger() -> Class {
+    let style = FeatureSelectionKey::new("ranger/combat-style");
+    let levels = (1..=20)
+        .map(|l| {
+            let mut r = row(l);
+            if l == 2 {
+                r.selections.push(style.clone());
+            }
+            if [2, 6, 10].contains(&l) {
+                r.feat_slots.push(FeatSlot::OptionList {
+                    selection: style.clone(),
+                });
+            }
+            r
+        })
+        .collect();
+    let stage = |level, list: &str| OptionLevelRow {
+        feat_list: Some(feat_list(list)),
+        ..option_row(level, &[])
+    };
+    Class {
+        key: class("ranger"),
+        name: "Ranger".into(),
+        summary: String::new(),
+        guide: guide("ranger"),
+        skill_points: 6,
+        bab: BabProgression::Full,
+        fort: SaveProgression::Good,
+        reflex: SaveProgression::Good,
+        will: SaveProgression::Poor,
+        save_exceptions: vec![],
+        advances: Advancement::Each,
+        spontaneous: false,
+        counts_as: BTreeSet::new(),
+        class_skills: BTreeSet::from([skill("athletics")]),
+        prerequisite: None,
+        features: vec![],
+        selections: vec![levelled_selection(
+            "ranger/combat-style",
+            &["ranger"],
+            vec![
+                levelled_option(
+                    "ranger/combat-style/archery",
+                    vec![
+                        stage(2, "ranger/combat-style/archery-2"),
+                        stage(6, "ranger/combat-style/archery-6"),
+                    ],
+                ),
+                levelled_option(
+                    "ranger/combat-style/crane",
+                    vec![stage(2, "ranger/combat-style/crane-2")],
+                ),
+            ],
+            &[],
+        )],
+        feat_lists: vec![
+            list(
+                "ranger/combat-style/archery-2",
+                true,
+                &["dodge", "toughness"],
+            ),
+            list(
+                "ranger/combat-style/archery-6",
+                true,
+                &["dodge", "great-cleave", "toughness"],
+            ),
+            list(
+                "ranger/combat-style/crane-2",
+                true,
+                &["crane-style", "crane-wing"],
+            ),
+        ],
+        levels,
+        archetypes: vec![],
+    }
+}
+
+/// Dragon Disciple: entry needs spontaneous 1st-level arcane spells and a Draconic bloodline or none; a sorcerer's
+/// bloodline continues, anyone else picks a Draconic one on entry (levelled by Dragon Disciple levels). +2
+/// Strength at 2 and 4.
+fn dragon_disciple() -> Class {
+    let levels = (1..=10)
+        .map(|l| {
+            let mut r = row(l);
+            r.advances_arcane = ![1, 5, 9].contains(&l);
+            if l == 1 {
+                r.selections
+                    .push(FeatureSelectionKey::new("dragon-disciple/bloodline"));
+            }
+            if l == 2 || l == 4 {
+                r.features.push(feature("dragon-disciple/strength"));
+            }
+            r
+        })
+        .collect();
+    Class {
+        key: class("dragon-disciple"),
+        name: "Dragon Disciple".into(),
+        summary: String::new(),
+        guide: guide("prestige-classes#dragon-disciple"),
+        skill_points: 2,
+        bab: BabProgression::ThreeQuarters,
+        fort: SaveProgression::Good,
+        reflex: SaveProgression::Poor,
+        will: SaveProgression::Good,
+        save_exceptions: vec![],
+        advances: Advancement::Each,
+        spontaneous: false,
+        counts_as: BTreeSet::new(),
+        class_skills: BTreeSet::from([skill("knowledge-arcana")]),
+        prerequisite: Some(Prerequisite::All(vec![
+            Prerequisite::SpontaneousSpellLevel {
+                spell_type: SpellType::Arcane,
+                level: 1,
+            },
+            Prerequisite::Any(vec![
+                Prerequisite::SelectionOption(option("sorcerer/bloodline/draconic-gold")),
+                Prerequisite::SelectionOption(option("sorcerer/bloodline/draconic-red")),
+                Prerequisite::NoOptionFrom(FeatureSelectionKey::new("sorcerer/bloodline")),
+            ]),
+        ])),
+        features: vec![bonus_feature(
+            "dragon-disciple/strength",
+            vec![AbilityBonus::Fixed {
+                ability: Ability::Strength,
+                amount: 2,
+            }],
+        )],
+        selections: vec![FeatureSelection {
+            only_without_option: true,
+            ..levelled_selection(
+                "dragon-disciple/bloodline",
+                &["dragon-disciple"],
+                vec![],
+                &[
+                    "sorcerer/bloodline/draconic-gold",
+                    "sorcerer/bloodline/draconic-red",
+                ],
+            )
+        }],
+        feat_lists: vec![],
+        levels,
+        archetypes: vec![],
+    }
 }
 
 fn mythic_feats() -> Vec<MythicFeat> {
@@ -1290,6 +1930,11 @@ fn trickster() -> MythicPath {
             summary: String::new(),
             guide: guide("trickster#tricks"),
             shared_options: BTreeSet::new(),
+            option_levels: BTreeSet::new(),
+            skipped_levels: BTreeSet::new(),
+            feat_lists_only: false,
+            only_without_option: false,
+            pool_of: None,
             options: vec![
                 selection_option("trickster/tricks/perception-1", None, None),
                 selection_option(
@@ -1433,6 +2078,11 @@ fn gold_dragon() -> MythicPath {
             summary: String::new(),
             guide: guide("gold-dragon#breaths"),
             shared_options: BTreeSet::new(),
+            option_levels: BTreeSet::new(),
+            skipped_levels: BTreeSet::new(),
+            feat_lists_only: false,
+            only_without_option: false,
+            pool_of: None,
             options: vec![
                 selection_option("gold-dragon/breaths/empowered", None, None),
                 // The guide's "Mythic Rank: 9" and "Vow of Dahak": the story condition never blocks.
@@ -1539,6 +2189,11 @@ fn aeon() -> MythicPath {
             summary: String::new(),
             guide: guide("aeon#enforcing-gaze"),
             shared_options: BTreeSet::new(),
+            option_levels: BTreeSet::new(),
+            skipped_levels: BTreeSet::new(),
+            feat_lists_only: false,
+            only_without_option: false,
+            pool_of: None,
             options: vec![
                 selection_option("aeon/enforcing-gaze/attack", None, None),
                 selection_option("aeon/enforcing-gaze/damage", None, None),

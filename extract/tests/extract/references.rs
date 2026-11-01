@@ -63,6 +63,8 @@ fn a_reference_must_exist_as_its_own_kind() {
                 summary: String::new(),
                 guide: GuideRef::new("trickster#trick"),
                 ability_bonuses: vec![],
+                option_row: None,
+                daily_choice: false,
             }],
             selections: vec![],
             feat_lists: vec![],
@@ -103,6 +105,9 @@ fn an_option_beside_the_feat_it_grants_is_dropped() {
         chosen_feat: None,
         repeat: rules::Repeat::Once,
         prerequisite: None,
+        levels: vec![],
+        pool: None,
+        replaces_row_of: None,
     };
     let rogue = Class {
         key: ClassKey::new("rogue"),
@@ -130,10 +135,16 @@ fn an_option_beside_the_feat_it_grants_is_dropped() {
                 option("rogue/rogue-talents/fast-stealth", None),
             ],
             shared_options: Default::default(),
+            option_levels: std::collections::BTreeSet::new(),
+            skipped_levels: std::collections::BTreeSet::new(),
+            feat_lists_only: false,
+            only_without_option: false,
+            pool_of: None,
         }],
         feat_lists: vec![],
         levels: vec![],
         archetypes: vec![],
+        spontaneous: false,
     };
     let mut data = GameData {
         progression: Progression {

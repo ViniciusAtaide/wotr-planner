@@ -8,6 +8,7 @@ Class(
     reflex: Poor,
     will: Good,
     class_skills: ["knowledge-arcana", "knowledge-world", "lore-nature", "lore-religion", "persuasion"],
+    spontaneous: true,
     features: [
         (key: "oracle/additional-spells", name: "Additional Spells", guide: "oracle#additional-spells"),
         (key: "oracle/curse-2", name: "Curse 2", guide: "oracle"),

@@ -54,13 +54,19 @@ fn a_wizards_scribe_scrolls_is_held_with_no_pick() {
             .feats
             .contains_key(&feat("scribe-scrolls"))
     );
-    // No slot asks for it: the wizard's first level has only the general slot.
+    // No slot asks for it: the wizard's first level has only the general slot and the school.
     let kinds: Vec<SlotKind> = sheet.levels[0]
         .slots
         .iter()
         .map(|slot| slot.kind.clone())
         .collect();
-    assert_eq!(kinds, [SlotKind::Feat(FeatSlot::General)]);
+    assert_eq!(
+        kinds,
+        [
+            SlotKind::Feat(FeatSlot::General),
+            SlotKind::Selection(rules::FeatureSelectionKey::new("wizard/school"))
+        ]
+    );
     assert_eq!(engine().validate(&build), []);
 }
 

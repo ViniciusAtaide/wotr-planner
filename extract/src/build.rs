@@ -142,6 +142,12 @@ pub fn extract(guide: &Guide) -> Extraction {
     feat_lists::name_lists(&mut data, &builder.lists);
     // The one-feat lists of the bonus feats of the player's choosing aren't the guide's tables' lists.
     crate::parameters::add_lists(&mut data);
+    // Options with rows by option level, on the finished rows (ticket 30); the report items they settle go.
+    crate::option_levels::apply(guide, &mut data);
+    builder
+        .report
+        .items
+        .retain(|item| !crate::option_levels::settled(&item.at, &item.text));
     for problem in data.check() {
         builder.report.add_about(
             Kind::Cell,
@@ -551,6 +557,7 @@ impl<'g> Builder<'g> {
             will: SaveProgression::Good,
             save_exceptions: Vec::new(),
             advances: rules::Advancement::Each,
+            spontaneous: false,
             counts_as: std::collections::BTreeSet::new(),
             class_skills: BTreeSet::new(),
             prerequisite: None,
@@ -679,6 +686,7 @@ impl<'g> Builder<'g> {
                 prerequisite: None,
                 skill_points,
                 class_skills,
+                spontaneous: None,
                 features: Vec::new(),
                 selections,
                 feat_lists: Vec::new(),
@@ -912,6 +920,8 @@ impl<'g> Builder<'g> {
             summary: String::new(),
             guide: GuideRef::new(guide),
             ability_bonuses: Vec::new(),
+            option_row: None,
+            daily_choice: false,
         };
         let mut names = vec![norm(name)];
         // "Sneak Attack (Eldritch Scoundrel)" is also a "Sneak Attack".
@@ -1105,6 +1115,11 @@ impl<'g> Builder<'g> {
             guide: GuideRef::new(page.guide(&heading.anchor)),
             options: Vec::new(),
             shared_options: BTreeSet::new(),
+            option_levels: BTreeSet::new(),
+            skipped_levels: BTreeSet::new(),
+            feat_lists_only: false,
+            only_without_option: false,
+            pool_of: None,
         };
         self.add_options(page, heading, &mut selection, Some(class), extra);
         selection
@@ -1147,6 +1162,9 @@ impl<'g> Builder<'g> {
                 chosen_feat: None,
                 repeat: Repeat::Once,
                 prerequisite: None,
+                levels: Vec::new(),
+                pool: None,
+                replaces_row_of: None,
             });
         }
         self.catalog
@@ -1345,6 +1363,7 @@ impl<'g> Builder<'g> {
             will: SaveProgression::Good,
             save_exceptions: Vec::new(),
             advances: rules::Advancement::Each,
+            spontaneous: false,
             counts_as: std::collections::BTreeSet::new(),
             class_skills,
             prerequisite: None,
@@ -1454,6 +1473,8 @@ impl<'g> Builder<'g> {
                     summary: String::new(),
                     guide: GuideRef::new(page.guide(&entry.anchor)),
                     prerequisite: None,
+                    features: Vec::new(),
+                    selections: Vec::new(),
                 });
             }
         }
@@ -1587,6 +1608,11 @@ impl<'g> Builder<'g> {
                     guide: GuideRef::new(page.guide(&candidate.anchor)),
                     options: Vec::new(),
                     shared_options: BTreeSet::new(),
+                    option_levels: BTreeSet::new(),
+                    skipped_levels: BTreeSet::new(),
+                    feat_lists_only: false,
+                    only_without_option: false,
+                    pool_of: None,
                 };
                 self.add_options(page, candidate, &mut selection, None, Vec::new());
                 selections.push(selection);

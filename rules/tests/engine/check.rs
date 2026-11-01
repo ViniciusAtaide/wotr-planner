@@ -881,3 +881,85 @@ fn a_story_condition_is_required_not_one_of_several() {
         )]
     );
 }
+
+// ---- options with rows by option level ------------------------------------------------------------------------
+
+fn sorcerer_selection<'a>(data: &'a mut GameData, key: &str) -> &'a mut rules::FeatureSelection {
+    let sorcerer = class_mut(data, "sorcerer");
+    sorcerer
+        .selections
+        .iter_mut()
+        .chain(
+            sorcerer
+                .archetypes
+                .iter_mut()
+                .flat_map(|archetype| &mut archetype.selections),
+        )
+        .find(|selection| selection.key.as_str() == key)
+        .unwrap()
+}
+
+#[test]
+fn an_option_has_one_row_per_option_level() {
+    let mut data = world();
+    let bloodlines = sorcerer_selection(&mut data, "sorcerer/bloodline");
+    let abyssal = &mut bloodlines.options[0];
+    let first = abyssal.levels[0].clone();
+    abyssal.levels.push(first);
+    assert_eq!(
+        issues(&data),
+        [(
+            DataAt::SelectionOption(SelectionOptionKey::new("sorcerer/bloodline/abyssal")),
+            DataIssue::DuplicateOptionRow(1)
+        )]
+    );
+}
+
+#[test]
+fn a_selection_offering_options_with_rows_names_the_classes_whose_levels_count() {
+    let mut data = world();
+    sorcerer_selection(&mut data, "sorcerer/seeker/bloodline")
+        .option_levels
+        .clear();
+    assert_eq!(
+        issues(&data),
+        [(
+            DataAt::FeatureSelection(FeatureSelectionKey::new("sorcerer/seeker/bloodline")),
+            DataIssue::OptionRowsWithoutLevels(SelectionOptionKey::new(
+                "sorcerer/bloodline/abyssal"
+            ))
+        )]
+    );
+}
+
+#[test]
+fn a_pool_selection_has_no_options_of_its_own() {
+    let mut data = world();
+    let cleric = class_mut(&mut data, "cleric");
+    let revelation = cleric
+        .selections
+        .iter_mut()
+        .find(|selection| selection.key.as_str() == "cleric/revelation")
+        .unwrap();
+    revelation.shared_options.insert(SelectionOptionKey::new(
+        "cleric/fire-revelations/fire-breath",
+    ));
+    assert_eq!(
+        issues(&data),
+        [(
+            DataAt::FeatureSelection(FeatureSelectionKey::new("cleric/revelation")),
+            DataIssue::PoolSelectionWithOptions
+        )]
+    );
+}
+
+#[test]
+fn an_option_rows_feat_list_counts_as_named() {
+    // The bloodline lists are named only by option rows, and no problem says they're unused.
+    let data = world();
+    assert!(
+        data.feat_lists()
+            .any(|list| list.key.as_str() == "sorcerer/bloodline/abyssal-feats")
+    );
+    assert_eq!(issues(&data), []);
+}
