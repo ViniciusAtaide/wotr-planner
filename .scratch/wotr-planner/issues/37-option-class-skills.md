@@ -132,3 +132,13 @@ Real-data tests (`game_data.rs`, 7 new, red on HEAD's data first: 7 failures, `t
 
    Should any of these count? The first four are fixed skills: an option's own `class_skills` for the talents, and an own list for each archetype.
 5. **The Animal domain's level.** Its guide sentence puts "Lore (Nature) becomes a Class Skill" after "At 4th level, you gain an Animal Companion". Ticket 31 read the skill as option level 1, and this ticket kept that row. Should it be level 4?
+
+## Decisions on the open questions
+
+**User, 2026-11-01:** "for skills always go for the recommended option without asking me", so each question takes the recommendation in the report to the user (which, for 1, differs from the agent's above).
+
+1. **Arcane bloodline and Sage Sorcerer:** leave both as features named "Class Skill", shown on the sheet. Class skills are a nice-to-have, and an extra pick isn't worth it.
+2. **Overwhelming Mage and Seeker:** drop both "Class Skill" features; each already holds its bloodline's skill. Built by [ticket 38](38-class-skill-cleanup.md).
+3. **Sohei:** its own class-skill list, the monk's plus Lore (Nature), and drop the "Skills" feature. Built by ticket 38.
+4. **Class skills outside these features:** leave them unmodelled for now.
+5. **Animal domain:** its Lore (Nature) moves to option level 4, following the guide's sentence order. Built by ticket 38.
