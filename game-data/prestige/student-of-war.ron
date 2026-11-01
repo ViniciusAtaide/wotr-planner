@@ -9,7 +9,7 @@ Class(
         (key: "feature:student-of-war/additional-class-skill", name: "Additional Class Skill", guide: "prestige-classes#additional-class-skill"),
         (key: "feature:student-of-war/anticipate", name: "Anticipate", guide: "prestige-classes#anticipate"),
         (key: "feature:student-of-war/deadly-blow", name: "Deadly Blow", guide: "prestige-classes#deadly-blow"),
-        (key: "feature:student-of-war/know-your-enemy-swift", name: "Know Your Enemy - Swift", guide: "prestige-classes#student-of-war"),
+        (key: "feature:student-of-war/know-your-enemy-swift", name: "Know Your Enemy - Swift", guide: "prestige-classes#know-your-enemy"),
         (key: "feature:student-of-war/mind-over-metal", name: "Mind Over Metal", guide: "prestige-classes#mind-over-metal"),
         (key: "feature:student-of-war/nemesis", name: "Nemesis", guide: "prestige-classes#nemesis"),
         (key: "feature:student-of-war/telling-blow", name: "Telling Blow", guide: "prestige-classes#telling-blow"),

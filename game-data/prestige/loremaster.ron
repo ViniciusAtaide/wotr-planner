@@ -4,7 +4,7 @@ Class(
     guide: "prestige-classes#loremaster",
     skill_points: 3,
     class_skills: ["skill:knowledge-arcana", "skill:knowledge-world", "skill:lore-nature", "skill:lore-religion", "skill:persuasion", "skill:use-magic-device"],
-    prerequisite: All([Any([SpellLevel(spell_type: Arcane, level: 3), SpellLevel(spell_type: Divine, level: 3)]), Feat("feat:skill-focus"), CharacterLevel(6)]),
+    prerequisite: All([Any([SpellLevel(spell_type: Arcane, level: 3), SpellLevel(spell_type: Divine, level: 3)]), Any([Feat("feat:metamagic-bolster-spell"), Feat("feat:metamagic-completely-normal-spell"), Feat("feat:metamagic-empower-spell"), Feat("feat:metamagic-extend-spell"), Feat("feat:metamagic-heighten-spell"), Feat("feat:metamagic-intensified-spell"), Feat("feat:metamagic-maximise-spell"), Feat("feat:metamagic-persistent-spell"), Feat("feat:metamagic-piercing-spell"), Feat("feat:metamagic-quicken-spell"), Feat("feat:metamagic-reach-spell"), Feat("feat:metamagic-selective-spell")]), Feat("feat:skill-focus"), CharacterLevel(6)]),
     features: [
         (key: "feature:loremaster/greater-lore", name: "Greater Lore", guide: "prestige-classes#greater-lore"),
         (key: "feature:loremaster/lore", name: "Lore", guide: "prestige-classes#lore"),

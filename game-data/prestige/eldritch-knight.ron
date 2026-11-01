@@ -6,12 +6,12 @@ Class(
     class_skills: ["skill:athletics", "skill:knowledge-arcana", "skill:knowledge-world", "skill:perception"],
     prerequisite: All([Feat("feat:martial-weapons-proficiency"), SpellLevel(spell_type: Arcane, level: 3), CharacterLevel(6)]),
     features: [
-        (key: "feature:eldritch-knight/arcane-spellcasting", name: "Arcane Spellcasting", guide: "prestige-classes#eldritch-knight"),
+        (key: "feature:eldritch-knight/arcane-spellcasting", name: "Arcane Spellcasting", guide: "prestige-classes#arcane-spellcasting-eldritch-knight"),
         (key: "feature:eldritch-knight/diverse-training", name: "Diverse Training", guide: "prestige-classes#diverse-training"),
         (key: "feature:eldritch-knight/spell-critical", name: "Spell Critical", guide: "prestige-classes#spell-critical"),
     ],
     levels: [
-        (level: 1, bab: 1, fort: 1, reflex: 0, will: 0, advances_arcane: true, features: ["feature:eldritch-knight/diverse-training"], feat_slots: [CombatFeat]),
+        (level: 1, bab: 1, fort: 1, reflex: 0, will: 0, features: ["feature:eldritch-knight/diverse-training"], feat_slots: [CombatFeat]),
         (level: 2, bab: 2, fort: 1, reflex: 1, will: 1, advances_arcane: true, features: ["feature:eldritch-knight/arcane-spellcasting"]),
         (level: 3, bab: 3, fort: 2, reflex: 1, will: 1, advances_arcane: true),
         (level: 4, bab: 4, fort: 2, reflex: 1, will: 1, advances_arcane: true),

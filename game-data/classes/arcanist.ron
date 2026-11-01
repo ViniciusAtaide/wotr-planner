@@ -44,7 +44,7 @@ Class(
                 (key: "selection:arcanist/greater-exploits/dancing-electricity", name: "Dancing Electricity", guide: "arcanist#dancing-electricity", prerequisite: SelectionOption("selection:arcanist/arcanist-exploits/lightning-lance")),
                 (key: "selection:arcanist/greater-exploits/greater-spell-resistance", name: "Greater Spell Resistance", guide: "arcanist#greater-spell-resistance", prerequisite: SelectionOption("selection:arcanist/arcanist-exploits/spell-resistance")),
                 (key: "selection:arcanist/greater-exploits/hellfire-ray", name: "Hellfire Ray", guide: "arcanist#hellfire-ray", prerequisite: SelectionOption("selection:arcanist/arcanist-exploits/flame-arc")),
-                (key: "selection:arcanist/greater-exploits/icy-tomb", name: "Icy Tomb", guide: "arcanist#icy-tomb"),
+                (key: "selection:arcanist/greater-exploits/icy-tomb", name: "Icy Tomb", guide: "arcanist#icy-tomb", prerequisite: SelectionOption("selection:arcanist/arcanist-exploits/ice-missile")),
                 (key: "selection:arcanist/greater-exploits/lingering-acid", name: "Lingering Acid", guide: "arcanist#lingering-acid", prerequisite: SelectionOption("selection:arcanist/arcanist-exploits/acid-jet")),
             ],
         ),

@@ -4,7 +4,7 @@ Class(
     guide: "prestige-classes#winter-witch",
     skill_points: 2,
     class_skills: ["skill:knowledge-arcana", "skill:knowledge-world", "skill:lore-nature", "skill:persuasion", "skill:use-magic-device"],
-    prerequisite: All([Any([SpellLevel(spell_type: Arcane, level: 3), SpellLevel(spell_type: Divine, level: 3)]), SkillRanks(skill: "skill:knowledge-arcana", ranks: 5), CharacterLevel(6)]),
+    prerequisite: All([Any([Archetype("archetype:druid/winter-child"), ClassLevel(class: "class:shaman", level: 1), SelectionOption("selection:witch/patron/winter")]), Any([SpellLevel(spell_type: Arcane, level: 3), SpellLevel(spell_type: Divine, level: 3)]), SkillRanks(skill: "skill:knowledge-arcana", ranks: 5), CharacterLevel(6)]),
     features: [
         (key: "feature:winter-witch/cold-specialization", name: "Cold Specialization", guide: "prestige-classes#cold-specialization"),
         (key: "feature:winter-witch/freezing-cold", name: "Freezing Cold", guide: "prestige-classes#freezing-cold"),

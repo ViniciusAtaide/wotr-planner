@@ -3,7 +3,7 @@
     (key: "mythic-feat:dazzling-display-mythic", name: "Dazzling Display (Mythic)", group: "Melee", guide: "mythic-paths#dazzling-display-mythic", prerequisite: Feat("feat:dazzling-display")),
     (key: "mythic-feat:deadly-aim-mythic", name: "Deadly Aim (Mythic)", group: "Ranged", guide: "mythic-paths#deadly-aim-mythic", prerequisite: Feat("feat:deadly-aim")),
     (key: "mythic-feat:defensive-combat-training-mythic", name: "Defensive Combat Training (Mythic)", group: "Combat Manoeuvre", guide: "mythic-paths#defensive-combat-training-mythic", prerequisite: Feat("feat:defensive-combat-training")),
-    (key: "mythic-feat:destiny-beyond-birth", name: "Destiny Beyond Birth", group: "Miscellaneous", guide: "mythic-paths#destiny-beyond-birth"),
+    (key: "mythic-feat:destiny-beyond-birth", name: "Destiny Beyond Birth", group: "Miscellaneous", guide: "mythic-paths#destiny-beyond-birth", prerequisite: Any([Race("race:dhampir"), Race("race:dwarf"), Race("race:elf"), Race("race:gnome"), Race("race:halfling"), Race("race:kitsune"), Race("race:oread"), Race("race:tiefling")])),
     (key: "mythic-feat:destructive-shockwave", name: "Destructive Shockwave", group: "Melee", guide: "mythic-paths#destructive-shockwave"),
     (key: "mythic-feat:dirty-trick-mythic", name: "Dirty Trick (Mythic)", group: "Combat Manoeuvre", guide: "mythic-paths#dirty-trick-mythic", prerequisite: Feat("feat:dirty-trick")),
     (key: "mythic-feat:disarm-mythic", name: "Disarm (Mythic)", group: "Combat Manoeuvre", guide: "mythic-paths#disarm-mythic", prerequisite: Feat("feat:disarm")),

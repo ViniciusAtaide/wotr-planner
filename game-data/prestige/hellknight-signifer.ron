@@ -12,8 +12,8 @@ Class(
         (key: "feature:hellknight-signifer/discern-lies", name: "Discern Lies", guide: "prestige-classes#discern-lies"),
         (key: "feature:hellknight-signifer/hellknight-signifer-spellcasting", name: "Hellknight Signifer Spellcasting", guide: "prestige-classes#hellknight-signifer-spellcasting"),
         (key: "feature:hellknight-signifer/infernal-resilience", name: "Infernal Resilience", guide: "prestige-classes#infernal-resilience"),
-        (key: "feature:hellknight-signifer/order", name: "Order", guide: "prestige-classes#hellknight-signifer"),
-        (key: "feature:hellknight-signifer/signifier-armor-training", name: "Signifier Armor Training", guide: "prestige-classes#hellknight-signifer"),
+        (key: "feature:hellknight-signifer/order", name: "Order", guide: "prestige-classes#order-hellknight-signifer"),
+        (key: "feature:hellknight-signifer/signifier-armor-training", name: "Signifier Armor Training", guide: "prestige-classes#signifer-armor-training"),
     ],
     levels: [
         (level: 1, bab: 0, fort: 0, reflex: 0, will: 1, advances_arcane: true, advances_divine: true, features: ["feature:hellknight-signifer/hellknight-signifer-spellcasting", "feature:hellknight-signifer/order"], feat_slots: [OneOf(feats: ["feat:armor-proficiency-heavy-armor"], ignores_prerequisites: true)]),
