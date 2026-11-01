@@ -9,8 +9,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::game_data::{Ability, Alignment};
 use crate::keys::{
-    ArchetypeKey, ClassKey, FeatKey, MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey,
-    SelectionOptionKey, SkillKey, SubraceKey,
+    ArchetypeKey, BackgroundKey, ClassKey, FeatKey, MythicAbilityKey, MythicFeatKey, MythicPathKey,
+    RaceKey, SelectionOptionKey, SkillKey, SubraceKey,
 };
 use crate::parameter::Parameter;
 use crate::problem::Choice;
@@ -44,6 +44,8 @@ pub struct BuildStart {
     /// The ability a "+2 to one ability score" racial modifier goes to.
     pub racial_ability: Option<Ability>,
     pub alignment: Option<Alignment>,
+    /// `None` until one is chosen; the background "None" is a key like any other.
+    pub background: Option<BackgroundKey>,
     /// The point-buy scores, before racial modifiers.
     pub ability_scores: AbilityScores,
 }
@@ -368,6 +370,7 @@ impl Edit {
                 Choice::Race,
                 Choice::Subrace,
                 Choice::Alignment,
+                Choice::Background,
                 Choice::AbilityScores,
             ],
             Edit::MythicPath(_) => vec![Choice::MythicPath],

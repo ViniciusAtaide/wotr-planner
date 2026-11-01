@@ -7,8 +7,8 @@ use ron::ser::PrettyConfig;
 use std::collections::BTreeSet;
 
 use rules::{
-    Advancement, Archetype, ArchetypeLevelRow, Class, ClassLevelRow, Feat, FeatKey, FeatList,
-    FeatSlot, FeatValue, Feature, FeatureSelection, GameData, MythicAbility, MythicFeat,
+    Advancement, Archetype, ArchetypeLevelRow, Background, Class, ClassLevelRow, Feat, FeatKey,
+    FeatList, FeatSlot, FeatValue, Feature, FeatureSelection, GameData, MythicAbility, MythicFeat,
     MythicPath, MythicRankRow, OptionLevelRow, PathSwitch, Prerequisite, Race, Repeat,
     SelectionOption, Skill, Weapon,
 };
@@ -22,6 +22,10 @@ pub fn files(data: &GameData) -> Vec<(PathBuf, String)> {
         ("skills.ron".into(), list(&data.skills, skill)),
         ("weapons.ron".into(), list(&data.weapons, weapon)),
         ("feats.ron".into(), list(&data.feats, feat)),
+        (
+            "backgrounds.ron".into(),
+            list(&data.backgrounds, background),
+        ),
         (
             "mythic/abilities.ron".into(),
             list(&data.mythic_abilities, mythic_ability),
@@ -252,6 +256,25 @@ fn progression(data: &GameData) -> String {
         .map(|a| format!("(rank: {}, character_level: {})", a.rank, a.character_level))
         .collect();
     format!("Progression(\n{})\n", nested("mythic_ascensions", 4, rows))
+}
+
+/// A background on one line, its group and note left out when it has none (None).
+fn background(background: &Background) -> String {
+    let mut fields = Fields::new();
+    fields
+        .field("key", &background.key)
+        .field("name", &background.name);
+    if let Some(group) = &background.group {
+        fields.field("group", group);
+    }
+    fields.text("note", &background.note);
+    if !background.class_skills.is_empty() {
+        fields.field("class_skills", &background.class_skills);
+    }
+    fields
+        .set("feats", &background.feats)
+        .values("feats_for", &background.feats_for)
+        .line()
 }
 
 fn skill(skill: &Skill) -> String {

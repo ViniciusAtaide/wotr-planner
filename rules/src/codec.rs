@@ -115,7 +115,8 @@ mod tests {
             body,
             [
                 1, 1, b'A', // name: Some("A")
-                0, 0, 0, 0, // start: race, subrace, racial ability, alignment all None
+                0, 0, 0, 0,
+                0, // start: race, subrace, racial ability, alignment, background all None
                 10, 10, 10, 10, 10, 10, // point-buy scores
                 1,  // one level
                 1, b'x', // class

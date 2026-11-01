@@ -1279,3 +1279,41 @@ fn an_option_levelled_alongside_the_others_needs_other_options() {
         )]
     );
 }
+
+fn at_background(key: &str) -> DataAt {
+    DataAt::Background(rules::BackgroundKey::new(key))
+}
+
+#[test]
+fn a_background_key_is_used_once() {
+    let mut data = world();
+    let copy = data.backgrounds[0].clone();
+    let key = copy.key.to_string();
+    data.backgrounds.push(copy);
+    assert_eq!(
+        issues(&data),
+        [(at_background(&key), DataIssue::DuplicateKey)]
+    );
+}
+
+#[test]
+fn a_backgrounds_feat_for_a_value_takes_a_value_of_that_kind() {
+    let mut data = world();
+    let guard = data
+        .backgrounds
+        .iter_mut()
+        .find(|b| b.key.as_str() == "guard")
+        .unwrap();
+    // A martial weapon: Exotic Weapon Proficiency takes only exotic ones.
+    guard.feats_for.insert(rules::FeatValue {
+        feat: FeatKey::new("exotic-weapon-proficiency"),
+        value: weapon("longsword"),
+    });
+    assert_eq!(
+        issues(&data),
+        [(
+            at_background("guard"),
+            DataIssue::ValueOfWrongKind(FeatKey::new("exotic-weapon-proficiency"))
+        )]
+    );
+}

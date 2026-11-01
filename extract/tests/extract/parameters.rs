@@ -544,6 +544,7 @@ fn the_files_write_weapons_parameters_repeats_and_chosen_feats() {
         mythic_abilities: vec![],
         mythic_feats: vec![],
         mythic_paths: vec![],
+        backgrounds: vec![],
     };
     let files = extract::ron_out::files(&data);
     let file = |name: &str| {

@@ -92,3 +92,7 @@ text_key!(
     /// `trickster`
     MythicPathKey
 );
+text_key!(
+    /// `shackles-corsair`
+    BackgroundKey
+);

@@ -12,7 +12,7 @@ use std::collections::BTreeSet;
 use serde::{Deserialize, Serialize};
 
 use crate::keys::{
-    ArchetypeKey, ClassKey, FeatKey, FeatListKey, FeatureKey, FeatureSelectionKey,
+    ArchetypeKey, BackgroundKey, ClassKey, FeatKey, FeatListKey, FeatureKey, FeatureSelectionKey,
     MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey, SelectionOptionKey, SkillKey,
     SubraceKey, WeaponKey,
 };
@@ -55,6 +55,8 @@ pub struct GameData {
     pub mythic_abilities: Vec<MythicAbility>,
     pub mythic_feats: Vec<MythicFeat>,
     pub mythic_paths: Vec<MythicPath>,
+    /// The backgrounds chosen at Build start (`backgrounds.ron`, the user's list).
+    pub backgrounds: Vec<Background>,
 }
 
 impl GameData {
@@ -84,7 +86,7 @@ impl GameData {
     }
 
     /// How much of each kind of thing the data holds, labelled, as a quick check that seeding worked.
-    pub fn counts(&self) -> [(&'static str, usize); 10] {
+    pub fn counts(&self) -> [(&'static str, usize); 11] {
         [
             ("Races", self.races.len()),
             ("Skills", self.skills.len()),
@@ -96,6 +98,7 @@ impl GameData {
             ("Mythic abilities", self.mythic_abilities.len()),
             ("Mythic feats", self.mythic_feats.len()),
             ("Mythic paths", self.mythic_paths.len()),
+            ("Backgrounds", self.backgrounds.len()),
         ]
     }
 
@@ -146,6 +149,7 @@ impl GameData {
                 sort_grants(&mut row.features, &mut row.feat_slots, &mut row.selections);
             }
         }
+        sort_by_key(&mut self.backgrounds, |b| b.key.clone());
     }
 
     /// [`canonicalize`](Self::canonicalize), by value.
@@ -363,6 +367,72 @@ pub struct Skill {
     pub key: SkillKey,
     pub name: String,
     pub ability: Ability,
+}
+
+/// A background, chosen at Build start (the user's list: the saved guide pages don't list backgrounds, so it has
+/// no guide link). Its skills become class skills and its feats are granted feats, held from the start with no
+/// slot and no pick, as a class level row's are. Everything else it gives is its note.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Background {
+    pub key: BackgroundKey,
+    pub name: String,
+    /// The group the game lists it under; `None` for the background "None".
+    #[serde(default)]
+    pub group: Option<BackgroundGroup>,
+    /// What it gives that the planner doesn't model (a weapon's proficiency, +1 Fortitude), shown with the Build.
+    #[serde(default)]
+    pub note: String,
+    /// Skills that become class skills.
+    #[serde(default)]
+    pub class_skills: BTreeSet<SkillKey>,
+    /// Granted feats (the Martial Disciple's Improved Unarmed Strike). A parameterised one is held for every value.
+    #[serde(default)]
+    pub feats: BTreeSet<FeatKey>,
+    /// Parameterised feats granted for one value (the Aldori Swordsman's Exotic Weapon Proficiency (Dueling
+    /// Sword)).
+    #[serde(default)]
+    pub feats_for: BTreeSet<FeatValue>,
+}
+
+/// The groups the game lists backgrounds under.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+pub enum BackgroundGroup {
+    Craftsman,
+    Noble,
+    Oblate,
+    Regional,
+    Scholar,
+    StreetUrchin,
+    Wanderer,
+    Warrior,
+}
+
+impl BackgroundGroup {
+    pub const ALL: [Self; 8] = [
+        Self::Craftsman,
+        Self::Noble,
+        Self::Oblate,
+        Self::Regional,
+        Self::Scholar,
+        Self::StreetUrchin,
+        Self::Wanderer,
+        Self::Warrior,
+    ];
+
+    /// The group as the game names it.
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::Craftsman => "Craftsman",
+            Self::Noble => "Noble",
+            Self::Oblate => "Oblate",
+            Self::Regional => "Regional",
+            Self::Scholar => "Scholar",
+            Self::StreetUrchin => "Street Urchin",
+            Self::Wanderer => "Wanderer",
+            Self::Warrior => "Warrior",
+        }
+    }
 }
 
 /// A weapon, as the guide's weapon lists name it (Weapon Focus is taken for one).

@@ -738,7 +738,7 @@ async fn the_schema_rejects_values_outside_their_domain_and_misplaced_keys(pool:
     assert!(error.contains("unique"), "{error}");
     let error = rejected(
         "INSERT INTO granted_feat (class_level_id, feat_key)
-        SELECT class_level_id, feat_key FROM granted_feat LIMIT 1",
+        SELECT class_level_id, feat_key FROM granted_feat WHERE class_level_id IS NOT NULL LIMIT 1",
     )
     .await;
     assert!(
@@ -1230,4 +1230,94 @@ async fn the_schema_keeps_subrace_slots_option_list_stages_and_levels_alongside_
         let error = rejected(sql).await;
         assert!(error.contains(expected), "{sql}: {error}");
     }
+}
+
+#[sqlx::test]
+async fn the_schema_keeps_backgrounds_and_their_skills_and_feats_consistent(pool: PgPool) {
+    let db = Database::from(pool.clone());
+    data::seed(&db, &fixture_dir()).await.unwrap();
+    let rejected = |sql: &'static str| {
+        let pool = pool.clone();
+        async move {
+            let mut tx = pool.begin().await.unwrap();
+            let update = sqlx::query(sql).execute(&mut *tx).await;
+            // Foreign keys are deferred: they fail at commit.
+            let result = match update {
+                Ok(_) => tx.commit().await.map(|_| ()),
+                Err(error) => Err(error),
+            };
+            result.unwrap_err().to_string()
+        }
+    };
+    for (sql, expected) in [
+        // The groups are the game's; None has none.
+        (
+            "UPDATE background SET background_group = 'pirate' WHERE key = 'shackles-corsair'",
+            "check constraint",
+        ),
+        (
+            "UPDATE background SET key = 'Shackles Corsair' WHERE key = 'shackles-corsair'",
+            "check constraint",
+        ),
+        // A class skill belongs to a class (or its archetype) or to a background, never both or neither.
+        (
+            "UPDATE class_skill SET class_key = 'fighter' WHERE background_key IS NOT NULL",
+            "check constraint",
+        ),
+        (
+            "UPDATE class_skill SET background_key = NULL WHERE background_key IS NOT NULL",
+            "check constraint",
+        ),
+        (
+            "UPDATE class_skill SET archetype_key = 'fighter/armiger' WHERE background_key IS NOT NULL",
+            "check constraint",
+        ),
+        (
+            "UPDATE class_skill SET background_key = 'no-such-background'
+            WHERE background_key IS NOT NULL AND skill_key = 'athletics'",
+            "foreign key",
+        ),
+        // A granted feat belongs to one owner; a background may grant one for a value, as a class level does.
+        (
+            "UPDATE granted_feat SET class_level_id = (SELECT min(id) FROM class_level)
+            WHERE background_key IS NOT NULL",
+            "check constraint",
+        ),
+        (
+            "UPDATE granted_feat SET background_key = 'no-such-background' WHERE background_key IS NOT NULL",
+            "foreign key",
+        ),
+    ] {
+        let error = rejected(sql).await;
+        assert!(error.contains(expected), "{sql}: {error}");
+    }
+}
+
+#[sqlx::test]
+async fn every_background_group_round_trips(pool: PgPool) {
+    let db = Database::from(pool);
+    let mut game_data = data::read_game_data_files(&fixture_dir()).unwrap();
+    for group in rules::BackgroundGroup::ALL {
+        let key = group.name().to_lowercase().replace(' ', "-");
+        game_data.backgrounds.push(rules::Background {
+            key: rules::BackgroundKey::new(format!("every-{key}")),
+            name: group.name().into(),
+            group: Some(group),
+            note: String::new(),
+            class_skills: [SkillKey::new("athletics")].into(),
+            feats: [FeatKey::new("toughness")].into(),
+            feats_for: [rules::FeatValue {
+                feat: FeatKey::new("skill-focus"),
+                value: Parameter::Skill(SkillKey::new("mobility")),
+            }]
+            .into(),
+        });
+    }
+    let game_data = game_data.canonical();
+
+    data::replace_game_data(&db, &game_data, &"0".repeat(64))
+        .await
+        .unwrap();
+
+    assert_eq!(data::load_game_data(&db).await.unwrap(), game_data);
 }

@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT class_level_id, option_level_id, feat_key, skill_key, weapon_key, spell_school, energy,\n            armour_type\n        FROM granted_feat ORDER BY feat_key",
+  "query": "SELECT class_level_id, option_level_id, background_key, feat_key, skill_key, weapon_key,\n            spell_school, energy, armour_type\n        FROM granted_feat ORDER BY feat_key",
   "describe": {
     "columns": [
       {
@@ -27,6 +27,17 @@
       },
       {
         "ordinal": 2,
+        "name": "background_key",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "granted_feat",
+            "name": "background_key"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
         "name": "feat_key",
         "type_info": "Text",
         "origin": {
@@ -37,7 +48,7 @@
         }
       },
       {
-        "ordinal": 3,
+        "ordinal": 4,
         "name": "skill_key",
         "type_info": "Text",
         "origin": {
@@ -48,7 +59,7 @@
         }
       },
       {
-        "ordinal": 4,
+        "ordinal": 5,
         "name": "weapon_key",
         "type_info": "Text",
         "origin": {
@@ -59,7 +70,7 @@
         }
       },
       {
-        "ordinal": 5,
+        "ordinal": 6,
         "name": "spell_school",
         "type_info": "Text",
         "origin": {
@@ -70,7 +81,7 @@
         }
       },
       {
-        "ordinal": 6,
+        "ordinal": 7,
         "name": "energy",
         "type_info": "Text",
         "origin": {
@@ -81,7 +92,7 @@
         }
       },
       {
-        "ordinal": 7,
+        "ordinal": 8,
         "name": "armour_type",
         "type_info": "Text",
         "origin": {
@@ -98,6 +109,7 @@
     "nullable": [
       true,
       true,
+      true,
       false,
       true,
       true,
@@ -106,5 +118,5 @@
       true
     ]
   },
-  "hash": "c5dcb3c7240f3167e786487cbf0a769d1c2aa1160823ce0f5a0639585dc4db8e"
+  "hash": "e5247d417c69e38783a03262f55d92d21957b4791a358ee33a7e6eb411f9740f"
 }

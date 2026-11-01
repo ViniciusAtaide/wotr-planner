@@ -3,9 +3,9 @@
 //! The text values match the domains and CHECK constraints in `migrations/20261031000000_game_data.sql`.
 
 use rules::{
-    Ability, Advancement, Alignment, ArmourType, BabProgression, Energy, FeatCategory, LevelFrom,
-    MythicAbilityGroup, MythicFeatGroup, OptionGroup, ParameterKind, Repeat, Save, SaveProgression,
-    SpellSchool, SpellType, Story, WeaponProficiency,
+    Ability, Advancement, Alignment, ArmourType, BabProgression, BackgroundGroup, Energy,
+    FeatCategory, LevelFrom, MythicAbilityGroup, MythicFeatGroup, OptionGroup, ParameterKind,
+    Repeat, Save, SaveProgression, SpellSchool, SpellType, Story, WeaponProficiency,
 };
 
 /// A row that doesn't fit the `rules` types (should be impossible given the constraints).
@@ -128,6 +128,17 @@ text_column!(OptionGroup, option_group_from, option_group_text {
     Elemental => "elemental",
     BloodragerDraconic => "bloodrager_draconic",
     BloodragerElemental => "bloodrager_elemental",
+});
+
+text_column!(BackgroundGroup, background_group_from, background_group_text {
+    Craftsman => "craftsman",
+    Noble => "noble",
+    Oblate => "oblate",
+    Regional => "regional",
+    Scholar => "scholar",
+    StreetUrchin => "street_urchin",
+    Wanderer => "wanderer",
+    Warrior => "warrior",
 });
 
 text_column!(LevelFrom, level_from_from, level_from_text {

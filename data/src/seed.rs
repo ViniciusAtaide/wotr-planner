@@ -3,7 +3,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use rules::{
-    AbilityBonus, AbilityModifier, Archetype, ArchetypeLevelRow, Class, ClassLevelRow,
+    AbilityBonus, AbilityModifier, Archetype, ArchetypeLevelRow, Background, Class, ClassLevelRow,
     CountsToward, FeatKey, FeatList, FeatListKey, FeatSlot, FeatValue, Feature, FeatureKey,
     FeatureSelection, FeatureSelectionKey, GameData, MythicPath, Race, SelectionOptionKey,
     SkillKey,
@@ -12,9 +12,10 @@ use sqlx::PgConnection;
 
 use crate::columns::{
     AbilityBonusKind, FeatSlotKind, ValueColumns, ability_bonus_kind_text, ability_text,
-    advancement_text, bab_progression_text, feat_category_text, feat_slot_kind_text,
-    level_from_text, mythic_ability_group_text, mythic_feat_group_text, option_group_text,
-    parameter_kind_text, repeat_columns, save_progression_text, save_text, weapon_proficiency_text,
+    advancement_text, bab_progression_text, background_group_text, feat_category_text,
+    feat_slot_kind_text, level_from_text, mythic_ability_group_text, mythic_feat_group_text,
+    option_group_text, parameter_kind_text, repeat_columns, save_progression_text, save_text,
+    weapon_proficiency_text,
 };
 use crate::{Database, Error, prerequisites};
 
@@ -44,7 +45,7 @@ async fn insert_all(db: &Database, data: &GameData, hash: &str) -> Result<(), sq
             selection_skipped_level, selection_option, selection_option_value, selection_option_feat,
             selection_shared_option,
             option_level, feat_list, feat_list_member, class_level, mythic_rank, granted_feature,
-            granted_selection, granted_feat, option_level_chosen_feat, feat_slot
+            granted_selection, granted_feat, option_level_chosen_feat, feat_slot, background
         RESTART IDENTITY"
     )
     .execute(&mut *conn)
@@ -93,6 +94,9 @@ async fn insert_all(db: &Database, data: &GameData, hash: &str) -> Result<(), sq
         )
         .execute(&mut *conn)
         .await?;
+    }
+    for background in data.backgrounds.iter() {
+        insert_background(conn, background).await?;
     }
     for class in data.classes.iter() {
         insert_class(conn, class, false).await?;
@@ -373,6 +377,35 @@ async fn insert_archetype(
     insert_archetype_levels(conn, owner, &archetype.levels).await
 }
 
+/// A background, its class skills and its granted feats.
+async fn insert_background(
+    conn: &mut PgConnection,
+    background: &Background,
+) -> Result<(), sqlx::Error> {
+    let key = background.key.as_str();
+    sqlx::query!(
+        "INSERT INTO background (key, name, background_group, note) VALUES ($1, $2, $3, $4)",
+        key,
+        background.name,
+        background.group.map(background_group_text),
+        background.note,
+    )
+    .execute(&mut *conn)
+    .await?;
+    for skill in background.class_skills.iter() {
+        sqlx::query!(
+            "INSERT INTO class_skill (background_key, skill_key) VALUES ($1, $2)",
+            key,
+            skill.as_str(),
+        )
+        .execute(&mut *conn)
+        .await?;
+    }
+    let owner = SlotOwner::Background(key);
+    insert_granted_feats(conn, owner, &background.feats).await?;
+    insert_granted_feats_for(conn, owner, &background.feats_for).await
+}
+
 async fn insert_class_skills(
     conn: &mut PgConnection,
     owner: ClassOwner<'_>,
@@ -651,25 +684,28 @@ async fn insert_levels(
         let grantor = SlotOwner::ClassLevel(id);
         insert_grants(conn, grantor, &row.features, &row.selections).await?;
         insert_granted_feats(conn, grantor, &row.feats).await?;
-        insert_granted_feats_for(conn, id, &row.feats_for).await?;
+        insert_granted_feats_for(conn, grantor, &row.feats_for).await?;
         insert_feat_slots(conn, grantor, &row.feat_slots).await?;
     }
     Ok(())
 }
 
-/// A class level's feats granted for one value: `granted_feat` rows with their value column set.
+/// A class level's or a background's feats granted for one value: `granted_feat` rows with their value column
+/// set.
 async fn insert_granted_feats_for(
     conn: &mut PgConnection,
-    class_level_id: i64,
+    owner: SlotOwner<'_>,
     feats: &BTreeSet<FeatValue>,
 ) -> Result<(), sqlx::Error> {
+    let columns = owner.columns();
     for granted in feats.iter() {
         let value = ValueColumns::of(&granted.value);
         sqlx::query!(
-            "INSERT INTO granted_feat (class_level_id, feat_key, skill_key, weapon_key, spell_school,
-                energy, armour_type)
-            VALUES ($1, $2, $3, $4, $5, $6, $7)",
-            class_level_id,
+            "INSERT INTO granted_feat (class_level_id, background_key, feat_key, skill_key, weapon_key,
+                spell_school, energy, armour_type)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+            columns.class_level_id,
+            columns.background_key,
             granted.feat.as_str(),
             value.skill_key,
             value.weapon_key,
@@ -683,7 +719,7 @@ async fn insert_granted_feats_for(
     Ok(())
 }
 
-/// A class level's or an option level's granted feats.
+/// A class level's, an option level's or a background's granted feats.
 async fn insert_granted_feats(
     conn: &mut PgConnection,
     owner: SlotOwner<'_>,
@@ -692,9 +728,11 @@ async fn insert_granted_feats(
     let columns = owner.columns();
     for feat in feats.iter() {
         sqlx::query!(
-            "INSERT INTO granted_feat (class_level_id, option_level_id, feat_key) VALUES ($1, $2, $3)",
+            "INSERT INTO granted_feat (class_level_id, option_level_id, background_key, feat_key)
+            VALUES ($1, $2, $3, $4)",
             columns.class_level_id,
             columns.option_level_id,
+            columns.background_key,
             feat.as_str(),
         )
         .execute(&mut *conn)
@@ -726,7 +764,7 @@ async fn insert_archetype_levels(
         let grantor = SlotOwner::ClassLevel(id);
         insert_grants(conn, grantor, &row.features, &row.selections).await?;
         insert_granted_feats(conn, grantor, &row.feats).await?;
-        insert_granted_feats_for(conn, id, &row.feats_for).await?;
+        insert_granted_feats_for(conn, grantor, &row.feats_for).await?;
         insert_feat_slots(conn, grantor, &row.feat_slots).await?;
     }
     Ok(())
@@ -824,6 +862,7 @@ enum SlotOwner<'a> {
     MythicRank(i64),
     OptionLevel(i64),
     MythicAbility(&'a str),
+    Background(&'a str),
 }
 
 /// The owner columns of a grant: exactly one is set.
@@ -835,6 +874,7 @@ struct OwnerColumns<'a> {
     mythic_rank_id: Option<i64>,
     option_level_id: Option<i64>,
     mythic_ability_key: Option<&'a str>,
+    background_key: Option<&'a str>,
 }
 
 impl<'a> SlotOwner<'a> {
@@ -862,6 +902,10 @@ impl<'a> SlotOwner<'a> {
             },
             Self::MythicAbility(key) => OwnerColumns {
                 mythic_ability_key: Some(key),
+                ..OwnerColumns::default()
+            },
+            Self::Background(key) => OwnerColumns {
+                background_key: Some(key),
                 ..OwnerColumns::default()
             },
         }

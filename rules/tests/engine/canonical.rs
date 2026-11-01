@@ -44,6 +44,7 @@ fn reversed(mut data: GameData) -> GameData {
     for path in &mut data.mythic_paths {
         path.ranks.reverse();
     }
+    data.backgrounds.reverse();
     data
 }
 
@@ -97,6 +98,7 @@ fn counts_summarise_each_catalog() {
             ("Mythic abilities", 9),
             ("Mythic feats", 9),
             ("Mythic paths", 6),
+            ("Backgrounds", 5),
         ]
     );
 }

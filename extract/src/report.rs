@@ -61,7 +61,9 @@ impl Category {
             DataAt::Feat(_) => Category::Feats,
             // Lists belong to classes; a path's would be filed with them too.
             DataAt::FeatList(_) => Category::BaseClasses,
-            DataAt::Race(_) | DataAt::Subrace(_) | DataAt::Skill(_) => Category::RacesAndSkills,
+            DataAt::Race(_) | DataAt::Subrace(_) | DataAt::Skill(_) | DataAt::Background(_) => {
+                Category::RacesAndSkills
+            }
             DataAt::Progression
             | DataAt::MythicAbility(_)
             | DataAt::MythicFeat(_)

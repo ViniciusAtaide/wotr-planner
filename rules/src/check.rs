@@ -16,7 +16,7 @@ use crate::game_data::{
     WeaponProficiency,
 };
 use crate::keys::{
-    ArchetypeKey, ClassKey, FeatKey, FeatListKey, FeatureKey, FeatureSelectionKey,
+    ArchetypeKey, BackgroundKey, ClassKey, FeatKey, FeatListKey, FeatureKey, FeatureSelectionKey,
     MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey, SelectionOptionKey, SkillKey,
     SubraceKey, WeaponKey,
 };
@@ -58,6 +58,7 @@ pub enum DataAt {
     MythicFeat(MythicFeatKey),
     MythicPath(MythicPathKey),
     FeatList(FeatListKey),
+    Background(BackgroundKey),
 }
 
 impl DataAt {
@@ -78,6 +79,7 @@ impl DataAt {
             DataAt::MythicFeat(_) => "mythic feat",
             DataAt::MythicPath(_) => "mythic path",
             DataAt::FeatList(_) => "feat list",
+            DataAt::Background(_) => "background",
         }
     }
 
@@ -98,6 +100,7 @@ impl DataAt {
             DataAt::MythicFeat(key) => key.as_str(),
             DataAt::MythicPath(key) => key.as_str(),
             DataAt::FeatList(key) => key.as_str(),
+            DataAt::Background(key) => key.as_str(),
         })
     }
 }
@@ -440,6 +443,11 @@ impl GameData {
             .collect();
         for path in &self.mythic_paths {
             check.path(path, &switches);
+        }
+        for background in &self.backgrounds {
+            let at = DataAt::Background(background.key.clone());
+            check.key(&at);
+            check.feats_for(&at, &background.feats_for);
         }
         check.counts_toward_features(self);
         check.option_levels(self);

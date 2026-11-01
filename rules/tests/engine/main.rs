@@ -4,6 +4,7 @@ mod support;
 
 mod advances;
 mod archetype_rows;
+mod backgrounds;
 mod bonus_feats;
 mod canonical;
 mod check;

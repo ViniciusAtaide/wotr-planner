@@ -7,12 +7,12 @@ use std::fs;
 
 use common::{copy_fixture, fixture_dir};
 use rules::{
-    Ability, AbilityBonus, Advancement, ArchetypeLevelRow, ArmourType, BabProgression, ClassKey,
-    CountsAs, CountsToward, FeatKey, FeatListKey, FeatSlot, FeatValue, FeatureKey,
-    FeatureSelectionKey, GameData, LevelFrom, MythicAbilityGroup, MythicFeatGroup, MythicPathKey,
-    OptionGroup, OptionLevelRow, OptionRow, Parameter, ParameterKind, Prerequisite, Repeat, Save,
-    SaveException, SaveProgression, SelectionOptionKey, SkillKey, SpellLevels, Story, WeaponKey,
-    WeaponProficiency,
+    Ability, AbilityBonus, Advancement, ArchetypeLevelRow, ArmourType, BabProgression,
+    BackgroundGroup, ClassKey, CountsAs, CountsToward, FeatKey, FeatListKey, FeatSlot, FeatValue,
+    FeatureKey, FeatureSelectionKey, GameData, LevelFrom, MythicAbilityGroup, MythicFeatGroup,
+    MythicPathKey, OptionGroup, OptionLevelRow, OptionRow, Parameter, ParameterKind, Prerequisite,
+    Repeat, Save, SaveException, SaveProgression, SelectionOptionKey, SkillKey, SpellLevels, Story,
+    WeaponKey, WeaponProficiency,
 };
 
 fn read_fixture() -> GameData {
@@ -72,6 +72,10 @@ fn reads_every_fixture_file() {
         ]
     );
     assert_eq!(data.progression.mythic_ascensions.len(), 10);
+    assert_eq!(
+        names(data.backgrounds.iter().map(|b| b.name.as_str()).collect()),
+        "Aldori Swordsman, Martial Disciple, None, Shackles Corsair"
+    );
 }
 
 #[test]
@@ -1045,4 +1049,40 @@ fn reads_subrace_slots_option_list_stages_and_options_levelled_alongside_and_def
         Some(SelectionOptionKey::new("sorcerer/seeker/choice/power"))
     );
     assert_eq!(selection("sorcerer/bloodline").level_also_from, None);
+}
+
+#[test]
+fn reads_backgrounds_and_defaults_them() {
+    let data = read_fixture();
+    let background = |key: &str| {
+        data.backgrounds
+            .iter()
+            .find(|b| b.key.as_str() == key)
+            .unwrap()
+    };
+    let skills =
+        |keys: &[&str]| -> BTreeSet<SkillKey> { keys.iter().map(|k| SkillKey::new(*k)).collect() };
+
+    let corsair = background("shackles-corsair");
+    assert_eq!(corsair.group, Some(BackgroundGroup::Regional));
+    assert_eq!(corsair.note, "scimitar; +2 CMD against trip");
+    assert_eq!(corsair.class_skills, skills(&["athletics", "mobility"]));
+    assert!(corsair.feats.is_empty() && corsair.feats_for.is_empty());
+
+    assert_eq!(
+        background("martial-disciple").feats,
+        BTreeSet::from([FeatKey::new("improved-unarmed-strike")])
+    );
+    assert_eq!(
+        background("aldori-swordsman").feats_for,
+        BTreeSet::from([FeatValue {
+            feat: FeatKey::new("exotic-weapon-proficiency"),
+            value: Parameter::Weapon(WeaponKey::new("dueling-sword")),
+        }])
+    );
+
+    let none = background("none");
+    assert_eq!(none.group, None);
+    assert_eq!(none.note, "");
+    assert!(none.class_skills.is_empty() && none.feats.is_empty() && none.feats_for.is_empty());
 }

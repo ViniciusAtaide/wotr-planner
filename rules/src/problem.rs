@@ -27,6 +27,7 @@ pub enum Choice {
     Race,
     Subrace,
     Alignment,
+    Background,
     AbilityScores,
     /// The class taken at a character level (its entry prerequisites, on first entry).
     Class {

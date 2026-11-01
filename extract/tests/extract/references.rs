@@ -73,6 +73,7 @@ fn a_reference_must_exist_as_its_own_kind() {
             ranks: vec![],
             switch: None,
         }],
+        backgrounds: vec![],
     };
     let mut report = Report::default();
 
@@ -185,6 +186,7 @@ fn an_option_beside_the_feat_it_grants_is_dropped() {
         mythic_abilities: vec![],
         mythic_feats: vec![],
         mythic_paths: vec![],
+        backgrounds: vec![],
     };
 
     drop_redundant_alternatives(&mut data);

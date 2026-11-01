@@ -9,13 +9,13 @@ use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 
 use crate::build::{AbilityScores, Build, Edit, FeatSource, LevelUp, Pick, SlotId};
 use crate::game_data::{
-    Ability, AbilityBonus, AbilityModifier, Advancement, Archetype, Class, CountsToward, Feat,
-    FeatList, FeatSlot, FeatValue, FeatureSelection, GameData, LevelFrom, MythicAbility,
-    MythicFeat, MythicPath, OptionRow, PathSwitch, Race, Save, SelectionOption, SpellLevels,
-    Weapon, WeaponProficiency,
+    Ability, AbilityBonus, AbilityModifier, Advancement, Archetype, Background, Class,
+    CountsToward, Feat, FeatList, FeatSlot, FeatValue, FeatureSelection, GameData, LevelFrom,
+    MythicAbility, MythicFeat, MythicPath, OptionRow, PathSwitch, Race, Save, SelectionOption,
+    SpellLevels, Weapon, WeaponProficiency,
 };
 use crate::keys::{
-    ArchetypeKey, ClassKey, FeatKey, FeatListKey, FeatureKey, FeatureSelectionKey,
+    ArchetypeKey, BackgroundKey, ClassKey, FeatKey, FeatListKey, FeatureKey, FeatureSelectionKey,
     MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey, SelectionOptionKey, SkillKey,
     SubraceKey, WeaponKey,
 };
@@ -50,6 +50,7 @@ pub struct Engine {
     mythic_abilities: HashMap<MythicAbilityKey, usize>,
     mythic_feats: HashMap<MythicFeatKey, usize>,
     paths: HashMap<MythicPathKey, usize>,
+    backgrounds: HashMap<BackgroundKey, usize>,
     /// The ability bonuses of every feature that has some.
     feature_bonuses: HashMap<FeatureKey, Vec<AbilityBonus>>,
     /// The option row of every feature that grants one (Bloodline Ascendance).
@@ -413,6 +414,7 @@ impl Engine {
             mythic_abilities: index(&data.mythic_abilities, |a| &a.key),
             mythic_feats: index(&data.mythic_feats, |f| &f.key),
             paths: index(&data.mythic_paths, |p| &p.key),
+            backgrounds: index(&data.backgrounds, |b| &b.key),
             feature_bonuses,
             feature_rows,
             daily_choices,
@@ -454,6 +456,12 @@ impl Engine {
 
     fn race(&self, key: &RaceKey) -> Option<&Race> {
         self.races.get(key).map(|&index| &self.data.races[index])
+    }
+
+    fn background(&self, key: &BackgroundKey) -> Option<&Background> {
+        self.backgrounds
+            .get(key)
+            .map(|&index| &self.data.backgrounds[index])
     }
 
     fn feat(&self, key: &FeatKey) -> Option<&Feat> {
@@ -1321,6 +1329,33 @@ impl<'a> Walker<'a> {
         }
         self.state.base_ability_scores = scores;
         self.refresh_ability_scores();
+        self.background();
+    }
+
+    /// The background's skills become class skills and its feats are held from the start, as a class row's
+    /// granted feats: no slot, no pick, prerequisites skipped.
+    fn background(&mut self) {
+        let engine = self.engine;
+        let Some(key) = &self.build.start.background else {
+            return;
+        };
+        let Some(background) = engine.background(key) else {
+            self.problem(Choice::Background, Issue::UnknownKey(key.to_string()));
+            return;
+        };
+        self.state
+            .class_skills
+            .extend(background.class_skills.iter().cloned());
+        for feat in &background.feats {
+            let values = engine.every_value(feat);
+            self.hold(Held::Feat(feat.clone(), values), None);
+        }
+        for granted in &background.feats_for {
+            self.hold(
+                Held::Feat(granted.feat.clone(), vec![granted.value.clone()]),
+                None,
+            );
+        }
     }
 
     // ---- Level-up -----------------------------------------------------------------------------------------
@@ -1507,6 +1542,15 @@ impl<'a> Walker<'a> {
             }
             None => {
                 let choice = self.build.class_choices.get(&level_up.class);
+                // Its class skills: an archetype's list where it replaces the class's.
+                if let Some((class, _)) = class {
+                    let archetype = choice.and_then(|choice| choice.archetype.as_ref());
+                    let skills = engine
+                        .archetype_of(class, archetype)
+                        .and_then(|archetype| archetype.class_skills.as_ref())
+                        .unwrap_or(&class.class_skills);
+                    self.state.class_skills.extend(skills.iter().cloned());
+                }
                 self.state.classes.push(ClassLevels {
                     class: level_up.class.clone(),
                     prestige: class.is_some_and(|(_, prestige)| prestige),

@@ -17,6 +17,7 @@ example of the layout.
 | `skills.ron` | `Vec<Skill>` |
 | `weapons.ron` | `Vec<Weapon>`: the weapons a feat can be taken for, from the guide's simple, martial and exotic lists (`proficiency`; the Sawtooth Saber is exotic, from Weapon Finesse's list), plus what Weapon Focus names besides weapons (unarmed strike, touch attacks, rays), each natural attack the guide names (bite, claw, gore, hoof, slam, spike, tail, talon, wing), Kinetic Blast and Bomb |
 | `feats.ron` | `Vec<Feat>` |
+| `backgrounds.ron` | `Vec<Background>`: the user's list (the guide doesn't list backgrounds, so they have no guide link), carried by `extract::backgrounds` |
 | `classes/<class>.ron` | one base `Class`, with its features, feature selections, level rows and archetypes |
 | `prestige/<class>.ron` | one prestige `Class` |
 | `mythic/abilities.ron` | `Vec<MythicAbility>` |
@@ -53,6 +54,12 @@ class's), and BAB and saves (from the class's progressions).
   Knight levels; nothing else does), or `toward: Feature("witch/major-hexes")` (Frost Power: the witch's rows that
   grant it are reached at witch + Winter Witch levels, while the character has witch levels). The check refuses a
   class counting as itself, and a feature the other class's rows never grant.
+- A background (`backgrounds.ron`) makes its `class_skills` class skills and grants its `feats` and `feats_for`
+  as a class level row does (the Aldori Swordsman: `feats_for: [(feat: "exotic-weapon-proficiency", value:
+  Weapon("dueling-sword"))]`; Bounty Hunter, Gladiator, Guard, Mercenary: Armor Proficiency (Light Armor)). What
+  the planner doesn't model is its `note` ("Proficient with scimitar. +2 CMD against trip."). `group` is the game's
+  heading (`Craftsman`, `Noble`, `Oblate`, `Regional`, `Scholar`, `StreetUrchin`, `Wanderer`, `Warrior`); the
+  background None has none and grants nothing.
 - A selection option's key extends its selection's: `rogue/rogue-talents/fast-stealth`. A feature's, a
   selection's and a feat list's key starts with its owner's (the archetype's when an archetype defines it), and
   the schema checks it: Hard to Kill is each path's own `aeon/hard-to-kill`, not one shared key.

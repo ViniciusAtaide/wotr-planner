@@ -1,0 +1,8 @@
+// Hand-written test fixture: small and simplified, after the user's list. One background with skills only, one with
+// a feat, one with a feat for one value, and None with no group and nothing else.
+[
+    (key: "shackles-corsair", name: "Shackles Corsair", group: Regional, note: "scimitar; +2 CMD against trip", class_skills: ["mobility", "athletics"]),
+    (key: "martial-disciple", name: "Martial Disciple", group: Oblate, class_skills: ["mobility"], feats: ["improved-unarmed-strike"]),
+    (key: "aldori-swordsman", name: "Aldori Swordsman", group: Regional, note: "buckler", class_skills: ["persuasion"], feats_for: [(feat: "exotic-weapon-proficiency", value: Weapon("dueling-sword"))]),
+    (key: "none", name: "None"),
+]

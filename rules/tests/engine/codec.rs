@@ -6,9 +6,9 @@ use proptest::collection::{btree_map, btree_set, vec};
 use proptest::option;
 use proptest::prelude::*;
 use rules::{
-    Ability, AbilityScores, Alignment, ArchetypeKey, ArmourType, Build, BuildStart, ClassChoice,
-    ClassKey, DecodeError, Energy, FeatSource, LevelUp, MythicPathKey, Parameter, Pick, RaceKey,
-    SkillKey, SlotId, SpellSchool, SubraceKey, decode_build, encode_build,
+    Ability, AbilityScores, Alignment, ArchetypeKey, ArmourType, BackgroundKey, Build, BuildStart,
+    ClassChoice, ClassKey, DecodeError, Energy, FeatSource, LevelUp, MythicPathKey, Parameter,
+    Pick, RaceKey, SkillKey, SlotId, SpellSchool, SubraceKey, decode_build, encode_build,
 };
 
 use crate::support::*;
@@ -43,15 +43,19 @@ fn start() -> impl Strategy<Value = BuildStart> {
         option::of(key().prop_map(SubraceKey)),
         option::of(ability()),
         option::of(alignment()),
+        option::of(key().prop_map(BackgroundKey)),
         prop::array::uniform6(any::<u8>()),
     )
-        .prop_map(|(race, subrace, racial_ability, alignment, s)| BuildStart {
-            race,
-            subrace,
-            racial_ability,
-            alignment,
-            ability_scores: scores(s),
-        })
+        .prop_map(
+            |(race, subrace, racial_ability, alignment, background, s)| BuildStart {
+                race,
+                subrace,
+                racial_ability,
+                alignment,
+                background,
+                ability_scores: scores(s),
+            },
+        )
 }
 
 fn level_up() -> impl Strategy<Value = LevelUp> {
@@ -182,6 +186,7 @@ fn v1_build() -> Build {
     let mut build = build("human", &["fighter", "fighter", "rogue"]);
     build.name = Some("Cleaver".into());
     build.start.racial_ability = Some(Ability::Strength);
+    build.start.background = Some(BackgroundKey::new("shackles-corsair"));
     build.levels[0].skill_ranks.insert(skill("athletics"), 1);
     build.picks.insert(race_slot(0), pick_feat("power-attack"));
     build.picks.insert(class_slot(1, 0), pick_feat("cleave"));
@@ -231,9 +236,10 @@ fn v1_build() -> Build {
 /// before any link shipped: when archetype and advancement moved into `Build::class_choices`, on 2026-11-01 when
 /// keys lost their type prefix (`feat:power-attack` became `power-attack`), on 2026-11-01 again when a feat or
 /// option pick gained its parameter (Weapon Focus (Longsword)), on 2026-11-01 once more for the slots of option
-/// rows and of a mythic ability's selections, on 2026-11-01 for an option row's feat slot (ticket 31), and on
-/// 2026-11-01 when a mythic feat pick gained its parameter (ticket 32: School Mastery (Evocation)).
-const V1_LINK: &str = "AXVQS27CQAy1wzcVoC7bXS8wyiF6EuOYTMRkjDxOEbfvEKTuuvH_fWTcfSehHzHcxHmiDAi4fj8djm_71e4yDtHFAFvymMRHLvg3hI3pMAsAvgr8WFInqbfROYbCOufeJFW828jX8oS1VQHgcNO7WCB34mulqLMtL0Zq09T9XeimOVyU54LYJs1Duav1uAL8egktMTglyV461ulMHhYhaLA5Tg-PIweOZIM0zepUOKqmMNHTxwOb9eY_rks9CfWKkkfY1o98FjUWE-vOSbVPY5aOjCkL7PYAres8xCylwC8";
+/// rows and of a mythic ability's selections, on 2026-11-01 for an option row's feat slot (ticket 31), on
+/// 2026-11-01 when a mythic feat pick gained its parameter (ticket 32: School Mastery (Evocation)), and on
+/// 2026-11-01 when the Build start gained its background (ticket 34: Shackles Corsair).
+const V1_LINK: &str = "AXVQS27CQAy1wzcVIJbtrhcY5RA9iXFMZsRkjDyTRty-Q5C6Y-P_-8i4-4lCv2K48dNICRBwjefsiW9RsmO1TMHOp8PxY7_aXcPgixhgS8VHKYEz_g9hYzpMAoCvAj-X1EnsLRT2LrNOqTeJFV8s8C0_YW3VBDjcdRZzVEpVrhR1tuXFWm2aup-F7prcVXnKiG3UNORZrccV4PdLaImuUJRUcsc6Xqi4RQgabI7jo_jAjj3ZIE2zOmX2qtGN9PTxwGa9ecd1rSeuXlEsHrb1R19ZjcXEuktU7WNI0pExJYHdHqAtOg0-Sc7wBw";
 
 #[test]
 fn a_version_1_link_still_decodes() {

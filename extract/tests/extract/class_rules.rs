@@ -122,6 +122,7 @@ fn data(classes: Vec<Class>, prestige_classes: Vec<Class>) -> GameData {
         mythic_abilities: vec![],
         mythic_feats: vec![],
         mythic_paths: vec![],
+        backgrounds: vec![],
     }
 }
 

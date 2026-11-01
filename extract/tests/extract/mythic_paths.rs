@@ -317,6 +317,7 @@ fn the_new_shapes_are_written_on_one_line_each_and_read_back() {
         mythic_abilities: vec![],
         mythic_feats: vec![],
         mythic_paths: vec![devil, legend],
+        backgrounds: vec![],
     };
     let files = extract::ron_out::files(&data);
     let file = |name: &str| {

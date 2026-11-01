@@ -10,21 +10,21 @@ use std::collections::{BTreeSet, HashMap};
 use std::hash::Hash;
 
 use rules::{
-    AbilityBonus, AbilityModifier, Archetype, ArchetypeKey, ArchetypeLevelRow, Class, ClassKey,
-    ClassLevelRow, CountsAs, CountsToward, Feat, FeatKey, FeatList, FeatListKey, FeatSlot,
-    FeatValue, Feature, FeatureKey, FeatureSelection, FeatureSelectionKey, GameData, GuideRef,
-    MythicAbility, MythicAbilityKey, MythicAscension, MythicFeat, MythicFeatKey, MythicPath,
-    MythicPathKey, MythicRankRow, OptionLevelRow, OptionRow, PathSwitch, Progression, Race,
-    RaceKey, SaveException, SelectionOption, SelectionOptionKey, Skill, SkillKey, SpellLevels,
-    Subrace, SubraceKey, Weapon, WeaponKey,
+    AbilityBonus, AbilityModifier, Archetype, ArchetypeKey, ArchetypeLevelRow, Background,
+    BackgroundKey, Class, ClassKey, ClassLevelRow, CountsAs, CountsToward, Feat, FeatKey, FeatList,
+    FeatListKey, FeatSlot, FeatValue, Feature, FeatureKey, FeatureSelection, FeatureSelectionKey,
+    GameData, GuideRef, MythicAbility, MythicAbilityKey, MythicAscension, MythicFeat,
+    MythicFeatKey, MythicPath, MythicPathKey, MythicRankRow, OptionLevelRow, OptionRow, PathSwitch,
+    Progression, Race, RaceKey, SaveException, SelectionOption, SelectionOptionKey, Skill,
+    SkillKey, SpellLevels, Subrace, SubraceKey, Weapon, WeaponKey,
 };
 use sqlx::PgConnection;
 
 use crate::columns::{
     AbilityBonusKind, FeatSlotKind, ability_bonus_kind_from, ability_from, advancement_from,
-    bab_progression_from, corrupt, feat_category_from, feat_slot_kind_from, level_from_from,
-    mythic_ability_group_from, mythic_feat_group_from, option_group_from, parameter_kind_from,
-    repeat_from, save_from, save_progression_from, to_i8, to_u8, value_from,
+    bab_progression_from, background_group_from, corrupt, feat_category_from, feat_slot_kind_from,
+    level_from_from, mythic_ability_group_from, mythic_feat_group_from, option_group_from,
+    parameter_kind_from, repeat_from, save_from, save_progression_from, to_i8, to_u8, value_from,
     weapon_proficiency_from,
 };
 use crate::prerequisites::Trees;
@@ -72,6 +72,7 @@ async fn load(db: &Database) -> Result<GameData, sqlx::Error> {
     .await?;
     let mythic_abilities = load_mythic_abilities(conn, &mut trees, &mut grants).await?;
     let mythic_feats = load_mythic_feats(conn, &mut trees).await?;
+    let backgrounds = load_backgrounds(conn, &mut grants, &mut class_skills).await?;
     let mythic_paths = load_mythic_paths(
         conn,
         &mut Parts {
@@ -110,6 +111,7 @@ async fn load(db: &Database) -> Result<GameData, sqlx::Error> {
         mythic_abilities,
         mythic_feats,
         mythic_paths,
+        backgrounds,
     };
     Ok(data.canonical())
 }
@@ -126,6 +128,7 @@ enum Owner {
     MythicRank(i64),
     OptionLevel(i64),
     MythicAbility(String),
+    Background(String),
 }
 
 /// The one owner a row names, out of the owner columns it has.
@@ -383,7 +386,7 @@ async fn load_feats(conn: &mut PgConnection, trees: &mut Trees) -> Result<Vec<Fe
     .collect()
 }
 
-/// Features, selections and feats granted by class levels and mythic ranks. A counted grant comes back as
+/// Features, selections and feats granted by class levels, mythic ranks and backgrounds. A counted grant comes back as
 /// that many entries. A feat granted for one value is in `feats_for`.
 struct Grants {
     features: Grouped<Owner, FeatureKey>,
@@ -447,8 +450,8 @@ async fn load_grants(conn: &mut PgConnection) -> Result<Grants, sqlx::Error> {
         }
     }
     for row in sqlx::query!(
-        "SELECT class_level_id, option_level_id, feat_key, skill_key, weapon_key, spell_school, energy,
-            armour_type
+        "SELECT class_level_id, option_level_id, background_key, feat_key, skill_key, weapon_key,
+            spell_school, energy, armour_type
         FROM granted_feat ORDER BY feat_key"
     )
     .fetch_all(&mut *conn)
@@ -459,6 +462,7 @@ async fn load_grants(conn: &mut PgConnection) -> Result<Grants, sqlx::Error> {
             [
                 row.class_level_id.map(Owner::ClassLevel),
                 row.option_level_id.map(Owner::OptionLevel),
+                row.background_key.map(Owner::Background),
             ],
         )?;
         let feat = FeatKey(row.feat_key);
@@ -880,20 +884,53 @@ async fn load_feat_lists(conn: &mut PgConnection) -> Result<Grouped<Owner, FeatL
     Ok(lists)
 }
 
+async fn load_backgrounds(
+    conn: &mut PgConnection,
+    grants: &mut Grants,
+    class_skills: &mut Grouped<Owner, SkillKey>,
+) -> Result<Vec<Background>, sqlx::Error> {
+    sqlx::query!("SELECT key, name, background_group, note FROM background ORDER BY key")
+        .fetch_all(&mut *conn)
+        .await?
+        .into_iter()
+        .map(|row| {
+            let owner = Owner::Background(row.key.clone());
+            Ok(Background {
+                key: BackgroundKey(row.key),
+                name: row.name,
+                group: row
+                    .background_group
+                    .as_deref()
+                    .map(background_group_from)
+                    .transpose()?,
+                note: row.note,
+                class_skills: class_skills.take(&owner).into_iter().collect(),
+                feats: grants.feats.take(&owner).into_iter().collect(),
+                feats_for: grants.feats_for.take(&owner).into_iter().collect(),
+            })
+        })
+        .collect()
+}
+
 async fn load_class_skills(
     conn: &mut PgConnection,
 ) -> Result<Grouped<Owner, SkillKey>, sqlx::Error> {
     let mut skills = Grouped::new();
     for row in sqlx::query!(
-        "SELECT class_key, archetype_key, skill_key FROM class_skill ORDER BY skill_key"
+        "SELECT class_key, archetype_key, background_key, skill_key FROM class_skill ORDER BY skill_key"
     )
     .fetch_all(&mut *conn)
     .await?
     {
-        skills.push(
-            class_owner(row.class_key, row.archetype_key),
-            SkillKey(row.skill_key),
-        );
+        let owner = owner(
+            "class_skill",
+            [
+                row.class_key
+                    .map(|class_key| class_owner(class_key, row.archetype_key)),
+                row.background_key.map(Owner::Background),
+            ],
+        )?;
+        skills.push(owner, SkillKey(row.skill_key));
     }
     Ok(skills)
 }

@@ -366,14 +366,31 @@ CREATE TABLE archetype (
     UNIQUE (key, class_key)
 );
 
--- The class skills of a class (`archetype_key` NULL), or of an archetype that overrides them.
+-- backgrounds.ron: the user's list (the guide doesn't list backgrounds, so there's no guide link). Its
+-- class skills are `class_skill` rows and its feats `granted_feat` rows. NULL group: the background "None".
+CREATE TABLE background (
+    key text_key PRIMARY KEY,
+    name TEXT NOT NULL,
+    -- `rules::BackgroundGroup`.
+    background_group TEXT CHECK (background_group IN (
+        'craftsman', 'noble', 'oblate', 'regional', 'scholar', 'street_urchin', 'wanderer', 'warrior'
+    )),
+    -- What it gives that isn't modelled (`rules::Background::note`).
+    note TEXT NOT NULL
+);
+
+-- The class skills of a class (`archetype_key` NULL), of an archetype that overrides them, or of a
+-- background.
 CREATE TABLE class_skill (
-    class_key TEXT NOT NULL REFERENCES class (key) DEFERRABLE INITIALLY DEFERRED,
+    class_key TEXT REFERENCES class (key) DEFERRABLE INITIALLY DEFERRED,
     archetype_key TEXT,
+    background_key TEXT REFERENCES background (key) DEFERRABLE INITIALLY DEFERRED,
     skill_key TEXT NOT NULL REFERENCES skill (key) DEFERRABLE INITIALLY DEFERRED,
     FOREIGN KEY (archetype_key, class_key) REFERENCES archetype (key, class_key)
         DEFERRABLE INITIALLY DEFERRED,
-    UNIQUE NULLS NOT DISTINCT (class_key, archetype_key, skill_key)
+    CHECK (num_nonnulls(class_key, background_key) = 1),
+    CHECK (archetype_key IS NULL OR class_key IS NOT NULL),
+    UNIQUE NULLS NOT DISTINCT (class_key, archetype_key, background_key, skill_key)
 );
 
 -- mythic/ --------------------------------------------------------------------------------------
@@ -719,25 +736,27 @@ CREATE TABLE granted_selection (
         selection_key)
 );
 
--- A feat a class level or an option level grants outright (`rules::ClassLevelRow::feats`): held with no
--- slot and no pick, whatever its prerequisites; a parameterised one for every value, or, on a class level,
--- for the one value set (`rules::ClassLevelRow::feats_for`: Weapon Focus (Sawtooth Saber)). At most one
--- value column is set.
+-- A feat a class level, an option level or a background grants outright (`rules::ClassLevelRow::feats`):
+-- held with no slot and no pick, whatever its prerequisites; a parameterised one for every value, or, on a
+-- class level or a background, for the one value set (`rules::ClassLevelRow::feats_for`: Weapon Focus
+-- (Sawtooth Saber); the Aldori Swordsman's Exotic Weapon Proficiency (Dueling Sword)). At most one value
+-- column is set.
 CREATE TABLE granted_feat (
     class_level_id BIGINT REFERENCES class_level (id) DEFERRABLE INITIALLY DEFERRED,
     option_level_id BIGINT REFERENCES option_level (id) DEFERRABLE INITIALLY DEFERRED,
+    background_key TEXT REFERENCES background (key) DEFERRABLE INITIALLY DEFERRED,
     feat_key TEXT NOT NULL REFERENCES feat (key) DEFERRABLE INITIALLY DEFERRED,
     skill_key TEXT REFERENCES skill (key) DEFERRABLE INITIALLY DEFERRED,
     weapon_key TEXT REFERENCES weapon (key) DEFERRABLE INITIALLY DEFERRED,
     spell_school spell_school,
     energy energy,
     armour_type armour_type,
-    CHECK (num_nonnulls(class_level_id, option_level_id) = 1),
+    CHECK (num_nonnulls(class_level_id, option_level_id, background_key) = 1),
     CHECK (num_nonnulls(skill_key, weapon_key, spell_school, energy, armour_type) <= 1),
     CHECK (option_level_id IS NULL
         OR num_nonnulls(skill_key, weapon_key, spell_school, energy, armour_type) = 0),
-    UNIQUE NULLS NOT DISTINCT (class_level_id, option_level_id, feat_key, skill_key, weapon_key,
-        spell_school, energy, armour_type)
+    UNIQUE NULLS NOT DISTINCT (class_level_id, option_level_id, background_key, feat_key, skill_key,
+        weapon_key, spell_school, energy, armour_type)
 );
 
 -- `rules::OptionLevelRow::chosen_feats`: a parameterised feat an option level grants for the value

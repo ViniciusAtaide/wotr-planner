@@ -12,8 +12,16 @@ in the URL fragment (`/#b=…`), which is also its share link; nothing is saved 
 _Avoid_: Character sheet, save, saved plan
 
 **Build start**:
-The choices made before level 1: race (and subrace), alignment, and point-buy ability scores. A subrace's ability modifiers and feat slots replace its race's (a Dual Heritage half-elf has no Adaptability).
+The choices made before level 1: race (and subrace), alignment, **Background** and point-buy ability scores. A subrace's ability modifiers and feat slots replace its race's (a Dual Heritage half-elf has no Adaptability).
 _Avoid_: Character creation, level 0
+
+**Background**:
+A Build start choice from the user's list (38 backgrounds in eight groups, plus None, which grants nothing). Its skills become **Class skills** and its feats are **Granted feats**, held from the start and counted for prerequisites like any other (a Guard's Armor Proficiency (Light Armor) lets it take Medium Armor at level 1; the Aldori Swordsman's is Exotic Weapon Proficiency (Dueling Sword), for that value). Everything else it gives (other weapon proficiencies, the buckler, save, AC and skill bonuses) is its note, shown with the Build. No background chosen yet isn't the background None.
+_Avoid_: Origin, history
+
+**Class skill**:
+A skill a character's classes (an archetype's list where it replaces its class's) or its **Background** make class skills, held from the level the class is first taken (the background's from the start). An option's "Class Skill: …" feature (a mystery's, an element's) is a feature, not counted here.
+_Avoid_: Trained skill
 
 **Level-up**:
 Everything chosen at one character level: the class, any ability increase, skill ranks, and the picks for that level's slots. The archetype and spellcasting advancement are the class's **Class choice**, not the level's.
@@ -88,7 +96,7 @@ A named fixed list of two or more feats that a bonus slot picks from, such as th
 _Avoid_: Option list, fixed-list slot (the slot names the list)
 
 **Granted feat**:
-A feat a class level gives outright, with no slot and no pick, so it isn't in the Build or its link: a wizard's Scribe Scrolls at 1, a fighter's Armor, Shield and Weapon Proficiency feats. It's held from that level on whatever its prerequisites; one already held adds nothing, and picking it later is "already held". A granted Parameterised feat is held for every value (All-skilled: Exotic Weapon Proficiency in every exotic weapon), unless the row grants it for one value (the Mantis Zealot's Weapon Focus (Sawtooth Saber), the Chirurgeon's Skill Focus (Lore (Religion))).
+A feat a class level (or a **Background**) gives outright, with no slot and no pick, so it isn't in the Build or its link: a wizard's Scribe Scrolls at 1, a fighter's Armor, Shield and Weapon Proficiency feats, a Martial Disciple's Improved Unarmed Strike. It's held from that level on whatever its prerequisites; one already held adds nothing, and picking it later is "already held". A granted Parameterised feat is held for every value (All-skilled: Exotic Weapon Proficiency in every exotic weapon), unless the row grants it for one value (the Mantis Zealot's Weapon Focus (Sawtooth Saber), the Chirurgeon's Skill Focus (Lore (Religion))).
 _Avoid_: Bonus feat (that's a slot), one-feat list
 
 **Bonus-list slot**:

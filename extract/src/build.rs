@@ -124,6 +124,7 @@ pub fn extract(guide: &Guide) -> Extraction {
         mythic_abilities,
         mythic_feats,
         mythic_paths,
+        backgrounds: Vec::new(),
     };
     builder.resolve_prerequisites(&mut data);
     crate::references::drop_dangling(&mut data, &mut builder.lists, &mut builder.report);
@@ -164,6 +165,8 @@ pub fn extract(guide: &Guide) -> Extraction {
     // The user's decisions on tickets 32-33's open questions (ticket 35), on the finished data. It settles no item
     // of an extraction's report.
     crate::second_follow_ups::apply(guide, &mut data);
+    // The user's backgrounds (ticket 34): the guide doesn't list them, so the extractor carries the user's table.
+    data.backgrounds = crate::backgrounds::backgrounds(&data);
     for problem in data.check() {
         builder.report.add_about(
             Kind::Cell,
