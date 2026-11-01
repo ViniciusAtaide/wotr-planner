@@ -1,0 +1,20 @@
+MythicPath(
+    key: "path:gold-dragon",
+    name: "Gold Dragon",
+    guide: "gold-dragon",
+    switch: (kept_ranks: [1, 2, 3, 4, 5, 6, 7], further_ascensions: true, level_cap: None),
+    features: [
+        (key: "feature:gold-dragon/gold-dragon-breath", name: "Gold Dragon Breath", guide: "gold-dragon#gold-dragon-breath"),
+        (key: "feature:gold-dragon/gold-dragon-form", name: "Gold Dragon Form", guide: "gold-dragon#gold-dragon-form"),
+        (key: "feature:gold-dragon/improved-dragon-breath", name: "Improved Dragon Breath", guide: "gold-dragon"),
+        (key: "feature:gold-dragon/perfect-body", name: "Perfect Body", guide: "gold-dragon#perfect-body"),
+        (key: "feature:gold-dragon/perfect-mind", name: "Perfect Mind", guide: "gold-dragon#perfect-mind"),
+        (key: "feature:gold-dragon/perfect-soul", name: "Perfect Soul", guide: "gold-dragon#perfect-soul"),
+        (key: "feature:gold-dragon/wings", name: "Wings", guide: "gold-dragon"),
+    ],
+    ranks: [
+        (rank: 8, features: ["feature:gold-dragon/gold-dragon-breath", "feature:gold-dragon/improved-dragon-breath", "feature:gold-dragon/perfect-body", "feature:gold-dragon/wings"]),
+        (rank: 9, features: ["feature:gold-dragon/gold-dragon-form", "feature:gold-dragon/improved-dragon-breath", "feature:gold-dragon/perfect-mind"], feat_slots: [General, General, General]),
+        (rank: 10, features: ["feature:gold-dragon/improved-dragon-breath", "feature:gold-dragon/improved-dragon-breath", "feature:gold-dragon/improved-dragon-breath", "feature:gold-dragon/perfect-soul"]),
+    ],
+)

@@ -1,0 +1,28 @@
+Class(
+    key: "class:arcane-trickster",
+    name: "Arcane Trickster",
+    guide: "prestige-classes#arcane-trickster",
+    skill_points: 4,
+    class_skills: ["skill:athletics", "skill:knowledge-arcana", "skill:knowledge-world", "skill:lore-nature", "skill:lore-religion", "skill:mobility", "skill:perception", "skill:persuasion", "skill:stealth", "skill:trickery", "skill:use-magic-device"],
+    prerequisite: All([Any([Feature(feature: "feature:alchemist/vivisectionist/sneak-attack", count: 2), Feature(feature: "feature:arcane-trickster/sneak-attack", count: 2), Feature(feature: "feature:assassin/sneak-attack", count: 2), Feature(feature: "feature:inquisitor/sanctified-slayer/sneak-attack", count: 2), Feature(feature: "feature:paladin/divine-scion/sneak-attack", count: 2), Feature(feature: "feature:rogue/eldritch-scoundrel/sneak-attack-eldritch-scoundrel", count: 2), Feature(feature: "feature:rogue/master-of-all/sneak-attack-master-of-all", count: 2), Feature(feature: "feature:rogue/sneak-attack", count: 2), Feature(feature: "feature:shaman/shadow-shaman/sneak-attack", count: 2), Feature(feature: "feature:skald/inciter/sneak-attack", count: 2), Feature(feature: "feature:slayer/imitator/sneak-attack-imitator", count: 2), Feature(feature: "feature:slayer/sneak-attack", count: 2), Feature(feature: "feature:trickster/sneak-attack", count: 2), Feature(feature: "feature:warpriest/cult-leader/sneak-attack", count: 2)]), SkillRanks(skill: "skill:knowledge-arcana", ranks: 4), SkillRanks(skill: "skill:mobility", ranks: 4), SkillRanks(skill: "skill:trickery", ranks: 4), SpellLevel(spell_type: Arcane, level: 2), CharacterLevel(5)]),
+    features: [
+        (key: "feature:arcane-trickster/arcane-spellcasting", name: "Arcane Spellcasting", guide: "prestige-classes#arcane-trickster"),
+        (key: "feature:arcane-trickster/impromptu-sneak-attack", name: "Impromptu Sneak Attack", guide: "prestige-classes#impromptu-sneak-attack"),
+        (key: "feature:arcane-trickster/invisible-thief", name: "Invisible Thief", guide: "prestige-classes#invisible-thief"),
+        (key: "feature:arcane-trickster/ranged-legerdemain", name: "Ranged Legerdemain", guide: "prestige-classes#ranged-legerdemain"),
+        (key: "feature:arcane-trickster/sneak-attack", name: "Sneak Attack", guide: "prestige-classes#sneak-attack"),
+        (key: "feature:arcane-trickster/surprise-spells", name: "Surprise Spells", guide: "prestige-classes#surprise-spells"),
+    ],
+    levels: [
+        (level: 1, bab: 0, fort: 0, reflex: 1, will: 1, advances_arcane: true, features: ["feature:arcane-trickster/arcane-spellcasting", "feature:arcane-trickster/ranged-legerdemain"]),
+        (level: 2, bab: 1, fort: 1, reflex: 1, will: 1, advances_arcane: true, features: ["feature:arcane-trickster/sneak-attack"]),
+        (level: 3, bab: 1, fort: 1, reflex: 2, will: 2, advances_arcane: true, features: ["feature:arcane-trickster/impromptu-sneak-attack"]),
+        (level: 4, bab: 2, fort: 1, reflex: 2, will: 3, advances_arcane: true),
+        (level: 5, bab: 2, fort: 2, reflex: 3, will: 3, advances_arcane: true),
+        (level: 6, bab: 3, fort: 2, reflex: 3, will: 3, advances_arcane: true),
+        (level: 7, bab: 3, fort: 2, reflex: 4, will: 4, advances_arcane: true),
+        (level: 8, bab: 4, fort: 3, reflex: 4, will: 4, advances_arcane: true),
+        (level: 9, bab: 4, fort: 3, reflex: 5, will: 5, advances_arcane: true, features: ["feature:arcane-trickster/invisible-thief"]),
+        (level: 10, bab: 5, fort: 3, reflex: 5, will: 5, advances_arcane: true, features: ["feature:arcane-trickster/surprise-spells"]),
+    ],
+)

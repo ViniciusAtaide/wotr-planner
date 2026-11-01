@@ -3,8 +3,10 @@
 The planner's game data, as RON files that deserialise straight into the `rules` crate types
 (`rules/src/game_data.rs`). These files are the source of truth: fix data by editing them, then reseed.
 
-Empty for now: the files are extracted once from the saved guide pages in a later ticket. Until then,
-`data/tests/fixtures/game-data/` is a small hand-written example of the layout.
+The files were extracted once from the saved guide pages (`cargo run -p extract -- --force`, which never
+overwrites `.ron` files). `EXTRACTION_REPORT.md` lists, by category, what the extractor couldn't turn into data;
+fix an item in the `.ron` files and delete its line. `data/tests/fixtures/game-data/` is a small hand-written
+example of the layout.
 
 ## Layout
 
@@ -50,11 +52,14 @@ switch (one above the highest kept rank), and each class's level cap (its number
 ## Seeding
 
 ```sh
+cargo run -p data --bin seed -- --check-only   # read and check the files only, no database
 cargo run -p data --bin seed            # this folder (or $GAME_DATA_DIR)
 cargo run -p data --bin seed -- <dir>   # another folder, e.g. data/tests/fixtures/game-data
 ```
 
-The seed first runs `GameData::check` and refuses data with problems, listing them. Then it replaces every game
+The seed first runs `GameData::check` and refuses data with problems, listing them. `--check-only` stops
+there, never touching Postgres, so several editors can check at once; keys that don't exist are only caught by a
+real seed (the database's foreign keys). Then it replaces every game
 table in one transaction and stores a hash of the `.ron` files. The server loads the game data once at startup,
 so restart it after a reseed. It logs a warning at startup when the stored hash doesn't match the files in
 `$GAME_DATA_DIR` (default: this folder); it never reseeds on its own.

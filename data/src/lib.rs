@@ -64,6 +64,19 @@ pub fn game_data_dir() -> PathBuf {
     )
 }
 
+/// Reads the data files under `dir` and runs [`rules::GameData::check`] on them, without a database.
+/// Returns the data when it has no problems. References to keys that don't exist are left to the
+/// database's foreign keys, so only [`seed`] catches those.
+pub fn check_game_data_files(dir: &Path) -> Result<rules::GameData, Error> {
+    let data = read_game_data_files(dir)?;
+    let problems = data.check();
+    if problems.is_empty() {
+        Ok(data)
+    } else {
+        Err(Error::Invalid(problems))
+    }
+}
+
 /// Reads the data files under `dir`, checks them, and replaces every game table with them in one
 /// transaction, storing the files' hash. Returns the hash.
 pub async fn seed(db: &Database, dir: &Path) -> Result<String, Error> {

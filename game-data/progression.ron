@@ -1,0 +1,14 @@
+Progression(
+    mythic_ascensions: [
+        (rank: 1, character_level: 6),
+        (rank: 2, character_level: 7),
+        (rank: 3, character_level: 9),
+        (rank: 4, character_level: 11),
+        (rank: 5, character_level: 14),
+        (rank: 6, character_level: 15),
+        (rank: 7, character_level: 16),
+        (rank: 8, character_level: 17),
+        (rank: 9, character_level: 17),
+        (rank: 10, character_level: 19),
+    ],
+)

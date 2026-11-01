@@ -24,6 +24,7 @@ A working, locally run Leptos app at `~/code/wotr-planner` for planning Pathfind
   - **One migration while prototyping** (user, 2026-10-31). Schema changes edit the initial migration, then the dev database is dropped and reseeded; there are no fix-up migrations. Only one agent at a time does this. The steps are in the repo's `CLAUDE.md`.
   - **No derived values in the database** (user, 2026-10-31). Anything computable from other columns or a simple rule belongs in Rust, not in a column. Examples: a `position` that equals `rank − 1`, or ability/feat counts that follow `rank % 2`.
 - **Rules followed:** the game's intended, current (patched) behaviour. Known exploits are not modelled.
+- **Extraction in stages** (user, 2026-11-01): [Extract the guide into data files](issues/10-extract-guide.md) is stage A, where the extractor writes `game-data/` and the seed passes. Then four parallel hand-fix stages, one per category: [feats](issues/17-handfix-feats.md), [base classes](issues/18-handfix-base-classes.md), [prestige classes](issues/19-handfix-prestige-classes.md), [mythic](issues/20-handfix-mythic.md). They validate without the database, and the main session seeds once. Then [Answer the schema questions from the real data](issues/21-schema-questions-real-data.md). Commit a checkpoint after each stage.
 - **Order** (user, 2026-10-31): finish the data layer (saved guide pages, extraction, checking the data against the guide) before the UI. [Build the planning sheet screen](issues/12-build-sheet-screen.md) waits on [Extract the guide into data files](issues/10-extract-guide.md).
 - **Rules:** the rules live in a plain Rust crate with no DB or Leptos code, running in the browser. The browser loads the game data once, filters choices immediately, and decodes and encodes the Build from the URL.
 - **Mobile:** design mobile-first. The main targets are the Galaxy Z Fold 7 cover screen (folded, tall and narrow, ~21:9) and inner screen (unfolded, nearly square, ~6:5). Desktop is secondary. Both Fold screens must work for touch: no hover-only interactions, and tap targets large enough for a thumb. The layout should adapt when the phone is folded or unfolded without losing the user's place.
@@ -61,20 +62,12 @@ A working, locally run Leptos app at `~/code/wotr-planner` for planning Pathfind
 - [Apply the normalization review](issues/15-normalization-fixes.md): `ability_modifier` has no `kind` (a NULL ability is the chosen kind), the level cap lives on the switch (`PathSwitch.level_cap`, `path_switch.level_cap`), path ranks and kept ranks reference `mythic_ascension (rank)`, and `prerequisite_node` has one per-kind CHECK that names its columns and says what `amount` means. The loader now rejects class skills under an archetype that keeps its class's list, and prerequisite nodes outside exactly one owner's tree (`Trees::finish`). Still 25 tables.
 - [Save the guide pages](issues/08-save-guide-pages.md): all 38 pages are saved in the git-ignored `guide-cache/` (stamped 2026-10-31), each verified by its canonical link; `character-building` and `appendix-default-builds` were dropped as unnecessary.
 - [Bonus feats ignore prerequisites](issues/16-bonus-feats-ignore-prerequisites.md): a **Bonus-list slot** is `FeatSlot::OneOf { feats, ignores_prerequisites: true }` (column `feat_slot.ignores_prerequisites`, CHECK only on `one_of`; `GameData::check` allows it only on class/archetype level rows). The engine skips the feat's prerequisites there but still checks the list and already-held, the pick counts as held, so follow-on feats check theirs, and would-break never flags it. Fighter, category, general and other fixed-list slots still check.
+- [Extract the guide into data files](issues/10-extract-guide.md) (stage A): `cargo run -p extract` wrote the real `game-data/` (26 classes, 196 archetypes, 13 prestige, 261 feats, 63 + 56 mythic, 10 paths) and seeded cleanly with no hand-fixes. `EXTRACTION_REPORT.md` holds 82 items under Feats / Base classes / Prestige classes / Mythic / Races and skills for the per-category stages (biggest gap: sorcerer and wizard base tables grant nothing). The stages validate with `cargo run -p data --bin seed -- --check-only`, which needs no database.
 
 ## Not yet specified
 
 - **Checking the data:** how we confirm the extracted data matches the guide, by spot checks or golden builds. The guide's sample-build pages aren't saved (the user dropped them), so golden builds would have to come from elsewhere. That page does hold independent BAB, ability-score and skill-rank prerequisite tables, which would cross-check the extracted feats if it's ever saved.
 - **End-to-end smoke tests:** tooling and which flows to cover.
-- **Schema questions for the real guide data:** these wait on [the extraction](issues/10-extract-guide.md) (ticket 10), deferred by [ticket 15](issues/15-normalization-fixes.md):
-  - archetype level rows that repeat the base class (the earlier decision to keep full rows stands until real data shows how often archetypes differ);
-  - `kept_through_rank` replacing `path_switch_kept_rank`;
-  - set vs multiset for `granted_*`;
-  - whether options are shared across selections;
-  - a `one_of` feat slot vs a feat-granting selection;
-  - whether `level_cap` and `further_ascensions` are independent;
-  - whether mythic `group_name` is a closed set;
-  - whether every class's BAB and saves follow full/¾/½ BAB and good/poor saves. If so, store a progression type per class instead of per-level numbers. The character-building page's BAB table matches the standard progressions.
 
 ## Out of scope
 
