@@ -2,7 +2,7 @@
 
 Type: task
 Status: open
-Blocked by: 09, 10, 11, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36
+Blocked by: 09, 10, 11, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37
 Map: [WotR Build Planner](../map.md)
 
 ## Question

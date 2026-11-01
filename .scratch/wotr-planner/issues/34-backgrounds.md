@@ -115,3 +115,10 @@ Real-data tests (`game_data.rs`, 7 new, red on an empty `backgrounds.ron` first:
 1. **Options' class skills.** Some options grant a "Class Skill: …" feature (an oracle's mystery, a kineticist's element). These stay features, so `class_skills` doesn't include them. Should they count?
 2. **A blank Build's background.** A new Build has no background chosen, which differs from the background None. Should a blank Build start on None instead, so the choice is never empty?
 3. **What class skills do.** Nothing reads them yet: skill points and the rank cap don't depend on them, and the game's +3 on a trained class skill is a number this planner doesn't show. Is showing them on the sheet enough?
+
+## Decisions on the open questions
+
+**User, 2026-11-01 ("all recommended"):**
+1. Options' "Class Skill: …" features become real class skills, now that the engine holds class skills. [Ticket 37](37-option-class-skills.md).
+2. A blank Build has no background chosen; the sheet asks for it as it does for race. None stays a data entry.
+3. Class skills are shown on the sheet; nothing else uses them for now.
