@@ -1,0 +1,38 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT option_key, feat_key FROM selection_option_feat ORDER BY option_key, feat_key",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "option_key",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "selection_option_feat",
+            "name": "option_key"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "feat_key",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "selection_option_feat",
+            "name": "feat_key"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "43603521d7d8a09583e77f3d199c15445a0501ca08d5e8a1831d5c967beb604e"
+}

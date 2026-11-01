@@ -126,7 +126,7 @@ impl GameData {
         }
         sort_by_key(&mut self.mythic_paths, |p| p.key.clone());
         for path in &mut self.mythic_paths {
-            sort_by_key(&mut path.features, |f| f.key.clone());
+            canonicalize_features(&mut path.features);
             canonicalize_selections(&mut path.selections);
             sort_by_key(&mut path.feat_lists, |l| l.key.clone());
             path.ranks.sort_by_key(|r| r.rank);
@@ -150,6 +150,14 @@ fn sort_by_key<T, K: Ord>(items: &mut [T], key: impl FnMut(&T) -> K) {
 fn canonicalize_prerequisite(prerequisite: &mut Option<Prerequisite>) {
     if let Some(prerequisite) = prerequisite {
         prerequisite.canonicalize();
+    }
+}
+
+/// Features by key, each one's ability bonuses (a set in all but type) by value.
+fn canonicalize_features(features: &mut [Feature]) {
+    sort_by_key(features, |f| f.key.clone());
+    for feature in features {
+        feature.ability_bonuses.sort();
     }
 }
 
@@ -191,7 +199,7 @@ fn sort_grants(
 impl Class {
     fn canonicalize(&mut self) {
         canonicalize_prerequisite(&mut self.prerequisite);
-        sort_by_key(&mut self.features, |f| f.key.clone());
+        canonicalize_features(&mut self.features);
         canonicalize_selections(&mut self.selections);
         sort_by_key(&mut self.feat_lists, |l| l.key.clone());
         self.save_exceptions.sort();
@@ -199,7 +207,7 @@ impl Class {
         sort_by_key(&mut self.archetypes, |a| a.key.clone());
         for archetype in &mut self.archetypes {
             canonicalize_prerequisite(&mut archetype.prerequisite);
-            sort_by_key(&mut archetype.features, |f| f.key.clone());
+            canonicalize_features(&mut archetype.features);
             canonicalize_selections(&mut archetype.selections);
             sort_by_key(&mut archetype.feat_lists, |l| l.key.clone());
             canonicalize_archetype_rows(&mut archetype.levels);
@@ -373,7 +381,19 @@ pub struct FeatList {
     /// counts as held afterwards. Unset, the prerequisites are checked.
     #[serde(default)]
     pub ignores_prerequisites: bool,
+    /// Set on a list of every feat in the data (Gold Dragon's Dragon Feats: "any three feats"), which then names
+    /// no feats of its own: the members would only copy the feat catalog.
+    #[serde(default)]
+    pub every_feat: bool,
+    #[serde(default)]
     pub feats: BTreeSet<FeatKey>,
+}
+
+impl FeatList {
+    /// Whether the list holds a feat: every feat on an `every_feat` list, else its own.
+    pub fn contains(&self, feat: &FeatKey) -> bool {
+        self.every_feat || self.feats.contains(feat)
+    }
 }
 
 /// A base class or a prestige class.
@@ -620,6 +640,23 @@ pub struct Feature {
     #[serde(default)]
     pub summary: String,
     pub guide: GuideRef,
+    /// What the feature does to the character's own ability scores while it's held (Legend: +4 to every score).
+    /// They count toward ability-score prerequisites like point buy and level increases do; gear never does.
+    #[serde(default)]
+    pub ability_bonuses: Vec<AbilityBonus>,
+}
+
+/// A permanent change a feature makes to the character's own ability scores, as the guide states it.
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+pub enum AbilityBonus {
+    /// `+amount` to one score (Eye of the Swarm: Strength and Dexterity +4).
+    Fixed { ability: Ability, amount: u8 },
+    /// `+amount` to every score (Legend: +4).
+    Every { amount: u8 },
+    /// `+amount` to the highest score (Perfect Body: +4).
+    Highest { amount: u8 },
+    /// Every score is at least `score` (Perfect Body: 14).
+    AtLeast { score: u8 },
 }
 
 /// The fixed list a Feature selection picks from, such as rogue talents or a path's picks: its own options plus
@@ -656,9 +693,10 @@ pub struct SelectionOption {
     #[serde(default)]
     pub summary: String,
     pub guide: GuideRef,
-    /// The feat this option grants ("This is the feat of the same name").
+    /// The feats this option grants ("This is the feat of the same name"; All-skilled: every weapon, armour and
+    /// shield proficiency).
     #[serde(default)]
-    pub feat: Option<FeatKey>,
+    pub feats: BTreeSet<FeatKey>,
     #[serde(default)]
     pub prerequisite: Option<Prerequisite>,
 }
@@ -795,12 +833,30 @@ pub struct MythicRankRow {
     pub selections: Vec<FeatureSelectionKey>,
 }
 
-/// What happens when a Build switches to this path.
+/// What happens when a Build switches to this path at the switch rank.
+///
+/// A Mythic rank gives a general pick (a mythic ability or feat) and the old path's own grants (its rank row's
+/// features and the picks in its slots). The switch keeps each kind up to its own rank, and can take named grants
+/// of the old path away whatever their rank.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct PathSwitch {
-    /// The earlier Mythic ranks whose picks are kept (Legend: 1 and 2).
-    pub kept_ranks: BTreeSet<u8>,
+    /// The paths a Build may switch from; empty: any (Devil: Aeon or Azata).
+    #[serde(default)]
+    pub from: BTreeSet<MythicPathKey>,
+    /// The general picks of MR 1 up to this rank are kept (Legend: 2; Gold Dragon: 7).
+    pub kept_through_rank: u8,
+    /// The old path's own grants of MR 1 up to this rank are kept (Legend and Gold Dragon: 2; Devil: 7).
+    pub path_kept_through_rank: u8,
+    /// Old-path features lost whatever their rank (Devil: the Aeon's extra gaze, the Azata's dragon).
+    #[serde(default)]
+    pub dropped_features: BTreeSet<FeatureKey>,
+    /// Old-path selections whose picks are lost whatever their rank (Devil: the Aeon's Enforcing Gaze).
+    #[serde(default)]
+    pub dropped_selections: BTreeSet<FeatureSelectionKey>,
+    /// Features the switch itself grants, held from the switch on (Legend: +4 to every score).
+    #[serde(default)]
+    pub features: BTreeSet<FeatureKey>,
     /// Whether later Mythic ascensions still happen (Legend: no).
     pub further_ascensions: bool,
     /// The Character level cap after switching, when the switch raises the usual one (Legend: 40).
@@ -809,10 +865,13 @@ pub struct PathSwitch {
 }
 
 impl PathSwitch {
-    /// The Mythic rank right after the switch: one above the highest rank kept (Legend: 3).
+    /// The Mythic rank right after the switch: one above the general picks kept (Legend: 3).
     pub fn rank_after_switch(&self) -> u8 {
-        self.kept_ranks
-            .last()
-            .map_or(1, |rank| rank.saturating_add(1))
+        self.kept_through_rank.saturating_add(1)
+    }
+
+    /// Whether a Build on `path` may take this switch.
+    pub fn open_from(&self, path: Option<&MythicPathKey>) -> bool {
+        self.from.is_empty() || path.is_some_and(|path| self.from.contains(path))
     }
 }

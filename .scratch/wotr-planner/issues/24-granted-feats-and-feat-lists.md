@@ -119,3 +119,10 @@ Script: `t24/rewrite.py` (+ `t24/names.py`, the list names) in the session scrat
 2. **Kinetic Sharpshooter** lists only bows and crossbows; the data keeps the kineticist's simple weapons and light armour (the feats page doesn't list it among those without light armour).
 3. **Azata's All-skilled** ("proficient with all types of weapons and armour", a superpower selection option) isn't modelled: an option grants at most one feat. It would need options that grant several feats.
 
+
+## Decisions on the open questions
+
+**User, 2026-11-01 ("all recommended"):**
+1. Shields: the class pages win over the feats page's summary list. No data change.
+2. Kinetic Sharpshooter keeps the kineticist's simple weapons and light armour. No data change.
+3. Azata's All-skilled: a selection option may grant several feats; All-skilled grants every weapon, armour and shield proficiency feat. Built in [ticket 26](26-mythic-path-rules.md).

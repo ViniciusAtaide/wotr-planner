@@ -23,6 +23,7 @@ fn feature(key: &str) -> Feature {
         name: key.into(),
         summary: String::new(),
         guide: GuideRef::new(key),
+        ability_bonuses: vec![],
     }
 }
 

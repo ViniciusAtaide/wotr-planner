@@ -59,6 +59,7 @@ fn a_reference_must_exist_as_its_own_kind() {
                 name: "Trick".into(),
                 summary: String::new(),
                 guide: GuideRef::new("trickster#trick"),
+                ability_bonuses: vec![],
             }],
             selections: vec![],
             feat_lists: vec![],
@@ -95,7 +96,7 @@ fn an_option_beside_the_feat_it_grants_is_dropped() {
         name: key.into(),
         summary: String::new(),
         guide: GuideRef::new(key),
-        feat: feat.map(FeatKey::new),
+        feats: feat.map(FeatKey::new).into_iter().collect(),
         prerequisite: None,
     };
     let rogue = Class {

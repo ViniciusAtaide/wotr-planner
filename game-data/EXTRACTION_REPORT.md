@@ -1,8 +1,8 @@
 # Extraction report
 
-**Hand-fixed on 2026-11-01** by tickets 17–20 (feats, base classes, prestige classes, mythic). Remaining: Feats 2, Base classes 54, Prestige classes 12, Mythic 9, Races and skills 0. Items marked *narrowed* are partly fixed; items marked *new* were found during the hand-fix. Ticket 25 (shared selection options) fixed `rogue#discovery` and `rogue#fey-tricks`.
+**Hand-fixed on 2026-11-01** by tickets 17–20 (feats, base classes, prestige classes, mythic). Remaining: Feats 2, Base classes 54, Prestige classes 12, Mythic 2, Races and skills 0. Items marked *narrowed* are partly fixed; items marked *new* were found during the hand-fix. Ticket 25 (shared selection options) fixed `rogue#discovery` and `rogue#fey-tricks`. Ticket 26 (mythic path rules) fixed the Dragon Feats slot, the five switch items (partial keeps, Devil's previous paths and drops, Legend's effects, the Trickster's Perception II feats) and the breaths' "Mythic Rank: 9".
 
-What the extractor couldn't turn into data from the guide pages saved on 2026-10-31, with where each item is (`page#anchor`). Fix an item by editing the `.ron` files, check with `cargo run -p data --bin seed -- --check-only`, then delete its line here. 77 items.
+What the extractor couldn't turn into data from the guide pages saved on 2026-10-31, with where each item is (`page#anchor`). Fix an item by editing the `.ron` files, check with `cargo run -p data --bin seed -- --check-only`, then delete its line here. 70 items.
 
 ## Feats (2)
 
@@ -113,31 +113,14 @@ Rules stated only in prose that the current data types can't hold.
 - `prestige-classes#order`, `prestige-classes#order-hellknight-signifer`:  (*new*: a Hellknight who wasn't an Armiger, and every Signifer, picks one of seven orders, but there's no selection for it, so Pentamic Faith is closed to a non-Armiger Hellknight)
 - `prestige-classes#winter-witch`:  (advances one class's spellcasting, arcane or divine: stored as advancing both, which the engine reads as one of each)
 
-## Mythic (9)
+## Mythic (2)
 
 ### Prerequisite lines (2)
 
 Each line is left out of its prerequisite, so it doesn't block any pick. A group (`or`, "One of") with an unresolved member is left out whole.
 
-- `gold-dragon#annihilating-breath`, `#decaying-breath`, `#enlightening-breath`, `#rejuvenating-breath`: "Mythic Rank: 9", "Vow of Dahak", "Uncorrupted" (*new*: no mythic-rank or story-flag condition; MR 8 and 9 share character level 17, so `CharacterLevel` can't stand in)
+- `gold-dragon#annihilating-breath`, `#decaying-breath`, `#enlightening-breath`, `#rejuvenating-breath`: "Vow of Dahak", "Uncorrupted" (*new*: story conditions, out of scope by the user's decision R5 in ticket 21; "Mythic Rank: 9" is `MythicRank(9)` since ticket 26)
 - `mythic-paths#domain-zealot`: "Domain" (*new*: a druid has a domain only if Nature Bond took one, and Nature Bond isn't a choice in the data; `ClassLevel(druid, 1)` lets every druid in)
-
-### Bonus feat slots (1)
-
-The slot as stored, and why it needs a look.
-
-- `gold-dragon`: "Dragon Feats" (three feats chosen without prerequisites; slots outside a class can't skip prerequisites, so stored as three general slots)
-
-### Prose-only rules (6)
-
-Rules stated only in prose that the current data types can't hold.
-
-- `gold-dragon`:  (the switch drops the previous path's own powers from MR 3-7 but keeps the mythic abilities and feats; the data keeps whole ranks, so MR 1-7 are kept in full)
-- `other-mythic-paths#devil`:  (the Devil switch is open only to an Aeon or Azata; a path switch has no prerequisite in the data)
-- `other-mythic-paths#devil`:  (*new*: switching from Aeon loses the Enforcing Gaze picks, and from Azata the dragon companion; MR 1-7 are kept in full)
-- `other-mythic-paths#legend`:  (*new*: the Legend effects, +4 to every ability score and Corruption Resistance, are never granted; a switch with no further ascensions applies no rank row)
-- `other-mythic-paths#legend`:  (*new*: feats unlocked by Trickster's Perception II are kept after becoming a Legend, but the data drops the MR 3-7 Trickster picks, so those feats show as broken)
-- `other-mythic-paths#swarm-that-walks`:  (the switch drops the previous path's own powers from MR 3-7 but keeps the mythic abilities and feats; the data keeps whole ranks, so MR 1-7 are kept in full)
 
 ## Races and skills (0)
 

@@ -1,7 +1,11 @@
 // Hand-written test fixture: small and simplified, not checked against the guide.
+// The switch grants a feature with an ability bonus.
 MythicPath(
     key: "legend",
     name: "Legend",
     guide: "other-mythic-paths#legend",
-    switch: (kept_ranks: [1, 2], further_ascensions: false, level_cap: 40),
+    switch: (kept_through_rank: 2, path_kept_through_rank: 2, features: ["legend/legend"], further_ascensions: false, level_cap: 40),
+    features: [
+        (key: "legend/legend", name: "Legend", guide: "other-mythic-paths#legend", ability_bonuses: [Every(amount: 4)]),
+    ],
 )

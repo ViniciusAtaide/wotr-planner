@@ -1,4 +1,4 @@
-// Hand-written test fixture: small and simplified, not checked against the guide.
+// Hand-written test fixture: small and simplified, not checked against the guide. Combat Trick grants two feats.
 Class(
     key: "rogue",
     name: "Rogue",
@@ -22,7 +22,7 @@ Class(
                     key: "rogue/rogue-talents/combat-trick",
                     name: "Combat Trick",
                     guide: "rogue#combat-trick",
-                    feat: "combat-expertise",
+                    feats: ["combat-expertise", "dirty-trick"],
                 ),
                 (
                     key: "rogue/rogue-talents/crippling-strike",

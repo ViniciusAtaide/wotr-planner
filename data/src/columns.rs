@@ -136,6 +136,7 @@ pub(crate) enum NodeKind {
     SpellLevel,
     CasterLevel,
     CharacterLevel,
+    MythicRank,
     Alignment,
     Race,
 }
@@ -163,6 +164,7 @@ text_column!(NodeKind, node_kind_from, node_kind_text {
     SpellLevel => "spell_level",
     CasterLevel => "caster_level",
     CharacterLevel => "character_level",
+    MythicRank => "mythic_rank",
     Alignment => "alignment",
     Race => "race",
 });
@@ -181,4 +183,20 @@ text_column!(FeatSlotKind, feat_slot_kind_from, feat_slot_kind_text {
     CombatFeat => "combat_feat",
     Category => "category",
     OneOf => "one_of",
+});
+
+/// `feature_ability_bonus.kind`: which `rules::AbilityBonus` variant a row is.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum AbilityBonusKind {
+    Fixed,
+    Every,
+    Highest,
+    AtLeast,
+}
+
+text_column!(AbilityBonusKind, ability_bonus_kind_from, ability_bonus_kind_text {
+    Fixed => "fixed",
+    Every => "every",
+    Highest => "highest",
+    AtLeast => "at_least",
 });

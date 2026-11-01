@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO path_switch_from (path_key, from_path_key) VALUES ($1, $2)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "38abfe00642dcacb84cbf9aed049a5b52ef2ce5e13c329cb944a23b4f6591cdd"
+}

@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT path_key, further_ascensions, level_cap FROM path_switch",
+  "query": "SELECT path_key, feature_key, selection_key FROM path_switch_drop\n        ORDER BY path_key, feature_key, selection_key",
   "describe": {
     "columns": [
       {
@@ -9,30 +9,30 @@
         "type_info": "Text",
         "origin": {
           "Table": {
-            "table": "path_switch",
+            "table": "path_switch_drop",
             "name": "path_key"
           }
         }
       },
       {
         "ordinal": 1,
-        "name": "further_ascensions",
-        "type_info": "Bool",
+        "name": "feature_key",
+        "type_info": "Text",
         "origin": {
           "Table": {
-            "table": "path_switch",
-            "name": "further_ascensions"
+            "table": "path_switch_drop",
+            "name": "feature_key"
           }
         }
       },
       {
         "ordinal": 2,
-        "name": "level_cap",
-        "type_info": "Int2",
+        "name": "selection_key",
+        "type_info": "Text",
         "origin": {
           "Table": {
-            "table": "path_switch",
-            "name": "level_cap"
+            "table": "path_switch_drop",
+            "name": "selection_key"
           }
         }
       }
@@ -42,9 +42,9 @@
     },
     "nullable": [
       false,
-      false,
+      true,
       true
     ]
   },
-  "hash": "6d9731713e4484f53ed75f803ec2253d6f0b7ebd8a1e2f00153d22a7607133c6"
+  "hash": "62d8f069703a9e82c040d65ec81c92c8d311ad1888d80a72ba47e9790a4d5ab4"
 }

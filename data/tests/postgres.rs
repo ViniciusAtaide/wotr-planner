@@ -251,6 +251,7 @@ fn every_prerequisite_variant() -> Vec<Prerequisite> {
         },
         P::CasterLevel(5),
         P::CharacterLevel(7),
+        P::MythicRank(9),
         P::Alignment(Alignment::LawfulNeutral),
         P::Race(RaceKey::new("dwarf")),
     ];
@@ -277,6 +278,7 @@ fn every_prerequisite_variant() -> Vec<Prerequisite> {
             | P::SpellLevel { .. }
             | P::CasterLevel(_)
             | P::CharacterLevel(_)
+            | P::MythicRank(_)
             | P::Alignment(_)
             | P::Race(_) => {}
         }
@@ -388,6 +390,8 @@ async fn a_prerequisite_node_must_fill_exactly_its_own_columns(pool: PgPool) {
         "INSERT INTO prerequisite_node (kind) VALUES ('base_attack_bonus')",
         // A skill-ranks condition without its skill.
         "INSERT INTO prerequisite_node (kind, amount) VALUES ('skill_ranks', 4)",
+        // A Mythic rank condition without its rank.
+        "INSERT INTO prerequisite_node (kind) VALUES ('mythic_rank')",
         // A class-level condition without its level.
         "INSERT INTO prerequisite_node (kind, class_key) VALUES ('class_level', 'fighter')",
         // An at-least group without its n.
@@ -510,21 +514,69 @@ async fn the_schema_rejects_values_outside_their_domain_and_misplaced_keys(pool:
     .await;
     assert!(error.contains("check constraint"), "{error}");
 
-    // Kept ranks belong to a path's switch rule, so a path without one can't have them.
-    let error =
-        rejected("INSERT INTO path_switch_kept_rank (path_key, rank) VALUES ('trickster', 1)")
-            .await;
-    assert!(error.contains("foreign key"), "{error}");
+    // A switch's previous paths, drops and granted features belong to a path's switch rule, so a path without
+    // one can't have them.
+    for sql in [
+        "INSERT INTO path_switch_from (path_key, from_path_key) VALUES ('trickster', 'legend')",
+        "INSERT INTO path_switch_drop (path_key, feature_key)
+        VALUES ('trickster', 'trickster/trickster-tricks')",
+        "INSERT INTO path_switch_feature (path_key, feature_key)
+        VALUES ('trickster', 'trickster/trickster-tricks')",
+    ] {
+        let error = rejected(sql).await;
+        assert!(error.contains("foreign key"), "{sql}: {error}");
+    }
+    // A switch isn't open from its own path, and a drop names exactly one feature or selection.
+    for sql in [
+        "INSERT INTO path_switch_from (path_key, from_path_key) VALUES ('legend', 'legend')",
+        "INSERT INTO path_switch_drop (path_key) VALUES ('legend')",
+        "INSERT INTO path_switch_drop (path_key, feature_key, selection_key)
+        VALUES ('legend', 'trickster/trickster-tricks', 'trickster/tricks')",
+    ] {
+        let error = rejected(sql).await;
+        assert!(error.contains("check constraint"), "{sql}: {error}");
+    }
 
     // A switch's level cap runs 20-40.
     let error = rejected("UPDATE path_switch SET level_cap = 41 WHERE path_key = 'legend'").await;
     assert!(error.contains("check constraint"), "{error}");
 
-    // A path's rank row and a switch's kept rank name a Mythic rank the ascension table has.
+    // A path's rank row and a switch's kept ranks name a Mythic rank the ascension table has.
     let error = rejected("INSERT INTO mythic_rank (path_key, rank) VALUES ('legend', 11)").await;
     assert!(error.contains("foreign key"), "{error}");
-    let error =
-        rejected("INSERT INTO path_switch_kept_rank (path_key, rank) VALUES ('legend', 11)").await;
+    for sql in [
+        "UPDATE path_switch SET kept_through_rank = 11 WHERE path_key = 'legend'",
+        "UPDATE path_switch SET path_kept_through_rank = 11 WHERE path_key = 'legend'",
+    ] {
+        let error = rejected(sql).await;
+        assert!(error.contains("foreign key"), "{sql}: {error}");
+    }
+
+    // An ability bonus names an ability exactly when it's the fixed kind, and its kind is a closed set.
+    for sql in [
+        "INSERT INTO feature_ability_bonus (feature_key, kind, amount)
+        VALUES ('legend/legend', 'fixed', 4)",
+        "INSERT INTO feature_ability_bonus (feature_key, kind, ability, amount)
+        VALUES ('legend/legend', 'highest', 'strength', 4)",
+        "INSERT INTO feature_ability_bonus (feature_key, kind, amount)
+        VALUES ('legend/legend', 'double', 4)",
+    ] {
+        let error = rejected(sql).await;
+        assert!(error.contains("check constraint"), "{sql}: {error}");
+    }
+    // One bonus of a kind (and ability) per feature.
+    let error = rejected(
+        "INSERT INTO feature_ability_bonus (feature_key, kind, amount) VALUES ('legend/legend', 'every', 2)",
+    )
+    .await;
+    assert!(error.contains("unique constraint"), "{error}");
+
+    // An option's feats are feats.
+    let error = rejected(
+        "INSERT INTO selection_option_feat (option_key, feat_key)
+        VALUES ('rogue/rogue-talents/combat-trick', 'no-such-feat')",
+    )
+    .await;
     assert!(error.contains("foreign key"), "{error}");
 
     // Only a fixed-list slot names a list, and it always does.
@@ -547,8 +599,8 @@ async fn the_schema_rejects_values_outside_their_domain_and_misplaced_keys(pool:
         VALUES ('mythic/stray', 'trickster', 'Stray', '', 'x')",
         "INSERT INTO feature_selection (key, path_key, name, summary, guide)
         VALUES ('legend/stray', 'trickster', 'Stray', '', 'x')",
-        "INSERT INTO feat_list (key, class_key, name, guide, ignores_prerequisites)
-        VALUES ('fighter-list', 'fighter', 'Stray', 'x', false)",
+        "INSERT INTO feat_list (key, class_key, name, guide, ignores_prerequisites, every_feat)
+        VALUES ('fighter-list', 'fighter', 'Stray', 'x', false, false)",
     ] {
         let error = rejected(sql).await;
         assert!(error.contains("check constraint"), "{sql}: {error}");

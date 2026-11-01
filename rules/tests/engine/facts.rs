@@ -37,15 +37,20 @@ fn the_path_is_chosen_at_mr_3_and_switched_at_mr_8() {
 }
 
 #[test]
-fn a_switch_leaves_the_rank_one_above_the_highest_rank_it_keeps() {
-    let switch = |kept: &[u8]| PathSwitch {
-        kept_ranks: kept.iter().copied().collect(),
+fn a_switch_leaves_the_rank_one_above_the_general_picks_it_keeps() {
+    let switch = |kept: u8| PathSwitch {
+        from: BTreeSet::new(),
+        kept_through_rank: kept,
+        path_kept_through_rank: 2,
+        dropped_features: BTreeSet::new(),
+        dropped_selections: BTreeSet::new(),
+        features: BTreeSet::new(),
         further_ascensions: false,
         level_cap: None,
     };
     // Legend keeps MR 1-2 and stays at MR 3.
-    assert_eq!(switch(&[1, 2]).rank_after_switch(), 3);
-    assert_eq!(switch(&[1, 2, 3, 4, 5, 6, 7]).rank_after_switch(), 8);
+    assert_eq!(switch(2).rank_after_switch(), 3);
+    assert_eq!(switch(7).rank_after_switch(), 8);
 }
 
 #[test]

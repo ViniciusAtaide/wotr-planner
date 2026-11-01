@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO selection_option (key, selection_key, name, summary, guide,\n                    feat_key, prerequisite_root_id)\n                VALUES ($1, $2, $3, $4, $5, $6, $7)",
+  "query": "INSERT INTO selection_option (key, selection_key, name, summary, guide,\n                    prerequisite_root_id)\n                VALUES ($1, $2, $3, $4, $5, $6)",
   "describe": {
     "columns": [],
     "parameters": {
@@ -17,11 +17,10 @@
         "Text",
         "Text",
         "Text",
-        "Text",
         "Int8"
       ]
     },
     "nullable": []
   },
-  "hash": "239c110f7de0449de7d728cfc91f81ee8bcbd88b34c18ce8dcfcaec432c94799"
+  "hash": "9ce96864d36e101c0cec53ce3c60394d7d85b5a214d35e9547a852aa789401b2"
 }

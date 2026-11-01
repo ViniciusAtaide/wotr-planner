@@ -94,7 +94,7 @@ CREATE TABLE prerequisite_node (
         'all', 'any', 'at_least',
         'feat', 'mythic_feat', 'mythic_ability', 'class_level', 'archetype', 'feature',
         'selection_option', 'skill_ranks', 'ability_score', 'base_attack_bonus', 'spell_level',
-        'caster_level', 'character_level', 'alignment', 'race'
+        'caster_level', 'character_level', 'mythic_rank', 'alignment', 'race'
     )),
     -- References to other game entities (foreign keys added below, once the tables exist).
     feat_key TEXT,
@@ -116,6 +116,7 @@ CREATE TABLE prerequisite_node (
     amount u8,
     -- Each kind fills exactly the columns listed for it, and every other column is NULL. `amount` is
     -- `at_least`'s n, the level of `class_level`, `spell_level`, `caster_level` and `character_level`,
+    -- `mythic_rank`'s rank,
     -- `feature`'s count (granted at least that many times), `skill_ranks`' ranks, `ability_score`'s
     -- score and `base_attack_bonus`'s BAB.
     CHECK (
@@ -150,6 +151,7 @@ CREATE TABLE prerequisite_node (
             WHEN 'spell_level' THEN '{spell_type, amount}'
             WHEN 'caster_level' THEN '{amount}'
             WHEN 'character_level' THEN '{amount}'
+            WHEN 'mythic_rank' THEN '{amount}'
             WHEN 'alignment' THEN '{alignment}'
             WHEN 'race' THEN '{race_key}'
         END
@@ -283,20 +285,28 @@ CREATE TABLE mythic_path (
     guide TEXT NOT NULL
 );
 
--- `rules::PathSwitch`: a path a Build can switch to at MR 8. A path has at most one.
+-- `rules::PathSwitch`: a path a Build can switch to at MR 8. A path has at most one. The switch keeps
+-- the general picks (mythic abilities and feats) of MR 1 to `kept_through_rank` and the old path's
+-- own grants (its rows' features, the picks in its slots) of MR 1 to `path_kept_through_rank`; the
+-- rank after the switch is one above `kept_through_rank` (a rule in `rules`, not a column).
+-- `rules::GameData::check` keeps both below the switch rank.
 CREATE TABLE path_switch (
     path_key TEXT PRIMARY KEY REFERENCES mythic_path (key) DEFERRABLE INITIALLY DEFERRED,
+    kept_through_rank SMALLINT NOT NULL
+        REFERENCES mythic_ascension (rank) DEFERRABLE INITIALLY DEFERRED,
+    path_kept_through_rank SMALLINT NOT NULL
+        REFERENCES mythic_ascension (rank) DEFERRABLE INITIALLY DEFERRED,
     further_ascensions BOOLEAN NOT NULL,
     -- The Character level cap after the switch, when it raises the usual 20 (Legend: 40).
     level_cap SMALLINT CHECK (level_cap BETWEEN 20 AND 40)
 );
 
--- The earlier Mythic ranks a switch keeps. The rank after the switch is one above the highest. Each
--- rank is one of `mythic_ascension`'s.
-CREATE TABLE path_switch_kept_rank (
+-- The paths a switch is open from (`rules::PathSwitch::from`); none: any path (Devil: Aeon or Azata).
+CREATE TABLE path_switch_from (
     path_key TEXT NOT NULL REFERENCES path_switch (path_key) DEFERRABLE INITIALLY DEFERRED,
-    rank SMALLINT NOT NULL REFERENCES mythic_ascension (rank) DEFERRABLE INITIALLY DEFERRED,
-    PRIMARY KEY (path_key, rank)
+    from_path_key TEXT NOT NULL REFERENCES mythic_path (key) DEFERRABLE INITIALLY DEFERRED,
+    PRIMARY KEY (path_key, from_path_key),
+    CHECK (from_path_key <> path_key)
 );
 
 -- Features and feature selections --------------------------------------------------------------
@@ -320,6 +330,18 @@ CREATE TABLE feature (
     CHECK (starts_with(key, COALESCE(archetype_key, class_key, path_key) || '/'))
 );
 
+-- `rules::AbilityBonus`: what a feature does to the character's own ability scores while it's held. They
+-- count toward ability-score prerequisites; gear never does. `fixed` adds `amount` to `ability`, `every`
+-- to every score, `highest` to the highest; `at_least` raises every score to `amount`.
+CREATE TABLE feature_ability_bonus (
+    feature_key TEXT NOT NULL REFERENCES feature (key) DEFERRABLE INITIALLY DEFERRED,
+    kind TEXT NOT NULL CHECK (kind IN ('fixed', 'every', 'highest', 'at_least')),
+    ability ability,
+    amount u8 NOT NULL,
+    CHECK ((kind = 'fixed') = (ability IS NOT NULL)),
+    UNIQUE NULLS NOT DISTINCT (feature_key, kind, ability)
+);
+
 -- The fixed list a Feature selection picks from (rogue talents, a path's picks).
 CREATE TABLE feature_selection (
     key text_key PRIMARY KEY,
@@ -336,6 +358,23 @@ CREATE TABLE feature_selection (
     CHECK (starts_with(key, COALESCE(archetype_key, class_key, path_key) || '/'))
 );
 
+-- An old path's feature or selection a switch takes away whatever its rank (Devil: the Aeon's gaze
+-- picks and Extra Gaze, the Azata's dragon). Exactly one of the two is set.
+CREATE TABLE path_switch_drop (
+    path_key TEXT NOT NULL REFERENCES path_switch (path_key) DEFERRABLE INITIALLY DEFERRED,
+    feature_key TEXT REFERENCES feature (key) DEFERRABLE INITIALLY DEFERRED,
+    selection_key TEXT REFERENCES feature_selection (key) DEFERRABLE INITIALLY DEFERRED,
+    CHECK (num_nonnulls(feature_key, selection_key) = 1),
+    UNIQUE NULLS NOT DISTINCT (path_key, feature_key, selection_key)
+);
+
+-- A feature the switch itself grants, held from the switch on (Legend: its +4 to every score).
+CREATE TABLE path_switch_feature (
+    path_key TEXT NOT NULL REFERENCES path_switch (path_key) DEFERRABLE INITIALLY DEFERRED,
+    feature_key TEXT NOT NULL REFERENCES feature (key) DEFERRABLE INITIALLY DEFERRED,
+    PRIMARY KEY (path_key, feature_key)
+);
+
 -- One option of a Feature selection. Its key extends the selection's:
 -- `rogue/rogue-talents/fast-stealth`.
 CREATE TABLE selection_option (
@@ -344,9 +383,16 @@ CREATE TABLE selection_option (
     name TEXT NOT NULL,
     summary TEXT NOT NULL,
     guide TEXT NOT NULL,
-    feat_key TEXT REFERENCES feat (key) DEFERRABLE INITIALLY DEFERRED,
     prerequisite_root_id BIGINT UNIQUE REFERENCES prerequisite_node (id) DEFERRABLE INITIALLY DEFERRED,
     CHECK (starts_with(key, selection_key || '/'))
+);
+
+-- A feat a selection option grants (`rules::SelectionOption::feats`): a rogue talent that is the feat
+-- of the same name, or the Azata's All-skilled with every weapon, armour and shield proficiency.
+CREATE TABLE selection_option_feat (
+    option_key TEXT NOT NULL REFERENCES selection_option (key) DEFERRABLE INITIALLY DEFERRED,
+    feat_key TEXT NOT NULL REFERENCES feat (key) DEFERRABLE INITIALLY DEFERRED,
+    PRIMARY KEY (option_key, feat_key)
 );
 
 -- Another selection's option that a selection offers too (`rules::FeatureSelection::shared_options`): the
@@ -360,9 +406,12 @@ CREATE TABLE selection_shared_option (
 );
 
 -- `rules::FeatList`: a named list of feats a `one_of` feat slot picks from, owned like a feature.
--- `ignores_prerequisites` is TRUE on a bonus list, a class's own (the monk's bonus feats): a pick from
--- it skips the feat's prerequisites. `rules::GameData::check` keeps those to class level rows, and
--- refuses a list of fewer than two feats (a lone feat is a `granted_feat`) and one no slot names.
+-- `ignores_prerequisites` is TRUE on a bonus list, its owner's own (the monk's bonus feats): a pick
+-- from it skips the feat's prerequisites. `every_feat` is TRUE on a list of every feat (Gold Dragon's
+-- Dragon Feats), which has no members of its own: they would copy the `feat` table.
+-- `rules::GameData::check` keeps bonus lists to class level rows and their own path's ranks, and
+-- refuses a list of fewer than two feats (a lone feat is a `granted_feat`) unless it's `every_feat`,
+-- an `every_feat` list with members, and a list no slot names.
 CREATE TABLE feat_list (
     key text_key PRIMARY KEY,
     class_key TEXT REFERENCES class (key) DEFERRABLE INITIALLY DEFERRED,
@@ -371,6 +420,7 @@ CREATE TABLE feat_list (
     name TEXT NOT NULL,
     guide TEXT NOT NULL,
     ignores_prerequisites BOOLEAN NOT NULL,
+    every_feat BOOLEAN NOT NULL,
     FOREIGN KEY (archetype_key, class_key) REFERENCES archetype (key, class_key)
         DEFERRABLE INITIALLY DEFERRED,
     CHECK (num_nonnulls(class_key, path_key) = 1),

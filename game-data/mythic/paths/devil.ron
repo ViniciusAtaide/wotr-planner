@@ -2,7 +2,7 @@ MythicPath(
     key: "devil",
     name: "Devil",
     guide: "other-mythic-paths#devil",
-    switch: (kept_ranks: [1, 2, 3, 4, 5, 6, 7], further_ascensions: true, level_cap: None),
+    switch: (from: ["aeon", "azata"], kept_through_rank: 7, path_kept_through_rank: 7, dropped_features: ["aeon/enforcing-gaze-extra-gaze", "azata/dragon-companion"], dropped_selections: ["aeon/enforcing-gaze"], further_ascensions: true),
     features: [
         (key: "devil/hells-authority", name: "Hell\'s Authority", guide: "other-mythic-paths#hells-authority"),
         (key: "devil/hells-dominance", name: "Hell\'s Dominance", guide: "other-mythic-paths#hells-dominance"),

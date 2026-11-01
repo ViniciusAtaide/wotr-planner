@@ -1,14 +1,34 @@
 // Hand-written test fixture: small and simplified, not checked against the guide.
-// A switch path that keeps ascending, with no `level_cap` on its switch, so the cap stays 20.
+// A switch path that keeps ascending, with no `level_cap` on its switch, so the cap stays 20. It is open from the
+// Trickster only and drops the Trickster's tricks by name, keeps the general picks of MR 1-7 and the old path's
+// grants of MR 1-2. Its features carry every kind of ability bonus, and its MR 9 slots name its own list of every
+// feat, which ignores prerequisites.
 MythicPath(
     key: "gold-dragon",
     name: "Gold Dragon",
     guide: "other-mythic-paths#gold-dragon",
     features: [
         (key: "gold-dragon/breath", name: "Breath Weapon", guide: "other-mythic-paths#gold-dragon-breath"),
+        (key: "gold-dragon/perfect-body", name: "Perfect Body", guide: "gold-dragon#perfect-body", ability_bonuses: [Highest(amount: 4), AtLeast(score: 14)]),
+        (key: "gold-dragon/dragon-might", name: "Dragon Might", guide: "gold-dragon#dragon-might", ability_bonuses: [Fixed(ability: Strength, amount: 2), Fixed(ability: Constitution, amount: 2)]),
+    ],
+    selections: [
+        (
+            key: "gold-dragon/breaths",
+            name: "Breaths",
+            guide: "gold-dragon#improved-gold-dragon-breath",
+            options: [
+                (key: "gold-dragon/breaths/empowered", name: "Empowered Breath", guide: "gold-dragon#empowered-breath"),
+                (key: "gold-dragon/breaths/annihilating", name: "Annihilating Breath", guide: "gold-dragon#annihilating-breath", prerequisite: MythicRank(9)),
+            ],
+        ),
+    ],
+    feat_lists: [
+        (key: "gold-dragon/dragon-feats", name: "Dragon Feats", guide: "gold-dragon#dragon-feats", ignores_prerequisites: true, every_feat: true),
     ],
     ranks: [
-        (rank: 8, features: ["gold-dragon/breath"]),
+        (rank: 8, features: ["gold-dragon/breath", "gold-dragon/perfect-body"], selections: ["gold-dragon/breaths"]),
+        (rank: 9, features: ["gold-dragon/dragon-might"], feat_slots: [OneOf(list: "gold-dragon/dragon-feats"), OneOf(list: "gold-dragon/dragon-feats")], selections: ["gold-dragon/breaths"]),
     ],
-    switch: (kept_ranks: [1, 2, 3, 4, 5, 6, 7], further_ascensions: true),
+    switch: (from: ["trickster"], kept_through_rank: 7, path_kept_through_rank: 2, dropped_features: ["trickster/trickster-tricks"], dropped_selections: ["trickster/tricks"], further_ascensions: true),
 )

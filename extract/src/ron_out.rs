@@ -8,8 +8,8 @@ use std::collections::BTreeSet;
 
 use rules::{
     Archetype, ArchetypeLevelRow, Class, ClassLevelRow, Feat, FeatKey, FeatList, Feature,
-    FeatureSelection, GameData, MythicAbility, MythicFeat, MythicPath, MythicRankRow, Prerequisite,
-    Race, SelectionOption, Skill,
+    FeatureSelection, GameData, MythicAbility, MythicFeat, MythicPath, MythicRankRow, PathSwitch,
+    Prerequisite, Race, SelectionOption, Skill,
 };
 use serde::Serialize;
 
@@ -278,7 +278,40 @@ fn feature(feature: &Feature) -> String {
         .field("name", &feature.name)
         .text("summary", &feature.summary)
         .field("guide", &feature.guide)
+        .items("ability_bonuses", &feature.ability_bonuses)
         .line()
+}
+
+/// A switch rule on one line: the previous paths, drops and granted features only when set, the level cap only
+/// when the switch raises it.
+fn switch(switch: &PathSwitch) -> String {
+    let mut fields = Fields::new();
+    if !switch.from.is_empty() {
+        fields.field("from", &switch.from);
+    }
+    fields
+        .0
+        .push(format!("kept_through_rank: {}", switch.kept_through_rank));
+    fields.0.push(format!(
+        "path_kept_through_rank: {}",
+        switch.path_kept_through_rank
+    ));
+    if !switch.dropped_features.is_empty() {
+        fields.field("dropped_features", &switch.dropped_features);
+    }
+    if !switch.dropped_selections.is_empty() {
+        fields.field("dropped_selections", &switch.dropped_selections);
+    }
+    if !switch.features.is_empty() {
+        fields.field("features", &switch.features);
+    }
+    fields
+        .0
+        .push(format!("further_ascensions: {}", switch.further_ascensions));
+    if let Some(cap) = switch.level_cap {
+        fields.0.push(format!("level_cap: Some({cap})"));
+    }
+    fields.line()
 }
 
 fn option(option: &SelectionOption) -> String {
@@ -288,20 +321,22 @@ fn option(option: &SelectionOption) -> String {
         .field("name", &option.name)
         .text("summary", &option.summary)
         .field("guide", &option.guide);
-    if let Some(feat) = &option.feat {
-        fields.field("feat", feat);
+    if !option.feats.is_empty() {
+        fields.field("feats", &option.feats);
     }
     fields.prerequisite(&option.prerequisite).line()
 }
 
-/// A feat list on one line: key, name, guide, the bonus-list flag when set, then its feats.
+/// A feat list on one line: key, name, guide, the bonus-list and every-feat flags when set, then its feats (none on
+/// a list of every feat).
 fn feat_list(list: &FeatList) -> String {
     Fields::new()
         .field("key", &list.key)
         .field("name", &list.name)
         .field("guide", &list.guide)
         .flag("ignores_prerequisites", list.ignores_prerequisites)
-        .field("feats", &list.feats)
+        .flag("every_feat", list.every_feat)
+        .set("feats", &list.feats)
         .line()
 }
 
@@ -458,8 +493,8 @@ fn path_file(path: &MythicPath) -> String {
         .field("name", &path.name)
         .text("summary", &path.summary)
         .field("guide", &path.guide);
-    if let Some(switch) = &path.switch {
-        fields.field("switch", switch);
+    if let Some(rule) = &path.switch {
+        fields.0.push(format!("switch: {}", switch(rule)));
     }
     let blocks = [
         nested("features", 4, path.features.iter().map(feature).collect()),

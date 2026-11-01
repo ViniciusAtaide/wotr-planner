@@ -1,8 +1,10 @@
 //! What can be wrong with a choice in a Build, and where.
 
+use std::collections::BTreeSet;
+
 use crate::build::SlotId;
 use crate::game_data::Ability;
-use crate::keys::{ClassKey, SkillKey};
+use crate::keys::{ClassKey, MythicPathKey, SkillKey};
 use crate::prerequisite::Prerequisite;
 
 /// One choice in a Build that doesn't hold up.
@@ -102,6 +104,10 @@ pub enum Issue {
     },
     /// A path that can't be taken this way: a switch-only path at MR 3, or a path without a switch rule at MR 8.
     NotChoosable,
+    /// A Path switch open only from other paths than the Build's (Devil: from Aeon or Azata).
+    NotFromPath {
+        from: BTreeSet<MythicPathKey>,
+    },
     /// An ability increase at a level that has none.
     NoAbilityIncrease,
 }

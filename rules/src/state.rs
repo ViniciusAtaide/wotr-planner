@@ -23,8 +23,11 @@ pub struct CharacterState {
     pub fort: u8,
     pub reflex: u8,
     pub will: u8,
-    /// Point buy, racial modifiers and the increases so far.
+    /// The character's own ability scores, as prerequisites and skill points see them: the base scores plus the
+    /// ability bonuses of the features held (Legend's +4). Gear never counts.
     pub ability_scores: AbilityScores,
+    /// Point buy, racial modifiers and the level increases so far, before any feature's bonus.
+    pub base_ability_scores: AbilityScores,
     /// Spell-level access: the highest arcane spell level castable; 0 when none.
     pub arcane_spell_level: u8,
     /// Spell-level access: the highest divine spell level castable; 0 when none.
@@ -39,6 +42,7 @@ pub struct CharacterState {
     pub selection_options: BTreeSet<SelectionOptionKey>,
     pub mythic_abilities: BTreeSet<MythicAbilityKey>,
     pub mythic_feats: BTreeSet<MythicFeatKey>,
+    /// The Mythic rank reached: 3 after a Legend switch, whatever the rank before.
     pub mythic_rank: u8,
     pub mythic_path: Option<MythicPathKey>,
 }
@@ -142,6 +146,7 @@ impl CharacterState {
             P::SpellLevel { spell_type, level } => numeric(self.spell_level(*spell_type), *level),
             P::CasterLevel(level) => numeric(self.caster_level, *level),
             P::CharacterLevel(level) => numeric(self.character_level, *level),
+            P::MythicRank(rank) => numeric(self.mythic_rank, *rank),
             P::Alignment(alignment) => flag(self.alignment == Some(*alignment)),
             P::Race(race) => flag(self.race.as_ref() == Some(race)),
         };

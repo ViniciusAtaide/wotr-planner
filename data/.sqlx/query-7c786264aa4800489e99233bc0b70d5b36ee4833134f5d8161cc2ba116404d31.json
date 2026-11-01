@@ -1,0 +1,18 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO path_switch (path_key, kept_through_rank, path_kept_through_rank,\n                further_ascensions, level_cap)\n            VALUES ($1, $2, $3, $4, $5)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Int2",
+        "Int2",
+        "Bool",
+        "Int2"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "7c786264aa4800489e99233bc0b70d5b36ee4833134f5d8161cc2ba116404d31"
+}

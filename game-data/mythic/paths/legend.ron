@@ -2,5 +2,9 @@ MythicPath(
     key: "legend",
     name: "Legend",
     guide: "other-mythic-paths#legend",
-    switch: (kept_ranks: [1, 2], further_ascensions: false, level_cap: Some(40)),
+    switch: (kept_through_rank: 2, path_kept_through_rank: 2, features: ["legend/legend", "legend/legends-corruption-resistance"], further_ascensions: false, level_cap: Some(40)),
+    features: [
+        (key: "legend/legend", name: "Legend", guide: "other-mythic-paths#legend", ability_bonuses: [Every(amount: 4)]),
+        (key: "legend/legends-corruption-resistance", name: "Legend\'s Corruption Resistance", guide: "other-mythic-paths#legends-corruption-resistance"),
+    ],
 )

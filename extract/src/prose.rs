@@ -1,9 +1,12 @@
 //! Rules the guide states only in prose, encoded as data where the current types can hold them, and reported
 //! where they can't.
 
+use std::collections::BTreeSet;
+
 use rules::{
-    Class, DataAt, FeatCategory, FeatKey, FeatSlot, FeatureKey, FeatureSelectionKey, MythicPath,
-    PathSwitch, Prerequisite, SelectionOptionKey,
+    Ability, AbilityBonus, Class, DataAt, FeatCategory, FeatKey, FeatList, FeatListKey, FeatSlot,
+    Feature, FeatureKey, FeatureSelectionKey, GuideRef, MythicPath, MythicPathKey, PathSwitch,
+    Prerequisite, SelectionOptionKey,
 };
 
 use crate::build::{Builder, Scope, section_text};
@@ -52,21 +55,185 @@ pub fn trickster_feat_category(name: &str) -> FeatCategory {
     }
 }
 
-/// What each path switch keeps: Legend keeps MR 1-2, ends ascensions and raises the cap to 40 (ticket 04).
-/// Gold Dragon, Devil and Swarm That Walks begin at MR 8 and keep the general picks of MR 1-7.
+/// What each path switch keeps, drops and grants, from the guide's prose (`other-mythic-paths`, `gold-dragon`).
+/// The general picks (mythic abilities and feats) and the old path's own grants each have their cut-off.
 pub fn path_switch(path: &str) -> Option<PathSwitch> {
+    let keys = |items: &[&str]| {
+        items
+            .iter()
+            .map(|key| (*key).to_owned())
+            .collect::<Vec<_>>()
+    };
+    let switch = |kept, path_kept, further_ascensions, level_cap| PathSwitch {
+        from: BTreeSet::new(),
+        kept_through_rank: kept,
+        path_kept_through_rank: path_kept,
+        dropped_features: BTreeSet::new(),
+        dropped_selections: BTreeSet::new(),
+        features: BTreeSet::new(),
+        further_ascensions,
+        level_cap,
+    };
     match path {
+        // "you lose ... All rank 3 - 8 mythic abilities and feats ... your rank is stuck at 3"; "Your ability
+        // scores are increased by 4. Your level cap is 40".
         "legend" => Some(PathSwitch {
-            kept_ranks: [1, 2].into(),
-            further_ascensions: false,
-            level_cap: Some(40),
+            features: keys(&["legend/legend", "legend/legends-corruption-resistance"])
+                .into_iter()
+                .map(FeatureKey::new)
+                .collect(),
+            ..switch(2, 2, false, Some(40))
         }),
-        "gold-dragon" | "devil" | "swarm-that-walks" => Some(PathSwitch {
-            kept_ranks: (1..=7).collect(),
-            further_ascensions: true,
-            level_cap: None,
+        // "You lose any powers you gained at ranks 3 - 7, retaining only your mythic abilities and feats."
+        "gold-dragon" | "swarm-that-walks" => Some(switch(7, 2, true, None)),
+        // "You must have followed either the Aeon or Azata paths previously. If you were following the Azata
+        // path, you lose your dragon companion. If you were following the Aeon path, you will lose your gaze
+        // abilities."
+        "devil" => Some(PathSwitch {
+            from: keys(&["aeon", "azata"])
+                .into_iter()
+                .map(MythicPathKey::new)
+                .collect(),
+            dropped_features: keys(&["aeon/enforcing-gaze-extra-gaze", "azata/dragon-companion"])
+                .into_iter()
+                .map(FeatureKey::new)
+                .collect(),
+            dropped_selections: [FeatureSelectionKey::new("aeon/enforcing-gaze")].into(),
+            ..switch(7, 7, true, None)
         }),
         _ => None,
+    }
+}
+
+/// Features with ability bonuses, as the guide states them (`swarm size` starts at 0, so the Swarm's are +4).
+const ABILITY_BONUSES: [(&str, &[AbilityBonus]); 6] = [
+    // "Your ability scores are increased by 4."
+    ("legend/legend", &[AbilityBonus::Every { amount: 4 }]),
+    // "All of your attributes are at least 14 and your highest ability score gets a +4 increase."
+    (
+        "gold-dragon/perfect-body",
+        &[
+            AbilityBonus::Highest { amount: 4 },
+            AbilityBonus::AtLeast { score: 14 },
+        ],
+    ),
+    // "All of your attributes are at least 18 and your highest ability score gets an additional +2 increase."
+    (
+        "gold-dragon/perfect-mind",
+        &[
+            AbilityBonus::Highest { amount: 2 },
+            AbilityBonus::AtLeast { score: 18 },
+        ],
+    ),
+    // "your highest ability score gets an additional +2 bonus (for a total of +8)"
+    (
+        "gold-dragon/perfect-soul",
+        &[AbilityBonus::Highest { amount: 2 }],
+    ),
+    // "Your Strength and Dexterity ability scores increase by 4 + your swarm size."
+    (
+        "swarm-that-walks/eye-of-the-swarm",
+        &[
+            AbilityBonus::Fixed {
+                ability: Ability::Strength,
+                amount: 4,
+            },
+            AbilityBonus::Fixed {
+                ability: Ability::Dexterity,
+                amount: 4,
+            },
+        ],
+    ),
+    // "your Intelligence, Wisdom and Charisma ability scores increase by 4 + your swarm size."
+    (
+        "swarm-that-walks/the-swarm",
+        &[
+            AbilityBonus::Fixed {
+                ability: Ability::Intelligence,
+                amount: 4,
+            },
+            AbilityBonus::Fixed {
+                ability: Ability::Wisdom,
+                amount: 4,
+            },
+            AbilityBonus::Fixed {
+                ability: Ability::Charisma,
+                amount: 4,
+            },
+        ],
+    ),
+];
+
+/// "You also become proficient with all types of weapons and armour" (`azata#all-skilled`). Barding is the
+/// companion's ("Your companion becomes proficient with ... Barding"), so it's left out.
+const ALL_SKILLED: [&str; 8] = [
+    "armor-proficiency-heavy-armor",
+    "armor-proficiency-light-armor",
+    "armor-proficiency-medium-armor",
+    "exotic-weapon-proficiency",
+    "martial-weapons-proficiency",
+    "shield-proficiency",
+    "simple-weapon-proficiency",
+    "tower-shield-proficiency",
+];
+
+const DRAGON_FEATS: &str = "gold-dragon/dragon-feats";
+
+/// "At 9th rank, you can select any three feats without having to meet the prerequisites": three slots on the
+/// Gold Dragon's own list of every feat.
+pub fn dragon_feats_slots() -> Vec<FeatSlot> {
+    vec![
+        FeatSlot::OneOf {
+            list: FeatListKey::new(DRAGON_FEATS),
+        };
+        3
+    ]
+}
+
+/// The path rules on the built paths: Legend's two features (the switch grants them; the path has no rank
+/// table), the features' ability bonuses, All-skilled's feats and the Gold Dragon's Dragon Feats list.
+pub fn path_rules(paths: &mut [MythicPath]) {
+    for path in paths.iter_mut() {
+        match path.key.as_str() {
+            "legend" => {
+                let feature = |key: &str, name: &str, anchor: &str| Feature {
+                    key: FeatureKey::new(key),
+                    name: name.to_owned(),
+                    summary: String::new(),
+                    guide: GuideRef::new(format!("other-mythic-paths#{anchor}")),
+                    ability_bonuses: Vec::new(),
+                };
+                path.features
+                    .push(feature("legend/legend", "Legend", "legend"));
+                path.features.push(feature(
+                    "legend/legends-corruption-resistance",
+                    "Legend's Corruption Resistance",
+                    "legends-corruption-resistance",
+                ));
+            }
+            "gold-dragon" => path.feat_lists.push(FeatList {
+                key: FeatListKey::new(DRAGON_FEATS),
+                name: "Dragon Feats".to_owned(),
+                guide: GuideRef::new("gold-dragon#dragon-feats"),
+                ignores_prerequisites: true,
+                every_feat: true,
+                feats: BTreeSet::new(),
+            }),
+            _ => {}
+        }
+        for feature in &mut path.features {
+            if let Some((_, bonuses)) = ABILITY_BONUSES
+                .iter()
+                .find(|(key, _)| *key == feature.key.as_str())
+            {
+                feature.ability_bonuses = bonuses.to_vec();
+            }
+        }
+        for option in path.selections.iter_mut().flat_map(|s| &mut s.options) {
+            if option.key.as_str() == "azata/superpowers/all-skilled" {
+                option.feats = ALL_SKILLED.iter().map(|key| FeatKey::new(*key)).collect();
+            }
+        }
     }
 }
 
@@ -105,18 +272,7 @@ pub fn special_bonus_slots(
 ) -> Option<Vec<FeatSlot>> {
     let label_norm = norm(label);
     if label_norm == "dragon-feats" {
-        builder.report.add(
-            Kind::BonusSlot,
-            "gold-dragon",
-            label,
-            "three feats chosen without prerequisites; slots outside a class can't skip prerequisites, so \
-             stored as three general slots",
-        );
-        return Some(vec![
-            FeatSlot::General,
-            FeatSlot::General,
-            FeatSlot::General,
-        ]);
+        return Some(dragon_feats_slots());
     }
     if label_norm == "bloodline-feat" {
         let feats = bloodline_feats(builder);
@@ -224,25 +380,11 @@ pub fn apply(
 
     trickster_tiers(builder, paths);
 
-    let notes: [(&str, &str); 6] = [
+    let notes: [(&str, &str); 3] = [
         (
             "barbarian#rage-powers",
             "totem rage powers are exclusive: one totem line per character. The data has no \"not\" \
              prerequisite, so only the Lesser, plain, Greater chain is checked",
-        ),
-        (
-            "other-mythic-paths#devil",
-            "the Devil switch is open only to an Aeon or Azata; a path switch has no prerequisite in the data",
-        ),
-        (
-            "gold-dragon",
-            "the switch drops the previous path's own powers from MR 3-7 but keeps the mythic abilities and \
-             feats; the data keeps whole ranks, so MR 1-7 are kept in full",
-        ),
-        (
-            "other-mythic-paths#swarm-that-walks",
-            "the switch drops the previous path's own powers from MR 3-7 but keeps the mythic abilities and \
-             feats; the data keeps whole ranks, so MR 1-7 are kept in full",
         ),
         (
             "slayer#advanced-talents",

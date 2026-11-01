@@ -75,13 +75,13 @@ fn counts_summarise_each_catalog() {
         [
             ("Races", 3),
             ("Skills", 4),
-            ("Feats", 23),
+            ("Feats", 24),
             ("Classes", 6),
             ("Archetypes", 2),
             ("Prestige classes", 2),
             ("Mythic abilities", 6),
             ("Mythic feats", 6),
-            ("Mythic paths", 3),
+            ("Mythic paths", 6),
         ]
     );
 }

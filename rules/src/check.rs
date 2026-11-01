@@ -9,7 +9,7 @@
 use std::collections::{HashMap, HashSet};
 use std::fmt;
 
-use crate::engine::{BASE_LEVEL_CAP, PATH_SWITCH_RANK};
+use crate::engine::{BASE_LEVEL_CAP, PATH_CHOICE_RANK, PATH_SWITCH_RANK};
 use crate::game_data::{
     Archetype, Class, ClassLevelRow, FeatList, FeatSlot, Feature, FeatureSelection, GameData,
     MythicPath, Save,
@@ -162,14 +162,22 @@ pub enum DataIssue {
         level: u8,
         save: Save,
     },
-    /// A race or a mythic rank that grants a feat slot ignoring prerequisites. Only a class's (or archetype's)
-    /// level rows can: the bonus list is the class's own.
-    BonusListOutsideAClass,
+    /// A feat slot ignoring prerequisites where its list isn't the grantor's own: on a race, or on a path rank
+    /// with another owner's list. Class and archetype level rows may name any bonus list; a path's rank rows only
+    /// the path's own (Gold Dragon's Dragon Feats).
+    MisplacedBonusList,
     /// A feature, selection or feat list whose key doesn't start with its owner's key (the class, archetype or
     /// path that defines it) and a `/`.
     KeyOutsideItsOwner,
     /// A feat list of fewer than two feats: a lone feat is granted, not picked.
     FeatListTooShort,
+    /// A list of every feat that also names feats of its own.
+    EveryFeatListWithFeats,
+    /// A path rank row before the path is chosen (MR 1-2) with a slot: choosing the path grants those rows'
+    /// features only.
+    SlotBeforePathChoice(u8),
+    /// A Path switch open from a path that is itself a switch: no Build can be on it at the switch rank.
+    SwitchFromASwitchPath(MythicPathKey),
     /// A feat list no slot names.
     UnusedFeatList,
     /// A selection that shares an option keyed under its own key: an own option is offered already, and
@@ -232,8 +240,9 @@ impl fmt::Display for DataProblem {
                 f,
                 "the {save:?} exception at level {level} is what the progression gives anyway"
             ),
-            DataIssue::BonusListOutsideAClass => f.write_str(
-                "a feat slot that ignores prerequisites is granted outside a class's level rows",
+            DataIssue::MisplacedBonusList => f.write_str(
+                "a feat slot that ignores prerequisites is granted outside a class's level rows or its own \
+                 path's ranks",
             ),
             DataIssue::KeyOutsideItsOwner => {
                 f.write_str("the key doesn't start with its owner's key")
@@ -242,6 +251,16 @@ impl fmt::Display for DataProblem {
                 f.write_str("a list of fewer than two feats; grant a lone feat instead")
             }
             DataIssue::UnusedFeatList => f.write_str("no feat slot names this list"),
+            DataIssue::EveryFeatListWithFeats => {
+                f.write_str("a list of every feat that names feats of its own")
+            }
+            DataIssue::SlotBeforePathChoice(rank) => write!(
+                f,
+                "the MR {rank} row grants a slot, but the path is chosen at MR {PATH_CHOICE_RANK}"
+            ),
+            DataIssue::SwitchFromASwitchPath(path) => {
+                write!(f, "the switch is open from {path}, which is itself a switch")
+            }
             DataIssue::SharesOwnOption(option) => {
                 write!(
                     f,
@@ -266,7 +285,7 @@ impl GameData {
         for race in &self.races {
             let at = DataAt::Race(race.key.clone());
             check.key(&at);
-            check.no_bonus_list(&at, &race.feat_slots);
+            check.no_bonus_list(&at, &race.feat_slots, None);
             for subrace in &race.subraces {
                 check.key(&DataAt::Subrace(subrace.key.clone()));
             }
@@ -295,8 +314,14 @@ impl GameData {
             check.key(&at);
             check.prerequisite(&at, feat.prerequisite.as_ref());
         }
+        let switches: HashSet<&MythicPathKey> = self
+            .mythic_paths
+            .iter()
+            .filter(|path| path.switch.is_some())
+            .map(|path| &path.key)
+            .collect();
         for path in &self.mythic_paths {
-            check.path(path);
+            check.path(path, &switches);
         }
         for list in self.feat_lists() {
             if !check.named_lists.contains(&list.key) {
@@ -351,15 +376,19 @@ impl Checker {
         }
     }
 
-    /// Slots granted outside a class's level rows check prerequisites: the bonus list is the class's own.
-    fn no_bonus_list(&mut self, at: &DataAt, slots: &[FeatSlot]) {
+    /// Slots granted outside a class's level rows check prerequisites, unless the bonus list is the grantor's own
+    /// (`owner`: a path's key; `None` for a race, which owns no list).
+    fn no_bonus_list(&mut self, at: &DataAt, slots: &[FeatSlot], owner: Option<&str>) {
         self.slots(slots);
-        let ignores = slots.iter().any(|slot| match slot {
-            FeatSlot::OneOf { list } => self.lists.get(list).copied().unwrap_or(false),
+        let misplaced = slots.iter().any(|slot| match slot {
+            FeatSlot::OneOf { list } => {
+                self.lists.get(list).copied().unwrap_or(false)
+                    && !owner.is_some_and(|owner| owned_by(list.as_str(), owner))
+            }
             _ => false,
         });
-        if ignores {
-            self.problem(at, DataIssue::BonusListOutsideAClass);
+        if misplaced {
+            self.problem(at, DataIssue::MisplacedBonusList);
         }
     }
 
@@ -393,7 +422,11 @@ impl Checker {
             if !owned_by(list.key.as_str(), owner) {
                 self.problem(&at, DataIssue::KeyOutsideItsOwner);
             }
-            if list.feats.len() < 2 {
+            if list.every_feat {
+                if !list.feats.is_empty() {
+                    self.problem(&at, DataIssue::EveryFeatListWithFeats);
+                }
+            } else if list.feats.len() < 2 {
                 self.problem(&at, DataIssue::FeatListTooShort);
             }
         }
@@ -574,7 +607,7 @@ impl Checker {
         }
     }
 
-    fn path(&mut self, path: &MythicPath) {
+    fn path(&mut self, path: &MythicPath, switches: &HashSet<&MythicPathKey>) {
         let at = DataAt::MythicPath(path.key.clone());
         self.key(&at);
         self.owned(
@@ -589,12 +622,22 @@ impl Checker {
             if !ranks.insert(row.rank) {
                 self.problem(&at, DataIssue::RankOutOfRange(row.rank));
             }
-            self.no_bonus_list(&at, &row.feat_slots);
+            self.no_bonus_list(&at, &row.feat_slots, Some(path.key.as_str()));
+            if row.rank < PATH_CHOICE_RANK
+                && !(row.feat_slots.is_empty() && row.selections.is_empty())
+            {
+                self.problem(&at, DataIssue::SlotBeforePathChoice(row.rank));
+            }
         }
         if let Some(switch) = &path.switch {
-            for &rank in &switch.kept_ranks {
+            for rank in [switch.kept_through_rank, switch.path_kept_through_rank] {
                 if !(1..PATH_SWITCH_RANK).contains(&rank) {
                     self.problem(&at, DataIssue::RankOutOfRange(rank));
+                }
+            }
+            for from in &switch.from {
+                if switches.contains(from) {
+                    self.problem(&at, DataIssue::SwitchFromASwitchPath(from.clone()));
                 }
             }
             if let Some(cap) = switch.level_cap

@@ -58,6 +58,8 @@ pub enum Prerequisite {
     /// Caster level, only where the guide states it.
     CasterLevel(u8),
     CharacterLevel(u8),
+    /// The character's Mythic rank at least this ("Mythic Rank: 9"). After a Legend switch the rank is 3.
+    MythicRank(u8),
     /// The Build's alignment is exactly this one. "Any lawful" is an `Any` of three.
     Alignment(Alignment),
     Race(RaceKey),

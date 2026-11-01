@@ -3,6 +3,7 @@
 
 mod feat_lists;
 mod grammar;
+mod mythic_paths;
 mod output;
 mod proficiencies;
 mod progressions;

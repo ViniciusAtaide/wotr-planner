@@ -114,6 +114,7 @@ impl Node {
             },
             P::CasterLevel(level) => Self::of(NodeKind::CasterLevel).with_amount(*level),
             P::CharacterLevel(level) => Self::of(NodeKind::CharacterLevel).with_amount(*level),
+            P::MythicRank(rank) => Self::of(NodeKind::MythicRank).with_amount(*rank),
             P::Alignment(alignment) => Self {
                 alignment: Some(alignment_text(*alignment)),
                 ..Self::of(NodeKind::Alignment)
@@ -371,6 +372,7 @@ impl Trees {
             },
             NodeKind::CasterLevel => P::CasterLevel(amount()?),
             NodeKind::CharacterLevel => P::CharacterLevel(amount()?),
+            NodeKind::MythicRank => P::MythicRank(amount()?),
             NodeKind::Alignment => {
                 P::Alignment(alignment_from(&text(&node.alignment, "alignment")?)?)
             }

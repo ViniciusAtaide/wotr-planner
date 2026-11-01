@@ -24,8 +24,6 @@ pub struct Catalog {
     pub selections: BTreeMap<String, BTreeSet<SelectionOptionKey>>,
     pub mythic_feats: BTreeMap<String, MythicFeatKey>,
     pub mythic_abilities: BTreeMap<String, MythicAbilityKey>,
-    /// The Character level at which each Mythic rank is reached.
-    pub rank_levels: BTreeMap<u8, u8>,
 }
 
 /// Where a line sits, for the conditions that depend on it.
@@ -84,12 +82,7 @@ impl Catalog {
                     .ok_or("a bare level outside a class page")?,
                 level: *level,
             },
-            Cond::MythicRank(rank) => Prerequisite::CharacterLevel(
-                *self
-                    .rank_levels
-                    .get(rank)
-                    .ok_or_else(|| format!("no Mythic rank {rank}"))?,
-            ),
+            Cond::MythicRank(rank) => Prerequisite::MythicRank(*rank),
             Cond::ClassLevel(name, level) => Prerequisite::ClassLevel {
                 class: self
                     .classes

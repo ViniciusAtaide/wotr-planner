@@ -7,9 +7,10 @@ use std::fs;
 
 use common::{copy_fixture, fixture_dir};
 use rules::{
-    Ability, ArchetypeLevelRow, BabProgression, ClassKey, FeatKey, FeatListKey, FeatSlot,
-    FeatureKey, FeatureSelectionKey, GameData, MythicAbilityGroup, MythicFeatGroup, MythicPathKey,
-    Prerequisite, Save, SaveException, SaveProgression, SelectionOptionKey, SpellLevels,
+    Ability, AbilityBonus, ArchetypeLevelRow, BabProgression, ClassKey, FeatKey, FeatListKey,
+    FeatSlot, FeatureKey, FeatureSelectionKey, GameData, MythicAbilityGroup, MythicFeatGroup,
+    MythicPathKey, Prerequisite, Save, SaveException, SaveProgression, SelectionOptionKey,
+    SpellLevels,
 };
 
 fn read_fixture() -> GameData {
@@ -155,8 +156,8 @@ fn reads_feat_lists_and_the_slots_that_name_them() {
             )
         })
         .collect();
-    // Each in its owner's file: the monk's, the Armiger's (inside the fighter's file) and the trickster's. Left
-    // out, `ignores_prerequisites` is unset.
+    // Each in its owner's file: the monk's, the Armiger's (inside the fighter's file), the Gold Dragon's and the
+    // trickster's. Left out, `ignores_prerequisites` and `every_feat` are unset, and `feats` is empty.
     assert_eq!(
         lists,
         [
@@ -172,6 +173,7 @@ fn reads_feat_lists_and_the_slots_that_name_them() {
                 true,
                 vec!["crane-style", "dodge"]
             ),
+            ("gold-dragon/dragon-feats", "Dragon Feats", true, vec![]),
             (
                 "trickster/bonus-feats",
                 "Trickster Bonus Feats",
@@ -368,4 +370,73 @@ fn checking_the_files_lists_the_data_problems() {
         "{error}"
     );
     assert!(error.to_string().contains("athletics"), "{error}");
+}
+
+#[test]
+fn reads_the_mythic_path_rules() {
+    let data = read_fixture();
+    let path = |key: &str| {
+        data.mythic_paths
+            .iter()
+            .find(|p| p.key.as_str() == key)
+            .unwrap()
+    };
+    let legend = path("legend");
+    let switch = legend.switch.as_ref().unwrap();
+    // Left out: no previous-path condition and nothing dropped by name.
+    assert!(switch.from.is_empty());
+    assert!(switch.dropped_features.is_empty() && switch.dropped_selections.is_empty());
+    assert_eq!(
+        (switch.kept_through_rank, switch.path_kept_through_rank),
+        (2, 2)
+    );
+    assert_eq!(switch.rank_after_switch(), 3);
+    assert_eq!(switch.features, [FeatureKey::new("legend/legend")].into());
+    assert_eq!(
+        legend.features[0].ability_bonuses,
+        [AbilityBonus::Every { amount: 4 }]
+    );
+
+    let dragon = path("gold-dragon");
+    let switch = dragon.switch.as_ref().unwrap();
+    assert_eq!(switch.from, [MythicPathKey::new("trickster")].into());
+    assert_eq!(
+        (switch.kept_through_rank, switch.path_kept_through_rank),
+        (7, 2)
+    );
+    assert_eq!(
+        switch.dropped_selections,
+        [FeatureSelectionKey::new("trickster/tricks")].into()
+    );
+    assert!(dragon.feat_lists[0].every_feat);
+    let body = &dragon.features[2];
+    assert_eq!(body.key.as_str(), "gold-dragon/perfect-body");
+    assert_eq!(
+        body.ability_bonuses,
+        [
+            AbilityBonus::Highest { amount: 4 },
+            AbilityBonus::AtLeast { score: 14 }
+        ]
+    );
+    assert_eq!(
+        dragon.selections[0].options[0].prerequisite,
+        Some(Prerequisite::MythicRank(9))
+    );
+
+    // A feature without bonuses reads as none; an option may grant several feats.
+    assert!(path("trickster").features[0].ability_bonuses.is_empty());
+    let rogue = data
+        .classes
+        .iter()
+        .find(|c| c.key.as_str() == "rogue")
+        .unwrap();
+    let combat_trick = &rogue.selections[0].options[0];
+    assert_eq!(
+        combat_trick.feats,
+        [
+            FeatKey::new("combat-expertise"),
+            FeatKey::new("dirty-trick")
+        ]
+        .into()
+    );
 }

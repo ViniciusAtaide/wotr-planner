@@ -10,19 +10,19 @@ use std::collections::{BTreeSet, HashMap};
 use std::hash::Hash;
 
 use rules::{
-    AbilityModifier, Archetype, ArchetypeKey, ArchetypeLevelRow, Class, ClassKey, ClassLevelRow,
-    Feat, FeatKey, FeatList, FeatListKey, FeatSlot, Feature, FeatureKey, FeatureSelection,
-    FeatureSelectionKey, GameData, GuideRef, MythicAbility, MythicAbilityKey, MythicAscension,
-    MythicFeat, MythicFeatKey, MythicPath, MythicPathKey, MythicRankRow, PathSwitch, Progression,
-    Race, RaceKey, SaveException, SelectionOption, SelectionOptionKey, Skill, SkillKey,
-    SpellLevels, Subrace, SubraceKey,
+    AbilityBonus, AbilityModifier, Archetype, ArchetypeKey, ArchetypeLevelRow, Class, ClassKey,
+    ClassLevelRow, Feat, FeatKey, FeatList, FeatListKey, FeatSlot, Feature, FeatureKey,
+    FeatureSelection, FeatureSelectionKey, GameData, GuideRef, MythicAbility, MythicAbilityKey,
+    MythicAscension, MythicFeat, MythicFeatKey, MythicPath, MythicPathKey, MythicRankRow,
+    PathSwitch, Progression, Race, RaceKey, SaveException, SelectionOption, SelectionOptionKey,
+    Skill, SkillKey, SpellLevels, Subrace, SubraceKey,
 };
 use sqlx::PgConnection;
 
 use crate::columns::{
-    FeatSlotKind, ability_from, bab_progression_from, corrupt, feat_category_from,
-    feat_slot_kind_from, mythic_ability_group_from, mythic_feat_group_from, save_from,
-    save_progression_from, to_i8, to_u8,
+    AbilityBonusKind, FeatSlotKind, ability_bonus_kind_from, ability_from, bab_progression_from,
+    corrupt, feat_category_from, feat_slot_kind_from, mythic_ability_group_from,
+    mythic_feat_group_from, save_from, save_progression_from, to_i8, to_u8,
 };
 use crate::prerequisites::Trees;
 use crate::{Database, Error};
@@ -492,6 +492,32 @@ async fn load_levels(
 }
 
 async fn load_features(conn: &mut PgConnection) -> Result<Grouped<Owner, Feature>, sqlx::Error> {
+    let mut bonuses = Grouped::new();
+    for row in sqlx::query!(
+        "SELECT feature_key, kind, ability, amount
+        FROM feature_ability_bonus ORDER BY feature_key, kind, ability"
+    )
+    .fetch_all(&mut *conn)
+    .await?
+    {
+        let amount = to_u8(row.amount, "feature_ability_bonus.amount")?;
+        let bonus = match (ability_bonus_kind_from(&row.kind)?, row.ability) {
+            (AbilityBonusKind::Fixed, Some(ability)) => AbilityBonus::Fixed {
+                ability: ability_from(&ability)?,
+                amount,
+            },
+            (AbilityBonusKind::Every, None) => AbilityBonus::Every { amount },
+            (AbilityBonusKind::Highest, None) => AbilityBonus::Highest { amount },
+            (AbilityBonusKind::AtLeast, None) => AbilityBonus::AtLeast { score: amount },
+            _ => {
+                return Err(corrupt(
+                    "a feature_ability_bonus row sets an ability on a kind other than fixed",
+                ));
+            }
+        };
+        bonuses.push(row.feature_key, bonus);
+    }
+
     let mut features = Grouped::new();
     for row in sqlx::query!(
         "SELECT key, class_key, archetype_key, path_key, name, summary, guide
@@ -511,6 +537,7 @@ async fn load_features(conn: &mut PgConnection) -> Result<Grouped<Owner, Feature
         features.push(
             owner,
             Feature {
+                ability_bonuses: bonuses.take(&row.key),
                 key: FeatureKey(row.key),
                 name: row.name,
                 summary: row.summary,
@@ -518,6 +545,7 @@ async fn load_features(conn: &mut PgConnection) -> Result<Grouped<Owner, Feature
             },
         );
     }
+    bonuses.finish("feature_ability_bonus")?;
     Ok(features)
 }
 
@@ -525,9 +553,19 @@ async fn load_selections(
     conn: &mut PgConnection,
     trees: &mut Trees,
 ) -> Result<Grouped<Owner, FeatureSelection>, sqlx::Error> {
+    let mut option_feats = Grouped::new();
+    for row in sqlx::query!(
+        "SELECT option_key, feat_key FROM selection_option_feat ORDER BY option_key, feat_key"
+    )
+    .fetch_all(&mut *conn)
+    .await?
+    {
+        option_feats.push(row.option_key, FeatKey(row.feat_key));
+    }
+
     let mut options = Grouped::new();
     for row in sqlx::query!(
-        "SELECT key, selection_key, name, summary, guide, feat_key, prerequisite_root_id
+        "SELECT key, selection_key, name, summary, guide, prerequisite_root_id
         FROM selection_option ORDER BY key"
     )
     .fetch_all(&mut *conn)
@@ -536,11 +574,11 @@ async fn load_selections(
         options.push(
             row.selection_key,
             SelectionOption {
+                feats: option_feats.take(&row.key).into_iter().collect(),
                 key: SelectionOptionKey(row.key),
                 name: row.name,
                 summary: row.summary,
                 guide: GuideRef(row.guide),
-                feat: row.feat_key.map(FeatKey),
                 prerequisite: trees.get(row.prerequisite_root_id)?,
             },
         );
@@ -586,6 +624,7 @@ async fn load_selections(
         );
     }
     options.finish("selection_option")?;
+    option_feats.finish("selection_option_feat")?;
     shared.finish("selection_shared_option")?;
     Ok(selections)
 }
@@ -603,7 +642,8 @@ async fn load_feat_lists(conn: &mut PgConnection) -> Result<Grouped<Owner, FeatL
 
     let mut lists = Grouped::new();
     for row in sqlx::query!(
-        "SELECT key, class_key, archetype_key, path_key, name, guide, ignores_prerequisites
+        "SELECT key, class_key, archetype_key, path_key, name, guide, ignores_prerequisites,
+            every_feat
         FROM feat_list ORDER BY key"
     )
     .fetch_all(&mut *conn)
@@ -625,6 +665,7 @@ async fn load_feat_lists(conn: &mut PgConnection) -> Result<Grouped<Owner, FeatL
                 name: row.name,
                 guide: GuideRef(row.guide),
                 ignores_prerequisites: row.ignores_prerequisites,
+                every_feat: row.every_feat,
             },
         );
     }
@@ -815,21 +856,62 @@ async fn load_mythic_paths(
     grants: &mut Grants,
     feat_slots: &mut Grouped<Owner, FeatSlot>,
 ) -> Result<Vec<MythicPath>, sqlx::Error> {
-    let mut kept_ranks = Grouped::new();
-    for row in
-        sqlx::query!("SELECT path_key, rank FROM path_switch_kept_rank ORDER BY path_key, rank")
-            .fetch_all(&mut *conn)
-            .await?
+    let mut from = Grouped::new();
+    for row in sqlx::query!(
+        "SELECT path_key, from_path_key FROM path_switch_from ORDER BY path_key, from_path_key"
+    )
+    .fetch_all(&mut *conn)
+    .await?
     {
-        kept_ranks.push(row.path_key, to_u8(row.rank, "path_switch_kept_rank.rank")?);
+        from.push(row.path_key, MythicPathKey(row.from_path_key));
+    }
+    let (mut dropped_features, mut dropped_selections) = (Grouped::new(), Grouped::new());
+    for row in sqlx::query!(
+        "SELECT path_key, feature_key, selection_key FROM path_switch_drop
+        ORDER BY path_key, feature_key, selection_key"
+    )
+    .fetch_all(&mut *conn)
+    .await?
+    {
+        match (row.feature_key, row.selection_key) {
+            (Some(feature), None) => dropped_features.push(row.path_key, FeatureKey(feature)),
+            (None, Some(selection)) => {
+                dropped_selections.push(row.path_key, FeatureSelectionKey(selection));
+            }
+            _ => {
+                return Err(corrupt(
+                    "a path_switch_drop row doesn't name exactly one feature or selection",
+                ));
+            }
+        }
+    }
+    let mut switch_features = Grouped::new();
+    for row in sqlx::query!(
+        "SELECT path_key, feature_key FROM path_switch_feature ORDER BY path_key, feature_key"
+    )
+    .fetch_all(&mut *conn)
+    .await?
+    {
+        switch_features.push(row.path_key, FeatureKey(row.feature_key));
     }
     let mut switches = Grouped::new();
-    for row in sqlx::query!("SELECT path_key, further_ascensions, level_cap FROM path_switch")
-        .fetch_all(&mut *conn)
-        .await?
+    for row in sqlx::query!(
+        "SELECT path_key, kept_through_rank, path_kept_through_rank, further_ascensions, level_cap
+        FROM path_switch"
+    )
+    .fetch_all(&mut *conn)
+    .await?
     {
         let switch = PathSwitch {
-            kept_ranks: kept_ranks.take(&row.path_key).into_iter().collect(),
+            from: from.take(&row.path_key).into_iter().collect(),
+            kept_through_rank: to_u8(row.kept_through_rank, "path_switch.kept_through_rank")?,
+            path_kept_through_rank: to_u8(
+                row.path_kept_through_rank,
+                "path_switch.path_kept_through_rank",
+            )?,
+            dropped_features: dropped_features.take(&row.path_key).into_iter().collect(),
+            dropped_selections: dropped_selections.take(&row.path_key).into_iter().collect(),
+            features: switch_features.take(&row.path_key).into_iter().collect(),
             further_ascensions: row.further_ascensions,
             level_cap: row
                 .level_cap
@@ -838,7 +920,10 @@ async fn load_mythic_paths(
         };
         switches.push(row.path_key, switch);
     }
-    kept_ranks.finish("path_switch_kept_rank")?;
+    from.finish("path_switch_from")?;
+    dropped_features.finish("path_switch_drop")?;
+    dropped_selections.finish("path_switch_drop")?;
+    switch_features.finish("path_switch_feature")?;
 
     let mut ranks = Grouped::new();
     for row in sqlx::query!("SELECT id, path_key, rank FROM mythic_rank ORDER BY path_key, rank")

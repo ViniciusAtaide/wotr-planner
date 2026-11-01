@@ -1,0 +1,62 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT feature_key, kind, ability, amount\n        FROM feature_ability_bonus ORDER BY feature_key, kind, ability",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "feature_key",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "feature_ability_bonus",
+            "name": "feature_key"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "kind",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "feature_ability_bonus",
+            "name": "kind"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "ability",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "feature_ability_bonus",
+            "name": "ability"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "amount",
+        "type_info": "Int2",
+        "origin": {
+          "Table": {
+            "table": "feature_ability_bonus",
+            "name": "amount"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      false
+    ]
+  },
+  "hash": "d7110af435c8ec9fbe7c8063a53293c2fdac135c85e03c14b79ef848f2599387"
+}

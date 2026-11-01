@@ -3,15 +3,16 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use rules::{
-    AbilityModifier, Archetype, ArchetypeLevelRow, Class, ClassLevelRow, FeatKey, FeatList,
-    FeatSlot, Feature, FeatureKey, FeatureSelection, FeatureSelectionKey, GameData, MythicPath,
-    Race, SkillKey,
+    AbilityBonus, AbilityModifier, Archetype, ArchetypeLevelRow, Class, ClassLevelRow, FeatKey,
+    FeatList, FeatSlot, Feature, FeatureKey, FeatureSelection, FeatureSelectionKey, GameData,
+    MythicPath, Race, SkillKey,
 };
 use sqlx::PgConnection;
 
 use crate::columns::{
-    FeatSlotKind, ability_text, bab_progression_text, feat_category_text, feat_slot_kind_text,
-    mythic_ability_group_text, mythic_feat_group_text, save_progression_text, save_text,
+    AbilityBonusKind, FeatSlotKind, ability_bonus_kind_text, ability_text, bab_progression_text,
+    feat_category_text, feat_slot_kind_text, mythic_ability_group_text, mythic_feat_group_text,
+    save_progression_text, save_text,
 };
 use crate::{Database, Error, prerequisites};
 
@@ -36,9 +37,10 @@ async fn insert_all(db: &Database, data: &GameData, hash: &str) -> Result<(), sq
         "TRUNCATE game_data_seed, mythic_ascension, prerequisite_node, skill, race, subrace,
             ability_modifier, feat, class, save_exception, archetype, class_skill, mythic_ability,
             mythic_feat,
-            mythic_path, path_switch, path_switch_kept_rank, feature, feature_selection,
-            selection_option, selection_shared_option, feat_list, feat_list_member, class_level,
-            mythic_rank, granted_feature, granted_selection, granted_feat, feat_slot
+            mythic_path, path_switch, path_switch_from, path_switch_drop, path_switch_feature,
+            feature, feature_ability_bonus, feature_selection, selection_option,
+            selection_option_feat, selection_shared_option, feat_list, feat_list_member,
+            class_level, mythic_rank, granted_feature, granted_selection, granted_feat, feat_slot
         RESTART IDENTITY"
     )
     .execute(&mut *conn)
@@ -348,6 +350,26 @@ async fn insert_features(
         )
         .execute(&mut *conn)
         .await?;
+        for bonus in feature.ability_bonuses.iter() {
+            let (kind, ability, amount) = match *bonus {
+                AbilityBonus::Fixed { ability, amount } => {
+                    (AbilityBonusKind::Fixed, Some(ability_text(ability)), amount)
+                }
+                AbilityBonus::Every { amount } => (AbilityBonusKind::Every, None, amount),
+                AbilityBonus::Highest { amount } => (AbilityBonusKind::Highest, None, amount),
+                AbilityBonus::AtLeast { score } => (AbilityBonusKind::AtLeast, None, score),
+            };
+            sqlx::query!(
+                "INSERT INTO feature_ability_bonus (feature_key, kind, ability, amount)
+                VALUES ($1, $2, $3, $4)",
+                feature.key.as_str(),
+                ability_bonus_kind_text(kind),
+                ability,
+                i16::from(amount),
+            )
+            .execute(&mut *conn)
+            .await?;
+        }
     }
     Ok(())
 }
@@ -377,18 +399,26 @@ async fn insert_selections(
             let root = prerequisites::insert(conn, option.prerequisite.as_ref()).await?;
             sqlx::query!(
                 "INSERT INTO selection_option (key, selection_key, name, summary, guide,
-                    feat_key, prerequisite_root_id)
-                VALUES ($1, $2, $3, $4, $5, $6, $7)",
+                    prerequisite_root_id)
+                VALUES ($1, $2, $3, $4, $5, $6)",
                 option.key.as_str(),
                 selection.key.as_str(),
                 option.name,
                 option.summary,
                 option.guide.0,
-                option.feat.as_ref().map(|feat| feat.as_str()),
                 root,
             )
             .execute(&mut *conn)
             .await?;
+            for feat in option.feats.iter() {
+                sqlx::query!(
+                    "INSERT INTO selection_option_feat (option_key, feat_key) VALUES ($1, $2)",
+                    option.key.as_str(),
+                    feat.as_str(),
+                )
+                .execute(&mut *conn)
+                .await?;
+            }
         }
         for option in selection.shared_options.iter() {
             sqlx::query!(
@@ -412,8 +442,9 @@ async fn insert_feat_lists(
     for list in lists.iter() {
         sqlx::query!(
             "INSERT INTO feat_list
-                (key, class_key, archetype_key, path_key, name, guide, ignores_prerequisites)
-            VALUES ($1, $2, $3, $4, $5, $6, $7)",
+                (key, class_key, archetype_key, path_key, name, guide, ignores_prerequisites,
+                every_feat)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
             list.key.as_str(),
             class_key,
             archetype_key,
@@ -421,6 +452,7 @@ async fn insert_feat_lists(
             list.name,
             list.guide.0,
             list.ignores_prerequisites,
+            list.every_feat,
         )
         .execute(&mut *conn)
         .await?;
@@ -523,18 +555,52 @@ async fn insert_mythic_path(conn: &mut PgConnection, path: &MythicPath) -> Resul
     .await?;
     if let Some(switch) = &path.switch {
         sqlx::query!(
-            "INSERT INTO path_switch (path_key, further_ascensions, level_cap) VALUES ($1, $2, $3)",
+            "INSERT INTO path_switch (path_key, kept_through_rank, path_kept_through_rank,
+                further_ascensions, level_cap)
+            VALUES ($1, $2, $3, $4, $5)",
             path.key.as_str(),
+            i16::from(switch.kept_through_rank),
+            i16::from(switch.path_kept_through_rank),
             switch.further_ascensions,
             switch.level_cap.map(i16::from),
         )
         .execute(&mut *conn)
         .await?;
-        for rank in switch.kept_ranks.iter() {
+        for from in switch.from.iter() {
             sqlx::query!(
-                "INSERT INTO path_switch_kept_rank (path_key, rank) VALUES ($1, $2)",
+                "INSERT INTO path_switch_from (path_key, from_path_key) VALUES ($1, $2)",
                 path.key.as_str(),
-                i16::from(*rank),
+                from.as_str(),
+            )
+            .execute(&mut *conn)
+            .await?;
+        }
+        let drops = switch
+            .dropped_features
+            .iter()
+            .map(|feature| (Some(feature.as_str()), None))
+            .chain(
+                switch
+                    .dropped_selections
+                    .iter()
+                    .map(|selection| (None, Some(selection.as_str()))),
+            );
+        for (feature, selection) in drops {
+            sqlx::query!(
+                "INSERT INTO path_switch_drop (path_key, feature_key, selection_key)
+                VALUES ($1, $2, $3)",
+                path.key.as_str(),
+                feature,
+                selection,
+            )
+            .execute(&mut *conn)
+            .await?;
+        }
+        for feature in switch.features.iter() {
+            sqlx::query!(
+                "INSERT INTO path_switch_feature (path_key, feature_key) VALUES ($1, $2)",
+                path.key.as_str(),
+                feature.as_str(),
             )
             .execute(&mut *conn)
             .await?;

@@ -102,3 +102,9 @@ Script: `t25/rewrite.py` in the session scratchpad (`/private/tmp/claude-501/-Us
 2. **Option (a)'s trade-offs beyond the slayer's**, from the same rule: a witch 2 / Sylvan Trickster 10 can take a major hex in the witch's slot (and a witch 10 / Sylvan Trickster 2 through Fey Tricks); an alchemist 2 / Underground Chemist 10 can take Mummification in the alchemist's slot. Option (b) or (c) would close them if they matter.
 3. The `rogue/sylvan-trickster/fey-tricks` feature now sits beside the selection of the same key on every Fey Tricks row. It stays because Extra Rogue Talent's prerequisite names it; it could go if that `Any` is dropped (a trickster's talents now hold the rogue's keys anyway).
 4. Still not modelled (report items, outside this ticket): the shaman's Second Spirit and Wandering Hex, Winter Witch's hexes, and the slayer's ranger combat style feats.
+
+## Decisions on the open questions
+
+**User, 2026-11-01 ("all recommended"):**
+1. Underground Chemist's Discovery applies from level 10 on (the text describes a lasting unlock). No data change.
+2. The wider "any of" trade-offs (witch 2 / Sylvan Trickster 10, alchemist 2 / Underground Chemist 10) are accepted. No data change.

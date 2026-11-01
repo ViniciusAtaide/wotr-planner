@@ -9,8 +9,9 @@ use std::collections::{BTreeSet, HashMap, HashSet};
 
 use crate::build::{AbilityScores, Build, Edit, FeatSource, LevelUp, Pick, SlotId};
 use crate::game_data::{
-    Ability, AbilityModifier, Archetype, Class, Feat, FeatList, FeatSlot, FeatureSelection,
-    GameData, MythicAbility, MythicFeat, MythicPath, Race, Save, SelectionOption, SpellLevels,
+    Ability, AbilityBonus, AbilityModifier, Archetype, Class, Feat, FeatList, FeatSlot,
+    FeatureSelection, GameData, MythicAbility, MythicFeat, MythicPath, PathSwitch, Race, Save,
+    SelectionOption, SpellLevels,
 };
 use crate::keys::{
     ArchetypeKey, ClassKey, FeatKey, FeatListKey, FeatureKey, FeatureSelectionKey,
@@ -45,6 +46,8 @@ pub struct Engine {
     mythic_abilities: HashMap<MythicAbilityKey, usize>,
     mythic_feats: HashMap<MythicFeatKey, usize>,
     paths: HashMap<MythicPathKey, usize>,
+    /// The ability bonuses of every feature that has some.
+    feature_bonuses: HashMap<FeatureKey, Vec<AbilityBonus>>,
 }
 
 /// Where a class is: an index into the base or the prestige classes.
@@ -190,16 +193,23 @@ pub struct RankSheet {
     /// The fixed character level of this rank's Mythic ascension.
     pub character_level: u8,
     pub status: RankStatus,
-    /// The path in force at this rank (none before MR 3).
+    /// The path whose row this rank gives: the path in force from MR 3. MR 1 and 2 show the path chosen at MR 3
+    /// once it's chosen, since choosing it grants their rows (held from MR 3 on); before that, none.
     pub path: Option<MythicPathKey>,
     /// The general mythic pick, then the path's picks. Empty when not reached.
     pub slots: Vec<Slot>,
+    /// The slots whose picks a Path switch took away (all of a dropped rank's, the old path's on a partly dropped
+    /// one), in slot order.
+    pub dropped_slots: Vec<SlotId>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum RankStatus {
     Reached,
-    /// Reached, then lost to a Path switch that doesn't keep it.
+    /// Reached, then partly lost to a Path switch: its general pick or the old path's grants at it, or a grant the
+    /// switch drops by name (Devil from Aeon: the gaze picks).
+    PartlyDropped,
+    /// Reached, then lost to a Path switch that keeps neither its general pick nor the old path's grants.
     Dropped,
     /// Not reached: the Build is too short, or a Legend switch ended the ascensions.
     NotReached,
@@ -253,7 +263,8 @@ pub struct ClassOption {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct PathOption {
     pub path: MythicPathKey,
-    /// Always `Ok` for now: the game data gives paths no prerequisites. Kept so the pickers all read alike.
+    /// `Ok` when it can be taken; a switch open only from other paths than the Build's is
+    /// [`Issue::NotFromPath`].
     pub status: Result<(), Issue>,
 }
 
@@ -339,6 +350,22 @@ impl Engine {
             .feat_lists()
             .map(|list| (list.key.clone(), list.clone()))
             .collect();
+        let feature_bonuses = data
+            .classes
+            .iter()
+            .chain(&data.prestige_classes)
+            .flat_map(|class| {
+                class.features.iter().chain(
+                    class
+                        .archetypes
+                        .iter()
+                        .flat_map(|archetype| &archetype.features),
+                )
+            })
+            .chain(data.mythic_paths.iter().flat_map(|path| &path.features))
+            .filter(|feature| !feature.ability_bonuses.is_empty())
+            .map(|feature| (feature.key.clone(), feature.ability_bonuses.clone()))
+            .collect();
         let mut engine = Self {
             skills: index(&data.skills, |s| &s.key),
             feats: index(&data.feats, |f| &f.key),
@@ -346,6 +373,7 @@ impl Engine {
             mythic_abilities: index(&data.mythic_abilities, |a| &a.key),
             mythic_feats: index(&data.mythic_feats, |f| &f.key),
             paths: index(&data.mythic_paths, |p| &p.key),
+            feature_bonuses,
             options: HashMap::new(),
             data,
             classes,
@@ -618,22 +646,33 @@ impl Engine {
 
     /// The path picker at MR 3: every path without a switch rule, in key order.
     pub fn path_options(&self, _build: &Build) -> Vec<PathOption> {
-        self.path_options_where(|path| path.switch.is_none())
-    }
-
-    /// The Path switch picker at MR 8: every path with a switch rule, in key order.
-    pub fn switch_options(&self, _build: &Build) -> Vec<PathOption> {
-        self.path_options_where(|path| path.switch.is_some())
-    }
-
-    fn path_options_where(&self, choosable: impl Fn(&MythicPath) -> bool) -> Vec<PathOption> {
         self.data
             .mythic_paths
             .iter()
-            .filter(|path| choosable(path))
+            .filter(|path| path.switch.is_none())
             .map(|path| PathOption {
                 path: path.key.clone(),
                 status: Ok(()),
+            })
+            .collect()
+    }
+
+    /// The Path switch picker at MR 8: every path with a switch rule, in key order, each open or not from the
+    /// path the Build chose at MR 3.
+    pub fn switch_options(&self, build: &Build) -> Vec<PathOption> {
+        self.data
+            .mythic_paths
+            .iter()
+            .filter_map(|path| Some((path, path.switch.as_ref()?)))
+            .map(|(path, switch)| PathOption {
+                path: path.key.clone(),
+                status: if switch.open_from(build.mythic_path.as_ref()) {
+                    Ok(())
+                } else {
+                    Err(Issue::NotFromPath {
+                        from: switch.from.clone(),
+                    })
+                },
             })
             .collect()
     }
@@ -660,7 +699,7 @@ impl Engine {
             FeatSlot::Category(category) => feat.category == *category,
             FeatSlot::OneOf { list } => self
                 .feat_list(list)
-                .is_some_and(|list| list.feats.contains(&feat.key)),
+                .is_some_and(|list| list.contains(&feat.key)),
         }
     }
 
@@ -686,6 +725,53 @@ enum Held {
     MythicFeat(MythicFeatKey),
 }
 
+/// Where a Mythic ascension's grant came from, for what a Path switch keeps.
+#[derive(Clone, Debug)]
+struct GrantSource {
+    /// The rank whose row or pick granted it (MR 1 and 2 for the rows granted on choosing the path).
+    rank: u8,
+    /// The path's own grant (its row's features, the picks in its slots) rather than the general pick.
+    from_path: bool,
+    /// The Feature selection whose slot was picked.
+    selection: Option<FeatureSelectionKey>,
+    /// The slot picked, if any.
+    slot: Option<SlotId>,
+}
+
+impl GrantSource {
+    /// A path rank row's own grant (its features).
+    fn row(rank: u8) -> Self {
+        Self {
+            rank,
+            from_path: true,
+            selection: None,
+            slot: None,
+        }
+    }
+}
+
+/// Whether a Path switch takes a grant away: a general pick past the general cut-off, the old path's grant past
+/// the path cut-off, or one the switch drops by name whatever its rank.
+fn switch_drops(switch: &PathSwitch, grant: &RankGrant) -> bool {
+    let source = &grant.source;
+    if !source.from_path {
+        return source.rank > switch.kept_through_rank;
+    }
+    source.rank > switch.path_kept_through_rank
+        || matches!(&grant.item, Held::Feature(key) if switch.dropped_features.contains(key))
+        || source
+            .selection
+            .as_ref()
+            .is_some_and(|selection| switch.dropped_selections.contains(selection))
+}
+
+/// One thing a Mythic ascension granted.
+#[derive(Clone, Debug)]
+struct RankGrant {
+    source: GrantSource,
+    item: Held,
+}
+
 /// Where a walk stops to report the state: just before a slot is filled, or just before a level's Level-up.
 #[derive(Clone, Copy)]
 enum Probe<'a> {
@@ -706,8 +792,11 @@ struct Walker<'a> {
     build: &'a Build,
     state: CharacterState,
     problems: Vec<Problem>,
-    /// Grants from Mythic ascensions, by rank, so a Path switch can drop them.
-    rank_grants: Vec<(u8, Held)>,
+    /// What Mythic ascensions granted, by rank and source, so a Path switch can drop it.
+    rank_grants: Vec<RankGrant>,
+    /// How many sources hold each feat (a class grant and a path pick may both give Shield Proficiency), so
+    /// dropping one source keeps a feat another still gives.
+    feat_holds: HashMap<FeatKey, u8>,
     ranks: Vec<RankSheet>,
     level_cap: u8,
     /// Set by a switch to a path without further ascensions.
@@ -733,6 +822,7 @@ impl<'a> Walker<'a> {
                 status: RankStatus::NotReached,
                 path: None,
                 slots: Vec::new(),
+                dropped_slots: Vec::new(),
             })
             .collect();
         Self {
@@ -741,6 +831,7 @@ impl<'a> Walker<'a> {
             state: CharacterState::default(),
             problems: Vec::new(),
             rank_grants: Vec::new(),
+            feat_holds: HashMap::new(),
             ranks,
             level_cap: BASE_LEVEL_CAP,
             ascensions_over: false,
@@ -851,7 +942,8 @@ impl<'a> Walker<'a> {
                 *score = score.saturating_add_signed(amount);
             }
         }
-        self.state.ability_scores = scores;
+        self.state.base_ability_scores = scores;
+        self.refresh_ability_scores();
     }
 
     // ---- Level-up -----------------------------------------------------------------------------------------
@@ -878,8 +970,9 @@ impl<'a> Walker<'a> {
         let ability_increase = level % 4 == 0;
         match (ability_increase, level_up.ability_increase) {
             (true, Some(ability)) => {
-                let score = self.state.ability_scores.get_mut(ability);
+                let score = self.state.base_ability_scores.get_mut(ability);
                 *score = score.saturating_add(1);
+                self.refresh_ability_scores();
             }
             (false, Some(_)) => {
                 self.problem(Choice::AbilityIncrease { level }, Issue::NoAbilityIncrease)
@@ -1040,7 +1133,9 @@ impl<'a> Walker<'a> {
                 add_feature(&mut self.state, feature);
             }
             // Granted feats skip their prerequisites; one already held adds nothing.
-            self.state.feats.extend(row.feats.iter().cloned());
+            for feat in row.feats {
+                self.hold(Held::Feat(feat.clone()), None);
+            }
         }
         class_level
     }
@@ -1177,6 +1272,15 @@ impl<'a> Walker<'a> {
 
     /// Checks the slot's pick against the state just before it and, when it holds, adds it to the state.
     fn fill(&mut self, id: SlotId, kind: SlotKind, rank: Option<u8>) -> Slot {
+        let source = rank.map(|rank| GrantSource {
+            rank,
+            from_path: !matches!(id, SlotId::Mythic { .. }),
+            selection: match &kind {
+                SlotKind::Selection(selection) => Some(selection.clone()),
+                _ => None,
+            },
+            slot: Some(id.clone()),
+        });
         if let Some(Probe::Slot(probed)) = self.probe
             && probed == &id
         {
@@ -1186,7 +1290,7 @@ impl<'a> Walker<'a> {
         let pick = self.build.picks.get(&id).cloned();
         if let Some(pick) = &pick {
             match self.check_pick(&kind, pick) {
-                Ok(()) => self.hold_pick(pick, rank),
+                Ok(()) => self.hold_pick(pick, source.as_ref()),
                 Err(issue) => self.problem(Choice::Slot(id.clone()), issue),
             }
         }
@@ -1197,35 +1301,39 @@ impl<'a> Walker<'a> {
         check_pick(self.engine, &self.state, kind, pick)
     }
 
-    fn hold_pick(&mut self, pick: &Pick, rank: Option<u8>) {
+    fn hold_pick(&mut self, pick: &Pick, source: Option<&GrantSource>) {
         let mut held = vec![];
         match pick {
             Pick::Feat(key) => held.push(Held::Feat(key.clone())),
             Pick::SelectionOption(key) => {
                 held.push(Held::SelectionOption(key.clone()));
-                if let Some(feat) = self
-                    .engine
-                    .option(key)
-                    .and_then(|option| option.feat.clone())
-                {
-                    held.push(Held::Feat(feat));
+                if let Some(option) = self.engine.option(key) {
+                    held.extend(option.feats.iter().cloned().map(Held::Feat));
                 }
             }
             Pick::MythicAbility(key) => held.push(Held::MythicAbility(key.clone())),
             Pick::MythicFeat(key) => held.push(Held::MythicFeat(key.clone())),
         }
         for item in held {
-            self.hold(item, rank);
+            self.hold(item, source.cloned());
         }
     }
 
-    fn hold(&mut self, item: Held, rank: Option<u8>) {
+    /// Holds an item; `source` says which Mythic ascension granted it, so a Path switch can take it back.
+    fn hold(&mut self, item: Held, source: Option<GrantSource>) {
         let state = &mut self.state;
         match &item {
             Held::Feat(key) => {
+                let holds = self.feat_holds.entry(key.clone()).or_default();
+                *holds = holds.saturating_add(1);
                 state.feats.insert(key.clone());
             }
-            Held::Feature(key) => add_feature(state, key),
+            Held::Feature(key) => {
+                add_feature(state, key);
+                if self.engine.feature_bonuses.contains_key(key) {
+                    self.refresh_ability_scores();
+                }
+            }
             Held::SelectionOption(key) => {
                 state.selection_options.insert(key.clone());
             }
@@ -1236,8 +1344,8 @@ impl<'a> Walker<'a> {
                 state.mythic_feats.insert(key.clone());
             }
         }
-        if let Some(rank) = rank {
-            self.rank_grants.push((rank, item));
+        if let Some(source) = source {
+            self.rank_grants.push(RankGrant { source, item });
         }
     }
 
@@ -1245,7 +1353,11 @@ impl<'a> Walker<'a> {
         let state = &mut self.state;
         match item {
             Held::Feat(key) => {
-                state.feats.remove(key);
+                let holds = self.feat_holds.entry(key.clone()).or_default();
+                *holds = holds.saturating_sub(1);
+                if *holds == 0 {
+                    state.feats.remove(key);
+                }
             }
             Held::Feature(key) => {
                 if let Some(count) = state.features.get_mut(key) {
@@ -1253,6 +1365,9 @@ impl<'a> Walker<'a> {
                     if *count == 0 {
                         state.features.remove(key);
                     }
+                }
+                if self.engine.feature_bonuses.contains_key(key) {
+                    self.refresh_ability_scores();
                 }
             }
             Held::SelectionOption(key) => {
@@ -1289,7 +1404,10 @@ impl<'a> Walker<'a> {
                 Some(path) if path.switch.is_some() => {
                     self.problem(Choice::MythicPath, Issue::NotChoosable);
                 }
-                Some(path) => self.state.mythic_path = Some(path.key.clone()),
+                Some(path) => {
+                    self.state.mythic_path = Some(path.key.clone());
+                    self.grant_rows_before_the_choice(path);
+                }
             }
         }
         self.state.mythic_rank = rank;
@@ -1308,7 +1426,7 @@ impl<'a> Walker<'a> {
             .and_then(|key| engine.path(key));
         if let Some(row) = path.and_then(|path| path.ranks.iter().find(|row| row.rank == rank)) {
             for feature in &row.features {
-                self.hold(Held::Feature(feature.clone()), Some(rank));
+                self.hold(Held::Feature(feature.clone()), Some(GrantSource::row(rank)));
             }
             for (index, slot) in row.feat_slots.iter().enumerate() {
                 slot_kinds.push((
@@ -1340,8 +1458,27 @@ impl<'a> Walker<'a> {
         true
     }
 
+    /// Choosing the path at MR 3 grants its MR 1 and 2 rows: held from now on, as those ranks' own grants (so a
+    /// switch that keeps MR 1-2 keeps them), and shown at those ranks. Only their features: `GameData::check`
+    /// gives those rows no slots.
+    fn grant_rows_before_the_choice(&mut self, path: &'a MythicPath) {
+        for row in path.ranks.iter().filter(|row| row.rank < PATH_CHOICE_RANK) {
+            for feature in &row.features {
+                self.hold(
+                    Held::Feature(feature.clone()),
+                    Some(GrantSource::row(row.rank)),
+                );
+            }
+        }
+        for sheet in &mut self.ranks {
+            if sheet.rank < PATH_CHOICE_RANK && sheet.status == RankStatus::Reached {
+                sheet.path = Some(path.key.clone());
+            }
+        }
+    }
+
     /// Switches path at the switch rank. Returns whether the ascensions end here (a switch without further
-    /// ascensions, such as Legend).
+    /// ascensions, such as Legend). A switch the Build's path can't take is a problem and doesn't happen.
     fn switch_path(&mut self, rank: u8, key: &MythicPathKey) -> bool {
         let Some(path) = self.engine.path(key) else {
             self.problem(Choice::PathSwitch, Issue::UnknownKey(key.to_string()));
@@ -1351,22 +1488,57 @@ impl<'a> Walker<'a> {
             self.problem(Choice::PathSwitch, Issue::NotChoosable);
             return false;
         };
+        if !switch.open_from(self.state.mythic_path.as_ref()) {
+            self.problem(
+                Choice::PathSwitch,
+                Issue::NotFromPath {
+                    from: switch.from.clone(),
+                },
+            );
+            return false;
+        }
+
         let (dropped, kept): (Vec<_>, Vec<_>) = std::mem::take(&mut self.rank_grants)
             .into_iter()
-            .partition(|(granted_at, _)| !switch.kept_ranks.contains(granted_at));
+            .partition(|grant| switch_drops(switch, grant));
         self.rank_grants = kept;
-        for (_, item) in &dropped {
-            self.release(item);
+        for grant in &dropped {
+            self.release(&grant.item);
         }
         for sheet in &mut self.ranks {
-            if sheet.rank < rank
-                && sheet.status == RankStatus::Reached
-                && !switch.kept_ranks.contains(&sheet.rank)
-            {
-                sheet.status = RankStatus::Dropped;
+            if sheet.rank >= rank || sheet.status != RankStatus::Reached {
+                continue;
             }
+            let general_lost = sheet.rank > switch.kept_through_rank;
+            let path_lost = sheet.rank > switch.path_kept_through_rank;
+            let named_lost = dropped
+                .iter()
+                .any(|grant| grant.source.rank == sheet.rank && grant.source.from_path);
+            sheet.status = if general_lost && path_lost {
+                RankStatus::Dropped
+            } else if general_lost || path_lost || named_lost {
+                RankStatus::PartlyDropped
+            } else {
+                RankStatus::Reached
+            };
+            let lost: BTreeSet<&SlotId> = dropped
+                .iter()
+                .filter(|grant| grant.source.rank == sheet.rank)
+                .filter_map(|grant| grant.source.slot.as_ref())
+                .collect();
+            sheet.dropped_slots = sheet
+                .slots
+                .iter()
+                .map(|slot| &slot.id)
+                .filter(|id| lost.contains(id))
+                .cloned()
+                .collect();
         }
+
         self.state.mythic_path = Some(path.key.clone());
+        for feature in &switch.features {
+            self.hold(Held::Feature(feature.clone()), None);
+        }
         if let Some(cap) = switch.level_cap {
             self.level_cap = cap;
         }
@@ -1377,6 +1549,18 @@ impl<'a> Walker<'a> {
             self.ascensions_over = true;
             true
         }
+    }
+
+    /// The character's own scores: the base scores with the bonuses of every feature held.
+    fn refresh_ability_scores(&mut self) {
+        let engine = self.engine;
+        let bonuses = self
+            .state
+            .features
+            .keys()
+            .filter_map(|key| engine.feature_bonuses.get(key))
+            .flatten();
+        self.state.ability_scores = with_bonuses(self.state.base_ability_scores, bonuses);
     }
 
     // ---- Tables -------------------------------------------------------------------------------------------
@@ -1531,6 +1715,52 @@ fn advancing_levels(
         levels = levels.saturating_add(u8::try_from(count).unwrap_or(u8::MAX));
     }
     levels
+}
+
+/// The scores with features' ability bonuses applied, in the guide's terms: fixed and every-score bonuses add
+/// first; the highest score is the highest of those (a tie goes to the first in Str, Dex, Con, Int, Wis, Cha
+/// order, which the guide doesn't settle); then every score is raised to the highest floor ("at least 14"), and
+/// the highest score gets the sum of the highest-score bonuses (Perfect Body, Mind and Soul: +8 in all).
+pub fn with_bonuses<'b>(
+    base: AbilityScores,
+    bonuses: impl IntoIterator<Item = &'b AbilityBonus>,
+) -> AbilityScores {
+    let mut scores = base;
+    let (mut floor, mut highest_bonus) = (0u8, 0u8);
+    for bonus in bonuses {
+        match *bonus {
+            AbilityBonus::Fixed { ability, amount } => {
+                let score = scores.get_mut(ability);
+                *score = score.saturating_add(amount);
+            }
+            AbilityBonus::Every { amount } => {
+                for ability in AbilityScores::ABILITIES {
+                    let score = scores.get_mut(ability);
+                    *score = score.saturating_add(amount);
+                }
+            }
+            AbilityBonus::Highest { amount } => {
+                highest_bonus = highest_bonus.saturating_add(amount)
+            }
+            AbilityBonus::AtLeast { score } => floor = floor.max(score),
+        }
+    }
+    // `max_by_key` keeps the last of equal maxima, so walk the abilities backwards to keep the first.
+    let highest = AbilityScores::ABILITIES
+        .into_iter()
+        .rev()
+        .max_by_key(|ability| scores.get(*ability));
+    for ability in AbilityScores::ABILITIES {
+        let score = scores.get_mut(ability);
+        *score = (*score).max(floor);
+    }
+    if let Some(highest) = highest
+        && highest_bonus > 0
+    {
+        let score = scores.get_mut(highest);
+        *score = score.saturating_add(highest_bonus);
+    }
+    scores
 }
 
 /// The cost of one point-buy score (Pathfinder's table; 7 to 9 refund points), or `None` outside 7..=18.

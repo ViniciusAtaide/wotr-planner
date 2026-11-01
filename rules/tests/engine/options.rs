@@ -57,6 +57,7 @@ fn fighter_bonus_slots_offer_only_combat_feats() {
         "shield-focus",
         "shield-proficiency",
         "tower-shield-proficiency",
+        "stat-focus",
     ]
     .into_iter()
     .map(String::from)

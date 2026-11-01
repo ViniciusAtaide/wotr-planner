@@ -207,6 +207,7 @@ fn name_class_lists(class: &mut Class, lists: &PendingLists) {
                 name,
                 guide: guide.clone(),
                 ignores_prerequisites: list.1,
+                every_feat: false,
                 feats: list.0,
             });
         }
@@ -262,6 +263,7 @@ fn name_path_lists(path: &mut MythicPath, lists: &PendingLists) {
             name,
             guide: GuideRef::new(path.guide.0.clone()),
             ignores_prerequisites: list.1,
+            every_feat: false,
             feats: list.0,
         });
     }

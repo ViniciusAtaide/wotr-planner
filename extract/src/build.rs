@@ -90,7 +90,6 @@ pub fn extract(guide: &Guide) -> Extraction {
             })
             .collect(),
     };
-    builder.catalog.rank_levels = MYTHIC_ASCENSIONS.iter().copied().collect();
     let skills = builder.skills();
     let races = builder.races();
     let mut feats = builder.feats();
@@ -111,6 +110,7 @@ pub fn extract(guide: &Guide) -> Extraction {
         &mut mythic_paths,
     );
     builder.place_features(&mut classes, &mut prestige_classes, &mut mythic_paths);
+    prose::path_rules(&mut mythic_paths);
 
     let mut data = GameData {
         progression,
@@ -901,6 +901,7 @@ impl<'g> Builder<'g> {
             name: name.to_owned(),
             summary: String::new(),
             guide: GuideRef::new(guide),
+            ability_bonuses: Vec::new(),
         };
         let mut names = vec![norm(name)];
         // "Sneak Attack (Eldritch Scoundrel)" is also a "Sneak Attack".
@@ -1132,7 +1133,7 @@ impl<'g> Builder<'g> {
                 name: child.name.clone(),
                 summary: String::new(),
                 guide: GuideRef::new(page.guide(&child.anchor)),
-                feat,
+                feats: feat.into_iter().collect(),
                 prerequisite: None,
             });
         }
@@ -1611,7 +1612,8 @@ impl<'g> Builder<'g> {
             }
             ranks.push(rank_row);
         }
-        if rows.is_empty() {
+        // A switch rule holds what a path without a rank table gives (Legend).
+        if rows.is_empty() && prose::path_switch(slug_name).is_none() {
             self.report.add(
                 Kind::ProseRule,
                 guide.clone(),

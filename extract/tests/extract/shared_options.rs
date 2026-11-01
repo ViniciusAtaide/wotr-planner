@@ -19,7 +19,7 @@ fn option(key: &str, anchor: &str, prerequisite: Option<Prerequisite>) -> Select
         name: key.rsplit('/').next().unwrap().into(),
         summary: String::new(),
         guide: GuideRef::new(anchor),
-        feat: None,
+        feats: BTreeSet::new(),
         prerequisite,
     }
 }

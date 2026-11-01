@@ -61,7 +61,8 @@ fn every_feat_list_of_the_data_is_listed_once() {
         [
             "fighter/armiger/bonus-feats",
             "monk/bonus-feats",
-            "trickster/bonus-feats"
+            "trickster/bonus-feats",
+            "gold-dragon/dragon-feats"
         ]
     );
 }

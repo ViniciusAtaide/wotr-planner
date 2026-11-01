@@ -1,0 +1,74 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT path_key, kept_through_rank, path_kept_through_rank, further_ascensions, level_cap\n        FROM path_switch",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "path_key",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "path_switch",
+            "name": "path_key"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "kept_through_rank",
+        "type_info": "Int2",
+        "origin": {
+          "Table": {
+            "table": "path_switch",
+            "name": "kept_through_rank"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "path_kept_through_rank",
+        "type_info": "Int2",
+        "origin": {
+          "Table": {
+            "table": "path_switch",
+            "name": "path_kept_through_rank"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "further_ascensions",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "path_switch",
+            "name": "further_ascensions"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "level_cap",
+        "type_info": "Int2",
+        "origin": {
+          "Table": {
+            "table": "path_switch",
+            "name": "level_cap"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "bb7b8e38a87bf3b140788a4a4665f6e13591e8644b49f8b61cb6fda1634623b1"
+}

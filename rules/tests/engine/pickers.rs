@@ -142,10 +142,16 @@ fn the_path_at_mr_3_is_any_path_without_a_switch_rule() {
     let options = engine().path_options(&build("elf", &[]));
     assert_eq!(
         options,
-        [PathOption {
-            path: path("trickster"),
-            status: Ok(())
-        }]
+        [
+            PathOption {
+                path: path("aeon"),
+                status: Ok(())
+            },
+            PathOption {
+                path: path("trickster"),
+                status: Ok(())
+            }
+        ]
     );
 }
 
@@ -156,5 +162,13 @@ fn the_switch_at_mr_8_is_any_path_with_a_switch_rule() {
         .into_iter()
         .map(|o| o.path)
         .collect();
-    assert_eq!(options, [path("gold-dragon"), path("legend")]);
+    assert_eq!(
+        options,
+        [
+            path("devil"),
+            path("gold-dragon"),
+            path("legend"),
+            path("swarm-that-walks")
+        ]
+    );
 }

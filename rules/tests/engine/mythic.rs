@@ -130,7 +130,7 @@ fn the_path_is_chosen_at_mr_3_and_adds_its_own_picks() {
     let sheet = engine().evaluate(&trickster_build(11));
     assert_eq!(sheet.at(8).unwrap().mythic_path, None);
     assert_eq!(sheet.at(9).unwrap().mythic_path, Some(path("trickster")));
-    assert_eq!(sheet.ranks[1].path, None);
+    assert_eq!(sheet.ranks[1].path, Some(path("trickster")));
     assert_eq!(sheet.ranks[2].path, Some(path("trickster")));
     assert_eq!(
         mythic_slot_kinds(&sheet, 3),
@@ -238,10 +238,11 @@ fn a_switch_that_keeps_ascending_takes_over_from_mr_8() {
     assert_eq!(at_17.mythic_path, Some(path("gold-dragon")));
     assert_eq!(at_17.mythic_rank, 9);
     assert_eq!(at_17.feature_count(&feature("gold-dragon/breath")), 1);
-    // Gold Dragon keeps MR 1-7, including the Trickster's own picks.
+    // Gold Dragon keeps the general picks of MR 1-7 but drops the Trickster's own grants of MR 3-7.
+    assert_eq!(at_17.mythic_abilities.len(), 5);
     assert_eq!(
         at_17.feature_count(&feature("trickster/trickster-tricks")),
-        1
+        0
     );
     assert_eq!(sheet.at(20).unwrap().mythic_rank, 10);
     assert_eq!(sheet.ranks[7].path, Some(path("gold-dragon")));

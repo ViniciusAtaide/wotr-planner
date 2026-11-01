@@ -479,7 +479,8 @@ fn ranks_and_levels_stay_in_range() {
         .unwrap();
     let switch = legend.switch.as_mut().unwrap();
     switch.level_cap = Some(41);
-    switch.kept_ranks = BTreeSet::from([1, 2, 8]);
+    switch.kept_through_rank = 8;
+    switch.path_kept_through_rank = 0;
     let trickster = data
         .mythic_paths
         .iter_mut()
@@ -495,6 +496,7 @@ fn ranks_and_levels_stay_in_range() {
             (DataAt::Progression, DataIssue::RankOutOfRange(11)),
             (at_class("wizard"), DataIssue::SpellLevelOutOfRange(10)),
             (at_path("legend"), DataIssue::LevelOutOfRange(41)),
+            (at_path("legend"), DataIssue::RankOutOfRange(0)),
             (at_path("legend"), DataIssue::RankOutOfRange(8)),
             (at_path("trickster"), DataIssue::RankOutOfRange(0)),
         ]
@@ -526,7 +528,7 @@ fn problems_read_as_sentences_that_name_the_kind() {
 }
 
 #[test]
-fn only_class_levels_grant_bonus_list_slots() {
+fn only_class_levels_and_a_paths_own_ranks_grant_bonus_list_slots() {
     // The monk's list ignores prerequisites.
     let bonus_list = rules::FeatSlot::OneOf {
         list: FeatListKey::new("monk/bonus-feats"),
@@ -550,21 +552,125 @@ fn only_class_levels_grant_bonus_list_slots() {
         .iter_mut()
         .find(|p| p.key.as_str() == "trickster")
         .unwrap();
-    trickster.ranks[1].feat_slots.push(bonus_list);
+    trickster
+        .ranks
+        .iter_mut()
+        .find(|row| row.rank == 4)
+        .unwrap()
+        .feat_slots
+        .push(bonus_list);
     let human = DataAt::Race(RaceKey::new("human"));
     assert_eq!(
         issues(&data),
         [
-            (human.clone(), DataIssue::BonusListOutsideAClass),
-            (at_path("trickster"), DataIssue::BonusListOutsideAClass),
+            (human.clone(), DataIssue::MisplacedBonusList),
+            (at_path("trickster"), DataIssue::MisplacedBonusList),
         ]
     );
     assert_eq!(
         DataProblem {
             at: human,
-            issue: DataIssue::BonusListOutsideAClass,
+            issue: DataIssue::MisplacedBonusList,
         }
         .to_string(),
-        "race human: a feat slot that ignores prerequisites is granted outside a class's level rows"
+        "race human: a feat slot that ignores prerequisites is granted outside a class's level rows or its own \
+         path's ranks"
+    );
+}
+
+#[test]
+fn a_path_rank_may_name_its_own_bonus_list_only() {
+    // The world's Gold Dragon names its own Dragon Feats at MR 9; another path's rank may not.
+    let mut data = world();
+    assert_eq!(issues(&data), []);
+    let trickster = data
+        .mythic_paths
+        .iter_mut()
+        .find(|p| p.key.as_str() == "trickster")
+        .unwrap();
+    trickster.ranks[2].feat_slots.push(rules::FeatSlot::OneOf {
+        list: FeatListKey::new("gold-dragon/dragon-feats"),
+    });
+    assert_eq!(
+        issues(&data),
+        [(at_path("trickster"), DataIssue::MisplacedBonusList)]
+    );
+}
+
+#[test]
+fn a_list_of_every_feat_names_none_of_its_own() {
+    let mut data = world();
+    let dragon = data
+        .mythic_paths
+        .iter_mut()
+        .find(|p| p.key.as_str() == "gold-dragon")
+        .unwrap();
+    dragon.feat_lists[0]
+        .feats
+        .insert(rules::FeatKey::new("dodge"));
+    let at = DataAt::FeatList(FeatListKey::new("gold-dragon/dragon-feats"));
+    assert_eq!(
+        issues(&data),
+        [(at.clone(), DataIssue::EveryFeatListWithFeats)]
+    );
+    assert_eq!(
+        DataProblem {
+            at,
+            issue: DataIssue::EveryFeatListWithFeats
+        }
+        .to_string(),
+        "feat list gold-dragon/dragon-feats: a list of every feat that names feats of its own"
+    );
+}
+
+#[test]
+fn a_paths_mr_1_and_2_rows_grant_features_only() {
+    let mut data = world();
+    let trickster = data
+        .mythic_paths
+        .iter_mut()
+        .find(|p| p.key.as_str() == "trickster")
+        .unwrap();
+    trickster.ranks[0]
+        .selections
+        .push(rules::FeatureSelectionKey::new("trickster/tricks"));
+    trickster.ranks[1].feat_slots.push(rules::FeatSlot::General);
+    assert_eq!(
+        issues(&data),
+        [
+            (at_path("trickster"), DataIssue::SlotBeforePathChoice(1)),
+            (at_path("trickster"), DataIssue::SlotBeforePathChoice(2)),
+        ]
+    );
+    assert_eq!(
+        DataProblem {
+            at: at_path("trickster"),
+            issue: DataIssue::SlotBeforePathChoice(1)
+        }
+        .to_string(),
+        "mythic path trickster: the MR 1 row grants a slot, but the path is chosen at MR 3"
+    );
+}
+
+#[test]
+fn a_switch_is_open_from_paths_chosen_at_mr_3_only() {
+    let mut data = world();
+    let devil = data
+        .mythic_paths
+        .iter_mut()
+        .find(|p| p.key.as_str() == "devil")
+        .unwrap();
+    devil
+        .switch
+        .as_mut()
+        .unwrap()
+        .from
+        .insert(rules::MythicPathKey::new("legend"));
+    assert_eq!(
+        issues(&data),
+        [(
+            at_path("devil"),
+            DataIssue::SwitchFromASwitchPath(rules::MythicPathKey::new("legend"))
+        )]
     );
 }

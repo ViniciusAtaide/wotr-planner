@@ -20,7 +20,7 @@ example of the layout.
 | `prestige/<class>.ron` | one prestige `Class` |
 | `mythic/abilities.ron` | `Vec<MythicAbility>` |
 | `mythic/feats.ron` | `Vec<MythicFeat>` |
-| `mythic/paths/<path>.ron` | one `MythicPath`: its rank table, picks and switch rule (with the character level cap it sets, if any) |
+| `mythic/paths/<path>.ron` | one `MythicPath`: its rank table, picks and switch rule (what it keeps, drops and grants, the paths it's open from, the character level cap it sets) |
 
 Any other `.ron` file is an error; other files (like this README) are ignored. Order means nothing anywhere
 in the data: catalogs are sorted by key, class levels by level, mythic ranks by rank, and the children of
@@ -28,8 +28,9 @@ in the data: catalogs are sorted by key, class levels by level, mythic ranks by 
 
 What follows from a rule is code in the `rules` crate, not data: each mythic rank's general pick (odd ranks a
 mythic ability, even ranks a mythic feat), the path choice at MR 3 and the switch at MR 8, which feat categories
-are Combat feats (`FeatCategory::is_combat`), the skill rank cap (the Character level), the rank after a path
-switch (one above the highest kept rank), each class's level cap (its number of level rows; an archetype has its
+are Combat feats (`FeatCategory::is_combat`), the skill rank cap (the Character level), choosing the path at MR 3
+granting its MR 1–2 rows (held from MR 3 on), the rank after a path switch (one above `kept_through_rank`), each
+class's level cap (its number of level rows; an archetype has its
 class's), and BAB and saves (from the class's progressions).
 
 - A class's level rows run `level: 1`, `2`, … with none missing; what taking a class grants goes in row 1. Rows
@@ -55,6 +56,19 @@ class's), and BAB and saves (from the class's progressions).
   (`Any([Feature(feature: "rogue/advanced-talents", count: 1), Feature(feature: "slayer/advanced-talents", count: 1)])`).
   A selection may share no option of its own (the schema checks it), and one made only of shared options has
   `options: []`.
+- A selection option that grants feats names them: `feats: ["weapon-focus"]` (a rogue talent that is the feat of
+  the same name), or several (the Azata's All-skilled: every weapon, armour and shield proficiency). Picking the
+  option holds them.
+- A path's switch rule: `switch: (from: ["aeon", "azata"], kept_through_rank: 7, path_kept_through_rank: 7,
+  dropped_features: [...], dropped_selections: [...], features: [...], further_ascensions: true, level_cap:
+  Some(40))`. The general picks (mythic abilities and feats) of MR 1 to `kept_through_rank` stay, and the old
+  path's own grants (its rows' features, the picks in its slots) of MR 1 to `path_kept_through_rank`; the
+  `dropped_*` lists take named grants of the old path away whatever their rank; `features` are granted on
+  switching (Legend's +4). `from` left out: open from any path.
+- A feature that changes the character's own ability scores lists `ability_bonuses`: `Fixed(ability: Strength,
+  amount: 4)`, `Every(amount: 4)` (Legend), `Highest(amount: 4)` (the highest score) and `AtLeast(score: 14)`
+  (every score at least). They count toward ability-score prerequisites while the feature is held; gear never
+  does.
 - Mythic abilities and feats name their group as the guide heads it: `group: Melee`, `ArmourAndShield`,
   `CombatManoeuvre` and so on.
 - Feat slots are `General`, `CombatFeat`, `Category(Teamwork)` or a named list, `OneOf(list: "monk/bonus-feats-1")`.
@@ -63,8 +77,10 @@ class's), and BAB and saves (from the class's progressions).
   ignores_prerequisites: true, feats: ["crane-style", "dodge"])`. The key starts with the owner's key; any row may
   name any list. A list that grows with level is one list per stage. A list that is the class's own bonus-feat
   list (a monk's bonus feats, a ranger's combat style) sets `ignores_prerequisites: true`: a pick from it skips
-  the feat's prerequisites. Only class and archetype rows may name such a list; left out, prerequisites are
-  checked. The check refuses a list of fewer than two feats and one no slot names.
+  the feat's prerequisites. Only class and archetype rows, and a path's ranks naming the path's own list, may name
+  such a list; left out, prerequisites are checked. A list of every feat (Gold Dragon's Dragon Feats: "any three
+  feats") sets `every_feat: true` and names no feats. The check refuses a list of fewer than two feats (unless
+  it's every feat) and one no slot names.
 - A feat the class gives outright is a granted feat, not a slot: `feats: ["scribe-scrolls"]` on the level row
   (class or archetype). It's held with no pick, whatever its prerequisites, and it's in no Build or link. Classes
   grant their Armor, Shield and Weapon Proficiency feats this way, from each class page's proficiency text; a
@@ -79,8 +95,8 @@ class's), and BAB and saves (from the class's progressions).
 - `guide` fields are `page#anchor` links into the guide. Store a short summary in our own words, never the
   guide's text.
 - Prerequisites are `All([...])`, `Any([...])` and `AtLeast(n, [...])` over single conditions such as
-  `Feat("power-attack")` or `AbilityScore(ability: Strength, score: 13)`. A missing `prerequisite`
-  means there is none.
+  `Feat("power-attack")`, `AbilityScore(ability: Strength, score: 13)` or `MythicRank(9)`. A missing
+  `prerequisite` means there is none.
 
 ## Seeding
 

@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT key, class_key, archetype_key, path_key, name, guide, ignores_prerequisites\n        FROM feat_list ORDER BY key",
+  "query": "SELECT key, class_key, archetype_key, path_key, name, guide, ignores_prerequisites,\n            every_feat\n        FROM feat_list ORDER BY key",
   "describe": {
     "columns": [
       {
@@ -79,6 +79,17 @@
             "name": "ignores_prerequisites"
           }
         }
+      },
+      {
+        "ordinal": 7,
+        "name": "every_feat",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "feat_list",
+            "name": "every_feat"
+          }
+        }
       }
     ],
     "parameters": {
@@ -91,8 +102,9 @@
       true,
       false,
       false,
+      false,
       false
     ]
   },
-  "hash": "c04d8b80d9034bbc7ed5936e5bc6f1bb3d055528318d34bd849db6406f8cd082"
+  "hash": "f05bfcd738477ec7738f1917c421df46216668386f533fd4b11799223f9242e6"
 }
