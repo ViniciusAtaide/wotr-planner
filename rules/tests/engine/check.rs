@@ -963,3 +963,70 @@ fn an_option_rows_feat_list_counts_as_named() {
     );
     assert_eq!(issues(&data), []);
 }
+
+fn cleric_selection<'a>(data: &'a mut GameData, key: &str) -> &'a mut rules::FeatureSelection {
+    class_mut(data, "cleric")
+        .selections
+        .iter_mut()
+        .find(|selection| selection.key.as_str() == key)
+        .unwrap()
+}
+
+#[test]
+fn an_option_rows_chosen_feat_takes_the_options_chosen_value() {
+    let at = DataAt::SelectionOption(SelectionOptionKey::new(
+        "cleric/fire-revelations/weapon-mastery",
+    ));
+    // Another kind of value than Weapon Focus's (a weapon): no value of the pick fits it.
+    let mut data = world();
+    let mastery = &mut cleric_selection(&mut data, "cleric/fire-revelations").options[2];
+    mastery.levels[0]
+        .chosen_feats
+        .insert(FeatKey::new("skill-focus"));
+    assert_eq!(
+        issues(&data),
+        [(
+            at.clone(),
+            DataIssue::RowChosenFeatOfOtherKind(FeatKey::new("skill-focus"))
+        )]
+    );
+    // An option whose pick names no value.
+    let mut data = world();
+    let mastery = &mut cleric_selection(&mut data, "cleric/fire-revelations").options[2];
+    mastery.chosen_feat = None;
+    assert_eq!(
+        issues(&data),
+        [(
+            at,
+            DataIssue::RowChosenFeatOfOtherKind(FeatKey::new("weapon-specialization"))
+        )]
+    );
+}
+
+#[test]
+fn an_option_rows_bonus_slot_names_its_list() {
+    let mut data = world();
+    // An unused list is a problem; naming it from an option row's slot uses it.
+    class_mut(&mut data, "cleric")
+        .feat_lists
+        .push(rules::FeatList {
+            key: FeatListKey::new("cleric/war-feats"),
+            name: "War feats".into(),
+            guide: rules::GuideRef::new("cleric"),
+            ignores_prerequisites: false,
+            every_feat: false,
+            feats: BTreeSet::from([FeatKey::new("toughness"), FeatKey::new("dodge")]),
+        });
+    assert_eq!(
+        issues(&data),
+        [(
+            DataAt::FeatList(FeatListKey::new("cleric/war-feats")),
+            DataIssue::UnusedFeatList
+        )]
+    );
+    let war = &mut cleric_selection(&mut data, "cleric/domain").options[1];
+    war.levels[1].feat_slots = vec![FeatSlot::OneOf {
+        list: FeatListKey::new("cleric/war-feats"),
+    }];
+    assert_eq!(issues(&data), []);
+}

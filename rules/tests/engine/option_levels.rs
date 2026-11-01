@@ -52,13 +52,16 @@ fn status(build: &Build, slot: &SlotId, key: &str) -> Result<(), Issue> {
         .status
 }
 
+/// The keys offered, each once (an option with a chosen feat is offered once per value).
 fn offered(build: &Build, slot: &SlotId) -> Vec<String> {
-    engine()
+    let mut keys: Vec<String> = engine()
         .options(build, slot)
         .unwrap()
         .into_iter()
         .map(|o| o.pick.key().to_owned())
-        .collect()
+        .collect();
+    keys.dedup();
+    keys
 }
 
 const ABYSSAL: &str = "sorcerer/bloodline/abyssal";
@@ -546,7 +549,8 @@ fn a_pool_selection_offers_the_held_options_pool() {
         offered(&fire, &slot),
         [
             "cleric/fire-revelations/burning-hands",
-            "cleric/fire-revelations/fire-breath"
+            "cleric/fire-revelations/fire-breath",
+            "cleric/fire-revelations/weapon-mastery"
         ]
     );
     let mut water = with(
@@ -651,4 +655,69 @@ fn a_class_rows_ability_bonus_counts_once_per_grant() {
     assert_eq!(strength(6), 16);
     assert_eq!(strength(7), 18);
     assert_eq!(strength(9), 20);
+}
+
+// ---- option rows with feat slots and chosen feats (ticket 31) ---------------------------------------------
+
+fn cleric_with(domain: &str, levels: usize) -> Build {
+    with(
+        &times("cleric", levels),
+        None,
+        &[(selection_slot(1, 0), domain)],
+    )
+}
+
+#[test]
+fn an_option_rows_feat_slot_is_a_slot_at_the_level_that_reaches_it() {
+    let slot = SlotId::OptionFeat { level: 8, index: 0 };
+    let sheet = engine().evaluate(&cleric_with("cleric/domain/war", 8));
+    let found = sheet
+        .slot(&slot)
+        .expect("the War domain's bonus feat slot at 8");
+    assert_eq!(found.kind, SlotKind::Feat(FeatSlot::CombatFeat));
+    let seven = engine().evaluate(&cleric_with("cleric/domain/war", 7));
+    assert!(
+        seven
+            .slot(&SlotId::OptionFeat { level: 7, index: 0 })
+            .is_none()
+    );
+
+    let mut build = cleric_with("cleric/domain/war", 8);
+    build.picks.insert(slot.clone(), pick_feat("toughness"));
+    assert_eq!(engine().validate(&build), []);
+    assert_eq!(
+        at(&build, 8).feat_count(&rules::FeatKey::new("toughness")),
+        1
+    );
+    assert_eq!(
+        at(&build, 7).feat_count(&rules::FeatKey::new("toughness")),
+        0
+    );
+
+    let mut fire = cleric_with("cleric/domain/fire", 8);
+    fire.picks.insert(slot.clone(), pick_feat("toughness"));
+    let problems = engine().validate(&fire);
+    assert_eq!(problems.len(), 1);
+    assert_eq!(problems[0].at, rules::Choice::Slot(slot));
+    assert_eq!(problems[0].issue, Issue::NoSuchSlot);
+}
+
+#[test]
+fn an_option_rows_chosen_feat_is_held_for_the_value_its_pick_named() {
+    let mut build = cleric_with("cleric/domain/fire", 8);
+    build.picks.insert(
+        selection_slot(3, 0),
+        pick_option_for(
+            "cleric/fire-revelations/weapon-mastery",
+            weapon("longsword"),
+        ),
+    );
+    assert_eq!(engine().validate(&build), []);
+    let specialization = rules::FeatKey::new("weapon-specialization");
+    let seven = at(&build, 7);
+    assert!(seven.has_feat_for(&rules::FeatKey::new("weapon-focus"), &weapon("longsword")));
+    assert!(!seven.has_feat_for(&specialization, &weapon("longsword")));
+    let eight = at(&build, 8);
+    assert!(eight.has_feat_for(&specialization, &weapon("longsword")));
+    assert!(!eight.has_feat_for(&specialization, &weapon("dagger")));
 }

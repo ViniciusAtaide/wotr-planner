@@ -176,13 +176,19 @@ pub enum SlotId {
     OptionSelection { level: u8, index: u8 },
     /// A Feature selection slot granted by the general mythic pick of a Mythic rank (Second Bloodline).
     MythicSelection { rank: u8, index: u8 },
+    /// A Feat slot from the rows of options held, reached at a character level (the War domain's bonus Combat
+    /// feat at option level 8), in the order the level reaches them.
+    OptionFeat { level: u8, index: u8 },
 }
 
 impl SlotId {
     /// The Mythic rank, for slots that belong to a Mythic ascension.
     pub fn rank(&self) -> Option<u8> {
         match *self {
-            SlotId::Feat { .. } | SlotId::Selection { .. } | SlotId::OptionSelection { .. } => None,
+            SlotId::Feat { .. }
+            | SlotId::Selection { .. }
+            | SlotId::OptionSelection { .. }
+            | SlotId::OptionFeat { .. } => None,
             SlotId::Mythic { rank }
             | SlotId::PathFeat { rank, .. }
             | SlotId::PathSelection { rank, .. }
@@ -196,7 +202,8 @@ impl SlotId {
         match *self {
             SlotId::Feat { level, .. }
             | SlotId::Selection { level, .. }
-            | SlotId::OptionSelection { level, .. } => Some(level),
+            | SlotId::OptionSelection { level, .. }
+            | SlotId::OptionFeat { level, .. } => Some(level),
             _ => None,
         }
     }

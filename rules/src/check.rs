@@ -12,7 +12,7 @@ use std::fmt;
 use crate::engine::{BASE_LEVEL_CAP, PATH_CHOICE_RANK, PATH_SWITCH_RANK};
 use crate::game_data::{
     Advancement, Archetype, Class, ClassLevelRow, CountsToward, FeatList, FeatSlot, Feature,
-    FeatureSelection, GameData, MythicPath, Save, WeaponProficiency,
+    FeatureSelection, GameData, MythicPath, Save, SelectionOption, WeaponProficiency,
 };
 use crate::keys::{
     ArchetypeKey, ClassKey, FeatKey, FeatListKey, FeatureKey, FeatureSelectionKey,
@@ -211,6 +211,9 @@ pub enum DataIssue {
     OptionRowsWithoutLevels(SelectionOptionKey),
     /// A pool selection (it offers the pools of the options held in another) with options of its own or shared.
     PoolSelectionWithOptions,
+    /// An option row's chosen feat that doesn't take the kind of value the option's pick names (or the option's
+    /// pick names none).
+    RowChosenFeatOfOtherKind(FeatKey),
 }
 
 impl fmt::Display for DataProblem {
@@ -316,6 +319,10 @@ impl fmt::Display for DataProblem {
                 "a story condition inside \"any of\" or \"at least\", where it would hold the group by itself",
             ),
             DataIssue::DuplicateOptionRow(level) => write!(f, "two rows at option level {level}"),
+            DataIssue::RowChosenFeatOfOtherKind(feat) => write!(
+                f,
+                "grants {feat} for the pick's value at an option level, but the pick names no value of its kind"
+            ),
             DataIssue::OptionRowsWithoutLevels(option) => write!(
                 f,
                 "offers {option}, which has rows by option level, but names no classes whose levels count"
@@ -673,6 +680,15 @@ impl Checker {
                     if let Some(list) = &row.feat_list {
                         self.named_lists.insert(list.clone());
                     }
+                    self.slots(&row.feat_slots);
+                    for feat in &row.chosen_feats {
+                        let kind = self.parameters.get(feat).copied().flatten();
+                        if !kind
+                            .is_some_and(|kind| takes.is_some_and(|takes| same_values(kind, takes)))
+                        {
+                            self.problem(&at, DataIssue::RowChosenFeatOfOtherKind(feat.clone()));
+                        }
+                    }
                 }
             }
             for level in &selection.skipped_levels {
@@ -687,8 +703,8 @@ impl Checker {
     }
 
     /// A selection offering an option with rows names the classes whose levels make its option level.
-    fn option_levels(&mut self, data: &GameData) {
-        let selections: Vec<&FeatureSelection> = data
+    fn option_levels<'a>(&mut self, data: &'a GameData) {
+        let selections: Vec<&'a FeatureSelection> = data
             .classes
             .iter()
             .chain(&data.prestige_classes)
@@ -708,12 +724,39 @@ impl Checker {
             .filter(|option| !option.levels.is_empty())
             .map(|option| &option.key)
             .collect();
-        for selection in selections {
-            if !selection.option_levels.is_empty() {
+        // A pool (a mystery's revelations) is offered only through a pool selection, which then names the levels.
+        let by_key: HashMap<&FeatureSelectionKey, &FeatureSelection> = selections
+            .iter()
+            .map(|selection| (&selection.key, *selection))
+            .collect();
+        let options: HashMap<&SelectionOptionKey, &SelectionOption> = selections
+            .iter()
+            .flat_map(|selection| &selection.options)
+            .map(|option| (&option.key, option))
+            .collect();
+        let pools: HashSet<&FeatureSelectionKey> = options
+            .values()
+            .filter_map(|option| option.pool.as_ref())
+            .collect();
+        let offered = |selection: &'a FeatureSelection| -> Vec<&'a SelectionOptionKey> {
+            match &selection.pool_of {
+                None => selection.offered().into_iter().collect(),
+                Some(of) => by_key
+                    .get(of)
+                    .map(|of| of.offered())
+                    .unwrap_or_default()
+                    .into_iter()
+                    .filter_map(|option| options.get(option)?.pool.as_ref())
+                    .filter_map(|pool| by_key.get(pool))
+                    .flat_map(|pool| pool.offered())
+                    .collect(),
+            }
+        };
+        for selection in selections.iter().copied() {
+            if !selection.option_levels.is_empty() || pools.contains(&selection.key) {
                 continue;
             }
-            if let Some(option) = selection
-                .offered()
+            if let Some(option) = offered(selection)
                 .into_iter()
                 .find(|option| with_rows.contains(option))
             {

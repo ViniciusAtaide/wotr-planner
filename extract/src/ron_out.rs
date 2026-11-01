@@ -394,6 +394,8 @@ fn option_level_row(row: &OptionLevelRow) -> String {
     fields
         .items("features", &row.features)
         .set("feats", &row.feats)
+        .set("chosen_feats", &row.chosen_feats)
+        .items("feat_slots", &row.feat_slots)
         .items("selections", &row.selections);
     if let Some(list) = &row.feat_list {
         fields.field("feat_list", list);

@@ -148,6 +148,9 @@ pub fn extract(guide: &Guide) -> Extraction {
         .report
         .items
         .retain(|item| !crate::option_levels::settled(&item.at, &item.text));
+    // The second group (ticket 31): domains, mysteries and revelations, blessings, elements. It settles no item of
+    // an extraction's report (the hand-kept report's kineticist and Hellknight items narrow).
+    crate::option_families::apply(guide, &mut data);
     for problem in data.check() {
         builder.report.add_about(
             Kind::Cell,

@@ -54,7 +54,7 @@ async fn load(db: &Database) -> Result<GameData, sqlx::Error> {
     let mut grants = load_grants(conn).await?;
     let mut levels = load_levels(conn, &mut grants, &mut feat_slots).await?;
     let mut features = load_features(conn).await?;
-    let mut selections = load_selections(conn, &mut trees, &mut grants).await?;
+    let mut selections = load_selections(conn, &mut trees, &mut grants, &mut feat_slots).await?;
     let mut feat_lists = load_feat_lists(conn).await?;
     let mut class_skills = load_class_skills(conn).await?;
     let (classes, prestige_classes) = load_classes(
@@ -228,8 +228,8 @@ async fn load_skills(conn: &mut PgConnection) -> Result<Vec<Skill>, sqlx::Error>
 async fn load_feat_slots(conn: &mut PgConnection) -> Result<Grouped<Owner, FeatSlot>, sqlx::Error> {
     let mut slots = Grouped::new();
     for row in sqlx::query!(
-        "SELECT id, race_key, class_level_id, mythic_rank_id, kind, category, feat_list_key,
-            selection_key
+        "SELECT id, race_key, class_level_id, mythic_rank_id, option_level_id, kind, category,
+            feat_list_key, selection_key
         FROM feat_slot ORDER BY id"
     )
     .fetch_all(&mut *conn)
@@ -266,6 +266,7 @@ async fn load_feat_slots(conn: &mut PgConnection) -> Result<Grouped<Owner, FeatS
                 row.race_key.map(Owner::Race),
                 row.class_level_id.map(Owner::ClassLevel),
                 row.mythic_rank_id.map(Owner::MythicRank),
+                row.option_level_id.map(Owner::OptionLevel),
             ],
         )?;
         slots.push(owner, slot);
@@ -613,7 +614,21 @@ async fn load_selections(
     conn: &mut PgConnection,
     trees: &mut Trees,
     grants: &mut Grants,
+    feat_slots: &mut Grouped<Owner, FeatSlot>,
 ) -> Result<Grouped<Owner, FeatureSelection>, sqlx::Error> {
+    let mut chosen_feats = Grouped::new();
+    for row in sqlx::query!(
+        "SELECT option_level_id, feat_key FROM option_level_chosen_feat
+        ORDER BY option_level_id, feat_key"
+    )
+    .fetch_all(&mut *conn)
+    .await?
+    {
+        chosen_feats.push(
+            Owner::OptionLevel(row.option_level_id),
+            FeatKey(row.feat_key),
+        );
+    }
     let mut option_rows = Grouped::new();
     for row in sqlx::query!(
         "SELECT id, option_key, level, feat_list_key FROM option_level ORDER BY option_key, level"
@@ -628,6 +643,8 @@ async fn load_selections(
                 level: to_u8(row.level, "option_level.level")?,
                 features: grants.features.take(&id),
                 feats: grants.feats.take(&id).into_iter().collect(),
+                chosen_feats: chosen_feats.take(&id).into_iter().collect(),
+                feat_slots: feat_slots.take(&id),
                 selections: grants.selections.take(&id),
                 feat_list: row.feat_list_key.map(FeatListKey),
             },
@@ -741,6 +758,7 @@ async fn load_selections(
     options.finish("selection_option")?;
     option_feats.finish("selection_option_feat")?;
     option_rows.finish("option_level")?;
+    chosen_feats.finish("option_level_chosen_feat")?;
     level_classes.finish("selection_level_class")?;
     skipped.finish("selection_skipped_level")?;
     shared.finish("selection_shared_option")?;

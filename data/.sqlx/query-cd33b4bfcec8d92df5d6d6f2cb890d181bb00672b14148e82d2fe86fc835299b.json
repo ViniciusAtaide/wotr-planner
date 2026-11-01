@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, race_key, class_level_id, mythic_rank_id, kind, category, feat_list_key,\n            selection_key\n        FROM feat_slot ORDER BY id",
+  "query": "SELECT id, race_key, class_level_id, mythic_rank_id, option_level_id, kind, category,\n            feat_list_key, selection_key\n        FROM feat_slot ORDER BY id",
   "describe": {
     "columns": [
       {
@@ -49,6 +49,17 @@
       },
       {
         "ordinal": 4,
+        "name": "option_level_id",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "feat_slot",
+            "name": "option_level_id"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
         "name": "kind",
         "type_info": "Text",
         "origin": {
@@ -59,7 +70,7 @@
         }
       },
       {
-        "ordinal": 5,
+        "ordinal": 6,
         "name": "category",
         "type_info": "Text",
         "origin": {
@@ -70,7 +81,7 @@
         }
       },
       {
-        "ordinal": 6,
+        "ordinal": 7,
         "name": "feat_list_key",
         "type_info": "Text",
         "origin": {
@@ -81,7 +92,7 @@
         }
       },
       {
-        "ordinal": 7,
+        "ordinal": 8,
         "name": "selection_key",
         "type_info": "Text",
         "origin": {
@@ -100,11 +111,12 @@
       true,
       true,
       true,
+      true,
       false,
       true,
       true,
       true
     ]
   },
-  "hash": "28fc8493b638f40a2fc2b39dff7884b81c0c8af751f5f465132e573f81e5cda8"
+  "hash": "cd33b4bfcec8d92df5d6d6f2cb890d181bb00672b14148e82d2fe86fc835299b"
 }

@@ -42,7 +42,7 @@ async fn insert_all(db: &Database, data: &GameData, hash: &str) -> Result<(), sq
             feature, feature_ability_bonus, feature_selection, selection_level_class,
             selection_skipped_level, selection_option, selection_option_feat, selection_shared_option,
             option_level, feat_list, feat_list_member, class_level, mythic_rank, granted_feature,
-            granted_selection, granted_feat, feat_slot
+            granted_selection, granted_feat, option_level_chosen_feat, feat_slot
         RESTART IDENTITY"
     )
     .execute(&mut *conn)
@@ -501,6 +501,16 @@ async fn insert_selections(
                 let owner = SlotOwner::OptionLevel(id);
                 insert_grants(conn, owner, &row.features, &row.selections).await?;
                 insert_granted_feats(conn, owner, &row.feats).await?;
+                insert_feat_slots(conn, owner, &row.feat_slots).await?;
+                for feat in row.chosen_feats.iter() {
+                    sqlx::query!(
+                        "INSERT INTO option_level_chosen_feat (option_level_id, feat_key) VALUES ($1, $2)",
+                        id,
+                        feat.as_str(),
+                    )
+                    .execute(&mut *conn)
+                    .await?;
+                }
             }
             for feat in option.feats.iter() {
                 sqlx::query!(
@@ -844,12 +854,13 @@ async fn insert_feat_slots(
         };
         sqlx::query!(
             "INSERT INTO feat_slot
-                (race_key, class_level_id, mythic_rank_id, kind, category, feat_list_key,
-                selection_key)
-            VALUES ($1, $2, $3, $4, $5, $6, $7)",
+                (race_key, class_level_id, mythic_rank_id, option_level_id, kind, category,
+                feat_list_key, selection_key)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
             columns.race_key,
             columns.class_level_id,
             columns.mythic_rank_id,
+            columns.option_level_id,
             feat_slot_kind_text(kind),
             category,
             list,

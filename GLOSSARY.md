@@ -96,7 +96,7 @@ Any feat outside the class, racial, skill, teamwork and magic categories. These 
 _Avoid_: Fighter feat, martial feat
 
 **Feature selection**:
-A class-specific choice from a fixed list, such as a rogue talent, rage power or hex. The list is its own Selection options plus any Shared options. One that offers a single option grants it with no pick (a Sage Sorcerer's Arcane bloodline); one for options with rows names the classes whose levels make their Option level, and may be held twice (a mythic Second Bloodline).
+A class-specific choice from a fixed list, such as a rogue talent, rage power or hex. The list is its own Selection options plus any Shared options. One that offers a single option grants it with no pick (a Sage Sorcerer's Arcane bloodline); one for options with rows names the classes whose levels make their Option level, and may be held twice (a cleric's two domains; a mythic Second Bloodline).
 _Avoid_: Talent (unqualified), class pick
 
 **Selection option**:
@@ -116,7 +116,7 @@ How many times a feat or Selection option can be held: once (the default, and wh
 _Avoid_: Stacking, max picks
 
 **Option level**:
-The level of a Selection option that grants over class levels (a bloodline, a wizard school, a cavalier order, a shaman spirit, a Magic Deceiver way, a ranger combat style): the levels of the classes its Feature selection names, added up. A sorcerer 5 / Dragon Disciple 5 has bloodline level 10; a bard who picked a Draconic bloodline on entering Dragon Disciple has the Dragon Disciple's levels. The option's **rows** (its features, granted feats, nested selections and its feat list from that level on) apply as its level reaches them, and one taken late (Second Bloodline) gets every row up to its level at once. An archetype can skip option levels (a Seeker: 3, 9 and 15), and its own rows replace them.
+The level of a Selection option that grants over class levels (a bloodline, a wizard school, a cavalier order, a shaman spirit, a Magic Deceiver way, a ranger combat style, a domain, an oracle mystery or revelation, a warpriest blessing, a kineticist element): the levels of the classes its Feature selection names, added up. A domain is levelled by whichever class's selection took it (cleric, inquisitor, druid, Hellknight levels). A sorcerer 5 / Dragon Disciple 5 has bloodline level 10; a bard who picked a Draconic bloodline on entering Dragon Disciple has the Dragon Disciple's levels. The option's **rows** (its features, granted feats, feats for the value its pick named, Feat slots, nested selections and its feat list from that level on) apply as its level reaches them, and one taken late (Second Bloodline) gets every row up to its level at once. An archetype can skip option levels (a Seeker: 3, 9 and 15), and its own rows replace them.
 _Avoid_: Bloodline level (one family's name for it), subclass level
 
 **Option list slot**:
@@ -126,6 +126,10 @@ _Avoid_: Bloodline slot (the families share it), dynamic list
 **Daily choice**:
 A choice the game asks for again every day, so it isn't part of a Build and has no slot: a Mixed-Blood Rager's bloodline, a shaman's Wandering Spirit, an Abjurer's Resistance. The sheet shows it as a note.
 _Avoid_: Daily pick, rest choice
+
+**Pool selection**:
+A Feature selection with no options of its own that offers the **pools** of the options held in another: an oracle's revelation slot offers the revelations of the mysteries held (two with a mythic Second Mystery). A pool is an ordinary selection that only a Pool selection offers.
+_Avoid_: Dynamic selection, revelation list
 
 **Shared option**:
 A Selection option that one Feature selection offers from another's list, such as the rogue talents a slayer's talents offer. It keeps the key of the selection that defines it, so a character holds it once whichever slot took it, and its prerequisite is the same in both (a gate on one class's feature accepts each sharing class's).

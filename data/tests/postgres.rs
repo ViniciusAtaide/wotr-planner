@@ -895,6 +895,20 @@ async fn the_schema_keeps_option_levels_and_their_grants_consistent(pool: PgPool
             "UPDATE granted_feat SET class_level_id = NULL WHERE class_level_id IS NOT NULL",
             "check constraint",
         ),
+        // Ticket 31: an option level owns feat slots (one owner each) and chosen feats.
+        (
+            "UPDATE feat_slot SET class_level_id = (SELECT min(id) FROM class_level)
+            WHERE option_level_id IS NOT NULL",
+            "check constraint",
+        ),
+        (
+            "UPDATE option_level_chosen_feat SET feat_key = 'no-such-feat'",
+            "foreign key",
+        ),
+        (
+            "UPDATE option_level_chosen_feat SET option_level_id = -1",
+            "foreign key",
+        ),
         // An option-list slot names a selection, and only it does.
         (
             "UPDATE feat_slot SET selection_key = NULL WHERE kind = 'option_list'",

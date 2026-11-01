@@ -631,10 +631,33 @@ fn reads_options_with_rows_by_option_level_and_defaults_them() {
         OptionLevelRow {
             level: 1,
             features: vec![FeatureKey::new("sorcerer/bloodline/abyssal/claws")],
-            feats: BTreeSet::new(),
-            selections: vec![],
             feat_list: Some(FeatListKey::new("sorcerer/bloodline/abyssal-feats")),
+            ..OptionLevelRow::default()
         }
+    );
+    // Ticket 31: an option row's feat slots, and its feats for the value the option's pick named.
+    assert_eq!(
+        bloodline.options[1].levels[1].feat_slots,
+        [
+            FeatSlot::CombatFeat,
+            FeatSlot::OneOf {
+                list: FeatListKey::new("sorcerer/bloodline/abyssal-feats")
+            }
+        ]
+    );
+    let mastery = selection("sorcerer/abyssal-powers")
+        .options
+        .iter()
+        .find(|o| o.key.as_str() == "sorcerer/abyssal-powers/mastery")
+        .unwrap();
+    assert_eq!(mastery.chosen_feat, Some(FeatKey::new("weapon-focus")));
+    assert_eq!(
+        mastery.levels[0].chosen_feats,
+        BTreeSet::from([FeatKey::new("weapon-specialization")])
+    );
+    assert_eq!(
+        mastery.levels[0].feats,
+        BTreeSet::from([FeatKey::new("toughness")])
     );
     assert_eq!(
         abyssal.levels[1].feats,

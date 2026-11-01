@@ -1034,8 +1034,13 @@ fn cleric() -> Class {
         counts_as: BTreeSet::new(),
         class_skills: BTreeSet::from([skill("persuasion")]),
         prerequisite: None,
-        features: vec![],
-        // An invented pool: a domain at 1, and at 3 a revelation from the held domain's own list.
+        features: vec![plain_feature(
+            "cleric/domain/war/battle-rage",
+            "Battle Rage",
+        )],
+        // An invented pool: a domain at 1, and at 3 a revelation from the held domain's own list. The War domain's
+        // row 8 is a bonus Combat feat slot; the Weapon Mastery revelation's row 8 grants Weapon Specialization for
+        // the weapon its pick named (its chosen feat, Weapon Focus).
         selections: vec![
             levelled_selection(
                 "cleric/domain",
@@ -1046,6 +1051,16 @@ fn cleric() -> Class {
                         ..selection_option("cleric/domain/fire", None, None)
                     },
                     SelectionOption {
+                        levels: vec![
+                            option_row(1, &["cleric/domain/war/battle-rage"]),
+                            OptionLevelRow {
+                                feat_slots: vec![FeatSlot::CombatFeat],
+                                ..option_row(8, &[])
+                            },
+                        ],
+                        ..selection_option("cleric/domain/war", None, None)
+                    },
+                    SelectionOption {
                         pool: Some(FeatureSelectionKey::new("cleric/water-revelations")),
                         ..selection_option("cleric/domain/water", None, None)
                     },
@@ -1054,12 +1069,20 @@ fn cleric() -> Class {
             ),
             FeatureSelection {
                 pool_of: Some(FeatureSelectionKey::new("cleric/domain")),
-                ..levelled_selection("cleric/revelation", &[], vec![], &[])
+                ..levelled_selection("cleric/revelation", &["cleric"], vec![], &[])
             },
             FeatureSelection {
                 options: vec![
                     selection_option("cleric/fire-revelations/burning-hands", None, None),
                     selection_option("cleric/fire-revelations/fire-breath", None, None),
+                    SelectionOption {
+                        chosen_feat: Some(feat("weapon-focus")),
+                        levels: vec![OptionLevelRow {
+                            chosen_feats: BTreeSet::from([feat("weapon-specialization")]),
+                            ..option_row(8, &[])
+                        }],
+                        ..selection_option("cleric/fire-revelations/weapon-mastery", None, None)
+                    },
                 ],
                 ..levelled_selection("cleric/fire-revelations", &[], vec![], &[])
             },
@@ -1393,6 +1416,8 @@ fn option_row(level: u8, features: &[&str]) -> OptionLevelRow {
         level,
         features: features.iter().map(|key| feature(key)).collect(),
         feats: BTreeSet::new(),
+        chosen_feats: BTreeSet::new(),
+        feat_slots: vec![],
         selections: vec![],
         feat_list: None,
     }

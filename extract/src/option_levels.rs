@@ -58,7 +58,7 @@ pub fn apply(guide: &Guide, data: &mut GameData) -> Log {
     other_classes(data, &sorcerer, &mut log);
     mythic(data, &mut log);
     prerequisites(data, &mut log);
-    drop_unused(data, &mut log);
+    drop_unused(data, &TOUCHED, &mut log);
     log
 }
 
@@ -145,10 +145,10 @@ impl Family {
 }
 
 /// Feat names as the guide writes them, to feat keys.
-struct FeatNames(BTreeMap<String, FeatKey>);
+pub(crate) struct FeatNames(BTreeMap<String, FeatKey>);
 
 impl FeatNames {
-    fn new(data: &GameData) -> Self {
+    pub(crate) fn new(data: &GameData) -> Self {
         let mut names = BTreeMap::new();
         for feat in &data.feats {
             names.insert(norm(&feat.name), feat.key.clone());
@@ -167,7 +167,7 @@ impl FeatNames {
 
     /// The feat a guide name means: "Skill Focus (Lore: Religion)" is Skill Focus, "Point Blank Shot" is
     /// Point-Blank Shot.
-    fn get(&self, name: &str) -> Option<FeatKey> {
+    pub(crate) fn get(&self, name: &str) -> Option<FeatKey> {
         let bare = name.split(" (").next().unwrap_or(name).trim();
         let bare = bare.trim_end_matches('.');
         self.0
@@ -180,7 +180,7 @@ impl FeatNames {
     }
 
     /// Every name of a list, each resolved, or a panic naming the ones that aren't.
-    fn all(&self, names: &[String], what: &str) -> BTreeSet<FeatKey> {
+    pub(crate) fn all(&self, names: &[String], what: &str) -> BTreeSet<FeatKey> {
         let missing: Vec<&String> = names.iter().filter(|n| self.get(n).is_none()).collect();
         assert!(missing.is_empty(), "{what}: no feat named {missing:?}");
         names.iter().filter_map(|name| self.get(name)).collect()
@@ -197,11 +197,11 @@ pub fn name_list(text: &str) -> Vec<String> {
         .collect()
 }
 
-fn page<'g>(guide: &'g Guide, slug: &str) -> &'g Page {
+pub(crate) fn page<'g>(guide: &'g Guide, slug: &str) -> &'g Page {
     guide.page(slug)
 }
 
-fn section<'p>(page: &'p Page, anchor: &str) -> &'p Section {
+pub(crate) fn section<'p>(page: &'p Page, anchor: &str) -> &'p Section {
     page.root
         .find(anchor)
         .unwrap_or_else(|| panic!("{}#{anchor} is missing", page.slug))
@@ -358,17 +358,14 @@ impl RowBuilder<'_> {
     }
 }
 
-fn empty_row(level: u8) -> OptionLevelRow {
+pub(crate) fn empty_row(level: u8) -> OptionLevelRow {
     OptionLevelRow {
         level,
-        features: Vec::new(),
-        feats: BTreeSet::new(),
-        selections: Vec::new(),
-        feat_list: None,
+        ..OptionLevelRow::default()
     }
 }
 
-fn feature(key: &FeatureKey, name: &str, guide: String) -> Feature {
+pub(crate) fn feature(key: &FeatureKey, name: &str, guide: String) -> Feature {
     Feature {
         key: key.clone(),
         name: name.to_owned(),
@@ -380,7 +377,12 @@ fn feature(key: &FeatureKey, name: &str, guide: String) -> Feature {
     }
 }
 
-fn option(key: &str, name: &str, guide: String, levels: Vec<OptionLevelRow>) -> SelectionOption {
+pub(crate) fn option(
+    key: &str,
+    name: &str,
+    guide: String,
+    levels: Vec<OptionLevelRow>,
+) -> SelectionOption {
     SelectionOption {
         key: SelectionOptionKey::new(key),
         name: name.to_owned(),
@@ -396,7 +398,7 @@ fn option(key: &str, name: &str, guide: String, levels: Vec<OptionLevelRow>) -> 
     }
 }
 
-fn selection(key: &str, name: &str, guide: String, levels: &[&str]) -> FeatureSelection {
+pub(crate) fn selection(key: &str, name: &str, guide: String, levels: &[&str]) -> FeatureSelection {
     FeatureSelection {
         key: FeatureSelectionKey::new(key),
         name: name.to_owned(),
@@ -412,7 +414,13 @@ fn selection(key: &str, name: &str, guide: String, levels: &[&str]) -> FeatureSe
     }
 }
 
-fn list(key: &str, name: &str, guide: String, ignores: bool, feats: BTreeSet<FeatKey>) -> FeatList {
+pub(crate) fn list(
+    key: &str,
+    name: &str,
+    guide: String,
+    ignores: bool,
+    feats: BTreeSet<FeatKey>,
+) -> FeatList {
     FeatList {
         key: FeatListKey::new(key),
         name: name.to_owned(),
@@ -1985,7 +1993,11 @@ fn other_classes(data: &mut GameData, sorcerer: &Family, log: &mut Log) {
 }
 
 /// Replaces every leaf equal to `old`; returns how many.
-fn replace_leaf(prerequisite: &mut Prerequisite, old: &Prerequisite, new: &Prerequisite) -> usize {
+pub(crate) fn replace_leaf(
+    prerequisite: &mut Prerequisite,
+    old: &Prerequisite,
+    new: &Prerequisite,
+) -> usize {
     if prerequisite == old {
         *prerequisite = new.clone();
         return 1;
@@ -2143,7 +2155,7 @@ pub fn settled(at: &str, text: &str) -> bool {
 }
 
 /// Features no row, option row, prerequisite or grant names any more, and lists no slot or option names, go.
-fn drop_unused(data: &mut GameData, log: &mut Log) {
+pub(crate) fn drop_unused(data: &mut GameData, touched: &[&str], log: &mut Log) {
     let mut features: BTreeSet<FeatureKey> = BTreeSet::new();
     let mut lists: BTreeSet<FeatListKey> = BTreeSet::new();
     let slot_lists = |slots: &[FeatSlot], lists: &mut BTreeSet<FeatListKey>| {
@@ -2233,7 +2245,7 @@ fn drop_unused(data: &mut GameData, log: &mut Log) {
     }
     // Only the classes these families touch.
     for class in data.classes.iter_mut().chain(&mut data.prestige_classes) {
-        if !TOUCHED.contains(&class.key.as_str()) {
+        if !touched.contains(&class.key.as_str()) {
             continue;
         }
         let keep =
@@ -2295,6 +2307,6 @@ fn collect_features(prerequisite: &Prerequisite, features: &mut BTreeSet<Feature
 }
 
 /// A name without its parenthesised tail, for comparing: "Manifestation (Battle)" is "Manifestation".
-fn bare(name: &str) -> String {
+pub(crate) fn bare(name: &str) -> String {
     norm(name.split(" (").next().unwrap_or(name))
 }

@@ -1063,10 +1063,12 @@ struct Walker<'a> {
     counted_features: BTreeMap<(ClassKey, FeatureKey), u8>,
     /// Each option held through a selection with option levels, in the order taken.
     holdings: Vec<Holding>,
-    /// Feature selections that options' rows granted at this level and that have no slot yet.
-    pending: Vec<FeatureSelectionKey>,
+    /// Feature selections and feat slots that options' rows granted at this level and that have no slot yet.
+    pending: Vec<SlotKind>,
     /// How many option-row selection slots this level has so far.
     option_slots: u8,
+    /// How many option-row feat slots this level has so far.
+    option_feat_slots: u8,
     probe: Option<Probe<'a>>,
     probed: Probed,
 }
@@ -1083,6 +1085,8 @@ struct Holding {
     skipped: BTreeSet<u8>,
     /// Only its feat lists count (Crossblooded's second bloodline).
     lists_only: bool,
+    /// The value its pick named, for the chosen feats of its rows (Weapon Mastery: the weapon).
+    parameter: Option<Parameter>,
     /// The Mythic ascension whose pick took it, if any, so a Path switch can drop it.
     source: Option<GrantSource>,
 }
@@ -1120,6 +1124,7 @@ impl<'a> Walker<'a> {
             holdings: Vec::new(),
             pending: Vec::new(),
             option_slots: 0,
+            option_feat_slots: 0,
             probe,
             probed: Probed::default(),
         }
@@ -1268,6 +1273,7 @@ impl<'a> Walker<'a> {
         self.recompute_tables();
         // Options' rows this level reaches, before any slot is filled.
         self.option_slots = 0;
+        self.option_feat_slots = 0;
         self.advance_holdings();
         let skill_points = self.skill_ranks(level, level_up);
 
@@ -1296,7 +1302,9 @@ impl<'a> Walker<'a> {
             .build
             .picks
             .keys()
-            .filter(|id| matches!(id, SlotId::OptionSelection { level: l, .. } if *l == level))
+            .filter(|id| {
+                matches!(id, SlotId::OptionSelection { level: l, .. } | SlotId::OptionFeat { level: l, .. } if *l == level)
+            })
             .filter(|id| !slots.iter().any(|slot| &slot.id == *id))
             .cloned()
             .collect();
@@ -1659,21 +1667,28 @@ impl<'a> Walker<'a> {
         true
     }
 
-    /// Fills the selection slots that options' rows granted at this level, in order, until none are left (a pick
-    /// can grant more).
+    /// Fills the selection and feat slots that options' rows granted at this level, in order, until none are left
+    /// (a pick can grant more).
     fn fill_pending(&mut self, level: u8) -> Vec<Slot> {
         let mut slots = Vec::new();
         while !self.pending.is_empty() {
-            let selection = self.pending.remove(0);
-            if self.grant_without_slot(&selection, None) {
-                continue;
-            }
-            let id = SlotId::OptionSelection {
-                level,
-                index: self.option_slots,
+            let kind = self.pending.remove(0);
+            let id = match &kind {
+                SlotKind::Selection(selection) => {
+                    if self.grant_without_slot(selection, None) {
+                        continue;
+                    }
+                    let index = self.option_slots;
+                    self.option_slots = self.option_slots.saturating_add(1);
+                    SlotId::OptionSelection { level, index }
+                }
+                _ => {
+                    let index = self.option_feat_slots;
+                    self.option_feat_slots = self.option_feat_slots.saturating_add(1);
+                    SlotId::OptionFeat { level, index }
+                }
             };
-            self.option_slots = self.option_slots.saturating_add(1);
-            slots.push(self.fill(id, SlotKind::Selection(selection), None));
+            slots.push(self.fill(id, kind, None));
         }
         slots
     }
@@ -1715,6 +1730,7 @@ impl<'a> Walker<'a> {
                 applied: BTreeMap::new(),
                 skipped: through.skipped_levels.clone(),
                 lists_only: through.feat_lists_only,
+                parameter: parameter.cloned(),
                 source: source.cloned(),
             });
             self.advance(self.holdings.len() - 1);
@@ -1752,6 +1768,7 @@ impl<'a> Walker<'a> {
         let level = self.holding_level(holding);
         let key = holding.option.clone();
         let source = holding.source.clone();
+        let parameter = holding.parameter.clone();
         let list = option
             .levels
             .iter()
@@ -1775,16 +1792,18 @@ impl<'a> Walker<'a> {
             let held = if holding.lists_only {
                 Vec::new()
             } else {
-                self.grant_row(row, source.as_ref())
+                self.grant_row(row, parameter.as_ref(), source.as_ref())
             };
             self.holdings[index].applied.insert(row.level, held);
         }
     }
 
-    /// Holds an option row's features and feats (from `source`) and queues its selections. Returns what it holds.
+    /// Holds an option row's features, feats and chosen feats (for `parameter`, the value the option's pick named;
+    /// from `source`) and queues its selections and feat slots. Returns what it holds.
     fn grant_row(
         &mut self,
         row: &'a crate::game_data::OptionLevelRow,
+        parameter: Option<&Parameter>,
         source: Option<&GrantSource>,
     ) -> Vec<Held> {
         let engine = self.engine;
@@ -1797,11 +1816,19 @@ impl<'a> Walker<'a> {
                     .iter()
                     .map(|feat| Held::Feat(feat.clone(), engine.every_value(feat))),
             )
+            .chain(
+                row.chosen_feats
+                    .iter()
+                    .map(|feat| Held::Feat(feat.clone(), parameter.into_iter().cloned().collect())),
+            )
             .collect();
         for item in &held {
             self.hold(item.clone(), source.cloned());
         }
-        self.pending.extend(row.selections.iter().cloned());
+        self.pending
+            .extend(row.selections.iter().cloned().map(SlotKind::Selection));
+        self.pending
+            .extend(row.feat_slots.iter().cloned().map(SlotKind::Feat));
         held
     }
 
@@ -1848,7 +1875,8 @@ impl<'a> Walker<'a> {
             else {
                 continue;
             };
-            let held = self.grant_row(option_row, source);
+            let parameter = self.holdings[index].parameter.clone();
+            let held = self.grant_row(option_row, parameter.as_ref(), source);
             self.holdings[index].applied.insert(row.level, held);
         }
     }

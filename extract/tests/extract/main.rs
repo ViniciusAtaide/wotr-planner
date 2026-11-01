@@ -5,6 +5,7 @@ mod class_rules;
 mod feat_lists;
 mod grammar;
 mod mythic_paths;
+mod option_families;
 mod option_levels;
 mod output;
 mod parameters;

@@ -571,8 +571,9 @@ CREATE TABLE feat_list_member (
 );
 
 -- `rules::OptionLevelRow`: what an option gives at one option level. Its features, selections and feats
--- are `granted_*` rows; `feat_list_key` is the option's feat list from this level on, which an
--- `option_list` feat slot picks from.
+-- are `granted_*` rows, its feat slots `feat_slot` rows and its chosen feats
+-- `option_level_chosen_feat` rows; `feat_list_key` is the option's feat list from this level on, which
+-- an `option_list` feat slot picks from.
 CREATE TABLE option_level (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     option_key TEXT NOT NULL REFERENCES selection_option (key) DEFERRABLE INITIALLY DEFERRED,
@@ -656,18 +657,28 @@ CREATE TABLE granted_feat (
     UNIQUE NULLS NOT DISTINCT (class_level_id, option_level_id, feat_key)
 );
 
--- `rules::FeatSlot` granted by a race, a class level or a mythic rank. A `one_of` slot names the
--- list it picks from; an `option_list` slot the selection whose held options' lists it picks from.
+-- `rules::OptionLevelRow::chosen_feats`: a parameterised feat an option level grants for the value
+-- the option's pick named (Weapon Mastery: Improved Critical in the weapon of its Weapon Focus).
+CREATE TABLE option_level_chosen_feat (
+    option_level_id BIGINT NOT NULL REFERENCES option_level (id) DEFERRABLE INITIALLY DEFERRED,
+    feat_key TEXT NOT NULL REFERENCES feat (key) DEFERRABLE INITIALLY DEFERRED,
+    PRIMARY KEY (option_level_id, feat_key)
+);
+
+-- `rules::FeatSlot` granted by a race, a class level, a mythic rank or an option level. A `one_of`
+-- slot names the list it picks from; an `option_list` slot the selection whose held options' lists it
+-- picks from.
 CREATE TABLE feat_slot (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     race_key TEXT REFERENCES race (key) DEFERRABLE INITIALLY DEFERRED,
     class_level_id BIGINT REFERENCES class_level (id) DEFERRABLE INITIALLY DEFERRED,
     mythic_rank_id BIGINT REFERENCES mythic_rank (id) DEFERRABLE INITIALLY DEFERRED,
+    option_level_id BIGINT REFERENCES option_level (id) DEFERRABLE INITIALLY DEFERRED,
     kind TEXT NOT NULL CHECK (kind IN ('general', 'combat_feat', 'category', 'one_of', 'option_list')),
     category feat_category,
     feat_list_key TEXT REFERENCES feat_list (key) DEFERRABLE INITIALLY DEFERRED,
     selection_key TEXT REFERENCES feature_selection (key) DEFERRABLE INITIALLY DEFERRED,
-    CHECK (num_nonnulls(race_key, class_level_id, mythic_rank_id) = 1),
+    CHECK (num_nonnulls(race_key, class_level_id, mythic_rank_id, option_level_id) = 1),
     CHECK ((kind = 'category') = (category IS NOT NULL)),
     CHECK ((kind = 'one_of') = (feat_list_key IS NOT NULL)),
     CHECK ((kind = 'option_list') = (selection_key IS NOT NULL))

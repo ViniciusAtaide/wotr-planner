@@ -177,6 +177,7 @@ fn canonicalize_selections(selections: &mut [FeatureSelection]) {
             option.levels.sort_by_key(|row| row.level);
             for row in &mut option.levels {
                 row.features.sort();
+                row.feat_slots.sort();
                 row.selections.sort();
             }
         }
@@ -861,7 +862,7 @@ pub struct SelectionOption {
 }
 
 /// What an option gives at one option level.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct OptionLevelRow {
     pub level: u8,
@@ -870,6 +871,14 @@ pub struct OptionLevelRow {
     /// Granted feats, as on a class level row (a bloodline's Wings at 15).
     #[serde(default)]
     pub feats: BTreeSet<FeatKey>,
+    /// Parameterised feats granted for the value the option's pick named, as its
+    /// [`chosen_feat`](SelectionOption::chosen_feat) is (Weapon Mastery: Improved Critical at 8 in the weapon its
+    /// Weapon Focus was taken for).
+    #[serde(default)]
+    pub chosen_feats: BTreeSet<FeatKey>,
+    /// Feat slots, as on a class level row (the War domain's bonus Combat feat at 8).
+    #[serde(default)]
+    pub feat_slots: Vec<FeatSlot>,
     /// One Feature selection slot per entry (the Arcane bloodline's school at 15).
     #[serde(default)]
     pub selections: Vec<FeatureSelectionKey>,

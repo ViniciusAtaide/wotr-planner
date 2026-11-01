@@ -68,8 +68,8 @@ class's), and BAB and saves (from the class's progressions).
   `options: []`.
 - The druid's Nature Bond is a selection, `druid/nature-bond` (Animal Companion or Domain), at level 1 of the druid
   and of the archetypes whose table keeps both columns (Defender of the True World, Feyspeaker); a prerequisite
-  that needs a companion or a domain accepts its option (`SelectionOption("druid/nature-bond/domain")`), and the
-  Blight Druid's and Winter Child's fixed domain by their archetype. The domain's own powers are ticket 31's.
+  that needs a companion accepts its option (`SelectionOption("druid/nature-bond/domain")`). The domain option's
+  first row grants the druid's own domain pick, `druid/domain` (ticket 31).
 - A selection option that grants feats names them: `feats: ["weapon-focus"]` (a rogue talent that is the feat of
   the same name), or several (the Azata's All-skilled: every weapon, armour and shield proficiency). Picking the
   option holds them.
@@ -92,7 +92,26 @@ class's), and BAB and saves (from the class's progressions).
   Bloodline). A class (or archetype, `spontaneous: Some(true)`) that casts spontaneously says `spontaneous: true`,
   which `SpontaneousSpellLevel(spell_type: Arcane, level: 1)` checks; `NoOptionFrom("sorcerer/bloodline")` needs
   none of that selection's options held. A selection with `pool_of` offers the pools (`pool`) of the options held
-  in another (ticket 31's revelations). `extract::option_levels` reads all this from the guide.
+  in another (an oracle's revelations, `oracle/revelation`, from the mysteries held). `extract::option_levels`
+  reads all this from the guide.
+- The second group of options with rows (ticket 31, `extract::option_families`, read from the guide's prose):
+  - **Domains** are one selection, `cleric/domain` (37 options, rows by cleric levels: the power at 1, the one
+    at 6 or 8, the Animal and Scalykind companion at 4, class skills as "Class Skill: …" features as for the
+    bloodlines). The cleric's level 1 grants it twice (once for an archetype that "May only select a single
+    domain"). Every other class takes domains through a selection of its own that shares them and is levelled by
+    its own class: `inquisitor/domain`, `druid/domain` (through Nature Bond), `hunter/divine-hunter/domain`,
+    `hellknight/pentamic-faith` (through the Pentamic Faith discipline's row), the Living Deity's
+    `arcanist/magic-deceiver/domain` (two at 20), and the archetypes' limited ones. The War domain's bonus Combat
+    feat is a slot on its row 8, `feat_slots: [CombatFeat]` (slot id `OptionFeat`).
+  - **Mysteries**, `oracle/mystery`: class skills at 1, the Final Revelation at 20, and `pool:
+    "oracle/revelations/battle"`, whose options are the revelations; the oracle's revelation cells are
+    `oracle/revelation` slots. A revelation that grants later has rows: `chosen_feats: ["improved-critical"]` is
+    held for the weapon the pick named for its `chosen_feat` (Weapon Mastery). "Prerequisites: Level 7" is
+    oracle or arcanist (Living Deity) level 7.
+  - **Blessings**, `warpriest/blessings`: the minor power at 1, the major at 10.
+  - **Elements**, `kineticist/element`: class skills and the wild-talent bonus feat list at 1, the defensive talent
+    at 2; `kineticist/expanded-element` at 7 and 15 holds a second element (or the first again, `repeat:
+    Times(2)`) for its list only.
 - A path's switch rule: `switch: (from: ["aeon", "azata"], kept_through_rank: 7, path_kept_through_rank: 7,
   dropped_features: [...], dropped_selections: [...], features: [...], further_ascensions: true, level_cap:
   Some(40))`. The general picks (mythic abilities and feats) of MR 1 to `kept_through_rank` stay, and the old
