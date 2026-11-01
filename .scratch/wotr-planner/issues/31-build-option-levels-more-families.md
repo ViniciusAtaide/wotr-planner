@@ -117,3 +117,17 @@ Three older real-data tests changed: Domain Zealot needs a domain picked (a drui
 8. **Champion of the Faith:** the alignment blessing (Chaos, Evil, Good or Law) doesn't check the character's alignment ("must correspond to his own alignment").
 9. **Class skills** stay "Class Skill: …" features, as ticket 30 did for bloodlines (its open item 8).
 10. **The Signifer's order** is still a feature (report item); only the Hellknight's is a selection.
+
+## Decisions on the open questions
+
+**User, 2026-11-01 ("all recommended"):**
+1. The Separatist's second domain arrives two class levels late: a selection's second pick can lag by a set number of levels. [Ticket 33](33-option-follow-ups.md).
+2. The Divine Hunter gets every domain power, by hunter level. Ticket 33.
+3. The Animal and Scalykind domains' level-4 row counts as a companion for Boon Companion, as built.
+4. The cleric table's footnotes lose to the domain sections (Air at 6, Nobility at 8), as built.
+5. Impossible Domain (user fact): it grants one domain from the full list, levelled by the class that gives the character's other domains (cleric, inquisitor or hunter). Ticket 33.
+6. Expanded Element can't take the 7th-level element again at 15, using the option-group check of ticket 30's decision 1. Ticket 33.
+7. Revelations: Cinder Dance needs no Lame curse; the Dual-Cursed Oracle is offered Misfortune and Fortune; Maneuver Mastery and Second Mystery count arcanist levels for a Living Deity. "Level N" prerequisites keep accepting oracle or arcanist levels. Ticket 33.
+8. Champion of the Faith's alignment blessing checks the character's alignment. Ticket 33.
+9. Options' class skills stay features.
+10. The Signifer's order is a selection sharing the Hellknight's orders. Ticket 33.

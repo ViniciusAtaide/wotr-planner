@@ -137,3 +137,18 @@ Three older real-data tests changed: the list count (46 → 69), the copy test (
 9. **Wizard archetypes:** the Arcane Bomber ("Must select four Opposition Schools", no specialisation in its table) takes no school. Confirm.
 10. **Daily choices** marked: Mixed Bloodline, Second Mixed Bloodline, Wandering Spirit, the Abjurer's Resistance. The Unsworn Shaman's Minor Spirit and Wandering Spirit 2 and the hunter's Animal Focus aren't marked yet.
 11. **Per-element differences** in prose (Elemental Movement: "Earth: None") aren't modelled: the four elements share one Elemental Movement feature. Likewise the bloodrager Primalist's swap of a Second Bloodrager Bloodline's abilities.
+
+## Decisions on the open questions
+
+**User, 2026-11-01 ("all recommended"):**
+1. One Draconic bloodline: options get a group (Draconic, Elemental), and a prerequisite "no other option of this group" stops a second one. [Ticket 33](33-option-follow-ups.md).
+2. Crossblooded's second bloodline also grants its Arcana. Ticket 33.
+3. Dragon Disciple levels count toward an Eldritch Scion's bloodline, as built.
+4. A bloodrager with a bloodline can't enter Dragon Disciple, as the guide reads. No change.
+5. Disruptive's Arcane bloodline accepts the sorcerer's or the bloodrager's, as built.
+6. The ranger style lists keep the guide's extras, as built.
+7. Dragon Disciple's bloodline feats come from the Draconic list, as built.
+8. Choices inside options stay features.
+9. The Arcane Bomber takes no school, as built.
+10. The Unsworn Shaman's spirits and the hunter's Animal Focus are daily choices. Ticket 33.
+11. Elemental Movement is split by element, and Earth gets none. Ticket 33.

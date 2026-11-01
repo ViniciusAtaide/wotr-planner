@@ -112,3 +112,16 @@ Script: `t27/rewrite.py` in the session scratchpad (`/private/tmp/claude-501/-Us
 7. **Level-1 order for a warpriest.** The Weapon Focus grant is now a class slot, checked after the race slot, so a human warpriest's level-1 bonus feat can't take Dazzling Display on it (it could when the feat was granted). Accept it, or check class slots before the race slot (a rules change for every class).
 8. **The slayer's combat style feats** ("three times in total ... 2 or 4, 6 or 8 and 10 or greater") are a cap over a group of options at set levels, not a repeat; still not offered (report item kept).
 9. Spell Specialization picks a spell, and spells are out of scope: it stays "Spell Focus" in any school.
+
+## Decisions on the open questions
+
+**User, 2026-11-01 ("all recommended"):**
+1. Every parameterised feat repeats once per value. Ticket 32.
+2. Weapon values: Sawtooth Saber becomes an exotic weapon Exotic Weapon Proficiency can take; natural attacks are one value per attack the guide names (claw, bite, …); rays and touch attacks are two values; Kinetic Blast and Bomb are values. Ticket 32.
+3. Slashing Grace keeps Weapon Focus in any weapon. No change.
+4. Armor Focus checks the armour proficiency matching its armour type. Ticket 32.
+5. The mythic feats that pick a value are parameterised, with prerequisites for the same value: Improved Critical (Mythic), Spell Focus (Mythic), Skill Focus (Mythic), Expanded Arsenal, School Mastery, and the Trickster's Improved Improved Critical. Ticket 32.
+6. Fixed-value grants (a granted feat with its value: the Mantis Zealot's Sawtooth Saber feats, the oracle's) and restricted-choice grants (a list limited to some values: the Zen Archer's shortbow or longbow) replace the feature-encoded grants. Ticket 32.
+7. Within one level, picks are checked in this order: class selections, class bonus slots, race slots, general slots. This fixes the warpriest's level-1 order and the druid's Boon Companion at level 1 ([ticket 28](28-class-rules-follow-ups.md)). Ticket 32.
+8. The slayer's combat style feats ("three times in total … 2 or 4, 6 or 8 and 10 or greater") are built in ticket 32.
+9. Spell Specialization stays Spell Focus in any school. No change.

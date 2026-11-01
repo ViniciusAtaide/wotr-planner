@@ -105,3 +105,9 @@ Two older tests changed: `no_selection_option_is_a_copy_of_another` skips option
 4. **Frost Power and the shaman.** The guide stacks Winter Witch with shaman levels only "to determine the power of Shaman hexes and Frost Spirit abilities": power, which a Build doesn't hold, so nothing is stored. The Winter Witch's entry still takes any shaman for "Shaman (Frost Spirit)": the spirit selection is granted nowhere yet (ticket 30).
 5. **Razmiri Infiltrator.** The arcanist archetype says "Her alignment must be Neutral or Evil" too, but its table isn't read (a report item) and it has no alignment prerequisite. Does R6's reading (true neutral or any evil) apply there? The extractor's grammar would read it that way now.
 6. **Other domains for Domain Zealot.** The Hellknight's Pentamic Faith gives a domain, but orders aren't a selection (a report item), so Domain Zealot doesn't name it.
+
+## Decisions on the open questions
+
+**User, 2026-11-01 ("all recommended"):**
+1. Level-1 slot order: folded into [ticket 27](27-repeatable-and-parameterised-feats.md)'s decision 7, built in ticket 32.
+5. The Razmiri Infiltrator way needs true neutral or any evil, the Assassin's reading. Ticket 32.

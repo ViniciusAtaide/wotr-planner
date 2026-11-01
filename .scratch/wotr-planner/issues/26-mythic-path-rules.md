@@ -127,3 +127,11 @@ The switch rules, from the guide's prose:
 5. **Exotic Weapon Proficiency** is one parameterised feat ("one of the following weapons"); All-skilled grants the key, which ticket 27 (parameterised feats) may need to read as every weapon. *(Answered in [ticket 27](27-repeatable-and-parameterised-feats.md): a grant with no pick holds a parameterised feat for every value, so All-skilled holds it in all 16 exotic weapons.)*
 6. Still out: the Azata's dragon and the Swarm's companions are dropped as the guide says, but other companions aren't modelled; the Gold Dragon breaths' story conditions stay out (decision R5).
 
+
+## Decisions on the open questions
+
+**User, 2026-11-01 ("all recommended"):**
+1. Ties for the highest score go to the first in Str, Dex, Con, Int, Wis, Cha order, as built.
+2. Feature bonuses count toward skill points, as built.
+3. Perfect Mind's floors are modelled: BAB at least 15, and every skill rank at least the mythic rank, both for prerequisites. [Ticket 32](32-feat-and-rule-follow-ups.md).
+4. Destiny Beyond Birth is modelled: a mythic feat that removes the race's ability penalty from the character's own scores. [Ticket 32](32-feat-and-rule-follow-ups.md).
