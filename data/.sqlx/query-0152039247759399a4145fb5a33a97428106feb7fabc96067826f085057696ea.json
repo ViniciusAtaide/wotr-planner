@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT key, class_key, archetype_key, path_key, name, summary, guide, feat_lists_only,\n            only_without_option, pool_of_key, levels_behind, level_from, once_per_option\n        FROM feature_selection ORDER BY key",
+  "query": "SELECT key, class_key, archetype_key, path_key, name, summary, guide, feat_lists_only,\n            only_without_option, pool_of_key, levels_behind, level_from, level_also_from_key,\n            once_per_option\n        FROM feature_selection ORDER BY key",
   "describe": {
     "columns": [
       {
@@ -137,6 +137,17 @@
       },
       {
         "ordinal": 12,
+        "name": "level_also_from_key",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "feature_selection",
+            "name": "level_also_from_key"
+          }
+        }
+      },
+      {
+        "ordinal": 13,
         "name": "once_per_option",
         "type_info": "Bool",
         "origin": {
@@ -163,8 +174,9 @@
       true,
       false,
       true,
+      true,
       false
     ]
   },
-  "hash": "7f80b40591c6a4ae679280176e2c408d43a88c25c84a568fca6f33d54f9c2a0a"
+  "hash": "0152039247759399a4145fb5a33a97428106feb7fabc96067826f085057696ea"
 }

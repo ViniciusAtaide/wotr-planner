@@ -1241,3 +1241,41 @@ fn a_race_may_name_its_own_bonus_list_only() {
         )]
     );
 }
+
+#[test]
+fn a_subrace_may_name_its_races_bonus_list_only() {
+    // The world's Adaptable half-elf names its race's Adaptability list; the elf's Blightborn may not.
+    let mut data = world();
+    let elf = data
+        .races
+        .iter_mut()
+        .find(|r| r.key.as_str() == "elf")
+        .unwrap();
+    elf.subraces[0].feat_slots.push(FeatSlot::OneOf {
+        list: FeatListKey::new("half-elf/adaptability"),
+    });
+    assert_eq!(
+        issues(&data),
+        [(
+            DataAt::Subrace(rules::SubraceKey::new("elf/blightborn")),
+            DataIssue::MisplacedBonusList
+        )]
+    );
+}
+
+#[test]
+fn an_option_levelled_alongside_the_others_needs_other_options() {
+    // Impossible Domain's False God way counts beside the other domains held; a selection levelled any other way
+    // has no other options for it to count beside.
+    let mut data = world();
+    let selection = cleric_selection(&mut data, "cleric/impossible-domain");
+    selection.level_from = None;
+    selection.option_levels.insert(ClassKey::new("cleric"));
+    assert_eq!(
+        issues(&data),
+        [(
+            DataAt::FeatureSelection(FeatureSelectionKey::new("cleric/impossible-domain")),
+            DataIssue::LevelAlsoFromWithoutOtherOptions
+        )]
+    );
+}

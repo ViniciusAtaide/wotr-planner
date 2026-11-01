@@ -498,6 +498,7 @@ fn the_files_write_weapons_parameters_repeats_and_chosen_feats() {
         levels_behind: 0,
         level_from: None,
         once_per_option: false,
+        level_also_from: None,
     });
     let data = GameData {
         progression: rules::Progression {

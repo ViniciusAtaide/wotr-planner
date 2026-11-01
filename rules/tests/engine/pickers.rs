@@ -58,6 +58,7 @@ fn class_options_list_every_class_with_its_archetypes_then_prestige_classes() {
             ("warpriest", Some("warpriest/champion")),
             ("warpriest", Some("warpriest/mantis-zealot")),
             ("witch", None),
+            ("witch", Some("witch/false-god")),
             ("wizard", None),
             ("arcane-trickster", None),
             ("dragon-disciple", None),

@@ -22,6 +22,7 @@ mod options;
 mod parameters;
 mod path_rules;
 mod pickers;
+mod second_follow_ups;
 mod shared_options;
 mod slots;
 mod validation;

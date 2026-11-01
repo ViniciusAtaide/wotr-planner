@@ -420,6 +420,7 @@ pub(crate) fn selection(key: &str, name: &str, guide: String, levels: &[&str]) -
         levels_behind: 0,
         level_from: None,
         once_per_option: false,
+        level_also_from: None,
     }
 }
 
@@ -1329,6 +1330,7 @@ fn option_list_slots(row: &mut dyn Row, merged: &[&str], selection: &FeatureSele
         {
             *slot = FeatSlot::OptionList {
                 selection: selection.clone(),
+                at_level: None,
             };
             changed = true;
         }
@@ -1801,6 +1803,7 @@ fn other_classes(data: &mut GameData, sorcerer: &Family, log: &mut Log) {
         levels_behind: 0,
         level_from: None,
         once_per_option: false,
+        level_also_from: None,
     });
     let row = disciple
         .levels
@@ -1884,6 +1887,7 @@ fn other_classes(data: &mut GameData, sorcerer: &Family, log: &mut Log) {
         levels_behind: 0,
         level_from: None,
         once_per_option: false,
+        level_also_from: None,
     });
     scion
         .levels
@@ -1932,6 +1936,7 @@ fn other_classes(data: &mut GameData, sorcerer: &Family, log: &mut Log) {
         levels_behind: 0,
         level_from: None,
         once_per_option: false,
+        level_also_from: None,
     });
     let row = dragonheir
         .levels

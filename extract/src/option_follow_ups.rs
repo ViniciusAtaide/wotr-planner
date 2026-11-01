@@ -104,7 +104,11 @@ fn features_named_exist(data: &mut GameData) {
 /// The classes whose archetype rows the rules edit.
 const TOUCHED: [&str; 2] = ["cleric", "oracle"];
 
-fn class_selection<'d>(data: &'d mut GameData, class: &str, key: &str) -> &'d mut FeatureSelection {
+pub(crate) fn class_selection<'d>(
+    data: &'d mut GameData,
+    class: &str,
+    key: &str,
+) -> &'d mut FeatureSelection {
     let class = class_mut(data, class);
     class
         .selections
@@ -115,7 +119,7 @@ fn class_selection<'d>(data: &'d mut GameData, class: &str, key: &str) -> &'d mu
 }
 
 /// Adds `leaf` to an option's prerequisite: as its own, or beside what it needs already.
-fn and(prerequisite: &mut Option<Prerequisite>, leaf: Prerequisite) {
+pub(crate) fn and(prerequisite: &mut Option<Prerequisite>, leaf: Prerequisite) {
     *prerequisite = Some(match prerequisite.take() {
         None => leaf,
         Some(Prerequisite::All(mut children)) => {
@@ -865,6 +869,7 @@ fn slayer_combat_style(guide: &Guide, data: &mut GameData, log: &mut Log) {
         assert!(row.selections.is_empty(), "{talent}");
         row.feat_slots = vec![FeatSlot::OptionList {
             selection: key.clone(),
+            at_level: None,
         }];
         row.selections = vec![key.clone()];
         log.push(format!(

@@ -120,6 +120,20 @@ class's), and BAB and saves (from the class's progressions).
     Focus and Second Animal Focus (features, not a pick of the eight aspects). Elemental Movement is one feature
     per element (none for Earth). The Divine Hunter skips no domain level. The Signifer's order is
     `hellknight-signifer/order`, sharing the Hellknight's seven.
+- Ticket 35 (`extract::second_follow_ups`, the user's decisions on tickets 32 and 33):
+  - A subrace's `feat_slots` replace its race's, as its ability modifiers do (the guide lists each subrace's own
+    traits): none written means none, so the half-elf's Dual Heritage and Kindred Raised get no Adaptability. They
+    may name the race's lists.
+  - `level_also_from: "arcanist/magic-deceiver/ways-of-the-deceiver/living-deity"` beside `level_from:
+    OtherOptions` (`cleric/impossible-domain`): that option's level counts as one of the other options', so a Living
+    Deity's Impossible Domain runs on arcanist levels from the pick. Impossible Domain's prerequisite also accepts
+    `SelectionOption("hellknight/disciplines/pentamic-faith")`, whose domain is levelled by Hellknight levels.
+  - `hellknight-signifer/order` is `only_without_option`, as `hellknight/order`.
+  - The Chaos, Evil, Good and Law domains: `Any([Not(PickedThrough("cleric/separatist/domain")), Alignment(...),
+    ...])`, the six alignments that don't conflict, when taken as the Separatist's second domain.
+  - `group: BloodragerDraconic` and `BloodragerElemental` with `NoOtherOptionOfGroup(...)` on the bloodrager's ten
+    dragons and four elements: one of each at most (Second Bloodrager Bloodline), apart from the sorcerer's
+    groups.
 - The second group of options with rows (ticket 31, `extract::option_families`, read from the guide's prose):
   - **Domains** are one selection, `cleric/domain` (37 options, rows by cleric levels: the power at 1, the one
     at 6 or 8, the Animal and Scalykind companion at 4, class skills as "Class Skill: …" features as for the
@@ -141,8 +155,10 @@ class's), and BAB and saves (from the class's progressions).
 - The slayer's talents (`slayer/slayer-talents`, levelled by slayer) include three combat style feats, one per
   window the guide gives ("2 or 4, 6 or 8 and 10 or greater"): each is taken once and its row 1 grants
   `slayer/combat-style` (one of the ranger's five styles, levelled by slayer, `only_without_option`: the first
-  talent picks the style) and an `OptionList(selection: "slayer/combat-style")` slot, so each window's feat comes
-  from the style's list of its stage (the user's decision: one style, as a ranger picks).
+  talent picks the style) and an `OptionList(selection: "slayer/combat-style", at_level: 2)` slot (6, 10), so
+  each window's feat comes from the style's list of its stage, whoever levels the style (the user's decisions: one
+  style, as a ranger picks, shared with a ranger's; the window's stage, not the ranger's levels). `at_level` left
+  out: the list in force at the option's own level.
 - A path's switch rule: `switch: (from: ["aeon", "azata"], kept_through_rank: 7, path_kept_through_rank: 7,
   dropped_features: [...], dropped_selections: [...], features: [...], further_ascensions: true, level_cap:
   Some(40))`. The general picks (mythic abilities and feats) of MR 1 to `kept_through_rank` stay, and the old

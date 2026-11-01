@@ -149,6 +149,7 @@ fn an_option_beside_the_feat_it_grants_is_dropped() {
             levels_behind: 0,
             level_from: None,
             once_per_option: false,
+            level_also_from: None,
         }],
         feat_lists: vec![],
         levels: vec![],

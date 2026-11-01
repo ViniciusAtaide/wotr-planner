@@ -112,6 +112,7 @@ impl GameData {
             sort_by_key(&mut race.subraces, |s| s.key.clone());
             for subrace in &mut race.subraces {
                 subrace.ability_modifiers.sort();
+                subrace.feat_slots.sort();
             }
         }
         sort_by_key(&mut self.skills, |s| s.key.clone());
@@ -326,7 +327,8 @@ pub struct Race {
     pub subraces: Vec<Subrace>,
 }
 
-/// A subrace. Its ability modifiers replace the race's.
+/// A subrace. The guide lists each subrace's own racial traits, so its ability modifiers and feat slots replace the
+/// race's.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Subrace {
@@ -337,6 +339,10 @@ pub struct Subrace {
     pub guide: GuideRef,
     #[serde(default)]
     pub ability_modifiers: Vec<AbilityModifier>,
+    /// Its feat slots at character level 1, in place of the race's (a half-elf's Dual Heritage and Kindred Raised
+    /// list no Adaptability, so they have none). They may name the race's lists.
+    #[serde(default)]
+    pub feat_slots: Vec<FeatSlot>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -414,7 +420,15 @@ pub enum FeatSlot {
     /// A bonus slot whose list comes from a held option: the list in force of each option held that `selection`
     /// offers (a sorcerer's bloodline feat; a Crossblooded sorcerer's slot offers both bloodlines' lists).
     /// Checked after the level's Feature selections, since it depends on them.
-    OptionList { selection: FeatureSelectionKey },
+    OptionList {
+        selection: FeatureSelectionKey,
+        /// The option level whose list it offers, whatever level the option has reached (a slayer's combat style
+        /// feat at 2 or 4: the style's 2nd-level list, even when a ranger's levels have taken the style further).
+        /// `None`: the list in force at the option's level, and left out when written (the data files write a
+        /// slot on one line, `OptionList(selection: …)`).
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        at_level: Option<u8>,
+    },
 }
 
 /// A named fixed list of feats that a [`FeatSlot::OneOf`] picks from, such as a monk's bonus feats. It belongs to
@@ -845,6 +859,11 @@ pub struct FeatureSelection {
     /// Where an option held through it gets its option level when the selection names no classes.
     #[serde(default)]
     pub level_from: Option<LevelFrom>,
+    /// With `level_from: OtherOptions`, an option held elsewhere whose option level counts as one of the other
+    /// options' (Impossible Domain: a Living Deity's way, so its extra domain runs on arcanist levels from the pick,
+    /// before the way's own domains come at 20).
+    #[serde(default)]
+    pub level_also_from: Option<SelectionOptionKey>,
     /// Set when an option it has given once can't be picked through it again, however often the option itself
     /// repeats (Expanded Element: the 15th-level element can't be the 7th-level one).
     #[serde(default)]
@@ -870,16 +889,27 @@ pub enum OptionGroup {
     Draconic,
     /// The sorcerer's four Elemental bloodlines.
     Elemental,
+    /// The bloodrager's ten Draconic bloodlines: one at most, as the sorcerer's, but apart from them.
+    BloodragerDraconic,
+    /// The bloodrager's four Elemental bloodlines.
+    BloodragerElemental,
 }
 
 impl OptionGroup {
-    pub const ALL: [Self; 2] = [Self::Draconic, Self::Elemental];
+    pub const ALL: [Self; 4] = [
+        Self::Draconic,
+        Self::Elemental,
+        Self::BloodragerDraconic,
+        Self::BloodragerElemental,
+    ];
 
     /// The group as the guide names it.
     pub fn name(self) -> &'static str {
         match self {
             Self::Draconic => "Draconic",
             Self::Elemental => "Elemental",
+            Self::BloodragerDraconic => "Draconic (Bloodrager)",
+            Self::BloodragerElemental => "Elemental (Bloodrager)",
         }
     }
 }

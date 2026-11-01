@@ -237,7 +237,27 @@ fn races() -> Vec<Race> {
                 list: feat_list("half-elf/adaptability"),
             }],
             feat_lists: vec![list("half-elf/adaptability", true, &["skill-focus"])],
-            subraces: vec![],
+            // A subrace's slots replace the race's: Dual Heritage has none; an invented one keeps Adaptability.
+            subraces: vec![
+                Subrace {
+                    key: SubraceKey::new("half-elf/dual-heritage"),
+                    name: "Dual Heritage".into(),
+                    summary: String::new(),
+                    guide: guide("character-creation#half-elf-dual-heritage"),
+                    ability_modifiers: vec![AbilityModifier::Chosen { amount: 2 }],
+                    feat_slots: vec![],
+                },
+                Subrace {
+                    key: SubraceKey::new("half-elf/adaptable"),
+                    name: "Adaptable".into(),
+                    summary: String::new(),
+                    guide: guide("character-creation#half-elf-adaptable"),
+                    ability_modifiers: vec![AbilityModifier::Chosen { amount: 2 }],
+                    feat_slots: vec![FeatSlot::OneOf {
+                        list: feat_list("half-elf/adaptability"),
+                    }],
+                },
+            ],
         },
         Race {
             key: RaceKey::new("human"),
@@ -271,6 +291,7 @@ fn races() -> Vec<Race> {
                     fixed(Ability::Wisdom, 2),
                     fixed(Ability::Constitution, -2),
                 ],
+                feat_slots: vec![],
             }],
         },
         Race {
@@ -730,6 +751,7 @@ fn fighter() -> Class {
                 levels_behind: 0,
                 level_from: None,
                 once_per_option: false,
+                level_also_from: None,
                 options: vec![
                     selection_option("fighter/armiger/order/cockatrice", None, None),
                     selection_option("fighter/armiger/order/dragon", None, None),
@@ -837,6 +859,7 @@ fn rogue() -> Class {
             levels_behind: 0,
             level_from: None,
             once_per_option: false,
+            level_also_from: None,
             options: vec![
                 selection_option(
                     "rogue/rogue-talents/combat-trick",
@@ -972,6 +995,7 @@ fn slayer() -> Class {
                 levels_behind: 0,
                 level_from: None,
                 once_per_option: false,
+                level_also_from: None,
             },
             slayer_style(),
         ],
@@ -982,7 +1006,8 @@ fn slayer() -> Class {
 }
 
 /// The slayer's combat style: one of the ranger's, picked with the first combat style feat (only by a character
-/// holding none), levelled by slayer levels so each window's feat comes from the style's list of its stage.
+/// holding none, so a ranger/slayer shares the ranger's), levelled by slayer levels. Each window's feat comes from
+/// the style's list of the window's stage, whoever levels the style.
 fn slayer_style() -> FeatureSelection {
     FeatureSelection {
         only_without_option: true,
@@ -1006,7 +1031,8 @@ fn slayer_level_below(level: u8) -> Prerequisite {
     Prerequisite::Not(Box::new(slayer_level(level)))
 }
 
-/// A slayer talent that is a combat style feat: the style's pick (the first time), then a bonus feat from its list.
+/// A slayer talent that is a combat style feat: the style's pick (the first time), then a bonus feat from its list
+/// at the window's stage.
 fn combat_style(stage: u8, prerequisite: Option<Prerequisite>) -> SelectionOption {
     let style = FeatureSelectionKey::new("slayer/combat-style");
     SelectionOption {
@@ -1015,7 +1041,10 @@ fn combat_style(stage: u8, prerequisite: Option<Prerequisite>) -> SelectionOptio
             &format!("slayer/slayer-talents/combat-style-feat-{stage}"),
             vec![OptionLevelRow {
                 selections: vec![style.clone()],
-                feat_slots: vec![FeatSlot::OptionList { selection: style }],
+                feat_slots: vec![FeatSlot::OptionList {
+                    selection: style,
+                    at_level: Some(stage),
+                }],
                 ..option_row(1, &[])
             }],
         )
@@ -1424,8 +1453,10 @@ fn cleric() -> Class {
                     &[],
                 )
             },
+            // A false god's further domain runs on witch levels from the pick, before its own domain at 20.
             FeatureSelection {
                 level_from: Some(LevelFrom::OtherOptions),
+                level_also_from: Some(option("witch/false-god/way/deity")),
                 ..levelled_selection("cleric/impossible-domain", &[], vec![], &CLERIC_DOMAINS)
             },
         ],
@@ -1651,6 +1682,7 @@ fn witch() -> Class {
             levels_behind: 0,
             level_from: None,
             once_per_option: false,
+            level_also_from: None,
             options: vec![
                 selection_option("witch/hex/slumber", None, None),
                 selection_option("witch/hex/misfortune", None, None),
@@ -1664,7 +1696,32 @@ fn witch() -> Class {
         }],
         feat_lists: vec![],
         levels,
-        archetypes: vec![],
+        archetypes: vec![false_god()],
+    }
+}
+
+/// False God (a Living Deity on the witch): a way at 1 (its one option, so granted), levelled by witch levels, whose
+/// row 20 is a domain. Impossible Domain levels its domain by the way's level.
+fn false_god() -> Archetype {
+    let way = FeatureSelectionKey::new("witch/false-god/way");
+    Archetype {
+        selections: vec![levelled_selection(
+            way.as_str(),
+            &["witch"],
+            vec![levelled_option(
+                "witch/false-god/way/deity",
+                vec![OptionLevelRow {
+                    selections: vec![FeatureSelectionKey::new("cleric/domain")],
+                    ..option_row(20, &[])
+                }],
+            )],
+            &[],
+        )],
+        levels: vec![ArchetypeLevelRow {
+            selections: vec![FeatureSelectionKey::new("witch/hex"), way],
+            ..archetype_row(1)
+        }],
+        ..archetype("witch/false-god")
     }
 }
 
@@ -1797,15 +1854,18 @@ fn mythic_abilities() -> Vec<MythicAbility> {
                 }),
             )
         },
-        // A further domain, levelled like the domains held.
+        // A further domain, levelled like the domains held (or a false god's way).
         MythicAbility {
             selections: vec![FeatureSelectionKey::new("cleric/impossible-domain")],
             ..ability(
                 "impossible-domain",
-                Some(Prerequisite::ClassLevel {
-                    class: class("cleric"),
-                    level: 1,
-                }),
+                Some(Prerequisite::Any(vec![
+                    Prerequisite::ClassLevel {
+                        class: class("cleric"),
+                        level: 1,
+                    },
+                    Prerequisite::SelectionOption(option("witch/false-god/way/deity")),
+                ])),
             )
         },
         // A second bloodline, a full pick on the same class levels.
@@ -1858,6 +1918,7 @@ fn levelled_selection(
         levels_behind: 0,
         level_from: None,
         once_per_option: false,
+        level_also_from: None,
     }
 }
 
@@ -1893,6 +1954,7 @@ fn sorcerer() -> Class {
             if [7, 13, 19].contains(&l) {
                 r.feat_slots.push(FeatSlot::OptionList {
                     selection: bloodline.clone(),
+                    at_level: None,
                 });
             }
             r
@@ -2214,6 +2276,7 @@ fn ranger() -> Class {
             if [2, 6, 10].contains(&l) {
                 r.feat_slots.push(FeatSlot::OptionList {
                     selection: style.clone(),
+                    at_level: None,
                 });
             }
             r
@@ -2422,6 +2485,7 @@ fn trickster() -> MythicPath {
             levels_behind: 0,
             level_from: None,
             once_per_option: false,
+            level_also_from: None,
             options: vec![
                 selection_option("trickster/tricks/perception-1", None, None),
                 selection_option(
@@ -2578,6 +2642,7 @@ fn gold_dragon() -> MythicPath {
             levels_behind: 0,
             level_from: None,
             once_per_option: false,
+            level_also_from: None,
             options: vec![
                 selection_option("gold-dragon/breaths/empowered", None, None),
                 // The guide's "Mythic Rank: 9" and "Vow of Dahak": the story condition never blocks.
@@ -2692,6 +2757,7 @@ fn aeon() -> MythicPath {
             levels_behind: 0,
             level_from: None,
             once_per_option: false,
+            level_also_from: None,
             options: vec![
                 selection_option("aeon/enforcing-gaze/attack", None, None),
                 selection_option("aeon/enforcing-gaze/damage", None, None),
@@ -2797,6 +2863,7 @@ fn kineticist() -> Class {
             ),
             FeatureSelection {
                 once_per_option: true,
+                level_also_from: None,
                 ..levelled_selection(
                     expanded.as_str(),
                     &[],

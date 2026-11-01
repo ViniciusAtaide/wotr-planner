@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO feature_selection\n                (key, class_key, archetype_key, path_key, name, summary, guide, feat_lists_only,\n                only_without_option, pool_of_key, levels_behind, level_from, once_per_option)\n            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)",
+  "query": "INSERT INTO feature_selection\n                (key, class_key, archetype_key, path_key, name, summary, guide, feat_lists_only,\n                only_without_option, pool_of_key, levels_behind, level_from, level_also_from_key,\n                once_per_option)\n            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)",
   "describe": {
     "columns": [],
     "parameters": {
@@ -38,10 +38,11 @@
             }
           }
         },
+        "Text",
         "Bool"
       ]
     },
     "nullable": []
   },
-  "hash": "da5aa2bc4a9333b30c1f749d8921833c48920d2b18629b7684a15f169fce3d9f"
+  "hash": "c40dcd0bb5cb0e48df8a3858121ab1a1b530a7b0994c207260623609f9ddb7a1"
 }

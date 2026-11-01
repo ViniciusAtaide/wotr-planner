@@ -92,7 +92,7 @@ fn counts_summarise_each_catalog() {
             ("Weapons", 5),
             ("Feats", 37),
             ("Classes", 13),
-            ("Archetypes", 11),
+            ("Archetypes", 12),
             ("Prestige classes", 5),
             ("Mythic abilities", 9),
             ("Mythic feats", 9),

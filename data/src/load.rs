@@ -230,8 +230,8 @@ async fn load_skills(conn: &mut PgConnection) -> Result<Vec<Skill>, sqlx::Error>
 async fn load_feat_slots(conn: &mut PgConnection) -> Result<Grouped<Owner, FeatSlot>, sqlx::Error> {
     let mut slots = Grouped::new();
     for row in sqlx::query!(
-        "SELECT id, race_key, class_level_id, mythic_rank_id, option_level_id, kind, category,
-            feat_list_key, selection_key
+        "SELECT id, race_key, subrace_key, class_level_id, mythic_rank_id, option_level_id, kind,
+            category, feat_list_key, selection_key, at_level
         FROM feat_slot ORDER BY id"
     )
     .fetch_all(&mut *conn)
@@ -254,6 +254,10 @@ async fn load_feat_slots(conn: &mut PgConnection) -> Result<Grouped<Owner, FeatS
             },
             (FeatSlotKind::OptionList, None, None, Some(selection)) => FeatSlot::OptionList {
                 selection: FeatureSelectionKey(selection),
+                at_level: row
+                    .at_level
+                    .map(|level| to_u8(level, "feat_slot.at_level"))
+                    .transpose()?,
             },
             (kind, _, _, _) => {
                 return Err(corrupt(format!(
@@ -266,6 +270,7 @@ async fn load_feat_slots(conn: &mut PgConnection) -> Result<Grouped<Owner, FeatS
             "feat_slot",
             [
                 row.race_key.map(Owner::Race),
+                row.subrace_key.map(Owner::Subrace),
                 row.class_level_id.map(Owner::ClassLevel),
                 row.mythic_rank_id.map(Owner::MythicRank),
                 row.option_level_id.map(Owner::OptionLevel),
@@ -312,7 +317,7 @@ async fn load_races(
         .fetch_all(&mut *conn)
         .await?
     {
-        let ability_modifiers = modifiers.take(&Owner::Subrace(row.key.clone()));
+        let owner = Owner::Subrace(row.key.clone());
         subraces.push(
             row.race_key,
             Subrace {
@@ -320,7 +325,8 @@ async fn load_races(
                 name: row.name,
                 summary: row.summary,
                 guide: GuideRef(row.guide),
-                ability_modifiers,
+                ability_modifiers: modifiers.take(&owner),
+                feat_slots: feat_slots.take(&owner),
             },
         );
     }
@@ -782,7 +788,8 @@ async fn load_selections(
     let mut selections = Grouped::new();
     for row in sqlx::query!(
         "SELECT key, class_key, archetype_key, path_key, name, summary, guide, feat_lists_only,
-            only_without_option, pool_of_key, levels_behind, level_from, once_per_option
+            only_without_option, pool_of_key, levels_behind, level_from, level_also_from_key,
+            once_per_option
         FROM feature_selection ORDER BY key"
     )
     .fetch_all(&mut *conn)
@@ -813,6 +820,7 @@ async fn load_selections(
                 levels_behind: to_u8(row.levels_behind, "feature_selection.levels_behind")?,
                 level_from: row.level_from.as_deref().map(level_from_from).transpose()?,
                 once_per_option: row.once_per_option,
+                level_also_from: row.level_also_from_key.map(SelectionOptionKey),
             },
         );
     }

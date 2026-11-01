@@ -49,6 +49,7 @@ fn selection(key: &str, options: Vec<SelectionOption>) -> FeatureSelection {
         levels_behind: 0,
         level_from: None,
         once_per_option: false,
+        level_also_from: None,
     }
 }
 

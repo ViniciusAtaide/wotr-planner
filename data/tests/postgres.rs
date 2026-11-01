@@ -294,6 +294,9 @@ fn every_prerequisite_variant() -> Vec<Prerequisite> {
         // Ticket 33: the pick's group and the selection it's picked through.
         P::NoOtherOptionOfGroup(OptionGroup::Draconic),
         P::NoOtherOptionOfGroup(OptionGroup::Elemental),
+        // Ticket 35: the bloodrager's groups.
+        P::NoOtherOptionOfGroup(OptionGroup::BloodragerDraconic),
+        P::NoOtherOptionOfGroup(OptionGroup::BloodragerElemental),
         P::PickedThrough(FeatureSelectionKey::new("sorcerer/school")),
     ];
     let groups = vec![
@@ -1162,6 +1165,66 @@ async fn the_schema_keeps_option_groups_arcanas_and_level_sources_consistent(poo
         (
             "UPDATE prerequisite_node SET selection_key = 'no-such/selection' WHERE kind = 'picked_through'",
             "foreign key",
+        ),
+    ] {
+        let error = rejected(sql).await;
+        assert!(error.contains(expected), "{sql}: {error}");
+    }
+}
+
+#[sqlx::test]
+async fn the_schema_keeps_subrace_slots_option_list_stages_and_levels_alongside_consistent(
+    pool: PgPool,
+) {
+    let db = Database::from(pool.clone());
+    data::seed(&db, &fixture_dir()).await.unwrap();
+    let rejected = |sql: &'static str| {
+        let pool = pool.clone();
+        async move {
+            let mut tx = pool.begin().await.unwrap();
+            let update = sqlx::query(sql).execute(&mut *tx).await;
+            // Foreign keys are deferred: they fail at commit.
+            let result = match update {
+                Ok(_) => tx.commit().await.map(|_| ()),
+                Err(error) => Err(error),
+            };
+            result.unwrap_err().to_string()
+        }
+    };
+    for (sql, expected) in [
+        // A subrace owns a slot as one owner; it is a subrace.
+        (
+            "UPDATE feat_slot SET race_key = 'half-elf' WHERE subrace_key IS NOT NULL",
+            "check constraint",
+        ),
+        (
+            "UPDATE feat_slot SET subrace_key = 'no-such/subrace' WHERE subrace_key IS NOT NULL",
+            "foreign key",
+        ),
+        // Only an option list slot names the option level of its list, a game number.
+        (
+            "UPDATE feat_slot SET at_level = 1 WHERE kind <> 'option_list'",
+            "check constraint",
+        ),
+        (
+            "UPDATE feat_slot SET at_level = -1 WHERE at_level IS NOT NULL",
+            "check constraint",
+        ),
+        // An option counted beside the others is an option, on a selection levelled by the other options.
+        (
+            "UPDATE feature_selection SET level_also_from_key = 'no-such/option'
+            WHERE level_also_from_key IS NOT NULL",
+            "foreign key",
+        ),
+        (
+            "UPDATE feature_selection SET level_from = 'granting_option'
+            WHERE level_also_from_key IS NOT NULL",
+            "check constraint",
+        ),
+        // The bloodrager's groups are known; another isn't.
+        (
+            "UPDATE selection_option SET option_group = 'bloodrager_gnomish' WHERE option_group IS NOT NULL",
+            "check constraint",
         ),
     ] {
         let error = rejected(sql).await;

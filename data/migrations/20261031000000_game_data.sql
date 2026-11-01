@@ -87,8 +87,10 @@ CREATE DOMAIN parameter_kind AS TEXT CHECK (VALUE IN (
 CREATE DOMAIN repeat_kind AS TEXT CHECK (VALUE IN ('once', 'times', 'unlimited', 'per_value'));
 
 -- `rules::OptionGroup`: a family of options of which a character holds only one when an option's
--- prerequisite says so (the sorcerer's Draconic and Elemental bloodlines).
-CREATE DOMAIN option_group AS TEXT CHECK (VALUE IN ('draconic', 'elemental'));
+-- prerequisite says so (the sorcerer's Draconic and Elemental bloodlines, and the bloodrager's apart).
+CREATE DOMAIN option_group AS TEXT CHECK (VALUE IN (
+    'draconic', 'elemental', 'bloodrager_draconic', 'bloodrager_elemental'
+));
 
 -- `rules::LevelFrom`: where an option held through a selection naming no classes gets its option level.
 CREATE DOMAIN level_from AS TEXT CHECK (VALUE IN ('other_options', 'granting_option'));
@@ -501,8 +503,12 @@ CREATE TABLE feature_selection (
     pool_of_key TEXT REFERENCES feature_selection (key) DEFERRABLE INITIALLY DEFERRED,
     levels_behind u8 NOT NULL,
     level_from level_from,
+    -- `rules::FeatureSelection::level_also_from`: an option whose level counts beside the other options
+    -- held (Impossible Domain: a Living Deity's way), so only with `other_options`.
+    level_also_from_key TEXT,
     once_per_option BOOLEAN NOT NULL,
     CHECK (pool_of_key <> key),
+    CHECK (level_also_from_key IS NULL OR level_from = 'other_options'),
     FOREIGN KEY (archetype_key, class_key) REFERENCES archetype (key, class_key)
         DEFERRABLE INITIALLY DEFERRED,
     CHECK (num_nonnulls(class_key, path_key) = 1),
@@ -748,6 +754,8 @@ CREATE TABLE option_level_chosen_feat (
 CREATE TABLE feat_slot (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     race_key TEXT REFERENCES race (key) DEFERRABLE INITIALLY DEFERRED,
+    -- A subrace's slots replace its race's (`rules::Subrace::feat_slots`).
+    subrace_key TEXT REFERENCES subrace (key) DEFERRABLE INITIALLY DEFERRED,
     class_level_id BIGINT REFERENCES class_level (id) DEFERRABLE INITIALLY DEFERRED,
     mythic_rank_id BIGINT REFERENCES mythic_rank (id) DEFERRABLE INITIALLY DEFERRED,
     option_level_id BIGINT REFERENCES option_level (id) DEFERRABLE INITIALLY DEFERRED,
@@ -755,10 +763,14 @@ CREATE TABLE feat_slot (
     category feat_category,
     feat_list_key TEXT REFERENCES feat_list (key) DEFERRABLE INITIALLY DEFERRED,
     selection_key TEXT REFERENCES feature_selection (key) DEFERRABLE INITIALLY DEFERRED,
-    CHECK (num_nonnulls(race_key, class_level_id, mythic_rank_id, option_level_id) = 1),
+    -- An option list slot's fixed option level (`rules::FeatSlot::OptionList::at_level`): a slayer's combat
+    -- style window's stage. NULL: the option's own level.
+    at_level u8,
+    CHECK (num_nonnulls(race_key, subrace_key, class_level_id, mythic_rank_id, option_level_id) = 1),
     CHECK ((kind = 'category') = (category IS NOT NULL)),
     CHECK ((kind = 'one_of') = (feat_list_key IS NOT NULL)),
-    CHECK ((kind = 'option_list') = (selection_key IS NOT NULL))
+    CHECK ((kind = 'option_list') = (selection_key IS NOT NULL)),
+    CHECK (at_level IS NULL OR kind = 'option_list')
 );
 
 -- Prerequisite references, now that every referenced table exists. ----------------------------
@@ -781,4 +793,8 @@ ALTER TABLE class_counts_as
 
 ALTER TABLE feature
     ADD FOREIGN KEY (option_row_selection_key) REFERENCES feature_selection (key)
+        DEFERRABLE INITIALLY DEFERRED;
+
+ALTER TABLE feature_selection
+    ADD FOREIGN KEY (level_also_from_key) REFERENCES selection_option (key)
         DEFERRABLE INITIALLY DEFERRED;

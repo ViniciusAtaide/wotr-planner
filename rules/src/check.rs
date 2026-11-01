@@ -12,7 +12,8 @@ use std::fmt;
 use crate::engine::{BASE_LEVEL_CAP, PATH_CHOICE_RANK, PATH_SWITCH_RANK};
 use crate::game_data::{
     Advancement, Archetype, Class, ClassLevelRow, CountsToward, FeatList, FeatSlot, FeatValue,
-    Feature, FeatureSelection, GameData, MythicPath, Save, SelectionOption, WeaponProficiency,
+    Feature, FeatureSelection, GameData, LevelFrom, MythicPath, Save, SelectionOption,
+    WeaponProficiency,
 };
 use crate::keys::{
     ArchetypeKey, ClassKey, FeatKey, FeatListKey, FeatureKey, FeatureSelectionKey,
@@ -211,6 +212,9 @@ pub enum DataIssue {
     OptionRowsWithoutLevels(SelectionOptionKey),
     /// A selection naming both classes whose levels make the option level and another source of it.
     LevelFromWithClasses,
+    /// An option whose level counts beside the other options held (`level_also_from`) on a selection not levelled
+    /// by the other options held.
+    LevelAlsoFromWithoutOtherOptions,
     /// An option's arcana that none of its rows grants.
     ArcanaNotInRows(FeatureKey),
     /// A prerequisite that looks at the pick (`NoOtherOptionOfGroup`, `PickedThrough`) outside a selection
@@ -350,6 +354,9 @@ impl fmt::Display for DataProblem {
             DataIssue::LevelFromWithClasses => f.write_str(
                 "names classes whose levels make the option level and another source of it",
             ),
+            DataIssue::LevelAlsoFromWithoutOtherOptions => f.write_str(
+                "names an option whose level counts beside the other options held, but isn't levelled by them",
+            ),
             DataIssue::ArcanaNotInRows(feature) => {
                 write!(f, "its arcana {feature} isn't granted by any of its rows")
             }
@@ -393,7 +400,10 @@ impl GameData {
             check.owned(race.key.as_str(), &[], &[], &race.feat_lists);
             check.no_bonus_list(&at, &race.feat_slots, Some(race.key.as_str()));
             for subrace in &race.subraces {
-                check.key(&DataAt::Subrace(subrace.key.clone()));
+                let at = DataAt::Subrace(subrace.key.clone());
+                check.key(&at);
+                // A subrace's slots replace the race's, so they may name the race's own lists.
+                check.no_bonus_list(&at, &subrace.feat_slots, Some(race.key.as_str()));
             }
         }
         for skill in &self.skills {
@@ -763,6 +773,11 @@ impl Checker {
             }
             if selection.level_from.is_some() && !selection.option_levels.is_empty() {
                 self.problem(&selection_at, DataIssue::LevelFromWithClasses);
+            }
+            if selection.level_also_from.is_some()
+                && selection.level_from != Some(LevelFrom::OtherOptions)
+            {
+                self.problem(&selection_at, DataIssue::LevelAlsoFromWithoutOtherOptions);
             }
         }
     }

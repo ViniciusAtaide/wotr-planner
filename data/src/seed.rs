@@ -5,7 +5,8 @@ use std::collections::{BTreeMap, BTreeSet};
 use rules::{
     AbilityBonus, AbilityModifier, Archetype, ArchetypeLevelRow, Class, ClassLevelRow,
     CountsToward, FeatKey, FeatList, FeatListKey, FeatSlot, FeatValue, Feature, FeatureKey,
-    FeatureSelection, FeatureSelectionKey, GameData, MythicPath, Race, SkillKey,
+    FeatureSelection, FeatureSelectionKey, GameData, MythicPath, Race, SelectionOptionKey,
+    SkillKey,
 };
 use sqlx::PgConnection;
 
@@ -196,6 +197,12 @@ async fn insert_race(conn: &mut PgConnection, race: &Race) -> Result<(), sqlx::E
             None,
             Some(subrace.key.as_str()),
             &subrace.ability_modifiers,
+        )
+        .await?;
+        insert_feat_slots(
+            conn,
+            SlotOwner::Subrace(subrace.key.as_str()),
+            &subrace.feat_slots,
         )
         .await?;
     }
@@ -450,8 +457,9 @@ async fn insert_selections(
         sqlx::query!(
             "INSERT INTO feature_selection
                 (key, class_key, archetype_key, path_key, name, summary, guide, feat_lists_only,
-                only_without_option, pool_of_key, levels_behind, level_from, once_per_option)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)",
+                only_without_option, pool_of_key, levels_behind, level_from, level_also_from_key,
+                once_per_option)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)",
             selection.key.as_str(),
             class_key,
             archetype_key,
@@ -464,6 +472,10 @@ async fn insert_selections(
             selection.pool_of.as_ref().map(FeatureSelectionKey::as_str),
             i16::from(selection.levels_behind),
             selection.level_from.map(level_from_text),
+            selection
+                .level_also_from
+                .as_ref()
+                .map(SelectionOptionKey::as_str),
             selection.once_per_option,
         )
         .execute(&mut *conn)
@@ -807,6 +819,7 @@ async fn insert_mythic_path(conn: &mut PgConnection, path: &MythicPath) -> Resul
 #[derive(Clone, Copy)]
 enum SlotOwner<'a> {
     Race(&'a str),
+    Subrace(&'a str),
     ClassLevel(i64),
     MythicRank(i64),
     OptionLevel(i64),
@@ -817,6 +830,7 @@ enum SlotOwner<'a> {
 #[derive(Default)]
 struct OwnerColumns<'a> {
     race_key: Option<&'a str>,
+    subrace_key: Option<&'a str>,
     class_level_id: Option<i64>,
     mythic_rank_id: Option<i64>,
     option_level_id: Option<i64>,
@@ -828,6 +842,10 @@ impl<'a> SlotOwner<'a> {
         match self {
             Self::Race(key) => OwnerColumns {
                 race_key: Some(key),
+                ..OwnerColumns::default()
+            },
+            Self::Subrace(key) => OwnerColumns {
+                subrace_key: Some(key),
                 ..OwnerColumns::default()
             },
             Self::ClassLevel(id) => OwnerColumns {
@@ -907,29 +925,37 @@ async fn insert_feat_slots(
 ) -> Result<(), sqlx::Error> {
     let columns = owner.columns();
     for slot in slots.iter() {
-        let (kind, category, list, selection) = match slot {
-            FeatSlot::General => (FeatSlotKind::General, None, None, None),
-            FeatSlot::CombatFeat => (FeatSlotKind::CombatFeat, None, None, None),
+        let (kind, category, list, selection, at_level) = match slot {
+            FeatSlot::General => (FeatSlotKind::General, None, None, None, None),
+            FeatSlot::CombatFeat => (FeatSlotKind::CombatFeat, None, None, None, None),
             FeatSlot::Category(category) => (
                 FeatSlotKind::Category,
                 Some(feat_category_text(*category)),
                 None,
                 None,
+                None,
             ),
-            FeatSlot::OneOf { list } => (FeatSlotKind::OneOf, None, Some(list.as_str()), None),
-            FeatSlot::OptionList { selection } => (
+            FeatSlot::OneOf { list } => {
+                (FeatSlotKind::OneOf, None, Some(list.as_str()), None, None)
+            }
+            FeatSlot::OptionList {
+                selection,
+                at_level,
+            } => (
                 FeatSlotKind::OptionList,
                 None,
                 None,
                 Some(selection.as_str()),
+                at_level.map(i16::from),
             ),
         };
         sqlx::query!(
             "INSERT INTO feat_slot
-                (race_key, class_level_id, mythic_rank_id, option_level_id, kind, category,
-                feat_list_key, selection_key)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+                (race_key, subrace_key, class_level_id, mythic_rank_id, option_level_id, kind,
+                category, feat_list_key, selection_key, at_level)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
             columns.race_key,
+            columns.subrace_key,
             columns.class_level_id,
             columns.mythic_rank_id,
             columns.option_level_id,
@@ -937,6 +963,7 @@ async fn insert_feat_slots(
             category,
             list,
             selection,
+            at_level,
         )
         .execute(&mut *conn)
         .await?;

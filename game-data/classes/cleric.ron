@@ -130,6 +130,7 @@ Class(
                     key: "cleric/domain/chaos",
                     name: "Chaos Domain",
                     guide: "character-creation#chaos-domain",
+                    prerequisite: Any([Not(PickedThrough("cleric/separatist/domain")), Alignment(NeutralGood), Alignment(ChaoticGood), Alignment(TrueNeutral), Alignment(ChaoticNeutral), Alignment(NeutralEvil), Alignment(ChaoticEvil)]),
                     levels: [
                         (level: 1, features: ["cleric/domain/chaos/touch-of-chaos"]),
                         (level: 8, features: ["cleric/domain/chaos/chaos-blade"]),
@@ -193,6 +194,7 @@ Class(
                     key: "cleric/domain/evil",
                     name: "Evil Domain",
                     guide: "character-creation#evil-domain",
+                    prerequisite: Any([Not(PickedThrough("cleric/separatist/domain")), Alignment(LawfulNeutral), Alignment(TrueNeutral), Alignment(ChaoticNeutral), Alignment(LawfulEvil), Alignment(NeutralEvil), Alignment(ChaoticEvil)]),
                     levels: [
                         (level: 1, features: ["cleric/domain/evil/touch-of-evil"]),
                         (level: 8, features: ["cleric/domain/evil/scythe-of-evil"]),
@@ -220,6 +222,7 @@ Class(
                     key: "cleric/domain/good",
                     name: "Good Domain",
                     guide: "character-creation#good-domain",
+                    prerequisite: Any([Not(PickedThrough("cleric/separatist/domain")), Alignment(LawfulGood), Alignment(NeutralGood), Alignment(ChaoticGood), Alignment(LawfulNeutral), Alignment(TrueNeutral), Alignment(ChaoticNeutral)]),
                     levels: [
                         (level: 1, features: ["cleric/domain/good/touch-of-good"]),
                         (level: 8, features: ["cleric/domain/good/holy-lance"]),
@@ -256,6 +259,7 @@ Class(
                     key: "cleric/domain/law",
                     name: "Law Domain",
                     guide: "character-creation#law-domain",
+                    prerequisite: Any([Not(PickedThrough("cleric/separatist/domain")), Alignment(LawfulGood), Alignment(NeutralGood), Alignment(LawfulNeutral), Alignment(TrueNeutral), Alignment(LawfulEvil), Alignment(NeutralEvil)]),
                     levels: [
                         (level: 1, features: ["cleric/domain/law/touch-of-law"]),
                         (level: 8, features: ["cleric/domain/law/staff-of-order"]),
@@ -439,6 +443,7 @@ Class(
             name: "Impossible Domain",
             guide: "mythic-paths#impossible-domain",
             level_from: OtherOptions,
+            level_also_from: "arcanist/magic-deceiver/ways-of-the-deceiver/living-deity",
             options: [],
             shared_options: [
                 "cleric/domain/air",

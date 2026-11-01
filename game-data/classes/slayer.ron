@@ -47,7 +47,7 @@ Class(
                     guide: "slayer#slayer-talents",
                     prerequisite: ClassLevel(class: "slayer", level: 10),
                     levels: [
-                        (level: 1, feat_slots: [OptionList(selection: "slayer/combat-style")], selections: ["slayer/combat-style"]),
+                        (level: 1, feat_slots: [OptionList(selection: "slayer/combat-style", at_level: 10)], selections: ["slayer/combat-style"]),
                     ],
                 ),
                 (
@@ -56,7 +56,7 @@ Class(
                     guide: "slayer#slayer-talents",
                     prerequisite: Not(ClassLevel(class: "slayer", level: 6)),
                     levels: [
-                        (level: 1, feat_slots: [OptionList(selection: "slayer/combat-style")], selections: ["slayer/combat-style"]),
+                        (level: 1, feat_slots: [OptionList(selection: "slayer/combat-style", at_level: 2)], selections: ["slayer/combat-style"]),
                     ],
                 ),
                 (
@@ -65,7 +65,7 @@ Class(
                     guide: "slayer#slayer-talents",
                     prerequisite: All([Not(ClassLevel(class: "slayer", level: 10)), ClassLevel(class: "slayer", level: 6)]),
                     levels: [
-                        (level: 1, feat_slots: [OptionList(selection: "slayer/combat-style")], selections: ["slayer/combat-style"]),
+                        (level: 1, feat_slots: [OptionList(selection: "slayer/combat-style", at_level: 6)], selections: ["slayer/combat-style"]),
                     ],
                 ),
                 (key: "slayer/slayer-talents/slayer-camouflage", name: "Slayer Camouflage", guide: "slayer#slayer-camouflage", prerequisite: All([Feature(feature: "slayer/advanced-talents", count: 1), SelectionOption("rogue/rogue-talents/terrain-mastery")])),

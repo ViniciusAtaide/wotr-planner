@@ -24,6 +24,7 @@ Class(
             key: "hellknight-signifer/order",
             name: "Order",
             guide: "prestige-classes#order-hellknight-signifer",
+            only_without_option: true,
             options: [],
             shared_options: [
                 "fighter/armiger/order/order-of-the-chain",

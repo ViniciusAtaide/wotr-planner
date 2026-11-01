@@ -40,6 +40,18 @@
         feat_lists: [
             (key: "half-elf/adaptability", name: "Adaptability", guide: "character-creation#half-elf", ignores_prerequisites: true, feats: ["skill-focus"]),
         ],
+        // Ticket 35: a subrace's slots replace the race's. Dual Heritage has none; an invented one names the race's
+        // list.
+        subraces: [
+            (key: "half-elf/dual-heritage", name: "Half-Elf (Dual Heritage)", guide: "character-creation#half-elf-dual-heritage", ability_modifiers: [Chosen(amount: 2)]),
+            (
+                key: "half-elf/adaptable",
+                name: "Half-Elf (Adaptable)",
+                guide: "character-creation#half-elf",
+                ability_modifiers: [Chosen(amount: 2)],
+                feat_slots: [OneOf(list: "half-elf/adaptability")],
+            ),
+        ],
     ),
     (
         key: "dwarf",

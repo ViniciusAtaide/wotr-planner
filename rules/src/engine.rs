@@ -695,7 +695,10 @@ impl Engine {
     fn slot_lists(&self, slot: &FeatSlot, state: &CharacterState) -> Vec<&FeatList> {
         match slot {
             FeatSlot::OneOf { list } => self.feat_list(list).into_iter().collect(),
-            FeatSlot::OptionList { selection } => {
+            FeatSlot::OptionList {
+                selection,
+                at_level: None,
+            } => {
                 let Some(selection) = self.selection(selection) else {
                     return Vec::new();
                 };
@@ -704,6 +707,30 @@ impl Engine {
                     .iter()
                     .filter(|(option, _)| selection.offers(option))
                     .filter_map(|(_, list)| self.feat_list(list))
+                    .collect()
+            }
+            // The list in force at that option level of each option held that the selection offers.
+            FeatSlot::OptionList {
+                selection,
+                at_level: Some(level),
+            } => {
+                let Some(selection) = self.selection(selection) else {
+                    return Vec::new();
+                };
+                state
+                    .selection_options
+                    .keys()
+                    .filter(|option| selection.offers(option))
+                    .filter_map(|option| self.option(option))
+                    .filter_map(|option| {
+                        option
+                            .levels
+                            .iter()
+                            .filter(|row| row.level <= *level)
+                            .filter_map(|row| row.feat_list.as_ref())
+                            .next_back()
+                    })
+                    .filter_map(|list| self.feat_list(list))
                     .collect()
             }
             _ => Vec::new(),
@@ -1683,10 +1710,8 @@ impl<'a> Walker<'a> {
         slots.extend(pools);
         slots.extend(class_slots);
         slots.extend(option_lists);
-        if level == 1
-            && let Some(race) = self.state.race.as_ref().and_then(|key| engine.race(key))
-        {
-            for (index, slot) in race.feat_slots.iter().enumerate() {
+        if level == 1 {
+            for (index, slot) in self.race_slots().iter().enumerate() {
                 slots.push((SlotKind::Feat(slot.clone()), feat(FeatSource::Race, index)));
             }
         }
@@ -1697,6 +1722,24 @@ impl<'a> Walker<'a> {
             ));
         }
         slots
+    }
+
+    /// The race's feat slots at level 1, or its subrace's in their place (a Dual Heritage half-elf has none).
+    fn race_slots(&self) -> &'a [FeatSlot] {
+        let engine = self.engine;
+        let Some(race) = self.state.race.as_ref().and_then(|key| engine.race(key)) else {
+            return &[];
+        };
+        let subrace = self
+            .build
+            .start
+            .subrace
+            .as_ref()
+            .and_then(|key| race.subraces.iter().find(|subrace| &subrace.key == key));
+        match subrace {
+            Some(subrace) => &subrace.feat_slots,
+            None => &race.feat_slots,
+        }
     }
 
     /// Settles the Feature selection slots in `slots` before they're filled: a selection granted only to a
@@ -1837,11 +1880,16 @@ impl<'a> Walker<'a> {
             None => selection.option_levels.iter().fold(0u8, |sum, class| {
                 sum.saturating_add(self.state.class_level(class))
             }),
-            // The highest level of the other options held that it offers (themselves levelled by their classes).
+            // The highest level of the other options held that it offers (themselves levelled by their classes),
+            // and of the option that counts beside them (a Living Deity's way).
             Some(LevelFrom::OtherOptions) => self
                 .holdings
                 .iter()
-                .filter(|other| other.option != holding.option && selection.offers(&other.option))
+                .filter(|other| {
+                    other.option != holding.option
+                        && (selection.offers(&other.option)
+                            || selection.level_also_from.as_ref() == Some(&other.option))
+                })
                 .filter(|other| {
                     self.engine
                         .selection(&other.selection)

@@ -161,6 +161,9 @@ pub fn extract(guide: &Guide) -> Extraction {
     // The user's decisions on tickets 30-31's options (ticket 33), on the finished data. It settles no item of an
     // extraction's report (the hand-kept report's Signifer order item goes).
     crate::option_follow_ups::apply(guide, &mut data);
+    // The user's decisions on tickets 32-33's open questions (ticket 35), on the finished data. It settles no item
+    // of an extraction's report.
+    crate::second_follow_ups::apply(guide, &mut data);
     for problem in data.check() {
         builder.report.add_about(
             Kind::Cell,
@@ -1140,6 +1143,7 @@ impl<'g> Builder<'g> {
             levels_behind: 0,
             level_from: None,
             once_per_option: false,
+            level_also_from: None,
         };
         self.add_options(page, heading, &mut selection, Some(class), extra);
         selection
@@ -1643,6 +1647,7 @@ impl<'g> Builder<'g> {
                     levels_behind: 0,
                     level_from: None,
                     once_per_option: false,
+                    level_also_from: None,
                 };
                 self.add_options(page, candidate, &mut selection, None, Vec::new());
                 selections.push(selection);
@@ -1860,6 +1865,7 @@ fn subrace(
         summary: String::new(),
         guide: GuideRef::new(page.guide(&entry.anchor)),
         ability_modifiers: modifiers,
+        feat_slots: vec![],
     }
 }
 

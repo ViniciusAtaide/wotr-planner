@@ -683,10 +683,11 @@ fn reads_options_with_rows_by_option_level_and_defaults_them() {
         [FeatureSelectionKey::new("sorcerer/school")]
     );
     assert_eq!(
-        sorcerer.levels[2].feat_slots,
-        [FeatSlot::OptionList {
-            selection: FeatureSelectionKey::new("sorcerer/bloodline")
-        }]
+        sorcerer.levels[2].feat_slots[0],
+        FeatSlot::OptionList {
+            selection: FeatureSelectionKey::new("sorcerer/bloodline"),
+            at_level: None,
+        }
     );
     let ascendance = sorcerer
         .features
@@ -978,4 +979,70 @@ fn reads_option_groups_arcanas_level_sources_and_picks_through_and_defaults_them
             .collect::<Vec<_>>(),
         ["sorcerer/power/surge"]
     );
+}
+
+#[test]
+fn reads_subrace_slots_option_list_stages_and_options_levelled_alongside_and_defaults_them() {
+    let data = read_fixture();
+    // A subrace's own slots, naming its race's list; another with none.
+    let half_elf = data
+        .races
+        .iter()
+        .find(|r| r.key.as_str() == "half-elf")
+        .unwrap();
+    let subrace = |key: &str| {
+        half_elf
+            .subraces
+            .iter()
+            .find(|s| s.key.as_str() == key)
+            .unwrap()
+    };
+    assert_eq!(
+        subrace("half-elf/adaptable").feat_slots,
+        [FeatSlot::OneOf {
+            list: FeatListKey::new("half-elf/adaptability")
+        }]
+    );
+    assert_eq!(subrace("half-elf/dual-heritage").feat_slots, []);
+    assert!(
+        data.races
+            .iter()
+            .flat_map(|r| &r.subraces)
+            .filter(|s| s.key.as_str() != "half-elf/adaptable")
+            .all(|s| s.feat_slots.is_empty())
+    );
+    // An option list slot fixed at an option level, beside one that follows the option's level.
+    let sorcerer = data
+        .classes
+        .iter()
+        .find(|c| c.key.as_str() == "sorcerer")
+        .unwrap();
+    let bloodline = FeatureSelectionKey::new("sorcerer/bloodline");
+    assert_eq!(
+        sorcerer.levels[2].feat_slots,
+        [
+            FeatSlot::OptionList {
+                selection: bloodline.clone(),
+                at_level: None,
+            },
+            FeatSlot::OptionList {
+                selection: bloodline,
+                at_level: Some(1),
+            },
+        ]
+    );
+    // An option counting beside the other options held.
+    let selection = |key: &str| {
+        sorcerer
+            .selections
+            .iter()
+            .chain(sorcerer.archetypes.iter().flat_map(|a| &a.selections))
+            .find(|s| s.key.as_str() == key)
+            .unwrap()
+    };
+    assert_eq!(
+        selection("sorcerer/abyssal-powers").level_also_from,
+        Some(SelectionOptionKey::new("sorcerer/seeker/choice/power"))
+    );
+    assert_eq!(selection("sorcerer/bloodline").level_also_from, None);
 }

@@ -126,6 +126,8 @@ text_column!(Story, story_from, story_text {
 text_column!(OptionGroup, option_group_from, option_group_text {
     Draconic => "draconic",
     Elemental => "elemental",
+    BloodragerDraconic => "bloodrager_draconic",
+    BloodragerElemental => "bloodrager_elemental",
 });
 
 text_column!(LevelFrom, level_from_from, level_from_text {

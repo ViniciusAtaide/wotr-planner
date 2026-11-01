@@ -166,6 +166,7 @@ pub fn nature_bond(data: &mut GameData) {
         levels_behind: 0,
         level_from: None,
         once_per_option: false,
+        level_also_from: None,
     });
 
     // Boon Companion and Mythical Beast: "Animal Companion".

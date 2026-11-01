@@ -8,9 +8,9 @@ use std::collections::BTreeSet;
 
 use rules::{
     Advancement, Archetype, ArchetypeLevelRow, Class, ClassLevelRow, Feat, FeatKey, FeatList,
-    FeatValue, Feature, FeatureSelection, GameData, MythicAbility, MythicFeat, MythicPath,
-    MythicRankRow, OptionLevelRow, PathSwitch, Prerequisite, Race, Repeat, SelectionOption, Skill,
-    Weapon,
+    FeatSlot, FeatValue, Feature, FeatureSelection, GameData, MythicAbility, MythicFeat,
+    MythicPath, MythicRankRow, OptionLevelRow, PathSwitch, Prerequisite, Race, Repeat,
+    SelectionOption, Skill, Weapon,
 };
 use serde::Serialize;
 
@@ -147,6 +147,28 @@ impl Fields {
         self
     }
 
+    /// Feat slots, when there are any; an option list slot's fixed option level is a plain number, as the files
+    /// read an option (`at_level: 2`).
+    fn slots(&mut self, name: &str, slots: &[FeatSlot]) -> &mut Self {
+        if !slots.is_empty() {
+            let slots: Vec<String> = slots
+                .iter()
+                .map(|slot| match slot {
+                    FeatSlot::OptionList {
+                        selection,
+                        at_level: Some(level),
+                    } => format!(
+                        "OptionList(selection: {}, at_level: {level})",
+                        inline(selection)
+                    ),
+                    _ => inline(slot),
+                })
+                .collect();
+            self.0.push(format!("{name}: [{}]", slots.join(", ")));
+        }
+        self
+    }
+
     /// Feats granted for a value, when there are any.
     fn values(&mut self, name: &str, values: &BTreeSet<FeatValue>) -> &mut Self {
         if !values.is_empty() {
@@ -261,6 +283,7 @@ fn race(race: &Race) -> String {
                 .text("summary", &sub.summary)
                 .field("guide", &sub.guide)
                 .items("ability_modifiers", &sub.ability_modifiers)
+                .slots("feat_slots", &sub.feat_slots)
                 .line()
         })
         .collect();
@@ -271,7 +294,7 @@ fn race(race: &Race) -> String {
         .text("summary", &race.summary)
         .field("guide", &race.guide)
         .items("ability_modifiers", &race.ability_modifiers)
-        .items("feat_slots", &race.feat_slots);
+        .slots("feat_slots", &race.feat_slots);
     let lists = nested(
         "feat_lists",
         8,
@@ -439,7 +462,7 @@ fn option_level_row(row: &OptionLevelRow) -> String {
         .items("features", &row.features)
         .set("feats", &row.feats)
         .set("chosen_feats", &row.chosen_feats)
-        .items("feat_slots", &row.feat_slots)
+        .slots("feat_slots", &row.feat_slots)
         .items("selections", &row.selections);
     if let Some(list) = &row.feat_list {
         fields.field("feat_list", list);
@@ -489,6 +512,9 @@ fn selections(indent: usize, selections: &[FeatureSelection]) -> String {
         if let Some(level_from) = &selection.level_from {
             fields.field("level_from", level_from);
         }
+        if let Some(option) = &selection.level_also_from {
+            fields.field("level_also_from", option);
+        }
         fields.flag("once_per_option", selection.once_per_option);
         let options = selection
             .options
@@ -525,7 +551,7 @@ fn level_row(row: &ClassLevelRow) -> String {
         .items("features", &row.features)
         .set("feats", &row.feats)
         .values("feats_for", &row.feats_for)
-        .items("feat_slots", &row.feat_slots)
+        .slots("feat_slots", &row.feat_slots)
         .items("selections", &row.selections)
         .line()
 }
@@ -541,7 +567,7 @@ fn archetype_level_row(row: &ArchetypeLevelRow) -> String {
         .items("features", &row.features)
         .set("feats", &row.feats)
         .values("feats_for", &row.feats_for)
-        .items("feat_slots", &row.feat_slots)
+        .slots("feat_slots", &row.feat_slots)
         .items("selections", &row.selections)
         .line()
 }
@@ -551,7 +577,7 @@ fn rank_row(row: &MythicRankRow) -> String {
     fields.0.push(format!("rank: {}", row.rank));
     fields
         .items("features", &row.features)
-        .items("feat_slots", &row.feat_slots)
+        .slots("feat_slots", &row.feat_slots)
         .items("selections", &row.selections)
         .line()
 }

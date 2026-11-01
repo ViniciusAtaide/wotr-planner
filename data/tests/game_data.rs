@@ -1342,7 +1342,8 @@ fn a_sorcerer_picks_the_bloodlines_feats_at_7_13_and_19() {
         assert_eq!(
             slot.kind,
             SlotKind::Feat(FeatSlot::OptionList {
-                selection: rules::FeatureSelectionKey::new("sorcerer/bloodline")
+                selection: rules::FeatureSelectionKey::new("sorcerer/bloodline"),
+                at_level: None,
             })
         );
     }
@@ -2714,7 +2715,7 @@ fn a_living_deity_with_impossible_domain_holds_a_third_domain() {
             "{domain}"
         );
     }
-    // Levelled like the other domains: the arcanist's 20.
+    // Levelled by arcanist levels (ticket 35): 20 here.
     assert!(holds(&twenty, "cleric/domain/nobility/inspiring-command"));
     // A cleric's third domain runs on cleric levels.
     let cleric = with_mythic_selection(
@@ -2904,4 +2905,297 @@ fn a_slayer_who_picked_archery_cant_take_two_weapon_fighting_through_a_combat_st
         .picks
         .insert(feat_slot(6), Pick::feat(FeatKey::new("manyshot")));
     assert_eq!(problems(&slayer), []);
+}
+
+// ---- second follow-ups (ticket 35) ----------------------------------------------------------------------------
+
+#[test]
+fn a_dual_heritage_or_kindred_raised_half_elf_has_no_adaptability_pick() {
+    let half_elf = |subrace: Option<&str>| {
+        let mut build = build("fighter", 1);
+        build.start.race = Some(rules::RaceKey::new("half-elf"));
+        build.start.subrace = subrace.map(rules::SubraceKey::new);
+        build
+    };
+    let race_slots = |build: &Build| {
+        engine().evaluate(build).levels[0]
+            .slots
+            .iter()
+            .filter(|slot| slot.id == race_slot())
+            .count()
+    };
+    assert_eq!(race_slots(&half_elf(None)), 1);
+    for subrace in ["half-elf/dual-heritage", "half-elf/kindred-raised"] {
+        assert_eq!(race_slots(&half_elf(Some(subrace))), 0, "{subrace}");
+    }
+    // No subrace in the data has slots of its own: the guide lists none.
+    assert!(
+        DATA.races
+            .iter()
+            .flat_map(|race| &race.subraces)
+            .all(|subrace| subrace.feat_slots.is_empty())
+    );
+}
+
+/// A Living Deity with the Battle mystery and the Plagued curse, arcanist `levels` (below 20: no domains of its
+/// own yet), with Impossible Domain's Nobility domain at MR 1 (character level 6).
+fn living_deity_with_impossible_domain(levels: usize) -> Build {
+    let build = archetype_build("arcanist", "arcanist/magic-deceiver", levels);
+    let build = with_option(
+        build,
+        1,
+        0,
+        "arcanist/magic-deceiver/ways-of-the-deceiver/living-deity",
+    );
+    let build = with_pick(build, option_slot(1, 0), "oracle/mystery/battle");
+    let build = with_pick(build, option_slot(1, 2), "oracle/oracles-curse/plagued");
+    with_mythic_selection(build, "impossible-domain", "cleric/domain/nobility")
+}
+
+#[test]
+fn a_living_deity_with_impossible_domain_holds_the_domains_level_1_power_before_arcanist_20() {
+    let build = living_deity_with_impossible_domain(8);
+    assert_eq!(problems(&build), []);
+    // Arcanist levels from the pick: its 1st-level power at 6, its 8th-level one at 8.
+    from_level(&build, 6, "cleric/domain/nobility/inspiring-word");
+    from_level(&build, 8, "cleric/domain/nobility/inspiring-command");
+    assert_eq!(
+        at(&build, 8).option_level(&SelectionOptionKey::new("cleric/domain/nobility")),
+        8
+    );
+}
+
+/// Fighter 6, then Hellknight 3 (lawful neutral, with the entry's skill ranks): the Order of the Godclaw at
+/// Hellknight 1, Pentamic Faith's Law domain at 3 (character level 9, Mythic rank 3).
+fn pentamic_hellknight() -> Build {
+    let mut build = classes(&[
+        "fighter",
+        "fighter",
+        "fighter",
+        "fighter",
+        "fighter",
+        "fighter",
+        "hellknight",
+        "hellknight",
+        "hellknight",
+    ]);
+    build.start.alignment = Some(rules::Alignment::LawfulNeutral);
+    for (level, ranks) in build.levels.iter_mut().zip([
+        [("knowledge-arcana", 1), ("persuasion", 1)],
+        [("knowledge-arcana", 1), ("persuasion", 1)],
+        [("persuasion", 1), ("perception", 1)],
+        [("persuasion", 1), ("perception", 1)],
+        [("persuasion", 1), ("perception", 1)],
+    ]) {
+        level.skill_ranks = ranks
+            .into_iter()
+            .map(|(skill, ranks)| (SkillKey::new(skill), ranks))
+            .collect();
+    }
+    let build = with_option(build, 7, 0, "fighter/armiger/order/order-of-the-godclaw");
+    let build = with_option(build, 9, 0, "hellknight/disciplines/pentamic-faith");
+    with_pick(build, option_slot(9, 0), "cleric/domain/law")
+}
+
+#[test]
+fn a_hellknight_3_with_pentamic_faiths_domain_can_take_impossible_domain() {
+    let build = pentamic_hellknight();
+    assert_eq!(problems(&build), []);
+    let mythic = SlotId::Mythic { rank: 3 };
+    let status = engine()
+        .options(&build, &mythic)
+        .unwrap()
+        .into_iter()
+        .find(|option| option.pick.key() == "impossible-domain")
+        .map(|option| option.status);
+    assert_eq!(status, Some(Ok(())));
+    // Its domain runs on Hellknight levels, like the Pentamic Faith domain.
+    let mut build = build;
+    build.picks.insert(
+        mythic,
+        Pick::MythicAbility(rules::MythicAbilityKey::new("impossible-domain")),
+    );
+    build.picks.insert(
+        SlotId::MythicSelection { rank: 3, index: 0 },
+        pick("cleric/domain/war"),
+    );
+    assert_eq!(problems(&build), []);
+    let nine = at(&build, 9);
+    assert_eq!(
+        nine.option_level(&SelectionOptionKey::new("cleric/domain/war")),
+        3
+    );
+    assert!(holds(&nine, "cleric/domain/war/battle-rage"));
+}
+
+#[test]
+fn a_hellknight_who_becomes_a_signifer_gets_no_second_order() {
+    let order_slots = |build: &Build, level: u8| {
+        engine().evaluate(build).levels[usize::from(level) - 1]
+            .slots
+            .iter()
+            .filter(|slot| {
+                matches!(&slot.kind, SlotKind::Selection(s) if s.as_str() == "hellknight-signifer/order")
+            })
+            .count()
+    };
+    let mut hellknight = with_option(
+        classes(&[
+            "fighter",
+            "fighter",
+            "fighter",
+            "fighter",
+            "fighter",
+            "fighter",
+            "hellknight",
+            "hellknight-signifer",
+        ]),
+        7,
+        0,
+        "fighter/armiger/order/order-of-the-chain",
+    );
+    hellknight.start.alignment = Some(rules::Alignment::LawfulNeutral);
+    assert_eq!(order_slots(&hellknight, 8), 0);
+    // Anyone holding no order picks one.
+    let mut wizard = classes(&[
+        "wizard",
+        "wizard",
+        "wizard",
+        "wizard",
+        "wizard",
+        "hellknight-signifer",
+    ]);
+    wizard.start.alignment = Some(rules::Alignment::LawfulNeutral);
+    assert_eq!(order_slots(&wizard, 6), 1);
+}
+
+#[test]
+fn a_lawful_good_separatist_cant_take_chaos_or_evil_as_his_second_domain() {
+    let separatist = |alignment: rules::Alignment, domain: &str| {
+        let mut build = with_option(
+            with_option(
+                archetype_build("cleric", "cleric/separatist", 1),
+                1,
+                0,
+                "cleric/domain/fire",
+            ),
+            1,
+            1,
+            &format!("cleric/domain/{domain}"),
+        );
+        build.start.alignment = Some(alignment);
+        problems(&build).len()
+    };
+    let lawful_good = rules::Alignment::LawfulGood;
+    assert_eq!(separatist(lawful_good, "chaos"), 1);
+    assert_eq!(separatist(lawful_good, "evil"), 1);
+    assert_eq!(separatist(lawful_good, "good"), 0);
+    assert_eq!(separatist(lawful_good, "law"), 0);
+    // A true neutral has none that conflicts; a chaotic evil can't take Law or Good.
+    for domain in ["chaos", "evil", "good", "law"] {
+        assert_eq!(
+            separatist(rules::Alignment::TrueNeutral, domain),
+            0,
+            "{domain}"
+        );
+    }
+    assert_eq!(separatist(rules::Alignment::ChaoticEvil, "law"), 1);
+    assert_eq!(separatist(rules::Alignment::ChaoticEvil, "good"), 1);
+    // His first domain, a cleric's, isn't checked against it here.
+    let mut first = with_option(
+        archetype_build("cleric", "cleric/separatist", 1),
+        1,
+        0,
+        "cleric/domain/chaos",
+    );
+    first.start.alignment = Some(lawful_good);
+    assert_eq!(problems(&first), []);
+}
+
+#[test]
+fn a_ranger_10_slayer_2_takes_the_slayers_2_or_4_feat_from_the_first_stage() {
+    let mut keys = vec!["ranger"; 10];
+    keys.extend(["slayer", "slayer"]);
+    let build = with_option(
+        classes(&keys),
+        2,
+        0,
+        "ranger/combat-style-feat/archery-feats",
+    );
+    let build = with_option(build, 12, 0, "slayer/slayer-talents/combat-style-feat-2");
+    // One shared style: the slayer picks none.
+    assert!(
+        engine()
+            .evaluate(&build)
+            .slot(&option_slot(12, 0))
+            .is_none()
+    );
+    let feat_slot = SlotId::OptionFeat {
+        level: 12,
+        index: 0,
+    };
+    let offered = feats_offered(&build, &feat_slot);
+    assert!(offered.contains("rapid-shot"), "{offered:?}");
+    assert!(
+        !offered.contains("manyshot") && !offered.contains("improved-critical"),
+        "{offered:?}"
+    );
+    // The ranger's own slot at 10 is the style's 10th-level list.
+    assert!(
+        feats_offered(
+            &build,
+            &SlotId::Feat {
+                level: 10,
+                source: FeatSource::Class,
+                index: 0,
+            }
+        )
+        .contains("improved-critical")
+    );
+}
+
+#[test]
+fn a_bloodrager_with_a_dragon_bloodline_cant_take_a_second_dragon_through_second_bloodline() {
+    let second = |first: &str| {
+        let mut build = with_option(
+            build("bloodrager", 6),
+            1,
+            0,
+            &format!("bloodrager/bloodline/{first}"),
+        );
+        build.picks.insert(
+            SlotId::Mythic { rank: 1 },
+            Pick::MythicAbility(rules::MythicAbilityKey::new("second-bloodrager-bloodline")),
+        );
+        let options: HashMap<String, Result<(), Issue>> = engine()
+            .options(&build, &SlotId::MythicSelection { rank: 1, index: 0 })
+            .unwrap()
+            .into_iter()
+            .map(|SlotOption { pick, status }| (pick.key().to_owned(), status))
+            .collect();
+        options
+    };
+    let red = second("draconic-red");
+    assert_eq!(
+        red["bloodrager/bloodline/draconic-blue"],
+        Err(one_of_group(rules::OptionGroup::BloodragerDraconic))
+    );
+    assert_eq!(red["bloodrager/bloodline/abyssal"], Ok(()));
+    assert_eq!(red["bloodrager/bloodline/elemental-fire"], Ok(()));
+    let air = second("elemental-air");
+    assert_eq!(
+        air["bloodrager/bloodline/elemental-fire"],
+        Err(one_of_group(rules::OptionGroup::BloodragerElemental))
+    );
+    assert_eq!(air["bloodrager/bloodline/draconic-red"], Ok(()));
+    // Apart from the sorcerer's: a sorcerer's dragon doesn't stop a bloodrager's.
+    let mut both = with_option(
+        build("sorcerer", 1),
+        1,
+        0,
+        "sorcerer/bloodline/draconic-red",
+    );
+    both.levels.push(LevelUp::new(ClassKey::new("bloodrager")));
+    let both = with_option(both, 2, 0, "bloodrager/bloodline/draconic-blue");
+    assert_eq!(problems(&both), []);
 }

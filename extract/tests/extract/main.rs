@@ -15,5 +15,6 @@ mod proficiencies;
 mod progressions;
 mod references;
 mod report;
+mod second_follow_ups;
 mod shared_options;
 mod tables;
