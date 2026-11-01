@@ -1,8 +1,8 @@
 # Extraction report
 
-**Hand-fixed on 2026-11-01** by tickets 17–20 (feats, base classes, prestige classes, mythic). Remaining: Feats 1, Base classes 11, Prestige classes 1, Mythic 0, Races and skills 0. Items marked *narrowed* are partly fixed; items marked *new* were found during the hand-fix. Ticket 25 (shared selection options) fixed `rogue#discovery` and `rogue#fey-tricks`. Ticket 26 (mythic path rules) fixed the Dragon Feats slot, the five switch items (partial keeps, Devil's previous paths and drops, Legend's effects, the Trickster's Perception II feats) and the breaths' "Mythic Rank: 9". Ticket 27 (repeatable and parameterised feats) fixed the Master of All's three Skill Focus and the Stalwart Defender's Increased Damage Reduction "twice". Ticket 28 (class rules) fixed the Assassin's alignment, Diverse Training, Frost Power, the three prestige classes that advance one class, arcane or divine, the Gold Dragon breaths' story conditions and Domain Zealot's druid domain (Nature Bond), and settled the Crusader's bonus feats (they keep skipping every prerequisite, by the user's decision; a comment in `classes/cleric.ron` says so). Ticket 30 (option levels) fixed the 39 option tables (sorcerer and bloodrager bloodlines, wizard schools, cavalier orders, Magic Deceiver ways), the bloodline feat lists, Disruptive's "Arcane bloodline", the Dragon Disciple's entry and Blood of Dragons, and the Winter Witch's Frost spirit, and narrowed the shaman's Second Spirit item. Ticket 31 (domains, mysteries, blessings, elements) narrowed the kineticist's bonus-feat item (Elemental Focus is data) and the Hellknight order item (the Hellknight's order is a selection; the Signifer's isn't). Ticket 32 (feat and rule follow-ups) fixed the slayer's combat style feats (three slayer talents, one per window).
+**Hand-fixed on 2026-11-01** by tickets 17–20 (feats, base classes, prestige classes, mythic). Remaining: Feats 1, Base classes 11, Prestige classes 0, Mythic 0, Races and skills 0. Items marked *narrowed* are partly fixed; items marked *new* were found during the hand-fix. Ticket 25 (shared selection options) fixed `rogue#discovery` and `rogue#fey-tricks`. Ticket 26 (mythic path rules) fixed the Dragon Feats slot, the five switch items (partial keeps, Devil's previous paths and drops, Legend's effects, the Trickster's Perception II feats) and the breaths' "Mythic Rank: 9". Ticket 27 (repeatable and parameterised feats) fixed the Master of All's three Skill Focus and the Stalwart Defender's Increased Damage Reduction "twice". Ticket 28 (class rules) fixed the Assassin's alignment, Diverse Training, Frost Power, the three prestige classes that advance one class, arcane or divine, the Gold Dragon breaths' story conditions and Domain Zealot's druid domain (Nature Bond), and settled the Crusader's bonus feats (they keep skipping every prerequisite, by the user's decision; a comment in `classes/cleric.ron` says so). Ticket 30 (option levels) fixed the 39 option tables (sorcerer and bloodrager bloodlines, wizard schools, cavalier orders, Magic Deceiver ways), the bloodline feat lists, Disruptive's "Arcane bloodline", the Dragon Disciple's entry and Blood of Dragons, and the Winter Witch's Frost spirit, and narrowed the shaman's Second Spirit item. Ticket 31 (domains, mysteries, blessings, elements) narrowed the kineticist's bonus-feat item (Elemental Focus is data) and the Hellknight order item (the Hellknight's order is a selection; the Signifer's isn't). Ticket 32 (feat and rule follow-ups) fixed the slayer's combat style feats (three slayer talents, one per window). Ticket 33 (option follow-ups) fixed the Signifer's order (`hellknight-signifer/order`, sharing the Hellknight's seven).
 
-What the extractor couldn't turn into data from the guide pages saved on 2026-10-31, with where each item is (`page#anchor`). Fix an item by editing the `.ron` files, check with `cargo run -p data --bin seed -- --check-only`, then delete its line here. 13 items.
+What the extractor couldn't turn into data from the guide pages saved on 2026-10-31, with where each item is (`page#anchor`). Fix an item by editing the `.ron` files, check with `cargo run -p data --bin seed -- --check-only`, then delete its line here. 12 items.
 
 ## Feats (1)
 
@@ -40,13 +40,9 @@ Rules stated only in prose that the current data types can't hold.
 - `rogue#sneak-attack-eldritch-scoundrel`:  (*new*: read from prose as dice at 1, 3, 7, 11, 15, 19; the reading needs checking)
 - `shaman`:  (*new*, *narrowed*: the Second Spirit mythic ability is a second spirit pick now; Wandering Hex, a hex from another spirit, is not modelled)
 
-## Prestige classes (1)
+## Prestige classes (0)
 
-### Prose-only rules (1)
-
-Rules stated only in prose that the current data types can't hold.
-
-- `prestige-classes#order-hellknight-signifer`:  (*new*, *narrowed*: every Signifer picks one of the seven orders, but there's no selection for it. A Hellknight's order is a selection since ticket 31, `hellknight/order`, offered only to a character holding none, so Pentamic Faith is open to a non-Armiger Hellknight)
+Nothing left.
 
 ## Mythic (0)
 

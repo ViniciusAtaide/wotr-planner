@@ -409,18 +409,26 @@ fn combat_style(stage: u8) -> Pick {
     pick_option(&format!("slayer/slayer-talents/combat-style-feat-{stage}"))
 }
 
+/// The style picked with the first combat style feat (ticket 33).
+fn style_slot(level: u8) -> SlotId {
+    SlotId::OptionSelection { level, index: 0 }
+}
+
 #[test]
 fn a_slayer_talent_at_2_can_be_a_combat_style_feat_from_the_first_list() {
     let mut build = slayer(2);
     build.picks.insert(selection_slot(2, 0), combat_style(2));
     build
         .picks
-        .insert(option_feat(2), pick_feat("power-attack"));
+        .insert(style_slot(2), pick_option("ranger/combat-style/archery"));
+    build.picks.insert(option_feat(2), pick_feat("toughness"));
     assert_eq!(problems(&build), []);
     let state = engine().evaluate(&build).at(2).unwrap().clone();
-    assert_eq!(state.feat_count(&feat("power-attack")), 1);
-    // Cleave comes with the second list.
-    build.picks.insert(option_feat(2), pick_feat("cleave"));
+    assert_eq!(state.feat_count(&feat("toughness")), 1);
+    // Great Cleave comes with the second list.
+    build
+        .picks
+        .insert(option_feat(2), pick_feat("great-cleave"));
     assert_eq!(problems(&build), [at(option_feat(2), Issue::NotAllowed)]);
 }
 
@@ -467,13 +475,16 @@ fn a_slayer_takes_three_combat_style_feats_at_most() {
         build
             .picks
             .insert(selection_slot(level, 0), combat_style(stage));
-        build.picks.insert(option_feat(level), pick_feat("dodge"));
     }
-    // Dodge each time: the lists ignore prerequisites but a feat is held once.
+    // The style with the first; a feat from its list each time (each held once).
     build
         .picks
-        .insert(option_feat(6), pick_feat("power-attack"));
-    build.picks.insert(option_feat(10), pick_feat("cleave"));
+        .insert(style_slot(2), pick_option("ranger/combat-style/archery"));
+    build.picks.insert(option_feat(2), pick_feat("dodge"));
+    build.picks.insert(option_feat(6), pick_feat("toughness"));
+    build
+        .picks
+        .insert(option_feat(10), pick_feat("great-cleave"));
     assert_eq!(problems(&build), []);
     build.picks.insert(selection_slot(12, 0), combat_style(10));
     assert_eq!(

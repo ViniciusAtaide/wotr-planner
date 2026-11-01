@@ -209,8 +209,13 @@ pub enum DataIssue {
     DuplicateOptionRow(u8),
     /// A selection offering an option with rows by option level, but naming no classes whose levels make one.
     OptionRowsWithoutLevels(SelectionOptionKey),
-    /// A pool selection (it offers the pools of the options held in another) with options of its own or shared.
-    PoolSelectionWithOptions,
+    /// A selection naming both classes whose levels make the option level and another source of it.
+    LevelFromWithClasses,
+    /// An option's arcana that none of its rows grants.
+    ArcanaNotInRows(FeatureKey),
+    /// A prerequisite that looks at the pick (`NoOtherOptionOfGroup`, `PickedThrough`) outside a selection
+    /// option's.
+    PickLeafOutsideOption,
     /// An option row's chosen feat that doesn't take the kind of value the option's pick names (or the option's
     /// pick names none).
     RowChosenFeatOfOtherKind(FeatKey),
@@ -342,9 +347,15 @@ impl fmt::Display for DataProblem {
             DataIssue::OptionValueOfWrongKind => {
                 f.write_str("lists values of a kind its pick doesn't take")
             }
-            DataIssue::PoolSelectionWithOptions => {
-                f.write_str("a pool selection with options of its own or shared")
+            DataIssue::LevelFromWithClasses => f.write_str(
+                "names classes whose levels make the option level and another source of it",
+            ),
+            DataIssue::ArcanaNotInRows(feature) => {
+                write!(f, "its arcana {feature} isn't granted by any of its rows")
             }
+            DataIssue::PickLeafOutsideOption => f.write_str(
+                "a prerequisite looks at the option picked or its selection outside a selection option's",
+            ),
             DataIssue::SharesOwnOption(option) => {
                 write!(
                     f,
@@ -666,6 +677,12 @@ impl Checker {
                 self.prerequisite(at, Some(child), takes);
                 return;
             }
+            Prerequisite::NoOtherOptionOfGroup(_) | Prerequisite::PickedThrough(_) => {
+                if !matches!(at, DataAt::SelectionOption(_)) {
+                    self.problem(at, DataIssue::PickLeafOutsideOption);
+                }
+                return;
+            }
             _ => return,
         };
         if children.is_empty() {
@@ -713,6 +730,14 @@ impl Checker {
                 }
                 self.repeat(&at, option.repeat, false);
                 self.prerequisite(&at, option.prerequisite.as_ref(), takes);
+                if let Some(arcana) = &option.arcana
+                    && !option
+                        .levels
+                        .iter()
+                        .any(|row| row.features.contains(arcana))
+                {
+                    self.problem(&at, DataIssue::ArcanaNotInRows(arcana.clone()));
+                }
                 let mut levels = HashSet::new();
                 for row in &option.levels {
                     self.level(&at, row.level);
@@ -736,10 +761,8 @@ impl Checker {
             for level in &selection.skipped_levels {
                 self.level(&selection_at, *level);
             }
-            if selection.pool_of.is_some()
-                && !(selection.options.is_empty() && selection.shared_options.is_empty())
-            {
-                self.problem(&selection_at, DataIssue::PoolSelectionWithOptions);
+            if selection.level_from.is_some() && !selection.option_levels.is_empty() {
+                self.problem(&selection_at, DataIssue::LevelFromWithClasses);
             }
         }
     }
@@ -780,22 +803,23 @@ impl Checker {
             .values()
             .filter_map(|option| option.pool.as_ref())
             .collect();
+        // Its own and shared options, and a pool selection's pools.
         let offered = |selection: &'a FeatureSelection| -> Vec<&'a SelectionOptionKey> {
-            match &selection.pool_of {
-                None => selection.offered().into_iter().collect(),
-                Some(of) => by_key
-                    .get(of)
-                    .map(|of| of.offered())
-                    .unwrap_or_default()
-                    .into_iter()
-                    .filter_map(|option| options.get(option)?.pool.as_ref())
-                    .filter_map(|pool| by_key.get(pool))
-                    .flat_map(|pool| pool.offered())
-                    .collect(),
-            }
+            let pooled = selection
+                .pool_of
+                .iter()
+                .filter_map(|of| by_key.get(of))
+                .flat_map(|of| of.offered())
+                .filter_map(|option| options.get(option)?.pool.as_ref())
+                .filter_map(|pool| by_key.get(pool))
+                .flat_map(|pool| pool.offered());
+            selection.offered().into_iter().chain(pooled).collect()
         };
         for selection in selections.iter().copied() {
-            if !selection.option_levels.is_empty() || pools.contains(&selection.key) {
+            if !selection.option_levels.is_empty()
+                || selection.level_from.is_some()
+                || pools.contains(&selection.key)
+            {
                 continue;
             }
             if let Some(option) = offered(selection)

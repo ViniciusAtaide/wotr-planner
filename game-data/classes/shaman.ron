@@ -384,9 +384,9 @@ Class(
             name: "Unsworn Shaman",
             guide: "shaman#unsworn-shaman",
             features: [
-                (key: "shaman/unsworn-shaman/minor-spirit", name: "Minor Spirit", guide: "shaman#minor-spirit"),
+                (key: "shaman/unsworn-shaman/minor-spirit", name: "Minor Spirit", guide: "shaman#minor-spirit", daily_choice: true),
                 (key: "shaman/unsworn-shaman/orisons", name: "Orisons", guide: "shaman#unsworn-shaman"),
-                (key: "shaman/unsworn-shaman/wandering-spirit-2", name: "Wandering Spirit 2", guide: "shaman#wandering-spirit-2"),
+                (key: "shaman/unsworn-shaman/wandering-spirit-2", name: "Wandering Spirit 2", guide: "shaman#wandering-spirit-2", daily_choice: true),
                 (key: "shaman/unsworn-shaman/wandering-spirit-2-greater-ability", name: "Wandering Spirit 2 - Greater Ability", guide: "shaman#unsworn-shaman"),
                 (key: "shaman/unsworn-shaman/wandering-spirit-2-true-ability", name: "Wandering Spirit 2 - True Ability", guide: "shaman#unsworn-shaman"),
                 (key: "shaman/unsworn-shaman/wandering-spirit-greater-ability", name: "Wandering Spirit - Greater Ability", guide: "shaman#unsworn-shaman"),

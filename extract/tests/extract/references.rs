@@ -110,6 +110,8 @@ fn an_option_beside_the_feat_it_grants_is_dropped() {
         levels: vec![],
         pool: None,
         replaces_row_of: None,
+        group: None,
+        arcana: None,
         parameter: None,
         values: Default::default(),
     };
@@ -144,6 +146,9 @@ fn an_option_beside_the_feat_it_grants_is_dropped() {
             feat_lists_only: false,
             only_without_option: false,
             pool_of: None,
+            levels_behind: 0,
+            level_from: None,
+            once_per_option: false,
         }],
         feat_lists: vec![],
         levels: vec![],

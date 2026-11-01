@@ -825,18 +825,63 @@ pub struct FeatureSelection {
     /// archetype's own rows replace them.
     #[serde(default)]
     pub skipped_levels: BTreeSet<u8>,
-    /// Set when an option held through this selection gives only its feat lists (Crossblooded's second
-    /// bloodline).
+    /// Set when an option held through this selection gives only its feat lists and its arcana (Crossblooded's
+    /// second bloodline).
     #[serde(default)]
     pub feat_lists_only: bool,
     /// Set when a level grants this selection only to a character holding none of the options it offers (Dragon
     /// Disciple: a sorcerer's Draconic bloodline continues, anyone else picks one).
     #[serde(default)]
     pub only_without_option: bool,
-    /// Set on a selection with no options of its own: it offers the pools of the options held that this
-    /// selection offers (an oracle's revelations come from the mystery held).
+    /// Set on a selection that offers the pools of the options held that this selection offers (an oracle's
+    /// revelations come from the mystery held), beside any options of its own or shared (the Dual-Cursed Oracle's
+    /// Misfortune and Fortune).
     #[serde(default)]
     pub pool_of: Option<FeatureSelectionKey>,
+    /// How many option levels an option held through it lags behind the levels of its classes (the Separatist's
+    /// second domain: "Higher level abilities are delayed by two class levels").
+    #[serde(default)]
+    pub levels_behind: u8,
+    /// Where an option held through it gets its option level when the selection names no classes.
+    #[serde(default)]
+    pub level_from: Option<LevelFrom>,
+    /// Set when an option it has given once can't be picked through it again, however often the option itself
+    /// repeats (Expanded Element: the 15th-level element can't be the 7th-level one).
+    #[serde(default)]
+    pub once_per_option: bool,
+}
+
+/// Where an option held through a selection naming no classes gets its option level.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+pub enum LevelFrom {
+    /// The highest option level of the other options held that the selection offers, so it grows with whichever
+    /// class levels those (Impossible Domain: the character's other domains; Second Mystery: the first mystery).
+    OtherOptions,
+    /// The option level of the option whose row granted the slot (Maneuver Mastery's maneuver: its revelation's,
+    /// by oracle levels or a Living Deity's arcanist levels).
+    GrantingOption,
+}
+
+/// A family of options of which a character may hold only one, which [`Prerequisite::NoOtherOptionOfGroup`]
+/// checks ("You can only take a single draconic bloodline").
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+pub enum OptionGroup {
+    /// The sorcerer's ten Draconic bloodlines.
+    Draconic,
+    /// The sorcerer's four Elemental bloodlines.
+    Elemental,
+}
+
+impl OptionGroup {
+    pub const ALL: [Self; 2] = [Self::Draconic, Self::Elemental];
+
+    /// The group as the guide names it.
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::Draconic => "Draconic",
+            Self::Elemental => "Elemental",
+        }
+    }
 }
 
 impl FeatureSelection {
@@ -897,6 +942,14 @@ pub struct SelectionOption {
     /// Primalist's two rage powers instead of the bloodline power).
     #[serde(default)]
     pub replaces_row_of: Option<FeatureSelectionKey>,
+    /// The family it belongs to, of which a character holds only one when its prerequisite says so (the ten
+    /// Draconic bloodlines).
+    #[serde(default)]
+    pub group: Option<OptionGroup>,
+    /// Its arcana: one of its rows' features, which a holding that gives only feat lists still gives
+    /// (Crossblooded's second bloodline: "Gains the arcana and spells from both bloodlines").
+    #[serde(default)]
+    pub arcana: Option<FeatureKey>,
 }
 
 /// What an option gives at one option level.

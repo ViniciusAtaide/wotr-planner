@@ -271,6 +271,9 @@ fn apply_share(data: &mut GameData, share: &Share) {
                 feat_lists_only: false,
                 only_without_option: false,
                 pool_of: None,
+                levels_behind: 0,
+                level_from: None,
+                once_per_option: false,
             });
             let Some(rule) = share.slots else {
                 return;

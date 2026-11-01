@@ -397,6 +397,8 @@ pub(crate) fn option(
         levels,
         pool: None,
         replaces_row_of: None,
+        group: None,
+        arcana: None,
         parameter: None,
         values: Default::default(),
     }
@@ -415,6 +417,9 @@ pub(crate) fn selection(key: &str, name: &str, guide: String, levels: &[&str]) -
         feat_lists_only: false,
         only_without_option: false,
         pool_of: None,
+        levels_behind: 0,
+        level_from: None,
+        once_per_option: false,
     }
 }
 
@@ -1793,6 +1798,9 @@ fn other_classes(data: &mut GameData, sorcerer: &Family, log: &mut Log) {
         feat_lists_only: false,
         only_without_option: true,
         pool_of: None,
+        levels_behind: 0,
+        level_from: None,
+        once_per_option: false,
     });
     let row = disciple
         .levels
@@ -1873,6 +1881,9 @@ fn other_classes(data: &mut GameData, sorcerer: &Family, log: &mut Log) {
         feat_lists_only: false,
         only_without_option: false,
         pool_of: None,
+        levels_behind: 0,
+        level_from: None,
+        once_per_option: false,
     });
     scion
         .levels
@@ -1918,6 +1929,9 @@ fn other_classes(data: &mut GameData, sorcerer: &Family, log: &mut Log) {
         feat_lists_only: false,
         only_without_option: false,
         pool_of: None,
+        levels_behind: 0,
+        level_from: None,
+        once_per_option: false,
     });
     let row = dragonheir
         .levels

@@ -1,0 +1,47 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO feature_selection\n                (key, class_key, archetype_key, path_key, name, summary, guide, feat_lists_only,\n                only_without_option, pool_of_key, levels_behind, level_from, once_per_option)\n            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        {
+          "Custom": {
+            "name": "text_key",
+            "kind": {
+              "Domain": "Text"
+            }
+          }
+        },
+        "Text",
+        "Text",
+        "Text",
+        "Text",
+        "Text",
+        "Text",
+        "Bool",
+        "Bool",
+        "Text",
+        {
+          "Custom": {
+            "name": "u8",
+            "kind": {
+              "Domain": "Int2"
+            }
+          }
+        },
+        {
+          "Custom": {
+            "name": "level_from",
+            "kind": {
+              "Domain": "Text"
+            }
+          }
+        },
+        "Bool"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "da5aa2bc4a9333b30c1f749d8921833c48920d2b18629b7684a15f169fce3d9f"
+}

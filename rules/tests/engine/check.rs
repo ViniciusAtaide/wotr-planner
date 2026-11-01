@@ -4,8 +4,8 @@ use std::collections::BTreeSet;
 
 use rules::{
     ArchetypeKey, ArchetypeLevelRow, ClassKey, DataAt, DataIssue, DataProblem, FeatKey,
-    FeatListKey, FeatSlot, FeatureKey, FeatureSelectionKey, GameData, MythicPathKey, Prerequisite,
-    RaceKey, Repeat, Save, SaveException, SelectionOptionKey, SpellLevels,
+    FeatListKey, FeatSlot, FeatureKey, FeatureSelectionKey, GameData, MythicPathKey, OptionGroup,
+    Prerequisite, RaceKey, Repeat, Save, SaveException, SelectionOptionKey, SpellLevels,
 };
 
 use crate::support::*;
@@ -937,7 +937,8 @@ fn a_selection_offering_options_with_rows_names_the_classes_whose_levels_count()
 }
 
 #[test]
-fn a_pool_selection_has_no_options_of_its_own() {
+fn a_pool_selection_may_offer_options_of_its_own() {
+    // The Dual-Cursed Oracle's revelations: the mystery's pool and two of its own.
     let mut data = world();
     let cleric = class_mut(&mut data, "cleric");
     let revelation = cleric
@@ -948,12 +949,72 @@ fn a_pool_selection_has_no_options_of_its_own() {
     revelation.shared_options.insert(SelectionOptionKey::new(
         "cleric/fire-revelations/fire-breath",
     ));
+    assert_eq!(issues(&data), []);
+}
+
+#[test]
+fn an_options_arcana_is_one_of_its_rows_features() {
+    let mut data = world();
+    let bloodline = class_mut(&mut data, "sorcerer")
+        .selections
+        .iter_mut()
+        .find(|selection| selection.key.as_str() == "sorcerer/bloodline")
+        .unwrap();
+    let arcane = bloodline
+        .options
+        .iter_mut()
+        .find(|option| option.key.as_str() == "sorcerer/bloodline/arcane")
+        .unwrap();
+    arcane.arcana = Some(FeatureKey::new("sorcerer/bloodline/abyssal/arcana"));
     assert_eq!(
         issues(&data),
         [(
-            DataAt::FeatureSelection(FeatureSelectionKey::new("cleric/revelation")),
-            DataIssue::PoolSelectionWithOptions
+            DataAt::SelectionOption(SelectionOptionKey::new("sorcerer/bloodline/arcane")),
+            DataIssue::ArcanaNotInRows(FeatureKey::new("sorcerer/bloodline/abyssal/arcana"))
         )]
+    );
+}
+
+#[test]
+fn a_selection_has_one_source_of_option_levels() {
+    // Impossible Domain's levels come from the other domains held, not from classes as well.
+    let mut data = world();
+    let selection = cleric_selection(&mut data, "cleric/impossible-domain");
+    selection.option_levels.insert(ClassKey::new("cleric"));
+    assert_eq!(
+        issues(&data),
+        [(
+            DataAt::FeatureSelection(FeatureSelectionKey::new("cleric/impossible-domain")),
+            DataIssue::LevelFromWithClasses
+        )]
+    );
+}
+
+#[test]
+fn a_leaf_about_the_pick_is_only_in_an_options_prerequisite() {
+    // A feat isn't picked through a selection and belongs to no group.
+    let mut data = world();
+    let toughness = data
+        .feats
+        .iter_mut()
+        .find(|feat| feat.key.as_str() == "toughness")
+        .unwrap();
+    toughness.prerequisite = Some(Prerequisite::Any(vec![
+        Prerequisite::NoOtherOptionOfGroup(OptionGroup::Draconic),
+        Prerequisite::PickedThrough(FeatureSelectionKey::new("sorcerer/bloodline")),
+    ]));
+    assert_eq!(
+        issues(&data),
+        [
+            (
+                DataAt::Feat(FeatKey::new("toughness")),
+                DataIssue::PickLeafOutsideOption
+            ),
+            (
+                DataAt::Feat(FeatKey::new("toughness")),
+                DataIssue::PickLeafOutsideOption
+            )
+        ]
     );
 }
 
@@ -983,7 +1044,7 @@ fn an_option_rows_chosen_feat_takes_the_options_chosen_value() {
     ));
     // Another kind of value than Weapon Focus's (a weapon): no value of the pick fits it.
     let mut data = world();
-    let mastery = &mut cleric_selection(&mut data, "cleric/fire-revelations").options[2];
+    let mastery = &mut cleric_selection(&mut data, "cleric/fire-revelations").options[3];
     mastery.levels[0]
         .chosen_feats
         .insert(FeatKey::new("skill-focus"));
@@ -996,7 +1057,7 @@ fn an_option_rows_chosen_feat_takes_the_options_chosen_value() {
     );
     // An option whose pick names no value.
     let mut data = world();
-    let mastery = &mut cleric_selection(&mut data, "cleric/fire-revelations").options[2];
+    let mastery = &mut cleric_selection(&mut data, "cleric/fire-revelations").options[3];
     mastery.chosen_feat = None;
     assert_eq!(
         issues(&data),

@@ -10,9 +10,9 @@ use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use crate::build::{AbilityScores, Build, Edit, FeatSource, LevelUp, Pick, SlotId};
 use crate::game_data::{
     Ability, AbilityBonus, AbilityModifier, Advancement, Archetype, Class, CountsToward, Feat,
-    FeatList, FeatSlot, FeatValue, FeatureSelection, GameData, MythicAbility, MythicFeat,
-    MythicPath, OptionRow, PathSwitch, Race, Save, SelectionOption, SpellLevels, Weapon,
-    WeaponProficiency,
+    FeatList, FeatSlot, FeatValue, FeatureSelection, GameData, LevelFrom, MythicAbility,
+    MythicFeat, MythicPath, OptionRow, PathSwitch, Race, Save, SelectionOption, SpellLevels,
+    Weapon, WeaponProficiency,
 };
 use crate::keys::{
     ArchetypeKey, ClassKey, FeatKey, FeatListKey, FeatureKey, FeatureSelectionKey,
@@ -652,7 +652,7 @@ impl Engine {
             .unwrap_or(class.spontaneous)
     }
 
-    /// Whether a selection's slot offers `option` to a character in `state`: its own and shared options, or for
+    /// Whether a selection's slot offers `option` to a character in `state`: its own and shared options, and for
     /// a pool selection, the pools of the options held that it draws on.
     fn offers(
         &self,
@@ -660,10 +660,8 @@ impl Engine {
         option: &SelectionOptionKey,
         state: &CharacterState,
     ) -> bool {
-        match &selection.pool_of {
-            None => selection.offers(option),
-            Some(_) => self.pools(selection, state).contains(option),
-        }
+        selection.offers(option)
+            || (selection.pool_of.is_some() && self.pools(selection, state).contains(option))
     }
 
     /// The options a pool selection offers now: the pools of the options held that its `pool_of` selection
@@ -1027,7 +1025,8 @@ enum Held {
     /// A feat, for these values (none for an unparameterised feat).
     Feat(FeatKey, Vec<Parameter>),
     Feature(FeatureKey),
-    SelectionOption(SelectionOptionKey),
+    /// An option, through the selection that gave it.
+    SelectionOption(SelectionOptionKey, FeatureSelectionKey),
     MythicAbility(MythicAbilityKey),
     /// A mythic feat, for its value when it's parameterised.
     MythicFeat(MythicFeatKey, Option<Parameter>),
@@ -1113,8 +1112,12 @@ struct Walker<'a> {
     counted_features: BTreeMap<(ClassKey, FeatureKey), u8>,
     /// Each option held through a selection with option levels, in the order taken.
     holdings: Vec<Holding>,
-    /// Feature selections and feat slots that options' rows granted at this level and that have no slot yet.
-    pending: Vec<SlotKind>,
+    /// Feature selections and feat slots that options' rows granted at this level and that have no slot yet, each
+    /// with the option whose row granted it.
+    pending: Vec<(SlotKind, SelectionOptionKey)>,
+    /// While an option row's selection slot is filled: the option whose row granted it, for a selection levelled
+    /// by [`LevelFrom::GrantingOption`].
+    granting: Option<SelectionOptionKey>,
     /// How many option-row selection slots this level has so far.
     option_slots: u8,
     /// How many option-row feat slots this level has so far.
@@ -1139,6 +1142,8 @@ struct Holding {
     parameter: Option<Parameter>,
     /// The Mythic ascension whose pick took it, if any, so a Path switch can drop it.
     source: Option<GrantSource>,
+    /// The option whose row granted the slot it was taken in, if any ([`LevelFrom::GrantingOption`]).
+    granted_by: Option<SelectionOptionKey>,
 }
 
 struct Walk {
@@ -1174,6 +1179,7 @@ impl<'a> Walker<'a> {
             counted_features: BTreeMap::new(),
             holdings: Vec::new(),
             pending: Vec::new(),
+            granting: None,
             option_slots: 0,
             option_feat_slots: 0,
             probe,
@@ -1624,8 +1630,9 @@ impl<'a> Walker<'a> {
         SkillPoints { available, spent }
     }
 
-    /// The slots of a Level-up, in checking order: the class row's Feature selections, its feat slots (option-list
-    /// ones last, since they depend on the selections), the race's (level 1), then the general slot (odd levels).
+    /// The slots of a Level-up, in checking order: the class row's Feature selections (pool selections last, since
+    /// they draw on the others), its feat slots (option-list ones last, since they depend on the selections), the
+    /// race's (level 1), then the general slot (odd levels).
     /// So a race or general pick can rely on what the class grants at the same level (a human warpriest's Dazzling
     /// Display on the class's Weapon Focus).
     fn level_slots(&self, level: u8, level_up: &LevelUp) -> Vec<(SlotKind, SlotId)> {
@@ -1665,7 +1672,15 @@ impl<'a> Walker<'a> {
                 ));
             }
         }
+        // A pool selection after the others, so the option whose pool it offers is held first (the Dual-Cursed
+        // Oracle's revelation, keyed before the mystery, at level 1).
+        let (pools, selections): (Vec<_>, Vec<_>) =
+            selections.into_iter().partition(|(kind, _)| {
+                matches!(kind, SlotKind::Selection(key)
+                    if engine.selection(key).is_some_and(|s| s.pool_of.is_some()))
+            });
         slots.extend(selections);
+        slots.extend(pools);
         slots.extend(class_slots);
         slots.extend(option_lists);
         if level == 1
@@ -1736,10 +1751,12 @@ impl<'a> Walker<'a> {
     fn fill_pending(&mut self, level: u8) -> Vec<Slot> {
         let mut slots = Vec::new();
         while !self.pending.is_empty() {
-            let kind = self.pending.remove(0);
+            let (kind, granting) = self.pending.remove(0);
+            self.granting = Some(granting);
             let id = match &kind {
                 SlotKind::Selection(selection) => {
                     if self.grant_without_slot(selection, None) {
+                        self.granting = None;
                         continue;
                     }
                     let index = self.option_slots;
@@ -1753,6 +1770,7 @@ impl<'a> Walker<'a> {
                 }
             };
             slots.push(self.fill(id, kind, None));
+            self.granting = None;
         }
         slots
     }
@@ -1769,7 +1787,10 @@ impl<'a> Walker<'a> {
         source: Option<&GrantSource>,
     ) {
         let engine = self.engine;
-        self.hold(Held::SelectionOption(option.clone()), source.cloned());
+        self.hold(
+            Held::SelectionOption(option.clone(), selection.clone()),
+            source.cloned(),
+        );
         let Some(defined) = engine.option(option) else {
             return;
         };
@@ -1786,7 +1807,7 @@ impl<'a> Walker<'a> {
             );
         }
         if let Some(through) = engine.selection(selection)
-            && !through.option_levels.is_empty()
+            && (!through.option_levels.is_empty() || through.level_from.is_some())
         {
             self.holdings.push(Holding {
                 selection: selection.clone(),
@@ -1796,23 +1817,45 @@ impl<'a> Walker<'a> {
                 lists_only: through.feat_lists_only,
                 parameter: parameter.cloned(),
                 source: source.cloned(),
+                granted_by: self.granting.clone(),
             });
-            self.advance(self.holdings.len() - 1);
+            // Every holding, not only the new one: one levelled by the other options held may reach a row now.
+            self.advance_holdings();
         }
         if let Some(target) = &defined.replaces_row_of {
             self.replace_row(target);
         }
     }
 
-    /// The option level of a holding: the levels of the classes its selection names.
+    /// The option level of a holding: the levels of the classes its selection names, less the levels it lags
+    /// behind; or, for a selection naming none, the level its source gives.
     fn holding_level(&self, holding: &Holding) -> u8 {
-        self.engine
-            .selection(&holding.selection)
-            .map_or(0, |selection| {
-                selection.option_levels.iter().fold(0u8, |sum, class| {
-                    sum.saturating_add(self.state.class_level(class))
+        let Some(selection) = self.engine.selection(&holding.selection) else {
+            return 0;
+        };
+        let level = match selection.level_from {
+            None => selection.option_levels.iter().fold(0u8, |sum, class| {
+                sum.saturating_add(self.state.class_level(class))
+            }),
+            // The highest level of the other options held that it offers (themselves levelled by their classes).
+            Some(LevelFrom::OtherOptions) => self
+                .holdings
+                .iter()
+                .filter(|other| other.option != holding.option && selection.offers(&other.option))
+                .filter(|other| {
+                    self.engine
+                        .selection(&other.selection)
+                        .is_some_and(|through| through.level_from.is_none())
                 })
-            })
+                .map(|other| self.holding_level(other))
+                .max()
+                .unwrap_or(0),
+            Some(LevelFrom::GrantingOption) => holding
+                .granted_by
+                .as_ref()
+                .map_or(0, |option| self.state.option_level(option)),
+        };
+        level.saturating_sub(selection.levels_behind)
     }
 
     fn advance_holdings(&mut self) {
@@ -1842,7 +1885,7 @@ impl<'a> Walker<'a> {
         self.state.option_levels.insert(key.clone(), level);
         match list {
             Some(list) => {
-                self.state.option_feat_lists.insert(key, list);
+                self.state.option_feat_lists.insert(key.clone(), list);
             }
             None => {
                 self.state.option_feat_lists.remove(&key);
@@ -1853,20 +1896,31 @@ impl<'a> Walker<'a> {
             if holding.applied.contains_key(&row.level) || holding.skipped.contains(&row.level) {
                 continue;
             }
+            // A lists-only holding gets its arcana from the row that has it (Crossblooded's second bloodline).
             let held = if holding.lists_only {
-                Vec::new()
+                let arcana: Vec<Held> = option
+                    .arcana
+                    .iter()
+                    .filter(|arcana| row.features.contains(arcana))
+                    .map(|arcana| Held::Feature(arcana.clone()))
+                    .collect();
+                for item in &arcana {
+                    self.hold(item.clone(), source.clone());
+                }
+                arcana
             } else {
-                self.grant_row(row, parameter.as_ref(), source.as_ref())
+                self.grant_row(row, &key, parameter.as_ref(), source.as_ref())
             };
             self.holdings[index].applied.insert(row.level, held);
         }
     }
 
     /// Holds an option row's features, feats and chosen feats (for `parameter`, the value the option's pick named;
-    /// from `source`) and queues its selections and feat slots. Returns what it holds.
+    /// from `source`) and queues its selections and feat slots as `option`'s. Returns what it holds.
     fn grant_row(
         &mut self,
         row: &'a crate::game_data::OptionLevelRow,
+        option: &SelectionOptionKey,
         parameter: Option<&Parameter>,
         source: Option<&GrantSource>,
     ) -> Vec<Held> {
@@ -1889,10 +1943,18 @@ impl<'a> Walker<'a> {
         for item in &held {
             self.hold(item.clone(), source.cloned());
         }
-        self.pending
-            .extend(row.selections.iter().cloned().map(SlotKind::Selection));
-        self.pending
-            .extend(row.feat_slots.iter().cloned().map(SlotKind::Feat));
+        self.pending.extend(
+            row.selections
+                .iter()
+                .cloned()
+                .map(|selection| (SlotKind::Selection(selection), option.clone())),
+        );
+        self.pending.extend(
+            row.feat_slots
+                .iter()
+                .cloned()
+                .map(|slot| (SlotKind::Feat(slot), option.clone())),
+        );
         held
     }
 
@@ -1940,7 +2002,8 @@ impl<'a> Walker<'a> {
                 continue;
             };
             let parameter = self.holdings[index].parameter.clone();
-            let held = self.grant_row(option_row, parameter.as_ref(), source);
+            let key = self.holdings[index].option.clone();
+            let held = self.grant_row(option_row, &key, parameter.as_ref(), source);
             self.holdings[index].applied.insert(row.level, held);
         }
     }
@@ -2060,9 +2123,19 @@ impl<'a> Walker<'a> {
                     self.refresh_ability_scores();
                 }
             }
-            Held::SelectionOption(key) => {
+            Held::SelectionOption(key, through) => {
                 let times = state.selection_options.entry(key.clone()).or_default();
                 *times = times.saturating_add(1);
+                let times = state
+                    .options_through
+                    .entry(through.clone())
+                    .or_default()
+                    .entry(key.clone())
+                    .or_default();
+                *times = times.saturating_add(1);
+                if let Some(group) = self.engine.option(key).and_then(|option| option.group) {
+                    state.option_groups.insert(key.clone(), group);
+                }
             }
             Held::MythicAbility(key) => {
                 state.mythic_abilities.insert(key.clone());
@@ -2137,11 +2210,23 @@ impl<'a> Walker<'a> {
                     self.refresh_ability_scores();
                 }
             }
-            Held::SelectionOption(key) => {
+            Held::SelectionOption(key, through) => {
                 if let Some(times) = state.selection_options.get_mut(key) {
                     *times = times.saturating_sub(1);
                     if *times == 0 {
                         state.selection_options.remove(key);
+                        state.option_groups.remove(key);
+                    }
+                }
+                if let Some(options) = state.options_through.get_mut(through) {
+                    if let Some(times) = options.get_mut(key) {
+                        *times = times.saturating_sub(1);
+                        if *times == 0 {
+                            options.remove(key);
+                        }
+                    }
+                    if options.is_empty() {
+                        state.options_through.remove(through);
                     }
                 }
             }
@@ -2364,7 +2449,10 @@ impl<'a> Walker<'a> {
                         switch,
                         &RankGrant {
                             source: source.clone(),
-                            item: Held::SelectionOption(holding.option.clone()),
+                            item: Held::SelectionOption(
+                                holding.option.clone(),
+                                holding.selection.clone(),
+                            ),
                         },
                     )
                 })
@@ -2553,10 +2641,10 @@ pub(crate) fn check_pick(
             };
             // Its own option or one it shares (or one of a held option's pool); a shared option keeps its one key, so
             // it's held once.
-            if !engine
-                .selection(selection)
-                .is_some_and(|selection| engine.offers(selection, key, state))
-            {
+            let Some(through) = engine.selection(selection) else {
+                return Err(Issue::NotAllowed);
+            };
+            if !engine.offers(through, key, state) {
                 return Err(Issue::NotAllowed);
             }
             engine.check_value(engine.option_parameter(option), value)?;
@@ -2574,6 +2662,10 @@ pub(crate) fn check_pick(
                     return Err(Issue::AlreadyHeld);
                 }
                 _ => {}
+            }
+            // Once through this selection, however often the option repeats (Expanded Element).
+            if through.once_per_option && state.holds_through(selection, key) {
+                return Err(Issue::AlreadyHeld);
             }
             // The chosen feat for a value it's held for already would add nothing.
             if let Some(feat) = option.chosen_feat.as_ref()
@@ -2609,13 +2701,21 @@ pub(crate) fn check_pick(
             feat.prerequisite.as_ref()
         }
     };
-    match (prerequisite, pick) {
-        (None, _) => Ok(()),
+    match (prerequisite, pick, kind) {
+        (None, _, _) => Ok(()),
         // Feats see the class levels other classes count toward (Diverse Training).
-        (Some(prerequisite), Pick::Feat { .. }) => state
+        (Some(prerequisite), Pick::Feat { .. }, _) => state
             .check_feat_for(prerequisite, value)
             .map_err(Issue::Unmet),
-        (Some(prerequisite), _) => state.check_for(prerequisite, value).map_err(Issue::Unmet),
+        // An option's may look at the pick: the option (its group) and the selection it's picked through.
+        (
+            Some(prerequisite),
+            Pick::SelectionOption { option, .. },
+            SlotKind::Selection(selection),
+        ) => state
+            .check_option(prerequisite, option, selection, value)
+            .map_err(Issue::Unmet),
+        (Some(prerequisite), _, _) => state.check_for(prerequisite, value).map_err(Issue::Unmet),
     }
 }
 

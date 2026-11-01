@@ -96,6 +96,7 @@ Class(
                     key: "warpriest/blessings/chaos-domain",
                     name: "Chaos Domain",
                     guide: "warpriest#chaos-domain",
+                    prerequisite: Any([Not(PickedThrough("warpriest/champion-of-the-faith/chosen-alignment")), Alignment(ChaoticGood), Alignment(ChaoticNeutral), Alignment(ChaoticEvil)]),
                     levels: [
                         (level: 1, features: ["warpriest/blessings/chaos-domain/minor-blessing"]),
                         (level: 10, features: ["warpriest/blessings/chaos-domain/major-blessing"]),
@@ -141,6 +142,7 @@ Class(
                     key: "warpriest/blessings/evil-domain",
                     name: "Evil Domain",
                     guide: "warpriest#evil-domain",
+                    prerequisite: Any([Not(PickedThrough("warpriest/champion-of-the-faith/chosen-alignment")), Alignment(LawfulEvil), Alignment(NeutralEvil), Alignment(ChaoticEvil)]),
                     levels: [
                         (level: 1, features: ["warpriest/blessings/evil-domain/minor-blessing"]),
                         (level: 10, features: ["warpriest/blessings/evil-domain/major-blessing"]),
@@ -159,6 +161,7 @@ Class(
                     key: "warpriest/blessings/good-domain",
                     name: "Good Domain",
                     guide: "warpriest#good-domain",
+                    prerequisite: Any([Not(PickedThrough("warpriest/champion-of-the-faith/chosen-alignment")), Alignment(LawfulGood), Alignment(NeutralGood), Alignment(ChaoticGood)]),
                     levels: [
                         (level: 1, features: ["warpriest/blessings/good-domain/minor-blessing"]),
                         (level: 10, features: ["warpriest/blessings/good-domain/major-blessing"]),
@@ -177,6 +180,7 @@ Class(
                     key: "warpriest/blessings/law-domain",
                     name: "Law Domain",
                     guide: "warpriest#law-domain",
+                    prerequisite: Any([Not(PickedThrough("warpriest/champion-of-the-faith/chosen-alignment")), Alignment(LawfulGood), Alignment(LawfulNeutral), Alignment(LawfulEvil)]),
                     levels: [
                         (level: 1, features: ["warpriest/blessings/law-domain/minor-blessing"]),
                         (level: 10, features: ["warpriest/blessings/law-domain/major-blessing"]),

@@ -3,7 +3,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use crate::build::AbilityScores;
-use crate::game_data::{Alignment, SpellType};
+use crate::game_data::{Alignment, OptionGroup, SpellType};
 use crate::keys::{
     ArchetypeKey, ClassKey, FeatKey, FeatListKey, FeatureKey, FeatureSelectionKey,
     MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey, SelectionOptionKey, SkillKey,
@@ -54,6 +54,11 @@ pub struct CharacterState {
     pub features: BTreeMap<FeatureKey, u8>,
     /// Each selection option held, with how many times it was taken (Increased Damage Reduction: 2).
     pub selection_options: BTreeMap<SelectionOptionKey, u8>,
+    /// The options held through each selection that gave them, with how many times (Expanded Element: the
+    /// elements picked at 7 and 15). An option granted outside a selection's slot isn't here.
+    pub options_through: BTreeMap<FeatureSelectionKey, BTreeMap<SelectionOptionKey, u8>>,
+    /// The group of each option held that belongs to one (a Draconic bloodline).
+    pub option_groups: BTreeMap<SelectionOptionKey, OptionGroup>,
     /// The option level of each option held through a selection with option levels (a sorcerer 5 / Dragon
     /// Disciple 5's bloodline: 10).
     pub option_levels: BTreeMap<SelectionOptionKey, u8>,
@@ -182,6 +187,28 @@ impl CharacterState {
             .unwrap_or_else(|| self.class_level(class))
     }
 
+    /// Whether an option of `group` other than `option` is held.
+    pub fn holds_other_option_of(
+        &self,
+        group: OptionGroup,
+        option: Option<&SelectionOptionKey>,
+    ) -> bool {
+        self.option_groups
+            .iter()
+            .any(|(held, held_group)| *held_group == group && Some(held) != option)
+    }
+
+    /// Whether `option` is held through `selection`'s slots.
+    pub fn holds_through(
+        &self,
+        selection: &FeatureSelectionKey,
+        option: &SelectionOptionKey,
+    ) -> bool {
+        self.options_through
+            .get(selection)
+            .is_some_and(|options| options.contains_key(option))
+    }
+
     /// Evaluates a Prerequisite against this state, for a pick with no value: a `FeatForSameValue` fails.
     pub fn check(&self, prerequisite: &Prerequisite) -> Result<(), Unmet> {
         self.check_for(prerequisite, None)
@@ -194,7 +221,13 @@ impl CharacterState {
         prerequisite: &Prerequisite,
         value: Option<&Parameter>,
     ) -> Result<(), Unmet> {
-        self.check_in(prerequisite, value, false)
+        self.check_in(
+            prerequisite,
+            &Picking {
+                value,
+                ..Picking::default()
+            },
+        )
     }
 
     /// [`check_for`](Self::check_for) for a feat's prerequisites: a class level is the one feats see
@@ -204,23 +237,46 @@ impl CharacterState {
         prerequisite: &Prerequisite,
         value: Option<&Parameter>,
     ) -> Result<(), Unmet> {
-        self.check_in(prerequisite, value, true)
+        self.check_in(
+            prerequisite,
+            &Picking {
+                value,
+                for_feat: true,
+                ..Picking::default()
+            },
+        )
     }
 
-    fn check_in(
+    /// Evaluates a selection option's Prerequisite for a pick of `option` through `selection`'s slot, taken for
+    /// `value` (`NoOtherOptionOfGroup` and `PickedThrough` look at the pick).
+    pub fn check_option(
         &self,
         prerequisite: &Prerequisite,
+        option: &SelectionOptionKey,
+        selection: &FeatureSelectionKey,
         value: Option<&Parameter>,
-        for_feat: bool,
     ) -> Result<(), Unmet> {
+        self.check_in(
+            prerequisite,
+            &Picking {
+                value,
+                option: Some(option),
+                selection: Some(selection),
+                for_feat: false,
+            },
+        )
+    }
+
+    fn check_in(&self, prerequisite: &Prerequisite, picking: &Picking<'_>) -> Result<(), Unmet> {
         use Prerequisite as P;
+        let (value, for_feat) = (picking.value, picking.for_feat);
         let numeric = |has: u8, needs: u8| (has >= needs, Some(has));
         let flag = |holds: bool| (holds, None);
         let (holds, has) = match prerequisite {
             P::All(children) => {
                 let mut failed: Vec<Unmet> = children
                     .iter()
-                    .filter_map(|c| self.check_in(c, value, for_feat).err())
+                    .filter_map(|c| self.check_in(c, picking).err())
                     .collect();
                 return match failed.len() {
                     0 => Ok(()),
@@ -231,7 +287,7 @@ impl CharacterState {
             P::Any(children) => {
                 let mut failed = Vec::with_capacity(children.len());
                 for child in children {
-                    match self.check_in(child, value, for_feat) {
+                    match self.check_in(child, picking) {
                         Ok(()) => return Ok(()),
                         Err(unmet) => failed.push(unmet),
                     }
@@ -241,7 +297,7 @@ impl CharacterState {
             P::AtLeast(needed, children) => {
                 let failed: Vec<Unmet> = children
                     .iter()
-                    .filter_map(|c| self.check_in(c, value, for_feat).err())
+                    .filter_map(|c| self.check_in(c, picking).err())
                     .collect();
                 let met = u8::try_from(children.len() - failed.len()).unwrap_or(u8::MAX);
                 return if met >= *needed {
@@ -262,7 +318,7 @@ impl CharacterState {
             P::FeatIfValue { value: when, feat } => {
                 flag(value != Some(when) || self.feats.contains_key(feat))
             }
-            P::Not(child) => flag(self.check_in(child, value, for_feat).is_err()),
+            P::Not(child) => flag(self.check_in(child, picking).is_err()),
             P::MythicFeat(feat) => flag(self.mythic_feats.contains(feat)),
             P::MythicAbility(ability) => flag(self.mythic_abilities.contains(ability)),
             P::ClassLevel { class, level } => {
@@ -281,6 +337,10 @@ impl CharacterState {
             P::Feature { feature, count } => numeric(self.feature_count(feature), *count),
             P::SelectionOption(option) => flag(self.selection_options.contains_key(option)),
             P::NoOptionFrom(selection) => flag(!self.holds_option_of(selection)),
+            P::NoOtherOptionOfGroup(group) => {
+                flag(!self.holds_other_option_of(*group, picking.option))
+            }
+            P::PickedThrough(selection) => flag(picking.selection == Some(selection)),
             P::SkillRanks { skill, ranks } => numeric(self.prerequisite_skill_ranks(skill), *ranks),
             P::AbilityScore { ability, score } => {
                 numeric(self.ability_scores.get(*ability), *score)
@@ -307,4 +367,17 @@ impl CharacterState {
             })
         }
     }
+}
+
+/// What the pick being checked is, for the prerequisites that look at it.
+#[derive(Clone, Copy, Debug, Default)]
+struct Picking<'a> {
+    /// The value it's taken for (`FeatForSameValue`, `FeatIfValue`).
+    value: Option<&'a Parameter>,
+    /// The option picked (`NoOtherOptionOfGroup`).
+    option: Option<&'a SelectionOptionKey>,
+    /// The selection whose slot it fills (`PickedThrough`).
+    selection: Option<&'a FeatureSelectionKey>,
+    /// A feat's prerequisites: class levels are the ones feats see.
+    for_feat: bool,
 }

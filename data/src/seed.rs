@@ -12,8 +12,8 @@ use sqlx::PgConnection;
 use crate::columns::{
     AbilityBonusKind, FeatSlotKind, ValueColumns, ability_bonus_kind_text, ability_text,
     advancement_text, bab_progression_text, feat_category_text, feat_slot_kind_text,
-    mythic_ability_group_text, mythic_feat_group_text, parameter_kind_text, repeat_columns,
-    save_progression_text, save_text, weapon_proficiency_text,
+    level_from_text, mythic_ability_group_text, mythic_feat_group_text, option_group_text,
+    parameter_kind_text, repeat_columns, save_progression_text, save_text, weapon_proficiency_text,
 };
 use crate::{Database, Error, prerequisites};
 
@@ -450,8 +450,8 @@ async fn insert_selections(
         sqlx::query!(
             "INSERT INTO feature_selection
                 (key, class_key, archetype_key, path_key, name, summary, guide, feat_lists_only,
-                only_without_option, pool_of_key)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
+                only_without_option, pool_of_key, levels_behind, level_from, once_per_option)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)",
             selection.key.as_str(),
             class_key,
             archetype_key,
@@ -462,6 +462,9 @@ async fn insert_selections(
             selection.feat_lists_only,
             selection.only_without_option,
             selection.pool_of.as_ref().map(FeatureSelectionKey::as_str),
+            i16::from(selection.levels_behind),
+            selection.level_from.map(level_from_text),
+            selection.once_per_option,
         )
         .execute(&mut *conn)
         .await?;
@@ -489,8 +492,8 @@ async fn insert_selections(
             sqlx::query!(
                 "INSERT INTO selection_option (key, selection_key, name, summary, guide,
                     prerequisite_root_id, chosen_feat_key, parameter, repeat, repeat_times, pool_key,
-                    replaces_row_of_key)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
+                    replaces_row_of_key, option_group, arcana_key)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)",
                 option.key.as_str(),
                 selection.key.as_str(),
                 option.name,
@@ -506,6 +509,8 @@ async fn insert_selections(
                     .replaces_row_of
                     .as_ref()
                     .map(FeatureSelectionKey::as_str),
+                option.group.map(option_group_text),
+                option.arcana.as_ref().map(FeatureKey::as_str),
             )
             .execute(&mut *conn)
             .await?;

@@ -86,6 +86,13 @@ CREATE DOMAIN parameter_kind AS TEXT CHECK (VALUE IN (
 -- number in a `repeat_times` column.
 CREATE DOMAIN repeat_kind AS TEXT CHECK (VALUE IN ('once', 'times', 'unlimited', 'per_value'));
 
+-- `rules::OptionGroup`: a family of options of which a character holds only one when an option's
+-- prerequisite says so (the sorcerer's Draconic and Elemental bloodlines).
+CREATE DOMAIN option_group AS TEXT CHECK (VALUE IN ('draconic', 'elemental'));
+
+-- `rules::LevelFrom`: where an option held through a selection naming no classes gets its option level.
+CREATE DOMAIN level_from AS TEXT CHECK (VALUE IN ('other_options', 'granting_option'));
+
 -- One row: the hash of the data files the tables were last seeded from.
 CREATE TABLE game_data_seed (
     singleton BOOLEAN PRIMARY KEY DEFAULT TRUE CHECK (singleton),
@@ -117,7 +124,8 @@ CREATE TABLE prerequisite_node (
         'feat', 'mythic_feat', 'mythic_ability', 'class_level', 'archetype', 'feature',
         'selection_option', 'skill_ranks', 'ability_score', 'base_attack_bonus', 'spell_level',
         'caster_level', 'character_level', 'mythic_rank', 'alignment', 'race', 'feat_for',
-        'feat_for_same_value', 'story', 'no_option_from', 'spontaneous_spell_level', 'feat_if_value'
+        'feat_for_same_value', 'story', 'no_option_from', 'spontaneous_spell_level', 'feat_if_value',
+        'no_other_option_of_group', 'picked_through'
     )),
     -- References to other game entities (foreign keys added below, once the tables exist).
     feat_key TEXT,
@@ -144,6 +152,7 @@ CREATE TABLE prerequisite_node (
     armour_type armour_type,
     -- `rules::Story`: a story condition, out of scope, so it always holds and the sheet shows it as a note.
     story TEXT CHECK (story IN ('vow_of_dahak', 'uncorrupted')),
+    option_group option_group,
     -- Each kind fills exactly the columns listed for it, and every other column is NULL. `feat_for`
     -- (`rules::Prerequisite::FeatFor`: a parameterised feat held for one value) and `feat_if_value`
     -- (`rules::Prerequisite::FeatIfValue`: `feat_key` needed when the pick is taken for the value) fill
@@ -173,7 +182,8 @@ CREATE TABLE prerequisite_node (
             CASE WHEN spell_school IS NOT NULL THEN 'spell_school' END,
             CASE WHEN energy IS NOT NULL THEN 'energy' END,
             CASE WHEN armour_type IS NOT NULL THEN 'armour_type' END,
-            CASE WHEN story IS NOT NULL THEN 'story' END
+            CASE WHEN story IS NOT NULL THEN 'story' END,
+            CASE WHEN option_group IS NOT NULL THEN 'option_group' END
         ], NULL) = CASE kind
             WHEN 'all' THEN '{}'::TEXT[]
             WHEN 'any' THEN '{}'
@@ -194,6 +204,10 @@ CREATE TABLE prerequisite_node (
             WHEN 'spontaneous_spell_level' THEN '{spell_type, amount}'
             -- `rules::Prerequisite::NoOptionFrom`: no option of this selection held.
             WHEN 'no_option_from' THEN '{selection_key}'
+            -- `rules::Prerequisite::NoOtherOptionOfGroup`: no option of the group held but the one picked.
+            WHEN 'no_other_option_of_group' THEN '{option_group}'
+            -- `rules::Prerequisite::PickedThrough`: the pick fills a slot of this selection.
+            WHEN 'picked_through' THEN '{selection_key}'
             WHEN 'caster_level' THEN '{amount}'
             WHEN 'character_level' THEN '{amount}'
             WHEN 'mythic_rank' THEN '{amount}'
@@ -467,10 +481,13 @@ CREATE TABLE feature_ability_bonus (
 
 -- The fixed list a Feature selection picks from (rogue talents, a path's picks). An option held through
 -- it gets its `option_level` rows as the levels of the classes in `selection_level_class` reach them,
--- except at its `selection_skipped_level`s; `feat_lists_only`: only the option's feat lists count
--- (Crossblooded's second bloodline); `only_without_option`: a level grants it only to a character holding
--- none of its options (Dragon Disciple's bloodline); `pool_of_key`: it has no options of its own and offers
--- the pools of the options held in that selection (`rules::GameData::check` keeps it without options).
+-- `levels_behind` levels late (the Separatist's second domain: 2), except at its
+-- `selection_skipped_level`s; with no classes, `level_from` says where its level comes from (the other
+-- options held, or the option whose row granted the slot; `rules::GameData::check` refuses both);
+-- `feat_lists_only`: only the option's feat lists and its arcana count (Crossblooded's second bloodline);
+-- `only_without_option`: a level grants it only to a character holding none of its options (Dragon
+-- Disciple's bloodline); `pool_of_key`: it offers the pools of the options held in that selection too;
+-- `once_per_option`: an option it gave once can't be picked through it again (Expanded Element).
 CREATE TABLE feature_selection (
     key text_key PRIMARY KEY,
     class_key TEXT REFERENCES class (key) DEFERRABLE INITIALLY DEFERRED,
@@ -482,6 +499,9 @@ CREATE TABLE feature_selection (
     feat_lists_only BOOLEAN NOT NULL,
     only_without_option BOOLEAN NOT NULL,
     pool_of_key TEXT REFERENCES feature_selection (key) DEFERRABLE INITIALLY DEFERRED,
+    levels_behind u8 NOT NULL,
+    level_from level_from,
+    once_per_option BOOLEAN NOT NULL,
     CHECK (pool_of_key <> key),
     FOREIGN KEY (archetype_key, class_key) REFERENCES archetype (key, class_key)
         DEFERRABLE INITIALLY DEFERRED,
@@ -526,7 +546,9 @@ CREATE TABLE path_switch_feature (
 -- `rogue/rogue-talents/fast-stealth`. `chosen_feat_key` is a parameterised feat the option grants for the
 -- value its pick names (the rogue talent Weapon Focus); `rules::GameData::check` keeps it parameterised.
 -- `parameter` is what the pick names when there's no chosen feat (Battle Master: a weapon, for its rows).
--- `repeat` is as on `feat`, never `per_value`.
+-- `repeat` is as on `feat`, never `per_value`. `option_group` is the family it belongs to (a Draconic
+-- bloodline); `arcana_key` is the one of its rows' features that a lists-only holding still gets
+-- (`rules::GameData::check` keeps it among its rows').
 CREATE TABLE selection_option (
     key text_key PRIMARY KEY,
     selection_key TEXT NOT NULL REFERENCES feature_selection (key) DEFERRABLE INITIALLY DEFERRED,
@@ -543,6 +565,8 @@ CREATE TABLE selection_option (
     -- Picking it skips the row, at the level reached, of the option held in this selection (a Primalist's rage
     -- powers instead of the bloodline power).
     replaces_row_of_key TEXT REFERENCES feature_selection (key) DEFERRABLE INITIALLY DEFERRED,
+    option_group option_group,
+    arcana_key TEXT REFERENCES feature (key) DEFERRABLE INITIALLY DEFERRED,
     CHECK ((repeat = 'times') = (repeat_times IS NOT NULL)),
     CHECK (parameter IS NULL OR chosen_feat_key IS NULL),
     CHECK (starts_with(key, selection_key || '/'))

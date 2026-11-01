@@ -158,6 +158,9 @@ pub fn extract(guide: &Guide) -> Extraction {
         .report
         .items
         .retain(|item| !crate::follow_ups::settled(&item.at, &item.text));
+    // The user's decisions on tickets 30-31's options (ticket 33), on the finished data. It settles no item of an
+    // extraction's report (the hand-kept report's Signifer order item goes).
+    crate::option_follow_ups::apply(guide, &mut data);
     for problem in data.check() {
         builder.report.add_about(
             Kind::Cell,
@@ -1134,6 +1137,9 @@ impl<'g> Builder<'g> {
             feat_lists_only: false,
             only_without_option: false,
             pool_of: None,
+            levels_behind: 0,
+            level_from: None,
+            once_per_option: false,
         };
         self.add_options(page, heading, &mut selection, Some(class), extra);
         selection
@@ -1179,6 +1185,8 @@ impl<'g> Builder<'g> {
                 levels: Vec::new(),
                 pool: None,
                 replaces_row_of: None,
+                group: None,
+                arcana: None,
                 parameter: None,
                 values: Default::default(),
             });
@@ -1632,6 +1640,9 @@ impl<'g> Builder<'g> {
                     feat_lists_only: false,
                     only_without_option: false,
                     pool_of: None,
+                    levels_behind: 0,
+                    level_from: None,
+                    once_per_option: false,
                 };
                 self.add_options(page, candidate, &mut selection, None, Vec::new());
                 selections.push(selection);

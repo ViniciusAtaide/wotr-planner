@@ -135,6 +135,8 @@ fn the_path_rules_add_legends_features_the_ability_bonuses_all_skilled_and_drago
             levels: vec![],
             pool: None,
             replaces_row_of: None,
+            group: None,
+            arcana: None,
             parameter: None,
             values: Default::default(),
         }],
@@ -144,6 +146,9 @@ fn the_path_rules_add_legends_features_the_ability_bonuses_all_skilled_and_drago
         feat_lists_only: false,
         only_without_option: false,
         pool_of: None,
+        levels_behind: 0,
+        level_from: None,
+        once_per_option: false,
     });
     let mut dragon = path(
         "gold-dragon",
@@ -282,6 +287,8 @@ fn the_new_shapes_are_written_on_one_line_each_and_read_back() {
             levels: vec![],
             pool: None,
             replaces_row_of: None,
+            group: None,
+            arcana: None,
             parameter: None,
             values: Default::default(),
         }],
@@ -291,6 +298,9 @@ fn the_new_shapes_are_written_on_one_line_each_and_read_back() {
         feat_lists_only: false,
         only_without_option: false,
         pool_of: None,
+        levels_behind: 0,
+        level_from: None,
+        once_per_option: false,
     });
     let data = rules::GameData {
         progression: rules::Progression {

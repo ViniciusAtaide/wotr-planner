@@ -1,5 +1,5 @@
 // Hand-written test fixture: small and simplified, not checked against the guide. Every shape of an option with
-// rows by option level (tickets 30 and 31).
+// rows by option level (tickets 30, 31 and 33).
 Class(
     key: "sorcerer",
     name: "Sorcerer",
@@ -19,6 +19,7 @@ Class(
             guide: "character-creation#strength-of-the-abyss",
             ability_bonuses: [Fixed(ability: Strength, amount: 2)],
         ),
+        (key: "sorcerer/bloodline/draconic/arcana", name: "Draconic Arcana", guide: "character-creation#draconic-bloodline-arcana"),
         (key: "sorcerer/bloodline/draconic/claws", name: "Claws", guide: "character-creation#grow-claws-draconic"),
         (
             key: "sorcerer/bloodline-ascendance",
@@ -49,9 +50,11 @@ Class(
                     key: "sorcerer/bloodline/draconic-red",
                     name: "Draconic (Red)",
                     guide: "sorcerer#draconic",
-                    prerequisite: NoOptionFrom("sorcerer/bloodline"),
+                    prerequisite: All([NoOptionFrom("sorcerer/bloodline"), NoOtherOptionOfGroup(Draconic)]),
+                    group: Draconic,
+                    arcana: "sorcerer/bloodline/draconic/arcana",
                     levels: [
-                        (level: 1, features: ["sorcerer/bloodline/draconic/claws"]),
+                        (level: 1, features: ["sorcerer/bloodline/draconic/arcana", "sorcerer/bloodline/draconic/claws"]),
                         (level: 3, feat_slots: [CombatFeat, OneOf(list: "sorcerer/bloodline/abyssal-feats")]),
                     ],
                 ),
@@ -61,15 +64,22 @@ Class(
             key: "sorcerer/school",
             name: "School",
             guide: "character-creation#school-power",
+            level_from: GrantingOption,
             options: [
                 (key: "sorcerer/school/evocation", name: "Evocation", guide: "character-creation#school-power"),
-                (key: "sorcerer/school/necromancy", name: "Necromancy", guide: "character-creation#school-power"),
+                (
+                    key: "sorcerer/school/necromancy",
+                    name: "Necromancy",
+                    guide: "character-creation#school-power",
+                    prerequisite: Any([Not(PickedThrough("sorcerer/school")), Alignment(NeutralEvil)]),
+                ),
             ],
         ),
         (
             key: "sorcerer/abyssal-powers",
             name: "Abyssal Powers",
             guide: "sorcerer#abyssal",
+            level_from: OtherOptions,
             options: [
                 (key: "sorcerer/abyssal-powers/rage", name: "Rage", guide: "sorcerer#abyssal"),
                 (key: "sorcerer/abyssal-powers/fear", name: "Fear", guide: "sorcerer#abyssal"),
@@ -82,7 +92,14 @@ Class(
                 ),
             ],
         ),
-        (key: "sorcerer/power", name: "Power", guide: "sorcerer", pool_of: "sorcerer/bloodline", option_levels: ["sorcerer"], options: []),
+        (
+            key: "sorcerer/power",
+            name: "Power",
+            guide: "sorcerer",
+            pool_of: "sorcerer/bloodline",
+            option_levels: ["sorcerer"],
+            options: [(key: "sorcerer/power/surge", name: "Surge", guide: "sorcerer")],
+        ),
     ],
     feat_lists: [
         (key: "sorcerer/bloodline/abyssal-feats", name: "Abyssal Bloodline Feats", guide: "character-creation#abyssal-bloodline", feats: ["power-attack", "toughness"]),
@@ -106,6 +123,7 @@ Class(
                     shared_options: ["sorcerer/bloodline/abyssal", "sorcerer/bloodline/draconic-red"],
                     option_levels: ["sorcerer"],
                     skipped_levels: [3],
+                    levels_behind: 2,
                     options: [],
                 ),
                 (
@@ -116,6 +134,7 @@ Class(
                     option_levels: ["sorcerer"],
                     feat_lists_only: true,
                     only_without_option: true,
+                    once_per_option: true,
                     options: [],
                 ),
                 (

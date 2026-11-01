@@ -4,7 +4,7 @@ use std::collections::BTreeSet;
 
 use serde::{Deserialize, Serialize};
 
-use crate::game_data::{Ability, Alignment, SpellType};
+use crate::game_data::{Ability, Alignment, OptionGroup, SpellType};
 use crate::keys::{
     ArchetypeKey, ClassKey, FeatKey, FeatureKey, FeatureSelectionKey, MythicAbilityKey,
     MythicFeatKey, RaceKey, SelectionOptionKey, SkillKey,
@@ -64,6 +64,12 @@ pub enum Prerequisite {
     SelectionOption(SelectionOptionKey),
     /// No option held that this selection offers ("no known bloodline": none of the sorcerer's bloodlines).
     NoOptionFrom(FeatureSelectionKey),
+    /// No option of this group held but the one being picked ("You can only take a single draconic bloodline").
+    /// Only in a selection option's prerequisite.
+    NoOtherOptionOfGroup(OptionGroup),
+    /// The pick being checked fills a slot of this selection (the Champion of the Faith's alignment blessing,
+    /// which must match his alignment there and only there). Only in a selection option's prerequisite.
+    PickedThrough(FeatureSelectionKey),
     SkillRanks {
         skill: SkillKey,
         ranks: u8,

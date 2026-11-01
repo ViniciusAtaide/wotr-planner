@@ -471,6 +471,8 @@ fn the_files_write_weapons_parameters_repeats_and_chosen_feats() {
         levels: vec![],
         pool: None,
         replaces_row_of: None,
+        group: None,
+        arcana: None,
         parameter: None,
         values: Default::default(),
     };
@@ -493,6 +495,9 @@ fn the_files_write_weapons_parameters_repeats_and_chosen_feats() {
         feat_lists_only: false,
         only_without_option: false,
         pool_of: None,
+        levels_behind: 0,
+        level_from: None,
+        once_per_option: false,
     });
     let data = GameData {
         progression: rules::Progression {

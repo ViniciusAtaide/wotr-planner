@@ -40,7 +40,7 @@ Class(
             key: "oracle/maneuver-mastery",
             name: "Maneuver Mastery",
             guide: "oracle#maneuver-mastery",
-            option_levels: ["oracle"],
+            level_from: GrantingOption,
             options: [
                 (
                     key: "oracle/maneuver-mastery/bull-rush",
@@ -279,7 +279,7 @@ Class(
             guide: "oracle#flame",
             options: [
                 (key: "oracle/revelations/flame/burning-magic", name: "Burning Magic", guide: "oracle#burning-magic"),
-                (key: "oracle/revelations/flame/cinder-dance", name: "Cinder Dance", guide: "oracle#cinder-dance"),
+                (key: "oracle/revelations/flame/cinder-dance", name: "Cinder Dance", guide: "oracle#cinder-dance", prerequisite: Not(SelectionOption("oracle/oracles-curse/lame"))),
                 (key: "oracle/revelations/flame/fire-breath", name: "Fire Breath", guide: "oracle#fire-breath"),
                 (key: "oracle/revelations/flame/firestorm", name: "Firestorm", guide: "oracle#firestorm", prerequisite: Any([ClassLevel(class: "arcanist", level: 11), ClassLevel(class: "oracle", level: 11)])),
                 (key: "oracle/revelations/flame/form-of-flame", name: "Form of Flame", guide: "oracle#form-of-flame", prerequisite: Any([ClassLevel(class: "arcanist", level: 7), ClassLevel(class: "oracle", level: 7)])),
@@ -371,6 +371,24 @@ Class(
                 (key: "oracle/revelations/wind/vortex-spells", name: "Vortex Spells", guide: "oracle#vortex-spells"),
             ],
         ),
+        (
+            key: "oracle/second-mystery",
+            name: "Second Mystery",
+            guide: "mythic-paths#second-mystery",
+            level_from: OtherOptions,
+            options: [],
+            shared_options: [
+                "oracle/mystery/ancestor",
+                "oracle/mystery/battle",
+                "oracle/mystery/bones",
+                "oracle/mystery/flame",
+                "oracle/mystery/life",
+                "oracle/mystery/nature",
+                "oracle/mystery/stone",
+                "oracle/mystery/waves",
+                "oracle/mystery/wind",
+            ],
+        ),
     ],
     levels: [
         (level: 1, divine_spell_level: 1, features: ["oracle/additional-spells"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"], selections: ["oracle/mystery", "oracle/oracles-curse", "oracle/revelation"]),
@@ -447,13 +465,30 @@ Class(
                 (key: "oracle/dual-cursed-oracle/dual-cursed-oracle-bonus-spells", name: "Dual-Cursed Oracle Bonus Spells", guide: "oracle#dual-cursed-oracle-bonus-spells"),
                 (key: "oracle/dual-cursed-oracle/second-curse", name: "Second Curse", guide: "oracle#second-curse"),
             ],
+            selections: [
+                (
+                    key: "oracle/dual-cursed-oracle/revelation",
+                    name: "Revelation (Dual-Cursed Oracle)",
+                    guide: "oracle#additional-revelations",
+                    option_levels: ["oracle"],
+                    pool_of: "oracle/mystery",
+                    options: [
+                        (key: "oracle/dual-cursed-oracle/revelation/fortune", name: "Fortune", guide: "oracle#fortune"),
+                        (key: "oracle/dual-cursed-oracle/revelation/misfortune", name: "Misfortune", guide: "oracle#misfortune"),
+                    ],
+                ),
+            ],
             levels: [
-                (level: 1, features: ["oracle/additional-spells", "oracle/dual-cursed-oracle/second-curse"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"], selections: ["oracle/mystery", "oracle/oracles-curse", "oracle/revelation"]),
+                (level: 1, features: ["oracle/additional-spells", "oracle/dual-cursed-oracle/second-curse"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"], selections: ["oracle/dual-cursed-oracle/revelation", "oracle/mystery", "oracle/oracles-curse"]),
                 (level: 2, features: ["oracle/dual-cursed-oracle/dual-cursed-oracle-bonus-spells"]),
-                (level: 5, features: ["oracle/dual-cursed-oracle/curse-2"], selections: ["oracle/revelation"]),
+                (level: 3, selections: ["oracle/dual-cursed-oracle/revelation"]),
+                (level: 5, features: ["oracle/dual-cursed-oracle/curse-2"], selections: ["oracle/dual-cursed-oracle/revelation"]),
+                (level: 7, selections: ["oracle/dual-cursed-oracle/revelation"]),
                 (level: 10, features: ["oracle/dual-cursed-oracle/curse-3"]),
-                (level: 13, selections: ["oracle/revelation"]),
-                (level: 15, features: ["oracle/dual-cursed-oracle/curse-4"], selections: ["oracle/revelation"]),
+                (level: 11, selections: ["oracle/dual-cursed-oracle/revelation"]),
+                (level: 13, selections: ["oracle/dual-cursed-oracle/revelation"]),
+                (level: 15, features: ["oracle/dual-cursed-oracle/curse-4"], selections: ["oracle/dual-cursed-oracle/revelation"]),
+                (level: 19, selections: ["oracle/dual-cursed-oracle/revelation"]),
             ],
         ),
         (

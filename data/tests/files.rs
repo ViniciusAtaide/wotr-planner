@@ -9,9 +9,9 @@ use common::{copy_fixture, fixture_dir};
 use rules::{
     Ability, AbilityBonus, Advancement, ArchetypeLevelRow, ArmourType, BabProgression, ClassKey,
     CountsAs, CountsToward, FeatKey, FeatListKey, FeatSlot, FeatValue, FeatureKey,
-    FeatureSelectionKey, GameData, MythicAbilityGroup, MythicFeatGroup, MythicPathKey,
-    OptionLevelRow, OptionRow, Parameter, ParameterKind, Prerequisite, Repeat, Save, SaveException,
-    SaveProgression, SelectionOptionKey, SkillKey, SpellLevels, Story, WeaponKey,
+    FeatureSelectionKey, GameData, LevelFrom, MythicAbilityGroup, MythicFeatGroup, MythicPathKey,
+    OptionGroup, OptionLevelRow, OptionRow, Parameter, ParameterKind, Prerequisite, Repeat, Save,
+    SaveException, SaveProgression, SelectionOptionKey, SkillKey, SpellLevels, Story, WeaponKey,
     WeaponProficiency,
 };
 
@@ -905,5 +905,77 @@ fn reads_values_granted_asked_about_and_offered_and_defaults_them() {
             .iter()
             .filter(|f| f.key != might.key)
             .all(|f| f.bab_floor.is_none() && !f.skill_ranks_at_least_mythic_rank)
+    );
+}
+
+#[test]
+fn reads_option_groups_arcanas_level_sources_and_picks_through_and_defaults_them() {
+    let data = read_fixture();
+    let sorcerer = data
+        .classes
+        .iter()
+        .find(|c| c.key.as_str() == "sorcerer")
+        .unwrap();
+    let selection = |key: &str| {
+        sorcerer
+            .selections
+            .iter()
+            .chain(sorcerer.archetypes.iter().flat_map(|a| &a.selections))
+            .find(|s| s.key.as_str() == key)
+            .unwrap()
+    };
+    // An option's group and arcana, and the prerequisite that looks at the group.
+    let bloodline = selection("sorcerer/bloodline");
+    let red = &bloodline.options[1];
+    assert_eq!(red.group, Some(OptionGroup::Draconic));
+    assert_eq!(
+        red.arcana,
+        Some(FeatureKey::new("sorcerer/bloodline/draconic/arcana"))
+    );
+    assert_eq!(
+        red.prerequisite,
+        Some(Prerequisite::All(vec![
+            Prerequisite::NoOptionFrom(FeatureSelectionKey::new("sorcerer/bloodline")),
+            Prerequisite::NoOtherOptionOfGroup(OptionGroup::Draconic),
+        ]))
+    );
+    let abyssal = &bloodline.options[0];
+    assert_eq!((abyssal.group, &abyssal.arcana), (None, &None));
+    // The selection picked through.
+    let necromancy = &selection("sorcerer/school").options[1];
+    assert_eq!(
+        necromancy.prerequisite,
+        Some(Prerequisite::Any(vec![
+            Prerequisite::Not(Box::new(Prerequisite::PickedThrough(
+                FeatureSelectionKey::new("sorcerer/school")
+            ))),
+            Prerequisite::Alignment(rules::Alignment::NeutralEvil),
+        ]))
+    );
+    // Where option levels come from, and how they lag.
+    assert_eq!(
+        selection("sorcerer/school").level_from,
+        Some(LevelFrom::GrantingOption)
+    );
+    assert_eq!(
+        selection("sorcerer/abyssal-powers").level_from,
+        Some(LevelFrom::OtherOptions)
+    );
+    assert_eq!(bloodline.level_from, None);
+    assert_eq!(selection("sorcerer/seeker/bloodline").levels_behind, 2);
+    assert_eq!(bloodline.levels_behind, 0);
+    // Once per option through a selection.
+    assert!(selection("sorcerer/seeker/second-bloodline").once_per_option);
+    assert!(!bloodline.once_per_option);
+    // A pool selection with an option of its own.
+    let power = selection("sorcerer/power");
+    assert!(power.pool_of.is_some());
+    assert_eq!(
+        power
+            .options
+            .iter()
+            .map(|o| o.key.as_str())
+            .collect::<Vec<_>>(),
+        ["sorcerer/power/surge"]
     );
 }

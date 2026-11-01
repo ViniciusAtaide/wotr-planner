@@ -88,6 +88,7 @@ Class(
             guide: "kineticist#expanded-element",
             option_levels: ["kineticist"],
             feat_lists_only: true,
+            once_per_option: true,
             options: [],
             shared_options: [
                 "kineticist/element/air",

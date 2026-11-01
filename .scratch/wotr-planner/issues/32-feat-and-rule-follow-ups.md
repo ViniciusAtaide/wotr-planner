@@ -132,3 +132,8 @@ The oracle's grants named in decision 6 (Weapon Mastery) were built in ticket 31
 5. **Beyond the decision's list:** with the Sawtooth Saber exotic, the Mantis Zealot's Proficiencies feature became Exotic Weapon Proficiency (Sawtooth Saber) granted for that value (the row grants the rest already). The Sword Saint's Proficiencies ("his chosen weapon") stay a feature: should its chosen weapon also be a proficiency for that value?
 6. **The Zen Archer** is a one-option selection limited to the two bows (the decision said "a list limited to some values") so that Weapon Specialization at 6 is in the same bow; a bonus list couldn't tie the two picks. Fine?
 7. **Natural attacks** are the nine the shifter page names (a tail slap is `tail`); no other natural attack is named on the saved pages.
+
+## Decisions on the open questions
+
+**User, 2026-11-01:**
+2. The slayer's combat style works as the ranger's: the slayer picks one of the ranger's combat styles, and each of its three combat style feats (2 or 4, 6 or 8, 10 or later) comes from that style's list for the stage. Built in [ticket 33](33-option-follow-ups.md) as a scope addition.

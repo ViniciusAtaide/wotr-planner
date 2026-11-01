@@ -104,7 +104,7 @@ A class-specific choice from a fixed list, such as a rogue talent, rage power or
 _Avoid_: Talent (unqualified), class pick
 
 **Selection option**:
-One entry in a Feature selection's list, such as Fast Stealth among the rogue talents. Its key extends the selection's (`rogue/rogue-talents/fast-stealth` extends `rogue/rogue-talents`). It may grant feats, held while it is: one (a rogue talent that is the feat of that name) or several (the Azata's All-skilled: every weapon, armour and shield proficiency). One that is a Parameterised feat of the player's choosing (the rogue talent Weapon Focus) is its **chosen feat**, and the option's pick names the Parameter. An option's pick may name a Parameter for its rows alone (the shaman's Battle Master: Weapon Specialization at 8 and Greater Weapon Focus at 16 in that weapon), and an option may limit the values it takes (the Zen Archer's Way of the Bow: a longbow or a shortbow); a selection whose one option takes a value is still a pick. It may Repeat. It may grant over class levels: see **Option level**.
+One entry in a Feature selection's list, such as Fast Stealth among the rogue talents. Its key extends the selection's (`rogue/rogue-talents/fast-stealth` extends `rogue/rogue-talents`). It may grant feats, held while it is: one (a rogue talent that is the feat of that name) or several (the Azata's All-skilled: every weapon, armour and shield proficiency). One that is a Parameterised feat of the player's choosing (the rogue talent Weapon Focus) is its **chosen feat**, and the option's pick names the Parameter. An option's pick may name a Parameter for its rows alone (the shaman's Battle Master: Weapon Specialization at 8 and Greater Weapon Focus at 16 in that weapon), and an option may limit the values it takes (the Zen Archer's Way of the Bow: a longbow or a shortbow); a selection whose one option takes a value is still a pick. It may Repeat. It may grant over class levels: see **Option level**. It may belong to an **Option group**. A sorcerer's bloodline names its **arcana**, the first-row feature a Crossblooded sorcerer's second bloodline still gives.
 _Avoid_: Option (unqualified), talent
 
 **Parameterised feat**:
@@ -120,20 +120,24 @@ How many times a feat or Selection option can be held: once (the default, and wh
 _Avoid_: Stacking, max picks
 
 **Option level**:
-The level of a Selection option that grants over class levels (a bloodline, a wizard school, a cavalier order, a shaman spirit, a Magic Deceiver way, a ranger combat style, a domain, an oracle mystery or revelation, a warpriest blessing, a kineticist element): the levels of the classes its Feature selection names, added up. A domain is levelled by whichever class's selection took it (cleric, inquisitor, druid, Hellknight levels). A sorcerer 5 / Dragon Disciple 5 has bloodline level 10; a bard who picked a Draconic bloodline on entering Dragon Disciple has the Dragon Disciple's levels. The option's **rows** (its features, granted feats, feats for the value its pick named, Feat slots, nested selections and its feat list from that level on) apply as its level reaches them, and one taken late (Second Bloodline) gets every row up to its level at once. An archetype can skip option levels (a Seeker: 3, 9 and 15), and its own rows replace them.
+The level of a Selection option that grants over class levels (a bloodline, a wizard school, a cavalier order, a shaman spirit, a Magic Deceiver way, a ranger combat style, a domain, an oracle mystery or revelation, a warpriest blessing, a kineticist element): the levels of the classes its Feature selection names, added up. A domain is levelled by whichever class's selection took it (cleric, inquisitor, druid, Hellknight levels). A sorcerer 5 / Dragon Disciple 5 has bloodline level 10; a bard who picked a Draconic bloodline on entering Dragon Disciple has the Dragon Disciple's levels. The option's **rows** (its features, granted feats, feats for the value its pick named, Feat slots, nested selections and its feat list from that level on) apply as its level reaches them, and one taken late (Second Bloodline) gets every row up to its level at once. An archetype can skip option levels (a Seeker: 3, 9 and 15), and its own rows replace them, or lag behind them (the Separatist's second domain: two levels late). A selection naming no classes takes the level of the other options held that it offers (Impossible Domain: the character's other domains, whoever levels them; Second Mystery: the first mystery) or of the option whose row granted its slot (Maneuver Mastery's maneuver: its revelation's).
 _Avoid_: Bloodline level (one family's name for it), subclass level
 
 **Option list slot**:
-A bonus Feat slot on a class's row whose Feat list is the held option's: a sorcerer's bloodline feat at 7, 13 and 19, a bloodrager's at 6, 9, …, a ranger's combat style feat (a list per stage). With two options held (a Crossblooded sorcerer's second bloodline gives only its list) it offers both lists. It's checked after the level's Feature selections, since a style picked at 2 is what the slot at 2 draws on.
+A bonus Feat slot on a class's row whose Feat list is the held option's: a sorcerer's bloodline feat at 7, 13 and 19, a bloodrager's at 6, 9, …, a ranger's combat style feat (a list per stage), a slayer's combat style talent (the style the first one picked, the list of the talent's stage). With two options held (a Crossblooded sorcerer's second bloodline gives only its list) it offers both lists. It's checked after the level's Feature selections, since a style picked at 2 is what the slot at 2 draws on.
 _Avoid_: Bloodline slot (the families share it), dynamic list
 
 **Daily choice**:
-A choice the game asks for again every day, so it isn't part of a Build and has no slot: a Mixed-Blood Rager's bloodline, a shaman's Wandering Spirit, an Abjurer's Resistance. The sheet shows it as a note.
+A choice the game asks for again every day, so it isn't part of a Build and has no slot: a Mixed-Blood Rager's bloodline, a shaman's Wandering Spirit (an Unsworn Shaman's Minor Spirit and Wandering Spirit 2), an Abjurer's Resistance, a hunter's Animal Focus. The sheet shows it as a note.
 _Avoid_: Daily pick, rest choice
 
 **Pool selection**:
-A Feature selection with no options of its own that offers the **pools** of the options held in another: an oracle's revelation slot offers the revelations of the mysteries held (two with a mythic Second Mystery). A pool is an ordinary selection that only a Pool selection offers.
+A Feature selection that offers the **pools** of the options held in another: an oracle's revelation slot offers the revelations of the mysteries held (two with a mythic Second Mystery), and a Dual-Cursed Oracle's its own two besides. A pool is an ordinary selection that only a Pool selection offers. Within a level its slot is checked after the other selections'.
 _Avoid_: Dynamic selection, revelation list
+
+**Option group**:
+A family of Selection options of which a character holds only one: the sorcerer's ten Draconic bloodlines ("You can only take a single draconic bloodline"), its four Elemental ones. The options' prerequisite says "no other option of this group", so a Crossblooded sorcerer or a Second Bloodline can't add a second dragon. (Expanded Element's "not the 7th-level element again" is not a group: the selection gives each option once.)
+_Avoid_: Bloodline family, exclusive set
 
 **Shared option**:
 A Selection option that one Feature selection offers from another's list, such as the rogue talents a slayer's talents offer. It keeps the key of the selection that defines it, so a character holds it once whichever slot took it, and its prerequisite is the same in both (a gate on one class's feature accepts each sharing class's).
@@ -148,7 +152,7 @@ What fills a slot: a feat, a selection option, a mythic ability or a mythic feat
 _Avoid_: Choice (that is any decision in a Build), selection
 
 **Prerequisite**:
-A condition that must hold before a feat, selection option, mythic pick, class or archetype can be chosen. Examples: an ability score, BAB, another feat, skill ranks or a class feature. One can depend on the pick's Parameter (Armor Focus: the proficiency of the armour type it's taken for) or be one that must not hold (the slayer's first combat style feat: not yet slayer 6). A Story condition is one too, but never blocks.
+A condition that must hold before a feat, selection option, mythic pick, class or archetype can be chosen. Examples: an ability score, BAB, another feat, skill ranks or a class feature. One can depend on the pick's Parameter (Armor Focus: the proficiency of the armour type it's taken for), on the option picked (no other option of its Option group) or the selection it's picked through (a Champion of the Faith's alignment blessing matches his alignment as his chosen alignment only), or be one that must not hold (the slayer's first combat style feat: not yet slayer 6). A Story condition is one too, but never blocks.
 _Avoid_: Requirement, restriction
 
 **Story condition**:

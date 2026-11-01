@@ -14,8 +14,8 @@ use sqlx::PgConnection;
 use crate::columns::{
     NodeKind, ability_from, ability_text, alignment_from, alignment_text, armour_type_from,
     armour_type_text, corrupt, energy_from, energy_text, node_kind_from, node_kind_text,
-    spell_school_from, spell_school_text, spell_type_from, spell_type_text, story_from, story_text,
-    to_u8,
+    option_group_from, option_group_text, spell_school_from, spell_school_text, spell_type_from,
+    spell_type_text, story_from, story_text, to_u8,
 };
 
 /// The columns of one `prerequisite_node` row, apart from its place in the tree.
@@ -40,6 +40,7 @@ struct Node {
     armour_type: Option<&'static str>,
     story: Option<&'static str>,
     selection_key: Option<String>,
+    option_group: Option<&'static str>,
 }
 
 impl Node {
@@ -65,6 +66,7 @@ impl Node {
             armour_type: None,
             story: None,
             selection_key: None,
+            option_group: None,
         }
     }
 
@@ -190,6 +192,14 @@ impl Node {
                 spell_type: Some(spell_type_text(*spell_type)),
                 ..Self::of(NodeKind::SpontaneousSpellLevel).with_amount(*level)
             },
+            P::NoOtherOptionOfGroup(group) => Self {
+                option_group: Some(option_group_text(*group)),
+                ..Self::of(NodeKind::NoOtherOptionOfGroup)
+            },
+            P::PickedThrough(selection) => Self {
+                selection_key: key(selection.as_str()),
+                ..Self::of(NodeKind::PickedThrough)
+            },
         };
         (node, &[])
     }
@@ -213,9 +223,9 @@ pub(crate) async fn insert(
                 parent_id, kind, feat_key, mythic_feat_key, mythic_ability_key,
                 class_key, archetype_key, feature_key, selection_option_key, skill_key, race_key,
                 weapon_key, ability, spell_type, alignment, amount, spell_school, energy, armour_type,
-                story, selection_key
+                story, selection_key, option_group
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17,
-                $18, $19, $20, $21)
+                $18, $19, $20, $21, $22)
             RETURNING id",
             parent_id,
             node_kind_text(node.kind),
@@ -238,6 +248,7 @@ pub(crate) async fn insert(
             node.armour_type,
             node.story,
             node.selection_key,
+            node.option_group,
         )
         .fetch_one(&mut *conn)
         .await?;
@@ -272,6 +283,7 @@ struct StoredNode {
     armour_type: Option<String>,
     story: Option<String>,
     selection_key: Option<String>,
+    option_group: Option<String>,
 }
 
 impl StoredNode {
@@ -311,7 +323,7 @@ impl Trees {
             "SELECT id, parent_id, kind, feat_key, mythic_feat_key, mythic_ability_key, class_key,
                 archetype_key, feature_key, selection_option_key, skill_key, race_key, weapon_key,
                 ability, spell_type, alignment, amount, spell_school, energy, armour_type, story,
-                selection_key
+                selection_key, option_group
             FROM prerequisite_node
             ORDER BY id"
         )
@@ -351,6 +363,7 @@ impl Trees {
                     armour_type: row.armour_type,
                     story: row.story,
                     selection_key: row.selection_key,
+                    option_group: row.option_group,
                 },
             );
         }
@@ -516,6 +529,14 @@ impl Trees {
                 spell_type: spell_type_from(&text(&node.spell_type, "spell_type")?)?,
                 level: amount()?,
             },
+            NodeKind::NoOtherOptionOfGroup => P::NoOtherOptionOfGroup(option_group_from(&text(
+                &node.option_group,
+                "option_group",
+            )?)?),
+            NodeKind::PickedThrough => P::PickedThrough(FeatureSelectionKey(text(
+                &node.selection_key,
+                "selection_key",
+            )?)),
         })
     }
 }

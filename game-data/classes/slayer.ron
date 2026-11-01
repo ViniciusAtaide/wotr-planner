@@ -21,6 +21,21 @@ Class(
     ],
     selections: [
         (
+            key: "slayer/combat-style",
+            name: "Combat Style (Slayer)",
+            guide: "slayer#slayer-talents",
+            option_levels: ["slayer"],
+            only_without_option: true,
+            options: [],
+            shared_options: [
+                "ranger/combat-style-feat/archery-feats",
+                "ranger/combat-style-feat/menacing-feats",
+                "ranger/combat-style-feat/two-handed-weapon-feats",
+                "ranger/combat-style-feat/two-weapon-combat-feats",
+                "ranger/combat-style-feat/weapon-and-shield-feats",
+            ],
+        ),
+        (
             key: "slayer/slayer-talents",
             name: "Slayer Talents",
             guide: "slayer#slayer-talents",
@@ -32,7 +47,7 @@ Class(
                     guide: "slayer#slayer-talents",
                     prerequisite: ClassLevel(class: "slayer", level: 10),
                     levels: [
-                        (level: 1, feat_slots: [OneOf(list: "slayer/combat-style-feats-10")]),
+                        (level: 1, feat_slots: [OptionList(selection: "slayer/combat-style")], selections: ["slayer/combat-style"]),
                     ],
                 ),
                 (
@@ -41,7 +56,7 @@ Class(
                     guide: "slayer#slayer-talents",
                     prerequisite: Not(ClassLevel(class: "slayer", level: 6)),
                     levels: [
-                        (level: 1, feat_slots: [OneOf(list: "slayer/combat-style-feats-2")]),
+                        (level: 1, feat_slots: [OptionList(selection: "slayer/combat-style")], selections: ["slayer/combat-style"]),
                     ],
                 ),
                 (
@@ -50,7 +65,7 @@ Class(
                     guide: "slayer#slayer-talents",
                     prerequisite: All([Not(ClassLevel(class: "slayer", level: 10)), ClassLevel(class: "slayer", level: 6)]),
                     levels: [
-                        (level: 1, feat_slots: [OneOf(list: "slayer/combat-style-feats-6")]),
+                        (level: 1, feat_slots: [OptionList(selection: "slayer/combat-style")], selections: ["slayer/combat-style"]),
                     ],
                 ),
                 (key: "slayer/slayer-talents/slayer-camouflage", name: "Slayer Camouflage", guide: "slayer#slayer-camouflage", prerequisite: All([Feature(feature: "slayer/advanced-talents", count: 1), SelectionOption("rogue/rogue-talents/terrain-mastery")])),
@@ -95,11 +110,6 @@ Class(
                 "rogue/rogue-talents/wearying-strike",
             ],
         ),
-    ],
-    feat_lists: [
-        (key: "slayer/combat-style-feats-10", name: "Combat Style Feats (from level 10)", guide: "slayer#slayer-talents", ignores_prerequisites: true, feats: ["bashing-finish", "cleave", "cleaving-finish", "cornugon-smash", "critical-focus", "dazzling-display", "dodge", "double-slice", "dreadful-carnage", "great-cleave", "great-fortitude", "greater-two-weapon-fighting", "improved-critical", "improved-precise-shot", "improved-two-weapon-fighting", "intimidating-prowess", "iron-will", "lightning-reflexes", "manyshot", "point-blank-master", "point-blank-shot", "power-attack", "precise-shot", "rapid-shot", "shatter-defenses", "shield-bash", "shield-focus", "shield-master", "skill-focus", "toughness", "two-weapon-fighting"]),
-        (key: "slayer/combat-style-feats-2", name: "Combat Style Feats (from level 2)", guide: "slayer#slayer-talents", ignores_prerequisites: true, feats: ["cleave", "dazzling-display", "dodge", "double-slice", "great-fortitude", "intimidating-prowess", "iron-will", "lightning-reflexes", "point-blank-shot", "power-attack", "precise-shot", "rapid-shot", "shield-bash", "shield-focus", "toughness", "two-weapon-fighting"]),
-        (key: "slayer/combat-style-feats-6", name: "Combat Style Feats (from level 6)", guide: "slayer#slayer-talents", ignores_prerequisites: true, feats: ["cleave", "cleaving-finish", "cornugon-smash", "dazzling-display", "dodge", "double-slice", "great-cleave", "great-fortitude", "improved-precise-shot", "improved-two-weapon-fighting", "intimidating-prowess", "iron-will", "lightning-reflexes", "manyshot", "point-blank-master", "point-blank-shot", "power-attack", "precise-shot", "rapid-shot", "shatter-defenses", "shield-bash", "shield-focus", "shield-master", "toughness", "two-weapon-fighting"]),
     ],
     levels: [
         (level: 1, features: ["slayer/slayer-proficiencies", "slayer/studied-target"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),

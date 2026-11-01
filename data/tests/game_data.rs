@@ -112,11 +112,12 @@ fn a_wizards_scribe_scrolls_is_held_with_no_pick() {
 #[test]
 fn every_feat_list_holds_two_feats_or_more_or_every_feat() {
     // A lone feat is granted; the data check refuses a shorter list unless its one feat takes a value (a bonus feat
-    // of the player's choosing). The real data has 78: 73 named lists (34 of them the bloodlines' and the ranger
-    // styles' since ticket 30, 4 the kineticist elements' wild-talent bonus feats since ticket 31, 3 the slayer's
-    // combat style stages since ticket 32), Gold Dragon's Dragon Feats (a list of every feat), and the warpriest's
-    // Weapon Focus, the Master of All's Skill Focus, the Sword Saint's Weapon Focus and the half-elf's Skill Focus.
-    assert_eq!(DATA.feat_lists().count(), 78);
+    // of the player's choosing). The real data has 75: 70 named lists (34 of them the bloodlines' and the ranger
+    // styles' since ticket 30, 4 the kineticist elements' wild-talent bonus feats since ticket 31; ticket 32's three
+    // slayer stage lists went in ticket 33, the slayer picking a ranger style), Gold Dragon's Dragon Feats (a list of
+    // every feat), and the warpriest's Weapon Focus, the Master of All's Skill Focus, the Sword Saint's Weapon Focus
+    // and the half-elf's Skill Focus.
+    assert_eq!(DATA.feat_lists().count(), 75);
     let every: Vec<_> = DATA
         .feat_lists()
         .filter(|list| list.every_feat)
@@ -2349,6 +2350,11 @@ fn a_slayer_takes_three_combat_style_feats_and_not_a_fourth() {
             .picks
             .insert(option_feat(level), Pick::feat(FeatKey::new(feat_)));
     }
+    // The style with the first (ticket 33).
+    slayer.picks.insert(
+        SlotId::OptionSelection { level: 4, index: 0 },
+        pick("ranger/combat-style-feat/archery-feats"),
+    );
     assert_eq!(problems(&slayer), []);
     // A fourth: each window's talent is taken once, and the first window is past.
     slayer.picks.insert(selection_slot(12), style(10));
@@ -2490,4 +2496,412 @@ fn the_arcane_trickster_lacks_use_magic_device_and_the_dragon_disciple_has_knowl
             .class_skills
             .contains(&SkillKey::new("knowledge-world"))
     );
+}
+
+// ---- option follow-ups (ticket 33) ----------------------------------------------------------------------------
+
+fn crossblooded(first: &str, second: &str) -> Build {
+    let build = archetype_build("sorcerer", "sorcerer/crossblooded", 1);
+    let build = with_option(build, 1, 0, &format!("sorcerer/bloodline/{first}"));
+    with_option(build, 1, 1, &format!("sorcerer/bloodline/{second}"))
+}
+
+fn one_of_group(group: rules::OptionGroup) -> Issue {
+    Issue::Unmet(Unmet::Condition {
+        needs: Prerequisite::NoOtherOptionOfGroup(group),
+        has: None,
+    })
+}
+
+#[test]
+fn a_crossblooded_sorcerer_cant_take_red_after_blue() {
+    let blue_red = crossblooded("draconic-blue", "draconic-red");
+    assert_eq!(
+        problems(&blue_red),
+        [Problem {
+            at: rules::Choice::Slot(SlotId::Selection { level: 1, index: 1 }),
+            issue: one_of_group(rules::OptionGroup::Draconic),
+        }]
+    );
+    // Two Elemental bloodlines neither; a dragon and an element are fine ("Elemental and Draconic bloodlines").
+    assert_eq!(
+        problems(&crossblooded("elemental-air", "elemental-fire"))[0].issue,
+        one_of_group(rules::OptionGroup::Elemental)
+    );
+    assert_eq!(
+        problems(&crossblooded("draconic-blue", "elemental-fire")),
+        []
+    );
+    // Nor through Second Bloodline.
+    let mut second = with_option(
+        build("sorcerer", 6),
+        1,
+        0,
+        "sorcerer/bloodline/draconic-blue",
+    );
+    second.picks.insert(
+        SlotId::Mythic { rank: 1 },
+        Pick::MythicAbility(rules::MythicAbilityKey::new("second-bloodline")),
+    );
+    let slot = SlotId::MythicSelection { rank: 1, index: 0 };
+    let options: HashMap<String, Result<(), Issue>> = engine()
+        .options(&second, &slot)
+        .unwrap()
+        .into_iter()
+        .map(|SlotOption { pick, status }| (pick.key().to_owned(), status))
+        .collect();
+    assert_eq!(
+        options["sorcerer/bloodline/draconic-red"],
+        Err(one_of_group(rules::OptionGroup::Draconic))
+    );
+    assert_eq!(options[ABYSSAL], Ok(()));
+}
+
+#[test]
+fn a_crossblooded_sorcerers_second_bloodline_gives_its_arcana() {
+    let build = crossblooded("arcane", "abyssal");
+    assert_eq!(problems(&build), []);
+    let one = at(&build, 1);
+    assert!(holds(&one, "sorcerer/bloodline/arcane/arcane-arcana"));
+    assert!(holds(&one, "sorcerer/bloodline/abyssal/demonic-arcana"));
+    assert!(!holds(&one, "sorcerer/bloodline/abyssal/grow-claws"));
+    assert!(!holds(&one, "sorcerer/crossblooded/bloodline-2-arcana"));
+    // Every sorcerer bloodline names its arcana.
+    let bloodlines = &class("sorcerer")
+        .selections
+        .iter()
+        .find(|s| s.key.as_str() == "sorcerer/bloodline")
+        .unwrap()
+        .options;
+    assert_eq!(bloodlines.len(), 21);
+    assert!(bloodlines.iter().all(|o| o.arcana.is_some()));
+}
+
+#[test]
+fn the_unsworn_shamans_spirits_and_the_hunters_animal_focus_are_daily_choices() {
+    let unsworn = at(&archetype_build("shaman", "shaman/unsworn-shaman", 6), 6);
+    let daily: Vec<String> = engine()
+        .daily_choices(&unsworn)
+        .iter()
+        .map(|key| key.to_string())
+        .collect();
+    assert!(daily.contains(&"shaman/unsworn-shaman/minor-spirit".to_owned()));
+    assert!(daily.contains(&"shaman/unsworn-shaman/wandering-spirit-2".to_owned()));
+    // The hunter's Animal Focus is a note, not a pick.
+    let hunter = build("hunter", 8);
+    let sheet = engine().evaluate(&hunter);
+    assert!(
+        sheet.levels[0]
+            .slots
+            .iter()
+            .all(|slot| !matches!(slot.kind, SlotKind::Selection(_))),
+        "{:?}",
+        sheet.levels[0].slots
+    );
+    let daily = engine().daily_choices(sheet.at(8).unwrap());
+    assert!(daily.contains(&FeatureKey::new("hunter/animal-focus")));
+    assert!(daily.contains(&FeatureKey::new("hunter/second-animal-focus")));
+}
+
+#[test]
+fn elemental_movement_follows_the_element_and_earth_has_none() {
+    let element = |element: &str| {
+        at(
+            &with_option(
+                build("sorcerer", 15),
+                1,
+                0,
+                &format!("sorcerer/bloodline/elemental-{element}"),
+            ),
+            15,
+        )
+    };
+    for name in ["air", "fire", "water"] {
+        assert!(
+            holds(
+                &element(name),
+                &format!("sorcerer/bloodline/elemental/elemental-movement-{name}")
+            ),
+            "{name}"
+        );
+    }
+    let earth = element("earth");
+    assert!(
+        earth
+            .features
+            .keys()
+            .all(|key| !key.as_str().contains("elemental-movement")),
+        "{:?}",
+        earth.features
+    );
+}
+
+fn separatist(levels: usize) -> Build {
+    let build = archetype_build("cleric", "cleric/separatist", levels);
+    let build = with_option(build, 1, 0, "cleric/domain/fire");
+    with_option(build, 1, 1, "cleric/domain/luck")
+}
+
+#[test]
+fn a_separatists_second_domain_comes_two_levels_late() {
+    let one = separatist(1);
+    assert_eq!(problems(&one), []);
+    let at_1 = at(&one, 1);
+    assert!(holds(&at_1, "cleric/domain/fire/fire-bolt"));
+    assert!(!holds(&at_1, "cleric/domain/luck/bit-of-luck"));
+    let three = separatist(3);
+    let at_3 = at(&three, 3);
+    assert!(holds(&at_3, "cleric/domain/fire/fire-bolt"));
+    assert!(holds(&at_3, "cleric/domain/luck/bit-of-luck"));
+    // Luck's second power at 6, two levels late: cleric 8.
+    from_level(&separatist(8), 8, "cleric/domain/luck/divine-fortune");
+    from_level(&separatist(8), 6, "cleric/domain/fire/fire-resistance");
+}
+
+#[test]
+fn a_divine_hunter_8_holds_its_domains_level_8_power() {
+    let build = with_option(
+        archetype_build("hunter", "hunter/divine-hunter", 8),
+        1,
+        0,
+        "cleric/domain/nobility",
+    );
+    assert_eq!(problems(&build), []);
+    from_level(&build, 8, "cleric/domain/nobility/inspiring-command");
+}
+
+/// A Living Deity with the Battle mystery and the Plagued curse, arcanist `levels`, its two domains at 20.
+fn living_deity(levels: usize) -> Build {
+    let build = archetype_build("arcanist", "arcanist/magic-deceiver", levels);
+    let build = with_option(
+        build,
+        1,
+        0,
+        "arcanist/magic-deceiver/ways-of-the-deceiver/living-deity",
+    );
+    let build = with_pick(build, option_slot(1, 0), "oracle/mystery/battle");
+    let build = with_pick(build, option_slot(1, 2), "oracle/oracles-curse/plagued");
+    let build = with_pick(build, option_slot(20, 0), "cleric/domain/fire");
+    with_pick(build, option_slot(20, 1), "cleric/domain/luck")
+}
+
+/// `build` with a mythic ability at MR 1 (character level 6) and `option` in its selection slot.
+fn with_mythic_selection(mut build: Build, ability: &str, option: &str) -> Build {
+    build.picks.insert(
+        SlotId::Mythic { rank: 1 },
+        Pick::MythicAbility(rules::MythicAbilityKey::new(ability)),
+    );
+    build
+        .picks
+        .insert(SlotId::MythicSelection { rank: 1, index: 0 }, pick(option));
+    build
+}
+
+#[test]
+fn a_living_deity_with_impossible_domain_holds_a_third_domain() {
+    let build = with_pick(
+        living_deity(20),
+        option_slot(1, 1),
+        "oracle/revelations/battle/battlecry",
+    );
+    let build = with_mythic_selection(build, "impossible-domain", "cleric/domain/nobility");
+    assert_eq!(problems(&build), []);
+    let twenty = at(&build, 20);
+    for domain in ["fire", "luck", "nobility"] {
+        assert_eq!(
+            twenty.option_count(&SelectionOptionKey::new(format!("cleric/domain/{domain}"))),
+            1,
+            "{domain}"
+        );
+    }
+    // Levelled like the other domains: the arcanist's 20.
+    assert!(holds(&twenty, "cleric/domain/nobility/inspiring-command"));
+    // A cleric's third domain runs on cleric levels.
+    let cleric = with_mythic_selection(
+        cleric(["fire", "luck"], 8),
+        "impossible-domain",
+        "cleric/domain/nobility",
+    );
+    assert_eq!(problems(&cleric), []);
+    from_level(&cleric, 6, "cleric/domain/nobility/inspiring-word");
+    from_level(&cleric, 8, "cleric/domain/nobility/inspiring-command");
+}
+
+#[test]
+fn cinder_dance_needs_no_lame_curse() {
+    let flame = |curse: &str| {
+        let build = oracle("flame", 1);
+        let build = with_option(build, 1, 1, &format!("oracle/oracles-curse/{curse}"));
+        with_option(build, 1, 2, "oracle/revelations/flame/cinder-dance")
+    };
+    assert_eq!(problems(&flame("plagued")), []);
+    assert_eq!(problems(&flame("lame")).len(), 1);
+}
+
+#[test]
+fn a_dual_cursed_oracle_is_offered_misfortune_and_fortune() {
+    // Its level-1 slots in key order: its own revelation, the mystery, the curse.
+    let build = with_option(
+        archetype_build("oracle", "oracle/dual-cursed-oracle", 13),
+        1,
+        1,
+        "oracle/mystery/battle",
+    );
+    for level in [1, 3, 5, 7, 11, 13] {
+        let offered = offered_at(&build, &selection_slot(level));
+        assert!(
+            offered.contains("oracle/dual-cursed-oracle/revelation/misfortune")
+                && offered.contains("oracle/dual-cursed-oracle/revelation/fortune")
+                && offered.contains("oracle/revelations/battle/weapon-mastery"),
+            "{level}: {offered:?}"
+        );
+    }
+    // A plain oracle isn't.
+    assert!(
+        !offered_at(&oracle("battle", 1), &revelation_slot(1))
+            .contains("oracle/dual-cursed-oracle/revelation/misfortune")
+    );
+}
+
+#[test]
+fn a_living_deitys_maneuver_mastery_and_second_mystery_count_arcanist_levels() {
+    // Maneuver Mastery's Trip at the revelation's 7th level: arcanist 7.
+    let build = with_pick(
+        living_deity(7),
+        option_slot(1, 1),
+        "oracle/revelations/battle/maneuver-mastery",
+    );
+    let build = with_pick(build, option_slot(1, 3), "oracle/maneuver-mastery/trip");
+    let trip = FeatKey::new("trip");
+    assert_eq!(at(&build, 6).feat_count(&trip), 0);
+    assert_eq!(at(&build, 7).feat_count(&trip), 1);
+    // The second mystery's class skill from the pick (arcanist 6), its Final Revelation at 20.
+    let build = with_pick(
+        living_deity(20),
+        option_slot(1, 1),
+        "oracle/revelations/battle/battlecry",
+    );
+    let build = with_mythic_selection(build, "second-mystery", "oracle/mystery/flame");
+    assert_eq!(problems(&build), []);
+    from_level(&build, 6, "oracle/mystery/flame/class-skill-athletics");
+    from_level(&build, 20, "oracle/mystery/flame/flame-final-revelation");
+}
+
+#[test]
+fn a_champion_of_the_faiths_alignment_blessing_is_his_own_alignment() {
+    let champion = |alignment: rules::Alignment, blessing: &str| {
+        let mut build = archetype_build("warpriest", "warpriest/champion-of-the-faith", 1);
+        build.start.alignment = Some(alignment);
+        let slot = engine().evaluate(&build).levels[0]
+            .slots
+            .iter()
+            .find(|slot| {
+                matches!(&slot.kind, SlotKind::Selection(s)
+                    if s.as_str() == "warpriest/champion-of-the-faith/chosen-alignment")
+            })
+            .unwrap()
+            .id
+            .clone();
+        build.picks.insert(
+            slot,
+            pick(&format!("warpriest/blessings/{blessing}-domain")),
+        );
+        problems(&build).len()
+    };
+    assert_eq!(champion(rules::Alignment::LawfulGood, "good"), 0);
+    assert_eq!(champion(rules::Alignment::LawfulGood, "law"), 0);
+    assert_eq!(champion(rules::Alignment::LawfulGood, "evil"), 1);
+    assert_eq!(champion(rules::Alignment::TrueNeutral, "chaos"), 1);
+    assert_eq!(champion(rules::Alignment::ChaoticEvil, "chaos"), 0);
+    // A warpriest's own blessings don't check it.
+    let blessings = with_option(
+        build("warpriest", 1),
+        1,
+        0,
+        "warpriest/blessings/evil-domain",
+    );
+    assert_eq!(blessings.start.alignment, None);
+    assert_eq!(problems(&blessings), []);
+}
+
+#[test]
+fn a_signifer_picks_one_of_the_seven_hellknight_orders() {
+    let signifer = class("hellknight-signifer");
+    let order = signifer
+        .selections
+        .iter()
+        .find(|s| s.key.as_str() == "hellknight-signifer/order")
+        .expect("the Signifer's order");
+    assert_eq!(order.offered().len(), 7);
+    assert!(signifer.levels[0].selections.contains(&order.key));
+    assert!(
+        signifer
+            .features
+            .iter()
+            .all(|f| f.key.as_str() != "hellknight-signifer/order")
+    );
+}
+
+#[test]
+fn expanded_element_at_15_isnt_the_7th_level_element() {
+    let mut build = kineticist("fire", 15);
+    build
+        .picks
+        .insert(selection_slot(7), pick("kineticist/element/water"));
+    build
+        .picks
+        .insert(selection_slot(15), pick("kineticist/element/water"));
+    assert_eq!(problems(&build).len(), 1, "the 7th-level element again");
+    build
+        .picks
+        .insert(selection_slot(15), pick("kineticist/element/fire"));
+    assert_eq!(problems(&build), []);
+}
+
+#[test]
+fn a_slayer_who_picked_archery_cant_take_two_weapon_fighting_through_a_combat_style_talent() {
+    let mut slayer = build("slayer", 6);
+    slayer.picks.insert(
+        selection_slot(2),
+        pick("slayer/slayer-talents/combat-style-feat-2"),
+    );
+    let style = SlotId::OptionSelection { level: 2, index: 0 };
+    // The five ranger styles.
+    assert_eq!(offered_at(&slayer, &style).len(), 5);
+    slayer
+        .picks
+        .insert(style, pick("ranger/combat-style-feat/archery-feats"));
+    let feat_slot = |level| SlotId::OptionFeat { level, index: 0 };
+    let offered = feats_offered(&slayer, &feat_slot(2));
+    assert!(offered.contains("rapid-shot") && !offered.contains("two-weapon-fighting"));
+    slayer.picks.insert(
+        feat_slot(2),
+        Pick::feat(FeatKey::new("two-weapon-fighting")),
+    );
+    assert_eq!(
+        problems(&slayer),
+        [Problem {
+            at: rules::Choice::Slot(feat_slot(2)),
+            issue: Issue::NotAllowed,
+        }]
+    );
+    // The second talent picks no style; its feat comes from Archery's list of the second stage.
+    slayer
+        .picks
+        .insert(feat_slot(2), Pick::feat(FeatKey::new("rapid-shot")));
+    slayer.picks.insert(
+        selection_slot(6),
+        pick("slayer/slayer-talents/combat-style-feat-6"),
+    );
+    let sheet = engine().evaluate(&slayer);
+    assert!(
+        sheet
+            .slot(&SlotId::OptionSelection { level: 6, index: 0 })
+            .is_none()
+    );
+    assert!(feats_offered(&slayer, &feat_slot(6)).contains("manyshot"));
+    slayer
+        .picks
+        .insert(feat_slot(6), Pick::feat(FeatKey::new("manyshot")));
+    assert_eq!(problems(&slayer), []);
 }

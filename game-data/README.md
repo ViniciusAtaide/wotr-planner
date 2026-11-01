@@ -85,7 +85,9 @@ class's), and BAB and saves (from the class's progressions).
   which classes' levels make the option level, `option_levels: ["dragon-disciple", "sorcerer"]` (an option taken
   late gets every row up to its level at once), and an archetype that changes the grant has its own selection
   that shares the options it allows: `skipped_levels: [3, 9, 15]` (Seeker; its own rows replace them),
-  `feat_lists_only: true` (Crossblooded's second bloodline), only some options (Hag-Riven), or one option, which
+  `feat_lists_only: true` (Crossblooded's second bloodline: its lists and its `arcana`, the option's named
+  first-row feature, `arcana: "sorcerer/bloodline/abyssal/demonic-arcana"`), `levels_behind: 2` (the Separatist's
+  second domain, `cleric/separatist/domain`), only some options (Hag-Riven), or one option, which
   is then granted with no pick (a Sage Sorcerer's Arcane bloodline). `only_without_option: true` grants the
   selection only to a character holding none of its options (Dragon Disciple's Blood of Dragons). A bonus slot
   that picks from the held option's list is `OptionList(selection: "sorcerer/bloodline")`. The option features
@@ -97,8 +99,27 @@ class's), and BAB and saves (from the class's progressions).
   Bloodline). A class (or archetype, `spontaneous: Some(true)`) that casts spontaneously says `spontaneous: true`,
   which `SpontaneousSpellLevel(spell_type: Arcane, level: 1)` checks; `NoOptionFrom("sorcerer/bloodline")` needs
   none of that selection's options held. A selection with `pool_of` offers the pools (`pool`) of the options held
-  in another (an oracle's revelations, `oracle/revelation`, from the mysteries held). `extract::option_levels`
-  reads all this from the guide.
+  in another (an oracle's revelations, `oracle/revelation`, from the mysteries held), beside any options of its own
+  (the Dual-Cursed Oracle's `oracle/dual-cursed-oracle/revelation`: Misfortune and Fortune); within a level its
+  slot is checked after the other selections'. `extract::option_levels` reads all this from the guide.
+- Ticket 33 (`extract::option_follow_ups`, the user's decisions on tickets 30 and 31):
+  - An option may belong to a group, `group: Draconic` (the sorcerer's ten dragons; `Elemental`, its four
+    elements), and `NoOtherOptionOfGroup(Draconic)` in its prerequisite needs no option of the group held but the
+    one picked (a Crossblooded or Second Bloodline sorcerer can't hold two dragons).
+  - A selection naming no classes may take its option level from elsewhere: `level_from: OtherOptions` (the
+    highest level of the other options held that it offers: Impossible Domain's `cleric/impossible-domain`, Second
+    Mystery's `oracle/second-mystery`, so a Living Deity's run on arcanist levels) or `level_from:
+    GrantingOption` (the level of the option whose row granted the slot: Maneuver Mastery's maneuver follows its
+    revelation).
+  - `once_per_option: true`: an option the selection gave once can't be picked through it again
+    (`kineticist/expanded-element`: the 15th-level element isn't the 7th-level one).
+  - `PickedThrough("warpriest/champion-of-the-faith/chosen-alignment")` in an option's prerequisite holds when the
+    pick fills that selection's slot: the four alignment blessings are `Any([Not(PickedThrough(...)),
+    Alignment(...), ...])`, the Champion's own alignment only when he picks them as his chosen alignment.
+  - Daily choices also mark the Unsworn Shaman's Minor Spirit and Wandering Spirit 2, and the hunter's Animal
+    Focus and Second Animal Focus (features, not a pick of the eight aspects). Elemental Movement is one feature
+    per element (none for Earth). The Divine Hunter skips no domain level. The Signifer's order is
+    `hellknight-signifer/order`, sharing the Hellknight's seven.
 - The second group of options with rows (ticket 31, `extract::option_families`, read from the guide's prose):
   - **Domains** are one selection, `cleric/domain` (37 options, rows by cleric levels: the power at 1, the one
     at 6 or 8, the Animal and Scalykind companion at 4, class skills as "Class Skill: …" features as for the
@@ -118,8 +139,10 @@ class's), and BAB and saves (from the class's progressions).
     at 2; `kineticist/expanded-element` at 7 and 15 holds a second element (or the first again, `repeat:
     Times(2)`) for its list only.
 - The slayer's talents (`slayer/slayer-talents`, levelled by slayer) include three combat style feats, one per
-  window the guide gives ("2 or 4, 6 or 8 and 10 or greater"): each is taken once and its row 1 is a bonus slot
-  from `slayer/combat-style-feats-2`, `-6` or `-10`, the ranger styles' lists of that stage put together.
+  window the guide gives ("2 or 4, 6 or 8 and 10 or greater"): each is taken once and its row 1 grants
+  `slayer/combat-style` (one of the ranger's five styles, levelled by slayer, `only_without_option`: the first
+  talent picks the style) and an `OptionList(selection: "slayer/combat-style")` slot, so each window's feat comes
+  from the style's list of its stage (the user's decision: one style, as a ranger picks).
 - A path's switch rule: `switch: (from: ["aeon", "azata"], kept_through_rank: 7, path_kept_through_rank: 7,
   dropped_features: [...], dropped_selections: [...], features: [...], further_ascensions: true, level_cap:
   Some(40))`. The general picks (mythic abilities and feats) of MR 1 to `kept_through_rank` stay, and the old

@@ -7,6 +7,7 @@ mod follow_ups;
 mod grammar;
 mod mythic_paths;
 mod option_families;
+mod option_follow_ups;
 mod option_levels;
 mod output;
 mod parameters;

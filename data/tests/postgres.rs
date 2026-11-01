@@ -12,8 +12,8 @@ use data::{Database, GameDataStatus};
 use rules::{
     Ability, AbilityModifier, Alignment, ArchetypeKey, ArmourType, ClassKey, DataAt, Energy, Feat,
     FeatCategory, FeatKey, FeatureKey, FeatureSelectionKey, GuideRef, MythicAbilityKey,
-    MythicFeatKey, Parameter, ParameterKind, Prerequisite, RaceKey, Repeat, SelectionOptionKey,
-    SkillKey, SpellSchool, SpellType, Story, WeaponKey,
+    MythicFeatKey, OptionGroup, Parameter, ParameterKind, Prerequisite, RaceKey, Repeat,
+    SelectionOptionKey, SkillKey, SpellSchool, SpellType, Story, WeaponKey,
 };
 use sqlx::PgPool;
 
@@ -291,6 +291,10 @@ fn every_prerequisite_variant() -> Vec<Prerequisite> {
             spell_type: SpellType::Arcane,
             level: 2,
         },
+        // Ticket 33: the pick's group and the selection it's picked through.
+        P::NoOtherOptionOfGroup(OptionGroup::Draconic),
+        P::NoOtherOptionOfGroup(OptionGroup::Elemental),
+        P::PickedThrough(FeatureSelectionKey::new("sorcerer/school")),
     ];
     let groups = vec![
         P::Any(vec![P::BaseAttackBonus(1), P::CasterLevel(1)]),
@@ -330,6 +334,8 @@ fn every_prerequisite_variant() -> Vec<Prerequisite> {
             | P::FeatIfValue { .. }
             | P::Story(_)
             | P::NoOptionFrom(_)
+            | P::NoOtherOptionOfGroup(_)
+            | P::PickedThrough(_)
             | P::SpontaneousSpellLevel { .. } => {}
         }
     }
@@ -351,6 +357,26 @@ async fn every_prerequisite_variant_round_trips(pool: PgPool) {
         repeat: Repeat::Times(2),
         prerequisite: Some(Prerequisite::All(every_prerequisite_variant())),
     });
+    // The leaves about the pick belong in an option's prerequisite.
+    let Some(Prerequisite::All(every)) = &mut game_data.feats.last_mut().unwrap().prerequisite
+    else {
+        unreachable!()
+    };
+    let (about_the_pick, rest): (Vec<_>, Vec<_>) = every.drain(..).partition(|leaf| {
+        matches!(
+            leaf,
+            Prerequisite::NoOtherOptionOfGroup(_) | Prerequisite::PickedThrough(_)
+        )
+    });
+    *every = rest;
+    let evocation = game_data
+        .classes
+        .iter_mut()
+        .flat_map(|class| &mut class.selections)
+        .flat_map(|selection| &mut selection.options)
+        .find(|option| option.key.as_str() == "sorcerer/school/evocation")
+        .unwrap();
+    evocation.prerequisite = Some(Prerequisite::All(about_the_pick));
     let game_data = game_data.canonical();
 
     data::replace_game_data(&db, &game_data, &"0".repeat(64))
@@ -681,8 +707,8 @@ async fn the_schema_rejects_values_outside_their_domain_and_misplaced_keys(pool:
             skill_ranks_at_least_mythic_rank)
         VALUES ('mythic/stray', 'trickster', 'Stray', '', 'x', false, false)",
         "INSERT INTO feature_selection (key, path_key, name, summary, guide, feat_lists_only,
-            only_without_option)
-        VALUES ('legend/stray', 'trickster', 'Stray', '', 'x', false, false)",
+            only_without_option, levels_behind, once_per_option)
+        VALUES ('legend/stray', 'trickster', 'Stray', '', 'x', false, false, 0, false)",
         "INSERT INTO feat_list (key, class_key, name, guide, ignores_prerequisites, every_feat)
         VALUES ('fighter-list', 'fighter', 'Stray', 'x', false, false)",
     ] {
@@ -1072,6 +1098,70 @@ async fn the_schema_keeps_values_granted_offered_and_asked_about_consistent(pool
         (
             "UPDATE prerequisite_node SET weapon_key = 'dagger' WHERE kind = 'feat_if_value'",
             "check constraint",
+        ),
+    ] {
+        let error = rejected(sql).await;
+        assert!(error.contains(expected), "{sql}: {error}");
+    }
+}
+
+#[sqlx::test]
+async fn the_schema_keeps_option_groups_arcanas_and_level_sources_consistent(pool: PgPool) {
+    let db = Database::from(pool.clone());
+    data::seed(&db, &fixture_dir()).await.unwrap();
+    let rejected = |sql: &'static str| {
+        let pool = pool.clone();
+        async move {
+            let mut tx = pool.begin().await.unwrap();
+            let update = sqlx::query(sql).execute(&mut *tx).await;
+            // Foreign keys are deferred: they fail at commit.
+            let result = match update {
+                Ok(_) => tx.commit().await.map(|_| ()),
+                Err(error) => Err(error),
+            };
+            result.unwrap_err().to_string()
+        }
+    };
+    for (sql, expected) in [
+        // An option's group is a known one, its arcana a feature.
+        (
+            "UPDATE selection_option SET option_group = 'gnomish' WHERE option_group IS NOT NULL",
+            "check constraint",
+        ),
+        (
+            "UPDATE selection_option SET arcana_key = 'no-such/feature' WHERE arcana_key IS NOT NULL",
+            "foreign key",
+        ),
+        // A selection's level source is a known one; it lags by a game number of levels.
+        (
+            "UPDATE feature_selection SET level_from = 'elsewhere' WHERE level_from IS NOT NULL",
+            "check constraint",
+        ),
+        (
+            "UPDATE feature_selection SET levels_behind = -1 WHERE levels_behind > 0",
+            "check constraint",
+        ),
+        // The two new leaves fill their own columns only.
+        (
+            "UPDATE prerequisite_node SET option_group = NULL WHERE kind = 'no_other_option_of_group'",
+            "check constraint",
+        ),
+        (
+            "UPDATE prerequisite_node SET selection_key = 'sorcerer/school'
+            WHERE kind = 'no_other_option_of_group'",
+            "check constraint",
+        ),
+        (
+            "UPDATE prerequisite_node SET selection_key = NULL WHERE kind = 'picked_through'",
+            "check constraint",
+        ),
+        (
+            "UPDATE prerequisite_node SET option_group = 'draconic' WHERE kind = 'picked_through'",
+            "check constraint",
+        ),
+        (
+            "UPDATE prerequisite_node SET selection_key = 'no-such/selection' WHERE kind = 'picked_through'",
+            "foreign key",
         ),
     ] {
         let error = rejected(sql).await;

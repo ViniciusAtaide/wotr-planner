@@ -12,38 +12,22 @@ Class(
     spontaneous: true,
     features: [
         (key: "hunter/animal-companion", name: "Animal Companion", guide: "hunter#animal-companion"),
+        (key: "hunter/animal-focus", name: "Animal Focus", guide: "hunter#animal-focus", daily_choice: true),
         (key: "hunter/hunter-tactics", name: "Hunter Tactics", guide: "hunter#hunter-tactics"),
         (key: "hunter/master-hunter", name: "Master Hunter", guide: "hunter#master-hunter"),
         (key: "hunter/nature-sense", name: "Nature Sense", guide: "hunter#nature-sense"),
         (key: "hunter/one-with-the-wild", name: "One with the Wild", guide: "hunter#one-with-the-wild"),
         (key: "hunter/precise-companion", name: "Precise Companion", guide: "hunter#precise-companion"),
         (key: "hunter/raise-animal-companion", name: "Raise Animal Companion", guide: "hunter#raise-animal-companion"),
-        (key: "hunter/second-animal-focus", name: "Second Animal Focus", guide: "hunter#second-animal-focus"),
+        (key: "hunter/second-animal-focus", name: "Second Animal Focus", guide: "hunter#second-animal-focus", daily_choice: true),
         (key: "hunter/woodland-stride", name: "Woodland Stride", guide: "hunter#woodland-stride"),
-    ],
-    selections: [
-        (
-            key: "hunter/animal-focus",
-            name: "Animal Focus",
-            guide: "hunter#animal-focus",
-            options: [
-                (key: "hunter/animal-focus/animal-focus-bear", name: "Animal Focus - Bear", guide: "hunter#animal-focus-bear"),
-                (key: "hunter/animal-focus/animal-focus-bull", name: "Animal Focus - Bull", guide: "hunter#animal-focus-bull"),
-                (key: "hunter/animal-focus/animal-focus-falcon", name: "Animal Focus - Falcon", guide: "hunter#animal-focus-falcon"),
-                (key: "hunter/animal-focus/animal-focus-monkey", name: "Animal Focus - Monkey", guide: "hunter#animal-focus-monkey"),
-                (key: "hunter/animal-focus/animal-focus-mouse", name: "Animal Focus - Mouse", guide: "hunter#animal-focus-mouse"),
-                (key: "hunter/animal-focus/animal-focus-owl", name: "Animal Focus - Owl", guide: "hunter#animal-focus-owl"),
-                (key: "hunter/animal-focus/animal-focus-stag", name: "Animal Focus - Stag", guide: "hunter#animal-focus-stag"),
-                (key: "hunter/animal-focus/animal-focus-tiger", name: "Animal Focus - Tiger", guide: "hunter#animal-focus-tiger"),
-            ],
-        ),
     ],
     feat_lists: [
         (key: "hunter/bonus-feats-2", name: "Precise Companion", guide: "hunter#precise-companion", ignores_prerequisites: true, feats: ["outflank", "precise-shot"]),
         (key: "hunter/bonus-feats-3", name: "Teamwork Feat", guide: "hunter#teamwork-feat", feats: ["allied-spellcaster", "back-to-back", "coordinated-defense", "coordinated-maneuvers", "outflank", "precise-shot", "precise-strike", "seize-the-moment", "shake-it-off", "shield-wall", "shielded-caster", "spell-chain", "tandem-trip", "volley-fire"]),
     ],
     levels: [
-        (level: 1, divine_spell_level: 1, features: ["hunter/animal-companion", "hunter/nature-sense"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], selections: ["hunter/animal-focus"]),
+        (level: 1, divine_spell_level: 1, features: ["hunter/animal-companion", "hunter/animal-focus", "hunter/nature-sense"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
         (level: 2, divine_spell_level: 1, features: ["hunter/precise-companion"], feat_slots: [OneOf(list: "hunter/bonus-feats-2")]),
         (level: 3, divine_spell_level: 1, features: ["hunter/hunter-tactics"], feat_slots: [OneOf(list: "hunter/bonus-feats-3")]),
         (level: 4, divine_spell_level: 2),
@@ -113,7 +97,6 @@ Class(
                     name: "Domain (Divine Hunter)",
                     guide: "hunter#domain",
                     option_levels: ["hunter"],
-                    skipped_levels: [4, 6, 8],
                     options: [],
                     shared_options: [
                         "cleric/domain/air",
@@ -166,7 +149,7 @@ Class(
                 ),
             ],
             levels: [
-                (level: 1, features: ["hunter/animal-companion", "hunter/nature-sense"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], selections: ["hunter/animal-focus", "hunter/divine-hunter/domain"]),
+                (level: 1, features: ["hunter/animal-companion", "hunter/animal-focus", "hunter/nature-sense"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], selections: ["hunter/divine-hunter/domain"]),
                 (level: 3, selections: ["hunter/divine-hunter/otherworldly-companion"]),
                 (level: 6),
                 (level: 9),
@@ -190,7 +173,7 @@ Class(
                 (key: "hunter/forester/terrain-expertise", name: "Terrain Expertise", guide: "hunter#terrain-expertise"),
             ],
             levels: [
-                (level: 1, features: ["hunter/nature-sense"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], selections: ["hunter/animal-focus"]),
+                (level: 1, features: ["hunter/animal-focus", "hunter/nature-sense"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
                 (level: 2, feat_slots: [CombatFeat]),
                 (level: 3, features: ["hunter/forester/tactician"], feat_slots: [OneOf(list: "hunter/bonus-feats-3")]),
                 (level: 4, features: ["hunter/forester/evasion"]),
@@ -238,7 +221,7 @@ Class(
                 ),
             ],
             levels: [
-                (level: 1, spell_levels: (arcane: 0, divine: 0), features: ["hunter/animal-companion", "hunter/nature-sense", "hunter/tandem-executioner/aversion-to-spellcasting", "hunter/tandem-executioner/studied-target"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], selections: ["hunter/animal-focus"]),
+                (level: 1, spell_levels: (arcane: 0, divine: 0), features: ["hunter/animal-companion", "hunter/animal-focus", "hunter/nature-sense", "hunter/tandem-executioner/aversion-to-spellcasting", "hunter/tandem-executioner/studied-target"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
                 (level: 2, spell_levels: (arcane: 0, divine: 0), features: ["hunter/precise-companion"], feat_slots: [OneOf(list: "hunter/bonus-feats-2")]),
                 (level: 3, spell_levels: (arcane: 0, divine: 0), features: ["hunter/hunter-tactics"], feat_slots: [OneOf(list: "hunter/bonus-feats-3")]),
                 (level: 4, spell_levels: (arcane: 0, divine: 0), selections: ["hunter/tandem-executioner/tandem-executioner-techniques"]),
@@ -276,7 +259,7 @@ Class(
                 (key: "hunter/urban-hunter/bonus-feats-6", name: "Captor", guide: "hunter#captor", ignores_prerequisites: true, feats: ["bull-rush", "dirty-trick", "disarm", "trip"]),
             ],
             levels: [
-                (level: 1, features: ["hunter/nature-sense", "hunter/urban-hunter/animal-companion-urban-hunter"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], selections: ["hunter/animal-focus"]),
+                (level: 1, features: ["hunter/animal-focus", "hunter/nature-sense", "hunter/urban-hunter/animal-companion-urban-hunter"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
                 (level: 3),
                 (level: 5, features: ["hunter/urban-hunter/animal-insight", "hunter/woodland-stride"]),
                 (level: 6, features: ["hunter/urban-hunter/captor"], feat_slots: [OneOf(list: "hunter/urban-hunter/bonus-feats-6")]),

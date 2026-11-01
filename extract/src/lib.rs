@@ -13,6 +13,7 @@ pub mod guide;
 pub mod html;
 pub mod names;
 pub mod option_families;
+pub mod option_follow_ups;
 pub mod option_levels;
 pub mod output;
 pub mod parameters;

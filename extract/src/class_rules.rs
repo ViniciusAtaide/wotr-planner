@@ -143,6 +143,8 @@ pub fn nature_bond(data: &mut GameData) {
         levels: Vec::new(),
         pool: None,
         replaces_row_of: None,
+        group: None,
+        arcana: None,
         parameter: None,
         values: Default::default(),
     };
@@ -161,6 +163,9 @@ pub fn nature_bond(data: &mut GameData) {
         feat_lists_only: false,
         only_without_option: false,
         pool_of: None,
+        levels_behind: 0,
+        level_from: None,
+        once_per_option: false,
     });
 
     // Boon Companion and Mythical Beast: "Animal Companion".

@@ -550,6 +550,7 @@ fn a_pool_selection_offers_the_held_options_pool() {
         [
             "cleric/fire-revelations/burning-hands",
             "cleric/fire-revelations/fire-breath",
+            "cleric/fire-revelations/maneuver-mastery",
             "cleric/fire-revelations/weapon-mastery"
         ]
     );

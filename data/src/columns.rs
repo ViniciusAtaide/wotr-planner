@@ -3,9 +3,9 @@
 //! The text values match the domains and CHECK constraints in `migrations/20261031000000_game_data.sql`.
 
 use rules::{
-    Ability, Advancement, Alignment, ArmourType, BabProgression, Energy, FeatCategory,
-    MythicAbilityGroup, MythicFeatGroup, ParameterKind, Repeat, Save, SaveProgression, SpellSchool,
-    SpellType, Story, WeaponProficiency,
+    Ability, Advancement, Alignment, ArmourType, BabProgression, Energy, FeatCategory, LevelFrom,
+    MythicAbilityGroup, MythicFeatGroup, OptionGroup, ParameterKind, Repeat, Save, SaveProgression,
+    SpellSchool, SpellType, Story, WeaponProficiency,
 };
 
 /// A row that doesn't fit the `rules` types (should be impossible given the constraints).
@@ -121,6 +121,16 @@ text_column!(MythicFeatGroup, mythic_feat_group_from, mythic_feat_group_text {
 text_column!(Story, story_from, story_text {
     VowOfDahak => "vow_of_dahak",
     Uncorrupted => "uncorrupted",
+});
+
+text_column!(OptionGroup, option_group_from, option_group_text {
+    Draconic => "draconic",
+    Elemental => "elemental",
+});
+
+text_column!(LevelFrom, level_from_from, level_from_text {
+    OtherOptions => "other_options",
+    GrantingOption => "granting_option",
 });
 
 text_column!(Advancement, advancement_from, advancement_text {
@@ -286,6 +296,8 @@ pub(crate) enum NodeKind {
     Story,
     NoOptionFrom,
     SpontaneousSpellLevel,
+    NoOtherOptionOfGroup,
+    PickedThrough,
 }
 
 impl NodeKind {
@@ -321,6 +333,8 @@ text_column!(NodeKind, node_kind_from, node_kind_text {
     Story => "story",
     NoOptionFrom => "no_option_from",
     SpontaneousSpellLevel => "spontaneous_spell_level",
+    NoOtherOptionOfGroup => "no_other_option_of_group",
+    PickedThrough => "picked_through",
 });
 
 /// `feat_slot.kind`: which `rules::FeatSlot` variant a row is.

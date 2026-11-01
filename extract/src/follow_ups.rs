@@ -62,7 +62,7 @@ pub fn settled(at: &str, text: &str) -> bool {
 }
 
 /// Asserts that a section of a page says `phrase`.
-fn says(guide: &Guide, page_slug: &str, anchor: &str, phrase: &str) {
+pub(crate) fn says(guide: &Guide, page_slug: &str, anchor: &str, phrase: &str) {
     let text = section(page(guide, page_slug), anchor).text();
     assert!(
         text.contains(phrase),
@@ -71,7 +71,7 @@ fn says(guide: &Guide, page_slug: &str, anchor: &str, phrase: &str) {
 }
 
 /// Asserts that a section's table has `cell` at `level` (the guide's level column).
-fn cell_at(guide: &Guide, page_slug: &str, anchor: &str, level: &str, cell: &str) {
+pub(crate) fn cell_at(guide: &Guide, page_slug: &str, anchor: &str, level: &str, cell: &str) {
     let found = section(page(guide, page_slug), anchor)
         .tables()
         .flatten()
@@ -87,7 +87,7 @@ fn weapon(key: &str) -> Parameter {
     Parameter::Weapon(WeaponKey::new(key))
 }
 
-fn class_mut<'d>(data: &'d mut GameData, key: &str) -> &'d mut Class {
+pub(crate) fn class_mut<'d>(data: &'d mut GameData, key: &str) -> &'d mut Class {
     data.classes
         .iter_mut()
         .chain(&mut data.prestige_classes)
@@ -95,7 +95,11 @@ fn class_mut<'d>(data: &'d mut GameData, key: &str) -> &'d mut Class {
         .unwrap_or_else(|| panic!("no class {key}"))
 }
 
-fn archetype_mut<'d>(data: &'d mut GameData, class: &str, key: &str) -> &'d mut rules::Archetype {
+pub(crate) fn archetype_mut<'d>(
+    data: &'d mut GameData,
+    class: &str,
+    key: &str,
+) -> &'d mut rules::Archetype {
     class_mut(data, class)
         .archetypes
         .iter_mut()
@@ -103,7 +107,7 @@ fn archetype_mut<'d>(data: &'d mut GameData, class: &str, key: &str) -> &'d mut 
         .unwrap_or_else(|| panic!("no archetype {key}"))
 }
 
-fn archetype_row_mut<'d>(
+pub(crate) fn archetype_row_mut<'d>(
     data: &'d mut GameData,
     class: &str,
     archetype: &str,
@@ -117,14 +121,14 @@ fn archetype_row_mut<'d>(
 }
 
 /// Takes a feature off a row's grants, asserting it was there.
-fn take_feature(features: &mut Vec<FeatureKey>, key: &str, at: &str) {
+pub(crate) fn take_feature(features: &mut Vec<FeatureKey>, key: &str, at: &str) {
     let before = features.len();
     features.retain(|feature| feature.as_str() != key);
     assert_eq!(features.len(), before - 1, "{at}: no single {key}");
 }
 
 /// Removes a feature's definition from its owner once no row grants it.
-fn drop_feature(
+pub(crate) fn drop_feature(
     data: &mut GameData,
     class: &str,
     archetype: Option<&str>,

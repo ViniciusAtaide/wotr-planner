@@ -26,6 +26,8 @@ fn option(key: &str, anchor: &str, prerequisite: Option<Prerequisite>) -> Select
         levels: vec![],
         pool: None,
         replaces_row_of: None,
+        group: None,
+        arcana: None,
         parameter: None,
         values: Default::default(),
     }
@@ -44,6 +46,9 @@ fn selection(key: &str, options: Vec<SelectionOption>) -> FeatureSelection {
         feat_lists_only: false,
         only_without_option: false,
         pool_of: None,
+        levels_behind: 0,
+        level_from: None,
+        once_per_option: false,
     }
 }
 

@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO selection_option (key, selection_key, name, summary, guide,\n                    prerequisite_root_id, chosen_feat_key, parameter, repeat, repeat_times, pool_key,\n                    replaces_row_of_key)\n                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
+  "query": "INSERT INTO selection_option (key, selection_key, name, summary, guide,\n                    prerequisite_root_id, chosen_feat_key, parameter, repeat, repeat_times, pool_key,\n                    replaces_row_of_key, option_group, arcana_key)\n                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)",
   "describe": {
     "columns": [],
     "parameters": {
@@ -44,10 +44,19 @@
           }
         },
         "Text",
+        "Text",
+        {
+          "Custom": {
+            "name": "option_group",
+            "kind": {
+              "Domain": "Text"
+            }
+          }
+        },
         "Text"
       ]
     },
     "nullable": []
   },
-  "hash": "dc3cabe56014bf70f30ddff454d217599bf2433f92c8a9e515a15f4a5aeb95d2"
+  "hash": "ffe043d4710e88cd1bdb5e605a6e345222fc43f6a0456010b4b589410eb499b2"
 }

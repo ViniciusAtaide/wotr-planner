@@ -415,6 +415,12 @@ fn option(option: &SelectionOption, indent: usize) -> String {
     if let Some(selection) = &option.replaces_row_of {
         fields.field("replaces_row_of", selection);
     }
+    if let Some(group) = &option.group {
+        fields.field("group", group);
+    }
+    if let Some(arcana) = &option.arcana {
+        fields.field("arcana", arcana);
+    }
     if option.levels.is_empty() {
         return fields.line();
     }
@@ -479,6 +485,11 @@ fn selections(indent: usize, selections: &[FeatureSelection]) -> String {
         if let Some(pool_of) = &selection.pool_of {
             fields.field("pool_of", pool_of);
         }
+        fields.number("levels_behind", selection.levels_behind);
+        if let Some(level_from) = &selection.level_from {
+            fields.field("level_from", level_from);
+        }
+        fields.flag("once_per_option", selection.once_per_option);
         let options = selection
             .options
             .iter()
