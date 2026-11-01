@@ -11,7 +11,6 @@ Class(
     prerequisite: Any([Alignment(NeutralGood), Alignment(LawfulNeutral), Alignment(TrueNeutral), Alignment(ChaoticNeutral), Alignment(NeutralEvil)]),
     features: [
         (key: "druid/animal-companion", name: "Animal Companion", guide: "druid"),
-        (key: "druid/domain-abilities", name: "Domain Abilities", guide: "druid"),
         (key: "druid/domain-ability", name: "Domain Ability", guide: "druid"),
         (key: "druid/druid-proficiencies", name: "Druid Proficiencies", guide: "druid#druid-proficiencies"),
         (key: "druid/lightning-lord", name: "Lightning Lord", guide: "druid"),
@@ -26,8 +25,19 @@ Class(
         (key: "druid/wild-shape-wolf", name: "Wild Shape (Wolf)", guide: "druid"),
         (key: "druid/woodland-stride", name: "Woodland Stride", guide: "druid#woodland-stride"),
     ],
+    selections: [
+        (
+            key: "druid/nature-bond",
+            name: "Nature Bond",
+            guide: "druid",
+            options: [
+                (key: "druid/nature-bond/animal-companion", name: "Animal Companion", guide: "druid"),
+                (key: "druid/nature-bond/domain", name: "Domain", guide: "druid"),
+            ],
+        ),
+    ],
     levels: [
-        (level: 1, divine_spell_level: 1, features: ["druid/animal-companion", "druid/domain-abilities", "druid/druid-proficiencies", "druid/nature-sense", "druid/spontaneous-summoning"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency"]),
+        (level: 1, divine_spell_level: 1, features: ["druid/druid-proficiencies", "druid/nature-sense", "druid/spontaneous-summoning"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency"], selections: ["druid/nature-bond"]),
         (level: 2, divine_spell_level: 1, features: ["druid/woodland-stride"]),
         (level: 3, divine_spell_level: 2),
         (level: 4, divine_spell_level: 2, features: ["druid/animal-companion", "druid/resist-natures-lure", "druid/wild-shape-wolf"]),
@@ -85,7 +95,6 @@ Class(
             features: [
                 (key: "druid/defender-of-the-true-world/animal-companion", name: "Animal Companion", guide: "druid#defender-of-the-true-world"),
                 (key: "druid/defender-of-the-true-world/beguiling-immunity", name: "Beguiling Immunity", guide: "druid#beguiling-immunity"),
-                (key: "druid/defender-of-the-true-world/domain-abilities", name: "Domain Abilities", guide: "druid#defender-of-the-true-world"),
                 (key: "druid/defender-of-the-true-world/domain-ability", name: "Domain Ability", guide: "druid#defender-of-the-true-world"),
                 (key: "druid/defender-of-the-true-world/enemy-of-the-fey", name: "Enemy of the Fey", guide: "druid#enemy-of-the-fey"),
                 (key: "druid/defender-of-the-true-world/fey-stalker", name: "Fey Stalker", guide: "druid#fey-stalker"),
@@ -98,7 +107,7 @@ Class(
                 (key: "druid/defender-of-the-true-world/wild-shape-wolf", name: "Wild Shape (Wolf)", guide: "druid#defender-of-the-true-world"),
             ],
             levels: [
-                (level: 1, features: ["druid/defender-of-the-true-world/animal-companion", "druid/defender-of-the-true-world/domain-abilities", "druid/defender-of-the-true-world/enemy-of-the-fey", "druid/druid-proficiencies", "druid/nature-sense"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency"]),
+                (level: 1, features: ["druid/defender-of-the-true-world/enemy-of-the-fey", "druid/druid-proficiencies", "druid/nature-sense"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency"], selections: ["druid/nature-bond"]),
                 (level: 3, features: ["druid/defender-of-the-true-world/fey-stalker"]),
                 (level: 4, features: ["druid/defender-of-the-true-world/animal-companion", "druid/defender-of-the-true-world/feybane", "druid/defender-of-the-true-world/wild-shape-wolf"]),
                 (level: 6, features: ["druid/defender-of-the-true-world/domain-ability", "druid/defender-of-the-true-world/wild-shape-leopard-small-elemental"]),
@@ -171,7 +180,6 @@ Class(
             class_skills: ["athletics", "knowledge-arcana", "knowledge-world", "lore-nature", "perception", "persuasion"],
             features: [
                 (key: "druid/feyspeaker/animal-companion", name: "Animal Companion", guide: "druid#feyspeaker"),
-                (key: "druid/feyspeaker/domain-abilities", name: "Domain Abilities", guide: "druid#feyspeaker"),
                 (key: "druid/feyspeaker/domain-ability", name: "Domain Ability", guide: "druid#feyspeaker"),
                 (key: "druid/feyspeaker/fey-magic-i", name: "Fey Magic I", guide: "druid#feyspeaker"),
                 (key: "druid/feyspeaker/fey-magic-ii", name: "Fey Magic II", guide: "druid#feyspeaker"),
@@ -188,7 +196,7 @@ Class(
                 (key: "druid/feyspeaker/wild-shape-wolf", name: "Wild Shape (Wolf)", guide: "druid#feyspeaker"),
             ],
             levels: [
-                (level: 1, features: ["druid/druid-proficiencies", "druid/feyspeaker/animal-companion", "druid/feyspeaker/domain-abilities", "druid/nature-sense"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency"]),
+                (level: 1, features: ["druid/druid-proficiencies", "druid/nature-sense"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency"], selections: ["druid/nature-bond"]),
                 (level: 4, features: ["druid/feyspeaker/animal-companion", "druid/feyspeaker/fey-magic-i", "druid/resist-natures-lure"]),
                 (level: 6, features: ["druid/feyspeaker/domain-ability", "druid/feyspeaker/fey-magic-ii", "druid/feyspeaker/wild-shape-wolf"]),
                 (level: 8, features: ["druid/feyspeaker/fey-magic-iii", "druid/feyspeaker/lightning-lord", "druid/feyspeaker/wild-shape-leopard"]),

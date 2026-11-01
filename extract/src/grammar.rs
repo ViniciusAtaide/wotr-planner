@@ -1,6 +1,6 @@
 //! The prerequisite-line grammar.
 
-use rules::{Ability, Alignment, SpellType};
+use rules::{Ability, Alignment, SpellType, Story};
 
 /// A condition as the guide writes it, with names not yet resolved to keys.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -26,6 +26,8 @@ pub enum Cond {
     SpellLevel(SpellType, u8),
     /// Any one of these alignments.
     Alignment(Vec<Alignment>),
+    /// A story condition ("Vow of Dahak"): never checked, shown as a note.
+    Story(Story),
 }
 
 /// Why a line didn't parse.
@@ -119,7 +121,10 @@ pub fn prerequisite_lines(lines: &[String]) -> Option<Vec<String>> {
 
 pub fn parse_line(line: &str) -> Result<Cond, Unparsed> {
     let line = line.trim();
-    if let Some(cond) = spell_level(line).or_else(|| alignment(line)) {
+    if let Some(cond) = spell_level(line)
+        .or_else(|| alignment(line))
+        .or_else(|| story(line))
+    {
         return Ok(cond);
     }
     let conditions = split_top(line, &[";"]);
@@ -344,8 +349,9 @@ fn alignment_list(text: &str) -> Option<Cond> {
         .flat_map(|part| part.split(','))
         .map(|part| part.split_whitespace().collect())
         .collect();
-    // Next to full alignments, a lone "neutral" is true neutral.
-    let full = parts.iter().any(|words| words.len() == 2);
+    // Next to another alignment, a lone "neutral" is true neutral: "neutral, neutral evil or chaotic evil", and the
+    // Assassin's "neutral or evil", true neutral or any evil (user, ticket 21 R6).
+    let full = parts.len() > 1;
     let mut matching = Vec::new();
     for words in parts {
         let mut found = false;
@@ -369,6 +375,17 @@ fn alignment_list(text: &str) -> Option<Cond> {
         }
     }
     Some(Cond::Alignment(sorted(matching)))
+}
+
+/// "Vow of Dahak", "Uncorrupted": a story condition, as the guide prints it.
+fn story(line: &str) -> Option<Cond> {
+    Story::ALL
+        .into_iter()
+        .find(|story| {
+            line.trim_end_matches('.')
+                .eq_ignore_ascii_case(story.name())
+        })
+        .map(Cond::Story)
 }
 
 /// `Key: N` or `Key N`.

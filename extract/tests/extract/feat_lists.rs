@@ -68,6 +68,8 @@ fn class(levels: Vec<ClassLevelRow>, archetypes: Vec<Archetype>) -> Class {
         reflex: SaveProgression::Good,
         will: SaveProgression::Poor,
         save_exceptions: vec![],
+        advances: rules::Advancement::Each,
+        counts_as: std::collections::BTreeSet::new(),
         class_skills: Default::default(),
         prerequisite: None,
         features: vec![],

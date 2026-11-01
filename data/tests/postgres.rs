@@ -13,7 +13,7 @@ use rules::{
     Ability, AbilityModifier, Alignment, ArchetypeKey, ArmourType, ClassKey, DataAt, Energy, Feat,
     FeatCategory, FeatKey, FeatureKey, GuideRef, MythicAbilityKey, MythicFeatKey, Parameter,
     ParameterKind, Prerequisite, RaceKey, Repeat, SelectionOptionKey, SkillKey, SpellSchool,
-    SpellType, WeaponKey,
+    SpellType, Story, WeaponKey,
 };
 use sqlx::PgPool;
 
@@ -161,7 +161,8 @@ async fn the_seed_refuses_data_that_fails_the_data_check(pool: PgPool) {
     let broken = copy_fixture();
     let fighter = broken.path().join("classes/fighter.ron");
     let text = fs::read_to_string(&fighter).unwrap();
-    // The fighter's own level 2 row goes missing, so the Armiger's row there is outside its class too.
+    // The fighter's own level 2 row goes missing, so the Armiger's row there is outside its class too, and the
+    // Bravery that row granted, which the Eldritch Knight counts toward, is granted nowhere.
     let row = text
         .lines()
         .find(|line| line.starts_with("        (level: 2,"))
@@ -176,6 +177,7 @@ async fn the_seed_refuses_data_that_fails_the_data_check(pool: PgPool) {
     assert_eq!(
         problems.iter().map(|p| &p.at).collect::<Vec<_>>(),
         [
+            &DataAt::Class(ClassKey::new("eldritch-knight")),
             &DataAt::Class(ClassKey::new("fighter")),
             &DataAt::Archetype(ArchetypeKey::new("fighter/armiger"))
         ]
@@ -277,6 +279,8 @@ fn every_prerequisite_variant() -> Vec<Prerequisite> {
             value: Parameter::ArmourType(ArmourType::Medium),
         },
         P::FeatForSameValue(FeatKey::new("weapon-focus")),
+        P::Story(Story::VowOfDahak),
+        P::Story(Story::Uncorrupted),
     ];
     let groups = vec![
         P::Any(vec![P::BaseAttackBonus(1), P::CasterLevel(1)]),
@@ -305,7 +309,8 @@ fn every_prerequisite_variant() -> Vec<Prerequisite> {
             | P::Alignment(_)
             | P::Race(_)
             | P::FeatFor { .. }
-            | P::FeatForSameValue(_) => {}
+            | P::FeatForSameValue(_)
+            | P::Story(_) => {}
         }
     }
     all
@@ -764,6 +769,65 @@ async fn the_schema_keeps_repeats_and_parameters_consistent(pool: PgPool) {
             "UPDATE prerequisite_node SET spell_school = 'chronomancy'
             WHERE spell_school IS NOT NULL",
             "spell_school",
+        ),
+    ] {
+        let error = rejected(sql).await;
+        assert!(error.contains(expected), "{sql}: {error}");
+    }
+}
+
+#[sqlx::test]
+async fn the_schema_keeps_advancement_and_counts_as_consistent(pool: PgPool) {
+    let db = Database::from(pool.clone());
+    data::seed(&db, &fixture_dir()).await.unwrap();
+    let rejected = |sql: &'static str| {
+        let pool = pool.clone();
+        async move {
+            let mut tx = pool.begin().await.unwrap();
+            let update = sqlx::query(sql).execute(&mut *tx).await;
+            // Foreign keys are deferred: they fail at commit.
+            let result = match update {
+                Ok(_) => tx.commit().await.map(|_| ()),
+                Err(error) => Err(error),
+            };
+            result.unwrap_err().to_string()
+        }
+    };
+    for (sql, expected) in [
+        (
+            "UPDATE class SET advances = 'both' WHERE key = 'loremaster'",
+            "check constraint",
+        ),
+        // A feature only with `feature`, and always with it.
+        (
+            "UPDATE class_counts_as SET feature_key = 'fighter/bravery'
+            WHERE toward = 'feat_prerequisites'",
+            "check constraint",
+        ),
+        (
+            "UPDATE class_counts_as SET feature_key = NULL WHERE toward = 'feature'",
+            "check constraint",
+        ),
+        (
+            "UPDATE class_counts_as SET feature_key = 'no-such/feature' WHERE toward = 'feature'",
+            "foreign key",
+        ),
+        (
+            "UPDATE class_counts_as SET as_class_key = class_key",
+            "check constraint",
+        ),
+        (
+            "UPDATE class_counts_as SET as_class_key = 'no-such-class'",
+            "foreign key",
+        ),
+        (
+            "UPDATE prerequisite_node SET story = 'chosen_one' WHERE story IS NOT NULL",
+            "check constraint",
+        ),
+        // A story node fills its own column only.
+        (
+            "UPDATE prerequisite_node SET amount = 1 WHERE kind = 'story'",
+            "check constraint",
         ),
     ] {
         let error = rejected(sql).await;

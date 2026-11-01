@@ -11,8 +11,8 @@ use std::fmt;
 
 use crate::engine::{BASE_LEVEL_CAP, PATH_CHOICE_RANK, PATH_SWITCH_RANK};
 use crate::game_data::{
-    Archetype, Class, ClassLevelRow, FeatList, FeatSlot, Feature, FeatureSelection, GameData,
-    MythicPath, Save, WeaponProficiency,
+    Advancement, Archetype, Class, ClassLevelRow, CountsToward, FeatList, FeatSlot, Feature,
+    FeatureSelection, GameData, MythicPath, Save, WeaponProficiency,
 };
 use crate::keys::{
     ArchetypeKey, ClassKey, FeatKey, FeatListKey, FeatureKey, FeatureSelectionKey,
@@ -196,6 +196,15 @@ pub enum DataIssue {
     /// "The same value" in a prerequisite whose pick takes no value: a class's, an archetype's, an unparameterised
     /// feat's or an option's without a chosen feat.
     SameValueWithoutValue,
+    /// A class that advances one class, arcane or divine, whose rows don't advance both spell types: `Each` says
+    /// the same.
+    EitherWithOneSpellType,
+    /// A class that counts as itself.
+    CountsAsItself,
+    /// A "counts as" toward a feature that the other class's rows (and its archetypes') never grant.
+    CountsTowardUngrantedFeature(FeatureKey),
+    /// A story condition under `Any` or `AtLeast`, where it would hold the group by itself: it never blocks.
+    StoryNotRequired,
 }
 
 impl fmt::Display for DataProblem {
@@ -289,6 +298,17 @@ impl fmt::Display for DataProblem {
             DataIssue::SameValueWithoutValue => f.write_str(
                 "\"the same value\" in a prerequisite whose pick takes no value",
             ),
+            DataIssue::EitherWithOneSpellType => f.write_str(
+                "advances one class, arcane or divine, but its rows advance only one spell type",
+            ),
+            DataIssue::CountsAsItself => f.write_str("the class counts as itself"),
+            DataIssue::CountsTowardUngrantedFeature(feature) => write!(
+                f,
+                "counts toward {feature}, which the other class's rows never grant"
+            ),
+            DataIssue::StoryNotRequired => f.write_str(
+                "a story condition inside \"any of\" or \"at least\", where it would hold the group by itself",
+            ),
             DataIssue::SharesOwnOption(option) => {
                 write!(
                     f,
@@ -362,6 +382,7 @@ impl GameData {
         for path in &self.mythic_paths {
             check.path(path, &switches);
         }
+        check.counts_toward_features(self);
         for list in self.feat_lists() {
             if !check.named_lists.contains(&list.key) {
                 check.problem(
@@ -546,6 +567,14 @@ impl Checker {
         let Some(prerequisite) = prerequisite else {
             return;
         };
+        // A story condition always holds, so it may be required but not be one choice among several.
+        if let Prerequisite::Any(children) | Prerequisite::AtLeast(_, children) = prerequisite
+            && children
+                .iter()
+                .any(|child| matches!(child, Prerequisite::Story(_)))
+        {
+            self.problem(at, DataIssue::StoryNotRequired);
+        }
         let children = match prerequisite {
             Prerequisite::All(children) | Prerequisite::Any(children) => children,
             Prerequisite::AtLeast(n, children) => {
@@ -706,6 +735,19 @@ impl Checker {
         );
         self.rows(&at, &class.levels, prestige);
         self.save_exceptions(&at, class, prestige);
+        let advances = |spell_type: fn(&ClassLevelRow) -> bool| class.levels.iter().any(spell_type);
+        if class.advances == Advancement::Either
+            && !(advances(|row| row.advances_arcane) && advances(|row| row.advances_divine))
+        {
+            self.problem(&at, DataIssue::EitherWithOneSpellType);
+        }
+        if class
+            .counts_as
+            .iter()
+            .any(|counts| counts.class == class.key)
+        {
+            self.problem(&at, DataIssue::CountsAsItself);
+        }
         if prestige && !class.archetypes.is_empty() {
             self.problem(&at, DataIssue::ArchetypeOnPrestigeClass);
         }
@@ -720,6 +762,38 @@ impl Checker {
                 &archetype.feat_lists,
             );
             self.archetype_rows(&at, class, archetype);
+        }
+    }
+
+    /// A class's levels can count toward another class's feature only when that class's rows (or its
+    /// archetypes') grant it. An unknown class is the foreign keys' business.
+    fn counts_toward_features(&mut self, data: &GameData) {
+        let classes = || data.classes.iter().chain(&data.prestige_classes);
+        for class in classes() {
+            for counts in &class.counts_as {
+                let CountsToward::Feature(feature) = &counts.toward else {
+                    continue;
+                };
+                let Some(other) = classes().find(|other| other.key == counts.class) else {
+                    continue;
+                };
+                let granted = other
+                    .levels
+                    .iter()
+                    .any(|row| row.features.contains(feature))
+                    || other.archetypes.iter().any(|archetype| {
+                        archetype
+                            .levels
+                            .iter()
+                            .any(|row| row.features.contains(feature))
+                    });
+                if !granted {
+                    self.problem(
+                        &DataAt::Class(class.key.clone()),
+                        DataIssue::CountsTowardUngrantedFeature(feature.clone()),
+                    );
+                }
+            }
         }
     }
 

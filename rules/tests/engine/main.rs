@@ -7,6 +7,7 @@ mod archetype_rows;
 mod bonus_feats;
 mod canonical;
 mod check;
+mod class_rules;
 mod codec;
 mod derived;
 mod edits;

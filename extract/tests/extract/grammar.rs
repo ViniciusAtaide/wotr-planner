@@ -1,7 +1,7 @@
 //! The prerequisite-line grammar: one guide line in, an unresolved condition out.
 
 use extract::grammar::{Cond, parse_line, parse_requirement, prerequisite_lines};
-use rules::{Ability, Alignment, SpellType};
+use rules::{Ability, Alignment, SpellType, Story};
 
 #[test]
 fn an_ability_score_line() {
@@ -363,17 +363,39 @@ fn alignments_name_one_or_every_alignment_with_that_part() {
         parse_line("Alignment must be Lawful"),
         Ok(Cond::Alignment(vec![LawfulGood, LawfulNeutral, LawfulEvil]))
     );
-    // "Neutral" on its own is neutral on either axis, as in "any neutral".
+    // Next to another alignment, a lone "neutral" is true neutral: the Assassin's "neutral or evil" is true
+    // neutral or any evil (user, ticket 21 R6), not neutral good.
     assert_eq!(
         parse_line("Alignment must be neutral or evil"),
         Ok(Cond::Alignment(vec![
-            NeutralGood,
-            LawfulNeutral,
             TrueNeutral,
-            ChaoticNeutral,
             LawfulEvil,
             NeutralEvil,
             ChaoticEvil
         ]))
+    );
+}
+
+#[test]
+fn a_story_condition_is_its_own_line() {
+    assert_eq!(
+        parse_line("Vow of Dahak"),
+        Ok(Cond::Story(Story::VowOfDahak))
+    );
+    assert_eq!(
+        parse_line("Uncorrupted"),
+        Ok(Cond::Story(Story::Uncorrupted))
+    );
+    assert_eq!(
+        prerequisite_lines(&lines(&[
+            "Prerequisites:",
+            "Mythic Rank: 9",
+            "Vow of Dahak"
+        ]))
+        .unwrap()
+        .iter()
+        .map(|line| parse_line(line))
+        .collect::<Vec<_>>(),
+        [Ok(Cond::MythicRank(9)), Ok(Cond::Story(Story::VowOfDahak))]
     );
 }

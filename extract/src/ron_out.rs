@@ -7,9 +7,9 @@ use ron::ser::PrettyConfig;
 use std::collections::BTreeSet;
 
 use rules::{
-    Archetype, ArchetypeLevelRow, Class, ClassLevelRow, Feat, FeatKey, FeatList, Feature,
-    FeatureSelection, GameData, MythicAbility, MythicFeat, MythicPath, MythicRankRow, PathSwitch,
-    Prerequisite, Race, Repeat, SelectionOption, Skill, Weapon,
+    Advancement, Archetype, ArchetypeLevelRow, Class, ClassLevelRow, Feat, FeatKey, FeatList,
+    Feature, FeatureSelection, GameData, MythicAbility, MythicFeat, MythicPath, MythicRankRow,
+    PathSwitch, Prerequisite, Race, Repeat, SelectionOption, Skill, Weapon,
 };
 use serde::Serialize;
 
@@ -203,6 +203,14 @@ fn nested(name: &str, indent: usize, items: Vec<String>) -> String {
     }
     out.push_str(&format!("{pad}],\n"));
     out
+}
+
+/// A block with a comment line above it, at `indent`, when it has one.
+fn noted(note: Option<&str>, indent: usize, block: String) -> String {
+    match note {
+        Some(note) if !block.is_empty() => format!("{}{note}\n{block}", " ".repeat(indent)),
+        _ => block,
+    }
 }
 
 fn progression(data: &GameData) -> String {
@@ -466,10 +474,14 @@ fn archetype(archetype: &Archetype) -> String {
             archetype.features.iter().map(feature).collect(),
         ),
         selections(12, &archetype.selections),
-        nested(
-            "feat_lists",
+        noted(
+            crate::class_rules::feat_lists_note(archetype.key.as_str()),
             12,
-            archetype.feat_lists.iter().map(feat_list).collect(),
+            nested(
+                "feat_lists",
+                12,
+                archetype.feat_lists.iter().map(feat_list).collect(),
+            ),
         ),
         nested(
             "levels",
@@ -500,6 +512,12 @@ fn class_file(class: &Class) -> String {
         fields.field("class_skills", &class.class_skills);
     }
     fields.prerequisite(&class.prerequisite);
+    if class.advances != Advancement::Each {
+        fields.field("advances", &class.advances);
+    }
+    if !class.counts_as.is_empty() {
+        fields.field("counts_as", &class.counts_as);
+    }
     let blocks = [
         nested("features", 4, class.features.iter().map(feature).collect()),
         selections(4, &class.selections),

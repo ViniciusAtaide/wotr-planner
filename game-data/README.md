@@ -43,7 +43,16 @@ class's), and BAB and saves (from the class's progressions).
   `feat_slots` and `selections` replace the base row's in full (a row with none takes them away), and
   `spell_levels: (arcane: 1, divine: 0)` replaces the base row's spell levels when set. A level without a row is
   the base class's. The check refuses a row that changes nothing and spell levels equal to the base row's.
-- Only prestige classes set `advances_arcane`/`advances_divine`, and only base classes have archetypes.
+- Only prestige classes set `advances_arcane`/`advances_divine` (the spell types a level advances), and only base
+  classes have archetypes. A Build names the advanced classes on entry: one per spell type the rows advance
+  (Mystic Theurge: an arcane and a divine class), or, with `advances: Either` on the class, one class of either
+  type ("advances one class, arcane or divine": Hellknight Signifer, Loremaster, Winter Witch). The check refuses
+  `Either` on a class whose rows don't advance both types.
+- A class whose levels count as another class's says so, and toward what: `counts_as: [(class: "fighter", toward:
+  FeatPrerequisites)]` (Diverse Training: a feat's `ClassLevel(class: "fighter", ...)` sees fighter + Eldritch
+  Knight levels; nothing else does), or `toward: Feature("witch/major-hexes")` (Frost Power: the witch's rows that
+  grant it are reached at witch + Winter Witch levels, while the character has witch levels). The check refuses a
+  class counting as itself, and a feature the other class's rows never grant.
 - A selection option's key extends its selection's: `rogue/rogue-talents/fast-stealth`. A feature's, a
   selection's and a feat list's key starts with its owner's (the archetype's when an archetype defines it), and
   the schema checks it: Hard to Kill is each path's own `aeon/hard-to-kill`, not one shared key.
@@ -57,6 +66,10 @@ class's), and BAB and saves (from the class's progressions).
   (`Any([Feature(feature: "rogue/advanced-talents", count: 1), Feature(feature: "slayer/advanced-talents", count: 1)])`).
   A selection may share no option of its own (the schema checks it), and one made only of shared options has
   `options: []`.
+- The druid's Nature Bond is a selection, `druid/nature-bond` (Animal Companion or Domain), at level 1 of the druid
+  and of the archetypes whose table keeps both columns (Defender of the True World, Feyspeaker); a prerequisite
+  that needs a companion or a domain accepts its option (`SelectionOption("druid/nature-bond/domain")`), and the
+  Blight Druid's and Winter Child's fixed domain by their archetype. The domain's own powers are ticket 31's.
 - A selection option that grants feats names them: `feats: ["weapon-focus"]` (a rogue talent that is the feat of
   the same name), or several (the Azata's All-skilled: every weapon, armour and shield proficiency). Picking the
   option holds them.
@@ -111,7 +124,11 @@ class's), and BAB and saves (from the class's progressions).
   "weapon-focus", value: Weapon("dueling-sword"))` needs one value (`Skill("mobility")`,
   `SpellSchool(Conjuration)`, `Energy(Fire)`, `ArmourType(Light)`), and `FeatForSameValue("weapon-focus")` the
   value of the pick being checked (Weapon Specialization), only in a parameterised feat's or a chosen-feat option's
-  prerequisite.
+  prerequisite. `Story(VowOfDahak)` and `Story(Uncorrupted)` are story conditions: out of scope, they always hold
+  and the sheet shows them as a note, so they go in an `All` (`All([MythicRank(9), Story(VowOfDahak)])`), never
+  as one choice of an `Any` or `AtLeast` (the check refuses that).
+- A `//` comment line is allowed anywhere and is kept for readers only: the Crusader's bonus lists carry one saying
+  they skip every prerequisite though the guide skips only BAB and fighter level (the user's decision).
 
 ## Seeding
 

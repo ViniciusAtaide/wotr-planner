@@ -810,3 +810,74 @@ fn a_one_feat_list_is_a_bonus_feat_of_the_players_choosing() {
         )]
     );
 }
+
+// ---- class rules ----------------------------------------------------------------------------------------------
+
+#[test]
+fn advancing_either_class_needs_rows_of_both_spell_types() {
+    let mut data = world();
+    // The Eldritch Knight advances arcane spellcasting only.
+    class_mut(&mut data, "eldritch-knight").advances = rules::Advancement::Either;
+    assert_eq!(
+        issues(&data),
+        [(
+            at_class("eldritch-knight"),
+            DataIssue::EitherWithOneSpellType
+        )]
+    );
+}
+
+#[test]
+fn a_class_does_not_count_as_itself() {
+    let mut data = world();
+    class_mut(&mut data, "eldritch-knight")
+        .counts_as
+        .insert(rules::CountsAs {
+            class: ClassKey::new("eldritch-knight"),
+            toward: rules::CountsToward::FeatPrerequisites,
+        });
+    assert_eq!(
+        issues(&data),
+        [(at_class("eldritch-knight"), DataIssue::CountsAsItself)]
+    );
+}
+
+#[test]
+fn counting_toward_a_feature_needs_the_other_class_to_grant_it() {
+    let mut data = world();
+    // The fighter's rows grant Bravery, never Major Hexes.
+    class_mut(&mut data, "winter-witch")
+        .counts_as
+        .insert(rules::CountsAs {
+            class: ClassKey::new("fighter"),
+            toward: rules::CountsToward::Feature(FeatureKey::new("witch/major-hexes")),
+        });
+    assert_eq!(
+        issues(&data),
+        [(
+            at_class("winter-witch"),
+            DataIssue::CountsTowardUngrantedFeature(FeatureKey::new("witch/major-hexes"))
+        )]
+    );
+}
+
+#[test]
+fn a_story_condition_is_required_not_one_of_several() {
+    let mut data = world();
+    let story = Prerequisite::Story(rules::Story::Uncorrupted);
+    data.feats[0].prerequisite = Some(Prerequisite::All(vec![
+        Prerequisite::BaseAttackBonus(1),
+        story.clone(),
+    ]));
+    data.feats[1].prerequisite = Some(Prerequisite::Any(vec![
+        Prerequisite::BaseAttackBonus(1),
+        story,
+    ]));
+    assert_eq!(
+        issues(&data),
+        [(
+            DataAt::Feat(data.feats[1].key.clone()),
+            DataIssue::StoryNotRequired
+        )]
+    );
+}

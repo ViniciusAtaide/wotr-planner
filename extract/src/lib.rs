@@ -5,6 +5,7 @@
 //! the [`output`] folder rules.
 
 pub mod build;
+pub mod class_rules;
 pub mod feat_lists;
 pub mod grammar;
 pub mod guide;

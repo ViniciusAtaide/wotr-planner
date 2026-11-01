@@ -3,9 +3,9 @@
 //! The text values match the domains and CHECK constraints in `migrations/20261031000000_game_data.sql`.
 
 use rules::{
-    Ability, Alignment, ArmourType, BabProgression, Energy, FeatCategory, MythicAbilityGroup,
-    MythicFeatGroup, ParameterKind, Repeat, Save, SaveProgression, SpellSchool, SpellType,
-    WeaponProficiency,
+    Ability, Advancement, Alignment, ArmourType, BabProgression, Energy, FeatCategory,
+    MythicAbilityGroup, MythicFeatGroup, ParameterKind, Repeat, Save, SaveProgression, SpellSchool,
+    SpellType, Story, WeaponProficiency,
 };
 
 /// A row that doesn't fit the `rules` types (should be impossible given the constraints).
@@ -118,6 +118,16 @@ text_column!(MythicFeatGroup, mythic_feat_group_from, mythic_feat_group_text {
     CombatManoeuvre => "combat_manoeuvre",
 });
 
+text_column!(Story, story_from, story_text {
+    VowOfDahak => "vow_of_dahak",
+    Uncorrupted => "uncorrupted",
+});
+
+text_column!(Advancement, advancement_from, advancement_text {
+    Each => "each",
+    Either => "either",
+});
+
 text_column!(WeaponProficiency, weapon_proficiency_from, weapon_proficiency_text {
     Simple => "simple",
     Martial => "martial",
@@ -206,6 +216,7 @@ pub(crate) enum NodeKind {
     Race,
     FeatFor,
     FeatForSameValue,
+    Story,
 }
 
 impl NodeKind {
@@ -236,6 +247,7 @@ text_column!(NodeKind, node_kind_from, node_kind_text {
     Race => "race",
     FeatFor => "feat_for",
     FeatForSameValue => "feat_for_same_value",
+    Story => "story",
 });
 
 /// `feat_slot.kind`: which `rules::FeatSlot` variant a row is.

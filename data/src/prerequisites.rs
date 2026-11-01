@@ -14,7 +14,8 @@ use sqlx::PgConnection;
 use crate::columns::{
     NodeKind, ability_from, ability_text, alignment_from, alignment_text, armour_type_from,
     armour_type_text, corrupt, energy_from, energy_text, node_kind_from, node_kind_text,
-    spell_school_from, spell_school_text, spell_type_from, spell_type_text, to_u8,
+    spell_school_from, spell_school_text, spell_type_from, spell_type_text, story_from, story_text,
+    to_u8,
 };
 
 /// The columns of one `prerequisite_node` row, apart from its place in the tree.
@@ -37,6 +38,7 @@ struct Node {
     spell_school: Option<&'static str>,
     energy: Option<&'static str>,
     armour_type: Option<&'static str>,
+    story: Option<&'static str>,
 }
 
 impl Node {
@@ -60,6 +62,7 @@ impl Node {
             spell_school: None,
             energy: None,
             armour_type: None,
+            story: None,
         }
     }
 
@@ -167,6 +170,10 @@ impl Node {
                 race_key: key(race.as_str()),
                 ..Self::of(NodeKind::Race)
             },
+            P::Story(story) => Self {
+                story: Some(story_text(*story)),
+                ..Self::of(NodeKind::Story)
+            },
         };
         (node, &[])
     }
@@ -189,9 +196,10 @@ pub(crate) async fn insert(
             "INSERT INTO prerequisite_node (
                 parent_id, kind, feat_key, mythic_feat_key, mythic_ability_key,
                 class_key, archetype_key, feature_key, selection_option_key, skill_key, race_key,
-                weapon_key, ability, spell_type, alignment, amount, spell_school, energy, armour_type
+                weapon_key, ability, spell_type, alignment, amount, spell_school, energy, armour_type,
+                story
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17,
-                $18, $19)
+                $18, $19, $20)
             RETURNING id",
             parent_id,
             node_kind_text(node.kind),
@@ -212,6 +220,7 @@ pub(crate) async fn insert(
             node.spell_school,
             node.energy,
             node.armour_type,
+            node.story,
         )
         .fetch_one(&mut *conn)
         .await?;
@@ -244,6 +253,7 @@ struct StoredNode {
     spell_school: Option<String>,
     energy: Option<String>,
     armour_type: Option<String>,
+    story: Option<String>,
 }
 
 impl StoredNode {
@@ -281,7 +291,7 @@ impl Trees {
         let rows = sqlx::query!(
             "SELECT id, parent_id, kind, feat_key, mythic_feat_key, mythic_ability_key, class_key,
                 archetype_key, feature_key, selection_option_key, skill_key, race_key, weapon_key,
-                ability, spell_type, alignment, amount, spell_school, energy, armour_type
+                ability, spell_type, alignment, amount, spell_school, energy, armour_type, story
             FROM prerequisite_node
             ORDER BY id"
         )
@@ -319,6 +329,7 @@ impl Trees {
                     spell_school: row.spell_school,
                     energy: row.energy,
                     armour_type: row.armour_type,
+                    story: row.story,
                 },
             );
         }
@@ -462,6 +473,7 @@ impl Trees {
             NodeKind::FeatForSameValue => {
                 P::FeatForSameValue(FeatKey(text(&node.feat_key, "feat_key")?))
             }
+            NodeKind::Story => P::Story(story_from(&text(&node.story, "story")?)?),
         })
     }
 }

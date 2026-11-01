@@ -70,6 +70,8 @@ fn class(
         reflex: SaveProgression::Poor,
         will: SaveProgression::Poor,
         save_exceptions: vec![],
+        advances: rules::Advancement::Each,
+        counts_as: std::collections::BTreeSet::new(),
         class_skills: Default::default(),
         prerequisite: None,
         features: defined.iter().map(|key| feature(key)).collect(),

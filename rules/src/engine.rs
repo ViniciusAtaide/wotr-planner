@@ -5,13 +5,13 @@
 //! doesn't count as held, so a broken pick also breaks whatever depended on it (removing Cleave breaks Great
 //! Cleave, which breaks anything needing Great Cleave).
 
-use std::collections::{BTreeSet, HashMap, HashSet};
+use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 
 use crate::build::{AbilityScores, Build, Edit, FeatSource, LevelUp, Pick, SlotId};
 use crate::game_data::{
-    Ability, AbilityBonus, AbilityModifier, Archetype, Class, Feat, FeatList, FeatSlot,
-    FeatureSelection, GameData, MythicAbility, MythicFeat, MythicPath, PathSwitch, Race, Save,
-    SelectionOption, SpellLevels, Weapon, WeaponProficiency,
+    Ability, AbilityBonus, AbilityModifier, Advancement, Archetype, Class, CountsToward, Feat,
+    FeatList, FeatSlot, FeatureSelection, GameData, MythicAbility, MythicFeat, MythicPath,
+    PathSwitch, Race, Save, SelectionOption, SpellLevels, Weapon, WeaponProficiency,
 };
 use crate::keys::{
     ArchetypeKey, ClassKey, FeatKey, FeatListKey, FeatureKey, FeatureSelectionKey,
@@ -19,6 +19,7 @@ use crate::keys::{
     SubraceKey, WeaponKey,
 };
 use crate::parameter::{ArmourType, Energy, Parameter, ParameterKind, Repeat, SpellSchool};
+use crate::prerequisite::{Prerequisite, Story};
 use crate::problem::{Choice, Issue, Problem, Unmet};
 use crate::state::{CharacterState, ClassLevels};
 
@@ -694,6 +695,22 @@ impl Engine {
         )
     }
 
+    /// The story conditions in a pick's prerequisite (Vow of Dahak), for the note the sheet shows beside it. They
+    /// never block the pick. Empty for a key the data lacks.
+    pub fn story_conditions(&self, pick: &Pick) -> BTreeSet<Story> {
+        let prerequisite = match pick {
+            Pick::Feat { feat, .. } => self.feat(feat).and_then(|f| f.prerequisite.as_ref()),
+            Pick::SelectionOption { option, .. } => {
+                self.option(option).and_then(|o| o.prerequisite.as_ref())
+            }
+            Pick::MythicAbility(key) => self
+                .mythic_ability(key)
+                .and_then(|a| a.prerequisite.as_ref()),
+            Pick::MythicFeat(key) => self.mythic_feat(key).and_then(|f| f.prerequisite.as_ref()),
+        };
+        prerequisite.map(Prerequisite::stories).unwrap_or_default()
+    }
+
     /// The class picker at a character level (one past the end adds a level): every base class, each followed by
     /// its archetypes, then every prestige class, each in key order. A class the Build already has before that
     /// level is offered only with its archetype, which was fixed when it was first taken. `None` for a level
@@ -908,6 +925,9 @@ struct Walker<'a> {
     level_cap: u8,
     /// Set by a switch to a path without further ascensions.
     ascensions_over: bool,
+    /// For each class and feature another class's levels count toward (Frost Power: witch, Major Hexes), how many
+    /// grants of it those levels hold now: the class's rows past its own level that they reach.
+    counted_features: BTreeMap<(ClassKey, FeatureKey), u8>,
     probe: Option<Probe<'a>>,
     probed: Probed,
 }
@@ -941,6 +961,7 @@ impl<'a> Walker<'a> {
             ranks,
             level_cap: BASE_LEVEL_CAP,
             ascensions_over: false,
+            counted_features: BTreeMap::new(),
             probe,
             probed: Probed::default(),
         }
@@ -1072,6 +1093,7 @@ impl<'a> Walker<'a> {
         self.check_class_entry(level, level_up);
         self.state.character_level = level;
         let class_level = self.take_class_level(level, level_up);
+        self.count_toward_features();
 
         let ability_increase = level % 4 == 0;
         match (ability_increase, level_up.ability_increase) {
@@ -1162,8 +1184,8 @@ impl<'a> Walker<'a> {
         }
     }
 
-    /// A prestige class advances at most one arcane and one divine class, each already taken and casting the
-    /// spells it advances. Unknown keys are reported one by one; anything else wrong is one `NotAllowed`.
+    /// A prestige class advances at most one arcane and one divine class (one class in all when it advances
+    /// `Either`), each already taken and casting the spells it advances. Unknown keys are reported one by one; anything else wrong is one `NotAllowed`.
     fn check_advances(&mut self, prestige: &Class, advances: &BTreeSet<ClassKey>) {
         let engine = self.engine;
         let at = || Choice::Advances {
@@ -1185,10 +1207,10 @@ impl<'a> Walker<'a> {
             let divine = advances_divine && casts_divine;
             serves.push((held.is_some() && arcane, held.is_some() && divine));
         }
-        let fits = match serves.as_slice() {
-            [] => true,
-            [(arcane, divine)] => *arcane || *divine,
-            [(a1, d1), (a2, d2)] => (*a1 && *d2) || (*d1 && *a2),
+        let fits = match (prestige.advances, serves.as_slice()) {
+            (_, []) => true,
+            (_, [(arcane, divine)]) => *arcane || *divine,
+            (Advancement::Each, [(a1, d1), (a2, d2)]) => (*a1 && *d2) || (*d1 && *a2),
             _ => false,
         };
         if !fits {
@@ -1246,6 +1268,58 @@ impl<'a> Walker<'a> {
             }
         }
         class_level
+    }
+
+    /// Levels that count toward another class's feature (Frost Power: Winter Witch levels stack with witch levels
+    /// for Major and Grand Hexes): the other class's rows that grant it are reached at its own level plus those
+    /// levels, so the rows past its own level hold it now. When the class reaches such a row itself, its own grant
+    /// takes over. Nothing while the other class isn't held.
+    fn count_toward_features(&mut self) {
+        let engine = self.engine;
+        let mut toward: BTreeMap<(ClassKey, FeatureKey), u8> = BTreeMap::new();
+        for entry in &self.state.classes {
+            let Some((class, _)) = engine.class(&entry.class) else {
+                continue;
+            };
+            for counts in &class.counts_as {
+                if let CountsToward::Feature(feature) = &counts.toward {
+                    let levels = toward
+                        .entry((counts.class.clone(), feature.clone()))
+                        .or_default();
+                    *levels = levels.saturating_add(entry.level);
+                }
+            }
+        }
+        for (key, levels) in toward {
+            let (other, feature) = &key;
+            let reached = self
+                .state
+                .classes
+                .iter()
+                .find(|c| &c.class == other)
+                .and_then(|held| {
+                    let (class, _) = engine.class(other)?;
+                    let archetype = engine.archetype_of(class, held.archetype.as_ref());
+                    let reach = held
+                        .level
+                        .saturating_add(levels)
+                        .min(class_level_cap(class));
+                    let grants: usize = effective_rows(class, archetype)
+                        .filter(|row| row.level > held.level && row.level <= reach)
+                        .map(|row| row.features.iter().filter(|f| *f == feature).count())
+                        .sum();
+                    Some(u8::try_from(grants).unwrap_or(u8::MAX))
+                })
+                .unwrap_or(0);
+            let held = self.counted_features.get(&key).copied().unwrap_or(0);
+            for _ in held..reached {
+                self.hold(Held::Feature(feature.clone()), None);
+            }
+            for _ in reached..held {
+                self.release(&Held::Feature(feature.clone()));
+            }
+            self.counted_features.insert(key, reached);
+        }
     }
 
     fn skill_ranks(&mut self, level: u8, level_up: &LevelUp) -> SkillPoints {
@@ -1751,7 +1825,23 @@ impl<'a> Walker<'a> {
                 }
             }
         }
+        // Feats see the levels of classes that count as another (Diverse Training).
+        let mut feat_class_levels: BTreeMap<ClassKey, u8> = BTreeMap::new();
+        for entry in &state.classes {
+            let Some((class, _)) = engine.class(&entry.class) else {
+                continue;
+            };
+            for counts in &class.counts_as {
+                if counts.toward == CountsToward::FeatPrerequisites {
+                    let levels = feat_class_levels
+                        .entry(counts.class.clone())
+                        .or_insert_with(|| state.class_level(&counts.class));
+                    *levels = levels.saturating_add(entry.level);
+                }
+            }
+        }
         let state = &mut self.state;
+        state.feat_class_levels = feat_class_levels;
         state.bab = bab;
         state.fort = fort;
         state.reflex = reflex;
@@ -1840,9 +1930,13 @@ pub(crate) fn check_pick(
             feat.prerequisite.as_ref()
         }
     };
-    match prerequisite {
-        Some(prerequisite) => state.check_for(prerequisite, value).map_err(Issue::Unmet),
-        None => Ok(()),
+    match (prerequisite, pick) {
+        (None, _) => Ok(()),
+        // Feats see the class levels other classes count toward (Diverse Training).
+        (Some(prerequisite), Pick::Feat { .. }) => state
+            .check_feat_for(prerequisite, value)
+            .map_err(Issue::Unmet),
+        (Some(prerequisite), _) => state.check_for(prerequisite, value).map_err(Issue::Unmet),
     }
 }
 

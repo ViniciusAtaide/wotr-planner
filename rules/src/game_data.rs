@@ -450,6 +450,14 @@ pub struct Class {
     /// Entry prerequisites: a prestige class's, or a base class's alignment rule.
     #[serde(default)]
     pub prerequisite: Option<Prerequisite>,
+    /// Prestige classes: how many classes the rows' spellcasting advancement serves (Mystic Theurge: one of each
+    /// spell type; Loremaster: one, arcane or divine).
+    #[serde(default)]
+    pub advances: Advancement,
+    /// Other classes this class's levels count as, and toward what (Eldritch Knight: fighter levels for feat
+    /// prerequisites).
+    #[serde(default)]
+    pub counts_as: BTreeSet<CountsAs>,
     #[serde(default)]
     pub features: Vec<Feature>,
     #[serde(default)]
@@ -461,6 +469,40 @@ pub struct Class {
     pub levels: Vec<ClassLevelRow>,
     #[serde(default)]
     pub archetypes: Vec<Archetype>,
+}
+
+/// How many classes a prestige class's spellcasting advancement serves. Its rows say which spell types a level
+/// advances (`advances_arcane`, `advances_divine`); the Build names the classes on entry
+/// ([`ClassChoice::advances`](crate::ClassChoice::advances)).
+#[derive(
+    Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize,
+)]
+pub enum Advancement {
+    /// One class for each spell type the rows advance (Mystic Theurge: an arcane class and a divine class).
+    #[default]
+    Each,
+    /// One class, of either spell type the rows advance ("advances one class, arcane or divine": Hellknight
+    /// Signifer, Loremaster, Winter Witch).
+    Either,
+}
+
+/// One "counts as" fact: a class's levels count as levels of `class`, toward one thing only.
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct CountsAs {
+    pub class: ClassKey,
+    pub toward: CountsToward,
+}
+
+/// What a "counts as" fact's levels count toward.
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+pub enum CountsToward {
+    /// The class level a feat's prerequisites see (Diverse Training: Eldritch Knight levels as fighter levels).
+    FeatPrerequisites,
+    /// The class's rows that grant this feature are reached at the two classes' levels together (Frost Power:
+    /// Winter Witch levels stack with witch levels for access to major and grand hexes). Only while the class is
+    /// held.
+    Feature(FeatureKey),
 }
 
 /// An archetype. It stores only the levels where it differs from its base class: see

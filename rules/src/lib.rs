@@ -18,6 +18,6 @@ pub use engine::*;
 pub use game_data::*;
 pub use keys::*;
 pub use parameter::*;
-pub use prerequisite::Prerequisite;
+pub use prerequisite::{Prerequisite, Story};
 pub use problem::*;
 pub use state::*;

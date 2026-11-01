@@ -3,16 +3,17 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use rules::{
-    AbilityBonus, AbilityModifier, Archetype, ArchetypeLevelRow, Class, ClassLevelRow, FeatKey,
-    FeatList, FeatSlot, Feature, FeatureKey, FeatureSelection, FeatureSelectionKey, GameData,
-    MythicPath, Race, SkillKey,
+    AbilityBonus, AbilityModifier, Archetype, ArchetypeLevelRow, Class, ClassLevelRow,
+    CountsToward, FeatKey, FeatList, FeatSlot, Feature, FeatureKey, FeatureSelection,
+    FeatureSelectionKey, GameData, MythicPath, Race, SkillKey,
 };
 use sqlx::PgConnection;
 
 use crate::columns::{
-    AbilityBonusKind, FeatSlotKind, ability_bonus_kind_text, ability_text, bab_progression_text,
-    feat_category_text, feat_slot_kind_text, mythic_ability_group_text, mythic_feat_group_text,
-    parameter_kind_text, repeat_columns, save_progression_text, save_text, weapon_proficiency_text,
+    AbilityBonusKind, FeatSlotKind, ability_bonus_kind_text, ability_text, advancement_text,
+    bab_progression_text, feat_category_text, feat_slot_kind_text, mythic_ability_group_text,
+    mythic_feat_group_text, parameter_kind_text, repeat_columns, save_progression_text, save_text,
+    weapon_proficiency_text,
 };
 use crate::{Database, Error, prerequisites};
 
@@ -35,7 +36,7 @@ async fn insert_all(db: &Database, data: &GameData, hash: &str) -> Result<(), sq
     // Every foreign key is deferred, so the order of the inserts below doesn't matter to them.
     sqlx::query!(
         "TRUNCATE game_data_seed, mythic_ascension, prerequisite_node, skill, weapon, race, subrace,
-            ability_modifier, feat, class, save_exception, archetype, class_skill, mythic_ability,
+            ability_modifier, feat, class, save_exception, class_counts_as, archetype, class_skill, mythic_ability,
             mythic_feat,
             mythic_path, path_switch, path_switch_from, path_switch_drop, path_switch_feature,
             feature, feature_ability_bonus, feature_selection, selection_option,
@@ -249,8 +250,8 @@ async fn insert_class(
     let root = prerequisites::insert(conn, class.prerequisite.as_ref()).await?;
     sqlx::query!(
         "INSERT INTO class (key, is_prestige, name, summary, guide, skill_points, bab, fort, reflex,
-            will, prerequisite_root_id)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
+            will, advances, prerequisite_root_id)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
         class.key.as_str(),
         is_prestige,
         class.name,
@@ -261,10 +262,27 @@ async fn insert_class(
         save_progression_text(class.fort),
         save_progression_text(class.reflex),
         save_progression_text(class.will),
+        advancement_text(class.advances),
         root,
     )
     .execute(&mut *conn)
     .await?;
+    for counts in class.counts_as.iter() {
+        let (toward, feature) = match &counts.toward {
+            CountsToward::FeatPrerequisites => ("feat_prerequisites", None),
+            CountsToward::Feature(feature) => ("feature", Some(feature.as_str())),
+        };
+        sqlx::query!(
+            "INSERT INTO class_counts_as (class_key, as_class_key, toward, feature_key)
+            VALUES ($1, $2, $3, $4)",
+            class.key.as_str(),
+            counts.class.as_str(),
+            toward,
+            feature,
+        )
+        .execute(&mut *conn)
+        .await?;
+    }
     for exception in class.save_exceptions.iter() {
         sqlx::query!(
             "INSERT INTO save_exception (class_key, level, save, value) VALUES ($1, $2, $3, $4)",

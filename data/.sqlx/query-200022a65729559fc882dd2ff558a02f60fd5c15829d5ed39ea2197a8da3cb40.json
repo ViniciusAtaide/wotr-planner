@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT key, is_prestige, name, summary, guide, skill_points, bab, fort, reflex, will,\n            prerequisite_root_id\n        FROM class ORDER BY key",
+  "query": "SELECT key, is_prestige, name, summary, guide, skill_points, bab, fort, reflex, will,\n            advances, prerequisite_root_id\n        FROM class ORDER BY key",
   "describe": {
     "columns": [
       {
@@ -115,6 +115,17 @@
       },
       {
         "ordinal": 10,
+        "name": "advances",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "class",
+            "name": "advances"
+          }
+        }
+      },
+      {
+        "ordinal": 11,
         "name": "prerequisite_root_id",
         "type_info": "Int8",
         "origin": {
@@ -139,8 +150,9 @@
       false,
       false,
       false,
+      false,
       true
     ]
   },
-  "hash": "6b0383b28793ac032cc92db3ed2499cb00616378011f1550521a59c163065999"
+  "hash": "200022a65729559fc882dd2ff558a02f60fd5c15829d5ed39ea2197a8da3cb40"
 }

@@ -83,6 +83,7 @@ impl Catalog {
                 level: *level,
             },
             Cond::MythicRank(rank) => Prerequisite::MythicRank(*rank),
+            Cond::Story(story) => Prerequisite::Story(*story),
             Cond::ClassLevel(name, level) => Prerequisite::ClassLevel {
                 class: self
                     .classes

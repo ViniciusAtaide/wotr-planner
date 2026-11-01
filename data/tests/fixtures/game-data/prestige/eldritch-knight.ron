@@ -1,0 +1,21 @@
+// Hand-written test fixture: small and simplified, not checked against the guide.
+// Counts as a fighter for feat prerequisites, and toward the fighter's Bravery.
+Class(
+    key: "eldritch-knight",
+    name: "Eldritch Knight",
+    guide: "prestige-classes#eldritch-knight",
+    skill_points: 2,
+    bab: Full,
+    fort: Good,
+    reflex: Poor,
+    will: Poor,
+    prerequisite: SpellLevel(spell_type: Arcane, level: 3),
+    counts_as: [
+        (class: "fighter", toward: FeatPrerequisites),
+        (class: "fighter", toward: Feature("fighter/bravery")),
+    ],
+    levels: [
+        (level: 1, feat_slots: [CombatFeat]),
+        (level: 2, advances_arcane: true),
+    ],
+)

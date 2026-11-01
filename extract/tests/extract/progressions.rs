@@ -123,6 +123,8 @@ fn an_archetype_keeps_only_the_rows_that_differ_from_its_base_class() {
         reflex: SaveProgression::Good,
         will: SaveProgression::Poor,
         save_exceptions: vec![],
+        advances: rules::Advancement::Each,
+        counts_as: std::collections::BTreeSet::new(),
         class_skills: Default::default(),
         prerequisite: None,
         features: vec![],

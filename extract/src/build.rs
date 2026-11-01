@@ -132,6 +132,7 @@ pub fn extract(guide: &Guide) -> Extraction {
     crate::proficiencies::apply(&mut data);
     crate::shared_options::apply(&mut data);
     crate::parameters::apply(&mut data);
+    crate::class_rules::apply(&mut data);
     // Only now, with the dangling grants gone and the grants complete, is a row that matches its base class's
     // known to.
     for class in &mut data.classes {
@@ -549,6 +550,8 @@ impl<'g> Builder<'g> {
             reflex: SaveProgression::Good,
             will: SaveProgression::Good,
             save_exceptions: Vec::new(),
+            advances: rules::Advancement::Each,
+            counts_as: std::collections::BTreeSet::new(),
             class_skills: BTreeSet::new(),
             prerequisite: None,
             features: Vec::new(),
@@ -1341,6 +1344,8 @@ impl<'g> Builder<'g> {
             reflex: SaveProgression::Good,
             will: SaveProgression::Good,
             save_exceptions: Vec::new(),
+            advances: rules::Advancement::Each,
+            counts_as: std::collections::BTreeSet::new(),
             class_skills,
             prerequisite: None,
             features: Vec::new(),

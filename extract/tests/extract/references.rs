@@ -115,6 +115,8 @@ fn an_option_beside_the_feat_it_grants_is_dropped() {
         reflex: SaveProgression::Good,
         will: SaveProgression::Poor,
         save_exceptions: vec![],
+        advances: rules::Advancement::Each,
+        counts_as: std::collections::BTreeSet::new(),
         class_skills: Default::default(),
         prerequisite: None,
         features: vec![],

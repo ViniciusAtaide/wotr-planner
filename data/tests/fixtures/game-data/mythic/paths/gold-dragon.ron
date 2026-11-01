@@ -19,7 +19,7 @@ MythicPath(
             guide: "gold-dragon#improved-gold-dragon-breath",
             options: [
                 (key: "gold-dragon/breaths/empowered", name: "Empowered Breath", guide: "gold-dragon#empowered-breath"),
-                (key: "gold-dragon/breaths/annihilating", name: "Annihilating Breath", guide: "gold-dragon#annihilating-breath", prerequisite: MythicRank(9)),
+                (key: "gold-dragon/breaths/annihilating", name: "Annihilating Breath", guide: "gold-dragon#annihilating-breath", prerequisite: All([MythicRank(9), Story(VowOfDahak)])),
             ],
         ),
     ],

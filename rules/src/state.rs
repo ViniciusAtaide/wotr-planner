@@ -37,6 +37,9 @@ pub struct CharacterState {
     /// advance them). Checked only where the guide states a caster level.
     pub caster_level: u8,
     pub skill_ranks: BTreeMap<SkillKey, u8>,
+    /// The class levels a feat's prerequisites see, for each class another class's levels count as there
+    /// (Diverse Training: fighter 1 + Eldritch Knight 3 is fighter 4). Classes left out are their class level.
+    pub feat_class_levels: BTreeMap<ClassKey, u8>,
     /// Each feat held, with how many picks and grants hold it (Extra Hex taken twice: 2). A class grant and a pick
     /// may both hold one, so losing one of them keeps the feat.
     pub feats: BTreeMap<FeatKey, u8>,
@@ -108,6 +111,15 @@ impl CharacterState {
         self.selection_options.get(option).copied().unwrap_or(0)
     }
 
+    /// The class level a feat's prerequisites see: the class level plus the levels of classes that count as it
+    /// for feats.
+    pub fn feat_class_level(&self, class: &ClassKey) -> u8 {
+        self.feat_class_levels
+            .get(class)
+            .copied()
+            .unwrap_or_else(|| self.class_level(class))
+    }
+
     /// Evaluates a Prerequisite against this state, for a pick with no value: a `FeatForSameValue` fails.
     pub fn check(&self, prerequisite: &Prerequisite) -> Result<(), Unmet> {
         self.check_for(prerequisite, None)
@@ -120,6 +132,25 @@ impl CharacterState {
         prerequisite: &Prerequisite,
         value: Option<&Parameter>,
     ) -> Result<(), Unmet> {
+        self.check_in(prerequisite, value, false)
+    }
+
+    /// [`check_for`](Self::check_for) for a feat's prerequisites: a class level is the one feats see
+    /// ([`feat_class_level`](Self::feat_class_level)).
+    pub fn check_feat_for(
+        &self,
+        prerequisite: &Prerequisite,
+        value: Option<&Parameter>,
+    ) -> Result<(), Unmet> {
+        self.check_in(prerequisite, value, true)
+    }
+
+    fn check_in(
+        &self,
+        prerequisite: &Prerequisite,
+        value: Option<&Parameter>,
+        for_feat: bool,
+    ) -> Result<(), Unmet> {
         use Prerequisite as P;
         let numeric = |has: u8, needs: u8| (has >= needs, Some(has));
         let flag = |holds: bool| (holds, None);
@@ -127,7 +158,7 @@ impl CharacterState {
             P::All(children) => {
                 let mut failed: Vec<Unmet> = children
                     .iter()
-                    .filter_map(|c| self.check_for(c, value).err())
+                    .filter_map(|c| self.check_in(c, value, for_feat).err())
                     .collect();
                 return match failed.len() {
                     0 => Ok(()),
@@ -138,7 +169,7 @@ impl CharacterState {
             P::Any(children) => {
                 let mut failed = Vec::with_capacity(children.len());
                 for child in children {
-                    match self.check_for(child, value) {
+                    match self.check_in(child, value, for_feat) {
                         Ok(()) => return Ok(()),
                         Err(unmet) => failed.push(unmet),
                     }
@@ -148,7 +179,7 @@ impl CharacterState {
             P::AtLeast(needed, children) => {
                 let failed: Vec<Unmet> = children
                     .iter()
-                    .filter_map(|c| self.check_for(c, value).err())
+                    .filter_map(|c| self.check_in(c, value, for_feat).err())
                     .collect();
                 let met = u8::try_from(children.len() - failed.len()).unwrap_or(u8::MAX);
                 return if met >= *needed {
@@ -168,7 +199,14 @@ impl CharacterState {
             }
             P::MythicFeat(feat) => flag(self.mythic_feats.contains(feat)),
             P::MythicAbility(ability) => flag(self.mythic_abilities.contains(ability)),
-            P::ClassLevel { class, level } => numeric(self.class_level(class), *level),
+            P::ClassLevel { class, level } => {
+                let has = if for_feat {
+                    self.feat_class_level(class)
+                } else {
+                    self.class_level(class)
+                };
+                numeric(has, *level)
+            }
             P::Archetype(archetype) => flag(
                 self.classes
                     .iter()
@@ -187,6 +225,8 @@ impl CharacterState {
             P::MythicRank(rank) => numeric(self.mythic_rank, *rank),
             P::Alignment(alignment) => flag(self.alignment == Some(*alignment)),
             P::Race(race) => flag(self.race.as_ref() == Some(race)),
+            // Out of scope: never checked, shown as a note.
+            P::Story(_) => flag(true),
         };
         if holds {
             Ok(())

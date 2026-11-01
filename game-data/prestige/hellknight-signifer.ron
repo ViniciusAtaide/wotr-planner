@@ -9,6 +9,7 @@ Class(
     will: Good,
     class_skills: ["knowledge-arcana", "knowledge-world", "lore-nature", "lore-religion", "perception", "persuasion"],
     prerequisite: All([Any([Feat("arcane-armor-training"), Feat("warrior-priest")]), Any([SpellLevel(spell_type: Arcane, level: 3), SpellLevel(spell_type: Divine, level: 3)]), Any([Alignment(LawfulGood), Alignment(LawfulNeutral), Alignment(LawfulEvil)]), SkillRanks(skill: "knowledge-arcana", ranks: 5), SkillRanks(skill: "knowledge-world", ranks: 5), SkillRanks(skill: "persuasion", ranks: 2), CharacterLevel(6)]),
+    advances: Either,
     features: [
         (key: "hellknight-signifer/arcane-armor-expertise", name: "Arcane Armor Expertise", guide: "prestige-classes#arcane-armor-expertise"),
         (key: "hellknight-signifer/assiduous-gaze", name: "Assiduous Gaze", guide: "prestige-classes#assiduous-gaze"),

@@ -155,8 +155,21 @@ pub fn world() -> GameData {
         ],
         weapons: weapons(),
         feats: feats(),
-        classes: vec![fighter(), rogue(), slayer(), wizard(), cleric(), monk()],
-        prestige_classes: vec![arcane_trickster(), mystic_theurge()],
+        classes: vec![
+            fighter(),
+            rogue(),
+            slayer(),
+            wizard(),
+            cleric(),
+            monk(),
+            witch(),
+        ],
+        prestige_classes: vec![
+            arcane_trickster(),
+            mystic_theurge(),
+            eldritch_knight(),
+            winter_witch(),
+        ],
         mythic_abilities: mythic_abilities(),
         mythic_feats: mythic_feats(),
         mythic_paths: vec![
@@ -626,6 +639,8 @@ fn fighter() -> Class {
         reflex: SaveProgression::Poor,
         will: SaveProgression::Poor,
         save_exceptions: vec![],
+        advances: Advancement::Each,
+        counts_as: BTreeSet::new(),
         class_skills: BTreeSet::from([skill("athletics")]),
         prerequisite: None,
         features: vec![plain_feature("fighter/bravery", "Bravery")],
@@ -727,6 +742,8 @@ fn rogue() -> Class {
         reflex: SaveProgression::Good,
         will: SaveProgression::Poor,
         save_exceptions: vec![],
+        advances: Advancement::Each,
+        counts_as: BTreeSet::new(),
         class_skills: BTreeSet::from([skill("athletics"), skill("mobility"), skill("persuasion")]),
         prerequisite: None,
         features: vec![plain_feature("rogue/sneak-attack", "Sneak Attack")],
@@ -812,6 +829,8 @@ fn slayer() -> Class {
         reflex: SaveProgression::Good,
         will: SaveProgression::Poor,
         save_exceptions: vec![],
+        advances: Advancement::Each,
+        counts_as: BTreeSet::new(),
         class_skills: BTreeSet::from([skill("athletics"), skill("mobility")]),
         prerequisite: None,
         features: vec![],
@@ -869,6 +888,8 @@ fn wizard() -> Class {
         reflex: SaveProgression::Poor,
         will: SaveProgression::Good,
         save_exceptions: vec![],
+        advances: Advancement::Each,
+        counts_as: BTreeSet::new(),
         class_skills: BTreeSet::from([skill("knowledge-arcana")]),
         prerequisite: None,
         features: vec![],
@@ -907,6 +928,8 @@ fn monk() -> Class {
         reflex: SaveProgression::Good,
         will: SaveProgression::Good,
         save_exceptions: vec![],
+        advances: Advancement::Each,
+        counts_as: BTreeSet::new(),
         class_skills: BTreeSet::from([skill("mobility")]),
         prerequisite: None,
         features: vec![],
@@ -937,6 +960,8 @@ fn cleric() -> Class {
         reflex: SaveProgression::Poor,
         will: SaveProgression::Good,
         save_exceptions: vec![],
+        advances: Advancement::Each,
+        counts_as: BTreeSet::new(),
         class_skills: BTreeSet::from([skill("persuasion")]),
         prerequisite: None,
         features: vec![],
@@ -968,6 +993,8 @@ fn mystic_theurge() -> Class {
         reflex: SaveProgression::Poor,
         will: SaveProgression::Good,
         save_exceptions: vec![],
+        advances: Advancement::Each,
+        counts_as: BTreeSet::new(),
         class_skills: BTreeSet::from([skill("knowledge-arcana")]),
         prerequisite: Some(Prerequisite::All(vec![
             Prerequisite::SpellLevel {
@@ -1010,6 +1037,8 @@ fn arcane_trickster() -> Class {
         reflex: SaveProgression::Good,
         will: SaveProgression::Good,
         save_exceptions: vec![],
+        advances: Advancement::Each,
+        counts_as: BTreeSet::new(),
         class_skills: BTreeSet::from([skill("mobility")]),
         prerequisite: Some(Prerequisite::All(vec![
             Prerequisite::SkillRanks {
@@ -1023,6 +1052,166 @@ fn arcane_trickster() -> Class {
             Prerequisite::Feature {
                 feature: feature("rogue/sneak-attack"),
                 count: 2,
+            },
+        ])),
+        features: vec![],
+        selections: vec![],
+        feat_lists: vec![],
+        levels,
+        archetypes: vec![],
+    }
+}
+
+/// Witch: 1/2 BAB, good Will, full arcane spell-level access like the wizard, a hex at 1 and every even level,
+/// Major Hexes at 10 and Grand Hexes at 18 (which the hexes that need them check).
+fn witch() -> Class {
+    let hex = FeatureSelectionKey::new("witch/hex");
+    let levels = (1..=20)
+        .map(|l| {
+            let mut r = row(l);
+            r.arcane_spell_level = l.div_ceil(2).min(9);
+            if l == 1 || l % 2 == 0 {
+                r.selections.push(hex.clone());
+            }
+            if l == 10 {
+                r.features.push(feature("witch/major-hexes"));
+            }
+            if l == 18 {
+                r.features.push(feature("witch/grand-hexes"));
+            }
+            r
+        })
+        .collect();
+    let needs_feature = |key: &str| {
+        Some(Prerequisite::Feature {
+            feature: feature(key),
+            count: 1,
+        })
+    };
+    Class {
+        key: class("witch"),
+        name: "Witch".into(),
+        summary: String::new(),
+        guide: guide("witch"),
+        skill_points: 2,
+        bab: BabProgression::Half,
+        fort: SaveProgression::Poor,
+        reflex: SaveProgression::Poor,
+        will: SaveProgression::Good,
+        save_exceptions: vec![],
+        advances: Advancement::Each,
+        counts_as: BTreeSet::new(),
+        class_skills: BTreeSet::from([skill("knowledge-arcana")]),
+        prerequisite: None,
+        features: vec![
+            plain_feature("witch/major-hexes", "Major Hexes"),
+            plain_feature("witch/grand-hexes", "Grand Hexes"),
+        ],
+        selections: vec![FeatureSelection {
+            key: hex,
+            name: "Hex".into(),
+            summary: String::new(),
+            guide: guide("witch#hex"),
+            shared_options: BTreeSet::new(),
+            options: vec![
+                selection_option("witch/hex/slumber", None, None),
+                selection_option("witch/hex/misfortune", None, None),
+                selection_option("witch/hex/agony", None, needs_feature("witch/major-hexes")),
+                selection_option(
+                    "witch/hex/life-giver",
+                    None,
+                    needs_feature("witch/grand-hexes"),
+                ),
+            ],
+        }],
+        feat_lists: vec![],
+        levels,
+        archetypes: vec![],
+    }
+}
+
+/// Eldritch Knight: full BAB, good Fortitude, a Combat feat bonus slot at 1, 5 and 9, the arcane class advanced
+/// from 2; its levels count as fighter levels for feat prerequisites (Diverse Training).
+fn eldritch_knight() -> Class {
+    let levels = (1..=10)
+        .map(|l| {
+            let mut r = row(l);
+            r.advances_arcane = l >= 2;
+            if l % 4 == 1 {
+                r.feat_slots.push(FeatSlot::CombatFeat);
+            }
+            r
+        })
+        .collect();
+    Class {
+        key: class("eldritch-knight"),
+        name: "Eldritch Knight".into(),
+        summary: String::new(),
+        guide: guide("prestige-classes#eldritch-knight"),
+        skill_points: 2,
+        bab: BabProgression::Full,
+        fort: SaveProgression::Good,
+        reflex: SaveProgression::Poor,
+        will: SaveProgression::Poor,
+        save_exceptions: vec![],
+        advances: Advancement::Each,
+        counts_as: BTreeSet::from([CountsAs {
+            class: class("fighter"),
+            toward: CountsToward::FeatPrerequisites,
+        }]),
+        class_skills: BTreeSet::from([skill("athletics")]),
+        prerequisite: Some(Prerequisite::SpellLevel {
+            spell_type: SpellType::Arcane,
+            level: 2,
+        }),
+        features: vec![],
+        selections: vec![],
+        feat_lists: vec![],
+        levels,
+        archetypes: vec![],
+    }
+}
+
+/// Winter Witch: every level advances one class, arcane or divine; its levels stack with witch levels for Major
+/// and Grand Hexes (Frost Power).
+fn winter_witch() -> Class {
+    let levels = (1..=10)
+        .map(|l| {
+            let mut r = row(l);
+            r.advances_arcane = true;
+            r.advances_divine = true;
+            r
+        })
+        .collect();
+    let toward_witch = |key: &str| CountsAs {
+        class: class("witch"),
+        toward: CountsToward::Feature(feature(key)),
+    };
+    Class {
+        key: class("winter-witch"),
+        name: "Winter Witch".into(),
+        summary: String::new(),
+        guide: guide("prestige-classes#winter-witch"),
+        skill_points: 2,
+        bab: BabProgression::Half,
+        fort: SaveProgression::Poor,
+        reflex: SaveProgression::Poor,
+        will: SaveProgression::Good,
+        save_exceptions: vec![],
+        advances: Advancement::Either,
+        counts_as: BTreeSet::from([
+            toward_witch("witch/major-hexes"),
+            toward_witch("witch/grand-hexes"),
+        ]),
+        class_skills: BTreeSet::from([skill("knowledge-arcana")]),
+        prerequisite: Some(Prerequisite::Any(vec![
+            Prerequisite::SpellLevel {
+                spell_type: SpellType::Arcane,
+                level: 2,
+            },
+            Prerequisite::SpellLevel {
+                spell_type: SpellType::Divine,
+                level: 2,
             },
         ])),
         features: vec![],
@@ -1246,10 +1435,14 @@ fn gold_dragon() -> MythicPath {
             shared_options: BTreeSet::new(),
             options: vec![
                 selection_option("gold-dragon/breaths/empowered", None, None),
+                // The guide's "Mythic Rank: 9" and "Vow of Dahak": the story condition never blocks.
                 selection_option(
                     "gold-dragon/breaths/annihilating",
                     None,
-                    Some(Prerequisite::MythicRank(9)),
+                    Some(Prerequisite::All(vec![
+                        Prerequisite::MythicRank(9),
+                        Prerequisite::Story(Story::VowOfDahak),
+                    ])),
                 ),
             ],
         }],

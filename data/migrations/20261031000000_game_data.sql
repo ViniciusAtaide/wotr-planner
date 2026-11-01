@@ -116,7 +116,7 @@ CREATE TABLE prerequisite_node (
         'feat', 'mythic_feat', 'mythic_ability', 'class_level', 'archetype', 'feature',
         'selection_option', 'skill_ranks', 'ability_score', 'base_attack_bonus', 'spell_level',
         'caster_level', 'character_level', 'mythic_rank', 'alignment', 'race', 'feat_for',
-        'feat_for_same_value'
+        'feat_for_same_value', 'story'
     )),
     -- References to other game entities (foreign keys added below, once the tables exist).
     feat_key TEXT,
@@ -140,6 +140,8 @@ CREATE TABLE prerequisite_node (
     spell_school spell_school,
     energy energy,
     armour_type armour_type,
+    -- `rules::Story`: a story condition, out of scope, so it always holds and the sheet shows it as a note.
+    story TEXT CHECK (story IN ('vow_of_dahak', 'uncorrupted')),
     -- Each kind fills exactly the columns listed for it, and every other column is NULL. `feat_for`
     -- (`rules::Prerequisite::FeatFor`: a parameterised feat held for one value) fills `feat_key` and
     -- exactly one value column: `skill_key`, `weapon_key`, `spell_school`, `energy` or `armour_type`. `amount` is
@@ -165,7 +167,8 @@ CREATE TABLE prerequisite_node (
             CASE WHEN amount IS NOT NULL THEN 'amount' END,
             CASE WHEN spell_school IS NOT NULL THEN 'spell_school' END,
             CASE WHEN energy IS NOT NULL THEN 'energy' END,
-            CASE WHEN armour_type IS NOT NULL THEN 'armour_type' END
+            CASE WHEN armour_type IS NOT NULL THEN 'armour_type' END,
+            CASE WHEN story IS NOT NULL THEN 'story' END
         ], NULL) = CASE kind
             WHEN 'all' THEN '{}'::TEXT[]
             WHEN 'any' THEN '{}'
@@ -187,6 +190,7 @@ CREATE TABLE prerequisite_node (
             WHEN 'alignment' THEN '{alignment}'
             WHEN 'race' THEN '{race_key}'
             WHEN 'feat_for_same_value' THEN '{feat_key}'
+            WHEN 'story' THEN '{story}'
             -- `feat_key` and the one value column that is set; none or two set can't match.
             WHEN 'feat_for' THEN ARRAY['feat_key', COALESCE(
                 CASE WHEN skill_key IS NOT NULL THEN 'skill_key' END,
@@ -264,7 +268,10 @@ CREATE TABLE feat (
 -- classes/, prestige/ --------------------------------------------------------------------------
 
 -- A base class or a prestige class. BAB and saves are progressions; `rules` computes the numbers
--- (base and prestige classes have different save formulas).
+-- (base and prestige classes have different save formulas). `advances` (`rules::Advancement`) is how
+-- many classes the rows' spellcasting advancement serves: `each`, one per spell type the rows advance
+-- (Mystic Theurge), or `either`, one class, arcane or divine (Loremaster). `rules::GameData::check`
+-- gives `either` only to a class whose rows advance both types.
 CREATE TABLE class (
     key text_key PRIMARY KEY,
     is_prestige BOOLEAN NOT NULL,
@@ -276,7 +283,23 @@ CREATE TABLE class (
     fort save_progression NOT NULL,
     reflex save_progression NOT NULL,
     will save_progression NOT NULL,
+    advances TEXT NOT NULL CHECK (advances IN ('each', 'either')),
     prerequisite_root_id BIGINT UNIQUE REFERENCES prerequisite_node (id) DEFERRABLE INITIALLY DEFERRED
+);
+
+-- `rules::CountsAs`: a class's levels count as `as_class_key` levels, toward one thing only:
+-- `feat_prerequisites` (Diverse Training: Eldritch Knight levels as fighter levels for a feat's
+-- prerequisites) or `feature`, the other class's rows granting `feature_key` (Frost Power: Winter
+-- Witch levels stack with witch levels for Major and Grand Hexes). `rules::GameData::check` keeps
+-- `feature_key` to one the other class's rows grant.
+CREATE TABLE class_counts_as (
+    class_key TEXT NOT NULL REFERENCES class (key) DEFERRABLE INITIALLY DEFERRED,
+    as_class_key TEXT NOT NULL REFERENCES class (key) DEFERRABLE INITIALLY DEFERRED,
+    toward TEXT NOT NULL CHECK (toward IN ('feat_prerequisites', 'feature')),
+    feature_key TEXT,
+    CHECK ((toward = 'feature') = (feature_key IS NOT NULL)),
+    CHECK (as_class_key <> class_key),
+    UNIQUE NULLS NOT DISTINCT (class_key, as_class_key, toward, feature_key)
 );
 
 -- `rules::SaveException`: a save cell the guide prints differently from the class's progression,
@@ -593,3 +616,6 @@ ALTER TABLE prerequisite_node
     ADD FOREIGN KEY (skill_key) REFERENCES skill (key) DEFERRABLE INITIALLY DEFERRED,
     ADD FOREIGN KEY (race_key) REFERENCES race (key) DEFERRABLE INITIALLY DEFERRED,
     ADD FOREIGN KEY (weapon_key) REFERENCES weapon (key) DEFERRABLE INITIALLY DEFERRED;
+
+ALTER TABLE class_counts_as
+    ADD FOREIGN KEY (feature_key) REFERENCES feature (key) DEFERRABLE INITIALLY DEFERRED;

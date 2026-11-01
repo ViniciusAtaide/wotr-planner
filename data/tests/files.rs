@@ -7,10 +7,11 @@ use std::fs;
 
 use common::{copy_fixture, fixture_dir};
 use rules::{
-    Ability, AbilityBonus, ArchetypeLevelRow, BabProgression, ClassKey, FeatKey, FeatListKey,
-    FeatSlot, FeatureKey, FeatureSelectionKey, GameData, MythicAbilityGroup, MythicFeatGroup,
-    MythicPathKey, Parameter, ParameterKind, Prerequisite, Repeat, Save, SaveException,
-    SaveProgression, SelectionOptionKey, SpellLevels, WeaponKey, WeaponProficiency,
+    Ability, AbilityBonus, Advancement, ArchetypeLevelRow, BabProgression, ClassKey, CountsAs,
+    CountsToward, FeatKey, FeatListKey, FeatSlot, FeatureKey, FeatureSelectionKey, GameData,
+    MythicAbilityGroup, MythicFeatGroup, MythicPathKey, Parameter, ParameterKind, Prerequisite,
+    Repeat, Save, SaveException, SaveProgression, SelectionOptionKey, SpellLevels, Story,
+    WeaponKey, WeaponProficiency,
 };
 
 fn read_fixture() -> GameData {
@@ -50,6 +51,8 @@ fn reads_every_fixture_file() {
             .collect::<Vec<_>>(),
         [
             ClassKey::new("arcane-trickster"),
+            ClassKey::new("eldritch-knight"),
+            ClassKey::new("loremaster"),
             ClassKey::new("mystic-theurge")
         ]
     );
@@ -431,7 +434,10 @@ fn reads_the_mythic_path_rules() {
     );
     assert_eq!(
         dragon.selections[0].options[0].prerequisite,
-        Some(Prerequisite::MythicRank(9))
+        Some(Prerequisite::All(vec![
+            Prerequisite::MythicRank(9),
+            Prerequisite::Story(Story::VowOfDahak),
+        ]))
     );
 
     // A feature without bonuses reads as none; an option may grant several feats.
@@ -532,5 +538,48 @@ fn reads_an_options_chosen_feat_and_repeat_and_defaults_them() {
     assert_eq!(
         rogue.feat_lists[0].feats,
         BTreeSet::from([FeatKey::new("skill-focus")])
+    );
+}
+
+#[test]
+fn reads_advancement_counts_as_and_story_conditions_and_defaults_them() {
+    let data = read_fixture();
+    let class = |key: &str| {
+        data.classes
+            .iter()
+            .chain(&data.prestige_classes)
+            .find(|c| c.key.as_str() == key)
+            .unwrap()
+    };
+    assert_eq!(class("loremaster").advances, Advancement::Either);
+    assert_eq!(class("mystic-theurge").advances, Advancement::Each);
+    assert_eq!(
+        class("eldritch-knight").counts_as,
+        BTreeSet::from([
+            CountsAs {
+                class: ClassKey::new("fighter"),
+                toward: CountsToward::FeatPrerequisites,
+            },
+            CountsAs {
+                class: ClassKey::new("fighter"),
+                toward: CountsToward::Feature(FeatureKey::new("fighter/bravery")),
+            },
+        ])
+    );
+    assert_eq!(class("fighter").counts_as, BTreeSet::new());
+
+    let breath = data
+        .mythic_paths
+        .iter()
+        .flat_map(|path| &path.selections)
+        .flat_map(|selection| &selection.options)
+        .find(|option| option.key.as_str() == "gold-dragon/breaths/annihilating")
+        .unwrap();
+    assert_eq!(
+        breath.prerequisite,
+        Some(Prerequisite::All(vec![
+            Prerequisite::MythicRank(9),
+            Prerequisite::Story(Story::VowOfDahak),
+        ]))
     );
 }

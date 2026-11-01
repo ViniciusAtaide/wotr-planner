@@ -8,7 +8,7 @@ Class(
     reflex: Good,
     will: Poor,
     class_skills: ["mobility", "perception", "persuasion", "stealth", "trickery", "use-magic-device"],
-    prerequisite: All([Any([Alignment(NeutralGood), Alignment(LawfulNeutral), Alignment(TrueNeutral), Alignment(ChaoticNeutral), Alignment(LawfulEvil), Alignment(NeutralEvil), Alignment(ChaoticEvil)]), SkillRanks(skill: "stealth", ranks: 5), CharacterLevel(6)]),
+    prerequisite: All([Any([Alignment(TrueNeutral), Alignment(LawfulEvil), Alignment(NeutralEvil), Alignment(ChaoticEvil)]), SkillRanks(skill: "stealth", ranks: 5), CharacterLevel(6)]),
     features: [
         (key: "assassin/alter-ego", name: "Alter Ego", guide: "prestige-classes#alter-ego"),
         (key: "assassin/cold-minded", name: "Cold Minded", guide: "prestige-classes#cold-minded"),

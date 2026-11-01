@@ -1,5 +1,7 @@
 //! Prerequisites: nested AND / OR / at-least-n groups over single conditions.
 
+use std::collections::BTreeSet;
+
 use serde::{Deserialize, Serialize};
 
 use crate::game_data::{Ability, Alignment, SpellType};
@@ -73,9 +75,56 @@ pub enum Prerequisite {
     /// The Build's alignment is exactly this one. "Any lawful" is an `Any` of three.
     Alignment(Alignment),
     Race(RaceKey),
+    /// A story condition (Vow of Dahak). Story is out of scope, so it always holds: the sheet shows it as a note
+    /// ([`Prerequisite::stories`]) and never blocks on it.
+    Story(Story),
+}
+
+/// A condition set by the game's story, not by a Build: the planner never checks it.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+pub enum Story {
+    /// Gold Dragon: sworn to Dahak.
+    VowOfDahak,
+    /// Gold Dragon: not sworn to Dahak.
+    Uncorrupted,
+}
+
+impl Story {
+    pub const ALL: [Story; 2] = [Story::VowOfDahak, Story::Uncorrupted];
+
+    /// The condition as the guide prints it.
+    pub fn name(self) -> &'static str {
+        match self {
+            Story::VowOfDahak => "Vow of Dahak",
+            Story::Uncorrupted => "Uncorrupted",
+        }
+    }
 }
 
 impl Prerequisite {
+    /// The story conditions anywhere in the tree, for the note beside the option: they never block.
+    pub fn stories(&self) -> BTreeSet<Story> {
+        let mut stories = BTreeSet::new();
+        self.collect_stories(&mut stories);
+        stories
+    }
+
+    fn collect_stories(&self, stories: &mut BTreeSet<Story>) {
+        match self {
+            Prerequisite::All(children)
+            | Prerequisite::Any(children)
+            | Prerequisite::AtLeast(_, children) => {
+                for child in children {
+                    child.collect_stories(stories);
+                }
+            }
+            Prerequisite::Story(story) => {
+                stories.insert(*story);
+            }
+            _ => {}
+        }
+    }
+
     /// Sorts every group's children, recursively, so equal trees compare equal.
     pub fn canonicalize(&mut self) {
         if let Prerequisite::All(children)

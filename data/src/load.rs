@@ -11,19 +11,19 @@ use std::hash::Hash;
 
 use rules::{
     AbilityBonus, AbilityModifier, Archetype, ArchetypeKey, ArchetypeLevelRow, Class, ClassKey,
-    ClassLevelRow, Feat, FeatKey, FeatList, FeatListKey, FeatSlot, Feature, FeatureKey,
-    FeatureSelection, FeatureSelectionKey, GameData, GuideRef, MythicAbility, MythicAbilityKey,
-    MythicAscension, MythicFeat, MythicFeatKey, MythicPath, MythicPathKey, MythicRankRow,
-    PathSwitch, Progression, Race, RaceKey, SaveException, SelectionOption, SelectionOptionKey,
-    Skill, SkillKey, SpellLevels, Subrace, SubraceKey, Weapon, WeaponKey,
+    ClassLevelRow, CountsAs, CountsToward, Feat, FeatKey, FeatList, FeatListKey, FeatSlot, Feature,
+    FeatureKey, FeatureSelection, FeatureSelectionKey, GameData, GuideRef, MythicAbility,
+    MythicAbilityKey, MythicAscension, MythicFeat, MythicFeatKey, MythicPath, MythicPathKey,
+    MythicRankRow, PathSwitch, Progression, Race, RaceKey, SaveException, SelectionOption,
+    SelectionOptionKey, Skill, SkillKey, SpellLevels, Subrace, SubraceKey, Weapon, WeaponKey,
 };
 use sqlx::PgConnection;
 
 use crate::columns::{
-    AbilityBonusKind, FeatSlotKind, ability_bonus_kind_from, ability_from, bab_progression_from,
-    corrupt, feat_category_from, feat_slot_kind_from, mythic_ability_group_from,
-    mythic_feat_group_from, parameter_kind_from, repeat_from, save_from, save_progression_from,
-    to_i8, to_u8, weapon_proficiency_from,
+    AbilityBonusKind, FeatSlotKind, ability_bonus_kind_from, ability_from, advancement_from,
+    bab_progression_from, corrupt, feat_category_from, feat_slot_kind_from,
+    mythic_ability_group_from, mythic_feat_group_from, parameter_kind_from, repeat_from, save_from,
+    save_progression_from, to_i8, to_u8, weapon_proficiency_from,
 };
 use crate::prerequisites::Trees;
 use crate::{Database, Error};
@@ -794,10 +794,36 @@ async fn load_classes(
         );
     }
 
+    let mut counts_as = Grouped::new();
+    for row in sqlx::query!(
+        "SELECT class_key, as_class_key, toward, feature_key FROM class_counts_as
+        ORDER BY class_key, as_class_key, toward, feature_key"
+    )
+    .fetch_all(&mut *conn)
+    .await?
+    {
+        let toward = match (row.toward.as_str(), row.feature_key) {
+            ("feat_prerequisites", None) => CountsToward::FeatPrerequisites,
+            ("feature", Some(feature)) => CountsToward::Feature(FeatureKey(feature)),
+            (toward, feature) => {
+                return Err(corrupt(format!(
+                    "class_counts_as toward {toward:?} with feature {feature:?}"
+                )));
+            }
+        };
+        counts_as.push(
+            row.class_key,
+            CountsAs {
+                class: ClassKey(row.as_class_key),
+                toward,
+            },
+        );
+    }
+
     let (mut classes, mut prestige_classes) = (Vec::new(), Vec::new());
     for row in sqlx::query!(
         "SELECT key, is_prestige, name, summary, guide, skill_points, bab, fort, reflex, will,
-            prerequisite_root_id
+            advances, prerequisite_root_id
         FROM class ORDER BY key"
     )
     .fetch_all(&mut *conn)
@@ -811,6 +837,8 @@ async fn load_classes(
             fort: save_progression_from(&row.fort)?,
             reflex: save_progression_from(&row.reflex)?,
             will: save_progression_from(&row.will)?,
+            advances: advancement_from(&row.advances)?,
+            counts_as: counts_as.take(&row.key).into_iter().collect(),
             key: ClassKey(row.key),
             name: row.name,
             summary: row.summary,
@@ -831,6 +859,7 @@ async fn load_classes(
     }
     archetypes.finish("archetype")?;
     save_exceptions.finish("save_exception")?;
+    counts_as.finish("class_counts_as")?;
     Ok((classes, prestige_classes))
 }
 

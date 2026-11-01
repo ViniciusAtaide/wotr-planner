@@ -74,6 +74,7 @@ Class(
                 (key: "cleric/crusader/domain-abilities", name: "Domain Abilities", guide: "cleric#crusader"),
                 (key: "cleric/crusader/domain-ability", name: "Domain Ability", guide: "cleric#crusader"),
             ],
+            // Crusader Bonus Feats: the guide skips only their BAB and fighter-level prerequisites; they skip every prerequisite here (user, ticket 21 R5).
             feat_lists: [
                 (key: "cleric/crusader/bonus-feats-1", name: "Crusader Bonus Feats", guide: "cleric#crusader-bonus-feats", ignores_prerequisites: true, feats: ["armor-proficiency-heavy-armor", "martial-weapons-proficiency", "shield-bash", "shield-focus", "tower-shield-proficiency", "weapon-focus"]),
                 (key: "cleric/crusader/bonus-feats-10", name: "Crusader Bonus Feats (from level 10)", guide: "cleric#crusader-bonus-feats", ignores_prerequisites: true, feats: ["armor-proficiency-heavy-armor", "greater-weapon-focus", "improved-critical", "martial-weapons-proficiency", "shield-bash", "shield-focus", "tower-shield-proficiency", "weapon-focus", "weapon-specialization"]),

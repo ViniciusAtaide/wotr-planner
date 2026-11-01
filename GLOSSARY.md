@@ -20,7 +20,7 @@ Everything chosen at one character level: the class, any ability increase, skill
 _Avoid_: Level entry, level step
 
 **Class choice**:
-What a Build fixes for a class when it's first taken: at most one archetype and, for a prestige class, the classes whose spellcasting it advances (one arcane and/or one divine, already taken). It belongs to the class, so moving the class's first level doesn't lose it.
+What a Build fixes for a class when it's first taken: at most one archetype and, for a prestige class, the classes whose spellcasting it advances (already taken; one arcane and/or one divine, or, for a class that **advances one class, arcane or divine** such as the Loremaster, one in all). It belongs to the class, so moving the class's first level doesn't lose it.
 _Avoid_: Archetype level, entry choice
 
 **Mythic ascension**:
@@ -46,6 +46,10 @@ _Avoid_: Level (unqualified), total level
 **Class level**:
 The number of character levels taken in one class. A character's class levels add up to its character level.
 _Avoid_: Level in class
+
+**Counts as**:
+A class's levels counting as another class's levels, toward one thing only: a feat's prerequisites (Diverse Training: Eldritch Knight levels are fighter levels when a feat needs "Fighter level: 4"), or a feature of the other class (Frost Power: Winter Witch levels stack with witch levels, so the witch's rows granting Major and Grand Hexes are reached at the two classes' levels together). Nothing else sees the extra levels. Ticket 28 wrote it as `counts_as (class, as_class, for)`; the data says `toward`.
+_Avoid_: Stacks with (unqualified), effective level
 
 **Spell-level access**:
 The highest spell level a character can cast, for one spell type (arcane or divine), as given by the class's spells-per-day table. Prestige class entry requirements use this, not caster level.
@@ -124,8 +128,12 @@ What fills a slot: a feat, a selection option, a mythic ability or a mythic feat
 _Avoid_: Choice (that is any decision in a Build), selection
 
 **Prerequisite**:
-A condition that must hold before a feat, selection option, mythic pick, class or archetype can be chosen. Examples: an ability score, BAB, another feat, skill ranks or a class feature.
+A condition that must hold before a feat, selection option, mythic pick, class or archetype can be chosen. Examples: an ability score, BAB, another feat, skill ranks or a class feature. A Story condition is one too, but never blocks.
 _Avoid_: Requirement, restriction
+
+**Story condition**:
+A prerequisite set by the game's story rather than by a Build, such as the Gold Dragon's Vow of Dahak or Uncorrupted. Story is out of scope: the condition always holds and the sheet shows it as a note beside the option.
+_Avoid_: Flag, quest requirement
 
 ### The planner
 

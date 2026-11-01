@@ -1,0 +1,22 @@
+// Hand-written test fixture: small and simplified, not checked against the guide.
+// Advances one class, arcane or divine.
+Class(
+    key: "loremaster",
+    name: "Loremaster",
+    guide: "prestige-classes#loremaster",
+    skill_points: 4,
+    bab: Half,
+    fort: Poor,
+    reflex: Poor,
+    will: Good,
+    class_skills: ["knowledge-arcana"],
+    prerequisite: Any([
+        SpellLevel(spell_type: Arcane, level: 3),
+        SpellLevel(spell_type: Divine, level: 3),
+    ]),
+    advances: Either,
+    levels: [
+        (level: 1, advances_arcane: true, advances_divine: true),
+        (level: 2, advances_arcane: true, advances_divine: true),
+    ],
+)
