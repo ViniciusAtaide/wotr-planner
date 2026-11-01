@@ -157,3 +157,10 @@ This shows two things. Resuming from a paused walk gives the same answers as wal
 
    Decision 3's example, "a parameterised pick that must name a value of the right kind", can't be a type: which kind a feat takes is game data, and the decoder never sees game data. They are kept as stale-link reasons. Should they stay on the banner, or be left off? The walk must still check `LevelCap` and `SkillPointsOverspent` either way, because they are what lock taking back the Legend switch and lowering Int.
 2. **Picks of unreached ranks.** Remove level keeps the removed level's mythic picks (ticket 14). A Legend switch also ends the ascensions and leaves the picks of MR 9 and 10 in the Build. The walk never checks such picks, so removability can't see what they depend on. If the level is added back or the switch is taken back, they may come back broken; they then show as broken, with ×. Should Remove level, and a switch that ends the ascensions, drop them instead? That needs the game data's ascension table, so it would be an engine call rather than `Build::apply`.
+
+## Decisions on the open questions
+
+**User, 2026-11-01:**
+
+- **Stale links get a generic error** ("if a stale link happens to appear just give a generic error. don't try to reason about it"). This reverses decision 2 and ticket 13's Q9: no banner, no broken picks marked, no reasons. So open question 1 is moot: the stale-only reasons go. Built by [ticket 40](40-stale-links-generic-error.md).
+- **Open question 2:** drop the picks of ranks and levels the Build no longer reaches ("I don't care to store what feats you chose before selecting legend"). Built by ticket 40.
