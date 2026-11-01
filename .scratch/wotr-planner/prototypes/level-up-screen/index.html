@@ -1,0 +1,354 @@
+<!doctype html>
+<!--
+  PROTOTYPE, throwaway. For "Level-up screen behaviour" (issues/06-level-up-screen.md).
+  Question: how should the level-by-level screen behave on both Fold 7 screens?
+  Three structurally different variants on one page, switched with ?variant=A|B|C (bottom bar, or ← →).
+  Each variant also uses a different policy for locked options and for edits that break later picks.
+  It lives here, not in the Leptos app, because the app's page is being rewritten in parallel. The data is a tiny fake sample.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PROTOTYPE · Level-up screen</title>
+<style>
+:root{--bg:#14161a;--panel:#1d2026;--panel2:#272b33;--text:#ece9e2;--muted:#9b9b9b;--accent:#d9a441;--mythic:#b69cff;--bad:#f87171;--ok:#4ade80;--line:#353a45}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font:15px/1.4 system-ui,-apple-system,sans-serif}
+body{padding-bottom:96px}
+button{font:inherit;color:inherit;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 14px;min-height:44px;cursor:pointer;text-align:left}
+button:disabled{cursor:not-allowed}
+input{font:inherit;color:inherit;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-height:44px;width:100%}
+.muted{color:var(--muted)}.bad{color:var(--bad)}.myth{color:var(--mythic)}
+.tag{font-size:12px;padding:2px 8px;border-radius:99px;background:var(--panel2);border:1px solid var(--line)}
+
+/* ---------- variant A: wizard ---------- */
+.a-top{position:sticky;top:0;background:var(--bg);padding:12px 12px 8px;border-bottom:1px solid var(--line);z-index:5}
+.a-title{font-size:20px;font-weight:600}
+.a-strip{display:flex;gap:6px;overflow-x:auto;padding:10px 0 2px;scrollbar-width:none}
+.a-chip{min-width:40px;min-height:40px;padding:0;text-align:center;border-radius:99px;position:relative;flex:none}
+.a-chip.cur{outline:2px solid var(--accent)}
+.a-chip.done{border-color:var(--ok)}.a-chip.prob{border-color:var(--bad);color:var(--bad)}
+.a-chip .md{position:absolute;top:-3px;right:-3px;width:10px;height:10px;border-radius:99px;background:var(--mythic)}
+.a-main{padding:12px;display:grid;gap:12px;max-width:640px;margin:0 auto}
+.seg{display:flex;gap:8px}.seg button{flex:1;text-align:center}.seg button.on{background:var(--accent);color:#111;border-color:var(--accent)}
+.a-slot{display:flex;flex-direction:column;gap:2px;width:100%}
+.a-slot .lab{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.a-slot .val{font-size:17px}
+.a-slot.empty .val{color:var(--accent)}
+.a-slot.bad{border-color:var(--bad)}
+.a-myth{border:1px solid var(--mythic);border-radius:14px;padding:12px;display:grid;gap:10px}
+.a-nav{position:fixed;left:0;right:0;bottom:64px;display:flex;gap:10px;padding:8px 12px;background:linear-gradient(transparent,var(--bg) 30%)}
+.a-nav button{flex:1;text-align:center;font-weight:600}
+.lost{font-size:12px;color:var(--bad)}
+
+/* ---------- variant B: timeline + detail ---------- */
+.b-banner{position:sticky;top:0;z-index:5;background:#3a1d1d;color:var(--bad);padding:10px 14px;border-bottom:1px solid var(--bad);width:100%;border-radius:0}
+.b-wrap{display:block}
+.b-list{list-style:none;margin:0;padding:8px;display:grid;gap:6px}
+.b-row{width:100%;display:grid;grid-template-columns:44px 1fr;gap:8px;align-items:start}
+.b-row .n{font-weight:700;font-size:18px;text-align:center}
+.b-row .sum{font-size:13px;color:var(--muted)}
+.b-row.sel{border-color:var(--accent)}
+.b-row.prob{border-color:var(--bad)}
+.b-row.mrow{border-color:#4b3f73;background:#211d2e}
+.b-row.mrow .n{color:var(--mythic);font-size:14px}
+.b-detail-pane{display:none}
+.b-inline{padding:8px 4px 12px 52px;display:grid;gap:8px}
+.b-slot{display:grid;gap:2px;width:100%}
+.b-slot .lab{font-size:12px;color:var(--muted)}
+.b-slot .why{font-size:12px;color:var(--bad)}
+.b-slot.bad{border-color:var(--bad)}
+
+/* ---------- variant C: sheet ---------- */
+.c-tabs{position:sticky;top:0;z-index:5;display:flex;gap:6px;padding:8px;background:var(--bg);border-bottom:1px solid var(--line)}
+.c-tabs button{flex:1;text-align:center}.c-tabs button.on{background:var(--accent);color:#111}
+.c-grid{display:grid;gap:2px;padding:6px}
+.c-row{display:grid;grid-template-columns:30px 54px 1fr;gap:6px;align-items:center;padding:4px 2px;border-bottom:1px solid var(--line)}
+.c-row .n{font-weight:700;text-align:right;color:var(--muted)}
+.c-cls{min-height:36px;padding:4px 6px;text-align:center;font-size:13px}
+.c-chips{display:flex;flex-wrap:wrap;gap:4px}
+.c-chip{min-height:36px;padding:4px 10px;font-size:13px;border-radius:99px}
+.c-chip.empty{border-style:dashed;color:var(--accent)}
+.c-chip.myth{border-color:var(--mythic)}
+.c-chip b{font-weight:500;color:var(--muted);margin-right:4px}
+
+/* ---------- picker ---------- */
+.pk-back{position:fixed;inset:0;background:#000a;z-index:50}
+.pk{position:fixed;z-index:60;background:var(--panel);display:flex;flex-direction:column;border:1px solid var(--line)}
+.pk.full{inset:0}
+.pk.sheet{left:0;right:0;bottom:0;height:82vh;border-radius:18px 18px 0 0}
+.pk-head{padding:12px;display:grid;gap:8px;border-bottom:1px solid var(--line)}
+.pk-title{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.pk-title button{min-width:44px;text-align:center}
+.pk-cats{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.pk-cats button{flex:none;min-height:36px;padding:4px 12px;border-radius:99px;font-size:13px}
+.pk-cats button.on{background:var(--accent);color:#111}
+.pk-list{overflow-y:auto;padding:8px 12px 110px;display:grid;gap:6px;align-content:start}
+.opt{display:grid;gap:2px;width:100%}
+.opt .oc{font-size:12px;color:var(--muted)}
+.opt .why{font-size:12px;color:var(--bad)}
+.opt.cur{border-color:var(--accent)}
+.opt.dis{opacity:.5}
+.pk-foot{font-size:13px;color:var(--muted);text-align:center;padding:6px}
+
+/* ---------- prototype chrome ---------- */
+.snack{position:fixed;left:12px;right:12px;bottom:124px;z-index:40;background:#2b2412;border:1px solid var(--accent);border-radius:12px;padding:10px 12px;display:flex;gap:10px;align-items:center;max-width:620px;margin:0 auto}
+.snack span{flex:1;font-size:13px}
+.proto-bar{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:1000;display:flex;align-items:center;gap:6px;background:#fff;color:#111;border-radius:99px;padding:4px;box-shadow:0 6px 24px #000a;font-size:13px;white-space:nowrap}
+.proto-bar button{background:#111;color:#fff;border:0;border-radius:99px;min-width:40px;min-height:40px;text-align:center;padding:0}
+.proto-bar .lbl{padding:0 8px;font-weight:600}
+.state-btn{position:fixed;top:8px;right:8px;z-index:1000;min-height:32px;padding:4px 10px;font-size:12px;background:#fff;color:#111;border-radius:99px}
+.state{position:fixed;bottom:72px;right:8px;left:8px;max-height:60vh;overflow:auto;z-index:1000;background:#0b0c0e;border:1px solid #fff;border-radius:10px;padding:10px;font:12px/1.35 ui-monospace,monospace;white-space:pre-wrap;margin:0}
+
+/* ---------- unfolded inner screen (and desktop) ---------- */
+@media (min-width:600px){
+  .pk.full{inset:0 0 0 auto;width:420px}
+  .pk.sheet{left:50%;top:50%;bottom:auto;transform:translate(-50%,-50%);width:520px;height:76vh;border-radius:18px}
+  .b-wrap{display:grid;grid-template-columns:minmax(260px,38%) 1fr;height:calc(100vh - 44px)}
+  .b-list{overflow-y:auto;padding-bottom:110px}
+  .b-inline{display:none}
+  .b-detail-pane{display:grid;gap:10px;align-content:start;padding:16px 16px 110px;overflow-y:auto;border-left:1px solid var(--line)}
+  .c-row{grid-template-columns:40px 90px 1fr}
+  .c-chip{font-size:14px}
+  .state{left:auto;width:440px}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+// ---------------------------------------------------------------- fake game data
+const CLASSES={fighter:{name:'Fighter',bab:k=>k},rogue:{name:'Rogue',bab:k=>Math.floor(k*3/4)}};
+const BASE={str:18,dex:14,con:14,int:13,wis:10,cha:8}; // human, +2 Str
+const MR_AT={6:[1],7:[2],9:[3],11:[4],14:[5],15:[6],16:[7],17:[8,9],19:[10]};
+const MR_LEVEL={};for(const[l,rs]of Object.entries(MR_AT))for(const r of rs)MR_LEVEL[r]=+l;
+const o=(id,name,cat,req=[])=>({id,name,cat,req});
+const FEATS=[
+ o('power-attack','Power Attack','Weapon',[{stat:'str',min:13},{bab:1}]),
+ o('cleave','Cleave','Weapon',[{feat:'power-attack'},{bab:1}]),
+ o('great-cleave','Great Cleave','Weapon',[{feat:'cleave'},{bab:4}]),
+ o('weapon-focus','Weapon Focus','Weapon',[{bab:1}]),
+ o('weapon-spec','Weapon Specialization','Weapon',[{feat:'weapon-focus'},{cls:'fighter',min:4}]),
+ o('greater-wf','Greater Weapon Focus','Weapon',[{feat:'weapon-focus'},{cls:'fighter',min:8}]),
+ o('improved-critical','Improved Critical','Weapon',[{bab:8}]),
+ o('vital-strike','Vital Strike','Weapon',[{bab:6}]),
+ o('improved-vital-strike','Improved Vital Strike','Weapon',[{feat:'vital-strike'},{bab:11}]),
+ o('twf','Two-Weapon Fighting','Weapon',[{stat:'dex',min:15}]),
+ o('itwf','Improved Two-Weapon Fighting','Weapon',[{feat:'twf'},{stat:'dex',min:17},{bab:6}]),
+ o('dodge','Dodge','Armour & Shield',[{stat:'dex',min:13}]),
+ o('mobility','Mobility','Armour & Shield',[{feat:'dodge'}]),
+ o('spring-attack','Spring Attack','Armour & Shield',[{feat:'mobility'},{bab:4}]),
+ o('shield-focus','Shield Focus','Armour & Shield',[{bab:1}]),
+ o('point-blank','Point-Blank Shot','Ranged'),
+ o('precise-shot','Precise Shot','Ranged',[{feat:'point-blank'}]),
+ o('rapid-shot','Rapid Shot','Ranged',[{feat:'point-blank'},{stat:'dex',min:13}]),
+ o('deadly-aim','Deadly Aim','Ranged',[{stat:'dex',min:13},{bab:1}]),
+ o('combat-expertise','Combat Expertise','Combat Manoeuvres',[{stat:'int',min:13}]),
+ o('improved-trip','Improved Trip','Combat Manoeuvres',[{feat:'combat-expertise'}]),
+ o('toughness','Toughness','Miscellaneous'),
+ o('iron-will','Iron Will','Miscellaneous'),
+ o('lightning-reflexes','Lightning Reflexes','Miscellaneous'),
+ o('great-fortitude','Great Fortitude','Miscellaneous'),
+ o('blind-fight','Blind-Fight','Miscellaneous'),
+ o('skill-focus','Skill Focus (Perception)','Skill'),
+ o('persuasive','Persuasive','Skill'),
+ o('extra-rogue-talent','Extra Rogue Talent','Class',[{cls:'rogue',min:1}]),
+ o('arcane-strike','Arcane Strike','Magic',[{never:'Can cast arcane spells'}]),
+ o('spell-penetration','Spell Penetration','Magic',[{never:'Can cast spells'}]),
+ o('outflank','Outflank','Teamwork',[{bab:4}]),
+];
+const NON_COMBAT=new Set(['Class','Racial','Skill','Teamwork','Magic']);
+const TALENTS=[
+ o('fast-stealth','Fast Stealth','Talent'),o('surprise-attack','Surprise Attack','Talent'),
+ o('trap-spotter','Trap Spotter','Talent'),o('weapon-training','Weapon Training','Talent'),
+ o('crippling-strike','Crippling Strike','Advanced talent',[{cls:'rogue',min:10}]),
+ o('opportunist','Opportunist','Advanced talent',[{cls:'rogue',min:10}]),
+];
+const M_ABIL=[o('ever-ready','Ever Ready','Mythic ability'),o('hard-to-kill','Hard to Kill','Mythic ability'),
+ o('fleet-charge','Fleet Charge','Mythic ability'),o('inspirational-stance','Inspirational Stance','Mythic ability'),
+ o('weapon-mastery','Weapon Mastery','Mythic ability')];
+const M_FEAT=[o('m-power-attack','Power Attack (Mythic)','Mythic feat',[{feat:'power-attack'}]),
+ o('m-weapon-focus','Weapon Focus (Mythic)','Mythic feat',[{feat:'weapon-focus'}]),
+ o('m-toughness','Toughness (Mythic)','Mythic feat',[{feat:'toughness'}]),
+ o('m-dodge','Dodge (Mythic)','Mythic feat',[{feat:'dodge'}]),
+ o('m-improved-critical','Improved Critical (Mythic)','Mythic feat',[{feat:'improved-critical'}]),
+ o('m-vital-strike','Vital Strike (Mythic)','Mythic feat',[{feat:'vital-strike'}])];
+const PATHS=['Aeon','Angel','Azata','Demon','Lich','Trickster'].map(n=>o(n.toLowerCase(),n,'Mythic path'));
+const SWITCHES=[o('stay','Keep current path','Path switch'),o('legend','Legend','Path switch'),
+ o('gold-dragon','Gold Dragon','Path switch'),o('swarm','Swarm That Walks','Path switch'),o('devil','Devil','Path switch')];
+const OPT={};for(const x of[...FEATS,...TALENTS,...M_ABIL,...M_FEAT,...PATHS,...SWITCHES])OPT[x.id]=x;
+
+// ---------------------------------------------------------------- rules (fake, just enough)
+const lvlOf=id=>id[0]==='L'?parseInt(id.slice(1)):MR_LEVEL[parseInt(id.slice(1))];
+function classLevels(n,s){const c={fighter:0,rogue:0};for(let i=0;i<n;i++)c[s.cls[i]]++;return c}
+function ctx(n,s,ex){const c=classLevels(n,s),held=new Set();
+ for(const[id,v]of Object.entries(s.picks))if(id!==ex&&v&&lvlOf(id)<=n)held.add(v);
+ return{...BASE,...c,bab:CLASSES.fighter.bab(c.fighter)+CLASSES.rogue.bab(c.rogue),held,n}}
+function avail(opt,c){const out=c.held.has(opt.id)?['Already taken']:[];
+ for(const r of opt.req){
+  if(r.feat&&!c.held.has(r.feat))out.push(OPT[r.feat].name);
+  if(r.stat&&c[r.stat]<r.min)out.push(`${r.stat.toUpperCase()} ${r.min} (have ${c[r.stat]})`);
+  if(r.bab&&c.bab<r.bab)out.push(`BAB +${r.bab} (have +${c.bab})`);
+  if(r.cls&&c[r.cls]<r.min)out.push(`${CLASSES[r.cls].name} level ${r.min} (have ${c[r.cls]})`);
+  if(r.never)out.push(r.never)}
+ return out}
+const isLegend=s=>s.picks['M8:switch']==='legend';
+function slotsAt(n,s){const out=[],k=classLevels(n,s),cls=s.cls[n-1];
+ if(n%2)out.push({id:`L${n}:general`,label:'Feat',short:'Feat',kind:'feat'});
+ if(n===1)out.push({id:'L1:human',label:'Human bonus feat',short:'Human',kind:'feat'});
+ if(cls==='fighter'&&(k.fighter===1||k.fighter%2===0))out.push({id:`L${n}:fighter`,label:'Fighter bonus feat (combat)',short:'F-bonus',kind:'combat'});
+ if(cls==='rogue'&&k.rogue%2===0)out.push({id:`L${n}:talent`,label:'Rogue talent',short:'Talent',kind:'talent'});
+ for(const r of MR_AT[n]||[]){
+  if(isLegend(s)&&r>=9)continue;
+  const lost=isLegend(s)&&r>=3&&r<=8;
+  out.push({id:`M${r}`,label:`Mythic rank ${r} · ${r%2?'ability':'feat'}`,short:`MR${r}`,kind:r%2?'mability':'mfeat',mythic:true,rank:r,lost});
+  if(r===3)out.push({id:'M3:path',label:'Mythic path',short:'Path',kind:'path',mythic:true,rank:3,lost});
+  if(r===8)out.push({id:'M8:switch',label:'Path switch (optional)',short:'Switch',kind:'switch',mythic:true,rank:8})}
+ return out}
+function optionsFor(sl){return{feat:FEATS,combat:FEATS.filter(f=>!NON_COMBAT.has(f.cat)),talent:TALENTS,
+ mability:M_ABIL,mfeat:M_FEAT,path:PATHS,switch:SWITCHES}[sl.kind]}
+function findSlot(s,id){for(let n=1;n<=20;n++)for(const sl of slotsAt(n,s))if(sl.id===id)return{...sl,n};return null}
+const whereOf=(id)=>id[0]==='L'?`L${lvlOf(id)}`:`MR${parseInt(id.slice(1))}`;
+function problems(s){const out=[],live=new Set();
+ for(let n=1;n<=20;n++)for(const sl of slotsAt(n,s)){live.add(sl.id);const v=s.picks[sl.id];
+  if(!v||sl.lost)continue;const why=avail(OPT[v],ctx(n,s,sl.id));
+  if(why.length)out.push({id:sl.id,n,name:OPT[v].name,where:whereOf(sl.id),reasons:why})}
+ for(const[id,v]of Object.entries(s.picks))if(v&&!live.has(id))out.push({id,n:lvlOf(id),name:OPT[v].name,where:whereOf(id),reasons:['Slot no longer exists (class changed)']});
+ return out}
+function clearInvalid(s){const dropped=[];for(;;){const p=problems(s);if(!p.length)return dropped;
+ for(const x of p){dropped.push(x);delete s.picks[x.id]}}}
+function wouldBreak(mut,selfId){const next=structuredClone(st);mut(next);const before=new Set(problems(st).map(x=>x.id));
+ return problems(next).filter(x=>x.id!==selfId&&!before.has(x.id)).map(x=>`${x.name} (${x.where})`)}
+
+// ---------------------------------------------------------------- state
+let st={cls:[...Array(8).fill('fighter'),...Array(4).fill('rogue'),...Array(8).fill('fighter')],
+ picks:{'L1:general':'power-attack','L1:human':'weapon-focus','L1:fighter':'cleave','L2:fighter':'dodge',
+  'L3:general':'mobility','L4:fighter':'weapon-spec','L5:general':'great-cleave','L6:fighter':'vital-strike',
+  'L7:general':'spring-attack','L8:fighter':'improved-critical','L10:talent':'fast-stealth',
+  'M1':'ever-ready','M2':'m-power-attack','M3':'hard-to-kill','M3:path':'aeon'}};
+const VARIANTS={A:{name:'Wizard · hide locked · auto-clear',mode:'hide',strategy:'clear',sheet:'full'},
+ B:{name:'Timeline · grey + reason · flag',mode:'grey',strategy:'flag',sheet:'sheet'},
+ C:{name:'Sheet · locked toggle · block',mode:'toggle',strategy:'block',sheet:'sheet'}};
+const ui={variant:new URLSearchParams(location.search).get('variant')||'A',level:1,sel:'L1',tab:'levels',
+ picker:null,search:'',cat:'All',showLocked:false,snack:null,state:false};
+const V=()=>VARIANTS[ui.variant]||VARIANTS.A;
+
+function commit(mut){const prev=structuredClone(st);mut(st);ui.snack=null;
+ if(V().strategy==='clear'){const d=clearInvalid(st);if(d.length)ui.snack={prev,text:`Removed ${d.length} pick${d.length>1?'s':''} that no longer qualify: ${d.map(x=>`${x.name} (${x.where})`).join(', ')}`}}
+ render()}
+
+// ---------------------------------------------------------------- shared bits
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const pickName=id=>st.picks[id]?OPT[st.picks[id]].name:null;
+function probMap(){const m={};for(const p of problems(st))m[p.id]=p;return m}
+function levelStatus(n,pm){const sl=slotsAt(n,st).filter(x=>!x.lost);
+ if(sl.some(x=>pm[x.id]))return'prob';return sl.every(x=>st.picks[x.id])?'done':'open'}
+function stats(n){const c=ctx(n,st);return`${c.fighter?`Fighter ${c.fighter}`:''}${c.fighter&&c.rogue?' / ':''}${c.rogue?`Rogue ${c.rogue}`:''} · BAB +${c.bab}`}
+function classSeg(n){const v=V().strategy==='block';return`<div class="seg">${Object.entries(CLASSES).map(([id,c])=>{
+ const br=v&&st.cls[n-1]!==id?wouldBreak(s=>s.cls[n-1]=id):[];
+ return`<button class="${st.cls[n-1]===id?'on':''}" data-a="cls" data-n="${n}" data-v="${id}" ${br.length?'disabled title="Would break: '+esc(br.join(', '))+'"':''}>${c.name}${br.length?' 🔒':''}</button>`}).join('')}</div>`}
+
+// ---------------------------------------------------------------- variant A: wizard
+function renderA(){const n=ui.level,pm=probMap(),sl=slotsAt(n,st),norm=sl.filter(x=>!x.mythic),myth=sl.filter(x=>x.mythic);
+ const slot=x=>{const nm=pickName(x.id);return`<button class="a-slot ${nm?'':'empty'} ${pm[x.id]?'bad':''}" data-a="open" data-s="${x.id}" data-n="${n}">
+  <span class="lab">${esc(x.label)}</span><span class="val">${esc(nm||'Choose…')}</span>${x.lost?'<span class="lost">lost on Legend</span>':''}</button>`};
+ return`<header class="a-top"><div class="a-title">Level ${n} <span class="muted">of 20</span></div>
+  <div class="muted">${stats(n)}</div>
+  <div class="a-strip">${Array.from({length:20},(_,i)=>i+1).map(l=>`<button class="a-chip ${l===n?'cur':''} ${levelStatus(l,pm)}" data-a="lvl" data-n="${l}">${l}${MR_AT[l]?'<span class="md"></span>':''}</button>`).join('')}</div></header>
+ <main class="a-main"><div>${classSeg(n)}</div>${norm.map(slot).join('')}
+  ${myth.length?`<section class="a-myth"><div class="myth">✦ Mythic ascension: rank ${MR_AT[n].join(' & ')}</div>${myth.map(slot).join('')}</section>`:''}</main>
+ <nav class="a-nav"><button data-a="lvl" data-n="${Math.max(1,n-1)}" ${n===1?'disabled':''}>◀ Level ${Math.max(1,n-1)}</button>
+  <button data-a="lvl" data-n="${Math.min(20,n+1)}" ${n===20?'disabled':''}>Level ${Math.min(20,n+1)} ▶</button></nav>`}
+
+// ---------------------------------------------------------------- variant B: timeline + detail
+function renderB(){const pm=probMap(),probs=Object.values(pm);
+ const rows=[];for(let n=1;n<=20;n++){rows.push({key:`L${n}`,n,mythic:false});if(MR_AT[n])rows.push({key:`M${n}`,n,mythic:true})}
+ const detail=r=>{const sl=slotsAt(r.n,st).filter(x=>!!x.mythic===r.mythic);
+  return`${r.mythic?`<div class="myth">✦ Mythic ascension at level ${r.n}: rank ${MR_AT[r.n].join(' & ')}</div>`:`<div><b>Level ${r.n}</b> <span class="muted">${stats(r.n)}</span></div>${classSeg(r.n)}`}
+  ${sl.map(x=>`<button class="b-slot ${pm[x.id]?'bad':''}" data-a="open" data-s="${x.id}" data-n="${r.n}"><span class="lab">${esc(x.label)}</span>
+   <span>${esc(pickName(x.id)||'— choose —')}</span>${x.lost?'<span class="why">lost on Legend</span>':''}${pm[x.id]?`<span class="why">Needs: ${esc(pm[x.id].reasons.join(' · '))}</span>`:''}</button>`).join('')}`};
+ const cur=rows.find(r=>r.key===ui.sel)||rows[0];
+ return`${probs.length?`<button class="b-banner" data-a="jump">⚠ ${probs.length} problem${probs.length>1?'s':''} in this build · tap to jump to the first</button>`:''}
+ <div class="b-wrap"><ol class="b-list">${rows.map(r=>{const sl=slotsAt(r.n,st).filter(x=>!!x.mythic===r.mythic);
+  const bad=sl.some(x=>pm[x.id]);const sum=sl.map(x=>pickName(x.id)).filter(Boolean).join(' · ')||'nothing chosen';
+  return`<li><button class="b-row ${r.mythic?'mrow':''} ${r.key===cur.key?'sel':''} ${bad?'prob':''}" data-a="sel" data-v="${r.key}">
+   <span class="n">${r.mythic?'✦ MR '+MR_AT[r.n].join('·'):r.n}</span><span>${r.mythic?'Mythic ascension':esc(CLASSES[st.cls[r.n-1]].name)}${bad?' <span class="bad">⚠</span>':''}<br><span class="sum">${esc(sum)}</span></span></button>
+   ${r.key===cur.key?`<div class="b-inline">${detail(r)}</div>`:''}</li>`}).join('')}</ol>
+ <section class="b-detail-pane">${detail(cur)}</section></div>`}
+
+// ---------------------------------------------------------------- variant C: sheet
+function renderC(){const pm=probMap();
+ const chip=(x,n)=>{const nm=pickName(x.id);return`<button class="c-chip ${nm?'':'empty'} ${x.mythic?'myth':''}" data-a="open" data-s="${x.id}" data-n="${n}"><b>${x.short}</b>${esc(nm||'+')}${x.lost?' <span class="lost">lost</span>':''}</button>`};
+ const tabs=`<div class="c-tabs"><button class="${ui.tab==='levels'?'on':''}" data-a="tab" data-v="levels">Levels</button><button class="${ui.tab==='mythic'?'on':''}" data-a="tab" data-v="mythic">✦ Mythic track</button></div>`;
+ if(ui.tab==='mythic'){const rows=[];for(let r=1;r<=10;r++){const n=MR_LEVEL[r];const sl=slotsAt(n,st).filter(x=>x.mythic&&(x.rank===r));
+   rows.push(`<div class="c-row"><span class="n myth">${r}</span><span class="muted">L${n}</span><span class="c-chips">${sl.length?sl.map(x=>chip(x,n)).join(''):'<span class="muted">not reached (Legend)</span>'}</span></div>`)}
+  return tabs+`<div class="c-grid">${rows.join('')}</div>`}
+ const rows=[];for(let n=1;n<=20;n++){const sl=slotsAt(n,st).filter(x=>!x.mythic);
+  rows.push(`<div class="c-row"><span class="n">${n}</span><button class="c-cls" data-a="openCls" data-n="${n}">${CLASSES[st.cls[n-1]].name}</button>
+   <span class="c-chips">${sl.map(x=>chip(x,n)).join('')||'<span class="muted">—</span>'}${MR_AT[n]?`<span class="tag myth">✦ MR ${MR_AT[n].join('·')}</span>`:''}</span></div>`)}
+ return tabs+`<div class="c-grid">${rows.join('')}</div>`}
+
+// ---------------------------------------------------------------- picker (one shared behaviour, three policies)
+function pickerItems(){const p=ui.picker,block=V().strategy==='block';let opts,cur,c=null;
+ if(p.cls){opts=Object.entries(CLASSES).map(([id,x])=>({id,name:x.name,cat:'Class',req:[]}));cur=st.cls[p.n-1]}
+ else{const sl=findSlot(st,p.slot);opts=optionsFor(sl);cur=st.picks[p.slot];c=ctx(p.n,st,p.slot)}
+ return opts.map(x=>{const why=c?avail(x,c):[];let breaks=[];
+  if(block&&!why.length&&x.id!==cur)breaks=wouldBreak(s=>p.cls?(s.cls[p.n-1]=x.id):(s.picks[p.slot]=x.id),p.slot);
+  return{...x,why,breaks,cur:x.id===cur}})}
+function pickerList(){const items=pickerItems(),mode=V().mode,q=ui.search.toLowerCase();
+ const shown=items.filter(x=>(ui.cat==='All'||x.cat===ui.cat)&&x.name.toLowerCase().includes(q));
+ const locked=shown.filter(x=>x.why.length);
+ const visible=shown.filter(x=>!x.why.length||mode==='grey'||(mode==='toggle'&&ui.showLocked)).sort((a,b)=>(a.why.length>0)-(b.why.length>0));
+ const html=visible.map(x=>{const dis=x.why.length||x.breaks.length;
+  return`<button class="opt ${dis?'dis':''} ${x.cur?'cur':''}" data-a="pick" data-v="${x.id}" ${dis?'disabled':''}>
+   <span>${esc(x.name)}${x.cur?' ✓':''}</span><span class="oc">${esc(x.cat)}</span>
+   ${x.why.length?`<span class="why">Needs: ${esc(x.why.join(' · '))}</span>`:''}${x.breaks.length?`<span class="why">Would break: ${esc(x.breaks.join(', '))}</span>`:''}</button>`}).join('');
+ let foot='';if(mode==='hide'&&locked.length)foot=`<div class="pk-foot">${locked.length} locked option${locked.length>1?'s':''} hidden</div>`;
+ if(mode==='toggle'&&locked.length)foot=`<button class="pk-foot" data-a="locked">${ui.showLocked?'Hide':'Show'} ${locked.length} locked</button>`;
+ return(html||'<div class="pk-foot">Nothing matches</div>')+foot}
+function renderPicker(){const p=ui.picker;if(!p)return'';
+ const title=p.cls?`Class at level ${p.n}`:`${findSlot(st,p.slot).label} · ${p.slot[0]==='L'?'level':'at level'} ${p.n}`;
+ const cats=p.cls?[]:['All',...new Set(pickerItems().map(x=>x.cat))];
+ let clear='';if(!p.cls&&st.picks[p.slot]){const br=V().strategy==='block'?wouldBreak(s=>delete s.picks[p.slot],p.slot):[];
+  clear=`<button data-a="clear" ${br.length?`disabled title="Would break: ${esc(br.join(', '))}"`:''}>Clear${br.length?' 🔒':''}</button>`}
+ return`<div class="pk-back" data-a="close"></div><div class="pk ${V().sheet}">
+ <div class="pk-head"><div class="pk-title"><b>${esc(title)}</b><span>${clear}<button data-a="close">✕</button></span></div>
+  ${p.cls?'':`<input id="pk-q" placeholder="Search…" value="${esc(ui.search)}" autocomplete="off">
+  <div class="pk-cats">${cats.map(c=>`<button class="${ui.cat===c?'on':''}" data-a="cat" data-v="${esc(c)}">${esc(c)}</button>`).join('')}</div>`}</div>
+ <div class="pk-list" id="pk-list">${pickerList()}</div></div>`}
+
+// ---------------------------------------------------------------- frame
+function render(){const keys=Object.keys(VARIANTS),pm=problems(st);
+ document.getElementById('app').innerHTML=({A:renderA,B:renderB,C:renderC}[ui.variant]||renderA)()+renderPicker()
+ +(ui.snack?`<div class="snack"><span>${esc(ui.snack.text)}</span><button data-a="undo">Undo</button></div>`:'')
+ +(ui.state?`<pre class="state">${esc(JSON.stringify({variant:ui.variant,policy:V(),classes:st.cls.map(c=>c[0].toUpperCase()).join(''),picks:st.picks,problems:pm.map(x=>`${x.where} ${x.name}: ${x.reasons.join('; ')}`),viewport:`${innerWidth}×${innerHeight}`},null,1))}</pre>`:'')
+ +`<div class="proto-bar"><button data-a="var" data-v="-1">◀</button><span class="lbl">${ui.variant} · ${V().name}</span><button data-a="var" data-v="1">▶</button><button data-a="state" title="Show state">{ }</button></div>`;
+ const q=document.getElementById('pk-q');if(q&&ui.focusSearch){q.focus();q.setSelectionRange(q.value.length,q.value.length)}}
+
+document.addEventListener('input',e=>{if(e.target.id==='pk-q'){ui.search=e.target.value;document.getElementById('pk-list').innerHTML=pickerList()}});
+document.addEventListener('click',e=>{const t=e.target.closest('[data-a]');if(!t||t.disabled)return;const a=t.dataset.a,v=t.dataset.v,n=+t.dataset.n;
+ if(a==='var'){const k=Object.keys(VARIANTS);ui.variant=k[(k.indexOf(ui.variant)+ +v+k.length)%k.length];ui.picker=null;ui.snack=null;
+  const u=new URL(location);u.searchParams.set('variant',ui.variant);history.replaceState(null,'',u);return render()}
+ if(a==='lvl'){ui.level=n;return render()}
+ if(a==='sel'){ui.sel=v;return render()}
+ if(a==='jump'){const p=problems(st)[0];if(p){ui.sel=p.id[0]==='M'?`M${p.n}`:`L${p.n}`}return render()}
+ if(a==='tab'){ui.tab=v;return render()}
+ if(a==='state'){ui.state=!ui.state;return render()}
+ if(a==='cls')return commit(s=>s.cls[n-1]=v);
+ if(a==='open'){ui.picker={slot:t.dataset.s,n};ui.search='';ui.cat='All';ui.showLocked=false;return render()}
+ if(a==='openCls'){ui.picker={cls:true,n};return render()}
+ if(a==='close'){ui.picker=null;return render()}
+ if(a==='cat'){ui.cat=v;return render()}
+ if(a==='locked'){ui.showLocked=!ui.showLocked;return render()}
+ if(a==='pick'){const p=ui.picker;ui.picker=null;return commit(s=>p.cls?(s.cls[p.n-1]=v):(s.picks[p.slot]=v))}
+ if(a==='clear'){const p=ui.picker;ui.picker=null;return commit(s=>delete s.picks[p.slot])}
+ if(a==='undo'){st=ui.snack.prev;ui.snack=null;return render()}});
+document.addEventListener('keydown',e=>{if(e.target.closest('input,textarea,[contenteditable]'))return;
+ if(e.key==='ArrowLeft'||e.key==='ArrowRight')document.querySelector(`.proto-bar [data-v="${e.key==='ArrowLeft'?-1:1}"]`).click();
+ if(e.key==='Escape'&&ui.picker){ui.picker=null;render()}});
+addEventListener('resize',()=>{if(ui.state)render()});
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+[package]
+name = "server"
+version.workspace = true
+edition.workspace = true
+
+# The Axum entry point (cargo-leptos `bin-package`).
+[dependencies]
+app = { workspace = true, features = ["ssr"] }
+data.workspace = true
+leptos = { workspace = true, features = ["ssr"] }
+leptos_axum.workspace = true
+axum.workspace = true
+tokio.workspace = true
+dotenvy.workspace = true

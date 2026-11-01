@@ -1,0 +1,38 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT rank, character_level FROM mythic_ascension ORDER BY rank",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "rank",
+        "type_info": "Int2",
+        "origin": {
+          "Table": {
+            "table": "mythic_ascension",
+            "name": "rank"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "character_level",
+        "type_info": "Int2",
+        "origin": {
+          "Table": {
+            "table": "mythic_ascension",
+            "name": "character_level"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "3a529ba38a9584210282418d2fae07e3c1ced8edaa49ddfeeef211383cfde717"
+}

@@ -1,0 +1,86 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT key, name, group_name, summary, guide, prerequisite_root_id\n        FROM mythic_ability ORDER BY key",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "key",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "mythic_ability",
+            "name": "key"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "mythic_ability",
+            "name": "name"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "group_name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "mythic_ability",
+            "name": "group_name"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "summary",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "mythic_ability",
+            "name": "summary"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "guide",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "mythic_ability",
+            "name": "guide"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "prerequisite_root_id",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "mythic_ability",
+            "name": "prerequisite_root_id"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "830eb429d47763d327ce64efe40f185f06e2f0acc5cbfeb592db9c4430718288"
+}

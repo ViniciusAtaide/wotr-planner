@@ -1,0 +1,98 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT key, class_key, archetype_key, path_key, name, summary, guide\n        FROM feature ORDER BY key",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "key",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "feature",
+            "name": "key"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "class_key",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "feature",
+            "name": "class_key"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "archetype_key",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "feature",
+            "name": "archetype_key"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "path_key",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "feature",
+            "name": "path_key"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "feature",
+            "name": "name"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "summary",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "feature",
+            "name": "summary"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "guide",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "feature",
+            "name": "guide"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      true,
+      true,
+      true,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "5af8fa3aeec7e5601d599dc9cfc0f16b052d4dba10921de17e9932197c33bc16"
+}

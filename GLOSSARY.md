@@ -7,8 +7,29 @@ Planning Pathfinder: Wrath of the Righteous characters level by level, offering 
 ### Builds and levels
 
 **Build**:
-A saved plan for one character, from creation to its final level.
-_Avoid_: Character sheet, save, plan
+The plan for one character, from creation to its final level: every choice, and nothing derived from them. It lives
+in the URL fragment (`/#b=…`), which is also its share link; nothing is saved on the server.
+_Avoid_: Character sheet, save, saved plan
+
+**Build start**:
+The choices made before level 1: race (and subrace), alignment, and point-buy ability scores.
+_Avoid_: Character creation, level 0
+
+**Level-up**:
+Everything chosen at one character level: the class, any ability increase, skill ranks, and the picks for that level's slots. The archetype and spellcasting advancement are the class's **Class choice**, not the level's.
+_Avoid_: Level entry, level step
+
+**Class choice**:
+What a Build fixes for a class when it's first taken: at most one archetype and, for a prestige class, the classes whose spellcasting it advances (one arcane and/or one divine, already taken). It belongs to the class, so moving the class's first level doesn't lose it.
+_Avoid_: Archetype level, entry choice
+
+**Mythic ascension**:
+Everything chosen at one mythic rank: a mythic ability or mythic feat, plus any path-specific picks. It happens at a fixed character level.
+_Avoid_: Mythic level-up, tier-up
+
+**Path switch**:
+Replacing the mythic path at MR 8 with Legend, Gold Dragon, Swarm That Walks or Devil. Each new path keeps only some of the earlier mythic ascensions.
+_Avoid_: Path change, respec
 
 **Character level**:
 The character's total level, 1–20, or 1–40 on the Legend mythic path.
@@ -40,6 +61,36 @@ _Avoid_: Fighter feat, martial feat
 A class-specific choice from a fixed list, such as a rogue talent, rage power or hex.
 _Avoid_: Talent (unqualified), class pick
 
+**Selection option**:
+One entry in a Feature selection's list, such as Fast Stealth among the rogue talents. Its key extends the selection's (`selection:rogue/rogue-talents/fast-stealth`).
+_Avoid_: Option (unqualified), talent
+
+**Slot**:
+One place in a Build where something is picked: a Feat slot, a Feature selection slot, or a Mythic ascension's mythic ability, mythic feat or path pick. Each has a stable id naming its level or rank.
+_Avoid_: Choice point, cell
+
+**Pick**:
+What fills a slot: a feat, a selection option, a mythic ability or a mythic feat.
+_Avoid_: Choice (that is any decision in a Build), selection
+
 **Prerequisite**:
-A requirement that must be met before a feat or feature selection can be chosen. Examples: an ability score, BAB, another feat, skill ranks or a class feature.
+A condition that must hold before a feat, selection option, mythic pick, class or archetype can be chosen. Examples: an ability score, BAB, another feat, skill ranks or a class feature.
 _Avoid_: Requirement, restriction
+
+### The planner
+
+**Sheet**:
+The one planning screen and its summary: a grid with a row per character level and a chip per slot, plus the Mythic track. A finished Build's summary is the same sheet.
+_Avoid_: Level-up screen, summary page, character sheet
+
+**Mythic track**:
+The sheet's tab for Mythic ranks 1–10 at their fixed character levels, with the path at MR 3 and any Path switch at MR 8. Ranks never reached, or dropped by a switch, show as such.
+_Avoid_: Mythic tab, mythic levels
+
+**Problem**:
+A choice in a Build that doesn't hold up, where it is and why: an unmet prerequisite, a key missing from the game data, a pick for a slot that's gone, a cap exceeded. Opening a stale link marks problems; editing blocks them.
+_Avoid_: Error, violation
+
+**Would-break**:
+The problems an edit would cause later in the Build, chains included (removing Cleave breaks Great Cleave and what needs it). The sheet blocks such edits and says what they'd break.
+_Avoid_: Conflict, side effect

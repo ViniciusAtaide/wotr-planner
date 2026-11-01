@@ -1,3 +1,5 @@
 /target/
 /guide-cache/
 .env
+.DS_Store
+/.idea/

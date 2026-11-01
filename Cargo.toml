@@ -1,0 +1,53 @@
+[workspace]
+resolver = "3"
+members = ["app", "frontend", "server", "rules", "data"]
+
+[workspace.package]
+edition = "2024"
+version = "0.1.0"
+
+[workspace.dependencies]
+leptos = { version = "0.8.23", features = ["nightly"] }
+leptos_meta = "0.8.7"
+leptos_router = { version = "0.8.17", features = ["nightly"] }
+leptos_axum = "0.8.10"
+axum = "0.8.9"
+tokio = { version = "1.54", features = ["rt-multi-thread", "macros"] }
+serde = { version = "1", features = ["derive"] }
+sqlx = { version = "0.9.0", default-features = false, features = ["runtime-tokio", "postgres", "macros", "migrate"] }
+dotenvy = "0.15.7"
+ron = "0.12.3"
+sha2 = "0.11.1"
+# cargo-leptos downloads a wasm-bindgen CLI matching this exact version; keep it pinned.
+wasm-bindgen = "=0.2.130"
+console_error_panic_hook = "0.1.7"
+rules = { path = "rules" }
+data = { path = "data" }
+app = { path = "app", default-features = false }
+
+[profile.wasm-release]
+inherits = "release"
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+
+[profile.dev.package.sqlx-macros]
+opt-level = 3
+
+[[workspace.metadata.leptos]]
+name = "wotr-planner"
+bin-package = "server"
+lib-package = "frontend"
+site-root = "target/site"
+site-pkg-dir = "pkg"
+style-file = "style/main.css"
+assets-dir = "public"
+# 0.0.0.0 so a phone on the LAN can reach the dev server; 3000 is taken on this machine.
+site-addr = "0.0.0.0:3900"
+reload-port = 3901
+bin-features = []
+bin-default-features = false
+lib-features = []
+lib-default-features = false
+lib-profile-release = "wasm-release"

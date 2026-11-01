@@ -1,0 +1,115 @@
+// Hand-written test fixture: small and simplified, not checked against the guide.
+[
+    (
+        key: "feat:power-attack",
+        name: "Power Attack",
+        category: Weapon,
+        summary: "Trade attack bonus for damage.",
+        guide: "feats#power-attack",
+        prerequisite: AbilityScore(ability: Strength, score: 13),
+    ),
+    (
+        key: "feat:combat-expertise",
+        name: "Combat Expertise",
+        category: CombatManoeuvres,
+        guide: "feats#combat-expertise",
+        prerequisite: AbilityScore(ability: Intelligence, score: 13),
+    ),
+    (
+        key: "feat:two-weapon-fighting",
+        name: "Two-Weapon Fighting",
+        category: Weapon,
+        guide: "feats#two-weapon-fighting",
+        prerequisite: AbilityScore(ability: Dexterity, score: 15),
+    ),
+    (
+        key: "feat:improved-two-weapon-fighting",
+        name: "Improved Two-Weapon Fighting",
+        category: Weapon,
+        guide: "feats#improved-two-weapon-fighting",
+        prerequisite: All([
+            AbilityScore(ability: Dexterity, score: 17),
+            Feat("feat:two-weapon-fighting"),
+            BaseAttackBonus(6),
+        ]),
+    ),
+    (
+        key: "feat:cornugon-smash",
+        name: "Cornugon Smash",
+        category: Weapon,
+        guide: "feats#cornugon-smash",
+        prerequisite: All([
+            Feat("feat:power-attack"),
+            SkillRanks(skill: "skill:persuasion", ranks: 6),
+        ]),
+    ),
+    (
+        // "Combat Expertise or Kinetic Warrior + Intelligence 13", read as A or (B and C).
+        key: "feat:dirty-trick",
+        name: "Dirty Trick",
+        category: CombatManoeuvres,
+        guide: "feats#dirty-trick",
+        prerequisite: Any([
+            Feat("feat:combat-expertise"),
+            All([
+                Feature(feature: "feature:rogue/sneak-attack", count: 1),
+                AbilityScore(ability: Intelligence, score: 13),
+            ]),
+        ]),
+    ),
+    (
+        // "Two of: ..." plus a class level, with a nested choice.
+        key: "feat:critical-mastery",
+        name: "Critical Mastery",
+        category: Weapon,
+        guide: "feats#critical-mastery",
+        prerequisite: All([
+            AtLeast(2, [
+                Feat("feat:power-attack"),
+                Feat("feat:dirty-trick"),
+                Any([
+                    Feat("feat:cornugon-smash"),
+                    ClassLevel(class: "class:rogue", level: 3),
+                ]),
+            ]),
+            ClassLevel(class: "class:fighter", level: 2),
+        ]),
+    ),
+    (
+        key: "feat:breadth-of-experience",
+        name: "Breadth of Experience",
+        category: Skill,
+        guide: "feats#breadth-of-experience",
+        prerequisite: All([
+            Any([Race("race:elf"), Race("race:dwarf")]),
+            CharacterLevel(2),
+        ]),
+    ),
+    (
+        key: "feat:arcane-strike",
+        name: "Arcane Strike",
+        category: Magic,
+        guide: "feats#arcane-strike",
+        prerequisite: SpellLevel(spell_type: Arcane, level: 1),
+    ),
+    (
+        key: "feat:outflank",
+        name: "Outflank",
+        category: Teamwork,
+        guide: "feats#outflank",
+        prerequisite: All([BaseAttackBonus(4), CasterLevel(1), Alignment(LawfulGood)]),
+    ),
+    (
+        key: "feat:armiger-drill",
+        name: "Armiger Drill",
+        category: Class,
+        guide: "feats#armiger-drill",
+        prerequisite: Archetype("archetype:fighter/armiger"),
+    ),
+    (
+        key: "feat:toughness",
+        name: "Toughness",
+        category: Miscellaneous,
+        guide: "feats#toughness",
+    ),
+]

@@ -1,0 +1,86 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, race_key, class_level_id, mythic_rank_id, kind, category\n        FROM feat_slot ORDER BY id",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "feat_slot",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "race_key",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "feat_slot",
+            "name": "race_key"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "class_level_id",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "feat_slot",
+            "name": "class_level_id"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "mythic_rank_id",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "feat_slot",
+            "name": "mythic_rank_id"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "kind",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "feat_slot",
+            "name": "kind"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "category",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "feat_slot",
+            "name": "category"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      true,
+      true,
+      true,
+      false,
+      true
+    ]
+  },
+  "hash": "8374f053f4288b7bf78ca5c813170a4e9719d66e309e5806c885bd0902d7583d"
+}

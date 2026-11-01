@@ -4,7 +4,7 @@ Label: wayfinder:map
 
 ## Destination
 
-A working, locally run Leptos app at `~/code/wotr-planner` for planning Pathfinder: Wrath of the Righteous builds. You build a character level by level, and each level offers only the choices the game would allow at that point: class, archetype, feats, mythic feats, mythic abilities, feature selections and skill ranks. The app ends with a summary up to character level 20, or 40 on the Legend mythic path. Builds are saved in Postgres and shared by URL. It works well on a phone, specifically the user's Galaxy Z Fold 7: both the folded ~21:9 cover screen and the unfolded ~6:5 inner screen. The source of truth is the [GameFAQs guide](https://gamefaqs.gamespot.com/ps4/324475-pathfinder-wrath-of-the-righteous/faqs/80843/introduction).
+A working, locally run Leptos app at `~/code/wotr-planner` for planning Pathfinder: Wrath of the Righteous builds. You build a character level by level, and each level offers only the choices the game would allow at that point: class, archetype, feats, mythic feats, mythic abilities, feature selections and skill ranks. The app ends with a summary up to character level 20, or 40 on the Legend mythic path. Builds live entirely in the URL, which updates as you edit and is what you share. It works well on a phone, specifically the user's Galaxy Z Fold 7: both the folded ~21:9 cover screen and the unfolded ~6:5 inner screen. The source of truth is the [GameFAQs guide](https://gamefaqs.gamespot.com/ps4/324475-pathfinder-wrath-of-the-righteous/faqs/80843/introduction).
 
 ## Notes
 
@@ -21,12 +21,14 @@ A working, locally run Leptos app at `~/code/wotr-planner` for planning Pathfind
   - **Never fetch GameFAQs or the fextralife wiki automatically.** Both robots.txt files disallow ClaudeBot. Agents parse only the pages the user saved to `guide-cache/`, which is git-ignored.
   - Include all DLC content, with no DLC gating. Prestige classes are in scope.
   - Committing extracted facts is OK.
-- **Rules:** the rules live in a plain Rust crate with no DB or Leptos code, used by both the browser and the server. The browser loads the game data once and filters choices immediately. The server checks the whole build again when it's saved.
+  - **One migration while prototyping** (user, 2026-10-31). Schema changes edit the initial migration, then the dev database is dropped and reseeded; there are no fix-up migrations. Only one agent at a time does this. The steps are in the repo's `CLAUDE.md`.
+  - **No derived values in the database** (user, 2026-10-31). Anything computable from other columns or a simple rule belongs in Rust, not in a column. Examples: a `position` that equals `rank − 1`, or ability/feat counts that follow `rank % 2`.
+- **Rules:** the rules live in a plain Rust crate with no DB or Leptos code, running in the browser. The browser loads the game data once, filters choices immediately, and decodes and encodes the Build from the URL.
 - **Mobile:** design mobile-first. The main targets are the Galaxy Z Fold 7 cover screen (folded, tall and narrow, ~21:9) and inner screen (unfolded, nearly square, ~6:5). Desktop is secondary. Both Fold screens must work for touch: no hover-only interactions, and tap targets large enough for a thumb. The layout should adapt when the phone is folded or unfolded without losing the user's place.
-- **Saved builds:** no accounts. Each save is a snapshot that can't be changed and gets its own share URL. Editing a shared build and saving it creates a new link.
+- **Builds and links:** no accounts and no saved-build table. The URL fragment encodes every choice, updates live, and is the share link. `/` with no fragment is a blank Build.
 - **Prerequisites checked:**
   - race, ability scores (point-buy and the +1 every 4 levels)
-  - BAB, saves
+  - BAB
   - caster level, only where the guide states it
   - spell-level access (for example "can cast 3rd-level arcane spells"), which is a different check from caster level
   - skill ranks
@@ -45,25 +47,34 @@ A working, locally run Leptos app at `~/code/wotr-planner` for planning Pathfind
 <!-- one line per closed ticket: [title](link): gist -->
 - [How the guide is laid out](issues/01-guide-anatomy.md): about 38 of 70 pages hold build data. The HTML is easy to parse, with tables for progressions and prose entries with `Prerequisites:<br>` lines (free text inside, so hand-correct them). Don't crawl it (robots/ToS); the user saves the pages by hand and we parse them offline.
 - [Leptos and toolchain setup](issues/02-leptos-toolchain.md): Leptos 0.8.23 + cargo-leptos 0.3.11 + sqlx 0.9 on pinned `nightly-2026-10-30` with wasm32 (build verified). Workspace follows start-axum-workspace: app/frontend/server plus rules (both targets) and data (sqlx, native only, reached only via `app/ssr`). The pool goes through `leptos_routes_with_context`, migrations run at startup, `data/.sqlx` is committed for offline builds.
-- [Filling the guide's gaps](issues/07-guide-gaps.md): prestige classes, path-specific mythic picks, alignment and all DLC are in scope. Combat feats are every non-class/racial/skill/teamwork/magic feat. Spell-level access is a separate check from caster level. Feats with no listed prerequisites have none. The skill rank cap is 20, or 40 on Legend. Facts from the user go in overrides with `source: user`, and committing extracted facts is OK.
+- [Filling the guide's gaps](issues/07-guide-gaps.md): prestige classes, path-specific mythic picks, alignment and all DLC are in scope. Combat feats are every non-class/racial/skill/teamwork/magic feat. Spell-level access is a separate check from caster level. Feats with no listed prerequisites have none. The skill rank cap is 20, or 40 on Legend. Facts from the user go straight into the data files, unmarked, and committing extracted facts is OK.
+- [How a character progresses](issues/04-progression-model.md): A Build is a Build start (race, alignment, point buy), then Level-ups to 20 (40 on Legend), then Mythic ascensions at fixed levels 6/7/9/11/14/15/16/17×2/19. The path is chosen at MR 3, and a path switch at MR 8 (Legend keeps only MR 1–2). The archetype is fixed when you first take a class, and a prestige class's spellcasting advancement is chosen when you first take it. Skill ranks can't exceed character level. BAB, saves and spell-level access are calculated.
+- [Create the project skeleton](issues/03-scaffold.md): the five-crate workspace builds and runs. `cargo leptos watch` serves on `0.0.0.0:3900` (reload on 3901, reachable from the LAN), and the hello page reads its seeded row with `query_as!` into `rules::Greeting`. Postgres 18 (`wotr-planner-postgres`) is on host port 5434. `cargo test -p rules`, `cd data && cargo sqlx prepare` and `SQLX_OFFLINE=true cargo leptos build` are all verified.
+- [Game data schema and seeding](issues/05-game-data-schema.md): RON files in `game-data/` are generated once by a test-first extractor and then edited by hand, with no source marks. Text keys come from guide anchors. Classes and archetypes get full per-level progression rows (no diffing). Prerequisites are one relational `prerequisite_node` tree table (all/any/at_least + typed leaf conditions with CHECKs). A `seed` binary reloads everything in one transaction behind a data hash. The `rules` types are the single shape, and a round-trip test checks it.
+- [Level-up screen behaviour](issues/06-level-up-screen.md): the Sheet won. It's a compact level × slot chip grid with a separate Mythic track tab, and a picker that's a bottom sheet when folded and a modal when unfolded. Locked options sit behind a "Show N locked" toggle with reasons, and edits that would break later picks are blocked with "Would break: …". The same sheet also serves as the end-of-build summary.
+- [Saving and sharing Builds](issues/13-saving-sharing-builds.md): the URL is the Build. The fragment `/#b=…` holds a versioned, compressed encoding of every choice (text keys, optional name), updated live on each edit, with no Save step and no Postgres table. `/` opens a blank Build. Stale links open with broken picks marked and a banner.
+- [Build the game data types, schema and seed](issues/09-game-data-foundation.md): `rules::GameData` is the one shape. `data` reads `game-data/**/*.ron` strictly, and `cargo run -p data --bin seed [DIR]` truncates and reloads every game table in one transaction (deferred FKs, `position` columns, owner columns with exactly-one CHECKs; prerequisites in `prerequisite_node` with per-kind CHECKs) and stores a SHA-256 of the files. `load_game_data` reads it back, and the round-trip test proves files → Postgres → `GameData` equals files → `GameData`. `get_game_data` serves it, the home page shows counts, and the server warns at startup when the hash is stale. `hello` and `Greeting` are gone. *(2026-10-31: superseded in part by ticket 14 below: no `position` columns, one migration edited in place, 25 tables, 26 when 09 closed.)*
+- [Build the rules engine](issues/11-rules-engine.md): `rules::Engine::new(GameData)` walks a `Build` (Build start, Level-ups, picks keyed by stable `SlotId`) into a `Sheet`: per-level state, slots, Mythic track and problems. It also gives `options` (with `Unmet` reasons and `would_break`), `would_break(edit)` and `validate` (unknown keys reported, not fatal). Broken picks don't count as held, so breakage cascades. The link is base64url(version 1 ++ deflate(postcard(Build))), with a frozen v1 vector. On the user's request, the database stores no derived values: `position` is gone from every table (none kept), `mythic_ascension` is `(rank, character_level)` with the odd/even pick rule in Rust, and `GameData::canonicalize` makes equality order-free. *(2026-10-31: superseded in part by ticket 14 below: class choices moved to `Build.class_choices`, `options` carries no `would_break`, and the drop-positions migration was folded into the one migration.)*
+- [Apply the schema and layering review](issues/14-review-fixes.md): archetype and spellcasting advancement live per class in `Build.class_choices` (validated: held casters, one arcane plus one divine), and rule facts (combat feats, MR 3/8, rank after a switch, class caps from table length, no row 0) moved from data into `rules`. `GameData::check` gates every seed, and the schema uses domains, a `path_switch` table and class→archetype composite FKs. The sheet gets `class_options`/`path_options`/`switch_options`, `RemoveLevel`/`SetName`, and a one-walk `options` with would-break asked per tapped option. The server serves one `Arc<GameData>`, and `data` hides sqlx behind `Database` and `data::Error`.
+- [Apply the normalization review](issues/15-normalization-fixes.md): `ability_modifier` has no `kind` (a NULL ability is the chosen kind), the level cap lives on the switch (`PathSwitch.level_cap`, `path_switch.level_cap`), path ranks and kept ranks reference `mythic_ascension (rank)`, and `prerequisite_node` has one per-kind CHECK that names its columns and says what `amount` means. The loader now rejects class skills under an archetype that keeps its class's list, and prerequisite nodes outside exactly one owner's tree (`Trees::finish`). Still 25 tables.
 
 ## Not yet specified
 
-- **Building the extraction pipeline:** turning the saved guide pages into the checked-in data files. It needs [Save the guide pages](issues/08-save-guide-pages.md), [Game data schema and seeding](issues/05-game-data-schema.md) and [Filling the guide's gaps](issues/07-guide-gaps.md). Known parts:
-  - a grammar for prerequisite lines (watch for the misspelt "Prerequsites" labels)
-  - deriving what each archetype replaces by diffing its table against the base class
-  - a hand-maintained override file
-- **Building the rules crate:** applying the progression model and prerequisite checks with TDD.
-- **Summary screen:** layout and contents of the level 1–20/40 summary, fitting both Fold 7 screens.
-- **Saved builds:** the table schema and the URL/slug scheme.
-- **Class-specific and path-specific picks:** how far feature selections (rogue talents, rage powers, hexes and so on) and mythic path picks (Aeon gazes, Trickster bonus feats and so on) go, and in what order to add them.
 - **Checking the data:** how we confirm the extracted data matches the guide, by spot checks or golden builds.
 - **End-to-end smoke tests:** tooling and which flows to cover.
+- **Schema questions for the real guide data:** these wait on [the extraction](issues/10-extract-guide.md) (ticket 10), deferred by [ticket 15](issues/15-normalization-fixes.md):
+  - archetype level rows that repeat the base class (the earlier decision to keep full rows stands until real data shows how often archetypes differ);
+  - `kept_through_rank` replacing `path_switch_kept_rank`;
+  - set vs multiset for `granted_*`;
+  - whether options are shared across selections;
+  - a `one_of` feat slot vs a feat-granting selection;
+  - whether `level_cap` and `further_ascensions` are independent;
+  - whether mythic `group_name` is a closed set.
 
 ## Out of scope
 
 - Spells known or prepared: not part of the class/feat/mythic summary.
 - Gear and companions: not part of a character's build choices.
 - Deployment: this map ends with the app running locally.
-- User accounts: builds are anonymous snapshots that can't be changed.
+- User accounts: Builds are anonymous and exist only as their link.
 - Reproducing the guide's full text: copyright; store a summary and a link instead.

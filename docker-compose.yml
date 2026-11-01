@@ -1,0 +1,25 @@
+name: wotr-planner
+
+services:
+  postgres:
+    image: postgres:18
+    container_name: wotr-planner-postgres
+    environment:
+      POSTGRES_USER: wotr
+      POSTGRES_PASSWORD: wotr
+      POSTGRES_DB: wotr_planner
+    # Host port 5434: 5432 is used by another project's Postgres on this machine.
+    ports:
+      - "5434:5432"
+    volumes:
+      # Postgres 18 images keep data under /var/lib/postgresql/18/docker; mount the parent.
+      - wotr-planner-pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wotr -d wotr_planner"]
+      interval: 2s
+      timeout: 5s
+      retries: 15
+
+volumes:
+  wotr-planner-pgdata:
+    name: wotr-planner-pgdata

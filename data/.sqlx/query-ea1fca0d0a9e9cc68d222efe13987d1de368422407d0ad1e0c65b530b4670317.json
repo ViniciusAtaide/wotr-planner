@@ -1,0 +1,98 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT key, selection_key, name, summary, guide, feat_key, prerequisite_root_id\n        FROM selection_option ORDER BY key",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "key",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "selection_option",
+            "name": "key"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "selection_key",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "selection_option",
+            "name": "selection_key"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "selection_option",
+            "name": "name"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "summary",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "selection_option",
+            "name": "summary"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "guide",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "selection_option",
+            "name": "guide"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "feat_key",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "selection_option",
+            "name": "feat_key"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "prerequisite_root_id",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "selection_option",
+            "name": "prerequisite_root_id"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true
+    ]
+  },
+  "hash": "ea1fca0d0a9e9cc68d222efe13987d1de368422407d0ad1e0c65b530b4670317"
+}

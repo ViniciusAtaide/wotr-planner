@@ -1,0 +1,436 @@
+//! Seeding Postgres from the `game-data/` files and reading it back.
+//!
+//! Each `#[sqlx::test]` gets its own throwaway database (created from `DATABASE_URL`, migrated from
+//! `data/migrations`, the default), so these tests never touch the dev database.
+
+mod common;
+
+use std::fs;
+
+use common::{copy_fixture, fixture_dir};
+use data::{Database, GameDataStatus};
+use rules::{
+    Ability, AbilityModifier, Alignment, ArchetypeKey, ClassKey, Feat, FeatCategory, FeatKey,
+    FeatureKey, GuideRef, MythicAbilityKey, MythicFeatKey, Prerequisite, RaceKey,
+    SelectionOptionKey, SkillKey, SpellType,
+};
+use sqlx::PgPool;
+
+#[sqlx::test]
+async fn files_to_postgres_to_game_data_equals_files_to_game_data(pool: PgPool) {
+    let db = Database::from(pool);
+    // Neither the files nor the tables carry an order, so both sides come back canonical.
+    let from_files = data::read_game_data_files(&fixture_dir()).unwrap();
+
+    data::seed(&db, &fixture_dir()).await.unwrap();
+    let from_postgres = data::load_game_data(&db).await.unwrap();
+
+    assert_eq!(from_postgres, from_files.clone().canonical());
+    assert_eq!(from_postgres, from_files);
+}
+
+#[sqlx::test]
+async fn seeding_again_replaces_the_previous_data(pool: PgPool) {
+    let db = Database::from(pool);
+    data::seed(&db, &fixture_dir()).await.unwrap();
+    let edited = copy_fixture();
+    fs::remove_dir_all(edited.path().join("prestige")).unwrap();
+    let skills = edited.path().join("skills.ron");
+    let text = fs::read_to_string(&skills).unwrap();
+    fs::write(
+        &skills,
+        text.replace("\"Athletics\"", "\"Athletics (edited)\""),
+    )
+    .unwrap();
+
+    data::seed(&db, edited.path()).await.unwrap();
+    let reloaded = data::load_game_data(&db).await.unwrap();
+
+    assert!(reloaded.prestige_classes.is_empty());
+    assert_eq!(reloaded.skills[0].name, "Athletics (edited)");
+    assert_eq!(reloaded, data::read_game_data_files(edited.path()).unwrap());
+}
+
+#[sqlx::test]
+async fn a_seed_that_fails_leaves_the_previous_data_in_place(pool: PgPool) {
+    let db = Database::from(pool);
+    data::seed(&db, &fixture_dir()).await.unwrap();
+    let broken = copy_fixture();
+    let feats = broken.path().join("feats.ron");
+    let text = fs::read_to_string(&feats).unwrap();
+    fs::write(
+        &feats,
+        text.replace("Feat(\"feat:power-attack\")", "Feat(\"feat:no-such-feat\")"),
+    )
+    .unwrap();
+
+    let error = data::seed(&db, broken.path())
+        .await
+        .unwrap_err()
+        .to_string();
+
+    assert!(error.contains("foreign key"), "{error}");
+    assert_eq!(
+        data::load_game_data(&db).await.unwrap(),
+        data::read_game_data_files(&fixture_dir()).unwrap()
+    );
+    assert_eq!(
+        data::game_data_status(&db, &fixture_dir()).await.unwrap(),
+        GameDataStatus::Current
+    );
+}
+
+#[sqlx::test]
+async fn the_seed_refuses_data_that_fails_the_data_check(pool: PgPool) {
+    let db = Database::from(pool);
+    let broken = copy_fixture();
+    let fighter = broken.path().join("classes/fighter.ron");
+    let text = fs::read_to_string(&fighter).unwrap();
+    // The fighter's own level 2 row goes missing.
+    let row = text
+        .lines()
+        .find(|line| line.trim_start().starts_with("(level: 2, bab: 2"))
+        .unwrap();
+    fs::write(&fighter, text.replacen(&format!("{row}\n"), "", 1)).unwrap();
+
+    let error = data::seed(&db, broken.path()).await.unwrap_err();
+
+    let data::Error::Invalid(problems) = &error else {
+        panic!("{error}");
+    };
+    assert_eq!(
+        problems.iter().map(|p| p.at.as_str()).collect::<Vec<_>>(),
+        ["class:fighter"]
+    );
+    assert!(error.to_string().contains("class:fighter"), "{error}");
+    assert_eq!(
+        data::game_data_status(&db, &fixture_dir()).await.unwrap(),
+        GameDataStatus::NeverSeeded
+    );
+}
+
+#[sqlx::test]
+async fn status_is_never_seeded_before_the_first_seed(pool: PgPool) {
+    let db = Database::from(pool);
+    assert_eq!(
+        data::game_data_status(&db, &fixture_dir()).await.unwrap(),
+        GameDataStatus::NeverSeeded
+    );
+}
+
+#[sqlx::test]
+async fn status_is_stale_once_a_data_file_changes_after_seeding(pool: PgPool) {
+    let db = Database::from(pool);
+    let dir = copy_fixture();
+    let seeded = data::seed(&db, dir.path()).await.unwrap();
+    assert_eq!(
+        data::game_data_status(&db, dir.path()).await.unwrap(),
+        GameDataStatus::Current
+    );
+
+    let races = dir.path().join("races.ron");
+    let text = fs::read_to_string(&races).unwrap();
+    fs::write(&races, text.replace("\"Dwarf\"", "\"Mountain Dwarf\"")).unwrap();
+
+    assert_eq!(
+        data::game_data_status(&db, dir.path()).await.unwrap(),
+        GameDataStatus::Stale {
+            seeded,
+            files: data::game_data_hash(dir.path()).unwrap(),
+        }
+    );
+}
+
+/// One of each leaf condition, naming fixture keys, plus each kind of group. The `match` fails to compile when a
+/// variant is added, so this list can't fall behind.
+fn every_prerequisite_variant() -> Vec<Prerequisite> {
+    use Prerequisite as P;
+    let leaves = vec![
+        P::Feat(FeatKey::new("feat:power-attack")),
+        P::MythicFeat(MythicFeatKey::new("mythic-feat:power-attack-mythic")),
+        P::MythicAbility(MythicAbilityKey::new("mythic-ability:mythic-charge")),
+        P::ClassLevel {
+            class: ClassKey::new("class:fighter"),
+            level: 2,
+        },
+        P::Archetype(ArchetypeKey::new("archetype:rogue/eldritch-scoundrel")),
+        P::Feature {
+            feature: FeatureKey::new("feature:rogue/sneak-attack"),
+            count: 2,
+        },
+        P::SelectionOption(SelectionOptionKey::new(
+            "selection:rogue/rogue-talents/combat-trick",
+        )),
+        P::SkillRanks {
+            skill: SkillKey::new("skill:mobility"),
+            ranks: 4,
+        },
+        P::AbilityScore {
+            ability: Ability::Wisdom,
+            score: 13,
+        },
+        P::BaseAttackBonus(6),
+        P::SpellLevel {
+            spell_type: SpellType::Divine,
+            level: 3,
+        },
+        P::CasterLevel(5),
+        P::CharacterLevel(7),
+        P::Alignment(Alignment::LawfulNeutral),
+        P::Race(RaceKey::new("race:dwarf")),
+    ];
+    let groups = vec![
+        P::Any(vec![P::BaseAttackBonus(1), P::CasterLevel(1)]),
+        P::AtLeast(1, vec![P::CharacterLevel(2), P::CasterLevel(2)]),
+    ];
+    let all = [leaves, groups].concat();
+    for prerequisite in &all {
+        match prerequisite {
+            P::All(_)
+            | P::Any(_)
+            | P::AtLeast(..)
+            | P::Feat(_)
+            | P::MythicFeat(_)
+            | P::MythicAbility(_)
+            | P::ClassLevel { .. }
+            | P::Archetype(_)
+            | P::Feature { .. }
+            | P::SelectionOption(_)
+            | P::SkillRanks { .. }
+            | P::AbilityScore { .. }
+            | P::BaseAttackBonus(_)
+            | P::SpellLevel { .. }
+            | P::CasterLevel(_)
+            | P::CharacterLevel(_)
+            | P::Alignment(_)
+            | P::Race(_) => {}
+        }
+    }
+    all
+}
+
+#[sqlx::test]
+async fn every_prerequisite_variant_round_trips(pool: PgPool) {
+    let db = Database::from(pool);
+    let mut game_data = data::read_game_data_files(&fixture_dir()).unwrap();
+    game_data.feats.push(Feat {
+        key: FeatKey::new("feat:everything"),
+        name: "Everything".into(),
+        category: FeatCategory::Miscellaneous,
+        summary: String::new(),
+        guide: GuideRef::new("feats#everything"),
+        prerequisite: Some(Prerequisite::All(every_prerequisite_variant())),
+    });
+    let game_data = game_data.canonical();
+
+    data::replace_game_data(&db, &game_data, &"0".repeat(64))
+        .await
+        .unwrap();
+
+    assert_eq!(data::load_game_data(&db).await.unwrap(), game_data);
+}
+
+#[sqlx::test]
+async fn rows_the_loader_cannot_place_are_an_error(pool: PgPool) {
+    let db = Database::from(pool.clone());
+    data::seed(&db, &fixture_dir()).await.unwrap();
+    // A fixed-list option on a general slot, which has no list.
+    sqlx::query(
+        "INSERT INTO feat_slot_option (feat_slot_id, feat_key)
+        SELECT id, 'feat:toughness' FROM feat_slot WHERE kind = 'general' LIMIT 1",
+    )
+    .execute(&pool)
+    .await
+    .unwrap();
+
+    let error = data::load_game_data(&db).await.unwrap_err().to_string();
+
+    assert!(error.contains("feat_slot_option"), "{error}");
+}
+
+#[sqlx::test]
+async fn class_skills_under_an_archetype_that_keeps_the_base_list_are_an_error(pool: PgPool) {
+    let db = Database::from(pool.clone());
+    data::seed(&db, &fixture_dir()).await.unwrap();
+    // Eldritch Scoundrel keeps the rogue's class skills, so it can't list its own.
+    sqlx::query(
+        "INSERT INTO class_skill (class_key, archetype_key, skill_key)
+        VALUES ('class:rogue', 'archetype:rogue/eldritch-scoundrel', 'skill:athletics')",
+    )
+    .execute(&pool)
+    .await
+    .unwrap();
+
+    let error = data::load_game_data(&db).await.unwrap_err().to_string();
+
+    assert!(error.contains("class_skill"), "{error}");
+}
+
+#[sqlx::test]
+async fn a_prerequisite_leaf_with_children_is_an_error(pool: PgPool) {
+    let db = Database::from(pool.clone());
+    data::seed(&db, &fixture_dir()).await.unwrap();
+    sqlx::query(
+        "INSERT INTO prerequisite_node (parent_id, kind, amount)
+        SELECT id, 'base_attack_bonus', 1 FROM prerequisite_node WHERE kind = 'feat' LIMIT 1",
+    )
+    .execute(&pool)
+    .await
+    .unwrap();
+
+    let error = data::load_game_data(&db).await.unwrap_err().to_string();
+
+    assert!(error.contains("children"), "{error}");
+}
+
+#[sqlx::test]
+async fn every_prerequisite_node_belongs_to_exactly_one_owner(pool: PgPool) {
+    let db = Database::from(pool.clone());
+    for (corruption, expected) in [
+        // A tree no entity points at.
+        (
+            "INSERT INTO prerequisite_node (kind, amount) VALUES ('base_attack_bonus', 1)",
+            "prerequisite_node",
+        ),
+        // One tree shared by a feat and a class.
+        (
+            "UPDATE class SET prerequisite_root_id =
+                (SELECT prerequisite_root_id FROM feat WHERE key = 'feat:power-attack')
+            WHERE key = 'class:fighter'",
+            "prerequisite_node",
+        ),
+        // An owner pointing into the middle of another tree.
+        (
+            "UPDATE class SET prerequisite_root_id =
+                (SELECT id FROM prerequisite_node WHERE parent_id IS NOT NULL LIMIT 1)
+            WHERE key = 'class:fighter'",
+            "parent",
+        ),
+    ] {
+        data::seed(&db, &fixture_dir()).await.unwrap();
+        sqlx::query(corruption).execute(&pool).await.unwrap();
+
+        let error = data::load_game_data(&db).await.unwrap_err().to_string();
+
+        assert!(error.contains(expected), "{corruption}: {error}");
+    }
+}
+
+#[sqlx::test]
+async fn a_prerequisite_node_must_fill_exactly_its_own_columns(pool: PgPool) {
+    let insert = |sql: &'static str| sqlx::query(sql).execute(&pool);
+
+    insert("INSERT INTO prerequisite_node (kind, amount) VALUES ('base_attack_bonus', 6)")
+        .await
+        .expect("a BAB condition with its amount is valid");
+    insert("INSERT INTO prerequisite_node (kind) VALUES ('any')")
+        .await
+        .expect("a group with no values is valid");
+    for invalid in [
+        // A BAB condition without its amount.
+        "INSERT INTO prerequisite_node (kind) VALUES ('base_attack_bonus')",
+        // A skill-ranks condition without its skill.
+        "INSERT INTO prerequisite_node (kind, amount) VALUES ('skill_ranks', 4)",
+        // A class-level condition without its level.
+        "INSERT INTO prerequisite_node (kind, class_key) VALUES ('class_level', 'class:fighter')",
+        // An at-least group without its n.
+        "INSERT INTO prerequisite_node (kind) VALUES ('at_least')",
+        // A group carrying a condition's value.
+        "INSERT INTO prerequisite_node (kind, ability) VALUES ('all', 'strength')",
+        // A feat condition with a stray amount.
+        "INSERT INTO prerequisite_node (kind, feat_key, amount) VALUES ('feat', 'feat:power-attack', 1)",
+        // An ability score condition with a stray spell type.
+        "INSERT INTO prerequisite_node (kind, ability, spell_type, amount)
+            VALUES ('ability_score', 'strength', 'arcane', 13)",
+    ] {
+        let error = insert(invalid).await.unwrap_err().to_string();
+        assert!(error.contains("check constraint"), "{invalid}: {error}");
+    }
+}
+
+#[sqlx::test]
+async fn an_ability_modifier_without_an_ability_is_the_chosen_kind(pool: PgPool) {
+    let db = Database::from(pool.clone());
+    data::seed(&db, &fixture_dir()).await.unwrap();
+    sqlx::query("INSERT INTO ability_modifier (race_key, amount) VALUES ('race:dwarf', 2)")
+        .execute(&pool)
+        .await
+        .unwrap();
+
+    let loaded = data::load_game_data(&db).await.unwrap();
+
+    let dwarf = loaded
+        .races
+        .iter()
+        .find(|race| race.key.as_str() == "race:dwarf")
+        .unwrap();
+    assert!(
+        dwarf
+            .ability_modifiers
+            .contains(&AbilityModifier::Chosen { amount: 2 }),
+        "{:?}",
+        dwarf.ability_modifiers
+    );
+}
+
+#[sqlx::test]
+async fn the_schema_rejects_values_outside_their_domain_and_misplaced_keys(pool: PgPool) {
+    let db = Database::from(pool.clone());
+    data::seed(&db, &fixture_dir()).await.unwrap();
+    let rejected = |sql: &'static str| {
+        let pool = pool.clone();
+        async move {
+            let mut tx = pool.begin().await.unwrap();
+            let insert = sqlx::query(sql).execute(&mut *tx).await;
+            // Foreign keys are deferred: they fail at commit.
+            let result = match insert {
+                Ok(_) => tx.commit().await.map(|_| ()),
+                Err(error) => Err(error),
+            };
+            result.unwrap_err().to_string()
+        }
+    };
+
+    // A u8 above 255, and an ability that isn't one.
+    let error = rejected("UPDATE class SET skill_points = 256 WHERE key = 'class:fighter'").await;
+    assert!(error.contains("u8"), "{error}");
+    let error = rejected("UPDATE skill SET ability = 'luck' WHERE key = 'skill:mobility'").await;
+    assert!(error.contains("ability"), "{error}");
+
+    // An option whose key is outside its selection's.
+    let error = rejected(
+        "INSERT INTO selection_option (key, selection_key, name, summary, guide)
+        VALUES ('selection:fighter/stray', 'selection:rogue/rogue-talents', 'Stray', '', 'x')",
+    )
+    .await;
+    assert!(error.contains("check constraint"), "{error}");
+
+    // A level row for the fighter that names the rogue's archetype.
+    let error = rejected(
+        "INSERT INTO class_level (class_key, archetype_key, level, bab, fort, reflex, will,
+            arcane_spell_level, divine_spell_level, advances_arcane, advances_divine)
+        VALUES ('class:fighter', 'archetype:rogue/eldritch-scoundrel', 4, 4, 4, 1, 1, 0, 0, false, false)",
+    )
+    .await;
+    assert!(error.contains("foreign key"), "{error}");
+
+    // Kept ranks belong to a path's switch rule, so a path without one can't have them.
+    let error =
+        rejected("INSERT INTO path_switch_kept_rank (path_key, rank) VALUES ('path:trickster', 1)")
+            .await;
+    assert!(error.contains("foreign key"), "{error}");
+
+    // A switch's level cap runs 20-40.
+    let error =
+        rejected("UPDATE path_switch SET level_cap = 41 WHERE path_key = 'path:legend'").await;
+    assert!(error.contains("check constraint"), "{error}");
+
+    // A path's rank row and a switch's kept rank name a Mythic rank the ascension table has.
+    let error =
+        rejected("INSERT INTO mythic_rank (path_key, rank) VALUES ('path:legend', 11)").await;
+    assert!(error.contains("foreign key"), "{error}");
+    let error =
+        rejected("INSERT INTO path_switch_kept_rank (path_key, rank) VALUES ('path:legend', 11)")
+            .await;
+    assert!(error.contains("foreign key"), "{error}");
+}

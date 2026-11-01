@@ -1,0 +1,38 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT path_key, rank FROM path_switch_kept_rank ORDER BY path_key, rank",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "path_key",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "path_switch_kept_rank",
+            "name": "path_key"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "rank",
+        "type_info": "Int2",
+        "origin": {
+          "Table": {
+            "table": "path_switch_kept_rank",
+            "name": "rank"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "896c89be67126bee0c698f546912a0305523cb20581f862255c11605b4813486"
+}

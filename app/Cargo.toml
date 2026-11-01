@@ -1,0 +1,17 @@
+[package]
+name = "app"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+leptos.workspace = true
+leptos_meta.workspace = true
+leptos_router.workspace = true
+rules.workspace = true
+serde.workspace = true
+
+[features]
+default = []
+hydrate = ["leptos/hydrate"]
+# Never add `ssr` to `default`: it pulls sqlx/tokio into the wasm build.
+ssr = ["leptos/ssr", "leptos_meta/ssr", "leptos_router/ssr"]

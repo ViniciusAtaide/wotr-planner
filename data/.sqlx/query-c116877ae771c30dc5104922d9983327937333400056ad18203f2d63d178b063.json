@@ -1,0 +1,50 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT class_level_id, mythic_rank_id, selection_key\n        FROM granted_selection ORDER BY selection_key",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "class_level_id",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "granted_selection",
+            "name": "class_level_id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "mythic_rank_id",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "granted_selection",
+            "name": "mythic_rank_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "selection_key",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "granted_selection",
+            "name": "selection_key"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      true,
+      true,
+      false
+    ]
+  },
+  "hash": "c116877ae771c30dc5104922d9983327937333400056ad18203f2d63d178b063"
+}

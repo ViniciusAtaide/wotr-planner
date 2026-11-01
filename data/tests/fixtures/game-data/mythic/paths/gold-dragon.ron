@@ -1,0 +1,14 @@
+// Hand-written test fixture: small and simplified, not checked against the guide.
+// A switch path that keeps ascending, with no `level_cap` on its switch, so the cap stays 20.
+MythicPath(
+    key: "path:gold-dragon",
+    name: "Gold Dragon",
+    guide: "other-mythic-paths#gold-dragon",
+    features: [
+        (key: "feature:gold-dragon/breath", name: "Breath Weapon", guide: "other-mythic-paths#gold-dragon-breath"),
+    ],
+    ranks: [
+        (rank: 8, features: ["feature:gold-dragon/breath"]),
+    ],
+    switch: (kept_ranks: [1, 2, 3, 4, 5, 6, 7], further_ascensions: true),
+)

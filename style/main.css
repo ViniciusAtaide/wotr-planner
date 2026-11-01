@@ -1,0 +1,26 @@
+/* Mobile-first base styles. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 1rem;
+  font-family: system-ui, sans-serif;
+  line-height: 1.5;
+}
+
+.game-data-counts {
+  display: grid;
+  grid-template-columns: auto auto;
+  justify-content: start;
+  gap: 0.25rem 1.5rem;
+}
+
+.game-data-counts dd {
+  margin: 0;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}

@@ -1,0 +1,20 @@
+// Hand-written test fixture: small and simplified, not checked against the guide.
+[
+    (
+        key: "mythic-feat:power-attack-mythic",
+        name: "Power Attack (Mythic)",
+        group: "Melee",
+        guide: "mythic-paths#power-attack-mythic",
+        prerequisite: Feat("feat:power-attack"),
+    ),
+    (
+        key: "mythic-feat:two-weapon-fighting-mythic",
+        name: "Two-Weapon Fighting (Mythic)",
+        group: "Melee",
+        guide: "mythic-paths#two-weapon-fighting-mythic",
+        prerequisite: All([
+            Feat("feat:two-weapon-fighting"),
+            Any([MythicAbility("mythic-ability:mythic-charge"), MythicFeat("mythic-feat:power-attack-mythic")]),
+        ]),
+    ),
+]

@@ -1,0 +1,50 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT path_key, further_ascensions, level_cap FROM path_switch",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "path_key",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "path_switch",
+            "name": "path_key"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "further_ascensions",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "path_switch",
+            "name": "further_ascensions"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "level_cap",
+        "type_info": "Int2",
+        "origin": {
+          "Table": {
+            "table": "path_switch",
+            "name": "level_cap"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "6d9731713e4484f53ed75f803ec2253d6f0b7ebd8a1e2f00153d22a7607133c6"
+}

@@ -1,0 +1,18 @@
+[package]
+name = "data"
+version.workspace = true
+edition.workspace = true
+
+# Native only: sqlx models, queries and migrations. Never reachable from the wasm build
+# (`app` depends on it only through its `ssr` feature).
+[dependencies]
+dotenvy.workspace = true
+ron.workspace = true
+rules.workspace = true
+serde.workspace = true
+sha2.workspace = true
+sqlx.workspace = true
+tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
+
+[dev-dependencies]
+tempfile = "3.27.0"

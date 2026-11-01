@@ -1,0 +1,11 @@
+// Hand-written test fixture: small and simplified, not checked against the guide.
+[
+    (key: "mythic-ability:mythic-charge", name: "Mythic Charge", group: "Melee", guide: "mythic-paths#mythic-charge"),
+    (
+        key: "mythic-ability:limitless-smite",
+        name: "Limitless Smite",
+        group: "Class",
+        guide: "mythic-paths#limitless-smite",
+        prerequisite: ClassLevel(class: "class:fighter", level: 1),
+    ),
+]

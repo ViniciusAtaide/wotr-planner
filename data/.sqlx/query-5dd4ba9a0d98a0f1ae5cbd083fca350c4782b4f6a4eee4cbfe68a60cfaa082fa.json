@@ -1,0 +1,98 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT key, is_prestige, name, summary, guide, skill_points, prerequisite_root_id\n        FROM class ORDER BY key",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "key",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "class",
+            "name": "key"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "is_prestige",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "class",
+            "name": "is_prestige"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "class",
+            "name": "name"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "summary",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "class",
+            "name": "summary"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "guide",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "class",
+            "name": "guide"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "skill_points",
+        "type_info": "Int2",
+        "origin": {
+          "Table": {
+            "table": "class",
+            "name": "skill_points"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "prerequisite_root_id",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "class",
+            "name": "prerequisite_root_id"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "5dd4ba9a0d98a0f1ae5cbd083fca350c4782b4f6a4eee4cbfe68a60cfaa082fa"
+}

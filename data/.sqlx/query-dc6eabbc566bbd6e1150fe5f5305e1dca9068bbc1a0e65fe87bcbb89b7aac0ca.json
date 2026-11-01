@@ -1,0 +1,158 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, class_key, archetype_key, level, bab, fort, reflex, will, arcane_spell_level,\n            divine_spell_level, advances_arcane, advances_divine\n        FROM class_level ORDER BY level",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "class_level",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "class_key",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "class_level",
+            "name": "class_key"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "archetype_key",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "class_level",
+            "name": "archetype_key"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "level",
+        "type_info": "Int2",
+        "origin": {
+          "Table": {
+            "table": "class_level",
+            "name": "level"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "bab",
+        "type_info": "Int2",
+        "origin": {
+          "Table": {
+            "table": "class_level",
+            "name": "bab"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "fort",
+        "type_info": "Int2",
+        "origin": {
+          "Table": {
+            "table": "class_level",
+            "name": "fort"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "reflex",
+        "type_info": "Int2",
+        "origin": {
+          "Table": {
+            "table": "class_level",
+            "name": "reflex"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "will",
+        "type_info": "Int2",
+        "origin": {
+          "Table": {
+            "table": "class_level",
+            "name": "will"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "arcane_spell_level",
+        "type_info": "Int2",
+        "origin": {
+          "Table": {
+            "table": "class_level",
+            "name": "arcane_spell_level"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "divine_spell_level",
+        "type_info": "Int2",
+        "origin": {
+          "Table": {
+            "table": "class_level",
+            "name": "divine_spell_level"
+          }
+        }
+      },
+      {
+        "ordinal": 10,
+        "name": "advances_arcane",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "class_level",
+            "name": "advances_arcane"
+          }
+        }
+      },
+      {
+        "ordinal": 11,
+        "name": "advances_divine",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "class_level",
+            "name": "advances_divine"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "dc6eabbc566bbd6e1150fe5f5305e1dca9068bbc1a0e65fe87bcbb89b7aac0ca"
+}
