@@ -1703,8 +1703,8 @@ fn a_blight_druid_skips_the_animal_domains_companion_and_a_winter_child_holds_ic
         &at(&blight, 4),
         "cleric/domain/animal/animal-companion"
     ));
-    // Its 1st-level row holds only Lore (Nature), which a druid has anyway.
-    assert!(has_class_skill(&at(&blight, 1), "lore-nature"));
+    // The domain's Lore (Nature) sits on that skipped row too; a druid has it anyway.
+    assert!(has_class_skill(&at(&blight, 4), "lore-nature"));
 
     let winter = druid(Some("druid/winter-child"), 8);
     assert_eq!(engine().validate(&winter), []);
@@ -3639,11 +3639,22 @@ fn option_row_class_skills() -> Vec<(String, u8, Vec<String>)> {
 }
 
 #[test]
-fn options_class_skills_are_the_guides_on_their_first_row() {
+fn options_class_skills_are_the_guides_on_their_first_row_and_the_animal_domains_on_its_4th() {
     let rows = option_row_class_skills();
     let mut expected: Vec<(String, u8, Vec<String>)> = Vec::new();
     let mut add = |option: String, skills: &[&str]| {
-        expected.push((option, 1, skills.iter().map(|s| (*s).to_owned()).collect()));
+        // The Animal domain's comes with its companion: "At 4th level, you gain an Animal Companion. … Lore (Nature)
+        // becomes a Class Skill."
+        let level = if option == "cleric/domain/animal" {
+            4
+        } else {
+            1
+        };
+        expected.push((
+            option,
+            level,
+            skills.iter().map(|s| (*s).to_owned()).collect(),
+        ));
     };
     for (bloodline, skill) in [
         ("abyssal", "athletics"),
@@ -3732,20 +3743,17 @@ fn no_feature_stands_for_a_fixed_class_skill() {
         .map(|feature| (feature.key.as_str(), feature.name.as_str()))
         .filter(|(_, name)| name.starts_with("Class Skill") || *name == "Skills")
         .collect();
-    // What's left names no skill (a choice, or the guide doesn't say which), or is the Sohei's, whose archetype keeps
-    // the monk's list (ticket 37's open questions).
+    // What's left is a choice of one of three skills (ticket 37's first open question, left as features).
     assert_eq!(
         features,
         [
-            ("monk/sohei/skills", "Skills"),
             ("sorcerer/bloodline/arcane/class-skill", "Class Skill"),
-            ("sorcerer/overwhelming-mage/class-skill", "Class Skill"),
             ("sorcerer/sage-sorcerer/class-skill", "Class Skill"),
-            ("sorcerer/seeker-sorcerer/class-skill", "Class Skill"),
         ]
     );
-    // The archetypes whose feature only repeated their own list still hold the skill.
+    // The archetypes whose feature went hold the skill through their own list.
     for (class, archetype, skill) in [
+        ("monk", "monk/sohei", "lore-nature"),
         ("sorcerer", "sorcerer/empyreal-sorcerer", "lore-religion"),
         ("sorcerer", "sorcerer/sylvan-sorcerer", "lore-nature"),
     ] {
@@ -3759,4 +3767,162 @@ fn no_feature_stands_for_a_fixed_class_skill() {
             "{archetype}"
         );
     }
+}
+
+// ---- class-skill cleanup (ticket 38) --------------------------------------------------------------------------
+
+#[test]
+fn an_overwhelming_mage_and_a_seeker_hold_their_bloodlines_class_skill_and_no_class_skill_feature()
+{
+    let sorcerer = skill_set(&["knowledge-arcana", "persuasion", "use-magic-device"]);
+    for archetype in ["sorcerer/overwhelming-mage", "sorcerer/seeker-sorcerer"] {
+        for (bloodline, skill) in [
+            ("abyssal", "athletics"),
+            ("celestial", "lore-religion"),
+            ("draconic-gold", "perception"),
+            ("elemental-water", "mobility"),
+            ("fey", "lore-nature"),
+            ("infernal", "knowledge-world"),
+            ("serpentine", "stealth"),
+            ("undead", "lore-religion"),
+        ] {
+            let build = with_option(
+                archetype_build("sorcerer", archetype, 1),
+                1,
+                0,
+                &format!("sorcerer/bloodline/{bloodline}"),
+            );
+            let sheet = engine().evaluate(&build);
+            assert_eq!(sheet.problems, [], "{archetype} {bloodline}");
+            let state = sheet.at(1).unwrap();
+            let held: BTreeSet<String> = state.class_skills.iter().map(|s| s.to_string()).collect();
+            let expected: BTreeSet<String> =
+                sorcerer.iter().cloned().chain([skill.to_owned()]).collect();
+            assert_eq!(held, expected, "{archetype} {bloodline}");
+            let class_skill_features: Vec<&FeatureKey> = state
+                .features
+                .keys()
+                .filter(|feature| feature.as_str().ends_with("/class-skill"))
+                .collect();
+            assert_eq!(
+                class_skill_features,
+                [] as [&FeatureKey; 0],
+                "{archetype} {bloodline}"
+            );
+        }
+        let defined = DATA
+            .classes
+            .iter()
+            .flat_map(|class| class.archetypes.iter())
+            .flat_map(|a| &a.features)
+            .any(|feature| feature.key.as_str() == format!("{archetype}/class-skill"));
+        assert!(!defined, "{archetype}/class-skill is still defined");
+    }
+}
+
+#[test]
+fn a_sohei_holds_lore_nature_as_a_class_skill_and_a_plain_monk_doesnt() {
+    // A lawful neutral monk, plain or Sohei, at 1.
+    let monk = |archetype: Option<&str>| {
+        let mut monk = match archetype {
+            Some(archetype) => archetype_build("monk", archetype, 1),
+            None => build("monk", 1),
+        };
+        monk.start.alignment = Some(rules::Alignment::LawfulNeutral);
+        let sheet = engine().evaluate(&monk);
+        assert_eq!(sheet.problems, [], "{archetype:?}");
+        sheet.at(1).cloned().unwrap()
+    };
+    let skills = |state: &CharacterState| -> BTreeSet<String> {
+        state.class_skills.iter().map(|s| s.to_string()).collect()
+    };
+    let plain = skill_set(&[
+        "athletics",
+        "knowledge-world",
+        "lore-religion",
+        "mobility",
+        "perception",
+        "persuasion",
+        "stealth",
+    ]);
+    assert_eq!(skills(&monk(None)), plain);
+    let sohei = monk(Some("monk/sohei"));
+    let expected: BTreeSet<String> = plain
+        .iter()
+        .cloned()
+        .chain(["lore-nature".to_owned()])
+        .collect();
+    assert_eq!(skills(&sohei), expected);
+    assert!(!holds(&sohei, "monk/sohei/skills"));
+}
+
+/// The real data with `skill` taken off `class`'s own list, so that the skill an option row gives shows.
+fn engine_without_class_skill(class: &str, skill: &str) -> Engine {
+    let mut data = DATA.clone();
+    let class = data
+        .classes
+        .iter_mut()
+        .find(|c| c.key.as_str() == class)
+        .unwrap();
+    assert!(class.class_skills.remove(&SkillKey::new(skill)));
+    Engine::new(data)
+}
+
+/// `engine` gives `skill` as a class skill from `level` on, not before.
+fn class_skill_from_level_by(engine: &Engine, build: &Build, level: u8, skill: &str) {
+    let sheet = engine.evaluate(build);
+    assert_eq!(sheet.problems, []);
+    let has = |level: u8| {
+        sheet
+            .at(level)
+            .unwrap()
+            .class_skills
+            .contains(&SkillKey::new(skill))
+    };
+    assert!(!has(level - 1), "{skill} before {level}");
+    assert!(has(level), "{skill} at {level}");
+}
+
+#[test]
+fn the_animal_domains_lore_nature_comes_with_its_companion_at_the_holders_4th_domain_level() {
+    let animal = cleric(["animal", "fire"], 4);
+    assert_eq!(engine().validate(&animal), []);
+    class_skill_from_level(&animal, 4, "lore-nature");
+    from_level(&animal, 4, "cleric/domain/animal/animal-companion");
+    // A Separatist's second domain runs two levels behind: cleric 6.
+    let separatist = with_option(
+        with_option(
+            archetype_build("cleric", "cleric/separatist", 6),
+            1,
+            0,
+            "cleric/domain/fire",
+        ),
+        1,
+        1,
+        "cleric/domain/animal",
+    );
+    class_skill_from_level(&separatist, 6, "lore-nature");
+    // A druid's and an inquisitor's own lists hold Lore (Nature) from level 1; without it there, the domain's shows
+    // by their class levels.
+    let druid = with_pick(
+        with_option(druid(None, 4), 1, 0, "druid/nature-bond/domain"),
+        option_slot(1, 0),
+        "cleric/domain/animal",
+    );
+    assert_eq!(engine().validate(&druid), []);
+    assert!(has_class_skill(&at(&druid, 1), "lore-nature"));
+    class_skill_from_level_by(
+        &engine_without_class_skill("druid", "lore-nature"),
+        &druid,
+        4,
+        "lore-nature",
+    );
+    let inquisitor = with_option(build("inquisitor", 4), 1, 0, "cleric/domain/animal");
+    assert_eq!(engine().validate(&inquisitor), []);
+    class_skill_from_level_by(
+        &engine_without_class_skill("inquisitor", "lore-nature"),
+        &inquisitor,
+        4,
+        "lore-nature",
+    );
 }

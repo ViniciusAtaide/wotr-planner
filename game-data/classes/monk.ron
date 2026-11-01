@@ -166,12 +166,12 @@ Class(
             key: "monk/sohei",
             name: "Sohei",
             guide: "monk#sohei",
+            class_skills: ["athletics", "knowledge-world", "lore-nature", "lore-religion", "mobility", "perception", "persuasion", "stealth"],
             features: [
                 (key: "monk/sohei/devoted-guardian", name: "Devoted Guardian", guide: "monk#devoted-guardian"),
                 (key: "monk/sohei/flurry-of-blows-sohei", name: "Flurry of Blows (Sohei)", guide: "monk#flurry-of-blows-sohei"),
                 (key: "monk/sohei/ki-weapon", name: "Ki Weapon", guide: "monk#ki-weapon"),
                 (key: "monk/sohei/monastic-mount", name: "Monastic Mount", guide: "monk#monastic-mount"),
-                (key: "monk/sohei/skills", name: "Skills", guide: "monk#skills"),
                 (key: "monk/sohei/sohei-proficiencies", name: "Sohei Proficiencies", guide: "monk#sohei-proficiencies"),
                 (key: "monk/sohei/weapon-training", name: "Weapon Training", guide: "monk#weapon-training"),
             ],
@@ -181,7 +181,7 @@ Class(
                 (key: "monk/sohei/bonus-feats-6", name: "Bonus Feat (Sohei, from level 6)", guide: "monk#bonus-feat-sohei", ignores_prerequisites: true, feats: ["blind-fight", "combat-reflexes", "crane-style", "deflect-arrows", "disarm", "dodge", "improved-initiative", "indomitable-mount", "mounted-combat", "mounted-shield", "spirited-charge", "trample", "trip"]),
             ],
             levels: [
-                (level: 1, features: ["monk/ac-bonus", "monk/sohei/devoted-guardian", "monk/sohei/flurry-of-blows-sohei", "monk/sohei/monastic-mount", "monk/sohei/skills", "monk/sohei/sohei-proficiencies"], feats: ["armor-proficiency-light-armor", "improved-unarmed-strike", "martial-weapons-proficiency", "simple-weapon-proficiency"], feat_slots: [OneOf(list: "monk/sohei/bonus-feats-1")]),
+                (level: 1, features: ["monk/ac-bonus", "monk/sohei/devoted-guardian", "monk/sohei/flurry-of-blows-sohei", "monk/sohei/monastic-mount", "monk/sohei/sohei-proficiencies"], feats: ["armor-proficiency-light-armor", "improved-unarmed-strike", "martial-weapons-proficiency", "simple-weapon-proficiency"], feat_slots: [OneOf(list: "monk/sohei/bonus-feats-1")]),
                 (level: 2, features: ["monk/evasion"], feat_slots: [OneOf(list: "monk/sohei/bonus-feats-1")]),
                 (level: 3, features: ["monk/ki-pool", "monk/ki-power-extra-attack", "monk/ki-strike-magic"]),
                 (level: 4, features: ["monk/sohei/ki-weapon", "monk/still-mind"]),

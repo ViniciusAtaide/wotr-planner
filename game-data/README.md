@@ -147,7 +147,8 @@ class's), and BAB and saves (from the class's progressions).
     groups.
 - The second group of options with rows (ticket 31, `extract::option_families`, read from the guide's prose):
   - **Domains** are one selection, `cleric/domain` (37 options, rows by cleric levels: the power at 1, the one
-    at 6 or 8, the Animal and Scalykind companion at 4, class skills on row 1 as for the bloodlines). The cleric's level 1 grants it twice (once for an archetype that "May only select a single
+    at 6 or 8, the Animal and Scalykind companion at 4, class skills on row 1 as for the bloodlines, but the Animal
+    domain's Lore (Nature) on row 4 with its companion). The cleric's level 1 grants it twice (once for an archetype that "May only select a single
     domain"). Every other class takes domains through a selection of its own that shares them and is levelled by
     its own class: `inquisitor/domain`, `druid/domain` (through Nature Bond), `hunter/divine-hunter/domain`,
     `hellknight/pentamic-faith` (through the Pentamic Faith discipline's row), the Living Deity's
@@ -165,8 +166,12 @@ class's), and BAB and saves (from the class's progressions).
 - Options' class skills (ticket 37, `extract::option_class_skills`, the user's decision on ticket 34's first open
   question): the "Class Skill: …" features of the bloodlines, mysteries, domains and elements, and the cavalier
   orders' "Skills", became their rows' `class_skills`; the Empyreal and Sylvan Sorcerers' went (their own lists
-  hold the skill). Left as features, for the user: the Arcane bloodline's and the Sage, Overwhelming Mage and
-  Seeker Sorcerers' "Class Skill" (a choice, or no skill named), and the Sohei's "Skills".
+  hold the skill). Ticket 38 (`option_class_skills::cleanup`, the user's decisions on ticket 37's open questions)
+  then dropped the Overwhelming Mage's and the Seeker's "Class Skill" (each holds its bloodline's 1st row, and so
+  its class skill), gave the Sohei its own list (the monk's plus Lore (Nature)) for its "Skills", and moved the
+  Animal domain's Lore (Nature) to its row 4 ("At 4th level, you gain an Animal Companion. … Lore (Nature) becomes
+  a Class Skill."). Left as features: the Arcane bloodline's and the Sage Sorcerer's "Class Skill", a choice of
+  one of three skills, shown on the sheet.
 - The slayer's talents (`slayer/slayer-talents`, levelled by slayer) include three combat style feats, one per
   window the guide gives ("2 or 4, 6 or 8 and 10 or greater"): each is taken once and its row 1 grants
   `slayer/combat-style` (one of the ranger's five styles, levelled by slayer, `only_without_option`: the first

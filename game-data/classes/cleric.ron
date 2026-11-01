@@ -106,8 +106,7 @@ Class(
                     name: "Animal Domain",
                     guide: "character-creation#animal-domain",
                     levels: [
-                        (level: 1, class_skills: ["lore-nature"]),
-                        (level: 4, features: ["cleric/domain/animal/animal-companion"]),
+                        (level: 4, features: ["cleric/domain/animal/animal-companion"], class_skills: ["lore-nature"]),
                     ],
                 ),
                 (
