@@ -155,3 +155,12 @@ Run time is the same (51 s each), so the end-of-walk check costs nothing that sh
 
 1. **The path and the Path switch when Remove level takes their rank away.** They aren't picks, so Remove level keeps them: a Build of 8 levels may hold the path chosen at MR 3 (level 9), and adding level 9 back reaches it again. They're checked whether reached or not, so a link can't hide a gone path there. Should Remove level drop them too once their rank isn't reached? "The Build only ever holds what the sheet shows" suggests yes, if the sheet won't show a path for an unreached MR 3.
 2. **The picks a switch takes away at earlier ranks.** Legend drops MR 3 to 7's general and path picks. Gold Dragon and Swarm drop the old path's picks of MR 3 to 7, and Devil the gaze picks. These ranks were reached, so the picks stay in the Build and the Mythic track marks them as dropped (ticket 26's `dropped_slots`). "I don't care to store what feats you chose before selecting Legend" may mean these rather than MR 8 to 10's. Should a switch drop them from the Build too (then the track shows those slots empty)?
+
+## Decisions on the questions
+
+Taken from the user's own words (2026-11-01), "I don't care to store what feats you chose before selecting Legend", and the rule that the Build holds only what the sheet shows; the user can still overrule them:
+
+1. **Yes:** Remove level drops the path and the Path switch once their rank (MR 3, MR 8) isn't reached.
+2. **Yes:** a switch drops from the Build the picks it takes away at earlier, reached ranks (Legend's MR 3–7, Gold Dragon's and Swarm's old-path picks, Devil's gaze picks). The Mythic track still shows those ranks as dropped, with their slots empty.
+
+Built by [ticket 41](41-drop-what-a-switch-takes-away.md).
