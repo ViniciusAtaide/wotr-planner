@@ -7,7 +7,7 @@ Map: [WotR Build Planner](../map.md)
 
 ## Question
 
-[Ticket 45](45-kineticist-wild-talents.md)'s decision 2 (user, 2026-11-02): the "Extra …" feats that grant another pick of a class selection give that pick. Today none does. From `game-data/feats.ron`: Extra Arcana, Extra Arcanist Exploit, Extra Discovery, Extra Hex, Extra Mercy, Extra Rage Power, Extra Rogue Talent, Extra Slayer Talent and Extra Wild Talent (check each against its guide entry; the resource ones, such as Extra Ki, Extra Rage or Extra Channel, grant no pick and stay as they are). Each time the feat is taken (they repeat: `Times(3)` or `Unlimited`), the character gets one more slot of that selection, at the level the feat is taken.
+[Ticket 45](45-kineticist-wild-talents.md)'s decision 2 (user, 2026-11-02): the "Extra …" feats that grant another pick of a class selection give that pick. Today none does. From `libs/game-data/feats.ron`: Extra Arcana, Extra Arcanist Exploit, Extra Discovery, Extra Hex, Extra Mercy, Extra Rage Power, Extra Rogue Talent, Extra Slayer Talent and Extra Wild Talent (check each against its guide entry; the resource ones, such as Extra Ki, Extra Rage or Extra Channel, grant no pick and stay as they are). Each time the feat is taken (they repeat: `Times(3)` or `Unlimited`), the character gets one more slot of that selection, at the level the feat is taken.
 
 Data from the saved guide pages only. If a feat's selection isn't clear (Extra Hex for a witch vs a shaman, Extra Rogue Talent for a slayer's or an Eldritch Scoundrel's talents), write a question in this ticket with a recommendation and go on.
 
