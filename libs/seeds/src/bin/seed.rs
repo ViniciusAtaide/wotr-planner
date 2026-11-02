@@ -1,4 +1,4 @@
-//! `cargo run -p data --bin seed [--check-only] [DIR]`
+//! `cargo run -p seeds --bin seed [--check-only] [DIR]`
 //!
 //! Checks the `.ron` files under `DIR` (default: `$GAME_DATA_DIR`, or `libs/game-data/`),
 //! replaces every game table with them in one transaction, and stores the files' hash so the
@@ -28,10 +28,10 @@ async fn main() -> ExitCode {
         eprintln!("usage: seed [--check-only] [DIR]");
         return ExitCode::FAILURE;
     }
-    let dir = dirs.pop().unwrap_or_else(data::game_data_dir);
+    let dir = dirs.pop().unwrap_or_else(seeds::game_data_dir);
 
     if check_only {
-        return match data::check_game_data_files(&dir) {
+        return match seeds::check_game_data_files(&dir) {
             Ok(game_data) => {
                 println!("checked {}: {}", dir.display(), counts(&game_data));
                 ExitCode::SUCCESS
@@ -48,7 +48,7 @@ async fn main() -> ExitCode {
         eprintln!("seed: DATABASE_URL must be set (see .env.example)");
         return ExitCode::FAILURE;
     };
-    let db = match data::Database::connect(&url).await {
+    let db = match seeds::Database::connect(&url).await {
         Ok(db) => db,
         Err(error) => {
             eprintln!("seed: connecting to Postgres: {error}");
@@ -56,14 +56,14 @@ async fn main() -> ExitCode {
         }
     };
 
-    let hash = match data::seed(&db, &dir).await {
+    let hash = match seeds::seed(&db, &dir).await {
         Ok(hash) => hash,
         Err(error) => {
             eprintln!("seed: {error}");
             return ExitCode::FAILURE;
         }
     };
-    match data::load_game_data(&db).await {
+    match seeds::load_game_data(&db).await {
         Ok(game_data) => {
             println!(
                 "seeded {} (hash {hash}): {}",

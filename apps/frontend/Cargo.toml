@@ -8,14 +8,14 @@ edition.workspace = true
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-app = { workspace = true, features = ["hydrate"] }
+ui = { workspace = true, features = ["hydrate"] }
 leptos = { workspace = true, features = ["hydrate"] }
 console_error_panic_hook.workspace = true
 wasm-bindgen.workspace = true
 
 [features]
 # Benchmarks only: `cargo leptos build --release --lib-features timings`.
-timings = ["app/timings"]
+timings = ["ui/timings"]
 
 [lints.cargo]
 # `console_error_panic_hook` is only called in dev builds (`#[cfg(debug_assertions)]`), so release builds see it

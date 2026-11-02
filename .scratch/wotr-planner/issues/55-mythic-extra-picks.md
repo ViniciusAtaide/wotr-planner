@@ -15,7 +15,7 @@ Check both against their guide entries and the saved mythic pages: whether each 
 
 AFK, test-first (`tdd`); the only agent in the repo; schema change and DB reset allowed per `CLAUDE.md` if the types need one; `V1_LINK` regenerated with a comment if the link format changes. Prefer reusing ticket 49's machinery (`Feat::extra_pick_of`, `SlotId::FeatSelection`) if a feat slot and a mythic ability slot fit it; otherwise say what was added and why. Same data method as tickets 43–45 and 49, with before/after proof (only Builds taking these picks differ). Ticket 48's picker shortcut must stay exact (add these feats to the always-walked ones if their slot shifts later indices).
 
-**Done when:** every check from [ticket 22](22-drop-key-type-prefix.md)'s Verification passes, plus real-data tests: Mythic Extra Feat taken at a Mythic rank gives one feat slot at that rank's level, offering what a normal feat slot offers there; Extra Mythic Ability gives one mythic ability slot; removing either is refused while its slot holds a pick and frees once it's cleared; the sheet labels the new slots (checked in the browser).
+**Done when:** every check from [ticket 53](53-rename-packages.md)'s Done when passes (ticket 22's Verification with the current paths and package names), plus real-data tests: Mythic Extra Feat taken at a Mythic rank gives one feat slot at that rank's level, offering what a normal feat slot offers there; Extra Mythic Ability gives one mythic ability slot; removing either is refused while its slot holds a pick and frees once it's cleared; the sheet labels the new slots (checked in the browser).
 
 Leave the user's uncommitted edit in `apps/backend/src/main.rs` exactly as it is.
 

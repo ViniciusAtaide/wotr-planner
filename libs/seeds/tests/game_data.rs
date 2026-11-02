@@ -12,8 +12,9 @@ use rules::{
     WeaponKey, WeaponProficiency,
 };
 
-static DATA: LazyLock<GameData> =
-    LazyLock::new(|| data::read_game_data_files(&data::game_data_dir()).expect("game-data reads"));
+static DATA: LazyLock<GameData> = LazyLock::new(|| {
+    seeds::read_game_data_files(&seeds::game_data_dir()).expect("game-data reads")
+});
 
 fn engine() -> Engine {
     Engine::new(DATA.clone())
@@ -1199,7 +1200,8 @@ fn a_crusaders_bonus_feats_still_skip_every_prerequisite_and_the_data_says_so() 
         .status;
     assert_eq!(status, Ok(()));
 
-    let cleric = std::fs::read_to_string(data::game_data_dir().join("classes/cleric.ron")).unwrap();
+    let cleric =
+        std::fs::read_to_string(seeds::game_data_dir().join("classes/cleric.ron")).unwrap();
     assert!(
         cleric.contains("// Crusader Bonus Feats:"),
         "the note on the Crusader's lists"

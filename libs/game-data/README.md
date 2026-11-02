@@ -291,9 +291,9 @@ class's), and BAB and saves (from the class's progressions).
 ## Seeding
 
 ```sh
-cargo run -p data --bin seed -- --check-only   # read and check the files only, no database
-cargo run -p data --bin seed            # this folder (or $GAME_DATA_DIR)
-cargo run -p data --bin seed -- <dir>   # another folder, e.g. libs/seeds/tests/fixtures/game-data
+cargo run -p seeds --bin seed -- --check-only   # read and check the files only, no database
+cargo run -p seeds --bin seed            # this folder (or $GAME_DATA_DIR)
+cargo run -p seeds --bin seed -- <dir>   # another folder, e.g. libs/seeds/tests/fixtures/game-data
 ```
 
 The seed first runs `GameData::check` and refuses data with problems, listing them. `--check-only` stops

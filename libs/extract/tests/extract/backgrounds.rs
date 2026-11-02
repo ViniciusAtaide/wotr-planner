@@ -11,7 +11,7 @@ fn file<'f>(files: &'f [(std::path::PathBuf, String)], name: &str) -> &'f str {
 
 #[test]
 fn the_users_backgrounds_are_what_game_data_holds() {
-    let data = data::read_game_data_files(&data::game_data_dir()).unwrap();
+    let data = seeds::read_game_data_files(&seeds::game_data_dir()).unwrap();
     let mut carried = extract::backgrounds::backgrounds(&data);
     carried.sort_by(|a, b| a.key.cmp(&b.key));
     assert_eq!(carried.len(), 38);
@@ -22,7 +22,7 @@ fn the_users_backgrounds_are_what_game_data_holds() {
 fn the_files_write_backgrounds_and_read_them_back() {
     let fixture =
         std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../seeds/tests/fixtures/game-data");
-    let data = data::read_game_data_files(&fixture).unwrap();
+    let data = seeds::read_game_data_files(&fixture).unwrap();
     let files = extract::ron_out::files(&data);
     let backgrounds = file(&files, "backgrounds.ron");
     for expected in [
@@ -43,5 +43,5 @@ fn the_files_write_backgrounds_and_read_them_back() {
         std::fs::create_dir_all(path.parent().unwrap()).unwrap();
         std::fs::write(path, text).unwrap();
     }
-    assert_eq!(data::read_game_data_files(dir.path()).unwrap(), data);
+    assert_eq!(seeds::read_game_data_files(dir.path()).unwrap(), data);
 }

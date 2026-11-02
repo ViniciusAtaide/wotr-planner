@@ -22,8 +22,8 @@ sha2 = "0.11.1"
 wasm-bindgen = "=0.2.130"
 console_error_panic_hook = "0.1.7"
 rules = { path = "libs/rules" }
-data = { path = "libs/seeds" }
-app = { path = "libs/ui", default-features = false }
+seeds = { path = "libs/seeds" }
+ui = { path = "libs/ui", default-features = false }
 
 [profile.wasm-release]
 inherits = "release"

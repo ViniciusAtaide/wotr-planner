@@ -1,7 +1,7 @@
 -- Game data: the relational shape of `rules::GameData`.
 --
--- `data::replace_game_data` (libs/seeds/src/seed.rs), which the `seed` binary reaches through
--- `data::seed`, truncates and reloads every table here in one transaction. Rows are never edited in
+-- `seeds::replace_game_data` (libs/seeds/src/seed.rs), which the `seed` binary reaches through
+-- `seeds::seed`, truncates and reloads every table here in one transaction. Rows are never edited in
 -- place; fix the `libs/game-data/*.ron` files and reseed.
 --
 -- Conventions:

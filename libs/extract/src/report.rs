@@ -206,7 +206,7 @@ impl Report {
             out,
             "What the extractor couldn't turn into data from the guide pages saved on {saved_at}, with where \
              each item is (`page#anchor`). Fix an item by editing the `.ron` files, check with \
-             `cargo run -p data --bin seed -- --check-only`, then delete its line here. {} items.\n",
+             `cargo run -p seeds --bin seed -- --check-only`, then delete its line here. {} items.\n",
             items.len()
         );
         for category in Category::ALL {

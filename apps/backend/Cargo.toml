@@ -5,8 +5,8 @@ edition.workspace = true
 
 # The Axum entry point (cargo-leptos `bin-package`).
 [dependencies]
-app = { workspace = true, features = ["ssr"] }
-data.workspace = true
+ui = { workspace = true, features = ["ssr"] }
+seeds.workspace = true
 leptos = { workspace = true, features = ["ssr"] }
 leptos_axum.workspace = true
 axum.workspace = true

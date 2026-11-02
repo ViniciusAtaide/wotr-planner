@@ -6,10 +6,10 @@ edition.workspace = true
 # Native only: reads the saved guide pages in `guide-cache/` and writes the `libs/game-data/` RON files once.
 # Never compiled to wasm and never a dependency of the app.
 [dependencies]
-data.workspace = true
 ron.workspace = true
 rules.workspace = true
 scraper = "0.29.0"
+seeds.workspace = true
 serde.workspace = true
 
 [dev-dependencies]

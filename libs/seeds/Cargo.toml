@@ -1,10 +1,10 @@
 [package]
-name = "data"
+name = "seeds"
 version.workspace = true
 edition.workspace = true
 
 # Native only: sqlx models, queries and migrations. Never reachable from the wasm build
-# (`app` depends on it only through its `ssr` feature).
+# (used only by `server` and `extract`).
 [dependencies]
 dotenvy.workspace = true
 ron.workspace = true

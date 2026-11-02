@@ -18,7 +18,7 @@ fn main() -> ExitCode {
         .nth(2)
         .expect("the extract crate sits in libs/ inside the workspace")
         .join("guide-cache");
-    let mut out = data::game_data_dir();
+    let mut out = seeds::game_data_dir();
     let mut force = false;
     let mut args = std::env::args().skip(1);
     while let Some(arg) = args.next() {
@@ -55,7 +55,7 @@ fn main() -> ExitCode {
     }
 
     // The files must read back as exactly what was built.
-    match data::read_game_data_files(&out) {
+    match seeds::read_game_data_files(&out) {
         Ok(read) if read == extraction.data => {}
         Ok(_) => {
             eprintln!("extract: the files don't read back as the extracted data");

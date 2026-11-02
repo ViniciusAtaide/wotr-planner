@@ -57,7 +57,7 @@ pub fn game_data_dir() -> PathBuf {
         || {
             Path::new(env!("CARGO_MANIFEST_DIR"))
                 .parent()
-                .expect("the data crate sits in libs/ inside the workspace")
+                .expect("the seeds crate sits in libs/ inside the workspace")
                 .join("game-data")
         },
         PathBuf::from,

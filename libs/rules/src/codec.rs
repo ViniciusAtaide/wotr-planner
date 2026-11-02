@@ -20,7 +20,7 @@
 //! The structure gives each key's kind, and a hash is looked up only among the current game data's keys of that
 //! kind ([`LinkKeys`]): races, subraces, backgrounds, skills, weapons, classes (base and prestige together),
 //! archetypes, mythic paths, feats, selection options, mythic abilities and mythic feats ([`KeyKind`]). Keys of two
-//! kinds may share a hash; two keys of one kind may not. `data`'s real-data test
+//! kinds may share a hash; two keys of one kind may not. `seeds`'s real-data test
 //! `no_two_keys_of_one_kind_share_a_link_hash` fails if a game-data change ever makes two collide; then the hash
 //! gets wider or another offset basis, which is a new format. A hash no key of its kind has (a key the game data no
 //! longer has), or one that two keys of its kind share, is [`DecodeError::UnknownKey`]. So a link survives every

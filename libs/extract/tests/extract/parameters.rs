@@ -580,7 +580,7 @@ fn the_files_write_weapons_parameters_repeats_and_chosen_feats() {
         assert!(rogue.contains(line), "{line}\n{rogue}");
     }
 
-    // As `data` reads the files.
+    // As `seeds` reads the files.
     fn read<T: serde::de::DeserializeOwned>(text: &str) -> T {
         ron::Options::default()
             .with_default_extension(ron::extensions::Extensions::IMPLICIT_SOME)

@@ -16,7 +16,7 @@ use rules::{
 };
 
 fn read_fixture() -> GameData {
-    data::read_game_data_files(&fixture_dir()).expect("fixture reads")
+    seeds::read_game_data_files(&fixture_dir()).expect("fixture reads")
 }
 
 #[test]
@@ -143,7 +143,7 @@ fn reads_save_exceptions() {
     )
     .unwrap();
 
-    let data = data::read_game_data_files(dir.path()).unwrap();
+    let data = seeds::read_game_data_files(dir.path()).unwrap();
     let fighter = data.classes.iter().find(|c| c.key.as_str() == "fighter");
     assert_eq!(
         fighter.unwrap().save_exceptions,
@@ -331,7 +331,7 @@ fn a_misspelt_field_fails_naming_the_file() {
     let text = fs::read_to_string(&feats).unwrap();
     fs::write(&feats, text.replacen("prerequisite:", "prerequisites:", 1)).unwrap();
 
-    let error = data::read_game_data_files(dir.path())
+    let error = seeds::read_game_data_files(dir.path())
         .unwrap_err()
         .to_string();
 
@@ -344,7 +344,7 @@ fn a_missing_required_file_fails() {
     let dir = copy_fixture();
     fs::remove_file(dir.path().join("progression.ron")).unwrap();
 
-    let error = data::read_game_data_files(dir.path())
+    let error = seeds::read_game_data_files(dir.path())
         .unwrap_err()
         .to_string();
 
@@ -358,7 +358,7 @@ fn a_ron_file_outside_the_layout_fails() {
     fs::create_dir(dir.path().join("spells")).unwrap();
     fs::write(dir.path().join("spells").join("fireball.ron"), "()").unwrap();
 
-    let error = data::read_game_data_files(dir.path())
+    let error = seeds::read_game_data_files(dir.path())
         .unwrap_err()
         .to_string();
 
@@ -368,23 +368,23 @@ fn a_ron_file_outside_the_layout_fails() {
 #[test]
 fn the_hash_changes_only_when_a_ron_file_changes() {
     let dir = copy_fixture();
-    let original = data::game_data_hash(dir.path()).unwrap();
+    let original = seeds::game_data_hash(dir.path()).unwrap();
     assert_eq!(original.len(), 64, "hex sha-256");
 
     fs::write(dir.path().join("README.md"), "not data").unwrap();
-    assert_eq!(data::game_data_hash(dir.path()).unwrap(), original);
+    assert_eq!(seeds::game_data_hash(dir.path()).unwrap(), original);
 
     let skills = dir.path().join("skills.ron");
     let text = fs::read_to_string(&skills).unwrap();
     fs::write(&skills, text.replace("Athletics", "Athletics!")).unwrap();
-    assert_ne!(data::game_data_hash(dir.path()).unwrap(), original);
+    assert_ne!(seeds::game_data_hash(dir.path()).unwrap(), original);
 }
 
 #[test]
 fn the_hash_does_not_depend_on_where_the_folder_is() {
     assert_eq!(
-        data::game_data_hash(copy_fixture().path()).unwrap(),
-        data::game_data_hash(&fixture_dir()).unwrap()
+        seeds::game_data_hash(copy_fixture().path()).unwrap(),
+        seeds::game_data_hash(&fixture_dir()).unwrap()
     );
 }
 
@@ -395,7 +395,7 @@ fn the_fixture_passes_the_data_check() {
 
 #[test]
 fn checking_the_files_needs_no_database_and_passes_the_fixture() {
-    let data = data::check_game_data_files(&fixture_dir()).unwrap();
+    let data = seeds::check_game_data_files(&fixture_dir()).unwrap();
 
     assert_eq!(data, read_fixture());
 }
@@ -408,10 +408,10 @@ fn checking_the_files_lists_the_data_problems() {
     // Two skills with one key.
     fs::write(&skills, text.replacen("mobility", "athletics", 1)).unwrap();
 
-    let error = data::check_game_data_files(dir.path()).unwrap_err();
+    let error = seeds::check_game_data_files(dir.path()).unwrap_err();
 
     assert!(
-        matches!(&error, data::Error::Invalid(problems) if problems.len() == 1),
+        matches!(&error, seeds::Error::Invalid(problems) if problems.len() == 1),
         "{error}"
     );
     assert!(error.to_string().contains("athletics"), "{error}");

@@ -17,7 +17,7 @@ A build planner for Pathfinder: Wrath of the Righteous. Leptos (SSR + hydration)
 ```sh
 cp .env.example .env      # once
 docker compose up -d      # Postgres 18 on localhost:5434
-cargo run -p data --bin seed -- libs/seeds/tests/fixtures/game-data   # load game data (see below)
+cargo run -p seeds --bin seed -- libs/seeds/tests/fixtures/game-data   # load game data (see below)
 cargo leptos watch        # builds, runs migrations at startup, rebuilds on change
 ```
 
@@ -25,7 +25,7 @@ Open <http://localhost:3900>.
 
 ### Game data
 
-The game data lives in RON files under `libs/game-data/` (see `libs/game-data/README.md`). `cargo run -p data --bin seed [DIR]`
+The game data lives in RON files under `libs/game-data/` (see `libs/game-data/README.md`). `cargo run -p seeds --bin seed [DIR]`
 replaces every game table with the files in `DIR` (default: `$GAME_DATA_DIR`, or `libs/game-data/`) in one transaction and
 stores their hash, after checking the data (`rules::GameData::check`). The server loads the game data once at startup,
 so restart it after a reseed. At startup it warns when that hash doesn't match the files in `$GAME_DATA_DIR`
@@ -42,11 +42,11 @@ incoming connections for the `server` binary in the macOS firewall prompt or set
 
 | Crate | Folder | What it holds |
 | --- | --- | --- |
-| `app` | `libs/ui/` | Leptos components and `#[server]` functions; serves the `Arc<GameData>` the server provides and never depends on `data` |
+| `ui` | `libs/ui/` | Leptos components and `#[server]` functions; serves the `Arc<GameData>` the server provides and never depends on `seeds` |
 | `frontend` | `apps/frontend/` | the wasm entry point (`hydrate` only) |
 | `server` | `apps/backend/` | the Axum entry point |
 | `rules` | `libs/rules/` | pure game rules, serde only, compiled for both browser and server |
-| `data` | `libs/seeds/` | sqlx queries and the migration (`libs/seeds/migrations`) behind `Database` and `data::Error`; native only, used by `server` |
+| `seeds` | `libs/seeds/` | sqlx queries and the migration (`libs/seeds/migrations`) behind `Database` and `seeds::Error`; native only, used by `server` |
 
 ## Tests
 
@@ -54,7 +54,7 @@ incoming connections for the `server` binary in the macOS firewall prompt or set
 cargo test --workspace
 ```
 
-The `data` tests in `libs/seeds/tests/postgres.rs` need Postgres running (`docker compose up -d`): each one creates and drops
+The `seeds` tests in `libs/seeds/tests/postgres.rs` need Postgres running (`docker compose up -d`): each one creates and drops
 its own throwaway database through `DATABASE_URL`, so they never touch the dev data.
 
 ## Database queries and offline builds

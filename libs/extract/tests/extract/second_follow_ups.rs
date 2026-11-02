@@ -5,7 +5,7 @@
 fn fixture() -> rules::GameData {
     let fixture =
         std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../seeds/tests/fixtures/game-data");
-    data::read_game_data_files(&fixture).unwrap()
+    seeds::read_game_data_files(&fixture).unwrap()
 }
 
 fn file<'f>(files: &'f [(std::path::PathBuf, String)], name: &str) -> &'f str {
@@ -65,5 +65,5 @@ fn the_files_write_the_new_shapes_and_read_them_back() {
         std::fs::create_dir_all(path.parent().unwrap()).unwrap();
         std::fs::write(path, text).unwrap();
     }
-    assert_eq!(data::read_game_data_files(dir.path()).unwrap(), data);
+    assert_eq!(seeds::read_game_data_files(dir.path()).unwrap(), data);
 }

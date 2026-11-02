@@ -3,7 +3,7 @@
 fn sorcerer_file() -> String {
     let fixture =
         std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../seeds/tests/fixtures/game-data");
-    let data = data::read_game_data_files(&fixture).unwrap();
+    let data = seeds::read_game_data_files(&fixture).unwrap();
     extract::ron_out::files(&data)
         .into_iter()
         .find(|(path, _)| path.ends_with("classes/sorcerer.ron"))

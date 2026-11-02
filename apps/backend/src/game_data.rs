@@ -1,6 +1,6 @@
 //! The game data as a cacheable GET: one JSON document at a URL that names its content hash, so a browser keeps
 //! it for good (`Cache-Control: immutable`) and a reseed, which changes the hash, gives a new URL. The page's head
-//! preloads that URL (`app::GameDataPreload`), so the download starts with the wasm's.
+//! preloads that URL (`ui::GameDataPreload`), so the download starts with the wasm's.
 
 use axum::Router;
 use axum::body::Bytes;

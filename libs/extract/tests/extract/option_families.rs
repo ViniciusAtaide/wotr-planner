@@ -39,11 +39,11 @@ fn an_elements_feat_names_are_the_feats_names() {
 
 #[test]
 fn the_files_write_an_option_rows_feat_slots_and_chosen_feats() {
-    // The data crate's fixture has a Draconic row with two feat slots and an abyssal power whose row grants a feat
+    // The seeds crate's fixture has a Draconic row with two feat slots and an abyssal power whose row grants a feat
     // for the pick's value.
     let fixture =
         std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../seeds/tests/fixtures/game-data");
-    let data = data::read_game_data_files(&fixture).unwrap();
+    let data = seeds::read_game_data_files(&fixture).unwrap();
     let files = extract::ron_out::files(&data);
     let sorcerer = &files
         .iter()

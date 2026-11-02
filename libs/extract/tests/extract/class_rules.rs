@@ -369,7 +369,7 @@ fn the_files_write_advancement_counts_as_and_the_crusaders_note() {
         "{cleric}"
     );
 
-    // As `data` reads the files: the note is a comment.
+    // As `seeds` reads the files: the note is a comment.
     fn read<T: serde::de::DeserializeOwned>(text: &str) -> T {
         ron::Options::default()
             .with_default_extension(ron::extensions::Extensions::IMPLICIT_SOME)

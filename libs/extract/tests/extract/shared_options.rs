@@ -530,7 +530,7 @@ fn a_selections_shared_options_are_written_one_per_line_and_read_back() {
         )),
         "{slayer}"
     );
-    // As `data` reads the files.
+    // As `seeds` reads the files.
     let read: Class = ron::Options::default()
         .with_default_extension(ron::extensions::Extensions::IMPLICIT_SOME)
         .from_str(slayer)

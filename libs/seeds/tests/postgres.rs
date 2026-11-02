@@ -8,23 +8,23 @@ mod common;
 use std::fs;
 
 use common::{copy_fixture, fixture_dir};
-use data::{Database, GameDataStatus};
 use rules::{
     Ability, AbilityModifier, Alignment, ArchetypeKey, ArmourType, ClassKey, DataAt, Energy, Feat,
     FeatCategory, FeatKey, FeatureKey, FeatureSelectionKey, GuideRef, MythicAbilityKey,
     MythicFeatKey, OptionGroup, Parameter, ParameterKind, Prerequisite, RaceKey, Repeat,
     SelectionOptionKey, SkillKey, SpellSchool, SpellType, Story, WeaponKey,
 };
+use seeds::{Database, GameDataStatus};
 use sqlx::PgPool;
 
 #[sqlx::test]
 async fn files_to_postgres_to_game_data_equals_files_to_game_data(pool: PgPool) {
     let db = Database::from(pool);
     // Neither the files nor the tables carry an order, so both sides come back canonical.
-    let from_files = data::read_game_data_files(&fixture_dir()).unwrap();
+    let from_files = seeds::read_game_data_files(&fixture_dir()).unwrap();
 
-    data::seed(&db, &fixture_dir()).await.unwrap();
-    let from_postgres = data::load_game_data(&db).await.unwrap();
+    seeds::seed(&db, &fixture_dir()).await.unwrap();
+    let from_postgres = seeds::load_game_data(&db).await.unwrap();
 
     assert_eq!(from_postgres, from_files.clone().canonical());
     assert_eq!(from_postgres, from_files);
@@ -47,16 +47,16 @@ async fn save_exceptions_and_archetype_rows_round_trip(pool: PgPool) {
         ),
     )
     .unwrap();
-    let from_files = data::read_game_data_files(dir.path()).unwrap();
+    let from_files = seeds::read_game_data_files(dir.path()).unwrap();
     let fighter = from_files
         .classes
         .iter()
         .find(|c| c.key.as_str() == "fighter");
     assert_eq!(fighter.unwrap().save_exceptions.len(), 2);
 
-    data::seed(&db, dir.path()).await.unwrap();
+    seeds::seed(&db, dir.path()).await.unwrap();
 
-    assert_eq!(data::load_game_data(&db).await.unwrap(), from_files);
+    assert_eq!(seeds::load_game_data(&db).await.unwrap(), from_files);
 }
 
 /// An option taken once per value of its chosen feat and an option list slot's own label (ticket 47) are stored and
@@ -81,7 +81,7 @@ async fn a_per_value_option_and_a_labelled_slot_round_trip(pool: PgPool) {
         "feat_slots: [OptionList(selection: \"sorcerer/bloodline\"),",
         "feat_slots: [OptionList(selection: \"sorcerer/bloodline\", label: \"Wild talent feat\"),",
     );
-    let from_files = data::read_game_data_files(dir.path()).unwrap();
+    let from_files = seeds::read_game_data_files(dir.path()).unwrap();
     assert_eq!(from_files.check(), []);
     let labelled = from_files
         .classes
@@ -92,9 +92,9 @@ async fn a_per_value_option_and_a_labelled_slot_round_trip(pool: PgPool) {
         .count();
     assert_eq!(labelled, 1);
 
-    data::seed(&db, dir.path()).await.unwrap();
+    seeds::seed(&db, dir.path()).await.unwrap();
 
-    assert_eq!(data::load_game_data(&db).await.unwrap(), from_files);
+    assert_eq!(seeds::load_game_data(&db).await.unwrap(), from_files);
 }
 
 /// A feat's extra pick (ticket 49: Extra Hex, a witch's or a shaman's hex) is stored as one row per selection and
@@ -116,7 +116,7 @@ async fn a_feats_extra_pick_round_trips(pool: PgPool) {
         ),
     )
     .unwrap();
-    let from_files = data::read_game_data_files(dir.path()).unwrap();
+    let from_files = seeds::read_game_data_files(dir.path()).unwrap();
     assert_eq!(from_files.check(), []);
     let picks = &from_files
         .feats
@@ -126,8 +126,8 @@ async fn a_feats_extra_pick_round_trips(pool: PgPool) {
         .extra_pick_of;
     assert_eq!(picks.len(), 2);
 
-    data::seed(&db, dir.path()).await.unwrap();
-    assert_eq!(data::load_game_data(&db).await.unwrap(), from_files);
+    seeds::seed(&db, dir.path()).await.unwrap();
+    assert_eq!(seeds::load_game_data(&db).await.unwrap(), from_files);
 
     let error = sqlx::query(
         "INSERT INTO feat_extra_pick (feat_key, selection_key) VALUES ('extra-ki', 'rogue/no-such-selection')",
@@ -158,9 +158,9 @@ async fn repeated_grants_are_stored_as_counts_and_read_back_in_full(pool: PgPool
             1,
         );
     fs::write(&rogue, text).unwrap();
-    let from_files = data::read_game_data_files(dir.path()).unwrap();
+    let from_files = seeds::read_game_data_files(dir.path()).unwrap();
 
-    data::seed(&db, dir.path()).await.unwrap();
+    seeds::seed(&db, dir.path()).await.unwrap();
 
     let counts: Vec<(String, i16)> = sqlx::query_as(
         "SELECT g.feature_key, g.count FROM granted_feature g
@@ -180,13 +180,13 @@ async fn repeated_grants_are_stored_as_counts_and_read_back_in_full(pool: PgPool
     .await
     .unwrap();
     assert_eq!(counts, [("rogue/rogue-talents".to_owned(), 3)]);
-    assert_eq!(data::load_game_data(&db).await.unwrap(), from_files);
+    assert_eq!(seeds::load_game_data(&db).await.unwrap(), from_files);
 }
 
 #[sqlx::test]
 async fn seeding_again_replaces_the_previous_data(pool: PgPool) {
     let db = Database::from(pool);
-    data::seed(&db, &fixture_dir()).await.unwrap();
+    seeds::seed(&db, &fixture_dir()).await.unwrap();
     let edited = copy_fixture();
     fs::remove_dir_all(edited.path().join("prestige")).unwrap();
     let skills = edited.path().join("skills.ron");
@@ -197,18 +197,21 @@ async fn seeding_again_replaces_the_previous_data(pool: PgPool) {
     )
     .unwrap();
 
-    data::seed(&db, edited.path()).await.unwrap();
-    let reloaded = data::load_game_data(&db).await.unwrap();
+    seeds::seed(&db, edited.path()).await.unwrap();
+    let reloaded = seeds::load_game_data(&db).await.unwrap();
 
     assert!(reloaded.prestige_classes.is_empty());
     assert_eq!(reloaded.skills[0].name, "Athletics (edited)");
-    assert_eq!(reloaded, data::read_game_data_files(edited.path()).unwrap());
+    assert_eq!(
+        reloaded,
+        seeds::read_game_data_files(edited.path()).unwrap()
+    );
 }
 
 #[sqlx::test]
 async fn a_seed_that_fails_leaves_the_previous_data_in_place(pool: PgPool) {
     let db = Database::from(pool);
-    data::seed(&db, &fixture_dir()).await.unwrap();
+    seeds::seed(&db, &fixture_dir()).await.unwrap();
     let broken = copy_fixture();
     let feats = broken.path().join("feats.ron");
     let text = fs::read_to_string(&feats).unwrap();
@@ -218,18 +221,18 @@ async fn a_seed_that_fails_leaves_the_previous_data_in_place(pool: PgPool) {
     )
     .unwrap();
 
-    let error = data::seed(&db, broken.path())
+    let error = seeds::seed(&db, broken.path())
         .await
         .unwrap_err()
         .to_string();
 
     assert!(error.contains("foreign key"), "{error}");
     assert_eq!(
-        data::load_game_data(&db).await.unwrap(),
-        data::read_game_data_files(&fixture_dir()).unwrap()
+        seeds::load_game_data(&db).await.unwrap(),
+        seeds::read_game_data_files(&fixture_dir()).unwrap()
     );
     assert_eq!(
-        data::game_data_status(&db, &fixture_dir()).await.unwrap(),
+        seeds::game_data_status(&db, &fixture_dir()).await.unwrap(),
         GameDataStatus::Current
     );
 }
@@ -248,9 +251,9 @@ async fn the_seed_refuses_data_that_fails_the_data_check(pool: PgPool) {
         .unwrap();
     fs::write(&fighter, text.replacen(&format!("{row}\n"), "", 1)).unwrap();
 
-    let error = data::seed(&db, broken.path()).await.unwrap_err();
+    let error = seeds::seed(&db, broken.path()).await.unwrap_err();
 
-    let data::Error::Invalid(problems) = &error else {
+    let seeds::Error::Invalid(problems) = &error else {
         panic!("{error}");
     };
     assert_eq!(
@@ -263,7 +266,7 @@ async fn the_seed_refuses_data_that_fails_the_data_check(pool: PgPool) {
     );
     assert!(error.to_string().contains("class fighter"), "{error}");
     assert_eq!(
-        data::game_data_status(&db, &fixture_dir()).await.unwrap(),
+        seeds::game_data_status(&db, &fixture_dir()).await.unwrap(),
         GameDataStatus::NeverSeeded
     );
 }
@@ -272,7 +275,7 @@ async fn the_seed_refuses_data_that_fails_the_data_check(pool: PgPool) {
 async fn status_is_never_seeded_before_the_first_seed(pool: PgPool) {
     let db = Database::from(pool);
     assert_eq!(
-        data::game_data_status(&db, &fixture_dir()).await.unwrap(),
+        seeds::game_data_status(&db, &fixture_dir()).await.unwrap(),
         GameDataStatus::NeverSeeded
     );
 }
@@ -281,9 +284,9 @@ async fn status_is_never_seeded_before_the_first_seed(pool: PgPool) {
 async fn status_is_stale_once_a_data_file_changes_after_seeding(pool: PgPool) {
     let db = Database::from(pool);
     let dir = copy_fixture();
-    let seeded = data::seed(&db, dir.path()).await.unwrap();
+    let seeded = seeds::seed(&db, dir.path()).await.unwrap();
     assert_eq!(
-        data::game_data_status(&db, dir.path()).await.unwrap(),
+        seeds::game_data_status(&db, dir.path()).await.unwrap(),
         GameDataStatus::Current
     );
 
@@ -292,10 +295,10 @@ async fn status_is_stale_once_a_data_file_changes_after_seeding(pool: PgPool) {
     fs::write(&races, text.replace("\"Dwarf\"", "\"Mountain Dwarf\"")).unwrap();
 
     assert_eq!(
-        data::game_data_status(&db, dir.path()).await.unwrap(),
+        seeds::game_data_status(&db, dir.path()).await.unwrap(),
         GameDataStatus::Stale {
             seeded,
-            files: data::game_data_hash(dir.path()).unwrap(),
+            files: seeds::game_data_hash(dir.path()).unwrap(),
         }
     );
 }
@@ -427,7 +430,7 @@ fn every_prerequisite_variant() -> Vec<Prerequisite> {
 #[sqlx::test]
 async fn every_prerequisite_variant_round_trips(pool: PgPool) {
     let db = Database::from(pool);
-    let mut game_data = data::read_game_data_files(&fixture_dir()).unwrap();
+    let mut game_data = seeds::read_game_data_files(&fixture_dir()).unwrap();
     game_data.feats.push(Feat {
         key: FeatKey::new("everything"),
         name: "Everything".into(),
@@ -462,17 +465,17 @@ async fn every_prerequisite_variant_round_trips(pool: PgPool) {
     evocation.prerequisite = Some(Prerequisite::All(about_the_pick));
     let game_data = game_data.canonical();
 
-    data::replace_game_data(&db, &game_data, &"0".repeat(64))
+    seeds::replace_game_data(&db, &game_data, &"0".repeat(64))
         .await
         .unwrap();
 
-    assert_eq!(data::load_game_data(&db).await.unwrap(), game_data);
+    assert_eq!(seeds::load_game_data(&db).await.unwrap(), game_data);
 }
 
 #[sqlx::test]
 async fn class_skills_under_an_archetype_that_keeps_the_base_list_are_an_error(pool: PgPool) {
     let db = Database::from(pool.clone());
-    data::seed(&db, &fixture_dir()).await.unwrap();
+    seeds::seed(&db, &fixture_dir()).await.unwrap();
     // Eldritch Scoundrel keeps the rogue's class skills, so it can't list its own.
     sqlx::query(
         "INSERT INTO class_skill (class_key, archetype_key, skill_key)
@@ -482,7 +485,7 @@ async fn class_skills_under_an_archetype_that_keeps_the_base_list_are_an_error(p
     .await
     .unwrap();
 
-    let error = data::load_game_data(&db).await.unwrap_err().to_string();
+    let error = seeds::load_game_data(&db).await.unwrap_err().to_string();
 
     assert!(error.contains("class_skill"), "{error}");
 }
@@ -490,7 +493,7 @@ async fn class_skills_under_an_archetype_that_keeps_the_base_list_are_an_error(p
 #[sqlx::test]
 async fn a_prerequisite_leaf_with_children_is_an_error(pool: PgPool) {
     let db = Database::from(pool.clone());
-    data::seed(&db, &fixture_dir()).await.unwrap();
+    seeds::seed(&db, &fixture_dir()).await.unwrap();
     sqlx::query(
         "INSERT INTO prerequisite_node (parent_id, kind, amount)
         SELECT id, 'base_attack_bonus', 1 FROM prerequisite_node WHERE kind = 'feat' LIMIT 1",
@@ -499,7 +502,7 @@ async fn a_prerequisite_leaf_with_children_is_an_error(pool: PgPool) {
     .await
     .unwrap();
 
-    let error = data::load_game_data(&db).await.unwrap_err().to_string();
+    let error = seeds::load_game_data(&db).await.unwrap_err().to_string();
 
     assert!(error.contains("children"), "{error}");
 }
@@ -507,7 +510,7 @@ async fn a_prerequisite_leaf_with_children_is_an_error(pool: PgPool) {
 #[sqlx::test]
 async fn a_not_with_two_children_is_an_error(pool: PgPool) {
     let db = Database::from(pool.clone());
-    data::seed(&db, &fixture_dir()).await.unwrap();
+    seeds::seed(&db, &fixture_dir()).await.unwrap();
     sqlx::query(
         "INSERT INTO prerequisite_node (parent_id, kind, amount)
         SELECT id, 'base_attack_bonus', 1 FROM prerequisite_node WHERE kind = 'not' LIMIT 1",
@@ -516,7 +519,7 @@ async fn a_not_with_two_children_is_an_error(pool: PgPool) {
     .await
     .unwrap();
 
-    let error = data::load_game_data(&db).await.unwrap_err().to_string();
+    let error = seeds::load_game_data(&db).await.unwrap_err().to_string();
 
     assert!(error.contains("a not has 2 children"), "{error}");
 }
@@ -545,10 +548,10 @@ async fn every_prerequisite_node_belongs_to_exactly_one_owner(pool: PgPool) {
             "parent",
         ),
     ] {
-        data::seed(&db, &fixture_dir()).await.unwrap();
+        seeds::seed(&db, &fixture_dir()).await.unwrap();
         sqlx::query(corruption).execute(&pool).await.unwrap();
 
-        let error = data::load_game_data(&db).await.unwrap_err().to_string();
+        let error = seeds::load_game_data(&db).await.unwrap_err().to_string();
 
         assert!(error.contains(expected), "{corruption}: {error}");
     }
@@ -601,13 +604,13 @@ async fn a_prerequisite_node_must_fill_exactly_its_own_columns(pool: PgPool) {
 #[sqlx::test]
 async fn an_ability_modifier_without_an_ability_is_the_chosen_kind(pool: PgPool) {
     let db = Database::from(pool.clone());
-    data::seed(&db, &fixture_dir()).await.unwrap();
+    seeds::seed(&db, &fixture_dir()).await.unwrap();
     sqlx::query("INSERT INTO ability_modifier (race_key, amount) VALUES ('dwarf', 2)")
         .execute(&pool)
         .await
         .unwrap();
 
-    let loaded = data::load_game_data(&db).await.unwrap();
+    let loaded = seeds::load_game_data(&db).await.unwrap();
 
     let dwarf = loaded
         .races
@@ -626,7 +629,7 @@ async fn an_ability_modifier_without_an_ability_is_the_chosen_kind(pool: PgPool)
 #[sqlx::test]
 async fn the_schema_rejects_values_outside_their_domain_and_misplaced_keys(pool: PgPool) {
     let db = Database::from(pool.clone());
-    data::seed(&db, &fixture_dir()).await.unwrap();
+    seeds::seed(&db, &fixture_dir()).await.unwrap();
     let rejected = |sql: &'static str| {
         let pool = pool.clone();
         async move {
@@ -859,7 +862,7 @@ async fn the_schema_rejects_values_outside_their_domain_and_misplaced_keys(pool:
 #[sqlx::test]
 async fn the_schema_keeps_repeats_and_parameters_consistent(pool: PgPool) {
     let db = Database::from(pool.clone());
-    data::seed(&db, &fixture_dir()).await.unwrap();
+    seeds::seed(&db, &fixture_dir()).await.unwrap();
     let rejected = |sql: &'static str| {
         let pool = pool.clone();
         async move {
@@ -938,7 +941,7 @@ async fn the_schema_keeps_repeats_and_parameters_consistent(pool: PgPool) {
 #[sqlx::test]
 async fn the_schema_keeps_advancement_and_counts_as_consistent(pool: PgPool) {
     let db = Database::from(pool.clone());
-    data::seed(&db, &fixture_dir()).await.unwrap();
+    seeds::seed(&db, &fixture_dir()).await.unwrap();
     let rejected = |sql: &'static str| {
         let pool = pool.clone();
         async move {
@@ -997,7 +1000,7 @@ async fn the_schema_keeps_advancement_and_counts_as_consistent(pool: PgPool) {
 #[sqlx::test]
 async fn the_schema_keeps_option_levels_and_their_grants_consistent(pool: PgPool) {
     let db = Database::from(pool.clone());
-    data::seed(&db, &fixture_dir()).await.unwrap();
+    seeds::seed(&db, &fixture_dir()).await.unwrap();
     let rejected = |sql: &'static str| {
         let pool = pool.clone();
         async move {
@@ -1100,7 +1103,7 @@ async fn the_schema_keeps_option_levels_and_their_grants_consistent(pool: PgPool
 #[sqlx::test]
 async fn the_schema_keeps_values_granted_offered_and_asked_about_consistent(pool: PgPool) {
     let db = Database::from(pool.clone());
-    data::seed(&db, &fixture_dir()).await.unwrap();
+    seeds::seed(&db, &fixture_dir()).await.unwrap();
     let rejected = |sql: &'static str| {
         let pool = pool.clone();
         async move {
@@ -1199,7 +1202,7 @@ async fn the_schema_keeps_values_granted_offered_and_asked_about_consistent(pool
 #[sqlx::test]
 async fn the_schema_keeps_option_groups_arcanas_and_level_sources_consistent(pool: PgPool) {
     let db = Database::from(pool.clone());
-    data::seed(&db, &fixture_dir()).await.unwrap();
+    seeds::seed(&db, &fixture_dir()).await.unwrap();
     let rejected = |sql: &'static str| {
         let pool = pool.clone();
         async move {
@@ -1265,7 +1268,7 @@ async fn the_schema_keeps_subrace_slots_option_list_stages_and_levels_alongside_
     pool: PgPool,
 ) {
     let db = Database::from(pool.clone());
-    data::seed(&db, &fixture_dir()).await.unwrap();
+    seeds::seed(&db, &fixture_dir()).await.unwrap();
     let rejected = |sql: &'static str| {
         let pool = pool.clone();
         async move {
@@ -1332,7 +1335,7 @@ async fn the_schema_keeps_subrace_slots_option_list_stages_and_levels_alongside_
 #[sqlx::test]
 async fn the_schema_keeps_backgrounds_and_their_skills_and_feats_consistent(pool: PgPool) {
     let db = Database::from(pool.clone());
-    data::seed(&db, &fixture_dir()).await.unwrap();
+    seeds::seed(&db, &fixture_dir()).await.unwrap();
     let rejected = |sql: &'static str| {
         let pool = pool.clone();
         async move {
@@ -1393,7 +1396,7 @@ async fn the_schema_keeps_backgrounds_and_their_skills_and_feats_consistent(pool
 #[sqlx::test]
 async fn the_schema_keeps_option_levels_class_skills_consistent(pool: PgPool) {
     let db = Database::from(pool.clone());
-    data::seed(&db, &fixture_dir()).await.unwrap();
+    seeds::seed(&db, &fixture_dir()).await.unwrap();
     let rejected = |sql: &'static str| {
         let pool = pool.clone();
         async move {
@@ -1441,7 +1444,7 @@ async fn the_schema_keeps_option_levels_class_skills_consistent(pool: PgPool) {
 #[sqlx::test]
 async fn every_background_group_round_trips(pool: PgPool) {
     let db = Database::from(pool);
-    let mut game_data = data::read_game_data_files(&fixture_dir()).unwrap();
+    let mut game_data = seeds::read_game_data_files(&fixture_dir()).unwrap();
     for group in rules::BackgroundGroup::ALL {
         let key = group.name().to_lowercase().replace(' ', "-");
         game_data.backgrounds.push(rules::Background {
@@ -1460,9 +1463,9 @@ async fn every_background_group_round_trips(pool: PgPool) {
     }
     let game_data = game_data.canonical();
 
-    data::replace_game_data(&db, &game_data, &"0".repeat(64))
+    seeds::replace_game_data(&db, &game_data, &"0".repeat(64))
         .await
         .unwrap();
 
-    assert_eq!(data::load_game_data(&db).await.unwrap(), game_data);
+    assert_eq!(seeds::load_game_data(&db).await.unwrap(), game_data);
 }

@@ -354,7 +354,7 @@ fn the_new_shapes_are_written_on_one_line_each_and_read_back() {
         ),
         "{legend_text}"
     );
-    // As `data` reads the files.
+    // As `seeds` reads the files.
     let read = |text: &str| -> MythicPath {
         ron::Options::default()
             .with_default_extension(ron::extensions::Extensions::IMPLICIT_SOME)
