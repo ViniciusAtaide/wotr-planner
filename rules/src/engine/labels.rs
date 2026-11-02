@@ -35,13 +35,15 @@ impl Engine {
     }
 
     pub fn subrace_name<'a>(&'a self, key: &'a SubraceKey) -> &'a str {
-        self.subraces
+        self.indexes
+            .subraces
             .get(key)
             .map_or(key.as_str(), |&(r, s)| &self.data.races[r].subraces[s].name)
     }
 
     pub fn skill_name<'a>(&'a self, key: &'a SkillKey) -> &'a str {
-        self.skills
+        self.indexes
+            .skills
             .get(key)
             .map_or(key.as_str(), |&index| &self.data.skills[index].name)
     }
@@ -69,13 +71,17 @@ impl Engine {
     }
 
     pub fn archetype_name<'a>(&'a self, key: &'a ArchetypeKey) -> &'a str {
-        self.archetypes.get(key).map_or(key.as_str(), |&(c, a)| {
-            &self.data.classes[c].archetypes[a].name
-        })
+        self.indexes
+            .archetypes
+            .get(key)
+            .map_or(key.as_str(), |&(c, a)| {
+                &self.data.classes[c].archetypes[a].name
+            })
     }
 
     pub fn feature_name<'a>(&'a self, key: &'a FeatureKey) -> &'a str {
-        self.feature_names
+        self.features
+            .names
             .get(key)
             .map_or(key.as_str(), String::as_str)
     }
@@ -84,7 +90,7 @@ impl Engine {
     /// "Animal Companion (Animal Domain)".
     pub fn feature_name_apart(&self, key: &FeatureKey) -> String {
         let name = self.feature_name(key);
-        if !self.shared_feature_names.contains(key) {
+        if !self.features.shared_names.contains(key) {
             return name.to_owned();
         }
         match self.feature_owner(key) {
@@ -111,7 +117,9 @@ impl Engine {
             if let Some(option) = self.option(&SelectionOptionKey::new(prefix)) {
                 return Some(Holder::Option(option));
             }
-            if let Some(&(class, archetype)) = self.archetypes.get(&ArchetypeKey::new(prefix)) {
+            if let Some(&(class, archetype)) =
+                self.indexes.archetypes.get(&ArchetypeKey::new(prefix))
+            {
                 return Some(Holder::Archetype(&self.data.classes[class], archetype));
             }
             if let Some((class, _)) = self.class(&ClassKey::new(prefix)) {
@@ -266,6 +274,7 @@ impl Engine {
         match pick {
             Pick::Feat { feat, .. } => self.feat(feat).map_or("", |feat| feat.category.name()),
             Pick::SelectionOption { option, .. } => self
+                .indexes
                 .options
                 .get(option)
                 .map_or("", |(selection, _)| self.selection_name(selection)),

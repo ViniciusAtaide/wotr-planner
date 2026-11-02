@@ -1,0 +1,282 @@
+//! Options with rows: an option taken through a selection with option levels, and the rows it gets as its option
+//! level rises.
+
+use std::collections::{BTreeMap, BTreeSet};
+
+use super::{GrantSource, Held, Holding, Walker};
+use crate::engine::SlotKind;
+use crate::game_data::{LevelFrom, OptionRow};
+use crate::keys::{FeatureSelectionKey, SelectionOptionKey};
+use crate::parameter::Parameter;
+
+impl<'a> Walker<'a> {
+    // ---- Options with rows --------------------------------------------------------------------------------
+
+    /// Holds an option taken through a selection: the option, its feats (every value) and chosen feat (the pick's
+    /// value), then its rows when the selection has option levels, and the row it replaces.
+    pub(super) fn take_option(
+        &mut self,
+        selection: &FeatureSelectionKey,
+        option: &SelectionOptionKey,
+        parameter: Option<&Parameter>,
+        source: Option<&GrantSource>,
+    ) {
+        let engine = self.engine;
+        self.hold(
+            Held::SelectionOption(option.clone(), selection.clone()),
+            source.cloned(),
+        );
+        let Some(defined) = engine.option(option) else {
+            return;
+        };
+        for feat in &defined.feats {
+            self.hold(
+                Held::Feat(feat.clone(), engine.every_value(feat)),
+                source.cloned(),
+            );
+        }
+        if let Some(feat) = &defined.chosen_feat {
+            self.hold(
+                Held::Feat(feat.clone(), parameter.iter().cloned().cloned().collect()),
+                source.cloned(),
+            );
+        }
+        if let Some(through) = engine.selection(selection)
+            && (!through.option_levels.is_empty() || through.level_from.is_some())
+        {
+            self.holdings.push(Holding {
+                selection: selection.clone(),
+                option: option.clone(),
+                applied: BTreeMap::new(),
+                skipped: through.skipped_levels.clone(),
+                lists_only: through.feat_lists_only,
+                unlocked: BTreeSet::new(),
+                parameter: parameter.cloned(),
+                source: source.cloned(),
+                granted_by: self.granting.clone(),
+            });
+            // Every holding, not only the new one: one levelled by the other options held may reach a row now.
+            self.advance_holdings();
+        }
+        if let Some(target) = &defined.replaces_row_of {
+            self.replace_row(target);
+        }
+    }
+
+    /// The option level of a holding: the levels of the classes its selection names, less the levels it lags
+    /// behind; or, for a selection naming none, the level its source gives.
+    fn holding_level(&self, holding: &Holding) -> u8 {
+        let Some(selection) = self.engine.selection(&holding.selection) else {
+            return 0;
+        };
+        let level = match selection.level_from {
+            None => selection.option_levels.iter().fold(0u8, |sum, class| {
+                sum.saturating_add(self.state.class_level(class))
+            }),
+            // The highest level of the other options held that it offers (themselves levelled by their classes),
+            // and of the option that counts beside them (a Living Deity's way).
+            Some(LevelFrom::OtherOptions) => self
+                .holdings
+                .iter()
+                .filter(|other| {
+                    other.option != holding.option
+                        && (selection.offers(&other.option)
+                            || selection.level_also_from.as_ref() == Some(&other.option))
+                })
+                .filter(|other| {
+                    self.engine
+                        .selection(&other.selection)
+                        .is_some_and(|through| through.level_from.is_none())
+                })
+                .map(|other| self.holding_level(other))
+                .max()
+                .unwrap_or(0),
+            Some(LevelFrom::GrantingOption) => holding
+                .granted_by
+                .as_ref()
+                .map_or(0, |option| self.state.option_level(option)),
+        };
+        level.saturating_sub(selection.levels_behind)
+    }
+
+    pub(super) fn advance_holdings(&mut self) {
+        for index in 0..self.holdings.len() {
+            self.advance(index);
+        }
+    }
+
+    /// Gives a holding every row up to its option level that it hasn't had or skipped, and sets its level and
+    /// feat list in the state.
+    fn advance(&mut self, index: usize) {
+        let engine = self.engine;
+        let holding = &self.holdings[index];
+        let Some(option) = engine.option(&holding.option) else {
+            return;
+        };
+        let level = self.holding_level(holding);
+        let key = holding.option.clone();
+        let source = holding.source.clone();
+        let parameter = holding.parameter.clone();
+        let list = option
+            .levels
+            .iter()
+            .filter(|row| row.level <= level)
+            .filter_map(|row| row.feat_list.clone())
+            .next_back();
+        self.state.option_levels.insert(key.clone(), level);
+        match list {
+            Some(list) => {
+                self.state.option_feat_lists.insert(key.clone(), list);
+            }
+            None => {
+                self.state.option_feat_lists.remove(&key);
+            }
+        }
+        for row in option.levels.iter().filter(|row| row.level <= level) {
+            let holding = &self.holdings[index];
+            if holding.applied.contains_key(&row.level) || holding.skipped.contains(&row.level) {
+                continue;
+            }
+            // A lists-only holding gets its arcana from the row that has it (Crossblooded's second bloodline), or
+            // the whole row when a held feature unlocks it (Expanded Defense).
+            let unlocked = holding.lists_only && self.unlocks(&holding.selection, row.level);
+            let held = if holding.lists_only && !unlocked {
+                let arcana: Vec<Held> = option
+                    .arcana
+                    .iter()
+                    .filter(|arcana| row.features.contains(arcana))
+                    .map(|arcana| Held::Feature(arcana.clone()))
+                    .collect();
+                for item in &arcana {
+                    self.hold(item.clone(), source.clone());
+                }
+                arcana
+            } else {
+                self.grant_row(row, &key, parameter.as_ref(), source.as_ref())
+            };
+            if unlocked {
+                self.holdings[index].unlocked.insert(row.level);
+            }
+            self.holdings[index].applied.insert(row.level, held);
+        }
+    }
+
+    /// Whether a held feature's option row is this row of a lists-only selection's options (Expanded Defense's,
+    /// the expanded elements' 2nd).
+    fn unlocks(&self, selection: &FeatureSelectionKey, level: u8) -> bool {
+        self.engine.features.rows.iter().any(|(feature, row)| {
+            &row.selection == selection
+                && row.level == level
+                && self.state.feature_count(feature) > 0
+        })
+    }
+
+    /// Holds an option row's features, feats, chosen feats (for `parameter`, the value the option's pick named) and
+    /// class skills (from `source`) and queues its selections and feat slots as `option`'s. Returns what it holds.
+    fn grant_row(
+        &mut self,
+        row: &'a crate::game_data::OptionLevelRow,
+        option: &SelectionOptionKey,
+        parameter: Option<&Parameter>,
+        source: Option<&GrantSource>,
+    ) -> Vec<Held> {
+        let engine = self.engine;
+        let held: Vec<Held> = row
+            .features
+            .iter()
+            .map(|feature| Held::Feature(feature.clone()))
+            .chain(
+                row.feats
+                    .iter()
+                    .map(|feat| Held::Feat(feat.clone(), engine.every_value(feat))),
+            )
+            .chain(
+                row.chosen_feats
+                    .iter()
+                    .map(|feat| Held::Feat(feat.clone(), parameter.into_iter().cloned().collect())),
+            )
+            .chain(
+                row.class_skills
+                    .iter()
+                    .map(|skill| Held::ClassSkill(skill.clone())),
+            )
+            .collect();
+        for item in &held {
+            self.hold(item.clone(), source.cloned());
+        }
+        self.pending.extend(
+            row.selections
+                .iter()
+                .cloned()
+                .map(|selection| (SlotKind::Selection(selection), option.clone())),
+        );
+        self.pending.extend(
+            row.feat_slots
+                .iter()
+                .cloned()
+                .map(|slot| (SlotKind::Feat(slot), option.clone())),
+        );
+        held
+    }
+
+    /// Skips, in each option held that `target` offers, the row at the level it has reached, taking back what it
+    /// gave (a Primalist's rage powers instead of that level's bloodline power).
+    fn replace_row(&mut self, target: &FeatureSelectionKey) {
+        let Some(target) = self.engine.selection(target) else {
+            return;
+        };
+        for index in 0..self.holdings.len() {
+            let holding = &self.holdings[index];
+            if holding.lists_only || !target.offers(&holding.option) {
+                continue;
+            }
+            let level = self.holding_level(holding);
+            let holding = &mut self.holdings[index];
+            holding.skipped.insert(level);
+            if let Some(held) = holding.applied.remove(&level) {
+                for item in &held {
+                    self.release(item);
+                }
+            }
+        }
+    }
+
+    /// A feature's option row (Bloodline Ascendance): the row at its level of each option held that its selection
+    /// offers, unless already had. A lists-only holding has it only when held through that very selection
+    /// (Expanded Defense: an expanded element's defensive talent), in place of the arcana it had of the row.
+    pub(super) fn grant_option_row(&mut self, row: &OptionRow, source: Option<&GrantSource>) {
+        let engine = self.engine;
+        let Some(selection) = engine.selection(&row.selection) else {
+            return;
+        };
+        for index in 0..self.holdings.len() {
+            let holding = &self.holdings[index];
+            let passed_over = if holding.lists_only {
+                holding.selection != row.selection || holding.unlocked.contains(&row.level)
+            } else {
+                holding.applied.contains_key(&row.level)
+            };
+            if passed_over || !selection.offers(&holding.option) {
+                continue;
+            }
+            let Some(option_row) = engine
+                .option(&holding.option)
+                .and_then(|option| option.levels.iter().find(|r| r.level == row.level))
+            else {
+                continue;
+            };
+            if self.holdings[index].lists_only {
+                if let Some(arcana) = self.holdings[index].applied.remove(&row.level) {
+                    for item in &arcana {
+                        self.release(item);
+                    }
+                }
+                self.holdings[index].unlocked.insert(row.level);
+            }
+            let parameter = self.holdings[index].parameter.clone();
+            let key = self.holdings[index].option.clone();
+            let held = self.grant_row(option_row, &key, parameter.as_ref(), source);
+            self.holdings[index].applied.insert(row.level, held);
+        }
+    }
+}
