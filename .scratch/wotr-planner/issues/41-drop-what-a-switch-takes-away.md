@@ -155,3 +155,7 @@ Run time: 52 s old, 45 s new.
 ### Questions
 
 1. **Perception II's feats on a Legend.** Ticket 26 modelled the guide: a Trickster who becomes a Legend keeps the feats Perception II unlocked, though Perception II goes. With Perception II now out of the Build, a feat that needs it can't be held at any level once Legend is chosen. So the switch picker locks Legend (and Gold Dragon and the Swarm) while such a feat is in the Build, and that guide case can't be planned any more. Is that acceptable? Keeping it would mean the Build holds a pick the sheet doesn't show, which is what this ticket removes.
+
+## Decision on the open question
+
+**User, 2026-11-02:** undo decision 2 (a switch dropping its earlier, reached ranks' picks from the Build). Those picks were really held from MR 3 until the switch, so removing them rewrote the Build's history and broke ticket 26's guide rule (a Trickster who becomes a Legend keeps the feats Perception II unlocked). The user's "I don't care to store what feats you chose before selecting Legend" was about MR 8–10, which ticket 40 already drops. Decision 1 (the path and switch go once their rank isn't reached) stays. Built by [ticket 42](42-keep-a-switchs-earlier-picks.md).

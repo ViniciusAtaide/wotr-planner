@@ -161,6 +161,6 @@ Run time is the same (51 s each), so the end-of-walk check costs nothing that sh
 Taken from the user's own words (2026-11-01), "I don't care to store what feats you chose before selecting Legend", and the rule that the Build holds only what the sheet shows; the user can still overrule them:
 
 1. **Yes:** Remove level drops the path and the Path switch once their rank (MR 3, MR 8) isn't reached.
-2. **Yes:** a switch drops from the Build the picks it takes away at earlier, reached ranks (Legend's MR 3–7, Gold Dragon's and Swarm's old-path picks, Devil's gaze picks). The Mythic track still shows those ranks as dropped, with their slots empty.
+2. **Yes, later reversed (ticket 42):** a switch drops from the Build the picks it takes away at earlier, reached ranks (Legend's MR 3–7, Gold Dragon's and Swarm's old-path picks, Devil's gaze picks). The Mythic track still shows those ranks as dropped, with their slots empty.
 
 Built by [ticket 41](41-drop-what-a-switch-takes-away.md).
