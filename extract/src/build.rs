@@ -174,12 +174,19 @@ pub fn extract(guide: &Guide) -> Extraction {
     // attack dice, the Wandering Hex as a daily choice. It settles the totems' item of an extraction's report (the
     // hand-kept report's Eldritch Scoundrel and Wandering Hex items go too). And the user's decisions on ticket 43's
     // questions (ticket 44): the sorcerer's level-1 bonus feat, Extra Slayer Talent, the cleric's deity; their items
-    // go, and the kineticist's bonus-feat wild talent moves to ticket 45.
+    // go.
     crate::report_gaps::apply(guide, &mut data);
-    builder.report.items.retain(|item| {
-        !crate::report_gaps::settled(&item.at, &item.text)
-            && !crate::report_gaps::moved(&item.at, &item.text)
-    });
+    builder
+        .report
+        .items
+        .retain(|item| !crate::report_gaps::settled(&item.at, &item.text));
+    // The kineticist's wild talents as a selection (ticket 45, ticket 43's decision 2): it settles the bonus-feat
+    // wild talent's item.
+    crate::wild_talents::apply(guide, &mut data);
+    builder
+        .report
+        .items
+        .retain(|item| !crate::wild_talents::settled(&item.at, &item.text));
     for problem in data.check() {
         builder.report.add_about(
             Kind::Cell,

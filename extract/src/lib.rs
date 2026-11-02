@@ -30,3 +30,4 @@ pub mod ron_out;
 pub mod second_follow_ups;
 pub mod shared_options;
 pub mod tables;
+pub mod wild_talents;

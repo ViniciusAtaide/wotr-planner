@@ -194,6 +194,18 @@ class's), and BAB and saves (from the class's progressions).
   keeps its `General` slot; the Overwhelming Mage ("Does not receive bonus feats") has none. Extra Slayer Talent
   needs `ClassLevel(class: "slayer", level: 2)`, the level the slayer's table first gives Slayer Talents ("Talented
   Slayer" is on no saved page). Deities stay out of scope.
+- Ticket 45 (`extract::wild_talents`, ticket 43's decision 2): the kineticist's wild talents are a selection,
+  `kineticist/wild-talents` (levelled by kineticist), picked at every even level (the base's rows 2 to 20, the
+  Kinetic Knight's 4 and the Blood Kineticist's 20 in place of the "Wild Talents" feature). Its 22 options are the
+  guide's 26 talents but the four defensive ones (each element's 2nd-level row still). Each needs
+  `ClassLevel(class: "kineticist", level: …)` at twice its talent level, one of its elements (`SelectionOption`,
+  through any selection: Expanded Element's too; an `Any` for "Fire, Water"; none for Universal and All) and what
+  its "Prerequisites" names (a defensive talent's feature, Kinetic Healer's option; "Fire blast" is the Fire element
+  already). Kineticist Bonus Feat's row 1 is an `OptionList(selection: "kineticist/element")` slot (the held
+  elements' lists, which ignore prerequisites); the Skill Focus talent is `chosen_feat: "skill-focus"`; Expanded
+  Defense's row 1 holds a feature with `option_row: (selection: "kineticist/expanded-element", level: 2)`, and an
+  option row of the very selection a `feat_lists_only` option is held through is given in full (an expanded
+  element's defensive talent), now or when the element comes later. Extra Wild Talent needs kineticist level 2.
 - A path's switch rule: `switch: (from: ["aeon", "azata"], kept_through_rank: 7, path_kept_through_rank: 7,
   dropped_features: [...], dropped_selections: [...], features: [...], further_ascensions: true, level_cap:
   Some(40))`. The general picks (mythic abilities and feats) of MR 1 to `kept_through_rank` stay, and the old

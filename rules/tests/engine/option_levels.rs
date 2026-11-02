@@ -443,6 +443,93 @@ fn bloodline_ascendance_grants_the_bloodlines_20th_level_row() {
     ));
 }
 
+const FIRE: &str = "kineticist/element/fire";
+const AIR: &str = "kineticist/element/air";
+const WATER: &str = "kineticist/element/water";
+const EXPANDED_DEFENSE: &str = "kineticist/wild-talents/expanded-defense";
+
+/// A fire kineticist with `picks` at the selection slots of their levels (Expanded Element at 7 and 15, a wild
+/// talent at even levels).
+fn kineticist(levels: usize, picks: &[(u8, &str)]) -> Build {
+    let mut all = vec![(selection_slot(1, 0), FIRE)];
+    all.extend(
+        picks
+            .iter()
+            .map(|&(level, key)| (selection_slot(level, 0), key)),
+    );
+    with(&times("kineticist", levels), None, &all)
+}
+
+#[test]
+fn an_expanded_element_gives_its_feat_list_not_its_defensive_talent() {
+    let build = kineticist(8, &[(7, AIR)]);
+    assert!(engine().is_possible(&build));
+    let at_8 = at(&build, 8);
+    assert!(holds(&at_8, "kineticist/element/fire/defense"));
+    assert!(!holds(&at_8, "kineticist/element/air/defense"));
+}
+
+/// A feature's row of a selection whose options give only their feat lists (Expanded Defense: "You unlock the
+/// Defensive Wild Talent for any element you selected with Expanded Element") gives that row in full to each option
+/// held through it, whether taken before the feature or after.
+#[test]
+fn a_features_option_row_unlocks_the_row_of_a_lists_only_selections_options() {
+    let build = kineticist(16, &[(7, AIR), (8, EXPANDED_DEFENSE), (15, WATER)]);
+    assert!(engine().is_possible(&build));
+    assert!(!holds(&at(&build, 7), "kineticist/element/air/defense"));
+    let at_8 = at(&build, 8);
+    assert!(holds(&at_8, "kineticist/element/air/defense"));
+    assert_eq!(
+        at_8.feature_count(&feature("kineticist/element/fire/defense")),
+        1
+    );
+    assert!(!holds(&at(&build, 14), "kineticist/element/water/defense"));
+    let at_15 = at(&build, 15);
+    assert!(holds(&at_15, "kineticist/element/water/defense"));
+    assert_eq!(
+        at_15.feature_count(&feature("kineticist/element/air/defense")),
+        1
+    );
+    assert_eq!(
+        at(&build, 16).feature_count(&feature("kineticist/element/water/defense")),
+        1
+    );
+    // Another talent unlocks nothing.
+    let plain = kineticist(
+        16,
+        &[
+            (7, AIR),
+            (8, "kineticist/wild-talents/skilled-kineticist"),
+            (15, WATER),
+        ],
+    );
+    assert!(!holds(&at(&plain, 16), "kineticist/element/air/defense"));
+    assert!(!holds(&at(&plain, 16), "kineticist/element/water/defense"));
+}
+
+/// Bloodline Ascendance still passes over a lists-only holding: only a row of the selection it's held through
+/// unlocks one.
+#[test]
+fn bloodline_ascendance_gives_a_crossblooded_second_bloodline_nothing() {
+    let mut build = with(
+        &times("sorcerer", 7),
+        Some(("sorcerer", "sorcerer/crossblooded")),
+        &[
+            (selection_slot(1, 0), ARCANE),
+            (selection_slot(1, 1), ABYSSAL),
+        ],
+    );
+    build.picks.insert(
+        SlotId::Mythic { rank: 1 },
+        pick_mythic_ability("bloodline-ascendance"),
+    );
+    assert!(engine().is_possible(&build));
+    assert!(!holds(
+        &at(&build, 7),
+        "sorcerer/bloodline/abyssal/demonic-might"
+    ));
+}
+
 fn primalist(choice: &str) -> Build {
     with(
         &times("sorcerer", 4),

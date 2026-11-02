@@ -29,7 +29,7 @@
 //! - **The cleric's deity** (`cleric`): "Alignment must be within 1 place of their chosen deity." Deities are out of
 //!   scope; the rule changes no data, and the report item goes.
 //!
-//! The kineticist's bonus-feat wild talent is ticket 45's ([`moved`]).
+//! The kineticist's bonus-feat wild talent is ticket 45's: [`crate::wild_talents`] settles it.
 //!
 //! Each rule asserts the guide phrase it rests on and what it finds in the data, so it fails loudly on data it
 //! doesn't expect. [`apply`] runs on the finished data of an extraction and, through ticket 43's one-off rewrite, on
@@ -79,14 +79,6 @@ pub fn settled(at: &str, text: &str) -> bool {
         DEITY => at == "cleric",
         _ => false,
     }
-}
-
-/// The extraction report's items a follow-up ticket carries, left out of the report: the kineticist's bonus-feat
-/// wild talent, which [ticket 45] builds once wild talents are a selection.
-///
-/// [ticket 45]: ../../.scratch/wotr-planner/issues/45-kineticist-wild-talents.md
-pub fn moved(at: &str, text: &str) -> bool {
-    at == "kineticist#kineticist-bonus-feat" && text.is_empty()
 }
 
 // ---- totem rage powers ----------------------------------------------------------------------------------------

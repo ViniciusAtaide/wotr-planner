@@ -1481,6 +1481,9 @@ struct Holding {
     skipped: BTreeSet<u8>,
     /// Only its feat lists count (Crossblooded's second bloodline).
     lists_only: bool,
+    /// Rows a lists-only holding has in full all the same, which a held feature's option row of the selection it's
+    /// held through unlocks (Expanded Defense: an expanded element's defensive talent).
+    unlocked: BTreeSet<u8>,
     /// The value its pick named, for the chosen feats of its rows (Weapon Mastery: the weapon).
     parameter: Option<Parameter>,
     /// The Mythic ascension whose pick took it, if any, so a Path switch can drop it.
@@ -2246,6 +2249,7 @@ impl<'a> Walker<'a> {
                 applied: BTreeMap::new(),
                 skipped: through.skipped_levels.clone(),
                 lists_only: through.feat_lists_only,
+                unlocked: BTreeSet::new(),
                 parameter: parameter.cloned(),
                 source: source.cloned(),
                 granted_by: self.granting.clone(),
@@ -2332,8 +2336,10 @@ impl<'a> Walker<'a> {
             if holding.applied.contains_key(&row.level) || holding.skipped.contains(&row.level) {
                 continue;
             }
-            // A lists-only holding gets its arcana from the row that has it (Crossblooded's second bloodline).
-            let held = if holding.lists_only {
+            // A lists-only holding gets its arcana from the row that has it (Crossblooded's second bloodline), or
+            // the whole row when a held feature unlocks it (Expanded Defense).
+            let unlocked = holding.lists_only && self.unlocks(&holding.selection, row.level);
+            let held = if holding.lists_only && !unlocked {
                 let arcana: Vec<Held> = option
                     .arcana
                     .iter()
@@ -2347,8 +2353,21 @@ impl<'a> Walker<'a> {
             } else {
                 self.grant_row(row, &key, parameter.as_ref(), source.as_ref())
             };
+            if unlocked {
+                self.holdings[index].unlocked.insert(row.level);
+            }
             self.holdings[index].applied.insert(row.level, held);
         }
+    }
+
+    /// Whether a held feature's option row is this row of a lists-only selection's options (Expanded Defense's,
+    /// the expanded elements' 2nd).
+    fn unlocks(&self, selection: &FeatureSelectionKey, level: u8) -> bool {
+        self.engine.feature_rows.iter().any(|(feature, row)| {
+            &row.selection == selection
+                && row.level == level
+                && self.state.feature_count(feature) > 0
+        })
     }
 
     /// Holds an option row's features, feats, chosen feats (for `parameter`, the value the option's pick named) and
@@ -2422,7 +2441,8 @@ impl<'a> Walker<'a> {
     }
 
     /// A feature's option row (Bloodline Ascendance): the row at its level of each option held that its selection
-    /// offers, unless already had.
+    /// offers, unless already had. A lists-only holding has it only when held through that very selection
+    /// (Expanded Defense: an expanded element's defensive talent), in place of the arcana it had of the row.
     fn grant_option_row(&mut self, row: &OptionRow, source: Option<&GrantSource>) {
         let engine = self.engine;
         let Some(selection) = engine.selection(&row.selection) else {
@@ -2430,10 +2450,12 @@ impl<'a> Walker<'a> {
         };
         for index in 0..self.holdings.len() {
             let holding = &self.holdings[index];
-            if holding.lists_only
-                || !selection.offers(&holding.option)
-                || holding.applied.contains_key(&row.level)
-            {
+            let passed_over = if holding.lists_only {
+                holding.selection != row.selection || holding.unlocked.contains(&row.level)
+            } else {
+                holding.applied.contains_key(&row.level)
+            };
+            if passed_over || !selection.offers(&holding.option) {
                 continue;
             }
             let Some(option_row) = engine
@@ -2442,6 +2464,14 @@ impl<'a> Walker<'a> {
             else {
                 continue;
             };
+            if self.holdings[index].lists_only {
+                if let Some(arcana) = self.holdings[index].applied.remove(&row.level) {
+                    for item in &arcana {
+                        self.release(item);
+                    }
+                }
+                self.holdings[index].unlocked.insert(row.level);
+            }
             let parameter = self.holdings[index].parameter.clone();
             let key = self.holdings[index].option.clone();
             let held = self.grant_row(option_row, &key, parameter.as_ref(), source);

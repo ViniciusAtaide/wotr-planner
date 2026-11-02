@@ -1,7 +1,6 @@
-//! Tickets 43 and 44: the extraction report items the saved pages or the user's decisions settle, and the one a
-//! follow-up ticket carries.
+//! Tickets 43 and 44: the extraction report items the saved pages or the user's decisions settle.
 
-use extract::report_gaps::{moved, settled};
+use extract::report_gaps::settled;
 
 const SORCERER_LEVEL_1_FEATS: [&str; 6] = [
     "sorcerer#crossblooded",
@@ -40,17 +39,5 @@ fn the_totems_the_sorcerers_level_1_feat_talented_slayer_and_the_deity_are_settl
         ("cavalier#tactician-bonus-feat", "Tactician - Bonus Feat"),
     ] {
         assert!(!settled(at, text), "{at}");
-    }
-}
-
-#[test]
-fn only_the_kineticists_bonus_feat_wild_talent_moves_to_ticket_45() {
-    assert!(moved("kineticist#kineticist-bonus-feat", ""));
-    for (at, text) in [
-        ("kineticist#wild-talents", ""),
-        ("slayer#advanced-talents", ""),
-        ("sorcerer#crossblooded", "Bonus Feat"),
-    ] {
-        assert!(!moved(at, text), "{at}");
     }
 }
