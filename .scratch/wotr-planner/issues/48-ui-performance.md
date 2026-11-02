@@ -16,7 +16,7 @@ The UI benchmark (2026-11-02, release build, snapshot 174ec14; report and script
 
 ## Build
 
-AFK, test-first (`tdd`) for every `rules` change; the only agent in the repo. Every engine change must keep answers identical: a before/after proof over the benchmark's Builds and ticket 42's Build sets (options' statuses, removability, `allows`, sheets byte-identical). Re-run the benchmark (`bench/scripts/run-all.sh` against a release build of the new code, on its own port and target dir) and put a before/after table in the Answer.
+AFK, test-first (`tdd`) for every `rules` change; the only agent in the repo. Every engine change must keep answers identical: a before/after proof over the benchmark's Builds and ticket 42's Build sets (options' statuses, removability, `allows`, sheets byte-identical). Re-run the benchmark (`bench/scripts/run-all.sh` against a release build of the new code built with `--lib-features timings`, since release builds no longer record `__wotrTimings` otherwise; on its own port and target dir) and put a before/after table in the Answer.
 
 **Done when:** every check from [ticket 22](22-drop-key-type-prefix.md)'s Verification passes; the proof shows identical answers; at 4× throttling on the 40-level Build an edit paints in under 60 ms median and the level-1 feat picker opens in under 60 ms median; the release game data is served compressed and cached (a repeat visit doesn't download it).
 

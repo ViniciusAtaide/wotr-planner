@@ -1,9 +1,9 @@
-//! The few browser APIs the sheet needs: the URL fragment that holds the Build, and timings.
+//! The browser API the sheet needs: the URL fragment that holds the Build.
 //!
 //! Everything here runs only in the browser: the sheet renders only once the game data has loaded there.
 
 use leptos::prelude::window;
-use leptos::wasm_bindgen::{JsCast, JsValue};
+use leptos::wasm_bindgen::JsValue;
 use rules::{Build, encode_build};
 
 /// What the fragment holds: `#b=<code>`.
@@ -49,27 +49,4 @@ pub fn write_fragment(build: &Build) {
         // A failure leaves the old URL; the Build on the sheet is unaffected.
         let _ = history.replace_state_with_url(&JsValue::NULL, "", Some(&url));
     }
-}
-
-/// Milliseconds since the page started, for timings.
-fn now() -> f64 {
-    window()
-        .performance()
-        .map_or(0.0, |performance| performance.now())
-}
-
-/// Runs `f`, and when the page asks for timings (`window.__wotrTimings` is an array) records how long it took
-/// under `label`. The smoke checks and performance notes read them; nothing else does.
-pub fn timed<T>(label: &str, f: impl FnOnce() -> T) -> T {
-    let start = now();
-    let value = f();
-    let elapsed = now() - start;
-    let log = js_sys::Reflect::get(&window(), &JsValue::from_str("__wotrTimings"));
-    if let Ok(log) = log
-        && js_sys::Array::is_array(&log)
-    {
-        let entry = js_sys::Array::of2(&JsValue::from_str(label), &JsValue::from_f64(elapsed));
-        log.unchecked_ref::<js_sys::Array>().push(&entry);
-    }
-    value
 }

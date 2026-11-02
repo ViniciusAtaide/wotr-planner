@@ -7,11 +7,12 @@ use std::sync::Arc;
 use leptos::prelude::*;
 use rules::{Build, Choice, Edit, Engine, Sheet, SlotId, StaleLink};
 
-use crate::browser::{self, Fragment, timed};
+use crate::browser::{self, Fragment};
 use crate::grid::LevelsGrid;
 use crate::mythic::MythicTrack;
 use crate::picker::Picker;
 use crate::start::BuildStartPanel;
+use crate::timings::timed;
 
 /// What the open picker is for.
 #[derive(Clone, Debug, PartialEq, Eq)]

@@ -11,6 +11,7 @@ mod mythic;
 mod picker;
 mod planner;
 mod start;
+mod timings;
 
 /// The HTML document the server renders around [`App`].
 pub fn shell(options: LeptosOptions) -> impl IntoView {

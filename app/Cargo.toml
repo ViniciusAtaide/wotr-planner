@@ -18,3 +18,5 @@ default = []
 hydrate = ["leptos/hydrate"]
 # Never add `ssr` to `default`: it pulls sqlx/tokio into the wasm build.
 ssr = ["leptos/ssr", "leptos_meta/ssr", "leptos_router/ssr"]
+# Records engine-call timings in a release build too, for benchmarks (see `src/timings.rs`). Dev builds always do.
+timings = []

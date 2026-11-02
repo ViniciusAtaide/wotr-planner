@@ -13,8 +13,8 @@ use rules::{
     ClassKey, ClassOption, Edit, Engine, Issue, Pick, SlotId, SlotOption,
 };
 
-use crate::browser::timed;
 use crate::planner::{Target, use_planner};
+use crate::timings::timed;
 
 /// One row of a picker list.
 #[derive(Clone, Debug, PartialEq)]

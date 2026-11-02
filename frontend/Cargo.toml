@@ -12,3 +12,12 @@ app = { workspace = true, features = ["hydrate"] }
 leptos = { workspace = true, features = ["hydrate"] }
 console_error_panic_hook.workspace = true
 wasm-bindgen.workspace = true
+
+[features]
+# Benchmarks only: `cargo leptos build --release --lib-features timings`.
+timings = ["app/timings"]
+
+[lints.cargo]
+# `console_error_panic_hook` is only called in dev builds (`#[cfg(debug_assertions)]`), so release builds see it
+# as unused.
+unused_dependencies = "allow"
