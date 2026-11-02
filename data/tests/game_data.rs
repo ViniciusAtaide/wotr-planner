@@ -90,6 +90,79 @@ fn the_game_data_passes_the_data_check() {
     assert_eq!(DATA.check(), []);
 }
 
+/// A link holds a 24-bit hash of each key, looked up among the keys of its kind (ticket 46). Two keys of one kind
+/// with one hash would make every link naming either unreadable: if a data change ever makes two collide, widen the
+/// hash or change its offset basis (`rules`' codec docs) and regenerate `V1_LINK`.
+#[test]
+fn no_two_keys_of_one_kind_share_a_link_hash() {
+    assert_eq!(rules::LinkKeys::new(&DATA).collisions(), []);
+}
+
+/// Every base class to 20, every slot filled with its first open option, two skill ranks a level, a background and
+/// a path (ticket 46's measurement; true neutral, or lawful good for the monk and the paladin): each opens from its
+/// link unchanged, and the link is short. Before ticket 46 these links were 629 to 894 characters.
+#[test]
+fn a_full_build_of_every_base_class_opens_from_a_short_link() {
+    let engine = engine();
+    let skills: Vec<SkillKey> = DATA.skills.iter().take(2).map(|s| s.key.clone()).collect();
+    for class in &DATA.classes {
+        let mut build = build(class.key.as_str(), 20);
+        build.start.race = Some(rules::RaceKey::new("human"));
+        build.start.alignment = [rules::Alignment::TrueNeutral, rules::Alignment::LawfulGood]
+            .into_iter()
+            .find(|&alignment| {
+                let mut start = build.clone();
+                start.start.alignment = Some(alignment);
+                engine.is_possible(&start)
+            });
+        build.start.background = Some(rules::BackgroundKey::new("mercenary"));
+        build.mythic_path = Some(MythicPathKey::new("angel"));
+        for (index, level) in build.levels.iter_mut().enumerate() {
+            if (index + 1) % 4 == 0 {
+                level.ability_increase = Some(Ability::Strength);
+            }
+            for skill in &skills {
+                level.skill_ranks.insert(skill.clone(), 1);
+            }
+        }
+        // Picks open slots (selections grant more), so fill until nothing changes.
+        loop {
+            let sheet = engine.evaluate(&build);
+            let open: Vec<SlotId> = sheet
+                .levels
+                .iter()
+                .flat_map(|level| &level.slots)
+                .chain(sheet.ranks.iter().flat_map(|rank| &rank.slots))
+                .map(|slot| slot.id.clone())
+                .filter(|id| !build.picks.contains_key(id))
+                .collect();
+            let before = build.picks.len();
+            for id in open {
+                let first = engine
+                    .options(&build, &id)
+                    .unwrap_or_default()
+                    .into_iter()
+                    .find(|option| option.status.is_ok());
+                if let Some(option) = first {
+                    build.picks.insert(id, option.pick);
+                }
+            }
+            if build.picks.len() == before {
+                break;
+            }
+        }
+        assert!(engine.is_possible(&build), "{}", class.key);
+        let code = rules::encode_build(&build);
+        assert!(
+            code.len() <= 400,
+            "{}: {} characters",
+            class.key,
+            code.len()
+        );
+        assert_eq!(engine.open_link(&code), Ok(build), "{}", class.key);
+    }
+}
+
 #[test]
 fn a_fighter_can_take_shield_focus() {
     // The fighter's first level grants Shield Proficiency, which Shield Focus needs.

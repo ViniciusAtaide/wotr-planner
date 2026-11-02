@@ -8,7 +8,8 @@ Planning Pathfinder: Wrath of the Righteous characters level by level, offering 
 
 **Build**:
 The plan for one character, from creation to its final level: every choice, and nothing derived from them. It lives
-in the URL fragment (`/#b=…`), which is also its share link; nothing is saved on the server.
+in the URL fragment (`/#b=…`), which is also its share link; nothing is saved on the server. The link holds a short
+hash of each key, not its text, which the current game data turns back into the key.
 _Avoid_: Character sheet, save, saved plan
 
 **Build start**:

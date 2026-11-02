@@ -1,8 +1,8 @@
 //! A Build: the choices a player makes, and nothing derived from them.
 //!
-//! Everything is stored as game-data text keys, so a Build survives re-seeds. A link may name things that no longer
-//! exist; it then opens nothing ([`Engine::open_link`](crate::Engine::open_link)). The URL codec serialises this
-//! type as is.
+//! Everything is stored as game-data text keys, so a Build survives re-seeds. Its link holds a hash of each key,
+//! which the game data's keys turn back into the key (see the codec). A link may name things that no longer exist; it
+//! then opens nothing ([`Engine::open_link`](crate::Engine::open_link)).
 //!
 //! The rules no game data changes are kept by the types and edits rather than checked by the engine: a
 //! [`PointBuy`] holds only scores that fit, and [`Build::apply`] never puts ranks in a skill above the character

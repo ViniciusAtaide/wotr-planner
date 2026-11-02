@@ -17,7 +17,7 @@ use crate::build::{
     has_ability_increase,
 };
 use crate::choice::{Choice, Issue, Unmet};
-use crate::codec::{StaleLink, decode_build};
+use crate::codec::{LinkKeys, StaleLink, decode_build};
 use crate::game_data::{
     Ability, AbilityBonus, AbilityModifier, Advancement, Archetype, Background, Class,
     CountsToward, Feat, FeatList, FeatSlot, FeatValue, FeatureSelection, GameData, LevelFrom,
@@ -74,6 +74,8 @@ pub struct Engine {
     /// The features whose name another feature shares (the Fighter's and the Sohei's Weapon Training), so a reason
     /// can tell them apart.
     shared_feature_names: HashSet<FeatureKey>,
+    /// The game data's keys by hash, to read links.
+    link_keys: LinkKeys,
 }
 
 /// Where a class is: an index into the base or the prestige classes.
@@ -433,6 +435,7 @@ impl Engine {
             .map(|feature| (feature.key.clone(), feature.name.clone()))
             .collect();
         let mut engine = Self {
+            link_keys: LinkKeys::new(&data),
             feature_names,
             shared_feature_names,
             skills: index(&data.skills, |s| &s.key),
@@ -836,11 +839,11 @@ impl Engine {
         Walker::new(self, build, None).run().failed.is_empty()
     }
 
-    /// Opens a link: its Build when it decodes and [is possible](Self::is_possible), and otherwise the one generic
-    /// error, whatever the reason (the game data changed since the link was made, or the link is damaged or
-    /// hand-edited). The sheet then shows a blank Build.
+    /// Opens a link: its Build when it decodes with the game data's keys and [is possible](Self::is_possible), and
+    /// otherwise the one generic error, whatever the reason (the game data changed since the link was made, a key
+    /// included, or the link is damaged or hand-edited). The sheet then shows a blank Build.
     pub fn open_link(&self, code: &str) -> Result<Build, StaleLink> {
-        decode_build(code)
+        decode_build(code, &self.link_keys)
             .ok()
             .filter(|build| self.is_possible(build))
             .ok_or(StaleLink)

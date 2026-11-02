@@ -1,4 +1,5 @@
-//! The URL codec: `/#b=<code>` is a version byte, then the deflated postcard Build, in base64url.
+//! The URL codec: `/#b=<code>` is a version byte, then the deflated Build with every key as a 24-bit hash, in
+//! base64url. Reading a link back needs the keys it may name ([`LinkKeys`]): the game data's, or a Build's own.
 
 use std::collections::BTreeMap;
 
@@ -7,8 +8,9 @@ use proptest::option;
 use proptest::prelude::*;
 use rules::{
     Ability, AbilityScores, Alignment, ArchetypeKey, ArmourType, BackgroundKey, Build, BuildStart,
-    ClassChoice, ClassKey, DecodeError, Energy, FeatSource, LevelUp, MythicPathKey, Parameter,
-    Pick, PointBuy, RaceKey, SkillKey, SlotId, SpellSchool, SubraceKey, decode_build, encode_build,
+    ClassChoice, ClassKey, DecodeError, Energy, FeatSource, KeyCollision, KeyKind, LevelUp,
+    LinkKeys, MythicPathKey, Parameter, Pick, PointBuy, RaceKey, SkillKey, SlotId, SpellSchool,
+    SubraceKey, decode_build, encode_build, key_hash,
 };
 
 use crate::support::*;
@@ -194,15 +196,28 @@ fn any_build() -> impl Strategy<Value = Build> {
 }
 
 proptest! {
+    /// Read back with the keys the Build itself names, the game data aside. Random keys of one kind may share a hash
+    /// (about once in 3,000 Builds); such a Build can't be told apart from another, so it's skipped.
     #[test]
     fn every_build_round_trips_through_its_link(build in any_build()) {
+        let keys = LinkKeys::of_build(&build);
+        prop_assume!(keys.collisions().is_empty());
         let code = encode_build(&build);
         prop_assert!(
             code.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'_'),
             "not base64url: {code}"
         );
-        prop_assert_eq!(decode_build(&code), Ok(build));
+        prop_assert_eq!(decode_build(&code, &keys), Ok(build));
     }
+}
+
+/// The keys of the test world, as the sheet reads links with the game data's.
+fn world_keys() -> LinkKeys {
+    LinkKeys::new(engine().data())
+}
+
+fn decode(code: &str) -> Result<Build, DecodeError> {
+    decode_build(code, &world_keys())
 }
 
 /// The Build frozen in [`V1_LINK`]. Never change either: old links must keep decoding.
@@ -261,13 +276,16 @@ fn v1_build() -> Build {
 /// keys lost their type prefix (`feat:power-attack` became `power-attack`), on 2026-11-01 again when a feat or
 /// option pick gained its parameter (Weapon Focus (Longsword)), on 2026-11-01 once more for the slots of option
 /// rows and of a mythic ability's selections, on 2026-11-01 for an option row's feat slot (ticket 31), on
-/// 2026-11-01 when a mythic feat pick gained its parameter (ticket 32: School Mastery (Evocation)), and on
-/// 2026-11-01 when the Build start gained its background (ticket 34: Shackles Corsair).
-const V1_LINK: &str = "AXVQS27CQAy1wzcVIJbtrhcY5RA9iXFMZsRkjDyTRty-Q5C6Y-P_-8i4-4lCv2K48dNICRBwjefsiW9RsmO1TMHOp8PxY7_aXcPgixhgS8VHKYEz_g9hYzpMAoCvAj-X1EnsLRT2LrNOqTeJFV8s8C0_YW3VBDjcdRZzVEpVrhR1tuXFWm2aup-F7prcVXnKiG3UNORZrccV4PdLaImuUJRUcsc6Xqi4RQgabI7jo_jAjj3ZIE2zOmX2qtGN9PTxwGa9ecd1rSeuXlEsHrb1R19ZjcXEuktU7WNI0pExJYHdHqAtOg0-Sc7wBw";
+/// 2026-11-01 when a mythic feat pick gained its parameter (ticket 32: School Mastery (Evocation)), on 2026-11-01
+/// when the Build start gained its background (ticket 34: Shackles Corsair), and on 2026-11-02 when version 1's body
+/// became shorter (ticket 46): every key a 24-bit hash instead of its text, the hashes listed before the structure,
+/// and the picks grouped by kind of slot with levels as steps, in place of the Build in postcard (314 characters
+/// before, 196 after).
+const V1_LINK: &str = "AQGNAHL_E3qqTfd9coIPYULAnYIPYW3oQW3oQdVnF3ACFsmJrclqPAwzS5CJWxFBSHJjrcl7Pi-GGICSjxeehgEHQ2xlYXZlcgEAAQUBEA4MDQoIAwABAQAAAAABAQABAAYAAwEAAAAAAAEAAAAAAgAAAgEBAwABAAICAQIBAwMEBQEDAAEABgEBAAEABwEIAAAA";
 
 #[test]
 fn a_version_1_link_still_decodes() {
-    assert_eq!(decode_build(V1_LINK), Ok(v1_build()));
+    assert_eq!(decode(V1_LINK), Ok(v1_build()));
 }
 
 #[test]
@@ -287,15 +305,119 @@ mod base64_check {
     }
 }
 
-/// Decoding never looks at the game data; opening the link does (`stale_links.rs`).
+/// A link holds each key's hash, which only the game data turns back into the key: a hash no key of its kind has
+/// is a key the game data no longer has, and the link is stale (`stale_links.rs`).
 #[test]
-fn a_link_with_keys_the_game_data_lacks_still_decodes() {
+fn a_link_naming_a_key_the_game_data_lacks_does_not_decode() {
+    let gone: [fn(&mut Build); 6] = [
+        |b| {
+            b.picks
+                .insert(general_slot(3), pick_feat("cut-in-a-later-patch"));
+        },
+        |b| b.levels[2].class = class("cut-in-a-later-patch"),
+        |b| {
+            b.levels[0]
+                .skill_ranks
+                .insert(skill("cut-in-a-later-patch"), 1);
+        },
+        |b| b.start.background = Some(BackgroundKey::new("cut-in-a-later-patch")),
+        |b| {
+            b.picks.insert(
+                general_slot(3),
+                pick_feat_for("weapon-focus", weapon("cut-in-a-later-patch")),
+            );
+        },
+        |b| b.path_switch = Some(path("cut-in-a-later-patch")),
+    ];
+    for (index, change) in gone.into_iter().enumerate() {
+        let mut build = v1_build();
+        change(&mut build);
+        let code = encode_build(&build);
+        assert_eq!(
+            decode(&code),
+            Err(DecodeError::UnknownKey),
+            "change {index}"
+        );
+        assert_eq!(
+            decode_build(&code, &LinkKeys::of_build(&build)),
+            Ok(build),
+            "change {index}"
+        );
+    }
+}
+
+/// A key is looked up only among the keys of its own kind: the class `rogue` in a link is never the feat
+/// `rogue`.
+#[test]
+fn a_key_of_another_kind_does_not_stand_in_for_a_missing_one() {
+    let mut build = v1_build();
+    // `trickster` is a mythic path in the world, not a feat.
+    build.picks.insert(general_slot(3), pick_feat("trickster"));
+    assert_eq!(decode(&encode_build(&build)), Err(DecodeError::UnknownKey));
+}
+
+/// The link holds a fixed-width hash of each key, never its text, so a long key costs no more than a short one.
+#[test]
+fn a_keys_length_does_not_change_the_links_length() {
+    let with = |key: &str| {
+        let mut build = Build::default();
+        build.picks.insert(general_slot(1), pick_feat(key));
+        encode_build(&build).len()
+    };
+    assert_eq!(
+        with("a"),
+        with("a-feat-whose-key-is-much-longer-than-any-the-guide-has")
+    );
+}
+
+/// The hash is FNV-1a 32-bit over the key's UTF-8 bytes, cut to its low 24 bits (the module docs' spec). The
+/// first three are FNV's published test vectors.
+#[test]
+fn a_keys_hash_is_fnv_1a_cut_to_24_bits() {
+    assert_eq!(key_hash(""), 0x811c9dc5 & 0xff_ffff);
+    assert_eq!(key_hash("a"), 0xe40c292c & 0xff_ffff);
+    assert_eq!(key_hash("foobar"), 0xbf9cf968 & 0xff_ffff);
+    assert_eq!(key_hash("power-attack"), 0x00ad89c9);
+}
+
+/// `collides-58769` and `collides-60836` share their 24-bit hash (`0x284dd8`). Two keys of one kind with one hash
+/// are reported, and a link naming either can't say which it means, so it doesn't decode. Keys of different kinds
+/// may share a hash: each kind is looked up on its own.
+#[test]
+fn two_keys_of_one_kind_with_one_hash_are_a_collision() {
+    assert_eq!(key_hash("collides-58769"), key_hash("collides-60836"));
+
     let mut build = v1_build();
     build
         .picks
-        .insert(general_slot(3), pick_feat("cut-in-a-later-patch"));
-    let decoded = decode_build(&encode_build(&build)).expect("unknown keys still decode");
-    assert_eq!(decoded, build);
+        .insert(general_slot(3), pick_feat("collides-58769"));
+    build
+        .picks
+        .insert(general_slot(5), pick_feat("collides-60836"));
+    let keys = LinkKeys::of_build(&build);
+    assert_eq!(
+        keys.collisions(),
+        [KeyCollision {
+            kind: KeyKind::Feat,
+            keys: ["collides-58769".into(), "collides-60836".into()],
+        }]
+    );
+    assert_eq!(
+        decode_build(&encode_build(&build), &keys),
+        Err(DecodeError::UnknownKey)
+    );
+
+    let mut apart = v1_build();
+    apart
+        .picks
+        .insert(general_slot(3), pick_feat("collides-58769"));
+    apart.picks.insert(
+        SlotId::Mythic { rank: 4 },
+        pick_mythic_feat("collides-60836"),
+    );
+    let keys = LinkKeys::of_build(&apart);
+    assert!(keys.collisions().is_empty());
+    assert_eq!(decode_build(&encode_build(&apart), &keys), Ok(apart));
 }
 
 /// Keys carry no type prefix, so a feat, a mythic feat and a selection option may share one: the [`Pick`] variant
@@ -313,7 +435,7 @@ fn picks_of_different_kinds_with_the_same_key_stay_apart_in_a_link() {
         .picks
         .insert(selection_slot(5, 0), pick_option("power-attack"));
 
-    let decoded = decode_build(&encode_build(&build)).unwrap();
+    let decoded = decode_build(&encode_build(&build), &LinkKeys::of_build(&build)).unwrap();
 
     assert_eq!(decoded.picks[&general_slot(3)], pick_feat("power-attack"));
     assert_eq!(
@@ -328,18 +450,18 @@ fn picks_of_different_kinds_with_the_same_key_stay_apart_in_a_link() {
 
 #[test]
 fn bad_links_are_errors_not_panics() {
-    assert_eq!(decode_build(""), Err(DecodeError::Empty));
-    assert_eq!(decode_build("not base64!"), Err(DecodeError::Base64));
+    assert_eq!(decode(""), Err(DecodeError::Empty));
+    assert_eq!(decode("not base64!"), Err(DecodeError::Base64));
     // Version 9 doesn't exist: 0x09 is "CQ" in base64url.
-    assert_eq!(decode_build("CQ"), Err(DecodeError::UnsupportedVersion(9)));
+    assert_eq!(decode("CQ"), Err(DecodeError::UnsupportedVersion(9)));
     // Version 1 followed by bytes that aren't deflate data.
-    assert_eq!(decode_build("Af____8"), Err(DecodeError::Decompress));
+    assert_eq!(decode("Af____8"), Err(DecodeError::Decompress));
 
     // Valid deflate of a truncated Build.
     let code = encode_build(&v1_build());
     let mut shortened = code.clone();
     shortened.truncate(code.len() / 2);
-    assert!(decode_build(&shortened).is_err());
+    assert!(decode(&shortened).is_err());
 }
 
 #[test]
@@ -347,37 +469,29 @@ fn a_hand_edited_link_with_ranks_above_the_level_or_a_misplaced_increase_does_no
     // Two ranks at level 1.
     let mut ranks = v1_build();
     ranks.levels[0].skill_ranks.insert(skill("athletics"), 2);
-    assert_eq!(
-        decode_build(&encode_build(&ranks)),
-        Err(DecodeError::Format)
-    );
+    assert_eq!(decode(&encode_build(&ranks)), Err(DecodeError::Format));
     // One at level 1 and two more at level 2: three at level 2.
     let mut ranks = v1_build();
     ranks.levels[1].skill_ranks.insert(skill("athletics"), 2);
-    assert_eq!(
-        decode_build(&encode_build(&ranks)),
-        Err(DecodeError::Format)
-    );
+    assert_eq!(decode(&encode_build(&ranks)), Err(DecodeError::Format));
     // One more at level 2 fits.
     ranks.levels[1].skill_ranks.insert(skill("athletics"), 1);
-    assert_eq!(decode_build(&encode_build(&ranks)), Ok(ranks));
+    assert_eq!(decode(&encode_build(&ranks)), Ok(ranks));
 
     // An ability increase at level 3, which has none.
     let mut increase = v1_build();
     increase.levels[2].ability_increase = Some(Ability::Strength);
-    assert_eq!(
-        decode_build(&encode_build(&increase)),
-        Err(DecodeError::Format)
-    );
+    assert_eq!(decode(&encode_build(&increase)), Err(DecodeError::Format));
     // At level 4 it decodes.
     increase.levels[2].ability_increase = None;
     increase.levels.push(LevelUp {
         ability_increase: Some(Ability::Strength),
         ..LevelUp::new(class("rogue"))
     });
-    assert_eq!(decode_build(&encode_build(&increase)), Ok(increase));
+    assert_eq!(decode(&encode_build(&increase)), Ok(increase));
 }
 
+/// Before ticket 46 this Build's link was 604 characters, its keys' text making up most of it.
 #[test]
 fn a_full_40_level_build_makes_a_link_of_a_few_hundred_characters() {
     let mut build = build(
@@ -407,6 +521,6 @@ fn a_full_40_level_build_makes_a_link_of_a_few_hundred_characters() {
             .insert(skill("mobility"), 1);
     }
     let code = encode_build(&build);
-    assert!(code.len() < 800, "{} characters", code.len());
-    let _: BTreeMap<SlotId, Pick> = build.picks;
+    assert!(code.len() <= 604 / 2, "{} characters", code.len());
+    assert_eq!(decode_build(&code, &LinkKeys::of_build(&build)), Ok(build));
 }
