@@ -232,6 +232,12 @@ class's), and BAB and saves (from the class's progressions).
   it no list of its own; a row may hold another class's selection, as a bloodrager's rage powers), so an exploit is
   taken once across both classes and Extra Arcanist Exploit's pick reaches it; Extra Arcanist Exploit's `Any` no
   longer names the feature. The Enforcer's "Greater Exploits" stays a feature.
+- Ticket 55 (`extract::mythic_extra_picks`, ticket 49's decision 4, user, 2026-11-02): a mythic feat's `extra_pick`
+  is the slot a pick of it gives at the Mythic rank it's taken, after the rank's general pick (a `MythicExtra`
+  slot): `Feat`, a feat slot offering what the general slot does (`extra-feat`: "You can select any normal feat"),
+  or `MythicAbility`, a mythic ability slot offering what a rank's general pick does (`extra-mythic-ability`). Both
+  are taken once: their entries don't say otherwise. A mythic ability in that slot grants its `selections` as the
+  general pick's would (Second Bloodline), and a feat with an `extra_pick_of` gives its slot at the rank's level.
 - A path's switch rule: `switch: (from: ["aeon", "azata"], kept_through_rank: 7, path_kept_through_rank: 7,
   dropped_features: [...], dropped_selections: [...], features: [...], further_ascensions: true, level_cap:
   Some(40))`. The general picks (mythic abilities and feats) of MR 1 to `kept_through_rank` stay, and the old

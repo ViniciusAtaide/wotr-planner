@@ -367,8 +367,8 @@ fn mythic_ability(ability: &MythicAbility) -> String {
         .line()
 }
 
-/// A mythic feat on one line: what it's taken for, how often and whether it removes the racial penalty only when
-/// set.
+/// A mythic feat on one line: what it's taken for, how often, whether it removes the racial penalty and the slot it
+/// gives only when set.
 fn mythic_feat(feat: &MythicFeat) -> String {
     let mut fields = Fields::new();
     fields
@@ -382,9 +382,11 @@ fn mythic_feat(feat: &MythicFeat) -> String {
     }
     fields
         .repeat(feat.repeat)
-        .flag("removes_racial_penalty", feat.removes_racial_penalty)
-        .prerequisite(&feat.prerequisite)
-        .line()
+        .flag("removes_racial_penalty", feat.removes_racial_penalty);
+    if let Some(extra_pick) = &feat.extra_pick {
+        fields.field("extra_pick", extra_pick);
+    }
+    fields.prerequisite(&feat.prerequisite).line()
 }
 
 fn feature(feature: &Feature) -> String {

@@ -96,7 +96,7 @@ fn counts_summarise_each_catalog() {
             ("Archetypes", 12),
             ("Prestige classes", 5),
             ("Mythic abilities", 9),
-            ("Mythic feats", 9),
+            ("Mythic feats", 10),
             ("Mythic paths", 6),
             ("Backgrounds", 5),
         ]

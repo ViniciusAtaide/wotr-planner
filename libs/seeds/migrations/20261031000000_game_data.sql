@@ -95,6 +95,10 @@ CREATE DOMAIN option_group AS TEXT CHECK (VALUE IN (
 -- `rules::LevelFrom`: where an option held through a selection naming no classes gets its option level.
 CREATE DOMAIN level_from AS TEXT CHECK (VALUE IN ('other_options', 'granting_option'));
 
+-- `rules::MythicExtraPick`: what the slot a mythic feat gives offers (Extra Feat: a feat; Extra Mythic Ability: a
+-- mythic ability).
+CREATE DOMAIN mythic_extra_pick AS TEXT CHECK (VALUE IN ('feat', 'mythic_ability'));
+
 -- One row: the hash of the data files the tables were last seeded from.
 CREATE TABLE game_data_seed (
     singleton BOOLEAN PRIMARY KEY DEFAULT TRUE CHECK (singleton),
@@ -404,6 +408,8 @@ CREATE TABLE mythic_feat (
     repeat repeat_kind NOT NULL,
     repeat_times u8 CHECK (repeat_times >= 2),
     removes_racial_penalty BOOLEAN NOT NULL,
+    -- `rules::MythicFeat::extra_pick`: the slot a pick of it gives at its rank. NULL: none.
+    extra_pick mythic_extra_pick,
     CHECK ((repeat = 'times') = (repeat_times IS NOT NULL)),
     CHECK (repeat <> 'per_value' OR parameter IS NOT NULL)
 );

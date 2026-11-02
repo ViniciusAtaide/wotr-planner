@@ -115,9 +115,13 @@ fn the_general_mythic_pick_alternates_ability_and_feat() {
         mythic_slot_kinds(&sheet, 1),
         [(SlotId::Mythic { rank: 1 }, SlotKind::MythicAbility)]
     );
+    // MR 2's Extra Mythic Ability gives a mythic ability slot after it.
     assert_eq!(
         mythic_slot_kinds(&sheet, 2),
-        [(SlotId::Mythic { rank: 2 }, SlotKind::MythicFeat)]
+        [
+            (SlotId::Mythic { rank: 2 }, SlotKind::MythicFeat),
+            (SlotId::MythicExtra { rank: 2 }, SlotKind::MythicAbility),
+        ]
     );
     // Ranks not reached yet are listed, with no slots.
     assert_eq!(sheet.ranks.len(), 10);

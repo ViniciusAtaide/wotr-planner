@@ -23,9 +23,9 @@ use sqlx::PgConnection;
 use crate::columns::{
     AbilityBonusKind, FeatSlotKind, ability_bonus_kind_from, ability_from, advancement_from,
     bab_progression_from, background_group_from, corrupt, feat_category_from, feat_slot_kind_from,
-    level_from_from, mythic_ability_group_from, mythic_feat_group_from, option_group_from,
-    parameter_kind_from, repeat_from, save_from, save_progression_from, to_i8, to_u8, value_from,
-    weapon_proficiency_from,
+    level_from_from, mythic_ability_group_from, mythic_extra_pick_from, mythic_feat_group_from,
+    option_group_from, parameter_kind_from, repeat_from, save_from, save_progression_from, to_i8,
+    to_u8, value_from, weapon_proficiency_from,
 };
 use crate::prerequisites::Trees;
 use crate::{Database, Error};
@@ -1135,7 +1135,7 @@ async fn load_mythic_feats(
 ) -> Result<Vec<MythicFeat>, sqlx::Error> {
     sqlx::query!(
         "SELECT key, name, group_name, summary, guide, prerequisite_root_id, parameter, repeat,
-            repeat_times, removes_racial_penalty
+            repeat_times, removes_racial_penalty, extra_pick
         FROM mythic_feat ORDER BY key"
     )
     .fetch_all(&mut *conn)
@@ -1155,6 +1155,11 @@ async fn load_mythic_feats(
                 .transpose()?,
             repeat: repeat_from(&row.repeat, row.repeat_times)?,
             removes_racial_penalty: row.removes_racial_penalty,
+            extra_pick: row
+                .extra_pick
+                .as_deref()
+                .map(mythic_extra_pick_from)
+                .transpose()?,
             prerequisite: trees.get(row.prerequisite_root_id)?,
         })
     })

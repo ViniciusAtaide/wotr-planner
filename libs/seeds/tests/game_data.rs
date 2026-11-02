@@ -5970,3 +5970,184 @@ fn extra_arcanist_exploit_gives_an_arcane_enforcer_one_more_exploit_slot() {
     expected.canonicalize();
     assert_eq!(actual, expected);
 }
+
+// ---- Mythic Extra Feat and Extra Mythic Ability give their pick (ticket 55) ----------------------------------------
+
+/// The slot a rank's general mythic feat gives.
+fn mythic_extra(rank: u8) -> SlotId {
+    SlotId::MythicExtra { rank }
+}
+
+/// A Build of `levels` levels of `class` with `mythic_feat` as MR 2's general pick (MR 2 is at level 7).
+fn with_mythic_feat(class: &str, levels: usize, mythic_feat: &str) -> Build {
+    let mut build = build(class, levels);
+    build.picks.insert(
+        SlotId::Mythic { rank: 2 },
+        Pick::mythic_feat(rules::MythicFeatKey::new(mythic_feat)),
+    );
+    build
+}
+
+/// Every option a slot's picker offers, with its status.
+fn slot_options(build: &Build, slot: &SlotId) -> Vec<SlotOption> {
+    engine()
+        .options(build, slot)
+        .unwrap_or_else(|| panic!("no slot {slot:?}"))
+}
+
+/// "You can select any normal feat." / "You can select a mythic ability." (mythic-paths#extra-feat,
+/// mythic-paths#extra-mythic-ability): each gives one pick, and only these two; taken once, as the guide says no
+/// more.
+#[test]
+fn extra_feat_and_extra_mythic_ability_are_the_mythic_feats_that_give_a_pick() {
+    let giving: Vec<(String, rules::MythicExtraPick, Repeat)> = DATA
+        .mythic_feats
+        .iter()
+        .filter_map(|feat| Some((feat.key.to_string(), feat.extra_pick?, feat.repeat)))
+        .collect();
+    assert_eq!(
+        giving,
+        [
+            (
+                "extra-feat".to_owned(),
+                rules::MythicExtraPick::Feat,
+                Repeat::Once
+            ),
+            (
+                "extra-mythic-ability".to_owned(),
+                rules::MythicExtraPick::MythicAbility,
+                Repeat::Once
+            ),
+        ]
+    );
+}
+
+#[test]
+fn extra_feat_at_mr_2_gives_a_feat_slot_at_level_7_offering_what_the_general_slot_there_does() {
+    let engine = engine();
+    let build = with_mythic_feat("fighter", 7, "extra-feat");
+    let sheet = engine.evaluate(&build);
+    let rank_2: Vec<(SlotId, SlotKind)> = sheet.ranks[1]
+        .slots
+        .iter()
+        .map(|slot| (slot.id.clone(), slot.kind.clone()))
+        .collect();
+    assert_eq!(
+        rank_2,
+        [
+            (SlotId::Mythic { rank: 2 }, SlotKind::MythicFeat),
+            (mythic_extra(2), SlotKind::Feat(FeatSlot::General)),
+        ]
+    );
+    assert_eq!(sheet.ranks[1].character_level, 7);
+    assert_eq!(engine.slot_label(&sheet.ranks[1].slots[1]), "Feat");
+    // Every feat, each open or locked as in level 7's general slot.
+    let extra = slot_options(&build, &mythic_extra(2));
+    assert_eq!(extra.len(), slot_options(&build, &general_slot(7)).len());
+    assert_eq!(extra, slot_options(&build, &general_slot(7)));
+    assert!(extra.iter().any(|option| option.status.is_ok()));
+
+    // A pick there is held from level 7; its prerequisites are checked.
+    let mut with_pick = build.clone();
+    with_pick
+        .picks
+        .insert(mythic_extra(2), feat_pick_plain("toughness"));
+    assert!(possible(&with_pick));
+    assert!(
+        engine
+            .evaluate(&with_pick)
+            .at(7)
+            .unwrap()
+            .feats
+            .contains_key(&FeatKey::new("toughness"))
+    );
+    let mut unmet = build;
+    unmet
+        .picks
+        .insert(mythic_extra(2), feat_pick_plain("great-cleave"));
+    assert!(matches!(
+        why_not(&unmet, &mythic_extra(2)),
+        Some(Issue::Unmet(_))
+    ));
+}
+
+#[test]
+fn extra_mythic_ability_gives_a_mythic_ability_slot_offering_what_a_ranks_does() {
+    let engine = engine();
+    let build = with_mythic_feat("fighter", 7, "extra-mythic-ability");
+    let sheet = engine.evaluate(&build);
+    let slot = sheet.slot(&mythic_extra(2)).expect("the extra slot");
+    assert_eq!(slot.kind, SlotKind::MythicAbility);
+    assert_eq!(engine.slot_label(slot), "Mythic ability");
+    let picks = |slot: &SlotId| -> BTreeSet<Pick> {
+        slot_options(&build, slot)
+            .into_iter()
+            .map(|option| option.pick)
+            .collect()
+    };
+    assert_eq!(picks(&mythic_extra(2)), picks(&SlotId::Mythic { rank: 1 }));
+    assert_eq!(picks(&mythic_extra(2)).len(), DATA.mythic_abilities.len());
+
+    // A sorcerer's Second Bloodline there gives another bloodline at MR 2.
+    let mut sorcerer = with_mythic_feat("sorcerer", 7, "extra-mythic-ability");
+    sorcerer.picks.insert(
+        mythic_extra(2),
+        Pick::MythicAbility(rules::MythicAbilityKey::new("second-bloodline")),
+    );
+    let second = SlotId::MythicSelection { rank: 2, index: 0 };
+    assert_eq!(
+        kind_at(&sorcerer, &second),
+        Some(selection_kind("sorcerer/bloodline"))
+    );
+    let open = slot_options(&sorcerer, &second)
+        .into_iter()
+        .find(|option| option.status.is_ok())
+        .expect("an open bloodline");
+    sorcerer.picks.insert(second, open.pick);
+    assert!(possible(&with_selections_filled(sorcerer)));
+}
+
+#[test]
+fn removing_extra_feat_or_extra_mythic_ability_is_refused_while_its_slot_holds_a_pick() {
+    let engine = engine();
+    for (mythic_feat, pick) in [
+        ("extra-feat", feat_pick_plain("toughness")),
+        (
+            "extra-mythic-ability",
+            Pick::MythicAbility(rules::MythicAbilityKey::new("unstoppable")),
+        ),
+    ] {
+        let mut build = with_mythic_feat("fighter", 7, mythic_feat);
+        build.picks.insert(mythic_extra(2), pick);
+        assert!(possible(&build), "{mythic_feat}");
+        let feat = rules::Choice::Slot(SlotId::Mythic { rank: 2 });
+        assert!(!engine.is_removable(&build, &feat), "{mythic_feat}");
+        assert!(!engine.removable(&build).contains(&feat));
+        assert!(engine.is_removable(&build, &rules::Choice::Slot(mythic_extra(2))));
+
+        build.apply(&rules::Edit::Clear(mythic_extra(2)));
+        assert!(engine.is_removable(&build, &feat), "{mythic_feat}");
+        build.apply(&rules::Edit::Clear(SlotId::Mythic { rank: 2 }));
+        assert!(possible(&build));
+        assert_eq!(kind_at(&build, &mythic_extra(2)), None);
+    }
+}
+
+#[test]
+fn extra_rage_power_through_extra_feat_gives_a_rage_power_slot_at_the_ranks_level() {
+    let mut build = with_selections_filled(barbarian(7));
+    build.picks.insert(
+        SlotId::Mythic { rank: 2 },
+        Pick::mythic_feat(rules::MythicFeatKey::new("extra-feat")),
+    );
+    build
+        .picks
+        .insert(mythic_extra(2), feat_pick_plain("extra-rage-power"));
+    assert_eq!(
+        kind_at(&build, &extra_slot(7, 0)),
+        Some(selection_kind("barbarian/rage-power"))
+    );
+    let filled = with_selections_filled(build);
+    assert!(filled.picks.contains_key(&extra_slot(7, 0)));
+    assert!(possible(&filled));
+}

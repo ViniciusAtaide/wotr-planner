@@ -79,12 +79,22 @@ pub(super) fn mythic_feats() -> Vec<MythicFeat> {
         parameter: None,
         repeat: Repeat::Once,
         removes_racial_penalty: false,
+        extra_pick: None,
         prerequisite,
     };
     vec![
         mythic_feat("power-attack-mythic", Some(needs_feat("power-attack"))),
         mythic_feat("toughness-mythic", Some(needs_feat("toughness"))),
-        mythic_feat("extra-mythic-ability", None),
+        // "You can select a mythic ability."
+        MythicFeat {
+            extra_pick: Some(MythicExtraPick::MythicAbility),
+            ..mythic_feat("extra-mythic-ability", None)
+        },
+        // "You can select any normal feat."
+        MythicFeat {
+            extra_pick: Some(MythicExtraPick::Feat),
+            ..mythic_feat("extra-feat", None)
+        },
         mythic_feat("improved-critical-mythic", None),
         mythic_feat("dodge-mythic", None),
         mythic_feat("cleave-mythic", Some(needs_feat("cleave"))),

@@ -131,6 +131,7 @@ fn slot_id() -> impl Strategy<Value = SlotId> {
         (any::<u8>(), any::<u8>()).prop_map(|(level, index)| SlotId::OptionFeat { level, index }),
         (any::<u8>(), any::<u8>())
             .prop_map(|(level, index)| SlotId::FeatSelection { level, index }),
+        any::<u8>().prop_map(|rank| SlotId::MythicExtra { rank }),
     ]
 }
 
@@ -266,6 +267,9 @@ fn v1_build() -> Build {
             Parameter::SpellSchool(rules::SpellSchool::Evocation),
         ),
     );
+    build
+        .picks
+        .insert(SlotId::MythicExtra { rank: 2 }, pick_feat("dodge"));
     build.class_choices.insert(
         class("rogue"),
         ClassChoice {
@@ -287,8 +291,9 @@ fn v1_build() -> Build {
 /// became shorter (ticket 46): every key a 24-bit hash instead of its text, the hashes listed before the structure,
 /// and the picks grouped by kind of slot with levels as steps, in place of the Build in postcard (314 characters
 /// before, 196 after), and on 2026-11-02 for the slot an Extra feat gives (ticket 49: a `FeatSelection` group, the
-/// rogue talent Resiliency at 3).
-const V1_LINK: &str = "ASWKPQrCQBSE37w1ZgnxD8R4CwtbEaKNIJ7AKkgQREG2sFAUsQikEMVeDyDkDrZ7AO_gDWx9rMPwwQxfc_ucfPfmVEsGr7tw9Yml73m05pbNC7vohd3xNZ824pGZFXbX72Tt4-0SPbLDOYA_XKbJJjUgeKhXw0qgFQEkEYJ8Um6QI0sBEYgZDKVKnlvlvwstjnbPDw";
+/// rogue talent Resiliency at 3), and on 2026-11-02 for the slot a mythic feat gives (ticket 55: a `MythicExtra` group,
+/// Dodge at MR 2).
+const V1_LINK: &str = "AR2KPQrCQBSE3-was4b4V2g8hGBhK0K0EcTK0ipIEERBtrBQFLEIpBDFXg8g5A6229l4B29gm8cOwwczfI3da_I_6HM1GrwfzPUv5H4XwUY0TZqZZc_vjm_prB6O9Dwz-34naZ3u1-CZHC_eZ9qGO1zF0TbWIDioVfyypyQBxGGCFEk7yFJwARZICAhIWXDsKlrXhWJH2acEdnM";
 
 #[test]
 fn a_version_1_link_still_decodes() {

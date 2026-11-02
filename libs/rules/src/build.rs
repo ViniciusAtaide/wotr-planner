@@ -274,6 +274,10 @@ pub enum SlotId {
     /// power), in the order the level holds those feats, after the slots of the options' rows. A feat picked at a
     /// Mythic rank gives it at the rank's character level.
     FeatSelection { level: u8, index: u8 },
+    /// The slot that the mythic feat of a Mythic rank's general pick gives
+    /// ([`MythicFeat::extra_pick`](crate::MythicFeat::extra_pick)): a feat slot (Extra Feat) or a mythic ability slot
+    /// (Extra Mythic Ability), after the general pick. A rank has one general pick, so one such slot at most.
+    MythicExtra { rank: u8 },
 }
 
 impl SlotId {
@@ -288,7 +292,8 @@ impl SlotId {
             SlotId::Mythic { rank }
             | SlotId::PathFeat { rank, .. }
             | SlotId::PathSelection { rank, .. }
-            | SlotId::MythicSelection { rank, .. } => Some(rank),
+            | SlotId::MythicSelection { rank, .. }
+            | SlotId::MythicExtra { rank } => Some(rank),
         }
     }
 

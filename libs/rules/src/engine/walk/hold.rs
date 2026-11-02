@@ -26,7 +26,10 @@ impl<'a> Walker<'a> {
     pub(super) fn fill(&mut self, id: SlotId, kind: SlotKind, rank: Option<u8>) -> Slot {
         let source = rank.map(|rank| GrantSource {
             rank,
-            from_path: !matches!(id, SlotId::Mythic { .. } | SlotId::MythicSelection { .. }),
+            from_path: !matches!(
+                id,
+                SlotId::Mythic { .. } | SlotId::MythicSelection { .. } | SlotId::MythicExtra { .. }
+            ),
             selection: match &kind {
                 SlotKind::Selection(selection) => Some(selection.clone()),
                 _ => None,

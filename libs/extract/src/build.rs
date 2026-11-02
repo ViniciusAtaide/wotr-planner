@@ -196,6 +196,9 @@ pub fn extract(guide: &Guide) -> Extraction {
     // The paladin's mercies and the Arcane Enforcer's exploits as picks (ticket 54, ticket 49's decisions 1 and 5):
     // Extra Mercy gives its slot. It settles no report item.
     crate::mercies_and_exploits::apply(guide, &mut data);
+    // Mythic Extra Feat and Extra Mythic Ability give their pick (ticket 55, ticket 49's decision 4): a feat slot and
+    // a mythic ability slot at the rank they're taken. It settles no report item.
+    crate::mythic_extra_picks::apply(guide, &mut data);
     for problem in data.check() {
         builder.report.add_about(
             Kind::Cell,
@@ -1583,6 +1586,7 @@ impl<'g> Builder<'g> {
                     prerequisite: None,
                     parameter: None,
                     removes_racial_penalty: false,
+                    extra_pick: None,
                     repeat: Default::default(),
                 });
             }

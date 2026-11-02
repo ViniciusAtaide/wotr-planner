@@ -19,6 +19,7 @@ mod feat_lists;
 mod granted_feats;
 mod labels;
 mod mythic;
+mod mythic_extra_picks;
 mod option_class_skills;
 mod option_levels;
 mod option_limits;

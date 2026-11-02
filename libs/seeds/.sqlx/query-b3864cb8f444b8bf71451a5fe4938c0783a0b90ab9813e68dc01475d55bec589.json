@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT key, name, group_name, summary, guide, prerequisite_root_id, parameter, repeat,\n            repeat_times, removes_racial_penalty\n        FROM mythic_feat ORDER BY key",
+  "query": "SELECT key, name, group_name, summary, guide, prerequisite_root_id, parameter, repeat,\n            repeat_times, removes_racial_penalty, extra_pick\n        FROM mythic_feat ORDER BY key",
   "describe": {
     "columns": [
       {
@@ -112,6 +112,17 @@
             "name": "removes_racial_penalty"
           }
         }
+      },
+      {
+        "ordinal": 10,
+        "name": "extra_pick",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "mythic_feat",
+            "name": "extra_pick"
+          }
+        }
       }
     ],
     "parameters": {
@@ -127,8 +138,9 @@
       true,
       false,
       true,
-      false
+      false,
+      true
     ]
   },
-  "hash": "2a48f5dc181cc9099b3e58782c1a5ce40b721fdf86c33c797f1f413e90792b54"
+  "hash": "b3864cb8f444b8bf71451a5fe4938c0783a0b90ab9813e68dc01475d55bec589"
 }

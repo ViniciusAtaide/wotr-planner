@@ -138,6 +138,45 @@ async fn a_feats_extra_pick_round_trips(pool: PgPool) {
     assert!(error.to_string().contains("foreign key"), "{error}");
 }
 
+/// A mythic feat's extra pick (ticket 55: Extra Feat, a feat; Extra Mythic Ability, a mythic ability) is stored in
+/// its row and read back; any other kind of pick is refused.
+#[sqlx::test]
+async fn a_mythic_feats_extra_pick_round_trips(pool: PgPool) {
+    let db = Database::from(pool.clone());
+    let dir = copy_fixture();
+    let path = dir.path().join("mythic/feats.ron");
+    let text = fs::read_to_string(&path).unwrap();
+    let end = text.rfind(']').unwrap();
+    let added = r#"    (key: "extra-feat", name: "Extra Feat", group: Miscellaneous, guide: "mythic-paths#extra-feat", extra_pick: Feat),
+    (key: "extra-mythic-ability", name: "Extra Mythic Ability", group: Miscellaneous, guide: "mythic-paths#extra-mythic-ability", extra_pick: MythicAbility),
+"#;
+    fs::write(&path, format!("{}{added}{}", &text[..end], &text[end..])).unwrap();
+    let from_files = seeds::read_game_data_files(dir.path()).unwrap();
+    assert_eq!(from_files.check(), []);
+    let picks: Vec<_> = from_files
+        .mythic_feats
+        .iter()
+        .filter_map(|feat| feat.extra_pick)
+        .collect();
+    assert_eq!(
+        picks,
+        [
+            rules::MythicExtraPick::Feat,
+            rules::MythicExtraPick::MythicAbility
+        ]
+    );
+
+    seeds::seed(&db, dir.path()).await.unwrap();
+    assert_eq!(seeds::load_game_data(&db).await.unwrap(), from_files);
+
+    let error =
+        sqlx::query("UPDATE mythic_feat SET extra_pick = 'selection' WHERE key = 'extra-feat'")
+            .execute(&pool)
+            .await
+            .unwrap_err();
+    assert!(error.to_string().contains("mythic_extra_pick"), "{error}");
+}
+
 /// A feature or selection granted twice by one row is one `granted_*` row with a count of 2, and reads back as
 /// two grants.
 #[sqlx::test]

@@ -4,8 +4,8 @@
 
 use rules::{
     Ability, Advancement, Alignment, ArmourType, BabProgression, BackgroundGroup, Energy,
-    FeatCategory, LevelFrom, MythicAbilityGroup, MythicFeatGroup, OptionGroup, ParameterKind,
-    Repeat, Save, SaveProgression, SpellSchool, SpellType, Story, WeaponProficiency,
+    FeatCategory, LevelFrom, MythicAbilityGroup, MythicExtraPick, MythicFeatGroup, OptionGroup,
+    ParameterKind, Repeat, Save, SaveProgression, SpellSchool, SpellType, Story, WeaponProficiency,
 };
 
 /// A row that doesn't fit the `rules` types (should be impossible given the constraints).
@@ -144,6 +144,11 @@ text_column!(BackgroundGroup, background_group_from, background_group_text {
 text_column!(LevelFrom, level_from_from, level_from_text {
     OtherOptions => "other_options",
     GrantingOption => "granting_option",
+});
+
+text_column!(MythicExtraPick, mythic_extra_pick_from, mythic_extra_pick_text {
+    Feat => "feat",
+    MythicAbility => "mythic_ability",
 });
 
 text_column!(Advancement, advancement_from, advancement_text {

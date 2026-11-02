@@ -8,7 +8,8 @@ use crate::build::{Pick, SlotId};
 use crate::engine::{
     MythicPickKind, PATH_CHOICE_RANK, PATH_SWITCH_RANK, RankStatus, SlotKind, mythic_pick_kind,
 };
-use crate::game_data::{MythicPath, PathSwitch};
+use crate::game_data::{FeatSlot, MythicExtraPick, MythicPath, PathSwitch};
+use crate::keys::MythicAbilityKey;
 
 /// Whether a Path switch takes a grant away: a general pick past the general cut-off, the old path's grant past
 /// the path cut-off, or one the switch drops by name whatever its rank.
@@ -49,11 +50,14 @@ impl<'a> Walker<'a> {
         }
         self.state.mythic_rank = rank;
 
-        // The general pick first: a mythic ability it holds may grant selection slots (Second Bloodline).
+        // The general pick first, then the slot its mythic feat gives (Extra Feat, Extra Mythic Ability): a mythic
+        // ability either holds may grant selection slots (Second Bloodline).
         let general_id = SlotId::Mythic { rank };
-        let ability = match self.build.picks.get(&general_id) {
-            Some(Pick::MythicAbility(key)) if !self.state.mythic_abilities.contains(key) => {
-                Some(key)
+        let general_pick = self.build.picks.get(&general_id);
+        let mut ability = self.newly_held_ability(general_pick);
+        let feat = match general_pick {
+            Some(Pick::MythicFeat { feat, .. }) if !self.state.mythic_feats.contains(feat) => {
+                Some(feat)
             }
             _ => None,
         };
@@ -65,6 +69,20 @@ impl<'a> Walker<'a> {
             },
             Some(rank),
         );
+        let mut slots = vec![general];
+        if let Some(extra) = feat
+            .filter(|key| self.state.mythic_feats.contains(*key))
+            .and_then(|key| engine.mythic_feat(key))
+            .and_then(|feat| feat.extra_pick)
+        {
+            let id = SlotId::MythicExtra { rank };
+            ability = self.newly_held_ability(self.build.picks.get(&id));
+            let kind = match extra {
+                MythicExtraPick::Feat => SlotKind::Feat(FeatSlot::General),
+                MythicExtraPick::MythicAbility => SlotKind::MythicAbility,
+            };
+            slots.push(self.fill(id, kind, Some(rank)));
+        }
         let mut slot_kinds = Vec::new();
         if let Some(ability) = ability
             .filter(|key| self.state.mythic_abilities.contains(*key))
@@ -117,7 +135,6 @@ impl<'a> Walker<'a> {
                 ));
             }
         }
-        let mut slots = vec![general];
         slots.extend(self.fill_all(slot_kinds, Some(rank)));
 
         let path = self.state.mythic_path.clone();
@@ -127,6 +144,16 @@ impl<'a> Walker<'a> {
             sheet.slots = slots;
         }
         true
+    }
+
+    /// The mythic ability a pick would hold anew: `None` for another kind of pick, or one held already.
+    fn newly_held_ability(&self, pick: Option<&'a Pick>) -> Option<&'a MythicAbilityKey> {
+        match pick {
+            Some(Pick::MythicAbility(key)) if !self.state.mythic_abilities.contains(key) => {
+                Some(key)
+            }
+            _ => None,
+        }
     }
 
     /// Choosing the path at MR 3 grants its MR 1 and 2 rows: held from now on, as those ranks' own grants (so a

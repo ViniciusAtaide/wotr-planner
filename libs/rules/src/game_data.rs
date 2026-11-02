@@ -1202,8 +1202,21 @@ pub struct MythicFeat {
     /// Birth).
     #[serde(default)]
     pub removes_racial_penalty: bool,
+    /// The one more pick a pick of it gives, at the Mythic rank it's taken (Extra Feat: "You can select any normal
+    /// feat"). `None`: it gives none.
+    #[serde(default)]
+    pub extra_pick: Option<MythicExtraPick>,
     #[serde(default)]
     pub prerequisite: Option<Prerequisite>,
+}
+
+/// What the slot a mythic feat gives offers ([`MythicFeat::extra_pick`], [`SlotId::MythicExtra`](crate::SlotId)).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+pub enum MythicExtraPick {
+    /// A feat slot that offers what the general slot offers: any feat whose prerequisites are met (Extra Feat).
+    Feat,
+    /// A mythic ability slot that offers what a rank's general pick does (Extra Mythic Ability).
+    MythicAbility,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]

@@ -13,9 +13,9 @@ use sqlx::PgConnection;
 use crate::columns::{
     AbilityBonusKind, FeatSlotKind, ValueColumns, ability_bonus_kind_text, ability_text,
     advancement_text, bab_progression_text, background_group_text, feat_category_text,
-    feat_slot_kind_text, level_from_text, mythic_ability_group_text, mythic_feat_group_text,
-    option_group_text, parameter_kind_text, repeat_columns, save_progression_text, save_text,
-    weapon_proficiency_text,
+    feat_slot_kind_text, level_from_text, mythic_ability_group_text, mythic_extra_pick_text,
+    mythic_feat_group_text, option_group_text, parameter_kind_text, repeat_columns,
+    save_progression_text, save_text, weapon_proficiency_text,
 };
 use crate::{Database, Error, prerequisites};
 
@@ -137,8 +137,8 @@ async fn insert_all(db: &Database, data: &GameData, hash: &str) -> Result<(), sq
         sqlx::query!(
             "INSERT INTO mythic_feat
                 (key, name, group_name, summary, guide, prerequisite_root_id, parameter, repeat,
-                repeat_times, removes_racial_penalty)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
+                repeat_times, removes_racial_penalty, extra_pick)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
             feat.key.as_str(),
             feat.name,
             mythic_feat_group_text(feat.group),
@@ -149,6 +149,7 @@ async fn insert_all(db: &Database, data: &GameData, hash: &str) -> Result<(), sq
             repeat,
             repeat_times,
             feat.removes_racial_penalty,
+            feat.extra_pick.map(mythic_extra_pick_text),
         )
         .execute(&mut *conn)
         .await?;
