@@ -2210,6 +2210,7 @@ dependencies = [
  "base64",
  "miniz_oxide",
  "proptest",
+ "rules",
  "serde",
 ]
 

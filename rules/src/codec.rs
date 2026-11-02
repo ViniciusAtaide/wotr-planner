@@ -262,7 +262,8 @@ impl LinkKeys {
         keys
     }
 
-    /// The keys one Build names: enough to read its own link back without game data (a round trip).
+    /// The keys one Build names: enough to read its own link back without game data (a round trip). Tests only.
+    #[cfg(any(test, feature = "testing"))]
     pub fn of_build(build: &Build) -> Self {
         let mut keys = Self::default();
         for (kind, key) in Writer::new(build).keys {

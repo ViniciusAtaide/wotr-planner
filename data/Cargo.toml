@@ -16,3 +16,5 @@ tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 
 [dev-dependencies]
 tempfile = "3.27.0"
+# The real-data tests use the rules crate's test helpers.
+rules = { workspace = true, features = ["testing"] }

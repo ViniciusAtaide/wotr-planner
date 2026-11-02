@@ -147,10 +147,3 @@ pub enum Repeat {
     /// talents, once per skill).
     PerValue,
 }
-
-impl Repeat {
-    /// Whether this is the default, so the data files can leave it out.
-    pub fn is_once(&self) -> bool {
-        *self == Repeat::Once
-    }
-}

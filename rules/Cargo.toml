@@ -10,5 +10,11 @@ base64 = { version = "0.22.1", default-features = false, features = ["alloc"] }
 miniz_oxide = { version = "0.9.1", default-features = false, features = ["with-alloc"] }
 serde.workspace = true
 
+[features]
+# Helpers only tests use (`Engine::state_before`, `LinkKeys::of_build`, …); never turned on by the apps.
+testing = []
+
 [dev-dependencies]
 proptest = "1.12.0"
+# The crate's own tests turn on its test helpers.
+rules = { path = ".", features = ["testing"] }

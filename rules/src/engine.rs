@@ -894,7 +894,8 @@ impl Engine {
             .is_some_and(|level| usize::from(level) <= build.levels.len())
     }
 
-    /// The state just before a slot is filled, or `None` when the Build has no such slot.
+    /// The state just before a slot is filled, or `None` when the Build has no such slot. Tests only.
+    #[cfg(any(test, feature = "testing"))]
     pub fn state_before(&self, build: &Build, slot: &SlotId) -> Option<CharacterState> {
         self.probe(build, Probe::Slot(slot)).state
     }
@@ -1347,7 +1348,8 @@ impl Engine {
     }
 
     /// Whether a pick in this slot ignores the feat's prerequisites: only a bonus-list slot's does, one whose list
-    /// ignores them.
+    /// ignores them. Tests only.
+    #[cfg(any(test, feature = "testing"))]
     pub fn slot_ignores_prerequisites(&self, slot: &FeatSlot) -> bool {
         match slot {
             FeatSlot::OneOf { list } => self

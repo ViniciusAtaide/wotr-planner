@@ -102,7 +102,8 @@ pub enum Unmet {
 }
 
 impl Unmet {
-    /// Every failing single condition, for a flat "Needs: …" line.
+    /// Every failing single condition, as a flat list. Tests only.
+    #[cfg(any(test, feature = "testing"))]
     pub fn conditions(&self) -> Vec<(&Prerequisite, Option<u8>)> {
         match self {
             Unmet::Condition { needs, has } => vec![(needs, *has)],
