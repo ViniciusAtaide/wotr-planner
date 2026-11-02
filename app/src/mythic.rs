@@ -1,6 +1,6 @@
 //! The Mythic track: MR 1–10 at their fixed character levels, the path at MR 3 and the Path switch at MR 8. A rank
-//! is reached, partly dropped or dropped by a switch, or not reached; the picks a switch took away stay, marked
-//! lost from the switch on, and an empty slot there still has a picker.
+//! is reached, partly dropped or dropped by a switch, or not reached (shown greyed, with no label); the picks a
+//! switch took away stay, marked lost from the switch on, and an empty slot there still has a picker.
 
 use leptos::prelude::*;
 use rules::{PATH_CHOICE_RANK, PATH_SWITCH_RANK, RankSheet, RankStatus};
@@ -66,11 +66,11 @@ fn rank_row(
         .path
         .as_ref()
         .map(|key| engine.path_name(key).to_owned());
+    // A rank not reached says so by its greyed level alone.
     let status = match rank.status {
-        RankStatus::Reached => None,
+        RankStatus::Reached | RankStatus::NotReached => None,
         RankStatus::PartlyDropped => Some("Partly lost to the Path switch"),
         RankStatus::Dropped => Some("Lost to the Path switch"),
-        RankStatus::NotReached => Some("Not reached"),
     };
     let not_reached = rank.status == RankStatus::NotReached;
     let chooser = |label: &'static str, value: Option<String>, target: Target| {
