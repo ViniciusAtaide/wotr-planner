@@ -116,6 +116,6 @@ The two questions above.
 
 **User, 2026-11-02:**
 
-1. **The Skill Focus wild talent can be taken more than once, each time for another skill** (a user fact: "Skill Focus can be taken once per wild talent as long as you select another skill"). Built by [ticket 47](47-wild-talent-follow-ups.md).
+1. **The Skill Focus wild talent can be taken more than once, each time for another skill** (a user fact: "Skill Focus can be taken once per wild talent as long as you select another skill"). The rogue talent Skill Focus follows the same rule (user, same day). Built by [ticket 47](47-wild-talent-follow-ups.md).
 2. **Extra feats get their extra pick** in one follow-up: [ticket 49](49-extra-feats-extra-picks.md).
 3. **The bonus-feat slot reads "Wild talent feat"**, not "Elemental Focus feat". Built by ticket 47.
