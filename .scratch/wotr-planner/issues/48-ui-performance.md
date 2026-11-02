@@ -2,7 +2,7 @@
 
 Type: task
 Status: open
-Blocked by: 50, 51
+Blocked by: 50, 51, 52
 Map: [WotR Build Planner](../map.md)
 
 ## Question
