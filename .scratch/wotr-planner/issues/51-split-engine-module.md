@@ -17,6 +17,8 @@ Suggested split, each file its own `impl Engine` block (adjust where the code's 
 - `engine/removable.rs`: `removable`, `allows` and `Recheck`;
 - `engine/switch.rs`: the path-switch rules.
 
+**Also (user, 2026-11-02): break up `Engine::new`.** It builds about 20 lookup tables inline (key → position maps for classes, archetypes, races, subraces, selections, options, feats, skills, weapons, paths, backgrounds, mythic abilities and feats; feature facts: bonuses, option rows, daily choices, floors, names, shared names; `LinkKeys`). Move them into an `Indexes` struct (or a few) built by one small function per group (`index_classes`, `index_races`, `index_features`, …), in `engine/lookups.rs`, so `new` is about ten lines: canonicalise the data, build the indexes, done. No dependency injection or traits: the engine takes plain `GameData` and does no I/O. Same lookups, same behaviour.
+
 `engine.rs` keeps the `Engine` struct, the public types it returns (`Sheet`, `LevelSheet`, `RankSheet`, `Slot`, `SlotOption`, …) unless they sit better beside their code, the module docs, and the `mod` lines. Private items shared between files become `pub(super)` (or `pub(crate)` where another module of the crate already uses them), never wider than needed.
 
 ## Build
