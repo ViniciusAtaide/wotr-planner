@@ -365,12 +365,13 @@ input[type="search"] {
   border-bottom: 1px solid var(--line);
 }
 
+/* Left-aligned, so the rows line up with the summary above them. */
 .row-number {
   padding-top: 12px;
   color: var(--muted);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  text-align: right;
+  text-align: left;
 }
 
 .class-button {
@@ -752,7 +753,8 @@ body:has(.picker) {
   text-align: center;
 }
 
-.skills {
+/* The skill-rank list; `ul` so the grid's Skills chip (`.chip.skills`) keeps the chips' layout. */
+ul.skills {
   display: grid;
   gap: 4px;
   margin: 0;
@@ -800,7 +802,7 @@ body:has(.picker) {
   }
 
   .row {
-    grid-template-columns: 34px 132px 1fr;
+    grid-template-columns: 28px 132px 1fr;
     gap: 8px;
   }
 
