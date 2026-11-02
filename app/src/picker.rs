@@ -993,26 +993,12 @@ fn RacePicker() -> impl IntoView {
     view! { <StartPicker title="Race" starts remove/> }
 }
 
+/// The alignment wheel, laid out as the game draws it: Neutral Good at the top, the other eight around it, True
+/// Neutral in the middle; good tinted blue, neutral beige, evil red. Locked alignments are greyed out.
 #[component]
 fn AlignmentPicker() -> impl IntoView {
     let planner = use_planner();
     let current = planner.build.with_untracked(|build| build.start.clone());
-    let starts = Alignment::ALL
-        .into_iter()
-        .map(|alignment| {
-            let item = Item {
-                current: current.alignment == Some(alignment),
-                ..Item::new(alignment.name())
-            };
-            (
-                item,
-                BuildStart {
-                    alignment: Some(alignment),
-                    ..current.clone()
-                },
-            )
-        })
-        .collect();
     let remove = current.alignment.is_some().then(|| {
         (
             Choice::Alignment,
@@ -1022,7 +1008,71 @@ fn AlignmentPicker() -> impl IntoView {
             }),
         )
     });
-    view! { <StartPicker title="Alignment" starts remove/> }
+    // The name over the wheel: the one under the pointer or focus, else the current one.
+    let shown = RwSignal::new(None::<Alignment>);
+    let nodes = Alignment::ALL
+        .into_iter()
+        .map(|alignment| {
+            let start = BuildStart {
+                alignment: Some(alignment),
+                ..current.clone()
+            };
+            let on = current.alignment == Some(alignment);
+            let allowed = on || planner.allows(&Edit::Start(start.clone()));
+            let start = StoredValue::new(start);
+            view! {
+                <button
+                    class=format!("alignment-node {}", wheel_place(alignment))
+                    class:on=on
+                    role="radio"
+                    aria-checked=on.to_string()
+                    aria-label=alignment.name()
+                    title=alignment.name()
+                    disabled=!allowed
+                    on:mouseenter=move |_| shown.set(Some(alignment))
+                    on:focus=move |_| shown.set(Some(alignment))
+                    on:mouseleave=move |_| shown.set(None)
+                    on:blur=move |_| shown.set(None)
+                    on:click=move |_| {
+                        planner.close();
+                        if !on {
+                            planner.edit(Edit::Start(start.get_value()));
+                        }
+                    }
+                >
+                    {alignment.short_name()}
+                </button>
+            }
+        })
+        .collect_view();
+    let name = move || {
+        shown
+            .get()
+            .or(current.alignment)
+            .map_or("Choose an alignment", Alignment::name)
+    };
+    view! {
+        <Head title="Alignment" place="Build start" remove/>
+        <p class="alignment-name">{name}</p>
+        <div class="alignment-wheel" role="radiogroup" aria-label="Alignment">
+            {nodes}
+        </div>
+    }
+}
+
+/// An alignment's place on the wheel, as a class: its spot on the ring (or the middle) and its moral tint.
+fn wheel_place(alignment: Alignment) -> &'static str {
+    match alignment {
+        Alignment::NeutralGood => "at-n good",
+        Alignment::ChaoticGood => "at-ne good",
+        Alignment::ChaoticNeutral => "at-e neutral",
+        Alignment::ChaoticEvil => "at-se evil",
+        Alignment::NeutralEvil => "at-s evil",
+        Alignment::LawfulEvil => "at-sw evil",
+        Alignment::LawfulNeutral => "at-w neutral",
+        Alignment::LawfulGood => "at-nw good",
+        Alignment::TrueNeutral => "at-middle neutral",
+    }
 }
 
 #[component]

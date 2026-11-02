@@ -15,6 +15,11 @@
   --bad: #b42318;
   --bad-bg: #fde8e6;
   --focus: #2463eb;
+  --good: #c9d6ea;
+  --neutral: #e3dccb;
+  --evil: #e9c1ba;
+  --good-ink: #3b5a8c;
+  --evil-ink: #9b3427;
   --scrim: rgb(0 0 0 / 0.45);
   --shadow: 0 10px 40px rgb(0 0 0 / 0.18);
   --radius: 10px;
@@ -38,6 +43,11 @@
     --bad: #f88b84;
     --bad-bg: #3a1d1d;
     --focus: #7aa2ff;
+    --good: #2c3a52;
+    --neutral: #3a362c;
+    --evil: #4a2b28;
+    --good-ink: #a9c1ec;
+    --evil-ink: #f0a49a;
     --scrim: rgb(0 0 0 / 0.6);
     --shadow: 0 10px 40px rgb(0 0 0 / 0.5);
   }
@@ -855,4 +865,98 @@ ul.skills {
     border-radius: 16px;
     transform: translate(-50%, -50%);
   }
+}
+
+/* ---- the alignment wheel -------------------------------------------------------------------------------- */
+
+.alignment-name {
+  margin: 4px 0 10px;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* The ring: good across the top three sectors, neutral at the sides, evil across the bottom three, each sector
+   centred on its alignment (45° apart, Neutral Good at the top). */
+.alignment-wheel {
+  --size: min(300px, 78vw);
+  --node: 52px;
+  position: relative;
+  width: var(--size);
+  height: var(--size);
+  margin: 0 auto 12px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: conic-gradient(
+    from -67.5deg,
+    var(--good) 0deg 135deg,
+    var(--neutral) 135deg 180deg,
+    var(--evil) 180deg 315deg,
+    var(--neutral) 315deg 360deg
+  );
+}
+
+/* The middle disc, behind True Neutral. */
+.alignment-wheel::before {
+  position: absolute;
+  inset: 32%;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--neutral);
+  content: "";
+}
+
+.alignment-node {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  width: var(--node);
+  height: var(--node);
+  min-height: var(--node);
+  padding: 0;
+  border: 2px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  /* Out from the middle to the ring at --angle, then upright again. */
+  transform: translate(-50%, -50%) rotate(var(--angle)) translateY(calc(var(--size) / -2 + var(--node) / 2 + 6px))
+    rotate(calc(-1 * var(--angle)));
+}
+
+.alignment-node.at-n { --angle: 0deg; }
+.alignment-node.at-ne { --angle: 45deg; }
+.alignment-node.at-e { --angle: 90deg; }
+.alignment-node.at-se { --angle: 135deg; }
+.alignment-node.at-s { --angle: 180deg; }
+.alignment-node.at-sw { --angle: 225deg; }
+.alignment-node.at-w { --angle: 270deg; }
+.alignment-node.at-nw { --angle: 315deg; }
+
+.alignment-node.at-middle {
+  transform: translate(-50%, -50%);
+}
+
+.alignment-node.good {
+  border-color: var(--good-ink);
+  color: var(--good-ink);
+}
+
+.alignment-node.evil {
+  border-color: var(--evil-ink);
+  color: var(--evil-ink);
+}
+
+.alignment-node.on {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+  box-shadow: 0 0 0 3px var(--accent);
+}
+
+.alignment-node:disabled {
+  border-color: var(--line);
+  color: var(--muted);
+  opacity: 0.5;
 }
