@@ -51,7 +51,7 @@ const fn row(
 }
 
 /// The user's list, in its order.
-const ROWS: [Row; 39] = {
+const ROWS: [Row; 38] = {
     use BackgroundGroup::*;
     const FORT: Option<&str> = Some("+1 Fortitude");
     [
@@ -359,14 +359,6 @@ const ROWS: [Row; 39] = {
             None,
             None,
         ),
-        Row {
-            group: None,
-            name: "None",
-            class_skills: &[],
-            proficiencies: &[],
-            feat: None,
-            other: None,
-        },
     ]
 };
 

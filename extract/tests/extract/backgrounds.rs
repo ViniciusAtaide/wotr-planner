@@ -14,7 +14,7 @@ fn the_users_backgrounds_are_what_game_data_holds() {
     let data = data::read_game_data_files(&data::game_data_dir()).unwrap();
     let mut carried = extract::backgrounds::backgrounds(&data);
     carried.sort_by(|a, b| a.key.cmp(&b.key));
-    assert_eq!(carried.len(), 39);
+    assert_eq!(carried.len(), 38);
     assert_eq!(carried, data.backgrounds);
 }
 

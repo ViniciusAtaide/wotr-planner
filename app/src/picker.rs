@@ -1087,10 +1087,7 @@ fn BackgroundPicker() -> impl IntoView {
         .map(|background| {
             let item = Item {
                 detail: background.note.clone(),
-                category: background
-                    .group
-                    .map_or("None", |group| group.name())
-                    .to_owned(),
+                category: background.group.map_or("", |group| group.name()).to_owned(),
                 current: current.background.as_ref() == Some(&background.key),
                 ..Item::new(background.name.clone())
             };

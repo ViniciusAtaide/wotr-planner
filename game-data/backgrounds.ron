@@ -28,7 +28,6 @@
     (key: "nature", name: "Nature", group: Scholar, note: "One druid orison at will: Flare, Guidance, Light, Resistance or Virtue.", class_skills: ["lore-nature", "use-magic-device"]),
     (key: "nexian-scholar", name: "Nexian Scholar", group: Regional, note: "+2 Knowledge (Arcana).", class_skills: ["knowledge-arcana"]),
     (key: "nomad", name: "Nomad", group: Wanderer, note: "Proficient with scimitar. Animal companion +3 max HP.", class_skills: ["lore-nature"]),
-    (key: "none", name: "None"),
     (key: "osirian-historian", name: "Osirian Historian", group: Regional, note: "+2 Knowledge (World).", class_skills: ["knowledge-world"]),
     (key: "pickpocket", name: "Pickpocket", group: StreetUrchin, note: "+2 initiative.", class_skills: ["stealth", "trickery"]),
     (key: "qadiran-wanderer", name: "Qadiran Wanderer", group: Regional, note: "+2 saves against fatigue and exhaustion.", class_skills: ["lore-nature", "perception"]),

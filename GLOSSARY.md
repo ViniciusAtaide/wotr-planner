@@ -16,7 +16,7 @@ The choices made before level 1: race (and subrace), alignment, **Background** a
 _Avoid_: Character creation, level 0
 
 **Background**:
-A Build start choice from the user's list (38 backgrounds in eight groups, plus None, which grants nothing). Its skills become **Class skills** and its feats are **Granted feats**, held from the start and counted for prerequisites like any other (a Guard's Armor Proficiency (Light Armor) lets it take Medium Armor at level 1; the Aldori Swordsman's is Exotic Weapon Proficiency (Dueling Sword), for that value). Everything else it gives (other weapon proficiencies, the buckler, save, AC and skill bonuses) is its note, shown with the Build. No background chosen yet isn't the background None.
+A Build start choice from the user's list (38 backgrounds in eight groups; a Build start without one simply has none). Its skills become **Class skills** and its feats are **Granted feats**, held from the start and counted for prerequisites like any other (a Guard's Armor Proficiency (Light Armor) lets it take Medium Armor at level 1; the Aldori Swordsman's is Exotic Weapon Proficiency (Dueling Sword), for that value). Everything else it gives (other weapon proficiencies, the buckler, save, AC and skill bonuses) is its note, shown with the Build. No background chosen yet isn't the background None.
 _Avoid_: Origin, history
 
 **Class skill**:

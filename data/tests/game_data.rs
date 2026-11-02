@@ -3269,9 +3269,9 @@ fn general_feat_status(build: &Build, feat: &str) -> Result<(), Issue> {
 }
 
 #[test]
-fn the_users_39_backgrounds_are_there_in_their_groups() {
+fn the_users_38_backgrounds_are_there_in_their_groups() {
     use rules::BackgroundGroup::*;
-    assert_eq!(DATA.backgrounds.len(), 39);
+    assert_eq!(DATA.backgrounds.len(), 38);
     let in_group = |group| {
         DATA.backgrounds
             .iter()
@@ -3292,18 +3292,12 @@ fn the_users_39_backgrounds_are_there_in_their_groups() {
         .map(in_group),
         [4, 3, 3, 15, 3, 3, 3, 4]
     );
-    let none: Vec<&str> = DATA
-        .backgrounds
-        .iter()
-        .filter(|b| b.group.is_none())
-        .map(|b| b.name.as_str())
-        .collect();
-    assert_eq!(none, ["None"]);
-    // Every one but None makes at least one skill a class skill.
+    // No background stands for "none": a Build without one is the Build start's own state (user, 2026-11-02).
+    // So every background has a group and makes at least one skill a class skill.
     assert!(
         DATA.backgrounds
             .iter()
-            .all(|b| b.class_skills.is_empty() == (b.name == "None"))
+            .all(|b| b.group.is_some() && !b.class_skills.is_empty())
     );
 }
 
@@ -3396,21 +3390,6 @@ fn a_martial_disciples_improved_unarmed_strike_meets_stunning_fists_prerequisite
         general_feat_status(&wizard_with(Some("martial-disciple")), "stunning-fist"),
         Ok(())
     );
-}
-
-#[test]
-fn the_background_none_grants_nothing() {
-    let none = DATA
-        .backgrounds
-        .iter()
-        .find(|b| b.key.as_str() == "none")
-        .unwrap();
-    assert!(none.class_skills.is_empty() && none.feats.is_empty() && none.feats_for.is_empty());
-    assert_eq!(none.note, "");
-    let with_none = engine().evaluate(&wizard_with(Some("none")));
-    let without = engine().evaluate(&wizard_with(None));
-    assert_eq!(with_none.at(1), without.at(1));
-    assert!(engine().is_possible(&wizard_with(Some("none"))));
 }
 
 // ---- options' class skills (ticket 37) ------------------------------------------------------------------------

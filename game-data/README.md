@@ -58,8 +58,8 @@ class's), and BAB and saves (from the class's progressions).
   as a class level row does (the Aldori Swordsman: `feats_for: [(feat: "exotic-weapon-proficiency", value:
   Weapon("dueling-sword"))]`; Bounty Hunter, Gladiator, Guard, Mercenary: Armor Proficiency (Light Armor)). What
   the planner doesn't model is its `note` ("Proficient with scimitar. +2 CMD against trip."). `group` is the game's
-  heading (`Craftsman`, `Noble`, `Oblate`, `Regional`, `Scholar`, `StreetUrchin`, `Wanderer`, `Warrior`); the
-  background None has none and grants nothing.
+  heading (`Craftsman`, `Noble`, `Oblate`, `Regional`, `Scholar`, `StreetUrchin`, `Wanderer`, `Warrior`). There's
+  no "None" background: a Build start without one simply has none (user, 2026-11-02).
 - A selection option's key extends its selection's: `rogue/rogue-talents/fast-stealth`. A feature's, a
   selection's and a feat list's key starts with its owner's (the archetype's when an archetype defines it), and
   the schema checks it: Hard to Kill is each path's own `aeon/hard-to-kill`, not one shared key.

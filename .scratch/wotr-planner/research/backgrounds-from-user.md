@@ -43,3 +43,5 @@ Facts the user gave on 2026-11-01. Every background adds its skills to the chara
 | Warrior | Guard | Perception | light armour, shortsword, light crossbow | — | — |
 | Warrior | Mercenary | Knowledge (World) | light armour, spear, longspear, javelin | — | — |
 | — | None | — | — | — | — |
+
+**Dropped (user, 2026-11-02):** the None row isn't a background. A Build start without a background is its own state ("No background"), so the data holds the other 38.
