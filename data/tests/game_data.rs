@@ -3977,7 +3977,8 @@ fn every_feature_a_prerequisite_needs_is_named() {
 }
 
 /// Features that share a name read apart in a reason: each one a prerequisite needs reads its own way, and one whose
-/// name another feature shares says whose it is ("Weapon Training (Fighter) or Weapon Training (Sohei)").
+/// name another feature shares says whose it is ("Weapon Training (Fighter) or Weapon Training (Sohei)"). Of the
+/// alternatives, a reason names those the character's classes give.
 #[test]
 fn features_sharing_a_name_read_apart_in_a_reason() {
     let engine = engine();
@@ -3995,26 +3996,35 @@ fn features_sharing_a_name_read_apart_in_a_reason() {
             panic!("{other} and {feature} both read {text:?}");
         }
     }
-    let build = build("fighter", 1);
-    let advanced = engine
-        .options(
-            &build,
-            &SlotId::Feat {
-                level: 1,
-                source: FeatSource::General,
-                index: 0,
-            },
-        )
-        .unwrap()
-        .into_iter()
-        .find(|option| option.pick == Pick::feat(FeatKey::new("advanced-weapon-training")))
-        .unwrap();
+    // The reason names only the alternatives the character's classes give, all of them when none does.
+    let reason = |build: &Build| {
+        let advanced = engine
+            .options(
+                build,
+                &SlotId::Feat {
+                    level: 1,
+                    source: FeatSource::General,
+                    index: 0,
+                },
+            )
+            .unwrap()
+            .into_iter()
+            .find(|option| option.pick == Pick::feat(FeatKey::new("advanced-weapon-training")))
+            .unwrap();
+        engine.issue_text(&advanced.status.unwrap_err()).unwrap()
+    };
     assert_eq!(
-        engine.issue_text(&advanced.status.unwrap_err()).as_deref(),
-        Some(
-            "Needs (Weapon Training (Spears / Polearms) or Weapon Training (Fighter) or Weapon Training \
-             (Sohei)), Fighter level 5 (have 1)"
-        )
+        reason(&build("fighter", 1)),
+        "Needs Weapon Training (Fighter), Fighter level 5 (have 1)"
+    );
+    assert_eq!(
+        reason(&archetype_build("monk", "monk/sohei", 1)),
+        "Needs Weapon Training (Sohei), Fighter level 5 (have 0)"
+    );
+    assert_eq!(
+        reason(&build("wizard", 1)),
+        "Needs (Weapon Training (Spears / Polearms) or Weapon Training (Fighter) or Weapon Training (Sohei)), \
+         Fighter level 5 (have 0)"
     );
 }
 

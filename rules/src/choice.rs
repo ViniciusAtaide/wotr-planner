@@ -90,7 +90,8 @@ pub enum Unmet {
     },
     /// The failing children of an `All` that has more than one failure (a single failure is reported on its own).
     All(Vec<Unmet>),
-    /// Every child of an `Any`, all failing.
+    /// Every child of an `Any`, all failing. A picker's reason keeps only those the character's classes give, when
+    /// any does ([`Engine::options`](crate::Engine::options)).
     Any(Vec<Unmet>),
     /// An `AtLeast(needed, ..)` with only `met` children holding; `failed` are the others.
     AtLeast {

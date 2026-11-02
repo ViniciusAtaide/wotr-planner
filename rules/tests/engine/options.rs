@@ -114,23 +114,13 @@ fn an_and_prerequisite_reports_each_failing_condition() {
 fn an_or_prerequisite_holds_when_any_branch_does() {
     // Dirty Trick: Combat Expertise, or Sneak Attack and Int 13. An elf has Int 15.
     let fighter = build("elf", &["fighter"]);
-    assert_eq!(
-        status_of(
-            &options(&fighter, &general_slot(1)),
-            &pick_feat("dirty-trick")
-        ),
-        Err(Issue::Unmet(Unmet::Any(vec![
-            // The Sneak Attack branch fails only on Sneak Attack (Int is fine).
-            needs(
-                Prerequisite::Feature {
-                    feature: feature("rogue/sneak-attack"),
-                    count: 1,
-                },
-                Some(0),
-            ),
-            needs_feat("combat-expertise"),
-        ])))
+    let status = status_of(
+        &options(&fighter, &general_slot(1)),
+        &pick_feat("dirty-trick"),
     );
+    // Both branches fail; the reason names only the one a fighter's classes give, Combat Expertise, not the
+    // rogue's Sneak Attack.
+    assert_eq!(status, Err(Issue::Unmet(needs_feat("combat-expertise"))));
 
     let rogue = build("elf", &["rogue"]);
     assert_eq!(

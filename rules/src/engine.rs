@@ -272,7 +272,8 @@ pub struct SkillPoints {
 pub struct SlotOption {
     pub pick: Pick,
     /// `Ok` when it can be picked here; otherwise why not (prerequisites with reasons, already held, or
-    /// [`Issue::BreaksLater`]).
+    /// [`Issue::BreaksLater`]). An unmet "or" names only the alternatives the character's classes give, when any
+    /// does.
     pub status: Result<(), Issue>,
 }
 
@@ -976,12 +977,14 @@ impl Engine {
             candidates
                 .into_iter()
                 .map(|pick| SlotOption {
-                    status: check_pick(self, &state, &kind, &pick).and_then(|()| {
-                        recheck.later(&Edit::Pick {
-                            slot: slot.clone(),
-                            pick: pick.clone(),
-                        })
-                    }),
+                    status: check_pick(self, &state, &kind, &pick)
+                        .map_err(|issue| self.reason_for(issue, &state))
+                        .and_then(|()| {
+                            recheck.later(&Edit::Pick {
+                                slot: slot.clone(),
+                                pick: pick.clone(),
+                            })
+                        }),
                     pick,
                 })
                 .collect(),

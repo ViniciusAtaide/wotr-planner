@@ -8,7 +8,9 @@ use super::{Engine, SlotKind};
 use crate::build::{FeatSource, Pick, SlotId};
 use crate::choice::{Issue, Unmet};
 use crate::engine::Slot;
-use crate::game_data::{Ability, Alignment, FeatCategory, FeatSlot, SpellType};
+use crate::game_data::{
+    Ability, Alignment, Class, FeatCategory, FeatSlot, MythicPath, SelectionOption, SpellType,
+};
 use crate::keys::{
     ArchetypeKey, BackgroundKey, ClassKey, FeatKey, FeatListKey, FeatureKey, FeatureSelectionKey,
     MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey, SelectionOptionKey, SkillKey,
@@ -16,6 +18,16 @@ use crate::keys::{
 };
 use crate::parameter::{Parameter, ParameterKind};
 use crate::prerequisite::Prerequisite;
+use crate::state::CharacterState;
+
+/// What a feature belongs to.
+enum Holder<'a> {
+    Option(&'a SelectionOption),
+    /// A class and the index of one of its archetypes.
+    Archetype(&'a Class, usize),
+    Class(&'a Class),
+    Path(&'a MythicPath),
+}
 
 impl Engine {
     pub fn race_name<'a>(&'a self, key: &'a RaceKey) -> &'a str {
@@ -81,26 +93,113 @@ impl Engine {
         }
     }
 
-    /// The name of what a feature belongs to: the nearest option, archetype, class or path its key sits under
-    /// (`cleric/domain/animal/animal-companion` is the Animal Domain's).
+    /// The name of what a feature belongs to (`cleric/domain/animal/animal-companion` is the Animal Domain's).
     fn feature_owner(&self, key: &FeatureKey) -> Option<&str> {
+        Some(match self.feature_holder(key)? {
+            Holder::Option(option) => &option.name,
+            Holder::Archetype(class, archetype) => &class.archetypes[archetype].name,
+            Holder::Class(class) => &class.name,
+            Holder::Path(path) => &path.name,
+        })
+    }
+
+    /// The nearest option, archetype, class or path a feature's key sits under.
+    fn feature_holder(&self, key: &FeatureKey) -> Option<Holder<'_>> {
         let mut prefix = key.as_str();
         while let Some((owner, _)) = prefix.rsplit_once('/') {
             prefix = owner;
             if let Some(option) = self.option(&SelectionOptionKey::new(prefix)) {
-                return Some(&option.name);
+                return Some(Holder::Option(option));
             }
             if let Some(&(class, archetype)) = self.archetypes.get(&ArchetypeKey::new(prefix)) {
-                return Some(&self.data.classes[class].archetypes[archetype].name);
+                return Some(Holder::Archetype(&self.data.classes[class], archetype));
             }
             if let Some((class, _)) = self.class(&ClassKey::new(prefix)) {
-                return Some(&class.name);
+                return Some(Holder::Class(class));
             }
             if let Some(path) = self.path(&MythicPathKey::new(prefix)) {
-                return Some(&path.name);
+                return Some(Holder::Path(path));
             }
         }
         None
+    }
+
+    /// A picker's reason for this character: of each "or", only the alternatives the character's classes give
+    /// (Advanced Weapon Training for a fighter needs the Fighter's Weapon Training, not the Sohei's), or every
+    /// alternative when none does. The pick is locked either way; this only keeps the reason to the point.
+    pub(super) fn reason_for(&self, issue: Issue, state: &CharacterState) -> Issue {
+        match issue {
+            Issue::Unmet(unmet) => Issue::Unmet(self.unmet_for(unmet, state)),
+            issue => issue,
+        }
+    }
+
+    fn unmet_for(&self, unmet: Unmet, state: &CharacterState) -> Unmet {
+        match unmet {
+            Unmet::Condition { .. } => unmet,
+            Unmet::All(children) => Unmet::All(
+                children
+                    .into_iter()
+                    .map(|child| self.unmet_for(child, state))
+                    .collect(),
+            ),
+            Unmet::AtLeast {
+                needed,
+                met,
+                failed,
+            } => Unmet::AtLeast {
+                needed,
+                met,
+                failed: failed
+                    .into_iter()
+                    .map(|child| self.unmet_for(child, state))
+                    .collect(),
+            },
+            Unmet::Any(children) => {
+                let children: Vec<Unmet> = children
+                    .into_iter()
+                    .map(|child| self.unmet_for(child, state))
+                    .collect();
+                let (mut reachable, others): (Vec<Unmet>, Vec<Unmet>) = children
+                    .into_iter()
+                    .partition(|child| self.within_reach(child, state));
+                match reachable.len() {
+                    0 => Unmet::Any(others),
+                    1 => reachable.pop().expect("one"),
+                    _ => Unmet::Any(reachable),
+                }
+            }
+        }
+    }
+
+    /// Whether the character's classes could give this: a class feature or level of a class it has (with its
+    /// archetype, for an archetype's), or anything not tied to a class.
+    fn within_reach(&self, unmet: &Unmet, state: &CharacterState) -> bool {
+        let has = |class: &ClassKey| state.classes.iter().any(|taken| &taken.class == class);
+        let has_archetype = |archetype: &ArchetypeKey| {
+            state
+                .classes
+                .iter()
+                .any(|taken| taken.archetype.as_ref() == Some(archetype))
+        };
+        match unmet {
+            Unmet::Condition { needs, .. } => match needs {
+                Prerequisite::ClassLevel { class, .. } => has(class),
+                Prerequisite::Archetype(archetype) => has_archetype(archetype),
+                Prerequisite::Feature { feature, .. } => match self.feature_holder(feature) {
+                    Some(Holder::Class(class)) => has(&class.key),
+                    Some(Holder::Archetype(class, archetype)) => {
+                        has_archetype(&class.archetypes[archetype].key)
+                    }
+                    // An option's features (a domain's) come with options several classes share.
+                    _ => true,
+                },
+                _ => true,
+            },
+            Unmet::All(children) => children.iter().all(|child| self.within_reach(child, state)),
+            Unmet::Any(children) => children.iter().any(|child| self.within_reach(child, state)),
+            Unmet::AtLeast { .. } => true,
+        }
     }
 
     pub fn selection_name<'a>(&'a self, key: &'a FeatureSelectionKey) -> &'a str {
