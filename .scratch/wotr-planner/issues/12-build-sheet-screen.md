@@ -68,7 +68,7 @@ Opening a 20-level link and showing the sheet took ~90 ms locally. Nothing is to
 - **Changing an archetype** is the class picker at the class's first level, so it needs that level's class to be changeable (removable); no separate archetype control.
 - **Prestige advancement prompt**: offered after picking a prestige class first taken at the level whose rows advance spellcasting; it lists only the choices for which the edited Build is possible (one class, two, or None), since the walk gives no reason for the others.
 - **Options with values**: one entry per feat or option ("Weapon Focus ›"), opening its values; it's locked when no value is open, with a reason other than "already taken" when any value has one.
-- **Locked Build start options and steps** show "Would break a later choice": `allows` gives no reason.
+- **Locked Build start options and steps** are greyed out with no reason (see below).
 - **Skill rank +** also needs points left at that level (the walk accepts no overspent level, and `allows` doesn't check the edit's own level).
 - **A fragment that isn't `#b=…`** is a stale link (the generic error), and the error clears on the next edit.
 - **The Build start** opens by default only while the Build has no levels.
@@ -80,7 +80,7 @@ All in `/private/tmp/claude-501/-Users-thaynamarcela-code/764fca33-bbfa-4ae3-a07
 
 ### Known gaps
 
-- "Would break a later choice" never names the later choice (the engine doesn't say which); the prototype's "Would break: Cleave (L1)" would need an engine addition.
+- **User, 2026-11-02:** an option that would break a later choice (`Issue::BreaksLater`, or a control `allows` refuses) is just greyed out, with no reason text. `Engine::issue_text` gives `None` for it, and the picker's `Item` keeps `locked` apart from its optional `reason`. So no "Would break: Cleave (L1)" text is needed.
 - The game data goes over the wire uncompressed (1.5 MB; 112 KB gzipped). Fine on the LAN; a compression layer on the server would fix it.
 - No copy-link or new-Build button: the address bar is the link, and `/` is a blank Build.
 - The value list of Exotic Weapon Proficiency says "Choose a weapon" (the pick's value can't tell an exotic weapon from any weapon).

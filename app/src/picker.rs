@@ -1,6 +1,7 @@
 //! The picker: a bottom sheet on a narrow screen (the Fold's cover), a centred modal from 600px up. One list
-//! behaviour for every choice: search, category chips, the locked options behind "Show N locked" with each one's
-//! reason, and a remove (×) control only for a choice `Engine::removable` gives.
+//! behaviour for every choice: search, category chips, the locked options greyed behind "Show N locked" with
+//! their reason (none for one that would break a later choice: it just stays grey), and a remove (×) control
+//! only for a choice `Engine::removable` gives.
 
 use std::collections::BTreeSet;
 use std::sync::Arc;
@@ -22,8 +23,10 @@ pub struct Item {
     pub detail: String,
     /// The chip it's filed under; empty for none.
     pub category: String,
-    /// Why it can't be taken, when it can't.
-    pub locked: Option<String>,
+    /// It can't be taken: greyed out, behind "Show N locked".
+    pub locked: bool,
+    /// Why not, when the sheet says: an option that would break a later choice stays grey with none.
+    pub reason: Option<String>,
     /// What the Build holds now.
     pub current: bool,
     /// Opens a list of values instead of picking.
@@ -36,15 +39,13 @@ impl Item {
             name: name.into(),
             detail: String::new(),
             category: String::new(),
-            locked: None,
+            locked: false,
+            reason: None,
             current: false,
             more: false,
         }
     }
 }
-
-/// The text a locked option shows when its edit would break a later choice.
-const BREAKS_LATER: &str = "Would break a later choice";
 
 /// The open picker, if any.
 #[component]
@@ -160,7 +161,7 @@ pub fn ItemList(
             items
                 .iter()
                 .enumerate()
-                .filter(|(_, item)| item.locked.is_some() == locked)
+                .filter(|(_, item)| item.locked == locked)
                 .filter(|(_, item)| category.as_ref().is_none_or(|c| &item.category == c))
                 .filter(|(_, item)| {
                     query.is_empty()
@@ -172,7 +173,7 @@ pub fn ItemList(
         })
     };
     let row = move |(index, item): (usize, Item)| {
-        let locked = item.locked.is_some();
+        let locked = item.locked;
         view! {
             <li>
                 <button
@@ -189,7 +190,7 @@ pub fn ItemList(
                     </span>
                     {(!item.detail.is_empty())
                         .then(|| view! { <span class="item-detail">{item.detail}</span> })}
-                    {item.locked.map(|reason| view! { <span class="item-reason">{reason}</span> })}
+                    {item.reason.map(|reason| view! { <span class="item-reason">{reason}</span> })}
                 </button>
             </li>
         }
@@ -300,9 +301,12 @@ fn loading() -> AnyView {
     view! { <p class="empty">"Working out the options…"</p> }.into_any()
 }
 
-/// The reason a locked option shows.
+/// The reason a locked option shows, when it shows one.
 fn reason(engine: &Engine, status: &Result<(), Issue>) -> Option<String> {
-    status.as_ref().err().map(|issue| engine.issue_text(issue))
+    status
+        .as_ref()
+        .err()
+        .and_then(|issue| engine.issue_text(issue))
 }
 
 /// Where a slot is: "Level 3" or "Mythic rank 4".
@@ -432,7 +436,8 @@ fn SlotPicker(id: SlotId) -> impl IntoView {
                             name: group.name.clone(),
                             detail,
                             category: group.category.clone(),
-                            locked: (!open).then(|| group_reason(&engine, group)),
+                            locked: !open,
+                            reason: (!open).then(|| group_reason(&engine, group)).flatten(),
                             current: current.with_value(|current| {
                                 current.as_ref().is_some_and(|current| {
                                     group.options.iter().any(|option| &option.pick == current)
@@ -464,7 +469,8 @@ fn SlotPicker(id: SlotId) -> impl IntoView {
                     .options
                     .iter()
                     .map(|option| Item {
-                        locked: reason(&engine, &option.status),
+                        locked: option.status.is_err(),
+                        reason: reason(&engine, &option.status),
                         current: current
                             .with_value(|current| current.as_ref() == Some(&option.pick)),
                         ..Item::new(
@@ -503,8 +509,9 @@ fn SlotPicker(id: SlotId) -> impl IntoView {
 }
 
 /// Why no value of a group can be taken: a value's reason other than already holding it, when one has one (Weapon
-/// Focus held for a longsword but needing BAB +1 for the rest says the BAB), else the first value's.
-fn group_reason(engine: &Engine, group: &Group) -> String {
+/// Focus held for a longsword but needing BAB +1 for the rest says the BAB), else the first value's. None when that
+/// one shows no reason.
+fn group_reason(engine: &Engine, group: &Group) -> Option<String> {
     let issues = group
         .options
         .iter()
@@ -514,8 +521,7 @@ fn group_reason(engine: &Engine, group: &Group) -> String {
         .clone()
         .find(|issue| !held(issue))
         .or_else(|| issues.clone().next())
-        .map(|issue| engine.issue_text(issue))
-        .unwrap_or_default()
+        .and_then(|issue| engine.issue_text(issue))
 }
 
 /// What a value is called, with its article: "a weapon", "a skill", "an energy type".
@@ -689,7 +695,8 @@ fn class_item(engine: &Engine, build: &Build, level: u8, option: &ClassOption) -
         } else {
             "Base classes".into()
         },
-        locked: reason(engine, &option.status),
+        locked: option.status.is_err(),
+        reason: reason(engine, &option.status),
         current,
         ..Item::new(name)
     }
@@ -804,7 +811,8 @@ fn PathPicker(switch: bool) -> impl IntoView {
                 .unwrap_or_default();
             Item {
                 detail: summary,
-                locked: reason(&engine, &option.status),
+                locked: option.status.is_err(),
+                reason: reason(&engine, &option.status),
                 current: current.as_ref() == Some(&option.path),
                 ..Item::new(engine.path_name(&option.path))
             }
@@ -904,7 +912,7 @@ fn start_items(
         .map(|(item, start)| {
             let allowed = start == current || planner.allows(&Edit::Start(start.clone()));
             Item {
-                locked: (!allowed).then(|| BREAKS_LATER.to_owned()),
+                locked: !allowed,
                 ..item.clone()
             }
         })
@@ -1076,7 +1084,7 @@ fn AbilityIncreasePicker(level: u8) -> impl IntoView {
             let allowed = current == Some(ability) || planner.allows(&edit);
             Item {
                 current: current == Some(ability),
-                locked: (!allowed).then(|| BREAKS_LATER.to_owned()),
+                locked: !allowed,
                 ..Item::new(format!("+1 {}", ability.name()))
             }
         })

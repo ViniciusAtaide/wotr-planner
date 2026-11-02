@@ -139,7 +139,6 @@ fn racial_choice(start: &BuildStart) -> impl IntoView + use<> {
                     class="seg"
                     class:on=on
                     disabled=!allowed
-                    title=(!allowed).then_some("Would break a later choice")
                     on:click=move |_| {
                         if !on {
                             planner.edit(Edit::Start(next.clone()));

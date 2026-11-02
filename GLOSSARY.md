@@ -182,5 +182,5 @@ A link whose Build the current game data can't hold: a key the data no longer ha
 _Avoid_: Problem, broken pick, stale-link banner
 
 **Removable**:
-A choice the sheet may remove or change now: no later choice depends on it. Choices come off from the leaves inward: of Power Attack, Cleave and Great Cleave, Great Cleave first, then Cleave. A picker locks an option that would break a later choice.
+A choice the sheet may remove or change now: no later choice depends on it. Choices come off from the leaves inward: of Power Attack, Cleave and Great Cleave, Great Cleave first, then Cleave. A picker locks an option that would break a later choice, greyed out with no reason.
 _Avoid_: Would-break, conflict

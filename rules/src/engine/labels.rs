@@ -191,9 +191,10 @@ impl Engine {
         }
     }
 
-    /// Why a picker's option can't be taken, as one line: "Needs Power Attack, BAB +4 (have +1)".
-    pub fn issue_text(&self, issue: &Issue) -> String {
-        match issue {
+    /// Why a picker's option can't be taken, as one line: "Needs Power Attack, BAB +4 (have +1)". `None` for an
+    /// option that would break a later choice: the sheet leaves it grey, with no reason.
+    pub fn issue_text(&self, issue: &Issue) -> Option<String> {
+        Some(match issue {
             Issue::Unmet(unmet) => format!("Needs {}", self.unmet_text(unmet)),
             Issue::AlreadyHeld => "Already taken".to_owned(),
             Issue::MaxTimes { times } => format!("Already taken {times} times"),
@@ -203,8 +204,8 @@ impl Engine {
                 let paths: Vec<&str> = from.iter().map(|path| self.path_name(path)).collect();
                 format!("Only from {}", paths.join(" or "))
             }
-            Issue::BreaksLater => "Would break a later choice".to_owned(),
-        }
+            Issue::BreaksLater => return None,
+        })
     }
 
     /// What an unmet prerequisite needs, without the leading "Needs".

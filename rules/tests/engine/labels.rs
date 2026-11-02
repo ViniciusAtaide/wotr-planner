@@ -3,8 +3,8 @@
 use std::collections::BTreeSet;
 
 use rules::{
-    Ability, Alignment, ArchetypeKey, FeatCategory, FeatureSelectionKey, Issue, MythicPathKey,
-    OptionGroup, Parameter, Prerequisite, RaceKey, SpellType, Story, Unmet,
+    Ability, Alignment, ArchetypeKey, Engine, FeatCategory, FeatureSelectionKey, Issue,
+    MythicPathKey, OptionGroup, Parameter, Prerequisite, RaceKey, SpellType, Story, Unmet,
 };
 
 use crate::support::*;
@@ -83,7 +83,7 @@ fn ability_alignment_and_category_names_are_the_games() {
 #[test]
 fn numeric_conditions_say_what_the_character_has() {
     let engine = engine();
-    let text = |prerequisite, has| engine.issue_text(&Issue::Unmet(needs(prerequisite, has)));
+    let text = |prerequisite, has| reason(&engine, &Issue::Unmet(needs(prerequisite, has)));
     assert_eq!(
         text(Prerequisite::BaseAttackBonus(4), Some(1)),
         "Needs BAB +4 (have +1)"
@@ -155,7 +155,7 @@ fn numeric_conditions_say_what_the_character_has() {
 #[test]
 fn other_conditions_name_what_is_needed() {
     let engine = engine();
-    let text = |prerequisite| engine.issue_text(&Issue::Unmet(needs(prerequisite, None)));
+    let text = |prerequisite| reason(&engine, &Issue::Unmet(needs(prerequisite, None)));
     assert_eq!(
         text(Prerequisite::Feat(feat("power-attack"))),
         "Needs power-attack"
@@ -214,7 +214,7 @@ fn groups_of_unmet_conditions_read_as_a_list() {
         needs(Prerequisite::BaseAttackBonus(1), Some(0)),
     ]);
     assert_eq!(
-        engine.issue_text(&Issue::Unmet(all)),
+        reason(&engine, &Issue::Unmet(all)),
         "Needs power-attack, BAB +1 (have +0)"
     );
     let any = Unmet::Any(vec![
@@ -222,13 +222,13 @@ fn groups_of_unmet_conditions_read_as_a_list() {
         needs(Prerequisite::Race(RaceKey::new("elf")), None),
     ]);
     assert_eq!(
-        engine.issue_text(&Issue::Unmet(any.clone())),
+        reason(&engine, &Issue::Unmet(any.clone())),
         "Needs Human or Elf"
     );
     // An `Any` inside a longer list is bracketed so it reads unambiguously.
     let nested = Unmet::All(vec![needs(Prerequisite::BaseAttackBonus(1), Some(0)), any]);
     assert_eq!(
-        engine.issue_text(&Issue::Unmet(nested)),
+        reason(&engine, &Issue::Unmet(nested)),
         "Needs BAB +1 (have +0), (Human or Elf)"
     );
     let at_least = Unmet::AtLeast {
@@ -240,7 +240,7 @@ fn groups_of_unmet_conditions_read_as_a_list() {
         ],
     };
     assert_eq!(
-        engine.issue_text(&Issue::Unmet(at_least)),
+        reason(&engine, &Issue::Unmet(at_least)),
         "Needs 1 more of: dodge, toughness"
     );
 }
@@ -248,26 +248,27 @@ fn groups_of_unmet_conditions_read_as_a_list() {
 #[test]
 fn the_other_issues_read_plainly() {
     let engine = engine();
-    assert_eq!(engine.issue_text(&Issue::AlreadyHeld), "Already taken");
+    assert_eq!(reason(&engine, &Issue::AlreadyHeld), "Already taken");
     assert_eq!(
-        engine.issue_text(&Issue::MaxTimes { times: 3 }),
+        reason(&engine, &Issue::MaxTimes { times: 3 }),
         "Already taken 3 times"
     );
     assert_eq!(
-        engine.issue_text(&Issue::ClassLevelCap { cap: 10 }),
+        reason(&engine, &Issue::ClassLevelCap { cap: 10 }),
         "All 10 levels taken"
     );
     assert_eq!(
-        engine.issue_text(&Issue::NotFromPath {
-            from: BTreeSet::from([path("aeon"), path("trickster")])
-        }),
+        reason(
+            &engine,
+            &Issue::NotFromPath {
+                from: BTreeSet::from([path("aeon"), path("trickster")])
+            }
+        ),
         "Only from Aeon or Trickster"
     );
-    assert_eq!(
-        engine.issue_text(&Issue::BreaksLater),
-        "Would break a later choice"
-    );
-    assert_eq!(engine.issue_text(&Issue::NotAllowed), "Not allowed here");
+    // An option that would break a later choice stays grey, with no reason.
+    assert_eq!(engine.issue_text(&Issue::BreaksLater), None);
+    assert_eq!(reason(&engine, &Issue::NotAllowed), "Not allowed here");
 }
 
 #[test]
@@ -282,7 +283,7 @@ fn a_picker_reason_comes_from_the_engine() {
         .find(|option| option.pick == pick_feat("cleave"))
         .unwrap();
     assert_eq!(
-        engine.issue_text(&cleave.status.unwrap_err()),
+        reason(&engine, &cleave.status.unwrap_err()),
         "Needs power-attack"
     );
 }
@@ -317,4 +318,9 @@ fn picker_categories_follow_the_guides_groups() {
         engine.pick_category(&pick_option("rogue/rogue-talents/fast-stealth")),
         "Rogue Talents"
     );
+}
+
+/// The reason a locked option shows, for one that has one.
+fn reason(engine: &Engine, issue: &Issue) -> String {
+    engine.issue_text(issue).expect("a reason")
 }

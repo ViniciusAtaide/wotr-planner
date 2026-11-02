@@ -4000,7 +4000,7 @@ fn the_sheet_labels_a_real_build() {
         .find(|option| option.pick == Pick::feat(FeatKey::new("cleave")))
         .unwrap();
     assert_eq!(
-        engine.issue_text(&cleave.status.unwrap_err()),
-        "Needs Power Attack"
+        engine.issue_text(&cleave.status.unwrap_err()).as_deref(),
+        Some("Needs Power Attack")
     );
 }
