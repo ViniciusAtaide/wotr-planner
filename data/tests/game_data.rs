@@ -3901,3 +3901,106 @@ fn the_animal_domains_lore_nature_comes_with_its_companion_at_the_holders_4th_do
         "lore-nature",
     );
 }
+
+/// Every feature a prerequisite names in the real data, wherever the prerequisite sits.
+fn prerequisite_features(data: &GameData) -> BTreeSet<FeatureKey> {
+    fn collect(prerequisite: &Prerequisite, out: &mut BTreeSet<FeatureKey>) {
+        match prerequisite {
+            Prerequisite::All(children)
+            | Prerequisite::Any(children)
+            | Prerequisite::AtLeast(_, children) => {
+                children.iter().for_each(|child| collect(child, out));
+            }
+            Prerequisite::Not(child) => collect(child, out),
+            Prerequisite::Feature { feature, .. } => {
+                out.insert(feature.clone());
+            }
+            _ => {}
+        }
+    }
+    let mut out = BTreeSet::new();
+    let selections = data
+        .classes
+        .iter()
+        .chain(&data.prestige_classes)
+        .flat_map(|class| {
+            class
+                .selections
+                .iter()
+                .chain(class.archetypes.iter().flat_map(|a| &a.selections))
+        })
+        .chain(data.mythic_paths.iter().flat_map(|path| &path.selections));
+    let prerequisites = data
+        .feats
+        .iter()
+        .filter_map(|feat| feat.prerequisite.as_ref())
+        .chain(
+            data.classes
+                .iter()
+                .chain(&data.prestige_classes)
+                .filter_map(|class| class.prerequisite.as_ref()),
+        )
+        .chain(data.archetypes().filter_map(|a| a.prerequisite.as_ref()))
+        .chain(
+            selections
+                .flat_map(|selection| &selection.options)
+                .filter_map(|option| option.prerequisite.as_ref()),
+        )
+        .chain(
+            data.mythic_abilities
+                .iter()
+                .filter_map(|a| a.prerequisite.as_ref()),
+        )
+        .chain(
+            data.mythic_feats
+                .iter()
+                .filter_map(|f| f.prerequisite.as_ref()),
+        );
+    for prerequisite in prerequisites {
+        collect(prerequisite, &mut out);
+    }
+    out
+}
+
+/// A picker's reasons name features by their names: every feature a prerequisite needs has one the sheet knows,
+/// so no reason shows a bare key.
+#[test]
+fn every_feature_a_prerequisite_needs_is_named() {
+    let engine = engine();
+    let features = prerequisite_features(&DATA);
+    assert!(!features.is_empty());
+    let unnamed: Vec<&FeatureKey> = features
+        .iter()
+        .filter(|feature| engine.feature_name(feature) == feature.as_str())
+        .collect();
+    assert!(unnamed.is_empty(), "unnamed: {unnamed:?}");
+}
+
+/// Every slot of a long real Build has a label, and a reason reads as the game says it.
+#[test]
+fn the_sheet_labels_a_real_build() {
+    let engine = engine();
+    let build = build("fighter", 20);
+    let sheet = engine.evaluate(&build);
+    for slot in sheet.levels.iter().flat_map(|level| &level.slots) {
+        let label = engine.slot_label(slot);
+        assert!(!label.is_empty() && !label.contains('/'), "{label}");
+    }
+    let cleave = engine
+        .options(
+            &build,
+            &SlotId::Feat {
+                level: 1,
+                source: FeatSource::General,
+                index: 0,
+            },
+        )
+        .unwrap()
+        .into_iter()
+        .find(|option| option.pick == Pick::feat(FeatKey::new("cleave")))
+        .unwrap();
+    assert_eq!(
+        engine.issue_text(&cleave.status.unwrap_err()),
+        "Needs Power Attack"
+    );
+}

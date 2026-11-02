@@ -1,0 +1,115 @@
+//! The Mythic track: MR 1–10 at their fixed character levels, the path at MR 3 and the Path switch at MR 8. A rank
+//! is reached, partly dropped or dropped by a switch, or not reached; the picks a switch took away stay, marked
+//! lost from the switch on, and an empty slot there still has a picker.
+
+use leptos::prelude::*;
+use rules::{PATH_CHOICE_RANK, PATH_SWITCH_RANK, RankSheet, RankStatus};
+
+use crate::grid::slot_chip;
+use crate::planner::{Target, use_planner};
+
+#[component]
+pub fn MythicTrack() -> AnyView {
+    let planner = use_planner();
+    (move || {
+        let engine = planner.engine();
+        let sheet = planner.sheet.get();
+        let levels = planner.build.with(|build| build.levels.len());
+        let (path, switch) = planner.build.with(|build| {
+            (
+                build
+                    .mythic_path
+                    .as_ref()
+                    .map(|key| engine.path_name(key).to_owned()),
+                build
+                    .path_switch
+                    .as_ref()
+                    .map(|key| engine.path_name(key).to_owned()),
+            )
+        });
+        let rows = sheet
+            .ranks
+            .iter()
+            .map(|rank| {
+                let ascends = usize::from(rank.character_level) <= levels;
+                rank_row(
+                    rank,
+                    ascends,
+                    (rank.rank == PATH_CHOICE_RANK).then(|| path.clone()),
+                    (rank.rank == PATH_SWITCH_RANK).then(|| switch.clone()),
+                )
+            })
+            .collect_view();
+        view! {
+            <p class="summary muted">
+                "Each Mythic ascension happens at a fixed character level. The path is chosen at MR 3 and grants its MR 1 and 2 rows too; a Path switch can come at MR 8."
+            </p>
+            <div class="grid mythic" role="list">
+                {rows}
+            </div>
+        }
+    })
+    .into_any()
+}
+
+/// One rank's row. `path` and `switch` are set on the ranks that choose them: the chosen one's name, if any.
+/// `ascends`: the Build has the rank's character level, so its path or switch can be chosen.
+fn rank_row(
+    rank: &RankSheet,
+    ascends: bool,
+    path: Option<Option<String>>,
+    switch: Option<Option<String>>,
+) -> impl IntoView + use<> {
+    let planner = use_planner();
+    let engine = planner.engine();
+    let path_name = rank
+        .path
+        .as_ref()
+        .map(|key| engine.path_name(key).to_owned());
+    let status = match rank.status {
+        RankStatus::Reached => None,
+        RankStatus::PartlyDropped => Some("Partly lost to the Path switch"),
+        RankStatus::Dropped => Some("Lost to the Path switch"),
+        RankStatus::NotReached => Some("Not reached"),
+    };
+    let not_reached = rank.status == RankStatus::NotReached;
+    let chooser = |label: &'static str, value: Option<String>, target: Target| {
+        let empty = value.is_none();
+        view! {
+            <button
+                class="chip path-chip"
+                class:empty=empty
+                disabled=!ascends
+                on:click=move |_| planner.open(target.clone())
+            >
+                <span class="chip-label">{label}</span>
+                <span class="chip-value">{value.unwrap_or_else(|| "+".to_owned())}</span>
+            </button>
+        }
+    };
+    let path_chip = path.map(|value| chooser("Mythic path", value, Target::Path));
+    let switch_chip = switch.map(|value| chooser("Path switch", value, Target::Switch));
+    let chips = rank
+        .slots
+        .iter()
+        .map(|slot| slot_chip(&engine, slot, rank.dropped_slots.contains(&slot.id)))
+        .collect_view();
+    view! {
+        <div
+            class="row rank"
+            class:not-reached=not_reached
+            class:dropped=rank.status == RankStatus::Dropped
+            role="listitem"
+        >
+            <span class="row-number mythic-number">{format!("MR {}", rank.rank)}</span>
+            <span class="rank-level">
+                {format!("Level {}", rank.character_level)}
+                {path_name.map(|name| view! { <span class="rank-path">{name}</span> })}
+            </span>
+            <div class="chips">
+                {path_chip} {switch_chip} {chips}
+                {status.map(|status| view! { <span class="rank-status">{status}</span> })}
+            </div>
+        </div>
+    }
+}

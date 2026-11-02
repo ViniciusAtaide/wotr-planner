@@ -33,6 +33,8 @@ use crate::parameter::{ArmourType, Energy, Parameter, ParameterKind, Repeat, Spe
 use crate::prerequisite::{Prerequisite, Story};
 use crate::state::{CharacterState, ClassLevels};
 
+mod labels;
+
 /// The highest character level without a path that raises it.
 pub const BASE_LEVEL_CAP: u8 = 20;
 /// The Mythic rank at which the path is chosen.
@@ -67,6 +69,8 @@ pub struct Engine {
     /// The features that set a floor for prerequisites (Perfect Mind): a BAB floor, and whether every skill's ranks
     /// are at least the Mythic rank.
     feature_floors: HashMap<FeatureKey, (Option<u8>, bool)>,
+    /// The name of every feature a class, archetype or path defines, for the sheet's labels.
+    feature_names: HashMap<FeatureKey, String>,
 }
 
 /// Where a class is: an index into the base or the prestige classes.
@@ -411,7 +415,12 @@ impl Engine {
                 )
             })
             .collect();
+        let feature_names = features
+            .iter()
+            .map(|feature| (feature.key.clone(), feature.name.clone()))
+            .collect();
         let mut engine = Self {
+            feature_names,
             skills: index(&data.skills, |s| &s.key),
             weapons: index(&data.weapons, |w| &w.key),
             feats: index(&data.feats, |f| &f.key),

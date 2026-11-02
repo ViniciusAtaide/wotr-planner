@@ -1,26 +1,856 @@
-/* Mobile-first base styles. */
+/* The Sheet. Mobile-first: the Fold 7's cover screen (~412px wide) is the base, the inner screen and desktop
+   (600px up) get roomier columns and a centred picker. Light and dark follow the system. */
+
+:root {
+  --bg: #f6f5f2;
+  --surface: #ffffff;
+  --surface-2: #f0eee9;
+  --text: #1d1c1a;
+  --muted: #6b675f;
+  --line: #d9d5cc;
+  --accent: #8a5d0c;
+  --accent-bg: #f7e9c9;
+  --mythic: #6447c2;
+  --mythic-bg: #ece6fb;
+  --bad: #b42318;
+  --bad-bg: #fde8e6;
+  --focus: #2463eb;
+  --scrim: rgb(0 0 0 / 0.45);
+  --shadow: 0 10px 40px rgb(0 0 0 / 0.18);
+  --radius: 10px;
+  --tap: 44px;
+  --gutter: 12px;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14161a;
+    --surface: #1c1f25;
+    --surface-2: #262a32;
+    --text: #ece9e2;
+    --muted: #a19d95;
+    --line: #363b46;
+    --accent: #e3b04f;
+    --accent-bg: #3a2f17;
+    --mythic: #b9a2ff;
+    --mythic-bg: #2a2340;
+    --bad: #f88b84;
+    --bad-bg: #3a1d1d;
+    --focus: #7aa2ff;
+    --scrim: rgb(0 0 0 / 0.6);
+    --shadow: 0 10px 40px rgb(0 0 0 / 0.5);
+  }
+}
+
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
   margin: 0;
-  padding: 1rem;
-  font-family: system-ui, sans-serif;
-  line-height: 1.5;
+  background: var(--bg);
+  color: var(--text);
+  font: 15px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
-.game-data-counts {
-  display: grid;
-  grid-template-columns: auto auto;
-  justify-content: start;
-  gap: 0.25rem 1.5rem;
+button,
+input {
+  font: inherit;
+  color: inherit;
 }
 
-.game-data-counts dd {
+button {
+  min-height: var(--tap);
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  cursor: pointer;
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
+input[type="text"],
+input[type="search"] {
+  min-height: var(--tap);
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.loading {
+  padding: 2rem var(--gutter);
+  color: var(--muted);
+}
+
+/* ---- frame ---------------------------------------------------------------------------------------------- */
+
+.app {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 var(--gutter) 6rem;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+}
+
+.top h1 {
   margin: 0;
-  text-align: right;
+  font-size: 16px;
+  white-space: nowrap;
+}
+
+.build-name {
+  flex: 1;
+  min-width: 0;
+}
+
+.banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  padding: 6px 6px 6px 12px;
+  border-radius: var(--radius);
+}
+
+.banner span {
+  flex: 1;
+}
+
+.banner-error {
+  border: 1px solid var(--bad);
+  background: var(--bad-bg);
+  color: var(--bad);
+}
+
+.icon {
+  min-width: var(--tap);
+  padding: 0;
+  text-align: center;
+  font-size: 18px;
+  background: transparent;
+  border-color: transparent;
+}
+
+/* ---- Build start ---------------------------------------------------------------------------------------- */
+
+.start {
+  margin-bottom: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.start-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  border: 0;
+  background: transparent;
+}
+
+.section-title {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.start-summary {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chevron {
+  transition: transform 0.15s;
+}
+
+.chevron.open {
+  transform: rotate(180deg);
+}
+
+.start-body {
+  display: grid;
+  gap: 8px;
+  padding: 4px 12px 12px;
+}
+
+.field {
+  display: grid;
+  grid-template-columns: 88px 1fr;
+  align-items: center;
+  gap: 8px;
+}
+
+.field-label {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.field-value {
+  width: 100%;
+}
+
+.field-value.empty {
+  border-style: dashed;
+  color: var(--accent);
+}
+
+.segs {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.seg {
+  padding: 4px 2px;
+  text-align: center;
+  font-size: 13px;
+}
+
+.seg.on {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+  font-weight: 600;
+}
+
+.note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.point-buy-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-top: 4px;
+}
+
+.points {
+  font-size: 13px;
   font-variant-numeric: tabular-nums;
+}
+
+.points.spent {
+  color: var(--muted);
+}
+
+.scores {
+  display: grid;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.score {
+  display: grid;
+  grid-template-columns: 40px var(--tap) 32px var(--tap) 1fr 32px;
+  align-items: center;
+  gap: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.score-name {
+  font-weight: 600;
+}
+
+.score-value,
+.score-total {
+  text-align: center;
+}
+
+.score-total {
+  font-weight: 600;
+}
+
+.score-racial {
+  color: var(--muted);
+  font-size: 13px;
+  text-align: right;
+}
+
+.step {
+  padding: 0;
+  text-align: center;
+  font-size: 18px;
+}
+
+/* ---- tabs and summary ----------------------------------------------------------------------------------- */
+
+.tabs {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  gap: 6px;
+  margin: 0 calc(-1 * var(--gutter));
+  padding: 8px var(--gutter);
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+}
+
+.tabs button {
+  flex: 1;
+  text-align: center;
+  font-weight: 600;
+}
+
+.tabs button.on {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.summary {
+  margin: 10px 0;
+  font-size: 13px;
+}
+
+.summary p {
+  margin: 2px 0;
+}
+
+.summary-numbers {
+  font-variant-numeric: tabular-nums;
+}
+
+.summary-note {
+  color: var(--muted);
+}
+
+/* ---- the grid ------------------------------------------------------------------------------------------- */
+
+.grid {
+  display: grid;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 24px 94px 1fr;
+  align-items: start;
+  gap: 6px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.row-number {
+  padding-top: 12px;
+  color: var(--muted);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.class-button {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+  padding: 4px 6px;
+  line-height: 1.2;
+}
+
+.class-button:disabled {
+  opacity: 1;
+  background: transparent;
+}
+
+.class-line {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 12.5px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.class-name {
+  font-weight: 600;
+}
+
+.class-level {
+  font-variant-numeric: tabular-nums;
+}
+
+.class-archetype {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lock {
+  position: absolute;
+  top: 2px;
+  right: 3px;
+  font-size: 9px;
+  opacity: 0.7;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.chip {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  max-width: 100%;
+  padding: 3px 9px;
+  border-radius: 9px;
+  background: var(--surface);
+  line-height: 1.2;
+}
+
+.chip-label {
+  max-width: 16ch;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 10.5px;
+  letter-spacing: 0.02em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.chip-value {
+  max-width: 24ch;
+  overflow: hidden;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chip.empty {
+  border-style: dashed;
+  background: transparent;
+}
+
+.chip.empty .chip-value {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.chip.lost .chip-value {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+.lost-tag {
+  display: inline-block;
+  margin-left: 4px;
+  color: var(--bad);
+  text-decoration: none;
+}
+
+.mythic-badge {
+  border-color: var(--mythic);
+  background: var(--mythic-bg);
+}
+
+.mythic-badge .chip-value {
+  color: var(--mythic);
+}
+
+.grid-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 0;
+}
+
+.add-level {
+  border-style: dashed;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* ---- Mythic track --------------------------------------------------------------------------------------- */
+
+.mythic .row {
+  grid-template-columns: 50px 1fr;
+}
+
+.mythic .chips {
+  grid-column: 1 / -1;
+}
+
+.mythic-number {
+  padding-top: 0;
+  color: var(--mythic);
+  text-align: left;
+}
+
+.rank-level {
+  display: flex;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.rank-path {
+  color: var(--mythic);
+}
+
+.row.rank.not-reached .chips,
+.row.rank.not-reached .rank-level {
+  opacity: 0.6;
+}
+
+.path-chip {
+  border-color: var(--mythic);
+}
+
+.rank-status {
+  padding: 2px 8px;
+  border-radius: 99px;
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.row.rank.dropped .rank-status {
+  background: var(--bad-bg);
+  color: var(--bad);
+}
+
+/* ---- the picker: a bottom sheet, a centred modal from 600px ------------------------------------------- */
+
+/* The page behind an open picker doesn't scroll. */
+body:has(.picker) {
+  overflow: hidden;
+}
+
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: var(--scrim);
+}
+
+.picker {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  max-height: 86vh;
+  max-height: 86dvh;
+  min-height: 40vh;
+  border: 1px solid var(--line);
+  border-bottom: 0;
+  border-radius: 16px 16px 0 0;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.picker-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 8px 6px 12px;
+}
+
+.picker-title {
+  flex: 1;
+  min-width: 0;
+}
+
+.picker-title h2 {
+  margin: 0;
+  overflow: hidden;
+  font-size: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.picker-title p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+.remove {
+  border-color: var(--bad);
+  background: var(--bad-bg);
+  color: var(--bad);
+  white-space: nowrap;
+}
+
+.picker-step {
+  margin: 0;
+  padding: 0 12px 6px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.picker-tools {
+  display: grid;
+  gap: 8px;
+  padding: 0 12px 8px;
+}
+
+.filters {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.chip-filter {
+  flex: none;
+  padding: 4px 12px;
+  border-radius: 99px;
+  font-size: 13px;
+}
+
+.chip-filter.on {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+  font-weight: 600;
+}
+
+.picker-list {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 12px 16px;
+}
+
+.items {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.items.locked {
+  margin-top: 6px;
+}
+
+.item {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  padding: 9px 12px;
+  background: var(--surface);
+}
+
+.item:disabled {
+  opacity: 1;
+  background: var(--surface-2);
+}
+
+.item:disabled .item-name {
+  color: var(--muted);
+}
+
+.item.current {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.item-name {
+  font-weight: 500;
+}
+
+.more {
+  color: var(--muted);
+}
+
+.item-detail {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 12.5px;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.item-reason {
+  color: var(--bad);
+  font-size: 12.5px;
+}
+
+.show-locked {
+  width: 100%;
+  margin-top: 8px;
+  border-style: dashed;
+  background: transparent;
+  color: var(--muted);
+  text-align: center;
+}
+
+.empty {
+  margin: 12px 0;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* skill ranks */
+
+.skill-head,
+.skill {
+  display: grid;
+  grid-template-columns: 1fr 40px var(--tap) 28px var(--tap);
+  align-items: center;
+  gap: 6px;
+}
+
+.skill-head {
+  padding: 0 0 4px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.skill-head-here {
+  grid-column: 3 / span 3;
+  text-align: center;
+}
+
+.skills {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.skill-name {
+  min-width: 0;
+}
+
+.skill-ability,
+.class-skill {
+  margin-left: 6px;
+  color: var(--muted);
+  font-size: 11.5px;
+}
+
+.class-skill {
+  padding: 0 6px;
+  border-radius: 99px;
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.skill-total,
+.skill-here {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.skill-here {
+  font-weight: 600;
+}
+
+/* ---- the Fold's inner screen and desktop ---------------------------------------------------------------- */
+
+@media (min-width: 600px) {
+  :root {
+    --gutter: 16px;
+  }
+
+  .top h1 {
+    font-size: 18px;
+  }
+
+  .row {
+    grid-template-columns: 34px 132px 1fr;
+    gap: 8px;
+  }
+
+  .class-line {
+    font-size: 14px;
+  }
+
+  .chip-label {
+    max-width: 22ch;
+  }
+
+  .chip-value {
+    max-width: 30ch;
+    font-size: 14px;
+  }
+
+  .mythic .row {
+    grid-template-columns: 60px 132px 1fr;
+  }
+
+  .mythic .chips {
+    grid-column: auto;
+  }
+
+  .rank-level {
+    flex-direction: column;
+    gap: 0;
+    padding-top: 2px;
+  }
+
+  .start-body {
+    grid-template-columns: 1fr 1fr;
+    column-gap: 24px;
+  }
+
+  .point-buy {
+    grid-column: 2;
+    grid-row: 1 / span 5;
+  }
+
+  .picker {
+    top: 50%;
+    right: auto;
+    bottom: auto;
+    left: 50%;
+    width: min(560px, calc(100vw - 48px));
+    min-height: min(420px, 60vh);
+    max-height: min(760px, 86vh);
+    border-bottom: 1px solid var(--line);
+    border-radius: 16px;
+    transform: translate(-50%, -50%);
+  }
 }
