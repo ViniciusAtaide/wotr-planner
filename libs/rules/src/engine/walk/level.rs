@@ -3,12 +3,12 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use super::{GrantSource, Held, Walker};
+use super::{GrantSource, Held, Pending, Walker};
 use crate::build::{FeatSource, LevelUp, SlotId};
 use crate::choice::Choice;
 use crate::engine::{Engine, SkillPoints, Slot, SlotKind, class_level_cap, effective_rows};
 use crate::game_data::{Ability, Advancement, Class, CountsToward, FeatSlot, Save};
-use crate::keys::{ClassKey, FeatureKey, FeatureSelectionKey};
+use crate::keys::{ClassKey, FeatKey, FeatureKey, FeatureSelectionKey};
 use crate::state::{CharacterState, ClassLevels};
 
 impl<'a> Walker<'a> {
@@ -382,12 +382,25 @@ impl<'a> Walker<'a> {
         true
     }
 
-    /// Fills the selection and feat slots that options' rows granted at this level, in order, until none are left
-    /// (a pick can grant more).
+    /// Fills the selection and feat slots that options' rows and feats granted at this level, in order, until none
+    /// are left (a pick can grant more).
     pub(super) fn fill_pending(&mut self, level: u8) -> Vec<Slot> {
         let mut slots = Vec::new();
         while !self.pending.is_empty() {
-            let (kind, granting) = self.pending.remove(0);
+            let (kind, granting) = match self.pending.remove(0) {
+                Pending::Row(kind, granting) => (kind, granting),
+                Pending::Feat(feat) => {
+                    if let Some(selection) = self.extra_pick_selection(&feat)
+                        && !self.grant_without_slot(&selection, None)
+                    {
+                        let index = self.feat_selection_slots;
+                        self.feat_selection_slots = self.feat_selection_slots.saturating_add(1);
+                        let id = SlotId::FeatSelection { level, index };
+                        slots.push(self.fill(id, SlotKind::Selection(selection), None));
+                    }
+                    continue;
+                }
+            };
             self.granting = Some(granting);
             let id = match &kind {
                 SlotKind::Selection(selection) => {
@@ -409,6 +422,16 @@ impl<'a> Walker<'a> {
             self.granting = None;
         }
         slots
+    }
+
+    /// The selection a feat's extra pick is of: the one of its [`extra_pick_of`](crate::Feat::extra_pick_of) the
+    /// walk reached a slot of first, if any.
+    fn extra_pick_selection(&self, feat: &FeatKey) -> Option<FeatureSelectionKey> {
+        let of = &self.engine.feat(feat)?.extra_pick_of;
+        self.selections_had
+            .iter()
+            .find(|selection| of.contains(*selection))
+            .cloned()
     }
 
     // ---- Tables -------------------------------------------------------------------------------------------

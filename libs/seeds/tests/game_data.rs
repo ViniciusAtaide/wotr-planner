@@ -5273,3 +5273,332 @@ fn combat_trick_grants_its_slot_through_every_selection_offering_it() {
         );
     }
 }
+
+// ---- Extra feats' extra picks (ticket 49) ---------------------------------------------------------------------
+
+/// The "Extra …" feats whose guide entry gives one more pick of a class selection ("You gain one additional hex"),
+/// with the selections that pick may be of: each one the guide's "Prerequisites" name.
+const EXTRA_PICKS: [(&str, &[&str]); 8] = [
+    ("extra-arcana", &["magus/magus-arcana"]),
+    ("extra-arcanist-exploit", &["arcanist/arcanist-exploits"]),
+    (
+        "extra-discovery",
+        &["alchemist/discovery", "rogue/underground-chemist/discovery"],
+    ),
+    ("extra-hex", &["shaman/hex", "witch/hex"]),
+    ("extra-rage-power", &["barbarian/rage-power"]),
+    (
+        "extra-rogue-talent",
+        &["rogue/rogue-talents", "rogue/sylvan-trickster/fey-tricks"],
+    ),
+    ("extra-slayer-talent", &["slayer/slayer-talents"]),
+    ("extra-wild-talent", &["kineticist/wild-talents"]),
+];
+
+fn extra_slot(level: u8, index: u8) -> SlotId {
+    SlotId::FeatSelection { level, index }
+}
+
+fn selection_kind(key: &str) -> SlotKind {
+    SlotKind::Selection(rules::FeatureSelectionKey::new(key))
+}
+
+/// A chaotic neutral Build taking `classes`, one per level, with no picks.
+fn classes_build(classes: &[&str]) -> Build {
+    let mut build = Build::default();
+    build.start.alignment = Some(rules::Alignment::ChaoticNeutral);
+    for class in classes {
+        build
+            .class_choices
+            .entry(ClassKey::new(*class))
+            .or_default();
+        build.levels.push(LevelUp::new(ClassKey::new(*class)));
+    }
+    build
+}
+
+/// The Build with every empty Feature selection slot filled, in slot order, with the first option its picker
+/// leaves open.
+fn with_selections_filled(mut build: Build) -> Build {
+    let engine = engine();
+    loop {
+        let sheet = engine.evaluate(&build);
+        let empty = sheet
+            .levels
+            .iter()
+            .flat_map(|level| &level.slots)
+            .filter(|slot| {
+                matches!(slot.kind, SlotKind::Selection(_)) && !build.picks.contains_key(&slot.id)
+            })
+            .map(|slot| slot.id.clone())
+            .find(|id| {
+                engine
+                    .options(&build, id)
+                    .is_some_and(|options| options.iter().any(|option| option.status.is_ok()))
+            });
+        let Some(id) = empty else {
+            return build;
+        };
+        let open = engine
+            .options(&build, &id)
+            .unwrap()
+            .into_iter()
+            .find(|option| option.status.is_ok())
+            .unwrap();
+        build.picks.insert(id, open.pick);
+    }
+}
+
+/// The slot kind the Build's sheet has at `slot`, `None` when it has none.
+fn kind_at(build: &Build, slot: &SlotId) -> Option<SlotKind> {
+    engine()
+        .evaluate(build)
+        .slot(slot)
+        .map(|slot| slot.kind.clone())
+}
+
+#[test]
+fn the_extra_feats_that_give_a_pick_name_their_selections() {
+    let named: BTreeSet<(String, BTreeSet<String>)> = DATA
+        .feats
+        .iter()
+        .filter(|feat| !feat.extra_pick_of.is_empty())
+        .map(|feat| {
+            (
+                feat.key.to_string(),
+                feat.extra_pick_of.iter().map(|s| s.to_string()).collect(),
+            )
+        })
+        .collect();
+    let expected: BTreeSet<(String, BTreeSet<String>)> = EXTRA_PICKS
+        .iter()
+        .map(|(feat, selections)| {
+            (
+                feat.to_string(),
+                selections.iter().map(|s| s.to_string()).collect(),
+            )
+        })
+        .collect();
+    assert_eq!(named, expected);
+    // The resource ones give no pick, and Extra Mercy none either: the paladin's mercies aren't a selection.
+    for key in [
+        "extra-arcane-pool",
+        "extra-bane-weapon",
+        "extra-bloodrage",
+        "extra-bombs",
+        "extra-channel",
+        "extra-ki",
+        "extra-lay-on-hands",
+        "extra-mercy",
+        "extra-performance",
+        "extra-rage",
+        "extra-reservoir",
+    ] {
+        assert!(feat(key).extra_pick_of.is_empty(), "{key}");
+    }
+}
+
+#[test]
+fn a_barbarian_with_extra_rage_power_at_3_gets_a_rage_power_slot_there() {
+    let engine = engine();
+    let mut build = with_selections_filled(barbarian(3));
+    build
+        .picks
+        .insert(general_slot(3), feat_pick_plain("extra-rage-power"));
+    assert!(possible(&build));
+    assert_eq!(
+        kind_at(&build, &extra_slot(3, 0)),
+        Some(selection_kind("barbarian/rage-power"))
+    );
+    // Its options are the barbarian's rage powers, as the rage power slot at 2 offers them.
+    let keys = |slot: &SlotId| -> BTreeSet<String> {
+        engine
+            .options(&build, slot)
+            .unwrap()
+            .into_iter()
+            .map(|option| option.pick.key().to_owned())
+            .collect()
+    };
+    assert_eq!(keys(&extra_slot(3, 0)), keys(&selection_slot(2)));
+    assert_eq!(keys(&extra_slot(3, 0)).len(), 33);
+    let sheet = engine.evaluate(&build);
+    let slot = sheet.slot(&extra_slot(3, 0)).unwrap();
+    assert_eq!(engine.slot_label(slot), "Rage Power");
+
+    let filled = with_selections_filled(build);
+    assert!(filled.picks.contains_key(&extra_slot(3, 0)));
+    assert!(possible(&filled));
+}
+
+/// An unparameterised feat.
+fn feat_pick_plain(key: &str) -> Pick {
+    Pick::feat(FeatKey::new(key))
+}
+
+#[test]
+fn extra_rage_power_taken_again_gives_a_second_slot() {
+    let mut build = with_selections_filled(barbarian(5));
+    for level in [3, 5] {
+        build
+            .picks
+            .insert(general_slot(level), feat_pick_plain("extra-rage-power"));
+    }
+    let build = with_selections_filled(build);
+    assert!(possible(&build));
+    for level in [3, 5] {
+        assert_eq!(
+            kind_at(&build, &extra_slot(level, 0)),
+            Some(selection_kind("barbarian/rage-power")),
+            "at {level}"
+        );
+        assert!(build.picks.contains_key(&extra_slot(level, 0)));
+    }
+}
+
+#[test]
+fn extra_rage_power_isnt_removable_while_its_slots_pick_depends_on_it_and_takes_the_slot_with_it() {
+    let engine = engine();
+    let mut build = with_selections_filled(barbarian(3));
+    build
+        .picks
+        .insert(general_slot(3), feat_pick_plain("extra-rage-power"));
+    let mut build = with_selections_filled(build);
+    assert!(build.picks.contains_key(&extra_slot(3, 0)));
+    let feat = rules::Choice::Slot(general_slot(3));
+    assert!(!engine.is_removable(&build, &feat));
+    assert!(!engine.removable(&build).contains(&feat));
+    assert!(engine.is_removable(&build, &rules::Choice::Slot(extra_slot(3, 0))));
+
+    build.apply(&rules::Edit::Clear(extra_slot(3, 0)));
+    assert!(engine.is_removable(&build, &feat));
+    build.apply(&rules::Edit::Clear(general_slot(3)));
+    assert!(possible(&build));
+    assert_eq!(kind_at(&build, &extra_slot(3, 0)), None);
+}
+
+#[test]
+fn a_witchs_extra_hex_gives_a_hex_slot() {
+    let mut build = with_selections_filled(classes_build(&["witch"]));
+    build
+        .picks
+        .insert(general_slot(1), feat_pick_plain("extra-hex"));
+    assert!(possible(&build));
+    assert_eq!(
+        kind_at(&build, &extra_slot(1, 0)),
+        Some(selection_kind("witch/hex"))
+    );
+    let filled = with_selections_filled(build);
+    assert!(filled.picks.contains_key(&extra_slot(1, 0)));
+    assert!(possible(&filled));
+}
+
+/// Each feat gives its slot to a character of the class whose selection it names: the feat in the general slot at
+/// `level`, after the class's earlier picks.
+#[test]
+fn each_extra_feat_gives_a_slot_of_its_classs_selection() {
+    let cases: [(Build, &str, u8, &str); 12] = [
+        (barbarian(3), "extra-rage-power", 3, "barbarian/rage-power"),
+        (classes_build(&["witch"]), "extra-hex", 1, "witch/hex"),
+        (
+            classes_build(&times("shaman", 3)),
+            "extra-hex",
+            3,
+            "shaman/hex",
+        ),
+        (
+            classes_build(&times("magus", 3)),
+            "extra-arcana",
+            3,
+            "magus/magus-arcana",
+        ),
+        (
+            classes_build(&["arcanist"]),
+            "extra-arcanist-exploit",
+            1,
+            "arcanist/arcanist-exploits",
+        ),
+        (
+            classes_build(&times("alchemist", 3)),
+            "extra-discovery",
+            3,
+            "alchemist/discovery",
+        ),
+        (
+            chaotic(archetype_build("rogue", "rogue/underground-chemist", 11)),
+            "extra-discovery",
+            11,
+            "rogue/underground-chemist/discovery",
+        ),
+        (
+            classes_build(&times("rogue", 3)),
+            "extra-rogue-talent",
+            3,
+            "rogue/rogue-talents",
+        ),
+        (
+            chaotic(archetype_build("rogue", "rogue/sylvan-trickster", 3)),
+            "extra-rogue-talent",
+            3,
+            "rogue/sylvan-trickster/fey-tricks",
+        ),
+        (
+            classes_build(&times("slayer", 3)),
+            "extra-slayer-talent",
+            3,
+            "slayer/slayer-talents",
+        ),
+        (
+            classes_build(&times("kineticist", 3)),
+            "extra-wild-talent",
+            3,
+            "kineticist/wild-talents",
+        ),
+        // A witch who becomes a shaman: her Extra Hex is a witch's hex, the selection she had a slot of first.
+        (
+            classes_build(&["witch", "shaman", "shaman"]),
+            "extra-hex",
+            3,
+            "witch/hex",
+        ),
+    ];
+    for (build, feat, level, selection) in cases {
+        let mut build = with_selections_filled(build);
+        build
+            .picks
+            .insert(general_slot(level), feat_pick_plain(feat));
+        assert!(possible(&build), "{feat} at {level}");
+        assert_eq!(
+            kind_at(&build, &extra_slot(level, 0)),
+            Some(selection_kind(selection)),
+            "{feat} at {level}"
+        );
+        let filled = with_selections_filled(build);
+        assert!(
+            filled.picks.contains_key(&extra_slot(level, 0)),
+            "{feat} at {level}: nothing open"
+        );
+        assert!(possible(&filled), "{feat} at {level}");
+    }
+}
+
+fn times(class: &'static str, n: usize) -> Vec<&'static str> {
+    vec![class; n]
+}
+
+fn chaotic(mut build: Build) -> Build {
+    build.start.alignment = Some(rules::Alignment::ChaoticNeutral);
+    build
+}
+
+/// Extra Mercy: "You gain one additional mercy", but the paladin's mercies are a feature, not a pick (ticket 49's
+/// question 1), so it gives no slot.
+#[test]
+fn extra_mercy_gives_no_slot() {
+    let mut build = build("paladin", 3);
+    build.start.alignment = Some(rules::Alignment::LawfulGood);
+    build
+        .picks
+        .insert(general_slot(3), feat_pick_plain("extra-mercy"));
+    assert!(possible(&build));
+    assert_eq!(kind_at(&build, &extra_slot(3, 0)), None);
+}

@@ -334,7 +334,8 @@ fn race(race: &Race) -> String {
     fields.block("", 4, &[lists, nested("subraces", 8, subraces)])
 }
 
-/// A feat on one line: what it's taken for and how often only when the guide says.
+/// A feat on one line: what it's taken for, how often and the selections its extra pick is of only when the guide
+/// says.
 fn feat(feat: &Feat) -> String {
     let mut fields = Fields::new();
     fields
@@ -346,10 +347,11 @@ fn feat(feat: &Feat) -> String {
     if let Some(parameter) = &feat.parameter {
         fields.field("parameter", parameter);
     }
-    fields
-        .repeat(feat.repeat)
-        .prerequisite(&feat.prerequisite)
-        .line()
+    fields.repeat(feat.repeat);
+    if !feat.extra_pick_of.is_empty() {
+        fields.field("extra_pick_of", &feat.extra_pick_of);
+    }
+    fields.prerequisite(&feat.prerequisite).line()
 }
 
 fn mythic_ability(ability: &MythicAbility) -> String {

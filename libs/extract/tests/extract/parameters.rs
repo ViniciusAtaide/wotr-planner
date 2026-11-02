@@ -456,6 +456,7 @@ fn the_files_write_weapons_parameters_repeats_and_chosen_feats() {
         guide: GuideRef::new(format!("feats#{key}")),
         parameter,
         repeat,
+        extra_pick_of: Default::default(),
         prerequisite,
     };
     let mut talents = class("rogue", vec![row(1)], vec![]);

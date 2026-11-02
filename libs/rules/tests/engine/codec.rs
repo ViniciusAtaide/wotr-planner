@@ -129,6 +129,8 @@ fn slot_id() -> impl Strategy<Value = SlotId> {
         (any::<u8>(), any::<u8>())
             .prop_map(|(rank, index)| SlotId::MythicSelection { rank, index }),
         (any::<u8>(), any::<u8>()).prop_map(|(level, index)| SlotId::OptionFeat { level, index }),
+        (any::<u8>(), any::<u8>())
+            .prop_map(|(level, index)| SlotId::FeatSelection { level, index }),
     ]
 }
 
@@ -254,6 +256,10 @@ fn v1_build() -> Build {
         pick_feat("toughness"),
     );
     build.picks.insert(
+        SlotId::FeatSelection { level: 3, index: 0 },
+        pick_option("rogue/rogue-talents/resiliency"),
+    );
+    build.picks.insert(
         SlotId::Mythic { rank: 2 },
         Pick::mythic_feat_for(
             rules::MythicFeatKey::new("school-mastery"),
@@ -280,8 +286,9 @@ fn v1_build() -> Build {
 /// when the Build start gained its background (ticket 34: Shackles Corsair), and on 2026-11-02 when version 1's body
 /// became shorter (ticket 46): every key a 24-bit hash instead of its text, the hashes listed before the structure,
 /// and the picks grouped by kind of slot with levels as steps, in place of the Build in postcard (314 characters
-/// before, 196 after).
-const V1_LINK: &str = "AQGNAHL_E3qqTfd9coIPYULAnYIPYW3oQW3oQdVnF3ACFsmJrclqPAwzS5CJWxFBSHJjrcl7Pi-GGICSjxeehgEHQ2xlYXZlcgEAAQUBEA4MDQoIAwABAQAAAAABAQABAAYAAwEAAAAAAAEAAAAAAgAAAgEBAwABAAICAQIBAwMEBQEDAAEABgEBAAEABwEIAAAA";
+/// before, 196 after), and on 2026-11-02 for the slot an Extra feat gives (ticket 49: a `FeatSelection` group, the
+/// rogue talent Resiliency at 3).
+const V1_LINK: &str = "ASWKPQrCQBSE37w1ZgnxD8R4CwtbEaKNIJ7AKkgQREG2sFAUsQikEMVeDyDkDrZ7AO_gDWx9rMPwwQxfc_ucfPfmVEsGr7tw9Yml73m05pbNC7vohd3xNZ824pGZFXbX72Tt4-0SPbLDOYA_XKbJJjUgeKhXw0qgFQEkEYJ8Um6QI0sBEYgZDKVKnlvlvwstjnbPDw";
 
 #[test]
 fn a_version_1_link_still_decodes() {

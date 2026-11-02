@@ -136,6 +136,10 @@ _Avoid_: Bloodline level (one family's name for it), subclass level
 A bonus Feat slot on a class's row whose Feat list is the held option's: a sorcerer's bloodline feat at 7, 13 and 19, a bloodrager's at 6, 9, …, a ranger's combat style feat (a list per stage), a slayer's combat style talent (the style the first one picked, or a ranger's; the list of the talent's window's stage, fixed on the slot, whoever levels the style). With two options held (a Crossblooded sorcerer's second bloodline gives only its list) it offers both lists. It's checked after the level's Feature selections, since a style picked at 2 is what the slot at 2 draws on.
 _Avoid_: Bloodline slot (the families share it), dynamic list
 
+**Extra pick**:
+One more slot of a Feature selection that a feat gives each time it's taken ("You gain one additional hex": Extra Arcana, Extra Arcanist Exploit, Extra Discovery, Extra Hex, Extra Rage Power, Extra Rogue Talent, Extra Slayer Talent, Extra Wild Talent), at the level it's taken. The feat names the selections its "Prerequisites" names (Extra Hex: the witch's and the shaman's hexes); the slot is of the one the character had a slot of first, so a witch who becomes a shaman gets a witch's hex, and a character who had a slot of none gets none. The resource feats (Extra Ki, Extra Rage, Extra Channel) give no pick, and neither does Extra Mercy while the paladin's mercies aren't a selection.
+_Avoid_: Bonus talent, extra slot feat
+
 **Daily choice**:
 A choice the game asks for again every day, so it isn't part of a Build and has no slot: a Mixed-Blood Rager's bloodline, a shaman's Wandering Spirit (an Unsworn Shaman's Minor Spirit and Wandering Spirit 2), an Abjurer's Resistance, a hunter's Animal Focus. The sheet shows it as a note.
 _Avoid_: Daily pick, rest choice
@@ -153,7 +157,7 @@ A Selection option that one Feature selection offers from another's list, such a
 _Avoid_: Copied option, alias
 
 **Slot**:
-One place in a Build where something is picked: a Feat slot, a Feature selection slot, or a Mythic ascension's mythic ability, mythic feat or path pick. Each has a stable id naming its level or rank. Within a level, slots are checked in this order: the class's Feature selections, the class's feat slots, the race's, the general slot, then the slots of options' rows; so a race or general pick sees what the class gives at that level (a human warpriest's Dazzling Display on the class's Weapon Focus).
+One place in a Build where something is picked: a Feat slot, a Feature selection slot, or a Mythic ascension's mythic ability, mythic feat or path pick. Each has a stable id naming its level or rank. Within a level, slots are checked in this order: the class's Feature selections, the class's feat slots, the race's, the general slot, then the slots of options' rows and feats' Extra picks; so a race or general pick sees what the class gives at that level (a human warpriest's Dazzling Display on the class's Weapon Focus).
 _Avoid_: Choice point, cell
 
 **Pick**:

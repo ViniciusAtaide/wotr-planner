@@ -97,6 +97,47 @@ async fn a_per_value_option_and_a_labelled_slot_round_trip(pool: PgPool) {
     assert_eq!(data::load_game_data(&db).await.unwrap(), from_files);
 }
 
+/// A feat's extra pick (ticket 49: Extra Hex, a witch's or a shaman's hex) is stored as one row per selection and
+/// read back; a selection the data lacks is refused.
+#[sqlx::test]
+async fn a_feats_extra_pick_round_trips(pool: PgPool) {
+    let db = Database::from(pool.clone());
+    let dir = copy_fixture();
+    let path = dir.path().join("feats.ron");
+    let text = fs::read_to_string(&path).unwrap();
+    let from = "        guide: \"feats#extra-rage\",\n        repeat: Times(3),\n";
+    assert!(text.contains(from));
+    fs::write(
+        &path,
+        text.replacen(
+            from,
+            "        guide: \"feats#extra-rage\",\n        repeat: Times(3),\n        extra_pick_of: [\"rogue/rogue-talents\", \"sorcerer/bloodline\"],\n",
+            1,
+        ),
+    )
+    .unwrap();
+    let from_files = data::read_game_data_files(dir.path()).unwrap();
+    assert_eq!(from_files.check(), []);
+    let picks = &from_files
+        .feats
+        .iter()
+        .find(|feat| feat.key.as_str() == "extra-rage")
+        .unwrap()
+        .extra_pick_of;
+    assert_eq!(picks.len(), 2);
+
+    data::seed(&db, dir.path()).await.unwrap();
+    assert_eq!(data::load_game_data(&db).await.unwrap(), from_files);
+
+    let error = sqlx::query(
+        "INSERT INTO feat_extra_pick (feat_key, selection_key) VALUES ('extra-ki', 'rogue/no-such-selection')",
+    )
+    .execute(&pool)
+    .await
+    .unwrap_err();
+    assert!(error.to_string().contains("foreign key"), "{error}");
+}
+
 /// A feature or selection granted twice by one row is one `granted_*` row with a count of 2, and reads back as
 /// two grants.
 #[sqlx::test]
@@ -396,6 +437,7 @@ async fn every_prerequisite_variant_round_trips(pool: PgPool) {
         // Taken for a weapon, so "the same weapon" means something.
         parameter: Some(ParameterKind::Weapon),
         repeat: Repeat::Times(2),
+        extra_pick_of: std::collections::BTreeSet::new(),
         prerequisite: Some(Prerequisite::All(every_prerequisite_variant())),
     });
     // The leaves about the pick belong in an option's prerequisite.

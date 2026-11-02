@@ -149,9 +149,11 @@ pub(super) struct Walker<'a> {
     class_skill_holds: BTreeMap<SkillKey, u8>,
     /// Each option held through a selection with option levels, in the order taken.
     holdings: Vec<Holding>,
-    /// Feature selections and feat slots that options' rows granted at this level and that have no slot yet, each
-    /// with the option whose row granted it.
-    pending: Vec<(SlotKind, SelectionOptionKey)>,
+    /// The slots granted at this level that have no slot yet: options' rows' and feats'.
+    pending: Vec<Pending>,
+    /// The Feature selections the walk has reached a slot of, in the order it first reached each: which one a feat's
+    /// extra pick is of ([`Feat::extra_pick_of`](crate::Feat::extra_pick_of)).
+    selections_had: Vec<FeatureSelectionKey>,
     /// While an option row's selection slot is filled: the option whose row granted it, for a selection levelled
     /// by [`LevelFrom::GrantingOption`](crate::LevelFrom::GrantingOption).
     granting: Option<SelectionOptionKey>,
@@ -159,12 +161,23 @@ pub(super) struct Walker<'a> {
     option_slots: u8,
     /// How many option-row feat slots this level has so far.
     option_feat_slots: u8,
+    /// How many selection slots feats have given this level so far.
+    feat_selection_slots: u8,
     probe: Option<Probe<'a>>,
     probed: Probed,
     /// Whether the walk keeps the sheet's rows; a recheck's walk doesn't ([`without_sheet`](Self::without_sheet)).
     sheet: bool,
     /// Set while the walk only answers whether a choice fails ([`holds`](Self::holds)).
     recheck: Option<RecheckWalk>,
+}
+
+/// A slot granted at a level, filled once the level's own slots are.
+#[derive(Clone, Debug)]
+enum Pending {
+    /// A Feature selection or feat slot an option's row granted, with that option.
+    Row(SlotKind, SelectionOptionKey),
+    /// A Feature selection slot a feat pick gives (Extra Rage Power), of the selection its extra pick is of.
+    Feat(FeatKey),
 }
 
 /// What a walk that only answers whether a choice fails keeps instead of the failed choices.
@@ -235,9 +248,11 @@ impl<'a> Walker<'a> {
             class_skill_holds: BTreeMap::new(),
             holdings: Vec::new(),
             pending: Vec::new(),
+            selections_had: Vec::new(),
             granting: None,
             option_slots: 0,
             option_feat_slots: 0,
+            feat_selection_slots: 0,
             probe,
             probed: Probed::default(),
             sheet: true,
@@ -470,6 +485,7 @@ impl<'a> Walker<'a> {
         // Options' rows this level reaches, before any slot is filled.
         self.option_slots = 0;
         self.option_feat_slots = 0;
+        self.feat_selection_slots = 0;
         self.advance_holdings();
         let skill_points = self.skill_ranks(level, level_up);
 

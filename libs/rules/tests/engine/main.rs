@@ -13,6 +13,7 @@ mod codec;
 mod combat_styles;
 mod derived;
 mod edits;
+mod extra_picks;
 mod facts;
 mod feat_lists;
 mod granted_feats;

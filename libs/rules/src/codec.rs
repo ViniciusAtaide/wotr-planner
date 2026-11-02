@@ -50,12 +50,12 @@
 //! ```
 //!
 //! A group holds the picks of one kind of slot: [`SlotId`]'s variants in order, `0` Feat, `1` Selection, `2`
-//! Mythic, `3` PathFeat, `4` PathSelection, `5` OptionSelection, `6` MythicSelection, `7` OptionFeat. Groups come in
-//! that order and picks in [`SlotId`]'s. A pick's step is its slot's level (or rank) less the previous pick's in the
-//! group, the first's less 0. The slot fields are a Feat slot's source (`0` Race, `1` Class, `2` General) and index,
-//! nothing for a Mythic slot, and the index for the others. A school, energy or armour type is its index in
-//! [`SpellSchool::ALL`], [`Energy::ALL`] or [`ArmourType::ALL`]. Skill ranks, class choices and advances come in
-//! their keys' text order, as the [`Build`] holds them.
+//! Mythic, `3` PathFeat, `4` PathSelection, `5` OptionSelection, `6` MythicSelection, `7` OptionFeat, `8`
+//! FeatSelection. Groups come in that order and picks in [`SlotId`]'s. A pick's step is its slot's level (or rank)
+//! less the previous pick's in the group, the first's less 0. The slot fields are a Feat slot's source (`0` Race,
+//! `1` Class, `2` General) and index, nothing for a Mythic slot, and the index for the others. A school, energy or
+//! armour type is its index in [`SpellSchool::ALL`], [`Energy::ALL`] or [`ArmourType::ALL`]. Skill ranks, class
+//! choices and advances come in their keys' text order, as the [`Build`] holds them.
 //!
 //! **Exact.** A Build reads back unchanged from its link, given the keys it names, and has only one body: decoding
 //! refuses ([`DecodeError::Format`]) anything the encoder never writes: an unknown tag; groups or slots out of order,
@@ -373,6 +373,7 @@ fn slot_kind(slot: &SlotId) -> u8 {
         SlotId::OptionSelection { .. } => 5,
         SlotId::MythicSelection { .. } => 6,
         SlotId::OptionFeat { .. } => 7,
+        SlotId::FeatSelection { .. } => 8,
     }
 }
 
@@ -539,7 +540,8 @@ impl<'a> Writer<'a> {
                     | SlotId::PathSelection { index, .. }
                     | SlotId::OptionSelection { index, .. }
                     | SlotId::MythicSelection { index, .. }
-                    | SlotId::OptionFeat { index, .. } => self.byte(index),
+                    | SlotId::OptionFeat { index, .. }
+                    | SlotId::FeatSelection { index, .. } => self.byte(index),
                 }
                 self.pick(pick);
             }
@@ -794,7 +796,7 @@ impl<'a> Reader<'a> {
         let mut previous_kind = None;
         for _ in 0..self.count()? {
             let kind = self.byte()?;
-            if kind > 7 || previous_kind.is_some_and(|previous| previous >= kind) {
+            if kind > 8 || previous_kind.is_some_and(|previous| previous >= kind) {
                 return Err(DecodeError::Format);
             }
             previous_kind = Some(kind);
@@ -832,7 +834,11 @@ impl<'a> Reader<'a> {
                         rank: base,
                         index: self.byte()?,
                     },
-                    _ => SlotId::OptionFeat {
+                    7 => SlotId::OptionFeat {
+                        level: base,
+                        index: self.byte()?,
+                    },
+                    _ => SlotId::FeatSelection {
                         level: base,
                         index: self.byte()?,
                     },

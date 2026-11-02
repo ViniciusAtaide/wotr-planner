@@ -69,6 +69,7 @@ fn fighter_bonus_slots_offer_only_combat_feats() {
         "armor-proficiency-heavy",
         "armor-focus",
         "boon-companion",
+        "slayer-trick",
     ]
     .into_iter()
     .map(String::from)

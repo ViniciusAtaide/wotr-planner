@@ -3,7 +3,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use super::{GrantSource, Held, Holding, Walker};
+use super::{GrantSource, Held, Holding, Pending, Walker};
 use crate::engine::SlotKind;
 use crate::game_data::{LevelFrom, OptionRow};
 use crate::keys::{FeatureSelectionKey, SelectionOptionKey};
@@ -208,13 +208,13 @@ impl<'a> Walker<'a> {
             row.selections
                 .iter()
                 .cloned()
-                .map(|selection| (SlotKind::Selection(selection), option.clone())),
+                .map(|selection| Pending::Row(SlotKind::Selection(selection), option.clone())),
         );
         self.pending.extend(
             row.feat_slots
                 .iter()
                 .cloned()
-                .map(|slot| (SlotKind::Feat(slot), option.clone())),
+                .map(|slot| Pending::Row(SlotKind::Feat(slot), option.clone())),
         );
         held
     }

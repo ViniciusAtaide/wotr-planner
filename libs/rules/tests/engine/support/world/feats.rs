@@ -1,5 +1,7 @@
 //! The test world's weapons and feats.
 
+use std::collections::BTreeSet;
+
 use rules::*;
 
 use crate::support::builds::{class, feat, feature, option, skill, skill_value, weapon};
@@ -30,6 +32,7 @@ fn feat_row(key: &str, category: FeatCategory, prerequisite: Option<Prerequisite
         guide: guide(&format!("feats#{key}")),
         parameter: None,
         repeat: Repeat::Once,
+        extra_pick_of: BTreeSet::new(),
         prerequisite,
     }
 }
@@ -54,6 +57,17 @@ fn repeat_feat_row(key: &str, category: FeatCategory, repeat: Repeat) -> Feat {
     Feat {
         repeat,
         ..feat_row(key, category, None)
+    }
+}
+
+/// A feat taken more than once that gives one more slot of one of `selections` each time.
+fn extra_pick_row(key: &str, category: FeatCategory, repeat: Repeat, selections: &[&str]) -> Feat {
+    Feat {
+        extra_pick_of: selections
+            .iter()
+            .map(|key| FeatureSelectionKey::new(*key))
+            .collect(),
+        ..repeat_feat_row(key, category, repeat)
     }
 }
 
@@ -165,7 +179,23 @@ pub(super) fn feats() -> Vec<Feat> {
                 value: Parameter::SpellSchool(SpellSchool::Conjuration),
             }),
         ),
-        repeat_feat_row("extra-rogue-talent", Class, Repeat::Times(3)),
+        // One more rogue talent, or slayer talent for a character who had a slayer talent slot first (as Extra Hex
+        // names the witch's and the shaman's hexes).
+        extra_pick_row(
+            "extra-rogue-talent",
+            Class,
+            Repeat::Times(3),
+            &["rogue/rogue-talents", "slayer/slayer-talents"],
+        ),
+        extra_pick_row("extra-hex", Class, Repeat::Times(3), &["witch/hex"]),
+        // Invented: a Combat feat with an extra pick, so a fighter's bonus slot can hold one before the general
+        // slot's at the same level.
+        extra_pick_row(
+            "slayer-trick",
+            Weapon,
+            Repeat::Unlimited,
+            &["slayer/slayer-talents"],
+        ),
         repeat_feat_row("extra-ki", Class, Repeat::Unlimited),
         feat_row(
             "arcane-strike",

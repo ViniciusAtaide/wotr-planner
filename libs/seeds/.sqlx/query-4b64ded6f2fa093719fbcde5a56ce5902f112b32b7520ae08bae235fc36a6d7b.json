@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO feat_extra_pick (feat_key, selection_key) VALUES ($1, $2)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "4b64ded6f2fa093719fbcde5a56ce5902f112b32b7520ae08bae235fc36a6d7b"
+}

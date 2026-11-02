@@ -190,6 +190,9 @@ pub fn extract(guide: &Guide) -> Extraction {
     // The user's decisions on ticket 45's questions and the rogue talents (ticket 47): the Skill Focus talents once
     // per skill, Combat Trick's Combat feat slot, the bonus-feat wild talent's label. It settles no report item.
     crate::talent_follow_ups::apply(guide, &mut data);
+    // The Extra feats' extra picks (ticket 49, ticket 45's decision 2): Extra Rage Power gives one more rage power
+    // slot each time it's taken. It settles no report item.
+    crate::extra_picks::apply(guide, &mut data);
     for problem in data.check() {
         builder.report.add_about(
             Kind::Cell,
@@ -479,6 +482,7 @@ impl<'g> Builder<'g> {
             guide: GuideRef::new(page.guide(&entry.anchor)),
             parameter: None,
             repeat: Repeat::Once,
+            extra_pick_of: BTreeSet::new(),
             prerequisite: None,
         }
     }

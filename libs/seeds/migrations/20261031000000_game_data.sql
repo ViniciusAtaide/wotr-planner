@@ -615,6 +615,15 @@ CREATE TABLE selection_shared_option (
     CHECK (NOT starts_with(option_key, selection_key || '/'))
 );
 
+-- A selection a pick of the feat gives one more slot of, each time it's taken (`rules::Feat::extra_pick_of`:
+-- Extra Rage Power, a rage power; Extra Hex, a witch's or a shaman's hex). The slot is of the one the character
+-- had a slot of first, which `rules` works out.
+CREATE TABLE feat_extra_pick (
+    feat_key TEXT NOT NULL REFERENCES feat (key) DEFERRABLE INITIALLY DEFERRED,
+    selection_key TEXT NOT NULL REFERENCES feature_selection (key) DEFERRABLE INITIALLY DEFERRED,
+    PRIMARY KEY (feat_key, selection_key)
+);
+
 -- `rules::FeatList`: a named list of feats a `one_of` feat slot picks from, owned like a feature or by a
 -- race (the half-elf's Adaptability).
 -- `ignores_prerequisites` is TRUE on a bonus list, its owner's own (the monk's bonus feats): a pick

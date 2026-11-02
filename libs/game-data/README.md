@@ -215,6 +215,13 @@ class's), and BAB and saves (from the class's progressions).
   and Discovery; the slayer's talents by the slayer already). An `OptionList` slot may carry its own `label`: the
   bonus-feat wild talent's reads "Wild talent feat" (`OptionList(selection: "kineticist/element", label: "Wild
   talent feat")`).
+- Ticket 49 (`extract::extra_picks`, ticket 45's decision 2, user, 2026-11-02): a feat whose guide entry says "gain
+  one additional …" names the selections its "Prerequisites" names in `extra_pick_of` (`extra-hex`: `["shaman/hex",
+  "witch/hex"]`), and each pick of it gives one more slot of the one the character had a slot of first, at the
+  level it's taken (a `FeatSelection` slot); a character who had a slot of none gets none. Eight feats: Extra
+  Arcana, Extra Arcanist Exploit, Extra Discovery (the alchemist's and the Underground Chemist's), Extra Hex, Extra
+  Rage Power, Extra Rogue Talent (the rogue's and the Sylvan Trickster's Fey Tricks), Extra Slayer Talent and Extra
+  Wild Talent. Extra Mercy says it too, but the paladin's mercies are a feature, not a selection, so it names none.
 - A path's switch rule: `switch: (from: ["aeon", "azata"], kept_through_rank: 7, path_kept_through_rank: 7,
   dropped_features: [...], dropped_selections: [...], features: [...], further_ascensions: true, level_cap:
   Some(40))`. The general picks (mythic abilities and feats) of MR 1 to `kept_through_rank` stay, and the old

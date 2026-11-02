@@ -1,7 +1,7 @@
 //! Filling a slot, and holding or releasing what a pick or grant gives, with the ability scores and floors that
 //! follow from it.
 
-use super::{GrantSource, Held, Probe, RankGrant, Walker};
+use super::{GrantSource, Held, Pending, Probe, RankGrant, Walker};
 use crate::build::{Pick, SlotId};
 use crate::choice::{Choice, Issue};
 use crate::engine::slots::check_pick;
@@ -40,6 +40,11 @@ impl<'a> Walker<'a> {
             self.probed.kind = Some(kind.clone());
         }
         self.reached.insert(id.clone());
+        if let SlotKind::Selection(selection) = &kind
+            && !self.selections_had.contains(selection)
+        {
+            self.selections_had.push(selection.clone());
+        }
         let pick = self.build.picks.get(&id).cloned();
         if let Some(pick) = &pick {
             match self.check_pick(&kind, pick) {
@@ -59,10 +64,20 @@ impl<'a> Walker<'a> {
             Pick::Feat {
                 feat: key,
                 parameter,
-            } => self.hold(
-                Held::Feat(key.clone(), parameter.iter().cloned().collect()),
-                source.cloned(),
-            ),
+            } => {
+                self.hold(
+                    Held::Feat(key.clone(), parameter.iter().cloned().collect()),
+                    source.cloned(),
+                );
+                // Its extra pick's slot comes once the level's own slots are filled.
+                if self
+                    .engine
+                    .feat(key)
+                    .is_some_and(|feat| !feat.extra_pick_of.is_empty())
+                {
+                    self.pending.push(Pending::Feat(key.clone()));
+                }
+            }
             Pick::SelectionOption {
                 option: key,
                 parameter,

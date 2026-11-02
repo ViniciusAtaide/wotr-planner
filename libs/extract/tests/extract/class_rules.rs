@@ -221,6 +221,7 @@ fn druid_world() -> GameData {
         guide: GuideRef::new("feats#boon-companion"),
         parameter: None,
         repeat: rules::Repeat::Once,
+        extra_pick_of: Default::default(),
         prerequisite: Some(companions.clone()),
     });
     data.mythic_abilities.push(MythicAbility {

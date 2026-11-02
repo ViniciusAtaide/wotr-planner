@@ -367,7 +367,16 @@ async fn load_races(
 }
 
 async fn load_feats(conn: &mut PgConnection, trees: &mut Trees) -> Result<Vec<Feat>, sqlx::Error> {
-    sqlx::query!(
+    let mut extra_picks = Grouped::new();
+    for row in sqlx::query!(
+        "SELECT feat_key, selection_key FROM feat_extra_pick ORDER BY feat_key, selection_key"
+    )
+    .fetch_all(&mut *conn)
+    .await?
+    {
+        extra_picks.push(row.feat_key, FeatureSelectionKey(row.selection_key));
+    }
+    let feats = sqlx::query!(
         "SELECT key, name, category, summary, guide, prerequisite_root_id, parameter, repeat,
             repeat_times
         FROM feat ORDER BY key"
@@ -377,6 +386,7 @@ async fn load_feats(conn: &mut PgConnection, trees: &mut Trees) -> Result<Vec<Fe
     .into_iter()
     .map(|row| {
         Ok(Feat {
+            extra_pick_of: taken_set(&mut extra_picks, &row.key),
             key: FeatKey(row.key),
             name: row.name,
             category: feat_category_from(&row.category)?,
@@ -391,7 +401,9 @@ async fn load_feats(conn: &mut PgConnection, trees: &mut Trees) -> Result<Vec<Fe
             prerequisite: trees.get(row.prerequisite_root_id)?,
         })
     })
-    .collect()
+    .collect::<Result<Vec<Feat>, sqlx::Error>>()?;
+    extra_picks.finish("feat_extra_pick")?;
+    Ok(feats)
 }
 
 /// Features, selections and feats granted by class levels, mythic ranks and backgrounds. A counted grant comes back as
@@ -1273,7 +1285,7 @@ fn option_levels_of(
     rows.take(&option.to_owned())
 }
 
-/// A selection's set-like rows, taken from the rows grouped by selection.
-fn taken_set<T: Ord>(rows: &mut Grouped<String, T>, selection: &str) -> BTreeSet<T> {
-    rows.take(&selection.to_owned()).into_iter().collect()
+/// An owner's set-like rows (a selection's, a feat's), taken from the rows grouped by its key.
+fn taken_set<T: Ord>(rows: &mut Grouped<String, T>, owner: &str) -> BTreeSet<T> {
+    rows.take(&owner.to_owned()).into_iter().collect()
 }

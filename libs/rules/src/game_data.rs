@@ -470,6 +470,12 @@ pub struct Feat {
     /// How many times it can be taken (Weapon Focus: once per weapon; Extra Hex: three times).
     #[serde(default)]
     pub repeat: Repeat,
+    /// The Feature selections a pick of it gives one more slot of, each time it's taken, at the level it's taken
+    /// ("You gain one additional hex": a witch's or a shaman's). The slot is of the one of these the character had a
+    /// slot of first; a character that had a slot of none gets none. Empty: it gives no slot (Extra Rage, Extra
+    /// Channel).
+    #[serde(default)]
+    pub extra_pick_of: BTreeSet<FeatureSelectionKey>,
     /// `None`: the guide lists no prerequisites, so there are none.
     #[serde(default)]
     pub prerequisite: Option<Prerequisite>,

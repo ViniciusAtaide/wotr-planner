@@ -155,7 +155,8 @@ pub struct LevelSheet {
     pub ability_increase: bool,
     pub skill_points: SkillPoints,
     /// Feat and Feature selection slots, in the order picks are checked: the class's selections, the class's feat
-    /// slots, the race's, the general slot, then the slots the options' rows grant.
+    /// slots, the race's, the general slot, then the slots the options' rows grant and the feats' extra picks
+    /// ([`Feat::extra_pick_of`](crate::Feat::extra_pick_of)), in the order the level grants them.
     pub slots: Vec<Slot>,
     /// The Mythic ranks reached at this level (two at 17).
     pub mythic_ranks: Vec<u8>,

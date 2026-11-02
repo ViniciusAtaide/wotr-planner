@@ -43,7 +43,7 @@ async fn insert_all(db: &Database, data: &GameData, hash: &str) -> Result<(), sq
             mythic_path, path_switch, path_switch_from, path_switch_drop, path_switch_feature,
             feature, feature_ability_bonus, feature_selection, selection_level_class,
             selection_skipped_level, selection_option, selection_option_value, selection_option_feat,
-            selection_shared_option,
+            selection_shared_option, feat_extra_pick,
             option_level, feat_list, feat_list_member, class_level, mythic_rank, granted_feature,
             granted_selection, granted_feat, option_level_chosen_feat, feat_slot, background
         RESTART IDENTITY"
@@ -94,6 +94,15 @@ async fn insert_all(db: &Database, data: &GameData, hash: &str) -> Result<(), sq
         )
         .execute(&mut *conn)
         .await?;
+        for selection in feat.extra_pick_of.iter() {
+            sqlx::query!(
+                "INSERT INTO feat_extra_pick (feat_key, selection_key) VALUES ($1, $2)",
+                feat.key.as_str(),
+                selection.as_str(),
+            )
+            .execute(&mut *conn)
+            .await?;
+        }
     }
     for background in data.backgrounds.iter() {
         insert_background(conn, background).await?;

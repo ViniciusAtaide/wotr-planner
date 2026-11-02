@@ -18,6 +18,7 @@ fn feat(key: &str, prerequisite: Option<Prerequisite>) -> Feat {
         guide: GuideRef::new(format!("feats#{key}")),
         parameter: None,
         repeat: rules::Repeat::Once,
+        extra_pick_of: Default::default(),
         prerequisite,
     }
 }

@@ -226,6 +226,7 @@ fn rogue_and_slayer() -> GameData {
         guide: GuideRef::new("feats#extra-slayer-talent"),
         parameter: None,
         repeat: rules::Repeat::Once,
+        extra_pick_of: Default::default(),
         prerequisite: Some(taken("slayer/slayer-talents/opportunist")),
     };
     data(vec![rogue, slayer], vec![feat])
