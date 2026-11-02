@@ -6,15 +6,20 @@ use rules::{AbilityScores, Build, BuildStart, Edit, POINT_BUY_BUDGET};
 use crate::picker::{Head, has_chosen_modifier, racial_modifiers};
 use crate::planner::{Target, use_planner};
 
-/// The Build start, ahead of the grid: open while the Build has no levels, folded to one line after.
+/// The Build start, ahead of the grid: open while the Build has no levels, folded to one line after. It folds
+/// itself when level 1 is added, so the grid's edits don't redo its checks.
 #[component]
 pub fn BuildStartPanel() -> AnyView {
     let planner = use_planner();
-    let open = RwSignal::new(
-        planner
-            .build
-            .with_untracked(|build| build.levels.is_empty()),
-    );
+    let has_levels = Memo::new(move |_| planner.build.with(|build| !build.levels.is_empty()));
+    let open = RwSignal::new(!has_levels.get_untracked());
+    Effect::new(move |had_levels: Option<bool>| {
+        let has = has_levels.get();
+        if had_levels == Some(false) && has {
+            open.set(false);
+        }
+        has
+    });
     let summary = move || {
         let engine = planner.engine();
         planner.build.with(|build| {
@@ -125,15 +130,19 @@ fn choice_row(label: &'static str, value: Option<String>, target: Target) -> imp
 /// Where a race's "+2 to one ability score" goes.
 fn racial_choice(start: &BuildStart) -> impl IntoView + use<> {
     let planner = use_planner();
+    let nexts = AbilityScores::ABILITIES.map(|ability| BuildStart {
+        racial_ability: Some(ability),
+        ..start.clone()
+    });
+    let edits: Vec<Edit> = nexts.iter().cloned().map(Edit::Start).collect();
+    let allows = planner.allows_many(&edits);
     let buttons = AbilityScores::ABILITIES
         .into_iter()
-        .map(|ability| {
+        .zip(nexts)
+        .zip(allows)
+        .map(|((ability, next), allows)| {
             let on = start.racial_ability == Some(ability);
-            let next = BuildStart {
-                racial_ability: Some(ability),
-                ..start.clone()
-            };
-            let allowed = on || planner.allows(&Edit::Start(next.clone()));
+            let allowed = on || allows;
             view! {
                 <button
                     class="seg"
@@ -168,23 +177,24 @@ fn PointBuyRows(current: Build) -> impl IntoView {
     let point_buy = start.ability_scores;
     let modifiers = racial_modifiers(&engine, &start);
     let left = i16::from(POINT_BUY_BUDGET) - i16::from(point_buy.cost());
+    // Each score's step down and up within the budget, then only those that break nothing later.
+    let steps = AbilityScores::ABILITIES.map(|ability| {
+        [-1, 1].map(|delta| {
+            let next = point_buy.get(ability).checked_add_signed(delta)?;
+            let scores = point_buy.with(ability, next)?;
+            Some(Edit::Start(BuildStart {
+                ability_scores: scores,
+                ..start.clone()
+            }))
+        })
+    });
+    let steps = only_allowed(planner, steps.into());
     let rows = AbilityScores::ABILITIES
         .into_iter()
+        .zip(steps)
         .enumerate()
-        .map(|(index, ability)| {
+        .map(|(index, (ability, [down, up]))| {
             let score = point_buy.get(ability);
-            let step = |delta: i8| {
-                let next = score.checked_add_signed(delta)?;
-                let scores = point_buy.with(ability, next)?;
-                let start = BuildStart {
-                    ability_scores: scores,
-                    ..start.clone()
-                };
-                let edit = Edit::Start(start);
-                planner.allows(&edit).then_some(edit)
-            };
-            let down = step(-1);
-            let up = step(1);
             let modifier = modifiers[index];
             let total = i16::from(score) + i16::from(modifier);
             let racial = match modifier {
@@ -239,6 +249,20 @@ fn PointBuyRows(current: Build) -> impl IntoView {
     }
 }
 
+/// The edits of each control pair (a step down, a step up) that [`Engine::allows`](rules::Engine::allows) allows,
+/// asked all at once; the others become `None`.
+fn only_allowed(
+    planner: crate::planner::Planner,
+    pairs: Vec<[Option<Edit>; 2]>,
+) -> Vec<[Option<Edit>; 2]> {
+    let asked: Vec<Edit> = pairs.iter().flatten().flatten().cloned().collect();
+    let mut allows = planner.allows_many(&asked).into_iter();
+    pairs
+        .into_iter()
+        .map(|pair| pair.map(|edit| edit.filter(|_| allows.next() == Some(true))))
+        .collect()
+}
+
 /// A level's skill ranks: ranks added per skill, within the level's skill points and the character level.
 #[component]
 pub fn SkillsPanel(level: u8) -> impl IntoView {
@@ -256,33 +280,38 @@ pub fn SkillsPanel(level: u8) -> impl IntoView {
         };
         let points = level_sheet.skill_points;
         let state = &level_sheet.state;
-        let skills = engine
-            .data()
-            .skills
+        let skills = &engine.data().skills;
+        let here =
+            |skill: &rules::Skill| level_up.skill_ranks.get(&skill.key).copied().unwrap_or(0);
+        // Each skill's rank fewer, and its rank more: points left, and no total above the character level here or
+        // later (the Build refuses that edit). Then only those that break nothing later.
+        let steps = skills
             .iter()
             .map(|skill| {
-                let here = level_up.skill_ranks.get(&skill.key).copied().unwrap_or(0);
-                let total = state.skill_ranks(&skill.key);
-                let class_skill = state.class_skills.contains(&skill.key);
+                let here = here(skill);
                 let edit = |ranks: u8| Edit::SkillRanks {
                     level,
                     skill: skill.key.clone(),
                     ranks,
                 };
-                // A rank more: points left, and no total above the character level here or later (the Build
-                // refuses that edit), and nothing later breaks.
                 let up = (points.spent < points.available)
                     .then(|| edit(here + 1))
                     .filter(|edit| {
                         let mut after = build.clone();
                         after.apply(edit);
                         after != build
-                    })
-                    .filter(|edit| planner.allows(edit));
-                let down = here
-                    .checked_sub(1)
-                    .map(edit)
-                    .filter(|edit| planner.allows(edit));
+                    });
+                [here.checked_sub(1).map(edit), up]
+            })
+            .collect();
+        let steps = only_allowed(planner, steps);
+        let skills = skills
+            .iter()
+            .zip(steps)
+            .map(|(skill, [down, up])| {
+                let here = here(skill);
+                let total = state.skill_ranks(&skill.key);
+                let class_skill = state.class_skills.contains(&skill.key);
                 let name = skill.name.clone();
                 view! {
                     <li class="skill">

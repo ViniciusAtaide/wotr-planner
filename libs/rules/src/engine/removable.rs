@@ -1,6 +1,8 @@
 //! Which edits keep a possible Build possible ([`Engine::allows`]) and which choices may come off now
-//! ([`Engine::removable`]), both by walking the edited Build again from the first level the edit changes.
+//! ([`Engine::removable`]), both by walking the edited Build again from the first level the edit changes. Those
+//! walks keep no sheet and stop at the first choice that fails.
 
+use std::cell::RefCell;
 use std::collections::BTreeSet;
 
 use super::walk::Walker;
@@ -14,9 +16,18 @@ impl Engine {
     /// pickers' business). The edit is applied as [`apply`](Self::apply) does it. The sheet offers only edits this
     /// allows; [`options`](Self::options) and the class and path pickers fold it into each option's status.
     ///
-    /// Costs one walk of the Build, then one from the first level the edit changes.
+    /// Costs one walk of the Build up to the first level the edit changes, then one from there.
     pub fn allows(&self, build: &Build, edit: &Edit) -> bool {
         Recheck::new(self, build).keeps(edit, &[])
+    }
+
+    /// [`allows`](Self::allows) for each edit, in order, sharing the walk of the Build: what a panel of controls
+    /// asks at once (the point buy's steps, a level's skill ranks).
+    ///
+    /// Costs one walk of the Build up to the first level an edit changes, then for each edit one from there.
+    pub fn allows_many(&self, build: &Build, edits: &[Edit]) -> Vec<bool> {
+        let recheck = Recheck::new(self, build);
+        edits.iter().map(|edit| recheck.keeps(edit, &[])).collect()
     }
 
     /// The choices in a possible Build the sheet may remove or change now: each that no later choice depends on.
@@ -29,12 +40,41 @@ impl Engine {
     /// subrace and racial ability), subrace, alignment, background, path or Path switch unchosen. A level's own
     /// skill points don't count against changing its class: the class picker locks a class with too few.
     ///
-    /// Costs one walk of the Build, then for each choice a walk from its level (the Build start's: all of it).
+    /// Costs one walk of the Build, then for each choice a walk from its level (the Build start's: all of it). The
+    /// sheet asks only for the class rows ([`removable_classes`](Self::removable_classes)) and for one choice at a
+    /// time ([`is_removable`](Self::is_removable)).
     pub fn removable(&self, build: &Build) -> BTreeSet<Choice> {
+        self.removable_among(build, |_| true)
+    }
+
+    /// Whether one choice may be removed or changed now: whether [`removable`](Self::removable) has it. What a
+    /// picker's remove control asks when it opens.
+    ///
+    /// Costs one walk of the Build up to the choice's level, then one from there.
+    pub fn is_removable(&self, build: &Build, choice: &Choice) -> bool {
+        !self.removable_among(build, |c| c == choice).is_empty()
+    }
+
+    /// The character levels whose class may be changed now: the [`Choice::Class`] levels
+    /// [`removable`](Self::removable) has. What the levels grid locks its class buttons by.
+    ///
+    /// Costs one walk of the Build, then for each level one from there.
+    pub fn removable_classes(&self, build: &Build) -> BTreeSet<u8> {
+        self.removable_among(build, |choice| matches!(choice, Choice::Class { .. }))
+            .into_iter()
+            .filter_map(|choice| match choice {
+                Choice::Class { level } => Some(level),
+                _ => None,
+            })
+            .collect()
+    }
+
+    /// The choices [`removable`](Self::removable) has among those `wanted` picks out.
+    fn removable_among(&self, build: &Build, wanted: impl Fn(&Choice) -> bool) -> BTreeSet<Choice> {
         let recheck = Recheck::new(self, build);
         self.withdrawals(build)
             .into_iter()
-            .filter(|(_, edit, own)| recheck.keeps(edit, own.as_slice()))
+            .filter(|(choice, edit, own)| wanted(choice) && recheck.keeps(edit, own.as_slice()))
             .map(|(choice, ..)| choice)
             .collect()
     }
@@ -196,65 +236,97 @@ impl Engine {
 }
 
 /// A possible Build walked once and paused before each level, so an edit is walked only from the first level it
-/// changes.
+/// changes. The walk goes only as far as the edits asked about need.
 pub(super) struct Recheck<'a> {
     engine: &'a Engine,
     build: &'a Build,
-    /// `paused[i]` is the walk just before character level `i + 1` (after the Build start); the last one is after
-    /// the last level.
-    paused: Vec<Walker<'a>>,
+    /// `paused[i]` is the walk just before character level `i + 1` (after the Build start); the one after the last
+    /// level is the last there can be. Filled as far as an edit has needed.
+    paused: RefCell<Vec<Walker<'a>>>,
 }
 
 impl<'a> Recheck<'a> {
     pub(super) fn new(engine: &'a Engine, build: &'a Build) -> Self {
-        let mut walker = Walker::new(engine, build, None);
-        walker.start();
-        let mut paused = Vec::with_capacity(build.levels.len() + 1);
-        for (index, level_up) in build.levels.iter().enumerate() {
-            paused.push(walker.clone());
-            walker.level(u8::try_from(index + 1).unwrap_or(u8::MAX), level_up);
-        }
-        paused.push(walker);
         Self {
             engine,
             build,
-            paused,
+            paused: RefCell::new(Vec::new()),
         }
     }
 
-    /// Whether `edit` breaks no choice, other than the ones it sets and `own`.
-    fn keeps(&self, edit: &Edit, own: &[Choice]) -> bool {
+    /// The walk just before character level `index + 1`; `None` past the one after the last level.
+    fn paused(&self, index: usize) -> Option<Walker<'a>> {
+        let build = self.build;
+        if index > build.levels.len() {
+            return None;
+        }
+        let mut paused = self.paused.borrow_mut();
+        if paused.is_empty() {
+            let mut walker = Walker::new(self.engine, build, None).without_sheet();
+            walker.start();
+            paused.push(walker);
+        }
+        while paused.len() <= index {
+            let walked = paused.len() - 1;
+            let mut walker = paused[walked].clone();
+            walker.level(
+                u8::try_from(walked + 1).unwrap_or(u8::MAX),
+                &build.levels[walked],
+            );
+            paused.push(walker);
+        }
+        paused.get(index).cloned()
+    }
+
+    /// Whether `edit` breaks no choice, other than the ones it sets and `own`. An edit that changes nothing
+    /// breaks nothing.
+    pub(super) fn keeps(&self, edit: &Edit, own: &[Choice]) -> bool {
         let mut edited = self.build.clone();
         self.engine.apply(&mut edited, edit);
-        if &edited == self.build {
-            return true;
-        }
+        &edited == self.build || self.walks(edit, &edited, own)
+    }
+
+    /// Whether the walk of `edited` (the Build with `edit` applied) fails no choice but the ones `edit` sets and
+    /// `own`, even when `edit` changes nothing: then it's the Build's own walk.
+    fn walks(&self, edit: &Edit, edited: &Build, own: &[Choice]) -> bool {
         let first = self.engine.first_level(self.build, edit);
-        let walk = match first.checked_sub(1) {
-            None => Walker::new(self.engine, &edited, None).run(),
+        let mut allowed = edit.choices();
+        allowed.extend_from_slice(own);
+        match first.checked_sub(1) {
+            None => Walker::new(self.engine, edited, None)
+                .without_sheet()
+                .holds(0, allowed),
             Some(index) => {
-                let Some(paused) = self.paused.get(usize::from(index)) else {
+                let Some(mut walker) = self.paused(usize::from(index)) else {
                     // Nothing after the last level depends on an edit past it (Remove level, a name).
                     return true;
                 };
-                let mut walker = paused.clone();
-                walker.build = &edited;
-                walker.finish(first)
+                walker.build = edited;
+                walker.holds(first, allowed)
             }
-        };
-        let set = edit.choices();
-        walk.failed
-            .iter()
-            .all(|choice| set.contains(choice) || own.contains(choice))
+        }
     }
 
     /// A picker's status for an option open at its point of the Build: `Ok`, or [`Issue::BreaksLater`].
     pub(super) fn later(&self, edit: &Edit) -> Result<(), Issue> {
-        if self.keeps(edit, &[]) {
-            Ok(())
-        } else {
-            Err(Issue::BreaksLater)
-        }
+        status(self.keeps(edit, &[]))
+    }
+
+    /// [`later`](Self::later) for an edit's walk even when the edit changes nothing (the walk of the Build itself,
+    /// which fails a choice only when the Build isn't possible): what a picker's option gets when its walk is the
+    /// same as that one.
+    pub(super) fn later_walked(&self, edit: &Edit) -> Result<(), Issue> {
+        let mut edited = self.build.clone();
+        self.engine.apply(&mut edited, edit);
+        status(self.walks(edit, &edited, &[]))
+    }
+}
+
+fn status(keeps: bool) -> Result<(), Issue> {
+    if keeps {
+        Ok(())
+    } else {
+        Err(Issue::BreaksLater)
     }
 }
 

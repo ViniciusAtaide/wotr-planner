@@ -282,3 +282,312 @@ fn an_edit_is_allowed_when_every_other_choice_still_holds() {
         ability: Ability::Intelligence
     }));
 }
+
+// ---- one choice, the class rows, many edits at once ------------------------------------------------------------
+
+/// Every choice the Build makes, as `Engine::removable` names them, plus a few it doesn't make.
+fn every_choice(build: &Build) -> Vec<Choice> {
+    let mut choices = vec![
+        Choice::Race,
+        Choice::Subrace,
+        Choice::Alignment,
+        Choice::Background,
+        Choice::MythicPath,
+        Choice::PathSwitch,
+    ];
+    choices.extend(rules::AbilityScores::ABILITIES.map(|ability| Choice::AbilityScore { ability }));
+    for (index, level_up) in build.levels.iter().enumerate() {
+        let level = u8::try_from(index + 1).unwrap();
+        choices.push(Choice::Class { level });
+        choices.push(Choice::AbilityIncrease { level });
+        choices.push(Choice::SkillPoints { level });
+        for skill in level_up.skill_ranks.keys() {
+            choices.push(Choice::SkillRanks {
+                level,
+                skill: skill.clone(),
+            });
+        }
+        choices.push(Choice::Slot(general_slot(level)));
+        choices.push(Choice::Slot(class_slot(level, 0)));
+        choices.push(Choice::Slot(selection_slot(level, 0)));
+    }
+    let past = u8::try_from(build.levels.len() + 1).unwrap();
+    choices.push(Choice::Class { level: past });
+    for class in build.levels.iter().map(|level| level.class.clone()) {
+        choices.push(Choice::Archetype {
+            class: class.clone(),
+        });
+        choices.push(Choice::Advances { class });
+    }
+    choices.extend(build.picks.keys().cloned().map(Choice::Slot));
+    choices
+}
+
+/// Builds that exercise each kind of choice: a feat chain, an archetype's order, skill ranks a prestige class
+/// needs, a Legend switch the levels past 20 need.
+fn removable_builds() -> Vec<Build> {
+    let mut armiger = build("elf", &times("fighter", 2));
+    armiger.class_choices.insert(
+        class("fighter"),
+        ClassChoice {
+            archetype: Some(ArchetypeKey::new("fighter/armiger")),
+            ..ClassChoice::default()
+        },
+    );
+    armiger.picks.insert(
+        selection_slot(1, 0),
+        pick_option("fighter/armiger/order/cockatrice"),
+    );
+    let mut trickster = build(
+        "elf",
+        &[
+            "rogue",
+            "rogue",
+            "rogue",
+            "wizard",
+            "wizard",
+            "wizard",
+            "arcane-trickster",
+        ],
+    );
+    for level in &mut trickster.levels[..4] {
+        level.skill_ranks.insert(skill("mobility"), 1);
+    }
+    let mut legend = build("elf", &[times("fighter", 20), vec!["rogue"]].concat());
+    legend.mythic_path = Some(path("trickster"));
+    legend.path_switch = Some(path("legend"));
+    let builds = vec![
+        cleave_chain(),
+        build_with_no_picks(&cleave_chain()),
+        armiger,
+        trickster,
+        legend,
+    ];
+    for build in &builds {
+        assert!(engine().is_possible(build));
+    }
+    builds
+}
+
+#[test]
+fn one_choice_is_removable_when_removable_names_it() {
+    let engine = engine();
+    for build in removable_builds() {
+        let removable = engine.removable(&build);
+        for choice in every_choice(&build) {
+            assert_eq!(
+                engine.is_removable(&build, &choice),
+                removable.contains(&choice),
+                "{choice:?}"
+            );
+        }
+    }
+}
+
+#[test]
+fn the_removable_classes_are_the_levels_whose_class_removable_names() {
+    let engine = engine();
+    assert_eq!(
+        engine.removable_classes(&cleave_chain()),
+        std::collections::BTreeSet::from([5])
+    );
+    for build in removable_builds() {
+        let levels: std::collections::BTreeSet<u8> = engine
+            .removable(&build)
+            .into_iter()
+            .filter_map(|choice| match choice {
+                Choice::Class { level } => Some(level),
+                _ => None,
+            })
+            .collect();
+        assert_eq!(engine.removable_classes(&build), levels);
+    }
+}
+
+#[test]
+fn many_edits_are_each_allowed_as_allows_says() {
+    let engine = engine();
+    let mut answers = std::collections::BTreeSet::new();
+    for build in removable_builds() {
+        let mut edits = vec![Edit::RemoveLevel, Edit::SetName(Some("x".into()))];
+        for ability in rules::AbilityScores::ABILITIES {
+            for score in [7, 10, 14, 17] {
+                if let Some(scores) = build.start.ability_scores.with(ability, score) {
+                    let mut start = build.start.clone();
+                    start.ability_scores = scores;
+                    edits.push(Edit::Start(start));
+                }
+            }
+        }
+        for level in 1..=u8::try_from(build.levels.len()).unwrap() {
+            edits.push(Edit::Clear(general_slot(level)));
+            edits.push(Edit::Pick {
+                slot: general_slot(level),
+                pick: pick_feat("toughness"),
+            });
+            edits.push(Edit::SkillRanks {
+                level,
+                skill: skill("mobility"),
+                ranks: 0,
+            });
+            edits.push(Edit::Class {
+                level,
+                class: class("wizard"),
+                choice: None,
+            });
+        }
+        edits.extend(build.picks.keys().cloned().map(Edit::Clear));
+        let one_by_one: Vec<bool> = edits
+            .iter()
+            .map(|edit| engine.allows(&build, edit))
+            .collect();
+        assert_eq!(engine.allows_many(&build, &edits), one_by_one);
+        answers.extend(one_by_one);
+    }
+    assert_eq!(answers.len(), 2, "some edits allowed, some not");
+}
+
+// ---- what a picker's option can break later -----------------------------------------------------------------
+
+/// The world changed by `change`, which must keep it passing the data check.
+fn engine_with(change: impl FnOnce(&mut rules::GameData)) -> Engine {
+    let mut data = world();
+    change(&mut data);
+    assert_eq!(data.check(), []);
+    Engine::new(data)
+}
+
+/// An option's status in a slot's picker.
+fn status_in(
+    engine: &Engine,
+    build: &Build,
+    slot: &SlotId,
+    pick: &rules::Pick,
+) -> Result<(), Issue> {
+    engine
+        .options(build, slot)
+        .unwrap()
+        .into_iter()
+        .find(|option| &option.pick == pick)
+        .unwrap()
+        .status
+}
+
+#[test]
+fn a_feat_a_later_feat_rules_out_breaks_later() {
+    // An invented feat for those without Dodge.
+    let engine = engine_with(|data| {
+        let mut lone = data
+            .feats
+            .iter()
+            .find(|f| f.key.as_str() == "toughness")
+            .unwrap()
+            .clone();
+        lone.key = feat("steady-stance");
+        lone.prerequisite = Some(rules::Prerequisite::Not(Box::new(
+            rules::Prerequisite::Feat(feat("dodge")),
+        )));
+        data.feats.push(lone);
+        data.canonicalize();
+    });
+    let mut build = build("elf", &times("fighter", 3));
+    build
+        .picks
+        .insert(general_slot(3), pick_feat("steady-stance"));
+    assert!(engine.is_possible(&build));
+    let slot = general_slot(1);
+    assert_eq!(
+        status_in(&engine, &build, &slot, &pick_feat("dodge")),
+        Err(Issue::BreaksLater)
+    );
+    assert_eq!(
+        status_in(&engine, &build, &slot, &pick_feat("toughness")),
+        Ok(())
+    );
+}
+
+#[test]
+fn a_feat_slot_holding_what_a_later_class_needs_keeps_only_it() {
+    // The wizard needs Dodge to enter.
+    let engine = engine_with(|data| {
+        let wizard = data
+            .classes
+            .iter_mut()
+            .find(|c| c.key.as_str() == "wizard")
+            .unwrap();
+        wizard.prerequisite = Some(rules::Prerequisite::Feat(feat("dodge")));
+    });
+    let mut build = build("elf", &["fighter", "wizard"]);
+    build.picks.insert(general_slot(1), pick_feat("dodge"));
+    assert!(engine.is_possible(&build));
+    let slot = general_slot(1);
+    assert_eq!(
+        status_in(&engine, &build, &slot, &pick_feat("dodge")),
+        Ok(())
+    );
+    assert_eq!(
+        status_in(&engine, &build, &slot, &pick_feat("toughness")),
+        Err(Issue::BreaksLater)
+    );
+    // Taking it in the class slot instead leaves the general slot free.
+    build.picks.remove(&general_slot(1));
+    build.picks.insert(class_slot(1, 0), pick_feat("dodge"));
+    assert!(engine.is_possible(&build));
+    assert_eq!(
+        status_in(&engine, &build, &slot, &pick_feat("toughness")),
+        Ok(())
+    );
+    assert_eq!(
+        status_in(&engine, &build, &slot, &pick_feat("dodge")),
+        Err(Issue::AlreadyHeld)
+    );
+}
+
+#[test]
+fn a_feat_a_later_options_chosen_feat_holds_breaks_later() {
+    // The rogue talent Weapon Focus (Longsword) at 4: Weapon Focus (Longsword) at 3 would hold it twice.
+    let mut build = build("elf", &times("rogue", 4));
+    build.picks.insert(
+        selection_slot(4, 0),
+        pick_option_for("rogue/rogue-talents/weapon-focus", weapon("longsword")),
+    );
+    let engine = engine();
+    assert!(engine.is_possible(&build));
+    let slot = general_slot(3);
+    assert_eq!(
+        status_in(
+            &engine,
+            &build,
+            &slot,
+            &pick_feat_for("weapon-focus", weapon("longsword"))
+        ),
+        Err(Issue::BreaksLater)
+    );
+    assert_eq!(
+        status_in(
+            &engine,
+            &build,
+            &slot,
+            &pick_feat_for("weapon-focus", weapon("dagger"))
+        ),
+        Ok(())
+    );
+}
+
+#[test]
+fn in_a_build_that_isnt_possible_only_an_option_that_mends_it_is_open() {
+    // Cleave at 3 without Power Attack: no Build the sheet makes, but the pickers still answer for it.
+    let engine = engine();
+    let mut build = build("elf", &times("fighter", 3));
+    build.picks.insert(general_slot(3), pick_feat("cleave"));
+    assert!(!engine.is_possible(&build));
+    let slot = general_slot(1);
+    assert_eq!(
+        status_in(&engine, &build, &slot, &pick_feat("toughness")),
+        Err(Issue::BreaksLater)
+    );
+    assert_eq!(
+        status_in(&engine, &build, &slot, &pick_feat("power-attack")),
+        Ok(())
+    );
+}

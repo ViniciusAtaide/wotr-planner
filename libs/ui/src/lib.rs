@@ -6,12 +6,15 @@ use leptos_router::{
 };
 
 mod browser;
+mod game_data;
 mod grid;
 mod mythic;
 mod picker;
 mod planner;
 mod start;
 mod timings;
+
+pub use game_data::GameDataUrl;
 
 /// The HTML document the server renders around [`App`].
 pub fn shell(options: LeptosOptions) -> impl IntoView {
@@ -24,6 +27,7 @@ pub fn shell(options: LeptosOptions) -> impl IntoView {
                 <meta name="color-scheme" content="light dark"/>
                 <AutoReload options=options.clone()/>
                 <HydrationScripts options/>
+                <game_data::GameDataPreload/>
                 <MetaTags/>
             </head>
             <body>
@@ -31,18 +35,6 @@ pub fn shell(options: LeptosOptions) -> impl IntoView {
             </body>
         </html>
     }
-}
-
-/// All the seeded game data. The browser loads it once and runs the rules engine on it.
-///
-/// The server loads the game data once at startup and provides it as an `Arc<GameData>` context;
-/// this returns that copy without touching the database. In the wasm build the body becomes an
-/// HTTP call.
-#[server]
-pub async fn get_game_data() -> Result<rules::GameData, ServerFnError> {
-    let game_data = use_context::<std::sync::Arc<rules::GameData>>()
-        .ok_or_else(|| ServerFnError::new("the server has no game data loaded"))?;
-    Ok(rules::GameData::clone(&game_data))
 }
 
 #[component]

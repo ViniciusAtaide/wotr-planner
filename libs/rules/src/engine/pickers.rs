@@ -1,7 +1,8 @@
 //! The pickers: every option a slot, a level's class, the path or the Path switch can take, each with whether it
 //! can be taken there and why not.
 
-use std::collections::BTreeSet;
+use std::cell::OnceCell;
+use std::collections::{BTreeSet, HashSet};
 
 use super::removable::Recheck;
 use super::slots::check_pick;
@@ -10,7 +11,7 @@ use super::{ClassOption, Engine, PathOption, SlotKind, SlotOption, class_level_c
 use crate::build::{Build, ClassChoice, Edit, Pick, SlotId};
 use crate::choice::{Issue, Unmet};
 use crate::game_data::{Archetype, Class};
-use crate::keys::{ArchetypeKey, SelectionOptionKey};
+use crate::keys::{ArchetypeKey, FeatKey, SelectionOptionKey};
 use crate::prerequisite::{Prerequisite, Story};
 use crate::state::{CharacterState, ClassLevels};
 
@@ -20,8 +21,9 @@ impl Engine {
     /// is [`Issue::BreaksLater`] (Toughness at level 1 with Toughness at level 3; anything but Cleave in Cleave's
     /// slot while Great Cleave needs it). `None` when the Build has no such slot.
     ///
-    /// Costs one walk to the slot's level and one of the Build, then for each option open there a walk from the
-    /// slot's level to the end.
+    /// Costs one walk to the slot's level, then a walk from the slot's level for the slot left empty and for each
+    /// option open there that a later check could see ([`named_feats`](Self::named_feats)); each stops at the
+    /// first choice that fails.
     pub fn options(&self, build: &Build, slot: &SlotId) -> Option<Vec<SlotOption>> {
         let probed = self.probe(build, Probe::Slot(slot));
         let (state, kind) = (probed.state?, probed.kind?);
@@ -94,22 +96,70 @@ impl Engine {
                 .collect(),
         };
         let recheck = Recheck::new(self, build);
+        let named = self.named_feats(build);
+        let left_empty = OnceCell::new();
+        let later = |pick: &Pick| match pick {
+            // A feat no check names breaks later just what the slot left empty would.
+            Pick::Feat { feat, .. } if !named.contains(feat) => left_empty
+                .get_or_init(|| recheck.later_walked(&Edit::Clear(slot.clone())))
+                .clone(),
+            _ => recheck.later(&Edit::Pick {
+                slot: slot.clone(),
+                pick: pick.clone(),
+            }),
+        };
         Some(
             candidates
                 .into_iter()
                 .map(|pick| SlotOption {
                     status: check_pick(self, &state, &kind, &pick)
                         .map_err(|issue| self.reason_for(issue, &state))
-                        .and_then(|()| {
-                            recheck.later(&Edit::Pick {
-                                slot: slot.clone(),
-                                pick: pick.clone(),
-                            })
-                        }),
+                        .and_then(|()| later(&pick)),
                     pick,
                 })
                 .collect(),
         )
+    }
+
+    /// The feats a walk of the Build can look at: each feat picked (whether it's held already), each option's
+    /// chosen feat, and the feats named by the prerequisites of the picks and of the classes and archetypes the
+    /// Build takes. Holding a feat touches nothing but that feat's entries in the state, so a feat pick outside
+    /// these changes no later check: the walk with it fails exactly the choices the walk without it fails.
+    fn named_feats<'b>(&'b self, build: &'b Build) -> HashSet<&'b FeatKey> {
+        let mut named = HashSet::new();
+        for pick in build.picks.values() {
+            let prerequisite = match pick {
+                Pick::Feat { feat, .. } => {
+                    named.insert(feat);
+                    self.feat(feat).and_then(|f| f.prerequisite.as_ref())
+                }
+                Pick::SelectionOption { option, .. } => self.option(option).and_then(|o| {
+                    named.extend(&o.chosen_feat);
+                    o.prerequisite.as_ref()
+                }),
+                Pick::MythicAbility(key) => self
+                    .mythic_ability(key)
+                    .and_then(|a| a.prerequisite.as_ref()),
+                Pick::MythicFeat { feat, .. } => {
+                    self.mythic_feat(feat).and_then(|f| f.prerequisite.as_ref())
+                }
+            };
+            if let Some(prerequisite) = prerequisite {
+                prerequisite.collect_feats(&mut named);
+            }
+        }
+        for level in &build.levels {
+            if let Some((class, _)) = self.class(&level.class) {
+                let archetypes = class.archetypes.iter().map(|a| a.prerequisite.as_ref());
+                for prerequisite in std::iter::once(class.prerequisite.as_ref())
+                    .chain(archetypes)
+                    .flatten()
+                {
+                    prerequisite.collect_feats(&mut named);
+                }
+            }
+        }
+        named
     }
 
     /// The story conditions in a pick's prerequisite (Vow of Dahak), for the note the sheet shows beside it. They

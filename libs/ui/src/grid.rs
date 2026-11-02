@@ -2,7 +2,7 @@
 //! ranks and a badge for the Mythic ranks reached there; then the summary of where the Build ends.
 
 use leptos::prelude::*;
-use rules::{AbilityScores, Build, Choice, Edit, Engine, LevelSheet, Sheet, Slot};
+use rules::{AbilityScores, Build, Edit, Engine, LevelSheet, Sheet, Slot};
 
 use crate::planner::{Tab, Target, use_planner};
 
@@ -76,7 +76,7 @@ fn level_row(engine: &Engine, build: &Build, level: &LevelSheet) -> impl IntoVie
         .and_then(|choice| choice.archetype.as_ref())
         .filter(|_| level.class_level == 1)
         .map(|archetype| engine.archetype_name(archetype).to_owned());
-    let changeable = planner.removable(&Choice::Class { level: n });
+    let changeable = planner.class_removable(n);
     let chips = level
         .slots
         .iter()

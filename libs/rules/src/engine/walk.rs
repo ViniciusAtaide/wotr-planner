@@ -37,8 +37,12 @@ impl Engine {
     /// Whether every choice in the Build holds up with the current game data: every key known, every pick in a
     /// slot the Build reaches and fitting it there, the path and switch at ranks it reaches, every rule kept. Every
     /// Build the sheet's edits make is.
+    ///
+    /// Costs at most one walk of the Build, without the sheet; it stops at the first choice that fails.
     pub fn is_possible(&self, build: &Build) -> bool {
-        Walker::new(self, build, None).run().failed.is_empty()
+        Walker::new(self, build, None)
+            .without_sheet()
+            .holds(0, Vec::new())
     }
 
     /// Opens a link: its Build when it decodes with the game data's keys and [is possible](Self::is_possible), and
@@ -157,6 +161,19 @@ pub(super) struct Walker<'a> {
     option_feat_slots: u8,
     probe: Option<Probe<'a>>,
     probed: Probed,
+    /// Whether the walk keeps the sheet's rows; a recheck's walk doesn't ([`without_sheet`](Self::without_sheet)).
+    sheet: bool,
+    /// Set while the walk only answers whether a choice fails ([`holds`](Self::holds)).
+    recheck: Option<RecheckWalk>,
+}
+
+/// What a walk that only answers whether a choice fails keeps instead of the failed choices.
+#[derive(Clone, Debug)]
+struct RecheckWalk {
+    /// The choices whose failing doesn't count: the ones an edit sets, and any it may take with it.
+    allowed: Vec<Choice>,
+    /// Whether any other choice has failed.
+    broken: bool,
 }
 
 /// One option held through a selection with option levels: which of its rows it has got, and what each holds.
@@ -186,7 +203,6 @@ struct Holding {
 pub(super) struct Walk {
     sheet: Sheet,
     probed: Probed,
-    pub(super) failed: Vec<Choice>,
 }
 
 impl<'a> Walker<'a> {
@@ -224,13 +240,60 @@ impl<'a> Walker<'a> {
             option_feat_slots: 0,
             probe,
             probed: Probed::default(),
+            sheet: true,
+            recheck: None,
         }
+    }
+
+    /// The same walk without the sheet's rows (the state at each level), which a recheck doesn't read.
+    pub(super) fn without_sheet(mut self) -> Self {
+        self.sheet = false;
+        self
     }
 
     /// Notes a choice that doesn't hold up. Only whether one does matters (it locks an edit, and makes a link
     /// stale), never why.
     fn fail(&mut self, at: Choice) {
-        self.failed.push(at);
+        match &mut self.recheck {
+            Some(recheck) => recheck.broken |= !recheck.allowed.contains(&at),
+            None => self.failed.push(at),
+        }
+    }
+
+    /// Whether no choice fails but `allowed` ones: walks the Build start when `first` is 0, then the levels from
+    /// `first` on (the ones before it are walked already, and count with what failed in them), and stops at the
+    /// first other choice that fails. A pick for a level's slot the level didn't reach fails once the level is
+    /// walked, rather than at the end.
+    pub(super) fn holds(mut self, first: u8, allowed: Vec<Choice>) -> bool {
+        let broken = self.failed.iter().any(|choice| !allowed.contains(choice));
+        self.recheck = Some(RecheckWalk { allowed, broken });
+        let build = self.build;
+        if first == 0 {
+            self.start();
+        }
+        let skipped = usize::from(first).saturating_sub(1);
+        for (index, level_up) in build.levels.iter().enumerate().skip(skipped) {
+            let level = u8::try_from(index + 1).unwrap_or(u8::MAX);
+            if self.broken() {
+                return false;
+            }
+            self.level(level, level_up);
+            let unreached: Vec<SlotId> = build
+                .picks
+                .keys()
+                .filter(|slot| slot.level() == Some(level) && !self.reached.contains(*slot))
+                .cloned()
+                .collect();
+            for slot in unreached {
+                self.fail(Choice::Slot(slot));
+            }
+        }
+        self.check_unreached();
+        !self.broken()
+    }
+
+    fn broken(&self) -> bool {
+        self.recheck.as_ref().is_some_and(|recheck| recheck.broken)
     }
 
     pub(super) fn run(mut self) -> Walk {
@@ -245,7 +308,7 @@ impl<'a> Walker<'a> {
         let skipped = usize::from(first).saturating_sub(1);
         for (index, level_up) in build.levels.iter().enumerate().skip(skipped) {
             let level = u8::try_from(index + 1).unwrap_or(u8::MAX);
-            levels.push(self.level(level, level_up));
+            levels.extend(self.level(level, level_up));
             if self.probed.state.is_some() {
                 break;
             }
@@ -263,7 +326,6 @@ impl<'a> Walker<'a> {
                 level_cap: self.level_cap,
             },
             probed: self.probed,
-            failed: self.failed,
         }
     }
 
@@ -381,7 +443,8 @@ impl<'a> Walker<'a> {
 
     // ---- Level-up -----------------------------------------------------------------------------------------
 
-    pub(super) fn level(&mut self, level: u8, level_up: &'a LevelUp) -> LevelSheet {
+    /// Walks one level; its sheet row, unless the walk keeps no sheet.
+    pub(super) fn level(&mut self, level: u8, level_up: &'a LevelUp) -> Option<LevelSheet> {
         if let Some(Probe::Level(probed)) = self.probe
             && probed == level
         {
@@ -429,7 +492,7 @@ impl<'a> Walker<'a> {
             slots.extend(self.fill_pending(level));
         }
 
-        LevelSheet {
+        self.sheet.then(|| LevelSheet {
             character_level: level,
             class: level_up.class.clone(),
             class_level,
@@ -438,6 +501,6 @@ impl<'a> Walker<'a> {
             slots,
             mythic_ranks,
             state: self.state.clone(),
-        }
+        })
     }
 }

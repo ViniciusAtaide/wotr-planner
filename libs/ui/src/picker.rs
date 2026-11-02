@@ -95,7 +95,7 @@ pub fn Head(
     let remove = remove.map(|(choice, edit)| {
         let edit = StoredValue::new(edit);
         move || {
-            planner.removable(&choice).then(|| {
+            planner.is_removable(&choice).then(|| {
                 view! {
                     <button
                         class="remove"
@@ -907,14 +907,16 @@ fn start_items(
     starts: &[(Item, BuildStart)],
     current: &BuildStart,
 ) -> Vec<Item> {
+    let edits: Vec<Edit> = starts
+        .iter()
+        .map(|(_, start)| Edit::Start(start.clone()))
+        .collect();
     starts
         .iter()
-        .map(|(item, start)| {
-            let allowed = start == current || planner.allows(&Edit::Start(start.clone()));
-            Item {
-                locked: !allowed,
-                ..item.clone()
-            }
+        .zip(planner.allows_many(&edits))
+        .map(|((item, start), allows)| Item {
+            locked: !(start == current || allows),
+            ..item.clone()
         })
         .collect()
 }
@@ -927,22 +929,40 @@ fn StartPicker(
 ) -> impl IntoView {
     let planner = use_planner();
     let current = planner.build.with_untracked(|build| build.start.clone());
-    let items = planner
-        .build
-        .with_untracked(|_| timed("start_options", || start_items(planner, &starts, &current)));
-    let starts: Vec<BuildStart> = starts.into_iter().map(|(_, start)| start).collect();
+    // The list is filled after the first paint, as the slot picker's is.
+    let computed = RwSignal::new(None::<Vec<Item>>);
+    let starts = StoredValue::new(starts);
+    {
+        let current = current.clone();
+        after_paint(move || {
+            let items = starts.with_value(|starts| {
+                timed("start_options", || start_items(planner, starts, &current))
+            });
+            computed.set(Some(items));
+        });
+    }
+    let list = move || {
+        let Some(items) = computed.get() else {
+            return loading();
+        };
+        let current = current.clone();
+        view! {
+            <ItemList
+                items
+                on_pick=move |index: usize| {
+                    let start = starts.with_value(|starts| starts[index].1.clone());
+                    planner.close();
+                    if start != current {
+                        planner.edit(Edit::Start(start));
+                    }
+                }
+            />
+        }
+        .into_any()
+    };
     view! {
         <Head title place="Build start" remove/>
-        <ItemList
-            items
-            on_pick=move |index: usize| {
-                let start = starts[index].clone();
-                planner.close();
-                if start != current {
-                    planner.edit(Edit::Start(start));
-                }
-            }
-        />
+        {list}
     }
 }
 
@@ -1010,15 +1030,19 @@ fn AlignmentPicker() -> impl IntoView {
     });
     // The name over the wheel: the one under the pointer or focus, else the current one.
     let shown = RwSignal::new(None::<Alignment>);
+    let starts = Alignment::ALL.map(|alignment| BuildStart {
+        alignment: Some(alignment),
+        ..current.clone()
+    });
+    let edits: Vec<Edit> = starts.iter().cloned().map(Edit::Start).collect();
+    let allows = planner.allows_many(&edits);
     let nodes = Alignment::ALL
         .into_iter()
-        .map(|alignment| {
-            let start = BuildStart {
-                alignment: Some(alignment),
-                ..current.clone()
-            };
+        .zip(starts)
+        .zip(allows)
+        .map(|((alignment, start), allows)| {
             let on = current.alignment == Some(alignment);
-            let allowed = on || planner.allows(&Edit::Start(start.clone()));
+            let allowed = on || allows;
             let start = StoredValue::new(start);
             view! {
                 <button
@@ -1121,14 +1145,16 @@ fn AbilityIncreasePicker(level: u8) -> impl IntoView {
             .get(usize::from(level) - 1)
             .and_then(|level_up| level_up.ability_increase)
     });
+    let edits = AbilityScores::ABILITIES.map(|ability| Edit::AbilityIncrease {
+        level,
+        ability: Some(ability),
+    });
+    let allows = planner.allows_many(&edits);
     let items: Vec<Item> = AbilityScores::ABILITIES
         .into_iter()
-        .map(|ability| {
-            let edit = Edit::AbilityIncrease {
-                level,
-                ability: Some(ability),
-            };
-            let allowed = current == Some(ability) || planner.allows(&edit);
+        .zip(allows)
+        .map(|(ability, allows)| {
+            let allowed = current == Some(ability) || allows;
             Item {
                 current: current == Some(ability),
                 locked: !allowed,

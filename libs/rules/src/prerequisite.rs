@@ -1,6 +1,6 @@
 //! Prerequisites: nested AND / OR / at-least-n groups over single conditions.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet, HashSet};
 
 use serde::{Deserialize, Serialize};
 
@@ -144,6 +144,27 @@ impl Prerequisite {
             Prerequisite::Not(child) => child.collect_stories(stories),
             Prerequisite::Story(story) => {
                 stories.insert(*story);
+            }
+            _ => {}
+        }
+    }
+
+    /// Adds the feats the tree names anywhere, in a `Not` too: every feat whose holding it can look at.
+    pub(crate) fn collect_feats<'p>(&'p self, feats: &mut HashSet<&'p FeatKey>) {
+        match self {
+            Prerequisite::All(children)
+            | Prerequisite::Any(children)
+            | Prerequisite::AtLeast(_, children) => {
+                for child in children {
+                    child.collect_feats(feats);
+                }
+            }
+            Prerequisite::Not(child) => child.collect_feats(feats),
+            Prerequisite::Feat(feat)
+            | Prerequisite::FeatFor { feat, .. }
+            | Prerequisite::FeatForSameValue(feat)
+            | Prerequisite::FeatIfValue { feat, .. } => {
+                feats.insert(feat);
             }
             _ => {}
         }

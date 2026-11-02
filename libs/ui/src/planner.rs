@@ -42,8 +42,9 @@ pub struct Planner {
     pub build: RwSignal<Build>,
     /// The engine's walk of the Build, once per edit.
     pub sheet: Memo<Arc<Sheet>>,
-    /// The choices that may be removed or changed now, once per edit (and only when something asks).
-    removable: Memo<Arc<BTreeSet<Choice>>>,
+    /// The levels whose class may be changed now, once per edit (and only when something asks): the grid's class
+    /// buttons. Any other choice is asked about one at a time ([`is_removable`](Self::is_removable)).
+    removable_classes: Memo<Arc<BTreeSet<u8>>>,
     pub picker: RwSignal<Option<Target>>,
     pub tab: RwSignal<Tab>,
     /// The one generic error a link that opens nothing shows.
@@ -63,16 +64,17 @@ impl Planner {
             let sheet = build.with(|build| timed("evaluate", || engine.evaluate(build)));
             (Arc::new(sheet), true)
         });
-        let removable = Memo::new_owning(move |_| {
+        let removable_classes = Memo::new_owning(move |_| {
             let engine = engine.get_value();
-            let removable = build.with(|build| timed("removable", || engine.removable(build)));
-            (Arc::new(removable), true)
+            let levels =
+                build.with(|build| timed("removable_classes", || engine.removable_classes(build)));
+            (Arc::new(levels), true)
         });
         Self {
             engine,
             build,
             sheet,
-            removable,
+            removable_classes,
             picker: RwSignal::new(None),
             tab: RwSignal::new(Tab::Levels),
             error: RwSignal::new(error),
@@ -100,9 +102,24 @@ impl Planner {
             .with_untracked(|build| timed("allows", || engine.allows(build, edit)))
     }
 
-    /// Whether a choice may be removed or changed now.
-    pub fn removable(&self, choice: &Choice) -> bool {
-        self.removable.with(|removable| removable.contains(choice))
+    /// [`allows`](Self::allows) for each of a panel's edits at once, sharing one walk of the Build.
+    pub fn allows_many(&self, edits: &[Edit]) -> Vec<bool> {
+        let engine = self.engine();
+        self.build
+            .with_untracked(|build| timed("allows_many", || engine.allows_many(build, edits)))
+    }
+
+    /// Whether the class at a level may be changed now.
+    pub fn class_removable(&self, level: u8) -> bool {
+        self.removable_classes
+            .with(|levels| levels.contains(&level))
+    }
+
+    /// Whether a choice may be removed or changed now. Tracked: asked again after each edit.
+    pub fn is_removable(&self, choice: &Choice) -> bool {
+        let engine = self.engine();
+        self.build
+            .with(|build| timed("is_removable", || engine.is_removable(build, choice)))
     }
 
     pub fn open(&self, target: Target) {
@@ -132,10 +149,9 @@ impl Planner {
 #[component]
 pub fn SheetPage() -> impl IntoView {
     let engine = LocalResource::new(|| async {
-        crate::get_game_data()
+        crate::game_data::load()
             .await
             .map(|data| Arc::new(timed("engine", || Engine::new(data))))
-            .map_err(|error| error.to_string())
     });
     move || match engine.get() {
         None => view! { <p class="loading">"Loading the game data…"</p> }.into_any(),
