@@ -12,7 +12,24 @@
 //!   draws on.
 //!
 //! The report's other items (the sorcerer archetypes' level-1 bonus feat, the kineticist's bonus-feat wild talent,
-//! Talented Slayer, the cleric's deity) aren't settled by the saved pages: they are ticket 43's questions.
+//! Talented Slayer, the cleric's deity) aren't settled by the saved pages: they were ticket 43's questions. Ticket 44
+//! builds the user's decisions on three of them (2026-11-02):
+//!
+//! - **The sorcerer's level-1 bonus feat** (`sorcerer#crossblooded`, `#empyreal-sorcerer`, `#geomancer`,
+//!   `#nine-tailed-heir`, `#sage-sorcerer`, `#sylvan-sorcerer`): every sorcerer table but the Overwhelming Mage's
+//!   ("Does not receive bonus feats.") has "Bonus Feat" at 1, in the column of the "Bloodline Feat" at 7, 13 and 19.
+//!   Every sorcerer, base included, takes it from the held bloodline's list (`OptionList(selection:
+//!   "sorcerer/bloodline")`, as at 7, 13 and 19): Crossblooded from either bloodline's ("at the bonus feat levels,
+//!   you may choose a feat from one bloodline or the other"), the Empyreal, Sage and Sylvan from their fixed
+//!   bloodline's, the Seeker and Nine Tailed Heir from the one they choose "for the purpose of bonus feats" (the
+//!   Seeker's magic feats are its 5th, 10th and 15th). The Geomancer, which "does not gain bloodline spells or
+//!   bloodline feats", keeps its General slot; the Overwhelming Mage keeps none. The base sorcerer gains the slot.
+//! - **Extra Slayer Talent** (`feats#extra-slayer-talent`): "Slayer Talents or Talented Slayer" reads as slayer
+//!   level 2, the level the slayer's table first gives Slayer Talents. Talented Slayer is on no saved page.
+//! - **The cleric's deity** (`cleric`): "Alignment must be within 1 place of their chosen deity." Deities are out of
+//!   scope; the rule changes no data, and the report item goes.
+//!
+//! The kineticist's bonus-feat wild talent is ticket 45's ([`moved`]).
 //!
 //! Each rule asserts the guide phrase it rests on and what it finds in the data, so it fails loudly on data it
 //! doesn't expect. [`apply`] runs on the finished data of an extraction and, through ticket 43's one-off rewrite, on
@@ -20,24 +37,56 @@
 
 use std::collections::BTreeSet;
 
-use rules::{FeatureKey, GameData, Prerequisite, SelectionOptionKey};
+use rules::{
+    ClassKey, FeatCategory, FeatSlot, FeatureKey, FeatureSelectionKey, GameData, Prerequisite,
+    SelectionOptionKey,
+};
 
-use crate::follow_ups::{archetype_mut, class_mut, says};
+use crate::follow_ups::{archetype_mut, cell_at, class_mut, says};
 use crate::guide::Guide;
-use crate::option_levels::Log;
+use crate::html::Section;
+use crate::option_levels::{Log, page};
 
-/// Applies every rule, in the order above.
+/// Applies every rule, in the order above: ticket 43's, then [`decisions`].
 pub fn apply(guide: &Guide, data: &mut GameData) -> Log {
     let mut log = Log::new();
     totems(guide, data, &mut log);
     eldritch_scoundrel(guide, data, &mut log);
     wandering_hex(guide, data, &mut log);
+    log.extend(decisions(guide, data));
     log
 }
 
-/// The extraction report's items this module settles: the totems' prose rule.
+/// Ticket 44's rules alone (the user's decisions on ticket 43's questions), which its one-off rewrite applies to
+/// `game-data/`, where ticket 43's are in already.
+pub fn decisions(guide: &Guide, data: &mut GameData) -> Log {
+    let mut log = Log::new();
+    sorcerer_level_1_feat(guide, data, &mut log);
+    extra_slayer_talent(guide, data, &mut log);
+    deity(guide);
+    log
+}
+
+/// The extraction report's items this module settles: the totems' prose rule (ticket 43); the sorcerer archetypes'
+/// level-1 "Bonus Feat", Extra Slayer Talent's "Talented Slayer" and the cleric's deity (ticket 44).
 pub fn settled(at: &str, text: &str) -> bool {
-    at == "barbarian#rage-powers" && text.is_empty()
+    match text {
+        "" => at == "barbarian#rage-powers",
+        "Bonus Feat" => SORCERER_ARCHETYPES_GENERAL_AT_1
+            .iter()
+            .any(|archetype| at == format!("sorcerer#{archetype}")),
+        "Slayer Talents or Talented Slayer" => at == "feats#extra-slayer-talent",
+        DEITY => at == "cleric",
+        _ => false,
+    }
+}
+
+/// The extraction report's items a follow-up ticket carries, left out of the report: the kineticist's bonus-feat
+/// wild talent, which [ticket 45] builds once wild talents are a selection.
+///
+/// [ticket 45]: ../../.scratch/wotr-planner/issues/45-kineticist-wild-talents.md
+pub fn moved(at: &str, text: &str) -> bool {
+    at == "kineticist#kineticist-bonus-feat" && text.is_empty()
 }
 
 // ---- totem rage powers ----------------------------------------------------------------------------------------
@@ -212,4 +261,269 @@ fn wandering_hex(guide: &Guide, data: &mut GameData, log: &mut Log) {
     );
     feature.daily_choice = true;
     log.push(format!("{WANDERING_HEX}: a daily choice"));
+}
+
+// ---- the sorcerer's level-1 bonus feat ------------------------------------------------------------------------
+
+const SORCERER_BLOODLINE: &str = "sorcerer/bloodline";
+
+/// The archetypes whose level-1 "Bonus Feat" an extraction stores as a general slot (and reports).
+const SORCERER_ARCHETYPES_GENERAL_AT_1: [&str; 6] = [
+    "crossblooded",
+    "empyreal-sorcerer",
+    "geomancer",
+    "nine-tailed-heir",
+    "sage-sorcerer",
+    "sylvan-sorcerer",
+];
+
+/// The level-1 bonus feat of the base sorcerer and each archetype that has it, from the held bloodline's list.
+fn sorcerer_level_1_feat(guide: &Guide, data: &mut GameData, log: &mut Log) {
+    for anchor in [
+        "abyssal",
+        "arcane",
+        "celestial",
+        "draconic",
+        "elemental",
+        "fey",
+        "infernal",
+        "serpentine",
+        "undead",
+        "crossblooded",
+        "empyreal-sorcerer",
+        "geomancer",
+        "nine-tailed-heir",
+        "sage-sorcerer",
+        "seeker-sorcerer",
+        "sylvan-sorcerer",
+    ] {
+        cell_at(guide, "sorcerer", anchor, "1", "Bonus Feat");
+    }
+    says(
+        guide,
+        "sorcerer",
+        "bloodline-2",
+        "Note that at the bonus feat levels, you may choose a feat from one bloodline or the other, not both.",
+    );
+    says(
+        guide,
+        "sorcerer",
+        "nine-tailed-heir",
+        "A Nine Tailed Heir chooses a standard bloodline for the purpose of bonus feats and abilities.",
+    );
+    says(
+        guide,
+        "sorcerer",
+        "seeker-sorcerer",
+        "A Seeker chooses a standard bloodline for the purpose of bonus feats and spells.",
+    );
+    says(
+        guide,
+        "sorcerer",
+        "bonus-feat",
+        "At 5th, 10th and 15th levels, a Seeker gains a bonus magic feat.",
+    );
+    says(
+        guide,
+        "sorcerer",
+        "geomancer",
+        "Does not gain bloodline spells or bloodline feats.",
+    );
+    says(
+        guide,
+        "sorcerer",
+        "overwhelming-mage",
+        "Does not receive bonus feats.",
+    );
+    cell_at(
+        guide,
+        "sorcerer",
+        "overwhelming-mage",
+        "1",
+        "Overwhelming Penetration",
+    );
+
+    let slot = FeatSlot::OptionList {
+        selection: FeatureSelectionKey::new(SORCERER_BLOODLINE),
+        at_level: None,
+    };
+    let sorcerer = class_mut(data, "sorcerer");
+    let bloodline = sorcerer
+        .selections
+        .iter()
+        .find(|selection| selection.key.as_str() == SORCERER_BLOODLINE)
+        .unwrap_or_else(|| panic!("no {SORCERER_BLOODLINE}"));
+    let bloodlines: Vec<SelectionOptionKey> = bloodline
+        .options
+        .iter()
+        .map(|option| option.key.clone())
+        .collect();
+    let archetypes: Vec<&str> = sorcerer
+        .archetypes
+        .iter()
+        .map(|archetype| archetype.key.as_str())
+        .collect();
+    assert_eq!(
+        archetypes,
+        [
+            "sorcerer/crossblooded",
+            "sorcerer/empyreal-sorcerer",
+            "sorcerer/geomancer",
+            "sorcerer/nine-tailed-heir",
+            "sorcerer/overwhelming-mage",
+            "sorcerer/sage-sorcerer",
+            "sorcerer/seeker-sorcerer",
+            "sorcerer/sylvan-sorcerer",
+        ],
+        "the sorcerer's archetypes"
+    );
+
+    // The base sorcerer: no slot at 1 yet; it picks its bloodline there.
+    let row = sorcerer
+        .levels
+        .iter_mut()
+        .find(|row| row.level == 1)
+        .expect("the sorcerer's row 1");
+    assert_eq!(row.feat_slots, [], "sorcerer 1: a feat slot already");
+    assert!(
+        row.selections
+            .iter()
+            .any(|selection| selection.as_str() == SORCERER_BLOODLINE),
+        "sorcerer 1 picks no bloodline"
+    );
+    row.feat_slots.push(slot.clone());
+    log.push("sorcerer 1: a bonus feat from the held bloodline's list".to_owned());
+
+    for archetype in &mut sorcerer.archetypes {
+        let name = archetype
+            .key
+            .as_str()
+            .strip_prefix("sorcerer/")
+            .unwrap()
+            .to_owned();
+        // A selection the archetype's bloodline comes from: the sorcerer's, or the archetype's own over the
+        // sorcerer's bloodlines (the Empyreal's Celestial, the Sage's Arcane, the Sylvan's Fey, the Seeker's any).
+        let own_bloodline = |key: &FeatureSelectionKey| {
+            key.as_str() == SORCERER_BLOODLINE
+                || archetype.selections.iter().any(|selection| {
+                    selection.key == *key
+                        && selection.options.is_empty()
+                        && !selection.shared_options.is_empty()
+                        && selection
+                            .shared_options
+                            .iter()
+                            .all(|option| bloodlines.contains(option))
+                })
+        };
+        let picks_bloodline = archetype
+            .levels
+            .iter()
+            .find(|row| row.level == 1)
+            .is_some_and(|row| row.selections.iter().any(own_bloodline));
+        let row = archetype
+            .levels
+            .iter_mut()
+            .find(|row| row.level == 1)
+            .unwrap_or_else(|| panic!("{name} has no row 1"));
+        let before = match name.as_str() {
+            "overwhelming-mage" => vec![],
+            "seeker-sorcerer" => vec![FeatSlot::Category(FeatCategory::Magic)],
+            _ => vec![FeatSlot::General],
+        };
+        assert_eq!(row.feat_slots, before, "{name} 1's slots");
+        match name.as_str() {
+            "overwhelming-mage" | "geomancer" => continue,
+            _ => {}
+        }
+        assert!(picks_bloodline, "{name} 1 holds no bloodline");
+        row.feat_slots = vec![slot.clone()];
+        log.push(format!(
+            "{} 1: the bonus feat from the held bloodline's list (was {:?})",
+            archetype.key, before[0]
+        ));
+        if name == "seeker-sorcerer" {
+            for level in [5, 10, 15] {
+                let row = archetype
+                    .levels
+                    .iter()
+                    .find(|row| row.level == level)
+                    .unwrap_or_else(|| panic!("the Seeker has no row {level}"));
+                assert_eq!(
+                    row.feat_slots,
+                    [FeatSlot::Category(FeatCategory::Magic)],
+                    "the Seeker's magic feat at {level}"
+                );
+            }
+        }
+    }
+}
+
+// ---- Extra Slayer Talent --------------------------------------------------------------------------------------
+
+/// Extra Slayer Talent needs slayer level 2, the level the slayer's table first gives Slayer Talents.
+fn extra_slayer_talent(guide: &Guide, data: &mut GameData, log: &mut Log) {
+    says(
+        guide,
+        "feats",
+        "extra-slayer-talent",
+        "Slayer Talents or Talented Slayer",
+    );
+    // The slayer's tables: saves and BAB, then the features by level.
+    let first = named_section(guide, "slayer", "Slayer")
+        .tables()
+        .flatten()
+        .find(|row| row.iter().skip(1).any(|cell| cell == "Slayer Talents"))
+        .and_then(|row| row.first())
+        .expect("Slayer Talents in the slayer's table");
+    assert_eq!(first, "2", "the slayer's first Slayer Talents");
+    let level: u8 = first.parse().unwrap();
+    let slayer = class_mut(data, "slayer");
+    let first_row = slayer
+        .levels
+        .iter()
+        .find(|row| {
+            row.selections
+                .iter()
+                .any(|selection| selection.as_str() == "slayer/slayer-talents")
+        })
+        .map(|row| row.level);
+    assert_eq!(
+        first_row,
+        Some(level),
+        "the slayer's first slayer-talents row"
+    );
+    let feat = data
+        .feats
+        .iter_mut()
+        .find(|feat| feat.key.as_str() == "extra-slayer-talent")
+        .expect("Extra Slayer Talent");
+    assert_eq!(
+        feat.prerequisite, None,
+        "extra-slayer-talent: a prerequisite already"
+    );
+    feat.prerequisite = Some(Prerequisite::ClassLevel {
+        class: ClassKey::new("slayer"),
+        level,
+    });
+    log.push(format!("extra-slayer-talent: needs slayer level {level}"));
+}
+
+// ---- the cleric's deity ---------------------------------------------------------------------------------------
+
+const DEITY: &str = "Alignment must be within 1 place of their chosen deity.";
+
+/// Deities are out of scope: asserts the sentence the report item quotes and changes no data.
+fn deity(guide: &Guide) {
+    let text = named_section(guide, "cleric", "Cleric").text();
+    assert!(text.contains(DEITY), "cleric: no {DEITY:?}");
+}
+
+/// The section of a page with this heading (a class's own section, which has no anchor).
+fn named_section<'g>(guide: &'g Guide, slug: &str, name: &str) -> &'g Section {
+    page(guide, slug)
+        .root
+        .walk()
+        .into_iter()
+        .find(|section| section.name == name)
+        .unwrap_or_else(|| panic!("{slug}: no section {name:?}"))
 }

@@ -4252,3 +4252,247 @@ fn a_shamans_wandering_hex_is_a_daily_choice_from_6() {
     assert!(!daily(&possessed, 13).contains(&wandering_hex));
     assert!(daily(&possessed, 14).contains(&wandering_hex));
 }
+
+// ---- the sorcerer's level-1 feat and Extra Slayer Talent (ticket 44) ------------------------------------------
+
+/// The slot a sorcerer's bloodline feats take: the held bloodline's list.
+fn bloodline_feat_slot() -> SlotKind {
+    SlotKind::Feat(FeatSlot::OptionList {
+        selection: rules::FeatureSelectionKey::new("sorcerer/bloodline"),
+        at_level: None,
+    })
+}
+
+/// A sorcerer bloodline's bonus-feat list, by key: `bloodline_feats(&["abyssal"])`; several lists together.
+fn bloodline_feats(bloodlines: &[&str]) -> BTreeSet<String> {
+    bloodlines
+        .iter()
+        .flat_map(|bloodline| {
+            let key = format!("sorcerer/bloodline/{bloodline}/feats");
+            class("sorcerer")
+                .feat_lists
+                .iter()
+                .find(|list| list.key.as_str() == key)
+                .unwrap_or_else(|| panic!("no list {key}"))
+                .feats
+                .iter()
+                .map(|feat| feat.to_string())
+        })
+        .collect()
+}
+
+/// The kind of a Build's class feat slot at `level`, if it has one.
+fn class_slot_kind(build: &Build, level: u8) -> Option<SlotKind> {
+    engine()
+        .evaluate(build)
+        .slot(&class_slot(level))
+        .map(|slot| slot.kind.clone())
+}
+
+/// The status of `feat` in a feat slot.
+fn feat_status(build: &Build, slot: &SlotId, feat: &str) -> Result<(), Issue> {
+    engine()
+        .options(build, slot)
+        .unwrap_or_else(|| panic!("no slot {slot:?}"))
+        .into_iter()
+        .find(|option| option.pick.key() == feat)
+        .unwrap_or_else(|| panic!("{feat} isn't offered in {slot:?}"))
+        .status
+}
+
+/// Every sorcerer table has "Bonus Feat" at 1, in the column of the "Bloodline Feat" at 7, 13 and 19 (ticket 43's
+/// decision 1): the base sorcerer's level-1 bonus feat is from the held bloodline's list.
+#[test]
+fn a_sorcerer_1_picks_a_bonus_feat_from_the_held_bloodlines_list() {
+    let draconic = with_option(
+        build("sorcerer", 1),
+        1,
+        0,
+        "sorcerer/bloodline/draconic-red",
+    );
+    assert!(possible(&draconic));
+    assert_eq!(class_slot_kind(&draconic, 1), Some(bloodline_feat_slot()));
+    // "Blind-Fight, Great Fortitude, Improved Initiative, Quicken Spell, Power Attack, Skill Focus, Toughness": the
+    // Draconic list and nothing else. Its Power Attack is offered but locked at sorcerer 1 (BAB +1).
+    let offered = feats_offered(&draconic, &class_slot(1));
+    assert_eq!(offered, bloodline_feats(&["draconic"]));
+    assert!(!offered.contains("dodge") && !offered.contains("combat-casting"));
+    assert!(feat_status(&draconic, &class_slot(1), "power-attack").is_err());
+    assert_eq!(feat_status(&draconic, &class_slot(1), "toughness"), Ok(()));
+    let mut toughness = draconic.clone();
+    toughness
+        .picks
+        .insert(class_slot(1), Pick::feat(FeatKey::new("toughness")));
+    assert!(possible(&toughness));
+    // An Abyssal sorcerer 1 is offered the Abyssal list, Power Attack among them, and not Toughness.
+    let abyssal = with_option(build("sorcerer", 1), 1, 0, ABYSSAL);
+    let offered = feats_offered(&abyssal, &class_slot(1));
+    assert_eq!(offered, bloodline_feats(&["abyssal"]));
+    assert!(!offered.contains("toughness"));
+}
+
+/// "Note that at the bonus feat levels, you may choose a feat from one bloodline or the other, not both."
+/// (sorcerer#crossblooded)
+#[test]
+fn a_crossblooded_sorcerer_1_picks_from_either_bloodlines_list() {
+    let build = crossblooded("arcane", "abyssal");
+    assert_eq!(class_slot_kind(&build, 1), Some(bloodline_feat_slot()));
+    let offered = feats_offered(&build, &class_slot(1));
+    assert_eq!(offered, bloodline_feats(&["arcane", "abyssal"]));
+    assert!(offered.contains("combat-casting") && offered.contains("cleave"));
+    assert!(!offered.contains("toughness"));
+}
+
+/// The Empyreal, Sage and Sylvan Sorcerers' fixed bloodlines (Celestial, Arcane, Fey) give their level-1 list.
+#[test]
+fn a_fixed_bloodline_sorcerer_1_picks_from_its_bloodlines_list() {
+    for (archetype, bloodline) in [
+        ("sorcerer/empyreal-sorcerer", "celestial"),
+        ("sorcerer/sage-sorcerer", "arcane"),
+        ("sorcerer/sylvan-sorcerer", "fey"),
+    ] {
+        let build = archetype_build("sorcerer", archetype, 1);
+        assert!(possible(&build), "{archetype}");
+        assert_eq!(
+            class_slot_kind(&build, 1),
+            Some(bloodline_feat_slot()),
+            "{archetype}"
+        );
+        let offered = feats_offered(&build, &class_slot(1));
+        assert_eq!(offered, bloodline_feats(&[bloodline]), "{archetype}");
+        assert!(!offered.contains("power-attack"), "{archetype}");
+    }
+}
+
+/// "A Seeker chooses a standard bloodline for the purpose of bonus feats and spells." and "At 5th, 10th and 15th
+/// levels, a Seeker gains a bonus magic feat." (sorcerer#seeker-sorcerer): its level-1 feat is the bloodline's, its
+/// magic feats come at 5, 10 and 15. A Nine Tailed Heir "chooses a standard bloodline for the purpose of bonus feats".
+#[test]
+fn a_seeker_and_a_nine_tailed_heir_1_pick_from_the_chosen_bloodlines_list() {
+    let seeker = with_option(
+        archetype_build("sorcerer", "sorcerer/seeker-sorcerer", 15),
+        1,
+        0,
+        ABYSSAL,
+    );
+    assert!(possible(&seeker));
+    assert_eq!(class_slot_kind(&seeker, 1), Some(bloodline_feat_slot()));
+    let offered = feats_offered(&seeker, &class_slot(1));
+    assert_eq!(offered, bloodline_feats(&["abyssal"]));
+    // No longer any Magic feat: Spell Focus is one, and not on the Abyssal list.
+    assert!(!offered.contains("spell-focus"));
+    for level in [5, 10, 15] {
+        assert_eq!(
+            class_slot_kind(&seeker, level),
+            Some(SlotKind::Feat(FeatSlot::Category(
+                rules::FeatCategory::Magic
+            ))),
+            "{level}"
+        );
+    }
+    // The Nine Tailed Heir is the kitsune's.
+    let mut heir = with_option(
+        archetype_build("sorcerer", "sorcerer/nine-tailed-heir", 1),
+        1,
+        0,
+        "sorcerer/bloodline/fey",
+    );
+    heir.start.race = Some(rules::RaceKey::new("kitsune"));
+    assert!(possible(&heir));
+    assert_eq!(class_slot_kind(&heir, 1), Some(bloodline_feat_slot()));
+    assert_eq!(
+        feats_offered(&heir, &class_slot(1)),
+        bloodline_feats(&["fey"])
+    );
+}
+
+/// "Does not gain bloodline spells or bloodline feats." (sorcerer#geomancer): its level-1 bonus feat stays any feat.
+/// "Does not receive bonus feats." (sorcerer#overwhelming-mage): no slot at 1.
+#[test]
+fn a_geomancer_1_still_takes_any_feat_and_an_overwhelming_mage_none() {
+    let geomancer = with_option(
+        archetype_build("sorcerer", "sorcerer/geomancer", 1),
+        1,
+        0,
+        ABYSSAL,
+    );
+    assert_eq!(
+        class_slot_kind(&geomancer, 1),
+        Some(SlotKind::Feat(FeatSlot::General))
+    );
+    let offered = feats_offered(&geomancer, &class_slot(1));
+    assert!(offered.contains("power-attack") && offered.contains("dodge"));
+    let mage = with_option(
+        archetype_build("sorcerer", "sorcerer/overwhelming-mage", 1),
+        1,
+        0,
+        ABYSSAL,
+    );
+    assert_eq!(class_slot_kind(&mage, 1), None);
+}
+
+/// The sheet names the level-1 slot as it names the 7th's: "Bloodline feat" (a Geomancer's: "Bonus feat").
+#[test]
+fn the_sheet_labels_a_sorcerers_level_1_feat_bloodline_feat() {
+    let engine = engine();
+    let label = |build: &Build, level: u8| {
+        let sheet = engine.evaluate(build);
+        engine.slot_label(sheet.slot(&class_slot(level)).expect("a class feat slot"))
+    };
+    let base = with_option(build("sorcerer", 20), 1, 0, ABYSSAL);
+    assert_eq!(label(&base, 1), "Bloodline feat");
+    assert_eq!(label(&base, 7), "Bloodline feat");
+    for archetype in [
+        "sorcerer/empyreal-sorcerer",
+        "sorcerer/sage-sorcerer",
+        "sorcerer/sylvan-sorcerer",
+    ] {
+        assert_eq!(
+            label(&archetype_build("sorcerer", archetype, 1), 1),
+            "Bloodline feat",
+            "{archetype}"
+        );
+    }
+    assert_eq!(
+        label(&crossblooded("arcane", "abyssal"), 1),
+        "Bloodline feat"
+    );
+    let geomancer = archetype_build("sorcerer", "sorcerer/geomancer", 1);
+    assert_eq!(label(&geomancer, 1), "Bonus feat");
+    let sheet = engine.evaluate(&base);
+    for slot in sheet.levels.iter().flat_map(|level| &level.slots) {
+        let label = engine.slot_label(slot);
+        assert!(!label.is_empty() && !label.contains('/'), "{label}");
+    }
+}
+
+/// "Prerequisites: Slayer Talents or Talented Slayer" (feats#extra-slayer-talent), read as slayer level 2, the level
+/// the slayer's table first gives Slayer Talents (ticket 43's decision 3; Talented Slayer is on no saved page).
+#[test]
+fn extra_slayer_talent_needs_slayer_level_2() {
+    assert_eq!(
+        feat("extra-slayer-talent").prerequisite,
+        Some(Prerequisite::ClassLevel {
+            class: ClassKey::new("slayer"),
+            level: 2,
+        })
+    );
+    let status = feat_status(&build("slayer", 1), &general_slot(1), "extra-slayer-talent");
+    assert_eq!(
+        engine().issue_text(&status.unwrap_err()).as_deref(),
+        Some("Needs Slayer level 2 (have 1)")
+    );
+    // A fighter 1 / slayer 2 takes it at character level 3.
+    let slayer_2 = classes(&["fighter", "slayer", "slayer"]);
+    assert_eq!(
+        feat_status(&slayer_2, &general_slot(3), "extra-slayer-talent"),
+        Ok(())
+    );
+    let rogue = feat_status(&build("rogue", 1), &general_slot(1), "extra-slayer-talent");
+    assert!(
+        engine()
+            .issue_text(&rogue.unwrap_err())
+            .unwrap()
+            .starts_with("Needs Slayer level 2"),
+    );
+}
