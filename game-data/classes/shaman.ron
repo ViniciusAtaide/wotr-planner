@@ -47,7 +47,7 @@ Class(
         (key: "shaman/spirit/wind/manifestation-wind", name: "Manifestation (Wind)", guide: "shaman#manifestation-wind"),
         (key: "shaman/spirit/wind/shocking-touch", name: "Shocking Touch", guide: "shaman#shocking-touch"),
         (key: "shaman/spirit/wind/spark-soul", name: "Spark Soul", guide: "shaman#spark-soul"),
-        (key: "shaman/wandering-hex", name: "Wandering Hex", guide: "shaman#wandering-hex"),
+        (key: "shaman/wandering-hex", name: "Wandering Hex", guide: "shaman#wandering-hex", daily_choice: true),
         (key: "shaman/wandering-spirit", name: "Wandering Spirit", guide: "shaman#wandering-spirit", daily_choice: true),
         (key: "shaman/wandering-spirit-greater-ability", name: "Wandering Spirit - Greater Ability", guide: "shaman"),
         (key: "shaman/wandering-spirit-true-ability", name: "Wandering Spirit - True Ability", guide: "shaman"),

@@ -170,6 +170,14 @@ pub fn extract(guide: &Guide) -> Extraction {
     // Options' class skills (ticket 37): the "Class Skill: …" features become their option rows' class skills. It
     // settles no item of an extraction's report.
     crate::option_class_skills::apply(guide, &mut data);
+    // The report items the saved pages settle (ticket 43): the totems' exclusivity, the Eldritch Scoundrel's sneak
+    // attack dice, the Wandering Hex as a daily choice. It settles the totems' item of an extraction's report (the
+    // hand-kept report's Eldritch Scoundrel and Wandering Hex items go too).
+    crate::report_gaps::apply(guide, &mut data);
+    builder
+        .report
+        .items
+        .retain(|item| !crate::report_gaps::settled(&item.at, &item.text));
     for problem in data.check() {
         builder.report.add_about(
             Kind::Cell,

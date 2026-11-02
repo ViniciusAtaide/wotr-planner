@@ -179,6 +179,13 @@ class's), and BAB and saves (from the class's progressions).
   each window's feat comes from the style's list of its stage, whoever levels the style (the user's decisions: one
   style, as a ranger picks, shared with a ranger's; the window's stage, not the ranger's levels). `at_level` left
   out: the list in force at the option's own level.
+- Ticket 43 (`extract::report_gaps`, the report items the saved pages settle): the totem rage powers are exclusive
+  ('Selecting one "Totem" power closes off the other categories'), so each of the twelve (Beast, Celestial, Daemon,
+  Fiend: Lesser, plain, Greater) has a `Not(SelectionOption(...))` for each of the other lines' nine in its `All`, one
+  `Not` per power so that a lock names the power held ("Needs not Beast Totem, Lesser"); the shaman's Wandering Hex (6,
+  14), "temporarily filled" from his main spirit or his current Wandering Spirit, is a `daily_choice`, as the
+  Wandering Spirit is; the Eldritch Scoundrel's sneak attack dice are at 1, 3, 7, 11, 15 and 19, as its section lists
+  them.
 - A path's switch rule: `switch: (from: ["aeon", "azata"], kept_through_rank: 7, path_kept_through_rank: 7,
   dropped_features: [...], dropped_selections: [...], features: [...], further_ascensions: true, level_cap:
   Some(40))`. The general picks (mythic abilities and feats) of MR 1 to `kept_through_rank` stay, and the old

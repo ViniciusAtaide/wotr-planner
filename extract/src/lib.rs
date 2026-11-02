@@ -24,6 +24,7 @@ pub mod progressions;
 pub mod prose;
 pub mod references;
 pub mod report;
+pub mod report_gaps;
 pub mod resolve;
 pub mod ron_out;
 pub mod second_follow_ups;

@@ -4056,3 +4056,199 @@ fn the_sheet_labels_a_real_build() {
         Some("Needs Power Attack")
     );
 }
+
+// ---- the extraction report's gaps (ticket 43) -----------------------------------------------------------------
+
+/// The barbarian's four totem lines, each Lesser, plain and Greater.
+const TOTEM_LINES: [&str; 4] = ["beast", "celestial", "daemon", "fiend"];
+
+fn totem_options(line: &str) -> [String; 3] {
+    [
+        format!("barbarian/rage-power/{line}-totem-lesser"),
+        format!("barbarian/rage-power/{line}-totem"),
+        format!("barbarian/rage-power/{line}-totem-greater"),
+    ]
+}
+
+fn selection_option(key: &str) -> &'static rules::SelectionOption {
+    DATA.classes
+        .iter()
+        .chain(&DATA.prestige_classes)
+        .flat_map(|class| {
+            class
+                .selections
+                .iter()
+                .chain(class.archetypes.iter().flat_map(|a| &a.selections))
+        })
+        .flat_map(|selection| &selection.options)
+        .find(|option| option.key.as_str() == key)
+        .unwrap_or_else(|| panic!("no option {key}"))
+}
+
+/// The options a prerequisite rules out with a `Not(SelectionOption(..))` in its top-level `All` (or as itself).
+fn ruled_out(prerequisite: Option<&Prerequisite>) -> BTreeSet<String> {
+    let children = match prerequisite {
+        Some(Prerequisite::All(children)) => children.iter().collect(),
+        Some(other) => vec![other],
+        None => Vec::new(),
+    };
+    children
+        .into_iter()
+        .filter_map(|child| match child {
+            Prerequisite::Not(inner) => match inner.as_ref() {
+                Prerequisite::SelectionOption(option) => Some(option.to_string()),
+                other => panic!("an unexpected Not: {other:?}"),
+            },
+            _ => None,
+        })
+        .collect()
+}
+
+fn barbarian(levels: usize) -> Build {
+    let mut build = build("barbarian", levels);
+    build.start.alignment = Some(rules::Alignment::ChaoticNeutral);
+    build
+}
+
+fn not_option(key: &str) -> Prerequisite {
+    Prerequisite::Not(Box::new(Prerequisite::SelectionOption(
+        SelectionOptionKey::new(key),
+    )))
+}
+
+/// '"Totem" powers are exclusive. Selecting one "Totem" power closes off the other categories.' (barbarian#rage-power)
+#[test]
+fn the_totem_rage_powers_are_exclusive_one_line_per_character() {
+    // Each totem power rules out the other three lines' nine powers; no other rage power rules anything out.
+    for line in TOTEM_LINES {
+        let others: BTreeSet<String> = TOTEM_LINES
+            .iter()
+            .filter(|other| **other != line)
+            .flat_map(|other| totem_options(other))
+            .collect();
+        for key in totem_options(line) {
+            assert_eq!(
+                ruled_out(selection_option(&key).prerequisite.as_ref()),
+                others,
+                "{key}"
+            );
+        }
+    }
+    let rage_power = DATA
+        .classes
+        .iter()
+        .find(|class| class.key.as_str() == "barbarian")
+        .unwrap()
+        .selections
+        .iter()
+        .find(|selection| selection.key.as_str() == "barbarian/rage-power")
+        .unwrap();
+    for option in &rage_power.options {
+        if !option.key.as_str().contains("-totem") {
+            assert_eq!(ruled_out(option.prerequisite.as_ref()), BTreeSet::new());
+        }
+    }
+
+    // A barbarian with Beast Totem, Lesser at 2 is offered no other line's power, and his own line's chain.
+    let mut build = barbarian(10);
+    build.picks.insert(
+        selection_slot(2),
+        pick("barbarian/rage-power/beast-totem-lesser"),
+    );
+    let at_4 = offered(&build, 4);
+    let beast_lesser = not_option("barbarian/rage-power/beast-totem-lesser");
+    for line in ["celestial", "daemon", "fiend"] {
+        for key in totem_options(line) {
+            let status = at_4[&key].clone();
+            match status {
+                Err(Issue::Unmet(Unmet::Condition { needs, .. })) => {
+                    assert_eq!(needs, beast_lesser)
+                }
+                Err(Issue::Unmet(Unmet::All(children))) => assert!(
+                    children.contains(&Unmet::Condition {
+                        needs: beast_lesser.clone(),
+                        has: None
+                    }),
+                    "{key}: {children:?}"
+                ),
+                other => panic!("{key}: {other:?}"),
+            }
+        }
+    }
+    build
+        .picks
+        .insert(selection_slot(6), pick("barbarian/rage-power/beast-totem"));
+    assert!(possible(&build));
+    assert_eq!(
+        offered(&build, 10)["barbarian/rage-power/beast-totem-greater"],
+        Ok(())
+    );
+
+    // Two lines can't be held: Fiend Totem, Lesser after Beast Totem, Lesser, and the reason says why.
+    let mut two = barbarian(4);
+    two.picks.insert(
+        selection_slot(2),
+        pick("barbarian/rage-power/beast-totem-lesser"),
+    );
+    two.picks.insert(
+        selection_slot(4),
+        pick("barbarian/rage-power/fiend-totem-lesser"),
+    );
+    let issue = why_not(&two, &selection_slot(4)).expect("offered, locked");
+    assert_eq!(issue, unmet(beast_lesser, None).unwrap());
+    assert_eq!(
+        engine().issue_text(&issue).as_deref(),
+        Some("Needs not Beast Totem, Lesser")
+    );
+    // Lines other than the one held stay open to a barbarian with none.
+    let none = offered(&barbarian(2), 2);
+    for line in TOTEM_LINES {
+        assert_eq!(
+            none[&format!("barbarian/rage-power/{line}-totem-lesser")],
+            Ok(())
+        );
+    }
+}
+
+/// "At 1st level, the Eldritch Scoundrel deals extra damage … She does an additional 1d6 damage at 3rd level,
+/// increasing by 1d6 every four additional class levels (7, 11, 15, 19)." (rogue#sneak-attack-eldritch-scoundrel)
+#[test]
+fn an_eldritch_scoundrels_sneak_attack_dice_come_at_1_3_7_11_15_and_19() {
+    let sheet = engine().evaluate(&archetype_build("rogue", "rogue/eldritch-scoundrel", 20));
+    let dice: Vec<u8> = (1..=20)
+        .map(|level| {
+            sheet.at(level).unwrap().feature_count(&FeatureKey::new(
+                "rogue/eldritch-scoundrel/sneak-attack-eldritch-scoundrel",
+            ))
+        })
+        .collect();
+    assert_eq!(
+        dice,
+        [1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6]
+    );
+    // It is the archetype's only sneak attack.
+    assert_eq!(
+        sheet
+            .at(20)
+            .unwrap()
+            .feature_count(&FeatureKey::new("rogue/sneak-attack")),
+        0
+    );
+}
+
+/// "At 6th and 14th levels, a Shaman gains a hex slot that can be temporarily filled with a hex granted by either
+/// his main spirit or his current Wandering Spirit." (shaman#wandering-hex): a daily choice, as the Wandering Spirit
+/// it draws on.
+#[test]
+fn a_shamans_wandering_hex_is_a_daily_choice_from_6() {
+    let wandering_hex = FeatureKey::new("shaman/wandering-hex");
+    let daily = |build: &Build, level: u8| engine().daily_choices(&at(build, level));
+    let shaman = build("shaman", 14);
+    assert!(!daily(&shaman, 5).contains(&wandering_hex));
+    assert!(daily(&shaman, 6).contains(&wandering_hex));
+    assert!(daily(&shaman, 6).contains(&FeatureKey::new("shaman/wandering-spirit")));
+    // The Possessed Shaman has Wandering Skills at 6 and the Wandering Hex at 14 only.
+    let possessed = archetype_build("shaman", "shaman/possessed-shaman", 14);
+    assert!(!daily(&possessed, 13).contains(&wandering_hex));
+    assert!(daily(&possessed, 14).contains(&wandering_hex));
+}
