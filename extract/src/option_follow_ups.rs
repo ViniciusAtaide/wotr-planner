@@ -870,6 +870,7 @@ fn slayer_combat_style(guide: &Guide, data: &mut GameData, log: &mut Log) {
         row.feat_slots = vec![FeatSlot::OptionList {
             selection: key.clone(),
             at_level: None,
+            label: None,
         }];
         row.selections = vec![key.clone()];
         log.push(format!(

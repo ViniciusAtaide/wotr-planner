@@ -1331,6 +1331,7 @@ fn option_list_slots(row: &mut dyn Row, merged: &[&str], selection: &FeatureSele
             *slot = FeatSlot::OptionList {
                 selection: selection.clone(),
                 at_level: None,
+                label: None,
             };
             changed = true;
         }

@@ -709,8 +709,6 @@ fn repeats_and_chosen_feats_fit_their_feats() {
     feat_mut(&mut data, "toughness").repeat = Repeat::PerValue;
     // "Up to once" is just once.
     feat_mut(&mut data, "dodge").repeat = Repeat::Times(1);
-    // An option takes no value of its own.
-    rogue_talent_mut(&mut data, "rogue/rogue-talents/fast-stealth").repeat = Repeat::PerValue;
     // A chosen feat is one that takes a value.
     rogue_talent_mut(&mut data, "rogue/rogue-talents/weapon-focus").chosen_feat =
         Some(FeatKey::new("toughness"));
@@ -720,12 +718,33 @@ fn repeats_and_chosen_feats_fit_their_feats() {
             (at_feat("toughness"), DataIssue::PerValueWithoutParameter),
             (at_feat("dodge"), DataIssue::TimesOutOfRange(1)),
             (
-                at_option("rogue/rogue-talents/fast-stealth"),
-                DataIssue::PerValueWithoutParameter
-            ),
-            (
                 at_option("rogue/rogue-talents/weapon-focus"),
                 DataIssue::ChosenFeatNotParameterised
+            ),
+        ])
+    );
+}
+
+#[test]
+fn an_option_repeats_once_per_value_only_of_its_chosen_feat() {
+    let mut data = world();
+    // The rogue talent Weapon Focus once per weapon, as its chosen feat: the Skill Focus talents' kind (ticket 47).
+    rogue_talent_mut(&mut data, "rogue/rogue-talents/weapon-focus").repeat = Repeat::PerValue;
+    assert_eq!(issues(&data), []);
+    // An option that takes no value, or one of its own (Battle Master's weapon, for its rows), has no chosen feat to
+    // count the values of.
+    rogue_talent_mut(&mut data, "rogue/rogue-talents/fast-stealth").repeat = Repeat::PerValue;
+    slayer_talent_mut(&mut data, "slayer/slayer-talents/battle-master").repeat = Repeat::PerValue;
+    assert_eq!(
+        sorted(issues(&data)),
+        sorted(vec![
+            (
+                at_option("rogue/rogue-talents/fast-stealth"),
+                DataIssue::PerValueWithoutChosenFeat
+            ),
+            (
+                at_option("slayer/slayer-talents/battle-master"),
+                DataIssue::PerValueWithoutChosenFeat
             ),
         ])
     );

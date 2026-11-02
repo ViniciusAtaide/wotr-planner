@@ -732,6 +732,7 @@ impl Engine {
             FeatSlot::OptionList {
                 selection,
                 at_level: None,
+                ..
             } => {
                 let Some(selection) = self.selection(selection) else {
                     return Vec::new();
@@ -747,6 +748,7 @@ impl Engine {
             FeatSlot::OptionList {
                 selection,
                 at_level: Some(level),
+                ..
             } => {
                 let Some(selection) = self.selection(selection) else {
                     return Vec::new();
@@ -3101,8 +3103,19 @@ pub(crate) fn check_pick(
                 Repeat::Times(times) if state.option_count(key) >= times => {
                     return Err(Issue::MaxTimes { times });
                 }
-                Repeat::Once | Repeat::PerValue if state.option_count(key) > 0 => {
+                Repeat::Once if state.option_count(key) > 0 => {
                     return Err(Issue::AlreadyHeld);
+                }
+                // Once for each value of its chosen feat (the Skill Focus talents: once per skill), so not for one
+                // the feat is held for.
+                Repeat::PerValue => {
+                    let held = match (&option.chosen_feat, value) {
+                        (Some(feat), Some(value)) => state.has_feat_for(feat, value),
+                        _ => state.option_count(key) > 0,
+                    };
+                    if held {
+                        return Err(Issue::AlreadyHeld);
+                    }
                 }
                 _ => {}
             }

@@ -3,8 +3,9 @@
 use std::collections::BTreeSet;
 
 use rules::{
-    Ability, Alignment, ArchetypeKey, Engine, FeatCategory, FeatureSelectionKey, Issue,
-    MythicPathKey, OptionGroup, Parameter, Prerequisite, RaceKey, SpellType, Story, Unmet,
+    Ability, Alignment, ArchetypeKey, Engine, FeatCategory, FeatSlot, FeatureSelectionKey, Issue,
+    MythicPathKey, OptionGroup, Parameter, Prerequisite, RaceKey, Slot, SlotId, SlotKind,
+    SpellType, Story, Unmet,
 };
 
 use crate::support::*;
@@ -306,6 +307,27 @@ fn slots_are_labelled_by_what_they_take() {
         .map(|slot| engine.slot_label(slot))
         .collect();
     assert_eq!(labels, ["Rogue Talents", "Feat"]);
+}
+
+#[test]
+fn an_option_list_slot_is_named_after_its_selection_unless_it_has_a_label() {
+    // A sorcerer's "Bloodline feat"; the kineticist's bonus-feat talent's "Wild talent feat" (ticket 47), though it
+    // offers the Elemental Focus's lists.
+    let engine = engine();
+    let slot = |label: Option<&str>| Slot {
+        id: SlotId::OptionFeat { level: 2, index: 0 },
+        kind: SlotKind::Feat(FeatSlot::OptionList {
+            selection: FeatureSelectionKey::new("kineticist/element"),
+            at_level: None,
+            label: label.map(str::to_owned),
+        }),
+        pick: None,
+    };
+    assert_eq!(engine.slot_label(&slot(None)), "kineticist/element feat");
+    assert_eq!(
+        engine.slot_label(&slot(Some("Wild talent feat"))),
+        "Wild talent feat"
+    );
 }
 
 #[test]

@@ -338,6 +338,7 @@ fn sorcerer_level_1_feat(guide: &Guide, data: &mut GameData, log: &mut Log) {
     let slot = FeatSlot::OptionList {
         selection: FeatureSelectionKey::new(SORCERER_BLOODLINE),
         at_level: None,
+        label: None,
     };
     let sorcerer = class_mut(data, "sorcerer");
     let bloodline = sorcerer

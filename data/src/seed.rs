@@ -978,35 +978,43 @@ async fn insert_feat_slots(
 ) -> Result<(), sqlx::Error> {
     let columns = owner.columns();
     for slot in slots.iter() {
-        let (kind, category, list, selection, at_level) = match slot {
-            FeatSlot::General => (FeatSlotKind::General, None, None, None, None),
-            FeatSlot::CombatFeat => (FeatSlotKind::CombatFeat, None, None, None, None),
+        let (kind, category, list, selection, at_level, label) = match slot {
+            FeatSlot::General => (FeatSlotKind::General, None, None, None, None, None),
+            FeatSlot::CombatFeat => (FeatSlotKind::CombatFeat, None, None, None, None, None),
             FeatSlot::Category(category) => (
                 FeatSlotKind::Category,
                 Some(feat_category_text(*category)),
                 None,
                 None,
                 None,
+                None,
             ),
-            FeatSlot::OneOf { list } => {
-                (FeatSlotKind::OneOf, None, Some(list.as_str()), None, None)
-            }
+            FeatSlot::OneOf { list } => (
+                FeatSlotKind::OneOf,
+                None,
+                Some(list.as_str()),
+                None,
+                None,
+                None,
+            ),
             FeatSlot::OptionList {
                 selection,
                 at_level,
+                label,
             } => (
                 FeatSlotKind::OptionList,
                 None,
                 None,
                 Some(selection.as_str()),
                 at_level.map(i16::from),
+                label.as_deref(),
             ),
         };
         sqlx::query!(
             "INSERT INTO feat_slot
                 (race_key, subrace_key, class_level_id, mythic_rank_id, option_level_id, kind,
-                category, feat_list_key, selection_key, at_level)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
+                category, feat_list_key, selection_key, at_level, label)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
             columns.race_key,
             columns.subrace_key,
             columns.class_level_id,
@@ -1017,6 +1025,7 @@ async fn insert_feat_slots(
             list,
             selection,
             at_level,
+            label,
         )
         .execute(&mut *conn)
         .await?;

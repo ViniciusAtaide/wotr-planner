@@ -555,7 +555,8 @@ CREATE TABLE path_switch_feature (
 -- `rogue/rogue-talents/fast-stealth`. `chosen_feat_key` is a parameterised feat the option grants for the
 -- value its pick names (the rogue talent Weapon Focus); `rules::GameData::check` keeps it parameterised.
 -- `parameter` is what the pick names when there's no chosen feat (Battle Master: a weapon, for its rows).
--- `repeat` is as on `feat`, never `per_value`. `option_group` is the family it belongs to (a Draconic
+-- `repeat` is as on `feat`; `per_value` only with a chosen feat, once for each value of it (the Skill Focus
+-- talents, once per skill). `option_group` is the family it belongs to (a Draconic
 -- bloodline); `arcana_key` is the one of its rows' features that a lists-only holding still gets
 -- (`rules::GameData::check` keeps it among its rows').
 CREATE TABLE selection_option (
@@ -567,7 +568,7 @@ CREATE TABLE selection_option (
     prerequisite_root_id BIGINT UNIQUE REFERENCES prerequisite_node (id) DEFERRABLE INITIALLY DEFERRED,
     chosen_feat_key TEXT REFERENCES feat (key) DEFERRABLE INITIALLY DEFERRED,
     parameter parameter_kind,
-    repeat repeat_kind NOT NULL CHECK (repeat <> 'per_value'),
+    repeat repeat_kind NOT NULL,
     repeat_times u8 CHECK (repeat_times >= 2),
     -- The selection whose options a pool selection offers while this option is held (a mystery's revelations).
     pool_key TEXT REFERENCES feature_selection (key) DEFERRABLE INITIALLY DEFERRED,
@@ -577,6 +578,7 @@ CREATE TABLE selection_option (
     option_group option_group,
     arcana_key TEXT REFERENCES feature (key) DEFERRABLE INITIALLY DEFERRED,
     CHECK ((repeat = 'times') = (repeat_times IS NOT NULL)),
+    CHECK (repeat <> 'per_value' OR chosen_feat_key IS NOT NULL),
     CHECK (parameter IS NULL OR chosen_feat_key IS NULL),
     CHECK (starts_with(key, selection_key || '/'))
 );
@@ -786,11 +788,15 @@ CREATE TABLE feat_slot (
     -- An option list slot's fixed option level (`rules::FeatSlot::OptionList::at_level`): a slayer's combat
     -- style window's stage. NULL: the option's own level.
     at_level u8,
+    -- An option list slot's own label on the sheet (`rules::FeatSlot::OptionList::label`): the kineticist's
+    -- bonus-feat wild talent's "Wild talent feat". NULL: its selection's name and "feat".
+    label TEXT CHECK (label <> ''),
     CHECK (num_nonnulls(race_key, subrace_key, class_level_id, mythic_rank_id, option_level_id) = 1),
     CHECK ((kind = 'category') = (category IS NOT NULL)),
     CHECK ((kind = 'one_of') = (feat_list_key IS NOT NULL)),
     CHECK ((kind = 'option_list') = (selection_key IS NOT NULL)),
-    CHECK (at_level IS NULL OR kind = 'option_list')
+    CHECK (at_level IS NULL OR kind = 'option_list'),
+    CHECK (label IS NULL OR kind = 'option_list')
 );
 
 -- Prerequisite references, now that every referenced table exists. ----------------------------

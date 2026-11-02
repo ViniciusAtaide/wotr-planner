@@ -216,6 +216,7 @@ pub fn apply(guide: &Guide, data: &mut GameData) -> Log {
                     feat_slots: vec![FeatSlot::OptionList {
                         selection: FeatureSelectionKey::new(ELEMENT),
                         at_level: None,
+                        label: None,
                     }],
                     ..empty_row(1)
                 }];

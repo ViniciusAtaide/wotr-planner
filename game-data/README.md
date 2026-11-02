@@ -206,6 +206,15 @@ class's), and BAB and saves (from the class's progressions).
   Defense's row 1 holds a feature with `option_row: (selection: "kineticist/expanded-element", level: 2)`, and an
   option row of the very selection a `feat_lists_only` option is held through is given in full (an expanded
   element's defensive talent), now or when the element comes later. Extra Wild Talent needs kineticist level 2.
+- Ticket 47 (`extract::talent_follow_ups`, the user's decisions on ticket 45's questions, 2026-11-02): the Skill Focus
+  wild talent and rogue talent are `repeat: PerValue`, once for each value of their chosen feat (an option is
+  `PerValue` only with a `chosen_feat`): Skill Focus in another skill each time. The rogue talent Weapon Focus stays
+  once. Combat Trick ("Any combat feat that the character qualifies for") is `repeat: Unlimited` with a row 1 of
+  `feat_slots: [CombatFeat]`, a bonus Combat feat slot each time it's taken, its feat's prerequisites checked; the
+  selections offering it are levelled by their class (`option_levels: ["rogue"]` on the rogue talents, Fey Tricks
+  and Discovery; the slayer's talents by the slayer already). An `OptionList` slot may carry its own `label`: the
+  bonus-feat wild talent's reads "Wild talent feat" (`OptionList(selection: "kineticist/element", label: "Wild
+  talent feat")`).
 - A path's switch rule: `switch: (from: ["aeon", "azata"], kept_through_rank: 7, path_kept_through_rank: 7,
   dropped_features: [...], dropped_selections: [...], features: [...], further_ascensions: true, level_cap:
   Some(40))`. The general picks (mythic abilities and feats) of MR 1 to `kept_through_rank` stay, and the old

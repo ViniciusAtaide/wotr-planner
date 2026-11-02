@@ -143,7 +143,8 @@ pub enum Repeat {
     /// Any number of times ("This feat may be taken multiple times").
     Unlimited,
     /// Once for each value of the feat's parameter ("it must be applied to a different weapon each time"). Only a
-    /// parameterised feat.
+    /// parameterised feat, or an option with a chosen feat: once for each value of that feat (the Skill Focus
+    /// talents, once per skill).
     PerValue,
 }
 

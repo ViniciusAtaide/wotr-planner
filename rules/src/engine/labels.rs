@@ -295,8 +295,8 @@ impl Engine {
     }
 
     /// What a slot takes, as its chip says: "Feat" for the general slot, "Bonus feat" for a race's or class's
-    /// general bonus slot, "Combat feat", "Teamwork feat", a feat list's or Feature selection's name, "Mythic
-    /// ability" or "Mythic feat".
+    /// general bonus slot, "Combat feat", "Teamwork feat", a feat list's or Feature selection's name, an option
+    /// list slot's own label ("Wild talent feat"), "Mythic ability" or "Mythic feat".
     pub fn slot_label(&self, slot: &Slot) -> String {
         match &slot.kind {
             SlotKind::Selection(key) => self.selection_name(key).to_owned(),
@@ -318,6 +318,9 @@ impl Engine {
                 FeatSlot::CombatFeat => "Combat feat".to_owned(),
                 FeatSlot::Category(category) => format!("{} feat", category.name()),
                 FeatSlot::OneOf { list } => self.feat_list_name(list).to_owned(),
+                FeatSlot::OptionList {
+                    label: Some(label), ..
+                } => label.clone(),
                 FeatSlot::OptionList { selection, .. } => {
                     format!("{} feat", self.selection_name(selection))
                 }

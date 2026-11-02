@@ -21,4 +21,5 @@ mod report_gaps;
 mod second_follow_ups;
 mod shared_options;
 mod tables;
+mod talent_follow_ups;
 mod wild_talents;

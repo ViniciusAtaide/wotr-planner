@@ -1128,6 +1128,7 @@ fn combat_style(stage: u8, prerequisite: Option<Prerequisite>) -> SelectionOptio
                 feat_slots: vec![FeatSlot::OptionList {
                     selection: style,
                     at_level: Some(stage),
+                    label: None,
                 }],
                 ..option_row(1, &[])
             }],
@@ -2049,6 +2050,7 @@ fn sorcerer() -> Class {
                 r.feat_slots.push(FeatSlot::OptionList {
                     selection: bloodline.clone(),
                     at_level: None,
+                    label: None,
                 });
             }
             r
@@ -2377,6 +2379,7 @@ fn ranger() -> Class {
                 r.feat_slots.push(FeatSlot::OptionList {
                     selection: style.clone(),
                     at_level: None,
+                    label: None,
                 });
             }
             r

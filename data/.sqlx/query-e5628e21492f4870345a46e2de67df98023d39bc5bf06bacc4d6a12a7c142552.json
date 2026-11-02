@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO feat_slot\n                (race_key, subrace_key, class_level_id, mythic_rank_id, option_level_id, kind,\n                category, feat_list_key, selection_key, at_level)\n            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
+  "query": "INSERT INTO feat_slot\n                (race_key, subrace_key, class_level_id, mythic_rank_id, option_level_id, kind,\n                category, feat_list_key, selection_key, at_level, label)\n            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
   "describe": {
     "columns": [],
     "parameters": {
@@ -28,10 +28,11 @@
               "Domain": "Int2"
             }
           }
-        }
+        },
+        "Text"
       ]
     },
     "nullable": []
   },
-  "hash": "67d275f375a43c3cf9966f83a6c0a188c786f0959f78f841774c187eb3487994"
+  "hash": "e5628e21492f4870345a46e2de67df98023d39bc5bf06bacc4d6a12a7c142552"
 }

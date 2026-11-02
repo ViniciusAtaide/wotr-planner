@@ -125,7 +125,7 @@ What one pick of a Parameterised feat is taken for: a skill (from `skills.ron`),
 _Avoid_: Subtype, argument, option (that's a Selection option)
 
 **Repeat**:
-How many times a feat or Selection option can be held: once (the default, and what the guide means when it says nothing), a fixed number ("up to 3 times": Extra Hex, Increased Damage Reduction), any number ("may be taken multiple times": Extra Ki), or once per value of its Parameter ("must be applied to a different weapon each time": Weapon Focus, and by the user's decision every Parameterised feat).
+How many times a feat or Selection option can be held: once (the default, and what the guide means when it says nothing), a fixed number ("up to 3 times": Extra Hex, Increased Damage Reduction), any number ("may be taken multiple times": Extra Ki; the rogue talent Combat Trick, by the user's decision), or once per value of its Parameter ("must be applied to a different weapon each time": Weapon Focus, and by the user's decision every Parameterised feat). An option is held once per value only of its chosen feat (by the user's decision, the Skill Focus wild talent and rogue talent: once per skill).
 _Avoid_: Stacking, max picks
 
 **Option level**:

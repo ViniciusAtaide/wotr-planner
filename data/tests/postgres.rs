@@ -59,6 +59,44 @@ async fn save_exceptions_and_archetype_rows_round_trip(pool: PgPool) {
     assert_eq!(data::load_game_data(&db).await.unwrap(), from_files);
 }
 
+/// An option taken once per value of its chosen feat and an option list slot's own label (ticket 47) are stored and
+/// read back.
+#[sqlx::test]
+async fn a_per_value_option_and_a_labelled_slot_round_trip(pool: PgPool) {
+    let db = Database::from(pool);
+    let dir = copy_fixture();
+    let edit = |file: &str, from: &str, to: &str| {
+        let path = dir.path().join(file);
+        let text = fs::read_to_string(&path).unwrap();
+        assert!(text.contains(from), "{file}: {from}");
+        fs::write(&path, text.replacen(from, to, 1)).unwrap();
+    };
+    edit(
+        "classes/rogue.ron",
+        "chosen_feat: \"weapon-focus\",",
+        "chosen_feat: \"weapon-focus\", repeat: PerValue,",
+    );
+    edit(
+        "classes/sorcerer.ron",
+        "feat_slots: [OptionList(selection: \"sorcerer/bloodline\"),",
+        "feat_slots: [OptionList(selection: \"sorcerer/bloodline\", label: \"Wild talent feat\"),",
+    );
+    let from_files = data::read_game_data_files(dir.path()).unwrap();
+    assert_eq!(from_files.check(), []);
+    let labelled = from_files
+        .classes
+        .iter()
+        .flat_map(|class| &class.levels)
+        .flat_map(|row| &row.feat_slots)
+        .filter(|slot| matches!(slot, rules::FeatSlot::OptionList { label: Some(_), .. }))
+        .count();
+    assert_eq!(labelled, 1);
+
+    data::seed(&db, dir.path()).await.unwrap();
+
+    assert_eq!(data::load_game_data(&db).await.unwrap(), from_files);
+}
+
 /// A feature or selection granted twice by one row is one `granted_*` row with a count of 2, and reads back as
 /// two grants.
 #[sqlx::test]
@@ -816,7 +854,7 @@ async fn the_schema_keeps_repeats_and_parameters_consistent(pool: PgPool) {
             "UPDATE feat SET parameter = 'colour' WHERE key = 'weapon-focus'",
             "parameter_kind",
         ),
-        // An option takes no value of its own.
+        // An option is taken once per value only of its chosen feat (ticket 47).
         (
             "UPDATE selection_option SET repeat = 'per_value'
             WHERE key = 'rogue/rogue-talents/combat-trick'",
@@ -845,6 +883,14 @@ async fn the_schema_keeps_repeats_and_parameters_consistent(pool: PgPool) {
         let error = rejected(sql).await;
         assert!(error.contains(expected), "{sql}: {error}");
     }
+    // With a chosen feat it is (the Skill Focus talents, once per skill).
+    let updated = sqlx::query(
+        "UPDATE selection_option SET repeat = 'per_value' WHERE chosen_feat_key IS NOT NULL",
+    )
+    .execute(&pool)
+    .await
+    .unwrap();
+    assert!(updated.rows_affected() > 0);
 }
 
 #[sqlx::test]
@@ -1208,6 +1254,15 @@ async fn the_schema_keeps_subrace_slots_option_list_stages_and_levels_alongside_
         ),
         (
             "UPDATE feat_slot SET at_level = -1 WHERE at_level IS NOT NULL",
+            "check constraint",
+        ),
+        // Only an option list slot has its own label (ticket 47), and a label says something.
+        (
+            "UPDATE feat_slot SET label = 'Bonus feat' WHERE kind <> 'option_list'",
+            "check constraint",
+        ),
+        (
+            "UPDATE feat_slot SET label = '' WHERE kind = 'option_list'",
             "check constraint",
         ),
         // An option counted beside the others is an option, on a selection levelled by the other options.

@@ -127,10 +127,10 @@ Class(
                     guide: "kineticist#kineticist-bonus-feat",
                     prerequisite: ClassLevel(class: "kineticist", level: 2),
                     levels: [
-                        (level: 1, feat_slots: [OptionList(selection: "kineticist/element")]),
+                        (level: 1, feat_slots: [OptionList(selection: "kineticist/element", label: "Wild talent feat")]),
                     ],
                 ),
-                (key: "kineticist/wild-talents/skill-focus", name: "Skill Focus", guide: "kineticist#skill-focus", chosen_feat: "skill-focus", prerequisite: ClassLevel(class: "kineticist", level: 2)),
+                (key: "kineticist/wild-talents/skill-focus", name: "Skill Focus", guide: "kineticist#skill-focus", chosen_feat: "skill-focus", repeat: PerValue, prerequisite: ClassLevel(class: "kineticist", level: 2)),
                 (key: "kineticist/wild-talents/skilled-kineticist", name: "Skilled Kineticist", guide: "kineticist#skilled-kineticist", prerequisite: ClassLevel(class: "kineticist", level: 2)),
                 (key: "kineticist/wild-talents/slick", name: "Slick", guide: "kineticist#slick", prerequisite: All([ClassLevel(class: "kineticist", level: 2), SelectionOption("kineticist/element/water")])),
                 (key: "kineticist/wild-talents/tidal-wave", name: "Tidal Wave", guide: "kineticist#tidal-wave", prerequisite: All([ClassLevel(class: "kineticist", level: 18), SelectionOption("kineticist/element/water")])),

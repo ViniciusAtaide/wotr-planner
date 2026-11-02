@@ -498,6 +498,11 @@ pub enum FeatSlot {
         /// slot on one line, `OptionList(selection: …)`).
         #[serde(default, skip_serializing_if = "Option::is_none")]
         at_level: Option<u8>,
+        /// What the sheet calls the slot, when not its selection's name and "feat" (the kineticist's bonus-feat
+        /// wild talent's: "Wild talent feat", though it offers the Elemental Focus's lists). `None`: the
+        /// selection's name and "feat" (a sorcerer's "Bloodline feat"), and left out when written.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        label: Option<String>,
     },
 }
 
@@ -1026,7 +1031,8 @@ pub struct SelectionOption {
     /// shortbow).
     #[serde(default)]
     pub values: BTreeSet<Parameter>,
-    /// How many times it can be taken (Increased Damage Reduction: three times). Never `PerValue`.
+    /// How many times it can be taken (Increased Damage Reduction: three times; Combat Trick: any number).
+    /// `PerValue` only with a chosen feat: once for each value of it (the Skill Focus talents: once per skill).
     #[serde(default)]
     pub repeat: Repeat,
     #[serde(default)]

@@ -151,8 +151,8 @@ impl Fields {
         self
     }
 
-    /// Feat slots, when there are any; an option list slot's fixed option level is a plain number, as the files
-    /// read an option (`at_level: 2`).
+    /// Feat slots, when there are any; an option list slot's fixed option level and label are plain values, as the
+    /// files read an option (`at_level: 2`, `label: "Wild talent feat"`).
     fn slots(&mut self, name: &str, slots: &[FeatSlot]) -> &mut Self {
         if !slots.is_empty() {
             let slots: Vec<String> = slots
@@ -160,11 +160,19 @@ impl Fields {
                 .map(|slot| match slot {
                     FeatSlot::OptionList {
                         selection,
-                        at_level: Some(level),
-                    } => format!(
-                        "OptionList(selection: {}, at_level: {level})",
-                        inline(selection)
-                    ),
+                        at_level,
+                        label,
+                    } => {
+                        let mut text = format!("OptionList(selection: {}", inline(selection));
+                        if let Some(level) = at_level {
+                            text.push_str(&format!(", at_level: {level}"));
+                        }
+                        if let Some(label) = label {
+                            text.push_str(&format!(", label: {}", inline(label)));
+                        }
+                        text.push(')');
+                        text
+                    }
                     _ => inline(slot),
                 })
                 .collect();

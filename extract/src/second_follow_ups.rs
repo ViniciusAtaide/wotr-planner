@@ -296,11 +296,13 @@ fn slayer_window_stages(guide: &Guide, data: &mut GameData, log: &mut Log) {
         let unfixed = FeatSlot::OptionList {
             selection: style.clone(),
             at_level: None,
+            label: None,
         };
         assert_eq!(row.feat_slots, [unfixed], "{talent}");
         row.feat_slots = vec![FeatSlot::OptionList {
             selection: style.clone(),
             at_level: Some(stage),
+            label: None,
         }];
         log.push(format!(
             "{talent}: the feat from the style's list at option level {stage}"

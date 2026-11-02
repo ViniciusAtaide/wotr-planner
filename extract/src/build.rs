@@ -187,6 +187,9 @@ pub fn extract(guide: &Guide) -> Extraction {
         .report
         .items
         .retain(|item| !crate::wild_talents::settled(&item.at, &item.text));
+    // The user's decisions on ticket 45's questions and the rogue talents (ticket 47): the Skill Focus talents once
+    // per skill, Combat Trick's Combat feat slot, the bonus-feat wild talent's label. It settles no report item.
+    crate::talent_follow_ups::apply(guide, &mut data);
     for problem in data.check() {
         builder.report.add_about(
             Kind::Cell,

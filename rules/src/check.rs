@@ -188,8 +188,11 @@ pub enum DataIssue {
     /// A selection that shares an option keyed under its own key: an own option is offered already, and
     /// anything else under its key isn't another selection's.
     SharesOwnOption(SelectionOptionKey),
-    /// A feat or option taken once per value that takes none: an option, or an unparameterised feat.
+    /// A feat taken once per value that takes none.
     PerValueWithoutParameter,
+    /// An option taken once per value without a chosen feat, whose values it would count (ticket 47: the Skill
+    /// Focus talents, once per skill).
+    PerValueWithoutChosenFeat,
     /// `Times(n)` with `n` below 2: once is the default.
     TimesOutOfRange(u8),
     /// An option's chosen feat that takes no value.
@@ -312,6 +315,9 @@ impl fmt::Display for DataProblem {
             }
             DataIssue::PerValueWithoutParameter => {
                 f.write_str("taken once per value, but it takes no value")
+            }
+            DataIssue::PerValueWithoutChosenFeat => {
+                f.write_str("taken once per value, but it has no chosen feat to take it for")
             }
             DataIssue::TimesOutOfRange(times) => {
                 write!(f, "taken up to {times} times; a repeat is 2 or more")
@@ -746,7 +752,14 @@ impl Checker {
                 {
                     self.problem(&at, DataIssue::OptionValueOfWrongKind);
                 }
-                self.repeat(&at, option.repeat, false);
+                // Once per value counts the values its chosen feat is held for (the Skill Focus talents).
+                if option.repeat == Repeat::PerValue {
+                    if option.chosen_feat.is_none() {
+                        self.problem(&at, DataIssue::PerValueWithoutChosenFeat);
+                    }
+                } else {
+                    self.repeat(&at, option.repeat, false);
+                }
                 self.prerequisite(&at, option.prerequisite.as_ref(), takes);
                 if let Some(arcana) = &option.arcana
                     && !option

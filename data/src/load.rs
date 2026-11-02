@@ -241,7 +241,7 @@ async fn load_feat_slots(conn: &mut PgConnection) -> Result<Grouped<Owner, FeatS
     let mut slots = Grouped::new();
     for row in sqlx::query!(
         "SELECT id, race_key, subrace_key, class_level_id, mythic_rank_id, option_level_id, kind,
-            category, feat_list_key, selection_key, at_level
+            category, feat_list_key, selection_key, at_level, label
         FROM feat_slot ORDER BY id"
     )
     .fetch_all(&mut *conn)
@@ -268,6 +268,7 @@ async fn load_feat_slots(conn: &mut PgConnection) -> Result<Grouped<Owner, FeatS
                     .at_level
                     .map(|level| to_u8(level, "feat_slot.at_level"))
                     .transpose()?,
+                label: row.label,
             },
             (kind, _, _, _) => {
                 return Err(corrupt(format!(

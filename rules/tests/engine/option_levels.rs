@@ -611,6 +611,7 @@ fn a_style_slot_follows_the_style_picked_at_the_same_level_and_grows_with_it() {
         SlotKind::Feat(FeatSlot::OptionList {
             selection: FeatureSelectionKey::new("ranger/combat-style"),
             at_level: None,
+            label: None,
         })
     );
     assert_eq!(offered(&build, &class_slot(2, 0)), ["dodge", "toughness"]);

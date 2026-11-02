@@ -5,7 +5,8 @@
 use std::collections::BTreeMap;
 
 use rules::{
-    Build, Choice, Issue, Parameter, Pick, Prerequisite, SlotId, SlotOption, SpellSchool, Unmet,
+    Build, Choice, Engine, FeatSlot, GameData, Issue, OptionLevelRow, Parameter, Pick,
+    Prerequisite, Repeat, SelectionOption, SlotId, SlotKind, SlotOption, SpellSchool, Unmet,
 };
 
 use crate::support::*;
@@ -390,6 +391,164 @@ fn an_option_repeats_up_to_its_number_of_times() {
         ),
         Err(Issue::MaxTimes { times: 2 })
     );
+}
+
+// ---- options that repeat (ticket 47) --------------------------------------------------------------------------
+
+/// The world changed by `change`, which must keep it passing the data check.
+fn engine_with(change: impl FnOnce(&mut GameData)) -> Engine {
+    let mut data = world();
+    change(&mut data);
+    assert_eq!(data.check(), []);
+    Engine::new(data)
+}
+
+fn rogue_talent_mut<'a>(data: &'a mut GameData, key: &str) -> &'a mut SelectionOption {
+    data.classes
+        .iter_mut()
+        .find(|class| class.key.as_str() == "rogue")
+        .unwrap()
+        .selections[0]
+        .options
+        .iter_mut()
+        .find(|option| option.key.as_str() == key)
+        .unwrap()
+}
+
+/// Why the pick in `slot` can't be taken, for a Build only that pick makes impossible, by `engine`.
+fn why_not_by(engine: &Engine, build: &Build, slot: &SlotId) -> Issue {
+    assert!(!engine.is_possible(build), "the Build is possible");
+    let mut rest = build.clone();
+    let pick = rest.picks.remove(slot).unwrap();
+    assert!(engine.is_possible(&rest), "impossible without {slot:?} too");
+    status_of(&engine.options(&rest, slot).unwrap(), &pick).unwrap_err()
+}
+
+#[test]
+fn an_option_once_per_value_repeats_for_another_value_of_its_chosen_feat() {
+    // The rogue talent Weapon Focus taken once per weapon, as the Skill Focus talents are taken once per skill.
+    let talent = "rogue/rogue-talents/weapon-focus";
+    let engine = engine_with(|data| rogue_talent_mut(data, talent).repeat = Repeat::PerValue);
+    let mut build = build("elf", &times("rogue", 6));
+    build.picks.insert(
+        selection_slot(2, 0),
+        pick_option_for(talent, weapon("dagger")),
+    );
+    build.picks.insert(
+        selection_slot(4, 0),
+        pick_option_for(talent, weapon("longsword")),
+    );
+    assert!(engine.is_possible(&build));
+    let state = engine.evaluate(&build).at(4).unwrap().clone();
+    assert_eq!(state.option_count(&option(talent)), 2);
+    assert_eq!(
+        state.feat_values[&feat("weapon-focus")],
+        BTreeMap::from([(weapon("dagger"), 1), (weapon("longsword"), 1)])
+    );
+    // At 6: the weapons it's held for are taken, another is open.
+    let offered = engine.options(&build, &selection_slot(6, 0)).unwrap();
+    for (value, status) in [
+        ("dagger", Err(Issue::AlreadyHeld)),
+        ("longsword", Err(Issue::AlreadyHeld)),
+        ("dueling-sword", Ok(())),
+    ] {
+        assert_eq!(
+            status_of(&offered, &pick_option_for(talent, weapon(value))),
+            status,
+            "{value}"
+        );
+    }
+    build.picks.insert(
+        selection_slot(6, 0),
+        pick_option_for(talent, weapon("dagger")),
+    );
+    assert_eq!(
+        why_not_by(&engine, &build, &selection_slot(6, 0)),
+        Issue::AlreadyHeld
+    );
+
+    // Taken once, as the world has it: a second weapon is refused too.
+    let mut once = crate::support::build("elf", &times("rogue", 4));
+    once.picks.insert(
+        selection_slot(2, 0),
+        pick_option_for(talent, weapon("dagger")),
+    );
+    once.picks.insert(
+        selection_slot(4, 0),
+        pick_option_for(talent, weapon("longsword")),
+    );
+    assert_eq!(
+        why_not(&once, &selection_slot(4, 0)),
+        Some(Issue::AlreadyHeld)
+    );
+}
+
+#[test]
+fn an_option_taken_again_grants_its_rows_slot_again() {
+    // Combat Trick, as the real data has it: any number of times, each a bonus Combat feat slot, through a selection
+    // levelled by the rogue's levels.
+    let trick = "rogue/rogue-talents/combat-trick";
+    let engine = engine_with(|data| {
+        let option = rogue_talent_mut(data, trick);
+        option.repeat = Repeat::Unlimited;
+        option.levels = vec![OptionLevelRow {
+            level: 1,
+            feat_slots: vec![FeatSlot::CombatFeat],
+            ..OptionLevelRow::default()
+        }];
+        data.classes
+            .iter_mut()
+            .find(|class| class.key.as_str() == "rogue")
+            .unwrap()
+            .selections[0]
+            .option_levels = [class("rogue")].into();
+    });
+    let trick_slot = |level| SlotId::OptionFeat { level, index: 0 };
+    let mut build = build("elf", &times("rogue", 4));
+    build.picks.insert(selection_slot(2, 0), pick_option(trick));
+    build.picks.insert(selection_slot(4, 0), pick_option(trick));
+    assert!(engine.is_possible(&build));
+    let sheet = engine.evaluate(&build);
+    for level in [2, 4] {
+        let slot = sheet.slot(&trick_slot(level)).expect("a slot");
+        assert_eq!(slot.kind, SlotKind::Feat(FeatSlot::CombatFeat));
+        assert_eq!(engine.slot_label(slot), "Combat feat");
+    }
+    assert_eq!(sheet.at(4).unwrap().option_count(&option(trick)), 2);
+
+    // Weapon Focus in one weapon each; the feat's own once per weapon refuses the same weapon twice.
+    build.picks.insert(
+        trick_slot(2),
+        pick_feat_for("weapon-focus", weapon("longsword")),
+    );
+    build.picks.insert(
+        trick_slot(4),
+        pick_feat_for("weapon-focus", weapon("dagger")),
+    );
+    assert!(engine.is_possible(&build));
+    assert_eq!(
+        engine.evaluate(&build).at(4).unwrap().feat_values[&feat("weapon-focus")],
+        BTreeMap::from([(weapon("dagger"), 1), (weapon("longsword"), 1)])
+    );
+    build.picks.insert(
+        trick_slot(4),
+        pick_feat_for("weapon-focus", weapon("longsword")),
+    );
+    assert_eq!(
+        why_not_by(&engine, &build, &trick_slot(4)),
+        Issue::AlreadyHeld
+    );
+    // The slot checks its feat's prerequisites.
+    let offered = engine.options(&build, &trick_slot(2)).unwrap();
+    assert!(matches!(
+        status_of(&offered, &pick_feat("cleave")),
+        Err(Issue::Unmet(_))
+    ));
+    // Taking the second one back takes its slot and its pick.
+    let mut one = build.clone();
+    one.picks.remove(&selection_slot(4, 0));
+    let sheet = engine.evaluate(&one);
+    assert!(sheet.slot(&trick_slot(4)).is_none());
 }
 
 // ---- grants ---------------------------------------------------------------------------------------------------

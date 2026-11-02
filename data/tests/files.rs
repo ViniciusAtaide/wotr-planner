@@ -701,6 +701,7 @@ fn reads_options_with_rows_by_option_level_and_defaults_them() {
         FeatSlot::OptionList {
             selection: FeatureSelectionKey::new("sorcerer/bloodline"),
             at_level: None,
+            label: None,
         }
     );
     let ascendance = sorcerer
@@ -1038,10 +1039,12 @@ fn reads_subrace_slots_option_list_stages_and_options_levelled_alongside_and_def
             FeatSlot::OptionList {
                 selection: bloodline.clone(),
                 at_level: None,
+                label: None,
             },
             FeatSlot::OptionList {
                 selection: bloodline,
                 at_level: Some(1),
+                label: None,
             },
         ]
     );

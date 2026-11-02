@@ -26,10 +26,19 @@ Class(
             key: "rogue/rogue-talents",
             name: "Rogue Talents",
             guide: "rogue#rogue-talents",
+            option_levels: ["rogue"],
             options: [
                 (key: "rogue/rogue-talents/blinding-strike", name: "Blinding Strike", guide: "rogue#blinding-strike", feats: ["blinding-critical"], prerequisite: All([Any([Feature(feature: "rogue/advanced-talents", count: 1), Feature(feature: "slayer/advanced-talents", count: 1)]), CharacterLevel(15)])),
                 (key: "rogue/rogue-talents/canny-observer", name: "Canny Observer", guide: "rogue#canny-observer"),
-                (key: "rogue/rogue-talents/combat-trick", name: "Combat Trick", guide: "rogue#combat-trick"),
+                (
+                    key: "rogue/rogue-talents/combat-trick",
+                    name: "Combat Trick",
+                    guide: "rogue#combat-trick",
+                    repeat: Unlimited,
+                    levels: [
+                        (level: 1, feat_slots: [CombatFeat]),
+                    ],
+                ),
                 (key: "rogue/rogue-talents/confounding-blades", name: "Confounding Blades", guide: "rogue#confounding-blades", prerequisite: All([Any([Feature(feature: "rogue/advanced-talents", count: 1), Feature(feature: "slayer/advanced-talents", count: 1)]), SelectionOption("rogue/rogue-talents/slow-reactions")])),
                 (key: "rogue/rogue-talents/crippling-strike", name: "Crippling Strike", guide: "rogue#crippling-strike", prerequisite: Any([Feature(feature: "rogue/advanced-talents", count: 1), Feature(feature: "slayer/advanced-talents", count: 1)])),
                 (key: "rogue/rogue-talents/dispelling-attack", name: "Dispelling Attack", guide: "rogue#dispelling-attack", prerequisite: Any([Feature(feature: "rogue/advanced-talents", count: 1), Feature(feature: "slayer/advanced-talents", count: 1)])),
@@ -48,7 +57,7 @@ Class(
                 (key: "rogue/rogue-talents/mystery-seeker", name: "Mystery Seeker", guide: "rogue#mystery-seeker"),
                 (key: "rogue/rogue-talents/opportunist", name: "Opportunist", guide: "rogue#opportunist", prerequisite: Any([Feature(feature: "rogue/advanced-talents", count: 1), Feature(feature: "slayer/advanced-talents", count: 1)])),
                 (key: "rogue/rogue-talents/petrifying-strike", name: "Petrifying Strike", guide: "rogue#petrifying-strike", prerequisite: Any([Feature(feature: "rogue/advanced-talents", count: 1), Feature(feature: "slayer/advanced-talents", count: 1)])),
-                (key: "rogue/rogue-talents/skill-focus", name: "Skill Focus", guide: "rogue#skill-focus", chosen_feat: "skill-focus"),
+                (key: "rogue/rogue-talents/skill-focus", name: "Skill Focus", guide: "rogue#skill-focus", chosen_feat: "skill-focus", repeat: PerValue),
                 (key: "rogue/rogue-talents/skill-mastery-knowledge", name: "Skill Mastery (Knowledge)", guide: "rogue#skill-mastery-knowledge", prerequisite: Any([Feature(feature: "rogue/advanced-talents", count: 1), Feature(feature: "slayer/advanced-talents", count: 1)])),
                 (key: "rogue/rogue-talents/skill-mastery-lore", name: "Skill Mastery (Lore)", guide: "rogue#skill-mastery-lore", prerequisite: Any([Feature(feature: "rogue/advanced-talents", count: 1), Feature(feature: "slayer/advanced-talents", count: 1)])),
                 (key: "rogue/rogue-talents/skill-mastery-stealth-and-trickery", name: "Skill Mastery (Stealth and Trickery)", guide: "rogue#skill-mastery-stealth-and-trickery", prerequisite: Any([Feature(feature: "rogue/advanced-talents", count: 1), Feature(feature: "slayer/advanced-talents", count: 1)])),
@@ -212,6 +221,7 @@ Class(
                     key: "rogue/sylvan-trickster/fey-tricks",
                     name: "Fey Tricks",
                     guide: "rogue#fey-tricks",
+                    option_levels: ["rogue"],
                     options: [],
                     shared_options: [
                         "rogue/rogue-talents/blinding-strike",
@@ -319,6 +329,7 @@ Class(
                     key: "rogue/underground-chemist/discovery",
                     name: "Discovery",
                     guide: "rogue#discovery",
+                    option_levels: ["rogue"],
                     options: [],
                     shared_options: [
                         "alchemist/discovery/enhance-potion",
