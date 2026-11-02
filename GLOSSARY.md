@@ -137,7 +137,7 @@ A bonus Feat slot on a class's row whose Feat list is the held option's: a sorce
 _Avoid_: Bloodline slot (the families share it), dynamic list
 
 **Extra pick**:
-One more slot of a Feature selection that a feat gives each time it's taken ("You gain one additional hex": Extra Arcana, Extra Arcanist Exploit, Extra Discovery, Extra Hex, Extra Rage Power, Extra Rogue Talent, Extra Slayer Talent, Extra Wild Talent), at the level it's taken. The feat names the selections its "Prerequisites" names (Extra Hex: the witch's and the shaman's hexes); the slot is of the one the character had a slot of first, so a witch who becomes a shaman gets a witch's hex, and a character who had a slot of none gets none. The resource feats (Extra Ki, Extra Rage, Extra Channel) give no pick, and neither does Extra Mercy while the paladin's mercies aren't a selection.
+One more slot of a Feature selection that a feat gives each time it's taken ("You gain one additional hex": Extra Arcana, Extra Arcanist Exploit, Extra Discovery, Extra Hex, Extra Mercy, Extra Rage Power, Extra Rogue Talent, Extra Slayer Talent, Extra Wild Talent), at the level it's taken. The feat names the selections its "Prerequisites" names (Extra Hex: the witch's and the shaman's hexes); the slot is of the one the character had a slot of first, so a witch who becomes a shaman gets a witch's hex, and a character who had a slot of none gets none. The resource feats (Extra Ki, Extra Rage, Extra Channel) give no pick.
 _Avoid_: Bonus talent, extra slot feat
 
 **Daily choice**:

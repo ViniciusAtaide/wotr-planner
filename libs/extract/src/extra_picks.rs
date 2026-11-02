@@ -11,7 +11,8 @@
 //!   "Dicovery" is the alchemist's and the Underground Chemist's Discovery). A name no selection has gives nothing:
 //!   "Talented Slayer" is on no saved page, and the Arcane Enforcer's "Arcanist Exploits" is a feature, not picks.
 //! - **Extra Mercy gives no pick:** "Mercy" is the paladin's feature; the guide's mercies aren't a selection in the
-//!   data (ticket 49's question 1).
+//!   data (ticket 49's question 1). Ticket 54's [`mercies_and_exploits`](crate::mercies_and_exploits), which runs
+//!   after this, makes them one and gives Extra Mercy its pick; the Arcane Enforcer's exploits likewise.
 //!
 //! Each rule asserts the guide phrase it rests on and what it finds in the data, so it fails loudly on data it
 //! doesn't expect. [`apply`] runs on the finished data of an extraction and, through ticket 49's one-off rewrite,

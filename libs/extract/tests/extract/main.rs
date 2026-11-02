@@ -7,6 +7,7 @@ mod extra_picks;
 mod feat_lists;
 mod follow_ups;
 mod grammar;
+mod mercies_and_exploits;
 mod mythic_paths;
 mod option_class_skills;
 mod option_families;

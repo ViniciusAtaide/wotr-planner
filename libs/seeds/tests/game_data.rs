@@ -5279,8 +5279,9 @@ fn combat_trick_grants_its_slot_through_every_selection_offering_it() {
 // ---- Extra feats' extra picks (ticket 49) ---------------------------------------------------------------------
 
 /// The "Extra …" feats whose guide entry gives one more pick of a class selection ("You gain one additional hex"),
-/// with the selections that pick may be of: each one the guide's "Prerequisites" name.
-const EXTRA_PICKS: [(&str, &[&str]); 8] = [
+/// with the selections that pick may be of: each one the guide's "Prerequisites" name. Extra Mercy's since ticket 54
+/// made the paladin's mercies a selection.
+const EXTRA_PICKS: [(&str, &[&str]); 9] = [
     ("extra-arcana", &["magus/magus-arcana"]),
     ("extra-arcanist-exploit", &["arcanist/arcanist-exploits"]),
     (
@@ -5288,6 +5289,7 @@ const EXTRA_PICKS: [(&str, &[&str]); 8] = [
         &["alchemist/discovery", "rogue/underground-chemist/discovery"],
     ),
     ("extra-hex", &["shaman/hex", "witch/hex"]),
+    ("extra-mercy", &["paladin/mercy"]),
     ("extra-rage-power", &["barbarian/rage-power"]),
     (
         "extra-rogue-talent",
@@ -5382,7 +5384,7 @@ fn the_extra_feats_that_give_a_pick_name_their_selections() {
         })
         .collect();
     assert_eq!(named, expected);
-    // The resource ones give no pick, and Extra Mercy none either: the paladin's mercies aren't a selection.
+    // The resource ones give no pick.
     for key in [
         "extra-arcane-pool",
         "extra-bane-weapon",
@@ -5391,7 +5393,6 @@ fn the_extra_feats_that_give_a_pick_name_their_selections() {
         "extra-channel",
         "extra-ki",
         "extra-lay-on-hands",
-        "extra-mercy",
         "extra-performance",
         "extra-rage",
         "extra-reservoir",
@@ -5498,7 +5499,7 @@ fn a_witchs_extra_hex_gives_a_hex_slot() {
 /// `level`, after the class's earlier picks.
 #[test]
 fn each_extra_feat_gives_a_slot_of_its_classs_selection() {
-    let cases: [(Build, &str, u8, &str); 12] = [
+    let cases: [(Build, &str, u8, &str); 14] = [
         (barbarian(3), "extra-rage-power", 3, "barbarian/rage-power"),
         (classes_build(&["witch"]), "extra-hex", 1, "witch/hex"),
         (
@@ -5562,6 +5563,14 @@ fn each_extra_feat_gives_a_slot_of_its_classs_selection() {
             3,
             "witch/hex",
         ),
+        // Ticket 54: the paladin's mercies and the Arcane Enforcer's exploits are picks.
+        (paladin(3), "extra-mercy", 3, "paladin/mercy"),
+        (
+            enforcer(1),
+            "extra-arcanist-exploit",
+            1,
+            "arcanist/arcanist-exploits",
+        ),
     ];
     for (build, feat, level, selection) in cases {
         let mut build = with_selections_filled(build);
@@ -5592,15 +5601,372 @@ fn chaotic(mut build: Build) -> Build {
     build
 }
 
-/// Extra Mercy: "You gain one additional mercy", but the paladin's mercies are a feature, not a pick (ticket 49's
-/// question 1), so it gives no slot.
-#[test]
-fn extra_mercy_gives_no_slot() {
-    let mut build = build("paladin", 3);
+// ---- Paladin mercies and the Arcane Enforcer's exploits (ticket 54) -------------------------------------------
+
+const MERCY: &str = "paladin/mercy";
+const EXPLOITS: &str = "arcanist/arcanist-exploits";
+
+/// The guide's mercies (`paladin#mercy`): each one's key, the paladin level it opens at and the mercy it needs.
+const MERCIES: [(&str, u8, Option<&str>); 15] = [
+    ("fatigued", 3, None),
+    ("shaken", 3, None),
+    ("sickened", 3, None),
+    ("dazed", 6, None),
+    ("diseased", 6, None),
+    ("staggered", 6, None),
+    ("confused", 9, None),
+    ("cursed", 9, None),
+    ("exhausted", 9, Some("fatigued")),
+    ("frightened", 9, Some("shaken")),
+    ("nauseated", 9, Some("sickened")),
+    ("poisoned", 9, None),
+    ("blinded", 12, None),
+    ("paralyzed", 12, None),
+    ("stunned", 12, None),
+];
+
+fn mercy(name: &str) -> String {
+    format!("{MERCY}/{name}")
+}
+
+/// A lawful good paladin of `levels` levels, with no picks.
+fn paladin(levels: usize) -> Build {
+    let mut build = build("paladin", levels);
     build.start.alignment = Some(rules::Alignment::LawfulGood);
+    build
+}
+
+/// A lawful good paladin of `archetype` (a dwarf: the Stonelord's race), `levels` levels, with no picks.
+fn paladin_of(archetype: &str, levels: usize) -> Build {
+    let mut build = archetype_build("paladin", archetype, levels);
+    build.start.alignment = Some(rules::Alignment::LawfulGood);
+    build.start.race = Some(rules::RaceKey::new("dwarf"));
+    build
+}
+
+/// A chaotic neutral Arcane Enforcer of `levels` levels, with no picks.
+fn enforcer(levels: usize) -> Build {
+    chaotic(archetype_build("slayer", "slayer/arcane-enforcer", levels))
+}
+
+/// The levels at which the Build's sheet has a slot of `selection`, in order.
+fn levels_with_slot_of(build: &Build, selection: &str) -> Vec<u8> {
+    let sheet = engine().evaluate(build);
+    sheet
+        .levels
+        .iter()
+        .flat_map(|level| &level.slots)
+        .filter(|slot| slot.kind == selection_kind(selection))
+        .map(|slot| match slot.id {
+            SlotId::Selection { level, .. } => level,
+            ref other => panic!("a {selection} slot at {other:?}"),
+        })
+        .collect()
+}
+
+/// The options the selection slot of `level` leaves open, by key.
+fn open_at(build: &Build, level: u8) -> BTreeSet<String> {
+    offered(build, level)
+        .into_iter()
+        .filter(|(_, status)| status.is_ok())
+        .map(|(key, _)| key)
+        .collect()
+}
+
+/// Why the selection slot of `level` locks `option`, as the sheet says it.
+fn lock_reason(build: &Build, level: u8, option: &str) -> String {
+    let status = offered(build, level)
+        .remove(option)
+        .unwrap_or_else(|| panic!("{option} isn't offered at {level}"));
+    engine().issue_text(&status.expect_err("locked")).unwrap()
+}
+
+/// "At 3rd level and every three levels thereafter, the Paladin may select a Mercy": the guide's 15 mercies, each
+/// needing its level in paladin and the mercy its table names; no feature stands for the pick any more.
+#[test]
+fn mercies_are_a_selection_of_15_with_their_level_and_prerequisite() {
+    let paladin = class("paladin");
+    let selection = paladin
+        .selections
+        .iter()
+        .find(|selection| selection.key.as_str() == MERCY)
+        .expect("the mercy selection");
+    assert_eq!(selection.name, "Mercy");
+    let keys: BTreeSet<String> = selection
+        .options
+        .iter()
+        .map(|o| o.key.to_string())
+        .collect();
+    let expected: BTreeSet<String> = MERCIES.iter().map(|(name, ..)| mercy(name)).collect();
+    assert_eq!(keys, expected);
+    for (name, level, needs) in MERCIES {
+        let at_level = Prerequisite::ClassLevel {
+            class: ClassKey::new("paladin"),
+            level,
+        };
+        let mut expected = match needs {
+            None => at_level,
+            Some(other) => Prerequisite::All(vec![
+                at_level,
+                Prerequisite::SelectionOption(SelectionOptionKey::new(mercy(other))),
+            ]),
+        };
+        expected.canonicalize();
+        assert_eq!(
+            selection_option(&mercy(name)).prerequisite,
+            Some(expected),
+            "{name}"
+        );
+    }
+    assert!(
+        paladin
+            .features
+            .iter()
+            .all(|feature| feature.key.as_str() != MERCY)
+    );
+    let levels: Vec<u8> = paladin
+        .levels
+        .iter()
+        .filter(|row| row.selections.iter().any(|s| s.as_str() == MERCY))
+        .map(|row| row.level)
+        .collect();
+    assert_eq!(levels, [3, 6, 9, 12, 15, 18]);
+}
+
+/// Each paladin archetype picks a mercy where its table has "Mercy": the Divine Hunter not at 6 (Distant Mercy) or
+/// 18, the Stonelord only at 6, 12 and 18.
+#[test]
+fn every_paladin_archetype_picks_a_mercy_at_its_tables_levels() {
+    let every = vec![3, 6, 9, 12, 15, 18];
+    assert_eq!(levels_with_slot_of(&paladin(20), MERCY), every);
+    for (archetype, levels) in [
+        ("paladin/divine-guardian", every.clone()),
+        ("paladin/divine-hunter-paladin", vec![3, 9, 12, 15]),
+        ("paladin/divine-scion", every.clone()),
+        ("paladin/hospitaler", every.clone()),
+        ("paladin/martyr", every.clone()),
+        ("paladin/stonelord", vec![6, 12, 18]),
+        ("paladin/tortured-crusader", every.clone()),
+        ("paladin/warrior-of-the-holy-light", every.clone()),
+    ] {
+        let build = paladin_of(archetype, 20);
+        assert!(possible(&build), "{archetype}");
+        assert_eq!(levels_with_slot_of(&build, MERCY), levels, "{archetype}");
+    }
+    assert_eq!(class("paladin").archetypes.len(), 8);
+}
+
+/// The ticket's: a paladin 3 picks one mercy, from those of level 3 only; the slot reads "Mercy".
+#[test]
+fn a_paladin_3_picks_one_mercy_from_those_of_level_3() {
+    let engine = engine();
+    let build = paladin(3);
+    assert_eq!(levels_with_slot_of(&build, MERCY), [3]);
+    let open: BTreeSet<String> = ["fatigued", "shaken", "sickened"]
+        .iter()
+        .map(|name| mercy(name))
+        .collect();
+    assert_eq!(open_at(&build, 3), open);
+    assert_eq!(offered(&build, 3).len(), 15);
+    let sheet = engine.evaluate(&build);
+    assert_eq!(
+        engine.slot_label(sheet.slot(&selection_slot(3)).unwrap()),
+        "Mercy"
+    );
+    let mut picked = build.clone();
+    picked
+        .picks
+        .insert(selection_slot(3), pick(&mercy("shaken")));
+    assert!(possible(&picked));
+    // Paladin levels 1 and 2 pick none.
+    assert_eq!(levels_with_slot_of(&paladin(2), MERCY), Vec::<u8>::new());
+}
+
+/// The ticket's: a mercy of level 6 is locked at 3 with a reason and open at 6. A mercy needing another waits for it.
+#[test]
+fn a_level_6_mercy_is_locked_at_3_with_a_reason_and_open_at_6() {
+    let build = paladin(6);
+    assert_eq!(
+        lock_reason(&build, 3, &mercy("dazed")),
+        "Needs Paladin level 6 (have 3)"
+    );
+    assert!(open_at(&build, 6).contains(&mercy("dazed")));
+    let mut early = build.clone();
+    early.picks.insert(selection_slot(3), pick(&mercy("dazed")));
+    assert_eq!(
+        why_not(&early, &selection_slot(3)).and_then(|issue| engine().issue_text(&issue)),
+        Some("Needs Paladin level 6 (have 3)".to_owned())
+    );
+    let mut at_6 = build.clone();
+    at_6.picks.insert(selection_slot(6), pick(&mercy("dazed")));
+    assert!(possible(&at_6));
+
+    // Exhausted (level 9) needs Fatigued.
+    let nine = paladin(9);
+    assert_eq!(lock_reason(&nine, 9, &mercy("exhausted")), "Needs Fatigued");
+    let mut fatigued = nine.clone();
+    fatigued
+        .picks
+        .insert(selection_slot(3), pick(&mercy("fatigued")));
+    assert!(open_at(&fatigued, 9).contains(&mercy("exhausted")));
+    // A Divine Hunter's first slot after 3 is at 9.
+    let hunter = paladin_of("paladin/divine-hunter-paladin", 9);
+    assert!(open_at(&hunter, 9).contains(&mercy("dazed")));
+}
+
+/// The ticket's: Extra Mercy gives a paladin one more mercy slot at the level it's taken, and needs a mercy.
+#[test]
+fn extra_mercy_gives_a_paladin_one_more_mercy_slot() {
+    let engine = engine();
+    let mut build = paladin(3);
+    build
+        .picks
+        .insert(selection_slot(3), pick(&mercy("fatigued")));
     build
         .picks
         .insert(general_slot(3), feat_pick_plain("extra-mercy"));
     assert!(possible(&build));
-    assert_eq!(kind_at(&build, &extra_slot(3, 0)), None);
+    assert_eq!(
+        kind_at(&build, &extra_slot(3, 0)),
+        Some(selection_kind(MERCY))
+    );
+    let sheet = engine.evaluate(&build);
+    assert_eq!(
+        engine.slot_label(sheet.slot(&extra_slot(3, 0)).unwrap()),
+        "Mercy"
+    );
+    // Its options are the paladin's mercies, the one held already taken.
+    let options = engine.options(&build, &extra_slot(3, 0)).unwrap();
+    assert_eq!(options.len(), 15);
+    let open: BTreeSet<String> = options
+        .iter()
+        .filter(|option| option.status.is_ok())
+        .map(|option| option.pick.key().to_owned())
+        .collect();
+    assert_eq!(
+        open,
+        ["shaken", "sickened"]
+            .iter()
+            .map(|name| mercy(name))
+            .collect()
+    );
+    let mut filled = build.clone();
+    filled
+        .picks
+        .insert(extra_slot(3, 0), pick(&mercy("shaken")));
+    assert!(possible(&filled));
+
+    // "Prerequisites: Mercy": a paladin holding no mercy can't take it (a Stonelord before 6).
+    let mut stonelord = paladin_of("paladin/stonelord", 3);
+    stonelord
+        .picks
+        .insert(general_slot(3), feat_pick_plain("extra-mercy"));
+    assert!(!possible(&stonelord));
+    assert!(why_not(&stonelord, &general_slot(3)).is_some());
+}
+
+/// "An Arcane Enforcer can choose an Arcanist Exploit at level 1 and every 3 subsequent levels": a slot of the
+/// arcanist's own exploits (the guide gives the Enforcer no list of its own) at 1, 4, 7, …, 19; the feature is gone.
+#[test]
+fn an_arcane_enforcer_picks_an_arcanist_exploit_at_1_4_7_and_every_3_levels() {
+    let engine = engine();
+    let build = enforcer(20);
+    assert!(possible(&build));
+    assert_eq!(
+        levels_with_slot_of(&build, EXPLOITS),
+        [1, 4, 7, 10, 13, 16, 19]
+    );
+    let enforcer_archetype = class("slayer")
+        .archetypes
+        .iter()
+        .find(|a| a.key.as_str() == "slayer/arcane-enforcer")
+        .unwrap();
+    assert!(
+        enforcer_archetype
+            .features
+            .iter()
+            .all(|f| f.key.as_str() != "slayer/arcane-enforcer/arcanist-exploits")
+    );
+    // The arcanist's 16 exploits, Holy Water Jet locked for a chaotic neutral Enforcer by its alignment.
+    let arcanist_exploits: BTreeSet<String> = class("arcanist")
+        .selections
+        .iter()
+        .find(|s| s.key.as_str() == EXPLOITS)
+        .unwrap()
+        .options
+        .iter()
+        .map(|o| o.key.to_string())
+        .collect();
+    assert_eq!(arcanist_exploits.len(), 16);
+    let offered_keys: BTreeSet<String> = offered(&build, 1).into_keys().collect();
+    assert_eq!(offered_keys, arcanist_exploits);
+    let mut open = arcanist_exploits.clone();
+    open.remove("arcanist/arcanist-exploits/holy-water-jet");
+    assert_eq!(open_at(&build, 1), open);
+    let sheet = engine.evaluate(&build);
+    assert_eq!(
+        engine.slot_label(sheet.slot(&selection_slot(1)).unwrap()),
+        "Arcanist Exploits"
+    );
+    // Filled at every level, the Build holds seven different exploits.
+    let filled = with_selections_filled(build);
+    assert!(possible(&filled));
+    for level in [1, 4, 7, 10, 13, 16, 19] {
+        assert!(filled.picks.contains_key(&selection_slot(level)), "{level}");
+    }
+    // An exploit taken once isn't offered again.
+    let mut twice = enforcer(4);
+    twice.picks.insert(
+        selection_slot(1),
+        pick("arcanist/arcanist-exploits/wooden-flesh"),
+    );
+    assert_eq!(
+        lock_reason(&twice, 4, "arcanist/arcanist-exploits/wooden-flesh"),
+        "Already taken"
+    );
+}
+
+/// The ticket's: Extra Arcanist Exploit gives an Arcane Enforcer one more exploit slot; its prerequisite is an
+/// exploit held (the Enforcer's feature is gone).
+#[test]
+fn extra_arcanist_exploit_gives_an_arcane_enforcer_one_more_exploit_slot() {
+    let engine = engine();
+    let mut build = enforcer(1);
+    build.picks.insert(
+        selection_slot(1),
+        pick("arcanist/arcanist-exploits/armored-mask"),
+    );
+    build
+        .picks
+        .insert(general_slot(1), feat_pick_plain("extra-arcanist-exploit"));
+    assert!(possible(&build));
+    assert_eq!(
+        kind_at(&build, &extra_slot(1, 0)),
+        Some(selection_kind(EXPLOITS))
+    );
+    let sheet = engine.evaluate(&build);
+    assert_eq!(
+        engine.slot_label(sheet.slot(&extra_slot(1, 0)).unwrap()),
+        "Arcanist Exploits"
+    );
+    let filled = with_selections_filled(build);
+    assert!(filled.picks.contains_key(&extra_slot(1, 0)));
+    assert!(possible(&filled));
+
+    let expected = Prerequisite::Any(
+        class("arcanist")
+            .selections
+            .iter()
+            .find(|s| s.key.as_str() == EXPLOITS)
+            .unwrap()
+            .options
+            .iter()
+            .map(|o| Prerequisite::SelectionOption(o.key.clone()))
+            .collect(),
+    );
+    let mut actual = feat("extra-arcanist-exploit").prerequisite.clone().unwrap();
+    actual.canonicalize();
+    let mut expected = expected;
+    expected.canonicalize();
+    assert_eq!(actual, expected);
 }

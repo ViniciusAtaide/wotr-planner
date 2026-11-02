@@ -361,57 +361,11 @@ fn extra_wild_talent(guide: &Guide, data: &mut GameData, level: u8, log: &mut Lo
         "You gain one additional wild talent for which you must meet the prerequisites.",
     );
     let gone = FeatureKey::new(WILD_TALENTS_FEATURE);
-    let needing: Vec<String> = data
-        .feats
-        .iter()
-        .filter(|feat| feat.prerequisite.as_ref().is_some_and(|p| needs(p, &gone)))
-        .map(|feat| feat.key.to_string())
-        .chain(
-            data.classes
-                .iter()
-                .chain(&data.prestige_classes)
-                .flat_map(|class| {
-                    class
-                        .selections
-                        .iter()
-                        .chain(class.archetypes.iter().flat_map(|a| &a.selections))
-                })
-                .chain(data.mythic_paths.iter().flat_map(|path| &path.selections))
-                .flat_map(|selection| &selection.options)
-                .filter(|option| {
-                    option
-                        .prerequisite
-                        .as_ref()
-                        .is_some_and(|p| needs(p, &gone))
-                })
-                .map(|option| option.key.to_string()),
-        )
-        .chain(
-            data.mythic_abilities
-                .iter()
-                .filter(|a| a.prerequisite.as_ref().is_some_and(|p| needs(p, &gone)))
-                .map(|a| a.key.to_string()),
-        )
-        .chain(
-            data.mythic_feats
-                .iter()
-                .filter(|f| f.prerequisite.as_ref().is_some_and(|p| needs(p, &gone)))
-                .map(|f| f.key.to_string()),
-        )
-        .chain(
-            data.classes
-                .iter()
-                .chain(&data.prestige_classes)
-                .filter(|c| c.prerequisite.as_ref().is_some_and(|p| needs(p, &gone)))
-                .map(|c| c.key.to_string()),
-        )
-        .chain(
-            data.archetypes()
-                .filter(|a| a.prerequisite.as_ref().is_some_and(|p| needs(p, &gone)))
-                .map(|a| a.key.to_string()),
-        )
-        .collect();
-    assert_eq!(needing, ["extra-wild-talent"], "what needs {gone}");
+    assert_eq!(
+        needing(data, &gone),
+        ["extra-wild-talent"],
+        "what needs {gone}"
+    );
     let feat = data
         .feats
         .iter_mut()
@@ -432,6 +386,64 @@ fn extra_wild_talent(guide: &Guide, data: &mut GameData, level: u8, log: &mut Lo
     log.push(format!("extra-wild-talent: needs kineticist level {level}"));
 }
 
+/// The keys of the feats, selection options, mythic picks, classes and archetypes whose prerequisite names `feature`
+/// anywhere.
+pub(crate) fn needing(data: &GameData, feature: &FeatureKey) -> Vec<String> {
+    data.feats
+        .iter()
+        .filter(|feat| {
+            feat.prerequisite
+                .as_ref()
+                .is_some_and(|p| needs(p, feature))
+        })
+        .map(|feat| feat.key.to_string())
+        .chain(
+            data.classes
+                .iter()
+                .chain(&data.prestige_classes)
+                .flat_map(|class| {
+                    class
+                        .selections
+                        .iter()
+                        .chain(class.archetypes.iter().flat_map(|a| &a.selections))
+                })
+                .chain(data.mythic_paths.iter().flat_map(|path| &path.selections))
+                .flat_map(|selection| &selection.options)
+                .filter(|option| {
+                    option
+                        .prerequisite
+                        .as_ref()
+                        .is_some_and(|p| needs(p, feature))
+                })
+                .map(|option| option.key.to_string()),
+        )
+        .chain(
+            data.mythic_abilities
+                .iter()
+                .filter(|a| a.prerequisite.as_ref().is_some_and(|p| needs(p, feature)))
+                .map(|a| a.key.to_string()),
+        )
+        .chain(
+            data.mythic_feats
+                .iter()
+                .filter(|f| f.prerequisite.as_ref().is_some_and(|p| needs(p, feature)))
+                .map(|f| f.key.to_string()),
+        )
+        .chain(
+            data.classes
+                .iter()
+                .chain(&data.prestige_classes)
+                .filter(|c| c.prerequisite.as_ref().is_some_and(|p| needs(p, feature)))
+                .map(|c| c.key.to_string()),
+        )
+        .chain(
+            data.archetypes()
+                .filter(|a| a.prerequisite.as_ref().is_some_and(|p| needs(p, feature)))
+                .map(|a| a.key.to_string()),
+        )
+        .collect()
+}
+
 /// Whether a prerequisite names this feature anywhere.
 fn needs(prerequisite: &Prerequisite, feature: &FeatureKey) -> bool {
     match prerequisite {
@@ -445,7 +457,7 @@ fn needs(prerequisite: &Prerequisite, feature: &FeatureKey) -> bool {
 }
 
 /// Whether `items` held `key` (once), which is now gone.
-fn take(items: &mut Vec<FeatureKey>, key: &FeatureKey) -> bool {
+pub(crate) fn take(items: &mut Vec<FeatureKey>, key: &FeatureKey) -> bool {
     let before = items.len();
     items.retain(|item| item != key);
     assert!(before - items.len() <= 1, "{key} twice");

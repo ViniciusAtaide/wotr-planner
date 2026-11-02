@@ -221,7 +221,17 @@ class's), and BAB and saves (from the class's progressions).
   level it's taken (a `FeatSelection` slot); a character who had a slot of none gets none. Eight feats: Extra
   Arcana, Extra Arcanist Exploit, Extra Discovery (the alchemist's and the Underground Chemist's), Extra Hex, Extra
   Rage Power, Extra Rogue Talent (the rogue's and the Sylvan Trickster's Fey Tricks), Extra Slayer Talent and Extra
-  Wild Talent. Extra Mercy says it too, but the paladin's mercies are a feature, not a selection, so it names none.
+  Wild Talent. Extra Mercy says it too, but the paladin's mercies were a feature, not a selection, so it named none
+  until ticket 54.
+- Ticket 54 (`extract::mercies_and_exploits`, ticket 49's decisions 1 and 5, user, 2026-11-02): the paladin's
+  "Mercy" feature is the selection `paladin/mercy` on the rows that held it (each archetype's where its table has
+  "Mercy": the Divine Hunter's 3, 9, 12, 15, the Stonelord's 6, 12, 18), with the guide's 15 mercies, each needing
+  `ClassLevel(paladin, its level)` and the mercy its table names (Exhausted: Fatigued). Extra Mercy needs a mercy held
+  (an `Any` of the 15) and has `extra_pick_of: ["paladin/mercy"]`. The Arcane Enforcer's "Arcanist Exploits" feature
+  is a slot of the arcanist's own `arcanist/arcanist-exploits` at its rows 1, 4, 7, 10, 13, 16 and 19 (the guide gives
+  it no list of its own; a row may hold another class's selection, as a bloodrager's rage powers), so an exploit is
+  taken once across both classes and Extra Arcanist Exploit's pick reaches it; Extra Arcanist Exploit's `Any` no
+  longer names the feature. The Enforcer's "Greater Exploits" stays a feature.
 - A path's switch rule: `switch: (from: ["aeon", "azata"], kept_through_rank: 7, path_kept_through_rank: 7,
   dropped_features: [...], dropped_selections: [...], features: [...], further_ascensions: true, level_cap:
   Some(40))`. The general picks (mythic abilities and feats) of MR 1 to `kept_through_rank` stay, and the old

@@ -193,6 +193,9 @@ pub fn extract(guide: &Guide) -> Extraction {
     // The Extra feats' extra picks (ticket 49, ticket 45's decision 2): Extra Rage Power gives one more rage power
     // slot each time it's taken. It settles no report item.
     crate::extra_picks::apply(guide, &mut data);
+    // The paladin's mercies and the Arcane Enforcer's exploits as picks (ticket 54, ticket 49's decisions 1 and 5):
+    // Extra Mercy gives its slot. It settles no report item.
+    crate::mercies_and_exploits::apply(guide, &mut data);
     for problem in data.check() {
         builder.report.add_about(
             Kind::Cell,
