@@ -1,6 +1,9 @@
-//! Slots at each level: general slots, bonus slots from race, class and archetype, Feature selection slots.
+//! Slots at each level: general slots, bonus slots from race, subrace, class and archetype, Feature selection
+//! slots, and the order a level's slots are checked in.
 
-use rules::{ArchetypeKey, FeatSlot, FeatureSelectionKey, LevelSheet, SlotId, SlotKind};
+use rules::{
+    ArchetypeKey, Build, FeatSlot, FeatureSelectionKey, LevelSheet, SlotId, SlotKind, SubraceKey,
+};
 
 use crate::support::*;
 
@@ -107,4 +110,107 @@ fn ability_increases_come_at_every_4th_level() {
         .map(|level| level.character_level)
         .collect();
     assert_eq!(increases, [4, 8]);
+}
+
+// ---- pick order within a level --------------------------------------------------------------------------------
+
+#[test]
+fn a_levels_slots_are_checked_class_selections_first_then_class_slots_race_slots_and_the_general_slot()
+ {
+    let mut druid = build("human", &["druid"]);
+    druid.picks.insert(
+        selection_slot(1, 0),
+        pick_option("druid/nature-bond/animal-companion"),
+    );
+    let ids: Vec<SlotId> = engine().evaluate(&druid).levels[0]
+        .slots
+        .iter()
+        .map(|slot| slot.id.clone())
+        .collect();
+    assert_eq!(ids, [selection_slot(1, 0), race_slot(0), general_slot(1)]);
+
+    let warpriest = build("human", &["warpriest"]);
+    let ids: Vec<SlotId> = engine().evaluate(&warpriest).levels[0]
+        .slots
+        .iter()
+        .map(|slot| slot.id.clone())
+        .collect();
+    assert_eq!(ids, [class_slot(1, 0), race_slot(0), general_slot(1)]);
+}
+
+#[test]
+fn a_human_warpriests_race_slot_takes_dazzling_display_on_the_class_slots_weapon_focus() {
+    let mut build = build("human", &["warpriest"]);
+    build.picks.insert(
+        class_slot(1, 0),
+        pick_feat_for("weapon-focus", weapon("longsword")),
+    );
+    build
+        .picks
+        .insert(race_slot(0), pick_feat("dazzling-display"));
+    assert!(engine().is_possible(&build));
+}
+
+#[test]
+fn a_human_druid_with_a_companion_takes_boon_companion_at_level_1() {
+    let mut build = build("human", &["druid"]);
+    build.picks.insert(
+        selection_slot(1, 0),
+        pick_option("druid/nature-bond/animal-companion"),
+    );
+    build
+        .picks
+        .insert(race_slot(0), pick_feat("boon-companion"));
+    assert!(engine().is_possible(&build));
+}
+
+// ---- a subrace's feat slots -----------------------------------------------------------------------------------
+
+fn options(build: &Build, slot: &SlotId) -> Vec<String> {
+    let mut keys: Vec<String> = engine()
+        .options(build, slot)
+        .unwrap()
+        .into_iter()
+        .map(|o| o.pick.key().to_owned())
+        .collect();
+    keys.dedup();
+    keys
+}
+
+fn slots_at(build: &Build, level: u8) -> Vec<SlotId> {
+    engine().evaluate(build).levels[usize::from(level) - 1]
+        .slots
+        .iter()
+        .map(|slot| slot.id.clone())
+        .collect()
+}
+
+fn half_elf(subrace: Option<&str>) -> Build {
+    let mut build = build("half-elf", &["fighter"]);
+    build.start.subrace = subrace.map(SubraceKey::new);
+    build
+}
+
+#[test]
+fn a_subrace_without_the_races_slot_gets_none() {
+    assert!(slots_at(&half_elf(None), 1).contains(&race_slot(0)));
+    let dual_heritage = half_elf(Some("half-elf/dual-heritage"));
+    assert!(!slots_at(&dual_heritage, 1).contains(&race_slot(0)));
+    let mut picked = dual_heritage;
+    picked.picks.insert(
+        race_slot(0),
+        pick_feat_for("skill-focus", skill_value("mobility")),
+    );
+    assert_eq!(why_not(&picked, &race_slot(0)), None);
+}
+
+#[test]
+fn a_subraces_own_slot_may_name_the_races_list() {
+    let mut build = half_elf(Some("half-elf/adaptable"));
+    assert_eq!(options(&build, &race_slot(0)), ["skill-focus"]);
+    build.picks.insert(
+        race_slot(0),
+        pick_feat_for("skill-focus", skill_value("mobility")),
+    );
+    assert!(engine().is_possible(&build));
 }

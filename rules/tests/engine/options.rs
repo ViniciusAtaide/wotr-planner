@@ -1,8 +1,11 @@
-//! Available options for a slot: filtered by prerequisites at that point of the Build, with reasons.
+//! Available options for a slot: filtered by prerequisites at that point of the Build, with reasons. A prerequisite
+//! can check the selection the option is picked through (a Champion's blessing, not a warpriest's).
 
 use std::collections::BTreeSet;
 
-use rules::{Ability, Build, Issue, Pick, Prerequisite, SlotId, SlotOption, Unmet};
+use rules::{
+    Ability, Alignment, Build, ClassChoice, Issue, Pick, Prerequisite, SlotId, SlotOption, Unmet,
+};
 
 use crate::support::*;
 
@@ -352,4 +355,71 @@ fn a_slot_the_build_does_not_have_has_no_options() {
     let build = build("elf", &times("wizard", 2));
     assert_eq!(engine().options(&build, &general_slot(2)), None);
     assert_eq!(engine().options(&build, &general_slot(3)), None);
+}
+
+// ---- the selection picked through -----------------------------------------------------------------------------
+
+/// `classes` in order, with `archetype` on `of` and option `picks` at their slots.
+fn with(classes: &[&str], archetype: Option<(&str, &str)>, picks: &[(SlotId, &str)]) -> Build {
+    let mut build = build("elf", classes);
+    if let Some((of, archetype)) = archetype {
+        build.class_choices.insert(
+            class(of),
+            ClassChoice {
+                archetype: Some(rules::ArchetypeKey::new(archetype)),
+                ..ClassChoice::default()
+            },
+        );
+    }
+    for (slot, key) in picks {
+        build.picks.insert(slot.clone(), pick_option(key));
+    }
+    build
+}
+
+fn status(build: &Build, slot: &SlotId, key: &str) -> Result<(), Issue> {
+    engine()
+        .options(build, slot)
+        .unwrap()
+        .into_iter()
+        .find(|o| o.pick.key() == key)
+        .unwrap_or_else(|| panic!("no option {key}"))
+        .status
+}
+
+const GOOD: &str = "warpriest/blessings/good";
+
+fn champion(alignment: Alignment) -> Build {
+    let mut build = with(
+        &["warpriest"],
+        Some(("warpriest", "warpriest/champion")),
+        &[(selection_slot(1, 0), GOOD)],
+    );
+    build.start.alignment = Some(alignment);
+    build
+}
+
+#[test]
+fn a_champions_alignment_blessing_matches_his_alignment() {
+    let neutral = champion(Alignment::TrueNeutral);
+    assert!(matches!(
+        status(&neutral, &selection_slot(1, 0), GOOD),
+        Err(Issue::Unmet(_))
+    ));
+    assert_eq!(
+        status(&neutral, &selection_slot(1, 0), "warpriest/blessings/war"),
+        Ok(())
+    );
+    assert!(engine().is_possible(&champion(Alignment::NeutralGood)));
+}
+
+#[test]
+fn a_warpriests_blessing_doesnt_check_his_alignment() {
+    let build = with(
+        &times("warpriest", 2),
+        None,
+        &[(selection_slot(2, 0), GOOD)],
+    );
+    assert_eq!(build.start.alignment, Some(Alignment::TrueNeutral));
+    assert!(engine().is_possible(&build));
 }

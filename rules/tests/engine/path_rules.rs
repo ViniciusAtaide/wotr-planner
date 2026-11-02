@@ -1,15 +1,15 @@
-//! The mythic path rules (ticket 26): MR 1–2 granted on choosing the path, what a Path switch keeps and drops,
-//! the switch's previous-path condition, ability bonuses from features, Legend and the Trickster's Perception II
-//! feats, the Mythic rank prerequisite, Gold Dragon's Dragon Feats and an option granting several feats. A switch
-//! that ends the ascensions, and Remove level, drop the picks of the ranks the Build no longer reaches (ticket 40).
-//! Remove level also drops the path and the switch once their ranks aren't reached (ticket 41). The picks a switch
-//! takes away at earlier ranks stay in the Build, held until the switch (ticket 42).
+//! The mythic path rules (ticket 26): MR 1–2 granted on choosing the path, what a Path switch keeps and drops, the
+//! switch's previous-path condition, ability bonuses and floors from features, Legend and the Trickster's Perception II
+//! feats, the Mythic rank prerequisite, Gold Dragon's Dragon Feats and an option granting several feats. A switch that
+//! ends the ascensions, and Remove level, drop the picks of the ranks the Build no longer reaches (ticket 40). Remove
+//! level also drops the path and the switch once their ranks aren't reached (ticket 41). The picks a switch takes away
+//! at earlier ranks stay in the Build, held until the switch (ticket 42).
 
 use std::collections::BTreeSet;
 
 use rules::{
     Ability, Build, Choice, Edit, FeatSlot, Issue, MythicAbilityKey, MythicFeatKey, Prerequisite,
-    RankStatus, SlotId, SlotKind, Unmet,
+    RankStatus, SkillKey, SlotId, SlotKind, Unmet,
 };
 
 use crate::support::*;
@@ -857,4 +857,36 @@ fn a_switch_dropping_an_option_drops_its_feats_but_not_the_same_feats_held_other
             "{key}"
         );
     }
+}
+
+// ---- Perfect Mind's floors ------------------------------------------------------------------------------------
+
+#[test]
+fn perfect_mind_raises_bab_and_every_skills_ranks_for_prerequisites() {
+    let mut build = build("human", &times("wizard", 17));
+    build.mythic_path = Some(path("trickster"));
+    build.path_switch = Some(path("gold-dragon"));
+    let sheet = engine().evaluate(&build);
+    let bab_15 = Prerequisite::BaseAttackBonus(15);
+    let mobility_9 = Prerequisite::SkillRanks {
+        skill: SkillKey::new("mobility"),
+        ranks: 9,
+    };
+    let at_16 = sheet.at(16).unwrap();
+    assert!(at_16.check(&bab_15).is_err());
+    assert!(at_16.check(&mobility_9).is_err());
+    // MR 9 at 17: Perfect Mind.
+    let at_17 = sheet.at(17).unwrap();
+    assert_eq!(at_17.bab, 8);
+    assert_eq!(at_17.prerequisite_bab(), 15);
+    assert_eq!(at_17.check(&bab_15), Ok(()));
+    assert_eq!(at_17.check(&mobility_9), Ok(()));
+    assert!(
+        at_17
+            .check(&Prerequisite::SkillRanks {
+                skill: SkillKey::new("mobility"),
+                ranks: 10,
+            })
+            .is_err()
+    );
 }

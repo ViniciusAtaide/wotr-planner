@@ -1,6 +1,7 @@
-//! Named feat lists: a `OneOf` slot names a list, and whether its picks ignore prerequisites is the list's.
+//! Named feat lists: a `OneOf` slot names a list, and whether its picks ignore prerequisites is the list's. A race's
+//! slot can name a list of its own (the half-elf's Skill Focus).
 
-use rules::{FeatSlot, MythicAbilityGroup, MythicFeatGroup, Pick};
+use rules::{Build, FeatSlot, MythicAbilityGroup, MythicFeatGroup, Pick, SlotId, SlotOption};
 
 use crate::support::*;
 
@@ -81,4 +82,27 @@ fn mythic_groups_are_named_as_the_guide_heads_them() {
     assert_eq!(MythicAbilityGroup::Miscellaneous.name(), "Miscellaneous");
     assert_eq!(MythicFeatGroup::ArmourAndShield.name(), "Armour and Shield");
     assert_eq!(MythicFeatGroup::CombatManoeuvre.name(), "Combat Manoeuvre");
+}
+
+// ---- a race's own feat list -----------------------------------------------------------------------------------
+
+fn options(build: &Build, slot: &SlotId) -> Vec<SlotOption> {
+    engine()
+        .options(build, slot)
+        .unwrap_or_else(|| panic!("the Build has no slot {slot:?}"))
+}
+
+#[test]
+fn a_half_elfs_race_slot_is_skill_focus_in_a_skill_of_choice() {
+    let build = build("half-elf", &["fighter"]);
+    let offered: Vec<Pick> = options(&build, &race_slot(0))
+        .into_iter()
+        .map(|option| option.pick)
+        .collect();
+    let skills = ["athletics", "knowledge-arcana", "mobility", "persuasion"];
+    let expected: Vec<Pick> = skills
+        .into_iter()
+        .map(|key| pick_feat_for("skill-focus", skill_value(key)))
+        .collect();
+    assert_eq!(offered, expected);
 }

@@ -1,7 +1,9 @@
-//! Derived state at a character level: class levels, BAB, saves, ability scores, skills, spell-level access.
+//! Derived state at a character level: class levels, BAB, saves, ability scores (Destiny Beyond Birth removes a
+//! race's penalty), skills, spell-level access.
 
 use rules::{
-    Ability, ClassChoice, ClassKey, Engine, LevelUp, Save, SaveException, SkillPoints, SubraceKey,
+    Ability, ClassChoice, ClassKey, Engine, LevelUp, Save, SaveException, SkillPoints, SlotId,
+    SubraceKey,
 };
 
 use crate::support::*;
@@ -168,4 +170,23 @@ fn prestige_levels_advance_the_spell_level_access_of_the_class_chosen_on_entry()
 fn prestige_levels_advance_nothing_without_a_choice_on_entry() {
     let sheet = engine().evaluate(&arcane_trickster_build(vec![]));
     assert_eq!(sheet.at(8).unwrap().arcane_spell_level, 2);
+}
+
+// ---- Destiny Beyond Birth -------------------------------------------------------------------------------------
+
+#[test]
+fn destiny_beyond_birth_removes_the_races_ability_penalty() {
+    let mut build = build("elf", &times("fighter", 7));
+    build.picks.insert(
+        SlotId::Mythic { rank: 2 },
+        pick_mythic_feat("destiny-beyond-birth"),
+    );
+    assert!(engine().is_possible(&build));
+    let sheet = engine().evaluate(&build);
+    // Elf: Con 12 - 2. The bonuses stay (Dex and Int +2).
+    assert_eq!(sheet.at(6).unwrap().ability_scores.constitution, 10);
+    let at_7 = sheet.at(7).unwrap();
+    assert_eq!(at_7.ability_scores.constitution, 12);
+    assert_eq!(at_7.ability_scores.dexterity, 16);
+    assert_eq!(at_7.base_ability_scores.constitution, 10);
 }

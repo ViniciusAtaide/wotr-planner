@@ -1,12 +1,14 @@
 //! Parameterised and repeatable feats and options: a pick names what a parameterised feat is taken for, a
 //! prerequisite can need a feat for one value or for the pick's own value, and a feat or option repeats as far as
-//! its data says.
+//! its data says. Mythic feats take a value too; an option's pick can take one, from a short list or for its rows
+//! alone; and a class row can grant a feat for one value.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use rules::{
-    Build, Choice, Engine, FeatSlot, GameData, Issue, OptionLevelRow, Parameter, Pick,
-    Prerequisite, Repeat, SelectionOption, SlotId, SlotKind, SlotOption, SpellSchool, Unmet,
+    ArmourType, Build, Choice, Engine, FeatSlot, GameData, Issue, MythicFeatKey, OptionLevelRow,
+    Parameter, Pick, Prerequisite, Repeat, SelectionOption, SlotId, SlotKind, SlotOption,
+    SpellSchool, Unmet,
 };
 
 use crate::support::*;
@@ -712,4 +714,271 @@ fn a_switch_that_drops_an_every_value_grant_keeps_a_value_a_pick_holds() {
         values_at(&build, 17, "exotic-weapon-proficiency"),
         BTreeMap::from([(weapon("bastard-sword"), 1)])
     );
+}
+
+// ---- mythic feats with a value --------------------------------------------------------------------------------
+
+fn school(school: SpellSchool) -> Parameter {
+    Parameter::SpellSchool(school)
+}
+
+fn pick_mythic_feat_for(key: &str, value: Parameter) -> Pick {
+    Pick::mythic_feat_for(MythicFeatKey::new(key), value)
+}
+
+/// A wizard of `levels` levels with Spell Focus (Evocation) at 1.
+fn spell_focused(levels: usize) -> Build {
+    let mut build = build("elf", &times("wizard", levels));
+    build.picks.insert(
+        general_slot(1),
+        pick_feat_for("spell-focus", school(SpellSchool::Evocation)),
+    );
+    build
+}
+
+#[test]
+fn spell_focus_mythic_needs_spell_focus_in_the_same_school() {
+    let mut build = spell_focused(11);
+    build.picks.insert(
+        SlotId::Mythic { rank: 2 },
+        pick_mythic_feat_for("spell-focus-mythic", school(SpellSchool::Evocation)),
+    );
+    build.picks.insert(
+        SlotId::Mythic { rank: 4 },
+        pick_mythic_feat_for("spell-focus-mythic", school(SpellSchool::Conjuration)),
+    );
+    assert_eq!(
+        why_not(&build, &SlotId::Mythic { rank: 4 }),
+        Some(Issue::Unmet(Unmet::Condition {
+            needs: Prerequisite::FeatForSameValue(feat("spell-focus")),
+            has: None,
+        }))
+    );
+    let state = engine().evaluate(&build).at(11).unwrap().clone();
+    assert_eq!(
+        state.mythic_feat_values,
+        BTreeMap::from([(
+            MythicFeatKey::new("spell-focus-mythic"),
+            BTreeSet::from([school(SpellSchool::Evocation)])
+        )])
+    );
+}
+
+#[test]
+fn a_parameterised_mythic_feat_names_its_value_and_repeats_once_per_value() {
+    let mut build = build("elf", &times("wizard", 11));
+    build.picks.insert(
+        SlotId::Mythic { rank: 2 },
+        pick_mythic_feat_for("school-mastery", school(SpellSchool::Evocation)),
+    );
+    // Another school at MR 4 is fine; the same school again is not, and no value at all isn't either.
+    build.picks.insert(
+        SlotId::Mythic { rank: 4 },
+        pick_mythic_feat_for("school-mastery", school(SpellSchool::Illusion)),
+    );
+    assert!(engine().is_possible(&build));
+    assert_eq!(
+        engine().evaluate(&build).at(11).unwrap().mythic_feat_values,
+        BTreeMap::from([(
+            MythicFeatKey::new("school-mastery"),
+            BTreeSet::from([
+                school(SpellSchool::Evocation),
+                school(SpellSchool::Illusion)
+            ])
+        )])
+    );
+    build.picks.insert(
+        SlotId::Mythic { rank: 4 },
+        pick_mythic_feat_for("school-mastery", school(SpellSchool::Evocation)),
+    );
+    assert_eq!(
+        why_not(&build, &SlotId::Mythic { rank: 4 }),
+        Some(Issue::AlreadyHeld)
+    );
+    build.picks.insert(
+        SlotId::Mythic { rank: 4 },
+        pick_mythic_feat("school-mastery"),
+    );
+    assert_eq!(why_not(&build, &SlotId::Mythic { rank: 4 }), None);
+    // A mythic feat that takes no value takes none.
+    build.picks.insert(
+        SlotId::Mythic { rank: 4 },
+        pick_mythic_feat_for("toughness-mythic", school(SpellSchool::Evocation)),
+    );
+    assert_eq!(why_not(&build, &SlotId::Mythic { rank: 4 }), None);
+}
+
+#[test]
+fn the_mythic_feat_picker_offers_a_parameterised_one_once_per_value() {
+    let build = spell_focused(7);
+    let offered: Vec<Pick> = options(&build, &SlotId::Mythic { rank: 2 })
+        .into_iter()
+        .map(|option| option.pick)
+        .filter(|pick| pick.key() == "spell-focus-mythic")
+        .collect();
+    let expected: Vec<Pick> = SpellSchool::ALL
+        .into_iter()
+        .map(|value| pick_mythic_feat_for("spell-focus-mythic", school(value)))
+        .collect();
+    assert_eq!(offered, expected);
+}
+
+// ---- Armor Focus: the proficiency of its armour type ----------------------------------------------------------
+
+fn armour(armour: ArmourType) -> Parameter {
+    Parameter::ArmourType(armour)
+}
+
+#[test]
+fn armor_focus_needs_the_armour_proficiency_of_the_armour_type_it_is_taken_for() {
+    let mut build = build("elf", &times("fighter", 3));
+    build
+        .picks
+        .insert(general_slot(1), pick_feat("armor-proficiency-heavy"));
+    build.picks.insert(
+        class_slot(2, 0),
+        pick_feat_for("armor-focus", armour(ArmourType::Heavy)),
+    );
+    build.picks.insert(
+        general_slot(3),
+        pick_feat_for("armor-focus", armour(ArmourType::Light)),
+    );
+    assert_eq!(
+        why_not(&build, &general_slot(3)),
+        Some(Issue::Unmet(Unmet::Condition {
+            needs: Prerequisite::FeatIfValue {
+                value: armour(ArmourType::Light),
+                feat: feat("armor-proficiency-light"),
+            },
+            has: None,
+        }))
+    );
+}
+
+// ---- feats granted for one value ------------------------------------------------------------------------------
+
+#[test]
+fn a_mantis_zealot_holds_its_weapon_feats_in_its_one_weapon() {
+    let mut build = build("elf", &times("warpriest", 4));
+    build.class_choices.insert(
+        class("warpriest"),
+        rules::ClassChoice {
+            archetype: Some(rules::ArchetypeKey::new("warpriest/mantis-zealot")),
+            ..Default::default()
+        },
+    );
+    assert!(engine().is_possible(&build));
+    assert_eq!(
+        values_at(&build, 1, "weapon-focus"),
+        BTreeMap::from([(weapon("dueling-sword"), 1)])
+    );
+    assert_eq!(
+        values_at(&build, 3, "weapon-specialization"),
+        BTreeMap::new()
+    );
+    assert_eq!(
+        values_at(&build, 4, "weapon-specialization"),
+        BTreeMap::from([(weapon("dueling-sword"), 1)])
+    );
+    // Its level-1 row replaces the warpriest's: no Weapon Focus slot.
+    let slots = &engine().evaluate(&build).levels[0].slots;
+    assert!(
+        !slots
+            .iter()
+            .any(|slot| matches!(slot.kind, SlotKind::Feat(FeatSlot::OneOf { .. })))
+    );
+}
+
+// ---- options whose pick takes a value -------------------------------------------------------------------------
+
+fn zen_archer(levels: usize) -> Build {
+    let mut build = build("elf", &times("monk", levels));
+    build.class_choices.insert(
+        class("monk"),
+        rules::ClassChoice {
+            archetype: Some(rules::ArchetypeKey::new("monk/zen-archer")),
+            ..Default::default()
+        },
+    );
+    build
+}
+
+const WAY: &str = "monk/zen-archer/way-of-the-bow/weapon-focus";
+
+#[test]
+fn a_selection_whose_one_option_takes_a_value_is_still_a_pick() {
+    let build = zen_archer(2);
+    let level_2 = &engine().evaluate(&build).levels[1];
+    assert!(level_2.slots.iter().any(|slot| slot.kind
+        == SlotKind::Selection(rules::FeatureSelectionKey::new(
+            "monk/zen-archer/way-of-the-bow"
+        ))));
+    assert_eq!(level_2.state.option_count(&option(WAY)), 0);
+}
+
+#[test]
+fn the_way_of_the_bow_offers_only_its_listed_weapons() {
+    let build = zen_archer(2);
+    let offered: Vec<Pick> = options(&build, &selection_slot(2, 0))
+        .into_iter()
+        .map(|option| option.pick)
+        .collect();
+    assert_eq!(
+        offered,
+        [
+            pick_option_for(WAY, weapon("dagger")),
+            pick_option_for(WAY, weapon("longsword")),
+        ]
+    );
+    let mut build = build;
+    build.picks.insert(
+        selection_slot(2, 0),
+        pick_option_for(WAY, weapon("bastard-sword")),
+    );
+    assert_eq!(why_not(&build, &selection_slot(2, 0)), None);
+}
+
+#[test]
+fn the_way_of_the_bow_gives_weapon_focus_at_2_and_weapon_specialization_in_the_same_weapon_at_6() {
+    let mut build = zen_archer(6);
+    build.picks.insert(
+        selection_slot(2, 0),
+        pick_option_for(WAY, weapon("longsword")),
+    );
+    assert!(engine().is_possible(&build));
+    assert_eq!(
+        values_at(&build, 2, "weapon-focus"),
+        BTreeMap::from([(weapon("longsword"), 1)])
+    );
+    assert_eq!(
+        values_at(&build, 5, "weapon-specialization"),
+        BTreeMap::new()
+    );
+    assert_eq!(
+        values_at(&build, 6, "weapon-specialization"),
+        BTreeMap::from([(weapon("longsword"), 1)])
+    );
+}
+
+#[test]
+fn an_option_can_take_a_value_for_its_rows_alone() {
+    let mut build = build("elf", &times("slayer", 8));
+    build.picks.insert(
+        selection_slot(2, 0),
+        pick_option_for("slayer/slayer-talents/battle-master", weapon("dagger")),
+    );
+    assert!(engine().is_possible(&build));
+    assert_eq!(
+        values_at(&build, 7, "weapon-specialization"),
+        BTreeMap::new()
+    );
+    assert_eq!(
+        values_at(&build, 8, "weapon-specialization"),
+        BTreeMap::from([(weapon("dagger"), 1)])
+    );
+    build.picks.insert(
+        selection_slot(2, 0),
+        pick_option("slayer/slayer-talents/battle-master"),
+    );
+    assert_eq!(why_not(&build, &selection_slot(2, 0)), None);
 }

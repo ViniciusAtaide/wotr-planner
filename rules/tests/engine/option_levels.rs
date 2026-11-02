@@ -1,5 +1,7 @@
 //! Options with rows by option level (ticket 30): a bloodline, school or combat style gives features, feats, feat
-//! lists and selections as the levels of the classes its selection names reach each row.
+//! lists and selections as the levels of the classes its selection names reach each row. A selection can lag
+//! behind its classes, take its option level from the options held elsewhere or from the option that granted its
+//! slot, and draw on a pool beside options of its own.
 
 use rules::{
     Build, CharacterState, ClassChoice, FeatSlot, FeatureKey, FeatureSelectionKey, Issue,
@@ -804,4 +806,221 @@ fn an_option_rows_chosen_feat_is_held_for_the_value_its_pick_named() {
     let eight = at(&build, 8);
     assert!(eight.has_feat_for(&specialization, &weapon("longsword")));
     assert!(!eight.has_feat_for(&specialization, &weapon("dagger")));
+}
+
+// ---- Crossblooded's arcana ------------------------------------------------------------------------------------
+
+fn crossblooded(first: &str, second: &str, levels: usize) -> Build {
+    with(
+        &times("sorcerer", levels),
+        Some(("sorcerer", "sorcerer/crossblooded")),
+        &[
+            (selection_slot(1, 0), first),
+            (selection_slot(1, 1), second),
+        ],
+    )
+}
+
+#[test]
+fn crossblooded_second_bloodline_gives_its_arcana_too() {
+    let build = crossblooded(ARCANE, ABYSSAL, 3);
+    assert!(engine().is_possible(&build));
+    let at_1 = at(&build, 1);
+    assert!(holds(&at_1, "sorcerer/bloodline/abyssal/arcana"));
+    assert!(!holds(&at_1, "sorcerer/bloodline/abyssal/claws"));
+    assert!(!holds(
+        &at(&build, 3),
+        "sorcerer/bloodline/abyssal/resistances"
+    ));
+    // The main bloodline gives everything (the Arcane one names no arcana here).
+    assert!(holds(&at_1, "sorcerer/bloodline/arcane/arcane-bond"));
+}
+
+// ---- the Separatist's second domain ---------------------------------------------------------------------------
+
+const FIRE_DOMAIN: &str = "cleric/domain/fire";
+const WAR_DOMAIN: &str = "cleric/domain/war";
+
+#[test]
+fn a_separatists_second_domain_lags_two_levels_behind() {
+    let build = with(
+        &times("cleric", 10),
+        Some(("cleric", "cleric/separatist")),
+        &[
+            (selection_slot(1, 0), FIRE_DOMAIN),
+            (selection_slot(1, 1), WAR_DOMAIN),
+        ],
+    );
+    assert!(engine().is_possible(&build));
+    let at_1 = at(&build, 1);
+    assert!(holds(&at_1, "cleric/domain/fire/fire-bolt"));
+    assert!(!holds(&at_1, "cleric/domain/war/battle-rage"));
+    assert_eq!(at_1.option_level(&option(WAR_DOMAIN)), 0);
+    assert!(!holds(&at(&build, 2), "cleric/domain/war/battle-rage"));
+    let at_3 = at(&build, 3);
+    assert!(holds(&at_3, "cleric/domain/war/battle-rage"));
+    assert_eq!(at_3.option_level(&option(WAR_DOMAIN)), 1);
+    assert_eq!(at_3.option_level(&option(FIRE_DOMAIN)), 3);
+    // War's bonus Combat feat (its row 8) at cleric 10.
+    let sheet = engine().evaluate(&build);
+    let war_slot = |level| SlotId::OptionFeat { level, index: 0 };
+    assert!(sheet.slot(&war_slot(8)).is_none());
+    assert!(sheet.slot(&war_slot(10)).is_some());
+}
+
+// ---- option levels from elsewhere -----------------------------------------------------------------------------
+
+#[test]
+fn impossible_domain_levels_its_domain_like_the_domains_held() {
+    let mut build = with(
+        &times("cleric", 8),
+        None,
+        &[(selection_slot(1, 0), FIRE_DOMAIN)],
+    );
+    build.picks.insert(
+        SlotId::Mythic { rank: 1 },
+        pick_mythic_ability("impossible-domain"),
+    );
+    let slot = SlotId::MythicSelection { rank: 1, index: 0 };
+    build.picks.insert(slot.clone(), pick_option(WAR_DOMAIN));
+    assert!(engine().is_possible(&build));
+    let at_6 = at(&build, 6);
+    assert!(holds(&at_6, "cleric/domain/war/battle-rage"));
+    assert_eq!(at_6.option_level(&option(WAR_DOMAIN)), 6);
+    assert_eq!(at(&build, 8).option_level(&option(WAR_DOMAIN)), 8);
+    let sheet = engine().evaluate(&build);
+    assert!(
+        sheet
+            .slot(&SlotId::OptionFeat { level: 8, index: 0 })
+            .is_some()
+    );
+    // It offers every domain but the one held.
+    assert_eq!(status(&build, &slot, FIRE_DOMAIN), Err(Issue::AlreadyHeld));
+}
+
+#[test]
+fn a_maneuver_comes_at_its_revelations_option_level() {
+    let mut build = with(
+        &times("cleric", 7),
+        None,
+        &[
+            (selection_slot(1, 0), FIRE_DOMAIN),
+            (
+                selection_slot(3, 0),
+                "cleric/fire-revelations/maneuver-mastery",
+            ),
+        ],
+    );
+    let maneuver = SlotId::OptionSelection { level: 3, index: 0 };
+    let sheet = engine().evaluate(&build);
+    assert_eq!(
+        sheet.slot(&maneuver).unwrap().kind,
+        SlotKind::Selection(rules::FeatureSelectionKey::new("cleric/maneuver-mastery"))
+    );
+    build
+        .picks
+        .insert(maneuver, pick_option("cleric/maneuver-mastery/trip"));
+    assert!(engine().is_possible(&build));
+    let combat_expertise = feat("combat-expertise");
+    assert_eq!(at(&build, 6).feat_count(&combat_expertise), 0);
+    let at_7 = at(&build, 7);
+    assert_eq!(at_7.feat_count(&combat_expertise), 1);
+    assert_eq!(
+        at_7.option_level(&option("cleric/maneuver-mastery/trip")),
+        at_7.option_level(&option("cleric/fire-revelations/maneuver-mastery"))
+    );
+}
+
+// ---- a pool selection with options of its own -----------------------------------------------------------------
+
+#[test]
+fn a_pool_selection_also_offers_its_own_options() {
+    // The Accursed's level-1 slots in key order: its revelation, then the domain.
+    let build = with(
+        &times("cleric", 3),
+        Some(("cleric", "cleric/accursed")),
+        &[(selection_slot(1, 1), FIRE_DOMAIN)],
+    );
+    let slot = selection_slot(3, 0);
+    assert_eq!(
+        offered(&build, &slot),
+        [
+            "cleric/accursed/revelation/misfortune",
+            "cleric/fire-revelations/burning-hands",
+            "cleric/fire-revelations/fire-breath",
+            "cleric/fire-revelations/maneuver-mastery",
+            "cleric/fire-revelations/weapon-mastery"
+        ]
+    );
+    assert_eq!(
+        status(&build, &slot, "cleric/accursed/revelation/misfortune"),
+        Ok(())
+    );
+}
+
+#[test]
+fn a_pool_selection_is_checked_after_the_selection_it_draws_on() {
+    // At level 1 the revelation's slot comes first by key, but it's filled after the domain's.
+    let mut build = with(
+        &["cleric"],
+        Some(("cleric", "cleric/accursed")),
+        &[
+            (selection_slot(1, 1), FIRE_DOMAIN),
+            (selection_slot(1, 0), "cleric/fire-revelations/fire-breath"),
+        ],
+    );
+    assert!(engine().is_possible(&build));
+    let sheet = engine().evaluate(&build);
+    let order: Vec<&SlotId> = sheet.levels[0].slots.iter().map(|slot| &slot.id).collect();
+    assert_eq!(order[..2], [&selection_slot(1, 1), &selection_slot(1, 0)]);
+    build.picks.remove(&selection_slot(1, 1));
+    assert_eq!(
+        why_not(&build, &selection_slot(1, 0)),
+        None,
+        "no domain, no pool"
+    );
+}
+
+// ---- Impossible Domain for a Living Deity ---------------------------------------------------------------------
+
+/// A False God witch (the world's Living Deity) of `levels` levels, granted the way at 1 (the selection's one
+/// option), who picked Impossible Domain's War domain at MR 1.
+fn false_god(levels: usize) -> Build {
+    let mut build = build("elf", &times("witch", levels));
+    build.class_choices.insert(
+        class("witch"),
+        ClassChoice {
+            archetype: Some(rules::ArchetypeKey::new("witch/false-god")),
+            ..ClassChoice::default()
+        },
+    );
+    build.picks.insert(
+        SlotId::Mythic { rank: 1 },
+        pick_mythic_ability("impossible-domain"),
+    );
+    build.picks.insert(
+        SlotId::MythicSelection { rank: 1, index: 0 },
+        pick_option(WAR_DOMAIN),
+    );
+    build
+}
+
+#[test]
+fn a_living_deitys_impossible_domain_runs_on_the_ways_levels_from_the_pick() {
+    let build = false_god(9);
+    assert!(engine().is_possible(&build));
+    let sheet = engine().evaluate(&build);
+    let at_6 = sheet.at(6).unwrap();
+    assert_eq!(at_6.option_level(&option(WAR_DOMAIN)), 6);
+    assert_eq!(
+        at_6.feature_count(&feature("cleric/domain/war/battle-rage")),
+        1
+    );
+    assert_eq!(sheet.at(8).unwrap().option_level(&option(WAR_DOMAIN)), 8);
+    // War's bonus Combat feat (its row 8) at witch 8, long before the way's own domain at 20.
+    assert!(
+        sheet
+            .slot(&SlotId::OptionFeat { level: 8, index: 0 })
+            .is_some()
+    );
 }
