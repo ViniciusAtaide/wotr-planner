@@ -71,6 +71,9 @@ pub struct Engine {
     feature_floors: HashMap<FeatureKey, (Option<u8>, bool)>,
     /// The name of every feature a class, archetype or path defines, for the sheet's labels.
     feature_names: HashMap<FeatureKey, String>,
+    /// The features whose name another feature shares (the Fighter's and the Sohei's Weapon Training), so a reason
+    /// can tell them apart.
+    shared_feature_names: HashSet<FeatureKey>,
 }
 
 /// Where a class is: an index into the base or the prestige classes.
@@ -389,6 +392,15 @@ impl Engine {
             })
             .chain(data.mythic_paths.iter().flat_map(|path| &path.features))
             .collect();
+        let mut name_counts: HashMap<&str, usize> = HashMap::new();
+        for feature in &features {
+            *name_counts.entry(feature.name.as_str()).or_default() += 1;
+        }
+        let shared_feature_names = features
+            .iter()
+            .filter(|feature| name_counts[feature.name.as_str()] > 1)
+            .map(|feature| feature.key.clone())
+            .collect();
         let feature_bonuses = features
             .iter()
             .filter(|feature| !feature.ability_bonuses.is_empty())
@@ -421,6 +433,7 @@ impl Engine {
             .collect();
         let mut engine = Self {
             feature_names,
+            shared_feature_names,
             skills: index(&data.skills, |s| &s.key),
             weapons: index(&data.weapons, |w| &w.key),
             feats: index(&data.feats, |f| &f.key),

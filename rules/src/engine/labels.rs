@@ -68,6 +68,41 @@ impl Engine {
             .map_or(key.as_str(), String::as_str)
     }
 
+    /// A feature's name, with whose it is when another feature shares the name: "Weapon Training (Sohei)",
+    /// "Animal Companion (Animal Domain)".
+    pub fn feature_name_apart(&self, key: &FeatureKey) -> String {
+        let name = self.feature_name(key);
+        if !self.shared_feature_names.contains(key) {
+            return name.to_owned();
+        }
+        match self.feature_owner(key) {
+            Some(owner) => format!("{name} ({owner})"),
+            None => name.to_owned(),
+        }
+    }
+
+    /// The name of what a feature belongs to: the nearest option, archetype, class or path its key sits under
+    /// (`cleric/domain/animal/animal-companion` is the Animal Domain's).
+    fn feature_owner(&self, key: &FeatureKey) -> Option<&str> {
+        let mut prefix = key.as_str();
+        while let Some((owner, _)) = prefix.rsplit_once('/') {
+            prefix = owner;
+            if let Some(option) = self.option(&SelectionOptionKey::new(prefix)) {
+                return Some(&option.name);
+            }
+            if let Some(&(class, archetype)) = self.archetypes.get(&ArchetypeKey::new(prefix)) {
+                return Some(&self.data.classes[class].archetypes[archetype].name);
+            }
+            if let Some((class, _)) = self.class(&ClassKey::new(prefix)) {
+                return Some(&class.name);
+            }
+            if let Some(path) = self.path(&MythicPathKey::new(prefix)) {
+                return Some(&path.name);
+            }
+        }
+        None
+    }
+
     pub fn selection_name<'a>(&'a self, key: &'a FeatureSelectionKey) -> &'a str {
         self.selection(key)
             .map_or(key.as_str(), |selection| &selection.name)
@@ -297,10 +332,10 @@ impl Engine {
                 format!("the {} archetype", self.archetype_name(archetype))
             }
             Prerequisite::Feature { feature, count } if *count <= 1 => {
-                self.feature_name(feature).to_owned()
+                self.feature_name_apart(feature)
             }
             Prerequisite::Feature { feature, count } => {
-                have(format!("{} ×{count}", self.feature_name(feature)))
+                have(format!("{} ×{count}", self.feature_name_apart(feature)))
             }
             Prerequisite::SelectionOption(option) => self.option_name(option).to_owned(),
             Prerequisite::NoOptionFrom(selection) => {

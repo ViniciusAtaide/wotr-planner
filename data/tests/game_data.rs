@@ -3976,6 +3976,48 @@ fn every_feature_a_prerequisite_needs_is_named() {
     assert!(unnamed.is_empty(), "unnamed: {unnamed:?}");
 }
 
+/// Features that share a name read apart in a reason: each one a prerequisite needs reads its own way, and one whose
+/// name another feature shares says whose it is ("Weapon Training (Fighter) or Weapon Training (Sohei)").
+#[test]
+fn features_sharing_a_name_read_apart_in_a_reason() {
+    let engine = engine();
+    let mut seen: HashMap<String, &FeatureKey> = HashMap::new();
+    let features = prerequisite_features(&DATA);
+    for feature in &features {
+        let text = engine.prerequisite_text(
+            &Prerequisite::Feature {
+                feature: feature.clone(),
+                count: 1,
+            },
+            None,
+        );
+        if let Some(other) = seen.insert(text.clone(), feature) {
+            panic!("{other} and {feature} both read {text:?}");
+        }
+    }
+    let build = build("fighter", 1);
+    let advanced = engine
+        .options(
+            &build,
+            &SlotId::Feat {
+                level: 1,
+                source: FeatSource::General,
+                index: 0,
+            },
+        )
+        .unwrap()
+        .into_iter()
+        .find(|option| option.pick == Pick::feat(FeatKey::new("advanced-weapon-training")))
+        .unwrap();
+    assert_eq!(
+        engine.issue_text(&advanced.status.unwrap_err()).as_deref(),
+        Some(
+            "Needs (Weapon Training (Spears / Polearms) or Weapon Training (Fighter) or Weapon Training \
+             (Sohei)), Fighter level 5 (have 1)"
+        )
+    );
+}
+
 /// Every slot of a long real Build has a label, and a reason reads as the game says it.
 #[test]
 fn the_sheet_labels_a_real_build() {
