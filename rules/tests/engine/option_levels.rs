@@ -2,7 +2,7 @@
 //! lists and selections as the levels of the classes its selection names reach each row.
 
 use rules::{
-    Build, CharacterState, ClassChoice, Edit, FeatSlot, FeatureKey, FeatureSelectionKey, Issue,
+    Build, CharacterState, ClassChoice, FeatSlot, FeatureKey, FeatureSelectionKey, Issue,
     Prerequisite, SlotId, SlotKind, SpellType, Unmet,
 };
 
@@ -609,16 +609,19 @@ fn a_daily_choice_is_a_note_not_a_pick() {
 // ---- path switches --------------------------------------------------------------------------------------------
 
 #[test]
-fn a_path_switch_takes_away_a_general_picks_selection_with_the_option_it_took() {
+fn a_path_switch_drops_an_option_a_dropped_pick_took() {
     // Second Bloodline at MR 3 (character level 9); Legend keeps only MR 1-2's general picks.
     let mut build = sorcerer(ABYSSAL, 17);
     build.mythic_path = Some(path("trickster"));
-    let general = SlotId::Mythic { rank: 3 };
-    let selection = SlotId::MythicSelection { rank: 3, index: 0 };
-    build
-        .picks
-        .insert(general.clone(), pick_mythic_ability("second-bloodline"));
-    build.picks.insert(selection.clone(), pick_option(ARCANE));
+    build.path_switch = Some(path("legend"));
+    build.picks.insert(
+        SlotId::Mythic { rank: 3 },
+        pick_mythic_ability("second-bloodline"),
+    );
+    build.picks.insert(
+        SlotId::MythicSelection { rank: 3, index: 0 },
+        pick_option(ARCANE),
+    );
     assert!(engine().is_possible(&build));
     let at_16 = at(&build, 16);
     assert!(holds(
@@ -626,28 +629,15 @@ fn a_path_switch_takes_away_a_general_picks_selection_with_the_option_it_took() 
         "sorcerer/bloodline/arcane/combat-casting-adept"
     ));
     assert_eq!(at_16.option_level(&option(ARCANE)), 16);
-
-    // A link holding them under Legend is stale; the switch takes both away.
-    let mut stale = build.clone();
-    stale.path_switch = Some(path("legend"));
-    assert!(!engine().is_possible(&stale));
-    engine().apply(&mut build, &Edit::PathSwitch(Some(path("legend"))));
-    assert!(!build.picks.contains_key(&general));
-    assert!(!build.picks.contains_key(&selection));
-    assert!(engine().is_possible(&build));
-    for level in [16, 17] {
-        let state = at(&build, level);
-        assert_eq!(state.option_count(&option(ARCANE)), 0, "level {level}");
-        assert!(
-            !holds(&state, "sorcerer/bloodline/arcane/combat-casting-adept"),
-            "level {level}"
-        );
-        // The first bloodline stays.
-        assert!(
-            holds(&state, "sorcerer/bloodline/abyssal/resistances"),
-            "level {level}"
-        );
-    }
+    let at_17 = at(&build, 17);
+    assert_eq!(at_17.option_count(&option(ARCANE)), 0);
+    assert!(!holds(
+        &at_17,
+        "sorcerer/bloodline/arcane/combat-casting-adept"
+    ));
+    assert_eq!(at_17.option_level(&option(ARCANE)), 0);
+    // The first bloodline stays.
+    assert!(holds(&at_17, "sorcerer/bloodline/abyssal/resistances"));
 }
 
 #[test]

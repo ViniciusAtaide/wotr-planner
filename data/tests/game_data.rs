@@ -6,9 +6,9 @@ use std::sync::LazyLock;
 
 use rules::{
     Ability, Advancement, ArchetypeKey, ArmourType, Build, CharacterState, ClassChoice, ClassKey,
-    CountsAs, CountsToward, Edit, Engine, FeatKey, FeatSlot, FeatSource, FeatureKey, GameData,
-    Issue, LevelUp, MythicPathKey, Parameter, ParameterKind, Pick, Prerequisite, RankStatus,
-    Repeat, SelectionOptionKey, SkillKey, SlotId, SlotKind, SlotOption, SpellSchool, Story, Unmet,
+    CountsAs, CountsToward, Engine, FeatKey, FeatSlot, FeatSource, FeatureKey, GameData, Issue,
+    LevelUp, MythicPathKey, Parameter, ParameterKind, Pick, Prerequisite, RankStatus, Repeat,
+    SelectionOptionKey, SkillKey, SlotId, SlotKind, SlotOption, SpellSchool, Story, Unmet,
     WeaponKey, WeaponProficiency,
 };
 
@@ -409,16 +409,7 @@ fn a_devil_from_aeon_loses_the_gaze_picks_and_keeps_the_rest() {
         path_selection(3),
         pick("aeon/enforcing-gaze/enforcing-gaze-attack"),
     );
-    assert!(engine().is_possible(&build));
-    // A Build holding the gaze pick under the switch isn't possible: the switch takes it away.
-    let mut stale = build.clone();
-    stale.path_switch = Some(MythicPathKey::new("devil"));
-    assert!(!engine().is_possible(&stale));
-    engine().apply(
-        &mut build,
-        &Edit::PathSwitch(Some(MythicPathKey::new("devil"))),
-    );
-    assert!(!build.picks.contains_key(&path_selection(3)));
+    build.path_switch = Some(MythicPathKey::new("devil"));
     assert!(engine().is_possible(&build));
     let sheet = engine().evaluate(&build);
     let at_17 = sheet.at(17).unwrap();

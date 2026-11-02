@@ -420,8 +420,8 @@ pub enum Edit {
     },
     Start(BuildStart),
     MythicPath(Option<MythicPathKey>),
-    /// Set the Path switch ([`Engine::apply`](crate::Engine::apply) also drops the picks it takes away at earlier
-    /// ranks, and those of the ranks a switch without further ascensions ends: Legend's MR 8 to 10).
+    /// Set the Path switch ([`Engine::apply`](crate::Engine::apply) also drops the picks of the ranks a switch
+    /// without further ascensions ends: Legend's MR 8 to 10).
     PathSwitch(Option<MythicPathKey>),
     /// Remove the last Level-up, with the picks of its slots ([`Engine::apply`](crate::Engine::apply) also drops
     /// the picks of the Mythic ranks it reached, and the path or the switch at a rank it reached).
@@ -481,8 +481,8 @@ impl Build {
     /// nothing, and so do edits that would break a fixed rule ([`keeps_fixed_rules`](Self::keeps_fixed_rules)):
     /// an ability increase on a level without one, or ranks that take a skill above the character level. The sheet
     /// applies edits through [`Engine::apply`](crate::Engine::apply), which also drops what the sheet no longer shows:
-    /// the path, switch and picks of Mythic ranks the Build no longer reaches, and the picks a switch takes away (that
-    /// needs the game data's ascension table and path rules).
+    /// the path, switch and picks of Mythic ranks the Build no longer reaches (that needs the game data's ascension
+    /// table).
     pub fn apply(&mut self, edit: &Edit) {
         match edit {
             Edit::Pick { slot, pick } => {

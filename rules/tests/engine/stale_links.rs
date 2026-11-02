@@ -1,10 +1,11 @@
 //! Opening a link (ticket 40): a link the current game data can't hold opens nothing, whatever the reason (a key
-//! gone, a pick that no longer fits, a rule broken, a choice the Build doesn't reach, a pick a Path switch takes
-//! away, a link that doesn't decode), and the sheet shows one generic error and a blank Build. A link that still
-//! fits loads unchanged.
+//! gone, a pick that no longer fits, a rule broken, a choice the Build doesn't reach, a link that doesn't decode),
+//! and the sheet shows one generic error and a blank Build. A link that still fits loads unchanged, a pick a Path
+//! switch takes away at an earlier rank included (ticket 42).
 
 use rules::{
-    Ability, Build, ClassChoice, Engine, LevelUp, Prerequisite, SlotId, StaleLink, encode_build,
+    Ability, Build, ClassChoice, Edit, Engine, LevelUp, Prerequisite, SlotId, StaleLink,
+    encode_build,
 };
 
 use crate::support::*;
@@ -169,7 +170,7 @@ fn a_link_with_a_choice_the_build_does_not_reach_is_stale() {
 }
 
 #[test]
-fn a_link_holding_a_pick_a_switch_takes_away_is_stale() {
+fn a_link_holding_a_pick_a_switch_takes_away_loads_unchanged() {
     let engine = engine();
     let on = |path_key: &str| {
         let mut build = build("human", &times("fighter", 17));
@@ -199,12 +200,14 @@ fn a_link_holding_a_pick_a_switch_takes_away_is_stale() {
     ];
     for (mut build, switch, slot, pick) in cases {
         build.picks.insert(slot.clone(), pick);
-        // The pick fits without the switch, and the switch without the pick.
-        assert!(engine.is_possible(&build), "{switch}");
         build.path_switch = Some(path(switch));
-        assert!(engine.is_possible(&without(&build, &slot)), "{switch}");
-        assert!(!engine.is_possible(&build), "{switch}");
-        assert_eq!(open(&engine, &build), Err(StaleLink), "{switch}");
+        // The pick is held from its rank until the switch: the Build is possible, and the sheet's switch keeps it.
+        assert!(engine.is_possible(&build), "{switch}");
+        assert_eq!(open(&engine, &build), Ok(build.clone()), "{switch}");
+        let mut applied = build.clone();
+        applied.path_switch = None;
+        engine.apply(&mut applied, &Edit::PathSwitch(Some(path(switch))));
+        assert_eq!(applied, build, "{switch}");
     }
 }
 
