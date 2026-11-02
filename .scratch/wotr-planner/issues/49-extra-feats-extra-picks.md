@@ -114,3 +114,15 @@ Real-data tests (`game_data.rs`, 7 new, red on HEAD's data first):
 3. **Extra Rogue Talent for a slayer.** A slayer who took a rogue talent through its slayer talents meets Extra Rogue Talent's prerequisite in the data (an option is held whichever selection took it), but has had no rogue talent slot, so the feat gives it no slot. An Eldritch Scoundrel's talents are the rogue's own selection, so its Extra Rogue Talent is a rogue talent. **Recommendation:** leave it: a slayer's extra talent is Extra Slayer Talent's; if you want, tighten Extra Rogue Talent's prerequisite to the rogue's own talents in a follow-up.
 4. **Mythic Extra Feat and Extra Mythic Ability** ("You can select any normal feat"; "You can select a mythic ability") also give a pick, of a feat and of a mythic ability, not of a class selection, so they're out of this ticket. **Recommendation:** a follow-up ticket for them.
 5. **The Arcane Enforcer's exploits** ("can choose an Arcanist Exploit at level 1 and every 3 subsequent levels") are a feature, not picks, so its Extra Arcanist Exploit gives no slot. **Recommendation:** with 1, a follow-up that makes such features picks.
+
+## Decisions on the questions
+
+**User, 2026-11-02:** all five recommendations.
+
+1. **Paladin mercies become a selection** in a follow-up, [ticket 54](54-mercies-and-enforcer-exploits.md); Extra Mercy then names it and gives its pick.
+2. **The first class's selection** stays: a witch/shaman's Extra Hex (and the alchemist/Underground Chemist's Extra Discovery) gives a slot of the selection the character had a slot of first.
+3. **Extra Rogue Talent gives a slayer no slot**; its prerequisite stays as it is.
+4. **Mythic Extra Feat and Extra Mythic Ability** give their pick in a follow-up, [ticket 55](55-mythic-extra-picks.md).
+5. **The Arcane Enforcer's exploits become picks** with question 1, in ticket 54.
+
+Also decided the same day (from [ticket 50](50-folder-layout.md)'s recommendations): the packages `data` and `app` are renamed after their folders, `seeds` and `ui`, by [ticket 53](53-rename-packages.md).
