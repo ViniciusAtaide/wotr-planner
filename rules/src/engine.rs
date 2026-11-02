@@ -218,8 +218,9 @@ pub struct RankSheet {
     pub path: Option<MythicPathKey>,
     /// The general mythic pick, then the path's picks. Empty when not reached.
     pub slots: Vec<Slot>,
-    /// The slots whose picks a Path switch took away (all of a dropped rank's, the old path's on a partly dropped
-    /// one), in slot order.
+    /// The slots a Path switch took away (all of a dropped rank's, the old path's on a partly dropped one, and those
+    /// of a selection it drops by name), in slot order, by the rank rules alone. They hold no pick: the Build
+    /// doesn't keep what a switch takes away ([`Engine::apply`]).
     pub dropped_slots: Vec<SlotId>,
 }
 
@@ -227,7 +228,7 @@ pub struct RankSheet {
 pub enum RankStatus {
     Reached,
     /// Reached, then partly lost to a Path switch: its general pick or the old path's grants at it, or a grant the
-    /// switch drops by name (Devil from Aeon: the gaze picks).
+    /// switch drops by name (Devil from Aeon: the gaze slots and Extra Gaze).
     PartlyDropped,
     /// Reached, then lost to a Path switch that keeps neither its general pick nor the old path's grants.
     Dropped,
@@ -807,7 +808,8 @@ impl Engine {
     }
 
     /// Whether every choice in the Build holds up with the current game data: every key known, every pick in a
-    /// slot the Build reaches and fitting it there, every rule kept. Every Build the sheet's edits make is.
+    /// slot the Build reaches and its Path switch doesn't take away, and fitting it there, the path and switch at
+    /// ranks it reaches, every rule kept. Every Build the sheet's edits make is.
     pub fn is_possible(&self, build: &Build) -> bool {
         Walker::new(self, build, None).run().failed.is_empty()
     }
@@ -822,29 +824,88 @@ impl Engine {
             .ok_or(StaleLink)
     }
 
-    /// Applies an edit as the sheet makes it: [`Build::apply`], then the picks of the Mythic ranks the Build no
-    /// longer reaches go, so the Build holds only what the sheet shows. Removing a level drops the picks of the
-    /// ranks it reached (MR 8 and 9 with level 17), and a switch that ends the ascensions drops the picks of the
-    /// ranks from the switch rank on (Legend: MR 8 to 10). The picks a switch takes away at earlier ranks stay, as
-    /// the Mythic track shows them ([`RankSheet::dropped_slots`]).
+    /// Applies an edit as the sheet makes it: [`Build::apply`], then whatever the sheet no longer shows goes, so the
+    /// Build holds only what the sheet shows:
+    /// - the path and the Path switch once their ranks (MR 3, MR 8) aren't reached: removing level 9 drops the path
+    ///   and level 17 the switch, and neither can be set before its rank;
+    /// - the picks of the Mythic ranks the Build no longer reaches: removing a level drops the picks of the ranks it
+    ///   reached (MR 8 and 9 with level 17), and a switch that ends the ascensions drops the picks of the ranks from
+    ///   the switch rank on (Legend: MR 8 to 10);
+    /// - the picks a switch takes away at earlier ranks, by the rank rules alone: Legend's MR 3 to 7,
+    ///   the old path's MR 3 to 7 on Gold Dragon and the Swarm, the Aeon's gaze on Devil. The Mythic track still
+    ///   marks their slots, empty ([`RankSheet::dropped_slots`]), and taking the switch back doesn't bring them back.
     pub fn apply(&self, build: &mut Build, edit: &Edit) {
         build.apply(edit);
-        let levels = build.levels.len();
-        let ascensions_end = self
-            .chosen_switch(build)
-            .is_some_and(|(_, switch)| !switch.further_ascensions);
-        build
+        if !self.reaches(build, PATH_CHOICE_RANK) {
+            build.mythic_path = None;
+        }
+        if !self.reaches(build, PATH_SWITCH_RANK) {
+            build.path_switch = None;
+        }
+        let gone: Vec<SlotId> = build
             .picks
-            .retain(|slot, _| match (slot.level(), slot.rank()) {
-                (Some(level), _) => usize::from(level) <= levels,
-                (None, Some(rank)) => {
-                    !(ascensions_end && rank >= PATH_SWITCH_RANK)
-                        && self
-                            .ascension_level(rank)
-                            .is_some_and(|level| usize::from(level) <= levels)
-                }
-                (None, None) => true,
-            });
+            .keys()
+            .filter(|slot| !self.shows_pick(build, slot))
+            .cloned()
+            .collect();
+        for slot in gone {
+            build.picks.remove(&slot);
+        }
+    }
+
+    /// Whether the sheet shows a pick in this slot: one of a level the Build has, or of a rank it reaches that its
+    /// Path switch neither ends nor takes away.
+    fn shows_pick(&self, build: &Build, slot: &SlotId) -> bool {
+        match (slot.level(), slot.rank()) {
+            (Some(level), _) => usize::from(level) <= build.levels.len(),
+            (None, Some(rank)) => {
+                let ascensions_end = self
+                    .chosen_switch(build)
+                    .is_some_and(|(_, switch)| !switch.further_ascensions);
+                self.reaches(build, rank)
+                    && !(ascensions_end && rank >= PATH_SWITCH_RANK)
+                    && !self.switch_takes(build, slot)
+            }
+            (None, None) => true,
+        }
+    }
+
+    /// Whether the Build has the character level of a Mythic rank's ascension (whether or not a Legend switch
+    /// ended the ascensions before it).
+    fn reaches(&self, build: &Build, rank: u8) -> bool {
+        self.ascension_level(rank)
+            .is_some_and(|level| usize::from(level) <= build.levels.len())
+    }
+
+    /// Whether the Build's Path switch takes away a slot at a rank before it, by the rank rules alone: the general
+    /// pick past the switch's general cut-off (with the selections its mythic ability grants), the old path's feat
+    /// slots and selections past its path cut-off, and a selection it drops by name (Devil: the Aeon's gaze),
+    /// whatever its rank. Nothing while the Build doesn't reach the switch.
+    fn switch_takes(&self, build: &Build, slot: &SlotId) -> bool {
+        let Some(rank) = slot.rank().filter(|&rank| rank < PATH_SWITCH_RANK) else {
+            return false;
+        };
+        let Some((_, switch)) = self
+            .chosen_switch(build)
+            .filter(|_| self.reaches(build, PATH_SWITCH_RANK))
+        else {
+            return false;
+        };
+        match *slot {
+            SlotId::Mythic { .. } | SlotId::MythicSelection { .. } => {
+                rank > switch.kept_through_rank
+            }
+            SlotId::PathFeat { .. } => rank > switch.path_kept_through_rank,
+            SlotId::PathSelection { index, .. } => {
+                rank > switch.path_kept_through_rank
+                    || self
+                        .chosen_path(build)
+                        .and_then(|path| path.ranks.iter().find(|row| row.rank == rank))
+                        .and_then(|row| row.selections.get(usize::from(index)))
+                        .is_some_and(|selection| switch.dropped_selections.contains(selection))
+            }
+            _ => false,
+        }
     }
 
     /// The state just before a slot is filled, or `None` when the Build has no such slot.
@@ -855,11 +916,15 @@ impl Engine {
     /// Every option a slot accepts, in key order (a selection's own options and the ones it shares), each with
     /// whether it can be picked at that point of the Build and why not. An option that would break a later choice
     /// is [`Issue::BreaksLater`] (Toughness at level 1 with Toughness at level 3; anything but Cleave in Cleave's
-    /// slot while Great Cleave needs it). `None` when the Build has no such slot.
+    /// slot while Great Cleave needs it). `None` when the Build has no such slot, or its Path switch takes the slot
+    /// away: the Mythic track shows it lost and empty, with nothing to pick.
     ///
     /// Costs one walk to the slot's level and one of the Build, then for each option open there a walk from the
     /// slot's level to the end.
     pub fn options(&self, build: &Build, slot: &SlotId) -> Option<Vec<SlotOption>> {
+        if self.switch_takes(build, slot) {
+            return None;
+        }
         let probed = self.probe(build, Probe::Slot(slot));
         let (state, kind) = (probed.state?, probed.kind?);
         let candidates: Vec<Pick> = match &kind {
@@ -1243,11 +1308,7 @@ impl Engine {
     /// edit that changes no level.
     fn first_level(&self, build: &Build, edit: &Edit) -> u8 {
         match edit {
-            Edit::Pick { slot, .. } | Edit::Clear(slot) => match (slot.level(), slot.rank()) {
-                (Some(level), _) => level,
-                (None, Some(rank)) => self.rank_level(rank),
-                (None, None) => 0,
-            },
+            Edit::Pick { slot, .. } | Edit::Clear(slot) => self.slot_level(slot),
             // A new archetype or advancement holds from the class's first level.
             Edit::Class {
                 level,
@@ -1265,6 +1326,16 @@ impl Engine {
             Edit::MythicPath(_) => self.rank_level(PATH_CHOICE_RANK),
             Edit::PathSwitch(_) => self.rank_level(PATH_SWITCH_RANK),
             Edit::RemoveLevel | Edit::SetName(_) => u8::MAX,
+        }
+    }
+
+    /// The character level whose walk fills a slot: its own level, or its rank's ascension level; 0 (the whole
+    /// walk) for neither.
+    fn slot_level(&self, slot: &SlotId) -> u8 {
+        match (slot.level(), slot.rank()) {
+            (Some(level), _) => level,
+            (None, Some(rank)) => self.rank_level(rank),
+            (None, None) => 0,
         }
     }
 
@@ -1331,10 +1402,6 @@ struct GrantSource {
     rank: u8,
     /// The path's own grant (its row's features, the picks in its slots) rather than the general pick.
     from_path: bool,
-    /// The Feature selection whose slot was picked.
-    selection: Option<FeatureSelectionKey>,
-    /// The slot picked, if any.
-    slot: Option<SlotId>,
 }
 
 impl GrantSource {
@@ -1343,14 +1410,14 @@ impl GrantSource {
         Self {
             rank,
             from_path: true,
-            selection: None,
-            slot: None,
         }
     }
 }
 
-/// Whether a Path switch takes a grant away: a general pick past the general cut-off, the old path's grant past
-/// the path cut-off, or one the switch drops by name whatever its rank.
+/// Whether a Path switch takes a grant away: a general pick's past the general cut-off, the old path's past the
+/// path cut-off, or a feature the switch drops by name whatever its rank. The picks a switch takes away never get
+/// here: the walk doesn't hold them ([`Engine::switch_takes`]), so what it drops is the old path's rows and what
+/// they grant.
 fn switch_drops(switch: &PathSwitch, grant: &RankGrant) -> bool {
     let source = &grant.source;
     if !source.from_path {
@@ -1358,10 +1425,6 @@ fn switch_drops(switch: &PathSwitch, grant: &RankGrant) -> bool {
     }
     source.rank > switch.path_kept_through_rank
         || matches!(&grant.item, Held::Feature(key) if switch.dropped_features.contains(key))
-        || source
-            .selection
-            .as_ref()
-            .is_some_and(|selection| switch.dropped_selections.contains(selection))
 }
 
 /// One thing a Mythic ascension granted.
@@ -1439,7 +1502,8 @@ struct Holding {
     lists_only: bool,
     /// The value its pick named, for the chosen feats of its rows (Weapon Mastery: the weapon).
     parameter: Option<Parameter>,
-    /// The Mythic ascension whose pick took it, if any, so a Path switch can drop it.
+    /// The Mythic ascension whose pick took it, if any: its rows' grants are that rank's, for what a Path switch
+    /// keeps.
     source: Option<GrantSource>,
     /// The option whose row granted the slot it was taken in, if any ([`LevelFrom::GrantingOption`]).
     granted_by: Option<SelectionOptionKey>,
@@ -1485,7 +1549,16 @@ impl<'a> Recheck<'a> {
         if &edited == self.build {
             return true;
         }
-        let first = self.engine.first_level(self.build, edit);
+        // `apply` may drop picks before the edit's own level too (those a switch takes away), at levels the edited
+        // Build still has.
+        let first = self
+            .build
+            .picks
+            .keys()
+            .filter(|slot| !edited.picks.contains_key(*slot))
+            .map(|slot| self.engine.slot_level(slot))
+            .filter(|&level| usize::from(level) <= edited.levels.len())
+            .fold(self.engine.first_level(self.build, edit), u8::min);
         let walk = match first.checked_sub(1) {
             None => Walker::new(self.engine, &edited, None).run(),
             Some(index) => {
@@ -1594,7 +1667,7 @@ impl<'a> Walker<'a> {
 
     /// The choices no level checked: a pick for a slot the walk didn't reach (one a level doesn't have, past the
     /// last level, or at a rank not reached), a class choice for a class no level takes, and the path and switch,
-    /// which must be ones the Build could take even while their ranks aren't reached.
+    /// which must be ones the Build can take, at ranks it reaches.
     fn check_unreached(&mut self) {
         let build = self.build;
         for slot in build.picks.keys() {
@@ -1609,10 +1682,15 @@ impl<'a> Walker<'a> {
                 });
             }
         }
-        if build.mythic_path.is_some() && self.engine.chosen_path(build).is_none() {
+        let engine = self.engine;
+        if build.mythic_path.is_some()
+            && (engine.chosen_path(build).is_none() || !engine.reaches(build, PATH_CHOICE_RANK))
+        {
             self.fail(Choice::MythicPath);
         }
-        if build.path_switch.is_some() && self.engine.chosen_switch(build).is_none() {
+        if build.path_switch.is_some()
+            && (engine.chosen_switch(build).is_none() || !engine.reaches(build, PATH_SWITCH_RANK))
+        {
             self.fail(Choice::PathSwitch);
         }
     }
@@ -2408,16 +2486,12 @@ impl<'a> Walker<'a> {
             .collect()
     }
 
-    /// Checks the slot's pick against the state just before it and, when it holds, adds it to the state.
+    /// Checks the slot's pick against the state just before it and, when it holds, adds it to the state. A pick the
+    /// Build's Path switch takes away later fails here and isn't held: the sheet drops it ([`Engine::apply`]).
     fn fill(&mut self, id: SlotId, kind: SlotKind, rank: Option<u8>) -> Slot {
         let source = rank.map(|rank| GrantSource {
             rank,
             from_path: !matches!(id, SlotId::Mythic { .. } | SlotId::MythicSelection { .. }),
-            selection: match &kind {
-                SlotKind::Selection(selection) => Some(selection.clone()),
-                _ => None,
-            },
-            slot: Some(id.clone()),
         });
         if let Some(Probe::Slot(probed)) = self.probe
             && probed == &id
@@ -2428,9 +2502,10 @@ impl<'a> Walker<'a> {
         self.reached.insert(id.clone());
         let pick = self.build.picks.get(&id).cloned();
         if let Some(pick) = &pick {
+            let taken = rank.is_some() && self.engine.switch_takes(self.build, &id);
             match self.check_pick(&kind, pick) {
-                Ok(()) => self.hold_pick(&kind, pick, source.as_ref()),
-                Err(_) => self.fail(Choice::Slot(id.clone())),
+                Ok(()) if !taken => self.hold_pick(&kind, pick, source.as_ref()),
+                _ => self.fail(Choice::Slot(id.clone())),
             }
         }
         Slot { id, kind, pick }
@@ -2718,8 +2793,6 @@ impl<'a> Walker<'a> {
             let source = GrantSource {
                 rank,
                 from_path: false,
-                selection: None,
-                slot: None,
             };
             for (index, selection) in ability.selections.iter().enumerate() {
                 if self.grant_without_slot(selection, Some(&source)) {
@@ -2803,37 +2876,25 @@ impl<'a> Walker<'a> {
         for grant in &dropped {
             self.release(&grant.item);
         }
-        // An option a dropped pick took goes with it; what its rows gave was dropped with the pick's grants.
-        let (gone, holdings): (Vec<Holding>, Vec<Holding>) = std::mem::take(&mut self.holdings)
-            .into_iter()
-            .partition(|holding| {
-                holding.source.as_ref().is_some_and(|source| {
-                    switch_drops(
-                        switch,
-                        &RankGrant {
-                            source: source.clone(),
-                            item: Held::SelectionOption(
-                                holding.option.clone(),
-                                holding.selection.clone(),
-                            ),
-                        },
-                    )
-                })
-            });
-        self.holdings = holdings;
-        for holding in gone {
-            self.state.option_levels.remove(&holding.option);
-            self.state.option_feat_lists.remove(&holding.option);
-        }
+        let (engine, build) = (self.engine, self.build);
         for sheet in &mut self.ranks {
             if sheet.rank >= rank || sheet.status != RankStatus::Reached {
                 continue;
             }
+            // By the rank rules: the slots are lost whether or not they were picked (their picks never held).
+            sheet.dropped_slots = sheet
+                .slots
+                .iter()
+                .map(|slot| &slot.id)
+                .filter(|id| engine.switch_takes(build, id))
+                .cloned()
+                .collect();
             let general_lost = sheet.rank > switch.kept_through_rank;
             let path_lost = sheet.rank > switch.path_kept_through_rank;
-            let named_lost = dropped
-                .iter()
-                .any(|grant| grant.source.rank == sheet.rank && grant.source.from_path);
+            let named_lost = !sheet.dropped_slots.is_empty()
+                || dropped
+                    .iter()
+                    .any(|grant| grant.source.rank == sheet.rank && grant.source.from_path);
             sheet.status = if general_lost && path_lost {
                 RankStatus::Dropped
             } else if general_lost || path_lost || named_lost {
@@ -2841,18 +2902,6 @@ impl<'a> Walker<'a> {
             } else {
                 RankStatus::Reached
             };
-            let lost: BTreeSet<&SlotId> = dropped
-                .iter()
-                .filter(|grant| grant.source.rank == sheet.rank)
-                .filter_map(|grant| grant.source.slot.as_ref())
-                .collect();
-            sheet.dropped_slots = sheet
-                .slots
-                .iter()
-                .map(|slot| &slot.id)
-                .filter(|id| lost.contains(id))
-                .cloned()
-                .collect();
         }
 
         self.state.mythic_path = Some(path.key.clone());

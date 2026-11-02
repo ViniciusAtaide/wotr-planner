@@ -166,15 +166,25 @@ fn a_legend_switch_at_mr_8_keeps_mr_1_and_2_and_stays_at_rank_3() {
     for level in &mut build.levels[20..] {
         level.class = class("rogue");
     }
-    // The switch drops the picks of MR 8 to 10, which it ends.
+    // The switch drops the picks of MR 8 to 10, which it ends, and those of MR 3 to 7, which it takes away.
     engine().apply(&mut build, &Edit::PathSwitch(Some(path("legend"))));
+    let ranks: std::collections::BTreeSet<u8> =
+        build.picks.keys().filter_map(SlotId::rank).collect();
+    assert_eq!(ranks, [1, 2].into());
     let sheet = engine().evaluate(&build);
 
-    // Before the switch everything up to MR 7 is held.
+    // Before the switch MR 7 is reached, with the Trickster's rows, but only MR 1-2's picks are held.
     let at_16 = sheet.at(16).unwrap();
     assert_eq!(at_16.mythic_rank, 7);
-    assert_eq!(at_16.mythic_abilities.len(), 4);
+    assert_eq!(
+        at_16.mythic_abilities,
+        [MythicAbilityKey::new("mythic-charge")].into()
+    );
     assert_eq!(at_16.mythic_path, Some(path("trickster")));
+    assert_eq!(
+        at_16.feature_count(&feature("trickster/trickster-tricks")),
+        1
+    );
 
     // From level 17: only the MR 1 ability and MR 2 feat remain, the rank is 3, and the Trickster's picks are gone.
     let at_17 = sheet.at(17).unwrap();
@@ -232,8 +242,9 @@ fn a_legend_switch_at_mr_8_keeps_mr_1_and_2_and_stays_at_rank_3() {
 #[test]
 fn a_switch_that_keeps_ascending_takes_over_from_mr_8() {
     let mut build = trickster_build(20);
-    build.path_switch = Some(path("gold-dragon"));
+    engine().apply(&mut build, &Edit::PathSwitch(Some(path("gold-dragon"))));
     let sheet = engine().evaluate(&build);
+    assert!(engine().is_possible(&build));
 
     let at_17 = sheet.at(17).unwrap();
     assert_eq!(at_17.mythic_path, Some(path("gold-dragon")));

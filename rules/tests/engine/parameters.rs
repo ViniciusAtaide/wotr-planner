@@ -529,28 +529,3 @@ fn a_grant_with_no_pick_holds_a_parameterised_feat_for_every_value() {
     );
     assert_eq!(why_not(&build, &general_slot(11)), Some(Issue::AlreadyHeld));
 }
-
-#[test]
-fn a_switch_that_drops_an_every_value_grant_keeps_a_value_a_pick_holds() {
-    // Exotic Weapon Proficiency (Bastard Sword) picked at 1, then every exotic weapon from the MR 3 trick; the Gold
-    // Dragon keeps only MR 1-2 of the old path's grants.
-    let mut build = trickster_fighter();
-    build.picks.insert(
-        general_slot(1),
-        pick_feat_for("exotic-weapon-proficiency", weapon("bastard-sword")),
-    );
-    build.picks.insert(
-        SlotId::PathSelection { rank: 3, index: 0 },
-        pick_option("trickster/tricks/all-weapons"),
-    );
-    build.path_switch = Some(path("gold-dragon"));
-    assert!(engine().is_possible(&build));
-    assert_eq!(
-        values_at(&build, 16, "exotic-weapon-proficiency"),
-        BTreeMap::from([(weapon("bastard-sword"), 2), (weapon("dueling-sword"), 1)])
-    );
-    assert_eq!(
-        values_at(&build, 17, "exotic-weapon-proficiency"),
-        BTreeMap::from([(weapon("bastard-sword"), 1)])
-    );
-}

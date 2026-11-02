@@ -1,8 +1,11 @@
 //! Opening a link (ticket 40): a link the current game data can't hold opens nothing, whatever the reason (a key
-//! gone, a pick that no longer fits, a rule broken, a pick the Build doesn't reach, a link that doesn't decode), and
-//! the sheet shows one generic error and a blank Build. A link that still fits loads unchanged.
+//! gone, a pick that no longer fits, a rule broken, a choice the Build doesn't reach, a pick a Path switch takes
+//! away, a link that doesn't decode), and the sheet shows one generic error and a blank Build. A link that still
+//! fits loads unchanged.
 
-use rules::{Ability, Build, ClassChoice, Engine, Prerequisite, SlotId, StaleLink, encode_build};
+use rules::{
+    Ability, Build, ClassChoice, Engine, LevelUp, Prerequisite, SlotId, StaleLink, encode_build,
+};
 
 use crate::support::*;
 
@@ -55,9 +58,16 @@ fn a_link_with_a_key_the_game_data_lacks_is_stale() {
                 },
             );
         },
-        // The path and the switch are checked even while their ranks aren't reached.
-        |b| b.mythic_path = Some(path("cut-in-a-later-patch")),
-        |b| b.path_switch = Some(path("cut-in-a-later-patch")),
+        // A path and a switch at ranks the Build reaches.
+        |b| {
+            b.levels.resize(17, LevelUp::new(class("fighter")));
+            b.mythic_path = Some(path("cut-in-a-later-patch"));
+        },
+        |b| {
+            b.levels.resize(17, LevelUp::new(class("fighter")));
+            b.mythic_path = Some(path("trickster"));
+            b.path_switch = Some(path("cut-in-a-later-patch"));
+        },
     ];
     for (index, change) in gone.into_iter().enumerate() {
         let mut build = fighter();
@@ -138,9 +148,63 @@ fn a_link_with_a_choice_the_build_does_not_reach_is_stale() {
     unused
         .class_choices
         .insert(class("rogue"), ClassChoice::default());
-    for build in [no_such_slot, past_the_end, unreached, unused] {
+    // A path before MR 3 (level 9), and a switch before MR 8 (level 17).
+    let mut early_path = fighter();
+    early_path.mythic_path = Some(path("trickster"));
+    let mut early_switch = build("elf", &times("fighter", 16));
+    early_switch.mythic_path = Some(path("trickster"));
+    assert!(engine.is_possible(&early_switch));
+    early_switch.path_switch = Some(path("legend"));
+    for build in [
+        no_such_slot,
+        past_the_end,
+        unreached,
+        unused,
+        early_path,
+        early_switch,
+    ] {
         assert!(!engine.is_possible(&build), "{build:?}");
         assert_eq!(open(&engine, &build), Err(StaleLink), "{build:?}");
+    }
+}
+
+#[test]
+fn a_link_holding_a_pick_a_switch_takes_away_is_stale() {
+    let engine = engine();
+    let on = |path_key: &str| {
+        let mut build = build("human", &times("fighter", 17));
+        build.mythic_path = Some(path(path_key));
+        build
+    };
+    // Legend takes MR 3's general pick away, Gold Dragon the Trickster's MR 3 trick, Devil the Aeon's gaze.
+    let cases = [
+        (
+            on("trickster"),
+            "legend",
+            SlotId::Mythic { rank: 3 },
+            pick_mythic_ability("mythic-charge"),
+        ),
+        (
+            on("trickster"),
+            "gold-dragon",
+            SlotId::PathSelection { rank: 3, index: 0 },
+            pick_option("trickster/tricks/perception-1"),
+        ),
+        (
+            on("aeon"),
+            "devil",
+            SlotId::PathSelection { rank: 3, index: 0 },
+            pick_option("aeon/enforcing-gaze/attack"),
+        ),
+    ];
+    for (mut build, switch, slot, pick) in cases {
+        build.picks.insert(slot.clone(), pick);
+        // The pick fits without the switch, and the switch without the pick.
+        assert!(engine.is_possible(&build), "{switch}");
+        build.path_switch = Some(path(switch));
+        assert!(engine.is_possible(&without(&build, &slot)), "{switch}");
+        assert!(!engine.is_possible(&build), "{switch}");
+        assert_eq!(open(&engine, &build), Err(StaleLink), "{switch}");
     }
 }
 

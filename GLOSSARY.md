@@ -40,7 +40,7 @@ The path chosen at MR 3 (Aeon, Angel, Azata, Demon, Lich, Trickster). Choosing i
 _Avoid_: Mythic class
 
 **Path switch**:
-Replacing the mythic path at MR 8 with Legend, Gold Dragon, Swarm That Walks or Devil. A switch keeps the **general picks** (each rank's mythic ability or feat) up to one rank and the old path's own grants (its rows' features and the picks in its slots) up to another, and may drop named grants whatever their rank: Legend keeps MR 1–2 of both and stays at MR 3; Gold Dragon and Swarm keep the general picks of MR 1–7 but the old path's grants of MR 1–2 only; Devil keeps MR 1–7 but is open only from Aeon or Azata and drops the Aeon's gaze and the Azata's dragon. A switch may grant features of its own (Legend's +4 to every score).
+Replacing the mythic path at MR 8 with Legend, Gold Dragon, Swarm That Walks or Devil. A switch keeps the **general picks** (each rank's mythic ability or feat) up to one rank and the old path's own grants (its rows' features and the picks in its slots) up to another, and may drop named grants whatever their rank: Legend keeps MR 1–2 of both and stays at MR 3; Gold Dragon and Swarm keep the general picks of MR 1–7 but the old path's grants of MR 1–2 only; Devil keeps MR 1–7 but is open only from Aeon or Azata and drops the Aeon's gaze and the Azata's dragon. A switch may grant features of its own (Legend's +4 to every score). The picks it takes away leave the Build, so the planner never holds them, not even at the levels before the switch; taking the switch back doesn't bring them back, and a switch is locked while a later choice needs one of them.
 _Avoid_: Path change, respec
 
 **Ability bonus**:
@@ -174,7 +174,7 @@ The one planning screen and its summary: a grid with a row per character level a
 _Avoid_: Level-up screen, summary page, character sheet
 
 **Mythic track**:
-The sheet's tab for Mythic ranks 1–10 at their fixed character levels, with the path at MR 3 and any Path switch at MR 8. MR 1 and 2 show the path chosen at MR 3. A rank is reached, partly dropped by a switch (its general pick or the old path's grants lost, or a grant the switch drops by name), dropped (both lost), or never reached; the picks a switch took away are marked. A rank the Build doesn't reach holds no picks: Remove level and a switch that ends the ascensions (Legend: MR 8 to 10) drop them.
+The sheet's tab for Mythic ranks 1–10 at their fixed character levels, with the path at MR 3 and any Path switch at MR 8. MR 1 and 2 show the path chosen at MR 3. A rank is reached, partly dropped by a switch (its general pick or the old path's grants lost, or a grant the switch drops by name), dropped (both lost), or never reached; the slots a switch took away are marked, empty, by the path rules. A rank the Build doesn't reach holds no picks: Remove level and a switch that ends the ascensions (Legend: MR 8 to 10) drop them, and Remove level drops the path or the switch with its rank. The Build holds only what the track shows.
 _Avoid_: Mythic tab, mythic levels
 
 **Stale link**:
