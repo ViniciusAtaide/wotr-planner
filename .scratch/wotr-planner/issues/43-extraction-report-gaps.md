@@ -109,3 +109,12 @@ Real-data tests (`game_data.rs`, 3 new; red on HEAD's data first, `t43/real-data
 ### Open questions
 
 The four questions above.
+
+## Decisions on the questions
+
+**User, 2026-11-02:** all four recommendations.
+
+1. Every sorcerer, base included, takes the level-1 bonus feat from the held bloodline's bonus-feat list; Crossblooded from either bloodline's; the Empyreal, Sage and Sylvan from their fixed bloodline's; the Seeker and Nine Tailed Heir from their chosen one's (the Seeker's Magic-feat slot at 1 is replaced); the Geomancer keeps a General slot. Built by [ticket 44](44-sorcerer-feat-slayer-deities.md).
+2. Wild talents become a selection, in a follow-up: [ticket 45](45-kineticist-wild-talents.md).
+3. Extra Slayer Talent needs slayer level 2. Built by ticket 44.
+4. Deities stay out of scope; the cleric item leaves the report. Done by ticket 44.
