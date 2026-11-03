@@ -14,7 +14,8 @@ use crate::state::{CharacterState, ClassLevels};
 
 impl<'a> Walker<'a> {
     /// On a class's first level: the class, archetype and advancement choices are checked against the character
-    /// before the level.
+    /// before the level. An archetype stating an alignment requirement replaces the class's
+    /// ([`Catalog::entry_prerequisites`]).
     pub(super) fn check_class_entry(&mut self, level: u8, level_up: &LevelUp) {
         if self.state.class_level(&level_up.class) > 0 {
             return;
@@ -24,27 +25,21 @@ impl<'a> Walker<'a> {
             self.fail(Choice::Class { level });
             return;
         };
-        if let Some(prerequisite) = &class.prerequisite
-            && self.state.check(prerequisite).is_err()
-        {
+        let choice = self.build.class_choices.get(&level_up.class);
+        let key = choice.and_then(|choice| choice.archetype.as_ref());
+        let archetype = catalog.archetype_of(class, key);
+        let [class_needs, archetype_needs] = catalog.entry_prerequisites(class, archetype);
+        let fails = |needs: Option<&_>| needs.is_some_and(|needs| self.state.check(needs).is_err());
+        let class_fails = fails(class_needs);
+        // A key the data lacks, an archetype of another class, or one whose prerequisites aren't met.
+        let archetype_fails = key.is_some() && (archetype.is_none() || fails(archetype_needs));
+        if class_fails {
             self.fail(Choice::Class { level });
         }
-        let choice = self.build.class_choices.get(&level_up.class);
-        if let Some(key) = choice.and_then(|choice| choice.archetype.as_ref()) {
-            // A key the data lacks, an archetype of another class, or one whose prerequisites aren't met.
-            let holds = catalog
-                .archetype_of(class, Some(key))
-                .is_some_and(|archetype| {
-                    archetype
-                        .prerequisite
-                        .as_ref()
-                        .is_none_or(|prerequisite| self.state.check(prerequisite).is_ok())
-                });
-            if !holds {
-                self.fail(Choice::Archetype {
-                    class: level_up.class.clone(),
-                });
-            }
+        if archetype_fails {
+            self.fail(Choice::Archetype {
+                class: level_up.class.clone(),
+            });
         }
         if let Some(choice) = choice
             && !choice.advances.is_empty()

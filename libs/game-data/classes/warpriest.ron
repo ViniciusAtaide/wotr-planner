@@ -449,6 +449,7 @@ Class(
             key: "warpriest/mantis-zealot",
             name: "Mantis Zealot",
             guide: "warpriest#mantis-zealot",
+            prerequisite: Any([Alignment(LawfulNeutral), Alignment(LawfulEvil), Alignment(NeutralEvil)]),
             features: [
                 (key: "warpriest/mantis-zealot/aspect-of-the-mantis", name: "Aspect of the Mantis", guide: "warpriest#aspect-of-the-mantis"),
                 (key: "warpriest/mantis-zealot/deadly-fascination", name: "Deadly Fascination", guide: "warpriest#deadly-fascination"),

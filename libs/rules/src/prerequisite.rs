@@ -170,6 +170,68 @@ impl Prerequisite {
         }
     }
 
+    /// Whether this is an alignment requirement: an `Alignment`, or a group (or `Not`) of nothing but alignment
+    /// requirements ("Cannot be Lawful": an `Any` of the six others).
+    pub(crate) fn is_alignment(&self) -> bool {
+        match self {
+            Prerequisite::All(children)
+            | Prerequisite::Any(children)
+            | Prerequisite::AtLeast(_, children) => {
+                !children.is_empty() && children.iter().all(Prerequisite::is_alignment)
+            }
+            Prerequisite::Not(child) => child.is_alignment(),
+            Prerequisite::Alignment(_) => true,
+            _ => false,
+        }
+    }
+
+    /// Whether the tree states an alignment requirement as a condition of its own: it is one, or it's an `All` with
+    /// one among its conditions. A class's or an archetype's alignment requirement is always so placed
+    /// ([`DataIssue::AlignmentNotOnItsOwn`](crate::DataIssue::AlignmentNotOnItsOwn)).
+    pub(crate) fn states_alignment(&self) -> bool {
+        match self {
+            Prerequisite::All(children) if !self.is_alignment() => {
+                children.iter().any(Prerequisite::is_alignment)
+            }
+            _ => self.is_alignment(),
+        }
+    }
+
+    /// The tree without its alignment requirement: an `All`'s other conditions (the lone one by itself), or the
+    /// tree as it is when it states none. `None` when nothing is left.
+    pub(crate) fn without_alignment(&self) -> Option<Prerequisite> {
+        if self.is_alignment() {
+            return None;
+        }
+        let Prerequisite::All(children) = self else {
+            return Some(self.clone());
+        };
+        let mut rest: Vec<Prerequisite> = children
+            .iter()
+            .filter(|child| !child.is_alignment())
+            .cloned()
+            .collect();
+        Some(if rest.len() == 1 {
+            rest.remove(0)
+        } else {
+            Prerequisite::All(rest)
+        })
+    }
+
+    /// Whether an `Alignment` appears anywhere in the tree, in a `Not` too.
+    pub(crate) fn names_alignment(&self) -> bool {
+        match self {
+            Prerequisite::All(children)
+            | Prerequisite::Any(children)
+            | Prerequisite::AtLeast(_, children) => {
+                children.iter().any(Prerequisite::names_alignment)
+            }
+            Prerequisite::Not(child) => child.names_alignment(),
+            Prerequisite::Alignment(_) => true,
+            _ => false,
+        }
+    }
+
     /// Sorts every group's children, recursively, so equal trees compare equal.
     pub fn canonicalize(&mut self) {
         match self {

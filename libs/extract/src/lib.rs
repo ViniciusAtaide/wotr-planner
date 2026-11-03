@@ -4,6 +4,7 @@
 //! the prerequisite-line [`grammar`], progression [`tables`], class [`progressions`] and sparse archetype rows, and
 //! the [`output`] folder rules.
 
+pub mod archetype_alignments;
 pub mod backgrounds;
 pub mod bonus_feat_choices;
 pub mod borrowed_selections;

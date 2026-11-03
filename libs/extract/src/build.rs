@@ -218,6 +218,10 @@ pub fn extract(guide: &Guide) -> Extraction {
     // Witch Wandering Hex and Beneficial Curse give their pick (ticket 62, ticket 55's decisions 1 and 2): a slot of the
     // witch's hexes and of the oracle's curses, and Witch Wandering Hex needs a hex held. It settles no report item.
     crate::mythic_ability_picks::apply(guide, &mut data);
+    // The archetypes' alignment rules (ticket 63, ticket 58's question 1): the Priest of Balance's from the guide and
+    // the Mantis Zealot's from the user, and every other archetype's checked against its line. `rules` lets an
+    // archetype's replace its class's. It settles no report item.
+    crate::archetype_alignments::apply(guide, &mut data);
     for problem in data.check() {
         builder.report.add_about(
             Kind::Cell,

@@ -1,6 +1,7 @@
 //! The extractor's seams: the prerequisite-line grammar, progression-table parsing and the output folder.
 //! Examples are short hand-written lines in the guide's style, not copies of guide pages.
 
+mod archetype_alignments;
 mod backgrounds;
 mod bonus_feat_choices;
 mod borrowed_selections;

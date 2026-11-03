@@ -301,6 +301,15 @@ class's), and BAB and saves (from the class's progressions).
   prerequisites checked, and needs a hex held, the witch's or the shaman's: its "Prequisites: Hex" (so spelt in the
   guide, which the extraction passed over) is Extra Hex's `Any`. Beneficial Curse ("You gain an additional Curse")
   gives one slot of `oracle/oracles-curse`; a curse held is "Already taken" there.
+- Ticket 63 (`extract::archetype_alignments`, ticket 58's question 1, user, 2026-11-02): an archetype's alignment
+  requirement replaces its class's, and the class's other conditions still hold (`rules` does this; the Drunken
+  Master's "Cannot be Lawful" replaces the monk's "Lawful"). So a class's or an archetype's alignment requirement is a
+  condition of its own: the whole `prerequisite`, or one of a top-level `All`'s conditions, never mixed into a group
+  with others (the check refuses that). Seven archetypes have one: the Drunken Master, Bloodseeker, Angelfire
+  Apostle, Reformed Fiend and Prophet of Pestilence from their guide lines; the Priest of Balance's `Any([LN, TN,
+  CN])` from its "Alignement restricted to …" line (so spelt in the guide, which the extraction passed over); and the
+  **Mantis Zealot's `Any([LN, LE, NE])`, the user's fact, not the guide's** (2026-11-02: one step from Achaekek's
+  Lawful Evil; the guide says only that it worships Achaekek, and deities are out of scope).
 - A path's switch rule: `switch: (from: ["aeon", "azata"], kept_through_rank: 7, path_kept_through_rank: 7,
   dropped_features: [...], dropped_selections: [...], features: [...], further_ascensions: true, level_cap:
   Some(40))`. The general picks (mythic abilities and feats) of MR 1 to `kept_through_rank` stay, and the old

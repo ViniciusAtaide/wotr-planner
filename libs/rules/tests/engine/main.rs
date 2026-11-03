@@ -3,6 +3,7 @@
 mod support;
 
 mod advances;
+mod alignment;
 mod archetype_rows;
 mod backgrounds;
 mod bonus_feats;

@@ -263,7 +263,8 @@ impl Engine {
         Some(options)
     }
 
-    /// Whether a class (with an archetype) can be taken next by a character in `state`.
+    /// Whether a class (with an archetype) can be taken next by a character in `state`. An archetype stating an
+    /// alignment requirement replaces the class's, so the reason names the archetype's.
     fn class_status(
         &self,
         state: &CharacterState,
@@ -279,14 +280,13 @@ impl Engine {
         if taken.is_some() {
             return Ok(());
         }
-        let unmet: Vec<Unmet> = [
-            class.prerequisite.as_ref(),
-            archetype.and_then(|a| a.prerequisite.as_ref()),
-        ]
-        .into_iter()
-        .flatten()
-        .filter_map(|prerequisite| state.check(prerequisite).err())
-        .collect();
+        let unmet: Vec<Unmet> = self
+            .catalog
+            .entry_prerequisites(class, archetype)
+            .into_iter()
+            .flatten()
+            .filter_map(|prerequisite| state.check(prerequisite).err())
+            .collect();
         match <[Unmet; 1]>::try_from(unmet) {
             Ok([unmet]) => Err(Issue::Unmet(unmet)),
             Err(unmet) if unmet.is_empty() => Ok(()),

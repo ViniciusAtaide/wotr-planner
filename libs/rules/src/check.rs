@@ -235,6 +235,10 @@ pub enum DataIssue {
     ParameterBesideChosenFeat,
     /// An option listing values its pick doesn't take: it takes none, or they're of another kind.
     OptionValueOfWrongKind,
+    /// A class's or an archetype's prerequisite naming an alignment inside a group with other conditions. Its
+    /// alignment requirement must be a condition of its own (the whole prerequisite, or one of a top-level `All`'s
+    /// conditions), since an archetype's replaces its class's (ticket 63).
+    AlignmentNotOnItsOwn,
 }
 
 impl fmt::Display for DataProblem {
@@ -360,6 +364,10 @@ impl fmt::Display for DataProblem {
             DataIssue::OptionValueOfWrongKind => {
                 f.write_str("lists values of a kind its pick doesn't take")
             }
+            DataIssue::AlignmentNotOnItsOwn => f.write_str(
+                "an alignment sits in a group with other conditions; the alignment requirement must be a \
+                 condition of its own",
+            ),
             DataIssue::LevelFromWithClasses => f.write_str(
                 "names classes whose levels make the option level and another source of it",
             ),
@@ -962,6 +970,7 @@ impl Checker {
         let at = DataAt::Class(class.key.clone());
         self.key(&at);
         self.prerequisite(&at, class.prerequisite.as_ref(), None);
+        self.alignment_on_its_own(&at, class.prerequisite.as_ref());
         self.owned(
             class.key.as_str(),
             &class.features,
@@ -990,6 +999,7 @@ impl Checker {
             let at = DataAt::Archetype(archetype.key.clone());
             self.key(&at);
             self.prerequisite(&at, archetype.prerequisite.as_ref(), None);
+            self.alignment_on_its_own(&at, archetype.prerequisite.as_ref());
             self.owned(
                 archetype.key.as_str(),
                 &archetype.features,
@@ -997,6 +1007,17 @@ impl Checker {
                 &archetype.feat_lists,
             );
             self.archetype_rows(&at, class, archetype);
+        }
+    }
+
+    /// A class's or an archetype's alignment requirement is a condition of its own, so that an archetype's can
+    /// replace its class's (ticket 63): no alignment is left once it's taken away.
+    fn alignment_on_its_own(&mut self, at: &DataAt, prerequisite: Option<&Prerequisite>) {
+        if prerequisite
+            .and_then(Prerequisite::without_alignment)
+            .is_some_and(|rest| rest.names_alignment())
+        {
+            self.problem(at, DataIssue::AlignmentNotOnItsOwn);
         }
     }
 

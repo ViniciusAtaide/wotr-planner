@@ -587,6 +587,7 @@ Class(
             key: "cleric/priest-of-balance",
             name: "Priest of Balance",
             guide: "cleric#priest-of-balance",
+            prerequisite: Any([Alignment(LawfulNeutral), Alignment(TrueNeutral), Alignment(ChaoticNeutral)]),
             features: [
                 (key: "cleric/priest-of-balance/channel-negative-energy", name: "Channel Negative Energy", guide: "cleric#priest-of-balance"),
                 (key: "cleric/priest-of-balance/channel-positive-energy", name: "Channel Positive Energy", guide: "cleric#priest-of-balance"),

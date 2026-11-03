@@ -16,6 +16,7 @@ use crate::keys::{
     SubraceKey, WeaponKey,
 };
 use crate::parameter::{ArmourType, Energy, Parameter, ParameterKind, SpellSchool};
+use crate::prerequisite::Prerequisite;
 
 /// The game data in canonical order, with its positions by key and what the engine reads off its features. Built
 /// once by [`Engine::new`](super::Engine::new); the engine reads the game data only through it.
@@ -26,15 +27,30 @@ pub(super) struct Catalog {
     indexes: Indexes,
     /// What the engine reads off the features the classes, archetypes and paths define.
     features: FeatureFacts,
+    /// The prerequisite of each class with an alignment requirement and archetypes, without that requirement:
+    /// what an archetype stating its own leaves of the class's (`None`: nothing).
+    without_alignment: HashMap<ClassKey, Option<Prerequisite>>,
 }
 
 impl Catalog {
     /// Indexes the game data, after putting it in canonical order.
     pub(super) fn new(data: GameData) -> Self {
         let data = data.canonical();
+        let without_alignment = data
+            .classes
+            .iter()
+            .filter(|class| !class.archetypes.is_empty())
+            .filter_map(|class| {
+                let prerequisite = class.prerequisite.as_ref()?;
+                prerequisite
+                    .states_alignment()
+                    .then(|| (class.key.clone(), prerequisite.without_alignment()))
+            })
+            .collect();
         Self {
             indexes: Indexes::new(&data),
             features: FeatureFacts::new(&data),
+            without_alignment,
             data,
         }
     }
@@ -241,6 +257,23 @@ impl Catalog {
         let &(c, a) = self.indexes.archetypes.get(archetype?)?;
         let owner = &self.data.classes[c];
         (owner.key == class.key).then(|| &owner.archetypes[a])
+    }
+
+    /// What taking a class with an archetype (one of the class's, or none) needs: the class's prerequisite and the
+    /// archetype's. An archetype that states an alignment requirement replaces the class's (ticket 63: the Drunken
+    /// Master "Cannot be Lawful", though a monk must be): the rest of the class's still holds. An archetype without
+    /// one keeps the class's.
+    pub(super) fn entry_prerequisites<'a>(
+        &'a self,
+        class: &'a Class,
+        archetype: Option<&'a Archetype>,
+    ) -> [Option<&'a Prerequisite>; 2] {
+        let own = archetype.and_then(|archetype| archetype.prerequisite.as_ref());
+        let class_needs = match self.without_alignment.get(&class.key) {
+            Some(rest) if own.is_some_and(Prerequisite::states_alignment) => rest.as_ref(),
+            _ => class.prerequisite.as_ref(),
+        };
+        [class_needs, own]
     }
 
     /// The row in force at one level of a class taken with an archetype key (ignored unless it's the class's).
