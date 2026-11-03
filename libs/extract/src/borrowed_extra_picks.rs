@@ -15,7 +15,7 @@
 //! Slayer 8 meets Extra Slayer Talent's (ticket 60).
 //!
 //! Each rule asserts the guide phrases it rests on and what it finds in the data, so it fails loudly on data it doesn't
-//! expect. [`apply`] runs on the finished data of an extraction (after ticket 63's `archetype_alignments`) and, through
+//! expect. [`apply`] runs on the finished data of an extraction (after ticket 60's `borrowed_selections`) and, through
 //! ticket 64's one-off rewrite, on `libs/game-data/`.
 
 use std::collections::{BTreeMap, BTreeSet};

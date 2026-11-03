@@ -1,7 +1,7 @@
-//! Ticket 55: ticket 49's decision 4 (user, 2026-11-02), applied to finished data. The mythic feats Extra Feat ("You
-//! can select any normal feat") and Extra Mythic Ability ("You can select a mythic ability") give one more pick at
-//! the Mythic rank they're taken (`MythicFeat::extra_pick`): a feat slot that offers what the general slot does, and a
-//! mythic ability slot that offers what a rank's general pick does.
+//! Ticket 55: ticket 49's decision 4 (user, 2026-11-02). The mythic feats Extra Feat ("You can select any normal
+//! feat") and Extra Mythic Ability ("You can select a mythic ability") give one more pick at the Mythic rank they're
+//! taken (`MythicFeat::extra_pick`), set where the mythic feats are built ([`provide`]): a feat slot that offers what
+//! the general slot does, and a mythic ability slot that offers what a rank's general pick does.
 //!
 //! - **Which mythic feats:** the mythic page's entries saying "You can select": only these two.
 //! - **Once each:** neither entry says it can be taken again, so each stays `Repeat::Once` (what the guide means when it
@@ -9,19 +9,19 @@
 //! - **The mythic abilities that give a pick** already do, through `MythicAbility::selections` (Impossible Domain,
 //!   Second Bloodline, Second Bloodrager Bloodline, Second Mystery, Second Spirit), but two whose entry reads like one
 //!   give none: Witch Wandering Hex ("You can select any hex") and Beneficial Curse ("You gain an additional Curse").
-//!   Ticket 55 leaves them as they are and asks the user ([`LEFT`]); ticket 62's
-//!   [`mythic_ability_picks`](crate::mythic_ability_picks), which runs after this, gives them their pick.
+//!   Ticket 55 left them as they were and asked the user ([`LEFT`]); ticket 62's
+//!   [`mythic_ability_picks`](crate::mythic_ability_picks) gives them their pick.
 //!
-//! Each rule asserts the guide phrase it rests on and what it finds in the data, so it fails loudly on data it doesn't
-//! expect. [`apply`] runs on the finished data of an extraction and, through ticket 55's one-off rewrite, on
-//! `libs/game-data/`.
+//! Each rule asserts the guide phrase it rests on where it's read, and [`check`] what it finds in the finished data, so
+//! it fails loudly on data it doesn't expect.
 
 use std::collections::BTreeSet;
 
 use rules::{GameData, MythicExtraPick, Repeat};
 
 use crate::follow_ups::says;
-use crate::option_levels::{Log, page, section};
+use crate::option_levels::{page, section};
+use crate::picks::Picks;
 
 /// The mythic page's phrase for a mythic feat that gives a pick.
 const GIVES_A_PICK: &str = "You can select";
@@ -83,10 +83,25 @@ fn entry_says(guide: &crate::guide::Guide, anchor: &str, phrases: &[&str]) -> bo
     }
 }
 
-/// Applies ticket 55's rule.
-pub fn apply(guide: &crate::guide::Guide, data: &mut GameData) -> Log {
-    let mut log = Log::new();
+/// Extra Feat and Extra Mythic Ability give their pick, from the start.
+pub fn provide(guide: &crate::guide::Guide, picks: &mut Picks) {
+    for (key, sentence, extra_pick) in EXTRA_PICKS {
+        says(guide, "mythic-paths", key, sentence);
+        let text = section(page(guide, "mythic-paths"), key).text();
+        assert!(
+            !text.contains("multiple times") && !text.contains("more than once"),
+            "{key}: the guide says it repeats"
+        );
+        picks.mythic_extra_pick(key, extra_pick);
+    }
+    for (key, sentence) in LEFT {
+        says(guide, "mythic-paths", key, sentence);
+    }
+}
 
+/// Only Extra Feat and Extra Mythic Ability give a pick, each taken once, for nothing, with no prerequisite; the
+/// mythic abilities whose entry reads like a pick give one through their selections.
+pub fn check(guide: &crate::guide::Guide, data: &GameData) {
     // The mythic feats: only Extra Feat and Extra Mythic Ability give a pick.
     let giving: BTreeSet<&str> = data
         .mythic_feats
@@ -99,30 +114,22 @@ pub fn apply(guide: &crate::guide::Guide, data: &mut GameData) -> Log {
         giving, expected,
         "the mythic feats whose entry gives a pick"
     );
-    for (key, sentence, extra_pick) in EXTRA_PICKS {
-        says(guide, "mythic-paths", key, sentence);
-        let text = section(page(guide, "mythic-paths"), key).text();
-        assert!(
-            !text.contains("multiple times") && !text.contains("more than once"),
-            "{key}: the guide says it repeats"
-        );
-        let feat = data
-            .mythic_feats
-            .iter_mut()
-            .find(|feat| feat.key.as_str() == key)
-            .unwrap_or_else(|| panic!("no mythic feat {key}"));
-        assert!(
-            feat.extra_pick.is_none()
-                && feat.repeat == Repeat::Once
-                && feat.parameter.is_none()
-                && feat.prerequisite.is_none(),
-            "{key}: no extra pick yet, taken once, for nothing, with no prerequisite"
-        );
-        feat.extra_pick = Some(extra_pick);
-        log.push(format!("{key}: one more pick, {extra_pick:?}"));
+    for feat in &data.mythic_feats {
+        let key = feat.key.as_str();
+        match EXTRA_PICKS.iter().find(|(k, ..)| *k == key) {
+            Some((_, _, extra_pick)) => assert!(
+                feat.extra_pick == Some(*extra_pick)
+                    && feat.repeat == Repeat::Once
+                    && feat.parameter.is_none()
+                    && feat.prerequisite.is_none(),
+                "{key}: its extra pick, taken once, for nothing, with no prerequisite"
+            ),
+            None => assert!(feat.extra_pick.is_none(), "{key}: an extra pick"),
+        }
     }
 
-    // The mythic abilities: the ones that read like a pick give one through their selections, but the two left.
+    // The mythic abilities: the ones that read like a pick give one through their selections (the two left, ticket
+    // 62's).
     let reading: BTreeSet<&str> = data
         .mythic_abilities
         .iter()
@@ -140,18 +147,8 @@ pub fn apply(guide: &crate::guide::Guide, data: &mut GameData) -> Log {
     );
     for ability in &data.mythic_abilities {
         let key = ability.key.as_str();
-        if GIVING.contains(&key) {
+        if expected.contains(&key) {
             assert!(!ability.selections.is_empty(), "{key}: no selection");
         }
     }
-    for (key, sentence) in LEFT {
-        says(guide, "mythic-paths", key, sentence);
-        let ability = data
-            .mythic_abilities
-            .iter()
-            .find(|ability| ability.key.as_str() == key)
-            .unwrap_or_else(|| panic!("no mythic ability {key}"));
-        assert!(ability.selections.is_empty(), "{key}: a selection");
-    }
-    log
 }

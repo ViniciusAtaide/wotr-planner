@@ -1,6 +1,7 @@
-//! Ticket 62: ticket 55's decisions 1 and 2 (user, 2026-11-02), applied to finished data. The two mythic abilities
-//! whose entry reads like a pick but that gave none ([`LEFT`]) give one slot of a class selection when they're
-//! picked (`MythicAbility::selections`), as Second Spirit gives a spirit and Second Mystery a mystery:
+//! Ticket 62: ticket 55's decisions 1 and 2 (user, 2026-11-02). The two mythic abilities whose entry reads like a pick
+//! but that gave none ([`LEFT`]) give one slot of a class selection when they're picked (`MythicAbility::selections`),
+//! as Second Spirit gives a spirit and Second Mystery a mystery, set where the mythic abilities are built
+//! ([`provide`]):
 //!
 //! - **Witch Wandering Hex** ("You can select any hex for which you meet the prerequisites"): one slot of the witch's
 //!   hexes (`witch/hex`), its options' prerequisites checked as in any hex slot. Its "Prequisites: Hex" (so spelt on
@@ -10,18 +11,17 @@
 //!   (`oracle/oracles-curse`). A curse held is "Already taken" there, as in any once-only option's slot. Its
 //!   "Prerequisites: Oracle's Curse" is already in the data: any option of that selection.
 //!
-//! Each rule asserts the guide phrase it rests on and what it finds in the data, so it fails loudly on data it doesn't
-//! expect. [`apply`] runs on the finished data of an extraction and, through ticket 62's one-off rewrite, on
-//! `libs/game-data/`.
+//! Each rule asserts the guide phrase it rests on where it's read, and [`check`] what it finds in the finished data, so
+//! it fails loudly on data it doesn't expect.
 
 use std::collections::BTreeSet;
 
-use rules::{FeatureSelectionKey, GameData, Prerequisite};
+use rules::{DataAt, FeatureSelectionKey, GameData, MythicAbilityKey, Prerequisite};
 
 use crate::extra_picks::{named_selections, selections as all_selections};
 use crate::follow_ups::says;
 use crate::mythic_extra_picks::LEFT;
-use crate::option_levels::Log;
+use crate::picks::Picks;
 
 /// Each mythic ability that gives a pick: its anchor on the mythic page, its prerequisite line as the guide writes it,
 /// the selection names that line names, the class whose selection the slot is, and that selection.
@@ -58,18 +58,26 @@ pub fn holding_one_of(data: &GameData, selections: &[FeatureSelectionKey]) -> Pr
     )
 }
 
-/// Applies ticket 62's rule.
-pub fn apply(guide: &crate::guide::Guide, data: &mut GameData) -> Log {
-    let mut log = Log::new();
+/// Witch Wandering Hex and Beneficial Curse give their slot, and Witch Wandering Hex's misspelt line is read, where
+/// the mythic abilities are built.
+pub fn provide(guide: &crate::guide::Guide, picks: &mut Picks) {
     let anchors: BTreeSet<&str> = PICKS.iter().map(|(anchor, ..)| *anchor).collect();
     let left: BTreeSet<&str> = LEFT.iter().map(|(anchor, _)| *anchor).collect();
     assert_eq!(anchors, left, "the mythic abilities ticket 55 left");
-
-    for (key, sentence) in LEFT {
-        says(guide, "mythic-paths", key, sentence);
-    }
-    for (key, line, name, class, selection) in PICKS {
+    for (key, line, name, _, selection) in PICKS {
         says(guide, "mythic-paths", key, line);
+        picks.mythic_selection(key, FeatureSelectionKey::new(selection));
+        // "Prequisites: Hex", so spelt, which the prerequisite reader passes over.
+        if !line.starts_with("Prerequisites: ") {
+            picks.line(DataAt::MythicAbility(MythicAbilityKey::new(key)), name);
+        }
+    }
+}
+
+/// Each slot is of its class's selection named as the line names it, each needs one of that name's options held, and
+/// Witch Wandering Hex's "Hex" is Extra Hex's.
+pub fn check(_guide: &crate::guide::Guide, data: &GameData) {
+    for (key, _, name, class, selection) in PICKS {
         let named = named_selections(data, name);
         let selection = FeatureSelectionKey::new(selection);
         let owner = data
@@ -83,55 +91,42 @@ pub fn apply(guide: &crate::guide::Guide, data: &mut GameData) -> Log {
         );
         let mut needs = holding_one_of(data, &named);
         needs.canonicalize();
-
         let ability = data
             .mythic_abilities
-            .iter_mut()
+            .iter()
             .find(|ability| ability.key.as_str() == key)
             .unwrap_or_else(|| panic!("no mythic ability {key}"));
         assert!(
-            ability.selections.is_empty() && ability.features.is_empty(),
-            "{key}: grants something already"
+            ability.selections == [selection] && ability.features.is_empty(),
+            "{key}: grants something else"
         );
-        match ability.prerequisite.clone() {
-            Some(mut held) => {
-                held.canonicalize();
-                assert_eq!(held, needs, "{key}: its prerequisite isn't {name:?} held");
-            }
-            None => {
-                log.push(format!(
-                    "{key}: needs one of {} held",
-                    named
-                        .iter()
-                        .map(|s| s.as_str())
-                        .collect::<Vec<_>>()
-                        .join(" or ")
-                ));
-                ability.prerequisite = Some(needs);
-            }
-        }
-        ability.selections = vec![selection.clone()];
-        log.push(format!("{key}: one slot of {selection}"));
+        let mut held = ability
+            .prerequisite
+            .clone()
+            .unwrap_or_else(|| panic!("{key}: no prerequisite"));
+        held.canonicalize();
+        assert_eq!(held, needs, "{key}: its prerequisite isn't {name:?} held");
     }
 
     // Witch Wandering Hex's "Hex" is Extra Hex's.
+    let canonical = |mut prerequisite: Prerequisite| {
+        prerequisite.canonicalize();
+        prerequisite
+    };
     let extra_hex = data
         .feats
         .iter()
         .find(|feat| feat.key.as_str() == "extra-hex")
         .and_then(|feat| feat.prerequisite.clone())
-        .map(|mut prerequisite| {
-            prerequisite.canonicalize();
-            prerequisite
-        });
+        .map(canonical);
     let hex = data
         .mythic_abilities
         .iter()
         .find(|ability| ability.key.as_str() == "witch-wandering-hex")
-        .and_then(|ability| ability.prerequisite.clone());
+        .and_then(|ability| ability.prerequisite.clone())
+        .map(canonical);
     assert_eq!(
         hex, extra_hex,
         "Witch Wandering Hex's Hex isn't Extra Hex's"
     );
-    log
 }

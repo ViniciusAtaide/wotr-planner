@@ -1,38 +1,34 @@
-//! Ticket 66: ticket 58's decision 3 (user, 2026-11-02), applied to finished data. The Instinctual Warrior, a
-//! barbarian archetype, may take monk abilities and ki powers as rage powers
-//! (`barbarian#rage-power-instinctual-warrior`: "Besides the normal Barbarian rage powers, an Instinctual Warrior can
-//! select a number of Monk abilities and Ki powers: Deflect Arrows (requires Improved Unarmed Strike), Purity of Body
-//! (requires 8th level), …").
+//! Ticket 66: ticket 58's decision 3 (user, 2026-11-02). The Instinctual Warrior, a barbarian archetype, may take monk
+//! abilities and ki powers as rage powers (`barbarian#rage-power-instinctual-warrior`: "Besides the normal Barbarian
+//! rage powers, an Instinctual Warrior can select a number of Monk abilities and Ki powers: Deflect Arrows (requires
+//! Improved Unarmed Strike), Purity of Body (requires 8th level), …").
 //!
 //! - **Five options** of the barbarian's own `barbarian/rage-power`, one per power the sentence names, each needing
 //!   the archetype and what its brackets require: a level is a barbarian level (`ClassLevel`), as every rage power's
 //!   is; a name is the feat of that name. They are options of their own, not the monk's ki powers, since the levels
 //!   differ (the user's decision). Each is named "… (Instinctual Warrior)" after the heading that lists them, and
-//!   links to it.
+//!   links to it. The class stage gives them to the selection where it reads the rage powers ([`provide`]).
 //! - **Where they're picked**: the archetype's rage power slots (its table's "Rage Power" cells: 4, 8, 10, 12, 16, 18
 //!   and 20), and Extra Rage Power's, which offers what the character's rage power slots offer. A character without
 //!   the archetype has them locked.
 //! - **Extra Rage Power** ("Prerequisites: Rage Power") is held in the data as "has taken one of the rage powers", so
-//!   its `Any` gains the five: an Instinctual Warrior holding only Deflect Arrows has a rage power.
+//!   its `Any` holds the five too: an Instinctual Warrior holding only Deflect Arrows has a rage power.
 //!
-//! Each rule asserts the guide phrase it rests on and what it finds in the data, so it fails loudly on data it doesn't
-//! expect. [`apply`] runs on the finished data of an extraction (after ticket 64's `borrowed_extra_picks`) and,
-//! through ticket 66's one-off rewrite, on `libs/game-data/`.
+//! Each rule asserts the guide phrase it rests on where the options are read, and [`check`] what it finds in the
+//! finished data, so it fails loudly on data it doesn't expect.
 
 use std::collections::BTreeSet;
 
-use rules::{
-    ArchetypeKey, ClassKey, FeatKey, FeatureSelectionKey, GameData, Prerequisite,
-    SelectionOptionKey,
-};
+use rules::{ArchetypeKey, ClassKey, GameData, Prerequisite, SelectionOptionKey};
 
 use crate::borrowed_extra_picks::slot_levels;
-use crate::follow_ups::{class_mut, says};
+use crate::follow_ups::says;
 use crate::guide::Guide;
 use crate::html::Page;
 use crate::mercies_and_exploits::levels_in_tables;
 use crate::names::slug;
-use crate::option_levels::{Log, option, page, section};
+use crate::option_levels::{FeatNames, option, page, section};
+use crate::picks::Picks;
 
 const BARBARIAN: &str = "barbarian";
 const ARCHETYPE: &str = "barbarian/instinctual-warrior";
@@ -111,9 +107,8 @@ fn key_and_name(power: &MonkPower) -> (String, String) {
     (format!("{RAGE_POWER}/{}", slug(&name)), name)
 }
 
-/// Adds the Instinctual Warrior's monk powers to the rage powers, and to what meets Extra Rage Power.
-pub fn apply(guide: &Guide, data: &mut GameData) -> Log {
-    let mut log = Log::new();
+/// The Instinctual Warrior's monk powers are options of the rage powers.
+pub(crate) fn provide(guide: &Guide, feats: &FeatNames, picks: &mut Picks) {
     let barbarian_page = page(guide, BARBARIAN);
     says(
         guide,
@@ -133,22 +128,12 @@ pub fn apply(guide: &Guide, data: &mut GameData) -> Log {
         EXTRA_RAGE_POWER,
         "gain one additional rage power.",
     );
-    // The archetype's table and its rows in force agree on where it picks a rage power.
+    // The archetype's table: where it picks a rage power.
     let anchor = ARCHETYPE.strip_prefix("barbarian/").expect("its class");
     assert_eq!(
         levels_in_tables(barbarian_page, "Rage Power").get(anchor),
         Some(&LEVELS.to_vec()),
         "{ARCHETYPE}: its table's Rage Power"
-    );
-    let barbarian = data
-        .classes
-        .iter()
-        .find(|c| c.key.as_str() == BARBARIAN)
-        .expect("the barbarian");
-    assert_eq!(
-        slot_levels(barbarian, Some(ARCHETYPE), RAGE_POWER),
-        LEVELS,
-        "{ARCHETYPE}: its rage power slots"
     );
 
     let powers = read_monk_powers(barbarian_page);
@@ -172,61 +157,65 @@ pub fn apply(guide: &Guide, data: &mut GameData) -> Log {
     );
 
     let archetype = Prerequisite::Archetype(ArchetypeKey::new(ARCHETYPE));
-    let mut options = Vec::new();
     for power in &powers {
         let needs = match &power.needs {
             Needs::Level(level) => Prerequisite::ClassLevel {
                 class: ClassKey::new(BARBARIAN),
                 level: *level,
             },
-            Needs::Feat(name) => {
-                let named: Vec<&FeatKey> = data
-                    .feats
-                    .iter()
-                    .filter(|feat| &feat.name == name)
-                    .map(|feat| &feat.key)
-                    .collect();
-                let [feat] = named.as_slice() else {
-                    panic!("{}: the feat {name:?} is {named:?}", power.name);
-                };
-                Prerequisite::Feat((*feat).clone())
-            }
+            Needs::Feat(name) => Prerequisite::Feat(
+                feats
+                    .get(name)
+                    .unwrap_or_else(|| panic!("{}: no feat {name:?}", power.name)),
+            ),
         };
         let (key, name) = key_and_name(power);
         let mut one = option(&key, &name, barbarian_page.guide(ANCHOR), Vec::new());
         let mut prerequisite = Prerequisite::All(vec![archetype.clone(), needs]);
         prerequisite.canonicalize();
-        log.push(format!("{key}: {prerequisite:?}"));
         one.prerequisite = Some(prerequisite);
-        options.push(one);
+        picks.option(RAGE_POWER, one);
     }
+}
 
-    let selection_key = FeatureSelectionKey::new(RAGE_POWER);
-    let selection = class_mut(data, BARBARIAN)
+/// The archetype's rage power slots in force are its table's; its powers are new to the selection, and Extra Rage
+/// Power is met by holding any rage power, its five too.
+pub fn check(guide: &Guide, data: &GameData) {
+    let barbarian = data
+        .classes
+        .iter()
+        .find(|c| c.key.as_str() == BARBARIAN)
+        .expect("the barbarian");
+    assert_eq!(
+        slot_levels(barbarian, Some(ARCHETYPE), RAGE_POWER),
+        LEVELS,
+        "{ARCHETYPE}: its rage power slots"
+    );
+    let selection = barbarian
         .selections
-        .iter_mut()
-        .find(|s| s.key == selection_key)
+        .iter()
+        .find(|s| s.key.as_str() == RAGE_POWER)
         .unwrap_or_else(|| panic!("no {RAGE_POWER}"));
-    let before: BTreeSet<SelectionOptionKey> =
-        selection.options.iter().map(|o| o.key.clone()).collect();
-    for one in &options {
-        assert!(!before.contains(&one.key), "{}: an option already", one.key);
-        let plain = one.name.trim_end_matches(" (Instinctual Warrior)");
+    for power in read_monk_powers(page(guide, BARBARIAN)) {
+        let (key, name) = key_and_name(&power);
+        assert!(
+            selection.options.iter().any(|o| o.key.as_str() == key),
+            "{key}: not an option"
+        );
+        let plain = name.trim_end_matches(" (Instinctual Warrior)");
         assert!(
             selection.options.iter().all(|o| o.name != plain),
             "{RAGE_POWER}: {plain} already"
         );
     }
-    selection.options.extend(options.iter().cloned());
-    selection.options.sort_by(|a, b| a.key.cmp(&b.key));
-
-    // Extra Rage Power: "has a rage power" is "has taken one of the rage powers".
+    let all: BTreeSet<SelectionOptionKey> =
+        selection.options.iter().map(|o| o.key.clone()).collect();
     let feat = data
         .feats
-        .iter_mut()
+        .iter()
         .find(|feat| feat.key.as_str() == EXTRA_RAGE_POWER)
         .unwrap_or_else(|| panic!("no feat {EXTRA_RAGE_POWER}"));
-    let Some(Prerequisite::Any(children)) = &mut feat.prerequisite else {
+    let Some(Prerequisite::Any(children)) = &feat.prerequisite else {
         panic!("{EXTRA_RAGE_POWER}: its prerequisite isn't an Any");
     };
     let held: BTreeSet<SelectionOptionKey> = children
@@ -236,14 +225,5 @@ pub fn apply(guide: &Guide, data: &mut GameData) -> Log {
             other => panic!("{EXTRA_RAGE_POWER} needs {other:?}"),
         })
         .collect();
-    assert_eq!(held, before, "{EXTRA_RAGE_POWER}: the rage powers");
-    for one in &options {
-        children.push(Prerequisite::SelectionOption(one.key.clone()));
-    }
-    feat.prerequisite.as_mut().unwrap().canonicalize();
-    log.push(format!(
-        "{EXTRA_RAGE_POWER}: holding any of the {} meets it",
-        options.len()
-    ));
-    log
+    assert_eq!(held, all, "{EXTRA_RAGE_POWER}: the rage powers");
 }

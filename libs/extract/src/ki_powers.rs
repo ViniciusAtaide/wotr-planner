@@ -1,40 +1,35 @@
-//! Ticket 58: ticket 54's decision 2 (user, 2026-11-02), applied to finished data. The monk's ki powers, a feature in
-//! the data, become a pick, as ticket 45 made the wild talents.
+//! Ticket 58: ticket 54's decision 2 (user, 2026-11-02). The monk's ki powers are a pick, as ticket 45 made the wild
+//! talents; the class stage reads them so ([`provide`]).
 //!
-//! - **The pick** (`monk#ki-power`: "At 4th level and every 2 levels thereafter a Monk may select a ki power"). The
-//!   "Ki Power" feature on those rows becomes a slot of the selection `monk/ki-power`, and the feature goes.
+//! - **The pick** (`monk#ki-power`: "At 4th level and every 2 levels thereafter a Monk may select a ki power"). Each
+//!   "Ki Power" cell is a slot of the monk's selection `monk/ki-power`.
 //! - **The options** are the guide's list (`monk#ki-powers`: "The Monk must be a certain level to unlock them"): 14
 //!   powers, each needing the monk level of its `Lvl` column (`ClassLevel`). The cost in ki points isn't a planning
 //!   fact. An option's guide link is its own section where the guide has one, else the page (the data's rule for an
 //!   option with no heading of its own; seven have none, so a link to the list would make them copies).
 //! - **The archetypes** pick where their own tables have "Ki Power" (the Scaled Fist not at 12, where Dragon Breath
-//!   stands; the Sohei from 6; the Student of Stone not at 6 or 12; the Zen Archer not at 10); the rows already say
-//!   so, and this asserts it on the rows in force.
+//!   stands; the Sohei from 6; the Student of Stone not at 6 or 12; the Zen Archer not at 10), which [`check`]
+//!   asserts on the rows in force.
 //! - **The Traditional Monk** "Gains fixed Ki Powers": its table names one at 6, 8, 10, 12 and 14 ("Ki Power:
-//!   Wholeness of Body", …) and no "Ki Power" cell. Its rows at those levels were the base class's (a raw extraction
-//!   reads the named cells as the plain feature), so it would pick a ki power there. Each now holds its named power as
-//!   a feature of its own (`monk/traditional-monk/ki-power-wholeness-of-body`, …) in place of the pick, and the rest
-//!   of the base row as it is. "Ki Power: Perfect Self" at 20 is the base class's own feature already.
+//!   Wholeness of Body", …) and no "Ki Power" cell. Each named cell is a feature of its own
+//!   (`monk/traditional-monk/ki-power-wholeness-of-body`, …), not a pick. "Ki Power: Perfect Self" at 20 is the base
+//!   class's own feature already.
 //!
-//! No feat or mythic pick names ki powers: Extra Ki and Abundant Ki Pool grow the ki pool, and nothing needs the
-//! feature that goes. Each rule asserts the guide phrase it rests on and what it finds in the data, so it fails loudly
-//! on data it doesn't expect. [`apply`] runs on the finished data of an extraction (after ticket 57's `exploits`)
-//! and, through ticket 58's one-off rewrite, on `libs/game-data/`.
+//! No feat or mythic pick names ki powers: Extra Ki and Abundant Ki Pool grow the ki pool. Each rule asserts the guide
+//! phrase it rests on where the pick is read, and [`check`] what it finds in the finished data, so it fails loudly on
+//! data it doesn't expect.
 
 use std::collections::BTreeMap;
 
-use rules::{
-    ArchetypeLevelRow, ClassKey, FeatureKey, FeatureSelectionKey, GameData, Prerequisite,
-    effective_row,
-};
+use rules::{ClassKey, FeatureKey, FeatureSelectionKey, GameData, Prerequisite, effective_row};
 
-use crate::follow_ups::{class_mut, says};
+use crate::follow_ups::says;
 use crate::guide::Guide;
 use crate::html::Page;
 use crate::mercies_and_exploits::levels_in_tables;
 use crate::names::slug;
-use crate::option_levels::{Log, feature, option, page, section, selection};
-use crate::wild_talents::{needing, take};
+use crate::option_levels::{feature, option, page, section, selection};
+use crate::picks::{Pick, Picks, Rule};
 
 const MONK: &str = "monk";
 /// The feature the rows held, which the pick replaces.
@@ -47,9 +42,8 @@ const PERFECT_SELF: &str = "monk/ki-power-perfect-self";
 /// 4th level and every 2 levels after.
 const EVERY: [u8; 9] = [4, 6, 8, 10, 12, 14, 16, 18, 20];
 
-/// Makes the ki powers a pick, and the Traditional Monk's fixed ones its features.
-pub fn apply(guide: &Guide, data: &mut GameData) -> Log {
-    let mut log = Log::new();
+/// The ki powers are a pick, and the Traditional Monk's fixed ones its features.
+pub fn provide(guide: &Guide, picks: &mut Picks) {
     let monk_page = page(guide, MONK);
     says(
         guide,
@@ -63,20 +57,13 @@ pub fn apply(guide: &Guide, data: &mut GameData) -> Log {
         "ki-powers",
         "The Monk must be a certain level to unlock them",
     );
-    let expected = expected_levels();
     assert_eq!(
         levels_in_tables(monk_page, "Ki Power"),
-        expected,
+        expected_levels(),
         "monk: the tables' Ki Power levels"
     );
     no_feat_names_ki_powers(guide);
 
-    let feature_key = FeatureKey::new(KI_POWER_FEATURE);
-    assert_eq!(
-        needing(data, &feature_key),
-        Vec::<String>::new(),
-        "what needs {feature_key}"
-    );
     let powers = read_powers(monk_page);
     assert_eq!(powers.len(), 14, "the guide's ki powers");
     let mut chosen = selection(KI_POWER, "Ki Power", monk_page.guide("ki-power"), &[]);
@@ -87,47 +74,21 @@ pub fn apply(guide: &Guide, data: &mut GameData) -> Log {
             class: ClassKey::new(MONK),
             level: power.level,
         });
-        log.push(format!("{key}: monk level {}", power.level));
         chosen.options.push(one);
     }
+    picks.selection(MONK, chosen);
+    picks.rule(Rule::every(
+        KI_POWER_FEATURE,
+        Pick::Selection(FeatureSelectionKey::new(KI_POWER)),
+    ));
+    traditional(guide, monk_page, &powers, picks);
+}
 
+/// Each table's levels are the rows in force: the archetype's where it differs, the base's elsewhere. The Traditional
+/// Monk's row 20 holds the base class's Perfect Self.
+pub fn check(_guide: &Guide, data: &GameData) {
+    let expected = expected_levels();
     let selection_key = FeatureSelectionKey::new(KI_POWER);
-    let monk = class_mut(data, MONK);
-    assert!(
-        monk.selections.iter().all(|s| s.key != selection_key),
-        "{KI_POWER}: a selection already"
-    );
-    monk.selections.push(chosen);
-    let before = monk.features.len();
-    monk.features.retain(|f| f.key != feature_key);
-    assert_eq!(monk.features.len(), before - 1, "{feature_key}");
-    let mut class_levels = Vec::new();
-    for row in &mut monk.levels {
-        if take(&mut row.features, &feature_key) {
-            row.selections.push(selection_key.clone());
-            class_levels.push(row.level);
-        }
-    }
-    assert_eq!(class_levels, EVERY, "the base class's rows");
-    log.push(format!("{MONK} {class_levels:?}: a ki power"));
-    for archetype in &mut monk.archetypes {
-        for row in &mut archetype.levels {
-            if take(&mut row.features, &feature_key) {
-                assert!(
-                    !row.selections.contains(&selection_key),
-                    "{} {}: a ki power slot already",
-                    archetype.key,
-                    row.level
-                );
-                row.selections.push(selection_key.clone());
-                log.push(format!("{} {}: a ki power", archetype.key, row.level));
-            }
-        }
-    }
-
-    traditional(guide, monk_page, &powers, data, &mut log);
-
-    // Each table's levels are the rows in force: the archetype's where it differs, the base's elsewhere.
     let monk = data
         .classes
         .iter()
@@ -157,7 +118,17 @@ pub fn apply(guide: &Guide, data: &mut GameData) -> Log {
         );
     }
     assert_eq!(monk.archetypes.len(), expected.len(), "the archetypes");
-    log
+    let perfect = monk
+        .archetypes
+        .iter()
+        .find(|a| a.key.as_str() == TRADITIONAL)
+        .and_then(|a| a.levels.iter().find(|row| row.level == 20))
+        .unwrap_or_else(|| panic!("{TRADITIONAL} has no row 20"));
+    assert_eq!(
+        perfect.features,
+        [FeatureKey::new(PERFECT_SELF)],
+        "{TRADITIONAL} 20"
+    );
 }
 
 /// The levels of each table's "Ki Power" cell, by the anchor of the section holding it (the base class's: `""`).
@@ -206,14 +177,9 @@ fn no_feat_names_ki_powers(guide: &Guide) {
     }
 }
 
-/// The Traditional Monk's fixed ki powers, each a feature of its own on its row in place of the pick.
-fn traditional(
-    guide: &Guide,
-    monk_page: &Page,
-    powers: &[Power],
-    data: &mut GameData,
-    log: &mut Log,
-) {
+/// The Traditional Monk's fixed ki powers: each "Ki Power: …" cell (but Perfect Self's, the base class's own
+/// feature) is a feature of its own, in place of the pick.
+fn traditional(guide: &Guide, monk_page: &Page, powers: &[Power], picks: &mut Picks) {
     says(guide, MONK, "traditional-monk", "Gains fixed Ki Powers.");
     let table = section(monk_page, "traditional-monk")
         .tables()
@@ -243,66 +209,24 @@ fn traditional(
         ],
         "monk#traditional-monk: its fixed ki powers"
     );
-
-    let selection_key = FeatureSelectionKey::new(KI_POWER);
-    let monk = class_mut(data, MONK);
-    let base: BTreeMap<u8, rules::ClassLevelRow> = monk
-        .levels
-        .iter()
-        .map(|row| (row.level, row.clone()))
-        .collect();
-    let archetype = monk
-        .archetypes
-        .iter_mut()
-        .find(|a| a.key.as_str() == TRADITIONAL)
-        .unwrap_or_else(|| panic!("no {TRADITIONAL}"));
-    let perfect = archetype
-        .levels
-        .iter()
-        .find(|row| row.level == perfect_self.0)
-        .expect("the Traditional Monk's row 20");
-    assert_eq!(
-        perfect.features,
-        [FeatureKey::new(PERFECT_SELF)],
-        "{TRADITIONAL} 20"
-    );
     for (level, name) in named.iter().filter(|fixed| **fixed != perfect_self) {
         let power = powers
             .iter()
             .find(|power| &power.name == name)
             .unwrap_or_else(|| panic!("{name}: not one of the guide's ki powers"));
-        assert!(
-            archetype.levels.iter().all(|row| row.level != *level),
-            "{TRADITIONAL} {level}: a row of its own already"
-        );
+        assert!(power.anchor.is_some(), "{name}: no section of its own");
         let full = format!("Ki Power: {name}");
         let key = FeatureKey::new(format!("{TRADITIONAL}/{}", slug(&full)));
-        assert!(power.anchor.is_some(), "{name}: no section of its own");
-        archetype
-            .features
-            .push(feature(&key, &full, power.guide(monk_page)));
-        let row = &base[level];
-        assert_eq!(
-            row.selections,
-            std::slice::from_ref(&selection_key),
-            "the base monk's row {level}"
-        );
-        let mut features = row.features.clone();
-        features.push(key.clone());
-        features.sort();
-        archetype.levels.push(ArchetypeLevelRow {
-            level: *level,
-            spell_levels: None,
-            features,
-            feats: row.feats.clone(),
-            feats_for: row.feats_for.clone(),
-            feat_slots: row.feat_slots.clone(),
-            selections: Vec::new(),
+        picks.rule(Rule {
+            table: Some(TRADITIONAL.to_owned()),
+            cell: Some(full.clone()),
+            levels: Some(vec![*level]),
+            ..Rule::every(
+                KI_POWER_FEATURE,
+                Pick::Feature(feature(&key, &full, power.guide(monk_page))),
+            )
         });
-        log.push(format!("{TRADITIONAL} {level}: {key}, no ki power"));
     }
-    archetype.features.sort_by(|a, b| a.key.cmp(&b.key));
-    archetype.levels.sort_by_key(|row| row.level);
 }
 
 /// One ki power as the guide's list gives it.

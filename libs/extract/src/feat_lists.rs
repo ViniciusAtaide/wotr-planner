@@ -229,9 +229,14 @@ fn name_class_lists(class: &mut Class, lists: &PendingLists) {
         for row in &mut archetype.levels {
             rename(&mut row.feat_slots);
         }
-        archetype.feat_lists = defined.remove(archetype.key.as_str()).unwrap_or_default();
+        // Beside the lists the class stage gave the archetype by key.
+        archetype
+            .feat_lists
+            .extend(defined.remove(archetype.key.as_str()).unwrap_or_default());
     }
-    class.feat_lists = defined.remove(class.key.as_str()).unwrap_or_default();
+    class
+        .feat_lists
+        .extend(defined.remove(class.key.as_str()).unwrap_or_default());
 }
 
 fn name_path_lists(path: &mut MythicPath, lists: &PendingLists) {

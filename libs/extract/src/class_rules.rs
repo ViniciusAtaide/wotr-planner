@@ -37,13 +37,7 @@ pub fn feat_lists_note(owner: &str) -> Option<&'static str> {
     (owner == "cleric/crusader").then_some(CRUSADER_NOTE)
 }
 
-/// Every rule, on full rows.
-pub fn apply(data: &mut GameData) {
-    apply_prestige(&mut data.prestige_classes);
-    nature_bond(data);
-}
-
-/// Advancement and "counts as", each on the prestige class it names.
+/// Advancement and "counts as", each on the prestige class it names, where the prestige classes are built.
 pub fn apply_prestige(classes: &mut [Class]) {
     fn class<'c>(classes: &'c mut [Class], key: &str) -> &'c mut Class {
         classes

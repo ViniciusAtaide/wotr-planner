@@ -9,10 +9,9 @@
 //! - **Which selections:** the ones its "Prerequisites" names, matched by name ("Rogue Talents or Fey Tricks": the
 //!   rogue's talents and the Sylvan Trickster's Fey Tricks; "Hex": the witch's and the shaman's; the guide's
 //!   "Dicovery" is the alchemist's and the Underground Chemist's Discovery). A name no selection has gives nothing:
-//!   "Talented Slayer" is on no saved page, and the Arcane Enforcer's "Arcanist Exploits" is a feature, not picks.
-//! - **Extra Mercy gives no pick:** "Mercy" is the paladin's feature; the guide's mercies aren't a selection in the
-//!   data (ticket 49's question 1). Ticket 54's [`mercies_and_exploits`](crate::mercies_and_exploits), which runs
-//!   after this, makes them one and gives Extra Mercy its pick; the Arcane Enforcer's exploits likewise.
+//!   "Talented Slayer" is on no saved page.
+//! - **Extra Mercy** gives a pick of the paladin's mercies, which the class stage makes a selection (ticket 54's
+//!   [`mercies_and_exploits`](crate::mercies_and_exploits)).
 //!
 //! Each rule asserts the guide phrase it rests on and what it finds in the data, so it fails loudly on data it
 //! doesn't expect. [`apply`] runs on the finished data of an extraction and, through ticket 49's one-off rewrite,
@@ -30,7 +29,7 @@ const GIVES_A_PICK: &str = "gain one additional";
 
 /// Each Extra feat that gives a pick: its anchor on the feats page, what its "Prerequisites" names, the phrase giving
 /// the pick, and the selections those names are in the data.
-const EXTRA_PICKS: [(&str, &str, &str, &[&str]); 8] = [
+const EXTRA_PICKS: [(&str, &str, &str, &[&str]); 9] = [
     (
         "extra-arcana",
         "Magus Arcana",
@@ -54,6 +53,12 @@ const EXTRA_PICKS: [(&str, &str, &str, &[&str]); 8] = [
         "Hex",
         "You gain one additional hex for which you must meet the prerequisites.",
         &["shaman/hex", "witch/hex"],
+    ),
+    (
+        "extra-mercy",
+        "Mercy",
+        "You gain one additional mercy for which you must meet the prerequisites.",
+        &["paladin/mercy"],
     ),
     (
         "extra-rage-power",
@@ -81,9 +86,6 @@ const EXTRA_PICKS: [(&str, &str, &str, &[&str]); 8] = [
     ),
 ];
 
-/// The Extra feat that gives a pick of something that isn't a selection.
-const EXTRA_MERCY: &str = "extra-mercy";
-
 /// Applies ticket 49's rule.
 pub fn apply(guide: &crate::guide::Guide, data: &mut GameData) -> Log {
     let mut log = Log::new();
@@ -102,7 +104,6 @@ pub fn apply(guide: &crate::guide::Guide, data: &mut GameData) -> Log {
     let expected: BTreeSet<String> = EXTRA_PICKS
         .iter()
         .map(|(feat, ..)| feat.to_string())
-        .chain([EXTRA_MERCY.to_owned()])
         .collect();
     assert_eq!(giving, expected, "the feats whose entry gives a pick");
 
@@ -143,17 +144,6 @@ pub fn apply(guide: &crate::guide::Guide, data: &mut GameData) -> Log {
         ));
     }
 
-    says(guide, "feats", EXTRA_MERCY, "Prerequisites: Mercy");
-    says(
-        guide,
-        "feats",
-        EXTRA_MERCY,
-        "You gain one additional mercy for which you must meet the prerequisites.",
-    );
-    assert!(
-        named_selections(data, "Mercy").is_empty(),
-        "{EXTRA_MERCY}: a selection named Mercy"
-    );
     log
 }
 

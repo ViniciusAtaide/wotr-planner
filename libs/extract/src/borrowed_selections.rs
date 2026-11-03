@@ -1,11 +1,12 @@
-//! Ticket 60: ticket 54's decision 2 (user, 2026-11-02), applied to finished data. Classes and archetypes that pick
-//! from another class's list held a feature with no slot; each becomes a slot, of the existing selection where the
-//! guide's list is one, or of a selection sharing the options of the lists it mixes, as ticket 25 made the slayer's.
+//! Ticket 60: ticket 54's decision 2 (user, 2026-11-02). Classes and archetypes that pick from another class's list
+//! pick there: each such cell is a slot, of the existing selection where the guide's list is one, or of a selection
+//! sharing the options of the lists it mixes, as ticket 25 made the slayer's. The class stage reads them so
+//! ([`provide`]).
 //!
 //! - **Bard and skald talents** (`bard#bard-talents`: "The Bard can select from the Rogue Talent list";
 //!   `skald#skald-talents`: "The Skald can select from the Rogue Talent list at 2nd, 7th, 12th and 17th levels"): the
-//!   "Bard Talents" and "Skald Talents" features become slots of the rogue's own `rogue/rogue-talents`, where each
-//!   table has "Bard Talent" or "Skald Talent" (the Beast Tamer from 6, the Inciter at 4, 9, 14, 19).
+//!   "Bard Talent" and "Skald Talent" cells are slots of the rogue's own `rogue/rogue-talents` (the Beast Tamer from 6,
+//!   the Inciter at 4, 9, 14, 19).
 //! - **The Archaeologist's Advanced Talents** (`bard#advanced-talents`: "At 10th level, the Archaeologist may select
 //!   from the Advanced Rogue Talents"): its feature opens the advanced rogue talents (`rogue#advanced-rogue-talents`)
 //!   beside the rogue's and the slayer's, in each one's `Any`.
@@ -34,9 +35,12 @@
 //! Combat Trick's feat slot, and no option's row moves. Extra Rogue Talent's "Prerequisites: Rogue Talents" names the
 //! Feyform Shifter's "Rogue Talent" too, so its extra pick may be of that selection (ticket 49's rule).
 //!
-//! The features that go are needed by nothing. Each rule asserts the guide phrase it rests on and what it finds in
-//! the data, so it fails loudly on data it doesn't expect. [`apply`] runs on the finished data of an extraction (after
-//! ticket 59's `infusions`) and, through ticket 60's one-off rewrite, on `libs/game-data/`.
+//! What widens another owner's facts (the rogue's and the slayer's option levels, the advanced talents' and the major
+//! and grand hexes' prerequisites, Extra Rogue Talent's and Extra Slayer Talent's, the slayer's combat style feat) is
+//! [`apply`], on the finished data: tickets 44 and 47 set those facts there first, and this widens what they set.
+//!
+//! Each rule asserts the guide phrase it rests on where it's read, and [`check`] what it finds in the finished data,
+//! so it fails loudly on data it doesn't expect.
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -50,13 +54,14 @@ use crate::guide::Guide;
 use crate::html::Page;
 use crate::mercies_and_exploits::{levels_in_tables, replace_leaf};
 use crate::option_levels::{Log, page, section, selection};
-use crate::wild_talents::{needing, take};
+use crate::picks::{Pick, Picks, Rule};
 
 const ROGUE_TALENTS: &str = "rogue/rogue-talents";
 const ROGUE_ADVANCED: &str = "rogue/advanced-talents";
 const SLAYER_TALENTS: &str = "slayer/slayer-talents";
 const WITCH_HEX: &str = "witch/hex";
 const MAGUS_ARCANA: &str = "magus/magus-arcana";
+const DISCOVERY: &str = "alchemist/discovery";
 
 const ARCHAEOLOGIST_ADVANCED: &str = "bard/archaeologist/advanced-talents";
 const FEYFORM: &str = "shifter/feyform-shifter";
@@ -64,8 +69,8 @@ const FEYFORM_TALENT: &str = "shifter/feyform-shifter/rogue-talent";
 const VIVISECTIONIST: &str = "alchemist/vivisectionist";
 const MEDICAL_DISCOVERY: &str = "alchemist/vivisectionist/medical-discovery";
 const VIVISECTIONIST_ADVANCED: &str = "alchemist/vivisectionist/advanced-talents";
-const SANCTIFIED: &str = "inquisitor/sanctified-slayer";
 const SANCTIFIED_FEATURE: &str = "inquisitor/sanctified-slayer/slayer-talents";
+const SANCTIFIED: &str = "inquisitor/sanctified-slayer";
 /// The Sanctified Slayer's first Slayer Talent.
 const SANCTIFIED_FIRST: u8 = 8;
 const HEXCRAFTER: &str = "magus/hexcrafter";
@@ -79,82 +84,202 @@ const EXTRA_ROGUE_TALENT: &str = "extra-rogue-talent";
 const EXTRA_SLAYER_TALENT: &str = "extra-slayer-talent";
 const COMBAT_STYLE_2: &str = "slayer/slayer-talents/combat-style-feat-2";
 
-/// Makes the borrowed lists picks.
+/// The borrowed lists' cells are picks, and the archetypes that mix lists have their own sharing selections.
+pub fn provide(guide: &Guide, picks: &mut Picks) {
+    let rogue = RogueTalents::read(guide);
+    bards_and_skalds(guide, picks);
+    feyform(guide, picks, &rogue);
+    vivisectionist(guide, picks, &rogue);
+    sanctified_slayer(guide, picks);
+    hexcrafter(guide, picks);
+}
+
+/// Widens the facts of other owners the borrowed picks reach: the selections' option levels, the advanced talents'
+/// and the major and grand hexes' prerequisites, and the Extra feats.
 pub fn apply(guide: &Guide, data: &mut GameData) -> Log {
     let mut log = Log::new();
-    let (talents, advanced) = rogue_talents(guide, data);
-    bards_and_skalds(guide, data, &advanced, &mut log);
-    feyform(guide, data, &talents, &advanced, &mut log);
-    vivisectionist(guide, data, &mut log);
-    sanctified_slayer(guide, data, &mut log);
-    hexcrafter(guide, data, &mut log);
+    let rogue = RogueTalents::read(guide);
+    for class in ["bard", "skald"] {
+        add_option_level(data, ROGUE_TALENTS, class, &mut log);
+    }
+    open_advanced(data, &rogue.advanced, ARCHAEOLOGIST_ADVANCED, &mut log);
+    extra_rogue_talent(guide, data, &mut log);
+    open_advanced(
+        data,
+        &medical_discoveries(guide, &rogue).2,
+        VIVISECTIONIST_ADVANCED,
+        &mut log,
+    );
+    add_option_level(data, SLAYER_TALENTS, "inquisitor", &mut log);
+    extra_slayer_talent(guide, data, &mut log);
+    combat_style(guide, data, &mut log);
+    open_hexes(data, &mut log);
     log
 }
 
-/// The rogue talents and the advanced ones among them, by key: the guide's two lists (`rogue#rogue-talents`,
-/// `rogue#advanced-rogue-talents`), the advanced ones exactly those the data gates on the rogue's Advanced Talents.
-fn rogue_talents(
-    guide: &Guide,
-    data: &GameData,
-) -> (BTreeSet<SelectionOptionKey>, BTreeSet<SelectionOptionKey>) {
-    says(
-        guide,
-        "rogue",
-        "advanced-rogue-talents",
-        "These unlock at 10th level.",
-    );
-    let rogue_page = page(guide, "rogue");
-    let names = |anchor: &str| -> BTreeSet<String> {
-        section(rogue_page, anchor)
-            .children
-            .iter()
-            .map(|s| s.name.clone())
-            .collect()
-    };
-    let (plain, advanced_names) = (names("rogue-talents"), names("advanced-rogue-talents"));
-    let selection = find_selection(data, ROGUE_TALENTS);
-    let by_name: BTreeMap<&str, &SelectionOptionKey> = selection
-        .options
-        .iter()
-        .map(|o| (o.name.as_str(), &o.key))
-        .collect();
+/// The guide's lists and the data's agree, and the rows in force hold each pick where the tables have its cell.
+pub fn check(guide: &Guide, data: &GameData) {
+    let rogue = RogueTalents::read(guide);
+    rogue.check(data);
+    for (class, cell) in [("bard", "Bard Talent"), ("skald", "Skald Talent")] {
+        assert_in_force(guide, data, class, ROGUE_TALENTS, cell);
+    }
+    assert_in_force(guide, data, "shifter", FEYFORM_TALENT, "Rogue Talent");
     assert_eq!(
-        by_name
-            .keys()
-            .map(|n| n.to_string())
-            .collect::<BTreeSet<_>>(),
-        &plain | &advanced_names,
-        "{ROGUE_TALENTS}: the guide's talents"
+        find_selection(data, FEYFORM_TALENT).shared_options,
+        &rogue.all - &rogue.advanced,
+        "{FEYFORM_TALENT}: the rogue talents but the advanced ones"
     );
-    let gated: BTreeSet<SelectionOptionKey> = selection
+    let (discoveries, talents, advanced) = medical_discoveries(guide, &rogue);
+    let alchemist: BTreeSet<SelectionOptionKey> = find_selection(data, DISCOVERY)
         .options
         .iter()
-        .filter(|o| {
-            o.prerequisite
-                .as_ref()
-                .is_some_and(|p| names_feature(p, ROGUE_ADVANCED))
-        })
         .map(|o| o.key.clone())
         .collect();
-    let advanced: BTreeSet<SelectionOptionKey> = advanced_names
-        .iter()
-        .map(|n| by_name[n.as_str()].clone())
-        .collect();
-    assert_eq!(gated, advanced, "the talents gated on {ROGUE_ADVANCED}");
-    assert_eq!(
-        (plain.len(), advanced.len()),
-        (20, 16),
-        "the guide's talents"
+    assert!(
+        discoveries.is_subset(&alchemist),
+        "{DISCOVERY}: the Vivisectionist's"
     );
-    (by_name.values().map(|k| (*k).clone()).collect(), advanced)
+    for talent in &advanced {
+        let prerequisite = find_option_prerequisite(data, talent);
+        assert!(
+            names_feature(prerequisite, ROGUE_ADVANCED),
+            "{talent}: not advanced"
+        );
+    }
+    for talent in &talents {
+        assert!(
+            !find_option_prerequisite_opt(data, talent)
+                .is_some_and(|p| names_feature(p, ROGUE_ADVANCED)),
+            "{talent}: advanced"
+        );
+    }
+    assert_in_force(
+        guide,
+        data,
+        "alchemist",
+        MEDICAL_DISCOVERY,
+        "Medical Discovery",
+    );
+    assert_in_force(guide, data, "inquisitor", SLAYER_TALENTS, "Slayer Talent");
+    let first = effective_row_levels(data, "inquisitor", SANCTIFIED, SLAYER_TALENTS);
+    assert_eq!(
+        first.first(),
+        Some(&SANCTIFIED_FIRST),
+        "{SANCTIFIED}'s first"
+    );
+
+    assert_in_force(guide, data, "magus", WITCH_HEX, "Hex Magus");
+    let arcana = find_selection(data, MAGUS_ARCANA);
+    let hexes = find_selection(data, WITCH_HEX);
+    for list in [arcana, hexes] {
+        assert!(
+            list.shared_options.is_empty() && list.option_levels.is_empty(),
+            "{}: shares or has option levels",
+            list.key
+        );
+        assert!(
+            list.options.iter().all(|o| o.levels.is_empty()),
+            "{}: options with rows",
+            list.key
+        );
+    }
+    let shared: BTreeSet<SelectionOptionKey> = arcana
+        .options
+        .iter()
+        .chain(&hexes.options)
+        .map(|o| o.key.clone())
+        .collect();
+    assert_eq!(
+        find_selection(data, HEX_ARCANA).shared_options,
+        shared,
+        "{HEX_ARCANA}: the magus arcana and the witch hexes"
+    );
+    assert_in_force(guide, data, "magus", HEX_ARCANA, "Hex Arcana");
+    // The Hexcrafter's arcana are all its Hex Arcana: the rows in force hold no magus arcana slot.
+    assert_in_force(guide, data, "magus", MAGUS_ARCANA, "Magus Arcana");
 }
 
-fn bards_and_skalds(
-    guide: &Guide,
-    data: &mut GameData,
-    advanced: &BTreeSet<SelectionOptionKey>,
-    log: &mut Log,
-) {
+/// The rogue talents and the advanced ones among them, by the keys the class stage gives the guide's two lists
+/// (`rogue#rogue-talents`, and `rogue#advanced-rogue-talents`, which joins it), with their names.
+struct RogueTalents {
+    all: BTreeSet<SelectionOptionKey>,
+    advanced: BTreeSet<SelectionOptionKey>,
+    by_name: BTreeMap<String, SelectionOptionKey>,
+}
+
+impl RogueTalents {
+    fn read(guide: &Guide) -> Self {
+        says(
+            guide,
+            "rogue",
+            "advanced-rogue-talents",
+            "These unlock at 10th level.",
+        );
+        let rogue_page = page(guide, "rogue");
+        let plain = option_keys(rogue_page, "rogue-talents", ROGUE_TALENTS);
+        let advanced = option_keys(rogue_page, "advanced-rogue-talents", ROGUE_TALENTS);
+        assert_eq!(
+            (plain.len(), advanced.len()),
+            (20, 16),
+            "the guide's talents"
+        );
+        let by_name: BTreeMap<String, SelectionOptionKey> =
+            plain.clone().into_iter().chain(advanced.clone()).collect();
+        Self {
+            all: by_name.values().cloned().collect(),
+            advanced: advanced.into_values().collect(),
+            by_name,
+        }
+    }
+
+    /// The data's rogue talents are these, and the advanced ones exactly those it gates on the rogue's Advanced
+    /// Talents.
+    fn check(&self, data: &GameData) {
+        let selection = find_selection(data, ROGUE_TALENTS);
+        let keys: BTreeSet<SelectionOptionKey> =
+            selection.options.iter().map(|o| o.key.clone()).collect();
+        assert_eq!(keys, self.all, "{ROGUE_TALENTS}: the guide's talents");
+        let gated: BTreeSet<SelectionOptionKey> = selection
+            .options
+            .iter()
+            .filter(|o| {
+                o.prerequisite
+                    .as_ref()
+                    .is_some_and(|p| names_feature(p, ROGUE_ADVANCED))
+            })
+            .map(|o| o.key.clone())
+            .collect();
+        assert_eq!(
+            gated, self.advanced,
+            "the talents gated on {ROGUE_ADVANCED}"
+        );
+    }
+}
+
+/// The options the class stage makes of a heading's children in `selection`, by name: `<selection>/<anchor>`.
+fn option_keys(page: &Page, anchor: &str, selection: &str) -> BTreeMap<String, SelectionOptionKey> {
+    section(page, anchor)
+        .children
+        .iter()
+        .map(|child| {
+            (
+                child.name.clone(),
+                SelectionOptionKey::new(format!("{selection}/{}", child.anchor)),
+            )
+        })
+        .collect()
+}
+
+/// `feature`'s cells, in every table naming it, are slots of `selection`.
+fn slots(picks: &mut Picks, feature: &str, selection: &str) {
+    picks.rule(Rule::every(
+        feature,
+        Pick::Selection(FeatureSelectionKey::new(selection)),
+    ));
+}
+
+fn bards_and_skalds(guide: &Guide, picks: &mut Picks) {
     says(
         guide,
         "bard",
@@ -167,15 +292,8 @@ fn bards_and_skalds(
         "skald-talents",
         "The Skald can select from the Rogue Talent list at 2nd, 7th, 12th and 17th levels.",
     );
-    for (class, feature, cell) in [
-        ("bard", "bard/bard-talents", "Bard Talent"),
-        ("skald", "skald/skald-talents", "Skald Talent"),
-    ] {
-        let levels = replace(data, class, None, feature, ROGUE_TALENTS, log);
-        assert!(!levels.is_empty(), "{feature}: no rows");
-        assert_in_force(guide, data, class, ROGUE_TALENTS, cell);
-        add_option_level(data, ROGUE_TALENTS, class, log);
-    }
+    slots(picks, "bard/bard-talents", ROGUE_TALENTS);
+    slots(picks, "skald/skald-talents", ROGUE_TALENTS);
 
     says(
         guide,
@@ -188,16 +306,9 @@ fn bards_and_skalds(
         BTreeMap::from([("archaeologist".to_owned(), vec![10])]),
         "bard: the tables' Advanced Talents"
     );
-    open_advanced(data, advanced, ARCHAEOLOGIST_ADVANCED, log);
 }
 
-fn feyform(
-    guide: &Guide,
-    data: &mut GameData,
-    talents: &BTreeSet<SelectionOptionKey>,
-    advanced: &BTreeSet<SelectionOptionKey>,
-    log: &mut Log,
-) {
+fn feyform(guide: &Guide, picks: &mut Picks, rogue: &RogueTalents) {
     says(
         guide,
         "shifter",
@@ -211,19 +322,13 @@ fn feyform(
         shifter_page.guide("rogue-talent"),
         &["shifter"],
     );
-    chosen.shared_options = talents - advanced;
-    add_selection(data, "shifter", FEYFORM, chosen, log);
-    replace(
-        data,
-        "shifter",
-        Some(FEYFORM),
-        FEYFORM_TALENT,
-        FEYFORM_TALENT,
-        log,
-    );
-    assert_in_force(guide, data, "shifter", FEYFORM_TALENT, "Rogue Talent");
+    chosen.shared_options = &rogue.all - &rogue.advanced;
+    add_selection(picks, FEYFORM, chosen);
+    slots(picks, FEYFORM_TALENT, FEYFORM_TALENT);
+}
 
-    // "Prerequisites: Rogue Talents or Fey Tricks": the Feyform Shifter's Rogue Talent is one.
+/// "Prerequisites: Rogue Talents or Fey Tricks": the Feyform Shifter's Rogue Talent is one.
+fn extra_rogue_talent(guide: &Guide, data: &mut GameData, log: &mut Log) {
     says(
         guide,
         "feats",
@@ -250,7 +355,60 @@ fn feyform(
     ));
 }
 
-fn vivisectionist(guide: &Guide, data: &mut GameData, log: &mut Log) {
+/// The Vivisectionist's three lists, by the keys the class stage gives them: the discoveries, the rogue talents and
+/// the advanced ones.
+fn medical_discoveries(
+    guide: &Guide,
+    rogue: &RogueTalents,
+) -> (
+    BTreeSet<SelectionOptionKey>,
+    BTreeSet<SelectionOptionKey>,
+    BTreeSet<SelectionOptionKey>,
+) {
+    let alchemist_page = page(guide, "alchemist");
+    let lists = read_medical_discoveries(alchemist_page);
+    let headings: Vec<&str> = lists.iter().map(|(h, _)| h.as_str()).collect();
+    assert_eq!(
+        headings,
+        ["Discoveries", "Rogue Talents", "Advanced Rogue Talents"],
+        "alchemist#medical-discovery's lists"
+    );
+    let discoveries = option_keys(alchemist_page, "discovery", DISCOVERY);
+    let resolve = |options: &BTreeMap<String, SelectionOptionKey>,
+                   names: &[String]|
+     -> BTreeSet<SelectionOptionKey> {
+        names
+            .iter()
+            .flat_map(|name| {
+                let found: Vec<SelectionOptionKey> = options
+                    .iter()
+                    .filter(|(option, _)| {
+                        *option == name
+                            // "Focusing Attacks": the three "Focusing Attack - …".
+                            || (name.ends_with('s')
+                                && option.starts_with(&format!("{} - ", &name[..name.len() - 1])))
+                    })
+                    .map(|(_, key)| key.clone())
+                    .collect();
+                assert!(!found.is_empty(), "no {name:?}");
+                found
+            })
+            .collect()
+    };
+    let discoveries = resolve(&discoveries, &lists[0].1);
+    let talents = resolve(&rogue.by_name, &lists[1].1);
+    let advanced = resolve(&rogue.by_name, &lists[2].1);
+    assert_eq!(
+        (discoveries.len(), talents.len(), advanced.len()),
+        (14, 8, 3),
+        "the Vivisectionist's lists"
+    );
+    assert!(advanced.is_subset(&rogue.advanced), "advanced talents");
+    assert!(talents.is_disjoint(&rogue.advanced), "plain talents");
+    (discoveries, talents, advanced)
+}
+
+fn vivisectionist(guide: &Guide, picks: &mut Picks, rogue: &RogueTalents) {
     says(
         guide,
         "alchemist",
@@ -264,57 +422,7 @@ fn vivisectionist(guide: &Guide, data: &mut GameData, log: &mut Log) {
         BTreeMap::from([("vivisectionist".to_owned(), vec![10])]),
         "alchemist: the tables' Advanced Talents"
     );
-    let lists = read_medical_discoveries(alchemist_page);
-    let headings: Vec<&str> = lists.iter().map(|(h, _)| h.as_str()).collect();
-    assert_eq!(
-        headings,
-        ["Discoveries", "Rogue Talents", "Advanced Rogue Talents"],
-        "alchemist#medical-discovery's lists"
-    );
-    let resolve = |selection_key: &str, names: &[String]| -> BTreeSet<SelectionOptionKey> {
-        let selection = find_selection(data, selection_key);
-        names
-            .iter()
-            .flat_map(|name| {
-                let found: Vec<SelectionOptionKey> = selection
-                    .options
-                    .iter()
-                    .filter(|o| {
-                        o.name == *name
-                            // "Focusing Attacks": the three "Focusing Attack - …".
-                            || (name.ends_with('s')
-                                && o.name.starts_with(&format!("{} - ", &name[..name.len() - 1])))
-                    })
-                    .map(|o| o.key.clone())
-                    .collect();
-                assert!(!found.is_empty(), "{selection_key}: no {name:?}");
-                found
-            })
-            .collect()
-    };
-    let discoveries = resolve("alchemist/discovery", &lists[0].1);
-    let talents = resolve(ROGUE_TALENTS, &lists[1].1);
-    let advanced = resolve(ROGUE_TALENTS, &lists[2].1);
-    assert_eq!(
-        (discoveries.len(), talents.len(), advanced.len()),
-        (14, 8, 3),
-        "the Vivisectionist's lists"
-    );
-    for talent in &advanced {
-        let prerequisite = find_option_prerequisite(data, talent);
-        assert!(
-            names_feature(prerequisite, ROGUE_ADVANCED),
-            "{talent}: not advanced"
-        );
-    }
-    for talent in &talents {
-        assert!(
-            !find_option_prerequisite_opt(data, talent)
-                .is_some_and(|p| names_feature(p, ROGUE_ADVANCED)),
-            "{talent}: advanced"
-        );
-    }
-
+    let (discoveries, talents, advanced) = medical_discoveries(guide, rogue);
     let mut chosen = selection(
         MEDICAL_DISCOVERY,
         &section(alchemist_page, "medical-discovery").name,
@@ -327,26 +435,11 @@ fn vivisectionist(guide: &Guide, data: &mut GameData, log: &mut Log) {
         .chain(&advanced)
         .cloned()
         .collect();
-    add_selection(data, "alchemist", VIVISECTIONIST, chosen, log);
-    replace(
-        data,
-        "alchemist",
-        Some(VIVISECTIONIST),
-        MEDICAL_DISCOVERY,
-        MEDICAL_DISCOVERY,
-        log,
-    );
-    assert_in_force(
-        guide,
-        data,
-        "alchemist",
-        MEDICAL_DISCOVERY,
-        "Medical Discovery",
-    );
-    open_advanced(data, &advanced, VIVISECTIONIST_ADVANCED, log);
+    add_selection(picks, VIVISECTIONIST, chosen);
+    slots(picks, MEDICAL_DISCOVERY, MEDICAL_DISCOVERY);
 }
 
-fn sanctified_slayer(guide: &Guide, data: &mut GameData, log: &mut Log) {
+fn sanctified_slayer(guide: &Guide, picks: &mut Picks) {
     says(
         guide,
         "inquisitor",
@@ -355,24 +448,11 @@ fn sanctified_slayer(guide: &Guide, data: &mut GameData, log: &mut Log) {
     );
     let name = &section(page(guide, "inquisitor"), "slayer-talents").name;
     assert_eq!(name, "Slayer Talents", "inquisitor#slayer-talents");
-    let levels = replace(
-        data,
-        "inquisitor",
-        Some(SANCTIFIED),
-        SANCTIFIED_FEATURE,
-        SLAYER_TALENTS,
-        log,
-    );
-    assert_eq!(
-        levels.first(),
-        Some(&SANCTIFIED_FIRST),
-        "{SANCTIFIED}'s first"
-    );
-    assert_in_force(guide, data, "inquisitor", SLAYER_TALENTS, "Slayer Talent");
-    add_option_level(data, SLAYER_TALENTS, "inquisitor", log);
+    slots(picks, SANCTIFIED_FEATURE, SLAYER_TALENTS);
+}
 
-    // "Prerequisites: Slayer Talents or Talented Slayer": the slayer's from 2 (ticket 44), the Sanctified Slayer's
-    // from 8.
+/// "Prerequisites: Slayer Talents or Talented Slayer": the slayer's from 2 (ticket 44), the Sanctified Slayer's from 8.
+fn extra_slayer_talent(guide: &Guide, data: &mut GameData, log: &mut Log) {
     says(
         guide,
         "feats",
@@ -394,7 +474,7 @@ fn sanctified_slayer(guide: &Guide, data: &mut GameData, log: &mut Log) {
         "{EXTRA_SLAYER_TALENT}"
     );
     let mut prerequisite = Prerequisite::Any(vec![
-        slayer_2.clone(),
+        slayer_2,
         Prerequisite::All(vec![
             Prerequisite::Archetype(ArchetypeKey::new(SANCTIFIED)),
             Prerequisite::ClassLevel {
@@ -408,14 +488,20 @@ fn sanctified_slayer(guide: &Guide, data: &mut GameData, log: &mut Log) {
     log.push(format!(
         "{EXTRA_SLAYER_TALENT}: a slayer 2 or a Sanctified Slayer {SANCTIFIED_FIRST}"
     ));
+}
 
-    // The combat style feats are the slayer's own windows by slayer level (the note under Slayer Camouflage).
+/// The combat style feats are the slayer's own windows by slayer level (the note under Slayer Camouflage).
+fn combat_style(guide: &Guide, data: &mut GameData, log: &mut Log) {
     says(
         guide,
         "slayer",
         "slayer-camouflage",
         "he can only do so three times in total and at certain levels: 2 or 4, 6 or 8 and 10 or greater.",
     );
+    let slayer_2 = Prerequisite::ClassLevel {
+        class: ClassKey::new("slayer"),
+        level: 2,
+    };
     let style = find_option_mut(data, SLAYER_TALENTS, COMBAT_STYLE_2);
     let not_6 = Prerequisite::Not(Box::new(Prerequisite::ClassLevel {
         class: ClassKey::new("slayer"),
@@ -432,7 +518,7 @@ fn sanctified_slayer(guide: &Guide, data: &mut GameData, log: &mut Log) {
     log.push(format!("{COMBAT_STYLE_2}: needs slayer level 2"));
 }
 
-fn hexcrafter(guide: &Guide, data: &mut GameData, log: &mut Log) {
+fn hexcrafter(guide: &Guide, picks: &mut Picks) {
     says(
         guide,
         "magus",
@@ -447,8 +533,7 @@ fn hexcrafter(guide: &Guide, data: &mut GameData, log: &mut Log) {
          select major hexes and at 18th level, he can select a grand hex.",
     );
     let magus_page = page(guide, "magus");
-    replace(data, "magus", Some(HEXCRAFTER), HEX_MAGUS, WITCH_HEX, log);
-    assert_in_force(guide, data, "magus", WITCH_HEX, "Hex Magus");
+    slots(picks, HEX_MAGUS, WITCH_HEX);
 
     let mut chosen = selection(
         HEX_ARCANA,
@@ -456,39 +541,26 @@ fn hexcrafter(guide: &Guide, data: &mut GameData, log: &mut Log) {
         magus_page.guide("hex-arcana"),
         &[],
     );
-    let arcana = find_selection(data, MAGUS_ARCANA);
-    let hexes = find_selection(data, WITCH_HEX);
-    for list in [arcana, hexes] {
-        assert!(
-            list.shared_options.is_empty() && list.option_levels.is_empty(),
-            "{}: shares or has option levels",
-            list.key
-        );
-        assert!(
-            list.options.iter().all(|o| o.levels.is_empty()),
-            "{}: options with rows",
-            list.key
-        );
-    }
-    chosen.shared_options = arcana
-        .options
-        .iter()
-        .chain(&hexes.options)
-        .map(|o| o.key.clone())
+    let witch_page = page(guide, "witch");
+    chosen.shared_options = option_keys(magus_page, "magus-arcana", MAGUS_ARCANA)
+        .into_values()
+        .chain(
+            ["hex", "major-hexes", "grand-hexes"]
+                .into_iter()
+                .flat_map(|anchor| option_keys(witch_page, anchor, WITCH_HEX).into_values()),
+        )
         .collect();
-    add_selection(data, "magus", HEXCRAFTER, chosen, log);
-    replace(data, "magus", Some(HEXCRAFTER), HEX_ARCANA, HEX_ARCANA, log);
-    assert_in_force(guide, data, "magus", HEX_ARCANA, "Hex Arcana");
-    // The Hexcrafter's arcana are all its Hex Arcana: the rows in force hold no magus arcana slot.
-    let tables = levels_in_tables(magus_page, "Magus Arcana");
+    add_selection(picks, HEXCRAFTER, chosen);
+    slots(picks, HEX_ARCANA, HEX_ARCANA);
     assert!(
-        !tables.contains_key("hexcrafter"),
+        !levels_in_tables(magus_page, "Magus Arcana").contains_key("hexcrafter"),
         "magus#hexcrafter: Magus Arcana"
     );
-    assert_in_force(guide, data, "magus", MAGUS_ARCANA, "Magus Arcana");
+}
 
-    // The major and grand hexes open to a Hexcrafter of magus 12 and 18, beside the witch's and the Sylvan
-    // Trickster's own features.
+/// The major and grand hexes open to a Hexcrafter of magus 12 and 18, beside the witch's and the Sylvan Trickster's
+/// own features.
+fn open_hexes(data: &mut GameData, log: &mut Log) {
     for (feature, level, count) in [
         ("witch/major-hexes", HEXCRAFTER_MAJOR, 9),
         ("witch/grand-hexes", HEXCRAFTER_GRAND, 4),
@@ -531,6 +603,36 @@ fn hexcrafter(guide: &Guide, data: &mut GameData, log: &mut Log) {
     }
 }
 
+fn add_selection(picks: &mut Picks, archetype: &str, chosen: FeatureSelection) {
+    assert!(
+        chosen.options.is_empty(),
+        "{}: options of its own",
+        chosen.key
+    );
+    picks.selection(archetype, chosen);
+}
+
+/// The levels whose row in force for the archetype holds one slot of `selection`.
+fn effective_row_levels(data: &GameData, class: &str, archetype: &str, selection: &str) -> Vec<u8> {
+    let class = data
+        .classes
+        .iter()
+        .find(|c| c.key.as_str() == class)
+        .unwrap_or_else(|| panic!("no class {class}"));
+    let archetype = class
+        .archetypes
+        .iter()
+        .find(|a| a.key.as_str() == archetype)
+        .unwrap_or_else(|| panic!("no {archetype}"));
+    let selection = FeatureSelectionKey::new(selection);
+    (1..=20)
+        .filter(|level| {
+            effective_row(class, Some(archetype), *level)
+                .is_some_and(|row| row.selections.iter().filter(|s| **s == selection).count() == 1)
+        })
+        .collect()
+}
+
 /// `alchemist#medical-discovery`'s lists: each item's bold heading and the names on its next line, with "Greater /
 /// Grand Mutagen" read as both.
 pub fn read_medical_discoveries(page: &Page) -> Vec<(String, Vec<String>)> {
@@ -557,108 +659,6 @@ pub fn read_medical_discoveries(page: &Page) -> Vec<(String, Vec<String>)> {
             (heading.to_owned(), names)
         })
         .collect()
-}
-
-/// Takes `feature` off the class's (or the archetype's) features and every row of the class and its archetypes that
-/// held it, putting a slot of `selection` on each; the base rows' levels, or the archetype's.
-fn replace(
-    data: &mut GameData,
-    class: &str,
-    archetype: Option<&str>,
-    feature: &str,
-    selection_key: &str,
-    log: &mut Log,
-) -> Vec<u8> {
-    let feature = FeatureKey::new(feature);
-    assert_eq!(
-        needing(data, &feature),
-        Vec::<String>::new(),
-        "what needs {feature}"
-    );
-    let selection_key = FeatureSelectionKey::new(selection_key);
-    let class_data = class_mut(data, class);
-    let base = put(
-        &feature,
-        &selection_key,
-        log,
-        class,
-        class_data
-            .levels
-            .iter_mut()
-            .map(|r| (r.level, &mut r.features, &mut r.selections)),
-    );
-    let mut own = Vec::new();
-    for archetype_data in &mut class_data.archetypes {
-        let key = archetype_data.key.to_string();
-        let levels = put(
-            &feature,
-            &selection_key,
-            log,
-            &key,
-            archetype_data
-                .levels
-                .iter_mut()
-                .map(|r| (r.level, &mut r.features, &mut r.selections)),
-        );
-        if Some(key.as_str()) == archetype {
-            own = levels;
-        } else if archetype.is_some() {
-            assert!(levels.is_empty(), "{key} holds {feature}");
-        }
-    }
-    let defined = match archetype {
-        None => {
-            assert!(!base.is_empty(), "the base {class} holds no {feature}");
-            &mut class_data.features
-        }
-        Some(archetype) => {
-            assert!(base.is_empty(), "the base {class} holds {feature}");
-            &mut class_data
-                .archetypes
-                .iter_mut()
-                .find(|a| a.key.as_str() == archetype)
-                .unwrap_or_else(|| panic!("no {archetype}"))
-                .features
-        }
-    };
-    let before = defined.len();
-    defined.retain(|f| f.key != feature);
-    assert_eq!(defined.len(), before - 1, "{feature}: defined");
-    if archetype.is_none() { base } else { own }
-}
-
-/// Puts a slot of `selection` on each row holding `feature`, in its place; the levels of those rows.
-fn put<'r>(
-    feature: &FeatureKey,
-    selection: &FeatureSelectionKey,
-    log: &mut Log,
-    owner: &str,
-    rows: impl Iterator<
-        Item = (
-            u8,
-            &'r mut Vec<FeatureKey>,
-            &'r mut Vec<FeatureSelectionKey>,
-        ),
-    >,
-) -> Vec<u8> {
-    let mut levels = Vec::new();
-    for (level, features, selections) in rows {
-        if take(features, feature) {
-            assert!(
-                !selections.contains(selection),
-                "{owner} {level}: a {selection} slot already"
-            );
-            selections.push(selection.clone());
-            selections.sort();
-            levels.push(level);
-        }
-    }
-    if !levels.is_empty() {
-        log.push(format!(
-            "{owner} {levels:?}: a slot of {selection} for {feature}"
-        ));
-    }
-    levels
 }
 
 /// The rows in force hold one slot of `selection` exactly where each of the class's tables has `cell`, and nowhere
@@ -780,33 +780,6 @@ fn open_advanced(
         "{} advanced rogue talents: also {feature}",
         talents.len()
     ));
-}
-
-fn add_selection(
-    data: &mut GameData,
-    class: &str,
-    archetype: &str,
-    chosen: FeatureSelection,
-    log: &mut Log,
-) {
-    assert!(
-        all_selections(data).all(|s| s.key != chosen.key),
-        "{}: a selection already",
-        chosen.key
-    );
-    log.push(format!(
-        "{}: \"{}\", sharing {} options",
-        chosen.key,
-        chosen.name,
-        chosen.shared_options.len()
-    ));
-    class_mut(data, class)
-        .archetypes
-        .iter_mut()
-        .find(|a| a.key.as_str() == archetype)
-        .unwrap_or_else(|| panic!("no {archetype}"))
-        .selections
-        .push(chosen);
 }
 
 fn all_selections(data: &GameData) -> impl Iterator<Item = &FeatureSelection> {

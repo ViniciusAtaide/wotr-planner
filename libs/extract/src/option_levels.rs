@@ -149,8 +149,13 @@ pub(crate) struct FeatNames(BTreeMap<String, FeatKey>);
 
 impl FeatNames {
     pub(crate) fn new(data: &GameData) -> Self {
+        Self::of(&data.feats)
+    }
+
+    /// The names of `feats`.
+    pub(crate) fn of(feats: &[rules::Feat]) -> Self {
         let mut names = BTreeMap::new();
-        for feat in &data.feats {
+        for feat in feats {
             names.insert(norm(&feat.name), feat.key.clone());
             names.insert(norm(feat.key.as_str()), feat.key.clone());
             // "Metamagic (Empower Spell)" is written "Empower Spell".

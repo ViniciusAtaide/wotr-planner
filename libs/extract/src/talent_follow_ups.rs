@@ -1,11 +1,11 @@
 //! Ticket 47: ticket 45's decisions 1 and 3 and the user's rule for the rogue talents Weapon Focus and Combat Trick
 //! (user, 2026-11-02), applied to finished data.
 //!
-//! - **The Skill Focus talents repeat per skill** (a user fact: "Skill Focus can be taken once per wild talent as
-//!   long as you select another skill"; "rogue talent follows the same rule as wild talent"). The wild talent
-//!   (`kineticist#skill-focus`: "Identical to the feat") and the rogue talent (`rogue#skill-focus`: "This is the
-//!   feat of the same name"), which the slayer shares, are taken once for each value of their chosen feat, Skill
-//!   Focus (`repeat: PerValue`): a second pick for the same skill is refused, one for another skill is open.
+//! - **The Skill Focus rogue talent repeats per skill** (a user fact: "rogue talent follows the same rule as wild
+//!   talent"). The rogue talent (`rogue#skill-focus`: "This is the feat of the same name"), which the slayer shares,
+//!   is taken once for each value of its chosen feat, Skill Focus (`repeat: PerValue`): a second pick for the same
+//!   skill is refused, one for another skill is open. The wild talent is built so (ticket 45's
+//!   [`wild_talents`](crate::wild_talents)).
 //! - **The rogue talent Weapon Focus stays taken once** (user: "for the rogue talent weapon focus can be only taken
 //!   once"): asserted, not changed.
 //! - **Combat Trick** (`rogue#combat-trick`: "Any combat feat that the character qualifies for"; user: "the combat
@@ -14,9 +14,10 @@
 //!   the character qualifies for"), its row 1. Weapon Focus in another weapon through a second slot is the feat's
 //!   own once per weapon. An option's rows need a selection with option levels: the selections offering it (the
 //!   rogue talents, the Sylvan Trickster's Fey Tricks and the Underground Chemist's Discovery, each levelled by the
-//!   rogue's levels; the slayer's talents, levelled by the slayer's already) give its slot whichever takes it.
-//! - **The bonus-feat wild talent's slot reads "Wild talent feat"** (ticket 45's decision 3), not "Elemental Focus
-//!   feat": the slot's own label; the Elemental Focus selection keeps its name.
+//!   rogue's levels; the slayer's talents, levelled by the slayer's already; the Feyform Shifter's Rogue Talent and
+//!   the Vivisectionist's Medical Discovery, by their own class's, ticket 60's) give its slot whichever takes it.
+//! - **The bonus-feat wild talent's slot reads "Wild talent feat"** (ticket 45's decision 3): built so by ticket 45's
+//!   [`wild_talents`](crate::wild_talents).
 //!
 //! Each rule asserts the guide phrase it rests on and what it finds in the data, so it fails loudly on data it
 //! doesn't expect. [`apply`] runs on the finished data of an extraction and, through ticket 47's one-off rewrite,
@@ -34,20 +35,17 @@ use crate::follow_ups::class_mut;
 use crate::guide::Guide;
 use crate::option_levels::{Log, empty_row, page, section};
 
-const WILD_SKILL_FOCUS: &str = "kineticist/wild-talents/skill-focus";
 const ROGUE_SKILL_FOCUS: &str = "rogue/rogue-talents/skill-focus";
 const ROGUE_WEAPON_FOCUS: &str = "rogue/rogue-talents/weapon-focus";
 const COMBAT_TRICK: &str = "rogue/rogue-talents/combat-trick";
-const BONUS_FEAT_TALENT: &str = "kineticist/wild-talents/kineticist-bonus-feat";
-const ELEMENT: &str = "kineticist/element";
-/// The bonus-feat wild talent's slot, as the user names it.
-const WILD_TALENT_FEAT: &str = "Wild talent feat";
 
 /// The selections offering Combat Trick, with the class whose levels make each one's option level.
-const OFFERING_COMBAT_TRICK: [(&str, &str); 4] = [
+const OFFERING_COMBAT_TRICK: [(&str, &str); 6] = [
+    ("alchemist/vivisectionist/medical-discovery", "alchemist"),
     ("rogue/rogue-talents", "rogue"),
     ("rogue/sylvan-trickster/fey-tricks", "rogue"),
     ("rogue/underground-chemist/discovery", "rogue"),
+    ("shifter/feyform-shifter/rogue-talent", "shifter"),
     ("slayer/slayer-talents", "slayer"),
 ];
 
@@ -57,13 +55,11 @@ pub fn apply(guide: &Guide, data: &mut GameData) -> Log {
     skill_focus_per_skill(guide, data, &mut log);
     weapon_focus_once(guide, data);
     combat_trick(guide, data, &mut log);
-    wild_talent_feat(data, &mut log);
     log
 }
 
-/// The Skill Focus talents, wild and rogue: once per skill of their chosen feat.
+/// The Skill Focus rogue talent: once per skill of its chosen feat.
 fn skill_focus_per_skill(guide: &Guide, data: &mut GameData, log: &mut Log) {
-    says(guide, "kineticist", "skill-focus", "Identical to the feat");
     says(
         guide,
         "rogue",
@@ -80,17 +76,15 @@ fn skill_focus_per_skill(guide: &Guide, data: &mut GameData, log: &mut Log) {
         (Some(ParameterKind::Skill), Repeat::PerValue),
         "skill-focus: once per skill"
     );
-    for key in [WILD_SKILL_FOCUS, ROGUE_SKILL_FOCUS] {
-        let option = option_mut(data, key);
-        assert_eq!(
-            option.chosen_feat,
-            Some(FeatKey::new("skill-focus")),
-            "{key}"
-        );
-        assert_eq!(option.repeat, Repeat::Once, "{key}");
-        option.repeat = Repeat::PerValue;
-        log.push(format!("{key}: once per skill"));
-    }
+    let option = option_mut(data, ROGUE_SKILL_FOCUS);
+    assert_eq!(
+        option.chosen_feat,
+        Some(FeatKey::new("skill-focus")),
+        "{ROGUE_SKILL_FOCUS}"
+    );
+    assert_eq!(option.repeat, Repeat::Once, "{ROGUE_SKILL_FOCUS}");
+    option.repeat = Repeat::PerValue;
+    log.push(format!("{ROGUE_SKILL_FOCUS}: once per skill"));
 }
 
 /// The rogue talent Weapon Focus: once, as it is.
@@ -165,33 +159,6 @@ fn combat_trick(guide: &Guide, data: &mut GameData, log: &mut Log) {
             assert_eq!(selection.option_levels, levels, "{key}");
         }
     }
-}
-
-/// The bonus-feat wild talent's one slot, labelled "Wild talent feat".
-fn wild_talent_feat(data: &mut GameData, log: &mut Log) {
-    let talent = option_mut(data, BONUS_FEAT_TALENT);
-    let [row] = talent.levels.as_mut_slice() else {
-        panic!("{BONUS_FEAT_TALENT}: one row")
-    };
-    let [
-        FeatSlot::OptionList {
-            selection,
-            at_level: None,
-            label,
-        },
-    ] = row.feat_slots.as_mut_slice()
-    else {
-        panic!("{BONUS_FEAT_TALENT}: one option list slot")
-    };
-    assert_eq!(
-        (row.level, selection.as_str(), label.as_deref()),
-        (1, ELEMENT, None),
-        "{BONUS_FEAT_TALENT}'s slot"
-    );
-    *label = Some(WILD_TALENT_FEAT.to_owned());
-    log.push(format!(
-        "{BONUS_FEAT_TALENT}: its slot reads {WILD_TALENT_FEAT:?}"
-    ));
 }
 
 /// Asserts that a talent's entry says `phrase`, in its prose or its table (a wild talent's description is a table

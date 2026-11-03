@@ -2,8 +2,9 @@
 //!
 //! Generic rules do most of the work: anchors give keys, progression tables give level rows, `Prerequisites:`
 //! paragraphs give prerequisites, a heading whose name a table grants and whose children it doesn't is a Feature
-//! selection. The few rules the guide states only in prose are in [`crate::prose`]. Anything that can't be placed
-//! goes to the [`Report`].
+//! selection. A cell the game makes a pick is the pick's slot from the start, as [`crate::picks`]' providers say. The
+//! few rules the guide states only in prose are in [`crate::prose`]. Anything that can't be placed goes to the
+//! [`Report`].
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -22,6 +23,8 @@ use crate::grammar::{self, Cond, Unparsed};
 use crate::guide::{BASE_CLASSES, Guide, OTHER_PATHS, PATH_PAGES};
 use crate::html::{Block, Page, Section};
 use crate::names::{norm, number_forms, slug};
+use crate::option_levels::FeatNames;
+use crate::picks::{Pick, Picks};
 use crate::progressions::{self, Numbers};
 use crate::prose;
 use crate::report::{Kind, Report};
@@ -80,6 +83,11 @@ pub struct Extraction {
 }
 
 /// Builds the game data from the guide.
+///
+/// First each owner is built where its pages are read: skills, races, feats, then the classes and their archetypes
+/// (with the picks their tables' cells are, from [`crate::picks`]'s providers), the prestige classes, the mythic
+/// abilities, feats and paths. Then a postlude, in order: each step needs what the steps before it built, as its
+/// comment says.
 pub fn extract(guide: &Guide) -> Extraction {
     let mut builder = Builder::new(guide);
     let progression = Progression {
@@ -94,6 +102,8 @@ pub fn extract(guide: &Guide) -> Extraction {
     let skills = builder.skills();
     let races = builder.races();
     let mut feats = builder.feats();
+    // The providers name feats by the guide's names (the bonus-feat choices' lists), so they're read after the feats.
+    builder.picks = Picks::read(guide, &FeatNames::of(&feats));
     let mut classes: Vec<Class> = BASE_CLASSES
         .iter()
         .map(|slug| builder.base_class(slug))
@@ -104,12 +114,15 @@ pub fn extract(guide: &Guide) -> Extraction {
     let mut mythic_paths = builder.mythic_paths();
     feats.extend(builder.trickster_feats());
 
+    // The prose rules that join what several owners' pages define (lists folded into another class's selection, the
+    // bonus slots and gates the tables can't say, the Trickster's tiers) need every owner built.
     prose::apply(
         &mut builder,
         &mut classes,
         &mut prestige_classes,
         &mut mythic_paths,
     );
+    // A feature is defined where a table first names it; each goes to its owner once every table is read.
     builder.place_features(&mut classes, &mut prestige_classes, &mut mythic_paths);
     prose::path_rules(&mut mythic_paths);
 
@@ -126,14 +139,27 @@ pub fn extract(guide: &Guide) -> Extraction {
         mythic_paths,
         backgrounds: Vec::new(),
     };
+    // A prerequisite line names what any page defines: resolved once every name is known.
     builder.resolve_prerequisites(&mut data);
+    // A cell or a line can name what no page defines: dropped, and reported, once every key is known.
     crate::references::drop_dangling(&mut data, &mut builder.lists, &mut builder.report);
+    // An option granting a feat beside that feat in an `Any` adds nothing: needs every option's feats.
     crate::references::drop_redundant_alternatives(&mut data);
+    // A list of one feat is a granted feat, known once the dangling feats are gone from the lists.
     feat_lists::grant_lone_feats(&mut data, &builder.lists);
+    // A proficiency feature grants the feats its text names, which stand beside it on the full rows: before the rows
+    // are made sparse, since a row matching its base class's is only known with every grant in.
     crate::proficiencies::apply(&mut data);
+    // A selection that draws on another class's list shares its options; the prerequisites the shared options name
+    // are the resolved ones, and the rows it takes over are the full ones.
     crate::shared_options::apply(&mut data);
+    // Parameterised and repeatable feats and options: their prerequisites name values of resolved feats.
     crate::parameters::apply(&mut data);
-    crate::class_rules::apply(&mut data);
+    // The druid's Nature Bond: the level-1 rows granting both the companion and the domain pick one, and Boon
+    // Companion's and Mythical Beast's resolved prerequisites gain the companion option. Kept a pass on the full rows:
+    // the companion feature it takes off the row is still what those prerequisites name, and the domain options it
+    // leads to are the option families'.
+    crate::class_rules::nature_bond(&mut data);
     // Only now, with the dangling grants gone and the grants complete, is a row that matches its base class's
     // known to.
     for class in &mut data.classes {
@@ -143,95 +169,41 @@ pub fn extract(guide: &Guide) -> Extraction {
     feat_lists::name_lists(&mut data, &builder.lists);
     // The one-feat lists of the bonus feats of the player's choosing aren't the guide's tables' lists.
     crate::parameters::add_lists(&mut data);
-    // Options with rows by option level, on the finished rows (ticket 30); the report items they settle go.
+    // The option families (tickets 30 and 31): options with rows by option level, read from each family's tables and
+    // given to the classes and archetypes that take them, on the finished, sparse rows and named lists. Kept as
+    // passes: each family replaces placeholder cells on the rows in force of several classes at once, and the
+    // archetype selections it makes depend on which rows are sparse.
     crate::option_levels::apply(guide, &mut data);
-    builder
-        .report
-        .items
-        .retain(|item| !crate::option_levels::settled(&item.at, &item.text));
-    // The second group (ticket 31): domains, mysteries and revelations, blessings, elements. It settles no item of
-    // an extraction's report (the hand-kept report's kineticist and Hellknight items narrow).
     crate::option_families::apply(guide, &mut data);
-    // The user's decisions on tickets 26-28 and skill facts (ticket 32), on the finished data. It settles the Armor
-    // Focus line of an extraction's report (and the hand-kept report's slayer item).
+    // The wild talents' and infusions' prerequisites name the elements, which the option families just built.
+    builder.picks.late(&mut data);
+    // The user's decisions on the open questions of tickets 26-35 and 43-47, and their skill facts: each edits facts
+    // the option families or the steps above built, and asserts what it finds there, so each runs after them, in its
+    // ticket's order.
     crate::follow_ups::apply(guide, &mut data);
-    builder
-        .report
-        .items
-        .retain(|item| !crate::follow_ups::settled(&item.at, &item.text));
-    // The user's decisions on tickets 30-31's options (ticket 33), on the finished data. It settles no item of an
-    // extraction's report (the hand-kept report's Signifer order item goes).
     crate::option_follow_ups::apply(guide, &mut data);
-    // The user's decisions on tickets 32-33's open questions (ticket 35), on the finished data. It settles no item
-    // of an extraction's report.
     crate::second_follow_ups::apply(guide, &mut data);
-    // The user's backgrounds (ticket 34): the guide doesn't list them, so the extractor carries the user's table.
+    // The user's backgrounds: the guide doesn't list them; each names skills and feats of the finished data.
     data.backgrounds = crate::backgrounds::backgrounds(&data);
-    // Options' class skills (ticket 37): the "Class Skill: …" features become their option rows' class skills. It
-    // settles no item of an extraction's report.
     crate::option_class_skills::apply(guide, &mut data);
-    // The report items the saved pages settle (ticket 43): the totems' exclusivity, the Eldritch Scoundrel's sneak
-    // attack dice, the Wandering Hex as a daily choice. It settles the totems' item of an extraction's report (the
-    // hand-kept report's Eldritch Scoundrel and Wandering Hex items go too). And the user's decisions on ticket 43's
-    // questions (ticket 44): the sorcerer's level-1 bonus feat, Extra Slayer Talent, the cleric's deity; their items
-    // go.
     crate::report_gaps::apply(guide, &mut data);
-    builder
-        .report
-        .items
-        .retain(|item| !crate::report_gaps::settled(&item.at, &item.text));
-    // The kineticist's wild talents as a selection (ticket 45, ticket 43's decision 2): it settles the bonus-feat
-    // wild talent's item.
-    crate::wild_talents::apply(guide, &mut data);
-    builder
-        .report
-        .items
-        .retain(|item| !crate::wild_talents::settled(&item.at, &item.text));
-    // The user's decisions on ticket 45's questions and the rogue talents (ticket 47): the Skill Focus talents once
-    // per skill, Combat Trick's Combat feat slot, the bonus-feat wild talent's label. It settles no report item.
     crate::talent_follow_ups::apply(guide, &mut data);
-    // The Extra feats' extra picks (ticket 49, ticket 45's decision 2): Extra Rage Power gives one more rage power
-    // slot each time it's taken. It settles no report item.
+    // The feats that give a pick of the selections their "Prerequisites" names: needs every class's, archetype's and
+    // path's selection, the option families' included.
     crate::extra_picks::apply(guide, &mut data);
-    // The paladin's mercies and the Arcane Enforcer's exploits as picks (ticket 54, ticket 49's decisions 1 and 5):
-    // Extra Mercy gives its slot. It settles no report item.
-    crate::mercies_and_exploits::apply(guide, &mut data);
-    // Mythic Extra Feat and Extra Mythic Ability give their pick (ticket 55, ticket 49's decision 4): a feat slot and
-    // a mythic ability slot at the rank they're taken. It settles no report item.
-    crate::mythic_extra_picks::apply(guide, &mut data);
-    // The Arcane Enforcer's greater exploits and the Exploiter Wizard's exploits as picks (ticket 57, ticket 54's
-    // decisions 1 and 2): slots of the arcanist's own selections. It settles no report item.
-    crate::exploits::apply(guide, &mut data);
-    // The monk's ki powers as a selection (ticket 58, ticket 54's decision 2), and the Traditional Monk's fixed ones
-    // as its features. It settles no report item.
-    crate::ki_powers::apply(guide, &mut data);
-    // The kineticist's infusions as a selection (ticket 59, ticket 54's decision 2). It settles no report item.
-    crate::infusions::apply(guide, &mut data);
-    // Talents, hexes and discoveries taken through another class as picks (ticket 60, ticket 54's decision 2): slots of
-    // the rogue's, the slayer's and the witch's selections, or of selections sharing their options. It settles no
-    // report item.
+    // What the borrowed picks widen of other owners (option levels, the advanced talents' and the hexes'
+    // prerequisites, the Extra feats): it widens what tickets 44 and 47 set above.
     crate::borrowed_selections::apply(guide, &mut data);
-    // Archetype bonus-feat choices as slots of fixed lists (ticket 61, ticket 54's decision 2): the Titan Fighter's
-    // Massive Attacks, and the features that stood beside the hunter's, the Urban Hunter's and the Stormwalker's
-    // slots go. It settles no report item.
-    crate::bonus_feat_choices::apply(guide, &mut data);
-    // Witch Wandering Hex and Beneficial Curse give their pick (ticket 62, ticket 55's decisions 1 and 2): a slot of the
-    // witch's hexes and of the oracle's curses, and Witch Wandering Hex needs a hex held. It settles no report item.
-    crate::mythic_ability_picks::apply(guide, &mut data);
-    // The archetypes' alignment rules (ticket 63, ticket 58's question 1): the Priest of Balance's from the guide and
-    // the Mantis Zealot's from the user, and every other archetype's checked against its line. `rules` lets an
-    // archetype's replace its class's. It settles no report item.
-    crate::archetype_alignments::apply(guide, &mut data);
-    // Extra Discovery and Extra Arcana reach the Vivisectionist and the Hexcrafter (ticket 64, ticket 60's decisions 2
-    // and 3): their extra pick may be of Medical Discovery and Hex Arcana, and each archetype meets the feat's
-    // prerequisite from its first slot. It settles no report item.
+    // Extra Discovery and Extra Arcana reach the Vivisectionist and the Hexcrafter from their first slot: needs the
+    // rows in force and ticket 49's extra picks.
     crate::borrowed_extra_picks::apply(guide, &mut data);
-    // The Instinctual Warrior's monk rage powers (ticket 66, ticket 58's decision 3): five options of the rage powers
-    // only it may take, at the guide's levels, and holding one meets Extra Rage Power. It settles no report item.
-    crate::instinctual_rage_powers::apply(guide, &mut data);
-    // The Dual-Cursed Oracle's second curse as a pick (ticket 67, ticket 62's decision): a second slot of the oracle's
-    // curses at 1 in place of the "Second Curse" feature. It settles no report item.
-    crate::second_curse::apply(guide, &mut data);
+
+    // What the providers can only assert on the finished data, and the report items the finished data settles.
+    crate::picks::check(guide, &data);
+    builder
+        .report
+        .items
+        .retain(|item| !settled(&item.at, &item.text));
     for problem in data.check() {
         builder.report.add_about(
             Kind::Cell,
@@ -244,6 +216,15 @@ pub fn extract(guide: &Guide) -> Extraction {
         data: data.canonical(),
         report: builder.report,
     }
+}
+
+/// Whether a report item is one the finished data settles: an option family's (ticket 30), Armor Focus's line (ticket
+/// 32), a gap the saved pages fill (tickets 43 and 44), the bonus-feat wild talent (ticket 45).
+fn settled(at: &str, text: &str) -> bool {
+    crate::option_levels::settled(at, text)
+        || crate::follow_ups::settled(at, text)
+        || crate::report_gaps::settled(at, text)
+        || crate::wild_talents::settled(at, text)
 }
 
 /// Prerequisite lines waiting for the whole catalog.
@@ -264,6 +245,17 @@ pub enum FeatureOwner {
     Class(ClassKey),
     Archetype(ClassKey, ArchetypeKey),
     Path(MythicPathKey),
+}
+
+impl FeatureOwner {
+    /// The key of the class, archetype or path.
+    pub fn key(&self) -> &str {
+        match self {
+            Self::Class(class) => class.as_str(),
+            Self::Archetype(_, archetype) => archetype.as_str(),
+            Self::Path(path) => path.as_str(),
+        }
+    }
 }
 
 /// A heading a table cell can name.
@@ -311,6 +303,8 @@ pub struct Builder<'g> {
     feat_names: Vec<(String, FeatKey)>,
     /// The fixed feat lists of bonus slots, named once the data is complete.
     pub lists: PendingLists,
+    /// The cells that are picks, and what comes with them.
+    picks: Picks,
 }
 
 impl<'g> Builder<'g> {
@@ -323,6 +317,7 @@ impl<'g> Builder<'g> {
             features: BTreeMap::new(),
             feat_names: Vec::new(),
             lists: PendingLists::default(),
+            picks: Picks::default(),
         }
     }
 
@@ -566,6 +561,7 @@ impl<'g> Builder<'g> {
                 }
             }
         }
+        lines.extend(self.picks.lines_for(owner));
         if lines.is_empty() && extra.is_empty() {
             return;
         }
@@ -690,6 +686,9 @@ impl<'g> Builder<'g> {
             path: false,
         };
         class.selections = base_selections;
+        let (selections, feat_lists) = self.provided(&FeatureOwner::Class(class_key.clone()));
+        class.selections.extend(selections);
+        class.feat_lists.extend(feat_lists);
         let base_levels = self.level_rows(page, &base_rows, None, base_spell_type, &base_scope);
         self.set_progressions(&mut class, &base_levels, false, &base_scope.guide);
         class.levels = base_levels.iter().map(|(_, row)| row.clone()).collect();
@@ -711,6 +710,7 @@ impl<'g> Builder<'g> {
                 &class_key,
                 Some(&archetype_key),
             );
+            let (provided, feat_lists) = self.provided(&owner);
             let mut scope = Scope {
                 headings: without_options(headings(page, section, &prefix, &owner), &selections),
                 selections: selection_names(&selections),
@@ -738,6 +738,8 @@ impl<'g> Builder<'g> {
             } else {
                 own_type.or(base_spell_type)
             };
+            let mut selections = selections;
+            selections.extend(provided);
             let levels = self.level_rows(page, rows, Some(&base_levels), spell_type, &scope);
             for (numbers, row) in &levels {
                 let base = base_levels.iter().find(|(_, base)| base.level == row.level);
@@ -763,7 +765,12 @@ impl<'g> Builder<'g> {
                     ),
                     None => (None, None),
                 };
-            self.archetype_requirements(page, section, &DataAt::Archetype(archetype_key.clone()));
+            let at = DataAt::Archetype(archetype_key.clone());
+            self.archetype_requirements(page, section, &at);
+            let stated = self.picks.stated_for(&at);
+            if !stated.is_empty() {
+                self.add_prerequisite(&at, page.guide(&section.anchor), stated);
+            }
             class.archetypes.push(Archetype {
                 key: archetype_key,
                 name: section.name.clone(),
@@ -775,7 +782,7 @@ impl<'g> Builder<'g> {
                 spontaneous: None,
                 features: Vec::new(),
                 selections,
-                feat_lists: Vec::new(),
+                feat_lists,
                 levels,
             });
         }
@@ -967,6 +974,9 @@ impl<'g> Builder<'g> {
         }
         if let Some(heading) = find_heading(scope, name) {
             let key = FeatureKey::new(format!("{}/{}", heading.prefix, heading.section.anchor));
+            if let Some(picked) = self.picked(scope, name, &key, level) {
+                return picked;
+            }
             self.define_feature(
                 &key,
                 heading.owner.clone(),
@@ -982,6 +992,9 @@ impl<'g> Builder<'g> {
             return Granted::Feat(feat);
         }
         let key = FeatureKey::new(format!("{}/{}", scope.prefix, slug(name)));
+        if let Some(picked) = self.picked(scope, name, &key, level) {
+            return picked;
+        }
         let owner = scope
             .owner
             .clone()
@@ -989,6 +1002,64 @@ impl<'g> Builder<'g> {
         let _ = page;
         self.define_feature(&key, owner, name, scope.guide.clone());
         Granted::Feature(key)
+    }
+
+    /// What a cell naming the feature `key` is when it's a pick ([`Picks`]), in place of that feature.
+    fn picked(
+        &mut self,
+        scope: &Scope<'g>,
+        cell: &str,
+        key: &FeatureKey,
+        level: u8,
+    ) -> Option<Granted> {
+        let owner = scope.owner.as_ref()?;
+        let pick = self.picks.pick(owner.key(), cell, key, level)?;
+        Some(match pick.clone() {
+            Pick::Selection(selection) => Granted::Selection(selection),
+            Pick::Slots(slots) => Granted::Slots(slots),
+            Pick::Feature(feature) => {
+                let key = feature.key.clone();
+                self.features
+                    .entry(key.clone())
+                    .or_insert_with(|| (owner.clone(), feature));
+                Granted::Feature(key)
+            }
+        })
+    }
+
+    /// What the providers give a class or archetype besides its tables' cells: selections (their options'
+    /// prerequisites queued, as the guide's lines are), features and feat lists.
+    fn provided(&mut self, owner: &FeatureOwner) -> (Vec<FeatureSelection>, Vec<rules::FeatList>) {
+        let key = owner.key().to_owned();
+        let selections: Vec<FeatureSelection> = self.picks.selections_of(&key).cloned().collect();
+        for selection in selections.iter().filter(|s| !s.options.is_empty()) {
+            // Naming the selection means having one of its options, as for the selections the tables define.
+            self.catalog
+                .selections
+                .entry(norm(&selection.name))
+                .or_default()
+                .extend(selection.options.iter().map(|o| o.key.clone()));
+        }
+        for option in selections.iter().flat_map(|s| &s.options) {
+            if let Some(prerequisite) = &option.prerequisite {
+                self.add_prerequisite(
+                    &DataAt::SelectionOption(option.key.clone()),
+                    option.guide.0.clone(),
+                    vec![prerequisite.clone()],
+                );
+            }
+        }
+        let features: Vec<Feature> = self.picks.features_of(&key).cloned().collect();
+        for feature in features {
+            let previous = self
+                .features
+                .insert(feature.key.clone(), (owner.clone(), feature));
+            assert!(previous.is_none(), "{key}: a feature twice");
+        }
+        (
+            selections,
+            self.picks.feat_lists_of(&key).cloned().collect(),
+        )
     }
 
     pub fn define_feature(
@@ -1264,6 +1335,23 @@ impl<'g> Builder<'g> {
                 values: Default::default(),
             });
         }
+        // The options a provider gives the selection beside its heading's children, their prerequisites queued.
+        let provided: Vec<SelectionOption> =
+            self.picks.options_of(&selection.key).cloned().collect();
+        for option in provided {
+            self.catalog
+                .options
+                .entry(norm(&option.name))
+                .or_default()
+                .insert(option.key.clone());
+            all_options.insert(option.key.clone());
+            self.add_prerequisite(
+                &DataAt::SelectionOption(option.key.clone()),
+                option.guide.0.clone(),
+                option.prerequisite.clone().into_iter().collect(),
+            );
+            selection.options.push(option);
+        }
         self.catalog
             .selections
             .entry(norm(&selection.name))
@@ -1362,10 +1450,13 @@ impl<'g> Builder<'g> {
                 .classes
                 .insert(norm(&section.name), ClassKey::new(section.anchor.clone()));
         }
-        sections
+        let mut classes: Vec<Class> = sections
             .into_iter()
             .map(|section| self.prestige_class(page, section))
-            .collect()
+            .collect();
+        // What the guide's prose says of advancement and "counts as" (ticket 28), on the classes it names.
+        crate::class_rules::apply_prestige(&mut classes);
+        classes
     }
 
     fn prestige_class(&mut self, page: &'g Page, section: &'g Section) -> Class {
@@ -1563,6 +1654,7 @@ impl<'g> Builder<'g> {
                     Context::default(),
                     Vec::new(),
                 );
+                let selections = self.picks.mythic_selections_of(&key);
                 out.push(MythicAbility {
                     key,
                     name: entry.name.clone(),
@@ -1571,7 +1663,7 @@ impl<'g> Builder<'g> {
                     guide: GuideRef::new(page.guide(&entry.anchor)),
                     prerequisite: None,
                     features: Vec::new(),
-                    selections: Vec::new(),
+                    selections,
                 });
             }
         }
@@ -1610,6 +1702,7 @@ impl<'g> Builder<'g> {
                     Context::default(),
                     Vec::new(),
                 );
+                let extra_pick = self.picks.mythic_extra_pick_of(&key);
                 out.push(MythicFeat {
                     key,
                     name: entry.name.clone(),
@@ -1619,7 +1712,7 @@ impl<'g> Builder<'g> {
                     prerequisite: None,
                     parameter: None,
                     removes_racial_penalty: false,
-                    extra_pick: None,
+                    extra_pick,
                     repeat: Default::default(),
                 });
             }
@@ -1832,9 +1925,17 @@ impl<'g> Builder<'g> {
 
     fn resolve_prerequisites(&mut self, data: &mut GameData) {
         let mut resolved: BTreeMap<DataAt, Vec<Prerequisite>> = BTreeMap::new();
-        for pending in std::mem::take(&mut self.pending) {
+        for mut pending in std::mem::take(&mut self.pending) {
             let conditions = resolved.entry(pending.owner.clone()).or_default();
             conditions.extend(pending.extra);
+            if !pending.conds.is_empty() {
+                let lines: Vec<String> =
+                    pending.conds.iter().map(|(line, _)| line.clone()).collect();
+                if let Some(stated) = self.picks.prerequisite_of(&pending.owner, &lines) {
+                    conditions.push(stated);
+                    pending.conds.clear();
+                }
+            }
             for (line, cond) in pending.conds {
                 match cond {
                     Err(Unparsed(_)) => {

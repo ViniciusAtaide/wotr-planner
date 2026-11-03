@@ -31,6 +31,7 @@ pub mod option_follow_ups;
 pub mod option_levels;
 pub mod output;
 pub mod parameters;
+pub mod picks;
 pub mod proficiencies;
 pub mod progressions;
 pub mod prose;

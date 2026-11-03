@@ -1,25 +1,24 @@
-//! Ticket 63: the archetypes' alignment rules, applied to finished data. An archetype's alignment requirement
-//! replaces its class's (the user, 2026-11-02; `rules` does that), so each archetype the guide gives one has it, and
-//! no other archetype has any:
+//! Ticket 63: the archetypes' alignment rules. An archetype's alignment requirement replaces its class's (the user,
+//! 2026-11-02; `rules` does that), so each archetype the guide gives one has it, and no other archetype has any:
 //!
 //! - five were in the data already (the Drunken Master, Bloodseeker, Angelfire Apostle, Reformed Fiend and Prophet of
 //!   Pestilence), each from its section's line ([`RULES`]);
 //! - the **Priest of Balance**'s "Alignement restricted to Lawful Neutral, Neutral and Chaotic Neutral" (so spelt in
-//!   the guide, which the extraction passed over) becomes its prerequisite;
+//!   the guide, which the requirement reader passes over) is its prerequisite, stated where the archetype is built
+//!   ([`provide`]);
 //! - the **Mantis Zealot** is the user's fact (2026-11-02, ticket 63's decision 1): its section says only that it
 //!   worships Achaekek, and the user gave the alignments one step from Achaekek's Lawful Evil, Lawful Neutral or
-//!   Neutral Evil.
+//!   Neutral Evil; stated where the archetype is built too.
 //!
-//! Each rule asserts the guide phrase it rests on and what it finds in the data, so it fails loudly on data it doesn't
-//! expect. [`apply`] runs on the finished data of an extraction and, through ticket 63's one-off rewrite, on
-//! `libs/game-data/`.
+//! Each rule asserts the guide phrase it rests on where it's read, and [`check`] what it finds in the finished data, so
+//! it fails loudly on data it doesn't expect.
 
 use std::collections::BTreeSet;
 
-use rules::{Alignment, CharacterState, GameData, Prerequisite};
+use rules::{Alignment, ArchetypeKey, CharacterState, DataAt, GameData, Prerequisite};
 
 use crate::follow_ups::says;
-use crate::option_levels::Log;
+use crate::picks::Picks;
 
 use Alignment::*;
 
@@ -189,51 +188,48 @@ fn any_of(alignments: &[Alignment]) -> Prerequisite {
     )
 }
 
-/// Applies ticket 63's rule.
-pub fn apply(guide: &crate::guide::Guide, data: &mut GameData) -> Log {
-    let mut log = Log::new();
-    let keys: BTreeSet<&str> = RULES.iter().map(|(key, ..)| *key).collect();
+/// The Priest of Balance's and the Mantis Zealot's rules are their prerequisites from the start.
+pub fn provide(guide: &crate::guide::Guide, picks: &mut Picks) {
     for (key, page, anchor, line, source, alignments) in RULES {
         says(guide, page, anchor, line);
+        if source != Source::Data {
+            picks.stated(
+                DataAt::Archetype(ArchetypeKey::new(key)),
+                any_of(alignments),
+            );
+        }
+    }
+}
+
+/// Each archetype with a rule has exactly it, and no other archetype names an alignment.
+pub fn check(_guide: &crate::guide::Guide, data: &GameData) {
+    let keys: BTreeSet<&str> = RULES.iter().map(|(key, ..)| *key).collect();
+    for (key, _, _, line, source, alignments) in RULES {
         let archetype = data
             .classes
-            .iter_mut()
-            .flat_map(|class| &mut class.archetypes)
+            .iter()
+            .flat_map(|class| &class.archetypes)
             .find(|archetype| archetype.key.as_str() == key)
             .unwrap_or_else(|| panic!("no archetype {key}"));
         let allowed: BTreeSet<Alignment> = alignments.iter().copied().collect();
-        match source {
-            Source::Data => {
-                let rule = archetype.prerequisite.as_ref().and_then(alignment_rule);
-                assert_eq!(
-                    rule,
-                    Some(allowed),
-                    "{key}: its alignment rule isn't {line:?}"
-                );
-            }
-            Source::Guide | Source::User => {
-                assert_eq!(
-                    archetype.prerequisite, None,
-                    "{key}: has a prerequisite already"
-                );
-                archetype.prerequisite = Some(any_of(alignments));
-                let whose = if source == Source::User {
-                    "the user"
-                } else {
-                    "the guide"
-                };
-                log.push(format!(
-                    "{key}: alignment {} ({whose})",
-                    alignments
-                        .iter()
-                        .map(|a| format!("{a:?}"))
-                        .collect::<Vec<_>>()
-                        .join(", ")
-                ));
-            }
+        let rule = archetype.prerequisite.as_ref().and_then(alignment_rule);
+        assert_eq!(
+            rule,
+            Some(allowed),
+            "{key}: its alignment rule isn't {line:?}"
+        );
+        if source != Source::Data {
+            let canonical = |mut prerequisite: Prerequisite| {
+                prerequisite.canonicalize();
+                prerequisite
+            };
+            assert_eq!(
+                archetype.prerequisite.clone().map(canonical),
+                Some(canonical(any_of(alignments))),
+                "{key}: more than its alignment rule"
+            );
         }
     }
-    // No other archetype names an alignment.
     for class in &data.classes {
         for archetype in &class.archetypes {
             let named = archetype.prerequisite.as_ref().is_some_and(names_alignment);
@@ -245,5 +241,4 @@ pub fn apply(guide: &crate::guide::Guide, data: &mut GameData) -> Log {
             );
         }
     }
-    log
 }

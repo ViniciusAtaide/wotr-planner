@@ -1,6 +1,6 @@
-//! Ticket 61: ticket 54's decision 2 (user, 2026-11-02), applied to finished data. Four bonus-feat choices are slots
-//! of fixed lists, the shape of the Divine Guardian's bonus feats: lists ignoring prerequisites, a `OneOf` slot on
-//! each row where the table has the cell, and no feature standing for the choice.
+//! Ticket 61: ticket 54's decision 2 (user, 2026-11-02). Four bonus-feat choices are slots of fixed lists, the shape
+//! of the Divine Guardian's bonus feats: lists ignoring prerequisites, and a `OneOf` slot where the table has the
+//! cell, which the class stage reads so ([`provide`]). No feature stands for the choice.
 //!
 //! - **The Titan Fighter's Massive Attacks** (`fighter#massive-attacks`: "At 2nd level and every four subsequent
 //!   levels, a Titan fighter selects a feat from the Ranger's Two-Weapon Combat Style feats"). Its table has
@@ -19,24 +19,19 @@
 //!   feats"): the archery style's feats without the extras, `ranger/bonus-feats-2b`, `-6b` and `-10b`, the lists the
 //!   Nomad's "Archery Feat" picks from in `libs/game-data/` (a hand fix of ticket 18, left as it is).
 //!
-//! In `libs/game-data/` the last three were slots of these lists already (ticket 18's hand fixes), beside a feature
-//! of the same name; in an extraction they are the feature alone. Either way the lists and slots end as the guide's,
-//! asserted where each table has the cell, and the feature goes: nothing needs it. Each rule asserts the guide phrase
-//! it rests on and what it finds in the data, so it fails loudly on data it doesn't expect. [`apply`] runs on the
-//! finished data of an extraction (after ticket 60's `borrowed_selections`) and, through ticket 61's one-off rewrite,
-//! on `libs/game-data/`.
+//! Each rule asserts the guide phrase it rests on where the slots are read, and [`check`] what it finds in the finished
+//! data (the style lists of ticket 30, the rows in force), so it fails loudly on data it doesn't expect.
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use rules::{
-    Archetype, Class, FeatKey, FeatList, FeatListKey, FeatSlot, FeatureKey, GameData, effective_row,
-};
+use rules::{Archetype, Class, FeatKey, FeatList, FeatListKey, FeatSlot, GameData, effective_row};
 
-use crate::follow_ups::{class_mut, drop_feature, says};
+use crate::follow_ups::says;
 use crate::guide::Guide;
+use crate::html::Page;
 use crate::mercies_and_exploits::levels_in_tables;
-use crate::option_levels::{FeatNames, Log, list, name_list, page, section};
-use crate::wild_talents::{needing, take};
+use crate::option_levels::{FeatNames, list, name_list, page, section};
+use crate::picks::{Pick, Picks, Rule};
 
 const FIGHTER: &str = "fighter";
 const TITAN: &str = "fighter/titan-fighter";
@@ -52,7 +47,6 @@ const CAPTOR: &str = "hunter/urban-hunter/captor";
 const CAPTOR_LEVELS: [u8; 5] = [6, 9, 12, 15, 18];
 
 const RANGER: &str = "ranger";
-const STORMWALKER: &str = "ranger/stormwalker";
 const STORMWALKER_ARCHERY: &str = "ranger/stormwalker/archery";
 /// The ranger's table levels of a combat style feat, which the Stormwalker's "Archery" keeps.
 const STORMWALKER_LEVELS: [u8; 5] = [2, 6, 10, 14, 18];
@@ -69,8 +63,7 @@ type Growing = Vec<(u8, BTreeSet<FeatKey>)>;
 /// One bonus-feat choice: who has it, where its tables have it, and its lists.
 struct Choice<'a> {
     class: &'static str,
-    /// The archetype that defines the feature standing for the choice; `None`, the class.
-    feature_owner: Option<&'static str>,
+    /// The feature the generic reader would make of the cell.
     feature: &'static str,
     /// The archetype that owns the lists; `None`, the class.
     lists_owner: Option<&'static str>,
@@ -84,16 +77,30 @@ struct Choice<'a> {
     lists: Vec<(u8, FeatList)>,
 }
 
-/// Makes the bonus-feat choices slots of their lists, with no feature standing for them.
-pub fn apply(guide: &Guide, data: &mut GameData) -> Log {
-    let mut log = Log::new();
+/// The bonus-feat choices are slots of their lists, with no feature standing for them.
+pub(crate) fn provide(guide: &Guide, feats: &FeatNames, picks: &mut Picks) {
+    for choice in choices(guide, feats) {
+        choice_slots(guide, picks, &choice);
+    }
+}
+
+/// The style lists the choices copy, and the rows in force.
+pub fn check(guide: &Guide, data: &GameData) {
     let feats = FeatNames::new(data);
-    let styles = ranger_styles(guide, data, &feats);
-    massive_attacks(guide, data, &styles[TWO_WEAPON], &mut log);
-    precise_companion(guide, data, &feats, &mut log);
-    captor(guide, data, &feats, &mut log);
-    stormwalker_archery(guide, data, &styles[ARCHERY], &mut log);
-    log
+    check_ranger_styles(guide, data, &feats);
+    for choice in choices(guide, &feats) {
+        check_choice(data, &choice);
+    }
+}
+
+fn choices<'a>(guide: &Guide, feats: &FeatNames) -> Vec<Choice<'a>> {
+    let styles = ranger_styles(guide, feats);
+    vec![
+        massive_attacks(guide, &styles[TWO_WEAPON]),
+        precise_companion(guide, feats),
+        captor(guide, feats),
+        stormwalker_archery(guide, &styles[ARCHERY]),
+    ]
 }
 
 /// The feats a ranger style section names, by the level they're open from, each level's names holding the earlier
@@ -129,13 +136,8 @@ pub fn style_feats(text: &str) -> Vec<(u8, Vec<String>)> {
 }
 
 /// The ranger's two-weapon and archery styles' own feats by level, without the feats every style adds ("Besides the
-/// style feats, you can also select from …"): exactly the data's style lists (ticket 30's) less one set of extras
-/// per level, the same for both styles.
-fn ranger_styles(
-    guide: &Guide,
-    data: &GameData,
-    feats: &FeatNames,
-) -> BTreeMap<&'static str, Growing> {
+/// style feats, you can also select from …"), read from their sections.
+fn ranger_styles(guide: &Guide, feats: &FeatNames) -> BTreeMap<&'static str, Growing> {
     says(
         guide,
         RANGER,
@@ -149,13 +151,7 @@ fn ranger_styles(
         "Besides the style feats",
     );
     let ranger_page = page(guide, RANGER);
-    let ranger = data
-        .classes
-        .iter()
-        .find(|c| c.key.as_str() == RANGER)
-        .expect("the ranger");
     let mut styles = BTreeMap::new();
-    let mut extras: BTreeMap<u8, BTreeSet<FeatKey>> = BTreeMap::new();
     for anchor in [TWO_WEAPON, ARCHERY] {
         let text = section(ranger_page, anchor).text();
         let growing: Growing = style_feats(&text)
@@ -167,6 +163,21 @@ fn ranger_styles(
             STYLE_LEVELS,
             "ranger#{anchor}: the levels"
         );
+        styles.insert(anchor, growing);
+    }
+    styles
+}
+
+/// Each style's feats are exactly the data's style lists (ticket 30's) less one set of extras per level, the same for
+/// both styles.
+fn check_ranger_styles(guide: &Guide, data: &GameData, feats: &FeatNames) {
+    let ranger = data
+        .classes
+        .iter()
+        .find(|c| c.key.as_str() == RANGER)
+        .expect("the ranger");
+    let mut extras: BTreeMap<u8, BTreeSet<FeatKey>> = BTreeMap::new();
+    for (anchor, growing) in ranger_styles(guide, feats) {
         for (level, style) in &growing {
             let key = format!("ranger/combat-style-feat/{anchor}-{level}");
             let data_list = &ranger
@@ -180,13 +191,11 @@ fn ranger_styles(
             let known = extras.entry(*level).or_insert_with(|| rest.clone());
             assert_eq!(*known, rest, "{key}: the extras");
         }
-        styles.insert(anchor, growing);
     }
-    styles
 }
 
 /// The Titan Fighter's Massive Attacks: lists of its own.
-fn massive_attacks(guide: &Guide, data: &mut GameData, two_weapon: &Growing, log: &mut Log) {
+fn massive_attacks<'a>(guide: &Guide, two_weapon: &Growing) -> Choice<'a> {
     says(
         guide,
         FIGHTER,
@@ -211,21 +220,19 @@ fn massive_attacks(guide: &Guide, data: &mut GameData, two_weapon: &Growing, log
             )
         })
         .collect();
-    let choice = Choice {
+    Choice {
         class: FIGHTER,
-        feature_owner: Some(TITAN),
         feature: MASSIVE_ATTACKS,
         lists_owner: Some(TITAN),
         cell: "Massive Attacks",
         tables: BTreeMap::from([("titan-fighter".to_owned(), MASSIVE_ATTACKS_LEVELS.to_vec())]),
         shared_with: &[],
         lists,
-    };
-    choice_slots(guide, data, &choice, log);
+    }
 }
 
 /// The hunter's Precise Companion: one list, at 2, on every table that has the cell (all but the Forester's).
-fn precise_companion(guide: &Guide, data: &mut GameData, feats: &FeatNames, log: &mut Log) {
+fn precise_companion<'a>(guide: &Guide, feats: &FeatNames) -> Choice<'a> {
     let sentence = "At 2nd level, a Hunter chooses either Precise Shot or Outflank as a bonus feat. She does not \
                     need to meet the prerequisites.";
     says(guide, HUNTER, "precise-companion", sentence);
@@ -234,16 +241,17 @@ fn precise_companion(guide: &Guide, data: &mut GameData, feats: &FeatNames, log:
         .and_then(|(_, rest)| rest.split_once(" as a bonus feat"))
         .map(|(names, _)| names.split(" or ").map(str::to_owned).collect())
         .expect("the two feats");
-    let hunter = class_of(data, HUNTER);
-    let mut tables = BTreeMap::from([(String::new(), vec![2])]);
-    for archetype in &hunter.archetypes {
-        if archetype.key.as_str() != "hunter/forester" {
-            tables.insert(anchor(HUNTER, archetype), vec![2]);
-        }
-    }
-    let choice = Choice {
+    // Every hunter table, the base class's and each archetype's, but the Forester's.
+    let mut tables: BTreeMap<String, Vec<u8>> = progression_tables(page(guide, HUNTER))
+        .into_iter()
+        .map(|anchor| (anchor, vec![2]))
+        .collect();
+    assert!(
+        tables.remove("forester").is_some(),
+        "hunter#forester: no table"
+    );
+    Choice {
         class: HUNTER,
-        feature_owner: None,
         feature: PRECISE_COMPANION,
         lists_owner: None,
         cell: "Precise Companion",
@@ -259,12 +267,11 @@ fn precise_companion(guide: &Guide, data: &mut GameData, feats: &FeatNames, log:
                 feats.all(&names, PRECISE_COMPANION),
             ),
         )],
-    };
-    choice_slots(guide, data, &choice, log);
+    }
 }
 
 /// The Urban Hunter's Captor: four feats from 6, ten from 12.
-fn captor(guide: &Guide, data: &mut GameData, feats: &FeatNames, log: &mut Log) {
+fn captor<'a>(guide: &Guide, feats: &FeatNames) -> Choice<'a> {
     for phrase in [
         "At 6th level and every 3 subsequent levels, a hunter may choose a bonus feat",
         "Neither she nor her companion need to meet the prerequisites.",
@@ -288,9 +295,8 @@ fn captor(guide: &Guide, data: &mut GameData, feats: &FeatNames, log: &mut Log) 
         "Captor from 12",
     );
     let guide_ref = page(guide, HUNTER).guide("captor");
-    let choice = Choice {
+    Choice {
         class: HUNTER,
-        feature_owner: Some(URBAN_HUNTER),
         feature: CAPTOR,
         lists_owner: Some(URBAN_HUNTER),
         cell: "Captor",
@@ -318,12 +324,11 @@ fn captor(guide: &Guide, data: &mut GameData, feats: &FeatNames, log: &mut Log) 
                 ),
             ),
         ],
-    };
-    choice_slots(guide, data, &choice, log);
+    }
 }
 
 /// The Stormwalker's Archery: the ranger's archery style feats.
-fn stormwalker_archery(guide: &Guide, data: &mut GameData, archery: &Growing, log: &mut Log) {
+fn stormwalker_archery<'a>(guide: &Guide, archery: &Growing) -> Choice<'a> {
     says(
         guide,
         RANGER,
@@ -353,9 +358,8 @@ fn stormwalker_archery(guide: &Guide, data: &mut GameData, archery: &Growing, lo
             )
         })
         .collect();
-    let choice = Choice {
+    Choice {
         class: RANGER,
-        feature_owner: Some(STORMWALKER),
         feature: STORMWALKER_ARCHERY,
         lists_owner: None,
         cell: "Archery",
@@ -363,97 +367,84 @@ fn stormwalker_archery(guide: &Guide, data: &mut GameData, archery: &Growing, lo
         // The Nomad's "Archery Feat" ("Can only select Archery style feats").
         shared_with: &["nomad"],
         lists,
-    };
-    choice_slots(guide, data, &choice, log);
+    }
 }
 
-/// Makes a choice slots of its lists. The page's tables have the cell exactly at `tables`. The lists are the
-/// owner's, as given: already there (`libs/game-data/`), or added (an extraction). Each row holding the feature holds
-/// a slot of the list open at its level, already or added in the feature's place (its only slot); then the feature
-/// goes. The rows in force hold the slots exactly where the tables have the cell, and none elsewhere but in the
-/// tables `shared_with`.
-fn choice_slots(guide: &Guide, data: &mut GameData, choice: &Choice, log: &mut Log) {
+/// The anchors of a page's progression tables (the base class's: `""`), whatever cells they have.
+fn progression_tables(page: &Page) -> BTreeSet<String> {
+    let mut found = BTreeSet::new();
+    for section in page.root.walk() {
+        for table in section.tables() {
+            let progression = table.first().is_some_and(|header| {
+                matches!(header.first().map(String::as_str), Some("Lvl" | "Level"))
+                    && header.iter().any(|c| c == "Feat" || c == "Feats")
+            });
+            if progression {
+                found.insert(section.anchor.clone());
+            }
+        }
+    }
+    found
+}
+
+/// A choice's cells are slots of its lists: each cell naming the choice's feature, at a level a table has it, is a
+/// slot of the list open at that level. The page's tables have the cell exactly at `tables`. The lists are the
+/// owner's.
+fn choice_slots(guide: &Guide, picks: &mut Picks, choice: &Choice) {
     let class_key = choice.class;
-    let feature = FeatureKey::new(choice.feature);
     assert_eq!(
         levels_in_tables(page(guide, class_key), choice.cell),
         choice.tables,
         "{class_key}: the tables' {:?} levels",
         choice.cell
     );
-    assert_eq!(
-        needing(data, &feature),
-        Vec::<String>::new(),
-        "what needs {feature}"
-    );
-    let thresholds: Vec<(u8, FeatListKey)> = choice
+    let thresholds = thresholds(choice);
+    let levels: BTreeSet<u8> = choice.tables.values().flatten().copied().collect();
+    for level in levels {
+        picks.rule(Rule {
+            cell: Some(choice.cell.to_owned()),
+            levels: Some(vec![level]),
+            ..Rule::every(
+                choice.feature,
+                Pick::Slots(vec![FeatSlot::OneOf {
+                    list: list_at(&thresholds, level),
+                }]),
+            )
+        });
+    }
+    let owner = choice.lists_owner.unwrap_or(class_key);
+    for (_, list) in &choice.lists {
+        picks.feat_list(owner, list.clone());
+    }
+}
+
+/// The lists' keys, each with the level it's open from.
+fn thresholds(choice: &Choice) -> Vec<(u8, FeatListKey)> {
+    choice
         .lists
         .iter()
         .map(|(level, list)| (*level, list.key.clone()))
-        .collect();
+        .collect()
+}
 
-    // The lists.
-    let class = class_mut(data, class_key);
+/// The owner has the lists as given, and the rows in force hold the slots exactly where the tables have the cell,
+/// one slot on each such row, and none elsewhere but in the tables `shared_with`.
+fn check_choice(data: &GameData, choice: &Choice) {
+    let class_key = choice.class;
+    let thresholds = thresholds(choice);
+    let class = class_of(data, class_key);
     let owned = match choice.lists_owner {
-        Some(archetype) => &mut archetype_mut(class, archetype).feat_lists,
-        None => &mut class.feat_lists,
+        Some(archetype) => &archetype_of(class, archetype).feat_lists,
+        None => &class.feat_lists,
     };
-    let present: Vec<&FeatList> = choice
-        .lists
-        .iter()
-        .filter_map(|(_, list)| owned.iter().find(|l| l.key == list.key))
-        .collect();
-    if present.is_empty() {
-        owned.extend(choice.lists.iter().map(|(_, list)| list.clone()));
-        let keys: Vec<&str> = thresholds.iter().map(|(_, key)| key.as_str()).collect();
-        log.push(format!("{}: lists {keys:?}", choice.feature));
-    } else {
-        let expected: Vec<&FeatList> = choice.lists.iter().map(|(_, list)| list).collect();
-        assert_eq!(present, expected, "{}: the lists", choice.feature);
-    }
-
-    // The rows holding the feature.
-    let mut taken = Vec::new();
-    let mut on_row =
-        |at: String, features: &mut Vec<FeatureKey>, slots: &mut Vec<FeatSlot>, level: u8| {
-            if !take(features, &feature) {
-                return;
-            }
-            let slot = FeatSlot::OneOf {
-                list: list_at(&thresholds, level),
-            };
-            if slots.is_empty() {
-                slots.push(slot);
-                taken.push(format!("{at} {level} (slot added)"));
-            } else {
-                assert_eq!(*slots, [slot], "{at} {level}: the slots");
-                taken.push(format!("{at} {level}"));
-            }
-        };
-    for row in &mut class.levels {
-        on_row(
-            class_key.to_owned(),
-            &mut row.features,
-            &mut row.feat_slots,
-            row.level,
+    for (_, list) in &choice.lists {
+        assert!(
+            owned.contains(list),
+            "{}: the list {}",
+            choice.feature,
+            list.key
         );
     }
-    for archetype in &mut class.archetypes {
-        for row in &mut archetype.levels {
-            on_row(
-                archetype.key.to_string(),
-                &mut row.features,
-                &mut row.feat_slots,
-                row.level,
-            );
-        }
-    }
-    assert!(!taken.is_empty(), "{feature}: on no row");
-    log.push(format!("{feature}: {}", taken.join(", ")));
-    drop_feature(data, class_key, choice.feature_owner, choice.feature, log);
-
-    // The rows in force.
-    let class = class_of(data, class_key);
     for archetype in std::iter::once(None).chain(class.archetypes.iter().map(Some)) {
         let at = archetype.map(|a| anchor(class_key, a)).unwrap_or_default();
         if choice.shared_with.contains(&at.as_str()) {
@@ -527,10 +518,10 @@ fn class_of<'d>(data: &'d GameData, key: &str) -> &'d Class {
         .unwrap_or_else(|| panic!("no class {key}"))
 }
 
-fn archetype_mut<'c>(class: &'c mut Class, key: &str) -> &'c mut Archetype {
+fn archetype_of<'c>(class: &'c Class, key: &str) -> &'c Archetype {
     class
         .archetypes
-        .iter_mut()
+        .iter()
         .find(|archetype| archetype.key.as_str() == key)
         .unwrap_or_else(|| panic!("no archetype {key}"))
 }
