@@ -278,7 +278,8 @@ class's), and BAB and saves (from the class's progressions).
   Combat Trick's row needs an option level, so `rogue/rogue-talents` is levelled by the bard and the skald too and
   `slayer/slayer-talents` by the inquisitor (their options' rows are all at level 1, so only whether the row comes
   changes). Extra Rogue Talent's extra pick may be of the Feyform Shifter's selection too; Extra Hex reaches the
-  Hexcrafter through `witch/hex`. Extra Discovery and Extra Arcana give the Vivisectionist and the Hexcrafter none.
+  Hexcrafter through `witch/hex`. Extra Discovery and Extra Arcana gave the Vivisectionist and the Hexcrafter none
+  until ticket 64.
 - Ticket 61 (`extract::bonus_feat_choices`, ticket 54's decision 2, user, 2026-11-02): a bonus feat chosen from a
   fixed list is a `OneOf` slot of that list where the table has the cell, as the Divine Guardian's bonus feats are,
   with no feature standing for it:
@@ -310,6 +311,14 @@ class's), and BAB and saves (from the class's progressions).
   CN])` from its "Alignement restricted to …" line (so spelt in the guide, which the extraction passed over); and the
   **Mantis Zealot's `Any([LN, LE, NE])`, the user's fact, not the guide's** (2026-11-02: one step from Achaekek's
   Lawful Evil; the guide says only that it worships Achaekek, and deities are out of scope).
+- Ticket 64 (`extract::borrowed_extra_picks`, ticket 60's decisions 2 and 3, user, 2026-11-02): Extra Discovery's
+  extra pick may be of the Vivisectionist's `alchemist/vivisectionist/medical-discovery` too, and Extra Arcana's of
+  the Hexcrafter's `magus/hexcrafter/hex-arcana` (Medical Discovery stands where the alchemist's table has Discovery;
+  Hex Arcana where the magus's has Magus Arcana but the first). Their "Prerequisites" name the class feature
+  ("Dicovery", so spelt; "Magus Arcana"), so each `Any` gains the archetype from its first slot, whatever it picked
+  there: `All([Archetype("alchemist/vivisectionist"), ClassLevel(class: "alchemist", level: 2)])` and
+  `All([Archetype("magus/hexcrafter"), ClassLevel(class: "magus", level: 6)])`, as a Sanctified Slayer 8 meets Extra
+  Slayer Talent's.
 - A path's switch rule: `switch: (from: ["aeon", "azata"], kept_through_rank: 7, path_kept_through_rank: 7,
   dropped_features: [...], dropped_selections: [...], features: [...], further_ascensions: true, level_cap:
   Some(40))`. The general picks (mythic abilities and feats) of MR 1 to `kept_through_rank` stay, and the old

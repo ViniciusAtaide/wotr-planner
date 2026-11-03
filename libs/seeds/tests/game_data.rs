@@ -5309,13 +5309,21 @@ fn combat_trick_grants_its_slot_through_every_selection_offering_it() {
 
 /// The "Extra …" feats whose guide entry gives one more pick of a class selection ("You gain one additional hex"),
 /// with the selections that pick may be of: each one the guide's "Prerequisites" name. Extra Mercy's since ticket 54
-/// made the paladin's mercies a selection.
+/// made the paladin's mercies a selection; the Vivisectionist's Medical Discovery and the Hexcrafter's Hex Arcana since
+/// ticket 64.
 const EXTRA_PICKS: [(&str, &[&str]); 9] = [
-    ("extra-arcana", &["magus/magus-arcana"]),
+    (
+        "extra-arcana",
+        &["magus/hexcrafter/hex-arcana", "magus/magus-arcana"],
+    ),
     ("extra-arcanist-exploit", &["arcanist/arcanist-exploits"]),
     (
         "extra-discovery",
-        &["alchemist/discovery", "rogue/underground-chemist/discovery"],
+        &[
+            "alchemist/discovery",
+            "alchemist/vivisectionist/medical-discovery",
+            "rogue/underground-chemist/discovery",
+        ],
     ),
     ("extra-hex", &["shaman/hex", "witch/hex"]),
     ("extra-mercy", &["paladin/mercy"]),
@@ -5532,7 +5540,7 @@ fn a_witchs_extra_hex_gives_a_hex_slot() {
 /// `level`, after the class's earlier picks.
 #[test]
 fn each_extra_feat_gives_a_slot_of_its_classs_selection() {
-    let cases: [(Build, &str, u8, &str); 20] = [
+    let cases: [(Build, &str, u8, &str); 22] = [
         (barbarian(3), "extra-rage-power", 3, "barbarian/rage-power"),
         (classes_build(&["witch"]), "extra-hex", 1, "witch/hex"),
         (
@@ -5645,6 +5653,19 @@ fn each_extra_feat_gives_a_slot_of_its_classs_selection() {
             "extra-hex",
             5,
             "witch/hex",
+        ),
+        // Ticket 64: the Vivisectionist's Medical Discovery and the Hexcrafter's Hex Arcana.
+        (
+            chaotic(archetype_build("alchemist", "alchemist/vivisectionist", 3)),
+            "extra-discovery",
+            3,
+            "alchemist/vivisectionist/medical-discovery",
+        ),
+        (
+            chaotic(archetype_build("magus", "magus/hexcrafter", 7)),
+            "extra-arcana",
+            7,
+            "magus/hexcrafter/hex-arcana",
         ),
     ];
     for (build, feat, level, selection) in cases {
@@ -7905,24 +7926,185 @@ fn an_option_taken_through_one_class_isnt_offered_again_through_another() {
     }
 }
 
-/// Ticket 49's rule needs a slot of a selection the feat names: Extra Discovery and Extra Arcana name the
-/// alchemist's and the magus's, so a Vivisectionist and a Hexcrafter get none (the ticket's questions).
+// ---- Extra Discovery and Extra Arcana for the Vivisectionist and the Hexcrafter (ticket 64) -------------------------
+
+/// The keys a slot's picker offers.
+fn offered_keys(build: &Build, slot: &SlotId) -> BTreeSet<String> {
+    offered_in(build, slot).into_keys().collect()
+}
+
+/// The sheet's label of `slot`.
+fn label_at(build: &Build, slot: &SlotId) -> String {
+    let engine = engine();
+    let sheet = engine.evaluate(build);
+    engine.slot_label(
+        sheet
+            .slot(slot)
+            .unwrap_or_else(|| panic!("no slot {slot:?}")),
+    )
+}
+
+/// Ticket 60's decision 2: Extra Discovery gives a Vivisectionist one more Medical Discovery, at the level it's taken
+/// (ticket 49's rule: the Vivisectionist has no slot of the alchemist's Discovery, so its first is Medical Discovery's).
 #[test]
-fn extra_discovery_and_extra_arcana_give_a_vivisectionist_and_a_hexcrafter_no_slot() {
-    for (build, feat, level) in [
-        (
-            borrower("alchemist", Some(VIVISECTIONIST), 3),
-            "extra-discovery",
-            3,
-        ),
-        (borrower("magus", Some(HEXCRAFTER), 7), "extra-arcana", 7),
-    ] {
-        let mut build = with_selections_filled(build);
+fn a_vivisectionists_extra_discovery_gives_a_medical_discovery_slot_at_the_level_its_taken() {
+    let mut build = with_selections_filled(borrower("alchemist", Some(VIVISECTIONIST), 5));
+    for level in [3, 5] {
         build
             .picks
-            .insert(general_slot(level), feat_pick_plain(feat));
+            .insert(general_slot(level), feat_pick_plain("extra-discovery"));
+    }
+    assert!(possible(&build));
+    for level in [3, 5] {
+        let slot = extra_slot(level, 0);
+        assert_eq!(
+            kind_at(&build, &slot),
+            Some(selection_kind(MEDICAL_DISCOVERY)),
+            "at {level}"
+        );
+        assert_eq!(label_at(&build, &slot), "Medical Discovery");
+        // What the Vivisectionist's own slot at 2 offers: its discoveries and talents.
+        assert_eq!(
+            offered_keys(&build, &slot),
+            offered_keys(&build, &selection_slot(2))
+        );
+        assert_eq!(offered_keys(&build, &slot).len(), MEDICAL_DISCOVERIES.len());
+    }
+    assert_eq!(kind_at(&build, &extra_slot(4, 0)), None);
+    let filled = with_selections_filled(build);
+    for level in [3, 5] {
+        assert!(
+            filled.picks.contains_key(&extra_slot(level, 0)),
+            "at {level}"
+        );
+    }
+    assert!(possible(&filled));
+}
+
+/// Ticket 60's decision 3: Extra Arcana gives a Hexcrafter one more Hex Arcana, the arcana and the hexes, a major hex
+/// from magus 12 as in its own slots.
+#[test]
+fn a_hexcrafters_extra_arcana_gives_a_hex_arcana_slot() {
+    let mut build = with_selections_filled(borrower("magus", Some(HEXCRAFTER), 7));
+    build
+        .picks
+        .insert(general_slot(7), feat_pick_plain("extra-arcana"));
+    assert!(possible(&build));
+    let slot = extra_slot(7, 0);
+    assert_eq!(kind_at(&build, &slot), Some(selection_kind(HEX_ARCANA)));
+    assert_eq!(label_at(&build, &slot), "Hex Arcana");
+    assert_eq!(
+        offered_keys(&build, &slot),
+        offered_keys(&build, &selection_slot(6))
+    );
+    assert_eq!(offered_keys(&build, &slot).len(), 41);
+    assert_eq!(
+        reason_in(&build, &slot, "witch/hex/agony"),
+        "Needs Magus level 12 (have 7)"
+    );
+    let filled = with_selections_filled(build);
+    assert!(filled.picks.contains_key(&slot));
+    assert!(possible(&filled));
+}
+
+/// "Prerequisites: Dicovery" and "Prerequisites: Magus Arcana" name the class feature, and the archetypes' are their
+/// version of it (Medical Discovery where the alchemist has Discovery; Hex Arcana, "Besides the usual Magus Arcana
+/// abilities"): a Vivisectionist from alchemist 2 and a Hexcrafter from magus 6 meet them whatever they picked there,
+/// as a Sanctified Slayer 8 meets Extra Slayer Talent's (ticket 60). Before, neither does.
+#[test]
+fn extra_discovery_and_extra_arcana_reach_a_vivisectionist_and_a_hexcrafter_whatever_they_picked() {
+    let fast_stealth = rogue_talent("fast-stealth");
+    let vivisectionist = with_picks(
+        borrower("alchemist", Some(VIVISECTIONIST), 3),
+        &[(2, pick(&fast_stealth))],
+    );
+    assert!(possible(&vivisectionist));
+    assert_eq!(
+        feat_status(&vivisectionist, &general_slot(3), "extra-discovery"),
+        Ok(())
+    );
+    let hexcrafter = with_picks(
+        borrower("magus", Some(HEXCRAFTER), 7),
+        &[
+            (4, pick("witch/hex/slumber")),
+            (6, pick("witch/hex/cackle")),
+        ],
+    );
+    assert!(possible(&hexcrafter));
+    assert_eq!(
+        feat_status(&hexcrafter, &general_slot(7), "extra-arcana"),
+        Ok(())
+    );
+    // Before their first slot, neither.
+    assert!(
+        feat_status(
+            &borrower("alchemist", Some(VIVISECTIONIST), 1),
+            &general_slot(1),
+            "extra-discovery"
+        )
+        .is_err()
+    );
+    let hexcrafter_5 = with_picks(
+        borrower("magus", Some(HEXCRAFTER), 5),
+        &[(4, pick("witch/hex/slumber"))],
+    );
+    assert!(feat_status(&hexcrafter_5, &general_slot(5), "extra-arcana").is_err());
+    // Another class's archetype doesn't: a rogue 2 holding Fast Stealth, then alchemist 1.
+    let rogue_then_vivisectionist = with_selections_filled(multiclass(&[
+        ("rogue", None, 2),
+        ("alchemist", Some(VIVISECTIONIST), 1),
+    ]));
+    assert!(
+        feat_status(
+            &rogue_then_vivisectionist,
+            &general_slot(3),
+            "extra-discovery"
+        )
+        .is_err()
+    );
+}
+
+/// A plain alchemist and magus are as before: their Extra feat needs a discovery or an arcana held, and gives a slot of
+/// the alchemist's Discovery or the magus's Magus Arcana, offering what their own slots offer.
+#[test]
+fn a_plain_alchemists_and_magus_extra_picks_are_unchanged() {
+    for (class, feat, own, selection, label) in [
+        (
+            "alchemist",
+            "extra-discovery",
+            2,
+            "alchemist/discovery",
+            "Discovery",
+        ),
+        (
+            "magus",
+            "extra-arcana",
+            3,
+            "magus/magus-arcana",
+            "Magus Arcana",
+        ),
+    ] {
+        let empty = borrower(class, None, 3);
+        assert!(
+            feat_status(&empty, &general_slot(3), feat).is_err(),
+            "{feat}: nothing held"
+        );
+        let mut build = with_selections_filled(empty);
+        assert_eq!(
+            feat_status(&build, &general_slot(3), feat),
+            Ok(()),
+            "{feat}"
+        );
+        build.picks.insert(general_slot(3), feat_pick_plain(feat));
         assert!(possible(&build), "{feat}");
-        assert_eq!(kind_at(&build, &extra_slot(level, 0)), None, "{feat}");
+        let slot = extra_slot(3, 0);
+        assert_eq!(kind_at(&build, &slot), Some(selection_kind(selection)));
+        assert_eq!(label_at(&build, &slot), label);
+        assert_eq!(
+            offered_keys(&build, &slot),
+            offered_keys(&build, &selection_slot(own)),
+            "{feat}"
+        );
     }
 }
 

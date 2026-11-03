@@ -4,6 +4,7 @@
 mod archetype_alignments;
 mod backgrounds;
 mod bonus_feat_choices;
+mod borrowed_extra_picks;
 mod borrowed_selections;
 mod class_rules;
 mod exploits;

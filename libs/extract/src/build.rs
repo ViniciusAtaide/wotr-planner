@@ -222,6 +222,10 @@ pub fn extract(guide: &Guide) -> Extraction {
     // the Mantis Zealot's from the user, and every other archetype's checked against its line. `rules` lets an
     // archetype's replace its class's. It settles no report item.
     crate::archetype_alignments::apply(guide, &mut data);
+    // Extra Discovery and Extra Arcana reach the Vivisectionist and the Hexcrafter (ticket 64, ticket 60's decisions 2
+    // and 3): their extra pick may be of Medical Discovery and Hex Arcana, and each archetype meets the feat's
+    // prerequisite from its first slot. It settles no report item.
+    crate::borrowed_extra_picks::apply(guide, &mut data);
     for problem in data.check() {
         builder.report.add_about(
             Kind::Cell,
