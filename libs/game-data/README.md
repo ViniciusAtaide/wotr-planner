@@ -257,6 +257,28 @@ class's), and BAB and saves (from the class's progressions).
   "Infusion (Kinetic Sharpshooter)" feature is gone (its rows 3 to 19 hold the slot; 17 and 19 are the base's now).
   The 1st-level "Infusion" stays a feature: no infusion is open at kineticist 1. The guide's "Dazziing Infusion" is
   named "Dazzling Infusion", linking to the guide's anchor. No feat gives an infusion.
+- Ticket 60 (`extract::borrowed_selections`, ticket 54's decision 2, user, 2026-11-02): picks from another class's
+  list are slots, of that class's selection where the guide's list is one, or of a selection sharing the lists it
+  mixes (as ticket 25's slayer talents), in place of the feature that stood for them:
+  - the bard's "Bard Talents" and the skald's "Skald Talents" ("can select from the Rogue Talent list") are slots of
+    `rogue/rogue-talents` where each table has "Bard Talent" or "Skald Talent" (the Beast Tamer at 6, 14, 18; the
+    Inciter at 4, 9, 14, 19); the Archaeologist's Advanced Talents (10) opens the 16 advanced rogue talents beside the
+    rogue's and the slayer's;
+  - the Feyform Shifter's "Rogue Talent" (8, 14; "you cannot choose Advanced Talents") is its own selection sharing
+    the 20 other rogue talents;
+  - the Vivisectionist's "Medical Discovery" (2 to 18) is its own selection sharing the 14 discoveries and 11 rogue
+    talents its section lists; its Advanced Talents (10) opens the three advanced ones there;
+  - the Sanctified Slayer's "Slayer Talents" (8, 16, 17, 20) are slots of `slayer/slayer-talents`; Extra Slayer
+    Talent's "Slayer Talents" is a slayer 2 or a Sanctified Slayer 8, and the 2nd-or-4th combat style talent needs
+    slayer level 2, as the other two windows need theirs;
+  - the Hexcrafter's Hex Magus (4) is a slot of `witch/hex`, and its Hex Arcana (6, 9, 12, 15, 18) its own selection
+    sharing the magus arcana and the witch hexes; the major hexes open to a Hexcrafter of magus 12 and the grand ones
+    of magus 18, in each hex's `Any`.
+
+  Combat Trick's row needs an option level, so `rogue/rogue-talents` is levelled by the bard and the skald too and
+  `slayer/slayer-talents` by the inquisitor (their options' rows are all at level 1, so only whether the row comes
+  changes). Extra Rogue Talent's extra pick may be of the Feyform Shifter's selection too; Extra Hex reaches the
+  Hexcrafter through `witch/hex`. Extra Discovery and Extra Arcana give the Vivisectionist and the Hexcrafter none.
 - Ticket 55 (`extract::mythic_extra_picks`, ticket 49's decision 4, user, 2026-11-02): a mythic feat's `extra_pick`
   is the slot a pick of it gives at the Mythic rank it's taken, after the rank's general pick (a `MythicExtra`
   slot): `Feat`, a feat slot offering what the general slot does (`extra-feat`: "You can select any normal feat"),

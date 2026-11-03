@@ -39,7 +39,7 @@ Class(
             key: "slayer/slayer-talents",
             name: "Slayer Talents",
             guide: "slayer#slayer-talents",
-            option_levels: ["slayer"],
+            option_levels: ["inquisitor", "slayer"],
             options: [
                 (
                     key: "slayer/slayer-talents/combat-style-feat-10",
@@ -54,7 +54,7 @@ Class(
                     key: "slayer/slayer-talents/combat-style-feat-2",
                     name: "Combat Style Feat (2nd or 4th level)",
                     guide: "slayer#slayer-talents",
-                    prerequisite: Not(ClassLevel(class: "slayer", level: 6)),
+                    prerequisite: All([Not(ClassLevel(class: "slayer", level: 6)), ClassLevel(class: "slayer", level: 2)]),
                     levels: [
                         (level: 1, feat_slots: [OptionList(selection: "slayer/combat-style", at_level: 2)], selections: ["slayer/combat-style"]),
                     ],

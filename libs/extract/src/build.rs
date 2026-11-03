@@ -207,6 +207,10 @@ pub fn extract(guide: &Guide) -> Extraction {
     crate::ki_powers::apply(guide, &mut data);
     // The kineticist's infusions as a selection (ticket 59, ticket 54's decision 2). It settles no report item.
     crate::infusions::apply(guide, &mut data);
+    // Talents, hexes and discoveries taken through another class as picks (ticket 60, ticket 54's decision 2): slots of
+    // the rogue's, the slayer's and the witch's selections, or of selections sharing their options. It settles no
+    // report item.
+    crate::borrowed_selections::apply(guide, &mut data);
     for problem in data.check() {
         builder.report.add_about(
             Kind::Cell,

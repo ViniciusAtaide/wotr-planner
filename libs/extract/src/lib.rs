@@ -5,6 +5,7 @@
 //! the [`output`] folder rules.
 
 pub mod backgrounds;
+pub mod borrowed_selections;
 pub mod build;
 pub mod class_rules;
 pub mod exploits;
