@@ -279,6 +279,16 @@ class's), and BAB and saves (from the class's progressions).
   `slayer/slayer-talents` by the inquisitor (their options' rows are all at level 1, so only whether the row comes
   changes). Extra Rogue Talent's extra pick may be of the Feyform Shifter's selection too; Extra Hex reaches the
   Hexcrafter through `witch/hex`. Extra Discovery and Extra Arcana give the Vivisectionist and the Hexcrafter none.
+- Ticket 61 (`extract::bonus_feat_choices`, ticket 54's decision 2, user, 2026-11-02): a bonus feat chosen from a
+  fixed list is a `OneOf` slot of that list where the table has the cell, as the Divine Guardian's bonus feats are,
+  with no feature standing for it:
+  - the Titan Fighter's "Massive Attacks" (2, 6, 10, 14, 18, in place of the fighter's bonus combat feat) picks from
+    its own `fighter/titan-fighter/bonus-feats-2`, `-6` and `-10`: the ranger's Two-Weapon Combat Style feats by
+    then (Double Slice, Shield Bash, Two-Weapon Fighting; Improved Two-Weapon Fighting from 6; Greater Two-Weapon
+    Fighting from 10), without the extras every ranger style adds, ignoring prerequisites as the ranger's do;
+  - the hunter's Precise Companion (2, all but the Forester), the Urban Hunter's Captor (6, 9, 12, 15, 18) and the
+    Stormwalker's Archery (2, 6, 10, 14, 18) were slots of their lists already (ticket 18); the features beside them
+    went.
 - Ticket 55 (`extract::mythic_extra_picks`, ticket 49's decision 4, user, 2026-11-02): a mythic feat's `extra_pick`
   is the slot a pick of it gives at the Mythic rank it's taken, after the rank's general pick (a `MythicExtra`
   slot): `Feat`, a feat slot offering what the general slot does (`extra-feat`: "You can select any normal feat"),

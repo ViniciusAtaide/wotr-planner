@@ -133,3 +133,7 @@ Nothing yet calls for it. Two things a future split would start from:
   - Every other step and the cold loads are within ±3 ms.
   - The release wasm is 1,480,666 → 1,481,001 B.
 - **The user's edit:** `apps/backend/src/main.rs` is unchanged. Its diff is still the one saved in `t56/main-rs-user-edit.diff`.
+
+## Decisions on the questions
+
+**User, 2026-11-02:** all recommendations ("Yes, run overnight": take every recommendation without asking). Both kept as built: `slots.rs` stays an `impl Catalog` block, and `Walker` keeps `&Engine` until something needs the walk without one.

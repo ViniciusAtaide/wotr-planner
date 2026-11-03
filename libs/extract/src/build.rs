@@ -211,6 +211,10 @@ pub fn extract(guide: &Guide) -> Extraction {
     // the rogue's, the slayer's and the witch's selections, or of selections sharing their options. It settles no
     // report item.
     crate::borrowed_selections::apply(guide, &mut data);
+    // Archetype bonus-feat choices as slots of fixed lists (ticket 61, ticket 54's decision 2): the Titan Fighter's
+    // Massive Attacks, and the features that stood beside the hunter's, the Urban Hunter's and the Stormwalker's
+    // slots go. It settles no report item.
+    crate::bonus_feat_choices::apply(guide, &mut data);
     for problem in data.check() {
         builder.report.add_about(
             Kind::Cell,

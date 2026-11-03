@@ -113,3 +113,13 @@ Ticket 59 changes no rules, so one program (`t59/proof-run`, the working tree's 
 3. **The Kinetic Knight is offered Kinetic Blade and Blade Whirlwind.** Its own Elemental Blade (1) and Blade Whirlwind (9) are features, and Elemental Blade doesn't count as Kinetic Blade for Blade Whirlwind's prerequisite. The guide doesn't say the Knight can't take them. **Recommendation:** leave it; if you want, a follow-up gives both a `Not(Archetype(kinetic-knight))`.
 4. **Grappling Infusion's "Prerequisites: Cloud, Deadly Earth, Wall"** is built as one of the three, as its text says ("your Cloud, Deadly Earth or Wall Blast"). **Recommendation:** keep it.
 5. **The lock reason for an excluded infusion reads "Needs not the Kinetic Sharpshooter archetype"**, the generic `Not` wording. **Recommendation:** a small `rules` label follow-up: `Not(Archetype(x))` reads "Not for the x archetype" (no other data uses it).
+
+## Decisions on the questions
+
+**User, 2026-11-02:** all recommendations ("Yes, run overnight": take every recommendation without asking).
+
+1. No infusion pick at level 1.
+2. "Cannot use" stays "cannot take" (so no Cloud for the Sharpshooter).
+3. The Kinetic Knight is still offered Kinetic Blade and Blade Whirlwind.
+4. Grappling Infusion needs one of Cloud, Deadly Earth or Wall.
+5. The lock reason for an option closed to an archetype reads "Not for the … archetype": [ticket 65](65-closed-option-reason.md).

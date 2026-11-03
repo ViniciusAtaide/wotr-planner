@@ -17,7 +17,6 @@ Class(
         (key: "hunter/master-hunter", name: "Master Hunter", guide: "hunter#master-hunter"),
         (key: "hunter/nature-sense", name: "Nature Sense", guide: "hunter#nature-sense"),
         (key: "hunter/one-with-the-wild", name: "One with the Wild", guide: "hunter#one-with-the-wild"),
-        (key: "hunter/precise-companion", name: "Precise Companion", guide: "hunter#precise-companion"),
         (key: "hunter/raise-animal-companion", name: "Raise Animal Companion", guide: "hunter#raise-animal-companion"),
         (key: "hunter/second-animal-focus", name: "Second Animal Focus", guide: "hunter#second-animal-focus", daily_choice: true),
         (key: "hunter/woodland-stride", name: "Woodland Stride", guide: "hunter#woodland-stride"),
@@ -28,7 +27,7 @@ Class(
     ],
     levels: [
         (level: 1, divine_spell_level: 1, features: ["hunter/animal-companion", "hunter/animal-focus", "hunter/nature-sense"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
-        (level: 2, divine_spell_level: 1, features: ["hunter/precise-companion"], feat_slots: [OneOf(list: "hunter/bonus-feats-2")]),
+        (level: 2, divine_spell_level: 1, feat_slots: [OneOf(list: "hunter/bonus-feats-2")]),
         (level: 3, divine_spell_level: 1, features: ["hunter/hunter-tactics"], feat_slots: [OneOf(list: "hunter/bonus-feats-3")]),
         (level: 4, divine_spell_level: 2),
         (level: 5, divine_spell_level: 2, features: ["hunter/woodland-stride"]),
@@ -222,7 +221,7 @@ Class(
             ],
             levels: [
                 (level: 1, spell_levels: (arcane: 0, divine: 0), features: ["hunter/animal-companion", "hunter/animal-focus", "hunter/nature-sense", "hunter/tandem-executioner/aversion-to-spellcasting", "hunter/tandem-executioner/studied-target"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
-                (level: 2, spell_levels: (arcane: 0, divine: 0), features: ["hunter/precise-companion"], feat_slots: [OneOf(list: "hunter/bonus-feats-2")]),
+                (level: 2, spell_levels: (arcane: 0, divine: 0), feat_slots: [OneOf(list: "hunter/bonus-feats-2")]),
                 (level: 3, spell_levels: (arcane: 0, divine: 0), features: ["hunter/hunter-tactics"], feat_slots: [OneOf(list: "hunter/bonus-feats-3")]),
                 (level: 4, spell_levels: (arcane: 0, divine: 0), selections: ["hunter/tandem-executioner/tandem-executioner-techniques"]),
                 (level: 5, spell_levels: (arcane: 0, divine: 0), features: ["hunter/woodland-stride"]),
@@ -251,7 +250,6 @@ Class(
             features: [
                 (key: "hunter/urban-hunter/animal-companion-urban-hunter", name: "Animal Companion (Urban Hunter)", guide: "hunter#animal-companion-urban-hunter"),
                 (key: "hunter/urban-hunter/animal-insight", name: "Animal Insight", guide: "hunter#animal-insight"),
-                (key: "hunter/urban-hunter/captor", name: "Captor", guide: "hunter#captor"),
                 (key: "hunter/urban-hunter/frightful-ferocity", name: "Frightful Ferocity", guide: "hunter#frightful-ferocity"),
             ],
             feat_lists: [
@@ -262,12 +260,12 @@ Class(
                 (level: 1, features: ["hunter/animal-focus", "hunter/nature-sense", "hunter/urban-hunter/animal-companion-urban-hunter"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
                 (level: 3),
                 (level: 5, features: ["hunter/urban-hunter/animal-insight", "hunter/woodland-stride"]),
-                (level: 6, features: ["hunter/urban-hunter/captor"], feat_slots: [OneOf(list: "hunter/urban-hunter/bonus-feats-6")]),
-                (level: 9, features: ["hunter/urban-hunter/captor"], feat_slots: [OneOf(list: "hunter/urban-hunter/bonus-feats-6")]),
-                (level: 12, features: ["hunter/urban-hunter/captor"], feat_slots: [OneOf(list: "hunter/urban-hunter/bonus-feats-12")]),
-                (level: 15, features: ["hunter/urban-hunter/captor"], feat_slots: [OneOf(list: "hunter/urban-hunter/bonus-feats-12")]),
+                (level: 6, feat_slots: [OneOf(list: "hunter/urban-hunter/bonus-feats-6")]),
+                (level: 9, feat_slots: [OneOf(list: "hunter/urban-hunter/bonus-feats-6")]),
+                (level: 12, feat_slots: [OneOf(list: "hunter/urban-hunter/bonus-feats-12")]),
+                (level: 15, feat_slots: [OneOf(list: "hunter/urban-hunter/bonus-feats-12")]),
                 (level: 17, features: ["hunter/urban-hunter/frightful-ferocity"]),
-                (level: 18, features: ["hunter/urban-hunter/captor"], feat_slots: [OneOf(list: "hunter/urban-hunter/bonus-feats-12")]),
+                (level: 18, feat_slots: [OneOf(list: "hunter/urban-hunter/bonus-feats-12")]),
             ],
         ),
         (

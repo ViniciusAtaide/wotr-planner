@@ -2,6 +2,7 @@
 //! Examples are short hand-written lines in the guide's style, not copies of guide pages.
 
 mod backgrounds;
+mod bonus_feat_choices;
 mod borrowed_selections;
 mod class_rules;
 mod exploits;

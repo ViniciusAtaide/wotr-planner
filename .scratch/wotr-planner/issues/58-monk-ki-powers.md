@@ -112,3 +112,8 @@ Ticket 53's Done when (`t58/verify.txt`):
 ## Decisions on the questions
 
 **User, 2026-11-02:** question 1: "drunken master can be built as long as you check the alignment per archetype and not on the base class". An archetype's alignment requirement replaces its class's: [ticket 63](63-archetype-alignment.md). Questions 2 and 3 wait for the end of the queue.
+
+Questions 2 and 3, **User, 2026-11-02:** all recommendations ("Yes, run overnight": take every recommendation without asking).
+
+2. The Traditional Monk's fixed powers stay features.
+3. The Instinctual Warrior's monk rage powers become Instinctual Warrior-only rage power options at the guide's levels: [ticket 66](66-instinctual-warrior-rage-powers.md).

@@ -148,3 +148,13 @@ Ticket 60 changes no rules, so one program (`t60/proof-run`, the working tree's 
 4. **The Sanctified Slayer's combat style talents.** Built as the slayer's own (they need slayer levels). The guide doesn't say whether its slots at 8/16/17/20 read the windows by inquisitor level. **Recommendation:** keep it. The windows and the ranger style are the slayer's; the Sanctified Slayer's section gives "a Slayer talent" only.
 5. **Shared gates, ticket 25's trade-off.** The advanced talents' and the hexes' `Any`s are on the one shared option, so some multiclass characters may take them in another class's slot: a rogue 10 / bard 2 an advanced talent in the bard's slot (and an Archaeologist 10 / rogue 2 in the rogue's); a witch 2 / Hexcrafter 12 a major hex in the witch's slot. **Recommendation:** accept, as ticket 25's decision 2 did.
 6. **The bard's and skald's slots read "Rogue Talents"**, the selection's name, where their tables say "Bard Talent" and "Skald Talent". **Recommendation:** keep it; the guide calls it the Rogue Talent list.
+
+## Decisions on the questions
+
+**User, 2026-11-02:** all recommendations ("Yes, run overnight": take every recommendation without asking).
+
+1. The rogue's and slayer's selections stay levelled by the bard, skald and inquisitor too.
+2. and 3. Extra Discovery gives the Vivisectionist a Medical Discovery slot, and Extra Arcana gives the Hexcrafter a Hex Arcana slot: [ticket 64](64-vivisectionist-hexcrafter-extra-picks.md).
+4. The Sanctified Slayer gets no combat style talents.
+5. The shared-gate trade-offs are accepted.
+6. The bard's and skald's slot reads "Rogue Talents".
