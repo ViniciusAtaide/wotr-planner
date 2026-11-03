@@ -10,8 +10,12 @@
 //! [`Picks::option_rows_of`]), a pick a row grants beside its cells ([`Picks::row_selections_of`]) and a feature
 //! that is a daily choice ([`Picks::is_daily_choice`]). No feature stands for a pick at any point.
 //!
+//! A cell may also be feats granted outright, with or without its feature (a proficiency feature: [`Pick::Feats`],
+//! [`Pick::FeatureAndFeats`]), and a row may grant feats beside its cells ([`Picks::row_feats_of`]).
+//!
 //! The other stages ask the same providers for their owners' facts: a feat's or a mythic ability's prerequisite
-//! stated in place of its line, or a line the reader passes over ([`Picks::prerequisite_of`], [`Picks::lines_for`]),
+//! stated in place of its line, what a line also accepts beside what it names ([`Picks::alternatives_of`]), or a line
+//! the reader passes over ([`Picks::prerequisite_of`], [`Picks::lines_for`]),
 //! an archetype's alignment rule or an option's exclusions ([`Picks::stated_for`]), the slot and features a mythic
 //! ability gives and the pick a mythic feat gives ([`Picks::mythic_selections_of`], [`Picks::mythic_features_of`],
 //! [`Picks::mythic_extra_pick_of`]).
@@ -21,12 +25,13 @@
 //! (the rows in force, after the archetype rows are made sparse) is in [`check`], which changes nothing.
 
 use rules::{
-    ClassKey, DataAt, FeatList, FeatSlot, Feature, FeatureKey, FeatureSelection,
+    ClassKey, DataAt, FeatKey, FeatList, FeatSlot, Feature, FeatureKey, FeatureSelection,
     FeatureSelectionKey, GameData, MythicAbilityKey, MythicExtraPick, MythicFeatKey,
     OptionLevelRow, Prerequisite, SelectionOption, SelectionOptionKey, Skill,
 };
 use std::collections::BTreeSet;
 
+use crate::build::FeatureOwner;
 use crate::guide::Guide;
 use crate::option_levels::FeatNames;
 
@@ -43,9 +48,34 @@ pub enum Pick {
     /// on the owner's own row.
     OptionRow,
     /// One slot of this selection, with the cell's feature still defined (and named, for prerequisite lines), though
-    /// not on the row: a line elsewhere resolves to it. Only the Wind Whisperer's "Wind", which the shaman's Air
-    /// Barrier, Vortex Spells and Wind Ward resolve their "Wind" line to.
+    /// not on the row: a line elsewhere resolves to it. The Wind Whisperer's "Wind", which the shaman's Air Barrier,
+    /// Vortex Spells and Wind Ward resolve their "Wind" line to, and the Divine Hunter's "Domain", which Impossible
+    /// Domain's "Domain" line resolves to.
     SelectionKeepingFeature(FeatureSelectionKey),
+    /// These feats, granted outright, in place of the cell's feature (a proficiency feature its feats cover in full).
+    Feats(BTreeSet<FeatKey>),
+    /// The cell's feature, and these feats granted outright beside it (a proficiency feature that says more than its
+    /// feats: weapons no feat covers, bombs, casting in armour).
+    FeatureAndFeats(BTreeSet<FeatKey>),
+}
+
+/// Whose rows a row fact is on.
+#[derive(Clone, Debug)]
+pub enum Rows {
+    /// The table of this class or archetype (by its key).
+    Of(String),
+    /// Every archetype table of this class (by its key).
+    EveryArchetypeOf(String),
+}
+
+impl Rows {
+    fn holds(&self, owner: &FeatureOwner) -> bool {
+        match (self, owner) {
+            (Self::Of(table), owner) => table == owner.key(),
+            (Self::EveryArchetypeOf(class), FeatureOwner::Archetype(of, _)) => class == of.as_str(),
+            _ => false,
+        }
+    }
 }
 
 /// Which cells are a pick.
@@ -99,6 +129,8 @@ pub struct Picks {
     prerequisites: Vec<(DataAt, String, Prerequisite)>,
     /// Prerequisite lines of an owner that the reader passes over (a misspelt "Prequisites:").
     lines: Vec<(DataAt, String)>,
+    /// What an owner's one prerequisite line, naming any of several things, also accepts, with the line.
+    alternatives: Vec<(DataAt, String, Vec<Prerequisite>)>,
     /// The slot a mythic ability gives when it's picked.
     mythic_selections: Vec<(MythicAbilityKey, FeatureSelectionKey)>,
     /// The features a mythic ability grants (Bloodline Ascendance: the held bloodline's row 20).
@@ -115,6 +147,10 @@ pub struct Picks {
     option_rows: Vec<(SelectionOptionKey, Vec<OptionLevelRow>)>,
     /// Selections a row of a class's or archetype's table (by its key) grants beside its cells, by level.
     row_selections: Vec<(String, u8, FeatureSelectionKey)>,
+    /// Feats a row grants outright beside its cells, by level (a class level's proficiencies no feature carries).
+    row_feats: Vec<(Rows, u8, BTreeSet<FeatKey>)>,
+    /// Provided selections whose name a prerequisite line doesn't take as holding one of their options.
+    unnamed: BTreeSet<FeatureSelectionKey>,
 }
 
 impl Picks {
@@ -138,6 +174,8 @@ impl Picks {
         crate::bonus_feat_choices::provide(guide, feats, &mut picks);
         crate::instinctual_rage_powers::provide(guide, feats, &mut picks);
         crate::second_curse::provide(guide, &mut picks);
+        crate::proficiencies::provide(&mut picks);
+        crate::class_rules::provide(&mut picks);
         picks
     }
 
@@ -208,6 +246,32 @@ impl Picks {
             .map(|(_, _, selection)| selection)
     }
 
+    /// The rows `rows` at `level` grant `feats` outright beside their cells.
+    pub fn row_feats(&mut self, rows: Rows, level: u8, feats: BTreeSet<FeatKey>) {
+        self.row_feats.push((rows, level, feats));
+    }
+
+    /// The feats the row at `level` of `owner`'s table grants beside its cells.
+    pub fn row_feats_of(&self, owner: &FeatureOwner, level: u8) -> BTreeSet<FeatKey> {
+        self.row_feats
+            .iter()
+            .filter(|(rows, l, _)| *l == level && rows.holds(owner))
+            .flat_map(|(_, _, feats)| feats.iter().cloned())
+            .collect()
+    }
+
+    /// A line naming the provided selection `selection` doesn't mean holding one of its options: the domains', whose
+    /// "Domain" lines (Impossible Domain's) name the Divine Hunter's "Domain" feature, as when the domains were built
+    /// after the lines were resolved.
+    pub fn unnamed(&mut self, selection: &str) {
+        self.unnamed.insert(FeatureSelectionKey::new(selection));
+    }
+
+    /// Whether a line naming the provided selection `selection` means holding one of its options.
+    pub fn is_named(&self, selection: &FeatureSelectionKey) -> bool {
+        !self.unnamed.contains(selection)
+    }
+
     /// `owner`'s prerequisite is `prerequisite`, in place of what its "Prerequisites" line, `line`, names.
     pub fn prerequisite(&mut self, owner: DataAt, line: &str, prerequisite: Prerequisite) {
         self.prerequisites
@@ -225,6 +289,28 @@ impl Picks {
             .filter(|(o, _)| o == owner)
             .map(|(_, line)| line.clone())
             .collect()
+    }
+
+    /// `owner`'s prerequisite line `line`, which resolves to any of several things, also accepts `alternatives`:
+    /// what the guide's name means beside the features a table names (the Nature Bond's companion option for
+    /// "Animal Companion").
+    pub fn alternatives(&mut self, owner: DataAt, line: &str, alternatives: Vec<Prerequisite>) {
+        self.alternatives
+            .push((owner, line.to_owned(), alternatives));
+    }
+
+    /// What `owner`'s line also accepts, asserting its lines are the one the provider read.
+    pub fn alternatives_of(&self, owner: &DataAt, lines: &[String]) -> Vec<Prerequisite> {
+        let mut found = Vec::new();
+        for (_, line, alternatives) in self.alternatives.iter().filter(|(o, ..)| o == owner) {
+            assert_eq!(
+                lines,
+                std::slice::from_ref(line),
+                "{owner}: its prerequisite line"
+            );
+            found.extend(alternatives.iter().cloned());
+        }
+        found
     }
 
     /// The mythic ability `ability` gives one slot of `selection`.
@@ -370,4 +456,6 @@ pub fn check(guide: &Guide, data: &GameData) {
     crate::bonus_feat_choices::check(guide, data);
     crate::instinctual_rage_powers::check(guide, data);
     crate::second_curse::check(guide, data);
+    crate::proficiencies::check(data);
+    crate::class_rules::check(data);
 }

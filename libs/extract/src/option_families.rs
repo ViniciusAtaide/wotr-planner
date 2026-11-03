@@ -4,8 +4,8 @@
 //! The guide gives these families in prose, so each option's rows are read from its section by a table here that
 //! names, for each power, the level and a phrase the section must contain (asserted):
 //! - **domains** (`character-creation#domains`, 37): a power at 1 and one at 6 or 8 (the War domain's bonus Combat
-//!   feat is a slot), the Animal and Scalykind companion at 4, class skills as "Class Skill: …" features (ticket 30).
-//!   One selection, `cleric/domain` (cleric levels), which the inquisitor, the Divine Hunter, the druid (through Nature
+//!   feat is a slot), the Animal and Scalykind companion at 4, class skills on their row (tickets 37 and 38: the
+//!   Animal domain's on its 4th, with the companion). One selection, `cleric/domain` (cleric levels), which the inquisitor, the Divine Hunter, the druid (through Nature
 //!   Bond's domain option), the Blight Druid, the Winter Child, the Hellknight's Pentamic Faith and the Living
 //!   Deity's Hollow Spark share through selections of their own, levelled by their own class;
 //! - **mysteries** (`oracle#oracle-mysteries`, 9): class skills at 1, the Final Revelation at 20, and a pool of
@@ -18,18 +18,19 @@
 //! option's rows, and the cells that are a choice are the selection. A scaling number stays in the summary (ticket
 //! 29), so a domain's resistance growing to an immunity, or a revelation's uses per day, add no rows.
 //!
-//! The mysteries, the blessings, the elements and the Hellknight's order and Pentamic Faith are built with their
-//! classes ([`provide`], through [`crate::picks`]): no placeholder feature is made, and [`check`] asserts the rows in
-//! force. [`apply`] takes the domains, the Living Deity's mystery and domain, and the prerequisites naming them, on
-//! the finished rows, and asserts what it finds (why it stays a pass is in [`crate::build::extract`]).
+//! The domains, the mysteries, the blessings, the elements and the Hellknight's order and Pentamic Faith are built
+//! with their classes ([`provide`], through [`crate::picks`]): no placeholder feature is made, and [`check`] asserts
+//! the rows in force. With the domains: the Separatist's second domain and its alignment domains (tickets 33 and 35),
+//! the Divine Hunter's every domain power (ticket 33), Domain Zealot's "Domain" and what Boon Companion's and Mythical
+//! Beast's "Animal Companion" also accepts. [`apply`] takes the Living Deity's mystery and domain on the Magic
+//! Deceiver's ways, and asserts what it finds (why it stays a pass is in [`crate::build::extract`]).
 
 use std::collections::{BTreeMap, BTreeSet};
 
 use rules::{
-    ArchetypeLevelRow, Class, ClassKey, ClassLevelRow, DataAt, FeatList, FeatListKey, FeatSlot,
-    Feature, FeatureKey, FeatureSelection, FeatureSelectionKey, GameData, LevelFrom,
-    MythicAbilityKey, OptionLevelRow, OptionRow, Prerequisite, Repeat, SelectionOption,
-    SelectionOptionKey, Skill, SkillKey,
+    Class, ClassKey, DataAt, FeatList, FeatListKey, FeatSlot, Feature, FeatureKey,
+    FeatureSelection, FeatureSelectionKey, GameData, LevelFrom, MythicAbilityKey, OptionLevelRow,
+    OptionRow, Prerequisite, Repeat, SelectionOption, SelectionOptionKey, Skill, SkillKey,
 };
 
 use crate::guide::Guide;
@@ -41,30 +42,29 @@ use crate::option_levels::{
 };
 use crate::picks::{Pick, Picks, Rule};
 
-/// Reads every family from the guide and gives it to the classes that take it.
+/// The Living Deity's mystery, revelations and domains, on the Magic Deceiver's ways (why it stays a pass is in
+/// [`crate::build::extract`]); the labels its ways' rows held go.
 pub fn apply(guide: &Guide, data: &mut GameData) -> Log {
     let mut log = Log::new();
     let feats = FeatNames::new(data);
     let skills = Skills::new(data);
-
     let domains = domains(guide, &skills);
-    take_domains(data, &domains, &mut log);
     let mysteries = mysteries(guide, &skills, &feats);
     living_deity(data, &domains, &mysteries, &mut log);
-    prerequisites(data, &domains, &mut log);
-    drop_unused(data, &TOUCHED, &mut log);
-    normalise(data, &mut log);
+    drop_unused(data, &["arcanist"], &mut log);
     log
 }
 
 /// The families built with their owners, before any class is: the oracle's mysteries, the warpriest's blessings, the
-/// kineticist's elements and the Hellknight's order and Pentamic Faith.
+/// kineticist's elements, the domains and the Hellknight's order and Pentamic Faith.
 pub(crate) fn provide(guide: &Guide, feats: &FeatNames, skills: &[Skill], picks: &mut Picks) {
     let skills = Skills::of(skills);
     oracle_mysteries(guide, &mysteries(guide, &skills, feats), picks);
     blessings(guide, picks);
     elements(guide, &skills, feats, picks);
-    hellknight(guide, &domains(guide, &skills), picks);
+    let domains = domains(guide, &skills);
+    provide_domains(guide, &domains, picks);
+    hellknight(guide, &domains, picks);
 }
 
 /// What the providers can only assert on the finished data: the rows in force. Changes nothing.
@@ -73,10 +73,8 @@ pub(crate) fn check(guide: &Guide, data: &GameData) {
     check_blessings(guide, data);
     check_elements(data);
     check_hellknight(data);
+    check_domains(data);
 }
-
-/// The classes whose features [`apply`] may leave unused.
-const TOUCHED: [&str; 5] = ["arcanist", "cleric", "druid", "hunter", "inquisitor"];
 
 /// Skill names as the guide writes them, to skill keys.
 struct Skills(BTreeMap<String, (SkillKey, String)>);
@@ -138,16 +136,6 @@ impl Family {
             .map(|option| option.key.clone())
             .collect()
     }
-}
-
-/// A "Class Skill: …" feature (ticket 30's shape for an option's class skill).
-fn class_skill(under: &str, skills: &Skills, name: &str, guide: String) -> Feature {
-    let (key, name) = skills.get(name);
-    feature(
-        &FeatureKey::new(format!("{under}/class-skill-{key}")),
-        &format!("Class Skill: {name}"),
-        guide,
-    )
 }
 
 /// A section's text with its tables' cells too (a wild talent's description is a table row).
@@ -554,16 +542,21 @@ const DOMAINS: [(&str, Powers); 37] = [
     ),
 ];
 
-/// Domains that add class skills: the phrase, then the skills.
-const DOMAIN_SKILLS: [(&str, &str, &[&str]); 3] = [
+/// Domains that add class skills: the phrase, the row the skills are on, then the skills. A domain's class skills
+/// are its row's (ticket 37), so no "Class Skill: …" feature is made; the Animal domain's are on its 4th row, with
+/// the companion, the level of the sentence they follow (ticket 38).
+const DOMAIN_SKILLS: [(&str, &str, u8, &[&str]); 3] = [
     (
         "animal-domain",
-        "Lore (Nature) becomes a Class Skill",
+        "At 4th level, you gain an Animal Companion. Your class level - 3 is used to determine your companion's \
+         effective level. Lore (Nature) becomes a Class Skill.",
+        4,
         &["Lore (Nature)"],
     ),
     (
         "knowledge-domain",
         "All Knowledge and Lore skills become class skills",
+        1,
         &[
             "Knowledge (Arcana)",
             "Knowledge (World)",
@@ -574,6 +567,7 @@ const DOMAIN_SKILLS: [(&str, &str, &[&str]); 3] = [
     (
         "trickery-domain",
         "Stealth and Trickery become Class Skills",
+        1,
         &["Stealth", "Trickery"],
     ),
 ];
@@ -612,16 +606,13 @@ fn domains(guide: &Guide, skills: &Skills) -> Family {
         let text = domain.text();
         let under = format!("cleric/domain/{}", domain_short(anchor));
         let mut rows: BTreeMap<u8, OptionLevelRow> = BTreeMap::new();
-        if let Some((_, phrase, names)) = DOMAIN_SKILLS.iter().find(|(of, ..)| *of == anchor) {
+        if let Some((_, phrase, level, names)) = DOMAIN_SKILLS.iter().find(|(of, ..)| *of == anchor)
+        {
             contains(&text, phrase, anchor);
-            for name in *names {
-                let skill = class_skill(&under, skills, name, creation.guide(anchor));
-                rows.entry(1)
-                    .or_insert_with(|| empty_row(1))
-                    .features
-                    .push(skill.key.clone());
-                family.features.push(skill);
-            }
+            rows.entry(*level)
+                .or_insert_with(|| empty_row(*level))
+                .class_skills
+                .extend(names.iter().map(|name| skills.get(name).0));
         }
         for (level, name, phrase) in powers {
             contains(&text, phrase, anchor);
@@ -648,37 +639,6 @@ fn domains(guide: &Guide, skills: &Skills) -> Family {
 
 // ---- rows ------------------------------------------------------------------------------------------------------
 
-/// A class's or an archetype's level row.
-trait Row {
-    fn level(&self) -> u8;
-    fn features(&mut self) -> &mut Vec<FeatureKey>;
-    fn selections(&mut self) -> &mut Vec<FeatureSelectionKey>;
-}
-
-impl Row for ClassLevelRow {
-    fn level(&self) -> u8 {
-        self.level
-    }
-    fn features(&mut self) -> &mut Vec<FeatureKey> {
-        &mut self.features
-    }
-    fn selections(&mut self) -> &mut Vec<FeatureSelectionKey> {
-        &mut self.selections
-    }
-}
-
-impl Row for ArchetypeLevelRow {
-    fn level(&self) -> u8 {
-        self.level
-    }
-    fn features(&mut self) -> &mut Vec<FeatureKey> {
-        &mut self.features
-    }
-    fn selections(&mut self) -> &mut Vec<FeatureSelectionKey> {
-        &mut self.selections
-    }
-}
-
 fn class_mut<'d>(data: &'d mut GameData, key: &str) -> &'d mut Class {
     data.classes
         .iter_mut()
@@ -695,67 +655,6 @@ fn names(class: &Class) -> BTreeMap<FeatureKey, String> {
         .chain(class.archetypes.iter().flat_map(|a| &a.features))
         .map(|feature| (feature.key.clone(), norm(&feature.name)))
         .collect()
-}
-
-/// Which rows an edit applies to: the class's own, or one archetype's own.
-#[derive(Clone, Copy, Debug)]
-enum Rows<'a> {
-    Class,
-    Archetype(&'a str),
-}
-
-/// Runs `edit` over the rows `which` names, with the class's feature names.
-fn edit_rows(
-    class: &mut Class,
-    which: Rows,
-    mut edit: impl FnMut(&mut dyn Row, &BTreeMap<FeatureKey, String>),
-) {
-    let names = names(class);
-    match which {
-        Rows::Class => {
-            for row in &mut class.levels {
-                edit(row, &names);
-            }
-        }
-        Rows::Archetype(key) => {
-            let archetype = class
-                .archetypes
-                .iter_mut()
-                .find(|a| a.key.as_str() == key)
-                .unwrap_or_else(|| panic!("no archetype {key}"));
-            for row in &mut archetype.levels {
-                edit(row, &names);
-            }
-        }
-    }
-}
-
-/// Removes from `row` up to `limit` features whose name `is` names; returns how many it removed.
-fn strip(
-    row: &mut dyn Row,
-    names: &BTreeMap<FeatureKey, String>,
-    limit: usize,
-    is: impl Fn(&str) -> bool,
-) -> usize {
-    let mut removed = 0;
-    let features = row.features();
-    let mut kept = Vec::with_capacity(features.len());
-    for feature in features.drain(..) {
-        let name = names.get(&feature).map(String::as_str).unwrap_or_default();
-        if removed < limit && is(name) {
-            removed += 1;
-        } else {
-            kept.push(feature);
-        }
-    }
-    *row.features() = kept;
-    removed
-}
-
-fn grant(row: &mut dyn Row, selection: &FeatureSelectionKey, times: usize) {
-    for _ in 0..times {
-        row.selections().push(selection.clone());
-    }
 }
 
 /// A selection of `owner`'s that offers `options` of a shared family, levelled by `levels`.
@@ -794,11 +693,6 @@ fn add_selection(class: &mut Class, archetype: Option<&str>, selection: FeatureS
 
 fn starts(name: &str, prefix: &str) -> bool {
     name.starts_with(&norm(prefix))
-}
-
-/// "Domain Abilities", "Domain Ability (2)", "Domain ability - Icicle".
-fn is_domain_cell(name: &str) -> bool {
-    starts(name, "Domain Abilit")
 }
 
 // ---- taking the domains ----------------------------------------------------------------------------------------
@@ -840,60 +734,102 @@ const PENTAMIC_DOMAINS: [&str; 11] = [
     "war",
 ];
 
-fn take_domains(data: &mut GameData, domains: &Family, log: &mut Log) {
-    let domain = domains.selection.key.clone();
+const DOMAIN: &str = "cleric/domain";
+const INQUISITOR_DOMAIN: &str = "inquisitor/domain";
+const HUNTSMASTER_DOMAIN: &str = "inquisitor/sacred-huntsmaster/domain";
+const DRUID_DOMAIN: &str = "druid/domain";
+const BLIGHT_DOMAIN: &str = "druid/blight-druid/domain";
+const WINTER_DOMAIN: &str = "druid/winter-child/domain";
+const DIVINE_HUNTER_DOMAIN: &str = "hunter/divine-hunter/domain";
+const SEPARATIST: &str = "cleric/separatist";
+const SEPARATIST_DOMAIN: &str = "cleric/separatist/domain";
+const PENTAMIC_DISCIPLINE: &str = "hellknight/disciplines/pentamic-faith";
+
+/// The cells a domain table names its picks and its powers with: "Domain Abilities" at 1 (one or two, "(1)" and
+/// "(2)"), "Domain Ability" at 6 and 8.
+const PICK_CELLS: [&str; 3] = [
+    "domain-abilities",
+    "domain-abilities-1",
+    "domain-abilities-2",
+];
+const POWER_CELLS: [&str; 3] = ["domain-ability", "domain-ability-1", "domain-ability-2"];
+
+/// Each cell `{table}/{slug}` of `table` at `levels` is `pick`.
+fn cells(picks: &mut Picks, table: &str, slugs: &[&str], levels: &[u8], pick: &Pick) {
+    for slug in slugs {
+        picks.rule(Rule {
+            table: Some(table.to_owned()),
+            levels: Some(levels.to_vec()),
+            ..Rule::every(&format!("{table}/{slug}"), pick.clone())
+        });
+    }
+}
+
+/// The domains, built with the classes that take them. Each table's domain cells at 1 are the picks, and the cells
+/// the domains' rows stand for (the "Animal domain only" companion at 4, the powers at 6 and 8) are the held
+/// domain's rows ([`Pick::OptionRow`]), so none of those features is made. [`check_domains`] asserts the rows in
+/// force.
+fn provide_domains(guide: &Guide, domains: &Family, picks: &mut Picks) {
+    let domain = Pick::Selection(FeatureSelectionKey::new(DOMAIN));
+    let held = Pick::OptionRow;
+    picks.selection("cleric", separatist_alignments(guide, domains));
+    // A "Domain" line (Impossible Domain's) names the Divine Hunter's "Domain" feature, as it did when the domains
+    // were built after the lines were resolved.
+    picks.unnamed(DOMAIN);
+    for feature in &domains.features {
+        picks.feature("cleric", feature.clone());
+    }
 
     // Cleric: the domain cells at 1 are the picks (two, or one for an archetype that "May only select a single
-    // domain"); the cells at 4 ("Animal domain only"), 6 and 8 are the domains' rows now.
-    let cleric = class_mut(data, "cleric");
-    cleric.features.extend(domains.features.iter().cloned());
-    cleric.selections.push(domains.selection.clone());
-    let archetypes: Vec<String> = cleric
-        .archetypes
-        .iter()
-        .map(|a| a.key.as_str().to_owned())
-        .collect();
-    for which in std::iter::once(Rows::Class).chain(archetypes.iter().map(|a| Rows::Archetype(a))) {
-        let separatist = matches!(which, Rows::Archetype("cleric/separatist"));
-        let mut picks = 0;
-        edit_rows(cleric, which, |row, names| match row.level() {
-            1 => {
-                let cells = strip(row, names, usize::MAX, is_domain_cell);
-                grant(row, &domain, cells);
-                picks = cells;
-            }
-            // Forbidden Rites: the Separatist's second domain is delayed by two levels (its companion at 6, its
-            // abilities at 8 and 10), which the model can't say: those cells stay (a question in ticket 31).
-            4 => {
-                strip(row, names, usize::MAX, |n| n == norm("Animal Companion"));
-            }
-            6 | 8 => {
-                let limit = if separatist { 1 } else { usize::MAX };
-                strip(row, names, limit, is_domain_cell);
-            }
-            _ => {}
-        });
-        log.push(format!("cleric {which:?}: {picks} domain picks"));
-        assert!(picks > 0, "{which:?} picks no domain");
+    // domain"); the cells at 4 ("Animal domain only"), 6 and 8 are the domains' rows.
+    for table in crate::build::class_tables(guide, "cleric") {
+        cells(picks, &table, &PICK_CELLS, &[1], &domain);
+        cells(picks, &table, &["animal-companion"], &[4], &held);
+        cells(picks, &table, &POWER_CELLS, &[6, 8], &held);
     }
+    // The Separatist (ticket 33's decision on 31-1): "Higher level abilities are delayed by two class levels." Its
+    // second domain is its own selection, two levels behind, granted beside its first at 1; that domain's cells (the
+    // companion at 6, a Domain Ability at 8 and 10) are its rows.
+    crate::follow_ups::says(
+        guide,
+        "cleric",
+        "forbidden-rites",
+        "Higher level abilities are delayed by two class levels.",
+    );
+    assert_eq!(domains.selection.options.len(), 37, "the 37 domains");
+    picks.selection(
+        SEPARATIST,
+        FeatureSelection {
+            levels_behind: 2,
+            ..sharing(
+                SEPARATIST_DOMAIN,
+                "Domain (Separatist)",
+                "cleric#forbidden-rites".into(),
+                &["cleric"],
+                domains.all_keys(),
+            )
+        },
+    );
+    picks.row_selection(SEPARATIST, 1, SEPARATIST_DOMAIN);
+    cells(picks, SEPARATIST, &["animal-companion"], &[6], &held);
+    cells(picks, SEPARATIST, &["domain-ability"], &[10], &held);
 
     // Inquisitor: one domain, levelled by inquisitor levels; the Sacred Huntsmaster "May not select the Animal
     // domain" (and, character-creation says, not Scalykind); the Faith Hunter "Cannot select a domain".
-    let inquisitor = class_mut(data, "inquisitor");
-    let own = FeatureSelectionKey::new("inquisitor/domain");
-    inquisitor.selections.push(sharing(
-        own.as_str(),
-        "Domain",
-        "inquisitor".to_owned(),
-        &["inquisitor"],
-        domains.all_keys(),
-    ));
-    let huntsmaster = FeatureSelectionKey::new("inquisitor/sacred-huntsmaster/domain");
-    add_selection(
-        inquisitor,
-        Some("inquisitor/sacred-huntsmaster"),
+    picks.selection(
+        "inquisitor",
         sharing(
-            huntsmaster.as_str(),
+            INQUISITOR_DOMAIN,
+            "Domain",
+            "inquisitor".to_owned(),
+            &["inquisitor"],
+            domains.all_keys(),
+        ),
+    );
+    picks.selection(
+        "inquisitor/sacred-huntsmaster",
+        sharing(
+            HUNTSMASTER_DOMAIN,
             "Domain (Sacred Huntsmaster)",
             "inquisitor#sacred-huntsmaster".to_owned(),
             &["inquisitor"],
@@ -906,70 +842,39 @@ fn take_domains(data: &mut GameData, domains: &Family, log: &mut Log) {
                 .collect(),
         ),
     );
-    let archetypes: Vec<String> = inquisitor
-        .archetypes
-        .iter()
-        .map(|a| a.key.as_str().to_owned())
-        .collect();
-    for which in std::iter::once(Rows::Class).chain(archetypes.iter().map(|a| Rows::Archetype(a))) {
-        let pick = match which {
-            Rows::Archetype("inquisitor/sacred-huntsmaster") => huntsmaster.clone(),
-            _ => own.clone(),
+    for table in crate::build::class_tables(guide, "inquisitor") {
+        let pick = if table == "inquisitor/sacred-huntsmaster" {
+            HUNTSMASTER_DOMAIN
+        } else {
+            INQUISITOR_DOMAIN
         };
-        let mut picks = 0;
-        edit_rows(inquisitor, which, |row, names| match row.level() {
-            1 => {
-                let cells = strip(row, names, usize::MAX, is_domain_cell);
-                grant(row, &pick, cells);
-                picks = cells;
-            }
-            4 => {
-                strip(row, names, usize::MAX, |n| n == norm("Animal Companion"));
-            }
-            6 | 8 => {
-                strip(row, names, usize::MAX, is_domain_cell);
-            }
-            _ => {}
-        });
-        log.push(format!("inquisitor {which:?}: {picks} domain picks"));
+        let pick = Pick::Selection(FeatureSelectionKey::new(pick));
+        cells(picks, &table, &PICK_CELLS, &[1], &pick);
+        cells(picks, &table, &["animal-companion"], &[4], &held);
+        cells(picks, &table, &POWER_CELLS, &[6, 8], &held);
     }
 
-    // Druid: Nature Bond's domain option grants the pick (levelled by druid levels), the druid's cells at 4
-    // ("Animal domain only"), 6 ("Air, Earth, Fire, Plant and Water") and 8 (Lightning Lord: "Weather domain") are
-    // the domains' rows; the Blight Druid picks from its twelve and "Does not receive an Animal Companion" (it skips
-    // the companion at 4); the Winter Child "must select the Ice Subdomain".
-    let druid = class_mut(data, "druid");
-    let druid_domain = FeatureSelectionKey::new("druid/domain");
-    druid.selections.push(sharing(
-        druid_domain.as_str(),
-        "Domain",
-        "druid".to_owned(),
-        &["druid"],
-        domains.keys(&DRUID_DOMAINS),
-    ));
-    let bond = druid
-        .selections
-        .iter_mut()
-        .find(|s| s.key.as_str() == "druid/nature-bond")
-        .expect("Nature Bond");
-    bond.option_levels = BTreeSet::from([ClassKey::new("druid")]);
-    let domain_option = bond
-        .options
-        .iter_mut()
-        .find(|o| o.key.as_str() == "druid/nature-bond/domain")
-        .expect("Nature Bond's domain");
-    domain_option.levels = vec![OptionLevelRow {
-        selections: vec![druid_domain.clone()],
-        ..empty_row(1)
-    }];
-    let blight = FeatureSelectionKey::new("druid/blight-druid/domain");
-    add_selection(
-        druid,
-        Some("druid/blight-druid"),
+    // Druid: Nature Bond's domain option grants the pick (levelled by druid levels; the bond is
+    // [`crate::class_rules`]'), the druid's cells at 4 ("Animal domain only"), 6 ("Air, Earth, Fire, Plant and
+    // Water") and 8 (Lightning Lord: "Weather domain") are the domains' rows; the Blight Druid picks from its twelve
+    // and "Does not receive an Animal Companion" (it skips the companion at 4); the Winter Child "must select the Ice
+    // Subdomain".
+    picks.selection(
+        "druid",
+        sharing(
+            DRUID_DOMAIN,
+            "Domain",
+            "druid".to_owned(),
+            &["druid"],
+            domains.keys(&DRUID_DOMAINS),
+        ),
+    );
+    picks.selection(
+        "druid/blight-druid",
         FeatureSelection {
             skipped_levels: BTreeSet::from([4]),
             ..sharing(
-                blight.as_str(),
+                BLIGHT_DOMAIN,
                 "Domain (Blight Druid)",
                 "druid#blight-druid".to_owned(),
                 &["druid"],
@@ -977,55 +882,56 @@ fn take_domains(data: &mut GameData, domains: &Family, log: &mut Log) {
             )
         },
     );
-    let winter = FeatureSelectionKey::new("druid/winter-child/domain");
-    add_selection(
-        druid,
-        Some("druid/winter-child"),
+    picks.selection(
+        "druid/winter-child",
         sharing(
-            winter.as_str(),
+            WINTER_DOMAIN,
             "Domain (Winter Child)",
             "druid#winter-child".to_owned(),
             &["druid"],
             domains.keys(&["ice"]),
         ),
     );
-    for which in [
-        Rows::Class,
-        Rows::Archetype("druid/defender-of-the-true-world"),
-        Rows::Archetype("druid/feyspeaker"),
+    for table in [
+        "druid",
+        "druid/defender-of-the-true-world",
+        "druid/feyspeaker",
     ] {
-        let mut stripped = 0;
-        edit_rows(druid, which, |row, names| {
-            stripped += match row.level() {
-                4 => strip(row, names, 1, |n| n == norm("Animal Companion")),
-                6 => strip(row, names, 1, is_domain_cell),
-                8 => strip(row, names, 1, |n| n == norm("Lightning Lord")),
-                _ => 0,
-            };
-        });
-        assert_eq!(
-            stripped, 3,
-            "druid {which:?}: the domain cells at 4, 6 and 8"
-        );
+        cells(picks, table, &["animal-companion"], &[4], &held);
+        cells(picks, table, &["domain-ability"], &[6], &held);
+        cells(picks, table, &["lightning-lord"], &[8], &held);
     }
-    for (which, pick, levels) in [
-        ("druid/blight-druid", &blight, [1u8, 6, 8]),
-        ("druid/winter-child", &winter, [1, 8, 0]),
-    ] {
-        let mut stripped = BTreeSet::new();
-        edit_rows(druid, Rows::Archetype(which), |row, names| {
-            let level = row.level();
-            if levels.contains(&level) && strip(row, names, 1, is_domain_cell) == 1 {
-                stripped.insert(level);
-                if level == 1 {
-                    grant(row, pick, 1);
-                }
-            }
-        });
-        assert!(stripped.contains(&1), "{which}: no domain cell at 1");
-        log.push(format!("druid {which}: domain cells at {stripped:?}"));
-    }
+    let blight = Pick::Selection(FeatureSelectionKey::new(BLIGHT_DOMAIN));
+    cells(
+        picks,
+        "druid/blight-druid",
+        &["domain-abilities"],
+        &[1],
+        &blight,
+    );
+    cells(
+        picks,
+        "druid/blight-druid",
+        &["domain-ability"],
+        &[6, 8],
+        &held,
+    );
     // The Winter Child's two cells are the Ice Subdomain's two rows.
+    let winter = Pick::Selection(FeatureSelectionKey::new(WINTER_DOMAIN));
+    cells(
+        picks,
+        "druid/winter-child",
+        &["domain-ability-icicle"],
+        &[1],
+        &winter,
+    );
+    cells(
+        picks,
+        "druid/winter-child",
+        &["domain-ability-body-of-ice"],
+        &[8],
+        &held,
+    );
     let ice = domains
         .selection
         .options
@@ -1037,43 +943,191 @@ fn take_domains(data: &mut GameData, domains: &Family, log: &mut Log) {
         [1, 8]
     );
 
-    // Divine Hunter: "May select a domain" (its Domain cell at 0), levelled by hunter levels. Its table has no domain
-    // cells after that, so it skips the domains' later rows (a question in ticket 31).
-    let hunter = class_mut(data, "hunter");
-    let divine = FeatureSelectionKey::new("hunter/divine-hunter/domain");
-    let later: BTreeSet<u8> = domains
-        .selection
-        .options
+    // Divine Hunter: "May select a domain" (its Domain cell at 1), levelled by hunter levels, every domain power by
+    // hunter level (ticket 33's decision on 31-2: no skipped levels). The cell's feature stays defined, off the row:
+    // Impossible Domain's "Domain" line names it.
+    picks.selection(
+        "hunter/divine-hunter",
+        sharing(
+            DIVINE_HUNTER_DOMAIN,
+            "Domain (Divine Hunter)",
+            "hunter#domain".to_owned(),
+            &["hunter"],
+            domains.all_keys(),
+        ),
+    );
+    cells(
+        picks,
+        "hunter/divine-hunter",
+        &["domain"],
+        &[1],
+        &Pick::SelectionKeepingFeature(FeatureSelectionKey::new(DIVINE_HUNTER_DOMAIN)),
+    );
+
+    // Domain Zealot's "Domain" is a domain held (Second Mystery's "Mystery" is stated where the mysteries are built).
+    picks.prerequisite(
+        DataAt::MythicAbility(MythicAbilityKey::new("domain-zealot")),
+        "Domain",
+        Prerequisite::Any(
+            domains
+                .all_keys()
+                .into_iter()
+                .map(Prerequisite::SelectionOption)
+                .collect(),
+        ),
+    );
+    // Boon Companion's and Mythical Beast's "Animal Companion" accepts the domains' companion, whose rows the classes'
+    // "Animal domain only" companions are, and the Nature mystery's Animal Companion revelation.
+    let companions = vec![
+        Prerequisite::Feature {
+            feature: FeatureKey::new("cleric/domain/animal/animal-companion"),
+            count: 1,
+        },
+        Prerequisite::Feature {
+            feature: FeatureKey::new("cleric/domain/scalykind/animal-companion"),
+            count: 1,
+        },
+        Prerequisite::SelectionOption(SelectionOptionKey::new(
+            "oracle/revelations/nature/animal-companion",
+        )),
+    ];
+    picks.alternatives(
+        DataAt::Feat(rules::FeatKey::new("boon-companion")),
+        "Animal Companion",
+        companions.clone(),
+    );
+    picks.alternatives(
+        DataAt::MythicAbility(MythicAbilityKey::new("mythical-beast")),
+        "Animal Companion",
+        companions,
+    );
+}
+
+/// The Separatist (ticket 35's decision on 33-6): "This second domain cannot be an alignment domain that conflicts
+/// with the cleric's own alignment." Each alignment domain, picked through the Separatist's second-domain selection,
+/// needs an alignment off the opposite side of its axis.
+fn separatist_alignments(guide: &Guide, domains: &Family) -> FeatureSelection {
+    use rules::Alignment::*;
+    crate::follow_ups::says(
+        guide,
+        "cleric",
+        "forbidden-rites",
+        "This second domain cannot be an alignment domain that conflicts with the cleric's own alignment.",
+    );
+    let mut selection = domains.selection.clone();
+    for (domain, alignments) in [
+        (
+            "chaos",
+            [
+                NeutralGood,
+                ChaoticGood,
+                TrueNeutral,
+                ChaoticNeutral,
+                NeutralEvil,
+                ChaoticEvil,
+            ],
+        ),
+        (
+            "evil",
+            [
+                LawfulNeutral,
+                TrueNeutral,
+                ChaoticNeutral,
+                LawfulEvil,
+                NeutralEvil,
+                ChaoticEvil,
+            ],
+        ),
+        (
+            "good",
+            [
+                LawfulGood,
+                NeutralGood,
+                ChaoticGood,
+                LawfulNeutral,
+                TrueNeutral,
+                ChaoticNeutral,
+            ],
+        ),
+        (
+            "law",
+            [
+                LawfulGood,
+                NeutralGood,
+                LawfulNeutral,
+                TrueNeutral,
+                LawfulEvil,
+                NeutralEvil,
+            ],
+        ),
+    ] {
+        let key = format!("{DOMAIN}/{domain}");
+        let option = selection
+            .options
+            .iter_mut()
+            .find(|option| option.key.as_str() == key)
+            .unwrap_or_else(|| panic!("no {key}"));
+        assert_eq!(option.prerequisite, None, "{key}");
+        let mut children: Vec<Prerequisite> = alignments.map(Prerequisite::Alignment).into();
+        children.push(Prerequisite::Not(Box::new(Prerequisite::PickedThrough(
+            FeatureSelectionKey::new(SEPARATIST_DOMAIN),
+        ))));
+        children.sort();
+        option.prerequisite = Some(Prerequisite::Any(children));
+    }
+    selection
+}
+
+/// The domain cells' features are made nowhere: no cleric, inquisitor or druid feature is a domain cell's or an
+/// "Animal domain only" companion (the Sacred Huntsmaster's own companion at 1 aside), and each cleric table picks
+/// a domain at 1. Changes nothing.
+fn check_domains(data: &GameData) {
+    for class in data
+        .classes
         .iter()
-        .flat_map(|o| o.levels.iter().map(|row| row.level))
-        .filter(|level| *level > 1)
-        .collect();
-    add_selection(
-        hunter,
-        Some("hunter/divine-hunter"),
-        FeatureSelection {
-            skipped_levels: later,
-            ..sharing(
-                divine.as_str(),
-                "Domain (Divine Hunter)",
-                "hunter#domain".to_owned(),
-                &["hunter"],
-                domains.all_keys(),
-            )
-        },
+        .filter(|c| ["cleric", "inquisitor", "druid"].contains(&c.key.as_str()))
+    {
+        let features = class
+            .features
+            .iter()
+            .chain(class.archetypes.iter().flat_map(|a| &a.features));
+        for feature in features {
+            let name = norm(&feature.name);
+            let companion = name == norm("Animal Companion")
+                && feature.key.as_str() != "inquisitor/sacred-huntsmaster/animal-companion"
+                && !feature.key.as_str().starts_with("cleric/domain/")
+                && !feature.key.as_str().starts_with("druid/drovier/");
+            assert!(
+                !starts(&name, "Domain Abilit") && !companion,
+                "{}: a domain cell's feature",
+                feature.key
+            );
+        }
+    }
+    let cleric = data
+        .classes
+        .iter()
+        .find(|c| c.key.as_str() == "cleric")
+        .expect("the cleric");
+    let domain = FeatureSelectionKey::new(DOMAIN);
+    let base = cleric
+        .levels
+        .iter()
+        .find(|row| row.level == 1)
+        .expect("row 1");
+    assert_eq!(
+        base.selections.iter().filter(|s| **s == domain).count(),
+        2,
+        "the cleric's two domains"
     );
-    let mut cells = 0;
-    edit_rows(
-        hunter,
-        Rows::Archetype("hunter/divine-hunter"),
-        |row, names| {
-            if row.level() == 1 {
-                cells = strip(row, names, 1, |n| n == norm("Domain"));
-                grant(row, &divine, cells);
-            }
-        },
-    );
-    assert_eq!(cells, 1, "the Divine Hunter's Domain cell");
+    for archetype in &cleric.archetypes {
+        let first = archetype
+            .levels
+            .iter()
+            .find(|row| row.level == 1)
+            .map_or(&base.selections, |row| &row.selections);
+        assert!(first.contains(&domain), "{} picks no domain", archetype.key);
+    }
 }
 
 // ---- mysteries and revelations ---------------------------------------------------------------------------------
@@ -2292,7 +2346,7 @@ fn hellknight(guide: &Guide, domains: &Family, picks: &mut Picks) {
     );
     picks.option_levels("hellknight/disciplines", &["hellknight"]);
     picks.option_rows(
-        "hellknight/disciplines/pentamic-faith",
+        PENTAMIC_DISCIPLINE,
         vec![OptionLevelRow {
             selections: vec![FeatureSelectionKey::new(faith)],
             ..empty_row(1)
@@ -2375,135 +2429,4 @@ fn check_hellknight(data: &GameData) {
             && !o.levels.is_empty()),
         "Pentamic Faith's row"
     );
-}
-
-// ---- prerequisites ---------------------------------------------------------------------------------------------
-
-/// Domain Zealot's "Domain" is a domain held (Second Mystery's "Mystery" is stated where the mysteries are built).
-/// Boon Companion and Mythical Beast accept the domains' companion where they named the classes' "Animal domain
-/// only" companions, and the Nature mystery's Animal Companion revelation.
-fn prerequisites(data: &mut GameData, domains: &Family, log: &mut Log) {
-    let zealot = data
-        .mythic_abilities
-        .iter_mut()
-        .find(|ability| ability.key.as_str() == "domain-zealot")
-        .expect("Domain Zealot");
-    zealot.prerequisite = Some(Prerequisite::Any(
-        domains
-            .all_keys()
-            .into_iter()
-            .map(Prerequisite::SelectionOption)
-            .collect(),
-    ));
-    log.push("domain-zealot: any domain".to_owned());
-    // The companions the domains' rows replace: each class's "Animal Companion" cell at 4.
-    let gone: Vec<Prerequisite> = [
-        "cleric/animal-companion",
-        "cleric/angelfire-apostle/animal-companion",
-        "cleric/crusader/animal-companion",
-        "cleric/demonbane-priest/animal-companion",
-        "cleric/ecclesitheurge/animal-companion",
-        "cleric/herald-caller/animal-companion",
-        "cleric/priest-of-balance/animal-companion",
-        "druid/animal-companion",
-        "druid/defender-of-the-true-world/animal-companion",
-        "druid/feyspeaker/animal-companion",
-        "inquisitor/animal-companion",
-        "inquisitor/judge/animal-companion",
-        "inquisitor/living-grimoire/animal-companion",
-        "inquisitor/monster-tactician/animal-companion",
-        "inquisitor/sanctified-slayer/animal-companion",
-        "inquisitor/tactical-leader/animal-companion",
-    ]
-    .iter()
-    .map(|key| Prerequisite::Feature {
-        feature: FeatureKey::new(*key),
-        count: 1,
-    })
-    .collect();
-    // The domains' companion, and the Nature mystery's Animal Companion revelation.
-    let companions = [
-        Prerequisite::Feature {
-            feature: FeatureKey::new("cleric/domain/animal/animal-companion"),
-            count: 1,
-        },
-        Prerequisite::Feature {
-            feature: FeatureKey::new("cleric/domain/scalykind/animal-companion"),
-            count: 1,
-        },
-        Prerequisite::SelectionOption(SelectionOptionKey::new(
-            "oracle/revelations/nature/animal-companion",
-        )),
-    ];
-    // The Separatist's companion at 6 (its second domain's) stays a feature, so its leaf stays too.
-    let prerequisites = data
-        .feats
-        .iter_mut()
-        .map(|feat| (feat.key.as_str(), &mut feat.prerequisite))
-        .chain(
-            data.mythic_abilities
-                .iter_mut()
-                .map(|ability| (ability.key.as_str(), &mut ability.prerequisite)),
-        );
-    let mut changed = 0;
-    for (key, prerequisite) in prerequisites {
-        let Some(Prerequisite::Any(children)) = prerequisite else {
-            continue;
-        };
-        let before = children.len();
-        children.retain(|child| !gone.contains(child));
-        if children.len() == before {
-            continue;
-        }
-        assert_eq!(before - children.len(), gone.len(), "{key}");
-        children.extend(companions.iter().cloned());
-        changed += 1;
-        log.push(format!("{key}: the domains' companion"));
-    }
-    assert_eq!(changed, 2, "Boon Companion and Mythical Beast");
-}
-
-// ---- tidying ---------------------------------------------------------------------------------------------------
-
-/// An archetype row the edits made the same as the class's row is the class's row.
-fn normalise(data: &mut GameData, log: &mut Log) {
-    for class in data.classes.iter_mut().chain(&mut data.prestige_classes) {
-        if !TOUCHED.contains(&class.key.as_str()) {
-            continue;
-        }
-        let base = class.levels.clone();
-        for archetype in &mut class.archetypes {
-            archetype.levels.retain(|row| {
-                let Some(base) = base.iter().find(|b| b.level == row.level) else {
-                    return true;
-                };
-                let sorted = |items: Vec<String>| {
-                    let mut items = items;
-                    items.sort();
-                    items
-                };
-                let strings =
-                    |items: &[FeatureKey]| sorted(items.iter().map(|k| k.to_string()).collect());
-                let slots =
-                    |items: &[FeatSlot]| sorted(items.iter().map(|s| format!("{s:?}")).collect());
-                let picks = |items: &[FeatureSelectionKey]| {
-                    sorted(items.iter().map(|k| k.to_string()).collect())
-                };
-                let same = row
-                    .spell_levels
-                    .is_none_or(|spells| spells == base.spell_levels())
-                    && strings(&row.features) == strings(&base.features)
-                    && row.feats == base.feats
-                    && slots(&row.feat_slots) == slots(&base.feat_slots)
-                    && picks(&row.selections) == picks(&base.selections);
-                if same {
-                    log.push(format!(
-                        "{} {}: same as the base row now",
-                        archetype.key, row.level
-                    ));
-                }
-                !same
-            });
-        }
-    }
 }

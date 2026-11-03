@@ -4,11 +4,12 @@
 use std::collections::BTreeSet;
 
 use extract::class_rules;
+use extract::picks::{Pick, Picks};
 use rules::{
     Advancement, Archetype, ArchetypeKey, BabProgression, Class, ClassKey, ClassLevelRow, CountsAs,
-    CountsToward, Feat, FeatCategory, FeatKey, FeatList, FeatListKey, FeatSlot, Feature,
-    FeatureKey, FeatureSelectionKey, GameData, GuideRef, MythicAbility, MythicAbilityGroup,
-    MythicAbilityKey, Prerequisite, SaveProgression, SelectionOptionKey,
+    CountsToward, DataAt, FeatKey, FeatList, FeatListKey, FeatSlot, Feature, FeatureKey,
+    FeatureSelectionKey, GameData, GuideRef, MythicAbilityKey, Prerequisite, SaveProgression,
+    SelectionOptionKey,
 };
 
 fn row(level: u8) -> ClassLevelRow {
@@ -75,10 +76,6 @@ fn feature(key: &str) -> Feature {
         bab_floor: None,
         skill_ranks_at_least_mythic_rank: false,
     }
-}
-
-fn features(keys: &[&str]) -> Vec<FeatureKey> {
-    keys.iter().map(|key| FeatureKey::new(*key)).collect()
 }
 
 fn archetype(key: &str, own: &[&str], first: Vec<FeatureKey>) -> Archetype {
@@ -172,82 +169,21 @@ fn prestige_classes_advance_one_class_or_count_as_another_as_the_guide_says() {
     assert_eq!(class("loremaster").counts_as, BTreeSet::new());
 }
 
-/// A druid in the guide's shape: the companion and the domain on the base row and the two archetypes that keep
-/// both columns, a companion only for the Primal Druid.
-fn druid_world() -> GameData {
-    let mut first = row(1);
-    first.features = features(&[
-        "druid/animal-companion",
-        "druid/domain-abilities",
-        "druid/nature-sense",
-    ]);
-    let mut fourth = row(4);
-    fourth.features = features(&["druid/animal-companion"]);
-    let mut druid = class("druid", vec![first, row(2), row(3), fourth], vec![]);
-    druid.features = ["animal-companion", "domain-abilities", "nature-sense"]
-        .map(|key| feature(&format!("druid/{key}")))
-        .to_vec();
-    for key in ["defender-of-the-true-world", "feyspeaker"] {
-        let owner = format!("druid/{key}");
-        let companion = format!("{owner}/animal-companion");
-        let domain = format!("{owner}/domain-abilities");
-        druid.archetypes.push(archetype(
-            &owner,
-            &[&companion, &domain],
-            features(&[&companion, &domain, "druid/nature-sense"]),
-        ));
-    }
-    druid.archetypes.push(archetype(
-        "druid/primal-druid",
-        &["druid/primal-druid/animal-companion-primal-druid"],
-        features(&["druid/primal-druid/animal-companion-primal-druid"]),
-    ));
-    let companions = Prerequisite::Any(vec![
-        Prerequisite::Feature {
-            feature: FeatureKey::new("druid/animal-companion"),
-            count: 1,
-        },
-        Prerequisite::Feature {
-            feature: FeatureKey::new("hunter/animal-companion"),
-            count: 1,
-        },
-    ]);
-    let mut data = data(vec![druid], vec![]);
-    data.feats.push(Feat {
-        key: FeatKey::new("boon-companion"),
-        name: "Boon Companion".into(),
-        category: FeatCategory::Class,
-        summary: String::new(),
-        guide: GuideRef::new("feats#boon-companion"),
-        parameter: None,
-        repeat: rules::Repeat::Once,
-        extra_pick_of: Default::default(),
-        prerequisite: Some(companions.clone()),
-    });
-    data.mythic_abilities.push(MythicAbility {
-        key: MythicAbilityKey::new("mythical-beast"),
-        name: "Mythical Beast".into(),
-        group: MythicAbilityGroup::Class,
-        summary: String::new(),
-        guide: GuideRef::new("mythic-paths#mythical-beast"),
-        prerequisite: Some(companions),
-        features: vec![],
-        selections: vec![],
-    });
-    data
-}
-
 #[test]
 fn a_druid_chooses_an_animal_companion_or_a_domain_at_level_1() {
-    let mut data = druid_world();
-    class_rules::nature_bond(&mut data);
-    let druid = &data.classes[0];
+    let mut picks = Picks::default();
+    class_rules::provide(&mut picks);
+    let bond = FeatureSelectionKey::new("druid/nature-bond");
 
-    let bond = &druid.selections[0];
-    assert_eq!(bond.key, FeatureSelectionKey::new("druid/nature-bond"));
-    assert_eq!(bond.name, "Nature Bond");
+    let selections: Vec<_> = picks.selections_of("druid").collect();
+    let [selection] = selections[..] else {
+        panic!("{selections:?}");
+    };
+    assert_eq!(selection.key, bond);
+    assert_eq!(selection.name, "Nature Bond");
     assert_eq!(
-        bond.options
+        selection
+            .options
             .iter()
             .map(|o| (o.key.as_str(), o.name.as_str(), o.guide.0.as_str()))
             .collect::<Vec<_>>(),
@@ -260,51 +196,62 @@ fn a_druid_chooses_an_animal_companion_or_a_domain_at_level_1() {
             ("druid/nature-bond/domain", "Domain", "druid"),
         ]
     );
-    // The first row picks instead of granting both; the companion at 4 stays (the Animal domain's, ticket 31).
-    let selection = vec![FeatureSelectionKey::new("druid/nature-bond")];
-    assert_eq!(druid.levels[0].features, features(&["druid/nature-sense"]));
-    assert_eq!(druid.levels[0].selections, selection);
+    // The domain option grants the druid's domain pick, levelled by druid levels.
     assert_eq!(
-        druid.levels[3].features,
-        features(&["druid/animal-companion"])
+        selection.option_levels,
+        BTreeSet::from([ClassKey::new("druid")])
     );
-    assert!(
-        !druid
-            .features
-            .iter()
-            .any(|f| f.key.as_str() == "druid/domain-abilities")
+    assert_eq!(
+        selection.options[1].levels[0].selections,
+        [FeatureSelectionKey::new("druid/domain")]
     );
-    for archetype in &druid.archetypes[..2] {
-        let first = &archetype.levels[0];
+
+    // The first rows of the druid and of the two archetypes that keep both columns pick instead of granting both;
+    // the companion at 4 isn't the bond's, and the Primal Druid has its companion and no choice.
+    let pick = |table: &str, feature: &str, level: u8| {
+        picks
+            .pick(table, "", &FeatureKey::new(feature), level)
+            .map(|pick| format!("{pick:?}"))
+    };
+    for table in [
+        "druid",
+        "druid/defender-of-the-true-world",
+        "druid/feyspeaker",
+    ] {
         assert_eq!(
-            first.features,
-            features(&["druid/nature-sense"]),
-            "{}",
-            archetype.key
+            pick(table, &format!("{table}/domain-abilities"), 1),
+            Some(format!("{:?}", Pick::Selection(bond.clone()))),
+            "{table}"
         );
-        assert_eq!(first.selections, selection, "{}", archetype.key);
         assert_eq!(
-            archetype.features.len(),
-            1,
-            "{}: the companion only",
-            archetype.key
+            pick(table, &format!("{table}/animal-companion"), 1),
+            Some(format!("{:?}", Pick::OptionRow)),
+            "{table}"
         );
     }
-    // The Primal Druid has its companion and no choice.
-    assert_eq!(druid.archetypes[2].levels[0].selections, []);
+    assert_eq!(pick("druid", "druid/animal-companion", 4), None);
+    assert_eq!(
+        pick(
+            "druid/primal-druid",
+            "druid/primal-druid/animal-companion-primal-druid",
+            1
+        ),
+        None
+    );
 
     // A companion option counts as a companion.
     let companion = Prerequisite::SelectionOption(SelectionOptionKey::new(
         "druid/nature-bond/animal-companion",
     ));
-    for prerequisite in [
-        data.feats[0].prerequisite.as_ref(),
-        data.mythic_abilities[0].prerequisite.as_ref(),
+    let line = ["Animal Companion".to_owned()];
+    for owner in [
+        DataAt::Feat(FeatKey::new("boon-companion")),
+        DataAt::MythicAbility(MythicAbilityKey::new("mythical-beast")),
     ] {
-        let Some(Prerequisite::Any(children)) = prerequisite else {
-            panic!("{prerequisite:?}");
-        };
-        assert_eq!(children.last(), Some(&companion));
+        assert_eq!(
+            picks.alternatives_of(&owner, &line),
+            std::slice::from_ref(&companion)
+        );
     }
 }
 

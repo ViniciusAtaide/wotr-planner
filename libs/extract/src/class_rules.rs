@@ -1,15 +1,18 @@
 //! Class rules from the hand-fix follow-ups (ticket 28), stated in the guide's prose rather than its tables:
 //! prestige classes that advance one class, arcane or divine; levels that count as another class's; the druid's
-//! choice of an animal companion or a domain (Nature Bond); the note on the Crusader's bonus lists. The tables quote
-//! the guide and are the same as ticket 28's one-off rewrite of `libs/game-data/`.
+//! choice of an animal companion or a domain (Nature Bond, built with the class: [`provide`], through
+//! [`crate::picks`], and [`check`]); the note on the Crusader's bonus lists. The tables quote the guide and are the
+//! same as ticket 28's one-off rewrite of `libs/game-data/`.
 
 use std::collections::BTreeSet;
 
 use rules::{
-    Advancement, Class, ClassKey, CountsAs, CountsToward, FeatureKey, FeatureSelection,
-    FeatureSelectionKey, GameData, GuideRef, Prerequisite, Repeat, SelectionOption,
-    SelectionOptionKey,
+    Advancement, Class, ClassKey, CountsAs, CountsToward, DataAt, FeatKey, FeatureKey,
+    FeatureSelection, FeatureSelectionKey, GameData, GuideRef, MythicAbilityKey, OptionLevelRow,
+    Prerequisite, Repeat, SelectionOption, SelectionOptionKey,
 };
+
+use crate::picks::{Pick, Picks, Rule};
 
 /// "Advances one class, arcane or divine": each of these gains spells "as though she had also gained a level in her
 /// previous class" whichever kind that class casts (prestige-classes#hellknight-signifer, #loremaster,
@@ -66,67 +69,41 @@ pub fn apply_prestige(classes: &mut [Class]) {
     }
 }
 
-/// The druid: "Gains an Animal Companion or may choose a domain instead." The level 1 rows that grant both (the
-/// druid's and those of the archetypes whose table keeps both columns: Defender of the True World, Feyspeaker) pick
-/// one instead; the domain feature, granted nowhere else, goes. The companion at 4 stays: the Animal domain's
-/// (ticket 31). A companion option counts as a companion wherever a companion feature does.
-pub fn nature_bond(data: &mut GameData) {
-    const OWNERS: [&str; 3] = [
-        "druid",
-        "druid/defender-of-the-true-world",
-        "druid/feyspeaker",
-    ];
-    let selection = FeatureSelectionKey::new("druid/nature-bond");
-    let druid = data
-        .classes
-        .iter_mut()
-        .find(|class| class.key.as_str() == "druid")
-        .expect("the druid");
-    let mut changed = BTreeSet::new();
-    let mut choose = |features: &mut Vec<FeatureKey>, selections: &mut Vec<FeatureSelectionKey>| {
-        for owner in OWNERS {
-            let companion = FeatureKey::new(format!("{owner}/animal-companion"));
-            let domain = FeatureKey::new(format!("{owner}/domain-abilities"));
-            if features.contains(&companion) && features.contains(&domain) {
-                features.retain(|feature| feature != &companion && feature != &domain);
-                selections.push(selection.clone());
-                changed.insert(owner);
-            }
-        }
-    };
-    if let Some(first) = druid.levels.iter_mut().find(|row| row.level == 1) {
-        choose(&mut first.features, &mut first.selections);
-    }
-    for archetype in &mut druid.archetypes {
-        if let Some(first) = archetype.levels.iter_mut().find(|row| row.level == 1) {
-            choose(&mut first.features, &mut first.selections);
-        }
-    }
-    assert_eq!(changed, BTreeSet::from(OWNERS), "the rows granting both");
+/// The tables whose level-1 row grants both the companion and the domain: the druid's and those of the archetypes
+/// whose table keeps both columns (Defender of the True World, Feyspeaker).
+const NATURE_BOND_TABLES: [&str; 3] = [
+    "druid",
+    "druid/defender-of-the-true-world",
+    "druid/feyspeaker",
+];
 
-    let domains: BTreeSet<FeatureKey> = OWNERS
-        .iter()
-        .map(|owner| FeatureKey::new(format!("{owner}/domain-abilities")))
-        .collect();
-    let granted = druid
-        .levels
-        .iter()
-        .flat_map(|row| &row.features)
-        .chain(
-            druid
-                .archetypes
-                .iter()
-                .flat_map(|a| a.levels.iter().flat_map(|row| &row.features)),
-        )
-        .any(|feature| domains.contains(feature));
-    assert!(!granted, "a domain feature granted past level 1");
-    druid.features.retain(|f| !domains.contains(&f.key));
-    for archetype in &mut druid.archetypes {
-        archetype.features.retain(|f| !domains.contains(&f.key));
-    }
+pub const NATURE_BOND: &str = "druid/nature-bond";
+const BOND_COMPANION: &str = "druid/nature-bond/animal-companion";
+const BOND_DOMAIN: &str = "druid/nature-bond/domain";
 
-    let option = |key: &str, name: &str| SelectionOption {
-        key: SelectionOptionKey::new(format!("druid/nature-bond/{key}")),
+/// The druid: "Gains an Animal Companion or may choose a domain instead." Built with the class: in the level-1 rows
+/// that grant both, the domain cell is a pick of the Nature Bond and the companion cell is its companion option's
+/// (so neither feature is made there); the companion at 4 is the Animal domain's (ticket 31). The domain option
+/// grants the druid's domain pick, levelled by druid levels. Boon Companion's and Mythical Beast's "Animal Companion"
+/// also accepts the companion option.
+pub fn provide(picks: &mut Picks) {
+    for table in NATURE_BOND_TABLES {
+        picks.rule(Rule {
+            table: Some(table.to_owned()),
+            levels: Some(vec![1]),
+            ..Rule::every(
+                &format!("{table}/domain-abilities"),
+                Pick::Selection(FeatureSelectionKey::new(NATURE_BOND)),
+            )
+        });
+        picks.rule(Rule {
+            table: Some(table.to_owned()),
+            levels: Some(vec![1]),
+            ..Rule::every(&format!("{table}/animal-companion"), Pick::OptionRow)
+        });
+    }
+    let option = |key: &str, name: &str, levels: Vec<OptionLevelRow>| SelectionOption {
+        key: SelectionOptionKey::new(key),
         name: name.into(),
         summary: String::new(),
         guide: GuideRef::new("druid"),
@@ -134,7 +111,7 @@ pub fn nature_bond(data: &mut GameData) {
         chosen_feat: None,
         repeat: Repeat::Once,
         prerequisite: None,
-        levels: Vec::new(),
+        levels,
         pool: None,
         replaces_row_of: None,
         group: None,
@@ -142,52 +119,89 @@ pub fn nature_bond(data: &mut GameData) {
         parameter: None,
         values: Default::default(),
     };
-    druid.selections.push(FeatureSelection {
-        key: selection,
-        name: "Nature Bond".into(),
-        summary: String::new(),
-        guide: GuideRef::new("druid"),
-        options: vec![
-            option("animal-companion", "Animal Companion"),
-            option("domain", "Domain"),
-        ],
-        shared_options: BTreeSet::new(),
-        option_levels: BTreeSet::new(),
-        skipped_levels: BTreeSet::new(),
-        feat_lists_only: false,
-        only_without_option: false,
-        pool_of: None,
-        levels_behind: 0,
-        level_from: None,
-        once_per_option: false,
-        level_also_from: None,
-    });
+    picks.selection(
+        "druid",
+        FeatureSelection {
+            key: FeatureSelectionKey::new(NATURE_BOND),
+            name: "Nature Bond".into(),
+            summary: String::new(),
+            guide: GuideRef::new("druid"),
+            options: vec![
+                option(BOND_COMPANION, "Animal Companion", Vec::new()),
+                option(
+                    BOND_DOMAIN,
+                    "Domain",
+                    vec![OptionLevelRow {
+                        level: 1,
+                        selections: vec![FeatureSelectionKey::new("druid/domain")],
+                        ..OptionLevelRow::default()
+                    }],
+                ),
+            ],
+            shared_options: BTreeSet::new(),
+            option_levels: BTreeSet::from([ClassKey::new("druid")]),
+            skipped_levels: BTreeSet::new(),
+            feat_lists_only: false,
+            only_without_option: false,
+            pool_of: None,
+            levels_behind: 0,
+            level_from: None,
+            once_per_option: false,
+            level_also_from: None,
+        },
+    );
+    let companion = Prerequisite::SelectionOption(SelectionOptionKey::new(BOND_COMPANION));
+    picks.alternatives(
+        DataAt::Feat(FeatKey::new("boon-companion")),
+        "Animal Companion",
+        vec![companion.clone()],
+    );
+    picks.alternatives(
+        DataAt::MythicAbility(MythicAbilityKey::new("mythical-beast")),
+        "Animal Companion",
+        vec![companion],
+    );
+}
 
-    // Boon Companion and Mythical Beast: "Animal Companion".
-    let companion = Prerequisite::SelectionOption(SelectionOptionKey::new(
-        "druid/nature-bond/animal-companion",
-    ));
-    let druid_companion = Prerequisite::Feature {
-        feature: FeatureKey::new("druid/animal-companion"),
-        count: 1,
-    };
-    let add = |prerequisite: &mut Option<Prerequisite>, owner: &str| {
-        let Some(Prerequisite::Any(children)) = prerequisite else {
-            panic!("{owner} needs any of the companions");
+/// The Nature Bond is the level-1 pick of each table that grants both, and no druid table's domain feature is
+/// made. Changes nothing.
+pub fn check(data: &GameData) {
+    let druid = data
+        .classes
+        .iter()
+        .find(|class| class.key.as_str() == "druid")
+        .expect("the druid");
+    let bond = FeatureSelectionKey::new(NATURE_BOND);
+    for table in NATURE_BOND_TABLES {
+        let first = if table == "druid" {
+            druid
+                .levels
+                .iter()
+                .find(|row| row.level == 1)
+                .map(|row| &row.selections)
+        } else {
+            druid
+                .archetypes
+                .iter()
+                .find(|a| a.key.as_str() == table)
+                .and_then(|a| a.levels.iter().find(|row| row.level == 1))
+                .map(|row| &row.selections)
         };
-        assert!(children.contains(&druid_companion), "{owner}");
-        children.push(companion.clone());
-    };
-    let feat = data
-        .feats
-        .iter_mut()
-        .find(|feat| feat.key.as_str() == "boon-companion")
-        .expect("Boon Companion");
-    add(&mut feat.prerequisite, "Boon Companion");
-    let ability = data
-        .mythic_abilities
-        .iter_mut()
-        .find(|ability| ability.key.as_str() == "mythical-beast")
-        .expect("Mythical Beast");
-    add(&mut ability.prerequisite, "Mythical Beast");
+        assert_eq!(
+            first.map(|selections| selections.iter().filter(|s| **s == bond).count()),
+            Some(1),
+            "{table}: the Nature Bond at 1"
+        );
+    }
+    let defined = druid
+        .features
+        .iter()
+        .chain(druid.archetypes.iter().flat_map(|a| &a.features));
+    for feature in defined {
+        assert!(
+            !feature.key.as_str().ends_with("/domain-abilities"),
+            "{}",
+            feature.key
+        );
+    }
 }

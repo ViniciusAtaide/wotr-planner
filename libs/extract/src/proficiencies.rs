@@ -1,11 +1,15 @@
-//! Proficiency feats, from each class page's "… Proficiencies" section (prose the tables can't hold). A row that
-//! grants a proficiency feature grants the Armor, Shield and Weapon Proficiency feats its text names, so feats
-//! such as Shield Focus see them; a proficiency feature those feats cover in full is dropped. Runs on full rows,
-//! before the archetype rows are made sparse.
+//! Proficiency feats, from each class page's "… Proficiencies" section (prose the tables can't hold). A cell naming
+//! a proficiency feature grants the Armor, Shield and Weapon Proficiency feats its text names, so feats such as
+//! Shield Focus see them; a proficiency feature those feats cover in full is those feats alone, and is never defined.
+//! Built with the classes: [`provide`] gives each feature's cell as a pick ([`Pick::Feats`] or
+//! [`Pick::FeatureAndFeats`]) and the feats a class level grants that no feature carries as row feats; [`check`]
+//! asserts the magus's armour features carry their feats on the finished rows.
 
 use std::collections::BTreeSet;
 
-use rules::{Class, FeatKey, FeatureKey, GameData};
+use rules::{FeatKey, GameData};
+
+use crate::picks::{Pick, Picks, Rows, Rule};
 
 const SIMPLE: &str = "simple-weapon-proficiency";
 const MARTIAL: &str = "martial-weapons-proficiency";
@@ -163,29 +167,37 @@ const OVERRIDES: &[(&str, &str, &[&str])] = &[
     ),
 ];
 
-/// Who a row addition applies to.
-enum Who {
-    /// The base class's rows.
-    Class,
-    /// Every archetype's rows.
-    EveryArchetype,
-    Archetype(&'static str),
+/// Feats a class level grants that no feature in its table carries: (whose rows, level, feats).
+fn rows() -> [(Rows, u8, &'static [&'static str]); 3] {
+    [
+        // "Kineticists are proficient with all simple weapons and light armour."
+        (Rows::Of("kineticist".into()), 1, &[SIMPLE, LIGHT]),
+        (
+            Rows::EveryArchetypeOf("kineticist".into()),
+            1,
+            &[SIMPLE, LIGHT],
+        ),
+        // "At 11th level, he gains Armor Proficiency (Heavy) as a bonus feat."
+        (Rows::Of("oracle/purifier".into()), 11, &[HEAVY]),
+    ]
 }
 
-/// Feats a class level grants that no feature in its table carries: (class, whose rows, level, feats).
-const ROWS: &[(&str, Who, u8, &[&str])] = &[
-    // "Kineticists are proficient with all simple weapons and light armour."
-    ("kineticist", Who::Class, 1, &[SIMPLE, LIGHT]),
-    ("kineticist", Who::EveryArchetype, 1, &[SIMPLE, LIGHT]),
-    // "At 11th level, he gains Armor Proficiency (Heavy) as a bonus feat."
-    ("oracle", Who::Archetype("oracle/purifier"), 11, &[HEAVY]),
-];
-
 /// "At 7th level, a Magus gains proficiency with medium armour … At 13th level … heavy armour", on the magus's
-/// own features and each archetype's copy of them.
+/// own features and each archetype's copy of them ([`check`] asserts none is missed).
 const MAGUS_ARMOR: [(&str, &str); 2] = [
     ("arcane-medium-armor", MEDIUM),
     ("arcane-heavy-armor", HEAVY),
+];
+
+/// The tables that name the magus's armour features: the magus's (whose features the archetypes that keep them
+/// share) and the archetypes that have copies of their own.
+const MAGUS_ARMOR_TABLES: [(&str, &[&str]); 6] = [
+    ("magus", &[MEDIUM, HEAVY]),
+    ("magus/armored-battlemage", &[HEAVY]),
+    ("magus/bladebound", &[MEDIUM, HEAVY]),
+    ("magus/eldritch-archer", &[MEDIUM, HEAVY]),
+    ("magus/eldritch-scion", &[MEDIUM, HEAVY]),
+    ("magus/hexcrafter", &[MEDIUM, HEAVY]),
 ];
 
 /// Proficiency features whose feats cover all they say. The others name weapons no feat covers, bombs, casting in
@@ -222,86 +234,90 @@ const COVERED: &[&str] = &[
     "witch/witch-proficiencies",
 ];
 
-/// The feats a feature grants.
-fn feature_feats(feature: &FeatureKey) -> &'static [&'static str] {
-    if let Some((_, feats)) = FEATURES.iter().find(|(key, _)| *key == feature.as_str()) {
-        return feats;
-    }
-    let key = feature.as_str();
-    if key.starts_with("magus/") {
-        let last = key.rsplit('/').next().unwrap_or(key);
-        if let Some((_, feat)) = MAGUS_ARMOR.iter().find(|(name, _)| *name == last) {
-            return match *feat {
-                MEDIUM => &[MEDIUM],
-                _ => &[HEAVY],
-            };
-        }
-    }
-    &[]
+fn feats(keys: &[&str]) -> BTreeSet<FeatKey> {
+    keys.iter().map(|key| FeatKey::new(*key)).collect()
 }
 
-/// The proficiency feats one row grants, and its features without the covered ones.
-fn rewrite(
-    class: &str,
-    archetype: Option<&str>,
-    level: u8,
-    features: &mut Vec<FeatureKey>,
-    feats: &mut BTreeSet<FeatKey>,
-) {
-    for feature in features.iter() {
-        let overridden = archetype.and_then(|archetype| {
-            OVERRIDES
-                .iter()
-                .find(|(a, f, _)| *a == archetype && *f == feature.as_str())
-                .map(|(_, _, feats)| *feats)
+/// A cell naming `feature` grants `granted`, in place of the feature when they cover it.
+fn pick(feature: &str, granted: &[&str]) -> Pick {
+    if COVERED.contains(&feature) {
+        Pick::Feats(feats(granted))
+    } else {
+        Pick::FeatureAndFeats(feats(granted))
+    }
+}
+
+/// Each proficiency feature's cell, an archetype's override first (a rule naming its table comes before the one for
+/// every table), the magus's armour features, and the feats a level grants beside its cells.
+pub fn provide(picks: &mut Picks) {
+    for (archetype, feature, granted) in OVERRIDES {
+        picks.rule(Rule {
+            table: Some((*archetype).to_owned()),
+            ..Rule::every(feature, pick(feature, granted))
         });
-        let granted = overridden.unwrap_or_else(|| feature_feats(feature));
-        feats.extend(granted.iter().map(|key| FeatKey::new(*key)));
     }
-    for (row_class, who, row_level, granted) in ROWS {
-        let applies = *row_class == class
-            && *row_level == level
-            && match (who, archetype) {
-                (Who::Class, None) | (Who::EveryArchetype, Some(_)) => true,
-                (Who::Archetype(wanted), Some(archetype)) => *wanted == archetype,
-                _ => false,
-            };
-        if applies {
-            feats.extend(granted.iter().map(|key| FeatKey::new(*key)));
+    for (feature, granted) in FEATURES {
+        picks.rule(Rule::every(feature, pick(feature, granted)));
+    }
+    for (table, armour) in MAGUS_ARMOR_TABLES {
+        for (name, feat) in MAGUS_ARMOR {
+            if armour.contains(&feat) {
+                let feature = format!("{table}/{name}");
+                picks.rule(Rule::every(&feature, pick(&feature, &[feat])));
+            }
         }
     }
-    features.retain(|feature| !COVERED.contains(&feature.as_str()));
-}
-
-/// Adds the proficiency feats to every class and archetype row and drops the covered features, rows and
-/// definitions both.
-pub fn apply(data: &mut GameData) {
-    for class in data.classes.iter_mut().chain(&mut data.prestige_classes) {
-        apply_to_class(class);
+    for (rows, level, granted) in rows() {
+        picks.row_feats(rows, level, feats(granted));
     }
 }
 
-fn apply_to_class(class: &mut Class) {
-    let key = class.key.to_string();
-    for row in &mut class.levels {
-        rewrite(&key, None, row.level, &mut row.features, &mut row.feats);
-    }
-    class
+/// Every magus feature for medium or heavy armour is one [`provide`] names, and each row holding it holds its feat.
+/// Changes nothing.
+pub fn check(data: &GameData) {
+    let magus = data
+        .classes
+        .iter()
+        .find(|class| class.key.as_str() == "magus")
+        .expect("the magus");
+    let named: BTreeSet<String> = MAGUS_ARMOR_TABLES
+        .iter()
+        .flat_map(|(table, armour)| {
+            MAGUS_ARMOR
+                .iter()
+                .filter(|(_, feat)| armour.contains(feat))
+                .map(move |(name, _)| format!("{table}/{name}"))
+        })
+        .collect();
+    let defined = magus
         .features
-        .retain(|feature| !COVERED.contains(&feature.key.as_str()));
-    for archetype in &mut class.archetypes {
-        let archetype_key = archetype.key.to_string();
-        for row in &mut archetype.levels {
-            rewrite(
-                &key,
-                Some(&archetype_key),
-                row.level,
-                &mut row.features,
-                &mut row.feats,
-            );
+        .iter()
+        .chain(magus.archetypes.iter().flat_map(|a| &a.features));
+    for feature in defined {
+        if MAGUS_ARMOR
+            .iter()
+            .any(|(name, _)| feature.key.as_str().ends_with(&format!("/{name}")))
+        {
+            assert!(named.contains(feature.key.as_str()), "{}", feature.key);
         }
-        archetype
-            .features
-            .retain(|feature| !COVERED.contains(&feature.key.as_str()));
+    }
+    let rows = magus
+        .levels
+        .iter()
+        .map(|row| (&row.features, &row.feats))
+        .chain(
+            magus
+                .archetypes
+                .iter()
+                .flat_map(|a| a.levels.iter().map(|row| (&row.features, &row.feats))),
+        );
+    for (features, granted) in rows {
+        for feature in features {
+            for (name, feat) in MAGUS_ARMOR {
+                if feature.as_str().ends_with(&format!("/{name}")) {
+                    assert!(granted.contains(&FeatKey::new(feat)), "{feature}: {feat}");
+                }
+            }
+        }
     }
 }

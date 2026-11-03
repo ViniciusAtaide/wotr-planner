@@ -9,7 +9,8 @@
 //!   Faith's domain qualifies (levelled by Hellknight levels, as that domain is).
 //! - **Signifer** (33-3): its order is offered only to a character holding none, as the Hellknight's: built with the
 //!   Hellknight's order ([`option_families`](crate::option_families)' provider).
-//! - **Separatist** (33-6): its second domain isn't an alignment domain that conflicts with its alignment.
+//! - **Separatist** (33-6): its second domain isn't an alignment domain that conflicts with its alignment: built
+//!   with the domains ([`option_families`](crate::option_families)' provider).
 //! - **Ranger/slayer** (33-7): the slayer's three combat style feats come from the style's list of their window's
 //!   stage (2, 6, 10), whoever levels the style (`OptionList.at_level`).
 //! - **Bloodrager groups** (33-8): the bloodrager's ten Draconic and four Elemental bloodlines are groups of their
@@ -23,7 +24,7 @@
 //! 35's one-off rewrite, on `libs/game-data/`.
 
 use rules::{
-    Alignment, FeatSlot, FeatureSelectionKey, GameData, LevelFrom, MythicAbilityKey, OptionGroup,
+    FeatSlot, FeatureSelectionKey, GameData, LevelFrom, MythicAbilityKey, OptionGroup,
     Prerequisite, SelectionOptionKey,
 };
 
@@ -38,7 +39,6 @@ pub fn apply(guide: &Guide, data: &mut GameData) -> Log {
     half_elf_subraces(guide, data, &mut log);
     impossible_domain(guide, data, &mut log);
     no_druid_impossible_domain(guide, data, &mut log);
-    separatist(guide, data, &mut log);
     slayer_window_stages(guide, data, &mut log);
     bloodrager_groups(data, &mut log);
     log
@@ -168,90 +168,6 @@ pub fn no_druid_impossible_domain(guide: &Guide, data: &GameData, log: &mut Log)
         "impossible-domain: no druid domain qualifies (Nature Bond, Blight Druid, Winter Child)"
             .to_owned(),
     );
-}
-
-/// "This second domain cannot be an alignment domain that conflicts with the cleric's own alignment." Each
-/// alignment domain, picked through the Separatist's second-domain selection, needs an alignment off the opposite
-/// side of its axis.
-fn separatist(guide: &Guide, data: &mut GameData, log: &mut Log) {
-    says(
-        guide,
-        "cleric",
-        "forbidden-rites",
-        "This second domain cannot be an alignment domain that conflicts with the cleric's own alignment.",
-    );
-    use Alignment::*;
-    let second = FeatureSelectionKey::new("cleric/separatist/domain");
-    assert!(
-        class_selection(data, "cleric", second.as_str())
-            .shared_options
-            .len()
-            == 37
-    );
-    let domains = class_selection(data, "cleric", "cleric/domain");
-    for (domain, alignments) in [
-        (
-            "chaos",
-            [
-                NeutralGood,
-                ChaoticGood,
-                TrueNeutral,
-                ChaoticNeutral,
-                NeutralEvil,
-                ChaoticEvil,
-            ],
-        ),
-        (
-            "evil",
-            [
-                LawfulNeutral,
-                TrueNeutral,
-                ChaoticNeutral,
-                LawfulEvil,
-                NeutralEvil,
-                ChaoticEvil,
-            ],
-        ),
-        (
-            "good",
-            [
-                LawfulGood,
-                NeutralGood,
-                ChaoticGood,
-                LawfulNeutral,
-                TrueNeutral,
-                ChaoticNeutral,
-            ],
-        ),
-        (
-            "law",
-            [
-                LawfulGood,
-                NeutralGood,
-                LawfulNeutral,
-                TrueNeutral,
-                LawfulEvil,
-                NeutralEvil,
-            ],
-        ),
-    ] {
-        let key = format!("cleric/domain/{domain}");
-        let option = domains
-            .options
-            .iter_mut()
-            .find(|option| option.key.as_str() == key)
-            .unwrap_or_else(|| panic!("no {key}"));
-        assert_eq!(option.prerequisite, None, "{key}");
-        let mut children: Vec<Prerequisite> = alignments.map(Prerequisite::Alignment).into();
-        children.push(Prerequisite::Not(Box::new(Prerequisite::PickedThrough(
-            second.clone(),
-        ))));
-        children.sort();
-        option.prerequisite = Some(Prerequisite::Any(children));
-        log.push(format!(
-            "{key}: as the Separatist's second domain, no conflicting alignment"
-        ));
-    }
 }
 
 /// "He can only do so three times in total and at certain levels: 2 or 4, 6 or 8 and 10 or greater": each combat

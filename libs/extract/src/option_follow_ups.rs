@@ -9,8 +9,9 @@
 //! - **Daily choices** (30-10): the Unsworn Shaman's Minor Spirit and Wandering Spirit 2; the hunter's Animal Focus
 //!   (a feature now, not a pick of eight aspects) and its Second Animal Focus.
 //! - **Elemental Movement** (30-11): one per element (Air, Fire, Water), none for Earth.
-//! - **Separatist** (31-1): its second domain, two levels behind (`levels_behind`); the second domain's cells go.
-//! - **Divine Hunter** (31-2): every domain power, by hunter level (no skipped levels).
+//! - **Separatist** (31-1): its second domain, two levels behind (`levels_behind`); the second domain's cells are its
+//!   rows: built with the domains ([`option_families`](crate::option_families)' provider).
+//! - **Divine Hunter** (31-2): every domain power, by hunter level (no skipped levels): built with the domains.
 //! - **Impossible Domain** (31-5, the user's fact): a further domain from the full list, levelled like the domains
 //!   held (`LevelFrom::OtherOptions`); a Living Deity may take it.
 //! - **Expanded Element** (31-6): the 15th-level element isn't the 7th-level one (`once_per_option`): built with
@@ -48,8 +49,6 @@ pub fn apply(guide: &Guide, data: &mut GameData) -> Log {
     crossblooded(guide, data, &mut log);
     daily_choices(guide, data, &mut log);
     elemental_movement(guide, data, &mut log);
-    separatist(guide, data, &mut log);
-    divine_hunter(data, &mut log);
     impossible_domain(guide, data, &mut log);
     champion_of_the_faith(guide, data, &mut log);
     slayer_combat_style(guide, data, &mut log);
@@ -403,105 +402,6 @@ fn elemental_movement(guide: &Guide, data: &mut GameData, log: &mut Log) {
 }
 
 // ---- domains --------------------------------------------------------------------------------------------------
-
-/// "Higher level abilities are delayed by two class levels": the second domain is the Separatist's own selection,
-/// two levels behind; its cells (the companion at 6, a Domain Ability at 8 and 10) go.
-fn separatist(guide: &Guide, data: &mut GameData, log: &mut Log) {
-    says(
-        guide,
-        "cleric",
-        "forbidden-rites",
-        "Higher level abilities are delayed by two class levels.",
-    );
-    let domains = offered(data, "cleric", "cleric/domain");
-    assert_eq!(domains.len(), 37, "the 37 domains");
-    let key = "cleric/separatist/domain";
-    let archetype = archetype_mut(data, "cleric", "cleric/separatist");
-    archetype.selections.push(FeatureSelection {
-        shared_options: domains,
-        levels_behind: 2,
-        ..selection(
-            key,
-            "Domain (Separatist)",
-            "cleric#forbidden-rites".into(),
-            &["cleric"],
-        )
-    });
-    for row in &mut archetype.levels {
-        match row.level {
-            1 => {
-                assert_eq!(
-                    row.selections,
-                    [FeatureSelectionKey::new("cleric/domain")],
-                    "the Separatist's first domain"
-                );
-                row.selections.push(FeatureSelectionKey::new(key));
-            }
-            6 => take_feature(
-                &mut row.features,
-                "cleric/separatist/animal-companion",
-                "separatist 6",
-            ),
-            8 | 10 => take_feature(
-                &mut row.features,
-                "cleric/separatist/domain-ability",
-                "separatist 8, 10",
-            ),
-            _ => {}
-        }
-    }
-    log.push(format!("{key}: the second domain, two levels behind"));
-    // Boon Companion and Mythical Beast accepted the Separatist's companion cell; its Animal or Scalykind domain's
-    // companion row, which they accept already, gives it now.
-    let separatist_companion = Prerequisite::Feature {
-        feature: FeatureKey::new("cleric/separatist/animal-companion"),
-        count: 1,
-    };
-    let domain_companion = Prerequisite::Feature {
-        feature: FeatureKey::new("cleric/domain/animal/animal-companion"),
-        count: 1,
-    };
-    let feat = data
-        .feats
-        .iter_mut()
-        .find(|feat| feat.key.as_str() == "boon-companion")
-        .map(|feat| (&mut feat.prerequisite, "boon-companion"));
-    let ability = data
-        .mythic_abilities
-        .iter_mut()
-        .find(|ability| ability.key.as_str() == "mythical-beast")
-        .map(|ability| (&mut ability.prerequisite, "mythical-beast"));
-    for (prerequisite, at) in feat.into_iter().chain(ability) {
-        let Some(Prerequisite::Any(children)) = prerequisite else {
-            panic!("{at}: not an Any");
-        };
-        assert!(
-            children.contains(&domain_companion),
-            "{at}: the Animal domain's companion"
-        );
-        let before = children.len();
-        children.retain(|child| child != &separatist_companion);
-        assert_eq!(
-            children.len(),
-            before - 1,
-            "{at}: the Separatist's companion"
-        );
-        log.push(format!("{at}: the Separatist's companion is its domain's"));
-    }
-    for feature in [
-        "cleric/separatist/animal-companion",
-        "cleric/separatist/domain-ability",
-    ] {
-        drop_feature(data, "cleric", Some("cleric/separatist"), feature, log);
-    }
-}
-
-fn divine_hunter(data: &mut GameData, log: &mut Log) {
-    let domain = class_selection(data, "hunter", "hunter/divine-hunter/domain");
-    assert_eq!(domain.skipped_levels, BTreeSet::from([4, 6, 8]));
-    domain.skipped_levels.clear();
-    log.push("hunter/divine-hunter/domain: every domain power, by hunter level".into());
-}
 
 /// "You may select any domain" (the guide), levelled by the class that gives the character's other domains (the
 /// user's fact): a selection of every domain levelled like the domains held. A Living Deity, whose way gives

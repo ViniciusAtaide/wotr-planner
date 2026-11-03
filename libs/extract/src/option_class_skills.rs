@@ -2,8 +2,8 @@
 //! finished data.
 //!
 //! - **Options:** a feature that only makes skills class skills, on an option's row ("Class Skill: Athletics" on a
-//!   bloodline's or a domain's; a cavalier order's "Skills"), becomes that row's `class_skills`, so the skills are
-//!   class skills while the row is held. A mystery's and an element's row 1 are built with their class skills
+//!   bloodline's; a cavalier order's "Skills"), becomes that row's `class_skills`, so the skills are class skills
+//!   while the row is held. A mystery's, an element's and a domain's rows are built with their class skills
 //!   ([`option_families`](crate::option_families)' provider), so they have no such feature.
 //! - **Archetypes:** the same feature on an archetype's row (Empyreal and Sylvan Sorcerer) only repeats a skill that
 //!   the archetype's own list already holds, so it goes.
@@ -18,9 +18,8 @@
 //!   standard bloodline's 1st row, so it holds that bloodline's class skill already.
 //! - **Sohei:** its own class skill list, the monk's plus Lore (Nature) ("A Sohei gains Lore (Nature) as a class
 //!   skill"), as the Empyreal and Sylvan Sorcerers have one; its "Skills" goes.
-//! - **Animal domain:** its Lore (Nature) moves from the domain's 1st row to its 4th, the level of the sentence it
-//!   follows ("At 4th level, you gain an Animal Companion. … Lore (Nature) becomes a Class Skill."). The 1st row,
-//!   left empty, goes.
+//! - **Animal domain:** its Lore (Nature) is on the domain's 4th row, the level of the sentence it follows ("At 4th
+//!   level, you gain an Animal Companion. … Lore (Nature) becomes a Class Skill."): built with the domains.
 //!
 //! Each entry asserts the guide phrase that names its skills and the feature it replaces, so the rule fails loudly
 //! on data it doesn't expect. [`apply`] runs on the finished data of an extraction and, through ticket 37's one-off
@@ -28,9 +27,7 @@
 
 use std::collections::BTreeSet;
 
-use rules::{
-    Feature, FeatureKey, FeatureSelectionKey, GameData, OptionLevelRow, SelectionOption, SkillKey,
-};
+use rules::{Feature, FeatureKey, FeatureSelectionKey, GameData, SelectionOption, SkillKey};
 
 use crate::follow_ups::{archetype_mut, cell_at, class_mut, says};
 use crate::guide::Guide;
@@ -158,51 +155,6 @@ const ENTRIES: &[Entry] = &[
             &["lore-religion"],
         )],
     ),
-    // The domains (`cleric/domain`, shared by every domain holder).
-    prose(
-        "character-creation",
-        "animal-domain",
-        "Lore (Nature) becomes a Class Skill",
-        Holder::Option,
-        &[(
-            "cleric/domain/animal/class-skill-lore-nature",
-            &["lore-nature"],
-        )],
-    ),
-    prose(
-        "character-creation",
-        "knowledge-domain",
-        "All Knowledge and Lore skills become class skills",
-        Holder::Option,
-        &[
-            (
-                "cleric/domain/knowledge/class-skill-knowledge-arcana",
-                &["knowledge-arcana"],
-            ),
-            (
-                "cleric/domain/knowledge/class-skill-knowledge-world",
-                &["knowledge-world"],
-            ),
-            (
-                "cleric/domain/knowledge/class-skill-lore-nature",
-                &["lore-nature"],
-            ),
-            (
-                "cleric/domain/knowledge/class-skill-lore-religion",
-                &["lore-religion"],
-            ),
-        ],
-    ),
-    prose(
-        "character-creation",
-        "trickery-domain",
-        "Stealth and Trickery become Class Skills",
-        Holder::Option,
-        &[
-            ("cleric/domain/trickery/class-skill-stealth", &["stealth"]),
-            ("cleric/domain/trickery/class-skill-trickery", &["trickery"]),
-        ],
-    ),
     // The cavalier's orders: a "Skills" feature each.
     prose(
         "cavalier",
@@ -310,15 +262,14 @@ pub fn apply(guide: &Guide, data: &mut GameData) -> Log {
     log
 }
 
-/// Ticket 38: the Overwhelming Mage's and the Seeker's "Class Skill" go, the Sohei gets its own list, and the Animal
-/// domain's Lore (Nature) moves to its 4th row. Runs on data whose class-skill features the entries have moved.
+/// Ticket 38: the Overwhelming Mage's and the Seeker's "Class Skill" go, and the Sohei gets its own list (the Animal
+/// domain's Lore (Nature) is built on its 4th row). Runs on data whose class-skill features the entries have moved.
 pub fn cleanup(guide: &Guide, data: &mut GameData) -> Log {
     let mut log = Log::new();
     for (archetype, selection) in BLOODLINE_ARCHETYPES {
         bloodline_archetype(guide, data, archetype, selection, &mut log);
     }
     sohei(guide, data, &mut log);
-    animal_domain(guide, data, &mut log);
     check_left(data);
     log
 }
@@ -436,60 +387,6 @@ fn sohei(guide: &Guide, data: &mut GameData, log: &mut Log) {
     ));
 }
 
-const ANIMAL: &str = "cleric/domain/animal";
-
-/// The Animal domain's Lore (Nature) moves from its 1st row to its 4th (made if missing), with the companion; the
-/// 1st row goes when nothing else is on it.
-fn animal_domain(guide: &Guide, data: &mut GameData, log: &mut Log) {
-    says(
-        guide,
-        "character-creation",
-        "animal-domain",
-        "At 4th level, you gain an Animal Companion. Your class level - 3 is used to determine your companion's \
-         effective level. Lore (Nature) becomes a Class Skill.",
-    );
-    let skills = BTreeSet::from([SkillKey::new(LORE_NATURE)]);
-    let rows = &mut option_mut(data, ANIMAL).levels;
-    let first = rows
-        .iter()
-        .position(|row| row.level == 1)
-        .unwrap_or_else(|| panic!("{ANIMAL}: no 1st row"));
-    assert_eq!(rows[first].class_skills, skills, "{ANIMAL}@1");
-    rows[first].class_skills.clear();
-    let emptied = rows[first]
-        == OptionLevelRow {
-            level: 1,
-            ..OptionLevelRow::default()
-        };
-    if emptied {
-        rows.remove(first);
-    }
-    let fourth = match rows.iter().position(|row| row.level >= 4) {
-        Some(index) if rows[index].level == 4 => index,
-        found => {
-            let index = found.unwrap_or(rows.len());
-            rows.insert(
-                index,
-                OptionLevelRow {
-                    level: 4,
-                    ..OptionLevelRow::default()
-                },
-            );
-            index
-        }
-    };
-    assert!(rows[fourth].class_skills.is_empty(), "{ANIMAL}@4");
-    rows[fourth].class_skills = skills;
-    log.push(format!(
-        "{ANIMAL}: {LORE_NATURE} class skills of {ANIMAL}@4, not @1{}",
-        if emptied {
-            " (the 1st row, now empty, goes)"
-        } else {
-            ""
-        }
-    ));
-}
-
 /// The option defined under `key` (once, in a class's or an archetype's selection).
 fn option<'d>(data: &'d GameData, key: &str) -> &'d SelectionOption {
     let found: Vec<&SelectionOption> = data
@@ -507,22 +404,6 @@ fn option<'d>(data: &'d GameData, key: &str) -> &'d SelectionOption {
         .collect();
     assert_eq!(found.len(), 1, "{key}: defined {} times", found.len());
     found[0]
-}
-
-fn option_mut<'d>(data: &'d mut GameData, key: &str) -> &'d mut SelectionOption {
-    option(data, key);
-    data.classes
-        .iter_mut()
-        .chain(&mut data.prestige_classes)
-        .flat_map(|class| {
-            class
-                .selections
-                .iter_mut()
-                .chain(class.archetypes.iter_mut().flat_map(|a| &mut a.selections))
-        })
-        .flat_map(|selection| &mut selection.options)
-        .find(|option| option.key.as_str() == key)
-        .unwrap()
 }
 
 fn names(skills: &BTreeSet<SkillKey>) -> String {
