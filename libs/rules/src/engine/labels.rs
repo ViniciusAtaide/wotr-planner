@@ -1,6 +1,9 @@
 //! What the sheet calls things: names by key, slot labels, picker categories, and the reasons a picker shows for an
 //! [`Issue`], in the game's and the glossary's words ("Needs Power Attack", "Needs BAB +4 (have +1)").
 //!
+//! A negated condition that fails says what rules the option out ("Not for the Kinetic Sharpshooter archetype",
+//! "Not with Beast Totem, Lesser", "Only below Slayer level 6"), never "Needs not …".
+//!
 //! A key the game data lacks is named by its key: the sheet never holds one (a link naming one opens nothing), but
 //! a label should never fail.
 
@@ -27,6 +30,63 @@ enum Holder<'a> {
     Archetype(&'a Archetype),
     Class(&'a Class),
     Path(&'a MythicPath),
+}
+
+/// How a negated condition's held side reads: "for the X archetype", "with Power Attack", "as Domain (Separatist)",
+/// "from Slayer level 6". Refused, the first three read "Not …", the last "Only below …".
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Lead {
+    For,
+    With,
+    As,
+    From,
+}
+
+impl Lead {
+    fn word(self) -> &'static str {
+        match self {
+            Lead::For => "for",
+            Lead::With => "with",
+            Lead::As => "as",
+            Lead::From => "from",
+        }
+    }
+
+    /// The refusal of these, lower case: "not with A or B", "below A and B".
+    fn refusal(self, objects: &[String]) -> String {
+        match self {
+            Lead::From => format!("below {}", objects.join(" and ")),
+            lead => format!("not {} {}", lead.word(), objects.join(" or ")),
+        }
+    }
+
+    /// The refusal as a clause of a reason, lower case: "not with A or B", "only below A and B".
+    fn clause(self, objects: &[String]) -> String {
+        match self {
+            Lead::From => format!("only {}", self.refusal(objects)),
+            lead => lead.refusal(objects),
+        }
+    }
+}
+
+/// The condition a failing `Not` holds, when the unmet condition is one (a double negation is a plain condition).
+fn negated(unmet: &Unmet) -> Option<&Prerequisite> {
+    match unmet {
+        Unmet::Condition {
+            needs: Prerequisite::Not(held),
+            ..
+        } if !matches!(**held, Prerequisite::Not(_)) => Some(held),
+        _ => None,
+    }
+}
+
+/// The first letter in upper case.
+fn capitalized(text: &str) -> String {
+    let mut chars = text.chars();
+    match chars.next() {
+        Some(first) => first.to_uppercase().chain(chars).collect(),
+        None => String::new(),
+    }
 }
 
 impl Engine {
@@ -356,7 +416,7 @@ impl Engine {
     /// option that would break a later choice: the sheet leaves it grey, with no reason.
     pub fn issue_text(&self, issue: &Issue) -> Option<String> {
         Some(match issue {
-            Issue::Unmet(unmet) => format!("Needs {}", self.unmet_text(unmet)),
+            Issue::Unmet(unmet) => self.unmet_reason(unmet),
             Issue::AlreadyHeld => "Already taken".to_owned(),
             Issue::MaxTimes { times } => format!("Already taken {times} times"),
             Issue::NotAllowed => "Not allowed here".to_owned(),
@@ -367,6 +427,130 @@ impl Engine {
             }
             Issue::BreaksLater => return None,
         })
+    }
+
+    /// An unmet prerequisite as a reason. What rules the option out leads, each kind once ("Not for the Kinetic
+    /// Sharpshooter archetype; not with A or B; needs …"); an "or" whose negated branches fail reads as the case its
+    /// other branches answer ("As Domain (Separatist), needs Lawful Good alignment or …").
+    fn unmet_reason(&self, unmet: &Unmet) -> String {
+        if let Unmet::Any(children) = unmet
+            && children.iter().any(|child| negated(child).is_some())
+        {
+            let (held, needed): (Vec<&Unmet>, Vec<&Unmet>) =
+                children.iter().partition(|child| negated(child).is_some());
+            let held: Vec<(Lead, String)> = held
+                .into_iter()
+                .filter_map(negated)
+                .map(|held| self.held_text(held))
+                .collect();
+            let cases: Vec<String> = held
+                .iter()
+                .map(|(lead, object)| format!("{} {object}", lead.word()))
+                .collect();
+            return match (held.as_slice(), needed.as_slice()) {
+                ([(lead, object)], []) => capitalized(&lead.clause(std::slice::from_ref(object))),
+                (_, []) => format!("Not {} together", cases.join(" and ")),
+                _ => format!(
+                    "{}, needs {}",
+                    capitalized(&cases.join(" and ")),
+                    needed
+                        .iter()
+                        .map(|child| self.nested_unmet_text(child))
+                        .collect::<Vec<_>>()
+                        .join(" or ")
+                ),
+            };
+        }
+        let children: Vec<&Unmet> = match unmet {
+            Unmet::All(children) => children.iter().collect(),
+            unmet => vec![unmet],
+        };
+        let (refused, needed): (Vec<&Unmet>, Vec<&Unmet>) = children
+            .into_iter()
+            .partition(|child| negated(child).is_some());
+        if refused.is_empty() {
+            return format!("Needs {}", self.unmet_text(unmet));
+        }
+        // Each kind once, in the order they come.
+        let mut leads: Vec<(Lead, Vec<String>)> = Vec::new();
+        for held in refused.into_iter().filter_map(negated) {
+            let (lead, object) = self.held_text(held);
+            match leads.iter_mut().find(|(seen, _)| *seen == lead) {
+                Some((_, objects)) => objects.push(object),
+                None => leads.push((lead, vec![object])),
+            }
+        }
+        let mut clauses: Vec<String> = leads
+            .iter()
+            .map(|(lead, objects)| lead.clause(objects))
+            .collect();
+        match needed.as_slice() {
+            [] => {}
+            [one] => clauses.push(format!("needs {}", self.unmet_text(one))),
+            more => clauses.push(format!(
+                "needs {}",
+                more.iter()
+                    .map(|child| self.nested_unmet_text(child))
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            )),
+        }
+        capitalized(&clauses.join("; "))
+    }
+
+    /// What a negated condition rules out, as its lead and object: (For, "the Kinetic Sharpshooter archetype"),
+    /// (With, "Power Attack"), (As, "Domain (Separatist)"), (From, "Slayer level 6").
+    fn held_text(&self, held: &Prerequisite) -> (Lead, String) {
+        let text = || self.prerequisite_text(held, None);
+        match held {
+            Prerequisite::Archetype(_) => (Lead::For, text()),
+            Prerequisite::Race(race) => (Lead::For, format!("the {} race", self.race_name(race))),
+            Prerequisite::Alignment(alignment) => {
+                (Lead::For, format!("a {} character", alignment.name()))
+            }
+            Prerequisite::SpellLevel { spell_type, level } => (
+                Lead::For,
+                format!("a caster of {}", spell_text(*spell_type, *level)),
+            ),
+            Prerequisite::SpontaneousSpellLevel { spell_type, level } => (
+                Lead::For,
+                format!(
+                    "a spontaneous caster of {}",
+                    spell_text(*spell_type, *level)
+                ),
+            ),
+            Prerequisite::PickedThrough(selection) => {
+                (Lead::As, self.selection_name(selection).to_owned())
+            }
+            Prerequisite::NoOptionFrom(selection) => (
+                Lead::With,
+                format!("a {} pick", self.selection_name(selection)),
+            ),
+            Prerequisite::NoOtherOptionOfGroup(group) => {
+                (Lead::With, format!("another {} option", group.name()))
+            }
+            Prerequisite::All(_) | Prerequisite::Any(_) | Prerequisite::AtLeast(..) => {
+                (Lead::With, format!("({})", text()))
+            }
+            Prerequisite::Feature { count, .. } if *count > 1 => (Lead::From, text()),
+            Prerequisite::ClassLevel { .. }
+            | Prerequisite::SkillRanks { .. }
+            | Prerequisite::AbilityScore { .. }
+            | Prerequisite::BaseAttackBonus(_)
+            | Prerequisite::CasterLevel(_)
+            | Prerequisite::CharacterLevel(_)
+            | Prerequisite::MythicRank(_) => (Lead::From, text()),
+            Prerequisite::Not(_)
+            | Prerequisite::Feat(_)
+            | Prerequisite::FeatFor { .. }
+            | Prerequisite::FeatForSameValue(_)
+            | Prerequisite::FeatIfValue { .. }
+            | Prerequisite::MythicFeat(_)
+            | Prerequisite::MythicAbility(_)
+            | Prerequisite::Feature { .. }
+            | Prerequisite::SelectionOption(_)
+            | Prerequisite::Story(_) => (Lead::With, text()),
+        }
     }
 
     /// What an unmet prerequisite needs, without the leading "Needs".
@@ -432,7 +616,14 @@ impl Engine {
             Prerequisite::All(children) => group(children, ", "),
             Prerequisite::Any(children) => group(children, " or "),
             Prerequisite::AtLeast(n, children) => format!("{n} of: {}", group(children, ", ")),
-            Prerequisite::Not(child) => format!("not {}", self.prerequisite_text(child, None)),
+            // Two negations cancel.
+            Prerequisite::Not(child) => match &**child {
+                Prerequisite::Not(held) => self.prerequisite_text(held, has),
+                held => {
+                    let (lead, object) = self.held_text(held);
+                    lead.refusal(&[object])
+                }
+            },
             Prerequisite::Feat(feat) => self.feat_name(feat).to_owned(),
             Prerequisite::FeatFor { feat, value } => {
                 format!("{} ({})", self.feat_name(feat), self.parameter_name(value))
@@ -485,10 +676,10 @@ impl Engine {
                 None => format!("BAB +{bab}"),
             },
             Prerequisite::SpellLevel { spell_type, level } => {
-                spell_text(*spell_type, *level, false, has)
+                spell_need(*spell_type, *level, false, has)
             }
             Prerequisite::SpontaneousSpellLevel { spell_type, level } => {
-                spell_text(*spell_type, *level, true, has)
+                spell_need(*spell_type, *level, true, has)
             }
             Prerequisite::CasterLevel(level) => have(format!("caster level {level}")),
             Prerequisite::CharacterLevel(level) => have(format!("character level {level}")),
@@ -501,21 +692,23 @@ impl Engine {
 }
 
 /// "to cast 3rd-level arcane spells (have 1st)", or "(can't cast any)".
-fn spell_text(spell_type: SpellType, level: u8, spontaneous: bool, has: Option<u8>) -> String {
-    let spell_type = match spell_type {
-        SpellType::Arcane => "arcane",
-        SpellType::Divine => "divine",
-    };
+fn spell_need(spell_type: SpellType, level: u8, spontaneous: bool, has: Option<u8>) -> String {
     let how = if spontaneous { " spontaneously" } else { "" };
     let have = match has {
         Some(0) => " (can't cast any)".to_owned(),
         Some(value) => format!(" (have {})", ordinal(value)),
         None => String::new(),
     };
-    format!(
-        "to cast {}-level {spell_type} spells{how}{have}",
-        ordinal(level)
-    )
+    format!("to cast {}{how}{have}", spell_text(spell_type, level))
+}
+
+/// "3rd-level arcane spells".
+fn spell_text(spell_type: SpellType, level: u8) -> String {
+    let spell_type = match spell_type {
+        SpellType::Arcane => "arcane",
+        SpellType::Divine => "divine",
+    };
+    format!("{}-level {spell_type} spells", ordinal(level))
 }
 
 /// 1st, 2nd, 3rd, 4th, …, 11th, 12th, 13th, 21st.

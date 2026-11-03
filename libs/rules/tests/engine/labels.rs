@@ -195,15 +195,235 @@ fn other_conditions_name_what_is_needed() {
         "Needs no Rogue Talents yet"
     );
     assert_eq!(
-        text(Prerequisite::Not(Box::new(Prerequisite::ClassLevel {
-            class: class("slayer"),
-            level: 6
-        }))),
-        "Needs not Slayer level 6"
+        text(Prerequisite::Story(Story::VowOfDahak)),
+        "Needs Vow of Dahak"
+    );
+}
+
+fn not(prerequisite: Prerequisite) -> Prerequisite {
+    Prerequisite::Not(Box::new(prerequisite))
+}
+
+/// A negated condition that fails says what rules the option out, in words of its own rather than "Needs not …"
+/// (ticket 65): "Not for" an archetype, race or alignment, "Not with" what the character holds, "Not as" the slot it
+/// fills, "Only below" a level or score, "Not for a caster of" a spell level.
+#[test]
+fn a_negated_condition_says_what_rules_the_option_out() {
+    let engine = engine();
+    let text = |prerequisite| reason(&engine, &Issue::Unmet(needs(not(prerequisite), None)));
+    let scoundrel = || Prerequisite::Archetype(ArchetypeKey::new("rogue/eldritch-scoundrel"));
+    assert_eq!(
+        text(scoundrel()),
+        "Not for the Eldritch Scoundrel archetype"
+    );
+    assert_eq!(
+        text(Prerequisite::Race(RaceKey::new("elf"))),
+        "Not for the Elf race"
+    );
+    assert_eq!(
+        text(Prerequisite::Alignment(Alignment::LawfulGood)),
+        "Not for a Lawful Good character"
+    );
+    assert_eq!(
+        text(Prerequisite::SpellLevel {
+            spell_type: SpellType::Arcane,
+            level: 3
+        }),
+        "Not for a caster of 3rd-level arcane spells"
+    );
+    assert_eq!(
+        text(Prerequisite::SpontaneousSpellLevel {
+            spell_type: SpellType::Divine,
+            level: 1
+        }),
+        "Not for a spontaneous caster of 1st-level divine spells"
+    );
+    assert_eq!(
+        text(Prerequisite::Feat(feat("power-attack"))),
+        "Not with power-attack"
+    );
+    assert_eq!(
+        text(Prerequisite::SelectionOption(option(
+            "rogue/rogue-talents/fast-stealth"
+        ))),
+        "Not with fast-stealth"
+    );
+    assert_eq!(
+        text(Prerequisite::Feature {
+            feature: feature("rogue/sneak-attack"),
+            count: 1
+        }),
+        "Not with Sneak Attack"
     );
     assert_eq!(
         text(Prerequisite::Story(Story::VowOfDahak)),
-        "Needs Vow of Dahak"
+        "Not with Vow of Dahak"
+    );
+    assert_eq!(
+        text(Prerequisite::NoOptionFrom(FeatureSelectionKey::new(
+            "rogue/rogue-talents"
+        ))),
+        "Not with a Rogue Talents pick"
+    );
+    assert_eq!(
+        text(Prerequisite::NoOtherOptionOfGroup(OptionGroup::Draconic)),
+        "Not with another Draconic option"
+    );
+    assert_eq!(
+        text(Prerequisite::PickedThrough(FeatureSelectionKey::new(
+            "rogue/rogue-talents"
+        ))),
+        "Not as Rogue Talents"
+    );
+    assert_eq!(
+        text(Prerequisite::ClassLevel {
+            class: class("slayer"),
+            level: 6
+        }),
+        "Only below Slayer level 6"
+    );
+    assert_eq!(text(Prerequisite::BaseAttackBonus(4)), "Only below BAB +4");
+    assert_eq!(
+        text(Prerequisite::AbilityScore {
+            ability: Ability::Strength,
+            score: 13
+        }),
+        "Only below Str 13"
+    );
+    assert_eq!(
+        text(Prerequisite::MythicRank(3)),
+        "Only below Mythic rank 3"
+    );
+    assert_eq!(
+        text(Prerequisite::All(vec![
+            Prerequisite::Feat(feat("dodge")),
+            Prerequisite::Feat(feat("toughness"))
+        ])),
+        "Not with (dodge, toughness)"
+    );
+    // Two negations cancel.
+    assert_eq!(
+        text(not(Prerequisite::Feat(feat("power-attack")))),
+        "Needs power-attack"
+    );
+}
+
+/// Beside other unmet conditions, what rules an option out comes first, each kind once ("Not with A or B"), then what
+/// it needs. An "or" with a negated branch reads as the case the others answer: "As …, needs …". Deeper inside a
+/// group, a negated condition reads in line.
+#[test]
+fn negated_conditions_lead_a_reason_and_read_in_line_inside_a_group() {
+    let engine = engine();
+    let text = |unmet| reason(&engine, &Issue::Unmet(unmet));
+    let scoundrel = || {
+        not(Prerequisite::Archetype(ArchetypeKey::new(
+            "rogue/eldritch-scoundrel",
+        )))
+    };
+    let all = Unmet::All(vec![
+        needs(scoundrel(), None),
+        needs(
+            Prerequisite::ClassLevel {
+                class: class("fighter"),
+                level: 4,
+            },
+            Some(1),
+        ),
+        needs(not(Prerequisite::Feat(feat("dodge"))), None),
+        needs(Prerequisite::Feat(feat("power-attack")), None),
+        needs(
+            not(Prerequisite::SelectionOption(option(
+                "rogue/rogue-talents/fast-stealth",
+            ))),
+            None,
+        ),
+        needs(
+            not(Prerequisite::ClassLevel {
+                class: class("slayer"),
+                level: 6,
+            }),
+            None,
+        ),
+    ]);
+    assert_eq!(
+        text(all),
+        "Not for the Eldritch Scoundrel archetype; not with dodge or fast-stealth; only below Slayer level 6; \
+         needs Fighter level 4 (have 1), power-attack"
+    );
+    // Only negations.
+    assert_eq!(
+        text(Unmet::All(vec![
+            needs(not(Prerequisite::Feat(feat("dodge"))), None),
+            needs(not(Prerequisite::Feat(feat("toughness"))), None),
+        ])),
+        "Not with dodge or toughness"
+    );
+    // One group left beside the negation reads without brackets.
+    assert_eq!(
+        text(Unmet::All(vec![
+            needs(scoundrel(), None),
+            Unmet::Any(vec![
+                needs(Prerequisite::Race(RaceKey::new("human")), None),
+                needs(Prerequisite::Race(RaceKey::new("elf")), None),
+            ]),
+        ])),
+        "Not for the Eldritch Scoundrel archetype; needs Human or Elf"
+    );
+    // An "or" whose negated branch fails: the others are what that case needs.
+    let through = || {
+        needs(
+            not(Prerequisite::PickedThrough(FeatureSelectionKey::new(
+                "rogue/rogue-talents",
+            ))),
+            None,
+        )
+    };
+    assert_eq!(
+        text(Unmet::Any(vec![
+            through(),
+            needs(Prerequisite::Alignment(Alignment::LawfulGood), None),
+            needs(Prerequisite::Alignment(Alignment::NeutralGood), None),
+        ])),
+        "As Rogue Talents, needs Lawful Good alignment or Neutral Good alignment"
+    );
+    assert_eq!(
+        text(Unmet::Any(vec![
+            needs(scoundrel(), None),
+            through(),
+            needs(Prerequisite::Feat(feat("dodge")), None),
+        ])),
+        "For the Eldritch Scoundrel archetype and as Rogue Talents, needs dodge"
+    );
+    // An "or" of negations only fails when every one holds.
+    assert_eq!(
+        text(Unmet::Any(vec![
+            needs(not(Prerequisite::Feat(feat("dodge"))), None),
+            needs(not(Prerequisite::Feat(feat("toughness"))), None),
+        ])),
+        "Not with dodge and with toughness together"
+    );
+    // Inside a group, in line.
+    assert_eq!(
+        text(Unmet::All(vec![
+            needs(Prerequisite::BaseAttackBonus(1), Some(0)),
+            Unmet::Any(vec![
+                needs(Prerequisite::Race(RaceKey::new("human")), None),
+                needs(scoundrel(), None),
+                needs(
+                    not(Prerequisite::ClassLevel {
+                        class: class("slayer"),
+                        level: 6,
+                    }),
+                    None,
+                ),
+            ]),
+        ])),
+        "Needs BAB +1 (have +0), (Human or not for the Eldritch Scoundrel archetype or below Slayer level 6)"
+    );
+    // A negation's own text is the in-line one.
+    assert_eq!(
+        engine.prerequisite_text(&scoundrel(), None),
+        "not for the Eldritch Scoundrel archetype"
     );
 }
 
