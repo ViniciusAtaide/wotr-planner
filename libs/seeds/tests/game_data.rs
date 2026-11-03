@@ -5499,7 +5499,7 @@ fn a_witchs_extra_hex_gives_a_hex_slot() {
 /// `level`, after the class's earlier picks.
 #[test]
 fn each_extra_feat_gives_a_slot_of_its_classs_selection() {
-    let cases: [(Build, &str, u8, &str); 14] = [
+    let cases: [(Build, &str, u8, &str); 15] = [
         (barbarian(3), "extra-rage-power", 3, "barbarian/rage-power"),
         (classes_build(&["witch"]), "extra-hex", 1, "witch/hex"),
         (
@@ -5567,6 +5567,13 @@ fn each_extra_feat_gives_a_slot_of_its_classs_selection() {
         (paladin(3), "extra-mercy", 3, "paladin/mercy"),
         (
             enforcer(1),
+            "extra-arcanist-exploit",
+            1,
+            "arcanist/arcanist-exploits",
+        ),
+        // Ticket 57: the Exploiter Wizard's exploits are picks too.
+        (
+            exploiter(1),
             "extra-arcanist-exploit",
             1,
             "arcanist/arcanist-exploits",
@@ -6150,4 +6157,314 @@ fn extra_rage_power_through_extra_feat_gives_a_rage_power_slot_at_the_ranks_leve
     let filled = with_selections_filled(build);
     assert!(filled.picks.contains_key(&extra_slot(7, 0)));
     assert!(possible(&filled));
+}
+
+// ---- Greater exploits, and the Exploiter Wizard's exploits (ticket 57) ---------------------------------------------
+
+const GREATER: &str = "arcanist/greater-exploits";
+
+/// A chaotic neutral Exploiter Wizard of `levels` levels, with no picks.
+fn exploiter(levels: usize) -> Build {
+    chaotic(archetype_build("wizard", "wizard/exploiter-wizard", levels))
+}
+
+/// The one slot of `selection` the Build's sheet has at `level`.
+fn slot_of(build: &Build, level: u8, selection: &str) -> SlotId {
+    let found: Vec<SlotId> = engine()
+        .evaluate(build)
+        .levels
+        .iter()
+        .flat_map(|level| &level.slots)
+        .filter(|slot| {
+            slot.kind == selection_kind(selection)
+                && matches!(slot.id, SlotId::Selection { level: at, .. } if at == level)
+        })
+        .map(|slot| slot.id.clone())
+        .collect();
+    let [slot] = found.as_slice() else {
+        panic!("{} slots of {selection} at {level}", found.len())
+    };
+    slot.clone()
+}
+
+/// The options `slot`'s picker offers, by key, with their status.
+fn offered_in(build: &Build, slot: &SlotId) -> HashMap<String, Result<(), Issue>> {
+    engine()
+        .options(build, slot)
+        .unwrap_or_else(|| panic!("no slot {slot:?}"))
+        .into_iter()
+        .map(|SlotOption { pick, status }| (pick.key().to_owned(), status))
+        .collect()
+}
+
+/// Why `slot`'s picker locks `option`, as the sheet says it.
+fn reason_in(build: &Build, slot: &SlotId, option: &str) -> String {
+    let status = offered_in(build, slot)
+        .remove(option)
+        .unwrap_or_else(|| panic!("{option} isn't offered in {slot:?}"));
+    engine().issue_text(&status.expect_err("locked")).unwrap()
+}
+
+/// The keys of the arcanist's own selection `selection`.
+fn arcanist_options(selection: &str) -> BTreeSet<String> {
+    class("arcanist")
+        .selections
+        .iter()
+        .find(|s| s.key.as_str() == selection)
+        .unwrap_or_else(|| panic!("no {selection}"))
+        .options
+        .iter()
+        .map(|o| o.key.to_string())
+        .collect()
+}
+
+/// The features of `class`'s archetype `archetype`, by key.
+fn archetype_features(class_key: &str, archetype: &str) -> BTreeSet<String> {
+    class(class_key)
+        .archetypes
+        .iter()
+        .find(|a| a.key.as_str() == archetype)
+        .unwrap_or_else(|| panic!("no {archetype}"))
+        .features
+        .iter()
+        .map(|f| f.key.to_string())
+        .collect()
+}
+
+/// The ticket's: "From 13th level, he gains access to Greater Exploits" (`slayer#arcanist-exploits`), read as the
+/// arcanist's own "Greater Exploits" cell at 11 is: one slot of the arcanist's greater exploits at 13, in place of the
+/// feature. An Enforcer 12 has none.
+#[test]
+fn an_arcane_enforcer_13_has_one_greater_exploit_slot_and_an_enforcer_12_none() {
+    let engine = engine();
+    assert_eq!(levels_with_slot_of(&enforcer(20), GREATER), [13]);
+    assert_eq!(levels_with_slot_of(&enforcer(13), GREATER), [13]);
+    assert_eq!(
+        levels_with_slot_of(&enforcer(12), GREATER),
+        Vec::<u8>::new()
+    );
+    assert!(
+        !archetype_features("slayer", "slayer/arcane-enforcer")
+            .contains("slayer/arcane-enforcer/greater-exploits")
+    );
+    // Its 13th level also keeps its arcanist exploit.
+    assert_eq!(
+        levels_with_slot_of(&enforcer(13), EXPLOITS),
+        [1, 4, 7, 10, 13]
+    );
+
+    // Flame Arc at 1 opens the two greater exploits that extend it; the others wait for theirs.
+    let mut build = enforcer(13);
+    build.picks.insert(
+        selection_slot(1),
+        pick("arcanist/arcanist-exploits/flame-arc"),
+    );
+    let greater = slot_of(&build, 13, GREATER);
+    let sheet = engine.evaluate(&build);
+    assert_eq!(
+        engine.slot_label(sheet.slot(&greater).unwrap()),
+        "Greater Exploits"
+    );
+    let offered = offered_in(&build, &greater);
+    assert_eq!(
+        offered.keys().cloned().collect::<BTreeSet<_>>(),
+        arcanist_options(GREATER)
+    );
+    assert_eq!(offered.len(), 6);
+    let open: BTreeSet<&str> = offered
+        .iter()
+        .filter(|(_, status)| status.is_ok())
+        .map(|(key, _)| key.as_str())
+        .collect();
+    assert_eq!(
+        open,
+        BTreeSet::from([
+            "arcanist/greater-exploits/burning-flame",
+            "arcanist/greater-exploits/hellfire-ray",
+        ])
+    );
+    assert_eq!(
+        reason_in(&build, &greater, "arcanist/greater-exploits/icy-tomb"),
+        "Needs Ice Missile"
+    );
+    let mut picked = build.clone();
+    picked.picks.insert(
+        greater.clone(),
+        pick("arcanist/greater-exploits/burning-flame"),
+    );
+    assert!(possible(&picked));
+    let filled = with_selections_filled(build);
+    assert!(filled.picks.contains_key(&greater));
+    assert!(possible(&filled));
+}
+
+/// The ticket's: "At 1st level and every four levels thereafter, an Exploiter Wizard may choose an Arcanist
+/// Exploit. From 13th level, he can choose from the list of Greater Exploits." (`wizard#exploiter-exploits`): slots
+/// of the arcanist's own exploits at 1, 5, 9, 13 and 17, and of its greater exploits where the table has "Greater
+/// Exploits", at 13. Both features are gone.
+#[test]
+fn an_exploiter_wizard_picks_an_arcanist_exploit_at_1_5_9_13_and_17_and_a_greater_exploit_at_13() {
+    let engine = engine();
+    let wizard = exploiter(20);
+    assert!(possible(&wizard));
+    assert_eq!(levels_with_slot_of(&wizard, EXPLOITS), [1, 5, 9, 13, 17]);
+    assert_eq!(levels_with_slot_of(&wizard, GREATER), [13]);
+    assert_eq!(
+        levels_with_slot_of(&exploiter(12), GREATER),
+        Vec::<u8>::new()
+    );
+    let features = archetype_features("wizard", "wizard/exploiter-wizard");
+    assert!(!features.contains("wizard/exploiter-wizard/exploiter-exploits"));
+    assert!(!features.contains("wizard/exploiter-wizard/greater-exploits"));
+    // A wizard of no archetype picks none.
+    assert_eq!(
+        levels_with_slot_of(&build("wizard", 20), EXPLOITS),
+        Vec::<u8>::new()
+    );
+
+    // The arcanist's 16 exploits, Holy Water Jet locked for a chaotic neutral wizard by its alignment.
+    let first = slot_of(&wizard, 1, EXPLOITS);
+    let offered = offered_in(&wizard, &first);
+    let exploits = arcanist_options(EXPLOITS);
+    assert_eq!(exploits.len(), 16);
+    assert_eq!(offered.keys().cloned().collect::<BTreeSet<_>>(), exploits);
+    let open: BTreeSet<String> = offered
+        .into_iter()
+        .filter(|(_, status)| status.is_ok())
+        .map(|(key, _)| key)
+        .collect();
+    let mut expected = exploits;
+    expected.remove("arcanist/arcanist-exploits/holy-water-jet");
+    assert_eq!(open, expected);
+    let sheet = engine.evaluate(&wizard);
+    assert_eq!(
+        engine.slot_label(sheet.slot(&first).unwrap()),
+        "Arcanist Exploits"
+    );
+    let greater = slot_of(&wizard, 13, GREATER);
+    assert_eq!(
+        engine.slot_label(sheet.slot(&greater).unwrap()),
+        "Greater Exploits"
+    );
+    assert_eq!(
+        offered_in(&wizard, &greater)
+            .into_keys()
+            .collect::<BTreeSet<_>>(),
+        arcanist_options(GREATER)
+    );
+
+    // Filled, the Build holds five exploits and a greater exploit.
+    let filled = with_selections_filled(wizard.clone());
+    assert!(possible(&filled));
+    for level in [1, 5, 9, 13, 17] {
+        assert!(
+            filled
+                .picks
+                .contains_key(&slot_of(&wizard, level, EXPLOITS)),
+            "{level}"
+        );
+    }
+    assert!(filled.picks.contains_key(&greater));
+}
+
+/// The ticket's: Extra Arcanist Exploit gives an Exploiter Wizard one more exploit slot (ticket 49's rule: the
+/// selection it had a slot of first). Holding no exploit, it can't take the feat.
+#[test]
+fn extra_arcanist_exploit_gives_an_exploiter_wizard_one_more_exploit_slot() {
+    let engine = engine();
+    let mut wizard = exploiter(1);
+    let first = slot_of(&wizard, 1, EXPLOITS);
+    wizard
+        .picks
+        .insert(first, pick("arcanist/arcanist-exploits/potent-magic"));
+    wizard
+        .picks
+        .insert(general_slot(1), feat_pick_plain("extra-arcanist-exploit"));
+    assert!(possible(&wizard));
+    assert_eq!(
+        kind_at(&wizard, &extra_slot(1, 0)),
+        Some(selection_kind(EXPLOITS))
+    );
+    let sheet = engine.evaluate(&wizard);
+    assert_eq!(
+        engine.slot_label(sheet.slot(&extra_slot(1, 0)).unwrap()),
+        "Arcanist Exploits"
+    );
+    assert_eq!(offered_in(&wizard, &extra_slot(1, 0)).len(), 16);
+    assert_eq!(
+        reason_in(
+            &wizard,
+            &extra_slot(1, 0),
+            "arcanist/arcanist-exploits/potent-magic"
+        ),
+        "Already taken"
+    );
+    let filled = with_selections_filled(wizard);
+    assert!(filled.picks.contains_key(&extra_slot(1, 0)));
+    assert!(possible(&filled));
+
+    let mut none = exploiter(1);
+    none.picks
+        .insert(general_slot(1), feat_pick_plain("extra-arcanist-exploit"));
+    assert!(!possible(&none));
+    assert!(why_not(&none, &general_slot(1)).is_some());
+}
+
+/// The ticket's: an exploit already taken is not offered again, in the Exploiter Wizard's later slots, nor in
+/// another class's slot of the same selection (an Enforcer who becomes an Exploiter Wizard).
+#[test]
+fn an_exploit_already_taken_is_not_offered_again() {
+    let mut wizard = exploiter(17);
+    wizard.picks.insert(
+        slot_of(&wizard, 1, EXPLOITS),
+        pick("arcanist/arcanist-exploits/wooden-flesh"),
+    );
+    assert!(possible(&wizard));
+    for level in [5, 9, 13, 17] {
+        assert_eq!(
+            reason_in(
+                &wizard,
+                &slot_of(&wizard, level, EXPLOITS),
+                "arcanist/arcanist-exploits/wooden-flesh"
+            ),
+            "Already taken",
+            "{level}"
+        );
+    }
+
+    let mut both = classes_build(&["slayer", "wizard"]);
+    for (class, archetype) in [
+        ("slayer", "slayer/arcane-enforcer"),
+        ("wizard", "wizard/exploiter-wizard"),
+    ] {
+        build_archetype(&mut both, class, archetype);
+    }
+    assert_eq!(levels_with_slot_of(&both, EXPLOITS), [1, 2]);
+    both.picks.insert(
+        selection_slot(1),
+        pick("arcanist/arcanist-exploits/wooden-flesh"),
+    );
+    assert_eq!(
+        reason_in(
+            &both,
+            &slot_of(&both, 2, EXPLOITS),
+            "arcanist/arcanist-exploits/wooden-flesh"
+        ),
+        "Already taken"
+    );
+    let mut twice = both.clone();
+    twice.picks.insert(
+        slot_of(&both, 2, EXPLOITS),
+        pick("arcanist/arcanist-exploits/wooden-flesh"),
+    );
+    assert!(!possible(&twice));
+}
+
+/// Takes `class` with `archetype` in the Build.
+fn build_archetype(build: &mut Build, class: &str, archetype: &str) {
+    build
+        .class_choices
+        .get_mut(&ClassKey::new(class))
+        .unwrap_or_else(|| panic!("no {class}"))
+        .archetype = Some(ArchetypeKey::new(archetype));
 }

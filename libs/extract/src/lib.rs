@@ -7,6 +7,7 @@
 pub mod backgrounds;
 pub mod build;
 pub mod class_rules;
+pub mod exploits;
 pub mod extra_picks;
 pub mod feat_lists;
 pub mod follow_ups;

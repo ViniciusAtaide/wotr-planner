@@ -231,7 +231,14 @@ class's), and BAB and saves (from the class's progressions).
   is a slot of the arcanist's own `arcanist/arcanist-exploits` at its rows 1, 4, 7, 10, 13, 16 and 19 (the guide gives
   it no list of its own; a row may hold another class's selection, as a bloodrager's rage powers), so an exploit is
   taken once across both classes and Extra Arcanist Exploit's pick reaches it; Extra Arcanist Exploit's `Any` no
-  longer names the feature. The Enforcer's "Greater Exploits" stays a feature.
+  longer names the feature. The Enforcer's "Greater Exploits" stayed a feature until ticket 57.
+- Ticket 57 (`extract::exploits`, ticket 54's decisions 1 and 2, user, 2026-11-02): the Arcane Enforcer's "Greater
+  Exploits" feature at 13 is a slot of the arcanist's own `arcanist/greater-exploits`, read as the arcanist's own
+  "Greater Exploits" cell at 11 is (one pick; each greater exploit needs the exploit it extends). The Exploiter
+  Wizard's "Exploiter Exploits" feature is a slot of `arcanist/arcanist-exploits` at its rows 1, 5, 9, 13 and 17 (the
+  guide gives it no list of its own), and its "Greater Exploits" a slot of `arcanist/greater-exploits` at 13; both
+  features are gone. An exploit is taken once across the arcanist, the Enforcer and the Exploiter, and Extra Arcanist
+  Exploit's pick reaches the Exploiter too.
 - Ticket 55 (`extract::mythic_extra_picks`, ticket 49's decision 4, user, 2026-11-02): a mythic feat's `extra_pick`
   is the slot a pick of it gives at the Mythic rank it's taken, after the rank's general pick (a `MythicExtra`
   slot): `Feat`, a feat slot offering what the general slot does (`extra-feat`: "You can select any normal feat"),

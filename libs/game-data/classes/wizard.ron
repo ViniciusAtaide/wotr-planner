@@ -261,15 +261,13 @@ Class(
             features: [
                 (key: "wizard/exploiter-wizard/arcane-reservoir", name: "Arcane Reservoir", guide: "wizard#arcane-reservoir"),
                 (key: "wizard/exploiter-wizard/cantrips", name: "Cantrips", guide: "wizard#exploiter-wizard"),
-                (key: "wizard/exploiter-wizard/exploiter-exploits", name: "Exploiter Exploits", guide: "wizard#exploiter-exploits"),
-                (key: "wizard/exploiter-wizard/greater-exploits", name: "Greater Exploits", guide: "wizard#exploiter-wizard"),
             ],
             levels: [
-                (level: 1, features: ["wizard/exploiter-wizard/arcane-reservoir", "wizard/exploiter-wizard/cantrips", "wizard/exploiter-wizard/exploiter-exploits", "wizard/wizard-proficiencies"], feats: ["scribe-scrolls"], feat_slots: [Category(Magic)]),
-                (level: 5, features: ["wizard/exploiter-wizard/exploiter-exploits"], feat_slots: [Category(Magic)]),
-                (level: 9, features: ["wizard/exploiter-wizard/exploiter-exploits"]),
-                (level: 13, features: ["wizard/exploiter-wizard/exploiter-exploits", "wizard/exploiter-wizard/greater-exploits"]),
-                (level: 17, features: ["wizard/exploiter-wizard/exploiter-exploits"]),
+                (level: 1, features: ["wizard/exploiter-wizard/arcane-reservoir", "wizard/exploiter-wizard/cantrips", "wizard/wizard-proficiencies"], feats: ["scribe-scrolls"], feat_slots: [Category(Magic)], selections: ["arcanist/arcanist-exploits"]),
+                (level: 5, feat_slots: [Category(Magic)], selections: ["arcanist/arcanist-exploits"]),
+                (level: 9, selections: ["arcanist/arcanist-exploits"]),
+                (level: 13, selections: ["arcanist/arcanist-exploits", "arcanist/greater-exploits"]),
+                (level: 17, selections: ["arcanist/arcanist-exploits"]),
             ],
         ),
         (

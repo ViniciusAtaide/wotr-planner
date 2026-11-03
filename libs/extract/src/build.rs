@@ -199,6 +199,9 @@ pub fn extract(guide: &Guide) -> Extraction {
     // Mythic Extra Feat and Extra Mythic Ability give their pick (ticket 55, ticket 49's decision 4): a feat slot and
     // a mythic ability slot at the rank they're taken. It settles no report item.
     crate::mythic_extra_picks::apply(guide, &mut data);
+    // The Arcane Enforcer's greater exploits and the Exploiter Wizard's exploits as picks (ticket 57, ticket 54's
+    // decisions 1 and 2): slots of the arcanist's own selections. It settles no report item.
+    crate::exploits::apply(guide, &mut data);
     for problem in data.check() {
         builder.report.add_about(
             Kind::Cell,

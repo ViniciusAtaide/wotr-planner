@@ -3,6 +3,7 @@
 
 mod backgrounds;
 mod class_rules;
+mod exploits;
 mod extra_picks;
 mod feat_lists;
 mod follow_ups;
