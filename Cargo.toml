@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["libs/ui", "apps/frontend", "apps/backend", "libs/rules", "libs/seeds", "libs/extract"]
+members = ["libs/ui", "apps/frontend", "apps/backend", "libs/rules", "libs/seeds", "libs/extract", "libs/proof"]
 
 [workspace.package]
 edition = "2024"

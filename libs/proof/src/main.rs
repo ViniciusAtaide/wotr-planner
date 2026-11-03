@@ -1,0 +1,123 @@
+//! The proof's command line; see the library's docs for the commands.
+
+use std::path::Path;
+use std::process::ExitCode;
+use std::time::Instant;
+
+use proof::{Named, builds, compare, fingerprint, links};
+use rules::Engine;
+
+const USAGE: &str = "usage:
+  proof record <game-data dir> [--links <file>] [--threads N] [--only <name substring>]
+  proof compare <a.jsonl> <b.jsonl>
+  proof export <game-data dir> [--threads N] [--only <name substring>]";
+
+/// The options `record` and `export` take.
+struct Options {
+    data: String,
+    links: Option<String>,
+    threads: usize,
+    only: Option<String>,
+}
+
+fn options(args: &[String], links_allowed: bool) -> Result<Options, String> {
+    let mut args = args.iter();
+    let data = args.next().ok_or("no game-data dir")?.clone();
+    let mut options = Options {
+        data,
+        links: None,
+        threads: 8,
+        only: None,
+    };
+    while let Some(flag) = args.next() {
+        let mut value = || {
+            args.next()
+                .cloned()
+                .ok_or_else(|| format!("{flag} takes a value"))
+        };
+        match flag.as_str() {
+            "--links" if links_allowed => options.links = Some(value()?),
+            "--threads" => {
+                options.threads = value()?.parse().map_err(|_| "--threads takes a number")?;
+            }
+            "--only" => options.only = Some(value()?),
+            other => return Err(format!("unknown option {other}")),
+        }
+    }
+    Ok(options)
+}
+
+/// The engine on the game data, and the Builds the options name.
+fn engine_and_builds(options: &Options) -> Result<(Engine, Vec<Named>), String> {
+    let data = seeds::read_game_data_files(Path::new(&options.data))
+        .map_err(|error| format!("reading {}: {error:?}", options.data))?;
+    let engine = Engine::new(data);
+    let mut builds = match &options.links {
+        None => builds::all(&engine, options.threads),
+        Some(path) => {
+            let text = std::fs::read_to_string(path).map_err(|error| format!("{path}: {error}"))?;
+            let (builds, failed) = links::read(&engine, &text);
+            for name in &failed {
+                eprintln!("doesn't decode, not recorded: {name}");
+            }
+            builds
+        }
+    };
+    if let Some(only) = &options.only {
+        builds.retain(|(name, _)| name.contains(only.as_str()));
+    }
+    Ok((engine, builds))
+}
+
+fn record(options: &Options) -> Result<ExitCode, String> {
+    let started = Instant::now();
+    let (engine, builds) = engine_and_builds(options)?;
+    eprintln!("{} Builds", builds.len());
+    for line in proof::record(&engine, &builds, options.threads) {
+        println!("{line}");
+    }
+    let (checked, feat_options) = fingerprint::shortcut_counts();
+    eprintln!("shortcut checked on {checked} Builds, {feat_options} feat options");
+    eprintln!("recorded in {:.1?}", started.elapsed());
+    Ok(ExitCode::SUCCESS)
+}
+
+fn export(options: &Options) -> Result<ExitCode, String> {
+    let (engine, builds) = engine_and_builds(options)?;
+    let (text, skipped) = links::export(&engine, &builds);
+    for name in &skipped {
+        eprintln!("no link gives this Build back, not exported: {name}");
+    }
+    eprintln!("{} Builds exported", builds.len() - skipped.len());
+    print!("{text}");
+    Ok(ExitCode::SUCCESS)
+}
+
+fn compare(a: &str, b: &str) -> Result<ExitCode, String> {
+    let read =
+        |path: &str| std::fs::read_to_string(path).map_err(|error| format!("{path}: {error}"));
+    let comparison = compare::compare(&read(a)?, &read(b)?)?;
+    for line in &comparison.lines {
+        println!("{line}");
+    }
+    eprintln!("{}", comparison.summary);
+    Ok(if comparison.is_empty() {
+        ExitCode::SUCCESS
+    } else {
+        ExitCode::FAILURE
+    })
+}
+
+fn main() -> ExitCode {
+    let args: Vec<String> = std::env::args().skip(1).collect();
+    let result = match args.first().map(String::as_str) {
+        Some("record") => options(&args[1..], true).and_then(|options| record(&options)),
+        Some("export") => options(&args[1..], false).and_then(|options| export(&options)),
+        Some("compare") if args.len() == 3 => compare(&args[1], &args[2]),
+        _ => Err("no such command".to_owned()),
+    };
+    result.unwrap_or_else(|error| {
+        eprintln!("{error}\n{USAGE}");
+        ExitCode::from(2)
+    })
+}

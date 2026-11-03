@@ -22,6 +22,10 @@ Cargo compiles only the test modules that are declared:
 
 A new test is done when its name shows up in `cargo test -p <crate> -- --list`.
 
+## Behaviour proof
+
+To prove a change to `rules` or `libs/game-data/` changes no behaviour but the intended one, run `scripts/proof.sh` (usage in its header and in `libs/proof`'s crate docs); a ticket filters its comparison for any special breakdown.
+
 ## Formatting
 
 Rust is formatted with rustfmt, the official formatter, through `cargo fmt`. Its style is pinned in `rustfmt.toml` (`style_edition = "2024"`), so `cargo fmt`, the rustfmt hook and RustRover's Reformat Code all produce the same output.

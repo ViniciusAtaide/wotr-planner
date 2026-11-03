@@ -2022,6 +2022,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "proof"
+version = "0.1.0"
+dependencies = [
+ "rules",
+ "seeds",
+ "serde_json",
+]
+
+[[package]]
 name = "proptest"
 version = "1.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
