@@ -24,7 +24,7 @@ use crate::guide::{BASE_CLASSES, Guide, OTHER_PATHS, PATH_PAGES};
 use crate::html::{Block, Page, Section};
 use crate::names::{norm, number_forms, slug};
 use crate::option_levels::FeatNames;
-use crate::picks::{Pick, Picks};
+use crate::picks::{ArchetypeSkills, Pick, Picks};
 use crate::progressions::{self, Numbers};
 use crate::prose;
 use crate::report::{Kind, Report};
@@ -87,10 +87,10 @@ pub struct Extraction {
 
 /// Builds the game data from the guide.
 ///
-/// First each owner is built where its pages are read: skills, races, feats, then the classes and their archetypes
-/// (with the picks their tables' cells are, from [`crate::picks`]'s providers), the prestige classes, the mythic
-/// abilities, feats and paths. Then a postlude, in order: each step needs what the steps before it built, as its
-/// comment says.
+/// First each owner is built where its pages are read: skills, feats, then (once [`crate::picks`]' providers are
+/// read) races, the classes and their archetypes (with the picks their tables' cells are, and ticket 30's option
+/// families), the prestige classes, the mythic abilities, feats and paths. Then a postlude, in order: each step needs
+/// what the steps before it built, as its comment says.
 pub fn extract(guide: &Guide) -> Extraction {
     let mut builder = Builder::new(guide);
     let progression = Progression {
@@ -103,11 +103,19 @@ pub fn extract(guide: &Guide) -> Extraction {
             .collect(),
     };
     let skills = builder.skills();
-    let races = builder.races();
     let mut feats = builder.feats();
     // The providers name feats and skills by the guide's names (the bonus-feat choices' lists, the elements' class
-    // skills), so they're read after the feats.
+    // skills), so they're read after the feats, and before the races (the half-elf's Adaptability).
     builder.picks = Picks::read(guide, &FeatNames::of(&feats), &skills);
+    // A feat's conditions stated beside its lines (Armor Focus's armour proficiency), queued as its lines are.
+    for feat in &feats {
+        let at = DataAt::Feat(feat.key.clone());
+        let stated = builder.picks.stated_for(&at);
+        if !stated.is_empty() {
+            builder.add_prerequisite(&at, feat.guide.0.clone(), stated);
+        }
+    }
+    let races = builder.races();
     let mut classes: Vec<Class> = BASE_CLASSES
         .iter()
         .map(|slug| builder.base_class(slug))
@@ -130,11 +138,14 @@ pub fn extract(guide: &Guide) -> Extraction {
     builder.place_features(&mut classes, &mut prestige_classes, &mut mythic_paths);
     prose::path_rules(&mut mythic_paths);
 
+    // The weapons the guide's proficiency lists name, with the user's decisions on them.
+    let mut weapons = crate::parameters::weapons(guide);
+    crate::follow_ups::weapons(guide, &mut weapons);
     let mut data = GameData {
         progression,
         races,
         skills,
-        weapons: crate::parameters::weapons(guide),
+        weapons,
         feats,
         classes,
         prestige_classes,
@@ -165,34 +176,17 @@ pub fn extract(guide: &Guide) -> Extraction {
     feat_lists::name_lists(&mut data, &builder.lists);
     // The one-feat lists of the bonus feats of the player's choosing aren't the guide's tables' lists.
     crate::parameters::add_lists(&mut data);
-    // Ticket 30's option families (bloodlines, schools, orders, spirits, the Magic Deceiver's ways, combat styles),
-    // taken on the finished, sparse rows and named lists. Kept a pass: whether an archetype takes a family, which
-    // option levels its own selection skips and whether its bonus slots take the held option's list are read off its
-    // rows in force (a level it has no row of is its class's), and the named lists are known only once the rows
-    // are sparse. The facts that name its options (Disruptive, Second Spirit) are set after it.
-    crate::option_levels::apply(guide, &mut data);
-    // The Living Deity's mystery, revelations and domains (the last of ticket 31's families left here; the others
-    // are built with their classes). Kept a pass: its rows are the Magic Deceiver's ways, which `option_levels` just
-    // built, so it goes with ticket 30's families.
-    crate::option_families::apply(guide, &mut data);
-    // The user's decisions on the open questions of tickets 26-35 and 43-47, and their skill facts, that aren't built
-    // with their owners: each edits facts the two passes above or the parameter steps built, and asserts what it
-    // finds there, so each runs after them, in its ticket's order. Impossible Domain's (tickets 33 and 35) stays
-    // here: its prerequisite names the Living Deity's way, which `option_levels` builds after the dangling references
-    // are dropped.
+    // Ticket 32's two rules on what `parameters::apply` builds: every parameterised feat repeats once per value (on
+    // the parameters it gives the feats), and the mythic feats' and the Trickster's critical chain's values, whose
+    // same-value prerequisites rewrite the resolved lines as its own rules do.
     crate::follow_ups::apply(guide, &mut data);
-    crate::option_follow_ups::apply(guide, &mut data);
-    crate::second_follow_ups::apply(guide, &mut data);
     // The user's backgrounds: the guide doesn't list them; each names skills and feats of the finished data.
     data.backgrounds = crate::backgrounds::backgrounds(&data);
-    crate::option_class_skills::apply(guide, &mut data);
-    crate::report_gaps::apply(guide, &mut data);
-    crate::talent_follow_ups::apply(guide, &mut data);
     // The feats that give a pick of the selections their "Prerequisites" names: needs every class's, archetype's and
     // path's selection, the option families' included.
     crate::extra_picks::apply(guide, &mut data);
-    // What the borrowed picks widen of other owners (option levels, the advanced talents' and the hexes'
-    // prerequisites, the Extra feats): it widens what tickets 44 and 47 set above.
+    // What the borrowed picks widen of other owners: the resolved prerequisites of the advanced talents, the hexes
+    // and the Extra feats, and the option levels the class stage gave the rogue's and the slayer's talents.
     crate::borrowed_selections::apply(guide, &mut data);
     // Extra Discovery and Extra Arcana reach the Vivisectionist and the Hexcrafter from their first slot: needs the
     // rows in force and ticket 49's extra picks.
@@ -218,8 +212,9 @@ pub fn extract(guide: &Guide) -> Extraction {
     }
 }
 
-/// Whether a report item is one the finished data settles: an option family's (ticket 30), Armor Focus's line (ticket
-/// 32), a gap the saved pages fill (tickets 43 and 44), the bonus-feat wild talent (ticket 45).
+/// Whether a report item is one the finished data settles: an option family's table, which the family's provider
+/// reads (ticket 30), Armor Focus's line (ticket 32), a gap the saved pages fill (tickets 43 and 44), the bonus-feat
+/// wild talent (ticket 45).
 fn settled(at: &str, text: &str) -> bool {
     crate::option_levels::settled(at, text)
         || crate::follow_ups::settled(at, text)
@@ -298,6 +293,8 @@ enum Granted {
     Feats(BTreeSet<FeatKey>, Option<FeatureKey>),
     /// [`Pick::FeatureAndFeats`], before [`Builder::grant`] defines the cell's feature: never on a row.
     FeatureAndFeats(BTreeSet<FeatKey>),
+    /// Feats granted outright and for one value ([`Pick::FeatsFor`]).
+    FeatsFor(BTreeSet<FeatKey>, BTreeSet<rules::FeatValue>),
 }
 
 pub struct Builder<'g> {
@@ -313,6 +310,9 @@ pub struct Builder<'g> {
     pub lists: PendingLists,
     /// The cells that are picks, and what comes with them.
     picks: Picks,
+    /// How each table of the class being built takes its option family (by the table's key), planned before its
+    /// rows are read.
+    plans: BTreeMap<String, crate::option_levels::TablePlan>,
 }
 
 impl<'g> Builder<'g> {
@@ -326,6 +326,7 @@ impl<'g> Builder<'g> {
             feat_names: Vec::new(),
             lists: PendingLists::default(),
             picks: Picks::default(),
+            plans: BTreeMap::new(),
         }
     }
 
@@ -424,6 +425,19 @@ impl<'g> Builder<'g> {
             }
             let key = RaceKey::new(entry.anchor.clone());
             self.catalog.races.insert(norm(&entry.name), key.clone());
+            // A bonus feat at 1st level the guide names: a pick of its one-feat list.
+            let (feat_slots, feat_lists) = match self.picks.race_list_of(key.as_str()) {
+                None => (feat_slots, Vec::new()),
+                Some(list) => {
+                    assert_eq!(feat_slots, [FeatSlot::General], "{key}");
+                    (
+                        vec![FeatSlot::OneOf {
+                            list: list.key.clone(),
+                        }],
+                        vec![list.clone()],
+                    )
+                }
+            };
             let mut race = Race {
                 key,
                 name: entry.name.clone(),
@@ -432,7 +446,7 @@ impl<'g> Builder<'g> {
                 ability_modifiers: modifiers,
                 feat_slots,
                 subraces: Vec::new(),
-                feat_lists: Vec::new(),
+                feat_lists,
             };
             for child in &entry.children {
                 let (modifiers, _) = self.racial_table(page, child);
@@ -708,6 +722,7 @@ impl<'g> Builder<'g> {
         let (selections, feat_lists) = self.provided(&FeatureOwner::Class(class_key.clone()));
         class.selections.extend(selections);
         class.feat_lists.extend(feat_lists);
+        self.plan(slug_name, None, &base_rows, &base_scope);
         let base_levels = self.level_rows(page, &base_rows, None, base_spell_type, &base_scope);
         self.set_progressions(&mut class, &base_levels, false, &base_scope.guide);
         class.levels = base_levels.iter().map(|(_, row)| row.clone()).collect();
@@ -759,6 +774,7 @@ impl<'g> Builder<'g> {
             };
             let mut selections = selections;
             selections.extend(provided);
+            self.plan(slug_name, Some(&prefix), rows, &scope);
             let levels = self.level_rows(page, rows, Some(&base_levels), spell_type, &scope);
             for (numbers, row) in &levels {
                 let base = base_levels.iter().find(|(_, base)| base.level == row.level);
@@ -784,6 +800,22 @@ impl<'g> Builder<'g> {
                     ),
                     None => (None, None),
                 };
+            // What the skills table doesn't say (the user's skill facts, the Sohei's Lore (Nature)).
+            let (skill_points, class_skills) = match self.picks.archetype_skills_of(&prefix) {
+                None => (skill_points, class_skills),
+                Some(ArchetypeSkills::Own { points, skills }) => {
+                    assert_eq!((skill_points, &class_skills), (None, &None), "{prefix}");
+                    (Some(*points), Some(skills.clone()))
+                }
+                Some(ArchetypeSkills::ClassAnd(more)) => {
+                    assert_eq!(class_skills, None, "{prefix} keeps its class's skills");
+                    let mut skills = class.class_skills.clone();
+                    for skill in more {
+                        assert!(skills.insert(skill.clone()), "{prefix}: {skill} already");
+                    }
+                    (skill_points, Some(skills))
+                }
+            };
             let at = DataAt::Archetype(archetype_key.clone());
             self.archetype_requirements(page, section, &at);
             let stated = self.picks.stated_for(&at);
@@ -805,7 +837,90 @@ impl<'g> Builder<'g> {
                 levels,
             });
         }
+        // The class's option family, once every table is read: which archetype takes it, how, and the slots that
+        // pick from the held option's list.
+        if let Some(taking) = self.picks.family_of(slug_name) {
+            taking.take(&mut class, &self.plans, &mut self.lists);
+        }
+        self.plans.clear();
         class
+    }
+
+    /// How the table of `class` (its archetype `archetype`'s, or its own) takes the class's option family, from the
+    /// features and feats its cells name.
+    fn plan(&mut self, class: &str, archetype: Option<&str>, rows: &[Row], scope: &Scope<'g>) {
+        let Some(taking) = self.picks.family_of(class) else {
+            return;
+        };
+        let cells: Vec<crate::option_levels::Cell> = rows
+            .iter()
+            .flat_map(|row| row.grants.iter().map(move |grant| (row.level, &grant.name)))
+            .map(|(level, text)| {
+                let (feature, feat) = self.cell_of(scope, text);
+                crate::option_levels::Cell {
+                    level,
+                    text: text.clone(),
+                    feature: feature.map(|(key, _, name, _)| (key, name)),
+                    feat,
+                }
+            })
+            .collect();
+        let plan = taking.plan(archetype, &cells);
+        self.plans
+            .insert(archetype.unwrap_or(class).to_owned(), plan);
+    }
+
+    /// The feature a table cell names (its key, owner, name and guide link), or the feat it grants, as [`Self::grant`]
+    /// reads it, without defining anything: for planning a table before its rows are read.
+    #[allow(clippy::type_complexity)]
+    fn cell_of(
+        &self,
+        scope: &Scope<'g>,
+        name: &str,
+    ) -> (
+        Option<(FeatureKey, FeatureOwner, String, String)>,
+        Option<FeatKey>,
+    ) {
+        let cell_norm = norm(name);
+        if cell_norm.ends_with("-feat") || cell_norm.ends_with("-feats") {
+            return (None, None);
+        }
+        if number_forms(&cell_norm).iter().any(|form| {
+            scope
+                .selections
+                .iter()
+                .any(|(names, _)| names.contains(form))
+        }) {
+            return (None, None);
+        }
+        if let Some(heading) = find_heading(scope, name) {
+            return (
+                Some((
+                    FeatureKey::new(format!("{}/{}", heading.prefix, heading.section.anchor)),
+                    heading.owner.clone(),
+                    heading.section.name.clone(),
+                    heading.page.guide(&heading.section.anchor),
+                )),
+                None,
+            );
+        }
+        if !scope.path
+            && let Some(feat) = self.feat_named(name)
+        {
+            return (None, Some(feat));
+        }
+        let Some(owner) = scope.owner.clone() else {
+            return (None, None);
+        };
+        (
+            Some((
+                FeatureKey::new(format!("{}/{}", scope.prefix, slug(name))),
+                owner,
+                name.to_owned(),
+                scope.guide.clone(),
+            )),
+            None,
+        )
     }
 
     /// The tables directly in a class or archetype section, merged by level: numbers, spells and grants.
@@ -976,6 +1091,10 @@ impl<'g> Builder<'g> {
                         level_row.features.extend(feature);
                     }
                     Granted::FeatureAndFeats(_) => unreachable!("grant settles it"),
+                    Granted::FeatsFor(feats, feats_for) => {
+                        level_row.feats.extend(feats);
+                        level_row.feats_for.extend(feats_for);
+                    }
                 }
             }
             if let Some(owner) = &scope.owner {
@@ -987,6 +1106,14 @@ impl<'g> Builder<'g> {
                 level_row
                     .feats
                     .extend(self.picks.row_feats_of(owner, row.level));
+                level_row
+                    .feat_slots
+                    .extend(self.picks.row_slots_of(owner.key(), row.level).cloned());
+                for feature in self.picks.row_features_of(owner.key(), row.level) {
+                    if !level_row.features.contains(feature) {
+                        level_row.features.push(feature.clone());
+                    }
+                }
             }
             out.push((numbers, level_row));
         }
@@ -995,8 +1122,27 @@ impl<'g> Builder<'g> {
 
     /// What a table cell grants.
     fn grant(&mut self, page: &Page, scope: &Scope<'g>, name: &str, level: u8) -> Granted {
+        // A cell the class's option family plans: a placeholder, the choice or a fixed option's row's.
+        let planned = scope
+            .owner
+            .as_ref()
+            .and_then(|owner| self.plans.get(owner.key()))
+            .and_then(|plan| plan.planned(level, name));
+        if let Some(planned) = planned {
+            if planned == (crate::option_levels::Planned::Marker { kept: true })
+                && let (Some((key, owner, name, guide)), _) = self.cell_of(scope, name)
+            {
+                self.define_feature(&key, owner, &name, guide);
+            }
+            return Granted::Nothing;
+        }
         let cell_norm = norm(name);
         if cell_norm.ends_with("-feat") || cell_norm.ends_with("-feats") {
+            // A slot cell a provider says picks otherwise (Dragon Disciple's bloodline feats).
+            let key = FeatureKey::new(format!("{}/{}", scope.prefix, slug(name)));
+            if let Some(picked) = self.picked(scope, name, &key, level) {
+                return picked;
+            }
             return Granted::Slots(self.bonus_slots(scope, name, level));
         }
         for form in number_forms(&cell_norm) {
@@ -1075,10 +1221,11 @@ impl<'g> Builder<'g> {
         Some(match pick.clone() {
             Pick::Selection(selection) => Granted::Selection(selection),
             Pick::Slots(slots) => Granted::Slots(slots),
-            Pick::OptionRow => Granted::Nothing,
+            Pick::OptionRow | Pick::Nothing => Granted::Nothing,
             Pick::SelectionKeepingFeature(selection) => Granted::SelectionKeepingFeature(selection),
             Pick::Feats(feats) => Granted::Feats(feats, None),
             Pick::FeatureAndFeats(feats) => Granted::FeatureAndFeats(feats),
+            Pick::FeatsFor { feats, feats_for } => Granted::FeatsFor(feats, feats_for),
             Pick::Feature(feature) => {
                 let key = feature.key.clone();
                 self.features
@@ -1093,7 +1240,20 @@ impl<'g> Builder<'g> {
     /// prerequisites queued, as the guide's lines are), features and feat lists.
     fn provided(&mut self, owner: &FeatureOwner) -> (Vec<FeatureSelection>, Vec<rules::FeatList>) {
         let key = owner.key().to_owned();
-        let selections: Vec<FeatureSelection> = self.picks.selections_of(&key).cloned().collect();
+        let mut selections: Vec<FeatureSelection> =
+            self.picks.selections_of(&key).cloned().collect();
+        // The classes whose levels level a provided selection, where another provider says (ticket 47's Combat Trick
+        // rows need them).
+        for selection in &mut selections {
+            if let Some(classes) = self.picks.option_levels_of(&selection.key) {
+                assert!(
+                    selection.option_levels.is_empty() || selection.option_levels == classes,
+                    "{}: levelled otherwise",
+                    selection.key
+                );
+                selection.option_levels = classes;
+            }
+        }
         for selection in selections
             .iter()
             .filter(|s| !s.options.is_empty() && self.picks.is_named(&s.key))
@@ -1137,17 +1297,18 @@ impl<'g> Builder<'g> {
         if self.features.contains_key(key) {
             return;
         }
-        let feature = Feature {
+        let mut feature = Feature {
             key: key.clone(),
             name: name.to_owned(),
             summary: String::new(),
             guide: GuideRef::new(guide),
             ability_bonuses: Vec::new(),
             option_row: None,
-            daily_choice: self.picks.is_daily_choice(key),
+            daily_choice: false,
             bab_floor: None,
             skill_ranks_at_least_mythic_rank: false,
         };
+        self.picks.shape(&mut feature);
         let mut names = vec![norm(name)];
         // "Sneak Attack (Eldritch Scoundrel)" is also a "Sneak Attack".
         if let Some((base, _)) = name.split_once(" (") {
@@ -1315,7 +1476,8 @@ impl<'g> Builder<'g> {
             if prose::is_merged_list(prefix, &candidate.anchor) {
                 continue;
             }
-            if !named || mostly_granted(candidate, granted) {
+            let key = FeatureSelectionKey::new(format!("{prefix}/{}", candidate.anchor));
+            if !named || mostly_granted(candidate, granted) || !self.picks.is_selection(&key) {
                 continue;
             }
             out.push(self.selection(page, candidate, prefix, class, Vec::new()));
@@ -1376,6 +1538,8 @@ impl<'g> Builder<'g> {
                 .insert(key.clone());
             all_options.insert(key.clone());
             let feat = self.option_feat(child);
+            let mut extra = extra.clone();
+            extra.extend(self.picks.option_conditions_of(&key));
             self.prerequisites_of(
                 page,
                 child,
@@ -1383,8 +1547,10 @@ impl<'g> Builder<'g> {
                 Context {
                     own_class: class.cloned(),
                 },
-                extra.clone(),
+                extra,
             );
+            let parameter = self.picks.option_parameter_of(&key);
+            let repeat = self.picks.option_repeat_of(&key);
             let levels = self.picks.option_rows_of(&key);
             selection.options.push(SelectionOption {
                 key,
@@ -1393,14 +1559,14 @@ impl<'g> Builder<'g> {
                 guide: GuideRef::new(page.guide(&child.anchor)),
                 feats: feat.into_iter().collect(),
                 chosen_feat: None,
-                repeat: Repeat::Once,
+                repeat,
                 prerequisite: None,
                 levels,
                 pool: None,
                 replaces_row_of: None,
                 group: None,
                 arcana: None,
-                parameter: None,
+                parameter,
                 values: Default::default(),
             });
         }
@@ -1597,6 +1763,14 @@ impl<'g> Builder<'g> {
                 Some(Err(error)) => conds.push((item.clone(), Err(error))),
             }
         }
+        let stated = self.picks.stated_for(&DataAt::Class(key.clone()));
+        if !stated.is_empty() {
+            self.add_prerequisite(
+                &DataAt::Class(key.clone()),
+                page.guide(&section.anchor),
+                stated,
+            );
+        }
         if !conds.is_empty() {
             self.pending.push(Pending {
                 owner: DataAt::Class(key.clone()),
@@ -1608,7 +1782,9 @@ impl<'g> Builder<'g> {
             });
         }
 
-        let (skill_points, class_skills) = self.prestige_skills(page, section);
+        let (skill_points, mut class_skills) = self.prestige_skills(page, section);
+        self.picks
+            .fix_class_skills(section.anchor.as_str(), &mut class_skills);
         let mut class = Class {
             key,
             name: section.name.clone(),
@@ -1921,7 +2097,7 @@ impl<'g> Builder<'g> {
                     Granted::SelectionKeepingFeature(_) | Granted::FeatureAndFeats(_) => {
                         unreachable!("grant settles it")
                     }
-                    Granted::Feat(_) | Granted::Feats(..) => {
+                    Granted::Feat(_) | Granted::Feats(..) | Granted::FeatsFor(..) => {
                         unreachable!("a path's table grants a feat as a feature")
                     }
                 }
@@ -2056,12 +2232,16 @@ impl<'g> Builder<'g> {
                 conditions.dedup();
                 all(conditions)
             });
-            // A line's alternatives join the things it names.
+            // A line's alternatives join the thing or things it names.
             if let Some(also) = alternatives.remove(&owner) {
-                let Some(Prerequisite::Any(children)) = &mut own else {
-                    panic!("{owner}: its line names one thing: {own:?}");
-                };
-                children.extend(also);
+                own = Some(match own {
+                    Some(Prerequisite::Any(mut children)) => {
+                        children.extend(also);
+                        Prerequisite::Any(children)
+                    }
+                    Some(one) => Prerequisite::Any(std::iter::once(one).chain(also).collect()),
+                    None => panic!("{owner}: its line names nothing"),
+                });
             }
             // An option's stated conditions (the totem rage powers' exclusions) join what its own lines name.
             let stated = match owner {

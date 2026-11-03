@@ -1,5 +1,5 @@
 //! Ticket 47: ticket 45's decisions 1 and 3 and the user's rule for the rogue talents Weapon Focus and Combat Trick
-//! (user, 2026-11-02), applied to finished data.
+//! (user, 2026-11-02), built where the rogue talents are.
 //!
 //! - **The Skill Focus rogue talent repeats per skill** (a user fact: "rogue talent follows the same rule as wild
 //!   talent"). The rogue talent (`rogue#skill-focus`: "This is the feat of the same name"), which the slayer shares,
@@ -19,21 +19,21 @@
 //! - **The bonus-feat wild talent's slot reads "Wild talent feat"** (ticket 45's decision 3): built so by ticket 45's
 //!   [`wild_talents`](crate::wild_talents).
 //!
-//! Each rule asserts the guide phrase it rests on and what it finds in the data, so it fails loudly on data it
-//! doesn't expect. [`apply`] runs on the finished data of an extraction and, through ticket 47's one-off rewrite,
-//! on `libs/game-data/`.
+//! Each rule asserts the guide phrase it rests on when the providers are read ([`provide`]); [`check`] asserts what
+//! only the finished data shows. The two selections [`crate::shared_options`] builds (Fey Tricks, the Underground
+//! Chemist's Discovery) are levelled there.
 
 use std::collections::BTreeSet;
 
 use rules::{
-    ClassKey, FeatKey, FeatSlot, FeatureSelection, FeatureSelectionKey, GameData, ParameterKind,
-    Repeat, SelectionOption, SelectionOptionKey,
+    ClassKey, FeatKey, FeatSlot, FeatureSelection, GameData, ParameterKind, Repeat,
+    SelectionOption, SelectionOptionKey,
 };
 
 use crate::build::section_text;
-use crate::follow_ups::class_mut;
 use crate::guide::Guide;
-use crate::option_levels::{Log, empty_row, page, section};
+use crate::option_levels::{empty_row, page, section};
+use crate::picks::Picks;
 
 const ROGUE_SKILL_FOCUS: &str = "rogue/rogue-talents/skill-focus";
 const ROGUE_WEAPON_FOCUS: &str = "rogue/rogue-talents/weapon-focus";
@@ -49,23 +49,50 @@ const OFFERING_COMBAT_TRICK: [(&str, &str); 6] = [
     ("slayer/slayer-talents", "slayer"),
 ];
 
-/// Applies ticket 47's rules.
-pub fn apply(guide: &Guide, data: &mut GameData) -> Log {
-    let mut log = Log::new();
-    skill_focus_per_skill(guide, data, &mut log);
-    weapon_focus_once(guide, data);
-    combat_trick(guide, data, &mut log);
-    log
-}
-
-/// The Skill Focus rogue talent: once per skill of its chosen feat.
-fn skill_focus_per_skill(guide: &Guide, data: &mut GameData, log: &mut Log) {
+/// Ticket 47's rules, built where the rogue talents are: the Skill Focus talent once per skill, Combat Trick any
+/// number of times with its slot as row 1, and the selections offering it levelled by their class (the two that
+/// [`crate::shared_options`] builds are levelled there).
+pub(crate) fn provide(guide: &Guide, picks: &mut Picks) {
     says(
         guide,
         "rogue",
         "skill-focus",
         "This is the feat of the same name.",
     );
+    picks.option_repeat(ROGUE_SKILL_FOCUS, Repeat::PerValue);
+    says(
+        guide,
+        "rogue",
+        "weapon-focus",
+        "This is the feat of the same name.",
+    );
+    says(
+        guide,
+        "rogue",
+        "combat-trick",
+        "Any combat feat that the character qualifies for.",
+    );
+    picks.option_repeat(COMBAT_TRICK, Repeat::Unlimited);
+    let mut row = empty_row(1);
+    row.feat_slots = vec![FeatSlot::CombatFeat];
+    picks.option_rows(COMBAT_TRICK, vec![row]);
+    for (key, class) in OFFERING_COMBAT_TRICK {
+        if !SHARED_HERE.contains(&key) && key != "slayer/slayer-talents" {
+            picks.option_levels(key, &[class]);
+        }
+    }
+}
+
+/// The selections offering Combat Trick that [`crate::shared_options`] builds, and levels.
+const SHARED_HERE: [&str; 2] = [
+    "rogue/sylvan-trickster/fey-tricks",
+    "rogue/underground-chemist/discovery",
+];
+
+/// What the rules hold on the finished data: Skill Focus once per skill, the talents' Skill Focus once per skill
+/// and Weapon Focus once, Combat Trick's row, and each selection offering it levelled by its class (others may
+/// widen it: ticket 60). Changes nothing.
+pub(crate) fn check(data: &GameData) {
     let skill_focus = data
         .feats
         .iter()
@@ -76,42 +103,19 @@ fn skill_focus_per_skill(guide: &Guide, data: &mut GameData, log: &mut Log) {
         (Some(ParameterKind::Skill), Repeat::PerValue),
         "skill-focus: once per skill"
     );
-    let option = option_mut(data, ROGUE_SKILL_FOCUS);
+    let option = find_option(data, ROGUE_SKILL_FOCUS);
     assert_eq!(
-        option.chosen_feat,
-        Some(FeatKey::new("skill-focus")),
+        (option.chosen_feat.clone(), option.repeat),
+        (Some(FeatKey::new("skill-focus")), Repeat::PerValue),
         "{ROGUE_SKILL_FOCUS}"
     );
-    assert_eq!(option.repeat, Repeat::Once, "{ROGUE_SKILL_FOCUS}");
-    option.repeat = Repeat::PerValue;
-    log.push(format!("{ROGUE_SKILL_FOCUS}: once per skill"));
-}
-
-/// The rogue talent Weapon Focus: once, as it is.
-fn weapon_focus_once(guide: &Guide, data: &mut GameData) {
-    says(
-        guide,
-        "rogue",
-        "weapon-focus",
-        "This is the feat of the same name.",
-    );
-    let option = option_mut(data, ROGUE_WEAPON_FOCUS);
+    let option = find_option(data, ROGUE_WEAPON_FOCUS);
     assert_eq!(
         (option.chosen_feat.clone(), option.repeat),
         (Some(FeatKey::new("weapon-focus")), Repeat::Once),
         "{ROGUE_WEAPON_FOCUS}"
     );
-}
-
-/// Combat Trick: any number of times, a bonus Combat feat slot each time, through every selection offering it.
-fn combat_trick(guide: &Guide, data: &mut GameData, log: &mut Log) {
-    says(
-        guide,
-        "rogue",
-        "combat-trick",
-        "Any combat feat that the character qualifies for.",
-    );
-    let trick = option_mut(data, COMBAT_TRICK);
+    let trick = find_option(data, COMBAT_TRICK);
     assert_eq!(
         (
             trick.feats.is_empty(),
@@ -119,19 +123,10 @@ fn combat_trick(guide: &Guide, data: &mut GameData, log: &mut Log) {
             trick.parameter.is_none(),
             trick.repeat,
             trick.prerequisite.is_none(),
-            trick.levels.is_empty(),
         ),
-        (true, true, true, Repeat::Once, true, true),
-        "{COMBAT_TRICK}: a bare option"
+        (true, true, true, Repeat::Unlimited, true),
+        "{COMBAT_TRICK}"
     );
-    trick.repeat = Repeat::Unlimited;
-    let mut row = empty_row(1);
-    row.feat_slots = vec![FeatSlot::CombatFeat];
-    trick.levels = vec![row];
-    log.push(format!(
-        "{COMBAT_TRICK}: any number of times, a Combat feat slot each time"
-    ));
-
     let key = SelectionOptionKey::new(COMBAT_TRICK);
     let offering: BTreeSet<String> = selections(data)
         .filter(|selection| selection.offers(&key))
@@ -146,19 +141,24 @@ fn combat_trick(guide: &Guide, data: &mut GameData, log: &mut Log) {
         "the selections offering {COMBAT_TRICK}"
     );
     for (key, class) in OFFERING_COMBAT_TRICK {
-        let selection = selection_mut(data, key);
+        let selection = selections(data)
+            .find(|selection| selection.key.as_str() == key)
+            .unwrap_or_else(|| panic!("no selection {key}"));
         assert!(
-            selection.level_from.is_none() && selection.skipped_levels.is_empty(),
-            "{key}: levelled by its classes"
+            selection.level_from.is_none()
+                && selection.skipped_levels.is_empty()
+                && selection.option_levels.contains(&ClassKey::new(class)),
+            "{key}: levelled by {class}"
         );
-        let levels = BTreeSet::from([ClassKey::new(class)]);
-        if selection.option_levels.is_empty() {
-            selection.option_levels = levels;
-            log.push(format!("{key}: levelled by {class}"));
-        } else {
-            assert_eq!(selection.option_levels, levels, "{key}");
-        }
     }
+}
+
+/// An option, in the selection that defines it (its key extends the selection's).
+fn find_option<'d>(data: &'d GameData, key: &str) -> &'d SelectionOption {
+    selections(data)
+        .flat_map(|selection| &selection.options)
+        .find(|option| option.key.as_str() == key)
+        .unwrap_or_else(|| panic!("no option {key}"))
 }
 
 /// Asserts that a talent's entry says `phrase`, in its prose or its table (a wild talent's description is a table
@@ -183,35 +183,4 @@ fn selections(data: &GameData) -> impl Iterator<Item = &FeatureSelection> {
                 .chain(class.archetypes.iter().flat_map(|a| &a.selections))
         })
         .chain(data.mythic_paths.iter().flat_map(|path| &path.selections))
-}
-
-fn selection_mut<'d>(data: &'d mut GameData, key: &str) -> &'d mut FeatureSelection {
-    let wanted = FeatureSelectionKey::new(key);
-    data.classes
-        .iter_mut()
-        .chain(&mut data.prestige_classes)
-        .flat_map(|class| {
-            class
-                .selections
-                .iter_mut()
-                .chain(class.archetypes.iter_mut().flat_map(|a| &mut a.selections))
-        })
-        .chain(
-            data.mythic_paths
-                .iter_mut()
-                .flat_map(|path| &mut path.selections),
-        )
-        .find(|selection| selection.key == wanted)
-        .unwrap_or_else(|| panic!("no selection {key}"))
-}
-
-/// An option, in the selection that defines it (its key extends the selection's).
-fn option_mut<'d>(data: &'d mut GameData, key: &str) -> &'d mut SelectionOption {
-    let class = key.split('/').next().expect("a key");
-    class_mut(data, class)
-        .selections
-        .iter_mut()
-        .flat_map(|selection| &mut selection.options)
-        .find(|option| option.key.as_str() == key)
-        .unwrap_or_else(|| panic!("no option {key}"))
 }

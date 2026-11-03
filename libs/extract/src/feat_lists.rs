@@ -11,7 +11,9 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use rules::{Class, FeatKey, FeatList, FeatListKey, FeatSlot, GameData, GuideRef, MythicPath};
+use rules::{
+    Class, ClassKey, FeatKey, FeatList, FeatListKey, FeatSlot, GameData, GuideRef, MythicPath,
+};
 
 const PENDING: &str = "pending-list-";
 
@@ -19,6 +21,9 @@ const PENDING: &str = "pending-list-";
 #[derive(Clone, Debug, Default)]
 pub struct PendingLists {
     lists: Vec<(BTreeSet<FeatKey>, bool)>,
+    /// The class rows (class, level) whose slot of a list picks from a held option's list instead: the list still
+    /// counts when the class's lists are keyed, but isn't defined unless a slot names it.
+    stand_ins: Vec<(ClassKey, u8, usize)>,
 }
 
 impl PendingLists {
@@ -50,6 +55,24 @@ impl PendingLists {
     pub fn feats_mut(&mut self, key: &FeatListKey) -> Option<&mut BTreeSet<FeatKey>> {
         let index = Self::index(key)?;
         self.lists.get_mut(index).map(|(feats, _)| feats)
+    }
+
+    /// The class row `class` at `level` names the pending list `key` in the table, though its slot picks from a held
+    /// option's list (a family's merged bonus list: [`crate::option_levels`]).
+    pub fn stand_in(&mut self, class: &ClassKey, level: u8, key: &FeatListKey) {
+        let index = Self::index(key).expect("a pending list");
+        self.stand_ins.push((class.clone(), level, index));
+    }
+
+    /// The content of each list the class's rows name in the table though no slot does, with the levels.
+    fn stand_ins_of<'l>(
+        &'l self,
+        class: &'l ClassKey,
+    ) -> impl Iterator<Item = (u8, (BTreeSet<FeatKey>, bool))> + 'l {
+        self.stand_ins
+            .iter()
+            .filter(move |(of, ..)| of == class)
+            .map(|(_, level, index)| (*level, self.lists[*index].clone()))
     }
 }
 
@@ -132,6 +155,11 @@ fn name_class_lists(class: &mut Class, lists: &PendingLists) {
             }
         }
     }
+    // The lists a slot names, beside those that only stand in a row of the table.
+    let in_slots: BTreeSet<Content> = users.keys().cloned().collect();
+    for (level, list) in lists.stand_ins_of(&class.key) {
+        users.entry(list).or_default().base.insert(level);
+    }
 
     // Owner and first level of each list.
     let mut by_owner: BTreeMap<String, Vec<(Content, u8)>> = BTreeMap::new();
@@ -202,6 +230,9 @@ fn name_class_lists(class: &mut Class, lists: &PendingLists) {
             };
             let key = FeatListKey::new(key);
             keys.insert(list.clone(), key.clone());
+            if !in_slots.contains(&list) {
+                continue;
+            }
             defined.entry(owner.clone()).or_default().push(FeatList {
                 key,
                 name,

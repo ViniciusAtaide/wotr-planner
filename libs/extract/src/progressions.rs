@@ -125,6 +125,7 @@ pub fn sparse_archetype_rows(class: &mut Class) {
                 || row.feats != base.feats
                 || sorted(&row.feat_slots) != sorted(&base.feat_slots)
                 || sorted(&row.selections) != sorted(&base.selections)
+                || row.feats_for != base.feats_for
         });
     }
 }

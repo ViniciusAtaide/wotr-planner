@@ -11,23 +11,35 @@
 //! that is a daily choice ([`Picks::is_daily_choice`]). No feature stands for a pick at any point.
 //!
 //! A cell may also be feats granted outright, with or without its feature (a proficiency feature: [`Pick::Feats`],
-//! [`Pick::FeatureAndFeats`]), and a row may grant feats beside its cells ([`Picks::row_feats_of`]).
+//! [`Pick::FeatureAndFeats`]), feats granted for one value ([`Pick::FeatsFor`]) or nothing ([`Pick::Nothing`]), and a
+//! row may grant feats, slots or a feature beside its cells ([`Picks::row_feats_of`], [`Picks::row_slots_of`],
+//! [`Picks::row_features_of`]). A feature a table defines may carry facts beside its name ([`Picks::shape`]), an
+//! option the guide's headings define a condition, a parameter or a repeat ([`Picks::option_conditions_of`],
+//! [`Picks::option_parameter_of`], [`Picks::option_repeat_of`]), and a heading that lists options may be no selection
+//! ([`Picks::is_selection`]).
+//!
+//! Ticket 30's option families are given whole ([`Picks::family_of`]): the class stage plans each of the class's
+//! tables before reading its rows, and takes the family once every table is read
+//! ([`crate::option_levels::Taking`]).
 //!
 //! The other stages ask the same providers for their owners' facts: a feat's or a mythic ability's prerequisite
 //! stated in place of its line, what a line also accepts beside what it names ([`Picks::alternatives_of`]), or a line
 //! the reader passes over ([`Picks::prerequisite_of`], [`Picks::lines_for`]),
 //! an archetype's alignment rule or an option's exclusions ([`Picks::stated_for`]), the slot and features a mythic
 //! ability gives and the pick a mythic feat gives ([`Picks::mythic_selections_of`], [`Picks::mythic_features_of`],
-//! [`Picks::mythic_extra_pick_of`]).
+//! [`Picks::mythic_extra_pick_of`]), an archetype's skills or a prestige class's class skills where the tables don't
+//! say ([`Picks::archetype_skills_of`], [`Picks::fix_class_skills`]), and a race's bonus feat list
+//! ([`Picks::race_list_of`]).
 //!
 //! Each provider module reads its facts from the saved pages and asserts the guide's sentences they rest on when the
 //! providers are read ([`Picks::read`]), before the classes are built. What can only be asserted on the finished data
 //! (the rows in force, after the archetype rows are made sparse) is in [`check`], which changes nothing.
 
 use rules::{
-    ClassKey, DataAt, FeatKey, FeatList, FeatSlot, Feature, FeatureKey, FeatureSelection,
-    FeatureSelectionKey, GameData, MythicAbilityKey, MythicExtraPick, MythicFeatKey,
-    OptionLevelRow, Prerequisite, SelectionOption, SelectionOptionKey, Skill,
+    AbilityBonus, ClassKey, DataAt, FeatKey, FeatList, FeatSlot, FeatValue, Feature, FeatureKey,
+    FeatureSelection, FeatureSelectionKey, GameData, MythicAbilityKey, MythicExtraPick,
+    MythicFeatKey, OptionLevelRow, ParameterKind, Prerequisite, Repeat, SelectionOption,
+    SelectionOptionKey, Skill, SkillKey,
 };
 use std::collections::BTreeSet;
 
@@ -54,6 +66,15 @@ pub enum Pick {
     SelectionKeepingFeature(FeatureSelectionKey),
     /// These feats, granted outright, in place of the cell's feature (a proficiency feature its feats cover in full).
     Feats(BTreeSet<FeatKey>),
+    /// These feats granted outright and these granted for one value, in place of the cell's feature (the Mantis
+    /// Zealot's Saber Fighting: Weapon Focus in the Sawtooth Saber).
+    FeatsFor {
+        feats: BTreeSet<FeatKey>,
+        feats_for: BTreeSet<FeatValue>,
+    },
+    /// Nothing: what the cell says is held otherwise (a class skill the archetype's own list or its bloodline's row
+    /// holds).
+    Nothing,
     /// The cell's feature, and these feats granted outright beside it (a proficiency feature that says more than its
     /// feats: weapons no feat covers, bombs, casting in armour).
     FeatureAndFeats(BTreeSet<FeatKey>),
@@ -151,6 +172,51 @@ pub struct Picks {
     row_feats: Vec<(Rows, u8, BTreeSet<FeatKey>)>,
     /// Provided selections whose name a prerequisite line doesn't take as holding one of their options.
     unnamed: BTreeSet<FeatureSelectionKey>,
+    /// Ticket 30's option families, each with how its class and archetypes take it.
+    families: Vec<crate::option_levels::Taking>,
+    /// Facts of a feature a table defines beside its name and link.
+    feature_facts: Vec<(FeatureKey, FeatureFact)>,
+    /// An archetype's skill points and class skills where the skills table doesn't give them.
+    archetype_skills: Vec<(String, ArchetypeSkills)>,
+    /// A prestige class's class skills beside its characteristics' list: the ones it lacks and the ones it has.
+    class_skill_fixes: Vec<(String, Vec<SkillKey>, Vec<SkillKey>)>,
+    /// A race's bonus feat at 1st level, a pick of this list.
+    race_lists: Vec<(String, FeatList)>,
+    /// Conditions of an option the guide's headings define, ANDed with what its lines name.
+    option_conditions: Vec<(SelectionOptionKey, Prerequisite)>,
+    /// The parameter an option the guide's headings define is taken for.
+    option_parameters: Vec<(SelectionOptionKey, ParameterKind)>,
+    /// How often an option the guide's headings define can be taken, when not once.
+    option_repeats: Vec<(SelectionOptionKey, Repeat)>,
+    /// Headings that read as a selection but aren't one: a cell naming them is their feature.
+    not_selections: BTreeSet<FeatureSelectionKey>,
+    /// Features a row of a table (by its key) holds once at least, beside what its cells name, by level.
+    row_features: Vec<(String, u8, FeatureKey)>,
+    /// Feat slots a row of a table (by its key) grants beside its cells, by level.
+    row_slots: Vec<(String, u8, FeatSlot)>,
+}
+
+/// An archetype's skill points and class skills, beside the skills table.
+#[derive(Clone, Debug)]
+pub enum ArchetypeSkills {
+    /// Its own points and list.
+    Own {
+        points: u8,
+        skills: BTreeSet<SkillKey>,
+    },
+    /// Its class's list and these skills.
+    ClassAnd(BTreeSet<SkillKey>),
+}
+
+/// A fact of a feature a table defines, beside its name and link.
+#[derive(Clone, Debug)]
+pub enum FeatureFact {
+    /// It raises an ability score (Dragon Disciple's "Strength +2").
+    AbilityBonus(AbilityBonus),
+    /// The character's BAB is at least this for prerequisites (Perfect Mind).
+    BabFloor(u8),
+    /// Every skill's rank is at least the Mythic rank for prerequisites (Perfect Mind).
+    SkillRanksAtLeastMythicRank,
 }
 
 impl Picks {
@@ -159,7 +225,10 @@ impl Picks {
     pub(crate) fn read(guide: &Guide, feats: &FeatNames, skills: &[Skill]) -> Self {
         let mut picks = Self::default();
         crate::option_families::provide(guide, feats, skills, &mut picks);
-        crate::option_levels::provide(&mut picks);
+        crate::option_levels::provide(guide, feats, skills, &mut picks);
+        crate::option_class_skills::provide(guide, &mut picks);
+        crate::follow_ups::provide(guide, &mut picks);
+        crate::talent_follow_ups::provide(guide, &mut picks);
         crate::option_follow_ups::provide(guide, &mut picks);
         crate::report_gaps::provide(guide, &mut picks);
         crate::archetype_alignments::provide(guide, &mut picks);
@@ -246,6 +315,40 @@ impl Picks {
             .map(|(_, _, selection)| selection)
     }
 
+    /// The row at `level` of `table` (a class's or an archetype's key) holds `feature` once at least, whether a cell
+    /// names it there or not.
+    pub fn row_feature(&mut self, table: &str, level: u8, feature: &str) {
+        self.row_features
+            .push((table.to_owned(), level, FeatureKey::new(feature)));
+    }
+
+    pub fn row_features_of<'p>(
+        &'p self,
+        table: &'p str,
+        level: u8,
+    ) -> impl Iterator<Item = &'p FeatureKey> {
+        self.row_features
+            .iter()
+            .filter(move |(t, l, _)| t == table && *l == level)
+            .map(|(_, _, feature)| feature)
+    }
+
+    /// The row at `level` of `table` grants `slot` beside its cells.
+    pub fn row_slot(&mut self, table: &str, level: u8, slot: FeatSlot) {
+        self.row_slots.push((table.to_owned(), level, slot));
+    }
+
+    pub fn row_slots_of<'p>(
+        &'p self,
+        table: &'p str,
+        level: u8,
+    ) -> impl Iterator<Item = &'p FeatSlot> {
+        self.row_slots
+            .iter()
+            .filter(move |(t, l, _)| t == table && *l == level)
+            .map(|(_, _, slot)| slot)
+    }
+
     /// The rows `rows` at `level` grant `feats` outright beside their cells.
     pub fn row_feats(&mut self, rows: Rows, level: u8, feats: BTreeSet<FeatKey>) {
         self.row_feats.push((rows, level, feats));
@@ -270,6 +373,18 @@ impl Picks {
     /// Whether a line naming the provided selection `selection` means holding one of its options.
     pub fn is_named(&self, selection: &FeatureSelectionKey) -> bool {
         !self.unnamed.contains(selection)
+    }
+
+    /// One of ticket 30's option families, taken by its class's tables as `taking` says.
+    pub(crate) fn family(&mut self, taking: crate::option_levels::Taking) {
+        self.families.push(taking);
+    }
+
+    /// The option family the class `class`'s tables take, if any.
+    pub(crate) fn family_of(&self, class: &str) -> Option<&crate::option_levels::Taking> {
+        self.families
+            .iter()
+            .find(|taking| taking.takes.class == class)
     }
 
     /// `owner`'s prerequisite is `prerequisite`, in place of what its "Prerequisites" line, `line`, names.
@@ -348,6 +463,118 @@ impl Picks {
 
     pub fn is_daily_choice(&self, feature: &FeatureKey) -> bool {
         self.daily_choices.contains(feature)
+    }
+
+    /// The archetype `archetype`'s skill points and class skills are `skills`.
+    pub fn archetype_skills(&mut self, archetype: &str, skills: ArchetypeSkills) {
+        self.archetype_skills.push((archetype.to_owned(), skills));
+    }
+
+    pub fn archetype_skills_of(&self, archetype: &str) -> Option<&ArchetypeSkills> {
+        self.archetype_skills
+            .iter()
+            .find(|(a, _)| a == archetype)
+            .map(|(_, skills)| skills)
+    }
+
+    /// The prestige class `class`'s class skills are its characteristics' list without `without` and with `with`.
+    pub fn class_skills(&mut self, class: &str, without: &[&str], with: &[&str]) {
+        let keys = |skills: &[&str]| skills.iter().map(|s| SkillKey::new(*s)).collect();
+        self.class_skill_fixes
+            .push((class.to_owned(), keys(without), keys(with)));
+    }
+
+    /// Applies the class skills stated for the prestige class `class`, asserting each changes its list.
+    pub fn fix_class_skills(&self, class: &str, skills: &mut BTreeSet<SkillKey>) {
+        for (_, without, with) in self.class_skill_fixes.iter().filter(|(c, ..)| c == class) {
+            for skill in without {
+                assert!(skills.remove(skill), "{class}: no {skill} to take off");
+            }
+            for skill in with {
+                assert!(skills.insert(skill.clone()), "{class}: {skill} already");
+            }
+        }
+    }
+
+    /// The race `race`'s bonus feat at 1st level is a pick of `list`.
+    pub fn race_list(&mut self, race: &str, list: FeatList) {
+        self.race_lists.push((race.to_owned(), list));
+    }
+
+    pub fn race_list_of(&self, race: &str) -> Option<&FeatList> {
+        self.race_lists
+            .iter()
+            .find(|(r, _)| r == race)
+            .map(|(_, list)| list)
+    }
+
+    /// The option `option`, which the guide's headings define, needs `condition` beside what its lines name.
+    pub fn option_condition(&mut self, option: &str, condition: Prerequisite) {
+        self.option_conditions
+            .push((SelectionOptionKey::new(option), condition));
+    }
+
+    pub fn option_conditions_of(&self, option: &SelectionOptionKey) -> Vec<Prerequisite> {
+        self.option_conditions
+            .iter()
+            .filter(|(o, _)| o == option)
+            .map(|(_, condition)| condition.clone())
+            .collect()
+    }
+
+    /// The option `option`, which the guide's headings define, is taken for a value of `kind`.
+    pub fn option_parameter(&mut self, option: &str, kind: ParameterKind) {
+        self.option_parameters
+            .push((SelectionOptionKey::new(option), kind));
+    }
+
+    pub fn option_parameter_of(&self, option: &SelectionOptionKey) -> Option<ParameterKind> {
+        self.option_parameters
+            .iter()
+            .find(|(o, _)| o == option)
+            .map(|(_, kind)| *kind)
+    }
+
+    /// The option `option`, which the guide's headings define, can be taken `repeat` times.
+    pub fn option_repeat(&mut self, option: &str, repeat: Repeat) {
+        self.option_repeats
+            .push((SelectionOptionKey::new(option), repeat));
+    }
+
+    pub fn option_repeat_of(&self, option: &SelectionOptionKey) -> Repeat {
+        self.option_repeats
+            .iter()
+            .find(|(o, _)| o == option)
+            .map_or(Repeat::Once, |(_, repeat)| *repeat)
+    }
+
+    /// The heading `selection` lists options, but is no selection: a cell naming it is its feature.
+    pub fn not_selection(&mut self, selection: &str) {
+        self.not_selections
+            .insert(FeatureSelectionKey::new(selection));
+    }
+
+    pub fn is_selection(&self, selection: &FeatureSelectionKey) -> bool {
+        !self.not_selections.contains(selection)
+    }
+
+    /// The feature `feature`, which a table defines, has `fact`.
+    pub fn feature_fact(&mut self, feature: &str, fact: FeatureFact) {
+        self.feature_facts.push((FeatureKey::new(feature), fact));
+    }
+
+    /// A feature as a table defines it, with the facts the providers give it.
+    pub fn shape(&self, feature: &mut Feature) {
+        feature.daily_choice = self.is_daily_choice(&feature.key);
+        for (_, fact) in self.feature_facts.iter().filter(|(f, _)| *f == feature.key) {
+            match fact {
+                FeatureFact::AbilityBonus(bonus) => feature.ability_bonuses.push(bonus.clone()),
+                FeatureFact::BabFloor(floor) => feature.bab_floor = Some(*floor),
+                FeatureFact::SkillRanksAtLeastMythicRank => {
+                    feature.skill_ranks_at_least_mythic_rank = true;
+                }
+            }
+        }
     }
 
     /// The mythic feat `feat` gives `pick` when it's taken.
@@ -442,6 +669,12 @@ impl Picks {
 /// Asserts what the providers can only assert on the finished data: the rows in force hold each pick where the guide's
 /// tables have its cell. Changes nothing.
 pub fn check(guide: &Guide, data: &GameData) {
+    crate::option_levels::check(data);
+    crate::option_class_skills::check(data);
+    crate::follow_ups::check(data);
+    crate::option_follow_ups::check(data);
+    crate::second_follow_ups::check(guide, data);
+    crate::talent_follow_ups::check(data);
     crate::option_families::check(guide, data);
     crate::report_gaps::check(data);
     crate::archetype_alignments::check(guide, data);

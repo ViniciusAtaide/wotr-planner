@@ -290,6 +290,32 @@ pub fn drop_redundant_alternatives(data: &mut GameData) {
     }
 }
 
+/// Every prerequisite of the data, read only.
+pub fn prerequisites(data: &GameData) -> Vec<&Option<Prerequisite>> {
+    let mut prerequisites: Vec<&Option<Prerequisite>> = Vec::new();
+    prerequisites.extend(data.feats.iter().map(|f| &f.prerequisite));
+    prerequisites.extend(data.mythic_abilities.iter().map(|a| &a.prerequisite));
+    prerequisites.extend(data.mythic_feats.iter().map(|f| &f.prerequisite));
+    for class in data.classes.iter().chain(&data.prestige_classes) {
+        prerequisites.push(&class.prerequisite);
+        for selection in &class.selections {
+            prerequisites.extend(selection.options.iter().map(|o| &o.prerequisite));
+        }
+        for archetype in &class.archetypes {
+            prerequisites.push(&archetype.prerequisite);
+            for selection in &archetype.selections {
+                prerequisites.extend(selection.options.iter().map(|o| &o.prerequisite));
+            }
+        }
+    }
+    for path in &data.mythic_paths {
+        for selection in &path.selections {
+            prerequisites.extend(selection.options.iter().map(|o| &o.prerequisite));
+        }
+    }
+    prerequisites
+}
+
 /// Every prerequisite in the data: feats', mythic abilities' and feats', classes' and archetypes' entry
 /// prerequisites, and every selection option's.
 pub fn prerequisites_mut(data: &mut GameData) -> Vec<&mut Option<Prerequisite>> {

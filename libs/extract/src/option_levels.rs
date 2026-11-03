@@ -4,65 +4,116 @@
 //!
 //! Each option's rows come from the guide: from its progression table where it has one (the cells every option's
 //! table shares at a level are the class's, the rest are the option's; bloodline spells stay out), or from prose
-//! where it doesn't (spirits, combat styles). Then each class and archetype takes the family:
-//! - the class's (and each archetype's) placeholder cells go: the choice ("Bloodline", "Order", "Spirit", "Ways of
-//!   the Deceiver") becomes the selection, and the ability placeholders ("Bloodline Ability", "Order Ability") are
-//!   the option's rows now;
-//! - an option level whose row an archetype's table has no placeholder for (or, for an archetype whose option is
-//!   fixed, whose features it doesn't list) is skipped, and the archetype's own row stays;
-//! - an archetype that skips levels, limits the options or takes only the feat list gets its own selection that
-//!   shares the options it allows; one option is granted with no pick;
-//! - the bonus slots that took the class's merged bloodline list pick from the held option's list instead.
+//! where it doesn't (spirits, combat styles). [`provide`] reads every family before any class is built and gives it
+//! to the class stage through [`crate::picks`]: its selection, features, lists and nested selections are the owner's
+//! from the start, and the class's tables take it as they're read ([`Taking`]):
+//! - before a table's rows are read, its cells are planned ([`Taking::plan`]): the choice ("Bloodline", "Order",
+//!   "Spirit", "Ways of the Deceiver") and the ability placeholders ("Bloodline Ability", "Order Ability") are
+//!   markers, never features (the held option's rows stand there), and so is what a fixed option's row gives where
+//!   the archetype's own table lists it; an archetype that takes no family keeps its cells;
+//! - once every table of the class is read ([`Taking::take`], on the full rows): the class's row grants the
+//!   selection; an option level whose row an archetype's table has no placeholder for (a level its row differs from
+//!   its class's at, the markers counted as what they'd be) is skipped, and the archetype's own row stays; an
+//!   archetype that skips levels, limits the options or takes only the feat list gets its own selection sharing the
+//!   options it allows (one option is granted with no pick); the bonus slots that took the class's merged bloodline
+//!   list pick from the held option's list (the lists still count when the class's lists are keyed:
+//!   [`crate::feat_lists::PendingLists::stand_in`]); the rows an archetype that takes none shares with its class
+//!   follow the class's.
 //!
-//! [`apply`] runs on the finished rows and asserts what it finds; why it stays a pass is in
-//! [`crate::build::extract`]. The facts of its families' owners that don't hang on those rows (the mythic abilities
-//! that pick another option, Bloodline Ascendance, the daily choices) are built with their owners ([`provide`]).
+//! The archetype rows are then made sparse as every class's are. Making the decisions on the full rows, before that,
+//! gives what deciding on the sparse rows did: a row that matches its class's (its markers included) holds what the
+//! class's holds, and the archetype's skipped levels are the ones whose row differs from its class's and has no
+//! placeholder.
+//!
+//! The facts of the families' owners that don't hang on those rows are given with them too: the mythic abilities
+//! that pick another option and Bloodline Ascendance, the daily choices, the Primalist's choices, Dragon Disciple,
+//! the Eldritch Scion, the Dragonheir Scion, the Elemental Specialist's element and Disruptive's line
+//! ([`provide_others`]). [`check`] asserts what only the finished data shows.
 
 use std::collections::{BTreeMap, BTreeSet};
 
 use rules::{
-    AbilityBonus, ArchetypeLevelRow, Class, ClassKey, ClassLevelRow, FeatKey, FeatList,
-    FeatListKey, FeatSlot, Feature, FeatureKey, FeatureSelection, FeatureSelectionKey, GameData,
-    GuideRef, OptionLevelRow, OptionRow, Prerequisite, Repeat, SelectionOption, SelectionOptionKey,
+    AbilityBonus, ArchetypeLevelRow, Class, ClassKey, DataAt, FeatKey, FeatList, FeatListKey,
+    FeatSlot, Feature, FeatureKey, FeatureSelection, FeatureSelectionKey, GameData, GuideRef,
+    OptionLevelRow, OptionRow, Prerequisite, Repeat, SelectionOption, SelectionOptionKey,
     SpellType,
 };
 
 use crate::guide::Guide;
 use crate::html::{Page, Section};
 use crate::names::{norm, slug};
-use crate::picks::Picks;
+use crate::picks::{FeatureFact, Pick, Picks, Rule};
 use crate::tables::parse_table;
 
-/// What [`apply`] changed, one line each, for the rewrite's log.
+/// What a pass changed, one line each, for a one-off rewrite's log.
 pub type Log = Vec<String>;
 
-/// Reads every family from the guide and gives it to the classes that take it.
-pub fn apply(guide: &Guide, data: &mut GameData) -> Log {
-    let mut log = Log::new();
-    let feats = FeatNames::new(data);
-
-    let sorcerer = sorcerer_bloodlines(guide, &feats);
-    take_family(data, &sorcerer, &SORCERER, &mut log);
-    let bloodrager = bloodrager_bloodlines(guide, &feats);
-    primalist(guide, data, &mut log);
-    take_family(data, &bloodrager, &BLOODRAGER, &mut log);
-    let wizard = wizard_schools(guide, &feats);
-    take_family(data, &wizard, &WIZARD, &mut log);
-    let cavalier = cavalier_orders(guide, &feats);
-    take_family(data, &cavalier, &CAVALIER, &mut log);
-    let ways = magic_deceiver_ways(guide, &feats);
-    take_family(data, &ways, &MAGIC_DECEIVER, &mut log);
-    let spirits = shaman_spirits(guide);
-    take_family(data, &spirits, &SHAMAN, &mut log);
-    let styles = ranger_styles(guide, &feats);
-    take_family(data, &styles, &RANGER, &mut log);
-
-    other_classes(data, &sorcerer, &mut log);
-    second_spirit(data, &mut log);
-    prerequisites(data, &mut log);
-    drop_unused(data, &TOUCHED, &mut log);
-    log
+/// The families built with their classes, given to the class stage.
+fn provide_families(guide: &Guide, feats: &FeatNames, skills: &[rules::Skill], picks: &mut Picks) {
+    let mut orders = cavalier_orders(guide, feats);
+    crate::option_class_skills::option_rows(guide, &mut orders, skills);
+    give(picks, orders, &CAVALIER);
+    give(picks, wizard_schools(guide, feats), &WIZARD);
+    let mut ways = magic_deceiver_ways(guide, feats);
+    crate::option_families::living_deity_rows(&mut ways);
+    crate::follow_ups::razmiri_infiltrator(guide, &mut ways);
+    give(picks, ways, &MAGIC_DECEIVER);
+    give(picks, shaman_spirits(guide), &SHAMAN);
+    give(picks, ranger_styles(guide, feats), &RANGER);
+    let mut bloodrager = bloodrager_bloodlines(guide, feats);
+    crate::second_follow_ups::bloodrager_groups(&mut bloodrager.selection);
+    give(picks, bloodrager, &BLOODRAGER);
+    picks.selection("bloodrager/primalist", primal_choices(guide));
+    picks.unnamed(PRIMAL_CHOICES);
+    let mut sorcerer = sorcerer_bloodlines(guide, feats);
+    crate::option_follow_ups::sorcerer_bloodlines(guide, &mut sorcerer, picks);
+    crate::option_class_skills::option_rows(guide, &mut sorcerer, skills);
+    provide_others(&sorcerer, picks);
+    give(picks, sorcerer, &SORCERER);
 }
+
+/// Gives a family's definitions to its owner (its selection, or the rows of the guide's selection its headings
+/// define; its features, lists and nested selections), and how its class's tables take it.
+fn give(picks: &mut Picks, family: Family, takes: &'static Takes) {
+    let owner = match family.owner {
+        Owner::Class(class) => class,
+        Owner::Archetype(_, archetype) => archetype,
+    };
+    let key = family.selection.key.clone();
+    // The ranger's combat styles are the guide's selection already: they get their rows.
+    if HEADING_SELECTIONS.contains(&key.as_str()) {
+        let classes: Vec<&str> = family
+            .selection
+            .option_levels
+            .iter()
+            .map(ClassKey::as_str)
+            .collect();
+        picks.option_levels(key.as_str(), &classes);
+        for option in &family.selection.options {
+            picks.option_rows(option.key.as_str(), option.levels.clone());
+        }
+    } else {
+        picks.selection(owner, family.selection.clone());
+        // Second Spirit's "Prerequisites: Spirit" means a spirit held; the other families' names are no line's.
+        if key.as_str() != "shaman/spirit" {
+            picks.unnamed(key.as_str());
+        }
+    }
+    for feature in &family.features {
+        picks.feature(owner, feature.clone());
+    }
+    for list in &family.lists {
+        picks.feat_list(owner, list.clone());
+    }
+    for nested in &family.nested {
+        picks.selection(owner, nested.clone());
+        picks.unnamed(nested.key.as_str());
+    }
+    picks.family(Taking { family, takes });
+}
+
+/// The families' selections the guide's headings define.
+const HEADING_SELECTIONS: [&str; 1] = ["ranger/combat-style-feat"];
 
 // ---- families read from the guide ----------------------------------------------------------------------------
 
@@ -1056,25 +1107,43 @@ fn ranger_styles(guide: &Guide, feats: &FeatNames) -> Family {
 // ---- taking a family -----------------------------------------------------------------------------------------
 
 /// How a class and its archetypes take a family.
-struct Takes {
+pub(crate) struct Takes {
+    /// The class whose tables take it.
+    pub class: &'static str,
     /// The class's level that grants the selection.
     level: u8,
     /// The table cell that is the choice itself ("Bloodline"); it becomes the selection.
     choices: &'static [&'static str],
+    /// Whether the choice cells' features stay defined (off the rows): a line elsewhere resolves to them.
+    kept_choices: bool,
     /// The table cells the option's rows replace ("Bloodline Ability").
     placeholders: &'static [&'static str],
     /// Whether an archetype that takes the family skips the option levels its table has no placeholder for.
     skips_without_placeholder: bool,
-    /// The lists the class's bonus slots took before; their slots now pick from the held option's list.
-    merged_lists: &'static [&'static str],
+    /// The tables whose bonus slots' lists are those merged lists: a slot naming one picks from the held option's
+    /// list instead.
+    merged: Merged,
     /// The base class takes the family (the Magic Deceiver's ways are the archetype's alone).
     base_takes: bool,
     archetypes: &'static [(&'static str, Take)],
+    /// A placeholder that is also a choice in an archetype's table (archetype, cell, the selection it grants), at
+    /// these levels.
+    row_choices: &'static [(&'static str, &'static str, &'static str, &'static [u8])],
+}
+
+/// Which tables' bonus lists are a family's merged lists.
+#[derive(Clone, Copy, Debug)]
+enum Merged {
+    None,
+    /// Every table of the class.
+    Every,
+    /// These tables.
+    Tables(&'static [&'static str]),
 }
 
 /// How one archetype takes a family, where its table doesn't say by itself.
 #[derive(Clone, Copy, Debug)]
-enum Take {
+pub(crate) enum Take {
     /// Not at all.
     No,
     /// The family, coverage by placeholders (or every level, for a family that doesn't skip).
@@ -1089,16 +1158,13 @@ enum Take {
 }
 
 const SORCERER: Takes = Takes {
+    class: "sorcerer",
     level: 1,
     choices: &[],
+    kept_choices: false,
     placeholders: &["Bloodline Ability", "Bloodline Arcana"],
     skips_without_placeholder: true,
-    merged_lists: &[
-        "sorcerer/bonus-feats",
-        "sorcerer/empyreal-sorcerer/bonus-feats",
-        "sorcerer/sage-sorcerer/bonus-feats",
-        "sorcerer/sylvan-sorcerer/bonus-feats",
-    ],
+    merged: Merged::Every,
     base_takes: true,
     // "Note that Empyreal Sorcerers, Sage Sorcerers and Sylvan Sorcerers have fixed bloodlines" (character-creation):
     // "identical to a Sorcerer who has selected the inferior Celestial bloodline", "more or less the same as an
@@ -1123,19 +1189,18 @@ const SORCERER: Takes = Takes {
             Take::Fixed("sorcerer/bloodline/fey"),
         ),
     ],
+    row_choices: &[],
 };
 
 const BLOODRAGER: Takes = Takes {
+    class: "bloodrager",
     level: 1,
     choices: &["Bloodline"],
+    kept_choices: true,
     // A Primalist's "Bloodline Ability or Rage Powers" is the bloodline row unless its choice replaces it.
     placeholders: &["Bloodline Ability", "Bloodline Ability or Rage Powers"],
     skips_without_placeholder: true,
-    merged_lists: &[
-        "bloodrager/bonus-feats",
-        "bloodrager/hag-riven/bonus-feats",
-        "bloodrager/reformed-fiend/bonus-feats",
-    ],
+    merged: Merged::Every,
     base_takes: true,
     // "A Hag-Riven can choose from the following bloodlines: Arcane, Elemental, Fey and Hag." "Bloodline must be
     // Abyssal or Infernal" (Reformed Fiend). The Mixed-Blood Rager "Can choose any bloodline each day": a daily
@@ -1151,14 +1216,22 @@ const BLOODRAGER: Takes = Takes {
             Take::Only(&["abyssal", "infernal"]),
         ),
     ],
+    row_choices: &[(
+        "bloodrager/primalist",
+        "Bloodline Ability or Rage Powers",
+        PRIMAL_CHOICES,
+        &[4, 8, 12, 16, 20],
+    )],
 };
 
 const WIZARD: Takes = Takes {
+    class: "wizard",
     level: 1,
     choices: &[],
+    kept_choices: false,
     placeholders: &["Specialisation abilities", "Specialisation ability"],
     skips_without_placeholder: false,
-    merged_lists: &[],
+    merged: Merged::None,
     base_takes: true,
     // "Does not get an Arcane Bond ... Must select four Opposition Schools" (Arcane Bomber: no specialisation in
     // its table), "Always a specialist Necromancer" (Cruromancer), "Always a specialist Invoker" (Elemental
@@ -1195,6 +1268,7 @@ const WIZARD: Takes = Takes {
             ]),
         ),
     ],
+    row_choices: &[],
 };
 
 /// Notes for an archetype's own selection: the Thassilonian's spellbooks, by the school each specialises in.
@@ -1205,28 +1279,36 @@ const SUMMARIES: [(&str, &str); 1] = [(
 )];
 
 const CAVALIER: Takes = Takes {
+    class: "cavalier",
     level: 1,
     choices: &["Order"],
+    kept_choices: false,
     placeholders: &["Order Ability"],
     skips_without_placeholder: true,
-    merged_lists: &[],
+    merged: Merged::None,
     base_takes: true,
     archetypes: &[],
+    row_choices: &[],
 };
 
 const MAGIC_DECEIVER: Takes = Takes {
+    class: "arcanist",
     level: 1,
     choices: &["Ways of the Deceiver"],
+    kept_choices: false,
     placeholders: &[],
     skips_without_placeholder: false,
-    merged_lists: &[],
+    merged: Merged::None,
     base_takes: false,
     archetypes: &[("arcanist/magic-deceiver", Take::Yes)],
+    row_choices: &[],
 };
 
 const SHAMAN: Takes = Takes {
+    class: "shaman",
     level: 1,
     choices: &["Spirit"],
+    kept_choices: false,
     placeholders: &[
         "Spirit Ability",
         "Greater Spirit Ability",
@@ -1234,25 +1316,24 @@ const SHAMAN: Takes = Takes {
         "Manifestation",
     ],
     skips_without_placeholder: true,
-    merged_lists: &[],
+    merged: Merged::None,
     base_takes: true,
     // "Guiding spirit is the Battle spirit" (Wildland Shaman).
     archetypes: &[(
         "shaman/wildland-shaman",
         Take::Fixed("shaman/spirit/battle"),
     )],
+    row_choices: &[],
 };
 
 const RANGER: Takes = Takes {
+    class: "ranger",
     level: 2,
     choices: &[],
+    kept_choices: false,
     placeholders: &[],
     skips_without_placeholder: false,
-    merged_lists: &[
-        "ranger/bonus-feats-2",
-        "ranger/bonus-feats-6",
-        "ranger/bonus-feats-10",
-    ],
+    merged: Merged::Tables(&["ranger"]),
     base_takes: true,
     // Every archetype's table has the "Combat Style Feat" cells but the Nomad's and the Stormwalker's, which take
     // the Archery feats only ("may only select Archery feats").
@@ -1265,442 +1346,17 @@ const RANGER: Takes = Takes {
         ("ranger/sable-company-marine", Take::Yes),
         ("ranger/stormwalker", Take::No),
     ],
+    row_choices: &[],
 };
 
-/// A class's or an archetype's level row, for its feat slots.
-trait Row {
-    fn feat_slots(&mut self) -> &mut Vec<FeatSlot>;
-}
-
-impl Row for ClassLevelRow {
-    fn feat_slots(&mut self) -> &mut Vec<FeatSlot> {
-        &mut self.feat_slots
-    }
-}
-
-impl Row for ArchetypeLevelRow {
-    fn feat_slots(&mut self) -> &mut Vec<FeatSlot> {
-        &mut self.feat_slots
-    }
-}
-
-/// Every feature name the class and its archetypes define, by key.
-fn feature_names(class: &Class) -> BTreeMap<FeatureKey, String> {
-    class
-        .features
-        .iter()
-        .chain(class.archetypes.iter().flat_map(|a| &a.features))
-        .map(|feature| (feature.key.clone(), feature.name.clone()))
-        .collect()
-}
-
-/// Turns the bonus slots that took a merged list into slots picking from the held option's list.
-fn option_list_slots(row: &mut dyn Row, merged: &[&str], selection: &FeatureSelectionKey) -> bool {
-    let mut changed = false;
-    for slot in row.feat_slots().iter_mut() {
-        if let FeatSlot::OneOf { list } = slot
-            && merged.contains(&list.as_str())
-        {
-            *slot = FeatSlot::OptionList {
-                selection: selection.clone(),
-                at_level: None,
-                label: None,
-            };
-            changed = true;
-        }
-    }
-    changed
-}
-
-fn take_family(data: &mut GameData, family: &Family, takes: &Takes, log: &mut Log) {
-    let (class_key, owner_archetype) = match family.owner {
-        Owner::Class(class) => (class, None),
-        Owner::Archetype(class, archetype) => (class, Some(archetype)),
-    };
-    let class = data
-        .classes
-        .iter_mut()
-        .find(|c| c.key.as_str() == class_key)
-        .unwrap_or_else(|| panic!("no class {class_key}"));
-    let names = feature_names(class);
-    let name_of = |key: &FeatureKey| -> String {
-        names
-            .get(key)
-            .cloned()
-            .or_else(|| family.feature_name(key).map(str::to_owned))
-            .unwrap_or_default()
-    };
-    let selection_key = family.selection.key.clone();
-
-    // The family's definitions: on the class, or on the archetype that owns it. An existing selection of that key
-    // (the shaman's spirits, the ranger's styles) keeps its options' prerequisites and gets the rows.
-    let (features, selections, lists) = match owner_archetype {
-        None => (
-            &mut class.features,
-            &mut class.selections,
-            &mut class.feat_lists,
-        ),
-        Some(archetype) => {
-            let archetype = class
-                .archetypes
-                .iter_mut()
-                .find(|a| a.key.as_str() == archetype)
-                .unwrap_or_else(|| panic!("no archetype {archetype}"));
-            (
-                &mut archetype.features,
-                &mut archetype.selections,
-                &mut archetype.feat_lists,
-            )
-        }
-    };
-    for feature in &family.features {
-        assert!(
-            !features.iter().any(|f| f.key == feature.key),
-            "{} is defined already",
-            feature.key
-        );
-        features.push(feature.clone());
-    }
-    lists.extend(family.lists.iter().cloned());
-    selections.extend(family.nested.iter().cloned());
-    match selections.iter_mut().find(|s| s.key == selection_key) {
-        Some(existing) => {
-            let options: BTreeSet<&SelectionOptionKey> =
-                existing.options.iter().map(|o| &o.key).collect();
-            let new: BTreeSet<&SelectionOptionKey> =
-                family.selection.options.iter().map(|o| &o.key).collect();
-            assert_eq!(options, new, "{selection_key}: the options differ");
-            for option in &mut existing.options {
-                option.levels = family.option(option.key.as_str()).levels.clone();
-            }
-            existing.option_levels = family.selection.option_levels.clone();
-            log.push(format!("{selection_key}: rows on its existing options"));
-        }
-        None => {
-            selections.push(family.selection.clone());
-            log.push(format!(
-                "{selection_key}: new, {} options",
-                family.selection.options.len()
-            ));
-        }
-    }
-
-    // "Bloodline (Hag-Riven)" is the Hag-Riven's Bloodline cell.
-    let is_placeholder = |key: &FeatureKey| {
-        let name = bare(&name_of(key));
-        takes.placeholders.iter().any(|p| bare(p) == name)
-    };
-    let is_choice = |key: &FeatureKey| {
-        let name = bare(&name_of(key));
-        takes.choices.iter().any(|c| bare(c) == name)
-    };
-    let option_levels: BTreeSet<u8> = family
-        .selection
-        .options
-        .iter()
-        .flat_map(|o| o.levels.iter().map(|row| row.level))
-        .collect();
-
-    // The base class: placeholders go, the selection is granted, bonus slots take the option's list.
-    let base_rows_before = class.levels.clone();
-    if takes.base_takes {
-        for row in &mut class.levels {
-            let before = row.features.len();
-            row.features.retain(|f| !is_placeholder(f) && !is_choice(f));
-            if row.features.len() != before {
-                log.push(format!("{class_key} {}: placeholders removed", row.level));
-            }
-            if row.level == takes.level && !row.selections.contains(&selection_key) {
-                row.selections.push(selection_key.clone());
-                log.push(format!("{class_key} {}: grants {selection_key}", row.level));
-            }
-            if option_list_slots(row, takes.merged_lists, &selection_key) {
-                log.push(format!("{class_key} {}: bloodline slots", row.level));
-            }
-        }
-    }
-
-    // Archetypes.
-    let base_rows = class.levels.clone();
-    for archetype in &mut class.archetypes {
-        let take = takes
-            .archetypes
-            .iter()
-            .find(|(key, _)| *key == archetype.key.as_str())
-            .map(|(_, take)| *take);
-        // An archetype not listed takes the family when its rows (or the base rows it keeps) name a choice or a
-        // placeholder, and the base class takes it.
-        let effective = |level: u8| -> Vec<FeatureKey> {
-            match archetype.levels.iter().find(|row| row.level == level) {
-                Some(own) => own.features.clone(),
-                None => base_rows_before
-                    .iter()
-                    .find(|row| row.level == level)
-                    .map(|row| row.features.clone())
-                    .unwrap_or_default(),
-            }
-        };
-        let names_any = (1..=20).any(|level| {
-            effective(level)
-                .iter()
-                .any(|f| is_placeholder(f) || is_choice(f))
-        });
-        let take = match take {
-            Some(take) => take,
-            None if names_any && takes.base_takes => Take::Yes,
-            None => Take::No,
-        };
-        if let Take::No = take {
-            // It keeps the base row at the grant level only without the grant.
-            if takes.base_takes && !archetype.levels.iter().any(|row| row.level == takes.level) {
-                let base = base_rows
-                    .iter()
-                    .find(|row| row.level == takes.level)
-                    .expect("the grant level's row");
-                archetype.levels.push(ArchetypeLevelRow {
-                    level: takes.level,
-                    spell_levels: None,
-                    features: base.features.clone(),
-                    feats: base.feats.clone(),
-                    feat_slots: base.feat_slots.clone(),
-                    selections: base
-                        .selections
-                        .iter()
-                        .filter(|s| **s != selection_key)
-                        .cloned()
-                        .collect(),
-                    feats_for: Default::default(),
-                });
-                archetype.levels.sort_by_key(|row| row.level);
-                log.push(format!("{}: takes no {selection_key}", archetype.key));
-            }
-            continue;
-        }
-        let fixed = match take {
-            Take::Fixed(option) => Some(family.option(option)),
-            _ => None,
-        };
-        // Which option levels the archetype's own table covers.
-        let mut skipped = BTreeSet::new();
-        for &level in &option_levels {
-            let tied = family.ties.get(&level).copied();
-            let row_level = tied.unwrap_or(level);
-            let has_own = archetype.levels.iter().any(|row| row.level == row_level);
-            let features = effective(row_level);
-            let covered = match fixed {
-                Some(option) => option
-                    .levels
-                    .iter()
-                    .find(|row| row.level == row_level)
-                    .is_none_or(|row| {
-                        row_names(family, row)
-                            .iter()
-                            .all(|name| features.iter().any(|own| bare(&name_of(own)) == *name))
-                    }),
-                None if !takes.skips_without_placeholder => true,
-                // The base sorcerer has no table: its rows cover every level.
-                None if !has_own
-                    && takes.placeholders.iter().all(|p| {
-                        !base_rows_before
-                            .iter()
-                            .any(|row| row.features.iter().any(|f| name_of(f) == *p))
-                    }) =>
-                {
-                    true
-                }
-                // The choice's own level gets the option's row too (an order's level-1 skills).
-                None => features.iter().any(|f| is_placeholder(f) || is_choice(f)),
-            };
-            if !covered {
-                skipped.insert(level);
-            }
-        }
-        // Restrict to options or a second pick: an own selection sharing the base's options.
-        let own_selection =
-            |suffix: &str| FeatureSelectionKey::new(format!("{}/{suffix}", archetype.key));
-        let shared: Option<BTreeSet<SelectionOptionKey>> = match take {
-            Take::Only(names) => Some(
-                family
-                    .option_keys()
-                    .into_iter()
-                    .filter(|key| {
-                        let last = key.as_str().rsplit('/').next().unwrap_or_default();
-                        names
-                            .iter()
-                            .any(|name| last == *name || last.starts_with(&format!("{name}-")))
-                    })
-                    .collect(),
-            ),
-            Take::Fixed(option) => Some(BTreeSet::from([SelectionOptionKey::new(option)])),
-            _ => None,
-        };
-        let grant = if shared.is_some() || !skipped.is_empty() {
-            let key = own_selection(
-                selection_key
-                    .as_str()
-                    .rsplit('/')
-                    .next()
-                    .unwrap_or_default(),
-            );
-            let mut own = FeatureSelection {
-                key: key.clone(),
-                name: format!("{} ({})", family.selection.name, archetype.name),
-                guide: archetype.guide.clone(),
-                options: Vec::new(),
-                shared_options: shared
-                    .unwrap_or_else(|| family.option_keys().into_iter().collect()),
-                skipped_levels: skipped.clone(),
-                ..family.selection.clone()
-            };
-            own.summary = SUMMARIES
-                .iter()
-                .find(|(of, _)| *of == archetype.key.as_str())
-                .map(|(_, summary)| (*summary).to_owned())
-                .unwrap_or_default();
-            archetype.selections.push(own);
-            log.push(format!(
-                "{}: own selection {key}, skips {skipped:?}",
-                archetype.key
-            ));
-            key
-        } else {
-            selection_key.clone()
-        };
-        // The second pick's choice cell, and its list-only selection.
-        let second = match take {
-            Take::SecondListOnly(choice) => {
-                let key = own_selection("second-bloodline");
-                archetype.selections.push(FeatureSelection {
-                    key: key.clone(),
-                    name: format!("Second {} ({})", family.selection.name, archetype.name),
-                    guide: archetype.guide.clone(),
-                    options: Vec::new(),
-                    shared_options: family.option_keys().into_iter().collect(),
-                    feat_lists_only: true,
-                    ..family.selection.clone()
-                });
-                Some((choice, key))
-            }
-            _ => None,
-        };
-
-        // Its rows: the choice becomes the grant; placeholders (and a fixed option's features) go where covered.
-        let fixed_names: BTreeMap<u8, Vec<String>> = fixed
-            .map(|option| {
-                option
-                    .levels
-                    .iter()
-                    .filter(|row| !skipped.contains(&row.level))
-                    .map(|row| (row.level, row_names(family, row)))
-                    .collect()
-            })
-            .unwrap_or_default();
-        let grant_level = takes.level;
-        if !archetype.levels.iter().any(|row| row.level == grant_level) && grant != selection_key {
-            let base = base_rows
-                .iter()
-                .find(|row| row.level == grant_level)
-                .expect("the grant level's row");
-            archetype.levels.push(ArchetypeLevelRow {
-                level: grant_level,
-                spell_levels: None,
-                features: base.features.clone(),
-                feats: base.feats.clone(),
-                feat_slots: base.feat_slots.clone(),
-                selections: base.selections.clone(),
-                feats_for: Default::default(),
-            });
-            archetype.levels.sort_by_key(|row| row.level);
-        }
-        for row in &mut archetype.levels {
-            let level = row.level;
-            row.features.retain(|f| {
-                if is_choice(f) {
-                    return false;
-                }
-                if let Some((choice, _)) = &second
-                    && name_of(f) == *choice
-                {
-                    return false;
-                }
-                if is_placeholder(f) {
-                    return false;
-                }
-                !fixed_names
-                    .get(&level)
-                    .is_some_and(|names| names.contains(&bare(&name_of(f))))
-            });
-            // A fixed option's granted feats where it covers the level (Wings at 15).
-            if let Some(option) = fixed
-                && fixed_names.contains_key(&level)
-                && let Some(option_row) = option.levels.iter().find(|r| r.level == level)
-            {
-                row.feats.retain(|feat| !option_row.feats.contains(feat));
-            }
-            if level == grant_level {
-                row.selections.retain(|s| *s != selection_key);
-                row.selections.push(grant.clone());
-                if let Some((_, second)) = &second {
-                    row.selections.push(second.clone());
-                }
-            }
-            option_list_slots(row, takes.merged_lists, &selection_key);
-        }
-        log.push(format!("{}: takes {grant}", archetype.key));
-    }
-    // A row the edits made the same as the base row's is the base row.
-    for archetype in &mut class.archetypes {
-        archetype.levels.retain(|row| {
-            let Some(base) = base_rows.iter().find(|base| base.level == row.level) else {
-                return true;
-            };
-            let sorted = |mut items: Vec<String>| {
-                items.sort();
-                items
-            };
-            let keys = |items: &[FeatureKey]| sorted(items.iter().map(|k| k.to_string()).collect());
-            let slots =
-                |items: &[FeatSlot]| sorted(items.iter().map(|s| format!("{s:?}")).collect());
-            let picks = |items: &[FeatureSelectionKey]| {
-                sorted(items.iter().map(|k| k.to_string()).collect())
-            };
-            let same = row
-                .spell_levels
-                .is_none_or(|spells| spells == base.spell_levels())
-                && keys(&row.features) == keys(&base.features)
-                && row.feats == base.feats
-                && slots(&row.feat_slots) == slots(&base.feat_slots)
-                && picks(&row.selections) == picks(&base.selections);
-            if same {
-                log.push(format!(
-                    "{} {}: same as the base row now",
-                    archetype.key, row.level
-                ));
-            }
-            !same
-        });
-    }
-}
-
 /// Primalist: "At 4th level and every four levels thereafter, a Primalist can choose to take his bloodline ability
-/// or two Rage Powers." A choice at each "Bloodline Ability or Rage Powers" cell: the bloodline's row, or two rage
-/// powers that skip it.
-fn primalist(guide: &Guide, data: &mut GameData, log: &mut Log) {
+/// or two Rage Powers." A choice at each "Bloodline Ability or Rage Powers" cell (`Takes::row_choices`): the
+/// bloodline's row, or two rage powers that skip it.
+fn primal_choices(guide: &Guide) -> FeatureSelection {
     let text = section_text(&page(guide, "bloodrager").root, "primal-choices");
     assert!(text.contains("choose to take his bloodline ability or two Rage Powers"));
-    let bloodrager = data
-        .classes
-        .iter_mut()
-        .find(|c| c.key.as_str() == "bloodrager")
-        .expect("bloodrager");
-    let primalist = bloodrager
-        .archetypes
-        .iter_mut()
-        .find(|a| a.key.as_str() == "bloodrager/primalist")
-        .expect("Primalist");
-    let choices = FeatureSelectionKey::new("bloodrager/primalist/primal-choices");
     let rage_power = FeatureSelectionKey::new("barbarian/rage-power");
-    primalist.selections.push(FeatureSelection {
+    FeatureSelection {
         options: vec![
             option(
                 "bloodrager/primalist/primal-choices/bloodline-ability",
@@ -1723,85 +1379,520 @@ fn primalist(guide: &Guide, data: &mut GameData, log: &mut Log) {
             },
         ],
         ..selection(
-            choices.as_str(),
+            PRIMAL_CHOICES,
             "Primal Choices",
             "bloodrager#primal-choices".into(),
             &["bloodrager"],
         )
-    });
-    let cell = FeatureKey::new("bloodrager/primalist/bloodline-ability-or-rage-powers");
-    let mut levels = Vec::new();
-    for row in &mut primalist.levels {
-        if row.features.contains(&cell) {
-            row.selections.push(choices.clone());
-            levels.push(row.level);
+    }
+}
+
+const PRIMAL_CHOICES: &str = "bloodrager/primalist/primal-choices";
+
+// ---- taken where the class is built ---------------------------------------------------------------------------
+
+/// A family and how its class's tables take it, given to the class stage through [`Picks`].
+pub(crate) struct Taking {
+    pub family: Family,
+    pub takes: &'static Takes,
+}
+
+/// A cell of a family's class's table as the class stage reads it: the feature it names (key and name), or the feat
+/// it grants.
+pub(crate) struct Cell {
+    pub level: u8,
+    pub text: String,
+    pub feature: Option<(FeatureKey, String)>,
+    pub feat: Option<FeatKey>,
+}
+
+/// What a cell of a family's class's table is, in place of the feature or feat it names.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum Planned {
+    /// A placeholder ("Bloodline Ability": the held option's row) or the choice ("Order": the selection). Nothing on
+    /// the row. `kept`: its feature is still defined, off the rows, since a line elsewhere resolves to it.
+    Marker { kept: bool },
+    /// What a fixed option's row gives, listed in the archetype's own table: the option's row stands there.
+    Covered,
+}
+
+/// How one table of a family's class takes the family, planned from its cells before its rows are built.
+#[derive(Default)]
+pub(crate) struct TablePlan {
+    /// The archetype's way of taking it; `None` for the class's own table.
+    take: Option<Take>,
+    cells: Vec<(u8, String, Planned)>,
+    /// The placeholder and choice cells' features by level: what the rows would hold if they were features, for
+    /// telling which of an archetype's rows are its class's.
+    markers: BTreeMap<u8, Vec<(FeatureKey, String)>>,
+    /// The fixed option's levels the archetype's table doesn't give (`Take::Fixed`).
+    fixed_skipped: BTreeSet<u8>,
+}
+
+impl TablePlan {
+    /// What the cell `cell` at `level` is, if the plan says.
+    pub(crate) fn planned(&self, level: u8, cell: &str) -> Option<Planned> {
+        self.cells
+            .iter()
+            .find(|(l, c, _)| *l == level && c == cell)
+            .map(|(_, _, planned)| *planned)
+    }
+
+    fn markers_at(&self, level: u8) -> &[(FeatureKey, String)] {
+        self.markers.get(&level).map_or(&[], Vec::as_slice)
+    }
+}
+
+impl Taking {
+    fn is_placeholder(&self, name: &str) -> bool {
+        let name = bare(name);
+        self.takes.placeholders.iter().any(|p| bare(p) == name)
+    }
+
+    fn is_choice(&self, name: &str) -> bool {
+        let name = bare(name);
+        self.takes.choices.iter().any(|c| bare(c) == name)
+    }
+
+    fn option_levels(&self) -> BTreeSet<u8> {
+        self.family
+            .selection
+            .options
+            .iter()
+            .flat_map(|o| o.levels.iter().map(|row| row.level))
+            .collect()
+    }
+
+    /// How a table of the family's class takes the family (the class's own when `archetype` is `None`), from its
+    /// cells: its placeholder and choice cells are markers, and a fixed option's features its own table lists where
+    /// the option's row stands are that row. An archetype the guide doesn't list takes the family when its table
+    /// names a placeholder or the choice; one that takes none keeps its cells as they are.
+    pub(crate) fn plan(&self, archetype: Option<&str>, cells: &[Cell]) -> TablePlan {
+        let takes = self.takes;
+        let marker = |name: &str| self.is_placeholder(name) || self.is_choice(name);
+        let mut plan = TablePlan::default();
+        let take = match archetype {
+            None if !takes.base_takes => return plan,
+            None => None,
+            Some(archetype) => {
+                let listed = takes
+                    .archetypes
+                    .iter()
+                    .find(|(key, _)| *key == archetype)
+                    .map(|(_, take)| *take);
+                let names_any = cells
+                    .iter()
+                    .filter(|cell| cell.level <= 20)
+                    .any(|cell| cell.feature.as_ref().is_some_and(|(_, name)| marker(name)));
+                let take = match listed {
+                    Some(take) => take,
+                    None if names_any && takes.base_takes => Take::Yes,
+                    None => Take::No,
+                };
+                plan.take = Some(take);
+                if let Take::No = take {
+                    return plan;
+                }
+                Some(take)
+            }
+        };
+        let second = match take {
+            Some(Take::SecondListOnly(choice)) => Some(choice),
+            _ => None,
+        };
+        // A fixed option's row stands where the archetype's table lists every feature it gives.
+        let mut fixed_names: BTreeMap<u8, Vec<String>> = BTreeMap::new();
+        let mut fixed_feats: BTreeMap<u8, BTreeSet<FeatKey>> = BTreeMap::new();
+        if let Some(Take::Fixed(option)) = take {
+            let option = self.family.option(option);
+            for level in self.option_levels() {
+                let row_level = self.family.ties.get(&level).copied().unwrap_or(level);
+                let names: Vec<String> = cells
+                    .iter()
+                    .filter(|cell| cell.level == row_level)
+                    .filter_map(|cell| cell.feature.as_ref())
+                    .map(|(_, name)| bare(name))
+                    .collect();
+                let covered = option
+                    .levels
+                    .iter()
+                    .find(|row| row.level == row_level)
+                    .is_none_or(|row| {
+                        row_names(&self.family, row)
+                            .iter()
+                            .all(|name| names.contains(name))
+                    });
+                if !covered {
+                    plan.fixed_skipped.insert(level);
+                }
+            }
+            for row in &option.levels {
+                if !plan.fixed_skipped.contains(&row.level) {
+                    fixed_names.insert(row.level, row_names(&self.family, row));
+                    fixed_feats.insert(row.level, row.feats.clone());
+                }
+            }
+        }
+        for cell in cells {
+            let planned = match &cell.feature {
+                Some((key, name))
+                    if marker(name) || second.is_some_and(|choice| name == choice) =>
+                {
+                    plan.markers
+                        .entry(cell.level)
+                        .or_default()
+                        .push((key.clone(), name.clone()));
+                    Some(Planned::Marker {
+                        kept: takes.kept_choices && self.is_choice(name),
+                    })
+                }
+                Some((_, name))
+                    if fixed_names
+                        .get(&cell.level)
+                        .is_some_and(|names| names.contains(&bare(name))) =>
+                {
+                    Some(Planned::Covered)
+                }
+                Some(_) => None,
+                None => cell
+                    .feat
+                    .as_ref()
+                    .filter(|feat| {
+                        fixed_feats
+                            .get(&cell.level)
+                            .is_some_and(|feats| feats.contains(feat))
+                    })
+                    .map(|_| Planned::Covered),
+            };
+            if let Some(planned) = planned {
+                plan.cells.push((cell.level, cell.text.clone(), planned));
+            }
+        }
+        plan
+    }
+
+    /// The family taken once every table of its class is read, on the full rows: the class's row grants the
+    /// selection; each archetype that takes it grants the class's selection or, when it skips option levels or limits
+    /// the options, its own sharing them (an option level whose row its table has no placeholder for is skipped, and
+    /// its own row stays); the bonus slots that took the merged lists pick from the held option's list. An archetype
+    /// that takes none keeps its rows, but those that are its class's follow the class's.
+    pub(crate) fn take(
+        &self,
+        class: &mut Class,
+        plans: &BTreeMap<String, TablePlan>,
+        lists: &mut crate::feat_lists::PendingLists,
+    ) {
+        let family = &self.family;
+        let takes = self.takes;
+        let selection_key = family.selection.key.clone();
+        let none = TablePlan::default();
+        let plan_of = |table: &str| plans.get(table).unwrap_or(&none);
+        let base_plan = plan_of(class.key.as_str());
+        let option_levels = self.option_levels();
+
+        // The merged lists: the pending lists the merged tables' bonus slots name.
+        let merged_in = |table: &str| match takes.merged {
+            Merged::None => false,
+            Merged::Every => true,
+            Merged::Tables(tables) => tables.contains(&table),
+        };
+        let one_of = |slots: &[FeatSlot]| -> Vec<FeatListKey> {
+            slots
+                .iter()
+                .filter_map(|slot| match slot {
+                    FeatSlot::OneOf { list } => Some(list.clone()),
+                    _ => None,
+                })
+                .collect()
+        };
+        let mut merged: BTreeSet<FeatListKey> = BTreeSet::new();
+        if merged_in(class.key.as_str()) {
+            for row in &class.levels {
+                merged.extend(one_of(&row.feat_slots));
+            }
+        }
+        for archetype in &class.archetypes {
+            if merged_in(archetype.key.as_str()) {
+                for row in &archetype.levels {
+                    merged.extend(one_of(&row.feat_slots));
+                }
+            }
+        }
+        let option_list = || FeatSlot::OptionList {
+            selection: selection_key.clone(),
+            at_level: None,
+            label: None,
+        };
+
+        // An archetype row is its class's when it holds the same, its markers counted as features, as making the
+        // rows sparse tells.
+        let base_before = class.levels.clone();
+        let same_as_base = |row: &ArchetypeLevelRow, plan: &TablePlan| -> bool {
+            let Some(base) = base_before.iter().find(|base| base.level == row.level) else {
+                return false;
+            };
+            let keys = |features: &[FeatureKey], markers: &[(FeatureKey, String)]| {
+                let mut keys: Vec<FeatureKey> = features.to_vec();
+                keys.extend(markers.iter().map(|(key, _)| key.clone()));
+                keys.sort();
+                keys
+            };
+            fn sorted<T: Ord + Clone>(items: &[T]) -> Vec<T> {
+                let mut items = items.to_vec();
+                items.sort();
+                items
+            }
+            row.spell_levels
+                .is_none_or(|spells| spells == base.spell_levels())
+                && keys(&row.features, plan.markers_at(row.level))
+                    == keys(&base.features, base_plan.markers_at(row.level))
+                && row.feats == base.feats
+                && sorted(&row.feat_slots) == sorted(&base.feat_slots)
+                && sorted(&row.selections) == sorted(&base.selections)
+        };
+        let base_placeholder = takes.placeholders.iter().any(|p| {
+            base_plan
+                .markers
+                .values()
+                .flatten()
+                .any(|(_, name)| name == p)
+        });
+
+        // The base class: its row grants the selection, its bonus slots take the option's list.
+        if takes.base_takes {
+            for row in &mut class.levels {
+                if row.level == takes.level && !row.selections.contains(&selection_key) {
+                    row.selections.push(selection_key.clone());
+                }
+                for slot in &mut row.feat_slots {
+                    if let FeatSlot::OneOf { list } = slot
+                        && merged.contains(list)
+                    {
+                        lists.stand_in(&class.key, row.level, list);
+                        *slot = option_list();
+                    }
+                }
+            }
+        }
+        let base_after = class.levels.clone();
+
+        for archetype in &mut class.archetypes {
+            let plan = plan_of(archetype.key.as_str());
+            let take = plan.take.unwrap_or(Take::No);
+            if let Take::No = take {
+                // Its rows that are the class's stay the class's: without the grant at the grant level.
+                if takes.base_takes {
+                    for row in &mut archetype.levels {
+                        if !same_as_base(row, plan) {
+                            continue;
+                        }
+                        let base = base_after
+                            .iter()
+                            .find(|base| base.level == row.level)
+                            .expect("the class's row");
+                        row.features = base.features.clone();
+                        row.feats = base.feats.clone();
+                        row.feat_slots = base.feat_slots.clone();
+                        row.selections = base.selections.clone();
+                        if row.level == takes.level {
+                            row.selections.retain(|s| *s != selection_key);
+                        }
+                    }
+                }
+                continue;
+            }
+            let skipped: BTreeSet<u8> = match take {
+                Take::Fixed(_) => plan.fixed_skipped.clone(),
+                _ => option_levels
+                    .iter()
+                    .copied()
+                    .filter(|level| {
+                        let row_level = family.ties.get(level).copied().unwrap_or(*level);
+                        let has_own = archetype
+                            .levels
+                            .iter()
+                            .find(|row| row.level == row_level)
+                            .is_some_and(|row| !same_as_base(row, plan));
+                        let covered = !takes.skips_without_placeholder
+                            // The base sorcerer has no table: its rows cover every level.
+                            || (!has_own && !base_placeholder)
+                            // The choice's own level gets the option's row too (an order's level-1 skills).
+                            || plan
+                                .markers_at(row_level)
+                                .iter()
+                                .any(|(_, name)| self.is_placeholder(name) || self.is_choice(name));
+                        !covered
+                    })
+                    .collect(),
+            };
+            // Restrict to options or a second pick: an own selection sharing the base's options.
+            let own_selection =
+                |suffix: &str| FeatureSelectionKey::new(format!("{}/{suffix}", archetype.key));
+            let shared: Option<BTreeSet<SelectionOptionKey>> = match take {
+                Take::Only(names) => Some(
+                    family
+                        .option_keys()
+                        .into_iter()
+                        .filter(|key| {
+                            let last = key.as_str().rsplit('/').next().unwrap_or_default();
+                            names
+                                .iter()
+                                .any(|name| last == *name || last.starts_with(&format!("{name}-")))
+                        })
+                        .collect(),
+                ),
+                Take::Fixed(option) => Some(BTreeSet::from([SelectionOptionKey::new(option)])),
+                _ => None,
+            };
+            let grant = if shared.is_some() || !skipped.is_empty() {
+                let key = own_selection(
+                    selection_key
+                        .as_str()
+                        .rsplit('/')
+                        .next()
+                        .unwrap_or_default(),
+                );
+                archetype.selections.push(FeatureSelection {
+                    key: key.clone(),
+                    name: format!("{} ({})", family.selection.name, archetype.name),
+                    summary: SUMMARIES
+                        .iter()
+                        .find(|(of, _)| *of == archetype.key.as_str())
+                        .map(|(_, summary)| (*summary).to_owned())
+                        .unwrap_or_default(),
+                    guide: archetype.guide.clone(),
+                    options: Vec::new(),
+                    shared_options: shared
+                        .unwrap_or_else(|| family.option_keys().into_iter().collect()),
+                    skipped_levels: skipped,
+                    ..family.selection.clone()
+                });
+                key
+            } else {
+                selection_key.clone()
+            };
+            // The second pick's list-only selection.
+            let second = match take {
+                Take::SecondListOnly(_) => {
+                    let key = own_selection("second-bloodline");
+                    archetype.selections.push(FeatureSelection {
+                        key: key.clone(),
+                        name: format!("Second {} ({})", family.selection.name, archetype.name),
+                        guide: archetype.guide.clone(),
+                        options: Vec::new(),
+                        shared_options: family.option_keys().into_iter().collect(),
+                        feat_lists_only: true,
+                        ..family.selection.clone()
+                    });
+                    Some(key)
+                }
+                _ => None,
+            };
+            for row in &mut archetype.levels {
+                if row.level == takes.level {
+                    row.selections.retain(|s| *s != selection_key);
+                    row.selections.push(grant.clone());
+                    row.selections.extend(second.clone());
+                }
+                for slot in &mut row.feat_slots {
+                    if let FeatSlot::OneOf { list } = slot
+                        && merged.contains(list)
+                    {
+                        *slot = option_list();
+                    }
+                }
+            }
+        }
+        for (archetype, cell, choice, expected) in takes.row_choices {
+            let plan = plan_of(archetype);
+            let levels: Vec<u8> = plan
+                .markers
+                .iter()
+                .filter(|(_, markers)| markers.iter().any(|(_, name)| name == cell))
+                .map(|(level, _)| *level)
+                .collect();
+            assert_eq!(levels, *expected, "{archetype}: {cell}");
+            let archetype = class
+                .archetypes
+                .iter_mut()
+                .find(|a| a.key.as_str() == *archetype)
+                .unwrap_or_else(|| panic!("no archetype {archetype}"));
+            for row in &mut archetype.levels {
+                if levels.contains(&row.level) {
+                    row.selections.push(FeatureSelectionKey::new(*choice));
+                }
+            }
         }
     }
-    assert_eq!(levels, [4, 8, 12, 16, 20], "the Primalist's choices");
-    log.push(format!("bloodrager/primalist: {choices} at {levels:?}"));
 }
 
 // ---- Dragon Disciple, Eldritch Scion, Dragonheir Scion; Winter Witch; mythic --------------------------------------
 
-fn other_classes(data: &mut GameData, sorcerer: &Family, log: &mut Log) {
+/// The classes that pick a sorcerer bloodline or a wizard's element, given where they're built.
+///
+/// - Dragon Disciple: "Must have a Draconic bloodline or no known bloodline", "Able to cast 1st level arcane spells
+///   spontaneously"; "If the precursor class is other than Sorcerer, you must select a Draconic bloodline. Otherwise,
+///   the Dragon Disciple continues your bloodline progression uninterrupted. If you selected a bloodline when you
+///   became a Dragon Disciple, your bloodline level is your class level." Its 2/5/8 "Bloodline Feat" is the
+///   bloodline's; Strength, Constitution and Intelligence +2 are ability bonuses.
+/// - Eldritch Scion: "Spells are cast spontaneously", "Must select a bloodline which provides additional spells and
+///   abilities", "but not the feats that Sorcerers would receive"; Dragon Disciple levels "do not hinder bloodline
+///   progression" (magus).
+/// - Dragonheir Scion: "Gains a Draconic Bloodline" with its own rows (Draconic Defences, Strike, Presence, Wings,
+///   Might of Wyrms), so it skips every Draconic row.
+/// - Elemental Specialist: "At 1st level, an Elemental Specialist selects one element (from Acid, Cold, Electricity
+///   and Fire)": the choice is a selection.
+/// - Disruptive: "Fighter Level 6 or Arcane bloodline".
+fn provide_others(sorcerer: &Family, picks: &mut Picks) {
     let draconic: BTreeSet<SelectionOptionKey> = sorcerer
         .option_keys()
         .into_iter()
         .filter(|key| key.as_str().starts_with("sorcerer/bloodline/draconic-"))
         .collect();
     let every: BTreeSet<SelectionOptionKey> = sorcerer.option_keys().into_iter().collect();
-
-    // Dragon Disciple: "Must have a Draconic bloodline or no known bloodline", "Able to cast 1st level arcane
-    // spells spontaneously"; "If the precursor class is other than Sorcerer, you must select a Draconic bloodline.
-    // Otherwise, the Dragon Disciple continues your bloodline progression uninterrupted. If you selected a bloodline
-    // when you became a Dragon Disciple, your bloodline level is your class level." The 2/5/8 "Bloodline Feat" is
-    // the bloodline's; Strength, Constitution and Intelligence +2 are ability bonuses.
-    let disciple = data
-        .prestige_classes
-        .iter_mut()
-        .find(|c| c.key.as_str() == "dragon-disciple")
-        .expect("Dragon Disciple");
-    let bloodline = FeatureSelectionKey::new("dragon-disciple/bloodline");
-    disciple.selections.push(FeatureSelection {
-        key: bloodline.clone(),
-        name: "Blood of Dragons".into(),
-        summary: String::new(),
-        guide: GuideRef::new("prestige-classes#blood-of-dragons"),
-        options: Vec::new(),
-        shared_options: draconic.clone(),
-        option_levels: BTreeSet::from([ClassKey::new("dragon-disciple")]),
-        skipped_levels: BTreeSet::new(),
-        feat_lists_only: false,
-        only_without_option: true,
-        pool_of: None,
-        levels_behind: 0,
-        level_from: None,
-        once_per_option: false,
-        level_also_from: None,
-    });
-    let row = disciple
-        .levels
-        .iter_mut()
-        .find(|row| row.level == 1)
-        .expect("level 1");
-    row.selections.push(bloodline);
     let sorcerer_bloodline = FeatureSelectionKey::new("sorcerer/bloodline");
-    for row in &mut disciple.levels {
-        option_list_slots(row, &["dragon-disciple/bonus-feats"], &sorcerer_bloodline);
+
+    // Dragon Disciple.
+    let disciple = "dragon-disciple";
+    let blood = "dragon-disciple/bloodline";
+    picks.selection(
+        disciple,
+        FeatureSelection {
+            name: "Blood of Dragons".into(),
+            guide: GuideRef::new("prestige-classes#blood-of-dragons"),
+            shared_options: draconic.clone(),
+            only_without_option: true,
+            ..selection(blood, "", String::new(), &[disciple])
+        },
+    );
+    picks.row_selection(disciple, 1, blood);
+    picks.rule(Rule {
+        feature: FeatureKey::new("dragon-disciple/bloodline-feat"),
+        table: Some(disciple.into()),
+        cell: None,
+        levels: Some(vec![2, 5, 8]),
+        pick: Pick::Slots(vec![FeatSlot::OptionList {
+            selection: sorcerer_bloodline.clone(),
+            at_level: None,
+            label: None,
+        }]),
+    });
+    for (feature, ability) in [
+        ("dragon-disciple/strength-2", rules::Ability::Strength),
+        (
+            "dragon-disciple/constitution-2",
+            rules::Ability::Constitution,
+        ),
+        (
+            "dragon-disciple/intelligence-2",
+            rules::Ability::Intelligence,
+        ),
+    ] {
+        picks.feature_fact(
+            feature,
+            FeatureFact::AbilityBonus(AbilityBonus::Fixed { ability, amount: 2 }),
+        );
     }
-    for feature in &mut disciple.features {
-        let ability = match feature.name.as_str() {
-            "Strength +2" => rules::Ability::Strength,
-            "Constitution +2" => rules::Ability::Constitution,
-            "Intelligence +2" => rules::Ability::Intelligence,
-            _ => continue,
-        };
-        feature.ability_bonuses = vec![AbilityBonus::Fixed { ability, amount: 2 }];
-    }
-    let mut entry = vec![Prerequisite::SpontaneousSpellLevel {
-        spell_type: SpellType::Arcane,
-        level: 1,
-    }];
     let mut either: Vec<Prerequisite> = draconic
         .iter()
         .cloned()
@@ -1811,79 +1902,33 @@ fn other_classes(data: &mut GameData, sorcerer: &Family, log: &mut Log) {
         Prerequisite::NoOptionFrom(sorcerer_bloodline.clone()),
         Prerequisite::NoOptionFrom(FeatureSelectionKey::new("bloodrager/bloodline")),
     ]));
-    entry.push(Prerequisite::Any(either));
-    // The stand-in "can cast 1st-level arcane spells" goes: the spontaneous one says more.
-    disciple.prerequisite = Some(match disciple.prerequisite.take() {
-        Some(Prerequisite::All(mut children)) => {
-            let before = children.len();
-            children.retain(|c| {
-                *c != Prerequisite::SpellLevel {
-                    spell_type: SpellType::Arcane,
-                    level: 1,
-                }
-            });
-            // The hand-fixed data has it; a fresh extraction leaves the unparsed line out.
-            assert!(children.len() + 1 >= before, "the stand-in spell level");
-            children.extend(entry);
-            Prerequisite::All(children)
-        }
-        other => panic!("Dragon Disciple's entry: {other:?}"),
-    });
-    log.push("dragon-disciple: bloodline, entry, bloodline feats, ability bonuses".into());
+    let at = DataAt::Class(ClassKey::new(disciple));
+    picks.stated(
+        at.clone(),
+        Prerequisite::SpontaneousSpellLevel {
+            spell_type: SpellType::Arcane,
+            level: 1,
+        },
+    );
+    picks.stated(at, Prerequisite::Any(either));
 
-    // Eldritch Scion: "Spells are cast spontaneously", "Must select a bloodline which provides additional spells and
-    // abilities", "but not the feats that Sorcerers would receive"; Dragon Disciple levels "do not hinder bloodline
-    // progression" (magus).
-    let magus = data
-        .classes
-        .iter_mut()
-        .find(|c| c.key.as_str() == "magus")
-        .expect("magus");
-    let scion = magus
-        .archetypes
-        .iter_mut()
-        .find(|a| a.key.as_str() == "magus/eldritch-scion")
-        .expect("Eldritch Scion");
-    scion.spontaneous = Some(true);
-    let scion_bloodline = FeatureSelectionKey::new("magus/eldritch-scion/bloodline");
-    scion.selections.push(FeatureSelection {
-        key: scion_bloodline.clone(),
-        name: "Bloodline (Eldritch Scion)".into(),
-        summary: String::new(),
-        guide: GuideRef::new("magus#eldritch-scion"),
-        options: Vec::new(),
-        shared_options: every.clone(),
-        option_levels: BTreeSet::from([ClassKey::new("magus"), ClassKey::new("dragon-disciple")]),
-        skipped_levels: BTreeSet::new(),
-        feat_lists_only: false,
-        only_without_option: false,
-        pool_of: None,
-        levels_behind: 0,
-        level_from: None,
-        once_per_option: false,
-        level_also_from: None,
-    });
-    scion
-        .levels
-        .iter_mut()
-        .find(|row| row.level == 1)
-        .expect("level 1")
-        .selections
-        .push(scion_bloodline);
-    log.push("magus/eldritch-scion: spontaneous, bloodline".into());
+    // Eldritch Scion.
+    let scion = "magus/eldritch-scion";
+    let scion_bloodline = "magus/eldritch-scion/bloodline";
+    picks.selection(
+        scion,
+        FeatureSelection {
+            name: "Bloodline (Eldritch Scion)".into(),
+            guide: GuideRef::new("magus#eldritch-scion"),
+            shared_options: every,
+            ..selection(scion_bloodline, "", String::new(), &["magus", disciple])
+        },
+    );
+    picks.row_selection(scion, 1, scion_bloodline);
 
-    // Dragonheir Scion: "Gains a Draconic Bloodline" with its own rows (Draconic Defences, Strike, Presence, Wings,
-    // Might of Wyrms), so it skips every Draconic row.
-    let fighter = data
-        .classes
-        .iter_mut()
-        .find(|c| c.key.as_str() == "fighter")
-        .expect("fighter");
-    let dragonheir = fighter
-        .archetypes
-        .iter_mut()
-        .find(|a| a.key.as_str() == "fighter/dragonheir-scion")
-        .expect("Dragonheir Scion");
+    // Dragonheir Scion.
+    let heir = "fighter/dragonheir-scion";
+    let heir_bloodline = FeatureSelectionKey::new("fighter/dragonheir-scion/bloodline");
     let rows: BTreeSet<u8> = draconic
         .iter()
         .flat_map(|key| {
@@ -1894,55 +1939,28 @@ fn other_classes(data: &mut GameData, sorcerer: &Family, log: &mut Log) {
                 .map(|row| row.level)
         })
         .collect();
-    let heir_bloodline = FeatureSelectionKey::new("fighter/dragonheir-scion/bloodline");
-    dragonheir.selections.push(FeatureSelection {
-        key: heir_bloodline.clone(),
-        name: "Draconic Bloodline".into(),
-        summary: String::new(),
-        guide: GuideRef::new("fighter#draconic-bloodline"),
-        options: Vec::new(),
-        shared_options: draconic,
-        option_levels: BTreeSet::from([ClassKey::new("fighter")]),
-        skipped_levels: rows,
-        feat_lists_only: false,
-        only_without_option: false,
-        pool_of: None,
-        levels_behind: 0,
-        level_from: None,
-        once_per_option: false,
-        level_also_from: None,
-    });
-    let row = dragonheir
-        .levels
-        .iter_mut()
-        .find(|row| row.level == 1)
-        .expect("level 1");
-    let before = row.features.len();
-    row.features
-        .retain(|f| f.as_str() != "fighter/dragonheir-scion/draconic-bloodline");
-    assert_eq!(
-        row.features.len() + 1,
-        before,
-        "the Draconic Bloodline cell"
+    picks.selection(
+        heir,
+        FeatureSelection {
+            name: "Draconic Bloodline".into(),
+            guide: GuideRef::new("fighter#draconic-bloodline"),
+            shared_options: draconic,
+            skipped_levels: rows,
+            ..selection(heir_bloodline.as_str(), "", String::new(), &["fighter"])
+        },
     );
-    row.selections.push(heir_bloodline);
-    log.push("fighter/dragonheir-scion: draconic bloodline, own rows".into());
+    picks.rule(Rule {
+        feature: FeatureKey::new("fighter/dragonheir-scion/draconic-bloodline"),
+        table: Some(heir.into()),
+        cell: None,
+        levels: Some(vec![1]),
+        pick: Pick::Selection(heir_bloodline),
+    });
 
-    // Elemental Specialist: "At 1st level, an Elemental Specialist selects one element (from Acid, Cold,
-    // Electricity and Fire)": the choice is a selection.
-    let wizard = data
-        .classes
-        .iter_mut()
-        .find(|c| c.key.as_str() == "wizard")
-        .expect("wizard");
-    let specialist = wizard
-        .archetypes
-        .iter_mut()
-        .find(|a| a.key.as_str() == "wizard/elemental-specialist")
-        .expect("Elemental Specialist");
-    let focused = FeatureSelectionKey::new("wizard/elemental-specialist/focused-element");
+    // Elemental Specialist.
+    let focused = "wizard/elemental-specialist/focused-element";
     let mut choice = selection(
-        focused.as_str(),
+        focused,
         "Focused Element",
         "wizard#focused-element".into(),
         &[],
@@ -1955,60 +1973,159 @@ fn other_classes(data: &mut GameData, sorcerer: &Family, log: &mut Log) {
             Vec::new(),
         ));
     }
-    specialist.selections.push(choice);
-    let row = specialist
+    picks.selection("wizard/elemental-specialist", choice);
+    picks.unnamed(focused);
+    picks.rule(Rule {
+        feature: FeatureKey::new(focused),
+        table: Some("wizard/elemental-specialist".into()),
+        cell: None,
+        levels: Some(vec![1]),
+        pick: Pick::Selection(FeatureSelectionKey::new(focused)),
+    });
+
+    // Disruptive: the "or" line, whose "Arcane bloodline" names no heading.
+    picks.prerequisite(
+        DataAt::Feat(rules::FeatKey::new("disruptive")),
+        "Fighter Level 6 or Arcane bloodline",
+        Prerequisite::Any(vec![
+            Prerequisite::ClassLevel {
+                class: ClassKey::new("fighter"),
+                level: 6,
+            },
+            Prerequisite::SelectionOption(SelectionOptionKey::new("sorcerer/bloodline/arcane")),
+            Prerequisite::SelectionOption(SelectionOptionKey::new("bloodrager/bloodline/arcane")),
+        ]),
+    );
+}
+
+/// What the providers of this module can only assert on the finished data: Dragon Disciple's, the Eldritch Scion's,
+/// the Dragonheir Scion's and the Elemental Specialist's picks are on their rows in force, Dragon Disciple's ability
+/// bonuses on the features of those names, and the Winter Witch has at most one shaman stand-in (a hand fix names
+/// the Frost spirit there; a fresh extraction leaves the whole "Required classes" line out). Changes nothing.
+pub(crate) fn check(data: &GameData) {
+    let class = |key: &str| {
+        data.classes
+            .iter()
+            .chain(&data.prestige_classes)
+            .find(|class| class.key.as_str() == key)
+            .unwrap_or_else(|| panic!("no class {key}"))
+    };
+    let row = |class: &str, archetype: &str, level: u8| {
+        class_row(class_of(data, class), archetype, level)
+            .unwrap_or_else(|| panic!("{archetype} has no row {level}"))
+    };
+    let disciple = class("dragon-disciple");
+    let first = disciple
         .levels
-        .iter_mut()
+        .iter()
         .find(|row| row.level == 1)
         .expect("level 1");
-    let feature = FeatureKey::new(focused.as_str());
-    let before = row.features.len();
-    row.features.retain(|f| *f != feature);
-    assert_eq!(row.features.len() + 1, before, "the Focused Element cell");
-    row.selections.push(focused);
-    log.push("wizard/elemental-specialist: Focused Element is a selection".into());
+    assert!(
+        first
+            .selections
+            .iter()
+            .any(|s| s.as_str() == "dragon-disciple/bloodline")
+    );
+    for level in [2, 5, 8] {
+        let row = disciple
+            .levels
+            .iter()
+            .find(|row| row.level == level)
+            .expect("a row");
+        assert!(
+            row.feat_slots.iter().any(|slot| matches!(slot, FeatSlot::OptionList { selection, .. } if selection.as_str() == "sorcerer/bloodline")),
+            "dragon-disciple {level}: the bloodline's feat"
+        );
+    }
+    for feature in &disciple.features {
+        let bonus =
+            ["Strength +2", "Constitution +2", "Intelligence +2"].contains(&feature.name.as_str());
+        assert_eq!(
+            bonus,
+            !feature.ability_bonuses.is_empty(),
+            "{}",
+            feature.key
+        );
+    }
+    let (selections, _) = row("magus", "magus/eldritch-scion", 1);
+    assert!(
+        selections
+            .iter()
+            .any(|s| s.as_str() == "magus/eldritch-scion/bloodline")
+    );
+    let (selections, features) = row("fighter", "fighter/dragonheir-scion", 1);
+    assert!(
+        selections
+            .iter()
+            .any(|s| s.as_str() == "fighter/dragonheir-scion/bloodline")
+    );
+    assert!(
+        !features
+            .iter()
+            .any(|f| f.as_str() == "fighter/dragonheir-scion/draconic-bloodline")
+    );
+    let (selections, features) = row("wizard", "wizard/elemental-specialist", 1);
+    assert!(
+        selections
+            .iter()
+            .any(|s| s.as_str() == "wizard/elemental-specialist/focused-element")
+    );
+    assert!(
+        !features
+            .iter()
+            .any(|f| f.as_str() == "wizard/elemental-specialist/focused-element")
+    );
 
-    // Winter Witch: "Shaman (Frost Spirit)".
-    let witch = data
-        .prestige_classes
-        .iter_mut()
-        .find(|c| c.key.as_str() == "winter-witch")
-        .expect("Winter Witch");
     let stand_in = Prerequisite::ClassLevel {
         class: ClassKey::new("shaman"),
         level: 1,
     };
-    let frost = Prerequisite::SelectionOption(SelectionOptionKey::new("shaman/spirit/frost"));
-    let replaced = replace_leaf(
-        witch.prerequisite.as_mut().expect("entry"),
-        &stand_in,
-        &frost,
-    );
-    // The stand-in is a hand fix; a fresh extraction leaves the whole "Required classes" line out.
-    assert!(replaced <= 1, "the Winter Witch's shaman stand-in");
-    if replaced == 1 {
-        log.push("winter-witch: needs the Frost spirit".into());
+    let witch = class("winter-witch");
+    let mut found = 0;
+    if let Some(prerequisite) = &witch.prerequisite {
+        count_leaf(prerequisite, &stand_in, &mut found);
+    }
+    assert!(found <= 1, "the Winter Witch's shaman stand-in");
+}
+
+fn class_of<'d>(data: &'d GameData, key: &str) -> &'d Class {
+    data.classes
+        .iter()
+        .find(|class| class.key.as_str() == key)
+        .unwrap_or_else(|| panic!("no class {key}"))
+}
+
+/// An archetype's row in force at `level`: its own, or its class's.
+fn class_row<'c>(
+    class: &'c Class,
+    archetype: &str,
+    level: u8,
+) -> Option<(&'c [FeatureSelectionKey], &'c [FeatureKey])> {
+    let archetype = class
+        .archetypes
+        .iter()
+        .find(|a| a.key.as_str() == archetype)?;
+    match archetype.levels.iter().find(|row| row.level == level) {
+        Some(row) => Some((&row.selections, &row.features)),
+        None => class
+            .levels
+            .iter()
+            .find(|row| row.level == level)
+            .map(|row| (&row.selections[..], &row.features[..])),
     }
 }
 
-/// Replaces every leaf equal to `old`; returns how many.
-pub(crate) fn replace_leaf(
-    prerequisite: &mut Prerequisite,
-    old: &Prerequisite,
-    new: &Prerequisite,
-) -> usize {
-    if prerequisite == old {
-        *prerequisite = new.clone();
-        return 1;
+fn count_leaf(prerequisite: &Prerequisite, leaf: &Prerequisite, found: &mut usize) {
+    if prerequisite == leaf {
+        *found += 1;
     }
-    match prerequisite {
-        Prerequisite::All(children)
-        | Prerequisite::Any(children)
-        | Prerequisite::AtLeast(_, children) => children
-            .iter_mut()
-            .map(|child| replace_leaf(child, old, new))
-            .sum(),
-        _ => 0,
+    if let Prerequisite::All(children)
+    | Prerequisite::Any(children)
+    | Prerequisite::AtLeast(_, children) = prerequisite
+    {
+        for child in children {
+            count_leaf(child, leaf, found);
+        }
     }
 }
 
@@ -2017,7 +2134,13 @@ pub(crate) fn replace_leaf(
 /// ("You gain a second Shaman Spirit") pick another option; Bloodline Ascendance ("You gain the 20th level ability of your bloodline") grants the held bloodline's row
 /// 20. Mixed Bloodline ("Once per day, a Mixed-Blood Rager chooses a bloodline") and the shaman's Wandering Spirit
 /// ("can be changed each time you rest") are daily choices.
-pub(crate) fn provide(picks: &mut Picks) {
+pub(crate) fn provide(
+    guide: &Guide,
+    feats: &FeatNames,
+    skills: &[rules::Skill],
+    picks: &mut Picks,
+) {
+    provide_families(guide, feats, skills, picks);
     let grants = [
         ("second-bloodline", "sorcerer/bloodline"),
         ("second-bloodrager-bloodline", "bloodrager/bloodline"),
@@ -2051,68 +2174,6 @@ pub(crate) fn provide(picks: &mut Picks) {
     }
 }
 
-/// Second Spirit's "Prerequisites: Spirit": a spirit held (the Spirit cell is the selection now). Kept in the pass:
-/// the spirits' options don't exist yet when the lines are resolved and the dangling leaves dropped, so the line
-/// resolves to the "Spirit" cell's feature, which this restates.
-fn second_spirit(data: &mut GameData, log: &mut Log) {
-    let spirits: Vec<Prerequisite> = data
-        .classes
-        .iter()
-        .find(|c| c.key.as_str() == "shaman")
-        .and_then(|c| {
-            c.selections
-                .iter()
-                .find(|s| s.key.as_str() == "shaman/spirit")
-        })
-        .expect("the shaman's spirits")
-        .options
-        .iter()
-        .map(|option| Prerequisite::SelectionOption(option.key.clone()))
-        .collect();
-    let second = data
-        .mythic_abilities
-        .iter_mut()
-        .find(|a| a.key.as_str() == "second-spirit")
-        .expect("Second Spirit");
-    let spirit = Prerequisite::Feature {
-        feature: FeatureKey::new("shaman/spirit"),
-        count: 1,
-    };
-    let replaced = replace_leaf(
-        second
-            .prerequisite
-            .as_mut()
-            .expect("Second Spirit's prerequisite"),
-        &spirit,
-        &Prerequisite::Any(spirits),
-    );
-    assert_eq!(replaced, 1, "Second Spirit's Spirit");
-    log.push("second-spirit: a spirit held".into());
-}
-
-/// Disruptive: "Fighter Level 6 or Arcane bloodline".
-fn prerequisites(data: &mut GameData, log: &mut Log) {
-    let Some(disruptive) = data
-        .feats
-        .iter_mut()
-        .find(|f| f.key.as_str() == "disruptive")
-    else {
-        return;
-    };
-    let either = Prerequisite::Any(vec![
-        Prerequisite::ClassLevel {
-            class: ClassKey::new("fighter"),
-            level: 6,
-        },
-        Prerequisite::SelectionOption(SelectionOptionKey::new("sorcerer/bloodline/arcane")),
-        Prerequisite::SelectionOption(SelectionOptionKey::new("bloodrager/bloodline/arcane")),
-    ]);
-    // The "or" line was left out whole while "Arcane bloodline" named nothing.
-    assert_eq!(disruptive.prerequisite, None, "Disruptive's prerequisite");
-    disruptive.prerequisite = Some(either);
-    log.push("disruptive: fighter 6 or an Arcane bloodline".into());
-}
-
 /// The report items this module settles: the option tables it reads, and the lines it can now state.
 pub fn settled(at: &str, text: &str) -> bool {
     let tables = SORCERER_TABLES
@@ -2131,158 +2192,6 @@ pub fn settled(at: &str, text: &str) -> bool {
         || at == "character-creation#bloodlines"
         || (at == "prestige-classes#dragon-disciple"
             && (text.contains("Draconic bloodline") || text.contains("spontaneously")))
-}
-
-/// Features no row, option row, prerequisite or grant names any more, and lists no slot or option names, go.
-pub(crate) fn drop_unused(data: &mut GameData, touched: &[&str], log: &mut Log) {
-    let mut features: BTreeSet<FeatureKey> = BTreeSet::new();
-    let mut lists: BTreeSet<FeatListKey> = BTreeSet::new();
-    let slot_lists = |slots: &[FeatSlot], lists: &mut BTreeSet<FeatListKey>| {
-        for slot in slots {
-            if let FeatSlot::OneOf { list } = slot {
-                lists.insert(list.clone());
-            }
-        }
-    };
-    for class in data.classes.iter().chain(&data.prestige_classes) {
-        for row in &class.levels {
-            features.extend(row.features.iter().cloned());
-            slot_lists(&row.feat_slots, &mut lists);
-        }
-        for archetype in &class.archetypes {
-            for row in &archetype.levels {
-                features.extend(row.features.iter().cloned());
-                slot_lists(&row.feat_slots, &mut lists);
-            }
-        }
-        for counts in &class.counts_as {
-            if let rules::CountsToward::Feature(feature) = &counts.toward {
-                features.insert(feature.clone());
-            }
-        }
-        for selection in class
-            .selections
-            .iter()
-            .chain(class.archetypes.iter().flat_map(|a| &a.selections))
-        {
-            for option in &selection.options {
-                for row in &option.levels {
-                    features.extend(row.features.iter().cloned());
-                    lists.extend(row.feat_list.iter().cloned());
-                }
-            }
-        }
-    }
-    for path in &data.mythic_paths {
-        for row in &path.ranks {
-            features.extend(row.features.iter().cloned());
-            slot_lists(&row.feat_slots, &mut lists);
-        }
-        if let Some(switch) = &path.switch {
-            features.extend(switch.features.iter().cloned());
-            features.extend(switch.dropped_features.iter().cloned());
-        }
-    }
-    for ability in &data.mythic_abilities {
-        features.extend(ability.features.iter().cloned());
-    }
-    let mut named = |prerequisite: &Option<Prerequisite>| {
-        if let Some(prerequisite) = prerequisite {
-            collect_features(prerequisite, &mut features);
-        }
-    };
-    for feat in &data.feats {
-        named(&feat.prerequisite);
-    }
-    for ability in &data.mythic_abilities {
-        named(&ability.prerequisite);
-    }
-    for feat in &data.mythic_feats {
-        named(&feat.prerequisite);
-    }
-    for class in data.classes.iter().chain(&data.prestige_classes) {
-        named(&class.prerequisite);
-        for archetype in &class.archetypes {
-            named(&archetype.prerequisite);
-        }
-        for selection in class
-            .selections
-            .iter()
-            .chain(class.archetypes.iter().flat_map(|a| &a.selections))
-        {
-            for option in &selection.options {
-                named(&option.prerequisite);
-            }
-        }
-    }
-    for path in &data.mythic_paths {
-        for selection in &path.selections {
-            for option in &selection.options {
-                named(&option.prerequisite);
-            }
-        }
-    }
-    // Only the classes these families touch.
-    for class in data.classes.iter_mut().chain(&mut data.prestige_classes) {
-        if !touched.contains(&class.key.as_str()) {
-            continue;
-        }
-        let keep =
-            |feature: &Feature| features.contains(&feature.key) || feature.option_row.is_some();
-        let before = class.features.len();
-        class.features.retain(keep);
-        let mut dropped = before - class.features.len();
-        for archetype in &mut class.archetypes {
-            let before = archetype.features.len();
-            archetype.features.retain(keep);
-            dropped += before - archetype.features.len();
-        }
-        let before = class.feat_lists.len();
-        class.feat_lists.retain(|list| lists.contains(&list.key));
-        let mut lists_dropped = before - class.feat_lists.len();
-        for archetype in &mut class.archetypes {
-            let before = archetype.feat_lists.len();
-            archetype
-                .feat_lists
-                .retain(|list| lists.contains(&list.key));
-            lists_dropped += before - archetype.feat_lists.len();
-        }
-        if dropped + lists_dropped > 0 {
-            log.push(format!(
-                "{}: {dropped} unused features and {lists_dropped} unused lists dropped",
-                class.key
-            ));
-        }
-    }
-}
-
-const TOUCHED: [&str; 10] = [
-    "sorcerer",
-    "bloodrager",
-    "wizard",
-    "cavalier",
-    "arcanist",
-    "shaman",
-    "ranger",
-    "magus",
-    "fighter",
-    "dragon-disciple",
-];
-
-fn collect_features(prerequisite: &Prerequisite, features: &mut BTreeSet<FeatureKey>) {
-    match prerequisite {
-        Prerequisite::All(children)
-        | Prerequisite::Any(children)
-        | Prerequisite::AtLeast(_, children) => {
-            for child in children {
-                collect_features(child, features);
-            }
-        }
-        Prerequisite::Feature { feature, .. } => {
-            features.insert(feature.clone());
-        }
-        _ => {}
-    }
 }
 
 /// A name without its parenthesised tail, for comparing: "Manifestation (Battle)" is "Manifestation".

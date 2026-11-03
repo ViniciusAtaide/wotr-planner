@@ -22,49 +22,41 @@
 //! with their classes ([`provide`], through [`crate::picks`]): no placeholder feature is made, and [`check`] asserts
 //! the rows in force. With the domains: the Separatist's second domain and its alignment domains (tickets 33 and 35),
 //! the Divine Hunter's every domain power (ticket 33), Domain Zealot's "Domain" and what Boon Companion's and Mythical
-//! Beast's "Animal Companion" also accepts. [`apply`] takes the Living Deity's mystery and domain on the Magic
-//! Deceiver's ways, and asserts what it finds (why it stays a pass is in [`crate::build::extract`]).
+//! Beast's "Animal Companion" also accepts. The Living Deity's mystery, revelations and domains are the Magic
+//! Deceiver's selections, which its way's rows grant ([`living_deity_rows`], on the ways before
+//! [`option_levels`](crate::option_levels) gives them), and Impossible Domain (tickets 33 and 35) is built beside the
+//! domains: its line, resolved once the domains and the Living Deity's way exist, also accepts that way and the
+//! Pentamic Faith discipline.
 
 use std::collections::{BTreeMap, BTreeSet};
 
 use rules::{
-    Class, ClassKey, DataAt, FeatList, FeatListKey, FeatSlot, Feature, FeatureKey,
-    FeatureSelection, FeatureSelectionKey, GameData, LevelFrom, MythicAbilityKey, OptionLevelRow,
-    OptionRow, Prerequisite, Repeat, SelectionOption, SelectionOptionKey, Skill, SkillKey,
+    ClassKey, DataAt, FeatList, FeatListKey, FeatSlot, Feature, FeatureKey, FeatureSelection,
+    FeatureSelectionKey, GameData, LevelFrom, MythicAbilityKey, OptionLevelRow, OptionRow,
+    Prerequisite, Repeat, SelectionOption, SelectionOptionKey, Skill, SkillKey,
 };
 
 use crate::guide::Guide;
 use crate::html::{Page, Section};
 use crate::names::{norm, slug};
 use crate::option_levels::{
-    FeatNames, Log, drop_unused, empty_row, feature, list, name_list, option, page, section,
-    selection,
+    FeatNames, empty_row, feature, list, name_list, option, page, section, selection,
 };
 use crate::picks::{Pick, Picks, Rule};
-
-/// The Living Deity's mystery, revelations and domains, on the Magic Deceiver's ways (why it stays a pass is in
-/// [`crate::build::extract`]); the labels its ways' rows held go.
-pub fn apply(guide: &Guide, data: &mut GameData) -> Log {
-    let mut log = Log::new();
-    let feats = FeatNames::new(data);
-    let skills = Skills::new(data);
-    let domains = domains(guide, &skills);
-    let mysteries = mysteries(guide, &skills, &feats);
-    living_deity(data, &domains, &mysteries, &mut log);
-    drop_unused(data, &["arcanist"], &mut log);
-    log
-}
 
 /// The families built with their owners, before any class is: the oracle's mysteries, the warpriest's blessings, the
 /// kineticist's elements, the domains and the Hellknight's order and Pentamic Faith.
 pub(crate) fn provide(guide: &Guide, feats: &FeatNames, skills: &[Skill], picks: &mut Picks) {
     let skills = Skills::of(skills);
-    oracle_mysteries(guide, &mysteries(guide, &skills, feats), picks);
+    let mysteries = mysteries(guide, &skills, feats);
+    oracle_mysteries(guide, &mysteries, picks);
     blessings(guide, picks);
     elements(guide, &skills, feats, picks);
     let domains = domains(guide, &skills);
     provide_domains(guide, &domains, picks);
     hellknight(guide, &domains, picks);
+    living_deity(&domains, &mysteries, picks);
+    impossible_domain(guide, &domains, picks);
 }
 
 /// What the providers can only assert on the finished data: the rows in force. Changes nothing.
@@ -80,10 +72,6 @@ pub(crate) fn check(guide: &Guide, data: &GameData) {
 struct Skills(BTreeMap<String, (SkillKey, String)>);
 
 impl Skills {
-    fn new(data: &GameData) -> Self {
-        Self::of(&data.skills)
-    }
-
     fn of(skills: &[Skill]) -> Self {
         Self(
             skills
@@ -639,24 +627,6 @@ fn domains(guide: &Guide, skills: &Skills) -> Family {
 
 // ---- rows ------------------------------------------------------------------------------------------------------
 
-fn class_mut<'d>(data: &'d mut GameData, key: &str) -> &'d mut Class {
-    data.classes
-        .iter_mut()
-        .chain(&mut data.prestige_classes)
-        .find(|class| class.key.as_str() == key)
-        .unwrap_or_else(|| panic!("no class {key}"))
-}
-
-/// Every feature name the class and its archetypes define, by key, normalised.
-fn names(class: &Class) -> BTreeMap<FeatureKey, String> {
-    class
-        .features
-        .iter()
-        .chain(class.archetypes.iter().flat_map(|a| &a.features))
-        .map(|feature| (feature.key.clone(), norm(&feature.name)))
-        .collect()
-}
-
 /// A selection of `owner`'s that offers `options` of a shared family, levelled by `levels`.
 fn sharing(
     key: &str,
@@ -669,26 +639,6 @@ fn sharing(
         shared_options: options,
         ..selection(key, name, guide, levels)
     }
-}
-
-fn add_selection(class: &mut Class, archetype: Option<&str>, selection: FeatureSelection) {
-    let selections = match archetype {
-        None => &mut class.selections,
-        Some(key) => {
-            &mut class
-                .archetypes
-                .iter_mut()
-                .find(|a| a.key.as_str() == key)
-                .unwrap_or_else(|| panic!("no archetype {key}"))
-                .selections
-        }
-    };
-    assert!(
-        !selections.iter().any(|s| s.key == selection.key),
-        "{} is defined already",
-        selection.key
-    );
-    selections.push(selection);
 }
 
 fn starts(name: &str, prefix: &str) -> bool {
@@ -1731,67 +1681,112 @@ fn check_mysteries(data: &GameData) {
 /// "receives Revelations appropriate to the Mystery at 1st, 4th, 12th and 20th levels along with the Final
 /// Revelation", and "At 20th level, a Living Deity may select two domains, gaining any abilities granted by these
 /// domains" (Hollow Spark). Its mystery, revelations and domains are selections of the Magic Deceiver's, levelled
-/// by arcanist levels.
-fn living_deity(data: &mut GameData, domains: &Family, mysteries: &Family, log: &mut Log) {
-    let arcanist = class_mut(data, "arcanist");
-    let deceiver = "arcanist/magic-deceiver";
-    let mystery = FeatureSelectionKey::new(format!("{deceiver}/mystery"));
-    let revelation = FeatureSelectionKey::new(format!("{deceiver}/revelation"));
-    let domain = FeatureSelectionKey::new(format!("{deceiver}/domain"));
-    add_selection(
-        arcanist,
-        Some(deceiver),
+/// by arcanist levels; its way's rows grant them ([`living_deity_rows`]).
+fn living_deity(domains: &Family, mysteries: &Family, picks: &mut Picks) {
+    let mystery = format!("{DECEIVER}/mystery");
+    let selections = [
         sharing(
-            mystery.as_str(),
+            &mystery,
             "Mystery (Living Deity)",
             "arcanist#mysterious-gift-mystery".to_owned(),
             &["arcanist"],
             mysteries.all_keys(),
         ),
-    );
-    add_selection(
-        arcanist,
-        Some(deceiver),
         FeatureSelection {
-            pool_of: Some(mystery.clone()),
+            pool_of: Some(FeatureSelectionKey::new(&mystery)),
             ..selection(
-                revelation.as_str(),
+                &format!("{DECEIVER}/revelation"),
                 "Revelation (Living Deity)",
                 "arcanist#mysterious-gift-mystery".to_owned(),
                 &["arcanist"],
             )
         },
-    );
-    add_selection(
-        arcanist,
-        Some(deceiver),
         sharing(
-            domain.as_str(),
+            &format!("{DECEIVER}/domain"),
             "Domain (Living Deity)",
             "arcanist#hollow-spark".to_owned(),
             &["arcanist"],
             domains.all_keys(),
         ),
+    ];
+    for selection in selections {
+        picks.unnamed(selection.key.as_str());
+        picks.selection(DECEIVER, selection);
+    }
+}
+
+const DECEIVER: &str = "arcanist/magic-deceiver";
+
+/// Impossible Domain (tickets 33 and 35): "You may select any domain" (the guide), levelled by the class that gives
+/// the character's other domains (the user's fact), and for a Living Deity by arcanist levels from the pick (the
+/// user's decision); a Living Deity, whose way gives domains, and a Hellknight with Pentamic Faith's domain ("She uses
+/// her class level to determine which domain abilities she can use") may take it. A selection of every domain,
+/// picked through the mythic ability, whose "Prerequisites: Domain" line also accepts the Living Deity's way and the
+/// Pentamic Faith discipline. Built here, where the domains and the Living Deity's way are: the line is resolved once
+/// both exist.
+fn impossible_domain(guide: &Guide, domains: &Family, picks: &mut Picks) {
+    crate::follow_ups::says(
+        guide,
+        "mythic-paths",
+        "impossible-domain",
+        "You may select any domain.",
     );
-    let names = names(arcanist);
-    let deity = arcanist
-        .archetypes
-        .iter_mut()
-        .find(|a| a.key.as_str() == deceiver)
-        .expect("the Magic Deceiver")
-        .selections
-        .iter_mut()
-        .find(|s| s.key.as_str() == "arcanist/magic-deceiver/ways-of-the-deceiver")
-        .expect("the ways")
+    crate::follow_ups::says(
+        guide,
+        "prestige-classes",
+        "pentamic-faith",
+        "She uses her class level to determine which domain abilities she can use.",
+    );
+    let living_deity =
+        SelectionOptionKey::new("arcanist/magic-deceiver/ways-of-the-deceiver/living-deity");
+    let key = "cleric/impossible-domain";
+    picks.selection(
+        "cleric",
+        FeatureSelection {
+            shared_options: domains.all_keys(),
+            level_from: Some(LevelFrom::OtherOptions),
+            level_also_from: Some(living_deity.clone()),
+            ..selection(
+                key,
+                "Impossible Domain",
+                "mythic-paths#impossible-domain".into(),
+                &[],
+            )
+        },
+    );
+    picks.unnamed(key);
+    picks.mythic_selection("impossible-domain", FeatureSelectionKey::new(key));
+    picks.alternatives(
+        DataAt::MythicAbility(MythicAbilityKey::new("impossible-domain")),
+        "Domain",
+        vec![
+            Prerequisite::SelectionOption(living_deity),
+            Prerequisite::SelectionOption(SelectionOptionKey::new(PENTAMIC_DISCIPLINE)),
+        ],
+    );
+}
+
+/// The Living Deity's way's rows, as [`living_deity`] says: its Mystery, Curse, Revelation and Hollow Spark cells
+/// grant the selections, the Final Revelation is the mystery's row, and their features go.
+pub(crate) fn living_deity_rows(ways: &mut crate::option_levels::Family) {
+    let mystery = FeatureSelectionKey::new(format!("{DECEIVER}/mystery"));
+    let revelation = FeatureSelectionKey::new(format!("{DECEIVER}/revelation"));
+    let domain = FeatureSelectionKey::new(format!("{DECEIVER}/domain"));
+    let curse = FeatureSelectionKey::new("oracle/oracles-curse");
+    let names: BTreeMap<FeatureKey, String> = ways
+        .features
+        .iter()
+        .map(|feature| (feature.key.clone(), norm(&feature.name)))
+        .collect();
+    let deity = ways
+        .selection
         .options
         .iter_mut()
         .find(|o| o.key.as_str() == "arcanist/magic-deceiver/ways-of-the-deceiver/living-deity")
         .expect("the Living Deity");
-    let curse = FeatureSelectionKey::new("oracle/oracles-curse");
     let mut revelations = 0;
     for row in &mut deity.levels {
         let name = |key: &FeatureKey| names.get(key).cloned().unwrap_or_default();
-        let before = row.features.len();
         let mut add = Vec::new();
         row.features.retain(|feature| {
             let n = name(feature);
@@ -1810,15 +1805,20 @@ fn living_deity(data: &mut GameData, domains: &Family, mysteries: &Family, log: 
             }
             false
         });
-        if row.features.len() != before {
-            log.push(format!("living deity {}: {add:?}", row.level));
-        }
         row.selections.extend(add);
     }
     assert_eq!(
         revelations, 4,
         "the Living Deity's revelations at 1, 4, 12 and 20"
     );
+    let named: BTreeSet<FeatureKey> = ways
+        .selection
+        .options
+        .iter()
+        .flat_map(|option| &option.levels)
+        .flat_map(|row| row.features.iter().cloned())
+        .collect();
+    ways.features.retain(|feature| named.contains(&feature.key));
 }
 
 // ---- blessings -------------------------------------------------------------------------------------------------

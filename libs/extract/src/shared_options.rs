@@ -79,6 +79,13 @@ pub enum SlotRule {
 
 const ROGUE_TALENTS: &str = "rogue/rogue-talents";
 
+/// The classes whose levels level a new selection's options (ticket 47: Combat Trick's row, which the rogue talents
+/// they share hold), as the rogue talents' are.
+const NEW_LEVELS: [(&str, &str); 2] = [
+    ("rogue/sylvan-trickster/fey-tricks", "rogue"),
+    ("rogue/underground-chemist/discovery", "rogue"),
+];
+
 /// What the guide shares (`slayer#slayer-talents`, `shaman#hex`, `rogue#fey-tricks`, `rogue#discovery`).
 pub const SHARES: &[Share] = &[
     // "From 2nd level, the Slayer may select abilities from Rogue Talents, counting his Slayer class level as his
@@ -266,7 +273,11 @@ fn apply_share(data: &mut GameData, share: &Share) {
                 guide: GuideRef::new(new.guide),
                 options: Vec::new(),
                 shared_options: keys,
-                option_levels: BTreeSet::new(),
+                option_levels: NEW_LEVELS
+                    .iter()
+                    .filter(|(selection, _)| *selection == share.selection)
+                    .map(|(_, class)| ClassKey::new(*class))
+                    .collect(),
                 skipped_levels: BTreeSet::new(),
                 feat_lists_only: false,
                 only_without_option: false,

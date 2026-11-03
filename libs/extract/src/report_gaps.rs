@@ -1,4 +1,4 @@
-//! Ticket 43: the extraction report's items that the saved guide pages settle, applied to finished data.
+//! Ticket 43: the extraction report's items that the saved guide pages settle, built where their owners are.
 //!
 //! - **Totem rage powers** (`barbarian#rage-power`): '"Totem" powers are exclusive. Selecting one "Totem" power
 //!   closes off the other categories.' Each of the four lines' powers (Beast, Celestial, Daemon, Fiend: Lesser,
@@ -7,7 +7,8 @@
 //!   Stated where the rage powers are built ([`provide`]).
 //! - **The Eldritch Scoundrel's sneak attack** (`rogue#sneak-attack-eldritch-scoundrel`): "At 1st level, … She does
 //!   an additional 1d6 damage at 3rd level, increasing by 1d6 every four additional class levels (7, 11, 15, 19)."
-//!   One die at each of 1, 3, 7, 11, 15 and 19 (`libs/game-data/` had them already; an extraction has the 1st only).
+//!   One die at each of 1, 3, 7, 11, 15 and 19 (`libs/game-data/` had them already; the table names the 1st only):
+//!   each of those rows holds one ([`Picks::row_feature`]).
 //! - **The shaman's Wandering Hex** (`shaman#wandering-hex`): "a hex slot that can be temporarily filled with a hex
 //!   granted by either his main spirit or his current Wandering Spirit": a daily choice, as the Wandering Spirit it
 //!   draws on. Built so where the shaman's table defines it ([`provide`]).
@@ -32,9 +33,11 @@
 //!
 //! The kineticist's bonus-feat wild talent is ticket 45's: [`crate::wild_talents`] settles it.
 //!
-//! Each rule asserts the guide phrase it rests on and what it finds in the data, so it fails loudly on data it
-//! doesn't expect. [`apply`] runs on the finished data of an extraction and, through ticket 43's one-off rewrite, on
-//! `libs/game-data/`.
+//! The sorcerer's level-1 slot is the base table's row's and the archetypes' "Bonus Feat" cell at 1; Extra Slayer
+//! Talent's line is stated in place.
+//!
+//! Each rule asserts the guide phrase it rests on when the providers are read ([`provide`]); [`check`] asserts what
+//! only the finished data shows.
 
 use std::collections::BTreeSet;
 
@@ -43,29 +46,11 @@ use rules::{
     Prerequisite, SelectionOptionKey,
 };
 
-use crate::follow_ups::{archetype_mut, cell_at, class_mut, says};
+use crate::follow_ups::{cell_at, says};
 use crate::guide::Guide;
 use crate::html::Section;
-use crate::option_levels::{Log, page};
-use crate::picks::Picks;
-
-/// Applies every rule, in the order above: ticket 43's, then [`decisions`].
-pub fn apply(guide: &Guide, data: &mut GameData) -> Log {
-    let mut log = Log::new();
-    eldritch_scoundrel(guide, data, &mut log);
-    log.extend(decisions(guide, data));
-    log
-}
-
-/// Ticket 44's rules alone (the user's decisions on ticket 43's questions), which its one-off rewrite applies to
-/// `libs/game-data/`, where ticket 43's are in already.
-pub fn decisions(guide: &Guide, data: &mut GameData) -> Log {
-    let mut log = Log::new();
-    sorcerer_level_1_feat(guide, data, &mut log);
-    extra_slayer_talent(guide, data, &mut log);
-    deity(guide);
-    log
-}
+use crate::option_levels::page;
+use crate::picks::{Pick, Picks, Rule};
 
 /// The extraction report's items this module settles: the totems' prose rule (ticket 43); the sorcerer archetypes'
 /// level-1 "Bonus Feat", Extra Slayer Talent's "Talented Slayer" and the cleric's deity (ticket 44).
@@ -136,8 +121,8 @@ fn totems(guide: &Guide, picks: &mut Picks) {
 const ELDRITCH_SCOUNDREL: &str = "rogue/eldritch-scoundrel";
 const ELDRITCH_SNEAK_ATTACK: &str = "rogue/eldritch-scoundrel/sneak-attack-eldritch-scoundrel";
 
-/// A die of the archetype's own sneak attack at 1, 3 and each level the guide's brackets list.
-fn eldritch_scoundrel(guide: &Guide, data: &mut GameData, log: &mut Log) {
+/// The levels of the archetype's own sneak attack's dice: 1, 3 and each level the guide's brackets list.
+fn eldritch_scoundrel_levels(guide: &Guide) -> Vec<u8> {
     let first = "At 1st level, the Eldritch Scoundrel deals extra damage when her opponent is denied Dexterity bonus \
                  or when she flanks her opponent.";
     let later = "She does an additional 1d6 damage at 3rd level, increasing by 1d6 every four additional class \
@@ -151,30 +136,31 @@ fn eldritch_scoundrel(guide: &Guide, data: &mut GameData, log: &mut Log) {
         .unwrap();
     let levels: Vec<u8> = [1, 3].into_iter().chain(bracketed).collect();
     assert_eq!(levels, [1, 3, 7, 11, 15, 19]);
+    levels
+}
+
+/// Each of those rows in force holds one die, and no other row holds one.
+fn check_eldritch_scoundrel(data: &GameData) {
+    let levels = [1, 3, 7, 11, 15, 19];
     let feature = FeatureKey::new(ELDRITCH_SNEAK_ATTACK);
-    let archetype = archetype_mut(data, "rogue", ELDRITCH_SCOUNDREL);
+    let archetype = data
+        .classes
+        .iter()
+        .flat_map(|class| &class.archetypes)
+        .find(|a| a.key.as_str() == ELDRITCH_SCOUNDREL)
+        .expect("the Eldritch Scoundrel");
     assert!(
         archetype.features.iter().any(|f| f.key == feature),
         "{ELDRITCH_SNEAK_ATTACK} isn't defined"
     );
-    for row in &mut archetype.levels {
+    for row in &archetype.levels {
         let held = row.features.iter().filter(|f| **f == feature).count();
-        if levels.contains(&row.level) {
-            assert!(held <= 1, "{ELDRITCH_SCOUNDREL} {}: {held} dice", row.level);
-            if held == 0 {
-                row.features.push(feature.clone());
-                log.push(format!(
-                    "{ELDRITCH_SCOUNDREL} {}: a die of {ELDRITCH_SNEAK_ATTACK}",
-                    row.level
-                ));
-            }
-        } else {
-            assert_eq!(
-                held, 0,
-                "{ELDRITCH_SCOUNDREL} {}: a die off the guide's",
-                row.level
-            );
-        }
+        let expected = usize::from(levels.contains(&row.level));
+        assert_eq!(
+            held, expected,
+            "{ELDRITCH_SCOUNDREL} {}: {held} dice",
+            row.level
+        );
     }
     for level in levels {
         assert!(
@@ -192,6 +178,12 @@ const WANDERING_HEX: &str = "shaman/wandering-hex";
 /// The totem rage powers' exclusion, and the Wandering Hex a daily choice, built where their owners are.
 pub(crate) fn provide(guide: &Guide, picks: &mut Picks) {
     totems(guide, picks);
+    for level in eldritch_scoundrel_levels(guide) {
+        picks.row_feature(ELDRITCH_SCOUNDREL, level, ELDRITCH_SNEAK_ATTACK);
+    }
+    sorcerer_level_1_feat(guide, picks);
+    extra_slayer_talent(guide, picks);
+    deity(guide);
     says(
         guide,
         "shaman",
@@ -202,8 +194,13 @@ pub(crate) fn provide(guide: &Guide, picks: &mut Picks) {
     picks.daily_choice(WANDERING_HEX);
 }
 
-/// The shaman's rows grant the Wandering Hex at 6 and 14, and it draws on the Wandering Spirit, a daily choice too.
+/// What the owners [`provide`] gave facts to hold once built: the Eldritch Scoundrel's dice, the sorcerers' level-1
+/// slots, Extra Slayer Talent's level, and the shaman's rows grant the Wandering Hex at 6 and 14, which draws on the
+/// Wandering Spirit, a daily choice too. Changes nothing.
 pub(crate) fn check(data: &GameData) {
+    check_eldritch_scoundrel(data);
+    check_sorcerer_level_1_feat(data);
+    check_extra_slayer_talent(data);
     let shaman = data
         .classes
         .iter()
@@ -240,8 +237,10 @@ const SORCERER_ARCHETYPES_GENERAL_AT_1: [&str; 6] = [
     "sylvan-sorcerer",
 ];
 
-/// The level-1 bonus feat of the base sorcerer and each archetype that has it, from the held bloodline's list.
-fn sorcerer_level_1_feat(guide: &Guide, data: &mut GameData, log: &mut Log) {
+/// The level-1 bonus feat of the base sorcerer and each archetype that has it, from the held bloodline's list: the
+/// base sorcerer's row gains the slot, and the archetypes' "Bonus Feat" cell at 1 is it (the Geomancer's stays a
+/// general slot; the Overwhelming Mage has none).
+fn sorcerer_level_1_feat(guide: &Guide, picks: &mut Picks) {
     for anchor in [
         "abyssal",
         "arcane",
@@ -305,13 +304,42 @@ fn sorcerer_level_1_feat(guide: &Guide, data: &mut GameData, log: &mut Log) {
         "1",
         "Overwhelming Penetration",
     );
+    let slot = bloodline_slot();
+    picks.row_slot("sorcerer", 1, slot.clone());
+    for archetype in SORCERER_ARCHETYPES_GENERAL_AT_1
+        .into_iter()
+        .chain(["seeker-sorcerer"])
+        .filter(|archetype| *archetype != "geomancer")
+    {
+        let table = format!("sorcerer/{archetype}");
+        picks.rule(Rule {
+            feature: FeatureKey::new(format!("{table}/bonus-feat")),
+            table: Some(table),
+            cell: None,
+            levels: Some(vec![1]),
+            pick: Pick::Slots(vec![slot.clone()]),
+        });
+    }
+}
 
-    let slot = FeatSlot::OptionList {
+fn bloodline_slot() -> FeatSlot {
+    FeatSlot::OptionList {
         selection: FeatureSelectionKey::new(SORCERER_BLOODLINE),
         at_level: None,
         label: None,
-    };
-    let sorcerer = class_mut(data, "sorcerer");
+    }
+}
+
+/// Every sorcerer with the level-1 bonus feat picks it from the held bloodline's list, and holds a bloodline there:
+/// the base sorcerer, and each archetype but the Geomancer (a general slot) and the Overwhelming Mage (none). The
+/// Seeker keeps its magic feats at 5, 10 and 15.
+fn check_sorcerer_level_1_feat(data: &GameData) {
+    let slot = bloodline_slot();
+    let sorcerer = data
+        .classes
+        .iter()
+        .find(|class| class.key.as_str() == "sorcerer")
+        .expect("the sorcerer");
     let bloodline = sorcerer
         .selections
         .iter()
@@ -341,32 +369,20 @@ fn sorcerer_level_1_feat(guide: &Guide, data: &mut GameData, log: &mut Log) {
         ],
         "the sorcerer's archetypes"
     );
-
-    // The base sorcerer: no slot at 1 yet; it picks its bloodline there.
     let row = sorcerer
         .levels
-        .iter_mut()
+        .iter()
         .find(|row| row.level == 1)
         .expect("the sorcerer's row 1");
-    assert_eq!(row.feat_slots, [], "sorcerer 1: a feat slot already");
+    assert_eq!(row.feat_slots, std::slice::from_ref(&slot), "sorcerer 1");
     assert!(
         row.selections
             .iter()
             .any(|selection| selection.as_str() == SORCERER_BLOODLINE),
         "sorcerer 1 picks no bloodline"
     );
-    row.feat_slots.push(slot.clone());
-    log.push("sorcerer 1: a bonus feat from the held bloodline's list".to_owned());
-
-    for archetype in &mut sorcerer.archetypes {
-        let name = archetype
-            .key
-            .as_str()
-            .strip_prefix("sorcerer/")
-            .unwrap()
-            .to_owned();
-        // A selection the archetype's bloodline comes from: the sorcerer's, or the archetype's own over the
-        // sorcerer's bloodlines (the Empyreal's Celestial, the Sage's Arcane, the Sylvan's Fey, the Seeker's any).
+    for archetype in &sorcerer.archetypes {
+        let name = archetype.key.as_str().strip_prefix("sorcerer/").unwrap();
         let own_bloodline = |key: &FeatureSelectionKey| {
             key.as_str() == SORCERER_BLOODLINE
                 || archetype.selections.iter().any(|selection| {
@@ -379,32 +395,23 @@ fn sorcerer_level_1_feat(guide: &Guide, data: &mut GameData, log: &mut Log) {
                             .all(|option| bloodlines.contains(option))
                 })
         };
-        let picks_bloodline = archetype
+        let row = archetype
             .levels
             .iter()
             .find(|row| row.level == 1)
-            .is_some_and(|row| row.selections.iter().any(own_bloodline));
-        let row = archetype
-            .levels
-            .iter_mut()
-            .find(|row| row.level == 1)
             .unwrap_or_else(|| panic!("{name} has no row 1"));
-        let before = match name.as_str() {
+        let expected = match name {
             "overwhelming-mage" => vec![],
-            "seeker-sorcerer" => vec![FeatSlot::Category(FeatCategory::Magic)],
-            _ => vec![FeatSlot::General],
+            "geomancer" => vec![FeatSlot::General],
+            _ => {
+                assert!(
+                    row.selections.iter().any(own_bloodline),
+                    "{name} 1 holds no bloodline"
+                );
+                vec![slot.clone()]
+            }
         };
-        assert_eq!(row.feat_slots, before, "{name} 1's slots");
-        match name.as_str() {
-            "overwhelming-mage" | "geomancer" => continue,
-            _ => {}
-        }
-        assert!(picks_bloodline, "{name} 1 holds no bloodline");
-        row.feat_slots = vec![slot.clone()];
-        log.push(format!(
-            "{} 1: the bonus feat from the held bloodline's list (was {:?})",
-            archetype.key, before[0]
-        ));
+        assert_eq!(row.feat_slots, expected, "{name} 1's slots");
         if name == "seeker-sorcerer" {
             for level in [5, 10, 15] {
                 let row = archetype
@@ -424,15 +431,27 @@ fn sorcerer_level_1_feat(guide: &Guide, data: &mut GameData, log: &mut Log) {
 
 // ---- Extra Slayer Talent --------------------------------------------------------------------------------------
 
-/// Extra Slayer Talent needs slayer level 2, the level the slayer's table first gives Slayer Talents.
-fn extra_slayer_talent(guide: &Guide, data: &mut GameData, log: &mut Log) {
+/// Extra Slayer Talent needs slayer level 2, the level the slayer's table first gives Slayer Talents: stated in
+/// place of its line, whose "Talented Slayer" names nothing.
+fn extra_slayer_talent(guide: &Guide, picks: &mut Picks) {
     says(
         guide,
         "feats",
         "extra-slayer-talent",
         "Slayer Talents or Talented Slayer",
     );
-    // The slayer's tables: saves and BAB, then the features by level.
+    picks.prerequisite(
+        DataAt::Feat(rules::FeatKey::new("extra-slayer-talent")),
+        "Slayer Talents or Talented Slayer",
+        Prerequisite::ClassLevel {
+            class: ClassKey::new("slayer"),
+            level: first_slayer_talents(guide),
+        },
+    );
+}
+
+/// The level the slayer's table first gives Slayer Talents (its tables: saves and BAB, then the features by level).
+fn first_slayer_talents(guide: &Guide) -> u8 {
     let first = named_section(guide, "slayer", "Slayer")
         .tables()
         .flatten()
@@ -440,8 +459,16 @@ fn extra_slayer_talent(guide: &Guide, data: &mut GameData, log: &mut Log) {
         .and_then(|row| row.first())
         .expect("Slayer Talents in the slayer's table");
     assert_eq!(first, "2", "the slayer's first Slayer Talents");
-    let level: u8 = first.parse().unwrap();
-    let slayer = class_mut(data, "slayer");
+    first.parse().unwrap()
+}
+
+/// The slayer's first slayer-talents row is the level Extra Slayer Talent needs.
+fn check_extra_slayer_talent(data: &GameData) {
+    let slayer = data
+        .classes
+        .iter()
+        .find(|class| class.key.as_str() == "slayer")
+        .expect("the slayer");
     let first_row = slayer
         .levels
         .iter()
@@ -451,25 +478,23 @@ fn extra_slayer_talent(guide: &Guide, data: &mut GameData, log: &mut Log) {
                 .any(|selection| selection.as_str() == "slayer/slayer-talents")
         })
         .map(|row| row.level);
-    assert_eq!(
-        first_row,
-        Some(level),
-        "the slayer's first slayer-talents row"
-    );
     let feat = data
         .feats
-        .iter_mut()
+        .iter()
         .find(|feat| feat.key.as_str() == "extra-slayer-talent")
         .expect("Extra Slayer Talent");
-    assert_eq!(
-        feat.prerequisite, None,
-        "extra-slayer-talent: a prerequisite already"
-    );
-    feat.prerequisite = Some(Prerequisite::ClassLevel {
+    let level = first_row.expect("the slayer's slayer-talents rows");
+    let leaf = Prerequisite::ClassLevel {
         class: ClassKey::new("slayer"),
         level,
-    });
-    log.push(format!("extra-slayer-talent: needs slayer level {level}"));
+    };
+    // The Sanctified Slayer's slayer talents widen it later (ticket 60).
+    let holds = match &feat.prerequisite {
+        Some(Prerequisite::Any(children)) => children.contains(&leaf),
+        Some(one) => *one == leaf,
+        None => false,
+    };
+    assert!(holds, "extra-slayer-talent: {:?}", feat.prerequisite);
 }
 
 // ---- the cleric's deity ---------------------------------------------------------------------------------------

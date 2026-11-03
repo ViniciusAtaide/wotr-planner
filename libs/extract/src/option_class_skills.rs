@@ -1,5 +1,5 @@
-//! Ticket 37: options' class skills (the user's decision on ticket 34's first open question, 2026-11-01), applied to
-//! finished data.
+//! Ticket 37: options' class skills (the user's decision on ticket 34's first open question, 2026-11-01), built where
+//! their owners are.
 //!
 //! - **Options:** a feature that only makes skills class skills, on an option's row ("Class Skill: Athletics" on a
 //!   bloodline's; a cavalier order's "Skills"), becomes that row's `class_skills`, so the skills are class skills
@@ -11,7 +11,7 @@
 //!   Lore (Nature), Lore (Religion)"): a choice, shown on the sheet (the user's decision on ticket 37's first open
 //!   question).
 //!
-//! Ticket 38's [`cleanup`] then builds the user's decisions on ticket 37's open questions 2, 3 and 5 (2026-11-01;
+//! Ticket 38 then builds the user's decisions on ticket 37's open questions 2, 3 and 5 (2026-11-01;
 //! skills questions take the recommended option):
 //!
 //! - **Overwhelming Mage and Seeker:** their "Class Skill" (their tables say only that) goes. Each holds its chosen
@@ -21,17 +21,19 @@
 //! - **Animal domain:** its Lore (Nature) is on the domain's 4th row, the level of the sentence it follows ("At 4th
 //!   level, you gain an Animal Companion. … Lore (Nature) becomes a Class Skill."): built with the domains.
 //!
-//! Each entry asserts the guide phrase that names its skills and the feature it replaces, so the rule fails loudly
-//! on data it doesn't expect. [`apply`] runs on the finished data of an extraction and, through ticket 37's one-off
-//! rewrite, on `libs/game-data/`; ticket 38's one-off rewrite ran [`cleanup`] alone on `libs/game-data/`.
+//! Each entry asserts the guide phrase that names its skills and the feature it stands for. The option entries are
+//! on the bloodlines and orders before they're given to the class stage ([`option_rows`]), so no "Class Skill: …" or
+//! "Skills" feature is made for them; the archetypes' cells are nothing ([`provide`]); [`check`] asserts what holds
+//! those skills on the finished data.
 
 use std::collections::BTreeSet;
 
-use rules::{Feature, FeatureKey, FeatureSelectionKey, GameData, SelectionOption, SkillKey};
+use rules::{FeatureKey, FeatureSelectionKey, GameData, SelectionOption, Skill, SkillKey};
 
-use crate::follow_ups::{archetype_mut, cell_at, class_mut, says};
+use crate::follow_ups::{cell_at, says};
 use crate::guide::Guide;
-use crate::option_levels::Log;
+use crate::option_levels::Family;
+use crate::picks::{ArchetypeSkills, Pick, Picks, Rule};
 
 /// Where the guide names the skills.
 enum Says {
@@ -225,53 +227,179 @@ pub const LEFT_AS_FEATURES: [&str; 2] = [
     "sorcerer/sage-sorcerer/class-skill",
 ];
 
-/// Applies every entry, in the order above, then ticket 38's [`cleanup`].
-pub fn apply(guide: &Guide, data: &mut GameData) -> Log {
-    let mut log = Log::new();
-    for entry in ENTRIES {
-        match entry.says {
-            Says::Cell(level, cell) => cell_at(guide, entry.page, entry.anchor, level, cell),
-            Says::Prose(phrase) => says(guide, entry.page, entry.anchor, phrase),
-        }
+/// The options' class skills, on a family before it's given to the class stage ([`crate::option_levels`]): each
+/// option entry's feature is its options' rows' class skills, and is never a feature.
+pub(crate) fn option_rows(guide: &Guide, family: &mut Family, skill_names: &[Skill]) {
+    for entry in ENTRIES
+        .iter()
+        .filter(|entry| entry.holder == Holder::Option)
+    {
         for (key, skills) in entry.features {
             let key = FeatureKey::new(*key);
+            let Some(at) = family.features.iter().position(|f| f.key == key) else {
+                continue;
+            };
+            entry.says(guide);
             let skills: BTreeSet<SkillKey> = skills.iter().map(|s| SkillKey::new(*s)).collect();
-            let feature = take_feature(data, &key);
-            assert_eq!(feature.name, expected_name(data, &key, &skills), "{key}");
-            match entry.holder {
-                Holder::Option => {
-                    let rows = move_to_option_rows(data, &key, &skills);
-                    assert!(!rows.is_empty(), "{key}: on no option row");
-                    log.push(format!(
-                        "{key}: {} class skills of {}",
-                        names(&skills),
-                        rows.join(", ")
-                    ));
+            let feature = family.features.remove(at);
+            assert_eq!(
+                feature.name,
+                expected_name(skill_names, &key, &skills),
+                "{key}"
+            );
+            let mut rows = 0;
+            for option in &mut family.selection.options {
+                for row in &mut option.levels {
+                    let before = row.features.len();
+                    row.features.retain(|feature| *feature != key);
+                    if row.features.len() == before {
+                        continue;
+                    }
+                    assert_eq!(before - row.features.len(), 1, "{key}: twice on a row");
+                    assert!(
+                        row.class_skills.is_disjoint(&skills),
+                        "{key}: {} already",
+                        option.key
+                    );
+                    row.class_skills.extend(skills.iter().cloned());
+                    rows += 1;
                 }
-                Holder::Archetype(archetype) => {
-                    drop_from_archetype_rows(data, archetype, &key, &skills);
-                    log.push(format!(
-                        "{key}: gone, {archetype}'s own list holds {}",
-                        names(&skills)
-                    ));
-                }
+            }
+            assert!(rows > 0, "{key}: on no option row");
+        }
+    }
+}
+
+impl Entry {
+    fn says(&self, guide: &Guide) {
+        match self.says {
+            Says::Cell(level, cell) => cell_at(guide, self.page, self.anchor, level, cell),
+            Says::Prose(phrase) => says(guide, self.page, self.anchor, phrase),
+        }
+    }
+}
+
+/// The cells that say a class skill an archetype holds otherwise: never features. The Empyreal's and the Sylvan
+/// Sorcerer's own lists hold theirs; the Overwhelming Mage and the Seeker hold their chosen standard bloodline's 1st
+/// row, so its class skill (ticket 38); the Sohei's own list is the monk's and Lore (Nature) (ticket 38). [`check`]
+/// asserts what holds them.
+pub(crate) fn provide(guide: &Guide, picks: &mut Picks) {
+    let nothing = |picks: &mut Picks, table: &str, key: &str, levels: Option<Vec<u8>>| {
+        picks.rule(Rule {
+            feature: FeatureKey::new(key),
+            table: Some(table.to_owned()),
+            cell: None,
+            levels,
+            pick: Pick::Nothing,
+        });
+    };
+    for entry in ENTRIES {
+        let Holder::Archetype(archetype) = entry.holder else {
+            continue;
+        };
+        entry.says(guide);
+        for (key, _) in entry.features {
+            nothing(picks, archetype, key, None);
+        }
+    }
+    for (archetype, _) in BLOODLINE_ARCHETYPES {
+        let anchor = archetype.strip_prefix("sorcerer/").unwrap();
+        cell_at(guide, "sorcerer", anchor, "0", "Class Skill");
+        says(guide, "sorcerer", anchor, "chooses a standard bloodline");
+        nothing(
+            picks,
+            archetype,
+            &format!("{archetype}/class-skill"),
+            Some(vec![1]),
+        );
+    }
+    says(
+        guide,
+        "monk",
+        "skills",
+        "A Sohei gains Lore (Nature) as a class skill.",
+    );
+    picks.archetype_skills(
+        SOHEI,
+        ArchetypeSkills::ClassAnd(BTreeSet::from([SkillKey::new(LORE_NATURE)])),
+    );
+    nothing(picks, SOHEI, &format!("{SOHEI}/skills"), None);
+}
+
+/// What holds the class skills [`provide`]'s cells said: each archetype entry's own list; the Overwhelming Mage's and
+/// the Seeker's bloodline selection at 1, which doesn't skip the 1st row, whose every bloodline's 1st row holds a
+/// class skill (or, for the Arcane, its own "Class Skill" choice). No feature stands for a fixed class skill any more.
+/// Changes nothing.
+pub(crate) fn check(data: &GameData) {
+    let archetype = |key: &str| {
+        data.classes
+            .iter()
+            .flat_map(|class| &class.archetypes)
+            .find(|a| a.key.as_str() == key)
+            .unwrap_or_else(|| panic!("no archetype {key}"))
+    };
+    for entry in ENTRIES {
+        let Holder::Archetype(key) = entry.holder else {
+            continue;
+        };
+        let list = archetype(key)
+            .class_skills
+            .as_ref()
+            .unwrap_or_else(|| panic!("{key} keeps its class's skills"));
+        for (_, skills) in entry.features {
+            for skill in *skills {
+                assert!(list.contains(&SkillKey::new(*skill)), "{key}: {list:?}");
             }
         }
     }
-    log.extend(cleanup(guide, data));
-    log
-}
-
-/// Ticket 38: the Overwhelming Mage's and the Seeker's "Class Skill" go, and the Sohei gets its own list (the Animal
-/// domain's Lore (Nature) is built on its 4th row). Runs on data whose class-skill features the entries have moved.
-pub fn cleanup(guide: &Guide, data: &mut GameData) -> Log {
-    let mut log = Log::new();
-    for (archetype, selection) in BLOODLINE_ARCHETYPES {
-        bloodline_archetype(guide, data, archetype, selection, &mut log);
+    for (key, selection) in BLOODLINE_ARCHETYPES {
+        let selection_key = FeatureSelectionKey::new(selection);
+        let first = archetype(key)
+            .levels
+            .iter()
+            .find(|row| row.level == 1)
+            .unwrap_or_else(|| panic!("{key}: no 1st row"));
+        assert!(
+            first.selections.contains(&selection_key),
+            "{key}: {first:?}"
+        );
+        let selection = data
+            .classes
+            .iter()
+            .flat_map(|class| {
+                class
+                    .selections
+                    .iter()
+                    .chain(class.archetypes.iter().flat_map(|a| &a.selections))
+            })
+            .find(|s| s.key == selection_key)
+            .unwrap_or_else(|| panic!("no selection {selection}"));
+        assert!(!selection.skipped_levels.contains(&1), "{selection:?}");
+        let offered: Vec<_> = selection
+            .options
+            .iter()
+            .map(|o| o.key.clone())
+            .chain(selection.shared_options.iter().cloned())
+            .collect();
+        assert!(offered.len() > 1, "{selection_key}: {offered:?}");
+        let arcane_choice = FeatureKey::new(format!("{ARCANE}/class-skill"));
+        for bloodline in &offered {
+            let first = option(data, bloodline.as_str())
+                .levels
+                .iter()
+                .find(|row| row.level == 1)
+                .unwrap_or_else(|| panic!("{bloodline}: no 1st row"));
+            if bloodline.as_str() == ARCANE {
+                assert!(first.features.contains(&arcane_choice), "{first:?}");
+            } else {
+                assert!(
+                    !first.class_skills.is_empty(),
+                    "{bloodline}: no class skill"
+                );
+            }
+        }
     }
-    sohei(guide, data, &mut log);
     check_left(data);
-    log
 }
 
 /// The sorcerer archetypes that take a standard bloodline and hold its 1st row, with the selection that gives it.
@@ -286,106 +414,8 @@ const BLOODLINE_ARCHETYPES: [(&str, &str); 2] = [
 /// The bloodline whose 1st row has a "Class Skill" choice instead of a class skill.
 const ARCANE: &str = "sorcerer/bloodline/arcane";
 
-/// Drops the archetype's "Class Skill" (its table's, at level 0), after checking that its 1st row grants a bloodline
-/// selection that doesn't skip the bloodline's 1st row, and that every bloodline offered there holds a class skill
-/// (or, for the Arcane, its own "Class Skill").
-fn bloodline_archetype(
-    guide: &Guide,
-    data: &mut GameData,
-    archetype: &str,
-    selection: &str,
-    log: &mut Log,
-) {
-    let anchor = archetype.strip_prefix("sorcerer/").unwrap();
-    cell_at(guide, "sorcerer", anchor, "0", "Class Skill");
-    says(guide, "sorcerer", anchor, "chooses a standard bloodline");
-    let key = FeatureKey::new(format!("{archetype}/class-skill"));
-    let selection_key = FeatureSelectionKey::new(selection);
-    let found = archetype_mut(data, "sorcerer", archetype);
-    let first = found
-        .levels
-        .iter()
-        .find(|row| row.level == 1)
-        .unwrap_or_else(|| panic!("{archetype}: no 1st row"));
-    assert!(
-        first.features.contains(&key) && first.selections.contains(&selection_key),
-        "{archetype}: {first:?}"
-    );
-    let selection = data
-        .classes
-        .iter()
-        .flat_map(|class| {
-            class
-                .selections
-                .iter()
-                .chain(class.archetypes.iter().flat_map(|a| &a.selections))
-        })
-        .find(|s| s.key == selection_key)
-        .unwrap_or_else(|| panic!("no selection {selection}"));
-    assert!(!selection.skipped_levels.contains(&1), "{selection:?}");
-    let offered: Vec<_> = selection
-        .options
-        .iter()
-        .map(|o| o.key.clone())
-        .chain(selection.shared_options.iter().cloned())
-        .collect();
-    assert!(offered.len() > 1, "{selection_key}: {offered:?}");
-    let arcane_choice = FeatureKey::new(format!("{ARCANE}/class-skill"));
-    for bloodline in &offered {
-        let first = option(data, bloodline.as_str())
-            .levels
-            .iter()
-            .find(|row| row.level == 1)
-            .unwrap_or_else(|| panic!("{bloodline}: no 1st row"));
-        if bloodline.as_str() == ARCANE {
-            assert!(first.features.contains(&arcane_choice), "{first:?}");
-        } else {
-            assert!(
-                !first.class_skills.is_empty(),
-                "{bloodline}: no class skill"
-            );
-        }
-    }
-    let feature = take_feature(data, &key);
-    assert_eq!(feature.name, "Class Skill", "{key}");
-    let rows = &mut archetype_mut(data, "sorcerer", archetype).levels;
-    let mut dropped = 0;
-    for row in rows {
-        let before = row.features.len();
-        row.features.retain(|feature| feature != &key);
-        dropped += before - row.features.len();
-    }
-    assert_eq!(dropped, 1, "{key}: on {dropped} rows");
-    log.push(format!(
-        "{key}: gone, {archetype} holds the 1st row of its bloodline ({selection_key}) and its class skill"
-    ));
-}
-
 const SOHEI: &str = "monk/sohei";
 const LORE_NATURE: &str = "lore-nature";
-
-/// The Sohei's own list, the monk's and Lore (Nature); its "Skills" goes.
-fn sohei(guide: &Guide, data: &mut GameData, log: &mut Log) {
-    says(
-        guide,
-        "monk",
-        "skills",
-        "A Sohei gains Lore (Nature) as a class skill.",
-    );
-    let mut list = class_mut(data, "monk").class_skills.clone();
-    assert!(list.insert(SkillKey::new(LORE_NATURE)), "the monk's list");
-    let sohei = archetype_mut(data, "monk", SOHEI);
-    assert_eq!(sohei.class_skills, None, "{SOHEI} keeps the monk's list");
-    sohei.class_skills = Some(list);
-    let key = FeatureKey::new(format!("{SOHEI}/skills"));
-    let feature = take_feature(data, &key);
-    assert_eq!(feature.name, "Skills", "{key}");
-    let skills = BTreeSet::from([SkillKey::new(LORE_NATURE)]);
-    drop_from_archetype_rows(data, SOHEI, &key, &skills);
-    log.push(format!(
-        "{key}: gone, {SOHEI}'s own list is the monk's and {LORE_NATURE}"
-    ));
-}
 
 /// The option defined under `key` (once, in a class's or an archetype's selection).
 fn option<'d>(data: &'d GameData, key: &str) -> &'d SelectionOption {
@@ -406,120 +436,20 @@ fn option<'d>(data: &'d GameData, key: &str) -> &'d SelectionOption {
     found[0]
 }
 
-fn names(skills: &BTreeSet<SkillKey>) -> String {
-    skills
-        .iter()
-        .map(SkillKey::as_str)
-        .collect::<Vec<_>>()
-        .join(" and ")
-}
-
 /// "Class Skill: Athletics" (the skill's name), or "Skills" for a cavalier order's.
-fn expected_name(data: &GameData, key: &FeatureKey, skills: &BTreeSet<SkillKey>) -> String {
+fn expected_name(skills: &[Skill], key: &FeatureKey, of: &BTreeSet<SkillKey>) -> String {
     if key.as_str().ends_with("/skills") {
         return "Skills".into();
     }
-    let [skill] = skills.iter().collect::<Vec<_>>()[..] else {
+    let [skill] = of.iter().collect::<Vec<_>>()[..] else {
         panic!("{key}: one skill per \"Class Skill: …\" feature");
     };
-    let name = &data
-        .skills
+    let name = &skills
         .iter()
         .find(|s| &s.key == skill)
         .unwrap_or_else(|| panic!("no skill {skill}"))
         .name;
     format!("Class Skill: {name}")
-}
-
-/// Removes the feature's one definition (a class's or an archetype's) and returns it.
-fn take_feature(data: &mut GameData, key: &FeatureKey) -> Feature {
-    let mut found = Vec::new();
-    for class in data.classes.iter_mut().chain(&mut data.prestige_classes) {
-        let lists = std::iter::once(&mut class.features)
-            .chain(class.archetypes.iter_mut().map(|a| &mut a.features));
-        for features in lists {
-            if let Some(index) = features.iter().position(|f| &f.key == key) {
-                found.push(features.remove(index));
-            }
-        }
-    }
-    assert_eq!(found.len(), 1, "{key}: defined {} times", found.len());
-    found.remove(0)
-}
-
-/// Moves the feature off every option row that grants it, onto the row's class skills; returns the rows, as
-/// `option@level`.
-fn move_to_option_rows(
-    data: &mut GameData,
-    key: &FeatureKey,
-    skills: &BTreeSet<SkillKey>,
-) -> Vec<String> {
-    let mut rows = Vec::new();
-    for class in data.classes.iter_mut().chain(&mut data.prestige_classes) {
-        assert!(
-            class.levels.iter().all(|row| !row.features.contains(key)),
-            "{key}: on {}'s level rows",
-            class.key
-        );
-        let selections = class
-            .selections
-            .iter_mut()
-            .chain(class.archetypes.iter_mut().flat_map(|a| {
-                assert!(
-                    a.levels.iter().all(|row| !row.features.contains(key)),
-                    "{key}: on {}'s rows",
-                    a.key
-                );
-                a.selections.iter_mut()
-            }));
-        for selection in selections {
-            for option in &mut selection.options {
-                for row in &mut option.levels {
-                    let before = row.features.len();
-                    row.features.retain(|feature| feature != key);
-                    if row.features.len() == before {
-                        continue;
-                    }
-                    assert_eq!(before - row.features.len(), 1, "{key}: twice on a row");
-                    assert!(
-                        row.class_skills.is_disjoint(skills),
-                        "{key}: {} already",
-                        option.key
-                    );
-                    row.class_skills.extend(skills.iter().cloned());
-                    rows.push(format!("{}@{}", option.key, row.level));
-                }
-            }
-        }
-    }
-    rows
-}
-
-/// Drops the feature from the archetype's rows, after checking its own class skill list holds the skills.
-fn drop_from_archetype_rows(
-    data: &mut GameData,
-    archetype: &str,
-    key: &FeatureKey,
-    skills: &BTreeSet<SkillKey>,
-) {
-    let found = data
-        .classes
-        .iter_mut()
-        .flat_map(|class| class.archetypes.iter_mut())
-        .find(|a| a.key.as_str() == archetype)
-        .unwrap_or_else(|| panic!("no archetype {archetype}"));
-    let list = found
-        .class_skills
-        .as_ref()
-        .unwrap_or_else(|| panic!("{archetype} keeps its class's skills"));
-    assert!(skills.is_subset(list), "{archetype}: {list:?}");
-    let mut dropped = 0;
-    for row in &mut found.levels {
-        let before = row.features.len();
-        row.features.retain(|feature| feature != key);
-        dropped += before - row.features.len();
-    }
-    assert_eq!(dropped, 1, "{key}: on {dropped} of {archetype}'s rows");
 }
 
 /// No feature stands for a fixed class skill any more: none is named "Class Skill: …", and the ones named "Class
