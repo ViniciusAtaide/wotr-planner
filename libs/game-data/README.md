@@ -239,6 +239,14 @@ class's), and BAB and saves (from the class's progressions).
   guide gives it no list of its own), and its "Greater Exploits" a slot of `arcanist/greater-exploits` at 13; both
   features are gone. An exploit is taken once across the arcanist, the Enforcer and the Exploiter, and Extra Arcanist
   Exploit's pick reaches the Exploiter too.
+- Ticket 58 (`extract::ki_powers`, ticket 54's decision 2, user, 2026-11-02): the monk's "Ki Power" feature is the
+  selection `monk/ki-power` on the rows that held it (each archetype's where its table has "Ki Power": the Scaled
+  Fist not at 12, the Sohei from 6, the Student of Stone not at 6 or 12, the Zen Archer not at 10), with the guide's
+  14 ki powers, each needing `ClassLevel(monk, its level)`; a power with no section of its own links to the page. The
+  Traditional Monk picks none: its fixed powers ("Ki Power: Wholeness of Body" at 6, Abundant Step at 8, Diamond Body
+  at 10, Diamond Soul at 12, Quivering Palm at 14) are features of its own on rows 6 to 14, in place of the base
+  class's pick (those rows were the base's before). No feat gives a ki power: Extra Ki and Abundant Ki Pool grow the
+  pool.
 - Ticket 55 (`extract::mythic_extra_picks`, ticket 49's decision 4, user, 2026-11-02): a mythic feat's `extra_pick`
   is the slot a pick of it gives at the Mythic rank it's taken, after the rank's general pick (a `MythicExtra`
   slot): `Feat`, a feat slot offering what the general slot does (`extra-feat`: "You can select any normal feat"),

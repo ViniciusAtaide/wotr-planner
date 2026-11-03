@@ -8,6 +8,7 @@ mod extra_picks;
 mod feat_lists;
 mod follow_ups;
 mod grammar;
+mod ki_powers;
 mod mercies_and_exploits;
 mod mythic_extra_picks;
 mod mythic_paths;

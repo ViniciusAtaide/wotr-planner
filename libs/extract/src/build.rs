@@ -202,6 +202,9 @@ pub fn extract(guide: &Guide) -> Extraction {
     // The Arcane Enforcer's greater exploits and the Exploiter Wizard's exploits as picks (ticket 57, ticket 54's
     // decisions 1 and 2): slots of the arcanist's own selections. It settles no report item.
     crate::exploits::apply(guide, &mut data);
+    // The monk's ki powers as a selection (ticket 58, ticket 54's decision 2), and the Traditional Monk's fixed ones
+    // as its features. It settles no report item.
+    crate::ki_powers::apply(guide, &mut data);
     for problem in data.check() {
         builder.report.add_about(
             Kind::Cell,
