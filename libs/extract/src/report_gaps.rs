@@ -4,12 +4,13 @@
 //!   closes off the other categories.' Each of the four lines' powers (Beast, Celestial, Daemon, Fiend: Lesser,
 //!   plain, Greater) needs `Not(SelectionOption(..))` of each of the other lines' nine, beside what it needed
 //!   already (the Beast chain). A `Not` per power, rather than one over an `Any`, so a lock names the power held.
+//!   Stated where the rage powers are built ([`provide`]).
 //! - **The Eldritch Scoundrel's sneak attack** (`rogue#sneak-attack-eldritch-scoundrel`): "At 1st level, … She does
 //!   an additional 1d6 damage at 3rd level, increasing by 1d6 every four additional class levels (7, 11, 15, 19)."
 //!   One die at each of 1, 3, 7, 11, 15 and 19 (`libs/game-data/` had them already; an extraction has the 1st only).
 //! - **The shaman's Wandering Hex** (`shaman#wandering-hex`): "a hex slot that can be temporarily filled with a hex
 //!   granted by either his main spirit or his current Wandering Spirit": a daily choice, as the Wandering Spirit it
-//!   draws on.
+//!   draws on. Built so where the shaman's table defines it ([`provide`]).
 //!
 //! The report's other items (the sorcerer archetypes' level-1 bonus feat, the kineticist's bonus-feat wild talent,
 //! Talented Slayer, the cleric's deity) aren't settled by the saved pages: they were ticket 43's questions. Ticket 44
@@ -38,21 +39,20 @@
 use std::collections::BTreeSet;
 
 use rules::{
-    ClassKey, FeatCategory, FeatSlot, FeatureKey, FeatureSelectionKey, GameData, Prerequisite,
-    SelectionOptionKey,
+    ClassKey, DataAt, FeatCategory, FeatSlot, FeatureKey, FeatureSelectionKey, GameData,
+    Prerequisite, SelectionOptionKey,
 };
 
 use crate::follow_ups::{archetype_mut, cell_at, class_mut, says};
 use crate::guide::Guide;
 use crate::html::Section;
 use crate::option_levels::{Log, page};
+use crate::picks::Picks;
 
 /// Applies every rule, in the order above: ticket 43's, then [`decisions`].
 pub fn apply(guide: &Guide, data: &mut GameData) -> Log {
     let mut log = Log::new();
-    totems(guide, data, &mut log);
     eldritch_scoundrel(guide, data, &mut log);
-    wandering_hex(guide, data, &mut log);
     log.extend(decisions(guide, data));
     log
 }
@@ -86,18 +86,16 @@ pub fn settled(at: &str, text: &str) -> bool {
 const RAGE_POWER: &str = "barbarian/rage-power";
 
 /// Each totem power needs none of the other lines' powers.
-fn totems(guide: &Guide, data: &mut GameData, log: &mut Log) {
+/// The totem rage powers, stated where the barbarian's rage powers are built: each needs none of the other lines'
+/// powers, beside what its own line names.
+fn totems(guide: &Guide, picks: &mut Picks) {
     says(
         guide,
         "barbarian",
         "rage-power",
         "\"Totem\" powers are exclusive. Selecting one \"Totem\" power closes off the other categories.",
     );
-    let selection = class_mut(data, "barbarian")
-        .selections
-        .iter_mut()
-        .find(|selection| selection.key.as_str() == RAGE_POWER)
-        .unwrap_or_else(|| panic!("no {RAGE_POWER}"));
+    let heading = crate::option_levels::section(page(guide, "barbarian"), "rage-power");
     // The lines, from the powers' names: "Beast Totem, Lesser", "Beast Totem", "Beast Totem, Greater".
     let line_of = |name: &str| -> Option<String> {
         let line = name
@@ -106,10 +104,15 @@ fn totems(guide: &Guide, data: &mut GameData, log: &mut Log) {
             .unwrap_or(name);
         line.strip_suffix(" Totem").map(str::to_owned)
     };
-    let totems: Vec<(String, SelectionOptionKey)> = selection
-        .options
+    let totems: Vec<(String, SelectionOptionKey)> = heading
+        .children
         .iter()
-        .filter_map(|option| Some((line_of(&option.name)?, option.key.clone())))
+        .filter_map(|power| {
+            Some((
+                line_of(&power.name)?,
+                SelectionOptionKey::new(format!("{RAGE_POWER}/{}", power.anchor)),
+            ))
+        })
         .collect();
     let lines: BTreeSet<&str> = totems.iter().map(|(line, _)| line.as_str()).collect();
     assert_eq!(
@@ -118,44 +121,13 @@ fn totems(guide: &Guide, data: &mut GameData, log: &mut Log) {
         "the totem lines"
     );
     assert_eq!(totems.len(), 12, "three powers a line");
-    for option in &mut selection.options {
-        let Some(line) = line_of(&option.name) else {
-            continue;
-        };
-        assert!(
-            !has_not(option.prerequisite.as_ref()),
-            "{}: a Not already",
-            option.key
-        );
-        let nots: Vec<Prerequisite> = totems
-            .iter()
-            .filter(|(other, _)| *other != line)
-            .map(|(_, key)| Prerequisite::Not(Box::new(Prerequisite::SelectionOption(key.clone()))))
-            .collect();
-        let count = nots.len();
-        option.prerequisite = Some(match option.prerequisite.take() {
-            None => Prerequisite::All(nots),
-            Some(Prerequisite::All(mut children)) => {
-                children.extend(nots);
-                Prerequisite::All(children)
-            }
-            Some(other) => Prerequisite::All(std::iter::once(other).chain(nots).collect()),
-        });
-        log.push(format!(
-            "{}: needs none of the other lines' {count} totem powers",
-            option.key
-        ));
-    }
-}
-
-fn has_not(prerequisite: Option<&Prerequisite>) -> bool {
-    match prerequisite {
-        Some(Prerequisite::Not(_)) => true,
-        Some(Prerequisite::All(children) | Prerequisite::Any(children))
-        | Some(Prerequisite::AtLeast(_, children)) => {
-            children.iter().any(|child| has_not(Some(child)))
+    for (line, key) in &totems {
+        for (_, other) in totems.iter().filter(|(other, _)| other != line) {
+            picks.stated(
+                DataAt::SelectionOption(key.clone()),
+                Prerequisite::Not(Box::new(Prerequisite::SelectionOption(other.clone()))),
+            );
         }
-        _ => false,
     }
 }
 
@@ -217,7 +189,9 @@ fn eldritch_scoundrel(guide: &Guide, data: &mut GameData, log: &mut Log) {
 const WANDERING_HEX: &str = "shaman/wandering-hex";
 
 /// The Wandering Hex is a daily choice.
-fn wandering_hex(guide: &Guide, data: &mut GameData, log: &mut Log) {
+/// The totem rage powers' exclusion, and the Wandering Hex a daily choice, built where their owners are.
+pub(crate) fn provide(guide: &Guide, picks: &mut Picks) {
+    totems(guide, picks);
     says(
         guide,
         "shaman",
@@ -225,7 +199,16 @@ fn wandering_hex(guide: &Guide, data: &mut GameData, log: &mut Log) {
         "At 6th and 14th levels, a Shaman gains a hex slot that can be temporarily filled with a hex granted by \
          either his main spirit or his current Wandering Spirit.",
     );
-    let shaman = class_mut(data, "shaman");
+    picks.daily_choice(WANDERING_HEX);
+}
+
+/// The shaman's rows grant the Wandering Hex at 6 and 14, and it draws on the Wandering Spirit, a daily choice too.
+pub(crate) fn check(data: &GameData) {
+    let shaman = data
+        .classes
+        .iter()
+        .find(|class| class.key.as_str() == "shaman")
+        .expect("the shaman");
     let granted: Vec<u8> = shaman
         .levels
         .iter()
@@ -233,26 +216,14 @@ fn wandering_hex(guide: &Guide, data: &mut GameData, log: &mut Log) {
         .map(|row| row.level)
         .collect();
     assert_eq!(granted, [6, 14], "{WANDERING_HEX}'s rows");
-    let spirit = shaman
-        .features
-        .iter()
-        .find(|f| f.key.as_str() == "shaman/wandering-spirit")
-        .expect("the Wandering Spirit");
-    assert!(
-        spirit.daily_choice,
-        "the Wandering Spirit is a daily choice"
-    );
-    let feature = shaman
-        .features
-        .iter_mut()
-        .find(|f| f.key.as_str() == WANDERING_HEX)
-        .unwrap_or_else(|| panic!("no {WANDERING_HEX}"));
-    assert!(
-        !feature.daily_choice,
-        "{WANDERING_HEX}: a daily choice already"
-    );
-    feature.daily_choice = true;
-    log.push(format!("{WANDERING_HEX}: a daily choice"));
+    for key in ["shaman/wandering-spirit", WANDERING_HEX] {
+        let feature = shaman
+            .features
+            .iter()
+            .find(|f| f.key.as_str() == key)
+            .unwrap_or_else(|| panic!("no {key}"));
+        assert!(feature.daily_choice, "{key} is a daily choice");
+    }
 }
 
 // ---- the sorcerer's level-1 bonus feat ------------------------------------------------------------------------

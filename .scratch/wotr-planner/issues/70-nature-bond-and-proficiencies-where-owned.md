@@ -1,4 +1,4 @@
-# Build the nature bond and proficiencies where their owners are built
+# Build the nature bond, domains and proficiencies where their owners are built
 
 Type: task
 Status: open
@@ -11,6 +11,8 @@ Map: [WotR Build Planner](../map.md)
 
 - **`class_rules::nature_bond`** is label-then-replace. The level-1 companion feature it removes is still what Boon Companion's and Mythical Beast's guide lines resolve to, and a later pass removes that feature. Build the nature bond's slot where the class is built, and resolve those two lines to what they mean without the intermediate feature.
 - **`proficiencies`** drops a proficiency feature its feats cover, on the full rows, and its tests drive it on hand-made data. Build only the facts that survive, where the class is built. Keep or adapt its tests so the same cases are covered.
+
+- **The domains** that ticket 69 kept in `option_families::apply`: the druid's domain hangs off the Nature Bond, and the Living Deity, Domain Zealot, Boon Companion and Mythical Beast follow it (ticket 69's decision).
 
 Also fold in any pass ticket 69 kept that this shape now allows.
 

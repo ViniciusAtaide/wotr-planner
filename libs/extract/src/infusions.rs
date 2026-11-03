@@ -13,7 +13,8 @@
 //!   "Cloud, Deadly Earth, Wall", whose text reads "Cloud, Deadly Earth or Wall"; Foxfire Infusion: the Foxfire wild
 //!   talent). The burn cost, blasts and save aren't planning facts. The guide's "Dazziing Infusion" is named
 //!   "Dazzling Infusion" (a typo, not a fact); its link keeps the guide's anchor. The elements are built with the
-//!   other option families (ticket 31), so these prerequisites are set once they are ([`Picks::late`]).
+//!   class too ([`option_families`](crate::option_families)' provider), so these prerequisites are set where the
+//!   options are.
 //! - **The Kinetic Sharpshooter** (`kineticist#infusion-kinetic-sharpshooter`): "A number of infusions are exclusive
 //!   to the Sharpshooter" (each of those entries says "This infusion may be only be used by a Kinetic Sharpshooter"):
 //!   they need `Archetype(kinetic-sharpshooter)`. "There are a number of infusions that the Sharpshooter cannot use":
@@ -194,7 +195,7 @@ pub fn provide(guide: &Guide, picks: &mut Picks) {
         one.prerequisite = Some(prerequisite);
         chosen.options.push(one);
     }
-    picks.selection_naming_later_facts(KINETICIST, chosen);
+    picks.selection(KINETICIST, chosen);
 
     // Every "Infusion" cell after 1st level, and the Sharpshooter's own, is a pick.
     let pick = || Pick::Selection(FeatureSelectionKey::new(INFUSIONS));

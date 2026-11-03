@@ -14,17 +14,22 @@
 //! - **elements** (`kineticist#elemental-focus`, 4): class skills, the wild-talent bonus feat list, the defensive
 //!   talent at 2; Expanded Element at 7 and 15 is a plain pick of an element (which may double the first).
 //!
-//! The classes' placeholder cells ("Domain Abilities", "Revelation", "Defensive Wild Talent" …) go, and the cells
-//! that are a choice become the selection. A scaling number stays in the summary (ticket 29), so a domain's
-//! resistance growing to an immunity, or a revelation's uses per day, add no rows. [`apply`] runs on full rows and
-//! asserts what it finds.
+//! The classes' placeholder cells ("Domain Abilities", "Revelation", "Defensive Wild Talent" …) are the held
+//! option's rows, and the cells that are a choice are the selection. A scaling number stays in the summary (ticket
+//! 29), so a domain's resistance growing to an immunity, or a revelation's uses per day, add no rows.
+//!
+//! The mysteries, the blessings, the elements and the Hellknight's order and Pentamic Faith are built with their
+//! classes ([`provide`], through [`crate::picks`]): no placeholder feature is made, and [`check`] asserts the rows in
+//! force. [`apply`] takes the domains, the Living Deity's mystery and domain, and the prerequisites naming them, on
+//! the finished rows, and asserts what it finds (why it stays a pass is in [`crate::build::extract`]).
 
 use std::collections::{BTreeMap, BTreeSet};
 
 use rules::{
-    ArchetypeLevelRow, Class, ClassKey, ClassLevelRow, FeatList, FeatListKey, FeatSlot, Feature,
-    FeatureKey, FeatureSelection, FeatureSelectionKey, GameData, OptionLevelRow, OptionRow,
-    Prerequisite, Repeat, SelectionOption, SelectionOptionKey, SkillKey,
+    ArchetypeLevelRow, Class, ClassKey, ClassLevelRow, DataAt, FeatList, FeatListKey, FeatSlot,
+    Feature, FeatureKey, FeatureSelection, FeatureSelectionKey, GameData, LevelFrom,
+    MythicAbilityKey, OptionLevelRow, OptionRow, Prerequisite, Repeat, SelectionOption,
+    SelectionOptionKey, Skill, SkillKey,
 };
 
 use crate::guide::Guide;
@@ -34,6 +39,7 @@ use crate::option_levels::{
     FeatNames, Log, drop_unused, empty_row, feature, list, name_list, option, page, section,
     selection,
 };
+use crate::picks::{Pick, Picks, Rule};
 
 /// Reads every family from the guide and gives it to the classes that take it.
 pub fn apply(guide: &Guide, data: &mut GameData) -> Log {
@@ -44,37 +50,45 @@ pub fn apply(guide: &Guide, data: &mut GameData) -> Log {
     let domains = domains(guide, &skills);
     take_domains(data, &domains, &mut log);
     let mysteries = mysteries(guide, &skills, &feats);
-    take_mysteries(data, &mysteries, &mut log);
     living_deity(data, &domains, &mysteries, &mut log);
-    blessings(guide, data, &mut log);
-    elements(guide, data, &skills, &feats, &mut log);
-    hellknight(data, &domains, &mut log);
-    prerequisites(data, &domains, &mysteries, &mut log);
+    prerequisites(data, &domains, &mut log);
     drop_unused(data, &TOUCHED, &mut log);
     normalise(data, &mut log);
     log
 }
 
+/// The families built with their owners, before any class is: the oracle's mysteries, the warpriest's blessings, the
+/// kineticist's elements and the Hellknight's order and Pentamic Faith.
+pub(crate) fn provide(guide: &Guide, feats: &FeatNames, skills: &[Skill], picks: &mut Picks) {
+    let skills = Skills::of(skills);
+    oracle_mysteries(guide, &mysteries(guide, &skills, feats), picks);
+    blessings(guide, picks);
+    elements(guide, &skills, feats, picks);
+    hellknight(guide, &domains(guide, &skills), picks);
+}
+
+/// What the providers can only assert on the finished data: the rows in force. Changes nothing.
+pub(crate) fn check(guide: &Guide, data: &GameData) {
+    check_mysteries(data);
+    check_blessings(guide, data);
+    check_elements(data);
+    check_hellknight(data);
+}
+
 /// The classes whose features [`apply`] may leave unused.
-const TOUCHED: [&str; 9] = [
-    "arcanist",
-    "cleric",
-    "druid",
-    "hellknight",
-    "hunter",
-    "inquisitor",
-    "kineticist",
-    "oracle",
-    "warpriest",
-];
+const TOUCHED: [&str; 5] = ["arcanist", "cleric", "druid", "hunter", "inquisitor"];
 
 /// Skill names as the guide writes them, to skill keys.
 struct Skills(BTreeMap<String, (SkillKey, String)>);
 
 impl Skills {
     fn new(data: &GameData) -> Self {
+        Self::of(&data.skills)
+    }
+
+    fn of(skills: &[Skill]) -> Self {
         Self(
-            data.skills
+            skills
                 .iter()
                 .map(|skill| (norm(&skill.name), (skill.key.clone(), skill.name.clone())))
                 .collect(),
@@ -1171,11 +1185,10 @@ fn mysteries(guide: &Guide, skills: &Skills, feats: &FeatNames) -> Family {
                 .next()
                 .filter(|_| text.contains("to the list of class skills"))
         }) {
+            // The mystery's class skills are its row 1's while it's held (ticket 37).
             let mut row = empty_row(1);
             for name in name_list(added) {
-                let skill = class_skill(&key, skills, &name, oracle.guide(&mystery.anchor));
-                row.features.push(skill.key.clone());
-                family.features.push(skill);
+                row.class_skills.insert(skills.get(&name).0);
             }
             levels.push(row);
         }
@@ -1220,6 +1233,20 @@ fn mysteries(guide: &Guide, skills: &Skills, feats: &FeatNames) -> Family {
                 ]));
             }
             let id = format!("{}/{}", mystery.anchor, revelation.anchor);
+            if id == "flame/cinder-dance" {
+                // "You cannot select this revelation if you have the Lame curse." (ticket 33)
+                contains(
+                    &text,
+                    "You cannot select this revelation if you have the Lame curse.",
+                    &id,
+                );
+                crate::option_follow_ups::and(
+                    &mut taken.prerequisite,
+                    Prerequisite::Not(Box::new(Prerequisite::SelectionOption(
+                        SelectionOptionKey::new("oracle/oracles-curse/lame"),
+                    ))),
+                );
+            }
             if let Some((_, later)) = REVELATION_ROWS.iter().find(|(of, _)| *of == id) {
                 rows_done.insert(id.clone());
                 for row in *later {
@@ -1327,12 +1354,16 @@ fn maneuver_mastery(oracle: &Page, revelation: &Section, feats: &FeatNames) -> F
         .nth(1)
         .and_then(|rest| rest.split(')').next())
         .expect("the manoeuvres");
-    let mut nested = selection(
-        MANEUVER,
-        "Maneuver Mastery",
-        oracle.guide(&revelation.anchor),
-        &["oracle"],
-    );
+    // Its maneuver follows its revelation's level, an oracle's or a Living Deity's (ticket 33).
+    let mut nested = FeatureSelection {
+        level_from: Some(LevelFrom::GrantingOption),
+        ..selection(
+            MANEUVER,
+            "Maneuver Mastery",
+            oracle.guide(&revelation.anchor),
+            &[],
+        )
+    };
     for name in name_list(names) {
         let feat = feats.all(std::slice::from_ref(&name), MANEUVER);
         let greater = feats.all(&[format!("Greater {name}")], MANEUVER);
@@ -1359,18 +1390,76 @@ fn maneuver_mastery(oracle: &Page, revelation: &Section, feats: &FeatNames) -> F
 /// "You can choose from the Ancestor, Life, Nature, Stone or Waves mysteries." (Lone Strider)
 const LONE_STRIDER_MYSTERIES: [&str; 5] = ["ancestor", "life", "nature", "stone", "waves"];
 
-fn take_mysteries(data: &mut GameData, mysteries: &Family, log: &mut Log) {
-    let mystery = mysteries.selection.key.clone();
-    let revelation = FeatureSelectionKey::new("oracle/revelation");
-    let oracle = class_mut(data, "oracle");
-    oracle.features.extend(mysteries.features.iter().cloned());
-    oracle.selections.push(mysteries.selection.clone());
-    oracle.selections.extend(mysteries.nested.iter().cloned());
+const MYSTERY: &str = "oracle/mystery";
+const REVELATION: &str = "oracle/revelation";
+const SECOND_MYSTERY: &str = "oracle/second-mystery";
+const DUAL_CURSED: &str = "oracle/dual-cursed-oracle";
+const DUAL_CURSED_REVELATION: &str = "oracle/dual-cursed-oracle/revelation";
 
-    // Archetypes that take the mystery their own way: "he does not gain additional class skills from his choice of
-    // mystery" (Divine Herbalist: skips the class skills at 1), "Gains a unique Final Revelation" (Enlightened
-    // Philosopher: skips 20), "Can choose from a restricted list of Mysteries" (Lone Strider), "Must select the Wind
-    // Mystery" (Wind Whisperer: granted with no pick).
+/// The Dual-Cursed Oracle's revelation pick: the held mystery's pool, plus Misfortune and Fortune.
+fn dual_cursed_revelations(guide: &Guide) -> FeatureSelection {
+    let oracle = page(guide, "oracle");
+    contains(
+        &section(oracle, "additional-revelations").text(),
+        "he can choose two Revelations unique to the archetype",
+        "oracle#additional-revelations",
+    );
+    let own = ["Misfortune", "Fortune"].map(|name| {
+        let anchor = name.to_lowercase();
+        // The sections exist.
+        contains(&section(oracle, &anchor).text(), "this revelation", &anchor);
+        option(
+            &format!("{DUAL_CURSED_REVELATION}/{anchor}"),
+            name,
+            format!("oracle#{anchor}"),
+            Vec::new(),
+        )
+    });
+    FeatureSelection {
+        options: own.into(),
+        pool_of: Some(FeatureSelectionKey::new(MYSTERY)),
+        ..selection(
+            DUAL_CURSED_REVELATION,
+            "Revelation (Dual-Cursed Oracle)",
+            "oracle#additional-revelations".into(),
+            &["oracle"],
+        )
+    }
+}
+
+/// The oracle's tables (the class's and each archetype's), each with the selection its mystery cell at 1 picks.
+/// Archetypes that take the mystery their own way: "he does not gain additional class skills from his choice of
+/// mystery" (Divine Herbalist: skips the class skills at 1), "Gains a unique Final Revelation" (Enlightened
+/// Philosopher: skips 20), "Can choose from a restricted list of Mysteries" (Lone Strider), "Must select the Wind
+/// Mystery" (Wind Whisperer: granted with no pick).
+const ORACLE_TABLES: [(&str, &str); 9] = [
+    ("oracle", MYSTERY),
+    ("oracle/divine-herbalist", "oracle/divine-herbalist/mystery"),
+    (
+        "oracle/enlightened-philosopher",
+        "oracle/enlightened-philosopher/mystery",
+    ),
+    ("oracle/lone-strider", "oracle/lone-strider/mystery"),
+    ("oracle/wind-whisperer", "oracle/wind-whisperer/mystery"),
+    ("oracle/dual-cursed-oracle", MYSTERY),
+    ("oracle/possessed-oracle", MYSTERY),
+    ("oracle/purifier", MYSTERY),
+    ("oracle/seeker", MYSTERY),
+];
+
+/// The oracle's mysteries, built with the class: the selection, its options' rows, the revelation pools and the
+/// archetypes' own selections. The "Mystery" cell at 1 (the Lone Strider's "Mystery (Lone Strider)", the Wind
+/// Whisperer's "Wind") is the table's mystery pick, every "Revelation" cell a slot of `oracle/revelation`, and the
+/// "Final Revelation" at 20 the held mystery's row (the Wind Whisperer's "Wind Final Revelation" too; the Enlightened
+/// Philosopher's own stays).
+fn oracle_mysteries(guide: &Guide, mysteries: &Family, picks: &mut Picks) {
+    for feature in &mysteries.features {
+        picks.feature("oracle", feature.clone());
+    }
+    picks.selection("oracle", mysteries.selection.clone());
+    for nested in &mysteries.nested {
+        picks.selection("oracle", nested.clone());
+    }
     let own =
         |archetype: &str, name: &str, skipped: &[u8], options: BTreeSet<SelectionOptionKey>| {
             FeatureSelection {
@@ -1389,16 +1478,10 @@ fn take_mysteries(data: &mut GameData, mysteries: &Family, log: &mut Log) {
         .options
         .iter()
         .flat_map(|o| o.levels.iter())
-        .filter(|row| {
-            row.features
-                .iter()
-                .any(|f| f.as_str().contains("/class-skill-"))
-        })
+        .filter(|row| !row.class_skills.is_empty())
         .map(|row| {
             assert!(
-                row.features
-                    .iter()
-                    .all(|f| f.as_str().contains("/class-skill-")),
+                row.features.is_empty(),
                 "a mystery's class skills share their row"
             );
             row.level
@@ -1432,66 +1515,162 @@ fn take_mysteries(data: &mut GameData, mysteries: &Family, log: &mut Log) {
         ),
     ];
     for (archetype, name, skipped, options) in &specials {
-        add_selection(
-            oracle,
-            Some(archetype),
-            own(archetype, name, skipped, options.clone()),
-        );
+        picks.selection(archetype, own(archetype, name, skipped, options.clone()));
     }
+    // "he can choose two Revelations unique to the archetype" (Dual-Cursed Oracle): its revelations are the
+    // mystery's pool plus Misfortune and Fortune, at every revelation level of its table (ticket 33).
+    picks.selection(DUAL_CURSED, dual_cursed_revelations(guide));
+    // Second Mystery (ticket 33): "You gain a second Oracle Mystery", levelled like the first; it needs a mystery
+    // held.
+    contains(
+        &section(page(guide, "mythic-paths"), "second-mystery").text(),
+        "You gain a second Oracle Mystery.",
+        "mythic-paths#second-mystery",
+    );
+    picks.selection(
+        "oracle",
+        FeatureSelection {
+            shared_options: mysteries.all_keys(),
+            level_from: Some(LevelFrom::OtherOptions),
+            ..selection(
+                SECOND_MYSTERY,
+                "Second Mystery",
+                "mythic-paths#second-mystery".into(),
+                &[],
+            )
+        },
+    );
+    picks.mythic_selection("second-mystery", FeatureSelectionKey::new(SECOND_MYSTERY));
+    picks.prerequisite(
+        DataAt::MythicAbility(MythicAbilityKey::new("second-mystery")),
+        "Mystery",
+        Prerequisite::Any(
+            mysteries
+                .all_keys()
+                .into_iter()
+                .map(Prerequisite::SelectionOption)
+                .collect(),
+        ),
+    );
 
-    let archetypes: Vec<String> = oracle
-        .archetypes
-        .iter()
-        .map(|a| a.key.as_str().to_owned())
-        .collect();
-    for which in std::iter::once(Rows::Class).chain(archetypes.iter().map(|a| Rows::Archetype(a))) {
-        let pick = match which {
-            Rows::Archetype(archetype) if specials.iter().any(|(a, ..)| *a == archetype) => {
-                FeatureSelectionKey::new(format!("{archetype}/mystery"))
-            }
-            _ => mystery.clone(),
-        };
-        let mut picks = 0;
-        let mut slots = 0;
-        edit_rows(oracle, which, |row, names| {
-            if row.level() == 1 {
-                // "Mystery", "Mystery (Lone Strider)", the Wind Whisperer's "Wind".
-                let cells = strip(row, names, 1, |n| {
-                    n == norm("Mystery") || starts(n, "Mystery (") || n == norm("Wind")
-                });
-                grant(row, &pick, cells);
-                picks += cells;
-            }
-            let cells = strip(row, names, usize::MAX, |n| n == norm("Revelation"));
-            grant(row, &revelation, cells);
-            slots += cells;
-            if row.level() == 20 {
-                // The mystery's Final Revelation is its row 20 (the Wind Whisperer's "Wind Final Revelation" too);
-                // the Enlightened Philosopher's own stays.
-                strip(row, names, 1, |n| {
-                    n == norm("Final Revelation") || n == norm("Wind Final Revelation")
-                });
-            }
-        });
-        log.push(format!(
-            "oracle {which:?}: {picks} mystery picks, {slots} revelation slots"
+    let rule = |feature: &str, table: Option<&str>, levels: Option<Vec<u8>>, pick: Pick| Rule {
+        feature: FeatureKey::new(feature),
+        table: table.map(str::to_owned),
+        cell: None,
+        levels,
+        pick,
+    };
+    // A table's own pick first: [`Picks::pick`] takes the first rule that matches.
+    picks.rule(rule(
+        REVELATION,
+        Some(DUAL_CURSED),
+        None,
+        Pick::Selection(FeatureSelectionKey::new(DUAL_CURSED_REVELATION)),
+    ));
+    for (table, pick) in ORACLE_TABLES {
+        picks.rule(rule(
+            MYSTERY,
+            Some(table),
+            Some(vec![1]),
+            Pick::Selection(FeatureSelectionKey::new(pick)),
         ));
     }
-    // Every oracle and archetype holds a mystery from level 1.
-    for archetype in &archetypes {
-        let row = oracle
+    picks.rule(rule(
+        "oracle/lone-strider/mystery-lone-strider",
+        Some("oracle/lone-strider"),
+        Some(vec![1]),
+        Pick::Selection(FeatureSelectionKey::new("oracle/lone-strider/mystery")),
+    ));
+    // The shaman's Air Barrier, Vortex Spells and Wind Ward resolve their "Wind" line to this feature, so it stays
+    // defined (not on the row) until that's settled.
+    picks.rule(rule(
+        "oracle/wind-whisperer/wind",
+        Some("oracle/wind-whisperer"),
+        Some(vec![1]),
+        Pick::SelectionKeepingFeature(FeatureSelectionKey::new("oracle/wind-whisperer/mystery")),
+    ));
+    picks.rule(rule(
+        REVELATION,
+        None,
+        None,
+        Pick::Selection(FeatureSelectionKey::new(REVELATION)),
+    ));
+    for final_revelation in [
+        "oracle/final-revelation",
+        "oracle/wind-whisperer/wind-final-revelation",
+    ] {
+        picks.rule(rule(
+            final_revelation,
+            None,
+            Some(vec![20]),
+            Pick::OptionRow,
+        ));
+    }
+}
+
+/// Every oracle and archetype holds one mystery from level 1, of its table's selection.
+fn check_mysteries(data: &GameData) {
+    let oracle = data
+        .classes
+        .iter()
+        .find(|class| class.key.as_str() == "oracle")
+        .expect("the oracle");
+    let archetypes: BTreeSet<&str> = oracle.archetypes.iter().map(|a| a.key.as_str()).collect();
+    assert_eq!(
+        archetypes,
+        ORACLE_TABLES[1..].iter().map(|(table, _)| *table).collect(),
+        "the oracle's archetypes"
+    );
+    let base = oracle
+        .levels
+        .iter()
+        .find(|row| row.level == 1)
+        .expect("row 1");
+    for (table, pick) in ORACLE_TABLES {
+        let own = oracle
             .archetypes
             .iter()
-            .find(|a| a.key.as_str() == archetype)
+            .find(|a| a.key.as_str() == table)
             .and_then(|a| a.levels.iter().find(|row| row.level == 1));
-        let picks = row.map_or(1, |row| {
-            row.selections
-                .iter()
-                .filter(|s| s.as_str().ends_with("/mystery"))
-                .count()
-        });
-        assert_eq!(picks, 1, "{archetype}: mystery picks at 1");
+        let selections = own.map_or(&base.selections, |row| &row.selections);
+        let picks: Vec<&str> = selections
+            .iter()
+            .map(FeatureSelectionKey::as_str)
+            .filter(|s| s.ends_with("/mystery"))
+            .collect();
+        assert_eq!(picks, [pick], "{table}: mystery picks at 1");
     }
+    let revelation_levels = |rows: Vec<(u8, &Vec<FeatureSelectionKey>)>, key: &str| -> Vec<u8> {
+        rows.into_iter()
+            .filter(|(_, selections)| selections.iter().any(|s| s.as_str() == key))
+            .map(|(level, _)| level)
+            .collect()
+    };
+    let base_rows: Vec<(u8, &Vec<FeatureSelectionKey>)> = oracle
+        .levels
+        .iter()
+        .map(|row| (row.level, &row.selections))
+        .collect();
+    assert_eq!(
+        revelation_levels(base_rows, REVELATION),
+        [1, 3, 7, 11, 15, 19],
+        "the oracle's revelations"
+    );
+    let dual = oracle
+        .archetypes
+        .iter()
+        .find(|a| a.key.as_str() == DUAL_CURSED)
+        .expect("the Dual-Cursed Oracle");
+    let dual_rows: Vec<(u8, &Vec<FeatureSelectionKey>)> = dual
+        .levels
+        .iter()
+        .map(|row| (row.level, &row.selections))
+        .collect();
+    assert_eq!(
+        revelation_levels(dual_rows, DUAL_CURSED_REVELATION),
+        [1, 3, 5, 7, 11, 13, 15, 19],
+        "the Dual-Cursed's revelations"
+    );
 }
 
 /// The Living Deity (a way of the Magic Deceiver): "She gains an Oracle's Mystery and Curse class features",
@@ -1590,7 +1769,15 @@ fn living_deity(data: &mut GameData, domains: &Family, mysteries: &Family, log: 
 
 // ---- blessings -------------------------------------------------------------------------------------------------
 
-fn blessings(guide: &Guide, data: &mut GameData, log: &mut Log) {
+const BLESSINGS: &str = "warpriest/blessings";
+const FERAL_BLESSING: &str = "warpriest/feral-champion/blessing";
+const CHOSEN_BLESSING: &str = "warpriest/champion-of-the-faith/chosen-alignment";
+
+/// The warpriest's blessings, built with the class: each blessing's minor power is its row 1 and its major power its
+/// row 10, so the table's level-10 "Blessings" picks are the held blessings' rows. The Feral Champion's "Feral
+/// Blessing" cells are its fixed blessing's pick at 1 and that blessing's row at 10; the Champion of the Faith also
+/// picks the blessing of his chosen alignment at 1.
+fn blessings(guide: &Guide, picks: &mut Picks) {
     let warpriest_page = page(guide, "warpriest");
     let within = section(warpriest_page, "blessings");
     contains(
@@ -1598,99 +1785,127 @@ fn blessings(guide: &Guide, data: &mut GameData, log: &mut Log) {
         "Each Blessing grants a minor power at 1st level and a major power at 10th level",
         "warpriest#blessings",
     );
-    let warpriest = class_mut(data, "warpriest");
-    let key = FeatureSelectionKey::new("warpriest/blessings");
-    let mut features = Vec::new();
-    {
-        let blessings = warpriest
-            .selections
-            .iter_mut()
-            .find(|s| s.key == key)
-            .expect("the blessings");
-        assert_eq!(blessings.options.len(), within.children.len());
-        blessings.option_levels = BTreeSet::from([ClassKey::new("warpriest")]);
-        for (option, heading) in blessings.options.iter_mut().zip(&within.children) {
-            assert_eq!(option.guide.0, warpriest_page.guide(&heading.anchor));
-            let text = heading.text();
-            contains(&text, "At 1st level", &heading.anchor);
-            contains(&text, "At 10th level", &heading.anchor);
-            let short = option.name.trim_end_matches(" Domain").to_owned();
-            let mut rows = Vec::new();
-            for (level, power) in [(1u8, "Minor"), (10, "Major")] {
-                let feature_key =
-                    FeatureKey::new(format!("{}/{}-blessing", option.key, power.to_lowercase()));
-                features.push(feature(
+    picks.option_levels(BLESSINGS, &["warpriest"]);
+    for heading in &within.children {
+        let key = format!("{BLESSINGS}/{}", heading.anchor);
+        let text = heading.text();
+        contains(&text, "At 1st level", &heading.anchor);
+        contains(&text, "At 10th level", &heading.anchor);
+        let short = heading.name.trim_end_matches(" Domain").to_owned();
+        let mut rows = Vec::new();
+        for (level, power) in [(1u8, "Minor"), (10, "Major")] {
+            let feature_key = FeatureKey::new(format!("{key}/{}-blessing", power.to_lowercase()));
+            picks.feature(
+                "warpriest",
+                feature(
                     &feature_key,
                     &format!("{power} Blessing ({short})"),
                     warpriest_page.guide(&heading.anchor),
-                ));
-                rows.push(OptionLevelRow {
-                    features: vec![feature_key],
-                    ..empty_row(level)
-                });
-            }
-            option.levels = rows;
+                ),
+            );
+            rows.push(OptionLevelRow {
+                features: vec![feature_key],
+                ..empty_row(level)
+            });
         }
+        picks.option_rows(&key, rows);
     }
-    warpriest.features.extend(features);
+    picks.rule(Rule {
+        feature: FeatureKey::new(BLESSINGS),
+        table: None,
+        cell: None,
+        levels: Some(vec![10]),
+        pick: Pick::OptionRow,
+    });
 
     // "A Feral Champion must take the Animal Domain blessing and does not gain a second." "The Warpriest
     // automatically gains the Blessing for his chosen alignment" (Champion of the Faith).
-    let feral = FeatureSelectionKey::new("warpriest/feral-champion/blessing");
-    add_selection(
-        warpriest,
-        Some("warpriest/feral-champion"),
+    picks.selection(
+        "warpriest/feral-champion",
         sharing(
-            feral.as_str(),
+            FERAL_BLESSING,
             "Blessing (Feral Champion)",
             "warpriest#feral-blessing".to_owned(),
             &["warpriest"],
-            BTreeSet::from([SelectionOptionKey::new("warpriest/blessings/animal-domain")]),
+            BTreeSet::from([SelectionOptionKey::new(format!(
+                "{BLESSINGS}/animal-domain"
+            ))]),
         ),
     );
-    let chosen = FeatureSelectionKey::new("warpriest/champion-of-the-faith/chosen-alignment");
-    add_selection(
-        warpriest,
-        Some("warpriest/champion-of-the-faith"),
+    for (level, pick) in [
+        (1, Pick::Selection(FeatureSelectionKey::new(FERAL_BLESSING))),
+        (10, Pick::OptionRow),
+    ] {
+        picks.rule(Rule {
+            feature: FeatureKey::new("warpriest/feral-champion/feral-blessing"),
+            table: Some("warpriest/feral-champion".to_owned()),
+            cell: None,
+            levels: Some(vec![level]),
+            pick,
+        });
+    }
+    picks.selection(
+        "warpriest/champion-of-the-faith",
         sharing(
-            chosen.as_str(),
+            CHOSEN_BLESSING,
             "Chosen Alignment Blessing",
             "warpriest#chosen-alignment".to_owned(),
             &["warpriest"],
             ["chaos-domain", "evil-domain", "good-domain", "law-domain"]
                 .iter()
-                .map(|b| SelectionOptionKey::new(format!("warpriest/blessings/{b}")))
+                .map(|b| SelectionOptionKey::new(format!("{BLESSINGS}/{b}")))
                 .collect(),
         ),
     );
-    let archetypes: Vec<String> = warpriest
-        .archetypes
+    picks.row_selection("warpriest/champion-of-the-faith", 1, CHOSEN_BLESSING);
+}
+
+/// Every blessing has its two rows, and the rows in force pick no blessing at 10: the base class's, and every
+/// archetype's own.
+fn check_blessings(guide: &Guide, data: &GameData) {
+    let within = section(page(guide, "warpriest"), "blessings");
+    let warpriest = data
+        .classes
         .iter()
-        .map(|a| a.key.as_str().to_owned())
-        .collect();
-    for which in std::iter::once(Rows::Class).chain(archetypes.iter().map(|a| Rows::Archetype(a))) {
-        let mut dropped = 0;
-        edit_rows(warpriest, which, |row, names| {
-            if row.level() == 10 {
-                let before = row.selections().len();
-                row.selections().retain(|s| *s != key);
-                dropped += before - row.selections().len();
-            }
-            if matches!(row.level(), 1 | 10) {
-                let cells = strip(row, names, 1, |n| n == norm("Feral Blessing"));
-                if row.level() == 1 {
-                    grant(row, &feral, cells);
-                }
-            }
-            if row.level() == 1
-                && matches!(which, Rows::Archetype("warpriest/champion-of-the-faith"))
-            {
-                grant(row, &chosen, 1);
-            }
-        });
-        log.push(format!(
-            "warpriest {which:?}: {dropped} level-10 picks dropped"
-        ));
+        .find(|class| class.key.as_str() == "warpriest")
+        .expect("the warpriest");
+    let blessings = warpriest
+        .selections
+        .iter()
+        .find(|s| s.key.as_str() == BLESSINGS)
+        .expect("the blessings");
+    assert_eq!(blessings.options.len(), within.children.len());
+    for (option, heading) in blessings.options.iter().zip(&within.children) {
+        assert_eq!(
+            option.guide.0,
+            page(guide, "warpriest").guide(&heading.anchor)
+        );
+        assert_eq!(
+            option
+                .levels
+                .iter()
+                .map(|row| row.level)
+                .collect::<Vec<_>>(),
+            [1, 10],
+            "{}",
+            option.key
+        );
+    }
+    let rows = warpriest
+        .levels
+        .iter()
+        .map(|row| (row.level, &row.selections))
+        .chain(
+            warpriest
+                .archetypes
+                .iter()
+                .flat_map(|a| a.levels.iter().map(|row| (row.level, &row.selections))),
+        );
+    for (level, selections) in rows {
+        assert!(
+            level != 10 || !selections.iter().any(|s| s.as_str() == BLESSINGS),
+            "a blessing pick at 10"
+        );
     }
 }
 
@@ -1701,7 +1916,28 @@ pub fn element_feat(name: &str) -> String {
     name.replace("Lighting Reflexes", "Lightning Reflexes")
 }
 
-fn elements(guide: &Guide, data: &mut GameData, skills: &Skills, feats: &FeatNames, log: &mut Log) {
+/// The kineticist's tables: the class's and each archetype's, each with an "Elemental Focus" choice at 1.
+const KINETICIST_TABLES: [&str; 8] = [
+    "kineticist",
+    "kineticist/blood-kineticist",
+    "kineticist/dark-elementalist",
+    "kineticist/elemental-engine",
+    "kineticist/kinetic-knight",
+    "kineticist/kinetic-sharpshooter",
+    "kineticist/overwhelming-soul",
+    "kineticist/psychokineticist",
+];
+const ELEMENT: &str = "kineticist/element";
+const EXPANDED_ELEMENT: &str = "kineticist/expanded-element";
+const BLOOD_ELEMENT: &str = "kineticist/blood-kineticist/element";
+const KNIGHT_ELEMENT: &str = "kineticist/kinetic-knight/element";
+const KNIGHT_TALENT: &str = "kineticist/kinetic-knight/defensive-wild-talent";
+
+/// The kineticist's elements, built with the class: the selection and its options' rows, the features and lists the
+/// rows name, Expanded Element and the archetypes' own selections. Each table's "Class Skills" cell at 1 is the
+/// table's element pick, its "Defensive Wild Talent" at 2 the element's row, and "Expanded Element" at 7 and 15 a
+/// pick of another element.
+fn elements(guide: &Guide, skills: &Skills, feats: &FeatNames, picks: &mut Picks) {
     let kineticist_page = page(guide, "kineticist");
     let within = section(kineticist_page, "elemental-focus");
     let bonus = all_text(section(kineticist_page, "kineticist-bonus-feat"));
@@ -1721,9 +1957,15 @@ fn elements(guide: &Guide, data: &mut GameData, skills: &Skills, feats: &FeatNam
         "At 7th level, the Kineticist may choose a second Elemental Focus or increase her primary focus",
         "kineticist#expanded-element",
     );
+    // The 15th-level element isn't the 7th-level one (ticket 33).
+    contains(
+        &expanded,
+        "the one she chose at 1st level, but only if she didn't choose it at 7th",
+        "kineticist#expanded-element",
+    );
     let mut family = Family {
         selection: selection(
-            "kineticist/element",
+            ELEMENT,
             "Elemental Focus",
             kineticist_page.guide("elemental-focus"),
             &["kineticist"],
@@ -1735,7 +1977,7 @@ fn elements(guide: &Guide, data: &mut GameData, skills: &Skills, feats: &FeatNam
     assert_eq!(within.children.len(), 4, "the four elements");
     for element in &within.children {
         let short = element.anchor.trim_start_matches("elemental-focus-");
-        let key = format!("kineticist/element/{short}");
+        let key = format!("{ELEMENT}/{short}");
         let line = |label: &str| -> String {
             element
                 .list_items()
@@ -1745,11 +1987,10 @@ fn elements(guide: &Guide, data: &mut GameData, skills: &Skills, feats: &FeatNam
                 .trim_end_matches('.')
                 .to_owned()
         };
+        // The element's class skills are its row 1's while it's held (ticket 37).
         let mut first = empty_row(1);
         for name in name_list(&line("Additional class skills:")) {
-            let skill = class_skill(&key, skills, &name, kineticist_page.guide(&element.anchor));
-            first.features.push(skill.key.clone());
-            family.features.push(skill);
+            first.class_skills.insert(skills.get(&name).0);
         }
         let names: Vec<String> = line("Wild Talent bonus feats:")
             .split(", ")
@@ -1792,47 +2033,47 @@ fn elements(guide: &Guide, data: &mut GameData, skills: &Skills, feats: &FeatNam
         });
     }
 
-    let kineticist = class_mut(data, "kineticist");
-    kineticist.features.extend(family.features.iter().cloned());
-    kineticist.feat_lists.extend(family.lists.iter().cloned());
-    kineticist.selections.push(family.selection.clone());
-    let element = family.selection.key.clone();
-    let expanded_key = FeatureSelectionKey::new("kineticist/expanded-element");
+    for feature in &family.features {
+        picks.feature("kineticist", feature.clone());
+    }
+    for list in &family.lists {
+        picks.feat_list("kineticist", list.clone());
+    }
     // The guide says only that the new element brings its blasts: like Crossblooded's second bloodline, the pick
     // holds the element and gives its feat list, not its class skills or defensive talent.
-    kineticist.selections.push(FeatureSelection {
-        feat_lists_only: true,
-        ..sharing(
-            expanded_key.as_str(),
-            "Expanded Element",
-            kineticist_page.guide("expanded-element"),
-            &["kineticist"],
-            family.all_keys(),
-        )
-    });
+    picks.selection(
+        "kineticist",
+        FeatureSelection {
+            feat_lists_only: true,
+            once_per_option: true,
+            ..sharing(
+                EXPANDED_ELEMENT,
+                "Expanded Element",
+                kineticist_page.guide("expanded-element"),
+                &["kineticist"],
+                family.all_keys(),
+            )
+        },
+    );
     // "Must select Water at 1st and 7th levels" (Blood Kineticist: Water granted with no pick; its 7th level is
     // Blood Blast). The Kinetic Knight's Defensive Wild Talent comes at 4th, not 2nd: its own selection skips row 2
     // and its 4th-level feature grants that row.
-    let blood = FeatureSelectionKey::new("kineticist/blood-kineticist/element");
-    add_selection(
-        kineticist,
-        Some("kineticist/blood-kineticist"),
+    picks.selection(
+        "kineticist/blood-kineticist",
         sharing(
-            blood.as_str(),
+            BLOOD_ELEMENT,
             "Elemental Focus (Blood Kineticist)",
             "kineticist#blood-kineticist".to_owned(),
             &["kineticist"],
             family.keys(&["water"]),
         ),
     );
-    let knight = FeatureSelectionKey::new("kineticist/kinetic-knight/element");
-    add_selection(
-        kineticist,
-        Some("kineticist/kinetic-knight"),
+    picks.selection(
+        "kineticist/kinetic-knight",
         FeatureSelection {
             skipped_levels: BTreeSet::from([2]),
             ..sharing(
-                knight.as_str(),
+                KNIGHT_ELEMENT,
                 "Elemental Focus (Kinetic Knight)",
                 "kineticist#kinetic-knight".to_owned(),
                 &["kineticist"],
@@ -1840,59 +2081,132 @@ fn elements(guide: &Guide, data: &mut GameData, skills: &Skills, feats: &FeatNam
             )
         },
     );
-    let knight_talent = kineticist
-        .archetypes
-        .iter_mut()
-        .find(|a| a.key.as_str() == "kineticist/kinetic-knight")
-        .expect("the Kinetic Knight")
-        .features
-        .iter_mut()
-        .find(|f| f.name == "Defensive Wild Talent")
-        .expect("the Kinetic Knight's Defensive Wild Talent");
-    knight_talent.option_row = Some(OptionRow {
-        selection: knight.clone(),
-        level: 2,
+    picks.rule(Rule {
+        feature: FeatureKey::new(KNIGHT_TALENT),
+        table: Some("kineticist/kinetic-knight".to_owned()),
+        cell: None,
+        levels: Some(vec![4]),
+        pick: Pick::Feature(Feature {
+            option_row: Some(OptionRow {
+                selection: FeatureSelectionKey::new(KNIGHT_ELEMENT),
+                level: 2,
+            }),
+            ..feature(
+                &FeatureKey::new(KNIGHT_TALENT),
+                "Defensive Wild Talent",
+                "kineticist#kinetic-knight".to_owned(),
+            )
+        }),
     });
-    let knight_talent = knight_talent.key.clone();
+    for table in KINETICIST_TABLES {
+        let pick = match table {
+            "kineticist/blood-kineticist" => BLOOD_ELEMENT,
+            "kineticist/kinetic-knight" => KNIGHT_ELEMENT,
+            _ => ELEMENT,
+        };
+        picks.rule(Rule {
+            feature: FeatureKey::new(format!("{table}/class-skills")),
+            table: Some(table.to_owned()),
+            cell: None,
+            levels: Some(vec![1]),
+            pick: Pick::Selection(FeatureSelectionKey::new(pick)),
+        });
+        picks.rule(Rule {
+            feature: FeatureKey::new(format!("{table}/defensive-wild-talent")),
+            table: Some(table.to_owned()),
+            cell: None,
+            levels: Some(vec![2]),
+            pick: Pick::OptionRow,
+        });
+    }
+    picks.rule(Rule {
+        feature: FeatureKey::new(EXPANDED_ELEMENT),
+        table: None,
+        cell: None,
+        levels: Some(vec![7, 15]),
+        pick: Pick::Selection(FeatureSelectionKey::new(EXPANDED_ELEMENT)),
+    });
+    picks.selection("kineticist", family.selection);
+}
 
-    let archetypes: Vec<String> = kineticist
+/// The kineticist's rows in force hold the element picks where the class's and the archetypes' tables have the
+/// cells: every table's choice at 1, Expanded Element at 7 and 15 (the Blood Kineticist's 7th is Blood Blast), and
+/// the Kinetic Knight's defensive talent at 4 only.
+fn check_elements(data: &GameData) {
+    let kineticist = data
+        .classes
+        .iter()
+        .find(|class| class.key.as_str() == "kineticist")
+        .expect("the kineticist");
+    let archetypes: BTreeSet<&str> = kineticist
         .archetypes
         .iter()
-        .map(|a| a.key.as_str().to_owned())
+        .map(|a| a.key.as_str())
         .collect();
-    for which in std::iter::once(Rows::Class).chain(archetypes.iter().map(|a| Rows::Archetype(a))) {
-        let pick = match which {
-            Rows::Archetype("kineticist/blood-kineticist") => blood.clone(),
-            Rows::Archetype("kineticist/kinetic-knight") => knight.clone(),
-            _ => element.clone(),
-        };
-        let mut picks = 0;
-        let mut expanded = 0;
-        edit_rows(kineticist, which, |row, names| {
-            match row.level() {
-                1 => {
-                    let cells = strip(row, names, 1, |n| n == norm("Class Skills"));
-                    grant(row, &pick, cells);
-                    picks += cells;
-                }
-                2 => {
-                    strip(row, names, 1, |n| n == norm("Defensive Wild Talent"));
-                }
-                7 | 15 => {
-                    let cells = strip(row, names, 1, |n| n == norm("Expanded Element"));
-                    grant(row, &expanded_key, cells);
-                    expanded += cells;
-                }
-                _ => {}
+    assert_eq!(
+        archetypes,
+        KINETICIST_TABLES[1..].iter().copied().collect(),
+        "the kineticist's archetypes"
+    );
+    let in_force = |archetype: Option<&str>, level: u8| -> (Vec<String>, Vec<String>) {
+        let own = archetype.and_then(|key| {
+            kineticist
+                .archetypes
+                .iter()
+                .find(|a| a.key.as_str() == key)
+                .and_then(|a| a.levels.iter().find(|row| row.level == level))
+        });
+        let (features, selections) = match own {
+            Some(row) => (&row.features, &row.selections),
+            None => {
+                let row = kineticist
+                    .levels
+                    .iter()
+                    .find(|row| row.level == level)
+                    .expect("a kineticist row");
+                (&row.features, &row.selections)
             }
+        };
+        (
+            features.iter().map(|f| f.to_string()).collect(),
+            selections.iter().map(|s| s.to_string()).collect(),
+        )
+    };
+    for table in KINETICIST_TABLES {
+        let archetype = (table != "kineticist").then_some(table);
+        let pick = match table {
+            "kineticist/blood-kineticist" => BLOOD_ELEMENT,
+            "kineticist/kinetic-knight" => KNIGHT_ELEMENT,
+            _ => ELEMENT,
+        };
+        assert!(
+            in_force(archetype, 1).1.iter().any(|s| s == pick),
+            "{table}: the element pick at 1"
+        );
+        let expanded_at: &[u8] = if table == "kineticist/blood-kineticist" {
+            &[15]
+        } else {
+            &[7, 15]
+        };
+        for &level in expanded_at {
             assert!(
-                row.level() == 4 || !row.features().contains(&knight_talent),
+                in_force(archetype, level)
+                    .1
+                    .iter()
+                    .any(|s| s == EXPANDED_ELEMENT),
+                "{table}: Expanded Element at {level}"
+            );
+        }
+        for level in 1..=20 {
+            assert!(
+                level == 4 && table == "kineticist/kinetic-knight"
+                    || !in_force(archetype, level)
+                        .0
+                        .iter()
+                        .any(|f| f == KNIGHT_TALENT),
                 "the Kinetic Knight's talent at 4 only"
             );
-        });
-        log.push(format!(
-            "kineticist {which:?}: {picks} element picks, {expanded} expanded"
-        ));
+        }
     }
 }
 
@@ -1901,101 +2215,187 @@ fn elements(guide: &Guide, data: &mut GameData, skills: &Skills, feats: &FeatNam
 /// "If the character was not previously an Armiger, they must choose one of the seven Hellknight orders. Otherwise,
 /// they retain their current order." (the Armiger's seven, for a character holding none), and Pentamic Faith: "The
 /// Hellknight gains access to one of the following domains … She uses her class level to determine which domain
-/// abilities she can use."
-fn hellknight(data: &mut GameData, domains: &Family, log: &mut Log) {
-    let orders: BTreeSet<SelectionOptionKey> = data
+/// abilities she can use." Built with the class: the "Order" cell at 1 is the pick, and the disciplines are levelled
+/// by Hellknight levels, Pentamic Faith's row 1 granting its domain.
+fn hellknight(guide: &Guide, domains: &Family, picks: &mut Picks) {
+    let armiger_orders = section(page(guide, "fighter"), "order");
+    let orders: BTreeSet<SelectionOptionKey> = armiger_orders
+        .children
+        .iter()
+        .map(|order| {
+            assert!(
+                order.anchor.starts_with("order-of-the-"),
+                "{}",
+                order.anchor
+            );
+            SelectionOptionKey::new(format!("{ARMIGER_ORDER}/{}", order.anchor))
+        })
+        .collect();
+    assert_eq!(orders.len(), 7);
+    picks.selection(
+        "hellknight",
+        FeatureSelection {
+            only_without_option: true,
+            ..sharing(
+                HELLKNIGHT_ORDER,
+                "Order",
+                "prestige-classes#order".to_owned(),
+                &[],
+                orders.clone(),
+            )
+        },
+    );
+    // The Signifer's "Order" cell at 1: "The Signifer must choose one of the seven Hellknight orders" (ticket 33),
+    // offered, as the Hellknight's, only to a character holding none ("Otherwise, they retain their current order",
+    // ticket 35).
+    let prestige = page(guide, "prestige-classes");
+    contains(
+        &section(prestige, "order-hellknight-signifer").text(),
+        "The Signifer must choose one of the seven Hellknight orders.",
+        "prestige-classes#order-hellknight-signifer",
+    );
+    contains(
+        &section(prestige, "order").text(),
+        "Otherwise, they retain their current order.",
+        "prestige-classes#order",
+    );
+    picks.selection(
+        "hellknight-signifer",
+        FeatureSelection {
+            only_without_option: true,
+            ..sharing(
+                SIGNIFER_ORDER,
+                "Order",
+                "prestige-classes#order-hellknight-signifer".to_owned(),
+                &[],
+                orders,
+            )
+        },
+    );
+    picks.rule(Rule {
+        feature: FeatureKey::new(SIGNIFER_ORDER),
+        table: Some("hellknight-signifer".to_owned()),
+        cell: None,
+        levels: Some(vec![1]),
+        pick: Pick::Selection(FeatureSelectionKey::new(SIGNIFER_ORDER)),
+    });
+    let faith = "hellknight/pentamic-faith";
+    picks.selection(
+        "hellknight",
+        sharing(
+            faith,
+            "Pentamic Faith",
+            "prestige-classes#pentamic-faith".to_owned(),
+            &["hellknight"],
+            domains.keys(&PENTAMIC_DOMAINS),
+        ),
+    );
+    picks.option_levels("hellknight/disciplines", &["hellknight"]);
+    picks.option_rows(
+        "hellknight/disciplines/pentamic-faith",
+        vec![OptionLevelRow {
+            selections: vec![FeatureSelectionKey::new(faith)],
+            ..empty_row(1)
+        }],
+    );
+    picks.rule(Rule {
+        feature: FeatureKey::new(HELLKNIGHT_ORDER),
+        table: Some("hellknight".to_owned()),
+        cell: None,
+        levels: Some(vec![1]),
+        pick: Pick::Selection(FeatureSelectionKey::new(HELLKNIGHT_ORDER)),
+    });
+}
+
+const ARMIGER_ORDER: &str = "fighter/armiger/order";
+const HELLKNIGHT_ORDER: &str = "hellknight/order";
+const SIGNIFER_ORDER: &str = "hellknight-signifer/order";
+
+/// The Hellknight's order shares exactly the Armiger's orders and is its row 1's pick, as the Signifer's is its own;
+/// Pentamic Faith's option has its row.
+fn check_hellknight(data: &GameData) {
+    let armiger: BTreeSet<&SelectionOptionKey> = data
         .classes
         .iter()
-        .find(|c| c.key.as_str() == "fighter")
-        .and_then(|c| {
-            c.archetypes
-                .iter()
-                .find(|a| a.key.as_str() == "fighter/armiger")
-        })
-        .and_then(|a| {
-            a.selections
-                .iter()
-                .find(|s| s.key.as_str() == "fighter/armiger/order")
-        })
+        .flat_map(|c| &c.archetypes)
+        .flat_map(|a| &a.selections)
+        .find(|s| s.key.as_str() == ARMIGER_ORDER)
         .expect("the Armiger's orders")
         .options
         .iter()
-        .map(|o| o.key.clone())
+        .map(|o| &o.key)
         .collect();
-    assert_eq!(orders.len(), 7);
-    let hellknight = class_mut(data, "hellknight");
-    let order = FeatureSelectionKey::new("hellknight/order");
-    hellknight.selections.push(FeatureSelection {
-        only_without_option: true,
-        ..sharing(
-            order.as_str(),
-            "Order",
-            "prestige-classes#order".to_owned(),
-            &[],
-            orders,
-        )
-    });
-    let faith = FeatureSelectionKey::new("hellknight/pentamic-faith");
-    hellknight.selections.push(sharing(
-        faith.as_str(),
-        "Pentamic Faith",
-        "prestige-classes#pentamic-faith".to_owned(),
-        &["hellknight"],
-        domains.keys(&PENTAMIC_DOMAINS),
-    ));
+    let hellknight = data
+        .prestige_classes
+        .iter()
+        .find(|c| c.key.as_str() == "hellknight")
+        .expect("the Hellknight");
+    let order = hellknight
+        .selections
+        .iter()
+        .find(|s| s.key.as_str() == HELLKNIGHT_ORDER)
+        .expect("the Hellknight's order");
+    assert_eq!(
+        order.shared_options.iter().collect::<BTreeSet<_>>(),
+        armiger
+    );
+    let signifer = data
+        .prestige_classes
+        .iter()
+        .find(|c| c.key.as_str() == "hellknight-signifer")
+        .expect("the Signifer");
+    assert!(
+        signifer.levels.iter().any(
+            |row| row.level == 1 && row.selections.iter().any(|s| s.as_str() == SIGNIFER_ORDER)
+        ),
+        "the Signifer's Order cell"
+    );
+    let first = hellknight
+        .levels
+        .iter()
+        .find(|row| row.level == 1)
+        .expect("row 1");
+    assert_eq!(
+        first
+            .selections
+            .iter()
+            .filter(|s| s.as_str() == HELLKNIGHT_ORDER)
+            .count(),
+        1,
+        "the Hellknight's Order cell"
+    );
     let disciplines = hellknight
         .selections
-        .iter_mut()
+        .iter()
         .find(|s| s.key.as_str() == "hellknight/disciplines")
         .expect("the disciplines");
-    disciplines.option_levels = BTreeSet::from([ClassKey::new("hellknight")]);
-    disciplines
-        .options
-        .iter_mut()
-        .find(|o| o.key.as_str() == "hellknight/disciplines/pentamic-faith")
-        .expect("Pentamic Faith")
-        .levels = vec![OptionLevelRow {
-        selections: vec![faith],
-        ..empty_row(1)
-    }];
-    let mut cells = 0;
-    edit_rows(hellknight, Rows::Class, |row, names| {
-        if row.level() == 1 {
-            cells = strip(row, names, 1, |n| n == norm("Order"));
-            grant(row, &order, cells);
-        }
-    });
-    assert_eq!(cells, 1, "the Hellknight's Order cell");
-    log.push("hellknight: order and Pentamic Faith's domain".to_owned());
+    assert!(
+        disciplines.options.iter().any(|o| o.key.as_str()
+            == "hellknight/disciplines/pentamic-faith"
+            && !o.levels.is_empty()),
+        "Pentamic Faith's row"
+    );
 }
 
 // ---- prerequisites ---------------------------------------------------------------------------------------------
 
-/// Domain Zealot's "Domain" and Second Mystery's "Mystery" are an option held; Second Mystery picks another
-/// mystery. Boon Companion and Mythical Beast accept the domains' companion where they named the classes' "Animal
-/// domain only" companions, and the Nature mystery's Animal Companion revelation.
-fn prerequisites(data: &mut GameData, domains: &Family, mysteries: &Family, log: &mut Log) {
-    let any_of = |keys: BTreeSet<SelectionOptionKey>| {
-        Prerequisite::Any(
-            keys.into_iter()
-                .map(Prerequisite::SelectionOption)
-                .collect(),
-        )
-    };
-    for ability in &mut data.mythic_abilities {
-        match ability.key.as_str() {
-            "domain-zealot" => {
-                ability.prerequisite = Some(any_of(domains.all_keys()));
-                log.push("domain-zealot: any domain".to_owned());
-            }
-            "second-mystery" => {
-                ability.prerequisite = Some(any_of(mysteries.all_keys()));
-                ability.selections = vec![mysteries.selection.key.clone()];
-                log.push("second-mystery: any mystery; picks another".to_owned());
-            }
-            _ => {}
-        }
-    }
+/// Domain Zealot's "Domain" is a domain held (Second Mystery's "Mystery" is stated where the mysteries are built).
+/// Boon Companion and Mythical Beast accept the domains' companion where they named the classes' "Animal domain
+/// only" companions, and the Nature mystery's Animal Companion revelation.
+fn prerequisites(data: &mut GameData, domains: &Family, log: &mut Log) {
+    let zealot = data
+        .mythic_abilities
+        .iter_mut()
+        .find(|ability| ability.key.as_str() == "domain-zealot")
+        .expect("Domain Zealot");
+    zealot.prerequisite = Some(Prerequisite::Any(
+        domains
+            .all_keys()
+            .into_iter()
+            .map(Prerequisite::SelectionOption)
+            .collect(),
+    ));
+    log.push("domain-zealot: any domain".to_owned());
     // The companions the domains' rows replace: each class's "Animal Companion" cell at 4.
     let gone: Vec<Prerequisite> = [
         "cleric/animal-companion",

@@ -7,7 +7,8 @@
 //! - **Impossible Domain** (33-2): a Living Deity's extra domain runs on arcanist levels from the pick
 //!   (`level_also_from`: the Living Deity's way counts beside the domains held), and a Hellknight with Pentamic
 //!   Faith's domain qualifies (levelled by Hellknight levels, as that domain is).
-//! - **Signifer** (33-3): its order is offered only to a character holding none, as the Hellknight's.
+//! - **Signifer** (33-3): its order is offered only to a character holding none, as the Hellknight's: built with the
+//!   Hellknight's order ([`option_families`](crate::option_families)' provider).
 //! - **Separatist** (33-6): its second domain isn't an alignment domain that conflicts with its alignment.
 //! - **Ranger/slayer** (33-7): the slayer's three combat style feats come from the style's list of their window's
 //!   stage (2, 6, 10), whoever levels the style (`OptionList.at_level`).
@@ -37,7 +38,6 @@ pub fn apply(guide: &Guide, data: &mut GameData) -> Log {
     half_elf_subraces(guide, data, &mut log);
     impossible_domain(guide, data, &mut log);
     no_druid_impossible_domain(guide, data, &mut log);
-    signifer(guide, data, &mut log);
     separatist(guide, data, &mut log);
     slayer_window_stages(guide, data, &mut log);
     bloodrager_groups(data, &mut log);
@@ -168,23 +168,6 @@ pub fn no_druid_impossible_domain(guide: &Guide, data: &GameData, log: &mut Log)
         "impossible-domain: no druid domain qualifies (Nature Bond, Blight Druid, Winter Child)"
             .to_owned(),
     );
-}
-
-/// The Hellknight's "If the character was not previously an Armiger, they must choose one of the seven Hellknight
-/// orders. Otherwise, they retain their current order."; the Signifer's order works the same by the user's decision.
-fn signifer(guide: &Guide, data: &mut GameData, log: &mut Log) {
-    says(
-        guide,
-        "prestige-classes",
-        "order",
-        "Otherwise, they retain their current order.",
-    );
-    assert!(class_selection(data, "hellknight", "hellknight/order").only_without_option);
-    let key = "hellknight-signifer/order";
-    let order = class_selection(data, "hellknight-signifer", key);
-    assert!(!order.only_without_option, "{key}");
-    order.only_without_option = true;
-    log.push(format!("{key}: only for a character holding no order"));
 }
 
 /// "This second domain cannot be an alignment domain that conflicts with the cleric's own alignment." Each

@@ -2,25 +2,30 @@
 //!
 //! The generic table reader ([`crate::build`]) turns each cell into the feature its heading defines. A cell the game
 //! makes a pick is a slot instead: the class stage asks [`Picks::pick`], for the table it reads, the cell, the
-//! feature the cell names and its level, whether the cell is a pick, of which selection, or which slots. The
-//! selections those picks are of, with their options, and the features and feat lists that come with them, are the
-//! class's or the archetype's from the start ([`Picks::selections_of`], [`Picks::options_of`],
-//! [`Picks::features_of`], [`Picks::feat_lists_of`]). No feature stands for a pick at any point.
+//! feature the cell names (or the guide selection it grants) and its level, whether the cell is a pick, of which
+//! selection, which slots, or the held option's row ([`Pick::OptionRow`]). The selections those picks are of, with
+//! their options, and the features and feat lists that come with them, are the class's or the archetype's from the
+//! start ([`Picks::selections_of`], [`Picks::options_of`], [`Picks::features_of`], [`Picks::feat_lists_of`]), as are
+//! the option levels and option rows of a selection the guide's headings define ([`Picks::option_levels_of`],
+//! [`Picks::option_rows_of`]), a pick a row grants beside its cells ([`Picks::row_selections_of`]) and a feature
+//! that is a daily choice ([`Picks::is_daily_choice`]). No feature stands for a pick at any point.
 //!
 //! The other stages ask the same providers for their owners' facts: a feat's or a mythic ability's prerequisite
 //! stated in place of its line, or a line the reader passes over ([`Picks::prerequisite_of`], [`Picks::lines_for`]),
-//! an archetype's alignment rule ([`Picks::stated_for`]), the slot a mythic ability gives and the pick a mythic feat
-//! gives ([`Picks::mythic_selections_of`], [`Picks::mythic_extra_pick_of`]).
+//! an archetype's alignment rule or an option's exclusions ([`Picks::stated_for`]), the slot and features a mythic
+//! ability gives and the pick a mythic feat gives ([`Picks::mythic_selections_of`], [`Picks::mythic_features_of`],
+//! [`Picks::mythic_extra_pick_of`]).
 //!
 //! Each provider module reads its facts from the saved pages and asserts the guide's sentences they rest on when the
 //! providers are read ([`Picks::read`]), before the classes are built. What can only be asserted on the finished data
 //! (the rows in force, after the archetype rows are made sparse) is in [`check`], which changes nothing.
 
 use rules::{
-    DataAt, FeatList, FeatSlot, Feature, FeatureKey, FeatureSelection, FeatureSelectionKey,
-    GameData, MythicAbilityKey, MythicExtraPick, MythicFeatKey, Prerequisite, SelectionOption,
-    SelectionOptionKey,
+    ClassKey, DataAt, FeatList, FeatSlot, Feature, FeatureKey, FeatureSelection,
+    FeatureSelectionKey, GameData, MythicAbilityKey, MythicExtraPick, MythicFeatKey,
+    OptionLevelRow, Prerequisite, SelectionOption, SelectionOptionKey, Skill,
 };
+use std::collections::BTreeSet;
 
 use crate::guide::Guide;
 use crate::option_levels::FeatNames;
@@ -34,12 +39,20 @@ pub enum Pick {
     Slots(Vec<FeatSlot>),
     /// A feature of the table's own owner (a class or archetype), defined here.
     Feature(Feature),
+    /// The held option's row (a family's placeholder, such as the kineticist's "Defensive Wild Talent" at 2): nothing
+    /// on the owner's own row.
+    OptionRow,
+    /// One slot of this selection, with the cell's feature still defined (and named, for prerequisite lines), though
+    /// not on the row: a line elsewhere resolves to it. Only the Wind Whisperer's "Wind", which the shaman's Air
+    /// Barrier, Vortex Spells and Wind Ward resolve their "Wind" line to.
+    SelectionKeepingFeature(FeatureSelectionKey),
 }
 
 /// Which cells are a pick.
 #[derive(Clone, Debug)]
 pub struct Rule {
-    /// The feature the generic reader makes of the cell.
+    /// The feature the generic reader makes of the cell, or the selection it grants (a cell naming a selection the
+    /// guide's headings define: the warpriest's "Blessings").
     pub feature: FeatureKey,
     /// Only in this table (a class's or an archetype's key); `None`, in every table whose cell names the feature.
     pub table: Option<String>,
@@ -88,18 +101,31 @@ pub struct Picks {
     lines: Vec<(DataAt, String)>,
     /// The slot a mythic ability gives when it's picked.
     mythic_selections: Vec<(MythicAbilityKey, FeatureSelectionKey)>,
+    /// The features a mythic ability grants (Bloodline Ascendance: the held bloodline's row 20).
+    mythic_features: Vec<(MythicAbilityKey, FeatureKey)>,
+    /// The features a table defines that are a choice made each day, not a pick.
+    daily_choices: BTreeSet<FeatureKey>,
     /// The pick a mythic feat gives when it's taken.
     mythic_extra_picks: Vec<(MythicFeatKey, MythicExtraPick)>,
     /// Prerequisites stated for an owner beside what its own lines name (an archetype's alignment rule).
     stated: Vec<(DataAt, Prerequisite)>,
-    /// Prerequisites of provided options that name what a later pass builds, set once it has ([`Picks::late`]).
-    late: Vec<(SelectionOptionKey, Prerequisite)>,
+    /// The classes whose levels level a selection the guide's headings define (by the selection's key).
+    option_levels: Vec<(FeatureSelectionKey, BTreeSet<ClassKey>)>,
+    /// The rows of an option the guide's headings define (by the option's key).
+    option_rows: Vec<(SelectionOptionKey, Vec<OptionLevelRow>)>,
+    /// Selections a row of a class's or archetype's table (by its key) grants beside its cells, by level.
+    row_selections: Vec<(String, u8, FeatureSelectionKey)>,
 }
 
 impl Picks {
-    /// Every provider's picks, each asserting the guide's sentences it rests on.
-    pub(crate) fn read(guide: &Guide, feats: &FeatNames) -> Self {
+    /// Every provider's picks, each asserting the guide's sentences it rests on. The option families come first:
+    /// the wild talents' and infusions' prerequisites name the kineticist's elements.
+    pub(crate) fn read(guide: &Guide, feats: &FeatNames, skills: &[Skill]) -> Self {
         let mut picks = Self::default();
+        crate::option_families::provide(guide, feats, skills, &mut picks);
+        crate::option_levels::provide(&mut picks);
+        crate::option_follow_ups::provide(guide, &mut picks);
+        crate::report_gaps::provide(guide, &mut picks);
         crate::archetype_alignments::provide(guide, &mut picks);
         crate::mythic_extra_picks::provide(guide, &mut picks);
         crate::mythic_ability_picks::provide(guide, &mut picks);
@@ -123,43 +149,6 @@ impl Picks {
         self.selections.push((owner.to_owned(), selection));
     }
 
-    /// A selection whose options' prerequisites name what a later pass builds (the kineticist's elements, built with
-    /// the other option families on the finished rows): the class stage gives the options none, and [`Picks::late`]
-    /// sets them once that pass has run.
-    pub fn selection_naming_later_facts(&mut self, owner: &str, mut selection: FeatureSelection) {
-        for option in &mut selection.options {
-            if let Some(prerequisite) = option.prerequisite.take() {
-                self.late.push((option.key.clone(), prerequisite));
-            }
-        }
-        self.selection(owner, selection);
-    }
-
-    /// Sets the prerequisites [`Picks::selection_naming_later_facts`] held back, asserting each names only what the
-    /// data has by now.
-    pub fn late(&self, data: &mut GameData) {
-        for (key, prerequisite) in &self.late {
-            let option = data
-                .classes
-                .iter_mut()
-                .chain(&mut data.prestige_classes)
-                .flat_map(|class| {
-                    class
-                        .selections
-                        .iter_mut()
-                        .chain(class.archetypes.iter_mut().flat_map(|a| &mut a.selections))
-                })
-                .flat_map(|selection| &mut selection.options)
-                .find(|option| &option.key == key)
-                .unwrap_or_else(|| panic!("no option {key}"));
-            assert!(
-                option.prerequisite.is_none(),
-                "{key}: a prerequisite already"
-            );
-            option.prerequisite = Some(prerequisite.clone());
-        }
-    }
-
     pub fn option(&mut self, selection: &str, option: SelectionOption) {
         self.options
             .push((FeatureSelectionKey::new(selection), option));
@@ -171,6 +160,52 @@ impl Picks {
 
     pub fn feat_list(&mut self, owner: &str, list: FeatList) {
         self.feat_lists.push((owner.to_owned(), list));
+    }
+
+    /// The guide's selection `selection` has rows by option level, levelled by `classes`' levels.
+    pub fn option_levels(&mut self, selection: &str, classes: &[&str]) {
+        self.option_levels.push((
+            FeatureSelectionKey::new(selection),
+            classes.iter().map(|class| ClassKey::new(*class)).collect(),
+        ));
+    }
+
+    pub fn option_levels_of(&self, selection: &FeatureSelectionKey) -> Option<BTreeSet<ClassKey>> {
+        self.option_levels
+            .iter()
+            .find(|(s, _)| s == selection)
+            .map(|(_, classes)| classes.clone())
+    }
+
+    /// The guide's option `option` has `rows`.
+    pub fn option_rows(&mut self, option: &str, rows: Vec<OptionLevelRow>) {
+        self.option_rows
+            .push((SelectionOptionKey::new(option), rows));
+    }
+
+    pub fn option_rows_of(&self, option: &SelectionOptionKey) -> Vec<OptionLevelRow> {
+        self.option_rows
+            .iter()
+            .find(|(o, _)| o == option)
+            .map(|(_, rows)| rows.clone())
+            .unwrap_or_default()
+    }
+
+    /// The row at `level` of `table` (a class's or an archetype's key) grants `selection` beside its cells.
+    pub fn row_selection(&mut self, table: &str, level: u8, selection: &str) {
+        self.row_selections
+            .push((table.to_owned(), level, FeatureSelectionKey::new(selection)));
+    }
+
+    pub fn row_selections_of<'p>(
+        &'p self,
+        table: &'p str,
+        level: u8,
+    ) -> impl Iterator<Item = &'p FeatureSelectionKey> {
+        self.row_selections
+            .iter()
+            .filter(move |(t, l, _)| t == table && *l == level)
+            .map(|(_, _, selection)| selection)
     }
 
     /// `owner`'s prerequisite is `prerequisite`, in place of what its "Prerequisites" line, `line`, names.
@@ -204,6 +239,29 @@ impl Picks {
             .filter(|(a, _)| a == ability)
             .map(|(_, selection)| selection.clone())
             .collect()
+    }
+
+    /// The mythic ability `ability` grants `feature`.
+    pub fn mythic_feature(&mut self, ability: &str, feature: &str) {
+        self.mythic_features
+            .push((MythicAbilityKey::new(ability), FeatureKey::new(feature)));
+    }
+
+    pub fn mythic_features_of(&self, ability: &MythicAbilityKey) -> Vec<FeatureKey> {
+        self.mythic_features
+            .iter()
+            .filter(|(a, _)| a == ability)
+            .map(|(_, feature)| feature.clone())
+            .collect()
+    }
+
+    /// The feature `feature`, which a table defines, is a choice made each day, not a pick.
+    pub fn daily_choice(&mut self, feature: &str) {
+        self.daily_choices.insert(FeatureKey::new(feature));
+    }
+
+    pub fn is_daily_choice(&self, feature: &FeatureKey) -> bool {
+        self.daily_choices.contains(feature)
     }
 
     /// The mythic feat `feat` gives `pick` when it's taken.
@@ -298,6 +356,8 @@ impl Picks {
 /// Asserts what the providers can only assert on the finished data: the rows in force hold each pick where the guide's
 /// tables have its cell. Changes nothing.
 pub fn check(guide: &Guide, data: &GameData) {
+    crate::option_families::check(guide, data);
+    crate::report_gaps::check(data);
     crate::archetype_alignments::check(guide, data);
     crate::mythic_extra_picks::check(guide, data);
     crate::mythic_ability_picks::check(guide, data);

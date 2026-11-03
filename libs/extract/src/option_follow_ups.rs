@@ -13,12 +13,15 @@
 //! - **Divine Hunter** (31-2): every domain power, by hunter level (no skipped levels).
 //! - **Impossible Domain** (31-5, the user's fact): a further domain from the full list, levelled like the domains
 //!   held (`LevelFrom::OtherOptions`); a Living Deity may take it.
-//! - **Expanded Element** (31-6): the 15th-level element isn't the 7th-level one (`once_per_option`).
+//! - **Expanded Element** (31-6): the 15th-level element isn't the 7th-level one (`once_per_option`): built with
+//!   the elements ([`option_families`](crate::option_families)' provider).
 //! - **Revelations** (31-7): Cinder Dance needs no Lame curse; the Dual-Cursed Oracle's revelations offer
 //!   Misfortune and Fortune; Maneuver Mastery's maneuver follows its revelation's level and Second Mystery the first
-//!   mystery's, so a Living Deity's count arcanist levels.
+//!   mystery's, so a Living Deity's count arcanist levels: built with the mysteries
+//!   ([`option_families`](crate::option_families)' provider).
 //! - **Champion of the Faith** (31-8): its alignment blessing is one of his own alignment (`PickedThrough`).
-//! - **Signifer** (31-10): its order is a selection sharing the Hellknight's seven.
+//! - **Signifer** (31-10): its order is a selection sharing the Hellknight's seven: built with the Hellknight's order
+//!   ([`option_families`](crate::option_families)' provider).
 //! - **The slayer's combat style** (32-2, a scope addition): the slayer picks one of the ranger's combat styles
 //!   with his first combat style feat, and each of the three feats comes from that style's list of its stage.
 //!
@@ -35,7 +38,8 @@ use rules::{
 
 use crate::follow_ups::{archetype_mut, class_mut, drop_feature, says, take_feature};
 use crate::guide::Guide;
-use crate::option_levels::{Log, feature, option, selection};
+use crate::option_levels::{Log, feature, selection};
+use crate::picks::Picks;
 
 /// Applies every rule, in the order above.
 pub fn apply(guide: &Guide, data: &mut GameData) -> Log {
@@ -47,10 +51,7 @@ pub fn apply(guide: &Guide, data: &mut GameData) -> Log {
     separatist(guide, data, &mut log);
     divine_hunter(data, &mut log);
     impossible_domain(guide, data, &mut log);
-    expanded_element(guide, data, &mut log);
-    revelations(guide, data, &mut log);
     champion_of_the_faith(guide, data, &mut log);
-    signifer(guide, data, &mut log);
     slayer_combat_style(guide, data, &mut log);
     normalise(data, &mut log);
     features_named_exist(data);
@@ -249,7 +250,9 @@ fn crossblooded(guide: &Guide, data: &mut GameData, log: &mut Log) {
 
 // ---- daily choices and Elemental Movement --------------------------------------------------------------------
 
-fn daily_choices(guide: &Guide, data: &mut GameData, log: &mut Log) {
+/// The daily choices the tables define, built so where they're defined: the Unsworn Shaman's Minor Spirit and
+/// Wandering Spirit 2, and the hunter's Second Animal Focus.
+pub(crate) fn provide(guide: &Guide, picks: &mut Picks) {
     says(
         guide,
         "shaman",
@@ -262,33 +265,30 @@ fn daily_choices(guide: &Guide, data: &mut GameData, log: &mut Log) {
         "wandering-spirit-2",
         "gains access to a second Wandering Spirit at 6th level",
     );
-    let unsworn = archetype_mut(data, "shaman", "shaman/unsworn-shaman");
-    for key in [
-        "shaman/unsworn-shaman/minor-spirit",
-        "shaman/unsworn-shaman/wandering-spirit-2",
-    ] {
-        let feature = unsworn
-            .features
-            .iter_mut()
-            .find(|feature| feature.key.as_str() == key)
-            .unwrap_or_else(|| panic!("no feature {key}"));
-        assert!(!feature.daily_choice, "{key}");
-        feature.daily_choice = true;
-        log.push(format!("{key}: a daily choice"));
-    }
-
-    // The hunter's Animal Focus: a daily choice of an aspect, so a feature rather than a pick of eight.
-    says(
-        guide,
-        "hunter",
-        "animal-focus",
-        "A Hunter can grant an animal aspect to her companion.",
-    );
     says(
         guide,
         "hunter",
         "second-animal-focus",
         "whenever a Hunter uses her Animal Focus ability, she can choose two aspects",
+    );
+    for key in [
+        "shaman/unsworn-shaman/minor-spirit",
+        "shaman/unsworn-shaman/wandering-spirit-2",
+        "hunter/second-animal-focus",
+    ] {
+        picks.daily_choice(key);
+    }
+}
+
+/// The hunter's Animal Focus: a daily choice of an aspect, so a feature rather than a pick of eight. Kept a pass on
+/// the finished rows: the guide's "Animal Focus" heading lists the eight aspects, so the class stage reads it as a
+/// selection, and the cells naming it as its slots.
+fn daily_choices(guide: &Guide, data: &mut GameData, log: &mut Log) {
+    says(
+        guide,
+        "hunter",
+        "animal-focus",
+        "A Hunter can grant an animal aspect to her companion.",
     );
     let key = "hunter/animal-focus";
     let hunter = class_mut(data, "hunter");
@@ -329,16 +329,9 @@ fn daily_choices(guide: &Guide, data: &mut GameData, log: &mut Log) {
             "hunter#animal-focus".into(),
         )
     });
-    let second = hunter
-        .features
-        .iter_mut()
-        .find(|feature| feature.key.as_str() == "hunter/second-animal-focus")
-        .expect("Second Animal Focus");
-    second.daily_choice = true;
     log.push(format!(
         "{key}: a daily-choice feature instead of a selection of 8 aspects ({grants} rows)"
     ));
-    log.push("hunter/second-animal-focus: a daily choice".into());
 }
 
 /// "Air: …, Earth: None, Fire: …, Water: …": the 15th-level row of each Elemental bloodline.
@@ -560,195 +553,7 @@ fn impossible_domain(guide: &Guide, data: &mut GameData, log: &mut Log) {
     ));
 }
 
-fn expanded_element(guide: &Guide, data: &mut GameData, log: &mut Log) {
-    says(
-        guide,
-        "kineticist",
-        "expanded-element",
-        "the one she chose at 1st level, but only if she didn't choose it at 7th",
-    );
-    let key = "kineticist/expanded-element";
-    let expanded = class_selection(data, "kineticist", key);
-    assert!(!expanded.once_per_option);
-    expanded.once_per_option = true;
-    log.push(format!("{key}: not the same element twice"));
-}
-
-// ---- revelations ----------------------------------------------------------------------------------------------
-
-fn revelations(guide: &Guide, data: &mut GameData, log: &mut Log) {
-    // Cinder Dance.
-    says(
-        guide,
-        "oracle",
-        "cinder-dance",
-        "You cannot select this revelation if you have the Lame curse.",
-    );
-    let flame = class_selection(data, "oracle", "oracle/revelations/flame");
-    let cinder_dance = flame
-        .options
-        .iter_mut()
-        .find(|option| option.key.as_str() == "oracle/revelations/flame/cinder-dance")
-        .expect("Cinder Dance");
-    and(
-        &mut cinder_dance.prerequisite,
-        Prerequisite::Not(Box::new(Prerequisite::SelectionOption(
-            SelectionOptionKey::new("oracle/oracles-curse/lame"),
-        ))),
-    );
-    log.push("oracle/revelations/flame/cinder-dance: no Lame curse".into());
-
-    // The Dual-Cursed Oracle's revelations: the mystery's pool plus its own two, at every revelation level.
-    says(
-        guide,
-        "oracle",
-        "additional-revelations",
-        "he can choose two Revelations unique to the archetype",
-    );
-    let key = "oracle/dual-cursed-oracle/revelation";
-    let own = ["Misfortune", "Fortune"].map(|name| {
-        let anchor = name.to_lowercase();
-        // The sections exist.
-        says(guide, "oracle", &anchor, "this revelation");
-        option(
-            &format!("{key}/{anchor}"),
-            name,
-            format!("oracle#{anchor}"),
-            Vec::new(),
-        )
-    });
-    let base_levels: Vec<u8> = class_mut(data, "oracle")
-        .levels
-        .iter()
-        .filter(|row| {
-            row.selections
-                .iter()
-                .any(|s| s.as_str() == "oracle/revelation")
-        })
-        .map(|row| row.level)
-        .collect();
-    assert_eq!(
-        base_levels,
-        [1, 3, 7, 11, 15, 19],
-        "the oracle's revelations"
-    );
-    let oracle = class_mut(data, "oracle");
-    let dual = oracle
-        .archetypes
-        .iter_mut()
-        .find(|archetype| archetype.key.as_str() == "oracle/dual-cursed-oracle")
-        .expect("the Dual-Cursed Oracle");
-    dual.selections.push(FeatureSelection {
-        options: own.into(),
-        pool_of: Some(FeatureSelectionKey::new("oracle/mystery")),
-        ..selection(
-            key,
-            "Revelation (Dual-Cursed Oracle)",
-            "oracle#additional-revelations".into(),
-            &["oracle"],
-        )
-    });
-    let replace = |selections: &mut Vec<FeatureSelectionKey>| {
-        for selection in selections.iter_mut() {
-            if selection.as_str() == "oracle/revelation" {
-                *selection = FeatureSelectionKey::new(key);
-            }
-        }
-        selections.sort();
-    };
-    let mut levels = Vec::new();
-    for row in &mut dual.levels {
-        if row
-            .selections
-            .iter()
-            .any(|s| s.as_str() == "oracle/revelation")
-        {
-            replace(&mut row.selections);
-            levels.push(row.level);
-        }
-    }
-    // The base rows' revelations at levels the archetype leaves to the class become the archetype's rows.
-    let base = oracle.levels.clone();
-    let dual = oracle
-        .archetypes
-        .iter_mut()
-        .find(|archetype| archetype.key.as_str() == "oracle/dual-cursed-oracle")
-        .unwrap();
-    for level in base_levels {
-        if dual.levels.iter().any(|row| row.level == level) {
-            continue;
-        }
-        let row = base.iter().find(|row| row.level == level).unwrap();
-        let mut selections = row.selections.clone();
-        replace(&mut selections);
-        dual.levels.push(rules::ArchetypeLevelRow {
-            level,
-            spell_levels: None,
-            features: row.features.clone(),
-            feats: row.feats.clone(),
-            feats_for: row.feats_for.clone(),
-            feat_slots: row.feat_slots.clone(),
-            selections,
-        });
-        levels.push(level);
-    }
-    dual.levels.sort_by_key(|row| row.level);
-    levels.sort_unstable();
-    assert_eq!(
-        levels,
-        [1, 3, 5, 7, 11, 13, 15, 19],
-        "the Dual-Cursed's revelations"
-    );
-    log.push(format!(
-        "{key}: the mystery's pool, Misfortune and Fortune, at {levels:?}"
-    ));
-
-    // Maneuver Mastery's maneuver follows its revelation's level (an oracle's or a Living Deity's).
-    let maneuver = class_selection(data, "oracle", "oracle/maneuver-mastery");
-    assert_eq!(
-        maneuver.option_levels,
-        BTreeSet::from([rules::ClassKey::new("oracle")])
-    );
-    maneuver.option_levels.clear();
-    maneuver.level_from = Some(LevelFrom::GrantingOption);
-    log.push("oracle/maneuver-mastery: levelled like the revelation that grants it".into());
-
-    // Second Mystery: another mystery, levelled like the first.
-    says(
-        guide,
-        "mythic-paths",
-        "second-mystery",
-        "You gain a second Oracle Mystery.",
-    );
-    let mysteries = offered(data, "oracle", "oracle/mystery");
-    assert_eq!(mysteries.len(), 9, "the nine mysteries");
-    let key = "oracle/second-mystery";
-    class_mut(data, "oracle").selections.push(FeatureSelection {
-        shared_options: mysteries,
-        level_from: Some(LevelFrom::OtherOptions),
-        ..selection(
-            key,
-            "Second Mystery",
-            "mythic-paths#second-mystery".into(),
-            &[],
-        )
-    });
-    let ability = data
-        .mythic_abilities
-        .iter_mut()
-        .find(|ability| ability.key == MythicAbilityKey::new("second-mystery"))
-        .expect("Second Mystery");
-    assert_eq!(
-        ability.selections,
-        [FeatureSelectionKey::new("oracle/mystery")]
-    );
-    ability.selections = vec![FeatureSelectionKey::new(key)];
-    log.push(format!(
-        "second-mystery: picks one of {key}, levelled like the first mystery"
-    ));
-}
-
-// ---- the Champion of the Faith and the Signifer ---------------------------------------------------------------
+// ---- the Champion of the Faith ---------------------------------------------------------------------------------
 
 /// "The chosen alignment must correspond to his own alignment": each alignment blessing, picked through the
 /// Champion's Chosen Alignment, needs one of its alignments.
@@ -783,39 +588,6 @@ fn champion_of_the_faith(guide: &Guide, data: &mut GameData, log: &mut Log) {
         option.prerequisite = Some(Prerequisite::Any(children));
         log.push(format!("{key}: the Champion's own alignment"));
     }
-}
-
-/// "The Signifer must choose one of the seven Hellknight orders."
-fn signifer(guide: &Guide, data: &mut GameData, log: &mut Log) {
-    says(
-        guide,
-        "prestige-classes",
-        "order-hellknight-signifer",
-        "The Signifer must choose one of the seven Hellknight orders.",
-    );
-    let orders = offered(data, "hellknight", "hellknight/order");
-    assert_eq!(orders.len(), 7, "the seven orders");
-    let key = "hellknight-signifer/order";
-    let signifer = class_mut(data, "hellknight-signifer");
-    signifer.selections.push(FeatureSelection {
-        shared_options: orders,
-        ..selection(
-            key,
-            "Order",
-            "prestige-classes#order-hellknight-signifer".into(),
-            &[],
-        )
-    });
-    let first = signifer
-        .levels
-        .iter_mut()
-        .find(|row| row.level == 1)
-        .expect("the Signifer's first row");
-    take_feature(&mut first.features, key, "signifer 1");
-    first.selections.push(FeatureSelectionKey::new(key));
-    first.selections.sort();
-    log.push(format!("{key}: one of the Hellknight's seven orders"));
-    drop_feature(data, "hellknight-signifer", None, key, log);
 }
 
 /// "Alternatively, he may choose from a Ranger's Combat Style Feats" (32-2, the user's decision: one style, as a

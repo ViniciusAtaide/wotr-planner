@@ -2,8 +2,9 @@
 //! finished data.
 //!
 //! - **Options:** a feature that only makes skills class skills, on an option's row ("Class Skill: Athletics" on a
-//!   bloodline's, a mystery's, a domain's or an element's; a cavalier order's "Skills"), becomes that row's
-//!   `class_skills`, so the skills are class skills while the row is held.
+//!   bloodline's or a domain's; a cavalier order's "Skills"), becomes that row's `class_skills`, so the skills are
+//!   class skills while the row is held. A mystery's and an element's row 1 are built with their class skills
+//!   ([`option_families`](crate::option_families)' provider), so they have no such feature.
 //! - **Archetypes:** the same feature on an archetype's row (Empyreal and Sylvan Sorcerer) only repeats a skill that
 //!   the archetype's own list already holds, so it goes.
 //! - **Left as features:** the Arcane bloodline's and the Sage Sorcerer's "Class Skill" ("one of Knowledge (World),
@@ -157,71 +158,6 @@ const ENTRIES: &[Entry] = &[
             &["lore-religion"],
         )],
     ),
-    // The oracle's mysteries.
-    prose(
-        "oracle",
-        "battle",
-        "The Battle Mystery adds Perception to the list of class skills",
-        Holder::Option,
-        &[(
-            "oracle/mystery/battle/class-skill-perception",
-            &["perception"],
-        )],
-    ),
-    prose(
-        "oracle",
-        "bones",
-        "The Bones Mystery adds Stealth to the list of class skills",
-        Holder::Option,
-        &[("oracle/mystery/bones/class-skill-stealth", &["stealth"])],
-    ),
-    prose(
-        "oracle",
-        "flame",
-        "The Flame Mystery adds Athletics and Mobility to the list of class skills",
-        Holder::Option,
-        &[
-            ("oracle/mystery/flame/class-skill-athletics", &["athletics"]),
-            ("oracle/mystery/flame/class-skill-mobility", &["mobility"]),
-        ],
-    ),
-    prose(
-        "oracle",
-        "nature",
-        "The Nature Mystery adds Athletics to the list of class skills",
-        Holder::Option,
-        &[(
-            "oracle/mystery/nature/class-skill-athletics",
-            &["athletics"],
-        )],
-    ),
-    prose(
-        "oracle",
-        "stone",
-        "The Stone Mystery adds Athletics to the list of class skills",
-        Holder::Option,
-        &[("oracle/mystery/stone/class-skill-athletics", &["athletics"])],
-    ),
-    prose(
-        "oracle",
-        "waves",
-        "The Waves Mystery adds Athletics and Mobility to the list of class skills",
-        Holder::Option,
-        &[
-            ("oracle/mystery/waves/class-skill-athletics", &["athletics"]),
-            ("oracle/mystery/waves/class-skill-mobility", &["mobility"]),
-        ],
-    ),
-    prose(
-        "oracle",
-        "wind",
-        "The Wind Mystery adds Mobility and Stealth to the list of class skills",
-        Holder::Option,
-        &[
-            ("oracle/mystery/wind/class-skill-mobility", &["mobility"]),
-            ("oracle/mystery/wind/class-skill-stealth", &["stealth"]),
-        ],
-    ),
     // The domains (`cleric/domain`, shared by every domain holder).
     prose(
         "character-creation",
@@ -265,59 +201,6 @@ const ENTRIES: &[Entry] = &[
         &[
             ("cleric/domain/trickery/class-skill-stealth", &["stealth"]),
             ("cleric/domain/trickery/class-skill-trickery", &["trickery"]),
-        ],
-    ),
-    // The kineticist's elements.
-    prose(
-        "kineticist",
-        "elemental-focus-air",
-        "Additional class skills: Lore (Nature)",
-        Holder::Option,
-        &[(
-            "kineticist/element/air/class-skill-lore-nature",
-            &["lore-nature"],
-        )],
-    ),
-    prose(
-        "kineticist",
-        "elemental-focus-earth",
-        "Additional class skills: Athletics, Knowledge (World)",
-        Holder::Option,
-        &[
-            (
-                "kineticist/element/earth/class-skill-athletics",
-                &["athletics"],
-            ),
-            (
-                "kineticist/element/earth/class-skill-knowledge-world",
-                &["knowledge-world"],
-            ),
-        ],
-    ),
-    prose(
-        "kineticist",
-        "elemental-focus-fire",
-        "Additional class skills: Lore (Nature)",
-        Holder::Option,
-        &[(
-            "kineticist/element/fire/class-skill-lore-nature",
-            &["lore-nature"],
-        )],
-    ),
-    prose(
-        "kineticist",
-        "elemental-focus-water",
-        "Additional class skills: Athletics, Lore (Nature)",
-        Holder::Option,
-        &[
-            (
-                "kineticist/element/water/class-skill-athletics",
-                &["athletics"],
-            ),
-            (
-                "kineticist/element/water/class-skill-lore-nature",
-                &["lore-nature"],
-            ),
         ],
     ),
     // The cavalier's orders: a "Skills" feature each.

@@ -10,8 +10,8 @@
 //!   `ClassLevel`), one of its elements (`Element | Fire, Water`: an `Any` of the elements held; Universal and All:
 //!   none) and what its "Prerequisites" names: a defensive talent is that feature (Flame Shield: Searing Flesh), a
 //!   talent that option (Healing Burst: Kinetic Healer), and "Fire blast" is the Fire element, which the talent's
-//!   element asks already. The elements and their defensive talents are built with the other option families
-//!   (ticket 31), so these prerequisites are set once they are ([`Picks::late`]).
+//!   element asks already. The elements and their defensive talents are built with the class too
+//!   ([`option_families`](crate::option_families)' provider), so these prerequisites are set where the options are.
 //! - **Kineticist Bonus Feat** (Universal, level 1): "Select a bonus feat associated with an Elemental Focus. You do
 //!   not need to meet the normal prerequisites for the feat you select." Its row 1 is a bonus feat slot from the
 //!   held elements' lists (`OptionList(selection: "kineticist/element")`, so Expanded Element's element offers its
@@ -214,7 +214,7 @@ pub fn provide(guide: &Guide, picks: &mut Picks) {
         wild.options.push(chosen);
     }
     assert_eq!(wild.options.len(), 22, "the talents picked");
-    picks.selection_naming_later_facts(KINETICIST, wild);
+    picks.selection(KINETICIST, wild);
     picks.rule(Rule::every(
         WILD_TALENTS_FEATURE,
         Pick::Selection(FeatureSelectionKey::new(WILD_TALENTS)),

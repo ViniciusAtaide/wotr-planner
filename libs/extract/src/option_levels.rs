@@ -14,7 +14,9 @@
 //!   shares the options it allows; one option is granted with no pick;
 //! - the bonus slots that took the class's merged bloodline list pick from the held option's list instead.
 //!
-//! [`apply`] runs on full rows (game data as extracted or as hand-fixed) and asserts what it finds.
+//! [`apply`] runs on the finished rows and asserts what it finds; why it stays a pass is in
+//! [`crate::build::extract`]. The facts of its families' owners that don't hang on those rows (the mythic abilities
+//! that pick another option, Bloodline Ascendance, the daily choices) are built with their owners ([`provide`]).
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -28,6 +30,7 @@ use rules::{
 use crate::guide::Guide;
 use crate::html::{Page, Section};
 use crate::names::{norm, slug};
+use crate::picks::Picks;
 use crate::tables::parse_table;
 
 /// What [`apply`] changed, one line each, for the rewrite's log.
@@ -37,7 +40,6 @@ pub type Log = Vec<String>;
 pub fn apply(guide: &Guide, data: &mut GameData) -> Log {
     let mut log = Log::new();
     let feats = FeatNames::new(data);
-    spontaneous(guide, data, &mut log);
 
     let sorcerer = sorcerer_bloodlines(guide, &feats);
     take_family(data, &sorcerer, &SORCERER, &mut log);
@@ -56,44 +58,10 @@ pub fn apply(guide: &Guide, data: &mut GameData) -> Log {
     take_family(data, &styles, &RANGER, &mut log);
 
     other_classes(data, &sorcerer, &mut log);
-    mythic(data, &mut log);
+    second_spirit(data, &mut log);
     prerequisites(data, &mut log);
     drop_unused(data, &TOUCHED, &mut log);
     log
-}
-
-/// "Spells are cast spontaneously" in a class's or an archetype's characteristics (the others' say "Spells must be
-/// prepared in advance"): Dragon Disciple's entry checks it.
-fn spontaneous(guide: &Guide, data: &mut GameData, log: &mut Log) {
-    const SPONTANEOUS: &str = "Spells are cast spontaneously";
-    for class in &mut data.classes {
-        let page = guide.page(class.key.as_str());
-        for section in page.root.walk() {
-            if !section.text().contains(SPONTANEOUS) {
-                continue;
-            }
-            match section.level {
-                2 => {
-                    class.spontaneous = true;
-                    log.push(format!("{}: spontaneous", class.key));
-                }
-                3 => {
-                    let key = format!("{}/{}", class.key, section.anchor);
-                    let archetype = class
-                        .archetypes
-                        .iter_mut()
-                        .find(|a| a.key.as_str() == key)
-                        .unwrap_or_else(|| panic!("no archetype {key}"));
-                    archetype.spontaneous = Some(true);
-                    log.push(format!("{key}: spontaneous"));
-                }
-                _ => panic!(
-                    "{}#{}: {SPONTANEOUS} below an archetype",
-                    page.slug, section.anchor
-                ),
-            }
-        }
-    }
 }
 
 // ---- families read from the guide ----------------------------------------------------------------------------
@@ -2044,11 +2012,49 @@ pub(crate) fn replace_leaf(
     }
 }
 
-/// Second Bloodline ("You can select a second bloodline, gaining all its benefits"), Second Bloodrager Bloodline,
-/// Second Spirit ("You gain a second Shaman Spirit"), and Bloodline Ascendance ("You gain the 20th level ability of
-/// your bloodline").
-fn mythic(data: &mut GameData, log: &mut Log) {
-    // Second Spirit's "Prerequisites: Spirit": a spirit held (the Spirit cell is the selection now).
+/// The facts of the families' mythic abilities and daily choices, built where their owners are: Second Bloodline
+/// ("You can select a second bloodline, gaining all its benefits"), Second Bloodrager Bloodline and Second Spirit
+/// ("You gain a second Shaman Spirit") pick another option; Bloodline Ascendance ("You gain the 20th level ability of your bloodline") grants the held bloodline's row
+/// 20. Mixed Bloodline ("Once per day, a Mixed-Blood Rager chooses a bloodline") and the shaman's Wandering Spirit
+/// ("can be changed each time you rest") are daily choices.
+pub(crate) fn provide(picks: &mut Picks) {
+    let grants = [
+        ("second-bloodline", "sorcerer/bloodline"),
+        ("second-bloodrager-bloodline", "bloodrager/bloodline"),
+        ("second-spirit", "shaman/spirit"),
+    ];
+    for (ability, selection) in grants {
+        picks.mythic_selection(ability, FeatureSelectionKey::new(selection));
+    }
+    let ascendance = "sorcerer/bloodline-ascendance";
+    picks.feature(
+        "sorcerer",
+        Feature {
+            option_row: Some(OptionRow {
+                selection: FeatureSelectionKey::new("sorcerer/bloodline"),
+                level: 20,
+            }),
+            ..feature(
+                &FeatureKey::new(ascendance),
+                "Bloodline Ascendance",
+                "mythic-paths#bloodline-ascendance".into(),
+            )
+        },
+    );
+    picks.mythic_feature("bloodline-ascendance", ascendance);
+    for daily in [
+        "bloodrager/mixed-blood-rager/mixed-bloodline",
+        "bloodrager/mixed-blood-rager/second-mixed-bloodline",
+        "shaman/wandering-spirit",
+    ] {
+        picks.daily_choice(daily);
+    }
+}
+
+/// Second Spirit's "Prerequisites: Spirit": a spirit held (the Spirit cell is the selection now). Kept in the pass:
+/// the spirits' options don't exist yet when the lines are resolved and the dangling leaves dropped, so the line
+/// resolves to the "Spirit" cell's feature, which this restates.
+fn second_spirit(data: &mut GameData, log: &mut Log) {
     let spirits: Vec<Prerequisite> = data
         .classes
         .iter()
@@ -2081,65 +2087,7 @@ fn mythic(data: &mut GameData, log: &mut Log) {
         &Prerequisite::Any(spirits),
     );
     assert_eq!(replaced, 1, "Second Spirit's Spirit");
-    let grants = [
-        ("second-bloodline", "sorcerer/bloodline"),
-        ("second-bloodrager-bloodline", "bloodrager/bloodline"),
-        ("second-spirit", "shaman/spirit"),
-    ];
-    for (ability, selection) in grants {
-        let ability = data
-            .mythic_abilities
-            .iter_mut()
-            .find(|a| a.key.as_str() == ability)
-            .unwrap_or_else(|| panic!("no {ability}"));
-        ability.selections.push(FeatureSelectionKey::new(selection));
-        log.push(format!("{}: another {selection}", ability.key));
-    }
-    let key = FeatureKey::new("sorcerer/bloodline-ascendance");
-    let sorcerer = data
-        .classes
-        .iter_mut()
-        .find(|c| c.key.as_str() == "sorcerer")
-        .expect("sorcerer");
-    sorcerer.features.push(Feature {
-        option_row: Some(OptionRow {
-            selection: FeatureSelectionKey::new("sorcerer/bloodline"),
-            level: 20,
-        }),
-        ..feature(
-            &key,
-            "Bloodline Ascendance",
-            "mythic-paths#bloodline-ascendance".into(),
-        )
-    });
-    let ascendance = data
-        .mythic_abilities
-        .iter_mut()
-        .find(|a| a.key.as_str() == "bloodline-ascendance")
-        .expect("Bloodline Ascendance");
-    ascendance.features.push(key);
-    log.push("bloodline-ascendance: the bloodline's 20th-level row".into());
-
-    // Mixed Bloodline: "Once per day, a Mixed-Blood Rager chooses a bloodline"; the shaman's Wandering Spirit "can
-    // be changed each time you rest": daily choices.
-    for class in &mut data.classes {
-        for feature in class
-            .features
-            .iter_mut()
-            .chain(class.archetypes.iter_mut().flat_map(|a| &mut a.features))
-        {
-            if [
-                "Mixed Bloodline",
-                "Second Mixed Bloodline",
-                "Wandering Spirit",
-            ]
-            .contains(&feature.name.as_str())
-            {
-                feature.daily_choice = true;
-                log.push(format!("{}: a daily choice", feature.key));
-            }
-        }
-    }
+    log.push("second-spirit: a spirit held".into());
 }
 
 /// Disruptive: "Fighter Level 6 or Arcane bloodline".
