@@ -16,22 +16,23 @@ use crate::build::{AbilityScores, Pick, SlotId};
 use crate::choice::Issue;
 use crate::codec::LinkKeys;
 use crate::game_data::{
-    AbilityBonus, Archetype, Class, FeatSlot, FeatValue, GameData, SpellLevels,
+    AbilityBonus, Archetype, Class, FeatList, FeatSlot, FeatValue, GameData, SpellLevels,
 };
 use crate::keys::{
-    ArchetypeKey, ClassKey, FeatKey, FeatureKey, FeatureSelectionKey, MythicPathKey,
+    ArchetypeKey, ClassKey, FeatKey, FeatListKey, FeatureKey, FeatureSelectionKey, MythicPathKey,
 };
+use crate::parameter::{Parameter, ParameterKind};
 use crate::state::CharacterState;
 
+mod catalog;
 mod labels;
-mod lookups;
 mod pickers;
 mod removable;
 mod slots;
 mod switch;
 mod walk;
 
-use lookups::{FeatureFacts, Indexes};
+use catalog::Catalog;
 
 /// The highest character level without a path that raises it.
 pub const BASE_LEVEL_CAP: u8 = 20;
@@ -43,13 +44,47 @@ pub const PATH_SWITCH_RANK: u8 = 8;
 /// The game data plus lookups by key. Build it once when the game data arrives, then ask it about Builds.
 #[derive(Clone, Debug)]
 pub struct Engine {
-    data: GameData,
-    /// The game data's positions by key.
-    indexes: Indexes,
-    /// What the engine reads off the features the classes, archetypes and paths define.
-    features: FeatureFacts,
+    /// The game data and its lookups by key.
+    catalog: Catalog,
     /// The game data's keys by hash, to read links.
     link_keys: LinkKeys,
+}
+
+impl Engine {
+    /// Indexes the game data, after putting it in canonical order.
+    pub fn new(data: GameData) -> Self {
+        let catalog = Catalog::new(data);
+        Self {
+            link_keys: LinkKeys::new(catalog.data()),
+            catalog,
+        }
+    }
+
+    pub fn data(&self) -> &GameData {
+        self.catalog.data()
+    }
+
+    /// Every value of a kind, in key (or declaration) order: the skills, weapons, exotic weapons, schools, energy
+    /// types or armour types.
+    pub fn parameter_values(&self, kind: ParameterKind) -> Vec<Parameter> {
+        self.catalog.parameter_values(kind)
+    }
+
+    /// A feat list by key, wherever it's defined.
+    pub fn feat_list(&self, key: &FeatListKey) -> Option<&FeatList> {
+        self.catalog.feat_list(key)
+    }
+
+    /// The daily choices a character holds (Mixed Bloodline): the sheet shows each as a note, since the game asks
+    /// for it again every day and a Build doesn't record it.
+    pub fn daily_choices(&self, state: &CharacterState) -> Vec<FeatureKey> {
+        state
+            .features
+            .keys()
+            .filter(|feature| self.catalog.is_daily_choice(feature))
+            .cloned()
+            .collect()
+    }
 }
 
 /// What a Mythic rank's general pick is.

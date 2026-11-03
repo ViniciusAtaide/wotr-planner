@@ -9,7 +9,8 @@ use crate::build::{FeatSource, Pick, SlotId};
 use crate::choice::{Issue, Unmet};
 use crate::engine::Slot;
 use crate::game_data::{
-    Ability, Alignment, Class, FeatCategory, FeatSlot, MythicPath, SelectionOption, SpellType,
+    Ability, Alignment, Archetype, Class, FeatCategory, FeatSlot, MythicPath, SelectionOption,
+    SpellType,
 };
 use crate::keys::{
     ArchetypeKey, BackgroundKey, ClassKey, FeatKey, FeatListKey, FeatureKey, FeatureSelectionKey,
@@ -23,74 +24,76 @@ use crate::state::CharacterState;
 /// What a feature belongs to.
 enum Holder<'a> {
     Option(&'a SelectionOption),
-    /// A class and the index of one of its archetypes.
-    Archetype(&'a Class, usize),
+    Archetype(&'a Archetype),
     Class(&'a Class),
     Path(&'a MythicPath),
 }
 
 impl Engine {
     pub fn race_name<'a>(&'a self, key: &'a RaceKey) -> &'a str {
-        self.race(key).map_or(key.as_str(), |race| &race.name)
+        self.catalog
+            .race(key)
+            .map_or(key.as_str(), |race| &race.name)
     }
 
     pub fn subrace_name<'a>(&'a self, key: &'a SubraceKey) -> &'a str {
-        self.indexes
-            .subraces
-            .get(key)
-            .map_or(key.as_str(), |&(r, s)| &self.data.races[r].subraces[s].name)
+        self.catalog
+            .subrace(key)
+            .map_or(key.as_str(), |(_, subrace)| &subrace.name)
     }
 
     pub fn skill_name<'a>(&'a self, key: &'a SkillKey) -> &'a str {
-        self.indexes
-            .skills
-            .get(key)
-            .map_or(key.as_str(), |&index| &self.data.skills[index].name)
+        self.catalog
+            .skill(key)
+            .map_or(key.as_str(), |skill| &skill.name)
     }
 
     pub fn weapon_name<'a>(&'a self, key: &'a WeaponKey) -> &'a str {
-        self.weapon(key).map_or(key.as_str(), |weapon| &weapon.name)
+        self.catalog
+            .weapon(key)
+            .map_or(key.as_str(), |weapon| &weapon.name)
     }
 
     pub fn feat_name<'a>(&'a self, key: &'a FeatKey) -> &'a str {
-        self.feat(key).map_or(key.as_str(), |feat| &feat.name)
+        self.catalog
+            .feat(key)
+            .map_or(key.as_str(), |feat| &feat.name)
     }
 
     pub fn feat_list_name<'a>(&'a self, key: &'a FeatListKey) -> &'a str {
-        self.feat_list(key).map_or(key.as_str(), |list| &list.name)
+        self.catalog
+            .feat_list(key)
+            .map_or(key.as_str(), |list| &list.name)
     }
 
     pub fn class_name<'a>(&'a self, key: &'a ClassKey) -> &'a str {
-        self.class(key)
+        self.catalog
+            .class(key)
             .map_or(key.as_str(), |(class, _)| &class.name)
     }
 
     /// Whether a class is a prestige class.
     pub fn is_prestige(&self, key: &ClassKey) -> bool {
-        self.class(key).is_some_and(|(_, prestige)| prestige)
+        self.catalog
+            .class(key)
+            .is_some_and(|(_, prestige)| prestige)
     }
 
     pub fn archetype_name<'a>(&'a self, key: &'a ArchetypeKey) -> &'a str {
-        self.indexes
-            .archetypes
-            .get(key)
-            .map_or(key.as_str(), |&(c, a)| {
-                &self.data.classes[c].archetypes[a].name
-            })
+        self.catalog
+            .archetype(key)
+            .map_or(key.as_str(), |archetype| &archetype.name)
     }
 
     pub fn feature_name<'a>(&'a self, key: &'a FeatureKey) -> &'a str {
-        self.features
-            .names
-            .get(key)
-            .map_or(key.as_str(), String::as_str)
+        self.catalog.feature_name(key).unwrap_or(key.as_str())
     }
 
     /// A feature's name, with whose it is when another feature shares the name: "Weapon Training (Sohei)",
     /// "Animal Companion (Animal Domain)".
     pub fn feature_name_apart(&self, key: &FeatureKey) -> String {
         let name = self.feature_name(key);
-        if !self.features.shared_names.contains(key) {
+        if !self.catalog.shares_name(key) {
             return name.to_owned();
         }
         match self.feature_owner(key) {
@@ -103,7 +106,7 @@ impl Engine {
     fn feature_owner(&self, key: &FeatureKey) -> Option<&str> {
         Some(match self.feature_holder(key)? {
             Holder::Option(option) => &option.name,
-            Holder::Archetype(class, archetype) => &class.archetypes[archetype].name,
+            Holder::Archetype(archetype) => &archetype.name,
             Holder::Class(class) => &class.name,
             Holder::Path(path) => &path.name,
         })
@@ -114,18 +117,16 @@ impl Engine {
         let mut prefix = key.as_str();
         while let Some((owner, _)) = prefix.rsplit_once('/') {
             prefix = owner;
-            if let Some(option) = self.option(&SelectionOptionKey::new(prefix)) {
+            if let Some(option) = self.catalog.option(&SelectionOptionKey::new(prefix)) {
                 return Some(Holder::Option(option));
             }
-            if let Some(&(class, archetype)) =
-                self.indexes.archetypes.get(&ArchetypeKey::new(prefix))
-            {
-                return Some(Holder::Archetype(&self.data.classes[class], archetype));
+            if let Some(archetype) = self.catalog.archetype(&ArchetypeKey::new(prefix)) {
+                return Some(Holder::Archetype(archetype));
             }
-            if let Some((class, _)) = self.class(&ClassKey::new(prefix)) {
+            if let Some((class, _)) = self.catalog.class(&ClassKey::new(prefix)) {
                 return Some(Holder::Class(class));
             }
-            if let Some(path) = self.path(&MythicPathKey::new(prefix)) {
+            if let Some(path) = self.catalog.path(&MythicPathKey::new(prefix)) {
                 return Some(Holder::Path(path));
             }
         }
@@ -196,9 +197,7 @@ impl Engine {
                 Prerequisite::Archetype(archetype) => has_archetype(archetype),
                 Prerequisite::Feature { feature, .. } => match self.feature_holder(feature) {
                     Some(Holder::Class(class)) => has(&class.key),
-                    Some(Holder::Archetype(class, archetype)) => {
-                        has_archetype(&class.archetypes[archetype].key)
-                    }
+                    Some(Holder::Archetype(archetype)) => has_archetype(&archetype.key),
                     // An option's features (a domain's) come with options several classes share.
                     _ => true,
                 },
@@ -211,30 +210,38 @@ impl Engine {
     }
 
     pub fn selection_name<'a>(&'a self, key: &'a FeatureSelectionKey) -> &'a str {
-        self.selection(key)
+        self.catalog
+            .selection(key)
             .map_or(key.as_str(), |selection| &selection.name)
     }
 
     pub fn option_name<'a>(&'a self, key: &'a SelectionOptionKey) -> &'a str {
-        self.option(key).map_or(key.as_str(), |option| &option.name)
+        self.catalog
+            .option(key)
+            .map_or(key.as_str(), |option| &option.name)
     }
 
     pub fn mythic_ability_name<'a>(&'a self, key: &'a MythicAbilityKey) -> &'a str {
-        self.mythic_ability(key)
+        self.catalog
+            .mythic_ability(key)
             .map_or(key.as_str(), |ability| &ability.name)
     }
 
     pub fn mythic_feat_name<'a>(&'a self, key: &'a MythicFeatKey) -> &'a str {
-        self.mythic_feat(key)
+        self.catalog
+            .mythic_feat(key)
             .map_or(key.as_str(), |feat| &feat.name)
     }
 
     pub fn path_name<'a>(&'a self, key: &'a MythicPathKey) -> &'a str {
-        self.path(key).map_or(key.as_str(), |path| &path.name)
+        self.catalog
+            .path(key)
+            .map_or(key.as_str(), |path| &path.name)
     }
 
     pub fn background_name<'a>(&'a self, key: &'a BackgroundKey) -> &'a str {
-        self.background(key)
+        self.catalog
+            .background(key)
             .map_or(key.as_str(), |background| &background.name)
     }
 
@@ -272,34 +279,41 @@ impl Engine {
     /// that defines an option (a slayer's shared talents are "Rogue Talents"), a mythic pick's guide heading.
     pub fn pick_category(&self, pick: &Pick) -> &str {
         match pick {
-            Pick::Feat { feat, .. } => self.feat(feat).map_or("", |feat| feat.category.name()),
+            Pick::Feat { feat, .. } => self
+                .catalog
+                .feat(feat)
+                .map_or("", |feat| feat.category.name()),
             Pick::SelectionOption { option, .. } => self
-                .indexes
-                .options
-                .get(option)
-                .map_or("", |(selection, _)| self.selection_name(selection)),
+                .catalog
+                .selection_of(option)
+                .map_or("", |selection| &selection.name),
             Pick::MythicAbility(key) => self
+                .catalog
                 .mythic_ability(key)
                 .map_or("", |ability| ability.group.name()),
-            Pick::MythicFeat { feat, .. } => {
-                self.mythic_feat(feat).map_or("", |feat| feat.group.name())
-            }
+            Pick::MythicFeat { feat, .. } => self
+                .catalog
+                .mythic_feat(feat)
+                .map_or("", |feat| feat.group.name()),
         }
     }
 
     /// The short summary of what a pick takes, in our own words; empty when the data has none.
     pub fn pick_summary(&self, pick: &Pick) -> &str {
         match pick {
-            Pick::Feat { feat, .. } => self.feat(feat).map_or("", |feat| &feat.summary),
-            Pick::SelectionOption { option, .. } => {
-                self.option(option).map_or("", |option| &option.summary)
-            }
+            Pick::Feat { feat, .. } => self.catalog.feat(feat).map_or("", |feat| &feat.summary),
+            Pick::SelectionOption { option, .. } => self
+                .catalog
+                .option(option)
+                .map_or("", |option| &option.summary),
             Pick::MythicAbility(key) => self
+                .catalog
                 .mythic_ability(key)
                 .map_or("", |ability| &ability.summary),
-            Pick::MythicFeat { feat, .. } => {
-                self.mythic_feat(feat).map_or("", |feat| &feat.summary)
-            }
+            Pick::MythicFeat { feat, .. } => self
+                .catalog
+                .mythic_feat(feat)
+                .map_or("", |feat| &feat.summary),
         }
     }
 
@@ -425,6 +439,7 @@ impl Engine {
             }
             Prerequisite::FeatForSameValue(feat) => {
                 let kind = self
+                    .catalog
                     .feat(feat)
                     .and_then(|feat| feat.parameter)
                     .map_or("value", ParameterKind::noun);

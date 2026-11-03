@@ -9,13 +9,14 @@ use crate::game_data::{MythicPath, PathSwitch};
 impl Engine {
     /// The Build's path, when it's one that can be chosen at MR 3: a path without a switch rule.
     pub(super) fn chosen_path(&self, build: &Build) -> Option<&MythicPath> {
-        self.path(build.mythic_path.as_ref()?)
+        self.catalog
+            .path(build.mythic_path.as_ref()?)
             .filter(|path| path.switch.is_none())
     }
 
     /// The Build's Path switch with its rule, when it's a path with one, open from the Build's path.
     pub(super) fn chosen_switch(&self, build: &Build) -> Option<(&MythicPath, &PathSwitch)> {
-        let path = self.path(build.path_switch.as_ref()?)?;
+        let path = self.catalog.path(build.path_switch.as_ref()?)?;
         let switch = path.switch.as_ref()?;
         switch
             .open_from(build.mythic_path.as_ref())
@@ -51,6 +52,7 @@ impl Engine {
                 (None, Some(rank)) => {
                     !(ascensions_end && rank >= PATH_SWITCH_RANK)
                         && self
+                            .catalog
                             .ascension_level(rank)
                             .is_some_and(|level| usize::from(level) <= levels)
                 }
@@ -61,22 +63,13 @@ impl Engine {
     /// Whether the Build has the character level of a Mythic rank's ascension (whether or not a Legend switch
     /// ended the ascensions before it).
     pub(super) fn reaches(&self, build: &Build, rank: u8) -> bool {
-        self.ascension_level(rank)
+        self.catalog
+            .ascension_level(rank)
             .is_some_and(|level| usize::from(level) <= build.levels.len())
     }
 
     /// The character level of a Mythic rank's ascension; 0 (the whole walk) for a rank the data lacks.
     pub(super) fn rank_level(&self, rank: u8) -> u8 {
-        self.ascension_level(rank).unwrap_or(0)
-    }
-
-    /// The character level of a Mythic rank's ascension, if the data has the rank.
-    fn ascension_level(&self, rank: u8) -> Option<u8> {
-        self.data
-            .progression
-            .mythic_ascensions
-            .iter()
-            .find(|ascension| ascension.rank == rank)
-            .map(|ascension| ascension.character_level)
+        self.catalog.ascension_level(rank).unwrap_or(0)
     }
 }

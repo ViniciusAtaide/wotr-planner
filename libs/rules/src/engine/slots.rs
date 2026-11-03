@@ -1,9 +1,12 @@
 //! What a slot accepts and whether a pick fits it: the options a selection offers (its own, shared and pooled),
 //! the lists a feat slot picks from, and the one check every pick goes through ([`check_pick`]).
+//!
+//! All of it reads only the game data and the character's state, so it's an `impl Catalog` block, and
+//! [`check_pick`] takes the [`Catalog`], not the engine. The engine's two public answers here delegate to it.
 
 use std::collections::BTreeSet;
 
-use super::{Engine, SlotKind};
+use super::{Catalog, Engine, SlotKind};
 use crate::build::Pick;
 use crate::choice::Issue;
 use crate::game_data::{Feat, FeatList, FeatSlot, FeatureSelection};
@@ -11,7 +14,7 @@ use crate::keys::{FeatKey, FeatureSelectionKey, SelectionOptionKey};
 use crate::parameter::{Parameter, Repeat};
 use crate::state::CharacterState;
 
-impl Engine {
+impl Catalog {
     /// Whether a selection's slot offers `option` to a character in `state`: its own and shared options, and for
     /// a pool selection, the pools of the options held that it draws on.
     fn offers(
@@ -45,7 +48,7 @@ impl Engine {
             .filter_map(|held| self.option(held)?.pool.as_ref())
             .filter_map(|pool| self.selection(pool))
             .flat_map(|pool| pool.offered())
-            .filter(|key| self.indexes.options.contains_key(*key))
+            .filter(|key| self.has_option(key))
             .cloned()
             .collect()
     }
@@ -148,8 +151,8 @@ impl Engine {
     }
 
     /// Whether a feat slot accepts a feat, ignoring prerequisites. A list the data lacks accepts none, and so does
-    /// an `OptionList` slot here: its lists depend on the options held, which [`options`](Self::options) sees.
-    pub fn slot_accepts(&self, slot: &FeatSlot, feat: &Feat) -> bool {
+    /// an `OptionList` slot here: its lists depend on the options held, which [`Engine::options`] sees.
+    pub(super) fn slot_accepts(&self, slot: &FeatSlot, feat: &Feat) -> bool {
         match slot {
             FeatSlot::General => true,
             FeatSlot::CombatFeat => feat.category.is_combat(),
@@ -160,6 +163,14 @@ impl Engine {
             FeatSlot::OptionList { .. } => false,
         }
     }
+}
+
+impl Engine {
+    /// Whether a feat slot accepts a feat, ignoring prerequisites. A list the data lacks accepts none, and so does
+    /// an `OptionList` slot here: its lists depend on the options held, which [`options`](Self::options) sees.
+    pub fn slot_accepts(&self, slot: &FeatSlot, feat: &Feat) -> bool {
+        self.catalog.slot_accepts(slot, feat)
+    }
 
     /// Whether a pick in this slot ignores the feat's prerequisites: only a bonus-list slot's does, one whose list
     /// ignores them. Tests only.
@@ -167,6 +178,7 @@ impl Engine {
     pub fn slot_ignores_prerequisites(&self, slot: &FeatSlot) -> bool {
         match slot {
             FeatSlot::OneOf { list } => self
+                .catalog
                 .feat_list(list)
                 .is_some_and(|list| list.ignores_prerequisites),
             _ => false,
@@ -178,7 +190,7 @@ impl Engine {
 /// that fits what it takes, not already held (as often as it repeats), prerequisites met for the pick's value
 /// (unless the slot is a bonus-list slot). Checked in that order.
 pub(crate) fn check_pick(
-    engine: &Engine,
+    catalog: &Catalog,
     state: &CharacterState,
     kind: &SlotKind,
     pick: &Pick,
@@ -186,37 +198,37 @@ pub(crate) fn check_pick(
     let value = pick.parameter();
     let prerequisite = match (kind, pick) {
         (_, Pick::Feat { feat: key, .. }) => {
-            let feat = engine.feat(key).ok_or(Issue::NotAllowed)?;
+            let feat = catalog.feat(key).ok_or(Issue::NotAllowed)?;
             let SlotKind::Feat(slot) = kind else {
                 return Err(Issue::NotAllowed);
             };
-            if !engine.slot_accepts_in(slot, feat, state)
-                || !engine.value_fits(feat.parameter, value)
+            if !catalog.slot_accepts_in(slot, feat, state)
+                || !catalog.value_fits(feat.parameter, value)
             {
                 return Err(Issue::NotAllowed);
             }
             check_repeat(state, key, feat.repeat, value)?;
-            if engine.slot_ignores_in(slot, feat, state) {
+            if catalog.slot_ignores_in(slot, feat, state) {
                 return Ok(());
             }
             feat.prerequisite.as_ref()
         }
         (_, Pick::SelectionOption { option: key, .. }) => {
-            let option = engine.option(key).ok_or(Issue::NotAllowed)?;
+            let option = catalog.option(key).ok_or(Issue::NotAllowed)?;
             let SlotKind::Selection(selection) = kind else {
                 return Err(Issue::NotAllowed);
             };
             // Its own option or one it shares (or one of a held option's pool); a shared option keeps its one key, so
             // it's held once.
-            let Some(through) = engine.selection(selection) else {
+            let Some(through) = catalog.selection(selection) else {
                 return Err(Issue::NotAllowed);
             };
-            if !engine.offers(through, key, state) {
+            if !catalog.offers(through, key, state) {
                 return Err(Issue::NotAllowed);
             }
             let listed =
                 value.is_none_or(|value| option.values.is_empty() || option.values.contains(value));
-            if !engine.value_fits(engine.option_parameter(option), value) || !listed {
+            if !catalog.value_fits(catalog.option_parameter(option), value) || !listed {
                 return Err(Issue::NotAllowed);
             }
             match option.repeat {
@@ -245,14 +257,14 @@ pub(crate) fn check_pick(
             }
             // The chosen feat for a value it's held for already would add nothing.
             if let Some(feat) = option.chosen_feat.as_ref()
-                && let Some(chosen) = engine.feat(feat)
+                && let Some(chosen) = catalog.feat(feat)
             {
                 check_repeat(state, feat, chosen.repeat, value)?;
             }
             option.prerequisite.as_ref()
         }
         (_, Pick::MythicAbility(key)) => {
-            let ability = engine.mythic_ability(key).ok_or(Issue::NotAllowed)?;
+            let ability = catalog.mythic_ability(key).ok_or(Issue::NotAllowed)?;
             if kind != &SlotKind::MythicAbility {
                 return Err(Issue::NotAllowed);
             }
@@ -262,8 +274,8 @@ pub(crate) fn check_pick(
             ability.prerequisite.as_ref()
         }
         (_, Pick::MythicFeat { feat: key, .. }) => {
-            let feat = engine.mythic_feat(key).ok_or(Issue::NotAllowed)?;
-            if kind != &SlotKind::MythicFeat || !engine.value_fits(feat.parameter, value) {
+            let feat = catalog.mythic_feat(key).ok_or(Issue::NotAllowed)?;
+            if kind != &SlotKind::MythicFeat || !catalog.value_fits(feat.parameter, value) {
                 return Err(Issue::NotAllowed);
             }
             let held = match (feat.repeat, value) {

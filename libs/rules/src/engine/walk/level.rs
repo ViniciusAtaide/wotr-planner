@@ -6,7 +6,8 @@ use std::collections::{BTreeMap, BTreeSet};
 use super::{GrantSource, Held, Pending, Walker};
 use crate::build::{FeatSource, LevelUp, SlotId};
 use crate::choice::Choice;
-use crate::engine::{Engine, SkillPoints, Slot, SlotKind, class_level_cap, effective_rows};
+use crate::engine::catalog::Catalog;
+use crate::engine::{SkillPoints, Slot, SlotKind, class_level_cap, effective_rows};
 use crate::game_data::{Ability, Advancement, Class, CountsToward, FeatSlot, Save};
 use crate::keys::{ClassKey, FeatKey, FeatureKey, FeatureSelectionKey};
 use crate::state::{CharacterState, ClassLevels};
@@ -18,8 +19,8 @@ impl<'a> Walker<'a> {
         if self.state.class_level(&level_up.class) > 0 {
             return;
         }
-        let engine = self.engine;
-        let Some((class, _)) = engine.class(&level_up.class) else {
+        let catalog = &self.engine.catalog;
+        let Some((class, _)) = catalog.class(&level_up.class) else {
             self.fail(Choice::Class { level });
             return;
         };
@@ -31,7 +32,7 @@ impl<'a> Walker<'a> {
         let choice = self.build.class_choices.get(&level_up.class);
         if let Some(key) = choice.and_then(|choice| choice.archetype.as_ref()) {
             // A key the data lacks, an archetype of another class, or one whose prerequisites aren't met.
-            let holds = engine
+            let holds = catalog
                 .archetype_of(class, Some(key))
                 .is_some_and(|archetype| {
                     archetype
@@ -55,19 +56,19 @@ impl<'a> Walker<'a> {
     /// A prestige class advances at most one arcane and one divine class (one class in all when it advances
     /// `Either`), each already taken and casting the spells it advances.
     fn check_advances(&mut self, prestige: &Class, advances: &BTreeSet<ClassKey>) {
-        let engine = self.engine;
+        let catalog = &self.engine.catalog;
         let advances_arcane = prestige.levels.iter().any(|row| row.advances_arcane);
         let advances_divine = prestige.levels.iter().any(|row| row.advances_divine);
         // For each named class: (can take the arcane advancement, can take the divine one).
         let mut serves = Vec::new();
         for key in advances {
-            let Some((class, _)) = engine.class(key) else {
+            let Some((class, _)) = catalog.class(key) else {
                 serves.push((false, false));
                 continue;
             };
             let held = self.state.classes.iter().find(|c| &c.class == key);
             let (casts_arcane, casts_divine) =
-                engine.casts(class, held.and_then(|c| c.archetype.as_ref()));
+                catalog.casts(class, held.and_then(|c| c.archetype.as_ref()));
             let arcane = advances_arcane && casts_arcane;
             let divine = advances_divine && casts_divine;
             serves.push((held.is_some() && arcane, held.is_some() && divine));
@@ -88,8 +89,8 @@ impl<'a> Walker<'a> {
     /// Adds one level of the Level-up's class and the features and feats its row grants. Returns the class level
     /// reached.
     pub(super) fn take_class_level(&mut self, level: u8, level_up: &LevelUp) -> u8 {
-        let engine = self.engine;
-        let class = engine.class(&level_up.class);
+        let catalog = &self.engine.catalog;
+        let class = catalog.class(&level_up.class);
         let index = match self
             .state
             .classes
@@ -105,7 +106,7 @@ impl<'a> Walker<'a> {
                 // Its class skills: an archetype's list where it replaces the class's.
                 if let Some((class, _)) = class {
                     let archetype = choice.and_then(|choice| choice.archetype.as_ref());
-                    let skills = engine
+                    let skills = catalog
                         .archetype_of(class, archetype)
                         .and_then(|archetype| archetype.class_skills.as_ref())
                         .unwrap_or(&class.class_skills);
@@ -134,7 +135,7 @@ impl<'a> Walker<'a> {
             self.fail(Choice::Class { level });
         }
         let archetype = self.state.classes[index].archetype.as_ref();
-        if let Some(row) = engine.row(class, archetype, class_level) {
+        if let Some(row) = catalog.row(class, archetype, class_level) {
             // Through `hold`, so a feature's ability bonus counts (Dragon Disciple's Strength +2).
             for feature in row.features {
                 self.hold(Held::Feature(feature.clone()), None);
@@ -142,7 +143,7 @@ impl<'a> Walker<'a> {
             // Granted feats skip their prerequisites; one already held adds nothing. A parameterised one is held
             // for every value.
             for feat in row.feats {
-                let values = engine.every_value(feat);
+                let values = catalog.every_value(feat);
                 self.hold(Held::Feat(feat.clone(), values), None);
             }
             for granted in row.feats_for {
@@ -160,10 +161,10 @@ impl<'a> Walker<'a> {
     /// levels, so the rows past its own level hold it now. When the class reaches such a row itself, its own grant
     /// takes over. Nothing while the other class isn't held.
     pub(super) fn count_toward_features(&mut self) {
-        let engine = self.engine;
+        let catalog = &self.engine.catalog;
         let mut toward: BTreeMap<(ClassKey, FeatureKey), u8> = BTreeMap::new();
         for entry in &self.state.classes {
-            let Some((class, _)) = engine.class(&entry.class) else {
+            let Some((class, _)) = catalog.class(&entry.class) else {
                 continue;
             };
             for counts in &class.counts_as {
@@ -183,8 +184,8 @@ impl<'a> Walker<'a> {
                 .iter()
                 .find(|c| &c.class == other)
                 .and_then(|held| {
-                    let (class, _) = engine.class(other)?;
-                    let archetype = engine.archetype_of(class, held.archetype.as_ref());
+                    let (class, _) = catalog.class(other)?;
+                    let archetype = catalog.archetype_of(class, held.archetype.as_ref());
                     let reach = held
                         .level
                         .saturating_add(levels)
@@ -211,7 +212,7 @@ impl<'a> Walker<'a> {
     /// (`Build::keeps_fixed_rules`), so only unknown skills and overspent points fail.
     pub(super) fn skill_ranks(&mut self, level: u8, level_up: &LevelUp) -> SkillPoints {
         for (skill, ranks) in &level_up.skill_ranks {
-            if !self.engine.indexes.skills.contains_key(skill) {
+            if self.engine.catalog.skill(skill).is_none() {
                 self.fail(Choice::SkillRanks {
                     level,
                     skill: skill.clone(),
@@ -221,15 +222,15 @@ impl<'a> Walker<'a> {
             *total = total.saturating_add(*ranks);
         }
 
-        let engine = self.engine;
-        let class_points = engine.class(&level_up.class).map_or(0, |(class, _)| {
+        let catalog = &self.engine.catalog;
+        let class_points = catalog.class(&level_up.class).map_or(0, |(class, _)| {
             let archetype = self
                 .state
                 .classes
                 .iter()
                 .find(|c| c.class == level_up.class)
                 .and_then(|c| c.archetype.as_ref());
-            engine
+            catalog
                 .archetype_of(class, archetype)
                 .and_then(|archetype| archetype.skill_points)
                 .unwrap_or(class.skill_points)
@@ -253,7 +254,7 @@ impl<'a> Walker<'a> {
     /// So a race or general pick can rely on what the class grants at the same level (a human warpriest's Dazzling
     /// Display on the class's Weapon Focus).
     pub(super) fn level_slots(&self, level: u8, level_up: &LevelUp) -> Vec<(SlotKind, SlotId)> {
-        let engine = self.engine;
+        let catalog = &self.engine.catalog;
         let mut slots = Vec::new();
         let feat = |source, index: usize| SlotId::Feat {
             level,
@@ -263,14 +264,14 @@ impl<'a> Walker<'a> {
         let mut selections = Vec::new();
         let mut class_slots = Vec::new();
         let mut option_lists = Vec::new();
-        if let Some((class, _)) = engine.class(&level_up.class)
+        if let Some((class, _)) = catalog.class(&level_up.class)
             && let Some(entry) = self
                 .state
                 .classes
                 .iter()
                 .find(|c| c.class == level_up.class)
         {
-            let row = engine.row(class, entry.archetype.as_ref(), entry.level);
+            let row = catalog.row(class, entry.archetype.as_ref(), entry.level);
             for (index, slot) in row.iter().flat_map(|row| row.feat_slots).enumerate() {
                 let kind = (SlotKind::Feat(slot.clone()), feat(FeatSource::Class, index));
                 if matches!(slot, FeatSlot::OptionList { .. }) {
@@ -294,7 +295,7 @@ impl<'a> Walker<'a> {
         let (pools, selections): (Vec<_>, Vec<_>) =
             selections.into_iter().partition(|(kind, _)| {
                 matches!(kind, SlotKind::Selection(key)
-                    if engine.selection(key).is_some_and(|s| s.pool_of.is_some()))
+                    if catalog.selection(key).is_some_and(|s| s.pool_of.is_some()))
             });
         slots.extend(selections);
         slots.extend(pools);
@@ -316,8 +317,8 @@ impl<'a> Walker<'a> {
 
     /// The race's feat slots at level 1, or its subrace's in their place (a Dual Heritage half-elf has none).
     fn race_slots(&self) -> &'a [FeatSlot] {
-        let engine = self.engine;
-        let Some(race) = self.state.race.as_ref().and_then(|key| engine.race(key)) else {
+        let catalog = &self.engine.catalog;
+        let Some(race) = self.state.race.as_ref().and_then(|key| catalog.race(key)) else {
             return &[];
         };
         let subrace = self
@@ -361,8 +362,8 @@ impl<'a> Walker<'a> {
         selection: &FeatureSelectionKey,
         source: Option<&GrantSource>,
     ) -> bool {
-        let engine = self.engine;
-        let Some(defined) = engine.selection(selection) else {
+        let catalog = &self.engine.catalog;
+        let Some(defined) = catalog.selection(selection) else {
             return false;
         };
         if defined.only_without_option
@@ -373,7 +374,7 @@ impl<'a> Walker<'a> {
         {
             return true;
         }
-        let Some(option) = engine.single_option(selection) else {
+        let Some(option) = catalog.single_option(selection) else {
             return false;
         };
         if self.state.option_count(&option) == 0 {
@@ -427,7 +428,7 @@ impl<'a> Walker<'a> {
     /// The selection a feat's extra pick is of: the one of its [`extra_pick_of`](crate::Feat::extra_pick_of) the
     /// walk reached a slot of first, if any.
     fn extra_pick_selection(&self, feat: &FeatKey) -> Option<FeatureSelectionKey> {
-        let of = &self.engine.feat(feat)?.extra_pick_of;
+        let of = &self.engine.catalog.feat(feat)?.extra_pick_of;
         self.selections_had
             .iter()
             .find(|selection| of.contains(*selection))
@@ -439,13 +440,13 @@ impl<'a> Walker<'a> {
     /// BAB and saves from every class's progressions at its class level; spell-level access and caster level
     /// from its row at its class level plus the prestige levels that advance it.
     pub(super) fn recompute_tables(&mut self) {
-        let engine = self.engine;
+        let catalog = &self.engine.catalog;
         let state = &self.state;
         let (mut bab, mut fort, mut reflex, mut will) = (0u8, 0u8, 0u8, 0u8);
         let (mut arcane, mut divine, mut caster_level) = (0u8, 0u8, 0u8);
         let (mut spontaneous_arcane, mut spontaneous_divine) = (0u8, 0u8);
         for entry in &state.classes {
-            let Some((class, prestige)) = engine.class(&entry.class) else {
+            let Some((class, prestige)) = catalog.class(&entry.class) else {
                 continue;
             };
             // A level past the class's table (which fails) adds none.
@@ -460,14 +461,15 @@ impl<'a> Walker<'a> {
 
             // Spellcasting: this class's own level plus the prestige levels that advance it.
             let archetype = entry.archetype.as_ref();
-            let (casts_arcane, casts_divine) = engine.casts(class, archetype);
+            let (casts_arcane, casts_divine) = catalog.casts(class, archetype);
             let advanced =
-                advancing_levels(engine, state, &entry.class, casts_arcane, casts_divine);
+                advancing_levels(catalog, state, &entry.class, casts_arcane, casts_divine);
             let effective = entry.level.saturating_add(advanced);
-            if let Some(row) = engine.row(class, archetype, effective.min(class_level_cap(class))) {
+            if let Some(row) = catalog.row(class, archetype, effective.min(class_level_cap(class)))
+            {
                 arcane = arcane.max(row.spell_levels.arcane);
                 divine = divine.max(row.spell_levels.divine);
-                if engine.spontaneous(class, archetype) {
+                if catalog.spontaneous(class, archetype) {
                     spontaneous_arcane = spontaneous_arcane.max(row.spell_levels.arcane);
                     spontaneous_divine = spontaneous_divine.max(row.spell_levels.divine);
                 }
@@ -479,7 +481,7 @@ impl<'a> Walker<'a> {
         // Feats see the levels of classes that count as another (Diverse Training).
         let mut feat_class_levels: BTreeMap<ClassKey, u8> = BTreeMap::new();
         for entry in &state.classes {
-            let Some((class, _)) = engine.class(&entry.class) else {
+            let Some((class, _)) = catalog.class(&entry.class) else {
                 continue;
             };
             for counts in &class.counts_as {
@@ -508,7 +510,7 @@ impl<'a> Walker<'a> {
 /// Prestige levels that advance `class`: rows marked `advances_arcane` count when `class` casts arcane spells,
 /// `advances_divine` when it casts divine ones, in prestige classes that chose `class` on entry.
 fn advancing_levels(
-    engine: &Engine,
+    catalog: &Catalog,
     state: &CharacterState,
     class: &ClassKey,
     casts_arcane: bool,
@@ -516,7 +518,7 @@ fn advancing_levels(
 ) -> u8 {
     let mut levels = 0u8;
     for prestige in state.classes.iter().filter(|c| c.advances.contains(class)) {
-        let Some((prestige_class, _)) = engine.class(&prestige.class) else {
+        let Some((prestige_class, _)) = catalog.class(&prestige.class) else {
             continue;
         };
         let count = prestige_class

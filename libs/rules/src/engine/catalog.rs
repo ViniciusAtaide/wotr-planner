@@ -1,13 +1,14 @@
-//! The game data's lookups: [`Engine::new`] indexes the game data once, and the engine finds a class, feat,
-//! option, path or feature fact by its key here.
+//! The [`Catalog`]: the game data and its lookups by key. The engine finds a class, feat, option, path or feature
+//! fact here, and nowhere else reads the indexes or the feature facts. Pure data access: nothing here walks a
+//! Build.
 
 use std::collections::{HashMap, HashSet};
 
-use super::{EffectiveRow, Engine, effective_row, effective_rows};
-use crate::codec::LinkKeys;
+use super::{EffectiveRow, effective_row, effective_rows};
 use crate::game_data::{
-    AbilityBonus, Background, Class, Feat, FeatList, FeatureSelection, GameData, MythicAbility,
-    MythicFeat, MythicPath, OptionRow, Race, SelectionOption, Weapon, WeaponProficiency,
+    AbilityBonus, Archetype, Background, Class, Feat, FeatList, FeatureSelection, GameData,
+    MythicAbility, MythicFeat, MythicPath, OptionRow, Race, SelectionOption, Skill, Subrace,
+    Weapon, WeaponProficiency,
 };
 use crate::keys::{
     ArchetypeKey, BackgroundKey, ClassKey, FeatKey, FeatListKey, FeatureKey, FeatureSelectionKey,
@@ -15,21 +16,31 @@ use crate::keys::{
     SubraceKey, WeaponKey,
 };
 use crate::parameter::{ArmourType, Energy, Parameter, ParameterKind, SpellSchool};
-use crate::state::CharacterState;
 
-impl Engine {
+/// The game data in canonical order, with its positions by key and what the engine reads off its features. Built
+/// once by [`Engine::new`](super::Engine::new); the engine reads the game data only through it.
+#[derive(Clone, Debug)]
+pub(super) struct Catalog {
+    data: GameData,
+    /// The game data's positions by key.
+    indexes: Indexes,
+    /// What the engine reads off the features the classes, archetypes and paths define.
+    features: FeatureFacts,
+}
+
+impl Catalog {
     /// Indexes the game data, after putting it in canonical order.
-    pub fn new(data: GameData) -> Self {
+    pub(super) fn new(data: GameData) -> Self {
         let data = data.canonical();
         Self {
             indexes: Indexes::new(&data),
             features: FeatureFacts::new(&data),
-            link_keys: LinkKeys::new(&data),
             data,
         }
     }
 
-    pub fn data(&self) -> &GameData {
+    /// The game data, in canonical order.
+    pub(super) fn data(&self) -> &GameData {
         &self.data
     }
 
@@ -40,11 +51,30 @@ impl Engine {
         })
     }
 
+    pub(super) fn archetype(&self, key: &ArchetypeKey) -> Option<&Archetype> {
+        let &(c, a) = self.indexes.archetypes.get(key)?;
+        Some(&self.data.classes[c].archetypes[a])
+    }
+
     pub(super) fn race(&self, key: &RaceKey) -> Option<&Race> {
         self.indexes
             .races
             .get(key)
             .map(|&index| &self.data.races[index])
+    }
+
+    /// A subrace with the race it belongs to.
+    pub(super) fn subrace(&self, key: &SubraceKey) -> Option<(&Race, &Subrace)> {
+        let &(r, s) = self.indexes.subraces.get(key)?;
+        let race = &self.data.races[r];
+        Some((race, &race.subraces[s]))
+    }
+
+    pub(super) fn skill(&self, key: &SkillKey) -> Option<&Skill> {
+        self.indexes
+            .skills
+            .get(key)
+            .map(|&index| &self.data.skills[index])
     }
 
     pub(super) fn background(&self, key: &BackgroundKey) -> Option<&Background> {
@@ -70,7 +100,7 @@ impl Engine {
 
     /// Every value of a kind, in key (or declaration) order: the skills, weapons, exotic weapons, schools, energy
     /// types or armour types.
-    pub fn parameter_values(&self, kind: ParameterKind) -> Vec<Parameter> {
+    pub(super) fn parameter_values(&self, kind: ParameterKind) -> Vec<Parameter> {
         match kind {
             ParameterKind::Skill => self
                 .data
@@ -146,7 +176,7 @@ impl Engine {
     }
 
     /// A feat list by key, wherever it's defined.
-    pub fn feat_list(&self, key: &FeatListKey) -> Option<&FeatList> {
+    pub(super) fn feat_list(&self, key: &FeatListKey) -> Option<&FeatList> {
         self.indexes.feat_lists.get(key)
     }
 
@@ -158,6 +188,17 @@ impl Engine {
         let (selection, index) = self.indexes.options.get(key)?;
         self.selection(selection)
             .and_then(|selection| selection.options.get(*index))
+    }
+
+    /// Whether some selection defines this option (a shared key the data lacks offers nothing).
+    pub(super) fn has_option(&self, key: &SelectionOptionKey) -> bool {
+        self.indexes.options.contains_key(key)
+    }
+
+    /// The Feature selection that defines an option.
+    pub(super) fn selection_of(&self, option: &SelectionOptionKey) -> Option<&FeatureSelection> {
+        let (selection, _) = self.indexes.options.get(option)?;
+        self.selection(selection)
     }
 
     pub(super) fn mythic_ability(&self, key: &MythicAbilityKey) -> Option<&MythicAbility> {
@@ -181,12 +222,22 @@ impl Engine {
             .map(|&index| &self.data.mythic_paths[index])
     }
 
+    /// The character level of a Mythic rank's ascension, if the data has the rank.
+    pub(super) fn ascension_level(&self, rank: u8) -> Option<u8> {
+        self.data
+            .progression
+            .mythic_ascensions
+            .iter()
+            .find(|ascension| ascension.rank == rank)
+            .map(|ascension| ascension.character_level)
+    }
+
     /// The archetype when it exists and belongs to `class`.
     pub(super) fn archetype_of(
         &self,
         class: &Class,
         archetype: Option<&ArchetypeKey>,
-    ) -> Option<&crate::game_data::Archetype> {
+    ) -> Option<&Archetype> {
         let &(c, a) = self.indexes.archetypes.get(archetype?)?;
         let owner = &self.data.classes[c];
         (owner.key == class.key).then(|| &owner.archetypes[a])
@@ -222,31 +273,64 @@ impl Engine {
             .unwrap_or(class.spontaneous)
     }
 
-    /// The daily choices a character holds (Mixed Bloodline): the sheet shows each as a note, since the game asks
-    /// for it again every day and a Build doesn't record it.
-    pub fn daily_choices(&self, state: &CharacterState) -> Vec<FeatureKey> {
-        state
-            .features
-            .keys()
-            .filter(|feature| self.features.daily_choices.contains(*feature))
-            .cloned()
-            .collect()
+    /// A feature's ability bonuses, when it has some.
+    pub(super) fn ability_bonuses(&self, feature: &FeatureKey) -> Option<&[AbilityBonus]> {
+        self.features.bonuses.get(feature).map(Vec::as_slice)
+    }
+
+    /// The option row a feature grants (Bloodline Ascendance).
+    pub(super) fn option_row(&self, feature: &FeatureKey) -> Option<&OptionRow> {
+        self.features.rows.get(feature)
+    }
+
+    /// The features whose option row is this row of a selection's options.
+    pub(super) fn features_granting_row(
+        &self,
+        selection: &FeatureSelectionKey,
+        level: u8,
+    ) -> impl Iterator<Item = &FeatureKey> {
+        self.features
+            .rows
+            .iter()
+            .filter(move |(_, row)| &row.selection == selection && row.level == level)
+            .map(|(feature, _)| feature)
+    }
+
+    /// The floor a feature sets for prerequisites (Perfect Mind): a BAB floor, and whether every skill's ranks are
+    /// at least the Mythic rank. `None` for a feature that sets none.
+    pub(super) fn floor(&self, feature: &FeatureKey) -> Option<(Option<u8>, bool)> {
+        self.features.floors.get(feature).copied()
+    }
+
+    /// Whether a feature is a daily choice.
+    pub(super) fn is_daily_choice(&self, feature: &FeatureKey) -> bool {
+        self.features.daily_choices.contains(feature)
+    }
+
+    /// The name of a feature a class, archetype or path defines.
+    pub(super) fn feature_name(&self, feature: &FeatureKey) -> Option<&str> {
+        self.features.names.get(feature).map(String::as_str)
+    }
+
+    /// Whether another feature shares this feature's name (the Fighter's and the Sohei's Weapon Training).
+    pub(super) fn shares_name(&self, feature: &FeatureKey) -> bool {
+        self.features.shared_names.contains(feature)
     }
 }
 
-/// The game data's positions by key, built once by [`Engine::new`].
+/// The game data's positions by key, built once by [`Catalog::new`].
 #[derive(Clone, Debug)]
-pub(super) struct Indexes {
+struct Indexes {
     classes: HashMap<ClassKey, ClassAt>,
-    pub(super) archetypes: HashMap<ArchetypeKey, (usize, usize)>,
+    archetypes: HashMap<ArchetypeKey, (usize, usize)>,
     races: HashMap<RaceKey, usize>,
-    pub(super) subraces: HashMap<SubraceKey, (usize, usize)>,
-    pub(super) skills: HashMap<SkillKey, usize>,
+    subraces: HashMap<SubraceKey, (usize, usize)>,
+    skills: HashMap<SkillKey, usize>,
     weapons: HashMap<WeaponKey, usize>,
     feats: HashMap<FeatKey, usize>,
     feat_lists: HashMap<FeatListKey, FeatList>,
     selections: HashMap<FeatureSelectionKey, SelectionAt>,
-    pub(super) options: HashMap<SelectionOptionKey, (FeatureSelectionKey, usize)>,
+    options: HashMap<SelectionOptionKey, (FeatureSelectionKey, usize)>,
     mythic_abilities: HashMap<MythicAbilityKey, usize>,
     mythic_feats: HashMap<MythicFeatKey, usize>,
     paths: HashMap<MythicPathKey, usize>,
@@ -389,21 +473,21 @@ fn index_feat_lists(data: &GameData) -> HashMap<FeatListKey, FeatList> {
 
 /// What the engine reads off the features every class, archetype and path defines, by key.
 #[derive(Clone, Debug)]
-pub(super) struct FeatureFacts {
+struct FeatureFacts {
     /// The ability bonuses of every feature that has some.
-    pub(super) bonuses: HashMap<FeatureKey, Vec<AbilityBonus>>,
+    bonuses: HashMap<FeatureKey, Vec<AbilityBonus>>,
     /// The option row of every feature that grants one (Bloodline Ascendance).
-    pub(super) rows: HashMap<FeatureKey, OptionRow>,
+    rows: HashMap<FeatureKey, OptionRow>,
     /// Every feature that is a daily choice.
     daily_choices: HashSet<FeatureKey>,
     /// The features that set a floor for prerequisites (Perfect Mind): a BAB floor, and whether every skill's ranks
     /// are at least the Mythic rank.
-    pub(super) floors: HashMap<FeatureKey, (Option<u8>, bool)>,
+    floors: HashMap<FeatureKey, (Option<u8>, bool)>,
     /// The name of every feature a class, archetype or path defines, for the sheet's labels.
-    pub(super) names: HashMap<FeatureKey, String>,
+    names: HashMap<FeatureKey, String>,
     /// The features whose name another feature shares (the Fighter's and the Sohei's Weapon Training), so a reason
     /// can tell them apart.
-    pub(super) shared_names: HashSet<FeatureKey>,
+    shared_names: HashSet<FeatureKey>,
 }
 
 impl FeatureFacts {

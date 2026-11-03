@@ -59,7 +59,7 @@ impl<'a> Walker<'a> {
     }
 
     fn check_pick(&self, kind: &SlotKind, pick: &Pick) -> Result<(), Issue> {
-        check_pick(self.engine, &self.state, kind, pick)
+        check_pick(&self.engine.catalog, &self.state, kind, pick)
     }
 
     fn hold_pick(&mut self, kind: &SlotKind, pick: &Pick, source: Option<&GrantSource>) {
@@ -75,6 +75,7 @@ impl<'a> Walker<'a> {
                 // Its extra pick's slot comes once the level's own slots are filled.
                 if self
                     .engine
+                    .catalog
                     .feat(key)
                     .is_some_and(|feat| !feat.extra_pick_of.is_empty())
                 {
@@ -92,7 +93,7 @@ impl<'a> Walker<'a> {
             }
             Pick::MythicAbility(key) => {
                 self.hold(Held::MythicAbility(key.clone()), source.cloned());
-                if let Some(ability) = self.engine.mythic_ability(key) {
+                if let Some(ability) = self.engine.catalog.mythic_ability(key) {
                     for feature in &ability.features {
                         self.hold(Held::Feature(feature.clone()), source.cloned());
                     }
@@ -127,7 +128,7 @@ impl<'a> Walker<'a> {
             }
             Held::Feature(key) => {
                 add_feature(state, key);
-                if self.engine.features.bonuses.contains_key(key) {
+                if self.engine.catalog.ability_bonuses(key).is_some() {
                     self.refresh_ability_scores();
                 }
             }
@@ -141,7 +142,12 @@ impl<'a> Walker<'a> {
                     .entry(key.clone())
                     .or_default();
                 *times = times.saturating_add(1);
-                if let Some(group) = self.engine.option(key).and_then(|option| option.group) {
+                if let Some(group) = self
+                    .engine
+                    .catalog
+                    .option(key)
+                    .and_then(|option| option.group)
+                {
                     state.option_groups.insert(key.clone(), group);
                 }
             }
@@ -165,7 +171,7 @@ impl<'a> Walker<'a> {
             }
         }
         match &item {
-            Held::Feature(key) if self.engine.features.floors.contains_key(key) => {
+            Held::Feature(key) if self.engine.catalog.floor(key).is_some() => {
                 self.refresh_floors();
             }
             Held::MythicFeat(key, _) if self.removes_penalty(key) => {
@@ -174,7 +180,7 @@ impl<'a> Walker<'a> {
             _ => {}
         }
         let option_row = match &item {
-            Held::Feature(key) => self.engine.features.rows.get(key),
+            Held::Feature(key) => self.engine.catalog.option_row(key),
             _ => None,
         };
         if let Some(source) = &source {
@@ -219,7 +225,7 @@ impl<'a> Walker<'a> {
                         state.features.remove(key);
                     }
                 }
-                if self.engine.features.bonuses.contains_key(key) {
+                if self.engine.catalog.ability_bonuses(key).is_some() {
                     self.refresh_ability_scores();
                 }
             }
@@ -272,7 +278,7 @@ impl<'a> Walker<'a> {
             }
         }
         match item {
-            Held::Feature(key) if self.engine.features.floors.contains_key(key) => {
+            Held::Feature(key) if self.engine.catalog.floor(key).is_some() => {
                 self.refresh_floors();
             }
             Held::MythicFeat(key, _) if self.removes_penalty(key) => {
@@ -285,18 +291,19 @@ impl<'a> Walker<'a> {
     /// Whether a mythic feat removes the race's ability penalty (Destiny Beyond Birth).
     fn removes_penalty(&self, key: &MythicFeatKey) -> bool {
         self.engine
+            .catalog
             .mythic_feat(key)
             .is_some_and(|feat| feat.removes_racial_penalty)
     }
 
     /// The floors prerequisites see, from the features held (Perfect Mind: BAB 15, skill ranks at the Mythic rank).
     fn refresh_floors(&mut self) {
-        let engine = self.engine;
+        let catalog = &self.engine.catalog;
         let (mut bab, mut skills) = (0u8, false);
         for key in self.state.features.keys() {
-            if let Some((floor, at_rank)) = engine.features.floors.get(key) {
+            if let Some((floor, at_rank)) = catalog.floor(key) {
                 bab = bab.max(floor.unwrap_or(0));
-                skills |= *at_rank;
+                skills |= at_rank;
             }
         }
         self.state.bab_floor = bab;
@@ -306,7 +313,7 @@ impl<'a> Walker<'a> {
     /// The character's own scores: the base scores with the bonuses of every feature held, once per grant, and
     /// without the race's penalties while a mythic feat removes them (Destiny Beyond Birth).
     pub(super) fn refresh_ability_scores(&mut self) {
-        let engine = self.engine;
+        let catalog = &self.engine.catalog;
         let mut base = self.state.base_ability_scores;
         if self
             .state
@@ -324,7 +331,7 @@ impl<'a> Walker<'a> {
             .features
             .iter()
             .filter_map(|(key, count)| {
-                let bonuses = engine.features.bonuses.get(key)?;
+                let bonuses = catalog.ability_bonuses(key)?;
                 Some(std::iter::repeat_n(bonuses, usize::from(*count)).flatten())
             })
             .flatten();

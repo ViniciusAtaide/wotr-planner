@@ -35,6 +35,7 @@ impl<'a> Walker<'a> {
             return false;
         }
         let engine = self.engine;
+        let catalog = &engine.catalog;
         if rank == PATH_SWITCH_RANK
             && let Some((path, switch)) = engine.chosen_switch(self.build)
             && self.switch_path(rank, path, switch)
@@ -72,7 +73,7 @@ impl<'a> Walker<'a> {
         let mut slots = vec![general];
         if let Some(extra) = feat
             .filter(|key| self.state.mythic_feats.contains(*key))
-            .and_then(|key| engine.mythic_feat(key))
+            .and_then(|key| catalog.mythic_feat(key))
             .and_then(|feat| feat.extra_pick)
         {
             let id = SlotId::MythicExtra { rank };
@@ -86,7 +87,7 @@ impl<'a> Walker<'a> {
         let mut slot_kinds = Vec::new();
         if let Some(ability) = ability
             .filter(|key| self.state.mythic_abilities.contains(*key))
-            .and_then(|key| engine.mythic_ability(key))
+            .and_then(|key| catalog.mythic_ability(key))
         {
             let source = GrantSource {
                 rank,
@@ -111,7 +112,7 @@ impl<'a> Walker<'a> {
             .state
             .mythic_path
             .as_ref()
-            .and_then(|key| engine.path(key));
+            .and_then(|key| catalog.path(key));
         if let Some(row) = path.and_then(|path| path.ranks.iter().find(|row| row.rank == rank)) {
             for feature in &row.features {
                 self.hold(Held::Feature(feature.clone()), Some(GrantSource::row(rank)));

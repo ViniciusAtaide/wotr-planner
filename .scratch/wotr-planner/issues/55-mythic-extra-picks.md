@@ -119,3 +119,10 @@ Ticket 53's Done when:
 
 1. **Witch Wandering Hex** ("You can select any hex for which you meet the prerequisites"; its "Prerequisites: Hex" isn't in the data either). It reads like a pick, but "Wandering" is also the shaman's Wandering Hex, which ticket 43 made a daily choice, and the entry doesn't say whose hexes it offers. It gives nothing here. **Recommendation:** a follow-up that gives it a slot of `witch/hex` (as Second Spirit gives a spirit), needing a hex held (the witch's or the shaman's), unless you know it's swapped daily, in which case mark it a daily choice like the shaman's.
 2. **Beneficial Curse** ("You gain an additional Curse with no penalties"). Its sentence matches Second Mystery's ("You gain a second Oracle Mystery"), which the data makes a pick of `oracle/second-mystery`, but it doesn't say the curse is chosen. It gives nothing here. **Recommendation:** a follow-up that gives it a slot of the oracle's curses (`oracle/oracles-curse`, a curse not held), as Second Mystery does.
+
+## Decisions on the questions
+
+**User, 2026-11-02:** both recommendations, in [ticket 62](62-wandering-hex-and-beneficial-curse.md).
+
+1. **Witch Wandering Hex** gives a slot of `witch/hex` and needs a hex held (the witch's or the shaman's).
+2. **Beneficial Curse** gives a slot of the oracle's curses (`oracle/oracles-curse`), a curse not held, as Second Mystery does.

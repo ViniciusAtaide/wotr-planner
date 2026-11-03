@@ -30,13 +30,15 @@ impl Engine {
         let candidates: Vec<Pick> = match &kind {
             // A parameterised feat once per value.
             SlotKind::Feat(feat_slot) => self
-                .data
+                .catalog
+                .data()
                 .feats
                 .iter()
-                .filter(|feat| self.slot_accepts_in(feat_slot, feat, &state))
+                .filter(|feat| self.catalog.slot_accepts_in(feat_slot, feat, &state))
                 .flat_map(|feat| match feat.parameter {
                     None => vec![Pick::feat(feat.key.clone())],
                     Some(kind) => self
+                        .catalog
                         .parameter_values(kind)
                         .into_iter()
                         .map(|value| Pick::feat_for(feat.key.clone(), value))
@@ -44,11 +46,12 @@ impl Engine {
                 })
                 .collect(),
             SlotKind::Selection(key) => self
+                .catalog
                 .selection(key)
                 .map(|selection| {
                     // Own options and shared ones (a pool selection's: the held options' pools), in key order. A
                     // shared key the data lacks offers nothing.
-                    let pools = self.pools(selection, &state);
+                    let pools = self.catalog.pools(selection, &state);
                     let mut keys: Vec<&SelectionOptionKey> = selection
                         .options
                         .iter()
@@ -57,15 +60,16 @@ impl Engine {
                             selection
                                 .shared_options
                                 .iter()
-                                .filter(|key| self.indexes.options.contains_key(*key)),
+                                .filter(|key| self.catalog.has_option(key)),
                         )
                         .chain(&pools)
                         .collect();
                     keys.sort();
                     // An option with a chosen feat once per value.
                     keys.into_iter()
-                        .flat_map(|key| match self.option(key) {
-                            Some(option) if self.option_parameter(option).is_some() => self
+                        .flat_map(|key| match self.catalog.option(key) {
+                            Some(option) if self.catalog.option_parameter(option).is_some() => self
+                                .catalog
                                 .option_values(option)
                                 .into_iter()
                                 .map(|value| Pick::option_for(key.clone(), value))
@@ -76,18 +80,21 @@ impl Engine {
                 })
                 .unwrap_or_default(),
             SlotKind::MythicAbility => self
-                .data
+                .catalog
+                .data()
                 .mythic_abilities
                 .iter()
                 .map(|ability| Pick::MythicAbility(ability.key.clone()))
                 .collect(),
             SlotKind::MythicFeat => self
-                .data
+                .catalog
+                .data()
                 .mythic_feats
                 .iter()
                 .flat_map(|feat| match feat.parameter {
                     None => vec![Pick::mythic_feat(feat.key.clone())],
                     Some(kind) => self
+                        .catalog
                         .parameter_values(kind)
                         .into_iter()
                         .map(|value| Pick::mythic_feat_for(feat.key.clone(), value))
@@ -112,7 +119,7 @@ impl Engine {
             candidates
                 .into_iter()
                 .map(|pick| SlotOption {
-                    status: check_pick(self, &state, &kind, &pick)
+                    status: check_pick(&self.catalog, &state, &kind, &pick)
                         .map_err(|issue| self.reason_for(issue, &state))
                         .and_then(|()| later(&pick)),
                     pick,
@@ -129,7 +136,8 @@ impl Engine {
     /// [`SlotId::FeatSelection`] index from a later feat's, so it's always walked.
     fn named_feats<'b>(&'b self, build: &'b Build) -> HashSet<&'b FeatKey> {
         let mut named: HashSet<&FeatKey> = self
-            .data
+            .catalog
+            .data()
             .feats
             .iter()
             .filter(|feat| !feat.extra_pick_of.is_empty())
@@ -139,25 +147,29 @@ impl Engine {
             let prerequisite = match pick {
                 Pick::Feat { feat, .. } => {
                     named.insert(feat);
-                    self.feat(feat).and_then(|f| f.prerequisite.as_ref())
+                    self.catalog
+                        .feat(feat)
+                        .and_then(|f| f.prerequisite.as_ref())
                 }
-                Pick::SelectionOption { option, .. } => self.option(option).and_then(|o| {
+                Pick::SelectionOption { option, .. } => self.catalog.option(option).and_then(|o| {
                     named.extend(&o.chosen_feat);
                     o.prerequisite.as_ref()
                 }),
                 Pick::MythicAbility(key) => self
+                    .catalog
                     .mythic_ability(key)
                     .and_then(|a| a.prerequisite.as_ref()),
-                Pick::MythicFeat { feat, .. } => {
-                    self.mythic_feat(feat).and_then(|f| f.prerequisite.as_ref())
-                }
+                Pick::MythicFeat { feat, .. } => self
+                    .catalog
+                    .mythic_feat(feat)
+                    .and_then(|f| f.prerequisite.as_ref()),
             };
             if let Some(prerequisite) = prerequisite {
                 prerequisite.collect_feats(&mut named);
             }
         }
         for level in &build.levels {
-            if let Some((class, _)) = self.class(&level.class) {
+            if let Some((class, _)) = self.catalog.class(&level.class) {
                 let archetypes = class.archetypes.iter().map(|a| a.prerequisite.as_ref());
                 for prerequisite in std::iter::once(class.prerequisite.as_ref())
                     .chain(archetypes)
@@ -174,16 +186,22 @@ impl Engine {
     /// never block the pick. Empty for a key the data lacks.
     pub fn story_conditions(&self, pick: &Pick) -> BTreeSet<Story> {
         let prerequisite = match pick {
-            Pick::Feat { feat, .. } => self.feat(feat).and_then(|f| f.prerequisite.as_ref()),
-            Pick::SelectionOption { option, .. } => {
-                self.option(option).and_then(|o| o.prerequisite.as_ref())
-            }
+            Pick::Feat { feat, .. } => self
+                .catalog
+                .feat(feat)
+                .and_then(|f| f.prerequisite.as_ref()),
+            Pick::SelectionOption { option, .. } => self
+                .catalog
+                .option(option)
+                .and_then(|o| o.prerequisite.as_ref()),
             Pick::MythicAbility(key) => self
+                .catalog
                 .mythic_ability(key)
                 .and_then(|a| a.prerequisite.as_ref()),
-            Pick::MythicFeat { feat: key, .. } => {
-                self.mythic_feat(key).and_then(|f| f.prerequisite.as_ref())
-            }
+            Pick::MythicFeat { feat: key, .. } => self
+                .catalog
+                .mythic_feat(key)
+                .and_then(|f| f.prerequisite.as_ref()),
         };
         prerequisite.map(Prerequisite::stories).unwrap_or_default()
     }
@@ -200,10 +218,16 @@ impl Engine {
         let state = self.probe(build, Probe::Level(level)).state?;
         let recheck = (usize::from(level) <= build.levels.len()).then(|| Recheck::new(self, build));
         let mut options = Vec::new();
-        for class in self.data.classes.iter().chain(&self.data.prestige_classes) {
+        for class in self
+            .catalog
+            .data()
+            .classes
+            .iter()
+            .chain(&self.catalog.data().prestige_classes)
+        {
             let taken = state.classes.iter().find(|c| c.class == class.key);
             let archetypes: Vec<Option<&Archetype>> = match taken {
-                Some(taken) => vec![self.archetype_of(class, taken.archetype.as_ref())],
+                Some(taken) => vec![self.catalog.archetype_of(class, taken.archetype.as_ref())],
                 None => std::iter::once(None)
                     .chain(class.archetypes.iter().map(Some))
                     .collect(),
@@ -247,7 +271,7 @@ impl Engine {
         archetype: Option<&ArchetypeKey>,
         taken: Option<&ClassLevels>,
     ) -> Result<(), Issue> {
-        let archetype = self.archetype_of(class, archetype);
+        let archetype = self.catalog.archetype_of(class, archetype);
         let cap = class_level_cap(class);
         if state.class_level(&class.key) >= cap {
             return Err(Issue::ClassLevelCap { cap });
@@ -274,7 +298,8 @@ impl Engine {
     /// choice (a pick in the Build's path's slots) is [`Issue::BreaksLater`].
     pub fn path_options(&self, build: &Build) -> Vec<PathOption> {
         let recheck = Recheck::new(self, build);
-        self.data
+        self.catalog
+            .data()
             .mythic_paths
             .iter()
             .filter(|path| path.switch.is_none())
@@ -290,7 +315,8 @@ impl Engine {
     /// is [`Issue::BreaksLater`].
     pub fn switch_options(&self, build: &Build) -> Vec<PathOption> {
         let recheck = Recheck::new(self, build);
-        self.data
+        self.catalog
+            .data()
             .mythic_paths
             .iter()
             .filter_map(|path| Some((path, path.switch.as_ref()?)))

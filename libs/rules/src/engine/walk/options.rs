@@ -21,17 +21,17 @@ impl<'a> Walker<'a> {
         parameter: Option<&Parameter>,
         source: Option<&GrantSource>,
     ) {
-        let engine = self.engine;
+        let catalog = &self.engine.catalog;
         self.hold(
             Held::SelectionOption(option.clone(), selection.clone()),
             source.cloned(),
         );
-        let Some(defined) = engine.option(option) else {
+        let Some(defined) = catalog.option(option) else {
             return;
         };
         for feat in &defined.feats {
             self.hold(
-                Held::Feat(feat.clone(), engine.every_value(feat)),
+                Held::Feat(feat.clone(), catalog.every_value(feat)),
                 source.cloned(),
             );
         }
@@ -41,7 +41,7 @@ impl<'a> Walker<'a> {
                 source.cloned(),
             );
         }
-        if let Some(through) = engine.selection(selection)
+        if let Some(through) = catalog.selection(selection)
             && (!through.option_levels.is_empty() || through.level_from.is_some())
         {
             self.holdings.push(Holding {
@@ -66,7 +66,7 @@ impl<'a> Walker<'a> {
     /// The option level of a holding: the levels of the classes its selection names, less the levels it lags
     /// behind; or, for a selection naming none, the level its source gives.
     fn holding_level(&self, holding: &Holding) -> u8 {
-        let Some(selection) = self.engine.selection(&holding.selection) else {
+        let Some(selection) = self.engine.catalog.selection(&holding.selection) else {
             return 0;
         };
         let level = match selection.level_from {
@@ -85,6 +85,7 @@ impl<'a> Walker<'a> {
                 })
                 .filter(|other| {
                     self.engine
+                        .catalog
                         .selection(&other.selection)
                         .is_some_and(|through| through.level_from.is_none())
                 })
@@ -108,9 +109,9 @@ impl<'a> Walker<'a> {
     /// Gives a holding every row up to its option level that it hasn't had or skipped, and sets its level and
     /// feat list in the state.
     fn advance(&mut self, index: usize) {
-        let engine = self.engine;
+        let catalog = &self.engine.catalog;
         let holding = &self.holdings[index];
-        let Some(option) = engine.option(&holding.option) else {
+        let Some(option) = catalog.option(&holding.option) else {
             return;
         };
         let level = self.holding_level(holding);
@@ -164,11 +165,10 @@ impl<'a> Walker<'a> {
     /// Whether a held feature's option row is this row of a lists-only selection's options (Expanded Defense's,
     /// the expanded elements' 2nd).
     fn unlocks(&self, selection: &FeatureSelectionKey, level: u8) -> bool {
-        self.engine.features.rows.iter().any(|(feature, row)| {
-            &row.selection == selection
-                && row.level == level
-                && self.state.feature_count(feature) > 0
-        })
+        self.engine
+            .catalog
+            .features_granting_row(selection, level)
+            .any(|feature| self.state.feature_count(feature) > 0)
     }
 
     /// Holds an option row's features, feats, chosen feats (for `parameter`, the value the option's pick named) and
@@ -180,7 +180,7 @@ impl<'a> Walker<'a> {
         parameter: Option<&Parameter>,
         source: Option<&GrantSource>,
     ) -> Vec<Held> {
-        let engine = self.engine;
+        let catalog = &self.engine.catalog;
         let held: Vec<Held> = row
             .features
             .iter()
@@ -188,7 +188,7 @@ impl<'a> Walker<'a> {
             .chain(
                 row.feats
                     .iter()
-                    .map(|feat| Held::Feat(feat.clone(), engine.every_value(feat))),
+                    .map(|feat| Held::Feat(feat.clone(), catalog.every_value(feat))),
             )
             .chain(
                 row.chosen_feats
@@ -222,7 +222,7 @@ impl<'a> Walker<'a> {
     /// Skips, in each option held that `target` offers, the row at the level it has reached, taking back what it
     /// gave (a Primalist's rage powers instead of that level's bloodline power).
     fn replace_row(&mut self, target: &FeatureSelectionKey) {
-        let Some(target) = self.engine.selection(target) else {
+        let Some(target) = self.engine.catalog.selection(target) else {
             return;
         };
         for index in 0..self.holdings.len() {
@@ -245,8 +245,8 @@ impl<'a> Walker<'a> {
     /// offers, unless already had. A lists-only holding has it only when held through that very selection
     /// (Expanded Defense: an expanded element's defensive talent), in place of the arcana it had of the row.
     pub(super) fn grant_option_row(&mut self, row: &OptionRow, source: Option<&GrantSource>) {
-        let engine = self.engine;
-        let Some(selection) = engine.selection(&row.selection) else {
+        let catalog = &self.engine.catalog;
+        let Some(selection) = catalog.selection(&row.selection) else {
             return;
         };
         for index in 0..self.holdings.len() {
@@ -259,7 +259,7 @@ impl<'a> Walker<'a> {
             if passed_over || !selection.offers(&holding.option) {
                 continue;
             }
-            let Some(option_row) = engine
+            let Some(option_row) = catalog
                 .option(&holding.option)
                 .and_then(|option| option.levels.iter().find(|r| r.level == row.level))
             else {

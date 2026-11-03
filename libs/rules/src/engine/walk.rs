@@ -220,7 +220,7 @@ pub(super) struct Walk {
 
 impl<'a> Walker<'a> {
     pub(super) fn new(engine: &'a Engine, build: &'a Build, probe: Option<Probe<'a>>) -> Self {
-        let mut ascensions = engine.data.progression.mythic_ascensions.clone();
+        let mut ascensions = engine.catalog.data().progression.mythic_ascensions.clone();
         ascensions.sort_by_key(|a| a.rank);
         let ranks = ascensions
             .iter()
@@ -377,14 +377,14 @@ impl<'a> Walker<'a> {
     // ---- Build start --------------------------------------------------------------------------------------
 
     pub(super) fn start(&mut self) {
-        let engine = self.engine;
+        let catalog = &self.engine.catalog;
         let start = &self.build.start;
         self.state.race = start.race.clone();
         self.state.alignment = start.alignment;
 
         let race = match &start.race {
             Some(key) => {
-                let race = engine.race(key);
+                let race = catalog.race(key);
                 if race.is_none() {
                     self.fail(Choice::Race);
                 }
@@ -393,9 +393,9 @@ impl<'a> Walker<'a> {
             None => None,
         };
         let subrace = match &start.subrace {
-            Some(key) => match engine.indexes.subraces.get(key) {
-                Some(&(r, s)) if race.is_some_and(|race| race.key == engine.data.races[r].key) => {
-                    Some(&engine.data.races[r].subraces[s])
+            Some(key) => match catalog.subrace(key) {
+                Some((owner, subrace)) if race.is_some_and(|race| race.key == owner.key) => {
+                    Some(subrace)
                 }
                 // A key the data lacks, or a subrace of another race.
                 _ => {
@@ -433,11 +433,11 @@ impl<'a> Walker<'a> {
     /// The background's skills become class skills and its feats are held from the start, as a class row's
     /// granted feats: no slot, no pick, prerequisites skipped.
     fn background(&mut self) {
-        let engine = self.engine;
+        let catalog = &self.engine.catalog;
         let Some(key) = &self.build.start.background else {
             return;
         };
-        let Some(background) = engine.background(key) else {
+        let Some(background) = catalog.background(key) else {
             self.fail(Choice::Background);
             return;
         };
@@ -445,7 +445,7 @@ impl<'a> Walker<'a> {
             self.hold(Held::ClassSkill(skill.clone()), None);
         }
         for feat in &background.feats {
-            let values = engine.every_value(feat);
+            let values = catalog.every_value(feat);
             self.hold(Held::Feat(feat.clone(), values), None);
         }
         for granted in &background.feats_for {
