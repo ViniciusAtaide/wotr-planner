@@ -13,6 +13,7 @@ mod feat_lists;
 mod follow_ups;
 mod grammar;
 mod infusions;
+mod instinctual_rage_powers;
 mod ki_powers;
 mod mercies_and_exploits;
 mod mythic_ability_picks;

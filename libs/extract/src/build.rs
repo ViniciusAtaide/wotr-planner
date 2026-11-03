@@ -226,6 +226,9 @@ pub fn extract(guide: &Guide) -> Extraction {
     // and 3): their extra pick may be of Medical Discovery and Hex Arcana, and each archetype meets the feat's
     // prerequisite from its first slot. It settles no report item.
     crate::borrowed_extra_picks::apply(guide, &mut data);
+    // The Instinctual Warrior's monk rage powers (ticket 66, ticket 58's decision 3): five options of the rage powers
+    // only it may take, at the guide's levels, and holding one meets Extra Rage Power. It settles no report item.
+    crate::instinctual_rage_powers::apply(guide, &mut data);
     for problem in data.check() {
         builder.report.add_about(
             Kind::Cell,

@@ -319,6 +319,13 @@ class's), and BAB and saves (from the class's progressions).
   there: `All([Archetype("alchemist/vivisectionist"), ClassLevel(class: "alchemist", level: 2)])` and
   `All([Archetype("magus/hexcrafter"), ClassLevel(class: "magus", level: 6)])`, as a Sanctified Slayer 8 meets Extra
   Slayer Talent's.
+- Ticket 66 (`extract::instinctual_rage_powers`, ticket 58's decision 3, user, 2026-11-02): the Instinctual
+  Warrior's monk powers are five options of `barbarian/rage-power` that need its archetype
+  (`barbarian/rage-power/deflect-arrows-instinctual-warrior`, …, named "… (Instinctual Warrior)" and linking to
+  `barbarian#rage-power-instinctual-warrior`, which lists them): Deflect Arrows needs `Feat("improved-unarmed-strike")`,
+  Purity of Body, Diamond Body, Diamond Soul and Perfect Self barbarian level 8, 12, 16 and 20 (`ClassLevel`, as
+  every rage power's level is). They aren't the monk's ki powers or features, and holding one is holding a rage
+  power, so Extra Rage Power's `Any` names them too.
 - A path's switch rule: `switch: (from: ["aeon", "azata"], kept_through_rank: 7, path_kept_through_rank: 7,
   dropped_features: [...], dropped_selections: [...], features: [...], further_ascensions: true, level_cap:
   Some(40))`. The general picks (mythic abilities and feats) of MR 1 to `kept_through_rank` stay, and the old

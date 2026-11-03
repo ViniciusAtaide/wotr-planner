@@ -19,6 +19,7 @@ pub mod grammar;
 pub mod guide;
 pub mod html;
 pub mod infusions;
+pub mod instinctual_rage_powers;
 pub mod ki_powers;
 pub mod mercies_and_exploits;
 pub mod mythic_ability_picks;
