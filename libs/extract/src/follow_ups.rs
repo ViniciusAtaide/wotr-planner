@@ -1,9 +1,7 @@
 //! Ticket 32: the user's decisions on tickets 26–28's open questions (2026-11-01, "all recommended") and the skill
-//! facts the user gave (`research/skills-from-user.md`), each built where its owner is ([`provide`]), but the two
-//! that rewrite what [`crate::parameters::apply`] builds ([`apply`]).
+//! facts the user gave (`research/skills-from-user.md`), each built where its owner is ([`provide`]).
 //!
-//! - **Repeats** (27-1): every parameterised feat repeats once per value ([`apply`]: on the parameters
-//!   `parameters::apply` gives the feats).
+//! - **Repeats** (27-1): every parameterised feat repeats once per value (in [`crate::parameters`]' feat shapes).
 //! - **Weapons** (27-2): the Sawtooth Saber is exotic; natural attacks are one value per attack the guide names
 //!   (bite, claw, gore, hoof, slam, spike, tail, talon, wing) instead of "natural weapons"; Kinetic Blast and Bomb
 //!   are values ([`weapons`], where the weapons are built).
@@ -11,8 +9,9 @@
 //!   beside its lines.
 //! - **Values on mythic feats** (27-5): Improved Critical, Spell Focus and Skill Focus (Mythic) need their base
 //!   feat in the same value; Expanded Arsenal and School Mastery take a school; the Trickster's Improved Improved
-//!   Critical chain takes "the selected weapon" ([`apply`]: the same-value rewrite is on the resolved prerequisites,
-//!   as `parameters::apply`'s own are, and the chain's feats are shaped there).
+//!   Critical chain takes "the selected weapon" (in [`crate::parameters`]' feat shapes, mythic feat shapes and
+//!   prerequisite rules: the same-value rewrite is on the resolved prerequisites; the guide's sentences are asserted
+//!   here, [`values`]).
 //! - **Fixed values** (27-6): the Mantis Zealot's four Sawtooth Saber feats and its Exotic Weapon Proficiency, the
 //!   Chirurgeon's and the Enlightened Philosopher's Skill Focus are feats granted for one value (`feats_for`): their
 //!   cells are those grants.
@@ -23,7 +22,7 @@
 //!   each window (2 or 4, 6 or 8, 10+), each picking one of the ranger's styles and a feat from its list of the
 //!   window's stage.
 //! - **Perfect Mind** (26-3): BAB 15 and skill ranks at the Mythic rank, for prerequisites. **Destiny Beyond Birth**
-//!   (26-4) removes the race's ability penalty ([`apply`], with the mythic feats' values).
+//!   (26-4) removes the race's ability penalty, where the mythic feats are built.
 //! - **Razmiri Infiltrator** (28-5): true neutral or any evil, the Assassin's reading: on the Magic Deceiver's ways.
 //! - **Skill facts from the user**: the Tortured Crusader's 3 skill points and class skills (the guide's paladin page
 //!   agrees), the Arcane Trickster without Use Magic Device, the Dragon Disciple with Knowledge (World).
@@ -35,25 +34,26 @@ use std::collections::BTreeSet;
 
 use rules::{
     Alignment, ArmourType, Class, ClassKey, DataAt, FeatKey, FeatSlot, FeatValue, FeatureKey,
-    FeatureSelectionKey, GameData, MythicFeatKey, OptionLevelRow, Parameter, ParameterKind,
-    Prerequisite, Repeat, SkillKey, Weapon, WeaponKey, WeaponProficiency,
+    FeatureSelectionKey, GameData, OptionLevelRow, Parameter, ParameterKind, Prerequisite,
+    SkillKey, Weapon, WeaponKey, WeaponProficiency,
 };
 
 use crate::guide::Guide;
-use crate::option_levels::{Log, list, option, page, section, selection};
+use crate::option_levels::{list, option, page, section, selection};
 use crate::picks::{ArchetypeSkills, FeatureFact, Pick, Picks, Rule};
+use crate::report::Settled;
 
-/// The two rules on what [`crate::parameters::apply`] builds: the feats' repeats and the mythic feats' values.
-pub fn apply(guide: &Guide, data: &mut GameData) -> Log {
-    let mut log = Log::new();
-    repeats(data, &mut log);
-    mythic_values(guide, data, &mut log);
-    log
+/// The report item this module settles: the Armor Focus line the grammar can't resolve.
+pub fn settles() -> Vec<Settled> {
+    vec![Settled::is(
+        "feats#armor-focus",
+        "Armor Proficiency (Light. Medium or Heavy)",
+    )]
 }
 
-/// Whether an extraction's report item is one this module settles: the Armor Focus line the grammar can't resolve.
+/// Whether an extraction's report item is one this module settles ([`settles`]).
 pub fn settled(at: &str, text: &str) -> bool {
-    at == "feats#armor-focus" && text == "Armor Proficiency (Light. Medium or Heavy)"
+    settles().iter().any(|entry| entry.matches(at, text))
 }
 
 /// Asserts that a section of a page says `phrase`.
@@ -97,18 +97,7 @@ pub(crate) fn take_feature(features: &mut Vec<FeatureKey>, key: &str, at: &str) 
     assert_eq!(features.len(), before - 1, "{at}: no single {key}");
 }
 
-// ---- repeats and weapons --------------------------------------------------------------------------------------
-
-/// Every parameterised feat repeats once per value (27-1, the user's decision).
-fn repeats(data: &mut GameData, log: &mut Log) {
-    for feat in &mut data.feats {
-        if feat.parameter.is_some() && feat.repeat != Repeat::PerValue {
-            assert_eq!(feat.repeat, Repeat::Once, "{}", feat.key);
-            feat.repeat = Repeat::PerValue;
-            log.push(format!("{}: repeats once per value", feat.key));
-        }
-    }
-}
+// ---- weapons --------------------------------------------------------------------------------------------------
 
 /// The natural attacks the guide names, with the phrase on the shifter page that names each (the shifter's forms
 /// list them all).
@@ -213,116 +202,46 @@ fn armor_focus(guide: &Guide, picks: &mut Picks) {
     }
 }
 
-/// A parameterised feat or mythic feat needing its base feat for the pick's value instead of any.
-fn same_value(prerequisite: &mut Option<Prerequisite>, base: &str, at: &str) {
-    let leaf = |p: &Prerequisite| matches!(p, Prerequisite::Feat(key) if key.as_str() == base);
-    let replaced = match prerequisite {
-        Some(p) if leaf(p) => {
-            *p = Prerequisite::FeatForSameValue(feat(base));
-            true
-        }
-        Some(Prerequisite::All(children)) => children
-            .iter_mut()
-            .find(|child| leaf(child))
-            .map(|child| *child = Prerequisite::FeatForSameValue(feat(base)))
-            .is_some(),
-        _ => false,
-    };
-    assert!(replaced, "{at} doesn't need {base}: {prerequisite:?}");
-}
-
-/// The mythic feats that pick a value (27-5) and the Trickster's critical chain ("the selected weapon").
-fn mythic_values(guide: &Guide, data: &mut GameData, log: &mut Log) {
-    use ParameterKind as K;
-    let mythic: [(&str, K, Option<&str>, &str); 5] = [
+/// The guide's sentences under the values [`crate::parameters`]' tables give the mythic feats and the Trickster's
+/// critical chain (27-5): what each mythic feat is taken for, and the chain's "selected weapon".
+fn values(guide: &Guide) {
+    for (key, phrase) in [
         (
             "improved-critical-mythic",
-            K::Weapon,
-            Some("improved-critical"),
             "The critical multiplier of your chosen weapon",
         ),
         (
             "spell-focus-mythic",
-            K::SpellSchool,
-            Some("spell-focus"),
             "Select a school in which you have taken a Spell Focus",
         ),
         (
             "skill-focus-mythic",
-            K::Skill,
-            Some("skill-focus"),
             "Select a skill in which you have taken a Skill Focus",
         ),
-        (
-            "expanded-arsenal",
-            K::SpellSchool,
-            None,
-            "Select one school of magic",
-        ),
-        (
-            "school-mastery",
-            K::SpellSchool,
-            None,
-            "Select one school of magic",
-        ),
-    ];
-    for (key, kind, base, phrase) in mythic {
+        ("expanded-arsenal", "Select one school of magic"),
+        ("school-mastery", "Select one school of magic"),
+    ] {
         says(guide, "mythic-paths", key, phrase);
-        let feat = data
-            .mythic_feats
-            .iter_mut()
-            .find(|feat| feat.key.as_str() == key)
-            .unwrap_or_else(|| panic!("no mythic feat {key}"));
-        assert_eq!((feat.parameter, feat.repeat), (None, Repeat::Once), "{key}");
-        feat.parameter = Some(kind);
-        feat.repeat = Repeat::PerValue;
-        if let Some(base) = base {
-            same_value(&mut feat.prerequisite, base, key);
-        } else {
-            assert_eq!(feat.prerequisite, None, "{key}");
-        }
-        log.push(format!("{key}: takes a {kind:?}, once per value"));
     }
-    // "You no longer suffer your racial ability to an ability score."
+    // "When using the selected weapon, its critical threat range is increased by +1."
+    for key in [
+        "improved-improved-critical",
+        "improved-improved-improved-critical",
+        "improved-improved-improved-critical-improved",
+    ] {
+        says(guide, "trickster", key, "When using the selected weapon");
+    }
+}
+
+/// "You no longer suffer your racial ability to an ability score." (26-4), where the mythic feats are built.
+fn destiny_beyond_birth(guide: &Guide, picks: &mut Picks) {
     says(
         guide,
         "mythic-paths",
         "destiny-beyond-birth",
         "You no longer suffer your racial",
     );
-    let destiny = data
-        .mythic_feats
-        .iter_mut()
-        .find(|feat| feat.key == MythicFeatKey::new("destiny-beyond-birth"))
-        .expect("Destiny Beyond Birth");
-    destiny.removes_racial_penalty = true;
-    log.push("destiny-beyond-birth: removes the racial penalty".into());
-
-    // "When using the selected weapon, its critical threat range is increased by +1." Each needs the one before in
-    // the same weapon.
-    for (key, base) in [
-        ("improved-improved-critical", "improved-critical"),
-        (
-            "improved-improved-improved-critical",
-            "improved-improved-critical",
-        ),
-        (
-            "improved-improved-improved-critical-improved",
-            "improved-improved-improved-critical",
-        ),
-    ] {
-        says(guide, "trickster", key, "When using the selected weapon");
-        let feat = data
-            .feats
-            .iter_mut()
-            .find(|feat| feat.key.as_str() == key)
-            .unwrap_or_else(|| panic!("no feat {key}"));
-        assert_eq!(feat.parameter, None, "{key}");
-        feat.parameter = Some(K::Weapon);
-        feat.repeat = Repeat::PerValue;
-        same_value(&mut feat.prerequisite, base, key);
-        log.push(format!("{key}: takes a weapon, once per value"));
-    }
+    picks.removes_racial_penalty("destiny-beyond-birth");
 }
 
 // ---- grants with values ---------------------------------------------------------------------------------------
@@ -738,7 +657,8 @@ fn skills(guide: &Guide, picks: &mut Picks) {
 }
 
 /// The owner facts of tickets 26–28's decisions, built where their owners are: the skill facts, Perfect Mind, the
-/// Zen Archer's bow, the shaman's Battle Master, the Sword Saint's and the half-elf's one-feat lists.
+/// Zen Archer's bow, the shaman's Battle Master, the Sword Saint's and the half-elf's one-feat lists, Destiny Beyond
+/// Birth; and the guide's sentences under the values `parameters`' tables give.
 pub(crate) fn provide(guide: &Guide, picks: &mut Picks) {
     armor_focus(guide, picks);
     fixed_values(guide, picks);
@@ -747,12 +667,14 @@ pub(crate) fn provide(guide: &Guide, picks: &mut Picks) {
     sword_saint(guide, picks);
     half_elf(guide, picks);
     perfect_mind(guide, picks);
+    destiny_beyond_birth(guide, picks);
+    values(guide);
     skills(guide, picks);
     slayer_combat_styles(guide, picks);
 }
 
 /// What [`provide`]'s owners hold once built: the Zen Archer's and the Sword Saint's cells are picks, and Perfect
-/// Mind is the gold dragon's feature. Changes nothing.
+/// Mind is the gold dragon's feature, and Destiny Beyond Birth a mythic feat. Changes nothing.
 pub(crate) fn check(data: &GameData) {
     let defined = |key: &str| {
         data.classes
@@ -771,5 +693,11 @@ pub(crate) fn check(data: &GameData) {
     assert_eq!(
         (mind.bab_floor, mind.skill_ranks_at_least_mythic_rank),
         (Some(15), true)
+    );
+    assert!(
+        data.mythic_feats
+            .iter()
+            .any(|feat| feat.key.as_str() == "destiny-beyond-birth" && feat.removes_racial_penalty),
+        "Destiny Beyond Birth removes no racial penalty"
     );
 }

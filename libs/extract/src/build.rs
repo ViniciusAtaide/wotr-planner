@@ -165,7 +165,8 @@ pub fn extract(guide: &Guide) -> Extraction {
     // A selection that draws on another class's list shares its options; the prerequisites the shared options name
     // are the resolved ones, and the rows it takes over are the full ones.
     crate::shared_options::apply(&mut data);
-    // Parameterised and repeatable feats and options: their prerequisites name values of resolved feats.
+    // Parameterised and repeatable feats and options, with ticket 32's repeats and mythic values: their
+    // prerequisites name values of resolved feats.
     crate::parameters::apply(&mut data);
     // Only now, with the dangling grants gone and the grants complete, is a row that matches its base class's
     // known to.
@@ -176,10 +177,6 @@ pub fn extract(guide: &Guide) -> Extraction {
     feat_lists::name_lists(&mut data, &builder.lists);
     // The one-feat lists of the bonus feats of the player's choosing aren't the guide's tables' lists.
     crate::parameters::add_lists(&mut data);
-    // Ticket 32's two rules on what `parameters::apply` builds: every parameterised feat repeats once per value (on
-    // the parameters it gives the feats), and the mythic feats' and the Trickster's critical chain's values, whose
-    // same-value prerequisites rewrite the resolved lines as its own rules do.
-    crate::follow_ups::apply(guide, &mut data);
     // The user's backgrounds: the guide doesn't list them; each names skills and feats of the finished data.
     data.backgrounds = crate::backgrounds::backgrounds(&data);
     // The feats that give a pick of the selections their "Prerequisites" names: needs every class's, archetype's and
@@ -194,10 +191,12 @@ pub fn extract(guide: &Guide) -> Extraction {
 
     // What the providers can only assert on the finished data, and the report items the finished data settles.
     crate::picks::check(guide, &data);
-    builder
-        .report
-        .items
-        .retain(|item| !settled(&item.at, &item.text));
+    let settled = settled();
+    let dead = builder.report.settle(&settled);
+    assert!(
+        dead.is_empty(),
+        "report filter entries that match no report item: {dead:?}"
+    );
     for problem in data.check() {
         builder.report.add_about(
             Kind::Cell,
@@ -212,14 +211,17 @@ pub fn extract(guide: &Guide) -> Extraction {
     }
 }
 
-/// Whether a report item is one the finished data settles: an option family's table, which the family's provider
-/// reads (ticket 30), Armor Focus's line (ticket 32), a gap the saved pages fill (tickets 43 and 44), the bonus-feat
-/// wild talent (ticket 45).
-fn settled(at: &str, text: &str) -> bool {
-    crate::option_levels::settled(at, text)
-        || crate::follow_ups::settled(at, text)
-        || crate::report_gaps::settled(at, text)
-        || crate::wild_talents::settled(at, text)
+/// The report items the finished data settles: an option family's table, which the family's provider reads (ticket
+/// 30), Armor Focus's line (ticket 32), a gap the saved pages fill (tickets 43 and 44), the bonus-feat wild talent
+/// (ticket 45). Each entry must settle at least one item.
+fn settled() -> Vec<crate::report::Settled> {
+    [
+        crate::option_levels::settles(),
+        crate::follow_ups::settles(),
+        crate::report_gaps::settles(),
+        crate::wild_talents::settles(),
+    ]
+    .concat()
 }
 
 /// Prerequisite lines waiting for the whole catalog.
@@ -1951,6 +1953,7 @@ impl<'g> Builder<'g> {
                     Vec::new(),
                 );
                 let extra_pick = self.picks.mythic_extra_pick_of(&key);
+                let removes_racial_penalty = self.picks.removes_racial_penalty_of(&key);
                 out.push(MythicFeat {
                     key,
                     name: entry.name.clone(),
@@ -1959,7 +1962,7 @@ impl<'g> Builder<'g> {
                     guide: GuideRef::new(page.guide(&entry.anchor)),
                     prerequisite: None,
                     parameter: None,
-                    removes_racial_penalty: false,
+                    removes_racial_penalty,
                     extra_pick,
                     repeat: Default::default(),
                 });

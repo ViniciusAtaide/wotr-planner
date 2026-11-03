@@ -88,11 +88,12 @@ fn the_option_tables_and_the_lines_they_state_are_settled_report_items() {
         "wizard#universalist",
         "cavalier#order-of-the-lion",
         "arcanist#living-deity",
-        "feats#disruptive",
         "character-creation#bloodlines",
     ] {
         assert!(settled(at, ""), "{at}");
     }
+    // Disruptive's line is stated in place (ticket 71), so it isn't reported and nothing settles it.
+    assert!(!settled("feats#disruptive", ""));
     assert!(settled(
         "prestige-classes#dragon-disciple",
         "Must have a Draconic bloodline or no known bloodline"

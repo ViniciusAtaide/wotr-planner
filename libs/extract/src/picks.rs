@@ -160,6 +160,8 @@ pub struct Picks {
     daily_choices: BTreeSet<FeatureKey>,
     /// The pick a mythic feat gives when it's taken.
     mythic_extra_picks: Vec<(MythicFeatKey, MythicExtraPick)>,
+    /// The mythic feats that remove the race's ability penalty.
+    removes_racial_penalty: BTreeSet<MythicFeatKey>,
     /// Prerequisites stated for an owner beside what its own lines name (an archetype's alignment rule).
     stated: Vec<(DataAt, Prerequisite)>,
     /// The classes whose levels level a selection the guide's headings define (by the selection's key).
@@ -581,6 +583,15 @@ impl Picks {
     pub fn mythic_extra_pick(&mut self, feat: &str, pick: MythicExtraPick) {
         self.mythic_extra_picks
             .push((MythicFeatKey::new(feat), pick));
+    }
+
+    /// The mythic feat `feat` removes the race's ability penalty.
+    pub fn removes_racial_penalty(&mut self, feat: &str) {
+        self.removes_racial_penalty.insert(MythicFeatKey::new(feat));
+    }
+
+    pub fn removes_racial_penalty_of(&self, feat: &MythicFeatKey) -> bool {
+        self.removes_racial_penalty.contains(feat)
     }
 
     pub fn mythic_extra_pick_of(&self, feat: &MythicFeatKey) -> Option<MythicExtraPick> {

@@ -51,19 +51,22 @@ use crate::guide::Guide;
 use crate::html::Section;
 use crate::option_levels::page;
 use crate::picks::{Pick, Picks, Rule};
+use crate::report::Settled;
 
-/// The extraction report's items this module settles: the totems' prose rule (ticket 43); the sorcerer archetypes'
-/// level-1 "Bonus Feat", Extra Slayer Talent's "Talented Slayer" and the cleric's deity (ticket 44).
+/// The extraction report's items this module settles: the totems' prose rule (ticket 43); the Geomancer's level-1
+/// "Bonus Feat" and the cleric's deity (ticket 44). The other sorcerer archetypes' "Bonus Feat" and Extra Slayer
+/// Talent's line are no longer reported (ticket 71 reads the cell and states the line), so nothing settles them.
+pub fn settles() -> Vec<Settled> {
+    vec![
+        Settled::is("barbarian#rage-powers", ""),
+        Settled::is("sorcerer#geomancer", "Bonus Feat"),
+        Settled::is("cleric", DEITY),
+    ]
+}
+
+/// Whether a report item is one this module settles ([`settles`]).
 pub fn settled(at: &str, text: &str) -> bool {
-    match text {
-        "" => at == "barbarian#rage-powers",
-        "Bonus Feat" => SORCERER_ARCHETYPES_GENERAL_AT_1
-            .iter()
-            .any(|archetype| at == format!("sorcerer#{archetype}")),
-        "Slayer Talents or Talented Slayer" => at == "feats#extra-slayer-talent",
-        DEITY => at == "cleric",
-        _ => false,
-    }
+    settles().iter().any(|entry| entry.matches(at, text))
 }
 
 // ---- totem rage powers ----------------------------------------------------------------------------------------

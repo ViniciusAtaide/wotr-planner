@@ -3,14 +3,16 @@
 //! prerequisites that name a value ("Weapon Focus (Dueling Sword)") or the pick's own ("for which you have already
 //! selected Weapon Focus"), the weapons a feat can be taken for, and the bonus feats of the player's choosing (a
 //! one-feat bonus list: the pick names the value). The tables quote the guide and are the same as ticket 27's
-//! one-off rewrite of `libs/game-data/`.
+//! one-off rewrite of `libs/game-data/`, with ticket 32's decisions: every parameterised feat repeats once per value
+//! (27-1), and the mythic feats and the Trickster's critical chain that take a value (27-5). The guide sentences
+//! those decisions rest on are asserted where ticket 32's providers are read (`follow_ups::provide`).
 
 use std::collections::BTreeSet;
 
 use rules::{
     ArmourType, Class, DataAt, FeatKey, FeatList, FeatListKey, FeatSlot, FeatureKey, GameData,
-    GuideRef, Parameter, ParameterKind, Prerequisite, Repeat, SelectionOption, SelectionOptionKey,
-    SkillKey, SpellSchool, Weapon, WeaponKey, WeaponProficiency,
+    GuideRef, MythicFeatKey, Parameter, ParameterKind, Prerequisite, Repeat, SelectionOption,
+    SelectionOptionKey, SkillKey, SpellSchool, Weapon, WeaponKey, WeaponProficiency,
 };
 
 use crate::guide::Guide;
@@ -67,56 +69,90 @@ fn weapon(name: &str, proficiency: Option<WeaponProficiency>) -> Weapon {
     }
 }
 
-/// What a feat is taken for and how often. A repeat left out is once.
-const FEAT_SHAPES: &[(&str, Option<ParameterKind>, Repeat)] = {
+/// What a feat is taken for, or how often it can be taken: a feat taken for a value repeats once per value (27-1,
+/// the user's decision), whatever the guide says of repeating. A feat left out takes no value and is taken once.
+#[derive(Clone, Copy)]
+enum Shape {
+    /// Taken for a value of this kind, once per value.
+    Value(ParameterKind),
+    /// Taken for no value, this often.
+    Repeats(Repeat),
+}
+
+const FEAT_SHAPES: &[(&str, Shape)] = {
     use ParameterKind as K;
     use Repeat::*;
+    use Shape::*;
     &[
         // "Choose a single weapon ... may be selected multiple times, although it must be applied to a different
         // weapon each time."
-        ("weapon-focus", Some(K::Weapon), PerValue),
+        ("weapon-focus", Value(K::Weapon)),
         // "Choose a single weapon for which you have already selected Weapon Focus" (Greater Weapon Focus, Weapon
-        // Specialization), "... Weapon Specialization" (Greater Weapon Specialization). Not said to repeat.
-        ("greater-weapon-focus", Some(K::Weapon), Once),
-        ("weapon-specialization", Some(K::Weapon), Once),
-        ("greater-weapon-specialization", Some(K::Weapon), Once),
+        // Specialization), "... Weapon Specialization" (Greater Weapon Specialization).
+        ("greater-weapon-focus", Value(K::Weapon)),
+        ("weapon-specialization", Value(K::Weapon)),
+        ("greater-weapon-specialization", Value(K::Weapon)),
         // "Select one weapon type. When using that weapon, the threat range is doubled."
-        ("improved-critical", Some(K::Weapon), Once),
+        ("improved-critical", Value(K::Weapon)),
+        // The Trickster's chain: "When using the selected weapon, its critical threat range is increased by +1"
+        // (27-5, the user's decision).
+        ("improved-improved-critical", Value(K::Weapon)),
+        ("improved-improved-improved-critical", Value(K::Weapon)),
+        (
+            "improved-improved-improved-critical-improved",
+            Value(K::Weapon),
+        ),
         // "Become proficient in one of the following weapons: Bastard Sword, ..."
-        ("exotic-weapon-proficiency", Some(K::ExoticWeapon), Once),
+        ("exotic-weapon-proficiency", Value(K::ExoticWeapon)),
         // "Select one skill"; per skill: user decision R4 (ticket 21), the Master of All's three Skill Focus.
-        ("skill-focus", Some(K::Skill), PerValue),
+        ("skill-focus", Value(K::Skill)),
         // "Choose a school of magic" / "... for which you have already selected Spell Focus".
-        ("spell-focus", Some(K::SpellSchool), Once),
-        ("greater-spell-focus", Some(K::SpellSchool), Once),
+        ("spell-focus", Value(K::SpellSchool)),
+        ("greater-spell-focus", Value(K::SpellSchool)),
         // "Choose one energy type (acid, cold, electricity or fire)" / "... for which you have already selected
         // Elemental Focus".
-        ("elemental-focus", Some(K::Energy), Once),
-        ("greater-elemental-focus", Some(K::Energy), Once),
+        ("elemental-focus", Value(K::Energy)),
+        ("greater-elemental-focus", Value(K::Energy)),
         // "Select one type of armour (light, medium, or heavy)".
-        ("armor-focus", Some(K::ArmourType), Once),
+        ("armor-focus", Value(K::ArmourType)),
         // "You can take this feat up to 3 times."
-        ("extra-arcana", None, Times(3)),
-        ("extra-arcanist-exploit", None, Times(3)),
-        ("extra-discovery", None, Times(3)),
-        ("extra-hex", None, Times(3)),
-        ("extra-mercy", None, Times(3)),
-        ("extra-rogue-talent", None, Times(3)),
-        ("extra-slayer-talent", None, Times(3)),
-        ("extra-wild-talent", None, Times(3)),
+        ("extra-arcana", Repeats(Times(3))),
+        ("extra-arcanist-exploit", Repeats(Times(3))),
+        ("extra-discovery", Repeats(Times(3))),
+        ("extra-hex", Repeats(Times(3))),
+        ("extra-mercy", Repeats(Times(3))),
+        ("extra-rogue-talent", Repeats(Times(3))),
+        ("extra-slayer-talent", Repeats(Times(3))),
+        ("extra-wild-talent", Repeats(Times(3))),
         // "This feat may be taken multiple times."
-        ("extra-arcane-pool", None, Unlimited),
-        ("extra-bombs", None, Unlimited),
-        ("extra-channel", None, Unlimited),
-        ("extra-ki", None, Unlimited),
-        ("extra-lay-on-hands", None, Unlimited),
-        ("extra-performance", None, Unlimited),
-        ("extra-rage", None, Unlimited),
-        ("extra-rage-power", None, Unlimited),
-        ("extra-bloodrage", None, Unlimited),
-        ("extra-reservoir", None, Unlimited),
+        ("extra-arcane-pool", Repeats(Unlimited)),
+        ("extra-bombs", Repeats(Unlimited)),
+        ("extra-channel", Repeats(Unlimited)),
+        ("extra-ki", Repeats(Unlimited)),
+        ("extra-lay-on-hands", Repeats(Unlimited)),
+        ("extra-performance", Repeats(Unlimited)),
+        ("extra-rage", Repeats(Unlimited)),
+        ("extra-rage-power", Repeats(Unlimited)),
+        ("extra-bloodrage", Repeats(Unlimited)),
+        ("extra-reservoir", Repeats(Unlimited)),
         // "You may take this feat up to eight times".
-        ("magical-tail", None, Times(8)),
+        ("magical-tail", Repeats(Times(8))),
+    ]
+};
+
+/// The mythic feats taken for a value, each once per value (27-5, the user's decision).
+const MYTHIC_FEAT_SHAPES: &[(&str, ParameterKind)] = {
+    use ParameterKind as K;
+    &[
+        // "The critical multiplier of your chosen weapon ..."
+        ("improved-critical-mythic", K::Weapon),
+        // "Select a school in which you have taken a Spell Focus ..."
+        ("spell-focus-mythic", K::SpellSchool),
+        // "Select a skill in which you have taken a Skill Focus ..."
+        ("skill-focus-mythic", K::Skill),
+        // "Select one school of magic ..."
+        ("expanded-arsenal", K::SpellSchool),
+        ("school-mastery", K::SpellSchool),
     ]
 };
 
@@ -176,6 +212,30 @@ const PREREQUISITES: &[(Owner, &str, Needs)] = {
             "elemental-focus",
             SameValue,
         ),
+        // The Trickster's chain: each needs the one before in "the selected weapon" (27-5).
+        (
+            Feat("improved-improved-critical"),
+            "improved-critical",
+            SameValue,
+        ),
+        (
+            Feat("improved-improved-improved-critical"),
+            "improved-improved-critical",
+            SameValue,
+        ),
+        (
+            Feat("improved-improved-improved-critical-improved"),
+            "improved-improved-improved-critical",
+            SameValue,
+        ),
+        // The mythic feats need their base feat in the value they're taken for (27-5).
+        (
+            MythicFeat("improved-critical-mythic"),
+            "improved-critical",
+            SameValue,
+        ),
+        (MythicFeat("spell-focus-mythic"), "spell-focus", SameValue),
+        (MythicFeat("skill-focus-mythic"), "skill-focus", SameValue),
         // "Weapon Focus (Dueling Sword)".
         (
             Feat("aldori-dueling-mastery"),
@@ -386,7 +446,18 @@ pub fn feat_shape(feat: &FeatKey) -> Option<(Option<ParameterKind>, Repeat)> {
     FEAT_SHAPES
         .iter()
         .find(|(key, ..)| feat.as_str() == *key)
-        .map(|&(_, parameter, repeat)| (parameter, repeat))
+        .map(|&(_, shape)| match shape {
+            Shape::Value(kind) => (Some(kind), Repeat::PerValue),
+            Shape::Repeats(repeat) => (None, repeat),
+        })
+}
+
+/// What a mythic feat is taken for (once per value); `None` for one taken for no value.
+pub fn mythic_feat_shape(feat: &MythicFeatKey) -> Option<ParameterKind> {
+    MYTHIC_FEAT_SHAPES
+        .iter()
+        .find(|(key, _)| feat.as_str() == *key)
+        .map(|&(_, kind)| kind)
 }
 
 /// How often the guide says an option can be taken; `None` for once.
@@ -455,6 +526,19 @@ pub fn apply(data: &mut GameData) {
         }
     }
     assert_eq!(shaped, FEAT_SHAPES.len(), "every feat shape names a feat");
+    let mut shaped = 0;
+    for feat in &mut data.mythic_feats {
+        if let Some(kind) = mythic_feat_shape(&feat.key) {
+            feat.parameter = Some(kind);
+            feat.repeat = Repeat::PerValue;
+            shaped += 1;
+        }
+    }
+    assert_eq!(
+        shaped,
+        MYTHIC_FEAT_SHAPES.len(),
+        "every mythic feat shape names a mythic feat"
+    );
 
     let mut rewritten = 0;
     let mut rewrite = |at: DataAt, prerequisite: &mut Option<Prerequisite>| {

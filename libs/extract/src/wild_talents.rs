@@ -382,10 +382,17 @@ fn features_named(prerequisite: &Prerequisite) -> Vec<FeatureKey> {
     }
 }
 
-/// Whether an extraction's report item is one the wild talents settle: the bonus-feat wild talent, which can be picked
-/// now and grants its slot.
+/// The report item the wild talents settle: the bonus-feat wild talent, which can be picked now and grants its slot.
+pub fn settles() -> Vec<crate::report::Settled> {
+    vec![crate::report::Settled::is(
+        "kineticist#kineticist-bonus-feat",
+        "",
+    )]
+}
+
+/// Whether an extraction's report item is one the wild talents settle ([`settles`]).
 pub fn settled(at: &str, text: &str) -> bool {
-    at == "kineticist#kineticist-bonus-feat" && text.is_empty()
+    settles().iter().any(|entry| entry.matches(at, text))
 }
 
 /// One wild talent as the guide lists it.

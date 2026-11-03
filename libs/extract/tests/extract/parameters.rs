@@ -1,6 +1,7 @@
 //! Parameterised and repeatable feats and options (ticket 27): the weapons from the guide's proficiency lists, what
-//! a feat is taken for and how often, the prerequisites that name a value or the pick's own, the options that
-//! repeat or take a value, the bonus feats of the player's choosing, and how the files write them.
+//! a feat is taken for and how often (every parameterised feat once per value, ticket 32), the mythic feats and the
+//! Trickster's critical chain that take a value, the prerequisites that name a value or the pick's own, the options
+//! that repeat or take a value, the bonus feats of the player's choosing, and how the files write them.
 
 use std::collections::BTreeSet;
 
@@ -10,9 +11,9 @@ use extract::parameters;
 use rules::{
     Archetype, ArchetypeKey, ArchetypeLevelRow, BabProgression, Class, ClassKey, ClassLevelRow,
     DataAt, Feat, FeatCategory, FeatKey, FeatListKey, FeatSlot, Feature, FeatureKey,
-    FeatureSelection, FeatureSelectionKey, GameData, GuideRef, Parameter, ParameterKind,
-    Prerequisite, Repeat, SaveProgression, SelectionOption, SelectionOptionKey, SkillKey,
-    SpellSchool, Weapon, WeaponKey, WeaponProficiency,
+    FeatureSelection, FeatureSelectionKey, GameData, GuideRef, MythicFeatKey, Parameter,
+    ParameterKind, Prerequisite, Repeat, SaveProgression, SelectionOption, SelectionOptionKey,
+    SkillKey, SpellSchool, Weapon, WeaponKey, WeaponProficiency,
 };
 
 /// A feats page in the guide's style, with short weapon lists.
@@ -99,30 +100,56 @@ fn feats_take_values_and_repeat_as_the_guide_says() {
     );
     assert_eq!(
         shape("exotic-weapon-proficiency"),
-        Some((Some(K::ExoticWeapon), Repeat::Once))
+        Some((Some(K::ExoticWeapon), Repeat::PerValue))
     );
+    // Not said to repeat, but every parameterised feat repeats once per value (27-1, the user's decision).
     assert_eq!(
         shape("improved-critical"),
-        Some((Some(K::Weapon), Repeat::Once))
+        Some((Some(K::Weapon), Repeat::PerValue))
     );
     assert_eq!(
         shape("spell-focus"),
-        Some((Some(K::SpellSchool), Repeat::Once))
+        Some((Some(K::SpellSchool), Repeat::PerValue))
     );
     assert_eq!(
         shape("elemental-focus"),
-        Some((Some(K::Energy), Repeat::Once))
+        Some((Some(K::Energy), Repeat::PerValue))
     );
     assert_eq!(
         shape("armor-focus"),
-        Some((Some(K::ArmourType), Repeat::Once))
+        Some((Some(K::ArmourType), Repeat::PerValue))
     );
+    // The Trickster's chain takes "the selected weapon" (27-5).
+    for key in [
+        "improved-improved-critical",
+        "improved-improved-improved-critical",
+        "improved-improved-improved-critical-improved",
+    ] {
+        assert_eq!(
+            shape(key),
+            Some((Some(K::Weapon), Repeat::PerValue)),
+            "{key}"
+        );
+    }
     assert_eq!(shape("extra-hex"), Some((None, Repeat::Times(3))));
     assert_eq!(shape("extra-ki"), Some((None, Repeat::Unlimited)));
     assert_eq!(shape("magical-tail"), Some((None, Repeat::Times(8))));
     // The guide doesn't say Extra Bane Weapon repeats, nor gives Toughness a value.
     assert_eq!(shape("extra-bane-weapon"), None);
     assert_eq!(shape("toughness"), None);
+
+    // The mythic feats that take a value, each once per value (27-5).
+    let mythic = |key: &str| parameters::mythic_feat_shape(&MythicFeatKey::new(key));
+    for (key, kind) in [
+        ("improved-critical-mythic", K::Weapon),
+        ("spell-focus-mythic", K::SpellSchool),
+        ("skill-focus-mythic", K::Skill),
+        ("expanded-arsenal", K::SpellSchool),
+        ("school-mastery", K::SpellSchool),
+    ] {
+        assert_eq!(mythic(key), Some(kind), "{key}");
+    }
+    assert_eq!(mythic("destiny-beyond-birth"), None);
 }
 
 #[test]
@@ -224,6 +251,37 @@ fn prerequisites_name_the_guides_values() {
             Prerequisite::Any(vec![
                 feat_for("skill-focus", skill("knowledge-arcana")),
                 feat_for("skill-focus", skill("knowledge-world")),
+            ])
+        )
+    );
+    // A mythic feat needs its base feat in its own value (27-5): "Select a school in which you have taken a Spell
+    // Focus".
+    let mythic = |key: &str| DataAt::MythicFeat(MythicFeatKey::new(key));
+    for (key, base) in [
+        ("improved-critical-mythic", "improved-critical"),
+        ("spell-focus-mythic", "spell-focus"),
+        ("skill-focus-mythic", "skill-focus"),
+    ] {
+        assert_eq!(
+            rewrite(mythic(key), Prerequisite::Feat(feat_key(base))),
+            (1, Prerequisite::FeatForSameValue(feat_key(base))),
+            "{key}"
+        );
+    }
+    // The Trickster's chain: each needs the one before in "the selected weapon".
+    assert_eq!(
+        rewrite(
+            feat("improved-improved-improved-critical"),
+            Prerequisite::All(vec![
+                Prerequisite::Feat(feat_key("improved-improved-critical")),
+                fighter(4)
+            ])
+        ),
+        (
+            1,
+            Prerequisite::All(vec![
+                Prerequisite::FeatForSameValue(feat_key("improved-improved-critical")),
+                fighter(4)
             ])
         )
     );

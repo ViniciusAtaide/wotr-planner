@@ -135,7 +135,83 @@ pub struct Report {
     pub items: Vec<Item>,
 }
 
+/// An entry of a module's report filter: the items at `at` that the finished data settles.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Settled {
+    pub at: String,
+    pub text: SettledText,
+}
+
+/// Which of the items at a place an entry settles.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum SettledText {
+    /// Every one (an option table the provider reads).
+    Any,
+    /// The one with this text.
+    Is(&'static str),
+    /// Those whose text contains this.
+    Containing(&'static str),
+}
+
+impl Settled {
+    /// Every item at `at`.
+    pub fn any(at: impl Into<String>) -> Self {
+        Settled {
+            at: at.into(),
+            text: SettledText::Any,
+        }
+    }
+
+    /// The item at `at` with this text.
+    pub fn is(at: impl Into<String>, text: &'static str) -> Self {
+        Settled {
+            at: at.into(),
+            text: SettledText::Is(text),
+        }
+    }
+
+    /// The items at `at` whose text contains this.
+    pub fn containing(at: impl Into<String>, text: &'static str) -> Self {
+        Settled {
+            at: at.into(),
+            text: SettledText::Containing(text),
+        }
+    }
+
+    /// Whether the entry settles the item at `at` with this text.
+    pub fn matches(&self, at: &str, text: &str) -> bool {
+        self.at == at
+            && match self.text {
+                SettledText::Any => true,
+                SettledText::Is(is) => text == is,
+                SettledText::Containing(part) => text.contains(part),
+            }
+    }
+}
+
 impl Report {
+    /// Drops every item an entry settles, and returns the entries that settle none: an entry that matches nothing is
+    /// dead, and the extraction refuses it, so dead entries can't pile up.
+    pub fn settle<'s>(&mut self, settled: &'s [Settled]) -> Vec<&'s Settled> {
+        let mut used = vec![false; settled.len()];
+        self.items.retain(|item| {
+            let mut keep = true;
+            for (entry, used) in settled.iter().zip(&mut used) {
+                if entry.matches(&item.at, &item.text) {
+                    *used = true;
+                    keep = false;
+                }
+            }
+            keep
+        });
+        settled
+            .iter()
+            .zip(used)
+            .filter(|(_, used)| !used)
+            .map(|(entry, _)| entry)
+            .collect()
+    }
+
     /// An item at a `page#anchor` link.
     pub fn add(
         &mut self,

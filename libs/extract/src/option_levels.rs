@@ -43,6 +43,7 @@ use crate::guide::Guide;
 use crate::html::{Page, Section};
 use crate::names::{norm, slug};
 use crate::picks::{FeatureFact, Pick, Picks, Rule};
+use crate::report::Settled;
 use crate::tables::parse_table;
 
 /// What a pass changed, one line each, for a one-off rewrite's log.
@@ -2175,7 +2176,7 @@ pub(crate) fn provide(
 }
 
 /// The report items this module settles: the option tables it reads, and the lines it can now state.
-pub fn settled(at: &str, text: &str) -> bool {
+pub fn settles() -> Vec<Settled> {
     let tables = SORCERER_TABLES
         .iter()
         .map(|t| format!("sorcerer#{t}"))
@@ -2187,11 +2188,19 @@ pub fn settled(at: &str, text: &str) -> bool {
         .chain(SCHOOLS.iter().map(|t| format!("wizard#{t}")))
         .chain(ORDERS.iter().map(|t| format!("cavalier#{t}")))
         .chain(WAYS.iter().map(|t| format!("arcanist#{t}")));
-    tables.into_iter().any(|table| table == at)
-        || at == "feats#disruptive"
-        || at == "character-creation#bloodlines"
-        || (at == "prestige-classes#dragon-disciple"
-            && (text.contains("Draconic bloodline") || text.contains("spontaneously")))
+    tables
+        .map(Settled::any)
+        .chain([
+            Settled::any("character-creation#bloodlines"),
+            Settled::containing("prestige-classes#dragon-disciple", "Draconic bloodline"),
+            Settled::containing("prestige-classes#dragon-disciple", "spontaneously"),
+        ])
+        .collect()
+}
+
+/// Whether a report item is one this module settles ([`settles`]).
+pub fn settled(at: &str, text: &str) -> bool {
+    settles().iter().any(|entry| entry.matches(at, text))
 }
 
 /// A name without its parenthesised tail, for comparing: "Manifestation (Battle)" is "Manifestation".

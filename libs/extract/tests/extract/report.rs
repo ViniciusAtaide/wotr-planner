@@ -1,6 +1,6 @@
 //! The extraction report: what couldn't be turned into data, grouped by the category a later fix pass takes.
 
-use extract::report::{Kind, Report};
+use extract::report::{Kind, Report, Settled};
 use rules::{DataAt, FeatKey, MythicPathKey, SelectionOptionKey, SkillKey};
 
 fn section<'a>(markdown: &'a str, heading: &str) -> &'a str {
@@ -129,4 +129,46 @@ fn a_repeated_item_is_listed_and_counted_once() {
     let markdown = report.markdown("2026-10-31");
     assert_eq!(markdown.matches("sorcerer#crossblooded").count(), 1);
     assert!(section(&markdown, "Base classes").contains("(1)"));
+}
+
+#[test]
+fn settling_drops_the_items_an_entry_matches_and_returns_the_entries_matching_none() {
+    let mut report = Report::default();
+    report.add(Kind::Cell, "sorcerer#abyssal", "Abyssal", "a table");
+    report.add(
+        Kind::BonusSlot,
+        "sorcerer#geomancer",
+        "Bonus Feat",
+        "no list",
+    );
+    report.add(
+        Kind::BonusSlot,
+        "sorcerer#geomancer",
+        "Bloodline Feat",
+        "no list",
+    );
+    report.add(
+        Kind::Cell,
+        "prestige-classes#dragon-disciple",
+        "Must have a Draconic bloodline or no known bloodline",
+        "no grammar",
+    );
+    let settled = [
+        Settled::any("sorcerer#abyssal"),
+        Settled::is("sorcerer#geomancer", "Bonus Feat"),
+        Settled::containing("prestige-classes#dragon-disciple", "Draconic bloodline"),
+        // Dead: no item is at Disruptive, nor has the Crossblooded's "Bonus Feat".
+        Settled::any("feats#disruptive"),
+        Settled::is("sorcerer#crossblooded", "Bonus Feat"),
+    ];
+
+    let dead = report.settle(&settled);
+
+    assert_eq!(dead, [&settled[3], &settled[4]]);
+    let left: Vec<(&str, &str)> = report
+        .items
+        .iter()
+        .map(|item| (item.at.as_str(), item.text.as_str()))
+        .collect();
+    assert_eq!(left, [("sorcerer#geomancer", "Bloodline Feat")]);
 }

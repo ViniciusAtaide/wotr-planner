@@ -12,22 +12,28 @@ const SORCERER_LEVEL_1_FEATS: [&str; 6] = [
 ];
 
 #[test]
-fn the_totems_the_sorcerers_level_1_feat_talented_slayer_and_the_deity_are_settled() {
+fn the_totems_the_geomancers_level_1_feat_and_the_deity_are_settled() {
     assert!(settled("barbarian#rage-powers", ""));
     assert!(!settled("barbarian#rage-powers", "Beast Totem, Lesser"));
+    // Only the Geomancer's "Bonus Feat" is still reported: the other archetypes' cells are read (ticket 71).
     for at in SORCERER_LEVEL_1_FEATS {
-        assert!(settled(at, "Bonus Feat"), "{at}");
+        assert_eq!(
+            settled(at, "Bonus Feat"),
+            at == "sorcerer#geomancer",
+            "{at}"
+        );
         assert!(!settled(at, "Bloodline Feat"), "{at}");
     }
-    assert!(settled(
-        "feats#extra-slayer-talent",
-        "Slayer Talents or Talented Slayer"
-    ));
     assert!(settled(
         "cleric",
         "Alignment must be within 1 place of their chosen deity."
     ));
     for (at, text) in [
+        // Its line is stated in place (ticket 71), so it isn't reported.
+        (
+            "feats#extra-slayer-talent",
+            "Slayer Talents or Talented Slayer",
+        ),
         ("kineticist#kineticist-bonus-feat", ""),
         ("slayer#advanced-talents", ""),
         (
