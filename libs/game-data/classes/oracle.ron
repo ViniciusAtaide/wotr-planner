@@ -453,7 +453,6 @@ Class(
                 (key: "oracle/dual-cursed-oracle/curse-3", name: "Curse 3", guide: "oracle#dual-cursed-oracle"),
                 (key: "oracle/dual-cursed-oracle/curse-4", name: "Curse 4", guide: "oracle#dual-cursed-oracle"),
                 (key: "oracle/dual-cursed-oracle/dual-cursed-oracle-bonus-spells", name: "Dual-Cursed Oracle Bonus Spells", guide: "oracle#dual-cursed-oracle-bonus-spells"),
-                (key: "oracle/dual-cursed-oracle/second-curse", name: "Second Curse", guide: "oracle#second-curse"),
             ],
             selections: [
                 (
@@ -469,7 +468,7 @@ Class(
                 ),
             ],
             levels: [
-                (level: 1, features: ["oracle/additional-spells", "oracle/dual-cursed-oracle/second-curse"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"], selections: ["oracle/dual-cursed-oracle/revelation", "oracle/mystery", "oracle/oracles-curse"]),
+                (level: 1, features: ["oracle/additional-spells"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"], selections: ["oracle/dual-cursed-oracle/revelation", "oracle/mystery", "oracle/oracles-curse", "oracle/oracles-curse"]),
                 (level: 2, features: ["oracle/dual-cursed-oracle/dual-cursed-oracle-bonus-spells"]),
                 (level: 3, selections: ["oracle/dual-cursed-oracle/revelation"]),
                 (level: 5, features: ["oracle/dual-cursed-oracle/curse-2"], selections: ["oracle/dual-cursed-oracle/revelation"]),

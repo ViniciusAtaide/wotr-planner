@@ -9602,3 +9602,130 @@ fn extra_rage_power_offers_an_instinctual_warrior_its_monk_powers() {
         assert!(locked.contains(key), "{name}");
     }
 }
+
+// ---- the Dual-Cursed Oracle's second curse (ticket 67) -----------------------------------------------------------
+
+const DUAL_CURSED: &str = "oracle/dual-cursed-oracle";
+
+/// The Dual-Cursed Oracle's level-1 slots in key order: its own revelation, the mystery, and the two curses.
+const FIRST_CURSE: SlotId = SlotId::Selection { level: 1, index: 2 };
+const SECOND_CURSE: SlotId = SlotId::Selection { level: 1, index: 3 };
+
+/// "The Oracle must choose a second curse" (oracle#second-curse): its table's "Second Curse" at 1 is a second slot of
+/// the oracle's curses in the rows in force, not a feature; the plain oracle and the other archetypes keep one.
+#[test]
+fn the_dual_cursed_oracles_second_curse_is_a_slot_of_the_oracles_curses() {
+    let oracle = class("oracle");
+    let curses = rules::FeatureSelectionKey::new(CURSES);
+    let curse_slots = |archetype: Option<&rules::Archetype>, level| {
+        rules::effective_row(oracle, archetype, level).map_or(0, |row| {
+            row.selections.iter().filter(|s| **s == curses).count()
+        })
+    };
+    let dual = oracle
+        .archetypes
+        .iter()
+        .find(|a| a.key.as_str() == DUAL_CURSED)
+        .expect("the Dual-Cursed Oracle");
+    assert_eq!(curse_slots(Some(dual), 1), 2);
+    assert!((2..=20).all(|level| curse_slots(Some(dual), level) == 0));
+    assert_eq!(curse_slots(None, 1), 1);
+    for archetype in oracle
+        .archetypes
+        .iter()
+        .filter(|a| a.key.as_str() != DUAL_CURSED)
+    {
+        assert!(curse_slots(Some(archetype), 1) <= 1, "{}", archetype.key);
+    }
+    let second = FeatureKey::new("oracle/dual-cursed-oracle/second-curse");
+    assert!(dual.features.iter().all(|feature| feature.key != second));
+    assert!(
+        dual.levels
+            .iter()
+            .all(|row| !row.features.contains(&second))
+    );
+}
+
+#[test]
+fn a_dual_cursed_oracle_1_picks_two_curses_the_second_not_offering_the_first() {
+    let engine = engine();
+    let build = archetype_build("oracle", DUAL_CURSED, 1);
+    let sheet = engine.evaluate(&build);
+    for id in [&FIRST_CURSE, &SECOND_CURSE] {
+        let slot = sheet.slot(id).expect("a curse slot");
+        assert_eq!(slot.kind, selection_kind(CURSES), "{id:?}");
+        assert_eq!(engine.slot_label(slot), "Oracle's Curse");
+    }
+    let curse_slots = |build: &Build| {
+        engine.evaluate(build).levels[0]
+            .slots
+            .iter()
+            .filter(|slot| slot.kind == selection_kind(CURSES))
+            .count()
+    };
+    assert_eq!(curse_slots(&build), 2);
+    assert_eq!(curse_slots(&self::build("oracle", 1)), 1);
+    assert!(!holds(
+        &at(&build, 1),
+        "oracle/dual-cursed-oracle/second-curse"
+    ));
+
+    // Either slot offers the nine curses, the one taken in the other locked: "Already taken" in the second slot, and
+    // in the first, breaking the second's pick (as a cleric's two domain slots answer).
+    let first = "oracle/oracles-curse/plagued";
+    let second = "oracle/oracles-curse/lame";
+    for (taken_in, other, issue) in [
+        (&FIRST_CURSE, &SECOND_CURSE, Issue::AlreadyHeld),
+        (&SECOND_CURSE, &FIRST_CURSE, Issue::BreaksLater),
+    ] {
+        let one = with_pick(build.clone(), taken_in.clone(), first);
+        let curses = offered_in(&one, other);
+        assert_eq!(curses.len(), 9);
+        for (curse, status) in &curses {
+            if curse == first {
+                assert_eq!(*status, Err(issue.clone()), "{other:?}");
+            } else {
+                assert_eq!(*status, Ok(()), "{curse}");
+            }
+        }
+    }
+    let both = with_pick(
+        with_pick(build.clone(), FIRST_CURSE, first),
+        SECOND_CURSE,
+        second,
+    );
+    assert!(possible(&both));
+    let state = at(&both, 1);
+    for curse in [first, second] {
+        assert_eq!(state.option_count(&SelectionOptionKey::new(curse)), 1);
+    }
+    let twice = with_pick(with_pick(build, FIRST_CURSE, first), SECOND_CURSE, first);
+    assert_eq!(why_not(&twice, &SECOND_CURSE), Some(Issue::AlreadyHeld));
+}
+
+#[test]
+fn beneficial_curse_offers_a_dual_cursed_oracle_neither_of_her_curses() {
+    let oracle = with_selections_filled(archetype_build("oracle", DUAL_CURSED, 6));
+    let held: BTreeSet<String> = [&FIRST_CURSE, &SECOND_CURSE]
+        .into_iter()
+        .map(|slot| oracle.picks[slot].key().to_owned())
+        .collect();
+    assert_eq!(held.len(), 2);
+    let oracle = with_mr_1_ability(oracle, BENEFICIAL_CURSE);
+    assert!(possible(&oracle));
+    let curses = offered_in(&oracle, &mr_1_selection());
+    assert_eq!(curses.len(), 9);
+    for (curse, status) in &curses {
+        if held.contains(curse) {
+            assert_eq!(*status, Err(Issue::AlreadyHeld), "{curse}");
+        } else {
+            assert_eq!(*status, Ok(()), "{curse}");
+        }
+    }
+    for curse in &held {
+        let again = with_pick(oracle.clone(), mr_1_selection(), curse);
+        assert_eq!(why_not(&again, &mr_1_selection()), Some(Issue::AlreadyHeld));
+    }
+    let third = curses.keys().find(|curse| !held.contains(*curse)).unwrap();
+    assert!(possible(&with_pick(oracle, mr_1_selection(), third)));
+}

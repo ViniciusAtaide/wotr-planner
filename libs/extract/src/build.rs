@@ -229,6 +229,9 @@ pub fn extract(guide: &Guide) -> Extraction {
     // The Instinctual Warrior's monk rage powers (ticket 66, ticket 58's decision 3): five options of the rage powers
     // only it may take, at the guide's levels, and holding one meets Extra Rage Power. It settles no report item.
     crate::instinctual_rage_powers::apply(guide, &mut data);
+    // The Dual-Cursed Oracle's second curse as a pick (ticket 67, ticket 62's decision): a second slot of the oracle's
+    // curses at 1 in place of the "Second Curse" feature. It settles no report item.
+    crate::second_curse::apply(guide, &mut data);
     for problem in data.check() {
         builder.report.add_about(
             Kind::Cell,

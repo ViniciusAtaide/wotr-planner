@@ -39,6 +39,7 @@ pub mod report;
 pub mod report_gaps;
 pub mod resolve;
 pub mod ron_out;
+pub mod second_curse;
 pub mod second_follow_ups;
 pub mod shared_options;
 pub mod tables;

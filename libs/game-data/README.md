@@ -326,6 +326,11 @@ class's), and BAB and saves (from the class's progressions).
   Purity of Body, Diamond Body, Diamond Soul and Perfect Self barbarian level 8, 12, 16 and 20 (`ClassLevel`, as
   every rage power's level is). They aren't the monk's ki powers or features, and holding one is holding a rage
   power, so Extra Rage Power's `Any` names them too.
+- Ticket 67 (`extract::second_curse`, ticket 62's decision, user, 2026-11-02): the Dual-Cursed Oracle's "Second
+  Curse" feature is a second slot of the oracle's own `oracle/oracles-curse` on its level-1 row ("The Oracle must
+  choose a second curse"), so the row holds that selection twice, as a cleric's holds `cleric/domain` twice. Every
+  curse is taken once, so the second slot doesn't offer the curse taken in the first, and Beneficial Curse's slot
+  offers neither. "One of these curses doesn't change as the oracle gains levels" needs nothing: no curse has rows.
 - A path's switch rule: `switch: (from: ["aeon", "azata"], kept_through_rank: 7, path_kept_through_rank: 7,
   dropped_features: [...], dropped_selections: [...], features: [...], further_ascensions: true, level_cap:
   Some(40))`. The general picks (mythic abilities and feats) of MR 1 to `kept_through_rank` stay, and the old
