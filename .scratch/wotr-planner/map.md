@@ -14,7 +14,7 @@ A working, locally run Leptos app at `~/code/wotr-planner` for planning Pathfind
   - Postgres in docker compose; local only.
   - sqlx with typed serde structs.
 - **Game data:**
-  - The source of truth is checked-in data files extracted once from the guide and corrected by hand.
+  - The source of truth is the checked-in data files (user, 2026-11-03, [ticket 75](issues/75-game-data-master.md)). They were extracted from the guide and are corrected by hand; the extractor goes once the files hold what it knows (tickets 81–82).
   - A seed step loads them into ordinary relational tables, prerequisites included (no JSONB).
   - Store prerequisites, a short summary in our own words and a link to the guide, never the guide's full text.
   - When the game and the guide disagree, the guide wins.
@@ -27,7 +27,7 @@ A working, locally run Leptos app at `~/code/wotr-planner` for planning Pathfind
 - **Rules followed:** the game's intended, current (patched) behaviour. Known exploits are not modelled.
 - **Extraction in stages** (user, 2026-11-01): [Extract the guide into data files](issues/10-extract-guide.md) is stage A, where the extractor writes `libs/game-data/` and the seed passes. Then four parallel hand-fix stages, one per category: [feats](issues/17-handfix-feats.md), [base classes](issues/18-handfix-base-classes.md), [prestige classes](issues/19-handfix-prestige-classes.md), [mythic](issues/20-handfix-mythic.md). They validate without the database, and the main session seeds once. Then [Answer the schema questions from the real data](issues/21-schema-questions-real-data.md). Commit a checkpoint after each stage.
 - **Order** (user, 2026-10-31): finish the data layer (saved guide pages, extraction, checking the data against the guide) before the UI. [Build the planning sheet screen](issues/12-build-sheet-screen.md) waits on the data-layer tickets 23–38. Tickets 23–28 and 30–38 each edit the one migration, so they run one at a time, in order; design ticket 29 ran with the user alongside. Tickets 32, 33, 35 and 36 build the user's answers to the open questions of 26–35 (2026-11-01); 34 adds backgrounds from the user's list, 37 turns options' class-skill features into class skills, 38 cleans up after it (skills questions take the recommended option, per the user), and 39 swaps validation for impossible states (user, 2026-11-01: picks are removed from the leaves inward), and 40 gives a stale link one generic error instead of the banner and drops picks the Build no longer reaches (user, 2026-11-01), and 41 also drops the path and switch below their ranks, and 42 keeps a switch's earlier picks again (user, 2026-11-02, undoing the rest of 41). 39–42 edit `rules`, not the migration, but still run after 38.
-- **Architecture review** (2026-11-03): tickets 75–80 simplify what the review found. [Decide whether the extractor or the data files are the master](issues/75-game-data-master.md) comes first, with the user, and blocks 77 and 78; 76 and 79 can run now; 80 follows 79.
+- **Architecture review** (2026-11-03): tickets 75–82 simplify what the review found. Order: [81](issues/81-apply-the-extractor-to-the-files.md) brings what only the extractor knows into the files, [82](issues/82-remove-the-extractor.md) removes the extractor, then 77, 78 and 80; 76 is independent; 79 is closed.
 - **Rules:** the rules live in a plain Rust crate with no DB or Leptos code, running in the browser. The browser loads the game data once, filters choices immediately, and decodes and encodes the Build from the URL.
 - **Mobile:** design mobile-first. The main targets are the Galaxy Z Fold 7 cover screen (folded, tall and narrow, ~21:9) and inner screen (unfolded, nearly square, ~6:5). Desktop is secondary. Both Fold screens must work for touch: no hover-only interactions, and tap targets large enough for a thumb. The layout should adapt when the phone is folded or unfolded without losing the user's place.
 - **Builds and links:** no accounts and no saved-build table. The URL fragment encodes every choice, updates live, and is the share link. `/` with no fragment is a blank Build.
@@ -128,6 +128,8 @@ A working, locally run Leptos app at `~/code/wotr-planner` for planning Pathfind
 - [Fold the repeats into parameters and prune the dead report filters](issues/72-parameters-and-settled-cleanup.md): repeats and mythic values live in `parameters`' tables; seven dead filters gone.
 - [Commit the behaviour proof as a harness](issues/73-commit-the-proof-harness.md): the behaviour proof is the `libs/proof` binary, run through `scripts/proof.sh` (user, 2026-11-03).
 - [Split the largest files by subject](issues/74-split-the-largest-files.md): a pure move: `build`, `option_families`, `option_levels` and the `game_data` tests are module folders by subject; extraction byte-identical.
+- [Decide whether the extractor or the data files are the master](issues/75-game-data-master.md): the files are the master (user, 2026-11-03); the extractor's knowledge goes into them, then the extractor goes (tickets 81–82).
+- [Read and write the data files without sqlx](issues/79-game-files-without-sqlx.md): closed, not built; removing the extractor leaves the layout declared once.
 
 ## Not yet specified
 

@@ -1,7 +1,7 @@
 # Read and write the data files without sqlx
 
 Type: task
-Status: open
+Status: closed (won't do)
 Blocked by: none
 Map: [WotR Build Planner](../map.md)
 
@@ -22,3 +22,7 @@ The layout of `libs/game-data/` is declared twice: the reader's in `libs/seeds/s
 - `scripts/extraction-diff.sh <out-dir>` against `HEAD` reports identical.
 - `game_data_hash` of `libs/game-data/` gives the same value as at `HEAD`, so a seeded database doesn't turn stale. (`scripts/proof.sh` can't compare this change: its harness's own dependencies change.)
 - `scripts/check.sh` passes.
+
+## Answer
+
+**Closed, not built** (user, 2026-11-03, taking the recommendation on [ticket 75](75-game-data-master.md)'s Q4). With the extractor removed ([ticket 82](82-remove-the-extractor.md)), `ron_out.rs` goes, so the layout is declared once, in `seeds`. What's left is `proof` depending on `seeds`, which costs build time only.
