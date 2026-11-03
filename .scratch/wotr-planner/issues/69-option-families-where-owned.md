@@ -106,3 +106,5 @@ Ticket 70 now also carries the domains (item 2). Nothing blocks.
 - **The domains** (the Living Deity, Domain Zealot, Boon Companion, Mythical Beast) go with [ticket 70](70-nature-bond-and-proficiencies-where-owned.md).
 
 **Lead, 2026-11-03, on the "Wind" finding:** not a data bug. In `libs/game-data/classes/shaman.ron`, Air Barrier, Vortex Spells and Wind Ward already require `SelectionOption("shaman/spirit/wind")` (a hand fix); only a raw extraction resolves their "Wind" line to the Wind Whisperer's feature. Nothing to fix in the data. Ticket 71 may make the extraction read it as the spirit directly, if the shape allows. Verified independently: a fresh extraction is byte-identical to HEAD-before-ticket-68's.
+
+**User, 2026-11-03, on the "Wind" line:** leave it. The raw extraction keeps reading the line as the Wind Whisperer's feature, and `Pick::SelectionKeepingFeature` stays; the game data's hand fix is the answer.
