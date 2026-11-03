@@ -22,6 +22,10 @@ Cargo compiles only the test modules that are declared:
 
 A new test is done when its name shows up in `cargo test -p <crate> -- --list`.
 
+## Checks
+
+Before reporting a change done, run `scripts/check.sh` (add `--schema` after a migration or query change; `--full`, the cargo-leptos builds, only at the end of a queue of tickets). A pre-commit hook in `.githooks/` runs its fmt and clippy steps; enable it in a new clone with `git config core.hooksPath .githooks`.
+
 ## Behaviour proof
 
 To prove a change to `rules` or `libs/game-data/` changes no behaviour but the intended one, run `scripts/proof.sh` (usage in its header and in `libs/proof`'s crate docs); a ticket filters its comparison for any special breakdown.

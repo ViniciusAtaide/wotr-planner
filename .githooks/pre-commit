@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Pre-commit: the fast half of scripts/check.sh (fmt and clippy), only when the commit touches Rust or its build
+# files. It checks the working tree, not just what's staged. Enabled per clone with
+# `git config core.hooksPath .githooks`; `git commit --no-verify` skips it.
+set -euo pipefail
+
+if ! git diff --cached --name-only | grep -qE '\.rs$|(^|/)Cargo\.(toml|lock)$|^\.sqlx/|/\.sqlx/|^rustfmt\.toml$|^rust-toolchain\.toml$'; then
+    exit 0
+fi
+cargo fmt --all --check || {
+    echo "pre-commit: run cargo fmt --all" >&2
+    exit 1
+}
+cargo clippy -q --workspace --all-targets -- -D warnings
