@@ -158,7 +158,7 @@ pub fn apply(guide: &crate::guide::Guide, data: &mut GameData) -> Log {
 }
 
 /// The selections of every class, archetype and path named `name`.
-fn named_selections(data: &GameData, name: &str) -> Vec<FeatureSelectionKey> {
+pub(crate) fn named_selections(data: &GameData, name: &str) -> Vec<FeatureSelectionKey> {
     selections(data)
         .filter(|selection| selection.name == name)
         .map(|selection| selection.key.clone())
@@ -166,7 +166,7 @@ fn named_selections(data: &GameData, name: &str) -> Vec<FeatureSelectionKey> {
 }
 
 /// Every selection of every class, archetype and path.
-fn selections(data: &GameData) -> impl Iterator<Item = &FeatureSelection> {
+pub(crate) fn selections(data: &GameData) -> impl Iterator<Item = &FeatureSelection> {
     data.classes
         .iter()
         .chain(&data.prestige_classes)

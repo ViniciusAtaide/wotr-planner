@@ -9,7 +9,8 @@
 //! - **The mythic abilities that give a pick** already do, through `MythicAbility::selections` (Impossible Domain,
 //!   Second Bloodline, Second Bloodrager Bloodline, Second Mystery, Second Spirit), but two whose entry reads like one
 //!   give none: Witch Wandering Hex ("You can select any hex") and Beneficial Curse ("You gain an additional Curse").
-//!   Ticket 55 leaves them as they are and asks the user ([`LEFT`]).
+//!   Ticket 55 leaves them as they are and asks the user ([`LEFT`]); ticket 62's
+//!   [`mythic_ability_picks`](crate::mythic_ability_picks), which runs after this, gives them their pick.
 //!
 //! Each rule asserts the guide phrase it rests on and what it finds in the data, so it fails loudly on data it doesn't
 //! expect. [`apply`] runs on the finished data of an extraction and, through ticket 55's one-off rewrite, on
@@ -56,7 +57,8 @@ const GIVING: [&str; 5] = [
     "second-spirit",
 ];
 
-/// The mythic abilities whose entry reads like a pick but that give none: ticket 55's questions.
+/// The mythic abilities whose entry reads like a pick but that give none here: ticket 55's questions, built by ticket
+/// 62's [`mythic_ability_picks`](crate::mythic_ability_picks).
 pub const LEFT: [(&str, &str); 2] = [
     (
         "beneficial-curse",

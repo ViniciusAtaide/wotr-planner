@@ -295,6 +295,12 @@ class's), and BAB and saves (from the class's progressions).
   or `MythicAbility`, a mythic ability slot offering what a rank's general pick does (`extra-mythic-ability`). Both
   are taken once: their entries don't say otherwise. A mythic ability in that slot grants its `selections` as the
   general pick's would (Second Bloodline), and a feat with an `extra_pick_of` gives its slot at the rank's level.
+- Ticket 62 (`extract::mythic_ability_picks`, ticket 55's decisions 1 and 2, user, 2026-11-02): two more mythic
+  abilities grant a selection slot through `selections`, as Second Spirit and Second Mystery do. Witch Wandering Hex
+  ("You can select any hex for which you meet the prerequisites") gives one slot of `witch/hex`, each hex's own
+  prerequisites checked, and needs a hex held, the witch's or the shaman's: its "Prequisites: Hex" (so spelt in the
+  guide, which the extraction passed over) is Extra Hex's `Any`. Beneficial Curse ("You gain an additional Curse")
+  gives one slot of `oracle/oracles-curse`; a curse held is "Already taken" there.
 - A path's switch rule: `switch: (from: ["aeon", "azata"], kept_through_rank: 7, path_kept_through_rank: 7,
   dropped_features: [...], dropped_selections: [...], features: [...], further_ascensions: true, level_cap:
   Some(40))`. The general picks (mythic abilities and feats) of MR 1 to `kept_through_rank` stay, and the old

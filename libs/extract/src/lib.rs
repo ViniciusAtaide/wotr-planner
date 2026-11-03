@@ -19,6 +19,7 @@ pub mod html;
 pub mod infusions;
 pub mod ki_powers;
 pub mod mercies_and_exploits;
+pub mod mythic_ability_picks;
 pub mod mythic_extra_picks;
 pub mod names;
 pub mod option_class_skills;

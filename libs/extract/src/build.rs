@@ -215,6 +215,9 @@ pub fn extract(guide: &Guide) -> Extraction {
     // Massive Attacks, and the features that stood beside the hunter's, the Urban Hunter's and the Stormwalker's
     // slots go. It settles no report item.
     crate::bonus_feat_choices::apply(guide, &mut data);
+    // Witch Wandering Hex and Beneficial Curse give their pick (ticket 62, ticket 55's decisions 1 and 2): a slot of the
+    // witch's hexes and of the oracle's curses, and Witch Wandering Hex needs a hex held. It settles no report item.
+    crate::mythic_ability_picks::apply(guide, &mut data);
     for problem in data.check() {
         builder.report.add_about(
             Kind::Cell,

@@ -8416,3 +8416,289 @@ fn the_bonus_feat_slots_read_their_lists_names() {
         }
     }
 }
+
+// ---- Witch Wandering Hex and Beneficial Curse give their pick (ticket 62) -----------------------------------------
+
+const WITCH_WANDERING_HEX: &str = "witch-wandering-hex";
+const BENEFICIAL_CURSE: &str = "beneficial-curse";
+const CURSES: &str = "oracle/oracles-curse";
+
+fn mythic_ability_data(key: &str) -> &'static rules::MythicAbility {
+    DATA.mythic_abilities
+        .iter()
+        .find(|ability| ability.key.as_str() == key)
+        .unwrap_or_else(|| panic!("no mythic ability {key}"))
+}
+
+/// `build` with `ability` as MR 1's general pick (MR 1 is at level 6).
+fn with_mr_1_ability(mut build: Build, ability: &str) -> Build {
+    build.picks.insert(
+        SlotId::Mythic { rank: 1 },
+        Pick::MythicAbility(rules::MythicAbilityKey::new(ability)),
+    );
+    build
+}
+
+/// The slot MR 1's mythic ability grants.
+fn mr_1_selection() -> SlotId {
+    SlotId::MythicSelection { rank: 1, index: 0 }
+}
+
+/// What MR 1's mythic ability picker says of `ability`.
+fn mr_1_status(build: &Build, ability: &str) -> Result<(), Issue> {
+    slot_options(build, &SlotId::Mythic { rank: 1 })
+        .into_iter()
+        .find(|option| option.pick.key() == ability)
+        .unwrap_or_else(|| panic!("MR 1 doesn't offer {ability}"))
+        .status
+}
+
+/// "Witch Wandering Hex. Prequisites: Hex. You can select any hex for which you meet the prerequisites." and
+/// "Beneficial Curse. Prerequisites: Oracle's Curse. You gain an additional Curse with no penalties."
+/// (mythic-paths): one slot of the witch's hexes, needing a hex held as Extra Hex does ("Prerequisites: Hex"), and one
+/// of the oracle's curses, needing a curse held.
+#[test]
+fn witch_wandering_hex_and_beneficial_curse_give_a_slot_of_their_selection() {
+    let hex = mythic_ability_data(WITCH_WANDERING_HEX);
+    assert_eq!(
+        hex.selections,
+        [rules::FeatureSelectionKey::new("witch/hex")]
+    );
+    let mut needs = hex.prerequisite.clone().expect("a prerequisite");
+    needs.canonicalize();
+    let mut extra_hex = feat("extra-hex").prerequisite.clone().unwrap();
+    extra_hex.canonicalize();
+    assert_eq!(needs, extra_hex);
+
+    let curse = mythic_ability_data(BENEFICIAL_CURSE);
+    assert_eq!(curse.selections, [rules::FeatureSelectionKey::new(CURSES)]);
+    let held: BTreeSet<String> = match curse.prerequisite.as_ref() {
+        Some(Prerequisite::Any(children)) => children
+            .iter()
+            .map(|child| match child {
+                Prerequisite::SelectionOption(option) => option.to_string(),
+                other => panic!("{other:?}"),
+            })
+            .collect(),
+        other => panic!("{other:?}"),
+    };
+    let curses: BTreeSet<String> = class("oracle")
+        .selections
+        .iter()
+        .find(|selection| selection.key.as_str() == CURSES)
+        .unwrap()
+        .options
+        .iter()
+        .map(|option| option.key.to_string())
+        .collect();
+    assert_eq!(held, curses);
+    assert_eq!(curses.len(), 9);
+
+    // The mythic abilities that give a pick: these two and ticket 55's five.
+    let giving: BTreeSet<&str> = DATA
+        .mythic_abilities
+        .iter()
+        .filter(|ability| !ability.selections.is_empty())
+        .map(|ability| ability.key.as_str())
+        .collect();
+    assert_eq!(
+        giving,
+        BTreeSet::from([
+            BENEFICIAL_CURSE,
+            "impossible-domain",
+            "second-bloodline",
+            "second-bloodrager-bloodline",
+            "second-mystery",
+            "second-spirit",
+            WITCH_WANDERING_HEX,
+        ])
+    );
+}
+
+#[test]
+fn witch_wandering_hex_is_locked_without_a_hex() {
+    let fighter = build("fighter", 6);
+    assert!(matches!(
+        mr_1_status(&fighter, WITCH_WANDERING_HEX),
+        Err(Issue::Unmet(_))
+    ));
+    assert!(matches!(
+        why_not(
+            &with_mr_1_ability(fighter, WITCH_WANDERING_HEX),
+            &SlotId::Mythic { rank: 1 }
+        ),
+        Some(Issue::Unmet(_))
+    ));
+    // A witch's hex or a shaman's opens it.
+    assert_eq!(
+        mr_1_status(
+            &with_selections_filled(build("witch", 6)),
+            WITCH_WANDERING_HEX
+        ),
+        Ok(())
+    );
+    let shaman = with_selections_filled(build("shaman", 6));
+    assert!(
+        at(&shaman, 6)
+            .selection_options
+            .keys()
+            .any(|option| option.as_str().starts_with("shaman/hex/"))
+    );
+    assert_eq!(mr_1_status(&shaman, WITCH_WANDERING_HEX), Ok(()));
+}
+
+#[test]
+fn witch_wandering_hex_gives_a_witch_hex_slot_offering_hexes_whose_prerequisites_are_met() {
+    let engine = engine();
+    let witch = with_mr_1_ability(
+        with_selections_filled(build("witch", 6)),
+        WITCH_WANDERING_HEX,
+    );
+    assert!(possible(&witch));
+    let sheet = engine.evaluate(&witch);
+    let slot = sheet.slot(&mr_1_selection()).expect("the hex slot");
+    assert_eq!(slot.kind, selection_kind("witch/hex"));
+    assert_eq!(engine.slot_label(slot), "Hex");
+    // The witch's hexes, each open as the witch's own slot at 6 would leave it, but the ones held.
+    let hexes = offered_in(&witch, &mr_1_selection());
+    let held: BTreeSet<String> = witch
+        .picks
+        .values()
+        .map(|pick| pick.key().to_owned())
+        .filter(|key| key.starts_with("witch/hex/"))
+        .collect();
+    assert_eq!(held.len(), 4);
+    for hex in &held {
+        assert_eq!(hexes[hex], Err(Issue::AlreadyHeld), "{hex}");
+    }
+    let free = first_open_in_mr_1_selection(&witch);
+    assert!(free.starts_with("witch/hex/") && !held.contains(&free));
+    assert!(matches!(hexes["witch/hex/agony"], Err(Issue::Unmet(_))));
+    // At MR 5 (level 14) a witch has her major hexes (from 10).
+    let mut witch_14 = with_selections_filled(build("witch", 14));
+    witch_14.mythic_path = Some(MythicPathKey::new("trickster"));
+    witch_14.picks.insert(
+        SlotId::Mythic { rank: 5 },
+        Pick::MythicAbility(rules::MythicAbilityKey::new(WITCH_WANDERING_HEX)),
+    );
+    let rank_5 = SlotId::MythicSelection { rank: 5, index: 0 };
+    let major = offered_in(&witch_14, &rank_5);
+    assert!(
+        !witch_14
+            .picks
+            .values()
+            .any(|pick| pick.key() == "witch/hex/major-healing")
+    );
+    assert_eq!(major["witch/hex/major-healing"], Ok(()));
+    assert!(matches!(
+        hexes["witch/hex/major-healing"],
+        Err(Issue::Unmet(_))
+    ));
+
+    // A pick there is held from MR 1's level; a hex not open there is refused.
+    let mut third = witch.clone();
+    third.picks.insert(mr_1_selection(), pick(&free));
+    assert!(possible(&third));
+    assert_eq!(
+        at(&third, 6).option_count(&SelectionOptionKey::new(&free)),
+        1
+    );
+    let mut agony = witch;
+    agony
+        .picks
+        .insert(mr_1_selection(), pick("witch/hex/agony"));
+    assert!(matches!(
+        why_not(&agony, &mr_1_selection()),
+        Some(Issue::Unmet(_))
+    ));
+
+    // A shaman's slot is a witch hex slot too; a witch hex the shaman took through her own hexes is held.
+    let mut shaman = with_selections_filled(build("shaman", 6));
+    shaman.picks.insert(
+        SlotId::Selection { level: 2, index: 0 },
+        pick("witch/hex/evil-eye"),
+    );
+    let shaman = with_mr_1_ability(shaman, WITCH_WANDERING_HEX);
+    assert!(possible(&shaman));
+    assert_eq!(
+        kind_at(&shaman, &mr_1_selection()),
+        Some(selection_kind("witch/hex"))
+    );
+    let hexes = offered_in(&shaman, &mr_1_selection());
+    assert_eq!(hexes["witch/hex/evil-eye"], Err(Issue::AlreadyHeld));
+    assert_eq!(hexes["witch/hex/cackle"], Ok(()));
+}
+
+/// The first option, in key order, open in MR 1's selection slot.
+fn first_open_in_mr_1_selection(build: &Build) -> String {
+    offered_in(build, &mr_1_selection())
+        .into_iter()
+        .filter(|(_, status)| status.is_ok())
+        .map(|(key, _)| key)
+        .min()
+        .expect("an open option")
+}
+
+#[test]
+fn beneficial_curse_gives_an_oracle_curse_slot_offering_only_curses_not_held() {
+    let engine = engine();
+    let oracle = with_selections_filled(build("oracle", 6));
+    assert_eq!(mr_1_status(&oracle, BENEFICIAL_CURSE), Ok(()));
+    assert!(matches!(
+        mr_1_status(&build("fighter", 6), BENEFICIAL_CURSE),
+        Err(Issue::Unmet(_))
+    ));
+    let oracle = with_mr_1_ability(oracle, BENEFICIAL_CURSE);
+    assert!(possible(&oracle));
+    let sheet = engine.evaluate(&oracle);
+    let slot = sheet.slot(&mr_1_selection()).expect("the curse slot");
+    assert_eq!(slot.kind, selection_kind(CURSES));
+    assert_eq!(engine.slot_label(slot), "Oracle's Curse");
+    let held = oracle
+        .picks
+        .values()
+        .map(|pick| pick.key().to_owned())
+        .find(|key| key.starts_with("oracle/oracles-curse/"))
+        .expect("a curse held");
+    let curses = offered_in(&oracle, &mr_1_selection());
+    assert_eq!(curses.len(), 9);
+    for (curse, status) in &curses {
+        if *curse == held {
+            assert_eq!(*status, Err(Issue::AlreadyHeld));
+        } else {
+            assert_eq!(*status, Ok(()), "{curse}");
+        }
+    }
+    let other = curses.keys().find(|curse| **curse != held).unwrap().clone();
+    let mut second = oracle.clone();
+    second.picks.insert(mr_1_selection(), pick(&other));
+    assert!(possible(&second));
+    assert_eq!(
+        at(&second, 6).option_count(&SelectionOptionKey::new(&other)),
+        1
+    );
+    let mut twice = oracle;
+    twice.picks.insert(mr_1_selection(), pick(&held));
+    assert_eq!(why_not(&twice, &mr_1_selection()), Some(Issue::AlreadyHeld));
+}
+
+#[test]
+fn removing_witch_wandering_hex_or_beneficial_curse_is_refused_while_its_slot_holds_a_pick() {
+    let engine = engine();
+    for (class, ability) in [("witch", WITCH_WANDERING_HEX), ("oracle", BENEFICIAL_CURSE)] {
+        let mut build = with_mr_1_ability(with_selections_filled(build(class, 6)), ability);
+        let option = first_open_in_mr_1_selection(&build);
+        build.picks.insert(mr_1_selection(), pick(&option));
+        assert!(possible(&build), "{ability}");
+        let choice = rules::Choice::Slot(SlotId::Mythic { rank: 1 });
+        assert!(!engine.is_removable(&build, &choice), "{ability}");
+        assert!(!engine.removable(&build).contains(&choice));
+        assert!(engine.is_removable(&build, &rules::Choice::Slot(mr_1_selection())));
+
+        build.apply(&rules::Edit::Clear(mr_1_selection()));
+        assert!(engine.is_removable(&build, &choice), "{ability}");
+        build.apply(&rules::Edit::Clear(SlotId::Mythic { rank: 1 }));
+        assert!(possible(&build));
+        assert_eq!(kind_at(&build, &mr_1_selection()), None);
+    }
+}

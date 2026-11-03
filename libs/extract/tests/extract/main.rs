@@ -13,6 +13,7 @@ mod grammar;
 mod infusions;
 mod ki_powers;
 mod mercies_and_exploits;
+mod mythic_ability_picks;
 mod mythic_extra_picks;
 mod mythic_paths;
 mod option_class_skills;
