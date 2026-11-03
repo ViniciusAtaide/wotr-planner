@@ -247,6 +247,16 @@ class's), and BAB and saves (from the class's progressions).
   at 10, Diamond Soul at 12, Quivering Palm at 14) are features of its own on rows 6 to 14, in place of the base
   class's pick (those rows were the base's before). No feat gives a ki power: Extra Ki and Abundant Ki Pool grow the
   pool.
+- Ticket 59 (`extract::infusions`, ticket 54's decision 2, user, 2026-11-02): the kineticist's "Infusion" feature
+  after 1st level is the selection `kineticist/infusions` ("Infusion") on the rows that held it ("She gains new
+  Infusions at 3rd, 5th, 9th, 11th, 13th, 17th and 19th levels"; each archetype's where its table has "Infusion":
+  the Blood Kineticist's 3, 13, 17, 19, the Kinetic Knight's 5, 11, 13, 17, 19), with the guide's 32 infusions. Each
+  needs `ClassLevel(kineticist, twice its level)`, one of its elements (`SelectionOption`, an `Any` for several; none
+  for Universal) and one of the options its "Prerequisites" names. The Kinetic Sharpshooter's four own infusions
+  need `Archetype("kineticist/kinetic-sharpshooter")`, the six it "cannot use" `Not(Archetype(...))`; its
+  "Infusion (Kinetic Sharpshooter)" feature is gone (its rows 3 to 19 hold the slot; 17 and 19 are the base's now).
+  The 1st-level "Infusion" stays a feature: no infusion is open at kineticist 1. The guide's "Dazziing Infusion" is
+  named "Dazzling Infusion", linking to the guide's anchor. No feat gives an infusion.
 - Ticket 55 (`extract::mythic_extra_picks`, ticket 49's decision 4, user, 2026-11-02): a mythic feat's `extra_pick`
   is the slot a pick of it gives at the Mythic rank it's taken, after the rank's general pick (a `MythicExtra`
   slot): `Feat`, a feat slot offering what the general slot does (`extra-feat`: "You can select any normal feat"),

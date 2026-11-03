@@ -205,6 +205,8 @@ pub fn extract(guide: &Guide) -> Extraction {
     // The monk's ki powers as a selection (ticket 58, ticket 54's decision 2), and the Traditional Monk's fixed ones
     // as its features. It settles no report item.
     crate::ki_powers::apply(guide, &mut data);
+    // The kineticist's infusions as a selection (ticket 59, ticket 54's decision 2). It settles no report item.
+    crate::infusions::apply(guide, &mut data);
     for problem in data.check() {
         builder.report.add_about(
             Kind::Cell,

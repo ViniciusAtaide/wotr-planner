@@ -14,6 +14,7 @@ pub mod follow_ups;
 pub mod grammar;
 pub mod guide;
 pub mod html;
+pub mod infusions;
 pub mod ki_powers;
 pub mod mercies_and_exploits;
 pub mod mythic_extra_picks;
