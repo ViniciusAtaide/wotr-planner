@@ -125,6 +125,7 @@ A working, locally run Leptos app at `~/code/wotr-planner` for planning Pathfind
 - [Build ticket 30's option families where their owners are built](issues/71-ticket-30-families-where-owned.md): a refactor; seven `apply` passes are gone.
 - [Fold the repeats into parameters and prune the dead report filters](issues/72-parameters-and-settled-cleanup.md): repeats and mythic values live in `parameters`' tables; seven dead filters gone.
 - [Commit the behaviour proof as a harness](issues/73-commit-the-proof-harness.md): the behaviour proof is the `libs/proof` binary, run through `scripts/proof.sh` (user, 2026-11-03).
+- [Split the largest files by subject](issues/74-split-the-largest-files.md): a pure move: `build`, `option_families`, `option_levels` and the `game_data` tests are module folders by subject; extraction byte-identical.
 
 ## Not yet specified
 
