@@ -29,7 +29,7 @@ fn reversed(mut data: GameData) -> GameData {
         }
     }
     data.classes.reverse();
-    for class in data.classes.iter_mut().chain(&mut data.prestige_classes) {
+    for class in data.all_classes_mut() {
         class.levels.reverse();
         for selection in &mut class.selections {
             selection.options.reverse();

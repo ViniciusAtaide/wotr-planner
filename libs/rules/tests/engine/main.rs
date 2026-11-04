@@ -19,6 +19,7 @@ mod facts;
 mod feat_lists;
 mod granted_feats;
 mod labels;
+mod lookups;
 mod mythic;
 mod mythic_extra_picks;
 mod option_class_skills;

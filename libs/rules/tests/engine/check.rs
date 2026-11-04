@@ -18,9 +18,7 @@ fn issues(data: &GameData) -> Vec<(DataAt, DataIssue)> {
 }
 
 fn class_mut<'a>(data: &'a mut GameData, key: &str) -> &'a mut rules::Class {
-    data.classes
-        .iter_mut()
-        .chain(&mut data.prestige_classes)
+    data.all_classes_mut()
         .find(|c| c.key.as_str() == key)
         .unwrap()
 }

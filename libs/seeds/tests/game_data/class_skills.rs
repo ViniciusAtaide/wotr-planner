@@ -186,21 +186,15 @@ fn a_sorcerer_holds_its_bloodlines_class_skill() {
 /// Every option row's class skills, as `option level: skills`.
 fn option_row_class_skills() -> Vec<(String, u8, Vec<String>)> {
     let mut rows = Vec::new();
-    for class in DATA.classes.iter().chain(&DATA.prestige_classes) {
-        let selections = class
-            .selections
-            .iter()
-            .chain(class.archetypes.iter().flat_map(|a| &a.selections));
-        for selection in selections {
-            for option in &selection.options {
-                for row in &option.levels {
-                    if !row.class_skills.is_empty() {
-                        rows.push((
-                            option.key.to_string(),
-                            row.level,
-                            row.class_skills.iter().map(|s| s.to_string()).collect(),
-                        ));
-                    }
+    for selection in DATA.class_selections() {
+        for option in &selection.options {
+            for row in &option.levels {
+                if !row.class_skills.is_empty() {
+                    rows.push((
+                        option.key.to_string(),
+                        row.level,
+                        row.class_skills.iter().map(|s| s.to_string()).collect(),
+                    ));
                 }
             }
         }
@@ -302,15 +296,7 @@ fn options_class_skills_are_the_guides_on_their_first_row_and_the_animal_domains
 #[test]
 fn no_feature_stands_for_a_fixed_class_skill() {
     let features: Vec<(&str, &str)> = DATA
-        .classes
-        .iter()
-        .chain(&DATA.prestige_classes)
-        .flat_map(|class| {
-            class
-                .features
-                .iter()
-                .chain(class.archetypes.iter().flat_map(|a| &a.features))
-        })
+        .class_features()
         .map(|feature| (feature.key.as_str(), feature.name.as_str()))
         .filter(|(_, name)| name.starts_with("Class Skill") || *name == "Skills")
         .collect();

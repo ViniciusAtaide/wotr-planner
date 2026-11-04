@@ -81,13 +81,7 @@ fn reads_every_fixture_file() {
 #[test]
 fn reads_class_progressions_and_only_the_archetype_rows_that_differ() {
     let data = read_fixture();
-    let class = |key: &str| {
-        data.classes
-            .iter()
-            .chain(&data.prestige_classes)
-            .find(|c| c.key.as_str() == key)
-            .unwrap()
-    };
+    let class = |key: &str| data.class(&ClassKey::new(key)).unwrap();
     let fighter = class("fighter");
     assert_eq!(
         (fighter.bab, fighter.fort, fighter.reflex, fighter.will),
@@ -575,13 +569,7 @@ fn reads_an_options_chosen_feat_and_repeat_and_defaults_them() {
 #[test]
 fn reads_advancement_counts_as_and_story_conditions_and_defaults_them() {
     let data = read_fixture();
-    let class = |key: &str| {
-        data.classes
-            .iter()
-            .chain(&data.prestige_classes)
-            .find(|c| c.key.as_str() == key)
-            .unwrap()
-    };
+    let class = |key: &str| data.class(&ClassKey::new(key)).unwrap();
     assert_eq!(class("loremaster").advances, Advancement::Either);
     assert_eq!(class("mystic-theurge").advances, Advancement::Each);
     assert_eq!(

@@ -60,6 +60,62 @@ pub struct GameData {
 }
 
 impl GameData {
+    /// Every class: the base classes, then the prestige classes.
+    pub fn all_classes(&self) -> impl Iterator<Item = &Class> {
+        self.classes.iter().chain(&self.prestige_classes)
+    }
+
+    /// [`all_classes`](Self::all_classes), to edit in place.
+    pub fn all_classes_mut(&mut self) -> impl Iterator<Item = &mut Class> {
+        self.classes.iter_mut().chain(&mut self.prestige_classes)
+    }
+
+    /// A class by key, base or prestige. A walk of the lists: the engine finds classes through its index instead.
+    pub fn class(&self, key: &ClassKey) -> Option<&Class> {
+        self.all_classes().find(|class| class.key == *key)
+    }
+
+    /// Every class's Feature selections: each class's own, then its archetypes', for every class in
+    /// [`all_classes`](Self::all_classes) order.
+    pub fn class_selections(&self) -> impl Iterator<Item = &FeatureSelection> {
+        self.all_classes().flat_map(|class| {
+            class.selections.iter().chain(
+                class
+                    .archetypes
+                    .iter()
+                    .flat_map(|archetype| &archetype.selections),
+            )
+        })
+    }
+
+    /// Every Feature selection: the [`class_selections`](Self::class_selections), then each path's.
+    pub fn selections(&self) -> impl Iterator<Item = &FeatureSelection> {
+        self.class_selections()
+            .chain(self.mythic_paths.iter().flat_map(|path| &path.selections))
+    }
+
+    /// Every class's features: each class's own, then its archetypes', for every class in
+    /// [`all_classes`](Self::all_classes) order.
+    pub fn class_features(&self) -> impl Iterator<Item = &Feature> {
+        self.all_classes().flat_map(|class| {
+            class.features.iter().chain(
+                class
+                    .archetypes
+                    .iter()
+                    .flat_map(|archetype| &archetype.features),
+            )
+        })
+    }
+
+    /// A Selection option by key, from any selection's own options (the first, in
+    /// [`selections`](Self::selections) order). A walk of the lists: the engine finds options through its index
+    /// instead.
+    pub fn selection_option(&self, key: &SelectionOptionKey) -> Option<&SelectionOption> {
+        self.selections()
+            .flat_map(|selection| &selection.options)
+            .find(|option| option.key == *key)
+    }
+
     /// Every archetype of every base class.
     pub fn archetypes(&self) -> impl Iterator<Item = &Archetype> {
         self.classes.iter().flat_map(|class| &class.archetypes)
@@ -68,18 +124,14 @@ impl GameData {
     /// Every feat list: each race's, each class's (base, then prestige), each of its archetypes', then each path's.
     pub fn feat_lists(&self) -> impl Iterator<Item = &FeatList> {
         let races = self.races.iter().flat_map(|race| &race.feat_lists);
-        let classes = self
-            .classes
-            .iter()
-            .chain(&self.prestige_classes)
-            .flat_map(|class| {
-                class.feat_lists.iter().chain(
-                    class
-                        .archetypes
-                        .iter()
-                        .flat_map(|archetype| &archetype.feat_lists),
-                )
-            });
+        let classes = self.all_classes().flat_map(|class| {
+            class.feat_lists.iter().chain(
+                class
+                    .archetypes
+                    .iter()
+                    .flat_map(|archetype| &archetype.feat_lists),
+            )
+        });
         races
             .chain(classes)
             .chain(self.mythic_paths.iter().flat_map(|path| &path.feat_lists))
@@ -124,7 +176,7 @@ impl GameData {
         for feat in &mut self.feats {
             canonicalize_prerequisite(&mut feat.prerequisite);
         }
-        for class in self.classes.iter_mut().chain(&mut self.prestige_classes) {
+        for class in self.all_classes_mut() {
             class.canonicalize();
         }
         sort_by_key(&mut self.classes, |c| c.key.clone());

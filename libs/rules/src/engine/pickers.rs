@@ -221,13 +221,7 @@ impl Engine {
         let state = self.probe(build, Probe::Level(level)).state?;
         let recheck = (usize::from(level) <= build.levels.len()).then(|| Recheck::new(self, build));
         let mut options = Vec::new();
-        for class in self
-            .catalog
-            .data()
-            .classes
-            .iter()
-            .chain(&self.catalog.data().prestige_classes)
-        {
+        for class in self.catalog.data().all_classes() {
             let taken = state.classes.iter().find(|c| c.class == class.key);
             let archetypes: Vec<Option<&Archetype>> = match taken {
                 Some(taken) => vec![self.catalog.archetype_of(class, taken.archetype.as_ref())],

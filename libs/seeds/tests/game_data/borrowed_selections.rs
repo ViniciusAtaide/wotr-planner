@@ -39,29 +39,13 @@ const BORROWED_FEATURES: [(&str, &str); 7] = [
 
 /// Every selection of the data, by key.
 fn any_selection(key: &str) -> &'static rules::FeatureSelection {
-    DATA.classes
-        .iter()
-        .flat_map(|class| {
-            class
-                .selections
-                .iter()
-                .chain(class.archetypes.iter().flat_map(|a| &a.selections))
-        })
+    DATA.selections()
         .find(|selection| selection.key.as_str() == key)
         .unwrap_or_else(|| panic!("no selection {key}"))
 }
 
 fn option_prerequisite(key: &str) -> &'static Prerequisite {
-    DATA.classes
-        .iter()
-        .flat_map(|class| {
-            class
-                .selections
-                .iter()
-                .chain(class.archetypes.iter().flat_map(|a| &a.selections))
-        })
-        .flat_map(|selection| &selection.options)
-        .find(|option| option.key.as_str() == key)
+    DATA.selection_option(&SelectionOptionKey::new(key))
         .unwrap_or_else(|| panic!("no option {key}"))
         .prerequisite
         .as_ref()

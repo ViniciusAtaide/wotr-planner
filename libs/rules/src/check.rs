@@ -813,20 +813,7 @@ impl Checker {
 
     /// A selection offering an option with rows names the classes whose levels make its option level.
     fn option_levels<'a>(&mut self, data: &'a GameData) {
-        let selections: Vec<&'a FeatureSelection> = data
-            .classes
-            .iter()
-            .chain(&data.prestige_classes)
-            .flat_map(|class| {
-                class.selections.iter().chain(
-                    class
-                        .archetypes
-                        .iter()
-                        .flat_map(|archetype| &archetype.selections),
-                )
-            })
-            .chain(data.mythic_paths.iter().flat_map(|path| &path.selections))
-            .collect();
+        let selections: Vec<&'a FeatureSelection> = data.selections().collect();
         let with_rows: HashSet<&SelectionOptionKey> = selections
             .iter()
             .flat_map(|selection| &selection.options)
@@ -1024,13 +1011,12 @@ impl Checker {
     /// A class's levels can count toward another class's feature only when that class's rows (or its
     /// archetypes') grant it. An unknown class is the foreign keys' business.
     fn counts_toward_features(&mut self, data: &GameData) {
-        let classes = || data.classes.iter().chain(&data.prestige_classes);
-        for class in classes() {
+        for class in data.all_classes() {
             for counts in &class.counts_as {
                 let CountsToward::Feature(feature) = &counts.toward else {
                     continue;
                 };
-                let Some(other) = classes().find(|other| other.key == counts.class) else {
+                let Some(other) = data.class(&counts.class) else {
                     continue;
                 };
                 let granted = other

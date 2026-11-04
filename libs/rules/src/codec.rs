@@ -226,7 +226,7 @@ impl LinkKeys {
         for weapon in &data.weapons {
             keys.insert(KeyKind::Weapon, weapon.key.as_str());
         }
-        for class in data.classes.iter().chain(&data.prestige_classes) {
+        for class in data.all_classes() {
             keys.insert(KeyKind::Class, class.key.as_str());
         }
         for archetype in data.archetypes() {
@@ -238,20 +238,7 @@ impl LinkKeys {
         for feat in &data.feats {
             keys.insert(KeyKind::Feat, feat.key.as_str());
         }
-        let selections = data
-            .classes
-            .iter()
-            .chain(&data.prestige_classes)
-            .flat_map(|class| {
-                class.selections.iter().chain(
-                    class
-                        .archetypes
-                        .iter()
-                        .flat_map(|archetype| &archetype.selections),
-                )
-            })
-            .chain(data.mythic_paths.iter().flat_map(|path| &path.selections));
-        for option in selections.flat_map(|selection| &selection.options) {
+        for option in data.selections().flat_map(|selection| &selection.options) {
             keys.insert(KeyKind::SelectionOption, option.key.as_str());
         }
         for ability in &data.mythic_abilities {

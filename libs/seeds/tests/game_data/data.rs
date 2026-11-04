@@ -193,18 +193,7 @@ fn every_feat_list_holds_two_feats_or_more_or_every_feat() {
 fn no_selection_option_is_a_copy_of_another() {
     // A copy had its own key and the original's guide anchor; a selection shares the original instead.
     let mut anchors = HashMap::new();
-    for selection in DATA
-        .classes
-        .iter()
-        .chain(&DATA.prestige_classes)
-        .flat_map(|class| {
-            class
-                .selections
-                .iter()
-                .chain(class.archetypes.iter().flat_map(|a| &a.selections))
-        })
-        .chain(DATA.mythic_paths.iter().flat_map(|path| &path.selections))
-    {
+    for selection in DATA.selections() {
         // An option the guide gives no heading of its own links to the page (Nature Bond's two): no anchor to copy.
         // The ten dragons and four elements share their bloodline's heading, and name it ("Draconic (Black)"); the
         // Primalist's two choices are described under their selection's heading.

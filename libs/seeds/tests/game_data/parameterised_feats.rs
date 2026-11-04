@@ -310,15 +310,7 @@ fn the_rogue_talents_weapon_focus_and_skill_focus_name_their_value() {
 #[test]
 fn rage_powers_discoveries_incense_and_mutations_repeat_as_the_guide_says() {
     let options: HashMap<&str, Repeat> = DATA
-        .classes
-        .iter()
-        .chain(&DATA.prestige_classes)
-        .flat_map(|class| {
-            class
-                .selections
-                .iter()
-                .chain(class.archetypes.iter().flat_map(|a| &a.selections))
-        })
+        .class_selections()
         .flat_map(|selection| &selection.options)
         .filter(|option| option.repeat != Repeat::Once)
         .map(|option| (option.key.as_str(), option.repeat))

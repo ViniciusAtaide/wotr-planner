@@ -12,9 +12,7 @@ use crate::support::*;
 #[test]
 fn signifer_loremaster_and_winter_witch_advance_one_class_arcane_or_divine() {
     let either: BTreeSet<&str> = DATA
-        .classes
-        .iter()
-        .chain(&DATA.prestige_classes)
+        .all_classes()
         .filter(|class| class.advances == Advancement::Either)
         .map(|class| class.key.as_str())
         .collect();

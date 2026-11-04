@@ -138,10 +138,7 @@ pub fn values_at(build: &Build, level: u8, key: &str) -> BTreeSet<Parameter> {
 }
 
 pub fn class(key: &str) -> &'static rules::Class {
-    DATA.classes
-        .iter()
-        .chain(&DATA.prestige_classes)
-        .find(|class| class.key.as_str() == key)
+    DATA.class(&ClassKey::new(key))
         .unwrap_or_else(|| panic!("no class {key}"))
 }
 
@@ -310,30 +307,17 @@ pub fn separatist(levels: usize) -> Build {
 /// Every prerequisite in the real data: feats', classes', archetypes', selection options', mythic abilities' and
 /// mythic feats'.
 pub fn data_prerequisites(data: &GameData) -> Vec<&Prerequisite> {
-    let selections = data
-        .classes
-        .iter()
-        .chain(&data.prestige_classes)
-        .flat_map(|class| {
-            class
-                .selections
-                .iter()
-                .chain(class.archetypes.iter().flat_map(|a| &a.selections))
-        })
-        .chain(data.mythic_paths.iter().flat_map(|path| &path.selections));
     let prerequisites = data
         .feats
         .iter()
         .filter_map(|feat| feat.prerequisite.as_ref())
         .chain(
-            data.classes
-                .iter()
-                .chain(&data.prestige_classes)
+            data.all_classes()
                 .filter_map(|class| class.prerequisite.as_ref()),
         )
         .chain(data.archetypes().filter_map(|a| a.prerequisite.as_ref()))
         .chain(
-            selections
+            data.selections()
                 .flat_map(|selection| &selection.options)
                 .filter_map(|option| option.prerequisite.as_ref()),
         )
@@ -351,17 +335,7 @@ pub fn data_prerequisites(data: &GameData) -> Vec<&Prerequisite> {
 }
 
 pub fn selection_option(key: &str) -> &'static rules::SelectionOption {
-    DATA.classes
-        .iter()
-        .chain(&DATA.prestige_classes)
-        .flat_map(|class| {
-            class
-                .selections
-                .iter()
-                .chain(class.archetypes.iter().flat_map(|a| &a.selections))
-        })
-        .flat_map(|selection| &selection.options)
-        .find(|option| option.key.as_str() == key)
+    DATA.selection_option(&SelectionOptionKey::new(key))
         .unwrap_or_else(|| panic!("no option {key}"))
 }
 

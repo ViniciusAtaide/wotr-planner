@@ -539,17 +539,7 @@ struct FeatureFacts {
 impl FeatureFacts {
     fn new(data: &GameData) -> Self {
         let features: Vec<&crate::game_data::Feature> = data
-            .classes
-            .iter()
-            .chain(&data.prestige_classes)
-            .flat_map(|class| {
-                class.features.iter().chain(
-                    class
-                        .archetypes
-                        .iter()
-                        .flat_map(|archetype| &archetype.features),
-                )
-            })
+            .class_features()
             .chain(data.mythic_paths.iter().flat_map(|path| &path.features))
             .collect();
         let mut name_counts: HashMap<&str, usize> = HashMap::new();
