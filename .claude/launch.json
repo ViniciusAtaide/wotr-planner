@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "wotr-planner",
+      "runtimeExecutable": "cargo",
+      "runtimeArgs": ["leptos", "serve"],
+      "port": 3900
+    }
+  ]
+}
