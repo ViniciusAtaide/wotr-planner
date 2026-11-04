@@ -293,8 +293,22 @@ pub fn ItemList(
 
 /// Runs `work` after the browser has painted, so a picker opens at once and shows that it's working while the
 /// engine computes its options.
-fn after_paint(work: impl FnOnce() + 'static) {
-    request_animation_frame(move || set_timeout(work, Duration::ZERO));
+/// Fills a picker's list after the first paint, so the picker opens at once. A picker closed before then has
+/// disposed `list` and every value the work reads, so the work is skipped.
+fn after_paint<T: Send + Sync + 'static>(
+    list: RwSignal<Option<T>>,
+    work: impl FnOnce() -> T + 'static,
+) {
+    request_animation_frame(move || {
+        set_timeout(
+            move || {
+                if !list.is_disposed() {
+                    list.set(Some(work()));
+                }
+            },
+            Duration::ZERO,
+        )
+    });
 }
 
 fn loading() -> AnyView {
@@ -385,10 +399,10 @@ fn SlotPicker(id: SlotId) -> impl IntoView {
     {
         let engine = engine.clone();
         let slot = slot.clone();
-        after_paint(move || {
+        after_paint(computed, move || {
             let build = planner.build.get_untracked();
             let options = timed("options", || engine.options(&build, &slot)).unwrap_or_default();
-            computed.set(Some(Arc::new(groups(&engine, options))));
+            Arc::new(groups(&engine, options))
         });
     }
     let open_group = RwSignal::new(None::<usize>);
@@ -555,12 +569,12 @@ fn ClassPicker(level: u8) -> impl IntoView {
     let planner = use_planner();
     let engine = StoredValue::new(planner.engine());
     let computed = RwSignal::new(None::<Arc<Vec<ClassOption>>>);
-    after_paint(move || {
+    after_paint(computed, move || {
         let build = planner.build.get_untracked();
         let options = engine.with_value(|engine| {
             timed("class_options", || engine.class_options(&build, level)).unwrap_or_default()
         });
-        computed.set(Some(Arc::new(options)));
+        Arc::new(options)
     });
     // A prestige class first taken here asks which classes it advances.
     let advancing = RwSignal::new(None::<ClassOption>);
@@ -788,11 +802,10 @@ fn StartPicker(
     let starts = StoredValue::new(starts);
     {
         let current = current.clone();
-        after_paint(move || {
-            let items = starts.with_value(|starts| {
+        after_paint(computed, move || {
+            starts.with_value(|starts| {
                 timed("start_options", || start_items(planner, starts, &current))
-            });
-            computed.set(Some(items));
+            })
         });
     }
     let list = move || {
