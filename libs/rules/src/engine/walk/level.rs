@@ -7,8 +7,11 @@ use super::{GrantSource, Held, Pending, Walker};
 use crate::build::{FeatSource, LevelUp, SlotId};
 use crate::choice::Choice;
 use crate::engine::catalog::Catalog;
-use crate::engine::{SkillPoints, Slot, SlotKind, class_level_cap, effective_rows};
-use crate::game_data::{Ability, Advancement, Class, CountsToward, FeatSlot, Save};
+use crate::engine::{
+    SkillPoints, Slot, SlotKind, advanced_spellcasting, class_level_cap, effective_rows,
+    most_advanced,
+};
+use crate::game_data::{Ability, Class, CountsToward, FeatSlot, Save};
 use crate::keys::{ClassKey, FeatKey, FeatureKey, FeatureSelectionKey};
 use crate::state::{CharacterState, ClassLevels};
 
@@ -49,11 +52,10 @@ impl<'a> Walker<'a> {
     }
 
     /// A prestige class advances at most one arcane and one divine class (one class in all when it advances
-    /// `Either`), each already taken and casting the spells it advances.
+    /// `Either`: [`most_advanced`]), each already taken and casting the spells it advances.
     fn check_advances(&mut self, prestige: &Class, advances: &BTreeSet<ClassKey>) {
         let catalog = &self.engine.catalog;
-        let advances_arcane = prestige.levels.iter().any(|row| row.advances_arcane);
-        let advances_divine = prestige.levels.iter().any(|row| row.advances_divine);
+        let (advances_arcane, advances_divine) = advanced_spellcasting(prestige);
         // For each named class: (can take the arcane advancement, can take the divine one).
         let mut serves = Vec::new();
         for key in advances {
@@ -68,12 +70,13 @@ impl<'a> Walker<'a> {
             let divine = advances_divine && casts_divine;
             serves.push((held.is_some() && arcane, held.is_some() && divine));
         }
-        let fits = match (prestige.advances, serves.as_slice()) {
-            (_, []) => true,
-            (_, [(arcane, divine)]) => *arcane || *divine,
-            (Advancement::Each, [(a1, d1), (a2, d2)]) => (*a1 && *d2) || (*d1 && *a2),
-            _ => false,
-        };
+        let fits = serves.len() <= most_advanced(prestige)
+            && match serves.as_slice() {
+                [] => true,
+                [(arcane, divine)] => *arcane || *divine,
+                [(a1, d1), (a2, d2)] => (*a1 && *d2) || (*d1 && *a2),
+                _ => false,
+            };
         if !fits {
             self.fail(Choice::Advances {
                 class: prestige.key.clone(),

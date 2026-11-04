@@ -50,6 +50,70 @@ fn a_key_the_data_lacks_is_named_by_its_key() {
 }
 
 #[test]
+fn the_start_pickers_list_the_races_backgrounds_and_skills_in_key_order() {
+    let engine = engine();
+    let races: Vec<&str> = engine.races().iter().map(|r| r.key.as_str()).collect();
+    assert_eq!(races, ["dwarf", "elf", "half-elf", "human"]);
+    let subraces: Vec<&str> = engine.races()[2]
+        .subraces
+        .iter()
+        .map(|s| s.key.as_str())
+        .collect();
+    assert_eq!(subraces, ["half-elf/adaptable", "half-elf/dual-heritage"]);
+    let backgrounds: Vec<&str> = engine
+        .backgrounds()
+        .iter()
+        .map(|b| b.key.as_str())
+        .collect();
+    assert_eq!(
+        backgrounds,
+        [
+            "aldori-swordsman",
+            "guard",
+            "martial-disciple",
+            "none",
+            "shackles-corsair"
+        ]
+    );
+    let skills: Vec<&str> = engine.skills().iter().map(|s| s.key.as_str()).collect();
+    assert_eq!(
+        skills,
+        ["athletics", "knowledge-arcana", "mobility", "persuasion"]
+    );
+}
+
+#[test]
+fn a_background_note_and_a_path_summary_come_from_the_game_data() {
+    let mut data = world();
+    let legend = data
+        .mythic_paths
+        .iter_mut()
+        .find(|p| p.key == path("legend"))
+        .unwrap();
+    legend.summary = "Raises the level cap to 40.".into();
+    let engine = Engine::new(data);
+    assert_eq!(
+        engine.background_note(&rules::BackgroundKey::new("guard")),
+        "Shortsword and light crossbow proficiency."
+    );
+    assert_eq!(
+        engine.background_note(&rules::BackgroundKey::new("martial-disciple")),
+        ""
+    );
+    assert_eq!(
+        engine.path_summary(&path("legend")),
+        "Raises the level cap to 40."
+    );
+    assert_eq!(engine.path_summary(&path("aeon")), "");
+    // A key the data lacks has none.
+    assert_eq!(
+        engine.background_note(&rules::BackgroundKey::new("no-such-background")),
+        ""
+    );
+    assert_eq!(engine.path_summary(&path("no-such-path")), "");
+}
+
+#[test]
 fn a_pick_is_named_with_its_value() {
     let engine = engine();
     assert_eq!(engine.pick_name(&pick_feat("power-attack")), "power-attack");

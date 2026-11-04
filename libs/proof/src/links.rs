@@ -1,7 +1,7 @@
 //! Builds as share links, one `name<TAB>link` line each: the benchmark's links (`bench-links.tsv`), and the files
 //! `export` writes and `record --links` reads, so two revisions record the same Builds.
 
-use rules::{Build, Engine, LinkKeys, decode_build, encode_build};
+use rules::{Build, Engine, GameData, LinkKeys, decode_build, encode_build};
 
 use crate::Named;
 
@@ -33,8 +33,8 @@ fn parse(text: &str) -> impl Iterator<Item = (&str, &str)> {
 /// The Builds of a links file, in its order, decoded with the game data's keys whether or not they're possible (a
 /// Build no sheet holds is recorded too). Returns the names of the links that don't decode apart: those Builds
 /// can't be recorded on this side, so a comparison lists them as only in the other.
-pub fn read(engine: &Engine, text: &str) -> (Vec<Named>, Vec<String>) {
-    let keys = LinkKeys::new(engine.data());
+pub fn read(data: &GameData, text: &str) -> (Vec<Named>, Vec<String>) {
+    let keys = LinkKeys::new(data);
     let mut builds = Vec::new();
     let mut failed = Vec::new();
     for (name, link) in parse(text) {
@@ -52,8 +52,8 @@ pub fn read(engine: &Engine, text: &str) -> (Vec<Named>, Vec<String>) {
 
 /// The Builds as a links file. Returns the names of the Builds whose link doesn't decode back to the same Build with
 /// this game data's keys; they're left out.
-pub fn export(engine: &Engine, builds: &[Named]) -> (String, Vec<String>) {
-    let keys = LinkKeys::new(engine.data());
+pub fn export(data: &GameData, builds: &[Named]) -> (String, Vec<String>) {
+    let keys = LinkKeys::new(data);
     let mut text = String::new();
     let mut skipped = Vec::new();
     for (name, build) in builds {

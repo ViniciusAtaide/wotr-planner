@@ -305,6 +305,18 @@ impl Engine {
             .map_or(key.as_str(), |background| &background.name)
     }
 
+    /// A background's note (what else it gives, in our own words); empty when it has none.
+    pub fn background_note(&self, key: &BackgroundKey) -> &str {
+        self.catalog
+            .background(key)
+            .map_or("", |background| &background.note)
+    }
+
+    /// A path's short summary, in our own words; empty when the data has none.
+    pub fn path_summary(&self, key: &MythicPathKey) -> &str {
+        self.catalog.path(key).map_or("", |path| &path.summary)
+    }
+
     /// A Parameter as the sheet shows it: the skill's or weapon's name, or the school, energy or armour type.
     pub fn parameter_name<'a>(&'a self, value: &'a Parameter) -> &'a str {
         match value {

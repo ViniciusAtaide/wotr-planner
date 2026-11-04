@@ -12,11 +12,12 @@
 
 use std::collections::BTreeSet;
 
-use crate::build::{AbilityScores, Pick, SlotId};
+use crate::build::{AbilityScores, BuildStart, Pick, SlotId};
 use crate::choice::Issue;
 use crate::codec::LinkKeys;
 use crate::game_data::{
-    AbilityBonus, Archetype, Class, FeatList, FeatSlot, FeatValue, GameData, SpellLevels,
+    Ability, AbilityBonus, AbilityModifier, Advancement, Archetype, Background, Class, FeatList,
+    FeatSlot, FeatValue, GameData, Race, Skill, SpellLevels,
 };
 use crate::keys::{
     ArchetypeKey, ClassKey, FeatKey, FeatListKey, FeatureKey, FeatureSelectionKey, MythicPathKey,
@@ -60,8 +61,19 @@ impl Engine {
         }
     }
 
-    pub fn data(&self) -> &GameData {
-        self.catalog.data()
+    /// Every race, with its subraces, in key order: the race picker's list.
+    pub fn races(&self) -> &[Race] {
+        &self.catalog.data().races
+    }
+
+    /// Every background, in key order: the background picker's list.
+    pub fn backgrounds(&self) -> &[Background] {
+        &self.catalog.data().backgrounds
+    }
+
+    /// Every skill, in key order: the skill ranks panel's rows.
+    pub fn skills(&self) -> &[Skill] {
+        &self.catalog.data().skills
     }
 
     /// Every value of a kind, in key (or declaration) order: the skills, weapons, exotic weapons, schools, energy
@@ -85,6 +97,35 @@ impl Engine {
             .cloned()
             .collect()
     }
+
+    /// The modifier a Build start's race (or its subrace, whose modifiers replace the race's) gives an ability:
+    /// the chosen bonus counts toward the ability the start puts it on, and toward none until it does.
+    pub fn racial_modifier(&self, start: &BuildStart, ability: Ability) -> i8 {
+        racial_amounts(self.catalog.racial_modifiers(start), start)
+            .filter(|(to, _)| *to == ability)
+            .map(|(_, amount)| amount)
+            .sum()
+    }
+
+    /// Whether a Build start's race (or subrace) lets it choose where a bonus goes ("+2 to one ability score").
+    pub fn chooses_racial_ability(&self, start: &BuildStart) -> bool {
+        self.catalog
+            .racial_modifiers(start)
+            .iter()
+            .any(|modifier| matches!(modifier, AbilityModifier::Chosen { .. }))
+    }
+}
+
+/// Each racial modifier's ability and amount: a chosen one on the start's racial ability, and left out while the
+/// start puts it nowhere.
+fn racial_amounts<'a>(
+    modifiers: &'a [AbilityModifier],
+    start: &'a BuildStart,
+) -> impl Iterator<Item = (Ability, i8)> + 'a {
+    modifiers.iter().filter_map(|modifier| match *modifier {
+        AbilityModifier::Fixed { ability, amount } => Some((ability, amount)),
+        AbilityModifier::Chosen { amount } => start.racial_ability.map(|ability| (ability, amount)),
+    })
 }
 
 /// What a Mythic rank's general pick is.
@@ -350,4 +391,21 @@ pub fn with_bonuses<'b>(
 /// has its base class's table.
 fn class_level_cap(class: &Class) -> u8 {
     u8::try_from(class.levels.len()).unwrap_or(u8::MAX)
+}
+
+/// Which spellcasting a prestige class's rows advance: (arcane, divine). Neither for a base class.
+fn advanced_spellcasting(class: &Class) -> (bool, bool) {
+    let arcane = class.levels.iter().any(|row| row.advances_arcane);
+    let divine = class.levels.iter().any(|row| row.advances_divine);
+    (arcane, divine)
+}
+
+/// How many classes a prestige class may advance: one per spell type its rows advance, or one in all when it
+/// advances `Either`.
+fn most_advanced(class: &Class) -> usize {
+    let (arcane, divine) = advanced_spellcasting(class);
+    match class.advances {
+        Advancement::Each => usize::from(arcane) + usize::from(divine),
+        Advancement::Either => usize::from(arcane || divine),
+    }
 }

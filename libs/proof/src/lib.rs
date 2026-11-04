@@ -34,10 +34,17 @@ pub mod fingerprint;
 pub mod generate;
 pub mod links;
 
-use rules::{Build, Engine};
+use rules::{Build, Engine, GameData};
 
 /// A Build with the name the records know it by.
 pub type Named = (String, Build);
+
+/// The engine on the game data, and the game data in the canonical order the engine holds it in. The harness keeps
+/// its own copy for the lists it walks (every race, skill, class…): the engine doesn't hand out its data.
+pub fn engine_on(data: GameData) -> (Engine, GameData) {
+    let data = data.canonical();
+    (Engine::new(data.clone()), data)
+}
 
 /// Runs `work` on each Build on `threads` threads, keeping the Builds' order.
 pub fn in_parallel<T: Send>(
@@ -61,9 +68,9 @@ pub fn in_parallel<T: Send>(
     })
 }
 
-/// The record of `builds`: one JSON line each, in their order.
-pub fn record(engine: &Engine, builds: &[Named], threads: usize) -> Vec<String> {
+/// The record of `builds`: one JSON line each, in their order. `data` is the engine's game data ([`engine_on`]).
+pub fn record(engine: &Engine, data: &GameData, builds: &[Named], threads: usize) -> Vec<String> {
     in_parallel(builds, threads, |(name, build)| {
-        fingerprint::fingerprint(engine, name, build).to_string()
+        fingerprint::fingerprint(engine, data, name, build).to_string()
     })
 }

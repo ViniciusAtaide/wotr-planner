@@ -98,6 +98,47 @@ fn a_subrace_replaces_the_race_ability_modifiers() {
     );
 }
 
+/// A Build start's racial modifier to each ability, in the order Str, Dex, Con, Int, Wis, Cha.
+fn racial_modifiers(start: &rules::BuildStart) -> [i8; 6] {
+    let engine = engine();
+    rules::AbilityScores::ABILITIES.map(|ability| engine.racial_modifier(start, ability))
+}
+
+#[test]
+fn the_racial_modifiers_are_the_races_or_its_subraces_with_the_chosen_bonus_where_the_start_puts_it()
+ {
+    let mut start = build("elf", &[]).start;
+    assert_eq!(racial_modifiers(&start), [0, 2, -2, 2, 0, 0]);
+    start.subrace = Some(SubraceKey::new("elf/blightborn"));
+    assert_eq!(racial_modifiers(&start), [0, 2, -2, 0, 2, 0]);
+
+    let mut start = build("human", &[]).start;
+    assert_eq!(racial_modifiers(&start), [0; 6], "not placed yet");
+    start.racial_ability = Some(Ability::Wisdom);
+    assert_eq!(racial_modifiers(&start), [0, 0, 0, 0, 2, 0]);
+
+    start.race = None;
+    assert_eq!(racial_modifiers(&start), [0; 6]);
+}
+
+#[test]
+fn a_race_or_subrace_with_a_chosen_bonus_lets_the_start_choose_its_ability() {
+    let engine = engine();
+    let mut start = build("human", &[]).start;
+    assert!(engine.chooses_racial_ability(&start));
+    start.race = Some(rules::RaceKey::new("half-elf"));
+    start.subrace = Some(SubraceKey::new("half-elf/dual-heritage"));
+    assert!(engine.chooses_racial_ability(&start));
+
+    let mut start = build("elf", &[]).start;
+    assert!(!engine.chooses_racial_ability(&start));
+    start.subrace = Some(SubraceKey::new("elf/blightborn"));
+    assert!(!engine.chooses_racial_ability(&start));
+    start.race = None;
+    start.subrace = None;
+    assert!(!engine.chooses_racial_ability(&start));
+}
+
 #[test]
 fn skill_ranks_accumulate_and_skill_points_come_from_class_and_intelligence() {
     // Int 13 (+1). Rogue: 8 + 1 = 9 points a level; fighter: 2 + 1 = 3.

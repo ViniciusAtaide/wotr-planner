@@ -9,8 +9,8 @@ use std::time::Duration;
 
 use leptos::prelude::*;
 use rules::{
-    Ability, AbilityModifier, AbilityScores, Alignment, Build, BuildStart, Choice, ClassChoice,
-    ClassKey, ClassOption, Edit, Engine, Issue, Pick, SlotId, SlotOption,
+    Ability, AbilityScores, Alignment, Build, BuildStart, Choice, ClassOption, Edit, Engine, Issue,
+    PATH_CHOICE_RANK, PATH_SWITCH_RANK, Pick, SlotId, SlotOption,
 };
 
 use crate::planner::{Target, use_planner};
@@ -535,53 +535,19 @@ fn value_noun(value: &rules::Parameter) -> &'static str {
     }
 }
 
-/// Whether a class is first taken at this level: no level before it takes it.
-fn first_taken_at(build: &Build, class: &ClassKey, level: u8) -> bool {
-    !build
-        .levels
-        .iter()
-        .take(usize::from(level).saturating_sub(1))
-        .any(|level_up| &level_up.class == class)
-}
-
-/// Whether a prestige class's rows advance another class's spellcasting.
-fn advances_spellcasting(engine: &Engine, class: &ClassKey) -> bool {
-    engine
-        .data()
-        .prestige_classes
-        .iter()
-        .find(|prestige| &prestige.key == class)
-        .is_some_and(|prestige| {
-            prestige
-                .levels
-                .iter()
-                .any(|row| row.advances_arcane || row.advances_divine)
+/// Whether the Build holds this class option at the level now: the level's class, with the option's archetype.
+fn holds_class_option(build: &Build, level: u8, option: &ClassOption) -> bool {
+    usize::from(level)
+        .checked_sub(1)
+        .and_then(|index| build.levels.get(index))
+        .is_some_and(|level_up| {
+            level_up.class == option.class
+                && build
+                    .class_choices
+                    .get(&option.class)
+                    .map(|choice| &choice.archetype)
+                    == Some(&option.archetype)
         })
-}
-
-/// The edit for taking a class option at a level: a class first taken here gets the option's archetype and the
-/// advancement given (or the one it has).
-fn class_edit(
-    build: &Build,
-    level: u8,
-    option: &ClassOption,
-    advances: Option<BTreeSet<ClassKey>>,
-) -> Edit {
-    let choice = first_taken_at(build, &option.class, level).then(|| ClassChoice {
-        archetype: option.archetype.clone(),
-        advances: advances.unwrap_or_else(|| {
-            build
-                .class_choices
-                .get(&option.class)
-                .map(|choice| choice.advances.clone())
-                .unwrap_or_default()
-        }),
-    });
-    Edit::Class {
-        level,
-        class: option.class.clone(),
-        choice,
-    }
 }
 
 #[component]
@@ -609,24 +575,16 @@ fn ClassPicker(level: u8) -> impl IntoView {
 
     let choose = move |option: ClassOption| {
         let build = planner.build.get_untracked();
-        let needs_advances = engine.with_value(|engine| {
-            engine.is_prestige(&option.class)
-                && advances_spellcasting(engine, &option.class)
-                && first_taken_at(&build, &option.class, level)
-        });
+        let needs_advances =
+            engine.with_value(|engine| engine.asks_advances(&build, level, &option.class));
         if needs_advances {
             advancing.set(Some(option));
             return;
         }
         planner.close();
-        let edit = class_edit(&build, level, &option, None);
-        let unchanged = build.levels.get(usize::from(level) - 1).is_some_and(|l| {
-            l.class == option.class
-                && build.class_choices.get(&option.class).map(|c| &c.archetype)
-                    == Some(&option.archetype)
-        });
-        if !unchanged {
-            planner.edit(edit);
+        if !holds_class_option(&build, level, &option) {
+            planner
+                .edit(engine.with_value(|engine| engine.class_edit(&build, level, &option, None)));
         }
     };
 
@@ -677,17 +635,6 @@ fn class_item(engine: &Engine, build: &Build, level: u8, option: &ClassOption) -
         ),
         None => (class_name.to_owned(), String::new()),
     };
-    let current = build
-        .levels
-        .get(usize::from(level).wrapping_sub(1))
-        .is_some_and(|level_up| {
-            level_up.class == option.class
-                && build
-                    .class_choices
-                    .get(&option.class)
-                    .map(|choice| &choice.archetype)
-                    == Some(&option.archetype)
-        });
     Item {
         detail,
         category: if prestige {
@@ -697,50 +644,19 @@ fn class_item(engine: &Engine, build: &Build, level: u8, option: &ClassOption) -
         },
         locked: option.status.is_err(),
         reason: reason(engine, &option.status),
-        current,
+        current: holds_class_option(build, level, option),
         ..Item::new(name)
     }
 }
 
-/// Which held classes a prestige class advances: the choices the rules allow here, and none.
+/// Which held classes a prestige class advances: the choices the rules allow here ([`Engine::advances_options`]).
 #[component]
 fn Advances(level: u8, option: ClassOption) -> impl IntoView {
     let planner = use_planner();
     let engine = planner.engine();
     let build = planner.build.get_untracked();
-    let held: Vec<ClassKey> = build
-        .levels
-        .iter()
-        .take(usize::from(level) - 1)
-        .map(|level_up| level_up.class.clone())
-        .fold(Vec::new(), |mut held, class| {
-            if !held.contains(&class) {
-                held.push(class);
-            }
-            held
-        });
-    let mut candidates: Vec<BTreeSet<ClassKey>> = held
-        .iter()
-        .map(|class| BTreeSet::from([class.clone()]))
-        .collect();
-    for (i, first) in held.iter().enumerate() {
-        for second in &held[i + 1..] {
-            candidates.push(BTreeSet::from([first.clone(), second.clone()]));
-        }
-    }
-    candidates.push(BTreeSet::new());
-    let possible: Vec<BTreeSet<ClassKey>> = timed("advances", || {
-        candidates
-            .into_iter()
-            .filter(|advances| {
-                let mut after = build.clone();
-                engine.apply(
-                    &mut after,
-                    &class_edit(&build, level, &option, Some(advances.clone())),
-                );
-                engine.is_possible(&after)
-            })
-            .collect()
+    let possible = timed("advances", || {
+        engine.advances_options(&build, level, &option)
     });
     let current = build
         .class_choices
@@ -778,7 +694,7 @@ fn Advances(level: u8, option: ClassOption) -> impl IntoView {
                 let advances = possible[index].clone();
                 planner.close();
                 let build = planner.build.get_untracked();
-                planner.edit(class_edit(&build, level, &option, Some(advances)));
+                planner.edit(engine.class_edit(&build, level, &option, Some(advances)));
             }
         />
     }
@@ -801,33 +717,24 @@ fn PathPicker(switch: bool) -> impl IntoView {
     };
     let items = options
         .iter()
-        .map(|option| {
-            let summary = engine
-                .data()
-                .mythic_paths
-                .iter()
-                .find(|path| path.key == option.path)
-                .map(|path| path.summary.clone())
-                .unwrap_or_default();
-            Item {
-                detail: summary,
-                locked: option.status.is_err(),
-                reason: reason(&engine, &option.status),
-                current: current.as_ref() == Some(&option.path),
-                ..Item::new(engine.path_name(&option.path))
-            }
+        .map(|option| Item {
+            detail: engine.path_summary(&option.path).to_owned(),
+            locked: option.status.is_err(),
+            reason: reason(&engine, &option.status),
+            current: current.as_ref() == Some(&option.path),
+            ..Item::new(engine.path_name(&option.path))
         })
         .collect();
     let (title, place, remove) = if switch {
         (
             "Path switch",
-            "Mythic rank 8",
+            format!("Mythic rank {PATH_SWITCH_RANK}"),
             (Choice::PathSwitch, Edit::PathSwitch(None)),
         )
     } else {
         (
             "Mythic path",
-            "Mythic rank 3",
+            format!("Mythic rank {PATH_CHOICE_RANK}"),
             (Choice::MythicPath, Edit::MythicPath(None)),
         )
     };
@@ -846,59 +753,6 @@ fn PathPicker(switch: bool) -> impl IntoView {
             }
         />
     }
-}
-
-/// The modifiers a Build start's race (or subrace, whose replace the race's) gives each ability.
-pub fn racial_modifiers(engine: &Engine, start: &BuildStart) -> [i8; 6] {
-    let mut modifiers = [0i8; 6];
-    let Some(race) = start
-        .race
-        .as_ref()
-        .and_then(|key| engine.data().races.iter().find(|race| &race.key == key))
-    else {
-        return modifiers;
-    };
-    let list = start
-        .subrace
-        .as_ref()
-        .and_then(|key| race.subraces.iter().find(|subrace| &subrace.key == key))
-        .map_or(&race.ability_modifiers, |subrace| {
-            &subrace.ability_modifiers
-        });
-    for modifier in list {
-        let (ability, amount) = match modifier {
-            AbilityModifier::Fixed { ability, amount } => (Some(*ability), *amount),
-            AbilityModifier::Chosen { amount } => (start.racial_ability, *amount),
-        };
-        if let Some(ability) = ability {
-            let index = AbilityScores::ABILITIES
-                .iter()
-                .position(|a| *a == ability)
-                .unwrap_or(0);
-            modifiers[index] += amount;
-        }
-    }
-    modifiers
-}
-
-/// Whether a Build start's race (or subrace) lets the player choose where "+2 to one ability score" goes.
-pub fn has_chosen_modifier(engine: &Engine, start: &BuildStart) -> bool {
-    let Some(race) = start
-        .race
-        .as_ref()
-        .and_then(|key| engine.data().races.iter().find(|race| &race.key == key))
-    else {
-        return false;
-    };
-    let list = start
-        .subrace
-        .as_ref()
-        .and_then(|key| race.subraces.iter().find(|subrace| &subrace.key == key))
-        .map_or(&race.ability_modifiers, |subrace| {
-            &subrace.ability_modifiers
-        });
-    list.iter()
-        .any(|modifier| matches!(modifier, AbilityModifier::Chosen { .. }))
 }
 
 /// A Build start picker: each option is a whole new Build start, locked when `Engine::allows` refuses it.
@@ -972,7 +826,7 @@ fn RacePicker() -> impl IntoView {
     let engine = planner.engine();
     let current = planner.build.with_untracked(|build| build.start.clone());
     let mut starts = Vec::new();
-    for race in &engine.data().races {
+    for race in engine.races() {
         let entries = std::iter::once((None, race.name.clone(), race.summary.clone())).chain(
             race.subraces.iter().map(|subrace| {
                 (
@@ -988,7 +842,7 @@ fn RacePicker() -> impl IntoView {
                 subrace: subrace.clone(),
                 ..current.clone()
             };
-            if !has_chosen_modifier(&engine, &start) {
+            if !engine.chooses_racial_ability(&start) {
                 start.racial_ability = None;
             }
             let item = Item {
@@ -1105,8 +959,7 @@ fn BackgroundPicker() -> impl IntoView {
     let engine = planner.engine();
     let current = planner.build.with_untracked(|build| build.start.clone());
     let starts = engine
-        .data()
-        .backgrounds
+        .backgrounds()
         .iter()
         .map(|background| {
             let item = Item {

@@ -132,6 +132,7 @@ A working, locally run Leptos app at `~/code/wotr-planner` for planning Pathfind
 - [Read and write the data files without sqlx](issues/79-game-files-without-sqlx.md): closed, not built; removing the extractor leaves the layout declared once.
 - [Bring what only the extractor knows into the data files](issues/81-apply-the-extractor-to-the-files.md): nothing to apply; all 191 differences are hand-fixes the files already hold.
 - [Remove the extractor](issues/82-remove-the-extractor.md): `libs/extract` and `scripts/extraction-diff.sh` are gone; data changes are hand edits with a README note and a real-data test.
+- [Move the picker's rules into the engine](issues/76-picker-rules-into-engine.md): advancement sets, class edits and racial modifiers are `Engine` methods; `Engine::data()` is gone, so the UI asks the engine.
 
 ## Not yet specified
 

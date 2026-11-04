@@ -3,7 +3,7 @@
 use leptos::prelude::*;
 use rules::{AbilityScores, Build, BuildStart, Edit, POINT_BUY_BUDGET};
 
-use crate::picker::{Head, has_chosen_modifier, racial_modifiers};
+use crate::picker::Head;
 use crate::planner::{Target, use_planner};
 
 /// The Build start, ahead of the grid: open while the Build has no levels, folded to one line after. It folds
@@ -86,16 +86,11 @@ fn StartBody() -> AnyView {
         let note = start
             .background
             .as_ref()
-            .and_then(|key| {
-                engine
-                    .data()
-                    .backgrounds
-                    .iter()
-                    .find(|background| &background.key == key)
-            })
-            .map(|background| background.note.clone())
+            .map(|key| engine.background_note(key).to_owned())
             .filter(|note| !note.is_empty());
-        let chosen = has_chosen_modifier(&engine, &start).then(|| racial_choice(&start));
+        let chosen = engine
+            .chooses_racial_ability(&start)
+            .then(|| racial_choice(&start));
         view! {
             <div class="start-body">
                 {choice_row("Race", race, Target::Race)}
@@ -175,7 +170,6 @@ fn PointBuyRows(current: Build) -> impl IntoView {
     let engine = planner.engine();
     let start = build.start.clone();
     let point_buy = start.ability_scores;
-    let modifiers = racial_modifiers(&engine, &start);
     let left = i16::from(POINT_BUY_BUDGET) - i16::from(point_buy.cost());
     // Each score's step down and up within the budget, then only those that break nothing later.
     let steps = AbilityScores::ABILITIES.map(|ability| {
@@ -192,10 +186,9 @@ fn PointBuyRows(current: Build) -> impl IntoView {
     let rows = AbilityScores::ABILITIES
         .into_iter()
         .zip(steps)
-        .enumerate()
-        .map(|(index, (ability, [down, up]))| {
+        .map(|(ability, [down, up])| {
             let score = point_buy.get(ability);
-            let modifier = modifiers[index];
+            let modifier = engine.racial_modifier(&start, ability);
             let total = i16::from(score) + i16::from(modifier);
             let racial = match modifier {
                 0 => String::new(),
@@ -280,7 +273,7 @@ pub fn SkillsPanel(level: u8) -> impl IntoView {
         };
         let points = level_sheet.skill_points;
         let state = &level_sheet.state;
-        let skills = &engine.data().skills;
+        let skills = engine.skills();
         let here =
             |skill: &rules::Skill| level_up.skill_ranks.get(&skill.key).copied().unwrap_or(0);
         // Each skill's rank fewer, and its rank more: points left, and no total above the character level here or

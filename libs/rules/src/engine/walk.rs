@@ -5,12 +5,12 @@ use std::collections::{BTreeMap, BTreeSet, HashSet};
 
 use super::{
     BASE_LEVEL_CAP, Engine, LevelSheet, PATH_CHOICE_RANK, PATH_SWITCH_RANK, RankSheet, RankStatus,
-    Sheet, SlotKind,
+    Sheet, SlotKind, racial_amounts,
 };
 use crate::build::{Build, LevelUp, SlotId, has_ability_increase};
 use crate::choice::Choice;
 use crate::codec::{StaleLink, decode_build};
-use crate::game_data::{Ability, AbilityModifier};
+use crate::game_data::Ability;
 use crate::keys::{
     ClassKey, FeatKey, FeatureKey, FeatureSelectionKey, MythicAbilityKey, MythicFeatKey,
     SelectionOptionKey, SkillKey,
@@ -392,37 +392,21 @@ impl<'a> Walker<'a> {
             }
             None => None,
         };
-        let subrace = match &start.subrace {
-            Some(key) => match catalog.subrace(key) {
-                Some((owner, subrace)) if race.is_some_and(|race| race.key == owner.key) => {
-                    Some(subrace)
-                }
-                // A key the data lacks, or a subrace of another race.
-                _ => {
-                    self.fail(Choice::Subrace);
-                    None
-                }
-            },
-            None => None,
-        };
+        // A key the data lacks, or a subrace of another race.
+        if let Some(key) = &start.subrace
+            && !catalog
+                .subrace(key)
+                .is_some_and(|(owner, _)| race.is_some_and(|race| race.key == owner.key))
+        {
+            self.fail(Choice::Subrace);
+        }
 
         let mut scores = start.ability_scores.scores();
-        let modifiers = match (subrace, race) {
-            (Some(subrace), _) => subrace.ability_modifiers.as_slice(),
-            (None, Some(race)) => race.ability_modifiers.as_slice(),
-            (None, None) => &[],
-        };
-        for modifier in modifiers {
-            let (ability, amount) = match *modifier {
-                AbilityModifier::Fixed { ability, amount } => (Some(ability), amount),
-                AbilityModifier::Chosen { amount } => (start.racial_ability, amount),
-            };
-            if let Some(ability) = ability {
-                let score = scores.get_mut(ability);
-                *score = score.saturating_add_signed(amount);
-                if amount < 0 {
-                    self.racial_penalties.push((ability, amount.unsigned_abs()));
-                }
+        for (ability, amount) in racial_amounts(catalog.racial_modifiers(start), start) {
+            let score = scores.get_mut(ability);
+            *score = score.saturating_add_signed(amount);
+            if amount < 0 {
+                self.racial_penalties.push((ability, amount.unsigned_abs()));
             }
         }
         self.state.base_ability_scores = scores;

@@ -27,8 +27,8 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 use rules::{
-    AbilityScores, Alignment, Build, BuildStart, Choice, Edit, Engine, Issue, Pick, SlotKind,
-    SlotOption,
+    AbilityScores, Alignment, Build, BuildStart, Choice, Edit, Engine, GameData, Issue, Pick,
+    SlotKind, SlotOption,
 };
 use serde_json::{Value, json};
 
@@ -65,7 +65,7 @@ pub fn shortcut_counts() -> (usize, usize) {
 }
 
 /// The Build's fingerprint (see the module docs), after its consistency checks.
-pub fn fingerprint(engine: &Engine, name: &str, build: &Build) -> Value {
+pub fn fingerprint(engine: &Engine, data: &GameData, name: &str, build: &Build) -> Value {
     let sheet = engine.evaluate(build);
     let removable = engine.removable(build);
     let mut slots = BTreeMap::new();
@@ -137,7 +137,7 @@ pub fn fingerprint(engine: &Engine, name: &str, build: &Build) -> Value {
         .iter()
         .map(|option| reason(&option.status))
         .collect();
-    let edits = battery(engine, build);
+    let edits = battery(data, build);
     let allows: Vec<bool> = edits
         .iter()
         .map(|edit| engine.allows(build, edit))
@@ -185,8 +185,7 @@ fn who(build: &Build) -> Vec<String> {
 
 /// The edits whose `allows` the fingerprint holds: every Build start the start pickers and point buy offer, each
 /// level's ability increases and skill steps, each pick cleared, and the edits past the end.
-pub fn battery(engine: &Engine, build: &Build) -> Vec<Edit> {
-    let data = engine.data();
+pub fn battery(data: &GameData, build: &Build) -> Vec<Edit> {
     let current = &build.start;
     let mut starts: Vec<BuildStart> = Vec::new();
     for race in &data.races {

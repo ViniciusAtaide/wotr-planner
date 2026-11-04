@@ -6,8 +6,8 @@
 //! bloodline), so their Builds follow the data.
 
 use rules::{
-    Alignment, ArchetypeKey, Build, ClassChoice, ClassKey, Engine, FeatKey, FeatSource, LevelUp,
-    Pick, RaceKey, SelectionOptionKey, SlotId,
+    Alignment, ArchetypeKey, Build, ClassChoice, ClassKey, Engine, FeatKey, FeatSource, GameData,
+    LevelUp, Pick, RaceKey, SelectionOptionKey, SlotId,
 };
 
 use crate::Named;
@@ -20,17 +20,16 @@ mod selections;
 mod talents;
 
 /// Every Build `record` records by default: [`own`], the benchmark's links, and the full Builds of [`own`]'s.
-pub fn all(engine: &Engine, threads: usize) -> Vec<Named> {
-    let own = own(engine);
+pub fn all(engine: &Engine, data: &GameData, threads: usize) -> Vec<Named> {
+    let own = own(engine, data);
     let mut builds = own.clone();
     builds.extend(crate::links::bench_builds(engine));
-    builds.extend(full_builds(engine, &own, threads));
+    builds.extend(full_builds(engine, data, &own, threads));
     builds
 }
 
-/// The harness's own Builds (not the benchmark's or the full ones).
-pub fn own(engine: &Engine) -> Vec<Named> {
-    let data = engine.data();
+/// The harness's own Builds (not the benchmark's or the full ones). `data` is the engine's game data.
+pub fn own(engine: &Engine, data: &GameData) -> Vec<Named> {
     // Ticket 47's way: these get their listed selections filled with the first open option.
     let mut builds: Vec<Named> = [
         classes::every_class(data),

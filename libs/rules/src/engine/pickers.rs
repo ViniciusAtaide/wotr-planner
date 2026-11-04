@@ -7,11 +7,14 @@ use std::collections::{BTreeSet, HashSet};
 use super::removable::Recheck;
 use super::slots::check_pick;
 use super::walk::Probe;
-use super::{ClassOption, Engine, PathOption, SlotKind, SlotOption, class_level_cap};
+use super::{
+    ClassOption, Engine, PathOption, SlotKind, SlotOption, advanced_spellcasting, class_level_cap,
+    most_advanced,
+};
 use crate::build::{Build, ClassChoice, Edit, Pick, SlotId};
 use crate::choice::{Issue, Unmet};
 use crate::game_data::{Archetype, Class};
-use crate::keys::{ArchetypeKey, FeatKey, SelectionOptionKey};
+use crate::keys::{ArchetypeKey, ClassKey, FeatKey, SelectionOptionKey};
 use crate::prerequisite::{Prerequisite, Story};
 use crate::state::{CharacterState, ClassLevels};
 
@@ -241,11 +244,7 @@ impl Engine {
                     // A class first taken here gets this archetype and keeps any advancement it has.
                     let choice = taken.is_none().then(|| ClassChoice {
                         archetype: archetype.clone(),
-                        advances: build
-                            .class_choices
-                            .get(&class.key)
-                            .map(|choice| choice.advances.clone())
-                            .unwrap_or_default(),
+                        advances: held_advances(build, &class.key),
                     });
                     status = recheck.later(&Edit::Class {
                         level,
@@ -294,6 +293,76 @@ impl Engine {
         }
     }
 
+    /// The advancement choices for a prestige class option taken at a character level: which held classes its
+    /// levels advance. Every set of the classes the Build takes before that level (in the order it first takes
+    /// them), from one class up to as many as the prestige class may advance, then none; only those the Build
+    /// stays possible with.
+    pub fn advances_options(
+        &self,
+        build: &Build,
+        level: u8,
+        option: &ClassOption,
+    ) -> Vec<BTreeSet<ClassKey>> {
+        let most = self
+            .catalog
+            .class(&option.class)
+            .map_or(0, |(class, _)| most_advanced(class));
+        let mut held: Vec<&ClassKey> = Vec::new();
+        for level_up in build
+            .levels
+            .iter()
+            .take(usize::from(level).saturating_sub(1))
+        {
+            if !held.contains(&&level_up.class) {
+                held.push(&level_up.class);
+            }
+        }
+        let mut candidates: Vec<BTreeSet<ClassKey>> =
+            (1..=most).flat_map(|size| subsets(&held, size)).collect();
+        candidates.push(BTreeSet::new());
+        candidates
+            .into_iter()
+            .filter(|advances| {
+                let mut after = build.clone();
+                self.apply(
+                    &mut after,
+                    &self.class_edit(build, level, option, Some(advances.clone())),
+                );
+                self.is_possible(&after)
+            })
+            .collect()
+    }
+
+    /// Whether taking a class at a character level asks which classes it advances: a prestige class whose rows
+    /// advance spellcasting, first taken at that level ([`advances_options`](Self::advances_options) lists the
+    /// answers).
+    pub fn asks_advances(&self, build: &Build, level: u8, class: &ClassKey) -> bool {
+        self.catalog.class(class).is_some_and(|(class, prestige)| {
+            let (arcane, divine) = advanced_spellcasting(class);
+            prestige && (arcane || divine)
+        }) && first_taken_at(build, class, level)
+    }
+
+    /// The edit for taking a class option at a level: a class first taken here gets the option's archetype and the
+    /// advancement given (or the one the Build has for it); one taken before keeps its choice.
+    pub fn class_edit(
+        &self,
+        build: &Build,
+        level: u8,
+        option: &ClassOption,
+        advances: Option<BTreeSet<ClassKey>>,
+    ) -> Edit {
+        let choice = first_taken_at(build, &option.class, level).then(|| ClassChoice {
+            archetype: option.archetype.clone(),
+            advances: advances.unwrap_or_else(|| held_advances(build, &option.class)),
+        });
+        Edit::Class {
+            level,
+            class: option.class.clone(),
+            choice,
+        }
+    }
+
     /// The path picker at MR 3: every path without a switch rule, in key order; one that would break a later
     /// choice (a pick in the Build's path's slots) is [`Issue::BreaksLater`].
     pub fn path_options(&self, build: &Build) -> Vec<PathOption> {
@@ -332,4 +401,37 @@ impl Engine {
             })
             .collect()
     }
+}
+
+/// Whether a class is first taken at this level: no level before it takes it.
+fn first_taken_at(build: &Build, class: &ClassKey, level: u8) -> bool {
+    !build
+        .levels
+        .iter()
+        .take(usize::from(level).saturating_sub(1))
+        .any(|level_up| &level_up.class == class)
+}
+
+/// The advancement the Build has for a class: none when it has no choice for it.
+fn held_advances(build: &Build, class: &ClassKey) -> BTreeSet<ClassKey> {
+    build
+        .class_choices
+        .get(class)
+        .map(|choice| choice.advances.clone())
+        .unwrap_or_default()
+}
+
+/// Every set of `size` of the items, in order: by the first item's place, then the next's.
+fn subsets(items: &[&ClassKey], size: usize) -> Vec<BTreeSet<ClassKey>> {
+    if size == 0 {
+        return vec![BTreeSet::new()];
+    }
+    let mut sets = Vec::new();
+    for (index, first) in items.iter().enumerate() {
+        for mut rest in subsets(&items[index + 1..], size - 1) {
+            rest.insert((*first).clone());
+            sets.push(rest);
+        }
+    }
+    sets
 }

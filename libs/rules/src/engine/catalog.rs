@@ -5,10 +5,11 @@
 use std::collections::{HashMap, HashSet};
 
 use super::{EffectiveRow, effective_row, effective_rows};
+use crate::build::BuildStart;
 use crate::game_data::{
-    AbilityBonus, Archetype, Background, Class, Feat, FeatList, FeatureSelection, GameData,
-    MythicAbility, MythicFeat, MythicPath, OptionRow, Race, SelectionOption, Skill, Subrace,
-    Weapon, WeaponProficiency,
+    AbilityBonus, AbilityModifier, Archetype, Background, Class, Feat, FeatList, FeatureSelection,
+    GameData, MythicAbility, MythicFeat, MythicPath, OptionRow, Race, SelectionOption, Skill,
+    Subrace, Weapon, WeaponProficiency,
 };
 use crate::keys::{
     ArchetypeKey, BackgroundKey, ClassKey, FeatKey, FeatListKey, FeatureKey, FeatureSelectionKey,
@@ -84,6 +85,18 @@ impl Catalog {
         let &(r, s) = self.indexes.subraces.get(key)?;
         let race = &self.data.races[r];
         Some((race, &race.subraces[s]))
+    }
+
+    /// The ability modifiers a Build start's race gives: its subrace's in place of the race's, when the subrace is
+    /// the race's. None without a race the data has.
+    pub(super) fn racial_modifiers(&self, start: &BuildStart) -> &[AbilityModifier] {
+        let Some(race) = start.race.as_ref().and_then(|key| self.race(key)) else {
+            return &[];
+        };
+        match start.subrace.as_ref().and_then(|key| self.subrace(key)) {
+            Some((owner, subrace)) if owner.key == race.key => &subrace.ability_modifiers,
+            _ => &race.ability_modifiers,
+        }
     }
 
     pub(super) fn skill(&self, key: &SkillKey) -> Option<&Skill> {

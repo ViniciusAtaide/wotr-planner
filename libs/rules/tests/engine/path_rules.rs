@@ -50,8 +50,7 @@ fn mythic_build(path_key: &str, levels: usize) -> Build {
         .insert(general_slot(1), pick_feat("power-attack"));
     build.picks.insert(race_slot(0), pick_feat("toughness"));
     // Only the ranks the Build reaches.
-    let reached: Vec<u8> = engine()
-        .data()
+    let reached: Vec<u8> = world()
         .progression
         .mythic_ascensions
         .iter()

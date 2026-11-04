@@ -4,7 +4,7 @@
 //! with the ones made before the harness was committed. The quirks are documented where they live.
 
 use rules::{
-    AbilityScores, Build, Edit, Engine, FeatSlot, Issue, Pick, SkillKey, SlotId, SlotKind,
+    AbilityScores, Build, Edit, Engine, FeatSlot, GameData, Issue, Pick, SkillKey, SlotId, SlotKind,
 };
 
 use crate::Named;
@@ -37,7 +37,7 @@ fn is_wandering_hex(pick: &Pick) -> bool {
 ///   it;
 /// - the path is drawn only for a Build of 9 levels or more (one that reaches MR 3), in any round where it has none;
 /// - at most 40 draws of a skill per level, each kept only when it changes the Build and `allows` keeps it.
-pub fn fill_full(engine: &Engine, build: &mut Build, rng: &mut Rng) {
+pub fn fill_full(engine: &Engine, data: &GameData, build: &mut Build, rng: &mut Rng) {
     for _ in 0..3 {
         let sheet = engine.evaluate(build);
         let slots: Vec<SlotId> = sheet
@@ -84,12 +84,7 @@ pub fn fill_full(engine: &Engine, build: &mut Build, rng: &mut Rng) {
             }
         }
     }
-    let skills: Vec<SkillKey> = engine
-        .data()
-        .skills
-        .iter()
-        .map(|skill| skill.key.clone())
-        .collect();
+    let skills: Vec<SkillKey> = data.skills.iter().map(|skill| skill.key.clone()).collect();
     for level in 1..=u8::try_from(build.levels.len()).expect("at most 255 levels") {
         let index = usize::from(level) - 1;
         let sheet = engine.evaluate(build);
@@ -133,7 +128,7 @@ pub fn fill_full(engine: &Engine, build: &mut Build, rng: &mut Rng) {
 /// The full Builds: each possible Build of `base` filled by [`fill_full`] (`full <name>`, seeded by its name's
 /// hash, so a renamed Build draws differently), and each of those that reaches MR 8 with each Path switch its picker
 /// leaves open (`full <name> / <switch>`), when the switch holds and the Build stays possible.
-pub fn full_builds(engine: &Engine, base: &[Named], threads: usize) -> Vec<Named> {
+pub fn full_builds(engine: &Engine, data: &GameData, base: &[Named], threads: usize) -> Vec<Named> {
     crate::in_parallel(base, threads, |(name, build)| {
         let mut out = Vec::new();
         // Only a possible Build: the sheet never holds another.
@@ -141,7 +136,7 @@ pub fn full_builds(engine: &Engine, base: &[Named], threads: usize) -> Vec<Named
             return out;
         }
         let mut full = build.clone();
-        fill_full(engine, &mut full, &mut Rng(fnv(name) | 1));
+        fill_full(engine, data, &mut full, &mut Rng(fnv(name) | 1));
         out.push((format!("full {name}"), full.clone()));
         for switch in engine.switch_options(&full) {
             if switch.status.is_ok() {

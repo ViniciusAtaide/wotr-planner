@@ -42,7 +42,9 @@ pub fn MythicTrack() -> AnyView {
             .collect_view();
         view! {
             <p class="summary muted">
-                "Each Mythic ascension happens at a fixed character level. The path is chosen at MR 3 and grants its MR 1 and 2 rows too; a Path switch can come at MR 8."
+                {format!(
+                    "Each Mythic ascension happens at a fixed character level. The path is chosen at MR {PATH_CHOICE_RANK} and grants its MR 1 and 2 rows too; a Path switch can come at MR {PATH_SWITCH_RANK}.",
+                )}
             </p>
             <div class="grid mythic" role="list">
                 {rows}

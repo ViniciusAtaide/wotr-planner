@@ -5,7 +5,7 @@ use std::process::ExitCode;
 use std::time::Instant;
 
 use proof::{Named, builds, compare, fingerprint, links};
-use rules::Engine;
+use rules::{Engine, GameData};
 
 const USAGE: &str = "usage:
   proof record <game-data dir> [--links <file>] [--threads N] [--only <name substring>]
@@ -47,16 +47,16 @@ fn options(args: &[String], links_allowed: bool) -> Result<Options, String> {
     Ok(options)
 }
 
-/// The engine on the game data, and the Builds the options name.
-fn engine_and_builds(options: &Options) -> Result<(Engine, Vec<Named>), String> {
+/// The engine on the game data, the game data in the engine's order, and the Builds the options name.
+fn engine_and_builds(options: &Options) -> Result<(Engine, GameData, Vec<Named>), String> {
     let data = seeds::read_game_data_files(Path::new(&options.data))
         .map_err(|error| format!("reading {}: {error:?}", options.data))?;
-    let engine = Engine::new(data);
+    let (engine, data) = proof::engine_on(data);
     let mut builds = match &options.links {
-        None => builds::all(&engine, options.threads),
+        None => builds::all(&engine, &data, options.threads),
         Some(path) => {
             let text = std::fs::read_to_string(path).map_err(|error| format!("{path}: {error}"))?;
-            let (builds, failed) = links::read(&engine, &text);
+            let (builds, failed) = links::read(&data, &text);
             for name in &failed {
                 eprintln!("doesn't decode, not recorded: {name}");
             }
@@ -66,14 +66,14 @@ fn engine_and_builds(options: &Options) -> Result<(Engine, Vec<Named>), String> 
     if let Some(only) = &options.only {
         builds.retain(|(name, _)| name.contains(only.as_str()));
     }
-    Ok((engine, builds))
+    Ok((engine, data, builds))
 }
 
 fn record(options: &Options) -> Result<ExitCode, String> {
     let started = Instant::now();
-    let (engine, builds) = engine_and_builds(options)?;
+    let (engine, data, builds) = engine_and_builds(options)?;
     eprintln!("{} Builds", builds.len());
-    for line in proof::record(&engine, &builds, options.threads) {
+    for line in proof::record(&engine, &data, &builds, options.threads) {
         println!("{line}");
     }
     let (checked, feat_options) = fingerprint::shortcut_counts();
@@ -83,8 +83,8 @@ fn record(options: &Options) -> Result<ExitCode, String> {
 }
 
 fn export(options: &Options) -> Result<ExitCode, String> {
-    let (engine, builds) = engine_and_builds(options)?;
-    let (text, skipped) = links::export(&engine, &builds);
+    let (_, data, builds) = engine_and_builds(options)?;
+    let (text, skipped) = links::export(&data, &builds);
     for name in &skipped {
         eprintln!("no link gives this Build back, not exported: {name}");
     }

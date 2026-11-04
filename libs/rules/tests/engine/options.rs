@@ -82,7 +82,7 @@ fn fighter_bonus_slots_offer_only_combat_feats() {
         .into_iter()
         .map(|option| option.pick.key().to_owned())
         .collect();
-    assert_eq!(general.len(), engine().data().feats.len());
+    assert_eq!(general.len(), world().feats.len());
 
     // A non-combat feat in the bonus slot doesn't qualify: the picker doesn't offer it.
     let mut build = build;

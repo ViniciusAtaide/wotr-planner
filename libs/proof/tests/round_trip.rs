@@ -5,12 +5,13 @@ use std::path::Path;
 
 use proof::{Named, compare::compare, links};
 use rules::{
-    Alignment, Build, ClassKey, Engine, LevelUp, Pick, RaceKey, SelectionOptionKey, SlotId,
+    Alignment, Build, ClassKey, Engine, GameData, LevelUp, Pick, RaceKey, SelectionOptionKey,
+    SlotId,
 };
 
-fn engine() -> Engine {
+fn engine() -> (Engine, GameData) {
     let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("../game-data");
-    Engine::new(seeds::read_game_data_files(&dir).expect("the game data reads"))
+    proof::engine_on(seeds::read_game_data_files(&dir).expect("the game data reads"))
 }
 
 fn character(class: &str, levels: usize) -> Build {
@@ -48,21 +49,21 @@ fn builds() -> Vec<Named> {
 
 #[test]
 fn record_export_and_compare_round_trip() {
-    let engine = engine();
+    let (engine, data) = engine();
     let builds = builds();
-    let record = proof::record(&engine, &builds, 2).join("\n");
+    let record = proof::record(&engine, &data, &builds, 2).join("\n");
 
     // A record agrees with itself.
     let same = compare(&record, &record).expect("records parse");
     assert!(same.is_empty(), "{:?}", same.lines);
 
     // Through links, the same Builds and the same record.
-    let (text, skipped) = links::export(&engine, &builds);
+    let (text, skipped) = links::export(&data, &builds);
     assert!(skipped.is_empty(), "{skipped:?}");
-    let (read, failed) = links::read(&engine, &text);
+    let (read, failed) = links::read(&data, &text);
     assert!(failed.is_empty(), "{failed:?}");
     assert_eq!(read, builds);
-    assert_eq!(proof::record(&engine, &read, 1).join("\n"), record);
+    assert_eq!(proof::record(&engine, &data, &read, 1).join("\n"), record);
 
     // A side with a Build changed (a third fighter level) and one gone.
     let mut changed = builds.clone();
@@ -71,7 +72,7 @@ fn record_export_and_compare_round_trip() {
         .levels
         .push(LevelUp::new(ClassKey::new("fighter")));
     changed.retain(|(name, _)| name != "blank");
-    let other = proof::record(&engine, &changed, 2).join("\n");
+    let other = proof::record(&engine, &data, &changed, 2).join("\n");
     let comparison = compare(&record, &other).expect("records parse");
     let differs: Vec<&String> = comparison
         .lines

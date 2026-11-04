@@ -216,7 +216,7 @@ proptest! {
 
 /// The keys of the test world, as the sheet reads links with the game data's.
 fn world_keys() -> LinkKeys {
-    LinkKeys::new(engine().data())
+    LinkKeys::new(&world().canonical())
 }
 
 fn decode(code: &str) -> Result<Build, DecodeError> {
@@ -512,8 +512,8 @@ fn a_full_40_level_build_makes_a_link_of_a_few_hundred_characters() {
     );
     build.mythic_path = Some(path("trickster"));
     build.path_switch = Some(path("legend"));
-    let feats: Vec<_> = engine()
-        .data()
+    let feats: Vec<_> = world()
+        .canonical()
         .feats
         .iter()
         .map(|f| f.key.clone())
