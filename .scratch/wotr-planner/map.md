@@ -130,6 +130,7 @@ A working, locally run Leptos app at `~/code/wotr-planner` for planning Pathfind
 - [Split the largest files by subject](issues/74-split-the-largest-files.md): a pure move: `build`, `option_families`, `option_levels` and the `game_data` tests are module folders by subject; extraction byte-identical.
 - [Decide whether the extractor or the data files are the master](issues/75-game-data-master.md): the files are the master (user, 2026-11-03); the extractor's knowledge goes into them, then the extractor goes (tickets 81–82).
 - [Read and write the data files without sqlx](issues/79-game-files-without-sqlx.md): closed, not built; removing the extractor leaves the layout declared once.
+- [Bring what only the extractor knows into the data files](issues/81-apply-the-extractor-to-the-files.md): nothing to apply; all 191 differences are hand-fixes the files already hold.
 
 ## Not yet specified
 
