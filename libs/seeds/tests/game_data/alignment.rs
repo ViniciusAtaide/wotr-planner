@@ -85,14 +85,9 @@ fn entry_status(build: &Build, archetype: &str) -> Result<(), Issue> {
 
 /// Whether an `Alignment` appears anywhere in a prerequisite.
 fn names_alignment(prerequisite: &Prerequisite) -> bool {
-    match prerequisite {
-        Prerequisite::All(children)
-        | Prerequisite::Any(children)
-        | Prerequisite::AtLeast(_, children) => children.iter().any(names_alignment),
-        Prerequisite::Not(child) => names_alignment(child),
-        Prerequisite::Alignment(_) => true,
-        _ => false,
-    }
+    prerequisite
+        .leaves()
+        .any(|leaf| matches!(leaf, Prerequisite::Alignment(_)))
 }
 
 /// What an `Any` of alignments reads as when none holds.

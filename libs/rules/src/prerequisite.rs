@@ -125,54 +125,50 @@ impl Story {
 }
 
 impl Prerequisite {
-    /// The story conditions anywhere in the tree, for the note beside the option: they never block.
-    pub fn stories(&self) -> BTreeSet<Story> {
-        let mut stories = BTreeSet::new();
-        self.collect_stories(&mut stories);
-        stories
-    }
-
-    fn collect_stories(&self, stories: &mut BTreeSet<Story>) {
-        match self {
-            Prerequisite::All(children)
-            | Prerequisite::Any(children)
-            | Prerequisite::AtLeast(_, children) => {
-                for child in children {
-                    child.collect_stories(stories);
+    /// The single conditions in the tree, left to right: everything under its groups and `Not`s, and never a group
+    /// or a `Not` itself.
+    pub fn leaves(&self) -> impl Iterator<Item = &Prerequisite> {
+        // A stack of the nodes still to visit, the next one on top.
+        let mut pending = vec![self];
+        std::iter::from_fn(move || {
+            while let Some(node) = pending.pop() {
+                match node {
+                    Prerequisite::All(children)
+                    | Prerequisite::Any(children)
+                    | Prerequisite::AtLeast(_, children) => pending.extend(children.iter().rev()),
+                    Prerequisite::Not(child) => pending.push(child),
+                    leaf => return Some(leaf),
                 }
             }
-            Prerequisite::Not(child) => child.collect_stories(stories),
-            Prerequisite::Story(story) => {
-                stories.insert(*story);
-            }
-            _ => {}
-        }
+            None
+        })
+    }
+
+    /// The story conditions anywhere in the tree, for the note beside the option: they never block.
+    pub fn stories(&self) -> BTreeSet<Story> {
+        self.leaves()
+            .filter_map(|leaf| match leaf {
+                Prerequisite::Story(story) => Some(*story),
+                _ => None,
+            })
+            .collect()
     }
 
     /// Adds the feats the tree names anywhere, in a `Not` too: every feat whose holding it can look at.
     pub(crate) fn collect_feats<'p>(&'p self, feats: &mut HashSet<&'p FeatKey>) {
-        match self {
-            Prerequisite::All(children)
-            | Prerequisite::Any(children)
-            | Prerequisite::AtLeast(_, children) => {
-                for child in children {
-                    child.collect_feats(feats);
-                }
-            }
-            Prerequisite::Not(child) => child.collect_feats(feats),
+        feats.extend(self.leaves().filter_map(|leaf| match leaf {
             Prerequisite::Feat(feat)
             | Prerequisite::FeatFor { feat, .. }
             | Prerequisite::FeatForSameValue(feat)
-            | Prerequisite::FeatIfValue { feat, .. } => {
-                feats.insert(feat);
-            }
-            _ => {}
-        }
+            | Prerequisite::FeatIfValue { feat, .. } => Some(feat),
+            _ => None,
+        }));
     }
 
     /// Whether this is an alignment requirement: an `Alignment`, or a group (or `Not`) of nothing but alignment
     /// requirements ("Cannot be Lawful": an `Any` of the six others).
     pub(crate) fn is_alignment(&self) -> bool {
+        // Its own walk, not `leaves`: an empty group anywhere makes it false, and the leaves can't show one.
         match self {
             Prerequisite::All(children)
             | Prerequisite::Any(children)
@@ -220,16 +216,8 @@ impl Prerequisite {
 
     /// Whether an `Alignment` appears anywhere in the tree, in a `Not` too.
     pub(crate) fn names_alignment(&self) -> bool {
-        match self {
-            Prerequisite::All(children)
-            | Prerequisite::Any(children)
-            | Prerequisite::AtLeast(_, children) => {
-                children.iter().any(Prerequisite::names_alignment)
-            }
-            Prerequisite::Not(child) => child.names_alignment(),
-            Prerequisite::Alignment(_) => true,
-            _ => false,
-        }
+        self.leaves()
+            .any(|leaf| matches!(leaf, Prerequisite::Alignment(_)))
     }
 
     /// Sorts every group's children, recursively, so equal trees compare equal.

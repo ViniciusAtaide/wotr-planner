@@ -500,25 +500,14 @@ fn the_animal_domains_lore_nature_comes_with_its_companion_at_the_holders_4th_do
 
 /// Every feature a prerequisite names in the real data, wherever the prerequisite sits.
 fn prerequisite_features(data: &GameData) -> BTreeSet<FeatureKey> {
-    fn collect(prerequisite: &Prerequisite, out: &mut BTreeSet<FeatureKey>) {
-        match prerequisite {
-            Prerequisite::All(children)
-            | Prerequisite::Any(children)
-            | Prerequisite::AtLeast(_, children) => {
-                children.iter().for_each(|child| collect(child, out));
-            }
-            Prerequisite::Not(child) => collect(child, out),
-            Prerequisite::Feature { feature, .. } => {
-                out.insert(feature.clone());
-            }
-            _ => {}
-        }
-    }
-    let mut out = BTreeSet::new();
-    for prerequisite in data_prerequisites(data) {
-        collect(prerequisite, &mut out);
-    }
-    out
+    data_prerequisites(data)
+        .into_iter()
+        .flat_map(Prerequisite::leaves)
+        .filter_map(|leaf| match leaf {
+            Prerequisite::Feature { feature, .. } => Some(feature.clone()),
+            _ => None,
+        })
+        .collect()
 }
 
 /// A picker's reasons name features by their names: every feature a prerequisite needs has one the sheet knows,

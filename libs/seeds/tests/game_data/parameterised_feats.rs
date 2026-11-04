@@ -142,17 +142,11 @@ fn weapon_focus_is_taken_once_per_weapon_and_specialization_needs_the_same_weapo
 #[test]
 fn prerequisites_name_the_values_the_guide_names() {
     let has = |key: &str, needs: &Prerequisite| {
-        let mut found = false;
-        let mut stack: Vec<&Prerequisite> = feat(key).prerequisite.iter().collect();
-        while let Some(prerequisite) = stack.pop() {
-            found |= prerequisite == needs;
-            if let Prerequisite::All(c) | Prerequisite::Any(c) | Prerequisite::AtLeast(_, c) =
-                prerequisite
-            {
-                stack.extend(c);
-            }
-        }
-        found
+        feat(key)
+            .prerequisite
+            .iter()
+            .flat_map(Prerequisite::leaves)
+            .any(|leaf| leaf == needs)
     };
     let same = |key: &str| Prerequisite::FeatForSameValue(FeatKey::new(key));
     assert!(has(

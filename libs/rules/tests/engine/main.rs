@@ -29,6 +29,7 @@ mod parameters;
 mod path_rules;
 mod pickers;
 mod possible;
+mod prerequisites;
 mod removable;
 mod shared_options;
 mod slots;
