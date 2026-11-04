@@ -100,17 +100,3 @@ pub enum Unmet {
         failed: Vec<Unmet>,
     },
 }
-
-impl Unmet {
-    /// Every failing single condition, as a flat list. Tests only.
-    #[cfg(any(test, feature = "testing"))]
-    pub fn conditions(&self) -> Vec<(&Prerequisite, Option<u8>)> {
-        match self {
-            Unmet::Condition { needs, has } => vec![(needs, *has)],
-            Unmet::All(children) | Unmet::Any(children) => {
-                children.iter().flat_map(Unmet::conditions).collect()
-            }
-            Unmet::AtLeast { failed, .. } => failed.iter().flat_map(Unmet::conditions).collect(),
-        }
-    }
-}

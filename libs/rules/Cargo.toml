@@ -11,7 +11,7 @@ miniz_oxide = { version = "0.9.1", default-features = false, features = ["with-a
 serde.workspace = true
 
 [features]
-# Helpers only tests use (`Engine::state_before`, `LinkKeys::of_build`, …); never turned on by the apps.
+# Helpers only tests use (`Engine::state_before`, `LinkKeys::of_build`); never turned on by the apps.
 testing = []
 
 [dev-dependencies]

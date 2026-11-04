@@ -171,19 +171,6 @@ impl Engine {
     pub fn slot_accepts(&self, slot: &FeatSlot, feat: &Feat) -> bool {
         self.catalog.slot_accepts(slot, feat)
     }
-
-    /// Whether a pick in this slot ignores the feat's prerequisites: only a bonus-list slot's does, one whose list
-    /// ignores them. Tests only.
-    #[cfg(any(test, feature = "testing"))]
-    pub fn slot_ignores_prerequisites(&self, slot: &FeatSlot) -> bool {
-        match slot {
-            FeatSlot::OneOf { list } => self
-                .catalog
-                .feat_list(list)
-                .is_some_and(|list| list.ignores_prerequisites),
-            _ => false,
-        }
-    }
 }
 
 /// Whether `pick` may fill a slot of `kind` for a character in `state`: a known key, accepted by the slot, a value

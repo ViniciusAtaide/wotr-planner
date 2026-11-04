@@ -13,6 +13,17 @@ pub static DATA: LazyLock<GameData> = LazyLock::new(|| {
     seeds::read_game_data_files(&seeds::game_data_dir()).expect("game-data reads")
 });
 
+/// Every failing single condition in an `Unmet`, as a flat list.
+pub fn conditions(unmet: &Unmet) -> Vec<(&Prerequisite, Option<u8>)> {
+    match unmet {
+        Unmet::Condition { needs, has } => vec![(needs, *has)],
+        Unmet::All(children) | Unmet::Any(children) => {
+            children.iter().flat_map(conditions).collect()
+        }
+        Unmet::AtLeast { failed, .. } => failed.iter().flat_map(conditions).collect(),
+    }
+}
+
 pub fn engine() -> Engine {
     Engine::new(DATA.clone())
 }

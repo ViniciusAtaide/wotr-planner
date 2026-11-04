@@ -254,7 +254,7 @@ fn a_story_condition_is_never_a_reason_an_option_is_locked() {
         panic!("the breath is open at MR 8");
     };
     assert_eq!(
-        unmet.conditions(),
+        conditions(&unmet),
         [(&Prerequisite::MythicRank(9), Some(8))]
     );
 }

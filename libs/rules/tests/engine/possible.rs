@@ -53,7 +53,7 @@ fn class_entry_prerequisites_are_checked_on_the_first_level() {
     let Err(Issue::Unmet(unmet)) = status(&blank, "arcane-trickster", None) else {
         panic!("Arcane Trickster is open at level 1");
     };
-    assert_eq!(unmet.conditions().len(), 3);
+    assert_eq!(conditions(&unmet).len(), 3);
 
     // An archetype whose race prerequisite fails: Eldritch Scoundrel is for humans and elves.
     let mut dwarf = Build {

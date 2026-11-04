@@ -10,3 +10,16 @@ mod world;
 
 pub use builds::*;
 pub use world::world;
+
+use rules::{Prerequisite, Unmet};
+
+/// Every failing single condition in an `Unmet`, as a flat list.
+pub fn conditions(unmet: &Unmet) -> Vec<(&Prerequisite, Option<u8>)> {
+    match unmet {
+        Unmet::Condition { needs, has } => vec![(needs, *has)],
+        Unmet::All(children) | Unmet::Any(children) => {
+            children.iter().flat_map(conditions).collect()
+        }
+        Unmet::AtLeast { failed, .. } => failed.iter().flat_map(conditions).collect(),
+    }
+}

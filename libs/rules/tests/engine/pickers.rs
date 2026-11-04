@@ -82,12 +82,12 @@ fn a_class_option_is_locked_by_its_entry_prerequisites_before_that_level() {
     else {
         panic!("the scoundrel should be locked");
     };
-    assert_eq!(unmet.conditions().len(), 2);
+    assert_eq!(conditions(unmet).len(), 2);
     // Arcane Trickster: no Mobility, no spells, no Sneak Attack.
     let Err(Issue::Unmet(unmet)) = &option_for(&options, "arcane-trickster", None).status else {
         panic!("Arcane Trickster should be locked");
     };
-    assert_eq!(unmet.conditions().len(), 3);
+    assert_eq!(conditions(unmet).len(), 3);
 }
 
 #[test]

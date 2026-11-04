@@ -151,7 +151,7 @@ fn a_martial_disciples_improved_unarmed_strike_meets_stunning_fists_prerequisite
     let Issue::Unmet(unmet) = unmet else {
         panic!("{unmet:?}")
     };
-    assert!(unmet.conditions().iter().any(|(needs, _)| **needs == iua));
+    assert!(conditions(&unmet).iter().any(|(needs, _)| **needs == iua));
     assert_eq!(
         general_feat_status(&wizard_with(Some("martial-disciple")), "stunning-fist"),
         Ok(())

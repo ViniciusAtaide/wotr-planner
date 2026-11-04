@@ -383,8 +383,7 @@ fn dragon_disciple_entry_needs_spontaneous_arcane_spells_and_a_draconic_bloodlin
         panic!("an Abyssal sorcerer may not enter");
     };
     assert!(
-        unmet
-            .conditions()
+        conditions(&unmet)
             .iter()
             .any(|(needs, _)| matches!(needs, Prerequisite::NoOptionFrom(_)))
     );

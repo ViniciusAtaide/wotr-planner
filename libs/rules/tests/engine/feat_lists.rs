@@ -1,9 +1,22 @@
 //! Named feat lists: a `OneOf` slot names a list, and whether its picks ignore prerequisites is the list's. A race's
 //! slot can name a list of its own (the half-elf's Skill Focus).
 
-use rules::{Build, FeatSlot, MythicAbilityGroup, MythicFeatGroup, Pick, SlotId, SlotOption};
+use rules::{
+    Build, Engine, FeatSlot, MythicAbilityGroup, MythicFeatGroup, Pick, SlotId, SlotOption,
+};
 
 use crate::support::*;
+
+/// Whether a pick in this slot ignores the feat's prerequisites: only a bonus-list slot's does, one whose list
+/// ignores them.
+fn slot_ignores_prerequisites(engine: &Engine, slot: &FeatSlot) -> bool {
+    match slot {
+        FeatSlot::OneOf { list } => engine
+            .feat_list(list)
+            .is_some_and(|list| list.ignores_prerequisites),
+        _ => false,
+    }
+}
 
 #[test]
 fn a_one_of_slot_takes_the_feats_of_the_list_it_names() {
@@ -14,7 +27,7 @@ fn a_one_of_slot_takes_the_feats_of_the_list_it_names() {
     let slot = FeatSlot::OneOf {
         list: feat_list("monk/bonus-feats"),
     };
-    assert!(engine.slot_ignores_prerequisites(&slot));
+    assert!(slot_ignores_prerequisites(&engine, &slot));
 
     let offered: Vec<Pick> = engine
         .options(&build("dwarf", &["monk"]), &class_slot(1, 0))
@@ -31,9 +44,9 @@ fn a_list_that_checks_prerequisites_is_not_a_bonus_list() {
     let armiger = FeatSlot::OneOf {
         list: feat_list("fighter/armiger/bonus-feats"),
     };
-    assert!(!engine.slot_ignores_prerequisites(&armiger));
+    assert!(!slot_ignores_prerequisites(&engine, &armiger));
     // Nor is any other kind of slot.
-    assert!(!engine.slot_ignores_prerequisites(&FeatSlot::General));
+    assert!(!slot_ignores_prerequisites(&engine, &FeatSlot::General));
 }
 
 #[test]
