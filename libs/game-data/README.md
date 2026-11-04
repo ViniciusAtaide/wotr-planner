@@ -1,12 +1,16 @@
 # Game data
 
 The planner's game data, as RON files that deserialise straight into the `rules` crate types
-(`libs/rules/src/game_data.rs`). These files are the source of truth: fix data by editing them, then reseed.
+(`libs/rules/src/game_data.rs`). These files are the source of truth (ticket 75): fix data by editing them, then
+reseed.
 
-The files were extracted once from the saved guide pages (`cargo run -p extract -- --force`, which never
-overwrites `.ron` files). `EXTRACTION_REPORT.md` lists, by category, what the extractor couldn't turn into data;
-fix an item in the `.ron` files and delete its line. `libs/seeds/tests/fixtures/game-data/` is a small hand-written
-example of the layout.
+The files were extracted once from the guide pages saved in `guide-cache/` and have been corrected by hand since;
+the extractor is gone (ticket 82). A data change edits the `.ron` files by hand, adds a note under Layout below (the
+ticket, the decision behind it and what the data now says, as the earlier tickets' notes do) and adds a real-data
+test in `libs/seeds/tests/game_data/`; then check the files (`--check-only`, under Seeding) and reseed.
+`EXTRACTION_REPORT.md` is the hand-kept list of open data gaps, by category (it began as what the extractor couldn't
+turn into data): fix an item in the `.ron` files and delete its line. `libs/seeds/tests/fixtures/game-data/` is a
+small hand-written example of the layout.
 
 ## Layout
 
@@ -17,7 +21,7 @@ example of the layout.
 | `skills.ron` | `Vec<Skill>` |
 | `weapons.ron` | `Vec<Weapon>`: the weapons a feat can be taken for, from the guide's simple, martial and exotic lists (`proficiency`; the Sawtooth Saber is exotic, from Weapon Finesse's list), plus what Weapon Focus names besides weapons (unarmed strike, touch attacks, rays), each natural attack the guide names (bite, claw, gore, hoof, slam, spike, tail, talon, wing), Kinetic Blast and Bomb |
 | `feats.ron` | `Vec<Feat>` |
-| `backgrounds.ron` | `Vec<Background>`: the user's list (the guide doesn't list backgrounds, so they have no guide link), carried by `extract::backgrounds` |
+| `backgrounds.ron` | `Vec<Background>`: the user's list (the guide doesn't list backgrounds, so they have no guide link; ticket 34) |
 | `classes/<class>.ron` | one base `Class`, with its features, feature selections, level rows and archetypes |
 | `prestige/<class>.ron` | one prestige `Class` |
 | `mythic/abilities.ron` | `Vec<MythicAbility>` |
@@ -110,8 +114,8 @@ class's), and BAB and saves (from the class's progressions).
   none of that selection's options held. A selection with `pool_of` offers the pools (`pool`) of the options held
   in another (an oracle's revelations, `oracle/revelation`, from the mysteries held), beside any options of its own
   (the Dual-Cursed Oracle's `oracle/dual-cursed-oracle/revelation`: Misfortune and Fortune); within a level its
-  slot is checked after the other selections'. `extract::option_levels` reads all this from the guide.
-- Ticket 33 (`extract::option_follow_ups`, the user's decisions on tickets 30 and 31):
+  slot is checked after the other selections'. All this was read from the guide.
+- Ticket 33 (the user's decisions on tickets 30 and 31):
   - An option may belong to a group, `group: Draconic` (the sorcerer's ten dragons; `Elemental`, its four
     elements), and `NoOtherOptionOfGroup(Draconic)` in its prerequisite needs no option of the group held but the
     one picked (a Crossblooded or Second Bloodline sorcerer can't hold two dragons).
@@ -129,7 +133,7 @@ class's), and BAB and saves (from the class's progressions).
     Focus and Second Animal Focus (features, not a pick of the eight aspects). Elemental Movement is one feature
     per element (none for Earth). The Divine Hunter skips no domain level. The Signifer's order is
     `hellknight-signifer/order`, sharing the Hellknight's seven.
-- Ticket 35 (`extract::second_follow_ups`, the user's decisions on tickets 32 and 33):
+- Ticket 35 (the user's decisions on tickets 32 and 33):
   - A subrace's `feat_slots` replace its race's, as its ability modifiers do (the guide lists each subrace's own
     traits): none written means none, so the half-elf's Dual Heritage and Kindred Raised get no Adaptability. They
     may name the race's lists.
@@ -138,14 +142,15 @@ class's), and BAB and saves (from the class's progressions).
     Deity's Impossible Domain runs on arcanist levels from the pick. Impossible Domain's prerequisite also accepts
     `SelectionOption("hellknight/disciplines/pentamic-faith")`, whose domain is levelled by Hellknight levels.
     It names no druid (ticket 36): the druid's page says a druid who chooses a domain can't take Impossible Domain,
-    so neither the Nature Bond domain nor the Blight Druid's or Winter Child's qualifies; the module asserts this.
+    so neither the Nature Bond domain nor the Blight Druid's or Winter Child's qualifies; a real-data test asserts
+    this.
   - `hellknight-signifer/order` is `only_without_option`, as `hellknight/order`.
   - The Chaos, Evil, Good and Law domains: `Any([Not(PickedThrough("cleric/separatist/domain")), Alignment(...),
     ...])`, the six alignments that don't conflict, when taken as the Separatist's second domain.
   - `group: BloodragerDraconic` and `BloodragerElemental` with `NoOtherOptionOfGroup(...)` on the bloodrager's ten
     dragons and four elements: one of each at most (Second Bloodrager Bloodline), apart from the sorcerer's
     groups.
-- The second group of options with rows (ticket 31, `extract::option_families`, read from the guide's prose):
+- The second group of options with rows (ticket 31, read from the guide's prose):
   - **Domains** are one selection, `cleric/domain` (37 options, rows by cleric levels: the power at 1, the one
     at 6 or 8, the Animal and Scalykind companion at 4, class skills on row 1 as for the bloodlines, but the Animal
     domain's Lore (Nature) on row 4 with its companion). The cleric's level 1 grants it twice (once for an archetype that "May only select a single
@@ -163,10 +168,10 @@ class's), and BAB and saves (from the class's progressions).
   - **Elements**, `kineticist/element`: class skills and the wild-talent bonus feat list at 1, the defensive talent
     at 2; `kineticist/expanded-element` at 7 and 15 holds a second element (or the first again, `repeat:
     Times(2)`) for its list only.
-- Options' class skills (ticket 37, `extract::option_class_skills`, the user's decision on ticket 34's first open
+- Options' class skills (ticket 37, the user's decision on ticket 34's first open
   question): the "Class Skill: …" features of the bloodlines, mysteries, domains and elements, and the cavalier
   orders' "Skills", became their rows' `class_skills`; the Empyreal and Sylvan Sorcerers' went (their own lists
-  hold the skill). Ticket 38 (`option_class_skills::cleanup`, the user's decisions on ticket 37's open questions)
+  hold the skill). Ticket 38 (the user's decisions on ticket 37's open questions)
   then dropped the Overwhelming Mage's and the Seeker's "Class Skill" (each holds its bloodline's 1st row, and so
   its class skill), gave the Sohei its own list (the monk's plus Lore (Nature)) for its "Skills", and moved the
   Animal domain's Lore (Nature) to its row 4 ("At 4th level, you gain an Animal Companion. … Lore (Nature) becomes
@@ -179,14 +184,14 @@ class's), and BAB and saves (from the class's progressions).
   each window's feat comes from the style's list of its stage, whoever levels the style (the user's decisions: one
   style, as a ranger picks, shared with a ranger's; the window's stage, not the ranger's levels). `at_level` left
   out: the list in force at the option's own level.
-- Ticket 43 (`extract::report_gaps`, the report items the saved pages settle): the totem rage powers are exclusive
+- Ticket 43 (the report items the saved pages settle): the totem rage powers are exclusive
   ('Selecting one "Totem" power closes off the other categories'), so each of the twelve (Beast, Celestial, Daemon,
   Fiend: Lesser, plain, Greater) has a `Not(SelectionOption(...))` for each of the other lines' nine in its `All`, one
   `Not` per power so that a lock names the power held ("Needs not Beast Totem, Lesser"); the shaman's Wandering Hex (6,
   14), "temporarily filled" from his main spirit or his current Wandering Spirit, is a `daily_choice`, as the
   Wandering Spirit is; the Eldritch Scoundrel's sneak attack dice are at 1, 3, 7, 11, 15 and 19, as its section lists
   them.
-- Ticket 44 (`extract::report_gaps::decisions`, the user's decisions on ticket 43's questions): every sorcerer's
+- Ticket 44 (the user's decisions on ticket 43's questions): every sorcerer's
   level-1 "Bonus Feat" is an `OptionList(selection: "sorcerer/bloodline")` slot, as at 7, 13 and 19: the base
   sorcerer's (new), Crossblooded's (either bloodline's list), the Empyreal, Sage and Sylvan Sorcerers' (their fixed
   bloodline's), the Nine Tailed Heir's and the Seeker's (the bloodline chosen "for the purpose of bonus feats"; the
@@ -194,7 +199,7 @@ class's), and BAB and saves (from the class's progressions).
   keeps its `General` slot; the Overwhelming Mage ("Does not receive bonus feats") has none. Extra Slayer Talent
   needs `ClassLevel(class: "slayer", level: 2)`, the level the slayer's table first gives Slayer Talents ("Talented
   Slayer" is on no saved page). Deities stay out of scope.
-- Ticket 45 (`extract::wild_talents`, ticket 43's decision 2): the kineticist's wild talents are a selection,
+- Ticket 45 (ticket 43's decision 2): the kineticist's wild talents are a selection,
   `kineticist/wild-talents` (levelled by kineticist), picked at every even level (the base's rows 2 to 20, the
   Kinetic Knight's 4 and the Blood Kineticist's 20 in place of the "Wild Talents" feature). Its 22 options are the
   guide's 26 talents but the four defensive ones (each element's 2nd-level row still). Each needs
@@ -206,7 +211,7 @@ class's), and BAB and saves (from the class's progressions).
   Defense's row 1 holds a feature with `option_row: (selection: "kineticist/expanded-element", level: 2)`, and an
   option row of the very selection a `feat_lists_only` option is held through is given in full (an expanded
   element's defensive talent), now or when the element comes later. Extra Wild Talent needs kineticist level 2.
-- Ticket 47 (`extract::talent_follow_ups`, the user's decisions on ticket 45's questions, 2026-11-02): the Skill Focus
+- Ticket 47 (the user's decisions on ticket 45's questions, 2026-11-02): the Skill Focus
   wild talent and rogue talent are `repeat: PerValue`, once for each value of their chosen feat (an option is
   `PerValue` only with a `chosen_feat`): Skill Focus in another skill each time. The rogue talent Weapon Focus stays
   once. Combat Trick ("Any combat feat that the character qualifies for") is `repeat: Unlimited` with a row 1 of
@@ -215,7 +220,7 @@ class's), and BAB and saves (from the class's progressions).
   and Discovery; the slayer's talents by the slayer already). An `OptionList` slot may carry its own `label`: the
   bonus-feat wild talent's reads "Wild talent feat" (`OptionList(selection: "kineticist/element", label: "Wild
   talent feat")`).
-- Ticket 49 (`extract::extra_picks`, ticket 45's decision 2, user, 2026-11-02): a feat whose guide entry says "gain
+- Ticket 49 (ticket 45's decision 2, user, 2026-11-02): a feat whose guide entry says "gain
   one additional …" names the selections its "Prerequisites" names in `extra_pick_of` (`extra-hex`: `["shaman/hex",
   "witch/hex"]`), and each pick of it gives one more slot of the one the character had a slot of first, at the
   level it's taken (a `FeatSelection` slot); a character who had a slot of none gets none. Eight feats: Extra
@@ -223,7 +228,7 @@ class's), and BAB and saves (from the class's progressions).
   Rage Power, Extra Rogue Talent (the rogue's and the Sylvan Trickster's Fey Tricks), Extra Slayer Talent and Extra
   Wild Talent. Extra Mercy says it too, but the paladin's mercies were a feature, not a selection, so it named none
   until ticket 54.
-- Ticket 54 (`extract::mercies_and_exploits`, ticket 49's decisions 1 and 5, user, 2026-11-02): the paladin's
+- Ticket 54 (ticket 49's decisions 1 and 5, user, 2026-11-02): the paladin's
   "Mercy" feature is the selection `paladin/mercy` on the rows that held it (each archetype's where its table has
   "Mercy": the Divine Hunter's 3, 9, 12, 15, the Stonelord's 6, 12, 18), with the guide's 15 mercies, each needing
   `ClassLevel(paladin, its level)` and the mercy its table names (Exhausted: Fatigued). Extra Mercy needs a mercy held
@@ -232,14 +237,14 @@ class's), and BAB and saves (from the class's progressions).
   it no list of its own; a row may hold another class's selection, as a bloodrager's rage powers), so an exploit is
   taken once across both classes and Extra Arcanist Exploit's pick reaches it; Extra Arcanist Exploit's `Any` no
   longer names the feature. The Enforcer's "Greater Exploits" stayed a feature until ticket 57.
-- Ticket 57 (`extract::exploits`, ticket 54's decisions 1 and 2, user, 2026-11-02): the Arcane Enforcer's "Greater
+- Ticket 57 (ticket 54's decisions 1 and 2, user, 2026-11-02): the Arcane Enforcer's "Greater
   Exploits" feature at 13 is a slot of the arcanist's own `arcanist/greater-exploits`, read as the arcanist's own
   "Greater Exploits" cell at 11 is (one pick; each greater exploit needs the exploit it extends). The Exploiter
   Wizard's "Exploiter Exploits" feature is a slot of `arcanist/arcanist-exploits` at its rows 1, 5, 9, 13 and 17 (the
   guide gives it no list of its own), and its "Greater Exploits" a slot of `arcanist/greater-exploits` at 13; both
   features are gone. An exploit is taken once across the arcanist, the Enforcer and the Exploiter, and Extra Arcanist
   Exploit's pick reaches the Exploiter too.
-- Ticket 58 (`extract::ki_powers`, ticket 54's decision 2, user, 2026-11-02): the monk's "Ki Power" feature is the
+- Ticket 58 (ticket 54's decision 2, user, 2026-11-02): the monk's "Ki Power" feature is the
   selection `monk/ki-power` on the rows that held it (each archetype's where its table has "Ki Power": the Scaled
   Fist not at 12, the Sohei from 6, the Student of Stone not at 6 or 12, the Zen Archer not at 10), with the guide's
   14 ki powers, each needing `ClassLevel(monk, its level)`; a power with no section of its own links to the page. The
@@ -247,7 +252,7 @@ class's), and BAB and saves (from the class's progressions).
   at 10, Diamond Soul at 12, Quivering Palm at 14) are features of its own on rows 6 to 14, in place of the base
   class's pick (those rows were the base's before). No feat gives a ki power: Extra Ki and Abundant Ki Pool grow the
   pool.
-- Ticket 59 (`extract::infusions`, ticket 54's decision 2, user, 2026-11-02): the kineticist's "Infusion" feature
+- Ticket 59 (ticket 54's decision 2, user, 2026-11-02): the kineticist's "Infusion" feature
   after 1st level is the selection `kineticist/infusions` ("Infusion") on the rows that held it ("She gains new
   Infusions at 3rd, 5th, 9th, 11th, 13th, 17th and 19th levels"; each archetype's where its table has "Infusion":
   the Blood Kineticist's 3, 13, 17, 19, the Kinetic Knight's 5, 11, 13, 17, 19), with the guide's 32 infusions. Each
@@ -257,7 +262,7 @@ class's), and BAB and saves (from the class's progressions).
   "Infusion (Kinetic Sharpshooter)" feature is gone (its rows 3 to 19 hold the slot; 17 and 19 are the base's now).
   The 1st-level "Infusion" stays a feature: no infusion is open at kineticist 1. The guide's "Dazziing Infusion" is
   named "Dazzling Infusion", linking to the guide's anchor. No feat gives an infusion.
-- Ticket 60 (`extract::borrowed_selections`, ticket 54's decision 2, user, 2026-11-02): picks from another class's
+- Ticket 60 (ticket 54's decision 2, user, 2026-11-02): picks from another class's
   list are slots, of that class's selection where the guide's list is one, or of a selection sharing the lists it
   mixes (as ticket 25's slayer talents), in place of the feature that stood for them:
   - the bard's "Bard Talents" and the skald's "Skald Talents" ("can select from the Rogue Talent list") are slots of
@@ -280,7 +285,7 @@ class's), and BAB and saves (from the class's progressions).
   changes). Extra Rogue Talent's extra pick may be of the Feyform Shifter's selection too; Extra Hex reaches the
   Hexcrafter through `witch/hex`. Extra Discovery and Extra Arcana gave the Vivisectionist and the Hexcrafter none
   until ticket 64.
-- Ticket 61 (`extract::bonus_feat_choices`, ticket 54's decision 2, user, 2026-11-02): a bonus feat chosen from a
+- Ticket 61 (ticket 54's decision 2, user, 2026-11-02): a bonus feat chosen from a
   fixed list is a `OneOf` slot of that list where the table has the cell, as the Divine Guardian's bonus feats are,
   with no feature standing for it:
   - the Titan Fighter's "Massive Attacks" (2, 6, 10, 14, 18, in place of the fighter's bonus combat feat) picks from
@@ -290,19 +295,19 @@ class's), and BAB and saves (from the class's progressions).
   - the hunter's Precise Companion (2, all but the Forester), the Urban Hunter's Captor (6, 9, 12, 15, 18) and the
     Stormwalker's Archery (2, 6, 10, 14, 18) were slots of their lists already (ticket 18); the features beside them
     went.
-- Ticket 55 (`extract::mythic_extra_picks`, ticket 49's decision 4, user, 2026-11-02): a mythic feat's `extra_pick`
+- Ticket 55 (ticket 49's decision 4, user, 2026-11-02): a mythic feat's `extra_pick`
   is the slot a pick of it gives at the Mythic rank it's taken, after the rank's general pick (a `MythicExtra`
   slot): `Feat`, a feat slot offering what the general slot does (`extra-feat`: "You can select any normal feat"),
   or `MythicAbility`, a mythic ability slot offering what a rank's general pick does (`extra-mythic-ability`). Both
   are taken once: their entries don't say otherwise. A mythic ability in that slot grants its `selections` as the
   general pick's would (Second Bloodline), and a feat with an `extra_pick_of` gives its slot at the rank's level.
-- Ticket 62 (`extract::mythic_ability_picks`, ticket 55's decisions 1 and 2, user, 2026-11-02): two more mythic
+- Ticket 62 (ticket 55's decisions 1 and 2, user, 2026-11-02): two more mythic
   abilities grant a selection slot through `selections`, as Second Spirit and Second Mystery do. Witch Wandering Hex
   ("You can select any hex for which you meet the prerequisites") gives one slot of `witch/hex`, each hex's own
   prerequisites checked, and needs a hex held, the witch's or the shaman's: its "Prequisites: Hex" (so spelt in the
   guide, which the extraction passed over) is Extra Hex's `Any`. Beneficial Curse ("You gain an additional Curse")
   gives one slot of `oracle/oracles-curse`; a curse held is "Already taken" there.
-- Ticket 63 (`extract::archetype_alignments`, ticket 58's question 1, user, 2026-11-02): an archetype's alignment
+- Ticket 63 (ticket 58's question 1, user, 2026-11-02): an archetype's alignment
   requirement replaces its class's, and the class's other conditions still hold (`rules` does this; the Drunken
   Master's "Cannot be Lawful" replaces the monk's "Lawful"). So a class's or an archetype's alignment requirement is a
   condition of its own: the whole `prerequisite`, or one of a top-level `All`'s conditions, never mixed into a group
@@ -311,7 +316,7 @@ class's), and BAB and saves (from the class's progressions).
   CN])` from its "Alignement restricted to …" line (so spelt in the guide, which the extraction passed over); and the
   **Mantis Zealot's `Any([LN, LE, NE])`, the user's fact, not the guide's** (2026-11-02: one step from Achaekek's
   Lawful Evil; the guide says only that it worships Achaekek, and deities are out of scope).
-- Ticket 64 (`extract::borrowed_extra_picks`, ticket 60's decisions 2 and 3, user, 2026-11-02): Extra Discovery's
+- Ticket 64 (ticket 60's decisions 2 and 3, user, 2026-11-02): Extra Discovery's
   extra pick may be of the Vivisectionist's `alchemist/vivisectionist/medical-discovery` too, and Extra Arcana's of
   the Hexcrafter's `magus/hexcrafter/hex-arcana` (Medical Discovery stands where the alchemist's table has Discovery;
   Hex Arcana where the magus's has Magus Arcana but the first). Their "Prerequisites" name the class feature
@@ -319,14 +324,14 @@ class's), and BAB and saves (from the class's progressions).
   there: `All([Archetype("alchemist/vivisectionist"), ClassLevel(class: "alchemist", level: 2)])` and
   `All([Archetype("magus/hexcrafter"), ClassLevel(class: "magus", level: 6)])`, as a Sanctified Slayer 8 meets Extra
   Slayer Talent's.
-- Ticket 66 (`extract::instinctual_rage_powers`, ticket 58's decision 3, user, 2026-11-02): the Instinctual
+- Ticket 66 (ticket 58's decision 3, user, 2026-11-02): the Instinctual
   Warrior's monk powers are five options of `barbarian/rage-power` that need its archetype
   (`barbarian/rage-power/deflect-arrows-instinctual-warrior`, …, named "… (Instinctual Warrior)" and linking to
   `barbarian#rage-power-instinctual-warrior`, which lists them): Deflect Arrows needs `Feat("improved-unarmed-strike")`,
   Purity of Body, Diamond Body, Diamond Soul and Perfect Self barbarian level 8, 12, 16 and 20 (`ClassLevel`, as
   every rage power's level is). They aren't the monk's ki powers or features, and holding one is holding a rage
   power, so Extra Rage Power's `Any` names them too.
-- Ticket 67 (`extract::second_curse`, ticket 62's decision, user, 2026-11-02): the Dual-Cursed Oracle's "Second
+- Ticket 67 (ticket 62's decision, user, 2026-11-02): the Dual-Cursed Oracle's "Second
   Curse" feature is a second slot of the oracle's own `oracle/oracles-curse` on its level-1 row ("The Oracle must
   choose a second curse"), so the row holds that selection twice, as a cleric's holds `cleric/domain` twice. Every
   curse is taken once, so the second slot doesn't offer the curse taken in the first, and Beneficial Curse's slot

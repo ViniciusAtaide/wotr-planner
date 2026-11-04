@@ -28,7 +28,7 @@ Before reporting a change done, run `scripts/check.sh` (add `--schema` after a m
 
 ## Behaviour proof
 
-To prove a change to `rules` or `libs/game-data/` changes no behaviour but the intended one, run `scripts/proof.sh` (usage in its header and in `libs/proof`'s crate docs); a ticket filters its comparison for any special breakdown. To prove a change to `libs/extract` leaves the extraction byte-identical, run `scripts/extraction-diff.sh <out-dir> [<ref>]`.
+To prove a change to `rules` or `libs/game-data/` changes no behaviour but the intended one, run `scripts/proof.sh` (usage in its header and in `libs/proof`'s crate docs); a ticket filters its comparison for any special breakdown.
 
 ## Formatting
 

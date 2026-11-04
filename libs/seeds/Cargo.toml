@@ -4,7 +4,7 @@ version.workspace = true
 edition.workspace = true
 
 # Native only: sqlx models, queries and migrations. Never reachable from the wasm build
-# (used only by `server` and `extract`).
+# (used only by `server` and `proof`).
 [dependencies]
 dotenvy.workspace = true
 ron.workspace = true

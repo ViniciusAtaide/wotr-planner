@@ -17,7 +17,7 @@ A build planner for Pathfinder: Wrath of the Righteous. Leptos (SSR + hydration)
 ```sh
 cp .env.example .env      # once
 docker compose up -d      # Postgres 18 on localhost:5434
-cargo run -p seeds --bin seed -- libs/seeds/tests/fixtures/game-data   # load game data (see below)
+cargo run -p seeds --bin seed   # load the game data in libs/game-data/ (see below)
 cargo leptos watch        # builds, runs migrations at startup, rebuilds on change
 ```
 
@@ -29,8 +29,8 @@ The game data lives in RON files under `libs/game-data/` (see `libs/game-data/RE
 replaces every game table with the files in `DIR` (default: `$GAME_DATA_DIR`, or `libs/game-data/`) in one transaction and
 stores their hash, after checking the data (`rules::GameData::check`). The server loads the game data once at startup,
 so restart it after a reseed. At startup it warns when that hash doesn't match the files in `$GAME_DATA_DIR`
-(default `libs/game-data/`); it never reseeds by itself. `libs/game-data/` is empty until the guide is extracted, so for now seed
-the hand-written fixture in `libs/seeds/tests/fixtures/game-data` (and set `GAME_DATA_DIR` to it to silence the warning).
+(default `libs/game-data/`); it never reseeds by itself. `libs/seeds/tests/fixtures/game-data` is a small hand-written
+example of the layout; to seed it instead, pass its path to the seed (and set `GAME_DATA_DIR` to it to silence the warning).
 
 ### From a phone on the same network
 

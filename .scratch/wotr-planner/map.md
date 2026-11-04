@@ -14,7 +14,7 @@ A working, locally run Leptos app at `~/code/wotr-planner` for planning Pathfind
   - Postgres in docker compose; local only.
   - sqlx with typed serde structs.
 - **Game data:**
-  - The source of truth is the checked-in data files (user, 2026-11-03, [ticket 75](issues/75-game-data-master.md)). They were extracted from the guide and are corrected by hand; the extractor goes once the files hold what it knows (tickets 81–82).
+  - The source of truth is the checked-in data files (user, 2026-11-03, [ticket 75](issues/75-game-data-master.md)). They were extracted from the guide and are corrected by hand; the extractor was removed once the files held all it knew (tickets 81–82). A data change edits the `.ron` files, adds a note to `libs/game-data/README.md` and adds a real-data test in `libs/seeds/tests/game_data/`.
   - A seed step loads them into ordinary relational tables, prerequisites included (no JSONB).
   - Store prerequisites, a short summary in our own words and a link to the guide, never the guide's full text.
   - When the game and the guide disagree, the guide wins.
@@ -25,9 +25,9 @@ A working, locally run Leptos app at `~/code/wotr-planner` for planning Pathfind
   - **No derived values in the database** (user, 2026-10-31). Anything computable from other columns or a simple rule belongs in Rust, not in a column. Examples: a `position` that equals `rank − 1`, or ability/feat counts that follow `rank % 2`.
   - **Postgres checks references to missing keys** (user, 2026-11-03): the seed's foreign keys catch them; `GameData::check` stays without a reference check.
 - **Rules followed:** the game's intended, current (patched) behaviour. Known exploits are not modelled.
-- **Extraction in stages** (user, 2026-11-01): [Extract the guide into data files](issues/10-extract-guide.md) is stage A, where the extractor writes `libs/game-data/` and the seed passes. Then four parallel hand-fix stages, one per category: [feats](issues/17-handfix-feats.md), [base classes](issues/18-handfix-base-classes.md), [prestige classes](issues/19-handfix-prestige-classes.md), [mythic](issues/20-handfix-mythic.md). They validate without the database, and the main session seeds once. Then [Answer the schema questions from the real data](issues/21-schema-questions-real-data.md). Commit a checkpoint after each stage.
+- **Extraction in stages** (user, 2026-11-01; history since [ticket 82](issues/82-remove-the-extractor.md) removed the extractor): [Extract the guide into data files](issues/10-extract-guide.md) was stage A, where the extractor wrote `libs/game-data/` and the seed passed. Then came four parallel hand-fix stages, one per category: [feats](issues/17-handfix-feats.md), [base classes](issues/18-handfix-base-classes.md), [prestige classes](issues/19-handfix-prestige-classes.md), [mythic](issues/20-handfix-mythic.md). They validated without the database, and the main session seeded once. Then [Answer the schema questions from the real data](issues/21-schema-questions-real-data.md). A checkpoint was committed after each stage.
 - **Order** (user, 2026-10-31): finish the data layer (saved guide pages, extraction, checking the data against the guide) before the UI. [Build the planning sheet screen](issues/12-build-sheet-screen.md) waits on the data-layer tickets 23–38. Tickets 23–28 and 30–38 each edit the one migration, so they run one at a time, in order; design ticket 29 ran with the user alongside. Tickets 32, 33, 35 and 36 build the user's answers to the open questions of 26–35 (2026-11-01); 34 adds backgrounds from the user's list, 37 turns options' class-skill features into class skills, 38 cleans up after it (skills questions take the recommended option, per the user), and 39 swaps validation for impossible states (user, 2026-11-01: picks are removed from the leaves inward), and 40 gives a stale link one generic error instead of the banner and drops picks the Build no longer reaches (user, 2026-11-01), and 41 also drops the path and switch below their ranks, and 42 keeps a switch's earlier picks again (user, 2026-11-02, undoing the rest of 41). 39–42 edit `rules`, not the migration, but still run after 38.
-- **Architecture review** (2026-11-03): tickets 75–82 simplify what the review found. Order: [81](issues/81-apply-the-extractor-to-the-files.md) brings what only the extractor knows into the files, [82](issues/82-remove-the-extractor.md) removes the extractor, then 77, 78 and 80; 76 is independent; 79 is closed.
+- **Architecture review** (2026-11-03): tickets 75–82 simplify what the review found. Order: [81](issues/81-apply-the-extractor-to-the-files.md) checked what only the extractor knew against the files (nothing), [82](issues/82-remove-the-extractor.md) removed the extractor, then 77, 78 and 80; 76 is independent; 79 is closed.
 - **Rules:** the rules live in a plain Rust crate with no DB or Leptos code, running in the browser. The browser loads the game data once, filters choices immediately, and decodes and encodes the Build from the URL.
 - **Mobile:** design mobile-first. The main targets are the Galaxy Z Fold 7 cover screen (folded, tall and narrow, ~21:9) and inner screen (unfolded, nearly square, ~6:5). Desktop is secondary. Both Fold screens must work for touch: no hover-only interactions, and tap targets large enough for a thumb. The layout should adapt when the phone is folded or unfolded without losing the user's place.
 - **Builds and links:** no accounts and no saved-build table. The URL fragment encodes every choice, updates live, and is the share link. `/` with no fragment is a blank Build.
@@ -47,7 +47,7 @@ A working, locally run Leptos app at `~/code/wotr-planner` for planning Pathfind
   - Characters gain a feat at every odd character level.
   - The Legend path raises the level cap to 40.
 - **Skills to use:**
-  - `tdd` for the rules crate and the guide extraction; screens get end-to-end smoke tests only.
+  - `tdd` for the rules crate; a game-data change gets a real-data test in `libs/seeds/tests/game_data/`; screens get end-to-end smoke tests only.
   - `grilling` + `domain-modeling` for design tickets; keep [GLOSSARY.md](../../GLOSSARY.md) current.
 - **Tracker:** local markdown. Tickets are in `issues/`; research write-ups are in `research/`.
 
@@ -131,6 +131,7 @@ A working, locally run Leptos app at `~/code/wotr-planner` for planning Pathfind
 - [Decide whether the extractor or the data files are the master](issues/75-game-data-master.md): the files are the master (user, 2026-11-03); the extractor's knowledge goes into them, then the extractor goes (tickets 81–82).
 - [Read and write the data files without sqlx](issues/79-game-files-without-sqlx.md): closed, not built; removing the extractor leaves the layout declared once.
 - [Bring what only the extractor knows into the data files](issues/81-apply-the-extractor-to-the-files.md): nothing to apply; all 191 differences are hand-fixes the files already hold.
+- [Remove the extractor](issues/82-remove-the-extractor.md): `libs/extract` and `scripts/extraction-diff.sh` are gone; data changes are hand edits with a README note and a real-data test.
 
 ## Not yet specified
 

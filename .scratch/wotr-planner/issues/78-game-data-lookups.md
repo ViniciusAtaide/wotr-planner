@@ -7,7 +7,7 @@ Map: [WotR Build Planner](../map.md)
 
 ## Question
 
-`rules::GameData` has no lookup or traversal helpers, so each crate writes its own (architecture review, 2026-11-03). `.chain(&…prestige_classes)` to walk every class appears 8 times in `libs/rules/src` and 11 times in `libs/ui`, `libs/seeds`, `libs/proof` and `apps`. The review counted more in `libs/extract`; [ticket 82](82-remove-the-extractor.md) deletes them (re-scoped after [ticket 75](75-game-data-master.md)).
+`rules::GameData` has no lookup or traversal helpers, so each crate writes its own (architecture review, 2026-11-03). `.chain(&…prestige_classes)` to walk every class appears 8 times in `libs/rules/src` and 11 times in `libs/ui`, `libs/seeds`, `libs/proof` and `apps`. The review counted more in `libs/extract`; [ticket 82](82-remove-the-extractor.md) deleted them (re-scoped after [ticket 75](75-game-data-master.md)).
 
 ## Build
 

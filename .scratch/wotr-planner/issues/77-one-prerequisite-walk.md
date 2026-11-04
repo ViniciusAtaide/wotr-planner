@@ -7,7 +7,7 @@ Map: [WotR Build Planner](../map.md)
 
 ## Question
 
-The `All | Any | AtLeast | Not` recursion over `Prerequisite` is hand-written several times in `rules` (architecture review, 2026-11-03): five times in `libs/rules/src/prerequisite.rs` (`collect_stories`, `collect_feats`, `is_alignment`, `names_alignment`, `canonicalize`, lines 135–249) and again in `libs/rules/src/check.rs` (around 708). The review found about as many copies in `libs/extract`; [ticket 82](82-remove-the-extractor.md) deletes them with the crate (re-scoped after [ticket 75](75-game-data-master.md)).
+The `All | Any | AtLeast | Not` recursion over `Prerequisite` is hand-written several times in `rules` (architecture review, 2026-11-03): five times in `libs/rules/src/prerequisite.rs` (`collect_stories`, `collect_feats`, `is_alignment`, `names_alignment`, `canonicalize`, lines 135–249) and again in `libs/rules/src/check.rs` (around 708). The review found about as many copies in `libs/extract`; [ticket 82](82-remove-the-extractor.md) deleted them with the crate (re-scoped after [ticket 75](75-game-data-master.md)).
 
 ## Build
 
