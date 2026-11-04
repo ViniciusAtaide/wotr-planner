@@ -49,9 +49,8 @@ fn options(args: &[String], links_allowed: bool) -> Result<Options, String> {
 
 /// The engine on the game data, the game data in the engine's order, and the Builds the options name.
 fn engine_and_builds(options: &Options) -> Result<(Engine, GameData, Vec<Named>), String> {
-    let data = seeds::read_game_data_files(Path::new(&options.data))
+    let (engine, data) = proof::engine_on(Path::new(&options.data))
         .map_err(|error| format!("reading {}: {error:?}", options.data))?;
-    let (engine, data) = proof::engine_on(data);
     let mut builds = match &options.links {
         None => builds::all(&engine, &data, options.threads),
         Some(path) => {

@@ -1,7 +1,9 @@
 //! Storing [`Prerequisite`] trees as `prerequisite_node` rows and reading them back.
 //!
-//! A group's children are a set, so no order is stored; [`Trees::get`] returns canonical trees. Every node
-//! belongs to exactly one owner's tree, which [`Trees::finish`] checks once every owner has read its tree.
+//! A group's children are a set, so no order is stored: [`Trees::get`] returns them in whatever order it reads
+//! them, and [`load_game_data`](crate::load_game_data) makes every tree canonical with the rest of the game data.
+//! Every node belongs to exactly one owner's tree, which [`Trees::finish`] checks once every owner has read its
+//! tree.
 
 use std::collections::HashMap;
 
@@ -389,11 +391,10 @@ impl Trees {
             )));
         }
         let mut reached = Vec::new();
-        let mut tree = self.tree(root_id, &mut reached)?;
+        let tree = self.tree(root_id, &mut reached)?;
         for id in reached {
             *self.reached.entry(id).or_default() += 1;
         }
-        tree.canonicalize();
         Ok(Some(tree))
     }
 

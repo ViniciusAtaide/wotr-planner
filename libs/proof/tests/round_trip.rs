@@ -11,7 +11,7 @@ use rules::{
 
 fn engine() -> (Engine, GameData) {
     let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("../game-data");
-    proof::engine_on(seeds::read_game_data_files(&dir).expect("the game data reads"))
+    proof::engine_on(&dir).expect("the game data reads")
 }
 
 fn character(class: &str, levels: usize) -> Build {

@@ -18,7 +18,9 @@ wasm-bindgen-futures = "0.4.80"
 [features]
 default = []
 hydrate = ["leptos/hydrate"]
-# Never add `ssr` to `default`: it pulls sqlx/tokio into the wasm build.
+# Server-side rendering, for the backend: turns on the `ssr` feature of leptos, leptos_meta and leptos_router (and,
+# through them, of server_fn) and adds one crate, `inventory` (`cargo tree -p ui -e features --features ssr`). Never
+# add it to `default`: the frontend's wasm build takes `hydrate`, and server rendering belongs to the backend alone.
 ssr = ["leptos/ssr", "leptos_meta/ssr", "leptos_router/ssr"]
 # Records engine-call timings in a release build too, for benchmarks (see `src/timings.rs`). Dev builds always do.
 timings = []

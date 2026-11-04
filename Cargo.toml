@@ -23,7 +23,7 @@ wasm-bindgen = "=0.2.130"
 console_error_panic_hook = "0.1.7"
 rules = { path = "libs/rules" }
 seeds = { path = "libs/seeds" }
-ui = { path = "libs/ui", default-features = false }
+ui = { path = "libs/ui" }
 
 [profile.wasm-release]
 inherits = "release"
