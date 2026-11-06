@@ -7,7 +7,7 @@
 # seed's --check-only (the data files, no database).
 # --schema: also `cargo sqlx prepare --check`, after a change to the migration or a query (needs the database).
 # --full:   also the cargo-leptos dev and release builds. They are slow and rarely break, so run them once at the end
-#           of a queue of tickets, not per ticket.
+#           of a queue of tickets, not per ticket. The release build is made as it's served: --precompress.
 # Prints one line per step with its time, and ALL-OK at the end. Stops at the first failing step and shows its output.
 set -euo pipefail
 
@@ -49,6 +49,6 @@ if $schema; then
 fi
 if $full; then
     step leptos-dev env SQLX_OFFLINE=true cargo leptos build
-    step leptos-release cargo leptos build --release
+    step leptos-release cargo leptos build --release --precompress
 fi
 echo ALL-OK

@@ -15,8 +15,13 @@ dotenvy.workspace = true
 rules.workspace = true
 serde_json = "1.0.154"
 sha2.workspace = true
-# Compresses every response (brotli or gzip, as the browser takes it).
-tower-http = { version = "0.6.11", features = ["compression-br", "compression-gzip"] }
+# Compresses every response (brotli or gzip, as the browser takes it) that isn't compressed already, and serves
+# `site-pkg-dir` with the release build's `.br` files (`fs`, which leptos_axum already enables).
+tower-http = { version = "0.6.11", features = ["compression-br", "compression-gzip", "fs"] }
+# Compress the game data once at startup at their best levels (`game_data.rs`). Both are already built for
+# tower-http's compression (through async-compression), at these versions, so they add no crate.
+brotli = "9.1.1"
+flate2 = "1.1.10"
 
 [dev-dependencies]
 tower = { version = "0.5.3", features = ["util"] }

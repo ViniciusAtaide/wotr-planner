@@ -137,6 +137,7 @@ A working, locally run Leptos app at `~/code/wotr-planner` for planning Pathfind
 - [Give GameData its lookups](issues/78-game-data-lookups.md): `GameData` gives every class, class selection, selection and class feature, and a class or option by key; no `.chain(&…prestige_classes)` is left outside them.
 - [Drop the pipeline's repeated work and stale config notes](issues/80-pipeline-repeats-and-stale-notes.md): game data is sorted once per boundary (files, Postgres, engine), the `ssr` comment says what the feature pulls in, and `ui`'s no-op `default-features = false` is gone.
 - [Index the engine's hot lookups](issues/83-index-the-engines-hot-lookups.md): the `Catalog` reads class rows by position, casting, own options, single options and pool members from indexes built once, and a picker works a slot's feat lists out once; answers unchanged, 5–16 % faster per call, and the rest of the walks' time is `String`-key allocation and hashing.
+- [Serve the wasm and the game data precompressed at brotli quality 11](issues/84-precompressed-assets.md): release builds use `--precompress` and the server sends its `.br` files (gzip stays on the fly, which beats cargo-leptos's `.gz`), and the game data is compressed once at startup (1.7 s), so the wasm goes out at 428 KB (was 544) and the game data at 85 KB (was 112).
 
 ## Not yet specified
 

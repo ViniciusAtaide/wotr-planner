@@ -23,6 +23,12 @@ cargo leptos watch        # builds, runs migrations at startup, rebuilds on chan
 
 Open <http://localhost:3900>.
 
+A release build: `cargo leptos build --release --precompress`, then run `target/release/server` from the repo root.
+`--precompress` writes brotli (quality 11) and gzip copies of the wasm, JS and CSS next to them. The server sends
+the brotli copy to a browser that takes brotli; without the flag they are compressed on every request, at brotli
+quality 4. The gzip copies go unused: the server's own gzip is smaller. cargo-leptos has no `Cargo.toml` key for
+the flag, so always pass it.
+
 ### Game data
 
 The game data lives in RON files under `libs/game-data/` (see `libs/game-data/README.md`). `cargo run -p seeds --bin seed [DIR]`

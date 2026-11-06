@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# The behaviour proof: records about 2,000 Builds on two sides and compares them (libs/proof's docs say more).
+# The behaviour proof: records about 2,000 Builds on two sides and compares them (tools/proof's docs say more).
 #
 #   scripts/proof.sh data  <out-dir> [<ref>] [-- <record options>]
 #   scripts/proof.sh rules <out-dir> [<ref>] [-- <record options>]
@@ -90,9 +90,12 @@ rules)
     rm -rf "$src"
     mkdir -p "$src"
     git -C "$repo" archive "$commit" | tar -x -C "$src"
-    rm -rf "$src/libs/proof"
-    cp -R "$repo/libs/proof" "$src/libs/proof"
-    grep -q '"libs/proof"' "$src/Cargo.toml" || perl -pi -e 's/^members = \[/members = ["libs\/proof", /' "$src/Cargo.toml"
+    # A ref from before the harness moved to tools/ lists it as libs/proof, and one from before ticket 73 not at all.
+    rm -rf "$src/libs/proof" "$src/tools/proof"
+    mkdir -p "$src/tools"
+    cp -R "$repo/tools/proof" "$src/tools/proof"
+    perl -pi -e 's{"libs/proof"}{"tools/proof"}' "$src/Cargo.toml"
+    grep -q '"tools/proof"' "$src/Cargo.toml" || perl -pi -e 's/^members = \[/members = ["tools\/proof", /' "$src/Cargo.toml"
     build "$src" "$out/proof-A"
     record A "$out/proof-A" "$repo/libs/game-data" --links "$out/links.tsv"
     record B "$out/proof-B" "$repo/libs/game-data" --links "$out/links.tsv"

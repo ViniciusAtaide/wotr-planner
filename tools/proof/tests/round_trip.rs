@@ -10,7 +10,7 @@ use rules::{
 };
 
 fn engine() -> (Engine, GameData) {
-    let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("../game-data");
+    let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../libs/game-data");
     proof::engine_on(&dir).expect("the game data reads")
 }
 
