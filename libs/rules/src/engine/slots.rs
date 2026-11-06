@@ -17,14 +17,16 @@ use crate::state::CharacterState;
 impl Catalog {
     /// Whether a selection's slot offers `option` to a character in `state`: its own and shared options, and for
     /// a pool selection, the pools of the options held that it draws on.
-    fn offers(
+    fn offers_now(
         &self,
         selection: &FeatureSelection,
         option: &SelectionOptionKey,
         state: &CharacterState,
     ) -> bool {
-        selection.offers(option)
-            || (selection.pool_of.is_some() && self.pools(selection, state).contains(option))
+        self.offers(selection, option)
+            || self
+                .held_pools(selection, state)
+                .any(|pool| pool.contains(option))
     }
 
     /// The options a pool selection offers now: the pools of the options held that its `pool_of` selection
@@ -34,28 +36,38 @@ impl Catalog {
         selection: &FeatureSelection,
         state: &CharacterState,
     ) -> BTreeSet<SelectionOptionKey> {
-        let Some(source) = selection
-            .pool_of
-            .as_ref()
-            .and_then(|key| self.selection(key))
-        else {
-            return BTreeSet::new();
-        };
-        state
-            .selection_options
-            .keys()
-            .filter(|held| source.offers(held))
-            .filter_map(|held| self.option(held)?.pool.as_ref())
-            .filter_map(|pool| self.selection(pool))
-            .flat_map(|pool| pool.offered())
-            .filter(|key| self.has_option(key))
+        self.held_pools(selection, state)
+            .flatten()
             .cloned()
             .collect()
     }
 
+    /// The pool of each option held that a pool selection's `pool_of` selection offers ([`Catalog::pool`]). None
+    /// for any other selection.
+    fn held_pools<'s>(
+        &'s self,
+        selection: &FeatureSelection,
+        state: &'s CharacterState,
+    ) -> impl Iterator<Item = &'s BTreeSet<SelectionOptionKey>> {
+        let source = selection
+            .pool_of
+            .as_ref()
+            .and_then(|key| self.selection(key));
+        source
+            .into_iter()
+            .flat_map(move |source| {
+                state
+                    .selection_options
+                    .keys()
+                    .filter(move |held| self.offers(source, held))
+            })
+            .filter_map(|held| self.pool(held))
+    }
+
     /// The lists a feat slot picks from for a character in `state`: a `OneOf`'s list, or the lists in force of
-    /// the options held that an `OptionList`'s selection offers. Empty for the other slots.
-    fn slot_lists(&self, slot: &FeatSlot, state: &CharacterState) -> Vec<&FeatList> {
+    /// the options held that an `OptionList`'s selection offers. Empty for the other slots. A picker works them out
+    /// once and asks them about every feat ([`check_pick_with`]).
+    pub(super) fn slot_lists(&self, slot: &FeatSlot, state: &CharacterState) -> Vec<&FeatList> {
         match slot {
             FeatSlot::OneOf { list } => self.feat_list(list).into_iter().collect(),
             FeatSlot::OptionList {
@@ -69,7 +81,7 @@ impl Catalog {
                 state
                     .option_feat_lists
                     .iter()
-                    .filter(|(option, _)| selection.offers(option))
+                    .filter(|(option, _)| self.offers(selection, option))
                     .filter_map(|(_, list)| self.feat_list(list))
                     .collect()
             }
@@ -85,7 +97,7 @@ impl Catalog {
                 state
                     .selection_options
                     .keys()
-                    .filter(|option| selection.offers(option))
+                    .filter(|option| self.offers(selection, option))
                     .filter_map(|option| self.option(option))
                     .filter_map(|option| {
                         option
@@ -102,32 +114,25 @@ impl Catalog {
         }
     }
 
-    /// [`slot_accepts`](Self::slot_accepts) for a character in `state`, which an `OptionList` slot needs.
-    pub(super) fn slot_accepts_in(
+    /// [`slot_accepts`](Self::slot_accepts) for a character whose lists for the slot are `lists`
+    /// ([`slot_lists`](Self::slot_lists)), which an `OptionList` slot needs.
+    pub(super) fn slot_accepts_with(
         &self,
         slot: &FeatSlot,
         feat: &Feat,
-        state: &CharacterState,
+        lists: &[&FeatList],
     ) -> bool {
         match slot {
-            FeatSlot::OneOf { .. } | FeatSlot::OptionList { .. } => self
-                .slot_lists(slot, state)
-                .iter()
-                .any(|list| list.contains(&feat.key)),
+            FeatSlot::OneOf { .. } | FeatSlot::OptionList { .. } => {
+                lists.iter().any(|list| list.contains(&feat.key))
+            }
             _ => self.slot_accepts(slot, feat),
         }
     }
 
-    /// Whether a pick of `feat` in this slot ignores its prerequisites, for a character in `state`: when a bonus
-    /// list the slot offers it from ignores them.
-    fn slot_ignores_in(&self, slot: &FeatSlot, feat: &Feat, state: &CharacterState) -> bool {
-        self.slot_lists(slot, state)
-            .iter()
-            .any(|list| list.ignores_prerequisites && list.contains(&feat.key))
-    }
-
-    /// The one option a selection offers, when it offers exactly one: then it's granted with no pick.
-    pub(super) fn single_option(
+    /// The one option a selection offers, when it offers exactly one: then it's granted with no pick. Worked out
+    /// once per selection by [`Catalog::new`] ([`single_option`](Catalog::single_option) reads it).
+    pub(super) fn find_single_option(
         &self,
         selection: &FeatureSelectionKey,
     ) -> Option<SelectionOptionKey> {
@@ -182,6 +187,22 @@ pub(crate) fn check_pick(
     kind: &SlotKind,
     pick: &Pick,
 ) -> Result<(), Issue> {
+    let lists = match (kind, pick) {
+        (SlotKind::Feat(slot), Pick::Feat { .. }) => catalog.slot_lists(slot, state),
+        _ => Vec::new(),
+    };
+    check_pick_with(catalog, state, kind, &lists, pick)
+}
+
+/// [`check_pick`] with the slot's lists for `state` worked out already ([`Catalog::slot_lists`]; read only for a
+/// feat pick in a feat slot), as a picker does once for all its feats.
+pub(crate) fn check_pick_with(
+    catalog: &Catalog,
+    state: &CharacterState,
+    kind: &SlotKind,
+    lists: &[&FeatList],
+    pick: &Pick,
+) -> Result<(), Issue> {
     let value = pick.parameter();
     let prerequisite = match (kind, pick) {
         (_, Pick::Feat { feat: key, .. }) => {
@@ -189,13 +210,17 @@ pub(crate) fn check_pick(
             let SlotKind::Feat(slot) = kind else {
                 return Err(Issue::NotAllowed);
             };
-            if !catalog.slot_accepts_in(slot, feat, state)
+            if !catalog.slot_accepts_with(slot, feat, lists)
                 || !catalog.value_fits(feat.parameter, value)
             {
                 return Err(Issue::NotAllowed);
             }
             check_repeat(state, key, feat.repeat, value)?;
-            if catalog.slot_ignores_in(slot, feat, state) {
+            // A bonus list the slot offers it from that ignores them.
+            if lists
+                .iter()
+                .any(|list| list.ignores_prerequisites && list.contains(&feat.key))
+            {
                 return Ok(());
             }
             feat.prerequisite.as_ref()
@@ -210,7 +235,7 @@ pub(crate) fn check_pick(
             let Some(through) = catalog.selection(selection) else {
                 return Err(Issue::NotAllowed);
             };
-            if !catalog.offers(through, key, state) {
+            if !catalog.offers_now(through, key, state) {
                 return Err(Issue::NotAllowed);
             }
             let listed =

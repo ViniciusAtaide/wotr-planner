@@ -16,8 +16,8 @@ use crate::build::{AbilityScores, BuildStart, Pick, SlotId};
 use crate::choice::Issue;
 use crate::codec::LinkKeys;
 use crate::game_data::{
-    Ability, AbilityBonus, AbilityModifier, Advancement, Archetype, Background, Class, FeatList,
-    FeatSlot, FeatValue, GameData, Race, Skill, SpellLevels,
+    Ability, AbilityBonus, AbilityModifier, Advancement, Archetype, ArchetypeLevelRow, Background,
+    Class, ClassLevelRow, FeatList, FeatSlot, FeatValue, GameData, Race, Skill, SpellLevels,
 };
 use crate::keys::{
     ArchetypeKey, ClassKey, FeatKey, FeatListKey, FeatureKey, FeatureSelectionKey, MythicPathKey,
@@ -170,9 +170,34 @@ pub fn effective_row<'a>(
     archetype: Option<&'a Archetype>,
     level: u8,
 ) -> Option<EffectiveRow<'a>> {
-    let base = class.levels.iter().find(|row| row.level == level)?;
+    let base = class_row(class, level)?;
+    let own =
+        archetype.and_then(|archetype| archetype.levels.iter().find(|row| row.level == level));
+    Some(merged_row(base, own))
+}
+
+/// A class's row at a level: the row at that position, since the data check requires a table to run 1, 2, … n;
+/// a table that doesn't is searched.
+fn class_row(class: &Class, level: u8) -> Option<&ClassLevelRow> {
+    usize::from(level)
+        .checked_sub(1)
+        .and_then(|index| class.levels.get(index))
+        .filter(|row| row.level == level)
+        .or_else(|| class.levels.iter().find(|row| row.level == level))
+}
+
+/// An archetype's row at a level, its rows being in level order (as [`GameData::canonical`] puts them): found by
+/// halving, the first of any at that level as a search from the start would find.
+fn canonical_archetype_row(archetype: &Archetype, level: u8) -> Option<&ArchetypeLevelRow> {
+    let rows = &archetype.levels;
+    rows.get(rows.partition_point(|row| row.level < level))
+        .filter(|row| row.level == level)
+}
+
+/// A base row with the archetype's row at its level, if any, merged over it as [`effective_row`] says.
+fn merged_row<'a>(base: &'a ClassLevelRow, own: Option<&'a ArchetypeLevelRow>) -> EffectiveRow<'a> {
     let base_row = EffectiveRow {
-        level,
+        level: base.level,
         spell_levels: base.spell_levels(),
         advances_arcane: base.advances_arcane,
         advances_divine: base.advances_divine,
@@ -182,12 +207,10 @@ pub fn effective_row<'a>(
         feat_slots: &base.feat_slots,
         selections: &base.selections,
     };
-    let Some(own) =
-        archetype.and_then(|archetype| archetype.levels.iter().find(|row| row.level == level))
-    else {
-        return Some(base_row);
+    let Some(own) = own else {
+        return base_row;
     };
-    Some(EffectiveRow {
+    EffectiveRow {
         spell_levels: own.spell_levels.unwrap_or(base_row.spell_levels),
         features: &own.features,
         feats: &own.feats,
@@ -195,7 +218,7 @@ pub fn effective_row<'a>(
         feat_slots: &own.feat_slots,
         selections: &own.selections,
         ..base_row
-    })
+    }
 }
 
 /// Every row of a class's table, in level order, as [`effective_row`] gives it.

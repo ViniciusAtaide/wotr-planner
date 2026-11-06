@@ -2,9 +2,9 @@
 //! fact here, and nowhere else reads the indexes or the feature facts. Pure data access: nothing here walks a
 //! Build.
 
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeSet, HashMap, HashSet};
 
-use super::{EffectiveRow, effective_row, effective_rows};
+use super::{EffectiveRow, canonical_archetype_row, class_row, effective_rows, merged_row};
 use crate::build::BuildStart;
 use crate::game_data::{
     AbilityBonus, AbilityModifier, Archetype, Background, Class, Feat, FeatList, FeatureSelection,
@@ -28,6 +28,14 @@ pub(super) struct Catalog {
     indexes: Indexes,
     /// What the engine reads off the features the classes, archetypes and paths define.
     features: FeatureFacts,
+    /// The one option each selection offering exactly one grants with no pick
+    /// ([`find_single_option`](Self::find_single_option)).
+    single_options: HashMap<FeatureSelectionKey, SelectionOptionKey>,
+    /// The members of each option's pool (a mystery's revelations): the options its pool selection offers that the
+    /// data has. Only options whose pool selection the data has.
+    pools: HashMap<SelectionOptionKey, BTreeSet<SelectionOptionKey>>,
+    /// Whether each class, and each class taken with each of its archetypes, casts spells of each type.
+    casting: Casting,
     /// The prerequisite of each class with an alignment requirement and archetypes, without that requirement:
     /// what an archetype stating its own leaves of the class's (`None`: nothing).
     without_alignment: HashMap<ClassKey, Option<Prerequisite>>,
@@ -48,12 +56,37 @@ impl Catalog {
                     .then(|| (class.key.clone(), prerequisite.without_alignment()))
             })
             .collect();
-        Self {
+        let mut catalog = Self {
             indexes: Indexes::new(&data),
             features: FeatureFacts::new(&data),
+            single_options: HashMap::new(),
+            pools: HashMap::new(),
+            casting: Casting::new(&data),
             without_alignment,
             data,
-        }
+        };
+        catalog.single_options = catalog
+            .indexes
+            .selections
+            .keys()
+            .filter_map(|key| Some((key.clone(), catalog.find_single_option(key)?)))
+            .collect();
+        catalog.pools = catalog
+            .indexes
+            .options
+            .keys()
+            .filter_map(|key| {
+                let pool = catalog.selection(catalog.option(key)?.pool.as_ref()?)?;
+                let members = pool
+                    .offered()
+                    .into_iter()
+                    .filter(|member| catalog.has_option(member))
+                    .cloned()
+                    .collect();
+                Some((key.clone(), members))
+            })
+            .collect();
+        catalog
     }
 
     /// The game data, in canonical order.
@@ -219,6 +252,34 @@ impl Catalog {
             .and_then(|selection| selection.options.get(*index))
     }
 
+    /// Whether a selection's slot offers `option` by the game data alone: one of its own options (the one
+    /// [`FeatureSelection::offers`] would find by a scan, the index saying which selection defines each option) or one
+    /// it shares. A pool selection may offer more: see `offers_now`.
+    pub(super) fn offers(&self, selection: &FeatureSelection, option: &SelectionOptionKey) -> bool {
+        selection.shared_options.contains(option)
+            || self
+                .indexes
+                .options
+                .get(option)
+                .is_some_and(|(defined_by, _)| defined_by == &selection.key)
+    }
+
+    /// The one option a selection offers, when it offers exactly one: then it's granted with no pick.
+    pub(super) fn single_option(
+        &self,
+        selection: &FeatureSelectionKey,
+    ) -> Option<&SelectionOptionKey> {
+        self.single_options.get(selection)
+    }
+
+    /// The options of an option's pool that the data has, when it has a pool the data has.
+    pub(super) fn pool(
+        &self,
+        option: &SelectionOptionKey,
+    ) -> Option<&BTreeSet<SelectionOptionKey>> {
+        self.pools.get(option)
+    }
+
     /// Whether some selection defines this option (a shared key the data lacks offers nothing).
     pub(super) fn has_option(&self, key: &SelectionOptionKey) -> bool {
         self.indexes.options.contains_key(key)
@@ -289,27 +350,53 @@ impl Catalog {
         [class_needs, own]
     }
 
-    /// The row in force at one level of a class taken with an archetype key (ignored unless it's the class's).
+    /// The row in force at one level of a class taken with an archetype key (ignored unless it's the class's), as
+    /// [`effective_row`](super::effective_row) gives it: the base row read by its position, the archetype's found by
+    /// halving.
     pub(super) fn row<'a>(
         &'a self,
         class: &'a Class,
         archetype: Option<&ArchetypeKey>,
         level: u8,
     ) -> Option<EffectiveRow<'a>> {
-        effective_row(class, self.archetype_of(class, archetype), level)
+        self.row_with(class, self.archetype_of(class, archetype), level)
+    }
+
+    /// [`row`](Self::row) with the archetype found already (one of the class's, or none).
+    fn row_with<'a>(
+        &'a self,
+        class: &'a Class,
+        archetype: Option<&'a Archetype>,
+        level: u8,
+    ) -> Option<EffectiveRow<'a>> {
+        let base = class_row(class, level)?;
+        let own = archetype.and_then(|archetype| canonical_archetype_row(archetype, level));
+        Some(merged_row(base, own))
+    }
+
+    /// Every row of a class's table taken with an archetype (one of the class's, or none), in level order, as
+    /// [`row`](Self::row) gives it.
+    pub(super) fn rows<'a>(
+        &'a self,
+        class: &'a Class,
+        archetype: Option<&'a Archetype>,
+    ) -> impl Iterator<Item = EffectiveRow<'a>> {
+        class
+            .levels
+            .iter()
+            .filter_map(move |row| self.row_with(class, archetype, row.level))
     }
 
     /// Whether a class taken with an archetype key casts spells of each type at any level: (arcane, divine).
     pub(super) fn casts(&self, class: &Class, archetype: Option<&ArchetypeKey>) -> (bool, bool) {
-        effective_rows(class, self.archetype_of(class, archetype)).fold(
-            (false, false),
-            |(arcane, divine), row| {
-                (
-                    arcane || row.spell_levels.arcane > 0,
-                    divine || row.spell_levels.divine > 0,
-                )
-            },
-        )
+        let archetype = self.archetype_of(class, archetype);
+        let known = match archetype {
+            Some(archetype) => self.casting.archetypes.get(&archetype.key),
+            None => self.casting.classes.get(&class.key),
+        };
+        known
+            .copied()
+            .unwrap_or_else(|| casts_with(class, archetype))
     }
 
     /// Whether a class taken with an archetype key casts spontaneously: the archetype's say, else the class's.
@@ -515,6 +602,49 @@ fn index_feat_lists(data: &GameData) -> HashMap<FeatListKey, FeatList> {
     data.feat_lists()
         .map(|list| (list.key.clone(), list.clone()))
         .collect()
+}
+
+/// Whether a class taken with an archetype (one of the class's, or none) casts spells of each type at any level:
+/// (arcane, divine).
+fn casts_with(class: &Class, archetype: Option<&Archetype>) -> (bool, bool) {
+    effective_rows(class, archetype).fold((false, false), |(arcane, divine), row| {
+        (
+            arcane || row.spell_levels.arcane > 0,
+            divine || row.spell_levels.divine > 0,
+        )
+    })
+}
+
+/// Whether each class casts spells of each type, alone and with each of its archetypes, built once by
+/// [`Catalog::new`]: a walk asks for each class held at every level.
+#[derive(Clone, Debug)]
+struct Casting {
+    /// Each class (base or prestige) without an archetype.
+    classes: HashMap<ClassKey, (bool, bool)>,
+    /// Each base class taken with one of its archetypes, by the archetype's key.
+    archetypes: HashMap<ArchetypeKey, (bool, bool)>,
+}
+
+impl Casting {
+    fn new(data: &GameData) -> Self {
+        let classes = data
+            .all_classes()
+            .map(|class| (class.key.clone(), casts_with(class, None)))
+            .collect();
+        let archetypes = data
+            .classes
+            .iter()
+            .flat_map(|class| {
+                class.archetypes.iter().map(move |archetype| {
+                    (archetype.key.clone(), casts_with(class, Some(archetype)))
+                })
+            })
+            .collect();
+        Self {
+            classes,
+            archetypes,
+        }
+    }
 }
 
 /// What the engine reads off the features every class, archetype and path defines, by key.

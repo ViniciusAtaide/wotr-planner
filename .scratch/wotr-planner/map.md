@@ -136,6 +136,7 @@ A working, locally run Leptos app at `~/code/wotr-planner` for planning Pathfind
 - [One prerequisite tree walk](issues/77-one-prerequisite-walk.md): `Prerequisite::leaves()` is the one leaf walk; functions that do more at each level (`canonicalize`, `is_alignment`, the checker, the text, the evaluator, the seed's node rows) keep their own `match`.
 - [Give GameData its lookups](issues/78-game-data-lookups.md): `GameData` gives every class, class selection, selection and class feature, and a class or option by key; no `.chain(&…prestige_classes)` is left outside them.
 - [Drop the pipeline's repeated work and stale config notes](issues/80-pipeline-repeats-and-stale-notes.md): game data is sorted once per boundary (files, Postgres, engine), the `ssr` comment says what the feature pulls in, and `ui`'s no-op `default-features = false` is gone.
+- [Index the engine's hot lookups](issues/83-index-the-engines-hot-lookups.md): the `Catalog` reads class rows by position, casting, own options, single options and pool members from indexes built once, and a picker works a slot's feat lists out once; answers unchanged, 5–16 % faster per call, and the rest of the walks' time is `String`-key allocation and hashing.
 
 ## Not yet specified
 

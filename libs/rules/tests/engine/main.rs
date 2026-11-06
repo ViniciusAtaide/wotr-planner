@@ -18,6 +18,7 @@ mod extra_picks;
 mod facts;
 mod feat_lists;
 mod granted_feats;
+mod indexed_lookups;
 mod labels;
 mod lookups;
 mod mythic;

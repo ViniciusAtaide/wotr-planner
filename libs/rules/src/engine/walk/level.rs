@@ -8,8 +8,7 @@ use crate::build::{FeatSource, LevelUp, SlotId};
 use crate::choice::Choice;
 use crate::engine::catalog::Catalog;
 use crate::engine::{
-    SkillPoints, Slot, SlotKind, advanced_spellcasting, class_level_cap, effective_rows,
-    most_advanced,
+    SkillPoints, Slot, SlotKind, advanced_spellcasting, class_level_cap, most_advanced,
 };
 use crate::game_data::{Ability, Class, CountsToward, FeatSlot, Save};
 use crate::keys::{ClassKey, FeatKey, FeatureKey, FeatureSelectionKey};
@@ -188,7 +187,8 @@ impl<'a> Walker<'a> {
                         .level
                         .saturating_add(levels)
                         .min(class_level_cap(class));
-                    let grants: usize = effective_rows(class, archetype)
+                    let grants: usize = catalog
+                        .rows(class, archetype)
                         .filter(|row| row.level > held.level && row.level <= reach)
                         .map(|row| row.features.iter().filter(|f| *f == feature).count())
                         .sum();
@@ -366,8 +366,10 @@ impl<'a> Walker<'a> {
         };
         if defined.only_without_option
             && defined
-                .offered()
+                .options
                 .iter()
+                .map(|option| &option.key)
+                .chain(&defined.shared_options)
                 .any(|option| self.state.option_count(option) > 0)
         {
             return true;
@@ -375,8 +377,8 @@ impl<'a> Walker<'a> {
         let Some(option) = catalog.single_option(selection) else {
             return false;
         };
-        if self.state.option_count(&option) == 0 {
-            self.take_option(selection, &option, None, source);
+        if self.state.option_count(option) == 0 {
+            self.take_option(selection, option, None, source);
         }
         true
     }

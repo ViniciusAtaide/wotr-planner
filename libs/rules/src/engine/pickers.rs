@@ -5,7 +5,7 @@ use std::cell::OnceCell;
 use std::collections::{BTreeSet, HashSet};
 
 use super::removable::Recheck;
-use super::slots::check_pick;
+use super::slots::check_pick_with;
 use super::walk::Probe;
 use super::{
     ClassOption, Engine, PathOption, SlotKind, SlotOption, advanced_spellcasting, class_level_cap,
@@ -30,6 +30,11 @@ impl Engine {
     pub fn options(&self, build: &Build, slot: &SlotId) -> Option<Vec<SlotOption>> {
         let probed = self.probe(build, Probe::Slot(slot));
         let (state, kind) = (probed.state?, probed.kind?);
+        // A feat slot's lists, worked out once for every feat.
+        let lists = match &kind {
+            SlotKind::Feat(feat_slot) => self.catalog.slot_lists(feat_slot, &state),
+            _ => Vec::new(),
+        };
         let candidates: Vec<Pick> = match &kind {
             // A parameterised feat once per value.
             SlotKind::Feat(feat_slot) => self
@@ -37,7 +42,7 @@ impl Engine {
                 .data()
                 .feats
                 .iter()
-                .filter(|feat| self.catalog.slot_accepts_in(feat_slot, feat, &state))
+                .filter(|feat| self.catalog.slot_accepts_with(feat_slot, feat, &lists))
                 .flat_map(|feat| match feat.parameter {
                     None => vec![Pick::feat(feat.key.clone())],
                     Some(kind) => self
@@ -122,7 +127,7 @@ impl Engine {
             candidates
                 .into_iter()
                 .map(|pick| SlotOption {
-                    status: check_pick(&self.catalog, &state, &kind, &pick)
+                    status: check_pick_with(&self.catalog, &state, &kind, &lists, &pick)
                         .map_err(|issue| self.reason_for(issue, &state))
                         .and_then(|()| later(&pick)),
                     pick,

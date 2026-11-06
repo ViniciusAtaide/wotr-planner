@@ -80,7 +80,7 @@ impl<'a> Walker<'a> {
                 .iter()
                 .filter(|other| {
                     other.option != holding.option
-                        && (selection.offers(&other.option)
+                        && (self.engine.catalog.offers(selection, &other.option)
                             || selection.level_also_from.as_ref() == Some(&other.option))
                 })
                 .filter(|other| {
@@ -227,7 +227,7 @@ impl<'a> Walker<'a> {
         };
         for index in 0..self.holdings.len() {
             let holding = &self.holdings[index];
-            if holding.lists_only || !target.offers(&holding.option) {
+            if holding.lists_only || !self.engine.catalog.offers(target, &holding.option) {
                 continue;
             }
             let level = self.holding_level(holding);
@@ -256,7 +256,7 @@ impl<'a> Walker<'a> {
             } else {
                 holding.applied.contains_key(&row.level)
             };
-            if passed_over || !selection.offers(&holding.option) {
+            if passed_over || !catalog.offers(selection, &holding.option) {
                 continue;
             }
             let Some(option_row) = catalog
