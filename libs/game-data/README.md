@@ -201,7 +201,8 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   sorcerer's (new), Crossblooded's (either bloodline's list), the Empyreal, Sage and Sylvan Sorcerers' (their fixed
   bloodline's), the Nine Tailed Heir's and the Seeker's (the bloodline chosen "for the purpose of bonus feats"; the
   Seeker's magic feats stay at 5, 10 and 15). The Geomancer ("does not gain bloodline spells or bloodline feats")
-  keeps its `General` slot; the Overwhelming Mage ("Does not receive bonus feats") has none. Extra Slayer Talent
+  keeps its `General` slot; the Overwhelming Mage ("Does not receive bonus feats") has none. Ticket 92 replaced
+  this level-1 slot with a Magic feat (the Geomancer's too); the slots at 7, 13 and 19 stay. Extra Slayer Talent
   needs `ClassLevel(class: "slayer", level: 2)`, the level the slayer's table first gives Slayer Talents ("Talented
   Slayer" is on no saved page). Deities stay out of scope.
 - Ticket 45 (ticket 43's decision 2): the kineticist's wild talents are a selection,
@@ -377,6 +378,12 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   and Reflex and poor Will, so `slayer/arcane-enforcer` has `fort: Some(Poor)` and `will: Some(Good)` (Reflex stays
   the slayer's). A sweep of every "saving throws for" sentence in `guide-cache/` finds no other archetype with saves
   of its own.
+- Ticket 92 (found by the ticket 88 QA builds; the user, 2026-11-07): every sorcerer's level-1 "Bonus Feat" is a
+  Magic feat, `feat_slots: [Category(Magic)]` on row 1, in place of ticket 44's bloodline-list slot: the base
+  sorcerer's and Crossblooded's, the Empyreal, Sage, Sylvan, Nine Tailed Heir's and Seeker's, and in place of the
+  Geomancer's `General` slot. The Jack-in-the-Green write-up (a Sylvan Sorcerer) takes Spell Penetration there, off
+  the Fey list. The bloodline feats at 7, 13 and 19 and the Seeker's Magic feats at 5, 10 and 15 stay; the
+  Overwhelming Mage keeps Overwhelming Penetration at 1 and no slot. The sheet labels the slot "Magic feat".
 - A path's switch rule: `switch: (from: ["aeon", "azata"], kept_through_rank: 7, path_kept_through_rank: 7,
   dropped_features: [...], dropped_selections: [...], features: [...], further_ascensions: true, level_cap:
   Some(40))`. The general picks (mythic abilities and feats) of MR 1 to `kept_through_rank` stay, and the old

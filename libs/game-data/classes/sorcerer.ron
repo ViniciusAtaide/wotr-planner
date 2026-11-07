@@ -390,7 +390,7 @@ Class(
         (key: "sorcerer/bloodline/undead/feats", name: "Undead Bloodline Feats", guide: "character-creation#undead-bloodline", feats: ["combat-casting", "diehard", "great-fortitude", "greater-spell-focus", "iron-will", "skill-focus", "spell-focus", "toughness"]),
     ],
     levels: [
-        (level: 1, arcane_spell_level: 1, feat_slots: [OptionList(selection: "sorcerer/bloodline")], selections: ["sorcerer/bloodline"]),
+        (level: 1, arcane_spell_level: 1, feat_slots: [Category(Magic)], selections: ["sorcerer/bloodline"]),
         (level: 2, arcane_spell_level: 1),
         (level: 3, arcane_spell_level: 1),
         (level: 4, arcane_spell_level: 2),
@@ -473,7 +473,7 @@ Class(
                 ),
             ],
             levels: [
-                (level: 1, features: ["sorcerer/crossblooded/cantrips", "sorcerer/crossblooded/reduced-spellbook", "sorcerer/crossblooded/sorcerer-proficiencies"], feat_slots: [OptionList(selection: "sorcerer/bloodline")], selections: ["sorcerer/bloodline", "sorcerer/crossblooded/second-bloodline"]),
+                (level: 1, features: ["sorcerer/crossblooded/cantrips", "sorcerer/crossblooded/reduced-spellbook", "sorcerer/crossblooded/sorcerer-proficiencies"], feat_slots: [Category(Magic)], selections: ["sorcerer/bloodline", "sorcerer/crossblooded/second-bloodline"]),
                 (level: 3, features: ["sorcerer/crossblooded/bloodline-2-spell-lvl-1", "sorcerer/crossblooded/bloodline-spell-lvl-1"]),
                 (level: 5, features: ["sorcerer/crossblooded/bloodline-2-spell-lvl-2", "sorcerer/crossblooded/bloodline-spell-lvl-2"]),
                 (level: 7, features: ["sorcerer/crossblooded/bloodline-2-spell-lvl-3", "sorcerer/crossblooded/bloodline-spell-lvl-3"], feat_slots: [OptionList(selection: "sorcerer/bloodline")]),
@@ -521,7 +521,7 @@ Class(
                 ),
             ],
             levels: [
-                (level: 1, features: ["sorcerer/empyreal-sorcerer/cantrips", "sorcerer/empyreal-sorcerer/empyreal-arcana", "sorcerer/empyreal-sorcerer/heavenly-fire", "sorcerer/empyreal-sorcerer/sorcerer-proficiencies"], feat_slots: [OptionList(selection: "sorcerer/bloodline")], selections: ["sorcerer/empyreal-sorcerer/bloodline"]),
+                (level: 1, features: ["sorcerer/empyreal-sorcerer/cantrips", "sorcerer/empyreal-sorcerer/empyreal-arcana", "sorcerer/empyreal-sorcerer/heavenly-fire", "sorcerer/empyreal-sorcerer/sorcerer-proficiencies"], feat_slots: [Category(Magic)], selections: ["sorcerer/empyreal-sorcerer/bloodline"]),
                 (level: 3, features: ["sorcerer/empyreal-sorcerer/bloodline-spell-bless"]),
                 (level: 5, features: ["sorcerer/empyreal-sorcerer/bloodline-spell-resist-energy"]),
                 (level: 7, features: ["sorcerer/empyreal-sorcerer/bloodline-spell-protection-from-energy"], feat_slots: [OptionList(selection: "sorcerer/bloodline")]),
@@ -559,7 +559,7 @@ Class(
                 ),
             ],
             levels: [
-                (level: 1, features: ["sorcerer/geomancer/cantrips", "sorcerer/geomancer/sorcerer-proficiencies"], feat_slots: [General], selections: ["sorcerer/bloodline", "sorcerer/geomancer/geomancy"]),
+                (level: 1, features: ["sorcerer/geomancer/cantrips", "sorcerer/geomancer/sorcerer-proficiencies"], feat_slots: [Category(Magic)], selections: ["sorcerer/bloodline", "sorcerer/geomancer/geomancy"]),
                 (level: 7, features: ["sorcerer/geomancer/favored-terrain"]),
                 (level: 13, features: ["sorcerer/geomancer/favored-terrain"]),
                 (level: 19, features: ["sorcerer/geomancer/favored-terrain"]),
@@ -576,7 +576,7 @@ Class(
                 (key: "sorcerer/nine-tailed-heir/sorcerer-proficiencies", name: "Sorcerer Proficiencies", guide: "sorcerer#nine-tailed-heir"),
             ],
             levels: [
-                (level: 1, features: ["sorcerer/nine-tailed-heir/cantrips", "sorcerer/nine-tailed-heir/sorcerer-proficiencies"], feat_slots: [OptionList(selection: "sorcerer/bloodline")], selections: ["sorcerer/bloodline"]),
+                (level: 1, features: ["sorcerer/nine-tailed-heir/cantrips", "sorcerer/nine-tailed-heir/sorcerer-proficiencies"], feat_slots: [Category(Magic)], selections: ["sorcerer/bloodline"]),
                 (level: 3, features: ["sorcerer/nine-tailed-heir/magical-tail"]),
                 (level: 5, features: ["sorcerer/nine-tailed-heir/magical-tail"]),
                 (level: 7, features: ["sorcerer/nine-tailed-heir/magical-tail"], feat_slots: [OptionList(selection: "sorcerer/bloodline")]),
@@ -656,7 +656,7 @@ Class(
                 ),
             ],
             levels: [
-                (level: 1, features: ["sorcerer/sage-sorcerer/arcane-arcana", "sorcerer/sage-sorcerer/arcane-bolt", "sorcerer/sage-sorcerer/cantrips", "sorcerer/sage-sorcerer/class-skill", "sorcerer/sage-sorcerer/sorcerer-proficiencies"], feat_slots: [OptionList(selection: "sorcerer/bloodline")], selections: ["sorcerer/sage-sorcerer/bloodline"]),
+                (level: 1, features: ["sorcerer/sage-sorcerer/arcane-arcana", "sorcerer/sage-sorcerer/arcane-bolt", "sorcerer/sage-sorcerer/cantrips", "sorcerer/sage-sorcerer/class-skill", "sorcerer/sage-sorcerer/sorcerer-proficiencies"], feat_slots: [Category(Magic)], selections: ["sorcerer/sage-sorcerer/bloodline"]),
                 (level: 3, features: ["sorcerer/sage-sorcerer/bloodline-spell-magic-missile"]),
                 (level: 5, features: ["sorcerer/sage-sorcerer/bloodline-spell-invisibility"]),
                 (level: 7, features: ["sorcerer/sage-sorcerer/bloodline-spell-dispel-magic"], feat_slots: [OptionList(selection: "sorcerer/bloodline")]),
@@ -720,7 +720,7 @@ Class(
                 ),
             ],
             levels: [
-                (level: 1, features: ["sorcerer/seeker-sorcerer/cantrips", "sorcerer/seeker-sorcerer/seekers-trapfinding", "sorcerer/seeker-sorcerer/sorcerer-proficiencies"], feat_slots: [OptionList(selection: "sorcerer/bloodline")], selections: ["sorcerer/seeker-sorcerer/bloodline"]),
+                (level: 1, features: ["sorcerer/seeker-sorcerer/cantrips", "sorcerer/seeker-sorcerer/seekers-trapfinding", "sorcerer/seeker-sorcerer/sorcerer-proficiencies"], feat_slots: [Category(Magic)], selections: ["sorcerer/seeker-sorcerer/bloodline"]),
                 (level: 3, features: ["sorcerer/seeker-sorcerer/bloodline-spell-lvl-1"]),
                 (level: 5, features: ["sorcerer/seeker-sorcerer/bloodline-spell-lvl-2"], feat_slots: [Category(Magic)]),
                 (level: 7, features: ["sorcerer/seeker-sorcerer/bloodline-spell-lvl-3"], feat_slots: [OptionList(selection: "sorcerer/bloodline")]),
@@ -766,7 +766,7 @@ Class(
                 ),
             ],
             levels: [
-                (level: 1, features: ["sorcerer/sylvan-sorcerer/animal-companion", "sorcerer/sylvan-sorcerer/cantrips", "sorcerer/sylvan-sorcerer/sorcerer-proficiencies"], feat_slots: [OptionList(selection: "sorcerer/bloodline")], selections: ["sorcerer/sylvan-sorcerer/bloodline"]),
+                (level: 1, features: ["sorcerer/sylvan-sorcerer/animal-companion", "sorcerer/sylvan-sorcerer/cantrips", "sorcerer/sylvan-sorcerer/sorcerer-proficiencies"], feat_slots: [Category(Magic)], selections: ["sorcerer/sylvan-sorcerer/bloodline"]),
                 (level: 3, features: ["sorcerer/sylvan-sorcerer/bloodline-spell-entangle"]),
                 (level: 5, features: ["sorcerer/sylvan-sorcerer/bloodline-spell-hideous-laughter"]),
                 (level: 7, features: ["sorcerer/sylvan-sorcerer/bloodline-spell-deep-slumber"], feat_slots: [OptionList(selection: "sorcerer/bloodline")]),
