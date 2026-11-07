@@ -1453,6 +1453,11 @@ async fn the_schema_keeps_subrace_slots_option_list_stages_and_levels_alongside_
             WHERE level_also_from_key IS NOT NULL",
             "check constraint",
         ),
+        // Only a path's selection is levelled by Mythic rank (ticket 89: the Azata's superpowers).
+        (
+            "UPDATE feature_selection SET level_from = 'mythic_ranks' WHERE class_key IS NOT NULL",
+            "check constraint",
+        ),
         // The bloodrager's groups are known; another isn't.
         (
             "UPDATE selection_option SET option_group = 'bloodrager_gnomish' WHERE option_group IS NOT NULL",

@@ -280,9 +280,11 @@ pub enum SlotId {
     /// The general mythic pick of a Mythic rank: a mythic ability at odd ranks, a mythic feat at even ones (see
     /// [`mythic_pick_kind`](crate::mythic_pick_kind)).
     Mythic { rank: u8 },
-    /// A Feat slot from the mythic path's rank table.
+    /// A Feat slot from the mythic path's rank table, then those the rank reaches in the rows of options levelled
+    /// by Mythic rank (Life-Bonding Friendship's teamwork feat), numbered on after the table's.
     PathFeat { rank: u8, index: u8 },
-    /// A Feature selection slot from the mythic path's rank table.
+    /// A Feature selection slot from the mythic path's rank table, then, as for [`SlotId::PathFeat`], those of
+    /// options levelled by Mythic rank.
     PathSelection { rank: u8, index: u8 },
     /// A Feature selection slot from the rows of options held, reached at a character level (the Arcane
     /// bloodline's school at option level 15), in the order the level reaches them.

@@ -113,7 +113,8 @@ impl<'a> Walker<'a> {
             .mythic_path
             .as_ref()
             .and_then(|key| catalog.path(key));
-        if let Some(row) = path.and_then(|path| path.ranks.iter().find(|row| row.rank == rank)) {
+        let row = path.and_then(|path| path.ranks.iter().find(|row| row.rank == rank));
+        if let Some(row) = row {
             for feature in &row.features {
                 self.hold(Held::Feature(feature.clone()), Some(GrantSource::row(rank)));
             }
@@ -137,6 +138,9 @@ impl<'a> Walker<'a> {
             }
         }
         slots.extend(self.fill_all(slot_kinds, Some(rank)));
+        // Then the slots of the rows this rank reaches of options levelled by Mythic rank (Life-Bonding
+        // Friendship).
+        slots.extend(self.fill_rank_rows(rank, row));
 
         let path = self.state.mythic_path.clone();
         if let Some(sheet) = self.ranks.iter_mut().find(|sheet| sheet.rank == rank) {

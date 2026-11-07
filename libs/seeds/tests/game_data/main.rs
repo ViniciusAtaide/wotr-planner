@@ -16,6 +16,7 @@ mod follow_ups;
 mod infusions;
 mod instinctual_rage_powers;
 mod ki_powers;
+mod life_bonding_friendship;
 mod mercies_and_exploits;
 mod mythic;
 mod negated_prerequisites;

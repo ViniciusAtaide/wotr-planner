@@ -24,6 +24,7 @@ mod labels;
 mod lookups;
 mod mythic;
 mod mythic_extra_picks;
+mod mythic_rank_rows;
 mod option_class_skills;
 mod option_levels;
 mod option_limits;

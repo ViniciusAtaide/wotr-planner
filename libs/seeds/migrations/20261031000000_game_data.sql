@@ -61,7 +61,7 @@
 --   option's prerequisite says so (the sorcerer's Draconic and Elemental bloodlines, and the bloodrager's
 --   apart).
 -- - `level_from`: `rules::LevelFrom`: where an option held through a selection naming no classes gets its
---   option level.
+--   option level (the other options held, the granting option, or the Mythic ranks since the pick).
 -- - `mythic_extra_pick`: `rules::MythicExtraPick`: what the slot a mythic feat gives offers (Extra Feat: a
 --   feat; Extra Mythic Ability: a mythic ability).
 
@@ -551,7 +551,8 @@ CREATE UNIQUE INDEX feature_ability_bonus_unique ON feature_ability_bonus (featu
 -- it gets its `option_level` rows as the levels of the classes in `selection_level_class` reach them,
 -- `levels_behind` levels late (the Separatist's second domain: 2), except at its
 -- `selection_skipped_level`s; with no classes, `level_from` says where its level comes from (the other
--- options held, or the option whose row granted the slot; `rules::GameData::check` refuses both);
+-- options held, the option whose row granted the slot, or the Mythic ranks since a path's pick: Life-Bonding
+-- Friendship, only on a path's selection; `rules::GameData::check` refuses any of them with classes);
 -- `feat_lists_only`: only the option's feat lists and its arcana count (Crossblooded's second bloodline);
 -- `only_without_option`: a level grants it only to a character holding none of its options (Dragon
 -- Disciple's bloodline); `pool_of_key`: it offers the pools of the options held in that selection too;
@@ -571,7 +572,8 @@ CREATE TABLE feature_selection (
     only_without_option INTEGER NOT NULL CONSTRAINT boolean CHECK (only_without_option IN (0, 1)),
     pool_of_key TEXT REFERENCES feature_selection (key) DEFERRABLE INITIALLY DEFERRED,
     levels_behind INTEGER NOT NULL CONSTRAINT u8 CHECK (levels_behind BETWEEN 0 AND 255),
-    level_from TEXT CONSTRAINT level_from CHECK (level_from IN ('other_options', 'granting_option')),
+    level_from TEXT CONSTRAINT level_from CHECK (
+        level_from IN ('other_options', 'granting_option', 'mythic_ranks')),
     -- `rules::FeatureSelection::level_also_from`: an option whose level counts beside the other options
     -- held (Impossible Domain: a Living Deity's way), so only with `other_options`.
     level_also_from_key TEXT REFERENCES selection_option (key) DEFERRABLE INITIALLY DEFERRED,
@@ -580,6 +582,8 @@ CREATE TABLE feature_selection (
     CONSTRAINT feature_selection_pool_of_not_itself CHECK (pool_of_key <> key),
     CONSTRAINT feature_selection_level_also_from_with_other_options CHECK (
         level_also_from_key IS NULL OR level_from = 'other_options'),
+    CONSTRAINT feature_selection_mythic_ranks_on_a_path CHECK (
+        level_from IS NOT 'mythic_ranks' OR path_key IS NOT NULL),
     FOREIGN KEY (archetype_key, class_key) REFERENCES archetype (key, class_key)
         DEFERRABLE INITIALLY DEFERRED,
     CONSTRAINT feature_selection_one_owner CHECK (((class_key IS NOT NULL) + (path_key IS NOT NULL)) = 1),

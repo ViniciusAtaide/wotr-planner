@@ -26,11 +26,20 @@ MythicPath(
             key: "azata/superpowers",
             name: "Superpowers",
             guide: "azata#superpowers",
+            level_from: MythicRanks,
             options: [
                 (key: "azata/superpowers/all-skilled", name: "All-skilled", guide: "azata#all-skilled", feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "exotic-weapon-proficiency", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency", "tower-shield-proficiency"]),
                 (key: "azata/superpowers/favorable-magic", name: "Favorable Magic", guide: "azata#favorable-magic"),
                 (key: "azata/superpowers/incredible-might", name: "Incredible Might", guide: "azata#incredible-might"),
-                (key: "azata/superpowers/life-bonding-friendship", name: "Life-Bonding Friendship", guide: "azata#life-bonding-friendship"),
+                (
+                    key: "azata/superpowers/life-bonding-friendship",
+                    name: "Life-Bonding Friendship",
+                    guide: "azata#life-bonding-friendship",
+                    levels: [
+                        (level: 1, feat_slots: [Category(Teamwork)]),
+                        (level: 2, feat_slots: [Category(Teamwork)]),
+                    ],
+                ),
                 (key: "azata/superpowers/marvelous-endurance", name: "Marvelous Endurance", guide: "azata#marvelous-endurance"),
                 (key: "azata/superpowers/supersonic-speed", name: "Supersonic Speed", guide: "azata#supersonic-speed"),
                 (key: "azata/superpowers/zippy-magic", name: "Zippy Magic", guide: "azata#zippy-magic"),

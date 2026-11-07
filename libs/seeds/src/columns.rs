@@ -146,6 +146,7 @@ text_column!(BackgroundGroup, background_group_from, background_group_text {
 text_column!(LevelFrom, level_from_from, level_from_text {
     OtherOptions => "other_options",
     GrantingOption => "granting_option",
+    MythicRanks => "mythic_ranks",
 });
 
 text_column!(DeityDomains, deity_domains_from, deity_domains_text {

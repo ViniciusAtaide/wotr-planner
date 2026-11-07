@@ -38,7 +38,8 @@ pub(super) fn trickster() -> MythicPath {
             only_without_option: false,
             pool_of: None,
             levels_behind: 0,
-            level_from: None,
+            // Like the Azata's superpowers: an option's rows come by Mythic ranks since its pick.
+            level_from: Some(LevelFrom::MythicRanks),
             once_per_option: false,
             level_also_from: None,
             deity_domains: None,
@@ -68,6 +69,17 @@ pub(super) fn trickster() -> MythicPath {
                     Some(feat("exotic-weapon-proficiency")),
                     None,
                 ),
+                // Invented, like Azata's Life-Bonding Friendship: a teamwork feat this rank and the next.
+                SelectionOption {
+                    levels: [1, 2]
+                        .map(|level| OptionLevelRow {
+                            level,
+                            feat_slots: vec![FeatSlot::Category(FeatCategory::Teamwork)],
+                            ..OptionLevelRow::default()
+                        })
+                        .into(),
+                    ..selection_option("trickster/tricks/friendship", None, None)
+                },
             ],
         }],
         feat_lists: vec![list(

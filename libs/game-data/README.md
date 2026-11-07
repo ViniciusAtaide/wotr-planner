@@ -124,7 +124,8 @@ class's), and BAB and saves (from the class's progressions).
     highest level of the other options held that it offers: Impossible Domain's `cleric/impossible-domain`, Second
     Mystery's `oracle/second-mystery`, so a Living Deity's run on arcanist levels) or `level_from:
     GrantingOption` (the level of the option whose row granted the slot: Maneuver Mastery's maneuver follows its
-    revelation).
+    revelation); since ticket 89 also `level_from: MythicRanks` on a path's selection (Mythic ranks since the
+    pick: the Azata's superpowers).
   - `once_per_option: true`: an option the selection gave once can't be picked through it again
     (`kineticist/expanded-element`: the 15th-level element isn't the 7th-level one).
   - `PickedThrough("warpriest/champion-of-the-faith/chosen-alignment")` in an option's prerequisite holds when the
@@ -360,6 +361,14 @@ class's), and BAB and saves (from the class's progressions).
   each of the four domain selections, beside the Separatist's own rule), and so do the four alignment blessings
   through `warpriest/blessings`; as the Champion's chosen alignment they also need a deity offering that domain
   (question 13: `Any([Not(PickedThrough("warpriest/champion-of-the-faith/chosen-alignment")), DeityOffers(...)])`).
+- Ticket 89 (found by the ticket 88 QA builds): Life-Bonding Friendship ("You choose a teamwork feat this rank and
+  the next rank", `azata#life-bonding-friendship`) gives its two teamwork feats. `azata/superpowers` has
+  `level_from: MythicRanks`: an option held through a path's selection with it takes as its option level the Mythic
+  ranks since its pick, the pick's rank counting as 1 (only a path's selection, the schema checks). The superpower's
+  rows are `(level: 1, feat_slots: [Category(Teamwork)])` and `(level: 2, ...)`: a Teamwork feat slot at the rank
+  it's taken and the next, each the rank's path feat slot after the path row's own, prerequisites checked as in
+  any category slot (Shield Wall needs Shield Proficiency). Taken at MR 10, the last rank, it gives the first slot
+  only (the ticket's decision: the game has no MR 11 to give the second). No other superpower has rows.
 - A path's switch rule: `switch: (from: ["aeon", "azata"], kept_through_rank: 7, path_kept_through_rank: 7,
   dropped_features: [...], dropped_selections: [...], features: [...], further_ascensions: true, level_cap:
   Some(40))`. The general picks (mythic abilities and feats) of MR 1 to `kept_through_rank` stay, and the old

@@ -1065,6 +1065,10 @@ pub enum LevelFrom {
     /// The option level of the option whose row granted the slot (Maneuver Mastery's maneuver: its revelation's,
     /// by oracle levels or a Living Deity's arcanist levels).
     GrantingOption,
+    /// The Mythic ranks reached since the option was picked at a rank, that rank counting as 1, for a path's
+    /// selection (Life-Bonding Friendship: "a teamwork feat this rank and the next rank", its rows 1 and 2). Its
+    /// rows' slots belong to the rank that reaches them, after the path's own slots there.
+    MythicRanks,
 }
 
 /// A family of options of which a character may hold only one, which [`Prerequisite::NoOtherOptionOfGroup`]

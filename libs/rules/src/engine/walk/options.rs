@@ -4,8 +4,9 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use super::{GrantSource, Held, Holding, Pending, Walker};
-use crate::engine::SlotKind;
-use crate::game_data::{LevelFrom, OptionRow};
+use crate::build::SlotId;
+use crate::engine::{Slot, SlotKind};
+use crate::game_data::{LevelFrom, MythicRankRow, OptionRow};
 use crate::keys::{FeatureSelectionKey, SelectionOptionKey};
 use crate::parameter::Parameter;
 
@@ -64,7 +65,8 @@ impl<'a> Walker<'a> {
     }
 
     /// The option level of a holding: the levels of the classes its selection names, less the levels it lags
-    /// behind; or, for a selection naming none, the level its source gives.
+    /// behind; or, for a selection naming none, the level its source gives (for Mythic ranks, the rank it was
+    /// picked at: 1 there, 2 at the next).
     fn holding_level(&self, holding: &Holding) -> u8 {
         let Some(selection) = self.engine.catalog.selection(&holding.selection) else {
             return 0;
@@ -96,8 +98,70 @@ impl<'a> Walker<'a> {
                 .granted_by
                 .as_ref()
                 .map_or(0, |option| self.state.option_level(option)),
+            Some(LevelFrom::MythicRanks) => holding.source.as_ref().map_or(0, |source| {
+                self.state
+                    .mythic_rank
+                    .saturating_add(1)
+                    .saturating_sub(source.rank)
+            }),
         };
         level.saturating_sub(selection.levels_behind)
+    }
+
+    /// Whether `option` is held through a selection levelled by Mythic rank.
+    fn levelled_by_rank(&self, option: &SelectionOptionKey) -> bool {
+        self.holdings.iter().any(|holding| {
+            &holding.option == option
+                && self
+                    .engine
+                    .catalog
+                    .selection(&holding.selection)
+                    .is_some_and(|selection| selection.level_from == Some(LevelFrom::MythicRanks))
+        })
+    }
+
+    /// At a Mythic rank, after the path row's slots: the rows the rank reaches of the options levelled by Mythic
+    /// rank (Life-Bonding Friendship's teamwork feat at the rank it's picked and the next), whose slots are the
+    /// rank's path slots after `row`'s own, filled until none are left (a pick can give more). The other options'
+    /// row slots stay pending for the level.
+    pub(super) fn fill_rank_rows(&mut self, rank: u8, row: Option<&MythicRankRow>) -> Vec<Slot> {
+        let mut feat_index = row.map_or(0, |row| row.feat_slots.len());
+        let mut selection_index = row.map_or(0, |row| row.selections.len());
+        let mut slots = Vec::new();
+        loop {
+            for index in 0..self.holdings.len() {
+                if self.levelled_by_rank(&self.holdings[index].option) {
+                    self.advance(index);
+                }
+            }
+            let (due, others): (Vec<Pending>, Vec<Pending>) = std::mem::take(&mut self.pending)
+                .into_iter()
+                .partition(|pending| {
+                    matches!(pending, Pending::Row(_, option) if self.levelled_by_rank(option))
+                });
+            self.pending = others;
+            if due.is_empty() {
+                return slots;
+            }
+            for pending in due {
+                let Pending::Row(kind, granting) = pending else {
+                    continue;
+                };
+                let index = match &kind {
+                    SlotKind::Selection(_) => &mut selection_index,
+                    _ => &mut feat_index,
+                };
+                let at = u8::try_from(*index).unwrap_or(u8::MAX);
+                *index += 1;
+                let id = match &kind {
+                    SlotKind::Selection(_) => SlotId::PathSelection { rank, index: at },
+                    _ => SlotId::PathFeat { rank, index: at },
+                };
+                self.granting = Some(granting);
+                slots.push(self.fill(id, kind, Some(rank)));
+                self.granting = None;
+            }
+        }
     }
 
     pub(super) fn advance_holdings(&mut self) {
