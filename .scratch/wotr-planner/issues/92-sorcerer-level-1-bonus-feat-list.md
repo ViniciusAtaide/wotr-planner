@@ -27,3 +27,5 @@ Once the user decides: a data change in `libs/game-data/classes/sorcerer.ron` (e
 **Done when:** the decision is recorded here, and, if it changes the slot, a Sylvan Sorcerer 1 can take Spell Penetration in the level-1 bonus slot and Mounted Combat in its general slot.
 
 **User, 2026-11-07:** the sorcerer's level-1 bonus feat is a **Magic feat** (option 3): a `Category(Magic)` slot on row 1, in place of ticket 44's bloodline-list slot, for the base sorcerer and every archetype that got the bloodline-list slot (Crossblooded, Empyreal, Sage, Sylvan, Nine Tailed Heir, Seeker). The bloodline feats stay at 7, 13 and 19. A Sylvan Sorcerer 1 can then take Spell Penetration in that slot and Mounted Combat in its general slot. The Geomancer's level-1 General slot and the Overwhelming Mage (Overwhelming Penetration at 1) are as the lead's follow-up question to the user settles.
+
+**User, 2026-11-07, on the follow-up:** the Geomancer's level-1 slot becomes a Magic feat too, in place of its General slot. The Overwhelming Mage keeps Overwhelming Penetration at 1 (the guide's table entry, not a feat slot).
