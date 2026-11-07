@@ -143,6 +143,7 @@ pub(in crate::support::world) fn witch() -> Class {
             level_from: None,
             once_per_option: false,
             level_also_from: None,
+            deity_domains: None,
             options: vec![
                 selection_option("witch/hex/slumber", None, None),
                 selection_option("witch/hex/misfortune", None, None),

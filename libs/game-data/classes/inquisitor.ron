@@ -8,13 +8,14 @@ Class(
     reflex: Poor,
     will: Good,
     class_skills: ["athletics", "knowledge-arcana", "knowledge-world", "lore-nature", "lore-religion", "mobility", "perception", "persuasion", "stealth", "trickery", "use-magic-device"],
+    prerequisite: Worships,
     spontaneous: true,
     features: [
         (key: "inquisitor/bane", name: "Bane", guide: "inquisitor#bane"),
         (key: "inquisitor/cunning-initiative", name: "Cunning Initiative", guide: "inquisitor#cunning-initiative"),
         (key: "inquisitor/exploit-weakness", name: "Exploit Weakness", guide: "inquisitor#exploit-weakness"),
         (key: "inquisitor/greater-bane", name: "Greater Bane", guide: "inquisitor#greater-bane"),
-        (key: "inquisitor/inquisitor-proficiencies", name: "Inquisitor Proficiencies", guide: "inquisitor#inquisitor-proficiencies"),
+        (key: "inquisitor/inquisitor-proficiencies", favoured_weapon_proficiency: true, name: "Inquisitor Proficiencies", guide: "inquisitor#inquisitor-proficiencies"),
         (key: "inquisitor/orisons", name: "Orisons", guide: "inquisitor"),
         (key: "inquisitor/second-judgment", name: "Second Judgment", guide: "inquisitor#second-judgment"),
         (key: "inquisitor/solo-tactics", name: "Solo Tactics", guide: "inquisitor#solo-tactics"),
@@ -27,6 +28,7 @@ Class(
         (
             key: "inquisitor/domain",
             name: "Domain",
+            deity_domains: Offered,
             guide: "inquisitor",
             option_levels: ["inquisitor"],
             options: [],
@@ -214,6 +216,7 @@ Class(
                 (
                     key: "inquisitor/sacred-huntsmaster/domain",
                     name: "Domain (Sacred Huntsmaster)",
+                    deity_domains: Offered,
                     guide: "inquisitor#sacred-huntsmaster",
                     option_levels: ["inquisitor"],
                     options: [],

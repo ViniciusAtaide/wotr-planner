@@ -8,9 +8,9 @@ use proptest::option;
 use proptest::prelude::*;
 use rules::{
     Ability, AbilityScores, Alignment, ArchetypeKey, ArmourType, BackgroundKey, Build, BuildStart,
-    ClassChoice, ClassKey, DecodeError, Energy, FeatSource, KeyCollision, KeyKind, LevelUp,
-    LinkKeys, MythicPathKey, Parameter, Pick, PointBuy, RaceKey, SkillKey, SlotId, SpellSchool,
-    SubraceKey, decode_build, encode_build, key_hash,
+    ClassChoice, ClassKey, DecodeError, DeityKey, Energy, Faith, FeatSource, KeyCollision, KeyKind,
+    LevelUp, LinkKeys, MythicPathKey, Parameter, Pick, PointBuy, RaceKey, SkillKey, SlotId,
+    SpellSchool, SubraceKey, decode_build, encode_build, key_hash,
 };
 
 use crate::support::*;
@@ -39,6 +39,15 @@ fn alignment() -> impl Strategy<Value = Alignment> {
     ])
 }
 
+/// No faith yet, atheism, or a deity.
+fn faith() -> impl Strategy<Value = Option<Faith>> {
+    prop_oneof![
+        Just(None),
+        Just(Some(Faith::Atheism)),
+        key().prop_map(|key| Some(Faith::Deity(DeityKey(key)))),
+    ]
+}
+
 fn start() -> impl Strategy<Value = BuildStart> {
     (
         option::of(key().prop_map(RaceKey)),
@@ -46,16 +55,20 @@ fn start() -> impl Strategy<Value = BuildStart> {
         option::of(ability()),
         option::of(alignment()),
         option::of(key().prop_map(BackgroundKey)),
+        faith(),
         point_buy_strategy(),
     )
         .prop_map(
-            |(race, subrace, racial_ability, alignment, background, ability_scores)| BuildStart {
-                race,
-                subrace,
-                racial_ability,
-                alignment,
-                background,
-                ability_scores,
+            |(race, subrace, racial_ability, alignment, background, deity, ability_scores)| {
+                BuildStart {
+                    race,
+                    subrace,
+                    racial_ability,
+                    alignment,
+                    background,
+                    deity,
+                    ability_scores,
+                }
             },
         )
 }
@@ -229,6 +242,7 @@ fn v1_build() -> Build {
     build.name = Some("Cleaver".into());
     build.start.racial_ability = Some(Ability::Strength);
     build.start.background = Some(BackgroundKey::new("shackles-corsair"));
+    build.start.deity = Some(Faith::Deity(DeityKey::new("balance")));
     build.levels[0].skill_ranks.insert(skill("athletics"), 1);
     build.picks.insert(race_slot(0), pick_feat("power-attack"));
     build.picks.insert(class_slot(1, 0), pick_feat("cleave"));
@@ -292,8 +306,9 @@ fn v1_build() -> Build {
 /// and the picks grouped by kind of slot with levels as steps, in place of the Build in postcard (314 characters
 /// before, 196 after), and on 2026-11-02 for the slot an Extra feat gives (ticket 49: a `FeatSelection` group, the
 /// rogue talent Resiliency at 3), and on 2026-11-02 for the slot a mythic feat gives (ticket 55: a `MythicExtra` group,
-/// Dodge at MR 2).
-const V1_LINK: &str = "AR2KPQrCQBSE3-was4b4V2g8hGBhK0K0EcTK0ipIEERBtrBQFLEIpBDFXg8g5A6229l4B29gm8cOwwczfI3da_I_6HM1GrwfzPUv5H4XwUY0TZqZZc_vjm_prB6O9Dwz-34naZ3u1-CZHC_eZ9qGO1zF0TbWIDioVfyypyQBxGGCFEk7yFJwARZICAhIWXDsKlrXhWJH2acEdnM";
+/// Dodge at MR 2), and on 2026-11-06 when the Build start gained its faith (ticket 86: the Balance, after the
+/// background).
+const V1_LINK: &str = "AR2KPQrCQBSE3-was4b41yQeQrCwFSHaCGJlaRUkCKIgKSwURSwCKURJKegBhNzBdjsb7yB4AFsfOwwfzPB5m8fot4u_2fVYDXvPG3P5Cbjvmb8Snk5zPe-47eElndSDQTzN9bbbShqH7Ozfk_3JeY2bsPuLKFxHMQgWRK3ilh0lCSAOE6RImkGGgguwQEJAQMqCZVbRuDYUO8o8JbD7Bw";
 
 #[test]
 fn a_version_1_link_still_decodes() {
@@ -321,7 +336,7 @@ mod base64_check {
 /// is a key the game data no longer has, and the link is stale (`stale_links.rs`).
 #[test]
 fn a_link_naming_a_key_the_game_data_lacks_does_not_decode() {
-    let gone: [fn(&mut Build); 6] = [
+    let gone: [fn(&mut Build); 7] = [
         |b| {
             b.picks
                 .insert(general_slot(3), pick_feat("cut-in-a-later-patch"));
@@ -333,6 +348,7 @@ fn a_link_naming_a_key_the_game_data_lacks_does_not_decode() {
                 .insert(skill("cut-in-a-later-patch"), 1);
         },
         |b| b.start.background = Some(BackgroundKey::new("cut-in-a-later-patch")),
+        |b| b.start.deity = Some(Faith::Deity(DeityKey::new("cut-in-a-later-patch"))),
         |b| {
             b.picks.insert(
                 general_slot(3),
@@ -356,6 +372,26 @@ fn a_link_naming_a_key_the_game_data_lacks_does_not_decode() {
             "change {index}"
         );
     }
+}
+
+/// The faith is one byte after the background: none, atheism, or a deity whose key is the next hash.
+#[test]
+fn every_faith_round_trips_through_a_link() {
+    for faith in [
+        None,
+        Some(Faith::Atheism),
+        Some(Faith::Deity(DeityKey::new("fist"))),
+    ] {
+        let mut build = v1_build();
+        build.start.deity = faith;
+        assert_eq!(decode(&encode_build(&build)), Ok(build));
+    }
+    let mut atheist = Build::default();
+    atheist.start.deity = Some(Faith::Atheism);
+    let mut follower = Build::default();
+    follower.start.deity = Some(Faith::Deity(DeityKey::new("fist")));
+    // A deity costs its hash on top of the faith's byte.
+    assert!(encode_build(&follower).len() > encode_build(&atheist).len());
 }
 
 /// A key is looked up only among the keys of its own kind: the class `rogue` in a link is never the feat

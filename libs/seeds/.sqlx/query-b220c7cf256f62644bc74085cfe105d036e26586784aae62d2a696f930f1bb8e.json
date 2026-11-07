@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "SELECT key, class_key, archetype_key, path_key, name, summary, guide,\n            feat_lists_only AS \"feat_lists_only: bool\", only_without_option AS \"only_without_option: bool\",\n            pool_of_key, levels_behind, level_from, level_also_from_key,\n            once_per_option AS \"once_per_option: bool\"\n        FROM feature_selection ORDER BY key",
+  "query": "SELECT key, class_key, archetype_key, path_key, name, summary, guide,\n            feat_lists_only AS \"feat_lists_only: bool\", only_without_option AS \"only_without_option: bool\",\n            pool_of_key, levels_behind, level_from, level_also_from_key,\n            once_per_option AS \"once_per_option: bool\", deity_domains\n        FROM feature_selection ORDER BY key",
   "describe": {
     "columns": [
       {
@@ -156,6 +156,17 @@
             "name": "once_per_option"
           }
         }
+      },
+      {
+        "name": "deity_domains",
+        "ordinal": 14,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "feature_selection",
+            "name": "deity_domains"
+          }
+        }
       }
     ],
     "parameters": {
@@ -175,8 +186,9 @@
       false,
       true,
       true,
-      false
+      false,
+      true
     ]
   },
-  "hash": "d4c3eaa994c259d28b4b05925e90896445cf6ecb6fa0df85b87049abf27783f7"
+  "hash": "b220c7cf256f62644bc74085cfe105d036e26586784aae62d2a696f930f1bb8e"
 }

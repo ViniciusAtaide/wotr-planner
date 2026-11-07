@@ -153,3 +153,100 @@ pub(super) fn alignment_rules(engine: &Engine) -> Vec<Named> {
     ));
     out
 }
+
+/// Ticket 86's deity Builds (`t86 …`), recorded on the side with deities only: a cleric 3 of each deity at the first
+/// alignment it allows that makes one possible, and each deity-bound class or archetype with a deity (or atheism) the
+/// guide names for it, empty and filled at 3.
+pub(super) fn deities(engine: &Engine, data: &GameData) -> Vec<Named> {
+    use crate::generate::{deity_keys, with_faith};
+    use serde_json::json;
+    let deity = |key: &str| json!({ "Deity": key });
+    let mut builds = Vec::new();
+    for key in deity_keys(data) {
+        let cleric = Alignment::ALL
+            .into_iter()
+            .map(|alignment| {
+                with_faith(
+                    &character("human", alignment, &[("cleric", None, 3)]),
+                    deity(&key),
+                )
+            })
+            .find(|build| engine.is_possible(build));
+        if let Some(cleric) = cleric {
+            builds.push((format!("cleric {key}"), cleric));
+        }
+    }
+    for (class, archetype, alignment, faith) in [
+        ("inquisitor", None, LawfulEvil, deity("achaekek")),
+        (
+            "slayer",
+            Some("slayer/deliverer"),
+            LawfulNeutral,
+            deity("irori"),
+        ),
+        (
+            "hunter",
+            Some("hunter/divine-hunter"),
+            ChaoticGood,
+            deity("desna"),
+        ),
+        ("warpriest", None, LawfulGood, deity("torag")),
+        (
+            "warpriest",
+            Some("warpriest/feral-champion"),
+            LawfulGood,
+            deity("erastil"),
+        ),
+        (
+            "warpriest",
+            Some("warpriest/mantis-zealot"),
+            LawfulEvil,
+            deity("achaekek"),
+        ),
+        (
+            "warpriest",
+            Some("warpriest/champion-of-the-faith"),
+            LawfulGood,
+            deity("iomedae"),
+        ),
+        (
+            "witch",
+            Some("witch/hag-of-gyronna"),
+            ChaoticEvil,
+            deity("gyronna"),
+        ),
+        (
+            "cleric",
+            Some("cleric/separatist"),
+            LawfulGood,
+            deity("erastil"),
+        ),
+        (
+            "cleric",
+            Some("cleric/angelfire-apostle"),
+            NeutralGood,
+            deity("sarenrae"),
+        ),
+        (
+            "cleric",
+            Some("cleric/priest-of-balance"),
+            TrueNeutral,
+            deity("gozreh"),
+        ),
+        (
+            "arcanist",
+            Some("arcanist/magic-deceiver"),
+            TrueNeutral,
+            json!("Atheism"),
+        ),
+    ] {
+        let build = with_faith(
+            &character("human", alignment, &[(class, archetype, 3)]),
+            faith.clone(),
+        );
+        let believes = faith["Deity"].as_str().unwrap_or("atheism");
+        let name = format!("{} {believes}", archetype.unwrap_or(class));
+        builds.push((name, build));
+    }
+    empty_and_filled(engine, "t86", builds)
+}

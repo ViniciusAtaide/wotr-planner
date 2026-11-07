@@ -3,8 +3,8 @@
 use std::collections::BTreeSet;
 
 use crate::build::SlotId;
-use crate::game_data::Ability;
-use crate::keys::{ClassKey, MythicPathKey, SkillKey};
+use crate::game_data::{Ability, DeityDomains};
+use crate::keys::{ClassKey, DeityKey, MythicPathKey, SkillKey};
 use crate::prerequisite::Prerequisite;
 
 /// Where a choice sits in a Build: what [`Engine::removable`](crate::Engine::removable) answers for, and where a
@@ -15,6 +15,8 @@ pub enum Choice {
     Subrace,
     Alignment,
     Background,
+    /// The deity followed, or atheism.
+    Deity,
     /// One point-buy score.
     AbilityScore {
         ability: Ability,
@@ -73,6 +75,15 @@ pub enum Issue {
     ClassLevelCap { cap: u8 },
     /// A Path switch open only from other paths than the Build's (Devil: from Aeon or Azata).
     NotFromPath { from: BTreeSet<MythicPathKey> },
+    /// The Build start's deity doesn't allow its alignment: what the deity picker and the alignment wheel lock a
+    /// misfit with ("Abadar allows Lawful Good, Lawful Neutral, True Neutral or Lawful Evil").
+    DeityAlignment { deity: DeityKey },
+    /// A deity-limited selection's option whose domain the deity offers when the selection takes only the others,
+    /// or doesn't when it takes only the deity's ("Not a domain of Erastil").
+    DeityDomain {
+        deity: DeityKey,
+        limit: DeityDomains,
+    },
     /// A picker's option that would break a later choice (a later pick of the same feat, or one that needs what
     /// the option replaces): the later choice comes off first, as choices come off from the leaves inward
     /// ([`Engine::removable`](crate::Engine::removable)).

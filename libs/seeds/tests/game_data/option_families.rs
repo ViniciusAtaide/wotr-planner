@@ -14,16 +14,17 @@ use crate::support::*;
 
 #[test]
 fn a_cleric_8_holds_both_domains_second_powers() {
-    let build = cleric(["fire", "nobility"], 8);
+    // Fire and Glory: Sarenrae's (ticket 86: the deity offers both).
+    let build = cleric(["fire", "glory"], 8);
     assert!(engine().is_possible(&build));
     for power in [
         "cleric/domain/fire/fire-bolt",
-        "cleric/domain/nobility/inspiring-word",
+        "cleric/domain/glory/touch-of-glory",
     ] {
         assert!(holds(&at(&build, 1), power), "{power}");
     }
     from_level(&build, 6, "cleric/domain/fire/fire-resistance");
-    from_level(&build, 8, "cleric/domain/nobility/inspiring-command");
+    from_level(&build, 8, "cleric/domain/glory/aura-of-heroism");
     // Two picks of one domain aren't two domains.
     let twice = cleric(["fire", "fire"], 1);
     assert!(why_not(&twice, &SlotId::Selection { level: 1, index: 1 }).is_some());
@@ -55,7 +56,8 @@ fn a_cleric_archetype_that_may_only_select_a_single_domain_picks_one() {
 
 #[test]
 fn the_war_domain_grants_a_bonus_combat_feat_at_8() {
-    let build = cleric(["war", "fire"], 8);
+    // War and Strength: Gorum's (ticket 86: the deity offers both).
+    let build = cleric(["war", "strength"], 8);
     let slot = SlotId::OptionFeat { level: 8, index: 0 };
     let sheet = engine().evaluate(&build);
     assert_eq!(
@@ -240,9 +242,10 @@ fn an_oracle_holds_the_mysterys_class_skill_and_final_revelation() {
 fn a_warpriest_10_holds_both_major_blessings() {
     let build = build("warpriest", 10);
     let build = with_option(build, 1, 0, "warpriest/blessings/fire");
-    let build = with_option(build, 1, 1, "warpriest/blessings/luck");
+    // Fire and Sun: Sarenrae's (ticket 86: the deity offers both).
+    let build = with_option(build, 1, 1, "warpriest/blessings/sun");
     assert!(engine().is_possible(&build));
-    for blessing in ["fire", "luck"] {
+    for blessing in ["fire", "sun"] {
         assert!(holds(
             &at(&build, 1),
             &format!("warpriest/blessings/{blessing}/minor-blessing")
@@ -364,7 +367,7 @@ fn domain_zealot_needs_a_domain_held_whoever_gave_it() {
         "no domain picked yet"
     );
     assert_eq!(
-        at(&cleric(["fire", "luck"], 1), 1).check(&domain_zealot),
+        at(&cleric(["fire", "earth"], 1), 1).check(&domain_zealot),
         Ok(())
     );
     let faith_hunter = archetype_build("inquisitor", "inquisitor/faith-hunter", 1);
@@ -472,7 +475,7 @@ fn no_druid_can_take_impossible_domain_whatever_its_domain() {
     }
     // A cleric 3 / fighter 3 can.
     assert_eq!(
-        impossible_domain_at_mr_1(&then_fighter_3(cleric(["air", "fire"], 3))),
+        impossible_domain_at_mr_1(&then_fighter_3(cleric(["air", "water"], 3))),
         Some(Ok(()))
     );
 }

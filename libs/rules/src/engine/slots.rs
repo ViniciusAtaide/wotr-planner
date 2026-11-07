@@ -8,10 +8,11 @@ use std::collections::BTreeSet;
 
 use super::{Catalog, Engine, SlotKind};
 use crate::build::Pick;
-use crate::choice::Issue;
-use crate::game_data::{Feat, FeatList, FeatSlot, FeatureSelection};
+use crate::choice::{Issue, Unmet};
+use crate::game_data::{DeityDomains, Feat, FeatList, FeatSlot, FeatureSelection, SelectionOption};
 use crate::keys::{FeatKey, FeatureSelectionKey, SelectionOptionKey};
 use crate::parameter::{Parameter, Repeat};
+use crate::prerequisite::Prerequisite;
 use crate::state::CharacterState;
 
 impl Catalog {
@@ -273,6 +274,9 @@ pub(crate) fn check_pick_with(
             {
                 check_repeat(state, feat, chosen.repeat, value)?;
             }
+            if let Some(limit) = through.deity_domains {
+                check_deity_domain(state, limit, option)?;
+            }
             option.prerequisite.as_ref()
         }
         (_, Pick::MythicAbility(key)) => {
@@ -315,6 +319,30 @@ pub(crate) fn check_pick_with(
             .check_option(prerequisite, option, selection, value)
             .map_err(Issue::Unmet),
         (Some(prerequisite), _, _) => state.check_for(prerequisite, value).map_err(Issue::Unmet),
+    }
+}
+
+/// Whether a deity-limited selection takes an option, by its domain: one the deity offers (`Offered`) or one it
+/// doesn't (`NotOffered`). Without a deity it takes none, and the reason is the deity it needs.
+fn check_deity_domain(
+    state: &CharacterState,
+    limit: DeityDomains,
+    option: &SelectionOption,
+) -> Result<(), Issue> {
+    let Some(deity) = state.deity() else {
+        return Err(Issue::Unmet(Unmet::Condition {
+            needs: Prerequisite::Worships,
+            has: None,
+        }));
+    };
+    let offered = state.deity_domains.contains(option.deity_domain());
+    if offered == (limit == DeityDomains::Offered) {
+        Ok(())
+    } else {
+        Err(Issue::DeityDomain {
+            deity: deity.clone(),
+            limit,
+        })
     }
 }
 

@@ -37,7 +37,7 @@ impl Engine {
     /// Taking a choice back means: a pick cleared; a level taken by no class (what its class row gives goes, and
     /// the levels of its class after it each move down one); a class's archetype or advanced classes unchosen; a
     /// point-buy score at 7; a level's ability increase or a skill's ranks at a level gone; the race (with its
-    /// subrace and racial ability), subrace, alignment, background, path or Path switch unchosen. A level's own
+    /// subrace and racial ability), subrace, alignment, background, faith, path or Path switch unchosen. A level's own
     /// skill points don't count against changing its class: the class picker locks a class with too few.
     ///
     /// Costs one walk of the Build, then for each choice a walk from its level (the Build start's: all of it). The
@@ -108,6 +108,10 @@ impl Engine {
         if begun.background.is_some() {
             let edit = start(&|start| start.background = None);
             withdrawals.push((Choice::Background, edit, vec![]));
+        }
+        if begun.deity.is_some() {
+            let edit = start(&|start| start.deity = None);
+            withdrawals.push((Choice::Deity, edit, vec![]));
         }
         for ability in AbilityScores::ABILITIES {
             let edit = start(&|start| {

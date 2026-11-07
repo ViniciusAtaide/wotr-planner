@@ -12,12 +12,12 @@
 
 use std::collections::BTreeSet;
 
-use crate::build::{AbilityScores, BuildStart, Pick, SlotId};
+use crate::build::{AbilityScores, BuildStart, Faith, Pick, SlotId};
 use crate::choice::Issue;
 use crate::codec::LinkKeys;
 use crate::game_data::{
     Ability, AbilityBonus, AbilityModifier, Advancement, Archetype, ArchetypeLevelRow, Background,
-    Class, ClassLevelRow, FeatList, FeatSlot, FeatValue, GameData, Race, Skill, SpellLevels,
+    Class, ClassLevelRow, Deity, FeatList, FeatSlot, FeatValue, GameData, Race, Skill, SpellLevels,
 };
 use crate::keys::{
     ArchetypeKey, ClassKey, FeatKey, FeatListKey, FeatureKey, FeatureSelectionKey, MythicPathKey,
@@ -69,6 +69,53 @@ impl Engine {
     /// Every background, in key order: the background picker's list.
     pub fn backgrounds(&self) -> &[Background] {
         &self.catalog.data().backgrounds
+    }
+
+    /// Every deity, in key order: the deity picker's list.
+    pub fn deities(&self) -> &[Deity] {
+        &self.catalog.data().deities
+    }
+
+    /// Whether a Build start's deity allows its alignment: what the deity picker and the alignment wheel lock a
+    /// misfit with, since [`allows`](Self::allows) leaves an edit's own choices to its picker. A start without a
+    /// deity, or without an alignment yet, fits; so does one naming a deity the data lacks (a stale link, which
+    /// the sheet never holds).
+    pub fn faith_fits(&self, start: &BuildStart) -> Result<(), Issue> {
+        let (Some(key), Some(alignment)) =
+            (start.deity.as_ref().and_then(Faith::deity), start.alignment)
+        else {
+            return Ok(());
+        };
+        match self.catalog.deity(key) {
+            Some(deity) if !deity.alignments.contains(&alignment) => {
+                Err(Issue::DeityAlignment { deity: key.clone() })
+            }
+            _ => Ok(()),
+        }
+    }
+
+    /// The note the sheet shows for the favoured weapons a character is proficient with ("Proficient with Longbow
+    /// (Erastil)"): `None` without a feature granting them, a deity, or a weapon.
+    pub fn favoured_weapons_note(&self, state: &CharacterState) -> Option<String> {
+        let deity = self.catalog.deity(state.deity()?)?;
+        if deity.favoured_weapons.is_empty()
+            || !state
+                .features
+                .keys()
+                .any(|feature| self.catalog.grants_favoured_weapons(feature))
+        {
+            return None;
+        }
+        let weapons: Vec<&str> = deity
+            .favoured_weapons
+            .iter()
+            .map(|weapon| self.weapon_name(weapon))
+            .collect();
+        Some(format!(
+            "Proficient with {} ({})",
+            weapons.join(" and "),
+            deity.name
+        ))
     }
 
     /// Every skill, in key order: the skill ranks panel's rows.

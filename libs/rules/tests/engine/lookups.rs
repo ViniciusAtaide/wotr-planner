@@ -15,7 +15,7 @@ fn option_name<'a>(data: &'a GameData, key: &str) -> Option<&'a str> {
 }
 
 /// The class selections of the test world: each class's own, then its archetypes', base classes then prestige.
-const CLASS_SELECTIONS: [&str; 30] = [
+const CLASS_SELECTIONS: [&str; 34] = [
     "fighter/armiger/order",
     "rogue/rogue-talents",
     "slayer/slayer-talents",
@@ -45,6 +45,10 @@ const CLASS_SELECTIONS: [&str; 30] = [
     "kineticist/element",
     "kineticist/expanded-element",
     "kineticist/wild-talents",
+    "priest/domain",
+    "priest/heresy",
+    "priest/blessing",
+    "seeker/creed",
     "dragon-disciple/bloodline",
 ];
 
@@ -68,6 +72,8 @@ fn every_class_is_the_base_classes_then_the_prestige_classes() {
             "warpriest",
             "druid",
             "kineticist",
+            "priest",
+            "seeker",
             "arcane-trickster",
             "mystic-theurge",
             "eldritch-knight",
@@ -167,6 +173,7 @@ fn class_features_are_each_classs_own_then_its_archetypes_with_no_paths() {
             "kineticist/element/fire/defense",
             "kineticist/element/water/defense",
             "kineticist/wild-talents/expanded-defense/defensive-talents",
+            "priest/proficiencies",
             "dragon-disciple/strength",
         ]
     );

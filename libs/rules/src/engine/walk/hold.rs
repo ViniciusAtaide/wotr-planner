@@ -6,7 +6,8 @@ use crate::build::{Pick, SlotId};
 use crate::choice::{Choice, Issue};
 use crate::engine::slots::check_pick;
 use crate::engine::{Slot, SlotKind, with_bonuses};
-use crate::keys::{FeatureKey, MythicFeatKey};
+use crate::keys::{FeatKey, FeatureKey, MythicFeatKey};
+use crate::parameter::Parameter;
 use crate::state::CharacterState;
 
 impl<'a> Walker<'a> {
@@ -131,6 +132,9 @@ impl<'a> Walker<'a> {
                 if self.engine.catalog.ability_bonuses(key).is_some() {
                     self.refresh_ability_scores();
                 }
+                for (feat, values) in self.favoured_weapon_feats(key) {
+                    self.hold(Held::Feat(feat, values), None);
+                }
             }
             Held::SelectionOption(key, through) => {
                 let times = state.selection_options.entry(key.clone()).or_default();
@@ -228,6 +232,9 @@ impl<'a> Walker<'a> {
                 if self.engine.catalog.ability_bonuses(key).is_some() {
                     self.refresh_ability_scores();
                 }
+                for (feat, values) in self.favoured_weapon_feats(key) {
+                    self.release(&Held::Feat(feat, values));
+                }
             }
             Held::SelectionOption(key, through) => {
                 if let Some(times) = state.selection_options.get_mut(key) {
@@ -285,6 +292,18 @@ impl<'a> Walker<'a> {
                 self.refresh_ability_scores();
             }
             _ => {}
+        }
+    }
+
+    /// The feats a feature holds for the deity's favoured weapons while it's held (Cleric Proficiencies), as granted
+    /// feats with no slot: none for another feature, or without a deity.
+    fn favoured_weapon_feats(&self, feature: &FeatureKey) -> Vec<(FeatKey, Vec<Parameter>)> {
+        let catalog = &self.engine.catalog;
+        match self.state.deity() {
+            Some(deity) if catalog.grants_favoured_weapons(feature) => {
+                catalog.favoured_weapon_feats(deity)
+            }
+            _ => Vec::new(),
         }
     }
 

@@ -212,7 +212,7 @@ fn a_living_deity_with_impossible_domain_holds_a_third_domain() {
     assert!(holds(&twenty, "cleric/domain/nobility/inspiring-command"));
     // A cleric's third domain runs on cleric levels.
     let cleric = with_mythic_selection(
-        cleric(["fire", "luck"], 8),
+        cleric(["fire", "earth"], 8),
         "impossible-domain",
         "cleric/domain/nobility",
     );
@@ -300,14 +300,15 @@ fn a_champion_of_the_faiths_alignment_blessing_is_his_own_alignment() {
             slot,
             pick(&format!("warpriest/blessings/{blessing}-domain")),
         );
-        possible(&build)
+        // A deity offering that alignment's domain, if any (ticket 86, question 13).
+        possible(&realigned(build, alignment))
     };
     assert!(champion(rules::Alignment::LawfulGood, "good"));
     assert!(champion(rules::Alignment::LawfulGood, "law"));
     assert!(!champion(rules::Alignment::LawfulGood, "evil"));
     assert!(!champion(rules::Alignment::TrueNeutral, "chaos"));
     assert!(champion(rules::Alignment::ChaoticEvil, "chaos"));
-    // A warpriest's own blessings don't check it.
+    // A warpriest's own blessings checked it too since ticket 86 (question 7): an evil one needs an evil warpriest.
     let blessings = with_option(
         build("warpriest", 1),
         1,
@@ -315,7 +316,11 @@ fn a_champion_of_the_faiths_alignment_blessing_is_his_own_alignment() {
         "warpriest/blessings/evil-domain",
     );
     assert_eq!(blessings.start.alignment, None);
-    assert!(possible(&blessings));
+    assert!(!possible(&blessings));
+    assert!(possible(&realigned(
+        blessings,
+        rules::Alignment::NeutralEvil
+    )));
 }
 
 #[test]
@@ -558,20 +563,23 @@ fn a_hellknight_who_becomes_a_signifer_gets_no_second_order() {
 
 #[test]
 fn a_lawful_good_separatist_cant_take_chaos_or_evil_as_his_second_domain() {
+    // The first domain one that a deity of the alignment offers (ticket 86): Protection (Abadar, Shelyn, Nethys),
+    // Trickery for a chaotic evil (Calistria). Then a deity that doesn't offer the second, if any.
     let separatist = |alignment: rules::Alignment, domain: &str| {
-        let mut build = with_option(
-            with_option(
-                archetype_build("cleric", "cleric/separatist", 1),
-                1,
-                0,
-                "cleric/domain/fire",
-            ),
-            1,
-            1,
-            &format!("cleric/domain/{domain}"),
+        let first = if alignment == rules::Alignment::ChaoticEvil {
+            "trickery"
+        } else {
+            "protection"
+        };
+        let mut build = archetype_build("cleric", "cleric/separatist", 1);
+        build
+            .picks
+            .insert(selection_slot(1), pick(&format!("cleric/domain/{first}")));
+        build.picks.insert(
+            SlotId::Selection { level: 1, index: 1 },
+            pick(&format!("cleric/domain/{domain}")),
         );
-        build.start.alignment = Some(alignment);
-        possible(&build)
+        possible(&realigned(build, alignment))
     };
     let lawful_good = rules::Alignment::LawfulGood;
     assert!(!separatist(lawful_good, "chaos"));
@@ -587,15 +595,17 @@ fn a_lawful_good_separatist_cant_take_chaos_or_evil_as_his_second_domain() {
     }
     assert!(!separatist(rules::Alignment::ChaoticEvil, "law"));
     assert!(!separatist(rules::Alignment::ChaoticEvil, "good"));
-    // His first domain, a cleric's, isn't checked against it here.
-    let mut first = with_option(
-        archetype_build("cleric", "cleric/separatist", 1),
-        1,
-        0,
-        "cleric/domain/chaos",
-    );
-    first.start.alignment = Some(lawful_good);
-    assert!(possible(&first));
+    // His first domain, a cleric's, isn't checked against it here; since ticket 86 a cleric's alignment domain needs
+    // its alignment (question 7), so a lawful good one can't take Chaos at all.
+    let mut first = archetype_build("cleric", "cleric/separatist", 1);
+    first
+        .picks
+        .insert(selection_slot(1), pick("cleric/domain/chaos"));
+    assert!(!possible(&realigned(first.clone(), lawful_good)));
+    assert!(possible(&realigned(
+        first,
+        rules::Alignment::ChaoticNeutral
+    )));
 }
 
 #[test]

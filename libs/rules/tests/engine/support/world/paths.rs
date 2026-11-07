@@ -41,6 +41,7 @@ pub(super) fn trickster() -> MythicPath {
             level_from: None,
             once_per_option: false,
             level_also_from: None,
+            deity_domains: None,
             options: vec![
                 selection_option("trickster/tricks/perception-1", None, None),
                 selection_option(
@@ -198,6 +199,7 @@ pub(super) fn gold_dragon() -> MythicPath {
             level_from: None,
             once_per_option: false,
             level_also_from: None,
+            deity_domains: None,
             options: vec![
                 selection_option("gold-dragon/breaths/empowered", None, None),
                 // The guide's "Mythic Rank: 9" and "Vow of Dahak": the story condition never blocks.
@@ -313,6 +315,7 @@ pub(super) fn aeon() -> MythicPath {
             level_from: None,
             once_per_option: false,
             level_also_from: None,
+            deity_domains: None,
             options: vec![
                 selection_option("aeon/enforcing-gaze/attack", None, None),
                 selection_option("aeon/enforcing-gaze/damage", None, None),

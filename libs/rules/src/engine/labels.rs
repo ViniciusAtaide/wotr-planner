@@ -8,17 +8,17 @@
 //! a label should never fail.
 
 use super::{Engine, SlotKind};
-use crate::build::{FeatSource, Pick, SlotId};
+use crate::build::{Faith, FeatSource, Pick, SlotId};
 use crate::choice::{Issue, Unmet};
 use crate::engine::Slot;
 use crate::game_data::{
-    Ability, Alignment, Archetype, Class, FeatCategory, FeatSlot, MythicPath, SelectionOption,
-    SpellType,
+    Ability, Alignment, Archetype, Class, DeityDomains, FeatCategory, FeatSlot, MythicPath,
+    SelectionOption, SpellType,
 };
 use crate::keys::{
-    ArchetypeKey, BackgroundKey, ClassKey, FeatKey, FeatListKey, FeatureKey, FeatureSelectionKey,
-    MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey, SelectionOptionKey, SkillKey,
-    SubraceKey, WeaponKey,
+    ArchetypeKey, BackgroundKey, ClassKey, DeityKey, FeatKey, FeatListKey, FeatureKey,
+    FeatureSelectionKey, MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey,
+    SelectionOptionKey, SkillKey, SubraceKey, WeaponKey,
 };
 use crate::parameter::{Parameter, ParameterKind};
 use crate::prerequisite::Prerequisite;
@@ -305,6 +305,20 @@ impl Engine {
             .map_or(key.as_str(), |background| &background.name)
     }
 
+    pub fn deity_name<'a>(&'a self, key: &'a DeityKey) -> &'a str {
+        self.catalog
+            .deity(key)
+            .map_or(key.as_str(), |deity| &deity.name)
+    }
+
+    /// A faith as the sheet shows it: the deity's name, or "Atheism".
+    pub fn faith_name<'a>(&'a self, faith: &'a Faith) -> &'a str {
+        match faith {
+            Faith::Deity(key) => self.deity_name(key),
+            Faith::Atheism => "Atheism",
+        }
+    }
+
     /// A background's note (what else it gives, in our own words); empty when it has none.
     pub fn background_note(&self, key: &BackgroundKey) -> &str {
         self.catalog
@@ -437,6 +451,18 @@ impl Engine {
                 let paths: Vec<&str> = from.iter().map(|path| self.path_name(path)).collect();
                 format!("Only from {}", paths.join(" or "))
             }
+            Issue::DeityAlignment { deity } => {
+                let alignments: Vec<&str> = self
+                    .catalog
+                    .deity(deity)
+                    .map(|deity| deity.alignments.iter().map(|a| a.name()).collect())
+                    .unwrap_or_default();
+                format!("{} allows {}", self.deity_name(deity), or_list(&alignments))
+            }
+            Issue::DeityDomain { deity, limit } => match limit {
+                DeityDomains::Offered => format!("Not a domain of {}", self.deity_name(deity)),
+                DeityDomains::NotOffered => format!("A domain of {}", self.deity_name(deity)),
+            },
             Issue::BreaksLater => return None,
         })
     }
@@ -445,6 +471,9 @@ impl Engine {
     /// Sharpshooter archetype; not with A or B; needs …"); an "or" whose negated branches fail reads as the case its
     /// other branches answer ("As Domain (Separatist), needs Lawful Good alignment or …").
     fn unmet_reason(&self, unmet: &Unmet) -> String {
+        if let Some(reason) = self.one_case_reason(unmet) {
+            return reason;
+        }
         if let Unmet::Any(children) = unmet
             && children.iter().any(|child| negated(child).is_some())
         {
@@ -510,6 +539,51 @@ impl Engine {
         capitalized(&clauses.join("; "))
     }
 
+    /// An "and" of "or"s that each name the same negated case and something else, read as that case once: "As
+    /// Chosen Alignment Blessing, needs Lawful Evil alignment or …, and a deity offering the Evil Domain" (the Champion
+    /// of the Faith's alignment blessing, ticket 86). `None` for anything else.
+    fn one_case_reason(&self, unmet: &Unmet) -> Option<String> {
+        let Unmet::All(children) = unmet else {
+            return None;
+        };
+        let mut case: Option<Vec<String>> = None;
+        let mut needs = Vec::new();
+        for child in children {
+            let Unmet::Any(alternatives) = child else {
+                return None;
+            };
+            let (held, needed): (Vec<&Unmet>, Vec<&Unmet>) = alternatives
+                .iter()
+                .partition(|alternative| negated(alternative).is_some());
+            if held.is_empty() || needed.is_empty() {
+                return None;
+            }
+            let cases: Vec<String> = held
+                .into_iter()
+                .filter_map(negated)
+                .map(|held| {
+                    let (lead, object) = self.held_text(held);
+                    format!("{} {object}", lead.word())
+                })
+                .collect();
+            if case.get_or_insert_with(|| cases.clone()) != &cases {
+                return None;
+            }
+            needs.push(
+                needed
+                    .iter()
+                    .map(|need| self.nested_unmet_text(need))
+                    .collect::<Vec<_>>()
+                    .join(" or "),
+            );
+        }
+        Some(format!(
+            "{}, needs {}",
+            capitalized(&case?.join(" and ")),
+            needs.join(", and ")
+        ))
+    }
+
     /// What a negated condition rules out, as its lead and object: (For, "the Kinetic Sharpshooter archetype"),
     /// (With, "Power Attack"), (As, "Domain (Separatist)"), (From, "Slayer level 6").
     fn held_text(&self, held: &Prerequisite) -> (Lead, String) {
@@ -562,6 +636,13 @@ impl Engine {
             | Prerequisite::Feature { .. }
             | Prerequisite::SelectionOption(_)
             | Prerequisite::Story(_) => (Lead::With, text()),
+            Prerequisite::Deity(deity) => (
+                Lead::For,
+                format!("a follower of {}", self.deity_name(deity)),
+            ),
+            Prerequisite::Atheist => (Lead::For, "an atheist".to_owned()),
+            Prerequisite::Worships => (Lead::For, "a follower of a deity".to_owned()),
+            Prerequisite::DeityOffers(_) => (Lead::For, text()),
         }
     }
 
@@ -699,7 +780,22 @@ impl Engine {
             Prerequisite::Alignment(alignment) => format!("{} alignment", alignment.name()),
             Prerequisite::Race(race) => self.race_name(race).to_owned(),
             Prerequisite::Story(story) => story.name().to_owned(),
+            Prerequisite::Deity(deity) => format!("{} as deity", self.deity_name(deity)),
+            Prerequisite::Atheist => "atheism".to_owned(),
+            Prerequisite::Worships => "a deity".to_owned(),
+            Prerequisite::DeityOffers(domain) => {
+                format!("a deity offering the {}", self.option_name(domain))
+            }
         }
+    }
+}
+
+/// "A, B or C".
+fn or_list(items: &[&str]) -> String {
+    match items {
+        [] => String::new(),
+        [one] => (*one).to_owned(),
+        [rest @ .., last] => format!("{} or {last}", rest.join(", ")),
     }
 }
 

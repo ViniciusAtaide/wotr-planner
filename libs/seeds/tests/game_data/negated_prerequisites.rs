@@ -34,8 +34,9 @@ fn a_kinetic_sharpshooters_closed_infusion_reads_not_for_its_archetype() {
     );
 }
 
-/// Every negated prerequisite in the data reads as what rules the option out, never "Needs not …": the four kinds
-/// the data negates (an archetype, an option held, a class level, the slot picked through), each in a real reason.
+/// Every negated prerequisite in the data reads as what rules the option out, never "Needs not …": the five kinds
+/// the data negates (an archetype, an option held, a class level, the slot picked through, a domain the deity
+/// offers), each in a real reason.
 #[test]
 fn every_negated_prerequisite_in_the_data_reads_as_what_rules_the_option_out() {
     fn negations<'a>(prerequisite: &'a Prerequisite, out: &mut Vec<&'a Prerequisite>) {
@@ -67,6 +68,8 @@ fn every_negated_prerequisite_in_the_data_reads_as_what_rules_the_option_out() {
             Prerequisite::SelectionOption(_) => ("option", "Not with "),
             Prerequisite::ClassLevel { .. } => ("class level", "Only below "),
             Prerequisite::PickedThrough(_) => ("picked through", "Not as "),
+            // Ticket 86: the Priest of Balance's deity offers neither Good nor Evil.
+            Prerequisite::DeityOffers(_) => ("deity offers", "Not for a deity offering the "),
             other => panic!("a new negated kind: {other:?} reads {text:?}"),
         };
         assert!(text.starts_with(lead), "{child:?} reads {text:?}");
@@ -74,7 +77,13 @@ fn every_negated_prerequisite_in_the_data_reads_as_what_rules_the_option_out() {
     }
     assert_eq!(
         kinds,
-        BTreeSet::from(["archetype", "class level", "option", "picked through"])
+        BTreeSet::from([
+            "archetype",
+            "class level",
+            "deity offers",
+            "option",
+            "picked through"
+        ])
     );
 
     // A slayer's 2nd-level combat style talent at slayer 6.
@@ -128,11 +137,11 @@ fn every_negated_prerequisite_in_the_data_reads_as_what_rules_the_option_out() {
             .as_deref(),
         Some(
             "As Chosen Alignment Blessing, needs Lawful Evil alignment or Neutral Evil alignment or Chaotic Evil \
-             alignment"
+             alignment, and a deity offering the Evil Domain"
         )
     );
-    let mut separatist = separatist(3);
-    separatist.start.alignment = Some(rules::Alignment::LawfulGood);
+    // Sarenrae's: Fire is hers, Luck isn't (ticket 86).
+    let mut separatist = realigned(separatist(3), rules::Alignment::LawfulGood);
     let own = slot_of(&separatist, 1, "cleric/separatist/domain");
     separatist
         .picks

@@ -24,7 +24,7 @@ use rules::*;
 
 use crate::support::world::guide;
 
-fn row(level: u8) -> ClassLevelRow {
+pub(in crate::support::world) fn row(level: u8) -> ClassLevelRow {
     ClassLevelRow {
         level,
         arcane_spell_level: 0,
@@ -53,7 +53,7 @@ fn archetype_row(level: u8) -> ArchetypeLevelRow {
 }
 
 /// An archetype with nothing of its own yet.
-fn archetype(key: &str) -> Archetype {
+pub(in crate::support::world) fn archetype(key: &str) -> Archetype {
     Archetype {
         key: ArchetypeKey::new(key),
         name: key.into(),

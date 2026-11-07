@@ -11,14 +11,14 @@ use std::fmt;
 
 use crate::engine::{BASE_LEVEL_CAP, PATH_CHOICE_RANK, PATH_SWITCH_RANK};
 use crate::game_data::{
-    Advancement, Archetype, Class, ClassLevelRow, CountsToward, FeatList, FeatSlot, FeatValue,
-    Feature, FeatureSelection, GameData, LevelFrom, MythicPath, Save, SelectionOption,
-    WeaponProficiency,
+    Advancement, Archetype, Class, ClassLevelRow, CountsToward, DOMAIN_SELECTION, FeatList,
+    FeatSlot, FeatValue, Feature, FeatureSelection, GameData, LevelFrom, MythicPath, Save,
+    SelectionOption, WeaponProficiency,
 };
 use crate::keys::{
-    ArchetypeKey, BackgroundKey, ClassKey, FeatKey, FeatListKey, FeatureKey, FeatureSelectionKey,
-    MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey, SelectionOptionKey, SkillKey,
-    SubraceKey, WeaponKey,
+    ArchetypeKey, BackgroundKey, ClassKey, DeityKey, FeatKey, FeatListKey, FeatureKey,
+    FeatureSelectionKey, MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey,
+    SelectionOptionKey, SkillKey, SubraceKey, WeaponKey,
 };
 use crate::parameter::{Parameter, ParameterKind, Repeat};
 use crate::prerequisite::Prerequisite;
@@ -59,6 +59,7 @@ pub enum DataAt {
     MythicPath(MythicPathKey),
     FeatList(FeatListKey),
     Background(BackgroundKey),
+    Deity(DeityKey),
 }
 
 impl DataAt {
@@ -80,6 +81,7 @@ impl DataAt {
             DataAt::MythicPath(_) => "mythic path",
             DataAt::FeatList(_) => "feat list",
             DataAt::Background(_) => "background",
+            DataAt::Deity(_) => "deity",
         }
     }
 
@@ -101,6 +103,7 @@ impl DataAt {
             DataAt::MythicPath(key) => key.as_str(),
             DataAt::FeatList(key) => key.as_str(),
             DataAt::Background(key) => key.as_str(),
+            DataAt::Deity(key) => key.as_str(),
         })
     }
 }
@@ -239,6 +242,17 @@ pub enum DataIssue {
     /// alignment requirement must be a condition of its own (the whole prerequisite, or one of a top-level `All`'s
     /// conditions), since an archetype's replaces its class's (ticket 63).
     AlignmentNotOnItsOwn,
+    /// A deity allowing no alignment.
+    DeityWithoutAlignment,
+    /// A deity with no favoured weapon.
+    DeityWithoutFavouredWeapon,
+    /// A deity's domain, a blessing's domain or a `DeityOffers` naming an option that isn't one of the domain
+    /// selection's ([`DOMAIN_SELECTION`](crate::DOMAIN_SELECTION)).
+    NotADomain(SelectionOptionKey),
+    /// A deity-limited selection offering an option that is no domain and names none, which no deity could offer.
+    DeityLimitWithoutDomain(SelectionOptionKey),
+    /// A feature granting the deity's favoured weapons that no class or archetype row grants: it would never apply.
+    FavouredWeaponsNotGranted,
 }
 
 impl fmt::Display for DataProblem {
@@ -380,6 +394,16 @@ impl fmt::Display for DataProblem {
             DataIssue::PickLeafOutsideOption => f.write_str(
                 "a prerequisite looks at the option picked or its selection outside a selection option's",
             ),
+            DataIssue::DeityWithoutAlignment => f.write_str("the deity allows no alignment"),
+            DataIssue::DeityWithoutFavouredWeapon => f.write_str("the deity has no favoured weapon"),
+            DataIssue::NotADomain(option) => write!(f, "names {option} as a domain, which it isn't"),
+            DataIssue::DeityLimitWithoutDomain(option) => write!(
+                f,
+                "limits its options by the deity's domains, but offers {option}, which is no domain and names none"
+            ),
+            DataIssue::FavouredWeaponsNotGranted => f.write_str(
+                "grants the deity's favoured weapons, but no class or archetype row grants it",
+            ),
             DataIssue::SharesOwnOption(option) => {
                 write!(
                     f,
@@ -407,6 +431,12 @@ impl GameData {
                 .weapons
                 .iter()
                 .map(|weapon| (weapon.key.clone(), weapon.proficiency))
+                .collect(),
+            domains: self
+                .selections()
+                .filter(|selection| selection.key.as_str() == DOMAIN_SELECTION)
+                .flat_map(|selection| &selection.options)
+                .map(|option| option.key.clone())
                 .collect(),
             ..Checker::default()
         };
@@ -463,6 +493,11 @@ impl GameData {
             check.key(&at);
             check.feats_for(&at, &background.feats_for);
         }
+        for deity in &self.deities {
+            check.deity(deity);
+        }
+        check.deity_limits(self);
+        check.favoured_weapon_features(self);
         check.counts_toward_features(self);
         check.option_levels(self);
         for list in self.feat_lists() {
@@ -490,6 +525,8 @@ struct Checker {
     parameters: HashMap<FeatKey, Option<ParameterKind>>,
     /// Every weapon, with its proficiency list.
     weapons: HashMap<WeaponKey, Option<WeaponProficiency>>,
+    /// The domains: the options of the domain selection.
+    domains: HashSet<SelectionOptionKey>,
     problems: Vec<DataProblem>,
 }
 
@@ -709,6 +746,10 @@ impl Checker {
                 self.prerequisite(at, Some(child), takes);
                 return;
             }
+            Prerequisite::DeityOffers(domain) => {
+                self.domain(at, domain);
+                return;
+            }
             Prerequisite::NoOtherOptionOfGroup(_) | Prerequisite::PickedThrough(_) => {
                 if !matches!(at, DataAt::SelectionOption(_)) {
                     self.problem(at, DataIssue::PickLeafOutsideOption);
@@ -769,6 +810,9 @@ impl Checker {
                     self.repeat(&at, option.repeat, false);
                 }
                 self.prerequisite(&at, option.prerequisite.as_ref(), takes);
+                if let Some(domain) = &option.domain {
+                    self.domain(&at, domain);
+                }
                 if let Some(arcana) = &option.arcana
                     && !option
                         .levels
@@ -1005,6 +1049,81 @@ impl Checker {
             .is_some_and(|rest| rest.names_alignment())
         {
             self.problem(at, DataIssue::AlignmentNotOnItsOwn);
+        }
+    }
+
+    /// A key naming a domain names an option of the domain selection.
+    fn domain(&mut self, at: &DataAt, domain: &SelectionOptionKey) {
+        if !self.domains.contains(domain) {
+            self.problem(at, DataIssue::NotADomain(domain.clone()));
+        }
+    }
+
+    /// A deity is a key of its own, allows some alignment, favours some weapon and offers only domains.
+    fn deity(&mut self, deity: &crate::game_data::Deity) {
+        let at = DataAt::Deity(deity.key.clone());
+        self.key(&at);
+        if deity.alignments.is_empty() {
+            self.problem(&at, DataIssue::DeityWithoutAlignment);
+        }
+        if deity.favoured_weapons.is_empty() {
+            self.problem(&at, DataIssue::DeityWithoutFavouredWeapon);
+        }
+        for domain in &deity.domains {
+            self.domain(&at, domain);
+        }
+    }
+
+    /// A selection limited by the deity's domains offers only options it can check: domains, and options naming
+    /// the domain they stand for. An unknown shared key is the foreign keys' business.
+    fn deity_limits(&mut self, data: &GameData) {
+        let named: HashMap<&SelectionOptionKey, bool> = data
+            .selections()
+            .flat_map(|selection| &selection.options)
+            .map(|option| (&option.key, option.domain.is_some()))
+            .collect();
+        for selection in data.selections() {
+            if selection.deity_domains.is_none() {
+                continue;
+            }
+            let unchecked = selection.offered().into_iter().find(|option| {
+                !self.domains.contains(*option)
+                    && named.get(option).is_some_and(|names_one| !names_one)
+            });
+            if let Some(option) = unchecked {
+                self.problem(
+                    &DataAt::FeatureSelection(selection.key.clone()),
+                    DataIssue::DeityLimitWithoutDomain(option.clone()),
+                );
+            }
+        }
+    }
+
+    /// A feature granting the deity's favoured weapons is one some class or archetype row grants.
+    fn favoured_weapon_features(&mut self, data: &GameData) {
+        let granted: HashSet<&FeatureKey> = data
+            .all_classes()
+            .flat_map(|class| {
+                class.levels.iter().flat_map(|row| &row.features).chain(
+                    class
+                        .archetypes
+                        .iter()
+                        .flat_map(|archetype| &archetype.levels)
+                        .flat_map(|row| &row.features),
+                )
+            })
+            .collect();
+        let favoured = data
+            .class_features()
+            .chain(data.mythic_paths.iter().flat_map(|path| &path.features))
+            .filter(|feature| feature.favoured_weapon_proficiency);
+        for feature in favoured {
+            if !granted.contains(&feature.key) {
+                self.problem(
+                    &DataAt::Feature(feature.key.clone()),
+                    DataIssue::FavouredWeaponsNotGranted,
+                );
+            }
         }
     }
 

@@ -1,4 +1,4 @@
-//! The Build start (race, alignment, background, point buy) and a level's skill ranks.
+//! The Build start (race, alignment, deity, background, point buy) and a level's skill ranks.
 
 use leptos::prelude::*;
 use rules::{AbilityScores, Build, BuildStart, Edit, POINT_BUY_BUDGET};
@@ -36,6 +36,9 @@ pub fn BuildStartPanel() -> AnyView {
                     .map_or("No alignment", |alignment| alignment.name())
                     .to_owned(),
             );
+            parts.push(start.deity.as_ref().map_or("No deity".to_owned(), |faith| {
+                engine.faith_name(faith).to_owned()
+            }));
             parts.push(
                 start
                     .background
@@ -79,6 +82,10 @@ fn StartBody() -> AnyView {
             (None, None) => None,
         };
         let alignment = start.alignment.map(|alignment| alignment.name().to_owned());
+        let deity = start
+            .deity
+            .as_ref()
+            .map(|faith| engine.faith_name(faith).to_owned());
         let background = start
             .background
             .as_ref()
@@ -96,6 +103,7 @@ fn StartBody() -> AnyView {
                 {choice_row("Race", race, Target::Race)}
                 {chosen}
                 {choice_row("Alignment", alignment, Target::Alignment)}
+                {choice_row("Deity", deity, Target::Deity)}
                 {choice_row("Background", background, Target::Background)}
                 {note.map(|note| view! { <p class="note">{note}</p> })}
                 <PointBuyRows current=build/>

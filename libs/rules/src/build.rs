@@ -17,8 +17,8 @@ use serde::{Deserialize, Serialize};
 use crate::choice::Choice;
 use crate::game_data::{Ability, Alignment};
 use crate::keys::{
-    ArchetypeKey, BackgroundKey, ClassKey, FeatKey, MythicAbilityKey, MythicFeatKey, MythicPathKey,
-    RaceKey, SelectionOptionKey, SkillKey, SubraceKey,
+    ArchetypeKey, BackgroundKey, ClassKey, DeityKey, FeatKey, MythicAbilityKey, MythicFeatKey,
+    MythicPathKey, RaceKey, SelectionOptionKey, SkillKey, SubraceKey,
 };
 use crate::parameter::Parameter;
 
@@ -53,8 +53,30 @@ pub struct BuildStart {
     pub alignment: Option<Alignment>,
     /// `None` until one is chosen; the background "None" is a key like any other.
     pub background: Option<BackgroundKey>,
+    /// The deity followed, or atheism; `None` until one is chosen.
+    #[serde(default)]
+    pub deity: Option<Faith>,
     /// The point-buy scores, before racial modifiers.
     pub ability_scores: PointBuy,
+}
+
+/// What a character believes in, chosen at Build start: a deity of the game data, or none at all. Atheism is a
+/// choice of its own, not the absence of one: it allows every alignment, the Living Deity needs it, and a class that
+/// serves a deity refuses it.
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+pub enum Faith {
+    Deity(DeityKey),
+    Atheism,
+}
+
+impl Faith {
+    /// The deity followed, if any.
+    pub fn deity(&self) -> Option<&DeityKey> {
+        match self {
+            Faith::Deity(key) => Some(key),
+            Faith::Atheism => None,
+        }
+    }
 }
 
 /// The six ability scores.
@@ -475,6 +497,7 @@ impl Edit {
                 Choice::Subrace,
                 Choice::Alignment,
                 Choice::Background,
+                Choice::Deity,
             ]
             .into_iter()
             .chain(AbilityScores::ABILITIES.map(|ability| Choice::AbilityScore { ability }))

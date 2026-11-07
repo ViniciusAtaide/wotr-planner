@@ -7,8 +7,8 @@ use rules::{ArchetypeKey, Build, CharacterState, ClassKey, Issue, Prerequisite, 
 use crate::support::*;
 
 /// Every archetype with an alignment rule, with what the rule allows, and a race it needs besides (the Reformed
-/// Fiend's tiefling). The Mantis Zealot's is the user's fact; the others are the guide's.
-const ALIGNMENT_RULES: [(&str, &[rules::Alignment], Option<&str>); 7] = {
+/// Fiend's tiefling). The guide's; the Mantis Zealot's, the user's fact, became Achaekek in ticket 86.
+const ALIGNMENT_RULES: [(&str, &[rules::Alignment], Option<&str>); 6] = {
     use rules::Alignment::*;
     [
         (
@@ -48,11 +48,6 @@ const ALIGNMENT_RULES: [(&str, &[rules::Alignment], Option<&str>); 7] = {
             &[LawfulEvil, NeutralEvil, ChaoticEvil],
             None,
         ),
-        (
-            "warpriest/mantis-zealot",
-            &[LawfulNeutral, LawfulEvil, NeutralEvil],
-            None,
-        ),
     ]
 };
 
@@ -61,7 +56,9 @@ fn aligned(archetype: &str, alignment: rules::Alignment, levels: usize) -> Build
     let class = archetype.split('/').next().unwrap();
     let mut build = archetype_build(class, archetype, levels);
     build.start.alignment = Some(alignment);
-    build
+    // A deity that fits, for a class that serves one (ticket 86).
+    build.start.deity = None;
+    faithful(build)
 }
 
 /// The level-1 class picker's status for `archetype` (a class key alone: the class without one) in a Build like
@@ -184,7 +181,8 @@ fn a_bloodseeker_needs_an_evil_alignment() {
 }
 
 /// The ticket's, the user's fact: a Mantis Zealot is Lawful Evil, Lawful Neutral or Neutral Evil (one step from
-/// Achaekek), so open at those and locked at the rest (Chaotic Evil and Lawful Good among them).
+/// Achaekek), so open at those and locked at the rest (Chaotic Evil and Lawful Good among them). Since ticket 86 the
+/// rule is Achaekek, whose alignments are those three.
 #[test]
 fn a_mantis_zealot_is_open_at_le_ln_and_ne_and_locked_at_ce_and_lg() {
     use rules::Alignment::*;
@@ -196,9 +194,7 @@ fn a_mantis_zealot_is_open_at_le_ln_and_ne_and_locked_at_ce_and_lg() {
         .unwrap();
     assert_eq!(
         zealot.prerequisite,
-        Some(Prerequisite::Any(
-            allowed.map(Prerequisite::Alignment).to_vec()
-        ))
+        Some(Prerequisite::Deity(rules::DeityKey::new("achaekek")))
     );
     for alignment in rules::Alignment::ALL {
         let build = aligned("warpriest/mantis-zealot", alignment, 1);
@@ -208,7 +204,7 @@ fn a_mantis_zealot_is_open_at_le_ln_and_ne_and_locked_at_ce_and_lg() {
             assert_eq!(status, Ok(()), "{alignment:?}");
         } else {
             assert!(!possible(&build), "{alignment:?}");
-            assert_eq!(status, Err(none_of(&allowed)), "{alignment:?}");
+            assert!(status.is_err(), "{alignment:?}");
         }
     }
     for alignment in [ChaoticEvil, LawfulGood] {
@@ -238,8 +234,10 @@ fn every_archetype_with_an_alignment_rule_is_buildable_at_an_alignment_it_allows
         let class_allows: Vec<rules::Alignment> = rules::Alignment::ALL
             .into_iter()
             .filter(|alignment| {
+                // A deity, for a class that serves one.
                 let state = CharacterState {
                     alignment: Some(*alignment),
+                    faith: Some(rules::Faith::Deity(rules::DeityKey::new("pharasma"))),
                     ..CharacterState::default()
                 };
                 class(class_key)

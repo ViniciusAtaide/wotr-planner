@@ -9,6 +9,10 @@
 //! - `scripts/proof.sh rules <out-dir> [<ref>]`: a rules change. The harness compiled against `<ref>`'s crates
 //!   (default `HEAD`) is side A and the one compiled against the working tree's is side B, both on the working tree's
 //!   game data. The working tree's `export` supplies the Builds as links, so both sides record the same Builds.
+//! - `scripts/proof.sh both <out-dir> [<ref>]`: a rules change with its game data, which may change the link layout
+//!   too (ticket 86). As `rules`, but side A records `<ref>`'s own game data (which its crates can read), and the
+//!   working tree's `export --json` supplies the Builds as JSON ([`links::read_json`]): a side whose Build start holds
+//!   no faith drops it, and leaves out the deity Builds (`t86 …`, full ones too).
 //!
 //! Either takes `-- <record options>` last (`--only <name substring>`, `--threads N`). A full record takes about 4
 //! minutes on 8 threads. The outputs (`A.jsonl`, `B.jsonl`, `compare.txt` and the logs) go to `<out-dir>`, which must
@@ -16,13 +20,18 @@
 //!
 //! The binary's commands:
 //!
-//! - `proof record <game-data dir> [--links <file>] [--threads N] [--only <name substring>]` writes one JSON line per
-//!   Build ([`fingerprint`]), in a stable order. Without `--links` it records the harness's own Builds ([`builds`]);
-//!   with it, exactly the Builds of that file.
+//! - `proof record <game-data dir> [--links <file> | --builds <file>] [--threads N] [--only <name substring>]` writes
+//!   one JSON line per Build ([`fingerprint`]), in a stable order. Without `--links` or `--builds` it records the
+//!   harness's own Builds ([`builds`]); with one, exactly the Builds of that file (links, or JSON lines).
 //! - `proof compare <a.jsonl> <b.jsonl>` lists the Builds only in one side and, per Build that differs, the fields that
 //!   differ and, for slots, the slot ids ([`compare`]). It exits 1 when anything differs.
-//! - `proof export <game-data dir> [--threads N] [--only <name substring>]` writes the harness's own Builds as share
-//!   links, one `name<TAB>link` line each, for `record --links` ([`links`]).
+//! - `proof export <game-data dir> [--json] [--threads N] [--only <name substring>]` writes the harness's own Builds
+//!   as share links, one `name<TAB>link` line each, for `record --links`, or with `--json` as `name<TAB>json` lines
+//!   for `record --builds` ([`links`]).
+//!
+//! Ticket 86: a deity-bound class needs a faith, so each Build that's impossible without one gets the first of
+//! atheism and the deities it's possible with ([`generate::faithful`]), set through serde so the harness still
+//! compiles against crates from before deities.
 //!
 //! A ticket that needs a special breakdown (only the Builds with some class, say) filters `compare`'s output or the
 //! records themselves (each line names its Build's classes in `who`); the fingerprint keeps only what isn't tied to

@@ -13,8 +13,16 @@ hash of each key, not its text, which the current game data turns back into the 
 _Avoid_: Character sheet, save, saved plan
 
 **Build start**:
-The choices made before level 1: race (and subrace), alignment, **Background** and point-buy ability scores. A subrace's ability modifiers and feat slots replace its race's (a Dual Heritage half-elf has no Adaptability).
+The choices made before level 1: race (and subrace), alignment, **Faith**, **Background** and point-buy ability scores. A subrace's ability modifiers and feat slots replace its race's (a Dual Heritage half-elf has no Adaptability).
 _Avoid_: Character creation, level 0
+
+**Deity**:
+One of the 26 gods of the guide's deity table, which a Build start may follow. It allows the alignments within one step of its own (the table's ticks; Godclaw: LG, LN, LE), offers its domains (a cleric's, inquisitor's or Divine Hunter's domain and a warpriest's blessing come from them; a Separatist's second domain from the others) and has favoured weapons, which a cleric, Ecclesitheurge, inquisitor or Deliverer is proficient with (an exotic one is Exotic Weapon Proficiency for it; Irori's unarmed strike is Improved Unarmed Strike). Its own alignment isn't stored: a "good deity" is one offering the Good domain.
+_Avoid_: God, patron
+
+**Faith**:
+A Build start choice: a **Deity**, or atheism, which is a choice of its own (it allows every alignment; the Living Deity needs it) and not the same as no faith chosen yet. A cleric, inquisitor, warpriest, Divine Hunter or Deliverer needs a deity; the Mantis Zealot, Feral Champion and Hag of Gyronna need one named deity.
+_Avoid_: Religion, belief
 
 **Background**:
 A Build start choice from the user's list (38 backgrounds in eight groups; a Build start without one simply has none). Its skills become **Class skills** and its feats are **Granted feats**, held from the start and counted for prerequisites like any other (a Guard's Armor Proficiency (Light Armor) lets it take Medium Armor at level 1; the Aldori Swordsman's is Exotic Weapon Proficiency (Dueling Sword), for that value). Everything else it gives (other weapon proficiencies, the buckler, save, AC and skill bonuses) is its note, shown with the Build. No background chosen yet isn't the background None.
@@ -165,7 +173,7 @@ What fills a slot: a feat, a selection option, a mythic ability or a mythic feat
 _Avoid_: Choice (that is any decision in a Build), selection
 
 **Prerequisite**:
-A condition that must hold before a feat, selection option, mythic pick, class or archetype can be chosen. Examples: an ability score, BAB, another feat, skill ranks or a class feature. One can depend on the pick's Parameter (Armor Focus: the proficiency of the armour type it's taken for), on the option picked (no other option of its Option group) or the selection it's picked through (a Champion of the Faith's alignment blessing matches his alignment as his chosen alignment only; a Separatist's second domain doesn't conflict with his), or be one that must not hold (the slayer's first combat style feat: not yet slayer 6). A Story condition is one too, but never blocks. An archetype's alignment requirement replaces its class's, and the class's other conditions still hold: a Drunken Master, who can't be Lawful, is a monk though a monk must be Lawful; an archetype without one keeps its class's.
+A condition that must hold before a feat, selection option, mythic pick, class or archetype can be chosen. Examples: an ability score, BAB, another feat, skill ranks or a class feature. One can depend on the pick's Parameter (Armor Focus: the proficiency of the armour type it's taken for), on the option picked (no other option of its Option group) or the selection it's picked through (a Champion of the Faith's alignment blessing matches his alignment as his chosen alignment only; a Separatist's second domain doesn't conflict with his), or be one that must not hold (the slayer's first combat style feat: not yet slayer 6). A Story condition is one too, but never blocks. One can ask about the **Faith**: a deity, a given deity, atheism, or a deity offering a domain (the Angelfire Apostle's good deity). An archetype's alignment requirement replaces its class's, and the class's other conditions still hold: a Drunken Master, who can't be Lawful, is a monk though a monk must be Lawful; an archetype without one keeps its class's.
 _Avoid_: Requirement, restriction
 
 **Story condition**:

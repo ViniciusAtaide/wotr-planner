@@ -87,6 +87,7 @@ pub(in crate::support::world) fn kineticist() -> Class {
                 once_per_option: true,
                 feat_lists_only: true,
                 level_also_from: None,
+                deity_domains: None,
                 ..levelled_selection(
                     expanded.as_str(),
                     &["kineticist"],

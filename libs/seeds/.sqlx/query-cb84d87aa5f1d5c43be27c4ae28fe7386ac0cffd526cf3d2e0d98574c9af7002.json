@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "SELECT key, selection_key, name, summary, guide, prerequisite_root_id, chosen_feat_key,\n            parameter, repeat, repeat_times, pool_key, replaces_row_of_key, option_group, arcana_key\n        FROM selection_option ORDER BY key",
+  "query": "SELECT key, selection_key, name, summary, guide, prerequisite_root_id, chosen_feat_key,\n            parameter, repeat, repeat_times, pool_key, replaces_row_of_key, option_group, arcana_key,\n            domain_key\n        FROM selection_option ORDER BY key",
   "describe": {
     "columns": [
       {
@@ -156,6 +156,17 @@
             "name": "arcana_key"
           }
         }
+      },
+      {
+        "name": "domain_key",
+        "ordinal": 14,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "selection_option",
+            "name": "domain_key"
+          }
+        }
       }
     ],
     "parameters": {
@@ -175,8 +186,9 @@
       true,
       true,
       true,
+      true,
       true
     ]
   },
-  "hash": "37991ac9e3092e28847e2f9bec41c74217aa5958fb1f0d39071154749747ef68"
+  "hash": "cb84d87aa5f1d5c43be27c4ae28fe7386ac0cffd526cf3d2e0d98574c9af7002"
 }

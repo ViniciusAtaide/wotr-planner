@@ -4,9 +4,10 @@
 //! `migrations/20261031000000_game_data.sql`.
 
 use rules::{
-    Ability, Advancement, Alignment, ArmourType, BabProgression, BackgroundGroup, Energy,
-    FeatCategory, LevelFrom, MythicAbilityGroup, MythicExtraPick, MythicFeatGroup, OptionGroup,
-    ParameterKind, Repeat, Save, SaveProgression, SpellSchool, SpellType, Story, WeaponProficiency,
+    Ability, Advancement, Alignment, ArmourType, BabProgression, BackgroundGroup, DeityDomains,
+    Energy, FeatCategory, LevelFrom, MythicAbilityGroup, MythicExtraPick, MythicFeatGroup,
+    OptionGroup, ParameterKind, Repeat, Save, SaveProgression, SpellSchool, SpellType, Story,
+    WeaponProficiency,
 };
 
 /// A row that doesn't fit the `rules` types (should be impossible given the constraints).
@@ -145,6 +146,11 @@ text_column!(BackgroundGroup, background_group_from, background_group_text {
 text_column!(LevelFrom, level_from_from, level_from_text {
     OtherOptions => "other_options",
     GrantingOption => "granting_option",
+});
+
+text_column!(DeityDomains, deity_domains_from, deity_domains_text {
+    Offered => "offered",
+    NotOffered => "not_offered",
 });
 
 text_column!(MythicExtraPick, mythic_extra_pick_from, mythic_extra_pick_text {
@@ -317,6 +323,10 @@ pub(crate) enum NodeKind {
     SpontaneousSpellLevel,
     NoOtherOptionOfGroup,
     PickedThrough,
+    Deity,
+    Atheist,
+    Worships,
+    DeityOffers,
 }
 
 impl NodeKind {
@@ -354,6 +364,10 @@ text_column!(NodeKind, node_kind_from, node_kind_text {
     SpontaneousSpellLevel => "spontaneous_spell_level",
     NoOtherOptionOfGroup => "no_other_option_of_group",
     PickedThrough => "picked_through",
+    Deity => "deity",
+    Atheist => "atheist",
+    Worships => "worships",
+    DeityOffers => "deity_offers",
 });
 
 /// `feat_slot.kind`: which `rules::FeatSlot` variant a row is.

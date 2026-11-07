@@ -96,3 +96,7 @@ text_key!(
     /// `shackles-corsair`
     BackgroundKey
 );
+text_key!(
+    /// `cayden-cailean`: a deity of the guide's table.
+    DeityKey
+);

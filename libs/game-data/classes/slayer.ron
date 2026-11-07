@@ -208,10 +208,11 @@ Class(
         ),
         (
             key: "slayer/deliverer",
+            prerequisite: Worships,
             name: "Deliverer",
             guide: "slayer#deliverer",
             features: [
-                (key: "slayer/deliverer/deity", name: "Deity", guide: "slayer#deity"),
+                (key: "slayer/deliverer/deity", favoured_weapon_proficiency: true, name: "Deity", guide: "slayer#deity"),
                 (key: "slayer/deliverer/determined-zeal", name: "Determined Zeal", guide: "slayer#determined-zeal"),
                 (key: "slayer/deliverer/divine-anathema", name: "Divine Anathema", guide: "slayer#divine-anathema"),
             ],

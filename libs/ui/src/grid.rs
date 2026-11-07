@@ -209,6 +209,13 @@ fn Summary(sheet: std::sync::Arc<Sheet>) -> impl IntoView {
         .iter()
         .map(|feature| engine.feature_name(feature).to_owned())
         .collect();
+    let faith = state.faith.as_ref().map(|faith| {
+        let name = engine.faith_name(faith).to_owned();
+        match engine.favoured_weapons_note(state) {
+            Some(note) => format!("{name} · {note}"),
+            None => name,
+        }
+    });
     let mythic = (state.mythic_rank > 0).then(|| {
         let path = state
             .mythic_path
@@ -234,6 +241,7 @@ fn Summary(sheet: std::sync::Arc<Sheet>) -> impl IntoView {
                 )}
             </p>
             <p class="summary-numbers">{scores.join(" · ")}</p>
+            {faith.map(|faith| view! { <p class="summary-note">{format!("Faith: {faith}")}</p> })}
             {(!class_skills.is_empty())
                 .then(|| {
                     view! {

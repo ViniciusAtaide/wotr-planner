@@ -8,9 +8,10 @@ Class(
     reflex: Poor,
     will: Good,
     class_skills: ["knowledge-arcana", "knowledge-world", "lore-religion", "persuasion"],
+    prerequisite: Worships,
     features: [
         (key: "cleric/channel-energy", name: "Channel Energy", guide: "cleric#channel-energy"),
-        (key: "cleric/cleric-proficiencies", name: "Cleric Proficiencies", guide: "cleric#cleric-proficiencies"),
+        (key: "cleric/cleric-proficiencies", favoured_weapon_proficiency: true, name: "Cleric Proficiencies", guide: "cleric#cleric-proficiencies"),
         (key: "cleric/diminished-spellcasting", name: "Diminished Spellcasting", guide: "cleric#diminished-spellcasting"),
         (key: "cleric/domain/air/electrical-resistance", name: "Electrical Resistance", guide: "character-creation#air-domain"),
         (key: "cleric/domain/air/lightning-arc", name: "Lightning Arc", guide: "character-creation#air-domain"),
@@ -89,6 +90,7 @@ Class(
         (
             key: "cleric/domain",
             name: "Domain",
+            deity_domains: Offered,
             guide: "character-creation#domains",
             option_levels: ["cleric"],
             options: [
@@ -122,7 +124,7 @@ Class(
                     key: "cleric/domain/chaos",
                     name: "Chaos Domain",
                     guide: "character-creation#chaos-domain",
-                    prerequisite: Any([Not(PickedThrough("cleric/separatist/domain")), Alignment(NeutralGood), Alignment(ChaoticGood), Alignment(TrueNeutral), Alignment(ChaoticNeutral), Alignment(NeutralEvil), Alignment(ChaoticEvil)]),
+                    prerequisite: All([Any([Not(PickedThrough("cleric/separatist/domain")), Alignment(NeutralGood), Alignment(ChaoticGood), Alignment(TrueNeutral), Alignment(ChaoticNeutral), Alignment(NeutralEvil), Alignment(ChaoticEvil)]), Any([Not(PickedThrough("cleric/domain")), Alignment(ChaoticGood), Alignment(ChaoticNeutral), Alignment(ChaoticEvil)]), Any([Not(PickedThrough("inquisitor/domain")), Alignment(ChaoticGood), Alignment(ChaoticNeutral), Alignment(ChaoticEvil)]), Any([Not(PickedThrough("inquisitor/sacred-huntsmaster/domain")), Alignment(ChaoticGood), Alignment(ChaoticNeutral), Alignment(ChaoticEvil)]), Any([Not(PickedThrough("hunter/divine-hunter/domain")), Alignment(ChaoticGood), Alignment(ChaoticNeutral), Alignment(ChaoticEvil)])]),
                     levels: [
                         (level: 1, features: ["cleric/domain/chaos/touch-of-chaos"]),
                         (level: 8, features: ["cleric/domain/chaos/chaos-blade"]),
@@ -186,7 +188,7 @@ Class(
                     key: "cleric/domain/evil",
                     name: "Evil Domain",
                     guide: "character-creation#evil-domain",
-                    prerequisite: Any([Not(PickedThrough("cleric/separatist/domain")), Alignment(LawfulNeutral), Alignment(TrueNeutral), Alignment(ChaoticNeutral), Alignment(LawfulEvil), Alignment(NeutralEvil), Alignment(ChaoticEvil)]),
+                    prerequisite: All([Any([Not(PickedThrough("cleric/separatist/domain")), Alignment(LawfulNeutral), Alignment(TrueNeutral), Alignment(ChaoticNeutral), Alignment(LawfulEvil), Alignment(NeutralEvil), Alignment(ChaoticEvil)]), Any([Not(PickedThrough("cleric/domain")), Alignment(LawfulEvil), Alignment(NeutralEvil), Alignment(ChaoticEvil)]), Any([Not(PickedThrough("inquisitor/domain")), Alignment(LawfulEvil), Alignment(NeutralEvil), Alignment(ChaoticEvil)]), Any([Not(PickedThrough("inquisitor/sacred-huntsmaster/domain")), Alignment(LawfulEvil), Alignment(NeutralEvil), Alignment(ChaoticEvil)]), Any([Not(PickedThrough("hunter/divine-hunter/domain")), Alignment(LawfulEvil), Alignment(NeutralEvil), Alignment(ChaoticEvil)])]),
                     levels: [
                         (level: 1, features: ["cleric/domain/evil/touch-of-evil"]),
                         (level: 8, features: ["cleric/domain/evil/scythe-of-evil"]),
@@ -214,7 +216,7 @@ Class(
                     key: "cleric/domain/good",
                     name: "Good Domain",
                     guide: "character-creation#good-domain",
-                    prerequisite: Any([Not(PickedThrough("cleric/separatist/domain")), Alignment(LawfulGood), Alignment(NeutralGood), Alignment(ChaoticGood), Alignment(LawfulNeutral), Alignment(TrueNeutral), Alignment(ChaoticNeutral)]),
+                    prerequisite: All([Any([Not(PickedThrough("cleric/separatist/domain")), Alignment(LawfulGood), Alignment(NeutralGood), Alignment(ChaoticGood), Alignment(LawfulNeutral), Alignment(TrueNeutral), Alignment(ChaoticNeutral)]), Any([Not(PickedThrough("cleric/domain")), Alignment(LawfulGood), Alignment(NeutralGood), Alignment(ChaoticGood)]), Any([Not(PickedThrough("inquisitor/domain")), Alignment(LawfulGood), Alignment(NeutralGood), Alignment(ChaoticGood)]), Any([Not(PickedThrough("inquisitor/sacred-huntsmaster/domain")), Alignment(LawfulGood), Alignment(NeutralGood), Alignment(ChaoticGood)]), Any([Not(PickedThrough("hunter/divine-hunter/domain")), Alignment(LawfulGood), Alignment(NeutralGood), Alignment(ChaoticGood)])]),
                     levels: [
                         (level: 1, features: ["cleric/domain/good/touch-of-good"]),
                         (level: 8, features: ["cleric/domain/good/holy-lance"]),
@@ -251,7 +253,7 @@ Class(
                     key: "cleric/domain/law",
                     name: "Law Domain",
                     guide: "character-creation#law-domain",
-                    prerequisite: Any([Not(PickedThrough("cleric/separatist/domain")), Alignment(LawfulGood), Alignment(NeutralGood), Alignment(LawfulNeutral), Alignment(TrueNeutral), Alignment(LawfulEvil), Alignment(NeutralEvil)]),
+                    prerequisite: All([Any([Not(PickedThrough("cleric/separatist/domain")), Alignment(LawfulGood), Alignment(NeutralGood), Alignment(LawfulNeutral), Alignment(TrueNeutral), Alignment(LawfulEvil), Alignment(NeutralEvil)]), Any([Not(PickedThrough("cleric/domain")), Alignment(LawfulGood), Alignment(LawfulNeutral), Alignment(LawfulEvil)]), Any([Not(PickedThrough("inquisitor/domain")), Alignment(LawfulGood), Alignment(LawfulNeutral), Alignment(LawfulEvil)]), Any([Not(PickedThrough("inquisitor/sacred-huntsmaster/domain")), Alignment(LawfulGood), Alignment(LawfulNeutral), Alignment(LawfulEvil)]), Any([Not(PickedThrough("hunter/divine-hunter/domain")), Alignment(LawfulGood), Alignment(LawfulNeutral), Alignment(LawfulEvil)])]),
                     levels: [
                         (level: 1, features: ["cleric/domain/law/touch-of-law"]),
                         (level: 8, features: ["cleric/domain/law/staff-of-order"]),
@@ -505,7 +507,7 @@ Class(
             key: "cleric/angelfire-apostle",
             name: "Angelfire Apostle",
             guide: "cleric#angelfire-apostle",
-            prerequisite: Any([Alignment(LawfulGood), Alignment(NeutralGood), Alignment(ChaoticGood)]),
+            prerequisite: All([Any([Alignment(LawfulGood), Alignment(NeutralGood), Alignment(ChaoticGood)]), DeityOffers("cleric/domain/good")]),
             features: [
                 (key: "cleric/angelfire-apostle/channel-positive-energy", name: "Channel Positive Energy", guide: "cleric#angelfire-apostle"),
                 (key: "cleric/angelfire-apostle/cleansing-flames", name: "Cleansing Flames", guide: "cleric#cleansing-flames"),
@@ -560,7 +562,7 @@ Class(
                 (key: "cleric/ecclesitheurge/blessing-of-the-faithful", name: "Blessing of the Faithful", guide: "cleric#blessing-of-the-faithful"),
                 (key: "cleric/ecclesitheurge/bonded-holy-symbol", name: "Bonded Holy Symbol", guide: "cleric#bonded-holy-symbol"),
                 (key: "cleric/ecclesitheurge/domain-mastery", name: "Domain Mastery", guide: "cleric#domain-mastery"),
-                (key: "cleric/ecclesitheurge/ecclesitheurge-proficiencies", name: "Ecclesitheurge Proficiencies", guide: "cleric#ecclesitheurge"),
+                (key: "cleric/ecclesitheurge/ecclesitheurge-proficiencies", favoured_weapon_proficiency: true, name: "Ecclesitheurge Proficiencies", guide: "cleric#ecclesitheurge"),
             ],
             levels: [
                 (level: 1, features: ["cleric/channel-energy", "cleric/ecclesitheurge/blessing-of-the-faithful", "cleric/ecclesitheurge/domain-mastery", "cleric/ecclesitheurge/ecclesitheurge-proficiencies"], selections: ["cleric/domain", "cleric/domain"]),
@@ -587,7 +589,7 @@ Class(
             key: "cleric/priest-of-balance",
             name: "Priest of Balance",
             guide: "cleric#priest-of-balance",
-            prerequisite: Any([Alignment(LawfulNeutral), Alignment(TrueNeutral), Alignment(ChaoticNeutral)]),
+            prerequisite: All([Any([Alignment(LawfulNeutral), Alignment(TrueNeutral), Alignment(ChaoticNeutral)]), Not(DeityOffers("cleric/domain/good")), Not(DeityOffers("cleric/domain/evil"))]),
             features: [
                 (key: "cleric/priest-of-balance/channel-negative-energy", name: "Channel Negative Energy", guide: "cleric#priest-of-balance"),
                 (key: "cleric/priest-of-balance/channel-positive-energy", name: "Channel Positive Energy", guide: "cleric#priest-of-balance"),
@@ -612,6 +614,7 @@ Class(
                 (
                     key: "cleric/separatist/domain",
                     name: "Domain (Separatist)",
+                    deity_domains: NotOffered,
                     guide: "cleric#forbidden-rites",
                     option_levels: ["cleric"],
                     levels_behind: 2,

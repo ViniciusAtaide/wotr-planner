@@ -247,6 +247,7 @@ Class(
                         (
                             key: "arcanist/magic-deceiver/ways-of-the-deceiver/living-deity",
                             name: "Living Deity",
+                            prerequisite: Atheist,
                             guide: "arcanist#living-deity",
                             levels: [
                                 (level: 1, features: ["arcanist/magic-deceiver/ways-of-the-deceiver/living-deity/mysterious-gift"], selections: ["arcanist/magic-deceiver/mystery", "arcanist/magic-deceiver/revelation", "oracle/oracles-curse"]),

@@ -278,6 +278,12 @@ pub(super) fn feats() -> Vec<Feat> {
             UnarmedCombat,
             Some(needs_score(Ability::Dexterity, 13)),
         ),
+        // Simplified: the game's Stunning Fist also needs Dex 13, Wis 13 and BAB +8.
+        feat_row(
+            "stunning-fist",
+            UnarmedCombat,
+            Some(needs_feat("improved-unarmed-strike")),
+        ),
         feat_row("scribe-scrolls", Magic, Some(CasterLevel(1))),
         feat_row("shield-proficiency", ArmourAndShield, None),
         feat_row(

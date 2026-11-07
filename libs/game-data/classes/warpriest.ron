@@ -9,6 +9,7 @@ Class(
     will: Good,
     save_exceptions: [(level: 20, save: Will, value: 11)],
     class_skills: ["athletics", "knowledge-arcana", "knowledge-world", "lore-religion", "persuasion"],
+    prerequisite: Worships,
     features: [
         (key: "warpriest/aspect-of-war", name: "Aspect of War", guide: "warpriest#aspect-of-war"),
         (key: "warpriest/blessings/air-domain/major-blessing", name: "Major Blessing (Air)", guide: "warpriest#air-domain"),
@@ -70,6 +71,7 @@ Class(
     selections: [
         (
             key: "warpriest/blessings",
+            deity_domains: Offered,
             name: "Blessings",
             guide: "warpriest#blessings",
             option_levels: ["warpriest"],
@@ -78,6 +80,7 @@ Class(
                     key: "warpriest/blessings/air-domain",
                     name: "Air Domain",
                     guide: "warpriest#air-domain",
+                    domain: "cleric/domain/air",
                     levels: [
                         (level: 1, features: ["warpriest/blessings/air-domain/minor-blessing"]),
                         (level: 10, features: ["warpriest/blessings/air-domain/major-blessing"]),
@@ -87,6 +90,7 @@ Class(
                     key: "warpriest/blessings/animal-domain",
                     name: "Animal Domain",
                     guide: "warpriest#animal-domain",
+                    domain: "cleric/domain/animal",
                     levels: [
                         (level: 1, features: ["warpriest/blessings/animal-domain/minor-blessing"]),
                         (level: 10, features: ["warpriest/blessings/animal-domain/major-blessing"]),
@@ -96,7 +100,8 @@ Class(
                     key: "warpriest/blessings/chaos-domain",
                     name: "Chaos Domain",
                     guide: "warpriest#chaos-domain",
-                    prerequisite: Any([Not(PickedThrough("warpriest/champion-of-the-faith/chosen-alignment")), Alignment(ChaoticGood), Alignment(ChaoticNeutral), Alignment(ChaoticEvil)]),
+                    domain: "cleric/domain/chaos",
+                    prerequisite: All([Any([Not(PickedThrough("warpriest/blessings")), Alignment(ChaoticGood), Alignment(ChaoticNeutral), Alignment(ChaoticEvil)]), Any([Not(PickedThrough("warpriest/champion-of-the-faith/chosen-alignment")), Alignment(ChaoticGood), Alignment(ChaoticNeutral), Alignment(ChaoticEvil)]), Any([Not(PickedThrough("warpriest/champion-of-the-faith/chosen-alignment")), DeityOffers("cleric/domain/chaos")])]),
                     levels: [
                         (level: 1, features: ["warpriest/blessings/chaos-domain/minor-blessing"]),
                         (level: 10, features: ["warpriest/blessings/chaos-domain/major-blessing"]),
@@ -106,6 +111,7 @@ Class(
                     key: "warpriest/blessings/darkness-domain",
                     name: "Darkness Domain",
                     guide: "warpriest#darkness-domain",
+                    domain: "cleric/domain/darkness",
                     levels: [
                         (level: 1, features: ["warpriest/blessings/darkness-domain/minor-blessing"]),
                         (level: 10, features: ["warpriest/blessings/darkness-domain/major-blessing"]),
@@ -115,6 +121,7 @@ Class(
                     key: "warpriest/blessings/death-domain",
                     name: "Death Domain",
                     guide: "warpriest#death-domain",
+                    domain: "cleric/domain/death",
                     levels: [
                         (level: 1, features: ["warpriest/blessings/death-domain/minor-blessing"]),
                         (level: 10, features: ["warpriest/blessings/death-domain/major-blessing"]),
@@ -124,6 +131,7 @@ Class(
                     key: "warpriest/blessings/destruction",
                     name: "Destruction",
                     guide: "warpriest#destruction",
+                    domain: "cleric/domain/destruction",
                     levels: [
                         (level: 1, features: ["warpriest/blessings/destruction/minor-blessing"]),
                         (level: 10, features: ["warpriest/blessings/destruction/major-blessing"]),
@@ -133,6 +141,7 @@ Class(
                     key: "warpriest/blessings/earth",
                     name: "Earth",
                     guide: "warpriest#earth",
+                    domain: "cleric/domain/earth",
                     levels: [
                         (level: 1, features: ["warpriest/blessings/earth/minor-blessing"]),
                         (level: 10, features: ["warpriest/blessings/earth/major-blessing"]),
@@ -142,7 +151,8 @@ Class(
                     key: "warpriest/blessings/evil-domain",
                     name: "Evil Domain",
                     guide: "warpriest#evil-domain",
-                    prerequisite: Any([Not(PickedThrough("warpriest/champion-of-the-faith/chosen-alignment")), Alignment(LawfulEvil), Alignment(NeutralEvil), Alignment(ChaoticEvil)]),
+                    domain: "cleric/domain/evil",
+                    prerequisite: All([Any([Not(PickedThrough("warpriest/blessings")), Alignment(LawfulEvil), Alignment(NeutralEvil), Alignment(ChaoticEvil)]), Any([Not(PickedThrough("warpriest/champion-of-the-faith/chosen-alignment")), Alignment(LawfulEvil), Alignment(NeutralEvil), Alignment(ChaoticEvil)]), Any([Not(PickedThrough("warpriest/champion-of-the-faith/chosen-alignment")), DeityOffers("cleric/domain/evil")])]),
                     levels: [
                         (level: 1, features: ["warpriest/blessings/evil-domain/minor-blessing"]),
                         (level: 10, features: ["warpriest/blessings/evil-domain/major-blessing"]),
@@ -152,6 +162,7 @@ Class(
                     key: "warpriest/blessings/fire",
                     name: "Fire",
                     guide: "warpriest#fire",
+                    domain: "cleric/domain/fire",
                     levels: [
                         (level: 1, features: ["warpriest/blessings/fire/minor-blessing"]),
                         (level: 10, features: ["warpriest/blessings/fire/major-blessing"]),
@@ -161,7 +172,8 @@ Class(
                     key: "warpriest/blessings/good-domain",
                     name: "Good Domain",
                     guide: "warpriest#good-domain",
-                    prerequisite: Any([Not(PickedThrough("warpriest/champion-of-the-faith/chosen-alignment")), Alignment(LawfulGood), Alignment(NeutralGood), Alignment(ChaoticGood)]),
+                    domain: "cleric/domain/good",
+                    prerequisite: All([Any([Not(PickedThrough("warpriest/blessings")), Alignment(LawfulGood), Alignment(NeutralGood), Alignment(ChaoticGood)]), Any([Not(PickedThrough("warpriest/champion-of-the-faith/chosen-alignment")), Alignment(LawfulGood), Alignment(NeutralGood), Alignment(ChaoticGood)]), Any([Not(PickedThrough("warpriest/champion-of-the-faith/chosen-alignment")), DeityOffers("cleric/domain/good")])]),
                     levels: [
                         (level: 1, features: ["warpriest/blessings/good-domain/minor-blessing"]),
                         (level: 10, features: ["warpriest/blessings/good-domain/major-blessing"]),
@@ -171,6 +183,7 @@ Class(
                     key: "warpriest/blessings/healing-domain",
                     name: "Healing Domain",
                     guide: "warpriest#healing-domain",
+                    domain: "cleric/domain/healing",
                     levels: [
                         (level: 1, features: ["warpriest/blessings/healing-domain/minor-blessing"]),
                         (level: 10, features: ["warpriest/blessings/healing-domain/major-blessing"]),
@@ -180,7 +193,8 @@ Class(
                     key: "warpriest/blessings/law-domain",
                     name: "Law Domain",
                     guide: "warpriest#law-domain",
-                    prerequisite: Any([Not(PickedThrough("warpriest/champion-of-the-faith/chosen-alignment")), Alignment(LawfulGood), Alignment(LawfulNeutral), Alignment(LawfulEvil)]),
+                    domain: "cleric/domain/law",
+                    prerequisite: All([Any([Not(PickedThrough("warpriest/blessings")), Alignment(LawfulGood), Alignment(LawfulNeutral), Alignment(LawfulEvil)]), Any([Not(PickedThrough("warpriest/champion-of-the-faith/chosen-alignment")), Alignment(LawfulGood), Alignment(LawfulNeutral), Alignment(LawfulEvil)]), Any([Not(PickedThrough("warpriest/champion-of-the-faith/chosen-alignment")), DeityOffers("cleric/domain/law")])]),
                     levels: [
                         (level: 1, features: ["warpriest/blessings/law-domain/minor-blessing"]),
                         (level: 10, features: ["warpriest/blessings/law-domain/major-blessing"]),
@@ -190,6 +204,7 @@ Class(
                     key: "warpriest/blessings/liberation",
                     name: "Liberation",
                     guide: "warpriest#liberation",
+                    domain: "cleric/domain/liberation",
                     levels: [
                         (level: 1, features: ["warpriest/blessings/liberation/minor-blessing"]),
                         (level: 10, features: ["warpriest/blessings/liberation/major-blessing"]),
@@ -199,6 +214,7 @@ Class(
                     key: "warpriest/blessings/luck",
                     name: "Luck",
                     guide: "warpriest#luck",
+                    domain: "cleric/domain/luck",
                     levels: [
                         (level: 1, features: ["warpriest/blessings/luck/minor-blessing"]),
                         (level: 10, features: ["warpriest/blessings/luck/major-blessing"]),
@@ -208,6 +224,7 @@ Class(
                     key: "warpriest/blessings/madness",
                     name: "Madness",
                     guide: "warpriest#madness",
+                    domain: "cleric/domain/madness",
                     levels: [
                         (level: 1, features: ["warpriest/blessings/madness/minor-blessing"]),
                         (level: 10, features: ["warpriest/blessings/madness/major-blessing"]),
@@ -217,6 +234,7 @@ Class(
                     key: "warpriest/blessings/magic",
                     name: "Magic",
                     guide: "warpriest#magic",
+                    domain: "cleric/domain/magic",
                     levels: [
                         (level: 1, features: ["warpriest/blessings/magic/minor-blessing"]),
                         (level: 10, features: ["warpriest/blessings/magic/major-blessing"]),
@@ -226,6 +244,7 @@ Class(
                     key: "warpriest/blessings/nobility",
                     name: "Nobility",
                     guide: "warpriest#nobility",
+                    domain: "cleric/domain/nobility",
                     levels: [
                         (level: 1, features: ["warpriest/blessings/nobility/minor-blessing"]),
                         (level: 10, features: ["warpriest/blessings/nobility/major-blessing"]),
@@ -235,6 +254,7 @@ Class(
                     key: "warpriest/blessings/protection",
                     name: "Protection",
                     guide: "warpriest#protection",
+                    domain: "cleric/domain/protection",
                     levels: [
                         (level: 1, features: ["warpriest/blessings/protection/minor-blessing"]),
                         (level: 10, features: ["warpriest/blessings/protection/major-blessing"]),
@@ -244,6 +264,7 @@ Class(
                     key: "warpriest/blessings/repose",
                     name: "Repose",
                     guide: "warpriest#repose",
+                    domain: "cleric/domain/repose",
                     levels: [
                         (level: 1, features: ["warpriest/blessings/repose/minor-blessing"]),
                         (level: 10, features: ["warpriest/blessings/repose/major-blessing"]),
@@ -253,6 +274,7 @@ Class(
                     key: "warpriest/blessings/strength",
                     name: "Strength",
                     guide: "warpriest#strength",
+                    domain: "cleric/domain/strength",
                     levels: [
                         (level: 1, features: ["warpriest/blessings/strength/minor-blessing"]),
                         (level: 10, features: ["warpriest/blessings/strength/major-blessing"]),
@@ -262,6 +284,7 @@ Class(
                     key: "warpriest/blessings/sun",
                     name: "Sun",
                     guide: "warpriest#sun",
+                    domain: "cleric/domain/sun",
                     levels: [
                         (level: 1, features: ["warpriest/blessings/sun/minor-blessing"]),
                         (level: 10, features: ["warpriest/blessings/sun/major-blessing"]),
@@ -271,6 +294,7 @@ Class(
                     key: "warpriest/blessings/travel",
                     name: "Travel",
                     guide: "warpriest#travel",
+                    domain: "cleric/domain/travel",
                     levels: [
                         (level: 1, features: ["warpriest/blessings/travel/minor-blessing"]),
                         (level: 10, features: ["warpriest/blessings/travel/major-blessing"]),
@@ -280,6 +304,7 @@ Class(
                     key: "warpriest/blessings/trickery",
                     name: "Trickery",
                     guide: "warpriest#trickery",
+                    domain: "cleric/domain/trickery",
                     levels: [
                         (level: 1, features: ["warpriest/blessings/trickery/minor-blessing"]),
                         (level: 10, features: ["warpriest/blessings/trickery/major-blessing"]),
@@ -289,6 +314,7 @@ Class(
                     key: "warpriest/blessings/water",
                     name: "Water",
                     guide: "warpriest#water",
+                    domain: "cleric/domain/water",
                     levels: [
                         (level: 1, features: ["warpriest/blessings/water/minor-blessing"]),
                         (level: 10, features: ["warpriest/blessings/water/major-blessing"]),
@@ -298,6 +324,7 @@ Class(
                     key: "warpriest/blessings/weather",
                     name: "Weather",
                     guide: "warpriest#weather",
+                    domain: "cleric/domain/weather",
                     levels: [
                         (level: 1, features: ["warpriest/blessings/weather/minor-blessing"]),
                         (level: 10, features: ["warpriest/blessings/weather/major-blessing"]),
@@ -415,6 +442,7 @@ Class(
         (
             key: "warpriest/feral-champion",
             name: "Feral Champion",
+            prerequisite: Any([Deity("erastil"), Deity("gozreh"), Deity("green-faith")]),
             guide: "warpriest#feral-champion",
             features: [
                 (key: "warpriest/feral-champion/wild-shape-bear", name: "Wild Shape (Bear)", guide: "warpriest#feral-champion"),
@@ -449,7 +477,7 @@ Class(
             key: "warpriest/mantis-zealot",
             name: "Mantis Zealot",
             guide: "warpriest#mantis-zealot",
-            prerequisite: Any([Alignment(LawfulNeutral), Alignment(LawfulEvil), Alignment(NeutralEvil)]),
+            prerequisite: Deity("achaekek"),
             features: [
                 (key: "warpriest/mantis-zealot/aspect-of-the-mantis", name: "Aspect of the Mantis", guide: "warpriest#aspect-of-the-mantis"),
                 (key: "warpriest/mantis-zealot/deadly-fascination", name: "Deadly Fascination", guide: "warpriest#deadly-fascination"),

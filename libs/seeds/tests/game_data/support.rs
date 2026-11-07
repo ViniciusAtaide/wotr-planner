@@ -44,6 +44,36 @@ pub fn why_not(build: &Build, slot: &SlotId) -> Option<Issue> {
     Some(status.expect_err("the picker offers it"))
 }
 
+/// The Build with a faith it's possible with (ticket 86): its own when it is, else the first of atheism and the
+/// deities, in key order, it is possible with; unchanged when none is (a Build a test makes impossible on purpose). What the tests written before deities give a
+/// cleric, inquisitor, warpriest, Divine Hunter or Deliverer, which needs a deity whose domains fit its picks.
+pub fn faithful(build: Build) -> Build {
+    let engine = engine();
+    if engine.is_possible(&build) {
+        return build;
+    }
+    let faiths = std::iter::once(rules::Faith::Atheism).chain(
+        DATA.deities
+            .iter()
+            .map(|deity| rules::Faith::Deity(deity.key.clone())),
+    );
+    for faith in faiths {
+        let mut candidate = build.clone();
+        candidate.start.deity = Some(faith);
+        if engine.is_possible(&candidate) {
+            return candidate;
+        }
+    }
+    build
+}
+
+/// The Build at `alignment`, with a faith that fits it ([`faithful`]).
+pub fn realigned(mut build: Build, alignment: rules::Alignment) -> Build {
+    build.start.alignment = Some(alignment);
+    build.start.deity = None;
+    faithful(build)
+}
+
 /// The Build without the pick in `slot`.
 pub fn without(build: &Build, slot: &SlotId) -> Build {
     let mut build = build.clone();
@@ -60,7 +90,7 @@ pub fn build(class: &str, levels: usize) -> Build {
     for _ in 0..levels {
         build.levels.push(LevelUp::new(ClassKey::new(class)));
     }
-    build
+    faithful(build)
 }
 
 /// A Build of one class taken with an archetype, `levels` levels, with no picks.
@@ -73,7 +103,7 @@ pub fn archetype_build(class: &str, archetype: &str, levels: usize) -> Build {
             ..ClassChoice::default()
         },
     );
-    build
+    faithful(build)
 }
 
 pub fn selection_slot(level: u8) -> SlotId {
@@ -167,7 +197,7 @@ pub fn with_option(mut build: Build, level: u8, index: u8, option: &str) -> Buil
     build
         .picks
         .insert(SlotId::Selection { level, index }, pick(option));
-    build
+    faithful(build)
 }
 
 pub fn at(build: &Build, level: u8) -> CharacterState {
@@ -196,7 +226,7 @@ pub fn option_slot(level: u8, index: u8) -> SlotId {
 
 pub fn with_pick(mut build: Build, slot: SlotId, option: &str) -> Build {
     build.picks.insert(slot, pick(option));
-    build
+    faithful(build)
 }
 
 /// The options a slot offers, by key, each once.
@@ -247,7 +277,8 @@ pub fn druid(archetype: Option<&str>, levels: usize) -> Build {
         None => build("druid", levels),
     };
     druid.start.alignment = Some(rules::Alignment::TrueNeutral);
-    druid
+    druid.start.deity = None;
+    faithful(druid)
 }
 
 pub fn oracle(mystery: &str, levels: usize) -> Build {
@@ -394,7 +425,7 @@ pub fn with_picks(mut build: Build, picks: &[(u8, Pick)]) -> Build {
     for (level, pick) in picks {
         build.picks.insert(selection_slot(*level), pick.clone());
     }
-    build
+    faithful(build)
 }
 
 pub fn extra_slot(level: u8, index: u8) -> SlotId {
@@ -416,7 +447,7 @@ pub fn classes_build(classes: &[&str]) -> Build {
             .or_default();
         build.levels.push(LevelUp::new(ClassKey::new(*class)));
     }
-    build
+    faithful(build)
 }
 
 /// The Build with every empty Feature selection slot filled, in slot order, with the first option its picker
@@ -466,7 +497,8 @@ pub fn feat_pick_plain(key: &str) -> Pick {
 
 pub fn chaotic(mut build: Build) -> Build {
     build.start.alignment = Some(rules::Alignment::ChaoticNeutral);
-    build
+    build.start.deity = None;
+    faithful(build)
 }
 
 /// A lawful good paladin of `levels` levels, with no picks.
@@ -651,7 +683,7 @@ pub fn multiclass(parts: &[(&str, Option<&str>, usize)]) -> Build {
             build.levels.push(LevelUp::new(ClassKey::new(*class)));
         }
     }
-    build
+    faithful(build)
 }
 
 /// A chaotic neutral Build of one class (with its archetype if any), `levels` levels, with no picks.

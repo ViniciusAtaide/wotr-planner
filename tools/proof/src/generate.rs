@@ -7,8 +7,59 @@ use rules::{
     AbilityScores, Build, Edit, Engine, FeatSlot, GameData, Issue, Pick, SkillKey, SlotId, SlotKind,
 };
 
+use serde_json::{Value, json};
+
 use crate::Named;
 use crate::fingerprint::fnv;
+
+/// The Build following `faith` (ticket 86): `"Atheism"` or `{"Deity": "<key>"}`, as `rules::Faith` reads in JSON. Set
+/// through serde, so the harness still compiles against crates from before ticket 86, whose Build start has no
+/// faith and drops it.
+pub fn with_faith(build: &Build, faith: Value) -> Build {
+    let mut start = serde_json::to_value(&build.start).expect("a Build start serialises");
+    start["deity"] = faith;
+    let mut build = build.clone();
+    build.start = serde_json::from_value(start).expect("a Build start deserialises");
+    build
+}
+
+/// Whether these crates' Build start holds a faith (from ticket 86 on).
+pub fn holds_faith() -> bool {
+    serde_json::to_value(rules::BuildStart::default())
+        .is_ok_and(|start| start.get("deity").is_some())
+}
+
+/// The deities' keys, in key order (none before ticket 86), read through serde for the same reason.
+pub fn deity_keys(data: &GameData) -> Vec<String> {
+    let data = serde_json::to_value(data).expect("game data serialises");
+    data["deities"]
+        .as_array()
+        .into_iter()
+        .flatten()
+        .filter_map(|deity| deity["key"].as_str().map(str::to_owned))
+        .collect()
+}
+
+/// The Build with the faith a deity-bound class or archetype needs (ticket 86): as it is when it's possible, else
+/// the first of atheism and the deities, in key order, it's possible with; as it is when none makes it possible (it
+/// stays impossible, as on the side before deities it may not be).
+pub fn faithful(engine: &Engine, data: &GameData, build: Build) -> Build {
+    if engine.is_possible(&build) || !holds_faith() {
+        return build;
+    }
+    let faiths = std::iter::once(json!("Atheism")).chain(
+        deity_keys(data)
+            .into_iter()
+            .map(|key| json!({ "Deity": key })),
+    );
+    for faith in faiths {
+        let candidate = with_faith(&build, faith);
+        if engine.is_possible(&candidate) {
+            return candidate;
+        }
+    }
+    build
+}
 
 /// A seeded xorshift generator, so both sides fill a Build the same way while they answer the same.
 pub struct Rng(pub u64);

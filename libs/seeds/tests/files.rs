@@ -76,6 +76,71 @@ fn reads_every_fixture_file() {
         names(data.backgrounds.iter().map(|b| b.name.as_str()).collect()),
         "Aldori Swordsman, Martial Disciple, None, Shackles Corsair"
     );
+    assert_eq!(
+        names(data.deities.iter().map(|d| d.name.as_str()).collect()),
+        "Achaekek, Iomedae"
+    );
+}
+
+/// Ticket 86: a deity's alignments, favoured weapons and domains; a selection's limit by the deity's domains, a
+/// blessing's domain, and a feature granting the favoured weapons.
+#[test]
+fn reads_deities_and_what_they_limit() {
+    use rules::{Alignment, DeityDomains, DeityKey};
+    let data = read_fixture();
+    let iomedae = data
+        .deities
+        .iter()
+        .find(|d| d.key == DeityKey::new("iomedae"))
+        .unwrap();
+    assert_eq!(
+        iomedae.alignments,
+        BTreeSet::from([
+            Alignment::LawfulGood,
+            Alignment::NeutralGood,
+            Alignment::LawfulNeutral
+        ])
+    );
+    assert_eq!(
+        iomedae.favoured_weapons,
+        BTreeSet::from([WeaponKey::new("longsword")])
+    );
+    assert_eq!(
+        iomedae.domains,
+        BTreeSet::from([
+            SelectionOptionKey::new("cleric/domain/good"),
+            SelectionOptionKey::new("cleric/domain/law")
+        ])
+    );
+    let cleric = data.class(&ClassKey::new("cleric")).unwrap();
+    assert_eq!(cleric.prerequisite, Some(Prerequisite::Worships));
+    let limit = |key: &str| {
+        cleric
+            .selections
+            .iter()
+            .find(|s| s.key.as_str() == key)
+            .unwrap()
+            .deity_domains
+    };
+    assert_eq!(limit("cleric/domain"), Some(DeityDomains::Offered));
+    assert_eq!(limit("cleric/heresy"), Some(DeityDomains::NotOffered));
+    let blessing = data
+        .selection_option(&SelectionOptionKey::new("cleric/blessings/good"))
+        .unwrap();
+    assert_eq!(
+        blessing.domain,
+        Some(SelectionOptionKey::new("cleric/domain/good"))
+    );
+    assert!(cleric.features[0].favoured_weapon_proficiency);
+    assert!(data.check().is_empty(), "{:?}", data.check());
+}
+
+/// `deities.ron` is required, as every single file is.
+#[test]
+fn a_missing_deities_file_is_an_error() {
+    let dir = copy_fixture();
+    fs::remove_file(dir.path().join("deities.ron")).unwrap();
+    assert!(seeds::read_game_data_files(dir.path()).is_err());
 }
 
 #[test]

@@ -60,6 +60,7 @@ fn fighter_bonus_slots_offer_only_combat_feats() {
         "critical-mastery",
         "deft-maneuvers",
         "improved-unarmed-strike",
+        "stunning-fist",
         "shield-focus",
         "shield-proficiency",
         "tower-shield-proficiency",

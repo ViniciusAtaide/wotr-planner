@@ -1,0 +1,6 @@
+// Hand-written test fixture: small and simplified, after the guide's deity table. One deity whose domains are the
+// fixture's two domains, and one with an exotic favoured weapon.
+[
+    (key: "iomedae", name: "Iomedae", guide: "character-creation#deities", alignments: [LawfulGood, NeutralGood, LawfulNeutral], favoured_weapons: ["longsword"], domains: ["cleric/domain/good", "cleric/domain/law"]),
+    (key: "achaekek", name: "Achaekek", guide: "character-creation#deities", alignments: [LawfulNeutral, LawfulEvil, NeutralEvil], favoured_weapons: ["dueling-sword"], domains: ["cleric/domain/law"]),
+]

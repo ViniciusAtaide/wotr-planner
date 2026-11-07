@@ -12,9 +12,9 @@ use std::collections::BTreeSet;
 use serde::{Deserialize, Serialize};
 
 use crate::keys::{
-    ArchetypeKey, BackgroundKey, ClassKey, FeatKey, FeatListKey, FeatureKey, FeatureSelectionKey,
-    MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey, SelectionOptionKey, SkillKey,
-    SubraceKey, WeaponKey,
+    ArchetypeKey, BackgroundKey, ClassKey, DeityKey, FeatKey, FeatListKey, FeatureKey,
+    FeatureSelectionKey, MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey,
+    SelectionOptionKey, SkillKey, SubraceKey, WeaponKey,
 };
 use crate::parameter::{Parameter, ParameterKind, Repeat};
 use crate::prerequisite::Prerequisite;
@@ -57,6 +57,8 @@ pub struct GameData {
     pub mythic_paths: Vec<MythicPath>,
     /// The backgrounds chosen at Build start (`backgrounds.ron`, the user's list).
     pub backgrounds: Vec<Background>,
+    /// The deities a Build start may follow (`deities.ron`, the guide's table).
+    pub deities: Vec<Deity>,
 }
 
 impl GameData {
@@ -138,7 +140,7 @@ impl GameData {
     }
 
     /// How much of each kind of thing the data holds, labelled, as a quick check that seeding worked.
-    pub fn counts(&self) -> [(&'static str, usize); 11] {
+    pub fn counts(&self) -> [(&'static str, usize); 12] {
         [
             ("Races", self.races.len()),
             ("Skills", self.skills.len()),
@@ -151,6 +153,7 @@ impl GameData {
             ("Mythic feats", self.mythic_feats.len()),
             ("Mythic paths", self.mythic_paths.len()),
             ("Backgrounds", self.backgrounds.len()),
+            ("Deities", self.deities.len()),
         ]
     }
 
@@ -202,6 +205,7 @@ impl GameData {
             }
         }
         sort_by_key(&mut self.backgrounds, |b| b.key.clone());
+        sort_by_key(&mut self.deities, |d| d.key.clone());
     }
 
     /// [`canonicalize`](Self::canonicalize), by value.
@@ -485,6 +489,46 @@ impl BackgroundGroup {
             Self::Warrior => "Warrior",
         }
     }
+}
+
+/// The Feature selection whose options are the domains: what a deity's domains and a blessing's domain name.
+pub const DOMAIN_SELECTION: &str = "cleric/domain";
+/// The feat a follower holds for an exotic favoured weapon, taken for that weapon (Achaekek: Sawtooth Saber).
+pub const EXOTIC_WEAPON_PROFICIENCY: &str = "exotic-weapon-proficiency";
+/// The feat a follower holds for the unarmed strike as favoured weapon (Irori).
+pub const IMPROVED_UNARMED_STRIKE: &str = "improved-unarmed-strike";
+/// The weapon that is the unarmed strike.
+pub const UNARMED_STRIKE: &str = "unarmed-strike";
+
+/// A deity of the guide's table (`character-creation#deities`). A Build start may follow one, or choose atheism
+/// ([`Faith`](crate::Faith)); following one limits the character's alignment to the deity's, and the domains a
+/// deity-limited selection offers to its domains ([`FeatureSelection::deity_domains`]). The deity's own alignment
+/// isn't stored: the table doesn't give it, and a rule that needs it reads its alignment domains (a good deity offers
+/// the Good domain).
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Deity {
+    pub key: DeityKey,
+    pub name: String,
+    pub guide: GuideRef,
+    /// The alignments a follower may have: the table's ticks, within one step of the deity's (Godclaw: LG, LN, LE).
+    pub alignments: BTreeSet<Alignment>,
+    /// Its favoured weapons (Lamashtu: falchion and kukri). A feature with
+    /// [`favoured_weapon_proficiency`](Feature::favoured_weapon_proficiency) makes a follower proficient: an exotic
+    /// one is held as [`EXOTIC_WEAPON_PROFICIENCY`] for it, the unarmed strike as [`IMPROVED_UNARMED_STRIKE`], and a
+    /// simple or martial one needs no feat.
+    pub favoured_weapons: BTreeSet<WeaponKey>,
+    /// The domains it offers: options of [`DOMAIN_SELECTION`].
+    pub domains: BTreeSet<SelectionOptionKey>,
+}
+
+/// How the Build's deity limits what a Feature selection offers ([`FeatureSelection::deity_domains`]).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+pub enum DeityDomains {
+    /// Only options whose domain the deity offers (a cleric's domains, a warpriest's blessings).
+    Offered,
+    /// Only options whose domain the deity doesn't offer (the Separatist's second domain).
+    NotOffered,
 }
 
 /// A weapon, as the guide's weapon lists name it (Weapon Focus is taken for one).
@@ -923,6 +967,10 @@ pub struct Feature {
     /// Mind).
     #[serde(default)]
     pub skill_ranks_at_least_mythic_rank: bool,
+    /// While the feature is held, the character is proficient with the favoured weapons of the Build's deity (Cleric
+    /// Proficiencies): see [`Deity::favoured_weapons`].
+    #[serde(default)]
+    pub favoured_weapon_proficiency: bool,
 }
 
 /// One option level's row of whatever option a selection holds.
@@ -1001,6 +1049,11 @@ pub struct FeatureSelection {
     /// repeats (Expanded Element: the 15th-level element can't be the 7th-level one).
     #[serde(default)]
     pub once_per_option: bool,
+    /// How the Build's deity limits the options it offers, by each option's domain ([`SelectionOption::domain`]):
+    /// only the deity's domains (a cleric's), or only the others (the Separatist's second). `None`: the deity
+    /// doesn't matter (a druid's domains, Impossible Domain).
+    #[serde(default)]
+    pub deity_domains: Option<DeityDomains>,
 }
 
 /// Where an option held through a selection naming no classes gets its option level.
@@ -1114,6 +1167,17 @@ pub struct SelectionOption {
     /// (Crossblooded's second bloodline: "Gains the arcana and spells from both bloodlines").
     #[serde(default)]
     pub arcana: Option<FeatureKey>,
+    /// The domain it stands for, an option of [`DOMAIN_SELECTION`], when it isn't one itself (a warpriest's Air
+    /// blessing: the Air domain). A deity-limited selection checks it against the deity's domains.
+    #[serde(default)]
+    pub domain: Option<SelectionOptionKey>,
+}
+
+impl SelectionOption {
+    /// The domain a deity-limited selection checks it by: its `domain`, or itself.
+    pub fn deity_domain(&self) -> &SelectionOptionKey {
+        self.domain.as_ref().unwrap_or(&self.key)
+    }
 }
 
 /// What an option gives at one option level.

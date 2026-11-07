@@ -1,0 +1,38 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT deity_key, weapon_key FROM deity_weapon ORDER BY deity_key, weapon_key",
+  "describe": {
+    "columns": [
+      {
+        "name": "deity_key",
+        "ordinal": 0,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "deity_weapon",
+            "name": "deity_key"
+          }
+        }
+      },
+      {
+        "name": "weapon_key",
+        "ordinal": 1,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "deity_weapon",
+            "name": "weapon_key"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "9e5eba0b49f3ea711c3aac025c6186b9c4bf794f8d3f8c75ca6f9c180add9643"
+}

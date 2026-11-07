@@ -18,7 +18,7 @@
 //! names them; a key named twice is listed twice (DEFLATE shrinks the repeats).
 //!
 //! The structure gives each key's kind, and a hash is looked up only among the current game data's keys of that
-//! kind ([`LinkKeys`]): races, subraces, backgrounds, skills, weapons, classes (base and prestige together),
+//! kind ([`LinkKeys`]): races, subraces, backgrounds, deities, skills, weapons, classes (base and prestige together),
 //! archetypes, mythic paths, feats, selection options, mythic abilities and mythic feats ([`KeyKind`]). Keys of two
 //! kinds may share a hash; two keys of one kind may not. `seeds`'s real-data test
 //! `no_two_keys_of_one_kind_share_a_link_hash` fails if a game-data change ever makes two collide; then the hash
@@ -33,7 +33,7 @@
 //! ```text
 //! structure     = name, start, levels, class choices, path, path [the switch], picks
 //! name          = opt(varint length in bytes, UTF-8 bytes)
-//! start         = opt(key(race)), opt(key(subrace)), ability [racial], alignment, opt(key(background)),
+//! start         = opt(key(race)), opt(key(subrace)), ability [racial], alignment, opt(key(background)), faith,
 //!                 6 × u8 score [point buy: Str, Dex, Con, Int, Wis, Cha]
 //! levels        = varint count, count × (key(class), ability [increase], varint count,
 //!                 count × (key(skill), u8 ranks))
@@ -47,6 +47,7 @@
 //! parameter     = 0 [none] | 1, key(skill) | 2, key(weapon) | 3, u8 school | 4, u8 energy | 5, u8 armour type
 //! ability       = 0 [none] | 1 + its index in Str, Dex, Con, Int, Wis, Cha
 //! alignment     = 0 [none] | 1 + its index in LG, NG, CG, LN, TN, CN, LE, NE, CE
+//! faith         = 0 [none] | 1 [atheism] | 2, key(deity)
 //! ```
 //!
 //! A group holds the picks of one kind of slot: [`SlotId`]'s variants in order, `0` Feat, `1` Selection, `2`
@@ -80,12 +81,13 @@ use base64::Engine as _;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 
 use crate::build::{
-    AbilityScores, Build, BuildStart, ClassChoice, FeatSource, LevelUp, Pick, PointBuy, SlotId,
+    AbilityScores, Build, BuildStart, ClassChoice, Faith, FeatSource, LevelUp, Pick, PointBuy,
+    SlotId,
 };
 use crate::game_data::{Ability, Alignment, GameData};
 use crate::keys::{
-    ArchetypeKey, BackgroundKey, ClassKey, FeatKey, MythicAbilityKey, MythicFeatKey, MythicPathKey,
-    RaceKey, SelectionOptionKey, SkillKey, SubraceKey, WeaponKey,
+    ArchetypeKey, BackgroundKey, ClassKey, DeityKey, FeatKey, MythicAbilityKey, MythicFeatKey,
+    MythicPathKey, RaceKey, SelectionOptionKey, SkillKey, SubraceKey, WeaponKey,
 };
 use crate::parameter::{ArmourType, Energy, Parameter, SpellSchool};
 
@@ -173,6 +175,7 @@ pub enum KeyKind {
     Race,
     Subrace,
     Background,
+    Deity,
     Skill,
     Weapon,
     /// Base and prestige classes.
@@ -219,6 +222,9 @@ impl LinkKeys {
         }
         for background in &data.backgrounds {
             keys.insert(KeyKind::Background, background.key.as_str());
+        }
+        for deity in &data.deities {
+            keys.insert(KeyKind::Deity, deity.key.as_str());
         }
         for skill in &data.skills {
             keys.insert(KeyKind::Skill, skill.key.as_str());
@@ -442,6 +448,7 @@ impl<'a> Writer<'a> {
             racial_ability,
             alignment,
             background,
+            deity,
             ability_scores,
         } = start;
         self.opt_key(KeyKind::Race, race.as_ref().map(RaceKey::as_str));
@@ -452,6 +459,14 @@ impl<'a> Writer<'a> {
             KeyKind::Background,
             background.as_ref().map(BackgroundKey::as_str),
         );
+        match deity {
+            None => self.byte(0),
+            Some(Faith::Atheism) => self.byte(1),
+            Some(Faith::Deity(deity)) => {
+                self.byte(2);
+                self.key(KeyKind::Deity, deity.as_str());
+            }
+        }
         for ability in AbilityScores::ABILITIES {
             self.byte(ability_scores.get(ability));
         }
@@ -711,6 +726,12 @@ impl<'a> Reader<'a> {
         let racial_ability = self.opt_index(&AbilityScores::ABILITIES)?;
         let alignment = self.opt_index(&Alignment::ALL)?;
         let background = self.opt_key(KeyKind::Background)?.map(BackgroundKey);
+        let deity = match self.byte()? {
+            0 => None,
+            1 => Some(Faith::Atheism),
+            2 => Some(Faith::Deity(DeityKey(self.key(KeyKind::Deity)?))),
+            _ => return Err(DecodeError::Format),
+        };
         let mut scores = AbilityScores::default();
         for ability in AbilityScores::ABILITIES {
             *scores.get_mut(ability) = self.byte()?;
@@ -722,6 +743,7 @@ impl<'a> Reader<'a> {
             racial_ability,
             alignment,
             background,
+            deity,
             ability_scores,
         };
 
@@ -914,8 +936,8 @@ mod tests {
                 0x87, 0x50, 0x0c, // "x" (the class choice's class)
                 0xf4, 0x4e, 0x0c, // "y" (the pick's feat): 0x..0c4ef4
                 1, 1, b'A', // name: Some("A")
-                0, 0, 0, 0,
-                0, // race, subrace, racial ability, alignment, background: all None
+                0, 0, 0, 0, 0,
+                0, // race, subrace, racial ability, alignment, background, faith: all None
                 10, 10, 10, 10, 10, 10, // point-buy scores
                 1,  // one level
                 0, 0, // its class (key 1), no ability increase, no skill ranks
@@ -941,9 +963,11 @@ mod tests {
         decode_build(&link(body), &LinkKeys::default())
     }
 
-    /// A blank Build's body: no keys, then name, race, subrace, racial ability, alignment, background (all None),
-    /// the six scores, no levels, no class choices, no path or switch, no groups of picks.
-    const BLANK: [u8; 18] = [0, 0, 0, 0, 0, 0, 0, 10, 10, 10, 10, 10, 10, 0, 0, 0, 0, 0];
+    /// A blank Build's body: no keys, then name, race, subrace, racial ability, alignment, background, faith (all
+    /// None), the six scores, no levels, no class choices, no path or switch, no groups of picks.
+    const BLANK: [u8; 19] = [
+        0, 0, 0, 0, 0, 0, 0, 0, 10, 10, 10, 10, 10, 10, 0, 0, 0, 0, 0,
+    ];
 
     /// A point buy no planner makes (a score of 19, or 34 points) can't be read into a Build.
     #[test]
@@ -952,16 +976,30 @@ mod tests {
         assert_eq!(decode(&BLANK), Ok(Build::default()));
 
         let mut nineteen = BLANK;
-        nineteen[7] = 19;
+        nineteen[8] = 19;
         assert_eq!(decode(&nineteen), Err(DecodeError::Format));
 
         let mut over_budget = BLANK;
-        over_budget[7..9].copy_from_slice(&[18, 18]);
+        over_budget[8..10].copy_from_slice(&[18, 18]);
         assert_eq!(decode(&over_budget), Err(DecodeError::Format));
 
         let mut fits = BLANK;
-        fits[7..13].copy_from_slice(&[18, 14, 14, 7, 10, 7]);
+        fits[8..14].copy_from_slice(&[18, 14, 14, 7, 10, 7]);
         assert!(decode(&fits).is_ok());
+    }
+
+    /// The faith is 0, 1 or 2 and a deity: any other tag is no Build's, and a deity's hash must be listed.
+    #[test]
+    fn a_faith_tag_the_encoder_never_writes_does_not_decode() {
+        let mut atheist = BLANK;
+        atheist[7] = 1;
+        assert!(decode(&atheist).is_ok_and(|build| build.start.deity == Some(Faith::Atheism)));
+        let mut unknown = BLANK;
+        unknown[7] = 3;
+        assert_eq!(decode(&unknown), Err(DecodeError::Format));
+        let mut no_hash = BLANK;
+        no_hash[7] = 2;
+        assert_eq!(decode(&no_hash), Err(DecodeError::Format));
     }
 
     /// A blank Build with these groups of picks, each pick a mythic ability whose key is the next of `keys`.

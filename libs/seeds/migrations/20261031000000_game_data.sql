@@ -97,7 +97,7 @@ CREATE TABLE prerequisite_node (
         'selection_option', 'skill_ranks', 'ability_score', 'base_attack_bonus', 'spell_level',
         'caster_level', 'character_level', 'mythic_rank', 'alignment', 'race', 'feat_for',
         'feat_for_same_value', 'story', 'no_option_from', 'spontaneous_spell_level', 'feat_if_value',
-        'no_other_option_of_group', 'picked_through'
+        'no_other_option_of_group', 'picked_through', 'deity', 'atheist', 'worships', 'deity_offers'
     )),
     -- References to other game entities.
     feat_key TEXT REFERENCES feat (key) DEFERRABLE INITIALLY DEFERRED,
@@ -111,6 +111,7 @@ CREATE TABLE prerequisite_node (
     race_key TEXT REFERENCES race (key) DEFERRABLE INITIALLY DEFERRED,
     weapon_key TEXT REFERENCES weapon (key) DEFERRABLE INITIALLY DEFERRED,
     selection_key TEXT REFERENCES feature_selection (key) DEFERRABLE INITIALLY DEFERRED,
+    deity_key TEXT REFERENCES deity (key) DEFERRABLE INITIALLY DEFERRED,
     -- Values.
     ability TEXT CONSTRAINT ability CHECK (ability IN (
         'strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'
@@ -155,6 +156,7 @@ CREATE TABLE prerequisite_node (
             CASE WHEN race_key IS NOT NULL THEN 'race_key' END,
             CASE WHEN weapon_key IS NOT NULL THEN 'weapon_key' END,
             CASE WHEN selection_key IS NOT NULL THEN 'selection_key' END,
+            CASE WHEN deity_key IS NOT NULL THEN 'deity_key' END,
             CASE WHEN ability IS NOT NULL THEN 'ability' END,
             CASE WHEN spell_type IS NOT NULL THEN 'spell_type' END,
             CASE WHEN alignment IS NOT NULL THEN 'alignment' END,
@@ -195,6 +197,13 @@ CREATE TABLE prerequisite_node (
             WHEN 'race' THEN 'race_key'
             WHEN 'feat_for_same_value' THEN 'feat_key'
             WHEN 'story' THEN 'story'
+            -- `rules::Prerequisite::Deity`: the Build follows this deity.
+            WHEN 'deity' THEN 'deity_key'
+            -- `rules::Prerequisite::Atheist` and `Worships`: atheism; any deity.
+            WHEN 'atheist' THEN ''
+            WHEN 'worships' THEN ''
+            -- `rules::Prerequisite::DeityOffers`: the Build's deity offers this domain.
+            WHEN 'deity_offers' THEN 'selection_option_key'
             -- `feat_key` and the one value column that is set; none or two set can't match.
             WHEN 'feat_for' THEN 'feat_key,' || COALESCE(
                 CASE WHEN skill_key IS NOT NULL THEN 'skill_key' END,
@@ -378,6 +387,39 @@ CREATE TABLE background (
     note TEXT NOT NULL
 ) STRICT;
 
+-- deities.ron: the guide's deity table (`rules::Deity`). Its alignments, favoured weapons and domains are
+-- rows of their own. A Build start follows one or chooses atheism; atheism isn't a row.
+CREATE TABLE deity (
+    key TEXT NOT NULL PRIMARY KEY CONSTRAINT text_key CHECK (key GLOB '[a-z0-9]*' AND key GLOB '*[a-z0-9]'
+        AND key NOT GLOB '*[^a-z0-9/-]*' AND key NOT GLOB '*[-/][-/]*'),
+    name TEXT NOT NULL,
+    guide TEXT NOT NULL
+) STRICT;
+
+-- An alignment a follower of the deity may have.
+CREATE TABLE deity_alignment (
+    deity_key TEXT NOT NULL REFERENCES deity (key) DEFERRABLE INITIALLY DEFERRED,
+    alignment TEXT NOT NULL CHECK (alignment IN (
+        'lawful_good', 'neutral_good', 'chaotic_good', 'lawful_neutral', 'true_neutral',
+        'chaotic_neutral', 'lawful_evil', 'neutral_evil', 'chaotic_evil'
+    )),
+    PRIMARY KEY (deity_key, alignment)
+) STRICT;
+
+-- A favoured weapon of the deity.
+CREATE TABLE deity_weapon (
+    deity_key TEXT NOT NULL REFERENCES deity (key) DEFERRABLE INITIALLY DEFERRED,
+    weapon_key TEXT NOT NULL REFERENCES weapon (key) DEFERRABLE INITIALLY DEFERRED,
+    PRIMARY KEY (deity_key, weapon_key)
+) STRICT;
+
+-- A domain the deity offers: an option of the domain selection (`rules::GameData::check` keeps it one).
+CREATE TABLE deity_domain (
+    deity_key TEXT NOT NULL REFERENCES deity (key) DEFERRABLE INITIALLY DEFERRED,
+    domain_key TEXT NOT NULL REFERENCES selection_option (key) DEFERRABLE INITIALLY DEFERRED,
+    PRIMARY KEY (deity_key, domain_key)
+) STRICT;
+
 -- mythic/ --------------------------------------------------------------------------------------
 
 CREATE TABLE mythic_ability (
@@ -474,6 +516,9 @@ CREATE TABLE feature (
     bab_floor INTEGER CONSTRAINT u8 CHECK (bab_floor BETWEEN 0 AND 255),
     skill_ranks_at_least_mythic_rank INTEGER NOT NULL
         CONSTRAINT boolean CHECK (skill_ranks_at_least_mythic_rank IN (0, 1)),
+    -- While it's held, proficiency with the Build's deity's favoured weapons (Cleric Proficiencies).
+    favoured_weapon_proficiency INTEGER NOT NULL
+        CONSTRAINT boolean CHECK (favoured_weapon_proficiency IN (0, 1)),
     CONSTRAINT feature_option_row_both_or_neither CHECK (
         (option_row_selection_key IS NULL) = (option_row_level IS NULL)),
     FOREIGN KEY (archetype_key, class_key) REFERENCES archetype (key, class_key)
@@ -510,7 +555,9 @@ CREATE UNIQUE INDEX feature_ability_bonus_unique ON feature_ability_bonus (featu
 -- `feat_lists_only`: only the option's feat lists and its arcana count (Crossblooded's second bloodline);
 -- `only_without_option`: a level grants it only to a character holding none of its options (Dragon
 -- Disciple's bloodline); `pool_of_key`: it offers the pools of the options held in that selection too;
--- `once_per_option`: an option it gave once can't be picked through it again (Expanded Element).
+-- `once_per_option`: an option it gave once can't be picked through it again (Expanded Element);
+-- `deity_domains`: it offers only the options whose domain the Build's deity offers (`offered`: a cleric's
+-- domains) or only the others (`not_offered`: the Separatist's second), NULL when the deity doesn't matter.
 CREATE TABLE feature_selection (
     key TEXT NOT NULL PRIMARY KEY CONSTRAINT text_key CHECK (key GLOB '[a-z0-9]*' AND key GLOB '*[a-z0-9]'
         AND key NOT GLOB '*[^a-z0-9/-]*' AND key NOT GLOB '*[-/][-/]*'),
@@ -529,6 +576,7 @@ CREATE TABLE feature_selection (
     -- held (Impossible Domain: a Living Deity's way), so only with `other_options`.
     level_also_from_key TEXT REFERENCES selection_option (key) DEFERRABLE INITIALLY DEFERRED,
     once_per_option INTEGER NOT NULL CONSTRAINT boolean CHECK (once_per_option IN (0, 1)),
+    deity_domains TEXT CONSTRAINT deity_domains CHECK (deity_domains IN ('offered', 'not_offered')),
     CONSTRAINT feature_selection_pool_of_not_itself CHECK (pool_of_key <> key),
     CONSTRAINT feature_selection_level_also_from_with_other_options CHECK (
         level_also_from_key IS NULL OR level_from = 'other_options'),
@@ -582,7 +630,8 @@ CREATE TABLE path_switch_feature (
 -- `repeat` is as on `feat`; `per_value` only with a chosen feat, once for each value of it (the Skill Focus
 -- talents, once per skill). `option_group` is the family it belongs to (a Draconic
 -- bloodline); `arcana_key` is the one of its rows' features that a lists-only holding still gets
--- (`rules::GameData::check` keeps it among its rows').
+-- (`rules::GameData::check` keeps it among its rows'); `domain_key` is the domain it stands for when it isn't
+-- one (a warpriest's blessing), which a deity-limited selection checks.
 CREATE TABLE selection_option (
     key TEXT NOT NULL PRIMARY KEY CONSTRAINT text_key CHECK (key GLOB '[a-z0-9]*' AND key GLOB '*[a-z0-9]'
         AND key NOT GLOB '*[^a-z0-9/-]*' AND key NOT GLOB '*[-/][-/]*'),
@@ -606,6 +655,7 @@ CREATE TABLE selection_option (
         'draconic', 'elemental', 'bloodrager_draconic', 'bloodrager_elemental'
     )),
     arcana_key TEXT REFERENCES feature (key) DEFERRABLE INITIALLY DEFERRED,
+    domain_key TEXT REFERENCES selection_option (key) DEFERRABLE INITIALLY DEFERRED,
     CONSTRAINT selection_option_repeat_times_with_times CHECK (
         (repeat = 'times') = (repeat_times IS NOT NULL)),
     CONSTRAINT selection_option_per_value_with_chosen_feat CHECK (

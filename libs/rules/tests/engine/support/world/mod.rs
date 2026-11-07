@@ -2,6 +2,7 @@
 
 mod backgrounds;
 mod classes;
+mod deities;
 mod feats;
 mod mythic;
 mod paths;
@@ -15,6 +16,7 @@ use self::classes::{
     arcane_trickster, bard, cleric, dragon_disciple, druid, eldritch_knight, fighter, kineticist,
     monk, mystic_theurge, ranger, rogue, slayer, sorcerer, warpriest, winter_witch, witch, wizard,
 };
+use self::deities::{deities, priest, seeker};
 use self::feats::{feats, weapons};
 use self::mythic::{mythic_abilities, mythic_feats};
 use self::paths::{aeon, devil, gold_dragon, legend, swarm_that_walks, trickster};
@@ -51,6 +53,8 @@ pub fn world() -> GameData {
             warpriest(),
             druid(),
             kineticist(),
+            priest(),
+            seeker(),
         ],
         prestige_classes: vec![
             arcane_trickster(),
@@ -70,6 +74,7 @@ pub fn world() -> GameData {
             devil(),
         ],
         backgrounds: backgrounds(),
+        deities: deities(),
     }
 }
 
@@ -128,6 +133,7 @@ fn plain_feature(key: &str, name: &str) -> Feature {
         daily_choice: false,
         bab_floor: None,
         skill_ranks_at_least_mythic_rank: false,
+        favoured_weapon_proficiency: false,
     }
 }
 

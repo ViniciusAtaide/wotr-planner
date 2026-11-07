@@ -135,6 +135,8 @@ fn a_cleric_holds_both_domains_class_skills() {
         SlotId::Selection { level: 1, index: 1 },
         pick("cleric/domain/trickery"),
     );
+    // Calistria's (ticket 86).
+    let cleric = faithful(cleric);
     assert!(engine().is_possible(&cleric));
     let sheet = engine().evaluate(&cleric);
     let held: BTreeSet<String> = sheet

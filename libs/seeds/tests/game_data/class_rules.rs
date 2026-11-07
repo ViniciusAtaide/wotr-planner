@@ -59,7 +59,7 @@ fn signifer_loremaster_and_winter_witch_advance_one_class_arcane_or_divine() {
     choose(&mut both, &["wizard", "cleric"]);
     assert!(!engine().is_possible(&both));
     choose(&mut both, &["cleric"]);
-    assert!(engine().is_possible(&both));
+    assert!(engine().is_possible(&faithful(both)));
 }
 
 #[test]

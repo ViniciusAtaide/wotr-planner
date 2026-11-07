@@ -24,6 +24,7 @@ pub enum Target {
     Switch,
     Race,
     Alignment,
+    Deity,
     Background,
     AbilityIncrease(u8),
     Skills(u8),

@@ -1,7 +1,7 @@
 # Deities
 
 Type: task
-Status: open
+Status: resolved
 Blocked by: [85](85-sqlite-instead-of-postgres.md) (it rewrites the one migration, the seed, `.sqlx/`, the README and `CLAUDE.md`'s database steps)
 Map: [WotR Build Planner](../map.md)
 
@@ -232,3 +232,153 @@ That makes 42 + 4 = 46 tables. Seed, loader, `columns` and the fixture follow: t
 14. **The link format.** A new start field changes version 1's layout. Ticket 46 replaced version 1 because "no link has shipped", and tickets 34, 49 and 55 regenerated the vector since. **Recommendation:** the same again: replace version 1's body and regenerate `V1_LINK`, unless you have links you want to keep opening. In that case: a version 2, with version 1 decoding as "no deity".
 
 **User, 2026-11-06:** all fourteen recommendations above. Spells stay out of scope (user, 2026-11-06).
+
+## Progress
+
+- 2026-11-06: read `CLAUDE.md`, the map's Notes and this ticket. Re-ran `t86/deities.py` on the saved
+  `guide-cache/character-creation.html`: the same 26 rows as the draft (`diff` empty). The draft became
+  `libs/game-data/deities.ron`, with `heavy-mace` for Asmodeus (question 9).
+- Rules, test-first. The test world gained three deities (the Lawgiver: LG, NG, LN, fire and war, the dueling
+  sword; the Balance: TN ±1, water, the longsword; the Fist: war and water, the unarmed strike), a Priest (`Worships`,
+  an `Offered` domain, a `NotOffered` heresy, a blessing selection whose options name their domain, a Zealot needing
+  the Lawgiver and an Apostle needing a deity offering fire), a Seeker (creeds needing atheism or a deity) and
+  Stunning Fist. Red run with the types stubbed: 33 failing (22 in `deities`, the codec's 5, and the world's lists);
+  `check`'s 6 new tests red before the checks. Then green: `cargo test -p rules` 403 passed.
+- Seeds: the migration (4 tables, 46 in all), seed, loader, `columns`, `files`, the fixture (two deities, a cleric
+  with `Worships`, `Offered`/`NotOffered` selections, a blessing's domain, the favoured-weapon flag, the four new
+  leaves). Real-data tests in `libs/seeds/tests/game_data/deities.rs`: red on the data before its edits (13 of 18
+  failing; the 26-deity table and four "as before" tests passed), green after. The 32 older real-data tests that
+  built a deity-bound class without a faith were given one: `support::faithful` picks the first of atheism and the
+  deities (key order) a Build is possible with; seven tests swapped a domain pair no deity offers (fire + nobility →
+  fire + glory, Sarenrae's, and so on) or now check the alignment-domain rule. `cargo test -p seeds` all pass.
+- Dev database rebuilt per `CLAUDE.md` (delete, `sqlx database create`, `migrate run`, seed, `cargo sqlx prepare`):
+  the seed loads 26 deities and the foreign keys pass.
+- UI: a Deity row in the Build start, the deity picker, the wheel's locks with the deity's reason, the summary's faith
+  and favoured-weapon note. Browser pane (scratch build on 127.0.0.1:3950, stopped after): see the Answer.
+- Proof: `scripts/proof.sh rules` can't read the new data on side A, so a `both` mode was added; it also exposed a
+  shared-target bug in `proof.sh` (fixed). Breakdown in the Answer. `check.sh --schema` and `--schema --full`: ALL-OK.
+
+## Answer
+
+Built as designed, with the user's fourteen answers (2026-11-06); spells stay out.
+
+**Data.** `libs/game-data/deities.ron`: the guide's 26 deities (`character-creation#deities`), each with its
+alignments (the row's ticks), favoured weapons (`weapons.ron` keys) and domains (`cleric/domain` options), from the
+parser's draft re-run on the saved page. Asmodeus's "Mace" is `heavy-mace` (question 9; both maces are simple, so no
+Build depends on it). The classes: the 25 warpriest blessings name their domain; `deity_domains: Offered` on
+`cleric/domain`, `inquisitor/domain`, `inquisitor/sacred-huntsmaster/domain`, `hunter/divine-hunter/domain` and
+`warpriest/blessings`, `NotOffered` on `cleric/separatist/domain`; `favoured_weapon_proficiency` on Cleric,
+Ecclesitheurge and Inquisitor Proficiencies and the Deliverer's Deity; the prerequisites below. README row and
+ticket-86 note.
+
+**Schema** (46 tables): `deity`, `deity_alignment`, `deity_weapon`, `deity_domain`;
+`feature_selection.deity_domains` (`offered`/`not_offered`, NULL), `selection_option.domain_key`,
+`feature.favoured_weapon_proficiency`; `prerequisite_node` kinds `deity` (`deity_key`), `atheist`, `worships`,
+`deity_offers` (`selection_option_key`). Seed, loader, `columns`, files reader (`deities.ron` required), fixture.
+
+**Link.** Version 1's start gains `faith = 0 [none] | 1 [atheism] | 2, key(deity)` after the background
+(`KeyKind::Deity`); `V1_LINK` regenerated with the Balance as its faith (question 14). Every older link opens as a
+stale link. The proof's `bench-links.tsv` was rewritten into the new layout (one 0 byte inserted, by a scratch
+script).
+
+**Rules.** `BuildStart.deity: Option<Faith>` (`Faith::Deity(DeityKey) | Atheism`), `Choice::Deity` (in
+`Edit::Start`'s choices and `removable`'s withdrawals), `CharacterState.faith` and `deity_domains`.
+- The start: an unknown deity, or one whose alignments lack the start's alignment, fails `Choice::Deity` (so the link
+  is stale). `Engine::faith_fits(&BuildStart) -> Result<(), Issue>` gives the start pickers the fit;
+  `Issue::DeityAlignment` reads "Erastil allows Lawful Good, Neutral Good or Lawful Neutral". (A design choice: an
+  `Issue`, not an `Unmet`, so the reason reads as the ticket's example.)
+- Leaves `Deity`, `Atheist`, `Worships`, `DeityOffers`: "Needs Achaekek as deity", "Needs atheism", "Needs a deity",
+  "Needs a deity offering the Good Domain"; negated, "Not for a deity offering the Evil Domain".
+- Where they apply: `Worships` on the cleric, inquisitor and warpriest classes and the Divine Hunter and Deliverer;
+  `Deity("achaekek")` on the Mantis Zealot (its user-fact alignment rule, the same three alignments, question 1);
+  `Any` of Erastil, Gozreh and Green Faith on the Feral Champion; `Deity("gyronna")` on the Hag of Gyronna; `Atheist`
+  on the Living Deity way; `DeityOffers(good)` beside the Angelfire Apostle's alignment; `Not(DeityOffers)` of Good and
+  of Evil beside the Priest of Balance's (question 12; no `Worships` there, the class has it). Question 7: each
+  alignment domain needs its alignment when picked through one of the four deity-limited domain selections, and each
+  alignment blessing through `warpriest/blessings`; question 13: as the Champion's chosen alignment, a deity
+  offering its domain too.
+- The domain filter: a pick in a `deity_domains` selection checks its domain (`domain`, or itself) against the
+  deity's; `Issue::DeityDomain` reads "Not a domain of Erastil" / "A domain of Erastil"; without a deity it's "Needs a
+  deity".
+- Favoured weapons: while a flagged feature is held, an exotic favoured weapon is held as Exotic Weapon Proficiency
+  for it and the unarmed strike as Improved Unarmed Strike (question 10), granted with no slot.
+  `Engine::favoured_weapons_note` reads "Proficient with Long Bow (Erastil)".
+- `GameData::check`: a deity key once; at least one alignment and favoured weapon; deity domains, blessing domains
+  and `DeityOffers` name `cleric/domain` options; a deity-limited selection offers only options with a domain; a
+  favoured-weapon feature is granted by some class or archetype row.
+- Reasons: an "and" of "or"s that share one negated case reads that case once ("As Chosen Alignment Blessing, needs
+  Lawful Evil alignment or … , and a deity offering the Evil Domain").
+
+**UI.** A Deity row between Alignment and Background ("Choose…", the deity's name or "Atheism"); the start summary
+says "No deity" until chosen. The deity picker lists Atheism, then the 26 by name with "LG LN TN LE · Light Crossbow ·
+Earth, Law, Nobility, Protection, Travel"; misfits are locked with the alignment reason, edits `allows` refuses with
+none; a remove control while removable. The alignment wheel locks the deity's misfits and says the deity's limit
+under the wheel. Domain and blessing pickers show the deity reasons. The sheet summary shows "Faith: Iomedae ·
+Proficient with Longsword (Iomedae)".
+
+**Tests.** Rules: `tests/engine/deities.rs` (23: the start check and `faith_fits`'s reason, each leaf and its text,
+`Offered`, `NotOffered` and blessing slots, favoured-weapon feats held and gone with the deity, Stunning Fist,
+`removable`, a stale link, the one-case reason), 6 `check` tests, the codec (faith round trip, the regenerated vector,
+the frozen body, a tag the encoder never writes); the world's list tests updated for the Priest, the Seeker and
+Stunning Fist. Seeds: `files` (deities read, a missing `deities.ron` fails), `database` (every new leaf round trips; a
+schema test for the deity tables, the new node kinds, `deity_domains`, `domain_key` and the flag). Real data:
+`tests/game_data/deities.rs` (18, every case the ticket lists). Red runs: see the progress log.
+
+**Browser** (scratch build on 127.0.0.1:3950, cover width 412 and inner 884, no console errors, server stopped):
+Erastil chosen, the wheel locks CG, TN, CN, LE, NE and CE with "Erastil allows Lawful Good, Neutral Good or Lawful
+Neutral"; a cleric's domain picker offers Animal, Community, Good, Law and Plant and locks the other 32 "Not a domain
+of Erastil"; with Animal held every other deity is locked (Gozreh's with its alignment reason at LG, the rest with
+none) and Atheism too; after removing Animal, Iomedae was picked and the summary showed her longsword; with atheism a
+Magic Deceiver's Ways of the Deceiver offer the Living Deity.
+
+**Proof.** `scripts/proof.sh rules` can't run this ticket: side A (`HEAD`'s crates) can't read the working tree's
+game data (unknown fields such as `deity_domains`, unknown `Worships`), and `HEAD`'s codec can't read the new link
+layout. So the harness gained a `both` mode: as `rules`, but side A records `HEAD`'s own game data and both sides
+record the working tree's Builds as JSON lines (`export --json`, `record --builds`). The harness still compiles
+against `HEAD`'s crates: the faith is set through serde (`generate::with_faith`; `HEAD`'s Build start drops it),
+and a Build that's impossible without a faith gets the first of atheism and the deities (key order) it's possible
+with (`generate::faithful`; recorded decision). New `t86 …` Builds (a cleric 3 of each deity, and each deity-bound
+class or archetype with the deity the guide names; empty and filled) are recorded on side B only, their full Builds
+too, and ticket 48's shortcut is checked on them (`SHORTCUT_CHECKED` gains `t86 `). The sheet's hash leaves out an
+empty faith (`faith: None, deity_domains: {}`), a field side A's states don't have.
+
+Found on the way: `proof.sh` built both sides in one `CARGO_TARGET_DIR`. Cargo fingerprints a workspace's crates by
+their paths within it and the files' times, and `git archive` gives side A's files their commit's time, so side A's
+build counted as up to date and copied side B's harness: **side A was the working tree's crates**. The first run
+here showed it (A's harness asked for `deities.ron`). Each side now builds in its own folder (`A/`, `B/`). Earlier
+`rules` proofs (tickets 76–85) that reported no differences may have compared the working tree with itself; worth
+re-running one if they matter.
+
+Result against `HEAD` (`42398fe`): A 1994 Builds, B 2146 (152 only in B: the deity Builds and their full Builds),
+all 1994 differing. Every difference was traced, with a scratch breakdown tool (outside the repo) that lists each
+side's class picker per option, every slot picker's statuses, each `allows` edit, `removable` and the pickers of the
+Builds that differ, then compared line by line:
+- **1833 Builds differ only in the class pickers.** In every Build the cleric, inquisitor and warpriest (with their
+  archetypes), the Divine Hunter, the Deliverer and the Hag of Gyronna are locked "Needs a deity" (or by their deity
+  rule); no other class option changed except in the 4 Builds that became impossible (below), where every later
+  class shows `BreaksLater`.
+- **134 Builds with a faith** (`faithful` gave a cleric, inquisitor, warpriest, Divine Hunter, Deliverer or a deity
+  archetype one): the sheet holds the faith, the deity's domains and the favoured-weapon feats; slots: domain and
+  blessing pickers lock the deity's non-domains ("Not a domain of Abadar") and the Separatist's second its domains ("A
+  domain of Abadar") (4,322 option statuses in all), alignment domains and blessings need their alignment (112,
+  question 7), the Champion's alignment blessing a deity offering it (21, question 13); none of these Builds follows
+  Achaekek or Irori, so the favoured-weapon feats show only in the deity Builds (side B only: an inquisitor of
+  Achaekek holds Exotic Weapon Proficiency (Sawtooth Saber), a cleric or Deliverer of Irori Improved Unarmed Strike,
+  which opens Stunning Fist and the styles' need of it), and in the tests; `removable`: the
+  alignment can't come off while an alignment domain needs it, a Separatist's archetype can't (his second domain
+  would land in a deity-limited slot), the Mantis Zealot's alignment now can (its rule is Achaekek's, question 1);
+  `allows`: changing the alignment breaks a held alignment domain, and a Mantis Zealot's misfit alignment is now
+  refused by the wheel's `faith_fits`, not by `allows` (the deity is the edit's own choice).
+- **27 Builds without a faith, with more than the class pickers:** 3 Magic Deceiver Builds (the Living Deity way is
+  locked "Needs atheism"); 13 cleric 10 / prestige 10 Builds and 6 other deity-bound Builds that are impossible on
+  both sides (the prestige entry, or the alignment: an Angelfire Apostle or Mantis Zealot at True Neutral), where the
+  cleric levels now also say "Needs a deity" and the edits that would have fixed them on side A still need one; and
+  **4 Builds that became impossible**: the Hag of Gyronna at True Neutral (Gyronna allows CN, NE, CE) and three
+  cleric domain pairs no deity offers at True Neutral (Animal + Knowledge, Trickery + Air, Scalykind + Law).
+
+No difference falls outside a deity rule. Ticket 48's shortcut held on the 955 Builds it was checked on (1,392,409
+feat options), the deity Builds included.
+
+**Checks.** `scripts/check.sh --schema`: ALL-OK; `scripts/check.sh --schema --full` (once, at the end): ALL-OK.
+`seed --check-only` counts 26 deities; the real seed loads them and the foreign keys pass. `cargo fmt --all --check`
+passes. Nothing committed or staged.

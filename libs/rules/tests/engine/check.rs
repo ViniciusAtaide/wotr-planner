@@ -1334,3 +1334,117 @@ fn a_backgrounds_feat_for_a_value_takes_a_value_of_that_kind() {
         )]
     );
 }
+
+// ---- deities (ticket 86) ---------------------------------------------------------------------------------------
+
+fn at_deity(key: &str) -> DataAt {
+    DataAt::Deity(rules::DeityKey::new(key))
+}
+
+fn deity_mut<'a>(data: &'a mut GameData, key: &str) -> &'a mut rules::Deity {
+    data.deities
+        .iter_mut()
+        .find(|d| d.key.as_str() == key)
+        .unwrap()
+}
+
+fn priest_selection<'a>(data: &'a mut GameData, key: &str) -> &'a mut rules::FeatureSelection {
+    class_mut(data, "priest")
+        .selections
+        .iter_mut()
+        .find(|s| s.key.as_str() == key)
+        .unwrap()
+}
+
+#[test]
+fn a_deity_key_is_used_once() {
+    let mut data = world();
+    let copy = data.deities[0].clone();
+    let key = copy.key.to_string();
+    data.deities.push(copy);
+    assert_eq!(issues(&data), [(at_deity(&key), DataIssue::DuplicateKey)]);
+}
+
+#[test]
+fn a_deity_has_an_alignment_and_a_favoured_weapon() {
+    let mut data = world();
+    deity_mut(&mut data, "fist").alignments.clear();
+    deity_mut(&mut data, "balance").favoured_weapons.clear();
+    assert_eq!(
+        sorted(issues(&data)),
+        [
+            (at_deity("balance"), DataIssue::DeityWithoutFavouredWeapon),
+            (at_deity("fist"), DataIssue::DeityWithoutAlignment),
+        ]
+    );
+}
+
+#[test]
+fn a_deitys_domains_and_a_blessings_domain_are_domains() {
+    let mut data = world();
+    // A revelation is no domain.
+    let revelation = SelectionOptionKey::new("cleric/fire-revelations/fire-breath");
+    deity_mut(&mut data, "fist")
+        .domains
+        .insert(revelation.clone());
+    priest_selection(&mut data, "priest/blessing").options[0].domain = Some(revelation.clone());
+    assert_eq!(
+        sorted(issues(&data)),
+        [
+            (
+                DataAt::SelectionOption(SelectionOptionKey::new("priest/blessing/fire")),
+                DataIssue::NotADomain(revelation.clone()),
+            ),
+            (at_deity("fist"), DataIssue::NotADomain(revelation)),
+        ]
+    );
+}
+
+#[test]
+fn a_deity_limited_selection_offers_only_options_with_a_domain() {
+    let mut data = world();
+    // The Seeker's creeds are neither domains nor stand for one.
+    class_mut(&mut data, "seeker").selections[0].deity_domains = Some(rules::DeityDomains::Offered);
+    assert_eq!(
+        issues(&data),
+        [(
+            DataAt::FeatureSelection(FeatureSelectionKey::new("seeker/creed")),
+            DataIssue::DeityLimitWithoutDomain(SelectionOptionKey::new("seeker/creed/devout")),
+        )]
+    );
+}
+
+#[test]
+fn a_deity_offering_names_a_domain() {
+    let mut data = world();
+    let revelation = SelectionOptionKey::new("cleric/fire-revelations/fire-breath");
+    class_mut(&mut data, "priest")
+        .archetypes
+        .iter_mut()
+        .find(|a| a.key.as_str() == "priest/apostle")
+        .unwrap()
+        .prerequisite = Some(Prerequisite::DeityOffers(revelation.clone()));
+    assert_eq!(
+        issues(&data),
+        [(
+            DataAt::Archetype(ArchetypeKey::new("priest/apostle")),
+            DataIssue::NotADomain(revelation),
+        )]
+    );
+}
+
+#[test]
+fn a_favoured_weapon_feature_is_one_a_class_row_grants() {
+    let mut data = world();
+    let priest = class_mut(&mut data, "priest");
+    priest.levels[0]
+        .features
+        .retain(|feature| feature.as_str() != "priest/proficiencies");
+    assert_eq!(
+        issues(&data),
+        [(
+            DataAt::Feature(FeatureKey::new("priest/proficiencies")),
+            DataIssue::FavouredWeaponsNotGranted,
+        )]
+    );
+}

@@ -7,14 +7,15 @@ use std::collections::{BTreeSet, HashMap, HashSet};
 use super::{EffectiveRow, canonical_archetype_row, class_row, effective_rows, merged_row};
 use crate::build::BuildStart;
 use crate::game_data::{
-    AbilityBonus, AbilityModifier, Archetype, Background, Class, Feat, FeatList, FeatureSelection,
-    GameData, MythicAbility, MythicFeat, MythicPath, OptionRow, Race, SelectionOption, Skill,
-    Subrace, Weapon, WeaponProficiency,
+    AbilityBonus, AbilityModifier, Archetype, Background, Class, Deity, EXOTIC_WEAPON_PROFICIENCY,
+    Feat, FeatList, FeatureSelection, GameData, IMPROVED_UNARMED_STRIKE, MythicAbility, MythicFeat,
+    MythicPath, OptionRow, Race, SelectionOption, Skill, Subrace, UNARMED_STRIKE, Weapon,
+    WeaponProficiency,
 };
 use crate::keys::{
-    ArchetypeKey, BackgroundKey, ClassKey, FeatKey, FeatListKey, FeatureKey, FeatureSelectionKey,
-    MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey, SelectionOptionKey, SkillKey,
-    SubraceKey, WeaponKey,
+    ArchetypeKey, BackgroundKey, ClassKey, DeityKey, FeatKey, FeatListKey, FeatureKey,
+    FeatureSelectionKey, MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey,
+    SelectionOptionKey, SkillKey, SubraceKey, WeaponKey,
 };
 use crate::parameter::{ArmourType, Energy, Parameter, ParameterKind, SpellSchool};
 use crate::prerequisite::Prerequisite;
@@ -144,6 +145,13 @@ impl Catalog {
             .backgrounds
             .get(key)
             .map(|&index| &self.data.backgrounds[index])
+    }
+
+    pub(super) fn deity(&self, key: &DeityKey) -> Option<&Deity> {
+        self.indexes
+            .deities
+            .get(key)
+            .map(|&index| &self.data.deities[index])
     }
 
     pub(super) fn feat(&self, key: &FeatKey) -> Option<&Feat> {
@@ -440,6 +448,35 @@ impl Catalog {
         self.features.daily_choices.contains(feature)
     }
 
+    /// Whether a feature grants the deity's favoured weapons (Cleric Proficiencies).
+    pub(super) fn grants_favoured_weapons(&self, feature: &FeatureKey) -> bool {
+        self.features.favoured_weapons.contains(feature)
+    }
+
+    /// The feats a follower of `deity` holds for its favoured weapons while holding a feature that grants them,
+    /// each with the values it's held for: an exotic weapon's proficiency for that weapon, Improved Unarmed Strike for
+    /// the unarmed strike, and nothing for a simple or martial weapon (no feat checks proficiency with one weapon).
+    pub(super) fn favoured_weapon_feats(&self, deity: &DeityKey) -> Vec<(FeatKey, Vec<Parameter>)> {
+        let Some(deity) = self.deity(deity) else {
+            return Vec::new();
+        };
+        let mut feats = Vec::new();
+        for key in &deity.favoured_weapons {
+            if key.as_str() == UNARMED_STRIKE {
+                feats.push((FeatKey::new(IMPROVED_UNARMED_STRIKE), Vec::new()));
+            } else if self
+                .weapon(key)
+                .is_some_and(|weapon| weapon.proficiency == Some(WeaponProficiency::Exotic))
+            {
+                feats.push((
+                    FeatKey::new(EXOTIC_WEAPON_PROFICIENCY),
+                    vec![Parameter::Weapon(key.clone())],
+                ));
+            }
+        }
+        feats
+    }
+
     /// The name of a feature a class, archetype or path defines.
     pub(super) fn feature_name(&self, feature: &FeatureKey) -> Option<&str> {
         self.features.names.get(feature).map(String::as_str)
@@ -468,6 +505,7 @@ struct Indexes {
     mythic_feats: HashMap<MythicFeatKey, usize>,
     paths: HashMap<MythicPathKey, usize>,
     backgrounds: HashMap<BackgroundKey, usize>,
+    deities: HashMap<DeityKey, usize>,
 }
 
 impl Indexes {
@@ -485,6 +523,7 @@ impl Indexes {
             mythic_feats: index(&data.mythic_feats, |f| &f.key),
             paths: index(&data.mythic_paths, |p| &p.key),
             backgrounds: index(&data.backgrounds, |b| &b.key),
+            deities: index(&data.deities, |d| &d.key),
             classes,
             archetypes,
             races,
@@ -656,6 +695,8 @@ struct FeatureFacts {
     rows: HashMap<FeatureKey, OptionRow>,
     /// Every feature that is a daily choice.
     daily_choices: HashSet<FeatureKey>,
+    /// Every feature that grants the deity's favoured weapons (Cleric Proficiencies).
+    favoured_weapons: HashSet<FeatureKey>,
     /// The features that set a floor for prerequisites (Perfect Mind): a BAB floor, and whether every skill's ranks
     /// are at least the Mythic rank.
     floors: HashMap<FeatureKey, (Option<u8>, bool)>,
@@ -711,10 +752,16 @@ impl FeatureFacts {
             .iter()
             .map(|feature| (feature.key.clone(), feature.name.clone()))
             .collect();
+        let favoured_weapons = features
+            .iter()
+            .filter(|feature| feature.favoured_weapon_proficiency)
+            .map(|feature| feature.key.clone())
+            .collect();
         Self {
             bonuses,
             rows,
             daily_choices,
+            favoured_weapons,
             floors,
             names,
             shared_names,

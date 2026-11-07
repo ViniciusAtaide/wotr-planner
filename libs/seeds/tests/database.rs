@@ -537,6 +537,11 @@ fn every_prerequisite_variant() -> Vec<Prerequisite> {
         P::NoOtherOptionOfGroup(OptionGroup::BloodragerDraconic),
         P::NoOtherOptionOfGroup(OptionGroup::BloodragerElemental),
         P::PickedThrough(FeatureSelectionKey::new("sorcerer/school")),
+        // Ticket 86: the faith.
+        P::Deity(rules::DeityKey::new("achaekek")),
+        P::Atheist,
+        P::Worships,
+        P::DeityOffers(SelectionOptionKey::new("cleric/domain/good")),
     ];
     let groups = vec![
         P::Any(vec![P::BaseAttackBonus(1), P::CasterLevel(1)]),
@@ -578,7 +583,11 @@ fn every_prerequisite_variant() -> Vec<Prerequisite> {
             | P::NoOptionFrom(_)
             | P::NoOtherOptionOfGroup(_)
             | P::PickedThrough(_)
-            | P::SpontaneousSpellLevel { .. } => {}
+            | P::SpontaneousSpellLevel { .. }
+            | P::Deity(_)
+            | P::Atheist
+            | P::Worships
+            | P::DeityOffers(_) => {}
         }
     }
     all
@@ -972,14 +981,14 @@ async fn the_schema_rejects_values_outside_their_domain_and_misplaced_keys() {
     // the class or the path.
     for sql in [
         "INSERT INTO feature (key, class_key, name, summary, guide, daily_choice,
-            skill_ranks_at_least_mythic_rank)
-        VALUES ('rogue/stray', 'fighter', 'Stray', '', 'x', false, false)",
+            skill_ranks_at_least_mythic_rank, favoured_weapon_proficiency)
+        VALUES ('rogue/stray', 'fighter', 'Stray', '', 'x', false, false, false)",
         "INSERT INTO feature (key, class_key, archetype_key, name, summary, guide, daily_choice,
-            skill_ranks_at_least_mythic_rank)
-        VALUES ('fighter/stray', 'fighter', 'fighter/armiger', 'Stray', '', 'x', false, false)",
+            skill_ranks_at_least_mythic_rank, favoured_weapon_proficiency)
+        VALUES ('fighter/stray', 'fighter', 'fighter/armiger', 'Stray', '', 'x', false, false, false)",
         "INSERT INTO feature (key, path_key, name, summary, guide, daily_choice,
-            skill_ranks_at_least_mythic_rank)
-        VALUES ('mythic/stray', 'trickster', 'Stray', '', 'x', false, false)",
+            skill_ranks_at_least_mythic_rank, favoured_weapon_proficiency)
+        VALUES ('mythic/stray', 'trickster', 'Stray', '', 'x', false, false, false)",
         "INSERT INTO feature_selection (key, path_key, name, summary, guide, feat_lists_only,
             only_without_option, levels_behind, once_per_option)
         VALUES ('legend/stray', 'trickster', 'Stray', '', 'x', false, false, 0, false)",
@@ -991,8 +1000,8 @@ async fn the_schema_rejects_values_outside_their_domain_and_misplaced_keys() {
     }
     sqlx::query(
         "INSERT INTO feature (key, class_key, archetype_key, name, summary, guide, daily_choice,
-            skill_ranks_at_least_mythic_rank)
-        VALUES ('fighter/armiger/x', 'fighter', 'fighter/armiger', 'X', '', 'x', false, false)",
+            skill_ranks_at_least_mythic_rank, favoured_weapon_proficiency)
+        VALUES ('fighter/armiger/x', 'fighter', 'fighter/armiger', 'X', '', 'x', false, false, false)",
     )
     .execute(&pool)
     .await
@@ -1533,6 +1542,75 @@ async fn the_schema_keeps_option_levels_class_skills_consistent() {
             "INSERT INTO class_skill (option_level_id, skill_key)
             SELECT option_level_id, skill_key FROM class_skill WHERE option_level_id IS NOT NULL",
             "unique constraint",
+        ),
+    ] {
+        let error = rejected(&pool, sql).await;
+        assert!(error.contains(expected), "{sql}: {error}");
+    }
+}
+
+/// Ticket 86: a deity's rows name a known alignment, weapon and domain; a deity node names its deity; a
+/// selection's limit and an option's domain are what the types allow.
+#[tokio::test]
+async fn the_schema_keeps_deities_and_their_limits_consistent() {
+    let test = TestDatabase::new();
+    test.seed(&fixture_dir()).await.unwrap();
+    let pool = test.writer().await;
+    for (sql, expected) in [
+        (
+            "UPDATE deity_alignment SET alignment = 'lawful' WHERE deity_key = 'iomedae'",
+            "check constraint",
+        ),
+        (
+            "UPDATE deity SET key = 'Iomedae' WHERE key = 'iomedae'",
+            "check constraint",
+        ),
+        (
+            "UPDATE deity_domain SET domain_key = 'cleric/domain/no-such-domain' WHERE deity_key = 'achaekek'",
+            "foreign key",
+        ),
+        (
+            "UPDATE deity_weapon SET weapon_key = 'no-such-weapon' WHERE deity_key = 'achaekek'",
+            "foreign key",
+        ),
+        (
+            "UPDATE deity_alignment SET deity_key = 'no-such-deity' WHERE deity_key = 'achaekek'",
+            "foreign key",
+        ),
+        // Each alignment, weapon and domain once per deity.
+        (
+            "INSERT INTO deity_domain (deity_key, domain_key) VALUES ('achaekek', 'cleric/domain/law')",
+            "unique constraint",
+        ),
+        // A `deity` node fills `deity_key` and nothing else; `worships` and `atheist` fill nothing.
+        (
+            "INSERT INTO prerequisite_node (kind) VALUES ('deity')",
+            "check constraint",
+        ),
+        (
+            "INSERT INTO prerequisite_node (kind, deity_key) VALUES ('worships', 'iomedae')",
+            "check constraint",
+        ),
+        (
+            "INSERT INTO prerequisite_node (kind, selection_option_key) VALUES ('deity_offers', NULL)",
+            "check constraint",
+        ),
+        (
+            "INSERT INTO prerequisite_node (kind, deity_key) VALUES ('deity', 'no-such-deity')",
+            "foreign key",
+        ),
+        (
+            "UPDATE feature_selection SET deity_domains = 'some' WHERE key = 'cleric/domain'",
+            "check constraint",
+        ),
+        (
+            "UPDATE selection_option SET domain_key = 'cleric/domain/no-such-domain'
+            WHERE key = 'cleric/blessings/good'",
+            "foreign key",
+        ),
+        (
+            "UPDATE feature SET favoured_weapon_proficiency = 2 WHERE key = 'cleric/cleric-proficiencies'",
+            "check constraint",
         ),
     ] {
         let error = rejected(&pool, sql).await;

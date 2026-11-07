@@ -7,7 +7,7 @@ use super::{
     BASE_LEVEL_CAP, Engine, LevelSheet, PATH_CHOICE_RANK, PATH_SWITCH_RANK, RankSheet, RankStatus,
     Sheet, SlotKind, racial_amounts,
 };
-use crate::build::{Build, LevelUp, SlotId, has_ability_increase};
+use crate::build::{Build, Faith, LevelUp, SlotId, has_ability_increase};
 use crate::choice::Choice;
 use crate::codec::{StaleLink, decode_build};
 use crate::game_data::Ability;
@@ -412,6 +412,28 @@ impl<'a> Walker<'a> {
         self.state.base_ability_scores = scores;
         self.refresh_ability_scores();
         self.background();
+        self.faith();
+    }
+
+    /// The faith: a deity the data has, which allows the start's alignment (one not chosen yet fits any), or
+    /// atheism. A deity's domains are what deity-limited selections and `DeityOffers` look at.
+    fn faith(&mut self) {
+        let start = &self.build.start;
+        self.state.faith = start.deity.clone();
+        let Some(key) = start.deity.as_ref().and_then(Faith::deity) else {
+            return;
+        };
+        let Some(deity) = self.engine.catalog.deity(key) else {
+            self.fail(Choice::Deity);
+            return;
+        };
+        if start
+            .alignment
+            .is_some_and(|alignment| !deity.alignments.contains(&alignment))
+        {
+            self.fail(Choice::Deity);
+        }
+        self.state.deity_domains = deity.domains.clone();
     }
 
     /// The background's skills become class skills and its feats are held from the start, as a class row's

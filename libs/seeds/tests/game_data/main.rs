@@ -10,6 +10,7 @@ mod borrowed_selections;
 mod class_rules;
 mod class_skills;
 mod data;
+mod deities;
 mod extra_picks;
 mod follow_ups;
 mod infusions;

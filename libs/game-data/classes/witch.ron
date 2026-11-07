@@ -111,6 +111,7 @@ Class(
         ),
         (
             key: "witch/hag-of-gyronna",
+            prerequisite: Deity("gyronna"),
             name: "Hag of Gyronna",
             guide: "witch#hag-of-gyronna",
             features: [

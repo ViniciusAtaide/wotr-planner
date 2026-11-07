@@ -28,6 +28,7 @@ pub(super) fn selection_option(
         replaces_row_of: None,
         group: None,
         arcana: None,
+        domain: None,
     }
 }
 
@@ -77,6 +78,7 @@ pub(super) fn levelled_selection(
         level_from: None,
         once_per_option: false,
         level_also_from: None,
+        deity_domains: None,
     }
 }
 

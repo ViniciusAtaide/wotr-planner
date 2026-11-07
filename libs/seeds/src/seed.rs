@@ -6,7 +6,7 @@ use std::path::{Path, PathBuf};
 
 use rules::{
     AbilityBonus, AbilityModifier, Archetype, ArchetypeLevelRow, Background, Class, ClassLevelRow,
-    CountsToward, FeatKey, FeatList, FeatListKey, FeatSlot, FeatValue, Feature, FeatureKey,
+    CountsToward, Deity, FeatKey, FeatList, FeatListKey, FeatSlot, FeatValue, Feature, FeatureKey,
     FeatureSelection, FeatureSelectionKey, GameData, MythicPath, Race, SelectionOptionKey,
     SkillKey,
 };
@@ -15,10 +15,10 @@ use sqlx::{AssertSqlSafe, Row, SqliteConnection};
 
 use crate::columns::{
     AbilityBonusKind, FeatSlotKind, ValueColumns, ability_bonus_kind_text, ability_text,
-    advancement_text, bab_progression_text, background_group_text, feat_category_text,
-    feat_slot_kind_text, level_from_text, mythic_ability_group_text, mythic_extra_pick_text,
-    mythic_feat_group_text, option_group_text, parameter_kind_text, repeat_columns,
-    save_progression_text, save_text, weapon_proficiency_text,
+    advancement_text, alignment_text, bab_progression_text, background_group_text,
+    deity_domains_text, feat_category_text, feat_slot_kind_text, level_from_text,
+    mythic_ability_group_text, mythic_extra_pick_text, mythic_feat_group_text, option_group_text,
+    parameter_kind_text, repeat_columns, save_progression_text, save_text, weapon_proficiency_text,
 };
 use crate::{Error, MIGRATOR, prerequisites};
 
@@ -239,6 +239,9 @@ async fn insert_all(
     }
     for background in data.backgrounds.iter() {
         insert_background(conn, background).await?;
+    }
+    for deity in data.deities.iter() {
+        insert_deity(conn, deity).await?;
     }
     for class in data.classes.iter() {
         insert_class(conn, class, false).await?;
@@ -549,6 +552,47 @@ async fn insert_background(
     insert_granted_feats_for(conn, owner, &background.feats_for).await
 }
 
+/// A deity, with its alignments, favoured weapons and domains.
+async fn insert_deity(conn: &mut SqliteConnection, deity: &Deity) -> Result<(), sqlx::Error> {
+    let key = deity.key.as_str();
+    sqlx::query!(
+        "INSERT INTO deity (key, name, guide) VALUES ($1, $2, $3)",
+        key,
+        deity.name,
+        deity.guide.0,
+    )
+    .execute(&mut *conn)
+    .await?;
+    for alignment in deity.alignments.iter() {
+        sqlx::query!(
+            "INSERT INTO deity_alignment (deity_key, alignment) VALUES ($1, $2)",
+            key,
+            alignment_text(*alignment),
+        )
+        .execute(&mut *conn)
+        .await?;
+    }
+    for weapon in deity.favoured_weapons.iter() {
+        sqlx::query!(
+            "INSERT INTO deity_weapon (deity_key, weapon_key) VALUES ($1, $2)",
+            key,
+            weapon.as_str(),
+        )
+        .execute(&mut *conn)
+        .await?;
+    }
+    for domain in deity.domains.iter() {
+        sqlx::query!(
+            "INSERT INTO deity_domain (deity_key, domain_key) VALUES ($1, $2)",
+            key,
+            domain.as_str(),
+        )
+        .execute(&mut *conn)
+        .await?;
+    }
+    Ok(())
+}
+
 async fn insert_class_skills(
     conn: &mut SqliteConnection,
     owner: ClassOwner<'_>,
@@ -579,8 +623,8 @@ async fn insert_features(
             "INSERT INTO feature
                 (key, class_key, archetype_key, path_key, name, summary, guide,
                 option_row_selection_key, option_row_level, daily_choice, bab_floor,
-                skill_ranks_at_least_mythic_rank)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
+                skill_ranks_at_least_mythic_rank, favoured_weapon_proficiency)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)",
             feature.key.as_str(),
             class_key,
             archetype_key,
@@ -596,6 +640,7 @@ async fn insert_features(
             feature.daily_choice,
             feature.bab_floor.map(i16::from),
             feature.skill_ranks_at_least_mythic_rank,
+            feature.favoured_weapon_proficiency,
         )
         .execute(&mut *conn)
         .await?;
@@ -634,8 +679,8 @@ async fn insert_selections(
             "INSERT INTO feature_selection
                 (key, class_key, archetype_key, path_key, name, summary, guide, feat_lists_only,
                 only_without_option, pool_of_key, levels_behind, level_from, level_also_from_key,
-                once_per_option)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)",
+                once_per_option, deity_domains)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)",
             selection.key.as_str(),
             class_key,
             archetype_key,
@@ -653,6 +698,7 @@ async fn insert_selections(
                 .as_ref()
                 .map(SelectionOptionKey::as_str),
             selection.once_per_option,
+            selection.deity_domains.map(deity_domains_text),
         )
         .execute(&mut *conn)
         .await?;
@@ -680,8 +726,8 @@ async fn insert_selections(
             sqlx::query!(
                 "INSERT INTO selection_option (key, selection_key, name, summary, guide,
                     prerequisite_root_id, chosen_feat_key, parameter, repeat, repeat_times, pool_key,
-                    replaces_row_of_key, option_group, arcana_key)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)",
+                    replaces_row_of_key, option_group, arcana_key, domain_key)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)",
                 option.key.as_str(),
                 selection.key.as_str(),
                 option.name,
@@ -699,6 +745,7 @@ async fn insert_selections(
                     .map(FeatureSelectionKey::as_str),
                 option.group.map(option_group_text),
                 option.arcana.as_ref().map(FeatureKey::as_str),
+                option.domain.as_ref().map(SelectionOptionKey::as_str),
             )
             .execute(&mut *conn)
             .await?;

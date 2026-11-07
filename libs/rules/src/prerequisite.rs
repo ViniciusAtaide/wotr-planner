@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::game_data::{Ability, Alignment, OptionGroup, SpellType};
 use crate::keys::{
-    ArchetypeKey, ClassKey, FeatKey, FeatureKey, FeatureSelectionKey, MythicAbilityKey,
+    ArchetypeKey, ClassKey, DeityKey, FeatKey, FeatureKey, FeatureSelectionKey, MythicAbilityKey,
     MythicFeatKey, RaceKey, SelectionOptionKey, SkillKey,
 };
 use crate::parameter::Parameter;
@@ -97,6 +97,16 @@ pub enum Prerequisite {
     MythicRank(u8),
     /// The Build's alignment is exactly this one. "Any lawful" is an `Any` of three.
     Alignment(Alignment),
+    /// The Build follows this deity (the Mantis Zealot: Achaekek). Fails while no faith is chosen, as `Alignment`
+    /// does while no alignment is.
+    Deity(DeityKey),
+    /// The Build chose atheism (the Living Deity).
+    Atheist,
+    /// The Build follows a deity, any deity (a cleric). Atheism fails it, and so does no faith chosen yet.
+    Worships,
+    /// The Build's deity offers this domain, an option of the domain selection (the Angelfire Apostle: a deity
+    /// offering the Good domain, which is how the planner reads "a good-aligned deity").
+    DeityOffers(SelectionOptionKey),
     Race(RaceKey),
     /// A story condition (Vow of Dahak). Story is out of scope, so it always holds: the sheet shows it as a note
     /// ([`Prerequisite::stories`]) and never blocks on it.

@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "SELECT key, class_key, archetype_key, path_key, name, summary, guide,\n            option_row_selection_key, option_row_level, daily_choice AS \"daily_choice: bool\", bab_floor,\n            skill_ranks_at_least_mythic_rank AS \"skill_ranks_at_least_mythic_rank: bool\"\n        FROM feature ORDER BY key",
+  "query": "SELECT key, class_key, archetype_key, path_key, name, summary, guide,\n            option_row_selection_key, option_row_level, daily_choice AS \"daily_choice: bool\", bab_floor,\n            skill_ranks_at_least_mythic_rank AS \"skill_ranks_at_least_mythic_rank: bool\",\n            favoured_weapon_proficiency AS \"favoured_weapon_proficiency: bool\"\n        FROM feature ORDER BY key",
   "describe": {
     "columns": [
       {
@@ -134,6 +134,17 @@
             "name": "skill_ranks_at_least_mythic_rank"
           }
         }
+      },
+      {
+        "name": "favoured_weapon_proficiency: bool",
+        "ordinal": 12,
+        "type_info": "Integer",
+        "origin": {
+          "Table": {
+            "table": "feature",
+            "name": "favoured_weapon_proficiency"
+          }
+        }
       }
     ],
     "parameters": {
@@ -151,8 +162,9 @@
       true,
       false,
       true,
+      false,
       false
     ]
   },
-  "hash": "e8a37991a0883cccdc4baf5662e03a0ebcd943fd79a26848dea1cf058ebac028"
+  "hash": "1f2b7ac41d4304070989c0bb93d7c4a2baf664e26811d365ba61bae1d26727ef"
 }

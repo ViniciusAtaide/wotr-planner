@@ -139,6 +139,7 @@ A working, locally run Leptos app at `~/code/wotr-planner` for planning Pathfind
 - [Index the engine's hot lookups](issues/83-index-the-engines-hot-lookups.md): the `Catalog` reads class rows by position, casting, own options, single options and pool members from indexes built once, and a picker works a slot's feat lists out once; answers unchanged, 5–16 % faster per call, and the rest of the walks' time is `String`-key allocation and hashing.
 - [Serve the wasm and the game data precompressed at brotli quality 11](issues/84-precompressed-assets.md): release builds use `--precompress` and the server sends its `.br` files (gzip stays on the fly, which beats cargo-leptos's `.gz`), and the game data is compressed once at startup (1.7 s), so the wasm goes out at 428 KB (was 544) and the game data at 85 KB (was 112).
 - [Move the database from Postgres to SQLite](issues/85-sqlite-instead-of-postgres.md): one git-ignored SQLite file of STRICT tables, opened read-only by the server, seeded into a new file and renamed into place after a foreign key check that names every missing key; Docker is gone, the seed takes 0.7 s (was 4.5) and the startup load 42 ms (was 39).
+- [Deities](issues/86-deities.md): a Build start's faith (one of the guide's 26 deities, or atheism) limits the alignment, the deity-bound classes' domains and blessings, and gives its favoured weapons; brought in from Out of scope (user, 2026-11-06), since ticket 43's question 4 misread the saved page (the Deities and Domains section of `character-creation.html` was there); spells stay out of scope; 46 tables, the v1 link layout replaced.
 
 ## Not yet specified
 
@@ -152,4 +153,3 @@ A working, locally run Leptos app at `~/code/wotr-planner` for planning Pathfind
 - Deployment: this map ends with the app running locally.
 - User accounts: Builds are anonymous and exist only as their link.
 - Reproducing the guide's full text: copyright; store a summary and a link instead.
-- Deities: a cleric's deity and its alignment and domain limits (user, 2026-11-02, [ticket 43](issues/43-extraction-report-gaps.md)'s decision 4).

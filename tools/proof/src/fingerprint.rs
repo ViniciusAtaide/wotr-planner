@@ -7,7 +7,7 @@
 //! - `who`, `levels`, `picks`: what it is (its classes, each with its archetype; its level and pick counts), for
 //!   filtering a comparison;
 //! - `possible`: [`Engine::is_possible`];
-//! - `sheet`: the sheet ([`Engine::evaluate`]), its Debug text hashed;
+//! - `sheet`: the sheet ([`Engine::evaluate`]), its Debug text hashed (without a state's empty faith);
 //! - `removable`: [`Engine::removable`], listed;
 //! - `slots`: per slot of the sheet, by its id's Debug text: `options` (the picker's options with their statuses,
 //!   hashed), `open` (how many are open), `total`, `kind`, and the lock-reason texts: `reasons` (those of options
@@ -49,8 +49,9 @@ fn hashed(value: &impl std::fmt::Debug) -> String {
 
 /// The name prefixes of the Builds whose feat pickers are checked against full walks (ticket 48's shortcut), each
 /// also with `full ` before it. The Builds added since ticket 55 (the checks are slow, so not on every Build).
-pub const SHORTCUT_CHECKED: [&str; 12] = [
+pub const SHORTCUT_CHECKED: [&str; 13] = [
     "t55 ", "t57 ", "t58 ", "t59 ", "t60 ", "t61 ", "t62 ", "t63 ", "t64 ", "t65 ", "t66 ", "t67 ",
+    "t86 ",
 ];
 
 static SHORTCUT_BUILDS: AtomicUsize = AtomicUsize::new(0);
@@ -158,7 +159,7 @@ pub fn fingerprint(engine: &Engine, data: &GameData, name: &str, build: &Build) 
         "levels": build.levels.len(),
         "picks": build.picks.len(),
         "possible": engine.is_possible(build),
-        "sheet": hashed(&sheet),
+        "sheet": sheet_hash(&sheet),
         "removable": removable.iter().map(|choice| format!("{choice:?}")).collect::<Vec<_>>(),
         "slots": slots,
         "classes": classes,
@@ -169,6 +170,13 @@ pub fn fingerprint(engine: &Engine, data: &GameData, name: &str, build: &Build) 
         "switch_reasons": hashed(&switch_reasons),
         "allows": allows.iter().map(|allowed| if *allowed { '1' } else { '0' }).collect::<String>(),
     })
+}
+
+/// The sheet's Debug text, hashed, without a state's empty faith (ticket 86's `faith: None, deity_domains: {}`): a
+/// Build without one walks to the same sheet as on a side before deities, whose states have no such fields.
+fn sheet_hash(sheet: &rules::Sheet) -> String {
+    let text = format!("{sheet:?}").replace("faith: None, deity_domains: {}, ", "");
+    format!("{:016x}", fnv(&text))
 }
 
 /// The Build's classes, each with its archetype ("slayer:slayer/arcane-enforcer").

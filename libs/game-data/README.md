@@ -22,6 +22,7 @@ small hand-written example of the layout.
 | `weapons.ron` | `Vec<Weapon>`: the weapons a feat can be taken for, from the guide's simple, martial and exotic lists (`proficiency`; the Sawtooth Saber is exotic, from Weapon Finesse's list), plus what Weapon Focus names besides weapons (unarmed strike, touch attacks, rays), each natural attack the guide names (bite, claw, gore, hoof, slam, spike, tail, talon, wing), Kinetic Blast and Bomb |
 | `feats.ron` | `Vec<Feat>` |
 | `backgrounds.ron` | `Vec<Background>`: the user's list (the guide doesn't list backgrounds, so they have no guide link; ticket 34) |
+| `deities.ron` | `Vec<Deity>`: the guide's deity table (`character-creation#deities`, 26 rows; ticket 86) |
 | `classes/<class>.ron` | one base `Class`, with its features, feature selections, level rows and archetypes |
 | `prestige/<class>.ron` | one prestige `Class` |
 | `mythic/abilities.ron` | `Vec<MythicAbility>` |
@@ -336,6 +337,29 @@ class's), and BAB and saves (from the class's progressions).
   choose a second curse"), so the row holds that selection twice, as a cleric's holds `cleric/domain` twice. Every
   curse is taken once, so the second slot doesn't offer the curse taken in the first, and Beneficial Curse's slot
   offers neither. "One of these curses doesn't change as the oracle gains levels" needs nothing: no curse has rows.
+- Ticket 86 (the user took all fourteen recommendations, 2026-11-06; spells stay out of scope): deities.
+  `deities.ron` holds the guide's table (`character-creation#deities`), one entry per row, parsed from the saved page
+  and checked by hand: `alignments` are the row's ticks (the alignments a follower may have), `favoured_weapons` are
+  `weapons.ron` keys and `domains` are `cleric/domain` options. Asmodeus's "Mace" is `heavy-mace` (question 9: the
+  weapons have a light and a heavy mace, both simple, so nothing a Build holds depends on which). The table, not the
+  Domains section's summary table, is the source (question 8: Torag has no Glory, Zon-Kuthon no Undead). Atheism is
+  no entry: it's a Build start choice of its own. In the classes: each of the 25 warpriest blessings names its
+  domain (`domain: "cleric/domain/air"`); `deity_domains: Offered` limits `cleric/domain`, `inquisitor/domain`,
+  `inquisitor/sacred-huntsmaster/domain`, `hunter/divine-hunter/domain` and `warpriest/blessings` to the deity's
+  domains, and `NotOffered` the Separatist's second domain to the others (question 6; the druids', Impossible
+  Domain, Pentamic Faith, the Living Deity's and the Champion's and Feral Champion's have no limit);
+  `favoured_weapon_proficiency: true` is on Cleric Proficiencies, Ecclesitheurge Proficiencies, Inquisitor
+  Proficiencies and the Deliverer's Deity (questions 10 and 11: not the Angelfire Apostle's or Demonbane Priest's).
+  Prerequisites: `Worships` on the cleric, inquisitor and warpriest and on the Divine Hunter and Deliverer
+  (question 2); the Mantis Zealot's user-fact alignment rule is now `Deity("achaekek")`, whose alignments are the
+  same three (question 1); the Feral Champion `Any([Deity("erastil"), Deity("gozreh"), Deity("green-faith")])`, the
+  Hag of Gyronna `Deity("gyronna")`, the Living Deity way `Atheist`; the Angelfire Apostle adds
+  `DeityOffers("cleric/domain/good")` and the Priest of Balance `Not(DeityOffers(...))` of Good and Evil (question
+  12: a good deity offers the Good domain, a neutral one neither). The four alignment domains need their alignment
+  when picked through a deity-limited selection (question 7: `Any([Not(PickedThrough(...)), Alignment(...) ×3])` for
+  each of the four domain selections, beside the Separatist's own rule), and so do the four alignment blessings
+  through `warpriest/blessings`; as the Champion's chosen alignment they also need a deity offering that domain
+  (question 13: `Any([Not(PickedThrough("warpriest/champion-of-the-faith/chosen-alignment")), DeityOffers(...)])`).
 - A path's switch rule: `switch: (from: ["aeon", "azata"], kept_through_rank: 7, path_kept_through_rank: 7,
   dropped_features: [...], dropped_selections: [...], features: [...], further_ascensions: true, level_cap:
   Some(40))`. The general picks (mythic abilities and feats) of MR 1 to `kept_through_rank` stay, and the old

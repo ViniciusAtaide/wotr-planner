@@ -94,6 +94,7 @@ pub(in crate::support::world) fn fighter() -> Class {
                 level_from: None,
                 once_per_option: false,
                 level_also_from: None,
+                deity_domains: None,
                 options: vec![
                     selection_option("fighter/armiger/order/cockatrice", None, None),
                     selection_option("fighter/armiger/order/dragon", None, None),

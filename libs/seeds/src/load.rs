@@ -11,21 +11,22 @@ use std::hash::Hash;
 
 use rules::{
     AbilityBonus, AbilityModifier, Archetype, ArchetypeKey, ArchetypeLevelRow, Background,
-    BackgroundKey, Class, ClassKey, ClassLevelRow, CountsAs, CountsToward, Feat, FeatKey, FeatList,
-    FeatListKey, FeatSlot, FeatValue, Feature, FeatureKey, FeatureSelection, FeatureSelectionKey,
-    GameData, GuideRef, MythicAbility, MythicAbilityKey, MythicAscension, MythicFeat,
-    MythicFeatKey, MythicPath, MythicPathKey, MythicRankRow, OptionLevelRow, OptionRow, PathSwitch,
-    Progression, Race, RaceKey, SaveException, SelectionOption, SelectionOptionKey, Skill,
-    SkillKey, SpellLevels, Subrace, SubraceKey, Weapon, WeaponKey,
+    BackgroundKey, Class, ClassKey, ClassLevelRow, CountsAs, CountsToward, Deity, DeityKey, Feat,
+    FeatKey, FeatList, FeatListKey, FeatSlot, FeatValue, Feature, FeatureKey, FeatureSelection,
+    FeatureSelectionKey, GameData, GuideRef, MythicAbility, MythicAbilityKey, MythicAscension,
+    MythicFeat, MythicFeatKey, MythicPath, MythicPathKey, MythicRankRow, OptionLevelRow, OptionRow,
+    PathSwitch, Progression, Race, RaceKey, SaveException, SelectionOption, SelectionOptionKey,
+    Skill, SkillKey, SpellLevels, Subrace, SubraceKey, Weapon, WeaponKey,
 };
 use sqlx::SqliteConnection;
 
 use crate::columns::{
     AbilityBonusKind, FeatSlotKind, ability_bonus_kind_from, ability_from, advancement_from,
-    bab_progression_from, background_group_from, corrupt, feat_category_from, feat_slot_kind_from,
-    level_from_from, mythic_ability_group_from, mythic_extra_pick_from, mythic_feat_group_from,
-    option_group_from, parameter_kind_from, repeat_from, save_from, save_progression_from, to_i8,
-    to_u8, value_from, weapon_proficiency_from,
+    alignment_from, bab_progression_from, background_group_from, corrupt, deity_domains_from,
+    feat_category_from, feat_slot_kind_from, level_from_from, mythic_ability_group_from,
+    mythic_extra_pick_from, mythic_feat_group_from, option_group_from, parameter_kind_from,
+    repeat_from, save_from, save_progression_from, to_i8, to_u8, value_from,
+    weapon_proficiency_from,
 };
 use crate::prerequisites::Trees;
 use crate::{Database, Error};
@@ -78,6 +79,7 @@ async fn load(db: &Database) -> Result<GameData, sqlx::Error> {
     let mythic_abilities = load_mythic_abilities(conn, &mut trees, &mut grants).await?;
     let mythic_feats = load_mythic_feats(conn, &mut trees).await?;
     let backgrounds = load_backgrounds(conn, &mut grants, &mut class_skills).await?;
+    let deities = load_deities(conn).await?;
     let mythic_paths = load_mythic_paths(
         conn,
         &mut Parts {
@@ -117,6 +119,7 @@ async fn load(db: &Database) -> Result<GameData, sqlx::Error> {
         mythic_feats,
         mythic_paths,
         backgrounds,
+        deities,
     };
     Ok(data.canonical())
 }
@@ -629,7 +632,8 @@ async fn load_features(
     for row in sqlx::query!(
         "SELECT key, class_key, archetype_key, path_key, name, summary, guide,
             option_row_selection_key, option_row_level, daily_choice AS \"daily_choice: bool\", bab_floor,
-            skill_ranks_at_least_mythic_rank AS \"skill_ranks_at_least_mythic_rank: bool\"
+            skill_ranks_at_least_mythic_rank AS \"skill_ranks_at_least_mythic_rank: bool\",
+            favoured_weapon_proficiency AS \"favoured_weapon_proficiency: bool\"
         FROM feature ORDER BY key"
     )
     .fetch_all(&mut *conn)
@@ -665,6 +669,7 @@ async fn load_features(
                     .map(|floor| to_u8(floor, "feature.bab_floor"))
                     .transpose()?,
                 skill_ranks_at_least_mythic_rank: row.skill_ranks_at_least_mythic_rank,
+                favoured_weapon_proficiency: row.favoured_weapon_proficiency,
             },
         );
     }
@@ -747,7 +752,8 @@ async fn load_selections(
     let mut options = Grouped::new();
     for row in sqlx::query!(
         "SELECT key, selection_key, name, summary, guide, prerequisite_root_id, chosen_feat_key,
-            parameter, repeat, repeat_times, pool_key, replaces_row_of_key, option_group, arcana_key
+            parameter, repeat, repeat_times, pool_key, replaces_row_of_key, option_group, arcana_key,
+            domain_key
         FROM selection_option ORDER BY key"
     )
     .fetch_all(&mut *conn)
@@ -779,6 +785,7 @@ async fn load_selections(
                     .map(option_group_from)
                     .transpose()?,
                 arcana: row.arcana_key.map(FeatureKey),
+                domain: row.domain_key.map(SelectionOptionKey),
             },
         );
     }
@@ -821,7 +828,7 @@ async fn load_selections(
         "SELECT key, class_key, archetype_key, path_key, name, summary, guide,
             feat_lists_only AS \"feat_lists_only: bool\", only_without_option AS \"only_without_option: bool\",
             pool_of_key, levels_behind, level_from, level_also_from_key,
-            once_per_option AS \"once_per_option: bool\"
+            once_per_option AS \"once_per_option: bool\", deity_domains
         FROM feature_selection ORDER BY key"
     )
     .fetch_all(&mut *conn)
@@ -853,6 +860,11 @@ async fn load_selections(
                 level_from: row.level_from.as_deref().map(level_from_from).transpose()?,
                 once_per_option: row.once_per_option,
                 level_also_from: row.level_also_from_key.map(SelectionOptionKey),
+                deity_domains: row
+                    .deity_domains
+                    .as_deref()
+                    .map(deity_domains_from)
+                    .transpose()?,
             },
         );
     }
@@ -940,6 +952,53 @@ async fn load_backgrounds(
             })
         })
         .collect()
+}
+
+async fn load_deities(conn: &mut SqliteConnection) -> Result<Vec<Deity>, sqlx::Error> {
+    let mut alignments = Grouped::new();
+    for row in sqlx::query!(
+        "SELECT deity_key, alignment FROM deity_alignment ORDER BY deity_key, alignment"
+    )
+    .fetch_all(&mut *conn)
+    .await?
+    {
+        alignments.push(row.deity_key, alignment_from(&row.alignment)?);
+    }
+    let mut weapons = Grouped::new();
+    for row in sqlx::query!(
+        "SELECT deity_key, weapon_key FROM deity_weapon ORDER BY deity_key, weapon_key"
+    )
+    .fetch_all(&mut *conn)
+    .await?
+    {
+        weapons.push(row.deity_key, WeaponKey(row.weapon_key));
+    }
+    let mut domains = Grouped::new();
+    for row in sqlx::query!(
+        "SELECT deity_key, domain_key FROM deity_domain ORDER BY deity_key, domain_key"
+    )
+    .fetch_all(&mut *conn)
+    .await?
+    {
+        domains.push(row.deity_key, SelectionOptionKey(row.domain_key));
+    }
+    let deities = sqlx::query!("SELECT key, name, guide FROM deity ORDER BY key")
+        .fetch_all(&mut *conn)
+        .await?
+        .into_iter()
+        .map(|row| Deity {
+            alignments: taken_set(&mut alignments, &row.key),
+            favoured_weapons: taken_set(&mut weapons, &row.key),
+            domains: taken_set(&mut domains, &row.key),
+            key: DeityKey(row.key),
+            name: row.name,
+            guide: GuideRef(row.guide),
+        })
+        .collect();
+    alignments.finish("deity_alignment")?;
+    weapons.finish("deity_weapon")?;
+    domains.finish("deity_domain")?;
+    Ok(deities)
 }
 
 async fn load_class_skills(

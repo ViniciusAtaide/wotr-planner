@@ -12,6 +12,7 @@ mod check;
 mod class_rules;
 mod codec;
 mod combat_styles;
+mod deities;
 mod derived;
 mod edits;
 mod extra_picks;

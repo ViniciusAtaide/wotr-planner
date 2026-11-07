@@ -8,7 +8,7 @@
 use std::collections::HashMap;
 
 use rules::{
-    ArchetypeKey, ClassKey, FeatKey, FeatureKey, FeatureSelectionKey, MythicAbilityKey,
+    ArchetypeKey, ClassKey, DeityKey, FeatKey, FeatureKey, FeatureSelectionKey, MythicAbilityKey,
     MythicFeatKey, Parameter, Prerequisite, RaceKey, SelectionOptionKey, SkillKey, WeaponKey,
 };
 use sqlx::SqliteConnection;
@@ -43,6 +43,7 @@ struct Node {
     story: Option<&'static str>,
     selection_key: Option<String>,
     option_group: Option<&'static str>,
+    deity_key: Option<String>,
 }
 
 impl Node {
@@ -69,6 +70,7 @@ impl Node {
             story: None,
             selection_key: None,
             option_group: None,
+            deity_key: None,
         }
     }
 
@@ -202,6 +204,16 @@ impl Node {
                 selection_key: key(selection.as_str()),
                 ..Self::of(NodeKind::PickedThrough)
             },
+            P::Deity(deity) => Self {
+                deity_key: key(deity.as_str()),
+                ..Self::of(NodeKind::Deity)
+            },
+            P::Atheist => Self::of(NodeKind::Atheist),
+            P::Worships => Self::of(NodeKind::Worships),
+            P::DeityOffers(domain) => Self {
+                selection_option_key: key(domain.as_str()),
+                ..Self::of(NodeKind::DeityOffers)
+            },
         };
         (node, &[])
     }
@@ -225,9 +237,9 @@ pub(crate) async fn insert(
                 parent_id, kind, feat_key, mythic_feat_key, mythic_ability_key,
                 class_key, archetype_key, feature_key, selection_option_key, skill_key, race_key,
                 weapon_key, ability, spell_type, alignment, amount, spell_school, energy, armour_type,
-                story, selection_key, option_group
+                story, selection_key, option_group, deity_key
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17,
-                $18, $19, $20, $21, $22)
+                $18, $19, $20, $21, $22, $23)
             RETURNING id AS \"id!\"",
             parent_id,
             node_kind_text(node.kind),
@@ -251,6 +263,7 @@ pub(crate) async fn insert(
             node.story,
             node.selection_key,
             node.option_group,
+            node.deity_key,
         )
         .fetch_one(&mut *conn)
         .await?;
@@ -286,6 +299,7 @@ struct StoredNode {
     story: Option<String>,
     selection_key: Option<String>,
     option_group: Option<String>,
+    deity_key: Option<String>,
 }
 
 impl StoredNode {
@@ -325,7 +339,7 @@ impl Trees {
             "SELECT id, parent_id, kind, feat_key, mythic_feat_key, mythic_ability_key, class_key,
                 archetype_key, feature_key, selection_option_key, skill_key, race_key, weapon_key,
                 ability, spell_type, alignment, amount, spell_school, energy, armour_type, story,
-                selection_key, option_group
+                selection_key, option_group, deity_key
             FROM prerequisite_node
             ORDER BY id"
         )
@@ -366,6 +380,7 @@ impl Trees {
                     story: row.story,
                     selection_key: row.selection_key,
                     option_group: row.option_group,
+                    deity_key: row.deity_key,
                 },
             );
         }
@@ -537,6 +552,13 @@ impl Trees {
             NodeKind::PickedThrough => P::PickedThrough(FeatureSelectionKey(text(
                 &node.selection_key,
                 "selection_key",
+            )?)),
+            NodeKind::Deity => P::Deity(DeityKey(text(&node.deity_key, "deity_key")?)),
+            NodeKind::Atheist => P::Atheist,
+            NodeKind::Worships => P::Worships,
+            NodeKind::DeityOffers => P::DeityOffers(SelectionOptionKey(text(
+                &node.selection_option_key,
+                "selection_option_key",
             )?)),
         })
     }

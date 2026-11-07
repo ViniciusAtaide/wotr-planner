@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO selection_option (key, selection_key, name, summary, guide,\n                    prerequisite_root_id, chosen_feat_key, parameter, repeat, repeat_times, pool_key,\n                    replaces_row_of_key, option_group, arcana_key, domain_key)\n                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 15
+    },
+    "nullable": []
+  },
+  "hash": "a9bd6cbcbc5063ee5d99273a59c839d7491a2b2139cdfd9b3d87d34e8eca0e8d"
+}

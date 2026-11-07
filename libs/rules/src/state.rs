@@ -2,11 +2,11 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use crate::build::AbilityScores;
+use crate::build::{AbilityScores, Faith};
 use crate::choice::Unmet;
 use crate::game_data::{Alignment, OptionGroup, SpellType};
 use crate::keys::{
-    ArchetypeKey, ClassKey, FeatKey, FeatListKey, FeatureKey, FeatureSelectionKey,
+    ArchetypeKey, ClassKey, DeityKey, FeatKey, FeatListKey, FeatureKey, FeatureSelectionKey,
     MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey, SelectionOptionKey, SkillKey,
 };
 use crate::parameter::Parameter;
@@ -18,6 +18,10 @@ pub struct CharacterState {
     pub character_level: u8,
     pub race: Option<RaceKey>,
     pub alignment: Option<Alignment>,
+    /// The deity followed, or atheism; `None` while not chosen.
+    pub faith: Option<Faith>,
+    /// The domains the deity followed offers; empty without one.
+    pub deity_domains: BTreeSet<SelectionOptionKey>,
     /// One entry per class taken, in order of first entry.
     pub classes: Vec<ClassLevels>,
     pub bab: u8,
@@ -95,6 +99,11 @@ pub struct ClassLevels {
 }
 
 impl CharacterState {
+    /// The deity followed, if any.
+    pub fn deity(&self) -> Option<&DeityKey> {
+        self.faith.as_ref().and_then(Faith::deity)
+    }
+
     /// Class level in one class; 0 when not taken.
     pub fn class_level(&self, class: &ClassKey) -> u8 {
         self.classes
@@ -357,6 +366,10 @@ impl CharacterState {
             P::CharacterLevel(level) => numeric(self.character_level, *level),
             P::MythicRank(rank) => numeric(self.mythic_rank, *rank),
             P::Alignment(alignment) => flag(self.alignment == Some(*alignment)),
+            P::Deity(deity) => flag(self.deity() == Some(deity)),
+            P::Atheist => flag(self.faith == Some(Faith::Atheism)),
+            P::Worships => flag(self.deity().is_some()),
+            P::DeityOffers(domain) => flag(self.deity_domains.contains(domain)),
             P::Race(race) => flag(self.race.as_ref() == Some(race)),
             // Out of scope: never checked, shown as a note.
             P::Story(_) => flag(true),

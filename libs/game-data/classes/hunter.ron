@@ -88,12 +88,14 @@ Class(
         ),
         (
             key: "hunter/divine-hunter",
+            prerequisite: Worships,
             name: "Divine Hunter",
             guide: "hunter#divine-hunter",
             selections: [
                 (
                     key: "hunter/divine-hunter/domain",
                     name: "Domain (Divine Hunter)",
+                    deity_domains: Offered,
                     guide: "hunter#domain",
                     option_levels: ["hunter"],
                     options: [],

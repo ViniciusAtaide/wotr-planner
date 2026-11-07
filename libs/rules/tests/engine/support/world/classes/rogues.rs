@@ -80,6 +80,7 @@ pub(in crate::support::world) fn rogue() -> Class {
             level_from: None,
             once_per_option: false,
             level_also_from: None,
+            deity_domains: None,
             options: vec![
                 selection_option(
                     "rogue/rogue-talents/combat-trick",
@@ -216,6 +217,7 @@ pub(in crate::support::world) fn slayer() -> Class {
                 level_from: None,
                 once_per_option: false,
                 level_also_from: None,
+                deity_domains: None,
             },
             slayer_style(),
         ],

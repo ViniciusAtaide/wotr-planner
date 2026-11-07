@@ -11,7 +11,7 @@ use rules::{
 };
 
 use crate::Named;
-use crate::generate::{fill_first_choices, full_builds};
+use crate::generate::{faithful, fill_first_choices, full_builds};
 
 mod classes;
 mod feats;
@@ -45,6 +45,8 @@ pub fn own(engine: &Engine, data: &GameData) -> Vec<Named> {
     ]
     .concat();
     for (_, build) in &mut builds {
+        // A deity-bound class needs a faith before its domains are filled (ticket 86).
+        *build = faithful(engine, data, std::mem::take(build));
         fill_first_choices(engine, build);
     }
     builds.extend(feats::extra_feats(engine));
@@ -61,6 +63,11 @@ pub fn own(engine: &Engine, data: &GameData) -> Vec<Named> {
     builds.extend(selections::negated_prerequisites(engine));
     builds.extend(talents::instinctual_warrior(engine));
     builds.extend(selections::dual_curses(engine));
+    // The groups that fill as they build: a faith if they still need one.
+    for (_, build) in &mut builds {
+        *build = faithful(engine, data, std::mem::take(build));
+    }
+    builds.extend(classes::deities(engine, data));
     builds
 }
 

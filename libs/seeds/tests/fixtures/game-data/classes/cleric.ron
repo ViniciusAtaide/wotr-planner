@@ -9,8 +9,43 @@ Class(
     reflex: Poor,
     will: Good,
     class_skills: ["persuasion", "knowledge-arcana"],
+    // Ticket 86: a cleric serves a deity, is proficient with its favoured weapons, and takes a domain it offers, a
+    // blessing by the domain the blessing names, and a heresy it doesn't offer.
+    prerequisite: Worships,
+    features: [
+        (key: "cleric/cleric-proficiencies", name: "Cleric Proficiencies", guide: "cleric#cleric-proficiencies", favoured_weapon_proficiency: true),
+    ],
+    selections: [
+        (
+            key: "cleric/domain",
+            name: "Domain",
+            guide: "character-creation#domains",
+            deity_domains: Offered,
+            options: [
+                (key: "cleric/domain/good", name: "Good Domain", guide: "character-creation#good-domain"),
+                (key: "cleric/domain/law", name: "Law Domain", guide: "character-creation#law-domain", prerequisite: Any([Atheist, Deity("iomedae"), Not(DeityOffers("cleric/domain/good"))])),
+            ],
+        ),
+        (
+            key: "cleric/blessings",
+            name: "Blessings",
+            guide: "warpriest#blessings",
+            deity_domains: Offered,
+            options: [
+                (key: "cleric/blessings/good", name: "Good", guide: "warpriest#good-domain", domain: "cleric/domain/good"),
+            ],
+        ),
+        (
+            key: "cleric/heresy",
+            name: "Heresy",
+            guide: "cleric#forbidden-rites",
+            deity_domains: NotOffered,
+            options: [],
+            shared_options: ["cleric/domain/good", "cleric/domain/law"],
+        ),
+    ],
     levels: [
-        (level: 1, divine_spell_level: 1),
+        (level: 1, divine_spell_level: 1, features: ["cleric/cleric-proficiencies"], selections: ["cleric/domain", "cleric/blessings", "cleric/heresy"]),
         (level: 2, divine_spell_level: 1),
         (level: 3, divine_spell_level: 2),
     ],

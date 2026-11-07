@@ -9,8 +9,8 @@ use std::time::Duration;
 
 use leptos::prelude::*;
 use rules::{
-    Ability, AbilityScores, Alignment, Build, BuildStart, Choice, ClassOption, Edit, Engine, Issue,
-    PATH_CHOICE_RANK, PATH_SWITCH_RANK, Pick, SlotId, SlotOption,
+    Ability, AbilityScores, Alignment, Build, BuildStart, Choice, ClassOption, Edit, Engine, Faith,
+    Issue, PATH_CHOICE_RANK, PATH_SWITCH_RANK, Pick, SlotId, SlotOption,
 };
 
 use crate::planner::{Target, use_planner};
@@ -72,6 +72,7 @@ fn body(target: Target) -> AnyView {
         Target::Switch => view! { <PathPicker switch=true/> }.into_any(),
         Target::Race => view! { <RacePicker/> }.into_any(),
         Target::Alignment => view! { <AlignmentPicker/> }.into_any(),
+        Target::Deity => view! { <DeityPicker/> }.into_any(),
         Target::Background => view! { <BackgroundPicker/> }.into_any(),
         Target::AbilityIncrease(level) => view! { <AbilityIncreasePicker level/> }.into_any(),
         Target::Skills(level) => view! { <crate::start::SkillsPanel level/> }.into_any(),
@@ -769,12 +770,14 @@ fn PathPicker(switch: bool) -> impl IntoView {
     }
 }
 
-/// A Build start picker: each option is a whole new Build start, locked when `Engine::allows` refuses it.
+/// A Build start picker: each option is a whole new Build start, locked with its reason when its deity doesn't
+/// allow its alignment (`Engine::faith_fits`), and with none when `Engine::allows` refuses it.
 fn start_items(
     planner: crate::planner::Planner,
     starts: &[(Item, BuildStart)],
     current: &BuildStart,
 ) -> Vec<Item> {
+    let engine = planner.engine();
     let edits: Vec<Edit> = starts
         .iter()
         .map(|(_, start)| Edit::Start(start.clone()))
@@ -782,9 +785,13 @@ fn start_items(
     starts
         .iter()
         .zip(planner.allows_many(&edits))
-        .map(|((item, start), allows)| Item {
-            locked: !(start == current || allows),
-            ..item.clone()
+        .map(|((item, start), allows)| {
+            let misfit = engine.faith_fits(start).err();
+            Item {
+                locked: start != current && (misfit.is_some() || !allows),
+                reason: misfit.and_then(|issue| engine.issue_text(&issue)),
+                ..item.clone()
+            }
         })
         .collect()
 }
@@ -903,13 +910,19 @@ fn AlignmentPicker() -> impl IntoView {
     });
     let edits: Vec<Edit> = starts.iter().cloned().map(Edit::Start).collect();
     let allows = planner.allows_many(&edits);
+    let engine = planner.engine();
+    // The deity's limit, said once under the wheel when it locks an alignment.
+    let misfit = starts
+        .iter()
+        .find_map(|start| engine.faith_fits(start).err())
+        .and_then(|issue| engine.issue_text(&issue));
     let nodes = Alignment::ALL
         .into_iter()
         .zip(starts)
         .zip(allows)
         .map(|((alignment, start), allows)| {
             let on = current.alignment == Some(alignment);
-            let allowed = on || allows;
+            let allowed = on || (allows && engine.faith_fits(&start).is_ok());
             let start = StoredValue::new(start);
             view! {
                 <button
@@ -948,7 +961,66 @@ fn AlignmentPicker() -> impl IntoView {
         <div class="alignment-wheel" role="radiogroup" aria-label="Alignment">
             {nodes}
         </div>
+        {misfit.map(|reason| view! { <p class="note alignment-reason">{reason}</p> })}
     }
+}
+
+/// The deity picker: atheism first, then every deity by name, each with its alignments, favoured weapons and
+/// domains. A deity that doesn't allow the start's alignment is locked with the reason; one that would break a later
+/// choice (a domain it doesn't offer) is locked with none.
+#[component]
+fn DeityPicker() -> impl IntoView {
+    let planner = use_planner();
+    let engine = planner.engine();
+    let current = planner.build.with_untracked(|build| build.start.clone());
+    let with = |deity: Option<Faith>| BuildStart {
+        deity,
+        ..current.clone()
+    };
+    let mut deities: Vec<&rules::Deity> = engine.deities().iter().collect();
+    deities.sort_by(|a, b| a.name.cmp(&b.name));
+    let atheism = Item {
+        detail: "No deity; any alignment".to_owned(),
+        current: current.deity == Some(Faith::Atheism),
+        ..Item::new("Atheism")
+    };
+    let starts = std::iter::once((atheism, with(Some(Faith::Atheism))))
+        .chain(deities.into_iter().map(|deity| {
+            let alignments: Vec<&str> = deity.alignments.iter().map(|a| a.short_name()).collect();
+            let weapons: Vec<&str> = deity
+                .favoured_weapons
+                .iter()
+                .map(|weapon| engine.weapon_name(weapon))
+                .collect();
+            let domains: Vec<&str> = deity
+                .domains
+                .iter()
+                .map(|domain| {
+                    let name = engine.option_name(domain);
+                    name.strip_suffix(" Domain")
+                        .or_else(|| name.strip_suffix(" Subdomain"))
+                        .unwrap_or(name)
+                })
+                .collect();
+            let faith = Faith::Deity(deity.key.clone());
+            let item = Item {
+                detail: format!(
+                    "{} · {} · {}",
+                    alignments.join(" "),
+                    weapons.join(", "),
+                    domains.join(", ")
+                ),
+                current: current.deity.as_ref() == Some(&faith),
+                ..Item::new(deity.name.clone())
+            };
+            (item, with(Some(faith)))
+        }))
+        .collect();
+    let remove = current
+        .deity
+        .is_some()
+        .then(|| (Choice::Deity, Edit::Start(with(None))));
+    view! { <StartPicker title="Deity" starts remove/> }
 }
 
 /// An alignment's place on the wheel, as a class: its spot on the ring (or the middle) and its moral tint.
