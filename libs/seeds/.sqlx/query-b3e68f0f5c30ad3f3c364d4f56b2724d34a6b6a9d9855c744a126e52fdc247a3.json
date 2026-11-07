@@ -1,11 +1,11 @@
 {
-  "db_name": "PostgreSQL",
+  "db_name": "SQLite",
   "query": "SELECT race_key, subrace_key, ability, amount FROM ability_modifier ORDER BY id",
   "describe": {
     "columns": [
       {
-        "ordinal": 0,
         "name": "race_key",
+        "ordinal": 0,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -15,8 +15,8 @@
         }
       },
       {
-        "ordinal": 1,
         "name": "subrace_key",
+        "ordinal": 1,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -26,8 +26,8 @@
         }
       },
       {
-        "ordinal": 2,
         "name": "ability",
+        "ordinal": 2,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -37,9 +37,9 @@
         }
       },
       {
-        "ordinal": 3,
         "name": "amount",
-        "type_info": "Int2",
+        "ordinal": 3,
+        "type_info": "Integer",
         "origin": {
           "Table": {
             "table": "ability_modifier",
@@ -49,7 +49,7 @@
       }
     ],
     "parameters": {
-      "Left": []
+      "Right": 0
     },
     "nullable": [
       true,

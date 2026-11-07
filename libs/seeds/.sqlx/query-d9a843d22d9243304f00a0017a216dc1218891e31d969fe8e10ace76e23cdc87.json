@@ -1,0 +1,26 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO class_level (class_key, archetype_key, level, arcane_spell_level,\n                divine_spell_level)\n            VALUES ($1, $2, $3, $4, $5)\n            RETURNING id AS \"id!\"",
+  "describe": {
+    "columns": [
+      {
+        "name": "id!",
+        "ordinal": 0,
+        "type_info": "Integer",
+        "origin": {
+          "Table": {
+            "table": "class_level",
+            "name": "id"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Right": 5
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "d9a843d22d9243304f00a0017a216dc1218891e31d969fe8e10ace76e23cdc87"
+}

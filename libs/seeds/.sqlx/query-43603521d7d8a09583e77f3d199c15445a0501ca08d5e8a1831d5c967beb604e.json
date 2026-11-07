@@ -1,11 +1,11 @@
 {
-  "db_name": "PostgreSQL",
+  "db_name": "SQLite",
   "query": "SELECT option_key, feat_key FROM selection_option_feat ORDER BY option_key, feat_key",
   "describe": {
     "columns": [
       {
-        "ordinal": 0,
         "name": "option_key",
+        "ordinal": 0,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -15,8 +15,8 @@
         }
       },
       {
-        "ordinal": 1,
         "name": "feat_key",
+        "ordinal": 1,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -27,7 +27,7 @@
       }
     ],
     "parameters": {
-      "Left": []
+      "Right": 0
     },
     "nullable": [
       false,

@@ -1,11 +1,11 @@
 {
-  "db_name": "PostgreSQL",
+  "db_name": "SQLite",
   "query": "SELECT class_key, archetype_key, background_key, option_level_id, skill_key FROM class_skill\n        ORDER BY skill_key",
   "describe": {
     "columns": [
       {
-        "ordinal": 0,
         "name": "class_key",
+        "ordinal": 0,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -15,8 +15,8 @@
         }
       },
       {
-        "ordinal": 1,
         "name": "archetype_key",
+        "ordinal": 1,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -26,8 +26,8 @@
         }
       },
       {
-        "ordinal": 2,
         "name": "background_key",
+        "ordinal": 2,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -37,9 +37,9 @@
         }
       },
       {
-        "ordinal": 3,
         "name": "option_level_id",
-        "type_info": "Int8",
+        "ordinal": 3,
+        "type_info": "Integer",
         "origin": {
           "Table": {
             "table": "class_skill",
@@ -48,8 +48,8 @@
         }
       },
       {
-        "ordinal": 4,
         "name": "skill_key",
+        "ordinal": 4,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -60,7 +60,7 @@
       }
     ],
     "parameters": {
-      "Left": []
+      "Right": 0
     },
     "nullable": [
       true,

@@ -1,15 +1,10 @@
 {
-  "db_name": "PostgreSQL",
+  "db_name": "SQLite",
   "query": "INSERT INTO granted_feat (class_level_id, option_level_id, background_key, feat_key)\n            VALUES ($1, $2, $3, $4)",
   "describe": {
     "columns": [],
     "parameters": {
-      "Left": [
-        "Int8",
-        "Int8",
-        "Text",
-        "Text"
-      ]
+      "Right": 4
     },
     "nullable": []
   },

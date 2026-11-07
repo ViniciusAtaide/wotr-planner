@@ -1,11 +1,11 @@
 {
-  "db_name": "PostgreSQL",
-  "query": "SELECT key, class_key, archetype_key, path_key, name, summary, guide,\n            option_row_selection_key, option_row_level, daily_choice, bab_floor,\n            skill_ranks_at_least_mythic_rank\n        FROM feature ORDER BY key",
+  "db_name": "SQLite",
+  "query": "SELECT key, class_key, archetype_key, path_key, name, summary, guide,\n            option_row_selection_key, option_row_level, daily_choice AS \"daily_choice: bool\", bab_floor,\n            skill_ranks_at_least_mythic_rank AS \"skill_ranks_at_least_mythic_rank: bool\"\n        FROM feature ORDER BY key",
   "describe": {
     "columns": [
       {
-        "ordinal": 0,
         "name": "key",
+        "ordinal": 0,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -15,8 +15,8 @@
         }
       },
       {
-        "ordinal": 1,
         "name": "class_key",
+        "ordinal": 1,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -26,8 +26,8 @@
         }
       },
       {
-        "ordinal": 2,
         "name": "archetype_key",
+        "ordinal": 2,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -37,8 +37,8 @@
         }
       },
       {
-        "ordinal": 3,
         "name": "path_key",
+        "ordinal": 3,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -48,8 +48,8 @@
         }
       },
       {
-        "ordinal": 4,
         "name": "name",
+        "ordinal": 4,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -59,8 +59,8 @@
         }
       },
       {
-        "ordinal": 5,
         "name": "summary",
+        "ordinal": 5,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -70,8 +70,8 @@
         }
       },
       {
-        "ordinal": 6,
         "name": "guide",
+        "ordinal": 6,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -81,8 +81,8 @@
         }
       },
       {
-        "ordinal": 7,
         "name": "option_row_selection_key",
+        "ordinal": 7,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -92,9 +92,9 @@
         }
       },
       {
-        "ordinal": 8,
         "name": "option_row_level",
-        "type_info": "Int2",
+        "ordinal": 8,
+        "type_info": "Integer",
         "origin": {
           "Table": {
             "table": "feature",
@@ -103,9 +103,9 @@
         }
       },
       {
+        "name": "daily_choice: bool",
         "ordinal": 9,
-        "name": "daily_choice",
-        "type_info": "Bool",
+        "type_info": "Integer",
         "origin": {
           "Table": {
             "table": "feature",
@@ -114,9 +114,9 @@
         }
       },
       {
-        "ordinal": 10,
         "name": "bab_floor",
-        "type_info": "Int2",
+        "ordinal": 10,
+        "type_info": "Integer",
         "origin": {
           "Table": {
             "table": "feature",
@@ -125,9 +125,9 @@
         }
       },
       {
+        "name": "skill_ranks_at_least_mythic_rank: bool",
         "ordinal": 11,
-        "name": "skill_ranks_at_least_mythic_rank",
-        "type_info": "Bool",
+        "type_info": "Integer",
         "origin": {
           "Table": {
             "table": "feature",
@@ -137,7 +137,7 @@
       }
     ],
     "parameters": {
-      "Left": []
+      "Right": 0
     },
     "nullable": [
       false,
@@ -154,5 +154,5 @@
       false
     ]
   },
-  "hash": "d6d9576f491ff960c3ed3ae2f2802d103d36d9904576dd6c149244a60b1d1895"
+  "hash": "e8a37991a0883cccdc4baf5662e03a0ebcd943fd79a26848dea1cf058ebac028"
 }

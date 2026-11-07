@@ -1,13 +1,10 @@
 {
-  "db_name": "PostgreSQL",
+  "db_name": "SQLite",
   "query": "INSERT INTO path_switch_feature (path_key, feature_key) VALUES ($1, $2)",
   "describe": {
     "columns": [],
     "parameters": {
-      "Left": [
-        "Text",
-        "Text"
-      ]
+      "Right": 2
     },
     "nullable": []
   },

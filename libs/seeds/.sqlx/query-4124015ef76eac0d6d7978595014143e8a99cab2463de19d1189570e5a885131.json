@@ -1,12 +1,12 @@
 {
-  "db_name": "PostgreSQL",
-  "query": "SELECT id, class_key, archetype_key, level, arcane_spell_level, divine_spell_level,\n            advances_arcane, advances_divine\n        FROM class_level ORDER BY level",
+  "db_name": "SQLite",
+  "query": "SELECT id, class_key, archetype_key, level, arcane_spell_level, divine_spell_level,\n            advances_arcane AS \"advances_arcane: bool\", advances_divine AS \"advances_divine: bool\"\n        FROM class_level ORDER BY level",
   "describe": {
     "columns": [
       {
-        "ordinal": 0,
         "name": "id",
-        "type_info": "Int8",
+        "ordinal": 0,
+        "type_info": "Integer",
         "origin": {
           "Table": {
             "table": "class_level",
@@ -15,8 +15,8 @@
         }
       },
       {
-        "ordinal": 1,
         "name": "class_key",
+        "ordinal": 1,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -26,8 +26,8 @@
         }
       },
       {
-        "ordinal": 2,
         "name": "archetype_key",
+        "ordinal": 2,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -37,9 +37,9 @@
         }
       },
       {
-        "ordinal": 3,
         "name": "level",
-        "type_info": "Int2",
+        "ordinal": 3,
+        "type_info": "Integer",
         "origin": {
           "Table": {
             "table": "class_level",
@@ -48,9 +48,9 @@
         }
       },
       {
-        "ordinal": 4,
         "name": "arcane_spell_level",
-        "type_info": "Int2",
+        "ordinal": 4,
+        "type_info": "Integer",
         "origin": {
           "Table": {
             "table": "class_level",
@@ -59,9 +59,9 @@
         }
       },
       {
-        "ordinal": 5,
         "name": "divine_spell_level",
-        "type_info": "Int2",
+        "ordinal": 5,
+        "type_info": "Integer",
         "origin": {
           "Table": {
             "table": "class_level",
@@ -70,9 +70,9 @@
         }
       },
       {
+        "name": "advances_arcane: bool",
         "ordinal": 6,
-        "name": "advances_arcane",
-        "type_info": "Bool",
+        "type_info": "Integer",
         "origin": {
           "Table": {
             "table": "class_level",
@@ -81,9 +81,9 @@
         }
       },
       {
+        "name": "advances_divine: bool",
         "ordinal": 7,
-        "name": "advances_divine",
-        "type_info": "Bool",
+        "type_info": "Integer",
         "origin": {
           "Table": {
             "table": "class_level",
@@ -93,7 +93,7 @@
       }
     ],
     "parameters": {
-      "Left": []
+      "Right": 0
     },
     "nullable": [
       false,
@@ -106,5 +106,5 @@
       true
     ]
   },
-  "hash": "cc34f694770e7c8cb3c97df20a0df8a64b96a9c5dad4903be0a0ba46f25a327a"
+  "hash": "4124015ef76eac0d6d7978595014143e8a99cab2463de19d1189570e5a885131"
 }

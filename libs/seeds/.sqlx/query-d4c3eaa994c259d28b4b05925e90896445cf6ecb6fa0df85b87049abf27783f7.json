@@ -1,11 +1,11 @@
 {
-  "db_name": "PostgreSQL",
-  "query": "SELECT key, class_key, archetype_key, path_key, name, summary, guide, feat_lists_only,\n            only_without_option, pool_of_key, levels_behind, level_from, level_also_from_key,\n            once_per_option\n        FROM feature_selection ORDER BY key",
+  "db_name": "SQLite",
+  "query": "SELECT key, class_key, archetype_key, path_key, name, summary, guide,\n            feat_lists_only AS \"feat_lists_only: bool\", only_without_option AS \"only_without_option: bool\",\n            pool_of_key, levels_behind, level_from, level_also_from_key,\n            once_per_option AS \"once_per_option: bool\"\n        FROM feature_selection ORDER BY key",
   "describe": {
     "columns": [
       {
-        "ordinal": 0,
         "name": "key",
+        "ordinal": 0,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -15,8 +15,8 @@
         }
       },
       {
-        "ordinal": 1,
         "name": "class_key",
+        "ordinal": 1,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -26,8 +26,8 @@
         }
       },
       {
-        "ordinal": 2,
         "name": "archetype_key",
+        "ordinal": 2,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -37,8 +37,8 @@
         }
       },
       {
-        "ordinal": 3,
         "name": "path_key",
+        "ordinal": 3,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -48,8 +48,8 @@
         }
       },
       {
-        "ordinal": 4,
         "name": "name",
+        "ordinal": 4,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -59,8 +59,8 @@
         }
       },
       {
-        "ordinal": 5,
         "name": "summary",
+        "ordinal": 5,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -70,8 +70,8 @@
         }
       },
       {
-        "ordinal": 6,
         "name": "guide",
+        "ordinal": 6,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -81,9 +81,9 @@
         }
       },
       {
+        "name": "feat_lists_only: bool",
         "ordinal": 7,
-        "name": "feat_lists_only",
-        "type_info": "Bool",
+        "type_info": "Integer",
         "origin": {
           "Table": {
             "table": "feature_selection",
@@ -92,9 +92,9 @@
         }
       },
       {
+        "name": "only_without_option: bool",
         "ordinal": 8,
-        "name": "only_without_option",
-        "type_info": "Bool",
+        "type_info": "Integer",
         "origin": {
           "Table": {
             "table": "feature_selection",
@@ -103,8 +103,8 @@
         }
       },
       {
-        "ordinal": 9,
         "name": "pool_of_key",
+        "ordinal": 9,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -114,9 +114,9 @@
         }
       },
       {
-        "ordinal": 10,
         "name": "levels_behind",
-        "type_info": "Int2",
+        "ordinal": 10,
+        "type_info": "Integer",
         "origin": {
           "Table": {
             "table": "feature_selection",
@@ -125,8 +125,8 @@
         }
       },
       {
-        "ordinal": 11,
         "name": "level_from",
+        "ordinal": 11,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -136,8 +136,8 @@
         }
       },
       {
-        "ordinal": 12,
         "name": "level_also_from_key",
+        "ordinal": 12,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -147,9 +147,9 @@
         }
       },
       {
+        "name": "once_per_option: bool",
         "ordinal": 13,
-        "name": "once_per_option",
-        "type_info": "Bool",
+        "type_info": "Integer",
         "origin": {
           "Table": {
             "table": "feature_selection",
@@ -159,7 +159,7 @@
       }
     ],
     "parameters": {
-      "Left": []
+      "Right": 0
     },
     "nullable": [
       false,
@@ -178,5 +178,5 @@
       false
     ]
   },
-  "hash": "0152039247759399a4145fb5a33a97428106feb7fabc96067826f085057696ea"
+  "hash": "d4c3eaa994c259d28b4b05925e90896445cf6ecb6fa0df85b87049abf27783f7"
 }

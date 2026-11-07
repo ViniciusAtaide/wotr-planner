@@ -1,11 +1,11 @@
 {
-  "db_name": "PostgreSQL",
+  "db_name": "SQLite",
   "query": "SELECT key, name, group_name, summary, guide, prerequisite_root_id\n        FROM mythic_ability ORDER BY key",
   "describe": {
     "columns": [
       {
-        "ordinal": 0,
         "name": "key",
+        "ordinal": 0,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -15,8 +15,8 @@
         }
       },
       {
-        "ordinal": 1,
         "name": "name",
+        "ordinal": 1,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -26,8 +26,8 @@
         }
       },
       {
-        "ordinal": 2,
         "name": "group_name",
+        "ordinal": 2,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -37,8 +37,8 @@
         }
       },
       {
-        "ordinal": 3,
         "name": "summary",
+        "ordinal": 3,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -48,8 +48,8 @@
         }
       },
       {
-        "ordinal": 4,
         "name": "guide",
+        "ordinal": 4,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -59,9 +59,9 @@
         }
       },
       {
-        "ordinal": 5,
         "name": "prerequisite_root_id",
-        "type_info": "Int8",
+        "ordinal": 5,
+        "type_info": "Integer",
         "origin": {
           "Table": {
             "table": "mythic_ability",
@@ -71,7 +71,7 @@
       }
     ],
     "parameters": {
-      "Left": []
+      "Right": 0
     },
     "nullable": [
       false,

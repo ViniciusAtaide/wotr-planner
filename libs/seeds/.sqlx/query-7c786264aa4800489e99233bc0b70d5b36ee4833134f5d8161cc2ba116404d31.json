@@ -1,16 +1,10 @@
 {
-  "db_name": "PostgreSQL",
+  "db_name": "SQLite",
   "query": "INSERT INTO path_switch (path_key, kept_through_rank, path_kept_through_rank,\n                further_ascensions, level_cap)\n            VALUES ($1, $2, $3, $4, $5)",
   "describe": {
     "columns": [],
     "parameters": {
-      "Left": [
-        "Text",
-        "Int2",
-        "Int2",
-        "Bool",
-        "Int2"
-      ]
+      "Right": 5
     },
     "nullable": []
   },

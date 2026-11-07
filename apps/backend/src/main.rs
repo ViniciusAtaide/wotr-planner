@@ -16,19 +16,24 @@ mod game_data;
 
 #[tokio::main]
 async fn main() {
-    // DATABASE_URL comes from the environment or, failing that, from `.env` in the working directory.
+    // DATABASE_URL comes from the environment or, failing that, from `.env` in the working directory; without it,
+    // the database is `wotr-planner.db` at the repo root.
     dotenvy::dotenv().ok();
-    let db_url =
-        std::env::var("DATABASE_URL").expect("DATABASE_URL must be set (see .env.example)");
-    let db = seeds::Database::connect(&db_url)
+    let db_path = seeds::database_path().expect("read DATABASE_URL (see .env.example)");
+    let db = seeds::Database::open(&db_path)
         .await
-        .expect("connect to Postgres and run migrations");
+        .unwrap_or_else(|error| {
+            panic!(
+                "open the game data database {}: {error} (build it with `cargo run -p seeds --bin seed`)",
+                db_path.display()
+            )
+        });
     warn_if_game_data_is_stale(&db).await;
     // Loaded once: the game data changes only through a reseed, and the server picks that up on
     // its next start.
     let game_data = seeds::load_game_data(&db)
         .await
-        .expect("load the game data from Postgres");
+        .expect("load the game data from the database");
     let started = Instant::now();
     let game_data = GameDataFile::new(&game_data);
     println!(

@@ -11,7 +11,7 @@ use rules::{
     ArchetypeKey, ClassKey, FeatKey, FeatureKey, FeatureSelectionKey, MythicAbilityKey,
     MythicFeatKey, Parameter, Prerequisite, RaceKey, SelectionOptionKey, SkillKey, WeaponKey,
 };
-use sqlx::PgConnection;
+use sqlx::SqliteConnection;
 
 use crate::columns::{
     NodeKind, ability_from, ability_text, alignment_from, alignment_text, armour_type_from,
@@ -209,7 +209,7 @@ impl Node {
 
 /// Inserts the tree and returns its root id, for the owner's `prerequisite_root_id`.
 pub(crate) async fn insert(
-    conn: &mut PgConnection,
+    conn: &mut SqliteConnection,
     prerequisite: Option<&Prerequisite>,
 ) -> Result<Option<i64>, sqlx::Error> {
     let Some(root) = prerequisite else {
@@ -228,7 +228,7 @@ pub(crate) async fn insert(
                 story, selection_key, option_group
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17,
                 $18, $19, $20, $21, $22)
-            RETURNING id",
+            RETURNING id AS \"id!\"",
             parent_id,
             node_kind_text(node.kind),
             node.feat_key,
@@ -279,7 +279,7 @@ struct StoredNode {
     ability: Option<String>,
     spell_type: Option<String>,
     alignment: Option<String>,
-    amount: Option<i16>,
+    amount: Option<i64>,
     spell_school: Option<String>,
     energy: Option<String>,
     armour_type: Option<String>,
@@ -320,7 +320,7 @@ pub(crate) struct Trees {
 }
 
 impl Trees {
-    pub(crate) async fn load(conn: &mut PgConnection) -> Result<Self, sqlx::Error> {
+    pub(crate) async fn load(conn: &mut SqliteConnection) -> Result<Self, sqlx::Error> {
         let rows = sqlx::query!(
             "SELECT id, parent_id, kind, feat_key, mythic_feat_key, mythic_ability_key, class_key,
                 archetype_key, feature_key, selection_option_key, skill_key, race_key, weapon_key,

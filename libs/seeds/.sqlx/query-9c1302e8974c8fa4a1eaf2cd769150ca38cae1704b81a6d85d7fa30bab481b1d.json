@@ -1,12 +1,12 @@
 {
-  "db_name": "PostgreSQL",
+  "db_name": "SQLite",
   "query": "SELECT id, race_key, subrace_key, class_level_id, mythic_rank_id, option_level_id, kind,\n            category, feat_list_key, selection_key, at_level, label\n        FROM feat_slot ORDER BY id",
   "describe": {
     "columns": [
       {
-        "ordinal": 0,
         "name": "id",
-        "type_info": "Int8",
+        "ordinal": 0,
+        "type_info": "Integer",
         "origin": {
           "Table": {
             "table": "feat_slot",
@@ -15,8 +15,8 @@
         }
       },
       {
-        "ordinal": 1,
         "name": "race_key",
+        "ordinal": 1,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -26,8 +26,8 @@
         }
       },
       {
-        "ordinal": 2,
         "name": "subrace_key",
+        "ordinal": 2,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -37,9 +37,9 @@
         }
       },
       {
-        "ordinal": 3,
         "name": "class_level_id",
-        "type_info": "Int8",
+        "ordinal": 3,
+        "type_info": "Integer",
         "origin": {
           "Table": {
             "table": "feat_slot",
@@ -48,9 +48,9 @@
         }
       },
       {
-        "ordinal": 4,
         "name": "mythic_rank_id",
-        "type_info": "Int8",
+        "ordinal": 4,
+        "type_info": "Integer",
         "origin": {
           "Table": {
             "table": "feat_slot",
@@ -59,9 +59,9 @@
         }
       },
       {
-        "ordinal": 5,
         "name": "option_level_id",
-        "type_info": "Int8",
+        "ordinal": 5,
+        "type_info": "Integer",
         "origin": {
           "Table": {
             "table": "feat_slot",
@@ -70,8 +70,8 @@
         }
       },
       {
-        "ordinal": 6,
         "name": "kind",
+        "ordinal": 6,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -81,8 +81,8 @@
         }
       },
       {
-        "ordinal": 7,
         "name": "category",
+        "ordinal": 7,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -92,8 +92,8 @@
         }
       },
       {
-        "ordinal": 8,
         "name": "feat_list_key",
+        "ordinal": 8,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -103,8 +103,8 @@
         }
       },
       {
-        "ordinal": 9,
         "name": "selection_key",
+        "ordinal": 9,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -114,9 +114,9 @@
         }
       },
       {
-        "ordinal": 10,
         "name": "at_level",
-        "type_info": "Int2",
+        "ordinal": 10,
+        "type_info": "Integer",
         "origin": {
           "Table": {
             "table": "feat_slot",
@@ -125,8 +125,8 @@
         }
       },
       {
-        "ordinal": 11,
         "name": "label",
+        "ordinal": 11,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -137,7 +137,7 @@
       }
     ],
     "parameters": {
-      "Left": []
+      "Right": 0
     },
     "nullable": [
       false,

@@ -1,36 +1,10 @@
 {
-  "db_name": "PostgreSQL",
+  "db_name": "SQLite",
   "query": "INSERT INTO feat_slot\n                (race_key, subrace_key, class_level_id, mythic_rank_id, option_level_id, kind,\n                category, feat_list_key, selection_key, at_level, label)\n            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
   "describe": {
     "columns": [],
     "parameters": {
-      "Left": [
-        "Text",
-        "Text",
-        "Int8",
-        "Int8",
-        "Int8",
-        "Text",
-        {
-          "Custom": {
-            "name": "feat_category",
-            "kind": {
-              "Domain": "Text"
-            }
-          }
-        },
-        "Text",
-        "Text",
-        {
-          "Custom": {
-            "name": "u8",
-            "kind": {
-              "Domain": "Int2"
-            }
-          }
-        },
-        "Text"
-      ]
+      "Right": 11
     },
     "nullable": []
   },

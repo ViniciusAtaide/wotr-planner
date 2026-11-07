@@ -1,11 +1,11 @@
 {
-  "db_name": "PostgreSQL",
-  "query": "SELECT key, class_key, archetype_key, path_key, race_key, name, guide, ignores_prerequisites,\n            every_feat\n        FROM feat_list ORDER BY key",
+  "db_name": "SQLite",
+  "query": "SELECT key, class_key, archetype_key, path_key, race_key, name, guide,\n            ignores_prerequisites AS \"ignores_prerequisites: bool\", every_feat AS \"every_feat: bool\"\n        FROM feat_list ORDER BY key",
   "describe": {
     "columns": [
       {
-        "ordinal": 0,
         "name": "key",
+        "ordinal": 0,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -15,8 +15,8 @@
         }
       },
       {
-        "ordinal": 1,
         "name": "class_key",
+        "ordinal": 1,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -26,8 +26,8 @@
         }
       },
       {
-        "ordinal": 2,
         "name": "archetype_key",
+        "ordinal": 2,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -37,8 +37,8 @@
         }
       },
       {
-        "ordinal": 3,
         "name": "path_key",
+        "ordinal": 3,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -48,8 +48,8 @@
         }
       },
       {
-        "ordinal": 4,
         "name": "race_key",
+        "ordinal": 4,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -59,8 +59,8 @@
         }
       },
       {
-        "ordinal": 5,
         "name": "name",
+        "ordinal": 5,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -70,8 +70,8 @@
         }
       },
       {
-        "ordinal": 6,
         "name": "guide",
+        "ordinal": 6,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -81,9 +81,9 @@
         }
       },
       {
+        "name": "ignores_prerequisites: bool",
         "ordinal": 7,
-        "name": "ignores_prerequisites",
-        "type_info": "Bool",
+        "type_info": "Integer",
         "origin": {
           "Table": {
             "table": "feat_list",
@@ -92,9 +92,9 @@
         }
       },
       {
+        "name": "every_feat: bool",
         "ordinal": 8,
-        "name": "every_feat",
-        "type_info": "Bool",
+        "type_info": "Integer",
         "origin": {
           "Table": {
             "table": "feat_list",
@@ -104,7 +104,7 @@
       }
     ],
     "parameters": {
-      "Left": []
+      "Right": 0
     },
     "nullable": [
       false,
@@ -118,5 +118,5 @@
       false
     ]
   },
-  "hash": "65d42505c19af5a6ee80abcbba7ca342b6789ccacd9d2a0e20d08781382123b3"
+  "hash": "7727a8717e4edaa25ea609b3371a99f6eaecb8cd1ff1b5b37b79be4f3eaf2161"
 }

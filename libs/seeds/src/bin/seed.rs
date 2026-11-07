@@ -1,15 +1,17 @@
 //! `cargo run -p seeds --bin seed [--check-only] [DIR]`
 //!
-//! Checks the `.ron` files under `DIR` (default: `$GAME_DATA_DIR`, or `libs/game-data/`),
-//! replaces every game table with them in one transaction, and stores the files' hash so the
-//! server can warn when the tables are stale. Runs pending migrations first. A running server keeps
-//! the game data it loaded at startup: restart it to serve the new data.
+//! Checks the `.ron` files under `DIR` (default: `$GAME_DATA_DIR`, or `libs/game-data/`), builds a new
+//! database from them (the migration, every table, the files' hash so the server can warn when the tables
+//! are stale, and a foreign key check naming every key the data lacks), and renames it over the database
+//! file (`$DATABASE_URL`, or `wotr-planner.db` at the repo root). A running server keeps the game data it
+//! loaded at startup: restart it to serve the new data.
 //!
-//! With `--check-only` it reads and checks the files (`GameData::check`) and never connects to
-//! Postgres, so any number can run at once. Keys that don't exist are caught only by a real seed.
+//! With `--check-only` it reads and checks the files (`GameData::check`) and never touches the
+//! database, so any number can run at once. Keys that don't exist are caught only by a real seed.
 
 use std::path::PathBuf;
 use std::process::ExitCode;
+use std::time::Instant;
 
 use rules::GameData;
 
@@ -44,30 +46,34 @@ async fn main() -> ExitCode {
     }
 
     dotenvy::dotenv().ok();
-    let Ok(url) = std::env::var("DATABASE_URL") else {
-        eprintln!("seed: DATABASE_URL must be set (see .env.example)");
-        return ExitCode::FAILURE;
-    };
-    let db = match seeds::Database::connect(&url).await {
-        Ok(db) => db,
+    let database = match seeds::database_path() {
+        Ok(database) => database,
         Err(error) => {
-            eprintln!("seed: connecting to Postgres: {error}");
+            eprintln!("seed: reading DATABASE_URL (see .env.example): {error}");
             return ExitCode::FAILURE;
         }
     };
 
-    let hash = match seeds::seed(&db, &dir).await {
+    let started = Instant::now();
+    let hash = match seeds::seed(&database, &dir).await {
         Ok(hash) => hash,
         Err(error) => {
             eprintln!("seed: {error}");
             return ExitCode::FAILURE;
         }
     };
-    match seeds::load_game_data(&db).await {
+    let seeded_in = started.elapsed();
+    let loaded = match seeds::Database::open(&database).await {
+        Ok(db) => seeds::load_game_data(&db).await,
+        Err(error) => Err(error),
+    };
+    match loaded {
         Ok(game_data) => {
             println!(
-                "seeded {} (hash {hash}): {}",
+                "seeded {} from {} in {} ms (hash {hash}): {}",
+                database.display(),
                 dir.display(),
+                seeded_in.as_millis(),
                 counts(&game_data)
             );
             ExitCode::SUCCESS

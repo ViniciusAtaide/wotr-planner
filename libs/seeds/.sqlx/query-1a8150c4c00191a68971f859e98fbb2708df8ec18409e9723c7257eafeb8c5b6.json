@@ -1,13 +1,10 @@
 {
-  "db_name": "PostgreSQL",
+  "db_name": "SQLite",
   "query": "INSERT INTO selection_option_feat (option_key, feat_key) VALUES ($1, $2)",
   "describe": {
     "columns": [],
     "parameters": {
-      "Left": [
-        "Text",
-        "Text"
-      ]
+      "Right": 2
     },
     "nullable": []
   },

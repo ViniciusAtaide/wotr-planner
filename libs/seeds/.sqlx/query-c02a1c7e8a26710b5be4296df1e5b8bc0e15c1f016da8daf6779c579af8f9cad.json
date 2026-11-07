@@ -1,12 +1,12 @@
 {
-  "db_name": "PostgreSQL",
+  "db_name": "SQLite",
   "query": "SELECT id, parent_id, kind, feat_key, mythic_feat_key, mythic_ability_key, class_key,\n                archetype_key, feature_key, selection_option_key, skill_key, race_key, weapon_key,\n                ability, spell_type, alignment, amount, spell_school, energy, armour_type, story,\n                selection_key, option_group\n            FROM prerequisite_node\n            ORDER BY id",
   "describe": {
     "columns": [
       {
-        "ordinal": 0,
         "name": "id",
-        "type_info": "Int8",
+        "ordinal": 0,
+        "type_info": "Integer",
         "origin": {
           "Table": {
             "table": "prerequisite_node",
@@ -15,9 +15,9 @@
         }
       },
       {
-        "ordinal": 1,
         "name": "parent_id",
-        "type_info": "Int8",
+        "ordinal": 1,
+        "type_info": "Integer",
         "origin": {
           "Table": {
             "table": "prerequisite_node",
@@ -26,8 +26,8 @@
         }
       },
       {
-        "ordinal": 2,
         "name": "kind",
+        "ordinal": 2,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -37,8 +37,8 @@
         }
       },
       {
-        "ordinal": 3,
         "name": "feat_key",
+        "ordinal": 3,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -48,8 +48,8 @@
         }
       },
       {
-        "ordinal": 4,
         "name": "mythic_feat_key",
+        "ordinal": 4,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -59,8 +59,8 @@
         }
       },
       {
-        "ordinal": 5,
         "name": "mythic_ability_key",
+        "ordinal": 5,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -70,8 +70,8 @@
         }
       },
       {
-        "ordinal": 6,
         "name": "class_key",
+        "ordinal": 6,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -81,8 +81,8 @@
         }
       },
       {
-        "ordinal": 7,
         "name": "archetype_key",
+        "ordinal": 7,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -92,8 +92,8 @@
         }
       },
       {
-        "ordinal": 8,
         "name": "feature_key",
+        "ordinal": 8,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -103,8 +103,8 @@
         }
       },
       {
-        "ordinal": 9,
         "name": "selection_option_key",
+        "ordinal": 9,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -114,8 +114,8 @@
         }
       },
       {
-        "ordinal": 10,
         "name": "skill_key",
+        "ordinal": 10,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -125,8 +125,8 @@
         }
       },
       {
-        "ordinal": 11,
         "name": "race_key",
+        "ordinal": 11,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -136,8 +136,8 @@
         }
       },
       {
-        "ordinal": 12,
         "name": "weapon_key",
+        "ordinal": 12,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -147,8 +147,8 @@
         }
       },
       {
-        "ordinal": 13,
         "name": "ability",
+        "ordinal": 13,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -158,8 +158,8 @@
         }
       },
       {
-        "ordinal": 14,
         "name": "spell_type",
+        "ordinal": 14,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -169,8 +169,8 @@
         }
       },
       {
-        "ordinal": 15,
         "name": "alignment",
+        "ordinal": 15,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -180,9 +180,9 @@
         }
       },
       {
-        "ordinal": 16,
         "name": "amount",
-        "type_info": "Int2",
+        "ordinal": 16,
+        "type_info": "Integer",
         "origin": {
           "Table": {
             "table": "prerequisite_node",
@@ -191,8 +191,8 @@
         }
       },
       {
-        "ordinal": 17,
         "name": "spell_school",
+        "ordinal": 17,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -202,8 +202,8 @@
         }
       },
       {
-        "ordinal": 18,
         "name": "energy",
+        "ordinal": 18,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -213,8 +213,8 @@
         }
       },
       {
-        "ordinal": 19,
         "name": "armour_type",
+        "ordinal": 19,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -224,8 +224,8 @@
         }
       },
       {
-        "ordinal": 20,
         "name": "story",
+        "ordinal": 20,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -235,8 +235,8 @@
         }
       },
       {
-        "ordinal": 21,
         "name": "selection_key",
+        "ordinal": 21,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -246,8 +246,8 @@
         }
       },
       {
-        "ordinal": 22,
         "name": "option_group",
+        "ordinal": 22,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -258,7 +258,7 @@
       }
     ],
     "parameters": {
-      "Left": []
+      "Right": 0
     },
     "nullable": [
       false,

@@ -1,60 +1,10 @@
 {
-  "db_name": "PostgreSQL",
+  "db_name": "SQLite",
   "query": "INSERT INTO selection_option (key, selection_key, name, summary, guide,\n                    prerequisite_root_id, chosen_feat_key, parameter, repeat, repeat_times, pool_key,\n                    replaces_row_of_key, option_group, arcana_key)\n                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)",
   "describe": {
     "columns": [],
     "parameters": {
-      "Left": [
-        {
-          "Custom": {
-            "name": "text_key",
-            "kind": {
-              "Domain": "Text"
-            }
-          }
-        },
-        "Text",
-        "Text",
-        "Text",
-        "Text",
-        "Int8",
-        "Text",
-        {
-          "Custom": {
-            "name": "parameter_kind",
-            "kind": {
-              "Domain": "Text"
-            }
-          }
-        },
-        {
-          "Custom": {
-            "name": "repeat_kind",
-            "kind": {
-              "Domain": "Text"
-            }
-          }
-        },
-        {
-          "Custom": {
-            "name": "u8",
-            "kind": {
-              "Domain": "Int2"
-            }
-          }
-        },
-        "Text",
-        "Text",
-        {
-          "Custom": {
-            "name": "option_group",
-            "kind": {
-              "Domain": "Text"
-            }
-          }
-        },
-        "Text"
-      ]
+      "Right": 14
     },
     "nullable": []
   },

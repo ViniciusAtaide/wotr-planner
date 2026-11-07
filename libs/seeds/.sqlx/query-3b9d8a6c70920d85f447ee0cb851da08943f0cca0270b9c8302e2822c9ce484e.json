@@ -1,64 +1,10 @@
 {
-  "db_name": "PostgreSQL",
+  "db_name": "SQLite",
   "query": "INSERT INTO mythic_feat\n                (key, name, group_name, summary, guide, prerequisite_root_id, parameter, repeat,\n                repeat_times, removes_racial_penalty, extra_pick)\n            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
   "describe": {
     "columns": [],
     "parameters": {
-      "Left": [
-        {
-          "Custom": {
-            "name": "text_key",
-            "kind": {
-              "Domain": "Text"
-            }
-          }
-        },
-        "Text",
-        {
-          "Custom": {
-            "name": "mythic_feat_group",
-            "kind": {
-              "Domain": "Text"
-            }
-          }
-        },
-        "Text",
-        "Text",
-        "Int8",
-        {
-          "Custom": {
-            "name": "parameter_kind",
-            "kind": {
-              "Domain": "Text"
-            }
-          }
-        },
-        {
-          "Custom": {
-            "name": "repeat_kind",
-            "kind": {
-              "Domain": "Text"
-            }
-          }
-        },
-        {
-          "Custom": {
-            "name": "u8",
-            "kind": {
-              "Domain": "Int2"
-            }
-          }
-        },
-        "Bool",
-        {
-          "Custom": {
-            "name": "mythic_extra_pick",
-            "kind": {
-              "Domain": "Text"
-            }
-          }
-        }
-      ]
+      "Right": 11
     },
     "nullable": []
   },

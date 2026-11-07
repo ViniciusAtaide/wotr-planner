@@ -1,6 +1,7 @@
-//! How `rules` values are stored in columns: enums as snake_case text, `u8`/`i8` as smallint.
+//! How `rules` values are stored in columns: enums as snake_case text, `u8`/`i8` as INTEGER.
 //!
-//! The text values match the domains and CHECK constraints in `migrations/20261031000000_game_data.sql`.
+//! The text values match the named column types and CHECK constraints in
+//! `migrations/20261031000000_game_data.sql`.
 
 use rules::{
     Ability, Advancement, Alignment, ArmourType, BabProgression, BackgroundGroup, Energy,
@@ -13,11 +14,11 @@ pub(crate) fn corrupt(message: impl Into<String>) -> sqlx::Error {
     sqlx::Error::Decode(message.into().into())
 }
 
-pub(crate) fn to_u8(value: i16, column: &str) -> Result<u8, sqlx::Error> {
+pub(crate) fn to_u8(value: i64, column: &str) -> Result<u8, sqlx::Error> {
     u8::try_from(value).map_err(|_| corrupt(format!("{column}: {value} is outside 0..=255")))
 }
 
-pub(crate) fn to_i8(value: i16, column: &str) -> Result<i8, sqlx::Error> {
+pub(crate) fn to_i8(value: i64, column: &str) -> Result<i8, sqlx::Error> {
     i8::try_from(value).map_err(|_| corrupt(format!("{column}: {value} is outside -128..=127")))
 }
 
@@ -206,7 +207,7 @@ pub(crate) fn repeat_columns(repeat: Repeat) -> (&'static str, Option<i16>) {
 }
 
 /// The [`Repeat`] in a `repeat` and a `repeat_times` column.
-pub(crate) fn repeat_from(repeat: &str, times: Option<i16>) -> Result<Repeat, sqlx::Error> {
+pub(crate) fn repeat_from(repeat: &str, times: Option<i64>) -> Result<Repeat, sqlx::Error> {
     Ok(match (repeat, times) {
         ("once", None) => Repeat::Once,
         ("times", Some(times)) => Repeat::Times(to_u8(times, "repeat_times")?),

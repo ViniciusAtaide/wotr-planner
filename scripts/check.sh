@@ -5,7 +5,8 @@
 #
 # Always: fmt, clippy (workspace and the frontend's wasm target), the workspace tests, the rules wasm build and the
 # seed's --check-only (the data files, no database).
-# --schema: also `cargo sqlx prepare --check`, after a change to the migration or a query (needs the database).
+# --schema: also `cargo sqlx prepare --check`, after a change to the migration or a query, against a new SQLite file
+#           migrated from libs/seeds/migrations (needs sqlx-cli with its `sqlite` feature, not the dev database).
 # --full:   also the cargo-leptos dev and release builds. They are slow and rarely break, so run them once at the end
 #           of a queue of tickets, not per ticket. The release build is made as it's served: --precompress.
 # Prints one line per step with its time, and ALL-OK at the end. Stops at the first failing step and shows its output.
@@ -17,13 +18,14 @@ for arg in "$@"; do
     case $arg in
     --schema) schema=true ;;
     --full) full=true ;;
-    *) sed -n '2,10p' "$0" | sed 's/^# \{0,1\}//' >&2 && exit 2 ;;
+    *) sed -n '2,11p' "$0" | sed 's/^# \{0,1\}//' >&2 && exit 2 ;;
     esac
 done
 
 cd "$(git -C "$(dirname "$0")" rev-parse --show-toplevel)"
 log=$(mktemp)
-trap 'rm -f "$log"' EXIT
+schema_dir=$(mktemp -d)
+trap 'rm -rf "$log" "$schema_dir"' EXIT
 
 # Runs `$2…` as step $1: quiet when it passes, its output when it fails.
 step() {
@@ -45,7 +47,9 @@ step test cargo test -q --workspace
 step rules-wasm cargo build -q -p rules --target wasm32-unknown-unknown
 step seed-check cargo run -q -p seeds --bin seed -- --check-only
 if $schema; then
-    step sqlx-prepare sh -c 'cd libs/seeds && cargo sqlx prepare --check'
+    schema_url=sqlite://$schema_dir/schema.db
+    step sqlx-migrate sh -c "sqlx database create -D '$schema_url' && sqlx migrate run -D '$schema_url' --source libs/seeds/migrations"
+    step sqlx-prepare sh -c "cd libs/seeds && cargo sqlx prepare --check -D '$schema_url'"
 fi
 if $full; then
     step leptos-dev env SQLX_OFFLINE=true cargo leptos build

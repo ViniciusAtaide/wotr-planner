@@ -1,38 +1,10 @@
 {
-  "db_name": "PostgreSQL",
+  "db_name": "SQLite",
   "query": "INSERT INTO selection_option_value\n                        (option_key, skill_key, weapon_key, spell_school, energy, armour_type)\n                    VALUES ($1, $2, $3, $4, $5, $6)",
   "describe": {
     "columns": [],
     "parameters": {
-      "Left": [
-        "Text",
-        "Text",
-        "Text",
-        {
-          "Custom": {
-            "name": "spell_school",
-            "kind": {
-              "Domain": "Text"
-            }
-          }
-        },
-        {
-          "Custom": {
-            "name": "energy",
-            "kind": {
-              "Domain": "Text"
-            }
-          }
-        },
-        {
-          "Custom": {
-            "name": "armour_type",
-            "kind": {
-              "Domain": "Text"
-            }
-          }
-        }
-      ]
+      "Right": 6
     },
     "nullable": []
   },

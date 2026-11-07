@@ -1,6 +1,8 @@
-//! Replacing every game table with the contents of a [`GameData`], in one transaction.
+//! Replacing the game data database with a new file holding a [`GameData`].
 
 use std::collections::{BTreeMap, BTreeSet};
+use std::fmt;
+use std::path::{Path, PathBuf};
 
 use rules::{
     AbilityBonus, AbilityModifier, Archetype, ArchetypeLevelRow, Background, Class, ClassLevelRow,
@@ -8,7 +10,8 @@ use rules::{
     FeatureSelection, FeatureSelectionKey, GameData, MythicPath, Race, SelectionOptionKey,
     SkillKey,
 };
-use sqlx::PgConnection;
+use sqlx::sqlite::{SqliteConnectOptions, SqlitePoolOptions};
+use sqlx::{AssertSqlSafe, Row, SqliteConnection};
 
 use crate::columns::{
     AbilityBonusKind, FeatSlotKind, ValueColumns, ability_bonus_kind_text, ability_text,
@@ -17,40 +20,170 @@ use crate::columns::{
     mythic_feat_group_text, option_group_text, parameter_kind_text, repeat_columns,
     save_progression_text, save_text, weapon_proficiency_text,
 };
-use crate::{Database, Error, prerequisites};
+use crate::{Error, MIGRATOR, prerequisites};
 
-/// Checks `data` ([`GameData::check`]), then deletes every game table's rows and loads `data` in
-/// their place, and records `hash` as the data the tables came from. Either all of it happens or
-/// none of it does; data with problems writes nothing.
-pub async fn replace_game_data(db: &Database, data: &GameData, hash: &str) -> Result<(), Error> {
+/// Checks `data` ([`GameData::check`]), then builds a new database next to `database` (its name plus `.new`):
+/// runs the migration, loads `data` and records `hash` as the data the tables came from, in one transaction
+/// that commits only when no foreign key fails (`PRAGMA foreign_key_check`, every failure reported), and
+/// renames the new file over `database`. Either all of it happens or none of it does: data with problems
+/// writes nothing, and the old database stays as it was. A running server keeps reading the file it opened.
+pub async fn replace_game_data(database: &Path, data: &GameData, hash: &str) -> Result<(), Error> {
     let problems = data.check();
     if !problems.is_empty() {
         return Err(Error::Invalid(problems));
     }
-    insert_all(db, data, hash).await?;
+    let mut name = database.as_os_str().to_owned();
+    name.push(".new");
+    let new = PathBuf::from(name);
+    // A seed that was killed may have left one behind.
+    remove_database_file(&new)?;
+    let replaced = match build(&new, data, hash).await {
+        Ok(()) => std::fs::rename(&new, database).map_err(|error| sqlx::Error::Io(error).into()),
+        Err(error) => Err(error),
+    };
+    if replaced.is_err() {
+        // Best effort: the error to report is the seed's.
+        let _ = remove_database_file(&new);
+    }
+    replaced
+}
+
+/// Removes a database file and the journal SQLite may have left beside it, if they exist.
+fn remove_database_file(path: &Path) -> Result<(), sqlx::Error> {
+    for suffix in ["", "-journal", "-wal", "-shm"] {
+        let mut name = path.as_os_str().to_owned();
+        name.push(suffix);
+        match std::fs::remove_file(PathBuf::from(name)) {
+            Err(error) if error.kind() != std::io::ErrorKind::NotFound => {
+                return Err(sqlx::Error::Io(error));
+            }
+            _ => {}
+        }
+    }
     Ok(())
 }
 
-async fn insert_all(db: &Database, data: &GameData, hash: &str) -> Result<(), sqlx::Error> {
-    let mut tx = db.pool().begin().await?;
-    let conn: &mut PgConnection = &mut tx;
+/// Creates the database at `path`, migrates it and loads `data` into it.
+async fn build(path: &Path, data: &GameData, hash: &str) -> Result<(), Error> {
+    let options = SqliteConnectOptions::new()
+        .filename(path)
+        .create_if_missing(true);
+    let pool = SqlitePoolOptions::new()
+        .max_connections(1)
+        .connect_with(options)
+        .await?;
+    let built = async {
+        MIGRATOR.run(&pool).await.map_err(sqlx::Error::from)?;
+        let mut tx = pool.begin().await?;
+        insert_all(&mut tx, data, hash).await?;
+        // The foreign keys are deferred, so a failing one would fail the commit with no more than
+        // "FOREIGN KEY constraint failed". Name every one instead, and roll back.
+        let missing = missing_references(&mut tx).await?;
+        if !missing.is_empty() {
+            return Err(Error::MissingReferences(missing));
+        }
+        tx.commit().await?;
+        Ok(())
+    }
+    .await;
+    pool.close().await;
+    built
+}
 
-    // Every foreign key is deferred, so the order of the inserts below doesn't matter to them.
-    sqlx::query!(
-        "TRUNCATE game_data_seed, mythic_ascension, prerequisite_node, skill, weapon, race, subrace,
-            ability_modifier, feat, class, save_exception, class_counts_as, archetype, class_skill, mythic_ability,
-            mythic_feat,
-            mythic_path, path_switch, path_switch_from, path_switch_drop, path_switch_feature,
-            feature, feature_ability_bonus, feature_selection, selection_level_class,
-            selection_skipped_level, selection_option, selection_option_value, selection_option_feat,
-            selection_shared_option, feat_extra_pick,
-            option_level, feat_list, feat_list_member, class_level, mythic_rank, granted_feature,
-            granted_selection, granted_feat, option_level_chosen_feat, feat_slot, background
-        RESTART IDENTITY"
-    )
-    .execute(&mut *conn)
-    .await?;
+/// A row whose foreign key names a key its parent table doesn't have.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct MissingReference {
+    pub table: String,
+    pub rowid: i64,
+    /// The foreign key's columns and their values, as SQL literals (`'power-attack'`, `12`).
+    pub columns: Vec<(String, String)>,
+    /// The table and columns it refers to.
+    pub parent: String,
+    pub parent_columns: Vec<String>,
+}
 
+impl fmt::Display for MissingReference {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let list = |items: Vec<&str>| match items.as_slice() {
+            [one] => (*one).to_owned(),
+            many => format!("({})", many.join(", ")),
+        };
+        write!(
+            f,
+            "{} row {}: {} {} is not in {} {}",
+            self.table,
+            self.rowid,
+            list(self.columns.iter().map(|(name, _)| name.as_str()).collect()),
+            list(
+                self.columns
+                    .iter()
+                    .map(|(_, value)| value.as_str())
+                    .collect()
+            ),
+            self.parent,
+            list(self.parent_columns.iter().map(String::as_str).collect()),
+        )
+    }
+}
+
+/// Every foreign key that fails (`PRAGMA foreign_key_check`), with the values it names.
+async fn missing_references(
+    conn: &mut SqliteConnection,
+) -> Result<Vec<MissingReference>, sqlx::Error> {
+    // (table, rowid, parent, the foreign key's id in `pragma_foreign_key_list(table)`).
+    let failures: Vec<(String, i64, String, i64)> =
+        sqlx::query_as("SELECT \"table\", rowid, parent, fkid FROM pragma_foreign_key_check")
+            .fetch_all(&mut *conn)
+            .await?;
+    let mut missing = Vec::with_capacity(failures.len());
+    for (table, rowid, parent, fkid) in failures {
+        let pairs: Vec<(String, String)> = sqlx::query_as(
+            "SELECT \"from\", \"to\" FROM pragma_foreign_key_list(?1) WHERE id = ?2 ORDER BY seq",
+        )
+        .bind(&table)
+        .bind(fkid)
+        .fetch_all(&mut *conn)
+        .await?;
+        // The names come from SQLite's own catalogue, quoted as identifiers.
+        let quoted = |name: &str| format!("\"{}\"", name.replace('"', "\"\""));
+        let select = format!(
+            "SELECT {} FROM {} WHERE rowid = ?1",
+            pairs
+                .iter()
+                .map(|(from, _)| format!("quote({})", quoted(from)))
+                .collect::<Vec<_>>()
+                .join(", "),
+            quoted(&table),
+        );
+        let row = sqlx::query(AssertSqlSafe(select))
+            .bind(rowid)
+            .fetch_one(&mut *conn)
+            .await?;
+        let values = (0..pairs.len())
+            .map(|i| row.try_get::<String, _>(i))
+            .collect::<Result<Vec<_>, _>>()?;
+        missing.push(MissingReference {
+            columns: pairs
+                .iter()
+                .map(|(from, _)| from.clone())
+                .zip(values)
+                .collect(),
+            parent_columns: pairs.into_iter().map(|(_, to)| to).collect(),
+            table,
+            rowid,
+            parent,
+        });
+    }
+    Ok(missing)
+}
+
+/// Inserts every row into the new, empty tables. Every foreign key is deferred, so the order of the inserts
+/// doesn't matter to them.
+async fn insert_all(
+    conn: &mut SqliteConnection,
+    data: &GameData,
+    hash: &str,
+) -> Result<(), sqlx::Error> {
     insert_mythic_ascensions(conn, data).await?;
     for skill in data.skills.iter() {
         sqlx::query!(
@@ -161,11 +294,11 @@ async fn insert_all(db: &Database, data: &GameData, hash: &str) -> Result<(), sq
     sqlx::query!("INSERT INTO game_data_seed (hash) VALUES ($1)", hash)
         .execute(&mut *conn)
         .await?;
-    tx.commit().await
+    Ok(())
 }
 
 async fn insert_mythic_ascensions(
-    conn: &mut PgConnection,
+    conn: &mut SqliteConnection,
     data: &GameData,
 ) -> Result<(), sqlx::Error> {
     for ascension in data.progression.mythic_ascensions.iter() {
@@ -180,7 +313,7 @@ async fn insert_mythic_ascensions(
     Ok(())
 }
 
-async fn insert_race(conn: &mut PgConnection, race: &Race) -> Result<(), sqlx::Error> {
+async fn insert_race(conn: &mut SqliteConnection, race: &Race) -> Result<(), sqlx::Error> {
     sqlx::query!(
         "INSERT INTO race (key, name, summary, guide) VALUES ($1, $2, $3, $4)",
         race.key.as_str(),
@@ -224,7 +357,7 @@ async fn insert_race(conn: &mut PgConnection, race: &Race) -> Result<(), sqlx::E
 }
 
 async fn insert_ability_modifiers(
-    conn: &mut PgConnection,
+    conn: &mut SqliteConnection,
     race_key: Option<&str>,
     subrace_key: Option<&str>,
     modifiers: &[AbilityModifier],
@@ -285,7 +418,7 @@ impl<'a> Owner<'a> {
 }
 
 async fn insert_class(
-    conn: &mut PgConnection,
+    conn: &mut SqliteConnection,
     class: &Class,
     is_prestige: bool,
 ) -> Result<(), sqlx::Error> {
@@ -353,7 +486,7 @@ async fn insert_class(
 }
 
 async fn insert_archetype(
-    conn: &mut PgConnection,
+    conn: &mut SqliteConnection,
     class: &Class,
     archetype: &Archetype,
 ) -> Result<(), sqlx::Error> {
@@ -389,7 +522,7 @@ async fn insert_archetype(
 
 /// A background, its class skills and its granted feats.
 async fn insert_background(
-    conn: &mut PgConnection,
+    conn: &mut SqliteConnection,
     background: &Background,
 ) -> Result<(), sqlx::Error> {
     let key = background.key.as_str();
@@ -417,7 +550,7 @@ async fn insert_background(
 }
 
 async fn insert_class_skills(
-    conn: &mut PgConnection,
+    conn: &mut SqliteConnection,
     owner: ClassOwner<'_>,
     skills: &BTreeSet<SkillKey>,
 ) -> Result<(), sqlx::Error> {
@@ -436,7 +569,7 @@ async fn insert_class_skills(
 }
 
 async fn insert_features(
-    conn: &mut PgConnection,
+    conn: &mut SqliteConnection,
     owner: Owner<'_>,
     features: &[Feature],
 ) -> Result<(), sqlx::Error> {
@@ -491,7 +624,7 @@ async fn insert_features(
 }
 
 async fn insert_selections(
-    conn: &mut PgConnection,
+    conn: &mut SqliteConnection,
     owner: Owner<'_>,
     selections: &[FeatureSelection],
 ) -> Result<(), sqlx::Error> {
@@ -573,7 +706,7 @@ async fn insert_selections(
                 let id = sqlx::query_scalar!(
                     "INSERT INTO option_level (option_key, level, feat_list_key)
                     VALUES ($1, $2, $3)
-                    RETURNING id",
+                    RETURNING id AS \"id!\"",
                     option.key.as_str(),
                     i16::from(row.level),
                     row.feat_list.as_ref().map(FeatListKey::as_str),
@@ -643,7 +776,7 @@ async fn insert_selections(
 }
 
 async fn insert_feat_lists(
-    conn: &mut PgConnection,
+    conn: &mut SqliteConnection,
     owner: Owner<'_>,
     lists: &[FeatList],
 ) -> Result<(), sqlx::Error> {
@@ -680,7 +813,7 @@ async fn insert_feat_lists(
 }
 
 async fn insert_levels(
-    conn: &mut PgConnection,
+    conn: &mut SqliteConnection,
     owner: ClassOwner<'_>,
     levels: &[ClassLevelRow],
 ) -> Result<(), sqlx::Error> {
@@ -689,7 +822,7 @@ async fn insert_levels(
             "INSERT INTO class_level (class_key, archetype_key, level, arcane_spell_level,
                 divine_spell_level, advances_arcane, advances_divine)
             VALUES ($1, $2, $3, $4, $5, $6, $7)
-            RETURNING id",
+            RETURNING id AS \"id!\"",
             owner.class,
             owner.archetype,
             i16::from(row.level),
@@ -712,7 +845,7 @@ async fn insert_levels(
 /// A class level's or a background's feats granted for one value: `granted_feat` rows with their value column
 /// set.
 async fn insert_granted_feats_for(
-    conn: &mut PgConnection,
+    conn: &mut SqliteConnection,
     owner: SlotOwner<'_>,
     feats: &BTreeSet<FeatValue>,
 ) -> Result<(), sqlx::Error> {
@@ -740,7 +873,7 @@ async fn insert_granted_feats_for(
 
 /// A class level's, an option level's or a background's granted feats.
 async fn insert_granted_feats(
-    conn: &mut PgConnection,
+    conn: &mut SqliteConnection,
     owner: SlotOwner<'_>,
     feats: &BTreeSet<FeatKey>,
 ) -> Result<(), sqlx::Error> {
@@ -762,7 +895,7 @@ async fn insert_granted_feats(
 
 /// An archetype's rows: spell levels only where it sets its own, and no advances flags.
 async fn insert_archetype_levels(
-    conn: &mut PgConnection,
+    conn: &mut SqliteConnection,
     owner: ClassOwner<'_>,
     levels: &[ArchetypeLevelRow],
 ) -> Result<(), sqlx::Error> {
@@ -771,7 +904,7 @@ async fn insert_archetype_levels(
             "INSERT INTO class_level (class_key, archetype_key, level, arcane_spell_level,
                 divine_spell_level)
             VALUES ($1, $2, $3, $4, $5)
-            RETURNING id",
+            RETURNING id AS \"id!\"",
             owner.class,
             owner.archetype,
             i16::from(row.level),
@@ -789,7 +922,10 @@ async fn insert_archetype_levels(
     Ok(())
 }
 
-async fn insert_mythic_path(conn: &mut PgConnection, path: &MythicPath) -> Result<(), sqlx::Error> {
+async fn insert_mythic_path(
+    conn: &mut SqliteConnection,
+    path: &MythicPath,
+) -> Result<(), sqlx::Error> {
     sqlx::query!(
         "INSERT INTO mythic_path (key, name, summary, guide) VALUES ($1, $2, $3, $4)",
         path.key.as_str(),
@@ -859,7 +995,7 @@ async fn insert_mythic_path(conn: &mut PgConnection, path: &MythicPath) -> Resul
     insert_feat_lists(conn, owner, &path.feat_lists).await?;
     for row in path.ranks.iter() {
         let id = sqlx::query_scalar!(
-            "INSERT INTO mythic_rank (path_key, rank) VALUES ($1, $2) RETURNING id",
+            "INSERT INTO mythic_rank (path_key, rank) VALUES ($1, $2) RETURNING id AS \"id!\"",
             path.key.as_str(),
             i16::from(row.rank),
         )
@@ -942,7 +1078,7 @@ fn counted<'a>(keys: impl IntoIterator<Item = &'a str>) -> BTreeMap<&'a str, i16
 
 /// A row's granted features and selections, one table row per distinct key with its count.
 async fn insert_grants(
-    conn: &mut PgConnection,
+    conn: &mut SqliteConnection,
     owner: SlotOwner<'_>,
     features: &[FeatureKey],
     selections: &[FeatureSelectionKey],
@@ -982,7 +1118,7 @@ async fn insert_grants(
 }
 
 async fn insert_feat_slots(
-    conn: &mut PgConnection,
+    conn: &mut SqliteConnection,
     owner: SlotOwner<'_>,
     slots: &[FeatSlot],
 ) -> Result<(), sqlx::Error> {

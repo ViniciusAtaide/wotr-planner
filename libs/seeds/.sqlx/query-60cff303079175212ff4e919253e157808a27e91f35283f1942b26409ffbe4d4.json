@@ -1,11 +1,11 @@
 {
-  "db_name": "PostgreSQL",
-  "query": "SELECT key, class_key, name, summary, guide, prerequisite_root_id, skill_points,\n            overrides_class_skills, spontaneous\n        FROM archetype ORDER BY key",
+  "db_name": "SQLite",
+  "query": "SELECT key, class_key, name, summary, guide, prerequisite_root_id, skill_points,\n            overrides_class_skills AS \"overrides_class_skills: bool\", spontaneous AS \"spontaneous: bool\"\n        FROM archetype ORDER BY key",
   "describe": {
     "columns": [
       {
-        "ordinal": 0,
         "name": "key",
+        "ordinal": 0,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -15,8 +15,8 @@
         }
       },
       {
-        "ordinal": 1,
         "name": "class_key",
+        "ordinal": 1,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -26,8 +26,8 @@
         }
       },
       {
-        "ordinal": 2,
         "name": "name",
+        "ordinal": 2,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -37,8 +37,8 @@
         }
       },
       {
-        "ordinal": 3,
         "name": "summary",
+        "ordinal": 3,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -48,8 +48,8 @@
         }
       },
       {
-        "ordinal": 4,
         "name": "guide",
+        "ordinal": 4,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -59,9 +59,9 @@
         }
       },
       {
-        "ordinal": 5,
         "name": "prerequisite_root_id",
-        "type_info": "Int8",
+        "ordinal": 5,
+        "type_info": "Integer",
         "origin": {
           "Table": {
             "table": "archetype",
@@ -70,9 +70,9 @@
         }
       },
       {
-        "ordinal": 6,
         "name": "skill_points",
-        "type_info": "Int2",
+        "ordinal": 6,
+        "type_info": "Integer",
         "origin": {
           "Table": {
             "table": "archetype",
@@ -81,9 +81,9 @@
         }
       },
       {
+        "name": "overrides_class_skills: bool",
         "ordinal": 7,
-        "name": "overrides_class_skills",
-        "type_info": "Bool",
+        "type_info": "Integer",
         "origin": {
           "Table": {
             "table": "archetype",
@@ -92,9 +92,9 @@
         }
       },
       {
+        "name": "spontaneous: bool",
         "ordinal": 8,
-        "name": "spontaneous",
-        "type_info": "Bool",
+        "type_info": "Integer",
         "origin": {
           "Table": {
             "table": "archetype",
@@ -104,7 +104,7 @@
       }
     ],
     "parameters": {
-      "Left": []
+      "Right": 0
     },
     "nullable": [
       false,
@@ -118,5 +118,5 @@
       true
     ]
   },
-  "hash": "2a156dde66eb19954c91b3dcc27a0f02ad4c98906696506c7fbe2fc6f5ebb043"
+  "hash": "60cff303079175212ff4e919253e157808a27e91f35283f1942b26409ffbe4d4"
 }

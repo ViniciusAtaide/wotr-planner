@@ -1,22 +1,10 @@
 {
-  "db_name": "PostgreSQL",
+  "db_name": "SQLite",
   "query": "INSERT INTO background (key, name, background_group, note) VALUES ($1, $2, $3, $4)",
   "describe": {
     "columns": [],
     "parameters": {
-      "Left": [
-        {
-          "Custom": {
-            "name": "text_key",
-            "kind": {
-              "Domain": "Text"
-            }
-          }
-        },
-        "Text",
-        "Text",
-        "Text"
-      ]
+      "Right": 4
     },
     "nullable": []
   },

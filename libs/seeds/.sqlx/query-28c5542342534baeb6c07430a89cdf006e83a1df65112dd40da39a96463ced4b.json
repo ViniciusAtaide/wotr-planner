@@ -1,11 +1,11 @@
 {
-  "db_name": "PostgreSQL",
+  "db_name": "SQLite",
   "query": "SELECT key, name, category, summary, guide, prerequisite_root_id, parameter, repeat,\n            repeat_times\n        FROM feat ORDER BY key",
   "describe": {
     "columns": [
       {
-        "ordinal": 0,
         "name": "key",
+        "ordinal": 0,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -15,8 +15,8 @@
         }
       },
       {
-        "ordinal": 1,
         "name": "name",
+        "ordinal": 1,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -26,8 +26,8 @@
         }
       },
       {
-        "ordinal": 2,
         "name": "category",
+        "ordinal": 2,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -37,8 +37,8 @@
         }
       },
       {
-        "ordinal": 3,
         "name": "summary",
+        "ordinal": 3,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -48,8 +48,8 @@
         }
       },
       {
-        "ordinal": 4,
         "name": "guide",
+        "ordinal": 4,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -59,9 +59,9 @@
         }
       },
       {
-        "ordinal": 5,
         "name": "prerequisite_root_id",
-        "type_info": "Int8",
+        "ordinal": 5,
+        "type_info": "Integer",
         "origin": {
           "Table": {
             "table": "feat",
@@ -70,8 +70,8 @@
         }
       },
       {
-        "ordinal": 6,
         "name": "parameter",
+        "ordinal": 6,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -81,8 +81,8 @@
         }
       },
       {
-        "ordinal": 7,
         "name": "repeat",
+        "ordinal": 7,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -92,9 +92,9 @@
         }
       },
       {
-        "ordinal": 8,
         "name": "repeat_times",
-        "type_info": "Int2",
+        "ordinal": 8,
+        "type_info": "Integer",
         "origin": {
           "Table": {
             "table": "feat",
@@ -104,7 +104,7 @@
       }
     ],
     "parameters": {
-      "Left": []
+      "Right": 0
     },
     "nullable": [
       false,

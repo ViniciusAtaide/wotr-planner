@@ -1,22 +1,10 @@
 {
-  "db_name": "PostgreSQL",
+  "db_name": "SQLite",
   "query": "INSERT INTO ability_modifier (race_key, subrace_key, ability, amount)\n            VALUES ($1, $2, $3, $4)",
   "describe": {
     "columns": [],
     "parameters": {
-      "Left": [
-        "Text",
-        "Text",
-        {
-          "Custom": {
-            "name": "ability",
-            "kind": {
-              "Domain": "Text"
-            }
-          }
-        },
-        "Int2"
-      ]
+      "Right": 4
     },
     "nullable": []
   },

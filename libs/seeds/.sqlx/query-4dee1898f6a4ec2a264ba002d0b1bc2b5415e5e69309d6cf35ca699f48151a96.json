@@ -1,28 +1,10 @@
 {
-  "db_name": "PostgreSQL",
+  "db_name": "SQLite",
   "query": "INSERT INTO skill (key, name, ability) VALUES ($1, $2, $3)",
   "describe": {
     "columns": [],
     "parameters": {
-      "Left": [
-        {
-          "Custom": {
-            "name": "text_key",
-            "kind": {
-              "Domain": "Text"
-            }
-          }
-        },
-        "Text",
-        {
-          "Custom": {
-            "name": "ability",
-            "kind": {
-              "Domain": "Text"
-            }
-          }
-        }
-      ]
+      "Right": 3
     },
     "nullable": []
   },

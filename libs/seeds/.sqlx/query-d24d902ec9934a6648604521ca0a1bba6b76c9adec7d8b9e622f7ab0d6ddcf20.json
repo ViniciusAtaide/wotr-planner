@@ -1,11 +1,11 @@
 {
-  "db_name": "PostgreSQL",
-  "query": "SELECT key, is_prestige, name, summary, guide, skill_points, bab, fort, reflex, will,\n            advances, spontaneous, prerequisite_root_id\n        FROM class ORDER BY key",
+  "db_name": "SQLite",
+  "query": "SELECT key, is_prestige AS \"is_prestige: bool\", name, summary, guide, skill_points, bab, fort,\n            reflex, will, advances, spontaneous AS \"spontaneous: bool\", prerequisite_root_id\n        FROM class ORDER BY key",
   "describe": {
     "columns": [
       {
-        "ordinal": 0,
         "name": "key",
+        "ordinal": 0,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -15,9 +15,9 @@
         }
       },
       {
+        "name": "is_prestige: bool",
         "ordinal": 1,
-        "name": "is_prestige",
-        "type_info": "Bool",
+        "type_info": "Integer",
         "origin": {
           "Table": {
             "table": "class",
@@ -26,8 +26,8 @@
         }
       },
       {
-        "ordinal": 2,
         "name": "name",
+        "ordinal": 2,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -37,8 +37,8 @@
         }
       },
       {
-        "ordinal": 3,
         "name": "summary",
+        "ordinal": 3,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -48,8 +48,8 @@
         }
       },
       {
-        "ordinal": 4,
         "name": "guide",
+        "ordinal": 4,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -59,9 +59,9 @@
         }
       },
       {
-        "ordinal": 5,
         "name": "skill_points",
-        "type_info": "Int2",
+        "ordinal": 5,
+        "type_info": "Integer",
         "origin": {
           "Table": {
             "table": "class",
@@ -70,8 +70,8 @@
         }
       },
       {
-        "ordinal": 6,
         "name": "bab",
+        "ordinal": 6,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -81,8 +81,8 @@
         }
       },
       {
-        "ordinal": 7,
         "name": "fort",
+        "ordinal": 7,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -92,8 +92,8 @@
         }
       },
       {
-        "ordinal": 8,
         "name": "reflex",
+        "ordinal": 8,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -103,8 +103,8 @@
         }
       },
       {
-        "ordinal": 9,
         "name": "will",
+        "ordinal": 9,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -114,8 +114,8 @@
         }
       },
       {
-        "ordinal": 10,
         "name": "advances",
+        "ordinal": 10,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -125,9 +125,9 @@
         }
       },
       {
+        "name": "spontaneous: bool",
         "ordinal": 11,
-        "name": "spontaneous",
-        "type_info": "Bool",
+        "type_info": "Integer",
         "origin": {
           "Table": {
             "table": "class",
@@ -136,9 +136,9 @@
         }
       },
       {
-        "ordinal": 12,
         "name": "prerequisite_root_id",
-        "type_info": "Int8",
+        "ordinal": 12,
+        "type_info": "Integer",
         "origin": {
           "Table": {
             "table": "class",
@@ -148,7 +148,7 @@
       }
     ],
     "parameters": {
-      "Left": []
+      "Right": 0
     },
     "nullable": [
       false,
@@ -166,5 +166,5 @@
       true
     ]
   },
-  "hash": "4384a41ec07ff40915f0ddc54b91d3d353e76fa32cbdd53c376bb8157819e6c5"
+  "hash": "d24d902ec9934a6648604521ca0a1bba6b76c9adec7d8b9e622f7ab0d6ddcf20"
 }

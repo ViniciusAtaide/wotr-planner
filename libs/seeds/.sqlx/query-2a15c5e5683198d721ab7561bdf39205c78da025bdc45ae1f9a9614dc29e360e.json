@@ -1,13 +1,10 @@
 {
-  "db_name": "PostgreSQL",
+  "db_name": "SQLite",
   "query": "INSERT INTO class_skill (option_level_id, skill_key) VALUES ($1, $2)",
   "describe": {
     "columns": [],
     "parameters": {
-      "Left": [
-        "Int8",
-        "Text"
-      ]
+      "Right": 2
     },
     "nullable": []
   },
