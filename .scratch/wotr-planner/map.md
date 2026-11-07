@@ -11,7 +11,7 @@ A working, locally run Leptos app at `~/code/wotr-planner` for planning Pathfind
 - **This map includes building the app**, not just planning it. Tickets may build things, not only decide them.
 - **Stack:**
   - cargo-leptos SSR on Axum, using a dated nightly pinned in `rust-toolchain.toml`.
-  - SQLite on the server only, one git-ignored file (`wotr-planner.db`, `DATABASE_URL`); no Docker and no database server (user, 2026-11-06, [ticket 85](issues/85-sqlite-instead-of-postgres.md)). The browser gets the game data as JSON. Local only.
+  - SQLite on the server only, one git-ignored file (`wotr-planner.db`, `DATABASE_URL`); no Docker and no database server (user, 2026-11-06, [ticket 85](issues/85-sqlite-instead-of-postgres.md)). The browser gets the game data as JSON. Local only. Dropping the database for the server reading `libs/game-data/` directly was considered and declined: SQLite stays for now (user, 2026-11-06).
   - sqlx with typed serde structs.
 - **Game data:**
   - The source of truth is the checked-in data files (user, 2026-11-03, [ticket 75](issues/75-game-data-master.md)). They were extracted from the guide and are corrected by hand; the extractor was removed once the files held all it knew (tickets 81–82). A data change edits the `.ron` files, adds a note to `libs/game-data/README.md` and adds a real-data test in `libs/seeds/tests/game_data/`.
