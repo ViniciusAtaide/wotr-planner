@@ -44,8 +44,12 @@ _Avoid_: Archetype level, entry choice
 Everything chosen at one mythic rank: a mythic ability or mythic feat, plus any path-specific picks. It happens at a fixed character level.
 _Avoid_: Mythic level-up, tier-up
 
+**First ascension**:
+The choice at MR 1 of one path's path-linked ability: its MR 1 row (Aeon's Force Reality, Angel's Close to the Heavens, Azata's Instrument of Freedom, Demon's Close to the Abyss, Lich's Danse Macabre, Trickster's Bit of Fun, each with the fixed Bypass Epic Damage Reduction). MR 2 has no pick: it holds that path's MR 2 row, the ability's follow-ups and the fixed Hard to Kill. It doesn't commit the character to that path: the Mythic path at MR 3 is chosen on its own. A Build without one takes its Mythic path's.
+_Avoid_: First path, MR 1 path
+
 **Mythic path**:
-The path chosen at MR 3 (Aeon, Angel, Azata, Demon, Lich, Trickster). Choosing it grants its MR 1 and 2 rows too, shown at those ranks and held from the MR 3 ascension on, so a pick before MR 3 can't rely on them.
+The path chosen at MR 3 (Aeon, Angel, Azata, Demon, Lich, Trickster). Its rows give from MR 3 on; MR 1 and 2 hold the First ascension's rows, which are this path's when the Build has no first ascension of its own.
 _Avoid_: Mythic class
 
 **Path switch**:
@@ -187,7 +191,7 @@ The one planning screen and its summary: a grid with a row per character level a
 _Avoid_: Level-up screen, summary page, character sheet
 
 **Mythic track**:
-The sheet's tab for Mythic ranks 1–10 at their fixed character levels, with the path at MR 3 and any Path switch at MR 8. MR 1 and 2 show the path chosen at MR 3. A rank is reached, partly dropped by a switch (its general pick or the old path's grants lost, or a grant the switch drops by name), dropped (both lost), or never reached; the picks a switch took away are marked lost from the switch on, and an empty slot of such a rank can still be filled (it is held until the switch). A rank the Build doesn't reach holds no picks: Remove level and a switch that ends the ascensions (Legend: MR 8 to 10) drop them, and Remove level drops the path or the switch with its rank.
+The sheet's tab for Mythic ranks 1–10 at their fixed character levels, with the First ascension at MR 1, the path at MR 3 and any Path switch at MR 8, and under each rank the features its path row gives. MR 1 and 2 show the first ascension's path and rows. A rank is reached, partly dropped by a switch (its general pick or the old path's grants lost, or a grant the switch drops by name), dropped (both lost), or never reached; the picks a switch took away are marked lost from the switch on, and an empty slot of such a rank can still be filled (it is held until the switch). A rank the Build doesn't reach holds no picks: Remove level and a switch that ends the ascensions (Legend: MR 8 to 10) drop them, and Remove level drops the path or the switch with its rank.
 _Avoid_: Mythic tab, mythic levels
 
 **Stale link**:

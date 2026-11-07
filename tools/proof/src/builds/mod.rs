@@ -68,6 +68,7 @@ pub fn own(engine: &Engine, data: &GameData) -> Vec<Named> {
         *build = faithful(engine, data, std::mem::take(build));
     }
     builds.extend(classes::deities(engine, data));
+    builds.extend(mythic::first_ascensions());
     builds
 }
 

@@ -29,42 +29,26 @@ pub fn bench_builds(engine: &Engine) -> Vec<Named> {
         .collect()
 }
 
-/// A Build as JSON: its fields, with the picks as `[slot, pick]` pairs (JSON maps need text keys).
-fn build_json(build: &Build) -> Value {
-    let Build {
-        name,
-        start,
-        levels,
-        class_choices,
-        mythic_path,
-        path_switch,
-        picks,
-    } = build;
-    json!({
-        "name": name,
-        "start": start,
-        "levels": levels,
-        "class_choices": class_choices,
-        "mythic_path": mythic_path,
-        "path_switch": path_switch,
-        "picks": picks.iter().collect::<Vec<_>>(),
-    })
+/// A Build as JSON: its fields through serde (so a field a revision adds, such as ticket 91's first ascension, comes
+/// along without the harness naming it), with the picks as `[slot, pick]` pairs (JSON maps need text keys).
+pub(crate) fn build_json(build: &Build) -> Value {
+    let mut without_picks = build.clone();
+    without_picks.picks.clear();
+    let mut value = serde_json::to_value(&without_picks).expect("a Build serialises");
+    value["picks"] = json!(build.picks.iter().collect::<Vec<_>>());
+    value
 }
 
-fn build_from_json(value: Value) -> Result<Build, serde_json::Error> {
-    let field = |key: &str| value.get(key).cloned().unwrap_or(Value::Null);
-    let picks: Vec<(rules::SlotId, rules::Pick)> = serde_json::from_value(field("picks"))?;
-    let class_choices: BTreeMap<rules::ClassKey, rules::ClassChoice> =
-        serde_json::from_value(field("class_choices"))?;
-    Ok(Build {
-        name: serde_json::from_value(field("name"))?,
-        start: serde_json::from_value(field("start"))?,
-        levels: serde_json::from_value(field("levels"))?,
-        class_choices,
-        mythic_path: serde_json::from_value(field("mythic_path"))?,
-        path_switch: serde_json::from_value(field("path_switch"))?,
-        picks: picks.into_iter().collect(),
-    })
+/// A Build from [`build_json`]'s JSON. A field this revision's Build doesn't have (the first ascension, on a side
+/// before ticket 91) is left out, so that side reads the Build without it.
+pub(crate) fn build_from_json(value: Value) -> Result<Build, serde_json::Error> {
+    let mut value = value;
+    let picks: Vec<(rules::SlotId, rules::Pick)> =
+        serde_json::from_value(value.get("picks").cloned().unwrap_or(Value::Null))?;
+    value["picks"] = json!({});
+    let mut build: Build = serde_json::from_value(value)?;
+    build.picks = picks.into_iter().collect::<BTreeMap<_, _>>();
+    Ok(build)
 }
 
 /// The Builds as a JSON file, one `name<TAB>json` line each.

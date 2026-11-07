@@ -37,6 +37,8 @@ use catalog::Catalog;
 
 /// The highest character level without a path that raises it.
 pub const BASE_LEVEL_CAP: u8 = 20;
+/// The Mythic rank of the first ascension, where the path-linked ability is chosen.
+pub const FIRST_ASCENSION_RANK: u8 = 1;
 /// The Mythic rank at which the path is chosen.
 pub const PATH_CHOICE_RANK: u8 = 3;
 /// The Mythic rank at which a Path switch can happen.
@@ -317,8 +319,9 @@ pub struct RankSheet {
     /// The fixed character level of this rank's Mythic ascension.
     pub character_level: u8,
     pub status: RankStatus,
-    /// The path whose row this rank gives: the path in force from MR 3. MR 1 and 2 show the path chosen at MR 3
-    /// once it's chosen, since choosing it grants their rows (held from MR 3 on); before that, none.
+    /// The path whose row this rank gives: the path in force from MR 3. MR 1 and 2 show the first ascension's path
+    /// ([`Build::first_ascension`](crate::Build::first_ascension)), or without one, the path chosen at MR 3 once the
+    /// Build reaches it; before that, none.
     pub path: Option<MythicPathKey>,
     /// The general mythic pick, then the path's picks. Empty when not reached.
     pub slots: Vec<Slot>,

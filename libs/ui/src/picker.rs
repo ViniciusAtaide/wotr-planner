@@ -9,8 +9,9 @@ use std::time::Duration;
 
 use leptos::prelude::*;
 use rules::{
-    Ability, AbilityScores, Alignment, Build, BuildStart, Choice, ClassOption, Edit, Engine, Faith,
-    Issue, PATH_CHOICE_RANK, PATH_SWITCH_RANK, Pick, SlotId, SlotOption,
+    Ability, AbilityScores, Alignment, Build, BuildStart, Choice, ClassOption, Edit, Engine,
+    FIRST_ASCENSION_RANK, Faith, Issue, PATH_CHOICE_RANK, PATH_SWITCH_RANK, Pick, SlotId,
+    SlotOption,
 };
 
 use crate::planner::{Target, use_planner};
@@ -68,6 +69,7 @@ fn body(target: Target) -> AnyView {
     match target {
         Target::Slot(id) => view! { <SlotPicker id/> }.into_any(),
         Target::Class(level) => view! { <ClassPicker level/> }.into_any(),
+        Target::FirstAscension => view! { <FirstAscensionPicker/> }.into_any(),
         Target::Path => view! { <PathPicker switch=false/> }.into_any(),
         Target::Switch => view! { <PathPicker switch=true/> }.into_any(),
         Target::Race => view! { <RacePicker/> }.into_any(),
@@ -710,6 +712,68 @@ fn Advances(level: u8, option: ClassOption) -> impl IntoView {
                 planner.close();
                 let build = planner.build.get_untracked();
                 planner.edit(engine.class_edit(&build, level, &option, Some(advances)));
+            }
+        />
+    }
+}
+
+/// The first ascension's picker (MR 1): each path's path-linked ability, with its path and its follow-ups at MR 2.
+/// Without one of its own the Build takes its MR 3 path's, which shows as the current one.
+#[component]
+fn FirstAscensionPicker() -> impl IntoView {
+    let planner = use_planner();
+    let engine = planner.engine();
+    let build = planner.build.get_untracked();
+    let options = timed("first_ascension_options", || {
+        engine.first_ascension_options(&build)
+    });
+    let chosen = build.first_ascension.clone();
+    let current = planner
+        .sheet
+        .get_untracked()
+        .ranks
+        .iter()
+        .find(|rank| rank.rank == FIRST_ASCENSION_RANK)
+        .and_then(|rank| rank.path.clone());
+    let items = options
+        .iter()
+        .map(|option| {
+            let follow_ups: Vec<&str> = engine
+                .path_rank_features(&option.path, FIRST_ASCENSION_RANK + 1)
+                .into_iter()
+                .map(|feature| engine.feature_name(feature))
+                .collect();
+            Item {
+                detail: format!(
+                    "{} · MR {}: {}",
+                    engine.path_name(&option.path),
+                    FIRST_ASCENSION_RANK + 1,
+                    follow_ups.join(", ")
+                ),
+                locked: option.status.is_err(),
+                reason: reason(&engine, &option.status),
+                current: current.as_ref() == Some(&option.path),
+                ..Item::new(engine.first_ascension_name(&option.path))
+            }
+        })
+        .collect();
+    let paths: Vec<_> = options.into_iter().map(|option| option.path).collect();
+    view! {
+        <Head
+            title="First ascension"
+            place=format!("Mythic rank {FIRST_ASCENSION_RANK}")
+            remove=chosen
+                .is_some()
+                .then_some((Choice::FirstAscension, Edit::FirstAscension(None)))
+        />
+        <ItemList
+            items
+            on_pick=move |index: usize| {
+                let path = Some(paths[index].clone());
+                planner.close();
+                if path != chosen {
+                    planner.edit(Edit::FirstAscension(path));
+                }
             }
         />
     }

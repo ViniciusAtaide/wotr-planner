@@ -4,8 +4,8 @@
 use std::collections::{BTreeMap, BTreeSet, HashSet};
 
 use super::{
-    BASE_LEVEL_CAP, Engine, LevelSheet, PATH_CHOICE_RANK, PATH_SWITCH_RANK, RankSheet, RankStatus,
-    Sheet, SlotKind, racial_amounts,
+    BASE_LEVEL_CAP, Engine, FIRST_ASCENSION_RANK, LevelSheet, PATH_CHOICE_RANK, PATH_SWITCH_RANK,
+    RankSheet, RankStatus, Sheet, SlotKind, racial_amounts,
 };
 use crate::build::{Build, Faith, LevelUp, SlotId, has_ability_increase};
 use crate::choice::Choice;
@@ -80,7 +80,7 @@ enum Held {
 /// Where a Mythic ascension's grant came from, for what a Path switch keeps.
 #[derive(Clone, Debug)]
 struct GrantSource {
-    /// The rank whose row or pick granted it (MR 1 and 2 for the rows granted on choosing the path).
+    /// The rank whose row or pick granted it (MR 1 and 2 for the first ascension's rows).
     rank: u8,
     /// The path's own grant (its row's features, the picks in its slots) rather than the general pick.
     from_path: bool,
@@ -345,8 +345,8 @@ impl<'a> Walker<'a> {
     }
 
     /// The choices no level checked: a pick for a slot the walk didn't reach (one a level doesn't have, past the
-    /// last level, or at a rank not reached), a class choice for a class no level takes, and the path and switch,
-    /// which must be ones the Build can take, at ranks it reaches.
+    /// last level, or at a rank not reached), a class choice for a class no level takes, and the first ascension,
+    /// path and switch, which must be ones the Build can take, at ranks it reaches.
     fn check_unreached(&mut self) {
         let build = self.build;
         for slot in build.picks.keys() {
@@ -362,6 +362,12 @@ impl<'a> Walker<'a> {
             }
         }
         let engine = self.engine;
+        if let Some(key) = &build.first_ascension
+            && (engine.first_ascension_option(key).is_none()
+                || !engine.reaches(build, FIRST_ASCENSION_RANK))
+        {
+            self.fail(Choice::FirstAscension);
+        }
         if build.mythic_path.is_some()
             && (engine.chosen_path(build).is_none() || !engine.reaches(build, PATH_CHOICE_RANK))
         {

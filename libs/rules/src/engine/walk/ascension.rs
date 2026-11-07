@@ -1,5 +1,5 @@
-//! Mythic ascension: a rank's general pick and path row, choosing the path at MR 3, and what a Path switch keeps
-//! and takes away.
+//! Mythic ascension: a rank's general pick and path row (the first ascension's at MR 1 and 2, the path's from MR 3),
+//! choosing the path at MR 3, and what a Path switch keeps and takes away.
 
 use std::collections::BTreeSet;
 
@@ -47,7 +47,6 @@ impl<'a> Walker<'a> {
             && let Some(path) = engine.chosen_path(self.build)
         {
             self.state.mythic_path = Some(path.key.clone());
-            self.grant_rows_before_the_choice(path);
         }
         self.state.mythic_rank = rank;
 
@@ -108,11 +107,16 @@ impl<'a> Walker<'a> {
                 ));
             }
         }
-        let path = self
-            .state
-            .mythic_path
-            .as_ref()
-            .and_then(|key| catalog.path(key));
+        // MR 1 and 2 give the first ascension's rows (the MR 3 path's, without one of its own); from MR 3 on, the
+        // path in force gives its own.
+        let path = if rank < PATH_CHOICE_RANK {
+            engine.first_ascension_path(self.build)
+        } else {
+            self.state
+                .mythic_path
+                .as_ref()
+                .and_then(|key| catalog.path(key))
+        };
         let row = path.and_then(|path| path.ranks.iter().find(|row| row.rank == rank));
         if let Some(row) = row {
             for feature in &row.features {
@@ -142,7 +146,7 @@ impl<'a> Walker<'a> {
         // Friendship).
         slots.extend(self.fill_rank_rows(rank, row));
 
-        let path = self.state.mythic_path.clone();
+        let path = path.map(|path| path.key.clone());
         if let Some(sheet) = self.ranks.iter_mut().find(|sheet| sheet.rank == rank) {
             sheet.status = RankStatus::Reached;
             sheet.path = path;
@@ -158,25 +162,6 @@ impl<'a> Walker<'a> {
                 Some(key)
             }
             _ => None,
-        }
-    }
-
-    /// Choosing the path at MR 3 grants its MR 1 and 2 rows: held from now on, as those ranks' own grants (so a
-    /// switch that keeps MR 1-2 keeps them), and shown at those ranks. Only their features: `GameData::check`
-    /// gives those rows no slots.
-    fn grant_rows_before_the_choice(&mut self, path: &'a MythicPath) {
-        for row in path.ranks.iter().filter(|row| row.rank < PATH_CHOICE_RANK) {
-            for feature in &row.features {
-                self.hold(
-                    Held::Feature(feature.clone()),
-                    Some(GrantSource::row(row.rank)),
-                );
-            }
-        }
-        for sheet in &mut self.ranks {
-            if sheet.rank < PATH_CHOICE_RANK && sheet.status == RankStatus::Reached {
-                sheet.path = Some(path.key.clone());
-            }
         }
     }
 

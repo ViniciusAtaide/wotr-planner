@@ -34,6 +34,11 @@ pub struct Build {
     /// The archetype and spellcasting advancement of each class the Build takes. They belong to the class, not to
     /// a level: the game fixes them when the class is first taken, wherever that level ends up.
     pub class_choices: BTreeMap<ClassKey, ClassChoice>,
+    /// The first ascension (MR 1): the path whose path-linked ability the character takes at MR 1 (its MR 1 row),
+    /// with that row's follow-ups at MR 2 (its MR 2 row), whatever path it chooses at MR 3. `None` reads as the path
+    /// chosen at MR 3, as every link from before the choice existed does.
+    #[serde(default)]
+    pub first_ascension: Option<MythicPathKey>,
     /// The mythic path chosen at the path choice rank (MR 3).
     pub mythic_path: Option<MythicPathKey>,
     /// The path switched to at the switch rank (MR 8), if any.
@@ -454,6 +459,8 @@ pub enum Edit {
         ranks: u8,
     },
     Start(BuildStart),
+    /// Set the first ascension's path (MR 1); `None` goes back to the MR 3 path's.
+    FirstAscension(Option<MythicPathKey>),
     MythicPath(Option<MythicPathKey>),
     /// Set the Path switch ([`Engine::apply`](crate::Engine::apply) also drops the picks of the ranks a switch
     /// without further ascensions ends: Legend's MR 8 to 10).
@@ -504,6 +511,7 @@ impl Edit {
             .into_iter()
             .chain(AbilityScores::ABILITIES.map(|ability| Choice::AbilityScore { ability }))
             .collect(),
+            Edit::FirstAscension(_) => vec![Choice::FirstAscension],
             Edit::MythicPath(_) => vec![Choice::MythicPath],
             Edit::PathSwitch(_) => vec![Choice::PathSwitch],
             // Nothing after the last level can depend on it, and a name breaks nothing.
@@ -576,6 +584,7 @@ impl Build {
                 }
             }
             Edit::Start(start) => self.start = start.clone(),
+            Edit::FirstAscension(path) => self.first_ascension = path.clone(),
             Edit::MythicPath(path) => self.mythic_path = path.clone(),
             Edit::PathSwitch(path) => self.path_switch = path.clone(),
             Edit::RemoveLevel => {

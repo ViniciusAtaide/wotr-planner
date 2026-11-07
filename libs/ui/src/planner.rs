@@ -20,6 +20,8 @@ pub enum Target {
     Slot(SlotId),
     /// The class (and archetype) at a character level; one past the end adds a level.
     Class(u8),
+    /// The first ascension's path-linked ability (MR 1).
+    FirstAscension,
     Path,
     Switch,
     Race,

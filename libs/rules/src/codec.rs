@@ -31,7 +31,7 @@
 //! a key of that kind.
 //!
 //! ```text
-//! structure     = name, start, levels, class choices, path, path [the switch], picks
+//! structure     = name, start, levels, class choices, path, path [the switch], picks, first ascension
 //! name          = opt(varint length in bytes, UTF-8 bytes)
 //! start         = opt(key(race)), opt(key(subrace)), ability [racial], alignment, opt(key(background)), faith,
 //!                 6 × u8 score [point buy: Str, Dex, Con, Int, Wis, Cha]
@@ -41,6 +41,7 @@
 //!                 count × key(class) [advances])
 //! path          = opt(key(mythic path))
 //! picks         = varint count, count × group
+//! first ascension = nothing [none] | 1, key(mythic path)
 //! group         = u8 slot kind, varint count (at least 1), count × (u8 step, slot fields, pick)
 //! pick          = 0, key(feat), parameter | 1, key(selection option), parameter | 2, key(mythic ability)
 //!               | 3, key(mythic feat), parameter
@@ -58,6 +59,10 @@
 //! the others. A school, energy or
 //! armour type is its index in [`SpellSchool::ALL`], [`Energy::ALL`] or [`ArmourType::ALL`]. Skill ranks, class
 //! choices and advances come in their keys' text order, as the [`Build`] holds them.
+//!
+//! The first ascension ([`Build::first_ascension`], ticket 91) came after links had been made, so it goes last and
+//! writes nothing when there is none: every link made before it reads as a Build without one, and a Build without
+//! one writes the link it always did. Its key, when there is one, is the last hash listed.
 //!
 //! **Exact.** A Build reads back unchanged from its link, given the keys it names, and has only one body: decoding
 //! refuses ([`DecodeError::Format`]) anything the encoder never writes: an unknown tag; groups or slots out of order,
@@ -430,6 +435,7 @@ impl<'a> Writer<'a> {
             start,
             levels,
             class_choices,
+            first_ascension,
             mythic_path,
             path_switch,
             picks,
@@ -510,6 +516,11 @@ impl<'a> Writer<'a> {
             path_switch.as_ref().map(MythicPathKey::as_str),
         );
         self.picks(picks);
+        // Nothing when there's none, so the links made before it stay the same (module docs).
+        if let Some(path) = first_ascension {
+            self.byte(1);
+            self.key(KeyKind::MythicPath, path.as_str());
+        }
     }
 
     fn picks(&mut self, picks: &'a BTreeMap<SlotId, Pick>) {
@@ -786,6 +797,14 @@ impl<'a> Reader<'a> {
         let mythic_path = self.opt_key(KeyKind::MythicPath)?.map(MythicPathKey);
         let path_switch = self.opt_key(KeyKind::MythicPath)?.map(MythicPathKey);
         let picks = self.picks()?;
+        // Absent, or `1` and the key: the encoder never writes a `0` here.
+        let first_ascension = if self.bytes.is_empty() {
+            None
+        } else if self.byte()? == 1 {
+            Some(MythicPathKey(self.key(KeyKind::MythicPath)?))
+        } else {
+            return Err(DecodeError::Format);
+        };
 
         if !self.bytes.is_empty() || self.hashes.len() > 0 {
             return Err(DecodeError::Format);
@@ -795,6 +814,7 @@ impl<'a> Reader<'a> {
             start,
             levels,
             class_choices,
+            first_ascension,
             mythic_path,
             path_switch,
             picks,
@@ -1016,6 +1036,30 @@ mod tests {
         body.extend(&BLANK[1..BLANK.len() - 1]);
         body.extend(groups);
         (body, LinkKeys::of_build(&build))
+    }
+
+    /// The first ascension goes after the picks, `1` and its key (listed last), and only when there is one; a `0`
+    /// there is no Build's.
+    #[test]
+    fn the_first_ascension_follows_the_picks_only_when_there_is_one() {
+        let build = Build {
+            first_ascension: Some(MythicPathKey::new("p")),
+            ..Build::default()
+        };
+        let hash = key_hash("p").to_le_bytes();
+        let mut expected = vec![1, hash[0], hash[1], hash[2]];
+        expected.extend(&BLANK[1..]);
+        expected.push(1);
+        assert_eq!(body(&build), expected);
+        let keys = LinkKeys::of_build(&build);
+        assert_eq!(decode_build(&link(&expected), &keys), Ok(build));
+
+        let mut zero = BLANK.to_vec();
+        zero.push(0);
+        assert_eq!(decode(&zero), Err(DecodeError::Format));
+        let mut no_hash = BLANK.to_vec();
+        no_hash.push(1);
+        assert_eq!(decode(&no_hash), Err(DecodeError::Format));
     }
 
     /// Each Build has one body: picks come in slot order, each slot once, and every group holds a pick.

@@ -14,7 +14,8 @@ use crate::support::*;
 // ---- Mythic path rules (ticket 26) ------------------------------------------------------------------------------
 
 #[test]
-fn choosing_a_path_grants_its_mr_1_and_2_rows_twelve_rows_and_thirty_features() {
+fn the_mr_3_path_gives_its_mr_1_and_2_rows_without_a_first_ascension_twelve_rows_and_thirty_features()
+ {
     let rows: Vec<_> = DATA
         .mythic_paths
         .iter()
@@ -26,8 +27,11 @@ fn choosing_a_path_grants_its_mr_1_and_2_rows_twelve_rows_and_thirty_features() 
 
     let sheet = engine().evaluate(&mythic("aeon", 9));
     let force_reality = FeatureKey::new("aeon/force-reality");
-    // Granted at MR 1 and again at MR 2: held twice from MR 3 on, never before.
-    assert_eq!(sheet.at(8).unwrap().feature_count(&force_reality), 0);
+    // Without a first ascension of its own, the Build takes its MR 3 path's (ticket 91): Force Reality at MR 1
+    // (level 6) and again, improved, at MR 2 (level 7).
+    assert_eq!(sheet.at(5).unwrap().feature_count(&force_reality), 0);
+    assert_eq!(sheet.at(6).unwrap().feature_count(&force_reality), 1);
+    assert_eq!(sheet.at(7).unwrap().feature_count(&force_reality), 2);
     assert_eq!(sheet.at(9).unwrap().feature_count(&force_reality), 2);
     assert_eq!(sheet.ranks[0].path, Some(MythicPathKey::new("aeon")));
 }

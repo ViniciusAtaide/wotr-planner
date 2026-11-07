@@ -674,7 +674,7 @@ fn a_paths_mr_1_and_2_rows_grant_features_only() {
             issue: DataIssue::SlotBeforePathChoice(1)
         }
         .to_string(),
-        "mythic path trickster: the MR 1 row grants a slot, but the path is chosen at MR 3"
+        "mythic path trickster: the MR 1 row grants a slot, but the rows before MR 3 are the first ascension's features"
     );
 }
 

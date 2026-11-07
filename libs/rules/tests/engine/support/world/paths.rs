@@ -23,6 +23,10 @@ pub(super) fn trickster() -> MythicPath {
         guide: guide("trickster"),
         features: vec![
             plain_feature("trickster/trickster-tricks", "Trickster Tricks"),
+            plain_feature(
+                "trickster/bypass-epic-damage-reduction",
+                "Bypass Epic Damage Reduction",
+            ),
             plain_feature("trickster/bit-of-fun", "Bit of Fun"),
             plain_feature("trickster/hard-to-kill", "Hard to Kill"),
         ],
@@ -88,7 +92,16 @@ pub(super) fn trickster() -> MythicPath {
             &["dodge", "toughness"],
         )],
         ranks: vec![
-            rank(1, vec![feature("trickster/bit-of-fun")], vec![], vec![]),
+            // Like every path's MR 1 row: the fixed Bypass Epic Damage Reduction and the path-linked ability.
+            rank(
+                1,
+                vec![
+                    feature("trickster/bypass-epic-damage-reduction"),
+                    feature("trickster/bit-of-fun"),
+                ],
+                vec![],
+                vec![],
+            ),
             rank(2, vec![feature("trickster/hard-to-kill")], vec![], vec![]),
             rank(
                 3,
@@ -307,6 +320,10 @@ pub(super) fn aeon() -> MythicPath {
         summary: String::new(),
         guide: guide("aeon"),
         features: vec![
+            plain_feature(
+                "aeon/bypass-epic-damage-reduction",
+                "Bypass Epic Damage Reduction",
+            ),
             plain_feature("aeon/force-reality", "Force Reality"),
             plain_feature("aeon/hard-to-kill", "Hard to Kill"),
             plain_feature("aeon/aeon-bane", "Aeon Bane"),
@@ -341,7 +358,12 @@ pub(super) fn aeon() -> MythicPath {
         }],
         feat_lists: vec![],
         ranks: vec![
-            rank_row(1, &["aeon/force-reality"], vec![], &[]),
+            rank_row(
+                1,
+                &["aeon/bypass-epic-damage-reduction", "aeon/force-reality"],
+                vec![],
+                &[],
+            ),
             rank_row(2, &["aeon/hard-to-kill"], vec![], &[]),
             rank_row(3, &[], vec![], &["aeon/enforcing-gaze"]),
             rank_row(4, &["aeon/aeon-bane"], vec![], &["aeon/enforcing-gaze"]),

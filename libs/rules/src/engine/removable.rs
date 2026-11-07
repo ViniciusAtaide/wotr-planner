@@ -6,7 +6,7 @@ use std::cell::RefCell;
 use std::collections::BTreeSet;
 
 use super::walk::Walker;
-use super::{Engine, PATH_CHOICE_RANK, PATH_SWITCH_RANK};
+use super::{Engine, FIRST_ASCENSION_RANK, PATH_CHOICE_RANK, PATH_SWITCH_RANK};
 use crate::build::{AbilityScores, Build, BuildStart, ClassChoice, Edit};
 use crate::choice::{Choice, Issue};
 use crate::keys::ClassKey;
@@ -193,6 +193,9 @@ impl Engine {
                 ));
             }
         }
+        if build.first_ascension.is_some() {
+            withdrawals.push((Choice::FirstAscension, Edit::FirstAscension(None), vec![]));
+        }
         if build.mythic_path.is_some() {
             withdrawals.push((Choice::MythicPath, Edit::MythicPath(None), vec![]));
         }
@@ -232,6 +235,11 @@ impl Engine {
             }
             Edit::AbilityIncrease { level, .. } | Edit::SkillRanks { level, .. } => *level,
             Edit::Start(_) => 0,
+            Edit::FirstAscension(_) => self.rank_level(FIRST_ASCENSION_RANK),
+            // Without a first ascension of its own, the Build takes the MR 3 path's, from MR 1.
+            Edit::MythicPath(_) if build.first_ascension.is_none() => {
+                self.rank_level(FIRST_ASCENSION_RANK)
+            }
             Edit::MythicPath(_) => self.rank_level(PATH_CHOICE_RANK),
             Edit::PathSwitch(_) => self.rank_level(PATH_SWITCH_RANK),
             Edit::RemoveLevel | Edit::SetName(_) => u8::MAX,

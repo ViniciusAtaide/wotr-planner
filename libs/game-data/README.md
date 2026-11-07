@@ -35,8 +35,9 @@ in the data: catalogs are sorted by key, class levels by level, mythic ranks by 
 
 What follows from a rule is code in the `rules` crate, not data: each mythic rank's general pick (odd ranks a
 mythic ability, even ranks a mythic feat), the path choice at MR 3 and the switch at MR 8, which feat categories
-are Combat feats (`FeatCategory::is_combat`), the skill rank cap (the Character level), choosing the path at MR 3
-granting its MR 1–2 rows (held from MR 3 on), the rank after a path switch (one above `kept_through_rank`), each
+are Combat feats (`FeatCategory::is_combat`), the skill rank cap (the Character level), the first ascension at MR 1
+taking one path's MR 1 row there and its MR 2 row at MR 2 (the MR 3 path's when the Build names none; ticket 91), the
+first ascension's options (the paths without a switch rule that have an MR 1 row), the rank after a path switch (one above `kept_through_rank`), each
 class's level cap (its number of level rows; an archetype has its
 class's), and BAB and saves (from the class's progressions, or an archetype's for a save it replaces).
 
@@ -384,6 +385,15 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   Geomancer's `General` slot. The Jack-in-the-Green write-up (a Sylvan Sorcerer) takes Spell Penetration there, off
   the Fey list. The bloodline feats at 7, 13 and 19 and the Seeker's Magic feats at 5, 10 and 15 stay; the
   Overwhelming Mage keeps Overwhelming Penetration at 1 and no slot. The sheet labels the slot "Magic feat".
+- Ticket 91 (found by the ticket 88 QA builds; the user, 2026-11-07): a path's MR 1 and 2 rows are its first
+  ascension's (`mythic-paths#first-ascension`: at the first rank "an ability that is linked to one of the Mythic
+  Paths", which doesn't force that path, and at the second "a second ability related to your earlier choice" with
+  Bypass Epic Damage Reduction at 1 and Hard to Kill at 2). No data changed: each of the six paths' MR 1 row is
+  Bypass Epic Damage Reduction and its path-linked ability, its MR 2 row the follow-ups and Hard to Kill, and Gold
+  Dragon has none, which is what the rules read. The two quirks the ticket named are the guide's: `trickster.ron`'s
+  rank 2 does hold `trickster/hard-to-kill` (the guide's Trickster table: Creative Approach, Hard to Kill,
+  Will-o'-Wisp at 2), and the Aeon's rank 2 repeats Force Reality because the guide's Aeon table does ("At 2nd mythic
+  rank, you can target all allies": it improves at 2, as Aeon Immunities repeats at 3, 5 and 7).
 - A path's switch rule: `switch: (from: ["aeon", "azata"], kept_through_rank: 7, path_kept_through_rank: 7,
   dropped_features: [...], dropped_selections: [...], features: [...], further_ascensions: true, level_cap:
   Some(40))`. The general picks (mythic abilities and feats) of MR 1 to `kept_through_rank` stay, and the old

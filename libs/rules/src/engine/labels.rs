@@ -331,6 +331,68 @@ impl Engine {
         self.catalog.path(key).map_or("", |path| &path.summary)
     }
 
+    /// A first ascension's option as its picker names it: its path-linked ability (Bit of Fun), the features of its
+    /// path's MR 1 row that not every option's row has by name (each has Bypass Epic Damage Reduction). The path's
+    /// name when nothing sets the row apart.
+    pub fn first_ascension_name(&self, key: &MythicPathKey) -> String {
+        let row_names = |path: &MythicPathKey| -> Vec<&str> {
+            self.catalog
+                .path(path)
+                .and_then(|path| {
+                    path.ranks
+                        .iter()
+                        .find(|row| row.rank == super::FIRST_ASCENSION_RANK)
+                })
+                .map(|row| {
+                    row.features
+                        .iter()
+                        .map(|feature| self.feature_name(feature))
+                        .collect()
+                })
+                .unwrap_or_default()
+        };
+        let options: Vec<Vec<&str>> = self
+            .catalog
+            .data()
+            .mythic_paths
+            .iter()
+            .filter(|path| self.first_ascension_option(&path.key).is_some())
+            .map(|path| row_names(&path.key))
+            .collect();
+        let own: Vec<&str> = row_names(key)
+            .into_iter()
+            .filter(|name| !options.iter().all(|names| names.contains(name)))
+            .collect();
+        if own.is_empty() {
+            self.path_name(key).to_owned()
+        } else {
+            own.join(" and ")
+        }
+    }
+
+    /// The features a rank's path row gives, in the row's order: the row of the path the rank shows
+    /// ([`RankSheet::path`](super::RankSheet::path)), so MR 1 and 2 give the first ascension's. None at a rank not
+    /// reached.
+    pub fn rank_features(&self, rank: &super::RankSheet) -> Vec<&FeatureKey> {
+        if rank.status == super::RankStatus::NotReached {
+            return Vec::new();
+        }
+        rank.path
+            .as_ref()
+            .map(|key| self.path_rank_features(key, rank.rank))
+            .unwrap_or_default()
+    }
+
+    /// The features a path's row at a rank gives, in the row's order (the first ascension picker's follow-ups at
+    /// MR 2).
+    pub fn path_rank_features(&self, key: &MythicPathKey, rank: u8) -> Vec<&FeatureKey> {
+        self.catalog
+            .path(key)
+            .and_then(|path| path.ranks.iter().find(|row| row.rank == rank))
+            .map(|row| row.features.iter().collect())
+            .unwrap_or_default()
+    }
+
     /// A Parameter as the sheet shows it: the skill's or weapon's name, or the school, energy or armour type.
     pub fn parameter_name<'a>(&'a self, value: &'a Parameter) -> &'a str {
         match value {

@@ -183,8 +183,8 @@ pub enum DataIssue {
     FeatListTooShort,
     /// A list of every feat that also names feats of its own.
     EveryFeatListWithFeats,
-    /// A path rank row before the path is chosen (MR 1-2) with a slot: choosing the path grants those rows'
-    /// features only.
+    /// A path rank row before the path is chosen (MR 1-2) with a slot: those rows are the first ascension's
+    /// path-linked ability and its follow-ups, features only.
     SlotBeforePathChoice(u8),
     /// A Path switch open from a path that is itself a switch: no Build can be on it at the switch rank.
     SwitchFromASwitchPath(MythicPathKey),
@@ -332,7 +332,7 @@ impl fmt::Display for DataProblem {
             }
             DataIssue::SlotBeforePathChoice(rank) => write!(
                 f,
-                "the MR {rank} row grants a slot, but the path is chosen at MR {PATH_CHOICE_RANK}"
+                "the MR {rank} row grants a slot, but the rows before MR {PATH_CHOICE_RANK} are the first ascension's features"
             ),
             DataIssue::SwitchFromASwitchPath(path) => {
                 write!(f, "the switch is open from {path}, which is itself a switch")

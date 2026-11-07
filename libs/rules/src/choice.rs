@@ -49,6 +49,8 @@ pub enum Choice {
     CharacterLevel {
         level: u8,
     },
+    /// The first ascension's path (MR 1, [`Build::first_ascension`](crate::Build::first_ascension)).
+    FirstAscension,
     MythicPath,
     PathSwitch,
     Slot(SlotId),

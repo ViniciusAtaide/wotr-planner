@@ -13,6 +13,7 @@ mod class_skills;
 mod data;
 mod deities;
 mod extra_picks;
+mod first_ascension;
 mod follow_ups;
 mod infusions;
 mod instinctual_rage_powers;

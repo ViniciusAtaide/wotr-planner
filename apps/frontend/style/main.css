@@ -543,6 +543,13 @@ input[type="search"] {
   color: var(--mythic);
 }
 
+/* The features a rank's path row gives, under its level, across the row. */
+.rank-features {
+  grid-column: 1 / -1;
+  color: var(--muted);
+  font-size: 13px;
+}
+
 .row.rank.not-reached .chips,
 .row.rank.not-reached .rank-level {
   opacity: 0.6;

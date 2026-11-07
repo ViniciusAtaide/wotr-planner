@@ -297,3 +297,51 @@ pub(super) fn granted_selections(engine: &Engine) -> Vec<Named> {
     }
     out
 }
+
+/// The Build with this first ascension (ticket 91), set through serde so the harness still compiles against crates
+/// from before it; a side whose Build has no first ascension reads the Build without one.
+fn with_first_ascension(build: Build, path: &str) -> Build {
+    let mut value = crate::links::build_json(&build);
+    value["first_ascension"] = serde_json::json!(path);
+    crate::links::build_from_json(value).expect("a Build reads back from its JSON")
+}
+
+/// The first ascension (ticket 91): a fighter whose MR 1 pick isn't its MR 3 path's (Bit of Fun then the Azata, the
+/// Enforcer's write-up), one whose MR 1 pick is its MR 3 path's (the same answers as without one), one with a first
+/// ascension and no path yet, and the switches keeping MR 1-2 (Legend, and the Devil from the Aeon). Chaotic
+/// neutral humans with no picks; their full Builds fill them.
+pub(super) fn first_ascensions() -> Vec<Named> {
+    let fighter = |levels, path: Option<&str>, switch: Option<&str>| {
+        let mut build = human(&[("fighter", None, levels)]);
+        build.mythic_path = path.map(MythicPathKey::new);
+        build.path_switch = switch.map(MythicPathKey::new);
+        build
+    };
+    let cases = [
+        (
+            "fighter 20 azata / first trickster",
+            fighter(20, Some("azata"), None),
+            "trickster",
+        ),
+        (
+            "fighter 20 azata / first azata",
+            fighter(20, Some("azata"), None),
+            "azata",
+        ),
+        ("fighter 8 / first lich", fighter(8, None, None), "lich"),
+        (
+            "fighter 20 trickster legend / first aeon",
+            fighter(20, Some("trickster"), Some("legend")),
+            "aeon",
+        ),
+        (
+            "fighter 20 aeon devil / first angel",
+            fighter(20, Some("aeon"), Some("devil")),
+            "angel",
+        ),
+    ];
+    cases
+        .into_iter()
+        .map(|(name, build, first)| (format!("t91 {name}"), with_first_ascension(build, first)))
+        .collect()
+}

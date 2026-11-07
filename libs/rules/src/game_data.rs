@@ -294,7 +294,8 @@ impl Class {
 }
 
 /// The progression table that applies to every Build (`progression.ron`): when each Mythic rank is reached. The
-/// rest of how a character progresses is rules in code ([`PATH_CHOICE_RANK`](crate::PATH_CHOICE_RANK),
+/// rest of how a character progresses is rules in code ([`FIRST_ASCENSION_RANK`](crate::FIRST_ASCENSION_RANK),
+/// [`PATH_CHOICE_RANK`](crate::PATH_CHOICE_RANK),
 /// [`PATH_SWITCH_RANK`](crate::PATH_SWITCH_RANK), [`FeatCategory::is_combat`], the skill rank cap of one per
 /// Character level).
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]

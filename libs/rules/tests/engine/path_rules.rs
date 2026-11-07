@@ -1,4 +1,5 @@
-//! The mythic path rules (ticket 26): MR 1–2 granted on choosing the path, what a Path switch keeps and drops, the
+//! The mythic path rules (ticket 26): MR 1–2 from the path chosen at MR 3 unless the first ascension names another
+//! (ticket 91, `first_ascension`), what a Path switch keeps and drops, the
 //! switch's previous-path condition, ability bonuses and floors from features, Legend and the Trickster's Perception II
 //! feats, the Mythic rank prerequisite, Gold Dragon's Dragon Feats and an option granting several feats. A switch that
 //! ends the ascensions, and Remove level, drop the picks of the ranks the Build no longer reaches (ticket 40). Remove
@@ -114,22 +115,27 @@ fn scores_of(state: &rules::CharacterState) -> [u8; 6] {
     ]
 }
 
-// ---- MR 1–2 on choosing the path --------------------------------------------------------------------------------
+// ---- MR 1–2 from the MR 3 path ----------------------------------------------------------------------------------
 
+/// Ticket 91: a Build without a first ascension of its own takes its MR 3 path's, so the path's MR 1 and 2 rows are
+/// held from their own ranks (ticket 26 held them from MR 3).
 #[test]
-fn choosing_the_path_at_mr_3_grants_its_mr_1_and_2_rows_from_then_on() {
+fn the_mr_3_path_gives_its_mr_1_and_2_rows_at_their_ranks_without_a_first_ascension() {
     let build = mythic_build("trickster", 11);
     let sheet = engine().evaluate(&build);
 
-    // MR 1 and 2 are reached at 6 and 7 with no path: nothing of the path is held before MR 3.
+    // MR 1 and 2 are reached at 6 and 7: each row is held from its rank.
+    let at_5 = sheet.at(5).unwrap();
+    assert_eq!(at_5.feature_count(&feature("trickster/bit-of-fun")), 0);
+    let at_6 = sheet.at(6).unwrap();
+    assert_eq!(at_6.feature_count(&feature("trickster/bit-of-fun")), 1);
+    assert_eq!(at_6.feature_count(&feature("trickster/hard-to-kill")), 0);
     let at_8 = sheet.at(8).unwrap();
-    assert_eq!(at_8.feature_count(&feature("trickster/bit-of-fun")), 0);
-    assert_eq!(at_8.feature_count(&feature("trickster/hard-to-kill")), 0);
-    // Level 9's own picks come before its ascension, so they can't rely on the rows either.
+    assert_eq!(at_8.feature_count(&feature("trickster/hard-to-kill")), 1);
     let before_9 = engine().state_before(&build, &general_slot(9)).unwrap();
-    assert_eq!(before_9.feature_count(&feature("trickster/bit-of-fun")), 0);
+    assert_eq!(before_9.feature_count(&feature("trickster/bit-of-fun")), 1);
 
-    // From the MR 3 ascension on, both rows are held, and MR 1 and 2 show the path.
+    // Both rows stay held, once each, and MR 1 and 2 show the path.
     let at_9 = sheet.at(9).unwrap();
     assert_eq!(at_9.feature_count(&feature("trickster/bit-of-fun")), 1);
     assert_eq!(at_9.feature_count(&feature("trickster/hard-to-kill")), 1);
@@ -147,7 +153,7 @@ fn choosing_the_path_at_mr_3_grants_its_mr_1_and_2_rows_from_then_on() {
 }
 
 #[test]
-fn a_build_that_stops_before_mr_3_shows_no_path_at_mr_1_and_2() {
+fn a_build_that_stops_before_mr_3_without_a_first_ascension_shows_no_path_at_mr_1_and_2() {
     let sheet = engine().evaluate(&mythic_build("trickster", 8));
     assert_eq!(sheet.ranks[0].path, None);
     assert_eq!(sheet.ranks[1].path, None);

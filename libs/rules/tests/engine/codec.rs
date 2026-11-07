@@ -196,17 +196,30 @@ fn any_build() -> impl Strategy<Value = Build> {
         btree_map(key().prop_map(ClassKey), class_choice(), 0..4),
         option::of(key().prop_map(MythicPathKey)),
         option::of(key().prop_map(MythicPathKey)),
+        option::of(key().prop_map(MythicPathKey)),
         btree_map(slot_id(), pick(), 0..40),
     )
         .prop_map(
-            |(name, start, levels, class_choices, mythic_path, path_switch, picks)| Build {
+            |(
                 name,
                 start,
-                levels: possible(levels),
+                levels,
                 class_choices,
+                first_ascension,
                 mythic_path,
                 path_switch,
                 picks,
+            )| {
+                Build {
+                    name,
+                    start,
+                    levels: possible(levels),
+                    class_choices,
+                    first_ascension,
+                    mythic_path,
+                    path_switch,
+                    picks,
+                }
             },
         )
 }

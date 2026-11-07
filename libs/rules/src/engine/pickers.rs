@@ -378,6 +378,22 @@ impl Engine {
             .collect()
     }
 
+    /// The first ascension's picker at MR 1: every path with a path-linked ability, in key order; one that would
+    /// break a later choice is [`Issue::BreaksLater`].
+    pub fn first_ascension_options(&self, build: &Build) -> Vec<PathOption> {
+        let recheck = Recheck::new(self, build);
+        self.catalog
+            .data()
+            .mythic_paths
+            .iter()
+            .filter(|path| self.first_ascension_option(&path.key).is_some())
+            .map(|path| PathOption {
+                path: path.key.clone(),
+                status: recheck.later(&Edit::FirstAscension(Some(path.key.clone()))),
+            })
+            .collect()
+    }
+
     /// The Path switch picker at MR 8: every path with a switch rule, in key order, each open or not from the
     /// path the Build chose at MR 3; one that would break a later choice (Gold Dragon for a Build past level 20)
     /// is [`Issue::BreaksLater`].

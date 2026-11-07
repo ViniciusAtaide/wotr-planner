@@ -18,6 +18,7 @@ mod edits;
 mod extra_picks;
 mod facts;
 mod feat_lists;
+mod first_ascension;
 mod granted_feats;
 mod indexed_lookups;
 mod labels;

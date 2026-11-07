@@ -143,6 +143,7 @@ A working, locally run Leptos app at `~/code/wotr-planner` for planning Pathfind
 - [Life-Bonding Friendship gives its two teamwork feats](issues/89-life-bonding-friendship-teamwork-feats.md): the Azata's superpowers are levelled by Mythic rank (`level_from: MythicRanks`, a rules and schema change), so the superpower's rows give a Teamwork feat slot at the rank it's taken and the next as that rank's path feat slots, and one only at MR 10.
 - [Arcane Enforcer saves: good Reflex and Will, poor Fortitude](issues/90-arcane-enforcer-saves.md): an archetype may replace any of its class's save progressions (`fort`/`reflex`/`will`, `None` the class's; a replaced save drops the class's exception cells for it), and the Arcane Enforcer, the only archetype the guide gives saves of its own, has poor Fortitude and good Will.
 - [The sorcerer's level-1 bonus feat: which list?](issues/92-sorcerer-level-1-bonus-feat-list.md): every sorcerer's level-1 bonus feat is a Magic feat (user, 2026-11-07), in place of ticket 44's bloodline-list slot and the Geomancer's General slot; the bloodline feats stay at 7, 13 and 19 and the Overwhelming Mage keeps no slot.
+- [The first ascension's path-linked ability is a choice](issues/91-first-ascension-path-ability.md): MR 1 picks one of the six paths' path-linked abilities (its MR 1 row) whatever the MR 3 path, MR 2 holds that option's follow-ups and Hard to Kill with no pick, and a Build without the choice (every older link, unchanged) takes its MR 3 path's (user, 2026-11-07).
 
 ## Not yet specified
 
