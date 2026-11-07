@@ -1,7 +1,7 @@
 # The Sheet shows no granted features
 
 Type: task
-Status: open
+Status: closed (won't do)
 Blocked by: none
 Map: [WotR Build Planner](../map.md)
 
@@ -24,3 +24,7 @@ Found by the QA builds ([ticket 88](88-qa-full-builds.md)). Ticket 88 asked that
 Once the user decides: an `Engine` method that returns a level's (and a rank's) newly granted feature names (test-first in `rules`), and the UI lines; an end-to-end smoke check that Woodland Stride shows at Sylvan Sorcerer 3.
 
 **Done when:** the decision is recorded here and, if accepted, the Sheet names the features each level and mythic rank grants, checked on ticket 88's two Builds.
+
+## Answer
+
+**Closed, not built** (user, 2026-11-07: "ticket 93 not necessary"). The Sheet keeps showing choices and totals only; granted features aren't listed.
