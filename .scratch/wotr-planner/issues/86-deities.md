@@ -382,3 +382,5 @@ feat options), the deity Builds included.
 **Checks.** `scripts/check.sh --schema`: ALL-OK; `scripts/check.sh --schema --full` (once, at the end): ALL-OK.
 `seed --check-only` counts 26 deities; the real seed loads them and the foreign keys pass. `cargo fmt --all --check`
 passes. Nothing committed or staged.
+
+**Lead, 2026-11-06: re-proof of tickets 76–85 with the fixed script.** `scripts/proof.sh rules` (each side in its own target folder) in a checkout of 923d018, the commit before this ticket, against 31341d7, the commit before ticket 76: 1,999 Builds a side, 0 only in A, 0 only in B, 0 differing. The two harnesses are different binaries, and side A's source still has `Engine::data()` and `slot_ignores_prerequisites`, so it really is the pre-76 code. Tickets 76, 77, 78, 80, 83 and 85 changed no behaviour.
