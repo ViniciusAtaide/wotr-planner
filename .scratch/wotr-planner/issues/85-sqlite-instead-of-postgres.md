@@ -171,3 +171,5 @@ docker stop wotr-planner-postgres && docker rm wotr-planner-postgres
 docker volume rm wotr-planner-pgdata
 docker image rm postgres:18   # optional: only that container uses this image
 ```
+
+**User, 2026-11-06, after the build-file review:** no files-only approach; the database stays SQLite for now. The server keeps loading the game data from `wotr-planner.db`, not from `libs/game-data/` directly.
