@@ -437,7 +437,8 @@ impl<'a> Walker<'a> {
 
     // ---- Tables -------------------------------------------------------------------------------------------
 
-    /// BAB and saves from every class's progressions at its class level; spell-level access and caster level
+    /// BAB and saves from every class's progressions (its archetype's, for a save it replaces) at its class
+    /// level; spell-level access and caster level
     /// from its row at its class level plus the prestige levels that advance it.
     pub(super) fn recompute_tables(&mut self) {
         let catalog = &self.engine.catalog;
@@ -453,7 +454,9 @@ impl<'a> Walker<'a> {
             if entry.level <= class_level_cap(class) {
                 let level = entry.level;
                 bab = bab.saturating_add(class.base_attack_bonus(level));
-                let [f, r, w] = Save::ALL.map(|save| class.save_bonus(save, level, prestige));
+                let archetype = catalog.archetype_of(class, entry.archetype.as_ref());
+                let [f, r, w] =
+                    Save::ALL.map(|save| class.save_bonus(save, level, prestige, archetype));
                 fort = fort.saturating_add(f);
                 reflex = reflex.saturating_add(r);
                 will = will.saturating_add(w);

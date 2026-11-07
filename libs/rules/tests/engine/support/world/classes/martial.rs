@@ -78,6 +78,9 @@ pub(in crate::support::world) fn fighter() -> Class {
             skill_points: Some(4),
             class_skills: None,
             spontaneous: None,
+            fort: None,
+            reflex: None,
+            will: None,
             features: vec![],
             selections: vec![FeatureSelection {
                 key: FeatureSelectionKey::new("fighter/armiger/order"),

@@ -496,8 +496,8 @@ async fn insert_archetype(
     let root = prerequisites::insert(conn, archetype.prerequisite.as_ref()).await?;
     sqlx::query!(
         "INSERT INTO archetype (key, class_key, name, summary, guide,
-            prerequisite_root_id, skill_points, overrides_class_skills, spontaneous)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
+            prerequisite_root_id, skill_points, overrides_class_skills, spontaneous, fort, reflex, will)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
         archetype.key.as_str(),
         class.key.as_str(),
         archetype.name,
@@ -507,6 +507,9 @@ async fn insert_archetype(
         archetype.skill_points.map(i16::from),
         archetype.class_skills.is_some(),
         archetype.spontaneous,
+        archetype.fort.map(save_progression_text),
+        archetype.reflex.map(save_progression_text),
+        archetype.will.map(save_progression_text),
     )
     .execute(&mut *conn)
     .await?;

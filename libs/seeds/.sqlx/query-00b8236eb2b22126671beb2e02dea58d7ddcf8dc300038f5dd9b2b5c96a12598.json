@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "SELECT key, class_key, name, summary, guide, prerequisite_root_id, skill_points,\n            overrides_class_skills AS \"overrides_class_skills: bool\", spontaneous AS \"spontaneous: bool\"\n        FROM archetype ORDER BY key",
+  "query": "SELECT key, class_key, name, summary, guide, prerequisite_root_id, skill_points,\n            overrides_class_skills AS \"overrides_class_skills: bool\", spontaneous AS \"spontaneous: bool\",\n            fort, reflex, will\n        FROM archetype ORDER BY key",
   "describe": {
     "columns": [
       {
@@ -101,6 +101,39 @@
             "name": "spontaneous"
           }
         }
+      },
+      {
+        "name": "fort",
+        "ordinal": 9,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "archetype",
+            "name": "fort"
+          }
+        }
+      },
+      {
+        "name": "reflex",
+        "ordinal": 10,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "archetype",
+            "name": "reflex"
+          }
+        }
+      },
+      {
+        "name": "will",
+        "ordinal": 11,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "archetype",
+            "name": "will"
+          }
+        }
       }
     ],
     "parameters": {
@@ -115,8 +148,11 @@
       true,
       true,
       false,
+      true,
+      true,
+      true,
       true
     ]
   },
-  "hash": "60cff303079175212ff4e919253e157808a27e91f35283f1942b26409ffbe4d4"
+  "hash": "00b8236eb2b22126671beb2e02dea58d7ddcf8dc300038f5dd9b2b5c96a12598"
 }

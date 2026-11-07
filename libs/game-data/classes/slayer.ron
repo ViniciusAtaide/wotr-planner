@@ -139,6 +139,8 @@ Class(
             name: "Arcane Enforcer",
             guide: "slayer#arcane-enforcer",
             class_skills: ["athletics", "knowledge-arcana", "knowledge-world", "mobility", "perception", "stealth", "use-magic-device"],
+            fort: Some(Poor),
+            will: Some(Good),
             features: [
                 (key: "slayer/arcane-enforcer/arcane-reservoir", name: "Arcane Reservoir", guide: "slayer#arcane-reservoir"),
             ],

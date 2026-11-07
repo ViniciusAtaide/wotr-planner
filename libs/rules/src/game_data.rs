@@ -741,6 +741,17 @@ pub struct Archetype {
     /// `None`: casts like the base class. `Some`: spontaneously or not (Eldritch Scion: a spontaneous magus).
     #[serde(default)]
     pub spontaneous: Option<bool>,
+    /// `None`: the base class's Fortitude progression. `Some`: replaces it (Arcane Enforcer: poor), and with it
+    /// the class's [`save_exceptions`](Class::save_exceptions) for that save, which are cells of the class's own.
+    #[serde(default)]
+    pub fort: Option<SaveProgression>,
+    /// `None`: the base class's Reflex progression. `Some`: replaces it, as [`fort`](Self::fort) does.
+    #[serde(default)]
+    pub reflex: Option<SaveProgression>,
+    /// `None`: the base class's Will progression. `Some`: replaces it, as [`fort`](Self::fort) does (Arcane
+    /// Enforcer: good).
+    #[serde(default)]
+    pub will: Option<SaveProgression>,
     /// Features this archetype adds (it can also grant the base class's).
     #[serde(default)]
     pub features: Vec<Feature>,
@@ -872,9 +883,20 @@ impl Class {
         self.bab.bab(class_level)
     }
 
-    /// One save at a class level: the guide's cell when it's an exception, else the progression's formula
-    /// (`prestige` picks the prestige formula).
-    pub fn save_bonus(&self, save: Save, class_level: u8, prestige: bool) -> u8 {
+    /// One save at a class level, taken with `archetype` (one of the class's, or none): the archetype's
+    /// progression when it replaces the class's for that save, else the guide's cell when it's an exception, else
+    /// the class's progression's formula (`prestige` picks the prestige formula).
+    pub fn save_bonus(
+        &self,
+        save: Save,
+        class_level: u8,
+        prestige: bool,
+        archetype: Option<&Archetype>,
+    ) -> u8 {
+        if let Some(progression) = archetype.and_then(|archetype| archetype.save_progression(save))
+        {
+            return progression.save(class_level, prestige);
+        }
         self.save_exceptions
             .iter()
             .find(|exception| exception.level == class_level && exception.save == save)
@@ -882,6 +904,17 @@ impl Class {
                 || self.save_progression(save).save(class_level, prestige),
                 |exception| exception.value,
             )
+    }
+}
+
+impl Archetype {
+    /// The progression that replaces its class's for one save, if any.
+    pub fn save_progression(&self, save: Save) -> Option<SaveProgression> {
+        match save {
+            Save::Fortitude => self.fort,
+            Save::Reflex => self.reflex,
+            Save::Will => self.will,
+        }
     }
 }
 

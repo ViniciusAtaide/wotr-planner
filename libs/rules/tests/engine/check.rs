@@ -5,7 +5,8 @@ use std::collections::BTreeSet;
 use rules::{
     ArchetypeKey, ArchetypeLevelRow, ClassKey, DataAt, DataIssue, DataProblem, FeatKey,
     FeatListKey, FeatSlot, FeatureKey, FeatureSelectionKey, GameData, MythicPathKey, OptionGroup,
-    Prerequisite, RaceKey, Repeat, Save, SaveException, SelectionOptionKey, SpellLevels,
+    Prerequisite, RaceKey, Repeat, Save, SaveException, SaveProgression, SelectionOptionKey,
+    SpellLevels,
 };
 
 use crate::support::*;
@@ -209,6 +210,29 @@ fn a_save_exception_differs_from_the_formula_at_one_of_the_class_levels() {
                 }
             ),
         ])
+    );
+}
+
+#[test]
+fn an_archetype_save_progression_differs_from_its_classs() {
+    let mut data = world();
+    // Fighter: good Fortitude, poor Reflex and Will.
+    let armiger = &mut class_mut(&mut data, "fighter").archetypes[0];
+    armiger.fort = Some(SaveProgression::Good);
+    armiger.reflex = Some(SaveProgression::Good);
+    armiger.will = Some(SaveProgression::Poor);
+    assert_eq!(
+        issues(&data),
+        [
+            (
+                at_armiger(),
+                DataIssue::SaveProgressionSameAsClass(Save::Fortitude)
+            ),
+            (
+                at_armiger(),
+                DataIssue::SaveProgressionSameAsClass(Save::Will)
+            ),
+        ]
     );
 }
 

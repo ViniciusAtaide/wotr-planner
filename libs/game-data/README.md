@@ -38,13 +38,16 @@ mythic ability, even ranks a mythic feat), the path choice at MR 3 and the switc
 are Combat feats (`FeatCategory::is_combat`), the skill rank cap (the Character level), choosing the path at MR 3
 granting its MR 1–2 rows (held from MR 3 on), the rank after a path switch (one above `kept_through_rank`), each
 class's level cap (its number of level rows; an archetype has its
-class's), and BAB and saves (from the class's progressions).
+class's), and BAB and saves (from the class's progressions, or an archetype's for a save it replaces).
 
 - A class's level rows run `level: 1`, `2`, … with none missing; what taking a class grants goes in row 1. Rows
   hold no BAB or saves: the class names its progressions (`bab: Full`/`ThreeQuarters`/`Half`, and `fort`, `reflex`,
   `will`: `Good`/`Poor`) and the rules compute the numbers, with the prestige save formula for prestige classes. A
   save cell the guide prints differently goes in `save_exceptions: [(level: 20, save: Will, value: 20)]`, exactly as
-  printed; the check refuses one the progression gives anyway.
+  printed; the check refuses one the progression gives anyway. An archetype whose saves differ from its class's
+  names the progressions it replaces (`fort: Some(Poor)`, `reflex: ...`, `will: Some(Good)`; left out, the class's).
+  A replaced save takes the archetype's formula at every level, without the class's `save_exceptions` for that save;
+  the check refuses one equal to the class's.
 - An archetype has a row only at the levels where it differs from its base class. A row's `features`, `feats`,
   `feat_slots` and `selections` replace the base row's in full (a row with none takes them away), and
   `spell_levels: (arcane: 1, divine: 0)` replaces the base row's spell levels when set. A level without a row is
@@ -369,6 +372,11 @@ class's), and BAB and saves (from the class's progressions).
   it's taken and the next, each the rank's path feat slot after the path row's own, prerequisites checked as in
   any category slot (Shield Wall needs Shield Proficiency). Taken at MR 10, the last rank, it gives the first slot
   only (the ticket's decision: the game has no MR 11 to give the second). No other superpower has rows.
+- Ticket 90 (found by the ticket 88 QA builds): the Arcane Enforcer's saves. The guide (`slayer#arcane-enforcer`)
+  says "High saving throws for Reflex and Will, low saving throws for Fortitude", where the slayer has good Fortitude
+  and Reflex and poor Will, so `slayer/arcane-enforcer` has `fort: Some(Poor)` and `will: Some(Good)` (Reflex stays
+  the slayer's). A sweep of every "saving throws for" sentence in `guide-cache/` finds no other archetype with saves
+  of its own.
 - A path's switch rule: `switch: (from: ["aeon", "azata"], kept_through_rank: 7, path_kept_through_rank: 7,
   dropped_features: [...], dropped_selections: [...], features: [...], further_ascensions: true, level_cap:
   Some(40))`. The general picks (mythic abilities and feats) of MR 1 to `kept_through_rank` stay, and the old

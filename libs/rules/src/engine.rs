@@ -192,7 +192,7 @@ pub fn mythic_pick_kind(rank: u8) -> MythicPickKind {
 }
 
 /// What one Class level gives a character of a class, with or without an archetype: the base class's row, or
-/// the archetype's row at that level when it has one. BAB and saves come from the class's progressions instead
+/// the archetype's row at that level when it has one. BAB and saves come from the progressions instead
 /// ([`Class::base_attack_bonus`], [`Class::save_bonus`]).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct EffectiveRow<'a> {

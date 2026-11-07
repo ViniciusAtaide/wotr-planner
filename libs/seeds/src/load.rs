@@ -1044,7 +1044,8 @@ async fn load_classes(
     let mut archetypes = Grouped::new();
     for row in sqlx::query!(
         "SELECT key, class_key, name, summary, guide, prerequisite_root_id, skill_points,
-            overrides_class_skills AS \"overrides_class_skills: bool\", spontaneous AS \"spontaneous: bool\"
+            overrides_class_skills AS \"overrides_class_skills: bool\", spontaneous AS \"spontaneous: bool\",
+            fort, reflex, will
         FROM archetype ORDER BY key"
     )
     .fetch_all(&mut *conn)
@@ -1073,6 +1074,9 @@ async fn load_classes(
                     .transpose()?,
                 class_skills: row.overrides_class_skills.then_some(class_skills),
                 spontaneous: row.spontaneous,
+                fort: row.fort.as_deref().map(save_progression_from).transpose()?,
+                reflex: row.reflex.as_deref().map(save_progression_from).transpose()?,
+                will: row.will.as_deref().map(save_progression_from).transpose()?,
                 features: parts.features.take(&owner),
                 selections: parts.selections.take(&owner),
                 feat_lists: parts.feat_lists.take(&owner),

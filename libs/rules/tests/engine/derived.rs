@@ -2,8 +2,8 @@
 //! race's penalty), skills, spell-level access.
 
 use rules::{
-    Ability, ClassChoice, ClassKey, Engine, LevelUp, Save, SaveException, SkillPoints, SlotId,
-    SubraceKey,
+    Ability, ClassChoice, ClassKey, Engine, LevelUp, Save, SaveException, SaveProgression,
+    SkillPoints, SlotId, SubraceKey,
 };
 
 use crate::support::*;
@@ -60,6 +60,87 @@ fn a_save_exception_replaces_the_formula_at_its_level_only() {
     let will: Vec<_> = (1..=3).map(|level| sheet.at(level).unwrap().will).collect();
     assert_eq!(will, [2, 9, 3]);
     assert_eq!(sheet.at(2).unwrap().fort, 0, "only the Will cell");
+}
+
+/// A Build of fighters taken as the armiger, whose save progressions the test sets.
+fn armiger_build(levels: usize) -> rules::Build {
+    let mut build = build("human", &times("fighter", levels));
+    build.class_choices.insert(
+        class("fighter"),
+        ClassChoice {
+            archetype: Some(rules::ArchetypeKey::new("fighter/armiger")),
+            advances: Default::default(),
+        },
+    );
+    build
+}
+
+fn armiger_saves(
+    data: &mut rules::GameData,
+    fort: Option<SaveProgression>,
+    will: Option<SaveProgression>,
+) {
+    let fighter = data
+        .classes
+        .iter_mut()
+        .find(|c| c.key == class("fighter"))
+        .unwrap();
+    let armiger = &mut fighter.archetypes[0];
+    armiger.fort = fort;
+    armiger.will = will;
+}
+
+#[test]
+fn an_archetype_save_progression_replaces_its_classs() {
+    // Fighter: good Fortitude, poor Reflex and Will. This armiger: poor Fortitude and good Will, Reflex the
+    // fighter's.
+    let mut data = world();
+    armiger_saves(
+        &mut data,
+        Some(SaveProgression::Poor),
+        Some(SaveProgression::Good),
+    );
+    let engine = Engine::new(data);
+
+    let saves = |build: &rules::Build, level| {
+        let sheet = engine.evaluate(build);
+        let at = sheet.at(level).unwrap();
+        (at.fort, at.reflex, at.will)
+    };
+    // Armiger 1: F ⌊1/3⌋ = 0, R 0, W 2 + ⌊1/2⌋ = 2. Armiger 3: F 1, R 1, W 3.
+    assert_eq!(saves(&armiger_build(3), 1), (0, 0, 2));
+    assert_eq!(saves(&armiger_build(3), 3), (1, 1, 3));
+    // A plain fighter keeps the fighter's: F 2 + ⌊3/2⌋ = 3, R 1, W 1.
+    assert_eq!(saves(&build("human", &times("fighter", 3)), 3), (3, 1, 1));
+}
+
+#[test]
+fn an_archetype_save_progression_replaces_the_class_exceptions_for_that_save_only() {
+    let mut data = world();
+    armiger_saves(&mut data, None, Some(SaveProgression::Good));
+    let fighter = data
+        .classes
+        .iter_mut()
+        .find(|c| c.key == class("fighter"))
+        .unwrap();
+    fighter.save_exceptions = vec![
+        SaveException {
+            level: 2,
+            save: Save::Will,
+            value: 9,
+        },
+        SaveException {
+            level: 2,
+            save: Save::Fortitude,
+            value: 7,
+        },
+    ];
+    let sheet = Engine::new(data).evaluate(&armiger_build(2));
+
+    let at_2 = sheet.at(2).unwrap();
+    // Will is the armiger's good progression (2 + ⌊2/2⌋ = 3), not the fighter's cell; Fortitude is still the
+    // fighter's, cell included.
+    assert_eq!((at_2.fort, at_2.will), (7, 3));
 }
 
 #[test]

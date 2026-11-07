@@ -369,6 +369,12 @@ CREATE TABLE archetype (
     overrides_class_skills INTEGER NOT NULL CONSTRAINT boolean CHECK (overrides_class_skills IN (0, 1)),
     -- NULL: casts like its class. Set: spontaneously or not (Eldritch Scion: a spontaneous magus).
     spontaneous INTEGER CONSTRAINT boolean CHECK (spontaneous IN (0, 1)),
+    -- NULL: the class's progression for that save. Set: replaces it, and the class's `save_exception`
+    -- cells for that save with it (Arcane Enforcer: poor Fortitude, good Will). `rules` computes the
+    -- numbers; `rules::GameData::check` keeps a set one off the class's.
+    fort TEXT CONSTRAINT save_progression CHECK (fort IN ('good', 'poor')),
+    reflex TEXT CONSTRAINT save_progression CHECK (reflex IN ('good', 'poor')),
+    will TEXT CONSTRAINT save_progression CHECK (will IN ('good', 'poor')),
     -- The target of the composite foreign keys below: an archetype row names its own class.
     UNIQUE (key, class_key)
 ) STRICT;

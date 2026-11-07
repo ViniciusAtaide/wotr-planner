@@ -4,6 +4,7 @@
 mod support;
 
 mod alignment;
+mod archetype_saves;
 mod backgrounds;
 mod bonus_feat_choices;
 mod borrowed_selections;
