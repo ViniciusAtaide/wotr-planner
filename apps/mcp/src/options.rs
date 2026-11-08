@@ -1,6 +1,6 @@
 //! `options`: what a choice can take, from the engine's own picker or stepper for it, each option with its value,
 //! its name, whether it can be taken now and, when not, the engine's issue and reason. Each option keeps the edit
-//! the engine gives it, so `choose` (ticket 109) applies the matching offer's edit and never builds one.
+//! the engine gives it, so `choose` applies the matching offer's edit and never builds one.
 
 use rules::{Build, Edit, Engine, Issue, RankStatus, Sheet, SlotId, Step};
 
@@ -25,7 +25,6 @@ pub(crate) struct Offer {
     pub reason: Option<String>,
     /// The engine's edit that takes it; `None` for a slot's parameterised entry listed without its values, which
     /// needs one of them.
-    #[expect(dead_code, reason = "`choose` (ticket 109) applies it")]
     pub edit: Option<Edit>,
     /// The filter chip it's filed under: a feat's category, an option's selection, "Base class", …
     pub category: Option<String>,
@@ -110,6 +109,13 @@ pub(crate) fn offers(
     let start = &build.start;
     Ok(match address {
         Address::Slot(slot) => slot_offers(engine, build, slot, values).ok_or_else(lacks)?,
+        // The class picker offers a level past the cap too: the web app shows no add control there.
+        Address::Class(level) if *level > sheet.level_cap => {
+            return Err(ToolError::no_such_choice(format!(
+                "Level {} is the last level a Build can have (the level cap; 40 after a Legend Path switch).",
+                sheet.level_cap
+            )));
+        }
         Address::Class(level) => class_offers(engine, build, *level).ok_or_else(lacks)?,
         Address::Race => engine
             .race_options(build)

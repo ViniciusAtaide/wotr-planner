@@ -1,5 +1,5 @@
 //! Choice addresses: the strings the sheet prints for each choice of a Build and the agent copies back to `options`
-//! (and, from ticket 109, `choose` and `withdraw`). Each one names one [`Choice`] the engine knows, except the
+//! (and to `choose` and `withdraw`). Each one names one [`Choice`] the engine knows, except the
 //! racial ability, which the engine folds into the race's.
 //!
 //! The grammar (ticket 104's, refined in ticket 107):

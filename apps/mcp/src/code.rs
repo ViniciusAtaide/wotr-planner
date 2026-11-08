@@ -32,6 +32,12 @@ pub(crate) fn open(planner: &Planner, code: &str) -> Result<Build, ToolError> {
         .map_err(|_| ToolError::stale_link())
 }
 
+/// The final gate on a Build an edit made: its code opened again through [`Engine::open_link`], so what comes back
+/// is exactly what the code holds and the engine finds it possible. `None` when it doesn't open.
+pub(crate) fn reopen(engine: &Engine, build: &Build) -> Option<Build> {
+    engine.open_link(&encode_build(build)).ok()
+}
+
 /// The envelope for a Build, from its sheet.
 pub(crate) fn envelope(engine: &Engine, build: &Build, sheet: &Sheet) -> Envelope {
     let code = encode_build(build);

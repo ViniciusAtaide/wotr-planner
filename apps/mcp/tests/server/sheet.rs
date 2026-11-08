@@ -216,6 +216,13 @@ async fn removable_marks_the_choices_that_can_come_off_now() {
         assert!(removable.contains(&choice.to_owned()), "{removable:?}");
     }
     assert!(!removable.contains(&"slot.feat.1.class.0".to_owned()));
+    // A level's class isn't withdrawn (`choose` changes it), so it's neither listed nor marked.
+    assert!(!removable.contains(&"level.4.class".to_owned()));
+    assert!(
+        at(&levels[3]["picks"], "level.4.class")
+            .get("removable")
+            .is_none()
+    );
 
     // Without the flag, no marks.
     let plain = sheet_of(&fighter(), false).await;

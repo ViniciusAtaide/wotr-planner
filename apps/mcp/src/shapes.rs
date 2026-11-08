@@ -278,7 +278,7 @@ pub enum ChoiceValue {
 impl ChoiceValue {
     /// Whether a value given for a choice names this offered one: keys and parameters ignoring case and spaces at the
     /// ends, numbers equal, and a class's archetype equal and its advanced classes the same set (left out matches
-    /// only an offer that asks none). `choose` (ticket 109) finds the offer it applies with this.
+    /// only an offer that asks none). `choose` finds the offer it applies with this.
     pub fn matches(&self, offered: &ChoiceValue) -> bool {
         let same = |a: &str, b: &str| a.trim().eq_ignore_ascii_case(b.trim());
         match (self, offered) {
@@ -336,8 +336,8 @@ pub struct PickLine {
     pub value: Option<ChoiceValue>,
     /// What it holds, as the planner names it; `null` while open.
     pub name: Option<String>,
-    /// With `removable: true`: whether it can be withdrawn now (nothing later depends on it). Left out for an open
-    /// choice.
+    /// With `removable: true`: whether `withdraw` can take it back now (nothing later depends on it). Left out for an
+    /// open choice, and for a level's class and the racial ability, which aren't withdrawn (`choose` another value).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub removable: Option<bool>,
 }
@@ -371,8 +371,8 @@ pub struct SheetResult {
     /// What the planner notes beside the Build: the background's note, favoured weapons, the choices the game asks
     /// for again each day.
     pub notes: Vec<String>,
-    /// With `removable: true`: every choice that can be withdrawn now, by address (a class's archetype and advanced
-    /// classes, and the last level, `level.N`, included).
+    /// With `removable: true`: every choice `withdraw` can take back now, by address (a class's archetype and
+    /// advanced classes, and the last level, `level.N`, included; a level's class never: `choose` changes it).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub removable: Option<Vec<String>>,
 }
@@ -532,4 +532,67 @@ pub enum OptionStatus {
 pub enum Open {
     #[serde(rename = "ok")]
     Ok,
+}
+
+// ---- choose and withdraw -----------------------------------------------------------------------------------------
+
+/// `choose`'s arguments.
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct ChooseArgs {
+    /// The Build's code (a link works too).
+    pub build: String,
+    /// The choices to make, in order. Each is checked against the Build as the steps before it left it; the first
+    /// one refused stops the rest.
+    pub steps: Vec<ChooseStep>,
+}
+
+/// One choice to make.
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct ChooseStep {
+    /// The choice's address, as `sheet`, `todo` and `options` print it: `slot.feat.3.general.0`, `level.4.class`
+    /// (one past the last level adds a level), `start.score.int`, `level.2.skill.athletics`, `mythic.path`, …
+    pub choice: String,
+    /// The value, as `options` lists it (with `values: true` for a parameterised feat's `{key, parameter}`). For a
+    /// point-buy score or a skill's ranks at a level, the number to reach: it's reached one step at a time, each
+    /// step checked.
+    pub value: ChoiceValue,
+}
+
+/// `choose`'s result.
+#[derive(Debug, Serialize, JsonSchema)]
+pub struct ChooseResult {
+    /// The Build after the steps applied: the input's code when none was.
+    #[serde(flatten)]
+    pub envelope: Envelope,
+    /// How many steps were applied, from the first (a step that changes nothing counts).
+    pub applied: u32,
+    /// The step that was refused, which stopped the rest. Left out when every step was applied.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rejected: Option<Rejected>,
+}
+
+/// A refused step of `choose`.
+#[derive(Debug, Serialize, JsonSchema)]
+pub struct Rejected {
+    /// Its index in `steps`, from 0 (always equal to `applied`).
+    pub step: u32,
+    /// Its address, as given.
+    pub choice: String,
+    /// Why: the engine's issue (`unmet`, `already_held`, `max_times`, `not_allowed`, `class_level_cap`,
+    /// `not_from_path`, `deity_alignment`, `needs_faith`, `deity_domain`, `breaks_later`), or the server's
+    /// (`not_an_option`, `no_such_choice`, `internal`).
+    pub issue: String,
+    /// The planner's reason; for `not_an_option`, the closest values offered.
+    pub reason: String,
+}
+
+/// `withdraw`'s arguments.
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct WithdrawArgs {
+    /// The Build's code (a link works too).
+    pub build: String,
+    /// The address of the choice to take back: a slot, `level.N` (the last level), `level.N.increase`,
+    /// `level.N.skill.<skill>`, `class.<class>.archetype|advances`, `start.race|subrace|faith|alignment|background`,
+    /// `start.score.<ability>` (back to 7), `mythic.first-ascension|path|switch`.
+    pub choice: String,
 }

@@ -3,6 +3,7 @@
 
 mod address;
 mod builds;
+mod choose;
 mod describe;
 mod listing;
 mod options;
@@ -10,3 +11,5 @@ mod search;
 mod sheet;
 mod support;
 mod test_world;
+mod walks;
+mod withdraw;

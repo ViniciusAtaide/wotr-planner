@@ -1,5 +1,5 @@
 //! The server's own refusals: a code an agent can branch on, and a reason it can read. A tool returns one as an
-//! error result (`isError: true`) whose text is `<code>: <reason>`.
+//! error result (`isError: true`) whose text is `<code>: <reason>`; `choose` returns one as a step's rejection.
 
 use std::fmt;
 
@@ -25,6 +25,31 @@ impl ToolError {
     pub fn no_such_choice(reason: impl Into<String>) -> Self {
         Self {
             code: "no_such_choice",
+            reason: reason.into(),
+        }
+    }
+
+    /// The value given for a choice isn't one its picker or stepper offers.
+    pub fn not_an_option(reason: impl Into<String>) -> Self {
+        Self {
+            code: "not_an_option",
+            reason: reason.into(),
+        }
+    }
+
+    /// The choice can't be withdrawn: something later depends on it, or it isn't withdrawn on its own.
+    pub fn not_removable(reason: impl Into<String>) -> Self {
+        Self {
+            code: "not_removable",
+            reason: reason.into(),
+        }
+    }
+
+    /// The engine's own edit made a Build its rules don't allow. The final gate refuses it, so it never comes back;
+    /// it would be a bug in the planner.
+    pub fn internal(reason: impl Into<String>) -> Self {
+        Self {
+            code: "internal",
             reason: reason.into(),
         }
     }

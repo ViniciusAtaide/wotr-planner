@@ -373,6 +373,15 @@ async fn an_address_the_build_lacks_is_no_such_choice() {
             .await;
         assert_eq!(error_code(&result), "no_such_choice", "{choice}");
     }
+    // No level past the cap.
+    let twenty = code(&build("human", &times("fighter", 20)));
+    let result = client
+        .call(
+            "options",
+            json!({ "build": twenty, "choice": "level.21.class" }),
+        )
+        .await;
+    assert_eq!(error_code(&result), "no_such_choice");
     // An unknown code is stale before the address is looked at.
     let result = client
         .call(

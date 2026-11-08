@@ -1,0 +1,340 @@
+//! `choose`: changes a Build only by what the engine offers. Each step recomputes the choice's options, finds the
+//! offered one whose value matches, requires it open, applies *that option's own edit* with [`Engine::apply`], and
+//! then opens the result's code again ([`reopen`]) as the final gate, so an impossible Build can never come back. No
+//! edit is ever built from the agent's input. A point-buy score or a skill's ranks move one stepper step at a time,
+//! each step checked the same way.
+
+use rules::{Build, Engine, POINT_BUY_BUDGET};
+
+use crate::address::{Address, NotAnAddress};
+use crate::code::{envelope, open, reopen};
+use crate::error::ToolError;
+use crate::options::{Offer, issue_code, issue_reason, offers};
+use crate::planner::Planner;
+use crate::shapes::{ChoiceValue, ChooseArgs, ChooseResult, Rejected};
+
+/// How many offered values a `not_an_option` reason names.
+const CLOSEST: usize = 5;
+
+/// `choose`: the steps applied in order up to the first refused, with the code as the last applied one left it.
+pub(crate) fn choose(planner: &Planner, args: ChooseArgs) -> Result<ChooseResult, ToolError> {
+    let engine = &planner.engine;
+    let mut build = open(planner, &args.build)?;
+    let mut applied = 0;
+    let mut rejected = None;
+    for (index, step) in args.steps.iter().enumerate() {
+        match take(engine, &build, &step.choice, &step.value, index) {
+            Ok(next) => {
+                build = next;
+                applied += 1;
+            }
+            Err(refusal) => {
+                rejected = Some(Rejected {
+                    step: applied,
+                    choice: step.choice.clone(),
+                    issue: refusal.code.to_owned(),
+                    reason: refusal.reason,
+                });
+                break;
+            }
+        }
+    }
+    let sheet = engine.evaluate(&build);
+    Ok(ChooseResult {
+        envelope: envelope(engine, &build, &sheet),
+        applied,
+        rejected,
+    })
+}
+
+/// One step: the Build with the value taken at the address, or why not. `index` names the step in an `internal`
+/// refusal.
+fn take(
+    engine: &Engine,
+    build: &Build,
+    choice: &str,
+    value: &ChoiceValue,
+    index: usize,
+) -> Result<Build, ToolError> {
+    let address: Address = choice
+        .parse()
+        .map_err(|error: NotAnAddress| ToolError::no_such_choice(error.to_string()))?;
+    if let (Address::Score(_) | Address::Skill(..), ChoiceValue::Number(target)) = (&address, value)
+    {
+        return step_to(engine, build, &address, *target, index);
+    }
+    let offers = offers_at(engine, build, &address)?;
+    let offer = find(value, &offers).ok_or_else(|| not_offered(&address, value, &offers))?;
+    if offer.current {
+        // What the Build holds already: nothing to change.
+        return Ok(build.clone());
+    }
+    apply_offer(engine, build, &address, offer, index)
+}
+
+/// The offer a value names ([`ChoiceValue::matches`]). One leniency: a class taken before with an archetype is
+/// offered at later levels only with it, so `{class}` alone names that one offer when it's the class's only one (a
+/// class not taken yet is offered without an archetype too, and that offer matches first).
+fn find<'a>(value: &ChoiceValue, offers: &'a [Offer]) -> Option<&'a Offer> {
+    if let Some(offer) = offers.iter().find(|offer| value.matches(&offer.value)) {
+        return Some(offer);
+    }
+    if !matches!(
+        value,
+        ChoiceValue::Class {
+            archetype: None,
+            ..
+        }
+    ) {
+        return None;
+    }
+    let mut same_class = offers.iter().filter(|offer| {
+        let ChoiceValue::Class {
+            class,
+            archetype: Some(_),
+            advances,
+        } = &offer.value
+        else {
+            return false;
+        };
+        value.matches(&ChoiceValue::Class {
+            class: class.clone(),
+            archetype: None,
+            advances: advances.clone(),
+        })
+    });
+    let only = same_class.next()?;
+    same_class.next().is_none().then_some(only)
+}
+
+/// Every option at an address, each value of a parameterised feat on its own line (so each has its edit).
+fn offers_at(engine: &Engine, build: &Build, address: &Address) -> Result<Vec<Offer>, ToolError> {
+    let sheet = engine.evaluate(build);
+    offers(engine, build, &sheet, address, true)
+}
+
+/// Applies an offer's own edit, if it's open, and passes the result through the final gate.
+fn apply_offer(
+    engine: &Engine,
+    build: &Build,
+    address: &Address,
+    offer: &Offer,
+    index: usize,
+) -> Result<Build, ToolError> {
+    if let Err(issue) = &offer.status {
+        return Err(ToolError {
+            code: issue_code(issue),
+            reason: offer
+                .reason
+                .clone()
+                .unwrap_or_else(|| issue_reason(engine, issue)),
+        });
+    }
+    let Some(edit) = &offer.edit else {
+        // Offers listed with their values all carry their edit.
+        return Err(ToolError::internal(format!(
+            "Step {index} (`{address}`): the planner offered `{}` without its edit, so nothing was applied. This is \
+             a bug in the planner.",
+            value_text(&offer.value)
+        )));
+    };
+    let mut next = build.clone();
+    engine.apply(&mut next, edit);
+    reopen(engine, &next).ok_or_else(|| {
+        ToolError::internal(format!(
+            "Step {index} (`{address}`): the planner's own edit for `{}` made a Build its rules don't allow, so it \
+             was not applied. This is a bug in the planner.",
+            value_text(&offer.value)
+        ))
+    })
+}
+
+/// A point-buy score or a skill's ranks at a level moved to `target` one stepper step at a time, the options
+/// recomputed after each. A step that isn't offered, or isn't open, refuses the whole move, naming that step.
+fn step_to(
+    engine: &Engine,
+    build: &Build,
+    address: &Address,
+    target: u8,
+    index: usize,
+) -> Result<Build, ToolError> {
+    let mut build = build.clone();
+    loop {
+        let offers = offers_at(engine, &build, address)?;
+        let current = stepper_value(&build, address);
+        if current == target {
+            return Ok(build);
+        }
+        let next = if target > current {
+            current + 1
+        } else {
+            current - 1
+        };
+        let what = match address {
+            Address::Score(ability) => ability.name().to_owned(),
+            Address::Skill(level, skill) => {
+                format!("{} ranks at level {level}", engine.skill_name(skill))
+            }
+            _ => unreachable!("only scores and skill ranks step"),
+        };
+        let at = format!("At {what} {current} → {next}");
+        let Some(offer) = offers
+            .iter()
+            .find(|offer| offer.value == ChoiceValue::Number(next))
+        else {
+            let limits = match address {
+                Address::Score(_) => format!(
+                    "a point-buy score runs from 7 to 18 within the {POINT_BUY_BUDGET}-point budget, and {} points \
+                     are spent now",
+                    build.start.ability_scores.cost()
+                ),
+                _ => "a level adds ranks only up to its skill points, and no skill's total goes above the \
+                      character level"
+                    .to_owned(),
+            };
+            return Err(ToolError::not_an_option(format!(
+                "{at}: there is no such step ({limits}). Nothing was changed."
+            )));
+        };
+        build =
+            apply_offer(engine, &build, address, offer, index).map_err(|refusal| ToolError {
+                reason: format!("{at}: {}. Nothing was changed.", refusal.reason),
+                ..refusal
+            })?;
+    }
+}
+
+/// The number a stepper address holds now: a point-buy score, or the ranks a level adds to a skill. The level is
+/// one the Build has ([`offers_at`] checked).
+fn stepper_value(build: &Build, address: &Address) -> u8 {
+    match address {
+        Address::Score(ability) => build.start.ability_scores.get(*ability),
+        Address::Skill(level, skill) => build.levels[usize::from(*level) - 1]
+            .skill_ranks
+            .get(skill)
+            .copied()
+            .unwrap_or(0),
+        _ => unreachable!("only scores and skill ranks step"),
+    }
+}
+
+/// Why a value isn't taken at an address: a prestige class that needs its `advances`, or the closest values offered.
+fn not_offered(address: &Address, value: &ChoiceValue, offers: &[Offer]) -> ToolError {
+    if let ChoiceValue::Class {
+        advances: None,
+        class,
+        ..
+    } = value
+    {
+        let answers: Vec<String> = offers
+            .iter()
+            .filter(|offer| value.matches(&without_advances(&offer.value)))
+            .filter_map(|offer| match &offer.value {
+                ChoiceValue::Class {
+                    advances: Some(advances),
+                    ..
+                } => Some(format!(
+                    "{} ({})",
+                    serde_json::to_string(advances).expect("a list serialises"),
+                    offer.name
+                )),
+                _ => None,
+            })
+            .collect();
+        if !answers.is_empty() {
+            return ToolError::not_an_option(format!(
+                "`{class}` at `{address}` asks which classes its levels advance: give `advances` too, `[]` for \
+                 none. Offered: {}.",
+                answers.join(", ")
+            ));
+        }
+    }
+    if offers.is_empty() {
+        return ToolError::not_an_option(format!("`{address}` offers nothing now."));
+    }
+    let mut ranked: Vec<(usize, &Offer)> = offers.iter().enumerate().collect();
+    let given = value_text(value);
+    let given_words = words(&given);
+    ranked.sort_by_cached_key(|(order, offer)| {
+        let offered = value_text(&offer.value);
+        let mut offered_words = words(&offered);
+        offered_words.extend(words(&offer.name));
+        let shared = given_words
+            .iter()
+            .filter(|word| {
+                offered_words.iter().any(|other| {
+                    other.starts_with(word.as_str()) || word.starts_with(other.as_str())
+                })
+            })
+            .count();
+        (
+            std::cmp::Reverse(shared),
+            distance(&given, &offered),
+            offer.status.is_err(),
+            *order,
+        )
+    });
+    let closest: Vec<String> = ranked
+        .iter()
+        .take(CLOSEST)
+        .map(|(_, offer)| {
+            let open = if offer.status.is_ok() {
+                ""
+            } else {
+                ", not open now"
+            };
+            format!("{} (`{}`{open})", offer.name, value_text(&offer.value))
+        })
+        .collect();
+    ToolError::not_an_option(format!(
+        "`{given}` isn't an option for `{address}`. Closest: {}. `options` lists what it takes, with `values: true` \
+         for a parameterised feat's values.",
+        closest.join(", ")
+    ))
+}
+
+/// A class value without its `advances`, to tell a prestige class given without them.
+fn without_advances(value: &ChoiceValue) -> ChoiceValue {
+    match value {
+        ChoiceValue::Class {
+            class, archetype, ..
+        } => ChoiceValue::Class {
+            class: class.clone(),
+            archetype: archetype.clone(),
+            advances: None,
+        },
+        other => other.clone(),
+    }
+}
+
+/// A value as JSON, as the agent would write it.
+fn value_text(value: &ChoiceValue) -> String {
+    serde_json::to_string(value).expect("a value serialises")
+}
+
+/// The lower-case words of a text (letters and digits).
+fn words(text: &str) -> Vec<String> {
+    text.split(|c: char| !c.is_alphanumeric())
+        .filter(|word| !word.is_empty())
+        .map(str::to_lowercase)
+        .collect()
+}
+
+/// The edit distance between two texts, ignoring case.
+fn distance(a: &str, b: &str) -> usize {
+    let a: Vec<char> = a.to_lowercase().chars().collect();
+    let b: Vec<char> = b.to_lowercase().chars().collect();
+    let mut row: Vec<usize> = (0..=b.len()).collect();
+    for (i, ca) in a.iter().enumerate() {
+        let mut diagonal = row[0];
+        row[0] = i + 1;
+        for (j, cb) in b.iter().enumerate() {
+            let above = row[j + 1];
+            row[j + 1] = (above + 1)
+                .min(row[j] + 1)
+                .min(diagonal + usize::from(ca != cb));
+            diagonal = above;
+        }
+    }
+    row[b.len()]
+}

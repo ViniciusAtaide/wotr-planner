@@ -55,10 +55,19 @@ pub(crate) fn sheet(planner: &Planner, build: &Build, removable: bool) -> SheetR
         removable: removable.map(|choices| {
             choices
                 .iter()
-                .map(|choice| Address::from(choice).to_string())
+                .map(Address::from)
+                .filter(withdrawable)
+                .map(|address| address.to_string())
                 .collect()
         }),
     }
+}
+
+/// Whether `withdraw` takes back the choice at an address at all: not a level's class, which `choose` changes (the
+/// engine would withdraw it by giving the level a class no data has). The racial ability has no engine choice, so
+/// the engine never lists it.
+fn withdrawable(address: &Address) -> bool {
+    !matches!(address, Address::Class(_))
 }
 
 fn named(key: &impl std::fmt::Display, name: &str) -> Named {
@@ -105,7 +114,9 @@ impl Lines<'_> {
         held: Option<(ChoiceValue, String)>,
     ) -> PickLine {
         let removable = match (&held, self.removable, address.choice()) {
-            (Some(_), Some(removable), Some(choice)) => Some(removable.contains(&choice)),
+            (Some(_), Some(removable), Some(choice)) if withdrawable(&address) => {
+                Some(removable.contains(&choice))
+            }
             _ => None,
         };
         let (value, name) = held.unzip();
