@@ -11,7 +11,7 @@ A working, locally run Leptos app at `~/code/wotr-planner` for planning Pathfind
 - **This map includes building the app**, not just planning it. Tickets may build things, not only decide them.
 - **Stack:**
   - cargo-leptos SSR on Axum, using a dated nightly pinned in `rust-toolchain.toml`.
-  - SQLite on the server only, one git-ignored file (`wotr-planner.db`, `DATABASE_URL`); no Docker and no database server (user, 2026-11-06, [ticket 85](issues/85-sqlite-instead-of-postgres.md)). The browser gets the game data as JSON. Local only. Dropping the database for the server reading `libs/game-data/` directly was considered and declined: SQLite stays for now (user, 2026-11-06).
+  - SQLite on the server only, one git-ignored file (`wotr-planner.db`, `DATABASE_URL`); no Docker and no database server (user, 2026-11-06, [ticket 85](issues/85-sqlite-instead-of-postgres.md)). The browser gets the game data as JSON. Deployed as a static site on GitHub Pages (user, 2026-11-08, [ticket 100](issues/100-static-site-for-github-pages.md)): the release server's page, wasm and game data saved as files at build time, so SQLite is used only to build it. Dropping the database for the server reading `libs/game-data/` directly was considered and declined: SQLite stays for now (user, 2026-11-06).
   - sqlx with typed serde structs.
 - **Game data:**
   - The source of truth is the checked-in data files (user, 2026-11-03, [ticket 75](issues/75-game-data-master.md)). They were extracted from the guide and are corrected by hand; the extractor was removed once the files held all it knew (tickets 81–82). A data change edits the `.ron` files, adds a note to `libs/game-data/README.md` and adds a real-data test in `libs/seeds/tests/game_data/`.
@@ -151,6 +151,7 @@ A working, locally run Leptos app at `~/code/wotr-planner` for planning Pathfind
 - [GameData::check validates references](issues/98-check-validates-references.md): every key an entity names must be an entity of its kind (`DataIssue::UnknownKey`) and every Mythic rank a path names in the progression (`UnknownRank`), so in-memory data (the test world, the browser's) is checked too; the SQLite foreign keys stay as a backstop (ticket 75); the engine's missing-key tolerances became `expect`s or went; the real data had no dangling keys.
 - [Slot options come back presented](issues/97-slot-options-presented.md): `Engine::slot_entries` returns a slot's options grouped by the item they take, with name, chip, summary, story note, noun and the one reason resolved (each `SlotOption` keeps its status and edit), and `Catalog::pick_item` is the one lookup of the item a pick takes; the UI only renders; Exotic Weapon Proficiency now says "Choose an exotic weapon."
 - [The Path switch's rules sit beside its data](issues/99-switch-rules-beside-their-data.md): `MythicPath::row` is the one rank-to-row lookup, `PathSwitch::ends_ascensions_at` the one "Legend ends MR 8+" rule (`apply` and the walk both ask it), and `PathSwitch::keeps`/`drops` what a switch keeps and takes away; the walker keeps the mid-walk release. A separate mythic-track module was assessed and not built: it would only move the walker's code (architecture review candidate 5, 2026-11-08).
+- [A static build for GitHub Pages](issues/100-static-site-for-github-pages.md): `scripts/build-site.sh` saves the release server's first page (which hydrates), `pkg/` and the game-data JSON as a static site; every URL is relative to the page, so it works at `/` and under `/<repo>/`, and the app lost its one-route router; `.github/workflows/pages.yml` builds and deploys it on every push to `main` (user, 2026-11-08: deployment now in scope, repo `ViniciusAtaide/wotr-planner`).
 
 ## Not yet specified
 
@@ -161,6 +162,5 @@ A working, locally run Leptos app at `~/code/wotr-planner` for planning Pathfind
 
 - Spells known or prepared: not part of the class/feat/mythic summary.
 - Gear and companions: not part of a character's build choices. This includes gear bonuses toward ability-score prerequisites (user, 2026-10-31). Prerequisites check the character's own scores: point buy, race, level increases and ability bonuses from features such as Legend's +4 (user, 2026-11-01).
-- Deployment: this map ends with the app running locally.
 - User accounts: Builds are anonymous and exist only as their link.
 - Reproducing the guide's full text: copyright; store a summary and a link instead.
