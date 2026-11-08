@@ -110,7 +110,7 @@ pub fn Head(
                         planner.edit(edit.get_value());
                     }
                 >
-                    "× Remove"
+                    "Remove"
                 </button>
             })
         }
