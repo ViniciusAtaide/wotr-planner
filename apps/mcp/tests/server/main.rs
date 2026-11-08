@@ -4,6 +4,7 @@
 mod address;
 mod builds;
 mod choose;
+mod compare;
 mod describe;
 mod listing;
 mod options;

@@ -45,6 +45,14 @@ impl ToolError {
         }
     }
 
+    /// The arguments parse but don't make sense together (`compare` given one Build, or five).
+    pub fn invalid_arguments(reason: impl Into<String>) -> Self {
+        Self {
+            code: "invalid_arguments",
+            reason: reason.into(),
+        }
+    }
+
     /// The engine's own edit made a Build its rules don't allow. The final gate refuses it, so it never comes back;
     /// it would be a bug in the planner.
     pub fn internal(reason: impl Into<String>) -> Self {

@@ -23,8 +23,17 @@ use crate::values::{
 
 /// The sheet of a possible Build; with `removable`, each held choice marked with whether it can be withdrawn now.
 pub(crate) fn sheet(planner: &Planner, build: &Build, removable: bool) -> SheetResult {
+    sheet_of(planner, build, &planner.engine.evaluate(build), removable)
+}
+
+/// [`sheet`] from the Build's sheet already evaluated (`compare` reads the engine's sheet once per Build).
+pub(crate) fn sheet_of(
+    planner: &Planner,
+    build: &Build,
+    sheet: &Sheet,
+    removable: bool,
+) -> SheetResult {
     let engine = &planner.engine;
-    let sheet = engine.evaluate(build);
     let removable = removable.then(|| engine.removable(build));
     let lines = Lines {
         engine,
@@ -33,12 +42,12 @@ pub(crate) fn sheet(planner: &Planner, build: &Build, removable: bool) -> SheetR
     let empty = CharacterState::default();
     let last = sheet.levels.last().map_or(&empty, |level| &level.state);
     SheetResult {
-        envelope: envelope(engine, build, &sheet),
+        envelope: envelope(engine, build, sheet),
         name: build.name.clone(),
         start: lines.start(build),
         point_buy_spent: build.start.ability_scores.cost(),
         point_buy_budget: POINT_BUY_BUDGET,
-        levels: lines.levels(build, &sheet),
+        levels: lines.levels(build, sheet),
         ranks: sheet.ranks.iter().map(|rank| lines.rank(rank)).collect(),
         level_cap: sheet.level_cap,
         caster_level: last.caster_level,
@@ -325,7 +334,7 @@ impl Lines<'_> {
     }
 }
 
-fn scores(scores: AbilityScores) -> Scores {
+pub(crate) fn scores(scores: AbilityScores) -> Scores {
     Scores {
         str: scores.strength,
         dex: scores.dexterity,

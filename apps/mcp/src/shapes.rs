@@ -135,7 +135,7 @@ pub struct Item {
 }
 
 /// Another item, by key and name.
-#[derive(Clone, Debug, Serialize, JsonSchema)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, JsonSchema)]
 pub struct Named {
     pub key: String,
     pub name: String,
@@ -446,7 +446,7 @@ pub struct RankLine {
 }
 
 /// A Mythic rank's status.
-#[derive(Debug, Serialize, JsonSchema)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum RankState {
     Reached,
@@ -595,4 +595,142 @@ pub struct WithdrawArgs {
     /// `level.N.skill.<skill>`, `class.<class>.archetype|advances`, `start.race|subrace|faith|alignment|background`,
     /// `start.score.<ability>` (back to 7), `mythic.first-ascension|path|switch`.
     pub choice: String,
+}
+
+// ---- compare -----------------------------------------------------------------------------------------------------
+
+/// `compare`'s arguments.
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct CompareArgs {
+    /// 2 to 4 Build codes (links work too), for example two branches of one Build. Each is opened checked, and every
+    /// per-Build list in the result follows this order.
+    pub builds: Vec<String>,
+}
+
+/// `compare`'s result: each Build's summary, then only what differs between them, all read from the planner's
+/// sheets. Facts only: nothing here says which Build is better.
+#[derive(Debug, Serialize, JsonSchema)]
+pub struct CompareResult {
+    /// One per Build, in the order given.
+    pub builds: Vec<BuildSummary>,
+    /// The Build start's choices that differ (race, faith, alignment, background, point-buy scores, …).
+    pub start: Vec<PickDiff>,
+    /// The character levels where anything differs, in level order. A level that only some Builds reach differs.
+    pub levels: Vec<LevelDiff>,
+    /// The Mythic ranks whose status, path or choices differ, in rank order.
+    pub ranks: Vec<RankDiff>,
+    /// By Mythic rank: the path features each Build's sheet lists at that rank and some other Build's doesn't.
+    pub path_features: Vec<FeaturesDiff>,
+}
+
+/// One Build's sheet in short, at its last level.
+#[derive(Debug, Serialize, JsonSchema)]
+pub struct BuildSummary {
+    /// Its code.
+    pub build: String,
+    /// Its planner link, for the user.
+    pub link: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    /// How many choices are still open: the length of its `todo`.
+    pub open_choices: u32,
+    pub character_level: u8,
+    /// The classes taken, in order of first entry, with their levels.
+    pub classes: Vec<ClassSummary>,
+    pub bab: u8,
+    pub fort: u8,
+    pub reflex: u8,
+    pub will: u8,
+    pub scores: Scores,
+    /// Class levels only (no mythic, gear or buff bonus), as `sheet` gives it.
+    pub caster_level: u8,
+    pub spell_levels: SpellLevels,
+    /// The Mythic rank reached (3 after a Legend switch).
+    pub mythic_rank: u8,
+    /// The first ascension's path (MR 1–2), when chosen.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub first_ascension: Option<Named>,
+    /// The Mythic path chosen at MR 3.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub path: Option<Named>,
+    /// The Path switch at MR 8.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub switch: Option<Named>,
+    /// The character level cap: 20, or 40 after a Legend switch.
+    pub level_cap: u8,
+}
+
+/// One class of a Build.
+#[derive(Debug, Serialize, JsonSchema)]
+pub struct ClassSummary {
+    pub class: Named,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub archetype: Option<Named>,
+    pub levels: u8,
+    /// A prestige class's advanced spellcasting classes.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub advances: Vec<Named>,
+}
+
+/// A choice that holds different things in different Builds.
+#[derive(Debug, Serialize, JsonSchema)]
+pub struct PickDiff {
+    /// Its address.
+    pub choice: String,
+    /// What it is: "Class", "Mythic ability", "Lich Powers", …; each Build's label once, joined by " / ", where they
+    /// differ ("Lich Powers / Enforcing Gaze").
+    pub label: String,
+    /// One per Build: what it holds, as the planner names it; `null` where it's open or the Build lacks it.
+    pub names: Vec<Option<String>>,
+}
+
+/// A number that differs between the Builds.
+#[derive(Debug, Serialize, JsonSchema)]
+pub struct NumberDiff {
+    /// `class_level`, `bab`, `fort`, `reflex`, `will`, `str`, `dex`, `con`, `int`, `wis` or `cha`.
+    pub what: String,
+    /// One per Build; `null` where the Build lacks the level.
+    pub values: Vec<Option<u8>>,
+}
+
+/// What differs at one character level.
+#[derive(Debug, Serialize, JsonSchema)]
+pub struct LevelDiff {
+    pub level: u8,
+    /// Numbers at the end of the level.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub numbers: Vec<NumberDiff>,
+    /// The level's choices: class, ability increase, ranks added, slots.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub picks: Vec<PickDiff>,
+    /// One list per Build: the feats it first holds at this level that some other Build doesn't.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub feats: Vec<Vec<Named>>,
+    /// One list per Build: the features it gains at this level that some other Build doesn't, apart from its path
+    /// rows' features, which are in `path_features`.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub features: Vec<Vec<Named>>,
+}
+
+/// What differs at one Mythic rank, apart from its path features (those are in `path_features`).
+#[derive(Debug, Serialize, JsonSchema)]
+pub struct RankDiff {
+    pub rank: u8,
+    /// One per Build, when they differ.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub status: Option<Vec<RankState>>,
+    /// One per Build, when they differ: the path whose row the rank gives (MR 1–2: the first ascension's).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub path: Option<Vec<Option<String>>>,
+    /// The rank's choices: the general mythic pick and the path's.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub picks: Vec<PickDiff>,
+}
+
+/// One Mythic rank's path features that not every Build has.
+#[derive(Debug, Serialize, JsonSchema)]
+pub struct FeaturesDiff {
+    pub rank: u8,
+    /// One list per Build: the features its path row gives at this rank that some other Build's doesn't.
+    pub only: Vec<Vec<Named>>,
 }

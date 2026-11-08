@@ -3,8 +3,11 @@
 use std::sync::LazyLock;
 
 use mcp::{Planner, Server};
-use rmcp::model::{CallToolRequestParams, CallToolResult};
-use rmcp::service::{RoleClient, RunningService};
+use rmcp::model::{
+    CallToolRequestParams, CallToolResult, ReadResourceRequestParams, ReadResourceResult, Resource,
+    ServerCapabilities,
+};
+use rmcp::service::{RoleClient, RunningService, ServiceError};
 use rmcp::{ServiceExt, serde_json};
 use serde_json::{Value, json};
 
@@ -49,6 +52,29 @@ impl Client {
             .peer_info()
             .and_then(|info| info.instructions.clone())
             .unwrap_or_default()
+    }
+
+    /// The server's capabilities, from its `initialize` reply.
+    pub fn capabilities(&self) -> ServerCapabilities {
+        self.0
+            .peer_info()
+            .map(|info| info.capabilities.clone())
+            .unwrap_or_default()
+    }
+
+    /// The resources the server lists.
+    pub async fn resources(&self) -> Vec<Resource> {
+        self.0
+            .list_all_resources()
+            .await
+            .expect("the resources list")
+    }
+
+    /// Reads one resource by its URI.
+    pub async fn read_resource(&self, uri: &str) -> Result<ReadResourceResult, ServiceError> {
+        self.0
+            .read_resource(ReadResourceRequestParams::new(uri))
+            .await
     }
 
     /// The tools' names, sorted.

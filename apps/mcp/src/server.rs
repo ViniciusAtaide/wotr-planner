@@ -1,49 +1,76 @@
-//! The MCP server: its tools and its instructions.
+//! The MCP server: its tools, its instructions and its one resource, the glossary.
 
 use rmcp::handler::server::router::tool::ToolRouter;
 use rmcp::handler::server::wrapper::Parameters;
-use rmcp::model::{Implementation, ServerCapabilities, ServerConfig};
-use rmcp::{Json, ServerHandler, tool, tool_handler, tool_router};
+use rmcp::model::{
+    ErrorData, Implementation, ListResourcesResult, PaginatedRequestParams,
+    ReadResourceRequestParams, ReadResourceResponse, ReadResourceResult, Resource,
+    ResourceContents, ServerCapabilities, ServerConfig,
+};
+use rmcp::service::RequestContext;
+use rmcp::{Json, RoleServer, ServerHandler, tool, tool_handler, tool_router};
 
 use rules::{Build, Edit};
 
 use crate::choose::choose;
 use crate::code::{envelope, open};
+use crate::compare::compare;
 use crate::describe::describe;
 use crate::options::options;
 use crate::planner::Planner;
 use crate::shapes::{
-    BuildResult, ChooseArgs, ChooseResult, DescribeArgs, Item, NewBuildArgs, OptionsArgs,
-    OptionsResult, SearchArgs, SearchResult, SheetArgs, SheetResult, WithdrawArgs,
+    BuildResult, ChooseArgs, ChooseResult, CompareArgs, CompareResult, DescribeArgs, Item,
+    NewBuildArgs, OptionsArgs, OptionsResult, SearchArgs, SearchResult, SheetArgs, SheetResult,
+    WithdrawArgs,
 };
 use crate::sheet::sheet;
 use crate::withdraw::withdraw;
 
-/// What every client is told on connecting: the workflow and the honesty boundary (plan, ticket 104, section 1).
-/// A first version; ticket 110 finishes it.
+/// What every client is told on connecting: the workflow, how to batch, value and branch, and the honesty boundary
+/// (plan, ticket 104, section 1). Short and imperative; the tools' descriptions hold the details.
 pub const INSTRUCTIONS: &str = "\
-wotr-planner answers from the rules engine and game data of a Pathfinder: Wrath of the Righteous build planner.
+wotr-planner builds Pathfinder: Wrath of the Righteous characters with the rules engine of a build planner. Every \
+Build its tools return is one the planner's rules allow.
 
-Workflow: resolve every name the user gives with `search` (it matches names, keys and initials: \"BFT\" finds the \
-Brown-Fur Transmuter), and ask the user whenever a name matches more than one item. Use `describe` for an item's \
-details: a class's or archetype's rows by level, a Mythic path's features by rank.
+Workflow:
+1. Resolve every name the user gives with `search` (names, keys and initials: \"BFT\" finds the Brown-Fur \
+Transmuter). If a name could mean more than one item, ask the user which one before you build.
+2. Start with `new_build`. Every Build tool takes the Build's code (`build`) and returns a new code, the planner \
+`link` and `todo`, the choices still open, each by its address.
+3. Fill the Build start: race, racial ability, faith, alignment, background, point-buy scores.
+4. Add levels with `level.N.class` (N one past the last level adds one) and fill each level's open choices: feats, \
+Feature selections, ability increases, skill points.
+5. Fill the Mythic ranks once their levels are reached: the first ascension at MR 1, the path at MR 3, and each \
+rank's picks.
+6. Give the user the final `link`.
 
-Building: `new_build` starts a Build and returns its code (`build`), its planner link and its open choices \
-(`todo`), each by address. Every Build tool takes the code and returns a new one; keep an old code to branch. \
-`sheet` shows the Build level by level with every choice's address, and `options` what a choice can take now, \
-each option with the engine's status and reason. `choose` makes choices with the values `options` lists, \
-and `withdraw` takes one back; both return the new code, and a Build they return is always one the planner's \
-rules allow.
+Batching: send many steps in one `choose`. It stops at the first refused step: read `rejected` (its issue and \
+reason), fix that step, and resend the rest from the code it returned.
 
-What you may state as fact: what these tools return from the planner's data (names, keys, prerequisites, rows by \
-level, features by rank), that every choice in a Build these tools returned is legal under the planner's rules at \
-the level it is taken, and the numbers its sheet lists.
+Values: take them from `options`, which lists what a choice can take now and why the rest is closed. A \
+parameterised feat needs `{key, parameter}`: list them with `options {values: true}`. A spellcasting prestige \
+class needs `advances`, the classes it advances (`[]` for none). A point-buy score or a skill's ranks take the \
+number to reach.
 
-What you must label as your own game knowledge, outside the planner's checks: what a feature, feat or spell does; \
-spell availability and durations; caster level arithmetic; item and buff effects; summons' stats; and which choice \
-is better. The data holds names, prerequisites and guide links, and almost no descriptions.
+Branching: for alternatives (Lich or Aeon), build the shared part once, `choose` each alternative from that same \
+code, fill each branch, then `compare` the codes. Report its differences as facts, without ranking them.
 
-Guide links (`guide_url`) are for the user to read: never fetch them yourself.";
+The honesty boundary:
+- State as fact only what the tools return: every choice in the Build is legal under the planner's rules at the \
+level it is taken; the link opens in the planner; and the features, numbers (BAB, saves, scores, skill ranks, \
+caster level from class levels, spell-level access) and path features the sheet lists.
+- Label everything else as your own game knowledge: what a feature, feat or spell does, spell availability, \
+durations, caster level arithmetic, item and buff effects, summons' stats, and which choice is better. The planner \
+checks none of it: its data holds names, prerequisites and guide links, and almost no descriptions.
+- Guide links (`guide_url`) are for the user to read: never fetch them yourself.
+
+The resource `wotr://glossary` defines the planner's terms (Build start, Slot, Withdrawal, Path switch, …).";
+
+/// The resource that serves the glossary.
+pub const GLOSSARY_URI: &str = "wotr://glossary";
+
+/// The project's glossary (`GLOSSARY.md`), embedded at build time so the binary needs no file at run time.
+pub const GLOSSARY: &str = include_str!("../../../GLOSSARY.md");
 
 /// The server: the loaded data and the tools over it. Each tool call runs on a blocking thread.
 #[derive(Clone, Debug)]
@@ -229,16 +256,79 @@ impl Server {
         self.blocking(move |planner| Ok(Json(withdraw(planner, args)?)))
             .await
     }
+
+    #[tool(
+        description = "Compare 2 to 4 Builds (`builds`: their codes, for example two branches of one Build), from \
+            the planner's sheets. For each Build, a summary at its last level: classes and levels, BAB, saves, \
+            scores, caster level (class levels only), spell-level access, Mythic rank, first ascension, path, Path \
+            switch, level cap, link. Then only what differs: the Build start's choices; by character level, the \
+            numbers (class level, BAB, saves, scores), the choices by address and the feats and features each Build \
+            gains that another doesn't; by Mythic rank, the status, path and choices; and `path_features`, by rank, \
+            the path features each Build has that another lacks. Every per-Build list follows the order of \
+            `builds`. Facts only: it doesn't say which Build is better. Errors: `invalid_arguments` (not 2 to 4 \
+            codes), `stale_link` (naming the code that doesn't open).",
+        annotations(read_only_hint = true, open_world_hint = false)
+    )]
+    async fn compare(
+        &self,
+        Parameters(args): Parameters<CompareArgs>,
+    ) -> Result<Json<CompareResult>, String> {
+        self.blocking(move |planner| Ok(Json(compare(planner, args)?)))
+            .await
+    }
 }
 
 #[tool_handler(router = self.tool_router)]
 impl ServerHandler for Server {
     fn get_info(&self) -> ServerConfig {
-        ServerConfig::new(ServerCapabilities::builder().enable_tools().build())
-            .with_server_info(
-                Implementation::new("wotr-planner", env!("CARGO_PKG_VERSION"))
-                    .with_title("WotR Build Planner"),
-            )
-            .with_instructions(INSTRUCTIONS)
+        ServerConfig::new(
+            ServerCapabilities::builder()
+                .enable_tools()
+                .enable_resources()
+                .build(),
+        )
+        .with_server_info(
+            Implementation::new("wotr-planner", env!("CARGO_PKG_VERSION"))
+                .with_title("WotR Build Planner"),
+        )
+        .with_instructions(INSTRUCTIONS)
     }
+
+    async fn list_resources(
+        &self,
+        _request: Option<PaginatedRequestParams>,
+        _context: RequestContext<RoleServer>,
+    ) -> Result<ListResourcesResult, ErrorData> {
+        Ok(ListResourcesResult::with_all_items(vec![glossary()]))
+    }
+
+    async fn read_resource(
+        &self,
+        request: ReadResourceRequestParams,
+        _context: RequestContext<RoleServer>,
+    ) -> Result<ReadResourceResponse, ErrorData> {
+        if request.uri != GLOSSARY_URI {
+            return Err(ErrorData::resource_not_found(
+                format!(
+                    "No resource `{}`: the one resource is `{GLOSSARY_URI}`.",
+                    request.uri
+                ),
+                None,
+            ));
+        }
+        let text = ResourceContents::text(GLOSSARY, GLOSSARY_URI).with_mime_type("text/markdown");
+        Ok(ReadResourceResult::new(vec![text]).into())
+    }
+}
+
+/// The glossary resource, as `resources/list` lists it.
+fn glossary() -> Resource {
+    Resource::new(GLOSSARY_URI, "glossary")
+        .with_title("WotR Build Planner glossary")
+        .with_description(
+            "The planner's terms: Build, Build start, Level-up, Mythic ascension, Slot, Pick, Withdrawal, Path \
+             switch, Option level, … The tools speak in these words.",
+        )
+        .with_mime_type("text/markdown")
+        .with_size(GLOSSARY.len() as u64)
 }
