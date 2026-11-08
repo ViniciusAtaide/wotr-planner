@@ -20,6 +20,14 @@ impl ToolError {
                 .to_owned(),
         }
     }
+
+    /// The address isn't one, or names a choice the Build doesn't have (or one with no options of its own).
+    pub fn no_such_choice(reason: impl Into<String>) -> Self {
+        Self {
+            code: "no_such_choice",
+            reason: reason.into(),
+        }
+    }
 }
 
 impl fmt::Display for ToolError {

@@ -9,9 +9,11 @@ use rules::{Build, Edit};
 
 use crate::code::{envelope, open};
 use crate::describe::describe;
+use crate::options::options;
 use crate::planner::Planner;
 use crate::shapes::{
-    BuildResult, DescribeArgs, Item, NewBuildArgs, SearchArgs, SearchResult, SheetArgs, SheetResult,
+    BuildResult, DescribeArgs, Item, NewBuildArgs, OptionsArgs, OptionsResult, SearchArgs,
+    SearchResult, SheetArgs, SheetResult,
 };
 use crate::sheet::sheet;
 
@@ -26,7 +28,8 @@ details: a class's or archetype's rows by level, a Mythic path's features by ran
 
 Building: `new_build` starts a Build and returns its code (`build`), its planner link and its open choices \
 (`todo`), each by address. Every Build tool takes the code and returns a new one; keep an old code to branch. \
-`sheet` shows the Build level by level with every choice's address.
+`sheet` shows the Build level by level with every choice's address, and `options` what a choice can take now, \
+each option with the engine's status and reason.
 
 What you may state as fact: what these tools return from the planner's data (names, keys, prerequisites, rows by \
 level, features by rank) and, once the building tools exist, that every choice in a Build is legal under the \
@@ -156,6 +159,29 @@ impl Server {
             Ok(Json(sheet(planner, &build, args.removable)))
         })
         .await
+    }
+
+    #[tool(
+        description = "What one choice of a Build can take, from the planner's own picker or stepper for it: each \
+            option's `value` (what `choose` takes), its name, and its status: \"ok\", or {issue, reason} with the \
+            engine's issue (`unmet`, `already_held`, `max_times`, `class_level_cap`, `not_from_path`, \
+            `deity_alignment`, `needs_faith`, `deity_domain`, `breaks_later`, …) and the planner's reason. `choice` \
+            is an address from `sheet` or `todo`: a slot (`slot.feat.3.general.0`), `level.N.class` (N one past the \
+            last level adds a level), `level.N.increase`, `level.N.skill` (one rank more in a skill), \
+            `level.N.skill.<skill>` and `start.score.<ability>` (a step down or up), the Build start's \
+            `start.race|faith|alignment|background|racial-ability`, or `mythic.first-ascension|path|switch` once \
+            the rank is reached. By default only the options open now are listed and `closed` counts the rest; \
+            `only_open: false` lists them with their reasons. `values: true` lists a parameterised feat once per \
+            value. `query` filters by name or key. Errors: `no_such_choice` for an address the Build lacks, \
+            `stale_link` for a code that doesn't open. Plus the envelope (`build`, `link`, `todo`).",
+        annotations(read_only_hint = true, open_world_hint = false)
+    )]
+    async fn options(
+        &self,
+        Parameters(args): Parameters<OptionsArgs>,
+    ) -> Result<Json<OptionsResult>, String> {
+        self.blocking(move |planner| Ok(Json(options(planner, args)?)))
+            .await
     }
 }
 

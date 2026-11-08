@@ -456,3 +456,80 @@ pub enum RankState {
     Dropped,
     NotReached,
 }
+
+// ---- options -----------------------------------------------------------------------------------------------------
+
+/// `options`' arguments.
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct OptionsArgs {
+    /// The Build's code (a link works too).
+    pub build: String,
+    /// The choice's address, as `sheet` and `todo` print it: `start.race`, `level.4.class`,
+    /// `slot.feat.3.general.0`, …
+    pub choice: String,
+    /// Only options whose name or value holds every word of this (case doesn't matter).
+    #[serde(default)]
+    pub query: Option<String>,
+    /// Only the options that can be taken now (default true); the others are counted in `closed`. False lists them
+    /// too, each with its issue and reason.
+    #[serde(default)]
+    pub only_open: Option<bool>,
+    /// For a slot: list a parameterised feat or option once per value (`{key, parameter}`), each with its own
+    /// status (default false: once, with `takes` saying what a value is).
+    #[serde(default)]
+    pub values: Option<bool>,
+}
+
+/// `options`' result.
+#[derive(Debug, Serialize, JsonSchema)]
+pub struct OptionsResult {
+    #[serde(flatten)]
+    pub envelope: Envelope,
+    /// The address the options are for, as the server writes it.
+    pub choice: String,
+    /// In the planner's order.
+    pub options: Vec<OptionLine>,
+    /// How many options `only_open` hid: those that can't be taken now.
+    pub closed: u32,
+}
+
+/// One option for a choice.
+#[derive(Debug, Serialize, JsonSchema)]
+pub struct OptionLine {
+    /// What `choose` takes for it.
+    pub value: ChoiceValue,
+    /// As the planner names it.
+    pub name: String,
+    pub status: OptionStatus,
+    /// The filter group it's under: a feat's category, an option's Feature selection, "Base class", …
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub category: Option<String>,
+    /// For an entry listed without its values (`values: false`): what a value is ("a weapon"). Ask again with
+    /// `values: true` for the values and their statuses.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub takes: Option<String>,
+    /// The Build holds it now.
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
+    pub current: bool,
+}
+
+/// `"ok"` when it can be taken now, else why not.
+#[derive(Debug, Serialize, JsonSchema)]
+#[serde(untagged)]
+pub enum OptionStatus {
+    Open(Open),
+    Closed {
+        /// The engine's issue: `unmet`, `already_held`, `max_times`, `not_allowed`, `class_level_cap`,
+        /// `not_from_path`, `deity_alignment`, `needs_faith`, `deity_domain`, `breaks_later`.
+        issue: String,
+        /// The planner's reason ("Needs Power Attack, BAB +4 (have +1)").
+        reason: String,
+    },
+}
+
+/// The status of an option that can be taken now.
+#[derive(Debug, Serialize, JsonSchema)]
+pub enum Open {
+    #[serde(rename = "ok")]
+    Ok,
+}

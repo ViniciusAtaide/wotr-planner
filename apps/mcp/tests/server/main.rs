@@ -5,6 +5,7 @@ mod address;
 mod builds;
 mod describe;
 mod listing;
+mod options;
 mod search;
 mod sheet;
 mod support;

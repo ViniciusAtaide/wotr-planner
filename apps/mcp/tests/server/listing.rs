@@ -7,7 +7,7 @@ async fn the_server_offers_its_tools() {
     let client = Client::start().await;
     assert_eq!(
         client.tool_names().await,
-        ["describe", "new_build", "search", "sheet"]
+        ["describe", "new_build", "options", "search", "sheet"]
     );
 }
 
