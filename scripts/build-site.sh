@@ -1,22 +1,25 @@
 #!/usr/bin/env bash
 # Builds the app as a static site, the folder GitHub Pages serves (.github/workflows/pages.yml runs it too).
 #
-#   scripts/build-site.sh <out-dir>
+#   [SITE_URL=https://<user>.github.io/<repo>/] scripts/build-site.sh <out-dir>
 #
 # The site is the release server's own output, saved as files: it seeds a new database in a temporary folder from
 # libs/game-data/ (the dev database is never touched), builds with `cargo leptos build --release`, starts the release
 # server on a free local port, and saves
 #   - its page at `/` as index.html, server-rendered, which the wasm hydrates as it does from the server;
 #   - pkg/: the wasm, JS and CSS from the site root, without .br/.gz copies (Pages compresses by itself) or .d.ts;
-#   - game-data/<hash>.json, the game data the page names.
+#   - game-data/<hash>.json, the game data the page names;
+#   - the files of apps/frontend/public/ (the link preview image), cargo-leptos's assets-dir.
 # The page names those files relative to itself (./pkg/…, ./game-data/…), so the folder works at `/` and under a
-# path prefix such as a project site's `/<repo>/`. <out-dir> must be missing or empty.
+# path prefix such as a project site's `/<repo>/`. Only the link preview's image is named by an absolute URL, made
+# from SITE_URL, the site's public address (the Pages workflow sets it); without it the page names no preview
+# image. <out-dir> must be missing or empty.
 # Needs: the toolchain in rust-toolchain.toml, cargo-leptos, curl and python3 (to find a free port). Builds with
 # SQLX_OFFLINE=true, against the checked-in libs/seeds/.sqlx metadata.
 set -euo pipefail
 
 if [[ $# -ne 1 ]]; then
-    sed -n '2,15p' "$0" | sed 's/^# \{0,1\}//' >&2
+    sed -n '2,19p' "$0" | sed 's/^# \{0,1\}//' >&2
     exit 2
 fi
 mkdir -p "$1"
@@ -41,6 +44,9 @@ trap cleanup EXIT
 export SQLX_OFFLINE=true
 export DATABASE_URL=sqlite://$tmp/site.db
 unset LEPTOS_WATCH GAME_DATA_DIR
+if [[ -z ${SITE_URL:-} ]]; then
+    echo "build-site: no SITE_URL, so the page names no link preview image" >&2
+fi
 
 echo "build-site: seeding $DATABASE_URL"
 cargo run -q --release -p seeds --bin seed
@@ -85,11 +91,21 @@ curl -fsS -o "$out/$game_data" "$site/$game_data"
 cp -R target/site/pkg "$out/pkg"
 # wasm-bindgen's TypeScript declarations aren't served either.
 find "$out/pkg" \( -name '*.br' -o -name '*.gz' -o -name '*.d.ts' \) -delete
+# The assets (apps/frontend/public/), which the server serves from the site root.
+cp -R apps/frontend/public/. "$out/"
 
 # Every file the page names is in the folder.
 for file in $(grep -Eo '"\./[^"]+"' "$out/index.html" | tr -d '"' | sort -u); do
     if [[ ! -f $out/$file ]]; then
         echo "build-site: the page names $file, which isn't in the site" >&2
+        exit 1
+    fi
+done
+# And so is the preview image the page names under SITE_URL.
+for image in $(grep -Eo '<meta property="og:image" content="[^"]+"' "$out/index.html" | sed -E 's/.*content="([^"]+)"/\1/'); do
+    file=${image#"${SITE_URL%/}/"}
+    if [[ $file == "$image" || ! -f $out/$file ]]; then
+        echo "build-site: the page's preview image $image isn't in the site" >&2
         exit 1
     fi
 done

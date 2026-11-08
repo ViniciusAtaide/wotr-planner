@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<!--
+  The link preview image (og:image), 1200×630. To change it, edit this page and render it from the repo root:
+
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless --hide-scrollbars \
+      --user-data-dir="$(mktemp -d)" \
+      --window-size=1200,630 --screenshot=apps/frontend/public/social-preview.png apps/frontend/social/preview.html
+
+  The colours are the app's dark theme (apps/frontend/style/main.css).
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<style>
+  :root {
+    --bg: #14161a; --surface: #1c1f25; --surface-2: #262a32; --text: #ece9e2; --muted: #a19d95;
+    --line: #363b46; --accent: #e3b04f; --accent-bg: #3a2f17; --mythic: #b9a2ff; --mythic-bg: #2a2340;
+    --good: #2c3a52; --neutral: #3a362c; --evil: #4a2b28; --good-ink: #a9c1ec;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { width: 1200px; height: 630px; overflow: hidden; }
+  body {
+    background:
+      radial-gradient(700px 500px at 0% 0%, rgb(227 176 79 / 0.16), transparent 70%),
+      radial-gradient(700px 520px at 100% 100%, rgb(185 162 255 / 0.16), transparent 70%),
+      var(--bg);
+    color: var(--text);
+    font-family: -apple-system, "SF Pro Display", system-ui, sans-serif;
+    display: flex; align-items: center; gap: 56px; padding: 0 64px 0 76px;
+  }
+  .copy { flex: 1; }
+  .eyebrow { color: var(--accent); font-size: 21px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; }
+  h1 { font-size: 100px; line-height: 1; font-weight: 800; letter-spacing: -0.03em; margin-top: 18px; }
+  .tagline { color: var(--muted); font-size: 31px; line-height: 1.3; margin-top: 22px; max-width: 560px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 34px; }
+  .chip { font-size: 21px; font-weight: 600; padding: 8px 16px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line); }
+  .chip.gold { background: var(--accent-bg); color: var(--accent); border-color: transparent; }
+  .chip.mythic { background: var(--mythic-bg); color: var(--mythic); border-color: transparent; }
+
+  .sheet {
+    width: 420px; background: var(--surface); border: 1px solid var(--line); border-radius: 22px;
+    padding: 24px; box-shadow: 0 24px 70px rgb(0 0 0 / 0.55); transform: rotate(2deg);
+  }
+  .who { display: flex; justify-content: space-between; align-items: center; }
+  .who b { font-size: 24px; }
+  .who span { color: var(--muted); font-size: 17px; }
+  .align { display: grid; grid-template-columns: repeat(3, 26px); gap: 4px; }
+  .align i { height: 26px; border-radius: 5px; background: var(--neutral); }
+  .align i.g { background: var(--good); }
+  .align i.e { background: var(--evil); }
+  .align i.on { outline: 3px solid var(--good-ink); outline-offset: -3px; background: var(--good-ink); }
+  .scores { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin: 18px 0; }
+  .scores div { background: var(--surface-2); border-radius: 9px; padding: 6px 0; text-align: center; }
+  .scores small { display: block; color: var(--muted); font-size: 12px; font-weight: 700; letter-spacing: 0.06em; }
+  .scores b { font-size: 21px; }
+  .row { display: flex; gap: 12px; align-items: baseline; padding: 10px 0; border-top: 1px solid var(--line); font-size: 18px; }
+  .row .lv { width: 74px; flex: none; color: var(--muted); font-weight: 600; }
+  .row .feat { color: var(--accent); }
+  .row.mr .lv, .row.mr .feat { color: var(--mythic); }
+</style>
+</head>
+<body>
+  <div class="copy">
+    <div class="eyebrow">Pathfinder: Wrath of the Righteous</div>
+    <h1>WotR Planner</h1>
+    <p class="tagline">Plan a character level by level, checked against the game’s rules.</p>
+    <div class="chips">
+      <span class="chip gold">Classes</span>
+      <span class="chip gold">Feats</span>
+      <span class="chip">Skills</span>
+      <span class="chip mythic">Mythic paths</span>
+    </div>
+  </div>
+
+  <div class="sheet">
+    <div class="who">
+      <div><b>Human · Fighter</b><br><span>Lawful Good · Iomedae</span></div>
+      <div class="align">
+        <i class="g on"></i><i class="g"></i><i class="g"></i>
+        <i></i><i></i><i></i>
+        <i class="e"></i><i class="e"></i><i class="e"></i>
+      </div>
+    </div>
+    <div class="scores">
+      <div><small>STR</small><b>18</b></div>
+      <div><small>DEX</small><b>14</b></div>
+      <div><small>CON</small><b>14</b></div>
+      <div><small>INT</small><b>10</b></div>
+      <div><small>WIS</small><b>12</b></div>
+      <div><small>CHA</small><b>8</b></div>
+    </div>
+    <div class="row"><span class="lv">Lv 1</span><span>Fighter 1 · <span class="feat">Power Attack</span></span></div>
+    <div class="row"><span class="lv">Lv 2</span><span>Fighter 2 · <span class="feat">Cleave</span></span></div>
+    <div class="row"><span class="lv">Lv 3</span><span>Fighter 3 · <span class="feat">Weapon Focus</span></span></div>
+    <div class="row mr"><span class="lv">MR 3</span><span>Angel · <span class="feat">Sword of Heaven</span></span></div>
+  </div>
+</body>
+</html>

@@ -43,7 +43,7 @@ async fn main() {
 
     let conf = get_configuration(None).expect("read [[workspace.metadata.leptos]] configuration");
     let addr = conf.leptos_options.site_addr;
-    let app = app(game_data, conf.leptos_options);
+    let app = app(game_data, conf.leptos_options, site_url());
 
     let listener = tokio::net::TcpListener::bind(&addr)
         .await
@@ -54,11 +54,21 @@ async fn main() {
         .expect("serve");
 }
 
-/// The site: the page at `/`, its files under `/pkg`, and the game data at its URL.
+/// The site's public address from `SITE_URL`, ending in `/`, for the page's link preview (see [`shell`]). The
+/// Pages workflow sets it; a dev server runs without it.
+fn site_url() -> Option<String> {
+    let url = std::env::var("SITE_URL").ok()?;
+    let url = url.trim().trim_end_matches('/');
+    (!url.is_empty()).then(|| format!("{url}/"))
+}
+
+/// The site: the page at `/`, its files under `/pkg`, the game data at its URL, and the files in the site root
+/// (the link preview image).
 ///
 /// The page names those files relative to itself (`./pkg/…`, `./game-data/…`), so that saved as files
-/// (`scripts/build-site.sh`) it works under any path prefix, as a GitHub project site at `/<repo>/` does.
-fn app(game_data: GameDataFile, leptos_options: LeptosOptions) -> Router {
+/// (`scripts/build-site.sh`) it works under any path prefix, as a GitHub project site at `/<repo>/` does. Only the
+/// link preview names its image by an absolute URL, from `site_url`, since previews need one.
+fn app(game_data: GameDataFile, leptos_options: LeptosOptions, site_url: Option<String>) -> Router {
     let game_data_url = GameDataUrl(format!(".{}", game_data.url()));
     let routes = generate_route_list(App);
 
@@ -80,7 +90,7 @@ fn app(game_data: GameDataFile, leptos_options: LeptosOptions) -> Router {
             move || provide_context(game_data_url.clone()),
             {
                 let leptos_options = leptos_options.clone();
-                move || shell(leptos_options.clone())
+                move || shell(leptos_options.clone(), site_url.clone())
             },
         )
         // A file in the site root, or else a plain 404: the app is the sheet whatever the path, so it isn't
@@ -136,12 +146,18 @@ mod tests {
 
     use super::*;
 
+    const SITE_URL: &str = "https://example.github.io/wotr-planner/";
+
     /// The server's app with a small game data file, and that file's URL.
     fn test_app() -> (Router, String) {
+        test_app_at(Some(SITE_URL.to_owned()))
+    }
+
+    fn test_app_at(site_url: Option<String>) -> (Router, String) {
         let game_data = GameDataFile::from_json(b"{}".to_vec());
         let url = game_data.url().to_owned();
         let options = LeptosOptions::builder().output_name("wotr-planner").build();
-        (app(game_data, options), url)
+        (app(game_data, options, site_url), url)
     }
 
     async fn get(app: Router, url: &str) -> (StatusCode, String) {
@@ -173,6 +189,55 @@ mod tests {
         for absolute in [r#"="/"#, r#""/pkg"#, r#""/game-data"#] {
             assert!(!html.contains(absolute), "{absolute} is in {html}");
         }
+    }
+
+    /// A shared link shows a preview card: the title, the description and the image, which crawlers fetch only
+    /// by an absolute URL, so it's named from the site's address.
+    #[tokio::test]
+    async fn the_page_describes_itself_for_link_previews() {
+        let (app, _) = test_app();
+        let (_, html) = get(app, "/").await;
+        for tag in [
+            r#"<meta property="og:title" content="WotR Planner">"#,
+            r#"<meta property="og:description" content="Plan a Pathfinder"#,
+            r#"<meta name="description" content="Plan a Pathfinder"#,
+            r#"<meta name="twitter:card" content="summary_large_image">"#,
+            &format!(r#"<meta property="og:url" content="{SITE_URL}">"#),
+            &format!(r#"<meta property="og:image" content="{SITE_URL}social-preview.png">"#),
+            &format!(r#"<meta name="twitter:image" content="{SITE_URL}social-preview.png">"#),
+        ] {
+            assert!(html.contains(tag), "{tag} is missing from {html}");
+        }
+    }
+
+    /// Without the site's address (a dev server) the page still describes itself, but names no image.
+    #[tokio::test]
+    async fn without_a_site_url_the_page_names_no_preview_image() {
+        let (app, _) = test_app_at(None);
+        let (_, html) = get(app, "/").await;
+        assert!(html.contains(r#"<meta property="og:title""#), "{html}");
+        assert!(!html.contains("og:image"), "{html}");
+        assert!(!html.contains("og:url"), "{html}");
+    }
+
+    #[tokio::test]
+    async fn the_preview_image_is_served_from_the_site_root() {
+        let game_data = GameDataFile::from_json(b"{}".to_vec());
+        let options = LeptosOptions::builder()
+            .output_name("wotr-planner")
+            .site_root(concat!(env!("CARGO_MANIFEST_DIR"), "/../frontend/public"))
+            .build();
+        let app = app(game_data, options, None);
+        let response = app
+            .oneshot(
+                Request::get("/social-preview.png")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::OK);
+        assert_eq!(response.headers()[header::CONTENT_TYPE], "image/png");
     }
 
     /// Without an icon link a browser asks for `/favicon.ico` at the host's root, outside a project site: a 404.
