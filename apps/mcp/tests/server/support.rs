@@ -21,6 +21,13 @@ impl Client {
         Self::start_on(PLANNER.clone()).await
     }
 
+    /// A server on `rules::test_world`, the engine tests' small invented world.
+    pub async fn on_the_test_world() -> Self {
+        let planner =
+            Planner::from_data(rules::test_world::world()).expect("the test world checks");
+        Self::start_on(planner).await
+    }
+
     /// A server on this planner's game data, for example the test world's.
     pub async fn start_on(planner: Planner) -> Self {
         let (server_end, client_end) = tokio::io::duplex(64 * 1024);
@@ -91,6 +98,44 @@ impl Client {
     pub async fn search_for(&self, query: &str) -> Vec<(String, String)> {
         self.search(json!({ "query": query })).await
     }
+}
+
+/// A Build's code, as the planner's links carry it.
+pub fn code(build: &rules::Build) -> String {
+    rules::encode_build(build)
+}
+
+/// The Build a code holds, decoded with the test world's keys (the server's own codes always decode).
+pub fn decode(code: &str) -> rules::Build {
+    rules::test_world::engine()
+        .open_link(code)
+        .expect("the code opens")
+}
+
+/// A failed call's code: the text before its first colon (`stale_link`, `no_such_choice`, …).
+pub fn error_code(result: &CallToolResult) -> String {
+    let text = error_text(result);
+    text.split_once(':')
+        .map_or(text.as_str(), |(code, _)| code)
+        .to_owned()
+}
+
+/// The `choice` addresses of a list of `{choice, …}` (a `todo`, a level's `picks`).
+pub fn choices(list: &Value) -> Vec<String> {
+    list.as_array()
+        .unwrap_or_else(|| panic!("{list} is a list"))
+        .iter()
+        .map(|item| text(&item["choice"]))
+        .collect()
+}
+
+/// The item of a list of `{choice, …}` at an address.
+pub fn at<'a>(list: &'a Value, choice: &str) -> &'a Value {
+    list.as_array()
+        .unwrap_or_else(|| panic!("{list} is a list"))
+        .iter()
+        .find(|item| item["choice"] == choice)
+        .unwrap_or_else(|| panic!("no {choice} in {list}"))
 }
 
 /// A JSON string's text.

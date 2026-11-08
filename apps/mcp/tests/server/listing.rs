@@ -3,9 +3,12 @@
 use crate::support::*;
 
 #[tokio::test]
-async fn the_server_offers_search_and_describe() {
+async fn the_server_offers_its_tools() {
     let client = Client::start().await;
-    assert_eq!(client.tool_names().await, ["describe", "search"]);
+    assert_eq!(
+        client.tool_names().await,
+        ["describe", "new_build", "search", "sheet"]
+    );
 }
 
 #[tokio::test]

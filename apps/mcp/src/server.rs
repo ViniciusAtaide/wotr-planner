@@ -5,9 +5,15 @@ use rmcp::handler::server::wrapper::Parameters;
 use rmcp::model::{Implementation, ServerCapabilities, ServerConfig};
 use rmcp::{Json, ServerHandler, tool, tool_handler, tool_router};
 
+use rules::{Build, Edit};
+
+use crate::code::{envelope, open};
 use crate::describe::describe;
 use crate::planner::Planner;
-use crate::shapes::{DescribeArgs, Item, SearchArgs, SearchResult};
+use crate::shapes::{
+    BuildResult, DescribeArgs, Item, NewBuildArgs, SearchArgs, SearchResult, SheetArgs, SheetResult,
+};
+use crate::sheet::sheet;
 
 /// What every client is told on connecting: the workflow and the honesty boundary (plan, ticket 104, section 1).
 /// A first version; ticket 110 finishes it.
@@ -17,6 +23,10 @@ wotr-planner answers from the rules engine and game data of a Pathfinder: Wrath 
 Workflow: resolve every name the user gives with `search` (it matches names, keys and initials: \"BFT\" finds the \
 Brown-Fur Transmuter), and ask the user whenever a name matches more than one item. Use `describe` for an item's \
 details: a class's or archetype's rows by level, a Mythic path's features by rank.
+
+Building: `new_build` starts a Build and returns its code (`build`), its planner link and its open choices \
+(`todo`), each by address. Every Build tool takes the code and returns a new one; keep an old code to branch. \
+`sheet` shows the Build level by level with every choice's address.
 
 What you may state as fact: what these tools return from the planner's data (names, keys, prerequisites, rows by \
 level, features by rank) and, once the building tools exist, that every choice in a Build is legal under the \
@@ -96,6 +106,56 @@ impl Server {
     ) -> Result<Json<Item>, String> {
         self.blocking(move |planner| describe(planner, args.kind, args.key.trim()).map(Json))
             .await
+    }
+
+    #[tool(
+        description = "Start a Build: an empty one, or the Build of a planner link or code (`link`, opened only if \
+            the planner's rules find it possible; otherwise `stale_link`). Returns the envelope every Build tool \
+            returns: `build`, the code the other tools take (a new one after every change; keep an old one to \
+            branch); `link`, the planner link for the user; and `todo`, the open choices by address.",
+        annotations(read_only_hint = true, open_world_hint = false)
+    )]
+    async fn new_build(
+        &self,
+        Parameters(args): Parameters<NewBuildArgs>,
+    ) -> Result<Json<BuildResult>, String> {
+        self.blocking(move |planner| {
+            let mut build = match args.link.as_deref() {
+                Some(link) => open(planner, link)?,
+                None => Build::default(),
+            };
+            if let Some(name) = args.name {
+                let name = name.trim();
+                let name = (!name.is_empty()).then(|| name.to_owned());
+                planner.engine.apply(&mut build, &Edit::SetName(name));
+            }
+            let sheet = planner.engine.evaluate(&build);
+            Ok(Json(BuildResult {
+                envelope: envelope(&planner.engine, &build, &sheet),
+            }))
+        })
+        .await
+    }
+
+    #[tool(
+        description = "A Build's sheet, from the planner's rules engine: the Build start's choices; per character \
+            level its class and class level, BAB, saves, ability scores, skill points and ranks, the feats and \
+            features it adds, and its choices; per Mythic rank its status, path, choices and path features; the \
+            caster level (class levels only) and spell-level access at the last level, class skills and notes. \
+            Every choice has its address (`start.race`, `level.4.class`, `slot.feat.3.general.0`, …) for `options`, \
+            its value and its name. `removable: true` also marks which held choices can be withdrawn now. Plus the \
+            envelope (`build`, `link`, `todo`).",
+        annotations(read_only_hint = true, open_world_hint = false)
+    )]
+    async fn sheet(
+        &self,
+        Parameters(args): Parameters<SheetArgs>,
+    ) -> Result<Json<SheetResult>, String> {
+        self.blocking(move |planner| {
+            let build = open(planner, &args.build)?;
+            Ok(Json(sheet(planner, &build, args.removable)))
+        })
+        .await
     }
 }
 
