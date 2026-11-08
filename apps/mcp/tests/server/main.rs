@@ -6,6 +6,7 @@ mod builds;
 mod choose;
 mod compare;
 mod describe;
+mod end_to_end;
 mod listing;
 mod options;
 mod search;
