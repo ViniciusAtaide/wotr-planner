@@ -1,8 +1,8 @@
 //! Helpers for writing Builds against the test world: keys, picks, slots, Builds and why a pick can't be taken.
 
-use rules::*;
+use crate::*;
 
-use crate::support::world::world;
+use crate::test_world::world::world;
 
 // ---- keys -----------------------------------------------------------------------------------------------------
 

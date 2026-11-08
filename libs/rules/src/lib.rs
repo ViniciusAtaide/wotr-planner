@@ -10,6 +10,8 @@ mod keys;
 mod parameter;
 mod prerequisite;
 mod state;
+#[cfg(feature = "test-world")]
+pub mod test_world;
 
 pub use build::*;
 pub use check::{DataAt, DataIssue, DataProblem};

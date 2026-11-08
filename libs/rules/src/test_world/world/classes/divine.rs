@@ -2,17 +2,17 @@
 
 use std::collections::BTreeSet;
 
-use rules::*;
+use crate::*;
 
-use crate::support::builds::{class, feat, option, skill};
-use crate::support::world::classes::{archetype, archetype_row, row};
-use crate::support::world::selections::{
+use crate::test_world::builds::{class, feat, option, skill};
+use crate::test_world::world::classes::{archetype, archetype_row, row};
+use crate::test_world::world::selections::{
     levelled_option, levelled_selection, option_row, selection_option,
 };
-use crate::support::world::{guide, plain_feature};
+use crate::test_world::world::{guide, plain_feature};
 
 /// Druid: Nature Bond at 1, an animal companion or a domain.
-pub(in crate::support::world) fn druid() -> Class {
+pub(in crate::test_world::world) fn druid() -> Class {
     let nature_bond = FeatureSelectionKey::new("druid/nature-bond");
     let levels = (1..=20)
         .map(|l| {
@@ -56,7 +56,7 @@ pub(in crate::support::world) fn druid() -> Class {
 }
 
 /// Cleric: 3/4 BAB, good Fortitude and Will, full divine spell-level access.
-pub(in crate::support::world) fn cleric() -> Class {
+pub(in crate::test_world::world) fn cleric() -> Class {
     let levels = (1..=20)
         .map(|l| {
             let mut r = row(l);

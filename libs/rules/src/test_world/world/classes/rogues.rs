@@ -2,17 +2,17 @@
 
 use std::collections::BTreeSet;
 
-use rules::*;
+use crate::*;
 
-use crate::support::builds::{class, feat, feat_list, feature, option, skill};
-use crate::support::world::classes::{archetype_row, row};
-use crate::support::world::selections::{
+use crate::test_world::builds::{class, feat, feat_list, feature, option, skill};
+use crate::test_world::world::classes::{archetype_row, row};
+use crate::test_world::world::selections::{
     levelled_option, levelled_selection, option_row, selection_option,
 };
-use crate::support::world::{guide, list, plain_feature};
+use crate::test_world::world::{guide, list, plain_feature};
 
 /// Rogue: 3/4 BAB, good Reflex, Sneak Attack at odd levels, a rogue talent at even levels.
-pub(in crate::support::world) fn rogue() -> Class {
+pub(in crate::test_world::world) fn rogue() -> Class {
     let talents = FeatureSelectionKey::new("rogue/rogue-talents");
     let levels = (1..=20)
         .map(|l| {
@@ -139,7 +139,7 @@ pub(in crate::support::world) fn rogue() -> Class {
 
 /// Slayer: full BAB, good Fortitude and Reflex, a slayer talent at even levels. Slayer talents share the rogue's
 /// three talents and add Slayer Camouflage, which needs the rogue's Fast Stealth.
-pub(in crate::support::world) fn slayer() -> Class {
+pub(in crate::test_world::world) fn slayer() -> Class {
     let talents = FeatureSelectionKey::new("slayer/slayer-talents");
     let levels = (1..=20)
         .map(|l| {

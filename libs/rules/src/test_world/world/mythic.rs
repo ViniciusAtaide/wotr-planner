@@ -1,10 +1,10 @@
 //! The test world's mythic abilities and mythic feats.
 
-use rules::*;
+use crate::*;
 
-use crate::support::builds::{class, feat, feature, option};
-use crate::support::world::feats::needs_feat;
-use crate::support::world::guide;
+use crate::test_world::builds::{class, feat, feature, option};
+use crate::test_world::world::feats::needs_feat;
+use crate::test_world::world::guide;
 
 pub(super) fn mythic_abilities() -> Vec<MythicAbility> {
     let ability = |key: &str, prerequisite| MythicAbility {

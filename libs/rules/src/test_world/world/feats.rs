@@ -2,10 +2,10 @@
 
 use std::collections::BTreeSet;
 
-use rules::*;
+use crate::*;
 
-use crate::support::builds::{class, feat, feature, option, skill, skill_value, weapon};
-use crate::support::world::guide;
+use crate::test_world::builds::{class, feat, feature, option, skill, skill_value, weapon};
+use crate::test_world::world::guide;
 
 /// Five weapons, one per kind of entry: simple, martial, two exotic, and one no proficiency list names.
 pub(super) fn weapons() -> Vec<Weapon> {
@@ -211,7 +211,7 @@ pub(super) fn feats() -> Vec<Feat> {
             Teamwork,
             Some(All(vec![
                 BaseAttackBonus(4),
-                Alignment(rules::Alignment::LawfulGood),
+                Alignment(crate::Alignment::LawfulGood),
             ])),
         ),
         // "Combat Expertise, or Sneak Attack and Intelligence 13."

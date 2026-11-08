@@ -2,11 +2,11 @@
 
 use std::collections::BTreeSet;
 
-use rules::*;
+use crate::*;
 
-use crate::support::builds::{feat, feat_list, feature, option, path};
-use crate::support::world::selections::selection_option;
-use crate::support::world::{bonus_feature, guide, list, plain_feature};
+use crate::test_world::builds::{feat, feat_list, feature, option, path};
+use crate::test_world::world::selections::selection_option;
+use crate::test_world::world::{bonus_feature, guide, list, plain_feature};
 
 pub(super) fn trickster() -> MythicPath {
     let tricks = FeatureSelectionKey::new("trickster/tricks");

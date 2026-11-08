@@ -3,12 +3,12 @@
 
 use std::collections::BTreeSet;
 
-use rules::*;
+use crate::*;
 
-use crate::support::builds::{class, feature, option};
-use crate::support::world::classes::{archetype, row};
-use crate::support::world::selections::{levelled_selection, selection_option};
-use crate::support::world::{guide, plain_feature};
+use crate::test_world::builds::{class, feature, option};
+use crate::test_world::world::classes::{archetype, row};
+use crate::test_world::world::selections::{levelled_selection, selection_option};
+use crate::test_world::world::{guide, plain_feature};
 
 /// Three invented deities over the test world's three domains (fire, war, water):
 ///
@@ -74,7 +74,7 @@ const DOMAINS: [&str; 3] = [
 /// Priest: needs a deity. At 1, Priest Proficiencies (the deity's favoured weapons), a domain of the deity's and a
 /// heresy (a domain the deity doesn't offer); at 2, a blessing, by its domain. The Zealot needs the Lawgiver, the
 /// Apostle a deity offering the fire domain.
-pub(in crate::support::world) fn priest() -> Class {
+pub(in crate::test_world::world) fn priest() -> Class {
     let levels = (1..=20)
         .map(|l| {
             let mut r = row(l);
@@ -149,7 +149,7 @@ pub(in crate::support::world) fn priest() -> Class {
 }
 
 /// Seeker: anyone. At 1, a creed: Godless needs atheism, Devout a deity.
-pub(in crate::support::world) fn seeker() -> Class {
+pub(in crate::test_world::world) fn seeker() -> Class {
     let levels = (1..=20)
         .map(|l| {
             let mut r = row(l);

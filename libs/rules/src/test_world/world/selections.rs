@@ -2,10 +2,10 @@
 
 use std::collections::BTreeSet;
 
-use rules::*;
+use crate::*;
 
-use crate::support::builds::{class, feature, option, skill};
-use crate::support::world::guide;
+use crate::test_world::builds::{class, feature, option, skill};
+use crate::test_world::world::guide;
 
 pub(super) fn selection_option(
     key: &str,

@@ -9,7 +9,7 @@ mod paths;
 mod races;
 mod selections;
 
-use rules::*;
+use crate::*;
 
 use self::backgrounds::backgrounds;
 use self::classes::{
@@ -21,7 +21,7 @@ use self::feats::{feats, weapons};
 use self::mythic::{mythic_abilities, mythic_feats};
 use self::paths::{aeon, devil, gold_dragon, legend, swarm_that_walks, trickster};
 use self::races::races;
-use crate::support::builds::{feat, feat_list, feature, skill};
+use crate::test_world::builds::{feat, feat_list, feature, skill};
 
 pub fn world() -> GameData {
     GameData {

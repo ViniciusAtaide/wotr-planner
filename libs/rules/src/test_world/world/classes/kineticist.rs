@@ -2,17 +2,17 @@
 
 use std::collections::BTreeSet;
 
-use rules::*;
+use crate::*;
 
-use crate::support::builds::{class, feature};
-use crate::support::world::classes::row;
-use crate::support::world::selections::{levelled_selection, selection_option};
-use crate::support::world::{guide, plain_feature};
+use crate::test_world::builds::{class, feature};
+use crate::test_world::world::classes::row;
+use crate::test_world::world::selections::{levelled_selection, selection_option};
+use crate::test_world::world::{guide, plain_feature};
 
 /// Kineticist: an element at 1 (each up to twice, its defensive talent at element level 2), Expanded Element at 7
 /// and 15, which can't give the same element twice and gives only its feat lists, and a wild talent at every even
 /// level: Expanded Defense (its feature unlocks the expanded elements' defensive talents) or Skilled Kineticist.
-pub(in crate::support::world) fn kineticist() -> Class {
+pub(in crate::test_world::world) fn kineticist() -> Class {
     let element = FeatureSelectionKey::new("kineticist/element");
     let expanded = FeatureSelectionKey::new("kineticist/expanded-element");
     let talents = FeatureSelectionKey::new("kineticist/wild-talents");

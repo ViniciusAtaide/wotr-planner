@@ -2,9 +2,9 @@
 
 use std::collections::BTreeSet;
 
-use rules::*;
+use crate::*;
 
-use crate::support::builds::{feat, skill, weapon};
+use crate::test_world::builds::{feat, skill, weapon};
 
 /// Five backgrounds after the user's list: skills only (Shackles Corsair), a feat (Martial Disciple's Improved
 /// Unarmed Strike, whose invented Dex 13 it skips), a feat that a feat's prerequisite checks (Guard's light armour,

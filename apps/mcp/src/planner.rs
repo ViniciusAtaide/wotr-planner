@@ -3,7 +3,7 @@
 use std::path::Path;
 use std::sync::Arc;
 
-use rules::{Engine, FeatureSelection, GameData};
+use rules::{DataProblem, Engine, FeatureSelection, GameData};
 use sha2::{Digest, Sha256};
 
 use crate::search::SearchIndex;
@@ -22,6 +22,16 @@ impl Planner {
     /// Reads the `.ron` files under `dir` and runs [`GameData::check`] on them.
     pub fn load(dir: &Path) -> Result<Self, seeds::Error> {
         Ok(Self::new(seeds::check_game_data_files(dir)?))
+    }
+
+    /// Game data already in memory (the tests' `rules::test_world`), after [`GameData::check`] finds no problem.
+    pub fn from_data(data: GameData) -> Result<Self, Vec<DataProblem>> {
+        let problems = data.check();
+        if problems.is_empty() {
+            Ok(Self::new(data))
+        } else {
+            Err(problems)
+        }
     }
 
     fn new(data: GameData) -> Self {

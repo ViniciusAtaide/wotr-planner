@@ -2,18 +2,18 @@
 
 use std::collections::BTreeSet;
 
-use rules::*;
+use crate::*;
 
-use crate::support::builds::{class, feat, feature, skill};
-use crate::support::world::classes::{archetype, archetype_row, row};
-use crate::support::world::selections::{
+use crate::test_world::builds::{class, feat, feature, skill};
+use crate::test_world::world::classes::{archetype, archetype_row, row};
+use crate::test_world::world::selections::{
     levelled_option, levelled_selection, option_row, selection_option,
 };
-use crate::support::world::{guide, plain_feature};
+use crate::test_world::world::{guide, plain_feature};
 
 /// Wizard: 1/2 BAB, good Will, full arcane spell-level access, Scribe Scrolls granted at 1, a Magic bonus slot
 /// every 5 levels.
-pub(in crate::support::world) fn wizard() -> Class {
+pub(in crate::test_world::world) fn wizard() -> Class {
     let levels = (1..=20)
         .map(|l| {
             let mut r = row(l);
@@ -84,7 +84,7 @@ pub(in crate::support::world) fn wizard() -> Class {
 
 /// Witch: 1/2 BAB, good Will, full arcane spell-level access like the wizard, a hex at 1 and every even level,
 /// Major Hexes at 10 and Grand Hexes at 18 (which the hexes that need them check).
-pub(in crate::support::world) fn witch() -> Class {
+pub(in crate::test_world::world) fn witch() -> Class {
     let hex = FeatureSelectionKey::new("witch/hex");
     let levels = (1..=20)
         .map(|l| {
@@ -187,7 +187,7 @@ fn false_god() -> Archetype {
 }
 
 /// Bard: 3/4 BAB, spontaneous arcane spell-level access from 1 (a way into Dragon Disciple without a bloodline).
-pub(in crate::support::world) fn bard() -> Class {
+pub(in crate::test_world::world) fn bard() -> Class {
     let levels = (1..=20)
         .map(|l| {
             let mut r = row(l);

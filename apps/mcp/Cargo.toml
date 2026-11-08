@@ -23,3 +23,5 @@ tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 [dev-dependencies]
 # The tests talk to the server as an MCP client over an in-memory pipe.
 rmcp = { workspace = true, features = ["client"] }
+# The tests also run the server on rules' small invented world (`rules::test_world`).
+rules = { workspace = true, features = ["test-world"] }

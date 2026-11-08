@@ -16,9 +16,15 @@ static PLANNER: LazyLock<Planner> =
 pub struct Client(RunningService<RoleClient, ()>);
 
 impl Client {
+    /// A server on the real game data.
     pub async fn start() -> Self {
+        Self::start_on(PLANNER.clone()).await
+    }
+
+    /// A server on this planner's game data, for example the test world's.
+    pub async fn start_on(planner: Planner) -> Self {
         let (server_end, client_end) = tokio::io::duplex(64 * 1024);
-        let server = Server::new(PLANNER.clone());
+        let server = Server::new(planner);
         tokio::spawn(async move {
             server
                 .serve(server_end)

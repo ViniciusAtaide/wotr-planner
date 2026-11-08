@@ -13,8 +13,11 @@ serde.workspace = true
 [features]
 # Helpers only tests use (`Engine::state_before`, `LinkKeys::of_build`); never turned on by the apps.
 testing = []
+# `rules::test_world`: a small invented game world and helpers for writing Builds against it, for tests outside this
+# crate too (`apps/mcp`). Only test targets turn it on, through dev-dependencies; never turned on by the apps.
+test-world = []
 
 [dev-dependencies]
 proptest = "1.12.0"
-# The crate's own tests turn on its test helpers.
-rules = { path = ".", features = ["testing"] }
+# The crate's own tests turn on its test helpers and the test world.
+rules = { path = ".", features = ["testing", "test-world"] }

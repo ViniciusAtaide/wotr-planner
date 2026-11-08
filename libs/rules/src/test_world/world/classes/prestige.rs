@@ -2,15 +2,15 @@
 
 use std::collections::BTreeSet;
 
-use rules::*;
+use crate::*;
 
-use crate::support::builds::{class, feature, option, skill};
-use crate::support::world::classes::row;
-use crate::support::world::selections::levelled_selection;
-use crate::support::world::{bonus_feature, guide};
+use crate::test_world::builds::{class, feature, option, skill};
+use crate::test_world::world::classes::row;
+use crate::test_world::world::selections::levelled_selection;
+use crate::test_world::world::{bonus_feature, guide};
 
 /// Mystic Theurge: every level advances both the chosen arcane class and the chosen divine class.
-pub(in crate::support::world) fn mystic_theurge() -> Class {
+pub(in crate::test_world::world) fn mystic_theurge() -> Class {
     let levels = (1..=10)
         .map(|l| {
             let mut r = row(l);
@@ -53,7 +53,7 @@ pub(in crate::support::world) fn mystic_theurge() -> Class {
 }
 
 /// Arcane Trickster: every level advances the chosen arcane class; Sneak Attack at even levels.
-pub(in crate::support::world) fn arcane_trickster() -> Class {
+pub(in crate::test_world::world) fn arcane_trickster() -> Class {
     let levels = (1..=10)
         .map(|l| {
             let mut r = row(l);
@@ -103,7 +103,7 @@ pub(in crate::support::world) fn arcane_trickster() -> Class {
 
 /// Eldritch Knight: full BAB, good Fortitude, a Combat feat bonus slot at 1, 5 and 9, the arcane class advanced
 /// from 2; its levels count as fighter levels for feat prerequisites (Diverse Training).
-pub(in crate::support::world) fn eldritch_knight() -> Class {
+pub(in crate::test_world::world) fn eldritch_knight() -> Class {
     let levels = (1..=10)
         .map(|l| {
             let mut r = row(l);
@@ -146,7 +146,7 @@ pub(in crate::support::world) fn eldritch_knight() -> Class {
 
 /// Winter Witch: every level advances one class, arcane or divine; its levels stack with witch levels for Major
 /// and Grand Hexes (Frost Power).
-pub(in crate::support::world) fn winter_witch() -> Class {
+pub(in crate::test_world::world) fn winter_witch() -> Class {
     let levels = (1..=10)
         .map(|l| {
             let mut r = row(l);
@@ -198,7 +198,7 @@ pub(in crate::support::world) fn winter_witch() -> Class {
 /// Dragon Disciple: entry needs spontaneous 1st-level arcane spells and a Draconic bloodline or none; a sorcerer's
 /// bloodline continues, anyone else picks a Draconic one on entry (levelled by Dragon Disciple levels). +2
 /// Strength at 2 and 4.
-pub(in crate::support::world) fn dragon_disciple() -> Class {
+pub(in crate::test_world::world) fn dragon_disciple() -> Class {
     let levels = (1..=10)
         .map(|l| {
             let mut r = row(l);

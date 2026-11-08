@@ -1,9 +1,9 @@
 //! The test world's races and subraces.
 
-use rules::*;
+use crate::*;
 
-use crate::support::builds::feat_list;
-use crate::support::world::{guide, list};
+use crate::test_world::builds::feat_list;
+use crate::test_world::world::{guide, list};
 
 pub(super) fn races() -> Vec<Race> {
     let fixed = |ability, amount| AbilityModifier::Fixed { ability, amount };

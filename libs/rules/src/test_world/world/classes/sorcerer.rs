@@ -2,14 +2,14 @@
 
 use std::collections::BTreeSet;
 
-use rules::*;
+use crate::*;
 
-use crate::support::builds::{class, feat, feat_list, feature, skill};
-use crate::support::world::classes::{archetype, archetype_row, row};
-use crate::support::world::selections::{
+use crate::test_world::builds::{class, feat, feat_list, feature, skill};
+use crate::test_world::world::classes::{archetype, archetype_row, row};
+use crate::test_world::world::selections::{
     levelled_option, levelled_selection, option_row, selection_option, with_class_skills,
 };
-use crate::support::world::{bonus_feature, guide, list, plain_feature};
+use crate::test_world::world::{bonus_feature, guide, list, plain_feature};
 
 const BLOODLINES: [&str; 4] = [
     "sorcerer/bloodline/abyssal",
@@ -25,7 +25,7 @@ const BLOODLINES: [&str; 4] = [
 /// invented: the real one is Perception). Archetypes: Seeker (skips 3, 9 and 15), Crossblooded (a second
 /// bloodline's feat list), Sage (Arcane only, its own 1st-level row) and an invented Primalist (at 3 and 9, the
 /// bloodline row or two rogue talents).
-pub(in crate::support::world) fn sorcerer() -> Class {
+pub(in crate::test_world::world) fn sorcerer() -> Class {
     let bloodline = FeatureSelectionKey::new("sorcerer/bloodline");
     let levels = (1..=20)
         .map(|l| {

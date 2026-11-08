@@ -2,18 +2,18 @@
 
 use std::collections::BTreeSet;
 
-use rules::*;
+use crate::*;
 
-use crate::support::builds::{class, feat, feat_list, feature, skill, weapon};
-use crate::support::world::classes::{archetype, archetype_row, row};
-use crate::support::world::selections::{
+use crate::test_world::builds::{class, feat, feat_list, feature, skill, weapon};
+use crate::test_world::world::classes::{archetype, archetype_row, row};
+use crate::test_world::world::selections::{
     levelled_option, levelled_selection, option_row, selection_option,
 };
-use crate::support::world::{guide, list, plain_feature};
+use crate::test_world::world::{guide, list, plain_feature};
 
 /// Fighter: full BAB, good Fortitude, Shield and Tower Shield Proficiency granted at 1, a Combat feat bonus slot
 /// at 1 and every even level.
-pub(in crate::support::world) fn fighter() -> Class {
+pub(in crate::test_world::world) fn fighter() -> Class {
     let levels = (1..=20)
         .map(|l| {
             let mut r = row(l);
@@ -115,7 +115,7 @@ pub(in crate::support::world) fn fighter() -> Class {
 
 /// Monk: 3/4 BAB, good saves, Improved Unarmed Strike granted at 1, a bonus-list slot (Crane Style or Dodge,
 /// prerequisites ignored) at 1 and at 2, 6, 10, 14 and 18.
-pub(in crate::support::world) fn monk() -> Class {
+pub(in crate::test_world::world) fn monk() -> Class {
     let levels = (1..=20)
         .map(|l| {
             let mut r = row(l);
@@ -187,7 +187,7 @@ fn zen_archer() -> Archetype {
 
 /// Warpriest: a Weapon Focus of the player's choosing at 1 (a one-feat bonus list). Mantis Zealot: Weapon Focus
 /// (Dueling Sword) at 1 and Weapon Specialization (Dueling Sword) at 4 instead.
-pub(in crate::support::world) fn warpriest() -> Class {
+pub(in crate::test_world::world) fn warpriest() -> Class {
     let levels = (1..=20)
         .map(|l| {
             let mut r = row(l);
@@ -275,7 +275,7 @@ pub(in crate::support::world) fn warpriest() -> Class {
 
 /// Ranger: full BAB, a combat style at 2 whose list grows at 6 (option levels are ranger levels), and a style
 /// bonus slot at 2, 6 and 10 that picks from it, ignoring prerequisites.
-pub(in crate::support::world) fn ranger() -> Class {
+pub(in crate::test_world::world) fn ranger() -> Class {
     let style = FeatureSelectionKey::new("ranger/combat-style");
     let levels = (1..=20)
         .map(|l| {
