@@ -9,11 +9,11 @@
 #   - its page at `/` as index.html, server-rendered, which the wasm hydrates as it does from the server;
 #   - pkg/: the wasm, JS and CSS from the site root, without .br/.gz copies (Pages compresses by itself) or .d.ts;
 #   - game-data/<hash>.json, the game data the page names;
-#   - the files of apps/frontend/public/ (the link preview image), cargo-leptos's assets-dir.
-# The page names those files relative to itself (./pkg/…, ./game-data/…), so the folder works at `/` and under a
-# path prefix such as a project site's `/<repo>/`. Only the link preview's image is named by an absolute URL, made
-# from SITE_URL, the site's public address (the Pages workflow sets it); without it the page names no preview
-# image. <out-dir> must be missing or empty.
+#   - the files of apps/frontend/public/ (the link preview image, the font), cargo-leptos's assets-dir.
+# The page names those files relative to itself (./pkg/…, ./game-data/…) and the stylesheet relative to itself
+# (../fonts/…), so the folder works at `/` and under a path prefix such as a project site's `/<repo>/`. Only the
+# link preview's image is named by an absolute URL, made from SITE_URL, the site's public address (the Pages
+# workflow sets it); without it the page names no preview image. <out-dir> must be missing or empty.
 # Needs: the toolchain in rust-toolchain.toml, cargo-leptos, curl and python3 (to find a free port). Builds with
 # SQLX_OFFLINE=true, against the checked-in libs/seeds/.sqlx metadata.
 set -euo pipefail
@@ -103,6 +103,24 @@ for file in $(grep -Eo '"\./[^"]+"' "$out/index.html" | tr -d '"' | sort -u); do
         exit 1
     fi
 done
+# And every file the stylesheet names by url() (the font): relative to the stylesheet and inside the site, never
+# by a path from the host's root or on another host.
+css=$out/pkg/wotr-planner.css
+while IFS= read -r ref; do
+    case $ref in
+        data:*) continue ;;
+        /* | *:*)
+            echo "build-site: the stylesheet names $ref, which isn't a file in the site" >&2
+            exit 1
+            ;;
+    esac
+    file=${ref%%[?#]*}
+    dir=$(cd "$(dirname "$css")/$(dirname "$file")" 2>/dev/null && pwd) || dir=
+    if [[ -z $dir || $dir/ != "$out"/* || ! -f $dir/$(basename "$file") ]]; then
+        echo "build-site: the stylesheet names $ref, which isn't in the site" >&2
+        exit 1
+    fi
+done < <(grep -Eo 'url\([^)]*\)' "$css" | sed -E "s/^url\([[:space:]]*['\"]?//; s/['\"]?[[:space:]]*\)$//" | sort -u)
 # And so is the preview image the page names under SITE_URL.
 for image in $(grep -Eo '<meta property="og:image" content="[^"]+"' "$out/index.html" | sed -E 's/.*content="([^"]+)"/\1/'); do
     file=${image#"$site_url/"}

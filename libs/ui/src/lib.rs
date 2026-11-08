@@ -59,7 +59,8 @@ pub fn shell(options: LeptosOptions, site_url: Option<SiteUrl>) -> impl IntoView
             <head>
                 <meta charset="utf-8"/>
                 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-                <meta name="color-scheme" content="light dark"/>
+                // One dark theme (apps/frontend/style/main.css), whatever the system's setting.
+                <meta name="color-scheme" content="dark"/>
                 <meta name="description" content=DESCRIPTION/>
                 {og("og:type", "website")}
                 {og("og:site_name", SITE_NAME)}

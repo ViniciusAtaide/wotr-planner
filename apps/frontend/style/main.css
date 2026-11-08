@@ -1,57 +1,56 @@
 /* The Sheet. Mobile-first: the Fold 7's cover screen (~412px wide) is the base, the inner screen and desktop
-   (600px up) get roomier columns and a centred picker. Light and dark follow the system. */
+   (600px up) get roomier columns and a centred picker. One dark theme, the Mythic sigil: a night sky with faint
+   stars, glassy surfaces, a card per row, Marcellus headings, a gold accent, and each Mythic path in its colour. */
+
+@font-face {
+  font-family: Marcellus;
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  /* Relative to the stylesheet (./pkg/wotr-planner.css), so it also works under a project site's sub-path. The
+     licence is beside it (fonts/OFL.txt). */
+  src: url("../fonts/marcellus.woff2") format("woff2");
+}
 
 :root {
-  --bg: #f6f5f2;
-  --surface: #ffffff;
-  --surface-2: #f0eee9;
-  --text: #1d1c1a;
-  --muted: #6b675f;
-  --line: #d9d5cc;
-  --accent: #8a5d0c;
-  --accent-bg: #f7e9c9;
-  --mythic: #6447c2;
-  --mythic-bg: #ece6fb;
-  --bad: #b42318;
-  --bad-bg: #fde8e6;
-  --focus: #2463eb;
-  --good: #c9d6ea;
-  --neutral: #e3dccb;
-  --evil: #e9c1ba;
-  --good-ink: #3b5a8c;
-  --evil-ink: #9b3427;
-  --scrim: rgb(0 0 0 / 0.45);
-  --shadow: 0 10px 40px rgb(0 0 0 / 0.18);
-  --radius: 10px;
+  --bg: #0b0c16;
+  --surface: rgb(255 255 255 / 0.05);
+  --surface-2: rgb(255 255 255 / 0.08);
+  --text: #ece8f6;
+  --muted: #9a96ad;
+  --line: rgb(255 255 255 / 0.12);
+  --accent: #f3c96b;
+  --accent-bg: rgb(243 201 107 / 0.14);
+  --mythic: #b9a2ff;
+  --mythic-bg: rgb(185 162 255 / 0.14);
+  --bad: #ff8a80;
+  --bad-bg: rgb(255 138 128 / 0.12);
+  --focus: #f3c96b;
+  --good: #1c2846;
+  --neutral: #262338;
+  --evil: #3a1b2a;
+  --good-ink: #9fc0ff;
+  --evil-ink: #ff9c95;
+  --scrim: rgb(0 0 0 / 0.6);
+  --shadow: 0 10px 40px rgb(0 0 0 / 0.5);
+  --radius: 12px;
   --tap: 44px;
   --gutter: 12px;
-  color-scheme: light dark;
+  color-scheme: dark;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #14161a;
-    --surface: #1c1f25;
-    --surface-2: #262a32;
-    --text: #ece9e2;
-    --muted: #a19d95;
-    --line: #363b46;
-    --accent: #e3b04f;
-    --accent-bg: #3a2f17;
-    --mythic: #b9a2ff;
-    --mythic-bg: #2a2340;
-    --bad: #f88b84;
-    --bad-bg: #3a1d1d;
-    --focus: #7aa2ff;
-    --good: #2c3a52;
-    --neutral: #3a362c;
-    --evil: #4a2b28;
-    --good-ink: #a9c1ec;
-    --evil-ink: #f0a49a;
-    --scrim: rgb(0 0 0 / 0.6);
-    --shadow: 0 10px 40px rgb(0 0 0 / 0.5);
-  }
-}
+/* Each Mythic path's colour, on what the UI marks with the path's key (`data-path`, the data's keys). The
+   path-coloured rules read `var(--path, var(--mythic))`, so with no path they take the plain mythic colour. */
+[data-path="aeon"] { --path: #6aa8ff; }
+[data-path="angel"] { --path: #f2d580; }
+[data-path="azata"] { --path: #f28fd2; }
+[data-path="demon"] { --path: #e5533c; }
+[data-path="devil"] { --path: #c8373a; }
+[data-path="gold-dragon"] { --path: #f2a531; }
+[data-path="legend"] { --path: #d8c49a; }
+[data-path="lich"] { --path: #5cc9a2; }
+[data-path="swarm-that-walks"] { --path: #a7bd45; }
+[data-path="trickster"] { --path: #b78cff; }
 
 *,
 *::before,
@@ -63,11 +62,35 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
+/* The night sky: a few faint stars, a violet glow at the top right and a gold one at the bottom left, fixed while
+   the page scrolls. */
 body {
   margin: 0;
-  background: var(--bg);
+  background:
+    radial-gradient(1px 1px at 12% 18%, #fff8, transparent),
+    radial-gradient(1px 1px at 72% 9%, #fff6, transparent),
+    radial-gradient(1.5px 1.5px at 40% 32%, #fff5, transparent),
+    radial-gradient(1px 1px at 88% 44%, #fff7, transparent),
+    radial-gradient(1px 1px at 25% 70%, #fff5, transparent),
+    radial-gradient(1.5px 1.5px at 60% 82%, #fff6, transparent),
+    radial-gradient(90% 50% at 85% 0%, rgb(120 90 220 / 0.25), transparent 70%),
+    radial-gradient(70% 50% at 0% 100%, rgb(243 201 107 / 0.1), transparent 70%),
+    var(--bg);
+  background-attachment: fixed;
   color: var(--text);
   font: 15px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Headings, tabs, row numbers and the alignment's name are set in Marcellus. */
+.top h1,
+.section-title,
+.tabs button,
+.row-number,
+.picker-title h2,
+.alignment-name {
+  font-family: Marcellus, serif;
+  font-weight: 400;
+  letter-spacing: 0.04em;
 }
 
 button,
@@ -81,7 +104,7 @@ button {
   padding: 6px 12px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: var(--surface-2);
+  background: rgb(255 255 255 / 0.06);
   cursor: pointer;
   text-align: left;
   -webkit-tap-highlight-color: transparent;
@@ -132,9 +155,14 @@ input[type="search"] {
   padding: 10px 0;
 }
 
+/* The title in a gold-to-violet gradient. */
 .top h1 {
   margin: 0;
-  font-size: 16px;
+  background: linear-gradient(90deg, var(--accent), var(--mythic));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-size: 20px;
   white-space: nowrap;
 }
 
@@ -173,11 +201,13 @@ input[type="search"] {
 
 /* ---- Build start ---------------------------------------------------------------------------------------- */
 
+/* A glass panel. */
 .start {
   margin-bottom: 10px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: var(--surface);
+  background: rgb(255 255 255 / 0.04);
+  backdrop-filter: blur(10px);
 }
 
 .start-toggle {
@@ -190,7 +220,6 @@ input[type="search"] {
 }
 
 .section-title {
-  font-weight: 600;
   white-space: nowrap;
 }
 
@@ -254,6 +283,7 @@ input[type="search"] {
 .seg.on {
   border-color: var(--accent);
   background: var(--accent-bg);
+  box-shadow: 0 0 12px rgb(243 201 107 / 0.2);
   font-weight: 600;
 }
 
@@ -329,18 +359,21 @@ input[type="search"] {
   margin: 0 calc(-1 * var(--gutter));
   padding: 8px var(--gutter);
   border-bottom: 1px solid var(--line);
-  background: var(--bg);
+  background: rgb(11 12 22 / 0.8);
+  backdrop-filter: blur(10px);
 }
 
 .tabs button {
   flex: 1;
+  border-radius: 999px;
   text-align: center;
-  font-weight: 600;
 }
 
 .tabs button.on {
   border-color: var(--accent);
   background: var(--accent-bg);
+  box-shadow: 0 0 16px rgb(243 201 107 / 0.25);
+  color: var(--accent);
 }
 
 .summary {
@@ -362,8 +395,14 @@ input[type="search"] {
 
 /* ---- the grid ------------------------------------------------------------------------------------------- */
 
+/* Each row is its own card. The grid reaches into the gutter by the card's padding and border, so a row's content
+   keeps the width it had without the card (no more wrapped chips on a narrow screen) and lines up with the
+   summary above it. */
 .grid {
   display: grid;
+  gap: 6px;
+  margin: 0 -6px;
+  padding-top: 4px;
 }
 
 .row {
@@ -371,15 +410,17 @@ input[type="search"] {
   grid-template-columns: 24px 94px 1fr;
   align-items: start;
   gap: 6px;
-  padding: 5px 0;
-  border-bottom: 1px solid var(--line);
+  padding: 3px 5px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgb(255 255 255 / 0.035);
 }
 
 /* Left-aligned, so the rows line up with the summary above them. */
 .row-number {
   padding-top: 12px;
-  color: var(--muted);
-  font-weight: 700;
+  color: var(--accent);
+  font-size: 17px;
   font-variant-numeric: tabular-nums;
   text-align: left;
 }
@@ -391,6 +432,7 @@ input[type="search"] {
   justify-content: center;
   width: 100%;
   padding: 4px 6px;
+  border-radius: 10px;
   line-height: 1.2;
 }
 
@@ -448,8 +490,9 @@ input[type="search"] {
   justify-content: center;
   max-width: 100%;
   padding: 3px 9px;
-  border-radius: 9px;
-  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.04);
   line-height: 1.2;
 }
 
@@ -473,7 +516,7 @@ input[type="search"] {
 }
 
 .chip.empty {
-  border-style: dashed;
+  border: 1px dashed rgb(243 201 107 / 0.6);
   background: transparent;
 }
 
@@ -494,13 +537,17 @@ input[type="search"] {
   text-decoration: none;
 }
 
-.mythic-badge {
-  border-color: var(--mythic);
-  background: var(--mythic-bg);
+/* The level's Mythic ranks, in the colour of the Build's path there (`data-path`), if it has one; and the Mythic
+   track's path chips, in their path's. */
+.mythic-badge,
+.path-chip {
+  border-color: var(--path, var(--mythic));
+  background: color-mix(in srgb, var(--path, var(--mythic)) 16%, transparent);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--path, var(--mythic)) 35%, transparent);
 }
 
 .mythic-badge .chip-value {
-  color: var(--mythic);
+  color: var(--path, var(--mythic));
 }
 
 .grid-actions {
@@ -518,18 +565,30 @@ input[type="search"] {
 
 /* ---- Mythic track --------------------------------------------------------------------------------------- */
 
+/* Wide enough for "MR 10" in Marcellus. */
 .mythic .row {
-  grid-template-columns: 50px 1fr;
+  grid-template-columns: 58px 1fr;
 }
 
 .mythic .chips {
   grid-column: 1 / -1;
 }
 
+/* A rank's card is tinted with its path's colour (`data-path`), or the plain mythic colour before it has one. */
+.row.rank {
+  border-color: color-mix(in srgb, var(--path, var(--mythic)) 45%, transparent);
+  background: linear-gradient(
+    100deg,
+    color-mix(in srgb, var(--path, var(--mythic)) 14%, transparent),
+    rgb(255 255 255 / 0.02) 60%
+  );
+}
+
 .mythic-number {
   padding-top: 0;
-  color: var(--mythic);
+  color: var(--path, var(--mythic));
   text-align: left;
+  white-space: nowrap;
 }
 
 .rank-level {
@@ -540,7 +599,7 @@ input[type="search"] {
 }
 
 .rank-path {
-  color: var(--mythic);
+  color: var(--path, var(--mythic));
 }
 
 /* The features a rank's path row gives, under its level, across the row. */
@@ -555,8 +614,9 @@ input[type="search"] {
   opacity: 0.6;
 }
 
-.path-chip {
-  border-color: var(--mythic);
+/* A path chip with no path chosen takes the plain mythic colour, not its rank's path's. */
+.path-chip:not([data-path]) {
+  --path: var(--mythic);
 }
 
 .rank-status {
@@ -636,7 +696,9 @@ body:has(.picker) {
   border: 1px solid var(--line);
   border-bottom: 0;
   border-radius: 16px 16px 0 0;
-  background: var(--surface);
+  /* Frosted glass, nearly opaque, so the list reads over the grid behind it. */
+  background: rgb(20 20 36 / 0.92);
+  backdrop-filter: blur(16px);
   box-shadow: var(--shadow);
 }
 
@@ -703,6 +765,7 @@ body:has(.picker) {
 .chip-filter.on {
   border-color: var(--accent);
   background: var(--accent-bg);
+  box-shadow: 0 0 12px rgb(243 201 107 / 0.2);
   font-weight: 600;
 }
 
@@ -745,6 +808,7 @@ body:has(.picker) {
 .item.current {
   border-color: var(--accent);
   background: var(--accent-bg);
+  box-shadow: 0 0 12px rgb(243 201 107 / 0.2);
 }
 
 .item-name {
@@ -851,10 +915,6 @@ ul.skills {
     --gutter: 16px;
   }
 
-  .top h1 {
-    font-size: 18px;
-  }
-
   .row {
     grid-template-columns: 28px 132px 1fr;
     gap: 8px;
@@ -877,8 +937,10 @@ ul.skills {
     grid-template-columns: 60px 132px 1fr;
   }
 
-  .mythic .chips {
-    grid-column: auto;
+  /* A rank's features and chips run under its level, beside the rank's number column. */
+  .mythic .chips,
+  .rank-features {
+    grid-column: 2 / -1;
   }
 
   .rank-level {
@@ -915,7 +977,6 @@ ul.skills {
 
 .alignment-name {
   margin: 4px 0 10px;
-  font-weight: 600;
   text-align: center;
 }
 

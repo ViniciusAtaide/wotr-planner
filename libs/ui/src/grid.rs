@@ -114,9 +114,16 @@ fn level_row(engine: &Engine, build: &Build, level: &LevelSheet) -> impl IntoVie
     };
     let mythic = (!level.mythic_ranks.is_empty()).then(|| {
         let ranks: Vec<String> = level.mythic_ranks.iter().map(u8::to_string).collect();
+        // The Build's path at this level, if it has one, sets the badge's colour.
+        let path = level
+            .state
+            .mythic_path
+            .as_ref()
+            .map(|key| key.as_str().to_owned());
         view! {
             <button
                 class="chip mythic-badge"
+                data-path=path
                 title="Open the Mythic track"
                 on:click=move |_| planner.tab.set(Tab::Mythic)
             >

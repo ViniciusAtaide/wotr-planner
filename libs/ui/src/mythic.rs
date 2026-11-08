@@ -4,7 +4,9 @@
 //! switch took away stay, marked lost from the switch on, and an empty slot there still has a picker.
 
 use leptos::prelude::*;
-use rules::{FIRST_ASCENSION_RANK, PATH_CHOICE_RANK, PATH_SWITCH_RANK, RankSheet, RankStatus};
+use rules::{
+    FIRST_ASCENSION_RANK, MythicPathKey, PATH_CHOICE_RANK, PATH_SWITCH_RANK, RankSheet, RankStatus,
+};
 
 use crate::grid::slot_chip;
 use crate::planner::{Target, use_planner};
@@ -16,16 +18,14 @@ pub fn MythicTrack() -> AnyView {
         let engine = planner.engine();
         let sheet = planner.sheet.get();
         let levels = planner.build.with(|build| build.levels.len());
+        let chosen_path = |key: &MythicPathKey| Chosen {
+            name: engine.path_name(key).to_owned(),
+            path: key.clone(),
+        };
         let (path, switch) = planner.build.with(|build| {
             (
-                build
-                    .mythic_path
-                    .as_ref()
-                    .map(|key| engine.path_name(key).to_owned()),
-                build
-                    .path_switch
-                    .as_ref()
-                    .map(|key| engine.path_name(key).to_owned()),
+                build.mythic_path.as_ref().map(chosen_path),
+                build.path_switch.as_ref().map(chosen_path),
             )
         });
         let rows = sheet
@@ -35,7 +35,10 @@ pub fn MythicTrack() -> AnyView {
                 let ascends = usize::from(rank.character_level) <= levels;
                 // The first ascension shows the path-linked ability the rank takes: the Build's own, or its MR 3
                 // path's.
-                let first = rank.path.as_ref().map(|key| engine.first_ascension_name(key));
+                let first = rank.path.as_ref().map(|key| Chosen {
+                    name: engine.first_ascension_name(key),
+                    path: key.clone(),
+                });
                 rank_row(
                     rank,
                     ascends,
@@ -60,21 +63,30 @@ pub fn MythicTrack() -> AnyView {
     .into_any()
 }
 
-/// One rank's row. `first`, `path` and `switch` are set on the ranks that choose them: the chosen one's name, if
-/// any. `ascends`: the Build has the rank's character level, so its first ascension, path or switch can be chosen.
+/// What a path chip shows: the chosen one's name, and the path it belongs to, whose colour the chip takes.
+#[derive(Clone)]
+struct Chosen {
+    name: String,
+    path: MythicPathKey,
+}
+
+/// One rank's row. `first`, `path` and `switch` are set on the ranks that choose them: the chosen one, if any.
+/// `ascends`: the Build has the rank's character level, so its first ascension, path or switch can be chosen. The
+/// row, its path's name and each chosen path chip carry their path's key as `data-path`, which sets their colour.
 fn rank_row(
     rank: &RankSheet,
     ascends: bool,
-    first: Option<Option<String>>,
-    path: Option<Option<String>>,
-    switch: Option<Option<String>>,
+    first: Option<Option<Chosen>>,
+    path: Option<Option<Chosen>>,
+    switch: Option<Option<Chosen>>,
 ) -> impl IntoView + use<> {
     let planner = use_planner();
     let engine = planner.engine();
+    let path_key = rank.path.as_ref().map(|key| key.as_str().to_owned());
     let path_name = rank
         .path
         .as_ref()
-        .map(|key| engine.path_name(key).to_owned());
+        .map(|key| (engine.path_name(key).to_owned(), key.as_str().to_owned()));
     // A rank not reached says so by its greyed level alone.
     let status = match rank.status {
         RankStatus::Reached | RankStatus::NotReached => None,
@@ -82,17 +94,21 @@ fn rank_row(
         RankStatus::Dropped => Some("Lost to the Path switch"),
     };
     let not_reached = rank.status == RankStatus::NotReached;
-    let chooser = |label: &'static str, value: Option<String>, target: Target| {
+    let chooser = |label: &'static str, value: Option<Chosen>, target: Target| {
         let empty = value.is_none();
+        let (name, key) = value.map_or(("+".to_owned(), None), |chosen| {
+            (chosen.name, Some(chosen.path.as_str().to_owned()))
+        });
         view! {
             <button
                 class="chip path-chip"
                 class:empty=empty
+                data-path=key
                 disabled=!ascends
                 on:click=move |_| planner.open(target.clone())
             >
                 <span class="chip-label">{label}</span>
-                <span class="chip-value">{value.unwrap_or_else(|| "+".to_owned())}</span>
+                <span class="chip-value">{name}</span>
             </button>
         }
     };
@@ -116,12 +132,14 @@ fn rank_row(
             class="row rank"
             class:not-reached=not_reached
             class:dropped=rank.status == RankStatus::Dropped
+            data-path=path_key
             role="listitem"
         >
             <span class="row-number mythic-number">{format!("MR {}", rank.rank)}</span>
             <span class="rank-level">
                 {format!("Level {}", rank.character_level)}
-                {path_name.map(|name| view! { <span class="rank-path">{name}</span> })}
+                {path_name
+                    .map(|(name, key)| view! { <span class="rank-path" data-path=key>{name}</span> })}
             </span>
             {features}
             <div class="chips">
