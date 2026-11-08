@@ -779,7 +779,8 @@ body:has(.picker) {
   text-align: center;
 }
 
-.empty {
+/* Only the message paragraphs: a chip or field button marked `empty` must not pick up these margins. */
+p.empty {
   margin: 12px 0;
   color: var(--muted);
   text-align: center;
