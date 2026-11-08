@@ -223,6 +223,7 @@ impl Engine {
                 .map_or(option.pick.key(), |item| item.name)
                 .to_owned(),
             category: item.as_ref().map_or("", |item| item.category).to_owned(),
+            feat_category: self.feat_category(&option.pick),
             summary: item.as_ref().map_or("", |item| item.summary).to_owned(),
             story_note: item
                 .as_ref()

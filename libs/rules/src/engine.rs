@@ -17,7 +17,8 @@ use crate::choice::{Choice, Issue};
 use crate::codec::LinkKeys;
 use crate::game_data::{
     Ability, AbilityBonus, AbilityModifier, Advancement, Archetype, ArchetypeLevelRow, Background,
-    Class, ClassLevelRow, Deity, FeatList, FeatSlot, FeatValue, GameData, Race, Skill, SpellLevels,
+    Class, ClassLevelRow, Deity, FeatCategory, FeatList, FeatSlot, FeatValue, GameData, Race,
+    Skill, SpellLevels,
 };
 use crate::keys::{
     ArchetypeKey, ClassKey, FeatKey, FeatListKey, FeatureKey, FeatureSelectionKey, MythicPathKey,
@@ -387,6 +388,8 @@ pub struct SlotEntry {
     /// The chip it's filed under: a feat's category, the Feature selection defining an option, a mythic pick's guide
     /// heading.
     pub category: String,
+    /// The type of feat it takes, which picks its icon: see [`Engine::feat_category`].
+    pub feat_category: Option<FeatCategory>,
     /// Its short summary, in our own words; empty when the data has none.
     pub summary: String,
     /// "(Story: Vow of Dahak)", for the story conditions in its prerequisite, which never block it.

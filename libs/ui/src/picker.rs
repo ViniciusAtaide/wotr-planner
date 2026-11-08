@@ -3,16 +3,17 @@
 //! their reason (none for one that would break a later choice: it just stays grey), and a remove (×) control
 //! only for a choice the Build holds and may remove now (`Engine::withdrawal`), which takes it back by its edit.
 
-use std::collections::BTreeSet;
+use std::collections::BTreeMap;
 use std::sync::Arc;
 use std::time::Duration;
 
 use leptos::prelude::*;
 use rules::{
-    Alignment, Build, Choice, ClassOption, Edit, Engine, FIRST_ASCENSION_RANK, Faith, Issue,
-    PATH_CHOICE_RANK, PATH_SWITCH_RANK, SlotEntry, SlotId, SlotOption,
+    Alignment, Build, Choice, ClassOption, Edit, Engine, FIRST_ASCENSION_RANK, Faith, FeatCategory,
+    Issue, PATH_CHOICE_RANK, PATH_SWITCH_RANK, SlotEntry, SlotId, SlotOption,
 };
 
+use crate::icons::feat_icon;
 use crate::planner::{Target, use_planner};
 use crate::timings::timed;
 
@@ -23,6 +24,8 @@ pub struct Item {
     pub detail: String,
     /// The chip it's filed under; empty for none.
     pub category: String,
+    /// The feat type's icon, for an item that takes a feat.
+    pub icon: Option<FeatCategory>,
     /// It can't be taken: greyed out, behind "Show N locked".
     pub locked: bool,
     /// Why not, when the sheet says: an option that would break a later choice stays grey with none.
@@ -39,6 +42,7 @@ impl Item {
             name: name.into(),
             detail: String::new(),
             category: String::new(),
+            icon: None,
             locked: false,
             reason: None,
             current: false,
@@ -147,11 +151,15 @@ pub fn ItemList(
     nothing: Option<&'static str>,
 ) -> impl IntoView {
     let searchable = items.len() > 8;
-    let categories: Vec<String> = items
+    // Each category once, in name order, with the feat type icon of its items (feats of one category share one).
+    let categories: Vec<(String, Option<FeatCategory>)> = items
         .iter()
-        .map(|item| item.category.clone())
-        .filter(|category| !category.is_empty())
-        .collect::<BTreeSet<_>>()
+        .filter(|item| !item.category.is_empty())
+        .fold(BTreeMap::new(), |mut categories, item| {
+            let icon = categories.entry(item.category.clone()).or_insert(None);
+            *icon = icon.or(item.icon);
+            categories
+        })
         .into_iter()
         .collect();
     let items = StoredValue::new(items);
@@ -188,6 +196,7 @@ pub fn ItemList(
                     on:click=move |_| on_pick.run(index)
                 >
                     <span class="item-name">
+                        {item.icon.map(feat_icon)}
                         {item.name}
                         {item.current.then_some(" ✓")}
                         {item.more.then(|| view! { <span class="more">" ›"</span> })}
@@ -218,7 +227,7 @@ pub fn ItemList(
                 .then(|| {
                     let chips = categories
                         .into_iter()
-                        .map(|name| {
+                        .map(|(name, icon)| {
                             let on = {
                                 let name = name.clone();
                                 move || category.get().as_ref() == Some(&name)
@@ -230,6 +239,7 @@ pub fn ItemList(
                                     class:on=on
                                     on:click=move |_| category.set(Some(set.clone()))
                                 >
+                                    {icon.map(feat_icon)}
                                     {name}
                                 </button>
                             }
@@ -392,6 +402,7 @@ fn SlotPicker(id: SlotId) -> impl IntoView {
                         name: entry.name.clone(),
                         detail: entry.detail(),
                         category: entry.category.clone(),
+                        icon: entry.feat_category,
                         locked: !entry.open,
                         reason: entry.reason.clone(),
                         current: entry

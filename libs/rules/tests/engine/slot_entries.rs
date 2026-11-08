@@ -1,7 +1,9 @@
 //! A slot's options as its picker shows them: grouped by what the pick takes, each entry with its name, chip,
 //! summary, story note and the one reason it shows, each option with its value's name and its own reason.
 
-use rules::{Build, Engine, ParameterKind, Prerequisite, SlotEntry, SlotId, SlotOption, Story};
+use rules::{
+    Build, Engine, FeatCategory, ParameterKind, Prerequisite, SlotEntry, SlotId, SlotOption, Story,
+};
 
 use crate::support::*;
 
@@ -79,6 +81,49 @@ fn a_shared_option_is_filed_under_the_selection_that_defines_it() {
         entry(&entries, "rogue/rogue-talents/fast-stealth").category,
         "Rogue Talents"
     );
+}
+
+/// A feat's type picks its icon: the feat's own category, or, for an option granting a chosen feat, that feat's.
+#[test]
+fn an_entry_names_the_type_of_feat_it_takes() {
+    let engine = engine();
+    let fighter = build("elf", &["fighter"]);
+    let feats = entries(&engine, &fighter, &general_slot(1));
+    assert_eq!(
+        entry(&feats, "weapon-focus").feat_category,
+        Some(FeatCategory::Weapon)
+    );
+    assert_eq!(
+        entry(&feats, "toughness").feat_category,
+        Some(FeatCategory::Miscellaneous)
+    );
+
+    // A rogue talent granting Weapon Focus is a Weapon feat; one granting no feat has no type.
+    let rogue = build("elf", &["rogue", "rogue"]);
+    let talents = entries(&engine, &rogue, &selection_slot(2, 0));
+    assert_eq!(
+        entry(&talents, "rogue/rogue-talents/weapon-focus").feat_category,
+        Some(FeatCategory::Weapon)
+    );
+    assert_eq!(
+        entry(&talents, "rogue/rogue-talents/fast-stealth").feat_category,
+        None
+    );
+}
+
+/// The grid's chip shows the same icon for the pick a slot holds.
+#[test]
+fn a_picks_feat_type_is_its_feats_category() {
+    let engine = engine();
+    let build = build("elf", &["fighter"]);
+    for entry in entries(&engine, &build, &general_slot(1)) {
+        for option in &entry.options {
+            assert_eq!(
+                engine.feat_category(&option.option.pick),
+                entry.feat_category
+            );
+        }
+    }
 }
 
 #[test]

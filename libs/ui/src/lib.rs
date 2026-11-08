@@ -5,6 +5,7 @@ use leptos_meta::{MetaTags, Stylesheet, Title, provide_meta_context};
 mod browser;
 mod game_data;
 mod grid;
+mod icons;
 mod mythic;
 mod picker;
 mod planner;
