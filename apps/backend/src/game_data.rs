@@ -40,7 +40,7 @@ impl GameDataFile {
         Self::from_json(serde_json::to_vec(game_data).expect("the game data serialises to JSON"))
     }
 
-    fn from_json(json: Vec<u8>) -> Self {
+    pub(crate) fn from_json(json: Vec<u8>) -> Self {
         let hash: String = Sha256::digest(&json)[..8]
             .iter()
             .map(|byte| format!("{byte:02x}"))

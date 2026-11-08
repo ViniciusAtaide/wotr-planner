@@ -1,0 +1,58 @@
+# Builds the static site (scripts/build-site.sh) and deploys it to GitHub Pages, on every push to main and by hand.
+# Needs Settings › Pages › Source: GitHub Actions.
+name: Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deployment at a time; a newer push waits rather than cancelling one in progress.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      # The query macros compile against the checked-in libs/seeds/.sqlx metadata (the script sets it too).
+      SQLX_OFFLINE: "true"
+      CARGO_TERM_COLOR: always
+    steps:
+      - uses: actions/checkout@v5
+
+      # rustup is on the runner: this installs the nightly pinned in rust-toolchain.toml with its components.
+      - name: Install the pinned toolchain
+        run: |
+          rustup toolchain install
+          rustup target add wasm32-unknown-unknown
+          rustc --version
+
+      # Caches ~/.cargo (cargo-leptos's binary included) and target/ between runs.
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Install cargo-leptos
+        run: cargo install --locked cargo-leptos --version 0.3.11
+
+      - name: Build the site
+        run: scripts/build-site.sh site
+
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

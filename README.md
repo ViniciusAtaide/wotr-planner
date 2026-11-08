@@ -31,6 +31,11 @@ the brotli copy to a browser that takes brotli; without the flag they are compre
 quality 4. The gzip copies go unused: the server's own gzip is smaller. cargo-leptos has no `Cargo.toml` key for
 the flag, so always pass it.
 
+A static site, for GitHub Pages: `scripts/build-site.sh <out-dir>` saves the release server's page, wasm, JS, CSS
+and game data as files (usage in its header). The page names them relative to itself, so the folder works at `/`
+and under a project site's `/<repo>/`. `.github/workflows/pages.yml` runs it on every push to `main` and deploys
+the folder; the first deployment's steps are in `.scratch/wotr-planner/issues/100-static-site-for-github-pages.md`.
+
 ### Game data
 
 The game data lives in RON files under `libs/game-data/` (see `libs/game-data/README.md`). The database is one SQLite

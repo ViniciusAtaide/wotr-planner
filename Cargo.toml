@@ -9,7 +9,6 @@ version = "0.1.0"
 [workspace.dependencies]
 leptos = { version = "0.8.23", features = ["nightly"] }
 leptos_meta = "0.8.7"
-leptos_router = { version = "0.8.17", features = ["nightly"] }
 leptos_axum = "0.8.10"
 axum = "0.8.9"
 tokio = { version = "1.54", features = ["rt-multi-thread", "macros"] }

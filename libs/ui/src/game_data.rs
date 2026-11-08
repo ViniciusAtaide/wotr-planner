@@ -7,7 +7,8 @@ use leptos::wasm_bindgen::{JsCast, JsValue};
 use rules::GameData;
 use wasm_bindgen_futures::JsFuture;
 
-/// The URL the server serves the game data at. The server provides it as context to the shell.
+/// The game data's URL, relative to the page (`./game-data/<hash>.json`), so it works under any path prefix. The
+/// server provides it as context to the shell.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct GameDataUrl(pub String);
 

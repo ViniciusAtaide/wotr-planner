@@ -40,11 +40,26 @@ async fn main() {
         "game data at {game_data} (serialised and compressed in {} ms)",
         started.elapsed().as_millis()
     );
-    let game_data_url = GameDataUrl(game_data.url().to_owned());
 
     let conf = get_configuration(None).expect("read [[workspace.metadata.leptos]] configuration");
     let addr = conf.leptos_options.site_addr;
-    let leptos_options = conf.leptos_options;
+    let app = app(game_data, conf.leptos_options);
+
+    let listener = tokio::net::TcpListener::bind(&addr)
+        .await
+        .expect("bind site-addr");
+    println!("listening on http://{addr}");
+    axum::serve(listener, app.into_make_service())
+        .await
+        .expect("serve");
+}
+
+/// The site: the page at `/`, its files under `/pkg`, and the game data at its URL.
+///
+/// The page names those files relative to itself (`./pkg/…`, `./game-data/…`), so that saved as files
+/// (`scripts/build-site.sh`) it works under any path prefix, as a GitHub project site at `/<repo>/` does.
+fn app(game_data: GameDataFile, leptos_options: LeptosOptions) -> Router {
+    let game_data_url = GameDataUrl(format!(".{}", game_data.url()));
     let routes = generate_route_list(App);
 
     // The page's head preloads the game data from its URL, which the context gives the shell.
@@ -56,7 +71,7 @@ async fn main() {
     //   `.br` files, so everything is compressed on the fly there;
     // - the rest, the HTML, on the fly.
     let site_pkg = ServeDir::new(&*leptos_options.site_root).precompressed_br();
-    let app = Router::new()
+    Router::new()
         .merge(game_data.routes())
         .route_service(&site_pkg_dir_service_route_path(&leptos_options), site_pkg)
         .leptos_routes_with_context(
@@ -68,18 +83,12 @@ async fn main() {
                 move || shell(leptos_options.clone())
             },
         )
-        .fallback(leptos_axum::file_and_error_handler(shell))
+        // A file in the site root, or else a plain 404: the app is the sheet whatever the path, so it isn't
+        // rendered here.
+        .fallback(leptos_axum::file_and_error_handler(|_| "Not found."))
         .layer(map_response(vary_on_accept_encoding))
         .layer(CompressionLayer::new())
-        .with_state(leptos_options);
-
-    let listener = tokio::net::TcpListener::bind(&addr)
-        .await
-        .expect("bind site-addr");
-    println!("listening on http://{addr}");
-    axum::serve(listener, app.into_make_service())
-        .await
-        .expect("serve");
+        .with_state(leptos_options)
 }
 
 /// Adds `Vary: Accept-Encoding` to a compressed response that lacks it. A precompressed static file comes
@@ -121,7 +130,75 @@ async fn warn_if_game_data_is_stale(db: &seeds::Database) {
 
 #[cfg(test)]
 mod tests {
+    use axum::body::{Body, to_bytes};
+    use axum::http::{Request, StatusCode};
+    use tower::ServiceExt;
+
     use super::*;
+
+    /// The server's app with a small game data file, and that file's URL.
+    fn test_app() -> (Router, String) {
+        let game_data = GameDataFile::from_json(b"{}".to_vec());
+        let url = game_data.url().to_owned();
+        let options = LeptosOptions::builder().output_name("wotr-planner").build();
+        (app(game_data, options), url)
+    }
+
+    async fn get(app: Router, url: &str) -> (StatusCode, String) {
+        let response = app
+            .oneshot(Request::get(url).body(Body::empty()).unwrap())
+            .await
+            .unwrap();
+        let status = response.status();
+        let body = to_bytes(response.into_body(), usize::MAX).await.unwrap();
+        (status, String::from_utf8(body.to_vec()).unwrap())
+    }
+
+    /// The static site (`scripts/build-site.sh`) is this page saved as files, served under any path prefix (a
+    /// GitHub project site is at `/<repo>/`), so the page names its stylesheet, scripts, wasm and game data
+    /// relative to itself.
+    #[tokio::test]
+    async fn the_page_names_its_files_relative_to_itself() {
+        let (app, url) = test_app();
+        let (status, html) = get(app, "/").await;
+        assert_eq!(status, StatusCode::OK);
+        for file in [
+            r#"href="./pkg/wotr-planner.css""#,
+            r#"href="./pkg/wotr-planner.js""#,
+            "./pkg/wotr-planner_bg.wasm",
+            &format!(r#"href=".{url}""#),
+        ] {
+            assert!(html.contains(file), "{file} is missing from {html}");
+        }
+        for absolute in [r#"="/"#, r#""/pkg"#, r#""/game-data"#] {
+            assert!(!html.contains(absolute), "{absolute} is in {html}");
+        }
+    }
+
+    /// Without an icon link a browser asks for `/favicon.ico` at the host's root, outside a project site: a 404.
+    #[tokio::test]
+    async fn the_page_names_its_icon_so_the_browser_asks_for_none() {
+        let (app, _) = test_app();
+        let (_, html) = get(app, "/").await;
+        assert!(
+            html.contains(r#"<link rel="icon" href="data:,">"#),
+            "{html}"
+        );
+    }
+
+    #[tokio::test]
+    async fn the_game_data_is_at_the_url_the_page_names() {
+        let (app, url) = test_app();
+        assert_eq!(get(app, &url).await.0, StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn any_other_page_is_not_found() {
+        let (app, _) = test_app();
+        let (status, html) = get(app, "/wotr-planner/").await;
+        assert_eq!(status, StatusCode::NOT_FOUND);
+        assert!(html.contains("Not found."), "{html}");
+    }
 
     async fn vary_of(headers: &[(header::HeaderName, &'static str)]) -> Vec<HeaderValue> {
         let mut response = Response::new(axum::body::Body::empty());
