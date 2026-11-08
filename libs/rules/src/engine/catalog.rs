@@ -8,9 +8,9 @@ use super::{EffectiveRow, canonical_archetype_row, class_row, effective_rows, me
 use crate::build::{BuildStart, Pick};
 use crate::game_data::{
     AbilityBonus, AbilityModifier, Archetype, Background, Class, Deity, EXOTIC_WEAPON_PROFICIENCY,
-    Feat, FeatList, FeatureSelection, GameData, IMPROVED_UNARMED_STRIKE, MythicAbility, MythicFeat,
-    MythicPath, OptionRow, Race, SelectionOption, Skill, Subrace, UNARMED_STRIKE, Weapon,
-    WeaponProficiency,
+    Feat, FeatCategory, FeatList, FeatureSelection, GameData, IMPROVED_UNARMED_STRIKE,
+    MythicAbility, MythicFeat, MythicPath, OptionRow, Race, SelectionOption, Skill, Subrace,
+    UNARMED_STRIKE, Weapon, WeaponProficiency,
 };
 use crate::keys::{
     ArchetypeKey, BackgroundKey, ClassKey, DeityKey, FeatKey, FeatListKey, FeatureKey,
@@ -55,6 +55,8 @@ pub(super) struct PickItem<'a> {
     pub parameter: Option<ParameterKind>,
     /// The feat holding it holds: the feat itself, or an option's chosen feat.
     pub feat: Option<&'a FeatKey>,
+    /// That feat's category, which picks its icon. `None` when it holds no feat, mythic picks included.
+    pub feat_category: Option<FeatCategory>,
 }
 
 impl Catalog {
@@ -340,6 +342,7 @@ impl Catalog {
                     prerequisite: feat.prerequisite.as_ref(),
                     parameter: feat.parameter,
                     feat: Some(&feat.key),
+                    feat_category: Some(feat.category),
                 }
             }
             Pick::SelectionOption { option, .. } => {
@@ -354,6 +357,11 @@ impl Catalog {
                     prerequisite: option.prerequisite.as_ref(),
                     parameter: self.option_parameter(option),
                     feat: option.chosen_feat.as_ref(),
+                    feat_category: option
+                        .chosen_feat
+                        .as_ref()
+                        .and_then(|feat| self.feat(feat))
+                        .map(|feat| feat.category),
                 }
             }
             Pick::MythicAbility(key) => {
@@ -365,6 +373,7 @@ impl Catalog {
                     prerequisite: ability.prerequisite.as_ref(),
                     parameter: None,
                     feat: None,
+                    feat_category: None,
                 }
             }
             Pick::MythicFeat { feat, .. } => {
@@ -376,6 +385,7 @@ impl Catalog {
                     prerequisite: feat.prerequisite.as_ref(),
                     parameter: feat.parameter,
                     feat: None,
+                    feat_category: None,
                 }
             }
         })

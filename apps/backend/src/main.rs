@@ -8,7 +8,7 @@ use leptos::prelude::*;
 use leptos_axum::{LeptosRoutes, generate_route_list, site_pkg_dir_service_route_path};
 use tower_http::compression::CompressionLayer;
 use tower_http::services::ServeDir;
-use ui::{App, GameDataUrl, shell};
+use ui::{App, GameDataUrl, SiteUrl, shell};
 
 use crate::game_data::GameDataFile;
 
@@ -54,12 +54,10 @@ async fn main() {
         .expect("serve");
 }
 
-/// The site's public address from `SITE_URL`, ending in `/`, for the page's link preview (see [`shell`]). The
-/// Pages workflow sets it; a dev server runs without it.
-fn site_url() -> Option<String> {
-    let url = std::env::var("SITE_URL").ok()?;
-    let url = url.trim().trim_end_matches('/');
-    (!url.is_empty()).then(|| format!("{url}/"))
+/// The site's public address from `SITE_URL`, for the page's link preview (see [`shell`]). The Pages workflow sets
+/// it; a dev server runs without it.
+fn site_url() -> Option<SiteUrl> {
+    SiteUrl::new(&std::env::var("SITE_URL").ok()?)
 }
 
 /// The site: the page at `/`, its files under `/pkg`, the game data at its URL, and the files in the site root
@@ -68,7 +66,11 @@ fn site_url() -> Option<String> {
 /// The page names those files relative to itself (`./pkg/…`, `./game-data/…`), so that saved as files
 /// (`scripts/build-site.sh`) it works under any path prefix, as a GitHub project site at `/<repo>/` does. Only the
 /// link preview names its image by an absolute URL, from `site_url`, since previews need one.
-fn app(game_data: GameDataFile, leptos_options: LeptosOptions, site_url: Option<String>) -> Router {
+fn app(
+    game_data: GameDataFile,
+    leptos_options: LeptosOptions,
+    site_url: Option<SiteUrl>,
+) -> Router {
     let game_data_url = GameDataUrl(format!(".{}", game_data.url()));
     let routes = generate_route_list(App);
 
@@ -150,10 +152,10 @@ mod tests {
 
     /// The server's app with a small game data file, and that file's URL.
     fn test_app() -> (Router, String) {
-        test_app_at(Some(SITE_URL.to_owned()))
+        test_app_at(SiteUrl::new(SITE_URL))
     }
 
-    fn test_app_at(site_url: Option<String>) -> (Router, String) {
+    fn test_app_at(site_url: Option<SiteUrl>) -> (Router, String) {
         let game_data = GameDataFile::from_json(b"{}".to_vec());
         let url = game_data.url().to_owned();
         let options = LeptosOptions::builder().output_name("wotr-planner").build();
@@ -218,6 +220,19 @@ mod tests {
         assert!(html.contains(r#"<meta property="og:title""#), "{html}");
         assert!(!html.contains("og:image"), "{html}");
         assert!(!html.contains("og:url"), "{html}");
+    }
+
+    /// `SITE_URL` as the workflow or a person gives it: stray spaces and slashes don't change the address.
+    #[test]
+    fn a_site_url_ends_in_one_slash() {
+        for given in [
+            "https://example.github.io/wotr-planner",
+            "https://example.github.io/wotr-planner/",
+            " https://example.github.io/wotr-planner// ",
+        ] {
+            assert_eq!(SiteUrl::new(given).unwrap().as_str(), SITE_URL, "{given:?}");
+        }
+        assert_eq!(SiteUrl::new(" / "), None);
     }
 
     #[tokio::test]

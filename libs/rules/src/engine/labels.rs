@@ -410,12 +410,11 @@ impl Engine {
         }
     }
 
-    /// The type of feat a pick takes, which picks its icon: a feat's category, or the chosen feat's for an option
+    /// The category of the feat a pick takes, which picks its icon: a feat's own, or the chosen feat's for an option
     /// granting one (a rogue talent's Weapon Focus is a Weapon feat). `None` for any other pick, mythic ones
     /// included.
     pub fn feat_category(&self, pick: &Pick) -> Option<FeatCategory> {
-        let feat = self.catalog.pick_item(pick)?.feat?;
-        Some(self.catalog.feat(feat)?.category)
+        self.catalog.pick_item(pick)?.feat_category
     }
 
     /// A domain as the deity picker lists it: its option's name without " Domain" or " Subdomain" ("Fire" for the

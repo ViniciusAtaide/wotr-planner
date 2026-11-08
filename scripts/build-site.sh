@@ -44,7 +44,9 @@ trap cleanup EXIT
 export SQLX_OFFLINE=true
 export DATABASE_URL=sqlite://$tmp/site.db
 unset LEPTOS_WATCH GAME_DATA_DIR
-if [[ -z ${SITE_URL:-} ]]; then
+# SITE_URL as the server reads it (`ui::SiteUrl`): without surrounding spaces or trailing slashes.
+site_url=$(printf '%s' "${SITE_URL:-}" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//; s#/+$##')
+if [[ -z $site_url ]]; then
     echo "build-site: no SITE_URL, so the page names no link preview image" >&2
 fi
 
@@ -103,7 +105,7 @@ for file in $(grep -Eo '"\./[^"]+"' "$out/index.html" | tr -d '"' | sort -u); do
 done
 # And so is the preview image the page names under SITE_URL.
 for image in $(grep -Eo '<meta property="og:image" content="[^"]+"' "$out/index.html" | sed -E 's/.*content="([^"]+)"/\1/'); do
-    file=${image#"${SITE_URL%/}/"}
+    file=${image#"$site_url/"}
     if [[ $file == "$image" || ! -f $out/$file ]]; then
         echo "build-site: the page's preview image $image isn't in the site" >&2
         exit 1

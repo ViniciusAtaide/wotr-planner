@@ -385,10 +385,10 @@ pub struct SlotOption {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct SlotEntry {
     pub name: String,
-    /// The chip it's filed under: a feat's category, the Feature selection defining an option, a mythic pick's guide
-    /// heading.
+    /// The filter chip it's filed under: a feat's category, the Feature selection defining an option, a mythic
+    /// pick's guide heading. Not [`Self::feat_category`], which names the category of the feat it takes, if any.
     pub category: String,
-    /// The type of feat it takes, which picks its icon: see [`Engine::feat_category`].
+    /// The category of the feat it takes, which picks its icon: see [`Engine::feat_category`].
     pub feat_category: Option<FeatCategory>,
     /// Its short summary, in our own words; empty when the data has none.
     pub summary: String,

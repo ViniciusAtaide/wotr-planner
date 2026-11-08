@@ -83,9 +83,9 @@ fn a_shared_option_is_filed_under_the_selection_that_defines_it() {
     );
 }
 
-/// A feat's type picks its icon: the feat's own category, or, for an option granting a chosen feat, that feat's.
+/// A feat's category picks its icon: the feat's own, or, for an option granting a chosen feat, that feat's.
 #[test]
-fn an_entry_names_the_type_of_feat_it_takes() {
+fn an_entry_names_the_category_of_the_feat_it_takes() {
     let engine = engine();
     let fighter = build("elf", &["fighter"]);
     let feats = entries(&engine, &fighter, &general_slot(1));
@@ -111,17 +111,38 @@ fn an_entry_names_the_type_of_feat_it_takes() {
     );
 }
 
-/// The grid's chip shows the same icon for the pick a slot holds.
+/// The grid's chip shows the same icon for the pick a slot holds: a feat's, a granting option's, or none.
 #[test]
-fn a_picks_feat_type_is_its_feats_category() {
+fn a_picks_feat_category_matches_its_entrys() {
     let engine = engine();
-    let build = build("elf", &["fighter"]);
-    for entry in entries(&engine, &build, &general_slot(1)) {
+    let slots = [
+        (build("elf", &["fighter"]), general_slot(1)),
+        // Rogue talents: one granting Weapon Focus, others granting no feat.
+        (build("elf", &["rogue", "rogue"]), selection_slot(2, 0)),
+    ];
+    for (build, slot) in &slots {
+        for entry in entries(&engine, build, slot) {
+            for option in &entry.options {
+                assert_eq!(
+                    engine.feat_category(&option.option.pick),
+                    entry.feat_category
+                );
+            }
+        }
+    }
+}
+
+/// A mythic ability or mythic feat holds no feat of the 12 categories, so it shows no icon.
+#[test]
+fn a_mythic_pick_has_no_feat_category() {
+    let engine = engine();
+    let build = build("elf", &times("wizard", 7));
+    let entries = entries(&engine, &build, &SlotId::Mythic { rank: 1 });
+    assert!(!entries.is_empty());
+    for entry in &entries {
+        assert_eq!(entry.feat_category, None, "{}", entry.name);
         for option in &entry.options {
-            assert_eq!(
-                engine.feat_category(&option.option.pick),
-                entry.feat_category
-            );
+            assert_eq!(engine.feat_category(&option.option.pick), None);
         }
     }
 }

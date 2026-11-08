@@ -14,6 +14,31 @@ mod timings;
 
 pub use game_data::GameDataUrl;
 
+/// The site's name: the page title and the link preview's.
+const SITE_NAME: &str = "WotR Planner";
+
+/// The link preview image, a 1200×630 PNG in the site root: `apps/frontend/public/social-preview.png`, made from
+/// `apps/frontend/social/preview.html`.
+const PREVIEW_IMAGE: &str = "social-preview.png";
+
+/// The site's public address, always ending in `/` (for example `https://<user>.github.io/<repo>/`). Link previews
+/// name the preview image by an absolute URL made from it.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct SiteUrl(String);
+
+impl SiteUrl {
+    /// An address as given (the server's `SITE_URL`), without surrounding spaces or trailing `/`s, then with one
+    /// `/`. `None` for a blank one.
+    pub fn new(url: &str) -> Option<Self> {
+        let url = url.trim().trim_end_matches('/');
+        (!url.is_empty()).then(|| Self(format!("{url}/")))
+    }
+
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
 /// What a link preview (WhatsApp, Slack, Discord, X…) and a search result say about the site.
 const DESCRIPTION: &str = "Plan a Pathfinder: Wrath of the Righteous character level by level: classes, feats, \
                            skills and mythic paths, checked against the game's rules. Share any build as a link.";
@@ -25,9 +50,9 @@ fn og(property: &'static str, content: impl Into<String>) -> impl IntoView {
 
 /// The HTML document the server renders around [`App`].
 ///
-/// `site_url` is the site's public address, ending in `/` (for example `https://<user>.github.io/<repo>/`). Link
-/// previews need the preview image by an absolute URL, so without it the page names no image (a dev server).
-pub fn shell(options: LeptosOptions, site_url: Option<String>) -> impl IntoView {
+/// Link previews need the preview image by an absolute URL, made from `site_url`, so without one the page names no
+/// image (a dev server).
+pub fn shell(options: LeptosOptions, site_url: Option<SiteUrl>) -> impl IntoView {
     view! {
         <!DOCTYPE html>
         <html lang="en">
@@ -37,22 +62,21 @@ pub fn shell(options: LeptosOptions, site_url: Option<String>) -> impl IntoView 
                 <meta name="color-scheme" content="light dark"/>
                 <meta name="description" content=DESCRIPTION/>
                 {og("og:type", "website")}
-                {og("og:site_name", "WotR Planner")}
-                {og("og:title", "WotR Planner")}
+                {og("og:site_name", SITE_NAME)}
+                {og("og:title", SITE_NAME)}
                 {og("og:description", DESCRIPTION)}
                 <meta name="twitter:card" content="summary_large_image"/>
                 {site_url.map(|url| {
-                    // `apps/frontend/public/social-preview.png`, made from `apps/frontend/social/preview.html`.
-                    let image = format!("{url}social-preview.png");
+                    let image = format!("{}{PREVIEW_IMAGE}", url.as_str());
                     view! {
-                        {og("og:url", url)}
+                        {og("og:url", url.as_str().to_owned())}
                         {og("og:image", image.clone())}
                         {og("og:image:type", "image/png")}
                         {og("og:image:width", "1200")}
                         {og("og:image:height", "630")}
                         {og(
                             "og:image:alt",
-                            "WotR Planner: a character sheet with ability scores, levels, feats and a mythic rank",
+                            format!("{SITE_NAME}: a character sheet with ability scores, levels, feats and a mythic rank"),
                         )}
                         <meta name="twitter:image" content=image/>
                     }
@@ -82,7 +106,7 @@ pub fn App() -> impl IntoView {
 
     view! {
         <Stylesheet id="leptos" href="./pkg/wotr-planner.css"/>
-        <Title text="WotR Planner"/>
+        <Title text=SITE_NAME/>
         <planner::SheetPage/>
     }
 }

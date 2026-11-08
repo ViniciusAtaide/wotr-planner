@@ -47,7 +47,7 @@ jobs:
       - name: Build the site
         run: scripts/build-site.sh site
         env:
-          SITE_URL: ${{ steps.pages.outputs.base_url }}/
+          SITE_URL: ${{ steps.pages.outputs.base_url }}
 
       - uses: actions/upload-pages-artifact@v4
         with:

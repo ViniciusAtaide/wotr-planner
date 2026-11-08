@@ -1,19 +1,20 @@
-//! The feat type icons: one small line drawing per [`FeatCategory`], drawn for this app on a 24×24 grid. They
+//! The feat category icons: one small line drawing per [`FeatCategory`], drawn for this app on a 24×24 grid. They
 //! take the text's colour (`stroke: currentColor`, in `main.css`'s `.feat-icon`), so they follow the theme.
 
 use leptos::prelude::*;
 use rules::FeatCategory;
 
-/// A feat type's icon, `1em` square, with the type's name as its tooltip.
+/// A feat category's icon, `1em` square. Decorative: no tooltip of its own, which on a grid chip would cover the
+/// chip's; the picker's filter chips name the categories.
 pub fn feat_icon(category: FeatCategory) -> impl IntoView {
     let svg = format!(
         r#"<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">{}</svg>"#,
         drawing(category)
     );
-    view! { <span class="feat-icon" title=format!("{} feat", category.name()) inner_html=svg></span> }
+    view! { <span class="feat-icon" inner_html=svg></span> }
 }
 
-/// The SVG shapes of a feat type's icon.
+/// The SVG shapes of a feat category's icon.
 fn drawing(category: FeatCategory) -> &'static str {
     match category {
         // A sword, point up and right: blade, crossguard, grip.

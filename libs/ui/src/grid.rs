@@ -154,7 +154,7 @@ pub fn slot_chip(engine: &Engine, slot: &Slot, lost: bool) -> impl IntoView + us
     let label = engine.slot_label(slot);
     let title = label.clone();
     let value = slot.pick.as_ref().map(|pick| engine.pick_name(pick));
-    let icon = slot
+    let feat_category = slot
         .pick
         .as_ref()
         .and_then(|pick| engine.feat_category(pick));
@@ -168,9 +168,9 @@ pub fn slot_chip(engine: &Engine, slot: &Slot, lost: bool) -> impl IntoView + us
             title=title
             on:click=move |_| planner.open(Target::Slot(id.clone()))
         >
-            // The feat type's icon sits in the label line, which never sets the chip's width, so the grid stays as
-            // dense as without it.
-            <span class="chip-label">{icon.map(feat_icon)}{label}</span>
+            // The feat category's icon sits in the label line, which never sets the chip's width, so the grid stays
+            // as dense as without it.
+            <span class="chip-label">{feat_category.map(feat_icon)}{label}</span>
             <span class="chip-value">
                 {value.unwrap_or_else(|| "+".to_owned())}
                 {lost.then(|| view! { <span class="lost-tag">"lost"</span> })}
