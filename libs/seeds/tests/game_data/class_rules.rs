@@ -123,24 +123,27 @@ fn winter_witch_levels_stack_with_witch_levels_for_major_and_grand_hexes() {
 fn the_gold_dragon_breaths_story_conditions_are_notes_that_never_block() {
     let engine = engine();
     let breath = |key: &str| pick(&format!("gold-dragon/improved-gold-dragon-breath/{key}"));
+    let mut build = mythic("trickster", 17);
+    build.path_switch = Some(MythicPathKey::new("gold-dragon"));
+    let entries = engine.slot_entries(&build, &path_selection(9)).unwrap();
     for (key, story) in [
         ("annihilating-breath", Story::VowOfDahak),
         ("decaying-breath", Story::VowOfDahak),
         ("enlightening-breath", Story::Uncorrupted),
         ("rejuvenating-breath", Story::Uncorrupted),
     ] {
+        let entry = entries
+            .iter()
+            .find(|entry| entry.options[0].option.pick == breath(key))
+            .unwrap_or_else(|| panic!("no entry {key}"));
         assert_eq!(
-            engine.story_conditions(&breath(key)),
-            BTreeSet::from([story]),
+            entry.story_note,
+            Some(format!("(Story: {})", story.name())),
             "{key}"
         );
-    }
-    let mut build = mythic("trickster", 17);
-    build.path_switch = Some(MythicPathKey::new("gold-dragon"));
-    let options = engine.options(&build, &path_selection(9)).unwrap();
-    for key in ["annihilating-breath", "enlightening-breath"] {
-        let option = options.iter().find(|o| o.pick == breath(key)).unwrap();
-        assert_eq!(option.status, Ok(()), "{key}");
+        if matches!(key, "annihilating-breath" | "enlightening-breath") {
+            assert_eq!(entry.options[0].option.status, Ok(()), "{key}");
+        }
     }
 }
 

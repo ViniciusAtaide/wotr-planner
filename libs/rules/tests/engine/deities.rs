@@ -560,3 +560,36 @@ fn conditions_of_one_case_read_as_that_case_once() {
         "As priest/heresy, needs Lawful Good alignment or Neutral Good alignment, and a deity offering the fire"
     );
 }
+
+#[test]
+fn the_deity_picker_names_a_domain_without_domain_or_subdomain() {
+    let mut data = world();
+    let domains = &mut data
+        .classes
+        .iter_mut()
+        .find(|class| class.key.as_str() == "cleric")
+        .unwrap()
+        .selections
+        .iter_mut()
+        .find(|selection| selection.key.as_str() == "cleric/domain")
+        .unwrap()
+        .options;
+    for (key, name) in [
+        ("cleric/domain/fire", "Fire Domain"),
+        ("cleric/domain/water", "Water Subdomain"),
+        ("cleric/domain/war", "War Domains of Old"),
+    ] {
+        domains
+            .iter_mut()
+            .find(|domain| domain.key.as_str() == key)
+            .unwrap()
+            .name = name.into();
+    }
+    let engine = Engine::new(data);
+    let name = |key: &str| engine.domain_name(&option(key)).to_owned();
+    assert_eq!(name("cleric/domain/fire"), "Fire");
+    assert_eq!(name("cleric/domain/water"), "Water");
+    assert_eq!(name("cleric/domain/war"), "War Domains of Old");
+    // A key the data lacks is named by its key, as every label is.
+    assert_eq!(name("cleric/domain/sun"), "cleric/domain/sun");
+}

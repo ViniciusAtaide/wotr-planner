@@ -379,6 +379,57 @@ pub struct SlotOption {
     pub edit: Edit,
 }
 
+/// One entry of a slot's picker, as the sheet shows it ([`Engine::slot_entries`]): what a pick takes (a feat,
+/// selection option, mythic ability or mythic feat) with its options, one for each value it can name or one alone.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct SlotEntry {
+    pub name: String,
+    /// The chip it's filed under: a feat's category, the Feature selection defining an option, a mythic pick's guide
+    /// heading.
+    pub category: String,
+    /// Its short summary, in our own words; empty when the data has none.
+    pub summary: String,
+    /// "(Story: Vow of Dahak)", for the story conditions in its prerequisite, which never block it.
+    pub story_note: Option<String>,
+    /// What its picks name, with the article ("a weapon"), for an entry whose picks name a value: it opens the list
+    /// of its options' values.
+    pub noun: Option<&'static str>,
+    /// Whether any of its options can be taken.
+    pub open: bool,
+    /// Why none of its options can be taken, when it shows a reason: an option's reason other than already holding
+    /// it (Weapon Focus held for a longsword but needing BAB +1 for the rest says the BAB), else the first option's.
+    /// `None` when that option would break a later choice, and for an open entry.
+    pub reason: Option<String>,
+    pub options: Vec<EntryOption>,
+}
+
+/// One option of a [`SlotEntry`]: the slot's option, with its value's name and its reason.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct EntryOption {
+    pub option: SlotOption,
+    /// The value its pick names, as the sheet shows it ("Longsword"); empty for a pick that names none.
+    pub value: String,
+    /// Why it can't be taken, when it shows a reason ([`Engine::issue_text`]).
+    pub reason: Option<String>,
+}
+
+impl SlotEntry {
+    /// The line under its name: "Choose a weapon." for an entry of values, then its summary and story note.
+    pub fn detail(&self) -> String {
+        let choose = self.noun.map(|noun| format!("Choose {noun}."));
+        [
+            choose.as_deref(),
+            Some(self.summary.as_str()),
+            self.story_note.as_deref(),
+        ]
+        .into_iter()
+        .flatten()
+        .filter(|part| !part.is_empty())
+        .collect::<Vec<_>>()
+        .join(" ")
+    }
+}
+
 /// A choice the Build holds and its Withdrawal: the edit that takes it back ([`Engine::held_choices`]).
 ///
 /// Taking a choice back means: a pick cleared; a level taken by no class (what its class row gives goes, and the

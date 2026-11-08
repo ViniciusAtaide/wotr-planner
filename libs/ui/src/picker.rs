@@ -10,7 +10,7 @@ use std::time::Duration;
 use leptos::prelude::*;
 use rules::{
     Alignment, Build, Choice, ClassOption, Edit, Engine, FIRST_ASCENSION_RANK, Faith, Issue,
-    PATH_CHOICE_RANK, PATH_SWITCH_RANK, SlotId, SlotOption,
+    PATH_CHOICE_RANK, PATH_SWITCH_RANK, SlotEntry, SlotId, SlotOption,
 };
 
 use crate::planner::{Target, use_planner};
@@ -336,48 +336,8 @@ pub fn slot_place(slot: &SlotId) -> String {
     }
 }
 
-/// A slot's options, one entry per feat, option or mythic pick; a parameterised one holds each of its values.
-struct Group {
-    name: String,
-    category: String,
-    summary: String,
-    /// Picks that name a value: the group opens a list of them.
-    values: bool,
-    options: Vec<SlotOption>,
-}
-
-fn groups(engine: &Engine, options: Vec<SlotOption>) -> Vec<Group> {
-    let mut groups: Vec<Group> = Vec::new();
-    let mut last_key: Option<String> = None;
-    for option in options {
-        let key = option.pick.key().to_owned();
-        if last_key.as_deref() == Some(key.as_str())
-            && let Some(group) = groups.last_mut()
-        {
-            group.options.push(option);
-            continue;
-        }
-        let mut summary = engine.pick_summary(&option.pick).to_owned();
-        let stories = engine.story_conditions(&option.pick);
-        if !stories.is_empty() {
-            let names: Vec<&str> = stories.iter().map(|story| story.name()).collect();
-            if !summary.is_empty() {
-                summary.push(' ');
-            }
-            summary.push_str(&format!("(Story: {})", names.join(", ")));
-        }
-        groups.push(Group {
-            name: engine.pick_base_name(&option.pick).to_owned(),
-            category: engine.pick_category(&option.pick).to_owned(),
-            summary,
-            values: option.pick.parameter().is_some(),
-            options: vec![option],
-        });
-        last_key = Some(key);
-    }
-    groups
-}
-
+/// A slot's picker: the engine's entries (one per feat, option or mythic pick), an entry of values opening the list of
+/// its options.
 #[component]
 fn SlotPicker(id: SlotId) -> impl IntoView {
     let slot = id;
@@ -397,78 +357,60 @@ fn SlotPicker(id: SlotId) -> impl IntoView {
     let title = engine.slot_label(&found);
     let remove = Some(Choice::Slot(slot.clone()));
 
-    let computed = RwSignal::new(None::<Arc<Vec<Group>>>);
+    let computed = RwSignal::new(None::<Arc<Vec<SlotEntry>>>);
     {
-        let engine = engine.clone();
         let slot = slot.clone();
         after_paint(computed, move || {
             let build = planner.build.get_untracked();
-            let options = timed("options", || engine.options(&build, &slot)).unwrap_or_default();
-            Arc::new(groups(&engine, options))
+            let entries =
+                timed("options", || engine.slot_entries(&build, &slot)).unwrap_or_default();
+            Arc::new(entries)
         });
     }
-    let open_group = RwSignal::new(None::<usize>);
+    let open_entry = RwSignal::new(None::<usize>);
     let place = slot_place(&slot);
     let current = StoredValue::new(current);
+    let is_current = move |option: &SlotOption| {
+        current.with_value(|current| current.as_ref() == Some(&option.pick))
+    };
     let pick = move |option: &SlotOption| {
         planner.close();
-        if current.with_value(|current| current.as_ref() != Some(&option.pick)) {
+        if !is_current(option) {
             planner.edit(option.edit.clone());
         }
     };
-    let engine = StoredValue::new(engine);
 
     let list = move || {
-        let Some(groups) = computed.get() else {
+        let Some(entries) = computed.get() else {
             return loading();
         };
-        let engine = engine.get_value();
-        match open_group.get() {
+        match open_entry.get() {
             None => {
-                let items = groups
+                let items = entries
                     .iter()
-                    .map(|group| {
-                        let open = group.options.iter().any(|option| option.status.is_ok());
-                        let detail = if group.values {
-                            let what = group.options[0]
-                                .pick
-                                .parameter()
-                                .map(value_noun)
-                                .unwrap_or("a value");
-                            let choose = format!("Choose {what}.");
-                            if group.summary.is_empty() {
-                                choose
-                            } else {
-                                format!("{choose} {}", group.summary)
-                            }
-                        } else {
-                            group.summary.clone()
-                        };
-                        Item {
-                            name: group.name.clone(),
-                            detail,
-                            category: group.category.clone(),
-                            locked: !open,
-                            reason: (!open).then(|| group_reason(&engine, group)).flatten(),
-                            current: current.with_value(|current| {
-                                current.as_ref().is_some_and(|current| {
-                                    group.options.iter().any(|option| &option.pick == current)
-                                })
-                            }),
-                            more: group.values,
-                        }
+                    .map(|entry| Item {
+                        name: entry.name.clone(),
+                        detail: entry.detail(),
+                        category: entry.category.clone(),
+                        locked: !entry.open,
+                        reason: entry.reason.clone(),
+                        current: entry
+                            .options
+                            .iter()
+                            .any(|option| is_current(&option.option)),
+                        more: entry.noun.is_some(),
                     })
                     .collect();
-                let groups = groups.clone();
+                let entries = entries.clone();
                 view! {
                     <ItemList
                         items
                         on_pick=move |index: usize| {
-                            let group = &groups[index];
-                            if group.values {
-                                open_group.set(Some(index));
+                            let entry = &entries[index];
+                            if entry.noun.is_some() {
+                                open_entry.set(Some(index));
                             } else {
-                                pick(&group.options[0]);
+                                pick(&entry.options[0].option);
                             }
                         }
                     />
@@ -476,28 +418,24 @@ fn SlotPicker(id: SlotId) -> impl IntoView {
                 .into_any()
             }
             Some(index) => {
-                let group = &groups[index];
-                let items = group
+                let entry = &entries[index];
+                let items = entry
                     .options
                     .iter()
                     .map(|option| Item {
-                        locked: option.status.is_err(),
-                        reason: reason(&engine, &option.status),
-                        current: current
-                            .with_value(|current| current.as_ref() == Some(&option.pick)),
-                        ..Item::new(
-                            option
-                                .pick
-                                .parameter()
-                                .map(|value| engine.parameter_name(value).to_owned())
-                                .unwrap_or_default(),
-                        )
+                        locked: option.option.status.is_err(),
+                        reason: option.reason.clone(),
+                        current: is_current(&option.option),
+                        ..Item::new(option.value.clone())
                     })
                     .collect();
-                let options = group.options.clone();
+                let entries = entries.clone();
                 view! {
-                    <p class="picker-step">{group.name.clone()}</p>
-                    <ItemList items on_pick=move |index: usize| pick(&options[index])/>
+                    <p class="picker-step">{entry.name.clone()}</p>
+                    <ItemList
+                        items
+                        on_pick=move |option: usize| pick(&entries[index].options[option].option)
+                    />
                 }
                 .into_any()
             }
@@ -505,42 +443,15 @@ fn SlotPicker(id: SlotId) -> impl IntoView {
     };
     view! {
         {move || {
-            let back = open_group
+            let back = open_entry
                 .get()
                 .is_some()
-                .then(|| Callback::new(move |()| open_group.set(None)));
+                .then(|| Callback::new(move |()| open_entry.set(None)));
             view! { <Head title=title.clone() place=place.clone() remove=remove.clone() back/> }
         }}
         {list}
     }
     .into_any()
-}
-
-/// Why no value of a group can be taken: a value's reason other than already holding it, when one has one (Weapon
-/// Focus held for a longsword but needing BAB +1 for the rest says the BAB), else the first value's. None when that
-/// one shows no reason.
-fn group_reason(engine: &Engine, group: &Group) -> Option<String> {
-    let issues = group
-        .options
-        .iter()
-        .filter_map(|option| option.status.as_ref().err());
-    let held = |issue: &&Issue| matches!(issue, Issue::AlreadyHeld | Issue::MaxTimes { .. });
-    issues
-        .clone()
-        .find(|issue| !held(issue))
-        .or_else(|| issues.clone().next())
-        .and_then(|issue| engine.issue_text(issue))
-}
-
-/// What a value is called, with its article: "a weapon", "a skill", "an energy type".
-fn value_noun(value: &rules::Parameter) -> &'static str {
-    match value {
-        rules::Parameter::Skill(_) => "a skill",
-        rules::Parameter::Weapon(_) => "a weapon",
-        rules::Parameter::SpellSchool(_) => "a school",
-        rules::Parameter::Energy(_) => "an energy type",
-        rules::Parameter::ArmourType(_) => "an armour type",
-    }
 }
 
 /// Whether the Build holds this class option at the level now: the level's class, with the option's archetype.
@@ -1012,12 +923,7 @@ fn deity_item(engine: &Engine, deity: &rules::Deity) -> Item {
     let domains: Vec<&str> = deity
         .domains
         .iter()
-        .map(|domain| {
-            let name = engine.option_name(domain);
-            name.strip_suffix(" Domain")
-                .or_else(|| name.strip_suffix(" Subdomain"))
-                .unwrap_or(name)
-        })
+        .map(|domain| engine.domain_name(domain))
         .collect();
     Item {
         detail: format!(

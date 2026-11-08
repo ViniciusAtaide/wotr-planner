@@ -614,18 +614,6 @@ fn an_option_list_slot_is_named_after_its_selection_unless_it_has_a_label() {
     );
 }
 
-#[test]
-fn picker_categories_follow_the_guides_groups() {
-    let engine = engine();
-    assert_eq!(engine.pick_category(&pick_feat("power-attack")), "Weapon");
-    assert_eq!(engine.pick_category(&pick_feat("dodge")), "Miscellaneous");
-    // A shared option keeps the category of the selection that defines it.
-    assert_eq!(
-        engine.pick_category(&pick_option("rogue/rogue-talents/fast-stealth")),
-        "Rogue Talents"
-    );
-}
-
 /// The reason a locked option shows, for one that has one.
 fn reason(engine: &Engine, issue: &Issue) -> String {
     engine.issue_text(issue).expect("a reason")

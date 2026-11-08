@@ -38,6 +38,7 @@ mod possible;
 mod prerequisites;
 mod removable;
 mod shared_options;
+mod slot_entries;
 mod slots;
 mod stale_links;
 mod start_pickers;

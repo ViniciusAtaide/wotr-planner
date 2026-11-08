@@ -1,5 +1,5 @@
-//! What the sheet calls things: names by key, slot labels, picker categories, and the reasons a picker shows for an
-//! [`Issue`], in the game's and the glossary's words ("Needs Power Attack", "Needs BAB +4 (have +1)").
+//! What the sheet calls things: names by key, slot labels, the deity picker's domain names, and the reasons a picker
+//! shows for an [`Issue`], in the game's and the glossary's words ("Needs Power Attack", "Needs BAB +4 (have +1)").
 //!
 //! A negated condition that fails says what rules the option out ("Not for the Kinetic Sharpshooter archetype",
 //! "Not with Beast Totem, Lesser", "Only below Slayer level 6"), never "Needs not …".
@@ -405,13 +405,10 @@ impl Engine {
     }
 
     /// The name of what a pick takes, without its value: the feat, option, mythic ability or mythic feat.
-    pub fn pick_base_name<'a>(&'a self, pick: &'a Pick) -> &'a str {
-        match pick {
-            Pick::Feat { feat, .. } => self.feat_name(feat),
-            Pick::SelectionOption { option, .. } => self.option_name(option),
-            Pick::MythicAbility(key) => self.mythic_ability_name(key),
-            Pick::MythicFeat { feat, .. } => self.mythic_feat_name(feat),
-        }
+    fn pick_base_name<'a>(&'a self, pick: &'a Pick) -> &'a str {
+        self.catalog
+            .pick_item(pick)
+            .map_or(pick.key(), |item| item.name)
     }
 
     /// A pick as the sheet shows it, with its value: "Weapon Focus (Longsword)".
@@ -423,46 +420,13 @@ impl Engine {
         }
     }
 
-    /// The group a picker files a pick under, for its category chips: a feat's category, the Feature selection
-    /// that defines an option (a slayer's shared talents are "Rogue Talents"), a mythic pick's guide heading.
-    pub fn pick_category(&self, pick: &Pick) -> &str {
-        match pick {
-            Pick::Feat { feat, .. } => self
-                .catalog
-                .feat(feat)
-                .map_or("", |feat| feat.category.name()),
-            Pick::SelectionOption { option, .. } => self
-                .catalog
-                .selection_of(option)
-                .map_or("", |selection| &selection.name),
-            Pick::MythicAbility(key) => self
-                .catalog
-                .mythic_ability(key)
-                .map_or("", |ability| ability.group.name()),
-            Pick::MythicFeat { feat, .. } => self
-                .catalog
-                .mythic_feat(feat)
-                .map_or("", |feat| feat.group.name()),
-        }
-    }
-
-    /// The short summary of what a pick takes, in our own words; empty when the data has none.
-    pub fn pick_summary(&self, pick: &Pick) -> &str {
-        match pick {
-            Pick::Feat { feat, .. } => self.catalog.feat(feat).map_or("", |feat| &feat.summary),
-            Pick::SelectionOption { option, .. } => self
-                .catalog
-                .option(option)
-                .map_or("", |option| &option.summary),
-            Pick::MythicAbility(key) => self
-                .catalog
-                .mythic_ability(key)
-                .map_or("", |ability| &ability.summary),
-            Pick::MythicFeat { feat, .. } => self
-                .catalog
-                .mythic_feat(feat)
-                .map_or("", |feat| &feat.summary),
-        }
+    /// A domain as the deity picker lists it: its option's name without " Domain" or " Subdomain" ("Fire" for the
+    /// Fire Domain).
+    pub fn domain_name<'a>(&'a self, key: &'a SelectionOptionKey) -> &'a str {
+        let name = self.option_name(key);
+        name.strip_suffix(" Domain")
+            .or_else(|| name.strip_suffix(" Subdomain"))
+            .unwrap_or(name)
     }
 
     /// What a slot takes, as its chip says: "Feat" for the general slot and Extra Feat's, "Bonus feat" for a race's
@@ -904,6 +868,18 @@ impl ParameterKind {
             ParameterKind::SpellSchool => "school",
             ParameterKind::Energy => "energy type",
             ParameterKind::ArmourType => "armour type",
+        }
+    }
+
+    /// The noun with its article, as a picker asks for a value: "a weapon", "an energy type".
+    pub fn with_article(self) -> &'static str {
+        match self {
+            ParameterKind::Skill => "a skill",
+            ParameterKind::Weapon => "a weapon",
+            ParameterKind::ExoticWeapon => "an exotic weapon",
+            ParameterKind::SpellSchool => "a school",
+            ParameterKind::Energy => "an energy type",
+            ParameterKind::ArmourType => "an armour type",
         }
     }
 }

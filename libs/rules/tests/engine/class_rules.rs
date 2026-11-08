@@ -1,8 +1,6 @@
 //! Class rules from the hand-fix follow-ups: a prestige class advancing one class, arcane or divine; levels that
 //! count as another class's (for feat prerequisites, or toward a feature); story conditions that never block.
 
-use std::collections::BTreeSet;
-
 use rules::{Build, ClassChoice, Issue, Prerequisite, SlotId, Story, Unmet};
 
 use crate::support::*;
@@ -225,23 +223,6 @@ fn a_story_condition_always_holds() {
     for story in Story::ALL {
         assert_eq!(blank.check(&Prerequisite::Story(story)), Ok(()));
     }
-}
-
-#[test]
-fn a_story_condition_is_a_note_beside_the_option() {
-    let engine = engine();
-    assert_eq!(
-        engine.story_conditions(&pick_option("gold-dragon/breaths/annihilating")),
-        BTreeSet::from([Story::VowOfDahak])
-    );
-    assert_eq!(
-        engine.story_conditions(&pick_option("gold-dragon/breaths/empowered")),
-        BTreeSet::new()
-    );
-    assert_eq!(
-        engine.story_conditions(&pick_feat("power-attack")),
-        BTreeSet::new()
-    );
 }
 
 #[test]

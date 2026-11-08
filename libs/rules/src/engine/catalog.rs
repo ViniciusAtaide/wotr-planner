@@ -5,7 +5,7 @@
 use std::collections::{BTreeSet, HashMap, HashSet};
 
 use super::{EffectiveRow, canonical_archetype_row, class_row, effective_rows, merged_row};
-use crate::build::BuildStart;
+use crate::build::{BuildStart, Pick};
 use crate::game_data::{
     AbilityBonus, AbilityModifier, Archetype, Background, Class, Deity, EXOTIC_WEAPON_PROFICIENCY,
     Feat, FeatList, FeatureSelection, GameData, IMPROVED_UNARMED_STRIKE, MythicAbility, MythicFeat,
@@ -40,6 +40,21 @@ pub(super) struct Catalog {
     /// The prerequisite of each class with an alignment requirement and archetypes, without that requirement:
     /// what an archetype stating its own leaves of the class's (`None`: nothing).
     without_alignment: HashMap<ClassKey, Option<Prerequisite>>,
+}
+
+/// What a pick takes, read once ([`Catalog::pick_item`]): its name, picker chip, summary, prerequisite, the kind
+/// of value its pick names, and the feat holding it holds.
+pub(super) struct PickItem<'a> {
+    pub name: &'a str,
+    /// A feat's category, the Feature selection that defines an option (a slayer's shared talents are "Rogue
+    /// Talents"), a mythic pick's guide heading.
+    pub category: &'a str,
+    pub summary: &'a str,
+    pub prerequisite: Option<&'a Prerequisite>,
+    /// The kind of value its pick names: a parameterised feat's, an option's chosen feat's or its own.
+    pub parameter: Option<ParameterKind>,
+    /// The feat holding it holds: the feat itself, or an option's chosen feat.
+    pub feat: Option<&'a FeatKey>,
 }
 
 impl Catalog {
@@ -310,6 +325,60 @@ impl Catalog {
             .paths
             .get(key)
             .map(|&index| &self.data.mythic_paths[index])
+    }
+
+    /// The item a pick takes (its feat, selection option, mythic ability or mythic feat) as the labels and pickers
+    /// read it. `None` for a key the data lacks.
+    pub(super) fn pick_item(&self, pick: &Pick) -> Option<PickItem<'_>> {
+        Some(match pick {
+            Pick::Feat { feat, .. } => {
+                let feat = self.feat(feat)?;
+                PickItem {
+                    name: &feat.name,
+                    category: feat.category.name(),
+                    summary: &feat.summary,
+                    prerequisite: feat.prerequisite.as_ref(),
+                    parameter: feat.parameter,
+                    feat: Some(&feat.key),
+                }
+            }
+            Pick::SelectionOption { option, .. } => {
+                let category = self
+                    .selection_of(option)
+                    .map_or("", |selection| &selection.name);
+                let option = self.option(option)?;
+                PickItem {
+                    name: &option.name,
+                    category,
+                    summary: &option.summary,
+                    prerequisite: option.prerequisite.as_ref(),
+                    parameter: self.option_parameter(option),
+                    feat: option.chosen_feat.as_ref(),
+                }
+            }
+            Pick::MythicAbility(key) => {
+                let ability = self.mythic_ability(key)?;
+                PickItem {
+                    name: &ability.name,
+                    category: ability.group.name(),
+                    summary: &ability.summary,
+                    prerequisite: ability.prerequisite.as_ref(),
+                    parameter: None,
+                    feat: None,
+                }
+            }
+            Pick::MythicFeat { feat, .. } => {
+                let feat = self.mythic_feat(feat)?;
+                PickItem {
+                    name: &feat.name,
+                    category: feat.group.name(),
+                    summary: &feat.summary,
+                    prerequisite: feat.prerequisite.as_ref(),
+                    parameter: feat.parameter,
+                    feat: None,
+                }
+            }
+        })
     }
 
     /// The character level of a Mythic rank's ascension, if the data has the rank.

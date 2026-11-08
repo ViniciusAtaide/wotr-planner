@@ -1,6 +1,6 @@
 //! The pickers: every option a slot, a level's class, the path or the Path switch can take, each with whether it
-//! can be taken there and why not, and the edit that takes it. The Build start's and a level's other controls are
-//! in `controls`.
+//! can be taken there and why not, and the edit that takes it; a slot's options also come grouped as its picker shows
+//! them ([`Engine::slot_entries`]). The Build start's and a level's other controls are in `controls`.
 
 use std::cell::OnceCell;
 use std::collections::{BTreeSet, HashSet};
@@ -9,14 +9,15 @@ use super::removable::Recheck;
 use super::slots::check_pick_with;
 use super::walk::Probe;
 use super::{
-    AdvancesOption, ClassOption, Engine, PathOption, SlotKind, SlotOption, advanced_spellcasting,
-    class_level_cap, most_advanced,
+    AdvancesOption, ClassOption, Engine, EntryOption, PathOption, SlotEntry, SlotKind, SlotOption,
+    advanced_spellcasting, class_level_cap, most_advanced,
 };
 use crate::build::{Build, ClassChoice, Edit, Pick, SlotId};
 use crate::choice::{Issue, Unmet};
 use crate::game_data::{Archetype, Class};
 use crate::keys::{ArchetypeKey, ClassKey, FeatKey, SelectionOptionKey};
-use crate::prerequisite::{Prerequisite, Story};
+use crate::parameter::ParameterKind;
+use crate::prerequisite::Prerequisite;
 use crate::state::{CharacterState, ClassLevels};
 
 impl Engine {
@@ -135,6 +136,45 @@ impl Engine {
         )
     }
 
+    /// A slot's options as its picker shows them: grouped by what the pick takes, in [`options`](Self::options)'
+    /// order, each entry named, filed under its chip and with its summary, story note and the one reason it shows,
+    /// and each option with its value's name and its own reason. `None` when the Build has no such slot.
+    pub fn slot_entries(&self, build: &Build, slot: &SlotId) -> Option<Vec<SlotEntry>> {
+        let mut entries: Vec<SlotEntry> = Vec::new();
+        for option in self.options(build, slot)? {
+            let same_item = entries
+                .last()
+                .is_some_and(|entry| entry.options[0].option.pick.key() == option.pick.key());
+            if !same_item {
+                entries.push(self.slot_entry(&option));
+            }
+            let entry = entries.last_mut().expect("an entry");
+            // Values often fail alike (BAB +1 for every weapon): the last one's reason, when it's the same issue.
+            let reason = match (&option.status, entry.options.last()) {
+                (Ok(()), _) => None,
+                (Err(issue), Some(last)) if last.option.status.as_ref().err() == Some(issue) => {
+                    last.reason.clone()
+                }
+                (Err(issue), _) => self.issue_text(issue),
+            };
+            entry.options.push(EntryOption {
+                value: option
+                    .pick
+                    .parameter()
+                    .map_or(String::new(), |value| self.parameter_name(value).to_owned()),
+                reason,
+                option,
+            });
+        }
+        for entry in &mut entries {
+            entry.open = entry.options.iter().any(|o| o.option.status.is_ok());
+            if !entry.open {
+                entry.reason = entry_reason(&entry.options);
+            }
+        }
+        Some(entries)
+    }
+
     /// The feats a walk of the Build can look at: each feat picked (whether it's held already), each option's
     /// chosen feat, the feats named by the prerequisites of the picks and of the classes and archetypes the Build
     /// takes, and every feat with an extra pick. Holding any other feat touches nothing but that feat's entries in
@@ -150,28 +190,13 @@ impl Engine {
             .filter(|feat| !feat.extra_pick_of.is_empty())
             .map(|feat| &feat.key)
             .collect();
-        for pick in build.picks.values() {
-            let prerequisite = match pick {
-                Pick::Feat { feat, .. } => {
-                    named.insert(feat);
-                    self.catalog
-                        .feat(feat)
-                        .and_then(|f| f.prerequisite.as_ref())
-                }
-                Pick::SelectionOption { option, .. } => self.catalog.option(option).and_then(|o| {
-                    named.extend(&o.chosen_feat);
-                    o.prerequisite.as_ref()
-                }),
-                Pick::MythicAbility(key) => self
-                    .catalog
-                    .mythic_ability(key)
-                    .and_then(|a| a.prerequisite.as_ref()),
-                Pick::MythicFeat { feat, .. } => self
-                    .catalog
-                    .mythic_feat(feat)
-                    .and_then(|f| f.prerequisite.as_ref()),
-            };
-            if let Some(prerequisite) = prerequisite {
+        for item in build
+            .picks
+            .values()
+            .filter_map(|pick| self.catalog.pick_item(pick))
+        {
+            named.extend(item.feat);
+            if let Some(prerequisite) = item.prerequisite {
                 prerequisite.collect_feats(&mut named);
             }
         }
@@ -189,28 +214,30 @@ impl Engine {
         named
     }
 
-    /// The story conditions in a pick's prerequisite (Vow of Dahak), for the note the sheet shows beside it. They
-    /// never block the pick. Empty for a key the data lacks.
-    pub fn story_conditions(&self, pick: &Pick) -> BTreeSet<Story> {
-        let prerequisite = match pick {
-            Pick::Feat { feat, .. } => self
-                .catalog
-                .feat(feat)
-                .and_then(|f| f.prerequisite.as_ref()),
-            Pick::SelectionOption { option, .. } => self
-                .catalog
-                .option(option)
-                .and_then(|o| o.prerequisite.as_ref()),
-            Pick::MythicAbility(key) => self
-                .catalog
-                .mythic_ability(key)
-                .and_then(|a| a.prerequisite.as_ref()),
-            Pick::MythicFeat { feat: key, .. } => self
-                .catalog
-                .mythic_feat(key)
-                .and_then(|f| f.prerequisite.as_ref()),
-        };
-        prerequisite.map(Prerequisite::stories).unwrap_or_default()
+    /// The entry that starts with `option`: what its pick takes, as the picker shows it.
+    fn slot_entry(&self, option: &SlotOption) -> SlotEntry {
+        let item = self.catalog.pick_item(&option.pick);
+        SlotEntry {
+            name: item
+                .as_ref()
+                .map_or(option.pick.key(), |item| item.name)
+                .to_owned(),
+            category: item.as_ref().map_or("", |item| item.category).to_owned(),
+            summary: item.as_ref().map_or("", |item| item.summary).to_owned(),
+            story_note: item
+                .as_ref()
+                .and_then(|item| item.prerequisite)
+                .and_then(story_note),
+            // The kind its picks name ("a value" for a key the data lacks, which no option has).
+            noun: option.pick.parameter().map(|_| {
+                item.as_ref()
+                    .and_then(|item| item.parameter)
+                    .map_or("a value", ParameterKind::with_article)
+            }),
+            open: false,
+            reason: None,
+            options: Vec::new(),
+        }
     }
 
     /// The class picker at a character level (one past the end adds a level): every base class, each followed by
@@ -433,6 +460,34 @@ impl Engine {
             })
             .collect()
     }
+}
+
+/// The note beside an option with story conditions in its prerequisite, which never block it: "(Story: Vow of
+/// Dahak)". `None` without any.
+fn story_note(prerequisite: &Prerequisite) -> Option<String> {
+    let stories = prerequisite.stories();
+    if stories.is_empty() {
+        return None;
+    }
+    let names: Vec<&str> = stories.iter().map(|story| story.name()).collect();
+    Some(format!("(Story: {})", names.join(", ")))
+}
+
+/// The one reason a locked entry shows: the first option's whose issue isn't already holding it (Weapon Focus held
+/// for a longsword but needing BAB +1 for the rest says the BAB), else the first option's. `None` when that one shows
+/// none (it would break a later choice).
+fn entry_reason(options: &[EntryOption]) -> Option<String> {
+    let held = |option: &&EntryOption| {
+        matches!(
+            option.option.status,
+            Err(Issue::AlreadyHeld | Issue::MaxTimes { .. })
+        )
+    };
+    let failing = || options.iter().filter(|o| o.option.status.is_err());
+    failing()
+        .find(|option| !held(option))
+        .or_else(|| failing().next())
+        .and_then(|option| option.reason.clone())
 }
 
 /// Whether a class is first taken at this level: no level before it takes it.
