@@ -33,6 +33,11 @@ lto = true
 codegen-units = 1
 panic = "abort"
 
+# Debug builds keep only file and line tables: panics and backtraces still name the line, but a debugger can't show
+# variables. Full debug info made each copy of the test binaries 1–2 GB, and cargo keeps a copy per build setup.
+[profile.dev]
+debug = "line-tables-only"
+
 [profile.dev.package.sqlx-macros]
 opt-level = 3
 
