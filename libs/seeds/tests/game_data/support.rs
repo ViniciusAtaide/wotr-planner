@@ -126,7 +126,7 @@ pub fn offered(build: &Build, level: u8) -> HashMap<String, Result<(), Issue>> {
         .options(build, &selection_slot(level))
         .unwrap_or_else(|| panic!("no selection slot at level {level}"))
         .into_iter()
-        .map(|SlotOption { pick, status }| (pick.key().to_owned(), status))
+        .map(|SlotOption { pick, status, .. }| (pick.key().to_owned(), status))
         .collect()
 }
 
@@ -581,7 +581,7 @@ pub fn offered_in(build: &Build, slot: &SlotId) -> HashMap<String, Result<(), Is
         .options(build, slot)
         .unwrap_or_else(|| panic!("no slot {slot:?}"))
         .into_iter()
-        .map(|SlotOption { pick, status }| (pick.key().to_owned(), status))
+        .map(|SlotOption { pick, status, .. }| (pick.key().to_owned(), status))
         .collect()
 }
 

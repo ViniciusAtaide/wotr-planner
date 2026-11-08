@@ -1,7 +1,8 @@
 //! The sheet's other pickers: class and archetype at a level, the path at MR 3 and the Path switch at MR 8.
 
 use rules::{
-    ArchetypeKey, ClassChoice, ClassOption, Issue, MythicPathKey, PathOption, Prerequisite, Unmet,
+    ArchetypeKey, ClassChoice, ClassOption, Edit, Issue, MythicPathKey, PathOption, Prerequisite,
+    Unmet,
 };
 
 use crate::support::*;
@@ -169,11 +170,13 @@ fn the_path_at_mr_3_is_any_path_without_a_switch_rule() {
         [
             PathOption {
                 path: path("aeon"),
-                status: Ok(())
+                status: Ok(()),
+                edit: Edit::MythicPath(Some(path("aeon"))),
             },
             PathOption {
                 path: path("trickster"),
-                status: Ok(())
+                status: Ok(()),
+                edit: Edit::MythicPath(Some(path("trickster"))),
             }
         ]
     );
@@ -195,4 +198,67 @@ fn the_switch_at_mr_8_is_any_path_with_a_switch_rule() {
             path("swarm-that-walks")
         ]
     );
+}
+
+// ---- each option's edit (ticket 96) ---------------------------------------------------------------------------
+
+#[test]
+fn a_slot_option_carries_the_pick_in_its_slot() {
+    let build = build("human", &["fighter"]);
+    let options = engine().options(&build, &general_slot(1)).unwrap();
+    assert!(!options.is_empty());
+    for option in options {
+        assert_eq!(
+            option.edit,
+            Edit::Pick {
+                slot: general_slot(1),
+                pick: option.pick.clone(),
+            }
+        );
+    }
+}
+
+#[test]
+fn a_class_option_carries_its_archetype_only_where_the_class_is_first_taken() {
+    let build = build("elf", &["fighter"]);
+    // At level 1 every class is first taken there, with its archetype.
+    for option in engine().class_options(&build, 1).unwrap() {
+        assert_eq!(
+            option.edit,
+            Edit::Class {
+                level: 1,
+                class: option.class.clone(),
+                choice: Some(ClassChoice {
+                    archetype: option.archetype.clone(),
+                    advances: Default::default(),
+                }),
+            },
+            "{:?} {:?}",
+            option.class,
+            option.archetype
+        );
+    }
+    // At level 2 the fighter keeps the choice it was first taken with.
+    let options = engine().class_options(&build, 2).unwrap();
+    assert_eq!(
+        option_for(&options, "fighter", None).edit,
+        Edit::Class {
+            level: 2,
+            class: class("fighter"),
+            choice: None,
+        }
+    );
+}
+
+#[test]
+fn a_path_switch_and_first_ascension_option_carry_their_edits() {
+    let build = build("elf", &[]);
+    for option in engine().switch_options(&build) {
+        assert_eq!(option.edit, Edit::PathSwitch(Some(option.path.clone())));
+    }
+    let first = engine().first_ascension_options(&build);
+    assert!(!first.is_empty());
+    for option in first {
+        assert_eq!(option.edit, Edit::FirstAscension(Some(option.path.clone())));
+    }
 }

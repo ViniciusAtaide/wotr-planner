@@ -404,47 +404,58 @@ fn the_removable_classes_are_the_levels_whose_class_removable_names() {
     }
 }
 
+/// Each option's status and edit.
+fn options_of<T>(options: Vec<rules::ChoiceOption<T>>) -> Vec<(Result<(), Issue>, Edit)> {
+    options
+        .into_iter()
+        .map(|option| (option.status, option.edit))
+        .collect()
+}
+
+/// Each step's status and edit.
+fn steps_of<T>(steppers: Vec<rules::Stepper<T>>) -> Vec<(Result<(), Issue>, Edit)> {
+    steppers
+        .into_iter()
+        .flat_map(|stepper| [stepper.down, stepper.up])
+        .flatten()
+        .map(|step| (step.status, step.edit))
+        .collect()
+}
+
+/// Each start and level option and step of a Build (ticket 96): its status and edit.
+fn control_statuses(engine: &Engine, build: &Build) -> Vec<(Result<(), Issue>, Edit)> {
+    let mut controls = options_of(engine.race_options(build));
+    controls.extend(options_of(engine.faith_options(build)));
+    controls.extend(options_of(engine.alignment_options(build)));
+    controls.extend(options_of(engine.background_options(build)));
+    controls.extend(options_of(engine.racial_ability_options(build)));
+    controls.extend(steps_of(engine.point_buy_steps(build)));
+    for level in 1..=u8::try_from(build.levels.len()).unwrap() {
+        let increases = engine.ability_increase_options(build, level);
+        controls.extend(options_of(increases.unwrap_or_default()));
+        controls.extend(steps_of(engine.skill_steps(build, level).unwrap()));
+    }
+    controls
+}
+
 #[test]
-fn many_edits_are_each_allowed_as_allows_says() {
+fn the_start_and_level_pickers_lock_what_allows_refuses() {
     let engine = engine();
     let mut answers = std::collections::BTreeSet::new();
     for build in removable_builds() {
-        let mut edits = vec![Edit::RemoveLevel, Edit::SetName(Some("x".into()))];
-        for ability in rules::AbilityScores::ABILITIES {
-            for score in [7, 10, 14, 17] {
-                if let Some(scores) = build.start.ability_scores.with(ability, score) {
-                    let mut start = build.start.clone();
-                    start.ability_scores = scores;
-                    edits.push(Edit::Start(start));
+        for (status, edit) in control_statuses(&engine, &build) {
+            match status {
+                Ok(()) | Err(Issue::BreaksLater) => {
+                    assert_eq!(status.is_ok(), engine.allows(&build, &edit), "{edit:?}");
+                    answers.insert(status.is_ok());
                 }
+                // A faith and alignment that don't fit: the picker's own business, not a later choice's.
+                Err(Issue::NeedsFaith | Issue::DeityAlignment { .. }) => {}
+                Err(issue) => panic!("{issue:?} for {edit:?}"),
             }
         }
-        for level in 1..=u8::try_from(build.levels.len()).unwrap() {
-            edits.push(Edit::Clear(general_slot(level)));
-            edits.push(Edit::Pick {
-                slot: general_slot(level),
-                pick: pick_feat("toughness"),
-            });
-            edits.push(Edit::SkillRanks {
-                level,
-                skill: skill("mobility"),
-                ranks: 0,
-            });
-            edits.push(Edit::Class {
-                level,
-                class: class("wizard"),
-                choice: None,
-            });
-        }
-        edits.extend(build.picks.keys().cloned().map(Edit::Clear));
-        let one_by_one: Vec<bool> = edits
-            .iter()
-            .map(|edit| engine.allows(&build, edit))
-            .collect();
-        assert_eq!(engine.allows_many(&build, &edits), one_by_one);
-        answers.extend(one_by_one);
     }
-    assert_eq!(answers.len(), 2, "some edits allowed, some not");
+    assert_eq!(answers.len(), 2, "some open, some breaking a later choice");
 }
 
 // ---- what a picker's option can break later -----------------------------------------------------------------

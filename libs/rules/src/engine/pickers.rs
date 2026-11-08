@@ -1,5 +1,6 @@
 //! The pickers: every option a slot, a level's class, the path or the Path switch can take, each with whether it
-//! can be taken there and why not.
+//! can be taken there and why not, and the edit that takes it. The Build start's and a level's other controls are
+//! in `controls`.
 
 use std::cell::OnceCell;
 use std::collections::{BTreeSet, HashSet};
@@ -8,8 +9,8 @@ use super::removable::Recheck;
 use super::slots::check_pick_with;
 use super::walk::Probe;
 use super::{
-    ClassOption, Engine, PathOption, SlotKind, SlotOption, advanced_spellcasting, class_level_cap,
-    most_advanced,
+    AdvancesOption, ClassOption, Engine, PathOption, SlotKind, SlotOption, advanced_spellcasting,
+    class_level_cap, most_advanced,
 };
 use crate::build::{Build, ClassChoice, Edit, Pick, SlotId};
 use crate::choice::{Issue, Unmet};
@@ -113,24 +114,28 @@ impl Engine {
         let recheck = Recheck::new(self, build);
         let named = self.named_feats(build);
         let left_empty = OnceCell::new();
-        let later = |pick: &Pick| match pick {
+        let later = |pick: &Pick, edit: &Edit| match pick {
             // A feat no check names breaks later just what the slot left empty would.
             Pick::Feat { feat, .. } if !named.contains(feat) => left_empty
                 .get_or_init(|| recheck.later_walked(&Edit::Clear(slot.clone())))
                 .clone(),
-            _ => recheck.later(&Edit::Pick {
-                slot: slot.clone(),
-                pick: pick.clone(),
-            }),
+            _ => recheck.later(edit),
         };
         Some(
             candidates
                 .into_iter()
-                .map(|pick| SlotOption {
-                    status: check_pick_with(&self.catalog, &state, &kind, &lists, &pick)
-                        .map_err(|issue| self.reason_for(issue, &state))
-                        .and_then(|()| later(&pick)),
-                    pick,
+                .map(|pick| {
+                    let edit = Edit::Pick {
+                        slot: slot.clone(),
+                        pick: pick.clone(),
+                    };
+                    SlotOption {
+                        status: check_pick_with(&self.catalog, &state, &kind, &lists, &pick)
+                            .map_err(|issue| self.reason_for(issue, &state))
+                            .and_then(|()| later(&pick, &edit)),
+                        pick,
+                        edit,
+                    }
                 })
                 .collect(),
         )
@@ -236,25 +241,27 @@ impl Engine {
             };
             for archetype in archetypes {
                 let archetype = archetype.map(|a| a.key.clone());
+                // A class first taken here gets this archetype and keeps any advancement it has.
+                let choice = taken.is_none().then(|| ClassChoice {
+                    archetype: archetype.clone(),
+                    advances: held_advances(build, &class.key),
+                });
+                let edit = Edit::Class {
+                    level,
+                    class: class.key.clone(),
+                    choice,
+                };
                 let mut status = self.class_status(&state, class, archetype.as_ref(), taken);
                 if status.is_ok()
                     && let Some(recheck) = &recheck
                 {
-                    // A class first taken here gets this archetype and keeps any advancement it has.
-                    let choice = taken.is_none().then(|| ClassChoice {
-                        archetype: archetype.clone(),
-                        advances: held_advances(build, &class.key),
-                    });
-                    status = recheck.later(&Edit::Class {
-                        level,
-                        class: class.key.clone(),
-                        choice,
-                    });
+                    status = recheck.later(&edit);
                 }
                 options.push(ClassOption {
                     class: class.key.clone(),
                     archetype,
                     status,
+                    edit,
                 });
             }
         }
@@ -295,13 +302,13 @@ impl Engine {
     /// The advancement choices for a prestige class option taken at a character level: which held classes its
     /// levels advance. Every set of the classes the Build takes before that level (in the order it first takes
     /// them), from one class up to as many as the prestige class may advance, then none; only those the Build
-    /// stays possible with.
+    /// stays possible with, each with the edit that takes the class with it.
     pub fn advances_options(
         &self,
         build: &Build,
         level: u8,
         option: &ClassOption,
-    ) -> Vec<BTreeSet<ClassKey>> {
+    ) -> Vec<AdvancesOption> {
         let most = self
             .catalog
             .class(&option.class)
@@ -325,9 +332,13 @@ impl Engine {
                 let mut after = build.clone();
                 self.apply(
                     &mut after,
-                    &self.class_edit(build, level, option, Some(advances.clone())),
+                    &self.class_edit(build, level, option, advances.clone()),
                 );
                 self.is_possible(&after)
+            })
+            .map(|advances| AdvancesOption {
+                edit: self.class_edit(build, level, option, advances.clone()),
+                advances,
             })
             .collect()
     }
@@ -342,18 +353,18 @@ impl Engine {
         }) && first_taken_at(build, class, level)
     }
 
-    /// The edit for taking a class option at a level: a class first taken here gets the option's archetype and the
-    /// advancement given (or the one the Build has for it); one taken before keeps its choice.
-    pub fn class_edit(
+    /// The edit for taking a class option at a level with an advancement: a class first taken here gets the
+    /// option's archetype and the advancement; one taken before keeps its choice.
+    fn class_edit(
         &self,
         build: &Build,
         level: u8,
         option: &ClassOption,
-        advances: Option<BTreeSet<ClassKey>>,
+        advances: BTreeSet<ClassKey>,
     ) -> Edit {
         let choice = first_taken_at(build, &option.class, level).then(|| ClassChoice {
             archetype: option.archetype.clone(),
-            advances: advances.unwrap_or_else(|| held_advances(build, &option.class)),
+            advances,
         });
         Edit::Class {
             level,
@@ -371,9 +382,13 @@ impl Engine {
             .mythic_paths
             .iter()
             .filter(|path| path.switch.is_none())
-            .map(|path| PathOption {
-                path: path.key.clone(),
-                status: recheck.later(&Edit::MythicPath(Some(path.key.clone()))),
+            .map(|path| {
+                let edit = Edit::MythicPath(Some(path.key.clone()));
+                PathOption {
+                    path: path.key.clone(),
+                    status: recheck.later(&edit),
+                    edit,
+                }
             })
             .collect()
     }
@@ -387,9 +402,13 @@ impl Engine {
             .mythic_paths
             .iter()
             .filter(|path| self.first_ascension_option(&path.key).is_some())
-            .map(|path| PathOption {
-                path: path.key.clone(),
-                status: recheck.later(&Edit::FirstAscension(Some(path.key.clone()))),
+            .map(|path| {
+                let edit = Edit::FirstAscension(Some(path.key.clone()));
+                PathOption {
+                    path: path.key.clone(),
+                    status: recheck.later(&edit),
+                    edit,
+                }
             })
             .collect()
     }
@@ -404,15 +423,19 @@ impl Engine {
             .mythic_paths
             .iter()
             .filter_map(|path| Some((path, path.switch.as_ref()?)))
-            .map(|(path, switch)| PathOption {
-                path: path.key.clone(),
-                status: if switch.open_from(build.mythic_path.as_ref()) {
-                    recheck.later(&Edit::PathSwitch(Some(path.key.clone())))
-                } else {
-                    Err(Issue::NotFromPath {
-                        from: switch.from.clone(),
-                    })
-                },
+            .map(|(path, switch)| {
+                let edit = Edit::PathSwitch(Some(path.key.clone()));
+                PathOption {
+                    path: path.key.clone(),
+                    status: if switch.open_from(build.mythic_path.as_ref()) {
+                        recheck.later(&edit)
+                    } else {
+                        Err(Issue::NotFromPath {
+                            from: switch.from.clone(),
+                        })
+                    },
+                    edit,
+                }
             })
             .collect()
     }

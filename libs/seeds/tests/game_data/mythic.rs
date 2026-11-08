@@ -267,10 +267,19 @@ fn extra_feat_at_mr_2_gives_a_feat_slot_at_level_7_offering_what_the_general_slo
     );
     assert_eq!(sheet.ranks[1].character_level, 7);
     assert_eq!(engine.slot_label(&sheet.ranks[1].slots[1]), "Feat");
-    // Every feat, each open or locked as in level 7's general slot.
+    // Every feat, each open or locked as in level 7's general slot (each with its own slot's edit).
+    let without_edits = |slot: &SlotId| -> Vec<_> {
+        slot_options(&build, slot)
+            .into_iter()
+            .map(|option| (option.pick, option.status))
+            .collect()
+    };
     let extra = slot_options(&build, &mythic_extra(2));
     assert_eq!(extra.len(), slot_options(&build, &general_slot(7)).len());
-    assert_eq!(extra, slot_options(&build, &general_slot(7)));
+    assert_eq!(
+        without_edits(&mythic_extra(2)),
+        without_edits(&general_slot(7))
+    );
     assert!(extra.iter().any(|option| option.status.is_ok()));
 
     // A pick there is held from level 7; its prerequisites are checked.

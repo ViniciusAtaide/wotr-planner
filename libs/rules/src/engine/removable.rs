@@ -7,7 +7,9 @@ use std::cell::RefCell;
 use std::collections::BTreeSet;
 
 use super::walk::Walker;
-use super::{Engine, FIRST_ASCENSION_RANK, PATH_CHOICE_RANK, PATH_SWITCH_RANK, Withdrawal};
+use super::{
+    Engine, FIRST_ASCENSION_RANK, PATH_CHOICE_RANK, PATH_SWITCH_RANK, SkillPoints, Withdrawal,
+};
 use crate::build::{AbilityScores, Build, BuildStart, ClassChoice, Edit};
 use crate::choice::{Choice, Issue};
 use crate::keys::ClassKey;
@@ -15,23 +17,11 @@ use crate::keys::ClassKey;
 impl Engine {
     /// Whether an edit keeps a possible Build possible: it breaks no other choice (the choices it sets are the
     /// pickers' business). The edit is applied as [`apply`](Self::apply) does it. The sheet offers only edits this
-    /// allows; [`options`](Self::options) and the class and path pickers fold it into each option's status.
+    /// allows; every picker and stepper folds it into each option's status.
     ///
     /// Costs one walk of the Build up to the first level the edit changes, then one from there.
     pub fn allows(&self, build: &Build, edit: &Edit) -> bool {
         Recheck::new(self, build).keeps(edit, edit.choices())
-    }
-
-    /// [`allows`](Self::allows) for each edit, in order, sharing the walk of the Build: what a panel of controls
-    /// asks at once (the point buy's steps, a level's skill ranks).
-    ///
-    /// Costs one walk of the Build up to the first level an edit changes, then for each edit one from there.
-    pub fn allows_many(&self, build: &Build, edits: &[Edit]) -> Vec<bool> {
-        let recheck = Recheck::new(self, build);
-        edits
-            .iter()
-            .map(|edit| recheck.keeps(edit, edit.choices()))
-            .collect()
     }
 
     /// The choices in a possible Build the sheet may remove or change now: each that no later choice depends on.
@@ -303,9 +293,22 @@ impl<'a> Recheck<'a> {
 
     /// The walk just before character level `index + 1`; `None` past the one after the last level.
     fn paused(&self, index: usize) -> Option<Walker<'a>> {
+        self.walk_to(index)
+            .then(|| self.paused.borrow().get(index).cloned())
+            .flatten()
+    }
+
+    /// The skill points of a character level the Build has, off the walk paused after it.
+    pub(super) fn skill_points(&self, level: u8) -> Option<SkillPoints> {
+        let index = usize::from(level);
+        (level > 0 && self.walk_to(index)).then(|| self.paused.borrow()[index].skill_points)
+    }
+
+    /// Walks as far as just before character level `index + 1`; `false` past the one after the last level.
+    fn walk_to(&self, index: usize) -> bool {
         let build = self.build;
         if index > build.levels.len() {
-            return None;
+            return false;
         }
         let mut paused = self.paused.borrow_mut();
         if paused.is_empty() {
@@ -322,7 +325,7 @@ impl<'a> Recheck<'a> {
             );
             paused.push(walker);
         }
-        paused.get(index).cloned()
+        true
     }
 
     /// Whether `edit` breaks no choice other than the `allowed` ones (an edit's own: [`Edit::choices`]). An edit

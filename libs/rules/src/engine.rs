@@ -21,11 +21,13 @@ use crate::game_data::{
 };
 use crate::keys::{
     ArchetypeKey, ClassKey, FeatKey, FeatListKey, FeatureKey, FeatureSelectionKey, MythicPathKey,
+    RaceKey, SubraceKey,
 };
 use crate::parameter::{Parameter, ParameterKind};
 use crate::state::CharacterState;
 
 mod catalog;
+mod controls;
 mod labels;
 mod pickers;
 mod removable;
@@ -78,26 +80,20 @@ impl Engine {
         &self.catalog.data().deities
     }
 
-    /// Whether a Build start's faith allows its alignment: what the deity picker and the alignment wheel lock a
-    /// misfit with, since [`allows`](Self::allows) leaves an edit's own choices to its picker. The alignment comes
-    /// after the faith, so an alignment with no faith yet is [`Issue::NeedsFaith`]; one the deity doesn't allow is
-    /// [`Issue::DeityAlignment`]. A start without an alignment yet fits, and so does atheism or one naming a deity
-    /// the data lacks (a stale link, which the sheet never holds).
-    pub fn faith_fits(&self, start: &BuildStart) -> Result<(), Issue> {
+    /// Whether a Build start's faith and alignment don't fit: the one rule both the walk and the start pickers ask.
+    /// The alignment comes after the faith, so an alignment with no faith yet fails [`Choice::Alignment`] with
+    /// [`Issue::NeedsFaith`]; one the deity doesn't allow fails [`Choice::Deity`] with [`Issue::DeityAlignment`].
+    /// `None` for a start without an alignment yet, for atheism, and for a deity the data lacks (which the walk
+    /// fails on its own: a stale link, which the sheet never holds).
+    fn faith_misfit(&self, start: &BuildStart) -> Option<(Choice, Issue)> {
         if start.deity.is_none() && start.alignment.is_some() {
-            return Err(Issue::NeedsFaith);
+            return Some((Choice::Alignment, Issue::NeedsFaith));
         }
-        let (Some(key), Some(alignment)) =
-            (start.deity.as_ref().and_then(Faith::deity), start.alignment)
-        else {
-            return Ok(());
-        };
-        match self.catalog.deity(key) {
-            Some(deity) if !deity.alignments.contains(&alignment) => {
-                Err(Issue::DeityAlignment { deity: key.clone() })
-            }
-            _ => Ok(()),
-        }
+        let key = start.deity.as_ref().and_then(Faith::deity)?;
+        let alignment = start.alignment?;
+        let deity = self.catalog.deity(key)?;
+        (!deity.alignments.contains(&alignment))
+            .then(|| (Choice::Deity, Issue::DeityAlignment { deity: key.clone() }))
     }
 
     /// The note the sheet shows for the favoured weapons a character is proficient with ("Proficient with Longbow
@@ -379,6 +375,8 @@ pub struct SlotOption {
     /// [`Issue::BreaksLater`]). An unmet "or" names only the alternatives the character's classes give, when any
     /// does.
     pub status: Result<(), Issue>,
+    /// The edit that picks it: [`Edit::Pick`] in the slot.
+    pub edit: Edit,
 }
 
 /// A choice the Build holds and its Withdrawal: the edit that takes it back ([`Engine::held_choices`]).
@@ -407,6 +405,18 @@ pub struct ClassOption {
     /// prerequisites against the character before the level, the class table's end, or, at a level the Build
     /// has, [`Issue::BreaksLater`].
     pub status: Result<(), Issue>,
+    /// The edit that takes it: a class first taken at that level gets the option's archetype and keeps any
+    /// advancement the Build has for it (a prestige class that asks which classes it advances offers its own edits:
+    /// [`Engine::advances_options`]); one taken before keeps its choice.
+    pub edit: Edit,
+}
+
+/// One answer to which classes a prestige class's levels advance ([`Engine::advances_options`]), with the edit that
+/// takes the class with it.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct AdvancesOption {
+    pub advances: BTreeSet<ClassKey>,
+    pub edit: Edit,
 }
 
 /// One option of the path picker (MR 3) or the Path switch picker (MR 8).
@@ -416,6 +426,46 @@ pub struct PathOption {
     /// `Ok` when it can be taken; a switch open only from other paths than the Build's is
     /// [`Issue::NotFromPath`], and one that would break a later choice [`Issue::BreaksLater`].
     pub status: Result<(), Issue>,
+    /// The edit that takes it: [`Edit::MythicPath`], [`Edit::PathSwitch`] or, for the first ascension's picker,
+    /// [`Edit::FirstAscension`].
+    pub edit: Edit,
+}
+
+/// One option of a Build start picker (race, faith, alignment, background, the racial ability) or of a level's
+/// ability increase: what it chooses, whether it can be chosen now, and the edit that chooses it.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ChoiceOption<T> {
+    pub value: T,
+    /// `Ok` when it can be chosen; otherwise why not: a faith and an alignment that don't fit
+    /// ([`Issue::NeedsFaith`], [`Issue::DeityAlignment`]), or [`Issue::BreaksLater`]. What the Build holds now is
+    /// always `Ok`.
+    pub status: Result<(), Issue>,
+    /// The edit that chooses it, side effects included (a race without a racial choice also clears the racial
+    /// ability).
+    pub edit: Edit,
+}
+
+/// What the race picker chooses: a race, or one of its subraces.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct RaceChoice {
+    pub race: RaceKey,
+    pub subrace: Option<SubraceKey>,
+}
+
+/// One step of a stepper: whether it can be taken now (`Ok`, or [`Issue::BreaksLater`]), and its edit.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Step {
+    pub status: Result<(), Issue>,
+    pub edit: Edit,
+}
+
+/// A stepper of one point-buy score or one skill's ranks at a level: a step down and a step up, each `None` past the
+/// end of its range.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Stepper<T> {
+    pub value: T,
+    pub down: Option<Step>,
+    pub up: Option<Step>,
 }
 
 impl Sheet {

@@ -10,27 +10,31 @@
 //! - `sheet`: the sheet ([`Engine::evaluate`]), its Debug text hashed (without a state's empty faith);
 //! - `removable`: [`Engine::removable`], listed;
 //! - `slots`: per slot of the sheet, by its id's Debug text: `options` (the picker's options with their statuses,
-//!   hashed), `open` (how many are open), `total`, `kind`, and the lock-reason texts: `reasons` (those of options
+//!   hashed, without their edits: [`Hashed`]), `open` (how many are open), `total`, `kind`, and the lock-reason texts: `reasons` (those of options
 //!   whose issue holds no `Not`, hashed with their keys) and `negated` (the others, listed in full: ticket 65 read
 //!   each "Needs not" text, and the split stays so older records still compare);
-//! - `classes`: the class picker at each level and one past the end, hashed; `class_reasons`: its lock-reason texts,
-//!   hashed;
-//! - `paths`, `switches`: the path and switch pickers (Debug); `path_reasons`, `switch_reasons`: their lock-reason
-//!   texts, hashed;
+//! - `classes`: the class picker at each level and one past the end, hashed (without the edits); `class_reasons`: its
+//!   lock-reason texts, hashed;
+//! - `paths`, `switches`: the path and switch pickers (Debug, without the edits); `path_reasons`, `switch_reasons`:
+//!   their lock-reason texts, hashed;
 //! - `allows`: [`Engine::allows`] for each edit of [`battery`], a `0` or `1` each.
 //!
 //! Recording also checks, panicking on a difference: [`Engine::is_removable`] and [`Engine::withdrawal`] against
 //! `removable` for every choice the Build holds ([`Engine::held_choices`]) and some it doesn't,
-//! [`Engine::removable_classes`] against `removable`'s class levels, [`Engine::allows_many`] against `allows`, and,
-//! on the Builds [`SHORTCUT_CHECKED`] names, ticket 48's picker shortcut against full walks.
+//! [`Engine::removable_classes`] against `removable`'s class levels, each Build start and level option and step's
+//! status against `allows` of its edit (ticket 96: the pickers share one walk where `allows` walks each), and, on
+//! the Builds [`SHORTCUT_CHECKED`] names, ticket 48's picker shortcut against full walks.
+//!
+//! Ticket 96 gave every picker option its edit. The fingerprint hashes the options as they were before ([`Hashed`]:
+//! the same Debug text), so records from before it still compare.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Mutex, PoisonError};
 
 use rules::{
-    AbilityScores, Alignment, Build, BuildStart, Choice, Edit, Engine, Faith, GameData, Issue,
-    Pick, SlotKind, SlotOption,
+    ArchetypeKey, Build, Choice, ChoiceOption, ClassKey, Edit, Engine, Issue, MythicPathKey, Pick,
+    SlotKind, SlotOption, Stepper,
 };
 use serde_json::{Value, json};
 
@@ -47,6 +51,75 @@ pub fn fnv(text: &str) -> u64 {
 /// A value's Debug text, hashed.
 fn hashed(value: &impl std::fmt::Debug) -> String {
     format!("{:016x}", fnv(&format!("{value:?}")))
+}
+
+/// The picker options as the fingerprint hashes them: what they were before ticket 96 gave each its edit, with the
+/// same Debug text (each mirror is named and laid out as the option it stands for), so older records still compare.
+mod hashed {
+    use super::{ArchetypeKey, ClassKey, Issue, MythicPathKey, Pick};
+
+    #[derive(Debug)]
+    pub struct SlotOption<'a> {
+        pub pick: &'a Pick,
+        pub status: &'a Result<(), Issue>,
+    }
+
+    #[derive(Debug)]
+    pub struct ClassOption<'a> {
+        pub class: &'a ClassKey,
+        pub archetype: &'a Option<ArchetypeKey>,
+        pub status: &'a Result<(), Issue>,
+    }
+
+    #[derive(Debug)]
+    pub struct PathOption<'a> {
+        pub path: &'a MythicPathKey,
+        pub status: &'a Result<(), Issue>,
+    }
+}
+
+/// The options of a slot, class or path picker without their edits (see [`hashed`]).
+pub trait Hashed {
+    type Mirror<'a>: std::fmt::Debug
+    where
+        Self: 'a;
+    fn hashed(&self) -> Self::Mirror<'_>;
+}
+
+impl Hashed for SlotOption {
+    type Mirror<'a> = hashed::SlotOption<'a>;
+    fn hashed(&self) -> hashed::SlotOption<'_> {
+        hashed::SlotOption {
+            pick: &self.pick,
+            status: &self.status,
+        }
+    }
+}
+
+impl Hashed for rules::ClassOption {
+    type Mirror<'a> = hashed::ClassOption<'a>;
+    fn hashed(&self) -> hashed::ClassOption<'_> {
+        hashed::ClassOption {
+            class: &self.class,
+            archetype: &self.archetype,
+            status: &self.status,
+        }
+    }
+}
+
+impl Hashed for rules::PathOption {
+    type Mirror<'a> = hashed::PathOption<'a>;
+    fn hashed(&self) -> hashed::PathOption<'_> {
+        hashed::PathOption {
+            path: &self.path,
+            status: &self.status,
+        }
+    }
+}
+
+/// A picker's options (if any) without their edits, for hashing.
+fn mirrors<T: Hashed>(options: Option<&Vec<T>>) -> Option<Vec<T::Mirror<'_>>> {
+    options.map(|options| options.iter().map(Hashed::hashed).collect())
 }
 
 /// The name prefixes of the Builds whose feat pickers are checked against full walks (ticket 48's shortcut), each
@@ -76,7 +149,7 @@ pub fn held_counts() -> BTreeMap<String, usize> {
 }
 
 /// The Build's fingerprint (see the module docs), after its consistency checks.
-pub fn fingerprint(engine: &Engine, data: &GameData, name: &str, build: &Build) -> Value {
+pub fn fingerprint(engine: &Engine, name: &str, build: &Build) -> Value {
     let sheet = engine.evaluate(build);
     let removable = engine.removable(build);
     let mut slots = BTreeMap::new();
@@ -111,7 +184,7 @@ pub fn fingerprint(engine: &Engine, data: &GameData, name: &str, build: &Build) 
         slots.insert(
             format!("{:?}", slot.id),
             json!({
-                "options": hashed(&options),
+                "options": hashed(&mirrors(options.as_ref())),
                 "open": open,
                 "total": total,
                 "kind": format!("{:?}", slot.kind),
@@ -122,7 +195,7 @@ pub fn fingerprint(engine: &Engine, data: &GameData, name: &str, build: &Build) 
     }
     let past_end = u8::try_from(build.levels.len() + 1).expect("at most 254 levels");
     let classes: Vec<String> = (1..=past_end)
-        .map(|level| hashed(&engine.class_options(build, level)))
+        .map(|level| hashed(&mirrors(engine.class_options(build, level).as_ref())))
         .collect();
     let reason = |status: &Result<(), Issue>| {
         status
@@ -148,13 +221,14 @@ pub fn fingerprint(engine: &Engine, data: &GameData, name: &str, build: &Build) 
         .iter()
         .map(|option| reason(&option.status))
         .collect();
-    let edits = battery(engine, data, build);
+    let controls = controls(engine, build);
+    let edits = battery(engine, build);
     let allows: Vec<bool> = edits
         .iter()
         .map(|edit| engine.allows(build, edit))
         .collect();
 
-    consistency_checks(engine, build, &removable, &edits, &allows);
+    consistency_checks(engine, build, &removable, &controls, &allows);
     let unfull = name.strip_prefix("full ").unwrap_or(name);
     if SHORTCUT_CHECKED
         .iter()
@@ -174,9 +248,9 @@ pub fn fingerprint(engine: &Engine, data: &GameData, name: &str, build: &Build) 
         "slots": slots,
         "classes": classes,
         "class_reasons": hashed(&class_reasons),
-        "paths": format!("{paths:?}"),
+        "paths": format!("{:?}", mirrors(Some(&paths)).unwrap_or_default()),
         "path_reasons": hashed(&path_reasons),
-        "switches": format!("{switches:?}"),
+        "switches": format!("{:?}", mirrors(Some(&switches)).unwrap_or_default()),
         "switch_reasons": hashed(&switch_reasons),
         "allows": allows.iter().map(|allowed| if *allowed { '1' } else { '0' }).collect::<String>(),
     })
@@ -201,93 +275,54 @@ fn who(build: &Build) -> Vec<String> {
         .collect()
 }
 
-/// The edits whose `allows` the fingerprint holds: every Build start the start pickers and point buy offer, each
-/// level's ability increases and skill steps, each first ascension, each held choice's withdrawal
-/// ([`Engine::held_choices`]), and the edits past the end.
-pub fn battery(engine: &Engine, data: &GameData, build: &Build) -> Vec<Edit> {
-    let current = &build.start;
-    let mut starts: Vec<BuildStart> = Vec::new();
-    for race in &data.races {
-        let subraces =
-            std::iter::once(None).chain(race.subraces.iter().map(|s| Some(s.key.clone())));
-        for subrace in subraces {
-            starts.push(BuildStart {
-                race: Some(race.key.clone()),
-                subrace,
-                ..current.clone()
-            });
-        }
+/// Every option and step of the Build start's and the levels' pickers and steppers, in order, each with its status
+/// and edit: race and subrace, faith, alignment, background, the racial ability, the point buy's steps, then each
+/// level's ability increase and skill steps (ticket 96: the engine's, so a new start choice is covered here without
+/// editing the proof).
+pub fn controls(engine: &Engine, build: &Build) -> Vec<(Result<(), Issue>, Edit)> {
+    fn options<T>(
+        options: Vec<ChoiceOption<T>>,
+    ) -> impl Iterator<Item = (Result<(), Issue>, Edit)> {
+        options
+            .into_iter()
+            .map(|option| (option.status, option.edit))
     }
-    for alignment in Alignment::ALL {
-        starts.push(BuildStart {
-            alignment: Some(alignment),
-            ..current.clone()
-        });
+    fn steps<T>(steppers: Vec<Stepper<T>>) -> impl Iterator<Item = (Result<(), Issue>, Edit)> {
+        steppers
+            .into_iter()
+            .flat_map(|stepper| [stepper.down, stepper.up])
+            .flatten()
+            .map(|step| (step.status, step.edit))
     }
-    for background in &data.backgrounds {
-        starts.push(BuildStart {
-            background: Some(background.key.clone()),
-            ..current.clone()
-        });
-    }
-    let faiths = std::iter::once(Faith::Atheism).chain(
-        data.deities
-            .iter()
-            .map(|deity| Faith::Deity(deity.key.clone())),
-    );
-    for faith in faiths {
-        starts.push(BuildStart {
-            deity: Some(faith),
-            ..current.clone()
-        });
-    }
-    for ability in AbilityScores::ABILITIES {
-        for delta in [-1i8, 1] {
-            let next = current
-                .ability_scores
-                .get(ability)
-                .checked_add_signed(delta);
-            if let Some(scores) = next.and_then(|next| current.ability_scores.with(ability, next)) {
-                starts.push(BuildStart {
-                    ability_scores: scores,
-                    ..current.clone()
-                });
-            }
-        }
-        starts.push(BuildStart {
-            racial_ability: Some(ability),
-            ..current.clone()
-        });
-    }
-    let mut edits: Vec<Edit> = starts.into_iter().map(Edit::Start).collect();
-    for (index, level_up) in build.levels.iter().enumerate() {
+    let mut controls: Vec<(Result<(), Issue>, Edit)> = Vec::new();
+    controls.extend(options(engine.race_options(build)));
+    controls.extend(options(engine.faith_options(build)));
+    controls.extend(options(engine.alignment_options(build)));
+    controls.extend(options(engine.background_options(build)));
+    controls.extend(options(engine.racial_ability_options(build)));
+    controls.extend(steps(engine.point_buy_steps(build)));
+    for index in 0..build.levels.len() {
         let level = u8::try_from(index + 1).expect("at most 255 levels");
-        edits.push(Edit::AbilityIncrease {
-            level,
-            ability: None,
-        });
-        for ability in AbilityScores::ABILITIES {
-            edits.push(Edit::AbilityIncrease {
-                level,
-                ability: Some(ability),
-            });
-        }
-        for skill in &data.skills {
-            let here = level_up.skill_ranks.get(&skill.key).copied().unwrap_or(0);
-            for ranks in [here.saturating_sub(1), here + 1] {
-                edits.push(Edit::SkillRanks {
-                    level,
-                    skill: skill.key.clone(),
-                    ranks,
-                });
-            }
-        }
+        let increases = engine.ability_increase_options(build, level);
+        controls.extend(options(increases.unwrap_or_default()));
+        controls.extend(steps(engine.skill_steps(build, level).unwrap_or_default()));
     }
+    controls
+}
+
+/// The edits whose `allows` the fingerprint holds: every option and step of the start and level pickers
+/// ([`controls`]), each first ascension, each held choice's withdrawal ([`Engine::held_choices`]), and the edits
+/// past the end.
+pub fn battery(engine: &Engine, build: &Build) -> Vec<Edit> {
+    let mut edits: Vec<Edit> = controls(engine, build)
+        .into_iter()
+        .map(|(_, edit)| edit)
+        .collect();
     edits.extend(
         engine
             .first_ascension_options(build)
             .into_iter()
-            .map(|option| Edit::FirstAscension(Some(option.path))),
+            .map(|option| option.edit),
     );
     edits.extend(
         engine
@@ -333,12 +368,14 @@ fn unheld_choices(build: &Build) -> Vec<Choice> {
 }
 
 /// The shortcuts against the full answers they stand for: `is_removable` against `removable`, `removable_classes`
-/// against `removable`'s class levels, `allows_many` against `allows`. Panics on a difference.
+/// against `removable`'s class levels, and each start and level option and step's status against `allows` of its
+/// edit (the battery's first edits are theirs): open exactly when allowed, unless a faith and alignment that don't
+/// fit lock it. Panics on a difference.
 fn consistency_checks(
     engine: &Engine,
     build: &Build,
     removable: &BTreeSet<Choice>,
-    edits: &[Edit],
+    controls: &[(Result<(), Issue>, Edit)],
     allows: &[bool],
 ) {
     let held = engine.held_choices(build);
@@ -384,7 +421,13 @@ fn consistency_checks(
         })
         .collect();
     assert_eq!(engine.removable_classes(build), levels);
-    assert_eq!(engine.allows_many(build, edits), allows);
+    for ((status, edit), allowed) in controls.iter().zip(allows) {
+        match status {
+            Ok(()) | Err(Issue::BreaksLater) => assert_eq!(status.is_ok(), *allowed, "{edit:?}"),
+            Err(Issue::NeedsFaith | Issue::DeityAlignment { .. }) => {}
+            Err(issue) => panic!("{issue:?} for {edit:?}"),
+        }
+    }
 }
 
 /// Ticket 48's picker shortcut, checked: every feat a feat slot accepts is open, not `BreaksLater`, exactly when

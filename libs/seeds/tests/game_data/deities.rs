@@ -279,19 +279,24 @@ fn the_deity_and_the_alignment_must_fit() {
     let engine = engine();
     let neutral = follower("fighter", None, 1, deity("erastil"), Alignment::TrueNeutral);
     assert!(!engine.is_possible(&neutral));
-    let misfit = engine.faith_fits(&neutral.start).unwrap_err();
+    // The alignment picker of a fighter of Erastil locks the alignments he doesn't allow, with his.
+    let good = follower("fighter", None, 1, deity("erastil"), Alignment::NeutralGood);
+    let wheel = engine.alignment_options(&good);
+    let status = |alignment: Alignment| {
+        wheel
+            .iter()
+            .find(|option| option.value == alignment)
+            .unwrap()
+            .status
+            .clone()
+    };
+    let misfit = status(Alignment::TrueNeutral).unwrap_err();
     assert_eq!(
         engine.issue_text(&misfit).unwrap(),
         "Erastil allows Lawful Good, Neutral Good or Lawful Neutral"
     );
-    let chaotic = follower(
-        "fighter",
-        None,
-        1,
-        deity("erastil"),
-        Alignment::ChaoticNeutral,
-    );
-    assert!(engine.faith_fits(&chaotic.start).is_err());
+    assert!(status(Alignment::ChaoticNeutral).is_err());
+    assert_eq!(status(Alignment::LawfulGood), Ok(()));
     // Any character may follow a deity: a fighter of Erastil at an alignment he allows.
     assert!(engine.is_possible(&follower(
         "fighter",

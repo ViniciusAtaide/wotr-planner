@@ -87,9 +87,9 @@ fn engine_and_builds(options: &Options) -> Result<(Engine, GameData, Vec<Named>)
 
 fn record(options: &Options) -> Result<ExitCode, String> {
     let started = Instant::now();
-    let (engine, data, builds) = engine_and_builds(options)?;
+    let (engine, _, builds) = engine_and_builds(options)?;
     eprintln!("{} Builds", builds.len());
-    for line in proof::record(&engine, &data, &builds, options.threads) {
+    for line in proof::record(&engine, &builds, options.threads) {
         println!("{line}");
     }
     let (checked, feat_options) = fingerprint::shortcut_counts();

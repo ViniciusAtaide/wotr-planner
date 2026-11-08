@@ -9,9 +9,8 @@ use std::time::Duration;
 
 use leptos::prelude::*;
 use rules::{
-    Ability, AbilityScores, Alignment, Build, BuildStart, Choice, ClassOption, Edit, Engine,
-    FIRST_ASCENSION_RANK, Faith, Issue, PATH_CHOICE_RANK, PATH_SWITCH_RANK, Pick, SlotId,
-    SlotOption,
+    Alignment, Build, Choice, ClassOption, Edit, Engine, FIRST_ASCENSION_RANK, Faith, Issue,
+    PATH_CHOICE_RANK, PATH_SWITCH_RANK, SlotId, SlotOption,
 };
 
 use crate::planner::{Target, use_planner};
@@ -409,18 +408,14 @@ fn SlotPicker(id: SlotId) -> impl IntoView {
         });
     }
     let open_group = RwSignal::new(None::<usize>);
-    let slot = StoredValue::new(slot);
+    let place = slot_place(&slot);
     let current = StoredValue::new(current);
-    let pick = move |pick: Pick| {
+    let pick = move |option: &SlotOption| {
         planner.close();
-        if current.with_value(|current| current.as_ref() != Some(&pick)) {
-            planner.edit(Edit::Pick {
-                slot: slot.get_value(),
-                pick,
-            });
+        if current.with_value(|current| current.as_ref() != Some(&option.pick)) {
+            planner.edit(option.edit.clone());
         }
     };
-    let place = slot.with_value(slot_place);
     let engine = StoredValue::new(engine);
 
     let list = move || {
@@ -473,7 +468,7 @@ fn SlotPicker(id: SlotId) -> impl IntoView {
                             if group.values {
                                 open_group.set(Some(index));
                             } else {
-                                pick(group.options[0].pick.clone());
+                                pick(&group.options[0]);
                             }
                         }
                     />
@@ -499,14 +494,10 @@ fn SlotPicker(id: SlotId) -> impl IntoView {
                         )
                     })
                     .collect();
-                let picks: Vec<Pick> = group
-                    .options
-                    .iter()
-                    .map(|option| option.pick.clone())
-                    .collect();
+                let options = group.options.clone();
                 view! {
                     <p class="picker-step">{group.name.clone()}</p>
-                    <ItemList items on_pick=move |index: usize| pick(picks[index].clone())/>
+                    <ItemList items on_pick=move |index: usize| pick(&options[index])/>
                 }
                 .into_any()
             }
@@ -600,8 +591,7 @@ fn ClassPicker(level: u8) -> impl IntoView {
         }
         planner.close();
         if !holds_class_option(&build, level, &option) {
-            planner
-                .edit(engine.with_value(|engine| engine.class_edit(&build, level, &option, None)));
+            planner.edit(option.edit);
         }
     };
 
@@ -681,7 +671,8 @@ fn Advances(level: u8, option: ClassOption) -> impl IntoView {
         .map(|choice| choice.advances.clone());
     let items = possible
         .iter()
-        .map(|advances| {
+        .map(|possible| {
+            let advances = &possible.advances;
             let names: Vec<&str> = advances
                 .iter()
                 .map(|class| engine.class_name(class))
@@ -708,10 +699,8 @@ fn Advances(level: u8, option: ClassOption) -> impl IntoView {
         <ItemList
             items
             on_pick=move |index: usize| {
-                let advances = possible[index].clone();
                 planner.close();
-                let build = planner.build.get_untracked();
-                planner.edit(engine.class_edit(&build, level, &option, Some(advances)));
+                planner.edit(possible[index].edit.clone());
             }
         />
     }
@@ -757,7 +746,6 @@ fn FirstAscensionPicker() -> impl IntoView {
             }
         })
         .collect();
-    let paths: Vec<_> = options.into_iter().map(|option| option.path).collect();
     view! {
         <Head
             title="First ascension"
@@ -767,10 +755,10 @@ fn FirstAscensionPicker() -> impl IntoView {
         <ItemList
             items
             on_pick=move |index: usize| {
-                let path = Some(paths[index].clone());
+                let option = &options[index];
                 planner.close();
-                if path != chosen {
-                    planner.edit(Edit::FirstAscension(path));
+                if chosen.as_ref() != Some(&option.path) {
+                    planner.edit(option.edit.clone());
                 }
             }
         />
@@ -815,81 +803,48 @@ fn PathPicker(switch: bool) -> impl IntoView {
             Choice::MythicPath,
         )
     };
-    let paths: Vec<_> = options.into_iter().map(|option| option.path).collect();
     view! {
         <Head title place remove=Some(remove)/>
         <ItemList
             items
             on_pick=move |index: usize| {
-                let path = Some(paths[index].clone());
+                let option = &options[index];
                 planner.close();
-                if path != current {
-                    planner
-                        .edit(if switch { Edit::PathSwitch(path) } else { Edit::MythicPath(path) });
+                if current.as_ref() != Some(&option.path) {
+                    planner.edit(option.edit.clone());
                 }
             }
         />
     }
 }
 
-/// A Build start picker: each option is a whole new Build start, locked with its reason when its deity doesn't
-/// allow its alignment (`Engine::faith_fits`), and with none when `Engine::allows` refuses it.
-fn start_items(
-    planner: crate::planner::Planner,
-    starts: &[(Item, BuildStart)],
-    current: &BuildStart,
-) -> Vec<Item> {
-    let engine = planner.engine();
-    let edits: Vec<Edit> = starts
-        .iter()
-        .map(|(_, start)| Edit::Start(start.clone()))
-        .collect();
-    starts
-        .iter()
-        .zip(planner.allows_many(&edits))
-        .map(|((item, start), allows)| {
-            let misfit = engine.faith_fits(start).err();
-            Item {
-                locked: start != current && (misfit.is_some() || !allows),
-                reason: misfit.and_then(|issue| engine.issue_text(&issue)),
-                ..item.clone()
-            }
-        })
-        .collect()
-}
-
-#[component]
-fn StartPicker(
+/// A Build start picker's list: the engine's options as items, each with the edit that takes it, filled after the
+/// first paint as the slot picker's is. A locked option shows its reason (a faith and alignment that don't fit), or
+/// none when it would break a later choice.
+fn start_picker(
     title: &'static str,
-    starts: Vec<(Item, BuildStart)>,
     remove: Choice,
+    options: impl FnOnce(&Engine) -> Vec<(Item, Edit)> + 'static,
 ) -> impl IntoView {
     let planner = use_planner();
-    let current = planner.build.with_untracked(|build| build.start.clone());
-    // The list is filled after the first paint, as the slot picker's is.
-    let computed = RwSignal::new(None::<Vec<Item>>);
-    let starts = StoredValue::new(starts);
-    {
-        let current = current.clone();
-        after_paint(computed, move || {
-            starts.with_value(|starts| {
-                timed("start_options", || start_items(planner, starts, &current))
-            })
-        });
-    }
+    let computed = RwSignal::new(None::<Arc<Vec<(Item, Edit)>>>);
+    after_paint(computed, move || {
+        let engine = planner.engine();
+        Arc::new(timed("start_options", || options(&engine)))
+    });
     let list = move || {
-        let Some(items) = computed.get() else {
+        let Some(options) = computed.get() else {
             return loading();
         };
-        let current = current.clone();
+        let items = options.iter().map(|(item, _)| item.clone()).collect();
         view! {
             <ItemList
                 items
                 on_pick=move |index: usize| {
-                    let start = starts.with_value(|starts| starts[index].1.clone());
+                    let (item, edit) = &options[index];
                     planner.close();
-                    if start != current {
-                        planner.edit(Edit::Start(start));
+                    if !item.current {
+                        planner.edit(edit.clone());
                     }
                 }
             />
@@ -902,71 +857,70 @@ fn StartPicker(
     }
 }
 
+/// An item locked by an option's status, with its reason when it has one.
+fn with_status(engine: &Engine, item: Item, status: &Result<(), Issue>) -> Item {
+    Item {
+        locked: status.is_err(),
+        reason: reason(engine, status),
+        ..item
+    }
+}
+
 #[component]
 fn RacePicker() -> impl IntoView {
     let planner = use_planner();
-    let engine = planner.engine();
-    let current = planner.build.with_untracked(|build| build.start.clone());
-    let mut starts = Vec::new();
-    for race in engine.races() {
-        let entries = std::iter::once((None, race.name.clone(), race.summary.clone())).chain(
-            race.subraces.iter().map(|subrace| {
-                (
-                    Some(subrace.key.clone()),
-                    subrace.name.clone(),
-                    subrace.summary.clone(),
-                )
-            }),
-        );
-        for (subrace, name, summary) in entries {
-            let mut start = BuildStart {
-                race: Some(race.key.clone()),
-                subrace: subrace.clone(),
-                ..current.clone()
-            };
-            if !engine.chooses_racial_ability(&start) {
-                start.racial_ability = None;
-            }
-            let item = Item {
-                detail: summary,
-                current: current.race.as_ref() == Some(&race.key) && current.subrace == subrace,
-                ..Item::new(name)
-            };
-            starts.push((item, start));
-        }
-    }
-    view! { <StartPicker title="Race" starts remove=Choice::Race/> }
+    start_picker("Race", Choice::Race, move |engine| {
+        let current = planner.build.with_untracked(|build| build.start.clone());
+        let options = planner.ask("race_options", |engine, build| engine.race_options(build));
+        options
+            .into_iter()
+            .filter_map(|option| {
+                let race = engine
+                    .races()
+                    .iter()
+                    .find(|race| race.key == option.value.race)?;
+                let (name, summary) = match &option.value.subrace {
+                    Some(key) => {
+                        let subrace = race.subraces.iter().find(|subrace| &subrace.key == key)?;
+                        (subrace.name.clone(), subrace.summary.clone())
+                    }
+                    None => (race.name.clone(), race.summary.clone()),
+                };
+                let item = Item {
+                    detail: summary,
+                    current: current.race.as_ref() == Some(&option.value.race)
+                        && current.subrace == option.value.subrace,
+                    ..Item::new(name)
+                };
+                Some((with_status(engine, item, &option.status), option.edit))
+            })
+            .collect()
+    })
 }
 
 /// The alignment wheel, laid out as the game draws it: Neutral Good at the top, the other eight around it, True
 /// Neutral in the middle; good tinted blue, neutral beige, evil red. Locked alignments are greyed out: all nine until
-/// a faith is chosen, then those the deity doesn't allow (`Engine::faith_fits`).
+/// a faith is chosen, then those the deity doesn't allow, with the one reason the options share under the wheel.
 #[component]
 fn AlignmentPicker() -> impl IntoView {
     let planner = use_planner();
     let current = planner.build.with_untracked(|build| build.start.clone());
     // The name over the wheel: the one under the pointer or focus, else the current one.
     let shown = RwSignal::new(None::<Alignment>);
-    let starts = Alignment::ALL.map(|alignment| BuildStart {
-        alignment: Some(alignment),
-        ..current.clone()
+    let options = planner.ask("alignment_options", |engine, build| {
+        engine.alignment_options(build)
     });
-    let edits: Vec<Edit> = starts.iter().cloned().map(Edit::Start).collect();
-    let allows = planner.allows_many(&edits);
     let engine = planner.engine();
     // Why the wheel locks: "Choose a deity or atheism first", or the deity's limit; said once under the wheel.
-    let misfit = starts
+    let misfit = options
         .iter()
-        .find_map(|start| engine.faith_fits(start).err())
-        .and_then(|issue| engine.issue_text(&issue));
-    let nodes = Alignment::ALL
+        .find_map(|option| reason(&engine, &option.status));
+    let nodes = options
         .into_iter()
-        .zip(starts)
-        .zip(allows)
-        .map(|((alignment, start), allows)| {
+        .map(|option| {
+            let alignment = option.value;
             let on = current.alignment == Some(alignment);
-            let allowed = on || (allows && engine.faith_fits(&start).is_ok());
-            let start = StoredValue::new(start);
+            let edit = StoredValue::new(option.edit);
             view! {
                 <button
                     class=format!("alignment-node {}", wheel_place(alignment))
@@ -975,7 +929,7 @@ fn AlignmentPicker() -> impl IntoView {
                     aria-checked=on.to_string()
                     aria-label=alignment.name()
                     title=alignment.name()
-                    disabled=!allowed
+                    disabled=option.status.is_err()
                     on:mouseenter=move |_| shown.set(Some(alignment))
                     on:focus=move |_| shown.set(Some(alignment))
                     on:mouseleave=move |_| shown.set(None)
@@ -983,7 +937,7 @@ fn AlignmentPicker() -> impl IntoView {
                     on:click=move |_| {
                         planner.close();
                         if !on {
-                            planner.edit(Edit::Start(start.get_value()));
+                            planner.edit(edit.get_value());
                         }
                     }
                 >
@@ -1014,52 +968,66 @@ fn AlignmentPicker() -> impl IntoView {
 #[component]
 fn DeityPicker() -> impl IntoView {
     let planner = use_planner();
-    let engine = planner.engine();
-    let current = planner.build.with_untracked(|build| build.start.clone());
-    let with = |deity: Option<Faith>| BuildStart {
-        deity,
-        ..current.clone()
-    };
-    let mut deities: Vec<&rules::Deity> = engine.deities().iter().collect();
-    deities.sort_by(|a, b| a.name.cmp(&b.name));
-    let atheism = Item {
-        detail: "No deity; any alignment".to_owned(),
-        current: current.deity == Some(Faith::Atheism),
-        ..Item::new("Atheism")
-    };
-    let starts = std::iter::once((atheism, with(Some(Faith::Atheism))))
-        .chain(deities.into_iter().map(|deity| {
-            let alignments: Vec<&str> = deity.alignments.iter().map(|a| a.short_name()).collect();
-            let weapons: Vec<&str> = deity
-                .favoured_weapons
-                .iter()
-                .map(|weapon| engine.weapon_name(weapon))
-                .collect();
-            let domains: Vec<&str> = deity
-                .domains
-                .iter()
-                .map(|domain| {
-                    let name = engine.option_name(domain);
-                    name.strip_suffix(" Domain")
-                        .or_else(|| name.strip_suffix(" Subdomain"))
-                        .unwrap_or(name)
-                })
-                .collect();
-            let faith = Faith::Deity(deity.key.clone());
-            let item = Item {
-                detail: format!(
-                    "{} · {} · {}",
-                    alignments.join(" "),
-                    weapons.join(", "),
-                    domains.join(", ")
-                ),
-                current: current.deity.as_ref() == Some(&faith),
-                ..Item::new(deity.name.clone())
-            };
-            (item, with(Some(faith)))
-        }))
+    start_picker("Deity", Choice::Deity, move |engine| {
+        let current = planner
+            .build
+            .with_untracked(|build| build.start.deity.clone());
+        let options = planner.ask("faith_options", |engine, build| engine.faith_options(build));
+        let mut items: Vec<(Item, Edit)> = options
+            .into_iter()
+            .filter_map(|option| {
+                let item = match &option.value {
+                    Faith::Atheism => Item {
+                        detail: "No deity; any alignment".to_owned(),
+                        ..Item::new("Atheism")
+                    },
+                    Faith::Deity(key) => {
+                        let deity = engine.deities().iter().find(|deity| &deity.key == key)?;
+                        deity_item(engine, deity)
+                    }
+                };
+                let item = Item {
+                    current: current.as_ref() == Some(&option.value),
+                    ..item
+                };
+                Some((with_status(engine, item, &option.status), option.edit))
+            })
+            .collect();
+        // Atheism stays first; the deities go by name.
+        if let Some(deities) = items.get_mut(1..) {
+            deities.sort_by(|(a, _), (b, _)| a.name.cmp(&b.name));
+        }
+        items
+    })
+}
+
+/// A deity's item: its name, then its alignments, favoured weapons and domains.
+fn deity_item(engine: &Engine, deity: &rules::Deity) -> Item {
+    let alignments: Vec<&str> = deity.alignments.iter().map(|a| a.short_name()).collect();
+    let weapons: Vec<&str> = deity
+        .favoured_weapons
+        .iter()
+        .map(|weapon| engine.weapon_name(weapon))
         .collect();
-    view! { <StartPicker title="Deity" starts remove=Choice::Deity/> }
+    let domains: Vec<&str> = deity
+        .domains
+        .iter()
+        .map(|domain| {
+            let name = engine.option_name(domain);
+            name.strip_suffix(" Domain")
+                .or_else(|| name.strip_suffix(" Subdomain"))
+                .unwrap_or(name)
+        })
+        .collect();
+    Item {
+        detail: format!(
+            "{} · {} · {}",
+            alignments.join(" "),
+            weapons.join(", "),
+            domains.join(", ")
+        ),
+        ..Item::new(deity.name.clone())
+    }
 }
 
 /// An alignment's place on the wheel, as a class: its spot on the ring (or the middle) and its moral tint.
@@ -1080,54 +1048,55 @@ fn wheel_place(alignment: Alignment) -> &'static str {
 #[component]
 fn BackgroundPicker() -> impl IntoView {
     let planner = use_planner();
-    let engine = planner.engine();
-    let current = planner.build.with_untracked(|build| build.start.clone());
-    let starts = engine
-        .backgrounds()
-        .iter()
-        .map(|background| {
-            let item = Item {
-                detail: background.note.clone(),
-                category: background.group.map_or("", |group| group.name()).to_owned(),
-                current: current.background.as_ref() == Some(&background.key),
-                ..Item::new(background.name.clone())
-            };
-            (
-                item,
-                BuildStart {
-                    background: Some(background.key.clone()),
-                    ..current.clone()
-                },
-            )
-        })
-        .collect();
-    view! { <StartPicker title="Background" starts remove=Choice::Background/> }
+    start_picker("Background", Choice::Background, move |engine| {
+        let current = planner
+            .build
+            .with_untracked(|build| build.start.background.clone());
+        let options = planner.ask("background_options", |engine, build| {
+            engine.background_options(build)
+        });
+        options
+            .into_iter()
+            .filter_map(|option| {
+                let background = engine
+                    .backgrounds()
+                    .iter()
+                    .find(|background| background.key == option.value)?;
+                let item = Item {
+                    detail: background.note.clone(),
+                    category: background.group.map_or("", |group| group.name()).to_owned(),
+                    current: current.as_ref() == Some(&option.value),
+                    ..Item::new(background.name.clone())
+                };
+                Some((with_status(engine, item, &option.status), option.edit))
+            })
+            .collect()
+    })
 }
 
 #[component]
 fn AbilityIncreasePicker(level: u8) -> impl IntoView {
     let planner = use_planner();
+    let engine = planner.engine();
     let current = planner.build.with_untracked(|build| {
         build
             .levels
             .get(usize::from(level) - 1)
             .and_then(|level_up| level_up.ability_increase)
     });
-    let edits = AbilityScores::ABILITIES.map(|ability| Edit::AbilityIncrease {
-        level,
-        ability: Some(ability),
-    });
-    let allows = planner.allows_many(&edits);
-    let items: Vec<Item> = AbilityScores::ABILITIES
-        .into_iter()
-        .zip(allows)
-        .map(|(ability, allows)| {
-            let allowed = current == Some(ability) || allows;
-            Item {
-                current: current == Some(ability),
-                locked: !allowed,
-                ..Item::new(format!("+1 {}", ability.name()))
-            }
+    let options = planner
+        .ask("ability_increase_options", |engine, build| {
+            engine.ability_increase_options(build, level)
+        })
+        .unwrap_or_default();
+    let items: Vec<Item> = options
+        .iter()
+        .map(|option| {
+            let item = Item {
+                current: current == Some(option.value),
+                ..Item::new(format!("+1 {}", option.value.name()))
+            };
+            with_status(&engine, item, &option.status)
         })
         .collect();
     let place = format!("Level {level}");
@@ -1136,14 +1105,10 @@ fn AbilityIncreasePicker(level: u8) -> impl IntoView {
         <ItemList
             items
             on_pick=move |index: usize| {
-                let ability: Ability = AbilityScores::ABILITIES[index];
+                let option = &options[index];
                 planner.close();
-                if current != Some(ability) {
-                    planner
-                        .edit(Edit::AbilityIncrease {
-                            level,
-                            ability: Some(ability),
-                        });
+                if current != Some(option.value) {
+                    planner.edit(option.edit.clone());
                 }
             }
         />

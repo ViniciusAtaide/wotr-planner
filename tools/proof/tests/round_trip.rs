@@ -60,7 +60,7 @@ fn builds() -> Vec<Named> {
 fn record_export_and_compare_round_trip() {
     let (engine, data) = engine();
     let builds = builds();
-    let record = proof::record(&engine, &data, &builds, 2).join("\n");
+    let record = proof::record(&engine, &builds, 2).join("\n");
 
     // A record agrees with itself.
     let same = compare(&record, &record).expect("records parse");
@@ -72,7 +72,7 @@ fn record_export_and_compare_round_trip() {
     let (read, failed) = links::read(&data, &text);
     assert!(failed.is_empty(), "{failed:?}");
     assert_eq!(read, builds);
-    assert_eq!(proof::record(&engine, &data, &read, 1).join("\n"), record);
+    assert_eq!(proof::record(&engine, &read, 1).join("\n"), record);
 
     // Through JSON (ticket 86), the same Builds too.
     let (read, failed) = links::read_json(&links::export_json(&builds));
@@ -86,7 +86,7 @@ fn record_export_and_compare_round_trip() {
         .levels
         .push(LevelUp::new(ClassKey::new("fighter")));
     changed.retain(|(name, _)| name != "blank");
-    let other = proof::record(&engine, &data, &changed, 2).join("\n");
+    let other = proof::record(&engine, &changed, 2).join("\n");
     let comparison = compare(&record, &other).expect("records parse");
     let differs: Vec<&String> = comparison
         .lines

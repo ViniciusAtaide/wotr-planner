@@ -103,10 +103,17 @@ fn a_deity_limits_the_alignment_to_its_own() {
 #[test]
 fn the_start_pickers_lock_a_misfit_with_the_deitys_alignments() {
     let engine = engine();
-    let mut start = follower(deity("lawgiver"), &[]).start;
-    assert_eq!(engine.faith_fits(&start), Ok(()));
-    start.alignment = Some(Alignment::ChaoticNeutral);
-    let misfit = engine.faith_fits(&start).unwrap_err();
+    let mut build = follower(deity("lawgiver"), &[]);
+    let alignment_status = |build: &Build, alignment: Alignment| {
+        engine
+            .alignment_options(build)
+            .into_iter()
+            .find(|option| option.value == alignment)
+            .unwrap()
+            .status
+    };
+    assert_eq!(alignment_status(&build, Alignment::LawfulGood), Ok(()));
+    let misfit = alignment_status(&build, Alignment::ChaoticNeutral).unwrap_err();
     assert_eq!(
         misfit,
         Issue::DeityAlignment {
@@ -117,10 +124,8 @@ fn the_start_pickers_lock_a_misfit_with_the_deitys_alignments() {
         text(&misfit),
         "Lawgiver allows Lawful Good, Neutral Good or Lawful Neutral"
     );
-    start.deity = Some(Faith::Atheism);
-    assert_eq!(engine.faith_fits(&start), Ok(()));
-    start.alignment = None;
-    assert_eq!(engine.faith_fits(&start), Ok(()));
+    build.start.deity = Some(Faith::Atheism);
+    assert_eq!(alignment_status(&build, Alignment::ChaoticNeutral), Ok(()));
 }
 
 // ---- the alignment after the faith (ticket 94) ------------------------------------------------------------------
@@ -141,21 +146,16 @@ fn an_alignment_needs_a_faith_first() {
 #[test]
 fn the_alignment_wheel_is_locked_until_a_faith_is_chosen() {
     let engine = engine();
-    let unfaithful = follower(None, &[]);
-    for alignment in Alignment::ALL {
-        let start = rules::BuildStart {
-            alignment: Some(alignment),
-            ..unfaithful.start.clone()
-        };
-        let locked = engine.faith_fits(&start).unwrap_err();
-        assert_eq!(locked, Issue::NeedsFaith, "{alignment:?}");
+    let mut build = follower(None, &[]);
+    for option in engine.alignment_options(&build) {
+        let locked = option.status.unwrap_err();
+        assert_eq!(locked, Issue::NeedsFaith, "{:?}", option.value);
         assert_eq!(text(&locked), "Choose a deity or atheism first");
-        // Atheism opens every alignment.
-        let atheist = rules::BuildStart {
-            deity: Some(Faith::Atheism),
-            ..start
-        };
-        assert_eq!(engine.faith_fits(&atheist), Ok(()), "{alignment:?}");
+    }
+    // Atheism opens every alignment.
+    build.start.deity = Some(Faith::Atheism);
+    for option in engine.alignment_options(&build) {
+        assert_eq!(option.status, Ok(()), "{:?}", option.value);
     }
 }
 
@@ -189,12 +189,14 @@ fn changing_the_deity_keeps_the_alignment_check() {
     assert!(engine.allows(&build, &to_deity(&build, Some(Faith::Atheism))));
     let mut chaotic = build.clone();
     chaotic.start.alignment = Some(Alignment::ChaoticNeutral);
-    let start = to_deity(&chaotic, deity("lawgiver"));
-    let Edit::Start(start) = start else {
-        unreachable!()
-    };
+    let lawgiver = engine
+        .faith_options(&chaotic)
+        .into_iter()
+        .find(|option| Some(&option.value) == deity("lawgiver").as_ref())
+        .unwrap();
+    assert_eq!(lawgiver.edit, to_deity(&chaotic, deity("lawgiver")));
     assert_eq!(
-        engine.faith_fits(&start),
+        lawgiver.status,
         Err(Issue::DeityAlignment {
             deity: DeityKey::new("lawgiver")
         })

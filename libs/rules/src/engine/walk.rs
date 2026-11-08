@@ -5,7 +5,7 @@ use std::collections::{BTreeMap, BTreeSet, HashSet};
 
 use super::{
     BASE_LEVEL_CAP, Engine, FIRST_ASCENSION_RANK, LevelSheet, PATH_CHOICE_RANK, PATH_SWITCH_RANK,
-    RankSheet, RankStatus, Sheet, SlotKind, racial_amounts,
+    RankSheet, RankStatus, Sheet, SkillPoints, SlotKind, racial_amounts,
 };
 use crate::build::{Build, Faith, LevelUp, SlotId, has_ability_increase};
 use crate::choice::Choice;
@@ -163,6 +163,8 @@ pub(super) struct Walker<'a> {
     option_feat_slots: u8,
     /// How many selection slots feats have given this level so far.
     feat_selection_slots: u8,
+    /// The skill points of the last level walked, which the skill steppers read off a paused walk.
+    pub(super) skill_points: SkillPoints,
     probe: Option<Probe<'a>>,
     probed: Probed,
     /// Whether the walk keeps the sheet's rows; a recheck's walk doesn't ([`without_sheet`](Self::without_sheet)).
@@ -253,6 +255,7 @@ impl<'a> Walker<'a> {
             option_slots: 0,
             option_feat_slots: 0,
             feat_selection_slots: 0,
+            skill_points: SkillPoints::default(),
             probe,
             probed: Probed::default(),
             sheet: true,
@@ -422,13 +425,14 @@ impl<'a> Walker<'a> {
     }
 
     /// The faith: a deity the data has, which allows the start's alignment (one not chosen yet fits any), or
-    /// atheism. The alignment comes after the faith, so an alignment with no faith fails. A deity's domains are what
-    /// deity-limited selections and `DeityOffers` look at.
+    /// atheism. The alignment comes after the faith, so an alignment with no faith fails (the rule the start pickers
+    /// share: [`Engine::faith_misfit`]). A deity's domains are what deity-limited selections and `DeityOffers` look
+    /// at.
     fn faith(&mut self) {
         let start = &self.build.start;
         self.state.faith = start.deity.clone();
-        if start.deity.is_none() && start.alignment.is_some() {
-            self.fail(Choice::Alignment);
+        if let Some((choice, _)) = self.engine.faith_misfit(start) {
+            self.fail(choice);
         }
         let Some(key) = start.deity.as_ref().and_then(Faith::deity) else {
             return;
@@ -437,12 +441,6 @@ impl<'a> Walker<'a> {
             self.fail(Choice::Deity);
             return;
         };
-        if start
-            .alignment
-            .is_some_and(|alignment| !deity.alignments.contains(&alignment))
-        {
-            self.fail(Choice::Deity);
-        }
         self.state.deity_domains = deity.domains.clone();
     }
 
@@ -504,6 +502,7 @@ impl<'a> Walker<'a> {
         self.feat_selection_slots = 0;
         self.advance_holdings();
         let skill_points = self.skill_ranks(level, level_up);
+        self.skill_points = skill_points;
 
         let level_slots = self.level_slots(level, level_up);
         let level_slots = self.grant_selections(level_slots);

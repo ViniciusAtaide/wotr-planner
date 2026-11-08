@@ -48,7 +48,7 @@ fn a_crossblooded_sorcerer_cant_take_red_after_blue() {
         .options(&second, &slot)
         .unwrap()
         .into_iter()
-        .map(|SlotOption { pick, status }| (pick.key().to_owned(), status))
+        .map(|SlotOption { pick, status, .. }| (pick.key().to_owned(), status))
         .collect();
     assert_eq!(
         options["sorcerer/bloodline/draconic-red"],
@@ -667,7 +667,7 @@ fn a_bloodrager_with_a_dragon_bloodline_cant_take_a_second_dragon_through_second
             .options(&build, &SlotId::MythicSelection { rank: 1, index: 0 })
             .unwrap()
             .into_iter()
-            .map(|SlotOption { pick, status }| (pick.key().to_owned(), status))
+            .map(|SlotOption { pick, status, .. }| (pick.key().to_owned(), status))
             .collect();
         options
     };

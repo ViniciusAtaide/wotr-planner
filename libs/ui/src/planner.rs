@@ -97,12 +97,12 @@ impl Planner {
         self.error.set(None);
     }
 
-    /// Whether the engine allows each of a panel's edits on the current Build, sharing one walk of it. Untracked:
-    /// the views that ask read the Build themselves, so they ask again after each edit.
-    pub fn allows_many(&self, edits: &[Edit]) -> Vec<bool> {
+    /// Asks the engine about the current Build (a picker's options, a panel's steps), timed under `label`.
+    /// Untracked: the views that ask read the Build themselves, so they ask again after each edit.
+    pub fn ask<T>(&self, label: &str, ask: impl FnOnce(&Engine, &Build) -> T) -> T {
         let engine = self.engine();
         self.build
-            .with_untracked(|build| timed("allows_many", || engine.allows_many(build, edits)))
+            .with_untracked(|build| timed(label, || ask(&engine, build)))
     }
 
     /// Whether the class at a level may be changed now.

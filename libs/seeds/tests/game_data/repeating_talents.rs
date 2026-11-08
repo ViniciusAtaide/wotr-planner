@@ -20,7 +20,7 @@ fn statuses(build: &Build, slot: &SlotId) -> HashMap<Pick, Result<(), Issue>> {
         .options(build, slot)
         .unwrap_or_else(|| panic!("no slot {slot:?}"))
         .into_iter()
-        .map(|SlotOption { pick, status }| (pick, status))
+        .map(|SlotOption { pick, status, .. }| (pick, status))
         .collect()
 }
 

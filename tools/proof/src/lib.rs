@@ -40,6 +40,11 @@
 //! doesn't compile against crates from before it. A `rules` proof against such a ref runs from a copy of the repo
 //! whose `tools/proof` has the ref's `fingerprint.rs`.
 //!
+//! Ticket 96: the battery is the engine's Build start and level options and steps ([`fingerprint::controls`]), so
+//! the harness doesn't compile against crates from before it either (the same copy, with the ref's `fingerprint.rs`
+//! changed only to hash the options without their edits and to drop `Engine::allows_many`); and each option's status
+//! is checked against `allows`. The options hash as they did before (without their edits), so older records compare.
+//!
 //! A ticket that needs a special breakdown (only the Builds with some class, say) filters `compare`'s output or the
 //! records themselves (each line names its Build's classes in `who`); the fingerprint keeps only what isn't tied to
 //! one ticket.
@@ -87,9 +92,9 @@ pub fn in_parallel<T: Send>(
     })
 }
 
-/// The record of `builds`: one JSON line each, in their order. `data` is the engine's game data ([`engine_on`]).
-pub fn record(engine: &Engine, data: &GameData, builds: &[Named], threads: usize) -> Vec<String> {
+/// The record of `builds`: one JSON line each, in their order.
+pub fn record(engine: &Engine, builds: &[Named], threads: usize) -> Vec<String> {
     in_parallel(builds, threads, |(name, build)| {
-        fingerprint::fingerprint(engine, data, name, build).to_string()
+        fingerprint::fingerprint(engine, name, build).to_string()
     })
 }

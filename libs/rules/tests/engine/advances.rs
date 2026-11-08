@@ -2,7 +2,7 @@
 
 use std::collections::BTreeSet;
 
-use rules::{Build, ClassChoice, ClassKey, ClassOption};
+use rules::{Build, ClassChoice, ClassKey, ClassOption, Edit};
 
 use crate::support::*;
 
@@ -151,6 +151,14 @@ fn class_option(build: &Build, level: u8, key: &str) -> ClassOption {
         .unwrap()
 }
 
+/// Each advancement option's classes.
+fn advances(options: &[rules::AdvancesOption]) -> Vec<BTreeSet<ClassKey>> {
+    options
+        .iter()
+        .map(|option| option.advances.clone())
+        .collect()
+}
+
 fn sets(sets: &[&[&str]]) -> Vec<BTreeSet<ClassKey>> {
     sets.iter()
         .map(|set| set.iter().map(|key| class(key)).collect())
@@ -169,7 +177,7 @@ fn the_advancement_choices_are_each_held_class_alone_then_each_pair_then_none_th
     );
     let theurge = class_option(&build, 8, "mystic-theurge");
     assert_eq!(
-        engine().advances_options(&build, 8, &theurge),
+        advances(&engine().advances_options(&build, 8, &theurge)),
         sets(&[&["wizard"], &["cleric"], &["cleric", "wizard"], &[]])
     );
 }
@@ -182,7 +190,7 @@ fn a_prestige_class_advancing_either_spell_type_offers_one_class_at_a_time() {
     );
     let winter_witch = class_option(&build, 7, "winter-witch");
     assert_eq!(
-        engine().advances_options(&build, 7, &winter_witch),
+        advances(&engine().advances_options(&build, 7, &winter_witch)),
         sets(&[&["wizard"], &["cleric"], &[]])
     );
 }
@@ -207,48 +215,45 @@ fn only_a_prestige_class_first_taken_asks_which_spellcasting_it_advances() {
 }
 
 #[test]
-fn a_class_edit_sets_the_choice_only_where_the_class_is_first_taken() {
+fn a_class_option_sets_the_choice_only_where_the_class_is_first_taken() {
     let mut build = with_advances(&THEURGE, "mystic-theurge", &["wizard", "cleric"]);
     let engine = engine();
     let theurge = class_option(&build, 7, "mystic-theurge");
-    let edit = |build: &Build, level, advances: Option<&[&str]>| {
-        engine.class_edit(
-            build,
-            level,
-            &theurge,
-            advances.map(|set| set.iter().map(|key| class(key)).collect()),
-        )
-    };
-    // First taken at 7: the advancement given, else the one the Build has.
     let choice = |advances: &[&str]| {
         Some(ClassChoice {
             archetype: None,
             advances: advances.iter().map(|key| class(key)).collect(),
         })
     };
+    // First taken at 7: the option keeps the advancement the Build has, and each advancement option sets its own.
     assert_eq!(
-        edit(&build, 7, Some(&["wizard"])),
-        rules::Edit::Class {
-            level: 7,
-            class: class("mystic-theurge"),
-            choice: choice(&["wizard"]),
-        }
-    );
-    assert_eq!(
-        edit(&build, 7, None),
-        rules::Edit::Class {
+        theurge.edit,
+        Edit::Class {
             level: 7,
             class: class("mystic-theurge"),
             choice: choice(&["wizard", "cleric"]),
         }
     );
+    let options = engine.advances_options(&build, 7, &theurge);
+    assert!(!options.is_empty());
+    for option in options {
+        let classes: Vec<&str> = option.advances.iter().map(ClassKey::as_str).collect();
+        assert_eq!(
+            option.edit,
+            Edit::Class {
+                level: 7,
+                class: class("mystic-theurge"),
+                choice: choice(&classes),
+            }
+        );
+    }
     // Taken before level 9: no choice.
     build
         .levels
         .push(rules::LevelUp::new(class("mystic-theurge")));
     assert_eq!(
-        edit(&build, 9, Some(&["wizard"])),
-        rules::Edit::Class {
+        class_option(&build, 9, "mystic-theurge").edit,
+        Edit::Class {
             level: 9,
             class: class("mystic-theurge"),
             choice: None,
@@ -257,7 +262,7 @@ fn a_class_edit_sets_the_choice_only_where_the_class_is_first_taken() {
 }
 
 #[test]
-fn a_class_edit_gives_a_class_first_taken_its_archetype() {
+fn a_class_option_gives_a_class_first_taken_its_archetype() {
     let build = build("elf", &[]);
     let options = engine().class_options(&build, 1).unwrap();
     let zen_archer = options
@@ -265,8 +270,8 @@ fn a_class_edit_gives_a_class_first_taken_its_archetype() {
         .find(|option| option.archetype == Some(rules::ArchetypeKey::new("monk/zen-archer")))
         .unwrap();
     assert_eq!(
-        engine().class_edit(&build, 1, zen_archer, None),
-        rules::Edit::Class {
+        zen_archer.edit,
+        Edit::Class {
             level: 1,
             class: class("monk"),
             choice: Some(ClassChoice {
