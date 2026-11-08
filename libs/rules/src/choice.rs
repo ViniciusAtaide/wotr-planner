@@ -80,6 +80,9 @@ pub enum Issue {
     /// The Build start's deity doesn't allow its alignment: what the deity picker and the alignment wheel lock a
     /// misfit with ("Abadar allows Lawful Good, Lawful Neutral, True Neutral or Lawful Evil").
     DeityAlignment { deity: DeityKey },
+    /// A Build start's alignment with no faith chosen yet: what the alignment wheel locks every alignment with
+    /// until a deity or atheism is chosen ("Choose a deity or atheism first").
+    NeedsFaith,
     /// A deity-limited selection's option whose domain the deity offers when the selection takes only the others,
     /// or doesn't when it takes only the deity's ("Not a domain of Erastil").
     DeityDomain {

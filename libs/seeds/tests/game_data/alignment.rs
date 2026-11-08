@@ -56,9 +56,12 @@ fn aligned(archetype: &str, alignment: rules::Alignment, levels: usize) -> Build
     let class = archetype.split('/').next().unwrap();
     let mut build = archetype_build(class, archetype, levels);
     build.start.alignment = Some(alignment);
-    // A deity that fits, for a class that serves one (ticket 86).
+    // A deity that fits, for a class that serves one (ticket 86); else an atheist, since the alignment needs a
+    // faith (ticket 94), for a Build no faith makes possible yet (the Reformed Fiend before its race is set).
     build.start.deity = None;
-    faithful(build)
+    let mut build = faithful(build);
+    build.start.deity.get_or_insert(rules::Faith::Atheism);
+    build
 }
 
 /// The level-1 class picker's status for `archetype` (a class key alone: the class without one) in a Build like
@@ -144,7 +147,7 @@ fn a_plain_monk_still_needs_a_lawful_alignment() {
     let lawful = [LawfulGood, LawfulNeutral, LawfulEvil];
     for alignment in rules::Alignment::ALL {
         let mut plain = monk(1);
-        plain.start.alignment = Some(alignment);
+        align(&mut plain, alignment);
         let zen = aligned("monk/zen-archer", alignment, 1);
         if lawful.contains(&alignment) {
             assert!(possible(&plain) && possible(&zen), "{alignment:?}");
@@ -165,7 +168,7 @@ fn a_bloodseeker_needs_an_evil_alignment() {
     for alignment in rules::Alignment::ALL {
         let bloodseeker = aligned("slayer/bloodseeker", alignment, 1);
         let mut slayer = build("slayer", 1);
-        slayer.start.alignment = Some(alignment);
+        align(&mut slayer, alignment);
         assert!(possible(&slayer), "{alignment:?}");
         if evil.contains(&alignment) {
             assert!(possible(&bloodseeker), "{alignment:?}");

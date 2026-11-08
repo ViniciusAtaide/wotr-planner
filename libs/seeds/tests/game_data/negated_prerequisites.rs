@@ -122,7 +122,7 @@ fn every_negated_prerequisite_in_the_data_reads_as_what_rules_the_option_out() {
     // A Lawful Good Champion of the Faith's evil blessing as his chosen alignment, and a Lawful Good Separatist's
     // Chaos Domain as his own: the alignments that case allows.
     let mut champion = archetype_build("warpriest", "warpriest/champion-of-the-faith", 1);
-    champion.start.alignment = Some(rules::Alignment::LawfulGood);
+    align(&mut champion, rules::Alignment::LawfulGood);
     let chosen = slot_of(
         &champion,
         1,

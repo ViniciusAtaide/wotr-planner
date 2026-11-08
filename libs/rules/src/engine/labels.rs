@@ -521,6 +521,7 @@ impl Engine {
                     .unwrap_or_default();
                 format!("{} allows {}", self.deity_name(deity), or_list(&alignments))
             }
+            Issue::NeedsFaith => "Choose a deity or atheism first".to_owned(),
             Issue::DeityDomain { deity, limit } => match limit {
                 DeityDomains::Offered => format!("Not a domain of {}", self.deity_name(deity)),
                 DeityDomains::NotOffered => format!("A domain of {}", self.deity_name(deity)),

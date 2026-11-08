@@ -186,6 +186,16 @@ fn every_older_link_decodes_to_the_same_build_and_takes_its_mr_3_paths_first_asc
         assert_eq!(build.mythic_path, Some(MythicPathKey::new(path)));
         // The same Build writes the same link.
         assert_eq!(encode_build(&build), link, "{path}");
+        // An alignment with no faith makes the link stale (ticket 94); the rest is checked on the same Build as an
+        // atheist.
+        let build = if build.start.alignment.is_some() && build.start.deity.is_none() {
+            assert!(engine.open_link(link).is_err(), "{path}");
+            let mut atheist = build;
+            atheist.start.deity = Some(rules::Faith::Atheism);
+            atheist
+        } else {
+            build
+        };
         assert!(possible(&build), "{path}");
         // MR 1 and 2 give the MR 3 path's rows, from their own ranks.
         let sheet = engine.evaluate(&build);

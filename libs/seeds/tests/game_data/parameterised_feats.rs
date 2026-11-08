@@ -371,7 +371,7 @@ fn rage_powers_discoveries_incense_and_mutations_repeat_as_the_guide_says() {
 
     // A barbarian takes Increased Damage Reduction three times, not four.
     let mut build = build("barbarian", 16);
-    build.start.alignment = Some(rules::Alignment::ChaoticNeutral);
+    align(&mut build, rules::Alignment::ChaoticNeutral);
     let rage_power_levels: Vec<u8> = (1..=16)
         .filter(|level| {
             engine()

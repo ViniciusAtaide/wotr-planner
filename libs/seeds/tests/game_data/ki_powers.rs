@@ -34,10 +34,11 @@ fn ki_power(name: &str) -> String {
 /// ("Cannot be Lawful"), and an oread for the Student of Stone ("Race must be Oread").
 fn monk_of(archetype: &str, levels: usize) -> Build {
     let mut build = archetype_build("monk", archetype, levels);
-    build.start.alignment = Some(match archetype {
+    let alignment = match archetype {
         "monk/drunken-master" => rules::Alignment::ChaoticNeutral,
         _ => rules::Alignment::LawfulNeutral,
-    });
+    };
+    align(&mut build, alignment);
     if archetype == "monk/student-of-stone" {
         build.start.race = Some(rules::RaceKey::new("oread"));
     }

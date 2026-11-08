@@ -27,7 +27,7 @@ fn a_human_warpriest_takes_dazzling_display_at_1_on_the_class_slots_weapon_focus
 fn a_human_druid_with_a_companion_takes_boon_companion_at_1() {
     let mut build = build("druid", 1);
     build.start.race = Some(rules::RaceKey::new("human"));
-    build.start.alignment = Some(rules::Alignment::TrueNeutral);
+    align(&mut build, rules::Alignment::TrueNeutral);
     build.picks.insert(
         selection_slot(1),
         pick("druid/nature-bond/animal-companion"),
@@ -189,7 +189,7 @@ fn the_mythic_feats_that_pick_a_value_take_one_once_per_value() {
 fn a_mantis_zealot_holds_its_sawtooth_saber_feats_at_1_4_8_and_12() {
     // Lawful neutral: a Mantis Zealot is LE, LN or NE (ticket 63).
     let mut zealot = archetype_build("warpriest", "warpriest/mantis-zealot", 12);
-    zealot.start.alignment = Some(rules::Alignment::LawfulNeutral);
+    align(&mut zealot, rules::Alignment::LawfulNeutral);
     assert!(possible(&zealot));
     let saber = || BTreeSet::from([weapon("sawtooth-saber")]);
     for (level, key) in [
@@ -229,7 +229,7 @@ fn the_chirurgeon_and_the_enlightened_philosopher_hold_skill_focus_in_their_skil
 fn a_zen_archers_way_of_the_bow_is_weapon_focus_in_a_bow_and_specialization_in_it_at_6() {
     let way = "monk/zen-archer/way-of-the-bow/bow";
     let mut archer = archetype_build("monk", "monk/zen-archer", 6);
-    archer.start.alignment = Some(rules::Alignment::LawfulNeutral);
+    align(&mut archer, rules::Alignment::LawfulNeutral);
     let offered: Vec<Pick> = engine()
         .options(&archer, &selection_slot(2))
         .expect("a pick at 2")

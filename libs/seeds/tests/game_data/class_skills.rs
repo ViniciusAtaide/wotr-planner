@@ -387,7 +387,7 @@ fn a_sohei_holds_lore_nature_as_a_class_skill_and_a_plain_monk_doesnt() {
             Some(archetype) => archetype_build("monk", archetype, 1),
             None => build("monk", 1),
         };
-        monk.start.alignment = Some(rules::Alignment::LawfulNeutral);
+        align(&mut monk, rules::Alignment::LawfulNeutral);
         assert!(engine().is_possible(&monk), "{archetype:?}");
         let sheet = engine().evaluate(&monk);
         sheet.at(1).cloned().unwrap()

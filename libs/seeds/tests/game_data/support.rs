@@ -74,6 +74,12 @@ pub fn realigned(mut build: Build, alignment: rules::Alignment) -> Build {
     faithful(build)
 }
 
+/// Sets the Build's alignment, as an atheist unless it already has a faith: the alignment needs one (ticket 94).
+pub fn align(build: &mut Build, alignment: rules::Alignment) {
+    build.start.alignment = Some(alignment);
+    build.start.deity.get_or_insert(rules::Faith::Atheism);
+}
+
 /// The Build without the pick in `slot`.
 pub fn without(build: &Build, slot: &SlotId) -> Build {
     let mut build = build.clone();
@@ -383,7 +389,7 @@ pub fn selection_option(key: &str) -> &'static rules::SelectionOption {
 
 pub fn barbarian(levels: usize) -> Build {
     let mut build = build("barbarian", levels);
-    build.start.alignment = Some(rules::Alignment::ChaoticNeutral);
+    align(&mut build, rules::Alignment::ChaoticNeutral);
     build
 }
 
@@ -439,7 +445,7 @@ pub fn selection_kind(key: &str) -> SlotKind {
 /// A chaotic neutral Build taking `classes`, one per level, with no picks.
 pub fn classes_build(classes: &[&str]) -> Build {
     let mut build = Build::default();
-    build.start.alignment = Some(rules::Alignment::ChaoticNeutral);
+    align(&mut build, rules::Alignment::ChaoticNeutral);
     for class in classes {
         build
             .class_choices
@@ -504,7 +510,7 @@ pub fn chaotic(mut build: Build) -> Build {
 /// A lawful good paladin of `levels` levels, with no picks.
 pub fn paladin(levels: usize) -> Build {
     let mut build = build("paladin", levels);
-    build.start.alignment = Some(rules::Alignment::LawfulGood);
+    align(&mut build, rules::Alignment::LawfulGood);
     build
 }
 
@@ -603,7 +609,7 @@ pub fn archetype_features(class_key: &str, archetype: &str) -> BTreeSet<String> 
 /// A lawful neutral monk of `levels` levels, with no picks.
 pub fn monk(levels: usize) -> Build {
     let mut build = build("monk", levels);
-    build.start.alignment = Some(rules::Alignment::LawfulNeutral);
+    align(&mut build, rules::Alignment::LawfulNeutral);
     build
 }
 
@@ -670,7 +676,7 @@ pub const MEDICAL_DISCOVERIES: [&str; 25] = [
 /// A chaotic neutral Build taking each class in turn for its levels, with its archetype if any, with no picks.
 pub fn multiclass(parts: &[(&str, Option<&str>, usize)]) -> Build {
     let mut build = Build::default();
-    build.start.alignment = Some(rules::Alignment::ChaoticNeutral);
+    align(&mut build, rules::Alignment::ChaoticNeutral);
     for (class, archetype, levels) in parts {
         build.class_choices.insert(
             ClassKey::new(*class),

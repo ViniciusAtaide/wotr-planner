@@ -33,13 +33,16 @@ fn a_full_build_of_every_base_class_opens_from_a_short_link() {
     for class in &DATA.classes {
         let mut build = build(class.key.as_str(), 20);
         build.start.race = Some(rules::RaceKey::new("human"));
-        build.start.alignment = [rules::Alignment::TrueNeutral, rules::Alignment::LawfulGood]
+        let alignment = [rules::Alignment::TrueNeutral, rules::Alignment::LawfulGood]
             .into_iter()
             .find(|&alignment| {
                 let mut start = build.clone();
-                start.start.alignment = Some(alignment);
+                align(&mut start, alignment);
                 engine.is_possible(&start)
             });
+        if let Some(alignment) = alignment {
+            align(&mut build, alignment);
+        }
         build.start.background = Some(rules::BackgroundKey::new("mercenary"));
         build.mythic_path = Some(MythicPathKey::new("angel"));
         for (index, level) in build.levels.iter_mut().enumerate() {

@@ -18,7 +18,7 @@ impl Engine {
     ///
     /// Costs one walk of the Build up to the first level the edit changes, then one from there.
     pub fn allows(&self, build: &Build, edit: &Edit) -> bool {
-        Recheck::new(self, build).keeps(edit, &[])
+        Recheck::new(self, build).keeps(edit, edit.choices())
     }
 
     /// [`allows`](Self::allows) for each edit, in order, sharing the walk of the Build: what a panel of controls
@@ -27,7 +27,10 @@ impl Engine {
     /// Costs one walk of the Build up to the first level an edit changes, then for each edit one from there.
     pub fn allows_many(&self, build: &Build, edits: &[Edit]) -> Vec<bool> {
         let recheck = Recheck::new(self, build);
-        edits.iter().map(|edit| recheck.keeps(edit, &[])).collect()
+        edits
+            .iter()
+            .map(|edit| recheck.keeps(edit, edit.choices()))
+            .collect()
     }
 
     /// The choices in a possible Build the sheet may remove or change now: each that no later choice depends on.
@@ -74,19 +77,31 @@ impl Engine {
         let recheck = Recheck::new(self, build);
         self.withdrawals(build)
             .into_iter()
-            .filter(|(choice, edit, own)| wanted(choice) && recheck.keeps(edit, own.as_slice()))
+            .filter(|(choice, edit, allowed)| {
+                wanted(choice) && recheck.keeps(edit, allowed.clone())
+            })
             .map(|(choice, ..)| choice)
             .collect()
     }
 
-    /// Each choice in the Build, with the edit that takes it back and any other choice whose failing that edit
-    /// doesn't count (see [`removable`](Self::removable)).
+    /// Each choice in the Build, with the edit that takes it back and the choices whose failing that edit doesn't
+    /// count (see [`removable`](Self::removable)): the edit's own and any listed with it. A Build start choice taken
+    /// back excuses only itself, not the other start choices its `Edit::Start` also sets: the faith can't come off
+    /// while the alignment needs it.
     fn withdrawals(&self, build: &Build) -> Vec<(Choice, Edit, Vec<Choice>)> {
-        let mut withdrawals = Vec::new();
+        let mut withdrawals: Vec<(Choice, Edit, Vec<Choice>)> = Vec::new();
         let start = |change: &dyn Fn(&mut BuildStart)| {
             let mut start = build.start.clone();
             change(&mut start);
             Edit::Start(start)
+        };
+        let mut push = |choice: Choice, edit: Edit, own: Vec<Choice>| {
+            let mut allowed = match edit {
+                Edit::Start(_) => vec![choice.clone()],
+                _ => edit.choices(),
+            };
+            allowed.extend(own);
+            withdrawals.push((choice, edit, allowed));
         };
         let begun = &build.start;
         if begun.race.is_some() {
@@ -95,23 +110,23 @@ impl Engine {
                 start.subrace = None;
                 start.racial_ability = None;
             });
-            withdrawals.push((Choice::Race, edit, vec![]));
+            push(Choice::Race, edit, vec![]);
         }
         if begun.subrace.is_some() {
             let edit = start(&|start| start.subrace = None);
-            withdrawals.push((Choice::Subrace, edit, vec![]));
+            push(Choice::Subrace, edit, vec![]);
         }
         if begun.alignment.is_some() {
             let edit = start(&|start| start.alignment = None);
-            withdrawals.push((Choice::Alignment, edit, vec![]));
+            push(Choice::Alignment, edit, vec![]);
         }
         if begun.background.is_some() {
             let edit = start(&|start| start.background = None);
-            withdrawals.push((Choice::Background, edit, vec![]));
+            push(Choice::Background, edit, vec![]);
         }
         if begun.deity.is_some() {
             let edit = start(&|start| start.deity = None);
-            withdrawals.push((Choice::Deity, edit, vec![]));
+            push(Choice::Deity, edit, vec![]);
         }
         for ability in AbilityScores::ABILITIES {
             let edit = start(&|start| {
@@ -120,11 +135,11 @@ impl Engine {
                     .with(ability, LOWEST_SCORE)
                     .expect("a lower score always fits the budget");
             });
-            withdrawals.push((Choice::AbilityScore { ability }, edit, vec![]));
+            push(Choice::AbilityScore { ability }, edit, vec![]);
         }
         for (index, level_up) in build.levels.iter().enumerate() {
             let level = u8::try_from(index + 1).unwrap_or(u8::MAX);
-            withdrawals.push((
+            push(
                 Choice::Class { level },
                 Edit::Class {
                     level,
@@ -132,19 +147,19 @@ impl Engine {
                     choice: None,
                 },
                 vec![Choice::SkillPoints { level }],
-            ));
+            );
             if level_up.ability_increase.is_some() {
-                withdrawals.push((
+                push(
                     Choice::AbilityIncrease { level },
                     Edit::AbilityIncrease {
                         level,
                         ability: None,
                     },
                     vec![],
-                ));
+                );
             }
             for skill in level_up.skill_ranks.keys() {
-                withdrawals.push((
+                push(
                     Choice::SkillRanks {
                         level,
                         skill: skill.clone(),
@@ -155,7 +170,7 @@ impl Engine {
                         ranks: 0,
                     },
                     vec![],
-                ));
+                );
             }
         }
         for (class, choice) in &build.class_choices {
@@ -169,7 +184,7 @@ impl Engine {
                 choice: Some(choice),
             };
             if choice.archetype.is_some() {
-                withdrawals.push((
+                push(
                     Choice::Archetype {
                         class: class.clone(),
                     },
@@ -178,10 +193,10 @@ impl Engine {
                         ..choice.clone()
                     }),
                     vec![],
-                ));
+                );
             }
             if !choice.advances.is_empty() {
-                withdrawals.push((
+                push(
                     Choice::Advances {
                         class: class.clone(),
                     },
@@ -190,24 +205,24 @@ impl Engine {
                         ..choice.clone()
                     }),
                     vec![],
-                ));
+                );
             }
         }
         if build.first_ascension.is_some() {
-            withdrawals.push((Choice::FirstAscension, Edit::FirstAscension(None), vec![]));
+            push(Choice::FirstAscension, Edit::FirstAscension(None), vec![]);
         }
         if build.mythic_path.is_some() {
-            withdrawals.push((Choice::MythicPath, Edit::MythicPath(None), vec![]));
+            push(Choice::MythicPath, Edit::MythicPath(None), vec![]);
         }
         if build.path_switch.is_some() {
-            withdrawals.push((Choice::PathSwitch, Edit::PathSwitch(None), vec![]));
+            push(Choice::PathSwitch, Edit::PathSwitch(None), vec![]);
         }
         for slot in build.picks.keys() {
-            withdrawals.push((
+            push(
                 Choice::Slot(slot.clone()),
                 Edit::Clear(slot.clone()),
                 vec![],
-            ));
+            );
         }
         withdrawals
     }
@@ -290,20 +305,18 @@ impl<'a> Recheck<'a> {
         paused.get(index).cloned()
     }
 
-    /// Whether `edit` breaks no choice, other than the ones it sets and `own`. An edit that changes nothing
-    /// breaks nothing.
-    pub(super) fn keeps(&self, edit: &Edit, own: &[Choice]) -> bool {
+    /// Whether `edit` breaks no choice other than the `allowed` ones (an edit's own: [`Edit::choices`]). An edit
+    /// that changes nothing breaks nothing.
+    pub(super) fn keeps(&self, edit: &Edit, allowed: Vec<Choice>) -> bool {
         let mut edited = self.build.clone();
         self.engine.apply(&mut edited, edit);
-        &edited == self.build || self.walks(edit, &edited, own)
+        &edited == self.build || self.walks(edit, &edited, allowed)
     }
 
-    /// Whether the walk of `edited` (the Build with `edit` applied) fails no choice but the ones `edit` sets and
-    /// `own`, even when `edit` changes nothing: then it's the Build's own walk.
-    fn walks(&self, edit: &Edit, edited: &Build, own: &[Choice]) -> bool {
+    /// Whether the walk of `edited` (the Build with `edit` applied) fails no choice but the `allowed` ones, even
+    /// when `edit` changes nothing: then it's the Build's own walk.
+    fn walks(&self, edit: &Edit, edited: &Build, allowed: Vec<Choice>) -> bool {
         let first = self.engine.first_level(self.build, edit);
-        let mut allowed = edit.choices();
-        allowed.extend_from_slice(own);
         match first.checked_sub(1) {
             None => Walker::new(self.engine, edited, None)
                 .without_sheet()
@@ -321,7 +334,7 @@ impl<'a> Recheck<'a> {
 
     /// A picker's status for an option open at its point of the Build: `Ok`, or [`Issue::BreaksLater`].
     pub(super) fn later(&self, edit: &Edit) -> Result<(), Issue> {
-        status(self.keeps(edit, &[]))
+        status(self.keeps(edit, edit.choices()))
     }
 
     /// [`later`](Self::later) for an edit's walk even when the edit changes nothing (the walk of the Build itself,
@@ -330,7 +343,7 @@ impl<'a> Recheck<'a> {
     pub(super) fn later_walked(&self, edit: &Edit) -> Result<(), Issue> {
         let mut edited = self.build.clone();
         self.engine.apply(&mut edited, edit);
-        status(self.walks(edit, &edited, &[]))
+        status(self.walks(edit, &edited, edit.choices()))
     }
 }
 

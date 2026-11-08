@@ -952,7 +952,8 @@ fn RacePicker() -> impl IntoView {
 }
 
 /// The alignment wheel, laid out as the game draws it: Neutral Good at the top, the other eight around it, True
-/// Neutral in the middle; good tinted blue, neutral beige, evil red. Locked alignments are greyed out.
+/// Neutral in the middle; good tinted blue, neutral beige, evil red. Locked alignments are greyed out: all nine until
+/// a faith is chosen, then those the deity doesn't allow (`Engine::faith_fits`).
 #[component]
 fn AlignmentPicker() -> impl IntoView {
     let planner = use_planner();
@@ -975,7 +976,7 @@ fn AlignmentPicker() -> impl IntoView {
     let edits: Vec<Edit> = starts.iter().cloned().map(Edit::Start).collect();
     let allows = planner.allows_many(&edits);
     let engine = planner.engine();
-    // The deity's limit, said once under the wheel when it locks an alignment.
+    // Why the wheel locks: "Choose a deity or atheism first", or the deity's limit; said once under the wheel.
     let misfit = starts
         .iter()
         .find_map(|start| engine.faith_fits(start).err())

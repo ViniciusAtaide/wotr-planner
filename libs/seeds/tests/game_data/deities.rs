@@ -352,19 +352,19 @@ fn a_cleric_with_no_deity_is_locked() {
             "{class} {archetype:?}"
         );
     }
-    // A hunter or a slayer without those archetypes needs none.
+    // A hunter or a slayer without those archetypes needs none: an atheist (the alignment needs a faith, ticket 94).
     assert!(possible(&follower(
         "hunter",
         None,
         1,
-        None,
+        Some(Faith::Atheism),
         Alignment::TrueNeutral
     )));
     assert!(possible(&follower(
         "slayer",
         None,
         1,
-        None,
+        Some(Faith::Atheism),
         Alignment::TrueNeutral
     )));
 }
@@ -606,11 +606,12 @@ fn the_druids_domain_impossible_domain_and_pentamic_faith_ignore_the_deity() {
     let engine = engine();
     // A druid's and a Blight Druid's domain slots offer the same with a deity and without.
     for archetype in [None, Some("druid/blight-druid")] {
+        // Without a deity: an atheist (the alignment needs a faith, ticket 94).
         let without = with_selections_filled(follower(
             "druid",
             archetype,
             3,
-            None,
+            Some(Faith::Atheism),
             Alignment::TrueNeutral,
         ));
         let mut with = without.clone();

@@ -110,13 +110,14 @@ pub fn point_buy(values: [u8; 6]) -> PointBuy {
     PointBuy::try_from(scores(values)).expect("a point buy that fits")
 }
 
-/// A Build of the given race with Str 16, Dex 14, Con 12, Int 13, Wis 10, Cha 8 (21 of 25 points), true neutral,
-/// and one Level-up per class key.
+/// A Build of the given race with Str 16, Dex 14, Con 12, Int 13, Wis 10, Cha 8 (21 of 25 points), an atheist (the
+/// alignment needs a faith first) of true neutral, and one Level-up per class key.
 pub fn build(race: &str, classes: &[&str]) -> Build {
     let mut build = Build {
         start: BuildStart {
             race: Some(RaceKey::new(race)),
             alignment: Some(Alignment::TrueNeutral),
+            deity: Some(Faith::Atheism),
             ability_scores: point_buy([16, 14, 12, 13, 10, 8]),
             ..BuildStart::default()
         },

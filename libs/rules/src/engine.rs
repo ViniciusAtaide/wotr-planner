@@ -78,11 +78,15 @@ impl Engine {
         &self.catalog.data().deities
     }
 
-    /// Whether a Build start's deity allows its alignment: what the deity picker and the alignment wheel lock a
-    /// misfit with, since [`allows`](Self::allows) leaves an edit's own choices to its picker. A start without a
-    /// deity, or without an alignment yet, fits; so does one naming a deity the data lacks (a stale link, which
-    /// the sheet never holds).
+    /// Whether a Build start's faith allows its alignment: what the deity picker and the alignment wheel lock a
+    /// misfit with, since [`allows`](Self::allows) leaves an edit's own choices to its picker. The alignment comes
+    /// after the faith, so an alignment with no faith yet is [`Issue::NeedsFaith`]; one the deity doesn't allow is
+    /// [`Issue::DeityAlignment`]. A start without an alignment yet fits, and so does atheism or one naming a deity
+    /// the data lacks (a stale link, which the sheet never holds).
     pub fn faith_fits(&self, start: &BuildStart) -> Result<(), Issue> {
+        if start.deity.is_none() && start.alignment.is_some() {
+            return Err(Issue::NeedsFaith);
+        }
         let (Some(key), Some(alignment)) =
             (start.deity.as_ref().and_then(Faith::deity), start.alignment)
         else {

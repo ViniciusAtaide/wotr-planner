@@ -422,10 +422,14 @@ impl<'a> Walker<'a> {
     }
 
     /// The faith: a deity the data has, which allows the start's alignment (one not chosen yet fits any), or
-    /// atheism. A deity's domains are what deity-limited selections and `DeityOffers` look at.
+    /// atheism. The alignment comes after the faith, so an alignment with no faith fails. A deity's domains are what
+    /// deity-limited selections and `DeityOffers` look at.
     fn faith(&mut self) {
         let start = &self.build.start;
         self.state.faith = start.deity.clone();
+        if start.deity.is_none() && start.alignment.is_some() {
+            self.fail(Choice::Alignment);
+        }
         let Some(key) = start.deity.as_ref().and_then(Faith::deity) else {
             return;
         };

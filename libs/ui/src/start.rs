@@ -102,8 +102,9 @@ fn StartBody() -> AnyView {
             <div class="start-body">
                 {choice_row("Race", race, Target::Race)}
                 {chosen}
-                {choice_row("Alignment", alignment, Target::Alignment)}
+                // The faith before the alignment, which needs it (ticket 94).
                 {choice_row("Deity", deity, Target::Deity)}
+                {choice_row("Alignment", alignment, Target::Alignment)}
                 {choice_row("Background", background, Target::Background)}
                 {note.map(|note| view! { <p class="note">{note}</p> })}
                 <PointBuyRows current=build/>

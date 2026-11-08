@@ -13,7 +13,7 @@ hash of each key, not its text, which the current game data turns back into the 
 _Avoid_: Character sheet, save, saved plan
 
 **Build start**:
-The choices made before level 1: race (and subrace), alignment, **Faith**, **Background** and point-buy ability scores. A subrace's ability modifiers and feat slots replace its race's (a Dual Heritage half-elf has no Adaptability).
+The choices made before level 1: race (and subrace), **Faith**, alignment, **Background** and point-buy ability scores. The alignment comes after the faith: it can't be chosen while no faith is, and the faith can't be removed while an alignment is set. A subrace's ability modifiers and feat slots replace its race's (a Dual Heritage half-elf has no Adaptability).
 _Avoid_: Character creation, level 0
 
 **Deity**:
@@ -21,7 +21,7 @@ One of the 26 gods of the guide's deity table, which a Build start may follow. I
 _Avoid_: God, patron
 
 **Faith**:
-A Build start choice: a **Deity**, or atheism, which is a choice of its own (it allows every alignment; the Living Deity needs it) and not the same as no faith chosen yet. A cleric, inquisitor, warpriest, Divine Hunter or Deliverer needs a deity; the Mantis Zealot, Feral Champion and Hag of Gyronna need one named deity.
+A Build start choice: a **Deity**, or atheism, which is a choice of its own (it allows every alignment; the Living Deity needs it) and not the same as no faith chosen yet. It is chosen before the alignment, which needs one; a deity then allows only its alignments. A cleric, inquisitor, warpriest, Divine Hunter or Deliverer needs a deity; the Mantis Zealot, Feral Champion and Hag of Gyronna need one named deity.
 _Avoid_: Religion, belief
 
 **Background**:

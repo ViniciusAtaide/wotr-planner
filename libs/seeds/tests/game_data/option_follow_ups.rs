@@ -285,7 +285,7 @@ fn a_living_deitys_maneuver_mastery_and_second_mystery_count_arcanist_levels() {
 fn a_champion_of_the_faiths_alignment_blessing_is_his_own_alignment() {
     let champion = |alignment: rules::Alignment, blessing: &str| {
         let mut build = archetype_build("warpriest", "warpriest/champion-of-the-faith", 1);
-        build.start.alignment = Some(alignment);
+        align(&mut build, alignment);
         let slot = engine().evaluate(&build).levels[0]
             .slots
             .iter()
@@ -471,7 +471,7 @@ fn pentamic_hellknight() -> Build {
         "hellknight",
         "hellknight",
     ]);
-    build.start.alignment = Some(rules::Alignment::LawfulNeutral);
+    align(&mut build, rules::Alignment::LawfulNeutral);
     for (level, ranks) in build.levels.iter_mut().zip([
         [("knowledge-arcana", 1), ("persuasion", 1)],
         [("knowledge-arcana", 1), ("persuasion", 1)],
@@ -546,7 +546,7 @@ fn a_hellknight_who_becomes_a_signifer_gets_no_second_order() {
         0,
         "fighter/armiger/order/order-of-the-chain",
     );
-    hellknight.start.alignment = Some(rules::Alignment::LawfulNeutral);
+    align(&mut hellknight, rules::Alignment::LawfulNeutral);
     assert_eq!(order_slots(&hellknight, 8), 0);
     // Anyone holding no order picks one.
     let mut wizard = classes(&[
@@ -557,7 +557,7 @@ fn a_hellknight_who_becomes_a_signifer_gets_no_second_order() {
         "wizard",
         "hellknight-signifer",
     ]);
-    wizard.start.alignment = Some(rules::Alignment::LawfulNeutral);
+    align(&mut wizard, rules::Alignment::LawfulNeutral);
     assert_eq!(order_slots(&wizard, 6), 1);
 }
 

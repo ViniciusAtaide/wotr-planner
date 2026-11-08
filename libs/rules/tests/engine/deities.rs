@@ -13,10 +13,11 @@ fn deity(key: &str) -> Option<Faith> {
     Some(Faith::Deity(DeityKey::new(key)))
 }
 
-/// A lawful neutral human of `faith` taking `classes` (every deity of the world allows Lawful Neutral).
+/// A lawful neutral human of `faith` taking `classes` (every deity of the world allows Lawful Neutral). With no
+/// faith, no alignment either: the alignment needs a faith first (ticket 94).
 fn follower(faith: Option<Faith>, classes: &[&str]) -> Build {
     let mut build = build("human", classes);
-    build.start.alignment = Some(Alignment::LawfulNeutral);
+    build.start.alignment = faith.is_some().then_some(Alignment::LawfulNeutral);
     build.start.deity = faith;
     build
 }
@@ -118,8 +119,101 @@ fn the_start_pickers_lock_a_misfit_with_the_deitys_alignments() {
     );
     start.deity = Some(Faith::Atheism);
     assert_eq!(engine.faith_fits(&start), Ok(()));
-    start.deity = None;
+    start.alignment = None;
     assert_eq!(engine.faith_fits(&start), Ok(()));
+}
+
+// ---- the alignment after the faith (ticket 94) ------------------------------------------------------------------
+
+#[test]
+fn an_alignment_needs_a_faith_first() {
+    let engine = engine();
+    let mut build = follower(None, &["fighter"]);
+    assert!(engine.is_possible(&build), "neither chosen");
+    build.start.alignment = Some(Alignment::LawfulNeutral);
+    assert!(!engine.is_possible(&build));
+    build.start.deity = Some(Faith::Atheism);
+    assert!(engine.is_possible(&build));
+    build.start.deity = deity("balance");
+    assert!(engine.is_possible(&build));
+}
+
+#[test]
+fn the_alignment_wheel_is_locked_until_a_faith_is_chosen() {
+    let engine = engine();
+    let unfaithful = follower(None, &[]);
+    for alignment in Alignment::ALL {
+        let start = rules::BuildStart {
+            alignment: Some(alignment),
+            ..unfaithful.start.clone()
+        };
+        let locked = engine.faith_fits(&start).unwrap_err();
+        assert_eq!(locked, Issue::NeedsFaith, "{alignment:?}");
+        assert_eq!(text(&locked), "Choose a deity or atheism first");
+        // Atheism opens every alignment.
+        let atheist = rules::BuildStart {
+            deity: Some(Faith::Atheism),
+            ..start
+        };
+        assert_eq!(engine.faith_fits(&atheist), Ok(()), "{alignment:?}");
+    }
+}
+
+#[test]
+fn the_faith_comes_off_only_after_the_alignment() {
+    let engine = engine();
+    for faith in [deity("balance"), Some(Faith::Atheism)] {
+        let mut build = follower(faith.clone(), &["fighter"]);
+        assert!(
+            !engine.is_removable(&build, &rules::Choice::Deity),
+            "{faith:?}"
+        );
+        assert!(
+            engine.is_removable(&build, &rules::Choice::Alignment),
+            "{faith:?}"
+        );
+        build.start.alignment = None;
+        assert!(
+            engine.is_removable(&build, &rules::Choice::Deity),
+            "{faith:?}"
+        );
+    }
+}
+
+#[test]
+fn changing_the_deity_keeps_the_alignment_check() {
+    let engine = engine();
+    let build = follower(deity("balance"), &[]);
+    // Lawful Neutral: the Lawgiver allows it, and atheism allows all.
+    assert!(engine.allows(&build, &to_deity(&build, deity("lawgiver"))));
+    assert!(engine.allows(&build, &to_deity(&build, Some(Faith::Atheism))));
+    let mut chaotic = build.clone();
+    chaotic.start.alignment = Some(Alignment::ChaoticNeutral);
+    let start = to_deity(&chaotic, deity("lawgiver"));
+    let Edit::Start(start) = start else {
+        unreachable!()
+    };
+    assert_eq!(
+        engine.faith_fits(&start),
+        Err(Issue::DeityAlignment {
+            deity: DeityKey::new("lawgiver")
+        })
+    );
+}
+
+#[test]
+fn a_link_with_an_alignment_but_no_faith_is_stale() {
+    let engine = engine();
+    let mut unfaithful = follower(None, &["fighter"]);
+    unfaithful.start.alignment = Some(Alignment::LawfulNeutral);
+    let link = encode_build(&unfaithful);
+    let keys = rules::LinkKeys::new(&world().canonical());
+    assert_eq!(
+        rules::decode_build(&link, &keys).as_ref(),
+        Ok(&unfaithful),
+        "it still decodes"
+    );
+    assert!(engine.open_link(&link).is_err());
 }
 
 #[test]
@@ -405,6 +499,8 @@ fn a_pick_needing_a_favoured_weapon_locks_the_deity() {
 fn the_deity_comes_off_once_nothing_needs_it() {
     let engine = engine();
     let mut devout = follower(deity("fist"), &["seeker"]);
+    // No alignment, which would need the faith too (ticket 94).
+    devout.start.alignment = None;
     assert!(engine.is_removable(&devout, &rules::Choice::Deity));
     devout
         .picks
