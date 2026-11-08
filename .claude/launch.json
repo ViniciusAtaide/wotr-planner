@@ -4,8 +4,9 @@
     {
       "name": "wotr-planner",
       "runtimeExecutable": "cargo",
-      "runtimeArgs": ["leptos", "serve"],
-      "port": 3900
+      "runtimeArgs": ["leptos", "watch"],
+      "port": 3900,
+      "autoPort": false
     }
   ]
 }

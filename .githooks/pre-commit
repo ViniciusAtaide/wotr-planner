@@ -11,4 +11,7 @@ cargo fmt --all --check || {
     echo "pre-commit: run cargo fmt --all" >&2
     exit 1
 }
-cargo clippy -q --workspace --all-targets -- -D warnings
+# Not `-q`: cargo's progress shows why a commit is slow, if one is. Warm, this takes about a second and prints one
+# "Finished" line; a slow run shows its "Compiling …" lines, or "Blocking waiting for file lock" while another cargo
+# (a running `cargo leptos watch`, say) holds the build directory.
+cargo clippy --workspace --all-targets -- -D warnings
