@@ -1,0 +1,112 @@
+//! The MCP server: its tools and its instructions.
+
+use rmcp::handler::server::router::tool::ToolRouter;
+use rmcp::handler::server::wrapper::Parameters;
+use rmcp::model::{Implementation, ServerCapabilities, ServerConfig};
+use rmcp::{Json, ServerHandler, tool, tool_handler, tool_router};
+
+use crate::describe::describe;
+use crate::planner::Planner;
+use crate::shapes::{DescribeArgs, Item, SearchArgs, SearchResult};
+
+/// What every client is told on connecting: the workflow and the honesty boundary (plan, ticket 104, section 1).
+/// A first version; ticket 110 finishes it.
+pub const INSTRUCTIONS: &str = "\
+wotr-planner answers from the rules engine and game data of a Pathfinder: Wrath of the Righteous build planner.
+
+Workflow: resolve every name the user gives with `search` (it matches names, keys and initials: \"BFT\" finds the \
+Brown-Fur Transmuter), and ask the user whenever a name matches more than one item. Use `describe` for an item's \
+details: a class's or archetype's rows by level, a Mythic path's features by rank.
+
+What you may state as fact: what these tools return from the planner's data (names, keys, prerequisites, rows by \
+level, features by rank) and, once the building tools exist, that every choice in a Build is legal under the \
+planner's rules at the level it is taken, and the numbers its sheet lists.
+
+What you must label as your own game knowledge, outside the planner's checks: what a feature, feat or spell does; \
+spell availability and durations; caster level arithmetic; item and buff effects; summons' stats; and which choice \
+is better. The data holds names, prerequisites and guide links, and almost no descriptions.
+
+Guide links (`guide_url`) are for the user to read: never fetch them yourself.";
+
+/// The server: the loaded data and the tools over it. Each tool call runs on a blocking thread.
+#[derive(Clone, Debug)]
+pub struct Server {
+    planner: Planner,
+    tool_router: ToolRouter<Self>,
+}
+
+impl Server {
+    pub fn new(planner: Planner) -> Self {
+        Self {
+            planner,
+            tool_router: Self::tool_router(),
+        }
+    }
+
+    /// Runs `work` on a blocking thread with a copy of the planner.
+    async fn blocking<T: Send + 'static>(
+        &self,
+        work: impl FnOnce(&Planner) -> Result<T, String> + Send + 'static,
+    ) -> Result<T, String> {
+        let planner = self.planner.clone();
+        tokio::task::spawn_blocking(move || work(&planner))
+            .await
+            .map_err(|error| format!("the tool failed: {error}"))?
+    }
+}
+
+#[tool_router]
+impl Server {
+    #[tool(
+        description = "Find game items by name, key or initials (\"BFT\" finds the Brown-Fur Transmuter). Kinds: \
+            class, archetype, path (Mythic path), feat, mythic_ability, mythic_feat, option (an option of a Feature \
+            selection: an arcanist exploit, a rogue talent, a bloodline, a Lich power), race, deity, background. \
+            Each match has the key `describe` takes, its parent (an archetype's class, an option's selection), its \
+            category, its prerequisite in the planner's words, and a guide link for the user (never fetch it). Best \
+            match first.",
+        annotations(read_only_hint = true, open_world_hint = false)
+    )]
+    async fn search(
+        &self,
+        Parameters(args): Parameters<SearchArgs>,
+    ) -> Result<Json<SearchResult>, String> {
+        self.blocking(move |planner| {
+            let matches = planner
+                .index
+                .search(&args.query, args.kinds.as_deref(), args.limit)
+                .ok_or("The query is empty: give a name, a key or initials.")?;
+            Ok(Json(SearchResult { matches }))
+        })
+        .await
+    }
+
+    #[tool(
+        description = "One item by kind and key (both from `search`): its name, parent, category, prerequisite, \
+            guide link, and what its kind has. A class or archetype: its rows by class level (BAB, saves, spell \
+            levels, features, granted feats, feat slots, Feature selections; an archetype's rows merged over its \
+            class's), plus its archetypes and its selections with their options. A Mythic path: its features, feat \
+            slots and selections by Mythic rank, and its selections with their options. An option: its rows by \
+            level, when it has any. A deity: alignments and domains. Facts from the planner's data; what a feature \
+            does is not in it.",
+        annotations(read_only_hint = true, open_world_hint = false)
+    )]
+    async fn describe(
+        &self,
+        Parameters(args): Parameters<DescribeArgs>,
+    ) -> Result<Json<Item>, String> {
+        self.blocking(move |planner| describe(planner, args.kind, args.key.trim()).map(Json))
+            .await
+    }
+}
+
+#[tool_handler(router = self.tool_router)]
+impl ServerHandler for Server {
+    fn get_info(&self) -> ServerConfig {
+        ServerConfig::new(ServerCapabilities::builder().enable_tools().build())
+            .with_server_info(
+                Implementation::new("wotr-planner", env!("CARGO_PKG_VERSION"))
+                    .with_title("WotR Build Planner"),
+            )
+            .with_instructions(INSTRUCTIONS)
+    }
+}

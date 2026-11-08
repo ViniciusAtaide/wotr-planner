@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["libs/ui", "apps/frontend", "apps/backend", "libs/rules", "libs/seeds", "tools/proof"]
+members = ["libs/ui", "apps/frontend", "apps/backend", "libs/rules", "libs/seeds", "tools/proof", "apps/mcp"]
 
 [workspace.package]
 edition = "2024"
@@ -21,6 +21,8 @@ sha2 = "0.11.1"
 # cargo-leptos downloads a wasm-bindgen CLI matching this exact version; keep it pinned.
 wasm-bindgen = "=0.2.130"
 console_error_panic_hook = "0.1.7"
+# The official MCP SDK, for apps/mcp: stdio only, so no default features (each user names its own).
+rmcp = { version = "3.9.0", default-features = false }
 rules = { path = "libs/rules" }
 seeds = { path = "libs/seeds" }
 ui = { path = "libs/ui" }

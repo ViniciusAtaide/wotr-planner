@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "wotr-planner": {
+      "type": "stdio",
+      "command": "cargo",
+      "args": ["run", "-q", "-p", "mcp", "--release", "--"],
+      "env": {
+        "SQLX_OFFLINE": "true"
+      }
+    }
+  }
+}
