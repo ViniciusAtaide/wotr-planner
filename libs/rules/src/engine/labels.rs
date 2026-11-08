@@ -336,20 +336,10 @@ impl Engine {
     /// name when nothing sets the row apart.
     pub fn first_ascension_name(&self, key: &MythicPathKey) -> String {
         let row_names = |path: &MythicPathKey| -> Vec<&str> {
-            self.catalog
-                .path(path)
-                .and_then(|path| {
-                    path.ranks
-                        .iter()
-                        .find(|row| row.rank == super::FIRST_ASCENSION_RANK)
-                })
-                .map(|row| {
-                    row.features
-                        .iter()
-                        .map(|feature| self.feature_name(feature))
-                        .collect()
-                })
-                .unwrap_or_default()
+            self.path_rank_features(path, super::FIRST_ASCENSION_RANK)
+                .into_iter()
+                .map(|feature| self.feature_name(feature))
+                .collect()
         };
         let options: Vec<Vec<&str>> = self
             .catalog
@@ -388,7 +378,7 @@ impl Engine {
     pub fn path_rank_features(&self, key: &MythicPathKey, rank: u8) -> Vec<&FeatureKey> {
         self.catalog
             .path(key)
-            .and_then(|path| path.ranks.iter().find(|row| row.rank == rank))
+            .and_then(|path| path.row(rank))
             .map(|row| row.features.iter().collect())
             .unwrap_or_default()
     }

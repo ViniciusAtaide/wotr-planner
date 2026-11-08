@@ -1,6 +1,6 @@
 //! The first ascension, the path and the Path switch at their ranks: which ones the Build takes, the character levels
-//! of the Mythic ranks, and what [`Engine::apply`] drops once a rank isn't reached. What a switch takes away during
-//! the walk is the walker's (`walk::ascension`).
+//! of the Mythic ranks, and what [`Engine::apply`] drops once a rank isn't reached. What a switch takes away is its
+//! rule's ([`PathSwitch::drops`]); the walker (`walk::ascension`) takes it away during the walk.
 
 use super::{Engine, FIRST_ASCENSION_RANK, PATH_CHOICE_RANK, PATH_SWITCH_RANK};
 use crate::build::{Build, Edit};
@@ -18,13 +18,9 @@ impl Engine {
     /// A path the first ascension can name: one that can be chosen at MR 3 and has an MR 1 row (its path-linked
     /// ability).
     pub(super) fn first_ascension_option(&self, key: &MythicPathKey) -> Option<&MythicPath> {
-        self.catalog.path(key).filter(|path| {
-            path.switch.is_none()
-                && path
-                    .ranks
-                    .iter()
-                    .any(|row| row.rank == FIRST_ASCENSION_RANK)
-        })
+        self.catalog
+            .path(key)
+            .filter(|path| path.switch.is_none() && path.row(FIRST_ASCENSION_RANK).is_some())
     }
 
     /// The path whose MR 1 and 2 rows the Build takes: its first ascension's, when it can name one, or without one
@@ -72,13 +68,13 @@ impl Engine {
         let levels = build.levels.len();
         let ascensions_end = self
             .chosen_switch(build)
-            .is_some_and(|(_, switch)| !switch.further_ascensions);
+            .and_then(|(_, switch)| switch.ends_ascensions_at());
         build
             .picks
             .retain(|slot, _| match (slot.level(), slot.rank()) {
                 (Some(level), _) => usize::from(level) <= levels,
                 (None, Some(rank)) => {
-                    !(ascensions_end && rank >= PATH_SWITCH_RANK)
+                    !ascensions_end.is_some_and(|end| rank >= end)
                         && self
                             .catalog
                             .ascension_level(rank)

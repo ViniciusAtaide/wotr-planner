@@ -1396,6 +1396,13 @@ pub struct MythicPath {
     pub switch: Option<PathSwitch>,
 }
 
+impl MythicPath {
+    /// The path's row at a Mythic rank; `None` at a rank its table skips.
+    pub fn row(&self, rank: u8) -> Option<&MythicRankRow> {
+        self.ranks.iter().find(|row| row.rank == rank)
+    }
+}
+
 /// What one Mythic rank of a path gives beyond the general mythic picks.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -1444,6 +1451,41 @@ impl PathSwitch {
     /// The Mythic rank right after the switch: one above the general picks kept (Legend: 3).
     pub fn rank_after_switch(&self) -> u8 {
         self.kept_through_rank.saturating_add(1)
+    }
+
+    /// The Mythic rank from which a switch without further ascensions (Legend) holds no more ranks: the switch rank,
+    /// so the ranks from it on are never reached. `None` when the ascensions go on.
+    pub fn ends_ascensions_at(&self) -> Option<u8> {
+        (!self.further_ascensions).then_some(crate::PATH_SWITCH_RANK)
+    }
+
+    /// Whether the switch keeps a grant of a rank before it by its rank alone: a general pick (`from_path: false`)
+    /// up to [`kept_through_rank`](Self::kept_through_rank), the old path's own grant up to
+    /// [`path_kept_through_rank`](Self::path_kept_through_rank). A grant it drops by name goes anyway
+    /// ([`drops`](Self::drops)).
+    pub fn keeps(&self, rank: u8, from_path: bool) -> bool {
+        let kept_through = if from_path {
+            self.path_kept_through_rank
+        } else {
+            self.kept_through_rank
+        };
+        rank <= kept_through
+    }
+
+    /// Whether the switch takes a grant of a rank before it away: a general pick past the general cut-off, the old
+    /// path's grant (`from_path`) past the path cut-off ([`keeps`](Self::keeps)), or the old path's `feature` or a
+    /// pick in its `selection` that the switch drops by name whatever its rank.
+    pub fn drops(
+        &self,
+        rank: u8,
+        from_path: bool,
+        feature: Option<&FeatureKey>,
+        selection: Option<&FeatureSelectionKey>,
+    ) -> bool {
+        !self.keeps(rank, from_path)
+            || (from_path
+                && (feature.is_some_and(|key| self.dropped_features.contains(key))
+                    || selection.is_some_and(|key| self.dropped_selections.contains(key))))
     }
 
     /// Whether a Build on `path` may take this switch.

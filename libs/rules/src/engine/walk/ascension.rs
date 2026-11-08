@@ -3,27 +3,20 @@
 
 use std::collections::BTreeSet;
 
-use super::{GrantSource, Held, Holding, RankGrant, Walker};
+use super::{GrantSource, Held, Holding, Walker};
 use crate::build::{Pick, SlotId};
 use crate::engine::{
     MythicPickKind, PATH_CHOICE_RANK, PATH_SWITCH_RANK, RankStatus, SlotKind, mythic_pick_kind,
 };
 use crate::game_data::{FeatSlot, MythicExtraPick, MythicPath, PathSwitch};
-use crate::keys::MythicAbilityKey;
+use crate::keys::{FeatureKey, MythicAbilityKey};
 
-/// Whether a Path switch takes a grant away: a general pick past the general cut-off, the old path's grant past
-/// the path cut-off, or one the switch drops by name whatever its rank.
-fn switch_drops(switch: &PathSwitch, grant: &RankGrant) -> bool {
-    let source = &grant.source;
-    if !source.from_path {
-        return source.rank > switch.kept_through_rank;
+impl GrantSource {
+    /// Whether a Path switch takes away what this source granted ([`PathSwitch::drops`]); `feature` when the grant
+    /// is one.
+    fn dropped_by(&self, switch: &PathSwitch, feature: Option<&FeatureKey>) -> bool {
+        switch.drops(self.rank, self.from_path, feature, self.selection.as_ref())
     }
-    source.rank > switch.path_kept_through_rank
-        || matches!(&grant.item, Held::Feature(key) if switch.dropped_features.contains(key))
-        || source
-            .selection
-            .as_ref()
-            .is_some_and(|selection| switch.dropped_selections.contains(selection))
 }
 
 impl<'a> Walker<'a> {
@@ -117,7 +110,7 @@ impl<'a> Walker<'a> {
                 .as_ref()
                 .and_then(|key| catalog.path(key))
         };
-        let row = path.and_then(|path| path.ranks.iter().find(|row| row.rank == rank));
+        let row = path.and_then(|path| path.row(rank));
         if let Some(row) = row {
             for feature in &row.features {
                 self.hold(Held::Feature(feature.clone()), Some(GrantSource::row(rank)));
@@ -170,7 +163,13 @@ impl<'a> Walker<'a> {
     fn switch_path(&mut self, rank: u8, path: &'a MythicPath, switch: &'a PathSwitch) -> bool {
         let (dropped, kept): (Vec<_>, Vec<_>) = std::mem::take(&mut self.rank_grants)
             .into_iter()
-            .partition(|grant| switch_drops(switch, grant));
+            .partition(|grant| {
+                let feature = match &grant.item {
+                    Held::Feature(key) => Some(key),
+                    _ => None,
+                };
+                grant.source.dropped_by(switch, feature)
+            });
         self.rank_grants = kept;
         for grant in &dropped {
             self.release(&grant.item);
@@ -179,18 +178,10 @@ impl<'a> Walker<'a> {
         let (gone, holdings): (Vec<Holding>, Vec<Holding>) = std::mem::take(&mut self.holdings)
             .into_iter()
             .partition(|holding| {
-                holding.source.as_ref().is_some_and(|source| {
-                    switch_drops(
-                        switch,
-                        &RankGrant {
-                            source: source.clone(),
-                            item: Held::SelectionOption(
-                                holding.option.clone(),
-                                holding.selection.clone(),
-                            ),
-                        },
-                    )
-                })
+                holding
+                    .source
+                    .as_ref()
+                    .is_some_and(|source| source.dropped_by(switch, None))
             });
         self.holdings = holdings;
         for holding in gone {
@@ -201,8 +192,8 @@ impl<'a> Walker<'a> {
             if sheet.rank >= rank || sheet.status != RankStatus::Reached {
                 continue;
             }
-            let general_lost = sheet.rank > switch.kept_through_rank;
-            let path_lost = sheet.rank > switch.path_kept_through_rank;
+            let general_lost = !switch.keeps(sheet.rank, false);
+            let path_lost = !switch.keeps(sheet.rank, true);
             let named_lost = dropped
                 .iter()
                 .any(|grant| grant.source.rank == sheet.rank && grant.source.from_path);
@@ -234,12 +225,12 @@ impl<'a> Walker<'a> {
         if let Some(cap) = switch.level_cap {
             self.level_cap = cap;
         }
-        if switch.further_ascensions {
-            false
-        } else {
+        if switch.ends_ascensions_at().is_some_and(|end| rank >= end) {
             self.state.mythic_rank = switch.rank_after_switch();
             self.ascensions_over = true;
             true
+        } else {
+            false
         }
     }
 }

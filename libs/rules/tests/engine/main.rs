@@ -42,4 +42,5 @@ mod slot_entries;
 mod slots;
 mod stale_links;
 mod start_pickers;
+mod switch_rules;
 mod withdrawals;
