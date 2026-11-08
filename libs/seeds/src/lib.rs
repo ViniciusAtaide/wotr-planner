@@ -99,8 +99,8 @@ pub fn game_data_dir() -> PathBuf {
 }
 
 /// Reads the data files under `dir` and runs [`rules::GameData::check`] on them, without a database.
-/// Returns the data when it has no problems. References to keys that don't exist are left to the
-/// database's foreign keys, so only [`seed`] catches those.
+/// Returns the data when it has no problems, references to keys that don't exist included: the check catches
+/// those before [`seed`]'s foreign keys, which stay as a backstop.
 pub fn check_game_data_files(dir: &Path) -> Result<rules::GameData, Error> {
     let data = read_game_data_files(dir)?;
     let problems = data.check();
@@ -150,7 +150,8 @@ pub enum Error {
     Files(FilesError),
     /// The data fails [`rules::GameData::check`]; nothing was written.
     Invalid(Vec<DataProblem>),
-    /// The data names keys it doesn't have, every one the foreign keys catch; nothing was written.
+    /// The data names keys it doesn't have, every one the foreign keys catch, past
+    /// [`check`](rules::GameData::check) (a backstop: the check names them first); nothing was written.
     MissingReferences(Vec<MissingReference>),
     /// The database was built from another migration than this build's: reseed.
     OtherMigration,

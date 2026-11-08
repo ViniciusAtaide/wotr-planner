@@ -22,16 +22,22 @@ use crate::columns::{
 };
 use crate::{Error, MIGRATOR, prerequisites};
 
-/// Checks `data` ([`GameData::check`]), then builds a new database next to `database` (its name plus `.new`):
-/// runs the migration, loads `data` and records `hash` as the data the tables came from, in one transaction
-/// that commits only when no foreign key fails (`PRAGMA foreign_key_check`, every failure reported), and
-/// renames the new file over `database`. Either all of it happens or none of it does: data with problems
-/// writes nothing, and the old database stays as it was. A running server keeps reading the file it opened.
+/// Checks `data` ([`GameData::check`], references to missing keys included), then builds a new database next to
+/// `database` (its name plus `.new`): runs the migration, loads `data` and records `hash` as the data the tables
+/// came from, in one transaction that commits only when no foreign key fails (`PRAGMA foreign_key_check`, every
+/// failure reported: a backstop behind the check's references), and renames the new file over `database`. Either
+/// all of it happens or none of it does: data with problems writes nothing, and the old database stays as it was.
+/// A running server keeps reading the file it opened.
 pub async fn replace_game_data(database: &Path, data: &GameData, hash: &str) -> Result<(), Error> {
     let problems = data.check();
     if !problems.is_empty() {
         return Err(Error::Invalid(problems));
     }
+    replace_unchecked(database, data, hash).await
+}
+
+/// [`replace_game_data`] without the data check: only the foreign keys stand between `data` and the database.
+async fn replace_unchecked(database: &Path, data: &GameData, hash: &str) -> Result<(), Error> {
     let mut name = database.as_os_str().to_owned();
     name.push(".new");
     let new = PathBuf::from(name);
@@ -1227,4 +1233,71 @@ async fn insert_feat_slots(
         .await?;
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use rules::{FeatKey, FeatureSelectionKey, Prerequisite};
+
+    use super::*;
+
+    /// The foreign keys behind the data check name every key the data lacks, not just that one is missing, and the
+    /// new file the seed was building is gone. Reached here past the check, which names them first.
+    #[tokio::test]
+    async fn the_foreign_key_backstop_names_every_missing_key_and_leaves_no_new_file() {
+        let fixture = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/game-data");
+        let mut data = crate::read_game_data_files(&fixture).unwrap();
+        data.feats[0].prerequisite = Some(Prerequisite::Feat(FeatKey::new("no-such-feat")));
+        data.feats[1]
+            .extra_pick_of
+            .insert(FeatureSelectionKey::new("rogue/no-such-selection"));
+        let dir = tempfile::tempdir().unwrap();
+        let database = dir.path().join("game-data.db");
+
+        let error = replace_unchecked(&database, &data, &"0".repeat(64))
+            .await
+            .unwrap_err();
+
+        let Error::MissingReferences(missing) = &error else {
+            panic!("{error}");
+        };
+        let mut named: Vec<_> = missing
+            .iter()
+            .map(|reference| {
+                (
+                    reference.table.as_str(),
+                    reference.columns.clone(),
+                    reference.parent.as_str(),
+                )
+            })
+            .collect();
+        named.sort();
+        named.dedup();
+        assert_eq!(
+            named,
+            [
+                (
+                    "feat_extra_pick",
+                    vec![(
+                        "selection_key".to_owned(),
+                        "'rogue/no-such-selection'".to_owned()
+                    )],
+                    "feature_selection"
+                ),
+                (
+                    "prerequisite_node",
+                    vec![("feat_key".to_owned(), "'no-such-feat'".to_owned())],
+                    "feat"
+                ),
+            ]
+        );
+        assert!(
+            error
+                .to_string()
+                .contains("feat_key 'no-such-feat' is not in feat key"),
+            "{error}"
+        );
+        assert!(!database.exists());
+        assert!(!database.with_extension("db.new").exists());
+    }
 }

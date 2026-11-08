@@ -24,6 +24,14 @@ fn class_mut<'a>(data: &'a mut GameData, key: &str) -> &'a mut rules::Class {
         .unwrap()
 }
 
+/// [`issues`] but the unknown keys: for a test that renames a key, which leaves its old key named elsewhere.
+fn issues_but_unknown_keys(data: &GameData) -> Vec<(DataAt, DataIssue)> {
+    issues(data)
+        .into_iter()
+        .filter(|(_, issue)| !matches!(issue, DataIssue::UnknownKey(_)))
+        .collect()
+}
+
 fn sorted(mut issues: Vec<(DataAt, DataIssue)>) -> Vec<(DataAt, DataIssue)> {
     issues.sort();
     issues
@@ -350,7 +358,7 @@ fn owned_keys_start_with_their_owners_key() {
         }
     }
     assert_eq!(
-        issues(&data),
+        issues_but_unknown_keys(&data),
         [
             (
                 DataAt::Feature(FeatureKey::new("fighter/stray")),
@@ -444,7 +452,7 @@ fn a_selection_options_key_starts_with_its_selection_key() {
     // Sharing only the text before the `/` isn't enough.
     talents.options[1].key = SelectionOptionKey::new("rogue/rogue-talents-x");
     assert_eq!(
-        issues(&data),
+        issues_but_unknown_keys(&data),
         [
             (
                 DataAt::SelectionOption(SelectionOptionKey::new("fighter/stray")),
@@ -477,7 +485,7 @@ fn a_selection_shares_only_other_selections_options() {
         .insert(SelectionOptionKey::new("slayer/slayer-talents-x/other"));
     let at = DataAt::FeatureSelection(FeatureSelectionKey::new("slayer/slayer-talents"));
     assert_eq!(
-        issues(&data),
+        issues_but_unknown_keys(&data),
         [
             (
                 at.clone(),
@@ -496,7 +504,12 @@ fn a_selection_shares_only_other_selections_options() {
 #[test]
 fn ranks_and_levels_stay_in_range() {
     let mut data = world();
-    data.progression.mythic_ascensions[9].rank = 11;
+    data.progression
+        .mythic_ascensions
+        .push(rules::MythicAscension {
+            rank: 11,
+            character_level: 20,
+        });
     data.progression.mythic_ascensions[0].character_level = 41;
     let legend = data
         .mythic_paths
@@ -1470,5 +1483,260 @@ fn a_favoured_weapon_feature_is_one_a_class_row_grants() {
             DataAt::Feature(FeatureKey::new("priest/proficiencies")),
             DataIssue::FavouredWeaponsNotGranted,
         )]
+    );
+}
+
+fn unknown(at: DataAt, missing: DataAt) -> (DataAt, DataIssue) {
+    (at, DataIssue::UnknownKey(missing))
+}
+
+#[test]
+fn every_feat_named_is_one_the_data_has() {
+    let mut data = world();
+    let typo = || FeatKey::new("dodgee");
+    class_mut(&mut data, "monk").feat_lists[0]
+        .feats
+        .insert(typo());
+    class_mut(&mut data, "fighter").levels[0]
+        .feats
+        .insert(typo());
+    data.backgrounds[0].feats.insert(typo());
+    rogue_talent_mut(&mut data, "rogue/rogue-talents/fast-stealth").chosen_feat = Some(typo());
+    feat_mut(&mut data, "toughness").prerequisite = Some(Prerequisite::Feat(typo()));
+    assert_eq!(
+        issues(&data),
+        sorted(vec![
+            unknown(
+                DataAt::Background(rules::BackgroundKey::new("shackles-corsair")),
+                at_feat("dodgee")
+            ),
+            unknown(at_class("fighter"), at_feat("dodgee")),
+            unknown(at_feat("toughness"), at_feat("dodgee")),
+            unknown(
+                DataAt::FeatList(FeatListKey::new("monk/bonus-feats")),
+                at_feat("dodgee")
+            ),
+            unknown(
+                at_option("rogue/rogue-talents/fast-stealth"),
+                at_feat("dodgee")
+            ),
+        ])
+    );
+}
+
+fn path_mut<'a>(data: &'a mut GameData, key: &str) -> &'a mut rules::MythicPath {
+    data.mythic_paths
+        .iter_mut()
+        .find(|p| p.key.as_str() == key)
+        .unwrap()
+}
+
+#[test]
+fn every_feature_selection_and_option_named_is_one_the_data_has() {
+    let mut data = world();
+    let feature = || FeatureKey::new("fighter/bravry");
+    let selection = || FeatureSelectionKey::new("rogue/rogue-talent");
+    let option = || SelectionOptionKey::new("rogue/rogue-talents/fast-stelth");
+    class_mut(&mut data, "fighter").levels[0]
+        .features
+        .push(feature());
+    class_mut(&mut data, "fighter").levels[1]
+        .selections
+        .push(selection());
+    class_mut(&mut data, "slayer").selections[0]
+        .shared_options
+        .insert(option());
+    rogue_talent_mut(&mut data, "rogue/rogue-talents/resiliency").pool = Some(selection());
+    feat_mut(&mut data, "toughness")
+        .extra_pick_of
+        .insert(selection());
+    data.mythic_abilities[0].features.push(feature());
+    feat_mut(&mut data, "dodge").prerequisite = Some(Prerequisite::SelectionOption(option()));
+    path_mut(&mut data, "legend")
+        .switch
+        .as_mut()
+        .unwrap()
+        .dropped_features
+        .insert(feature());
+    let feature = || DataAt::Feature(feature());
+    let selection = || DataAt::FeatureSelection(selection());
+    assert_eq!(
+        issues(&data),
+        sorted(vec![
+            unknown(at_class("fighter"), feature()),
+            unknown(at_class("fighter"), selection()),
+            unknown(
+                DataAt::FeatureSelection(FeatureSelectionKey::new("slayer/slayer-talents")),
+                DataAt::SelectionOption(option())
+            ),
+            unknown(at_option("rogue/rogue-talents/resiliency"), selection()),
+            unknown(at_feat("toughness"), selection()),
+            unknown(
+                DataAt::MythicAbility(rules::MythicAbilityKey::new("mythic-charge")),
+                feature()
+            ),
+            unknown(at_feat("dodge"), DataAt::SelectionOption(option())),
+            unknown(at_path("legend"), feature()),
+        ])
+    );
+}
+
+#[test]
+fn every_class_race_deity_skill_weapon_and_mythic_pick_named_is_one_the_data_has() {
+    let mut data = world();
+    let skill = || rules::SkillKey::new("lore-nature");
+    let weapon = || rules::WeaponKey::new("longsord");
+    let fighter = class_mut(&mut data, "fighter");
+    fighter.counts_as.insert(rules::CountsAs {
+        class: ClassKey::new("fightr"),
+        toward: rules::CountsToward::FeatPrerequisites,
+    });
+    fighter.levels[0].feats_for.insert(rules::FeatValue {
+        feat: FeatKey::new("weapon-focus"),
+        value: rules::Parameter::Weapon(weapon()),
+    });
+    class_mut(&mut data, "wizard").class_skills.insert(skill());
+    class_mut(&mut data, "rogue").selections[0]
+        .option_levels
+        .insert(ClassKey::new("sorcerr"));
+    data.backgrounds[0].class_skills.insert(skill());
+    data.deities[0].favoured_weapons.insert(weapon());
+    feat_mut(&mut data, "toughness").prerequisite = Some(Prerequisite::All(vec![
+        Prerequisite::Archetype(ArchetypeKey::new("fighter/armigr")),
+        Prerequisite::Race(RaceKey::new("elff")),
+        Prerequisite::Deity(rules::DeityKey::new("erastill")),
+        Prerequisite::MythicFeat(rules::MythicFeatKey::new("extra-feet")),
+        Prerequisite::MythicAbility(rules::MythicAbilityKey::new("mythic-charg")),
+        Prerequisite::SkillRanks {
+            skill: skill(),
+            ranks: 1,
+        },
+    ]));
+    path_mut(&mut data, "legend")
+        .switch
+        .as_mut()
+        .unwrap()
+        .from
+        .insert(MythicPathKey::new("aeonn"));
+    let deity = data.deities[0].key.clone();
+    let toughness = || at_feat("toughness");
+    assert_eq!(
+        issues(&data),
+        sorted(vec![
+            unknown(
+                DataAt::Background(rules::BackgroundKey::new("shackles-corsair")),
+                DataAt::Skill(skill())
+            ),
+            unknown(at_class("fighter"), at_class("fightr")),
+            unknown(at_class("fighter"), DataAt::Weapon(weapon())),
+            unknown(at_class("wizard"), DataAt::Skill(skill())),
+            unknown(DataAt::Deity(deity), DataAt::Weapon(weapon())),
+            unknown(
+                DataAt::FeatureSelection(FeatureSelectionKey::new("rogue/rogue-talents")),
+                at_class("sorcerr")
+            ),
+            unknown(
+                toughness(),
+                DataAt::Archetype(ArchetypeKey::new("fighter/armigr"))
+            ),
+            unknown(toughness(), DataAt::Race(RaceKey::new("elff"))),
+            unknown(toughness(), DataAt::Deity(rules::DeityKey::new("erastill"))),
+            unknown(
+                toughness(),
+                DataAt::MythicFeat(rules::MythicFeatKey::new("extra-feet"))
+            ),
+            unknown(
+                toughness(),
+                DataAt::MythicAbility(rules::MythicAbilityKey::new("mythic-charg"))
+            ),
+            unknown(toughness(), DataAt::Skill(skill())),
+            unknown(at_path("legend"), at_path("aeonn")),
+        ])
+    );
+}
+
+#[test]
+fn every_feat_list_and_slot_selection_named_is_one_the_data_has() {
+    let mut data = world();
+    let list = || FeatListKey::new("sorcerer/bloodline-feets");
+    let fighter = class_mut(&mut data, "fighter");
+    fighter.levels[0]
+        .feat_slots
+        .push(FeatSlot::OneOf { list: list() });
+    fighter.levels[0].feat_slots.push(FeatSlot::OptionList {
+        selection: FeatureSelectionKey::new("sorcerer/bloodlin"),
+        at_level: None,
+        label: None,
+    });
+    let bloodline = class_mut(&mut data, "sorcerer")
+        .selections
+        .iter_mut()
+        .flat_map(|selection| &mut selection.options)
+        .find(|option| option.levels.iter().any(|row| row.feat_list.is_some()))
+        .unwrap();
+    let row = bloodline
+        .levels
+        .iter_mut()
+        .find(|row| row.feat_list.is_some())
+        .unwrap();
+    row.feat_list = Some(list());
+    let bloodline = DataAt::SelectionOption(bloodline.key.clone());
+    let issues = issues(&data);
+    assert_eq!(
+        issues
+            .into_iter()
+            .filter(|(_, issue)| !matches!(issue, DataIssue::UnusedFeatList))
+            .collect::<Vec<_>>(),
+        sorted(vec![
+            unknown(at_class("fighter"), DataAt::FeatList(list())),
+            unknown(
+                at_class("fighter"),
+                DataAt::FeatureSelection(FeatureSelectionKey::new("sorcerer/bloodlin"))
+            ),
+            unknown(bloodline, DataAt::FeatList(list())),
+        ])
+    );
+}
+
+/// A path's rank rows and its switch's kept ranks are ranks of the progression.
+#[test]
+fn every_mythic_rank_named_is_one_the_progression_has() {
+    let mut data = world();
+    data.progression
+        .mythic_ascensions
+        .retain(|ascension| ascension.rank != 7);
+    let named = issues(&data)
+        .into_iter()
+        .map(|(at, issue)| (at.to_string(), issue))
+        .collect::<Vec<_>>();
+    // The Trickster and the Aeon have an MR 7 row; Gold Dragon, Swarm and Devil keep picks through MR 7.
+    assert_eq!(
+        named,
+        [
+            ("mythic path aeon".into(), DataIssue::UnknownRank(7)),
+            ("mythic path devil".into(), DataIssue::UnknownRank(7)),
+            ("mythic path gold-dragon".into(), DataIssue::UnknownRank(7)),
+            (
+                "mythic path swarm-that-walks".into(),
+                DataIssue::UnknownRank(7)
+            ),
+            ("mythic path trickster".into(), DataIssue::UnknownRank(7)),
+        ]
+    );
+}
+
+#[test]
+fn an_unknown_key_reads_as_a_sentence_naming_both_kinds() {
+    let problem = |issue| DataProblem {
+        at: at_class("fighter"),
+        issue,
+    };
+    assert_eq!(
+        problem(DataIssue::UnknownKey(at_feat("dodgee"))).to_string(),
+        "class fighter: names feat dodgee, which the data doesn't have"
+    );
+    assert_eq!(
+        problem(DataIssue::UnknownRank(7)).to_string(),
+        "class fighter: names MR 7, which the progression doesn't have"
     );
 }

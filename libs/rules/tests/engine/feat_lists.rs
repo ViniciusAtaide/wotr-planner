@@ -49,19 +49,15 @@ fn a_list_that_checks_prerequisites_is_not_a_bonus_list() {
     assert!(!slot_ignores_prerequisites(&engine, &FeatSlot::General));
 }
 
+/// A slot naming a list the data lacks is a data mistake that `GameData::check` reports (ticket 98), so the engine
+/// takes the list to be there.
 #[test]
-fn a_slot_naming_a_list_the_data_lacks_takes_nothing() {
+#[should_panic(expected = "names a feat list of the data")]
+fn a_slot_naming_a_list_the_data_lacks_is_a_data_mistake() {
     let slot = FeatSlot::OneOf {
         list: feat_list("no-such-list"),
     };
-    let engine = engine();
-    assert!(engine.feat_list(&feat_list("no-such-list")).is_none());
-    assert!(
-        world()
-            .feats
-            .iter()
-            .all(|feat| !engine.slot_accepts(&slot, feat))
-    );
+    engine().slot_accepts(&slot, &world().feats[0]);
 }
 
 #[test]

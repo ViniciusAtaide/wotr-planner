@@ -1,7 +1,8 @@
 //! [`GameData::check`]: mistakes in the game data that its types can't rule out.
 //!
-//! The seed refuses data with problems, so the database and the engine can rely on these rules. References to
-//! missing keys are left to the database's foreign keys.
+//! The seed refuses data with problems, so the database and the engine can rely on these rules. Every key an entity
+//! names is one of an entity of its kind ([`DataIssue::UnknownKey`]), and every Mythic rank a path names is one of the
+//! progression's ([`DataIssue::UnknownRank`]); the database's foreign keys check the same again, as a backstop.
 //!
 //! Keys carry no type prefix, so two kinds may share one (a feat and a feature both `power-attack`): each kind is
 //! its own table, and a [`DataAt`] names the kind as well as the key.
@@ -39,8 +40,8 @@ pub struct DataProblem {
 
 /// Where a data problem is: an entity, by its kind and key, or the mythic ascension table.
 ///
-/// Uniqueness is per kind, so this is also what a duplicate key is a duplicate of. Base and prestige classes are
-/// one kind.
+/// Uniqueness is per kind, so this is also what a duplicate key is a duplicate of, and in an
+/// [`UnknownKey`](DataIssue::UnknownKey) it is the kind and the key named. Base and prestige classes are one kind.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum DataAt {
     /// The mythic ascension table (`progression.ron`).
@@ -60,6 +61,7 @@ pub enum DataAt {
     FeatList(FeatListKey),
     Background(BackgroundKey),
     Deity(DeityKey),
+    Weapon(WeaponKey),
 }
 
 impl DataAt {
@@ -82,6 +84,7 @@ impl DataAt {
             DataAt::FeatList(_) => "feat list",
             DataAt::Background(_) => "background",
             DataAt::Deity(_) => "deity",
+            DataAt::Weapon(_) => "weapon",
         }
     }
 
@@ -104,6 +107,7 @@ impl DataAt {
             DataAt::FeatList(key) => key.as_str(),
             DataAt::Background(key) => key.as_str(),
             DataAt::Deity(key) => key.as_str(),
+            DataAt::Weapon(key) => key.as_str(),
         })
     }
 }
@@ -124,6 +128,10 @@ impl fmt::Display for DataAt {
 pub enum DataIssue {
     /// Two entities of one kind share a key.
     DuplicateKey,
+    /// A key the entity names that no entity of that kind has: the kind and the missing key.
+    UnknownKey(DataAt),
+    /// A Mythic rank a path's rank row or its switch names that the progression doesn't have.
+    UnknownRank(u8),
     /// A class or archetype table doesn't run 1, 2, … n with none missing (or has no rows, or more than 40).
     LevelRowsNotContiguous,
     ArchetypeOnPrestigeClass,
@@ -262,6 +270,8 @@ impl fmt::Display for DataProblem {
         write!(f, "{}: ", self.at)?;
         match &self.issue {
             DataIssue::DuplicateKey => f.write_str("the key is used twice"),
+            DataIssue::UnknownKey(missing) => write!(f, "names {missing}, which the data doesn't have"),
+            DataIssue::UnknownRank(rank) => write!(f, "names MR {rank}, which the progression doesn't have"),
             DataIssue::LevelRowsNotContiguous => {
                 f.write_str("the level rows don't run 1, 2, 3, … with none missing")
             }
@@ -462,9 +472,13 @@ impl GameData {
         for skill in &self.skills {
             check.key(&DataAt::Skill(skill.key.clone()));
         }
+        for weapon in &self.weapons {
+            check.key(&DataAt::Weapon(weapon.key.clone()));
+        }
         for feat in &self.feats {
             let at = DataAt::Feat(feat.key.clone());
             check.key(&at);
+            check.names_each(&at, &feat.extra_pick_of, DataAt::FeatureSelection);
             check.repeat(&at, feat.repeat, feat.parameter.is_some());
             check.prerequisite(&at, feat.prerequisite.as_ref(), feat.parameter);
         }
@@ -477,6 +491,12 @@ impl GameData {
         for ability in &self.mythic_abilities {
             let at = DataAt::MythicAbility(ability.key.clone());
             check.key(&at);
+            check.grants(
+                &at,
+                &ability.features,
+                &BTreeSet::new(),
+                &ability.selections,
+            );
             check.prerequisite(&at, ability.prerequisite.as_ref(), None);
         }
         for feat in &self.mythic_feats {
@@ -497,6 +517,8 @@ impl GameData {
         for background in &self.backgrounds {
             let at = DataAt::Background(background.key.clone());
             check.key(&at);
+            check.names_each(&at, &background.class_skills, DataAt::Skill);
+            check.names_each(&at, &background.feats, DataAt::Feat);
             check.feats_for(&at, &background.feats_for);
         }
         for deity in &self.deities {
@@ -506,6 +528,7 @@ impl GameData {
         check.favoured_weapon_features(self);
         check.counts_toward_features(self);
         check.option_levels(self);
+        check.unknown_keys(self);
         for list in self.feat_lists() {
             if !check.named_lists.contains(&list.key) {
                 check.problem(
@@ -533,6 +556,11 @@ struct Checker {
     weapons: HashMap<WeaponKey, Option<WeaponProficiency>>,
     /// The domains: the options of the domain selection.
     domains: HashSet<SelectionOptionKey>,
+    /// Every key an entity names, with the entity: checked against [`keys`](Self::keys) once the walk has seen them
+    /// all.
+    named: BTreeSet<(DataAt, DataAt)>,
+    /// Every Mythic rank in range an entity names, with the entity: checked against the progression's.
+    named_ranks: BTreeSet<(DataAt, u8)>,
     problems: Vec<DataProblem>,
 }
 
@@ -556,11 +584,78 @@ impl Checker {
         }
     }
 
-    /// Notes the lists the slots name.
-    fn slots(&mut self, slots: &[FeatSlot]) {
+    /// Notes a key `at` names, which must be an entity's of its kind ([`DataIssue::UnknownKey`]).
+    fn names(&mut self, at: &DataAt, named: DataAt) {
+        self.named.insert((at.clone(), named));
+    }
+
+    /// [`names`](Self::names) for keys of one kind.
+    fn names_each<'k, K: Clone + 'k>(
+        &mut self,
+        at: &DataAt,
+        keys: impl IntoIterator<Item = &'k K>,
+        kind: fn(K) -> DataAt,
+    ) {
+        for key in keys {
+            self.names(at, kind(key.clone()));
+        }
+    }
+
+    /// Notes the key a value names: a skill or a weapon.
+    fn names_value(&mut self, at: &DataAt, value: &Parameter) {
+        match value {
+            Parameter::Skill(skill) => self.names(at, DataAt::Skill(skill.clone())),
+            Parameter::Weapon(weapon) => self.names(at, DataAt::Weapon(weapon.clone())),
+            Parameter::SpellSchool(_) | Parameter::Energy(_) | Parameter::ArmourType(_) => {}
+        }
+    }
+
+    /// What a level, rank or option row grants: features, feats and selections. Its slots and feats for one value
+    /// are checked with them ([`slots`](Self::slots), [`feats_for`](Self::feats_for)).
+    fn grants(
+        &mut self,
+        at: &DataAt,
+        features: &[FeatureKey],
+        feats: &BTreeSet<FeatKey>,
+        selections: &[FeatureSelectionKey],
+    ) {
+        self.names_each(at, features, DataAt::Feature);
+        self.names_each(at, feats, DataAt::Feat);
+        self.names_each(at, selections, DataAt::FeatureSelection);
+    }
+
+    /// The keys named that no entity of their kind has, and the Mythic ranks named that the progression lacks.
+    fn unknown_keys(&mut self, data: &GameData) {
+        for (at, named) in std::mem::take(&mut self.named) {
+            if !self.keys.contains(&named) {
+                self.problem(&at, DataIssue::UnknownKey(named));
+            }
+        }
+        let ranks: HashSet<u8> = data
+            .progression
+            .mythic_ascensions
+            .iter()
+            .map(|ascension| ascension.rank)
+            .collect();
+        for (at, rank) in std::mem::take(&mut self.named_ranks) {
+            if !ranks.contains(&rank) {
+                self.problem(&at, DataIssue::UnknownRank(rank));
+            }
+        }
+    }
+
+    /// Notes the lists and selections the slots name.
+    fn slots(&mut self, at: &DataAt, slots: &[FeatSlot]) {
         for slot in slots {
-            if let FeatSlot::OneOf { list } = slot {
-                self.named_lists.insert(list.clone());
+            match slot {
+                FeatSlot::OneOf { list } => {
+                    self.named_lists.insert(list.clone());
+                    self.names(at, DataAt::FeatList(list.clone()));
+                }
+                FeatSlot::OptionList { selection, .. } => {
+                    self.names(at, DataAt::FeatureSelection(selection.clone()));
+                }
+                FeatSlot::General | FeatSlot::CombatFeat | FeatSlot::Category(_) => {}
             }
         }
     }
@@ -568,7 +663,7 @@ impl Checker {
     /// Slots granted outside a class's level rows check prerequisites, unless the bonus list is the grantor's own
     /// (`owner`: a race's or a path's key).
     fn no_bonus_list(&mut self, at: &DataAt, slots: &[FeatSlot], owner: Option<&str>) {
-        self.slots(slots);
+        self.slots(at, slots);
         let misplaced = slots.iter().any(|slot| match slot {
             FeatSlot::OneOf { list } => {
                 self.lists.get(list).copied().unwrap_or(false)
@@ -597,6 +692,7 @@ impl Checker {
             }
             if let Some(row) = &feature.option_row {
                 self.level(&at, row.level);
+                self.names(&at, DataAt::FeatureSelection(row.selection.clone()));
             }
         }
         for selection in selections {
@@ -614,6 +710,7 @@ impl Checker {
             if !owned_by(list.key.as_str(), owner) {
                 self.problem(&at, DataIssue::KeyOutsideItsOwner);
             }
+            self.names_each(&at, &list.feats, DataAt::Feat);
             // A list of one parameterised feat is a bonus feat of the player's choosing: the pick names the value.
             let one_choice = list.feats.len() == 1
                 && list
@@ -667,7 +764,7 @@ impl Checker {
         }
     }
 
-    /// Whether a value is one a feat of `kind` is taken for. An unknown weapon is the foreign keys' business.
+    /// Whether a value is one a feat of `kind` is taken for. An unknown weapon fits: it's an unknown key of its own.
     fn fits(&self, kind: ParameterKind, value: &Parameter) -> bool {
         use ParameterKind as K;
         match (kind, value) {
@@ -695,6 +792,7 @@ impl Checker {
         let Some(prerequisite) = prerequisite else {
             return;
         };
+        self.condition_names(at, prerequisite);
         // A story condition always holds, so it may be required but not be one choice among several.
         if let Prerequisite::Any(children) | Prerequisite::AtLeast(_, children) = prerequisite
             && children
@@ -718,7 +816,7 @@ impl Checker {
                 children
             }
             Prerequisite::FeatFor { feat, value } => {
-                // An unknown feat is the foreign keys' business.
+                // An unknown feat is an unknown key of its own.
                 if let Some(kind) = self.parameters.get(feat).copied()
                     && !kind.is_some_and(|kind| self.fits(kind, value))
                 {
@@ -772,6 +870,48 @@ impl Checker {
         }
     }
 
+    /// The keys one condition names (a group's children are conditions of their own). A domain is checked as one
+    /// ([`DataIssue::NotADomain`]).
+    fn condition_names(&mut self, at: &DataAt, condition: &Prerequisite) {
+        use Prerequisite as P;
+        match condition {
+            P::Feat(feat) | P::FeatForSameValue(feat) => self.names(at, DataAt::Feat(feat.clone())),
+            P::FeatFor { feat, value } | P::FeatIfValue { value, feat } => {
+                self.names(at, DataAt::Feat(feat.clone()));
+                self.names_value(at, value);
+            }
+            P::MythicFeat(feat) => self.names(at, DataAt::MythicFeat(feat.clone())),
+            P::MythicAbility(ability) => self.names(at, DataAt::MythicAbility(ability.clone())),
+            P::ClassLevel { class, .. } => self.names(at, DataAt::Class(class.clone())),
+            P::Archetype(archetype) => self.names(at, DataAt::Archetype(archetype.clone())),
+            P::Feature { feature, .. } => self.names(at, DataAt::Feature(feature.clone())),
+            P::SelectionOption(option) => self.names(at, DataAt::SelectionOption(option.clone())),
+            P::NoOptionFrom(selection) | P::PickedThrough(selection) => {
+                self.names(at, DataAt::FeatureSelection(selection.clone()));
+            }
+            P::SkillRanks { skill, .. } => self.names(at, DataAt::Skill(skill.clone())),
+            P::Deity(deity) => self.names(at, DataAt::Deity(deity.clone())),
+            P::Race(race) => self.names(at, DataAt::Race(race.clone())),
+            P::All(_)
+            | P::Any(_)
+            | P::AtLeast(..)
+            | P::Not(_)
+            | P::NoOtherOptionOfGroup(_)
+            | P::AbilityScore { .. }
+            | P::BaseAttackBonus(_)
+            | P::SpellLevel { .. }
+            | P::SpontaneousSpellLevel { .. }
+            | P::CasterLevel(_)
+            | P::CharacterLevel(_)
+            | P::MythicRank(_)
+            | P::Alignment(_)
+            | P::Atheist
+            | P::Worships
+            | P::DeityOffers(_)
+            | P::Story(_) => {}
+        }
+    }
+
     fn selections(&mut self, selections: &[FeatureSelection]) {
         for selection in selections {
             let selection_at = DataAt::FeatureSelection(selection.key.clone());
@@ -781,6 +921,18 @@ impl Checker {
                     self.problem(&selection_at, DataIssue::SharesOwnOption(shared.clone()));
                 }
             }
+            self.names_each(
+                &selection_at,
+                &selection.shared_options,
+                DataAt::SelectionOption,
+            );
+            self.names_each(&selection_at, &selection.option_levels, DataAt::Class);
+            self.names_each(&selection_at, &selection.pool_of, DataAt::FeatureSelection);
+            self.names_each(
+                &selection_at,
+                &selection.level_also_from,
+                DataAt::SelectionOption,
+            );
             for option in &selection.options {
                 let at = DataAt::SelectionOption(option.key.clone());
                 self.key(&at);
@@ -788,6 +940,14 @@ impl Checker {
                 if !owned_by(option.key.as_str(), selection.key.as_str()) {
                     self.problem(&at, DataIssue::OptionOutsideItsSelection);
                 }
+                self.names_each(&at, &option.feats, DataAt::Feat);
+                self.names_each(&at, &option.chosen_feat, DataAt::Feat);
+                for value in &option.values {
+                    self.names_value(&at, value);
+                }
+                self.names_each(&at, &option.pool, DataAt::FeatureSelection);
+                self.names_each(&at, &option.replaces_row_of, DataAt::FeatureSelection);
+                self.names_each(&at, &option.arcana, DataAt::Feature);
                 // An option takes a value for its chosen feat, which must take one, or of its own kind.
                 let takes = option.chosen_feat.as_ref().and_then(|feat| {
                     let kind = self.parameters.get(feat).copied();
@@ -835,8 +995,12 @@ impl Checker {
                     }
                     if let Some(list) = &row.feat_list {
                         self.named_lists.insert(list.clone());
+                        self.names(&at, DataAt::FeatList(list.clone()));
                     }
-                    self.slots(&row.feat_slots);
+                    self.grants(&at, &row.features, &row.feats, &row.selections);
+                    self.names_each(&at, &row.chosen_feats, DataAt::Feat);
+                    self.names_each(&at, &row.class_skills, DataAt::Skill);
+                    self.slots(&at, &row.feat_slots);
                     for feat in &row.chosen_feats {
                         let kind = self.parameters.get(feat).copied().flatten();
                         if !kind
@@ -926,7 +1090,8 @@ impl Checker {
             self.problem(at, DataIssue::LevelRowsNotContiguous);
         }
         for row in rows {
-            self.slots(&row.feat_slots);
+            self.grants(at, &row.features, &row.feats, &row.selections);
+            self.slots(at, &row.feat_slots);
             self.feats_for(at, &row.feats_for);
             if !prestige && (row.advances_arcane || row.advances_divine) {
                 self.problem(at, DataIssue::AdvancesOnBaseClass { level: row.level });
@@ -939,10 +1104,12 @@ impl Checker {
         }
     }
 
-    /// A feat granted for one value takes a value of that kind. An unknown feat is the foreign keys' business.
+    /// A feat granted for one value is one the data has and takes a value of that kind.
     fn feats_for(&mut self, at: &DataAt, granted: &BTreeSet<FeatValue>) {
         for granted in granted {
             let (feat, value) = (&granted.feat, &granted.value);
+            self.names(at, DataAt::Feat(feat.clone()));
+            self.names_value(at, value);
             if let Some(kind) = self.parameters.get(feat).copied()
                 && !kind.is_some_and(|kind| self.fits(kind, value))
             {
@@ -955,7 +1122,8 @@ impl Checker {
     fn archetype_rows(&mut self, at: &DataAt, class: &Class, archetype: &Archetype) {
         let mut seen = HashSet::new();
         for row in &archetype.levels {
-            self.slots(&row.feat_slots);
+            self.grants(at, &row.features, &row.feats, &row.selections);
+            self.slots(at, &row.feat_slots);
             self.feats_for(at, &row.feats_for);
             if !seen.insert(row.level) {
                 self.problem(at, DataIssue::DuplicateArchetypeRow(row.level));
@@ -1006,6 +1174,13 @@ impl Checker {
     fn class(&mut self, class: &Class, prestige: bool) {
         let at = DataAt::Class(class.key.clone());
         self.key(&at);
+        self.names_each(&at, &class.class_skills, DataAt::Skill);
+        for counts in &class.counts_as {
+            self.names(&at, DataAt::Class(counts.class.clone()));
+            if let CountsToward::Feature(feature) = &counts.toward {
+                self.names(&at, DataAt::Feature(feature.clone()));
+            }
+        }
         self.prerequisite(&at, class.prerequisite.as_ref(), None);
         self.alignment_on_its_own(&at, class.prerequisite.as_ref());
         self.owned(
@@ -1035,6 +1210,7 @@ impl Checker {
         for archetype in &class.archetypes {
             let at = DataAt::Archetype(archetype.key.clone());
             self.key(&at);
+            self.names_each(&at, archetype.class_skills.iter().flatten(), DataAt::Skill);
             self.prerequisite(&at, archetype.prerequisite.as_ref(), None);
             self.alignment_on_its_own(&at, archetype.prerequisite.as_ref());
             self.owned(
@@ -1083,10 +1259,11 @@ impl Checker {
         for domain in &deity.domains {
             self.domain(&at, domain);
         }
+        self.names_each(&at, &deity.favoured_weapons, DataAt::Weapon);
     }
 
     /// A selection limited by the deity's domains offers only options it can check: domains, and options naming
-    /// the domain they stand for. An unknown shared key is the foreign keys' business.
+    /// the domain they stand for. An unknown shared key is an unknown key of its own.
     fn deity_limits(&mut self, data: &GameData) {
         let named: HashMap<&SelectionOptionKey, bool> = data
             .selections()
@@ -1139,7 +1316,7 @@ impl Checker {
     }
 
     /// A class's levels can count toward another class's feature only when that class's rows (or its
-    /// archetypes') grant it. An unknown class is the foreign keys' business.
+    /// archetypes') grant it. An unknown class is an unknown key of its own.
     fn counts_toward_features(&mut self, data: &GameData) {
         for class in data.all_classes() {
             for counts in &class.counts_as {
@@ -1184,6 +1361,10 @@ impl Checker {
             if !ranks.insert(row.rank) {
                 self.problem(&at, DataIssue::RankOutOfRange(row.rank));
             }
+            if (1..=MAX_MYTHIC_RANK).contains(&row.rank) {
+                self.named_ranks.insert((at.clone(), row.rank));
+            }
+            self.grants(&at, &row.features, &BTreeSet::new(), &row.selections);
             self.no_bonus_list(&at, &row.feat_slots, Some(path.key.as_str()));
             if row.rank < PATH_CHOICE_RANK
                 && !(row.feat_slots.is_empty() && row.selections.is_empty())
@@ -1193,10 +1374,16 @@ impl Checker {
         }
         if let Some(switch) = &path.switch {
             for rank in [switch.kept_through_rank, switch.path_kept_through_rank] {
-                if !(1..PATH_SWITCH_RANK).contains(&rank) {
+                if (1..PATH_SWITCH_RANK).contains(&rank) {
+                    self.named_ranks.insert((at.clone(), rank));
+                } else {
                     self.problem(&at, DataIssue::RankOutOfRange(rank));
                 }
             }
+            self.names_each(&at, &switch.from, DataAt::MythicPath);
+            self.names_each(&at, &switch.dropped_features, DataAt::Feature);
+            self.names_each(&at, &switch.dropped_selections, DataAt::FeatureSelection);
+            self.names_each(&at, &switch.features, DataAt::Feature);
             for from in &switch.from {
                 if switches.contains(from) {
                     self.problem(&at, DataIssue::SwitchFromASwitchPath(from.clone()));

@@ -321,7 +321,10 @@ async fn a_seed_that_fails_leaves_the_previous_data_in_place() {
 
     let error = test.seed(broken.path()).await.unwrap_err().to_string();
 
-    assert!(error.contains("foreign key"), "{error}");
+    assert!(
+        error.contains("names feat no-such-feat, which the data doesn't have"),
+        "{error}"
+    );
     assert_eq!(
         test.load().await.unwrap(),
         seeds::read_game_data_files(&fixture_dir()).unwrap()
@@ -332,8 +335,8 @@ async fn a_seed_that_fails_leaves_the_previous_data_in_place() {
     );
 }
 
-/// The foreign key check names every key the data lacks, not just that one is missing, and the new file it was
-/// building is gone.
+/// The seed's data check names every key the data lacks, not just that one is missing, and writes no file. (The
+/// foreign keys behind it are a backstop, tested past the check in `seed.rs`.)
 #[tokio::test]
 async fn a_failed_seed_names_every_missing_key_and_leaves_no_new_file() {
     let test = TestDatabase::new();
@@ -353,44 +356,19 @@ async fn a_failed_seed_names_every_missing_key_and_leaves_no_new_file() {
 
     let error = test.seed(broken.path()).await.unwrap_err();
 
-    let seeds::Error::MissingReferences(missing) = &error else {
+    let seeds::Error::Invalid(problems) = &error else {
         panic!("{error}");
     };
-    let mut named: Vec<_> = missing
-        .iter()
-        .map(|reference| {
-            (
-                reference.table.as_str(),
-                reference.columns.clone(),
-                reference.parent.as_str(),
-            )
-        })
-        .collect();
-    named.sort();
-    named.dedup();
     assert_eq!(
-        named,
+        problems
+            .iter()
+            .map(|problem| problem.to_string())
+            .collect::<Vec<_>>(),
         [
-            (
-                "feat_extra_pick",
-                vec![(
-                    "selection_key".to_owned(),
-                    "'rogue/no-such-selection'".to_owned()
-                )],
-                "feature_selection"
-            ),
-            (
-                "prerequisite_node",
-                vec![("feat_key".to_owned(), "'no-such-feat'".to_owned())],
-                "feat"
-            ),
+            "feat cornugon-smash: names feat no-such-feat, which the data doesn't have",
+            "feat critical-mastery: names feat no-such-feat, which the data doesn't have",
+            "feat extra-rage: names selection rogue/no-such-selection, which the data doesn't have",
         ]
-    );
-    assert!(
-        error
-            .to_string()
-            .contains("feat_key 'no-such-feat' is not in feat key"),
-        "{error}"
     );
     assert!(!test.path.exists());
     assert!(!test.path.with_extension("db.new").exists());

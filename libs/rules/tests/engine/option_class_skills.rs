@@ -81,6 +81,7 @@ fn world_with_row_skills(bloodline: &str, level: u8, skills: &[&str]) -> GameDat
         }
     };
     row.class_skills = skills.iter().map(|key| skill(key)).collect();
+    assert_eq!(data.check(), []);
     data
 }
 

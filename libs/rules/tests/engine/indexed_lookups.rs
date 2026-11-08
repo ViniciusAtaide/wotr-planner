@@ -226,17 +226,10 @@ fn a_selection_sharing_exactly_one_option_grants_it_with_no_pick() {
 // ---- pools ----------------------------------------------------------------------------------------------------
 
 #[test]
-fn a_pool_offers_only_the_options_the_data_has() {
-    // The Fire revelations share a key no selection defines.
-    let mut data = world();
-    class_mut(&mut data, "cleric")
-        .selections
-        .iter_mut()
-        .find(|s| s.key.as_str() == "cleric/fire-revelations")
-        .unwrap()
-        .shared_options
-        .insert(option("cleric/fire-revelations/lost"));
-    let engine = Engine::new(data);
+fn a_pool_offers_the_options_of_its_selection() {
+    // A shared key no selection defines would be a data problem (`GameData::check`, ticket 98), so the pool no
+    // longer looks for one.
+    let engine = Engine::new(world());
     let mut build = build("elf", &times("cleric", 3));
     build
         .picks

@@ -96,7 +96,9 @@ impl Engine {
             .is_some_and(|level| usize::from(level) <= build.levels.len())
     }
 
-    /// The character level of a Mythic rank's ascension; 0 (the whole walk) for a rank the data lacks.
+    /// The character level of a Mythic rank's ascension; 0 (the whole walk) for a rank the data lacks. The ranks
+    /// asked about aren't the data's: an edit's slot names whatever rank its Build does, and the engine's own ranks
+    /// are constants, so [`GameData::check`](crate::GameData::check) can't vouch for them.
     pub(super) fn rank_level(&self, rank: u8) -> u8 {
         self.catalog.ascension_level(rank).unwrap_or(0)
     }

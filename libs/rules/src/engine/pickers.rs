@@ -54,40 +54,34 @@ impl Engine {
                         .collect(),
                 })
                 .collect(),
-            SlotKind::Selection(key) => self
-                .catalog
-                .selection(key)
-                .map(|selection| {
-                    // Own options and shared ones (a pool selection's: the held options' pools), in key order. A
-                    // shared key the data lacks offers nothing.
-                    let pools = self.catalog.pools(selection, &state);
-                    let mut keys: Vec<&SelectionOptionKey> = selection
-                        .options
-                        .iter()
-                        .map(|option| &option.key)
-                        .chain(
-                            selection
-                                .shared_options
-                                .iter()
-                                .filter(|key| self.catalog.has_option(key)),
-                        )
-                        .chain(&pools)
-                        .collect();
-                    keys.sort();
-                    // An option with a chosen feat once per value.
-                    keys.into_iter()
-                        .flat_map(|key| match self.catalog.option(key) {
-                            Some(option) if self.catalog.option_parameter(option).is_some() => self
-                                .catalog
-                                .option_values(option)
-                                .into_iter()
-                                .map(|value| Pick::option_for(key.clone(), value))
-                                .collect(),
-                            _ => vec![Pick::option(key.clone())],
-                        })
-                        .collect()
-                })
-                .unwrap_or_default(),
+            SlotKind::Selection(key) => {
+                let selection = self
+                    .catalog
+                    .selection(key)
+                    .expect("a slot names a selection of the data (GameData::check)");
+                // Own options and shared ones (a pool selection's: the held options' pools), in key order.
+                let pools = self.catalog.pools(selection, &state);
+                let mut keys: Vec<&SelectionOptionKey> = selection
+                    .options
+                    .iter()
+                    .map(|option| &option.key)
+                    .chain(&selection.shared_options)
+                    .chain(&pools)
+                    .collect();
+                keys.sort();
+                // An option with a chosen feat once per value.
+                keys.into_iter()
+                    .flat_map(|key| match self.catalog.option(key) {
+                        Some(option) if self.catalog.option_parameter(option).is_some() => self
+                            .catalog
+                            .option_values(option)
+                            .into_iter()
+                            .map(|value| Pick::option_for(key.clone(), value))
+                            .collect(),
+                        _ => vec![Pick::option(key.clone())],
+                    })
+                    .collect()
+            }
             SlotKind::MythicAbility => self
                 .catalog
                 .data()

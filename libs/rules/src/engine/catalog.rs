@@ -77,13 +77,10 @@ impl Catalog {
             .options
             .keys()
             .filter_map(|key| {
-                let pool = catalog.selection(catalog.option(key)?.pool.as_ref()?)?;
-                let members = pool
-                    .offered()
-                    .into_iter()
-                    .filter(|member| catalog.has_option(member))
-                    .cloned()
-                    .collect();
+                let pool = catalog
+                    .selection(catalog.option(key)?.pool.as_ref()?)
+                    .expect("an option's pool is a selection of the data (GameData::check)");
+                let members = pool.offered().into_iter().cloned().collect();
                 Some((key.clone(), members))
             })
             .collect();
@@ -280,17 +277,12 @@ impl Catalog {
         self.single_options.get(selection)
     }
 
-    /// The options of an option's pool that the data has, when it has a pool the data has.
+    /// The options of an option's pool, when it has one.
     pub(super) fn pool(
         &self,
         option: &SelectionOptionKey,
     ) -> Option<&BTreeSet<SelectionOptionKey>> {
         self.pools.get(option)
-    }
-
-    /// Whether some selection defines this option (a shared key the data lacks offers nothing).
-    pub(super) fn has_option(&self, key: &SelectionOptionKey) -> bool {
-        self.indexes.options.contains_key(key)
     }
 
     /// The Feature selection that defines an option.

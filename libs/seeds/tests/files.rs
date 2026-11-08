@@ -464,16 +464,21 @@ fn checking_the_files_lists_the_data_problems() {
     let dir = copy_fixture();
     let skills = dir.path().join("skills.ron");
     let text = fs::read_to_string(&skills).unwrap();
-    // Two skills with one key.
+    // Two skills with one key, and none with the key the data names elsewhere.
     fs::write(&skills, text.replacen("mobility", "athletics", 1)).unwrap();
 
     let error = seeds::check_game_data_files(dir.path()).unwrap_err();
 
+    assert!(matches!(&error, seeds::Error::Invalid(_)), "{error}");
+    let error = error.to_string();
     assert!(
-        matches!(&error, seeds::Error::Invalid(problems) if problems.len() == 1),
+        error.contains("skill athletics: the key is used twice"),
         "{error}"
     );
-    assert!(error.to_string().contains("athletics"), "{error}");
+    assert!(
+        error.contains("names skill mobility, which the data doesn't have"),
+        "{error}"
+    );
 }
 
 #[test]

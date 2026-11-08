@@ -10,7 +10,7 @@ use super::{Catalog, Engine, SlotKind};
 use crate::build::Pick;
 use crate::choice::{Issue, Unmet};
 use crate::game_data::{DeityDomains, Feat, FeatList, FeatSlot, FeatureSelection, SelectionOption};
-use crate::keys::{FeatKey, FeatureSelectionKey, SelectionOptionKey};
+use crate::keys::{FeatKey, FeatListKey, FeatureSelectionKey, SelectionOptionKey};
 use crate::parameter::{Parameter, Repeat};
 use crate::prerequisite::Prerequisite;
 use crate::state::CharacterState;
@@ -70,20 +70,18 @@ impl Catalog {
     /// once and asks them about every feat ([`check_pick_with`]).
     pub(super) fn slot_lists(&self, slot: &FeatSlot, state: &CharacterState) -> Vec<&FeatList> {
         match slot {
-            FeatSlot::OneOf { list } => self.feat_list(list).into_iter().collect(),
+            FeatSlot::OneOf { list } => vec![self.slot_list(list)],
             FeatSlot::OptionList {
                 selection,
                 at_level: None,
                 ..
             } => {
-                let Some(selection) = self.selection(selection) else {
-                    return Vec::new();
-                };
+                let selection = self.slot_selection(selection);
                 state
                     .option_feat_lists
                     .iter()
                     .filter(|(option, _)| self.offers(selection, option))
-                    .filter_map(|(_, list)| self.feat_list(list))
+                    .map(|(_, list)| self.slot_list(list))
                     .collect()
             }
             // The list in force at that option level of each option held that the selection offers.
@@ -92,9 +90,7 @@ impl Catalog {
                 at_level: Some(level),
                 ..
             } => {
-                let Some(selection) = self.selection(selection) else {
-                    return Vec::new();
-                };
+                let selection = self.slot_selection(selection);
                 state
                     .selection_options
                     .keys()
@@ -108,11 +104,25 @@ impl Catalog {
                             .filter_map(|row| row.feat_list.as_ref())
                             .next_back()
                     })
-                    .filter_map(|list| self.feat_list(list))
+                    .map(|list| self.slot_list(list))
                     .collect()
             }
             _ => Vec::new(),
         }
+    }
+
+    /// A feat list a slot or an option row names: one of the data's, which
+    /// [`GameData::check`](crate::GameData::check) makes sure of.
+    fn slot_list(&self, key: &FeatListKey) -> &FeatList {
+        self.feat_list(key)
+            .expect("a slot or an option row names a feat list of the data (GameData::check)")
+    }
+
+    /// The selection an `OptionList` slot names: one of the data's, which
+    /// [`GameData::check`](crate::GameData::check) makes sure of.
+    fn slot_selection(&self, key: &FeatureSelectionKey) -> &FeatureSelection {
+        self.selection(key)
+            .expect("a slot names a selection of the data (GameData::check)")
     }
 
     /// [`slot_accepts`](Self::slot_accepts) for a character whose lists for the slot are `lists`
@@ -156,24 +166,32 @@ impl Catalog {
         }
     }
 
-    /// Whether a feat slot accepts a feat, ignoring prerequisites. A list the data lacks accepts none, and so does
-    /// an `OptionList` slot here: its lists depend on the options held, which [`Engine::options`] sees.
+    /// Whether a feat slot accepts a feat, ignoring prerequisites. An `OptionList` slot accepts none here: its lists
+    /// depend on the options held, which [`Engine::options`] sees.
+    ///
+    /// # Panics
+    ///
+    /// For a `OneOf` naming a list the data lacks: a slot is the data's, and
+    /// [`GameData::check`](crate::GameData::check) makes sure of its list.
     pub(super) fn slot_accepts(&self, slot: &FeatSlot, feat: &Feat) -> bool {
         match slot {
             FeatSlot::General => true,
             FeatSlot::CombatFeat => feat.category.is_combat(),
             FeatSlot::Category(category) => feat.category == *category,
-            FeatSlot::OneOf { list } => self
-                .feat_list(list)
-                .is_some_and(|list| list.contains(&feat.key)),
+            FeatSlot::OneOf { list } => self.slot_list(list).contains(&feat.key),
             FeatSlot::OptionList { .. } => false,
         }
     }
 }
 
 impl Engine {
-    /// Whether a feat slot accepts a feat, ignoring prerequisites. A list the data lacks accepts none, and so does
-    /// an `OptionList` slot here: its lists depend on the options held, which [`options`](Self::options) sees.
+    /// Whether a feat slot accepts a feat, ignoring prerequisites. An `OptionList` slot accepts none here: its lists
+    /// depend on the options held, which [`options`](Self::options) sees.
+    ///
+    /// # Panics
+    ///
+    /// For a `OneOf` naming a list the data lacks: a slot is the data's, and
+    /// [`GameData::check`](crate::GameData::check) makes sure of its list.
     pub fn slot_accepts(&self, slot: &FeatSlot, feat: &Feat) -> bool {
         self.catalog.slot_accepts(slot, feat)
     }
