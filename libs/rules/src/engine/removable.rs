@@ -1,12 +1,13 @@
 //! Which edits keep a possible Build possible ([`Engine::allows`]) and which choices may come off now
 //! ([`Engine::removable`]), both by walking the edited Build again from the first level the edit changes. Those
-//! walks keep no sheet and stop at the first choice that fails.
+//! walks keep no sheet and stop at the first choice that fails. Which choices a Build holds, each with its
+//! [`Withdrawal`] ([`Engine::held_choices`]).
 
 use std::cell::RefCell;
 use std::collections::BTreeSet;
 
 use super::walk::Walker;
-use super::{Engine, FIRST_ASCENSION_RANK, PATH_CHOICE_RANK, PATH_SWITCH_RANK};
+use super::{Engine, FIRST_ASCENSION_RANK, PATH_CHOICE_RANK, PATH_SWITCH_RANK, Withdrawal};
 use crate::build::{AbilityScores, Build, BuildStart, ClassChoice, Edit};
 use crate::choice::{Choice, Issue};
 use crate::keys::ClassKey;
@@ -37,25 +38,34 @@ impl Engine {
     /// A choice depends on another when taking the other back would break it, so a chain comes off from the leaves
     /// inward: of Power Attack, Cleave and Great Cleave, only Great Cleave, then Cleave, then Power Attack.
     ///
-    /// Taking a choice back means: a pick cleared; a level taken by no class (what its class row gives goes, and
-    /// the levels of its class after it each move down one); a class's archetype or advanced classes unchosen; a
-    /// point-buy score at 7; a level's ability increase or a skill's ranks at a level gone; the race (with its
-    /// subrace and racial ability), subrace, alignment, background, faith, path or Path switch unchosen. A level's own
-    /// skill points don't count against changing its class: the class picker locks a class with too few.
+    /// Taking a choice back is its [`Withdrawal`]. A level's own skill points don't count against changing its
+    /// class: the class picker locks a class with too few.
     ///
     /// Costs one walk of the Build, then for each choice a walk from its level (the Build start's: all of it). The
     /// sheet asks only for the class rows ([`removable_classes`](Self::removable_classes)) and for one choice at a
-    /// time ([`is_removable`](Self::is_removable)).
+    /// time ([`withdrawal`](Self::withdrawal)).
     pub fn removable(&self, build: &Build) -> BTreeSet<Choice> {
         self.removable_among(build, |_| true)
     }
 
-    /// Whether one choice may be removed or changed now: whether [`removable`](Self::removable) has it. What a
-    /// picker's remove control asks when it opens.
+    /// Whether one choice may be removed or changed now: whether [`removable`](Self::removable) has it.
     ///
     /// Costs one walk of the Build up to the choice's level, then one from there.
     pub fn is_removable(&self, build: &Build, choice: &Choice) -> bool {
         !self.removable_among(build, |c| c == choice).is_empty()
+    }
+
+    /// What a picker's remove control asks of one choice: `None` when the Build doesn't hold it, otherwise its
+    /// [`Withdrawal`]'s edit and whether it may be removed now ([`is_removable`](Self::is_removable)).
+    ///
+    /// Costs one walk of the Build up to the choice's level, then one from there.
+    pub fn withdrawal(&self, build: &Build, choice: &Choice) -> Option<(Edit, bool)> {
+        let held = self
+            .held_choices(build)
+            .into_iter()
+            .find(|held| &held.choice == choice)?;
+        let removable = Recheck::new(self, build).keeps(&held.edit, held.excused);
+        Some((held.edit, removable))
     }
 
     /// The character levels whose class may be changed now: the [`Choice::Class`] levels
@@ -75,33 +85,38 @@ impl Engine {
     /// The choices [`removable`](Self::removable) has among those `wanted` picks out.
     fn removable_among(&self, build: &Build, wanted: impl Fn(&Choice) -> bool) -> BTreeSet<Choice> {
         let recheck = Recheck::new(self, build);
-        self.withdrawals(build)
+        self.held_choices(build)
             .into_iter()
-            .filter(|(choice, edit, allowed)| {
-                wanted(choice) && recheck.keeps(edit, allowed.clone())
-            })
-            .map(|(choice, ..)| choice)
+            .filter(|held| wanted(&held.choice) && recheck.keeps(&held.edit, held.excused.clone()))
+            .map(|held| held.choice)
             .collect()
     }
 
-    /// Each choice in the Build, with the edit that takes it back and the choices whose failing that edit doesn't
-    /// count (see [`removable`](Self::removable)): the edit's own and any listed with it. A Build start choice taken
-    /// back excuses only itself, not the other start choices its `Edit::Start` also sets: the faith can't come off
-    /// while the alignment needs it.
-    fn withdrawals(&self, build: &Build) -> Vec<(Choice, Edit, Vec<Choice>)> {
-        let mut withdrawals: Vec<(Choice, Edit, Vec<Choice>)> = Vec::new();
+    /// Every choice the Build holds, removable or not, each once with its [`Withdrawal`]: the Build start's
+    /// (every point-buy score always), each level's class, ability increase and skill ranks, the last level, each
+    /// class's archetype and advanced classes, the first ascension, path and Path switch, and each pick. A level's
+    /// skill points are what its ranks spend, not a choice of their own.
+    ///
+    /// Costs no walk.
+    pub fn held_choices(&self, build: &Build) -> Vec<Withdrawal> {
+        let mut withdrawals: Vec<Withdrawal> = Vec::new();
         let start = |change: &dyn Fn(&mut BuildStart)| {
             let mut start = build.start.clone();
             change(&mut start);
             Edit::Start(start)
         };
         let mut push = |choice: Choice, edit: Edit, own: Vec<Choice>| {
-            let mut allowed = match edit {
+            // The faith can't come off while the alignment needs it: a Build start choice excuses only itself.
+            let mut excused = match edit {
                 Edit::Start(_) => vec![choice.clone()],
                 _ => edit.choices(),
             };
-            allowed.extend(own);
-            withdrawals.push((choice, edit, allowed));
+            excused.extend(own);
+            withdrawals.push(Withdrawal {
+                choice,
+                edit,
+                excused,
+            });
         };
         let begun = &build.start;
         if begun.race.is_some() {
@@ -172,6 +187,11 @@ impl Engine {
                     vec![],
                 );
             }
+        }
+        if let Ok(level) = u8::try_from(build.levels.len())
+            && level > 0
+        {
+            push(Choice::CharacterLevel { level }, Edit::RemoveLevel, vec![]);
         }
         for (class, choice) in &build.class_choices {
             let Some(first) = build.levels.iter().position(|level| &level.class == class) else {

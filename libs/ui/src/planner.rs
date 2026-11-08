@@ -46,7 +46,7 @@ pub struct Planner {
     /// The engine's walk of the Build, once per edit.
     pub sheet: Memo<Arc<Sheet>>,
     /// The levels whose class may be changed now, once per edit (and only when something asks): the grid's class
-    /// buttons. Any other choice is asked about one at a time ([`is_removable`](Self::is_removable)).
+    /// buttons. Any other choice is asked about one at a time ([`withdrawal`](Self::withdrawal)).
     removable_classes: Memo<Arc<BTreeSet<u8>>>,
     pub picker: RwSignal<Option<Target>>,
     pub tab: RwSignal<Tab>,
@@ -97,15 +97,8 @@ impl Planner {
         self.error.set(None);
     }
 
-    /// Whether the engine allows an edit on the current Build. Untracked: the views that ask read the Build
-    /// themselves, so they ask again after each edit.
-    pub fn allows(&self, edit: &Edit) -> bool {
-        let engine = self.engine();
-        self.build
-            .with_untracked(|build| timed("allows", || engine.allows(build, edit)))
-    }
-
-    /// [`allows`](Self::allows) for each of a panel's edits at once, sharing one walk of the Build.
+    /// Whether the engine allows each of a panel's edits on the current Build, sharing one walk of it. Untracked:
+    /// the views that ask read the Build themselves, so they ask again after each edit.
     pub fn allows_many(&self, edits: &[Edit]) -> Vec<bool> {
         let engine = self.engine();
         self.build
@@ -118,11 +111,12 @@ impl Planner {
             .with(|levels| levels.contains(&level))
     }
 
-    /// Whether a choice may be removed or changed now. Tracked: asked again after each edit.
-    pub fn is_removable(&self, choice: &Choice) -> bool {
+    /// A remove control's answer for a choice: `None` when the Build doesn't hold it, otherwise the edit that takes
+    /// it back and whether it may be removed now. Tracked: asked again after each edit.
+    pub fn withdrawal(&self, choice: &Choice) -> Option<(Edit, bool)> {
         let engine = self.engine();
         self.build
-            .with(|build| timed("is_removable", || engine.is_removable(build, choice)))
+            .with(|build| timed("withdrawal", || engine.withdrawal(build, choice)))
     }
 
     pub fn open(&self, target: Target) {

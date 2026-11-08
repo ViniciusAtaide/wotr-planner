@@ -19,16 +19,18 @@
 //!   texts, hashed;
 //! - `allows`: [`Engine::allows`] for each edit of [`battery`], a `0` or `1` each.
 //!
-//! Recording also checks, panicking on a difference: [`Engine::is_removable`] against `removable` for every choice
-//! the Build can name, [`Engine::removable_classes`] against `removable`'s class levels, [`Engine::allows_many`]
-//! against `allows`, and, on the Builds [`SHORTCUT_CHECKED`] names, ticket 48's picker shortcut against full walks.
+//! Recording also checks, panicking on a difference: [`Engine::is_removable`] and [`Engine::withdrawal`] against
+//! `removable` for every choice the Build holds ([`Engine::held_choices`]) and some it doesn't,
+//! [`Engine::removable_classes`] against `removable`'s class levels, [`Engine::allows_many`] against `allows`, and,
+//! on the Builds [`SHORTCUT_CHECKED`] names, ticket 48's picker shortcut against full walks.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::{Mutex, PoisonError};
 
 use rules::{
-    AbilityScores, Alignment, Build, BuildStart, Choice, Edit, Engine, GameData, Issue, Pick,
-    SlotKind, SlotOption,
+    AbilityScores, Alignment, Build, BuildStart, Choice, Edit, Engine, Faith, GameData, Issue,
+    Pick, SlotKind, SlotOption,
 };
 use serde_json::{Value, json};
 
@@ -63,6 +65,14 @@ pub fn shortcut_counts() -> (usize, usize) {
         SHORTCUT_BUILDS.load(Ordering::Relaxed),
         SHORTCUT_OPTIONS.load(Ordering::Relaxed),
     )
+}
+
+static HELD: Mutex<BTreeMap<String, usize>> = Mutex::new(BTreeMap::new());
+
+/// How many held choices the consistency checks covered so far, by the kind of choice (`Deity`, `Slot`…), for the
+/// log.
+pub fn held_counts() -> BTreeMap<String, usize> {
+    HELD.lock().unwrap_or_else(PoisonError::into_inner).clone()
 }
 
 /// The Build's fingerprint (see the module docs), after its consistency checks.
@@ -138,7 +148,7 @@ pub fn fingerprint(engine: &Engine, data: &GameData, name: &str, build: &Build) 
         .iter()
         .map(|option| reason(&option.status))
         .collect();
-    let edits = battery(data, build);
+    let edits = battery(engine, data, build);
     let allows: Vec<bool> = edits
         .iter()
         .map(|edit| engine.allows(build, edit))
@@ -192,8 +202,9 @@ fn who(build: &Build) -> Vec<String> {
 }
 
 /// The edits whose `allows` the fingerprint holds: every Build start the start pickers and point buy offer, each
-/// level's ability increases and skill steps, each pick cleared, and the edits past the end.
-pub fn battery(data: &GameData, build: &Build) -> Vec<Edit> {
+/// level's ability increases and skill steps, each first ascension, each held choice's withdrawal
+/// ([`Engine::held_choices`]), and the edits past the end.
+pub fn battery(engine: &Engine, data: &GameData, build: &Build) -> Vec<Edit> {
     let current = &build.start;
     let mut starts: Vec<BuildStart> = Vec::new();
     for race in &data.races {
@@ -219,6 +230,17 @@ pub fn battery(data: &GameData, build: &Build) -> Vec<Edit> {
             ..current.clone()
         });
     }
+    let faiths = std::iter::once(Faith::Atheism).chain(
+        data.deities
+            .iter()
+            .map(|deity| Faith::Deity(deity.key.clone())),
+    );
+    for faith in faiths {
+        starts.push(BuildStart {
+            deity: Some(faith),
+            ..current.clone()
+        });
+    }
     for ability in AbilityScores::ABILITIES {
         for delta in [-1i8, 1] {
             let next = current
@@ -237,12 +259,6 @@ pub fn battery(data: &GameData, build: &Build) -> Vec<Edit> {
             ..current.clone()
         });
     }
-    starts.push(BuildStart {
-        race: None,
-        subrace: None,
-        racial_ability: None,
-        ..current.clone()
-    });
     let mut edits: Vec<Edit> = starts.into_iter().map(Edit::Start).collect();
     for (index, level_up) in build.levels.iter().enumerate() {
         let level = u8::try_from(index + 1).expect("at most 255 levels");
@@ -267,36 +283,42 @@ pub fn battery(data: &GameData, build: &Build) -> Vec<Edit> {
             }
         }
     }
-    edits.extend(build.picks.keys().cloned().map(Edit::Clear));
+    edits.extend(
+        engine
+            .first_ascension_options(build)
+            .into_iter()
+            .map(|option| Edit::FirstAscension(Some(option.path))),
+    );
+    edits.extend(
+        engine
+            .held_choices(build)
+            .into_iter()
+            .map(|withdrawal| withdrawal.edit),
+    );
     edits.push(Edit::RemoveLevel);
-    edits.push(Edit::MythicPath(None));
-    edits.push(Edit::PathSwitch(None));
     edits.push(Edit::SetName(Some("x".into())));
     edits
 }
 
-/// Every choice a Build can name, for `is_removable`: its own, and some it doesn't make.
-fn every_choice(build: &Build) -> Vec<Choice> {
+/// Some choices a Build may not hold, for `is_removable` and `withdrawal` beside the held ones: every Build start
+/// choice and Mythic one, each level's ability increase, skill points, archetype and advanced classes, and the class
+/// and the character level one past the end.
+fn unheld_choices(build: &Build) -> Vec<Choice> {
     let mut choices = vec![
         Choice::Race,
         Choice::Subrace,
         Choice::Alignment,
         Choice::Background,
+        Choice::Deity,
+        Choice::FirstAscension,
         Choice::MythicPath,
         Choice::PathSwitch,
     ];
-    choices.extend(AbilityScores::ABILITIES.map(|ability| Choice::AbilityScore { ability }));
     for (index, level_up) in build.levels.iter().enumerate() {
         let level = u8::try_from(index + 1).expect("at most 255 levels");
-        choices.push(Choice::Class { level });
         choices.push(Choice::AbilityIncrease { level });
         choices.push(Choice::SkillPoints { level });
-        for skill in level_up.skill_ranks.keys() {
-            choices.push(Choice::SkillRanks {
-                level,
-                skill: skill.clone(),
-            });
-        }
+        choices.push(Choice::CharacterLevel { level });
         choices.push(Choice::Archetype {
             class: level_up.class.clone(),
         });
@@ -304,10 +326,9 @@ fn every_choice(build: &Build) -> Vec<Choice> {
             class: level_up.class.clone(),
         });
     }
-    choices.push(Choice::Class {
-        level: u8::try_from(build.levels.len() + 1).expect("at most 254 levels"),
-    });
-    choices.extend(build.picks.keys().cloned().map(Choice::Slot));
+    let past = u8::try_from(build.levels.len() + 1).expect("at most 254 levels");
+    choices.push(Choice::Class { level: past });
+    choices.push(Choice::CharacterLevel { level: past });
     choices
 }
 
@@ -320,13 +341,41 @@ fn consistency_checks(
     edits: &[Edit],
     allows: &[bool],
 ) {
-    for choice in every_choice(build) {
+    let held = engine.held_choices(build);
+    for withdrawal in &held {
+        let choice = &withdrawal.choice;
+        let removable = removable.contains(choice);
+        assert_eq!(engine.is_removable(build, choice), removable, "{choice:?}");
         assert_eq!(
-            engine.is_removable(build, &choice),
-            removable.contains(&choice),
+            engine.withdrawal(build, choice),
+            Some((withdrawal.edit.clone(), removable)),
             "{choice:?}"
         );
     }
+    let unheld = unheld_choices(build);
+    for choice in unheld
+        .iter()
+        .filter(|choice| !held.iter().any(|held| &held.choice == *choice))
+    {
+        assert!(!engine.is_removable(build, choice), "{choice:?}");
+        assert_eq!(engine.withdrawal(build, choice), None, "{choice:?}");
+    }
+    assert!(
+        removable
+            .iter()
+            .all(|choice| held.iter().any(|held| &held.choice == choice)),
+        "a removable choice the Build doesn't hold"
+    );
+    let mut counts = HELD.lock().unwrap_or_else(PoisonError::into_inner);
+    for withdrawal in &held {
+        let debug = format!("{:?}", withdrawal.choice);
+        let kind: String = debug
+            .chars()
+            .take_while(char::is_ascii_alphanumeric)
+            .collect();
+        *counts.entry(kind).or_default() += 1;
+    }
+    drop(counts);
     let levels: BTreeSet<u8> = removable
         .iter()
         .filter_map(|choice| match choice {

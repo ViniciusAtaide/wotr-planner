@@ -325,7 +325,7 @@ fn every_choice(build: &Build) -> Vec<Choice> {
 
 /// Builds that exercise each kind of choice: a feat chain, an archetype's order, skill ranks a prestige class
 /// needs, a Legend switch the levels past 20 need.
-fn removable_builds() -> Vec<Build> {
+pub fn removable_builds() -> Vec<Build> {
     let mut armiger = build("elf", &times("fighter", 2));
     armiger.class_choices.insert(
         class("fighter"),

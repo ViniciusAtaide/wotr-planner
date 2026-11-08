@@ -3,19 +3,19 @@
 use rules::Alignment::{self, *};
 use rules::{Build, BuildStart, ClassChoice, ClassKey, Engine, GameData, LevelUp, RaceKey};
 
-use super::{character, empty_and_filled};
+use super::{atheist, character, empty_and_filled};
 use crate::Named;
 
 /// A true neutral human with nothing else chosen, as ticket 47's Builds start.
 pub(super) fn neutral_human() -> Build {
-    Build {
+    atheist(Build {
         start: BuildStart {
             race: Some(RaceKey::new("human")),
             alignment: Some(TrueNeutral),
             ..BuildStart::default()
         },
         ..Build::default()
-    }
+    })
 }
 
 /// Every class at 20, plain and with each archetype (`<class> <archetype>`, the plain one with nothing after the

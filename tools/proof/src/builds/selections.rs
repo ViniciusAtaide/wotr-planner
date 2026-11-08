@@ -6,13 +6,13 @@ use rules::{
     SlotId, SubraceKey,
 };
 
-use super::{character, human, levels, option, selection, with};
+use super::{atheist, character, human, levels, option, selection, with};
 use crate::Named;
 use crate::generate::with_selections_filled;
 
 /// A human (or another race) of an alignment with nothing else chosen.
 fn start(race: &str, subrace: Option<&str>, alignment: Alignment) -> Build {
-    Build {
+    atheist(Build {
         start: BuildStart {
             race: Some(RaceKey::new(race)),
             subrace: subrace.map(SubraceKey::new),
@@ -20,7 +20,7 @@ fn start(race: &str, subrace: Option<&str>, alignment: Alignment) -> Build {
             ..BuildStart::default()
         },
         ..Build::default()
-    }
+    })
 }
 
 /// A true neutral human taking one class for its levels, with its archetype and these options picked.

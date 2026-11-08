@@ -2,7 +2,7 @@
 //! ranks and a badge for the Mythic ranks reached there; then the summary of where the Build ends.
 
 use leptos::prelude::*;
-use rules::{AbilityScores, Build, Edit, Engine, LevelSheet, Sheet, Slot};
+use rules::{AbilityScores, Build, Choice, Engine, LevelSheet, Sheet, Slot};
 
 use crate::planner::{Tab, Target, use_planner};
 
@@ -20,8 +20,9 @@ pub fn LevelsGrid() -> AnyView {
                 .collect_view();
             let next = u8::try_from(build.levels.len() + 1).unwrap_or(u8::MAX);
             let can_add = next <= sheet.level_cap;
-            let last = build.levels.len();
-            let can_remove = last > 0 && planner.allows(&Edit::RemoveLevel);
+            let last = u8::try_from(build.levels.len()).unwrap_or(u8::MAX);
+            // The last level's withdrawal: Remove level.
+            let remove = planner.withdrawal(&Choice::CharacterLevel { level: last });
             view! {
                 <Summary sheet=sheet.clone()/>
                 <div class="grid" role="list">
@@ -39,13 +40,14 @@ pub fn LevelsGrid() -> AnyView {
                                 </button>
                             }
                         })}
-                    {(last > 0)
-                        .then(|| {
+                    {remove
+                        .map(|(edit, removable)| {
+                            let edit = StoredValue::new(edit);
                             view! {
                                 <button
                                     class="remove-level"
-                                    disabled=!can_remove
-                                    on:click=move |_| planner.edit(Edit::RemoveLevel)
+                                    disabled=!removable
+                                    on:click=move |_| planner.edit(edit.get_value())
                                 >
                                     {format!("Remove level {last}")}
                                 </button>

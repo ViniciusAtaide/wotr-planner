@@ -12,8 +12,8 @@
 
 use std::collections::BTreeSet;
 
-use crate::build::{AbilityScores, BuildStart, Faith, Pick, SlotId};
-use crate::choice::Issue;
+use crate::build::{AbilityScores, BuildStart, Edit, Faith, Pick, SlotId};
+use crate::choice::{Choice, Issue};
 use crate::codec::LinkKeys;
 use crate::game_data::{
     Ability, AbilityBonus, AbilityModifier, Advancement, Archetype, ArchetypeLevelRow, Background,
@@ -379,6 +379,23 @@ pub struct SlotOption {
     /// [`Issue::BreaksLater`]). An unmet "or" names only the alternatives the character's classes give, when any
     /// does.
     pub status: Result<(), Issue>,
+}
+
+/// A choice the Build holds and its Withdrawal: the edit that takes it back ([`Engine::held_choices`]).
+///
+/// Taking a choice back means: a pick cleared; a level taken by no class (what its class row gives goes, and the
+/// levels of its class after it each move down one); the last level removed; a class's archetype or advanced classes
+/// unchosen; a point-buy score at 7; a level's ability increase or a skill's ranks at a level gone; the race (with
+/// its subrace and racial ability), subrace, alignment, background, faith, first ascension, path or Path switch
+/// unchosen.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Withdrawal {
+    pub choice: Choice,
+    pub edit: Edit,
+    /// The choices whose failing the edit doesn't count against it: the edit's own (a Build start choice's only
+    /// itself, not the other start choices its `Edit::Start` also sets) and any listed with it (a level's skill
+    /// points, for its class).
+    excused: Vec<Choice>,
 }
 
 /// One option of the class picker at a level: a class, or a base class with one of its archetypes.

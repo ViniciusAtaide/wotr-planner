@@ -201,3 +201,7 @@ _Avoid_: Problem, broken pick, stale-link banner
 **Removable**:
 A choice the sheet may remove or change now: no later choice depends on it. Choices come off from the leaves inward: of Power Attack, Cleave and Great Cleave, Great Cleave first, then Cleave. A picker locks an option that would break a later choice, greyed out with no reason.
 _Avoid_: Would-break, conflict
+
+**Withdrawal**:
+The edit that takes a held choice back: a pick cleared, a path unchosen, a point-buy score lowered to 7, the last level removed. A race's also clears its subrace and racial +2; a Build start choice's leaves the other start choices as they are, so the faith's is locked while an alignment needs it. A picker's remove control applies the choice's withdrawal, shown only while the choice is **Removable**. A level's skill points aren't a choice of their own, so they have none.
+_Avoid_: Undo, removal edit

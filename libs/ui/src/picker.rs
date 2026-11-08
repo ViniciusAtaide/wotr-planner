@@ -1,7 +1,7 @@
 //! The picker: a bottom sheet on a narrow screen (the Fold's cover), a centred modal from 600px up. One list
 //! behaviour for every choice: search, category chips, the locked options greyed behind "Show N locked" with
 //! their reason (none for one that would break a later choice: it just stays grey), and a remove (×) control
-//! only for a choice `Engine::removable` gives.
+//! only for a choice the Build holds and may remove now (`Engine::withdrawal`), which takes it back by its edit.
 
 use std::collections::BTreeSet;
 use std::sync::Arc;
@@ -81,36 +81,38 @@ fn body(target: Target) -> AnyView {
     }
 }
 
-/// The picker's header: what's being chosen, where, a remove control when the choice may be removed now, and
-/// close.
+/// The picker's header: what's being chosen, where, a remove control when the Build holds the choice and may remove
+/// it now, and close.
 #[component]
 pub fn Head(
     #[prop(into)] title: String,
     #[prop(into, optional)] place: String,
-    /// The choice the remove control takes back, and its edit; shown only while the choice is removable.
+    /// The choice the remove control takes back, by the engine's edit; shown only while the Build holds it and it
+    /// is removable.
     #[prop(default = None)]
-    remove: Option<(Choice, Edit)>,
+    remove: Option<Choice>,
     /// Goes back a step.
     #[prop(default = None)]
     back: Option<Callback<()>>,
 ) -> impl IntoView {
     let planner = use_planner();
-    let remove = remove.map(|(choice, edit)| {
-        let edit = StoredValue::new(edit);
+    let remove = remove.map(|choice| {
         move || {
-            planner.is_removable(&choice).then(|| {
-                view! {
-                    <button
-                        class="remove"
-                        title="Remove this choice"
-                        on:click=move |_| {
-                            planner.close();
-                            planner.edit(edit.get_value());
-                        }
-                    >
-                        "× Remove"
-                    </button>
-                }
+            let (edit, true) = planner.withdrawal(&choice)? else {
+                return None;
+            };
+            let edit = StoredValue::new(edit);
+            Some(view! {
+                <button
+                    class="remove"
+                    title="Remove this choice"
+                    on:click=move |_| {
+                        planner.close();
+                        planner.edit(edit.get_value());
+                    }
+                >
+                    "× Remove"
+                </button>
             })
         }
     });
@@ -394,9 +396,7 @@ fn SlotPicker(id: SlotId) -> impl IntoView {
     };
     let current = found.pick.clone();
     let title = engine.slot_label(&found);
-    let remove = current
-        .is_some()
-        .then(|| (Choice::Slot(slot.clone()), Edit::Clear(slot.clone())));
+    let remove = Some(Choice::Slot(slot.clone()));
 
     let computed = RwSignal::new(None::<Arc<Vec<Group>>>);
     {
@@ -762,9 +762,7 @@ fn FirstAscensionPicker() -> impl IntoView {
         <Head
             title="First ascension"
             place=format!("Mythic rank {FIRST_ASCENSION_RANK}")
-            remove=chosen
-                .is_some()
-                .then_some((Choice::FirstAscension, Edit::FirstAscension(None)))
+            remove=Some(Choice::FirstAscension)
         />
         <ItemList
             items
@@ -808,18 +806,18 @@ fn PathPicker(switch: bool) -> impl IntoView {
         (
             "Path switch",
             format!("Mythic rank {PATH_SWITCH_RANK}"),
-            (Choice::PathSwitch, Edit::PathSwitch(None)),
+            Choice::PathSwitch,
         )
     } else {
         (
             "Mythic path",
             format!("Mythic rank {PATH_CHOICE_RANK}"),
-            (Choice::MythicPath, Edit::MythicPath(None)),
+            Choice::MythicPath,
         )
     };
     let paths: Vec<_> = options.into_iter().map(|option| option.path).collect();
     view! {
-        <Head title place remove=current.is_some().then_some(remove)/>
+        <Head title place remove=Some(remove)/>
         <ItemList
             items
             on_pick=move |index: usize| {
@@ -864,7 +862,7 @@ fn start_items(
 fn StartPicker(
     title: &'static str,
     starts: Vec<(Item, BuildStart)>,
-    remove: Option<(Choice, Edit)>,
+    remove: Choice,
 ) -> impl IntoView {
     let planner = use_planner();
     let current = planner.build.with_untracked(|build| build.start.clone());
@@ -899,7 +897,7 @@ fn StartPicker(
         .into_any()
     };
     view! {
-        <Head title place="Build start" remove/>
+        <Head title place="Build start" remove=Some(remove)/>
         {list}
     }
 }
@@ -937,18 +935,7 @@ fn RacePicker() -> impl IntoView {
             starts.push((item, start));
         }
     }
-    let remove = current.race.is_some().then(|| {
-        (
-            Choice::Race,
-            Edit::Start(BuildStart {
-                race: None,
-                subrace: None,
-                racial_ability: None,
-                ..current.clone()
-            }),
-        )
-    });
-    view! { <StartPicker title="Race" starts remove/> }
+    view! { <StartPicker title="Race" starts remove=Choice::Race/> }
 }
 
 /// The alignment wheel, laid out as the game draws it: Neutral Good at the top, the other eight around it, True
@@ -958,15 +945,6 @@ fn RacePicker() -> impl IntoView {
 fn AlignmentPicker() -> impl IntoView {
     let planner = use_planner();
     let current = planner.build.with_untracked(|build| build.start.clone());
-    let remove = current.alignment.is_some().then(|| {
-        (
-            Choice::Alignment,
-            Edit::Start(BuildStart {
-                alignment: None,
-                ..current.clone()
-            }),
-        )
-    });
     // The name over the wheel: the one under the pointer or focus, else the current one.
     let shown = RwSignal::new(None::<Alignment>);
     let starts = Alignment::ALL.map(|alignment| BuildStart {
@@ -1021,7 +999,7 @@ fn AlignmentPicker() -> impl IntoView {
             .map_or("Choose an alignment", Alignment::name)
     };
     view! {
-        <Head title="Alignment" place="Build start" remove/>
+        <Head title="Alignment" place="Build start" remove=Some(Choice::Alignment)/>
         <p class="alignment-name">{name}</p>
         <div class="alignment-wheel" role="radiogroup" aria-label="Alignment">
             {nodes}
@@ -1081,11 +1059,7 @@ fn DeityPicker() -> impl IntoView {
             (item, with(Some(faith)))
         }))
         .collect();
-    let remove = current
-        .deity
-        .is_some()
-        .then(|| (Choice::Deity, Edit::Start(with(None))));
-    view! { <StartPicker title="Deity" starts remove/> }
+    view! { <StartPicker title="Deity" starts remove=Choice::Deity/> }
 }
 
 /// An alignment's place on the wheel, as a class: its spot on the ring (or the middle) and its moral tint.
@@ -1127,16 +1101,7 @@ fn BackgroundPicker() -> impl IntoView {
             )
         })
         .collect();
-    let remove = current.background.is_some().then(|| {
-        (
-            Choice::Background,
-            Edit::Start(BuildStart {
-                background: None,
-                ..current.clone()
-            }),
-        )
-    });
-    view! { <StartPicker title="Background" starts remove/> }
+    view! { <StartPicker title="Background" starts remove=Choice::Background/> }
 }
 
 #[component]
@@ -1165,18 +1130,9 @@ fn AbilityIncreasePicker(level: u8) -> impl IntoView {
             }
         })
         .collect();
-    let remove = current.map(|_| {
-        (
-            Choice::AbilityIncrease { level },
-            Edit::AbilityIncrease {
-                level,
-                ability: None,
-            },
-        )
-    });
     let place = format!("Level {level}");
     view! {
-        <Head title="Ability increase" place remove/>
+        <Head title="Ability increase" place remove=Some(Choice::AbilityIncrease { level })/>
         <ItemList
             items
             on_pick=move |index: usize| {

@@ -15,14 +15,24 @@ use crate::Named;
 /// The benchmark's Builds (ticket 56's `links.json`), by name and link; an empty link is the blank Build.
 const BENCH: &str = include_str!("../bench-links.tsv");
 
-/// The benchmark's Builds, named `bench <name>`, opened as the planner opens a link.
-pub fn bench_builds(engine: &Engine) -> Vec<Named> {
+/// The benchmark's Builds, named `bench <name>`, opened as the planner opens a link. One with an alignment and no
+/// faith, which opens as a stale link since ticket 94, is an atheist.
+pub fn bench_builds(engine: &Engine, data: &GameData) -> Vec<Named> {
+    let keys = LinkKeys::new(data);
     parse(BENCH)
         .map(|(name, link)| {
             let build = if link.is_empty() {
                 Build::default()
             } else {
-                engine.open_link(link).expect("the benchmark's links open")
+                engine.open_link(link).unwrap_or_else(|_| {
+                    let decoded = decode_build(link, &keys).expect("the benchmark's links decode");
+                    let atheist = crate::generate::with_faith(&decoded, json!("Atheism"));
+                    assert!(
+                        engine.is_possible(&atheist),
+                        "the benchmark's links open, as atheists if need be: {name}"
+                    );
+                    atheist
+                })
             };
             (format!("bench {name}"), build)
         })

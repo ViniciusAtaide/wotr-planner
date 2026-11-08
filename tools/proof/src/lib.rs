@@ -33,6 +33,13 @@
 //! atheism and the deities it's possible with ([`generate::faithful`]), set through serde so the harness still
 //! compiles against crates from before deities.
 //!
+//! Ticket 94: an alignment needs a faith first, so the Builds the groups start from are atheists (a deity-bound class
+//! still gets its deity), and a benchmark link with an alignment and no faith opens as an atheist.
+//!
+//! Ticket 95: the fingerprint reads the engine's held choices ([`rules::Engine::held_choices`]), so the harness
+//! doesn't compile against crates from before it. A `rules` proof against such a ref runs from a copy of the repo
+//! whose `tools/proof` has the ref's `fingerprint.rs`.
+//!
 //! A ticket that needs a special breakdown (only the Builds with some class, say) filters `compare`'s output or the
 //! records themselves (each line names its Build's classes in `who`); the fingerprint keeps only what isn't tied to
 //! one ticket.

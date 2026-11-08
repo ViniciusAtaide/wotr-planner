@@ -11,7 +11,7 @@ use rules::{
 };
 
 use crate::Named;
-use crate::generate::{faithful, fill_first_choices, full_builds};
+use crate::generate::{faithful, fill_first_choices, full_builds, holds_faith, with_faith};
 
 mod classes;
 mod feats;
@@ -23,7 +23,7 @@ mod talents;
 pub fn all(engine: &Engine, data: &GameData, threads: usize) -> Vec<Named> {
     let own = own(engine, data);
     let mut builds = own.clone();
-    builds.extend(crate::links::bench_builds(engine));
+    builds.extend(crate::links::bench_builds(engine, data));
     builds.extend(full_builds(engine, data, &own, threads));
     builds
 }
@@ -77,6 +77,7 @@ fn character(race: &str, alignment: Alignment, parts: &[(&str, Option<&str>, usi
     let mut build = Build::default();
     build.start.race = Some(RaceKey::new(race));
     build.start.alignment = Some(alignment);
+    build = atheist(build);
     for (class, archetype, levels) in parts {
         build.class_choices.insert(
             ClassKey::new(*class),
@@ -90,6 +91,16 @@ fn character(race: &str, alignment: Alignment, parts: &[(&str, Option<&str>, usi
         }
     }
     build
+}
+
+/// The Build as an atheist, on crates whose Build start holds a faith: an alignment needs one first (ticket 94).
+/// A deity-bound class still gets the deity it needs ([`faithful`]).
+fn atheist(build: Build) -> Build {
+    if holds_faith() {
+        with_faith(&build, serde_json::json!("Atheism"))
+    } else {
+        build
+    }
 }
 
 /// A chaotic neutral human, as most groups make.

@@ -94,6 +94,11 @@ fn record(options: &Options) -> Result<ExitCode, String> {
     }
     let (checked, feat_options) = fingerprint::shortcut_counts();
     eprintln!("shortcut checked on {checked} Builds, {feat_options} feat options");
+    let held: Vec<String> = fingerprint::held_counts()
+        .into_iter()
+        .map(|(kind, count)| format!("{kind} {count}"))
+        .collect();
+    eprintln!("held choices checked: {}", held.join(", "));
     eprintln!("recorded in {:.1?}", started.elapsed());
     Ok(ExitCode::SUCCESS)
 }
