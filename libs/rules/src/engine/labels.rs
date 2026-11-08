@@ -447,17 +447,25 @@ impl Engine {
                 {
                     "Feat".to_owned()
                 }
-                FeatSlot::General => "Bonus feat".to_owned(),
-                FeatSlot::CombatFeat => "Combat feat".to_owned(),
-                FeatSlot::Category(category) => format!("{} feat", category.name()),
-                FeatSlot::OneOf { list } => self.feat_list_name(list).to_owned(),
-                FeatSlot::OptionList {
-                    label: Some(label), ..
-                } => label.clone(),
-                FeatSlot::OptionList { selection, .. } => {
-                    format!("{} feat", self.selection_name(selection))
-                }
+                feat_slot => self.feat_slot_label(feat_slot),
             },
+        }
+    }
+
+    /// What a race's, class row's, archetype row's or path row's feat slot takes, as [`slot_label`](Self::slot_label)
+    /// says for the slot it makes: a general slot there is "Bonus feat".
+    pub fn feat_slot_label(&self, slot: &FeatSlot) -> String {
+        match slot {
+            FeatSlot::General => "Bonus feat".to_owned(),
+            FeatSlot::CombatFeat => "Combat feat".to_owned(),
+            FeatSlot::Category(category) => format!("{} feat", category.name()),
+            FeatSlot::OneOf { list } => self.feat_list_name(list).to_owned(),
+            FeatSlot::OptionList {
+                label: Some(label), ..
+            } => label.clone(),
+            FeatSlot::OptionList { selection, .. } => {
+                format!("{} feat", self.selection_name(selection))
+            }
         }
     }
 

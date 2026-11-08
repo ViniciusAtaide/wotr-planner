@@ -614,6 +614,34 @@ fn an_option_list_slot_is_named_after_its_selection_unless_it_has_a_label() {
     );
 }
 
+#[test]
+fn a_table_rows_feat_slot_is_labelled_as_its_slot_would_be() {
+    // A class, archetype or path row's slot before any Build holds it (the MCP server's `describe`): a general one
+    // there is a bonus feat, as on the sheet.
+    let engine = engine();
+    let label = |slot: FeatSlot| engine.feat_slot_label(&slot);
+    assert_eq!(label(FeatSlot::General), "Bonus feat");
+    assert_eq!(label(FeatSlot::CombatFeat), "Combat feat");
+    assert_eq!(
+        label(FeatSlot::Category(FeatCategory::Teamwork)),
+        "Teamwork feat"
+    );
+    assert_eq!(
+        label(FeatSlot::OneOf {
+            list: feat_list("rogue/skill-focus")
+        }),
+        "rogue/skill-focus"
+    );
+    assert_eq!(
+        label(FeatSlot::OptionList {
+            selection: FeatureSelectionKey::new("kineticist/element"),
+            at_level: None,
+            label: Some("Wild talent feat".to_owned()),
+        }),
+        "Wild talent feat"
+    );
+}
+
 /// The reason a locked option shows, for one that has one.
 fn reason(engine: &Engine, issue: &Issue) -> String {
     engine.issue_text(issue).expect("a reason")
