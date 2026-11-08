@@ -1,7 +1,7 @@
 # An MCP server for building with the rules engine (plan)
 
 Type: design
-Status: open (approved; building as tickets 105–111)
+Status: resolved (built in tickets 105–111; the user's own run of the prompt is left, ticket 111)
 Blocked by: none
 Map: [WotR Build Planner](../map.md)
 
