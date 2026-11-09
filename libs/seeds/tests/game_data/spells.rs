@@ -56,7 +56,10 @@ fn hold_monster_is_a_will_negates_compulsion_on_the_wizard_and_sorcerer_list_at_
     assert_eq!(hold.duration.as_deref(), Some("1 round / level"));
     assert_eq!(hold.casting_time, CastingTime::Standard);
     assert_eq!(hold.guide.0, "wizard-spells#hold-monster-enchantment");
-    assert_eq!(hold.summary, "");
+    assert_eq!(
+        hold.summary,
+        "A living creature that fails is paralysed, with a new save each round to end it."
+    );
     assert_eq!(levels("wizard", "hold-monster"), [(5, None)]);
     assert!(
         list("wizard")
@@ -429,4 +432,23 @@ fn a_blocks_optional_rows_are_optional_facts() {
     assert_eq!(fireball.saving_throw, "Reflex half");
     assert_eq!(spell("transformation").descriptors, BTreeSet::new());
     assert_eq!(spell("changestaff").casting_time, CastingTime::FullRound);
+}
+
+/// Stage 2: every spell has a one-sentence summary of at most 160 characters, written from its block and reviewed.
+#[test]
+fn every_spell_has_a_summary_of_at_most_160_characters() {
+    let missing: Vec<&str> = DATA
+        .spells
+        .iter()
+        .filter(|spell| spell.summary.is_empty())
+        .map(|spell| spell.key.as_str())
+        .collect();
+    assert!(missing.is_empty(), "spells without a summary: {missing:?}");
+    let long: Vec<(&str, usize)> = DATA
+        .spells
+        .iter()
+        .map(|spell| (spell.key.as_str(), spell.summary.chars().count()))
+        .filter(|&(_, length)| length > 160)
+        .collect();
+    assert!(long.is_empty(), "summaries over 160 characters: {long:?}");
 }
