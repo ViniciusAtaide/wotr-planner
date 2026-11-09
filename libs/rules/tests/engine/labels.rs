@@ -297,6 +297,99 @@ fn other_conditions_name_what_is_needed() {
     );
 }
 
+#[test]
+fn options_of_one_name_in_a_group_read_with_their_selections() {
+    // Ticket 128: Mythical Beast's prerequisite read "Animal Companion or Animal Companion".
+    let engine = engine();
+    let fire = |key: &str| Prerequisite::SelectionOption(option(key));
+    let named = |selection: &str| {
+        format!(
+            "fire ({})",
+            engine.selection_name(&FeatureSelectionKey::new(selection))
+        )
+    };
+    let domain = named("cleric/domain");
+    let element = named("kineticist/element");
+    let both = Prerequisite::Any(vec![
+        fire("cleric/domain/fire"),
+        fire("kineticist/element/fire"),
+    ]);
+    assert_eq!(
+        engine.prerequisite_text(&both, None),
+        format!("{domain} or {element}")
+    );
+    // The same in a reason.
+    assert_eq!(
+        reason(
+            &engine,
+            &Issue::Unmet(Unmet::Any(vec![
+                needs(fire("cleric/domain/fire"), None),
+                needs(fire("kineticist/element/fire"), None),
+            ]))
+        ),
+        format!("Needs {domain} or {element}")
+    );
+    // An option alone, or with no other of its name, reads by its name alone.
+    let water = Prerequisite::Any(vec![
+        fire("cleric/domain/fire"),
+        Prerequisite::SelectionOption(option("cleric/domain/water")),
+    ]);
+    assert_eq!(engine.prerequisite_text(&water, None), "fire or water");
+}
+
+#[test]
+fn a_short_prerequisite_counts_a_long_groups_alternatives() {
+    let engine = engine();
+    let feats = Prerequisite::Any(
+        ["power-attack", "dodge", "toughness", "weapon-focus"]
+            .map(|key| Prerequisite::Feat(feat(key)))
+            .to_vec(),
+    );
+    let all = Prerequisite::All(vec![feats.clone(), Prerequisite::BaseAttackBonus(4)]);
+    // At most four alternatives, as the full text.
+    assert_eq!(
+        engine.short_prerequisite_text(&all, 4),
+        engine.prerequisite_text(&all, None)
+    );
+    // More, as their count, their noun and the first three.
+    assert_eq!(
+        engine.short_prerequisite_text(&all, 3),
+        "(one of 4 feats (power-attack, dodge, toughness, …)), BAB +4"
+    );
+    // Options of one name: that name, in the plural, each told apart by its selection.
+    let fires = Prerequisite::Any(vec![
+        Prerequisite::SelectionOption(option("cleric/domain/fire")),
+        Prerequisite::SelectionOption(option("kineticist/element/fire")),
+    ]);
+    assert!(
+        engine
+            .short_prerequisite_text(&fires, 1)
+            .starts_with("one of 2 fires (fire ("),
+        "{}",
+        engine.short_prerequisite_text(&fires, 1)
+    );
+    // An "at least" group too.
+    let two = Prerequisite::AtLeast(
+        2,
+        ["power-attack", "dodge", "toughness", "weapon-focus"]
+            .map(|key| Prerequisite::Feat(feat(key)))
+            .to_vec(),
+    );
+    assert_eq!(
+        engine.short_prerequisite_text(&two, 3),
+        "2 of 4 feats (power-attack, dodge, toughness, …)"
+    );
+    // Mixed kinds are alternatives.
+    let mixed = Prerequisite::Any(vec![
+        Prerequisite::Feat(feat("dodge")),
+        Prerequisite::BaseAttackBonus(4),
+    ]);
+    assert_eq!(
+        engine.short_prerequisite_text(&mixed, 1),
+        "one of 2 alternatives (dodge, BAB +4)"
+    );
+}
+
 fn not(prerequisite: Prerequisite) -> Prerequisite {
     Prerequisite::Not(Box::new(prerequisite))
 }

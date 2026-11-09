@@ -49,9 +49,11 @@ async fn a_feat_slot_lists_its_open_feats_and_counts_the_rest() {
     // Cleave needs Power Attack: hidden, and counted.
     assert!(!values(&open).contains(&json!("cleave")));
     assert!(open["closed"].as_u64().unwrap() > 0);
-    // The envelope comes along.
-    assert_eq!(open["build"], code(&fighter));
-    assert!(open["todo"].is_array());
+    // No envelope unless asked (ticket 128): `options` changes nothing.
+    assert!(
+        open.get("build").is_none() && open.get("todo").is_none(),
+        "{open}"
+    );
 }
 
 #[tokio::test]

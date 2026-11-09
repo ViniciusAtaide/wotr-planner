@@ -55,9 +55,10 @@ level 16 (have 14)\").
 
 Workflow:
 1. Resolve every name the user gives with `search` (names, keys and initials: \"BFT\" finds the Brown-Fur \
-Transmuter). If a name could mean more than one item, ask the user which one before you build.
+Transmuter; words of what an item does, such as \"DC\", also find it by its summary). If a name could mean more \
+than one item, ask the user which one before you build.
 2. Start with `new_build`. Every Build tool takes the Build's code (`build`) and returns a new code, the planner \
-`link` and `todo`, the choices still open, each by its address.
+`link` and `todo`, the choices still open, each by its address (`options` only with `envelope: true`).
 3. Fill the Build start: race, racial ability, faith, alignment, background, point-buy scores.
 4. Add levels with `level.N.class` (N one past the last level adds one) and fill each level's open choices: feats, \
 Feature selections, ability increases, skill points.
@@ -73,7 +74,9 @@ parameterised feat or mythic ability (Favorite Metamagic: a metamagic) needs `{k
 `options {values: true}`. A `todo` entry on a filled slot is a pick whose value is still open: choose the value \
 there. A spellcasting prestige class needs `advances`, the classes it advances (`[]` for none). A point-buy score \
 or a skill's ranks take the number to reach; `level.N.skill` takes a map `{skill: ranks}` to spend a level's skill \
-points in one step.
+points in one step. \
+`compact: true` on `options` and `search` leaves out summaries (and `search`'s prerequisites and guide links) when \
+you need only the names.
 
 Branching: for alternatives (Lich or Aeon), build the shared part once, `choose` each alternative from that same \
 code, fill each branch, then `compare` the codes. Report its differences as facts, without ranking them.
@@ -132,16 +135,21 @@ impl Server {
 #[tool_router]
 impl Server {
     #[tool(
-        description = "Find game items by name, key or initials (\"BFT\" finds the Brown-Fur Transmuter). Kinds: \
+        description = "Find game items by name, key or initials (\"BFT\" finds the Brown-Fur Transmuter), or by \
+            what they do: an item whose summary holds a query word as a whole word (\"DC\" finds Spell Focus and \
+            the Kitsune) matches too, after every name match, marked `matched: \"summary\"`, those holding every \
+            query word first; `note` says when `limit` left some out. Kinds: \
             class, archetype, path (Mythic path), feat, mythic_ability, mythic_feat, option (an option of a Feature \
             selection: an arcanist exploit, a rogue talent, a bloodline, a Lich power), race, deity, background. \
             Each match has the key `describe` takes, its short summary when the data has one, its parent (an \
-            archetype's class, an option's selection), its category, its prerequisite in the planner's words, and a \
-            guide link for the user (never fetch it). Best \
+            archetype's class, an option's selection), its category, its prerequisite in the planner's words (a long \
+            one shortened: \"one of 49 hexes (Air Barrier, …)\"; `describe` gives it whole), and a guide link for \
+            the user (never fetch it). `compact: true` gives each match as kind, key, name and category only. Best \
             match first. `category` filters by a feat's category (\"Weapon\", \"Magic\", …), a mythic pick's group \
             (\"Melee\", \"Ranged\", …) or an option's Feature selection (\"Rage Power\"), one or a list; with \
             `kinds` or `category`, `query` may be empty to list every item they allow (\"every Melee mythic \
-            feat\"). `total` counts every match, beyond `limit`. When nothing matches, `note` says so and names \
+            feat\"). `limit` is at most 100 (a larger one returns 100, with a `note`); `total` counts every match, \
+            beyond `limit`. When nothing matches, `note` says so and names \
             only near names: the data holds what the guide lists, so a name it lacks isn't in the planner.",
         annotations(read_only_hint = true, open_world_hint = false)
     )]
@@ -158,6 +166,7 @@ impl Server {
                     args.kinds.as_deref(),
                     categories.as_deref(),
                     args.limit,
+                    args.compact.unwrap_or(false),
                 )
                 .map(Json)
         })
@@ -252,8 +261,9 @@ impl Server {
             `start.race|faith|alignment|background|racial-ability`, or `mythic.first-ascension|path|switch` once \
             the rank is reached. By default only the options open now are listed and `closed` counts the rest; \
             `only_open: false` lists them with their reasons. `values: true` lists a parameterised feat once per \
-            value. `query` filters by name or key. Errors: `no_such_choice` for an address the Build lacks, \
-            `stale_link` for a code that doesn't open. Plus the envelope (`build`, `link`, `todo`).",
+            value. `query` filters by name or key. `compact: true` leaves out the summaries. It changes nothing, so \
+            the envelope (`build`, `link`, `todo`) comes only with `envelope: true`. Errors: `no_such_choice` for an \
+            address the Build lacks, `stale_link` for a code that doesn't open.",
         annotations(read_only_hint = true, open_world_hint = false)
     )]
     async fn options(

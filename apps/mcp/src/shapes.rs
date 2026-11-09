@@ -3,7 +3,7 @@
 //!
 //! Conventions: field names are `snake_case`; a result is always an object (a list sits in a named field, as
 //! `search`'s `matches`); an optional field that doesn't apply is left out, except `prerequisite`, which is
-//! `null` when there is none; a reference to another item is a [`Named`] `{key, name}`. Every result about a Build
+//! `null` when there is none (`search`'s `compact` leaves it out); a reference to another item is a [`Named`] `{key, name}`. Every result about a Build
 //! flattens the [`Envelope`] into it (`build`, `link`, `todo`); a choice is named by its address (`address.rs`) and
 //! holds a [`ChoiceValue`].
 
@@ -63,8 +63,9 @@ impl Kind {
 /// `search`'s arguments.
 #[derive(Debug, Deserialize, JsonSchema)]
 pub struct SearchArgs {
-    /// Words of a name, a key, or initials ("BFT" for Brown-Fur Transmuter). Case doesn't matter. May be empty or
-    /// left out when `kinds` or `category` is given: then every item they allow matches.
+    /// Words of a name, a key, or initials ("BFT" for Brown-Fur Transmuter), or words of what an item does ("DC"):
+    /// a summary holding a query word as a whole word matches too, after the name matches. Case doesn't matter.
+    /// May be empty or left out when `kinds` or `category` is given: then every item they allow matches.
     #[serde(default)]
     pub query: String,
     /// Only these kinds; every kind when left out.
@@ -75,9 +76,14 @@ pub struct SearchArgs {
     /// Power") or key, "Base class" or "Prestige class", a background's group.
     #[serde(default)]
     pub category: Option<OneOrMany>,
-    /// At most this many matches (default 10, or 50 for an empty query; at most 100).
+    /// At most this many matches (default 10, or 50 for an empty query). Capped at 100: a larger `limit` returns
+    /// 100, and `note` says so.
     #[serde(default)]
     pub limit: Option<u32>,
+    /// Each match as its kind, key, name and category (and `matched`) only: no summary, parent, prerequisite or
+    /// guide link (default false).
+    #[serde(default)]
+    pub compact: Option<bool>,
 }
 
 /// One text, or a list of them.
@@ -101,11 +107,14 @@ impl OneOrMany {
 #[derive(Debug, Serialize, JsonSchema)]
 pub struct SearchResult {
     /// The best match first: exact names and keys, then initials, then names starting with the query, then
-    /// names holding its words, then any name or key containing it. For an empty query, by kind, then name.
+    /// names holding its words, then any name or key containing it, then summaries holding a query word as a whole
+    /// word (`matched: "summary"`), those holding every query word first. For an empty query, by kind, then name.
     pub matches: Vec<Hit>,
     /// How many items match in all; more than `matches` holds when `limit` cut the list.
     pub total: u32,
-    /// When nothing matches: says so, and names the near names (or categories), if any is close.
+    /// When nothing matches: says so, and names the near names (or categories), if any is close. When every match
+    /// is by its summary: says no name, key or initials matched. When `limit` left out summary matches: how many.
+    /// When `limit` is over its cap of 100: says so.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub note: Option<String>,
 }
@@ -129,11 +138,26 @@ pub struct Hit {
     /// option's Feature selection, a background's group.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub category: Option<String>,
-    /// What taking it needs, in the planner's words ("Spell Focus (Conjuration)"); `null` when nothing.
-    pub prerequisite: Option<String>,
+    /// What taking it needs, in the planner's words ("Spell Focus (Conjuration)"); `null` when nothing. In
+    /// `search`, a long one has each group of many alternatives shortened ("one of 49 hexes (Air Barrier, Battle
+    /// Master, Battle Ward, …)"), and `describe` gives it whole; left out by `search`'s `compact`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub prerequisite: Option<Option<String>>,
     /// Where the guide describes it, for the user to read. Never fetch it.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub guide_url: Option<String>,
+    /// `search` only: `"summary"` when the item matched by its summary's words rather than its name, key or
+    /// initials. Left out for those.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub matched: Option<Matched>,
+}
+
+/// How a `search` hit matched, when not by its name, key or initials.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum Matched {
+    /// A query word is a whole word of its summary.
+    Summary,
 }
 
 /// `describe`'s arguments.
@@ -552,13 +576,21 @@ pub struct OptionsArgs {
     /// status (default false: once, with `takes` saying what a value is).
     #[serde(default)]
     pub values: Option<bool>,
+    /// Each option without its summary (default false).
+    #[serde(default)]
+    pub compact: Option<bool>,
+    /// Also return the envelope, `build`, `link` and `todo` (default false: `options` changes nothing, so the
+    /// Build's code and its open choices are those given).
+    #[serde(default)]
+    pub envelope: Option<bool>,
 }
 
 /// `options`' result.
 #[derive(Debug, Serialize, JsonSchema)]
 pub struct OptionsResult {
+    /// Only with `envelope: true`.
     #[serde(flatten)]
-    pub envelope: Envelope,
+    pub envelope: Option<Envelope>,
     /// The address the options are for, as the server writes it.
     pub choice: String,
     /// In the planner's order.

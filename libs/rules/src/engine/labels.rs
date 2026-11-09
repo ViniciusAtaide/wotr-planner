@@ -164,7 +164,12 @@ impl Engine {
 
     /// The name of what a feature belongs to (`cleric/domain/animal/animal-companion` is the Animal Domain's).
     fn feature_owner(&self, key: &FeatureKey) -> Option<&str> {
-        Some(match self.feature_holder(key)? {
+        self.owner(key.as_str())
+    }
+
+    /// The name of the nearest option, archetype, class or path a key sits under.
+    fn owner(&self, key: &str) -> Option<&str> {
+        Some(match self.holder(key)? {
             Holder::Option(option) => &option.name,
             Holder::Archetype(archetype) => &archetype.name,
             Holder::Class(class) => &class.name,
@@ -174,7 +179,12 @@ impl Engine {
 
     /// The nearest option, archetype, class or path a feature's key sits under.
     fn feature_holder(&self, key: &FeatureKey) -> Option<Holder<'_>> {
-        let mut prefix = key.as_str();
+        self.holder(key.as_str())
+    }
+
+    /// The nearest option, archetype, class or path a key sits under.
+    fn holder(&self, key: &str) -> Option<Holder<'_>> {
+        let mut prefix = key;
         while let Some((owner, _)) = prefix.rsplit_once('/') {
             prefix = owner;
             if let Some(option) = self.catalog.option(&SelectionOptionKey::new(prefix)) {
@@ -747,11 +757,20 @@ impl Engine {
                 .map(|child| self.nested_unmet_text(child))
                 .collect::<Vec<_>>()
                 .join(", "),
-            Unmet::Any(children) => children
-                .iter()
-                .map(|child| self.nested_unmet_text(child))
-                .collect::<Vec<_>>()
-                .join(" or "),
+            Unmet::Any(children) => {
+                let texts = children
+                    .iter()
+                    .map(|child| self.nested_unmet_text(child))
+                    .collect();
+                let options = children.iter().map(|child| match child {
+                    Unmet::Condition {
+                        needs: Prerequisite::SelectionOption(option),
+                        ..
+                    } => Some(option),
+                    _ => None,
+                });
+                self.told_apart(texts, options).join(" or ")
+            }
             Unmet::AtLeast {
                 needed,
                 met,
@@ -783,26 +802,68 @@ impl Engine {
     /// One prerequisite as the sheet says it, with what the character has for a numeric one ("BAB +4 (have
     /// +1)").
     pub fn prerequisite_text(&self, prerequisite: &Prerequisite, has: Option<u8>) -> String {
+        self.prerequisite_text_within(prerequisite, has, None)
+    }
+
+    /// [`Self::prerequisite_text`] with every group of more than `most` alternatives shortened to how many there are,
+    /// what they are and the first few: "one of 49 hexes (Air Barrier, Battle Master, Battle Ward, …)", "2 of 27
+    /// alternatives (…)". For a long
+    /// prerequisite in the MCP server's `search` (ticket 128), whose `describe` gives the whole text.
+    pub fn short_prerequisite_text(&self, prerequisite: &Prerequisite, most: usize) -> String {
+        self.prerequisite_text_within(prerequisite, None, Some(most))
+    }
+
+    /// The text of a prerequisite, its groups of more than `most` alternatives shortened when `most` is given.
+    fn prerequisite_text_within(
+        &self,
+        prerequisite: &Prerequisite,
+        has: Option<u8>,
+        most: Option<usize>,
+    ) -> String {
+        /// How many alternatives a shortened group names.
+        const SHOWN: usize = 3;
         let have = |text: String| match has {
             Some(value) => format!("{text} (have {value})"),
             None => text,
         };
-        let group = |children: &[Prerequisite], joiner: &str| {
-            children
+        let texts = |children: &[Prerequisite]| {
+            let texts = children
                 .iter()
                 .map(|child| match child {
                     Prerequisite::All(_) | Prerequisite::Any(_) | Prerequisite::AtLeast(..) => {
-                        format!("({})", self.prerequisite_text(child, None))
+                        format!("({})", self.prerequisite_text_within(child, None, most))
                     }
-                    _ => self.prerequisite_text(child, None),
+                    _ => self.prerequisite_text_within(child, None, most),
                 })
-                .collect::<Vec<_>>()
-                .join(joiner)
+                .collect();
+            let options = children.iter().map(|child| match child {
+                Prerequisite::SelectionOption(option) => Some(option),
+                _ => None,
+            });
+            self.told_apart(texts, options)
         };
         match prerequisite {
-            Prerequisite::All(children) => group(children, ", "),
-            Prerequisite::Any(children) => group(children, " or "),
-            Prerequisite::AtLeast(n, children) => format!("{n} of: {}", group(children, ", ")),
+            Prerequisite::All(children) => texts(children).join(", "),
+            Prerequisite::Any(children) | Prerequisite::AtLeast(_, children)
+                if most.is_some_and(|most| children.len() > most) =>
+            {
+                let texts = texts(children);
+                let mut shown = texts[..SHOWN.min(texts.len())].join(", ");
+                if texts.len() > SHOWN {
+                    shown.push_str(", …");
+                }
+                let needed = match prerequisite {
+                    Prerequisite::AtLeast(n, _) => n.to_string(),
+                    _ => "one".to_owned(),
+                };
+                format!(
+                    "{needed} of {} {} ({shown})",
+                    children.len(),
+                    self.alternatives_noun(children)
+                )
+            }
+            Prerequisite::Any(children) => texts(children).join(" or "),
+            Prerequisite::AtLeast(n, children) => format!("{n} of: {}", texts(children).join(", ")),
             // Two negations cancel.
             Prerequisite::Not(child) => match &**child {
                 Prerequisite::Not(held) => self.prerequisite_text(held, has),
@@ -881,6 +942,109 @@ impl Engine {
                 format!("a deity offering the {}", self.option_name(domain))
             }
         }
+    }
+
+    /// A group's texts, with each option whose text another of the group shares named with its Feature selection:
+    /// "Animal Companion (Nature Bond) or Animal Companion (Nature Revelations)", not "Animal Companion or Animal
+    /// Companion" (ticket 128); and when that is shared too, with the selection's owner as well: "Arcane (Sorcerer
+    /// Bloodline) or Arcane (Bloodrager Bloodline)". A feature already reads with its owner when another shares its
+    /// name ([`Self::feature_name_apart`]). `options` holds each text's option, if it is one.
+    fn told_apart<'a>(
+        &self,
+        mut texts: Vec<String>,
+        options: impl Iterator<Item = Option<&'a SelectionOptionKey>>,
+    ) -> Vec<String> {
+        let shared = |texts: &[String]| -> Vec<bool> {
+            texts
+                .iter()
+                .map(|text| texts.iter().filter(|other| *other == text).count() > 1)
+                .collect()
+        };
+        let options: Vec<_> = options.collect();
+        let named = |option: &SelectionOptionKey, with_owner: bool| {
+            let selection = self.catalog.selection_of(option)?;
+            let owner = match with_owner {
+                true => self
+                    .owner(selection.key.as_str())
+                    .map(|owner| format!("{owner} ")),
+                false => None,
+            };
+            Some(format!(
+                "{} ({}{})",
+                self.option_name(option),
+                owner.unwrap_or_default(),
+                selection.name
+            ))
+        };
+        for with_owner in [false, true] {
+            let flags = shared(&texts);
+            for ((text, shared), option) in texts.iter_mut().zip(flags).zip(&options) {
+                if let (true, Some(option)) = (shared, option)
+                    && let Some(named) = named(option, with_owner)
+                {
+                    *text = named;
+                }
+            }
+        }
+        texts
+    }
+
+    /// What a shortened group's alternatives are, in the plural: their one name when they share it, an ending in
+    /// brackets aside ("Animal Companion (Beast Rider)" → "animal companions"), their Feature selections' one name ("hexes"), "feats", or else "alternatives".
+    fn alternatives_noun<'a>(&'a self, children: &'a [Prerequisite]) -> String {
+        let name = |child: &'a Prerequisite| -> Option<&'a str> {
+            match child {
+                Prerequisite::Feat(feat) | Prerequisite::FeatFor { feat, .. } => {
+                    Some(self.feat_name(feat))
+                }
+                Prerequisite::Feature { feature, .. } => Some(self.feature_name(feature)),
+                Prerequisite::SelectionOption(option) => Some(self.option_name(option)),
+                Prerequisite::MythicFeat(feat) => Some(self.mythic_feat_name(feat)),
+                Prerequisite::MythicAbility(ability) => Some(self.mythic_ability_name(ability)),
+                _ => None,
+            }
+        };
+        let selection = |child: &'a Prerequisite| match child {
+            Prerequisite::SelectionOption(option) => self
+                .catalog
+                .selection_of(option)
+                .map(|selection| selection.name.as_str()),
+            _ => None,
+        };
+        let one = |names: Vec<Option<&str>>| {
+            let first = names.first().copied().flatten()?;
+            names
+                .iter()
+                .all(|name| *name == Some(first))
+                .then(|| plural(&first.to_lowercase()))
+        };
+        let base = |name: &'a str| name.split(" (").next().unwrap_or(name);
+        one(children.iter().map(|child| name(child).map(base)).collect())
+            .or_else(|| one(children.iter().map(selection).collect()))
+            .unwrap_or_else(|| {
+                let feats = children.iter().all(|child| {
+                    matches!(child, Prerequisite::Feat(_) | Prerequisite::FeatFor { .. })
+                });
+                match feats {
+                    true => "feats".to_owned(),
+                    false => "alternatives".to_owned(),
+                }
+            })
+    }
+}
+
+/// A noun's plural: "hexes", "talents", "abilities"; one that ends in "s" is taken as plural already.
+fn plural(noun: &str) -> String {
+    if noun.ends_with('s') {
+        noun.to_owned()
+    } else if noun.ends_with('x') || noun.ends_with("ch") || noun.ends_with("sh") {
+        format!("{noun}es")
+    } else if let Some(stem) = noun.strip_suffix('y')
+        && !stem.ends_with(['a', 'e', 'i', 'o', 'u'])
+    {
+        format!("{stem}ies")
+    } else {
+        format!("{noun}s")
     }
 }
 

@@ -417,8 +417,22 @@ async fn the_users_prompt_bft_summoner_lich_or_aeon() {
     }
 
     // What the prompt implies and the data lacks. Spells are out of scope (map, Out of scope), so "the mass animal
-    // buffs" match nothing: `search` has no spell kind at all. Durations ("summons lasting 24h") and what Extend
-    // Spell or Enduring Spells do to them aren't modelled either; the agent labels that as its own game knowledge.
-    assert!(client.search_for("mass animal growth").await.is_empty());
-    assert!(client.search_for("animal growth").await.is_empty());
+    // buffs" match no name: `search` has no spell kind at all, and its only hits are summaries holding "animal"
+    // (ticket 123), which its note says. Durations ("summons lasting 24h") and what Extend Spell or Enduring Spells
+    // do to them aren't modelled either; the agent labels that as its own game knowledge.
+    for query in ["mass animal growth", "animal growth"] {
+        let found = client.ok("search", json!({ "query": query })).await;
+        assert!(
+            found["matches"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .all(|hit| hit["matched"] == "summary"),
+            "{found}"
+        );
+        assert!(
+            text(&found["note"]).starts_with("No item's name"),
+            "{found}"
+        );
+    }
 }
