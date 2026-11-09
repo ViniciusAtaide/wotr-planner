@@ -56,7 +56,7 @@
         name: "Divine Power",
         school: Evocation,
         guide: "cleric-spells#divine-power-evocation",
-        summary: "You gain +1 luck per three caster levels on attack, damage, Strength checks and skills, caster level in temp HP, and an extra full-AB attack on full attacks.",
+        summary: "You gain caster level in temp HP, an extra full-AB attack on full attacks, and +1 luck per three levels on attacks, damage, Strength checks and Strength skills.",
         target: "Personal",
         duration: "1 round / level",
         saving_throw: "N/A",
