@@ -1,7 +1,7 @@
 # The sheet's view state as types
 
 Type: task
-Status: open
+Status: resolved
 Blocked by: none
 Map: [WotR Build Planner](../map.md)
 
@@ -27,14 +27,25 @@ Checked and left alone: a `SlotPicker` reads its slot once, when it opens (~360)
 - `scripts/check.sh` passes (`--full` isn't needed: no cargo-leptos change).
 - The dev server, checked in the browser: each picker kind opens, shows its loading state and list, picks, re-picks the current pick (nothing changes and the URL is unchanged), removes; the slot picker's value step and back; the class picker's advances step and back; the attack weapon: default, a weapon, no weapon, and back to the default after a pasted link. No console errors.
 
-## Choices to settle
+## Choices settled
+
+The user took the recommended answers (2026-11-09: "starts each one is a separate worktree in parallel").
 
 1. **How `pick` skips the current pick.**
    - **A (recommended):** `pick` applies the edit to a clone of the Build and sets it only if it changed, so the nine `is_current` tests go. The clone is cheap beside what follows every edit: the engine walks the whole Build again.
    - **B:** `pick(edit, is_current: bool)`, and each site keeps its own test. Smaller change; the rule stays at each site.
 2. **Whether Remove goes through `pick`.** Recommended: yes. A Remove's edit always changes the Build, so `pick` behaves the same, and every close-then-edit has one home.
 3. **Where the step enums live.** Recommended: beside their pickers in `picker.rs`, private. Nothing outside a picker reads its step.
+4. **(Built) `after_paint` moves a step through a private `Step<T>` trait**, implemented for `Option<T>` (the start pickers' one-step lists), `SlotStep` and `ClassStep`; it moves only `Loading` to `List`, with `maybe_update`, so a later step isn't overwritten or notified.
+5. **(Built) `ClassStep::Advances` boxes its `ClassOption`**: clippy's `large_enum_variant` (232 bytes against 8), as `rules/src/choice.rs` does.
+6. **(Built) the slot picker's header reads a `Memo<bool>`** ("on an entry's values"), so it re-renders only on entering or leaving the values step, as it did with `open_entry`.
 
 ## Progress log
 
+- 2026-11-09: built in two parallel worktrees, split by file: (a), (b), (d) in `picker.rs` and `planner.rs` (`Planner::pick` and a private `Planner::edited` that `edit` shares), and (c) in `planner.rs` and `grid.rs`. Each passed `scripts/check.sh` in its worktree; merged into `main` (24f33cc, 177757e), where `scripts/check.sh` passed again (ALL-OK).
+- Before dropping the per-site current-pick tests, every site's edit was checked to give an identical Build when its current pick is picked again, so comparing Builds skips exactly what the tests skipped. Two edges differ, neither visible: the class picker's advances step had no test (picking the advancement held now leaves the URL alone instead of rewriting the same Build), and re-picking a race now clears a stray racial ability on a race that doesn't choose one (only a hand-made link holds one).
+- Checked in the browser on `main` (dev server): the slot picker's loading state, list, Weapon Focus's values step, back and a value; the same value again (picker closes, URL unchanged); Remove; the attack weapon following the new Weapon Focus by default, then "No weapon" holding while the Build has Weapon Focus; the class picker adding level 3 and the current class picked again (URL unchanged); a pasted link; the alignment wheel's pick and the current alignment again (URL unchanged). No console errors. Not clicked: a prestige class's advances step, the Mythic track pickers and the ability increase.
+
 ## Answer
+
+Done 2026-11-09. `Planner::pick` is the one close-then-edit, and skips an edit that leaves the Build as it is; the slot and class pickers hold one step each (`SlotStep`, `ClassStep`); the attack weapon is `AttackWeapon { Default, NoWeapon, Weapon }`; `after_paint` has one doc comment. No behaviour change.
