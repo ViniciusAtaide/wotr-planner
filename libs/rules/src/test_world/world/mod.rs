@@ -67,6 +67,7 @@ pub fn world() -> GameData {
         mythic_feats: mythic_feats(),
         bonuses: bonuses(),
         interactions: Vec::new(),
+        gear: Vec::new(),
         mythic_paths: vec![
             trickster(),
             aeon(),

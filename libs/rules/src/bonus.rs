@@ -187,14 +187,18 @@ pub struct ItemInteractions {
 }
 
 /// What a spell is, as far as the DC bonuses look: a school, and optionally a subschool, an energy type and whether
-/// a metamagic feat (other than Heighten Spell) is applied. No spell catalogue is needed: the caster line takes
-/// these as given.
+/// a metamagic feat (other than Heighten Spell) is applied; for assumed gear (ticket 122), also the saving throw it
+/// allows and whether it's mind-affecting. No spell catalogue is needed: the caster line takes these as given.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct SpellTraits {
     pub school: SpellSchool,
     pub subschool: Option<Subschool>,
     pub energy: Option<Energy>,
     pub metamagic: bool,
+    /// The saving throw the spell allows (the guide's DC items "vs. Will", "vs. Fortitude").
+    pub save: Option<Save>,
+    /// Whether the spell is mind-affecting (the guide's DC and caster level items "with Mind-affecting").
+    pub mind_affecting: bool,
 }
 
 /// The subschools of magic, as the core rules name them. Only charm and compulsion change a DC in the data today

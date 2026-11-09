@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO gear_bonus (gear_item_key, target, amount, circumstance, scope, spell_school, subschool,\n                    energy, save, class_key)\n                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 10
+    },
+    "nullable": []
+  },
+  "hash": "f9d0b9cba7455133a799709640f799ddad5a3195a82c27867a5a95f8c52b32f0"
+}

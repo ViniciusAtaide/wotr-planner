@@ -1,0 +1,125 @@
+// The guide's "Caster Level and Spell DC Boosting Items" tables on its `items` page (ticket 122): `rules::GearItem`.
+// An agent may assume them on top of a Build (`assume` on `sheet` and `compare`): the caster line adds each bonus
+// where its circumstance matches. Never part of a Build, its link or a prerequisite.
+//
+// Each item's bonuses are its row in the two tables, plus the caster-line bonuses its own row on the same page lists
+// (against spell resistance, to concentration). The item's other properties are left out: an ability score bonus (Sin
+// Mage's Staff's +6 Intelligence, the Headband of Reshaping's +6 Wisdom) is the agent's to assume with the generic
+// bonuses. The table's circumstance
+// is the item's `circumstance` (the table's "-" is every spell). Left out, since the caster line can't tell when they
+// apply: Delamere's Armor (Plant domain spells), Nature's Agony and Voice of the Fearless (sonic spells), the Amulet
+// of Blackened Mirror (hexes), Legacy of the Last Azlanti ("elemental" spells), and the Cloak of the Ancient Herald,
+// whose own row gives its compulsion DC only after channelling energy to heal. Also left out: the Dagger of the
+// Betrayer's +4 DC with fused spells and the Blackened Rags' hexes.
+[
+    // Caster level table.
+    (key: "ashmaker", name: "Ashmaker", slot: Quarterstaff, guide: "items", bonuses: [
+        (target: CasterLevel, amount: 2, circumstance: Spells(School(Evocation))),
+    ]),
+    (key: "fiery-spell-weaver", name: "Fiery Spell Weaver", slot: Quarterstaff, guide: "items", bonuses: [
+        (target: CasterLevel, amount: 1),
+        (target: SpellPenetration, amount: 4),
+    ]),
+    (key: "phantasmal-guide", name: "Phantasmal Guide", slot: Quarterstaff, guide: "items", bonuses: [
+        (target: CasterLevel, amount: 3, circumstance: Spells(School(Illusion))),
+    ]),
+    (key: "sin-mages-staff", name: "Sin Mage's Staff", slot: Quarterstaff, guide: "items", bonuses: [
+        (target: CasterLevel, amount: 3),
+        (target: SpellDc, amount: 1),
+    ]),
+    (key: "scimitar-of-wind", name: "Scimitar of Wind", slot: Scimitar, guide: "items", bonuses: [
+        (target: CasterLevel, amount: 1, circumstance: Spells(School(Transmutation))),
+    ]),
+    (key: "goggles-of-mind-control", name: "Goggles of Mind Control", slot: Glasses, guide: "items", bonuses: [
+        (target: CasterLevel, amount: 2, circumstance: MindAffecting),
+        (target: SpellDc, amount: 2, circumstance: MindAffecting),
+    ]),
+    (key: "headband-of-reshaping", name: "Headband of Reshaping", slot: Headwear, guide: "items", bonuses: [
+        (target: CasterLevel, amount: 1, circumstance: Spells(School(Transmutation))),
+    ]),
+    (key: "robe-of-the-seven-sins", name: "Robe of the Seven Sins", slot: Robe, guide: "items", bonuses: [
+        (target: CasterLevel, amount: 3),
+        (target: SpellDc, amount: 1),
+        (target: SpellPenetration, amount: 5),
+    ]),
+    // The table's "Druid": its row gives the caster level "if the wearer is a Druid".
+    (key: "web-strider", name: "Web Strider", slot: Robe, guide: "items", bonuses: [
+        (target: CasterLevel, amount: 1, circumstance: Class("druid")),
+    ]),
+
+    // DC table.
+    (key: "dagger-of-the-betrayer", name: "Dagger of the Betrayer", slot: Dagger, guide: "items", bonuses: [
+        (target: SpellDc, amount: 2),
+    ]),
+    (key: "purple-stone-knife", name: "Purple Stone Knife", slot: Dagger, guide: "items", bonuses: [
+        (target: SpellDc, amount: 1, circumstance: Spells(School(Evocation))),
+    ]),
+    (key: "awakened-driftwood", name: "Awakened Driftwood", slot: Quarterstaff, guide: "items", bonuses: [
+        (target: SpellDc, amount: 1, circumstance: Spells(School(Necromancy))),
+        (target: SpellPenetration, amount: 3),
+    ]),
+    (key: "quarterstaff-of-coercion", name: "Quarterstaff of Coercion", slot: Quarterstaff, guide: "items", bonuses: [
+        (target: SpellDc, amount: 1, circumstance: Save(Will)),
+    ]),
+    (key: "quarterstaff-of-the-war-mage", name: "Quarterstaff of the War Mage", slot: Quarterstaff, guide: "items", bonuses: [
+        (target: SpellDc, amount: 2),
+        (target: SpellPenetration, amount: 4),
+    ]),
+    (key: "destroyer-of-planes", name: "Destroyer of Planes", slot: Estoc, guide: "items", bonuses: [
+        (target: SpellDc, amount: 2, circumstance: Spells(School(Evocation))),
+    ]),
+    (key: "scorching-bracers", name: "Scorching Bracers", slot: Bracers, guide: "items", bonuses: [
+        (target: SpellDc, amount: 2, circumstance: Spells(School(Evocation))),
+    ]),
+    (key: "cloak-of-carnage", name: "Cloak of Carnage", slot: Cloak, guide: "items", bonuses: [
+        (target: SpellDc, amount: 2, circumstance: Spells(School(Evocation))),
+    ]),
+    (key: "mindmasters-eyes", name: "Mindmaster's Eyes", slot: Glasses, guide: "items", bonuses: [
+        (target: SpellDc, amount: 2, circumstance: Spells(School(Enchantment))),
+    ]),
+    (key: "twisted-temptation", name: "Twisted Temptation", slot: Gloves, guide: "items", bonuses: [
+        (target: SpellDc, amount: 2, circumstance: Spells(School(Enchantment))),
+    ]),
+    (key: "glass-amulet-of-clarity", name: "Glass Amulet of Clarity", slot: Necklace, guide: "items", bonuses: [
+        (target: SpellDc, amount: 2, circumstance: MindAffecting),
+    ]),
+    (key: "heartstone-of-the-night-hag-queen", name: "Heartstone of the Night Hag Queen", slot: Necklace, guide: "items", bonuses: [
+        (target: SpellDc, amount: 3),
+    ]),
+    (key: "flow-of-water", name: "Flow of Water", slot: Ring, guide: "items", bonuses: [
+        (target: SpellDc, amount: 1, circumstance: Spells(Energy(Cold))),
+    ]),
+    (key: "magicians-ring", name: "Magician's Ring", slot: Ring, guide: "items", bonuses: [
+        (target: SpellDc, amount: 2, circumstance: Spells(School(Illusion))),
+    ]),
+    (key: "ring-of-chaotic-fascination", name: "Ring of Chaotic Fascination", slot: Ring, guide: "items", bonuses: [
+        (target: SpellDc, amount: 2, circumstance: Spells(School(Enchantment))),
+    ]),
+    // The table's "with Witch spells and Hexes": the witch's spells (hexes are no part of the caster line).
+    (key: "blackened-rags", name: "Blackened Rags", slot: Robe, guide: "items", bonuses: [
+        (target: SpellDc, amount: 1, circumstance: Class("witch")),
+    ]),
+    (key: "robe-of-air", name: "Robe of Air", slot: Robe, guide: "items", bonuses: [
+        (target: SpellDc, amount: 2, circumstance: Spells(Energy(Electricity))),
+    ]),
+    (key: "robe-of-determination", name: "Robe of Determination", slot: Robe, guide: "items", bonuses: [
+        (target: SpellDc, amount: 2, circumstance: Save(Fortitude)),
+        (target: SpellPenetration, amount: 2),
+        (target: Concentration, amount: 4),
+    ]),
+    (key: "robe-of-earth", name: "Robe of Earth", slot: Robe, guide: "items", bonuses: [
+        (target: SpellDc, amount: 2, circumstance: Spells(Energy(Acid))),
+    ]),
+    (key: "robe-of-fire", name: "Robe of Fire", slot: Robe, guide: "items", bonuses: [
+        (target: SpellDc, amount: 2, circumstance: Spells(Energy(Fire))),
+    ]),
+    (key: "robe-of-the-overmind", name: "Robe of the Overmind", slot: Robe, guide: "items", bonuses: [
+        (target: SpellDc, amount: 1, circumstance: MindAffecting),
+    ]),
+    (key: "robe-of-water", name: "Robe of Water", slot: Robe, guide: "items", bonuses: [
+        (target: SpellDc, amount: 2, circumstance: Spells(Energy(Cold))),
+    ]),
+    (key: "rod-of-power-source", name: "Rod of Power Source", slot: Rod, guide: "items", bonuses: [
+        (target: SpellDc, amount: 4, circumstance: Spells(School(Conjuration))),
+    ]),
+]

@@ -22,7 +22,7 @@ use crate::columns::{
     save_progression_text, save_text, spell_descriptor_text, spell_school_text, story_text,
     weapon_proficiency_text,
 };
-use crate::{Error, MIGRATOR, bonuses, prerequisites};
+use crate::{Error, MIGRATOR, bonuses, gear, prerequisites};
 
 /// Checks `data` ([`GameData::check`], references to missing keys included), then builds a new database next to
 /// `database` (its name plus `.new`): runs the migration, loads `data` and records `hash` as the data the tables
@@ -320,6 +320,7 @@ async fn insert_all(
     }
     bonuses::insert(conn, &data.bonuses).await?;
     bonuses::insert_interactions(conn, &data.interactions).await?;
+    gear::insert(conn, &data.gear).await?;
 
     sqlx::query!("INSERT INTO game_data_seed (hash) VALUES ($1)", hash)
         .execute(&mut *conn)

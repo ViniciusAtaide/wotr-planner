@@ -447,6 +447,12 @@ pub struct SheetArgs {
     /// "compulsion", "metamagic": true}`), from the planner's engine. Not part of the Build.
     #[serde(default)]
     pub caster: Option<crate::caster::CasterArgs>,
+    /// Also give, at the last level, the attack line, the caster line and the totals with gear assumed on top
+    /// (`assumed`, beside the unassisted numbers): `{"enhancement": {"cha": 8}, "inherent": {"cha": 4},
+    /// "weapon_enhancement": 5, "resistance": 7, "items": ["rod-of-power-source"]}`. The agent's assumption: not
+    /// part of the Build, its link or any prerequisite.
+    #[serde(default)]
+    pub assume: Option<crate::assume::AssumeArgs>,
 }
 
 /// A value for a choice, as `options` gives it and `choose` takes it:
@@ -592,6 +598,10 @@ pub struct SheetResult {
     /// With a `caster`: what no caster line counts.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub caster_leaves_out: Option<Vec<String>>,
+    /// With `assume`: the totals, and with a `weapon` or a `caster` their lines, at the last level with the assumed
+    /// gear. The agent's assumption on top of the planner's facts, beside the unassisted numbers above.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub assumed: Option<crate::assume::AssumedShape>,
 }
 
 /// One character level of the sheet.
@@ -633,7 +643,7 @@ pub struct LevelLine {
     pub picks: Vec<PickLine>,
 }
 
-#[derive(Debug, Serialize, JsonSchema)]
+#[derive(Clone, Debug, Serialize, JsonSchema)]
 pub struct Scores {
     pub str: u8,
     pub dex: u8,
@@ -848,6 +858,10 @@ pub struct CompareArgs {
     /// "compulsion"}`).
     #[serde(default)]
     pub caster: Option<crate::caster::CasterArgs>,
+    /// Also give each Build's summary its attack line (with a `weapon`) and caster line (with a `caster`) with gear
+    /// assumed on top (`assumed`, beside the unassisted lines), as `sheet`'s `assume`. Needs `weapon` or `caster`.
+    #[serde(default)]
+    pub assume: Option<crate::assume::AssumeArgs>,
     /// Order the summaries by this number at each Build's last level, highest first: `{"caster_line": {"school":
     /// "enchantment", "subschool": "compulsion"}}` (`number`: `dc`, the default, `spell_penetration` or
     /// `concentration`) or `{"attack_line": {"weapon": "greatsword"}}` (`number`: `attack`, the default, or
@@ -922,6 +936,9 @@ pub struct BuildSummary {
     /// With a `caster`: the caster line at the last level.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub caster: Option<crate::caster::CasterLineShape>,
+    /// With `assume`: those lines at the last level with the assumed gear, beside the unassisted ones.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub assumed: Option<crate::assume::AssumedShape>,
     /// With `by`: the number at the last level; absent when the Build has no such line (no casting class, …).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub number: Option<i16>,

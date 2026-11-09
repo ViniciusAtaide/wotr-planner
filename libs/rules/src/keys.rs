@@ -108,3 +108,8 @@ text_key!(
     /// `wizard`, `angel/merged`: a spell list, keyed by its owner.
     SpellListKey
 );
+text_key!(
+    /// `rod-of-power-source`: an item of the guide's caster level and spell DC tables (ticket 122), which `assume`
+    /// names. No Build choice names one.
+    GearKey
+);

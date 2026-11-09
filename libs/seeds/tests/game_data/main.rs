@@ -18,6 +18,7 @@ mod deities;
 mod extra_picks;
 mod first_ascension;
 mod follow_ups;
+mod gear;
 mod infusions;
 mod instinctual_rage_powers;
 mod ki_powers;

@@ -3,7 +3,7 @@
 
 use std::collections::BTreeMap;
 
-use rules::{BuildStart, CharacterState, Engine, TOTALS_LEAVE_OUT, Total};
+use rules::{BuildStart, CharacterState, Engine, TOTALS_LEAVE_OUT, Total, Totals};
 use schemars::JsonSchema;
 use serde::Serialize;
 
@@ -57,7 +57,11 @@ fn shape(total: &Total) -> TotalShape {
 
 /// The totals at a character state.
 pub(crate) fn totals(engine: &Engine, start: &BuildStart, state: &CharacterState) -> TotalsShape {
-    let totals = engine.totals(start, state);
+    shape_of(&engine.totals(start, state))
+}
+
+/// Totals as JSON: the unassisted ones, or with assumed gear.
+pub(crate) fn shape_of(totals: &Totals) -> TotalsShape {
     TotalsShape {
         initiative: shape(&totals.initiative),
         fortitude: shape(&totals.fortitude),
@@ -80,10 +84,7 @@ pub(crate) fn totals(engine: &Engine, start: &BuildStart, state: &CharacterState
     }
 }
 
-/// What no total counts.
+/// What no total counts: gear unless assumed.
 pub(crate) fn leaves_out() -> Vec<String> {
-    TOTALS_LEAVE_OUT
-        .iter()
-        .map(|item| (*item).to_owned())
-        .collect()
+    crate::assume::unless_assumed(TOTALS_LEAVE_OUT)
 }

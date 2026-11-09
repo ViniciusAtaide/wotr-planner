@@ -1,0 +1,134 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT gear_item_key, target, amount, circumstance, scope, spell_school, subschool, energy, save, class_key\n        FROM gear_bonus ORDER BY id",
+  "describe": {
+    "columns": [
+      {
+        "name": "gear_item_key",
+        "ordinal": 0,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "gear_bonus",
+            "name": "gear_item_key"
+          }
+        }
+      },
+      {
+        "name": "target",
+        "ordinal": 1,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "gear_bonus",
+            "name": "target"
+          }
+        }
+      },
+      {
+        "name": "amount",
+        "ordinal": 2,
+        "type_info": "Integer",
+        "origin": {
+          "Table": {
+            "table": "gear_bonus",
+            "name": "amount"
+          }
+        }
+      },
+      {
+        "name": "circumstance",
+        "ordinal": 3,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "gear_bonus",
+            "name": "circumstance"
+          }
+        }
+      },
+      {
+        "name": "scope",
+        "ordinal": 4,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "gear_bonus",
+            "name": "scope"
+          }
+        }
+      },
+      {
+        "name": "spell_school",
+        "ordinal": 5,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "gear_bonus",
+            "name": "spell_school"
+          }
+        }
+      },
+      {
+        "name": "subschool",
+        "ordinal": 6,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "gear_bonus",
+            "name": "subschool"
+          }
+        }
+      },
+      {
+        "name": "energy",
+        "ordinal": 7,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "gear_bonus",
+            "name": "energy"
+          }
+        }
+      },
+      {
+        "name": "save",
+        "ordinal": 8,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "gear_bonus",
+            "name": "save"
+          }
+        }
+      },
+      {
+        "name": "class_key",
+        "ordinal": 9,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "gear_bonus",
+            "name": "class_key"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "efe12a2b72b01c2ba019c16c786861f16ce0a3a54435e6b4e4eb21d692fb4542"
+}
