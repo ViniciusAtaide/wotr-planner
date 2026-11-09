@@ -2,9 +2,11 @@
 //! offered one whose value matches, requires it open, applies *that option's own edit* with [`Engine::apply`], and
 //! then opens the result's code again ([`reopen`]) as the final gate, so an impossible Build can never come back. No
 //! edit is ever built from the agent's input. A point-buy score or a skill's ranks move one stepper step at a time,
-//! each step checked the same way.
+//! each step checked the same way; a map of skills to ranks spends a level's skill points so, in one step.
 
-use rules::{Build, Engine, POINT_BUY_BUDGET};
+use std::collections::BTreeMap;
+
+use rules::{Build, Engine, POINT_BUY_BUDGET, SkillKey};
 
 use crate::address::{Address, NotAnAddress};
 use crate::code::{envelope, open, reopen};
@@ -64,8 +66,19 @@ fn take(
     {
         return step_to(engine, build, &address, *target, index);
     }
+    if let ChoiceValue::Ranks(ranks) = value {
+        let Address::SkillPoints(level) = address else {
+            return Err(ToolError::not_an_option(format!(
+                "A map of skills to ranks is for `level.N.skill`, a level's skill points, not `{address}`."
+            )));
+        };
+        return skill_map(engine, build, level, ranks, index);
+    }
     let offers = offers_at(engine, build, &address)?;
-    let offer = find(value, &offers).ok_or_else(|| not_offered(&address, value, &offers))?;
+    let offer = find(value, &offers).ok_or_else(|| {
+        missing_parameter(engine, build, &address, value, &offers)
+            .unwrap_or_else(|| not_offered(&address, value, &offers))
+    })?;
     if offer.current {
         // What the Build holds already: nothing to change.
         return Ok(build.clone());
@@ -205,6 +218,99 @@ fn step_to(
     }
 }
 
+/// A level's skill points spent from a map `{skill: ranks}`: each skill's ranks at the level moved to its number as
+/// [`step_to`] moves them, one checked step at a time; the skills lowered go first, to free their points, then the
+/// rest in key order. The first refused rank refuses the whole step, so nothing of it is applied.
+fn skill_map(
+    engine: &Engine,
+    build: &Build,
+    level: u8,
+    ranks: &BTreeMap<String, u8>,
+    index: usize,
+) -> Result<Build, ToolError> {
+    let held = |skill: &SkillKey| {
+        usize::from(level)
+            .checked_sub(1)
+            .and_then(|at| build.levels.get(at))
+            .and_then(|level_up| level_up.skill_ranks.get(skill))
+            .copied()
+            .unwrap_or(0)
+    };
+    let mut moves: Vec<(SkillKey, u8)> = ranks
+        .iter()
+        .map(|(skill, ranks)| (SkillKey::new(skill.trim().to_lowercase()), *ranks))
+        .collect();
+    moves.sort_by_key(|(skill, target)| *target >= held(skill));
+    let mut next = build.clone();
+    for (skill, target) in moves {
+        next = step_to(engine, &next, &Address::Skill(level, skill), target, index)?;
+    }
+    Ok(next)
+}
+
+/// A parameterised feat or option given by its key alone, where the slot offers it only with a parameter: what a value
+/// is, how to give one, and the values open now. `None` for any other value.
+fn missing_parameter(
+    engine: &Engine,
+    build: &Build,
+    address: &Address,
+    value: &ChoiceValue,
+    offered: &[Offer],
+) -> Option<ToolError> {
+    let ChoiceValue::Key(given) = value else {
+        return None;
+    };
+    let parameters: Vec<(&str, &str, bool)> = offered
+        .iter()
+        .filter_map(|offer| match &offer.value {
+            ChoiceValue::Parameterised { key, parameter }
+                if key.eq_ignore_ascii_case(given.trim()) =>
+            {
+                Some((key.as_str(), parameter.as_str(), offer.status.is_ok()))
+            }
+            _ => None,
+        })
+        .collect();
+    let (key, first, _) = *parameters.first()?;
+    // The entry listed once, without its values, says what a value is.
+    let sheet = engine.evaluate(build);
+    let takes = offers(engine, build, &sheet, address, false)
+        .ok()
+        .and_then(|entries| {
+            entries
+                .into_iter()
+                .find(|entry| entry.value.matches(value))
+                .and_then(|entry| entry.takes)
+        })
+        .unwrap_or("a value");
+    let open: Vec<&str> = parameters
+        .iter()
+        .filter(|(_, _, open)| *open)
+        .map(|(_, parameter, _)| *parameter)
+        .collect();
+    let example = ChoiceValue::Parameterised {
+        key: key.to_owned(),
+        parameter: open.first().copied().unwrap_or(first).to_owned(),
+    };
+    let values = match open.is_empty() {
+        true => "None of its values is open now: `options` with `values: true` and `only_open: false` gives each \
+                 one's reason."
+            .to_owned(),
+        false => {
+            let closed = parameters.len() - open.len();
+            let closed = match closed {
+                0 => String::new(),
+                n => format!(" {n} more aren't open now."),
+            };
+            format!("Open values: {}.{closed}", open.join(", "))
+        }
+    };
+    Some(ToolError::needs_parameter(format!(
+        "`{key}` takes {takes}: give `{{key, parameter}}`, as `{}`. {values}",
+        value_text(&example)
+    )))
+}
+
 /// The number a stepper address holds now: a point-buy score, or the ranks a level adds to a skill. The level is
 /// one the Build has ([`offers_at`] checked).
 fn stepper_value(build: &Build, address: &Address) -> u8 {
@@ -324,5 +430,6 @@ fn plain_text(value: &ChoiceValue) -> String {
         ChoiceValue::Class {
             class, archetype, ..
         } => format!("{class} {}", archetype.as_deref().unwrap_or_default()),
+        ChoiceValue::Ranks(ranks) => ranks.keys().cloned().collect::<Vec<_>>().join(" "),
     }
 }

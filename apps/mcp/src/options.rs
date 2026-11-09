@@ -62,6 +62,7 @@ impl Offer {
             ChoiceValue::Class {
                 class, archetype, ..
             } => format!("{class} {}", archetype.as_deref().unwrap_or_default()),
+            ChoiceValue::Ranks(ranks) => ranks.keys().cloned().collect::<Vec<_>>().join(" "),
         };
         format!("{} {value}", self.name).to_lowercase()
     }

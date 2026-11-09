@@ -303,7 +303,9 @@ pub struct SheetArgs {
 ///   "conjuration"}`): a skill or weapon key, or a school, energy or armour type in lower case;
 /// - `{class, archetype?, advances?}`: the class taken at a level, with the archetype when first taken, and for a
 ///   prestige class that asks, the classes it advances (`[]` for none);
-/// - a number: a point-buy score (`start.score.int`), or the ranks a level adds to a skill (`level.N.skill.<skill>`).
+/// - a number: a point-buy score (`start.score.int`), or the ranks a level adds to a skill (`level.N.skill.<skill>`);
+/// - `{skill: ranks}`: for `level.N.skill`, the ranks the level adds to each skill (`{"athletics": 1, "perception":
+///   1}`), each as `level.N.skill.<skill>` takes it, in one step.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(untagged)]
 pub enum ChoiceValue {
@@ -320,6 +322,7 @@ pub enum ChoiceValue {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         advances: Option<Vec<String>>,
     },
+    Ranks(BTreeMap<String, u8>),
 }
 
 impl ChoiceValue {
@@ -601,7 +604,8 @@ pub struct ChooseStep {
     pub choice: String,
     /// The value, as `options` lists it (with `values: true` for a parameterised feat's `{key, parameter}`). For a
     /// point-buy score or a skill's ranks at a level, the number to reach: it's reached one step at a time, each
-    /// step checked.
+    /// step checked. For `level.N.skill`, a map `{skill: ranks}` sets several skills' ranks at that level in one
+    /// step, each rank checked.
     pub value: ChoiceValue,
 }
 
@@ -627,9 +631,10 @@ pub struct Rejected {
     pub choice: String,
     /// Why: the engine's issue (`unmet`, `already_held`, `max_times`, `not_allowed`, `class_level_cap`,
     /// `not_from_path`, `deity_alignment`, `needs_faith`, `deity_domain`, `breaks_later`), or the server's
-    /// (`not_an_option`, `no_such_choice`, `internal`).
+    /// (`not_an_option`, `needs_parameter`, `no_such_choice`, `internal`).
     pub issue: String,
-    /// The planner's reason; for `not_an_option`, the closest values offered.
+    /// The planner's reason; for `not_an_option`, the closest values offered; for `needs_parameter`, what the value
+    /// is and the open ones.
     pub reason: String,
 }
 
@@ -649,8 +654,8 @@ pub struct WithdrawArgs {
 /// `compare`'s arguments.
 #[derive(Debug, Deserialize, JsonSchema)]
 pub struct CompareArgs {
-    /// 2 to 4 Build codes (links work too), for example two branches of one Build. Each is opened checked, and every
-    /// per-Build list in the result follows this order.
+    /// 1 to 4 Build codes (links work too), for example two branches of one Build; one gets its summary alone. Each
+    /// is opened checked, and every per-Build list in the result follows this order.
     pub builds: Vec<String>,
 }
 

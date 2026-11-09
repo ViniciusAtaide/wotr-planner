@@ -75,6 +75,32 @@ async fn the_instructions_give_the_workflow() {
 }
 
 #[tokio::test]
+async fn the_instructions_say_what_to_know_before_planning() {
+    let instructions = Client::start().await.instructions();
+    let before = instructions
+        .find("Before you plan:")
+        .unwrap_or_else(|| panic!("no paragraph in {instructions}"));
+    let workflow = instructions.find("Workflow:").expect("the workflow");
+    assert!(before < workflow, "{instructions}");
+    let paragraph = &instructions[before..workflow];
+    for phrase in [
+        // Scores and the point buy.
+        "start at 10",
+        "25-point budget",
+        "`point_buy_spent`",
+        // The faith before the alignment.
+        "faith",
+        "before the alignment",
+        // Each Mythic rank's character level.
+        "`character_level`",
+    ] {
+        assert!(paragraph.contains(phrase), "no {phrase} in {paragraph}");
+    }
+    // The skill map, with the values.
+    assert!(instructions.contains("`{skill: ranks}`"), "{instructions}");
+}
+
+#[tokio::test]
 async fn the_glossary_is_a_resource() {
     let client = Client::start().await;
     let capabilities = client.capabilities();

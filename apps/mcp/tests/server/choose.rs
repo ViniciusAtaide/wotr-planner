@@ -295,6 +295,88 @@ async fn skill_ranks_step_too() {
 }
 
 #[tokio::test]
+async fn a_levels_skill_points_go_in_one_step_as_a_map() {
+    let fighter = build("human", &["fighter"]);
+    let ranked = choose(
+        &fighter,
+        json!([{ "choice": "level.1.skill", "value": { "mobility": 1, "athletics": 1 } }]),
+    )
+    .await;
+    assert_eq!(ranked["applied"], 1, "{ranked}");
+    let after = decode(&text(&ranked["build"]));
+    let ranks = &after.levels[0].skill_ranks;
+    assert_eq!(ranks.get(&rules::SkillKey::new("athletics")), Some(&1));
+    assert_eq!(ranks.get(&rules::SkillKey::new("mobility")), Some(&1));
+
+    // The ranks to reach, as `level.N.skill.<skill>` takes: sent again, nothing changes.
+    let again = choose(
+        &after,
+        json!([{ "choice": "level.1.skill", "value": { "athletics": 1, "mobility": 1 } }]),
+    )
+    .await;
+    assert_eq!(again["applied"], 1, "{again}");
+    assert_eq!(again["build"], ranked["build"]);
+}
+
+#[tokio::test]
+async fn a_refused_rank_in_a_skill_map_stops_the_step_and_changes_nothing() {
+    let fighter = build("human", &["fighter"]);
+    let refused = choose(
+        &fighter,
+        json!([
+            { "choice": "level.1.skill", "value": { "mobility": 1, "athletics": 2 } },
+            { "choice": "slot.feat.1.class.0", "value": "power-attack" },
+        ]),
+    )
+    .await;
+    assert_eq!(refused["applied"], 0, "{refused}");
+    assert_eq!(refused["rejected"]["step"], 0);
+    assert_eq!(refused["rejected"]["issue"], "not_an_option");
+    let reason = text(&refused["rejected"]["reason"]);
+    // The rank refused, one step at a time: no skill's total goes above the character level.
+    assert!(reason.contains("at level 1 1 → 2"), "{reason}");
+    assert!(reason.contains("Nothing was changed"), "{reason}");
+    assert_eq!(refused["build"], code(&fighter));
+
+    // A map anywhere else says where it goes.
+    let refused = choose(
+        &fighter,
+        json!([{ "choice": "level.1.skill.athletics", "value": { "athletics": 1 } }]),
+    )
+    .await;
+    let reason = text(&refused["rejected"]["reason"]);
+    assert!(reason.contains("`level.N.skill`"), "{reason}");
+}
+
+#[tokio::test]
+async fn a_parameterised_feat_given_bare_needs_its_parameter() {
+    let fighter = build("human", &["fighter"]);
+    let refused = choose(
+        &fighter,
+        json!([{ "choice": "slot.feat.1.general.0", "value": "weapon-focus" }]),
+    )
+    .await;
+    assert_eq!(refused["rejected"]["issue"], "needs_parameter", "{refused}");
+    let reason = text(&refused["rejected"]["reason"]);
+    // What it takes, how to give it, and its open values.
+    assert!(reason.contains("takes a weapon"), "{reason}");
+    assert!(
+        reason.contains("{\"key\":\"weapon-focus\",\"parameter\":"),
+        "{reason}"
+    );
+    assert!(reason.contains("longsword"), "{reason}");
+    assert_eq!(refused["build"], code(&fighter));
+
+    // With the parameter, it's taken.
+    let taken = choose(
+        &fighter,
+        json!([{ "choice": "slot.feat.1.general.0", "value": { "key": "weapon-focus", "parameter": "longsword" } }]),
+    )
+    .await;
+    assert_eq!(taken["applied"], 1, "{taken}");
+}
+
+#[tokio::test]
 async fn a_prestige_class_needs_its_advances() {
     let wizard = build("human", &times("wizard", 3));
     let refused = choose(

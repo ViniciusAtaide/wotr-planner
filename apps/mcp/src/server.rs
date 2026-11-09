@@ -26,11 +26,19 @@ use crate::shapes::{
 use crate::sheet::sheet;
 use crate::withdraw::withdraw;
 
-/// What every client is told on connecting: the workflow, how to batch, value and branch, and the honesty boundary
-/// (plan, ticket 104, section 1). Short and imperative; the tools' descriptions hold the details.
+/// What every client is told on connecting: what to know before planning (ticket 117), the workflow, how to batch,
+/// value and branch, and the honesty boundary (plan, ticket 104, section 1). Short and imperative; the tools'
+/// descriptions hold the details.
 pub const INSTRUCTIONS: &str = "\
 wotr-planner builds Pathfinder: Wrath of the Righteous characters with the rules engine of a build planner. Every \
 Build its tools return is one the planner's rules allow.
+
+Before you plan:
+- Point-buy scores start at 10 and run from 7 to 18 on a 25-point budget; `sheet` gives `point_buy_spent` and \
+`point_buy_budget`.
+- Choose the faith (a deity, or atheism) before the alignment: no alignment is open until the faith is chosen, and a \
+deity allows only some.
+- `sheet` gives each Mythic rank's `character_level`, the character level its ascension comes at.
 
 Workflow:
 1. Resolve every name the user gives with `search` (names, keys and initials: \"BFT\" finds the Brown-Fur \
@@ -50,7 +58,7 @@ reason), fix that step, and resend the rest from the code it returned.
 Values: take them from `options`, which lists what a choice can take now and why the rest is closed. A \
 parameterised feat needs `{key, parameter}`: list them with `options {values: true}`. A spellcasting prestige \
 class needs `advances`, the classes it advances (`[]` for none). A point-buy score or a skill's ranks take the \
-number to reach.
+number to reach; `level.N.skill` takes a map `{skill: ranks}` to spend a level's skill points in one step.
 
 Branching: for alternatives (Lich or Aeon), build the shared part once, `choose` each alternative from that same \
 code, fill each branch, then `compare` the codes. Report its differences as facts, without ranking them.
@@ -231,10 +239,13 @@ impl Server {
             none). Each step takes only an option the planner offers and finds open, by the planner's own edit, and \
             the result is checked again, so the Build stays possible. A point-buy score (`start.score.int`) or a \
             skill's ranks at a level (`level.N.skill.<skill>`) take the number to reach, reached one step at a time, \
-            each checked; the current value is a no-op. The first step refused stops the rest: `applied` counts the \
-            steps applied, and `rejected` {step, choice, issue, reason} gives the engine's issue (`unmet`, \
-            `already_held`, `breaks_later`, …) or the server's (`not_an_option`, with the closest values; \
-            `no_such_choice`). Returns the envelope (`build`, `link`, `todo`) of the Build as the applied steps left \
+            each checked; the current value is a no-op. `level.N.skill` takes a map {skill: ranks} (`{\"athletics\": \
+            1, \"perception\": 1}`), each skill's ranks at that level reached the same way, all in one step. The first \
+            step refused stops the rest (a refused rank refuses its whole step): `applied` counts the steps applied, \
+            and `rejected` {step, choice, issue, reason} gives the engine's issue (`unmet`, `already_held`, \
+            `breaks_later`, …) or the server's (`not_an_option`, with the closest values; `needs_parameter`, a \
+            parameterised feat given by its key alone, with what it takes and its open values; `no_such_choice`). \
+            Returns the envelope (`build`, `link`, `todo`) of the Build as the applied steps left \
             it. A code that doesn't open is `stale_link`.",
         annotations(read_only_hint = true, open_world_hint = false)
     )]
@@ -267,15 +278,16 @@ impl Server {
     }
 
     #[tool(
-        description = "Compare 2 to 4 Builds (`builds`: their codes, for example two branches of one Build), from \
+        description = "Compare 1 to 4 Builds (`builds`: their codes, for example two branches of one Build), from \
             the planner's sheets. For each Build, a summary at its last level: classes and levels, BAB, saves, \
             scores, caster level (class levels only), spell-level access, Mythic rank, first ascension, path, Path \
             switch, level cap, link. Then only what differs: the Build start's choices; by character level, the \
             numbers (class level, BAB, saves, scores), the choices by address and the feats and features each Build \
             gains that another doesn't; by Mythic rank, the status, path and choices; and `path_features`, by rank, \
             the path features each Build has that another lacks. Every per-Build list follows the order of \
-            `builds`. Facts only: it doesn't say which Build is better. Errors: `invalid_arguments` (not 2 to 4 \
-            codes), `stale_link` (naming the code that doesn't open).",
+            `builds`. Facts only: it doesn't say which Build is better. One code gives its summary alone, with \
+            no differences. Errors: `invalid_arguments` (not 1 to 4 codes), `stale_link` (naming the code that \
+            doesn't open).",
         annotations(read_only_hint = true, open_world_hint = false)
     )]
     async fn compare(
