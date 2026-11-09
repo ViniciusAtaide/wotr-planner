@@ -20,6 +20,7 @@ use crate::compare::compare;
 use crate::describe::describe;
 use crate::options::options;
 use crate::planner::Planner;
+use crate::rank::{ImproveArgs, ImproveResult, improve};
 use crate::shapes::{
     BuildResult, ChooseArgs, ChooseResult, CompareArgs, CompareResult, DescribeArgs, Item,
     NewBuildArgs, OneOrMany, OptionsArgs, OptionsResult, SearchArgs, SearchResult, SheetArgs,
@@ -81,7 +82,18 @@ points in one step. \
 you need only the names.
 
 Branching: for alternatives (Lich or Aeon), build the shared part once, `choose` each alternative from that same \
-code, fill each branch, then `compare` the codes. Report its differences as facts, without ranking them.
+code, fill each branch, then `compare` the codes. Report its differences as facts, without ranking them by your own \
+judgement.
+
+Ranking by a number: when the user's goal is a number the planner computes (a spell DC, caster level against spell \
+resistance, concentration, the first attack's bonus or the damage bonus per hit), the planner ranks by it, and that \
+ranking is a fact. `compare` with `by` (`{\"caster_line\": {\"school\": \"enchantment\", \"subschool\": \
+\"compulsion\"}}` or `{\"attack_line\": {\"weapon\": \"greatsword\"}}`) orders the Builds by that number at their \
+last level. `improve` with a Build, a choice's address and the same `by` takes each option open there and orders \
+them by the change each makes to the number; `no_change` lists those that change nothing. Say what the number \
+leaves out (`leaves_out`: gear, buffs, conditional effects such as rolling twice or a gaze): an option in \
+`no_change` may still matter through its summary, and which Build or option is better overall stays your judgement, \
+to label as such.
 
 The honesty boundary:
 - State as fact only what the tools return: every choice in the Build is legal under the planner's rules at the \
@@ -360,8 +372,13 @@ impl Server {
             numbers (class level, BAB, saves, scores), the choices by address and the feats and features each Build \
             gains that another doesn't; by Mythic rank, the status, path and choices; and `path_features`, by rank, \
             the path features each Build has that another lacks. Every per-Build list follows the order of \
-            `builds`. Facts only: it doesn't say which Build is better. One code gives its summary alone, with \
-            no differences. Errors: `invalid_arguments` (not 1 to 4 codes), `stale_link` (naming the code that \
+            `builds`. Facts only: it doesn't say which Build is better. `by` (`{\"caster_line\": {school, \
+            subschool?, energy?, metamagic?, number?}}`, `number` one of `dc` (the default: the DC of the highest \
+            spell level castable), `spell_penetration`, `concentration`; or `{\"attack_line\": {weapon, number?}}`, \
+            `number` `attack` (the default: the first attack's bonus) or `damage` (the bonus per hit)) orders the \
+            Builds by that number at their last level, highest first, and gives each summary its `number` and its \
+            place in `builds` (`given`), and `by` in the result says what the number leaves out: a ranking by a \
+            number, still a fact. One code gives its summary alone, with no differences. Errors: `invalid_arguments` (not 1 to 4 codes), `stale_link` (naming the code that \
             doesn't open).",
         annotations(read_only_hint = true, open_world_hint = false)
     )]
@@ -370,6 +387,30 @@ impl Server {
         Parameters(args): Parameters<CompareArgs>,
     ) -> Result<Json<CompareResult>, String> {
         self.blocking(move |planner| Ok(Json(compare(planner, args)?)))
+            .await
+    }
+
+    #[tool(
+        description = "What each option of one choice does to a number: every option `options` finds open at \
+            `choice` (an address: `slot.mythic.4`, `slot.feat.9.general.0`, `level.12.increase`, `level.N.class`, \
+            …; a parameterised feat once per value) is taken by the planner's own edit, and the number `by` names \
+            is read at the resulting Build's last level: `{\"caster_line\": {school, subschool?, energy?, \
+            metamagic?, number?}}` (`number`: `dc`, the default, the DC of the highest spell level castable; \
+            `spell_penetration`; `concentration`) or `{\"attack_line\": {weapon, number?}}` (`number`: `attack`, \
+            the default, the first attack's bonus; `damage`, the bonus per hit). Returns the Build's number now \
+            (`current`), `options`: those that change it, highest number first, each with its `value` (what \
+            `choose` takes), `number` and `change`; `no_change`: those that leave it as it is (the one held now \
+            among them; conditional effects such as rolling twice stay in their summaries); `no_line`: those whose \
+            Build has no such line; `closed`, how many can't be taken now; and `leaves_out`, what the number \
+            doesn't count. `query` filters the options by name or key. The order is by the number, a fact; it \
+            changes nothing. Errors: `no_such_choice`, `invalid_arguments`, `stale_link`.",
+        annotations(read_only_hint = true, open_world_hint = false)
+    )]
+    async fn improve(
+        &self,
+        Parameters(args): Parameters<ImproveArgs>,
+    ) -> Result<Json<ImproveResult>, String> {
+        self.blocking(move |planner| Ok(Json(improve(planner, args)?)))
             .await
     }
 }

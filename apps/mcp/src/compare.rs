@@ -1,6 +1,7 @@
 //! `compare`: one to four Builds side by side, each in short, then only what differs between them (one Build: its
 //! summary alone). Everything is read from each Build's sheet as `sheet` writes it (`sheet::sheet_of` on
-//! [`rules::Engine::evaluate`]'s sheet), so a difference here is one the two sheets show; nothing is ranked.
+//! [`rules::Engine::evaluate`]'s sheet), so a difference here is one the two sheets show. Nothing is ranked by
+//! judgement: with `by`, the Builds are ordered by a number the engine computes (`rank.rs`), a fact like the rest.
 
 use std::collections::BTreeSet;
 
@@ -11,6 +12,7 @@ use crate::caster;
 use crate::code::open;
 use crate::error::ToolError;
 use crate::planner::Planner;
+use crate::rank::{self, RankedBy};
 use crate::shapes::{
     BuildSummary, ClassSummary, CompareArgs, CompareResult, FeaturesDiff, LevelDiff, LevelLine,
     Named, NumberDiff, PickDiff, PickLine, RankDiff, RankLine, SheetResult,
@@ -29,7 +31,7 @@ pub(crate) fn compare(planner: &Planner, args: CompareArgs) -> Result<CompareRes
             BUILDS.end()
         )));
     }
-    let builds = args
+    let mut builds = args
         .builds
         .iter()
         .enumerate()
@@ -43,7 +45,25 @@ pub(crate) fn compare(planner: &Planner, args: CompareArgs) -> Result<CompareRes
     let engine = &planner.engine;
     let weapon = attack::weapon_argument(engine, args.weapon.as_deref())?;
     let spell = caster::caster_argument(args.caster.as_ref())?;
-    let sheets: Vec<Sheet> = builds.iter().map(|build| engine.evaluate(build)).collect();
+    let number = args
+        .by
+        .as_ref()
+        .map(|by| rank::Number::from_args(engine, by))
+        .transpose()?;
+    let mut sheets: Vec<Sheet> = builds.iter().map(|build| engine.evaluate(build)).collect();
+    // With `by`, every per-Build list follows the order of the numbers: the Builds are put in it first.
+    let mut ranked: Vec<(usize, Option<i16>)> = Vec::new();
+    if let Some(number) = &number {
+        let numbers: Vec<Option<i16>> = builds
+            .iter()
+            .zip(&sheets)
+            .map(|(build, sheet)| number.of(engine, build, sheet))
+            .collect();
+        let order = rank::order(&numbers);
+        ranked = order.iter().map(|&i| (i, numbers[i])).collect();
+        builds = order.iter().map(|&i| builds[i].clone()).collect();
+        sheets = order.iter().map(|&i| sheets[i].clone()).collect();
+    }
     let lines: Vec<SheetResult> = builds
         .iter()
         .zip(&sheets)
@@ -86,8 +106,13 @@ pub(crate) fn compare(planner: &Planner, args: CompareArgs) -> Result<CompareRes
             .iter()
             .zip(&sheets)
             .zip(&lines)
-            .map(|((build, sheet), line)| {
+            .enumerate()
+            .map(|(i, ((build, sheet), line))| {
                 let mut summary = summary(planner, build, sheet, line);
+                if let Some(&(given, number)) = ranked.get(i) {
+                    summary.given = u32::try_from(given).ok();
+                    summary.number = number;
+                }
                 if let (Some(weapon), Some(last)) = (&weapon, sheet.levels.last()) {
                     summary.attack = attack::attack_line(engine, &last.state, weapon);
                 }
@@ -108,6 +133,11 @@ pub(crate) fn compare(planner: &Planner, args: CompareArgs) -> Result<CompareRes
         path_features,
         attack_leaves_out: weapon.is_some().then(attack::leaves_out),
         caster_leaves_out: spell.is_some().then(caster::leaves_out),
+        by: number.map(|number| RankedBy {
+            number: number.describe(engine),
+            order: rank::ORDER,
+            leaves_out: number.leaves_out(),
+        }),
     })
 }
 
@@ -180,6 +210,8 @@ fn summary(
         level_cap: line.level_cap,
         attack: None,
         caster: None,
+        number: None,
+        given: None,
     }
 }
 

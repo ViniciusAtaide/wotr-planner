@@ -13,6 +13,7 @@ async fn the_server_offers_its_tools() {
             "choose",
             "compare",
             "describe",
+            "improve",
             "new_build",
             "options",
             "search",
