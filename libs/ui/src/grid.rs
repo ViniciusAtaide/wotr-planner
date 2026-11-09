@@ -326,7 +326,9 @@ fn AttackBlock(sheet: std::sync::Arc<Sheet>) -> impl IntoView {
                 .map(|part| match (part.attack, part.damage) {
                     (attack, 0) => format!("{} {attack:+} attack", part.name),
                     (0, damage) => format!("{} {damage:+} damage", part.name),
-                    (attack, damage) => format!("{} {attack:+}/{damage:+}", part.name),
+                    (attack, damage) => {
+                        format!("{} {attack:+} attack, {damage:+} damage", part.name)
+                    }
                 })
                 .collect();
             let leaves_out = line
@@ -340,7 +342,7 @@ fn AttackBlock(sheet: std::sync::Arc<Sheet>) -> impl IntoView {
                     {format!(" · {} · {}", line.damage_text(), line.critical_text())}
                 </p>
                 {power_attack.map(|text| view! { <p class="summary-note">{text}</p> })}
-                <p class="summary-note">{format!("BAB, {}", counts.join(", "))}</p>
+                <p class="summary-note">{format!("Counts: BAB; {}", counts.join("; "))}</p>
                 <details class="attack-leaves-out">
                     <summary>"Not counted"</summary>
                     <ul>{leaves_out}</ul>

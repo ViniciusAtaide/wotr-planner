@@ -443,8 +443,24 @@ input[type="search"] {
 .attack-leaves-out summary {
   display: inline-flex;
   align-items: center;
+  gap: 6px;
   min-height: var(--tap);
   cursor: pointer;
+  list-style: none;
+}
+
+.attack-leaves-out summary::-webkit-details-marker {
+  display: none;
+}
+
+/* The flex summary drops the native marker, so draw one that turns when open. */
+.attack-leaves-out summary::before {
+  content: "▸";
+  transition: transform 0.15s;
+}
+
+.attack-leaves-out[open] summary::before {
+  transform: rotate(90deg);
 }
 
 .attack-leaves-out ul {
