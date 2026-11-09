@@ -358,3 +358,58 @@ fn weapon_finesse_attacks_with_dexterity_when_higher_with_a_finessable_weapon() 
         .unwrap();
     assert_eq!(without.attacks[0], 2);
 }
+
+#[test]
+fn the_trickster_critical_feats_add_to_the_threat_range_and_the_multiplier_after_improved_critical()
+{
+    let engine = armoury();
+    let critical = |feats: &[&str]| {
+        let state = feats.iter().fold(character(8, 10, 10), |state, feat| {
+            holding(state, feat, Some("greatsword"))
+        });
+        let line = engine
+            .attack_line(&state, &WeaponKey::new("greatsword"))
+            .unwrap();
+        line.critical_text()
+    };
+
+    // The guide's trickster page: +1 to the threat range, +1 more, then +1 to the multiplier. The +1s come after
+    // Improved Critical doubles the range: 19–20 → 17–20 → 16–20 → 15–20.
+    assert_eq!(critical(&["improved-critical"]), "17–20/×2");
+    assert_eq!(
+        critical(&["improved-critical", "improved-improved-critical"]),
+        "16–20/×2"
+    );
+    assert_eq!(
+        critical(&[
+            "improved-critical",
+            "improved-improved-critical",
+            "improved-improved-improved-critical",
+        ]),
+        "15–20/×2"
+    );
+    assert_eq!(
+        critical(&[
+            "improved-critical",
+            "improved-improved-critical",
+            "improved-improved-improved-critical",
+            "improved-improved-improved-critical-improved",
+        ]),
+        "15–20/×3"
+    );
+
+    // Held for another weapon, they don't count.
+    let state = [
+        "improved-improved-critical",
+        "improved-improved-improved-critical",
+        "improved-improved-improved-critical-improved",
+    ]
+    .iter()
+    .fold(character(8, 10, 10), |state, feat| {
+        holding(state, feat, Some("longsword"))
+    });
+    let greatsword = engine
+        .attack_line(&state, &WeaponKey::new("greatsword"))
+        .unwrap();
+    assert_eq!(greatsword.critical_text(), "19–20/×2");
+}

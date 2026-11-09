@@ -495,3 +495,47 @@ fn a_greatsword_fighters_attack_line() {
         ["Strength", "Weapon Focus"]
     );
 }
+
+/// The second martial run's Trickster Build (ticket 131): a falchion (18–20/×2) with Improved Critical and the three
+/// Trickster critical feats held for it reads 13–20/×3, as the guide's trickster page gives them: +1 to the threat
+/// range, +1 more, then +1 to the multiplier, after Improved Critical's doubling (18–20 → 15–20).
+#[test]
+fn a_trickster_falchions_critical_feats_make_it_13_20_x3() {
+    let mut state = CharacterState {
+        bab: 20,
+        ..CharacterState::default()
+    };
+    state.ability_scores.strength = 18;
+    state.ability_scores.dexterity = 10;
+    let falchion = Parameter::Weapon(WeaponKey::new("falchion"));
+    let engine = engine();
+    let critical = |state: &CharacterState| {
+        engine
+            .attack_line(state, &WeaponKey::new("falchion"))
+            .unwrap()
+            .critical_text()
+    };
+    assert_eq!(critical(&state), "18–20/×2");
+
+    for key in [
+        "improved-critical",
+        "improved-improved-critical",
+        "improved-improved-improved-critical",
+        "improved-improved-improved-critical-improved",
+    ] {
+        // Each is an ordinary feat taken for a weapon, the next needing the last for the same weapon.
+        assert_eq!(
+            feat(key).parameter,
+            Some(rules::ParameterKind::Weapon),
+            "{key}"
+        );
+        let key = FeatKey::new(key);
+        state.feats.insert(key.clone(), 1);
+        state
+            .feat_values
+            .entry(key)
+            .or_default()
+            .insert(falchion.clone(), 1);
+    }
+    assert_eq!(critical(&state), "13–20/×3");
+}

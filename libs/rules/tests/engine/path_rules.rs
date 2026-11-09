@@ -597,11 +597,12 @@ fn the_legend_switch_raises_every_score_by_4_from_the_switch_on() {
         }),
         [16, 14, 12, 13, 10, 8]
     );
-    // They count toward prerequisites, and skill points follow the higher Intelligence (13 -> 17: +2).
+    // They count toward prerequisites, and skill points follow the higher Intelligence (13 -> 17: +2 to the
+    // modifier, a point a level).
     assert_eq!(at_17.check(&needs(Ability::Charisma, 12)), Ok(()));
     assert_eq!(
         sheet.levels[17].skill_points.available,
-        sheet.levels[15].skill_points.available + 2
+        sheet.levels[15].skill_points.available + 1
     );
 }
 
