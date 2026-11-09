@@ -1,6 +1,7 @@
 Class(
     key: "cleric",
     name: "Cleric",
+    summary: "Prepared divine caster up to 9th-level spells, keyed on Wisdom, with 3/4 BAB, good Fortitude and Will, 6 HP, channel energy and two domains.",
     guide: "cleric",
     skill_points: 2,
     bab: ThreeQuarters,
@@ -10,86 +11,87 @@ Class(
     class_skills: ["knowledge-arcana", "knowledge-world", "lore-religion", "persuasion"],
     prerequisite: Worships,
     features: [
-        (key: "cleric/channel-energy", name: "Channel Energy", guide: "cleric#channel-energy"),
-        (key: "cleric/cleric-proficiencies", favoured_weapon_proficiency: true, name: "Cleric Proficiencies", guide: "cleric#cleric-proficiencies"),
-        (key: "cleric/diminished-spellcasting", name: "Diminished Spellcasting", guide: "cleric#diminished-spellcasting"),
-        (key: "cleric/domain/air/electrical-resistance", name: "Electrical Resistance", guide: "character-creation#air-domain"),
-        (key: "cleric/domain/air/lightning-arc", name: "Lightning Arc", guide: "character-creation#air-domain"),
-        (key: "cleric/domain/animal/animal-companion", name: "Animal Companion", guide: "character-creation#animal-domain"),
-        (key: "cleric/domain/artifice/aura-of-efficiency", name: "Aura of Efficiency", guide: "character-creation#artifice-domain"),
-        (key: "cleric/domain/artifice/aura-of-efficiency-damage-resistance", name: "Aura of Efficiency (Damage Resistance)", guide: "character-creation#artifice-domain"),
-        (key: "cleric/domain/chaos/chaos-blade", name: "Chaos Blade", guide: "character-creation#chaos-domain"),
-        (key: "cleric/domain/chaos/touch-of-chaos", name: "Touch of Chaos", guide: "character-creation#chaos-domain"),
-        (key: "cleric/domain/charm/charming-smile", name: "Charming Smile", guide: "character-creation#charm-domain"),
-        (key: "cleric/domain/charm/dazing-touch", name: "Dazing Touch", guide: "character-creation#charm-domain"),
-        (key: "cleric/domain/community/calming-touch", name: "Calming Touch", guide: "character-creation#community-domain"),
-        (key: "cleric/domain/community/guarded-hearth", name: "Guarded Hearth", guide: "character-creation#community-domain"),
-        (key: "cleric/domain/darkness/moonfire", name: "Moonfire", guide: "character-creation#darkness-domain"),
-        (key: "cleric/domain/darkness/touch-of-darkness", name: "Touch of Darkness", guide: "character-creation#darkness-domain"),
-        (key: "cleric/domain/death/bleeding-touch", name: "Bleeding Touch", guide: "character-creation#death-domain"),
-        (key: "cleric/domain/death/deaths-embrace", name: "Death\'s Embrace", guide: "character-creation#death-domain"),
-        (key: "cleric/domain/destruction/destructive-aura", name: "Destructive Aura", guide: "character-creation#destruction-domain"),
-        (key: "cleric/domain/destruction/destructive-smite", name: "Destructive Smite", guide: "character-creation#destruction-domain"),
-        (key: "cleric/domain/earth/acid-dart", name: "Acid Dart", guide: "character-creation#earth-domain"),
-        (key: "cleric/domain/earth/acid-resistance", name: "Acid Resistance", guide: "character-creation#earth-domain"),
-        (key: "cleric/domain/evil/scythe-of-evil", name: "Scythe of Evil", guide: "character-creation#evil-domain"),
-        (key: "cleric/domain/evil/touch-of-evil", name: "Touch of Evil", guide: "character-creation#evil-domain"),
-        (key: "cleric/domain/fire/fire-bolt", name: "Fire Bolt", guide: "character-creation#fire-domain"),
-        (key: "cleric/domain/fire/fire-resistance", name: "Fire Resistance", guide: "character-creation#fire-domain"),
-        (key: "cleric/domain/glory/aura-of-heroism", name: "Aura of Heroism", guide: "character-creation#glory-domain"),
-        (key: "cleric/domain/glory/touch-of-glory", name: "Touch of Glory", guide: "character-creation#glory-domain"),
-        (key: "cleric/domain/good/holy-lance", name: "Holy Lance", guide: "character-creation#good-domain"),
-        (key: "cleric/domain/good/touch-of-good", name: "Touch of Good", guide: "character-creation#good-domain"),
-        (key: "cleric/domain/healing/healers-blessing", name: "Healer\'s Blessing", guide: "character-creation#healing-domain"),
-        (key: "cleric/domain/healing/rebuke-death", name: "Rebuke Death", guide: "character-creation#healing-domain"),
-        (key: "cleric/domain/ice/body-of-ice", name: "Body of Ice", guide: "character-creation#ice-subdomain"),
-        (key: "cleric/domain/ice/icicle", name: "Icicle", guide: "character-creation#ice-subdomain"),
-        (key: "cleric/domain/knowledge/teaching-moment", name: "Teaching Moment", guide: "character-creation#knowledge-domain"),
-        (key: "cleric/domain/knowledge/void-form", name: "Void Form", guide: "character-creation#knowledge-domain"),
-        (key: "cleric/domain/law/staff-of-order", name: "Staff of Order", guide: "character-creation#law-domain"),
-        (key: "cleric/domain/law/touch-of-law", name: "Touch of Law", guide: "character-creation#law-domain"),
-        (key: "cleric/domain/liberation/freedom-of-movement", name: "Freedom of Movement", guide: "character-creation#liberation-domain"),
-        (key: "cleric/domain/liberation/freedoms-call", name: "Freedom\'s Call", guide: "character-creation#liberation-domain"),
-        (key: "cleric/domain/luck/bit-of-luck", name: "Bit of Luck", guide: "character-creation#luck-domain"),
-        (key: "cleric/domain/luck/divine-fortune", name: "Divine Fortune", guide: "character-creation#luck-domain"),
-        (key: "cleric/domain/madness/aura-of-madness", name: "Aura of Madness", guide: "character-creation#madness-domain"),
-        (key: "cleric/domain/madness/vision-of-madness", name: "Vision of Madness", guide: "character-creation#madness-domain"),
-        (key: "cleric/domain/magic/dispelling-touch", name: "Dispelling Touch", guide: "character-creation#magic-domain"),
-        (key: "cleric/domain/magic/hand-of-the-acolyte", name: "Hand of the Acolyte", guide: "character-creation#magic-domain"),
-        (key: "cleric/domain/murder/bleeding-touch", name: "Bleeding Touch", guide: "character-creation#murder-subdomain"),
-        (key: "cleric/domain/murder/weapons-infused-with-death", name: "Weapons Infused with Death", guide: "character-creation#murder-subdomain"),
-        (key: "cleric/domain/nobility/inspiring-command", name: "Inspiring Command", guide: "character-creation#nobility-domain"),
-        (key: "cleric/domain/nobility/inspiring-word", name: "Inspiring Word", guide: "character-creation#nobility-domain"),
-        (key: "cleric/domain/plant/bramble-armor", name: "Bramble Armor", guide: "character-creation#plant-domain"),
-        (key: "cleric/domain/plant/enlarge", name: "Enlarge", guide: "character-creation#plant-domain"),
-        (key: "cleric/domain/protection/aura-of-protection", name: "Aura of Protection", guide: "character-creation#protection-domain"),
-        (key: "cleric/domain/protection/resistant-touch", name: "Resistant Touch", guide: "character-creation#protection-domain"),
-        (key: "cleric/domain/repose/gentle-rest", name: "Gentle Rest", guide: "character-creation#repose-domain"),
-        (key: "cleric/domain/repose/ward-against-death", name: "Ward Against Death", guide: "character-creation#repose-domain"),
-        (key: "cleric/domain/rune/blast-rune", name: "Blast Rune", guide: "character-creation#rune-domain"),
-        (key: "cleric/domain/rune/warding-rune", name: "Warding Rune", guide: "character-creation#rune-domain"),
-        (key: "cleric/domain/scalykind/animal-companion", name: "Animal Companion", guide: "character-creation#scalykind-domain"),
-        (key: "cleric/domain/scalykind/venomous-stare", name: "Venomous Stare", guide: "character-creation#scalykind-domain"),
-        (key: "cleric/domain/strength/might-of-the-gods", name: "Might of the Gods", guide: "character-creation#strength-domain"),
-        (key: "cleric/domain/strength/strength-surge", name: "Strength Surge", guide: "character-creation#strength-domain"),
-        (key: "cleric/domain/sun/nimbus-of-light", name: "Nimbus of Light", guide: "character-creation#sun-domain"),
-        (key: "cleric/domain/sun/suns-blessing", name: "Sun\'s Blessing", guide: "character-creation#sun-domain"),
-        (key: "cleric/domain/travel/agile-feet", name: "Agile Feet", guide: "character-creation#travel-domain"),
-        (key: "cleric/domain/travel/dimensional-hop", name: "Dimensional Hop", guide: "character-creation#travel-domain"),
-        (key: "cleric/domain/trickery/copycat", name: "Copycat", guide: "character-creation#trickery-domain"),
-        (key: "cleric/domain/trickery/masters-illusion", name: "Master\'s Illusion", guide: "character-creation#trickery-domain"),
-        (key: "cleric/domain/undead/deaths-embrace", name: "Death\'s Embrace", guide: "character-creation#undead-subdomain"),
-        (key: "cleric/domain/undead/deaths-kiss", name: "Death\'s Kiss", guide: "character-creation#undead-subdomain"),
-        (key: "cleric/domain/war/battle-rage", name: "Battle Rage", guide: "character-creation#war-domain"),
-        (key: "cleric/domain/water/cold-resistance", name: "Cold Resistance", guide: "character-creation#water-domain"),
-        (key: "cleric/domain/water/icicle", name: "Icicle", guide: "character-creation#water-domain"),
-        (key: "cleric/domain/weather/lightning-lord", name: "Lightning Lord", guide: "character-creation#weather-domain"),
-        (key: "cleric/domain/weather/storm-burst", name: "Storm Burst", guide: "character-creation#weather-domain"),
+        (key: "cleric/channel-energy", name: "Channel Energy", summary: "30-foot burst of 1d6 +1d6 per two levels, healing or harming by your energy (Will halves); 3 + Cha uses a day; trade spells for cure or inflict.", guide: "cleric#channel-energy"),
+        (key: "cleric/cleric-proficiencies", favoured_weapon_proficiency: true, name: "Cleric Proficiencies", summary: "Simple weapons, light and medium armor, shields except tower shields, and your deity's favored weapon.", guide: "cleric#cleric-proficiencies"),
+        (key: "cleric/diminished-spellcasting", name: "Diminished Spellcasting", summary: "One fewer spell per day of each level; at zero you cast that level only with bonus spells from Wisdom, but keep domain slots.", guide: "cleric#diminished-spellcasting"),
+        (key: "cleric/domain/air/electrical-resistance", name: "Electrical Resistance", summary: "Electricity resistance 10 at 6th level, 20 at 12th, and immunity at 20th.", guide: "character-creation#air-domain"),
+        (key: "cleric/domain/air/lightning-arc", name: "Lightning Arc", summary: "30-foot ranged touch for 1d6 electricity +1 per two levels; 3 + Wisdom modifier uses a day.", guide: "character-creation#air-domain"),
+        (key: "cleric/domain/animal/animal-companion", name: "Animal Companion", summary: "At 4th level, an animal companion at class level -3; Lore (Nature) becomes a class skill.", guide: "character-creation#animal-domain"),
+        (key: "cleric/domain/artifice/aura-of-efficiency", name: "Aura of Efficiency", summary: "Aura for class level rounds a day: allies within 30 feet get +4 on saves against fatigue and exhaustion.", guide: "character-creation#artifice-domain"),
+        (key: "cleric/domain/artifice/aura-of-efficiency-damage-resistance", name: "Aura of Efficiency (Damage Resistance)", summary: "From 8th level, Aura of Efficiency also gives DR 1/-, +1 every three levels (5/- at 20th).", guide: "character-creation#artifice-domain"),
+        (key: "cleric/domain/chaos/chaos-blade", name: "Chaos Blade", summary: "From 8th level, make a weapon Anarchic for half your class level in rounds; 1/day, +1 at 12th, 16th and 20th.", guide: "character-creation#chaos-domain"),
+        (key: "cleric/domain/chaos/touch-of-chaos", name: "Touch of Chaos", summary: "Melee touch: the target rolls twice and takes the worse result for the next round; 3 + Wisdom modifier uses a day.", guide: "character-creation#chaos-domain"),
+        (key: "cleric/domain/charm/charming-smile", name: "Charming Smile", summary: "From 8th level, cast Charm Person as a swift action (DC 10 + half level + Wis), class level times a day.", guide: "character-creation#charm-domain"),
+        (key: "cleric/domain/charm/dazing-touch", name: "Dazing Touch", summary: "Melee touch dazes a creature with no more HD than your level for 1 round; 3 + Wisdom modifier uses a day.", guide: "character-creation#charm-domain"),
+        (key: "cleric/domain/community/calming-touch", name: "Calming Touch", summary: "Touch heals 1d6 + class level and removes fatigued, shaken and sickened; 3 + Wisdom modifier uses a day.", guide: "character-creation#community-domain"),
+        (key: "cleric/domain/community/guarded-hearth", name: "Guarded Hearth", summary: "From 8th level, once a day, allies in an area get your Wisdom modifier to attacks and saves for 1 hour per level.", guide: "character-creation#community-domain"),
+        (key: "cleric/domain/darkness/moonfire", name: "Moonfire", summary: "From 8th level, ranged touch for 1d8 per two levels that dazzles 1 round per level; 1/day, +1 at 12th, 16th and 20th.", guide: "character-creation#darkness-domain"),
+        (key: "cleric/domain/darkness/touch-of-darkness", name: "Touch of Darkness", summary: "Touch gives a creature a 20% miss chance for half your class level in rounds; 3 + Wisdom modifier uses a day.", guide: "character-creation#darkness-domain"),
+        (key: "cleric/domain/death/bleeding-touch", name: "Bleeding Touch", summary: "Touch deals 1d6 a round for half your class level in rounds; 3 + Wisdom modifier uses a day.", guide: "character-creation#death-domain"),
+        (key: "cleric/domain/death/deaths-embrace", name: "Death\'s Embrace", summary: "From 8th level, channeled negative energy heals you, or positive energy doesn't harm you if you're undead.", guide: "character-creation#death-domain"),
+        (key: "cleric/domain/destruction/destructive-aura", name: "Destructive Aura", summary: "From 8th level, a 30-foot aura gives everyone, foe or friend, +half level melee damage and auto-confirmed crits; class level rounds a day.", guide: "character-creation#destruction-domain"),
+        (key: "cleric/domain/destruction/destructive-smite", name: "Destructive Smite", summary: "Add half your class level as a morale bonus to one damage roll; 3 + Wisdom modifier uses a day.", guide: "character-creation#destruction-domain"),
+        (key: "cleric/domain/earth/acid-dart", name: "Acid Dart", summary: "30-foot ranged touch for 1d6 acid +1 per two levels; 3 + Wisdom modifier uses a day.", guide: "character-creation#earth-domain"),
+        (key: "cleric/domain/earth/acid-resistance", name: "Acid Resistance", summary: "Acid resistance 10 at 6th level, 20 at 12th, and immunity at 20th.", guide: "character-creation#earth-domain"),
+        (key: "cleric/domain/evil/scythe-of-evil", name: "Scythe of Evil", summary: "From 8th level, make a weapon Unholy for half your class level in rounds; 1/day, +1 at 12th, 16th and 20th.", guide: "character-creation#evil-domain"),
+        (key: "cleric/domain/evil/touch-of-evil", name: "Touch of Evil", summary: "Touch sickens a creature for half your class level in rounds; 3 + Wisdom modifier uses a day.", guide: "character-creation#evil-domain"),
+        (key: "cleric/domain/fire/fire-bolt", name: "Fire Bolt", summary: "30-foot ranged touch for 1d6 fire +1 per two levels; 3 + Wisdom modifier uses a day.", guide: "character-creation#fire-domain"),
+        (key: "cleric/domain/fire/fire-resistance", name: "Fire Resistance", summary: "Fire resistance 10 at 6th level, 20 at 12th, and immunity at 20th.", guide: "character-creation#fire-domain"),
+        (key: "cleric/domain/glory/aura-of-heroism", name: "Aura of Heroism", summary: "From 8th level, swift action: allies within 30 feet get Heroism; class level rounds a day.", guide: "character-creation#glory-domain"),
+        (key: "cleric/domain/glory/touch-of-glory", name: "Touch of Glory", summary: "Touch adds your class level to one Charisma skill or ability check; channel against undead gets +2 DC; 3 + Wis uses a day.", guide: "character-creation#glory-domain"),
+        (key: "cleric/domain/good/holy-lance", name: "Holy Lance", summary: "From 8th level, make a weapon Holy for half your class level in rounds; 1/day, +1 at 12th, 16th and 20th.", guide: "character-creation#good-domain"),
+        (key: "cleric/domain/good/touch-of-good", name: "Touch of Good", summary: "Touch: +half level sacred bonus to attacks, skills, ability checks and saves next round; 3 + Wisdom modifier uses a day.", guide: "character-creation#good-domain"),
+        (key: "cleric/domain/healing/healers-blessing", name: "Healer\'s Blessing", summary: "From 6th level, all your cure spells are empowered.", guide: "character-creation#healing-domain"),
+        (key: "cleric/domain/healing/rebuke-death", name: "Rebuke Death", summary: "Heal an ally at 0 HP or below for 1d4 + half your class level; 3 + Wisdom modifier uses a day.", guide: "character-creation#healing-domain"),
+        (key: "cleric/domain/ice/body-of-ice", name: "Body of Ice", summary: "From 8th level, for class level rounds a day: DR 5/- (10/- at 16th) and cold immunity, but double fire damage.", guide: "character-creation#ice-subdomain"),
+        (key: "cleric/domain/ice/icicle", name: "Icicle", summary: "30-foot ranged touch for 1d6 cold +1 per two levels; 3 + Wisdom modifier uses a day.", guide: "character-creation#ice-subdomain"),
+        (key: "cleric/domain/knowledge/teaching-moment", name: "Teaching Moment", summary: "From 8th level, swift action: allies roll twice on one d20 roll within a minute; 1/day, +1 at 12th, 16th and 20th.", guide: "character-creation#knowledge-domain"),
+        (key: "cleric/domain/knowledge/void-form", name: "Void Form", summary: "Class level rounds a day: immune to criticals and +1 deflection to AC (+2 at 8th, +1 per 4 levels after); all Knowledge and Lore are class skills.", guide: "character-creation#knowledge-domain"),
+        (key: "cleric/domain/law/staff-of-order", name: "Staff of Order", summary: "From 8th level, make a weapon Axiomatic for half your class level in rounds; 1/day, +1 at 12th, 16th and 20th.", guide: "character-creation#law-domain"),
+        (key: "cleric/domain/law/touch-of-law", name: "Touch of Law", summary: "Touch: the target's rolls all count as 11 next round; 3 + Wisdom modifier uses a day.", guide: "character-creation#law-domain"),
+        (key: "cleric/domain/liberation/freedom-of-movement", name: "Freedom of Movement", summary: "Freedom of Movement for class level rounds a day.", guide: "character-creation#liberation-domain"),
+        (key: "cleric/domain/liberation/freedoms-call", name: "Freedom\'s Call", summary: "From 8th level, allies within 30 feet ignore difficult terrain and suppress confusion, fear, paralysis, slow and stagger; class level rounds a day.", guide: "character-creation#liberation-domain"),
+        (key: "cleric/domain/luck/bit-of-luck", name: "Bit of Luck", summary: "Standard action: the target rolls everything twice next round, taking the better; 3 + Wisdom modifier uses a day.", guide: "character-creation#luck-domain"),
+        (key: "cleric/domain/luck/divine-fortune", name: "Divine Fortune", summary: "From 6th level, roll everything twice and take the better for half your level in rounds; 1/day, 2 at 12th, 3 at 18th.", guide: "character-creation#luck-domain"),
+        (key: "cleric/domain/madness/aura-of-madness", name: "Aura of Madness", summary: "From 8th level, enemies within 30 feet must save each round or be confused (DC 10 + half level + Wis); class level rounds a day.", guide: "character-creation#madness-domain"),
+        (key: "cleric/domain/madness/vision-of-madness", name: "Vision of Madness", summary: "Melee touch: +half level to one of attacks, saves or skills and the same penalty to the other two; 3 + Wis uses a day.", guide: "character-creation#madness-domain"),
+        (key: "cleric/domain/magic/dispelling-touch", name: "Dispelling Touch", summary: "From 8th level, Dispel Magic as a melee touch; 1/day, +1 at 12th, 16th and 20th.", guide: "character-creation#magic-domain"),
+        (key: "cleric/domain/magic/hand-of-the-acolyte", name: "Hand of the Acolyte", summary: "Throw your melee weapon up to 30 feet using Wisdom to hit and Strength to damage; 3 + Wisdom modifier uses a day.", guide: "character-creation#magic-domain"),
+        (key: "cleric/domain/murder/bleeding-touch", name: "Bleeding Touch", summary: "Touch deals 1d6 a round for half your class level in rounds; 3 + Wisdom modifier uses a day.", guide: "character-creation#murder-subdomain"),
+        (key: "cleric/domain/murder/weapons-infused-with-death", name: "Weapons Infused with Death", summary: "From 8th level, free action: confirmed crits add bleed of half your level for half your level in rounds; 1/day, +1 at 12th, 16th, 20th.", guide: "character-creation#murder-subdomain"),
+        (key: "cleric/domain/nobility/inspiring-command", name: "Inspiring Command", summary: "From 8th level, allies within 30 feet get +2 insight to attack, AC, CMD and skills for half level rounds; 3 + Wis uses a day.", guide: "character-creation#nobility-domain"),
+        (key: "cleric/domain/nobility/inspiring-word", name: "Inspiring Word", summary: "Target gets +2 morale to attacks, skills, ability checks and saves for half your level in rounds; 3 + Wis uses a day.", guide: "character-creation#nobility-domain"),
+        (key: "cleric/domain/plant/bramble-armor", name: "Bramble Armor", summary: "From 6th level, for class level rounds a day, foes hitting you in melee without reach take 1d6 + half your level.", guide: "character-creation#plant-domain"),
+        (key: "cleric/domain/plant/enlarge", name: "Enlarge", summary: "Enlarge Person on yourself for the next round; 3 + Wisdom modifier uses a day.", guide: "character-creation#plant-domain"),
+        (key: "cleric/domain/protection/aura-of-protection", name: "Aura of Protection", summary: "From 8th level, allies within 30 feet get +1 deflection (+1 per 4 levels) and resist 5 (10 at 14th) to all energy; class level rounds a day.", guide: "character-creation#protection-domain"),
+        (key: "cleric/domain/protection/resistant-touch", name: "Resistant Touch", summary: "+1 resistance on saves (+1 per five levels); a touch lends that bonus to an ally for 1 minute, 3 + Wis times a day.", guide: "character-creation#protection-domain"),
+        (key: "cleric/domain/repose/gentle-rest", name: "Gentle Rest", summary: "Melee touch staggers for 1 round, or puts a staggered target to sleep; undead staggered for Wis rounds; 3 + Wis uses a day.", guide: "character-creation#repose-domain"),
+        (key: "cleric/domain/repose/ward-against-death", name: "Ward Against Death", summary: "From 8th level, living creatures within 30 feet are immune to death effects and level drain; class level rounds a day.", guide: "character-creation#repose-domain"),
+        (key: "cleric/domain/rune/blast-rune", name: "Blast Rune", summary: "A rune trap for class level rounds that deals 1d6 energy +1 per two levels; 3 + Wisdom modifier uses a day.", guide: "character-creation#rune-domain"),
+        (key: "cleric/domain/rune/warding-rune", name: "Warding Rune", summary: "From 8th level, creatures coming within 5 feet can't attack for half your level in rounds unless they pass Will; 1/day, +1 at 12th, 16th, 20th.", guide: "character-creation#rune-domain"),
+        (key: "cleric/domain/scalykind/animal-companion", name: "Animal Companion", summary: "At 4th level, a monitor lizard or velociraptor companion at class level -2.", guide: "character-creation#scalykind-domain"),
+        (key: "cleric/domain/scalykind/venomous-stare", name: "Venomous Stare", summary: "Gaze within 30 feet: 1d6 + class level damage and fascinated 1 round unless Will (DC 10 + half level + Wis); 3 + Wis uses a day.", guide: "character-creation#scalykind-domain"),
+        (key: "cleric/domain/strength/might-of-the-gods", name: "Might of the Gods", summary: "From 8th level, add half your class level as an enhancement bonus to Athletics checks.", guide: "character-creation#strength-domain"),
+        (key: "cleric/domain/strength/strength-surge", name: "Strength Surge", summary: "Target gets half your class level as an enhancement bonus to melee attacks and Athletics for 1 round; 3 + Wis uses a day.", guide: "character-creation#strength-domain"),
+        (key: "cleric/domain/sun/nimbus-of-light", name: "Nimbus of Light", summary: "From 8th level, a 30-foot aura blinds hostile creatures failing Fortitude and deals your level to undead each round; class level rounds a day.", guide: "character-creation#sun-domain"),
+        (key: "cleric/domain/sun/suns-blessing", name: "Sun\'s Blessing", summary: "Channeling positive energy against undead adds your class level to the damage, and they get no channel resistance.", guide: "character-creation#sun-domain"),
+        (key: "cleric/domain/travel/agile-feet", name: "Agile Feet", summary: "+10 feet base speed; free action to ignore difficult terrain for 1 round, 3 + Wisdom modifier times a day.", guide: "character-creation#travel-domain"),
+        (key: "cleric/domain/travel/dimensional-hop", name: "Dimensional Hop", summary: "From 8th level, teleport up to 10 feet per class level a day in 5-foot steps as a move action, without provoking.", guide: "character-creation#travel-domain"),
+        (key: "cleric/domain/trickery/copycat", name: "Copycat", summary: "Move action: a single Mirror Image for class level rounds; 3 + Wisdom modifier uses a day; Stealth and Trickery are class skills.", guide: "character-creation#trickery-domain"),
+        (key: "cleric/domain/trickery/masters-illusion", name: "Master\'s Illusion", summary: "From 8th level, all allies within 30 feet become invisible; class level rounds a day.", guide: "character-creation#trickery-domain"),
+        (key: "cleric/domain/undead/deaths-embrace", name: "Death\'s Embrace", summary: "From 8th level, channeled negative energy heals you, or positive energy doesn't harm you if you're undead.", guide: "character-creation#undead-subdomain"),
+        (key: "cleric/domain/undead/deaths-kiss", name: "Death\'s Kiss", summary: "Touch makes a creature count as undead for positive and negative energy for half your level in rounds; 3 + Wis uses a day.", guide: "character-creation#undead-subdomain"),
+        (key: "cleric/domain/war/battle-rage", name: "Battle Rage", summary: "Standard action: the target adds half your class level to damage next round; 3 + Wisdom modifier uses a day.", guide: "character-creation#war-domain"),
+        (key: "cleric/domain/water/cold-resistance", name: "Cold Resistance", summary: "Cold resistance 10 at 6th level, 20 at 12th, and immunity at 20th.", guide: "character-creation#water-domain"),
+        (key: "cleric/domain/water/icicle", name: "Icicle", summary: "30-foot ranged touch for 1d6 cold +1 per two levels; 3 + Wisdom modifier uses a day.", guide: "character-creation#water-domain"),
+        (key: "cleric/domain/weather/lightning-lord", name: "Lightning Lord", summary: "From 8th level, call down lightning as the Call Lightning spell, class level times a day.", guide: "character-creation#weather-domain"),
+        (key: "cleric/domain/weather/storm-burst", name: "Storm Burst", summary: "30-foot ranged touch for 1d6 +1 per two levels and -2 to the target's attacks next round; 3 + Wisdom modifier uses a day.", guide: "character-creation#weather-domain"),
     ],
     selections: [
         (
             key: "cleric/domain",
             name: "Domain",
+            summary: "Domains add spells and powers; which ones you can take depends on your deity and alignment.",
             deity_domains: Offered,
             guide: "character-creation#domains",
             option_levels: ["cleric"],
@@ -97,6 +99,7 @@ Class(
                 (
                     key: "cleric/domain/air",
                     name: "Air Domain",
+                    summary: "Lightning Arc, electricity resistance from 6th level and immunity at 20th; spells from Shocking Grasp to Elemental Swarm.",
                     guide: "character-creation#air-domain",
                     levels: [
                         (level: 1, features: ["cleric/domain/air/lightning-arc"]),
@@ -106,6 +109,7 @@ Class(
                 (
                     key: "cleric/domain/animal",
                     name: "Animal Domain",
+                    summary: "An animal companion at 4th level and Lore (Nature) as a class skill; spells like Magic Fang and Summon Nature's Ally.",
                     guide: "character-creation#animal-domain",
                     levels: [
                         (level: 4, features: ["cleric/domain/animal/animal-companion"], class_skills: ["lore-nature"]),
@@ -114,6 +118,7 @@ Class(
                 (
                     key: "cleric/domain/artifice",
                     name: "Artifice Domain",
+                    summary: "An aura against fatigue that adds DR/- from 8th level; spells from Lead Blades to Clashing Rocks.",
                     guide: "character-creation#artifice-domain",
                     levels: [
                         (level: 1, features: ["cleric/domain/artifice/aura-of-efficiency"]),
@@ -123,6 +128,7 @@ Class(
                 (
                     key: "cleric/domain/chaos",
                     name: "Chaos Domain",
+                    summary: "Touch of Chaos and Anarchic weapons from 8th level; spells from Protection from Law to Summon Monster IX.",
                     guide: "character-creation#chaos-domain",
                     prerequisite: All([Any([Not(PickedThrough("cleric/separatist/domain")), Alignment(NeutralGood), Alignment(ChaoticGood), Alignment(TrueNeutral), Alignment(ChaoticNeutral), Alignment(NeutralEvil), Alignment(ChaoticEvil)]), Any([Not(PickedThrough("cleric/domain")), Alignment(ChaoticGood), Alignment(ChaoticNeutral), Alignment(ChaoticEvil)]), Any([Not(PickedThrough("inquisitor/domain")), Alignment(ChaoticGood), Alignment(ChaoticNeutral), Alignment(ChaoticEvil)]), Any([Not(PickedThrough("inquisitor/sacred-huntsmaster/domain")), Alignment(ChaoticGood), Alignment(ChaoticNeutral), Alignment(ChaoticEvil)]), Any([Not(PickedThrough("hunter/divine-hunter/domain")), Alignment(ChaoticGood), Alignment(ChaoticNeutral), Alignment(ChaoticEvil)])]),
                     levels: [
@@ -133,6 +139,7 @@ Class(
                 (
                     key: "cleric/domain/charm",
                     name: "Charm Domain",
+                    summary: "Dazing Touch and swift Charm Person from 8th level; enchantment spells up to Dominate Monster.",
                     guide: "character-creation#charm-domain",
                     levels: [
                         (level: 1, features: ["cleric/domain/charm/dazing-touch"]),
@@ -142,6 +149,7 @@ Class(
                 (
                     key: "cleric/domain/community",
                     name: "Community Domain",
+                    summary: "Calming Touch heals and cleanses; Guarded Hearth adds Wisdom to allies' attacks and saves from 8th; spells up to Mass Heal.",
                     guide: "character-creation#community-domain",
                     levels: [
                         (level: 1, features: ["cleric/domain/community/calming-touch"]),
@@ -151,6 +159,7 @@ Class(
                 (
                     key: "cleric/domain/darkness",
                     name: "Darkness Domain",
+                    summary: "Touch of Darkness miss chance and Moonfire from 8th level; spells from Sleep to Polar Midnight.",
                     guide: "character-creation#darkness-domain",
                     levels: [
                         (level: 1, features: ["cleric/domain/darkness/touch-of-darkness"]),
@@ -160,6 +169,7 @@ Class(
                 (
                     key: "cleric/domain/death",
                     name: "Death Domain",
+                    summary: "Bleeding Touch and Death's Embrace from 8th level; necromancy from Cause Fear to Wail of the Banshee.",
                     guide: "character-creation#death-domain",
                     levels: [
                         (level: 1, features: ["cleric/domain/death/bleeding-touch"]),
@@ -169,6 +179,7 @@ Class(
                 (
                     key: "cleric/domain/destruction",
                     name: "Destruction Domain",
+                    summary: "Destructive Smite and an aura of extra damage and auto-confirmed crits for everyone from 8th; spells up to Tsunami.",
                     guide: "character-creation#destruction-domain",
                     levels: [
                         (level: 1, features: ["cleric/domain/destruction/destructive-smite"]),
@@ -178,6 +189,7 @@ Class(
                 (
                     key: "cleric/domain/earth",
                     name: "Earth Domain",
+                    summary: "Acid Dart, acid resistance from 6th level and immunity at 20th; spells from Stone Fist to Elemental Swarm.",
                     guide: "character-creation#earth-domain",
                     levels: [
                         (level: 1, features: ["cleric/domain/earth/acid-dart"]),
@@ -187,6 +199,7 @@ Class(
                 (
                     key: "cleric/domain/evil",
                     name: "Evil Domain",
+                    summary: "Touch of Evil sickens; Unholy weapons from 8th level; spells from Ray of Sickening to Summon Monster IX.",
                     guide: "character-creation#evil-domain",
                     prerequisite: All([Any([Not(PickedThrough("cleric/separatist/domain")), Alignment(LawfulNeutral), Alignment(TrueNeutral), Alignment(ChaoticNeutral), Alignment(LawfulEvil), Alignment(NeutralEvil), Alignment(ChaoticEvil)]), Any([Not(PickedThrough("cleric/domain")), Alignment(LawfulEvil), Alignment(NeutralEvil), Alignment(ChaoticEvil)]), Any([Not(PickedThrough("inquisitor/domain")), Alignment(LawfulEvil), Alignment(NeutralEvil), Alignment(ChaoticEvil)]), Any([Not(PickedThrough("inquisitor/sacred-huntsmaster/domain")), Alignment(LawfulEvil), Alignment(NeutralEvil), Alignment(ChaoticEvil)]), Any([Not(PickedThrough("hunter/divine-hunter/domain")), Alignment(LawfulEvil), Alignment(NeutralEvil), Alignment(ChaoticEvil)])]),
                     levels: [
@@ -197,6 +210,7 @@ Class(
                 (
                     key: "cleric/domain/fire",
                     name: "Fire Domain",
+                    summary: "Fire Bolt, fire resistance from 6th level and immunity at 20th; spells from Burning Hands to Fiery Body.",
                     guide: "character-creation#fire-domain",
                     levels: [
                         (level: 1, features: ["cleric/domain/fire/fire-bolt"]),
@@ -206,6 +220,7 @@ Class(
                 (
                     key: "cleric/domain/glory",
                     name: "Glory Domain",
+                    summary: "Touch of Glory, +2 channel DC against undead, Aura of Heroism from 8th; spells from Shield of Faith to Overwhelming Presence.",
                     guide: "character-creation#glory-domain",
                     levels: [
                         (level: 1, features: ["cleric/domain/glory/touch-of-glory"]),
@@ -215,6 +230,7 @@ Class(
                 (
                     key: "cleric/domain/good",
                     name: "Good Domain",
+                    summary: "Touch of Good's sacred bonus and Holy weapons from 8th level; spells from Protection from Evil to Summon Monster IX.",
                     guide: "character-creation#good-domain",
                     prerequisite: All([Any([Not(PickedThrough("cleric/separatist/domain")), Alignment(LawfulGood), Alignment(NeutralGood), Alignment(ChaoticGood), Alignment(LawfulNeutral), Alignment(TrueNeutral), Alignment(ChaoticNeutral)]), Any([Not(PickedThrough("cleric/domain")), Alignment(LawfulGood), Alignment(NeutralGood), Alignment(ChaoticGood)]), Any([Not(PickedThrough("inquisitor/domain")), Alignment(LawfulGood), Alignment(NeutralGood), Alignment(ChaoticGood)]), Any([Not(PickedThrough("inquisitor/sacred-huntsmaster/domain")), Alignment(LawfulGood), Alignment(NeutralGood), Alignment(ChaoticGood)]), Any([Not(PickedThrough("hunter/divine-hunter/domain")), Alignment(LawfulGood), Alignment(NeutralGood), Alignment(ChaoticGood)])]),
                     levels: [
@@ -225,6 +241,7 @@ Class(
                 (
                     key: "cleric/domain/healing",
                     name: "Healing Domain",
+                    summary: "Rebuke Death and empowered cure spells from 6th level; healing spells up to Mass Heal.",
                     guide: "character-creation#healing-domain",
                     levels: [
                         (level: 1, features: ["cleric/domain/healing/rebuke-death"]),
@@ -234,6 +251,7 @@ Class(
                 (
                     key: "cleric/domain/ice",
                     name: "Ice Subdomain",
+                    summary: "Icicle and Body of Ice from 8th level (DR/- and cold immunity); cold spells up to Mass Icy Prison.",
                     guide: "character-creation#ice-subdomain",
                     levels: [
                         (level: 1, features: ["cleric/domain/ice/icicle"]),
@@ -243,6 +261,7 @@ Class(
                 (
                     key: "cleric/domain/knowledge",
                     name: "Knowledge Domain",
+                    summary: "Void Form, Teaching Moment rerolls from 8th, and all Knowledge and Lore as class skills; spells up to Power Word Kill.",
                     guide: "character-creation#knowledge-domain",
                     levels: [
                         (level: 1, features: ["cleric/domain/knowledge/void-form"], class_skills: ["knowledge-arcana", "knowledge-world", "lore-nature", "lore-religion"]),
@@ -252,6 +271,7 @@ Class(
                 (
                     key: "cleric/domain/law",
                     name: "Law Domain",
+                    summary: "Touch of Law and Axiomatic weapons from 8th level; spells from Protection from Chaos to Dominate Monster.",
                     guide: "character-creation#law-domain",
                     prerequisite: All([Any([Not(PickedThrough("cleric/separatist/domain")), Alignment(LawfulGood), Alignment(NeutralGood), Alignment(LawfulNeutral), Alignment(TrueNeutral), Alignment(LawfulEvil), Alignment(NeutralEvil)]), Any([Not(PickedThrough("cleric/domain")), Alignment(LawfulGood), Alignment(LawfulNeutral), Alignment(LawfulEvil)]), Any([Not(PickedThrough("inquisitor/domain")), Alignment(LawfulGood), Alignment(LawfulNeutral), Alignment(LawfulEvil)]), Any([Not(PickedThrough("inquisitor/sacred-huntsmaster/domain")), Alignment(LawfulGood), Alignment(LawfulNeutral), Alignment(LawfulEvil)]), Any([Not(PickedThrough("hunter/divine-hunter/domain")), Alignment(LawfulGood), Alignment(LawfulNeutral), Alignment(LawfulEvil)])]),
                     levels: [
@@ -262,6 +282,7 @@ Class(
                 (
                     key: "cleric/domain/liberation",
                     name: "Liberation Domain",
+                    summary: "Freedom of Movement rounds and Freedom's Call aura from 8th level; spells up to Communal Mind Blank.",
                     guide: "character-creation#liberation-domain",
                     levels: [
                         (level: 1, features: ["cleric/domain/liberation/freedom-of-movement"]),
@@ -271,6 +292,7 @@ Class(
                 (
                     key: "cleric/domain/luck",
                     name: "Luck Domain",
+                    summary: "Bit of Luck rerolls and Divine Fortune from 6th level; spells from True Strike to Mass Heal.",
                     guide: "character-creation#luck-domain",
                     levels: [
                         (level: 1, features: ["cleric/domain/luck/bit-of-luck"]),
@@ -280,6 +302,7 @@ Class(
                 (
                     key: "cleric/domain/madness",
                     name: "Madness Domain",
+                    summary: "Vision of Madness and a confusion aura from 8th level; spells from Cause Fear to Weird.",
                     guide: "character-creation#madness-domain",
                     levels: [
                         (level: 1, features: ["cleric/domain/madness/vision-of-madness"]),
@@ -289,6 +312,7 @@ Class(
                 (
                     key: "cleric/domain/magic",
                     name: "Magic Domain",
+                    summary: "Hand of the Acolyte throws and Dispelling Touch from 8th level; spells from Color Spray to Clashing Rocks.",
                     guide: "character-creation#magic-domain",
                     levels: [
                         (level: 1, features: ["cleric/domain/magic/hand-of-the-acolyte"]),
@@ -298,6 +322,7 @@ Class(
                 (
                     key: "cleric/domain/murder",
                     name: "Murder Subdomain",
+                    summary: "Bleeding Touch and bleeding critical hits from 8th level; spells from Cause Fear to Wail of the Banshee.",
                     guide: "character-creation#murder-subdomain",
                     levels: [
                         (level: 1, features: ["cleric/domain/murder/bleeding-touch"]),
@@ -307,6 +332,7 @@ Class(
                 (
                     key: "cleric/domain/nobility",
                     name: "Nobility Domain",
+                    summary: "Inspiring Word and an insight aura from 8th level; spells from Divine Favor to Overwhelming Presence.",
                     guide: "character-creation#nobility-domain",
                     levels: [
                         (level: 1, features: ["cleric/domain/nobility/inspiring-word"]),
@@ -316,6 +342,7 @@ Class(
                 (
                     key: "cleric/domain/plant",
                     name: "Plant Domain",
+                    summary: "Enlarge Person rounds and Bramble Armor from 6th level; spells from Entangle to Communal Mind Blank.",
                     guide: "character-creation#plant-domain",
                     levels: [
                         (level: 1, features: ["cleric/domain/plant/enlarge"]),
@@ -325,6 +352,7 @@ Class(
                 (
                     key: "cleric/domain/protection",
                     name: "Protection Domain",
+                    summary: "Bonus on saves, Resistant Touch and a deflection and resistance aura from 8th level; spells up to Seamantle.",
                     guide: "character-creation#protection-domain",
                     levels: [
                         (level: 1, features: ["cleric/domain/protection/resistant-touch"]),
@@ -334,6 +362,7 @@ Class(
                 (
                     key: "cleric/domain/repose",
                     name: "Repose Domain",
+                    summary: "Gentle Rest staggers and Ward Against Death from 8th level; necromancy from Doom to Wail of the Banshee.",
                     guide: "character-creation#repose-domain",
                     levels: [
                         (level: 1, features: ["cleric/domain/repose/gentle-rest"]),
@@ -343,6 +372,7 @@ Class(
                 (
                     key: "cleric/domain/rune",
                     name: "Rune Domain",
+                    summary: "Blast Rune traps and Warding Rune from 8th level; spells from Protection from Alignment to Power Word Kill.",
                     guide: "character-creation#rune-domain",
                     levels: [
                         (level: 1, features: ["cleric/domain/rune/blast-rune"]),
@@ -352,6 +382,7 @@ Class(
                 (
                     key: "cleric/domain/scalykind",
                     name: "Scalykind Domain",
+                    summary: "Venomous Stare and a monitor lizard or velociraptor companion at 4th level; spells from Magic Fang to Shapechange.",
                     guide: "character-creation#scalykind-domain",
                     levels: [
                         (level: 1, features: ["cleric/domain/scalykind/venomous-stare"]),
@@ -361,6 +392,7 @@ Class(
                 (
                     key: "cleric/domain/strength",
                     name: "Strength Domain",
+                    summary: "Strength Surge and an Athletics bonus from 8th level; spells from Enlarge Person to Transformation.",
                     guide: "character-creation#strength-domain",
                     levels: [
                         (level: 1, features: ["cleric/domain/strength/strength-surge"]),
@@ -370,6 +402,7 @@ Class(
                 (
                     key: "cleric/domain/sun",
                     name: "Sun Domain",
+                    summary: "Stronger channel against undead and a blinding Nimbus of Light from 8th level; spells from Faerie Fire to Elemental Swarm.",
                     guide: "character-creation#sun-domain",
                     levels: [
                         (level: 1, features: ["cleric/domain/sun/suns-blessing"]),
@@ -379,6 +412,7 @@ Class(
                 (
                     key: "cleric/domain/travel",
                     name: "Travel Domain",
+                    summary: "+10 feet speed, Agile Feet and Dimensional Hop from 8th level; spells from Longstrider to Elemental Swarm.",
                     guide: "character-creation#travel-domain",
                     levels: [
                         (level: 1, features: ["cleric/domain/travel/agile-feet"]),
@@ -388,6 +422,7 @@ Class(
                 (
                     key: "cleric/domain/trickery",
                     name: "Trickery Domain",
+                    summary: "Copycat mirror image, Master's Illusion from 8th, Stealth and Trickery as class skills; spells from Sleep to Weird.",
                     guide: "character-creation#trickery-domain",
                     levels: [
                         (level: 1, features: ["cleric/domain/trickery/copycat"], class_skills: ["stealth", "trickery"]),
@@ -397,6 +432,7 @@ Class(
                 (
                     key: "cleric/domain/undead",
                     name: "Undead Subdomain",
+                    summary: "Death's Kiss and Death's Embrace from 8th level; necromancy from Cause Fear to Energy Drain.",
                     guide: "character-creation#undead-subdomain",
                     levels: [
                         (level: 1, features: ["cleric/domain/undead/deaths-kiss"]),
@@ -406,6 +442,7 @@ Class(
                 (
                     key: "cleric/domain/war",
                     name: "War Domain",
+                    summary: "Battle Rage damage bonus and a bonus combat feat at 8th level; spells from Bless to Power Word Kill.",
                     guide: "character-creation#war-domain",
                     levels: [
                         (level: 1, features: ["cleric/domain/war/battle-rage"]),
@@ -415,6 +452,7 @@ Class(
                 (
                     key: "cleric/domain/water",
                     name: "Water Domain",
+                    summary: "Icicle, cold resistance from 6th level and immunity at 20th; spells from Ray of Sickening to Tsunami.",
                     guide: "character-creation#water-domain",
                     levels: [
                         (level: 1, features: ["cleric/domain/water/icicle"]),
@@ -424,6 +462,7 @@ Class(
                 (
                     key: "cleric/domain/weather",
                     name: "Weather Domain",
+                    summary: "Storm Burst and Lightning Lord from 8th level; spells from Snowball to Tsunami.",
                     guide: "character-creation#weather-domain",
                     levels: [
                         (level: 1, features: ["cleric/domain/weather/storm-burst"]),
@@ -435,6 +474,7 @@ Class(
         (
             key: "cleric/impossible-domain",
             name: "Impossible Domain",
+            summary: "You can pick any domain.",
             guide: "mythic-paths#impossible-domain",
             level_from: OtherOptions,
             level_also_from: "arcanist/magic-deceiver/ways-of-the-deceiver/living-deity",
@@ -506,12 +546,13 @@ Class(
         (
             key: "cleric/angelfire-apostle",
             name: "Angelfire Apostle",
+            summary: "Good support cleric: positive channel only with Extra Channel, healing spells and fire through channel, but light armor and fewer spells.",
             guide: "cleric#angelfire-apostle",
             prerequisite: All([Any([Alignment(LawfulGood), Alignment(NeutralGood), Alignment(ChaoticGood)]), DeityOffers("cleric/domain/good")]),
             features: [
-                (key: "cleric/angelfire-apostle/channel-positive-energy", name: "Channel Positive Energy", guide: "cleric#angelfire-apostle"),
-                (key: "cleric/angelfire-apostle/cleansing-flames", name: "Cleansing Flames", guide: "cleric#cleansing-flames"),
-                (key: "cleric/angelfire-apostle/versatile-healing-channel", name: "Versatile Healing Channel", guide: "cleric#versatile-healing-channel"),
+                (key: "cleric/angelfire-apostle/channel-positive-energy", name: "Channel Positive Energy", summary: "Channels positive energy only, healing the living and harming undead.", guide: "cleric#angelfire-apostle"),
+                (key: "cleric/angelfire-apostle/cleansing-flames", name: "Cleansing Flames", summary: "From 9th level, spend a channel as a swift action when casting: 1d4 per highest spell level, half fire half divine, to foes within 20 feet.", guide: "cleric#cleansing-flames"),
+                (key: "cleric/angelfire-apostle/versatile-healing-channel", name: "Versatile Healing Channel", summary: "From 5th level, spend two channels to cast Lesser Restoration or Remove Blindness, adding spells up to Resurrection at 19th.", guide: "cleric#versatile-healing-channel"),
             ],
             levels: [
                 (level: 1, features: ["cleric/angelfire-apostle/channel-positive-energy", "cleric/diminished-spellcasting"], feats: ["armor-proficiency-light-armor", "extra-channel", "shield-proficiency", "simple-weapon-proficiency"], selections: ["cleric/domain", "cleric/domain"]),
@@ -522,6 +563,7 @@ Class(
         (
             key: "cleric/crusader",
             name: "Crusader",
+            summary: "Martial cleric with one domain and bonus combat feats at 1st, 5th, 10th, 15th and 20th level, but fewer spells.",
             guide: "cleric#crusader",
             // Crusader Bonus Feats: the guide skips only their BAB and fighter-level prerequisites; they skip every prerequisite here (user, ticket 21 R5).
             feat_lists: [
@@ -540,9 +582,10 @@ Class(
         (
             key: "cleric/demonbane-priest",
             name: "Demonbane Priest",
+            summary: "Demon hunter with heavy armor, one domain and bonus feats at 4th and 8th level, but fewer spells.",
             guide: "cleric#demonbane-priest",
             features: [
-                (key: "cleric/demonbane-priest/demonic-knowledge", name: "Demonic Knowledge", guide: "cleric#demonic-knowledge"),
+                (key: "cleric/demonbane-priest/demonic-knowledge", name: "Demonic Knowledge", summary: "Add half your class level to Knowledge (Arcana) checks.", guide: "cleric#demonic-knowledge"),
             ],
             feat_lists: [
                 (key: "cleric/demonbane-priest/bonus-feats", name: "Demonbane Priest Bonus Feats", guide: "cleric#demonbane-priest-bonus-feats", ignores_prerequisites: true, feats: ["allied-spellcaster", "back-to-back", "coordinated-defense", "coordinated-maneuvers", "greater-spell-penetration", "outflank", "precise-strike", "seize-the-moment", "shake-it-off", "shield-wall", "shielded-caster", "spell-chain", "spell-penetration", "tandem-trip", "volley-fire"]),
@@ -556,13 +599,14 @@ Class(
         (
             key: "cleric/ecclesitheurge",
             name: "Ecclesitheurge",
+            summary: "Unarmored caster with two domains, 3 skill points a level, Blessing of the Faithful and a bonded holy symbol.",
             guide: "cleric#ecclesitheurge",
             skill_points: 3,
             features: [
-                (key: "cleric/ecclesitheurge/blessing-of-the-faithful", name: "Blessing of the Faithful", guide: "cleric#blessing-of-the-faithful"),
-                (key: "cleric/ecclesitheurge/bonded-holy-symbol", name: "Bonded Holy Symbol", guide: "cleric#bonded-holy-symbol"),
-                (key: "cleric/ecclesitheurge/domain-mastery", name: "Domain Mastery", guide: "cleric#domain-mastery"),
-                (key: "cleric/ecclesitheurge/ecclesitheurge-proficiencies", favoured_weapon_proficiency: true, name: "Ecclesitheurge Proficiencies", guide: "cleric#ecclesitheurge"),
+                (key: "cleric/ecclesitheurge/blessing-of-the-faithful", name: "Blessing of the Faithful", summary: "Standard action: an ally within 30 feet gets +2 sacred to attacks, checks, saves and AC until your next turn, longer with a channel.", guide: "cleric#blessing-of-the-faithful"),
+                (key: "cleric/ecclesitheurge/bonded-holy-symbol", name: "Bonded Holy Symbol", summary: "From 3rd level, a bonded object lets you restore one prepared spell a day.", guide: "cleric#bonded-holy-symbol"),
+                (key: "cleric/ecclesitheurge/domain-mastery", name: "Domain Mastery", summary: "Prepare domain spells in normal slots, and swap your second domain's spells for another of your deity's domains each day.", guide: "cleric#domain-mastery"),
+                (key: "cleric/ecclesitheurge/ecclesitheurge-proficiencies", favoured_weapon_proficiency: true, name: "Ecclesitheurge Proficiencies", summary: "Club, dagger, crossbows, quarterstaff and your deity's weapon; no armor, and you can't cast in armor or with a shield.", guide: "cleric#ecclesitheurge"),
             ],
             levels: [
                 (level: 1, features: ["cleric/channel-energy", "cleric/ecclesitheurge/blessing-of-the-faithful", "cleric/ecclesitheurge/domain-mastery", "cleric/ecclesitheurge/ecclesitheurge-proficiencies"], selections: ["cleric/domain", "cleric/domain"]),
@@ -572,12 +616,13 @@ Class(
         (
             key: "cleric/herald-caller",
             name: "Herald Caller",
+            summary: "Summoner with one domain, 4 skill points a level, spontaneous Summon Monster, Augment and Superior Summoning, but light armor.",
             guide: "cleric#herald-caller",
             skill_points: 3,
             features: [
-                (key: "cleric/herald-caller/call-heralds", name: "Call Heralds", guide: "cleric#call-heralds"),
-                (key: "cleric/herald-caller/mighty-heralds", name: "Mighty Heralds", guide: "cleric#mighty-heralds"),
-                (key: "cleric/herald-caller/numerous-heralds", name: "Numerous Heralds", guide: "cleric#numerous-heralds"),
+                (key: "cleric/herald-caller/call-heralds", name: "Call Heralds", summary: "Swap a prepared spell for a Summon Monster spell of the same level, always summoning its strongest creature.", guide: "cleric#call-heralds"),
+                (key: "cleric/herald-caller/mighty-heralds", name: "Mighty Heralds", summary: "At 4th level, you gain Augment Summoning.", guide: "cleric#mighty-heralds"),
+                (key: "cleric/herald-caller/numerous-heralds", name: "Numerous Heralds", summary: "At 8th level, you gain Superior Summoning.", guide: "cleric#numerous-heralds"),
             ],
             levels: [
                 (level: 1, features: ["cleric/channel-energy", "cleric/cleric-proficiencies", "cleric/herald-caller/call-heralds"], feats: ["armor-proficiency-light-armor", "simple-weapon-proficiency"], selections: ["cleric/domain"]),
@@ -588,14 +633,15 @@ Class(
         (
             key: "cleric/priest-of-balance",
             name: "Priest of Balance",
+            summary: "Neutral cleric of a neutral deity who channels both positive and negative energy with one domain, alternating to strengthen each.",
             guide: "cleric#priest-of-balance",
             prerequisite: All([Any([Alignment(LawfulNeutral), Alignment(TrueNeutral), Alignment(ChaoticNeutral)]), Not(DeityOffers("cleric/domain/good")), Not(DeityOffers("cleric/domain/evil"))]),
             features: [
-                (key: "cleric/priest-of-balance/channel-negative-energy", name: "Channel Negative Energy", guide: "cleric#priest-of-balance"),
-                (key: "cleric/priest-of-balance/channel-positive-energy", name: "Channel Positive Energy", guide: "cleric#priest-of-balance"),
-                (key: "cleric/priest-of-balance/empowered-equilibrium", name: "Empowered Equilibrium", guide: "cleric#empowered-equilibrium"),
-                (key: "cleric/priest-of-balance/energy-equilibrium", name: "Energy Equilibrium", guide: "cleric#energy-equilibrium"),
-                (key: "cleric/priest-of-balance/quickened-equilibrium", name: "Quickened Equilibrium", guide: "cleric#quickened-equilibrium"),
+                (key: "cleric/priest-of-balance/channel-negative-energy", name: "Channel Negative Energy", summary: "Channel negative energy as well as positive.", guide: "cleric#priest-of-balance"),
+                (key: "cleric/priest-of-balance/channel-positive-energy", name: "Channel Positive Energy", summary: "Channel positive energy as well as negative.", guide: "cleric#priest-of-balance"),
+                (key: "cleric/priest-of-balance/empowered-equilibrium", name: "Empowered Equilibrium", summary: "From 11th level, strengthened cure and inflict spells are empowered and a strengthened channel adds 2d6.", guide: "cleric#empowered-equilibrium"),
+                (key: "cleric/priest-of-balance/energy-equilibrium", name: "Energy Equilibrium", summary: "Using one energy strengthens your next use of the other: +2 caster level on cure or inflict spells, +1d6 on a channel.", guide: "cleric#energy-equilibrium"),
+                (key: "cleric/priest-of-balance/quickened-equilibrium", name: "Quickened Equilibrium", summary: "From 16th level, your channels and cure and inflict spells are quickened.", guide: "cleric#quickened-equilibrium"),
             ],
             levels: [
                 (level: 1, features: ["cleric/cleric-proficiencies", "cleric/priest-of-balance/channel-negative-energy", "cleric/priest-of-balance/channel-positive-energy", "cleric/priest-of-balance/energy-equilibrium"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"], selections: ["cleric/domain"]),
@@ -606,14 +652,16 @@ Class(
         (
             key: "cleric/separatist",
             name: "Separatist",
+            summary: "Takes a second domain from outside the deity's list, working two levels behind. Lord of Nothing DLC.",
             guide: "cleric#separatist",
             features: [
-                (key: "cleric/separatist/forbidden-rites", name: "Forbidden Rites", guide: "cleric#forbidden-rites"),
+                (key: "cleric/separatist/forbidden-rites", name: "Forbidden Rites", summary: "A domain not on your deity's list (no opposed alignment domain), working as if you were two levels lower.", guide: "cleric#forbidden-rites"),
             ],
             selections: [
                 (
                     key: "cleric/separatist/domain",
                     name: "Domain (Separatist)",
+                    summary: "The Separatist's second domain, from outside the deity's list, with powers two levels behind.",
                     deity_domains: NotOffered,
                     guide: "cleric#forbidden-rites",
                     option_levels: ["cleric"],
