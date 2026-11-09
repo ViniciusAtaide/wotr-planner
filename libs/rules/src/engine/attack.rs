@@ -2,7 +2,8 @@
 //!
 //! Unconditional numbers only, from what the Build fixes: the iterative attacks from BAB; the character's own
 //! Strength (Dexterity to attack for a ranged weapon, or with Weapon Finesse and a finessable weapon when higher;
-//! 1½ times the Strength bonus to damage two-handed, none for a weapon that shoots); Weapon Focus, Greater Weapon
+//! 1½ times the Strength bonus to damage two-handed, none for a weapon that shoots unless the game gives it the
+//! Strength trait, as the sling staff); Weapon Focus, Greater Weapon
 //! Focus, Weapon Specialization and Greater Weapon Specialization held for the weapon; Improved Critical's doubled
 //! threat range; and Power Attack's trade beside it. Everything else is [`ATTACK_LINE_LEAVES_OUT`].
 

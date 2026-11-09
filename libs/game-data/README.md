@@ -407,19 +407,21 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   lists have no `summary` field.
 - Ticket 114 (option B, the user, 2026-11-08): weapon stats, for the attack line the rules compute. Each weapon on
   a proficiency list, and the unarmed strike, has `stats: (damage: (count: 2, sides: 6), threat: 19, multiplier: 2,
-  handedness: TwoHanded)`, plus `ranged: Thrown` or `ranged: Projectile` for a ranged weapon and `finesse: true` for
-  one on Weapon Finesse's list. `threat` is the lowest roll that threatens (19 for 19–20). The dice, threat ranges,
-  multipliers, hands and ranged kinds are **from the PF1e core rules, not the guide**: no saved page lists them.
-  The guide gives only what follows, and wins where it speaks: the Weapon Finesse list (`feats#weapon-finesse`) is
-  `finesse`, the Elven Curve Blade is two-handed and the Estoc one-handed (`feats#fencing-grace`'s finessable
-  one-handed piercing weapons). A double weapon (Dwarven Urgrosh, Gnome Hooked Hammer, Orc Double Axe,
-  Quarterstaff, Two-bladed Sword) has its first head's dice and critical, as one two-handed weapon. The Dart,
-  Javelin and Throwing Axe are thrown; the bows, crossbows and Sling Staff shoot. Values the user is to confirm,
-  being the least certain in the game: the Estoc's 2d4 18–20/×2, the Tongi's 1d6 ×3, the Fauchard's 1d10 18–20/×2
-  (exotic in the game), the Throwing Axe as thrown only and the Unarmed Strike's 1d3 (a monk's is a class feature).
-  The natural attacks (bite, claw, gore, hoof, slam, spike, tail, talon, wing) have no stats, since their dice
-  depend on what grants them; nor have Rays, Touch Attacks, Kinetic Blast and Bomb, which deal a spell's or a class
-  feature's damage.
+  handedness: TwoHanded)`, plus `ranged: Thrown`, `Projectile` or `ProjectileWithStrength` for a ranged weapon and
+  `finesse: true` for a finessable one. `threat` is the lowest roll that threatens (19 for 19–20). **The source is
+  the game's weapon table as the user gave it (2026-11-08)**, not the guide, which lists no weapon stats; it
+  replaced the first draft's PF1e core values, changing six weapons: the Gnome Hooked Hammer's first head is 1d8
+  (was 1d6), the Tongi threatens on 19–20 (was 20), the Sawtooth Saber is light (was one-handed), the Nunchaku and
+  the Light Shield's bash are finessable, and the Sling Staff has the game's Strength trait (`ProjectileWithStrength`:
+  it shoots but adds Strength to damage). Where the game has a Kingmaker and a Wrath of the Righteous row (Dagger,
+  Dwarven Urgrosh, Scythe, Dart, Sawtooth Saber), the Wrath row is used. The table wins over the guide's Weapon
+  Finesse list (`feats#weapon-finesse`), which leaves out the Nunchaku and the Light Shield's bash. A double weapon
+  (Dwarven Urgrosh, Gnome Hooked Hammer, Orc Double Axe, Two-bladed Sword) has its first head's dice and critical,
+  as one two-handed weapon. The table's composite bows and spiked shields aren't weapons of the data (the data has
+  the plain bows and the shield bashes). The natural attacks (bite, claw, gore, hoof, slam, spike, tail, talon, wing)
+  have no stats, though the table gives Medium base dice for them, since a feature that grants one sets its own
+  dice (Demonic Claws' 1d8); nor have Rays, Touch Attacks, Kinetic Blast and Bomb, which deal a spell's or a class
+  feature's damage. `tests/game_data/weapons.rs` holds the whole table.
 - A path's switch rule: `switch: (from: ["aeon", "azata"], kept_through_rank: 7, path_kept_through_rank: 7,
   dropped_features: [...], dropped_selections: [...], features: [...], further_ascensions: true, level_cap:
   Some(40))`. The general picks (mythic abilities and feats) of MR 1 to `kept_through_rank` stay, and the old

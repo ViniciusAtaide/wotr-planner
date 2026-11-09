@@ -179,6 +179,7 @@ text_column!(Handedness, handedness_from, handedness_text {
 text_column!(Ranged, ranged_from, ranged_text {
     Thrown => "thrown",
     Projectile => "projectile",
+    ProjectileWithStrength => "projectile_with_strength",
 });
 
 text_column!(ParameterKind, parameter_kind_from, parameter_kind_text {

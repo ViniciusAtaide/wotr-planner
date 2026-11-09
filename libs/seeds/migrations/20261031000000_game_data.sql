@@ -283,7 +283,7 @@ CREATE TABLE weapon (
     threat INTEGER CHECK (threat BETWEEN 15 AND 20),
     multiplier INTEGER CHECK (multiplier BETWEEN 2 AND 4),
     handedness TEXT CHECK (handedness IN ('light', 'one_handed', 'two_handed')),
-    ranged TEXT CHECK (ranged IN ('thrown', 'projectile')),
+    ranged TEXT CHECK (ranged IN ('thrown', 'projectile', 'projectile_with_strength')),
     finesse INTEGER CONSTRAINT boolean CHECK (finesse IN (0, 1)),
     CONSTRAINT stats_all_or_none CHECK (
         (damage_count IS NULL AND damage_sides IS NULL AND threat IS NULL AND multiplier IS NULL

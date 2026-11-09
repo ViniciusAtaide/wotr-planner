@@ -594,8 +594,10 @@ pub enum Handedness {
 pub enum Ranged {
     /// Thrown (a javelin): the Strength modifier adds to its damage.
     Thrown,
-    /// It shoots (a bow, a crossbow, a sling staff): no Strength to damage.
+    /// It shoots (a bow, a crossbow): no Strength to damage.
     Projectile,
+    /// It shoots, but the game's Strength trait adds the Strength modifier to its damage (the sling staff).
+    ProjectileWithStrength,
 }
 
 /// The guide's three weapon proficiency lists.
