@@ -19,7 +19,7 @@
         name: "Phantasmal Healer",
         school: Transmutation,
         guide: "trickster#phantasmal-healer-transmutation",
-        summary: "Living creatures in the burst regain 1d6 HP per four caster levels over the duration, halved by a Will save.",
+        summary: "Living creatures in the burst regain 1d6 HP per four caster levels while it lasts, halved by a Will save.",
         target: "All creatures within a 30' burst centred on target point within medium range",
         duration: "1 round / 4 caster levels",
         saving_throw: "Will half",
