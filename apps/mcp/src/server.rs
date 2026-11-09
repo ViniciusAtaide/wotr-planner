@@ -30,8 +30,8 @@ use crate::withdraw::withdraw;
 
 /// What every client is told on connecting: what to know before planning (ticket 117; the pick order within a level,
 /// ticket 126), the workflow, how to batch,
-/// value and branch, and the honesty boundary (plan, ticket 104, section 1). Short and imperative; the tools'
-/// descriptions hold the details.
+/// value and branch, and the honesty boundary (plan, ticket 104, section 1; the spell catalogue, ticket 121). Short
+/// and imperative; the tools' descriptions hold the details.
 pub const INSTRUCTIONS: &str = "\
 wotr-planner builds Pathfinder: Wrath of the Righteous characters with the rules engine of a build planner. Every \
 Build its tools return is one the planner's rules allow.
@@ -56,8 +56,9 @@ level 16 (have 14)\").
 
 Workflow:
 1. Resolve every name the user gives with `search` (names, keys and initials: \"BFT\" finds the Brown-Fur \
-Transmuter; words of what an item does, such as \"DC\", also find it by its summary). If a name could mean more \
-than one item, ask the user which one before you build.
+Transmuter; words of what an item does, such as \"DC\", also find it by its summary). Spells too: `kinds: \
+[\"spell\"]`, and `category` for a school or a descriptor (\"Compulsion\"). If a name could mean more than one \
+item, ask the user which one before you build.
 2. Start with `new_build`. Every Build tool takes the Build's code (`build`) and returns a new code, the planner \
 `link` and `todo`, the choices still open, each by its address (`options` only with `envelope: true`).
 3. Fill the Build start: race, racial ability, faith, alignment, background, point-buy scores.
@@ -96,14 +97,21 @@ metamagic) is fact too: the save DC of each spell level the casting class can ca
 level against spell resistance and the concentration bonus, from the class levels, the character's own scores and \
 the items held. It leaves out gear, buffs, abilities switched on in a fight (the Aeon's gaze), bonuses that grow \
 with class level and what changes the target's roll instead of the DC (`caster_leaves_out` lists all it leaves \
-out): label anything you add for them as your own game knowledge. Which spells exist, and their schools and \
-subschools, stay your own knowledge.
-- Most items carry a `summary`: what the guide says the item does, in one sentence in the planner's own words, \
-checked against the guide. Cite it as the planner's summary of the guide, not as a rule the planner enforces: the \
+out): label anything you add for them as your own game knowledge. Which spells have a school or subschool is in \
+the spell catalogue.
+- The spell catalogue (`search` and `describe` with `kind: spell` or `kind: spell_list`) is fact too: each \
+spell's school, descriptors (its subschool among them), target, duration, saving throw, spell resistance, casting \
+time and material component as the guide prints them, and every spell list it is on with its level there, the \
+classes and archetypes that cast from each list, and a footnote limiting an entry to an archetype or a story branch. \
+It is reference data: no Build choice names a spell.
+- Most items carry a `summary`, spells too: what the guide says the item does, in one sentence in the planner's own \
+words, checked against the guide. Cite it as the planner's summary of the guide, not as a rule the planner enforces: the \
 engine checks prerequisites, not effects.
-- Label everything else as your own game knowledge: what an item does beyond its summary, how items interact, \
-spells and spell availability, durations, caster level arithmetic beyond the caster line, item and buff effects, summons' stats, and which \
-choice is better. The planner checks none of it.
+- Label everything else as your own game knowledge: what an item or a spell does beyond its summary and facts, how \
+items and spells interact, spells known or prepared, spells per day, bonus spells the catalogue lacks (a shaman \
+spirit's, an oracle mystery's, the Beast Tamer's), merging a Mythic spellbook into a class's, what a duration or a \
+damage roll comes to at a caster level, caster level arithmetic beyond the caster line, item and buff effects, \
+summons' stats, and which choice is better. The planner checks none of it.
 - Guide links (`guide_url`) are for the user to read: never fetch them yourself.
 
 The resource `wotr://glossary` defines the planner's terms (Build start, Slot, Withdrawal, Path switch, …).";
@@ -149,13 +157,17 @@ impl Server {
             the Kitsune) matches too, after every name match, marked `matched: \"summary\"`, those holding every \
             query word first; `note` says when `limit` left some out. Kinds: \
             class, archetype, path (Mythic path), feat, mythic_ability, mythic_feat, option (an option of a Feature \
-            selection: an arcanist exploit, a rogue talent, a bloodline, a Lich power), race, deity, background. \
+            selection: an arcanist exploit, a rogue talent, a bloodline, a Lich power), race, deity, background, \
+            spell (the spell catalogue: a spell's category is its school, and it carries its descriptors), \
+            spell_list (a class's, an archetype's or a Mythic path's spells by level). \
             Each match has the key `describe` takes, its short summary when the data has one, its parent (an \
             archetype's class, an option's selection), its category, its prerequisite in the planner's words (a long \
             one shortened: \"one of 49 hexes (Air Barrier, …)\"; `describe` gives it whole), and a guide link for \
             the user (never fetch it). `compact: true` gives each match as kind, key, name and category only. Best \
             match first. `category` filters by a feat's category (\"Weapon\", \"Magic\", …), a mythic pick's group \
-            (\"Melee\", \"Ranged\", …) or an option's Feature selection (\"Rage Power\"), one or a list; with \
+            (\"Melee\", \"Ranged\", …), an option's Feature selection (\"Rage Power\"), or a spell's school \
+            (\"Enchantment\") or descriptor, its subschool among them (\"Compulsion\", \"Mind-Affecting\"), one or \
+            a list; with \
             `kinds` or `category`, `query` may be empty to list every item they allow (\"every Melee mythic \
             feat\"). `limit` is at most 100 (a larger one returns 100, with a `note`); `total` counts every match, \
             beyond `limit`. When nothing matches, `note` says so and names \
@@ -188,7 +200,12 @@ impl Server {
             levels, features, granted feats, feat slots, Feature selections; an archetype's rows merged over its \
             class's), plus its archetypes and its selections with their options. A Mythic path: its features, feat \
             slots and selections by Mythic rank, and its selections with their options. An option: its rows by \
-            level, when it has any. A deity: alignments and domains. The item, and each feature and selection option \
+            level, when it has any. A deity: alignments and domains. A class, an archetype or a path also names the \
+            spell lists it casts from (`spell_lists`). A spell: its `facts` (school, descriptors, target, duration, \
+            saving throw, spell resistance, casting time, material component) and every spell list it's on \
+            (`lists`), each with the spell's level there, its owner, the classes and archetypes that use it, and \
+            any footnote (\"Flame Dancer only\"). A spell list: its owner, `used_by` and its spells by level, \
+            each with its school and descriptors. The item, and each feature and selection option \
             it lists, carries its short summary when the data has one; beyond those, what an item does is not in the \
             planner's data.",
         annotations(read_only_hint = true, open_world_hint = false)

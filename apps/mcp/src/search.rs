@@ -6,6 +6,7 @@ use rules::{Engine, GameData, GuideRef, Prerequisite};
 use crate::planner::all_selections;
 use crate::shapes::{Hit, Kind, Matched, SearchResult};
 use crate::similar::{FLOOR, closeness, words};
+use crate::spells::{descriptor_names, list_category, school_name};
 
 /// How many matches a search returns when it doesn't say (for a query, and for an empty one listing what the filters
 /// allow), and at most.
@@ -98,6 +99,7 @@ impl SearchIndex {
                         summary: summary(&class.summary),
                         parent: None,
                         category: Some(category.to_owned()),
+                        descriptors: None,
                         prerequisite: prerequisite(&class.prerequisite),
                         guide_url: guide(&class.guide),
                         matched: None,
@@ -113,6 +115,7 @@ impl SearchIndex {
                             summary: summary(&archetype.summary),
                             parent: Some(class.key.as_str().to_owned()),
                             category: None,
+                            descriptors: None,
                             prerequisite: prerequisite(&archetype.prerequisite),
                             guide_url: guide(&archetype.guide),
                             matched: None,
@@ -131,6 +134,7 @@ impl SearchIndex {
                     summary: summary(&path.summary),
                     parent: None,
                     category: None,
+                    descriptors: None,
                     prerequisite: Some(None),
                     guide_url: guide(&path.guide),
                     matched: None,
@@ -147,6 +151,7 @@ impl SearchIndex {
                     summary: summary(&feat.summary),
                     parent: None,
                     category: Some(feat.category.name().to_owned()),
+                    descriptors: None,
                     prerequisite: prerequisite(&feat.prerequisite),
                     guide_url: guide(&feat.guide),
                     matched: None,
@@ -163,6 +168,7 @@ impl SearchIndex {
                     summary: summary(&ability.summary),
                     parent: None,
                     category: Some(ability.group.name().to_owned()),
+                    descriptors: None,
                     prerequisite: prerequisite(&ability.prerequisite),
                     guide_url: guide(&ability.guide),
                     matched: None,
@@ -179,6 +185,7 @@ impl SearchIndex {
                     summary: summary(&feat.summary),
                     parent: None,
                     category: Some(feat.group.name().to_owned()),
+                    descriptors: None,
                     prerequisite: prerequisite(&feat.prerequisite),
                     guide_url: guide(&feat.guide),
                     matched: None,
@@ -196,6 +203,7 @@ impl SearchIndex {
                         summary: summary(&option.summary),
                         parent: Some(selection.key.as_str().to_owned()),
                         category: Some(selection.name.clone()),
+                        descriptors: None,
                         prerequisite: prerequisite(&option.prerequisite),
                         guide_url: guide(&option.guide),
                         matched: None,
@@ -213,6 +221,7 @@ impl SearchIndex {
                     summary: summary(&race.summary),
                     parent: None,
                     category: None,
+                    descriptors: None,
                     prerequisite: Some(None),
                     guide_url: guide(&race.guide),
                     matched: None,
@@ -229,6 +238,7 @@ impl SearchIndex {
                     summary: None,
                     parent: None,
                     category: None,
+                    descriptors: None,
                     prerequisite: Some(None),
                     guide_url: guide(&deity.guide),
                     matched: None,
@@ -245,9 +255,45 @@ impl SearchIndex {
                     summary: summary(&background.note),
                     parent: None,
                     category: background.group.map(|group| group.name().to_owned()),
+                    descriptors: None,
                     prerequisite: Some(None),
                     // The user's list, not the guide's: no link.
                     guide_url: None,
+                    matched: None,
+                },
+                &None,
+            );
+        }
+        for spell in &data.spells {
+            add(
+                Hit {
+                    kind: Kind::Spell,
+                    key: spell.key.as_str().to_owned(),
+                    name: spell.name.clone(),
+                    summary: summary(&spell.summary),
+                    parent: None,
+                    category: Some(school_name(spell.school).to_owned()),
+                    descriptors: Some(descriptor_names(spell)).filter(|names| !names.is_empty()),
+                    // Reference data: nothing to take, so no prerequisite.
+                    prerequisite: None,
+                    guide_url: guide(&spell.guide),
+                    matched: None,
+                },
+                &None,
+            );
+        }
+        for list in &data.spell_lists {
+            add(
+                Hit {
+                    kind: Kind::SpellList,
+                    key: list.key.as_str().to_owned(),
+                    name: list.name.clone(),
+                    summary: None,
+                    parent: Some(list.owner.key().to_owned()),
+                    category: Some(list_category(&list.owner).to_owned()),
+                    descriptors: None,
+                    prerequisite: None,
+                    guide_url: guide(&list.guide),
                     matched: None,
                 },
                 &None,
@@ -428,7 +474,14 @@ impl SearchIndex {
         let mut known: Vec<&str> = self
             .entries
             .iter()
-            .filter_map(|entry| entry.hit.category.as_deref())
+            .flat_map(|entry| {
+                entry
+                    .hit
+                    .category
+                    .iter()
+                    .chain(entry.hit.descriptors.iter().flatten())
+                    .map(String::as_str)
+            })
             .collect();
         known.sort_unstable();
         known.dedup();
@@ -489,6 +542,7 @@ impl Entry {
                 summary: None,
                 parent: None,
                 category: self.hit.category.clone(),
+                descriptors: None,
                 prerequisite: None,
                 guide_url: None,
                 matched,
@@ -543,7 +597,7 @@ impl Entry {
     }
 
     /// Whether its category is one of these (case and spacing don't count), or, for an option, its Feature
-    /// selection's key is.
+    /// selection's key is, or, for a spell, one of its descriptors is.
     fn in_category(&self, categories: &[String]) -> bool {
         let same = |a: &str, b: &str| {
             a.split_whitespace()
@@ -561,6 +615,12 @@ impl Entry {
                         .parent
                         .as_deref()
                         .is_some_and(|parent| same(parent, category)))
+                || self
+                    .hit
+                    .descriptors
+                    .iter()
+                    .flatten()
+                    .any(|descriptor| same(descriptor, category))
         })
     }
 }

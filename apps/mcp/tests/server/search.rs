@@ -97,7 +97,8 @@ async fn kinds_filter_the_matches() {
     );
     assert!(
         client
-            .search(json!({ "query": "summon" }))
+            // Past the Summon Monster spells, which come first by name.
+            .search(json!({ "query": "summon", "limit": 100 }))
             .await
             .iter()
             .any(|(kind, _)| kind == "feat"),

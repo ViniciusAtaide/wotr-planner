@@ -15,6 +15,7 @@ mod options;
 mod pick_values;
 mod search;
 mod sheet;
+mod spells;
 mod summaries;
 mod support;
 mod test_world;

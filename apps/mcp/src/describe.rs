@@ -2,14 +2,16 @@
 //! rank, the Feature selections it defines.
 
 use rules::{
-    Archetype, Class, Engine, FeatKey, FeatSlot, FeatValue, FeatureKey, FeatureSelection,
-    FeatureSelectionKey, Save, SelectionOptionKey, effective_row,
+    Archetype, ArchetypeKey, Class, ClassKey, Engine, FeatKey, FeatSlot, FeatValue, FeatureKey,
+    FeatureSelection, FeatureSelectionKey, MythicPathKey, Save, SelectionOptionKey, SpellCaster,
+    effective_row,
 };
 
 use crate::planner::Planner;
 use crate::shapes::{
     Hit, Item, Kind, LevelRow, Named, RankRow, Selection, SpellLevels, Summarised,
 };
+use crate::spells;
 
 /// The item of a kind with a key, or why there's none: the closest matches, so the agent can retry.
 pub(crate) fn describe(planner: &Planner, kind: Kind, key: &str) -> Result<Item, String> {
@@ -28,6 +30,12 @@ pub(crate) fn describe(planner: &Planner, kind: Kind, key: &str) -> Result<Item,
         subraces: None,
         alignments: None,
         domains: None,
+        spell_lists: None,
+        facts: None,
+        lists: None,
+        owner: None,
+        used_by: None,
+        spells: None,
     };
     let engine = &planner.engine;
     let data = &planner.data;
@@ -43,6 +51,7 @@ pub(crate) fn describe(planner: &Planner, kind: Kind, key: &str) -> Result<Item,
                     .collect(),
             );
             item.selections = Some(selections(planner, &class.selections));
+            item.spell_lists = spell_lists(planner, SpellCaster::Class(ClassKey::new(key)));
         }
         Kind::Archetype => {
             let (class, prestige, archetype) = data
@@ -60,6 +69,7 @@ pub(crate) fn describe(planner: &Planner, kind: Kind, key: &str) -> Result<Item,
                 .expect("an indexed archetype");
             item.levels = Some(class_rows(planner, class, prestige, Some(archetype)));
             item.selections = Some(selections(planner, &archetype.selections));
+            item.spell_lists = spell_lists(planner, SpellCaster::Archetype(ArchetypeKey::new(key)));
         }
         Kind::Path => {
             let path = data
@@ -82,6 +92,7 @@ pub(crate) fn describe(planner: &Planner, kind: Kind, key: &str) -> Result<Item,
                     .collect(),
             );
             item.selections = Some(selections(planner, &path.selections));
+            item.spell_lists = spell_lists(planner, SpellCaster::Path(MythicPathKey::new(key)));
         }
         Kind::Feat => {
             let feat = data
@@ -188,6 +199,32 @@ pub(crate) fn describe(planner: &Planner, kind: Kind, key: &str) -> Result<Item,
                 background.feats_for.iter(),
             ));
         }
+        Kind::Spell => {
+            let spell = data
+                .spells
+                .iter()
+                .find(|spell| spell.key.as_str() == key)
+                .expect("an indexed spell");
+            // `facts` give the descriptors.
+            item.hit.descriptors = None;
+            item.facts = Some(spells::facts(spell));
+            item.lists = Some(spells::lists_of(engine, data, spell));
+        }
+        Kind::SpellList => {
+            let list = data
+                .spell_lists
+                .iter()
+                .find(|list| list.key.as_str() == key)
+                .expect("an indexed spell list");
+            item.owner = Some(spells::caster(engine, &list.owner));
+            item.used_by = Some(
+                list.used_by
+                    .iter()
+                    .map(|user| spells::caster(engine, user))
+                    .collect(),
+            );
+            item.spells = Some(spells::spells_by_level(engine, data, list));
+        }
     }
     Ok(item)
 }
@@ -230,6 +267,12 @@ fn not_found(planner: &Planner, kind: Kind, key: &str) -> String {
     }
     message.push_str(" `search` finds keys by name.");
     message
+}
+
+/// The spell lists a caster owns or uses; `None` for none.
+fn spell_lists(planner: &Planner, caster: SpellCaster) -> Option<Vec<Named>> {
+    let lists = spells::lists_for(&planner.data, &caster);
+    (!lists.is_empty()).then_some(lists)
 }
 
 fn class<'a>(planner: &'a Planner, key: &str) -> Option<(&'a Class, bool)> {

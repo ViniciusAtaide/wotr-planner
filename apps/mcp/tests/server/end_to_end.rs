@@ -7,7 +7,7 @@
 //! The agent resolves "BFT", builds a 20-level Brown-Fur Transmuter arcanist with the summoning feats, reaches MR 10,
 //! branches at the Mythic path into a Lich and an Aeon, and compares the two. It finds what to take with `options`
 //! wherever it can, and every pick goes through `choose`. What the prompt implies but the planner doesn't model
-//! (spells, durations, caster level bonuses) is asserted absent, with the reason.
+//! (a "mass" animal buff the guide lacks, durations, caster level bonuses) is asserted absent, with the reason.
 
 use rmcp::serde_json::{Value, json};
 
@@ -416,23 +416,30 @@ async fn the_users_prompt_bft_summoner_lich_or_aeon() {
         assert_eq!(text(&opened["link"]), format!("{LINK_BASE}{}", text(code)));
     }
 
-    // What the prompt implies and the data lacks. Spells are out of scope (map, Out of scope), so "the mass animal
-    // buffs" match no name: `search` has no spell kind at all, and its only hits are summaries holding "animal"
-    // (ticket 123), which its note says. Durations ("summons lasting 24h") and what Extend Spell or Enduring Spells
-    // do to them aren't modelled either; the agent labels that as its own game knowledge.
-    for query in ["mass animal growth", "animal growth"] {
-        let found = client.ok("search", json!({ "query": query })).await;
-        assert!(
-            found["matches"]
-                .as_array()
-                .unwrap()
-                .iter()
-                .all(|hit| hit["matched"] == "summary"),
-            "{found}"
-        );
-        assert!(
-            text(&found["note"]).starts_with("No item's name"),
-            "{found}"
-        );
-    }
+    // What the prompt implies and the data lacks. The spell catalogue (ticket 121) has Animal Growth, by name, with
+    // its lists; no spell is "Mass Animal Growth", so that query's only hits are summaries holding its words (ticket
+    // 123), which its note says. Durations ("summons lasting 24h") and what Extend Spell or Enduring Spells do to
+    // them aren't modelled either; the agent labels that as its own game knowledge.
+    let found = client
+        .ok("search", json!({ "query": "mass animal growth" }))
+        .await;
+    assert!(
+        found["matches"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|hit| hit["matched"] == "summary"),
+        "{found}"
+    );
+    assert!(
+        text(&found["note"]).starts_with("No item's name"),
+        "{found}"
+    );
+    let found = client
+        .search(json!({ "query": "animal growth", "kinds": ["spell"] }))
+        .await;
+    assert_eq!(
+        found.first(),
+        Some(&("spell".to_owned(), "animal-growth".to_owned()))
+    );
 }
