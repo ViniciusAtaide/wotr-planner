@@ -282,6 +282,7 @@ impl SearchIndex {
             Some(_) => DEFAULT_LIMIT,
             None => EMPTY_QUERY_LIMIT,
         };
+        let over = limit.filter(|limit| usize::try_from(*limit).unwrap_or(usize::MAX) > MAX_LIMIT);
         let limit = limit.map_or(default_limit, |limit| {
             usize::try_from(limit).unwrap_or(MAX_LIMIT).min(MAX_LIMIT)
         });
@@ -331,6 +332,12 @@ impl SearchIndex {
                 plural(hidden, "match", "matches"),
                 plural(hidden, "it", "them"),
                 plural(hidden, "it", "them"),
+            ));
+        }
+        if let Some(over) = over {
+            notes.push(format!(
+                "`limit` {over} is over the most, {MAX_LIMIT}: at most {MAX_LIMIT} matches come back (`total` \
+                 counts every match; narrow the search with `kinds` or `category` for the rest)."
             ));
         }
         let note = (!notes.is_empty()).then(|| notes.join(" "));

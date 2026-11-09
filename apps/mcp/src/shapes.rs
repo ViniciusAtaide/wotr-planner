@@ -76,7 +76,8 @@ pub struct SearchArgs {
     /// Power") or key, "Base class" or "Prestige class", a background's group.
     #[serde(default)]
     pub category: Option<OneOrMany>,
-    /// At most this many matches (default 10, or 50 for an empty query; at most 100).
+    /// At most this many matches (default 10, or 50 for an empty query). Capped at 100: a larger `limit` returns
+    /// 100, and `note` says so.
     #[serde(default)]
     pub limit: Option<u32>,
     /// Each match as its kind, key, name and category (and `matched`) only: no summary, parent, prerequisite or
@@ -113,6 +114,7 @@ pub struct SearchResult {
     pub total: u32,
     /// When nothing matches: says so, and names the near names (or categories), if any is close. When every match
     /// is by its summary: says no name, key or initials matched. When `limit` left out summary matches: how many.
+    /// When `limit` is over its cap of 100: says so.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub note: Option<String>,
 }

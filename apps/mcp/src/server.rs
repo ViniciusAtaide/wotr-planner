@@ -139,7 +139,8 @@ impl Server {
             match first. `category` filters by a feat's category (\"Weapon\", \"Magic\", …), a mythic pick's group \
             (\"Melee\", \"Ranged\", …) or an option's Feature selection (\"Rage Power\"), one or a list; with \
             `kinds` or `category`, `query` may be empty to list every item they allow (\"every Melee mythic \
-            feat\"). `total` counts every match, beyond `limit`. When nothing matches, `note` says so and names \
+            feat\"). `limit` is at most 100 (a larger one returns 100, with a `note`); `total` counts every match, \
+            beyond `limit`. When nothing matches, `note` says so and names \
             only near names: the data holds what the guide lists, so a name it lacks isn't in the planner.",
         annotations(read_only_hint = true, open_world_hint = false)
     )]

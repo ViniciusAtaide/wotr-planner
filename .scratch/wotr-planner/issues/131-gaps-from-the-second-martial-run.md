@@ -64,3 +64,7 @@ Options:
 ## Done when
 
 The user has answered 2, 3 and 5. A is built for 1, so the Trickster Build's line reads 13–20/×3, with a real-data test. 4's cap is stated. `scripts/check.sh` passes.
+
+## Progress log
+
+- 2026-11-09, item 4 (branch `t/t-mcp-search`, with tickets 123 and 128): `search`'s tool description and its `limit` argument now state the cap of 100, and a `limit` over it adds a `note` ("`limit` 400 is over the most, 100: at most 100 matches come back …"); a real-data server test (`limit: 400` on feats). The cap itself is unchanged.

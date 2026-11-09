@@ -363,3 +363,22 @@ async fn real_data_only_summary_matches_say_so_in_the_note() {
     let note = text(&found["note"]);
     assert!(note.contains("summar"), "{note}");
 }
+
+#[tokio::test]
+async fn real_data_a_limit_over_the_cap_returns_the_cap_and_says_so() {
+    // Ticket 131, item 4: `limit: 400` returned 100 of 261 feats with no word of the cap.
+    let client = Client::start().await;
+    let found = client
+        .ok("search", json!({ "kinds": ["feat"], "limit": 400 }))
+        .await;
+    assert_eq!(found["matches"].as_array().unwrap().len(), 100);
+    assert!(found["total"].as_u64().unwrap() > 100, "{}", found["total"]);
+    let note = text(&found["note"]);
+    assert!(note.contains("`limit` 400 is over the most, 100"), "{note}");
+
+    // At the cap, or under it, no such note.
+    let found = client
+        .ok("search", json!({ "kinds": ["feat"], "limit": 100 }))
+        .await;
+    assert!(found.get("note").is_none(), "{found}");
+}
