@@ -1,6 +1,7 @@
 Class(
     key: "slayer",
     name: "Slayer",
+    summary: "Full-BAB hunter: 7 HP per level, good Fortitude and Reflex, Studied Target for bonuses against one foe, sneak attack from 3rd level and slayer talents.",
     guide: "slayer",
     skill_points: 3,
     bab: Full,
@@ -9,20 +10,21 @@ Class(
     will: Poor,
     class_skills: ["athletics", "knowledge-world", "lore-nature", "mobility", "perception", "persuasion", "stealth"],
     features: [
-        (key: "slayer/advanced-talents", name: "Advanced Talents", guide: "slayer#advanced-talents"),
-        (key: "slayer/improved-quarry", name: "Improved Quarry", guide: "slayer#improved-quarry"),
-        (key: "slayer/master-slayer", name: "Master Slayer", guide: "slayer#master-slayer"),
-        (key: "slayer/quarry", name: "Quarry", guide: "slayer#quarry"),
-        (key: "slayer/slayer-proficiencies", name: "Slayer Proficiencies", guide: "slayer#slayer-proficiencies"),
-        (key: "slayer/slayers-advance", name: "Slayer\'s Advance", guide: "slayer#slayers-advance"),
-        (key: "slayer/sneak-attack", name: "Sneak Attack", guide: "slayer#sneak-attack"),
-        (key: "slayer/studied-target", name: "Studied Target", guide: "slayer#studied-target"),
-        (key: "slayer/studied-target-swift", name: "Studied Target (Swift)", guide: "slayer#studied-target-swift"),
+        (key: "slayer/advanced-talents", name: "Advanced Talents", summary: "From 10th level, can choose advanced rogue talents.", guide: "slayer#advanced-talents"),
+        (key: "slayer/improved-quarry", name: "Improved Quarry", summary: "At 19th level, a quarry can be marked as a free action and its attack bonus rises to +4.", guide: "slayer#improved-quarry"),
+        (key: "slayer/master-slayer", name: "Master Slayer", summary: "At 20th level, a standard-action attack on a studied target forces a Fort save (DC 20 + Int) or death; once per opponent.", guide: "slayer#master-slayer"),
+        (key: "slayer/quarry", name: "Quarry", summary: "From 14th level, standard action to mark one quarry: +2 insight to attack it and every critical hit against it is confirmed.", guide: "slayer#quarry"),
+        (key: "slayer/slayer-proficiencies", name: "Slayer Proficiencies", summary: "Proficient with simple and martial weapons, shields, and light and medium armour.", guide: "slayer#slayer-proficiencies"),
+        (key: "slayer/slayers-advance", name: "Slayer\'s Advance", summary: "From 13th level, once a day +30 feet speed for 1 round with no attacks of opportunity; twice a day from 17th.", guide: "slayer#slayers-advance"),
+        (key: "slayer/sneak-attack", name: "Sneak Attack", summary: "From 3rd level, +1d6 damage against flanked foes or those denied Dexterity to AC, +1d6 per 3 levels (max 6d6 at 18th).", guide: "slayer#sneak-attack"),
+        (key: "slayer/studied-target", name: "Studied Target", summary: "Move action: +1 to weapon attack, damage and slayer ability DCs against the studied foe, +1 more at 5th, 10th, 15th and 20th.", guide: "slayer#studied-target"),
+        (key: "slayer/studied-target-swift", name: "Studied Target (Swift)", summary: "From 7th level, Studied Target is a swift action.", guide: "slayer#studied-target-swift"),
     ],
     selections: [
         (
             key: "slayer/combat-style",
             name: "Combat Style (Slayer)",
+            summary: "A Ranger combat style feat taken as a slayer talent, at most three times: at 2nd or 4th, 6th or 8th, and 10th or later.",
             guide: "slayer#slayer-talents",
             option_levels: ["slayer"],
             only_without_option: true,
@@ -38,12 +40,14 @@ Class(
         (
             key: "slayer/slayer-talents",
             name: "Slayer Talents",
+            summary: "From 2nd level, a rogue talent (slayer level counts as rogue level), a Ranger combat style feat, Trapfinding or Slayer Camouflage.",
             guide: "slayer#slayer-talents",
             option_levels: ["inquisitor", "slayer"],
             options: [
                 (
                     key: "slayer/slayer-talents/combat-style-feat-10",
                     name: "Combat Style Feat (10th level or later)",
+                    summary: "A Ranger combat style feat taken as a slayer talent at 10th level or later.",
                     guide: "slayer#slayer-talents",
                     prerequisite: ClassLevel(class: "slayer", level: 10),
                     levels: [
@@ -53,6 +57,7 @@ Class(
                 (
                     key: "slayer/slayer-talents/combat-style-feat-2",
                     name: "Combat Style Feat (2nd or 4th level)",
+                    summary: "A Ranger combat style feat taken as a slayer talent at 2nd or 4th level.",
                     guide: "slayer#slayer-talents",
                     prerequisite: All([Not(ClassLevel(class: "slayer", level: 6)), ClassLevel(class: "slayer", level: 2)]),
                     levels: [
@@ -62,14 +67,15 @@ Class(
                 (
                     key: "slayer/slayer-talents/combat-style-feat-6",
                     name: "Combat Style Feat (6th or 8th level)",
+                    summary: "A Ranger combat style feat taken as a slayer talent at 6th or 8th level.",
                     guide: "slayer#slayer-talents",
                     prerequisite: All([Not(ClassLevel(class: "slayer", level: 10)), ClassLevel(class: "slayer", level: 6)]),
                     levels: [
                         (level: 1, feat_slots: [OptionList(selection: "slayer/combat-style", at_level: 6)], selections: ["slayer/combat-style"]),
                     ],
                 ),
-                (key: "slayer/slayer-talents/slayer-camouflage", name: "Slayer Camouflage", guide: "slayer#slayer-camouflage", prerequisite: All([Feature(feature: "slayer/advanced-talents", count: 1), SelectionOption("rogue/rogue-talents/terrain-mastery")])),
-                (key: "slayer/slayer-talents/trapfinding", name: "Trapfinding", guide: "slayer#trapfinding"),
+                (key: "slayer/slayer-talents/slayer-camouflage", name: "Slayer Camouflage", summary: "Requires Terrain Mastery and Advanced Talents: can use Stealth in a favoured terrain even without cover.", guide: "slayer#slayer-camouflage", prerequisite: All([Feature(feature: "slayer/advanced-talents", count: 1), SelectionOption("rogue/rogue-talents/terrain-mastery")])),
+                (key: "slayer/slayer-talents/trapfinding", name: "Trapfinding", summary: "Trickery becomes a class skill, plus the Rogue's Trapfinding with slayer level as rogue level.", guide: "slayer#trapfinding"),
             ],
             shared_options: [
                 "rogue/rogue-talents/blinding-strike",
@@ -137,12 +143,13 @@ Class(
         (
             key: "slayer/arcane-enforcer",
             name: "Arcane Enforcer",
+            summary: "Slayer with good Reflex and Will who uses arcanist exploits, losing Quarry and three talents.",
             guide: "slayer#arcane-enforcer",
             class_skills: ["athletics", "knowledge-arcana", "knowledge-world", "mobility", "perception", "stealth", "use-magic-device"],
             fort: Some(Poor),
             will: Some(Good),
             features: [
-                (key: "slayer/arcane-enforcer/arcane-reservoir", name: "Arcane Reservoir", guide: "slayer#arcane-reservoir"),
+                (key: "slayer/arcane-enforcer/arcane-reservoir", name: "Arcane Reservoir", summary: "A daily reservoir of magical energy holding up to class level + 3 points.", guide: "slayer#arcane-reservoir"),
             ],
             levels: [
                 (level: 1, features: ["slayer/arcane-enforcer/arcane-reservoir", "slayer/slayer-proficiencies", "slayer/studied-target"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], selections: ["arcanist/arcanist-exploits"]),
@@ -158,38 +165,40 @@ Class(
         (
             key: "slayer/bloodseeker",
             name: "Bloodseeker",
+            summary: "Dance of Masks evil slayer with a Blood Pool of vampiric powers and spells instead of slayer talents.",
             guide: "slayer#bloodseeker",
             prerequisite: Any([Alignment(LawfulEvil), Alignment(NeutralEvil), Alignment(ChaoticEvil)]),
             features: [
-                (key: "slayer/bloodseeker/blood-pool", name: "Blood Pool", guide: "slayer#blood-pool"),
-                (key: "slayer/bloodseeker/bloodlust", name: "Bloodlust", guide: "slayer#bloodlust"),
-                (key: "slayer/bloodseeker/bloodseekers-cursed-lineage", name: "Bloodseeker\'s Cursed Lineage", guide: "slayer#bloodseekers-cursed-lineage"),
-                (key: "slayer/bloodseeker/carrion-form", name: "Carrion Form", guide: "slayer#carrion-form"),
-                (key: "slayer/bloodseeker/master-of-blood", name: "Master of Blood", guide: "slayer#master-of-blood"),
-                (key: "slayer/bloodseeker/sharp-teeth", name: "Sharp Teeth", guide: "slayer#sharp-teeth"),
-                (key: "slayer/bloodseeker/vampire-bite", name: "Vampire Bite", guide: "slayer#vampire-bite"),
+                (key: "slayer/bloodseeker/blood-pool", name: "Blood Pool", summary: "From 2nd level, a pool of 2 points (+1 per level) that fuels your powers; DC 10 + half level + Int.", guide: "slayer#blood-pool"),
+                (key: "slayer/bloodseeker/bloodlust", name: "Bloodlust", summary: "From 2nd level, each kill gives +1 attack and damage until combat ends, up to half your Intelligence modifier.", guide: "slayer#bloodlust"),
+                (key: "slayer/bloodseeker/bloodseekers-cursed-lineage", name: "Bloodseeker\'s Cursed Lineage", summary: "Counts as undead for channel energy effects.", guide: "slayer#bloodseekers-cursed-lineage"),
+                (key: "slayer/bloodseeker/carrion-form", name: "Carrion Form", summary: "From 10th level, for 1 Blood Pool point becomes a swarm of undead ravens; damaging foes in this form restores 1 point.", guide: "slayer#carrion-form"),
+                (key: "slayer/bloodseeker/master-of-blood", name: "Master of Blood", summary: "At 20th level, Blood Jet and Cone of Blood are empowered and bolstered, the pool grows by 5 and you get +6 profane Str, Dex and Int.", guide: "slayer#master-of-blood"),
+                (key: "slayer/bloodseeker/sharp-teeth", name: "Sharp Teeth", summary: "From 2nd level, a secondary 1d6 bite (1d4 if small); confirmed crits on living foes restore 3 Blood Pool points.", guide: "slayer#sharp-teeth"),
+                (key: "slayer/bloodseeker/vampire-bite", name: "Vampire Bite", summary: "From 9th level, bite hits on living foes give you 5 temporary HP and the target a negative level, both stacking.", guide: "slayer#vampire-bite"),
             ],
             selections: [
                 (
                     key: "slayer/bloodseeker/nocturnal-abilities",
                     name: "Nocturnal Abilities",
+                    summary: "A Blood Pool power, each costing 1 or 2 points.",
                     guide: "slayer#nocturnal-abilities",
                     options: [
-                        (key: "slayer/bloodseeker/nocturnal-abilities/blasphemy", name: "Blasphemy", guide: "slayer#blasphemy"),
-                        (key: "slayer/bloodseeker/nocturnal-abilities/blood-healing", name: "Blood Healing", guide: "slayer#blood-healing"),
-                        (key: "slayer/bloodseeker/nocturnal-abilities/blood-jet", name: "Blood Jet", guide: "slayer#blood-jet"),
-                        (key: "slayer/bloodseeker/nocturnal-abilities/cone-of-blood", name: "Cone of Blood", guide: "slayer#cone-of-blood"),
-                        (key: "slayer/bloodseeker/nocturnal-abilities/enervation", name: "Enervation", guide: "slayer#enervation"),
-                        (key: "slayer/bloodseeker/nocturnal-abilities/haste", name: "Haste", guide: "slayer#haste"),
-                        (key: "slayer/bloodseeker/nocturnal-abilities/predatory-might", name: "Predatory Might", guide: "slayer#predatory-might"),
-                        (key: "slayer/bloodseeker/nocturnal-abilities/predatory-prowess", name: "Predatory Prowess", guide: "slayer#predatory-prowess"),
-                        (key: "slayer/bloodseeker/nocturnal-abilities/sense-vitals", name: "Sense Vitals", guide: "slayer#sense-vitals"),
-                        (key: "slayer/bloodseeker/nocturnal-abilities/slow", name: "Slow", guide: "slayer#slow"),
-                        (key: "slayer/bloodseeker/nocturnal-abilities/summon-bloody-bones-beast", name: "Summon Bloody Bones Beast", guide: "slayer#summon-bloody-bones-beast"),
-                        (key: "slayer/bloodseeker/nocturnal-abilities/summon-dire-wolves", name: "Summon Dire Wolves", guide: "slayer#summon-dire-wolves"),
-                        (key: "slayer/bloodseeker/nocturnal-abilities/vampiric-shadow-shield", name: "Vampiric Shadow Shield", guide: "slayer#vampiric-shadow-shield"),
-                        (key: "slayer/bloodseeker/nocturnal-abilities/vampiric-touch", name: "Vampiric Touch", guide: "slayer#vampiric-touch"),
-                        (key: "slayer/bloodseeker/nocturnal-abilities/wracking-ray", name: "Wracking Ray", guide: "slayer#wracking-ray"),
+                        (key: "slayer/bloodseeker/nocturnal-abilities/blasphemy", name: "Blasphemy", summary: "From 16th level, 2 Blood Pool points: casts Blasphemy.", guide: "slayer#blasphemy"),
+                        (key: "slayer/bloodseeker/nocturnal-abilities/blood-healing", name: "Blood Healing", summary: "2 Blood Pool points: fast healing 3 for rounds equal to class level.", guide: "slayer#blood-healing"),
+                        (key: "slayer/bloodseeker/nocturnal-abilities/blood-jet", name: "Blood Jet", summary: "1 Blood Pool point: ranged touch attack for 1d4 damage per class level.", guide: "slayer#blood-jet"),
+                        (key: "slayer/bloodseeker/nocturnal-abilities/cone-of-blood", name: "Cone of Blood", summary: "1 Blood Pool point: 30-foot cone dealing 1d4 per class level, Reflex for half.", guide: "slayer#cone-of-blood"),
+                        (key: "slayer/bloodseeker/nocturnal-abilities/enervation", name: "Enervation", summary: "From 10th level, 2 Blood Pool points: casts Enervation.", guide: "slayer#enervation"),
+                        (key: "slayer/bloodseeker/nocturnal-abilities/haste", name: "Haste", summary: "From 8th level, 2 Blood Pool points: casts Haste.", guide: "slayer#haste"),
+                        (key: "slayer/bloodseeker/nocturnal-abilities/predatory-might", name: "Predatory Might", summary: "From 6th level, 1 Blood Pool point: +4 profane Strength and +2 profane damage for minutes equal to class level.", guide: "slayer#predatory-might"),
+                        (key: "slayer/bloodseeker/nocturnal-abilities/predatory-prowess", name: "Predatory Prowess", summary: "From 6th level, 1 Blood Pool point: +4 profane Dexterity and +2 profane AC for minutes equal to class level.", guide: "slayer#predatory-prowess"),
+                        (key: "slayer/bloodseeker/nocturnal-abilities/sense-vitals", name: "Sense Vitals", summary: "2 Blood Pool points: casts Sense Vitals.", guide: "slayer#sense-vitals"),
+                        (key: "slayer/bloodseeker/nocturnal-abilities/slow", name: "Slow", summary: "From 8th level, 2 Blood Pool points: casts Slow.", guide: "slayer#slow"),
+                        (key: "slayer/bloodseeker/nocturnal-abilities/summon-bloody-bones-beast", name: "Summon Bloody Bones Beast", summary: "From 8th level, 2 Blood Pool points: summons a bloody bones beast for rounds equal to class level.", guide: "slayer#summon-bloody-bones-beast"),
+                        (key: "slayer/bloodseeker/nocturnal-abilities/summon-dire-wolves", name: "Summon Dire Wolves", summary: "1 Blood Pool point: summons 1d4 dire wolves for rounds equal to class level.", guide: "slayer#summon-dire-wolves"),
+                        (key: "slayer/bloodseeker/nocturnal-abilities/vampiric-shadow-shield", name: "Vampiric Shadow Shield", summary: "From 14th level, 2 Blood Pool points: casts Vampiric Shadow Shield.", guide: "slayer#vampiric-shadow-shield"),
+                        (key: "slayer/bloodseeker/nocturnal-abilities/vampiric-touch", name: "Vampiric Touch", summary: "From 8th level, 2 Blood Pool points: casts Vampiric Touch.", guide: "slayer#vampiric-touch"),
+                        (key: "slayer/bloodseeker/nocturnal-abilities/wracking-ray", name: "Wracking Ray", summary: "From 14th level, 2 Blood Pool points: casts Wracking Ray.", guide: "slayer#wracking-ray"),
                     ],
                 ),
             ],
@@ -212,11 +221,12 @@ Class(
             key: "slayer/deliverer",
             prerequisite: Worships,
             name: "Deliverer",
+            summary: "You serve a deity and are strongest against foes two alignment steps from your own.",
             guide: "slayer#deliverer",
             features: [
                 (key: "slayer/deliverer/deity", favoured_weapon_proficiency: true, name: "Deity", guide: "slayer#deity"),
-                (key: "slayer/deliverer/determined-zeal", name: "Determined Zeal", guide: "slayer#determined-zeal"),
-                (key: "slayer/deliverer/divine-anathema", name: "Divine Anathema", guide: "slayer#divine-anathema"),
+                (key: "slayer/deliverer/determined-zeal", name: "Determined Zeal", summary: "Attacking a foe two alignment steps away gives +2 Will saves against it and Diehard until the end of your next turn.", guide: "slayer#determined-zeal"),
+                (key: "slayer/deliverer/divine-anathema", name: "Divine Anathema", summary: "From 10th level, +2d6 damage against a studied target two alignment steps from your own.", guide: "slayer#divine-anathema"),
             ],
             levels: [
                 (level: 1, features: ["slayer/deliverer/deity", "slayer/slayer-proficiencies", "slayer/studied-target"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
@@ -227,11 +237,12 @@ Class(
         (
             key: "slayer/executioner",
             name: "Executioner",
+            summary: "Slayer specialised in killing humanoids and assassinating unaware targets.",
             guide: "slayer#executioner",
             features: [
-                (key: "slayer/executioner/assassinate", name: "Assassinate", guide: "slayer#assassinate"),
-                (key: "slayer/executioner/focused-killer", name: "Focused Killer", guide: "slayer#focused-killer"),
-                (key: "slayer/executioner/painful-strike", name: "Painful Strike", guide: "slayer#painful-strike"),
+                (key: "slayer/executioner/assassinate", name: "Assassinate", summary: "From 10th level, a coup de grace on a studied target outside combat; demoralizes enemies within 30 feet from 14th; 2d6 bleed on survivors from 19th.", guide: "slayer#assassinate"),
+                (key: "slayer/executioner/focused-killer", name: "Focused Killer", summary: "Studied Target bonuses are +1 higher against humanoids and 1 lower against other creatures.", guide: "slayer#focused-killer"),
+                (key: "slayer/executioner/painful-strike", name: "Painful Strike", summary: "Sneak attack damage forces a Fort save (DC 10 + half level + Int) or sickened for 1d4 rounds.", guide: "slayer#painful-strike"),
             ],
             levels: [
                 (level: 1, features: ["slayer/executioner/focused-killer", "slayer/slayer-proficiencies", "slayer/studied-target"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
@@ -244,21 +255,23 @@ Class(
         (
             key: "slayer/imitator",
             name: "Imitator",
+            summary: "Human slayer who adopts other classes' stances instead of Studied Target, with fewer sneak dice and talents.",
             guide: "slayer#imitator",
             prerequisite: Race("human"),
             features: [
-                (key: "slayer/imitator/sneak-attack-imitator", name: "Sneak Attack (Imitator)", guide: "slayer#sneak-attack-imitator"),
+                (key: "slayer/imitator/sneak-attack-imitator", name: "Sneak Attack (Imitator)", summary: "+1d6 sneak attack at 3rd level, +1d6 at 9th and 15th.", guide: "slayer#sneak-attack-imitator"),
             ],
             selections: [
                 (
                     key: "slayer/imitator/imitation",
                     name: "Imitation",
+                    summary: "Free action: one of four stances (Fighter, Barbarian, Monk, Rogue) for 1 minute, half level + Int times a day.",
                     guide: "slayer#imitation",
                     options: [
-                        (key: "slayer/imitator/imitation/barbarian-stance", name: "Barbarian Stance", guide: "slayer#barbarian-stance"),
-                        (key: "slayer/imitator/imitation/fighter-stance", name: "Fighter Stance", guide: "slayer#fighter-stance"),
-                        (key: "slayer/imitator/imitation/monk-stance", name: "Monk Stance", guide: "slayer#monk-stance"),
-                        (key: "slayer/imitator/imitation/rogue-stance", name: "Rogue Stance", guide: "slayer#rogue-stance"),
+                        (key: "slayer/imitator/imitation/barbarian-stance", name: "Barbarian Stance", summary: "Temporary HP equal to class level, Uncanny Dodge from 4th and DR 1/- from 7th (+1 per 3 levels, max 5/-).", guide: "slayer#barbarian-stance"),
+                        (key: "slayer/imitator/imitation/fighter-stance", name: "Fighter Stance", summary: "+1 attack and damage, +1 per 5 levels (max +5), and Armor Training at 6th and 14th.", guide: "slayer#fighter-stance"),
+                        (key: "slayer/imitator/imitation/monk-stance", name: "Monk Stance", summary: "Improved Unarmed Strike, half Int to AC unarmoured, Evasion, magic and cold iron fists, and extra unarmed attacks at 11th and 20th.", guide: "slayer#monk-stance"),
+                        (key: "slayer/imitator/imitation/rogue-stance", name: "Rogue Stance", summary: "1d6 sneak attack +1d6 per 3 levels (max 7d6), Evasion at 4th and Uncanny Dodge at 8th.", guide: "slayer#rogue-stance"),
                     ],
                 ),
             ],
@@ -280,10 +293,11 @@ Class(
         (
             key: "slayer/spawn-slayer",
             name: "Spawn Slayer",
+            summary: "Slayer dedicated to fighting large monsters.",
             guide: "slayer#spawn-slayer",
             features: [
-                (key: "slayer/spawn-slayer/gain-leverage", name: "Gain Leverage", guide: "slayer#gain-leverage"),
-                (key: "slayer/spawn-slayer/studied-spawn", name: "Studied Spawn", guide: "slayer#studied-spawn"),
+                (key: "slayer/spawn-slayer/gain-leverage", name: "Gain Leverage", summary: "From 7th level, CMB and CMD bonus against Large or bigger studied targets: +1 Large, +2 Huge, +4 Gargantuan, +8 Colossal.", guide: "slayer#gain-leverage"),
+                (key: "slayer/spawn-slayer/studied-spawn", name: "Studied Spawn", summary: "Studied Target bonuses grow against big foes: +1 vs Large at 5th, +2 vs Huge at 10th, +3 Gargantuan at 15th, +4 Colossal at 20th.", guide: "slayer#studied-spawn"),
             ],
             levels: [
                 (level: 5, features: ["slayer/spawn-slayer/studied-spawn"]),
@@ -293,10 +307,11 @@ Class(
         (
             key: "slayer/stygian-slayer",
             name: "Stygian Slayer",
+            summary: "Slayer with light armour, invisibility and an incorporeal mist form.",
             guide: "slayer#stygian-slayer",
             features: [
-                (key: "slayer/stygian-slayer/invisibiliy", name: "Invisibiliy", guide: "slayer#stygian-slayer"),
-                (key: "slayer/stygian-slayer/shadowy-mist-form", name: "Shadowy Mist Form", guide: "slayer#shadowy-mist-form"),
+                (key: "slayer/stygian-slayer/invisibiliy", name: "Invisibiliy", summary: "From 4th level, you cast Invisibility once a day at your class level, +1 use at 8th and every 4 levels (max 5).", guide: "slayer#stygian-slayer"),
+                (key: "slayer/stygian-slayer/shadowy-mist-form", name: "Shadowy Mist Form", summary: "From 10th level, incorporeal for minutes a day equal to level: cannot attack, immune to mundane weapons, half damage from most else.", guide: "slayer#shadowy-mist-form"),
             ],
             levels: [
                 (level: 1, features: ["slayer/studied-target"], feats: ["armor-proficiency-light-armor", "martial-weapons-proficiency", "simple-weapon-proficiency"]),
@@ -307,11 +322,12 @@ Class(
         (
             key: "slayer/vanguard",
             name: "Vanguard",
+            summary: "Slayer commander who shares teamwork feats and studied target bonuses with allies.",
             guide: "slayer#vanguard",
             features: [
-                (key: "slayer/vanguard/uncanny-dodge", name: "Uncanny Dodge", guide: "slayer#uncanny-dodge"),
-                (key: "slayer/vanguard/vanguard-tactician", name: "Vanguard Tactician", guide: "slayer#vanguard-tactician"),
-                (key: "slayer/vanguard/vanguards-bond", name: "Vanguard\'s Bond", guide: "slayer#vanguards-bond"),
+                (key: "slayer/vanguard/uncanny-dodge", name: "Uncanny Dodge", summary: "From 7th level, never caught flat-footed and keeps the Dexterity bonus to AC against invisible attackers.", guide: "slayer#uncanny-dodge"),
+                (key: "slayer/vanguard/vanguard-tactician", name: "Vanguard Tactician", summary: "From 2nd level, once a day grants a teamwork feat to allies within 30 feet for 3 + half level rounds; more uses can replace talents.", guide: "slayer#vanguard-tactician"),
+                (key: "slayer/vanguard/vanguards-bond", name: "Vanguard\'s Bond", summary: "From 4th level, move action: allies within 30 feet get half your studied target bonus for Int rounds.", guide: "slayer#vanguards-bond"),
             ],
             levels: [
                 (level: 2, features: ["slayer/vanguard/vanguard-tactician"], feat_slots: [Category(Teamwork)]),
