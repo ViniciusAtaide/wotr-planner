@@ -270,12 +270,27 @@ CREATE TABLE ability_modifier (
 
 -- `rules::Weapon`: a weapon a parameterised feat can be taken for, from the guide's weapon lists.
 -- `proficiency` is the proficiency feat whose list names it; NULL for what no list names (unarmed strike,
--- rays).
+-- rays). The stats (`rules::WeaponStats`) are all NULL for what has no dice of its own (rays, natural attacks):
+-- `damage_count` dice of `damage_sides` sides, `threat` the lowest d20 roll that threatens a critical hit,
+-- `multiplier` the critical multiplier, `ranged` NULL for a melee weapon, `finesse` whether Weapon Finesse applies.
 CREATE TABLE weapon (
     key TEXT NOT NULL PRIMARY KEY CONSTRAINT text_key CHECK (key GLOB '[a-z0-9]*' AND key GLOB '*[a-z0-9]'
         AND key NOT GLOB '*[^a-z0-9/-]*' AND key NOT GLOB '*[-/][-/]*'),
     name TEXT NOT NULL,
-    proficiency TEXT CHECK (proficiency IN ('simple', 'martial', 'exotic'))
+    proficiency TEXT CHECK (proficiency IN ('simple', 'martial', 'exotic')),
+    damage_count INTEGER CHECK (damage_count BETWEEN 1 AND 4),
+    damage_sides INTEGER CHECK (damage_sides BETWEEN 2 AND 12),
+    threat INTEGER CHECK (threat BETWEEN 15 AND 20),
+    multiplier INTEGER CHECK (multiplier BETWEEN 2 AND 4),
+    handedness TEXT CHECK (handedness IN ('light', 'one_handed', 'two_handed')),
+    ranged TEXT CHECK (ranged IN ('thrown', 'projectile')),
+    finesse INTEGER CONSTRAINT boolean CHECK (finesse IN (0, 1)),
+    CONSTRAINT stats_all_or_none CHECK (
+        (damage_count IS NULL AND damage_sides IS NULL AND threat IS NULL AND multiplier IS NULL
+            AND handedness IS NULL AND ranged IS NULL AND finesse IS NULL)
+        OR (damage_count IS NOT NULL AND damage_sides IS NOT NULL AND threat IS NOT NULL
+            AND multiplier IS NOT NULL AND handedness IS NOT NULL AND finesse IS NOT NULL)
+    )
 ) STRICT;
 
 -- A feat. `parameter` is what a parameterised feat is taken for (NULL: nothing; each pick of it names a

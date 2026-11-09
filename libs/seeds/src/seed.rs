@@ -16,9 +16,10 @@ use sqlx::{AssertSqlSafe, Row, SqliteConnection};
 use crate::columns::{
     AbilityBonusKind, FeatSlotKind, ValueColumns, ability_bonus_kind_text, ability_text,
     advancement_text, alignment_text, bab_progression_text, background_group_text,
-    deity_domains_text, feat_category_text, feat_slot_kind_text, level_from_text,
+    deity_domains_text, feat_category_text, feat_slot_kind_text, handedness_text, level_from_text,
     mythic_ability_group_text, mythic_extra_pick_text, mythic_feat_group_text, option_group_text,
-    parameter_kind_text, repeat_columns, save_progression_text, save_text, weapon_proficiency_text,
+    parameter_kind_text, ranged_text, repeat_columns, save_progression_text, save_text,
+    weapon_proficiency_text,
 };
 use crate::{Error, MIGRATOR, prerequisites};
 
@@ -202,11 +203,21 @@ async fn insert_all(
         .await?;
     }
     for weapon in data.weapons.iter() {
+        let stats = weapon.stats.as_ref();
         sqlx::query!(
-            "INSERT INTO weapon (key, name, proficiency) VALUES ($1, $2, $3)",
+            "INSERT INTO weapon (key, name, proficiency, damage_count, damage_sides, threat, multiplier,
+                handedness, ranged, finesse)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
             weapon.key.as_str(),
             weapon.name,
             weapon.proficiency.map(weapon_proficiency_text),
+            stats.map(|stats| stats.damage.count),
+            stats.map(|stats| stats.damage.sides),
+            stats.map(|stats| stats.threat),
+            stats.map(|stats| stats.multiplier),
+            stats.map(|stats| handedness_text(stats.handedness)),
+            stats.and_then(|stats| stats.ranged).map(ranged_text),
+            stats.map(|stats| stats.finesse),
         )
         .execute(&mut *conn)
         .await?;

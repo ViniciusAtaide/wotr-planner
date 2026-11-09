@@ -5,9 +5,9 @@
 
 use rules::{
     Ability, Advancement, Alignment, ArmourType, BabProgression, BackgroundGroup, DeityDomains,
-    Energy, FeatCategory, LevelFrom, MythicAbilityGroup, MythicExtraPick, MythicFeatGroup,
-    OptionGroup, ParameterKind, Repeat, Save, SaveProgression, SpellSchool, SpellType, Story,
-    WeaponProficiency,
+    Energy, FeatCategory, Handedness, LevelFrom, MythicAbilityGroup, MythicExtraPick,
+    MythicFeatGroup, OptionGroup, ParameterKind, Ranged, Repeat, Save, SaveProgression,
+    SpellSchool, SpellType, Story, WeaponProficiency,
 };
 
 /// A row that doesn't fit the `rules` types (should be impossible given the constraints).
@@ -168,6 +168,17 @@ text_column!(WeaponProficiency, weapon_proficiency_from, weapon_proficiency_text
     Simple => "simple",
     Martial => "martial",
     Exotic => "exotic",
+});
+
+text_column!(Handedness, handedness_from, handedness_text {
+    Light => "light",
+    OneHanded => "one_handed",
+    TwoHanded => "two_handed",
+});
+
+text_column!(Ranged, ranged_from, ranged_text {
+    Thrown => "thrown",
+    Projectile => "projectile",
 });
 
 text_column!(ParameterKind, parameter_kind_from, parameter_kind_text {

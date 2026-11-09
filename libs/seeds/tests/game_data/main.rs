@@ -28,4 +28,5 @@ mod option_levels;
 mod parameterised_feats;
 mod repeating_talents;
 mod report_gaps;
+mod weapons;
 mod wild_talents;

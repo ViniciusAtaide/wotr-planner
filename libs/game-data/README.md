@@ -19,7 +19,7 @@ small hand-written example of the layout.
 | `progression.ron` | `Progression`: the mythic rank table (the Character level of each Mythic rank) |
 | `races.ron` | `Vec<Race>`, with subraces and the race's own feat lists (the half-elf's Adaptability) |
 | `skills.ron` | `Vec<Skill>` |
-| `weapons.ron` | `Vec<Weapon>`: the weapons a feat can be taken for, from the guide's simple, martial and exotic lists (`proficiency`; the Sawtooth Saber is exotic, from Weapon Finesse's list), plus what Weapon Focus names besides weapons (unarmed strike, touch attacks, rays), each natural attack the guide names (bite, claw, gore, hoof, slam, spike, tail, talon, wing), Kinetic Blast and Bomb |
+| `weapons.ron` | `Vec<Weapon>`: the weapons a feat can be taken for, from the guide's simple, martial and exotic lists (`proficiency`; the Sawtooth Saber is exotic, from Weapon Finesse's list), plus what Weapon Focus names besides weapons (unarmed strike, touch attacks, rays), each natural attack the guide names (bite, claw, gore, hoof, slam, spike, tail, talon, wing), Kinetic Blast and Bomb; each weapon's stats for the attack line (ticket 114) |
 | `feats.ron` | `Vec<Feat>` |
 | `backgrounds.ron` | `Vec<Background>`: the user's list (the guide doesn't list backgrounds, so they have no guide link; ticket 34) |
 | `deities.ron` | `Vec<Deity>`: the guide's deity table (`character-creation#deities`, 26 rows; ticket 86) |
@@ -394,6 +394,21 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   rank 2 does hold `trickster/hard-to-kill` (the guide's Trickster table: Creative Approach, Hard to Kill,
   Will-o'-Wisp at 2), and the Aeon's rank 2 repeats Force Reality because the guide's Aeon table does ("At 2nd mythic
   rank, you can target all allies": it improves at 2, as Aeon Immunities repeats at 3, 5 and 7).
+- Ticket 114 (option B, the user, 2026-11-08): weapon stats, for the attack line the rules compute. Each weapon on
+  a proficiency list, and the unarmed strike, has `stats: (damage: (count: 2, sides: 6), threat: 19, multiplier: 2,
+  handedness: TwoHanded)`, plus `ranged: Thrown` or `ranged: Projectile` for a ranged weapon and `finesse: true` for
+  one on Weapon Finesse's list. `threat` is the lowest roll that threatens (19 for 19–20). The dice, threat ranges,
+  multipliers, hands and ranged kinds are **from the PF1e core rules, not the guide**: no saved page lists them.
+  The guide gives only what follows, and wins where it speaks: the Weapon Finesse list (`feats#weapon-finesse`) is
+  `finesse`, the Elven Curve Blade is two-handed and the Estoc one-handed (`feats#fencing-grace`'s finessable
+  one-handed piercing weapons). A double weapon (Dwarven Urgrosh, Gnome Hooked Hammer, Orc Double Axe,
+  Quarterstaff, Two-bladed Sword) has its first head's dice and critical, as one two-handed weapon. The Dart,
+  Javelin and Throwing Axe are thrown; the bows, crossbows and Sling Staff shoot. Values the user is to confirm,
+  being the least certain in the game: the Estoc's 2d4 18–20/×2, the Tongi's 1d6 ×3, the Fauchard's 1d10 18–20/×2
+  (exotic in the game), the Throwing Axe as thrown only and the Unarmed Strike's 1d3 (a monk's is a class feature).
+  The natural attacks (bite, claw, gore, hoof, slam, spike, tail, talon, wing) have no stats, since their dice
+  depend on what grants them; nor have Rays, Touch Attacks, Kinetic Blast and Bomb, which deal a spell's or a class
+  feature's damage.
 - A path's switch rule: `switch: (from: ["aeon", "azata"], kept_through_rank: 7, path_kept_through_rank: 7,
   dropped_features: [...], dropped_selections: [...], features: [...], further_ascensions: true, level_cap:
   Some(40))`. The general picks (mythic abilities and feats) of MR 1 to `kept_through_rank` stay, and the old
