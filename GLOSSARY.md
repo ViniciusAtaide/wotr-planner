@@ -173,7 +173,7 @@ A Selection option that one Feature selection offers from another's list, such a
 _Avoid_: Copied option, alias
 
 **Slot**:
-One place in a Build where something is picked: a Feat slot, a Feature selection slot, or a Mythic ascension's mythic ability, mythic feat or path pick. Each has a stable id naming its level or rank. Within a level, slots are checked in this order: the class's Feature selections, the class's feat slots, the race's, the general slot, then the slots of options' rows and feats' Extra picks; so a race or general pick sees what the class gives at that level (a human warpriest's Dazzling Display on the class's Weapon Focus).
+One place in a Build where something is picked: a Feat slot, a Feature selection slot, or a Mythic ascension's mythic ability, mythic feat or path pick. Each has a stable id naming its level or rank. Within a level, slots are checked in this order: the class's Feature selections, the class's feat slots, the race's, the general slot, then the slots of options' rows and feats' Extra picks, then each Mythic rank that comes at that level; so a race or general pick sees what the class gives at that level (a human warpriest's Dazzling Display on the class's Weapon Focus). A prerequisite that a later slot's pick at the same level would meet is refused all the same, and the reason names that slot (and says to swap the two picks when each slot takes the other's).
 _Avoid_: Choice point, cell
 
 **Pick**:

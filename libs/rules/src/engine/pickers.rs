@@ -6,15 +6,15 @@ use std::cell::OnceCell;
 use std::collections::{BTreeSet, HashSet};
 
 use super::removable::Recheck;
-use super::slots::check_pick_with;
-use super::walk::Probe;
+use super::slots::{check_pick, check_pick_with};
+use super::walk::{Checkpoint, Probe};
 use super::{
     AdvancesOption, ClassOption, Engine, EntryOption, PathOption, SlotEntry, SlotKind, SlotOption,
     advanced_spellcasting, class_level_cap, most_advanced,
 };
 use crate::build::{Build, ClassChoice, Edit, Pick, SlotId};
-use crate::choice::{Issue, Unmet};
-use crate::game_data::{Archetype, Class};
+use crate::choice::{Issue, LaterPick, Unmet};
+use crate::game_data::{Archetype, Class, FeatList};
 use crate::keys::{ArchetypeKey, ClassKey, FeatKey, SelectionOptionKey};
 use crate::parameter::ParameterKind;
 use crate::prerequisite::Prerequisite;
@@ -109,6 +109,21 @@ impl Engine {
         let recheck = Recheck::new(self, build);
         let named = self.named_feats(build);
         let left_empty = OnceCell::new();
+        // An unmet prerequisite a later pick at the same level meets says so (ticket 126).
+        let checkpoints = OnceCell::new();
+        let met_later = |pick: &Pick, issue: Issue| match issue {
+            Issue::Unmet(unmet) => {
+                let checkpoints = checkpoints.get_or_init(|| self.later_picks(build, slot));
+                match self.met_later(checkpoints, &state, &kind, &lists, pick) {
+                    Some(later) => Issue::Unmet(Unmet::MetLater {
+                        unmet: Box::new(unmet),
+                        later: Box::new(later),
+                    }),
+                    None => Issue::Unmet(unmet),
+                }
+            }
+            issue => issue,
+        };
         let later = |pick: &Pick, edit: &Edit| match pick {
             // A feat no check names breaks later just what the slot left empty would.
             Pick::Feat { feat, .. } if !named.contains(feat) => left_empty
@@ -126,7 +141,7 @@ impl Engine {
                     };
                     SlotOption {
                         status: check_pick_with(&self.catalog, &state, &kind, &lists, &pick)
-                            .map_err(|issue| self.reason_for(issue, &state))
+                            .map_err(|issue| met_later(&pick, self.reason_for(issue, &state)))
                             .and_then(|()| later(&pick, &edit)),
                         pick,
                         edit,
@@ -134,6 +149,71 @@ impl Engine {
                 })
                 .collect(),
         )
+    }
+
+    /// The picks after a slot at its character level, in walk order, each with the state either side of it, in the
+    /// Build without the slot's own pick. Empty when no other pick is at that level, without a walk.
+    fn later_picks(&self, build: &Build, slot: &SlotId) -> Vec<Checkpoint> {
+        let level_of = |slot: &SlotId| {
+            slot.level().or_else(|| {
+                let rank = slot.rank()?;
+                self.catalog
+                    .data()
+                    .progression
+                    .mythic_ascensions
+                    .iter()
+                    .find(|ascension| ascension.rank == rank)
+                    .map(|ascension| ascension.character_level)
+            })
+        };
+        let level = level_of(slot);
+        if !build
+            .picks
+            .keys()
+            .any(|other| other != slot && level_of(other) == level)
+        {
+            return Vec::new();
+        }
+        let mut without = build.clone();
+        without.picks.remove(slot);
+        self.probe(&without, Probe::Later(slot))
+            .later
+            .unwrap_or_default()
+    }
+
+    /// The first of a slot's later picks ([`later_picks`](Self::later_picks)) whose own slot makes `pick` open
+    /// there: it fails just before that slot and holds just after it. `None` when none does, or when what comes
+    /// between picks does (a Mythic rank's row).
+    fn met_later(
+        &self,
+        checkpoints: &[Checkpoint],
+        state: &CharacterState,
+        kind: &SlotKind,
+        lists: &[&FeatList],
+        pick: &Pick,
+    ) -> Option<LaterPick> {
+        let open = |state: &CharacterState| {
+            check_pick_with(&self.catalog, state, kind, lists, pick).is_ok()
+        };
+        for checkpoint in checkpoints {
+            if open(&checkpoint.before) {
+                return None;
+            }
+            if open(&checkpoint.after) {
+                // Each slot takes the other's pick: the later one here now, this one there after it.
+                let swap = check_pick_with(&self.catalog, state, kind, lists, &checkpoint.pick)
+                    .is_ok()
+                    && check_pick(&self.catalog, &checkpoint.after, &checkpoint.kind, pick).is_ok();
+                return Some(LaterPick {
+                    slot: checkpoint.slot.clone(),
+                    kind: checkpoint.kind.clone(),
+                    pick: checkpoint.pick.clone(),
+                    level: state.character_level,
+                    swap,
+                });
+            }
+        }
+        None
     }
 
     /// A slot's options as its picker shows them: grouped by what the pick takes, in [`options`](Self::options)'
