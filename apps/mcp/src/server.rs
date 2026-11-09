@@ -77,9 +77,12 @@ caster level from class levels, spell-level access) and path features the sheet 
 Attack's trade and the critical range, from BAB, the character's own scores and the weapon feats held. It leaves \
 out rage, stances, mythic feats, class features, gear and buffs (`attack_leaves_out` lists all it leaves out): \
 label anything you add for them as your own game knowledge.
-- Label everything else as your own game knowledge: what a feature, feat or spell does, spell availability, \
-durations, caster level arithmetic, item and buff effects, summons' stats, and which choice is better. The planner \
-checks none of it: its data holds names, prerequisites and guide links, and almost no descriptions.
+- Most items carry a `summary`: what the guide says the item does, in one sentence in the planner's own words, \
+checked against the guide. Cite it as the planner's summary of the guide, not as a rule the planner enforces: the \
+engine checks prerequisites, not effects.
+- Label everything else as your own game knowledge: what an item does beyond its summary, how items interact, \
+spells and spell availability, durations, caster level arithmetic, item and buff effects, summons' stats, and which \
+choice is better. The planner checks none of it.
 - Guide links (`guide_url`) are for the user to read: never fetch them yourself.
 
 The resource `wotr://glossary` defines the planner's terms (Build start, Slot, Withdrawal, Path switch, …).";
