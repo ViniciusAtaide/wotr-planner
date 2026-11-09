@@ -39,6 +39,8 @@ The guide contradicts itself on `fighter#titan-fighter`. The intro says it "does
 
 *Recommend:* the user says which wins. If it's the table, the summary drops "or Weapon Training". If it's the intro, the archetype removes the row at 5.
 
+**Decided and built (the user, 2026-11-09):** "Incredible Heft doesn't count as Weapon Training, so they cannot get it, for example for Gloves of Dueling." The intro wins: the Titan Fighter's empty `(level: 5)` row takes the base fighter's Weapon Training away, so Advanced Weapon Training stays closed to it. Weapon Mastery at 20 stays, as the table lists it and the user didn't question it. Its summary was already right. The test is `class_rules::the_titan_fighter_has_no_weapon_training`. Behaviour proof (`scripts/proof.sh data`, 2,162 Builds): only the 22 Titan Fighter Builds differ. Their sheets lose Weapon Training, and their feat slots close Advanced Weapon Training ("Needs Weapon Training (Fighter)", checked through the rebuilt `wotr-mcp`). `scripts/check.sh`: ALL-OK.
+
 ### 4. `search` caps `limit` at 100 without saying so
 
 A search with `limit: 400` returned 100 of 261 feats. `total` was right, but no `note` said the limit was capped, and the tool description doesn't give the cap.
@@ -63,4 +65,4 @@ Options:
 
 ## Done when
 
-The user has answered 2, 3 and 5. A is built for 1, so the Trickster Build's line reads 13–20/×3, with a real-data test. 4's cap is stated. `scripts/check.sh` passes.
+The user has answered 2 and 5 (3 is answered and built). A is built for 1, so the Trickster Build's line reads 13–20/×3, with a real-data test. 4's cap is stated. `scripts/check.sh` passes.

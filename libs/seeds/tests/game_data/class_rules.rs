@@ -311,3 +311,33 @@ fn domain_zealot_needs_a_druids_domain_and_boon_companion_its_companion() {
             .is_err()
     );
 }
+
+/// The Titan Fighter's Incredible Heft replaces Weapon Training and doesn't count as it (the user, 2026-11-09,
+/// ticket 131): no Weapon Training at 5, so what needs it, such as Advanced Weapon Training, stays closed. Weapon
+/// Mastery at 20 stays, as the guide's table lists it.
+#[test]
+fn the_titan_fighter_has_no_weapon_training() {
+    let advanced_weapon_training = |build: &Build| {
+        engine()
+            .options(build, &general_slot(7))
+            .unwrap()
+            .into_iter()
+            .find(|option| option.pick.key() == "advanced-weapon-training")
+            .unwrap()
+            .status
+    };
+    let fighter = build("fighter", 7);
+    assert!(holds(&at(&fighter, 5), "fighter/weapon-training"));
+    assert_eq!(advanced_weapon_training(&fighter), Ok(()));
+
+    let titan = archetype_build("fighter", "fighter/titan-fighter", 20);
+    for level in 1..=20 {
+        assert!(
+            !holds(&at(&titan, level), "fighter/weapon-training"),
+            "level {level}"
+        );
+    }
+    assert!(holds(&at(&titan, 20), "fighter/weapon-mastery"));
+    let titan_7 = archetype_build("fighter", "fighter/titan-fighter", 7);
+    assert!(advanced_weapon_training(&titan_7).is_err());
+}

@@ -426,6 +426,11 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   it adds at every level, on top of the class's and Intelligence's; a subrace's replace its race's, as its ability
   modifiers do. Only the guide's "Skilled" trait sets them (`character-creation#human` and
   `#half-orc-human-raised`: 1); none written means 0. `tests/game_data/races.rs` keeps the two.
+- Ticket 131 (the user, 2026-11-09): the Titan Fighter has no Weapon Training. The guide contradicts itself
+  (`fighter#titan-fighter`'s intro says it has none, its table lists it at 5); the user settled it: Incredible
+  Heft replaces Weapon Training and doesn't count as it, so what needs Weapon Training (Advanced Weapon Training,
+  and in the game Gloves of Dueling) doesn't work for it. Its empty `(level: 5)` row takes the base row's away.
+  Weapon Mastery at 20 stays, as the table lists it. `class_rules.rs` tests it.
 - A path's switch rule: `switch: (from: ["aeon", "azata"], kept_through_rank: 7, path_kept_through_rank: 7,
   dropped_features: [...], dropped_selections: [...], features: [...], further_ascensions: true, level_cap:
   Some(40))`. The general picks (mythic abilities and feats) of MR 1 to `kept_through_rank` stay, and the old
