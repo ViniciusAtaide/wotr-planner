@@ -16,7 +16,7 @@ pub struct AttackLineShape {
     pub attacks: Vec<i16>,
     /// A hit's damage: the weapon's dice and the bonus ("1d8+4").
     pub damage: String,
-    /// The threat range and multiplier ("19–20/×2"), Improved Critical counted.
+    /// The threat range and multiplier ("19–20/×2"), Improved Critical and the Trickster's critical feats counted.
     pub critical: String,
     /// Power Attack's trade, when the character has it and the weapon is a melee weapon: a penalty to every attack
     /// for a bonus to each hit's damage. The `attacks` and `damage` above don't take it.

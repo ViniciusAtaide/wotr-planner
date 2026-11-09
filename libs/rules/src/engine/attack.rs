@@ -5,7 +5,7 @@
 //! 1½ times the Strength bonus to damage two-handed, none for a weapon that shoots unless the game gives it the
 //! Strength trait, as the sling staff); Weapon Focus, Greater Weapon
 //! Focus, Weapon Specialization and Greater Weapon Specialization held for the weapon; Improved Critical's doubled
-//! threat range; and Power Attack's trade beside it. Everything else is [`ATTACK_LINE_LEAVES_OUT`].
+//! threat range and the Trickster's critical feats after it (ticket 131); and Power Attack's trade beside it. Everything else is [`ATTACK_LINE_LEAVES_OUT`].
 
 use crate::game_data::{Ability, Dice, Handedness, Ranged, Weapon};
 use crate::keys::{FeatKey, WeaponKey};
@@ -190,18 +190,25 @@ impl Engine {
             }
         }
         let attack: i16 = parts.iter().map(|part| part.attack).sum();
+        let held = |feat: &str| state.has_feat_for(&FeatKey::new(feat), &value);
         Some(AttackLine {
             weapon: weapon.clone(),
             attacks: iteratives(state.bab).map(|base| base + attack).collect(),
             damage: stats.damage,
             damage_bonus: parts.iter().map(|part| part.damage).sum(),
-            threat: if state.has_feat_for(&FeatKey::new(IMPROVED_CRITICAL), &value) {
-                // As many rolls again below the range: 19–20 (two rolls) becomes 17–20.
-                stats.threat.saturating_sub(21 - stats.threat)
-            } else {
-                stats.threat
+            threat: {
+                let improved = if held(IMPROVED_CRITICAL) {
+                    // As many rolls again below the range: 19–20 (two rolls) becomes 17–20.
+                    stats.threat.saturating_sub(21 - stats.threat)
+                } else {
+                    stats.threat
+                };
+                let widened = THREAT_RANGE_FEATS.iter().filter(|feat| held(feat)).count();
+                improved
+                    .saturating_sub(u8::try_from(widened).unwrap_or(u8::MAX))
+                    .max(1)
             },
-            multiplier: stats.multiplier,
+            multiplier: stats.multiplier + u8::from(held(CRITICAL_MULTIPLIER_FEAT)),
             power_attack: (stats.ranged.is_none()
                 && state.feat_count(&FeatKey::new(POWER_ATTACK)) > 0)
                 .then(|| power_attack(state.bab, stats.handedness)),
@@ -215,6 +222,14 @@ const WEAPON_FOCUS: &str = "weapon-focus";
 const POWER_ATTACK: &str = "power-attack";
 const IMPROVED_CRITICAL: &str = "improved-critical";
 const WEAPON_FINESSE: &str = "weapon-finesse";
+/// The Trickster's critical feats (`trickster#improved-improved-critical` and on), ordinary feats taken for a weapon:
+/// each of these widens its threat range by one more roll, after Improved Critical's doubling…
+const THREAT_RANGE_FEATS: [&str; 2] = [
+    "improved-improved-critical",
+    "improved-improved-improved-critical",
+];
+/// …and this one adds 1 to its critical multiplier.
+const CRITICAL_MULTIPLIER_FEAT: &str = "improved-improved-improved-critical-improved";
 
 /// Power Attack at a BAB, as the guide has it: −1 to attack for +2 damage, one step more at BAB 4 and every four
 /// after; +3 damage a step with a two-handed weapon.
