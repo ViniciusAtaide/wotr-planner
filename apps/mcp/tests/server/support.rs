@@ -91,6 +91,19 @@ impl Client {
         names
     }
 
+    /// A tool's description.
+    pub async fn tool_description(&self, tool: &str) -> String {
+        self.0
+            .list_all_tools()
+            .await
+            .expect("the tools list")
+            .into_iter()
+            .find(|listed| listed.name == tool)
+            .and_then(|listed| listed.description)
+            .map(|description| description.into_owned())
+            .unwrap_or_default()
+    }
+
     /// Calls a tool with these arguments (a JSON object).
     pub async fn call(&self, tool: &str, arguments: Value) -> CallToolResult {
         let Value::Object(arguments) = arguments else {

@@ -3,8 +3,8 @@
 //! code.
 
 use rules::{
-    BuildStart, CASTER_LINE_LEAVES_OUT, CasterPart, CharacterState, Energy, Engine, SpellDc,
-    SpellSchool, SpellTraits, Subschool,
+    BuildStart, CASTER_LINE_LEAVES_OUT, CasterLine, CasterPart, CharacterState, Energy, Engine,
+    Save, SpellDc, SpellSchool, SpellTraits, Subschool,
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -29,6 +29,13 @@ pub struct CasterArgs {
     /// Whether a metamagic feat other than Heighten Spell is applied (the Arcane bloodline's arcana).
     #[serde(default)]
     pub metamagic: bool,
+    /// The saving throw the spells allow: `fortitude`, `reflex` or `will` (only assumed items read it: the
+    /// Quarterstaff of Coercion's "vs. Will").
+    #[serde(default)]
+    pub save: Option<String>,
+    /// Whether the spells are mind-affecting (only assumed items read it: the Goggles of Mind Control).
+    #[serde(default)]
+    pub mind_affecting: bool,
 }
 
 /// A spell's numbers at a level, from the planner's engine: unconditional numbers only.
@@ -38,8 +45,11 @@ pub struct CasterLineShape {
     pub class: Named,
     /// The ability its spells use ("Charisma").
     pub ability: String,
-    /// Its caster level: class levels plus the prestige levels that advance it.
+    /// Its caster level: class levels plus the prestige levels that advance it, plus `caster_level_counts`.
     pub caster_level: u8,
+    /// With assumed items only: what raises the caster level beyond the class levels.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub caster_level_counts: Vec<CasterPartShape>,
     /// The save DC of a spell of each level castable, from the 1st to the highest: 10 + the spell level + `dc_counts`.
     pub dcs: Vec<SpellDcShape>,
     /// With Heighten Spell held: the DC of any of these spells raised to the highest level castable.
@@ -124,12 +134,31 @@ pub(crate) fn caster_argument(
                 .ok_or_else(|| named("energy", given, Energy::ALL.map(Energy::name).to_vec()))?,
         ),
     };
+    let save = match &caster.save {
+        None => None,
+        Some(given) => Some(
+            Save::ALL
+                .into_iter()
+                .find(|save| save_name(*save) == given.as_str())
+                .ok_or_else(|| named("save", given, Save::ALL.map(save_name).to_vec()))?,
+        ),
+    };
     Ok(Some(SpellTraits {
         school,
         subschool,
         energy,
         metamagic: caster.metamagic,
+        save,
+        mind_affecting: caster.mind_affecting,
     }))
+}
+
+fn save_name(save: Save) -> &'static str {
+    match save {
+        Save::Fortitude => "fortitude",
+        Save::Reflex => "reflex",
+        Save::Will => "will",
+    }
 }
 
 fn dc(dc: &SpellDc) -> SpellDcShape {
@@ -157,13 +186,19 @@ pub(crate) fn caster_line(
     spell: SpellTraits,
 ) -> Option<CasterLineShape> {
     let line = engine.caster_line(start, state, spell)?;
-    Some(CasterLineShape {
+    Some(shape(engine, &line))
+}
+
+/// A caster line as JSON: the unassisted one, or one with assumed gear.
+pub(crate) fn shape(engine: &Engine, line: &CasterLine) -> CasterLineShape {
+    CasterLineShape {
         class: Named {
             key: line.class.to_string(),
             name: engine.class_name(&line.class).to_owned(),
         },
         ability: line.ability.name().to_owned(),
         caster_level: line.caster_level,
+        caster_level_counts: counts(&line.caster_level_parts),
         dcs: line.dcs.iter().map(dc).collect(),
         heightened: line.heightened.as_ref().map(dc),
         dc_counts: counts(&line.dc_parts),
@@ -171,13 +206,10 @@ pub(crate) fn caster_line(
         spell_penetration_counts: counts(&line.spell_penetration_parts),
         concentration: line.concentration,
         concentration_counts: counts(&line.concentration_parts),
-    })
+    }
 }
 
-/// What no caster line counts, for a result that has one.
+/// What no caster line counts, for a result that has one: gear unless assumed.
 pub(crate) fn leaves_out() -> Vec<String> {
-    CASTER_LINE_LEAVES_OUT
-        .iter()
-        .map(|item| (*item).to_owned())
-        .collect()
+    crate::assume::unless_assumed(CASTER_LINE_LEAVES_OUT)
 }

@@ -7,6 +7,7 @@ use std::collections::BTreeSet;
 
 use rules::{CharacterState, Sheet};
 
+use crate::assume;
 use crate::attack;
 use crate::caster;
 use crate::code::open;
@@ -45,6 +46,13 @@ pub(crate) fn compare(planner: &Planner, args: CompareArgs) -> Result<CompareRes
     let engine = &planner.engine;
     let weapon = attack::weapon_argument(engine, args.weapon.as_deref())?;
     let spell = caster::caster_argument(args.caster.as_ref())?;
+    let assumed = assume::assume_argument(engine, args.assume.as_ref())?;
+    if assumed.is_some() && weapon.is_none() && spell.is_none() {
+        return Err(ToolError::invalid_arguments(
+            "`assume` on `compare` applies to the attack line and the caster line: give a `weapon` or a `caster`              too (`sheet` with `assume` gives the totals with it)."
+                .to_owned(),
+        ));
+    }
     let number = args
         .by
         .as_ref()
@@ -118,6 +126,17 @@ pub(crate) fn compare(planner: &Planner, args: CompareArgs) -> Result<CompareRes
                 }
                 if let (Some(spell), Some(last)) = (spell, sheet.levels.last()) {
                     summary.caster = caster::caster_line(engine, &build.start, &last.state, spell);
+                }
+                if let (Some(assumed), Some(last)) = (&assumed, sheet.levels.last()) {
+                    summary.assumed = Some(assume::assumed(
+                        engine,
+                        &build.start,
+                        &last.state,
+                        assumed,
+                        weapon.as_ref(),
+                        spell,
+                        false,
+                    ));
                 }
                 summary
             })
@@ -210,6 +229,7 @@ fn summary(
         level_cap: line.level_cap,
         attack: None,
         caster: None,
+        assumed: None,
         number: None,
         given: None,
     }

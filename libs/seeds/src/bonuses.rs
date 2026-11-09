@@ -213,7 +213,7 @@ fn amount_from(
     })
 }
 
-fn subschool_text(subschool: Subschool) -> &'static str {
+pub(crate) fn subschool_text(subschool: Subschool) -> &'static str {
     match subschool {
         Subschool::Calling => "calling",
         Subschool::Creation => "creation",
@@ -232,7 +232,7 @@ fn subschool_text(subschool: Subschool) -> &'static str {
     }
 }
 
-fn subschool_from(text: &str) -> Result<Subschool, sqlx::Error> {
+pub(crate) fn subschool_from(text: &str) -> Result<Subschool, sqlx::Error> {
     Subschool::ALL
         .into_iter()
         .find(|subschool| subschool_text(*subschool) == text)

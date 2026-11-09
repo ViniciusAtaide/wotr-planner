@@ -7,7 +7,8 @@
 //! - `shapes.rs`: every JSON shape a tool takes or returns (the `rules` types stay serde-free for this).
 //! - One module per tool's work: `search.rs`, `describe.rs`, `sheet.rs`, `options.rs`, `choose.rs`, `withdraw.rs`,
 //!   `compare.rs`, `rank.rs` (`improve`, and the number `compare`'s `by` orders by); `attack.rs` is the attack line `sheet` and `compare` add for a `weapon`, and `caster.rs` the caster line they
-//!   add for a `caster`, each with its own shapes; `totals.rs` is the initiative, save and skill totals `sheet` gives.
+//!   add for a `caster`, each with its own shapes; `totals.rs` is the initiative, save and skill totals `sheet` gives; `assume.rs` is the
+//!   gear an agent assumes on top of a Build (`assume`) and those numbers with it.
 //! - Builds: `code.rs` opens a Build code (only through the engine's checked decode) and writes the envelope every
 //!   Build-taking tool returns; `address.rs` writes and reads choice addresses; `values.rs` writes choices' values;
 //!   `error.rs` is the server's refusals (`stale_link`, `no_such_choice`, `not_an_option`, `needs_parameter`,
@@ -18,6 +19,7 @@
 //!   server both serve; over stdio, `wotr-mcp` uses rmcp's own transport.
 
 mod address;
+mod assume;
 mod attack;
 mod caster;
 mod choose;

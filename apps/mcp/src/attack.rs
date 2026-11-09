@@ -1,7 +1,7 @@
 //! The attack line `sheet` and `compare` add for an optional `weapon` (ticket 114): the engine's
 //! [`rules::Engine::attack_line`] at a character state, as JSON. The weapon is no part of the Build or its code.
 
-use rules::{ATTACK_LINE_LEAVES_OUT, CharacterState, Engine, WeaponKey};
+use rules::{ATTACK_LINE_LEAVES_OUT, AttackLine, CharacterState, Engine, WeaponKey};
 use schemars::JsonSchema;
 use serde::Serialize;
 
@@ -66,7 +66,12 @@ pub(crate) fn attack_line(
     weapon: &WeaponKey,
 ) -> Option<AttackLineShape> {
     let line = engine.attack_line(state, weapon)?;
-    Some(AttackLineShape {
+    Some(shape(engine, weapon, &line))
+}
+
+/// An attack line as JSON: the unassisted one, or one with assumed gear.
+pub(crate) fn shape(engine: &Engine, weapon: &WeaponKey, line: &AttackLine) -> AttackLineShape {
+    AttackLineShape {
         weapon: Named {
             key: weapon.to_string(),
             name: engine.weapon_name(weapon).to_owned(),
@@ -87,13 +92,10 @@ pub(crate) fn attack_line(
                 damage: part.damage,
             })
             .collect(),
-    })
+    }
 }
 
-/// What no attack line counts, for a result that has one.
+/// What no attack line counts, for a result that has one: gear unless assumed.
 pub(crate) fn leaves_out() -> Vec<String> {
-    ATTACK_LINE_LEAVES_OUT
-        .iter()
-        .map(|item| (*item).to_owned())
-        .collect()
+    crate::assume::unless_assumed(ATTACK_LINE_LEAVES_OUT)
 }

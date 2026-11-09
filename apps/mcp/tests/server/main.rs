@@ -2,6 +2,7 @@
 //! game data in `libs/game-data/` or on `rules`' small invented test world (`test_world`).
 
 mod address;
+mod assumed;
 mod attack_line;
 mod builds;
 mod caster_line;

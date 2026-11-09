@@ -92,6 +92,14 @@ _Avoid_: Damage estimate, DPR
 A spell's numbers at a point of a Build, computed by the rules for a spell described by its school (and optionally a subschool, an energy type and metamagic): the save DC of each spell level the casting class can cast (10 + the spell level + the casting ability's modifier + the **Item bonuses** that apply), with Heighten Spell the DC of any such spell raised to the highest level, caster level against spell resistance and the concentration bonus, each broken down by source. It follows the casting class with the highest caster level. Unconditional numbers only: it leaves out gear, buffs, abilities switched on in a fight and bonuses that grow with class level. The spell is described beside the Build, not in it.
 _Avoid_: DC calculator, spell DC estimate
 
+**Assumed gear**:
+Bonuses an agent assumes on top of a Build, applied to the **Attack line**, the **Caster line** and the **Totals** at its last level and shown beside the unassisted numbers, every part they add labelled assumed: an enhancement and an inherent bonus to each ability score, a weapon's enhancement bonus, a resistance bonus to saves, and **Gear items** by name. The agent's assumption, not a fact of the planner's: never part of the Build, its link or any prerequisite, which check the character's own scores. The MCP server takes it as `assume` on `sheet` and `compare`; the web app doesn't.
+_Avoid_: Equipment, loadout, gear slot
+
+**Gear item**:
+An item of the guide's two "Caster Level and Spell DC Boosting Items" tables, kept in the game data (`gear.ron`) with its bonuses to the **Caster line** (spell DC, caster level, against spell resistance, concentration), each with the table's circumstance (every spell, a school, a subschool, an energy type, a save the spell allows, mind-affecting spells, or one casting class's spells). Only **Assumed gear** names one; the caster line adds a bonus only where its circumstance matches.
+_Avoid_: Equipment, magic item
+
 **Item bonus**:
 A flat bonus an item (a race or subrace, a background, a feat, a mythic feat, a mythic ability, a feature, a selection option) gives while the character holds it, kept in the game data (`bonuses.ron`): its target (a spell DC of a scope, caster level against spell resistance, concentration, initiative, a save or every save, a skill or every skill, or the skill or stat the item is held for), its amount (a number, a number that rises with 10 ranks in the skill, half or all the Mythic rank, an ability's modifier, or Expanded Arsenal's copy of another school's Spell Focus feats) and what else it may require. The **Caster line** and the **Totals** sum the ones held.
 _Avoid_: Modifier, effect

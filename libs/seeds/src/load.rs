@@ -32,7 +32,7 @@ use crate::columns::{
     weapon_proficiency_from,
 };
 use crate::prerequisites::Trees;
-use crate::{Database, Error, bonuses};
+use crate::{Database, Error, bonuses, gear};
 
 /// Reads the seeded game data, in canonical order. Unseeded tables read as empty game data.
 pub async fn load_game_data(db: &Database) -> Result<GameData, Error> {
@@ -83,6 +83,7 @@ async fn load(db: &Database) -> Result<GameData, sqlx::Error> {
     let mythic_feats = load_mythic_feats(conn, &mut trees).await?;
     let bonuses = bonuses::load(conn, &mut trees).await?;
     let interactions = bonuses::load_interactions(conn).await?;
+    let gear = gear::load(conn).await?;
     let backgrounds = load_backgrounds(conn, &mut grants, &mut class_skills).await?;
     let deities = load_deities(conn).await?;
     let spells = load_spells(conn).await?;
@@ -126,6 +127,7 @@ async fn load(db: &Database) -> Result<GameData, sqlx::Error> {
         mythic_feats,
         bonuses,
         interactions,
+        gear,
         mythic_paths,
         backgrounds,
         deities,
