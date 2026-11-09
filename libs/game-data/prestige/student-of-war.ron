@@ -12,13 +12,13 @@ Class(
     class_skills: ["knowledge-arcana", "knowledge-world", "perception"],
     prerequisite: All([Any([FeatFor(feat: "skill-focus", value: Skill("knowledge-arcana")), FeatFor(feat: "skill-focus", value: Skill("knowledge-world")), FeatFor(feat: "skill-focus", value: Skill("lore-nature")), FeatFor(feat: "skill-focus", value: Skill("lore-religion"))]), Feat("combat-expertise"), Feat("dodge"), BaseAttackBonus(5), CharacterLevel(6)]),
     features: [
-        (key: "student-of-war/additional-class-skill", name: "Additional Class Skill", summary: "Pick one more class skill at 1st level and every odd level.", guide: "prestige-classes#additional-class-skill"),
-        (key: "student-of-war/anticipate", name: "Anticipate", summary: "A successful Will save against an attack that deals half damage on a save means you take none.", guide: "prestige-classes#anticipate"),
-        (key: "student-of-war/deadly-blow", name: "Deadly Blow", summary: "After Know Your Enemy, your attacks ignore damage reduction and immunity to critical hits.", guide: "prestige-classes#deadly-blow"),
+        (key: "student-of-war/additional-class-skill", name: "Additional Class Skill", summary: "Every odd class level makes one more skill of your choice a class skill.", guide: "prestige-classes#additional-class-skill"),
+        (key: "student-of-war/anticipate", name: "Anticipate", summary: "When a passed Will save would halve an attack's damage, you take none instead.", guide: "prestige-classes#anticipate"),
+        (key: "student-of-war/deadly-blow", name: "Deadly Blow", summary: "Once Know Your Enemy is active, DR and crit immunity no longer protect foes from your attacks.", guide: "prestige-classes#deadly-blow"),
         (key: "student-of-war/know-your-enemy-swift", name: "Know Your Enemy - Swift", summary: "Know Your Enemy becomes a swift action.", guide: "prestige-classes#know-your-enemy"),
-        (key: "student-of-war/mind-over-metal", name: "Mind Over Metal", summary: "Use Intelligence instead of Dexterity for AC, still capped by your armour's maximum Dex bonus.", guide: "prestige-classes#mind-over-metal"),
-        (key: "student-of-war/nemesis", name: "Nemesis", summary: "Once a day, your weapon gains the Bane property for 1 minute.", guide: "prestige-classes#nemesis"),
-        (key: "student-of-war/telling-blow", name: "Telling Blow", summary: "Your attacks ignore 5 points of DR, but not untyped DR or against creatures immune to critical hits.", guide: "prestige-classes#telling-blow"),
+        (key: "student-of-war/mind-over-metal", name: "Mind Over Metal", summary: "AC uses your Intelligence modifier rather than Dexterity, though armour's max Dex cap still holds.", guide: "prestige-classes#mind-over-metal"),
+        (key: "student-of-war/nemesis", name: "Nemesis", summary: "A daily 1-minute Bane enchantment on your weapon.", guide: "prestige-classes#nemesis"),
+        (key: "student-of-war/telling-blow", name: "Telling Blow", summary: "Strips 5 points from typed damage reduction on your hits; untyped DR and crit-immune creatures are unaffected.", guide: "prestige-classes#telling-blow"),
     ],
     selections: [
         (
@@ -27,9 +27,9 @@ Class(
             summary: "Move action: a Knowledge or Lore check on a foe gives a stance's insight bonus against it, +1, +2 at 4th and +3 at 7th; switch as a move action.",
             guide: "prestige-classes#know-your-enemy",
             options: [
-                (key: "student-of-war/know-your-enemy/defensive-stance-student-of-war", name: "Defensive Stance (Student of War)", summary: "Insight bonus to AC and saves against the studied foe; +3 AC against attacks of opportunity from 6th level.", guide: "prestige-classes#defensive-stance-student-of-war"),
-                (key: "student-of-war/know-your-enemy/martial-stance", name: "Martial Stance", summary: "Insight bonus to attack and damage against the studied foe; +3 to confirm critical hits from 6th level.", guide: "prestige-classes#martial-stance"),
-                (key: "student-of-war/know-your-enemy/tactical-stance", name: "Tactical Stance", summary: "Insight bonus to CMB for combat manoeuvres against the studied foe and to CMD against its manoeuvres.", guide: "prestige-classes#tactical-stance"),
+                (key: "student-of-war/know-your-enemy/defensive-stance-student-of-war", name: "Defensive Stance (Student of War)", summary: "+1 insight bonus to AC and saves versus the studied foe; from 6th level also +3 AC against attacks of opportunity.", guide: "prestige-classes#defensive-stance-student-of-war"),
+                (key: "student-of-war/know-your-enemy/martial-stance", name: "Martial Stance", summary: "+1 insight bonus to attack and damage against the studied foe, and +3 to confirm critical hits from 6th level.", guide: "prestige-classes#martial-stance"),
+                (key: "student-of-war/know-your-enemy/tactical-stance", name: "Tactical Stance", summary: "Insight bonus (+1, rising with level) to your CMB and CMD in manoeuvres involving the studied foe.", guide: "prestige-classes#tactical-stance"),
             ],
         ),
     ],

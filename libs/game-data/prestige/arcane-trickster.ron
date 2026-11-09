@@ -15,8 +15,8 @@ Class(
         (key: "arcane-trickster/arcane-spellcasting", name: "Arcane Spellcasting", summary: "Each level adds spells known and spells per day as a level of an arcane casting class you already have.", guide: "prestige-classes#arcane-spellcasting-arcane-trickster"),
         (key: "arcane-trickster/impromptu-sneak-attack", name: "Impromptu Sneak Attack", summary: "For 1 round a day (up to 4 at 9th level), your attacks are sneak attacks whatever the target's awareness.", guide: "prestige-classes#impromptu-sneak-attack"),
         (key: "arcane-trickster/invisible-thief", name: "Invisible Thief", summary: "Free action: Greater Invisibility for a number of rounds equal to your class level.", guide: "prestige-classes#invisible-thief"),
-        (key: "arcane-trickster/ranged-legerdemain", name: "Ranged Legerdemain", summary: "Use Trickery at a range of 30 feet, at -5 to the check.", guide: "prestige-classes#ranged-legerdemain"),
-        (key: "arcane-trickster/sneak-attack", name: "Sneak Attack", summary: "+1d6 sneak attack damage at every even class level.", guide: "prestige-classes#sneak-attack"),
+        (key: "arcane-trickster/ranged-legerdemain", name: "Ranged Legerdemain", summary: "Trickery works on targets up to 30 feet away, with a -5 penalty.", guide: "prestige-classes#ranged-legerdemain"),
+        (key: "arcane-trickster/sneak-attack", name: "Sneak Attack", summary: "Sneak attack grows by 1d6 at class levels 2, 4, 6, 8 and 10.", guide: "prestige-classes#sneak-attack"),
         (key: "arcane-trickster/surprise-spells", name: "Surprise Spells", summary: "Damaging spells add your sneak attack damage, once per spell, to flat-footed targets (area spells too); halved if the target saves for half.", guide: "prestige-classes#surprise-spells"),
     ],
     levels: [

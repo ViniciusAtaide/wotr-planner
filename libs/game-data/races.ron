@@ -64,7 +64,7 @@
     (
         key: "half-elf",
         name: "Half-Elf",
-        summary: "Skill Focus as a bonus feat at 1st level; immune to magic sleep and +2 saves vs enchantment; +2 Perception.",
+        summary: "Free Skill Focus feat at 1st level; immune to magic sleep and +2 saves vs enchantment; +2 Perception.",
         guide: "character-creation#half-elf",
         ability_modifiers: [Chosen(amount: 2)],
         feat_slots: [OneOf(list: "half-elf/adaptability")],
@@ -101,7 +101,7 @@
     (
         key: "human",
         name: "Human",
-        summary: "A bonus feat at 1st level and +1 skill point per level.",
+        summary: "An extra feat at 1st level and one extra skill point every level.",
         guide: "character-creation#human",
         ability_modifiers: [Chosen(amount: 2)],
         feat_slots: [General],

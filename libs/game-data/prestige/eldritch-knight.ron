@@ -12,9 +12,9 @@ Class(
     prerequisite: All([Feat("martial-weapons-proficiency"), SpellLevel(spell_type: Arcane, level: 3), CharacterLevel(6)]),
     counts_as: [(class: "fighter", toward: FeatPrerequisites)],
     features: [
-        (key: "eldritch-knight/arcane-spellcasting", name: "Arcane Spellcasting", summary: "From 2nd level, each level adds spells per day as a level of an earlier arcane class.", guide: "prestige-classes#arcane-spellcasting-eldritch-knight"),
-        (key: "eldritch-knight/diverse-training", name: "Diverse Training", summary: "Class levels count as fighter levels for feat prerequisites, and as levels of your casting class for that class's feats.", guide: "prestige-classes#diverse-training"),
-        (key: "eldritch-knight/spell-critical", name: "Spell Critical", summary: "After a weapon critical hit, your next spell within two rounds is cast as a swift action and doesn't provoke.", guide: "prestige-classes#spell-critical"),
+        (key: "eldritch-knight/arcane-spellcasting", name: "Arcane Spellcasting", summary: "Levels 2-10 each count as a level of your earlier arcane class for spells per day.", guide: "prestige-classes#arcane-spellcasting-eldritch-knight"),
+        (key: "eldritch-knight/diverse-training", name: "Diverse Training", summary: "For feat prerequisites, Eldritch Knight levels add to both your fighter level and your casting class's level.", guide: "prestige-classes#diverse-training"),
+        (key: "eldritch-knight/spell-critical", name: "Spell Critical", summary: "Confirming a weapon crit makes a spell you cast in the following two rounds a swift action that provokes no attack of opportunity.", guide: "prestige-classes#spell-critical"),
     ],
     levels: [
         (level: 1, features: ["eldritch-knight/diverse-training"], feat_slots: [CombatFeat]),

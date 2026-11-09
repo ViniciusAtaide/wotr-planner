@@ -11,17 +11,17 @@ Class(
     class_skills: ["knowledge-arcana", "knowledge-world", "lore-nature", "lore-religion", "mobility", "perception", "persuasion"],
     prerequisite: All([Any([All([NoOptionFrom("bloodrager/bloodline"), NoOptionFrom("sorcerer/bloodline")]), SelectionOption("sorcerer/bloodline/draconic-black"), SelectionOption("sorcerer/bloodline/draconic-blue"), SelectionOption("sorcerer/bloodline/draconic-brass"), SelectionOption("sorcerer/bloodline/draconic-bronze"), SelectionOption("sorcerer/bloodline/draconic-copper"), SelectionOption("sorcerer/bloodline/draconic-gold"), SelectionOption("sorcerer/bloodline/draconic-green"), SelectionOption("sorcerer/bloodline/draconic-red"), SelectionOption("sorcerer/bloodline/draconic-silver"), SelectionOption("sorcerer/bloodline/draconic-white")]), SkillRanks(skill: "knowledge-arcana", ranks: 5), SpontaneousSpellLevel(spell_type: Arcane, level: 1), CharacterLevel(6)]),
     features: [
-        (key: "dragon-disciple/arcane-spellcasting", name: "Arcane Spellcasting", summary: "Adds spells per day as a level of an earlier arcane class at each level from 2nd, except 5th and 9th.", guide: "prestige-classes#arcane-spellcasting-dragon-disciple"),
+        (key: "dragon-disciple/arcane-spellcasting", name: "Arcane Spellcasting", summary: "Levels 2-4, 6-8 and 10 each count as a level of your earlier arcane class for spells per day.", guide: "prestige-classes#arcane-spellcasting-dragon-disciple"),
         (key: "dragon-disciple/blindsense", name: "Blindsense", summary: "Blindsense to 25 feet, 50 feet at 10th level.", guide: "prestige-classes#blindsense"),
         (key: "dragon-disciple/blood-of-dragons", name: "Blood of Dragons", summary: "A sorcerer's Draconic bloodline keeps advancing; anyone else picks a Draconic bloodline whose level is their Dragon Disciple level.", guide: "prestige-classes#blood-of-dragons"),
-        (key: "dragon-disciple/breath-weapon", name: "Breath Weapon", summary: "Your bloodline's breath weapon at 3rd level whatever your bloodline level, or one more use a day if you already have it.", guide: "prestige-classes#breath-weapon"),
+        (key: "dragon-disciple/breath-weapon", name: "Breath Weapon", summary: "Grants your bloodline's breath weapon early, at 3rd level; if you already breathe, you get an extra daily use instead.", guide: "prestige-classes#breath-weapon"),
         (key: "dragon-disciple/constitution-2", name: "Constitution +2", summary: "+2 Constitution.", guide: "prestige-classes#dragon-disciple", ability_bonuses: [Fixed(ability: Constitution, amount: 2)]),
         (key: "dragon-disciple/dragon-bite", name: "Dragon Bite", summary: "Your bloodline claws come with a 1d6 bite attack, which deals +1d6 energy damage from 6th level.", guide: "prestige-classes#dragon-bite"),
-        (key: "dragon-disciple/dragon-form", name: "Dragon Form", summary: "Turn into a dragon once a day as Dragonkind I, or twice a day as Dragonkind II from 10th level.", guide: "prestige-classes#dragon-form"),
+        (key: "dragon-disciple/dragon-form", name: "Dragon Form", summary: "Dragonkind I as a once-a-day transformation; at 10th level it becomes Dragonkind II, twice a day.", guide: "prestige-classes#dragon-form"),
         (key: "dragon-disciple/intelligence-2", name: "Intelligence +2", summary: "+2 Intelligence.", guide: "prestige-classes#dragon-disciple", ability_bonuses: [Fixed(ability: Intelligence, amount: 2)]),
         (key: "dragon-disciple/natural-ac-1", name: "Natural AC +1", summary: "+1 natural armour to AC.", guide: "prestige-classes#dragon-disciple"),
         (key: "dragon-disciple/strength-2", name: "Strength +2", summary: "+2 Strength.", guide: "prestige-classes#dragon-disciple", ability_bonuses: [Fixed(ability: Strength, amount: 2)]),
-        (key: "dragon-disciple/wings", name: "Wings", summary: "The Wings feat at 9th level, even if your bloodline level isn't high enough for it.", guide: "prestige-classes#wings"),
+        (key: "dragon-disciple/wings", name: "Wings", summary: "Grants the Wings feat at 9th level without waiting for your bloodline to reach it.", guide: "prestige-classes#wings"),
     ],
     selections: [
         (

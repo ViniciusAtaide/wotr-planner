@@ -1,7 +1,7 @@
 Class(
     key: "winter-witch",
     name: "Winter Witch",
-    summary: "Ten-level frost caster with half BAB, full caster progression and 4 HP per level: higher cold DCs and caster level, hex progression, cold that ignores immunity.",
+    summary: "Ten-level frost caster, half BAB, full casting, 4 HP a level: higher cold DCs and caster level, hex progression, half its cold damage past immunity.",
     guide: "prestige-classes#winter-witch",
     skill_points: 2,
     bab: Half,
@@ -14,9 +14,9 @@ Class(
     advances: Either,
     counts_as: [(class: "witch", toward: Feature("witch/grand-hexes")), (class: "witch", toward: Feature("witch/major-hexes"))],
     features: [
-        (key: "winter-witch/cold-specialization", name: "Cold Specialization", summary: "Cold spells get +1 DC and fire spells -1 DC, rising to +3/-3 by 10th level.", guide: "prestige-classes#cold-specialization"),
+        (key: "winter-witch/cold-specialization", name: "Cold Specialization", summary: "Cold spells +1 DC and fire spells -1 DC; both shift by another 1 at 5th and again at 10th level.", guide: "prestige-classes#cold-specialization"),
         (key: "winter-witch/freezing-cold", name: "Freezing Cold", summary: "+1 caster level for cold spells, +2 at 6th level.", guide: "prestige-classes#freezing-cold"),
-        (key: "winter-witch/frost-power", name: "Frost Power", summary: "Levels stack with shaman or witch levels for hexes, Frost Spirit abilities, major and grand hexes and patron spells.", guide: "prestige-classes#frost-power"),
+        (key: "winter-witch/frost-power", name: "Frost Power", summary: "Counts toward your witch or shaman level for hexes (major and grand included), patron spells and Frost Spirit powers.", guide: "prestige-classes#frost-power"),
         (key: "winter-witch/unearthly-cold", name: "Unearthly Cold", summary: "Half the cold damage of your spells ignores resistance and immunity.", guide: "prestige-classes#unearthly-cold"),
         (key: "winter-witch/winter-witch-spellbook", name: "Winter Witch Spellbook", summary: "Each level adds spells as a level of your previous casting class.", guide: "prestige-classes#winter-witch-spellbook"),
     ],
