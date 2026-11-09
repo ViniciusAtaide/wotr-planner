@@ -1,6 +1,7 @@
 Class(
     key: "ranger",
     name: "Ranger",
+    summary: "Dexterity and Wisdom hunter: full BAB, good Fortitude and Reflex, divine spells to 4th level from 4th, favoured enemies, terrains and combat style feats.",
     guide: "ranger",
     skill_points: 4,
     bab: Full,
@@ -9,26 +10,28 @@ Class(
     will: Poor,
     class_skills: ["athletics", "knowledge-arcana", "knowledge-world", "lore-nature", "perception", "persuasion", "stealth"],
     features: [
-        (key: "ranger/camouflage", name: "Camouflage", guide: "ranger#camouflage"),
-        (key: "ranger/evasion", name: "Evasion", guide: "ranger#evasion"),
-        (key: "ranger/favored-enemy", name: "Favored Enemy", guide: "ranger#favored-enemy"),
-        (key: "ranger/favored-terrain", name: "Favored Terrain", guide: "ranger#favored-terrain"),
-        (key: "ranger/hunters-bond", name: "Hunter\'s Bond", guide: "ranger#hunters-bond"),
-        (key: "ranger/improved-evasion", name: "Improved Evasion", guide: "ranger#improved-evasion"),
-        (key: "ranger/improved-quarry", name: "Improved Quarry", guide: "ranger#improved-quarry"),
-        (key: "ranger/master-hunter", name: "Master Hunter", guide: "ranger#master-hunter"),
-        (key: "ranger/quarry", name: "Quarry", guide: "ranger#quarry"),
+        (key: "ranger/camouflage", name: "Camouflage", summary: "From 12th level, can hide with Stealth in a favoured terrain as a move action, even in combat.", guide: "ranger#camouflage"),
+        (key: "ranger/evasion", name: "Evasion", summary: "From 9th level, a successful Reflex save against a half-damage effect means no damage.", guide: "ranger#evasion"),
+        (key: "ranger/favored-enemy", name: "Favored Enemy", summary: "+2 attack and damage against a chosen creature type; another type at 5th, 10th, 15th and 20th, each time raising one bonus by +2.", guide: "ranger#favored-enemy"),
+        (key: "ranger/favored-terrain", name: "Favored Terrain", summary: "From 3rd level, +2 initiative, Lore (Nature), Perception and Stealth in a chosen terrain; more at 8th, 13th and 18th, each raising one by +2.", guide: "ranger#favored-terrain"),
+        (key: "ranger/hunters-bond", name: "Hunter\'s Bond", summary: "Move action: allies within 30 feet get half his favoured enemy bonus for Wis rounds; or an animal companion sharing his enemy and terrain bonuses.", guide: "ranger#hunters-bond"),
+        (key: "ranger/improved-evasion", name: "Improved Evasion", summary: "From 16th level, a failed Reflex save against a half-damage effect deals only half damage.", guide: "ranger#improved-evasion"),
+        (key: "ranger/improved-quarry", name: "Improved Quarry", summary: "At 19th level, designates a quarry as a free action, and the quarry attack bonus rises to +4.", guide: "ranger#improved-quarry"),
+        (key: "ranger/master-hunter", name: "Master Hunter", summary: "At 20th level, 5 times a day, a standard-action attack on a favoured enemy forces a Fort save (DC 20 + Wis) or death; once per creature.", guide: "ranger#master-hunter"),
+        (key: "ranger/quarry", name: "Quarry", summary: "From 11th level, standard action to mark one quarry: +2 insight to attack it and every critical hit against it is confirmed.", guide: "ranger#quarry"),
     ],
     selections: [
         (
             key: "ranger/combat-style-feat",
             name: "Combat Style Feat",
+            summary: "A combat feat from his style, ignoring its prerequisites, or Dodge, Great Fortitude, Iron Will, Lightning Reflexes or Toughness; Skill Focus from 10th.",
             guide: "ranger#combat-style-feat",
             option_levels: ["ranger"],
             options: [
                 (
                     key: "ranger/combat-style-feat/archery-feats",
                     name: "Archery Feats",
+                    summary: "Point Blank Shot, Precise Shot, Rapid Shot; from 6th Improved Precise Shot, Point Blank Master, Manyshot; from 10th Improved Critical.",
                     guide: "ranger#archery-feats",
                     levels: [
                         (level: 2, feat_list: "ranger/combat-style-feat/archery-feats-2"),
@@ -39,6 +42,7 @@ Class(
                 (
                     key: "ranger/combat-style-feat/menacing-feats",
                     name: "Menacing Feats",
+                    summary: "Dazzling Display, Power Attack, Intimidating Prowess; from 6th Cornugon Smash, Shatter Defenses; from 10th Dreadful Carnage, Improved Critical.",
                     guide: "ranger#menacing-feats",
                     levels: [
                         (level: 2, feat_list: "ranger/combat-style-feat/menacing-feats-2"),
@@ -49,6 +53,7 @@ Class(
                 (
                     key: "ranger/combat-style-feat/two-handed-weapon-feats",
                     name: "Two-Handed Weapon Feats",
+                    summary: "Cleave, Power Attack, Intimidating Prowess; from 6th Cleaving Finish, Great Cleave; from 10th Dreadful Carnage, Critical Focus.",
                     guide: "ranger#two-handed-weapon-feats",
                     levels: [
                         (level: 2, feat_list: "ranger/combat-style-feat/two-handed-weapon-feats-2"),
@@ -59,6 +64,7 @@ Class(
                 (
                     key: "ranger/combat-style-feat/two-weapon-combat-feats",
                     name: "Two-Weapon Combat Feats",
+                    summary: "Double Slice, Shield Bash, Two-Weapon Fighting; Improved Two-Weapon Fighting from 6th and Greater Two-Weapon Fighting from 10th.",
                     guide: "ranger#two-weapon-combat-feats",
                     levels: [
                         (level: 2, feat_list: "ranger/combat-style-feat/two-weapon-combat-feats-2"),
@@ -69,6 +75,7 @@ Class(
                 (
                     key: "ranger/combat-style-feat/weapon-and-shield-feats",
                     name: "Weapon and Shield Feats",
+                    summary: "Shield Bash, Shield Focus, Two-Weapon Fighting; from 6th Improved TWF, Shield Master; from 10th Bashing Finish, Greater TWF.",
                     guide: "ranger#weapon-and-shield-feats",
                     levels: [
                         (level: 2, feat_list: "ranger/combat-style-feat/weapon-and-shield-feats-2"),
@@ -125,12 +132,13 @@ Class(
         (
             key: "ranger/demonslayer",
             name: "Demonslayer",
+            summary: "Ranger whose favoured enemies are only demons, with stronger quarry abilities against evil outsiders.",
             guide: "ranger#demonslayer",
             features: [
-                (key: "ranger/demonslayer/demonologist", name: "Demonologist", guide: "ranger#demonologist"),
-                (key: "ranger/demonslayer/demonslayer-favored-enemy", name: "Demonslayer Favored Enemy", guide: "ranger#demonslayer-favored-enemy"),
-                (key: "ranger/demonslayer/fiendish-quarry", name: "Fiendish Quarry", guide: "ranger#fiendish-quarry"),
-                (key: "ranger/demonslayer/improved-fiendish-quarry", name: "Improved Fiendish Quarry", guide: "ranger#improved-fiendish-quarry"),
+                (key: "ranger/demonslayer/demonologist", name: "Demonologist", summary: "From 3rd level, adds half the class level to Knowledge (Arcana) checks.", guide: "ranger#demonologist"),
+                (key: "ranger/demonslayer/demonslayer-favored-enemy", name: "Demonslayer Favored Enemy", summary: "All three demon types are favoured enemies: +2 attack and damage at 1st level, +2 more at 5th, 10th, 15th and 20th.", guide: "ranger#demonslayer-favored-enemy"),
+                (key: "ranger/demonslayer/fiendish-quarry", name: "Fiendish Quarry", summary: "From 11th level, against an evil outsider quarry, can trade the +2 attack bonus for weapons counting as good for DR.", guide: "ranger#fiendish-quarry"),
+                (key: "ranger/demonslayer/improved-fiendish-quarry", name: "Improved Fiendish Quarry", summary: "From 19th level, against an evil outsider quarry, can trade the +4 attack bonus for the Holy property on his weapons.", guide: "ranger#improved-fiendish-quarry"),
             ],
             levels: [
                 (level: 1, features: ["ranger/demonslayer/demonslayer-favored-enemy"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
@@ -146,14 +154,15 @@ Class(
         (
             key: "ranger/espionage-expert",
             name: "Espionage Expert",
+            summary: "Charisma-casting urban ranger with skill bonuses, no animal companion and no favoured terrains.",
             guide: "ranger#espionage-expert",
             class_skills: ["knowledge-arcana", "knowledge-world", "perception", "persuasion", "stealth", "trickery", "use-magic-device"],
             features: [
-                (key: "ranger/espionage-expert/espionage-expert-magic", name: "Espionage Expert Magic", guide: "ranger#espionage-expert-magic"),
-                (key: "ranger/espionage-expert/espionage-master", name: "Espionage Master", guide: "ranger#espionage-master"),
+                (key: "ranger/espionage-expert/espionage-expert-magic", name: "Espionage Expert Magic", summary: "Uses Charisma as his casting attribute.", guide: "ranger#espionage-expert-magic"),
+                (key: "ranger/espionage-expert/espionage-master", name: "Espionage Master", summary: "At 20th level, 5 times a day, a standard-action attack on a favoured enemy forces a Fort save (DC 20 + Cha) or death; once per creature.", guide: "ranger#espionage-master"),
                 (key: "ranger/espionage-expert/rangers-bond", name: "Ranger\'s Bond", guide: "ranger#espionage-expert"),
-                (key: "ranger/espionage-expert/trapfinding", name: "Trapfinding", guide: "ranger#trapfinding"),
-                (key: "ranger/espionage-expert/undercover", name: "Undercover", guide: "ranger#undercover"),
+                (key: "ranger/espionage-expert/trapfinding", name: "Trapfinding", summary: "Adds half the class level to Perception checks.", guide: "ranger#trapfinding"),
+                (key: "ranger/espionage-expert/undercover", name: "Undercover", summary: "From 3rd level, adds half the class level to Bluff and Stealth checks.", guide: "ranger#undercover"),
             ],
             levels: [
                 (level: 1, features: ["ranger/espionage-expert/trapfinding", "ranger/favored-enemy"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
@@ -169,14 +178,15 @@ Class(
         (
             key: "ranger/flamewarden",
             name: "Flamewarden",
+            summary: "Ranger with fire powers instead of an animal companion.",
             guide: "ranger#flamewarden",
             features: [
-                (key: "ranger/flamewarden/burning-renewal", name: "Burning Renewal", guide: "ranger#burning-renewal"),
-                (key: "ranger/flamewarden/phoenix-blast", name: "Phoenix Blast", guide: "ranger#flamewarden"),
-                (key: "ranger/flamewarden/phoenix-rising", name: "Phoenix Rising", guide: "ranger#phoenix-rising"),
-                (key: "ranger/flamewarden/spellcasting", name: "Spellcasting", guide: "ranger#spellcasting"),
-                (key: "ranger/flamewarden/stoking-the-embers", name: "Stoking the Embers", guide: "ranger#stoking-the-embers"),
-                (key: "ranger/flamewarden/touch-of-flame", name: "Touch of Flame", guide: "ranger#touch-of-flame"),
+                (key: "ranger/flamewarden/burning-renewal", name: "Burning Renewal", summary: "From 12th level, taking 10+ fire damage removes fatigue, fear, sickness and nausea and heals 1d6 ability damage and drain; 3 + Wis a day.", guide: "ranger#burning-renewal"),
+                (key: "ranger/flamewarden/phoenix-blast", name: "Phoenix Blast", summary: "From 16th level, on death he explodes: 10d6 to enemies within 10 feet (Reflex half), and allies heal 5d6 and lose poisons.", guide: "ranger#flamewarden"),
+                (key: "ranger/flamewarden/phoenix-rising", name: "Phoenix Rising", summary: "At 20th level, immune to fire, and once a day returns to life with half his HP when killed.", guide: "ranger#phoenix-rising"),
+                (key: "ranger/flamewarden/spellcasting", name: "Spellcasting", summary: "Can choose fire spells: Firebelly and Small Fire Elemental at 4th, Scorching Ray at 7th, more elementals, Flamestrike and Volcanic Storm later.", guide: "ranger#spellcasting"),
+                (key: "ranger/flamewarden/stoking-the-embers", name: "Stoking the Embers", summary: "From 9th level, once a day revives an ally dead within 1 round with 5d8 + caster level HP.", guide: "ranger#stoking-the-embers"),
+                (key: "ranger/flamewarden/touch-of-flame", name: "Touch of Flame", summary: "From 4th level, 3 + Wis times a day, his weapons are flaming and magic for 1 minute; flaming burst from 12th.", guide: "ranger#touch-of-flame"),
             ],
             levels: [
                 (level: 4, features: ["ranger/flamewarden/spellcasting", "ranger/flamewarden/touch-of-flame"]),
@@ -189,10 +199,11 @@ Class(
         (
             key: "ranger/freebooter",
             name: "Freebooter",
+            summary: "Pirate-captain ranger with teamwork abilities instead of favoured enemies and an animal companion.",
             guide: "ranger#freebooter",
             features: [
-                (key: "ranger/freebooter/freebooters-bane", name: "Freebooter\'s Bane", guide: "ranger#freebooters-bane"),
-                (key: "ranger/freebooter/freebooters-bond", name: "Freebooter\'s Bond", guide: "ranger#freebooters-bond"),
+                (key: "ranger/freebooter/freebooters-bane", name: "Freebooter\'s Bane", summary: "Move action: he and his allies get +1 attack and damage against a chosen enemy, +1 every 5 levels (+5 at 20th).", guide: "ranger#freebooters-bane"),
+                (key: "ranger/freebooter/freebooters-bond", name: "Freebooter\'s Bond", summary: "From 4th level, move action: allies within 30 feet get +2 more to attack when flanking for 1 minute.", guide: "ranger#freebooters-bond"),
             ],
             levels: [
                 (level: 1, features: ["ranger/freebooter/freebooters-bane"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
@@ -206,9 +217,10 @@ Class(
         (
             key: "ranger/nomad",
             name: "Nomad",
+            summary: "Mounted archery ranger with a horse who can only take archery style feats.",
             guide: "ranger#nomad",
             features: [
-                (key: "ranger/nomad/animal-companion", name: "Animal Companion", guide: "ranger#animal-companion"),
+                (key: "ranger/nomad/animal-companion", name: "Animal Companion", summary: "Gains a horse at 1st level.", guide: "ranger#animal-companion"),
             ],
             levels: [
                 (level: 1, features: ["ranger/favored-enemy", "ranger/nomad/animal-companion"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
@@ -224,12 +236,13 @@ Class(
         (
             key: "ranger/sable-company-marine",
             name: "Sable Company Marine",
+            summary: "Dance of Masks ranger riding a hippogriff, with favoured enemy delayed and no favoured terrains.",
             guide: "ranger#sable-company-marine",
             features: [
-                (key: "ranger/sable-company-marine/feathered-confusion", name: "Feathered Confusion", guide: "ranger#feathered-confusion"),
-                (key: "ranger/sable-company-marine/hippogriff-companion", name: "Hippogriff Companion", guide: "ranger#hippogriff-companion"),
-                (key: "ranger/sable-company-marine/sable-strike", name: "Sable Strike", guide: "ranger#sable-strike"),
-                (key: "ranger/sable-company-marine/the-strongest-wings", name: "The Strongest Wings", guide: "ranger#the-strongest-wings"),
+                (key: "ranger/sable-company-marine/feathered-confusion", name: "Feathered Confusion", summary: "From 12th level, the hippogriff (and he when mounted) gets +3 dodge AC against melee, and the area around it is difficult terrain for foes.", guide: "ranger#feathered-confusion"),
+                (key: "ranger/sable-company-marine/hippogriff-companion", name: "Hippogriff Companion", summary: "A hippogriff companion from 1st level; mounted, he attacks its flying-attack target, which is flat-footed against him.", guide: "ranger#hippogriff-companion"),
+                (key: "ranger/sable-company-marine/sable-strike", name: "Sable Strike", summary: "At 20th level, his and his mount's first flying attacks on a favoured enemy are automatic crits with +1 multiplier.", guide: "ranger#sable-strike"),
+                (key: "ranger/sable-company-marine/the-strongest-wings", name: "The Strongest Wings", summary: "From 3rd level, the hippogriff bull rushes a 30-foot cone with + half its level to CMB; targets are flat-footed against the next attack.", guide: "ranger#the-strongest-wings"),
             ],
             levels: [
                 (level: 1, features: ["ranger/sable-company-marine/hippogriff-companion"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
@@ -245,12 +258,13 @@ Class(
         (
             key: "ranger/stormwalker",
             name: "Stormwalker",
+            summary: "Ranger with storm powers, no animal companion, no quarry and only archery bonus feats.",
             guide: "ranger#stormwalker",
             features: [
-                (key: "ranger/stormwalker/flash-shot", name: "Flash Shot", guide: "ranger#flash-shot"),
-                (key: "ranger/stormwalker/flash-step", name: "Flash Step", guide: "ranger#flash-step"),
-                (key: "ranger/stormwalker/one-with-the-storm", name: "One with the Storm", guide: "ranger#one-with-the-storm"),
-                (key: "ranger/stormwalker/wind-treader", name: "Wind Treader", guide: "ranger#wind-treader"),
+                (key: "ranger/stormwalker/flash-shot", name: "Flash Shot", summary: "From 19th level, makes two full-bonus ranged attacks after Flash Step.", guide: "ranger#flash-shot"),
+                (key: "ranger/stormwalker/flash-step", name: "Flash Step", summary: "From 11th level, full-round action: moves up to 50 feet without provoking, then shoots the nearest enemy once.", guide: "ranger#flash-step"),
+                (key: "ranger/stormwalker/one-with-the-storm", name: "One with the Storm", summary: "From 16th level, immune to electricity.", guide: "ranger#one-with-the-storm"),
+                (key: "ranger/stormwalker/wind-treader", name: "Wind Treader", summary: "From 4th level, 3 + Wis times a day, his weapons get shock and count as magic for 1 minute; shocking burst from 12th.", guide: "ranger#wind-treader"),
             ],
             levels: [
                 (level: 2, feat_slots: [OneOf(list: "ranger/bonus-feats-2b")]),

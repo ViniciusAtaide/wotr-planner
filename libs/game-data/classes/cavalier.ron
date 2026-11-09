@@ -1,6 +1,7 @@
 Class(
     key: "cavalier",
     name: "Cavalier",
+    summary: "Mounted Strength and Constitution warrior: full BAB, good Fortitude, a horse, Challenge for bonus damage, an order and charge bonuses.",
     guide: "cavalier",
     skill_points: 3,
     bab: Full,
@@ -9,43 +10,45 @@ Class(
     will: Poor,
     class_skills: ["athletics", "mobility", "persuasion"],
     features: [
-        (key: "cavalier/animal-companion", name: "Animal Companion", guide: "cavalier#animal-companion"),
-        (key: "cavalier/banner", name: "Banner", guide: "cavalier#banner"),
-        (key: "cavalier/cavaliers-charge", name: "Cavalier\'s Charge", guide: "cavalier#cavaliers-charge"),
-        (key: "cavalier/challenge", name: "Challenge", guide: "cavalier#challenge"),
-        (key: "cavalier/demanding-challenge", name: "Demanding Challenge", guide: "cavalier#demanding-challenge"),
-        (key: "cavalier/greater-banner", name: "Greater Banner", guide: "cavalier#greater-banner"),
-        (key: "cavalier/greater-tactician", name: "Greater Tactician", guide: "cavalier#greater-tactician"),
-        (key: "cavalier/mighty-charge", name: "Mighty Charge", guide: "cavalier#mighty-charge"),
-        (key: "cavalier/order/order-of-the-cockatrice/braggart", name: "Braggart", guide: "cavalier#braggart"),
-        (key: "cavalier/order/order-of-the-cockatrice/moment-of-triumph", name: "Moment of Triumph", guide: "cavalier#moment-of-triumph"),
-        (key: "cavalier/order/order-of-the-cockatrice/steal-glory", name: "Steal Glory", guide: "cavalier#steal-glory"),
-        (key: "cavalier/order/order-of-the-lion/for-the-king", name: "For the King", guide: "cavalier#for-the-king"),
-        (key: "cavalier/order/order-of-the-lion/lions-call", name: "Lion\'s Call", guide: "cavalier#lions-call"),
-        (key: "cavalier/order/order-of-the-lion/shield-of-the-liege", name: "Shield of the Liege", guide: "cavalier#shield-of-the-liege"),
-        (key: "cavalier/order/order-of-the-shroud/destroyer-of-the-undead", name: "Destroyer of the Undead", guide: "cavalier#destroyer-of-the-undead"),
-        (key: "cavalier/order/order-of-the-shroud/spiritual-shield", name: "Spiritual Shield", guide: "cavalier#spiritual-shield"),
-        (key: "cavalier/order/order-of-the-shroud/stand-against-darkness", name: "Stand Against Darkness", guide: "cavalier#stand-against-darkness"),
-        (key: "cavalier/order/order-of-the-star/calling", name: "Calling", guide: "cavalier#calling"),
-        (key: "cavalier/order/order-of-the-star/for-the-faith", name: "For the Faith", guide: "cavalier#for-the-faith"),
-        (key: "cavalier/order/order-of-the-star/retribution", name: "Retribution", guide: "cavalier#retribution"),
-        (key: "cavalier/order/order-of-the-sword/by-my-honor", name: "By My Honor", guide: "cavalier#by-my-honor"),
-        (key: "cavalier/order/order-of-the-sword/knights-challenge", name: "Knight\'s Challenge", guide: "cavalier#knights-challenge"),
-        (key: "cavalier/order/order-of-the-sword/mounted-combat-feat", name: "Mounted Combat Feat", guide: "cavalier#order-of-the-sword"),
-        (key: "cavalier/order/order-of-the-sword/mounted-mastery", name: "Mounted Mastery", guide: "cavalier#mounted-mastery"),
-        (key: "cavalier/supreme-charge", name: "Supreme Charge", guide: "cavalier#supreme-charge"),
-        (key: "cavalier/tactician", name: "Tactician", guide: "cavalier#tactician"),
+        (key: "cavalier/animal-companion", name: "Animal Companion", summary: "Gains a horse as a mount.", guide: "cavalier#animal-companion"),
+        (key: "cavalier/banner", name: "Banner", summary: "From 5th level, allies within 60 feet get +1 morale to charge attacks and +2 to saves against fear, +1 each at 10th, 15th and 20th.", guide: "cavalier#banner"),
+        (key: "cavalier/cavaliers-charge", name: "Cavalier\'s Charge", summary: "From 3rd level, +4 to melee attacks when charging while mounted, with no AC penalty.", guide: "cavalier#cavaliers-charge"),
+        (key: "cavalier/challenge", name: "Challenge", summary: "Swift action: + class level melee damage against one foe, -2 AC against others; once a day, +1 per 3 levels (max 7); orders add effects.", guide: "cavalier#challenge"),
+        (key: "cavalier/demanding-challenge", name: "Demanding Challenge", summary: "The challenged foe takes -2 AC against attacks from anyone but the Cavalier.", guide: "cavalier#demanding-challenge"),
+        (key: "cavalier/greater-banner", name: "Greater Banner", summary: "From 14th level, the banner also gives +2 morale to saves against charm and compulsion.", guide: "cavalier#greater-banner"),
+        (key: "cavalier/greater-tactician", name: "Greater Tactician", summary: "From 9th level, Tactician is a swift action.", guide: "cavalier#greater-tactician"),
+        (key: "cavalier/mighty-charge", name: "Mighty Charge", summary: "From 11th level, doubled threat range on mounted charges, and a hit gives a free bull rush and trip; doesn't stack with Keen or Improved Critical.", guide: "cavalier#mighty-charge"),
+        (key: "cavalier/order/order-of-the-cockatrice/braggart", name: "Braggart", summary: "From 2nd level, Dazzling Display as a bonus feat and +2 morale to attacks against frightened creatures.", guide: "cavalier#braggart"),
+        (key: "cavalier/order/order-of-the-cockatrice/moment-of-triumph", name: "Moment of Triumph", summary: "From 15th level, once a day for 1 round: +Cha to checks, attacks, damage, saves and AC, and threats auto-confirm.", guide: "cavalier#moment-of-triumph"),
+        (key: "cavalier/order/order-of-the-cockatrice/steal-glory", name: "Steal Glory", summary: "From 8th level, an attack of opportunity against a foe she threatens when an ally crits it.", guide: "cavalier#steal-glory"),
+        (key: "cavalier/order/order-of-the-lion/for-the-king", name: "For the King", summary: "From 8th level, once per encounter, swift action: allies within 30 feet get +Cha to attack and damage for 1 round.", guide: "cavalier#for-the-king"),
+        (key: "cavalier/order/order-of-the-lion/lions-call", name: "Lion\'s Call", summary: "From 2nd level, allies within 60 feet get +Cha to fear saves (rolled twice) and +1 attack for class level rounds.", guide: "cavalier#lions-call"),
+        (key: "cavalier/order/order-of-the-lion/shield-of-the-liege", name: "Shield of the Liege", summary: "From 15th level, adjacent allies get a +3 shield bonus to AC.", guide: "cavalier#shield-of-the-liege"),
+        (key: "cavalier/order/order-of-the-shroud/destroyer-of-the-undead", name: "Destroyer of the Undead", summary: "From 8th level, her weapons bypass undead DR by alignment, and all DR of a challenged undead foe.", guide: "cavalier#destroyer-of-the-undead"),
+        (key: "cavalier/order/order-of-the-shroud/spiritual-shield", name: "Spiritual Shield", summary: "From 2nd level, deflection AC equal to her Charisma modifier against her challenged foe.", guide: "cavalier#spiritual-shield"),
+        (key: "cavalier/order/order-of-the-shroud/stand-against-darkness", name: "Stand Against Darkness", summary: "When a challenged undead hits her or an adjacent ally, an attack of opportunity at +2; +Cha AC against its crit confirmations.", guide: "cavalier#stand-against-darkness"),
+        (key: "cavalier/order/order-of-the-star/calling", name: "Calling", summary: "From 2nd level, four times a day, free action: +Cha to her next attack roll, saving throw or skill check.", guide: "cavalier#calling"),
+        (key: "cavalier/order/order-of-the-star/for-the-faith", name: "For the Faith", summary: "From 8th level, free action: +Cha morale to attacks for 1 round, half to allies of her faith within 30 feet; 1/day +1 per 4 levels.", guide: "cavalier#for-the-faith"),
+        (key: "cavalier/order/order-of-the-star/retribution", name: "Retribution", summary: "Once a round, when a foe hits her or an adjacent ally of her faith in melee, an attack of opportunity at +2.", guide: "cavalier#retribution"),
+        (key: "cavalier/order/order-of-the-sword/by-my-honor", name: "By My Honor", summary: "From 2nd level, +2 morale to one chosen saving throw while she keeps her chosen alignment.", guide: "cavalier#by-my-honor"),
+        (key: "cavalier/order/order-of-the-sword/knights-challenge", name: "Knight\'s Challenge", summary: "From 15th level, once a day a challenge that adds her Charisma bonus to attack and damage and +4 to confirm crits.", guide: "cavalier#knights-challenge"),
+        (key: "cavalier/order/order-of-the-sword/mounted-combat-feat", name: "Mounted Combat Feat", summary: "A bonus mounted combat feat from Mounted Mastery; she must meet its prerequisites.", guide: "cavalier#order-of-the-sword"),
+        (key: "cavalier/order/order-of-the-sword/mounted-mastery", name: "Mounted Mastery", summary: "Mounted charges add her mount's Strength modifier to damage, plus a bonus mounted combat feat.", guide: "cavalier#mounted-mastery"),
+        (key: "cavalier/supreme-charge", name: "Supreme Charge", summary: "At 20th level, mounted charges deal double damage, and a confirmed crit stuns for 1d4 rounds (staggers on a Will save).", guide: "cavalier#supreme-charge"),
+        (key: "cavalier/tactician", name: "Tactician", summary: "Standard action: allies within 30 feet get one of her teamwork feats for 3 + half level rounds; +1 use at 5th and every 5 levels.", guide: "cavalier#tactician"),
     ],
     selections: [
         (
             key: "cavalier/order",
             name: "Order",
+            summary: "Joins one of five orders (Cockatrice, Lion, Shroud, Star or Sword), each adding to Challenge and granting abilities.",
             guide: "cavalier#order",
             option_levels: ["cavalier"],
             options: [
                 (
                     key: "cavalier/order/order-of-the-cockatrice",
                     name: "Order of the Cockatrice",
+                    summary: "Glory-seeking order: +1 damage (+1 per 4 levels) against a challenged foe only she threatens.",
                     guide: "cavalier#order-of-the-cockatrice",
                     levels: [
                         (level: 2, features: ["cavalier/order/order-of-the-cockatrice/braggart"], feats: ["dazzling-display"]),
@@ -56,6 +59,7 @@ Class(
                 (
                     key: "cavalier/order/order-of-the-lion",
                     name: "Order of the Lion",
+                    summary: "Order serving a lord: +1 dodge AC (+1 per 4 levels) against her challenged foe; Knowledge (World) becomes a class skill.",
                     guide: "cavalier#order-of-the-lion",
                     levels: [
                         (level: 1, class_skills: ["knowledge-world"]),
@@ -67,6 +71,7 @@ Class(
                 (
                     key: "cavalier/order/order-of-the-shroud",
                     name: "Order of the Shroud",
+                    summary: "Undead-hunting order: +1 morale to attack (+1 per 4 levels) against her challenged foe; Lore (Religion) becomes a class skill.",
                     guide: "cavalier#order-of-the-shroud",
                     levels: [
                         (level: 1, class_skills: ["lore-religion"]),
@@ -78,6 +83,7 @@ Class(
                 (
                     key: "cavalier/order/order-of-the-star",
                     name: "Order of the Star",
+                    summary: "Order protecting a faith: +1 morale to saves (+1 per 4 levels) while threatening her challenged foe; Lore (Religion) a class skill.",
                     guide: "cavalier#order-of-the-star",
                     levels: [
                         (level: 1, class_skills: ["lore-religion"]),
@@ -89,6 +95,7 @@ Class(
                 (
                     key: "cavalier/order/order-of-the-sword",
                     name: "Order of the Sword",
+                    summary: "Chivalric order: +1 morale to attack (+1 per 4 levels) against her challenged foe while mounted; Lore (Religion) a class skill.",
                     guide: "cavalier#order-of-the-sword",
                     levels: [
                         (level: 1, class_skills: ["lore-religion"]),
@@ -126,9 +133,10 @@ Class(
         (
             key: "cavalier/beast-rider",
             name: "Beast Rider",
+            summary: "Cavalier who can take any animal companion as a mount, losing heavy armour proficiency.",
             guide: "cavalier#beast-rider",
             features: [
-                (key: "cavalier/beast-rider/animal-companion-beast-rider", name: "Animal Companion (Beast Rider)", guide: "cavalier#animal-companion-beast-rider"),
+                (key: "cavalier/beast-rider/animal-companion-beast-rider", name: "Animal Companion (Beast Rider)", summary: "Any animal companion, not just a horse; most can be ridden only from 7th level.", guide: "cavalier#animal-companion-beast-rider"),
             ],
             levels: [
                 (level: 1, features: ["cavalier/beast-rider/animal-companion-beast-rider", "cavalier/challenge", "cavalier/tactician"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], feat_slots: [Category(Teamwork)], selections: ["cavalier/order"]),
@@ -137,12 +145,13 @@ Class(
         (
             key: "cavalier/cavalier-of-the-paw",
             name: "Cavalier of the Paw",
+            summary: "Halfling cavalier with a dog or wolf mount and no order.",
             guide: "cavalier#cavalier-of-the-paw",
             prerequisite: Race("halfling"),
             features: [
-                (key: "cavalier/cavalier-of-the-paw/canine-ferocity", name: "Canine Ferocity", guide: "cavalier#canine-ferocity"),
-                (key: "cavalier/cavalier-of-the-paw/danger-ward", name: "Danger Ward", guide: "cavalier#danger-ward"),
-                (key: "cavalier/cavalier-of-the-paw/giant-slayer", name: "Giant Slayer", guide: "cavalier#giant-slayer"),
+                (key: "cavalier/cavalier-of-the-paw/canine-ferocity", name: "Canine Ferocity", summary: "From 8th level, her mount gets +4 CMB to bull rush and overrun, and she gets a bonus mounted combat feat.", guide: "cavalier#canine-ferocity"),
+                (key: "cavalier/cavalier-of-the-paw/danger-ward", name: "Danger Ward", summary: "From 2nd level, 3 times a day: allies within 30 feet can reroll one failed save at +4 within the next minute.", guide: "cavalier#danger-ward"),
+                (key: "cavalier/cavalier-of-the-paw/giant-slayer", name: "Giant Slayer", summary: "From 15th level, + half class level damage against a challenged Large or bigger foe, multiplied on crits.", guide: "cavalier#giant-slayer"),
             ],
             levels: [
                 (level: 1, features: ["cavalier/animal-companion", "cavalier/challenge", "cavalier/tactician"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], feat_slots: [Category(Teamwork)]),
@@ -154,14 +163,15 @@ Class(
         (
             key: "cavalier/disciple-of-the-pike",
             name: "Disciple of the Pike",
+            summary: "Cavalier with no mount who gains spear and polearm training and bonuses against large foes.",
             guide: "cavalier#disciple-of-the-pike",
             features: [
-                (key: "cavalier/disciple-of-the-pike/agile-charger", name: "Agile Charger", guide: "cavalier#agile-charger"),
-                (key: "cavalier/disciple-of-the-pike/bigger-they-are", name: "Bigger They Are", guide: "cavalier#bigger-they-are"),
-                (key: "cavalier/disciple-of-the-pike/deadly-charge", name: "Deadly Charge", guide: "cavalier#deadly-charge"),
-                (key: "cavalier/disciple-of-the-pike/monster-hunter", name: "Monster Hunter", guide: "cavalier#monster-hunter"),
-                (key: "cavalier/disciple-of-the-pike/pike-charge", name: "Pike Charge", guide: "cavalier#pike-charge"),
-                (key: "cavalier/disciple-of-the-pike/weapon-training-spears-polearms", name: "Weapon Training (Spears / Polearms)", guide: "cavalier#weapon-training-spears-polearms"),
+                (key: "cavalier/disciple-of-the-pike/agile-charger", name: "Agile Charger", summary: "From 11th level, ignores difficult terrain when charging.", guide: "cavalier#agile-charger"),
+                (key: "cavalier/disciple-of-the-pike/bigger-they-are", name: "Bigger They Are", summary: "Dodge AC against larger creatures: +1 per size step larger, +3 from 6th and +4 from 12th for the biggest.", guide: "cavalier#bigger-they-are"),
+                (key: "cavalier/disciple-of-the-pike/deadly-charge", name: "Deadly Charge", summary: "At 20th level, charges with a spear or polearm deal double damage, and confirmed crits stun for 1d4 rounds (stagger on a Will save).", guide: "cavalier#deadly-charge"),
+                (key: "cavalier/disciple-of-the-pike/monster-hunter", name: "Monster Hunter", summary: "From 4th level, adds her class level to Knowledge (Arcana) and Lore (Nature) checks.", guide: "cavalier#monster-hunter"),
+                (key: "cavalier/disciple-of-the-pike/pike-charge", name: "Pike Charge", summary: "From 3rd level, +4 to melee attacks when charging with a spear or polearm, with no AC penalty.", guide: "cavalier#pike-charge"),
+                (key: "cavalier/disciple-of-the-pike/weapon-training-spears-polearms", name: "Weapon Training (Spears / Polearms)", summary: "From 5th level, +1 attack and damage with spears or polearms, +1 per 4 levels (max +4 at 17th).", guide: "cavalier#weapon-training-spears-polearms"),
             ],
             levels: [
                 (level: 1, features: ["cavalier/challenge", "cavalier/disciple-of-the-pike/bigger-they-are", "cavalier/tactician"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], feat_slots: [Category(Teamwork)], selections: ["cavalier/order"]),
@@ -176,10 +186,11 @@ Class(
         (
             key: "cavalier/fearsome-leader",
             name: "Fearsome Leader",
+            summary: "Cavalier with Dazzling Display and Intimidate bonuses instead of teamwork abilities.",
             guide: "cavalier#fearsome-leader",
             features: [
-                (key: "cavalier/fearsome-leader/fearmonger", name: "Fearmonger", guide: "cavalier#fearmonger"),
-                (key: "cavalier/fearsome-leader/fearsome-inspiration", name: "Fearsome Inspiration", guide: "cavalier#fearsome-inspiration"),
+                (key: "cavalier/fearsome-leader/fearmonger", name: "Fearmonger", summary: "From 3rd level, +1 to Intimidate, +1 more every 3 levels (max +6 at 18th).", guide: "cavalier#fearmonger"),
+                (key: "cavalier/fearsome-leader/fearsome-inspiration", name: "Fearsome Inspiration", summary: "Dazzling Display dispels fear on allies; from 9th level, once per encounter, it also gives them Good Hope for Cha rounds.", guide: "cavalier#fearsome-inspiration"),
             ],
             levels: [
                 (level: 1, features: ["cavalier/animal-companion", "cavalier/challenge", "cavalier/fearsome-leader/fearsome-inspiration"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "dazzling-display", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], selections: ["cavalier/order"]),
@@ -191,9 +202,10 @@ Class(
         (
             key: "cavalier/gendarme",
             name: "Gendarme",
+            summary: "Cavalier with extra combat feats instead of teamwork abilities.",
             guide: "cavalier#gendarme",
             features: [
-                (key: "cavalier/gendarme/transfixing-charge", name: "Transfixing Charge", guide: "cavalier#transfixing-charge"),
+                (key: "cavalier/gendarme/transfixing-charge", name: "Transfixing Charge", summary: "At 20th level, mounted charges deal triple damage, and a confirmed crit adds her weapon damage again.", guide: "cavalier#transfixing-charge"),
             ],
             levels: [
                 (level: 1, features: ["cavalier/animal-companion", "cavalier/challenge"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], feat_slots: [CombatFeat], selections: ["cavalier/order"]),
@@ -207,16 +219,17 @@ Class(
         (
             key: "cavalier/ghost-rider",
             name: "Ghost Rider",
+            summary: "Lord of Nothing cavalier on a ghostly mount, losing Tactician, teamwork feats, Banner and most charge abilities.",
             guide: "cavalier#ghost-rider",
             features: [
-                (key: "cavalier/ghost-rider/etheric-tether", name: "Etheric Tether", guide: "cavalier#etheric-tether"),
-                (key: "cavalier/ghost-rider/frightful-gaze", name: "Frightful Gaze", guide: "cavalier#frightful-gaze"),
-                (key: "cavalier/ghost-rider/ghost-mount", name: "Ghost Mount", guide: "cavalier#ghost-mount"),
-                (key: "cavalier/ghost-rider/ghost-wind", name: "Ghost Wind", guide: "cavalier#ghost-wind"),
-                (key: "cavalier/ghost-rider/magic-attacks", name: "Magic Attacks", guide: "cavalier#magic-attacks"),
-                (key: "cavalier/ghost-rider/shared-minds", name: "Shared Minds", guide: "cavalier#shared-minds"),
-                (key: "cavalier/ghost-rider/spirited-mount", name: "Spirited Mount", guide: "cavalier#spirited-mount"),
-                (key: "cavalier/ghost-rider/spiritual-bond", name: "Spiritual Bond", guide: "cavalier#spiritual-bond"),
+                (key: "cavalier/ghost-rider/etheric-tether", name: "Etheric Tether", summary: "Free action: when the mount would drop to 0 HP it stays at 1, and she loses the HP restored.", guide: "cavalier#etheric-tether"),
+                (key: "cavalier/ghost-rider/frightful-gaze", name: "Frightful Gaze", summary: "Standard action, Cha times a day: a foe within 30 feet saves on Will or is paralysed for 1 round; from 9th it ignores immunities.", guide: "cavalier#frightful-gaze"),
+                (key: "cavalier/ghost-rider/ghost-mount", name: "Ghost Mount", summary: "Her horse is made of ectoplasm and is immune to bleed and other effects that need living tissue.", guide: "cavalier#ghost-mount"),
+                (key: "cavalier/ghost-rider/ghost-wind", name: "Ghost Wind", summary: "From 11th level, the mount gets +40 feet speed; from 14th, immunity to trip and ground-based effects.", guide: "cavalier#ghost-wind"),
+                (key: "cavalier/ghost-rider/magic-attacks", name: "Magic Attacks", summary: "From 3rd level, the mount's attacks count as magic for DR, and as her alignment from 10th.", guide: "cavalier#magic-attacks"),
+                (key: "cavalier/ghost-rider/shared-minds", name: "Shared Minds", summary: "From 16th level, once a round, when the mount fails a Will save she can save instead and negate the effect.", guide: "cavalier#shared-minds"),
+                (key: "cavalier/ghost-rider/spirited-mount", name: "Spirited Mount", summary: "The mount ignores difficult terrain from 5th level and has concealment (20% miss chance) from 8th.", guide: "cavalier#spirited-mount"),
+                (key: "cavalier/ghost-rider/spiritual-bond", name: "Spiritual Bond", summary: "From 14th level, free action: when she would drop to 0 HP she stays at 1 and the mount loses the HP; not with Etheric Tether.", guide: "cavalier#spiritual-bond"),
             ],
             levels: [
                 (level: 1, features: ["cavalier/challenge", "cavalier/ghost-rider/etheric-tether", "cavalier/ghost-rider/frightful-gaze", "cavalier/ghost-rider/ghost-mount"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], selections: ["cavalier/order"]),
@@ -234,10 +247,11 @@ Class(
         (
             key: "cavalier/knight-of-the-wall",
             name: "Knight of the Wall",
+            summary: "Shield-focused cavalier without teamwork abilities.",
             guide: "cavalier#knight-of-the-wall",
             features: [
-                (key: "cavalier/knight-of-the-wall/deflective-shield", name: "Deflective Shield", guide: "cavalier#deflective-shield"),
-                (key: "cavalier/knight-of-the-wall/soul-shield", name: "Soul Shield", guide: "cavalier#soul-shield"),
+                (key: "cavalier/knight-of-the-wall/deflective-shield", name: "Deflective Shield", summary: "From 4th level, adds her shield bonus (not enhancement) to touch AC and CMD.", guide: "cavalier#deflective-shield"),
+                (key: "cavalier/knight-of-the-wall/soul-shield", name: "Soul Shield", summary: "From 9th level, adds her shield bonus (not enhancement) to Will saves.", guide: "cavalier#soul-shield"),
             ],
             levels: [
                 (level: 1, features: ["cavalier/animal-companion", "cavalier/challenge"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-focus", "shield-proficiency", "simple-weapon-proficiency"], selections: ["cavalier/order"]),
@@ -249,12 +263,13 @@ Class(
         (
             key: "cavalier/standard-bearer",
             name: "Standard Bearer",
+            summary: "Cavalier who gets her banner early and buffs allies with it.",
             guide: "cavalier#standard-bearer",
             features: [
-                (key: "cavalier/standard-bearer/animal-companion-standard-bearer", name: "Animal Companion (Standard Bearer)", guide: "cavalier#animal-companion-standard-bearer"),
-                (key: "cavalier/standard-bearer/awesome-pennon", name: "Awesome Pennon", guide: "cavalier#awesome-pennon"),
-                (key: "cavalier/standard-bearer/banner-of-solace", name: "Banner of Solace", guide: "cavalier#banner-of-solace"),
-                (key: "cavalier/standard-bearer/banner-standard-bearer", name: "Banner (Standard Bearer)", guide: "cavalier#banner-standard-bearer"),
+                (key: "cavalier/standard-bearer/animal-companion-standard-bearer", name: "Animal Companion (Standard Bearer)", summary: "Gains a mount at 5th level.", guide: "cavalier#animal-companion-standard-bearer"),
+                (key: "cavalier/standard-bearer/awesome-pennon", name: "Awesome Pennon", summary: "At 20th level, allies within 60 feet get +1 morale to attacks, fear immunity and +3 morale to saves against mind-affecting effects.", guide: "cavalier#awesome-pennon"),
+                (key: "cavalier/standard-bearer/banner-of-solace", name: "Banner of Solace", summary: "From 11th level, once a day: allies within 60 feet get half her level in temp HP and +2 morale damage (+3 at 15th, +4 at 19th).", guide: "cavalier#banner-of-solace"),
+                (key: "cavalier/standard-bearer/banner-standard-bearer", name: "Banner (Standard Bearer)", summary: "Gains the Banner ability at 1st level.", guide: "cavalier#banner-standard-bearer"),
             ],
             levels: [
                 (level: 1, features: ["cavalier/challenge", "cavalier/standard-bearer/banner-standard-bearer", "cavalier/tactician"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], feat_slots: [Category(Teamwork)], selections: ["cavalier/order"]),
