@@ -1,0 +1,29 @@
+// The spells whose blocks sit under the guide page's "Level 5" heading (arcanist, saved 2026-11-09), one per
+// block: its facts as printed. Extracted for ticket 121; `summary` is ours to write. See the README.
+[
+    (
+        key: "arcana-theft",
+        name: "Arcana Theft",
+        school: Abjuration,
+        guide: "arcanist#arcana-theft-abjuration",
+        summary: "",
+        target: "One enemy creature within touch range",
+        saving_throw: "None",
+        spell_resistance: false,
+        descriptors: [],
+        casting_time: Standard,
+    ),
+    (
+        key: "peer-into-avoidance",
+        name: "Peer Into Avoidance",
+        school: Divination,
+        guide: "arcanist#peer-into-avoidance-divination",
+        summary: "",
+        target: "One enemy creature within close range",
+        duration: "1 round",
+        saving_throw: "None",
+        spell_resistance: false,
+        descriptors: [MindAffecting],
+        casting_time: Standard,
+    ),
+]

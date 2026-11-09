@@ -32,6 +32,7 @@ mod pick_values;
 mod races;
 mod repeating_talents;
 mod report_gaps;
+mod spells;
 mod summaries;
 mod weapons;
 mod wild_talents;

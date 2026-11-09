@@ -1,0 +1,30 @@
+// The spells whose blocks sit under the guide page's "Level 3" heading (ranger, saved 2026-11-09), one per
+// block: its facts as printed. Extracted for ticket 121; `summary` is ours to write. See the README.
+[
+    (
+        key: "chameleon-stride-greater",
+        name: "Chameleon Stride, Greater",
+        school: Illusion,
+        guide: "ranger#chameleon-stride-greater-illusion",
+        summary: "",
+        target: "All allies within 10'",
+        duration: "1 minute / level",
+        saving_throw: "N/A",
+        spell_resistance: false,
+        descriptors: [],
+        casting_time: Standard,
+    ),
+    (
+        key: "instant-enemy",
+        name: "Instant Enemy",
+        school: Enchantment,
+        guide: "ranger#instant-enemy-enchantment",
+        summary: "",
+        target: "One enemy creature within close range",
+        duration: "1 minute / level",
+        saving_throw: "N/A",
+        spell_resistance: false,
+        descriptors: [],
+        casting_time: Swift,
+    ),
+]

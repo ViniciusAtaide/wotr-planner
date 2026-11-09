@@ -1,0 +1,40 @@
+// The spells whose blocks sit under the guide page's "Level 9" heading (lich, saved 2026-11-09), one per
+// block: its facts as printed. Extracted for ticket 121; `summary` is ours to write. See the README.
+[
+    (
+        key: "corrupt-magic",
+        name: "Corrupt Magic",
+        school: Abjuration,
+        guide: "lich#corrupt-magic-abjuration",
+        summary: "",
+        target: "One enemy creature within medium range",
+        saving_throw: "N/A",
+        spell_resistance: false,
+        descriptors: [],
+        casting_time: Standard,
+    ),
+    (
+        key: "flay-for-purpose",
+        name: "Flay for Purpose",
+        school: Necromancy,
+        guide: "lich#flay-for-purpose-necromancy",
+        summary: "",
+        target: "One enemy creature within medium range",
+        saving_throw: "Fortitude partial",
+        spell_resistance: false,
+        descriptors: [],
+        casting_time: Standard,
+    ),
+    (
+        key: "negative-eruption",
+        name: "Negative Eruption",
+        school: Necromancy,
+        guide: "lich#negative-eruption-necromancy",
+        summary: "",
+        target: "All creatures with a 30' burst centred on target point within medium range",
+        saving_throw: "Will half",
+        spell_resistance: false,
+        descriptors: [],
+        casting_time: Standard,
+    ),
+]

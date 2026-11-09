@@ -1,0 +1,29 @@
+// The spells whose blocks sit under the guide page's "Level 2" heading (trickster, saved 2026-11-09), one per
+// block: its facts as printed. Extracted for ticket 121; `summary` is ours to write. See the README.
+[
+    (
+        key: "bears-grace",
+        name: "Bear's Grace",
+        school: Transmutation,
+        guide: "trickster#bears-grace-transmutation",
+        summary: "",
+        target: "One creature within medium range",
+        duration: "1 minute / level",
+        saving_throw: "Will negates",
+        spell_resistance: false,
+        descriptors: [],
+        casting_time: Standard,
+    ),
+    (
+        key: "fish-missile",
+        name: "Fish Missile",
+        school: Conjuration,
+        guide: "trickster#fish-missile-conjuration",
+        summary: "",
+        target: "One creature within medium range",
+        saving_throw: "Fortitude partial",
+        spell_resistance: false,
+        descriptors: [],
+        casting_time: Standard,
+    ),
+]

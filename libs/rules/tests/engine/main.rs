@@ -44,6 +44,7 @@ mod removable;
 mod shared_options;
 mod slot_entries;
 mod slots;
+mod spells;
 mod stale_links;
 mod start_pickers;
 mod switch_rules;

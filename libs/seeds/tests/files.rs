@@ -414,7 +414,6 @@ fn a_missing_required_file_fails() {
 fn a_ron_file_outside_the_layout_fails() {
     let dir = copy_fixture();
     fs::write(dir.path().join("classes").join("stray.txt"), "ignored").unwrap();
-    fs::create_dir(dir.path().join("spells")).unwrap();
     fs::write(dir.path().join("spells").join("fireball.ron"), "()").unwrap();
 
     let error = seeds::read_game_data_files(dir.path())
@@ -422,6 +421,112 @@ fn a_ron_file_outside_the_layout_fails() {
         .to_string();
 
     assert!(error.contains("fireball.ron"), "{error}");
+}
+
+/// Data from before ticket 121 has no `spells/` folder, and reads as no spells; once the folder exists, its
+/// `lists.ron` is required.
+#[test]
+fn a_folder_without_spells_has_none_but_spells_need_their_lists() {
+    let dir = copy_fixture();
+    fs::remove_file(dir.path().join("spells/lists.ron")).unwrap();
+    let error = seeds::read_game_data_files(dir.path())
+        .unwrap_err()
+        .to_string();
+    assert!(error.contains("lists.ron"), "{error}");
+
+    fs::remove_dir_all(dir.path().join("spells")).unwrap();
+    let data = seeds::read_game_data_files(dir.path()).unwrap();
+    assert_eq!(data.spells, []);
+    assert_eq!(data.spell_lists, []);
+}
+
+/// A spell file is `spells/<page>/level-<n>.ron`, nothing else under `spells/` but `lists.ron`.
+#[test]
+fn a_spell_file_outside_its_page_and_level_fails() {
+    for stray in [
+        "spells/wizard/fireball.ron",
+        "spells/wizard/level-x.ron",
+        "spells/wizard/level-.ron",
+        "spells/wizard/old/level-1.ron",
+        "spells/level-1.ron",
+    ] {
+        let dir = copy_fixture();
+        let path = dir.path().join(stray);
+        fs::create_dir_all(path.parent().unwrap()).unwrap();
+        fs::write(&path, "[]").unwrap();
+
+        let error = seeds::read_game_data_files(dir.path())
+            .unwrap_err()
+            .to_string();
+
+        assert!(
+            error.contains("not part of the game-data layout"),
+            "{stray}: {error}"
+        );
+    }
+}
+
+/// Ticket 121: the spells of every `spells/<page>/level-<n>.ron` file, read into one list, and the spell lists.
+#[test]
+fn reads_spells_and_spell_lists_and_defaults_them() {
+    use rules::{
+        CastingTime, SpellCaster, SpellDescriptor, SpellKey, SpellListEntry, SpellListOnly,
+        SpellSchool, Story,
+    };
+    let data = read_fixture();
+    let keys: Vec<&str> = data.spells.iter().map(|s| s.key.as_str()).collect();
+    assert_eq!(keys, ["bless", "dismiss-spell", "hold-monster"]);
+    let [bless, dismiss, hold] = [0, 1, 2].map(|i| &data.spells[i]);
+    assert_eq!(dismiss.school, None);
+    assert_eq!(dismiss.summary, "");
+    assert_eq!(dismiss.duration, None);
+    assert_eq!(dismiss.components, None);
+    assert_eq!(dismiss.descriptors, BTreeSet::new());
+    assert_eq!(hold.school, Some(SpellSchool::Enchantment));
+    assert_eq!(
+        hold.descriptors,
+        BTreeSet::from([SpellDescriptor::MindAffecting, SpellDescriptor::Compulsion])
+    );
+    assert_eq!(hold.saving_throw, "Will negates");
+    assert!(hold.spell_resistance);
+    assert_eq!(hold.duration.as_deref(), Some("1 round / level"));
+    assert_eq!(bless.components.as_deref(), Some("Holy water"));
+    assert_eq!(bless.casting_time, CastingTime::FullRound);
+
+    let lists: Vec<&str> = data.spell_lists.iter().map(|l| l.key.as_str()).collect();
+    assert_eq!(lists, ["cleric", "gold-dragon", "sorcerer"]);
+    let sorcerer = &data.spell_lists[2];
+    assert_eq!(
+        sorcerer.owner,
+        SpellCaster::Class(ClassKey::new("sorcerer"))
+    );
+    assert_eq!(
+        sorcerer.used_by,
+        BTreeSet::from([SpellCaster::Archetype(rules::ArchetypeKey::new(
+            "rogue/eldritch-scoundrel"
+        ))])
+    );
+    assert_eq!(data.spell_lists[0].used_by, BTreeSet::new());
+    let gold = &data.spell_lists[1];
+    assert_eq!(
+        gold.owner,
+        SpellCaster::Path(MythicPathKey::new("gold-dragon"))
+    );
+    assert_eq!(
+        gold.entries,
+        BTreeSet::from([
+            SpellListEntry {
+                level: 1,
+                spell: SpellKey::new("bless"),
+                only: Some(SpellListOnly::Story(Story::Uncorrupted)),
+            },
+            SpellListEntry {
+                level: 10,
+                spell: SpellKey::new("hold-monster"),
+                only: None,
+            },
+        ])
+    );
 }
 
 #[test]

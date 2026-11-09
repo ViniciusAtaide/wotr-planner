@@ -1,0 +1,17 @@
+// The spells whose blocks sit under the guide page's "Level 0" heading (bard, saved 2026-11-09), one per
+// block: its facts as printed. Extracted for ticket 121; `summary` is ours to write. See the README.
+[
+    (
+        key: "lullaby",
+        name: "Lullaby",
+        school: Enchantment,
+        guide: "bard#lullaby-enchantment",
+        summary: "",
+        target: "One enemy creature within medium range",
+        duration: "1 round / level",
+        saving_throw: "Will negates",
+        spell_resistance: true,
+        descriptors: [],
+        casting_time: Standard,
+    ),
+]

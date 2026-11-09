@@ -1,0 +1,43 @@
+// The spells whose blocks sit under the guide page's "Level 3" heading (inquisitor, saved 2026-11-09), one per
+// block: its facts as printed. Extracted for ticket 121; `summary` is ours to write. See the README.
+[
+    (
+        key: "fester",
+        name: "Fester",
+        school: Necromancy,
+        guide: "inquisitor#fester-necromancy",
+        summary: "",
+        target: "One enemy creature within close range",
+        duration: "1 round / level",
+        saving_throw: "Fortitude partial",
+        spell_resistance: true,
+        descriptors: [],
+        casting_time: Standard,
+    ),
+    (
+        key: "litany-of-eloquence",
+        name: "Litany of Eloquence",
+        school: Enchantment,
+        guide: "inquisitor#litany-of-eloquence-enchantment",
+        summary: "",
+        target: "One enemy creature within close range",
+        duration: "1 round",
+        saving_throw: "None",
+        spell_resistance: true,
+        descriptors: [MindAffecting, Charmed],
+        casting_time: Swift,
+    ),
+    (
+        key: "litany-of-entanglement",
+        name: "Litany of Entanglement",
+        school: Conjuration,
+        guide: "inquisitor#litany-of-entanglement-conjuration",
+        summary: "",
+        target: "One enemy creature within close range",
+        duration: "1 round",
+        saving_throw: "Will negates",
+        spell_resistance: true,
+        descriptors: [],
+        casting_time: Swift,
+    ),
+]

@@ -1,0 +1,17 @@
+// The spells whose blocks sit under the guide page's "Level 2" heading (bard, saved 2026-11-09), one per
+// block: its facts as printed. Extracted for ticket 121; `summary` is ours to write. See the README.
+[
+    (
+        key: "cacophonous-call",
+        name: "Cacophonous Call",
+        school: Enchantment,
+        guide: "bard#cacophonous-call-enchantment",
+        summary: "",
+        target: "One creature within close range",
+        duration: "1 round / level",
+        saving_throw: "Will negates",
+        spell_resistance: true,
+        descriptors: [MindAffecting, Compulsion],
+        casting_time: Standard,
+    ),
+]

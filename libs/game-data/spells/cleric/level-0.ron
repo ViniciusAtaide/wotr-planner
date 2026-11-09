@@ -1,0 +1,42 @@
+// The spells whose blocks sit under the guide page's "Level 0" heading (cleric-spells, saved 2026-11-09), one per
+// block: its facts as printed. Extracted for ticket 121; `summary` is ours to write. See the README.
+[
+    (
+        key: "divine-zap",
+        name: "Divine Zap",
+        school: Divination,
+        guide: "cleric-spells#divine-zap-divination",
+        summary: "",
+        target: "One friendly creature within touch range",
+        saving_throw: "Fortitude half",
+        spell_resistance: false,
+        descriptors: [],
+        casting_time: Standard,
+    ),
+    (
+        key: "guidance",
+        name: "Guidance",
+        school: Divination,
+        guide: "cleric-spells#guidance-divination",
+        summary: "",
+        target: "One friendly creature within touch range",
+        duration: "1 minute",
+        saving_throw: "N/A",
+        spell_resistance: false,
+        descriptors: [],
+        casting_time: Standard,
+    ),
+    (
+        key: "virtue",
+        name: "Virtue",
+        school: Transmutation,
+        guide: "cleric-spells#virtue-transmutation",
+        summary: "",
+        target: "One friendly creature within touch range",
+        duration: "1 minute",
+        saving_throw: "N/A",
+        spell_resistance: true,
+        descriptors: [],
+        casting_time: Standard,
+    ),
+]

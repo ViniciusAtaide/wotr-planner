@@ -1,0 +1,43 @@
+// The spells whose blocks sit under the guide page's "Level 9" heading (druid-spells, saved 2026-11-09), one per
+// block: its facts as printed. Extracted for ticket 121; `summary` is ours to write. See the README.
+[
+    (
+        key: "elemental-swarm",
+        name: "Elemental Swarm",
+        school: Conjuration,
+        guide: "druid-spells#elemental-swarm-conjuration",
+        summary: "",
+        target: "Target point within medium range",
+        duration: "10 minutes / level",
+        saving_throw: "N/A",
+        spell_resistance: false,
+        descriptors: [Summoning],
+        casting_time: FullRound,
+    ),
+    (
+        key: "summon-elder-worm",
+        name: "Summon Elder Worm",
+        school: Conjuration,
+        guide: "druid-spells#summon-elder-worm-conjuration",
+        summary: "",
+        target: "Target point within close range",
+        duration: "1 round / level",
+        saving_throw: "N/A",
+        spell_resistance: false,
+        descriptors: [Summoning],
+        casting_time: FullRound,
+    ),
+    (
+        key: "summon-natures-ally-ix",
+        name: "Summon Nature's Ally IX",
+        school: Conjuration,
+        guide: "druid-spells#summon-natures-ally-ix-conjuration",
+        summary: "",
+        target: "Target point within close range",
+        duration: "1 round / level",
+        saving_throw: "N/A",
+        spell_resistance: false,
+        descriptors: [Summoning],
+        casting_time: FullRound,
+    ),
+]

@@ -1,0 +1,30 @@
+// The spells whose blocks sit under the guide page's "Level 1" heading (alchemist, saved 2026-11-09), one per
+// block: its facts as printed. Extracted for ticket 121; `summary` is ours to write. See the README.
+[
+    (
+        key: "bombers-eye",
+        name: "Bomber's Eye",
+        school: Transmutation,
+        guide: "alchemist#bombers-eye-transmutation",
+        summary: "",
+        target: "Personal",
+        duration: "1 round / level",
+        saving_throw: "N/A",
+        spell_resistance: false,
+        descriptors: [],
+        casting_time: Standard,
+    ),
+    (
+        key: "targeted-bomb-admixture",
+        name: "Targeted Bomb Admixture",
+        school: Transmutation,
+        guide: "alchemist#targeted-bomb-admixture-transmutation",
+        summary: "",
+        target: "Personal",
+        duration: "1 round / level",
+        saving_throw: "N/A",
+        spell_resistance: false,
+        descriptors: [],
+        casting_time: Standard,
+    ),
+]

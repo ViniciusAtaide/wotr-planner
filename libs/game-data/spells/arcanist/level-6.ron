@@ -1,0 +1,17 @@
+// The spells whose blocks sit under the guide page's "Level 6" heading (arcanist, saved 2026-11-09), one per
+// block: its facts as printed. Extracted for ticket 121; `summary` is ours to write. See the README.
+[
+    (
+        key: "peer-into-spell-resistance",
+        name: "Peer Into Spell Resistance",
+        school: Divination,
+        guide: "arcanist#peer-into-spell-resistance-divination",
+        summary: "",
+        target: "One enemy creature within close range",
+        duration: "1 round",
+        saving_throw: "None",
+        spell_resistance: false,
+        descriptors: [MindAffecting],
+        casting_time: Standard,
+    ),
+]

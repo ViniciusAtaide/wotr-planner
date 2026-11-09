@@ -28,6 +28,8 @@ small hand-written example of the layout.
 | `mythic/abilities.ron` | `Vec<MythicAbility>` |
 | `mythic/feats.ron` | `Vec<MythicFeat>` |
 | `mythic/paths/<path>.ron` | one `MythicPath`: its rank table, picks and switch rule (what it keeps, drops and grants, the paths it's open from, the character level cap it sets) |
+| `spells/<page>/level-<n>.ron` | `Vec<Spell>`: the spells whose blocks sit under that guide page's "Level <n>" heading (`wizard`, `cleric` and `druid` for the three spell pages, else the class or path page), all read into one catalogue (ticket 121) |
+| `spells/lists.ron` | `Vec<SpellList>`: every spell list table, its owner, the classes that also use it and its entries by level (ticket 121) |
 
 Any other `.ron` file is an error; other files (like this README) are ignored. Order means nothing anywhere
 in the data: catalogs are sorted by key, class levels by level, mythic ranks by rank, and the children of
@@ -431,6 +433,66 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   Heft replaces Weapon Training and doesn't count as it, so what needs Weapon Training (Advanced Weapon Training,
   and in the game Gloves of Dueling) doesn't work for it. Its empty `(level: 5)` row takes the base row's away.
   Weapon Mastery at 20 stays, as the table lists it. `class_rules.rs` tests it.
+- Ticket 121 (option B, the user, 2026-11-09; stage 1, the foundation): the spell catalogue, reference data no Build
+  choice names. Extracted once from the saved pages (`wizard-spells`, `cleric-spells`, `druid-spells` and the class
+  and path pages) by a script kept outside the repo, then hand-fixed as below; the files are the master from here.
+  - **Spells:** one per block, a heading "Name (School)" and a table, in the file of the page and "Level <n>"
+    heading it sits under: 632 spells in 98 files (wizard 280, cleric 104, druid 53, angel 32, azata 26, lich 25,
+    aeon 21, demon 20, trickster 17, gold-dragon 11, bard 10, inquisitor 9, paladin 9, arcanist 7, ranger 4,
+    alchemist 2, witch 2). Each has its `key` (the name's slug), `name`, `school` (`None` for Dismiss Spell's
+    Universalist, which no Spell Focus takes), `guide` (`page#anchor` of the block), `summary: ""` (stage 2 writes
+    them), and the block's rows as printed: `components` (the material, when the block has the row), `target`,
+    `duration` (left out where the block has none), `saving_throw`, `spell_resistance` (✓ is `true`, N/A
+    `false`), `descriptors` (the subschool, Compulsion or Charmed, is among them; "-" is none) and
+    `casting_time` (`Standard`, `FullRound`, `Move`, `Swift`, `Free`; the guide's capitals vary). A spell has no
+    level of its own.
+  - **Lists:** 24, one per table of spells by level (`["Spell", "School"]`, the alchemist's `["Extract",
+    "School"]`), keyed by their owner: the wizard's (`wizard-spells`, "for Wizard and Sorcerer"), cleric's and
+    druid's pages; the bard, bloodrager, hunter, inquisitor, magus, paladin, ranger, shaman, warpriest and witch
+    (`<class>#<class>-spells`) and the alchemist's extracts; the Magic Deceiver's (`arcanist/magic-deceiver`);
+    and the Mythic spellbooks, levels 1 to 10 (aeon, azata, demon, gold-dragon, trickster). The Angel and the
+    Lich have two each: `angel` and `lich`, the path's own spellbook (the guide's "(Unmerged)" tables, levels
+    1–10), and `angel/merged` and `lich/merged`, the spells a merged spellbook adds at levels 3–10 (their pages:
+    "If you choose to merge spellbooks, the following spells are added"). `used_by` names the classes and
+    archetypes whose pages say they use the list: the sorcerer, the arcanist and the Eldritch Scoundrel the
+    wizard's, the oracle the cleric's, the skald the bard's, the Nature Mage the druid's and the Unlettered
+    Arcanist the witch's. An entry's `only` is the table's footnote: an archetype of the list's class ("Flame
+    Dancer only"; the druid's Aspect of the Stag, "only available through a Drovier's Communal Aspect") or a
+    Gold Dragon story branch (uncorrupted: `Story(Uncorrupted)`; corrupted: `Story(VowOfDahak)`; the two
+    footnotes sit under its level 7 table and number entries at every level). Left out, as they aren't Spell /
+    School tables: the shaman spirits' bonus spells, the oracle's bonus and additional spells and the Beast
+    Tamer's bonus spells.
+  - **Hand-fixes:** the witch's level 6 table is headed by an `<h5>` "Level 6", not an `<h4>`; its 19 entries are
+    level 6. Block headings: "Soothing Mud Conjuration)" is Soothing Mud (Conjuration); five Illusion schools
+    printed "(illusion)"; "Reviving Final Finale" is Reviving Finale, as the bard's table names it; "Embodiment of
+    Law" is Embodiment of Order, as the Aeon table names it (the guide links keep the blocks' anchors). Heaven's
+    Wing Strike has a block on the bard page and one on the wizard page, with the same facts: one spell, linked to
+    the wizard page's. Descriptors: Animate Dead, Lesser's "Summonig" is Summoning; Death Clutch's "Evil. Death"
+    is Evil and Death; Transformation and Walk through Space have no descriptors row (none). List names that
+    misspell or rename the block's spell: "Neutralise Poison" (twelve lists) is Neutralize Poison,
+    "Flamestrike" Flame Strike, "Unbeakable Heart" Unbreakable Heart (cleric); by the block each links to, the
+    Magic Deceiver's "Dispel Magic (Target)" and "Dispel Magic, Greater (Target)" are Dispel Magic and Dispel
+    Magic, Greater, the paladin's "Protection from Chaos / Evil" (and Communal) and the Demonslayer's
+    "Protection from Evil" are Protection from Alignment (and Communal), the Flamewarden's "Summon Small / Medium
+    / Large Fire Elemental" are Summon Small / Medium / Large Elemental, and the Trickster's "Summon <size> Beer
+    Elemental" (one "Lager") are Summon <size> Elemental (its note: beer elementals are water elementals). A
+    link that names another block than the table's name (the Sleep rows link to Hypnotism, Baleful Polymorph to
+    Vampiric Shadow Shield, Dismissal to Summon Monster III, Burst of Glory to Crusader's Edge, Inflict Serious
+    Wounds to its Mass version, the magus's Animal Aspect to Angelic Aspect) is read by the name. Three blocks
+    sit under a heading whose table omits them, and are on that list at that level: Rage (wizard 3), Winds of
+    Vengeance (wizard 9) and Thirsting Entanglement (druid 4). The tables' School column disagrees with the block
+    in places (Web: Conjuration in the magus's and witch's tables, Transmutation in its block); a spell's school
+    is its block's. The shaman's table lists Stoneskin at 4 and at 5, both kept as printed.
+  - `GameData::check` refuses a duplicate spell or list key, a list keyed outside its owner, a list naming a
+    spell, class, archetype or path the data doesn't have, an entry above level 9 (10 in a Mythic spellbook), an
+    entry `only` for an archetype of no class on the list (or a story branch off a path's list) and a spell on no
+    list. `tests/game_data/spells.rs` keeps the counts per page and list, Hold Monster's facts and levels, each
+    spell's file against its list and level, and the hand-fixes.
+  - A data folder without `spells/` (data from before this ticket, which `scripts/proof.sh data` reads as its side
+    A) has no spells and no lists; once the folder exists, `spells/lists.ron` is required.
+  - The spells and lists stay out of the game data JSON the browser gets (`#[serde(skip_serializing)]` on
+    `GameData`): the browser has no spell UI and its rules never read them, and the MCP server reads the data
+    files.
 - A path's switch rule: `switch: (from: ["aeon", "azata"], kept_through_rank: 7, path_kept_through_rank: 7,
   dropped_features: [...], dropped_selections: [...], features: [...], further_ascensions: true, level_cap:
   Some(40))`. The general picks (mythic abilities and feats) of MR 1 to `kept_through_rank` stay, and the old

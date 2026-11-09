@@ -1,0 +1,30 @@
+// The spells whose blocks sit under the guide page's "Level 8" heading (lich, saved 2026-11-09), one per
+// block: its facts as printed. Extracted for ticket 121; `summary` is ours to write. See the README.
+[
+    (
+        key: "domain-of-the-hungry-flesh",
+        name: "Domain of the Hungry Flesh",
+        school: Conjuration,
+        guide: "lich#domain-of-the-hungry-flesh-conjuration",
+        summary: "",
+        target: "All creatures with a 20' burst centred on target point within medium range",
+        duration: "1 round level",
+        saving_throw: "None",
+        spell_resistance: false,
+        descriptors: [],
+        casting_time: Standard,
+    ),
+    (
+        key: "embrace-of-death",
+        name: "Embrace of Death",
+        school: Necromancy,
+        guide: "lich#embrace-of-death-necromancy",
+        summary: "",
+        target: "One creature within medium range",
+        duration: "1 round / level",
+        saving_throw: "Will partial",
+        spell_resistance: false,
+        descriptors: [],
+        casting_time: Standard,
+    ),
+]

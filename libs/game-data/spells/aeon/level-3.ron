@@ -1,0 +1,43 @@
+// The spells whose blocks sit under the guide page's "Level 3" heading (aeon, saved 2026-11-09), one per
+// block: its facts as printed. Extracted for ticket 121; `summary` is ours to write. See the README.
+[
+    (
+        key: "edict-of-nonresistance",
+        name: "Edict of Nonresistance",
+        school: Enchantment,
+        guide: "aeon#edict-of-nonresistance-enchantment",
+        summary: "",
+        target: "One enemy creature within close range",
+        duration: "1 round / caster level",
+        saving_throw: "Will negates",
+        spell_resistance: false,
+        descriptors: [],
+        casting_time: Swift,
+    ),
+    (
+        key: "relativity",
+        name: "Relativity",
+        school: Transmutation,
+        guide: "aeon#relativity-transmutation",
+        summary: "",
+        target: "All creatures within a 30' burst centred on target creature within medium range",
+        duration: "1 round / level",
+        saving_throw: "Will negates",
+        spell_resistance: false,
+        descriptors: [],
+        casting_time: Standard,
+    ),
+    (
+        key: "starlight",
+        name: "Starlight",
+        school: Abjuration,
+        guide: "aeon#starlight-abjuration",
+        summary: "",
+        target: "Personal",
+        duration: "1 round / level",
+        saving_throw: "N/A",
+        spell_resistance: false,
+        descriptors: [],
+        casting_time: Standard,
+    ),
+]

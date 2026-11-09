@@ -100,3 +100,11 @@ text_key!(
     /// `cayden-cailean`: a deity of the guide's table.
     DeityKey
 );
+text_key!(
+    /// `hold-monster`: a spell of the catalogue (ticket 121).
+    SpellKey
+);
+text_key!(
+    /// `wizard`, `angel/merged`: a spell list, keyed by its owner.
+    SpellListKey
+);

@@ -1,0 +1,30 @@
+// The spells whose blocks sit under the guide page's "Level 8" heading (druid-spells, saved 2026-11-09), one per
+// block: its facts as printed. Extracted for ticket 121; `summary` is ours to write. See the README.
+[
+    (
+        key: "animal-shapes",
+        name: "Animal Shapes",
+        school: Transmutation,
+        guide: "druid-spells#animal-shapes-transmutation",
+        summary: "",
+        target: "All allies within 10' of target creature within close range",
+        duration: "1 hour / level",
+        saving_throw: "N/A",
+        spell_resistance: false,
+        descriptors: [Polymorph],
+        casting_time: FullRound,
+    ),
+    (
+        key: "summon-natures-ally-viii",
+        name: "Summon Nature's Ally VIII",
+        school: Conjuration,
+        guide: "druid-spells#summon-natures-ally-viii-conjuration",
+        summary: "",
+        target: "Target point within close range",
+        duration: "1 round / level",
+        saving_throw: "N/A",
+        spell_resistance: false,
+        descriptors: [Summoning],
+        casting_time: FullRound,
+    ),
+]

@@ -1,0 +1,42 @@
+// The spells whose blocks sit under the guide page's "Level 7" heading (trickster, saved 2026-11-09), one per
+// block: its facts as printed. Extracted for ticket 121; `summary` is ours to write. See the README.
+[
+    (
+        key: "ray-of-halberds",
+        name: "Ray of Halberds",
+        school: Conjuration,
+        guide: "trickster#ray-of-halberds-conjuration",
+        summary: "",
+        target: "One enemy creature within close range",
+        saving_throw: "None",
+        spell_resistance: false,
+        descriptors: [],
+        casting_time: Standard,
+    ),
+    (
+        key: "summon-hog-of-desolation",
+        name: "Summon Hog of Desolation",
+        school: Conjuration,
+        guide: "trickster#summon-hog-of-desolation-conjuration",
+        summary: "",
+        target: "Target point within close range",
+        duration: "1 round / level",
+        saving_throw: "N/A",
+        spell_resistance: false,
+        descriptors: [Summoning],
+        casting_time: Standard,
+    ),
+    (
+        key: "trick-fate",
+        name: "Trick Fate",
+        school: Divination,
+        guide: "trickster#trick-fate-divination",
+        summary: "",
+        target: "One friendly creature within touch range",
+        duration: "3 rounds",
+        saving_throw: "N/A",
+        spell_resistance: false,
+        descriptors: [],
+        casting_time: Standard,
+    ),
+]

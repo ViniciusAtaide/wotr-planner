@@ -1,0 +1,38 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT spell_key, descriptor FROM spell_descriptor",
+  "describe": {
+    "columns": [
+      {
+        "name": "spell_key",
+        "ordinal": 0,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "spell_descriptor",
+            "name": "spell_key"
+          }
+        }
+      },
+      {
+        "name": "descriptor",
+        "ordinal": 1,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "spell_descriptor",
+            "name": "descriptor"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "98e85dbd1ecbc68d70c8a1991e9a76a4c2d981389a34d62e087abb3c645b87d9"
+}

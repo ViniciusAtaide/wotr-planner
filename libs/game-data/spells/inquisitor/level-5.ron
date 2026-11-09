@@ -1,0 +1,30 @@
+// The spells whose blocks sit under the guide page's "Level 5" heading (inquisitor, saved 2026-11-09), one per
+// block: its facts as printed. Extracted for ticket 121; `summary` is ours to write. See the README.
+[
+    (
+        key: "castigate-mass",
+        name: "Castigate, Mass",
+        school: Enchantment,
+        guide: "inquisitor#castigate-mass-enchantment",
+        summary: "",
+        target: "One enemy creature within medium range, 30' burst",
+        duration: "1 round / level",
+        saving_throw: "Will partial",
+        spell_resistance: true,
+        descriptors: [MindAffecting, Fear, Compulsion, Emotion, NegativeEmotion],
+        casting_time: Standard,
+    ),
+    (
+        key: "resounding-blow",
+        name: "Resounding Blow",
+        school: Evocation,
+        guide: "inquisitor#resounding-blow-evocation",
+        summary: "",
+        target: "Personal",
+        duration: "1 round / level",
+        saving_throw: "Fortitude partial",
+        spell_resistance: false,
+        descriptors: [Sonic],
+        casting_time: Standard,
+    ),
+]

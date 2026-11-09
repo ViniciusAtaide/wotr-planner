@@ -1,0 +1,30 @@
+// The spells whose blocks sit under the guide page's "Level 6" heading (druid-spells, saved 2026-11-09), one per
+// block: its facts as printed. Extracted for ticket 121; `summary` is ours to write. See the README.
+[
+    (
+        key: "primal-regression",
+        name: "Primal Regression",
+        school: Enchantment,
+        guide: "druid-spells#primal-regression-enchantment",
+        summary: "",
+        target: "Target creature within close range, 30' burst",
+        duration: "1 minute / level",
+        saving_throw: "Will negates",
+        spell_resistance: true,
+        descriptors: [MindAffecting, Compulsion],
+        casting_time: Standard,
+    ),
+    (
+        key: "summon-natures-ally-vi",
+        name: "Summon Nature's Ally VI",
+        school: Conjuration,
+        guide: "druid-spells#summon-natures-ally-vi-conjuration",
+        summary: "",
+        target: "Target point within close range",
+        duration: "1 round / level",
+        saving_throw: "N/A",
+        spell_resistance: false,
+        descriptors: [Summoning],
+        casting_time: FullRound,
+    ),
+]

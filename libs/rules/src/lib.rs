@@ -9,6 +9,7 @@ mod game_data;
 mod keys;
 mod parameter;
 mod prerequisite;
+mod spells;
 mod state;
 #[cfg(feature = "test-world")]
 pub mod test_world;
@@ -22,4 +23,5 @@ pub use game_data::*;
 pub use keys::*;
 pub use parameter::*;
 pub use prerequisite::{Prerequisite, Story};
+pub use spells::*;
 pub use state::*;

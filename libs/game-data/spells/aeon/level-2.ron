@@ -1,0 +1,43 @@
+// The spells whose blocks sit under the guide page's "Level 2" heading (aeon, saved 2026-11-09), one per
+// block: its facts as printed. Extracted for ticket 121; `summary` is ours to write. See the README.
+[
+    (
+        key: "crystal-mind",
+        name: "Crystal Mind",
+        school: Abjuration,
+        guide: "aeon#crystal-mind-abjuration",
+        summary: "",
+        target: "One friendly creature within close range",
+        duration: "1 round / rank",
+        saving_throw: "N/A",
+        spell_resistance: false,
+        descriptors: [],
+        casting_time: Standard,
+    ),
+    (
+        key: "edict-of-retaliation",
+        name: "Edict of Retaliation",
+        school: Abjuration,
+        guide: "aeon#edict-of-retaliation-abjuration",
+        summary: "",
+        target: "One enemy creature within close range",
+        duration: "1 round / 4 caster levels",
+        saving_throw: "None",
+        spell_resistance: false,
+        descriptors: [],
+        casting_time: Swift,
+    ),
+    (
+        key: "equal-force",
+        name: "Equal Force",
+        school: Abjuration,
+        guide: "aeon#equal-force-abjuration",
+        summary: "",
+        target: "One friendly creature within close range",
+        duration: "10 minutes / level",
+        saving_throw: "N/A",
+        spell_resistance: false,
+        descriptors: [],
+        casting_time: Standard,
+    ),
+]
