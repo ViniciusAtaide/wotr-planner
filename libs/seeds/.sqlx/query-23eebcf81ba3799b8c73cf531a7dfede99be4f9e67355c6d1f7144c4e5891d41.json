@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO weapon (key, name, proficiency, damage_count, damage_sides, threat, multiplier,\n                handedness, ranged, finesse)\n            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 10
+    },
+    "nullable": []
+  },
+  "hash": "23eebcf81ba3799b8c73cf531a7dfede99be4f9e67355c6d1f7144c4e5891d41"
+}

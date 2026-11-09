@@ -7,19 +7,46 @@ use crate::*;
 use crate::test_world::builds::{class, feat, feature, option, skill, skill_value, weapon};
 use crate::test_world::world::guide;
 
-/// Five weapons, one per kind of entry: simple, martial, two exotic, and one no proficiency list names.
+/// Five weapons, one per kind of entry: simple, martial, two exotic, and one no proficiency list names. Each has the
+/// core rules' stats, the dagger and dueling sword finessable.
 pub(super) fn weapons() -> Vec<Weapon> {
-    let weapon = |key: &str, proficiency| Weapon {
+    let weapon = |key: &str, proficiency, stats| Weapon {
         key: WeaponKey::new(key),
         name: key.into(),
         proficiency,
+        stats: Some(stats),
     };
+    let stats = |sides, threat, handedness, finesse| WeaponStats {
+        damage: Dice { count: 1, sides },
+        threat,
+        multiplier: 2,
+        handedness,
+        ranged: None,
+        finesse,
+    };
+    use Handedness::*;
     vec![
-        weapon("dagger", Some(WeaponProficiency::Simple)),
-        weapon("longsword", Some(WeaponProficiency::Martial)),
-        weapon("dueling-sword", Some(WeaponProficiency::Exotic)),
-        weapon("bastard-sword", Some(WeaponProficiency::Exotic)),
-        weapon("unarmed-strike", None),
+        weapon(
+            "dagger",
+            Some(WeaponProficiency::Simple),
+            stats(4, 19, Light, true),
+        ),
+        weapon(
+            "longsword",
+            Some(WeaponProficiency::Martial),
+            stats(8, 19, OneHanded, false),
+        ),
+        weapon(
+            "dueling-sword",
+            Some(WeaponProficiency::Exotic),
+            stats(8, 19, OneHanded, true),
+        ),
+        weapon(
+            "bastard-sword",
+            Some(WeaponProficiency::Exotic),
+            stats(10, 19, OneHanded, false),
+        ),
+        weapon("unarmed-strike", None, stats(3, 20, Light, false)),
     ]
 }
 

@@ -263,6 +263,11 @@ pub enum DataIssue {
     DeityLimitWithoutDomain(SelectionOptionKey),
     /// A feature granting the deity's favoured weapons that no class or archetype row grants: it would never apply.
     FavouredWeaponsNotGranted,
+    /// A weapon's stats no weapon has: dice other than 1–4 dice of 2–12 sides, a threat range starting below 15 or
+    /// above 20, or a multiplier outside ×2–×4.
+    WeaponStatsOutOfRange,
+    /// A ranged weapon on the Weapon Finesse list, which is for melee weapons.
+    FinesseOnRangedWeapon,
 }
 
 impl fmt::Display for DataProblem {
@@ -420,6 +425,12 @@ impl fmt::Display for DataProblem {
             DataIssue::FavouredWeaponsNotGranted => f.write_str(
                 "grants the deity's favoured weapons, but no class or archetype row grants it",
             ),
+            DataIssue::WeaponStatsOutOfRange => f.write_str(
+                "its stats are out of range: 1–4 dice of 2–12 sides, a threat range from 15–20 up, ×2–×4",
+            ),
+            DataIssue::FinesseOnRangedWeapon => {
+                f.write_str("a ranged weapon can't be on the Weapon Finesse list")
+            }
             DataIssue::SharesOwnOption(option) => {
                 write!(
                     f,
@@ -473,7 +484,20 @@ impl GameData {
             check.key(&DataAt::Skill(skill.key.clone()));
         }
         for weapon in &self.weapons {
-            check.key(&DataAt::Weapon(weapon.key.clone()));
+            let at = DataAt::Weapon(weapon.key.clone());
+            check.key(&at);
+            if let Some(stats) = &weapon.stats {
+                if !(1..=4).contains(&stats.damage.count)
+                    || !(2..=12).contains(&stats.damage.sides)
+                    || !(15..=20).contains(&stats.threat)
+                    || !(2..=4).contains(&stats.multiplier)
+                {
+                    check.problem(&at, DataIssue::WeaponStatsOutOfRange);
+                }
+                if stats.finesse && stats.ranged.is_some() {
+                    check.problem(&at, DataIssue::FinesseOnRangedWeapon);
+                }
+            }
         }
         for feat in &self.feats {
             let at = DataAt::Feat(feat.key.clone());

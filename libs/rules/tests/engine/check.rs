@@ -1740,3 +1740,33 @@ fn an_unknown_key_reads_as_a_sentence_naming_both_kinds() {
         "class fighter: names MR 7, which the progression doesn't have"
     );
 }
+
+#[test]
+fn a_weapons_stats_are_dice_a_threat_range_and_multiplier_a_weapon_can_have() {
+    fn stats<'a>(data: &'a mut GameData, key: &str) -> &'a mut rules::WeaponStats {
+        data.weapons
+            .iter_mut()
+            .find(|weapon| weapon.key.as_str() == key)
+            .unwrap()
+            .stats
+            .as_mut()
+            .unwrap()
+    }
+    let mut data = world();
+    stats(&mut data, "dagger").damage.count = 0;
+    stats(&mut data, "longsword").threat = 21;
+    stats(&mut data, "bastard-sword").multiplier = 1;
+    // A thrown weapon on the Weapon Finesse list.
+    stats(&mut data, "dueling-sword").ranged = Some(rules::Ranged::Thrown);
+    let at = |key: &str| DataAt::Weapon(rules::WeaponKey::new(key));
+
+    assert_eq!(
+        sorted(issues(&data)),
+        [
+            (at("bastard-sword"), DataIssue::WeaponStatsOutOfRange),
+            (at("dagger"), DataIssue::WeaponStatsOutOfRange),
+            (at("dueling-sword"), DataIssue::FinesseOnRangedWeapon),
+            (at("longsword"), DataIssue::WeaponStatsOutOfRange),
+        ]
+    );
+}

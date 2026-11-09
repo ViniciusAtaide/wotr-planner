@@ -541,6 +541,61 @@ pub struct Weapon {
     /// The proficiency feat whose list names it; `None` for what no proficiency list names (unarmed strike, rays).
     #[serde(default)]
     pub proficiency: Option<WeaponProficiency>,
+    /// What it deals as a weapon in hand, for the attack line ([`Engine::attack_line`](crate::Engine::attack_line));
+    /// `None` for what has no dice of its own: what deals a spell's or a class feature's damage (rays, touch
+    /// attacks, Kinetic Blast, Bomb) and the natural attacks, whose dice depend on what grants them.
+    #[serde(default)]
+    pub stats: Option<WeaponStats>,
+}
+
+/// A weapon's base stats, as a Medium character wields it: no enhancement, material or size.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct WeaponStats {
+    /// Its damage dice (a double weapon's: the first head's).
+    pub damage: Dice,
+    /// The lowest d20 roll that threatens a critical hit: 19 for 19–20, 20 for a weapon that threatens on a 20 only.
+    pub threat: u8,
+    /// The critical multiplier: 2 for ×2.
+    pub multiplier: u8,
+    pub handedness: Handedness,
+    /// `Some` for a ranged weapon: thrown, or one that shoots.
+    #[serde(default)]
+    pub ranged: Option<Ranged>,
+    /// Whether Weapon Finesse applies to it: the guide's list under Weapon Finesse.
+    #[serde(default)]
+    pub finesse: bool,
+}
+
+/// Dice to roll: `count` dice of `sides` sides (2d6).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Dice {
+    pub count: u8,
+    pub sides: u8,
+}
+
+impl std::fmt::Display for Dice {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}d{}", self.count, self.sides)
+    }
+}
+
+/// How many hands a weapon takes: a two-handed melee weapon adds 1½ times the Strength bonus to damage.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+pub enum Handedness {
+    Light,
+    OneHanded,
+    TwoHanded,
+}
+
+/// What kind of ranged weapon it is.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+pub enum Ranged {
+    /// Thrown (a javelin): the Strength modifier adds to its damage.
+    Thrown,
+    /// It shoots (a bow, a crossbow, a sling staff): no Strength to damage.
+    Projectile,
 }
 
 /// The guide's three weapon proficiency lists.

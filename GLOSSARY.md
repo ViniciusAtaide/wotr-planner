@@ -84,6 +84,10 @@ _Avoid_: Caster level (a different thing), spellcasting level
 Progress along a mythic path, 1–10, separate from character level. Two ranks come at character level 17, so a prerequisite on the rank ("Mythic Rank: 9") checks the rank, not the level. After a Legend switch it stays 3.
 _Avoid_: Mythic level, tier
 
+**Attack line**:
+One base weapon's full attack at a point of a Build, computed by the rules: each iterative attack's bonus (BAB, the character's own Strength or Dexterity, Weapon Focus and Greater Weapon Focus in it), the damage per hit (its dice, Strength, 1½ times two-handed, Weapon Specialization and Greater Weapon Specialization), the critical range (doubled by Improved Critical in it) and multiplier, and Power Attack's trade beside it. Unconditional numbers only: it leaves out rage, stances, mythic feats, class features, gear and buffs. The weapon is chosen beside the Build, not in it.
+_Avoid_: Damage estimate, DPR
+
 ### Classes
 
 **Progression**:

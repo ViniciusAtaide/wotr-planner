@@ -245,6 +245,10 @@ pub struct SheetArgs {
     /// walk of the Build per choice.
     #[serde(default)]
     pub removable: bool,
+    /// Also give each level the attack line of this base weapon (a weapon key: `greatsword`), from the planner's
+    /// engine. Not part of the Build.
+    #[serde(default)]
+    pub weapon: Option<String>,
 }
 
 /// A value for a choice, as `options` gives it and `choose` takes it:
@@ -375,6 +379,9 @@ pub struct SheetResult {
     /// advanced classes, and the last level, `level.N`, included; a level's class never: `choose` changes it).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub removable: Option<Vec<String>>,
+    /// With a `weapon`: what no attack line counts.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub attack_leaves_out: Option<Vec<String>>,
 }
 
 /// One character level of the sheet.
@@ -405,6 +412,9 @@ pub struct LevelLine {
     /// The Mythic ranks reached at this level.
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub mythic_ranks: Vec<u8>,
+    /// With a `weapon`: its attack line at the end of the level.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub attack: Option<crate::attack::AttackLineShape>,
     /// The level's choices by address: class, ability increase (every 4th level), ranks added, then its slots in the
     /// order they're checked.
     pub picks: Vec<PickLine>,
@@ -605,6 +615,9 @@ pub struct CompareArgs {
     /// 2 to 4 Build codes (links work too), for example two branches of one Build. Each is opened checked, and every
     /// per-Build list in the result follows this order.
     pub builds: Vec<String>,
+    /// Also give each Build's summary the attack line of this base weapon (a weapon key: `greatsword`).
+    #[serde(default)]
+    pub weapon: Option<String>,
 }
 
 /// `compare`'s result: each Build's summary, then only what differs between them, all read from the planner's
@@ -621,6 +634,9 @@ pub struct CompareResult {
     pub ranks: Vec<RankDiff>,
     /// By Mythic rank: the path features each Build's sheet lists at that rank and some other Build's doesn't.
     pub path_features: Vec<FeaturesDiff>,
+    /// With a `weapon`: what no attack line counts.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub attack_leaves_out: Option<Vec<String>>,
 }
 
 /// One Build's sheet in short, at its last level.
@@ -658,6 +674,9 @@ pub struct BuildSummary {
     pub switch: Option<Named>,
     /// The character level cap: 20, or 40 after a Legend switch.
     pub level_cap: u8,
+    /// With a `weapon`: its attack line at the last level.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub attack: Option<crate::attack::AttackLineShape>,
 }
 
 /// One class of a Build.

@@ -2,7 +2,7 @@
 //! ranks and a badge for the Mythic ranks reached there; then the summary of where the Build ends.
 
 use leptos::prelude::*;
-use rules::{AbilityScores, Build, Choice, Engine, LevelSheet, Sheet, Slot};
+use rules::{AbilityScores, Build, Choice, Engine, LevelSheet, Sheet, Slot, WeaponKey};
 
 use crate::icons::feat_icon;
 use crate::planner::{Tab, Target, use_planner};
@@ -274,7 +274,99 @@ fn Summary(sheet: std::sync::Arc<Sheet>) -> impl IntoView {
                         </p>
                     }
                 })}
+            <AttackBlock sheet=sheet.clone()/>
         </section>
     }
     .into_any()
+}
+
+/// The attack line at the Build's last level, for the weapon chosen beside it (by default the Build's first Weapon
+/// Focus): the engine's numbers, what they count and what they leave out.
+#[component]
+fn AttackBlock(sheet: std::sync::Arc<Sheet>) -> impl IntoView {
+    let planner = use_planner();
+    let engine = planner.engine();
+    let default = engine.default_attack_weapon(&sheet);
+    let weapon = Memo::new(move |_| {
+        planner
+            .attack_weapon
+            .get()
+            .unwrap_or_else(|| default.clone())
+    });
+    let options = engine
+        .attack_weapons()
+        .into_iter()
+        .map(|option| {
+            let key = option.key.as_str().to_owned();
+            let selected = {
+                let key = key.clone();
+                move || {
+                    weapon
+                        .with(|weapon| weapon.as_ref().is_some_and(|weapon| weapon.as_str() == key))
+                }
+            };
+            view! { <option value=key selected=selected>{option.name.clone()}</option> }
+        })
+        .collect_view();
+    let line = {
+        let sheet = sheet.clone();
+        move || {
+            let key = weapon.get()?;
+            let state = &sheet.levels.last()?.state;
+            let line = engine.attack_line(state, &key)?;
+            let power_attack = line.power_attack.map(|trade| {
+                format!(
+                    "Power Attack: -{} to attack, +{} damage",
+                    trade.attack_penalty, trade.damage_bonus
+                )
+            });
+            let counts: Vec<String> = line
+                .parts
+                .iter()
+                .map(|part| match (part.attack, part.damage) {
+                    (attack, 0) => format!("{} {attack:+} attack", part.name),
+                    (0, damage) => format!("{} {damage:+} damage", part.name),
+                    (attack, damage) => {
+                        format!("{} {attack:+} attack, {damage:+} damage", part.name)
+                    }
+                })
+                .collect();
+            let leaves_out = line
+                .leaves_out
+                .iter()
+                .map(|item| view! { <li>{*item}</li> })
+                .collect_view();
+            Some(view! {
+                <p class="summary-numbers attack-numbers">
+                    <strong>{line.attacks_text()}</strong>
+                    {format!(" · {} · {}", line.damage_text(), line.critical_text())}
+                </p>
+                {power_attack.map(|text| view! { <p class="summary-note">{text}</p> })}
+                <p class="summary-note">{format!("Counts: BAB; {}", counts.join("; "))}</p>
+                <details class="attack-leaves-out">
+                    <summary>"Not counted"</summary>
+                    <ul>{leaves_out}</ul>
+                </details>
+            })
+        }
+    };
+    view! {
+        <div class="attack">
+            <label class="attack-weapon">
+                <span class="attack-label">"Attack with"</span>
+                <select on:change=move |event| {
+                    let value = event_target_value(&event);
+                    planner
+                        .attack_weapon
+                        .set(Some((!value.is_empty()).then(|| WeaponKey::new(&value))));
+                }>
+                    <option value="" selected=move || weapon.with(Option::is_none)>
+                        "No weapon"
+                    </option>
+                    {options}
+                </select>
+            </label>
+            {line}
+        </div>
+    }
 }

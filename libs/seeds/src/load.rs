@@ -11,22 +11,23 @@ use std::hash::Hash;
 
 use rules::{
     AbilityBonus, AbilityModifier, Archetype, ArchetypeKey, ArchetypeLevelRow, Background,
-    BackgroundKey, Class, ClassKey, ClassLevelRow, CountsAs, CountsToward, Deity, DeityKey, Feat,
-    FeatKey, FeatList, FeatListKey, FeatSlot, FeatValue, Feature, FeatureKey, FeatureSelection,
-    FeatureSelectionKey, GameData, GuideRef, MythicAbility, MythicAbilityKey, MythicAscension,
-    MythicFeat, MythicFeatKey, MythicPath, MythicPathKey, MythicRankRow, OptionLevelRow, OptionRow,
-    PathSwitch, Progression, Race, RaceKey, SaveException, SelectionOption, SelectionOptionKey,
-    Skill, SkillKey, SpellLevels, Subrace, SubraceKey, Weapon, WeaponKey,
+    BackgroundKey, Class, ClassKey, ClassLevelRow, CountsAs, CountsToward, Deity, DeityKey, Dice,
+    Feat, FeatKey, FeatList, FeatListKey, FeatSlot, FeatValue, Feature, FeatureKey,
+    FeatureSelection, FeatureSelectionKey, GameData, GuideRef, MythicAbility, MythicAbilityKey,
+    MythicAscension, MythicFeat, MythicFeatKey, MythicPath, MythicPathKey, MythicRankRow,
+    OptionLevelRow, OptionRow, PathSwitch, Progression, Race, RaceKey, SaveException,
+    SelectionOption, SelectionOptionKey, Skill, SkillKey, SpellLevels, Subrace, SubraceKey, Weapon,
+    WeaponKey, WeaponStats,
 };
 use sqlx::SqliteConnection;
 
 use crate::columns::{
     AbilityBonusKind, FeatSlotKind, ability_bonus_kind_from, ability_from, advancement_from,
     alignment_from, bab_progression_from, background_group_from, corrupt, deity_domains_from,
-    feat_category_from, feat_slot_kind_from, level_from_from, mythic_ability_group_from,
-    mythic_extra_pick_from, mythic_feat_group_from, option_group_from, parameter_kind_from,
-    repeat_from, save_from, save_progression_from, to_i8, to_u8, value_from,
-    weapon_proficiency_from,
+    feat_category_from, feat_slot_kind_from, handedness_from, level_from_from,
+    mythic_ability_group_from, mythic_extra_pick_from, mythic_feat_group_from, option_group_from,
+    parameter_kind_from, ranged_from, repeat_from, save_from, save_progression_from, to_i8, to_u8,
+    value_from, weapon_proficiency_from,
 };
 use crate::prerequisites::Trees;
 use crate::{Database, Error};
@@ -205,22 +206,51 @@ async fn load_mythic_ascensions(
 }
 
 async fn load_weapons(conn: &mut SqliteConnection) -> Result<Vec<Weapon>, sqlx::Error> {
-    sqlx::query!("SELECT key, name, proficiency FROM weapon ORDER BY key")
-        .fetch_all(&mut *conn)
-        .await?
-        .into_iter()
-        .map(|row| {
-            Ok(Weapon {
-                key: WeaponKey(row.key),
-                name: row.name,
-                proficiency: row
-                    .proficiency
-                    .as_deref()
-                    .map(weapon_proficiency_from)
-                    .transpose()?,
-            })
+    sqlx::query!(
+        "SELECT key, name, proficiency, damage_count, damage_sides, threat, multiplier, handedness, ranged,
+            finesse AS \"finesse: bool\"
+        FROM weapon ORDER BY key"
+    )
+    .fetch_all(&mut *conn)
+    .await?
+    .into_iter()
+    .map(|row| {
+        // The migration keeps the stats all set or all NULL.
+        let stats = match (
+            row.damage_count,
+            row.damage_sides,
+            row.threat,
+            row.multiplier,
+            row.handedness,
+            row.finesse,
+        ) {
+            (Some(count), Some(sides), Some(threat), Some(multiplier), Some(handedness), Some(finesse)) => {
+                Some(WeaponStats {
+                    damage: Dice {
+                        count: to_u8(count, "weapon.damage_count")?,
+                        sides: to_u8(sides, "weapon.damage_sides")?,
+                    },
+                    threat: to_u8(threat, "weapon.threat")?,
+                    multiplier: to_u8(multiplier, "weapon.multiplier")?,
+                    handedness: handedness_from(&handedness)?,
+                    ranged: row.ranged.as_deref().map(ranged_from).transpose()?,
+                    finesse,
+                })
+            }
+            _ => None,
+        };
+        Ok(Weapon {
+            key: WeaponKey(row.key),
+            name: row.name,
+            proficiency: row
+                .proficiency
+                .as_deref()
+                .map(weapon_proficiency_from)
+                .transpose()?,
+            stats,
         })
-        .collect()
+    })
+    .collect()
 }
 
 async fn load_skills(conn: &mut SqliteConnection) -> Result<Vec<Skill>, sqlx::Error> {
