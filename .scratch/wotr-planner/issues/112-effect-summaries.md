@@ -41,3 +41,7 @@ The map's Notes allow this: "a short summary in our own words and a link to the 
 ## Done when
 
 Every item in the finished stages has a summary in our own words. The real-data test passes. `options` lines and `describe` show the summary, and so does the web app's picker. `scripts/check.sh` passes.
+
+## Progress log
+
+- 2026-11-08 (MCP part, scope item 3): `search` matches carry `summary` when it isn't empty (a background's: its note). `describe` gives it for the item itself (moved from `Item` into `Hit`, so its JSON is unchanged) and for each feature and Feature selection option it lists (`Summarised {key, name, summary?}`, features from a lookup the `Planner` builds over class, archetype and path features), and for each Feature selection it lists. `options` lines carry it too: a slot's from the engine's `SlotEntry::summary`, a class's or archetype's, a race's or subrace's, a background's note and a path's from the data. Tested on the test world given summaries inside the test (`tests/server/summaries.rs`, 3 tests; `rules` unchanged); a smoke test on real data shows the one summary filled so far (the Thassilonian Specialist's school selection) in `describe`. `SQLX_OFFLINE=true scripts/check.sh`: ALL-OK. 86 server tests pass. The data stages are left to their own work.

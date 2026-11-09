@@ -118,6 +118,10 @@ pub struct Hit {
     pub key: String,
     /// The name the planner shows.
     pub name: String,
+    /// A short summary in the planner's own words, when the data has one (a background's: its note). Left out when
+    /// empty.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub summary: Option<String>,
     /// What it belongs to: an archetype's class, an option's Feature selection (keys).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub parent: Option<String>,
@@ -145,9 +149,6 @@ pub struct DescribeArgs {
 pub struct Item {
     #[serde(flatten)]
     pub hit: Hit,
-    /// A short summary in the planner's own words, when the data has one (it rarely does).
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub summary: Option<String>,
     /// A parameterised feat's or option's value: "weapon", "skill", "school", …
     #[serde(skip_serializing_if = "Option::is_none")]
     pub taken_for: Option<String>,
@@ -166,7 +167,7 @@ pub struct Item {
     pub selections: Option<Vec<Selection>>,
     /// The features a mythic ability grants while held.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub features: Option<Vec<Named>>,
+    pub features: Option<Vec<Summarised>>,
     /// The feats a background grants.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub feats: Option<Vec<Named>>,
@@ -188,6 +189,16 @@ pub struct Named {
     pub name: String,
 }
 
+/// A feature or selection option as `describe` lists it: by key and name, with its summary when the data has one.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, JsonSchema)]
+pub struct Summarised {
+    pub key: String,
+    pub name: String,
+    /// A short summary in the planner's own words; left out when the data has none.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub summary: Option<String>,
+}
+
 /// What one class level (or an option's level) gives.
 #[derive(Debug, Serialize, JsonSchema)]
 pub struct LevelRow {
@@ -207,7 +218,7 @@ pub struct LevelRow {
     /// A prestige class level that advances another class's spellcasting: "arcane", "divine".
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub advances: Vec<String>,
-    pub features: Vec<Named>,
+    pub features: Vec<Summarised>,
     /// Feats granted outright (a parameterised one named with its value).
     pub feats: Vec<Named>,
     /// Feat slots the level opens, by what they take ("Bonus feat", "Combat feat", a list's name).
@@ -226,7 +237,7 @@ pub struct SpellLevels {
 #[derive(Debug, Serialize, JsonSchema)]
 pub struct RankRow {
     pub rank: u8,
-    pub features: Vec<Named>,
+    pub features: Vec<Summarised>,
     pub feat_slots: Vec<String>,
     pub selections: Vec<Named>,
 }
@@ -236,7 +247,10 @@ pub struct RankRow {
 pub struct Selection {
     pub key: String,
     pub name: String,
-    pub options: Vec<Named>,
+    /// A short summary in the planner's own words; left out when the data has none.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub summary: Option<String>,
+    pub options: Vec<Summarised>,
 }
 
 // ---- Builds ------------------------------------------------------------------------------------------------------
@@ -550,6 +564,9 @@ pub struct OptionLine {
     pub value: ChoiceValue,
     /// As the planner names it.
     pub name: String,
+    /// A short summary in the planner's own words (a background's: its note); left out when the data has none.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub summary: Option<String>,
     pub status: OptionStatus,
     /// The filter group it's under: a feat's category, an option's Feature selection, "Base class", …
     #[serde(skip_serializing_if = "Option::is_none")]

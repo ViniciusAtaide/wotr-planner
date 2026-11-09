@@ -8,7 +8,9 @@ use crate::address::{Address, NotAnAddress};
 use crate::code::{envelope, open};
 use crate::error::ToolError;
 use crate::planner::Planner;
-use crate::shapes::{ChoiceValue, Open, OptionLine, OptionStatus, OptionsArgs, OptionsResult};
+use crate::shapes::{
+    ChoiceValue, Kind, Open, OptionLine, OptionStatus, OptionsArgs, OptionsResult,
+};
 use crate::values::{
     ability_value, alignment_key, class_name, class_value, faith_key, pick_value, race_value,
 };
@@ -28,6 +30,9 @@ pub(crate) struct Offer {
     pub edit: Option<Edit>,
     /// The filter chip it's filed under: a feat's category, an option's selection, "Base class", …
     pub category: Option<String>,
+    /// A slot entry's summary, from the engine's picker; `None` when empty, and for the other pickers, whose summary
+    /// `options` looks up ([`summary_of`]).
+    pub summary: Option<String>,
     /// For an entry listed without its values: what a value is, with the article ("a weapon").
     pub takes: Option<&'static str>,
     /// Whether the Build holds it now.
@@ -43,6 +48,7 @@ impl Offer {
             reason: None,
             edit: Some(edit),
             category: None,
+            summary: None,
             takes: None,
             current: false,
         }
@@ -376,6 +382,7 @@ fn slot_offers(engine: &Engine, build: &Build, slot: &SlotId, values: bool) -> O
     let mut offers = Vec::new();
     for entry in engine.slot_entries(build, slot)? {
         let category = (!entry.category.is_empty()).then(|| entry.category.clone());
+        let summary = (!entry.summary.is_empty()).then(|| entry.summary.clone());
         match entry.noun {
             Some(noun) if !values => {
                 // One line for the entry: open when any value is.
@@ -391,6 +398,7 @@ fn slot_offers(engine: &Engine, build: &Build, slot: &SlotId, values: bool) -> O
                     reason: entry.reason.clone(),
                     edit: None,
                     category,
+                    summary,
                     takes: Some(noun),
                     current: held.is_some_and(|pick| pick.key() == first.key()),
                 });
@@ -405,6 +413,7 @@ fn slot_offers(engine: &Engine, build: &Build, slot: &SlotId, values: bool) -> O
                         reason: option.reason,
                         edit: Some(option.option.edit),
                         category: category.clone(),
+                        summary: summary.clone(),
                         takes: None,
                         current: held == Some(&pick),
                     });
@@ -496,6 +505,36 @@ fn class_offers(engine: &Engine, build: &Build, level: u8) -> Option<Vec<Offer>>
     Some(offers)
 }
 
+/// The summary of what a value names at an address outside a slot (a slot's offers carry their entry's): a class's
+/// or its archetype's, a race's or subrace's, a background's note, a path's. `None` when the data has none.
+fn summary_of(planner: &Planner, address: &Address, value: &ChoiceValue) -> Option<String> {
+    match (address, value) {
+        (
+            Address::Class(_),
+            ChoiceValue::Class {
+                class, archetype, ..
+            },
+        ) => match archetype {
+            Some(archetype) => planner.summary(Kind::Archetype, archetype),
+            None => planner.summary(Kind::Class, class),
+        },
+        (Address::Race, ChoiceValue::Key(key)) => planner.summary(Kind::Race, key).or_else(|| {
+            planner
+                .data
+                .races
+                .iter()
+                .flat_map(|race| &race.subraces)
+                .find(|subrace| subrace.key.as_str() == key)
+                .and_then(|subrace| (!subrace.summary.is_empty()).then(|| subrace.summary.clone()))
+        }),
+        (Address::Background, ChoiceValue::Key(key)) => planner.summary(Kind::Background, key),
+        (Address::FirstAscension | Address::Path | Address::Switch, ChoiceValue::Key(key)) => {
+            planner.summary(Kind::Path, key)
+        }
+        _ => None,
+    }
+}
+
 /// `options`: the offers at an address of a Build code, filtered by the query and, unless `only_open` is false, to
 /// those open now, with the envelope.
 pub(crate) fn options(planner: &Planner, args: OptionsArgs) -> Result<OptionsResult, ToolError> {
@@ -543,6 +582,9 @@ pub(crate) fn options(planner: &Planner, args: OptionsArgs) -> Result<OptionsRes
                         .unwrap_or_else(|| issue_reason(engine, issue)),
                 },
             },
+            summary: offer
+                .summary
+                .or_else(|| summary_of(planner, &address, &offer.value)),
             value: offer.value,
             name: offer.name,
             category: offer.category,

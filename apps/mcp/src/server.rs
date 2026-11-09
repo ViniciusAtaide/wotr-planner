@@ -118,8 +118,9 @@ impl Server {
         description = "Find game items by name, key or initials (\"BFT\" finds the Brown-Fur Transmuter). Kinds: \
             class, archetype, path (Mythic path), feat, mythic_ability, mythic_feat, option (an option of a Feature \
             selection: an arcanist exploit, a rogue talent, a bloodline, a Lich power), race, deity, background. \
-            Each match has the key `describe` takes, its parent (an archetype's class, an option's selection), its \
-            category, its prerequisite in the planner's words, and a guide link for the user (never fetch it). Best \
+            Each match has the key `describe` takes, its short summary when the data has one, its parent (an \
+            archetype's class, an option's selection), its category, its prerequisite in the planner's words, and a \
+            guide link for the user (never fetch it). Best \
             match first. `category` filters by a feat's category (\"Weapon\", \"Magic\", …), a mythic pick's group \
             (\"Melee\", \"Ranged\", …) or an option's Feature selection (\"Rage Power\"), one or a list; with \
             `kinds` or `category`, `query` may be empty to list every item they allow (\"every Melee mythic \
@@ -152,8 +153,9 @@ impl Server {
             levels, features, granted feats, feat slots, Feature selections; an archetype's rows merged over its \
             class's), plus its archetypes and its selections with their options. A Mythic path: its features, feat \
             slots and selections by Mythic rank, and its selections with their options. An option: its rows by \
-            level, when it has any. A deity: alignments and domains. Facts from the planner's data; what a feature \
-            does is not in it.",
+            level, when it has any. A deity: alignments and domains. The item, and each feature and selection option \
+            it lists, carries its short summary when the data has one; beyond those, what an item does is not in the \
+            planner's data.",
         annotations(read_only_hint = true, open_world_hint = false)
     )]
     async fn describe(
@@ -216,7 +218,8 @@ impl Server {
 
     #[tool(
         description = "What one choice of a Build can take, from the planner's own picker or stepper for it: each \
-            option's `value` (what `choose` takes), its name, and its status: \"ok\", or {issue, reason} with the \
+            option's `value` (what `choose` takes), its name, its short summary when the data has one, and its \
+            status: \"ok\", or {issue, reason} with the \
             engine's issue (`unmet`, `already_held`, `max_times`, `class_level_cap`, `not_from_path`, \
             `deity_alignment`, `needs_faith`, `deity_domain`, `breaks_later`, …) and the planner's reason. `choice` \
             is an address from `sheet` or `todo`: a slot (`slot.feat.3.general.0`), `level.N.class` (N one past the \

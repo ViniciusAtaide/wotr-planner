@@ -56,6 +56,7 @@ impl SearchIndex {
                 .map(|prerequisite| engine.prerequisite_text(prerequisite, None))
         };
         let guide = |guide: &GuideRef| Some(guide.url());
+        let summary = |text: &str| (!text.is_empty()).then(|| text.to_owned());
 
         for (classes, category) in [
             (&data.classes, "Base class"),
@@ -66,6 +67,7 @@ impl SearchIndex {
                     kind: Kind::Class,
                     key: class.key.as_str().to_owned(),
                     name: class.name.clone(),
+                    summary: summary(&class.summary),
                     parent: None,
                     category: Some(category.to_owned()),
                     prerequisite: prerequisite(&class.prerequisite),
@@ -76,6 +78,7 @@ impl SearchIndex {
                         kind: Kind::Archetype,
                         key: archetype.key.as_str().to_owned(),
                         name: archetype.name.clone(),
+                        summary: summary(&archetype.summary),
                         parent: Some(class.key.as_str().to_owned()),
                         category: None,
                         prerequisite: prerequisite(&archetype.prerequisite),
@@ -89,6 +92,7 @@ impl SearchIndex {
                 kind: Kind::Path,
                 key: path.key.as_str().to_owned(),
                 name: path.name.clone(),
+                summary: summary(&path.summary),
                 parent: None,
                 category: None,
                 prerequisite: None,
@@ -100,6 +104,7 @@ impl SearchIndex {
                 kind: Kind::Feat,
                 key: feat.key.as_str().to_owned(),
                 name: feat.name.clone(),
+                summary: summary(&feat.summary),
                 parent: None,
                 category: Some(feat.category.name().to_owned()),
                 prerequisite: prerequisite(&feat.prerequisite),
@@ -111,6 +116,7 @@ impl SearchIndex {
                 kind: Kind::MythicAbility,
                 key: ability.key.as_str().to_owned(),
                 name: ability.name.clone(),
+                summary: summary(&ability.summary),
                 parent: None,
                 category: Some(ability.group.name().to_owned()),
                 prerequisite: prerequisite(&ability.prerequisite),
@@ -122,6 +128,7 @@ impl SearchIndex {
                 kind: Kind::MythicFeat,
                 key: feat.key.as_str().to_owned(),
                 name: feat.name.clone(),
+                summary: summary(&feat.summary),
                 parent: None,
                 category: Some(feat.group.name().to_owned()),
                 prerequisite: prerequisite(&feat.prerequisite),
@@ -134,6 +141,7 @@ impl SearchIndex {
                     kind: Kind::SelectionOption,
                     key: option.key.as_str().to_owned(),
                     name: option.name.clone(),
+                    summary: summary(&option.summary),
                     parent: Some(selection.key.as_str().to_owned()),
                     category: Some(selection.name.clone()),
                     prerequisite: prerequisite(&option.prerequisite),
@@ -146,6 +154,7 @@ impl SearchIndex {
                 kind: Kind::Race,
                 key: race.key.as_str().to_owned(),
                 name: race.name.clone(),
+                summary: summary(&race.summary),
                 parent: None,
                 category: None,
                 prerequisite: None,
@@ -157,6 +166,7 @@ impl SearchIndex {
                 kind: Kind::Deity,
                 key: deity.key.as_str().to_owned(),
                 name: deity.name.clone(),
+                summary: None,
                 parent: None,
                 category: None,
                 prerequisite: None,
@@ -168,6 +178,7 @@ impl SearchIndex {
                 kind: Kind::Background,
                 key: background.key.as_str().to_owned(),
                 name: background.name.clone(),
+                summary: summary(&background.note),
                 parent: None,
                 category: background.group.map(|group| group.name().to_owned()),
                 prerequisite: None,

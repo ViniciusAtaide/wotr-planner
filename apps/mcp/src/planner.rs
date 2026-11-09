@@ -1,9 +1,10 @@
 //! The game data the server answers from, loaded once at startup.
 
+use std::collections::HashMap;
 use std::path::Path;
 use std::sync::Arc;
 
-use rules::{DataProblem, Engine, FeatureSelection, GameData};
+use rules::{DataProblem, Engine, FeatureKey, FeatureSelection, GameData};
 use sha2::{Digest, Sha256};
 
 use crate::search::SearchIndex;
@@ -15,6 +16,8 @@ pub struct Planner {
     pub(crate) data: Arc<GameData>,
     pub(crate) engine: Arc<Engine>,
     pub(crate) index: Arc<SearchIndex>,
+    /// Every feature's summary that isn't empty, by key: a class's, an archetype's or a path's features.
+    feature_summaries: Arc<HashMap<FeatureKey, String>>,
     site_file: String,
 }
 
@@ -38,10 +41,24 @@ impl Planner {
         let site_file = site_file(&data);
         let engine = Engine::new(data.clone());
         let index = SearchIndex::new(&data, &engine);
+        let classes = data.classes.iter().chain(&data.prestige_classes);
+        let feature_summaries = classes
+            .clone()
+            .flat_map(|class| &class.features)
+            .chain(
+                classes
+                    .flat_map(|class| &class.archetypes)
+                    .flat_map(|archetype| &archetype.features),
+            )
+            .chain(data.mythic_paths.iter().flat_map(|path| &path.features))
+            .filter(|feature| !feature.summary.is_empty())
+            .map(|feature| (feature.key.clone(), feature.summary.clone()))
+            .collect();
         Self {
             data: Arc::new(data),
             engine: Arc::new(engine),
             index: Arc::new(index),
+            feature_summaries: Arc::new(feature_summaries),
             site_file,
         }
     }
@@ -50,6 +67,18 @@ impl Planner {
     /// a link valid here may be stale there.
     pub fn site_file(&self) -> &str {
         &self.site_file
+    }
+
+    /// A feature's summary, when the data has one.
+    pub(crate) fn feature_summary(&self, key: &FeatureKey) -> Option<String> {
+        self.feature_summaries.get(key).cloned()
+    }
+
+    /// An item's summary by kind and key, as `search` gives it ([`crate::shapes::Hit::summary`]).
+    pub(crate) fn summary(&self, kind: crate::shapes::Kind, key: &str) -> Option<String> {
+        self.index
+            .get(kind, key)
+            .and_then(|hit| hit.summary.clone())
     }
 
     /// Every Feature selection, wherever it's defined: a class's, an archetype's, a prestige class's or a path's.

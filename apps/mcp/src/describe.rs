@@ -3,11 +3,13 @@
 
 use rules::{
     Archetype, Class, Engine, FeatKey, FeatSlot, FeatValue, FeatureKey, FeatureSelection,
-    FeatureSelectionKey, Save, effective_row,
+    FeatureSelectionKey, Save, SelectionOptionKey, effective_row,
 };
 
 use crate::planner::Planner;
-use crate::shapes::{Hit, Item, Kind, LevelRow, Named, RankRow, Selection, SpellLevels};
+use crate::shapes::{
+    Hit, Item, Kind, LevelRow, Named, RankRow, Selection, SpellLevels, Summarised,
+};
 
 /// The item of a kind with a key, or why there's none: the closest matches, so the agent can retry.
 pub(crate) fn describe(planner: &Planner, kind: Kind, key: &str) -> Result<Item, String> {
@@ -16,7 +18,6 @@ pub(crate) fn describe(planner: &Planner, kind: Kind, key: &str) -> Result<Item,
     };
     let mut item = Item {
         hit: hit.clone(),
-        summary: None,
         taken_for: None,
         levels: None,
         ranks: None,
@@ -30,12 +31,10 @@ pub(crate) fn describe(planner: &Planner, kind: Kind, key: &str) -> Result<Item,
     };
     let engine = &planner.engine;
     let data = &planner.data;
-    let summary = |text: &str| (!text.is_empty()).then(|| text.to_owned());
     match kind {
         Kind::Class => {
             let (class, prestige) = class(planner, key).expect("an indexed class");
-            item.summary = summary(&class.summary);
-            item.levels = Some(class_rows(engine, class, prestige, None));
+            item.levels = Some(class_rows(planner, class, prestige, None));
             item.archetypes = Some(
                 class
                     .archetypes
@@ -43,7 +42,7 @@ pub(crate) fn describe(planner: &Planner, kind: Kind, key: &str) -> Result<Item,
                     .map(|archetype| named(&archetype.key, &archetype.name))
                     .collect(),
             );
-            item.selections = Some(selections(engine, &class.selections));
+            item.selections = Some(selections(planner, &class.selections));
         }
         Kind::Archetype => {
             let (class, prestige, archetype) = data
@@ -59,9 +58,8 @@ pub(crate) fn describe(planner: &Planner, kind: Kind, key: &str) -> Result<Item,
                     Some((class, prestige, archetype))
                 })
                 .expect("an indexed archetype");
-            item.summary = summary(&archetype.summary);
-            item.levels = Some(class_rows(engine, class, prestige, Some(archetype)));
-            item.selections = Some(selections(engine, &archetype.selections));
+            item.levels = Some(class_rows(planner, class, prestige, Some(archetype)));
+            item.selections = Some(selections(planner, &archetype.selections));
         }
         Kind::Path => {
             let path = data
@@ -69,14 +67,13 @@ pub(crate) fn describe(planner: &Planner, kind: Kind, key: &str) -> Result<Item,
                 .iter()
                 .find(|path| path.key.as_str() == key)
                 .expect("an indexed path");
-            item.summary = summary(engine.path_summary(&path.key));
             item.ranks = Some(
                 path.ranks
                     .iter()
                     .map(|row| RankRow {
                         rank: row.rank,
                         features: features(
-                            engine,
+                            planner,
                             engine.path_rank_features(&path.key, row.rank).into_iter(),
                         ),
                         feat_slots: feat_slots(engine, &row.feat_slots),
@@ -84,7 +81,7 @@ pub(crate) fn describe(planner: &Planner, kind: Kind, key: &str) -> Result<Item,
                     })
                     .collect(),
             );
-            item.selections = Some(selections(engine, &path.selections));
+            item.selections = Some(selections(planner, &path.selections));
         }
         Kind::Feat => {
             let feat = data
@@ -92,7 +89,6 @@ pub(crate) fn describe(planner: &Planner, kind: Kind, key: &str) -> Result<Item,
                 .iter()
                 .find(|feat| feat.key.as_str() == key)
                 .expect("an indexed feat");
-            item.summary = summary(&feat.summary);
             item.taken_for = feat.parameter.map(|kind| kind.noun().to_owned());
         }
         Kind::MythicAbility => {
@@ -101,14 +97,13 @@ pub(crate) fn describe(planner: &Planner, kind: Kind, key: &str) -> Result<Item,
                 .iter()
                 .find(|ability| ability.key.as_str() == key)
                 .expect("an indexed mythic ability");
-            item.summary = summary(&ability.summary);
-            item.features = Some(features(engine, ability.features.iter()));
+            item.features = Some(features(planner, ability.features.iter()));
             let granted: Vec<&FeatureSelection> = ability
                 .selections
                 .iter()
                 .filter_map(|key| planner.selections().find(|selection| &selection.key == key))
                 .collect();
-            item.selections = Some(granted.into_iter().map(|s| selection(engine, s)).collect());
+            item.selections = Some(granted.into_iter().map(|s| selection(planner, s)).collect());
         }
         Kind::MythicFeat => {
             let feat = data
@@ -116,7 +111,6 @@ pub(crate) fn describe(planner: &Planner, kind: Kind, key: &str) -> Result<Item,
                 .iter()
                 .find(|feat| feat.key.as_str() == key)
                 .expect("an indexed mythic feat");
-            item.summary = summary(&feat.summary);
             item.taken_for = feat.parameter.map(|kind| kind.noun().to_owned());
         }
         Kind::SelectionOption => {
@@ -125,7 +119,6 @@ pub(crate) fn describe(planner: &Planner, kind: Kind, key: &str) -> Result<Item,
                 .flat_map(|selection| &selection.options)
                 .find(|option| option.key.as_str() == key)
                 .expect("an indexed option");
-            item.summary = summary(&option.summary);
             item.taken_for = option.parameter.map(|kind| kind.noun().to_owned());
             if !option.levels.is_empty() {
                 item.levels = Some(
@@ -140,7 +133,7 @@ pub(crate) fn describe(planner: &Planner, kind: Kind, key: &str) -> Result<Item,
                             will: None,
                             spell_levels: None,
                             advances: Vec::new(),
-                            features: features(engine, row.features.iter()),
+                            features: features(planner, row.features.iter()),
                             feats: feats(engine, row.feats.iter(), [].iter()),
                             feat_slots: feat_slots(engine, &row.feat_slots),
                             selections: selection_names(engine, &row.selections),
@@ -155,7 +148,6 @@ pub(crate) fn describe(planner: &Planner, kind: Kind, key: &str) -> Result<Item,
                 .iter()
                 .find(|race| race.key.as_str() == key)
                 .expect("an indexed race");
-            item.summary = summary(&race.summary);
             item.subraces = Some(
                 race.subraces
                     .iter()
@@ -190,7 +182,6 @@ pub(crate) fn describe(planner: &Planner, kind: Kind, key: &str) -> Result<Item,
                 .iter()
                 .find(|background| background.key.as_str() == key)
                 .expect("an indexed background");
-            item.summary = summary(engine.background_note(&background.key));
             item.feats = Some(feats(
                 engine,
                 background.feats.iter(),
@@ -249,7 +240,7 @@ fn class<'a>(planner: &'a Planner, key: &str) -> Option<(&'a Class, bool)> {
 /// A class's rows, taken with an archetype or none: [`effective_row`] at each level of its table, with the BAB
 /// and saves its progressions give there.
 fn class_rows(
-    engine: &Engine,
+    planner: &Planner,
     class: &Class,
     prestige: bool,
     archetype: Option<&Archetype>,
@@ -259,6 +250,7 @@ fn class_rows(
         .iter()
         .filter_map(|base| effective_row(class, archetype, base.level))
         .map(|row| {
+            let engine = &planner.engine;
             let level = row.level;
             let save = |save| Some(class.save_bonus(save, level, prestige, archetype));
             let spells = row.spell_levels;
@@ -280,7 +272,7 @@ fn class_rows(
                 .filter(|(advances, _)| *advances)
                 .map(|(_, kind)| kind.to_owned())
                 .collect(),
-                features: features(engine, row.features.iter()),
+                features: features(planner, row.features.iter()),
                 feats: feats(engine, row.feats.iter(), row.feats_for.iter()),
                 feat_slots: feat_slots(engine, row.feat_slots),
                 selections: selection_names(engine, row.selections),
@@ -296,9 +288,14 @@ fn named(key: &impl std::fmt::Display, name: &str) -> Named {
     }
 }
 
-fn features<'a>(engine: &Engine, keys: impl Iterator<Item = &'a FeatureKey>) -> Vec<Named> {
-    keys.map(|key| named(key, engine.feature_name(key)))
-        .collect()
+/// Features by key and name, with their summaries.
+fn features<'a>(planner: &Planner, keys: impl Iterator<Item = &'a FeatureKey>) -> Vec<Summarised> {
+    keys.map(|key| Summarised {
+        key: key.to_string(),
+        name: planner.engine.feature_name(key).to_owned(),
+        summary: planner.feature_summary(key),
+    })
+    .collect()
 }
 
 /// Granted feats, then the ones granted for a value ("Weapon Focus (Longsword)", keyed by the feat).
@@ -335,26 +332,32 @@ fn selection_names(engine: &Engine, keys: &[FeatureSelectionKey]) -> Vec<Named> 
         .collect()
 }
 
-fn selections(engine: &Engine, list: &[FeatureSelection]) -> Vec<Selection> {
+fn selections(planner: &Planner, list: &[FeatureSelection]) -> Vec<Selection> {
     list.iter()
-        .map(|selection| self::selection(engine, selection))
+        .map(|selection| self::selection(planner, selection))
         .collect()
 }
 
-/// A Feature selection with its own options, then the ones it shares from elsewhere.
-fn selection(engine: &Engine, selection: &FeatureSelection) -> Selection {
+/// A Feature selection with its own options, then the ones it shares from elsewhere, each with its summary.
+fn selection(planner: &Planner, selection: &FeatureSelection) -> Selection {
+    let option = |key: &SelectionOptionKey, name: &str| Summarised {
+        key: key.to_string(),
+        name: name.to_owned(),
+        summary: planner.summary(Kind::SelectionOption, key.as_str()),
+    };
     Selection {
         key: selection.key.as_str().to_owned(),
         name: selection.name.clone(),
+        summary: (!selection.summary.is_empty()).then(|| selection.summary.clone()),
         options: selection
             .options
             .iter()
-            .map(|option| named(&option.key, &option.name))
+            .map(|own| option(&own.key, &own.name))
             .chain(
                 selection
                     .shared_options
                     .iter()
-                    .map(|key| named(key, engine.option_name(key))),
+                    .map(|key| option(key, planner.engine.option_name(key))),
             )
             .collect(),
     }
