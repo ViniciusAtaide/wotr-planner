@@ -5,10 +5,10 @@ MythicPath(
     guide: "other-mythic-paths#devil",
     switch: (from: ["aeon", "azata"], kept_through_rank: 7, path_kept_through_rank: 7, dropped_features: ["aeon/enforcing-gaze-extra-gaze", "azata/dragon-companion"], dropped_selections: ["aeon/enforcing-gaze"], further_ascensions: true),
     features: [
-        (key: "devil/hells-authority", name: "Hell\'s Authority", summary: "3/day, use Sword of Heaven with one improvement or Demonic Rage with one aspect for 10 minutes.", guide: "other-mythic-paths#hells-authority"),
-        (key: "devil/hells-dominance", name: "Hell\'s Dominance", summary: "Dominate Monster at will as a spell-like ability, fire resistance 20 and +4 on saves against poison.", guide: "other-mythic-paths#hells-dominance"),
-        (key: "devil/hells-rule", name: "Hell\'s Rule", summary: "Overwhelming Presence and Power Word: Kill as spell-like abilities at will.", guide: "other-mythic-paths#hells-rule"),
-        (key: "devil/hells-vengeance", name: "Hell\'s Vengeance", summary: "Hellfire Ray and Power Word: Stun at will, fire immunity, acid and cold resistance 10, and weapons count as lawful and evil against DR.", guide: "other-mythic-paths#hells-vengeance"),
+        (key: "devil/hells-authority", name: "Hell\'s Authority", summary: "Borrow other paths\' powers 3/day: 10 minutes of Demonic Rage with one aspect, or of Sword of Heaven with one improvement.", guide: "other-mythic-paths#hells-authority"),
+        (key: "devil/hells-dominance", name: "Hell\'s Dominance", summary: "At-will Dominate Monster (spell-like), plus fire resistance 20 and +4 on saves against poison.", guide: "other-mythic-paths#hells-dominance"),
+        (key: "devil/hells-rule", name: "Hell\'s Rule", summary: "Lets you cast Overwhelming Presence and Power Word: Kill at will.", guide: "other-mythic-paths#hells-rule"),
+        (key: "devil/hells-vengeance", name: "Hell\'s Vengeance", summary: "At-will Hellfire Ray and Power Word: Stun; immune to fire, resist acid and cold 10; weapons overcome DR as lawful and evil.", guide: "other-mythic-paths#hells-vengeance"),
         (key: "devil/wings", name: "Wings", guide: "other-mythic-paths#devil"),
     ],
     selections: [

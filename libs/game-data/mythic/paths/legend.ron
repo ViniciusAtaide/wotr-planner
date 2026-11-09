@@ -6,6 +6,6 @@ MythicPath(
     switch: (kept_through_rank: 2, path_kept_through_rank: 2, features: ["legend/legend", "legend/legends-corruption-resistance"], further_ascensions: false, level_cap: Some(40)),
     features: [
         (key: "legend/legend", name: "Legend", summary: "All ability scores +4, the level cap rises to 40, and levelling needs less XP.", guide: "other-mythic-paths#legend", ability_bonuses: [Every(amount: 4)]),
-        (key: "legend/legends-corruption-resistance", name: "Legend\'s Corruption Resistance", summary: "You can rest 5 times before Abyssal Corruption starts to build.", guide: "other-mythic-paths#legends-corruption-resistance"),
+        (key: "legend/legends-corruption-resistance", name: "Legend\'s Corruption Resistance", summary: "Abyssal Corruption only begins to grow after 5 rests.", guide: "other-mythic-paths#legends-corruption-resistance"),
     ],
 )
