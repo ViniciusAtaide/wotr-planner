@@ -1,6 +1,7 @@
 Class(
     key: "mystic-theurge",
     name: "Mystic Theurge",
+    summary: "Ten-level dual caster with half BAB and 4 HP per level: every level advances both an arcane and a divine class, and each can cast the other's spells.",
     guide: "prestige-classes#mystic-theurge",
     skill_points: 2,
     bab: Half,
@@ -11,13 +12,13 @@ Class(
     class_skills: ["knowledge-arcana", "lore-religion", "perception"],
     prerequisite: All([SkillRanks(skill: "knowledge-arcana", ranks: 5), SkillRanks(skill: "lore-religion", ranks: 5), SpellLevel(spell_type: Arcane, level: 2), SpellLevel(spell_type: Divine, level: 2), CharacterLevel(7)]),
     features: [
-        (key: "mystic-theurge/arcane-spellcasting", name: "Arcane Spellcasting", guide: "prestige-classes#arcane-spellcasting-mystic-theurge"),
-        (key: "mystic-theurge/combined-spells-1st", name: "Combined Spells (1st)", guide: "prestige-classes#combined-spells"),
-        (key: "mystic-theurge/combined-spells-2nd", name: "Combined Spells (2nd)", guide: "prestige-classes#combined-spells"),
-        (key: "mystic-theurge/combined-spells-3rd", name: "Combined Spells (3rd)", guide: "prestige-classes#combined-spells"),
-        (key: "mystic-theurge/combined-spells-4th", name: "Combined Spells (4th)", guide: "prestige-classes#combined-spells"),
-        (key: "mystic-theurge/combined-spells-5th", name: "Combined Spells (5th)", guide: "prestige-classes#combined-spells"),
-        (key: "mystic-theurge/divine-spellcasting", name: "Divine Spellcasting", guide: "prestige-classes#divine-spellcasting-mystic-theurge"),
+        (key: "mystic-theurge/arcane-spellcasting", name: "Arcane Spellcasting", summary: "Each level adds spells per day as a level of an earlier arcane class.", guide: "prestige-classes#arcane-spellcasting-mystic-theurge"),
+        (key: "mystic-theurge/combined-spells-1st", name: "Combined Spells (1st)", summary: "Cast 1st-level spells of one class in the other class's slots, one level higher.", guide: "prestige-classes#combined-spells"),
+        (key: "mystic-theurge/combined-spells-2nd", name: "Combined Spells (2nd)", summary: "Combined Spells now covers 2nd-level spells, cast in the other class's slots one level higher.", guide: "prestige-classes#combined-spells"),
+        (key: "mystic-theurge/combined-spells-3rd", name: "Combined Spells (3rd)", summary: "Combined Spells now covers 3rd-level spells, cast in the other class's slots one level higher.", guide: "prestige-classes#combined-spells"),
+        (key: "mystic-theurge/combined-spells-4th", name: "Combined Spells (4th)", summary: "Combined Spells now covers 4th-level spells, cast in the other class's slots one level higher.", guide: "prestige-classes#combined-spells"),
+        (key: "mystic-theurge/combined-spells-5th", name: "Combined Spells (5th)", summary: "Combined Spells now covers 5th-level spells, cast in the other class's 6th-level slots.", guide: "prestige-classes#combined-spells"),
+        (key: "mystic-theurge/divine-spellcasting", name: "Divine Spellcasting", summary: "Each level adds spells per day as a level of an earlier divine class.", guide: "prestige-classes#divine-spellcasting-mystic-theurge"),
     ],
     levels: [
         (level: 1, advances_arcane: true, advances_divine: true, features: ["mystic-theurge/arcane-spellcasting", "mystic-theurge/combined-spells-1st", "mystic-theurge/divine-spellcasting"]),

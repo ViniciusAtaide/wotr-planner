@@ -1,6 +1,7 @@
 Class(
     key: "eldritch-knight",
     name: "Eldritch Knight",
+    summary: "Ten-level gish with full BAB and 6 HP per level, advancing casting at 9 of 10 levels: counts as fighter for feats, three bonus combat feats, Spell Critical.",
     guide: "prestige-classes#eldritch-knight",
     skill_points: 2,
     bab: Full,
@@ -11,9 +12,9 @@ Class(
     prerequisite: All([Feat("martial-weapons-proficiency"), SpellLevel(spell_type: Arcane, level: 3), CharacterLevel(6)]),
     counts_as: [(class: "fighter", toward: FeatPrerequisites)],
     features: [
-        (key: "eldritch-knight/arcane-spellcasting", name: "Arcane Spellcasting", guide: "prestige-classes#arcane-spellcasting-eldritch-knight"),
-        (key: "eldritch-knight/diverse-training", name: "Diverse Training", guide: "prestige-classes#diverse-training"),
-        (key: "eldritch-knight/spell-critical", name: "Spell Critical", guide: "prestige-classes#spell-critical"),
+        (key: "eldritch-knight/arcane-spellcasting", name: "Arcane Spellcasting", summary: "From 2nd level, each level adds spells per day as a level of an earlier arcane class.", guide: "prestige-classes#arcane-spellcasting-eldritch-knight"),
+        (key: "eldritch-knight/diverse-training", name: "Diverse Training", summary: "Class levels count as fighter levels for feat prerequisites, and as levels of your casting class for that class's feats.", guide: "prestige-classes#diverse-training"),
+        (key: "eldritch-knight/spell-critical", name: "Spell Critical", summary: "After a weapon critical hit, your next spell within two rounds is cast as a swift action and doesn't provoke.", guide: "prestige-classes#spell-critical"),
     ],
     levels: [
         (level: 1, features: ["eldritch-knight/diverse-training"], feat_slots: [CombatFeat]),
