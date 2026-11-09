@@ -1,6 +1,7 @@
 Class(
     key: "warpriest",
     name: "Warpriest",
+    summary: "Divine warrior-caster with blessings and a sacred weapon; Str, Con and Wis, 3/4 BAB, prepared spells to 6th level, good Fortitude and Will, 6 HP a level.",
     guide: "warpriest",
     skill_points: 2,
     bab: ThreeQuarters,
@@ -11,74 +12,76 @@ Class(
     class_skills: ["athletics", "knowledge-arcana", "knowledge-world", "lore-religion", "persuasion"],
     prerequisite: Worships,
     features: [
-        (key: "warpriest/aspect-of-war", name: "Aspect of War", guide: "warpriest#aspect-of-war"),
-        (key: "warpriest/blessings/air-domain/major-blessing", name: "Major Blessing (Air)", guide: "warpriest#air-domain"),
-        (key: "warpriest/blessings/air-domain/minor-blessing", name: "Minor Blessing (Air)", guide: "warpriest#air-domain"),
-        (key: "warpriest/blessings/animal-domain/major-blessing", name: "Major Blessing (Animal)", guide: "warpriest#animal-domain"),
-        (key: "warpriest/blessings/animal-domain/minor-blessing", name: "Minor Blessing (Animal)", guide: "warpriest#animal-domain"),
-        (key: "warpriest/blessings/chaos-domain/major-blessing", name: "Major Blessing (Chaos)", guide: "warpriest#chaos-domain"),
-        (key: "warpriest/blessings/chaos-domain/minor-blessing", name: "Minor Blessing (Chaos)", guide: "warpriest#chaos-domain"),
-        (key: "warpriest/blessings/darkness-domain/major-blessing", name: "Major Blessing (Darkness)", guide: "warpriest#darkness-domain"),
-        (key: "warpriest/blessings/darkness-domain/minor-blessing", name: "Minor Blessing (Darkness)", guide: "warpriest#darkness-domain"),
-        (key: "warpriest/blessings/death-domain/major-blessing", name: "Major Blessing (Death)", guide: "warpriest#death-domain"),
-        (key: "warpriest/blessings/death-domain/minor-blessing", name: "Minor Blessing (Death)", guide: "warpriest#death-domain"),
-        (key: "warpriest/blessings/destruction/major-blessing", name: "Major Blessing (Destruction)", guide: "warpriest#destruction"),
-        (key: "warpriest/blessings/destruction/minor-blessing", name: "Minor Blessing (Destruction)", guide: "warpriest#destruction"),
-        (key: "warpriest/blessings/earth/major-blessing", name: "Major Blessing (Earth)", guide: "warpriest#earth"),
-        (key: "warpriest/blessings/earth/minor-blessing", name: "Minor Blessing (Earth)", guide: "warpriest#earth"),
-        (key: "warpriest/blessings/evil-domain/major-blessing", name: "Major Blessing (Evil)", guide: "warpriest#evil-domain"),
-        (key: "warpriest/blessings/evil-domain/minor-blessing", name: "Minor Blessing (Evil)", guide: "warpriest#evil-domain"),
-        (key: "warpriest/blessings/fire/major-blessing", name: "Major Blessing (Fire)", guide: "warpriest#fire"),
-        (key: "warpriest/blessings/fire/minor-blessing", name: "Minor Blessing (Fire)", guide: "warpriest#fire"),
-        (key: "warpriest/blessings/good-domain/major-blessing", name: "Major Blessing (Good)", guide: "warpriest#good-domain"),
-        (key: "warpriest/blessings/good-domain/minor-blessing", name: "Minor Blessing (Good)", guide: "warpriest#good-domain"),
-        (key: "warpriest/blessings/healing-domain/major-blessing", name: "Major Blessing (Healing)", guide: "warpriest#healing-domain"),
-        (key: "warpriest/blessings/healing-domain/minor-blessing", name: "Minor Blessing (Healing)", guide: "warpriest#healing-domain"),
-        (key: "warpriest/blessings/law-domain/major-blessing", name: "Major Blessing (Law)", guide: "warpriest#law-domain"),
-        (key: "warpriest/blessings/law-domain/minor-blessing", name: "Minor Blessing (Law)", guide: "warpriest#law-domain"),
-        (key: "warpriest/blessings/liberation/major-blessing", name: "Major Blessing (Liberation)", guide: "warpriest#liberation"),
-        (key: "warpriest/blessings/liberation/minor-blessing", name: "Minor Blessing (Liberation)", guide: "warpriest#liberation"),
-        (key: "warpriest/blessings/luck/major-blessing", name: "Major Blessing (Luck)", guide: "warpriest#luck"),
-        (key: "warpriest/blessings/luck/minor-blessing", name: "Minor Blessing (Luck)", guide: "warpriest#luck"),
-        (key: "warpriest/blessings/madness/major-blessing", name: "Major Blessing (Madness)", guide: "warpriest#madness"),
-        (key: "warpriest/blessings/madness/minor-blessing", name: "Minor Blessing (Madness)", guide: "warpriest#madness"),
-        (key: "warpriest/blessings/magic/major-blessing", name: "Major Blessing (Magic)", guide: "warpriest#magic"),
-        (key: "warpriest/blessings/magic/minor-blessing", name: "Minor Blessing (Magic)", guide: "warpriest#magic"),
-        (key: "warpriest/blessings/nobility/major-blessing", name: "Major Blessing (Nobility)", guide: "warpriest#nobility"),
-        (key: "warpriest/blessings/nobility/minor-blessing", name: "Minor Blessing (Nobility)", guide: "warpriest#nobility"),
-        (key: "warpriest/blessings/protection/major-blessing", name: "Major Blessing (Protection)", guide: "warpriest#protection"),
-        (key: "warpriest/blessings/protection/minor-blessing", name: "Minor Blessing (Protection)", guide: "warpriest#protection"),
-        (key: "warpriest/blessings/repose/major-blessing", name: "Major Blessing (Repose)", guide: "warpriest#repose"),
-        (key: "warpriest/blessings/repose/minor-blessing", name: "Minor Blessing (Repose)", guide: "warpriest#repose"),
-        (key: "warpriest/blessings/strength/major-blessing", name: "Major Blessing (Strength)", guide: "warpriest#strength"),
-        (key: "warpriest/blessings/strength/minor-blessing", name: "Minor Blessing (Strength)", guide: "warpriest#strength"),
-        (key: "warpriest/blessings/sun/major-blessing", name: "Major Blessing (Sun)", guide: "warpriest#sun"),
-        (key: "warpriest/blessings/sun/minor-blessing", name: "Minor Blessing (Sun)", guide: "warpriest#sun"),
-        (key: "warpriest/blessings/travel/major-blessing", name: "Major Blessing (Travel)", guide: "warpriest#travel"),
-        (key: "warpriest/blessings/travel/minor-blessing", name: "Minor Blessing (Travel)", guide: "warpriest#travel"),
-        (key: "warpriest/blessings/trickery/major-blessing", name: "Major Blessing (Trickery)", guide: "warpriest#trickery"),
-        (key: "warpriest/blessings/trickery/minor-blessing", name: "Minor Blessing (Trickery)", guide: "warpriest#trickery"),
-        (key: "warpriest/blessings/water/major-blessing", name: "Major Blessing (Water)", guide: "warpriest#water"),
-        (key: "warpriest/blessings/water/minor-blessing", name: "Minor Blessing (Water)", guide: "warpriest#water"),
-        (key: "warpriest/blessings/weather/major-blessing", name: "Major Blessing (Weather)", guide: "warpriest#weather"),
-        (key: "warpriest/blessings/weather/minor-blessing", name: "Minor Blessing (Weather)", guide: "warpriest#weather"),
-        (key: "warpriest/channel-energy", name: "Channel Energy", guide: "warpriest#channel-energy"),
-        (key: "warpriest/fervor", name: "Fervor", guide: "warpriest#fervor"),
-        (key: "warpriest/sacred-armor", name: "Sacred Armor", guide: "warpriest#sacred-armor"),
-        (key: "warpriest/sacred-weapon", name: "Sacred Weapon", guide: "warpriest#sacred-weapon"),
-        (key: "warpriest/spontaneous-casting", name: "Spontaneous Casting", guide: "warpriest#spontaneous-casting"),
+        (key: "warpriest/aspect-of-war", name: "Aspect of War", summary: "Once a day as a swift action for 1 minute: BAB becomes 20, DR 10/-, full speed in any armour or load, and blessings don't use up daily uses.", guide: "warpriest#aspect-of-war"),
+        (key: "warpriest/blessings/air-domain/major-blessing", name: "Major Blessing (Air)", summary: "From 10th level, an ally flies (as Wings) for 1 minute and deals extra electricity damage equal to your level on a successful charge.", guide: "warpriest#air-domain"),
+        (key: "warpriest/blessings/air-domain/minor-blessing", name: "Minor Blessing (Air)", summary: "Touch an ally: for 1 minute his ranged attacks don't provoke attacks of opportunity.", guide: "warpriest#air-domain"),
+        (key: "warpriest/blessings/animal-domain/major-blessing", name: "Major Blessing (Animal)", summary: "From 10th level, summon an ally as Summon Nature's Ally V for 1 minute, one step stronger every two levels (IX at 18th).", guide: "warpriest#animal-domain"),
+        (key: "warpriest/blessings/animal-domain/minor-blessing", name: "Minor Blessing (Animal)", summary: "An ally gains two claw attacks (1d6, or 1d4 if Small) for 1 minute.", guide: "warpriest#animal-domain"),
+        (key: "warpriest/blessings/chaos-domain/major-blessing", name: "Major Blessing (Chaos)", summary: "From 10th level, summon an ally as Summon Monster IV for 1 minute, one step stronger every two levels (IX at 20th).", guide: "warpriest#chaos-domain"),
+        (key: "warpriest/blessings/chaos-domain/minor-blessing", name: "Minor Blessing (Chaos)", summary: "For 1 minute an ally's attacks deal +1d6 damage to lawful creatures and count as chaotic against DR.", guide: "warpriest#chaos-domain"),
+        (key: "warpriest/blessings/darkness-domain/major-blessing", name: "Major Blessing (Darkness)", summary: "From 10th level, blind an enemy within 30' for 1 minute unless it makes a Will save.", guide: "warpriest#darkness-domain"),
+        (key: "warpriest/blessings/darkness-domain/minor-blessing", name: "Minor Blessing (Darkness)", summary: "Give an ally 20% concealment for 1 minute.", guide: "warpriest#darkness-domain"),
+        (key: "warpriest/blessings/death-domain/major-blessing", name: "Major Blessing (Death)", summary: "From 10th level, a melee touch (or, as a swift action, your next melee attack) gives the target 1 negative level for 1 minute.", guide: "warpriest#death-domain"),
+        (key: "warpriest/blessings/death-domain/minor-blessing", name: "Minor Blessing (Death)", summary: "For 1 minute: +4 on Intimidate and +2 profane on saves against disease, mind-affecting, paralysis, poison and stun.", guide: "warpriest#death-domain"),
+        (key: "warpriest/blessings/destruction/major-blessing", name: "Major Blessing (Destruction)", summary: "From 10th level, an ally gets +4 to confirm critical hits, and crits or sneak attacks against him have a 50% chance to become normal hits.", guide: "warpriest#destruction"),
+        (key: "warpriest/blessings/destruction/minor-blessing", name: "Minor Blessing (Destruction)", summary: "An ally gains a morale bonus on damage equal to half your level for 1 minute.", guide: "warpriest#destruction"),
+        (key: "warpriest/blessings/earth/major-blessing", name: "Major Blessing (Earth)", summary: "From 10th level, an ally gains DR 1/- for 1 minute, +1 every two levels (DR 5/- at 18th).", guide: "warpriest#earth"),
+        (key: "warpriest/blessings/earth/minor-blessing", name: "Minor Blessing (Earth)", summary: "A weapon deals an extra 1d4 acid damage for 1 minute.", guide: "warpriest#earth"),
+        (key: "warpriest/blessings/evil-domain/major-blessing", name: "Major Blessing (Evil)", summary: "From 10th level, summon an ally as Summon Monster IV for 1 minute, one step stronger every two levels (IX at 20th).", guide: "warpriest#evil-domain"),
+        (key: "warpriest/blessings/evil-domain/minor-blessing", name: "Minor Blessing (Evil)", summary: "For 1 minute an ally's attacks deal +1d6 damage to good creatures and count as evil against DR.", guide: "warpriest#evil-domain"),
+        (key: "warpriest/blessings/fire/major-blessing", name: "Major Blessing (Fire)", summary: "Per the guide, from 10th level an ally gains cold resistance equal to your level for 1 minute.", guide: "warpriest#fire"),
+        (key: "warpriest/blessings/fire/minor-blessing", name: "Minor Blessing (Fire)", summary: "Per the guide, a weapon deals an extra 1d4 acid damage for 1 minute.", guide: "warpriest#fire"),
+        (key: "warpriest/blessings/good-domain/major-blessing", name: "Major Blessing (Good)", summary: "From 10th level, summon an ally as Summon Monster IV for 1 minute, one step stronger every two levels (IX at 20th).", guide: "warpriest#good-domain"),
+        (key: "warpriest/blessings/good-domain/minor-blessing", name: "Minor Blessing (Good)", summary: "For 1 minute an ally's attacks deal +1d6 damage to evil creatures and count as good against DR.", guide: "warpriest#good-domain"),
+        (key: "warpriest/blessings/healing-domain/major-blessing", name: "Major Blessing (Healing)", summary: "From 10th level, an ally gains fast healing 3 for 1 minute.", guide: "warpriest#healing-domain"),
+        (key: "warpriest/blessings/healing-domain/minor-blessing", name: "Minor Blessing (Healing)", summary: "As a swift action, your next cure spell is empowered.", guide: "warpriest#healing-domain"),
+        (key: "warpriest/blessings/law-domain/major-blessing", name: "Major Blessing (Law)", summary: "From 10th level, as a swift action, allies within 30' gain +4 sacred to AC and saves against chaotic opponents.", guide: "warpriest#law-domain"),
+        (key: "warpriest/blessings/law-domain/minor-blessing", name: "Minor Blessing (Law)", summary: "For 1 minute an ally's attacks deal +1d6 damage to chaotic creatures and count as lawful against DR.", guide: "warpriest#law-domain"),
+        (key: "warpriest/blessings/liberation/major-blessing", name: "Major Blessing (Liberation)", summary: "From 10th level, as a swift action, all allies within 30' gain Freedom of Movement for 1 round.", guide: "warpriest#liberation"),
+        (key: "warpriest/blessings/liberation/minor-blessing", name: "Minor Blessing (Liberation)", summary: "As a swift action, gain Freedom of Movement for 1 round.", guide: "warpriest#liberation"),
+        (key: "warpriest/blessings/luck/major-blessing", name: "Major Blessing (Luck)", summary: "From 10th level, curse an enemy to take the worse of two rolls on ability checks, attacks, saves and skill checks for 1 round.", guide: "warpriest#luck"),
+        (key: "warpriest/blessings/luck/minor-blessing", name: "Minor Blessing (Luck)", summary: "Touch an ally: for 1 round he rolls twice on ability checks, attacks, saves and skill checks.", guide: "warpriest#luck"),
+        (key: "warpriest/blessings/madness/major-blessing", name: "Major Blessing (Madness)", summary: "From 10th level, choose what all confused creatures within 30' do for 1 round, such as attacking themselves.", guide: "warpriest#madness"),
+        (key: "warpriest/blessings/madness/minor-blessing", name: "Minor Blessing (Madness)", summary: "As a swift action, a frightened, panicked or paralysed creature within 30' is instead confused for 1 round, attacking itself or the nearest foe.", guide: "warpriest#madness"),
+        (key: "warpriest/blessings/magic/major-blessing", name: "Major Blessing (Magic)", summary: "From 10th level, as a swift action, recall any spell you have cast.", guide: "warpriest#magic"),
+        (key: "warpriest/blessings/magic/minor-blessing", name: "Minor Blessing (Magic)", summary: "Throw your melee weapon at a target within 30', adding your Wisdom modifier to the attack roll.", guide: "warpriest#magic"),
+        (key: "warpriest/blessings/nobility/major-blessing", name: "Major Blessing (Nobility)", summary: "From 10th level, all allies within 30' gain +4 morale on attack rolls, skill checks and saves for 1 round.", guide: "warpriest#nobility"),
+        (key: "warpriest/blessings/nobility/minor-blessing", name: "Minor Blessing (Nobility)", summary: "An ally gains +2 morale on attack rolls, skill checks and saves for 1 minute.", guide: "warpriest#nobility"),
+        (key: "warpriest/blessings/protection/major-blessing", name: "Major Blessing (Protection)", summary: "From 10th level, allies within 30' gain resistance 10 to acid, cold, electricity, fire and sonic for 1 minute (20 from 15th).", guide: "warpriest#protection"),
+        (key: "warpriest/blessings/protection/minor-blessing", name: "Minor Blessing (Protection)", summary: "Gain +1 sacred to AC and saves for 1 minute, +2 at 10th level and +3 at 20th.", guide: "warpriest#protection"),
+        (key: "warpriest/blessings/repose/major-blessing", name: "Major Blessing (Repose)", summary: "From 10th level, as a swift action, a healing channel energy also damages undead for half the amount healed.", guide: "warpriest#repose"),
+        (key: "warpriest/blessings/repose/minor-blessing", name: "Minor Blessing (Repose)", summary: "Melee touch staggers a target for 1 round (sleep if already staggered); undead are staggered for Wis mod rounds.", guide: "warpriest#repose"),
+        (key: "warpriest/blessings/strength/major-blessing", name: "Major Blessing (Strength)", summary: "From 10th level, for 1 minute ignore medium and heavy armour speed penalties and add Str to saves against stagger, entangle and paralysis.", guide: "warpriest#strength"),
+        (key: "warpriest/blessings/strength/minor-blessing", name: "Minor Blessing (Strength)", summary: "For 1 round, gain an enhancement bonus of half your level on Strength-based attacks, maneuvers, skill and ability checks.", guide: "warpriest#strength"),
+        (key: "warpriest/blessings/sun/major-blessing", name: "Major Blessing (Sun)", summary: "From 10th level, a weapon gains flaming or undead bane for 1 minute; spend two blessings for both.", guide: "warpriest#sun"),
+        (key: "warpriest/blessings/sun/minor-blessing", name: "Minor Blessing (Sun)", summary: "Blind an opponent for 1 round; on a Reflex save it is dazzled instead.", guide: "warpriest#sun"),
+        (key: "warpriest/blessings/travel/major-blessing", name: "Major Blessing (Travel)", summary: "From 10th level, teleport up to 20' as a move action.", guide: "warpriest#travel"),
+        (key: "warpriest/blessings/travel/minor-blessing", name: "Minor Blessing (Travel)", summary: "Ignore difficult terrain for 1 round.", guide: "warpriest#travel"),
+        (key: "warpriest/blessings/trickery/major-blessing", name: "Major Blessing (Trickery)", summary: "From 10th level, as a swift action, gain Greater Invisibility for 1 round.", guide: "warpriest#trickery"),
+        (key: "warpriest/blessings/trickery/minor-blessing", name: "Minor Blessing (Trickery)", summary: "Create an illusory duplicate lasting rounds equal to your level or until destroyed.", guide: "warpriest#trickery"),
+        (key: "warpriest/blessings/water/major-blessing", name: "Major Blessing (Water)", summary: "From 10th level, an ally gains fire resistance equal to your level for 1 minute.", guide: "warpriest#water"),
+        (key: "warpriest/blessings/water/minor-blessing", name: "Minor Blessing (Water)", summary: "A weapon deals an extra 1d4 cold damage for 1 minute.", guide: "warpriest#water"),
+        (key: "warpriest/blessings/weather/major-blessing", name: "Major Blessing (Weather)", summary: "From 10th level, a 1-minute barrier gives ranged attacks against you a miss chance equal to twice your level.", guide: "warpriest#weather"),
+        (key: "warpriest/blessings/weather/minor-blessing", name: "Minor Blessing (Weather)", summary: "A weapon deals an extra 1d4 electricity damage for 1 minute.", guide: "warpriest#weather"),
+        (key: "warpriest/channel-energy", name: "Channel Energy", summary: "From 4th level, spend two Fervor to channel energy, healing or harming 1d6 plus 1d6 per 3 levels above 2nd (7d6 at 20th).", guide: "warpriest#channel-energy"),
+        (key: "warpriest/fervor", name: "Fervor", summary: "Half level + Wis mod times a day: heal or harm 1d6 per 3 levels (7d6 at 20th), swift on yourself, or cast a prepared spell on yourself as a swift action.", guide: "warpriest#fervor"),
+        (key: "warpriest/sacred-armor", name: "Sacred Armor", summary: "From 7th level, enhance your armour for minutes a day equal to your level, or add fortification, energy resistance or spell resistance instead.", guide: "warpriest#sacred-armor"),
+        (key: "warpriest/sacred-weapon", name: "Sacred Weapon", summary: "Weapon Focus in a chosen weapon; it and your deity's weapon deal 1d6 to 3d6 by level, and from 4th you can enhance it as a swift action, rounds equal to level.", guide: "warpriest#sacred-weapon"),
+        (key: "warpriest/spontaneous-casting", name: "Spontaneous Casting", summary: "Choose to convert prepared spells into cure spells or inflict spells of the same level.", guide: "warpriest#spontaneous-casting"),
     ],
     selections: [
         (
             key: "warpriest/blessings",
             deity_domains: Offered,
             name: "Blessings",
+            summary: "Choose two blessings from your deity's domains; each gives a minor power and a major one at 10th, used 3 + 1 per two levels times a day.",
             guide: "warpriest#blessings",
             option_levels: ["warpriest"],
             options: [
                 (
                     key: "warpriest/blessings/air-domain",
                     name: "Air Domain",
+                    summary: "Minor: an ally's ranged attacks don't provoke for 1 minute. Major (10th): an ally flies for 1 minute and adds your level as electricity damage on charges.",
                     guide: "warpriest#air-domain",
                     domain: "cleric/domain/air",
                     levels: [
@@ -89,6 +92,7 @@ Class(
                 (
                     key: "warpriest/blessings/animal-domain",
                     name: "Animal Domain",
+                    summary: "Minor: an ally gains two 1d6 claws for 1 minute. Major (10th): summon an ally as Summon Nature's Ally V, rising to IX at 18th.",
                     guide: "warpriest#animal-domain",
                     domain: "cleric/domain/animal",
                     levels: [
@@ -99,6 +103,7 @@ Class(
                 (
                     key: "warpriest/blessings/chaos-domain",
                     name: "Chaos Domain",
+                    summary: "Minor: an ally's attacks deal +1d6 to lawful foes and count as chaotic. Major (10th): summon an ally as Summon Monster IV, rising to IX at 20th.",
                     guide: "warpriest#chaos-domain",
                     domain: "cleric/domain/chaos",
                     prerequisite: All([Any([Not(PickedThrough("warpriest/blessings")), Alignment(ChaoticGood), Alignment(ChaoticNeutral), Alignment(ChaoticEvil)]), Any([Not(PickedThrough("warpriest/champion-of-the-faith/chosen-alignment")), Alignment(ChaoticGood), Alignment(ChaoticNeutral), Alignment(ChaoticEvil)]), Any([Not(PickedThrough("warpriest/champion-of-the-faith/chosen-alignment")), DeityOffers("cleric/domain/chaos")])]),
@@ -110,6 +115,7 @@ Class(
                 (
                     key: "warpriest/blessings/darkness-domain",
                     name: "Darkness Domain",
+                    summary: "Minor: an ally gains 20% concealment for 1 minute. Major (10th): blind an enemy within 30' for 1 minute (Will negates).",
                     guide: "warpriest#darkness-domain",
                     domain: "cleric/domain/darkness",
                     levels: [
@@ -120,6 +126,7 @@ Class(
                 (
                     key: "warpriest/blessings/death-domain",
                     name: "Death Domain",
+                    summary: "Minor: +4 Intimidate and +2 to saves against several effects for 1 minute. Major (10th): a touch or your next melee hit gives 1 negative level.",
                     guide: "warpriest#death-domain",
                     domain: "cleric/domain/death",
                     levels: [
@@ -130,6 +137,7 @@ Class(
                 (
                     key: "warpriest/blessings/destruction",
                     name: "Destruction",
+                    summary: "Minor: an ally gains damage equal to half your level for 1 minute. Major (10th): an ally gets +4 to confirm crits and 50% crit immunity.",
                     guide: "warpriest#destruction",
                     domain: "cleric/domain/destruction",
                     levels: [
@@ -140,6 +148,7 @@ Class(
                 (
                     key: "warpriest/blessings/earth",
                     name: "Earth",
+                    summary: "Minor: a weapon deals +1d4 acid for 1 minute. Major (10th): an ally gains DR 1/- for 1 minute, rising to DR 5/- at 18th.",
                     guide: "warpriest#earth",
                     domain: "cleric/domain/earth",
                     levels: [
@@ -150,6 +159,7 @@ Class(
                 (
                     key: "warpriest/blessings/evil-domain",
                     name: "Evil Domain",
+                    summary: "Minor: an ally's attacks deal +1d6 to good foes and count as evil. Major (10th): summon an ally as Summon Monster IV, rising to IX at 20th.",
                     guide: "warpriest#evil-domain",
                     domain: "cleric/domain/evil",
                     prerequisite: All([Any([Not(PickedThrough("warpriest/blessings")), Alignment(LawfulEvil), Alignment(NeutralEvil), Alignment(ChaoticEvil)]), Any([Not(PickedThrough("warpriest/champion-of-the-faith/chosen-alignment")), Alignment(LawfulEvil), Alignment(NeutralEvil), Alignment(ChaoticEvil)]), Any([Not(PickedThrough("warpriest/champion-of-the-faith/chosen-alignment")), DeityOffers("cleric/domain/evil")])]),
@@ -161,6 +171,7 @@ Class(
                 (
                     key: "warpriest/blessings/fire",
                     name: "Fire",
+                    summary: "Per the guide: minor adds 1d4 acid to a weapon for 1 minute; major (10th) gives an ally cold resistance equal to your level for 1 minute.",
                     guide: "warpriest#fire",
                     domain: "cleric/domain/fire",
                     levels: [
@@ -171,6 +182,7 @@ Class(
                 (
                     key: "warpriest/blessings/good-domain",
                     name: "Good Domain",
+                    summary: "Minor: an ally's attacks deal +1d6 to evil foes and count as good. Major (10th): summon an ally as Summon Monster IV, rising to IX at 20th.",
                     guide: "warpriest#good-domain",
                     domain: "cleric/domain/good",
                     prerequisite: All([Any([Not(PickedThrough("warpriest/blessings")), Alignment(LawfulGood), Alignment(NeutralGood), Alignment(ChaoticGood)]), Any([Not(PickedThrough("warpriest/champion-of-the-faith/chosen-alignment")), Alignment(LawfulGood), Alignment(NeutralGood), Alignment(ChaoticGood)]), Any([Not(PickedThrough("warpriest/champion-of-the-faith/chosen-alignment")), DeityOffers("cleric/domain/good")])]),
@@ -182,6 +194,7 @@ Class(
                 (
                     key: "warpriest/blessings/healing-domain",
                     name: "Healing Domain",
+                    summary: "Minor: empower your next cure spell as a swift action. Major (10th): an ally gains fast healing 3 for 1 minute.",
                     guide: "warpriest#healing-domain",
                     domain: "cleric/domain/healing",
                     levels: [
@@ -192,6 +205,7 @@ Class(
                 (
                     key: "warpriest/blessings/law-domain",
                     name: "Law Domain",
+                    summary: "Minor: an ally's attacks deal +1d6 to chaotic foes and count as lawful. Major (10th): allies within 30' get +4 AC and saves against chaotic foes.",
                     guide: "warpriest#law-domain",
                     domain: "cleric/domain/law",
                     prerequisite: All([Any([Not(PickedThrough("warpriest/blessings")), Alignment(LawfulGood), Alignment(LawfulNeutral), Alignment(LawfulEvil)]), Any([Not(PickedThrough("warpriest/champion-of-the-faith/chosen-alignment")), Alignment(LawfulGood), Alignment(LawfulNeutral), Alignment(LawfulEvil)]), Any([Not(PickedThrough("warpriest/champion-of-the-faith/chosen-alignment")), DeityOffers("cleric/domain/law")])]),
@@ -203,6 +217,7 @@ Class(
                 (
                     key: "warpriest/blessings/liberation",
                     name: "Liberation",
+                    summary: "Minor: Freedom of Movement on yourself for 1 round. Major (10th): Freedom of Movement on all allies within 30' for 1 round.",
                     guide: "warpriest#liberation",
                     domain: "cleric/domain/liberation",
                     levels: [
@@ -213,6 +228,7 @@ Class(
                 (
                     key: "warpriest/blessings/luck",
                     name: "Luck",
+                    summary: "Minor: an ally rolls twice on d20 rolls for 1 round. Major (10th): an enemy takes the worse of two d20 rolls for 1 round.",
                     guide: "warpriest#luck",
                     domain: "cleric/domain/luck",
                     levels: [
@@ -223,6 +239,7 @@ Class(
                 (
                     key: "warpriest/blessings/madness",
                     name: "Madness",
+                    summary: "Minor: turn a frightened, panicked or paralysed foe confused for 1 round. Major (10th): direct all confused creatures within 30' for 1 round.",
                     guide: "warpriest#madness",
                     domain: "cleric/domain/madness",
                     levels: [
@@ -233,6 +250,7 @@ Class(
                 (
                     key: "warpriest/blessings/magic",
                     name: "Magic",
+                    summary: "Minor: throw your melee weapon at a foe within 30', adding Wis to the attack. Major (10th): recall a spell you cast as a swift action.",
                     guide: "warpriest#magic",
                     domain: "cleric/domain/magic",
                     levels: [
@@ -243,6 +261,7 @@ Class(
                 (
                     key: "warpriest/blessings/nobility",
                     name: "Nobility",
+                    summary: "Minor: an ally gets +2 on attacks, skills and saves for 1 minute. Major (10th): allies within 30' get +4 on them for 1 round.",
                     guide: "warpriest#nobility",
                     domain: "cleric/domain/nobility",
                     levels: [
@@ -253,6 +272,7 @@ Class(
                 (
                     key: "warpriest/blessings/protection",
                     name: "Protection",
+                    summary: "Minor: +1 sacred to AC and saves for 1 minute (+2 at 10th, +3 at 20th). Major (10th): allies within 30' get energy resistance 10 (20 at 15th).",
                     guide: "warpriest#protection",
                     domain: "cleric/domain/protection",
                     levels: [
@@ -263,6 +283,7 @@ Class(
                 (
                     key: "warpriest/blessings/repose",
                     name: "Repose",
+                    summary: "Minor: a melee touch staggers for 1 round, or puts a staggered foe to sleep. Major (10th): healing channels also harm undead for half as much.",
                     guide: "warpriest#repose",
                     domain: "cleric/domain/repose",
                     levels: [
@@ -273,6 +294,7 @@ Class(
                 (
                     key: "warpriest/blessings/strength",
                     name: "Strength",
+                    summary: "Minor: half your level as a bonus on Strength-based rolls for 1 round. Major (10th): ignore armour speed penalties and add Str to some saves.",
                     guide: "warpriest#strength",
                     domain: "cleric/domain/strength",
                     levels: [
@@ -283,6 +305,7 @@ Class(
                 (
                     key: "warpriest/blessings/sun",
                     name: "Sun",
+                    summary: "Minor: blind a foe for 1 round (dazzled on a Reflex save). Major (10th): give a weapon flaming or undead bane for 1 minute.",
                     guide: "warpriest#sun",
                     domain: "cleric/domain/sun",
                     levels: [
@@ -293,6 +316,7 @@ Class(
                 (
                     key: "warpriest/blessings/travel",
                     name: "Travel",
+                    summary: "Minor: ignore difficult terrain for 1 round. Major (10th): teleport up to 20' as a move action.",
                     guide: "warpriest#travel",
                     domain: "cleric/domain/travel",
                     levels: [
@@ -303,6 +327,7 @@ Class(
                 (
                     key: "warpriest/blessings/trickery",
                     name: "Trickery",
+                    summary: "Minor: create an illusory duplicate for rounds equal to your level. Major (10th): Greater Invisibility for 1 round as a swift action.",
                     guide: "warpriest#trickery",
                     domain: "cleric/domain/trickery",
                     levels: [
@@ -313,6 +338,7 @@ Class(
                 (
                     key: "warpriest/blessings/water",
                     name: "Water",
+                    summary: "Minor: a weapon deals +1d4 cold for 1 minute. Major (10th): an ally gains fire resistance equal to your level for 1 minute.",
                     guide: "warpriest#water",
                     domain: "cleric/domain/water",
                     levels: [
@@ -323,6 +349,7 @@ Class(
                 (
                     key: "warpriest/blessings/weather",
                     name: "Weather",
+                    summary: "Minor: a weapon deals +1d4 electricity for 1 minute. Major (10th): ranged attacks against you get a miss chance of twice your level.",
                     guide: "warpriest#weather",
                     domain: "cleric/domain/weather",
                     levels: [
@@ -362,16 +389,18 @@ Class(
         (
             key: "warpriest/champion-of-the-faith",
             name: "Champion of the Faith",
+            summary: "Warpriest devoted to one alignment, who smites opposed foes and makes his weapons count as his chosen alignment.",
             guide: "warpriest#champion-of-the-faith",
             features: [
-                (key: "warpriest/champion-of-the-faith/chosen-alignment", name: "Chosen Alignment", guide: "warpriest#chosen-alignment"),
-                (key: "warpriest/champion-of-the-faith/sacred-weapon-aligned-weapon", name: "Sacred Weapon - Aligned Weapon", guide: "warpriest#sacred-weapon-aligned-weapon"),
-                (key: "warpriest/champion-of-the-faith/smite", name: "Smite", guide: "warpriest#smite"),
+                (key: "warpriest/champion-of-the-faith/chosen-alignment", name: "Chosen Alignment", summary: "Pick law, good, chaos or evil matching your and your deity's alignment; you gain that alignment's blessing even if your deity lacks it.", guide: "warpriest#chosen-alignment"),
+                (key: "warpriest/champion-of-the-faith/sacred-weapon-aligned-weapon", name: "Sacred Weapon - Aligned Weapon", summary: "At 4th, your weapons count as your chosen alignment against DR; from 12th, once a day add the matching property (Holy, etc.) for 1 minute.", guide: "warpriest#sacred-weapon-aligned-weapon"),
+                (key: "warpriest/champion-of-the-faith/smite", name: "Smite", summary: "From 4th level, two Fervor: smite a foe of opposed alignment, adding Cha to attack and AC and your level to damage, bypassing DR; +1 use every four levels.", guide: "warpriest#smite"),
             ],
             selections: [
                 (
                     key: "warpriest/champion-of-the-faith/chosen-alignment",
                     name: "Chosen Alignment Blessing",
+                    summary: "Pick law, good, chaos or evil matching your and your deity's alignment; you gain that alignment's blessing even if your deity lacks it.",
                     guide: "warpriest#chosen-alignment",
                     option_levels: ["warpriest"],
                     options: [],
@@ -395,15 +424,16 @@ Class(
         (
             key: "warpriest/cult-leader",
             name: "Cult Leader",
+            summary: "Stealthy warpriest with sneak attacks, fewer bonus feats and 3 skill points a level.",
             guide: "warpriest#cult-leader",
             skill_points: 3,
             class_skills: ["athletics", "knowledge-arcana", "knowledge-world", "lore-nature", "lore-religion", "mobility", "perception", "persuasion", "stealth"],
             features: [
-                (key: "warpriest/cult-leader/cult-leader-proficiencies", name: "Cult Leader Proficiencies", guide: "warpriest#cult-leader-proficiencies"),
-                (key: "warpriest/cult-leader/enthrall", name: "Enthrall", guide: "warpriest#enthrall"),
-                (key: "warpriest/cult-leader/hide-in-plain-sight", name: "Hide in Plain Sight", guide: "warpriest#hide-in-plain-sight"),
-                (key: "warpriest/cult-leader/sneak-attack", name: "Sneak Attack", guide: "warpriest#sneak-attack"),
-                (key: "warpriest/cult-leader/well-hidden", name: "Well Hidden", guide: "warpriest#well-hidden"),
+                (key: "warpriest/cult-leader/cult-leader-proficiencies", name: "Cult Leader Proficiencies", summary: "Simple weapons, rapiers, shortswords, shortbows, light armour and light shields; no free Weapon Focus.", guide: "warpriest#cult-leader-proficiencies"),
+                (key: "warpriest/cult-leader/enthrall", name: "Enthrall", summary: "From 4th level, two Fervor: enemies within 30' are fascinated for Wis mod rounds unless they make a Will save.", guide: "warpriest#enthrall"),
+                (key: "warpriest/cult-leader/hide-in-plain-sight", name: "Hide in Plain Sight", summary: "At 12th level, you can use Stealth while being observed.", guide: "warpriest#hide-in-plain-sight"),
+                (key: "warpriest/cult-leader/sneak-attack", name: "Sneak Attack", summary: "From 3rd level, +1d6 damage against flanked foes or foes denied Dex, +1d6 every three levels (6d6 at 18th).", guide: "warpriest#sneak-attack"),
+                (key: "warpriest/cult-leader/well-hidden", name: "Well Hidden", summary: "+2 on Stealth checks.", guide: "warpriest#well-hidden"),
             ],
             levels: [
                 (level: 1, features: ["warpriest/cult-leader/cult-leader-proficiencies", "warpriest/cult-leader/well-hidden", "warpriest/sacred-weapon", "warpriest/spontaneous-casting"], feats: ["armor-proficiency-light-armor", "simple-weapon-proficiency"], selections: ["warpriest/blessings", "warpriest/blessings"]),
@@ -419,10 +449,11 @@ Class(
         (
             key: "warpriest/disenchanter",
             name: "Disenchanter",
+            summary: "Warpriest specialised against magic, with anti-magic powers but weaker in combat.",
             guide: "warpriest#disenchanter",
             features: [
-                (key: "warpriest/disenchanter/banish-enchantment", name: "Banish Enchantment", guide: "warpriest#banish-enchantment"),
-                (key: "warpriest/disenchanter/mystic-interference", name: "Mystic Interference", guide: "warpriest#mystic-interference"),
+                (key: "warpriest/disenchanter/banish-enchantment", name: "Banish Enchantment", summary: "From 6th level, two Fervor: cast Dispel Magic on one creature within 30'.", guide: "warpriest#banish-enchantment"),
+                (key: "warpriest/disenchanter/mystic-interference", name: "Mystic Interference", summary: "From 4th level, two Fervor: allies within 30' gain +1 on saves against spells for rounds equal to your level, +1 more every four levels (+5 at 20th).", guide: "warpriest#mystic-interference"),
             ],
             feat_lists: [
                 (key: "warpriest/disenchanter/bonus-feats-12", name: "Bonus Feat (Disenchanter, from level 12)", guide: "warpriest#bonus-feat-disenchanter", ignores_prerequisites: true, feats: ["destructive-dispel", "dispel-synergy", "great-fortitude", "improved-great-fortitude", "improved-iron-will", "improved-lightning-reflexes", "iron-will", "lightning-reflexes", "ray-shield", "skill-focus", "spell-focus"]),
@@ -442,18 +473,20 @@ Class(
         (
             key: "warpriest/feral-champion",
             name: "Feral Champion",
+            summary: "Nature warpriest (Erastil, Gozreh or the Green Faith only) who gains wild shape but can't enchant his armour.",
             prerequisite: Any([Deity("erastil"), Deity("gozreh"), Deity("green-faith")]),
             guide: "warpriest#feral-champion",
             features: [
-                (key: "warpriest/feral-champion/wild-shape-bear", name: "Wild Shape (Bear)", guide: "warpriest#feral-champion"),
-                (key: "warpriest/feral-champion/wild-shape-leopard", name: "Wild Shape (Leopard)", guide: "warpriest#feral-champion"),
-                (key: "warpriest/feral-champion/wild-shape-smilodon", name: "Wild Shape (Smilodon)", guide: "warpriest#feral-champion"),
-                (key: "warpriest/feral-champion/wild-shape-wolf", name: "Wild Shape (Wolf)", guide: "warpriest#feral-champion"),
+                (key: "warpriest/feral-champion/wild-shape-bear", name: "Wild Shape (Bear)", summary: "From 11th level, wild shape into a bear; wild shape uses level - 3 as druid level.", guide: "warpriest#feral-champion"),
+                (key: "warpriest/feral-champion/wild-shape-leopard", name: "Wild Shape (Leopard)", summary: "From 9th level, wild shape into a leopard; wild shape uses level - 3 as druid level.", guide: "warpriest#feral-champion"),
+                (key: "warpriest/feral-champion/wild-shape-smilodon", name: "Wild Shape (Smilodon)", summary: "From 13th level, wild shape into a smilodon; wild shape uses level - 3 as druid level.", guide: "warpriest#feral-champion"),
+                (key: "warpriest/feral-champion/wild-shape-wolf", name: "Wild Shape (Wolf)", summary: "From 7th level, wild shape into a wolf, 1/day plus 1 every four levels (4 at 19th); uses level - 3 as druid level.", guide: "warpriest#feral-champion"),
             ],
             selections: [
                 (
                     key: "warpriest/feral-champion/blessing",
                     name: "Blessing (Feral Champion)",
+                    summary: "A Feral Champion takes only the Animal Domain blessing, with no second blessing.",
                     guide: "warpriest#feral-blessing",
                     option_levels: ["warpriest"],
                     options: [],
@@ -476,16 +509,17 @@ Class(
         (
             key: "warpriest/mantis-zealot",
             name: "Mantis Zealot",
+            summary: "Warpriest of Achaekek (Dance of Masks DLC) with powers tied to his sawtooth sabers; no channel energy or armour enchanting.",
             guide: "warpriest#mantis-zealot",
             prerequisite: Deity("achaekek"),
             features: [
-                (key: "warpriest/mantis-zealot/aspect-of-the-mantis", name: "Aspect of the Mantis", guide: "warpriest#aspect-of-the-mantis"),
-                (key: "warpriest/mantis-zealot/deadly-fascination", name: "Deadly Fascination", guide: "warpriest#deadly-fascination"),
-                (key: "warpriest/mantis-zealot/fading", name: "Fading", guide: "warpriest#fading"),
-                (key: "warpriest/mantis-zealot/mantis-swarm", name: "Mantis Swarm", guide: "warpriest#mantis-swarm"),
-                (key: "warpriest/mantis-zealot/red-shroud", name: "Red Shroud", guide: "warpriest#red-shroud"),
-                (key: "warpriest/mantis-zealot/red-shroud-free-action", name: "Red Shroud (Free Action)", guide: "warpriest#mantis-zealot"),
-                (key: "warpriest/mantis-zealot/red-shroud-swift-action", name: "Red Shroud (Swift Action)", guide: "warpriest#mantis-zealot"),
+                (key: "warpriest/mantis-zealot/aspect-of-the-mantis", name: "Aspect of the Mantis", summary: "At 20th, once a day for 1 minute: DR 10/good, a 2d6 bite giving a negative level, bleeding saber hits and a teleport attack on each kill.", guide: "warpriest#aspect-of-the-mantis"),
+                (key: "warpriest/mantis-zealot/deadly-fascination", name: "Deadly Fascination", summary: "From 3rd level, each kill forces foes within 30' to make a Will save or be fascinated; harder with two sabres or Red Shroud.", guide: "warpriest#deadly-fascination"),
+                (key: "warpriest/mantis-zealot/fading", name: "Fading", summary: "From 7th level, Red Shroud gives a 20% chance to avoid attacks and targeted spells, +10% at 10th and every three levels (60% at 19th).", guide: "warpriest#fading"),
+                (key: "warpriest/mantis-zealot/mantis-swarm", name: "Mantis Swarm", summary: "From 5th level, Red Shroud makes adjacent foes save or bleed 1d6 a turn; sawtooth sabers deal +1d6 to bleeding foes (more at 11th and 18th).", guide: "warpriest#mantis-swarm"),
+                (key: "warpriest/mantis-zealot/red-shroud", name: "Red Shroud", summary: "Move action: mantis cloud gives +1 dodge AC (+1 every four levels) and fast healing equal to BAB, for Dex mod minutes a day.", guide: "warpriest#red-shroud"),
+                (key: "warpriest/mantis-zealot/red-shroud-free-action", name: "Red Shroud (Free Action)", summary: "At 13th level, Red Shroud can be raised as a free action.", guide: "warpriest#mantis-zealot"),
+                (key: "warpriest/mantis-zealot/red-shroud-swift-action", name: "Red Shroud (Swift Action)", summary: "At 7th level, Red Shroud can be raised as a swift action.", guide: "warpriest#mantis-zealot"),
             ],
             levels: [
                 (level: 1, features: ["warpriest/mantis-zealot/red-shroud", "warpriest/sacred-weapon", "warpriest/spontaneous-casting"], feats: ["armor-proficiency-light-armor", "martial-weapons-proficiency", "simple-weapon-proficiency"], feats_for: [(feat: "exotic-weapon-proficiency", value: Weapon("sawtooth-saber")), (feat: "weapon-focus", value: Weapon("sawtooth-saber"))]),
@@ -505,10 +539,11 @@ Class(
         (
             key: "warpriest/proclaimer",
             name: "Proclaimer",
+            summary: "Warpriest with powers against evil outsiders, losing Sacred Armor.",
             guide: "warpriest#proclaimer",
             features: [
-                (key: "warpriest/proclaimer/cleanser-of-evil", name: "Cleanser of Evil", guide: "warpriest#cleanser-of-evil"),
-                (key: "warpriest/proclaimer/zone-of-sanctification", name: "Zone of Sanctification", guide: "warpriest#zone-of-sanctification"),
+                (key: "warpriest/proclaimer/cleanser-of-evil", name: "Cleanser of Evil", summary: "From 2nd level, swift action and one Fervor: 1d6 damage to evil outsiders within 5', +1d6 every three levels from 5th; radius grows from 7th.", guide: "warpriest#cleanser-of-evil"),
+                (key: "warpriest/proclaimer/zone-of-sanctification", name: "Zone of Sanctification", summary: "From 4th level, move action and two Fervor: evil outsiders in your Cleanser of Evil radius are pushed out unless they make a Will save.", guide: "warpriest#zone-of-sanctification"),
             ],
             levels: [
                 (level: 2, features: ["warpriest/fervor", "warpriest/proclaimer/cleanser-of-evil"]),
@@ -523,12 +558,13 @@ Class(
         (
             key: "warpriest/shieldbearer",
             name: "Shieldbearer",
+            summary: "Shield-focused warpriest who trades armour bonuses for shield bonuses; his shield counts as his sacred weapon.",
             guide: "warpriest#shieldbearer",
             features: [
-                (key: "warpriest/shieldbearer/channel-energy-shieldbearer", name: "Channel Energy (Shieldbearer)", guide: "warpriest#channel-energy-shieldbearer"),
-                (key: "warpriest/shieldbearer/sacred-shield", name: "Sacred Shield", guide: "warpriest#sacred-shield"),
-                (key: "warpriest/shieldbearer/sacred-weapon-shieldbearer", name: "Sacred Weapon (Shieldbearer)", guide: "warpriest#sacred-weapon-shieldbearer"),
-                (key: "warpriest/shieldbearer/shield-adept", name: "Shield Adept", guide: "warpriest#shield-adept"),
+                (key: "warpriest/shieldbearer/channel-energy-shieldbearer", name: "Channel Energy (Shieldbearer)", summary: "Channels energy only while holding a shield, as a 30' cone.", guide: "warpriest#channel-energy-shieldbearer"),
+                (key: "warpriest/shieldbearer/sacred-shield", name: "Sacred Shield", summary: "The shield counts as a sacred weapon; from 4th, swift action for +1 shield enhancement (+5 at 20th) or spell resistance or fortification.", guide: "warpriest#sacred-shield"),
+                (key: "warpriest/shieldbearer/sacred-weapon-shieldbearer", name: "Sacred Weapon (Shieldbearer)", summary: "From 7th level, +1 enhancement to weapons you have Weapon Focus in, +1 every three levels (+5 at 19th).", guide: "warpriest#sacred-weapon-shieldbearer"),
+                (key: "warpriest/shieldbearer/shield-adept", name: "Shield Adept", summary: "Add your shield bonus to concentration checks when casting defensively.", guide: "warpriest#shield-adept"),
             ],
             levels: [
                 (level: 1, features: ["warpriest/shieldbearer/sacred-shield", "warpriest/shieldbearer/shield-adept", "warpriest/spontaneous-casting"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-bash", "shield-proficiency", "simple-weapon-proficiency"], selections: ["warpriest/blessings", "warpriest/blessings"]),
