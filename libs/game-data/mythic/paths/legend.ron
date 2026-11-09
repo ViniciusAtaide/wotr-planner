@@ -1,10 +1,11 @@
 MythicPath(
     key: "legend",
     name: "Legend",
+    summary: "Turn down the mythic power after rank 8: rank stays at 3, losing rank 3-8 abilities, feats and spellbook, for +4 ability scores and a level cap of 40.",
     guide: "other-mythic-paths#legend",
     switch: (kept_through_rank: 2, path_kept_through_rank: 2, features: ["legend/legend", "legend/legends-corruption-resistance"], further_ascensions: false, level_cap: Some(40)),
     features: [
-        (key: "legend/legend", name: "Legend", guide: "other-mythic-paths#legend", ability_bonuses: [Every(amount: 4)]),
-        (key: "legend/legends-corruption-resistance", name: "Legend\'s Corruption Resistance", guide: "other-mythic-paths#legends-corruption-resistance"),
+        (key: "legend/legend", name: "Legend", summary: "All ability scores +4, the level cap rises to 40, and levelling needs less XP.", guide: "other-mythic-paths#legend", ability_bonuses: [Every(amount: 4)]),
+        (key: "legend/legends-corruption-resistance", name: "Legend\'s Corruption Resistance", summary: "Abyssal Corruption only begins to grow after 5 rests.", guide: "other-mythic-paths#legends-corruption-resistance"),
     ],
 )
