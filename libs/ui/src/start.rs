@@ -8,7 +8,7 @@ use crate::planner::{Target, use_planner};
 use crate::timings::timed;
 
 /// The Build start, ahead of the grid: open while the Build has no levels, folded to one line after. It folds
-/// itself when level 1 is added, so the grid's edits don't redo its checks.
+/// itself when level 1 is added, so the grid's edits don't redo its checks, and opens again when the last level goes.
 #[component]
 pub fn BuildStartPanel() -> AnyView {
     let planner = use_planner();
@@ -16,8 +16,9 @@ pub fn BuildStartPanel() -> AnyView {
     let open = RwSignal::new(!has_levels.get_untracked());
     Effect::new(move |had_levels: Option<bool>| {
         let has = has_levels.get();
-        if had_levels == Some(false) && has {
-            open.set(false);
+        // Folds when the Build gains its first level, opens when it loses its last.
+        if had_levels.is_some_and(|had| had != has) {
+            open.set(!has);
         }
         has
     });

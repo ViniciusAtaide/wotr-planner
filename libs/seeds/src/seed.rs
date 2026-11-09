@@ -40,6 +40,12 @@ pub async fn replace_game_data(database: &Path, data: &GameData, hash: &str) -> 
 
 /// [`replace_game_data`] without the data check: only the foreign keys stand between `data` and the database.
 async fn replace_unchecked(database: &Path, data: &GameData, hash: &str) -> Result<(), Error> {
+    // One seed at a time per database: a second one waits here rather than deleting the first's `.new`. The lock
+    // is released when `lock` drops; the empty file stays, since removing it would reopen the race.
+    let mut lock_name = database.as_os_str().to_owned();
+    lock_name.push(".lock");
+    let lock = std::fs::File::create(PathBuf::from(lock_name)).map_err(sqlx::Error::Io)?;
+    lock.lock().map_err(sqlx::Error::Io)?;
     let mut name = database.as_os_str().to_owned();
     name.push(".new");
     let new = PathBuf::from(name);

@@ -18,7 +18,7 @@ After a schema change, rebuild your checkout's database, from its root:
 **Each checkout has its own database**, so agents in separate worktrees rebuild theirs at the same time without touching each other's:
 - In a new worktree, copy `.env.example` to `.env` first; its relative `DATABASE_URL` then names that worktree's own file.
 - Build in the worktree's own `target/` (the default). Never share `CARGO_TARGET_DIR` between worktrees: the seed and the server find the workspace root, and with it the database file and `libs/game-data/`, from the path they were compiled in, so a shared build can write another worktree's database.
-- Agents sharing one checkout share its database. There, rebuild it only when you are the only agent in that checkout; otherwise leave it as it is and report the schema change you need.
+- Agents sharing one checkout share its database. There, rebuild it only when you are the only agent in that checkout; otherwise leave it as it is and report the schema change you need. (The seed step alone locks the database, so two seeds wait for each other; the other steps don't.)
 
 `scripts/check.sh --schema` doesn't need the dev database: it checks the queries against a new file migrated in a temporary folder.
 

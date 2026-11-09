@@ -132,6 +132,14 @@ impl Planner {
         self.picker.set(None);
     }
 
+    /// Replaces the whole Build (a link pasted into the address bar): what belonged to the old one goes with it.
+    fn replace(&self, build: Build, error: Option<String>) {
+        self.picker.set(None);
+        self.attack_weapon.set(None);
+        self.build.set(build);
+        self.error.set(error);
+    }
+
     /// Opens what the URL fragment holds: a blank Build, or a link through `Engine::open_link`. A link that
     /// opens nothing gives the one generic error and a blank Build.
     fn open_fragment(engine: &Engine) -> (Build, Option<String>) {
@@ -177,9 +185,7 @@ fn SheetView(engine: Arc<Engine>) -> impl IntoView {
         let hash = window().location().hash().unwrap_or_default();
         if hash.trim_start_matches('#') != current.trim_start_matches('#') {
             let (build, error) = Planner::open_fragment(&planner.engine());
-            planner.picker.set(None);
-            planner.build.set(build);
-            planner.error.set(error);
+            planner.replace(build, error);
         }
     });
     on_cleanup(move || listener.remove());

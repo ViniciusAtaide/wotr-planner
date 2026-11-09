@@ -57,7 +57,8 @@ cargo leptos build --release
 
 port=$(python3 -c 'import socket; s = socket.socket(); s.bind(("127.0.0.1", 0)); print(s.getsockname()[1])')
 site=http://127.0.0.1:$port
-LEPTOS_SITE_ADDR=127.0.0.1:$port LEPTOS_SITE_ROOT=target/site LEPTOS_SITE_PKG_DIR=pkg \
+# Its MCP server takes any free port (0), so it never holds the sessions' 3902 while the site builds.
+LEPTOS_SITE_ADDR=127.0.0.1:$port WOTR_MCP_PORT=0 LEPTOS_SITE_ROOT=target/site LEPTOS_SITE_PKG_DIR=pkg \
     LEPTOS_OUTPUT_NAME=wotr-planner LEPTOS_ENV=PROD target/release/server >"$tmp/server.log" 2>&1 &
 server=$!
 # The server compresses the game data before it listens: about 2 s in a release build.
