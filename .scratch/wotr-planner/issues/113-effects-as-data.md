@@ -1,7 +1,7 @@
 # Effects as data: bonus types, conditions and "counts as"
 
 Type: design
-Status: open
+Status: resolved (option A; B and C not built)
 Blocked by: [112](112-effect-summaries.md) (recommended: decide this once the summaries exist)
 Map: [WotR Build Planner](../map.md)
 
@@ -24,3 +24,9 @@ Summaries (112) say in words what one item does. Interactions are between items,
 
 1. **Which option?** *Recommend:* A while 112 is written, then B for the few items where words in two summaries aren't enough. C only if the user takes 114's option C. It's a large model, and the map's "Rules followed" note (intended, patched behaviour) means every interaction would need a source.
 2. **Where do interactions come from?** *Recommend:* the saved guide pages only. Where the guide says nothing, the note says nothing, and the agent labels its answer as its own knowledge.
+
+## Answer
+
+Decided 2026-11-08: the user had every ticket of 112–118 built with its recommended options. So it's option A: interactions live in the words of [112](112-effect-summaries.md)'s summaries, and nothing more is built.
+- Option B (an `interactions` note) waits until an agent run or a user shows where two summaries aren't enough.
+- Option C (a modifier model) is not built: [114](114-attack-line-and-damage.md) took option B, which counts only unconditional bonuses.
