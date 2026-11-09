@@ -1,7 +1,7 @@
 # Planning ahead: what a class split reaches and gives up
 
 Type: design
-Status: open
+Status: resolved (option A; option B, a `reach` tool, not built)
 Blocked by: none
 Map: [WotR Build Planner](../map.md)
 
@@ -23,3 +23,20 @@ The planner already knew: `options` with `only_open: false` says "Needs Barbaria
 
 1. **Which option?** *Recommend:* A now, as part of [117](117-mcp-ergonomics.md)'s instructions change. Build B only if agents still pick a split blind.
 2. **Should B also list what a split forfeits against a single-class Build?** *Recommend:* no. That is `compare` on two branches, which exists.
+
+## Settled
+
+The user approved the recommendations (2026-11-08): **option A**, as part of [117](117-mcp-ergonomics.md)'s "Before you plan" paragraph. **Option B, the `reach` tool, is not built**; it waits until agents still pick a split blind with A in place. Question 2 is moot without B.
+
+## Progress log
+
+- 2026-11-08: Built on 117 (e7f1e00), whose paragraph left this bullet for this ticket. Red first: `tests/server/listing.rs` gains a test that the "Before you plan" paragraph names a class split, the Fighter 5 / Barbarian 15 example, branching, "`compare` the branches" and `only_open: false`; it failed. Then added the bullet to `INSTRUCTIONS` (`apps/mcp/src/server.rs`), and it passed. No other code.
+- `SQLX_OFFLINE=true scripts/check.sh`: ALL-OK.
+
+## Answer
+
+Done 2026-11-08 with option A: the server's instructions tell agents, before they plan, to branch candidate class splits from one code, add their levels and `compare` the branches, and to read a closed option's needs with `options {only_open: false}`. No `reach` tool (option B). 83 server tests pass (1 new).
+
+The bullet, for the user's review (the whole paragraph is in 117's Answer):
+
+> - A class split decides what the last levels can take: Fighter 5 / Barbarian 15 gives up Barbarian levels 16 to 20 and whatever needs them. Before you commit to a class split, branch the candidates from one code (Barbarian 20, and Fighter 5 / Barbarian 15), add their levels, and `compare` the branches: it lists the feats and features each gains that the other doesn't. `options` with `only_open: false` says what a closed option still needs ("Needs Barbarian level 16 (have 14)").

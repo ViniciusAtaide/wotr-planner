@@ -101,6 +101,26 @@ async fn the_instructions_say_what_to_know_before_planning() {
 }
 
 #[tokio::test]
+async fn the_instructions_say_to_compare_class_splits_before_committing() {
+    // Ticket 115, option A: no `reach` tool; branch the splits and `compare` them first.
+    let instructions = Client::start().await.instructions();
+    let before = instructions
+        .find("Before you plan:")
+        .expect("the paragraph");
+    let workflow = instructions.find("Workflow:").expect("the workflow");
+    let paragraph = &instructions[before..workflow];
+    for phrase in [
+        "class split",
+        "Fighter 5 / Barbarian 15",
+        "branch",
+        "`compare` the branches",
+        "`only_open: false`",
+    ] {
+        assert!(paragraph.contains(phrase), "no {phrase} in {paragraph}");
+    }
+}
+
+#[tokio::test]
 async fn the_glossary_is_a_resource() {
     let client = Client::start().await;
     let capabilities = client.capabilities();

@@ -39,6 +39,11 @@ Before you plan:
 - Choose the faith (a deity, or atheism) before the alignment: no alignment is open until the faith is chosen, and a \
 deity allows only some.
 - `sheet` gives each Mythic rank's `character_level`, the character level its ascension comes at.
+- A class split decides what the last levels can take: Fighter 5 / Barbarian 15 gives up Barbarian levels 16 to 20 \
+and whatever needs them. Before you commit to a class split, branch the candidates from one code (Barbarian 20, and \
+Fighter 5 / Barbarian 15), add their levels, and `compare` the branches: it lists the feats and features each gains \
+that the other doesn't. `options` with `only_open: false` says what a closed option still needs (\"Needs Barbarian \
+level 16 (have 14)\").
 
 Workflow:
 1. Resolve every name the user gives with `search` (names, keys and initials: \"BFT\" finds the Brown-Fur \
