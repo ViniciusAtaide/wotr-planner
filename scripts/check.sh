@@ -8,7 +8,8 @@
 # --schema: also `cargo sqlx prepare --check`, after a change to the migration or a query, against a new SQLite file
 #           migrated from libs/seeds/migrations (needs sqlx-cli with its `sqlite` feature, not the dev database).
 # --full:   also the cargo-leptos dev and release builds. They are slow and rarely break, so run them once at the end
-#           of a queue of tickets, not per ticket. The release build is made as it's served: --precompress.
+#           of a queue of tickets, not per ticket. The release build is made as it's served: --precompress. Then
+#           scripts/build-mcp.sh, the MCP server `.mcp.json` runs.
 # Prints one line per step with its time, and ALL-OK at the end. Stops at the first failing step and shows its output.
 set -euo pipefail
 
@@ -18,7 +19,7 @@ for arg in "$@"; do
     case $arg in
     --schema) schema=true ;;
     --full) full=true ;;
-    *) sed -n '2,11p' "$0" | sed 's/^# \{0,1\}//' >&2 && exit 2 ;;
+    *) sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//' >&2 && exit 2 ;;
     esac
 done
 
@@ -54,5 +55,6 @@ fi
 if $full; then
     step leptos-dev env SQLX_OFFLINE=true cargo leptos build
     step leptos-release cargo leptos build --release --precompress
+    step mcp-release scripts/build-mcp.sh
 fi
 echo ALL-OK

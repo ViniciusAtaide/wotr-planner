@@ -2,11 +2,11 @@
   "mcpServers": {
     "wotr-planner": {
       "type": "stdio",
-      "command": "cargo",
-      "args": ["run", "-q", "-p", "mcp", "--release", "--"],
-      "env": {
-        "SQLX_OFFLINE": "true"
-      }
+      "command": "sh",
+      "args": [
+        "-c",
+        "bin=\"$(git rev-parse --show-toplevel)/target/release/wotr-mcp\" && [ -x \"$bin\" ] && exec \"$bin\"; echo \"wotr-mcp: no $bin: build it with scripts/build-mcp.sh\" >&2; exit 1"
+      ]
     }
   }
 }
