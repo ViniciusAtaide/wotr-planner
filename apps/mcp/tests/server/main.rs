@@ -13,6 +13,7 @@ mod end_to_end;
 mod listing;
 mod options;
 mod pick_values;
+mod ranking;
 mod search;
 mod sheet;
 mod summaries;

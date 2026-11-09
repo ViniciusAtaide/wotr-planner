@@ -733,6 +733,12 @@ pub struct CompareArgs {
     /// "compulsion"}`).
     #[serde(default)]
     pub caster: Option<crate::caster::CasterArgs>,
+    /// Order the summaries by this number at each Build's last level, highest first: `{"caster_line": {"school":
+    /// "enchantment", "subschool": "compulsion"}}` (`number`: `dc`, the default, `spell_penetration` or
+    /// `concentration`) or `{"attack_line": {"weapon": "greatsword"}}` (`number`: `attack`, the default, or
+    /// `damage`). Every per-Build list then follows that order.
+    #[serde(default)]
+    pub by: Option<crate::rank::NumberArgs>,
 }
 
 /// `compare`'s result: each Build's summary, then only what differs between them, all read from the planner's
@@ -755,6 +761,9 @@ pub struct CompareResult {
     /// With a `caster`: what no caster line counts.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub caster_leaves_out: Option<Vec<String>>,
+    /// With `by`: the number the Builds are ordered by, the order, and what the number leaves out.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub by: Option<crate::rank::RankedBy>,
 }
 
 /// One Build's sheet in short, at its last level.
@@ -798,6 +807,12 @@ pub struct BuildSummary {
     /// With a `caster`: the caster line at the last level.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub caster: Option<crate::caster::CasterLineShape>,
+    /// With `by`: the number at the last level; absent when the Build has no such line (no casting class, …).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub number: Option<i16>,
+    /// With `by`: this Build's place in the `builds` given, from 0.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub given: Option<u32>,
 }
 
 /// One class of a Build.

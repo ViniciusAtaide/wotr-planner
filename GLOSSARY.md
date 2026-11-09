@@ -96,6 +96,10 @@ _Avoid_: DC calculator, spell DC estimate
 A flat bonus an item (a race or subrace, a feat, a mythic feat, a feature, a selection option) gives while the character holds it, kept in the game data (`bonuses.ron`): its target (a spell DC of a scope, caster level against spell resistance, concentration), its amount (a number, half or all the Mythic rank, or Expanded Arsenal's copy of another school's Spell Focus feats) and what else it may require. The **Caster line** sums the ones held.
 _Avoid_: Modifier, effect
 
+**Ranking number**:
+One number of an **Attack line** (the first attack's bonus, or the bonus each hit adds to the dice) or a **Caster line** (the DC of the highest spell level castable, caster level against spell resistance, or concentration), read at a Build's last level. The MCP server orders Builds (`compare`'s `by`) and a choice's open options (`improve`) by it: an order by a number the rules compute is a fact, and it counts nothing its line leaves out. An option that leaves it as it is is a **no change**, whatever else it does.
+_Avoid_: Score, rating, best
+
 ### Classes
 
 **Progression**:
