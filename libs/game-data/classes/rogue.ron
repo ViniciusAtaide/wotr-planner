@@ -123,6 +123,7 @@ Class(
             name: "Eldritch Scoundrel",
             summary: "Dexterity and Intelligence rogue with prepared wizard-list spells up to 6th level, less sneak attack, fewer talents and no Uncanny Dodge.",
             guide: "rogue#eldritch-scoundrel",
+            casting_ability: Intelligence,
             skill_points: 3,
             class_skills: ["athletics", "knowledge-arcana", "knowledge-world", "mobility", "perception", "persuasion", "stealth", "trickery", "use-magic-device"],
             features: [

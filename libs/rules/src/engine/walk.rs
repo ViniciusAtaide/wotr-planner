@@ -23,6 +23,8 @@ mod hold;
 mod level;
 mod options;
 
+pub(super) use level::advancing_levels;
+
 impl Engine {
     /// Walks the whole Build.
     pub fn evaluate(&self, build: &Build) -> Sheet {

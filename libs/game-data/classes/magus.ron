@@ -4,6 +4,7 @@ Class(
     summary: "Arcane gish who casts and strikes in the same round; Dex and Int, 3/4 BAB, prepared arcane spells to 6th level, good Fortitude and Will, 6 HP a level.",
     guide: "magus",
     skill_points: 2,
+    casting_ability: Intelligence,
     bab: ThreeQuarters,
     fort: Good,
     reflex: Poor,
@@ -195,6 +196,7 @@ Class(
             name: "Eldritch Scion",
             summary: "Spontaneous Cha-based magus with a sorcerer bloodline's spells and powers and an Eldritch Pool; spells known as a bard.",
             guide: "magus#eldritch-scion",
+            casting_ability: Charisma,
             spontaneous: Some(true),
             features: [
                 (key: "magus/eldritch-scion/arcane-heavy-armor", name: "Arcane Heavy Armor", summary: "At 13th level, proficiency with heavy armour, and casting in it without arcane spell failure.", guide: "magus#eldritch-scion"),

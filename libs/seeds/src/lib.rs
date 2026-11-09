@@ -5,6 +5,7 @@
 //! [`rules::GameData`], and [`game_data_status`] tells whether the tables still match the files. Every
 //! function returns this crate's [`Error`]; sqlx stays an implementation detail.
 
+mod bonuses;
 mod columns;
 mod files;
 mod load;

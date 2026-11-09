@@ -56,6 +56,7 @@ pub(in crate::test_world::world) fn kineticist() -> Class {
         }])
         .collect();
     Class {
+        casting_ability: None,
         key: class("kineticist"),
         name: "Kineticist".into(),
         summary: String::new(),

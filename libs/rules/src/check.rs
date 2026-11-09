@@ -10,11 +10,12 @@
 use std::collections::{BTreeSet, HashMap, HashSet};
 use std::fmt;
 
+use crate::bonus::{BonusAmount, BonusItem, BonusTarget, SpellScope};
 use crate::engine::{BASE_LEVEL_CAP, PATH_CHOICE_RANK, PATH_SWITCH_RANK};
 use crate::game_data::{
     Advancement, Archetype, Class, ClassLevelRow, CountsToward, DOMAIN_SELECTION, Feat, FeatList,
     FeatSlot, FeatValue, Feature, FeatureSelection, GameData, LevelFrom, MythicPath, Save,
-    SelectionOption, WeaponProficiency,
+    SelectionOption, SpellLevels, WeaponProficiency,
 };
 use crate::keys::{
     ArchetypeKey, BackgroundKey, ClassKey, DeityKey, FeatKey, FeatListKey, FeatureKey,
@@ -291,6 +292,15 @@ pub enum DataIssue {
     /// A list entry for an archetype of no class that casts from the list, or for a story branch on a list that
     /// isn't a path's.
     OnlyOutsideTheList(SpellKey),
+    /// A class or archetype whose rows give spell levels, with no casting ability of its own or its class's.
+    NoCastingAbility,
+    /// A casting ability on a class that casts no spells of its own (none of its or its archetypes' rows give spell
+    /// levels; a prestige class only advances another's).
+    CastingAbilityWithoutSpells,
+    /// A bonus scoped to the value its item is held for ([`SpellScope::Value`](crate::SpellScope::Value), Expanded
+    /// Arsenal's amount) on an item that isn't a feat or mythic feat taken for a school (or, for a scope alone, an
+    /// energy type); or Expanded Arsenal's amount without that scope or on another target.
+    BonusValueWithoutParameter,
 }
 
 impl fmt::Display for DataProblem {
@@ -466,6 +476,15 @@ impl fmt::Display for DataProblem {
                 "limits {spell} to an archetype of no class that casts from the list, or to a story branch on a \
                  list that isn't a path's"
             ),
+            DataIssue::NoCastingAbility => {
+                f.write_str("its rows give spell levels, but it has no casting ability")
+            }
+            DataIssue::CastingAbilityWithoutSpells => {
+                f.write_str("it has a casting ability but casts no spells of its own")
+            }
+            DataIssue::BonusValueWithoutParameter => f.write_str(
+                "a bonus for the value its item is held for needs a feat or mythic feat taken for a school or an energy type",
+            ),
             DataIssue::SharesOwnOption(option) => {
                 write!(
                     f,
@@ -600,6 +619,7 @@ impl GameData {
                 check.problem(&DataAt::Spell(spell.key.clone()), DataIssue::SpellOnNoList);
             }
         }
+        check.bonuses(self);
         check.deity_limits(self);
         check.favoured_weapon_features(self);
         check.counts_toward_features(self);
@@ -1255,6 +1275,78 @@ impl Checker {
         }
     }
 
+    /// A class or archetype that casts has a casting ability (its own, or its class's), and one that doesn't has
+    /// none.
+    fn casting_ability(&mut self, class: &Class, prestige: bool) {
+        let at = DataAt::Class(class.key.clone());
+        let own = class.levels.iter().any(|row| row.spell_levels().any());
+        let archetype_casts = |archetype: &Archetype| {
+            archetype
+                .levels
+                .iter()
+                .any(|row| row.spell_levels.is_some_and(SpellLevels::any))
+        };
+        if own && class.casting_ability.is_none() {
+            self.problem(&at, DataIssue::NoCastingAbility);
+        }
+        if class.casting_ability.is_some()
+            && (prestige || !(own || class.archetypes.iter().any(archetype_casts)))
+        {
+            self.problem(&at, DataIssue::CastingAbilityWithoutSpells);
+        }
+        for archetype in &class.archetypes {
+            if archetype_casts(archetype)
+                && archetype
+                    .casting_ability
+                    .or(class.casting_ability)
+                    .is_none()
+            {
+                self.problem(
+                    &DataAt::Archetype(archetype.key.clone()),
+                    DataIssue::NoCastingAbility,
+                );
+            }
+        }
+    }
+
+    /// Each bonus's item exists, its condition is a sound prerequisite, and a bonus for the value its item is held
+    /// for is on an item taken for one.
+    fn bonuses(&mut self, data: &GameData) {
+        let mythic: HashMap<&MythicFeatKey, Option<ParameterKind>> = data
+            .mythic_feats
+            .iter()
+            .map(|feat| (&feat.key, feat.parameter))
+            .collect();
+        for bonus in &data.bonuses {
+            let (at, parameter) = match &bonus.item {
+                BonusItem::Race(key) => (DataAt::Race(key.clone()), None),
+                BonusItem::Subrace(key) => (DataAt::Subrace(key.clone()), None),
+                BonusItem::Feat(key) => (
+                    DataAt::Feat(key.clone()),
+                    self.parameters.get(key).copied().flatten(),
+                ),
+                BonusItem::MythicFeat(key) => (
+                    DataAt::MythicFeat(key.clone()),
+                    mythic.get(key).copied().flatten(),
+                ),
+                BonusItem::Feature(key) => (DataAt::Feature(key.clone()), None),
+                BonusItem::SelectionOption(key) => (DataAt::SelectionOption(key.clone()), None),
+            };
+            self.names(&at, at.clone());
+            self.prerequisite(&at, bonus.requires.as_ref(), None);
+            let copies = bonus.amount == BonusAmount::SpellFocusOfAnotherSchool;
+            let by_value = bonus.target == BonusTarget::SpellDc(SpellScope::Value);
+            let fits = match parameter {
+                Some(ParameterKind::SpellSchool) => true,
+                Some(ParameterKind::Energy) => !copies,
+                _ => false,
+            };
+            if (by_value || copies) && !(fits && by_value) {
+                self.problem(&at, DataIssue::BonusValueWithoutParameter);
+            }
+        }
+    }
+
     fn class(&mut self, class: &Class, prestige: bool) {
         let at = DataAt::Class(class.key.clone());
         self.key(&at);
@@ -1291,6 +1383,7 @@ impl Checker {
         if prestige && !class.archetypes.is_empty() {
             self.problem(&at, DataIssue::ArchetypeOnPrestigeClass);
         }
+        self.casting_ability(class, prestige);
         for archetype in &class.archetypes {
             let at = DataAt::Archetype(archetype.key.clone());
             self.key(&at);

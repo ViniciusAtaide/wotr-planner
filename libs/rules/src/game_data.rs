@@ -11,6 +11,7 @@ use std::collections::BTreeSet;
 
 use serde::{Deserialize, Serialize};
 
+use crate::bonus::ItemBonus;
 use crate::keys::{
     ArchetypeKey, BackgroundKey, ClassKey, DeityKey, FeatKey, FeatListKey, FeatureKey,
     FeatureSelectionKey, MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey,
@@ -55,6 +56,10 @@ pub struct GameData {
     pub prestige_classes: Vec<Class>,
     pub mythic_abilities: Vec<MythicAbility>,
     pub mythic_feats: Vec<MythicFeat>,
+    /// The flat bonuses items give while held (`bonuses.ron`, ticket 119): spell DCs, caster level against spell
+    /// resistance, concentration.
+    #[serde(default)]
+    pub bonuses: Vec<ItemBonus>,
     pub mythic_paths: Vec<MythicPath>,
     /// The backgrounds chosen at Build start (`backgrounds.ron`, the user's list).
     pub backgrounds: Vec<Background>,
@@ -206,6 +211,17 @@ impl GameData {
         for feat in &mut self.mythic_feats {
             canonicalize_prerequisite(&mut feat.prerequisite);
         }
+        for bonus in &mut self.bonuses {
+            canonicalize_prerequisite(&mut bonus.requires);
+        }
+        sort_by_key(&mut self.bonuses, |b| {
+            (
+                b.item.clone(),
+                b.target.clone(),
+                b.amount,
+                b.requires.clone(),
+            )
+        });
         sort_by_key(&mut self.mythic_paths, |p| p.key.clone());
         for path in &mut self.mythic_paths {
             canonicalize_features(&mut path.features);
@@ -754,6 +770,10 @@ pub struct Class {
     /// checks it ([`Prerequisite::SpontaneousSpellLevel`]).
     #[serde(default)]
     pub spontaneous: bool,
+    /// The ability its spells' save DCs, concentration and bonus spells use (a sorcerer's Charisma); `None` for a
+    /// class that casts no spells of its own (a fighter, every prestige class: they advance another's).
+    #[serde(default)]
+    pub casting_ability: Option<Ability>,
     /// Prestige classes: how many classes the rows' spellcasting advancement serves (Mystic Theurge: one of each
     /// spell type; Loremaster: one, arcane or divine).
     #[serde(default)]
@@ -830,6 +850,9 @@ pub struct Archetype {
     /// `None`: casts like the base class. `Some`: spontaneously or not (Eldritch Scion: a spontaneous magus).
     #[serde(default)]
     pub spontaneous: Option<bool>,
+    /// `None`: casts with the base class's ability. `Some`: replaces it (Sage Sorcerer: Intelligence).
+    #[serde(default)]
+    pub casting_ability: Option<Ability>,
     /// `None`: the base class's Fortitude progression. `Some`: replaces it (Arcane Enforcer: poor), and with it
     /// the class's [`save_exceptions`](Class::save_exceptions) for that save, which are cells of the class's own.
     #[serde(default)]

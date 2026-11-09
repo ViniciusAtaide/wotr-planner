@@ -4,6 +4,7 @@ Class(
     summary: "Charisma-based spontaneous arcane caster up to 6th level: 3/4 BAB, good Reflex and Will, all class skills and party-buffing performances.",
     guide: "bard",
     skill_points: 4,
+    casting_ability: Charisma,
     bab: ThreeQuarters,
     fort: Poor,
     reflex: Good,

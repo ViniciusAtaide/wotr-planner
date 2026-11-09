@@ -4,6 +4,7 @@ Class(
     summary: "Full-BAB raging warrior with a bloodline and spontaneous arcane spells up to 4th level from 4th; 8 HP and 3 skill points per level, good Fortitude.",
     guide: "bloodrager",
     skill_points: 3,
+    casting_ability: Charisma,
     bab: Full,
     fort: Good,
     reflex: Poor,

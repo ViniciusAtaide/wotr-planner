@@ -88,6 +88,14 @@ _Avoid_: Mythic level, tier
 One base weapon's full attack at a point of a Build, computed by the rules: each iterative attack's bonus (BAB, the character's own Strength or Dexterity, Weapon Focus and Greater Weapon Focus in it), the damage per hit (its dice, Strength, 1½ times two-handed, Weapon Specialization and Greater Weapon Specialization), the critical range (doubled by Improved Critical in it, then widened by the Trickster's Improved Improved Critical and Improved Improved Improved Critical) and multiplier (+1 for Improved Improved Improved Critical Improved), and Power Attack's trade beside it. Unconditional numbers only: it leaves out rage, stances, mythic feats, class features, gear and buffs. The weapon is chosen beside the Build, not in it.
 _Avoid_: Damage estimate, DPR
 
+**Caster line**:
+A spell's numbers at a point of a Build, computed by the rules for a spell described by its school (and optionally a subschool, an energy type and metamagic): the save DC of each spell level the casting class can cast (10 + the spell level + the casting ability's modifier + the **Item bonuses** that apply), with Heighten Spell the DC of any such spell raised to the highest level, caster level against spell resistance and the concentration bonus, each broken down by source. It follows the casting class with the highest caster level. Unconditional numbers only: it leaves out gear, buffs, abilities switched on in a fight and bonuses that grow with class level. The spell is described beside the Build, not in it.
+_Avoid_: DC calculator, spell DC estimate
+
+**Item bonus**:
+A flat bonus an item (a race or subrace, a feat, a mythic feat, a feature, a selection option) gives while the character holds it, kept in the game data (`bonuses.ron`): its target (a spell DC of a scope, caster level against spell resistance, concentration), its amount (a number, half or all the Mythic rank, or Expanded Arsenal's copy of another school's Spell Focus feats) and what else it may require. The **Caster line** sums the ones held.
+_Avoid_: Modifier, effect
+
 ### Classes
 
 **Progression**:

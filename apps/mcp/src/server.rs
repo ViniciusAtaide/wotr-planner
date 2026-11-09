@@ -13,6 +13,7 @@ use rmcp::{Json, RoleServer, ServerHandler, tool, tool_handler, tool_router};
 use rules::{Build, Edit};
 
 use crate::attack::weapon_argument as attack_weapon;
+use crate::caster::caster_argument;
 use crate::choose::choose;
 use crate::code::{envelope, open};
 use crate::compare::compare;
@@ -89,11 +90,19 @@ caster level from class levels, spell-level access) and path features the sheet 
 Attack's trade and the critical range, from BAB, the character's own scores and the weapon feats held. It leaves \
 out rage, stances, mythic feats, class features, gear and buffs (`attack_leaves_out` lists all it leaves out): \
 label anything you add for them as your own game knowledge.
+- The caster line (`sheet` or `compare` with a `caster`: a school, and optionally a subschool, an energy type and \
+metamagic) is fact too: the save DC of each spell level the casting class can cast, with its breakdown by source \
+(the casting ability's modifier, Spell Focus and its kin, racial DCs, bloodline arcana, School Power), caster \
+level against spell resistance and the concentration bonus, from the class levels, the character's own scores and \
+the items held. It leaves out gear, buffs, abilities switched on in a fight (the Aeon's gaze), bonuses that grow \
+with class level and what changes the target's roll instead of the DC (`caster_leaves_out` lists all it leaves \
+out): label anything you add for them as your own game knowledge. Which spells exist, and their schools and \
+subschools, stay your own knowledge.
 - Most items carry a `summary`: what the guide says the item does, in one sentence in the planner's own words, \
 checked against the guide. Cite it as the planner's summary of the guide, not as a rule the planner enforces: the \
 engine checks prerequisites, not effects.
 - Label everything else as your own game knowledge: what an item does beyond its summary, how items interact, \
-spells and spell availability, durations, caster level arithmetic, item and buff effects, summons' stats, and which \
+spells and spell availability, durations, caster level arithmetic beyond the caster line, item and buff effects, summons' stats, and which \
 choice is better. The planner checks none of it.
 - Guide links (`guide_url`) are for the user to read: never fetch them yourself.
 
@@ -228,7 +237,10 @@ impl Server {
             caster level (class levels only) and spell-level access at the last level, class skills and notes. \
             Every choice has its address (`start.race`, `level.4.class`, `slot.feat.3.general.0`, …) for `options`, \
             its value and its name. `removable: true` also marks which held choices can be withdrawn now. \
-            `weapon` (a weapon key) adds each level's attack line for that base weapon. Plus the envelope \
+            `weapon` (a weapon key) adds each level's attack line for that base weapon. `caster` ({school, \
+            subschool?, energy?, metamagic?}) adds each level's caster line for those spells: the save DC of each \
+            spell level castable (and heightened, with Heighten Spell) broken down by source, caster level against \
+            spell resistance and the concentration bonus. Plus the envelope \
             (`build`, `link`, `todo`).",
         annotations(read_only_hint = true, open_world_hint = false)
     )]
@@ -239,11 +251,13 @@ impl Server {
         self.blocking(move |planner| {
             let build = open(planner, &args.build)?;
             let weapon = attack_weapon(&planner.engine, args.weapon.as_deref())?;
+            let spell = caster_argument(args.caster.as_ref())?;
             Ok(Json(sheet(
                 planner,
                 &build,
                 args.removable,
                 weapon.as_ref(),
+                spell,
             )))
         })
         .await
@@ -323,7 +337,9 @@ impl Server {
         description = "Compare 1 to 4 Builds (`builds`: their codes, for example two branches of one Build), from \
             the planner's sheets. For each Build, a summary at its last level: classes and levels, BAB, saves, \
             scores, caster level (class levels only), spell-level access, Mythic rank, first ascension, path, Path \
-            switch, level cap, link, and with `weapon` (a weapon key) its attack line. Then only what differs: the Build start's choices; by character level, the \
+            switch, level cap, link, with `weapon` (a weapon key) its attack line, and with `caster` ({school, \
+            subschool?, energy?, metamagic?}) its caster line. Then only what differs: the Build start's choices; \
+            by character level, the \
             numbers (class level, BAB, saves, scores), the choices by address and the feats and features each Build \
             gains that another doesn't; by Mythic rank, the status, path and choices; and `path_features`, by rank, \
             the path features each Build has that another lacks. Every per-Build list follows the order of \

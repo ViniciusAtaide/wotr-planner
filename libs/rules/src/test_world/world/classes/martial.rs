@@ -50,6 +50,7 @@ pub(in crate::test_world::world) fn fighter() -> Class {
         })
         .collect();
     Class {
+        casting_ability: None,
         key: class("fighter"),
         name: "Fighter".into(),
         summary: String::new(),
@@ -70,6 +71,7 @@ pub(in crate::test_world::world) fn fighter() -> Class {
         feat_lists: vec![],
         levels,
         archetypes: vec![Archetype {
+            casting_ability: None,
             key: ArchetypeKey::new("fighter/armiger"),
             name: "Armiger".into(),
             summary: String::new(),
@@ -131,6 +133,7 @@ pub(in crate::test_world::world) fn monk() -> Class {
         })
         .collect();
     Class {
+        casting_ability: None,
         key: class("monk"),
         name: "Monk".into(),
         summary: String::new(),
@@ -227,6 +230,7 @@ pub(in crate::test_world::world) fn warpriest() -> Class {
         .feats_for
         .insert(dueling_sword("weapon-specialization"));
     Class {
+        casting_ability: None,
         key: class("warpriest"),
         name: "Warpriest".into(),
         summary: String::new(),
@@ -298,6 +302,7 @@ pub(in crate::test_world::world) fn ranger() -> Class {
         ..option_row(level, &[])
     };
     Class {
+        casting_ability: None,
         key: class("ranger"),
         name: "Ranger".into(),
         summary: String::new(),

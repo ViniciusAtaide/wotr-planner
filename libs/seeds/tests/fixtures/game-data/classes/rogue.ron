@@ -74,6 +74,7 @@ Class(
             name: "Eldritch Scoundrel",
             summary: "A rogue who casts arcane spells.",
             guide: "rogue#eldritch-scoundrel",
+            casting_ability: Intelligence,
             prerequisite: Any([Race("human"), Race("elf")]),
             skill_points: 4,
             features: [

@@ -334,6 +334,10 @@ pub struct SheetArgs {
     /// engine. Not part of the Build.
     #[serde(default)]
     pub weapon: Option<String>,
+    /// Also give each level the caster line for these spells (`{"school": "enchantment", "subschool":
+    /// "compulsion", "metamagic": true}`), from the planner's engine. Not part of the Build.
+    #[serde(default)]
+    pub caster: Option<crate::caster::CasterArgs>,
 }
 
 /// A value for a choice, as `options` gives it and `choose` takes it:
@@ -470,6 +474,9 @@ pub struct SheetResult {
     /// With a `weapon`: what no attack line counts.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub attack_leaves_out: Option<Vec<String>>,
+    /// With a `caster`: what no caster line counts.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub caster_leaves_out: Option<Vec<String>>,
 }
 
 /// One character level of the sheet.
@@ -503,6 +510,9 @@ pub struct LevelLine {
     /// With a `weapon`: its attack line at the end of the level.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub attack: Option<crate::attack::AttackLineShape>,
+    /// With a `caster`: the caster line at the end of the level, once a class casts.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub caster: Option<crate::caster::CasterLineShape>,
     /// The level's choices by address: class, ability increase (every 4th level), ranks added, then its slots in the
     /// order they're checked.
     pub picks: Vec<PickLine>,
@@ -719,6 +729,10 @@ pub struct CompareArgs {
     /// Also give each Build's summary the attack line of this base weapon (a weapon key: `greatsword`).
     #[serde(default)]
     pub weapon: Option<String>,
+    /// Also give each Build's summary the caster line for these spells (`{"school": "enchantment", "subschool":
+    /// "compulsion"}`).
+    #[serde(default)]
+    pub caster: Option<crate::caster::CasterArgs>,
 }
 
 /// `compare`'s result: each Build's summary, then only what differs between them, all read from the planner's
@@ -738,6 +752,9 @@ pub struct CompareResult {
     /// With a `weapon`: what no attack line counts.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub attack_leaves_out: Option<Vec<String>>,
+    /// With a `caster`: what no caster line counts.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub caster_leaves_out: Option<Vec<String>>,
 }
 
 /// One Build's sheet in short, at its last level.
@@ -778,6 +795,9 @@ pub struct BuildSummary {
     /// With a `weapon`: its attack line at the last level.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub attack: Option<crate::attack::AttackLineShape>,
+    /// With a `caster`: the caster line at the last level.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub caster: Option<crate::caster::CasterLineShape>,
 }
 
 /// One class of a Build.

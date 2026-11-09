@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO class (key, is_prestige, name, summary, guide, skill_points, bab, fort, reflex,\n            will, advances, spontaneous, prerequisite_root_id, casting_ability)\n        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 14
+    },
+    "nullable": []
+  },
+  "hash": "bc1c5b0a01c0efde67440bd691ff5d277d746cb4c5fc23992ec9f290f8a13b4b"
+}

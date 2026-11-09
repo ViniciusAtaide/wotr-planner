@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "SELECT key, class_key, name, summary, guide, prerequisite_root_id, skill_points,\n            overrides_class_skills AS \"overrides_class_skills: bool\", spontaneous AS \"spontaneous: bool\",\n            fort, reflex, will\n        FROM archetype ORDER BY key",
+  "query": "SELECT key, is_prestige AS \"is_prestige: bool\", name, summary, guide, skill_points, bab, fort,\n            reflex, will, advances, spontaneous AS \"spontaneous: bool\", prerequisite_root_id, casting_ability\n        FROM class ORDER BY key",
   "describe": {
     "columns": [
       {
@@ -9,19 +9,19 @@
         "type_info": "Text",
         "origin": {
           "Table": {
-            "table": "archetype",
+            "table": "class",
             "name": "key"
           }
         }
       },
       {
-        "name": "class_key",
+        "name": "is_prestige: bool",
         "ordinal": 1,
-        "type_info": "Text",
+        "type_info": "Integer",
         "origin": {
           "Table": {
-            "table": "archetype",
-            "name": "class_key"
+            "table": "class",
+            "name": "is_prestige"
           }
         }
       },
@@ -31,7 +31,7 @@
         "type_info": "Text",
         "origin": {
           "Table": {
-            "table": "archetype",
+            "table": "class",
             "name": "name"
           }
         }
@@ -42,7 +42,7 @@
         "type_info": "Text",
         "origin": {
           "Table": {
-            "table": "archetype",
+            "table": "class",
             "name": "summary"
           }
         }
@@ -53,85 +53,107 @@
         "type_info": "Text",
         "origin": {
           "Table": {
-            "table": "archetype",
+            "table": "class",
             "name": "guide"
           }
         }
       },
       {
-        "name": "prerequisite_root_id",
+        "name": "skill_points",
         "ordinal": 5,
         "type_info": "Integer",
         "origin": {
           "Table": {
-            "table": "archetype",
-            "name": "prerequisite_root_id"
-          }
-        }
-      },
-      {
-        "name": "skill_points",
-        "ordinal": 6,
-        "type_info": "Integer",
-        "origin": {
-          "Table": {
-            "table": "archetype",
+            "table": "class",
             "name": "skill_points"
           }
         }
       },
       {
-        "name": "overrides_class_skills: bool",
-        "ordinal": 7,
-        "type_info": "Integer",
+        "name": "bab",
+        "ordinal": 6,
+        "type_info": "Text",
         "origin": {
           "Table": {
-            "table": "archetype",
-            "name": "overrides_class_skills"
-          }
-        }
-      },
-      {
-        "name": "spontaneous: bool",
-        "ordinal": 8,
-        "type_info": "Integer",
-        "origin": {
-          "Table": {
-            "table": "archetype",
-            "name": "spontaneous"
+            "table": "class",
+            "name": "bab"
           }
         }
       },
       {
         "name": "fort",
-        "ordinal": 9,
+        "ordinal": 7,
         "type_info": "Text",
         "origin": {
           "Table": {
-            "table": "archetype",
+            "table": "class",
             "name": "fort"
           }
         }
       },
       {
         "name": "reflex",
-        "ordinal": 10,
+        "ordinal": 8,
         "type_info": "Text",
         "origin": {
           "Table": {
-            "table": "archetype",
+            "table": "class",
             "name": "reflex"
           }
         }
       },
       {
         "name": "will",
-        "ordinal": 11,
+        "ordinal": 9,
         "type_info": "Text",
         "origin": {
           "Table": {
-            "table": "archetype",
+            "table": "class",
             "name": "will"
+          }
+        }
+      },
+      {
+        "name": "advances",
+        "ordinal": 10,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "class",
+            "name": "advances"
+          }
+        }
+      },
+      {
+        "name": "spontaneous: bool",
+        "ordinal": 11,
+        "type_info": "Integer",
+        "origin": {
+          "Table": {
+            "table": "class",
+            "name": "spontaneous"
+          }
+        }
+      },
+      {
+        "name": "prerequisite_root_id",
+        "ordinal": 12,
+        "type_info": "Integer",
+        "origin": {
+          "Table": {
+            "table": "class",
+            "name": "prerequisite_root_id"
+          }
+        }
+      },
+      {
+        "name": "casting_ability",
+        "ordinal": 13,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "class",
+            "name": "casting_ability"
           }
         }
       }
@@ -145,14 +167,16 @@
       false,
       false,
       false,
-      true,
-      true,
       false,
-      true,
-      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
       true,
       true
     ]
   },
-  "hash": "00b8236eb2b22126671beb2e02dea58d7ddcf8dc300038f5dd9b2b5c96a12598"
+  "hash": "1a45c2ab6085ce992915d4dd7fa88a4c9523e1ead68cb277ddd8a85b73e09a9e"
 }

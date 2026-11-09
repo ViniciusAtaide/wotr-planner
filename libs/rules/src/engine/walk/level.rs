@@ -514,7 +514,7 @@ impl<'a> Walker<'a> {
 
 /// Prestige levels that advance `class`: rows marked `advances_arcane` count when `class` casts arcane spells,
 /// `advances_divine` when it casts divine ones, in prestige classes that chose `class` on entry.
-fn advancing_levels(
+pub(in crate::engine) fn advancing_levels(
     catalog: &Catalog,
     state: &CharacterState,
     class: &ClassKey,

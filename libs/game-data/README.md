@@ -17,6 +17,7 @@ small hand-written example of the layout.
 | File | Holds |
 | --- | --- |
 | `progression.ron` | `Progression`: the mythic rank table (the Character level of each Mythic rank) |
+| `bonuses.ron` | `Vec<ItemBonus>`: the flat bonuses items give while held, each naming its item (ticket 119): spell DCs, caster level against spell resistance, concentration |
 | `races.ron` | `Vec<Race>`, with subraces and the race's own feat lists (the half-elf's Adaptability) |
 | `skills.ron` | `Vec<Skill>` |
 | `weapons.ron` | `Vec<Weapon>`: the weapons a feat can be taken for, from the guide's simple, martial and exotic lists (`proficiency`; the Sawtooth Saber is exotic, from Weapon Finesse's list), plus what Weapon Focus names besides weapons (unarmed strike, touch attacks, rays), each natural attack the guide names (bite, claw, gore, hoof, slam, spike, tail, talon, wing), Kinetic Blast and Bomb; each weapon's stats for the attack line (ticket 114) |
@@ -551,6 +552,29 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   extra pick), or is one the ticket checked and left without: Advanced Weapon Training, Energized Wild Shape,
   Metamagic (Selective Spell), Spell Specialization, Rogue Secret, Increased Damage Reduction and Lore (Religion) II
   and III (the real-data test `pick_values` pins the list; the ticket says why each).
+- The caster line's data (ticket 119). A class that casts spells of its own names the ability they use,
+  `casting_ability: Charisma` (the guide's "primary attribute" where it names one, else the core rules: the
+  arcanist, magus, witch and wizard Intelligence, the bard, bloodrager, oracle, paladin, skald and sorcerer Charisma,
+  the cleric, druid, hunter, inquisitor, ranger, shaman and warpriest Wisdom); an archetype that casts with another
+  names its own (Sage Sorcerer and Eldritch Scoundrel Intelligence, Empyreal Sorcerer and Tortured Crusader Wisdom,
+  Stigmatized Witch, Ley Line Guardian and Eldritch Scion Charisma, Living Grimoire Intelligence). Prestige classes
+  have none: they advance another class's spells. The check refuses a class or archetype whose rows give spell levels
+  with no ability, and an ability on a class that casts nothing of its own.
+- `bonuses.ron` lists the flat bonuses (`rules::ItemBonus`): `(item: Feat("spell-focus"), target: SpellDc(Value),
+  amount: Flat(1))`. The item is a `Race`, `Subrace`, `Feat`, `MythicFeat`, `Feature` or `SelectionOption`; a
+  race's bonus counts without a subrace and a subrace's in place of its race's (the guide lists a subrace's traits in
+  full: Gnome +1 illusion, Gnome (Pyromaniac) +1 fire only). The target is `SpellDc(scope)` (`All`, `School(…)`,
+  `Subschool(…)`, `Energy(…)`, `Metamagic`: with a metamagic feat other than Heighten Spell, or `Value`: the school or
+  energy a parameterised feat or mythic feat is held for), `SpellPenetration` or `Concentration`. The amount is
+  `Flat(n)`, `HalfMythicRank`, `MythicRank` or `SpellFocusOfAnotherSchool` (Expanded Arsenal); `requires:` a
+  prerequisite the character must also meet (Spell Penetration (Mythic): half the rank without Greater Spell
+  Penetration, the full rank with it). Only what the guide states without a condition: gear, buffs, abilities
+  switched on in a fight (the Aeon's gaze, Demonic Rage) and bonuses that grow with class level (Combat Casting
+  Adept, Horn Call, Cold Specialization) stay out, in the caster line's `leaves_out`. Expanded Arsenal copies all the
+  Spell Focus feats of one school (the guide: "any bonuses from Spell Focus feats for another school … only the
+  bonuses from one school"): Spell Focus, Greater and Mythic, from the school where they add up to most, and nothing
+  in a school with Spell Focus feats of its own ("this has no effect"). The real-data test `caster_line` holds the
+  Max DC run's Build and its numbers.
 - Keys are readable text from the guide's anchors: `power-attack` (a feat), `rogue` (a class),
   `rogue/dark-lurker` (an archetype), `rogue/rogue-talents/fast-stealth` (a selection option). A key has no type
   prefix: where it sits says what it names, so keys of two kinds may be equal (the feature and the selection

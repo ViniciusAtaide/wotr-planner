@@ -1,0 +1,52 @@
+// The flat bonuses items give while held (ticket 119), each with the item that gives it: `rules::ItemBonus`. The
+// caster line sums the ones a character holds. Only what the guide states without a condition the Build can't fix:
+// gear, buffs, abilities switched on in a fight and bonuses that grow with class level stay out (the caster line's
+// `leaves_out`). A race's bonus counts without a subrace, a subrace's in place of its race's.
+[
+    // Spell save DCs.
+    (item: Feat("spell-focus"), target: SpellDc(Value), amount: Flat(1)),
+    (item: Feat("greater-spell-focus"), target: SpellDc(Value), amount: Flat(1)),
+    (item: MythicFeat("spell-focus-mythic"), target: SpellDc(Value), amount: Flat(1)),
+    // "Any bonuses from Spell Focus feats for another school": Spell Focus, Greater and Mythic, of one school.
+    (item: MythicFeat("expanded-arsenal"), target: SpellDc(Value), amount: SpellFocusOfAnotherSchool),
+    (item: Feat("elemental-focus"), target: SpellDc(Value), amount: Flat(1)),
+    (item: Feat("greater-elemental-focus"), target: SpellDc(Value), amount: Flat(1)),
+    (item: Feat("improved-elven-immunities"), target: SpellDc(School(Enchantment)), amount: Flat(1)),
+    (item: Race("kitsune"), target: SpellDc(School(Enchantment)), amount: Flat(1)),
+    (item: Subrace("kitsune/keen-kitsune"), target: SpellDc(School(Enchantment)), amount: Flat(1)),
+    (item: Race("gnome"), target: SpellDc(School(Illusion)), amount: Flat(1)),
+    (item: Subrace("gnome/traveler"), target: SpellDc(School(Illusion)), amount: Flat(1)),
+    (item: Subrace("gnome/pyromaniac"), target: SpellDc(Energy(Fire)), amount: Flat(1)),
+    (item: Race("oread"), target: SpellDc(Energy(Acid)), amount: Flat(1)),
+    (item: Subrace("oread/gemsoul"), target: SpellDc(Energy(Acid)), amount: Flat(1)),
+    (item: Subrace("oread/ironsoul"), target: SpellDc(Energy(Acid)), amount: Flat(1)),
+    (item: Subrace("tiefling/spitespawn"), target: SpellDc(School(Enchantment)), amount: Flat(1)),
+    (item: Feature("sorcerer/bloodline/arcane/arcane-arcana"), target: SpellDc(Metamagic), amount: Flat(1)),
+    (item: Feature("sorcerer/sage-sorcerer/arcane-arcana"), target: SpellDc(Metamagic), amount: Flat(1)),
+    (item: Feature("sorcerer/bloodline/fey/fey-arcana"), target: SpellDc(Subschool(Compulsion)), amount: Flat(2)),
+    (item: Feature("sorcerer/bloodline/infernal/infernal-arcana"), target: SpellDc(Subschool(Charm)), amount: Flat(2)),
+    (item: SelectionOption("sorcerer/bloodline/arcane/school-power/abjuration"), target: SpellDc(School(Abjuration)), amount: Flat(2)),
+    (item: SelectionOption("sorcerer/bloodline/arcane/school-power/conjuration"), target: SpellDc(School(Conjuration)), amount: Flat(2)),
+    (item: SelectionOption("sorcerer/bloodline/arcane/school-power/divination"), target: SpellDc(School(Divination)), amount: Flat(2)),
+    (item: SelectionOption("sorcerer/bloodline/arcane/school-power/enchantment"), target: SpellDc(School(Enchantment)), amount: Flat(2)),
+    (item: SelectionOption("sorcerer/bloodline/arcane/school-power/evocation"), target: SpellDc(School(Evocation)), amount: Flat(2)),
+    (item: SelectionOption("sorcerer/bloodline/arcane/school-power/illusion"), target: SpellDc(School(Illusion)), amount: Flat(2)),
+    (item: SelectionOption("sorcerer/bloodline/arcane/school-power/necromancy"), target: SpellDc(School(Necromancy)), amount: Flat(2)),
+    (item: SelectionOption("sorcerer/bloodline/arcane/school-power/transmutation"), target: SpellDc(School(Transmutation)), amount: Flat(2)),
+
+    // Caster level checks against spell resistance.
+    (item: Feat("spell-penetration"), target: SpellPenetration, amount: Flat(2)),
+    (item: Feat("greater-spell-penetration"), target: SpellPenetration, amount: Flat(2)),
+    // Half the Mythic rank, or the full rank with Greater Spell Penetration.
+    (item: MythicFeat("spell-penetration-mythic"), target: SpellPenetration, amount: HalfMythicRank, requires: Not(Feat("greater-spell-penetration"))),
+    (item: MythicFeat("spell-penetration-mythic"), target: SpellPenetration, amount: MythicRank, requires: Feat("greater-spell-penetration")),
+    (item: Race("elf"), target: SpellPenetration, amount: Flat(2)),
+    (item: Subrace("half-elf/dual-heritage"), target: SpellPenetration, amount: Flat(2)),
+    (item: Feat("elven-spirit"), target: SpellPenetration, amount: Flat(2)),
+    (item: Feat("arcane-focus"), target: SpellPenetration, amount: Flat(1)),
+    (item: Feature("sorcerer/bloodline/fey/fey-magic"), target: SpellPenetration, amount: Flat(2)),
+
+    // Concentration checks.
+    (item: Feat("combat-casting"), target: Concentration, amount: Flat(4)),
+    (item: Feat("warrior-priest"), target: Concentration, amount: Flat(2)),
+]

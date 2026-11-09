@@ -1,5 +1,6 @@
 //! Game rules for the WotR build planner. Pure Rust + serde, compiled for both the browser and the server.
 
+mod bonus;
 mod build;
 mod check;
 mod choice;
@@ -14,6 +15,7 @@ mod state;
 #[cfg(feature = "test-world")]
 pub mod test_world;
 
+pub use bonus::*;
 pub use build::*;
 pub use check::{DataAt, DataIssue, DataProblem};
 pub use choice::*;

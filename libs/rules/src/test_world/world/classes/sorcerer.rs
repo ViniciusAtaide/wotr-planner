@@ -209,6 +209,7 @@ pub(in crate::test_world::world) fn sorcerer() -> Class {
     };
     // Sage: the Arcane bloodline, granted with no pick, with Arcane Bolt instead of its 1st-level row.
     let sage = Archetype {
+        casting_ability: Some(Ability::Intelligence),
         features: vec![plain_feature("sorcerer/sage/arcane-bolt", "Arcane Bolt")],
         selections: vec![FeatureSelection {
             skipped_levels: BTreeSet::from([1]),
@@ -263,6 +264,7 @@ pub(in crate::test_world::world) fn sorcerer() -> Class {
         ..archetype("sorcerer/primalist")
     };
     Class {
+        casting_ability: Some(Ability::Charisma),
         key: class("sorcerer"),
         name: "Sorcerer".into(),
         summary: String::new(),

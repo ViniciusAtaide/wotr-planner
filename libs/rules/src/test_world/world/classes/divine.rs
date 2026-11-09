@@ -24,6 +24,7 @@ pub(in crate::test_world::world) fn druid() -> Class {
         })
         .collect();
     Class {
+        casting_ability: None,
         key: class("druid"),
         name: "Druid".into(),
         summary: String::new(),
@@ -72,6 +73,7 @@ pub(in crate::test_world::world) fn cleric() -> Class {
         })
         .collect();
     Class {
+        casting_ability: Some(Ability::Wisdom),
         key: class("cleric"),
         name: "Cleric".into(),
         summary: String::new(),

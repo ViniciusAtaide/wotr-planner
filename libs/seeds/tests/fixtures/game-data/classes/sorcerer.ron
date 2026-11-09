@@ -5,6 +5,7 @@ Class(
     name: "Sorcerer",
     guide: "sorcerer",
     skill_points: 2,
+    casting_ability: Charisma,
     bab: Half,
     fort: Poor,
     reflex: Poor,

@@ -4,6 +4,7 @@ Class(
     summary: "Hunter with an animal companion: 3/4 BAB, good Fortitude and Reflex, spontaneous divine spells up to 6th level and Animal Focus aspects.",
     guide: "hunter",
     skill_points: 4,
+    casting_ability: Wisdom,
     bab: ThreeQuarters,
     fort: Good,
     reflex: Good,

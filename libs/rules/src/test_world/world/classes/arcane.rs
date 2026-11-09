@@ -29,6 +29,7 @@ pub(in crate::test_world::world) fn wizard() -> Class {
         })
         .collect();
     Class {
+        casting_ability: Some(Ability::Intelligence),
         key: class("wizard"),
         name: "Wizard".into(),
         summary: String::new(),
@@ -109,6 +110,7 @@ pub(in crate::test_world::world) fn witch() -> Class {
         })
     };
     Class {
+        casting_ability: Some(Ability::Intelligence),
         key: class("witch"),
         name: "Witch".into(),
         summary: String::new(),
@@ -196,6 +198,7 @@ pub(in crate::test_world::world) fn bard() -> Class {
         })
         .collect();
     Class {
+        casting_ability: Some(Ability::Charisma),
         key: class("bard"),
         name: "Bard".into(),
         summary: String::new(),

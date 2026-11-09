@@ -4,6 +4,7 @@ Class(
     summary: "Prepared divine caster up to 9th-level spells, keyed on Wisdom, with 3/4 BAB, good Fortitude and Will, 6 HP, channel energy and two domains.",
     guide: "cleric",
     skill_points: 2,
+    casting_ability: Wisdom,
     bab: ThreeQuarters,
     fort: Good,
     reflex: Poor,

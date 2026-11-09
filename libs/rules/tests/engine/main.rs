@@ -10,6 +10,7 @@ mod backgrounds;
 mod bonus_feats;
 mod build_sheet;
 mod canonical;
+mod caster_line;
 mod check;
 mod class_rules;
 mod codec;

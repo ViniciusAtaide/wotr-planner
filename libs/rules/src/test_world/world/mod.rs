@@ -65,6 +65,7 @@ pub fn world() -> GameData {
         ],
         mythic_abilities: mythic_abilities(),
         mythic_feats: mythic_feats(),
+        bonuses: bonuses(),
         mythic_paths: vec![
             trickster(),
             aeon(),
@@ -144,4 +145,48 @@ fn bonus_feature(key: &str, ability_bonuses: Vec<AbilityBonus>) -> Feature {
         ability_bonuses,
         ..plain_feature(key, key)
     }
+}
+
+/// The flat bonuses (ticket 119): Spell Focus and its mythic feat for the school they're held for, School Power's
+/// two schools, Spell Penetration and the half-elf Dual Heritage's caster level against spell resistance.
+fn bonuses() -> Vec<ItemBonus> {
+    let bonus = |item, target, amount| ItemBonus {
+        item,
+        target,
+        amount: BonusAmount::Flat(amount),
+        requires: None,
+    };
+    let dc = |scope| BonusTarget::SpellDc(scope);
+    vec![
+        bonus(
+            BonusItem::Feat(FeatKey::new("spell-focus")),
+            dc(SpellScope::Value),
+            1,
+        ),
+        bonus(
+            BonusItem::MythicFeat(MythicFeatKey::new("spell-focus-mythic")),
+            dc(SpellScope::Value),
+            1,
+        ),
+        bonus(
+            BonusItem::SelectionOption(SelectionOptionKey::new("sorcerer/school-power/evocation")),
+            dc(SpellScope::School(SpellSchool::Evocation)),
+            2,
+        ),
+        bonus(
+            BonusItem::SelectionOption(SelectionOptionKey::new("sorcerer/school-power/necromancy")),
+            dc(SpellScope::School(SpellSchool::Necromancy)),
+            2,
+        ),
+        bonus(
+            BonusItem::Feat(FeatKey::new("spell-penetration")),
+            BonusTarget::SpellPenetration,
+            2,
+        ),
+        bonus(
+            BonusItem::Subrace(SubraceKey::new("half-elf/dual-heritage")),
+            BonusTarget::SpellPenetration,
+            2,
+        ),
+    ]
 }

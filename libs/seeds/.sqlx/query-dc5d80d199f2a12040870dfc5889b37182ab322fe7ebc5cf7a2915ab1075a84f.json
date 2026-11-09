@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO item_bonus (race_key, subrace_key, feat_key, mythic_feat_key, feature_key,\n                selection_option_key, target, scope, spell_school, subschool, energy, amount_kind, amount,\n                prerequisite_root_id)\n            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 14
+    },
+    "nullable": []
+  },
+  "hash": "dc5d80d199f2a12040870dfc5889b37182ab322fe7ebc5cf7a2915ab1075a84f"
+}
