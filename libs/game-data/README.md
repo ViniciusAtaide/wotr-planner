@@ -394,6 +394,17 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   rank 2 does hold `trickster/hard-to-kill` (the guide's Trickster table: Creative Approach, Hard to Kill,
   Will-o'-Wisp at 2), and the Aeon's rank 2 repeats Force Reality because the guide's Aeon table does ("At 2nd mythic
   rank, you can target all allies": it improves at 2, as Aeon Immunities repeats at 3, 5 and 7).
+- Ticket 112 (the user, 2026-11-08): every pickable item has a `summary`, one sentence of at most 160 characters in
+  our own words, written from the saved guide pages and then reviewed against them in full by a second reader
+  (numbers, levels, uses per day, conditions and who benefits; close paraphrases of the guide's own sentence were
+  reworded). A summary addresses the player as "you"; an archetype's or class's description may be in the third
+  person ("their"). Where the guide gives a feature only in a level table, or says it is another class's (the
+  skald's Bardic Knowledge, the bloodrager's Uncanny Dodge), the summary comes from that table or page. Where the
+  guide disagrees with itself the summary says so ("18th (the guide's table; its text says 19th)"); where it looks
+  wrong but says nothing (the warpriest Fire blessing's acid damage), the summary follows it. 133 items have no
+  summary because the guide has nothing usable on them (cantrips and orisons, features named only in a table,
+  guide links without an anchor); `tests/game_data/summaries.rs` keeps their count per kind from growing. Feat
+  lists have no `summary` field.
 - A path's switch rule: `switch: (from: ["aeon", "azata"], kept_through_rank: 7, path_kept_through_rank: 7,
   dropped_features: [...], dropped_selections: [...], features: [...], further_ascensions: true, level_cap:
   Some(40))`. The general picks (mythic abilities and feats) of MR 1 to `kept_through_rank` stay, and the old
