@@ -65,7 +65,7 @@ Class(
         (
             key: "hellknight/pentamic-faith",
             name: "Pentamic Faith",
-            summary: "Gain one domain (Artifice, Glory, Knowledge, Law, Magic, Nobility, Protection, Rune, Strength, Travel or War), its powers set by Hellknight level.",
+            summary: "Godclaw only: one domain (Artifice, Glory, Knowledge, Law, Magic, Nobility, Protection, Rune, Strength, Travel or War), powered by Hellknight level.",
             guide: "prestige-classes#pentamic-faith",
             option_levels: ["hellknight"],
             options: [],

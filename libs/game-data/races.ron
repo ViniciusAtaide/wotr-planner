@@ -31,11 +31,11 @@
     (
         key: "dwarf",
         name: "Dwarf",
-        summary: "Speed 20 ft, unslowed by armour; +2 saves vs poison and spells; +4 CMD vs bull rush and trip; +4 AC vs giants; +1 attack vs orcs; dwarven weapons.",
+        summary: "Speed 20 ft unslowed by armour; +2 saves vs poison/spells; +4 CMD vs bull rush/trip; +4 AC vs giants; +1 hit vs orcs/goblinoids; +2 Perception; dwarven weapons.",
         guide: "character-creation#dwarf",
         ability_modifiers: [Fixed(ability: Constitution, amount: 2), Fixed(ability: Wisdom, amount: 2), Fixed(ability: Charisma, amount: -2)],
         subraces: [
-            (key: "dwarf/barrow-dwarf", name: "Barrow Dwarf", summary: "Speed 20 ft, unslowed by armour; +2 saves vs poison and spells; +4 CMD vs bull rush and trip; +1 attack and dodge AC vs undead; +2 Lore (Religion).", guide: "character-creation#barrow-dwarf", ability_modifiers: [Fixed(ability: Constitution, amount: 2), Fixed(ability: Wisdom, amount: 2), Fixed(ability: Charisma, amount: -2)]),
+            (key: "dwarf/barrow-dwarf", name: "Barrow Dwarf", summary: "20 ft speed unslowed by armour; +2 saves vs poison and spells; +4 CMD vs bull rush/trip; +1 attack and dodge AC vs undead; +2 Lore (Religion); dwarven weapons.", guide: "character-creation#barrow-dwarf", ability_modifiers: [Fixed(ability: Constitution, amount: 2), Fixed(ability: Wisdom, amount: 2), Fixed(ability: Charisma, amount: -2)]),
             (key: "dwarf/unstoppable-dwarf", name: "Unstoppable Dwarf", summary: "Speed 20 ft, unslowed by armour; +2 saves vs poison and spells; +1 attack vs orcs and goblinoids; dwarven weapons; Endurance and +1 Fortitude.", guide: "character-creation#unstoppable-dwarf", ability_modifiers: [Fixed(ability: Constitution, amount: 2), Fixed(ability: Wisdom, amount: 2), Fixed(ability: Charisma, amount: -2)]),
         ],
     ),
@@ -53,11 +53,11 @@
     (
         key: "gnome",
         name: "Gnome",
-        summary: "+4 AC vs giants; +1 attack vs reptilian humanoids; +2 saves vs illusions and +1 DC to your illusions; +2 Perception and Knowledge (World); speed 20 ft.",
+        summary: "+4 AC vs giants; +1 attack vs reptilian and goblinoid foes; +2 saves vs illusions, +1 DC to your illusions; +2 Perception and Knowledge (World); speed 20 ft.",
         guide: "character-creation#gnome",
         ability_modifiers: [Fixed(ability: Strength, amount: -2), Fixed(ability: Constitution, amount: 2), Fixed(ability: Charisma, amount: 2)],
         subraces: [
-            (key: "gnome/pyromaniac", name: "Gnome (Pyromaniac)", summary: "Fire resistance 5 and +1 DC to fire spells; +4 AC vs giants; +1 attack vs reptilian humanoids; +2 Perception and Knowledge (World); speed 20 ft.", guide: "character-creation#gnome-pyromaniac", ability_modifiers: [Fixed(ability: Strength, amount: -2), Fixed(ability: Constitution, amount: 2), Fixed(ability: Charisma, amount: 2)]),
+            (key: "gnome/pyromaniac", name: "Gnome (Pyromaniac)", summary: "Fire resistance 5, +1 DC to fire spells; +4 AC vs giants; +1 attack vs reptilian and goblinoid foes; +2 Perception and Knowledge (World); speed 20 ft.", guide: "character-creation#gnome-pyromaniac", ability_modifiers: [Fixed(ability: Strength, amount: -2), Fixed(ability: Constitution, amount: 2), Fixed(ability: Charisma, amount: 2)]),
             (key: "gnome/traveler", name: "Gnome (Traveler)", summary: "Speed 30 ft; +2 saves vs illusions and +1 DC to your illusions; +2 Perception, Knowledge (World) and Lore (Nature).", guide: "character-creation#gnome-traveler", ability_modifiers: [Fixed(ability: Strength, amount: -2), Fixed(ability: Constitution, amount: 2), Fixed(ability: Charisma, amount: 2)]),
         ],
     ),
