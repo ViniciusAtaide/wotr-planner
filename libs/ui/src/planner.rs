@@ -5,7 +5,7 @@ use std::collections::BTreeSet;
 use std::sync::Arc;
 
 use leptos::prelude::*;
-use rules::{Build, Choice, Edit, Engine, Sheet, SlotId, StaleLink};
+use rules::{Build, Choice, Edit, Engine, Sheet, SlotId, StaleLink, WeaponKey};
 
 use crate::browser::{self, Fragment};
 use crate::grid::LevelsGrid;
@@ -50,6 +50,9 @@ pub struct Planner {
     removable_classes: Memo<Arc<BTreeSet<u8>>>,
     pub picker: RwSignal<Option<Target>>,
     pub tab: RwSignal<Tab>,
+    /// The weapon the summary's attack line is for: `None` until one is chosen (the engine's default, the Build's
+    /// first Weapon Focus), then the choice (`Some(None)`: no weapon). Not part of the Build or its link.
+    pub attack_weapon: RwSignal<Option<Option<WeaponKey>>>,
     /// The one generic error a link that opens nothing shows.
     pub error: RwSignal<Option<String>>,
 }
@@ -80,6 +83,7 @@ impl Planner {
             removable_classes,
             picker: RwSignal::new(None),
             tab: RwSignal::new(Tab::Levels),
+            attack_weapon: RwSignal::new(None),
             error: RwSignal::new(error),
         }
     }

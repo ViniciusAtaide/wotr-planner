@@ -393,6 +393,65 @@ input[type="search"] {
   color: var(--muted);
 }
 
+/* The attack line under the summary's numbers: a native weapon select (the phone's own picker, thumb-sized), then
+   the engine's numbers, what they count and, folded, what they leave out. */
+.attack {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+
+.attack-weapon {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.attack-label {
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.attack-weapon select {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 260px;
+  min-height: var(--tap);
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+}
+
+.attack-weapon select:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
+.attack-numbers strong {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.attack-leaves-out {
+  color: var(--muted);
+}
+
+.attack-leaves-out summary {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+  cursor: pointer;
+}
+
+.attack-leaves-out ul {
+  margin: 0 0 4px;
+  padding-left: 18px;
+}
+
 /* ---- the grid ------------------------------------------------------------------------------------------- */
 
 /* Each row is its own card. The grid reaches into the gutter by the card's padding and border, so a row's content

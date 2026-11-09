@@ -65,6 +65,38 @@ pub struct PowerAttack {
     pub damage_bonus: i16,
 }
 
+impl AttackLine {
+    /// Each attack's bonus, as the game lists a full attack: "+15/+10/+5".
+    pub fn attacks_text(&self) -> String {
+        self.attacks
+            .iter()
+            .map(|bonus| signed(*bonus))
+            .collect::<Vec<_>>()
+            .join("/")
+    }
+
+    /// A hit's damage: "1d8+4", or "1d8" with no bonus.
+    pub fn damage_text(&self) -> String {
+        match self.damage_bonus {
+            0 => self.damage.to_string(),
+            bonus => format!("{}{}", self.damage, signed(bonus)),
+        }
+    }
+
+    /// The threat range and multiplier: "19–20/×2", or "20/×3" for a weapon that threatens on a 20 only.
+    pub fn critical_text(&self) -> String {
+        match self.threat {
+            20 => format!("20/×{}", self.multiplier),
+            threat => format!("{threat}–20/×{}", self.multiplier),
+        }
+    }
+}
+
+/// A bonus with its sign: "+4", "+0", "-1".
+fn signed(value: i16) -> String {
+    format!("{value:+}")
+}
+
 impl Engine {
     /// The weapons an attack line can be drawn for (those with stats), by name: the weapon picker's list.
     pub fn attack_weapons(&self) -> Vec<&Weapon> {

@@ -134,6 +134,30 @@ fn the_line_names_what_it_counts_and_what_it_leaves_out() {
 }
 
 #[test]
+fn the_line_reads_as_the_game_writes_attacks_damage_and_criticals() {
+    let engine = armoury();
+    let line = |bab, strength, weapon: &str| {
+        engine
+            .attack_line(&character(bab, strength, 10), &WeaponKey::new(weapon))
+            .unwrap()
+    };
+
+    let longsword = line(11, 18, "longsword");
+    assert_eq!(longsword.attacks_text(), "+15/+10/+5");
+    assert_eq!(longsword.damage_text(), "1d8+4");
+    assert_eq!(longsword.critical_text(), "19–20/×2");
+
+    let weak = line(0, 6, "longbow");
+    assert_eq!(weak.attacks_text(), "+0");
+    assert_eq!(weak.damage_text(), "1d8");
+    assert_eq!(weak.critical_text(), "20/×3");
+
+    let feeble = line(1, 6, "longsword");
+    assert_eq!(feeble.attacks_text(), "-1");
+    assert_eq!(feeble.damage_text(), "1d8-2");
+}
+
+#[test]
 fn the_weapons_with_a_line_are_those_with_stats_by_name() {
     let engine = armoury();
     let keys: Vec<&str> = engine
