@@ -1,12 +1,8 @@
 {
   "mcpServers": {
     "wotr-planner": {
-      "type": "stdio",
-      "command": "sh",
-      "args": [
-        "-c",
-        "bin=\"$(git rev-parse --show-toplevel)/target/release/wotr-mcp\" && [ -x \"$bin\" ] && exec \"$bin\"; echo \"wotr-mcp: no $bin: build it with scripts/build-mcp.sh\" >&2; exit 1"
-      ]
+      "type": "http",
+      "url": "http://localhost:3902/mcp"
     }
   }
 }

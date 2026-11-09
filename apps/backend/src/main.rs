@@ -48,10 +48,38 @@ async fn main() {
     let listener = tokio::net::TcpListener::bind(&addr)
         .await
         .expect("bind site-addr");
+    serve_mcp().await;
     println!("listening on http://{addr}");
     axum::serve(listener, app.into_make_service())
         .await
         .expect("serve");
+}
+
+/// Serves the MCP server (`apps/mcp`) over streamable HTTP beside the site, on its own loopback port: `WOTR_MCP_PORT`,
+/// else [`mcp::http::DEFAULT_PORT`]. It reads the game data files, as `wotr-mcp` does, rather than the database.
+/// A failure is a warning: the site is served either way.
+async fn serve_mcp() {
+    let port = match mcp::http::port_from_env() {
+        Ok(port) => port.unwrap_or(mcp::http::DEFAULT_PORT),
+        Err(error) => return eprintln!("warning: no MCP server: {error}"),
+    };
+    let dir = seeds::game_data_dir();
+    let planner = match mcp::Planner::load(&dir) {
+        Ok(planner) => planner,
+        Err(error) => return eprintln!("warning: no MCP server: {}: {error}", dir.display()),
+    };
+    let listener = match mcp::http::Listener::bind(mcp::Server::new(planner), port).await {
+        Ok(listener) => listener,
+        Err(error) => {
+            return eprintln!("warning: no MCP server: can't listen on port {port}: {error}");
+        }
+    };
+    println!("MCP at {}", mcp::http::url(port));
+    tokio::spawn(async move {
+        if let Err(error) = listener.serve(std::future::pending()).await {
+            eprintln!("warning: the MCP server stopped: {error}");
+        }
+    });
 }
 
 /// The site's public address from `SITE_URL`, for the page's link preview (see [`shell`]). The Pages workflow sets

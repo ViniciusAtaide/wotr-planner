@@ -4,13 +4,16 @@ version.workspace = true
 edition.workspace = true
 
 # The MCP server (`wotr-mcp`): lets an agent search the game data and, in later slices, build with the rules
-# engine. stdio only; native only (never in the wasm build).
+# engine. Over stdio, or streamable HTTP on localhost when WOTR_MCP_PORT is set (the app's server serves that too);
+# native only (never in the wasm build).
 [[bin]]
 name = "wotr-mcp"
 path = "src/main.rs"
 
 [dependencies]
-rmcp = { workspace = true, features = ["server", "macros", "transport-io"] }
+# `--http` mounts rmcp's streamable HTTP service on an axum router.
+axum.workspace = true
+rmcp = { workspace = true, features = ["server", "macros", "transport-io", "transport-streamable-http-server"] }
 rules.workspace = true
 # The tools' JSON Schemas; rmcp's own schemars major.
 schemars = "1.2.3"
@@ -18,7 +21,8 @@ seeds.workspace = true
 serde.workspace = true
 serde_json = "1.0.154"
 sha2.workspace = true
-tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
+# `net` for the HTTP listener, `signal` to stop it on SIGINT or SIGTERM.
+tokio = { workspace = true, features = ["rt-multi-thread", "macros", "net", "signal"] }
 
 [dev-dependencies]
 # The tests talk to the server as an MCP client over an in-memory pipe.

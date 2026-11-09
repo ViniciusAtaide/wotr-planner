@@ -165,6 +165,7 @@ A working, locally run Leptos app at `~/code/wotr-planner` for planning Pathfind
 - [MCP ergonomics](issues/117-mcp-ergonomics.md): a skill map at `level.N.skill`, `needs_parameter` for a bare parameterised key, `compare` of one Build, and a "Before you plan" paragraph (for the user's review).
 - [The MCP server's start and the disconnect](issues/118-mcp-start-and-reconnects.md): both symptoms were the client's (the first turn starts before the servers; a rewind restarts them); `.mcp.json` now runs the built `target/release/wotr-mcp` (`scripts/build-mcp.sh`, run by `check.sh --full`), which starts in 0.06 s, and the server logs its start, staleness and exit to stderr.
 
+- [The MCP server over HTTP](issues/129-mcp-over-http.md): rmcp's streamable HTTP at `http://localhost:<port>/mcp`, loopback only, on `WOTR_MCP_PORT`; the app's server always serves it (3902 by default) and `wotr-mcp` when the variable is set, stdio otherwise; `.mcp.json` connects to 3902; GitHub Pages can't host it (user, 2026-11-09).
 ## Not yet specified
 
 - **Checking the data:** how we confirm the extracted data matches the guide, by spot checks or golden builds. The guide's sample-build pages aren't saved (the user dropped them), so golden builds would have to come from elsewhere. That page does hold independent BAB, ability-score and skill-rank prerequisite tables, which would cross-check the extracted feats if it's ever saved.

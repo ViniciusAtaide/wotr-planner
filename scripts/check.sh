@@ -9,7 +9,7 @@
 #           migrated from libs/seeds/migrations (needs sqlx-cli with its `sqlite` feature, not the dev database).
 # --full:   also the cargo-leptos dev and release builds. They are slow and rarely break, so run them once at the end
 #           of a queue of tickets, not per ticket. The release build is made as it's served: --precompress. Then
-#           scripts/build-mcp.sh, the MCP server `.mcp.json` runs.
+#           scripts/build-mcp.sh, the standalone MCP server (`wotr-mcp`).
 # Prints one line per step with its time, and ALL-OK at the end. Stops at the first failing step and shows its output.
 set -euo pipefail
 

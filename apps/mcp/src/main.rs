@@ -1,27 +1,31 @@
-//! `wotr-mcp`: the MCP server over stdio.
+//! `wotr-mcp`: the MCP server, over stdio or streamable HTTP.
 //!
-//!   wotr-mcp [--data <dir>]
+//!   [WOTR_MCP_PORT=<port>] wotr-mcp [--data <dir>]
 //!
 //! Reads and checks the game data files under `<dir>` (default `$GAME_DATA_DIR`, else `libs/game-data/`), then
-//! serves MCP on stdin and stdout. stdout carries only the protocol.
+//! serves MCP:
+//! - with `WOTR_MCP_PORT` set, as streamable HTTP at `http://localhost:<port>/mcp` ([`mcp::http`]), for a client
+//!   that connects to a running server (`.mcp.json`), until SIGINT or SIGTERM. The app's server serves the same
+//!   endpoint, so this is for running it without the app;
+//! - otherwise on stdin and stdout, for a client that starts the server itself; stdout carries only the protocol.
 //!
-//! stderr, which Claude Code keeps in its MCP logs (ticket 118), gets one line each for:
+//! stderr (Claude Code keeps a stdio server's in its MCP logs, ticket 118) gets one line each for:
 //! - the start: version, pid and the binary;
 //! - a warning when a source file the binary is built from is newer than the binary (`.mcp.json` runs the built
 //!   binary, so a change needs `scripts/build-mcp.sh`);
 //! - the game data: the file the site would serve it as (`game-data/<hash>.json`);
-//! - the client, once it has initialized;
-//! - the exit and its reason (stdin closed, cancelled, an error), with the time served.
+//! - over stdio, the client once it has initialized; over HTTP, the URL it serves;
+//! - the exit and its reason (stdin closed, a signal, cancelled, an error), with the time served.
 
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 use std::time::{Instant, SystemTime};
 
-use mcp::{Planner, Server};
+use mcp::{Planner, Server, http};
 use rmcp::ServiceExt;
 use rmcp::service::QuitReason;
 
-const USAGE: &str = "usage: wotr-mcp [--data <dir>]";
+const USAGE: &str = "usage: [WOTR_MCP_PORT=<port>] wotr-mcp [--data <dir>]";
 
 /// The folders, under the workspace root, of the crates the binary is built from.
 const SOURCES: [&str; 3] = ["apps/mcp/src", "libs/rules/src", "libs/seeds/src"];
@@ -45,8 +49,10 @@ async fn main() -> ExitCode {
             newer.display()
         );
     }
-    let dir = match data_dir(std::env::args().skip(1)) {
-        Ok(dir) => dir,
+    let (dir, port) = match data_dir(std::env::args().skip(1))
+        .and_then(|dir| Ok((dir, http::port_from_env()?)))
+    {
+        Ok(found) => found,
         Err(message) => {
             eprintln!("wotr-mcp: {message}\n{USAGE}");
             return ExitCode::from(2);
@@ -64,7 +70,16 @@ async fn main() -> ExitCode {
         dir.display(),
         planner.site_file()
     );
-    let running = match Server::new(planner).serve(rmcp::transport::stdio()).await {
+    let server = Server::new(planner);
+    match port {
+        Some(port) => serve_http(server, port, started).await,
+        None => serve_stdio(server, started).await,
+    }
+}
+
+/// Serves one client on stdin and stdout until it closes stdin.
+async fn serve_stdio(server: Server, started: Instant) -> ExitCode {
+    let running = match server.serve(rmcp::transport::stdio()).await {
         Ok(running) => running,
         Err(error) => {
             eprintln!("wotr-mcp: exiting before the client initialized: {error}");
@@ -99,6 +114,69 @@ async fn main() -> ExitCode {
             eprintln!("wotr-mcp: exiting after {served} s: {other:?}");
             ExitCode::SUCCESS
         }
+    }
+}
+
+/// Serves streamable HTTP at `http://localhost:<port>/mcp` until SIGINT or SIGTERM.
+async fn serve_http(server: Server, port: u16, started: Instant) -> ExitCode {
+    let listener = match http::Listener::bind(server, port).await {
+        Ok(listener) => listener,
+        Err(error) => {
+            eprintln!("wotr-mcp: exiting: can't listen on port {port}: {error}");
+            return ExitCode::FAILURE;
+        }
+    };
+    eprintln!(
+        "wotr-mcp: serving MCP at {} after {} ms",
+        http::url(port),
+        started.elapsed().as_millis()
+    );
+    let served = listener
+        .serve(async {
+            let signal = stop_signal().await;
+            eprintln!("wotr-mcp: {signal}: closing the sessions");
+        })
+        .await;
+    let seconds = started.elapsed().as_secs();
+    match served {
+        Ok(()) => {
+            eprintln!("wotr-mcp: exiting after {seconds} s");
+            ExitCode::SUCCESS
+        }
+        Err(error) => {
+            eprintln!("wotr-mcp: exiting after {seconds} s: the HTTP server failed: {error}");
+            ExitCode::FAILURE
+        }
+    }
+}
+
+/// Waits for SIGINT (Ctrl-C) or, on Unix, SIGTERM, and names the one that came.
+async fn stop_signal() -> &'static str {
+    let interrupt = async {
+        if tokio::signal::ctrl_c().await.is_err() {
+            std::future::pending::<()>().await;
+        }
+    };
+    #[cfg(unix)]
+    {
+        use tokio::signal::unix::{SignalKind, signal};
+        let terminate = async {
+            match signal(SignalKind::terminate()) {
+                Ok(mut terminate) => {
+                    terminate.recv().await;
+                }
+                Err(_) => std::future::pending::<()>().await,
+            }
+        };
+        tokio::select! {
+            () = interrupt => "SIGINT",
+            () = terminate => "SIGTERM",
+        }
+    }
+    #[cfg(not(unix))]
+    {
+        interrupt.await;
+        "Ctrl-C"
     }
 }
 

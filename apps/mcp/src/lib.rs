@@ -12,6 +12,8 @@
 //!   `error.rs` is the server's refusals (`stale_link`, `no_such_choice`, `not_an_option`, `needs_parameter`,
 //!   `not_removable`, `invalid_arguments`, `internal`).
 //! - `similar.rs`: how close a given name is to the planner's, for the hints after a miss, above one floor.
+//! - [`http`]: the server over streamable HTTP on a loopback port (`WOTR_MCP_PORT`), which `wotr-mcp` and the app's
+//!   server both serve; over stdio, `wotr-mcp` uses rmcp's own transport.
 
 mod address;
 mod attack;
@@ -20,6 +22,7 @@ mod code;
 mod compare;
 mod describe;
 mod error;
+pub mod http;
 mod options;
 mod planner;
 mod search;
