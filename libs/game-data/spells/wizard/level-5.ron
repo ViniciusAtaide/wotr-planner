@@ -196,7 +196,7 @@
         name: "Geniekind",
         school: Transmutation,
         guide: "wizard-spells#geniekind-transmutation",
-        summary: "You become a genie: +2 on saves against paralysis, poison, sleep and stun, +4 natural armour, +2 Constitution, and +1d6 energy on melee hits with resist 10.",
+        summary: "You become a genie: +4 natural armour, +2 Constitution, +2 on saves vs paralysis, poison, sleep and stun, and its element's +1d6 on melee hits and resist 10.",
         target: "Personal",
         duration: "1 round / level",
         saving_throw: "N/A",

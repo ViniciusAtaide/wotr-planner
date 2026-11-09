@@ -134,7 +134,7 @@
         name: "Curse of Magic Negation",
         school: Abjuration,
         guide: "wizard-spells#curse-of-magic-negation-abjuration",
-        summary: "The target gains spell resistance 10 + your caster level against its own spells: each cast needs a caster level check or fails, keeping the slot.",
+        summary: "The target gains spell resistance 10 + your caster level and must pass a caster level check to cast each spell, which otherwise fails without using the slot.",
         target: "One enemy creature within touch range",
         duration: "10 minutes / level",
         saving_throw: "Will negates",
