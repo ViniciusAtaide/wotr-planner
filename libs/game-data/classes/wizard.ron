@@ -4,6 +4,7 @@ Class(
     summary: "Int-based prepared arcane caster with a spellbook, arcane bond and optional school; 1/2 BAB, spells to 9th level, good Will, 5 HP a level.",
     guide: "wizard",
     skill_points: 2,
+    casting_ability: Intelligence,
     bab: Half,
     fort: Poor,
     reflex: Poor,

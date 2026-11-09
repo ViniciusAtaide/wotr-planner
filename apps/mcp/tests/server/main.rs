@@ -4,6 +4,7 @@
 mod address;
 mod attack_line;
 mod builds;
+mod caster_line;
 mod choose;
 mod compare;
 mod describe;

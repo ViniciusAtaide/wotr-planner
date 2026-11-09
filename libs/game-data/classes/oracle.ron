@@ -4,6 +4,7 @@ Class(
     summary: "Spontaneous divine caster on the cleric list up to 9th-level spells, keyed on Charisma, with 3/4 BAB, good Will, 6 HP, a mystery and a curse.",
     guide: "oracle",
     skill_points: 3,
+    casting_ability: Charisma,
     bab: ThreeQuarters,
     fort: Poor,
     reflex: Poor,

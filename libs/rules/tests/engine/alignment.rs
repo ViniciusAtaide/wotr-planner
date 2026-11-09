@@ -53,6 +53,7 @@ fn wisdom_12() -> Prerequisite {
 
 fn archetype(key: &str, prerequisite: Prerequisite) -> Archetype {
     Archetype {
+        casting_ability: None,
         key: ArchetypeKey::new(key),
         name: key.into(),
         summary: String::new(),

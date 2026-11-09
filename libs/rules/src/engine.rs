@@ -28,6 +28,7 @@ use crate::parameter::{Parameter, ParameterKind};
 use crate::state::CharacterState;
 
 mod attack;
+mod caster;
 mod catalog;
 mod controls;
 mod labels;
@@ -38,6 +39,7 @@ mod switch;
 mod walk;
 
 pub use attack::{ATTACK_LINE_LEAVES_OUT, AttackLine, AttackPart, PowerAttack};
+pub use caster::{CASTER_LINE_LEAVES_OUT, CasterLine, CasterPart, SpellDc};
 use catalog::Catalog;
 
 /// The highest character level without a path that raises it.

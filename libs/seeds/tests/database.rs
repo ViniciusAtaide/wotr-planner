@@ -1629,3 +1629,57 @@ async fn every_background_group_round_trips() {
 
     assert_eq!(test.load().await.unwrap(), game_data);
 }
+
+/// Ticket 119: a bonus names exactly one item that exists, a spell DC bonus has a scope and its value column, a flat
+/// amount has its number, and a casting ability is an ability.
+#[tokio::test]
+async fn the_schema_keeps_item_bonuses_and_casting_abilities_consistent() {
+    let test = TestDatabase::new();
+    test.seed(&fixture_dir()).await.unwrap();
+    let pool = test.writer().await;
+    for (sql, expected) in [
+        (
+            "UPDATE item_bonus SET race_key = 'elf' WHERE feat_key = 'spell-focus'",
+            "check constraint",
+        ),
+        (
+            "UPDATE item_bonus SET feat_key = NULL WHERE feat_key = 'spell-focus'",
+            "check constraint",
+        ),
+        (
+            "UPDATE item_bonus SET feat_key = 'no-such-feat' WHERE feat_key = 'spell-focus'",
+            "foreign key",
+        ),
+        (
+            "UPDATE item_bonus SET scope = NULL WHERE feat_key = 'spell-focus'",
+            "check constraint",
+        ),
+        (
+            "UPDATE item_bonus SET scope = 'value' WHERE race_key = 'elf'",
+            "check constraint",
+        ),
+        (
+            "UPDATE item_bonus SET spell_school = NULL WHERE selection_option_key = 'sorcerer/school/evocation'",
+            "check constraint",
+        ),
+        (
+            "UPDATE item_bonus SET subschool = 'chant' WHERE subschool IS NOT NULL",
+            "check constraint",
+        ),
+        (
+            "UPDATE item_bonus SET amount = NULL WHERE race_key = 'elf'",
+            "check constraint",
+        ),
+        (
+            "UPDATE item_bonus SET amount = 2 WHERE amount_kind = 'mythic_rank'",
+            "check constraint",
+        ),
+        (
+            "UPDATE class SET casting_ability = 'luck' WHERE key = 'sorcerer'",
+            "check constraint",
+        ),
+    ] {
+        let error = rejected(&pool, sql).await;
+        assert!(error.contains(expected), "{sql}: {error}");
+    }
+}

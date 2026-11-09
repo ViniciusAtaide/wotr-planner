@@ -4,6 +4,7 @@ Class(
     summary: "Arcane caster who prepares wizard spells but casts them in any combination, fuelled by a reservoir; 1/2 BAB, spells to 9th level, good Will, 5 HP a level.",
     guide: "arcanist",
     skill_points: 2,
+    casting_ability: Intelligence,
     bab: Half,
     fort: Poor,
     reflex: Poor,

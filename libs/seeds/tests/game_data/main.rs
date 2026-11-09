@@ -8,6 +8,7 @@ mod archetype_saves;
 mod backgrounds;
 mod bonus_feat_choices;
 mod borrowed_selections;
+mod caster_line;
 mod class_rules;
 mod class_skills;
 mod data;

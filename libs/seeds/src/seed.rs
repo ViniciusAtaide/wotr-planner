@@ -21,7 +21,7 @@ use crate::columns::{
     parameter_kind_text, ranged_text, repeat_columns, save_progression_text, save_text,
     weapon_proficiency_text,
 };
-use crate::{Error, MIGRATOR, prerequisites};
+use crate::{Error, MIGRATOR, bonuses, prerequisites};
 
 /// Checks `data` ([`GameData::check`], references to missing keys included), then builds a new database next to
 /// `database` (its name plus `.new`): runs the migration, loads `data` and records `hash` as the data the tables
@@ -311,6 +311,7 @@ async fn insert_all(
     for path in data.mythic_paths.iter() {
         insert_mythic_path(conn, path).await?;
     }
+    bonuses::insert(conn, &data.bonuses).await?;
 
     sqlx::query!("INSERT INTO game_data_seed (hash) VALUES ($1)", hash)
         .execute(&mut *conn)
@@ -448,8 +449,8 @@ async fn insert_class(
     let root = prerequisites::insert(conn, class.prerequisite.as_ref()).await?;
     sqlx::query!(
         "INSERT INTO class (key, is_prestige, name, summary, guide, skill_points, bab, fort, reflex,
-            will, advances, spontaneous, prerequisite_root_id)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)",
+            will, advances, spontaneous, prerequisite_root_id, casting_ability)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)",
         class.key.as_str(),
         is_prestige,
         class.name,
@@ -463,6 +464,7 @@ async fn insert_class(
         advancement_text(class.advances),
         class.spontaneous,
         root,
+        class.casting_ability.map(ability_text),
     )
     .execute(&mut *conn)
     .await?;
@@ -516,8 +518,9 @@ async fn insert_archetype(
     let root = prerequisites::insert(conn, archetype.prerequisite.as_ref()).await?;
     sqlx::query!(
         "INSERT INTO archetype (key, class_key, name, summary, guide,
-            prerequisite_root_id, skill_points, overrides_class_skills, spontaneous, fort, reflex, will)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
+            prerequisite_root_id, skill_points, overrides_class_skills, spontaneous, fort, reflex, will,
+            casting_ability)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)",
         archetype.key.as_str(),
         class.key.as_str(),
         archetype.name,
@@ -530,6 +533,7 @@ async fn insert_archetype(
         archetype.fort.map(save_progression_text),
         archetype.reflex.map(save_progression_text),
         archetype.will.map(save_progression_text),
+        archetype.casting_ability.map(ability_text),
     )
     .execute(&mut *conn)
     .await?;

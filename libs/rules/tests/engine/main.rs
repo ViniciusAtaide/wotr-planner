@@ -9,6 +9,7 @@ mod attack_line;
 mod backgrounds;
 mod bonus_feats;
 mod canonical;
+mod caster_line;
 mod check;
 mod class_rules;
 mod codec;

@@ -49,6 +49,7 @@ pub(in crate::test_world::world) fn rogue() -> Class {
         })
         .collect();
     Class {
+        casting_ability: None,
         key: class("rogue"),
         name: "Rogue".into(),
         summary: String::new(),
@@ -115,6 +116,7 @@ pub(in crate::test_world::world) fn rogue() -> Class {
         feat_lists: vec![list("rogue/skill-focus", true, &["skill-focus"])],
         levels,
         archetypes: vec![Archetype {
+            casting_ability: Some(Ability::Intelligence),
             key: ArchetypeKey::new("rogue/eldritch-scoundrel"),
             name: "Eldritch Scoundrel".into(),
             summary: String::new(),
@@ -151,6 +153,7 @@ pub(in crate::test_world::world) fn slayer() -> Class {
         })
         .collect();
     Class {
+        casting_ability: None,
         key: class("slayer"),
         name: "Slayer".into(),
         summary: String::new(),

@@ -4,6 +4,7 @@ Class(
     summary: "Wis-based prepared divine caster with wild shape and an animal companion or domain; 3/4 BAB, spells to 9th level, good Fortitude and Will, 6 HP a level.",
     guide: "druid",
     skill_points: 3,
+    casting_ability: Wisdom,
     bab: ThreeQuarters,
     fort: Good,
     reflex: Poor,

@@ -4,6 +4,7 @@ Class(
     summary: "Divine warrior-caster with blessings and a sacred weapon; Str, Con and Wis, 3/4 BAB, prepared spells to 6th level, good Fortitude and Will, 6 HP a level.",
     guide: "warpriest",
     skill_points: 2,
+    casting_ability: Wisdom,
     bab: ThreeQuarters,
     fort: Good,
     reflex: Poor,

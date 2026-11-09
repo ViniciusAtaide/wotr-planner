@@ -4,6 +4,7 @@ Class(
     summary: "Spontaneous arcane caster up to 9th-level spells, keyed on Charisma, with half BAB, a good Will save, 5 HP and 2 skill points per level, and a bloodline.",
     guide: "sorcerer",
     skill_points: 2,
+    casting_ability: Charisma,
     bab: Half,
     fort: Poor,
     reflex: Poor,
@@ -516,6 +517,7 @@ Class(
             name: "Empyreal Sorcerer",
             summary: "Wisdom-based sorcerer with the Celestial bloodline's powers, Channel Positive Energy at 9th level and Lore (Religion) as a class skill.",
             guide: "sorcerer#empyreal-sorcerer",
+            casting_ability: Wisdom,
             class_skills: ["knowledge-arcana", "lore-religion", "persuasion", "use-magic-device"],
             features: [
                 (key: "sorcerer/empyreal-sorcerer/apotheosis", name: "Apotheosis", guide: "sorcerer#empyreal-sorcerer"),
@@ -658,6 +660,7 @@ Class(
             name: "Sage Sorcerer",
             summary: "Intelligence-based sorcerer with the Arcane bloodline's powers and an Arcane Bolt instead of the arcane bond.",
             guide: "sorcerer#sage-sorcerer",
+            casting_ability: Intelligence,
             features: [
                 (key: "sorcerer/sage-sorcerer/arcane-arcana", name: "Arcane Arcana", summary: "The Arcane bloodline's arcana: metamagic other than Heighten Spell raises the spell's DC by 1.", guide: "sorcerer#sage-sorcerer"),
                 (key: "sorcerer/sage-sorcerer/arcane-bolt", name: "Arcane Bolt", summary: "Ranged touch bolt of force for 1d4 +1 per two sorcerer levels; 3 + Intelligence modifier uses a day.", guide: "sorcerer#arcane-bolt"),

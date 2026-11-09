@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "SELECT key, is_prestige AS \"is_prestige: bool\", name, summary, guide, skill_points, bab, fort,\n            reflex, will, advances, spontaneous AS \"spontaneous: bool\", prerequisite_root_id\n        FROM class ORDER BY key",
+  "query": "SELECT key, class_key, name, summary, guide, prerequisite_root_id, skill_points,\n            overrides_class_skills AS \"overrides_class_skills: bool\", spontaneous AS \"spontaneous: bool\",\n            fort, reflex, will, casting_ability\n        FROM archetype ORDER BY key",
   "describe": {
     "columns": [
       {
@@ -9,19 +9,19 @@
         "type_info": "Text",
         "origin": {
           "Table": {
-            "table": "class",
+            "table": "archetype",
             "name": "key"
           }
         }
       },
       {
-        "name": "is_prestige: bool",
+        "name": "class_key",
         "ordinal": 1,
-        "type_info": "Integer",
+        "type_info": "Text",
         "origin": {
           "Table": {
-            "table": "class",
-            "name": "is_prestige"
+            "table": "archetype",
+            "name": "class_key"
           }
         }
       },
@@ -31,7 +31,7 @@
         "type_info": "Text",
         "origin": {
           "Table": {
-            "table": "class",
+            "table": "archetype",
             "name": "name"
           }
         }
@@ -42,7 +42,7 @@
         "type_info": "Text",
         "origin": {
           "Table": {
-            "table": "class",
+            "table": "archetype",
             "name": "summary"
           }
         }
@@ -53,96 +53,96 @@
         "type_info": "Text",
         "origin": {
           "Table": {
-            "table": "class",
+            "table": "archetype",
             "name": "guide"
           }
         }
       },
       {
-        "name": "skill_points",
+        "name": "prerequisite_root_id",
         "ordinal": 5,
         "type_info": "Integer",
         "origin": {
           "Table": {
-            "table": "class",
+            "table": "archetype",
+            "name": "prerequisite_root_id"
+          }
+        }
+      },
+      {
+        "name": "skill_points",
+        "ordinal": 6,
+        "type_info": "Integer",
+        "origin": {
+          "Table": {
+            "table": "archetype",
             "name": "skill_points"
           }
         }
       },
       {
-        "name": "bab",
-        "ordinal": 6,
-        "type_info": "Text",
+        "name": "overrides_class_skills: bool",
+        "ordinal": 7,
+        "type_info": "Integer",
         "origin": {
           "Table": {
-            "table": "class",
-            "name": "bab"
+            "table": "archetype",
+            "name": "overrides_class_skills"
+          }
+        }
+      },
+      {
+        "name": "spontaneous: bool",
+        "ordinal": 8,
+        "type_info": "Integer",
+        "origin": {
+          "Table": {
+            "table": "archetype",
+            "name": "spontaneous"
           }
         }
       },
       {
         "name": "fort",
-        "ordinal": 7,
+        "ordinal": 9,
         "type_info": "Text",
         "origin": {
           "Table": {
-            "table": "class",
+            "table": "archetype",
             "name": "fort"
           }
         }
       },
       {
         "name": "reflex",
-        "ordinal": 8,
+        "ordinal": 10,
         "type_info": "Text",
         "origin": {
           "Table": {
-            "table": "class",
+            "table": "archetype",
             "name": "reflex"
           }
         }
       },
       {
         "name": "will",
-        "ordinal": 9,
+        "ordinal": 11,
         "type_info": "Text",
         "origin": {
           "Table": {
-            "table": "class",
+            "table": "archetype",
             "name": "will"
           }
         }
       },
       {
-        "name": "advances",
-        "ordinal": 10,
+        "name": "casting_ability",
+        "ordinal": 12,
         "type_info": "Text",
         "origin": {
           "Table": {
-            "table": "class",
-            "name": "advances"
-          }
-        }
-      },
-      {
-        "name": "spontaneous: bool",
-        "ordinal": 11,
-        "type_info": "Integer",
-        "origin": {
-          "Table": {
-            "table": "class",
-            "name": "spontaneous"
-          }
-        }
-      },
-      {
-        "name": "prerequisite_root_id",
-        "ordinal": 12,
-        "type_info": "Integer",
-        "origin": {
-          "Table": {
-            "table": "class",
-            "name": "prerequisite_root_id"
+            "table": "archetype",
+            "name": "casting_ability"
           }
         }
       }
@@ -156,15 +156,15 @@
       false,
       false,
       false,
+      true,
+      true,
       false,
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
+      true,
+      true,
+      true,
+      true,
       true
     ]
   },
-  "hash": "d24d902ec9934a6648604521ca0a1bba6b76c9adec7d8b9e622f7ab0d6ddcf20"
+  "hash": "75ab561f26ac1210f5fcf1b4c5b014e45a99b4418771697b99d36dcbce44a466"
 }

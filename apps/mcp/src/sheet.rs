@@ -6,11 +6,12 @@ use std::collections::BTreeSet;
 
 use rules::{
     AbilityScores, Build, CharacterState, Choice, Engine, POINT_BUY_BUDGET, RankStatus, Sheet,
-    Slot, WeaponKey, has_ability_increase,
+    Slot, SpellTraits, WeaponKey, has_ability_increase,
 };
 
 use crate::address::Address;
 use crate::attack;
+use crate::caster;
 use crate::code::envelope;
 use crate::planner::Planner;
 use crate::shapes::ChoiceValue;
@@ -23,12 +24,13 @@ use crate::values::{
 };
 
 /// The sheet of a possible Build; with `removable`, each held choice marked with whether it can be withdrawn now;
-/// with a `weapon`, each level's attack line for it.
+/// with a `weapon`, each level's attack line for it; with a `caster` spell, each level's caster line for it.
 pub(crate) fn sheet(
     planner: &Planner,
     build: &Build,
     removable: bool,
     weapon: Option<&WeaponKey>,
+    caster: Option<SpellTraits>,
 ) -> SheetResult {
     let evaluated = planner.engine.evaluate(build);
     let mut result = sheet_of(planner, build, &evaluated, removable);
@@ -37,6 +39,12 @@ pub(crate) fn sheet(
             line.attack = attack::attack_line(&planner.engine, &level.state, weapon);
         }
         result.attack_leaves_out = Some(attack::leaves_out());
+    }
+    if let Some(spell) = caster {
+        for (line, level) in result.levels.iter_mut().zip(&evaluated.levels) {
+            line.caster = caster::caster_line(&planner.engine, &build.start, &level.state, spell);
+        }
+        result.caster_leaves_out = Some(caster::leaves_out());
     }
     result
 }
@@ -85,6 +93,7 @@ pub(crate) fn sheet_of(
                 .collect()
         }),
         attack_leaves_out: None,
+        caster_leaves_out: None,
     }
 }
 
@@ -314,6 +323,7 @@ impl Lines<'_> {
                 features: new_features(engine, before, state),
                 mythic_ranks: level.mythic_ranks.clone(),
                 attack: None,
+                caster: None,
                 picks,
             });
             before = state;

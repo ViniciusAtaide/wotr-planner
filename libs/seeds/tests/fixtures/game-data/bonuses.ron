@@ -1,0 +1,16 @@
+// Hand-written test fixture: every shape of an item bonus (ticket 119), not checked against the guide.
+[
+    (item: Feat("spell-focus"), target: SpellDc(Value), amount: Flat(1)),
+    (item: Feat("elemental-focus"), target: SpellDc(Value), amount: Flat(1)),
+    (item: Feat("greater-elemental-focus"), target: SpellDc(Energy(Fire)), amount: Flat(1)),
+    (item: MythicFeat("spell-focus-mythic"), target: SpellDc(Value), amount: Flat(1)),
+    (item: MythicFeat("spell-focus-mythic"), target: SpellDc(Value), amount: SpellFocusOfAnotherSchool),
+    (item: Race("elf"), target: SpellPenetration, amount: Flat(2)),
+    (item: Subrace("half-elf/dual-heritage"), target: SpellPenetration, amount: Flat(2)),
+    (item: Feature("sorcerer/bloodline/abyssal/strength-of-the-abyss"), target: SpellDc(Subschool(Charm)), amount: Flat(2)),
+    (item: SelectionOption("sorcerer/school/evocation"), target: SpellDc(School(Evocation)), amount: Flat(2)),
+    (item: Feat("arcane-strike"), target: SpellDc(Metamagic), amount: Flat(1)),
+    (item: Feat("toughness"), target: SpellDc(All), amount: Flat(-1)),
+    (item: Feat("power-attack"), target: Concentration, amount: HalfMythicRank, requires: Not(Feat("dodge"))),
+    (item: Feat("power-attack"), target: Concentration, amount: MythicRank, requires: All([Feat("dodge"), Feat("toughness")])),
+]

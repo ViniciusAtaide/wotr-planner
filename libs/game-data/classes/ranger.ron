@@ -4,6 +4,7 @@ Class(
     summary: "Dexterity and Wisdom hunter: full BAB, good Fortitude and Reflex, divine spells to 4th level from 4th, favoured enemies, terrains and combat style feats.",
     guide: "ranger",
     skill_points: 4,
+    casting_ability: Wisdom,
     bab: Full,
     fort: Good,
     reflex: Good,

@@ -4,6 +4,7 @@ Class(
     summary: "Intelligence-based prepared arcane caster up to 9th-level spells: 1/2 BAB, good Will, a familiar, patron bonus spells and hexes.",
     guide: "witch",
     skill_points: 2,
+    casting_ability: Intelligence,
     bab: Half,
     fort: Poor,
     reflex: Poor,
@@ -190,6 +191,7 @@ Class(
             name: "Ley Line Guardian",
             summary: "Witch who casts spontaneously like a Sorcerer, without a familiar.",
             guide: "witch#ley-line-guardian",
+            casting_ability: Charisma,
             features: [
                 (key: "witch/ley-line-guardian/cantrips", name: "Cantrips", guide: "witch#ley-line-guardian"),
                 (key: "witch/ley-line-guardian/conduit-surge", name: "Conduit Surge", summary: "Swift action: next spell gets +1d4-1 caster level (+1d4 at 8th), 3 + Int times a day; Fortitude save or staggered.", guide: "witch#conduit-surge"),
@@ -205,6 +207,7 @@ Class(
             name: "Stigmatized Witch",
             summary: "Spontaneous Charisma-based witch with an oracle curse instead of a patron; 3 skill points per level.",
             guide: "witch#stigmatized-witch",
+            casting_ability: Charisma,
             skill_points: 3,
             spontaneous: Some(true),
             features: [

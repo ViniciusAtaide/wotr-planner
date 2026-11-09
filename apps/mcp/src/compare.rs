@@ -7,6 +7,7 @@ use std::collections::BTreeSet;
 use rules::{CharacterState, Sheet};
 
 use crate::attack;
+use crate::caster;
 use crate::code::open;
 use crate::error::ToolError;
 use crate::planner::Planner;
@@ -41,6 +42,7 @@ pub(crate) fn compare(planner: &Planner, args: CompareArgs) -> Result<CompareRes
         .collect::<Result<Vec<_>, _>>()?;
     let engine = &planner.engine;
     let weapon = attack::weapon_argument(engine, args.weapon.as_deref())?;
+    let spell = caster::caster_argument(args.caster.as_ref())?;
     let sheets: Vec<Sheet> = builds.iter().map(|build| engine.evaluate(build)).collect();
     let lines: Vec<SheetResult> = builds
         .iter()
@@ -89,6 +91,9 @@ pub(crate) fn compare(planner: &Planner, args: CompareArgs) -> Result<CompareRes
                 if let (Some(weapon), Some(last)) = (&weapon, sheet.levels.last()) {
                     summary.attack = attack::attack_line(engine, &last.state, weapon);
                 }
+                if let (Some(spell), Some(last)) = (spell, sheet.levels.last()) {
+                    summary.caster = caster::caster_line(engine, &build.start, &last.state, spell);
+                }
                 summary
             })
             .collect(),
@@ -102,6 +107,7 @@ pub(crate) fn compare(planner: &Planner, args: CompareArgs) -> Result<CompareRes
         ranks,
         path_features,
         attack_leaves_out: weapon.is_some().then(attack::leaves_out),
+        caster_leaves_out: spell.is_some().then(caster::leaves_out),
     })
 }
 
@@ -173,6 +179,7 @@ fn summary(
         switch: path(&build.path_switch),
         level_cap: line.level_cap,
         attack: None,
+        caster: None,
     }
 }
 

@@ -95,6 +95,7 @@ pub(in crate::test_world::world) fn priest() -> Class {
         ..selection_option(&format!("priest/blessing/{key}"), None, None)
     };
     Class {
+        casting_ability: None,
         key: class("priest"),
         name: "Priest".into(),
         summary: String::new(),
@@ -160,6 +161,7 @@ pub(in crate::test_world::world) fn seeker() -> Class {
         })
         .collect();
     Class {
+        casting_ability: None,
         key: class("seeker"),
         name: "Seeker".into(),
         summary: String::new(),

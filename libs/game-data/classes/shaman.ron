@@ -4,6 +4,7 @@ Class(
     summary: "Prepared divine caster up to 9th-level spells (Wisdom and Charisma) with 3/4 BAB, good Will, 5 HP and 2 skill points a level, a spirit and hexes.",
     guide: "shaman",
     skill_points: 2,
+    casting_ability: Wisdom,
     bab: ThreeQuarters,
     fort: Poor,
     reflex: Poor,

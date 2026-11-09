@@ -55,6 +55,7 @@ fn archetype_row(level: u8) -> ArchetypeLevelRow {
 /// An archetype with nothing of its own yet.
 pub(in crate::test_world::world) fn archetype(key: &str) -> Archetype {
     Archetype {
+        casting_ability: None,
         key: ArchetypeKey::new(key),
         name: key.into(),
         summary: String::new(),

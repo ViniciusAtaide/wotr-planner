@@ -1,0 +1,182 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT race_key, subrace_key, feat_key, mythic_feat_key, feature_key, selection_option_key, target,\n            scope, spell_school, subschool, energy, amount_kind, amount, prerequisite_root_id\n        FROM item_bonus ORDER BY id",
+  "describe": {
+    "columns": [
+      {
+        "name": "race_key",
+        "ordinal": 0,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "item_bonus",
+            "name": "race_key"
+          }
+        }
+      },
+      {
+        "name": "subrace_key",
+        "ordinal": 1,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "item_bonus",
+            "name": "subrace_key"
+          }
+        }
+      },
+      {
+        "name": "feat_key",
+        "ordinal": 2,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "item_bonus",
+            "name": "feat_key"
+          }
+        }
+      },
+      {
+        "name": "mythic_feat_key",
+        "ordinal": 3,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "item_bonus",
+            "name": "mythic_feat_key"
+          }
+        }
+      },
+      {
+        "name": "feature_key",
+        "ordinal": 4,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "item_bonus",
+            "name": "feature_key"
+          }
+        }
+      },
+      {
+        "name": "selection_option_key",
+        "ordinal": 5,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "item_bonus",
+            "name": "selection_option_key"
+          }
+        }
+      },
+      {
+        "name": "target",
+        "ordinal": 6,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "item_bonus",
+            "name": "target"
+          }
+        }
+      },
+      {
+        "name": "scope",
+        "ordinal": 7,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "item_bonus",
+            "name": "scope"
+          }
+        }
+      },
+      {
+        "name": "spell_school",
+        "ordinal": 8,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "item_bonus",
+            "name": "spell_school"
+          }
+        }
+      },
+      {
+        "name": "subschool",
+        "ordinal": 9,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "item_bonus",
+            "name": "subschool"
+          }
+        }
+      },
+      {
+        "name": "energy",
+        "ordinal": 10,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "item_bonus",
+            "name": "energy"
+          }
+        }
+      },
+      {
+        "name": "amount_kind",
+        "ordinal": 11,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "item_bonus",
+            "name": "amount_kind"
+          }
+        }
+      },
+      {
+        "name": "amount",
+        "ordinal": 12,
+        "type_info": "Integer",
+        "origin": {
+          "Table": {
+            "table": "item_bonus",
+            "name": "amount"
+          }
+        }
+      },
+      {
+        "name": "prerequisite_root_id",
+        "ordinal": 13,
+        "type_info": "Integer",
+        "origin": {
+          "Table": {
+            "table": "item_bonus",
+            "name": "prerequisite_root_id"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      false,
+      true,
+      true,
+      true,
+      true,
+      false,
+      true,
+      true
+    ]
+  },
+  "hash": "bff468893741d5d50c8509aece7bf4eade09ae80b502e225326d199138c218ee"
+}

@@ -20,6 +20,7 @@ pub(in crate::test_world::world) fn mystic_theurge() -> Class {
         })
         .collect();
     Class {
+        casting_ability: None,
         key: class("mystic-theurge"),
         name: "Mystic Theurge".into(),
         summary: String::new(),
@@ -65,6 +66,7 @@ pub(in crate::test_world::world) fn arcane_trickster() -> Class {
         })
         .collect();
     Class {
+        casting_ability: None,
         key: class("arcane-trickster"),
         name: "Arcane Trickster".into(),
         summary: String::new(),
@@ -115,6 +117,7 @@ pub(in crate::test_world::world) fn eldritch_knight() -> Class {
         })
         .collect();
     Class {
+        casting_ability: None,
         key: class("eldritch-knight"),
         name: "Eldritch Knight".into(),
         summary: String::new(),
@@ -160,6 +163,7 @@ pub(in crate::test_world::world) fn winter_witch() -> Class {
         toward: CountsToward::Feature(feature(key)),
     };
     Class {
+        casting_ability: None,
         key: class("winter-witch"),
         name: "Winter Witch".into(),
         summary: String::new(),
@@ -214,6 +218,7 @@ pub(in crate::test_world::world) fn dragon_disciple() -> Class {
         })
         .collect();
     Class {
+        casting_ability: None,
         key: class("dragon-disciple"),
         name: "Dragon Disciple".into(),
         summary: String::new(),

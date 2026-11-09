@@ -30,7 +30,7 @@ use crate::columns::{
     value_from, weapon_proficiency_from,
 };
 use crate::prerequisites::Trees;
-use crate::{Database, Error};
+use crate::{Database, Error, bonuses};
 
 /// Reads the seeded game data, in canonical order. Unseeded tables read as empty game data.
 pub async fn load_game_data(db: &Database) -> Result<GameData, Error> {
@@ -79,6 +79,7 @@ async fn load(db: &Database) -> Result<GameData, sqlx::Error> {
     .await?;
     let mythic_abilities = load_mythic_abilities(conn, &mut trees, &mut grants).await?;
     let mythic_feats = load_mythic_feats(conn, &mut trees).await?;
+    let bonuses = bonuses::load(conn, &mut trees).await?;
     let backgrounds = load_backgrounds(conn, &mut grants, &mut class_skills).await?;
     let deities = load_deities(conn).await?;
     let mythic_paths = load_mythic_paths(
@@ -118,6 +119,7 @@ async fn load(db: &Database) -> Result<GameData, sqlx::Error> {
         prestige_classes,
         mythic_abilities,
         mythic_feats,
+        bonuses,
         mythic_paths,
         backgrounds,
         deities,
@@ -1080,7 +1082,7 @@ async fn load_classes(
     for row in sqlx::query!(
         "SELECT key, class_key, name, summary, guide, prerequisite_root_id, skill_points,
             overrides_class_skills AS \"overrides_class_skills: bool\", spontaneous AS \"spontaneous: bool\",
-            fort, reflex, will
+            fort, reflex, will, casting_ability
         FROM archetype ORDER BY key"
     )
     .fetch_all(&mut *conn)
@@ -1112,6 +1114,7 @@ async fn load_classes(
                 fort: row.fort.as_deref().map(save_progression_from).transpose()?,
                 reflex: row.reflex.as_deref().map(save_progression_from).transpose()?,
                 will: row.will.as_deref().map(save_progression_from).transpose()?,
+                casting_ability: row.casting_ability.as_deref().map(ability_from).transpose()?,
                 features: parts.features.take(&owner),
                 selections: parts.selections.take(&owner),
                 feat_lists: parts.feat_lists.take(&owner),
@@ -1166,7 +1169,7 @@ async fn load_classes(
     let (mut classes, mut prestige_classes) = (Vec::new(), Vec::new());
     for row in sqlx::query!(
         "SELECT key, is_prestige AS \"is_prestige: bool\", name, summary, guide, skill_points, bab, fort,
-            reflex, will, advances, spontaneous AS \"spontaneous: bool\", prerequisite_root_id
+            reflex, will, advances, spontaneous AS \"spontaneous: bool\", prerequisite_root_id, casting_ability
         FROM class ORDER BY key"
     )
     .fetch_all(&mut *conn)
@@ -1182,6 +1185,7 @@ async fn load_classes(
             will: save_progression_from(&row.will)?,
             advances: advancement_from(&row.advances)?,
             spontaneous: row.spontaneous,
+            casting_ability: row.casting_ability.as_deref().map(ability_from).transpose()?,
             counts_as: counts_as.take(&row.key).into_iter().collect(),
             key: ClassKey(row.key),
             name: row.name,
