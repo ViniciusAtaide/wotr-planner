@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "SELECT key, name, group_name, summary, guide, prerequisite_root_id\n        FROM mythic_ability ORDER BY key",
+  "query": "SELECT key, name, group_name, summary, guide, prerequisite_root_id, parameter\n        FROM mythic_ability ORDER BY key",
   "describe": {
     "columns": [
       {
@@ -68,6 +68,17 @@
             "name": "prerequisite_root_id"
           }
         }
+      },
+      {
+        "name": "parameter",
+        "ordinal": 6,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "mythic_ability",
+            "name": "parameter"
+          }
+        }
       }
     ],
     "parameters": {
@@ -79,8 +90,9 @@
       false,
       false,
       false,
+      true,
       true
     ]
   },
-  "hash": "830eb429d47763d327ce64efe40f185f06e2f0acc5cbfeb592db9c4430718288"
+  "hash": "99b3f2e2029abe945d8dd6c96a595db38454118b8856a63cf83fa2ca4413e26e"
 }

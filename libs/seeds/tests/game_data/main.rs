@@ -26,6 +26,7 @@ mod option_families;
 mod option_follow_ups;
 mod option_levels;
 mod parameterised_feats;
+mod pick_values;
 mod races;
 mod repeating_talents;
 mod report_gaps;

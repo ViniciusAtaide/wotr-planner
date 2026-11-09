@@ -8,9 +8,9 @@ use proptest::option;
 use proptest::prelude::*;
 use rules::{
     Ability, AbilityScores, Alignment, ArchetypeKey, ArmourType, BackgroundKey, Build, BuildStart,
-    ClassChoice, ClassKey, DecodeError, DeityKey, Energy, Faith, FeatSource, KeyCollision, KeyKind,
-    LevelUp, LinkKeys, MythicPathKey, Parameter, Pick, PointBuy, RaceKey, SkillKey, SlotId,
-    SpellSchool, SubraceKey, decode_build, encode_build, key_hash,
+    ClassChoice, ClassKey, DecodeError, DeityKey, Element, Energy, Faith, FeatSource, KeyCollision,
+    KeyKind, LevelUp, LinkKeys, MythicPathKey, Parameter, Pick, PointBuy, RaceKey, SkillKey,
+    SlotId, SpellSchool, Stat, SubraceKey, decode_build, encode_build, key_hash,
 };
 
 use crate::support::*;
@@ -167,6 +167,9 @@ fn parameter() -> impl Strategy<Value = Parameter> {
         spell_school().prop_map(Parameter::SpellSchool),
         energy().prop_map(Parameter::Energy),
         armour_type().prop_map(Parameter::ArmourType),
+        key().prop_map(|k| Parameter::Metamagic(rules::FeatKey(k))),
+        prop::sample::select(Stat::ALL.to_vec()).prop_map(Parameter::Stat),
+        prop::sample::select(Element::ALL.to_vec()).prop_map(Parameter::Element),
     ]
 }
 
@@ -180,7 +183,10 @@ fn pick() -> impl Strategy<Value = Pick> {
             option: rules::SelectionOptionKey(k),
             parameter
         }),
-        key().prop_map(|k| Pick::MythicAbility(rules::MythicAbilityKey(k))),
+        (key(), option::of(parameter())).prop_map(|(k, parameter)| Pick::MythicAbility {
+            ability: rules::MythicAbilityKey(k),
+            parameter
+        }),
         (key(), option::of(parameter())).prop_map(|(k, parameter)| Pick::MythicFeat {
             feat: rules::MythicFeatKey(k),
             parameter

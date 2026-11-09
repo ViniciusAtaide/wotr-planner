@@ -20,9 +20,11 @@
 //!
 //! The binary's commands:
 //!
-//! - `proof record <game-data dir> [--links <file> | --builds <file>] [--threads N] [--only <name substring>]` writes
-//!   one JSON line per Build ([`fingerprint`]), in a stable order. Without `--links` or `--builds` it records the
-//!   harness's own Builds ([`builds`]); with one, exactly the Builds of that file (links, or JSON lines).
+//! - `proof record <game-data dir> [--links <file> | --builds <file>] [--threads N] [--only <name substring>]
+//!   [--fold-values <key>,…]` writes one JSON line per Build ([`fingerprint`]), in a stable order. Without `--links`
+//!   or `--builds` it records the harness's own Builds ([`builds`]); with one, exactly the Builds of that file (links,
+//!   or JSON lines). `--fold-values` folds each listed item's options into one per slot (ticket 125: items that came
+//!   to take a value).
 //! - `proof compare <a.jsonl> <b.jsonl>` lists the Builds only in one side and, per Build that differs, the fields that
 //!   differ and, for slots, the slot ids ([`compare`]). It exits 1 when anything differs.
 //! - `proof export <game-data dir> [--json] [--threads N] [--only <name substring>]` writes the harness's own Builds

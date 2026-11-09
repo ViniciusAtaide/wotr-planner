@@ -714,7 +714,7 @@ pub const CURSES: &str = "oracle/oracles-curse";
 pub fn with_mr_1_ability(mut build: Build, ability: &str) -> Build {
     build.picks.insert(
         SlotId::Mythic { rank: 1 },
-        Pick::MythicAbility(rules::MythicAbilityKey::new(ability)),
+        Pick::mythic_ability(rules::MythicAbilityKey::new(ability)),
     );
     build
 }

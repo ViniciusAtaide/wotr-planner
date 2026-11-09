@@ -34,6 +34,7 @@ mod option_limits;
 mod options;
 mod parameters;
 mod path_rules;
+mod pick_values;
 mod pickers;
 mod possible;
 mod prerequisites;

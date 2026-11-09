@@ -23,6 +23,14 @@ pub fn with_faith(build: &Build, faith: Value) -> Build {
     build
 }
 
+/// A mythic ability pick taking nothing in particular, made through serde: from ticket 125 on the pick is
+/// `MythicAbility { ability, parameter }`, before it `MythicAbility(key)`, and the harness compiles against both.
+pub fn mythic_ability_pick(key: &str) -> Pick {
+    serde_json::from_value(json!({ "MythicAbility": { "ability": key, "parameter": null } }))
+        .or_else(|_| serde_json::from_value(json!({ "MythicAbility": key })))
+        .expect("a mythic ability pick deserialises")
+}
+
 /// Whether these crates' Build start holds a faith (from ticket 86 on).
 pub fn holds_faith() -> bool {
     serde_json::to_value(rules::BuildStart::default())
@@ -74,9 +82,10 @@ impl Rng {
     }
 }
 
-/// Whether a pick is Witch Wandering Hex.
+/// Whether a pick is Witch Wandering Hex: by its key, which no feat or option shares (an option's has a `/`), so the
+/// harness compiles against the pick's shape before and after ticket 125.
 fn is_wandering_hex(pick: &Pick) -> bool {
-    matches!(pick, Pick::MythicAbility(key) if key.as_str() == "witch-wandering-hex")
+    pick.key() == "witch-wandering-hex"
 }
 
 /// Fills every empty slot, ability increase and skill point with a choice the sheet offers, and the path.

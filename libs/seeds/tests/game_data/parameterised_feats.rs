@@ -92,9 +92,9 @@ fn feats_repeat_and_take_values_as_the_guide_says() {
         .filter(|f| f.repeat != Repeat::Once)
         .map(|f| f.key.as_str())
         .collect();
-    // The 15 parameterised feats once per value (ticket 32), Magical Tail and the 18 Extra feats the guide says
-    // repeat (not Extra Bane Weapon: it doesn't say).
-    assert_eq!(repeating.len(), 34, "{repeating:?}");
+    // The 16 parameterised feats once per value (ticket 32; Stat Focus since ticket 125), Magical Tail and the 18
+    // Extra feats the guide says repeat (not Extra Bane Weapon: it doesn't say).
+    assert_eq!(repeating.len(), 35, "{repeating:?}");
 }
 
 #[test]

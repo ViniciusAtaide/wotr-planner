@@ -1,7 +1,7 @@
 //! Mythic picks: the slots Extra Feat and Extra Mythic Ability give, and the selections Witch Wandering Hex and
 //! Beneficial Curse grant.
 
-use rules::{Build, Engine, MythicAbilityKey, MythicFeatKey, MythicPathKey, Pick, SlotId};
+use rules::{Build, Engine, MythicFeatKey, MythicPathKey, Pick, SlotId};
 
 use super::{feat, human, option, selection, with};
 use crate::Named;
@@ -12,7 +12,7 @@ fn mythic(rank: u8) -> SlotId {
 }
 
 fn ability(key: &str) -> Pick {
-    Pick::MythicAbility(MythicAbilityKey::new(key))
+    crate::generate::mythic_ability_pick(key)
 }
 
 fn mythic_feat(key: &str) -> Pick {

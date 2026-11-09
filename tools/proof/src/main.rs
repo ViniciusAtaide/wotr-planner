@@ -1,5 +1,6 @@
 //! The proof's command line; see the library's docs for the commands.
 
+use std::collections::BTreeSet;
 use std::path::Path;
 use std::process::ExitCode;
 use std::time::Instant;
@@ -9,6 +10,7 @@ use rules::{Engine, GameData};
 
 const USAGE: &str = "usage:
   proof record <game-data dir> [--links <file> | --builds <file>] [--threads N] [--only <name substring>]
+               [--fold-values <key>,…]
   proof compare <a.jsonl> <b.jsonl>
   proof export <game-data dir> [--json] [--threads N] [--only <name substring>]";
 
@@ -22,6 +24,9 @@ struct Options {
     json: bool,
     threads: usize,
     only: Option<String>,
+    /// `record`: the keys whose options each slot folds into one (ticket 125); `export` ignores it, since
+    /// `proof.sh` passes the record options to both.
+    fold_values: BTreeSet<String>,
 }
 
 fn options(args: &[String], links_allowed: bool) -> Result<Options, String> {
@@ -34,6 +39,7 @@ fn options(args: &[String], links_allowed: bool) -> Result<Options, String> {
         json: false,
         threads: 8,
         only: None,
+        fold_values: BTreeSet::new(),
     };
     while let Some(flag) = args.next() {
         let mut value = || {
@@ -49,6 +55,9 @@ fn options(args: &[String], links_allowed: bool) -> Result<Options, String> {
                 options.threads = value()?.parse().map_err(|_| "--threads takes a number")?;
             }
             "--only" => options.only = Some(value()?),
+            "--fold-values" => {
+                options.fold_values = value()?.split(',').map(str::to_owned).collect();
+            }
             other => return Err(format!("unknown option {other}")),
         }
     }
@@ -87,6 +96,7 @@ fn engine_and_builds(options: &Options) -> Result<(Engine, GameData, Vec<Named>)
 
 fn record(options: &Options) -> Result<ExitCode, String> {
     let started = Instant::now();
+    fingerprint::fold_values(options.fold_values.clone());
     let (engine, _, builds) = engine_and_builds(options)?;
     eprintln!("{} Builds", builds.len());
     for line in proof::record(&engine, &builds, options.threads) {

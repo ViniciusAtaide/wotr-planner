@@ -92,7 +92,7 @@ impl<'a> Walker<'a> {
                     self.take_option(selection, key, parameter.as_ref(), source);
                 }
             }
-            Pick::MythicAbility(key) => {
+            Pick::MythicAbility { ability: key, .. } => {
                 self.hold(Held::MythicAbility(key.clone()), source.cloned());
                 if let Some(ability) = self.engine.catalog.mythic_ability(key) {
                     for feature in &ability.features {

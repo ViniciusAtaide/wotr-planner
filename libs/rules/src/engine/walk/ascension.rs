@@ -151,8 +151,10 @@ impl<'a> Walker<'a> {
     /// The mythic ability a pick would hold anew: `None` for another kind of pick, or one held already.
     fn newly_held_ability(&self, pick: Option<&'a Pick>) -> Option<&'a MythicAbilityKey> {
         match pick {
-            Some(Pick::MythicAbility(key)) if !self.state.mythic_abilities.contains(key) => {
-                Some(key)
+            Some(Pick::MythicAbility { ability, .. })
+                if !self.state.mythic_abilities.contains(ability) =>
+            {
+                Some(ability)
             }
             _ => None,
         }

@@ -50,7 +50,11 @@ pub fn pick_option_for(key: &str, value: Parameter) -> Pick {
     Pick::option_for(option(key), value)
 }
 pub fn pick_mythic_ability(key: &str) -> Pick {
-    Pick::MythicAbility(MythicAbilityKey::new(key))
+    Pick::mythic_ability(MythicAbilityKey::new(key))
+}
+/// A parameterised mythic ability taken for `value`.
+pub fn pick_mythic_ability_for(key: &str, value: Parameter) -> Pick {
+    Pick::mythic_ability_for(MythicAbilityKey::new(key), value)
 }
 pub fn pick_mythic_feat(key: &str) -> Pick {
     Pick::mythic_feat(MythicFeatKey::new(key))

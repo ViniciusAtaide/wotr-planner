@@ -62,9 +62,11 @@ Batching: send many steps in one `choose`. It stops at the first refused step: r
 reason), fix that step, and resend the rest from the code it returned.
 
 Values: take them from `options`, which lists what a choice can take now and why the rest is closed. A \
-parameterised feat needs `{key, parameter}`: list them with `options {values: true}`. A spellcasting prestige \
-class needs `advances`, the classes it advances (`[]` for none). A point-buy score or a skill's ranks take the \
-number to reach; `level.N.skill` takes a map `{skill: ranks}` to spend a level's skill points in one step.
+parameterised feat or mythic ability (Favorite Metamagic: a metamagic) needs `{key, parameter}`: list them with \
+`options {values: true}`. A `todo` entry on a filled slot is a pick whose value is still open: choose the value \
+there. A spellcasting prestige class needs `advances`, the classes it advances (`[]` for none). A point-buy score \
+or a skill's ranks take the number to reach; `level.N.skill` takes a map `{skill: ranks}` to spend a level's skill \
+points in one step.
 
 Branching: for alternatives (Lich or Aeon), build the shared part once, `choose` each alternative from that same \
 code, fill each branch, then `compare` the codes. Report its differences as facts, without ranking them.

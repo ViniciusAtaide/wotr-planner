@@ -332,7 +332,7 @@ fn mythic_slots_offer_mythic_abilities_or_feats_by_rank() {
     assert!(
         abilities
             .iter()
-            .all(|o| matches!(o.pick, Pick::MythicAbility(_)))
+            .all(|o| matches!(o.pick, Pick::MythicAbility { .. }))
     );
     assert_eq!(
         status_of(&abilities, &pick_mythic_ability("limitless-smite")),

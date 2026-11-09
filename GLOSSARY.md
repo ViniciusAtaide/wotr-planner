@@ -133,11 +133,11 @@ One entry in a Feature selection's list, such as Fast Stealth among the rogue ta
 _Avoid_: Option (unqualified), talent
 
 **Parameterised feat**:
-A feat taken for something the player chooses, which the guide words as "choose a single weapon" or "select one skill": Weapon Focus, Skill Focus, Spell Focus, Elemental Focus, Armor Focus, Improved Critical, Exotic Weapon Proficiency, the Greater and Specialization feats that follow them, and the Trickster's Improved Improved Critical chain; mythic feats too (Improved Critical, Spell Focus and Skill Focus (Mythic), Expanded Arsenal, School Mastery). Every one Repeats once per value. Each pick names its Parameter, and a prerequisite can need the feat for one value ("Weapon Focus (Dueling Sword)") or for the pick's own ("Weapon Specialization: a weapon for which you have already selected Weapon Focus"). "Weapon Focus" on its own is the feat in any value.
+A feat taken for something the player chooses, which the guide words as "choose a single weapon" or "select one skill": Weapon Focus, Skill Focus, Spell Focus, Elemental Focus, Armor Focus, Improved Critical, Exotic Weapon Proficiency, the Greater and Specialization feats that follow them, the Trickster's Improved Improved Critical chain and Stat Focus; mythic feats too (Improved Critical, Spell Focus and Skill Focus (Mythic), Expanded Arsenal, School Mastery). Every one Repeats once per value. A mythic ability can take a Parameter as well (Favorite Metamagic: a metamagic; Ascendant Element: an element), held once whatever its value. Each pick names its Parameter, and a prerequisite can need the feat for one value ("Weapon Focus (Dueling Sword)") or for the pick's own ("Weapon Specialization: a weapon for which you have already selected Weapon Focus"). "Weapon Focus" on its own is the feat in any value.
 _Avoid_: Feat with a subtype, feat variant
 
 **Parameter**:
-What one pick of a Parameterised feat is taken for: a skill (from `skills.ron`), a weapon (from `weapons.ron`, or only an exotic one for Exotic Weapon Proficiency), a school of magic, an energy type or an armour type. The Parameter is part of the Pick and of the link.
+What one pick of a Parameterised feat (or mythic ability) is taken for: a skill (from `skills.ron`), a weapon (from `weapons.ron`, or only an exotic one for Exotic Weapon Proficiency), a school of magic, an energy type, an armour type, a metamagic feat (Favorite Metamagic), a stat (Stat Focus) or an element (Ascendant Element). The Parameter is part of the Pick and of the link. The last three came after links had shipped (ticket 125), so a pick may leave one of them **open**: a link made before the item took its value still opens, holding the item, and `todo` (and a "(?)" on the sheet) asks for the value.
 _Avoid_: Subtype, argument, option (that's a Selection option)
 
 **Repeat**:
@@ -177,7 +177,7 @@ One place in a Build where something is picked: a Feat slot, a Feature selection
 _Avoid_: Choice point, cell
 
 **Pick**:
-What fills a slot: a feat, a selection option, a mythic ability or a mythic feat. A pick of a Parameterised feat or mythic feat, or of an option that takes a value, also names its Parameter (Weapon Focus (Longsword)).
+What fills a slot: a feat, a selection option, a mythic ability or a mythic feat. A pick of a Parameterised feat, mythic feat or mythic ability, or of an option that takes a value, also names its Parameter (Weapon Focus (Longsword); Favorite Metamagic (Persistent Spell)).
 _Avoid_: Choice (that is any decision in a Build), selection
 
 **Prerequisite**:

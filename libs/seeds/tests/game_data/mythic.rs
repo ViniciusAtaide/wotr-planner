@@ -321,13 +321,16 @@ fn extra_mythic_ability_gives_a_mythic_ability_slot_offering_what_a_ranks_does()
             .collect()
     };
     assert_eq!(picks(&mythic_extra(2)), picks(&SlotId::Mythic { rank: 1 }));
-    assert_eq!(picks(&mythic_extra(2)).len(), DATA.mythic_abilities.len());
+    // One per ability, a parameterised one once per value (Favorite Metamagic: each metamagic, ticket 125).
+    let offered = picks(&mythic_extra(2));
+    let abilities: BTreeSet<&str> = offered.iter().map(Pick::key).collect();
+    assert_eq!(abilities.len(), DATA.mythic_abilities.len());
 
     // A sorcerer's Second Bloodline there gives another bloodline at MR 2.
     let mut sorcerer = with_mythic_feat("sorcerer", 7, "extra-mythic-ability");
     sorcerer.picks.insert(
         mythic_extra(2),
-        Pick::MythicAbility(rules::MythicAbilityKey::new("second-bloodline")),
+        Pick::mythic_ability(rules::MythicAbilityKey::new("second-bloodline")),
     );
     let second = SlotId::MythicSelection { rank: 2, index: 0 };
     assert_eq!(
@@ -349,7 +352,7 @@ fn removing_extra_feat_or_extra_mythic_ability_is_refused_while_its_slot_holds_a
         ("extra-feat", feat_pick_plain("toughness")),
         (
             "extra-mythic-ability",
-            Pick::MythicAbility(rules::MythicAbilityKey::new("unstoppable")),
+            Pick::mythic_ability(rules::MythicAbilityKey::new("unstoppable")),
         ),
     ] {
         let mut build = with_mythic_feat("fighter", 7, mythic_feat);
@@ -531,7 +534,7 @@ fn witch_wandering_hex_gives_a_witch_hex_slot_offering_hexes_whose_prerequisites
     witch_14.mythic_path = Some(MythicPathKey::new("trickster"));
     witch_14.picks.insert(
         SlotId::Mythic { rank: 5 },
-        Pick::MythicAbility(rules::MythicAbilityKey::new(WITCH_WANDERING_HEX)),
+        Pick::mythic_ability(rules::MythicAbilityKey::new(WITCH_WANDERING_HEX)),
     );
     let rank_5 = SlotId::MythicSelection { rank: 5, index: 0 };
     let major = offered_in(&witch_14, &rank_5);

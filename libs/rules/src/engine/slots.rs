@@ -297,11 +297,12 @@ pub(crate) fn check_pick_with(
             }
             option.prerequisite.as_ref()
         }
-        (_, Pick::MythicAbility(key)) => {
+        (_, Pick::MythicAbility { ability: key, .. }) => {
             let ability = catalog.mythic_ability(key).ok_or(Issue::NotAllowed)?;
-            if kind != &SlotKind::MythicAbility {
+            if kind != &SlotKind::MythicAbility || !catalog.value_fits(ability.parameter, value) {
                 return Err(Issue::NotAllowed);
             }
+            // Held once, whatever its value.
             if state.mythic_abilities.contains(key) {
                 return Err(Issue::AlreadyHeld);
             }

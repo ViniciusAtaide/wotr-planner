@@ -10,12 +10,14 @@ use rules::{
 use crate::address::ability_token;
 use crate::shapes::ChoiceValue;
 
-/// A Parameter as a value names it: a skill's or weapon's key, or a school, energy or armour type in lower case.
+/// A Parameter as a value names it: a skill's, weapon's or metamagic feat's key, or a school, energy, armour type,
+/// stat or element in lower case with dashes (`attacks-of-opportunity`, `negative-energy`).
 pub(crate) fn parameter_text(value: &Parameter) -> String {
     match value {
         Parameter::Skill(key) => key.as_str().to_owned(),
         Parameter::Weapon(key) => key.as_str().to_owned(),
-        other => other.key().to_lowercase(),
+        Parameter::Metamagic(key) => key.as_str().to_owned(),
+        other => other.key().to_lowercase().replace(' ', "-"),
     }
 }
 

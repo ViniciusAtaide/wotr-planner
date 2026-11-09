@@ -27,10 +27,15 @@
 //!
 //! Ticket 96 gave every picker option its edit. The fingerprint hashes the options as they were before ([`Hashed`]:
 //! the same Debug text), so records from before it still compare.
+//!
+//! Ticket 125 gave a mythic ability pick a value: every Debug text hashed writes one with no value as before
+//! ([`as_before_ticket_125`]), so records from before it still compare. And `record --fold-values <key>,…` folds the
+//! options of those items in each slot into one with no value, open when any value is ([`fold_values`]): a side
+//! where they take a value lists one option per value where the other lists one.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::atomic::{AtomicUsize, Ordering};
-use std::sync::{Mutex, PoisonError};
+use std::sync::{Mutex, OnceLock, PoisonError};
 
 use rules::{
     ArchetypeKey, Build, Choice, ChoiceOption, ClassKey, Edit, Engine, Issue, MythicPathKey, Pick,
@@ -48,9 +53,90 @@ pub fn fnv(text: &str) -> u64 {
     hash
 }
 
-/// A value's Debug text, hashed.
+/// A value's Debug text, hashed (as before ticket 125: [`as_before_ticket_125`]).
 fn hashed(value: &impl std::fmt::Debug) -> String {
-    format!("{:016x}", fnv(&format!("{value:?}")))
+    format!("{:016x}", fnv(&as_before_ticket_125(&format!("{value:?}"))))
+}
+
+/// A Debug text with each mythic ability pick taking no value written as before ticket 125:
+/// `MythicAbility { ability: MythicAbilityKey("k"), parameter: None }` as `MythicAbility(MythicAbilityKey("k"))`.
+fn as_before_ticket_125(text: &str) -> String {
+    const NEW: &str = "MythicAbility { ability: ";
+    const NO_VALUE: &str = ", parameter: None }";
+    let mut out = String::with_capacity(text.len());
+    let mut rest = text;
+    while let Some(at) = rest.find(NEW) {
+        out.push_str(&rest[..at]);
+        let after = &rest[at + NEW.len()..];
+        // The key, `MythicAbilityKey("…")`: a key holds no bracket.
+        match after.find(')').map(|end| end + 1) {
+            Some(end) if after[end..].starts_with(NO_VALUE) => {
+                out.push_str("MythicAbility(");
+                out.push_str(&after[..end]);
+                out.push(')');
+                rest = &after[end + NO_VALUE.len()..];
+            }
+            _ => {
+                out.push_str(NEW);
+                rest = after;
+            }
+        }
+    }
+    out.push_str(rest);
+    out
+}
+
+/// The keys whose options a slot's picker folds into one (`record --fold-values`).
+static FOLDED: OnceLock<BTreeSet<String>> = OnceLock::new();
+
+/// Folds, in every slot's options, the options of these keys into one each (see the module docs). Set once, before
+/// recording.
+pub fn fold_values(keys: BTreeSet<String>) {
+    FOLDED
+        .set(keys)
+        .expect("the folded keys are set once, before recording");
+}
+
+/// A slot's options with the options of each folded key as one: the first, with no value, open when any of them is.
+fn folded(options: Vec<SlotOption>) -> Vec<SlotOption> {
+    let Some(keys) = FOLDED.get().filter(|keys| !keys.is_empty()) else {
+        return options;
+    };
+    let mut out: Vec<SlotOption> = Vec::with_capacity(options.len());
+    for option in options {
+        if !keys.contains(option.pick.key()) {
+            out.push(option);
+            continue;
+        }
+        let pick = without_value(&option.pick);
+        match out.last_mut() {
+            Some(last) if last.pick == pick => {
+                if option.status.is_ok() {
+                    last.status = Ok(());
+                }
+            }
+            _ => {
+                let mut option = option;
+                option.pick = pick;
+                out.push(option);
+            }
+        }
+    }
+    out
+}
+
+/// A pick without its value, through serde so the harness compiles against every pick shape.
+fn without_value(pick: &Pick) -> Pick {
+    let mut value = serde_json::to_value(pick).expect("a pick serialises");
+    if let Some(fields) = value
+        .as_object_mut()
+        .and_then(|variant| variant.values_mut().next())
+        .and_then(Value::as_object_mut)
+        .filter(|fields| fields.contains_key("parameter"))
+    {
+        fields.insert("parameter".to_owned(), Value::Null);
+    }
+    serde_json::from_value(value).expect("a pick deserialises")
 }
 
 /// The picker options as the fingerprint hashes them: what they were before ticket 96 gave each its edit, with the
@@ -159,7 +245,7 @@ pub fn fingerprint(engine: &Engine, name: &str, build: &Build) -> Value {
         .flat_map(|level| &level.slots)
         .chain(sheet.ranks.iter().flat_map(|rank| &rank.slots))
     {
-        let options = engine.options(build, &slot.id);
+        let options = engine.options(build, &slot.id).map(folded);
         let open = options
             .iter()
             .flatten()
@@ -259,7 +345,8 @@ pub fn fingerprint(engine: &Engine, name: &str, build: &Build) -> Value {
 /// The sheet's Debug text, hashed, without a state's empty faith (ticket 86's `faith: None, deity_domains: {}`): a
 /// Build without one walks to the same sheet as on a side before deities, whose states have no such fields.
 fn sheet_hash(sheet: &rules::Sheet) -> String {
-    let text = format!("{sheet:?}").replace("faith: None, deity_domains: {}, ", "");
+    let text =
+        as_before_ticket_125(&format!("{sheet:?}")).replace("faith: None, deity_domains: {}, ", "");
     format!("{:016x}", fnv(&text))
 }
 

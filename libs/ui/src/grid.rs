@@ -155,12 +155,23 @@ fn level_row(engine: &Engine, build: &Build, level: &LevelSheet) -> impl IntoVie
     }
 }
 
-/// A slot's chip: what it takes, and its pick or "+". `lost` marks a pick a Path switch took away.
+/// A slot's chip: what it takes, and its pick or "+". `lost` marks a pick a Path switch took away. A pick whose value
+/// is still open (Favorite Metamagic from an older link) shows "(?)", and the title says what to choose.
 pub fn slot_chip(engine: &Engine, slot: &Slot, lost: bool) -> impl IntoView + use<> {
     let planner = use_planner();
     let label = engine.slot_label(slot);
-    let title = label.clone();
-    let value = slot.pick.as_ref().map(|pick| engine.pick_name(pick));
+    let left_open = slot
+        .pick
+        .as_ref()
+        .and_then(|pick| engine.value_left_open(pick));
+    let title = match left_open {
+        Some(kind) => format!("{label}: choose {}", kind.with_article()),
+        None => label.clone(),
+    };
+    let value = slot.pick.as_ref().map(|pick| match left_open {
+        Some(_) => format!("{} (?)", engine.pick_name(pick)),
+        None => engine.pick_name(pick),
+    });
     let feat_category = slot
         .pick
         .as_ref()

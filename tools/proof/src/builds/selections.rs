@@ -2,8 +2,7 @@
 
 use rules::Alignment::{self, *};
 use rules::{
-    Build, BuildStart, ClassChoice, ClassKey, Engine, GameData, MythicAbilityKey, Pick, RaceKey,
-    SlotId, SubraceKey,
+    Build, BuildStart, ClassChoice, ClassKey, Engine, GameData, Pick, RaceKey, SlotId, SubraceKey,
 };
 
 use super::{atheist, character, human, levels, option, selection, with};
@@ -57,7 +56,7 @@ fn options_of(data: &GameData, class: &str, selection: &str) -> Vec<String> {
 }
 
 fn mythic_ability(key: &str) -> Pick {
-    Pick::MythicAbility(MythicAbilityKey::new(key))
+    crate::generate::mythic_ability_pick(key)
 }
 
 /// Half-elf subraces, a ranger/slayer's combat styles, a Living Deity and a Hellknight with Impossible Domain, a

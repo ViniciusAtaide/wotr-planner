@@ -41,7 +41,7 @@ fn a_crossblooded_sorcerer_cant_take_red_after_blue() {
     );
     second.picks.insert(
         SlotId::Mythic { rank: 1 },
-        Pick::MythicAbility(rules::MythicAbilityKey::new("second-bloodline")),
+        Pick::mythic_ability(rules::MythicAbilityKey::new("second-bloodline")),
     );
     let slot = SlotId::MythicSelection { rank: 1, index: 0 };
     let options: HashMap<String, Result<(), Issue>> = engine()
@@ -183,7 +183,7 @@ fn living_deity(levels: usize) -> Build {
 fn with_mythic_selection(mut build: Build, ability: &str, option: &str) -> Build {
     build.picks.insert(
         SlotId::Mythic { rank: 1 },
-        Pick::MythicAbility(rules::MythicAbilityKey::new(ability)),
+        Pick::mythic_ability(rules::MythicAbilityKey::new(ability)),
     );
     build
         .picks
@@ -505,7 +505,7 @@ fn a_hellknight_3_with_pentamic_faiths_domain_can_take_impossible_domain() {
     let mut build = build;
     build.picks.insert(
         mythic,
-        Pick::MythicAbility(rules::MythicAbilityKey::new("impossible-domain")),
+        Pick::mythic_ability(rules::MythicAbilityKey::new("impossible-domain")),
     );
     build.picks.insert(
         SlotId::MythicSelection { rank: 3, index: 0 },
@@ -661,7 +661,7 @@ fn a_bloodrager_with_a_dragon_bloodline_cant_take_a_second_dragon_through_second
         );
         build.picks.insert(
             SlotId::Mythic { rank: 1 },
-            Pick::MythicAbility(rules::MythicAbilityKey::new("second-bloodrager-bloodline")),
+            Pick::mythic_ability(rules::MythicAbilityKey::new("second-bloodrager-bloodline")),
         );
         let options: HashMap<String, Result<(), Issue>> = engine()
             .options(&build, &SlotId::MythicSelection { rank: 1, index: 0 })

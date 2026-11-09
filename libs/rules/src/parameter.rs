@@ -2,11 +2,12 @@
 //!
 //! A parameterised feat names the kind of thing it's taken for (Weapon Focus: a weapon), and each pick of it
 //! carries the value (Weapon Focus (Longsword)). Prerequisites can need a feat for a specific value or for the
-//! value of the pick being checked (Weapon Specialization: Weapon Focus in the same weapon).
+//! value of the pick being checked (Weapon Specialization: Weapon Focus in the same weapon). A mythic ability can
+//! take a value too (Favorite Metamagic: a metamagic feat).
 
 use serde::{Deserialize, Serialize};
 
-use crate::keys::{SkillKey, WeaponKey};
+use crate::keys::{FeatKey, SkillKey, WeaponKey};
 
 /// The kind of value a parameterised feat is taken for.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
@@ -23,6 +24,23 @@ pub enum ParameterKind {
     Energy,
     /// Light, medium or heavy armour (Armor Focus).
     ArmourType,
+    /// A metamagic feat: a feat whose key starts `metamagic-` ([`Feat::is_metamagic`](crate::Feat::is_metamagic);
+    /// Favorite Metamagic).
+    Metamagic,
+    /// A stat Stat Focus lists ([`Stat`]).
+    Stat,
+    /// An element Ascendant Element lists ([`Element`]).
+    Element,
+}
+
+impl ParameterKind {
+    /// Whether a pick may name no value of this kind yet, held without one and left open for the player (the MCP
+    /// server's `todo` lists it). These kinds came after links had shipped (ticket 125), on items links already
+    /// held without a value (Favorite Metamagic, Stat Focus, Ascendant Element): such a link still opens. A pick of
+    /// any other kind names its value.
+    pub fn may_stay_open(self) -> bool {
+        matches!(self, Self::Metamagic | Self::Stat | Self::Element)
+    }
 }
 
 /// What one pick of a parameterised feat is taken for (Weapon Focus (Longsword): `Weapon("longsword")`).
@@ -34,6 +52,10 @@ pub enum Parameter {
     SpellSchool(SpellSchool),
     Energy(Energy),
     ArmourType(ArmourType),
+    /// A metamagic feat, for a `Metamagic` pick (Favorite Metamagic (Persistent Spell)).
+    Metamagic(FeatKey),
+    Stat(Stat),
+    Element(Element),
 }
 
 impl Parameter {
@@ -45,6 +67,9 @@ impl Parameter {
             Parameter::SpellSchool(school) => school.name(),
             Parameter::Energy(energy) => energy.name(),
             Parameter::ArmourType(armour) => armour.name(),
+            Parameter::Metamagic(key) => key.as_str(),
+            Parameter::Stat(stat) => stat.name(),
+            Parameter::Element(element) => element.name(),
         }
     }
 }
@@ -126,6 +151,91 @@ impl ArmourType {
             Self::Light => "Light",
             Self::Medium => "Medium",
             Self::Heavy => "Heavy",
+        }
+    }
+}
+
+/// The stats Stat Focus lists, in the guide's order: "AC, Attack, Attacks of Opportunity, CMB, CMD, Damage, HP,
+/// Initiative, Fortitude, Reflex, Will or Speed".
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+pub enum Stat {
+    ArmourClass,
+    Attack,
+    AttacksOfOpportunity,
+    CombatManeuverBonus,
+    CombatManeuverDefense,
+    Damage,
+    HitPoints,
+    Initiative,
+    Fortitude,
+    Reflex,
+    Will,
+    Speed,
+}
+
+impl Stat {
+    pub const ALL: [Self; 12] = [
+        Self::ArmourClass,
+        Self::Attack,
+        Self::AttacksOfOpportunity,
+        Self::CombatManeuverBonus,
+        Self::CombatManeuverDefense,
+        Self::Damage,
+        Self::HitPoints,
+        Self::Initiative,
+        Self::Fortitude,
+        Self::Reflex,
+        Self::Will,
+        Self::Speed,
+    ];
+
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::ArmourClass => "AC",
+            Self::Attack => "Attack",
+            Self::AttacksOfOpportunity => "Attacks of Opportunity",
+            Self::CombatManeuverBonus => "CMB",
+            Self::CombatManeuverDefense => "CMD",
+            Self::Damage => "Damage",
+            Self::HitPoints => "HP",
+            Self::Initiative => "Initiative",
+            Self::Fortitude => "Fortitude",
+            Self::Reflex => "Reflex",
+            Self::Will => "Will",
+            Self::Speed => "Speed",
+        }
+    }
+}
+
+/// The elements Ascendant Element lists: "acid, cold, electricity, fire, sonic or negative energy".
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+pub enum Element {
+    Acid,
+    Cold,
+    Electricity,
+    Fire,
+    Sonic,
+    NegativeEnergy,
+}
+
+impl Element {
+    pub const ALL: [Self; 6] = [
+        Self::Acid,
+        Self::Cold,
+        Self::Electricity,
+        Self::Fire,
+        Self::Sonic,
+        Self::NegativeEnergy,
+    ];
+
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::Acid => "Acid",
+            Self::Cold => "Cold",
+            Self::Electricity => "Electricity",
+            Self::Fire => "Fire",
+            Self::Sonic => "Sonic",
+            Self::NegativeEnergy => "Negative energy",
         }
     }
 }

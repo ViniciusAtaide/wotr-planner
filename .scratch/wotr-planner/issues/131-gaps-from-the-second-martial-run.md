@@ -66,3 +66,7 @@ Options:
 ## Done when
 
 The user has answered 2 and 5 (3 is answered and built). A is built for 1, so the Trickster Build's line reads 13–20/×3, with a real-data test. 4's cap is stated. `scripts/check.sh` passes.
+
+## Progress log
+
+- 2026-11-09: item 6's second bullet built in [125](125-favorite-metamagic-picks-its-metamagic.md): Stat Focus takes a stat, one of the twelve the guide lists, once per stat; a link made before it holds one still opens, with the stat open in `todo`.
