@@ -49,4 +49,5 @@ mod spells;
 mod stale_links;
 mod start_pickers;
 mod switch_rules;
+mod totals;
 mod withdrawals;

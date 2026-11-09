@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO item_interactions (race_key, subrace_key, background_key, feat_key, mythic_feat_key,\n                mythic_ability_key, feature_key, selection_option_key, interactions)\n            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 9
+    },
+    "nullable": []
+  },
+  "hash": "0129d852b14e2c75a34effbb5fe5c6168d6a279f348398556a0a991580a922d3"
+}

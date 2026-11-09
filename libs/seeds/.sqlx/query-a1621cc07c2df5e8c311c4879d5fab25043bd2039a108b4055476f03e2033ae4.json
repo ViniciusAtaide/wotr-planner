@@ -1,0 +1,122 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT race_key, subrace_key, background_key, feat_key, mythic_feat_key, mythic_ability_key, feature_key,\n            selection_option_key, interactions\n        FROM item_interactions ORDER BY id",
+  "describe": {
+    "columns": [
+      {
+        "name": "race_key",
+        "ordinal": 0,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "item_interactions",
+            "name": "race_key"
+          }
+        }
+      },
+      {
+        "name": "subrace_key",
+        "ordinal": 1,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "item_interactions",
+            "name": "subrace_key"
+          }
+        }
+      },
+      {
+        "name": "background_key",
+        "ordinal": 2,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "item_interactions",
+            "name": "background_key"
+          }
+        }
+      },
+      {
+        "name": "feat_key",
+        "ordinal": 3,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "item_interactions",
+            "name": "feat_key"
+          }
+        }
+      },
+      {
+        "name": "mythic_feat_key",
+        "ordinal": 4,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "item_interactions",
+            "name": "mythic_feat_key"
+          }
+        }
+      },
+      {
+        "name": "mythic_ability_key",
+        "ordinal": 5,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "item_interactions",
+            "name": "mythic_ability_key"
+          }
+        }
+      },
+      {
+        "name": "feature_key",
+        "ordinal": 6,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "item_interactions",
+            "name": "feature_key"
+          }
+        }
+      },
+      {
+        "name": "selection_option_key",
+        "ordinal": 7,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "item_interactions",
+            "name": "selection_option_key"
+          }
+        }
+      },
+      {
+        "name": "interactions",
+        "ordinal": 8,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "item_interactions",
+            "name": "interactions"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      false
+    ]
+  },
+  "hash": "a1621cc07c2df5e8c311c4879d5fab25043bd2039a108b4055476f03e2033ae4"
+}

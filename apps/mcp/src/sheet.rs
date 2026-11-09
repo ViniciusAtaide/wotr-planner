@@ -19,6 +19,7 @@ use crate::shapes::{
     LevelLine, Named, PickLine, RankLine, RankState, Scores, SheetResult, SkillPointsLine,
     SpellLevels,
 };
+use crate::totals;
 use crate::values::{
     ability_value, alignment_key, class_name, class_value, faith_key, pick_value, race_value,
 };
@@ -83,6 +84,8 @@ pub(crate) fn sheet_of(
             .iter()
             .map(|skill| named(skill, engine.skill_name(skill)))
             .collect(),
+        totals: totals::totals(engine, &build.start, last),
+        totals_leave_out: totals::leaves_out(),
         notes: notes(engine, build, last),
         removable: removable.map(|choices| {
             choices

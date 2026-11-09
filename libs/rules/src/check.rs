@@ -301,6 +301,14 @@ pub enum DataIssue {
     /// Arsenal's amount) on an item that isn't a feat or mythic feat taken for a school (or, for a scope alone, an
     /// energy type); or Expanded Arsenal's amount without that scope or on another target.
     BonusValueWithoutParameter,
+    /// A bonus for what its item is held for ([`BonusTarget::Held`](crate::BonusTarget::Held)) on an item that isn't
+    /// a feat or mythic feat taken for a skill or a stat.
+    HeldBonusWithoutSkillOrStat,
+    /// A bonus that rises with 10 ranks ([`BonusAmount::TenRanks`](crate::BonusAmount::TenRanks)) on a target that
+    /// isn't a skill.
+    TenRanksWithoutSkill,
+    /// A second `interactions.ron` note on the same item.
+    InteractionsTwice,
 }
 
 impl fmt::Display for DataProblem {
@@ -485,6 +493,13 @@ impl fmt::Display for DataProblem {
             DataIssue::BonusValueWithoutParameter => f.write_str(
                 "a bonus for the value its item is held for needs a feat or mythic feat taken for a school or an energy type",
             ),
+            DataIssue::HeldBonusWithoutSkillOrStat => f.write_str(
+                "a bonus for what its item is held for needs a feat or mythic feat taken for a skill or a stat",
+            ),
+            DataIssue::TenRanksWithoutSkill => {
+                f.write_str("a bonus that rises with 10 ranks needs a skill target")
+            }
+            DataIssue::InteractionsTwice => f.write_str("it has two interactions notes"),
             DataIssue::SharesOwnOption(option) => {
                 write!(
                     f,
@@ -620,6 +635,7 @@ impl GameData {
             }
         }
         check.bonuses(self);
+        check.interactions(self);
         check.deity_limits(self);
         check.favoured_weapon_features(self);
         check.counts_toward_features(self);
@@ -1318,22 +1334,17 @@ impl Checker {
             .map(|feat| (&feat.key, feat.parameter))
             .collect();
         for bonus in &data.bonuses {
-            let (at, parameter) = match &bonus.item {
-                BonusItem::Race(key) => (DataAt::Race(key.clone()), None),
-                BonusItem::Subrace(key) => (DataAt::Subrace(key.clone()), None),
-                BonusItem::Feat(key) => (
-                    DataAt::Feat(key.clone()),
-                    self.parameters.get(key).copied().flatten(),
-                ),
-                BonusItem::MythicFeat(key) => (
-                    DataAt::MythicFeat(key.clone()),
-                    mythic.get(key).copied().flatten(),
-                ),
-                BonusItem::Feature(key) => (DataAt::Feature(key.clone()), None),
-                BonusItem::SelectionOption(key) => (DataAt::SelectionOption(key.clone()), None),
+            let at = item_at(&bonus.item);
+            let parameter = match &bonus.item {
+                BonusItem::Feat(key) => self.parameters.get(key).copied().flatten(),
+                BonusItem::MythicFeat(key) => mythic.get(key).copied().flatten(),
+                _ => None,
             };
             self.names(&at, at.clone());
             self.prerequisite(&at, bonus.requires.as_ref(), None);
+            if let BonusTarget::Skill(skill) = &bonus.target {
+                self.names(&at, DataAt::Skill(skill.clone()));
+            }
             let copies = bonus.amount == BonusAmount::SpellFocusOfAnotherSchool;
             let by_value = bonus.target == BonusTarget::SpellDc(SpellScope::Value);
             let fits = match parameter {
@@ -1343,6 +1354,30 @@ impl Checker {
             };
             if (by_value || copies) && !(fits && by_value) {
                 self.problem(&at, DataIssue::BonusValueWithoutParameter);
+            }
+            let held = bonus.target == BonusTarget::Held;
+            if held && !matches!(parameter, Some(ParameterKind::Skill | ParameterKind::Stat)) {
+                self.problem(&at, DataIssue::HeldBonusWithoutSkillOrStat);
+            }
+            let on_skill = match bonus.target {
+                BonusTarget::Skill(_) | BonusTarget::AllSkills => true,
+                BonusTarget::Held => parameter == Some(ParameterKind::Skill),
+                _ => false,
+            };
+            if matches!(bonus.amount, BonusAmount::TenRanks { .. }) && !on_skill {
+                self.problem(&at, DataIssue::TenRanksWithoutSkill);
+            }
+        }
+    }
+
+    /// Each interactions note's item exists, and no item has two.
+    fn interactions(&mut self, data: &GameData) {
+        let mut seen = HashSet::new();
+        for note in &data.interactions {
+            let at = item_at(&note.item);
+            self.names(&at, at.clone());
+            if !seen.insert(&note.item) {
+                self.problem(&at, DataIssue::InteractionsTwice);
             }
         }
     }
@@ -1642,4 +1677,18 @@ fn sorted<T: Ord>(items: &[T]) -> Vec<&T> {
     let mut items: Vec<&T> = items.iter().collect();
     items.sort();
     items
+}
+
+/// Where an item a bonus or an interactions note names is in the data.
+fn item_at(item: &BonusItem) -> DataAt {
+    match item {
+        BonusItem::Race(key) => DataAt::Race(key.clone()),
+        BonusItem::Subrace(key) => DataAt::Subrace(key.clone()),
+        BonusItem::Background(key) => DataAt::Background(key.clone()),
+        BonusItem::Feat(key) => DataAt::Feat(key.clone()),
+        BonusItem::MythicFeat(key) => DataAt::MythicFeat(key.clone()),
+        BonusItem::MythicAbility(key) => DataAt::MythicAbility(key.clone()),
+        BonusItem::Feature(key) => DataAt::Feature(key.clone()),
+        BonusItem::SelectionOption(key) => DataAt::SelectionOption(key.clone()),
+    }
 }

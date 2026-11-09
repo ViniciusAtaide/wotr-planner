@@ -93,12 +93,20 @@ A spell's numbers at a point of a Build, computed by the rules for a spell descr
 _Avoid_: DC calculator, spell DC estimate
 
 **Item bonus**:
-A flat bonus an item (a race or subrace, a feat, a mythic feat, a feature, a selection option) gives while the character holds it, kept in the game data (`bonuses.ron`): its target (a spell DC of a scope, caster level against spell resistance, concentration), its amount (a number, half or all the Mythic rank, or Expanded Arsenal's copy of another school's Spell Focus feats) and what else it may require. The **Caster line** sums the ones held.
+A flat bonus an item (a race or subrace, a background, a feat, a mythic feat, a mythic ability, a feature, a selection option) gives while the character holds it, kept in the game data (`bonuses.ron`): its target (a spell DC of a scope, caster level against spell resistance, concentration, initiative, a save or every save, a skill or every skill, or the skill or stat the item is held for), its amount (a number, a number that rises with 10 ranks in the skill, half or all the Mythic rank, an ability's modifier, or Expanded Arsenal's copy of another school's Spell Focus feats) and what else it may require. The **Caster line** and the **Totals** sum the ones held.
 _Avoid_: Modifier, effect
 
 **Ranking number**:
 One number of an **Attack line** (the first attack's bonus, or the bonus each hit adds to the dice) or a **Caster line** (the DC of the highest spell level castable, caster level against spell resistance, or concentration), read at a Build's last level. The MCP server orders Builds (`compare`'s `by`) and a choice's open options (`improve`) by it: an order by a number the rules compute is a fact, and it counts nothing its line leaves out. An option that leaves it as it is is a **no change**, whatever else it does.
 _Avoid_: Score, rating, best
+
+**Totals**:
+Initiative, each save and each skill's total at a point of a Build, computed by the rules, each broken down by source: initiative is Dexterity's modifier plus the **Item bonuses** for it; a save its class progressions' base save, its ability's modifier and the bonuses for it; a skill its ranks, its ability's modifier, +3 when it's a class skill with a rank, and the bonuses for it. Unconditional numbers only: they leave out gear, buffs, bonuses against one kind of effect or for one use of a skill, and bonuses that grow with class level.
+_Avoid_: Skill modifier, save bonus
+
+**Interactions note**:
+What the guide says about how an item combines with another, in the planner's own words, kept in the game data (`interactions.ron`) for the few items an agent run needed it for, saying "the guide doesn't say" where it doesn't. `describe` shows it.
+_Avoid_: Stacking rule
 
 ### Classes
 

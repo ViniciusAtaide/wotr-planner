@@ -111,6 +111,12 @@ the items held. It leaves out gear, buffs, abilities switched on in a fight (the
 with class level and what changes the target's roll instead of the DC (`caster_leaves_out` lists all it leaves \
 out): label anything you add for them as your own game knowledge. Which spells have a school or subschool is in \
 the spell catalogue.
+- The totals (`sheet`'s `totals`) are fact too: initiative, each save and each skill's total, with what each \
+counts, from the character's own scores, the class progressions, the skill ranks and class skills and the flat \
+bonuses of the items held (Improved Initiative, Iron Will, Skill Focus, racial and background bonuses). They \
+leave out gear, buffs, bonuses against one kind of effect or for one use of a skill (Persuasion to intimidate) and \
+bonuses that grow with class level (`totals_leave_out` lists all they leave out): label anything you add for \
+them as your own game knowledge.
 - The spell catalogue (`search` and `describe` with `kind: spell` or `kind: spell_list`) is fact too: each \
 spell's school, descriptors (its subschool among them), target, duration, saving throw, spell resistance, casting \
 time and material component as the guide prints them, and every spell list it is on with its level there, the \
@@ -119,6 +125,9 @@ It is reference data: no Build choice names a spell.
 - Most items carry a `summary`, spells too: what the guide says the item does, in one sentence in the planner's own \
 words, checked against the guide. Cite it as the planner's summary of the guide, not as a rule the planner enforces: the \
 engine checks prerequisites, not effects.
+- A few items carry `interactions` in `describe`: what the guide says about how the item combines with others \
+(or that it doesn't say), in the planner's own words. Cite it as the planner's note on the guide; where it says \
+the guide doesn't say, any answer is your own game knowledge.
 - Label everything else as your own game knowledge: what an item or a spell does beyond its summary and facts, how \
 items and spells interact, spells known or prepared, spells per day, bonus spells the catalogue lacks (a shaman \
 spirit's, an oracle mystery's, the Beast Tamer's), merging a Mythic spellbook into a class's, what a duration or a \
@@ -263,7 +272,9 @@ impl Server {
         description = "A Build's sheet, from the planner's rules engine: the Build start's choices; per character \
             level its class and class level, BAB, saves, ability scores, skill points and ranks, the feats and \
             features it adds, and its choices; per Mythic rank its status, path, choices and path features; the \
-            caster level (class levels only) and spell-level access at the last level, class skills and notes. \
+            caster level (class levels only) and spell-level access at the last level, class skills and notes; \
+            `totals` at the last level: initiative, each save and each skill's total, each with what it counts \
+            (ability modifiers, base saves, ranks, the class skill bonus, the flat bonuses of the items held). \
             Every choice has its address (`start.race`, `level.4.class`, `slot.feat.3.general.0`, …) for `options`, \
             its value and its name. `removable: true` also marks which held choices can be withdrawn now. \
             `weapon` (a weapon key) adds each level's attack line for that base weapon. `caster` ({school, \

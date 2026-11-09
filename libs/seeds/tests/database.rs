@@ -1703,8 +1703,9 @@ async fn every_background_group_round_trips() {
     assert_eq!(test.load().await.unwrap(), game_data);
 }
 
-/// Ticket 119: a bonus names exactly one item that exists, a spell DC bonus has a scope and its value column, a flat
-/// amount has its number, and a casting ability is an ability.
+/// Tickets 119, 120 and 124: a bonus names exactly one item that exists, a spell DC bonus has a scope and its value
+/// column, a save or skill bonus its save or skill, an amount its columns, a casting ability is an ability, and an
+/// interactions note names one item once.
 #[tokio::test]
 async fn the_schema_keeps_item_bonuses_and_casting_abilities_consistent() {
     let test = TestDatabase::new();
@@ -1749,6 +1750,53 @@ async fn the_schema_keeps_item_bonuses_and_casting_abilities_consistent() {
         ),
         (
             "UPDATE class SET casting_ability = 'luck' WHERE key = 'sorcerer'",
+            "check constraint",
+        ),
+        // Ticket 120: a save target has its save, a skill target its skill, ten ranks both numbers, an ability
+        // modifier its ability.
+        (
+            "UPDATE item_bonus SET save = NULL WHERE target = 'save'",
+            "check constraint",
+        ),
+        (
+            "UPDATE item_bonus SET save = 'will' WHERE target = 'initiative'",
+            "check constraint",
+        ),
+        (
+            "UPDATE item_bonus SET skill_key = 'cooking' WHERE target = 'skill'",
+            "foreign key",
+        ),
+        (
+            "UPDATE item_bonus SET skill_key = NULL WHERE target = 'skill'",
+            "check constraint",
+        ),
+        (
+            "UPDATE item_bonus SET amount_with_ten_ranks = NULL WHERE amount_kind = 'ten_ranks'",
+            "check constraint",
+        ),
+        (
+            "UPDATE item_bonus SET ability = NULL WHERE amount_kind = 'ability_modifier'",
+            "check constraint",
+        ),
+        (
+            "UPDATE item_bonus SET background_key = 'no-such-background' WHERE background_key IS NOT NULL",
+            "foreign key",
+        ),
+        // Ticket 124: an interactions note names exactly one item that exists, once.
+        (
+            "UPDATE item_interactions SET feat_key = 'skill-focus' WHERE mythic_ability_key = 'second-bloodline'",
+            "check constraint",
+        ),
+        (
+            "UPDATE item_interactions SET mythic_ability_key = 'no-such-ability' WHERE mythic_ability_key IS NOT NULL",
+            "foreign key",
+        ),
+        (
+            "INSERT INTO item_interactions (feat_key, interactions) VALUES ('skill-focus', 'Again.')",
+            "unique constraint",
+        ),
+        (
+            "UPDATE item_interactions SET interactions = '' WHERE feat_key = 'skill-focus'",
             "check constraint",
         ),
     ] {

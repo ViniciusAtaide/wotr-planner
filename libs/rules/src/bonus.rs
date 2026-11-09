@@ -1,17 +1,25 @@
-//! Flat bonuses that items give while a character holds them (ticket 119): the save DC of spells, caster level
-//! against spell resistance and concentration. `bonuses.ron` lists them, one [`ItemBonus`] per bonus, each naming
-//! the item that gives it; the engine sums the ones a character holds ([`Engine::caster_line`]).
+//! Flat bonuses that items give while a character holds them: the save DC of spells, caster level against spell
+//! resistance and concentration (ticket 119), initiative, the saves and the skills (ticket 120). `bonuses.ron` lists
+//! them, one [`ItemBonus`] per bonus, each naming the item that gives it; the engine sums the ones a character holds
+//! ([`Engine::caster_line`], [`Engine::totals`]).
 //!
-//! The shape is meant to grow: a new kind of number is a new [`BonusTarget`] (ticket 120: initiative, a skill, a
-//! save), a new kind of giver a new [`BonusItem`] (a background, a mythic ability), and the amount, the condition
-//! and the item stay as they are.
+//! The shape is meant to grow: a new kind of number is a new [`BonusTarget`], a new kind of giver a new
+//! [`BonusItem`], and the amount, the condition and the item stay as they are.
+//!
+//! `interactions.ron` (ticket 124) names items the same way: [`ItemInteractions`], what the guide says (or doesn't)
+//! about how an item combines with another.
 //!
 //! [`Engine::caster_line`]: crate::Engine::caster_line
+//! [`Engine::totals`]: crate::Engine::totals
 
 use serde::{Deserialize, Serialize};
 
-use crate::keys::{FeatKey, FeatureKey, MythicFeatKey, RaceKey, SelectionOptionKey, SubraceKey};
-use crate::parameter::{Energy, Parameter, SpellSchool};
+use crate::game_data::{Ability, Save};
+use crate::keys::{
+    BackgroundKey, FeatKey, FeatureKey, MythicAbilityKey, MythicFeatKey, RaceKey,
+    SelectionOptionKey, SkillKey, SubraceKey,
+};
+use crate::parameter::{Energy, Parameter, SpellSchool, Stat};
 use crate::prerequisite::Prerequisite;
 
 /// One flat bonus an item gives while it's held: to what, how much, and on what else it depends.
@@ -29,17 +37,20 @@ pub struct ItemBonus {
     pub requires: Option<Prerequisite>,
 }
 
-/// The item that gives a bonus. A race's bonus counts for a character of that race without a subrace, a subrace's
-/// for one of that subrace: the guide lists a subrace's racial traits in full, so they replace the race's, as its
-/// ability modifiers do.
+/// The item that gives a bonus (or that an [`ItemInteractions`] note is on). A race's bonus counts for a character of
+/// that race without a subrace, a subrace's for one of that subrace: the guide lists a subrace's racial traits in
+/// full, so they replace the race's, as its ability modifiers do.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub enum BonusItem {
     Race(RaceKey),
     Subrace(SubraceKey),
+    /// The Build start's background (the user's list: the Pickpocket's +2 initiative).
+    Background(BackgroundKey),
     /// A feat, held however (picked or granted). A parameterised one's bonus counts for each value it's held for.
     Feat(FeatKey),
     /// A mythic feat; a parameterised one's counts for each value, as a feat's.
     MythicFeat(MythicFeatKey),
+    MythicAbility(MythicAbilityKey),
     /// A class, archetype or path feature, held however it's granted (a bloodline's arcana through Second
     /// Bloodline or Crossblooded too).
     Feature(FeatureKey),
@@ -56,6 +67,57 @@ pub enum BonusTarget {
     SpellPenetration,
     /// Concentration checks.
     Concentration,
+    /// Initiative.
+    Initiative,
+    /// One saving throw.
+    Save(Save),
+    /// Every saving throw (Halfling Luck, Mythic Resolve).
+    AllSaves,
+    /// One skill's checks.
+    Skill(SkillKey),
+    /// Every skill's checks (Creative Approach).
+    AllSkills,
+    /// What the item is held for: the skill of Skill Focus (Persuasion), or the stat of Stat Focus (Initiative) when
+    /// it's initiative or a save (Stat Focus's other stats are no number the planner sums). Only on a feat or mythic
+    /// feat taken for a skill or a stat.
+    Held,
+}
+
+impl BonusTarget {
+    /// Whether a bonus of this target from an item held for `value` adds to a skill's checks. A target of `Held`
+    /// needs the skill as the value.
+    pub fn adds_to_skill(&self, skill: &SkillKey, value: Option<&Parameter>) -> bool {
+        match self {
+            Self::Skill(own) => own == skill,
+            Self::AllSkills => true,
+            Self::Held => value == Some(&Parameter::Skill(skill.clone())),
+            _ => false,
+        }
+    }
+
+    /// Whether a bonus of this target from an item held for `value` adds to a save.
+    pub fn adds_to_save(&self, save: Save, value: Option<&Parameter>) -> bool {
+        let stat = match save {
+            Save::Fortitude => Stat::Fortitude,
+            Save::Reflex => Stat::Reflex,
+            Save::Will => Stat::Will,
+        };
+        match self {
+            Self::Save(own) => *own == save,
+            Self::AllSaves => true,
+            Self::Held => value == Some(&Parameter::Stat(stat)),
+            _ => false,
+        }
+    }
+
+    /// Whether a bonus of this target from an item held for `value` adds to initiative.
+    pub fn adds_to_initiative(&self, value: Option<&Parameter>) -> bool {
+        match self {
+            Self::Initiative => true,
+            Self::Held => value == Some(&Parameter::Stat(Stat::Initiative)),
+            _ => false,
+        }
+    }
 }
 
 /// Which spells a spell DC bonus applies to.
@@ -107,6 +169,21 @@ pub enum BonusAmount {
     /// the most; nothing when it has Spell Focus feats of its own (the guide: "this has no effect"). Only with
     /// [`SpellScope::Value`].
     SpellFocusOfAnotherSchool,
+    /// A skill bonus that rises with 10 or more ranks in the skill (Skill Focus: +3, +6 with 10 ranks; Persuasive:
+    /// +2, +4). Only on a skill target: [`BonusTarget::Skill`], [`BonusTarget::AllSkills`] or a skill
+    /// [`BonusTarget::Held`].
+    TenRanks { amount: i8, with_ten_ranks: i8 },
+    /// An ability's modifier, from the character's own score (Divine Grace: Charisma to every save).
+    AbilityModifier(Ability),
+}
+
+/// What the guide says about how an item combines with another, in the planner's own words (ticket 124): only for
+/// items an agent run showed two summaries weren't enough for, and "the guide doesn't say" where it doesn't.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ItemInteractions {
+    pub item: BonusItem,
+    pub interactions: String,
 }
 
 /// What a spell is, as far as the DC bonuses look: a school, and optionally a subschool, an energy type and whether

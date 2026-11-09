@@ -4,6 +4,7 @@
 //!
 //! - `progression.ron`, `bonuses.ron`, `races.ron`, `skills.ron`, `weapons.ron`, `feats.ron`, `backgrounds.ron`,
 //!   `deities.ron`
+//! - `interactions.ron` (ticket 124): optional, since data from before it (which the behaviour proof reads) has none
 //! - `classes/<class>.ron`, `prestige/<class>.ron`
 //! - `mythic/abilities.ron`, `mythic/feats.ron`
 //! - `mythic/paths/<path>.ron`
@@ -25,9 +26,10 @@ use rules::GameData;
 use serde::de::DeserializeOwned;
 use sha2::{Digest, Sha256};
 
-const SINGLE_FILES: [&str; 11] = [
+const SINGLE_FILES: [&str; 12] = [
     "progression.ron",
     "bonuses.ron",
+    "interactions.ron",
     "races.ron",
     "skills.ron",
     "weapons.ron",
@@ -103,6 +105,7 @@ pub fn read_game_data_files(dir: &Path) -> Result<GameData, FilesError> {
         mythic_abilities: read(&dir.join("mythic/abilities.ron"))?,
         mythic_feats: read(&dir.join("mythic/feats.ron"))?,
         bonuses: read(&dir.join("bonuses.ron"))?,
+        interactions: read_optional(&dir.join("interactions.ron"))?,
         mythic_paths: read_folder(&dir.join("mythic/paths"))?,
         backgrounds: read(&dir.join("backgrounds.ron"))?,
         deities: read(&dir.join("deities.ron"))?,
@@ -177,6 +180,15 @@ fn read_spells(folder: &Path) -> Result<Vec<rules::Spell>, FilesError> {
         }
     }
     Ok(spells)
+}
+
+/// A file that may be missing, which reads as empty.
+fn read_optional<T: DeserializeOwned + Default>(path: &Path) -> Result<T, FilesError> {
+    if path.exists() {
+        read(path)
+    } else {
+        Ok(T::default())
+    }
 }
 
 fn read<T: DeserializeOwned>(path: &Path) -> Result<T, FilesError> {

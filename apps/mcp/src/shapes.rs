@@ -237,6 +237,10 @@ pub struct Item {
     /// A spell list's spells by spell level, lowest first.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub spells: Option<Vec<SpellLevelRow>>,
+    /// What the guide says about how the item combines with others, in the planner's own words, for the few items
+    /// that have a note ("the guide doesn't say" where it doesn't).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub interactions: Option<String>,
 }
 
 /// A spell's facts as its block in the guide prints them.
@@ -569,6 +573,12 @@ pub struct SheetResult {
     pub spell_levels: SpellLevels,
     /// At the last level: the class skills.
     pub class_skills: Vec<Named>,
+    /// At the last level: initiative, the saves and each skill's total, each with what it counts. Unconditional
+    /// numbers only (`totals_leave_out` lists what they leave out).
+    pub totals: crate::totals::TotalsShape,
+    /// What no total counts: gear, buffs, abilities switched on in a fight, bonuses against one kind of effect or for
+    /// one use of a skill, bonuses that grow with class level.
+    pub totals_leave_out: Vec<String>,
     /// What the planner notes beside the Build: the background's note, favoured weapons, the choices the game asks
     /// for again each day.
     pub notes: Vec<String>,
