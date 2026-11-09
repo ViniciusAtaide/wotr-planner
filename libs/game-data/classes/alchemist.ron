@@ -31,7 +31,7 @@ Class(
                 (key: "alchemist/discovery/cognatogen", name: "Cognatogen", summary: "A reversed mutagen (such as +4 Int, -2 Str); when it ends, 2 ability damage to the lowered score.", guide: "alchemist#cognatogen"),
                 (key: "alchemist/discovery/cursed-bomb", name: "Cursed Bomb", summary: "Requires 12th level: a direct hit must save on Will or suffer Bestow Curse.", guide: "alchemist#cursed-bomb", prerequisite: ClassLevel(class: "alchemist", level: 12)),
                 (key: "alchemist/discovery/dispelling-bombs", name: "Dispelling Bombs", summary: "A direct hit applies a targeted Dispel Magic.", guide: "alchemist#dispelling-bombs", prerequisite: ClassLevel(class: "alchemist", level: 6)),
-                (key: "alchemist/discovery/enhance-potion", name: "Enhance Potion", summary: "Potions he drinks use his class level as their caster level.", guide: "alchemist#enhance-potion"),
+                (key: "alchemist/discovery/enhance-potion", name: "Enhance Potion", summary: "Potions you drink use your class level as their caster level.", guide: "alchemist#enhance-potion"),
                 (key: "alchemist/discovery/explosive-bombs", name: "Explosive Bombs", summary: "Splash radius grows to 10 feet, and direct hits set targets on fire for 1d6 fire damage a round.", guide: "alchemist#explosive-bombs"),
                 (key: "alchemist/discovery/extend-potion", name: "Extend Potion", summary: "Potions last twice as long.", guide: "alchemist#extend-potion"),
                 (key: "alchemist/discovery/fast-bombs", name: "Fast Bombs", summary: "Throws several bombs a round, like a ranged full attack.", guide: "alchemist#fast-bombs", prerequisite: ClassLevel(class: "alchemist", level: 8)),
@@ -46,7 +46,7 @@ Class(
                 (key: "alchemist/discovery/holy-bombs", name: "Holy Bombs", summary: "Bombs deal divine damage, and an evil creature hit directly is staggered for 1 round unless it saves on Fortitude.", guide: "alchemist#holy-bombs", prerequisite: ClassLevel(class: "alchemist", level: 8)),
                 (key: "alchemist/discovery/infusion", name: "Infusion", summary: "Extracts can be used on others, including self-only effects such as Shield.", guide: "alchemist#infusion"),
                 (key: "alchemist/discovery/mummification", name: "Mummification", summary: "Becomes undead-like: immune to cold, paralysis and sleep.", guide: "alchemist#mummification", prerequisite: All([Any([ClassLevel(class: "alchemist", level: 10), Feature(feature: "rogue/underground-chemist/discovery", count: 1)]), SelectionOption("alchemist/discovery/preserve-organs")])),
-                (key: "alchemist/discovery/nauseating-flesh", name: "Nauseating Flesh", summary: "Creatures that bite him save on Fortitude or are nauseated for 1d4 rounds.", guide: "alchemist#nauseating-flesh"),
+                (key: "alchemist/discovery/nauseating-flesh", name: "Nauseating Flesh", summary: "Creatures that bite you save on Fortitude or are nauseated for 1d4 rounds.", guide: "alchemist#nauseating-flesh"),
                 (key: "alchemist/discovery/precise-bomb", name: "Precise Bomb", summary: "Bombs no longer affect allies.", guide: "alchemist#precise-bomb"),
                 (key: "alchemist/discovery/preserve-organs", name: "Preserve Organs", summary: "25% chance to negate extra damage from critical hits and sneak attacks; up to three times for 50% and 75%.", guide: "alchemist#preserve-organs", repeat: Times(3)),
                 (key: "alchemist/discovery/shock-bomb", name: "Shock Bomb", summary: "Bombs deal electricity instead of fire, and a direct hit dazzles for 1d4 rounds.", guide: "alchemist#shock-bomb"),
@@ -95,8 +95,8 @@ Class(
             summary: "Alchemist who trades poison resistance for healing powers.",
             guide: "alchemist#chirurgeon",
             features: [
-                (key: "alchemist/chirurgeon/infused-curative", name: "Infused Curative", summary: "From 2nd level, his healing extracts can be used on others.", guide: "alchemist#infused-curative"),
-                (key: "alchemist/chirurgeon/power-over-death", name: "Power Over Death", summary: "At 10th level, adds Breath of Life to his formulae as a 4th-level extract.", guide: "alchemist#power-over-death"),
+                (key: "alchemist/chirurgeon/infused-curative", name: "Infused Curative", summary: "From 2nd level, your healing extracts can be used on others.", guide: "alchemist#infused-curative"),
+                (key: "alchemist/chirurgeon/power-over-death", name: "Power Over Death", summary: "At 10th level, adds Breath of Life to your formulae as a 4th-level extract.", guide: "alchemist#power-over-death"),
             ],
             levels: [
                 (level: 2, features: ["alchemist/chirurgeon/infused-curative"], selections: ["alchemist/discovery"]),
@@ -192,12 +192,12 @@ Class(
             summary: "Alchemist who adds Summon Nature's Ally extracts, losing poison resistance and Persistent Mutagen.",
             guide: "alchemist#preservationist",
             features: [
-                (key: "alchemist/preservationist/bottled-ally-i", name: "Bottled Ally I", summary: "At 2nd level, Summon Nature's Ally I joins his formulae as a 1st-level extract.", guide: "alchemist#bottled-ally-i"),
-                (key: "alchemist/preservationist/bottled-ally-ii", name: "Bottled Ally II", summary: "At 5th level, Summon Nature's Ally II joins his formulae as a 2nd-level extract.", guide: "alchemist#bottled-ally-ii"),
-                (key: "alchemist/preservationist/bottled-ally-iii", name: "Bottled Ally III", summary: "At 8th level, Summon Nature's Ally IV joins his formulae as a 3rd-level extract.", guide: "alchemist#bottled-ally-iii"),
-                (key: "alchemist/preservationist/bottled-ally-iv", name: "Bottled Ally IV", summary: "At 10th level, Summon Nature's Ally V joins his formulae as a 4th-level extract.", guide: "alchemist#bottled-ally-iv"),
-                (key: "alchemist/preservationist/bottled-ally-v", name: "Bottled Ally V", summary: "At 14th level, Summon Nature's Ally VII joins his formulae as a 5th-level extract.", guide: "alchemist#bottled-ally-v"),
-                (key: "alchemist/preservationist/bottled-ally-vi", name: "Bottled Ally VI", summary: "At 18th level, Summon Nature's Ally IX joins his formulae as a 6th-level extract.", guide: "alchemist#bottled-ally-vi"),
+                (key: "alchemist/preservationist/bottled-ally-i", name: "Bottled Ally I", summary: "At 2nd level, Summon Nature's Ally I joins your formulae as a 1st-level extract.", guide: "alchemist#bottled-ally-i"),
+                (key: "alchemist/preservationist/bottled-ally-ii", name: "Bottled Ally II", summary: "At 5th level, Summon Nature's Ally II joins your formulae as a 2nd-level extract.", guide: "alchemist#bottled-ally-ii"),
+                (key: "alchemist/preservationist/bottled-ally-iii", name: "Bottled Ally III", summary: "At 8th level, Summon Nature's Ally IV joins your formulae as a 3rd-level extract.", guide: "alchemist#bottled-ally-iii"),
+                (key: "alchemist/preservationist/bottled-ally-iv", name: "Bottled Ally IV", summary: "At 10th level, Summon Nature's Ally V joins your formulae as a 4th-level extract.", guide: "alchemist#bottled-ally-iv"),
+                (key: "alchemist/preservationist/bottled-ally-v", name: "Bottled Ally V", summary: "At 14th level, Summon Nature's Ally VII joins your formulae as a 5th-level extract.", guide: "alchemist#bottled-ally-v"),
+                (key: "alchemist/preservationist/bottled-ally-vi", name: "Bottled Ally VI", summary: "At 18th level, Summon Nature's Ally IX joins your formulae as a 6th-level extract.", guide: "alchemist#bottled-ally-vi"),
             ],
             levels: [
                 (level: 2, features: ["alchemist/preservationist/bottled-ally-i"], selections: ["alchemist/discovery"]),
@@ -216,8 +216,8 @@ Class(
             features: [
                 (key: "alchemist/reanimator/bomb-reanimator", name: "Bomb (Reanimator)", summary: "Bombs start at 1d4 and skip the damage increases at 5th, 11th and 15th level.", guide: "alchemist#bomb-reanimator"),
                 (key: "alchemist/reanimator/corpse-studying", name: "Corpse Studying", summary: "After a kill, +1 attack and damage until combat ends, +1 more at 5th and every 6 levels (max +4 at 17th).", guide: "alchemist#corpse-studying"),
-                (key: "alchemist/reanimator/greater-reanimation", name: "Greater Reanimation", summary: "At 15th level, adds Create Greater Undead as a 5th-level extract; his undead get +6 Str and Cha and one extra attack a round.", guide: "alchemist#greater-reanimation"),
-                (key: "alchemist/reanimator/improved-reanimation", name: "Improved Reanimation", summary: "At 11th level, adds Create Undead as a 4th-level extract; his undead get +6 Str and Cha.", guide: "alchemist#improved-reanimation"),
+                (key: "alchemist/reanimator/greater-reanimation", name: "Greater Reanimation", summary: "At 15th level, adds Create Greater Undead as a 5th-level extract; your undead get +6 Str and Cha and one extra attack a round.", guide: "alchemist#greater-reanimation"),
+                (key: "alchemist/reanimator/improved-reanimation", name: "Improved Reanimation", summary: "At 11th level, adds Create Undead as a 4th-level extract; your undead get +6 Str and Cha.", guide: "alchemist#improved-reanimation"),
                 (key: "alchemist/reanimator/simple-reanimation", name: "Simple Reanimation", summary: "At 5th level, adds Animate Dead, Lesser as a 2nd-level extract; its undead get +4 Str and Cha.", guide: "alchemist#simple-reanimation"),
             ],
             levels: [

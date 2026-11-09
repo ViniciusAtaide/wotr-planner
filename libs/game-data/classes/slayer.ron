@@ -169,13 +169,13 @@ Class(
             guide: "slayer#bloodseeker",
             prerequisite: Any([Alignment(LawfulEvil), Alignment(NeutralEvil), Alignment(ChaoticEvil)]),
             features: [
-                (key: "slayer/bloodseeker/blood-pool", name: "Blood Pool", summary: "From 2nd level, a pool of 2 points (+1 per level) that fuels his powers; DC 10 + half level + Int.", guide: "slayer#blood-pool"),
-                (key: "slayer/bloodseeker/bloodlust", name: "Bloodlust", summary: "From 2nd level, each kill gives +1 attack and damage until combat ends, up to half his Intelligence modifier.", guide: "slayer#bloodlust"),
+                (key: "slayer/bloodseeker/blood-pool", name: "Blood Pool", summary: "From 2nd level, a pool of 2 points (+1 per level) that fuels your powers; DC 10 + half level + Int.", guide: "slayer#blood-pool"),
+                (key: "slayer/bloodseeker/bloodlust", name: "Bloodlust", summary: "From 2nd level, each kill gives +1 attack and damage until combat ends, up to half your Intelligence modifier.", guide: "slayer#bloodlust"),
                 (key: "slayer/bloodseeker/bloodseekers-cursed-lineage", name: "Bloodseeker\'s Cursed Lineage", summary: "Counts as undead for channel energy effects.", guide: "slayer#bloodseekers-cursed-lineage"),
                 (key: "slayer/bloodseeker/carrion-form", name: "Carrion Form", summary: "From 10th level, for 1 Blood Pool point becomes a swarm of undead ravens; damaging foes in this form restores 1 point.", guide: "slayer#carrion-form"),
-                (key: "slayer/bloodseeker/master-of-blood", name: "Master of Blood", summary: "At 20th level, Blood Jet and Cone of Blood are empowered and bolstered, the pool grows by 5 and he gets +6 profane Str, Dex and Int.", guide: "slayer#master-of-blood"),
+                (key: "slayer/bloodseeker/master-of-blood", name: "Master of Blood", summary: "At 20th level, Blood Jet and Cone of Blood are empowered and bolstered, the pool grows by 5 and you get +6 profane Str, Dex and Int.", guide: "slayer#master-of-blood"),
                 (key: "slayer/bloodseeker/sharp-teeth", name: "Sharp Teeth", summary: "From 2nd level, a secondary 1d6 bite (1d4 if small); confirmed crits on living foes restore 3 Blood Pool points.", guide: "slayer#sharp-teeth"),
-                (key: "slayer/bloodseeker/vampire-bite", name: "Vampire Bite", summary: "From 9th level, bite hits on living foes give him 5 temporary HP and the target a negative level, both stacking.", guide: "slayer#vampire-bite"),
+                (key: "slayer/bloodseeker/vampire-bite", name: "Vampire Bite", summary: "From 9th level, bite hits on living foes give you 5 temporary HP and the target a negative level, both stacking.", guide: "slayer#vampire-bite"),
             ],
             selections: [
                 (
@@ -221,12 +221,12 @@ Class(
             key: "slayer/deliverer",
             prerequisite: Worships,
             name: "Deliverer",
-            summary: "Slayer serving a deity, strongest against foes two alignment steps from his own.",
+            summary: "You serve a deity and are strongest against foes two alignment steps from your own.",
             guide: "slayer#deliverer",
             features: [
                 (key: "slayer/deliverer/deity", favoured_weapon_proficiency: true, name: "Deity", guide: "slayer#deity"),
-                (key: "slayer/deliverer/determined-zeal", name: "Determined Zeal", summary: "Attacking a foe two alignment steps away gives +2 Will saves against it and Diehard until the end of his next turn.", guide: "slayer#determined-zeal"),
-                (key: "slayer/deliverer/divine-anathema", name: "Divine Anathema", summary: "From 10th level, +2d6 damage against a studied target two alignment steps from his own.", guide: "slayer#divine-anathema"),
+                (key: "slayer/deliverer/determined-zeal", name: "Determined Zeal", summary: "Attacking a foe two alignment steps away gives +2 Will saves against it and Diehard until the end of your next turn.", guide: "slayer#determined-zeal"),
+                (key: "slayer/deliverer/divine-anathema", name: "Divine Anathema", summary: "From 10th level, +2d6 damage against a studied target two alignment steps from your own.", guide: "slayer#divine-anathema"),
             ],
             levels: [
                 (level: 1, features: ["slayer/deliverer/deity", "slayer/slayer-proficiencies", "slayer/studied-target"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
@@ -310,7 +310,7 @@ Class(
             summary: "Slayer with light armour, invisibility and an incorporeal mist form.",
             guide: "slayer#stygian-slayer",
             features: [
-                (key: "slayer/stygian-slayer/invisibiliy", name: "Invisibiliy", summary: "From 4th level, casts Invisibility once a day at his class level, +1 use at 8th and every 4 levels (max 5).", guide: "slayer#stygian-slayer"),
+                (key: "slayer/stygian-slayer/invisibiliy", name: "Invisibiliy", summary: "From 4th level, you cast Invisibility once a day at your class level, +1 use at 8th and every 4 levels (max 5).", guide: "slayer#stygian-slayer"),
                 (key: "slayer/stygian-slayer/shadowy-mist-form", name: "Shadowy Mist Form", summary: "From 10th level, incorporeal for minutes a day equal to level: cannot attack, immune to mundane weapons, half damage from most else.", guide: "slayer#shadowy-mist-form"),
             ],
             levels: [
@@ -327,7 +327,7 @@ Class(
             features: [
                 (key: "slayer/vanguard/uncanny-dodge", name: "Uncanny Dodge", summary: "From 7th level, never caught flat-footed and keeps the Dexterity bonus to AC against invisible attackers.", guide: "slayer#uncanny-dodge"),
                 (key: "slayer/vanguard/vanguard-tactician", name: "Vanguard Tactician", summary: "From 2nd level, once a day grants a teamwork feat to allies within 30 feet for 3 + half level rounds; more uses can replace talents.", guide: "slayer#vanguard-tactician"),
-                (key: "slayer/vanguard/vanguards-bond", name: "Vanguard\'s Bond", summary: "From 4th level, move action: allies within 30 feet get half his studied target bonus for Int rounds.", guide: "slayer#vanguards-bond"),
+                (key: "slayer/vanguard/vanguards-bond", name: "Vanguard\'s Bond", summary: "From 4th level, move action: allies within 30 feet get half your studied target bonus for Int rounds.", guide: "slayer#vanguards-bond"),
             ],
             levels: [
                 (level: 2, features: ["slayer/vanguard/vanguard-tactician"], feat_slots: [Category(Teamwork)]),

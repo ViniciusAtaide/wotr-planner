@@ -24,7 +24,7 @@ Class(
         (key: "bard/inspire-greatness", name: "Inspire Greatness", summary: "From 9th level, allies gain 2d10 hit points, +2 competence to attacks and +1 competence to Fortitude saves.", guide: "bard#inspire-greatness"),
         (key: "bard/inspire-heroics", name: "Inspire Heroics", summary: "From 15th level, allies get +4 morale to saves and +4 dodge AC.", guide: "bard#inspire-heroics"),
         (key: "bard/jack-of-all-trades", name: "Jack of All Trades", summary: "From 10th level, +1 to all skill checks.", guide: "bard#jack-of-all-trades"),
-        (key: "bard/lore-master", name: "Lore Master", summary: "From 5th level, may take 10 on Knowledge and Lore checks in skills where she has ranks.", guide: "bard#lore-master"),
+        (key: "bard/lore-master", name: "Lore Master", summary: "From 5th level, you may take 10 on Knowledge and Lore checks in skills where you have ranks.", guide: "bard#lore-master"),
         (key: "bard/soothing-performance", name: "Soothing Performance", summary: "From 12th level, 4 rounds of performance work as Mass Cure Serious Wounds and remove fatigued, sickened and shaken from allies.", guide: "bard#soothing-performance"),
         (key: "bard/well-versed", name: "Well Versed", summary: "From 2nd level, saving throws against sonic, language-dependent and bardic performance effects get +4.", guide: "bard#well-versed"),
     ],
@@ -64,7 +64,7 @@ Class(
                 (key: "bard/archaeologist/danger-sense", name: "Danger Sense", summary: "From 3rd level, +1 to Reflex and dodge AC against traps and to Perception against surprise, +1 every 3 levels (max +6).", guide: "bard#danger-sense"),
                 (key: "bard/archaeologist/detect-magic", name: "Detect Magic", guide: "bard#archaeologist"),
                 (key: "bard/archaeologist/evasion", name: "Evasion", summary: "From 6th level, a successful Reflex save against a half-damage effect means no damage.", guide: "bard#evasion"),
-                (key: "bard/archaeologist/uncanny-dodge", name: "Uncanny Dodge", summary: "From 2nd level, never caught flat-footed and keeps her Dexterity bonus to AC against invisible attackers.", guide: "bard#uncanny-dodge"),
+                (key: "bard/archaeologist/uncanny-dodge", name: "Uncanny Dodge", summary: "From 2nd level, you are never caught flat-footed and keep your Dexterity bonus to AC against invisible attackers.", guide: "bard#uncanny-dodge"),
             ],
             levels: [
                 (level: 1, features: ["bard/archaeologist/archaeologists-luck", "bard/archaeologist/detect-magic", "bard/bard-proficiencies", "bard/bardic-knowledge"], feats: ["armor-proficiency-light-armor", "shield-proficiency", "simple-weapon-proficiency"]),
@@ -125,11 +125,11 @@ Class(
             guide: "bard#chelaxian-diva",
             features: [
                 (key: "bard/chelaxian-diva/banshees-requiem", name: "Banshee\'s Requiem", summary: "From 16th level, the song gives living creatures within 30 feet 2 negative levels unless they save on Fortitude.", guide: "bard#banshees-requiem"),
-                (key: "bard/chelaxian-diva/blazing-rondo", name: "Blazing Rondo", summary: "From 9th level, the song hastes allies within 60 feet (bonuses of a fifth of her level); 3+ rounds risks fatigue.", guide: "bard#blazing-rondo"),
+                (key: "bard/chelaxian-diva/blazing-rondo", name: "Blazing Rondo", summary: "From 9th level, the song hastes allies within 60 feet (bonuses of a fifth of your level); 3+ rounds risks fatigue.", guide: "bard#blazing-rondo"),
                 (key: "bard/chelaxian-diva/deadly-vibrato", name: "Deadly Vibrato", summary: "From 6th level, 1 more round of song adds 1d8 sonic damage (Fort negates), 2d8 at 14th and 3d8 at 20th.", guide: "bard#deadly-vibrato"),
                 (key: "bard/chelaxian-diva/devastating-aria", name: "Devastating Aria", summary: "From 2nd level, 1d6 + level sonic damage to an object (half to creatures), +1d6 at 7th and every 4 levels (max 5d6).", guide: "bard#devastating-aria"),
                 (key: "bard/chelaxian-diva/famous", name: "Famous", summary: "Persuasion (Bluff and Diplomacy) checks get a bonus of half the class level.", guide: "bard#famous"),
-                (key: "bard/chelaxian-diva/prima-donna", name: "Prima Donna", summary: "From 5th level, 1 round of performance raises her songs' save DCs by +2.", guide: "bard#prima-donna"),
+                (key: "bard/chelaxian-diva/prima-donna", name: "Prima Donna", summary: "From 5th level, 1 round of performance raises your songs' save DCs by +2.", guide: "bard#prima-donna"),
                 (key: "bard/chelaxian-diva/tragedy-of-false-hope", name: "Tragedy of False Hope", summary: "From 3rd level, the song leaves enemies within 30 feet flat-footed unless they save on Will; Uncanny Dodge grants immunity.", guide: "bard#chelaxian-diva"),
                 (key: "bard/chelaxian-diva/vindictive-soliloquy", name: "Vindictive Soliloquy", summary: "From 12th level, the song works as a sonic Call Lightning Storm; a DC 30 Persuasion check makes a bolt 5d10 instead of 5d6.", guide: "bard#vindictive-soliloquy"),
             ],
@@ -152,7 +152,7 @@ Class(
             summary: "Bard with necromantic spells and powers over the dead.",
             guide: "bard#dirge-bard",
             features: [
-                (key: "bard/dirge-bard/dance-of-the-dead", name: "Dance of the Dead", summary: "From 10th level, her performance animates dead bodies as Animate Dead.", guide: "bard#dance-of-the-dead"),
+                (key: "bard/dirge-bard/dance-of-the-dead", name: "Dance of the Dead", summary: "From 10th level, your performance animates dead bodies as Animate Dead.", guide: "bard#dance-of-the-dead"),
                 (key: "bard/dirge-bard/haunted-eyes", name: "Haunted Eyes", summary: "From 2nd level, +4 to saves against fear, curses, death effects and necromancy.", guide: "bard#haunted-eyes"),
                 (key: "bard/dirge-bard/haunting-refrain", name: "Haunting Refrain", summary: "From 5th level, half level to Intimidate and +2 to fear spell DCs, +1 every 5 levels (max +5).", guide: "bard#haunting-refrain"),
                 (key: "bard/dirge-bard/secrets-of-the-grave", name: "Secrets of the Grave", summary: "Half level to Lore (Religion), mind-affecting spells work on undead, and adds Cause Fear, Command Undead, Fear and more to known spells.", guide: "bard#secrets-of-the-grave"),
@@ -170,8 +170,8 @@ Class(
             guide: "bard#flame-dancer",
             features: [
                 (key: "bard/flame-dancer/detect-magic", name: "Detect Magic", guide: "bard#flame-dancer"),
-                (key: "bard/flame-dancer/fan-the-flames", name: "Fan the Flames", summary: "From 8th level, her spell list gains Burning Hands, Burning Arc and Fireball.", guide: "bard#fan-the-flames"),
-                (key: "bard/flame-dancer/fire-dance", name: "Fire Dance", summary: "From 3rd level, her performance gives allies within 30 feet fire resistance 10, 20 at 6th and 30 at 11th.", guide: "bard#fire-dance"),
+                (key: "bard/flame-dancer/fan-the-flames", name: "Fan the Flames", summary: "From 8th level, your spell list gains Burning Hands, Burning Arc and Fireball.", guide: "bard#fan-the-flames"),
+                (key: "bard/flame-dancer/fire-dance", name: "Fire Dance", summary: "From 3rd level, your performance gives allies within 30 feet fire resistance 10, 20 at 6th and 30 at 11th.", guide: "bard#fire-dance"),
             ],
             levels: [
                 (level: 1, features: ["bard/bard-proficiencies", "bard/bardic-knowledge", "bard/flame-dancer/detect-magic", "bard/inspire-courage"], feats: ["armor-proficiency-light-armor", "shield-proficiency", "simple-weapon-proficiency"]),
@@ -187,7 +187,7 @@ Class(
             features: [
                 (key: "bard/thundercaller/bound-to-the-land", name: "Bound to the Land", summary: "Adds half the class level to Lore (Nature) checks.", guide: "bard#bound-to-the-land"),
                 (key: "bard/thundercaller/incite-rage", name: "Incite Rage", summary: "From 6th level, allies or enemies failing a Will save rage: +2 Str and Con, +1 Will, -2 AC and no spellcasting.", guide: "bard#incite-rage"),
-                (key: "bard/thundercaller/storm-call", name: "Storm Call", summary: "From 8th level, her performance calls a 3d6 lightning bolt each round (3d10 in a storm).", guide: "bard#storm-call"),
+                (key: "bard/thundercaller/storm-call", name: "Storm Call", summary: "From 8th level, your performance calls a 3d6 lightning bolt each round (3d10 in a storm).", guide: "bard#storm-call"),
                 (key: "bard/thundercaller/storm-call-greater", name: "Storm Call, Greater", summary: "From 14th level, Storm Call bolts deal 5d6 (5d10 in a storm).", guide: "bard#storm-call-greater"),
                 (key: "bard/thundercaller/thunder-call", name: "Thunder Call", summary: "From 3rd level, a Sound Burst: 1d8 sonic in 10 feet and stun 1 round (Fort negates); 3d8 at 7th, +2d8 per 4 levels (max 9d8).", guide: "bard#thunder-call"),
             ],

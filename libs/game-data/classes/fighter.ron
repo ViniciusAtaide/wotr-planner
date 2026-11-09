@@ -13,7 +13,7 @@ Class(
         (key: "fighter/armor-mastery", name: "Armor Mastery", summary: "At 19th level, DR 5/- while wearing armour or using a shield.", guide: "fighter#armor-mastery"),
         (key: "fighter/armor-training", name: "Armor Training", summary: "From 3rd level, armour check penalty -1 and max Dex +1, +1 more every 4 levels (max 4); full speed in medium armour, heavy from 7th.", guide: "fighter#armor-training"),
         (key: "fighter/bravery", name: "Bravery", summary: "From 2nd level, +1 to Will saves against fear, +1 more every 4 levels (max +5 at 18th).", guide: "fighter#bravery"),
-        (key: "fighter/weapon-mastery", name: "Weapon Mastery", summary: "At 20th level, with one chosen weapon type, crits auto-confirm, the multiplier rises by 1 and he cannot be disarmed.", guide: "fighter#weapon-mastery"),
+        (key: "fighter/weapon-mastery", name: "Weapon Mastery", summary: "At 20th level, with one chosen weapon type, crits auto-confirm, the multiplier rises by 1 and you cannot be disarmed.", guide: "fighter#weapon-mastery"),
         (key: "fighter/weapon-training", name: "Weapon Training", summary: "From 5th level, +1 attack, damage and CMB with a weapon group; a new group every 4 levels, raising earlier groups by +1.", guide: "fighter#weapon-training"),
     ],
     levels: [
@@ -45,8 +45,8 @@ Class(
             summary: "Dexterity fighter who defends with the Aldori dueling sword, with fewer bonus feats and no Armor Training.",
             guide: "fighter#aldori-defender",
             features: [
-                (key: "fighter/aldori-defender/counterattack", name: "Counterattack", summary: "From 10th level, an immediate-action attack of opportunity against a foe in reach who hits him in melee.", guide: "fighter#counterattack"),
-                (key: "fighter/aldori-defender/defensive-parry", name: "Defensive Parry", summary: "From 3rd level, a full attack with a dueling sword gives +1 dodge AC against melee until his next turn, +1 per 4 levels (max +5).", guide: "fighter#defensive-parry"),
+                (key: "fighter/aldori-defender/counterattack", name: "Counterattack", summary: "From 10th level, an immediate-action attack of opportunity against a foe in reach who hits you in melee.", guide: "fighter#counterattack"),
+                (key: "fighter/aldori-defender/defensive-parry", name: "Defensive Parry", summary: "From 3rd level, a full attack with a dueling sword gives +1 dodge AC against melee until your next turn, +1 per 4 levels (max +5).", guide: "fighter#defensive-parry"),
                 (key: "fighter/aldori-defender/disarming-strike", name: "Disarming Strike", summary: "From 6th level, a successful disarm with a dueling sword also deals its normal damage, without Strength.", guide: "fighter#disarming-strike"),
                 (key: "fighter/aldori-defender/steel-net", name: "Steel Net", summary: "From 8th level, fighting defensively with a dueling sword costs 2 less on attacks and gives 2 more dodge AC.", guide: "fighter#steel-net"),
                 (key: "fighter/aldori-defender/weapon-proficiency-dueling-sword", name: "Weapon Proficiency (Dueling Sword)", summary: "Proficiency with the Aldori dueling sword.", guide: "fighter#aldori-defender"),
@@ -82,7 +82,7 @@ Class(
                         (key: "fighter/armiger/order/order-of-the-nail", name: "Order of the Nail", summary: "+2 attack and damage against one Ranger favoured enemy type, +2 more at 5th and 9th.", guide: "fighter#order-of-the-nail"),
                         (key: "fighter/armiger/order/order-of-the-pyre", name: "Order of the Pyre", summary: "After taking fire damage, fast healing 5 for rounds equal to class level; 10 from 5th, 15 from 9th.", guide: "fighter#order-of-the-pyre"),
                         (key: "fighter/armiger/order/order-of-the-rack", name: "Order of the Rack", summary: "Standard action, 3 times a day (+1 at 5th and 9th) and on crits: a creature saves on Will or cannot cast for class level rounds.", guide: "fighter#order-of-the-rack"),
-                        (key: "fighter/armiger/order/order-of-the-scourge", name: "Order of the Scourge", summary: "His killing blows give enemies within 15 feet -2 to Will saves for 3 rounds, -3 from 5th and -4 from 9th.", guide: "fighter#order-of-the-scourge"),
+                        (key: "fighter/armiger/order/order-of-the-scourge", name: "Order of the Scourge", summary: "Your killing blows give enemies within 15 feet -2 to Will saves for 3 rounds, -3 from 5th and -4 from 9th.", guide: "fighter#order-of-the-scourge"),
                     ],
                 ),
             ],
@@ -98,9 +98,9 @@ Class(
             summary: "Visitors from Morta fighter with shield attacks and blocks, delayed Weapon Training and 3 skill points per level.",
             guide: "fighter#defender-of-the-hearth",
             features: [
-                (key: "fighter/defender-of-the-hearth/defenders-gift", name: "Defender\'s Gift", summary: "At 20th level, after a Shield Block his weapon damage is doubled for the next round.", guide: "fighter#defenders-gift"),
+                (key: "fighter/defender-of-the-hearth/defenders-gift", name: "Defender\'s Gift", summary: "At 20th level, after a Shield Block your weapon damage is doubled for the next round.", guide: "fighter#defenders-gift"),
                 (key: "fighter/defender-of-the-hearth/heaven-strike", name: "Heaven Strike", summary: "From 5th level, once per combat with a weapon and shield, deals weapon damage to every enemy within 20 feet without an attack roll.", guide: "fighter#heaven-strike"),
-                (key: "fighter/defender-of-the-hearth/shield-block", name: "Shield Block", summary: "With a heavy or tower shield, the first hit against him deals 20% less damage; +1 attack covered at 5th and every 5 levels (max 5).", guide: "fighter#shield-block"),
+                (key: "fighter/defender-of-the-hearth/shield-block", name: "Shield Block", summary: "With a heavy or tower shield, the first hit against you deals 20% less damage; +1 attack covered at 5th and every 5 levels (max 5).", guide: "fighter#shield-block"),
             ],
             levels: [
                 (level: 1, features: ["fighter/defender-of-the-hearth/shield-block"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency", "tower-shield-proficiency"]),
@@ -116,17 +116,17 @@ Class(
             guide: "fighter#dragonheir-scion",
             class_skills: ["athletics", "knowledge-arcana", "knowledge-world", "lore-nature", "persuasion", "use-magic-device"],
             features: [
-                (key: "fighter/dragonheir-scion/draconic-defences", name: "Draconic Defences", summary: "From 3rd level, +1 natural armour and resistance 5 to his bloodline's energy; +2 and 10 at 7th, +3 and 20 at 13th.", guide: "fighter#dragonheir-scion"),
+                (key: "fighter/dragonheir-scion/draconic-defences", name: "Draconic Defences", summary: "From 3rd level, +1 natural armour and resistance 5 to your bloodline's energy; +2 and 10 at 7th, +3 and 20 at 13th.", guide: "fighter#dragonheir-scion"),
                 (key: "fighter/dragonheir-scion/draconic-presence", name: "Draconic Presence", summary: "From 6th level, Dazzling Display as a bonus feat, usable as a standard action.", guide: "fighter#draconic-presence"),
-                (key: "fighter/dragonheir-scion/draconic-strike", name: "Draconic Strike", summary: "From 4th level, Arcane Strike hits add 1d4 damage of his bloodline's energy type.", guide: "fighter#draconic-strike"),
+                (key: "fighter/dragonheir-scion/draconic-strike", name: "Draconic Strike", summary: "From 4th level, Arcane Strike hits add 1d4 damage of your bloodline's energy type.", guide: "fighter#draconic-strike"),
                 (key: "fighter/dragonheir-scion/fearful-might", name: "Fearful Might", summary: "From 2nd level, +1 to Intimidate, +1 more every 4 levels (max +5 at 18th).", guide: "fighter#fearful-might"),
-                (key: "fighter/dragonheir-scion/might-of-wyrms", name: "Might of Wyrms", summary: "At 20th level, immune to paralysis, sleep and his bloodline's element, with 60-foot blindsense.", guide: "fighter#might-of-wyrms"),
+                (key: "fighter/dragonheir-scion/might-of-wyrms", name: "Might of Wyrms", summary: "At 20th level, immune to paralysis, sleep and your bloodline's element, with 60-foot blindsense.", guide: "fighter#might-of-wyrms"),
             ],
             selections: [
                 (
                     key: "fighter/dragonheir-scion/bloodline",
                     name: "Draconic Bloodline",
-                    summary: "Gains a draconic bloodline, whose energy type his other draconic abilities use.",
+                    summary: "You gain a draconic bloodline, whose energy type your other draconic abilities use.",
                     guide: "fighter#draconic-bloodline",
                     option_levels: ["fighter"],
                     skipped_levels: [1, 3, 15, 20],
@@ -163,7 +163,7 @@ Class(
             guide: "fighter#mutation-warrior",
             skill_points: 3,
             features: [
-                (key: "fighter/mutation-warrior/mutagen", name: "Mutagen", summary: "From 3rd level, uses mutagens as the Alchemist does, with duration by his class level.", guide: "fighter#mutagen"),
+                (key: "fighter/mutation-warrior/mutagen", name: "Mutagen", summary: "From 3rd level, you use mutagens as the Alchemist does, with duration by your class level.", guide: "fighter#mutagen"),
                 (key: "fighter/mutation-warrior/mutagen-discovery", name: "Mutagen Discovery", summary: "At 7th level and every 4 levels, a discovery such as Feral Mutagen, Preserve Organs, Feral Wings or Greater and Grand Mutagen.", guide: "fighter#mutagen-discovery"),
             ],
             levels: [
@@ -181,9 +181,9 @@ Class(
             guide: "fighter#titan-fighter",
             features: [
                 (key: "fighter/titan-fighter/giant-weapon-wielder", name: "Giant Weapon Wielder", summary: "Wields a two-handed weapon in one hand at -2 to attack, with one-handed Strength and Power Attack damage.", guide: "fighter#giant-weapon-wielder"),
-                (key: "fighter/titan-fighter/giants-might", name: "Giant\'s Might", summary: "From 9th level, a two-handed weapon wielded in one hand adds 1.5 times his Strength modifier to damage.", guide: "fighter#giants-might"),
+                (key: "fighter/titan-fighter/giants-might", name: "Giant\'s Might", summary: "From 9th level, a two-handed weapon wielded in one hand adds 1.5 times your Strength modifier to damage.", guide: "fighter#giants-might"),
                 (key: "fighter/titan-fighter/incredible-heft", name: "Incredible Heft", summary: "+1 attack and damage with a two-handed weapon in one hand at 3rd level, +1 more every 4 levels.", guide: "fighter#incredible-heft"),
-                (key: "fighter/titan-fighter/unstoppable-strike", name: "Unstoppable Strike", summary: "From 17th level, a two-handed weapon wielded in one hand adds twice his Strength modifier to damage.", guide: "fighter#unstoppable-strike"),
+                (key: "fighter/titan-fighter/unstoppable-strike", name: "Unstoppable Strike", summary: "From 17th level, a two-handed weapon wielded in one hand adds twice your Strength modifier to damage.", guide: "fighter#unstoppable-strike"),
             ],
             feat_lists: [
                 (key: "fighter/titan-fighter/bonus-feats-10", name: "Massive Attacks (from level 10)", guide: "fighter#massive-attacks", ignores_prerequisites: true, feats: ["double-slice", "greater-two-weapon-fighting", "improved-two-weapon-fighting", "shield-bash", "two-weapon-fighting"]),
@@ -214,7 +214,7 @@ Class(
             features: [
                 (key: "fighter/tower-shield-specialist/burst-barrier", name: "Burst Barrier", summary: "From 2nd level, +1 to Reflex saves against area effects, +1 more every 4 levels (max +5 at 18th).", guide: "fighter#burst-barrier"),
                 (key: "fighter/tower-shield-specialist/total-cover", name: "Total Cover", summary: "From 13th level, cannot be flanked while using a tower shield.", guide: "fighter#total-cover"),
-                (key: "fighter/tower-shield-specialist/tower-shield-defense", name: "Tower Shield Defense", summary: "From 9th level, adds his tower shield's shield bonus to touch AC.", guide: "fighter#tower-shield-defense"),
+                (key: "fighter/tower-shield-specialist/tower-shield-defense", name: "Tower Shield Defense", summary: "From 9th level, adds your tower shield's shield bonus to touch AC.", guide: "fighter#tower-shield-defense"),
                 (key: "fighter/tower-shield-specialist/tower-shield-evasion", name: "Tower Shield Evasion", summary: "From 16th level, with a tower shield, a successful Reflex save against a half-damage effect means no damage.", guide: "fighter#tower-shield-evasion"),
                 (key: "fighter/tower-shield-specialist/tower-shield-improved-evasion", name: "Tower Shield Improved Evasion", summary: "At 20th level, with a tower shield, a failed Reflex save against a half-damage effect deals only half damage.", guide: "fighter#tower-shield-improved-evasion"),
                 (key: "fighter/tower-shield-specialist/tower-shield-specialist", name: "Tower Shield Specialist", summary: "From 5th level, no -2 attack penalty for using a tower shield.", guide: "fighter#tower-shield-specialist"),
@@ -236,10 +236,10 @@ Class(
             summary: "Fighter with bonuses for two-handed weapons, losing Armor Training and Armor Mastery.",
             guide: "fighter#two-handed-fighter",
             features: [
-                (key: "fighter/two-handed-fighter/backswing", name: "Backswing", summary: "From 7th level, when full attacking two-handed, every attack after the first adds double his Strength bonus to damage.", guide: "fighter#backswing"),
+                (key: "fighter/two-handed-fighter/backswing", name: "Backswing", summary: "From 7th level, when full attacking two-handed, every attack after the first adds double your Strength bonus to damage.", guide: "fighter#backswing"),
                 (key: "fighter/two-handed-fighter/devastating-blow", name: "Devastating Blow", summary: "From 19th level, a standard-action two-handed attack at -5 that is an automatic critical threat; on-crit weapon effects don't trigger.", guide: "fighter#devastating-blow"),
                 (key: "fighter/two-handed-fighter/greater-power-attack", name: "Greater Power Attack", summary: "From 15th level, Power Attack's extra damage is multiplied by 2 rather than by 1.5.", guide: "fighter#greater-power-attack"),
-                (key: "fighter/two-handed-fighter/overhand-chop", name: "Overhand Chop", summary: "From 3rd level, a single two-handed attack (attack action or charge) adds double his Strength bonus to damage.", guide: "fighter#overhand-chop"),
+                (key: "fighter/two-handed-fighter/overhand-chop", name: "Overhand Chop", summary: "From 3rd level, a single two-handed attack (attack action or charge) adds double your Strength bonus to damage.", guide: "fighter#overhand-chop"),
                 (key: "fighter/two-handed-fighter/piledriver", name: "Piledriver", summary: "From 11th level, a standard-action two-handed hit allows a free bull rush or trip without provoking.", guide: "fighter#piledriver"),
                 (key: "fighter/two-handed-fighter/strong-grip", name: "Strong Grip", summary: "From 2nd level, +1 to CMB and CMD for sunder and disarm, +1 more every 4 levels (max +5 at 18th).", guide: "fighter#strong-grip"),
                 (key: "fighter/two-handed-fighter/two-handed-weapon-training", name: "Two-Handed Weapon Training", summary: "From 5th level, +1 attack and damage with two-handed weapons, +1 more every 4 levels (max +4 at 17th).", guide: "fighter#two-handed-weapon-training"),
