@@ -71,6 +71,42 @@ async fn an_unmet_feat_is_rejected_with_its_reason_and_the_code_unchanged() {
 }
 
 #[tokio::test]
+async fn a_feat_whose_prerequisite_comes_later_in_the_level_is_rejected_naming_that_slot() {
+    // Ticket 126: the class slot comes before the general slot, so Power Attack there is too late for Cleave here.
+    let fighter = build("human", &["fighter"]);
+    let refused = choose(
+        &fighter,
+        json!([
+            { "choice": "slot.feat.1.general.0", "value": "power-attack" },
+            { "choice": "slot.feat.1.class.0", "value": "cleave" },
+        ]),
+    )
+    .await;
+    assert_eq!(refused["applied"], 1);
+    assert_eq!(
+        refused["rejected"],
+        json!({
+            "step": 1,
+            "choice": "slot.feat.1.class.0",
+            "issue": "unmet",
+            "reason": "Needs power-attack: power-attack is in level 1's Feat slot, which comes after this slot in the \
+                       level's pick order; swap them",
+        })
+    );
+
+    // Swapped, both are taken.
+    let swapped = choose(
+        &fighter,
+        json!([
+            { "choice": "slot.feat.1.class.0", "value": "power-attack" },
+            { "choice": "slot.feat.1.general.0", "value": "cleave" },
+        ]),
+    )
+    .await;
+    assert_eq!(swapped["applied"], 2, "{swapped}");
+}
+
+#[tokio::test]
 async fn an_unoffered_value_is_not_an_option_with_the_closest_names() {
     let fighter = build("human", &["fighter"]);
     let refused = choose(

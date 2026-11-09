@@ -27,7 +27,8 @@ use crate::shapes::{
 use crate::sheet::sheet;
 use crate::withdraw::withdraw;
 
-/// What every client is told on connecting: what to know before planning (ticket 117), the workflow, how to batch,
+/// What every client is told on connecting: what to know before planning (ticket 117; the pick order within a level,
+/// ticket 126), the workflow, how to batch,
 /// value and branch, and the honesty boundary (plan, ticket 104, section 1). Short and imperative; the tools'
 /// descriptions hold the details.
 pub const INSTRUCTIONS: &str = "\
@@ -40,6 +41,12 @@ Before you plan:
 - Choose the faith (a deity, or atheism) before the alignment: no alignment is open until the faith is chosen, and a \
 deity allows only some.
 - `sheet` gives each Mythic rank's `character_level`, the character level its ascension comes at.
+- Within a level, picks are checked in order: class selections and class feat slots (`slot.selection.N.I`, \
+`slot.feat.N.class.I`), race slots, the general slot (`slot.feat.N.general.0`), the slots options and feats give, \
+then each Mythic rank that comes at that level (`slot.mythic.R`, `slot.path-feat.R.I`, `slot.path-selection.R.I`). \
+A pick that needs another taken at the same level goes in the later slot: Spell Focus in the sorcerer's level-1 \
+class slot and Greater Spell Focus in the general slot, not the reverse. A refusal that says the prerequisite's pick \
+\"comes after this slot\" names that pick's slot: swap the two picks, or take this one at a later level.
 - A class split decides what the last levels can take: Fighter 5 / Barbarian 15 gives up Barbarian levels 16 to 20 \
 and whatever needs them. Before you commit to a class split, branch the candidates from one code (Barbarian 20, and \
 Fighter 5 / Barbarian 15), add their levels, and `compare` the branches: it lists the feats and features each gains \

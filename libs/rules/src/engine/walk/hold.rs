@@ -1,7 +1,7 @@
 //! Filling a slot, and holding or releasing what a pick or grant gives, with the ability scores and floors that
 //! follow from it.
 
-use super::{GrantSource, Held, Pending, Probe, RankGrant, Walker};
+use super::{Checkpoint, GrantSource, Held, Pending, Probe, RankGrant, Walker};
 use crate::build::{Pick, SlotId};
 use crate::choice::{Choice, Issue};
 use crate::engine::slots::check_pick;
@@ -50,11 +50,33 @@ impl<'a> Walker<'a> {
             self.selections_had.push(selection.clone());
         }
         let pick = self.build.picks.get(&id).cloned();
+        // A later probe keeps each pick after its slot, with the state either side.
+        let before = match (self.probe, &self.probed.later, &pick) {
+            (Some(Probe::Later(probed)), Some(_), Some(_)) if probed != &id => {
+                Some(self.state.clone())
+            }
+            _ => None,
+        };
         if let Some(pick) = &pick {
             match self.check_pick(&kind, pick) {
                 Ok(()) => self.hold_pick(&kind, pick, source.as_ref()),
                 Err(_) => self.fail(Choice::Slot(id.clone())),
             }
+        }
+        if let (Some(before), Some(later), Some(pick)) = (before, self.probed.later.as_mut(), &pick)
+        {
+            later.push(Checkpoint {
+                slot: id.clone(),
+                kind: kind.clone(),
+                pick: pick.clone(),
+                before,
+                after: self.state.clone(),
+            });
+        }
+        if let Some(Probe::Later(probed)) = self.probe
+            && probed == &id
+        {
+            self.probed.later = Some(Vec::new());
         }
         Slot { id, kind, pick }
     }

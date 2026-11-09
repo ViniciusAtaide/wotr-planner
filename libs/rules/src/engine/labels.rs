@@ -9,7 +9,7 @@
 
 use super::{Engine, SlotKind};
 use crate::build::{Faith, FeatSource, Pick, SlotId};
-use crate::choice::{Issue, Unmet};
+use crate::choice::{Issue, LaterPick, Unmet};
 use crate::engine::Slot;
 use crate::game_data::{
     Ability, Alignment, Archetype, Class, DeityDomains, FeatCategory, FeatSlot, MythicPath,
@@ -224,6 +224,10 @@ impl Engine {
                     .map(|child| self.unmet_for(child, state))
                     .collect(),
             },
+            Unmet::MetLater { unmet, later } => Unmet::MetLater {
+                unmet: Box::new(self.unmet_for(*unmet, state)),
+                later,
+            },
             Unmet::Any(children) => {
                 let children: Vec<Unmet> = children
                     .into_iter()
@@ -266,6 +270,7 @@ impl Engine {
             Unmet::All(children) => children.iter().all(|child| self.within_reach(child, state)),
             Unmet::Any(children) => children.iter().any(|child| self.within_reach(child, state)),
             Unmet::AtLeast { .. } => true,
+            Unmet::MetLater { unmet, .. } => self.within_reach(unmet, state),
         }
     }
 
@@ -530,6 +535,9 @@ impl Engine {
     /// Sharpshooter archetype; not with A or B; needs …"); an "or" whose negated branches fail reads as the case its
     /// other branches answer ("As Domain (Separatist), needs Lawful Good alignment or …").
     fn unmet_reason(&self, unmet: &Unmet) -> String {
+        if let Unmet::MetLater { unmet, later } = unmet {
+            return format!("{}: {}", self.unmet_reason(unmet), self.later_text(later));
+        }
         if let Some(reason) = self.one_case_reason(unmet) {
             return reason;
         }
@@ -596,6 +604,31 @@ impl Engine {
             )),
         }
         capitalized(&clauses.join("; "))
+    }
+
+    /// Where the later pick that would meet a prerequisite is, and what to do (ticket 126): "Spell Focus (Enchantment)
+    /// is in level 1's Feat slot, which comes after this slot in the level's pick order; swap them", or for a Mythic
+    /// rank's slot "Perception II is in Mythic rank 4's Improved Mythic Trick slot, which comes after this slot in level
+    /// 11's pick order".
+    fn later_text(&self, later: &LaterPick) -> String {
+        let slot = Slot {
+            id: later.slot.clone(),
+            kind: later.kind.clone(),
+            pick: Some(later.pick.clone()),
+        };
+        let (place, order) = match later.slot.rank() {
+            Some(rank) => (
+                format!("Mythic rank {rank}'s"),
+                format!("level {}'s", later.level),
+            ),
+            None => (format!("level {}'s", later.level), "the level's".to_owned()),
+        };
+        let swap = if later.swap { "; swap them" } else { "" };
+        format!(
+            "{} is in {place} {} slot, which comes after this slot in {order} pick order{swap}",
+            self.pick_name(&later.pick),
+            self.slot_label(&slot)
+        )
     }
 
     /// An "and" of "or"s that each name the same negated case and something else, read as that case once: "As
@@ -734,6 +767,7 @@ impl Engine {
                     children.join(", ")
                 )
             }
+            Unmet::MetLater { unmet, .. } => self.unmet_text(unmet),
         }
     }
 
@@ -741,6 +775,7 @@ impl Engine {
     fn nested_unmet_text(&self, unmet: &Unmet) -> String {
         match unmet {
             Unmet::Condition { .. } => self.unmet_text(unmet),
+            Unmet::MetLater { unmet, .. } => self.nested_unmet_text(unmet),
             _ => format!("({})", self.unmet_text(unmet)),
         }
     }

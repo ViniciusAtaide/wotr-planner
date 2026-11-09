@@ -185,14 +185,17 @@ fn options_see_earlier_picks_of_the_same_level_but_not_later_ones() {
         ),
         Err(Issue::AlreadyHeld)
     );
-    // The fighter slot comes first, so it doesn't see a later pick of Power Attack.
+    // The fighter slot comes first, so it doesn't see a later pick of Power Attack; the reason names it (ticket 126).
     let mut later = build.clone();
     later.picks.remove(&class_slot(1, 0));
     later.picks.insert(race_slot(0), pick_feat("power-attack"));
-    assert_eq!(
-        status_of(&options(&later, &class_slot(1, 0)), &pick_feat("cleave")),
-        Err(Issue::Unmet(needs_feat("power-attack")))
-    );
+    let Err(Issue::Unmet(Unmet::MetLater { unmet, later: pick })) =
+        status_of(&options(&later, &class_slot(1, 0)), &pick_feat("cleave"))
+    else {
+        panic!("Cleave is open, or its reason doesn't name the later pick");
+    };
+    assert_eq!(*unmet, needs_feat("power-attack"));
+    assert_eq!(pick.slot, race_slot(0));
 }
 
 #[test]

@@ -7,7 +7,7 @@ use super::{
     BASE_LEVEL_CAP, Engine, FIRST_ASCENSION_RANK, LevelSheet, PATH_CHOICE_RANK, PATH_SWITCH_RANK,
     RankSheet, RankStatus, Sheet, SkillPoints, SlotKind, racial_amounts,
 };
-use crate::build::{Build, Faith, LevelUp, SlotId, has_ability_increase};
+use crate::build::{Build, Faith, LevelUp, Pick, SlotId, has_ability_increase};
 use crate::choice::Choice;
 use crate::codec::{StaleLink, decode_build};
 use crate::game_data::Ability;
@@ -109,11 +109,13 @@ struct RankGrant {
     item: Held,
 }
 
-/// Where a walk stops to report the state: just before a slot is filled, or just before a level's Level-up.
+/// Where a walk stops to report the state: just before a slot is filled, or just before a level's Level-up; or at
+/// the end of a slot's character level, with the picks after the slot ([`Probed::later`]).
 #[derive(Clone, Copy)]
 pub(super) enum Probe<'a> {
     Slot(&'a SlotId),
     Level(u8),
+    Later(&'a SlotId),
 }
 
 /// What a probe found: nothing when the Build has no such slot or level.
@@ -122,6 +124,19 @@ pub(super) struct Probed {
     pub(super) state: Option<CharacterState>,
     /// For a slot probe, what the slot accepts.
     pub(super) kind: Option<SlotKind>,
+    /// For a later probe, once the walk has reached the slot: each pick the slot's character level holds after it,
+    /// in walk order.
+    pub(super) later: Option<Vec<Checkpoint>>,
+}
+
+/// A pick a later probe passed, with the state just before and just after its slot was filled.
+#[derive(Clone)]
+pub(super) struct Checkpoint {
+    pub(super) slot: SlotId,
+    pub(super) kind: SlotKind,
+    pub(super) pick: Pick,
+    pub(super) before: CharacterState,
+    pub(super) after: CharacterState,
 }
 
 #[derive(Clone)]
@@ -521,6 +536,10 @@ impl<'a> Walker<'a> {
                 mythic_ranks.push(rank);
             }
             slots.extend(self.fill_pending(level));
+        }
+        // A later probe stops at the end of its slot's level.
+        if matches!(self.probe, Some(Probe::Later(_))) && self.probed.later.is_some() {
+            self.probed.state = Some(self.state.clone());
         }
 
         self.sheet.then(|| LevelSheet {

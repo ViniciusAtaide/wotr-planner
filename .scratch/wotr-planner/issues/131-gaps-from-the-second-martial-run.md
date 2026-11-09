@@ -70,3 +70,4 @@ The user has answered 2 and 5 (3 is answered and built). A is built for 1, so th
 ## Progress log
 
 - 2026-11-09: item 6's second bullet built in [125](125-favorite-metamagic-picks-its-metamagic.md): Stat Focus takes a stat, one of the twelve the guide lists, once per stat; a link made before it holds one still opens, with the stat open in `todo`.
+- 2026-11-09 (item 6, first bullet, in [126](126-refusals-name-the-pick-order.md)): a Mythic rank's picks come after its character level's slots, and the refusal now says so: Improved Improved Critical in the level-11 general slot with Perception II at MR 4 reads "Needs Perception II: Perception II is in Mythic rank 4's Improved Mythic Trick slot, which comes after this slot in level 11's pick order" (real-data test in `libs/seeds/tests/game_data/pick_order.rs`).

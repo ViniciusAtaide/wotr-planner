@@ -2,7 +2,8 @@
 
 use std::collections::BTreeSet;
 
-use crate::build::SlotId;
+use crate::build::{Pick, SlotId};
+use crate::engine::SlotKind;
 use crate::game_data::{Ability, DeityDomains};
 use crate::keys::{ClassKey, DeityKey, MythicPathKey, SkillKey};
 use crate::prerequisite::Prerequisite;
@@ -115,4 +116,26 @@ pub enum Unmet {
         met: u8,
         failed: Vec<Unmet>,
     },
+    /// `unmet` where the pick would go, though a pick in a later slot of the same character level meets it: a level
+    /// fills its slots in a fixed order (class selections, class feat slots, race slots, the general slot, the slots
+    /// options' rows and feats give, then each Mythic rank the level reaches), so that pick comes too late (ticket
+    /// 126). Only a picker's reason has it, always outermost, around what the slot's check gave.
+    MetLater {
+        unmet: Box<Unmet>,
+        later: Box<LaterPick>,
+    },
+}
+
+/// The pick in a later slot of the same character level that would meet an unmet prerequisite
+/// ([`Unmet::MetLater`]).
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct LaterPick {
+    pub slot: SlotId,
+    pub kind: SlotKind,
+    pub pick: Pick,
+    /// The character level both slots are at (a Mythic rank's slots are at the level its ascension comes at).
+    pub level: u8,
+    /// Whether the two picks could trade slots: each slot takes the other's pick (prerequisites included), so the
+    /// reason says to swap them.
+    pub swap: bool,
 }

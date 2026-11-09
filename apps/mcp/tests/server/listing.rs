@@ -101,6 +101,35 @@ async fn the_instructions_say_what_to_know_before_planning() {
 }
 
 #[tokio::test]
+async fn the_instructions_give_the_pick_order_within_a_level() {
+    // Ticket 126: a pick that needs another taken at the same level goes in the later slot.
+    let instructions = Client::start().await.instructions();
+    let before = instructions
+        .find("Before you plan:")
+        .expect("the paragraph");
+    let workflow = instructions.find("Workflow:").expect("the workflow");
+    let paragraph = &instructions[before..workflow];
+    let order = [
+        "`slot.feat.N.class.I`",
+        "race slots",
+        "`slot.feat.N.general.0`",
+        "`slot.path-selection.R.I`",
+    ];
+    let at: Vec<usize> = order
+        .iter()
+        .map(|phrase| {
+            paragraph
+                .find(phrase)
+                .unwrap_or_else(|| panic!("no {phrase} in {paragraph}"))
+        })
+        .collect();
+    assert!(at.is_sorted(), "{order:?} at {at:?}");
+    for phrase in ["later slot", "comes after this slot", "swap the two picks"] {
+        assert!(paragraph.contains(phrase), "no {phrase} in {paragraph}");
+    }
+}
+
+#[tokio::test]
 async fn the_instructions_say_to_compare_class_splits_before_committing() {
     // Ticket 115, option A: no `reach` tool; branch the splits and `compare` them first.
     let instructions = Client::start().await.instructions();

@@ -21,6 +21,7 @@ pub fn conditions(unmet: &Unmet) -> Vec<(&Prerequisite, Option<u8>)> {
             children.iter().flat_map(conditions).collect()
         }
         Unmet::AtLeast { failed, .. } => failed.iter().flat_map(conditions).collect(),
+        Unmet::MetLater { unmet, .. } => conditions(unmet),
     }
 }
 
