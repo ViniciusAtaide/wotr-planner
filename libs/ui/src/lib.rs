@@ -3,6 +3,7 @@ use leptos::tachys::html::element::meta;
 use leptos_meta::{MetaTags, Stylesheet, Title, provide_meta_context};
 
 mod browser;
+mod export;
 mod game_data;
 mod grid;
 mod icons;

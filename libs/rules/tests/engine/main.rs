@@ -8,6 +8,7 @@ mod archetype_rows;
 mod attack_line;
 mod backgrounds;
 mod bonus_feats;
+mod build_sheet;
 mod canonical;
 mod check;
 mod class_rules;

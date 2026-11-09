@@ -190,6 +190,25 @@ input[type="search"] {
   color: var(--bad);
 }
 
+/* The build sheet's actions: two buttons side by side, and the confirmation after them (below them when the cover
+   screen has no room). */
+.export {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+}
+
+.export-status {
+  color: var(--accent);
+  font-size: 14px;
+}
+
+.export-status:empty {
+  display: none;
+}
+
 .icon {
   min-width: var(--tap);
   padding: 0;

@@ -8,6 +8,7 @@ use leptos::prelude::*;
 use rules::{Build, Choice, Edit, Engine, Sheet, SlotId, StaleLink, WeaponKey};
 
 use crate::browser::{self, Fragment};
+use crate::export::BuildSheetActions;
 use crate::grid::LevelsGrid;
 use crate::mythic::MythicTrack;
 use crate::picker::Picker;
@@ -199,6 +200,7 @@ fn SheetView(engine: Arc<Engine>) -> impl IntoView {
                 <BuildName/>
             </header>
             <ErrorBanner/>
+            <BuildSheetActions/>
             <BuildStartPanel/>
             <Tabs/>
             <Picker/>
