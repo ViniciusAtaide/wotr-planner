@@ -1,7 +1,7 @@
 # Spells as game data
 
 Type: design
-Status: open (option B decided; stage 1, the foundation, built 2026-11-09; stages 2 and 3 to do)
+Status: resolved (option B, built 2026-11-09 in three stages)
 Blocked by: none (the user took option B, 2026-11-09; the source is saved)
 Map: [WotR Build Planner](../map.md)
 
@@ -124,4 +124,21 @@ Whatever the option, the map is updated with it:
   - For stage 2: the writers' files hold the counts the Plan gives (wizard 0–3: 107, 4–6: 100, 7–9: 73; cleric 104; druid 53; Angel, Azata, Lich, Demon 103), except the bard's 10 (Heaven's Wing Strike is one spell, linked to its wizard-page block), so writer 7 has 92. A writer edits only `summary`. The MCP agent finds the types in `libs/rules/src/spells.rs` and the data in `GameData::spells` and `GameData::spell_lists` (the server reads the files, so the browser JSON's lack of them doesn't matter to it).
   - Checks: `scripts/check.sh --schema`: ALL-OK (fmt, clippy, wasm-clippy, the workspace tests, rules-wasm, seed-check, sqlx-migrate, sqlx-prepare). Behaviour proof, `scripts/proof.sh both` (the rules types and the data together; `data` mode reads HEAD's data, which has no `spells/`, so the files reader takes a missing folder as no spells): 2,162 Builds, none only on one side, none differing. The proof ran with `CARGO_TARGET_DIR` in this agent's scratchpad rather than the shared default, to keep it from other worktrees' builds.
   - The dev database was rebuilt with `CLAUDE.md`'s four steps; the main checkout's needs the same after the merge (new migration).
+- 2026-11-09, stage 2, the seven writers and their reviewers (the orchestrator; each in its own worktree, `t121-w1` to `t121-w7`): each writer wrote its group's summaries from the saved pages under ticket 112's rules (one sentence, at most 160 characters, own words, "you" for the caster, the guide wins; where a block contradicts itself the summary says so), checked by a shared script (the scratchpad's `check_spell_summaries.py`, after 112's: empty, over 160, numbers not in the block, 8-word copies, mostly copied 4-word runs) and `seed --check-only`; then an independent reviewer per group, given only the summaries and the blocks, read every one and fixed what it found:
+  | Group | Spells | Factual errors fixed | Copy / style fixed |
+  | --- | --- | --- | --- |
+  | wizard 0–3 | 107 | 0 | 8 |
+  | wizard 4–6 | 100 | 3 | 2 |
+  | wizard 7–9 | 73 | 1 | 0 |
+  | cleric | 104 | 4 | 0 |
+  | druid | 53 | 0 | 6 |
+  | Angel, Azata, Lich, Demon | 103 | 4 | 8 |
+  | Aeon, Trickster, Gold Dragon and the class pages | 92 | 0 | 1 |
+  | **all** | **632** | **12** | **25** |
+  No spell is left without a summary. The factual errors were conditions dropped (a penalty only on a failed save; HD at most the caster level, not below it; a bonus only to Strength skills; immunity to you alone, not your companions). Contradictions the summaries note: Web (10 ft radius against a 20' burst), Wail of the Banshee, Jolting Portent, Dragon Storm, Revolt. Each group was merged into `main` after its review.
+- 2026-11-09, stage 3 (the orchestrator): stage 1's Hold Monster test pinned the empty summary; it now pins the written one, and a new real-data test keeps every spell's summary present and within 160 characters (`spells::every_spell_has_a_summary_of_at_most_160_characters`). The map's Decisions line is added, and ticket 104's line is marked superseded in part (the honesty boundary). `scripts/check.sh`: ALL-OK.
 - 2026-11-09, stage 2, Agent D (the MCP side), worktree `t121-mcp-spells`, `apps/mcp` only: the server reads the data files (`seeds::check_game_data_files`), so the spells reach it although the browser JSON skips them. Tests first: `apps/mcp/tests/server/spells.rs` (8 tests: Hold Monster by name and key with its school, descriptors, summary and link; under `category: "Compulsion"`, "Enchantment", a list of categories and "Universalist"; by its summary's words; described with its facts and wizard 5, bard 4, inquisitor 4, witch 5, not the cleric's, the sorcerer among the wizard list's users; Fireball's "Flame Dancer only" on the bard's; the wizard list by level 0–9 and the lich's to 10, found by `search`; `spell_lists` on the sorcerer, bard, Magic Deceiver and Angel, none on the fighter; the instructions). Then `Kind::Spell`/`SpellList`, `Hit::descriptors`, the `Item` fields (`facts`, `lists`, `owner`, `used_by`, `spells`, `spell_lists`) and their shapes, a new `src/spells.rs`, the index and the `category` filter in `search.rs`, the instructions and the `search` and `describe` descriptions. Two older tests followed the data: `search::kinds_filter_the_matches` needs `limit: 100` to reach a feat past the Summon Monster spells, and the end-to-end test now finds Animal Growth by name (only "mass animal growth" still matches no name). `cargo fmt --all --check` and `scripts/check.sh`: ALL-OK (fmt, clippy, wasm-clippy, test, rules-wasm, seed-check). No migration, no query change.
+
+## Answer
+
+Done 2026-11-09, option B in three stages. The planner holds a spell catalogue as reference data: 632 spells (one per block on the saved pages, in one file per page and level heading), each with its school, descriptors (the subschool among them), target, duration, saving throw, spell resistance, casting time and a reviewed one-sentence summary, and 24 spell lists (classes, the Magic Deceiver, the Mythic spellbooks, Angel's and Lich's merged lists) with their owners, users and footnotes. No Build choice names a spell, and the browser gets none. The MCP server searches and describes spells and lists, and its honesty boundary states the catalogue's facts as fact; spells known or prepared, spells per day, the bonus spells left out in stage 1 and merging a Mythic spellbook stay the agent's knowledge.
