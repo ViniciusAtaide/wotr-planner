@@ -1,4 +1,4 @@
-//! `search`: names, keys and initials across the game data's kinds.
+//! `search`: names, keys and initials across the game data's kinds, and the words of their summaries.
 
 use rmcp::serde_json::json;
 
@@ -52,15 +52,29 @@ async fn an_exact_name_comes_first() {
     let client = Client::start().await;
     let matches = client.search_for("Augment Summoning").await;
     assert_eq!(matches.first(), Some(&pair("feat", "augment-summoning")));
-    // Before the longer names that start with it and the ones that hold its words, kind before kind.
-    let matches = client.search_for("spell focus").await;
+    // Before the longer names that start with it and the ones that hold its words, kind before kind; the
+    // summaries that name it come after.
+    let found = client.ok("search", json!({ "query": "spell focus" })).await;
+    let by_name: Vec<(String, String)> = found["matches"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|hit| hit.get("matched").is_none())
+        .map(|hit| (text(&hit["kind"]), text(&hit["key"])))
+        .collect();
     assert_eq!(
-        matches,
+        by_name,
         [
             pair("feat", "spell-focus"),
             pair("mythic_feat", "spell-focus-mythic"),
             pair("feat", "greater-spell-focus"),
         ]
+    );
+    assert!(
+        found["matches"].as_array().unwrap()[3..]
+            .iter()
+            .all(|hit| hit["matched"] == "summary"),
+        "{found}"
     );
 }
 
@@ -244,4 +258,108 @@ async fn real_data_every_melee_mythic_feat_in_one_call() {
             .all(|hit| hit["kind"] == "mythic_feat" && hit["category"] == "Melee"),
         "{found}"
     );
+}
+
+#[tokio::test]
+async fn real_data_dc_finds_the_dc_sources_by_their_summaries() {
+    // Ticket 123: the Max DC run searched "DC" for what raises spell DCs and got names and initials.
+    let client = Client::start().await;
+    // At the default limit, the name and initials matches fill the list, and the note says what it left out.
+    let first = client.ok("search", json!({ "query": "DC" })).await;
+    let note = text(&first["note"]);
+    assert!(
+        note.contains("more matches by summary") && note.contains("raise `limit`"),
+        "{note}"
+    );
+
+    let found = client
+        .ok("search", json!({ "query": "DC", "limit": 100 }))
+        .await;
+    assert!(found.get("note").is_none(), "{found}");
+    let matches = found["matches"].as_array().unwrap();
+    let hit = |kind: &str, key: &str| {
+        matches
+            .iter()
+            .find(|hit| hit["kind"] == kind && hit["key"] == key)
+            .unwrap_or_else(|| panic!("{kind} {key} isn't among the hits: {found}"))
+    };
+    for (kind, key) in [
+        ("feat", "spell-focus"),
+        ("feat", "greater-spell-focus"),
+        ("feat", "elemental-focus"),
+        ("mythic_feat", "spell-focus-mythic"),
+        ("option", "sorcerer/bloodline/arcane"),
+        ("option", "sorcerer/bloodline/fey"),
+        (
+            "option",
+            "sorcerer/bloodline/arcane/school-power/enchantment",
+        ),
+        ("race", "kitsune"),
+        ("race", "gnome"),
+        ("race", "oread"),
+    ] {
+        assert_eq!(hit(kind, key)["matched"], "summary", "{kind} {key}");
+    }
+    // A name match ranks first and isn't marked: "DC" is in the Aeon gaze's name.
+    let gaze = hit("option", "aeon/enforcing-gaze/enforcing-gaze-save-dc");
+    assert!(gaze.get("matched").is_none(), "{gaze}");
+    let first_summary = matches
+        .iter()
+        .position(|hit| hit["matched"] == "summary")
+        .unwrap();
+    assert!(
+        matches[first_summary..]
+            .iter()
+            .all(|hit| hit["matched"] == "summary"),
+        "summary matches come after the name, key and initials matches: {found}"
+    );
+}
+
+#[tokio::test]
+async fn real_data_summary_matches_are_whole_words_and_every_word_first() {
+    let client = Client::start().await;
+    // "DC" inside another word doesn't match a summary: no summary hit lacks the word "DC" or "DCs".
+    let found = client
+        .ok("search", json!({ "query": "DC", "limit": 100 }))
+        .await;
+    for hit in found["matches"].as_array().unwrap() {
+        if hit["matched"] == "summary" {
+            let summary = text(&hit["summary"]);
+            assert!(
+                summary
+                    .split(|c: char| !c.is_alphanumeric())
+                    .any(|word| word == "DC" || word == "DCs"),
+                "{hit}"
+            );
+        }
+    }
+
+    // A summary holding both words ranks before one holding only one.
+    let matches = client
+        .search(json!({ "query": "compulsion DCs", "limit": 100 }))
+        .await;
+    let fey = matches
+        .iter()
+        .position(|found| found == &pair("option", "sorcerer/bloodline/fey"))
+        .expect("the Fey bloodline matches");
+    let spell_focus = matches
+        .iter()
+        .position(|found| found == &pair("feat", "spell-focus"))
+        .expect("Spell Focus matches by \"DCs\" alone");
+    assert!(fey < spell_focus, "{matches:?}");
+}
+
+#[tokio::test]
+async fn real_data_only_summary_matches_say_so_in_the_note() {
+    let client = Client::start().await;
+    // No item is named for "compulsion": every hit comes from a summary, and the note says so.
+    let found = client.ok("search", json!({ "query": "compulsion" })).await;
+    let matches = found["matches"].as_array().unwrap();
+    assert!(!matches.is_empty(), "{found}");
+    assert!(
+        matches.iter().all(|hit| hit["matched"] == "summary"),
+        "{found}"
+    );
+    let note = text(&found["note"]);
+    assert!(note.contains("summar"), "{note}");
 }

@@ -1,9 +1,10 @@
-//! `search`: every item the agent may name, matched by name, key or initials and ranked.
+//! `search`: every item the agent may name, matched by name, key or initials, or by the words of its summary
+//! (ticket 123), and ranked.
 
 use rules::{Engine, GameData, GuideRef, Prerequisite};
 
 use crate::planner::all_selections;
-use crate::shapes::{Hit, Kind, SearchResult};
+use crate::shapes::{Hit, Kind, Matched, SearchResult};
 use crate::similar::{FLOOR, closeness, words};
 
 /// How many matches a search returns when it doesn't say (for a query, and for an empty one listing what the filters
@@ -30,6 +31,8 @@ struct Entry {
     words: Vec<String>,
     /// The words' first letters: "Brown-Fur Transmuter" → `bft`.
     initials: String,
+    /// The summary's words, lower case, apostrophes dropped.
+    summary_words: Vec<String>,
 }
 
 /// How well an entry matches, best first.
@@ -45,6 +48,11 @@ enum Rank {
     Contains,
     /// The initials start with the query.
     InitialsStart,
+    /// Some query word is a whole word of the summary; `missing` counts the query words it lacks, so a summary
+    /// holding every word comes first.
+    Summary {
+        missing: usize,
+    },
 }
 
 impl SearchIndex {
@@ -72,6 +80,7 @@ impl SearchIndex {
                     category: Some(category.to_owned()),
                     prerequisite: prerequisite(&class.prerequisite),
                     guide_url: guide(&class.guide),
+                    matched: None,
                 });
                 for archetype in &class.archetypes {
                     add(Hit {
@@ -83,6 +92,7 @@ impl SearchIndex {
                         category: None,
                         prerequisite: prerequisite(&archetype.prerequisite),
                         guide_url: guide(&archetype.guide),
+                        matched: None,
                     });
                 }
             }
@@ -97,6 +107,7 @@ impl SearchIndex {
                 category: None,
                 prerequisite: None,
                 guide_url: guide(&path.guide),
+                matched: None,
             });
         }
         for feat in &data.feats {
@@ -109,6 +120,7 @@ impl SearchIndex {
                 category: Some(feat.category.name().to_owned()),
                 prerequisite: prerequisite(&feat.prerequisite),
                 guide_url: guide(&feat.guide),
+                matched: None,
             });
         }
         for ability in &data.mythic_abilities {
@@ -121,6 +133,7 @@ impl SearchIndex {
                 category: Some(ability.group.name().to_owned()),
                 prerequisite: prerequisite(&ability.prerequisite),
                 guide_url: guide(&ability.guide),
+                matched: None,
             });
         }
         for feat in &data.mythic_feats {
@@ -133,6 +146,7 @@ impl SearchIndex {
                 category: Some(feat.group.name().to_owned()),
                 prerequisite: prerequisite(&feat.prerequisite),
                 guide_url: guide(&feat.guide),
+                matched: None,
             });
         }
         for selection in all_selections(data) {
@@ -146,6 +160,7 @@ impl SearchIndex {
                     category: Some(selection.name.clone()),
                     prerequisite: prerequisite(&option.prerequisite),
                     guide_url: guide(&option.guide),
+                    matched: None,
                 });
             }
         }
@@ -159,6 +174,7 @@ impl SearchIndex {
                 category: None,
                 prerequisite: None,
                 guide_url: guide(&race.guide),
+                matched: None,
             });
         }
         for deity in &data.deities {
@@ -171,6 +187,7 @@ impl SearchIndex {
                 category: None,
                 prerequisite: None,
                 guide_url: guide(&deity.guide),
+                matched: None,
             });
         }
         for background in &data.backgrounds {
@@ -184,6 +201,7 @@ impl SearchIndex {
                 prerequisite: None,
                 // The user's list, not the guide's: no link.
                 guide_url: None,
+                matched: None,
             });
         }
         Self { entries }
@@ -241,39 +259,76 @@ impl SearchIndex {
             }),
         }
         let total = u32::try_from(found.len()).unwrap_or(u32::MAX);
-        let note = found.is_empty().then(|| {
-            let mut note = match query {
-                Some(_) => format!("No item in the planner's data matches `{given}`"),
-                None => "No item in the planner's data matches".to_owned(),
-            };
-            if kinds.is_some() || categories.is_some() {
-                note.push_str(" with these filters");
-            }
-            note.push_str(
-                ". The data holds what the guide lists: an item that isn't there can't be taken in a Build.",
-            );
-            if query.is_some() {
-                let near = self.near_names(given, &allowed);
-                if !near.is_empty() {
-                    note.push_str(&format!(" Near names: {}.", near.join(", ")));
-                }
-            }
-            for category in categories.into_iter().flatten() {
-                if let Some(near) = self.near_categories(category) {
-                    note.push_str(&near);
-                }
-            }
-            note
-        });
+        let by_summary = |found: &[(Rank, &Entry)]| {
+            found
+                .iter()
+                .filter(|(rank, _)| matches!(rank, Rank::Summary { .. }))
+                .count()
+        };
+        let mut notes = Vec::new();
+        if found.is_empty() {
+            notes.push(self.no_match_note(given, query.is_some(), kinds, categories, &allowed));
+        } else if by_summary(&found) == found.len() {
+            notes.push(format!(
+                "No item's name, key or initials match `{given}`: every match is by its summary's words \
+                 (`matched: \"summary\"`)."
+            ));
+        }
+        let hidden = by_summary(found.get(limit..).unwrap_or_default());
+        if hidden > 0 {
+            notes.push(format!(
+                "`limit` left out {hidden} more {} by summary (`total` counts {}): raise `limit` to see {}.",
+                plural(hidden, "match", "matches"),
+                plural(hidden, "it", "them"),
+                plural(hidden, "it", "them"),
+            ));
+        }
+        let note = (!notes.is_empty()).then(|| notes.join(" "));
         Ok(SearchResult {
             matches: found
                 .into_iter()
                 .take(limit)
-                .map(|(_, entry)| entry.hit.clone())
+                .map(|(rank, entry)| Hit {
+                    matched: matches!(rank, Rank::Summary { .. }).then_some(Matched::Summary),
+                    ..entry.hit.clone()
+                })
                 .collect(),
             total,
             note,
         })
+    }
+
+    /// The note for a search that matched nothing: says so, and names the near names and categories.
+    fn no_match_note(
+        &self,
+        given: &str,
+        has_query: bool,
+        kinds: Option<&[Kind]>,
+        categories: Option<&[String]>,
+        allowed: &impl Fn(&&Entry) -> bool,
+    ) -> String {
+        let mut note = match has_query {
+            true => format!("No item in the planner's data matches `{given}`"),
+            false => "No item in the planner's data matches".to_owned(),
+        };
+        if kinds.is_some() || categories.is_some() {
+            note.push_str(" with these filters");
+        }
+        note.push_str(
+            ". The data holds what the guide lists: an item that isn't there can't be taken in a Build.",
+        );
+        if has_query {
+            let near = self.near_names(given, allowed);
+            if !near.is_empty() {
+                note.push_str(&format!(" Near names: {}.", near.join(", ")));
+            }
+        }
+        for category in categories.into_iter().flatten() {
+            if let Some(near) = self.near_categories(category) {
+                note.push_str(&near);
+            }
+        }
+        note
     }
 
     /// The names the filters allow that are close to a query that matched nothing, closest first, as
@@ -356,6 +411,7 @@ impl Entry {
     fn new(hit: Hit) -> Self {
         let words = words(&hit.name);
         Self {
+            summary_words: hit.summary.as_deref().map(self::words).unwrap_or_default(),
             name: hit.name.to_lowercase(),
             initials: words
                 .iter()
@@ -390,7 +446,17 @@ impl Entry {
         {
             Some(Rank::InitialsStart)
         } else {
-            None
+            let missing = query
+                .words
+                .iter()
+                .filter(|word| {
+                    !self
+                        .summary_words
+                        .iter()
+                        .any(|summary_word| same_word(word, summary_word))
+                })
+                .count();
+            (missing < query.words.len()).then_some(Rank::Summary { missing })
         }
     }
 
@@ -446,5 +512,22 @@ impl Query {
             words,
             initials,
         })
+    }
+}
+
+/// Whether a summary's word is a query's word, as a whole word: the same, or one is the other's plural ("DC" and
+/// "DCs", "hex" and "hexes"). A word inside another ("DC" in "DCrossbow") isn't.
+fn same_word(a: &str, b: &str) -> bool {
+    let plural_of = |plural: &str, single: &str| {
+        plural.strip_suffix('s') == Some(single) || plural.strip_suffix("es") == Some(single)
+    };
+    a == b || plural_of(a, b) || plural_of(b, a)
+}
+
+/// One word or the other, by a count.
+fn plural(count: usize, one: &'static str, many: &'static str) -> &'static str {
+    match count {
+        1 => one,
+        _ => many,
     }
 }

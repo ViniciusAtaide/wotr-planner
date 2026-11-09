@@ -204,6 +204,10 @@ fn not_found(planner: &Planner, kind: Kind, key: &str) -> String {
             .search(query, None, None, Some(5))
             .map(|found| found.matches)
             .unwrap_or_default()
+            .into_iter()
+            // By name, key or initials: a summary that holds a word of the key isn't close to it.
+            .filter(|hit| hit.matched.is_none())
+            .collect::<Vec<_>>()
     };
     let mut closest: Vec<Hit> = search(key);
     if closest.is_empty() {

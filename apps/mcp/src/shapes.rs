@@ -63,8 +63,9 @@ impl Kind {
 /// `search`'s arguments.
 #[derive(Debug, Deserialize, JsonSchema)]
 pub struct SearchArgs {
-    /// Words of a name, a key, or initials ("BFT" for Brown-Fur Transmuter). Case doesn't matter. May be empty or
-    /// left out when `kinds` or `category` is given: then every item they allow matches.
+    /// Words of a name, a key, or initials ("BFT" for Brown-Fur Transmuter), or words of what an item does ("DC"):
+    /// a summary holding a query word as a whole word matches too, after the name matches. Case doesn't matter.
+    /// May be empty or left out when `kinds` or `category` is given: then every item they allow matches.
     #[serde(default)]
     pub query: String,
     /// Only these kinds; every kind when left out.
@@ -101,11 +102,13 @@ impl OneOrMany {
 #[derive(Debug, Serialize, JsonSchema)]
 pub struct SearchResult {
     /// The best match first: exact names and keys, then initials, then names starting with the query, then
-    /// names holding its words, then any name or key containing it. For an empty query, by kind, then name.
+    /// names holding its words, then any name or key containing it, then summaries holding a query word as a whole
+    /// word (`matched: "summary"`), those holding every query word first. For an empty query, by kind, then name.
     pub matches: Vec<Hit>,
     /// How many items match in all; more than `matches` holds when `limit` cut the list.
     pub total: u32,
-    /// When nothing matches: says so, and names the near names (or categories), if any is close.
+    /// When nothing matches: says so, and names the near names (or categories), if any is close. When every match
+    /// is by its summary: says no name, key or initials matched. When `limit` left out summary matches: how many.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub note: Option<String>,
 }
@@ -134,6 +137,18 @@ pub struct Hit {
     /// Where the guide describes it, for the user to read. Never fetch it.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub guide_url: Option<String>,
+    /// `search` only: `"summary"` when the item matched by its summary's words rather than its name, key or
+    /// initials. Left out for those.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub matched: Option<Matched>,
+}
+
+/// How a `search` hit matched, when not by its name, key or initials.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum Matched {
+    /// A query word is a whole word of its summary.
+    Summary,
 }
 
 /// `describe`'s arguments.

@@ -48,7 +48,8 @@ level 16 (have 14)\").
 
 Workflow:
 1. Resolve every name the user gives with `search` (names, keys and initials: \"BFT\" finds the Brown-Fur \
-Transmuter). If a name could mean more than one item, ask the user which one before you build.
+Transmuter; words of what an item does, such as \"DC\", also find it by its summary). If a name could mean more \
+than one item, ask the user which one before you build.
 2. Start with `new_build`. Every Build tool takes the Build's code (`build`) and returns a new code, the planner \
 `link` and `todo`, the choices still open, each by its address.
 3. Fill the Build start: race, racial ability, faith, alignment, background, point-buy scores.
@@ -123,7 +124,10 @@ impl Server {
 #[tool_router]
 impl Server {
     #[tool(
-        description = "Find game items by name, key or initials (\"BFT\" finds the Brown-Fur Transmuter). Kinds: \
+        description = "Find game items by name, key or initials (\"BFT\" finds the Brown-Fur Transmuter), or by \
+            what they do: an item whose summary holds a query word as a whole word (\"DC\" finds Spell Focus and \
+            the Kitsune) matches too, after every name match, marked `matched: \"summary\"`, those holding every \
+            query word first; `note` says when `limit` left some out. Kinds: \
             class, archetype, path (Mythic path), feat, mythic_ability, mythic_feat, option (an option of a Feature \
             selection: an arcanist exploit, a rogue talent, a bloodline, a Lich power), race, deity, background. \
             Each match has the key `describe` takes, its short summary when the data has one, its parent (an \
