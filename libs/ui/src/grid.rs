@@ -5,7 +5,7 @@ use leptos::prelude::*;
 use rules::{AbilityScores, Build, Choice, Engine, LevelSheet, Sheet, Slot, WeaponKey};
 
 use crate::icons::feat_icon;
-use crate::planner::{Tab, Target, use_planner};
+use crate::planner::{AttackWeapon, Tab, Target, use_planner};
 
 #[component]
 pub fn LevelsGrid() -> AnyView {
@@ -298,11 +298,10 @@ fn AttackBlock(sheet: std::sync::Arc<Sheet>) -> impl IntoView {
     let planner = use_planner();
     let engine = planner.engine();
     let default = engine.default_attack_weapon(&sheet);
-    let weapon = Memo::new(move |_| {
-        planner
-            .attack_weapon
-            .get()
-            .unwrap_or_else(|| default.clone())
+    let weapon = Memo::new(move |_| match planner.attack_weapon.get() {
+        AttackWeapon::Default => default.clone(),
+        AttackWeapon::NoWeapon => None,
+        AttackWeapon::Weapon(key) => Some(key),
     });
     let options = engine
         .attack_weapons()
@@ -369,7 +368,11 @@ fn AttackBlock(sheet: std::sync::Arc<Sheet>) -> impl IntoView {
                     let value = event_target_value(&event);
                     planner
                         .attack_weapon
-                        .set(Some((!value.is_empty()).then(|| WeaponKey::new(&value))));
+                        .set(if value.is_empty() {
+                            AttackWeapon::NoWeapon
+                        } else {
+                            AttackWeapon::Weapon(WeaponKey::new(&value))
+                        });
                 }>
                     <option value="" selected=move || weapon.with(Option::is_none)>
                         "No weapon"
