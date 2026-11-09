@@ -21,17 +21,30 @@ use crate::options::options;
 use crate::planner::Planner;
 use crate::shapes::{
     BuildResult, ChooseArgs, ChooseResult, CompareArgs, CompareResult, DescribeArgs, Item,
-    NewBuildArgs, OptionsArgs, OptionsResult, SearchArgs, SearchResult, SheetArgs, SheetResult,
-    WithdrawArgs,
+    NewBuildArgs, OneOrMany, OptionsArgs, OptionsResult, SearchArgs, SearchResult, SheetArgs,
+    SheetResult, WithdrawArgs,
 };
 use crate::sheet::sheet;
 use crate::withdraw::withdraw;
 
-/// What every client is told on connecting: the workflow, how to batch, value and branch, and the honesty boundary
-/// (plan, ticket 104, section 1). Short and imperative; the tools' descriptions hold the details.
+/// What every client is told on connecting: what to know before planning (ticket 117), the workflow, how to batch,
+/// value and branch, and the honesty boundary (plan, ticket 104, section 1). Short and imperative; the tools'
+/// descriptions hold the details.
 pub const INSTRUCTIONS: &str = "\
 wotr-planner builds Pathfinder: Wrath of the Righteous characters with the rules engine of a build planner. Every \
 Build its tools return is one the planner's rules allow.
+
+Before you plan:
+- Point-buy scores start at 10 and run from 7 to 18 on a 25-point budget; `sheet` gives `point_buy_spent` and \
+`point_buy_budget`.
+- Choose the faith (a deity, or atheism) before the alignment: no alignment is open until the faith is chosen, and a \
+deity allows only some.
+- `sheet` gives each Mythic rank's `character_level`, the character level its ascension comes at.
+- A class split decides what the last levels can take: Fighter 5 / Barbarian 15 gives up Barbarian levels 16 to 20 \
+and whatever needs them. Before you commit to a class split, branch the candidates from one code (Barbarian 20, and \
+Fighter 5 / Barbarian 15), add their levels, and `compare` the branches: it lists the feats and features each gains \
+that the other doesn't. `options` with `only_open: false` says what a closed option still needs (\"Needs Barbarian \
+level 16 (have 14)\").
 
 Workflow:
 1. Resolve every name the user gives with `search` (names, keys and initials: \"BFT\" finds the Brown-Fur \
@@ -51,7 +64,7 @@ reason), fix that step, and resend the rest from the code it returned.
 Values: take them from `options`, which lists what a choice can take now and why the rest is closed. A \
 parameterised feat needs `{key, parameter}`: list them with `options {values: true}`. A spellcasting prestige \
 class needs `advances`, the classes it advances (`[]` for none). A point-buy score or a skill's ranks take the \
-number to reach.
+number to reach; `level.N.skill` takes a map `{skill: ranks}` to spend a level's skill points in one step.
 
 Branching: for alternatives (Lich or Aeon), build the shared part once, `choose` each alternative from that same \
 code, fill each branch, then `compare` the codes. Report its differences as facts, without ranking them.
@@ -110,9 +123,14 @@ impl Server {
         description = "Find game items by name, key or initials (\"BFT\" finds the Brown-Fur Transmuter). Kinds: \
             class, archetype, path (Mythic path), feat, mythic_ability, mythic_feat, option (an option of a Feature \
             selection: an arcanist exploit, a rogue talent, a bloodline, a Lich power), race, deity, background. \
-            Each match has the key `describe` takes, its parent (an archetype's class, an option's selection), its \
-            category, its prerequisite in the planner's words, and a guide link for the user (never fetch it). Best \
-            match first.",
+            Each match has the key `describe` takes, its short summary when the data has one, its parent (an \
+            archetype's class, an option's selection), its category, its prerequisite in the planner's words, and a \
+            guide link for the user (never fetch it). Best \
+            match first. `category` filters by a feat's category (\"Weapon\", \"Magic\", …), a mythic pick's group \
+            (\"Melee\", \"Ranged\", …) or an option's Feature selection (\"Rage Power\"), one or a list; with \
+            `kinds` or `category`, `query` may be empty to list every item they allow (\"every Melee mythic \
+            feat\"). `total` counts every match, beyond `limit`. When nothing matches, `note` says so and names \
+            only near names: the data holds what the guide lists, so a name it lacks isn't in the planner.",
         annotations(read_only_hint = true, open_world_hint = false)
     )]
     async fn search(
@@ -120,11 +138,16 @@ impl Server {
         Parameters(args): Parameters<SearchArgs>,
     ) -> Result<Json<SearchResult>, String> {
         self.blocking(move |planner| {
-            let matches = planner
+            let categories = args.category.map(OneOrMany::into_vec);
+            planner
                 .index
-                .search(&args.query, args.kinds.as_deref(), args.limit)
-                .ok_or("The query is empty: give a name, a key or initials.")?;
-            Ok(Json(SearchResult { matches }))
+                .search(
+                    &args.query,
+                    args.kinds.as_deref(),
+                    categories.as_deref(),
+                    args.limit,
+                )
+                .map(Json)
         })
         .await
     }
@@ -135,8 +158,9 @@ impl Server {
             levels, features, granted feats, feat slots, Feature selections; an archetype's rows merged over its \
             class's), plus its archetypes and its selections with their options. A Mythic path: its features, feat \
             slots and selections by Mythic rank, and its selections with their options. An option: its rows by \
-            level, when it has any. A deity: alignments and domains. Facts from the planner's data; what a feature \
-            does is not in it.",
+            level, when it has any. A deity: alignments and domains. The item, and each feature and selection option \
+            it lists, carries its short summary when the data has one; beyond those, what an item does is not in the \
+            planner's data.",
         annotations(read_only_hint = true, open_world_hint = false)
     )]
     async fn describe(
@@ -206,7 +230,8 @@ impl Server {
 
     #[tool(
         description = "What one choice of a Build can take, from the planner's own picker or stepper for it: each \
-            option's `value` (what `choose` takes), its name, and its status: \"ok\", or {issue, reason} with the \
+            option's `value` (what `choose` takes), its name, its short summary when the data has one, and its \
+            status: \"ok\", or {issue, reason} with the \
             engine's issue (`unmet`, `already_held`, `max_times`, `class_level_cap`, `not_from_path`, \
             `deity_alignment`, `needs_faith`, `deity_domain`, `breaks_later`, …) and the planner's reason. `choice` \
             is an address from `sheet` or `todo`: a slot (`slot.feat.3.general.0`), `level.N.class` (N one past the \
@@ -234,10 +259,13 @@ impl Server {
             none). Each step takes only an option the planner offers and finds open, by the planner's own edit, and \
             the result is checked again, so the Build stays possible. A point-buy score (`start.score.int`) or a \
             skill's ranks at a level (`level.N.skill.<skill>`) take the number to reach, reached one step at a time, \
-            each checked; the current value is a no-op. The first step refused stops the rest: `applied` counts the \
-            steps applied, and `rejected` {step, choice, issue, reason} gives the engine's issue (`unmet`, \
-            `already_held`, `breaks_later`, …) or the server's (`not_an_option`, with the closest values; \
-            `no_such_choice`). Returns the envelope (`build`, `link`, `todo`) of the Build as the applied steps left \
+            each checked; the current value is a no-op. `level.N.skill` takes a map {skill: ranks} (`{\"athletics\": \
+            1, \"perception\": 1}`), each skill's ranks at that level reached the same way, all in one step. The first \
+            step refused stops the rest (a refused rank refuses its whole step): `applied` counts the steps applied, \
+            and `rejected` {step, choice, issue, reason} gives the engine's issue (`unmet`, `already_held`, \
+            `breaks_later`, …) or the server's (`not_an_option`, with the closest values; `needs_parameter`, a \
+            parameterised feat given by its key alone, with what it takes and its open values; `no_such_choice`). \
+            Returns the envelope (`build`, `link`, `todo`) of the Build as the applied steps left \
             it. A code that doesn't open is `stale_link`.",
         annotations(read_only_hint = true, open_world_hint = false)
     )]
@@ -270,15 +298,16 @@ impl Server {
     }
 
     #[tool(
-        description = "Compare 2 to 4 Builds (`builds`: their codes, for example two branches of one Build), from \
+        description = "Compare 1 to 4 Builds (`builds`: their codes, for example two branches of one Build), from \
             the planner's sheets. For each Build, a summary at its last level: classes and levels, BAB, saves, \
             scores, caster level (class levels only), spell-level access, Mythic rank, first ascension, path, Path \
             switch, level cap, link, and with `weapon` (a weapon key) its attack line. Then only what differs: the Build start's choices; by character level, the \
             numbers (class level, BAB, saves, scores), the choices by address and the feats and features each Build \
             gains that another doesn't; by Mythic rank, the status, path and choices; and `path_features`, by rank, \
             the path features each Build has that another lacks. Every per-Build list follows the order of \
-            `builds`. Facts only: it doesn't say which Build is better. Errors: `invalid_arguments` (not 2 to 4 \
-            codes), `stale_link` (naming the code that doesn't open).",
+            `builds`. Facts only: it doesn't say which Build is better. One code gives its summary alone, with \
+            no differences. Errors: `invalid_arguments` (not 1 to 4 codes), `stale_link` (naming the code that \
+            doesn't open).",
         annotations(read_only_hint = true, open_world_hint = false)
     )]
     async fn compare(

@@ -37,6 +37,14 @@ impl ToolError {
         }
     }
 
+    /// A parameterised feat or option given by its key alone: it needs `{key, parameter}`.
+    pub fn needs_parameter(reason: impl Into<String>) -> Self {
+        Self {
+            code: "needs_parameter",
+            reason: reason.into(),
+        }
+    }
+
     /// The choice can't be withdrawn: something later depends on it, or it isn't withdrawn on its own.
     pub fn not_removable(reason: impl Into<String>) -> Self {
         Self {
@@ -45,7 +53,7 @@ impl ToolError {
         }
     }
 
-    /// The arguments parse but don't make sense together (`compare` given one Build, or five).
+    /// The arguments parse but don't make sense together (`compare` given no Build, or five).
     pub fn invalid_arguments(reason: impl Into<String>) -> Self {
         Self {
             code: "invalid_arguments",

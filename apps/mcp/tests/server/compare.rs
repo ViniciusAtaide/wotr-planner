@@ -194,12 +194,25 @@ async fn the_same_build_twice_differs_in_nothing() {
 }
 
 #[tokio::test]
-async fn compare_takes_two_to_four_builds() {
+async fn one_build_gets_its_summary_and_no_differences() {
     let client = Client::on_the_test_world().await;
-    let one = client
-        .call("compare", json!({ "builds": [code(&fighter(1))] }))
-        .await;
-    assert_eq!(error_code(&one), "invalid_arguments");
+    let compared = compare(&client, &[&fighter(9)]).await;
+    let summaries = compared["builds"].as_array().unwrap();
+    assert_eq!(summaries.len(), 1);
+    assert_eq!(summaries[0]["build"], code(&fighter(9)));
+    assert_eq!(summaries[0]["character_level"], 9);
+    assert_eq!(summaries[0]["classes"][0]["levels"], 9);
+    for list in ["start", "levels", "ranks", "path_features"] {
+        assert_eq!(compared[list], json!([]), "{list}: {compared}");
+    }
+}
+
+#[tokio::test]
+async fn compare_takes_one_to_four_builds() {
+    let client = Client::on_the_test_world().await;
+    let none = client.call("compare", json!({ "builds": [] })).await;
+    assert_eq!(error_code(&none), "invalid_arguments");
+    assert!(error_text(&none).contains("1 to 4"), "{none:?}");
     let five = vec![code(&fighter(1)); 5];
     let five = client.call("compare", json!({ "builds": five })).await;
     assert_eq!(error_code(&five), "invalid_arguments");

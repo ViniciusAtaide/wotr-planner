@@ -12,6 +12,7 @@ mod listing;
 mod options;
 mod search;
 mod sheet;
+mod summaries;
 mod support;
 mod test_world;
 mod walks;

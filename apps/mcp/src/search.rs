@@ -3,11 +3,17 @@
 use rules::{Engine, GameData, GuideRef, Prerequisite};
 
 use crate::planner::all_selections;
-use crate::shapes::{Hit, Kind};
+use crate::shapes::{Hit, Kind, SearchResult};
+use crate::similar::{FLOOR, closeness, words};
 
-/// How many matches a search returns when it doesn't say, and at most.
+/// How many matches a search returns when it doesn't say (for a query, and for an empty one listing what the filters
+/// allow), and at most.
 const DEFAULT_LIMIT: usize = 10;
-const MAX_LIMIT: usize = 50;
+const EMPTY_QUERY_LIMIT: usize = 50;
+const MAX_LIMIT: usize = 100;
+
+/// How many near names or categories a note names.
+const NEAR: usize = 5;
 
 /// Every item's [`Hit`], with its name and key ready to match.
 #[derive(Debug)]
@@ -50,6 +56,7 @@ impl SearchIndex {
                 .map(|prerequisite| engine.prerequisite_text(prerequisite, None))
         };
         let guide = |guide: &GuideRef| Some(guide.url());
+        let summary = |text: &str| (!text.is_empty()).then(|| text.to_owned());
 
         for (classes, category) in [
             (&data.classes, "Base class"),
@@ -60,6 +67,7 @@ impl SearchIndex {
                     kind: Kind::Class,
                     key: class.key.as_str().to_owned(),
                     name: class.name.clone(),
+                    summary: summary(&class.summary),
                     parent: None,
                     category: Some(category.to_owned()),
                     prerequisite: prerequisite(&class.prerequisite),
@@ -70,6 +78,7 @@ impl SearchIndex {
                         kind: Kind::Archetype,
                         key: archetype.key.as_str().to_owned(),
                         name: archetype.name.clone(),
+                        summary: summary(&archetype.summary),
                         parent: Some(class.key.as_str().to_owned()),
                         category: None,
                         prerequisite: prerequisite(&archetype.prerequisite),
@@ -83,6 +92,7 @@ impl SearchIndex {
                 kind: Kind::Path,
                 key: path.key.as_str().to_owned(),
                 name: path.name.clone(),
+                summary: summary(&path.summary),
                 parent: None,
                 category: None,
                 prerequisite: None,
@@ -94,6 +104,7 @@ impl SearchIndex {
                 kind: Kind::Feat,
                 key: feat.key.as_str().to_owned(),
                 name: feat.name.clone(),
+                summary: summary(&feat.summary),
                 parent: None,
                 category: Some(feat.category.name().to_owned()),
                 prerequisite: prerequisite(&feat.prerequisite),
@@ -105,6 +116,7 @@ impl SearchIndex {
                 kind: Kind::MythicAbility,
                 key: ability.key.as_str().to_owned(),
                 name: ability.name.clone(),
+                summary: summary(&ability.summary),
                 parent: None,
                 category: Some(ability.group.name().to_owned()),
                 prerequisite: prerequisite(&ability.prerequisite),
@@ -116,6 +128,7 @@ impl SearchIndex {
                 kind: Kind::MythicFeat,
                 key: feat.key.as_str().to_owned(),
                 name: feat.name.clone(),
+                summary: summary(&feat.summary),
                 parent: None,
                 category: Some(feat.group.name().to_owned()),
                 prerequisite: prerequisite(&feat.prerequisite),
@@ -128,6 +141,7 @@ impl SearchIndex {
                     kind: Kind::SelectionOption,
                     key: option.key.as_str().to_owned(),
                     name: option.name.clone(),
+                    summary: summary(&option.summary),
                     parent: Some(selection.key.as_str().to_owned()),
                     category: Some(selection.name.clone()),
                     prerequisite: prerequisite(&option.prerequisite),
@@ -140,6 +154,7 @@ impl SearchIndex {
                 kind: Kind::Race,
                 key: race.key.as_str().to_owned(),
                 name: race.name.clone(),
+                summary: summary(&race.summary),
                 parent: None,
                 category: None,
                 prerequisite: None,
@@ -151,6 +166,7 @@ impl SearchIndex {
                 kind: Kind::Deity,
                 key: deity.key.as_str().to_owned(),
                 name: deity.name.clone(),
+                summary: None,
                 parent: None,
                 category: None,
                 prerequisite: None,
@@ -162,6 +178,7 @@ impl SearchIndex {
                 kind: Kind::Background,
                 key: background.key.as_str().to_owned(),
                 name: background.name.clone(),
+                summary: summary(&background.note),
                 parent: None,
                 category: background.group.map(|group| group.name().to_owned()),
                 prerequisite: None,
@@ -172,40 +189,158 @@ impl SearchIndex {
         Self { entries }
     }
 
-    /// The matches for a query, best first, limited to `kinds` when given. `None` for a query with nothing to
-    /// match.
+    /// The matches for a query, best first, limited to `kinds` and `categories` when given. An empty query matches
+    /// every item the filters allow, by kind and then name. When nothing matches, the result's note says so and names
+    /// the near names and categories ([`similar::FLOOR`]). An error for an empty query without a filter.
     pub(crate) fn search(
         &self,
         query: &str,
         kinds: Option<&[Kind]>,
+        categories: Option<&[String]>,
         limit: Option<u32>,
-    ) -> Option<Vec<Hit>> {
-        let query = Query::new(query)?;
-        let limit = limit.map_or(DEFAULT_LIMIT, |limit| {
+    ) -> Result<SearchResult, String> {
+        let given = query.trim();
+        let query = Query::new(given);
+        if query.is_none() && kinds.is_none() && categories.is_none() {
+            return Err("The query is empty: give a name, a key or initials, or filter by `kinds` or `category` \
+                        to list every item they allow."
+                .to_owned());
+        }
+        let allowed = |entry: &&Entry| {
+            kinds.is_none_or(|kinds| kinds.contains(&entry.hit.kind))
+                && categories.is_none_or(|categories| entry.in_category(categories))
+        };
+        let default_limit = match query {
+            Some(_) => DEFAULT_LIMIT,
+            None => EMPTY_QUERY_LIMIT,
+        };
+        let limit = limit.map_or(default_limit, |limit| {
             usize::try_from(limit).unwrap_or(MAX_LIMIT).min(MAX_LIMIT)
         });
         let mut found: Vec<(Rank, &Entry)> = self
             .entries
             .iter()
-            .filter(|entry| kinds.is_none_or(|kinds| kinds.contains(&entry.hit.kind)))
-            .filter_map(|entry| Some((entry.rank(&query)?, entry)))
+            .filter(allowed)
+            .filter_map(|entry| match &query {
+                Some(query) => Some((entry.rank(query)?, entry)),
+                None => Some((Rank::Exact, entry)),
+            })
             .collect();
-        found.sort_by(|(a_rank, a), (b_rank, b)| {
-            (a_rank, a.hit.kind, a.name.len(), &a.name, &a.hit.key).cmp(&(
-                b_rank,
-                b.hit.kind,
-                b.name.len(),
-                &b.name,
-                &b.hit.key,
-            ))
+        match query {
+            Some(_) => found.sort_by(|(a_rank, a), (b_rank, b)| {
+                (a_rank, a.hit.kind, a.name.len(), &a.name, &a.hit.key).cmp(&(
+                    b_rank,
+                    b.hit.kind,
+                    b.name.len(),
+                    &b.name,
+                    &b.hit.key,
+                ))
+            }),
+            None => found.sort_by(|(_, a), (_, b)| {
+                (a.hit.kind, &a.name, &a.hit.key).cmp(&(b.hit.kind, &b.name, &b.hit.key))
+            }),
+        }
+        let total = u32::try_from(found.len()).unwrap_or(u32::MAX);
+        let note = found.is_empty().then(|| {
+            let mut note = match query {
+                Some(_) => format!("No item in the planner's data matches `{given}`"),
+                None => "No item in the planner's data matches".to_owned(),
+            };
+            if kinds.is_some() || categories.is_some() {
+                note.push_str(" with these filters");
+            }
+            note.push_str(
+                ". The data holds what the guide lists: an item that isn't there can't be taken in a Build.",
+            );
+            if query.is_some() {
+                let near = self.near_names(given, &allowed);
+                if !near.is_empty() {
+                    note.push_str(&format!(" Near names: {}.", near.join(", ")));
+                }
+            }
+            for category in categories.into_iter().flatten() {
+                if let Some(near) = self.near_categories(category) {
+                    note.push_str(&near);
+                }
+            }
+            note
         });
-        Some(
-            found
+        Ok(SearchResult {
+            matches: found
                 .into_iter()
                 .take(limit)
                 .map(|(_, entry)| entry.hit.clone())
                 .collect(),
-        )
+            total,
+            note,
+        })
+    }
+
+    /// The names the filters allow that are close to a query that matched nothing, closest first, as
+    /// "Power Attack (feat `power-attack`)".
+    fn near_names(&self, given: &str, allowed: &impl Fn(&&Entry) -> bool) -> Vec<String> {
+        let mut near: Vec<(f64, &Entry)> = self
+            .entries
+            .iter()
+            .filter(allowed)
+            .filter_map(|entry| {
+                let closeness =
+                    closeness(given, &entry.hit.name).max(closeness(given, &entry.hit.key));
+                (closeness >= FLOOR).then_some((closeness, entry))
+            })
+            .collect();
+        near.sort_by(|(a_closeness, a), (b_closeness, b)| {
+            b_closeness
+                .total_cmp(a_closeness)
+                .then_with(|| (a.hit.kind, &a.name).cmp(&(b.hit.kind, &b.name)))
+        });
+        near.into_iter()
+            .take(NEAR)
+            .map(|(_, entry)| {
+                format!(
+                    "{} ({} `{}`)",
+                    entry.hit.name,
+                    entry.hit.kind.noun(),
+                    entry.hit.key
+                )
+            })
+            .collect()
+    }
+
+    /// For a category no item has: says so, with the categories close to it.
+    fn near_categories(&self, category: &str) -> Option<String> {
+        if self
+            .entries
+            .iter()
+            .any(|entry| entry.in_category(&[category.to_owned()]))
+        {
+            return None;
+        }
+        let mut known: Vec<&str> = self
+            .entries
+            .iter()
+            .filter_map(|entry| entry.hit.category.as_deref())
+            .collect();
+        known.sort_unstable();
+        known.dedup();
+        let mut near: Vec<(f64, &str)> = known
+            .into_iter()
+            .map(|known| (closeness(category, known), known))
+            .filter(|(closeness, _)| *closeness >= FLOOR)
+            .collect();
+        near.sort_by(|(a, a_name), (b, b_name)| b.total_cmp(a).then_with(|| a_name.cmp(b_name)));
+        let near: Vec<String> = near
+            .into_iter()
+            .take(NEAR)
+            .map(|(_, known)| format!("\"{known}\""))
+            .collect();
+        Some(match near.is_empty() {
+            true => format!(" No item has the category \"{category}\"."),
+            false => format!(
+                " No item has the category \"{category}\"; close ones: {}.",
+                near.join(", ")
+            ),
+        })
     }
 
     /// The item of a kind with a key.
@@ -258,6 +393,28 @@ impl Entry {
             None
         }
     }
+
+    /// Whether its category is one of these (case and spacing don't count), or, for an option, its Feature
+    /// selection's key is.
+    fn in_category(&self, categories: &[String]) -> bool {
+        let same = |a: &str, b: &str| {
+            a.split_whitespace()
+                .map(str::to_lowercase)
+                .eq(b.split_whitespace().map(str::to_lowercase))
+        };
+        categories.iter().any(|category| {
+            self.hit
+                .category
+                .as_deref()
+                .is_some_and(|own| same(own, category))
+                || (self.hit.kind == Kind::SelectionOption
+                    && self
+                        .hit
+                        .parent
+                        .as_deref()
+                        .is_some_and(|parent| same(parent, category)))
+        })
+    }
 }
 
 /// A query, ready to match.
@@ -290,17 +447,4 @@ impl Query {
             initials,
         })
     }
-}
-
-/// A name's words, lower case: split at anything but letters, digits and apostrophes, which are dropped.
-fn words(name: &str) -> Vec<String> {
-    name.split(|c: char| !(c.is_alphanumeric() || c == '\'' || c == '’'))
-        .map(|word| {
-            word.chars()
-                .filter(|c| c.is_alphanumeric())
-                .flat_map(char::to_lowercase)
-                .collect::<String>()
-        })
-        .filter(|word| !word.is_empty())
-        .collect()
 }

@@ -9,8 +9,9 @@
 //!   `compare.rs`; `attack.rs` is the attack line `sheet` and `compare` add for a `weapon`, with its own shapes.
 //! - Builds: `code.rs` opens a Build code (only through the engine's checked decode) and writes the envelope every
 //!   Build-taking tool returns; `address.rs` writes and reads choice addresses; `values.rs` writes choices' values;
-//!   `error.rs` is the server's refusals (`stale_link`, `no_such_choice`, `not_an_option`, `not_removable`,
-//!   `invalid_arguments`, `internal`).
+//!   `error.rs` is the server's refusals (`stale_link`, `no_such_choice`, `not_an_option`, `needs_parameter`,
+//!   `not_removable`, `invalid_arguments`, `internal`).
+//! - `similar.rs`: how close a given name is to the planner's, for the hints after a miss, above one floor.
 
 mod address;
 mod attack;
@@ -25,6 +26,7 @@ mod search;
 mod server;
 mod shapes;
 mod sheet;
+mod similar;
 mod values;
 mod withdraw;
 

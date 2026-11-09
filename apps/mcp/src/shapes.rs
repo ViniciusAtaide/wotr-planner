@@ -42,25 +42,72 @@ pub enum Kind {
     Background,
 }
 
+impl Kind {
+    /// The kind as the tools write it: `feat`, `mythic_feat`, `option`, …
+    pub fn noun(self) -> &'static str {
+        match self {
+            Kind::Class => "class",
+            Kind::Archetype => "archetype",
+            Kind::Path => "path",
+            Kind::Feat => "feat",
+            Kind::MythicAbility => "mythic_ability",
+            Kind::MythicFeat => "mythic_feat",
+            Kind::SelectionOption => "option",
+            Kind::Race => "race",
+            Kind::Deity => "deity",
+            Kind::Background => "background",
+        }
+    }
+}
+
 /// `search`'s arguments.
 #[derive(Debug, Deserialize, JsonSchema)]
 pub struct SearchArgs {
-    /// Words of a name, a key, or initials ("BFT" for Brown-Fur Transmuter). Case doesn't matter.
+    /// Words of a name, a key, or initials ("BFT" for Brown-Fur Transmuter). Case doesn't matter. May be empty or
+    /// left out when `kinds` or `category` is given: then every item they allow matches.
+    #[serde(default)]
     pub query: String,
     /// Only these kinds; every kind when left out.
     #[serde(default)]
     pub kinds: Option<Vec<Kind>>,
-    /// At most this many matches (default 10, at most 50).
+    /// Only items in this category, or in any of these (case doesn't matter): a feat's category ("Weapon", "Magic",
+    /// …), a mythic ability's or feat's group ("Melee", "Ranged", …), an option's Feature selection by name ("Rage
+    /// Power") or key, "Base class" or "Prestige class", a background's group.
+    #[serde(default)]
+    pub category: Option<OneOrMany>,
+    /// At most this many matches (default 10, or 50 for an empty query; at most 100).
     #[serde(default)]
     pub limit: Option<u32>,
+}
+
+/// One text, or a list of them.
+#[derive(Debug, Deserialize, JsonSchema)]
+#[serde(untagged)]
+pub enum OneOrMany {
+    One(String),
+    Many(Vec<String>),
+}
+
+impl OneOrMany {
+    pub fn into_vec(self) -> Vec<String> {
+        match self {
+            OneOrMany::One(one) => vec![one],
+            OneOrMany::Many(many) => many,
+        }
+    }
 }
 
 /// `search`'s result.
 #[derive(Debug, Serialize, JsonSchema)]
 pub struct SearchResult {
     /// The best match first: exact names and keys, then initials, then names starting with the query, then
-    /// names holding its words, then any name or key containing it.
+    /// names holding its words, then any name or key containing it. For an empty query, by kind, then name.
     pub matches: Vec<Hit>,
+    /// How many items match in all; more than `matches` holds when `limit` cut the list.
+    pub total: u32,
+    /// When nothing matches: says so, and names the near names (or categories), if any is close.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub note: Option<String>,
 }
 
 /// One item, as `search` lists it and `describe` heads it.
@@ -71,6 +118,10 @@ pub struct Hit {
     pub key: String,
     /// The name the planner shows.
     pub name: String,
+    /// A short summary in the planner's own words, when the data has one (a background's: its note). Left out when
+    /// empty.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub summary: Option<String>,
     /// What it belongs to: an archetype's class, an option's Feature selection (keys).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub parent: Option<String>,
@@ -98,9 +149,6 @@ pub struct DescribeArgs {
 pub struct Item {
     #[serde(flatten)]
     pub hit: Hit,
-    /// A short summary in the planner's own words, when the data has one (it rarely does).
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub summary: Option<String>,
     /// A parameterised feat's or option's value: "weapon", "skill", "school", …
     #[serde(skip_serializing_if = "Option::is_none")]
     pub taken_for: Option<String>,
@@ -119,7 +167,7 @@ pub struct Item {
     pub selections: Option<Vec<Selection>>,
     /// The features a mythic ability grants while held.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub features: Option<Vec<Named>>,
+    pub features: Option<Vec<Summarised>>,
     /// The feats a background grants.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub feats: Option<Vec<Named>>,
@@ -141,6 +189,16 @@ pub struct Named {
     pub name: String,
 }
 
+/// A feature or selection option as `describe` lists it: by key and name, with its summary when the data has one.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, JsonSchema)]
+pub struct Summarised {
+    pub key: String,
+    pub name: String,
+    /// A short summary in the planner's own words; left out when the data has none.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub summary: Option<String>,
+}
+
 /// What one class level (or an option's level) gives.
 #[derive(Debug, Serialize, JsonSchema)]
 pub struct LevelRow {
@@ -160,7 +218,7 @@ pub struct LevelRow {
     /// A prestige class level that advances another class's spellcasting: "arcane", "divine".
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub advances: Vec<String>,
-    pub features: Vec<Named>,
+    pub features: Vec<Summarised>,
     /// Feats granted outright (a parameterised one named with its value).
     pub feats: Vec<Named>,
     /// Feat slots the level opens, by what they take ("Bonus feat", "Combat feat", a list's name).
@@ -179,7 +237,7 @@ pub struct SpellLevels {
 #[derive(Debug, Serialize, JsonSchema)]
 pub struct RankRow {
     pub rank: u8,
-    pub features: Vec<Named>,
+    pub features: Vec<Summarised>,
     pub feat_slots: Vec<String>,
     pub selections: Vec<Named>,
 }
@@ -189,7 +247,10 @@ pub struct RankRow {
 pub struct Selection {
     pub key: String,
     pub name: String,
-    pub options: Vec<Named>,
+    /// A short summary in the planner's own words; left out when the data has none.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub summary: Option<String>,
+    pub options: Vec<Summarised>,
 }
 
 // ---- Builds ------------------------------------------------------------------------------------------------------
@@ -260,7 +321,9 @@ pub struct SheetArgs {
 ///   "conjuration"}`): a skill or weapon key, or a school, energy or armour type in lower case;
 /// - `{class, archetype?, advances?}`: the class taken at a level, with the archetype when first taken, and for a
 ///   prestige class that asks, the classes it advances (`[]` for none);
-/// - a number: a point-buy score (`start.score.int`), or the ranks a level adds to a skill (`level.N.skill.<skill>`).
+/// - a number: a point-buy score (`start.score.int`), or the ranks a level adds to a skill (`level.N.skill.<skill>`);
+/// - `{skill: ranks}`: for `level.N.skill`, the ranks the level adds to each skill (`{"athletics": 1, "perception":
+///   1}`), each as `level.N.skill.<skill>` takes it, in one step.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(untagged)]
 pub enum ChoiceValue {
@@ -277,6 +340,7 @@ pub enum ChoiceValue {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         advances: Option<Vec<String>>,
     },
+    Ranks(BTreeMap<String, u8>),
 }
 
 impl ChoiceValue {
@@ -510,6 +574,9 @@ pub struct OptionLine {
     pub value: ChoiceValue,
     /// As the planner names it.
     pub name: String,
+    /// A short summary in the planner's own words (a background's: its note); left out when the data has none.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub summary: Option<String>,
     pub status: OptionStatus,
     /// The filter group it's under: a feat's category, an option's Feature selection, "Base class", …
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -564,7 +631,8 @@ pub struct ChooseStep {
     pub choice: String,
     /// The value, as `options` lists it (with `values: true` for a parameterised feat's `{key, parameter}`). For a
     /// point-buy score or a skill's ranks at a level, the number to reach: it's reached one step at a time, each
-    /// step checked.
+    /// step checked. For `level.N.skill`, a map `{skill: ranks}` sets several skills' ranks at that level in one
+    /// step, each rank checked.
     pub value: ChoiceValue,
 }
 
@@ -590,9 +658,10 @@ pub struct Rejected {
     pub choice: String,
     /// Why: the engine's issue (`unmet`, `already_held`, `max_times`, `not_allowed`, `class_level_cap`,
     /// `not_from_path`, `deity_alignment`, `needs_faith`, `deity_domain`, `breaks_later`), or the server's
-    /// (`not_an_option`, `no_such_choice`, `internal`).
+    /// (`not_an_option`, `needs_parameter`, `no_such_choice`, `internal`).
     pub issue: String,
-    /// The planner's reason; for `not_an_option`, the closest values offered.
+    /// The planner's reason; for `not_an_option`, the closest values offered; for `needs_parameter`, what the value
+    /// is and the open ones.
     pub reason: String,
 }
 
@@ -612,8 +681,8 @@ pub struct WithdrawArgs {
 /// `compare`'s arguments.
 #[derive(Debug, Deserialize, JsonSchema)]
 pub struct CompareArgs {
-    /// 2 to 4 Build codes (links work too), for example two branches of one Build. Each is opened checked, and every
-    /// per-Build list in the result follows this order.
+    /// 1 to 4 Build codes (links work too), for example two branches of one Build; one gets its summary alone. Each
+    /// is opened checked, and every per-Build list in the result follows this order.
     pub builds: Vec<String>,
     /// Also give each Build's summary the attack line of this base weapon (a weapon key: `greatsword`).
     #[serde(default)]

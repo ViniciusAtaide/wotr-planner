@@ -1,6 +1,6 @@
-//! `compare`: two to four Builds side by side, each in short, then only what differs between them. Everything is read
-//! from each Build's sheet as `sheet` writes it (`sheet::sheet_of` on [`rules::Engine::evaluate`]'s sheet), so a
-//! difference here is one the two sheets show; nothing is ranked.
+//! `compare`: one to four Builds side by side, each in short, then only what differs between them (one Build: its
+//! summary alone). Everything is read from each Build's sheet as `sheet` writes it (`sheet::sheet_of` on
+//! [`rules::Engine::evaluate`]'s sheet), so a difference here is one the two sheets show; nothing is ranked.
 
 use std::collections::BTreeSet;
 
@@ -17,7 +17,7 @@ use crate::shapes::{
 use crate::sheet::sheet_of;
 
 /// The fewest and most Builds `compare` takes.
-const BUILDS: std::ops::RangeInclusive<usize> = 2..=4;
+const BUILDS: std::ops::RangeInclusive<usize> = 1..=4;
 
 pub(crate) fn compare(planner: &Planner, args: CompareArgs) -> Result<CompareResult, ToolError> {
     let count = args.builds.len();
