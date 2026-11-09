@@ -270,14 +270,15 @@ async fn insert_all(
         let root = prerequisites::insert(conn, ability.prerequisite.as_ref()).await?;
         sqlx::query!(
             "INSERT INTO mythic_ability
-                (key, name, group_name, summary, guide, prerequisite_root_id)
-            VALUES ($1, $2, $3, $4, $5, $6)",
+                (key, name, group_name, summary, guide, prerequisite_root_id, parameter)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)",
             ability.key.as_str(),
             ability.name,
             mythic_ability_group_text(ability.group),
             ability.summary,
             ability.guide.0,
             root,
+            ability.parameter.map(parameter_kind_text),
         )
         .execute(&mut *conn)
         .await?;

@@ -2,8 +2,8 @@
 //! the envelope every such tool returns (the code, its link and the open choices).
 
 use rules::{
-    Build, Engine, FIRST_ASCENSION_RANK, PATH_CHOICE_RANK, RankStatus, Sheet, SlotId, encode_build,
-    has_ability_increase,
+    Build, Engine, FIRST_ASCENSION_RANK, PATH_CHOICE_RANK, RankStatus, Sheet, Slot, SlotId,
+    encode_build, has_ability_increase,
 };
 
 use crate::address::Address;
@@ -49,9 +49,10 @@ pub(crate) fn envelope(engine: &Engine, build: &Build, sheet: &Sheet) -> Envelop
 }
 
 /// The open choices, in Build order: the Build start's unchosen choices; per level its unchosen ability increase,
-/// unspent skill points (while some skill can still take a rank) and empty slots; then the first ascension (while
-/// neither it nor a path is chosen) and the path once their ranks are reached, and each reached rank's empty slots
-/// (not those a Path switch dropped).
+/// unspent skill points (while some skill can still take a rank), empty slots and picks whose value is still open
+/// (a link made before Stat Focus took its stat); then the first ascension (while neither it nor a path is chosen)
+/// and the path once their ranks are reached, and each reached rank's empty slots and picks whose value is still
+/// open (Favorite Metamagic's metamagic), not those a Path switch dropped.
 fn todo(engine: &Engine, build: &Build, sheet: &Sheet) -> Vec<Todo> {
     let mut todo = Vec::new();
     let mut open = |address: Address, label: String| {
@@ -96,11 +97,10 @@ fn todo(engine: &Engine, build: &Build, sheet: &Sheet) -> Vec<Todo> {
                 ),
             );
         }
-        for slot in level.slots.iter().filter(|slot| slot.pick.is_none()) {
-            open(
-                Address::Slot(slot.id.clone()),
-                format!("Level {n}: {}", engine.slot_label(slot)),
-            );
+        for slot in &level.slots {
+            if let Some(what) = open_in(engine, slot) {
+                open(Address::Slot(slot.id.clone()), format!("Level {n}: {what}"));
+            }
         }
     }
     for rank in &sheet.ranks {
@@ -118,14 +118,23 @@ fn todo(engine: &Engine, build: &Build, sheet: &Sheet) -> Vec<Todo> {
             open(Address::Path, format!("MR {r}: Mythic path"));
         }
         let dropped = |id: &SlotId| rank.dropped_slots.contains(id);
-        for slot in &rank.slots {
-            if slot.pick.is_none() && !dropped(&slot.id) {
-                open(
-                    Address::Slot(slot.id.clone()),
-                    format!("MR {r}: {}", engine.slot_label(slot)),
-                );
+        for slot in rank.slots.iter().filter(|slot| !dropped(&slot.id)) {
+            if let Some(what) = open_in(engine, slot) {
+                open(Address::Slot(slot.id.clone()), format!("MR {r}: {what}"));
             }
         }
     }
     todo
+}
+
+/// What's open in a slot: the slot itself while empty ("General feat"), or its pick's value while the pick names
+/// none ("Favorite Metamagic: choose a metamagic", which `choose` fills at the slot's address with
+/// `{key, parameter}`). `None` when nothing is.
+fn open_in(engine: &Engine, slot: &Slot) -> Option<String> {
+    match &slot.pick {
+        None => Some(engine.slot_label(slot)),
+        Some(pick) => engine
+            .value_left_open(pick)
+            .map(|kind| format!("{}: choose {}", engine.pick_name(pick), kind.with_article())),
+    }
 }

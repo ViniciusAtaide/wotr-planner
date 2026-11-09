@@ -1,7 +1,8 @@
 //! How `rules` values are stored in columns: enums as snake_case text, `u8`/`i8` as INTEGER.
 //!
 //! The text values match the named column types and CHECK constraints in
-//! `migrations/20261031000000_game_data.sql`.
+//! `migrations/20261031000000_game_data.sql` and the migrations after it (`parameter_kind`'s last values:
+//! `migrations/20261109013047_125-pick-values.sql`).
 
 use rules::{
     Ability, Advancement, Alignment, ArmourType, BabProgression, BackgroundGroup, DeityDomains,
@@ -189,6 +190,9 @@ text_column!(ParameterKind, parameter_kind_from, parameter_kind_text {
     SpellSchool => "spell_school",
     Energy => "energy",
     ArmourType => "armour_type",
+    Metamagic => "metamagic",
+    Stat => "stat",
+    Element => "element",
 });
 
 text_column!(SpellSchool, spell_school_from, spell_school_text {
@@ -275,6 +279,11 @@ impl<'a> ValueColumns<'a> {
                 armour_type: Some(armour_type_text(*armour)),
                 ..Self::default()
             },
+            P::Metamagic(_) | P::Stat(_) | P::Element(_) => {
+                unreachable!(
+                    "only a pick names a metamagic, stat or element (GameData::check: PickOnlyValue)"
+                )
+            }
         }
     }
 }

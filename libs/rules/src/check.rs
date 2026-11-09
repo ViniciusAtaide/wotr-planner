@@ -12,7 +12,7 @@ use std::fmt;
 
 use crate::engine::{BASE_LEVEL_CAP, PATH_CHOICE_RANK, PATH_SWITCH_RANK};
 use crate::game_data::{
-    Advancement, Archetype, Class, ClassLevelRow, CountsToward, DOMAIN_SELECTION, FeatList,
+    Advancement, Archetype, Class, ClassLevelRow, CountsToward, DOMAIN_SELECTION, Feat, FeatList,
     FeatSlot, FeatValue, Feature, FeatureSelection, GameData, LevelFrom, MythicPath, Save,
     SelectionOption, WeaponProficiency,
 };
@@ -248,6 +248,9 @@ pub enum DataIssue {
     ParameterBesideChosenFeat,
     /// An option listing values its pick doesn't take: it takes none, or they're of another kind.
     OptionValueOfWrongKind,
+    /// A prerequisite, an option's values or a feat granted for one value naming a metamagic, stat or element:
+    /// only a pick names those (ticket 125), and the tables keep no value columns for them.
+    PickOnlyValue,
     /// A class's or an archetype's prerequisite naming an alignment inside a group with other conditions. Its
     /// alignment requirement must be a condition of its own (the whole prerequisite, or one of a top-level `All`'s
     /// conditions), since an archetype's replaces its class's (ticket 63).
@@ -399,6 +402,9 @@ impl fmt::Display for DataProblem {
             DataIssue::OptionValueOfWrongKind => {
                 f.write_str("lists values of a kind its pick doesn't take")
             }
+            DataIssue::PickOnlyValue => {
+                f.write_str("names a metamagic, stat or element, which only a pick names")
+            }
             DataIssue::AlignmentNotOnItsOwn => f.write_str(
                 "an alignment sits in a group with other conditions; the alignment requirement must be a \
                  condition of its own",
@@ -521,7 +527,7 @@ impl GameData {
                 &BTreeSet::new(),
                 &ability.selections,
             );
-            check.prerequisite(&at, ability.prerequisite.as_ref(), None);
+            check.prerequisite(&at, ability.prerequisite.as_ref(), ability.parameter);
         }
         for feat in &self.mythic_feats {
             let at = DataAt::MythicFeat(feat.key.clone());
@@ -625,12 +631,15 @@ impl Checker {
         }
     }
 
-    /// Notes the key a value names: a skill or a weapon.
+    /// Notes the key a value names: a skill or a weapon. A metamagic, stat or element is a pick's alone.
     fn names_value(&mut self, at: &DataAt, value: &Parameter) {
         match value {
             Parameter::Skill(skill) => self.names(at, DataAt::Skill(skill.clone())),
             Parameter::Weapon(weapon) => self.names(at, DataAt::Weapon(weapon.clone())),
             Parameter::SpellSchool(_) | Parameter::Energy(_) | Parameter::ArmourType(_) => {}
+            Parameter::Metamagic(_) | Parameter::Stat(_) | Parameter::Element(_) => {
+                self.problem(at, DataIssue::PickOnlyValue);
+            }
         }
     }
 
@@ -796,7 +805,12 @@ impl Checker {
             | (K::Weapon, Parameter::Weapon(_))
             | (K::SpellSchool, Parameter::SpellSchool(_))
             | (K::Energy, Parameter::Energy(_))
-            | (K::ArmourType, Parameter::ArmourType(_)) => true,
+            | (K::ArmourType, Parameter::ArmourType(_))
+            | (K::Stat, Parameter::Stat(_))
+            | (K::Element, Parameter::Element(_)) => true,
+            (K::Metamagic, Parameter::Metamagic(feat)) => {
+                feat.as_str().starts_with(Feat::METAMAGIC_PREFIX)
+            }
             (K::ExoticWeapon, Parameter::Weapon(weapon)) => self
                 .weapons
                 .get(weapon)

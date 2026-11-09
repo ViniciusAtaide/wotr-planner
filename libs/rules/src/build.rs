@@ -340,8 +340,9 @@ impl SlotId {
     }
 }
 
-/// What fills a slot. A pick of a parameterised feat or mythic feat names what it's taken for (Weapon Focus
-/// (Longsword)), and so does a pick of an option that takes a value (the rogue talent Weapon Focus).
+/// What fills a slot. A pick of a parameterised feat, mythic feat or mythic ability names what it's taken for (Weapon
+/// Focus (Longsword); Favorite Metamagic (Persistent Spell)), and so does a pick of an option that takes a value (the
+/// rogue talent Weapon Focus).
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub enum Pick {
     Feat {
@@ -353,7 +354,12 @@ pub enum Pick {
         option: SelectionOptionKey,
         parameter: Option<Parameter>,
     },
-    MythicAbility(MythicAbilityKey),
+    /// A mythic ability, with its value when it takes one (Favorite Metamagic (Persistent Spell)); `None` too while
+    /// a value that may stay open isn't chosen yet ([`ParameterKind::may_stay_open`](crate::ParameterKind::may_stay_open)).
+    MythicAbility {
+        ability: MythicAbilityKey,
+        parameter: Option<Parameter>,
+    },
     /// A mythic feat, with its value when it's parameterised (Improved Critical (Mythic) (Longsword)).
     MythicFeat {
         feat: MythicFeatKey,
@@ -386,6 +392,22 @@ impl Pick {
         }
     }
 
+    /// A mythic ability taken for nothing in particular.
+    pub fn mythic_ability(ability: MythicAbilityKey) -> Self {
+        Pick::MythicAbility {
+            ability,
+            parameter: None,
+        }
+    }
+
+    /// A parameterised mythic ability taken for `value`.
+    pub fn mythic_ability_for(ability: MythicAbilityKey, value: Parameter) -> Self {
+        Pick::MythicAbility {
+            ability,
+            parameter: Some(value),
+        }
+    }
+
     /// A mythic feat taken for nothing in particular.
     pub fn mythic_feat(feat: MythicFeatKey) -> Self {
         Pick::MythicFeat {
@@ -415,7 +437,7 @@ impl Pick {
         match self {
             Pick::Feat { feat, .. } => feat.as_str(),
             Pick::SelectionOption { option, .. } => option.as_str(),
-            Pick::MythicAbility(key) => key.as_str(),
+            Pick::MythicAbility { ability, .. } => ability.as_str(),
             Pick::MythicFeat { feat, .. } => feat.as_str(),
         }
     }
@@ -425,8 +447,8 @@ impl Pick {
         match self {
             Pick::Feat { parameter, .. }
             | Pick::SelectionOption { parameter, .. }
+            | Pick::MythicAbility { parameter, .. }
             | Pick::MythicFeat { parameter, .. } => parameter.as_ref(),
-            Pick::MythicAbility(_) => None,
         }
     }
 }

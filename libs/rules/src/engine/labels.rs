@@ -405,7 +405,20 @@ impl Engine {
             Parameter::SpellSchool(school) => school.name(),
             Parameter::Energy(energy) => energy.name(),
             Parameter::ArmourType(armour) => armour.name(),
+            // "Persistent Spell" for Metamagic (Persistent Spell).
+            Parameter::Metamagic(key) => self.metamagic_name(key),
+            Parameter::Stat(stat) => stat.name(),
+            Parameter::Element(element) => element.name(),
         }
+    }
+
+    /// A metamagic feat's name as a value: what its "Metamagic (…)" name has in brackets ("Persistent Spell"), or
+    /// the whole name (or key) when it has no brackets.
+    fn metamagic_name<'a>(&'a self, key: &'a FeatKey) -> &'a str {
+        let name = self.feat_name(key);
+        name.strip_prefix("Metamagic (")
+            .and_then(|rest| rest.strip_suffix(')'))
+            .unwrap_or(name)
     }
 
     /// The name of what a pick takes, without its value: the feat, option, mythic ability or mythic feat.
@@ -887,6 +900,9 @@ impl ParameterKind {
             ParameterKind::SpellSchool => "school",
             ParameterKind::Energy => "energy type",
             ParameterKind::ArmourType => "armour type",
+            ParameterKind::Metamagic => "metamagic",
+            ParameterKind::Stat => "stat",
+            ParameterKind::Element => "element",
         }
     }
 
@@ -899,6 +915,9 @@ impl ParameterKind {
             ParameterKind::SpellSchool => "a school",
             ParameterKind::Energy => "an energy type",
             ParameterKind::ArmourType => "an armour type",
+            ParameterKind::Metamagic => "a metamagic",
+            ParameterKind::Stat => "a stat",
+            ParameterKind::Element => "an element",
         }
     }
 }

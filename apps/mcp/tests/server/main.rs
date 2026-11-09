@@ -10,6 +10,7 @@ mod describe;
 mod end_to_end;
 mod listing;
 mod options;
+mod pick_values;
 mod search;
 mod sheet;
 mod summaries;

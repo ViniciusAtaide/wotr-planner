@@ -44,8 +44,9 @@
 //! first ascension = nothing [none] | 1, key(mythic path)
 //! group         = u8 slot kind, varint count (at least 1), count × (u8 step, slot fields, pick)
 //! pick          = 0, key(feat), parameter | 1, key(selection option), parameter | 2, key(mythic ability)
-//!               | 3, key(mythic feat), parameter
+//!               | 3, key(mythic feat), parameter | 4, key(mythic ability), parameter [not none]
 //! parameter     = 0 [none] | 1, key(skill) | 2, key(weapon) | 3, u8 school | 4, u8 energy | 5, u8 armour type
+//!               | 6, key(feat) [a metamagic] | 7, u8 stat | 8, u8 element
 //! ability       = 0 [none] | 1 + its index in Str, Dex, Con, Int, Wis, Cha
 //! alignment     = 0 [none] | 1 + its index in LG, NG, CG, LN, TN, CN, LE, NE, CE
 //! faith         = 0 [none] | 1 [atheism] | 2, key(deity)
@@ -56,9 +57,15 @@
 //! FeatSelection, `9` MythicExtra. Groups come in that order and picks in [`SlotId`]'s. A pick's step is its slot's
 //! level (or rank) less the previous pick's in the group, the first's less 0. The slot fields are a Feat slot's
 //! source (`0` Race, `1` Class, `2` General) and index, nothing for a Mythic or MythicExtra slot, and the index for
-//! the others. A school, energy or
-//! armour type is its index in [`SpellSchool::ALL`], [`Energy::ALL`] or [`ArmourType::ALL`]. Skill ranks, class
-//! choices and advances come in their keys' text order, as the [`Build`] holds them.
+//! the others. A school, energy,
+//! armour type, stat or element is its index in [`SpellSchool::ALL`], [`Energy::ALL`], [`ArmourType::ALL`],
+//! [`Stat::ALL`] or [`Element::ALL`]. Skill ranks, class choices and advances come in their keys' text order, as the
+//! [`Build`] holds them.
+//!
+//! Mythic abilities' values (pick `4`) and the metamagic, stat and element values (parameters `6` to `8`) came
+//! after links had been made (ticket 125), as new tags: a mythic ability with no value is still tag `2`, so every
+//! link made before them reads as it did, and a Build without them writes the link it always did. A link naming
+//! one of them doesn't open in a planner older than them.
 //!
 //! The first ascension ([`Build::first_ascension`], ticket 91) came after links had been made, so it goes last and
 //! writes nothing when there is none: every link made before it reads as a Build without one, and a Build without
@@ -94,7 +101,7 @@ use crate::keys::{
     ArchetypeKey, BackgroundKey, ClassKey, DeityKey, FeatKey, MythicAbilityKey, MythicFeatKey,
     MythicPathKey, RaceKey, SelectionOptionKey, SkillKey, SubraceKey, WeaponKey,
 };
-use crate::parameter::{ArmourType, Energy, Parameter, SpellSchool};
+use crate::parameter::{ArmourType, Element, Energy, Parameter, SpellSchool, Stat};
 
 /// The format version new links are written in.
 pub const CODEC_VERSION: u8 = 1;
@@ -575,9 +582,21 @@ impl<'a> Writer<'a> {
                 self.key(KeyKind::SelectionOption, option.as_str());
                 self.parameter(parameter.as_ref());
             }
-            Pick::MythicAbility(ability) => {
+            // Tag 2 keeps every link made before mythic abilities took a value (ticket 125); one with a value is 4.
+            Pick::MythicAbility {
+                ability,
+                parameter: None,
+            } => {
                 self.byte(2);
                 self.key(KeyKind::MythicAbility, ability.as_str());
+            }
+            Pick::MythicAbility {
+                ability,
+                parameter: Some(parameter),
+            } => {
+                self.byte(4);
+                self.key(KeyKind::MythicAbility, ability.as_str());
+                self.parameter(Some(parameter));
             }
             Pick::MythicFeat { feat, parameter } => {
                 self.byte(3);
@@ -609,6 +628,18 @@ impl<'a> Writer<'a> {
             Some(Parameter::ArmourType(armour)) => {
                 self.byte(5);
                 self.byte(index_of(&ArmourType::ALL, armour));
+            }
+            Some(Parameter::Metamagic(feat)) => {
+                self.byte(6);
+                self.key(KeyKind::Feat, feat.as_str());
+            }
+            Some(Parameter::Stat(stat)) => {
+                self.byte(7);
+                self.byte(index_of(&Stat::ALL, stat));
+            }
+            Some(Parameter::Element(element)) => {
+                self.byte(8);
+                self.byte(index_of(&Element::ALL, element));
             }
         }
     }
@@ -892,10 +923,15 @@ impl<'a> Reader<'a> {
                 option: SelectionOptionKey(self.key(KeyKind::SelectionOption)?),
                 parameter: self.parameter()?,
             },
-            2 => Pick::MythicAbility(MythicAbilityKey(self.key(KeyKind::MythicAbility)?)),
+            2 => Pick::mythic_ability(MythicAbilityKey(self.key(KeyKind::MythicAbility)?)),
             3 => Pick::MythicFeat {
                 feat: MythicFeatKey(self.key(KeyKind::MythicFeat)?),
                 parameter: self.parameter()?,
+            },
+            // A mythic ability with a value: never none, which tag 2 writes.
+            4 => Pick::MythicAbility {
+                ability: MythicAbilityKey(self.key(KeyKind::MythicAbility)?),
+                parameter: Some(self.parameter()?.ok_or(DecodeError::Format)?),
             },
             _ => return Err(DecodeError::Format),
         })
@@ -909,6 +945,9 @@ impl<'a> Reader<'a> {
             3 => Parameter::SpellSchool(self.index(&SpellSchool::ALL)?),
             4 => Parameter::Energy(self.index(&Energy::ALL)?),
             5 => Parameter::ArmourType(self.index(&ArmourType::ALL)?),
+            6 => Parameter::Metamagic(FeatKey(self.key(KeyKind::Feat)?)),
+            7 => Parameter::Stat(self.index(&Stat::ALL)?),
+            8 => Parameter::Element(self.index(&Element::ALL)?),
             _ => return Err(DecodeError::Format),
         }))
     }
@@ -1030,7 +1069,7 @@ mod tests {
             body.extend(&key_hash(key).to_le_bytes()[..3]);
             build.picks.insert(
                 SlotId::Mythic { rank },
-                Pick::MythicAbility(crate::keys::MythicAbilityKey::new(*key)),
+                Pick::mythic_ability(crate::keys::MythicAbilityKey::new(*key)),
             );
         }
         body.extend(&BLANK[1..BLANK.len() - 1]);
@@ -1060,6 +1099,68 @@ mod tests {
         let mut no_hash = BLANK.to_vec();
         no_hash.push(1);
         assert_eq!(decode(&no_hash), Err(DecodeError::Format));
+    }
+
+    /// Ticket 125's tags, after links had shipped: a mythic ability with a value is pick `4` (with none it's `2`, as
+    /// before), and a metamagic, a stat and an element are parameters `6` (a feat's key), `7` and `8` (an index). Pick
+    /// `4` with no value is no Build's, nor is a stat or element index past the last.
+    #[test]
+    fn pick_values_after_links_shipped_are_new_tags() {
+        use crate::keys::MythicAbilityKey;
+        use crate::parameter::{Element, Stat};
+
+        let mut build = Build::default();
+        build.picks.insert(
+            SlotId::Mythic { rank: 1 },
+            Pick::mythic_ability_for(
+                MythicAbilityKey::new("a"),
+                Parameter::Metamagic(FeatKey::new("m")),
+            ),
+        );
+        build.picks.insert(
+            SlotId::Mythic { rank: 2 },
+            Pick::mythic_ability_for(
+                MythicAbilityKey::new("b"),
+                Parameter::Element(Element::NegativeEnergy),
+            ),
+        );
+        build.picks.insert(
+            SlotId::Mythic { rank: 3 },
+            Pick::feat_for(FeatKey::new("s"), Parameter::Stat(Stat::Speed)),
+        );
+        build.picks.insert(
+            SlotId::Mythic { rank: 4 },
+            Pick::mythic_ability(MythicAbilityKey::new("c")),
+        );
+        let hash = |key: &str| key_hash(key).to_le_bytes();
+        let mut expected = vec![5];
+        for key in ["a", "m", "b", "s", "c"] {
+            expected.extend(&hash(key)[..3]);
+        }
+        expected.extend(&BLANK[1..BLANK.len() - 1]);
+        expected.extend([
+            1, // one group of picks
+            2, 4, // of SlotId::Mythic, four picks
+            1, 4, 6, // rank 1: a mythic ability with a value ("a"), a metamagic ("m")
+            1, 4, 8,
+            5, // rank 2: a mythic ability with a value ("b"), negative energy (index 5)
+            1, 0, 7, 11, // rank 3: a feat ("s"), Speed (index 11)
+            1, 2, // rank 4: a mythic ability with no value ("c"), as before ticket 125
+        ]);
+        assert_eq!(body(&build), expected);
+        let keys = LinkKeys::of_build(&build);
+        assert_eq!(decode_build(&link(&expected), &keys), Ok(build));
+
+        // Pick 4 with no value; an element index past the last.
+        let (mut no_value, keys) = with_picks(&["a"], &[1, 2, 1, 1]);
+        no_value.extend([4, 0]);
+        assert_eq!(
+            decode_build(&link(&no_value), &keys),
+            Err(DecodeError::Format)
+        );
+        let (mut past, keys) = with_picks(&["a"], &[1, 2, 1, 1]);
+        past.extend([4, 8, 6]);
+        assert_eq!(decode_build(&link(&past), &keys), Err(DecodeError::Format));
     }
 
     /// Each Build has one body: picks come in slot order, each slot once, and every group holds a pick.

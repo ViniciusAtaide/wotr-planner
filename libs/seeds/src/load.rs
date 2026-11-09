@@ -1213,7 +1213,7 @@ async fn load_mythic_abilities(
     grants: &mut Grants,
 ) -> Result<Vec<MythicAbility>, sqlx::Error> {
     sqlx::query!(
-        "SELECT key, name, group_name, summary, guide, prerequisite_root_id
+        "SELECT key, name, group_name, summary, guide, prerequisite_root_id, parameter
         FROM mythic_ability ORDER BY key"
     )
     .fetch_all(&mut *conn)
@@ -1230,6 +1230,11 @@ async fn load_mythic_abilities(
             summary: row.summary,
             guide: GuideRef(row.guide),
             prerequisite: trees.get(row.prerequisite_root_id)?,
+            parameter: row
+                .parameter
+                .as_deref()
+                .map(parameter_kind_from)
+                .transpose()?,
         })
     })
     .collect()

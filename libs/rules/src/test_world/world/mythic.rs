@@ -16,6 +16,7 @@ pub(super) fn mythic_abilities() -> Vec<MythicAbility> {
         prerequisite,
         features: vec![],
         selections: vec![],
+        parameter: None,
     };
     vec![
         ability("mythic-charge", None),

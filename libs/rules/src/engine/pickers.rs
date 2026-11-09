@@ -83,12 +83,21 @@ impl Engine {
                     })
                     .collect()
             }
+            // A parameterised one once per value.
             SlotKind::MythicAbility => self
                 .catalog
                 .data()
                 .mythic_abilities
                 .iter()
-                .map(|ability| Pick::MythicAbility(ability.key.clone()))
+                .flat_map(|ability| match ability.parameter {
+                    None => vec![Pick::mythic_ability(ability.key.clone())],
+                    Some(kind) => self
+                        .catalog
+                        .parameter_values(kind)
+                        .into_iter()
+                        .map(|value| Pick::mythic_ability_for(ability.key.clone(), value))
+                        .collect(),
+                })
                 .collect(),
             SlotKind::MythicFeat => self
                 .catalog

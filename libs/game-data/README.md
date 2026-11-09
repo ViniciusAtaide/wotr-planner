@@ -471,6 +471,19 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   parameterised feat of the player's choosing names it as `chosen_feat: "weapon-focus"` (its pick names the
   value); a parameterised feat in an option's `feats` or a row's `feats` is held for every value (All-skilled:
   Exotic Weapon Proficiency in every exotic weapon).
+- Three kinds of value only a pick names (ticket 125), never a prerequisite, an option's `values` or `feats_for` (the
+  check refuses it): `Metamagic` (a metamagic feat: every feat whose key starts `metamagic-`, a rule in `rules`, not a
+  field), `Stat` (Stat Focus's list: AC, attack, attacks of opportunity, CMB, CMD, damage, HP, initiative, Fortitude,
+  Reflex, Will, speed) and `Element` (Ascendant Element's: acid, cold, electricity, fire, sonic, negative energy). A
+  mythic ability takes `parameter` too, and is held once whatever its value (the guide says nothing of taking it
+  again): Favorite Metamagic `parameter: Metamagic`, Ascendant Element `parameter: Element`. Stat Focus is
+  `parameter: Stat, repeat: PerValue` (every parameterised feat, by the user's decision). A pick of these three kinds
+  may leave its value open, so a link made before they took one still opens, with the value to choose.
+- Ticket 125's audit: every feat, mythic ability, mythic feat and option whose summary says "chosen", "choose",
+  "choice" or "pick" has its pick (a parameter, a selection, a chosen feat, a pool, rows with slots or selections, an
+  extra pick), or is one the ticket checked and left without: Advanced Weapon Training, Energized Wild Shape,
+  Metamagic (Selective Spell), Spell Specialization, Rogue Secret, Increased Damage Reduction and Lore (Religion) II
+  and III (the real-data test `pick_values` pins the list; the ticket says why each).
 - Keys are readable text from the guide's anchors: `power-attack` (a feat), `rogue` (a class),
   `rogue/dark-lurker` (an archetype), `rogue/rogue-talents/fast-stealth` (a selection option). A key has no type
   prefix: where it sits says what it names, so keys of two kinds may be equal (the feature and the selection

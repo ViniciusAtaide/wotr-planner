@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO mythic_ability\n                (key, name, group_name, summary, guide, prerequisite_root_id, parameter)\n            VALUES ($1, $2, $3, $4, $5, $6, $7)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 7
+    },
+    "nullable": []
+  },
+  "hash": "44887f598b228f39d202723d69d89453bf8fe0dbb9e82d9ac569e32f413a4a17"
+}

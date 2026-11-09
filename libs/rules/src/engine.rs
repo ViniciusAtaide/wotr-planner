@@ -129,9 +129,19 @@ impl Engine {
     }
 
     /// Every value of a kind, in key (or declaration) order: the skills, weapons, exotic weapons, schools, energy
-    /// types or armour types.
+    /// types, armour types, metamagic feats, stats or elements.
     pub fn parameter_values(&self, kind: ParameterKind) -> Vec<Parameter> {
         self.catalog.parameter_values(kind)
+    }
+
+    /// The kind of value a pick has still to name: what its item takes, when the pick names nothing (Favorite
+    /// Metamagic from a link made before it took its metamagic: [`ParameterKind::may_stay_open`]). `None` for a pick
+    /// that names its value or takes none.
+    pub fn value_left_open(&self, pick: &Pick) -> Option<ParameterKind> {
+        if pick.parameter().is_some() {
+            return None;
+        }
+        self.catalog.pick_item(pick)?.parameter
     }
 
     /// A feat list by key, wherever it's defined.

@@ -17,7 +17,7 @@ use crate::keys::{
     FeatureSelectionKey, MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey,
     SelectionOptionKey, SkillKey, SubraceKey, WeaponKey,
 };
-use crate::parameter::{ArmourType, Energy, Parameter, ParameterKind, SpellSchool};
+use crate::parameter::{ArmourType, Element, Energy, Parameter, ParameterKind, SpellSchool, Stat};
 use crate::prerequisite::Prerequisite;
 
 /// The game data in canonical order, with its positions by key and what the engine reads off its features. Built
@@ -217,11 +217,20 @@ impl Catalog {
             ParameterKind::SpellSchool => SpellSchool::ALL.map(Parameter::SpellSchool).to_vec(),
             ParameterKind::Energy => Energy::ALL.map(Parameter::Energy).to_vec(),
             ParameterKind::ArmourType => ArmourType::ALL.map(Parameter::ArmourType).to_vec(),
+            ParameterKind::Metamagic => self
+                .data
+                .feats
+                .iter()
+                .filter(|feat| feat.is_metamagic())
+                .map(|feat| Parameter::Metamagic(feat.key.clone()))
+                .collect(),
+            ParameterKind::Stat => Stat::ALL.map(Parameter::Stat).to_vec(),
+            ParameterKind::Element => Element::ALL.map(Parameter::Element).to_vec(),
         }
     }
 
     /// Whether a pick's value fits what it takes (`kind`: `None` when it takes none): a known value of that kind,
-    /// or none for a pick that takes none.
+    /// or none for a pick that takes none or whose value may stay open ([`ParameterKind::may_stay_open`]).
     pub(super) fn value_fits(
         &self,
         kind: Option<ParameterKind>,
@@ -230,7 +239,11 @@ impl Catalog {
         use ParameterKind as K;
         match (kind, value) {
             (None, None) => true,
+            (Some(kind), None) => kind.may_stay_open(),
             (Some(K::Skill), Some(Parameter::Skill(key))) => self.indexes.skills.contains_key(key),
+            (Some(K::Metamagic), Some(Parameter::Metamagic(key))) => {
+                self.feat(key).is_some_and(Feat::is_metamagic)
+            }
             (Some(kind @ (K::Weapon | K::ExoticWeapon)), Some(Parameter::Weapon(key))) => {
                 self.weapon(key).is_some_and(|weapon| {
                     kind == K::Weapon || weapon.proficiency == Some(WeaponProficiency::Exotic)
@@ -238,7 +251,9 @@ impl Catalog {
             }
             (Some(K::SpellSchool), Some(Parameter::SpellSchool(_)))
             | (Some(K::Energy), Some(Parameter::Energy(_)))
-            | (Some(K::ArmourType), Some(Parameter::ArmourType(_))) => true,
+            | (Some(K::ArmourType), Some(Parameter::ArmourType(_)))
+            | (Some(K::Stat), Some(Parameter::Stat(_)))
+            | (Some(K::Element), Some(Parameter::Element(_))) => true,
             _ => false,
         }
     }
@@ -376,14 +391,14 @@ impl Catalog {
                         .map(|feat| feat.category),
                 }
             }
-            Pick::MythicAbility(key) => {
-                let ability = self.mythic_ability(key)?;
+            Pick::MythicAbility { ability, .. } => {
+                let ability = self.mythic_ability(ability)?;
                 PickItem {
                     name: &ability.name,
                     category: ability.group.name(),
                     summary: &ability.summary,
                     prerequisite: ability.prerequisite.as_ref(),
-                    parameter: None,
+                    parameter: ability.parameter,
                     feat: None,
                     feat_category: None,
                 }

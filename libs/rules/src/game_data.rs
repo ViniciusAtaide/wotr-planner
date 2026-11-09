@@ -641,6 +641,17 @@ pub struct Feat {
     pub prerequisite: Option<Prerequisite>,
 }
 
+impl Feat {
+    /// The key prefix of the metamagic feats: the guide names each "Metamagic (…)".
+    pub const METAMAGIC_PREFIX: &'static str = "metamagic-";
+
+    /// Whether it's a metamagic feat, a value of a `Metamagic` pick (Favorite Metamagic): its key starts
+    /// [`METAMAGIC_PREFIX`](Self::METAMAGIC_PREFIX). A rule on the key, not a column (no derived values).
+    pub fn is_metamagic(&self) -> bool {
+        self.key.as_str().starts_with(Self::METAMAGIC_PREFIX)
+    }
+}
+
 /// A Feat slot granted by a race, a class level or a mythic rank. Every slot checks the picked feat's
 /// prerequisites, except a bonus-list slot (a `OneOf` whose list ignores them).
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -1397,6 +1408,11 @@ pub struct MythicAbility {
     /// Feature selection slots the ability grants when it's picked (Second Bloodline: another bloodline).
     #[serde(default)]
     pub selections: Vec<FeatureSelectionKey>,
+    /// What the ability is taken for, when the guide says to choose one (Favorite Metamagic: a metamagic). Each pick
+    /// of it then names a value of this kind, or none yet ([`ParameterKind::may_stay_open`]). An ability is held
+    /// once, whatever its value.
+    #[serde(default)]
+    pub parameter: Option<ParameterKind>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]

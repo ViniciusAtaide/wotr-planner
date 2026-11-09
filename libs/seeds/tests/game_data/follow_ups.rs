@@ -45,7 +45,7 @@ fn every_parameterised_feat_repeats_once_per_value() {
         .iter()
         .filter(|f| f.parameter.is_some())
         .collect();
-    assert_eq!(parameterised.len(), 15);
+    assert_eq!(parameterised.len(), 16);
     for feat in parameterised {
         assert_eq!(feat.repeat, Repeat::PerValue, "{}", feat.key);
     }

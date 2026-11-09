@@ -50,15 +50,43 @@ pub(crate) fn build_json(build: &Build) -> Value {
 }
 
 /// A Build from [`build_json`]'s JSON. A field this revision's Build doesn't have (the first ascension, on a side
-/// before ticket 91) is left out, so that side reads the Build without it.
+/// before ticket 91) is left out, so that side reads the Build without it. A mythic ability pick with no value reads
+/// in either shape (ticket 125: `{"MythicAbility": {"ability": k, "parameter": null}}`, before it
+/// `{"MythicAbility": k}`); one with a value doesn't read on a side before ticket 125.
 pub(crate) fn build_from_json(value: Value) -> Result<Build, serde_json::Error> {
     let mut value = value;
-    let picks: Vec<(rules::SlotId, rules::Pick)> =
-        serde_json::from_value(value.get("picks").cloned().unwrap_or(Value::Null))?;
+    let json_picks = value.get("picks").cloned().unwrap_or(Value::Null);
+    let picks: Vec<(rules::SlotId, rules::Pick)> = serde_json::from_value(json_picks.clone())
+        .or_else(|error| {
+            serde_json::from_value(other_ability_shape(json_picks)).map_err(|_| error)
+        })?;
     value["picks"] = json!({});
     let mut build: Build = serde_json::from_value(value)?;
     build.picks = picks.into_iter().collect::<BTreeMap<_, _>>();
     Ok(build)
+}
+
+/// The `[slot, pick]` pairs with each mythic ability pick with no value in the other shape (see [`build_from_json`]).
+fn other_ability_shape(mut picks: Value) -> Value {
+    for pair in picks.as_array_mut().into_iter().flatten() {
+        let Some(ability) = pair
+            .get_mut(1)
+            .and_then(|pick| pick.get_mut("MythicAbility"))
+        else {
+            continue;
+        };
+        let other = match ability {
+            Value::String(key) => Some(json!({ "ability": key, "parameter": null })),
+            Value::Object(fields) if fields.get("parameter") == Some(&Value::Null) => {
+                fields.get("ability").cloned()
+            }
+            _ => None,
+        };
+        if let Some(other) = other {
+            *ability = other;
+        }
+    }
+    picks
 }
 
 /// The Builds as a JSON file, one `name<TAB>json` line each.

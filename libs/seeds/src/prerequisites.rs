@@ -97,6 +97,11 @@ impl Node {
                 armour_type: Some(armour_type_text(*armour)),
                 ..self
             },
+            Parameter::Metamagic(_) | Parameter::Stat(_) | Parameter::Element(_) => {
+                unreachable!(
+                    "only a pick names a metamagic, stat or element (GameData::check: PickOnlyValue)"
+                )
+            }
         }
     }
 
