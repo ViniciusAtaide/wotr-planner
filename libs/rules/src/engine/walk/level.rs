@@ -233,12 +233,10 @@ impl<'a> Walker<'a> {
                 .and_then(|archetype| archetype.skill_points)
                 .unwrap_or(class.skill_points)
         });
-        let intelligence = intelligence_skill_points(
-            level,
-            self.state.ability_scores.modifier(Ability::Intelligence),
-        );
+        let intelligence = self.state.ability_scores.modifier(Ability::Intelligence);
         let race_points = catalog.racial_skill_points(&self.build.start);
-        let available = (i16::from(class_points) + intelligence).max(1) + i16::from(race_points);
+        let available =
+            (i16::from(class_points) + i16::from(intelligence)).max(1) + i16::from(race_points);
         let available = u8::try_from(available).unwrap_or(u8::MAX);
         let spent = level_up
             .skill_ranks
@@ -539,15 +537,4 @@ fn advancing_levels(
         levels = levels.saturating_add(u8::try_from(count).unwrap_or(u8::MAX));
     }
     levels
-}
-
-/// Intelligence's skill points at a character level, as the guide's `character-creation` (Intelligence) has them: a
-/// point per two character levels for each point of the modifier (ticket 131). Half the modifier a level,
-/// accumulated: an odd modifier's half point comes at odd levels (Int 12: 1, 0, 1, 0, …; Int 16: 2, 1, 2, 1, …), and a
-/// penalty's at even ones (Int 8: 0, −1, 0, −1, …).
-pub(super) fn intelligence_skill_points(level: u8, modifier: i8) -> i16 {
-    // Half points rounded up: ⌈n / 2⌉.
-    let by_level = |level: i16| (level * i16::from(modifier) + 1).div_euclid(2);
-    let level = i16::from(level);
-    by_level(level) - by_level(level - 1)
 }

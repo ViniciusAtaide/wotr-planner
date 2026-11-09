@@ -104,6 +104,8 @@ The user has answered 2 and 5 (3 is answered and built). A is built for 1, so th
 
 ## Answer
 
+**Item 2 is held back, not on `main` (the orchestrator, 2026-11-09):** it was built and merged, then reverted on `main` in the next commit ("Hold back ticket 131 item 2"), because it makes most existing caster links stop opening and the ticket itself calls it the user's call. The work is kept whole on branch `held/131-int-skill-points` (commit `beec821`, with the bench link change); to take it, `git revert` the hold-back commit. Until then the engine gives the whole Int modifier, as before.
+
 Done 2026-11-09 for items 1, 2, 3 and 5; items 4 and 6 are covered elsewhere (choice 5).
 
 1. **The attack line counts the Trickster critical chain** (A): the run's Trickster falchion Build now reads 13–20/×3 where the Demon one reads 15–20/×2, so `compare` with `weapon: falchion` tells them apart. B (class features and mythic weapon feats in the line) is a later design with 119/120's per-item bonus shape.

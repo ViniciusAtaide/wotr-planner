@@ -222,8 +222,7 @@ fn a_race_or_subrace_with_a_chosen_bonus_lets_the_start_choose_its_ability() {
 
 #[test]
 fn skill_ranks_accumulate_and_skill_points_come_from_class_and_intelligence() {
-    // Int 13 (+1). Rogue at level 1: 8 + 1 = 9 points; fighter at level 2: 2 + 0 = 2 (Intelligence's half point
-    // comes at odd levels).
+    // Int 13 (+1). Rogue: 8 + 1 = 9 points a level; fighter: 2 + 1 = 3.
     let mut build = build("dwarf", &["rogue", "fighter"]);
     build.levels[0].skill_ranks.insert(skill("mobility"), 1);
     build.levels[0].skill_ranks.insert(skill("athletics"), 1);
@@ -232,50 +231,11 @@ fn skill_ranks_accumulate_and_skill_points_come_from_class_and_intelligence() {
 
     let points = |available, spent| SkillPoints { available, spent };
     assert_eq!(sheet.levels[0].skill_points, points(9, 2));
-    assert_eq!(sheet.levels[1].skill_points, points(2, 1));
+    assert_eq!(sheet.levels[1].skill_points, points(3, 1));
     let at_2 = sheet.at(2).unwrap();
     assert_eq!(at_2.skill_ranks(&skill("mobility")), 2);
     assert_eq!(at_2.skill_ranks(&skill("athletics")), 1);
     assert_eq!(at_2.skill_ranks(&skill("persuasion")), 0);
-}
-
-/// The skill points each of the first four levels of a fighter (2 a level) gives, at this Intelligence score.
-fn fighter_points(race: &str, intelligence: u8) -> Vec<u8> {
-    let mut build = build(race, &times("fighter", 4));
-    build.start.ability_scores = point_buy([10, 10, 10, intelligence, 10, 10]);
-    let sheet = engine().evaluate(&build);
-    sheet
-        .levels
-        .iter()
-        .map(|level| level.skill_points.available)
-        .collect()
-}
-
-#[test]
-fn intelligence_gives_half_its_modifier_a_level_the_odd_half_point_at_odd_levels() {
-    // The guide (`character-creation`, Intelligence): a point per two character levels for each point of Int
-    // bonus. Int 12 gives one at odd levels, 14 one at every level, 18 two.
-    assert_eq!(fighter_points("dwarf", 10), [2, 2, 2, 2]);
-    assert_eq!(fighter_points("dwarf", 12), [3, 2, 3, 2]);
-    assert_eq!(fighter_points("dwarf", 14), [3, 3, 3, 3]);
-    assert_eq!(fighter_points("dwarf", 16), [4, 3, 4, 3]);
-    assert_eq!(fighter_points("dwarf", 18), [4, 4, 4, 4]);
-    // A penalty the same way: Int 8 (−1) costs a point at even levels.
-    assert_eq!(fighter_points("dwarf", 8), [2, 1, 2, 1]);
-
-    // The odd levels are character levels: a rogue 1 (8) / fighter 1 with Int 12 gets 8 + 1, then 2 + 0.
-    let mut build = build("dwarf", &["rogue", "fighter"]);
-    build.start.ability_scores = point_buy([10, 10, 10, 12, 10, 10]);
-    let sheet = engine().evaluate(&build);
-    assert_eq!(sheet.levels[0].skill_points.available, 9);
-    assert_eq!(sheet.levels[1].skill_points.available, 2);
-}
-
-#[test]
-fn the_humans_skilled_is_worth_four_points_of_intelligence() {
-    // The guide: Skilled "is equivalent to +4 Intelligence", a point every level under the half-modifier rule.
-    assert_eq!(fighter_points("human", 10), fighter_points("dwarf", 14));
-    assert_eq!(fighter_points("human", 12), fighter_points("dwarf", 16));
 }
 
 #[test]
@@ -330,10 +290,10 @@ fn prestige_levels_advance_the_spell_level_access_of_the_class_chosen_on_entry()
 
 #[test]
 fn a_race_or_its_subrace_adds_skill_points_every_level() {
-    // Int 13 (+1). A human fighter: 2 + 1 + the human's 1 = 4 points at level 1, 2 + 0 + 1 = 3 at level 2.
+    // Int 13 (+1). A human fighter: 2 + 1 + the human's 1 = 4 points a level.
     let sheet = engine().evaluate(&build("human", &["fighter", "fighter"]));
     assert_eq!(sheet.levels[0].skill_points.available, 4);
-    assert_eq!(sheet.levels[1].skill_points.available, 3);
+    assert_eq!(sheet.levels[1].skill_points.available, 4);
 
     // A subrace's points replace the race's: the half-elf has none, its invented Adaptable subrace 1.
     let mut build = build("half-elf", &["fighter"]);

@@ -373,8 +373,8 @@ pub enum SlotKind {
     MythicFeat,
 }
 
-/// Skill points at one level: class skill points plus Intelligence's (half its modifier, the odd half point at odd
-/// levels; at least 1 together), plus the race's, and how many the Level-up spends.
+/// Skill points at one level: class skill points plus the Intelligence modifier (at least 1), and how many the
+/// Level-up spends.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct SkillPoints {
     pub available: u8,
