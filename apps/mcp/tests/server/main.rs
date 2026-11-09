@@ -5,6 +5,7 @@ mod address;
 mod attack_line;
 mod builds;
 mod choose;
+mod compact;
 mod compare;
 mod describe;
 mod end_to_end;

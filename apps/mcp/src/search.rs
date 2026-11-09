@@ -13,6 +13,12 @@ const DEFAULT_LIMIT: usize = 10;
 const EMPTY_QUERY_LIMIT: usize = 50;
 const MAX_LIMIT: usize = 100;
 
+/// A prerequisite text longer than this, in characters, is shortened in `search`'s hits: each group of more than
+/// [`MOST_ALTERNATIVES`] alternatives reads "one of 49 hexes (Air Barrier, Battle Master, Battle Ward, …)"
+/// (ticket 128). `describe` gives the whole text.
+const LONG_PREREQUISITE: usize = 200;
+const MOST_ALTERNATIVES: usize = 6;
+
 /// How many near names or categories a note names.
 const NEAR: usize = 5;
 
@@ -33,6 +39,8 @@ struct Entry {
     initials: String,
     /// The summary's words, lower case, apostrophes dropped.
     summary_words: Vec<String>,
+    /// The prerequisite shortened, when its whole text is long ([`LONG_PREREQUISITE`]).
+    short_prerequisite: Option<String>,
 }
 
 /// How well an entry matches, best first.
@@ -58,10 +66,21 @@ enum Rank {
 impl SearchIndex {
     pub(crate) fn new(data: &GameData, engine: &Engine) -> Self {
         let mut entries = Vec::new();
-        let mut add = |hit: Hit| entries.push(Entry::new(hit));
+        // An item and its prerequisite: the whole text on the hit, and a shortened one for a long text.
+        let mut add = |hit: Hit, needs: &Option<Prerequisite>| {
+            let short = needs.as_ref().and_then(|needs| {
+                let full = hit.prerequisite.as_ref()?.as_deref()?;
+                (full.chars().count() > LONG_PREREQUISITE)
+                    .then(|| engine.short_prerequisite_text(needs, MOST_ALTERNATIVES))
+                    .filter(|short| short != full)
+            });
+            entries.push(Entry::new(hit, short));
+        };
         let prerequisite = |p: &Option<Prerequisite>| {
-            p.as_ref()
-                .map(|prerequisite| engine.prerequisite_text(prerequisite, None))
+            Some(
+                p.as_ref()
+                    .map(|prerequisite| engine.prerequisite_text(prerequisite, None)),
+            )
         };
         let guide = |guide: &GuideRef| Some(guide.url());
         let summary = |text: &str| (!text.is_empty()).then(|| text.to_owned());
@@ -71,138 +90,168 @@ impl SearchIndex {
             (&data.prestige_classes, "Prestige class"),
         ] {
             for class in classes {
-                add(Hit {
-                    kind: Kind::Class,
-                    key: class.key.as_str().to_owned(),
-                    name: class.name.clone(),
-                    summary: summary(&class.summary),
-                    parent: None,
-                    category: Some(category.to_owned()),
-                    prerequisite: prerequisite(&class.prerequisite),
-                    guide_url: guide(&class.guide),
-                    matched: None,
-                });
-                for archetype in &class.archetypes {
-                    add(Hit {
-                        kind: Kind::Archetype,
-                        key: archetype.key.as_str().to_owned(),
-                        name: archetype.name.clone(),
-                        summary: summary(&archetype.summary),
-                        parent: Some(class.key.as_str().to_owned()),
-                        category: None,
-                        prerequisite: prerequisite(&archetype.prerequisite),
-                        guide_url: guide(&archetype.guide),
+                add(
+                    Hit {
+                        kind: Kind::Class,
+                        key: class.key.as_str().to_owned(),
+                        name: class.name.clone(),
+                        summary: summary(&class.summary),
+                        parent: None,
+                        category: Some(category.to_owned()),
+                        prerequisite: prerequisite(&class.prerequisite),
+                        guide_url: guide(&class.guide),
                         matched: None,
-                    });
+                    },
+                    &class.prerequisite,
+                );
+                for archetype in &class.archetypes {
+                    add(
+                        Hit {
+                            kind: Kind::Archetype,
+                            key: archetype.key.as_str().to_owned(),
+                            name: archetype.name.clone(),
+                            summary: summary(&archetype.summary),
+                            parent: Some(class.key.as_str().to_owned()),
+                            category: None,
+                            prerequisite: prerequisite(&archetype.prerequisite),
+                            guide_url: guide(&archetype.guide),
+                            matched: None,
+                        },
+                        &archetype.prerequisite,
+                    );
                 }
             }
         }
         for path in &data.mythic_paths {
-            add(Hit {
-                kind: Kind::Path,
-                key: path.key.as_str().to_owned(),
-                name: path.name.clone(),
-                summary: summary(&path.summary),
-                parent: None,
-                category: None,
-                prerequisite: None,
-                guide_url: guide(&path.guide),
-                matched: None,
-            });
+            add(
+                Hit {
+                    kind: Kind::Path,
+                    key: path.key.as_str().to_owned(),
+                    name: path.name.clone(),
+                    summary: summary(&path.summary),
+                    parent: None,
+                    category: None,
+                    prerequisite: Some(None),
+                    guide_url: guide(&path.guide),
+                    matched: None,
+                },
+                &None,
+            );
         }
         for feat in &data.feats {
-            add(Hit {
-                kind: Kind::Feat,
-                key: feat.key.as_str().to_owned(),
-                name: feat.name.clone(),
-                summary: summary(&feat.summary),
-                parent: None,
-                category: Some(feat.category.name().to_owned()),
-                prerequisite: prerequisite(&feat.prerequisite),
-                guide_url: guide(&feat.guide),
-                matched: None,
-            });
+            add(
+                Hit {
+                    kind: Kind::Feat,
+                    key: feat.key.as_str().to_owned(),
+                    name: feat.name.clone(),
+                    summary: summary(&feat.summary),
+                    parent: None,
+                    category: Some(feat.category.name().to_owned()),
+                    prerequisite: prerequisite(&feat.prerequisite),
+                    guide_url: guide(&feat.guide),
+                    matched: None,
+                },
+                &feat.prerequisite,
+            );
         }
         for ability in &data.mythic_abilities {
-            add(Hit {
-                kind: Kind::MythicAbility,
-                key: ability.key.as_str().to_owned(),
-                name: ability.name.clone(),
-                summary: summary(&ability.summary),
-                parent: None,
-                category: Some(ability.group.name().to_owned()),
-                prerequisite: prerequisite(&ability.prerequisite),
-                guide_url: guide(&ability.guide),
-                matched: None,
-            });
+            add(
+                Hit {
+                    kind: Kind::MythicAbility,
+                    key: ability.key.as_str().to_owned(),
+                    name: ability.name.clone(),
+                    summary: summary(&ability.summary),
+                    parent: None,
+                    category: Some(ability.group.name().to_owned()),
+                    prerequisite: prerequisite(&ability.prerequisite),
+                    guide_url: guide(&ability.guide),
+                    matched: None,
+                },
+                &ability.prerequisite,
+            );
         }
         for feat in &data.mythic_feats {
-            add(Hit {
-                kind: Kind::MythicFeat,
-                key: feat.key.as_str().to_owned(),
-                name: feat.name.clone(),
-                summary: summary(&feat.summary),
-                parent: None,
-                category: Some(feat.group.name().to_owned()),
-                prerequisite: prerequisite(&feat.prerequisite),
-                guide_url: guide(&feat.guide),
-                matched: None,
-            });
+            add(
+                Hit {
+                    kind: Kind::MythicFeat,
+                    key: feat.key.as_str().to_owned(),
+                    name: feat.name.clone(),
+                    summary: summary(&feat.summary),
+                    parent: None,
+                    category: Some(feat.group.name().to_owned()),
+                    prerequisite: prerequisite(&feat.prerequisite),
+                    guide_url: guide(&feat.guide),
+                    matched: None,
+                },
+                &feat.prerequisite,
+            );
         }
         for selection in all_selections(data) {
             for option in &selection.options {
-                add(Hit {
-                    kind: Kind::SelectionOption,
-                    key: option.key.as_str().to_owned(),
-                    name: option.name.clone(),
-                    summary: summary(&option.summary),
-                    parent: Some(selection.key.as_str().to_owned()),
-                    category: Some(selection.name.clone()),
-                    prerequisite: prerequisite(&option.prerequisite),
-                    guide_url: guide(&option.guide),
-                    matched: None,
-                });
+                add(
+                    Hit {
+                        kind: Kind::SelectionOption,
+                        key: option.key.as_str().to_owned(),
+                        name: option.name.clone(),
+                        summary: summary(&option.summary),
+                        parent: Some(selection.key.as_str().to_owned()),
+                        category: Some(selection.name.clone()),
+                        prerequisite: prerequisite(&option.prerequisite),
+                        guide_url: guide(&option.guide),
+                        matched: None,
+                    },
+                    &option.prerequisite,
+                );
             }
         }
         for race in &data.races {
-            add(Hit {
-                kind: Kind::Race,
-                key: race.key.as_str().to_owned(),
-                name: race.name.clone(),
-                summary: summary(&race.summary),
-                parent: None,
-                category: None,
-                prerequisite: None,
-                guide_url: guide(&race.guide),
-                matched: None,
-            });
+            add(
+                Hit {
+                    kind: Kind::Race,
+                    key: race.key.as_str().to_owned(),
+                    name: race.name.clone(),
+                    summary: summary(&race.summary),
+                    parent: None,
+                    category: None,
+                    prerequisite: Some(None),
+                    guide_url: guide(&race.guide),
+                    matched: None,
+                },
+                &None,
+            );
         }
         for deity in &data.deities {
-            add(Hit {
-                kind: Kind::Deity,
-                key: deity.key.as_str().to_owned(),
-                name: deity.name.clone(),
-                summary: None,
-                parent: None,
-                category: None,
-                prerequisite: None,
-                guide_url: guide(&deity.guide),
-                matched: None,
-            });
+            add(
+                Hit {
+                    kind: Kind::Deity,
+                    key: deity.key.as_str().to_owned(),
+                    name: deity.name.clone(),
+                    summary: None,
+                    parent: None,
+                    category: None,
+                    prerequisite: Some(None),
+                    guide_url: guide(&deity.guide),
+                    matched: None,
+                },
+                &None,
+            );
         }
         for background in &data.backgrounds {
-            add(Hit {
-                kind: Kind::Background,
-                key: background.key.as_str().to_owned(),
-                name: background.name.clone(),
-                summary: summary(&background.note),
-                parent: None,
-                category: background.group.map(|group| group.name().to_owned()),
-                prerequisite: None,
-                // The user's list, not the guide's: no link.
-                guide_url: None,
-                matched: None,
-            });
+            add(
+                Hit {
+                    kind: Kind::Background,
+                    key: background.key.as_str().to_owned(),
+                    name: background.name.clone(),
+                    summary: summary(&background.note),
+                    parent: None,
+                    category: background.group.map(|group| group.name().to_owned()),
+                    prerequisite: Some(None),
+                    // The user's list, not the guide's: no link.
+                    guide_url: None,
+                    matched: None,
+                },
+                &None,
+            );
         }
         Self { entries }
     }
@@ -216,6 +265,7 @@ impl SearchIndex {
         kinds: Option<&[Kind]>,
         categories: Option<&[String]>,
         limit: Option<u32>,
+        compact: bool,
     ) -> Result<SearchResult, String> {
         let given = query.trim();
         let query = Query::new(given);
@@ -288,10 +338,7 @@ impl SearchIndex {
             matches: found
                 .into_iter()
                 .take(limit)
-                .map(|(rank, entry)| Hit {
-                    matched: matches!(rank, Rank::Summary { .. }).then_some(Matched::Summary),
-                    ..entry.hit.clone()
-                })
+                .map(|(rank, entry)| entry.found(rank, compact))
                 .collect(),
             total,
             note,
@@ -408,9 +455,10 @@ impl SearchIndex {
 }
 
 impl Entry {
-    fn new(hit: Hit) -> Self {
+    fn new(hit: Hit, short_prerequisite: Option<String>) -> Self {
         let words = words(&hit.name);
         Self {
+            short_prerequisite,
             summary_words: hit.summary.as_deref().map(self::words).unwrap_or_default(),
             name: hit.name.to_lowercase(),
             initials: words
@@ -419,6 +467,33 @@ impl Entry {
                 .collect(),
             words,
             hit,
+        }
+    }
+
+    /// Its hit as `search` gives it: marked when it matched by its summary, its long prerequisite shortened, and
+    /// `compact`, only its kind, key, name and category.
+    fn found(&self, rank: Rank, compact: bool) -> Hit {
+        let matched = matches!(rank, Rank::Summary { .. }).then_some(Matched::Summary);
+        match compact {
+            true => Hit {
+                kind: self.hit.kind,
+                key: self.hit.key.clone(),
+                name: self.hit.name.clone(),
+                summary: None,
+                parent: None,
+                category: self.hit.category.clone(),
+                prerequisite: None,
+                guide_url: None,
+                matched,
+            },
+            false => Hit {
+                matched,
+                prerequisite: match &self.short_prerequisite {
+                    Some(short) => Some(Some(short.clone())),
+                    None => self.hit.prerequisite.clone(),
+                },
+                ..self.hit.clone()
+            },
         }
     }
 

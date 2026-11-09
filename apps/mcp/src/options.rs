@@ -560,6 +560,7 @@ pub(crate) fn options(planner: &Planner, args: OptionsArgs) -> Result<OptionsRes
         .map(str::to_lowercase)
         .collect();
     let only_open = args.only_open.unwrap_or(true);
+    let compact = args.compact.unwrap_or(false);
     let mut closed = 0;
     let mut lines = Vec::new();
     for offer in offers {
@@ -582,9 +583,12 @@ pub(crate) fn options(planner: &Planner, args: OptionsArgs) -> Result<OptionsRes
                         .unwrap_or_else(|| issue_reason(engine, issue)),
                 },
             },
-            summary: offer
-                .summary
-                .or_else(|| summary_of(planner, &address, &offer.value)),
+            summary: match compact {
+                true => None,
+                false => offer
+                    .summary
+                    .or_else(|| summary_of(planner, &address, &offer.value)),
+            },
             value: offer.value,
             name: offer.name,
             category: offer.category,
@@ -593,7 +597,10 @@ pub(crate) fn options(planner: &Planner, args: OptionsArgs) -> Result<OptionsRes
         });
     }
     Ok(OptionsResult {
-        envelope: envelope(engine, &build, &sheet),
+        envelope: args
+            .envelope
+            .unwrap_or(false)
+            .then(|| envelope(engine, &build, &sheet)),
         choice: address.to_string(),
         options: lines,
         closed,

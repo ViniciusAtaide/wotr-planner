@@ -3,7 +3,7 @@
 //!
 //! Conventions: field names are `snake_case`; a result is always an object (a list sits in a named field, as
 //! `search`'s `matches`); an optional field that doesn't apply is left out, except `prerequisite`, which is
-//! `null` when there is none; a reference to another item is a [`Named`] `{key, name}`. Every result about a Build
+//! `null` when there is none (`search`'s `compact` leaves it out); a reference to another item is a [`Named`] `{key, name}`. Every result about a Build
 //! flattens the [`Envelope`] into it (`build`, `link`, `todo`); a choice is named by its address (`address.rs`) and
 //! holds a [`ChoiceValue`].
 
@@ -79,6 +79,10 @@ pub struct SearchArgs {
     /// At most this many matches (default 10, or 50 for an empty query; at most 100).
     #[serde(default)]
     pub limit: Option<u32>,
+    /// Each match as its kind, key, name and category (and `matched`) only: no summary, parent, prerequisite or
+    /// guide link (default false).
+    #[serde(default)]
+    pub compact: Option<bool>,
 }
 
 /// One text, or a list of them.
@@ -132,8 +136,11 @@ pub struct Hit {
     /// option's Feature selection, a background's group.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub category: Option<String>,
-    /// What taking it needs, in the planner's words ("Spell Focus (Conjuration)"); `null` when nothing.
-    pub prerequisite: Option<String>,
+    /// What taking it needs, in the planner's words ("Spell Focus (Conjuration)"); `null` when nothing. In
+    /// `search`, a long one has each group of many alternatives shortened ("one of 49 hexes (Air Barrier, Battle
+    /// Master, Battle Ward, …)"), and `describe` gives it whole; left out by `search`'s `compact`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub prerequisite: Option<Option<String>>,
     /// Where the guide describes it, for the user to read. Never fetch it.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub guide_url: Option<String>,
@@ -567,13 +574,21 @@ pub struct OptionsArgs {
     /// status (default false: once, with `takes` saying what a value is).
     #[serde(default)]
     pub values: Option<bool>,
+    /// Each option without its summary (default false).
+    #[serde(default)]
+    pub compact: Option<bool>,
+    /// Also return the envelope, `build`, `link` and `todo` (default false: `options` changes nothing, so the
+    /// Build's code and its open choices are those given).
+    #[serde(default)]
+    pub envelope: Option<bool>,
 }
 
 /// `options`' result.
 #[derive(Debug, Serialize, JsonSchema)]
 pub struct OptionsResult {
+    /// Only with `envelope: true`.
     #[serde(flatten)]
-    pub envelope: Envelope,
+    pub envelope: Option<Envelope>,
     /// The address the options are for, as the server writes it.
     pub choice: String,
     /// In the planner's order.
