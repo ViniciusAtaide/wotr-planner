@@ -1,6 +1,7 @@
 Class(
     key: "arcane-trickster",
     name: "Arcane Trickster",
+    summary: "Ten-level rogue-caster with half BAB, full caster progression and 4 HP per level: more sneak attack dice, sneak attacks on aware foes, sneak damage on spells.",
     guide: "prestige-classes#arcane-trickster",
     skill_points: 4,
     bab: Half,
@@ -11,12 +12,12 @@ Class(
     class_skills: ["athletics", "knowledge-arcana", "knowledge-world", "lore-nature", "lore-religion", "mobility", "perception", "persuasion", "stealth", "trickery"],
     prerequisite: All([AtLeast(2, [Feat("accomplished-sneak-attacker"), Feature(feature: "alchemist/vivisectionist/sneak-attack", count: 1), Feature(feature: "alchemist/vivisectionist/sneak-attack", count: 2), Feature(feature: "assassin/sneak-attack", count: 1), Feature(feature: "assassin/sneak-attack", count: 2), Feature(feature: "inquisitor/sanctified-slayer/sneak-attack", count: 1), Feature(feature: "inquisitor/sanctified-slayer/sneak-attack", count: 2), Feature(feature: "paladin/divine-scion/sneak-attack", count: 1), Feature(feature: "paladin/divine-scion/sneak-attack", count: 2), Feature(feature: "rogue/eldritch-scoundrel/sneak-attack-eldritch-scoundrel", count: 1), Feature(feature: "rogue/eldritch-scoundrel/sneak-attack-eldritch-scoundrel", count: 2), Feature(feature: "rogue/master-of-all/sneak-attack-master-of-all", count: 1), Feature(feature: "rogue/master-of-all/sneak-attack-master-of-all", count: 2), Feature(feature: "rogue/sneak-attack", count: 1), Feature(feature: "rogue/sneak-attack", count: 2), Feature(feature: "shaman/shadow-shaman/sneak-attack", count: 1), Feature(feature: "shaman/shadow-shaman/sneak-attack", count: 2), Feature(feature: "skald/inciter/sneak-attack", count: 1), Feature(feature: "skald/inciter/sneak-attack", count: 2), Feature(feature: "slayer/imitator/sneak-attack-imitator", count: 1), Feature(feature: "slayer/imitator/sneak-attack-imitator", count: 2), Feature(feature: "slayer/sneak-attack", count: 1), Feature(feature: "slayer/sneak-attack", count: 2), Feature(feature: "trickster/sneak-attack", count: 1), Feature(feature: "trickster/sneak-attack", count: 2), Feature(feature: "warpriest/cult-leader/sneak-attack", count: 1), Feature(feature: "warpriest/cult-leader/sneak-attack", count: 2)]), SkillRanks(skill: "knowledge-arcana", ranks: 4), SkillRanks(skill: "mobility", ranks: 4), SkillRanks(skill: "trickery", ranks: 4), SpellLevel(spell_type: Arcane, level: 2), CharacterLevel(5)]),
     features: [
-        (key: "arcane-trickster/arcane-spellcasting", name: "Arcane Spellcasting", guide: "prestige-classes#arcane-spellcasting-arcane-trickster"),
-        (key: "arcane-trickster/impromptu-sneak-attack", name: "Impromptu Sneak Attack", guide: "prestige-classes#impromptu-sneak-attack"),
-        (key: "arcane-trickster/invisible-thief", name: "Invisible Thief", guide: "prestige-classes#invisible-thief"),
-        (key: "arcane-trickster/ranged-legerdemain", name: "Ranged Legerdemain", guide: "prestige-classes#ranged-legerdemain"),
-        (key: "arcane-trickster/sneak-attack", name: "Sneak Attack", guide: "prestige-classes#sneak-attack"),
-        (key: "arcane-trickster/surprise-spells", name: "Surprise Spells", guide: "prestige-classes#surprise-spells"),
+        (key: "arcane-trickster/arcane-spellcasting", name: "Arcane Spellcasting", summary: "Each level adds spells known and spells per day as a level of an arcane casting class you already have.", guide: "prestige-classes#arcane-spellcasting-arcane-trickster"),
+        (key: "arcane-trickster/impromptu-sneak-attack", name: "Impromptu Sneak Attack", summary: "For 1 round a day (up to 4 at 9th level), your attacks are sneak attacks whatever the target's awareness.", guide: "prestige-classes#impromptu-sneak-attack"),
+        (key: "arcane-trickster/invisible-thief", name: "Invisible Thief", summary: "Free action: Greater Invisibility for a number of rounds equal to your class level.", guide: "prestige-classes#invisible-thief"),
+        (key: "arcane-trickster/ranged-legerdemain", name: "Ranged Legerdemain", summary: "Trickery works on targets up to 30 feet away, with a -5 penalty.", guide: "prestige-classes#ranged-legerdemain"),
+        (key: "arcane-trickster/sneak-attack", name: "Sneak Attack", summary: "Sneak attack grows by 1d6 at class levels 2, 4, 6, 8 and 10.", guide: "prestige-classes#sneak-attack"),
+        (key: "arcane-trickster/surprise-spells", name: "Surprise Spells", summary: "Damaging spells add your sneak attack damage, once per spell, to flat-footed targets (area spells too); halved if the target saves for half.", guide: "prestige-classes#surprise-spells"),
     ],
     levels: [
         (level: 1, advances_arcane: true, features: ["arcane-trickster/arcane-spellcasting", "arcane-trickster/ranged-legerdemain"]),
