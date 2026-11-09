@@ -1,6 +1,7 @@
 Class(
     key: "wizard",
     name: "Wizard",
+    summary: "Int-based prepared arcane caster with a spellbook, arcane bond and optional school; 1/2 BAB, spells to 9th level, good Will, 5 HP a level.",
     guide: "wizard",
     skill_points: 2,
     bab: Half,
@@ -9,52 +10,54 @@ Class(
     will: Good,
     class_skills: ["knowledge-arcana", "knowledge-world", "lore-nature", "lore-religion"],
     features: [
-        (key: "wizard/school/abjurer/energy-absorption", name: "Energy Absorption", guide: "wizard#energy-absorption"),
-        (key: "wizard/school/abjurer/protective-ward", name: "Protective Ward", guide: "wizard#protective-ward"),
-        (key: "wizard/school/abjurer/resistance", name: "Resistance", guide: "wizard#resistance", daily_choice: true),
-        (key: "wizard/school/conjurer/acid-dart", name: "Acid Dart", guide: "wizard#acid-dart"),
-        (key: "wizard/school/conjurer/dimensional-steps", name: "Dimensional Steps", guide: "wizard#dimensional-steps"),
-        (key: "wizard/school/conjurer/summoners-charm", name: "Summoner\'s Charm", guide: "wizard#summoners-charm"),
-        (key: "wizard/school/diviner/diviners-fortune", name: "Diviner\'s Fortune", guide: "wizard#diviners-fortune"),
-        (key: "wizard/school/diviner/foretell", name: "Foretell", guide: "wizard#foretell"),
-        (key: "wizard/school/diviner/forewarned", name: "Forewarned", guide: "wizard#forewarned"),
-        (key: "wizard/school/enchanter/aura-of-despair", name: "Aura of Despair", guide: "wizard#aura-of-despair"),
-        (key: "wizard/school/enchanter/dazing-touch", name: "Dazing Touch", guide: "wizard#dazing-touch"),
-        (key: "wizard/school/enchanter/enchanting-smile", name: "Enchanting Smile", guide: "wizard#enchanting-smile"),
-        (key: "wizard/school/illusionist/blinding-ray", name: "Blinding Ray", guide: "wizard#blinding-ray"),
-        (key: "wizard/school/illusionist/invisibility-field", name: "Invisibility Field", guide: "wizard#invisibility-field"),
-        (key: "wizard/school/invoker/elemental-wall", name: "Elemental Wall", guide: "wizard#elemental-wall"),
-        (key: "wizard/school/invoker/force-missile", name: "Force Missile", guide: "wizard#force-missile"),
-        (key: "wizard/school/invoker/intense-spells", name: "Intense Spells", guide: "wizard#intense-spells"),
-        (key: "wizard/school/invoker/intense-spells-spell-penetration", name: "Intense Spells - Spell Penetration", guide: "wizard#invoker"),
-        (key: "wizard/school/necromancer/grave-touch", name: "Grave Touch", guide: "wizard#grave-touch"),
-        (key: "wizard/school/necromancer/life-sight", name: "Life Sight", guide: "wizard#life-sight"),
-        (key: "wizard/school/necromancer/power-over-undead", name: "Power Over Undead", guide: "wizard#power-over-undead"),
-        (key: "wizard/school/transmuter/change-shape-i", name: "Change Shape I", guide: "wizard#transmuter"),
-        (key: "wizard/school/transmuter/change-shape-ii", name: "Change Shape II", guide: "wizard#transmuter"),
-        (key: "wizard/school/transmuter/physical-enhancement", name: "Physical Enhancement", guide: "wizard#physical-enhancement"),
-        (key: "wizard/school/transmuter/physical-enhancement-2", name: "Physical Enhancement +2", guide: "wizard#transmuter"),
-        (key: "wizard/school/transmuter/physical-enhancement-3", name: "Physical Enhancement +3", guide: "wizard#transmuter"),
-        (key: "wizard/school/transmuter/physical-enhancement-4", name: "Physical Enhancement +4", guide: "wizard#transmuter"),
-        (key: "wizard/school/transmuter/physical-enhancement-5", name: "Physical Enhancement +5", guide: "wizard#transmuter"),
-        (key: "wizard/school/transmuter/telekinetic-fist", name: "Telekinetic Fist", guide: "wizard#telekinetic-fist"),
-        (key: "wizard/school/universalist/hand-of-the-apprentice", name: "Hand of the Apprentice", guide: "wizard#hand-of-the-apprentice"),
-        (key: "wizard/school/universalist/mm-empower", name: "MM - Empower", guide: "wizard#universalist"),
-        (key: "wizard/school/universalist/mm-extend-and-reach-spell", name: "MM - Extend and Reach Spell", guide: "wizard#universalist"),
-        (key: "wizard/school/universalist/mm-maximise", name: "MM - Maximise", guide: "wizard#universalist"),
-        (key: "wizard/school/universalist/mm-quicken", name: "MM - Quicken", guide: "wizard#universalist"),
-        (key: "wizard/wizard-proficiencies", name: "Wizard Proficiencies", guide: "wizard#wizard-proficiencies"),
+        (key: "wizard/school/abjurer/energy-absorption", name: "Energy Absorption", summary: "From 6th level, absorb energy damage up to 3 times your level each day.", guide: "wizard#energy-absorption"),
+        (key: "wizard/school/abjurer/protective-ward", name: "Protective Ward", summary: "Standard action, 3 + Int times a day: a 10' field giving allies +1 deflection AC, +1 per five levels.", guide: "wizard#protective-ward"),
+        (key: "wizard/school/abjurer/resistance", name: "Resistance", summary: "Resistance 5 to an energy type chosen when you prepare spells, 10 at 11th, immunity at 20th.", guide: "wizard#resistance", daily_choice: true),
+        (key: "wizard/school/conjurer/acid-dart", name: "Acid Dart", summary: "Standard action, 3 + Int times a day: a 30' ranged touch dart for 1d6 acid + 1 per two levels.", guide: "wizard#acid-dart"),
+        (key: "wizard/school/conjurer/dimensional-steps", name: "Dimensional Steps", summary: "From 8th level, teleport up to 30' as a move action, level times a day.", guide: "wizard#dimensional-steps"),
+        (key: "wizard/school/conjurer/summoners-charm", name: "Summoner\'s Charm", summary: "Conjuration spells last extra rounds equal to half your level (minimum 1), not doubled by Extend Spell.", guide: "wizard#summoners-charm"),
+        (key: "wizard/school/diviner/diviners-fortune", name: "Diviner\'s Fortune", summary: "Standard action, 3 + Int times a day: an ally adds half your level to attacks, skills, ability checks and saves for 1 round.", guide: "wizard#diviners-fortune"),
+        (key: "wizard/school/diviner/foretell", name: "Foretell", summary: "From 8th level, a 30' aura for level rounds a day: allies get +2 luck to most rolls, or foes take -2.", guide: "wizard#foretell"),
+        (key: "wizard/school/diviner/forewarned", name: "Forewarned", summary: "Add half your level to initiative; at 20th, initiative is always a natural 20.", guide: "wizard#forewarned"),
+        (key: "wizard/school/enchanter/aura-of-despair", name: "Aura of Despair", summary: "From 8th level, a 30' mind-affecting aura for level rounds a day gives enemies -2 on all rolls.", guide: "wizard#aura-of-despair"),
+        (key: "wizard/school/enchanter/dazing-touch", name: "Dazing Touch", summary: "Standard action, 3 + Int times a day: a melee touch dazes a living creature.", guide: "wizard#dazing-touch"),
+        (key: "wizard/school/enchanter/enchanting-smile", name: "Enchanting Smile", summary: "+2 on Persuasion and saves against enchantments, +1 per 5 wizard levels (max +6).", guide: "wizard#enchanting-smile"),
+        (key: "wizard/school/illusionist/blinding-ray", name: "Blinding Ray", summary: "Standard action, 3 + Int times a day: ranged touch blinds for 1 round, or dazzles creatures with more HD than your level.", guide: "wizard#blinding-ray"),
+        (key: "wizard/school/illusionist/invisibility-field", name: "Invisibility Field", summary: "From 8th level, turn invisible as a swift action for level rounds a day.", guide: "wizard#invisibility-field"),
+        (key: "wizard/school/invoker/elemental-wall", name: "Elemental Wall", summary: "From 8th level, a Wall of Fire-like wall of a chosen energy; twice a day at 12th, three at 16th, four at 20th.", guide: "wizard#elemental-wall"),
+        (key: "wizard/school/invoker/force-missile", name: "Force Missile", summary: "Standard action, 3 + Int times a day: an unerring 30' dart for 1d4 force + 1 per two levels.", guide: "wizard#force-missile"),
+        (key: "wizard/school/invoker/intense-spells", name: "Intense Spells", summary: "Damaging evocation spells add half your level to damage once (not empowered); at 20th, roll twice against spell resistance.", guide: "wizard#intense-spells"),
+        (key: "wizard/school/invoker/intense-spells-spell-penetration", name: "Intense Spells - Spell Penetration", summary: "At 20th level, roll twice to beat spell resistance with evocation spells.", guide: "wizard#invoker"),
+        (key: "wizard/school/necromancer/grave-touch", name: "Grave Touch", summary: "Melee touch, 3 + Int times a day: shaken for half your level in rounds, or frightened 1 round if already shaken and low HD.", guide: "wizard#grave-touch"),
+        (key: "wizard/school/necromancer/life-sight", name: "Life Sight", summary: "From 8th level, blindsight 10' for level rounds, telling living from undead.", guide: "wizard#life-sight"),
+        (key: "wizard/school/necromancer/power-over-undead", name: "Power Over Undead", summary: "Turn undead 3 + Int times a day (DC 10 + half level + Cha); at 20th, undead lose channel resistance.", guide: "wizard#power-over-undead"),
+        (key: "wizard/school/transmuter/change-shape-i", name: "Change Shape I", summary: "From 8th level, take a Beast Shape II or Elemental Shape I form for rounds equal to your wizard level.", guide: "wizard#transmuter"),
+        (key: "wizard/school/transmuter/change-shape-ii", name: "Change Shape II", summary: "From 12th level, Change Shape works as Beast Shape III or Elemental Shape II.", guide: "wizard#transmuter"),
+        (key: "wizard/school/transmuter/physical-enhancement", name: "Physical Enhancement", summary: "+1 enhancement to a physical ability chosen when preparing spells, +1 per 5 wizard levels (+5 at 20th, two abilities at 20th).", guide: "wizard#physical-enhancement"),
+        (key: "wizard/school/transmuter/physical-enhancement-2", name: "Physical Enhancement +2", summary: "At 5th level, Physical Enhancement rises to +2.", guide: "wizard#transmuter"),
+        (key: "wizard/school/transmuter/physical-enhancement-3", name: "Physical Enhancement +3", summary: "At 10th level, Physical Enhancement rises to +3.", guide: "wizard#transmuter"),
+        (key: "wizard/school/transmuter/physical-enhancement-4", name: "Physical Enhancement +4", summary: "At 15th level, Physical Enhancement rises to +4.", guide: "wizard#transmuter"),
+        (key: "wizard/school/transmuter/physical-enhancement-5", name: "Physical Enhancement +5", summary: "At 20th level, Physical Enhancement rises to +5 and can boost two attributes.", guide: "wizard#transmuter"),
+        (key: "wizard/school/transmuter/telekinetic-fist", name: "Telekinetic Fist", summary: "Standard action, 3 + Int times a day: a 30' ranged touch for 1d4 bludgeoning + 1 per two levels.", guide: "wizard#telekinetic-fist"),
+        (key: "wizard/school/universalist/hand-of-the-apprentice", name: "Hand of the Apprentice", summary: "Standard action, 3 + Int times a day: attack with your melee weapon at 30' using Int for the attack.", guide: "wizard#hand-of-the-apprentice"),
+        (key: "wizard/school/universalist/mm-empower", name: "MM - Empower", summary: "From 12th level, Metamagic Mastery can apply Empower for 2 uses.", guide: "wizard#universalist"),
+        (key: "wizard/school/universalist/mm-extend-and-reach-spell", name: "MM - Extend and Reach Spell", summary: "From 8th level, apply Extend or Reach to your next spell, 1/day plus 1 per two levels (7 at 20th), 1 use each.", guide: "wizard#universalist"),
+        (key: "wizard/school/universalist/mm-maximise", name: "MM - Maximise", summary: "From 16th level, Metamagic Mastery can apply Maximise for 3 uses.", guide: "wizard#universalist"),
+        (key: "wizard/school/universalist/mm-quicken", name: "MM - Quicken", summary: "At 20th level, Metamagic Mastery can apply Quicken for 4 uses.", guide: "wizard#universalist"),
+        (key: "wizard/wizard-proficiencies", name: "Wizard Proficiencies", summary: "Club, dagger, heavy and light crossbow and quarterstaff.", guide: "wizard#wizard-proficiencies"),
     ],
     selections: [
         (
             key: "wizard/school",
             name: "School",
+            summary: "Specialise in a school for an extra slot per spell level (for that school) and two opposition schools costing double slots, or stay a Universalist.",
             guide: "wizard#wizard",
             option_levels: ["wizard"],
             options: [
                 (
                     key: "wizard/school/abjurer",
                     name: "Abjurer",
+                    summary: "Abjuration specialist: Resistance, Protective Ward and Energy Absorption.",
                     guide: "wizard#abjurer",
                     levels: [
                         (level: 1, features: ["wizard/school/abjurer/protective-ward", "wizard/school/abjurer/resistance"]),
@@ -64,6 +67,7 @@ Class(
                 (
                     key: "wizard/school/conjurer",
                     name: "Conjurer",
+                    summary: "Conjuration specialist: Summoner's Charm, Acid Dart and Dimensional Steps.",
                     guide: "wizard#conjurer",
                     levels: [
                         (level: 1, features: ["wizard/school/conjurer/acid-dart", "wizard/school/conjurer/summoners-charm"]),
@@ -73,6 +77,7 @@ Class(
                 (
                     key: "wizard/school/diviner",
                     name: "Diviner",
+                    summary: "Divination specialist: Forewarned, Diviner's Fortune and Foretell.",
                     guide: "wizard#diviner",
                     levels: [
                         (level: 1, features: ["wizard/school/diviner/diviners-fortune", "wizard/school/diviner/forewarned"]),
@@ -82,6 +87,7 @@ Class(
                 (
                     key: "wizard/school/enchanter",
                     name: "Enchanter",
+                    summary: "Enchantment specialist: Enchanting Smile, Dazing Touch and Aura of Despair.",
                     guide: "wizard#enchanter",
                     levels: [
                         (level: 1, features: ["wizard/school/enchanter/dazing-touch", "wizard/school/enchanter/enchanting-smile"]),
@@ -91,6 +97,7 @@ Class(
                 (
                     key: "wizard/school/illusionist",
                     name: "Illusionist",
+                    summary: "Illusion specialist: Blinding Ray and Invisibility Field.",
                     guide: "wizard#illusionist",
                     levels: [
                         (level: 1, features: ["wizard/school/illusionist/blinding-ray"]),
@@ -100,6 +107,7 @@ Class(
                 (
                     key: "wizard/school/invoker",
                     name: "Invoker",
+                    summary: "Evocation specialist: Intense Spells, Force Missile and Elemental Wall.",
                     guide: "wizard#invoker",
                     levels: [
                         (level: 1, features: ["wizard/school/invoker/force-missile", "wizard/school/invoker/intense-spells"]),
@@ -110,6 +118,7 @@ Class(
                 (
                     key: "wizard/school/necromancer",
                     name: "Necromancer",
+                    summary: "Necromancy specialist: Power Over Undead, Grave Touch and Life Sight.",
                     guide: "wizard#necromancer",
                     levels: [
                         (level: 1, features: ["wizard/school/necromancer/grave-touch", "wizard/school/necromancer/power-over-undead"]),
@@ -119,6 +128,7 @@ Class(
                 (
                     key: "wizard/school/transmuter",
                     name: "Transmuter",
+                    summary: "Transmutation specialist: Physical Enhancement, Telekinetic Fist and Change Shape.",
                     guide: "wizard#transmuter",
                     levels: [
                         (level: 1, features: ["wizard/school/transmuter/physical-enhancement", "wizard/school/transmuter/telekinetic-fist"]),
@@ -133,6 +143,7 @@ Class(
                 (
                     key: "wizard/school/universalist",
                     name: "Universalist",
+                    summary: "No specialisation: Hand of the Apprentice and Metamagic Mastery instead of school powers.",
                     guide: "wizard#universalist",
                     levels: [
                         (level: 1, features: ["wizard/school/universalist/hand-of-the-apprentice"]),
@@ -171,11 +182,12 @@ Class(
         (
             key: "wizard/arcane-bomber",
             name: "Arcane Bomber",
+            summary: "Wizard-alchemist hybrid who throws bombs; no arcane bond and four opposition schools.",
             guide: "wizard#arcane-bomber",
             features: [
-                (key: "wizard/arcane-bomber/arcane-bombs", name: "Arcane Bombs", guide: "wizard#arcane-bombs"),
+                (key: "wizard/arcane-bomber/arcane-bombs", name: "Arcane Bombs", summary: "Level + Int bombs a day of a chosen energy: 1d6 + Int, +1d6 every odd level, with splash damage (Reflex half).", guide: "wizard#arcane-bombs"),
                 (key: "wizard/arcane-bomber/cantrips", name: "Cantrips", guide: "wizard#arcane-bomber"),
-                (key: "wizard/arcane-bomber/spellblast", name: "Spellblast", guide: "wizard#arcane-bomber"),
+                (key: "wizard/arcane-bomber/spellblast", name: "Spellblast", summary: "Swift action: sacrifice a spell so a bomb gains its level to attack and twice its level to damage.", guide: "wizard#arcane-bomber"),
             ],
             levels: [
                 (level: 1, features: ["wizard/arcane-bomber/arcane-bombs", "wizard/arcane-bomber/cantrips", "wizard/arcane-bomber/spellblast", "wizard/wizard-proficiencies"], feats: ["scribe-scrolls"], feat_slots: [Category(Magic)]),
@@ -184,27 +196,30 @@ Class(
         (
             key: "wizard/cruromancer",
             name: "Cruromancer",
+            summary: "Dhampir-only necromancer who powers necromancy spells with his own blood; no arcane bond.",
             guide: "wizard#cruromancer",
             prerequisite: Race("dhampir"),
             features: [
                 (key: "wizard/cruromancer/cantrips", name: "Cantrips", guide: "wizard#cruromancer"),
-                (key: "wizard/cruromancer/commanding-infusion", name: "Commanding Infusion", guide: "wizard#cruromancer"),
-                (key: "wizard/cruromancer/perfect-infusion", name: "Perfect Infusion", guide: "wizard#perfect-infusion"),
+                (key: "wizard/cruromancer/commanding-infusion", name: "Commanding Infusion", summary: "From 5th level, an infused Animate Dead gives its skeletons +4 Str and Cha.", guide: "wizard#cruromancer"),
+                (key: "wizard/cruromancer/perfect-infusion", name: "Perfect Infusion", summary: "At 20th level, blood infusions cost no HP.", guide: "wizard#perfect-infusion"),
             ],
             selections: [
                 (
                     key: "wizard/cruromancer/blood-infusion",
                     name: "Blood Infusion",
+                    summary: "Sacrifice 1d4 HP + half your caster level to power up a necromancy spell with an infusion.",
                     guide: "wizard#blood-infusion",
                     options: [
-                        (key: "wizard/cruromancer/blood-infusion/commanding-infusion", name: "Commanding Infusion", guide: "wizard#commanding-infusion"),
-                        (key: "wizard/cruromancer/blood-infusion/focused-infusion", name: "Focused Infusion", guide: "wizard#focused-infusion"),
-                        (key: "wizard/cruromancer/blood-infusion/sickening-infusion", name: "Sickening Infusion", guide: "wizard#sickening-infusion"),
+                        (key: "wizard/cruromancer/blood-infusion/commanding-infusion", name: "Commanding Infusion", summary: "An infused Animate Dead gives its skeletons +4 Str and Cha.", guide: "wizard#commanding-infusion"),
+                        (key: "wizard/cruromancer/blood-infusion/focused-infusion", name: "Focused Infusion", summary: "The infused spell's DC rises by 1.", guide: "wizard#focused-infusion"),
+                        (key: "wizard/cruromancer/blood-infusion/sickening-infusion", name: "Sickening Infusion", summary: "Creatures damaged by the infused spell are sickened for 1 round.", guide: "wizard#sickening-infusion"),
                     ],
                 ),
                 (
                     key: "wizard/cruromancer/school",
                     name: "School (Cruromancer)",
+                    summary: "A Cruromancer always specialises in Necromancy.",
                     guide: "wizard#cruromancer",
                     option_levels: ["wizard"],
                     options: [],
@@ -222,26 +237,29 @@ Class(
         (
             key: "wizard/elemental-specialist",
             name: "Elemental Specialist",
+            summary: "Evocation specialist focused on one element, with three opposition schools.",
             guide: "wizard#elemental-specialist",
             features: [
-                (key: "wizard/elemental-specialist/arcane-bond", name: "Arcane Bond", guide: "wizard#elemental-specialist"),
+                (key: "wizard/elemental-specialist/arcane-bond", name: "Arcane Bond", summary: "Choose an arcane bond: a bonded object or a familiar.", guide: "wizard#elemental-specialist"),
                 (key: "wizard/elemental-specialist/cantrips", name: "Cantrips", guide: "wizard#elemental-specialist"),
             ],
             selections: [
                 (
                     key: "wizard/elemental-specialist/focused-element",
                     name: "Focused Element",
+                    summary: "Pick acid, cold, electricity or fire to convert elemental spell damage into; from 15th, half its damage is untyped.",
                     guide: "wizard#focused-element",
                     options: [
-                        (key: "wizard/elemental-specialist/focused-element/acid", name: "Acid", guide: "wizard#focused-element"),
-                        (key: "wizard/elemental-specialist/focused-element/cold", name: "Cold", guide: "wizard#focused-element"),
-                        (key: "wizard/elemental-specialist/focused-element/electricity", name: "Electricity", guide: "wizard#focused-element"),
-                        (key: "wizard/elemental-specialist/focused-element/fire", name: "Fire", guide: "wizard#focused-element"),
+                        (key: "wizard/elemental-specialist/focused-element/acid", name: "Acid", summary: "Convert elemental spell damage to acid; from 15th level, half of acid spells' damage is untyped.", guide: "wizard#focused-element"),
+                        (key: "wizard/elemental-specialist/focused-element/cold", name: "Cold", summary: "Convert elemental spell damage to cold; from 15th level, half of cold spells' damage is untyped.", guide: "wizard#focused-element"),
+                        (key: "wizard/elemental-specialist/focused-element/electricity", name: "Electricity", summary: "Convert elemental spell damage to electricity; from 15th level, half of electricity spells' damage is untyped.", guide: "wizard#focused-element"),
+                        (key: "wizard/elemental-specialist/focused-element/fire", name: "Fire", summary: "Convert elemental spell damage to fire; from 15th level, half of fire spells' damage is untyped.", guide: "wizard#focused-element"),
                     ],
                 ),
                 (
                     key: "wizard/elemental-specialist/school",
                     name: "School (Elemental Specialist)",
+                    summary: "An Elemental Specialist is always an Invoker and takes three opposition schools.",
                     guide: "wizard#elemental-specialist",
                     option_levels: ["wizard"],
                     options: [],
@@ -257,9 +275,10 @@ Class(
         (
             key: "wizard/exploiter-wizard",
             name: "Exploiter Wizard",
+            summary: "Unspecialised wizard who uses an arcane reservoir and arcanist exploits instead of an arcane bond.",
             guide: "wizard#exploiter-wizard",
             features: [
-                (key: "wizard/exploiter-wizard/arcane-reservoir", name: "Arcane Reservoir", guide: "wizard#arcane-reservoir"),
+                (key: "wizard/exploiter-wizard/arcane-reservoir", name: "Arcane Reservoir", summary: "Holds up to level + 3 points (half level + 3 after rest); spend 1 as a free action for +1 to a spell's caster level or DC.", guide: "wizard#arcane-reservoir"),
                 (key: "wizard/exploiter-wizard/cantrips", name: "Cantrips", guide: "wizard#exploiter-wizard"),
             ],
             levels: [
@@ -273,14 +292,15 @@ Class(
         (
             key: "wizard/scroll-savant",
             name: "Scroll Savant",
+            summary: "Wizard skilled with scrolls, with Use Magic Device as a class skill and fewer bonus feats.",
             guide: "wizard#scroll-savant",
             class_skills: ["knowledge-arcana", "knowledge-world", "lore-nature", "lore-religion", "use-magic-device"],
             features: [
-                (key: "wizard/scroll-savant/arcane-bond", name: "Arcane Bond", guide: "wizard#scroll-savant"),
+                (key: "wizard/scroll-savant/arcane-bond", name: "Arcane Bond", summary: "Choose an arcane bond: a bonded object or a familiar.", guide: "wizard#scroll-savant"),
                 (key: "wizard/scroll-savant/cantrips", name: "Cantrips", guide: "wizard#scroll-savant"),
-                (key: "wizard/scroll-savant/scroll-focus", name: "Scroll Focus", guide: "wizard#scroll-focus"),
-                (key: "wizard/scroll-savant/scroll-mastery", name: "Scroll Mastery", guide: "wizard#scroll-mastery"),
-                (key: "wizard/scroll-savant/scroll-specialization", name: "Scroll Specialization", guide: "wizard#scroll-specialization"),
+                (key: "wizard/scroll-savant/scroll-focus", name: "Scroll Focus", summary: "Add half your level to Use Magic Device, and always take 10 when 10 would succeed.", guide: "wizard#scroll-focus"),
+                (key: "wizard/scroll-savant/scroll-mastery", name: "Scroll Mastery", summary: "At 10th level, scrolls use your caster level instead of their own.", guide: "wizard#scroll-mastery"),
+                (key: "wizard/scroll-savant/scroll-specialization", name: "Scroll Specialization", summary: "At 5th level, scroll spell DCs use your Int modifier instead of the minimum.", guide: "wizard#scroll-specialization"),
             ],
             levels: [
                 (level: 1, features: ["wizard/scroll-savant/arcane-bond", "wizard/scroll-savant/cantrips", "wizard/scroll-savant/scroll-focus", "wizard/wizard-proficiencies"], feats: ["scribe-scrolls"], selections: ["wizard/school"]),
@@ -291,14 +311,15 @@ Class(
         (
             key: "wizard/shadowcaster",
             name: "Shadowcaster",
+            summary: "Shadow-magic wizard (Lord of Nothing DLC) who learns illusion spells automatically; no arcane bond and fewer bonus feats.",
             guide: "wizard#shadowcaster",
             features: [
                 (key: "wizard/shadowcaster/cantrips", name: "Cantrips", guide: "wizard#shadowcaster"),
-                (key: "wizard/shadowcaster/shadow-spells", name: "Shadow Spells", guide: "wizard#shadow-spells"),
-                (key: "wizard/shadowcaster/shadowform", name: "Shadowform", guide: "wizard#shadowform"),
-                (key: "wizard/shadowcaster/shadowsight", name: "Shadowsight", guide: "wizard#shadowsight"),
-                (key: "wizard/shadowcaster/summon-shadow", name: "Summon Shadow", guide: "wizard#summon-shadow"),
-                (key: "wizard/shadowcaster/umbral-mind", name: "Umbral Mind", guide: "wizard#umbral-mind"),
+                (key: "wizard/shadowcaster/shadow-spells", name: "Shadow Spells", summary: "Learn an illusion spell every even level: Vanish at 2nd, Blur, Displacement, the shadow spells, up to Shades at 18th.", guide: "wizard#shadow-spells"),
+                (key: "wizard/shadowcaster/shadowform", name: "Shadowform", summary: "At 20th, become a shadow for half your level in rounds: incorporeal undead, +2 Int, +30' speed, a Str-draining touch and Transformation.", guide: "wizard#shadowform"),
+                (key: "wizard/shadowcaster/shadowsight", name: "Shadowsight", summary: "At 5th level, blindsight 30'.", guide: "wizard#shadowsight"),
+                (key: "wizard/shadowcaster/summon-shadow", name: "Summon Shadow", summary: "From 7th level, once a day, summon a Shadow with bonuses for your caster level in minutes; it may break free (Will DC 18).", guide: "wizard#summon-shadow"),
+                (key: "wizard/shadowcaster/umbral-mind", name: "Umbral Mind", summary: "From 10th level, +1 profane Int, +1 every two levels (+5 at 18th).", guide: "wizard#umbral-mind"),
             ],
             levels: [
                 (level: 1, features: ["wizard/shadowcaster/cantrips", "wizard/shadowcaster/shadow-spells", "wizard/wizard-proficiencies"], feats: ["scribe-scrolls"], feat_slots: [Category(Magic)], selections: ["wizard/school"]),
@@ -312,17 +333,19 @@ Class(
         (
             key: "wizard/spell-master",
             name: "Spell Master",
+            summary: "Universalist who must take a bonded object, gains more uses of it and loses two bonus feats.",
             guide: "wizard#spell-master",
             features: [
                 (key: "wizard/spell-master/cantrips", name: "Cantrips", guide: "wizard#spell-master"),
-                (key: "wizard/spell-master/focused-spells", name: "Focused Spells", guide: "wizard#focused-spells"),
-                (key: "wizard/spell-master/item-bond-specialization", name: "Item Bond Specialization", guide: "wizard#item-bond-specialization"),
-                (key: "wizard/spell-master/object-bond", name: "Object Bond", guide: "wizard#spell-master"),
+                (key: "wizard/spell-master/focused-spells", name: "Focused Spells", summary: "Once a day, +4 caster level for one spell; twice a day at 8th, three times at 16th.", guide: "wizard#focused-spells"),
+                (key: "wizard/spell-master/item-bond-specialization", name: "Item Bond Specialization", summary: "At 5th level and every 5 levels after, one more use of your bonded object to restore a spell.", guide: "wizard#item-bond-specialization"),
+                (key: "wizard/spell-master/object-bond", name: "Object Bond", summary: "A Spell Master's arcane bond must be a bonded object rather than a familiar.", guide: "wizard#spell-master"),
             ],
             selections: [
                 (
                     key: "wizard/spell-master/school",
                     name: "School (Spell Master)",
+                    summary: "A Spell Master is always a Universalist.",
                     guide: "wizard#spell-master",
                     option_levels: ["wizard"],
                     options: [],
@@ -340,9 +363,10 @@ Class(
         (
             key: "wizard/thassilonian-specialist",
             name: "Thassilonian Specialist",
+            summary: "Wizard with two extra slots per spell level for one school, and two schools forbidden entirely.",
             guide: "wizard#thassilonian-specialist",
             features: [
-                (key: "wizard/thassilonian-specialist/arcane-bond", name: "Arcane Bond", guide: "wizard#thassilonian-specialist"),
+                (key: "wizard/thassilonian-specialist/arcane-bond", name: "Arcane Bond", summary: "Choose an arcane bond: a bonded object or a familiar.", guide: "wizard#thassilonian-specialist"),
                 (key: "wizard/thassilonian-specialist/cantrips", name: "Cantrips", guide: "wizard#thassilonian-specialist"),
             ],
             selections: [
