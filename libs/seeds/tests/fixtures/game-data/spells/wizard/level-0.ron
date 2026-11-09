@@ -1,0 +1,13 @@
+// Fixture: spells whose blocks sit under the wizard page's "Level 0" heading.
+[
+    (
+        key: "dismiss-spell",
+        name: "Dismiss Spell",
+        school: None,
+        guide: "wizard-spells#dismiss-spell-universalist",
+        target: "Target point within long range",
+        saving_throw: "N/A",
+        spell_resistance: false,
+        casting_time: Standard,
+    ),
+]

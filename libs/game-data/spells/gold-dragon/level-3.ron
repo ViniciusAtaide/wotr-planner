@@ -1,0 +1,17 @@
+// The spells whose blocks sit under the guide page's "Level 3" heading (gold-dragon, saved 2026-11-09), one per
+// block: its facts as printed. Extracted for ticket 121; `summary` is ours to write. See the README.
+[
+    (
+        key: "daylight",
+        name: "Daylight",
+        school: Evocation,
+        guide: "gold-dragon#daylight-evocation",
+        summary: "",
+        target: "Friendly creature within touch range",
+        duration: "10 minutes / level",
+        saving_throw: "N/A",
+        spell_resistance: false,
+        descriptors: [],
+        casting_time: Standard,
+    ),
+]

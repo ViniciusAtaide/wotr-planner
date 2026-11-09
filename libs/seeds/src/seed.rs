@@ -8,7 +8,7 @@ use rules::{
     AbilityBonus, AbilityModifier, Archetype, ArchetypeLevelRow, Background, Class, ClassLevelRow,
     CountsToward, Deity, FeatKey, FeatList, FeatListKey, FeatSlot, FeatValue, Feature, FeatureKey,
     FeatureSelection, FeatureSelectionKey, GameData, MythicPath, Race, SelectionOptionKey,
-    SkillKey,
+    SkillKey, Spell, SpellCaster, SpellList, SpellListOnly,
 };
 use sqlx::sqlite::{SqliteConnectOptions, SqlitePoolOptions};
 use sqlx::{AssertSqlSafe, Row, SqliteConnection};
@@ -16,9 +16,10 @@ use sqlx::{AssertSqlSafe, Row, SqliteConnection};
 use crate::columns::{
     AbilityBonusKind, FeatSlotKind, ValueColumns, ability_bonus_kind_text, ability_text,
     advancement_text, alignment_text, bab_progression_text, background_group_text,
-    deity_domains_text, feat_category_text, feat_slot_kind_text, handedness_text, level_from_text,
-    mythic_ability_group_text, mythic_extra_pick_text, mythic_feat_group_text, option_group_text,
-    parameter_kind_text, ranged_text, repeat_columns, save_progression_text, save_text,
+    casting_time_text, deity_domains_text, feat_category_text, feat_slot_kind_text,
+    handedness_text, level_from_text, mythic_ability_group_text, mythic_extra_pick_text,
+    mythic_feat_group_text, option_group_text, parameter_kind_text, ranged_text, repeat_columns,
+    save_progression_text, save_text, spell_descriptor_text, spell_school_text, story_text,
     weapon_proficiency_text,
 };
 use crate::{Error, MIGRATOR, prerequisites};
@@ -309,6 +310,12 @@ async fn insert_all(
     }
     for path in data.mythic_paths.iter() {
         insert_mythic_path(conn, path).await?;
+    }
+    for spell in data.spells.iter() {
+        insert_spell(conn, spell).await?;
+    }
+    for list in data.spell_lists.iter() {
+        insert_spell_list(conn, list).await?;
     }
 
     sqlx::query!("INSERT INTO game_data_seed (hash) VALUES ($1)", hash)
@@ -608,6 +615,101 @@ async fn insert_deity(conn: &mut SqliteConnection, deity: &Deity) -> Result<(), 
             "INSERT INTO deity_domain (deity_key, domain_key) VALUES ($1, $2)",
             key,
             domain.as_str(),
+        )
+        .execute(&mut *conn)
+        .await?;
+    }
+    Ok(())
+}
+
+/// A spell and its descriptors.
+async fn insert_spell(conn: &mut SqliteConnection, spell: &Spell) -> Result<(), sqlx::Error> {
+    let key = spell.key.as_str();
+    sqlx::query!(
+        "INSERT INTO spell (key, name, school, guide, summary, components, target, duration, saving_throw,
+            spell_resistance, casting_time)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
+        key,
+        spell.name,
+        spell.school.map(spell_school_text),
+        spell.guide.0,
+        spell.summary,
+        spell.components,
+        spell.target,
+        spell.duration,
+        spell.saving_throw,
+        spell.spell_resistance,
+        casting_time_text(spell.casting_time),
+    )
+    .execute(&mut *conn)
+    .await?;
+    for descriptor in spell.descriptors.iter() {
+        sqlx::query!(
+            "INSERT INTO spell_descriptor (spell_key, descriptor) VALUES ($1, $2)",
+            key,
+            spell_descriptor_text(*descriptor),
+        )
+        .execute(&mut *conn)
+        .await?;
+    }
+    Ok(())
+}
+
+/// A caster as the `class_key`, `archetype_key` and `path_key` columns, exactly one set.
+fn caster_columns(caster: &SpellCaster) -> (Option<&str>, Option<&str>, Option<&str>) {
+    match caster {
+        SpellCaster::Class(key) => (Some(key.as_str()), None, None),
+        SpellCaster::Archetype(key) => (None, Some(key.as_str()), None),
+        SpellCaster::Path(key) => (None, None, Some(key.as_str())),
+    }
+}
+
+/// A spell list, the other casters that use it and its entries.
+async fn insert_spell_list(
+    conn: &mut SqliteConnection,
+    list: &SpellList,
+) -> Result<(), sqlx::Error> {
+    let key = list.key.as_str();
+    let (class, archetype, path) = caster_columns(&list.owner);
+    sqlx::query!(
+        "INSERT INTO spell_list (key, name, guide, class_key, archetype_key, path_key)
+        VALUES ($1, $2, $3, $4, $5, $6)",
+        key,
+        list.name,
+        list.guide.0,
+        class,
+        archetype,
+        path,
+    )
+    .execute(&mut *conn)
+    .await?;
+    for user in list.used_by.iter() {
+        let (class, archetype, path) = caster_columns(user);
+        sqlx::query!(
+            "INSERT INTO spell_list_user (list_key, class_key, archetype_key, path_key)
+            VALUES ($1, $2, $3, $4)",
+            key,
+            class,
+            archetype,
+            path,
+        )
+        .execute(&mut *conn)
+        .await?;
+    }
+    for entry in list.entries.iter() {
+        let (archetype, story) = match &entry.only {
+            None => (None, None),
+            Some(SpellListOnly::Archetype(archetype)) => (Some(archetype.as_str()), None),
+            Some(SpellListOnly::Story(story)) => (None, Some(story_text(*story))),
+        };
+        sqlx::query!(
+            "INSERT INTO spell_list_entry (list_key, spell_key, level, only_archetype_key, only_story)
+            VALUES ($1, $2, $3, $4, $5)",
+            key,
+            entry.spell.as_str(),
+            entry.level,
+            archetype,
+            story,
         )
         .execute(&mut *conn)
         .await?;

@@ -1,13 +1,13 @@
 //! How `rules` values are stored in columns: enums as snake_case text, `u8`/`i8` as INTEGER.
 //!
-//! The text values match the named column types and CHECK constraints in
-//! `migrations/20261031000000_game_data.sql`.
+//! The text values match the named column types and CHECK constraints in `migrations/` (the first,
+//! `20261031000000_game_data.sql`, and the ones after it).
 
 use rules::{
-    Ability, Advancement, Alignment, ArmourType, BabProgression, BackgroundGroup, DeityDomains,
-    Energy, FeatCategory, Handedness, LevelFrom, MythicAbilityGroup, MythicExtraPick,
+    Ability, Advancement, Alignment, ArmourType, BabProgression, BackgroundGroup, CastingTime,
+    DeityDomains, Energy, FeatCategory, Handedness, LevelFrom, MythicAbilityGroup, MythicExtraPick,
     MythicFeatGroup, OptionGroup, ParameterKind, Ranged, Repeat, Save, SaveProgression,
-    SpellSchool, SpellType, Story, WeaponProficiency,
+    SpellDescriptor, SpellSchool, SpellType, Story, WeaponProficiency,
 };
 
 /// A row that doesn't fit the `rules` types (should be impossible given the constraints).
@@ -189,6 +189,47 @@ text_column!(ParameterKind, parameter_kind_from, parameter_kind_text {
     SpellSchool => "spell_school",
     Energy => "energy",
     ArmourType => "armour_type",
+});
+
+text_column!(CastingTime, casting_time_from, casting_time_text {
+    Standard => "standard",
+    FullRound => "full_round",
+    Move => "move",
+    Swift => "swift",
+    Free => "free",
+});
+
+text_column!(SpellDescriptor, spell_descriptor_from, spell_descriptor_text {
+    Acid => "acid",
+    ChannelNegativeEnergyHarm => "channel_negative_energy_harm",
+    Chaos => "chaos",
+    Charmed => "charmed",
+    Cold => "cold",
+    Compulsion => "compulsion",
+    Cure => "cure",
+    Curse => "curse",
+    Death => "death",
+    Disease => "disease",
+    Divine => "divine",
+    Electricity => "electricity",
+    Emotion => "emotion",
+    Evil => "evil",
+    Fear => "fear",
+    Fire => "fire",
+    Force => "force",
+    Good => "good",
+    Law => "law",
+    MindAffecting => "mind_affecting",
+    MovementImpairing => "movement_impairing",
+    NegativeEmotion => "negative_emotion",
+    NegativeLevel => "negative_level",
+    Poison => "poison",
+    Polymorph => "polymorph",
+    Sight => "sight",
+    Sleep => "sleep",
+    Sonic => "sonic",
+    Stunned => "stunned",
+    Summoning => "summoning",
 });
 
 text_column!(SpellSchool, spell_school_from, spell_school_text {

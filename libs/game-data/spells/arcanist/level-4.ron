@@ -1,0 +1,17 @@
+// The spells whose blocks sit under the guide page's "Level 4" heading (arcanist, saved 2026-11-09), one per
+// block: its facts as printed. Extracted for ticket 121; `summary` is ours to write. See the README.
+[
+    (
+        key: "peer-into-endurance",
+        name: "Peer Into Endurance",
+        school: Divination,
+        guide: "arcanist#peer-into-endurance-divination",
+        summary: "",
+        target: "One enemy creature within close range",
+        duration: "1 round",
+        saving_throw: "None",
+        spell_resistance: false,
+        descriptors: [MindAffecting],
+        casting_time: Standard,
+    ),
+]

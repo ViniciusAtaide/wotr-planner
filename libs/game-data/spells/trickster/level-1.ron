@@ -1,0 +1,17 @@
+// The spells whose blocks sit under the guide page's "Level 1" heading (trickster, saved 2026-11-09), one per
+// block: its facts as printed. Extracted for ticket 121; `summary` is ours to write. See the README.
+[
+    (
+        key: "wand-of-summon-monster-zero",
+        name: "Wand of Summon Monster Zero",
+        school: Conjuration,
+        guide: "trickster#wand-of-summon-monster-zero-conjuration",
+        summary: "",
+        target: "Target point within close range",
+        duration: "1 minute",
+        saving_throw: "N/A",
+        spell_resistance: false,
+        descriptors: [Summoning],
+        casting_time: FullRound,
+    ),
+]

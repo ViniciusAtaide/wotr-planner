@@ -75,6 +75,8 @@ pub fn world() -> GameData {
         ],
         backgrounds: backgrounds(),
         deities: deities(),
+        spells: Vec::new(),
+        spell_lists: Vec::new(),
     }
 }
 

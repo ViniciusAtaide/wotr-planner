@@ -1,0 +1,42 @@
+// The spells whose blocks sit under the guide page's "Level 3" heading (angel, saved 2026-11-09), one per
+// block: its facts as printed. Extracted for ticket 121; `summary` is ours to write. See the README.
+[
+    (
+        key: "grant-repose",
+        name: "Grant Repose",
+        school: Conjuration,
+        guide: "angel#grant-repose-conjuration",
+        summary: "",
+        target: "One enemy creature within touch range",
+        saving_throw: "Will partial",
+        spell_resistance: false,
+        descriptors: [],
+        casting_time: Standard,
+    ),
+    (
+        key: "shield-from-demonkind",
+        name: "Shield from Demonkind",
+        school: Abjuration,
+        guide: "angel#shield-from-demonkind-abjuration",
+        summary: "",
+        target: "One friendly creature within close range",
+        duration: "1 minute / level",
+        saving_throw: "N/A",
+        spell_resistance: false,
+        descriptors: [],
+        casting_time: Standard,
+    ),
+    (
+        key: "ward-against-disease",
+        name: "Ward Against Disease",
+        school: Abjuration,
+        guide: "angel#ward-against-disease-abjuration",
+        summary: "",
+        target: "One friendly creature within touch range",
+        duration: "10 minutes / level",
+        saving_throw: "N/A",
+        spell_resistance: false,
+        descriptors: [],
+        casting_time: Standard,
+    ),
+]

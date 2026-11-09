@@ -1496,6 +1496,79 @@ async fn the_schema_keeps_backgrounds_and_their_skills_and_feats_consistent() {
     }
 }
 
+/// Ticket 121: a spell list has one owner and is keyed by it; its users and entries name what the data has.
+#[tokio::test]
+async fn the_schema_keeps_spells_and_spell_lists_consistent() {
+    let test = TestDatabase::new();
+    test.seed(&fixture_dir()).await.unwrap();
+    let pool = test.writer().await;
+    for (sql, expected) in [
+        (
+            "UPDATE spell SET school = 'universalist' WHERE key = 'bless'",
+            "check constraint",
+        ),
+        (
+            "UPDATE spell SET casting_time = 'standard_action' WHERE key = 'bless'",
+            "check constraint",
+        ),
+        (
+            "UPDATE spell_descriptor SET descriptor = 'subschool' WHERE spell_key = 'hold-monster'",
+            "check constraint",
+        ),
+        // One owner, and the key is the owner's or under it.
+        (
+            "UPDATE spell_list SET path_key = 'trickster' WHERE key = 'cleric'",
+            "check constraint",
+        ),
+        (
+            "UPDATE spell_list SET class_key = NULL WHERE key = 'cleric'",
+            "check constraint",
+        ),
+        (
+            "UPDATE spell_list SET class_key = 'monk' WHERE key = 'cleric'",
+            "check constraint",
+        ),
+        (
+            "UPDATE spell_list SET key = 'clerical' WHERE key = 'cleric'",
+            "check constraint",
+        ),
+        (
+            "UPDATE spell_list SET class_key = 'no-such', key = 'no-such' WHERE key = 'cleric'",
+            "foreign key",
+        ),
+        // A user is one caster the data has.
+        (
+            "UPDATE spell_list_user SET class_key = 'cleric' WHERE list_key = 'sorcerer'",
+            "check constraint",
+        ),
+        (
+            "UPDATE spell_list_user SET archetype_key = 'rogue/no-such' WHERE list_key = 'sorcerer'",
+            "foreign key",
+        ),
+        // An entry: a spell the data has, a level up to 10, at most one limit, each entry once.
+        (
+            "UPDATE spell_list_entry SET spell_key = 'no-such' WHERE list_key = 'cleric'",
+            "foreign key",
+        ),
+        (
+            "UPDATE spell_list_entry SET level = 11 WHERE list_key = 'cleric'",
+            "check constraint",
+        ),
+        (
+            "UPDATE spell_list_entry SET only_archetype_key = 'rogue/eldritch-scoundrel'
+            WHERE only_story IS NOT NULL",
+            "check constraint",
+        ),
+        (
+            "INSERT INTO spell_list_entry (list_key, spell_key, level) VALUES ('cleric', 'bless', 1)",
+            "unique constraint",
+        ),
+    ] {
+        let error = rejected(&pool, sql).await;
+        assert!(error.contains(expected), "{sql}: {error}");
+    }
+}
+
 #[tokio::test]
 async fn the_schema_keeps_option_levels_class_skills_consistent() {
     let test = TestDatabase::new();

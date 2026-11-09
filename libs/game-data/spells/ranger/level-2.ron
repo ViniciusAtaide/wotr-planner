@@ -1,0 +1,17 @@
+// The spells whose blocks sit under the guide page's "Level 2" heading (ranger, saved 2026-11-09), one per
+// block: its facts as printed. Extracted for ticket 121; `summary` is ours to write. See the README.
+[
+    (
+        key: "chameleon-stride",
+        name: "Chameleon Stride",
+        school: Illusion,
+        guide: "ranger#chameleon-stride-illusion",
+        summary: "",
+        target: "Personal",
+        duration: "1 minute / level",
+        saving_throw: "N/A",
+        spell_resistance: false,
+        descriptors: [],
+        casting_time: Standard,
+    ),
+]

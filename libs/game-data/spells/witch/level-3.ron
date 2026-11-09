@@ -1,0 +1,17 @@
+// The spells whose blocks sit under the guide page's "Level 3" heading (witch, saved 2026-11-09), one per
+// block: its facts as printed. Extracted for ticket 121; `summary` is ours to write. See the README.
+[
+    (
+        key: "natures-exile",
+        name: "Nature's Exile",
+        school: Transmutation,
+        guide: "witch#natures-exile-transmutation",
+        summary: "",
+        target: "One enemy creature within touch range",
+        duration: "Permanent",
+        saving_throw: "Will negates",
+        spell_resistance: true,
+        descriptors: [Curse],
+        casting_time: Standard,
+    ),
+]

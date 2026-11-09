@@ -1,0 +1,30 @@
+// The spells whose blocks sit under the guide page's "Level 6" heading (bard, saved 2026-11-09), one per
+// block: its facts as printed. Extracted for ticket 121; `summary` is ours to write. See the README.
+[
+    (
+        key: "brilliant-inspiration",
+        name: "Brilliant Inspiration",
+        school: Evocation,
+        guide: "bard#brilliant-inspiration-evocation",
+        summary: "",
+        target: "One friendly creature within close range",
+        duration: "1 round / level",
+        saving_throw: "N/A",
+        spell_resistance: true,
+        descriptors: [],
+        casting_time: Standard,
+    ),
+    (
+        key: "song-of-discord-greater",
+        name: "Song of Discord, Greater",
+        school: Enchantment,
+        guide: "bard#song-of-discord-greater-enchantment",
+        summary: "",
+        target: "All enemies within 20' of target point within medium range",
+        duration: "1 round / level",
+        saving_throw: "Will partial",
+        spell_resistance: true,
+        descriptors: [MindAffecting, Compulsion, Sonic],
+        casting_time: Standard,
+    ),
+]

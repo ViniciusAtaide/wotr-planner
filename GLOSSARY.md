@@ -188,6 +188,24 @@ _Avoid_: Requirement, restriction
 A prerequisite set by the game's story rather than by a Build, such as the Gold Dragon's Vow of Dahak or Uncorrupted. Story is out of scope: the condition always holds and the sheet shows it as a note beside the option.
 _Avoid_: Flag, quest requirement
 
+### Spells
+
+**Spell**:
+An entry of the spell catalogue: reference data, which no Build choice names. Its facts come from its block in the guide, the heading "Name (School)" and a table, given once under the first list that has it: school (Universalist, Dismiss Spell's, is no school), target, duration, saving throw, spell resistance, **Spell descriptors**, casting time and any material component. A spell has no level of its own: each **Spell list** it's on gives one (Hold Person: wizard 3, cleric 2, bard 2).
+_Avoid_: Spell known, prepared spell (out of scope)
+
+**Spell descriptor**:
+A word from a spell block's Spell Descriptors: Mind-Affecting, Fear, Death, an energy, and the enchantment subschool (Compulsion, Charmed) or Summoning. Hold Monster's are Mind-Affecting and Compulsion.
+_Avoid_: Subschool (it is one of the descriptors), tag
+
+**Spell list**:
+One of the guide's tables of spells by level, owned by a class (the wizard's), an archetype (the Magic Deceiver's) or a Mythic path (a Mythic spellbook, levels 1 to 10). Other classes and archetypes may cast from it, where their pages say so (the sorcerer and arcanist from the wizard's, the oracle from the cleric's, the skald from the bard's). An entry may be for one archetype only (the Flame Dancer's Burning Hands) or one Gold Dragon story branch. The Angel and the Lich each have two: their own spellbook, and the spells a **Merged spellbook** adds.
+_Avoid_: Spellbook (except a path's), class spells
+
+**Merged spellbook**:
+An Angel's or a Lich's spells joined with a 9th-level casting class's (Cleric / Angel, Wizard / Lich) instead of kept apart. The catalogue lists the spells merging adds (`angel/merged`, `lich/merged`) beside the path's own spellbook; the merging rules themselves are out of scope.
+_Avoid_: Combined spellbook
+
 ### The planner
 
 **Sheet**:

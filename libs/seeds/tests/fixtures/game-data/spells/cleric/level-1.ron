@@ -1,0 +1,15 @@
+// Fixture: spells whose blocks sit under the cleric page's "Level 1" heading.
+[
+    (
+        key: "bless",
+        name: "Bless",
+        school: Enchantment,
+        guide: "cleric-spells#bless-enchantment",
+        components: "Holy water",
+        target: "All allies within 30'",
+        duration: "1 minute / level",
+        saving_throw: "N/A",
+        spell_resistance: true,
+        casting_time: FullRound,
+    ),
+]

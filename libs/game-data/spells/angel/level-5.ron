@@ -1,0 +1,42 @@
+// The spells whose blocks sit under the guide page's "Level 5" heading (angel, saved 2026-11-09), one per
+// block: its facts as printed. Extracted for ticket 121; `summary` is ours to write. See the README.
+[
+    (
+        key: "cleansing-flames",
+        name: "Cleansing Flames",
+        school: Abjuration,
+        guide: "angel#cleansing-flames-abjuration",
+        summary: "",
+        target: "All creatures with a 20' burst centred on the caster",
+        saving_throw: "N/A",
+        spell_resistance: false,
+        descriptors: [],
+        casting_time: Standard,
+    ),
+    (
+        key: "ward-against-harm",
+        name: "Ward Against Harm",
+        school: Abjuration,
+        guide: "angel#ward-against-harm-abjuration",
+        summary: "",
+        target: "One friendly creature within touch range",
+        duration: "10 minutes / level",
+        saving_throw: "N/A",
+        spell_resistance: false,
+        descriptors: [],
+        casting_time: Standard,
+    ),
+    (
+        key: "ward-against-impurity-communal",
+        name: "Ward Against Impurity, Communal",
+        school: Abjuration,
+        guide: "angel#ward-against-impurity-communal-abjuration",
+        summary: "",
+        target: "All allies with a 20' burst centred on the caster",
+        duration: "10 minutes",
+        saving_throw: "N/A",
+        spell_resistance: false,
+        descriptors: [],
+        casting_time: Standard,
+    ),
+]

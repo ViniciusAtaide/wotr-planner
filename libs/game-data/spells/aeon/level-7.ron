@@ -1,0 +1,43 @@
+// The spells whose blocks sit under the guide page's "Level 7" heading (aeon, saved 2026-11-09), one per
+// block: its facts as printed. Extracted for ticket 121; `summary` is ours to write. See the README.
+[
+    (
+        key: "black-hole",
+        name: "Black Hole",
+        school: Conjuration,
+        guide: "aeon#black-hole-conjuration",
+        summary: "",
+        target: "All enemies within a 20' burst centred on target point within medium range",
+        duration: "1 round / level",
+        saving_throw: "See below",
+        spell_resistance: false,
+        descriptors: [],
+        casting_time: Standard,
+    ),
+    (
+        key: "edict-of-invulnerability",
+        name: "Edict of Invulnerability",
+        school: Abjuration,
+        guide: "aeon#edict-of-invulnerability-abjuration",
+        summary: "",
+        target: "All allies within 30' burst centred on the caster",
+        duration: "1 round / 5 caster levels",
+        saving_throw: "N/A",
+        spell_resistance: false,
+        descriptors: [],
+        casting_time: Swift,
+    ),
+    (
+        key: "perfect-form",
+        name: "Perfect Form",
+        school: Transmutation,
+        guide: "aeon#perfect-form-transmutation",
+        summary: "",
+        target: "One friendly creature within close range",
+        duration: "1 round / level",
+        saving_throw: "N/A",
+        spell_resistance: false,
+        descriptors: [],
+        casting_time: Standard,
+    ),
+]

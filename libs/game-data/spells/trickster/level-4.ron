@@ -1,0 +1,17 @@
+// The spells whose blocks sit under the guide page's "Level 4" heading (trickster, saved 2026-11-09), one per
+// block: its facts as printed. Extracted for ticket 121; `summary` is ours to write. See the README.
+[
+    (
+        key: "summon-greasly-bear",
+        name: "Summon Greasly Bear",
+        school: Conjuration,
+        guide: "trickster#summon-greasly-bear-conjuration",
+        summary: "",
+        target: "Target point within close range",
+        duration: "1 round / level",
+        saving_throw: "N/A",
+        spell_resistance: false,
+        descriptors: [Summoning],
+        casting_time: Standard,
+    ),
+]

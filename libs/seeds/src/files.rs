@@ -6,6 +6,9 @@
 //! - `classes/<class>.ron`, `prestige/<class>.ron`
 //! - `mythic/abilities.ron`, `mythic/feats.ron`
 //! - `mythic/paths/<path>.ron`
+//! - `spells/lists.ron`, and `spells/<page>/level-<n>.ron`: the spells whose blocks sit under the guide page's
+//!   "Level <n>" heading (ticket 121), all read into one list. A folder without `spells/` (data from before
+//!   ticket 121, which the behaviour proof reads) has no spells and no lists.
 //!
 //! Any other `.ron` file is an error, so a misplaced file can't be silently skipped. Files with other
 //! extensions (a README) are ignored. Order in the files means nothing: the result is
@@ -21,7 +24,7 @@ use rules::GameData;
 use serde::de::DeserializeOwned;
 use sha2::{Digest, Sha256};
 
-const SINGLE_FILES: [&str; 9] = [
+const SINGLE_FILES: [&str; 10] = [
     "progression.ron",
     "races.ron",
     "skills.ron",
@@ -31,8 +34,11 @@ const SINGLE_FILES: [&str; 9] = [
     "deities.ron",
     "mythic/abilities.ron",
     "mythic/feats.ron",
+    "spells/lists.ron",
 ];
 const FOLDERS: [&str; 3] = ["classes", "prestige", "mythic/paths"];
+/// The folder of the spell files: `lists.ron`, and one folder per guide page holding a `level-<n>.ron` per heading.
+const SPELLS: &str = "spells";
 
 /// Why the data files couldn't be read.
 #[derive(Debug)]
@@ -97,6 +103,8 @@ pub fn read_game_data_files(dir: &Path) -> Result<GameData, FilesError> {
         mythic_paths: read_folder(&dir.join("mythic/paths"))?,
         backgrounds: read(&dir.join("backgrounds.ron"))?,
         deities: read(&dir.join("deities.ron"))?,
+        spells: read_spells(&dir.join(SPELLS))?,
+        spell_lists: read_spell_lists(&dir.join(SPELLS))?,
     };
     Ok(data.canonical())
 }
@@ -126,6 +134,46 @@ fn is_in_layout(file: &str) -> bool {
                 .and_then(|rest| rest.strip_prefix('/'))
                 .is_some_and(|name| !name.contains('/'))
         })
+        || is_spell_level_file(file)
+}
+
+/// `spells/<page>/level-<n>.ron`, `<n>` a number.
+fn is_spell_level_file(file: &str) -> bool {
+    let Some((page, name)) = file
+        .strip_prefix(SPELLS)
+        .and_then(|rest| rest.strip_prefix('/'))
+        .and_then(|rest| rest.split_once('/'))
+    else {
+        return false;
+    };
+    let level = name
+        .strip_prefix("level-")
+        .and_then(|rest| rest.strip_suffix(".ron"));
+    !page.is_empty()
+        && level.is_some_and(|level| !level.is_empty() && level.bytes().all(|b| b.is_ascii_digit()))
+}
+
+/// `spells/lists.ron`, required once the folder exists; no lists without the folder.
+fn read_spell_lists(folder: &Path) -> Result<Vec<rules::SpellList>, FilesError> {
+    if folder.exists() {
+        read(&folder.join("lists.ron"))
+    } else {
+        Ok(Vec::new())
+    }
+}
+
+/// Every spell of every `spells/<page>/level-<n>.ron` file, in path order. A missing folder reads as empty.
+fn read_spells(folder: &Path) -> Result<Vec<rules::Spell>, FilesError> {
+    if !folder.exists() {
+        return Ok(Vec::new());
+    }
+    let mut spells = Vec::new();
+    for file in ron_files(folder)? {
+        if file.contains('/') {
+            spells.extend(read::<Vec<rules::Spell>>(&folder.join(file))?);
+        }
+    }
+    Ok(spells)
 }
 
 fn read<T: DeserializeOwned>(path: &Path) -> Result<T, FilesError> {

@@ -1,0 +1,146 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT key, name, school, guide, summary, components, target, duration, saving_throw,\n            spell_resistance AS \"spell_resistance: bool\", casting_time\n        FROM spell ORDER BY key",
+  "describe": {
+    "columns": [
+      {
+        "name": "key",
+        "ordinal": 0,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "spell",
+            "name": "key"
+          }
+        }
+      },
+      {
+        "name": "name",
+        "ordinal": 1,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "spell",
+            "name": "name"
+          }
+        }
+      },
+      {
+        "name": "school",
+        "ordinal": 2,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "spell",
+            "name": "school"
+          }
+        }
+      },
+      {
+        "name": "guide",
+        "ordinal": 3,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "spell",
+            "name": "guide"
+          }
+        }
+      },
+      {
+        "name": "summary",
+        "ordinal": 4,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "spell",
+            "name": "summary"
+          }
+        }
+      },
+      {
+        "name": "components",
+        "ordinal": 5,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "spell",
+            "name": "components"
+          }
+        }
+      },
+      {
+        "name": "target",
+        "ordinal": 6,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "spell",
+            "name": "target"
+          }
+        }
+      },
+      {
+        "name": "duration",
+        "ordinal": 7,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "spell",
+            "name": "duration"
+          }
+        }
+      },
+      {
+        "name": "saving_throw",
+        "ordinal": 8,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "spell",
+            "name": "saving_throw"
+          }
+        }
+      },
+      {
+        "name": "spell_resistance: bool",
+        "ordinal": 9,
+        "type_info": "Integer",
+        "origin": {
+          "Table": {
+            "table": "spell",
+            "name": "spell_resistance"
+          }
+        }
+      },
+      {
+        "name": "casting_time",
+        "ordinal": 10,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "spell",
+            "name": "casting_time"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      false,
+      false,
+      true,
+      false,
+      true,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "eb228bf93357e41d5022ab3016ca53dbe3e64324dde531a4c41b0b660c16d11c"
+}

@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO spell_descriptor (spell_key, descriptor) VALUES ($1, $2)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "d7526da96cfc0fc4b07e332fc23e261b5a64564a91c884597514074150d79661"
+}

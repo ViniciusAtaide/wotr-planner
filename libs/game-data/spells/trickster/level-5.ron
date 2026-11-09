@@ -1,0 +1,42 @@
+// The spells whose blocks sit under the guide page's "Level 5" heading (trickster, saved 2026-11-09), one per
+// block: its facts as printed. Extracted for ticket 121; `summary` is ours to write. See the README.
+[
+    (
+        key: "microscopic-proportions",
+        name: "Microscopic Proportions",
+        school: Transmutation,
+        guide: "trickster#microscopic-proportions-transmutation",
+        summary: "",
+        target: "One friendly creature within touch range",
+        duration: "1 minute / level",
+        saving_throw: "N/A",
+        spell_resistance: false,
+        descriptors: [],
+        casting_time: Standard,
+    ),
+    (
+        key: "phantasmal-healer",
+        name: "Phantasmal Healer",
+        school: Transmutation,
+        guide: "trickster#phantasmal-healer-transmutation",
+        summary: "",
+        target: "All creatures within a 30' burst centred on target point within medium range",
+        duration: "1 round / 4 caster levels",
+        saving_throw: "Will half",
+        spell_resistance: false,
+        descriptors: [],
+        casting_time: Standard,
+    ),
+    (
+        key: "rain-of-halberds",
+        name: "Rain of Halberds",
+        school: Conjuration,
+        guide: "trickster#rain-of-halberds-conjuration",
+        summary: "",
+        target: "All creatures within a 20' burst centred on target point within medium range",
+        saving_throw: "None",
+        spell_resistance: false,
+        descriptors: [],
+        casting_time: Standard,
+    ),
+]

@@ -16,18 +16,20 @@ use rules::{
     FeatureSelection, FeatureSelectionKey, GameData, GuideRef, MythicAbility, MythicAbilityKey,
     MythicAscension, MythicFeat, MythicFeatKey, MythicPath, MythicPathKey, MythicRankRow,
     OptionLevelRow, OptionRow, PathSwitch, Progression, Race, RaceKey, SaveException,
-    SelectionOption, SelectionOptionKey, Skill, SkillKey, SpellLevels, Subrace, SubraceKey, Weapon,
-    WeaponKey, WeaponStats,
+    SelectionOption, SelectionOptionKey, Skill, SkillKey, Spell, SpellCaster, SpellKey,
+    SpellLevels, SpellList, SpellListEntry, SpellListKey, SpellListOnly, Subrace, SubraceKey,
+    Weapon, WeaponKey, WeaponStats,
 };
 use sqlx::SqliteConnection;
 
 use crate::columns::{
     AbilityBonusKind, FeatSlotKind, ability_bonus_kind_from, ability_from, advancement_from,
-    alignment_from, bab_progression_from, background_group_from, corrupt, deity_domains_from,
-    feat_category_from, feat_slot_kind_from, handedness_from, level_from_from,
+    alignment_from, bab_progression_from, background_group_from, casting_time_from, corrupt,
+    deity_domains_from, feat_category_from, feat_slot_kind_from, handedness_from, level_from_from,
     mythic_ability_group_from, mythic_extra_pick_from, mythic_feat_group_from, option_group_from,
-    parameter_kind_from, ranged_from, repeat_from, save_from, save_progression_from, to_i8, to_u8,
-    value_from, weapon_proficiency_from,
+    parameter_kind_from, ranged_from, repeat_from, save_from, save_progression_from,
+    spell_descriptor_from, spell_school_from, story_from, to_i8, to_u8, value_from,
+    weapon_proficiency_from,
 };
 use crate::prerequisites::Trees;
 use crate::{Database, Error};
@@ -81,6 +83,8 @@ async fn load(db: &Database) -> Result<GameData, sqlx::Error> {
     let mythic_feats = load_mythic_feats(conn, &mut trees).await?;
     let backgrounds = load_backgrounds(conn, &mut grants, &mut class_skills).await?;
     let deities = load_deities(conn).await?;
+    let spells = load_spells(conn).await?;
+    let spell_lists = load_spell_lists(conn).await?;
     let mythic_paths = load_mythic_paths(
         conn,
         &mut Parts {
@@ -121,6 +125,8 @@ async fn load(db: &Database) -> Result<GameData, sqlx::Error> {
         mythic_paths,
         backgrounds,
         deities,
+        spells,
+        spell_lists,
     };
     Ok(data.canonical())
 }
@@ -1034,6 +1040,115 @@ async fn load_deities(conn: &mut SqliteConnection) -> Result<Vec<Deity>, sqlx::E
     weapons.finish("deity_weapon")?;
     domains.finish("deity_domain")?;
     Ok(deities)
+}
+
+async fn load_spells(conn: &mut SqliteConnection) -> Result<Vec<Spell>, sqlx::Error> {
+    let mut descriptors = Grouped::new();
+    for row in sqlx::query!("SELECT spell_key, descriptor FROM spell_descriptor")
+        .fetch_all(&mut *conn)
+        .await?
+    {
+        descriptors.push(row.spell_key, spell_descriptor_from(&row.descriptor)?);
+    }
+    let spells = sqlx::query!(
+        "SELECT key, name, school, guide, summary, components, target, duration, saving_throw,
+            spell_resistance AS \"spell_resistance: bool\", casting_time
+        FROM spell ORDER BY key"
+    )
+    .fetch_all(&mut *conn)
+    .await?
+    .into_iter()
+    .map(|row| {
+        Ok(Spell {
+            descriptors: taken_set(&mut descriptors, &row.key),
+            key: SpellKey(row.key),
+            name: row.name,
+            school: row.school.as_deref().map(spell_school_from).transpose()?,
+            guide: GuideRef(row.guide),
+            summary: row.summary,
+            components: row.components,
+            target: row.target,
+            duration: row.duration,
+            saving_throw: row.saving_throw,
+            spell_resistance: row.spell_resistance,
+            casting_time: casting_time_from(&row.casting_time)?,
+        })
+    })
+    .collect::<Result<_, sqlx::Error>>()?;
+    descriptors.finish("spell_descriptor")?;
+    Ok(spells)
+}
+
+/// The caster in a row's `class_key`, `archetype_key` and `path_key`, exactly one of which is set.
+fn caster(
+    class: Option<String>,
+    archetype: Option<String>,
+    path: Option<String>,
+) -> Result<SpellCaster, sqlx::Error> {
+    match (class, archetype, path) {
+        (Some(key), None, None) => Ok(SpellCaster::Class(ClassKey(key))),
+        (None, Some(key), None) => Ok(SpellCaster::Archetype(ArchetypeKey(key))),
+        (None, None, Some(key)) => Ok(SpellCaster::Path(MythicPathKey(key))),
+        _ => Err(corrupt(
+            "a spell list caster sets more or less than one owner",
+        )),
+    }
+}
+
+async fn load_spell_lists(conn: &mut SqliteConnection) -> Result<Vec<SpellList>, sqlx::Error> {
+    let mut users = Grouped::new();
+    for row in
+        sqlx::query!("SELECT list_key, class_key, archetype_key, path_key FROM spell_list_user")
+            .fetch_all(&mut *conn)
+            .await?
+    {
+        users.push(
+            row.list_key,
+            caster(row.class_key, row.archetype_key, row.path_key)?,
+        );
+    }
+    let mut entries = Grouped::new();
+    for row in sqlx::query!(
+        "SELECT list_key, spell_key, level, only_archetype_key, only_story FROM spell_list_entry"
+    )
+    .fetch_all(&mut *conn)
+    .await?
+    {
+        let only = match (row.only_archetype_key, row.only_story) {
+            (None, None) => None,
+            (Some(archetype), None) => Some(SpellListOnly::Archetype(ArchetypeKey(archetype))),
+            (None, Some(story)) => Some(SpellListOnly::Story(story_from(&story)?)),
+            (Some(_), Some(_)) => return Err(corrupt("a spell list entry with two limits")),
+        };
+        entries.push(
+            row.list_key,
+            SpellListEntry {
+                level: to_u8(row.level, "spell_list_entry.level")?,
+                spell: SpellKey(row.spell_key),
+                only,
+            },
+        );
+    }
+    let lists = sqlx::query!(
+        "SELECT key, name, guide, class_key, archetype_key, path_key FROM spell_list ORDER BY key"
+    )
+    .fetch_all(&mut *conn)
+    .await?
+    .into_iter()
+    .map(|row| {
+        Ok(SpellList {
+            used_by: taken_set(&mut users, &row.key),
+            entries: taken_set(&mut entries, &row.key),
+            owner: caster(row.class_key, row.archetype_key, row.path_key)?,
+            key: SpellListKey(row.key),
+            name: row.name,
+            guide: GuideRef(row.guide),
+        })
+    })
+    .collect::<Result<_, sqlx::Error>>()?;
+    users.finish("spell_list_user")?;
+    entries.finish("spell_list_entry")?;
+    Ok(lists)
 }
 
 async fn load_class_skills(

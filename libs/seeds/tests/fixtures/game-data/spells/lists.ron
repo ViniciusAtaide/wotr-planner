@@ -1,0 +1,33 @@
+// Fixture: spell lists of a class, a path (with a story-branch entry) and their users.
+[
+    (
+        key: "sorcerer",
+        name: "Sorcerer Spells",
+        guide: "wizard-spells",
+        owner: Class("sorcerer"),
+        used_by: [Archetype("rogue/eldritch-scoundrel")],
+        entries: [
+            (level: 0, spell: "dismiss-spell"),
+            (level: 5, spell: "hold-monster"),
+        ],
+    ),
+    (
+        key: "cleric",
+        name: "Cleric Spells",
+        guide: "cleric-spells",
+        owner: Class("cleric"),
+        entries: [
+            (level: 1, spell: "bless"),
+        ],
+    ),
+    (
+        key: "gold-dragon",
+        name: "Gold Dragon Spells",
+        guide: "gold-dragon#gold-dragon-spells",
+        owner: Path("gold-dragon"),
+        entries: [
+            (level: 1, spell: "bless", only: Story(Uncorrupted)),
+            (level: 10, spell: "hold-monster"),
+        ],
+    ),
+]

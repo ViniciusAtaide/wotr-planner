@@ -1,0 +1,74 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT list_key, spell_key, level, only_archetype_key, only_story FROM spell_list_entry",
+  "describe": {
+    "columns": [
+      {
+        "name": "list_key",
+        "ordinal": 0,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "spell_list_entry",
+            "name": "list_key"
+          }
+        }
+      },
+      {
+        "name": "spell_key",
+        "ordinal": 1,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "spell_list_entry",
+            "name": "spell_key"
+          }
+        }
+      },
+      {
+        "name": "level",
+        "ordinal": 2,
+        "type_info": "Integer",
+        "origin": {
+          "Table": {
+            "table": "spell_list_entry",
+            "name": "level"
+          }
+        }
+      },
+      {
+        "name": "only_archetype_key",
+        "ordinal": 3,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "spell_list_entry",
+            "name": "only_archetype_key"
+          }
+        }
+      },
+      {
+        "name": "only_story",
+        "ordinal": 4,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "spell_list_entry",
+            "name": "only_story"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true,
+      true
+    ]
+  },
+  "hash": "43a926984562e7686b0a1c34183adf369243597a82227467d7361f45941e1e57"
+}

@@ -1,0 +1,17 @@
+// The spells whose blocks sit under the guide page's "Level 3" heading (paladin, saved 2026-11-09), one per
+// block: its facts as printed. Extracted for ticket 121; `summary` is ours to write. See the README.
+[
+    (
+        key: "holy-whisper",
+        name: "Holy Whisper",
+        school: Evocation,
+        guide: "paladin#holy-whisper-evocation",
+        summary: "",
+        target: "30' cone",
+        duration: "1 round / level",
+        saving_throw: "Fortitude negates",
+        spell_resistance: true,
+        descriptors: [Good],
+        casting_time: Standard,
+    ),
+]

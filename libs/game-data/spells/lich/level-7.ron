@@ -1,0 +1,41 @@
+// The spells whose blocks sit under the guide page's "Level 7" heading (lich, saved 2026-11-09), one per
+// block: its facts as printed. Extracted for ticket 121; `summary` is ours to write. See the README.
+[
+    (
+        key: "blessing-of-unlife",
+        name: "Blessing of Unlife",
+        school: Necromancy,
+        guide: "lich#blessing-of-unlife-necromancy",
+        summary: "",
+        target: "Friendly creature within close range",
+        duration: "10 minutes / level",
+        saving_throw: "N/A",
+        spell_resistance: false,
+        descriptors: [],
+        casting_time: Standard,
+    ),
+    (
+        key: "feast-of-blood",
+        name: "Feast of Blood",
+        school: Necromancy,
+        guide: "lich#feast-of-blood-necromancy",
+        summary: "",
+        target: "All creatures with a 20' burst centred on target creature within medium range",
+        saving_throw: "Fortitude partial / Reflex half",
+        spell_resistance: false,
+        descriptors: [],
+        casting_time: Standard,
+    ),
+    (
+        key: "restore-undead",
+        name: "Restore Undead",
+        school: Necromancy,
+        guide: "lich#restore-undead-necromancy",
+        summary: "",
+        target: "All allies within a 100' burst centred on caster",
+        saving_throw: "N/A",
+        spell_resistance: false,
+        descriptors: [],
+        casting_time: Standard,
+    ),
+]

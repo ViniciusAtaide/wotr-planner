@@ -19,10 +19,13 @@ use crate::game_data::{
 use crate::keys::{
     ArchetypeKey, BackgroundKey, ClassKey, DeityKey, FeatKey, FeatListKey, FeatureKey,
     FeatureSelectionKey, MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey,
-    SelectionOptionKey, SkillKey, SubraceKey, WeaponKey,
+    SelectionOptionKey, SkillKey, SpellKey, SpellListKey, SubraceKey, WeaponKey,
 };
 use crate::parameter::{Parameter, ParameterKind, Repeat};
 use crate::prerequisite::Prerequisite;
+use crate::spells::{
+    MAX_CLASS_SPELL_LEVEL, MAX_MYTHIC_SPELL_LEVEL, SpellCaster, SpellList, SpellListOnly,
+};
 
 /// The highest Character level on any path (Legend).
 const MAX_CHARACTER_LEVEL: u8 = 40;
@@ -62,6 +65,8 @@ pub enum DataAt {
     Background(BackgroundKey),
     Deity(DeityKey),
     Weapon(WeaponKey),
+    Spell(SpellKey),
+    SpellList(SpellListKey),
 }
 
 impl DataAt {
@@ -85,6 +90,8 @@ impl DataAt {
             DataAt::Background(_) => "background",
             DataAt::Deity(_) => "deity",
             DataAt::Weapon(_) => "weapon",
+            DataAt::Spell(_) => "spell",
+            DataAt::SpellList(_) => "spell list",
         }
     }
 
@@ -108,6 +115,8 @@ impl DataAt {
             DataAt::Background(key) => key.as_str(),
             DataAt::Deity(key) => key.as_str(),
             DataAt::Weapon(key) => key.as_str(),
+            DataAt::Spell(key) => key.as_str(),
+            DataAt::SpellList(key) => key.as_str(),
         })
     }
 }
@@ -268,6 +277,17 @@ pub enum DataIssue {
     WeaponStatsOutOfRange,
     /// A ranged weapon on the Weapon Finesse list, which is for melee weapons.
     FinesseOnRangedWeapon,
+    /// A spell list entry above the list's highest level: 9 on a class's or an archetype's list, 10 in a Mythic
+    /// spellbook.
+    SpellLevelAboveList {
+        level: u8,
+        max: u8,
+    },
+    /// A spell on no list: its block sits under a list that has it, so every spell is on one.
+    SpellOnNoList,
+    /// A list entry for an archetype of no class that casts from the list, or for a story branch on a list that
+    /// isn't a path's.
+    OnlyOutsideTheList(SpellKey),
 }
 
 impl fmt::Display for DataProblem {
@@ -431,6 +451,15 @@ impl fmt::Display for DataProblem {
             DataIssue::FinesseOnRangedWeapon => {
                 f.write_str("a ranged weapon can't be on the Weapon Finesse list")
             }
+            DataIssue::SpellLevelAboveList { level, max } => {
+                write!(f, "lists a spell at level {level}, above the list's highest, {max}")
+            }
+            DataIssue::SpellOnNoList => f.write_str("the spell is on no spell list"),
+            DataIssue::OnlyOutsideTheList(spell) => write!(
+                f,
+                "limits {spell} to an archetype of no class that casts from the list, or to a story branch on a \
+                 list that isn't a path's"
+            ),
             DataIssue::SharesOwnOption(option) => {
                 write!(
                     f,
@@ -547,6 +576,23 @@ impl GameData {
         }
         for deity in &self.deities {
             check.deity(deity);
+        }
+        for spell in &self.spells {
+            check.key(&DataAt::Spell(spell.key.clone()));
+        }
+        for list in &self.spell_lists {
+            check.spell_list(list);
+        }
+        let listed: HashSet<&SpellKey> = self
+            .spell_lists
+            .iter()
+            .flat_map(|list| &list.entries)
+            .map(|entry| &entry.spell)
+            .collect();
+        for spell in &self.spells {
+            if !listed.contains(&spell.key) {
+                check.problem(&DataAt::Spell(spell.key.clone()), DataIssue::SpellOnNoList);
+            }
         }
         check.deity_limits(self);
         check.favoured_weapon_features(self);
@@ -1267,6 +1313,61 @@ impl Checker {
     fn domain(&mut self, at: &DataAt, domain: &SelectionOptionKey) {
         if !self.domains.contains(domain) {
             self.problem(at, DataIssue::NotADomain(domain.clone()));
+        }
+    }
+
+    /// A spell list: its key under its owner's, the casters, spells and archetypes it names, and its levels.
+    fn spell_list(&mut self, list: &SpellList) {
+        let at = DataAt::SpellList(list.key.clone());
+        self.key(&at);
+        let owner = list.owner.key();
+        if list.key.as_str() != owner && !owned_by(list.key.as_str(), owner) {
+            self.problem(&at, DataIssue::KeyOutsideItsOwner);
+        }
+        let caster_at = |caster: &SpellCaster| match caster {
+            SpellCaster::Class(key) => DataAt::Class(key.clone()),
+            SpellCaster::Archetype(key) => DataAt::Archetype(key.clone()),
+            SpellCaster::Path(key) => DataAt::MythicPath(key.clone()),
+        };
+        self.names(&at, caster_at(&list.owner));
+        for user in &list.used_by {
+            self.names(&at, caster_at(user));
+        }
+        let is_path = matches!(list.owner, SpellCaster::Path(_));
+        let max = if is_path {
+            MAX_MYTHIC_SPELL_LEVEL
+        } else {
+            MAX_CLASS_SPELL_LEVEL
+        };
+        for entry in &list.entries {
+            if entry.level > max {
+                self.problem(
+                    &at,
+                    DataIssue::SpellLevelAboveList {
+                        level: entry.level,
+                        max,
+                    },
+                );
+            }
+            self.names(&at, DataAt::Spell(entry.spell.clone()));
+            let inside = match &entry.only {
+                None => true,
+                Some(SpellListOnly::Archetype(archetype)) => {
+                    self.names(&at, DataAt::Archetype(archetype.clone()));
+                    std::iter::once(&list.owner)
+                        .chain(&list.used_by)
+                        .any(|caster| match caster {
+                            SpellCaster::Class(class) => {
+                                owned_by(archetype.as_str(), class.as_str())
+                            }
+                            SpellCaster::Archetype(_) | SpellCaster::Path(_) => false,
+                        })
+                }
+                Some(SpellListOnly::Story(_)) => is_path,
+            };
+            if !inside {
+                self.problem(&at, DataIssue::OnlyOutsideTheList(entry.spell.clone()));
+            }
         }
     }
 

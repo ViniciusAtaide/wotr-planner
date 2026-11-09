@@ -1,0 +1,29 @@
+// The spells whose blocks sit under the guide page's "Level 10" heading (gold-dragon, saved 2026-11-09), one per
+// block: its facts as printed. Extracted for ticket 121; `summary` is ours to write. See the README.
+[
+    (
+        key: "dragon-storm",
+        name: "Dragon Storm",
+        school: Evocation,
+        guide: "gold-dragon#dragon-storm-evocation",
+        summary: "",
+        target: "All enemies within 40'",
+        saving_throw: "None",
+        spell_resistance: false,
+        descriptors: [],
+        casting_time: Standard,
+    ),
+    (
+        key: "summon-dragon-iii",
+        name: "Summon Dragon III",
+        school: Conjuration,
+        guide: "gold-dragon#summon-dragon-iii-conjuration",
+        summary: "",
+        target: "Target point within medium range",
+        duration: "1 round / level",
+        saving_throw: "N/A",
+        spell_resistance: false,
+        descriptors: [Summoning],
+        casting_time: Standard,
+    ),
+]

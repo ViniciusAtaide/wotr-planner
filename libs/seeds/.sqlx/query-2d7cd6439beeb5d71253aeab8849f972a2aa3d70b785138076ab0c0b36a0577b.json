@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO spell (key, name, school, guide, summary, components, target, duration, saving_throw,\n            spell_resistance, casting_time)\n        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 11
+    },
+    "nullable": []
+  },
+  "hash": "2d7cd6439beeb5d71253aeab8849f972a2aa3d70b785138076ab0c0b36a0577b"
+}

@@ -102,6 +102,8 @@ fn counts_summarise_each_catalog() {
             ("Mythic paths", 6),
             ("Backgrounds", 5),
             ("Deities", 3),
+            ("Spells", 0),
+            ("Spell lists", 0),
         ]
     );
 }

@@ -1,0 +1,30 @@
+// The spells whose blocks sit under the guide page's "Level 4" heading (paladin, saved 2026-11-09), one per
+// block: its facts as printed. Extracted for ticket 121; `summary` is ours to write. See the README.
+[
+    (
+        key: "holy-sword",
+        name: "Holy Sword",
+        school: Evocation,
+        guide: "paladin#holy-sword-evocation",
+        summary: "",
+        target: "One friendly creature within touch range",
+        duration: "1 round / level",
+        saving_throw: "N/A",
+        spell_resistance: false,
+        descriptors: [],
+        casting_time: Standard,
+    ),
+    (
+        key: "oath-of-peace",
+        name: "Oath of Peace",
+        school: Abjuration,
+        guide: "paladin#oath-of-peace-abjuration",
+        summary: "",
+        target: "Personal",
+        duration: "1 round / level",
+        saving_throw: "N/A",
+        spell_resistance: false,
+        descriptors: [],
+        casting_time: Standard,
+    ),
+]

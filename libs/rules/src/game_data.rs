@@ -18,6 +18,7 @@ use crate::keys::{
 };
 use crate::parameter::{Parameter, ParameterKind, Repeat};
 use crate::prerequisite::Prerequisite;
+use crate::spells::{Spell, SpellList};
 
 /// The guide every [`GuideRef`] points into.
 pub const GUIDE_BASE_URL: &str =
@@ -59,6 +60,15 @@ pub struct GameData {
     pub backgrounds: Vec<Background>,
     /// The deities a Build start may follow (`deities.ron`, the guide's table).
     pub deities: Vec<Deity>,
+    /// The spell catalogue (`spells/<page>/level-<n>.ron`, ticket 121): reference data no Build choice names.
+    /// Left out of the JSON the browser gets, which has no use for it (see [`GameData::spell_lists`]).
+    #[serde(skip_serializing, default)]
+    pub spells: Vec<Spell>,
+    /// The spell lists (`spells/lists.ron`): which spells each class, archetype and Mythic path casts, at which
+    /// level. Like [`spells`](Self::spells), never serialised: the browser's rules don't read them, and the MCP
+    /// server reads the data files.
+    #[serde(skip_serializing, default)]
+    pub spell_lists: Vec<SpellList>,
 }
 
 impl GameData {
@@ -140,7 +150,7 @@ impl GameData {
     }
 
     /// How much of each kind of thing the data holds, labelled, as a quick check that seeding worked.
-    pub fn counts(&self) -> [(&'static str, usize); 12] {
+    pub fn counts(&self) -> [(&'static str, usize); 14] {
         [
             ("Races", self.races.len()),
             ("Skills", self.skills.len()),
@@ -154,6 +164,8 @@ impl GameData {
             ("Mythic paths", self.mythic_paths.len()),
             ("Backgrounds", self.backgrounds.len()),
             ("Deities", self.deities.len()),
+            ("Spells", self.spells.len()),
+            ("Spell lists", self.spell_lists.len()),
         ]
     }
 
@@ -206,6 +218,8 @@ impl GameData {
         }
         sort_by_key(&mut self.backgrounds, |b| b.key.clone());
         sort_by_key(&mut self.deities, |d| d.key.clone());
+        sort_by_key(&mut self.spells, |s| s.key.clone());
+        sort_by_key(&mut self.spell_lists, |l| l.key.clone());
     }
 
     /// [`canonicalize`](Self::canonicalize), by value.

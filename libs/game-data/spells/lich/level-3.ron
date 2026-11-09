@@ -1,0 +1,42 @@
+// The spells whose blocks sit under the guide page's "Level 3" heading (lich, saved 2026-11-09), one per
+// block: its facts as printed. Extracted for ticket 121; `summary` is ours to write. See the README.
+[
+    (
+        key: "corrupted-blood",
+        name: "Corrupted Blood",
+        school: Necromancy,
+        guide: "lich#corrupted-blood-necromancy",
+        summary: "",
+        target: "One creature within medium range",
+        duration: "1 round / level",
+        saving_throw: "Fortitude partial",
+        spell_resistance: false,
+        descriptors: [],
+        casting_time: Standard,
+    ),
+    (
+        key: "mastery-of-flesh",
+        name: "Mastery of Flesh",
+        school: Necromancy,
+        guide: "lich#mastery-of-flesh-necromancy",
+        summary: "",
+        target: "One creature within medium range",
+        saving_throw: "None",
+        spell_resistance: false,
+        descriptors: [],
+        casting_time: Standard,
+    ),
+    (
+        key: "power-from-death",
+        name: "Power from Death",
+        school: Necromancy,
+        guide: "lich#power-from-death-necromancy",
+        summary: "",
+        target: "All creatures within a 30' burst centred on caster",
+        duration: "1 round / level",
+        saving_throw: "N/A",
+        spell_resistance: false,
+        descriptors: [],
+        casting_time: Standard,
+    ),
+]
