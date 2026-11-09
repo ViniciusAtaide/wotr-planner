@@ -226,7 +226,7 @@
         name: "Wail of the Banshee",
         school: Necromancy,
         guide: "wizard-spells#wail-of-the-banshee-necromancy",
-        summary: "Every creature in the area but you takes 10 damage per caster level.",
+        summary: "Deals 10 damage per caster level in the area; the guide's target line says enemies only, but its text says every creature except you.",
         target: "All enemies within 40' burst centred on target point within close range",
         saving_throw: "Fortitude negates",
         spell_resistance: true,
