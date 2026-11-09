@@ -12,6 +12,7 @@ use rmcp::{Json, RoleServer, ServerHandler, tool, tool_handler, tool_router};
 
 use rules::{Build, Edit};
 
+use crate::attack::weapon_argument as attack_weapon;
 use crate::choose::choose;
 use crate::code::{envelope, open};
 use crate::compare::compare;
@@ -59,6 +60,10 @@ The honesty boundary:
 - State as fact only what the tools return: every choice in the Build is legal under the planner's rules at the \
 level it is taken; the link opens in the planner; and the features, numbers (BAB, saves, scores, skill ranks, \
 caster level from class levels, spell-level access) and path features the sheet lists.
+- The attack line (`sheet` or `compare` with a `weapon`) is fact too: each attack's bonus, damage per hit, Power \
+Attack's trade and the critical range, from BAB, the character's own scores and the weapon feats held. It leaves \
+out rage, stances, mythic feats, class features, gear and buffs (`attack_leaves_out` lists all it leaves out): \
+label anything you add for them as your own game knowledge.
 - Label everything else as your own game knowledge: what a feature, feat or spell does, spell availability, \
 durations, caster level arithmetic, item and buff effects, summons' stats, and which choice is better. The planner \
 checks none of it: its data holds names, prerequisites and guide links, and almost no descriptions.
@@ -177,8 +182,9 @@ impl Server {
             features it adds, and its choices; per Mythic rank its status, path, choices and path features; the \
             caster level (class levels only) and spell-level access at the last level, class skills and notes. \
             Every choice has its address (`start.race`, `level.4.class`, `slot.feat.3.general.0`, …) for `options`, \
-            its value and its name. `removable: true` also marks which held choices can be withdrawn now. Plus the \
-            envelope (`build`, `link`, `todo`).",
+            its value and its name. `removable: true` also marks which held choices can be withdrawn now. \
+            `weapon` (a weapon key) adds each level's attack line for that base weapon. Plus the envelope \
+            (`build`, `link`, `todo`).",
         annotations(read_only_hint = true, open_world_hint = false)
     )]
     async fn sheet(
@@ -187,7 +193,13 @@ impl Server {
     ) -> Result<Json<SheetResult>, String> {
         self.blocking(move |planner| {
             let build = open(planner, &args.build)?;
-            Ok(Json(sheet(planner, &build, args.removable)))
+            let weapon = attack_weapon(&planner.engine, args.weapon.as_deref())?;
+            Ok(Json(sheet(
+                planner,
+                &build,
+                args.removable,
+                weapon.as_ref(),
+            )))
         })
         .await
     }
@@ -261,7 +273,7 @@ impl Server {
         description = "Compare 2 to 4 Builds (`builds`: their codes, for example two branches of one Build), from \
             the planner's sheets. For each Build, a summary at its last level: classes and levels, BAB, saves, \
             scores, caster level (class levels only), spell-level access, Mythic rank, first ascension, path, Path \
-            switch, level cap, link. Then only what differs: the Build start's choices; by character level, the \
+            switch, level cap, link, and with `weapon` (a weapon key) its attack line. Then only what differs: the Build start's choices; by character level, the \
             numbers (class level, BAB, saves, scores), the choices by address and the feats and features each Build \
             gains that another doesn't; by Mythic rank, the status, path and choices; and `path_features`, by rank, \
             the path features each Build has that another lacks. Every per-Build list follows the order of \

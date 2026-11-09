@@ -6,6 +6,7 @@ use std::collections::BTreeSet;
 
 use rules::{CharacterState, Sheet};
 
+use crate::attack;
 use crate::code::open;
 use crate::error::ToolError;
 use crate::planner::Planner;
@@ -39,6 +40,7 @@ pub(crate) fn compare(planner: &Planner, args: CompareArgs) -> Result<CompareRes
         })
         .collect::<Result<Vec<_>, _>>()?;
     let engine = &planner.engine;
+    let weapon = attack::weapon_argument(engine, args.weapon.as_deref())?;
     let sheets: Vec<Sheet> = builds.iter().map(|build| engine.evaluate(build)).collect();
     let lines: Vec<SheetResult> = builds
         .iter()
@@ -82,7 +84,13 @@ pub(crate) fn compare(planner: &Planner, args: CompareArgs) -> Result<CompareRes
             .iter()
             .zip(&sheets)
             .zip(&lines)
-            .map(|((build, sheet), line)| summary(planner, build, sheet, line))
+            .map(|((build, sheet), line)| {
+                let mut summary = summary(planner, build, sheet, line);
+                if let (Some(weapon), Some(last)) = (&weapon, sheet.levels.last()) {
+                    summary.attack = attack::attack_line(engine, &last.state, weapon);
+                }
+                summary
+            })
             .collect(),
         start: pick_diffs(
             &lines
@@ -93,6 +101,7 @@ pub(crate) fn compare(planner: &Planner, args: CompareArgs) -> Result<CompareRes
         levels,
         ranks,
         path_features,
+        attack_leaves_out: weapon.is_some().then(attack::leaves_out),
     })
 }
 
@@ -163,6 +172,7 @@ fn summary(
         path: path(&build.mythic_path),
         switch: path(&build.path_switch),
         level_cap: line.level_cap,
+        attack: None,
     }
 }
 

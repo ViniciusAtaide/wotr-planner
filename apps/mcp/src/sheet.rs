@@ -6,10 +6,11 @@ use std::collections::BTreeSet;
 
 use rules::{
     AbilityScores, Build, CharacterState, Choice, Engine, POINT_BUY_BUDGET, RankStatus, Sheet,
-    Slot, has_ability_increase,
+    Slot, WeaponKey, has_ability_increase,
 };
 
 use crate::address::Address;
+use crate::attack;
 use crate::code::envelope;
 use crate::planner::Planner;
 use crate::shapes::ChoiceValue;
@@ -21,9 +22,23 @@ use crate::values::{
     ability_value, alignment_key, class_name, class_value, faith_key, pick_value, race_value,
 };
 
-/// The sheet of a possible Build; with `removable`, each held choice marked with whether it can be withdrawn now.
-pub(crate) fn sheet(planner: &Planner, build: &Build, removable: bool) -> SheetResult {
-    sheet_of(planner, build, &planner.engine.evaluate(build), removable)
+/// The sheet of a possible Build; with `removable`, each held choice marked with whether it can be withdrawn now;
+/// with a `weapon`, each level's attack line for it.
+pub(crate) fn sheet(
+    planner: &Planner,
+    build: &Build,
+    removable: bool,
+    weapon: Option<&WeaponKey>,
+) -> SheetResult {
+    let evaluated = planner.engine.evaluate(build);
+    let mut result = sheet_of(planner, build, &evaluated, removable);
+    if let Some(weapon) = weapon {
+        for (line, level) in result.levels.iter_mut().zip(&evaluated.levels) {
+            line.attack = attack::attack_line(&planner.engine, &level.state, weapon);
+        }
+        result.attack_leaves_out = Some(attack::leaves_out());
+    }
+    result
 }
 
 /// [`sheet`] from the Build's sheet already evaluated (`compare` reads the engine's sheet once per Build).
@@ -69,6 +84,7 @@ pub(crate) fn sheet_of(
                 .map(|address| address.to_string())
                 .collect()
         }),
+        attack_leaves_out: None,
     }
 }
 
@@ -297,6 +313,7 @@ impl Lines<'_> {
                 feats: new_feats(engine, before, state),
                 features: new_features(engine, before, state),
                 mythic_ranks: level.mythic_ranks.clone(),
+                attack: None,
                 picks,
             });
             before = state;

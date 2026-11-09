@@ -6,13 +6,14 @@
 //!   runs on a blocking thread.
 //! - `shapes.rs`: every JSON shape a tool takes or returns (the `rules` types stay serde-free for this).
 //! - One module per tool's work: `search.rs`, `describe.rs`, `sheet.rs`, `options.rs`, `choose.rs`, `withdraw.rs`,
-//!   `compare.rs`.
+//!   `compare.rs`; `attack.rs` is the attack line `sheet` and `compare` add for a `weapon`, with its own shapes.
 //! - Builds: `code.rs` opens a Build code (only through the engine's checked decode) and writes the envelope every
 //!   Build-taking tool returns; `address.rs` writes and reads choice addresses; `values.rs` writes choices' values;
 //!   `error.rs` is the server's refusals (`stale_link`, `no_such_choice`, `not_an_option`, `not_removable`,
 //!   `invalid_arguments`, `internal`).
 
 mod address;
+mod attack;
 mod choose;
 mod code;
 mod compare;
