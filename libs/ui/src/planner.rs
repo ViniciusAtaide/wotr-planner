@@ -39,6 +39,18 @@ pub enum Tab {
     Mythic,
 }
 
+/// The weapon the summary's attack line is for. Not part of the Build or its link.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub enum AttackWeapon {
+    /// Nothing chosen yet: the engine's default, the Build's first Weapon Focus (no weapon when it has none).
+    #[default]
+    Default,
+    /// "No weapon" chosen: no attack line.
+    NoWeapon,
+    /// This weapon chosen.
+    Weapon(WeaponKey),
+}
+
 /// The sheet's state: the engine, the Build, and what's derived from it once per edit.
 #[derive(Clone, Copy)]
 pub struct Planner {
@@ -51,9 +63,8 @@ pub struct Planner {
     removable_classes: Memo<Arc<BTreeSet<u8>>>,
     pub picker: RwSignal<Option<Target>>,
     pub tab: RwSignal<Tab>,
-    /// The weapon the summary's attack line is for: `None` until one is chosen (the engine's default, the Build's
-    /// first Weapon Focus), then the choice (`Some(None)`: no weapon). Not part of the Build or its link.
-    pub attack_weapon: RwSignal<Option<Option<WeaponKey>>>,
+    /// The weapon the summary's attack line is for: the engine's default until one is chosen.
+    pub attack_weapon: RwSignal<AttackWeapon>,
     /// The one generic error a link that opens nothing shows.
     pub error: RwSignal<Option<String>>,
 }
@@ -84,7 +95,7 @@ impl Planner {
             removable_classes,
             picker: RwSignal::new(None),
             tab: RwSignal::new(Tab::Levels),
-            attack_weapon: RwSignal::new(None),
+            attack_weapon: RwSignal::new(AttackWeapon::Default),
             error: RwSignal::new(error),
         }
     }
@@ -135,7 +146,7 @@ impl Planner {
     /// Replaces the whole Build (a link pasted into the address bar): what belonged to the old one goes with it.
     fn replace(&self, build: Build, error: Option<String>) {
         self.picker.set(None);
-        self.attack_weapon.set(None);
+        self.attack_weapon.set(AttackWeapon::Default);
         self.build.set(build);
         self.error.set(error);
     }
