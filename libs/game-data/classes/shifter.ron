@@ -74,7 +74,7 @@ Class(
         (
             key: "shifter/child-of-the-manticore",
             name: "Child of the Manticore",
-            summary: "Shifter limited to a single Manticore aspect, throwing spikes from his body.",
+            summary: "Shifter limited to a single Manticore aspect, throwing spikes from their body.",
             guide: "shifter#child-of-the-manticore",
             features: [
                 (key: "shifter/child-of-the-manticore/grow-spikes", name: "Grow Spikes", summary: "From 1st level, throw spikes as a ranged attack, dealing 1d4 and improving like Shifter Claws up to 1d10, +1 crit and DR bypass.", guide: "shifter#grow-spikes"),
@@ -329,7 +329,7 @@ Class(
         (
             key: "shifter/weretouched",
             name: "Weretouched",
-            summary: "Shifter (Lord of Nothing DLC) who embraces his inner beast through lycanthropic forms.",
+            summary: "Shifter (Lord of Nothing DLC) who embraces their inner beast through lycanthropic forms.",
             guide: "shifter#weretouched",
             features: [
                 (key: "shifter/weretouched/lycanthrophic-tracker", name: "Lycanthrophic Tracker", guide: "shifter#weretouched"),

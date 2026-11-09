@@ -23,7 +23,7 @@ Class(
         (key: "warpriest/blessings/darkness-domain/minor-blessing", name: "Minor Blessing (Darkness)", summary: "Give an ally 20% concealment for 1 minute.", guide: "warpriest#darkness-domain"),
         (key: "warpriest/blessings/death-domain/major-blessing", name: "Major Blessing (Death)", summary: "From 10th level, a melee touch (or, as a swift action, your next melee attack) gives the target 1 negative level for 1 minute.", guide: "warpriest#death-domain"),
         (key: "warpriest/blessings/death-domain/minor-blessing", name: "Minor Blessing (Death)", summary: "For 1 minute: +4 on Intimidate and +2 profane on saves against disease, mind-affecting, paralysis, poison and stun.", guide: "warpriest#death-domain"),
-        (key: "warpriest/blessings/destruction/major-blessing", name: "Major Blessing (Destruction)", summary: "From 10th level, an ally gets +4 to confirm critical hits, and crits or sneak attacks against him have a 50% chance to become normal hits.", guide: "warpriest#destruction"),
+        (key: "warpriest/blessings/destruction/major-blessing", name: "Major Blessing (Destruction)", summary: "From 10th level, an ally gets +4 to confirm critical hits, and crits or sneak attacks against them have a 50% chance to become normal hits.", guide: "warpriest#destruction"),
         (key: "warpriest/blessings/destruction/minor-blessing", name: "Minor Blessing (Destruction)", summary: "An ally gains a morale bonus on damage equal to half your level for 1 minute.", guide: "warpriest#destruction"),
         (key: "warpriest/blessings/earth/major-blessing", name: "Major Blessing (Earth)", summary: "From 10th level, an ally gains DR 1/- for 1 minute, +1 every two levels (DR 5/- at 18th).", guide: "warpriest#earth"),
         (key: "warpriest/blessings/earth/minor-blessing", name: "Minor Blessing (Earth)", summary: "A weapon deals an extra 1d4 acid damage for 1 minute.", guide: "warpriest#earth"),
@@ -40,7 +40,7 @@ Class(
         (key: "warpriest/blessings/liberation/major-blessing", name: "Major Blessing (Liberation)", summary: "From 10th level, as a swift action, all allies within 30' gain Freedom of Movement for 1 round.", guide: "warpriest#liberation"),
         (key: "warpriest/blessings/liberation/minor-blessing", name: "Minor Blessing (Liberation)", summary: "As a swift action, gain Freedom of Movement for 1 round.", guide: "warpriest#liberation"),
         (key: "warpriest/blessings/luck/major-blessing", name: "Major Blessing (Luck)", summary: "From 10th level, a cursed enemy rolls twice and keeps the lower result on ability checks, attacks, saves and skill checks for 1 round.", guide: "warpriest#luck"),
-        (key: "warpriest/blessings/luck/minor-blessing", name: "Minor Blessing (Luck)", summary: "Touch an ally: for 1 round he rolls twice on ability checks, attacks, saves and skill checks.", guide: "warpriest#luck"),
+        (key: "warpriest/blessings/luck/minor-blessing", name: "Minor Blessing (Luck)", summary: "Touch an ally: for 1 round they roll twice on ability checks, attacks, saves and skill checks.", guide: "warpriest#luck"),
         (key: "warpriest/blessings/madness/major-blessing", name: "Major Blessing (Madness)", summary: "From 10th level, choose what all confused creatures within 30' do for 1 round, such as attacking themselves.", guide: "warpriest#madness"),
         (key: "warpriest/blessings/madness/minor-blessing", name: "Minor Blessing (Madness)", summary: "As a swift action, a frightened, panicked or paralysed creature within 30' is instead confused for 1 round, attacking itself or the nearest foe.", guide: "warpriest#madness"),
         (key: "warpriest/blessings/magic/major-blessing", name: "Major Blessing (Magic)", summary: "From 10th level, as a swift action, recall any spell you have cast.", guide: "warpriest#magic"),
@@ -389,7 +389,7 @@ Class(
         (
             key: "warpriest/champion-of-the-faith",
             name: "Champion of the Faith",
-            summary: "Warpriest devoted to one alignment, who smites opposed foes and makes his weapons count as his chosen alignment.",
+            summary: "Warpriest devoted to one alignment, who smites opposed foes and makes their weapons count as their chosen alignment.",
             guide: "warpriest#champion-of-the-faith",
             features: [
                 (key: "warpriest/champion-of-the-faith/chosen-alignment", name: "Chosen Alignment", summary: "Pick law, good, chaos or evil matching your and your deity's alignment; you gain that alignment's blessing even if your deity lacks it.", guide: "warpriest#chosen-alignment"),
@@ -473,7 +473,7 @@ Class(
         (
             key: "warpriest/feral-champion",
             name: "Feral Champion",
-            summary: "Nature warpriest (Erastil, Gozreh or the Green Faith only) who gains wild shape but can't enchant his armour.",
+            summary: "Nature warpriest (Erastil, Gozreh or the Green Faith only) who gains wild shape but can't enchant their armour.",
             prerequisite: Any([Deity("erastil"), Deity("gozreh"), Deity("green-faith")]),
             guide: "warpriest#feral-champion",
             features: [
@@ -509,7 +509,7 @@ Class(
         (
             key: "warpriest/mantis-zealot",
             name: "Mantis Zealot",
-            summary: "Warpriest of Achaekek (Dance of Masks DLC) with powers tied to his sawtooth sabers; no channel energy or armour enchanting.",
+            summary: "Warpriest of Achaekek (Dance of Masks DLC) with powers tied to their sawtooth sabers; no channel energy or armour enchanting.",
             guide: "warpriest#mantis-zealot",
             prerequisite: Deity("achaekek"),
             features: [
@@ -558,7 +558,7 @@ Class(
         (
             key: "warpriest/shieldbearer",
             name: "Shieldbearer",
-            summary: "Shield-focused warpriest who trades armour bonuses for shield bonuses; his shield counts as his sacred weapon.",
+            summary: "Shield-focused warpriest who trades armour bonuses for shield bonuses; their shield counts as their sacred weapon.",
             guide: "warpriest#shieldbearer",
             features: [
                 (key: "warpriest/shieldbearer/channel-energy-shieldbearer", name: "Channel Energy (Shieldbearer)", summary: "Channels energy only while holding a shield, as a 30' cone.", guide: "warpriest#channel-energy-shieldbearer"),

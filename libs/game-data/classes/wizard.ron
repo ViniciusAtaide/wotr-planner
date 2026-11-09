@@ -196,7 +196,7 @@ Class(
         (
             key: "wizard/cruromancer",
             name: "Cruromancer",
-            summary: "Dhampir-only necromancer who powers necromancy spells with his own blood; no arcane bond.",
+            summary: "Dhampir-only necromancer who powers necromancy spells with their own blood; no arcane bond.",
             guide: "wizard#cruromancer",
             prerequisite: Race("dhampir"),
             features: [

@@ -80,7 +80,7 @@ Class(
         (
             key: "magus/arcane-rider",
             name: "Arcane Rider",
-            summary: "Mounted magus whose arcane pool also empowers his horse; loses medium and heavy armour and Spell Recall.",
+            summary: "Mounted magus whose arcane pool also empowers their horse; loses medium and heavy armour and Spell Recall.",
             guide: "magus#arcane-rider",
             features: [
                 (key: "magus/arcane-rider/arcane-mount", name: "Arcane Mount", summary: "Gain a horse; your arcane pool abilities also apply to it.", guide: "magus#arcane-mount"),

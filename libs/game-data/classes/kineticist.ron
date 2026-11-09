@@ -237,7 +237,7 @@ Class(
                 (
                     key: "kineticist/blood-kineticist/element",
                     name: "Elemental Focus (Blood Kineticist)",
-                    summary: "The Blood Kineticist must take Water as her element, and only the Water blast at 1st level.",
+                    summary: "The Blood Kineticist must take Water as their element, and only the Water blast at 1st level.",
                     guide: "kineticist#blood-kineticist",
                     option_levels: ["kineticist"],
                     options: [],
@@ -306,7 +306,7 @@ Class(
             class_skills: ["perception", "persuasion", "use-magic-device"],
             features: [
                 (key: "kineticist/kinetic-knight/blade-whirlwind", name: "Blade Whirlwind", summary: "From 9th level: conjure a kinetic blade and make one attack against every foe in reach.", guide: "kineticist#kinetic-knight"),
-                (key: "kineticist/kinetic-knight/defensive-wild-talent", name: "Defensive Wild Talent", summary: "At 4th level, unlocks the Defensive Wild Talent of her Elemental Focus.", guide: "kineticist#kinetic-knight", option_row: (selection: "kineticist/kinetic-knight/element", level: 2)),
+                (key: "kineticist/kinetic-knight/defensive-wild-talent", name: "Defensive Wild Talent", summary: "At 4th level, unlocks the Defensive Wild Talent of their Elemental Focus.", guide: "kineticist#kinetic-knight", option_row: (selection: "kineticist/kinetic-knight/element", level: 2)),
                 (key: "kineticist/kinetic-knight/elemental-bastion", name: "Elemental Bastion", summary: "At 1st level, proficiency with medium and heavy armour and shields.", guide: "kineticist#elemental-bastion"),
                 (key: "kineticist/kinetic-knight/elemental-blade", name: "Elemental Blade", summary: "Kinetic Blade costs 0 Burn, but blasts need the blade (or Blade Whirlwind from 9th); no attacks of opportunity with it.", guide: "kineticist#elemental-blade"),
                 (key: "kineticist/kinetic-knight/kinetic-warrior", name: "Kinetic Warrior", summary: "Use Con instead of Int to qualify for combat feats; counts as Combat Expertise for prerequisites.", guide: "kineticist#kinetic-warrior"),
