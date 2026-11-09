@@ -81,6 +81,7 @@ Each one the recommended answer (or, where the ticket gives none, the smallest c
   - At 360×800 (Fold cover) and 900×1000 (inner) both buttons sit on one row, 44 px tall, with no horizontal scroll (`scrollWidth` equals the width). On the cover screen the message wraps below them.
   - No console messages. The size was reset afterwards and the server stopped.
 - `scripts/check.sh`: ALL-OK (fmt, clippy, wasm-clippy, the workspace tests, rules-wasm, seed-check). `rules`' engine tests: 508, 9 of them new; `seeds`' game-data tests: 6 new. No migration and no query change, so no `--schema` run.
+- Behaviour proof, `scripts/proof.sh rules` (2,162 Builds, HEAD's crates against the working tree's): only in A 0, only in B 0, differing 0. `build_sheet` is a new method and changes no Build's behaviour.
 
 ## Answer
 
