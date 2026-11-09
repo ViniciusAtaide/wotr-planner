@@ -6,7 +6,7 @@
         name: "Animal Shapes",
         school: Transmutation,
         guide: "druid-spells#animal-shapes-transmutation",
-        summary: "Turns allies in the area into large bears, as Beast Shape III.",
+        summary: "Every ally in the area becomes a large bear, following Beast Shape III's rules.",
         target: "All allies within 10' of target creature within close range",
         duration: "1 hour / level",
         saving_throw: "N/A",

@@ -45,7 +45,7 @@
         name: "Natural Rhythm",
         school: Transmutation,
         guide: "druid-spells#natural-rhythm-transmutation",
-        summary: "Each consecutive natural-attack hit the target lands in a turn deals extra damage equal to the number of consecutive hits before it.",
+        summary: "The target's natural attacks build momentum in a turn: each hit in an unbroken streak adds damage equal to how many streak hits came before it.",
         target: "One friendly creature within close range",
         duration: "1 round / level",
         saving_throw: "N/A",
