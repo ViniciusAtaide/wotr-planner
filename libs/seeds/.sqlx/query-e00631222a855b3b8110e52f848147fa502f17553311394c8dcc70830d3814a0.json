@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "SELECT key, name, summary, guide FROM race ORDER BY key",
+  "query": "SELECT key, race_key, name, summary, guide, skill_points FROM subrace ORDER BY key",
   "describe": {
     "columns": [
       {
@@ -9,41 +9,63 @@
         "type_info": "Text",
         "origin": {
           "Table": {
-            "table": "race",
+            "table": "subrace",
             "name": "key"
           }
         }
       },
       {
-        "name": "name",
+        "name": "race_key",
         "ordinal": 1,
         "type_info": "Text",
         "origin": {
           "Table": {
-            "table": "race",
+            "table": "subrace",
+            "name": "race_key"
+          }
+        }
+      },
+      {
+        "name": "name",
+        "ordinal": 2,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "subrace",
             "name": "name"
           }
         }
       },
       {
         "name": "summary",
-        "ordinal": 2,
+        "ordinal": 3,
         "type_info": "Text",
         "origin": {
           "Table": {
-            "table": "race",
+            "table": "subrace",
             "name": "summary"
           }
         }
       },
       {
         "name": "guide",
-        "ordinal": 3,
+        "ordinal": 4,
         "type_info": "Text",
         "origin": {
           "Table": {
-            "table": "race",
+            "table": "subrace",
             "name": "guide"
+          }
+        }
+      },
+      {
+        "name": "skill_points",
+        "ordinal": 5,
+        "type_info": "Integer",
+        "origin": {
+          "Table": {
+            "table": "subrace",
+            "name": "skill_points"
           }
         }
       }
@@ -55,8 +77,10 @@
       false,
       false,
       false,
+      false,
+      false,
       false
     ]
   },
-  "hash": "b885ac2c8950af027b74a62f3474ab49fb8835665b66b363130b566a5709b994"
+  "hash": "e00631222a855b3b8110e52f848147fa502f17553311394c8dcc70830d3814a0"
 }

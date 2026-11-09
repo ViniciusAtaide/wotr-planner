@@ -19,6 +19,7 @@ pub(super) fn races() -> Vec<Race> {
                 list: feat_list("half-elf/adaptability"),
             }],
             feat_lists: vec![list("half-elf/adaptability", true, &["skill-focus"])],
+            skill_points: 0,
             // A subrace's slots replace the race's: Dual Heritage has none; an invented one keeps Adaptability.
             subraces: vec![
                 Subrace {
@@ -28,6 +29,7 @@ pub(super) fn races() -> Vec<Race> {
                     guide: guide("character-creation#half-elf-dual-heritage"),
                     ability_modifiers: vec![AbilityModifier::Chosen { amount: 2 }],
                     feat_slots: vec![],
+                    skill_points: 0,
                 },
                 Subrace {
                     key: SubraceKey::new("half-elf/adaptable"),
@@ -38,6 +40,8 @@ pub(super) fn races() -> Vec<Race> {
                     feat_slots: vec![FeatSlot::OneOf {
                         list: feat_list("half-elf/adaptability"),
                     }],
+                    // Invented, as the Human-Raised half-orc's: a subrace's skill points replace the race's.
+                    skill_points: 1,
                 },
             ],
         },
@@ -49,6 +53,7 @@ pub(super) fn races() -> Vec<Race> {
             ability_modifiers: vec![AbilityModifier::Chosen { amount: 2 }],
             feat_slots: vec![FeatSlot::General],
             feat_lists: vec![],
+            skill_points: 1,
             subraces: vec![],
         },
         Race {
@@ -63,6 +68,7 @@ pub(super) fn races() -> Vec<Race> {
             ],
             feat_slots: vec![],
             feat_lists: vec![],
+            skill_points: 0,
             subraces: vec![Subrace {
                 key: SubraceKey::new("elf/blightborn"),
                 name: "Blightborn".into(),
@@ -74,6 +80,7 @@ pub(super) fn races() -> Vec<Race> {
                     fixed(Ability::Constitution, -2),
                 ],
                 feat_slots: vec![],
+                skill_points: 0,
             }],
         },
         Race {
@@ -88,6 +95,7 @@ pub(super) fn races() -> Vec<Race> {
             ],
             feat_slots: vec![],
             feat_lists: vec![],
+            skill_points: 0,
             subraces: vec![],
         },
     ]

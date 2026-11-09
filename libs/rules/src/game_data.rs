@@ -384,6 +384,9 @@ pub struct Race {
     /// feat).
     #[serde(default)]
     pub feat_lists: Vec<FeatList>,
+    /// Skill points it adds at every level, on top of the class's and Intelligence's (a human's Skilled: 1).
+    #[serde(default)]
+    pub skill_points: u8,
     #[serde(default)]
     pub subraces: Vec<Subrace>,
 }
@@ -404,6 +407,9 @@ pub struct Subrace {
     /// list no Adaptability, so they have none). They may name the race's lists.
     #[serde(default)]
     pub feat_slots: Vec<FeatSlot>,
+    /// Skill points it adds at every level, in place of the race's (a Human-Raised half-orc's: 1).
+    #[serde(default)]
+    pub skill_points: u8,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]

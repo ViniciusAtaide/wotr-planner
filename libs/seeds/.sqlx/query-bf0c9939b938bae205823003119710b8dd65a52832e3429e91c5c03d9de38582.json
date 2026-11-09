@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "SELECT key, race_key, name, summary, guide FROM subrace ORDER BY key",
+  "query": "SELECT key, name, summary, guide, skill_points FROM race ORDER BY key",
   "describe": {
     "columns": [
       {
@@ -9,52 +9,52 @@
         "type_info": "Text",
         "origin": {
           "Table": {
-            "table": "subrace",
+            "table": "race",
             "name": "key"
           }
         }
       },
       {
-        "name": "race_key",
+        "name": "name",
         "ordinal": 1,
         "type_info": "Text",
         "origin": {
           "Table": {
-            "table": "subrace",
-            "name": "race_key"
-          }
-        }
-      },
-      {
-        "name": "name",
-        "ordinal": 2,
-        "type_info": "Text",
-        "origin": {
-          "Table": {
-            "table": "subrace",
+            "table": "race",
             "name": "name"
           }
         }
       },
       {
         "name": "summary",
-        "ordinal": 3,
+        "ordinal": 2,
         "type_info": "Text",
         "origin": {
           "Table": {
-            "table": "subrace",
+            "table": "race",
             "name": "summary"
           }
         }
       },
       {
         "name": "guide",
-        "ordinal": 4,
+        "ordinal": 3,
         "type_info": "Text",
         "origin": {
           "Table": {
-            "table": "subrace",
+            "table": "race",
             "name": "guide"
+          }
+        }
+      },
+      {
+        "name": "skill_points",
+        "ordinal": 4,
+        "type_info": "Integer",
+        "origin": {
+          "Table": {
+            "table": "race",
+            "name": "skill_points"
           }
         }
       }
@@ -70,5 +70,5 @@
       false
     ]
   },
-  "hash": "a3a04a992b249ca0a37bb085224dcac861dbb52c35acffb2cbbf17dc60c567b5"
+  "hash": "bf0c9939b938bae205823003119710b8dd65a52832e3429e91c5c03d9de38582"
 }

@@ -357,9 +357,11 @@ async fn load_races(
     }
 
     let mut subraces = Grouped::new();
-    for row in sqlx::query!("SELECT key, race_key, name, summary, guide FROM subrace ORDER BY key")
-        .fetch_all(&mut *conn)
-        .await?
+    for row in sqlx::query!(
+        "SELECT key, race_key, name, summary, guide, skill_points FROM subrace ORDER BY key"
+    )
+    .fetch_all(&mut *conn)
+    .await?
     {
         let owner = Owner::Subrace(row.key.clone());
         subraces.push(
@@ -371,29 +373,32 @@ async fn load_races(
                 guide: GuideRef(row.guide),
                 ability_modifiers: modifiers.take(&owner),
                 feat_slots: feat_slots.take(&owner),
+                skill_points: to_u8(row.skill_points, "subrace.skill_points")?,
             },
         );
     }
 
-    let rows = sqlx::query!("SELECT key, name, summary, guide FROM race ORDER BY key")
-        .fetch_all(&mut *conn)
-        .await?;
+    let rows =
+        sqlx::query!("SELECT key, name, summary, guide, skill_points FROM race ORDER BY key")
+            .fetch_all(&mut *conn)
+            .await?;
     let races = rows
         .into_iter()
         .map(|row| {
             let owner = Owner::Race(row.key.clone());
-            Race {
+            Ok(Race {
                 ability_modifiers: modifiers.take(&owner),
                 feat_slots: feat_slots.take(&owner),
                 feat_lists: feat_lists.take(&owner),
+                skill_points: to_u8(row.skill_points, "race.skill_points")?,
                 subraces: subraces.take(&row.key),
                 key: RaceKey(row.key),
                 name: row.name,
                 summary: row.summary,
                 guide: GuideRef(row.guide),
-            }
+            })
         })
-        .collect();
+        .collect::<Result<Vec<_>, sqlx::Error>>()?;
     modifiers.finish("ability_modifier")?;
     subraces.finish("subrace")?;
     Ok(races)

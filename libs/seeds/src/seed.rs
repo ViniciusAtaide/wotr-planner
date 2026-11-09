@@ -335,11 +335,12 @@ async fn insert_mythic_ascensions(
 
 async fn insert_race(conn: &mut SqliteConnection, race: &Race) -> Result<(), sqlx::Error> {
     sqlx::query!(
-        "INSERT INTO race (key, name, summary, guide) VALUES ($1, $2, $3, $4)",
+        "INSERT INTO race (key, name, summary, guide, skill_points) VALUES ($1, $2, $3, $4, $5)",
         race.key.as_str(),
         race.name,
         race.summary,
         race.guide.0,
+        i16::from(race.skill_points),
     )
     .execute(&mut *conn)
     .await?;
@@ -349,13 +350,14 @@ async fn insert_race(conn: &mut SqliteConnection, race: &Race) -> Result<(), sql
 
     for subrace in race.subraces.iter() {
         sqlx::query!(
-            "INSERT INTO subrace (key, race_key, name, summary, guide)
-            VALUES ($1, $2, $3, $4, $5)",
+            "INSERT INTO subrace (key, race_key, name, summary, guide, skill_points)
+            VALUES ($1, $2, $3, $4, $5, $6)",
             subrace.key.as_str(),
             race.key.as_str(),
             subrace.name,
             subrace.summary,
             subrace.guide.0,
+            i16::from(subrace.skill_points),
         )
         .execute(&mut *conn)
         .await?;

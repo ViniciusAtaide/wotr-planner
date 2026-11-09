@@ -289,6 +289,26 @@ fn prestige_levels_advance_the_spell_level_access_of_the_class_chosen_on_entry()
 }
 
 #[test]
+fn a_race_or_its_subrace_adds_skill_points_every_level() {
+    // Int 13 (+1). A human fighter: 2 + 1 + the human's 1 = 4 points a level.
+    let sheet = engine().evaluate(&build("human", &["fighter", "fighter"]));
+    assert_eq!(sheet.levels[0].skill_points.available, 4);
+    assert_eq!(sheet.levels[1].skill_points.available, 4);
+
+    // A subrace's points replace the race's: the half-elf has none, its invented Adaptable subrace 1.
+    let mut build = build("half-elf", &["fighter"]);
+    assert_eq!(
+        engine().evaluate(&build).levels[0].skill_points.available,
+        3
+    );
+    build.start.subrace = Some(SubraceKey::new("half-elf/adaptable"));
+    assert_eq!(
+        engine().evaluate(&build).levels[0].skill_points.available,
+        4
+    );
+}
+
+#[test]
 fn prestige_levels_advance_nothing_without_a_choice_on_entry() {
     let sheet = engine().evaluate(&arcane_trickster_build(vec![]));
     assert_eq!(sheet.at(8).unwrap().arcane_spell_level, 2);

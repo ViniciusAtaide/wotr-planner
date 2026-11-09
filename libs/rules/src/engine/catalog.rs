@@ -147,6 +147,18 @@ impl Catalog {
         }
     }
 
+    /// The skill points a Build start's race adds at every level: its subrace's in place of the race's, when the
+    /// subrace is the race's. 0 without a race the data has.
+    pub(super) fn racial_skill_points(&self, start: &BuildStart) -> u8 {
+        let Some(race) = start.race.as_ref().and_then(|key| self.race(key)) else {
+            return 0;
+        };
+        match start.subrace.as_ref().and_then(|key| self.subrace(key)) {
+            Some((owner, subrace)) if owner.key == race.key => subrace.skill_points,
+            _ => race.skill_points,
+        }
+    }
+
     pub(super) fn skill(&self, key: &SkillKey) -> Option<&Skill> {
         self.indexes
             .skills

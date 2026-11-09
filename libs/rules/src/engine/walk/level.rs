@@ -234,7 +234,9 @@ impl<'a> Walker<'a> {
                 .unwrap_or(class.skill_points)
         });
         let intelligence = self.state.ability_scores.modifier(Ability::Intelligence);
-        let available = (i16::from(class_points) + i16::from(intelligence)).max(1);
+        let race_points = catalog.racial_skill_points(&self.build.start);
+        let available =
+            (i16::from(class_points) + i16::from(intelligence)).max(1) + i16::from(race_points);
         let available = u8::try_from(available).unwrap_or(u8::MAX);
         let spent = level_up
             .skill_ranks

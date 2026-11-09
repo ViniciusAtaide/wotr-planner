@@ -139,7 +139,8 @@ fn ranks_step_no_higher_than_the_character_level_here_or_later() {
 
 #[test]
 fn no_skill_steps_up_once_the_levels_points_are_spent() {
-    let mut build = build("human", &["fighter", "fighter"]);
+    // A dwarf fighter with Int 13 has 3 points a level (a human has one more).
+    let mut build = build("dwarf", &["fighter", "fighter"]);
     for key in ["athletics", "mobility", "persuasion"] {
         ranks(&mut build, 2, key, 1);
     }

@@ -90,7 +90,8 @@ async fn the_sheet_shows_each_level_with_its_numbers_and_picks() {
     for feat in ["shield-proficiency", "power-attack", "cleave", "toughness"] {
         assert!(feats.contains(&feat.to_owned()), "{feats:?}");
     }
-    assert_eq!(first["skill_points"], json!({ "available": 3, "spent": 0 }));
+    // A human fighter with Int 13: 2 + 1 + the human's 1.
+    assert_eq!(first["skill_points"], json!({ "available": 4, "spent": 0 }));
 
     // A parameterised pick's value names its parameter.
     let second = &levels[1];

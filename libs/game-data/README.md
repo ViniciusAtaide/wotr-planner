@@ -422,6 +422,10 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   have no stats, though the table gives Medium base dice for them, since a feature that grants one sets its own
   dice (Demonic Claws' 1d8); nor have Rays, Touch Attacks, Kinetic Blast and Bomb, which deal a spell's or a class
   feature's damage. `tests/game_data/weapons.rs` holds the whole table.
+- Ticket 130 (found in the 2026-11-09 martial build run): a race's or subrace's `skill_points` are the skill points
+  it adds at every level, on top of the class's and Intelligence's; a subrace's replace its race's, as its ability
+  modifiers do. Only the guide's "Skilled" trait sets them (`character-creation#human` and
+  `#half-orc-human-raised`: 1); none written means 0. `tests/game_data/races.rs` keeps the two.
 - A path's switch rule: `switch: (from: ["aeon", "azata"], kept_through_rank: 7, path_kept_through_rank: 7,
   dropped_features: [...], dropped_selections: [...], features: [...], further_ascensions: true, level_cap:
   Some(40))`. The general picks (mythic abilities and feats) of MR 1 to `kept_through_rank` stay, and the old

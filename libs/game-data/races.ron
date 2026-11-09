@@ -83,7 +83,7 @@
         guide: "character-creation#half-orc",
         ability_modifiers: [Chosen(amount: 2)],
         subraces: [
-            (key: "half-orc/human-raised", name: "Half-Orc (Human-Raised)", summary: "+1 skill point per level; +2 Persuasion to intimidate and +2 Perception.", guide: "character-creation#half-orc-human-raised", ability_modifiers: [Chosen(amount: 2)]),
+            (key: "half-orc/human-raised", name: "Half-Orc (Human-Raised)", summary: "+1 skill point per level; +2 Persuasion to intimidate and +2 Perception.", guide: "character-creation#half-orc-human-raised", ability_modifiers: [Chosen(amount: 2)], skill_points: 1),
             (key: "half-orc/tribal", name: "Half-Orc (Tribal)", summary: "+1 luck bonus to all saves; +2 Persuasion to intimidate and Lore (Nature); greataxe and falchion proficiency, orc double axe as martial.", guide: "character-creation#half-orc-tribal", ability_modifiers: [Chosen(amount: 2)]),
         ],
     ),
@@ -105,6 +105,7 @@
         guide: "character-creation#human",
         ability_modifiers: [Chosen(amount: 2)],
         feat_slots: [General],
+        skill_points: 1,
     ),
     (
         key: "kitsune",
