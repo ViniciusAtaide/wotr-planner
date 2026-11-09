@@ -31,7 +31,7 @@ Class(
         (key: "wizard/school/necromancer/grave-touch", name: "Grave Touch", summary: "Melee touch, 3 + Int times a day: shaken for half your level in rounds, or frightened 1 round if already shaken and low HD.", guide: "wizard#grave-touch"),
         (key: "wizard/school/necromancer/life-sight", name: "Life Sight", summary: "From 8th level, blindsight 10' for level rounds, telling living from undead.", guide: "wizard#life-sight"),
         (key: "wizard/school/necromancer/power-over-undead", name: "Power Over Undead", summary: "Turn undead 3 + Int times a day (DC 10 + half level + Cha); at 20th, undead lose channel resistance.", guide: "wizard#power-over-undead"),
-        (key: "wizard/school/transmuter/change-shape-i", name: "Change Shape I", summary: "From 8th level, change shape for level rounds as Beast Shape II or Elemental Shape I.", guide: "wizard#transmuter"),
+        (key: "wizard/school/transmuter/change-shape-i", name: "Change Shape I", summary: "From 8th level, take a Beast Shape II or Elemental Shape I form for rounds equal to your wizard level.", guide: "wizard#transmuter"),
         (key: "wizard/school/transmuter/change-shape-ii", name: "Change Shape II", summary: "From 12th level, Change Shape works as Beast Shape III or Elemental Shape II.", guide: "wizard#transmuter"),
         (key: "wizard/school/transmuter/physical-enhancement", name: "Physical Enhancement", summary: "+1 enhancement to a physical ability chosen when preparing spells, +1 per 5 wizard levels (+5 at 20th, two abilities at 20th).", guide: "wizard#physical-enhancement"),
         (key: "wizard/school/transmuter/physical-enhancement-2", name: "Physical Enhancement +2", summary: "At 5th level, Physical Enhancement rises to +2.", guide: "wizard#transmuter"),

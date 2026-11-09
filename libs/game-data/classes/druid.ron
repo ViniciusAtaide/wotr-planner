@@ -92,7 +92,7 @@ Class(
             guide: "druid#blight-druid",
             features: [
                 (key: "druid/blight-druid/blightblooded", name: "Blightblooded", summary: "At 9th level, immune to disease and to being sickened or nauseated.", guide: "druid#blightblooded"),
-                (key: "druid/blight-druid/miasma", name: "Miasma", summary: "From 5th level, adjacent creatures starting their turn next to you save (Fortitude) or are sickened 1 round; animals, fey and plants are nauseated.", guide: "druid#miasma"),
+                (key: "druid/blight-druid/miasma", name: "Miasma", summary: "From 5th, foes starting next to you are sickened 1 round (animals, fey, plants: nauseated 1 round, sickened 1 minute) unless Fortitude; a save grants immunity.", guide: "druid#miasma"),
                 (key: "druid/blight-druid/plaguebearer", name: "Plaguebearer", summary: "From 13th level, creatures hitting you with touch, unarmed or natural attacks save (Fortitude) or are nauseated and catch bubonic plague.", guide: "druid#plaguebearer"),
                 (key: "druid/blight-druid/wild-shape-bear-medium-elemental", name: "Wild Shape (Bear, Medium Elemental)", summary: "At 8th level, wild shape into a Large bear (+4 Str, bite, claws, rend) or a Medium elemental.", guide: "druid#blight-druid"),
                 (key: "druid/blight-druid/wild-shape-huge-elemental", name: "Wild Shape (Huge Elemental)", summary: "At 12th level, wild shape into a Huge elemental, which also gains DR 5/-.", guide: "druid#blight-druid"),
@@ -286,14 +286,14 @@ Class(
             features: [
                 (key: "druid/winter-child/arctic-native", name: "Arctic Native", summary: "From 4th level, cold resistance 5 (+5 every four levels, 25 at 20th) and immunity to dazzled.", guide: "druid#arctic-native"),
                 (key: "druid/winter-child/blizzard-servant", name: "Blizzard Servant", summary: "From 4th level, a Blizzard Servant acts as your animal companion at level - 3, with a companion archetype and companion feats.", guide: "druid#blizzard-servant"),
-                (key: "druid/winter-child/blizzard-servant-bound-souls", name: "Blizzard Servant - Bound Souls", summary: "At 16th, the servant grows Huge: +4 Str, +6 Dex, +2 Con, +2 natural armour, numbing cold and cold resistance 30.", guide: "druid#blizzard-servant-bound-souls"),
-                (key: "druid/winter-child/blizzard-servant-crystallized-affinity", name: "Blizzard Servant - Crystallized Affinity", summary: "At 11th, the servant grows Large: +4 Str, +4 Dex, +2 Con, +2 natural armour, DR 5/- and cold resistance 20.", guide: "druid#blizzard-servant-crystallized-affinity"),
+                (key: "druid/winter-child/blizzard-servant-bound-souls", name: "Blizzard Servant - Bound Souls", summary: "At 16th, the servant grows Huge: +4 Str, +6 Dex, +2 Con, +2 natural armour, numbing cold, cold resistance 30; allies' hits on its hail targets add 2d6 cold.", guide: "druid#blizzard-servant-bound-souls"),
+                (key: "druid/winter-child/blizzard-servant-crystallized-affinity", name: "Blizzard Servant - Crystallized Affinity", summary: "At 11th, the servant becomes Large with +4 Str, +4 Dex, +2 Con, +2 natural armour, DR 5/- and resist cold 20, and its Whirlwind of Hail stops hitting allies.", guide: "druid#blizzard-servant-crystallized-affinity"),
                 (key: "druid/winter-child/blizzard-servant-winters-advance", name: "Blizzard Servant - Winter\'s Advance", summary: "At 6th, the servant grows Medium: +2 Str, +4 Dex, +2 Con and cold resistance 10.", guide: "druid#blizzard-servant-winters-advance"),
                 (key: "druid/winter-child/call-a-feast", name: "Call a Feast", summary: "Your summoned creatures gain cold resistance 5; at 10th, 10 and Blink; at 15th, 15 and +2d6 cold damage on attacks.", guide: "druid#call-a-feast"),
                 (key: "druid/winter-child/call-a-feast-biting-frost", name: "Call a Feast - Biting Frost", guide: "druid#winter-child"),
                 (key: "druid/winter-child/call-a-feast-cover-of-snow", name: "Call a Feast - Cover of Snow", guide: "druid#winter-child"),
                 (key: "druid/winter-child/flurry-form", name: "Flurry Form", summary: "At 20th level, elemental subtype, immunity to cold, trip and ground-based effects, and treated as a native outsider.", guide: "druid#flurry-form"),
-                (key: "druid/winter-child/ice-in-the-blood", name: "Ice in the Blood", summary: "A Winter Child must select the Ice subdomain.", guide: "druid#ice-in-the-blood"),
+                (key: "druid/winter-child/ice-in-the-blood", name: "Ice in the Blood", summary: "Locks your domain choice to the Ice subdomain.", guide: "druid#ice-in-the-blood"),
                 (key: "druid/winter-child/snowcaster", name: "Snowcaster", summary: "From 9th level, turn your spells' damage into cold as a swift action.", guide: "druid#snowcaster"),
             ],
             selections: [

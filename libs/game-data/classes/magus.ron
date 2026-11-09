@@ -44,7 +44,7 @@ Class(
                 (key: "magus/magus-arcana/enduring-blade-level-6", name: "Enduring Blade (Level 6)", summary: "Spend 1 extra point when enhancing your weapon to make it last 1 minute per level.", guide: "magus#enduring-blade-level-6"),
                 (key: "magus/magus-arcana/extended-magic", name: "Extended Magic", summary: "Cast three spells a day as if with Extend Spell.", guide: "magus#extended-magic"),
                 (key: "magus/magus-arcana/ghost-blade-level-9", name: "Ghost Blade (Level 9)", summary: "Your weapon enhancement can add brilliant energy and ghost touch.", guide: "magus#ghost-blade-level-9"),
-                (key: "magus/magus-arcana/hasted-assault-level-9", name: "Hasted Assault (Level 9)", summary: "Spend 1 arcane point to Haste yourself for rounds equal to your Int bonus.", guide: "magus#hasted-assault-level-9"),
+                (key: "magus/magus-arcana/hasted-assault-level-9", name: "Hasted Assault (Level 9)", summary: "Spend 1 arcane point to Haste yourself for a duration equal to your Int bonus.", guide: "magus#hasted-assault-level-9"),
                 (key: "magus/magus-arcana/maximized-magic-level-12", name: "Maximized Magic (Level 12)", summary: "Cast three spells a day as if with Maximize Spell.", guide: "magus#maximized-magic-level-12"),
                 (key: "magus/magus-arcana/prescient-attack-level-6", name: "Prescient Attack (Level 6)", summary: "Spend 1 arcane point: enemies lose their Dex bonus against you until the end of your next turn.", guide: "magus#prescient-attack-level-6"),
                 (key: "magus/magus-arcana/quickened-magic-level-15", name: "Quickened Magic (Level 15)", summary: "Cast three spells a day as if with Quicken Spell.", guide: "magus#quickened-magic-level-15"),
@@ -165,7 +165,7 @@ Class(
         (
             key: "magus/eldritch-archer",
             name: "Eldritch Archer",
-            summary: "Ranged magus who uses bows for spell combat and spellstrike; loses Counterstrike.",
+            summary: "Ranged magus who uses a ranged weapon for spell combat and spellstrike; loses Counterstrike.",
             guide: "magus#eldritch-archer",
             class_skills: ["athletics", "knowledge-arcana", "knowledge-world", "perception", "persuasion"],
             features: [

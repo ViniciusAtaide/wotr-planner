@@ -45,7 +45,7 @@ Class(
                 (key: "monk/ki-power/diamond-body", name: "Diamond Body", summary: "From 12th level, immune to poison.", guide: "monk#diamond-body", prerequisite: ClassLevel(class: "monk", level: 12)),
                 (key: "monk/ki-power/diamond-soul", name: "Diamond Soul", summary: "From 14th level, permanent spell resistance of level + 10.", guide: "monk#diamond-soul", prerequisite: ClassLevel(class: "monk", level: 14)),
                 (key: "monk/ki-power/poison", name: "Poison", summary: "From 8th level, spend 2 ki points to use Poison.", guide: "monk", prerequisite: ClassLevel(class: "monk", level: 8)),
-                (key: "monk/ki-power/quivering-palm", name: "Quivering Palm", summary: "From 16th level, 4 ki: the target must make a Fortitude save (DC 10 + half level + Wis) or die.", guide: "monk#quivering-palm", prerequisite: ClassLevel(class: "monk", level: 16)),
+                (key: "monk/ki-power/quivering-palm", name: "Quivering Palm", summary: "From 16th level, 4 ki: a target that fails a Fortitude save (DC 10 + half level + Wis) dies.", guide: "monk#quivering-palm", prerequisite: ClassLevel(class: "monk", level: 16)),
                 (key: "monk/ki-power/restoration", name: "Restoration", summary: "From 8th level, spend 2 ki points to cast Restoration.", guide: "monk", prerequisite: ClassLevel(class: "monk", level: 8)),
                 (key: "monk/ki-power/scorching-ray", name: "Scorching Ray", summary: "From 4th level, spend 2 ki points to cast Scorching Ray.", guide: "monk", prerequisite: ClassLevel(class: "monk", level: 4)),
                 (key: "monk/ki-power/shout", name: "Shout", summary: "From 14th level, 3 ki: 1d6 sonic damage per level and a 1-round stun; a Fortitude save halves it and negates the stun.", guide: "monk#shout", prerequisite: ClassLevel(class: "monk", level: 14)),
@@ -172,7 +172,7 @@ Class(
             guide: "monk#sensei",
             class_skills: ["athletics", "knowledge-arcana", "knowledge-world", "lore-nature", "lore-religion", "mobility", "perception", "persuasion", "stealth"],
             features: [
-                (key: "monk/sensei/advice", name: "Advice", summary: "Works like Bardic Performance (with Lingering Performance), for character level + Wis rounds a day.", guide: "monk#advice"),
+                (key: "monk/sensei/advice", name: "Advice", summary: "Bard-style performances for character level + Wis rounds a day; the Lingering Performance feat works with them.", guide: "monk#advice"),
                 (key: "monk/sensei/insightful-strike", name: "Insightful Strike", summary: "From 2nd level, use Wis instead of Str or Dex for attacks and maneuvers with unarmed strikes and monk weapons.", guide: "monk#insightful-strike"),
                 (key: "monk/sensei/inspire-competence", name: "Inspire Competence", summary: "From 3rd level, the bard's Inspire Competence.", guide: "monk#inspire-competence"),
                 (key: "monk/sensei/inspire-courage", name: "Inspire Courage", summary: "The bard's Inspire Courage.", guide: "monk#inspire-courage"),
@@ -264,7 +264,7 @@ Class(
                 (key: "monk/traditional-monk/ki-power-abundant-step", name: "Ki Power: Abundant Step", summary: "Teleport like Dimension Door using ki, without bringing others.", guide: "monk#abundant-step"),
                 (key: "monk/traditional-monk/ki-power-diamond-body", name: "Ki Power: Diamond Body", summary: "Immune to poison.", guide: "monk#diamond-body"),
                 (key: "monk/traditional-monk/ki-power-diamond-soul", name: "Ki Power: Diamond Soul", summary: "Permanent spell resistance of level + 10.", guide: "monk#diamond-soul"),
-                (key: "monk/traditional-monk/ki-power-quivering-palm", name: "Ki Power: Quivering Palm", summary: "Spend ki: the target must make a Fortitude save (DC 10 + half level + Wis) or die.", guide: "monk#quivering-palm"),
+                (key: "monk/traditional-monk/ki-power-quivering-palm", name: "Ki Power: Quivering Palm", summary: "At 14th level, spend ki: a target that fails a Fortitude save (DC 10 + half level + Wis) dies.", guide: "monk#quivering-palm"),
                 (key: "monk/traditional-monk/ki-power-wholeness-of-body", name: "Ki Power: Wholeness of Body", summary: "Spend ki to heal HP equal to your level.", guide: "monk#wholeness-of-body"),
             ],
             levels: [
