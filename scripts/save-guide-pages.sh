@@ -181,6 +181,7 @@ finish() {
 
 # ──────────────────────────────────────────────────────────────────────────
 # STAGES: save the GameFAQs guide pages for ticket 08 (Save the guide pages).
+# The spell pages are for ticket 121, the item pages for ticket 122.
 # GameFAQs blocks automated fetching, so the human saves each page from their
 # own browser. This wizard opens every page still missing as a browser tab,
 # then watches guide-cache/: each saved page is found by its canonical link
@@ -199,6 +200,8 @@ PAGES=(
   slayer sorcerer warpriest witch wizard
   prestige-classes
   mythic-paths aeon angel azata demon lich trickster gold-dragon other-mythic-paths
+  cleric-spells druid-spells wizard-spells
+  items items-inevitable-excess items-lord-of-nothing
 )
 
 TOTAL_STAGES=3

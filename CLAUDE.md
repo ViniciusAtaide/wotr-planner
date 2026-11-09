@@ -4,14 +4,23 @@ The plan for this project lives in `.scratch/wotr-planner/map.md`. Read its Note
 
 ## Database (prototype stage)
 
-The database is one SQLite file, `wotr-planner.db` at the repo root (`DATABASE_URL` in `.env`; git-ignored). The schema lives in one initial migration, `libs/seeds/migrations/20261031000000_game_data.sql`, and the data is only seed data. A schema change edits that file. Then rebuild the dev database, from the repo root:
+The database is one SQLite file per checkout, `wotr-planner.db` at the checkout's root (`DATABASE_URL=sqlite://wotr-planner.db` in `.env`, a relative path; git-ignored). Its data is only seed data. The schema is the migrations in `libs/seeds/migrations/`, which the seed runs in order on every new file it builds.
+
+**A schema change adds a new migration**, `libs/seeds/migrations/<YYYYMMDDHHMMSS>_<ticket>-<what>.sql` (for example `20261109120000_121-spells.sql`), timestamped when you write it. Never edit a migration that is already on `main`, since another branch may build on it. The database is always rebuilt from scratch, so a migration may create, alter, or drop and recreate tables. When no other branch or agent is open, the main session may squash the migrations into one, in a commit of its own.
+
+After a schema change, rebuild your checkout's database, from its root:
 
 1. Delete it: `rm -f wotr-planner.db`.
 2. Run `sqlx database create && sqlx migrate run --source libs/seeds/migrations`, so the query macros compile against the new schema.
-3. Reseed: `cargo run -p seeds --bin seed` (it builds a new file from the migration and renames it over this one).
+3. Reseed: `cargo run -p seeds --bin seed` (it builds a new file from the migrations and renames it over this one).
 4. Run `(cd libs/seeds && cargo sqlx prepare -D "sqlite://$PWD/../../wotr-planner.db")`.
 
-Do this only when you are the only agent working in the repo. If another agent is running, leave the database as it is and report the schema change you need. `scripts/check.sh --schema` doesn't need the dev database: it checks the queries against a new file migrated in a temporary folder.
+**Each checkout has its own database**, so agents in separate worktrees rebuild theirs at the same time without touching each other's:
+- In a new worktree, copy `.env.example` to `.env` first; its relative `DATABASE_URL` then names that worktree's own file.
+- Build in the worktree's own `target/` (the default). Never share `CARGO_TARGET_DIR` between worktrees: the seed and the server find the workspace root, and with it the database file and `libs/game-data/`, from the path they were compiled in, so a shared build can write another worktree's database.
+- Agents sharing one checkout share its database. There, rebuild it only when you are the only agent in that checkout; otherwise leave it as it is and report the schema change you need.
+
+`scripts/check.sh --schema` doesn't need the dev database: it checks the queries against a new file migrated in a temporary folder.
 
 ## Rust tests
 
