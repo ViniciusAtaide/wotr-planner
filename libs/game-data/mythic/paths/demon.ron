@@ -31,7 +31,7 @@ MythicPath(
             guide: "demon#demon-lord-aspect",
             options: [
                 (key: "demon/demon-lord-aspect/aspect-of-areshkagal", name: "Aspect of Areshkagal", summary: "Attacks against you have a 50% miss chance.", guide: "demon#aspect-of-areshkagal"),
-                (key: "demon/demon-lord-aspect/aspect-of-deskari", name: "Aspect of Deskari", summary: "Energy damage you deal becomes unholy; physical damage gets past every damage reduction and damage immunity.", guide: "demon#aspect-of-deskari"),
+                (key: "demon/demon-lord-aspect/aspect-of-deskari", name: "Aspect of Deskari", summary: "Energy damage you deal turns unholy; your physical hits get past physical DR and creatures\' immunity to damage.", guide: "demon#aspect-of-deskari"),
                 (key: "demon/demon-lord-aspect/aspect-of-kabriri", name: "Aspect of Kabriri", summary: "Every kill heals you.", guide: "demon#aspect-of-kabriri"),
                 (key: "demon/demon-lord-aspect/aspect-of-nocticula", name: "Aspect of Nocticula", summary: "Each rage, one ally can share your Demonic Rage, with your active aspects and major aspects.", guide: "demon#aspect-of-nocticula"),
                 (key: "demon/demon-lord-aspect/aspect-of-pazuzu", name: "Aspect of Pazuzu", summary: "+30 ft speed and one extra attack that stacks with rage.", guide: "demon#aspect-of-pazuzu"),
@@ -51,7 +51,7 @@ MythicPath(
                 (key: "demon/demonic-aspect/aspect-of-nabasu", name: "Aspect of Nabasu", summary: "+2 on saves (+1 at ranks 6, 9); enemies within 30 ft take -1 to Fortitude and attacks, growing at 6 and 9; plus skill bonuses.", guide: "demon#aspect-of-nabasu"),
                 (key: "demon/demonic-aspect/aspect-of-schir", name: "Aspect of Schir", summary: "+2 melee attack (+1 at ranks 6, 9) and Powerful Charge: two more weapon dice and an extra 1.5x Strength damage on charges; skill bonuses.", guide: "demon#aspect-of-schir"),
                 (key: "demon/demonic-aspect/aspect-of-succubus", name: "Aspect of Succubus", summary: "Enemies within 30 ft take -1 Will and attack, allies gain +1 and compulsion and fear immunity; rising at ranks 6, 9; skill bonuses.", guide: "demon#aspect-of-succubus"),
-                (key: "demon/demonic-aspect/aspect-of-vrock", name: "Aspect of Vrock", summary: "+2 ranged attack (+1 at ranks 6, 9); spells and abilities gain Reach; enemies in 30 ft get -1 Reflex and move as in difficult terrain.", guide: "demon#aspect-of-vrock"),
+                (key: "demon/demonic-aspect/aspect-of-vrock", name: "Aspect of Vrock", summary: "+2 ranged attack and -1 Reflex to enemies within 30 ft, both +1 at ranks 6 and 9; spells and abilities gain Reach; those enemies move as in difficult terrain.", guide: "demon#aspect-of-vrock"),
             ],
         ),
         (

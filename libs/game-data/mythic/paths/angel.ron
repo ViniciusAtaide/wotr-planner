@@ -54,7 +54,7 @@ MythicPath(
             summary: "At ranks 4 and 6, add one improvement to Sword of Heaven.",
             guide: "angel#improved-sword-of-heaven",
             options: [
-                (key: "angel/improved-sword-of-heaven/abolish-disease", name: "Abolish Disease", summary: "Disease immunity while wielding it; your healing spells cure disease and fatigue-type conditions; diseased attackers take +50% holy damage.", guide: "angel#abolish-disease"),
+                (key: "angel/improved-sword-of-heaven/abolish-disease", name: "Abolish Disease", summary: "Disease immunity while wielding it; your healing spells cure disease, fatigue, exhaustion, sickness and nausea; diseasing attackers take +50% holy damage.", guide: "angel#abolish-disease"),
                 (key: "angel/improved-sword-of-heaven/abolish-guile", name: "Abolish Guile", summary: "Compulsion immunity while wielding it; your healing spells end mind-affecting effects; compulsion users take +50% holy damage from you.", guide: "angel#abolish-guile"),
                 (key: "angel/improved-sword-of-heaven/abolish-poison", name: "Abolish Poison", summary: "Poison immunity while wielding it; healing spells cure poison and ability damage and drain; poisonous attackers take +50% holy damage.", guide: "angel#abolish-poison"),
                 (key: "angel/improved-sword-of-heaven/abolish-undeath", name: "Abolish Undeath", summary: "Wielding it shields you from death effects and energy drain; your healing cures paralysis and negative levels; undead take +50% holy damage.", guide: "angel#abolish-undeath"),
