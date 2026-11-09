@@ -114,6 +114,39 @@ fn a_background_note_and_a_path_summary_come_from_the_game_data() {
 }
 
 #[test]
+fn a_class_and_an_archetype_summary_come_from_the_game_data() {
+    let mut data = world();
+    let sorcerer = data
+        .classes
+        .iter_mut()
+        .find(|c| c.key == class("sorcerer"))
+        .unwrap();
+    sorcerer.summary = "Spontaneous arcane caster.".into();
+    let sage = sorcerer
+        .archetypes
+        .iter_mut()
+        .find(|a| a.key.as_str() == "sorcerer/sage")
+        .unwrap();
+    sage.summary = "Casts with Intelligence.".into();
+    let engine = Engine::new(data);
+    assert_eq!(
+        engine.class_summary(&class("sorcerer")),
+        "Spontaneous arcane caster."
+    );
+    assert_eq!(
+        engine.archetype_summary(&rules::ArchetypeKey::new("sorcerer/sage")),
+        "Casts with Intelligence."
+    );
+    assert_eq!(engine.class_summary(&class("wizard")), "");
+    // A key the data lacks has none.
+    assert_eq!(engine.class_summary(&class("no-such-class")), "");
+    assert_eq!(
+        engine.archetype_summary(&rules::ArchetypeKey::new("no-such/archetype")),
+        ""
+    );
+}
+
+#[test]
 fn a_pick_is_named_with_its_value() {
     let engine = engine();
     assert_eq!(engine.pick_name(&pick_feat("power-attack")), "power-attack");

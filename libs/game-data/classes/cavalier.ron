@@ -14,7 +14,7 @@ Class(
         (key: "cavalier/banner", name: "Banner", summary: "From 5th level, allies within 60 feet get +1 morale to charge attacks and +2 to saves against fear, +1 each at 10th, 15th and 20th.", guide: "cavalier#banner"),
         (key: "cavalier/cavaliers-charge", name: "Cavalier\'s Charge", summary: "From 3rd level, +4 to melee attacks when charging while mounted, with no AC penalty.", guide: "cavalier#cavaliers-charge"),
         (key: "cavalier/challenge", name: "Challenge", summary: "Swift action: + class level melee damage against one foe, -2 AC against others; once a day, +1 per 3 levels (max 7); orders add effects.", guide: "cavalier#challenge"),
-        (key: "cavalier/demanding-challenge", name: "Demanding Challenge", summary: "The challenged foe takes -2 AC against attacks from anyone but the Cavalier.", guide: "cavalier#demanding-challenge"),
+        (key: "cavalier/demanding-challenge", name: "Demanding Challenge", summary: "The challenged foe takes -2 AC against attacks from anyone but you.", guide: "cavalier#demanding-challenge"),
         (key: "cavalier/greater-banner", name: "Greater Banner", summary: "From 14th level, the banner also gives +2 morale to saves against charm and compulsion.", guide: "cavalier#greater-banner"),
         (key: "cavalier/greater-tactician", name: "Greater Tactician", summary: "From 9th level, Tactician is a swift action.", guide: "cavalier#greater-tactician"),
         (key: "cavalier/mighty-charge", name: "Mighty Charge", summary: "From 11th level, doubled threat range on mounted charges, and a hit gives a free bull rush and trip; doesn't stack with Keen or Improved Critical.", guide: "cavalier#mighty-charge"),

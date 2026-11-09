@@ -326,6 +326,20 @@ impl Engine {
             .map_or("", |background| &background.note)
     }
 
+    /// A class's short summary, base or prestige, in our own words; empty when the data has none.
+    pub fn class_summary(&self, key: &ClassKey) -> &str {
+        self.catalog
+            .class(key)
+            .map_or("", |(class, _)| &class.summary)
+    }
+
+    /// An archetype's short summary, in our own words; empty when the data has none.
+    pub fn archetype_summary(&self, key: &ArchetypeKey) -> &str {
+        self.catalog
+            .archetype(key)
+            .map_or("", |archetype| &archetype.summary)
+    }
+
     /// A path's short summary, in our own words; empty when the data has none.
     pub fn path_summary(&self, key: &MythicPathKey) -> &str {
         self.catalog.path(key).map_or("", |path| &path.summary)

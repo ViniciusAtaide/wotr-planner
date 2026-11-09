@@ -562,11 +562,18 @@ fn class_item(engine: &Engine, build: &Build, level: u8, option: &ClassOption) -
     let prestige = engine.is_prestige(&option.class);
     let class_name = engine.class_name(&option.class);
     let (name, detail) = match &option.archetype {
+        // The summary, or for an archetype without one, whose archetype it is (ticket 112).
         Some(archetype) => (
             engine.archetype_name(archetype).to_owned(),
-            format!("{class_name} archetype"),
+            match engine.archetype_summary(archetype) {
+                "" => format!("{class_name} archetype"),
+                summary => summary.to_owned(),
+            },
         ),
-        None => (class_name.to_owned(), String::new()),
+        None => (
+            class_name.to_owned(),
+            engine.class_summary(&option.class).to_owned(),
+        ),
     };
     Item {
         detail,
