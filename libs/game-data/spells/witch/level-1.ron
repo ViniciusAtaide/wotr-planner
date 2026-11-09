@@ -6,7 +6,7 @@
         name: "Ill Omen",
         school: Enchantment,
         guide: "witch#ill-omen-enchantment",
-        summary: "",
+        summary: "The target rolls twice and keeps the worse on its next d20 roll, plus one more such roll per five caster levels (max 5 rolls at 20th).",
         target: "One enemy creature within close range",
         duration: "1 round / level",
         saving_throw: "None",

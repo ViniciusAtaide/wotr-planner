@@ -6,7 +6,7 @@
         name: "Summon Greasly Bear",
         school: Conjuration,
         guide: "trickster#summon-greasly-bear-conjuration",
-        summary: "",
+        summary: "Has the effect of a Grease spell at the target point.",
         target: "Target point within close range",
         duration: "1 round / level",
         saving_throw: "N/A",

@@ -6,7 +6,7 @@
         name: "Daylight",
         school: Evocation,
         guide: "gold-dragon#daylight-evocation",
-        summary: "",
+        summary: "The ally sheds bright light 60 ft and lifts light one step 60 ft further; light-sensitive foes suffer penalties inside, but daylight-harmed ones take no damage.",
         target: "Friendly creature within touch range",
         duration: "10 minutes / level",
         saving_throw: "N/A",

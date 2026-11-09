@@ -6,7 +6,7 @@
         name: "Cacophonous Call",
         school: Enchantment,
         guide: "bard#cacophonous-call-enchantment",
-        summary: "",
+        summary: "Unless it passes its save, the target is nauseated.",
         target: "One creature within close range",
         duration: "1 round / level",
         saving_throw: "Will negates",

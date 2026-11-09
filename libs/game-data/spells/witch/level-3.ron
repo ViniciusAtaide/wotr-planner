@@ -6,7 +6,7 @@
         name: "Nature's Exile",
         school: Transmutation,
         guide: "witch#natures-exile-transmutation",
-        summary: "",
+        summary: "All animals turn hostile to the target, and an animal companion takes -2 on attacks, skill checks and saves.",
         target: "One enemy creature within touch range",
         duration: "Permanent",
         saving_throw: "Will negates",
