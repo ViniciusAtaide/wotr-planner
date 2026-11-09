@@ -40,6 +40,10 @@ pub enum Kind {
     Deity,
     /// A background, chosen at Build start.
     Background,
+    /// A spell of the spell catalogue: reference data, which no Build choice names.
+    Spell,
+    /// A spell list: a class's, an archetype's or a Mythic path's spells by level.
+    SpellList,
 }
 
 impl Kind {
@@ -56,6 +60,8 @@ impl Kind {
             Kind::Race => "race",
             Kind::Deity => "deity",
             Kind::Background => "background",
+            Kind::Spell => "spell",
+            Kind::SpellList => "spell_list",
         }
     }
 }
@@ -73,7 +79,9 @@ pub struct SearchArgs {
     pub kinds: Option<Vec<Kind>>,
     /// Only items in this category, or in any of these (case doesn't matter): a feat's category ("Weapon", "Magic",
     /// …), a mythic ability's or feat's group ("Melee", "Ranged", …), an option's Feature selection by name ("Rage
-    /// Power") or key, "Base class" or "Prestige class", a background's group.
+    /// Power") or key, "Base class" or "Prestige class", a background's group, a spell's school ("Enchantment",
+    /// "Universalist") or one of its descriptors, its subschool among them ("Compulsion", "Mind-Affecting"), a
+    /// spell list's kind ("Class list", "Archetype list", "Mythic spellbook").
     #[serde(default)]
     pub category: Option<OneOrMany>,
     /// At most this many matches (default 10, or 50 for an empty query). Capped at 100: a larger `limit` returns
@@ -131,13 +139,19 @@ pub struct Hit {
     /// empty.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub summary: Option<String>,
-    /// What it belongs to: an archetype's class, an option's Feature selection (keys).
+    /// What it belongs to: an archetype's class, an option's Feature selection, a spell list's owner (keys).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub parent: Option<String>,
     /// Its group: "Base class" or "Prestige class", a feat's category, a mythic ability's or feat's group, an
-    /// option's Feature selection, a background's group.
+    /// option's Feature selection, a background's group, a spell's school, a spell list's kind ("Class list",
+    /// "Archetype list", "Mythic spellbook").
     #[serde(skip_serializing_if = "Option::is_none")]
     pub category: Option<String>,
+    /// A spell's descriptors as the guide prints them, its subschool among them ("Mind-Affecting", "Compulsion");
+    /// `category` filters by them too. Left out when it has none, by `search`'s `compact`, and by `describe`, whose
+    /// `facts` give them.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub descriptors: Option<Vec<String>>,
     /// What taking it needs, in the planner's words ("Spell Focus (Conjuration)"); `null` when nothing. In
     /// `search`, a long one has each group of many alternatives shortened ("one of 49 hexes (Air Barrier, Battle
     /// Master, Battle Ward, …)"), and `describe` gives it whole; left out by `search`'s `compact`.
@@ -204,6 +218,97 @@ pub struct Item {
     /// The domains a deity offers (options).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub domains: Option<Vec<Named>>,
+    /// The spell lists a class, an archetype or a Mythic path casts from: those it owns and those its page says it
+    /// uses (the sorcerer: the wizard's). An archetype's are the ones naming it; its class's are on the class.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub spell_lists: Option<Vec<Named>>,
+    /// A spell's facts, from its block in the guide.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub facts: Option<SpellFacts>,
+    /// Every spell list a spell is on, each with the spell's level there (twice when a list has it at two levels).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub lists: Option<Vec<OnList>>,
+    /// A spell list's owner: the class, archetype or Mythic path whose page it's on.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub owner: Option<Caster>,
+    /// The other classes and archetypes that cast from a spell list, where their pages say so.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub used_by: Option<Vec<Caster>>,
+    /// A spell list's spells by spell level, lowest first.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub spells: Option<Vec<SpellLevelRow>>,
+}
+
+/// A spell's facts as its block in the guide prints them.
+#[derive(Debug, Serialize, JsonSchema)]
+pub struct SpellFacts {
+    /// "Enchantment", …; "Universalist" for a spell of no school (Dismiss Spell).
+    pub school: String,
+    /// "Mind-Affecting", "Compulsion", "Fear", an energy, …; the enchantment subschools (Compulsion, Charmed) and
+    /// Summoning are among them.
+    pub descriptors: Vec<String>,
+    /// Whom or what area it reaches, and its range.
+    pub target: String,
+    /// "1 round / level"; left out where the block has no duration (instantaneous spells).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub duration: Option<String>,
+    /// "Will negates", "Reflex half", "N/A", …
+    pub saving_throw: String,
+    /// Whether spell resistance applies.
+    pub spell_resistance: bool,
+    /// "Standard Action", "Full Round", "Move Action", "Swift Action", "Free Action".
+    pub casting_time: String,
+    /// The material component, when the block names one ("Diamond dust x10").
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub components: Option<String>,
+}
+
+/// A spell list a spell is on, at its level there.
+#[derive(Debug, Serialize, JsonSchema)]
+pub struct OnList {
+    /// The list's key, for `describe {kind: spell_list}`.
+    pub key: String,
+    pub name: String,
+    /// The spell's level on this list: 0 to 9 on a class's or an archetype's list, 1 to 10 in a Mythic spellbook.
+    pub level: u8,
+    pub owner: Caster,
+    /// The other classes and archetypes that cast from the list.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub used_by: Vec<Caster>,
+    /// The table's footnote when only some of the list's casters get the spell ("Flame Dancer only", "Uncorrupted
+    /// only": a Gold Dragon story branch). Left out for all.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub only: Option<String>,
+}
+
+/// A class, an archetype or a Mythic path that owns or uses a spell list.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, JsonSchema)]
+pub struct Caster {
+    /// `class`, `archetype` or `path`.
+    pub kind: Kind,
+    pub key: String,
+    pub name: String,
+}
+
+/// One spell level of a spell list.
+#[derive(Debug, Serialize, JsonSchema)]
+pub struct SpellLevelRow {
+    pub level: u8,
+    pub spells: Vec<ListedSpell>,
+}
+
+/// A spell as a list names it: by key and name, with its school and descriptors (`describe {kind: spell}` gives
+/// the rest).
+#[derive(Debug, Serialize, JsonSchema)]
+pub struct ListedSpell {
+    pub key: String,
+    pub name: String,
+    pub school: String,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub descriptors: Vec<String>,
+    /// The table's footnote when only some of the list's casters get it ("Flame Dancer only").
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub only: Option<String>,
 }
 
 /// Another item, by key and name.
