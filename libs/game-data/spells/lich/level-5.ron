@@ -6,7 +6,7 @@
         name: "Bone Explosion",
         school: Necromancy,
         guide: "lich#bone-explosion-necromancy",
-        summary: "Failed Fortitude: the target takes 6 per caster level, creatures within 20 ft 1d6; success: 1d6 per level and 1 per level; the area may save (Reflex) for half.",
+        summary: "On a failed Fortitude save the target takes 6 per caster level and those within 20 ft 1d6, else 1d6 and 1 per level; the area may halve it with Reflex.",
         target: "All creatures within a 20' burst centred on target creature within medium range",
         saving_throw: "Fortitude partial / Reflex half",
         spell_resistance: false,

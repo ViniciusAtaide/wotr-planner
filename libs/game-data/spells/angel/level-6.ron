@@ -19,7 +19,7 @@
         name: "Bolt of Justice",
         school: Conjuration,
         guide: "angel#bolt-of-justice-conjuration",
-        summary: "Deals 1d6 holy per level (prone on a failed save); evil targets take d8s and -2 AC, attacks and saves, undead or evil outsiders d10s and -4, demon lords d12s.",
+        summary: "Deals 1d6 holy per level, prone on a failed Reflex save; evil foes take d8s and, if they fail, -2 AC, attacks and saves, undead or evil outsiders d10s and -4.",
         target: "One enemy creature within Long range",
         saving_throw: "Reflex partial",
         spell_resistance: false,

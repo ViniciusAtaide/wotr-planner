@@ -19,7 +19,7 @@
         name: "Consume Fear",
         school: Necromancy,
         guide: "demon#consume-fear-necromancy",
-        summary: "Failing enemies within 10 ft of the target are frightened 1d4 rounds; it gains +CL Intimidate and heals 1 HP a round per shaken or frightened creature in 30 ft.",
+        summary: "Foes within 10 ft of the target failing a Will save are frightened 1d4 rounds; it gains +caster level Intimidate and 1 HP a round per scared creature in 30 ft.",
         target: "All creatures within a 10' burst centred on target creature within medium range",
         duration: "1 round / level",
         saving_throw: "Will partial",

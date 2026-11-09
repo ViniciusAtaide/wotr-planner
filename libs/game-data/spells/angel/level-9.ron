@@ -31,7 +31,7 @@
         name: "Sun Form",
         school: Abjuration,
         guide: "angel#sun-form-abjuration",
-        summary: "You turn incorporeal and can fire holy fire as a swift action for 1d6 per caster level, half fire and half holy.",
+        summary: "You become incorporeal and, as a swift action, can blast a foe for 1d6 per caster level, half of it fire and half holy.",
         target: "Personal",
         duration: "1 round / level",
         saving_throw: "N/A",

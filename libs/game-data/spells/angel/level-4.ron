@@ -30,7 +30,7 @@
         name: "Repel the Profane",
         school: Necromancy,
         guide: "angel#repel-the-profane-necromancy",
-        summary: "Undead, evil outsiders and evil priests that fail are frightened 1 round per caster level, else shaken 1 round, even if immune to fear.",
+        summary: "Undead, evil outsiders and priests of evil gods that fail a Will save are frightened 1 round per caster level, else shaken 1 round, despite any fear immunity.",
         target: "All creatures within a 50' cone",
         saving_throw: "Will partial",
         spell_resistance: false,
