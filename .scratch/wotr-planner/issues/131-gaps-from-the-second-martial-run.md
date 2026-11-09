@@ -64,3 +64,7 @@ Options:
 ## Done when
 
 The user has answered 2, 3 and 5. A is built for 1, so the Trickster Build's line reads 13–20/×3, with a real-data test. 4's cap is stated. `scripts/check.sh` passes.
+
+## Progress log
+
+- 2026-11-09 (item 6, first bullet, in [126](126-refusals-name-the-pick-order.md)): a Mythic rank's picks come after its character level's slots, and the refusal now says so: Improved Improved Critical in the level-11 general slot with Perception II at MR 4 reads "Needs Perception II: Perception II is in Mythic rank 4's Improved Mythic Trick slot, which comes after this slot in level 11's pick order" (real-data test in `libs/seeds/tests/game_data/pick_order.rs`).
