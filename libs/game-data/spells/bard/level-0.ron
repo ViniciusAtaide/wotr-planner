@@ -6,7 +6,7 @@
         name: "Lullaby",
         school: Enchantment,
         guide: "bard#lullaby-enchantment",
-        summary: "",
+        summary: "Unless it saves, the target takes -5 on Perception checks and -2 on Will saves against sleep effects.",
         target: "One enemy creature within medium range",
         duration: "1 round / level",
         saving_throw: "Will negates",

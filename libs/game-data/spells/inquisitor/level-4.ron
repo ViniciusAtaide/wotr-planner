@@ -6,7 +6,7 @@
         name: "Forced Repentance",
         school: Enchantment,
         guide: "inquisitor#forced-repentance-enchantment",
-        summary: "",
+        summary: "An evil target without the evil subtype that fails its save repents for the duration; attacking it ends the effect.",
         target: "One enemy creature within close range",
         duration: "1 round / level",
         saving_throw: "Will negates",

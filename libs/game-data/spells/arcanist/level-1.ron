@@ -6,7 +6,7 @@
         name: "Peer Into Energy Resistance",
         school: Divination,
         guide: "arcanist#peer-into-energy-resistance-divination",
-        summary: "",
+        summary: "Lowers the target's energy resistances by 1 per caster level, to no less than 0.",
         target: "One enemy creature within close range",
         duration: "1 minute",
         saving_throw: "None",

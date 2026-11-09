@@ -6,7 +6,7 @@
         name: "Chameleon Stride",
         school: Illusion,
         guide: "ranger#chameleon-stride-illusion",
-        summary: "",
+        summary: "You gain +4 on Stealth checks and concealment (20% miss chance).",
         target: "Personal",
         duration: "1 minute / level",
         saving_throw: "N/A",

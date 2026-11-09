@@ -6,7 +6,7 @@
         name: "Wand of Summon Monster Zero",
         school: Conjuration,
         guide: "trickster#wand-of-summon-monster-zero-conjuration",
-        summary: "",
+        summary: "Summons a small horse, the \"extraplanar murder pony\".",
         target: "Target point within close range",
         duration: "1 minute",
         saving_throw: "N/A",

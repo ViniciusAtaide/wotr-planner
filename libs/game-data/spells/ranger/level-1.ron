@@ -6,7 +6,7 @@
         name: "Lead Blades",
         school: Transmutation,
         guide: "ranger#lead-blades-transmutation",
-        summary: "",
+        summary: "Your melee weapons deal damage as if one size larger (a longsword's 1d8 becomes 1d10).",
         target: "Personal",
         duration: "1 minute / level",
         saving_throw: "N/A",

@@ -6,7 +6,7 @@
         name: "Castigate",
         school: Enchantment,
         guide: "inquisitor#castigate-enchantment",
-        summary: "",
+        summary: "The target cowers in fear unless it saves, and may save again each round; on a success it is only shaken for 1 round.",
         target: "One enemy creature within close range",
         duration: "1 round / level",
         saving_throw: "Will partial",
