@@ -109,10 +109,7 @@ pub fn Head(
                 <button
                     class="remove"
                     title="Remove this choice"
-                    on:click=move |_| {
-                        planner.close();
-                        planner.edit(edit.get_value());
-                    }
+                    on:click=move |_| planner.pick(edit.get_value())
                 >
                     "Remove"
                 </button>
@@ -309,19 +306,36 @@ pub fn ItemList(
     }
 }
 
-/// Runs `work` after the browser has painted, so a picker opens at once and shows that it's working while the
-/// engine computes its options.
-/// Fills a picker's list after the first paint, so the picker opens at once. A picker closed before then has
-/// disposed `list` and every value the work reads, so the work is skipped.
-fn after_paint<T: Send + Sync + 'static>(
-    list: RwSignal<Option<T>>,
+/// A picker's step, which starts out loading and gets its list after the first paint ([`after_paint`]).
+trait Step<T> {
+    /// Moves from loading to the list; any other step stays. Whether the step changed.
+    fn list(&mut self, list: T) -> bool;
+}
+
+/// A picker with one step: `None` while loading, then the list.
+impl<T> Step<T> for Option<T> {
+    fn list(&mut self, list: T) -> bool {
+        let loading = self.is_none();
+        if loading {
+            *self = Some(list);
+        }
+        loading
+    }
+}
+
+/// Works out a picker's list after the browser has painted, so the picker opens at once and shows that it's working
+/// meanwhile, then moves its step from loading to the list. A picker closed before then has disposed `step` and every
+/// value the work reads, so the work is skipped.
+fn after_paint<T: 'static, S: Step<T> + Send + Sync + 'static>(
+    step: RwSignal<S>,
     work: impl FnOnce() -> T + 'static,
 ) {
     request_animation_frame(move || {
         set_timeout(
             move || {
-                if !list.is_disposed() {
-                    list.set(Some(work()));
+                if !step.is_disposed() {
+                    let list = work();
+                    step.maybe_update(|step| step.list(list));
                 }
             },
             Duration::ZERO,
@@ -371,102 +385,122 @@ fn SlotPicker(id: SlotId) -> impl IntoView {
     let title = engine.slot_label(&found);
     let remove = Some(Choice::Slot(slot.clone()));
 
-    let computed = RwSignal::new(None::<Arc<Vec<SlotEntry>>>);
+    let step = RwSignal::new(SlotStep::Loading);
     {
         let slot = slot.clone();
-        after_paint(computed, move || {
+        after_paint(step, move || {
             let build = planner.build.get_untracked();
             let entries =
                 timed("options", || engine.slot_entries(&build, &slot)).unwrap_or_default();
             Arc::new(entries)
         });
     }
-    let open_entry = RwSignal::new(None::<usize>);
     let place = slot_place(&slot);
     let current = StoredValue::new(current);
     let is_current = move |option: &SlotOption| {
         current.with_value(|current| current.as_ref() == Some(&option.pick))
     };
-    let pick = move |option: &SlotOption| {
-        planner.close();
-        if !is_current(option) {
-            planner.edit(option.edit.clone());
-        }
-    };
+    let pick = move |option: &SlotOption| planner.pick(option.edit.clone());
 
-    let list = move || {
-        let Some(entries) = computed.get() else {
-            return loading();
-        };
-        match open_entry.get() {
-            None => {
-                let items = entries
-                    .iter()
-                    .map(|entry| Item {
-                        name: entry.name.clone(),
-                        detail: entry.detail(),
-                        category: entry.category.clone(),
-                        feat_category: entry.feat_category,
-                        locked: !entry.open,
-                        reason: entry.reason.clone(),
-                        current: entry
-                            .options
-                            .iter()
-                            .any(|option| is_current(&option.option)),
-                        more: entry.noun.is_some(),
-                    })
-                    .collect();
-                let entries = entries.clone();
-                view! {
-                    <ItemList
-                        items
-                        on_pick=move |index: usize| {
-                            let entry = &entries[index];
-                            if entry.noun.is_some() {
-                                open_entry.set(Some(index));
-                            } else {
-                                pick(&entry.options[0].option);
-                            }
+    let list = move || match step.get() {
+        SlotStep::Loading => loading(),
+        SlotStep::List(entries) => {
+            let items = entries
+                .iter()
+                .map(|entry| Item {
+                    name: entry.name.clone(),
+                    detail: entry.detail(),
+                    category: entry.category.clone(),
+                    feat_category: entry.feat_category,
+                    locked: !entry.open,
+                    reason: entry.reason.clone(),
+                    current: entry
+                        .options
+                        .iter()
+                        .any(|option| is_current(&option.option)),
+                    more: entry.noun.is_some(),
+                })
+                .collect();
+            view! {
+                <ItemList
+                    items
+                    on_pick=move |index: usize| {
+                        let entry = &entries[index];
+                        if entry.noun.is_some() {
+                            step.set(SlotStep::Values {
+                                entries: entries.clone(),
+                                entry: index,
+                            });
+                        } else {
+                            pick(&entry.options[0].option);
                         }
-                    />
-                }
-                .into_any()
+                    }
+                />
             }
-            Some(index) => {
-                let entry = &entries[index];
-                let items = entry
-                    .options
-                    .iter()
-                    .map(|option| Item {
-                        locked: option.option.status.is_err(),
-                        reason: option.reason.clone(),
-                        current: is_current(&option.option),
-                        ..Item::new(option.value.clone())
-                    })
-                    .collect();
-                let entries = entries.clone();
-                view! {
-                    <p class="picker-step">{entry.name.clone()}</p>
-                    <ItemList
-                        items
-                        on_pick=move |option: usize| pick(&entries[index].options[option].option)
-                    />
-                }
-                .into_any()
+            .into_any()
+        }
+        SlotStep::Values { entries, entry } => {
+            let name = entries[entry].name.clone();
+            let items = entries[entry]
+                .options
+                .iter()
+                .map(|option| Item {
+                    locked: option.option.status.is_err(),
+                    reason: option.reason.clone(),
+                    current: is_current(&option.option),
+                    ..Item::new(option.value.clone())
+                })
+                .collect();
+            view! {
+                <p class="picker-step">{name}</p>
+                <ItemList
+                    items
+                    on_pick=move |option: usize| pick(&entries[entry].options[option].option)
+                />
             }
+            .into_any()
         }
     };
+    // The header changes only between the list and an entry's values (back), not when the list arrives.
+    let values = Memo::new(move |_| matches!(step.get(), SlotStep::Values { .. }));
     view! {
         {move || {
-            let back = open_entry
-                .get()
-                .is_some()
-                .then(|| Callback::new(move |()| open_entry.set(None)));
+            let back = values.get().then(|| Callback::new(move |()| step.update(SlotStep::back)));
             view! { <Head title=title.clone() place=place.clone() remove=remove.clone() back/> }
         }}
         {list}
     }
     .into_any()
+}
+
+/// A slot picker's step: its entries being worked out, then their list, then an entry's values.
+#[derive(Clone)]
+enum SlotStep {
+    Loading,
+    List(Arc<Vec<SlotEntry>>),
+    Values {
+        entries: Arc<Vec<SlotEntry>>,
+        entry: usize,
+    },
+}
+
+impl SlotStep {
+    /// Back from an entry's values to the list.
+    fn back(&mut self) {
+        if let Self::Values { entries, .. } = self {
+            *self = Self::List(entries.clone());
+        }
+    }
+}
+
+impl Step<Arc<Vec<SlotEntry>>> for SlotStep {
+    fn list(&mut self, entries: Arc<Vec<SlotEntry>>) -> bool {
+        let loading = matches!(self, Self::Loading);
+        if loading {
+            *self = Self::List(entries);
+        }
+        loading
+    }
 }
 
 /// Whether the Build holds this class option at the level now: the level's class, with the option's archetype.
@@ -488,16 +522,14 @@ fn holds_class_option(build: &Build, level: u8, option: &ClassOption) -> bool {
 fn ClassPicker(level: u8) -> impl IntoView {
     let planner = use_planner();
     let engine = StoredValue::new(planner.engine());
-    let computed = RwSignal::new(None::<Arc<Vec<ClassOption>>>);
-    after_paint(computed, move || {
+    let step = RwSignal::new(ClassStep::Loading);
+    after_paint(step, move || {
         let build = planner.build.get_untracked();
         let options = engine.with_value(|engine| {
             timed("class_options", || engine.class_options(&build, level)).unwrap_or_default()
         });
         Arc::new(options)
     });
-    // A prestige class first taken here asks which classes it advances.
-    let advancing = RwSignal::new(None::<ClassOption>);
     let adding = planner
         .build
         .with_untracked(|build| usize::from(level) > build.levels.len());
@@ -507,35 +539,36 @@ fn ClassPicker(level: u8) -> impl IntoView {
         format!("Class at level {level}")
     };
 
-    let choose = move |option: ClassOption| {
-        let build = planner.build.get_untracked();
-        let needs_advances =
-            engine.with_value(|engine| engine.asks_advances(&build, level, &option.class));
-        if needs_advances {
-            advancing.set(Some(option));
-            return;
-        }
-        planner.close();
-        if !holds_class_option(&build, level, &option) {
-            planner.edit(option.edit);
+    // A prestige class first taken here asks which classes it advances.
+    let choose = move |options: Arc<Vec<ClassOption>>, option: ClassOption| {
+        let asks_advances = planner.build.with_untracked(|build| {
+            engine.with_value(|engine| engine.asks_advances(build, level, &option.class))
+        });
+        if asks_advances {
+            step.set(ClassStep::Advances {
+                options,
+                option: Box::new(option),
+            });
+        } else {
+            planner.pick(option.edit);
         }
     };
 
     move || {
-        if let Some(option) = advancing.get() {
-            return view! {
-                <Head
-                    title=title.clone()
-                    place="Spellcasting advancement"
-                    back=Some(Callback::new(move |()| advancing.set(None)))
-                />
-                <Advances level option/>
+        let list = match step.get() {
+            ClassStep::Advances { options, option } => {
+                return view! {
+                    <Head
+                        title=title.clone()
+                        place="Spellcasting advancement"
+                        back=Some(Callback::new(move |()| step.set(ClassStep::List(options.clone()))))
+                    />
+                    <Advances level option=*option/>
+                }
+                .into_any();
             }
-            .into_any();
-        }
-        let list = match computed.get() {
-            None => loading(),
-            Some(options) => {
+            ClassStep::Loading => loading(),
+            ClassStep::List(options) => {
                 let build = planner.build.get_untracked();
                 let items = engine.with_value(|engine| {
                     options
@@ -543,9 +576,11 @@ fn ClassPicker(level: u8) -> impl IntoView {
                         .map(|option| class_item(engine, &build, level, option))
                         .collect()
                 });
-                let options = options.clone();
                 view! {
-                    <ItemList items on_pick=move |index: usize| choose(options[index].clone())/>
+                    <ItemList
+                        items
+                        on_pick=move |index: usize| choose(options.clone(), options[index].clone())
+                    />
                 }
                 .into_any()
             }
@@ -555,6 +590,29 @@ fn ClassPicker(level: u8) -> impl IntoView {
             {list}
         }
         .into_any()
+    }
+}
+
+/// A class picker's step: its options being worked out, then their list, then which classes the chosen prestige
+/// class advances.
+#[derive(Clone)]
+enum ClassStep {
+    Loading,
+    List(Arc<Vec<ClassOption>>),
+    Advances {
+        options: Arc<Vec<ClassOption>>,
+        /// Boxed: the other steps are a pointer each.
+        option: Box<ClassOption>,
+    },
+}
+
+impl Step<Arc<Vec<ClassOption>>> for ClassStep {
+    fn list(&mut self, options: Arc<Vec<ClassOption>>) -> bool {
+        let loading = matches!(self, Self::Loading);
+        if loading {
+            *self = Self::List(options);
+        }
+        loading
     }
 }
 
@@ -631,10 +689,7 @@ fn Advances(level: u8, option: ClassOption) -> impl IntoView {
         <p class="picker-step">{format!("Which spellcasting does {prestige} advance?")}</p>
         <ItemList
             items
-            on_pick=move |index: usize| {
-                planner.close();
-                planner.edit(possible[index].edit.clone());
-            }
+            on_pick=move |index: usize| planner.pick(possible[index].edit.clone())
         />
     }
 }
@@ -649,7 +704,6 @@ fn FirstAscensionPicker() -> impl IntoView {
     let options = timed("first_ascension_options", || {
         engine.first_ascension_options(&build)
     });
-    let chosen = build.first_ascension.clone();
     let current = planner
         .sheet
         .get_untracked()
@@ -687,13 +741,7 @@ fn FirstAscensionPicker() -> impl IntoView {
         />
         <ItemList
             items
-            on_pick=move |index: usize| {
-                let option = &options[index];
-                planner.close();
-                if chosen.as_ref() != Some(&option.path) {
-                    planner.edit(option.edit.clone());
-                }
-            }
+            on_pick=move |index: usize| planner.pick(options[index].edit.clone())
         />
     }
 }
@@ -740,13 +788,7 @@ fn PathPicker(switch: bool) -> impl IntoView {
         <Head title place remove=Some(remove)/>
         <ItemList
             items
-            on_pick=move |index: usize| {
-                let option = &options[index];
-                planner.close();
-                if current.as_ref() != Some(&option.path) {
-                    planner.edit(option.edit.clone());
-                }
-            }
+            on_pick=move |index: usize| planner.pick(options[index].edit.clone())
         />
     }
 }
@@ -773,13 +815,7 @@ fn start_picker(
         view! {
             <ItemList
                 items
-                on_pick=move |index: usize| {
-                    let (item, edit) = &options[index];
-                    planner.close();
-                    if !item.current {
-                        planner.edit(edit.clone());
-                    }
-                }
+                on_pick=move |index: usize| planner.pick(options[index].1.clone())
             />
         }
         .into_any()
@@ -867,12 +903,7 @@ fn AlignmentPicker() -> impl IntoView {
                     on:focus=move |_| shown.set(Some(alignment))
                     on:mouseleave=move |_| shown.set(None)
                     on:blur=move |_| shown.set(None)
-                    on:click=move |_| {
-                        planner.close();
-                        if !on {
-                            planner.edit(edit.get_value());
-                        }
-                    }
+                    on:click=move |_| planner.pick(edit.get_value())
                 >
                     {alignment.short_name()}
                 </button>
@@ -1032,13 +1063,7 @@ fn AbilityIncreasePicker(level: u8) -> impl IntoView {
         <Head title="Ability increase" place remove=Some(Choice::AbilityIncrease { level })/>
         <ItemList
             items
-            on_pick=move |index: usize| {
-                let option = &options[index];
-                planner.close();
-                if current != Some(option.value) {
-                    planner.edit(option.edit.clone());
-                }
-            }
+            on_pick=move |index: usize| planner.pick(options[index].edit.clone())
         />
     }
 }

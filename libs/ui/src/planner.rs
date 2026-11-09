@@ -98,6 +98,24 @@ impl Planner {
         let engine = self.engine();
         self.build
             .update(|build| timed("apply", || engine.apply(build, &edit)));
+        self.edited();
+    }
+
+    /// Makes a picker's pick: closes the picker, then makes the edit as [`edit`](Self::edit) does, unless it leaves
+    /// the Build as it is (the current pick picked again), which leaves the Build, its URL and the error alone.
+    pub fn pick(&self, edit: Edit) {
+        self.close();
+        let engine = self.engine();
+        let mut after = self.build.get_untracked();
+        timed("apply", || engine.apply(&mut after, &edit));
+        if self.build.with_untracked(|build| *build != after) {
+            self.build.set(after);
+            self.edited();
+        }
+    }
+
+    /// After an edit: the URL holds the new Build, and the link's error goes.
+    fn edited(&self) {
         self.build.with_untracked(browser::write_fragment);
         self.error.set(None);
     }
