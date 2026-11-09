@@ -139,9 +139,10 @@ fn ranks_step_no_higher_than_the_character_level_here_or_later() {
 
 #[test]
 fn no_skill_steps_up_once_the_levels_points_are_spent() {
-    // A dwarf fighter with Int 13 has 3 points a level (a human has one more).
+    // A dwarf fighter with Int 13 has 2 points at level 2 (Intelligence's half point comes at odd levels; a human
+    // has one more).
     let mut build = build("dwarf", &["fighter", "fighter"]);
-    for key in ["athletics", "mobility", "persuasion"] {
+    for key in ["athletics", "mobility"] {
         ranks(&mut build, 2, key, 1);
     }
     assert!(engine().is_possible(&build));
@@ -151,7 +152,7 @@ fn no_skill_steps_up_once_the_levels_points_are_spent() {
             ("athletics".to_owned(), Some(Ok(())), None),
             ("knowledge-arcana".to_owned(), None, None),
             ("mobility".to_owned(), Some(Ok(())), None),
-            ("persuasion".to_owned(), Some(Ok(())), None),
+            ("persuasion".to_owned(), None, None),
         ]
     );
 }
