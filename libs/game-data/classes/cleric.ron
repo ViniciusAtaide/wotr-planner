@@ -30,7 +30,7 @@ Class(
         (key: "cleric/domain/death/bleeding-touch", name: "Bleeding Touch", summary: "Touch deals 1d6 a round for half your class level in rounds; 3 + Wisdom modifier uses a day.", guide: "character-creation#death-domain"),
         (key: "cleric/domain/death/deaths-embrace", name: "Death\'s Embrace", summary: "From 8th level, channeled negative energy heals you, or positive energy doesn't harm you if you're undead.", guide: "character-creation#death-domain"),
         (key: "cleric/domain/destruction/destructive-aura", name: "Destructive Aura", summary: "From 8th level, a 30-foot aura gives everyone, foe or friend, +half level melee damage and auto-confirmed crits; class level rounds a day.", guide: "character-creation#destruction-domain"),
-        (key: "cleric/domain/destruction/destructive-smite", name: "Destructive Smite", summary: "Add half your class level as a morale bonus to one damage roll; 3 + Wisdom modifier uses a day.", guide: "character-creation#destruction-domain"),
+        (key: "cleric/domain/destruction/destructive-smite", name: "Destructive Smite", summary: "One damage roll gets a morale bonus of half your class level; 3 + Wisdom modifier uses a day.", guide: "character-creation#destruction-domain"),
         (key: "cleric/domain/earth/acid-dart", name: "Acid Dart", summary: "30-foot ranged touch for 1d6 acid +1 per two levels; 3 + Wisdom modifier uses a day.", guide: "character-creation#earth-domain"),
         (key: "cleric/domain/earth/acid-resistance", name: "Acid Resistance", summary: "Acid resistance 10 at 6th level, 20 at 12th, and immunity at 20th.", guide: "character-creation#earth-domain"),
         (key: "cleric/domain/evil/scythe-of-evil", name: "Scythe of Evil", summary: "From 8th level, make a weapon Unholy for half your class level in rounds; 1/day, +1 at 12th, 16th and 20th.", guide: "character-creation#evil-domain"),
@@ -66,13 +66,13 @@ Class(
         (key: "cleric/domain/protection/aura-of-protection", name: "Aura of Protection", summary: "From 8th level, allies within 30 feet get +1 deflection (+1 per 4 levels) and resist 5 (10 at 14th) to all energy; class level rounds a day.", guide: "character-creation#protection-domain"),
         (key: "cleric/domain/protection/resistant-touch", name: "Resistant Touch", summary: "+1 resistance on saves (+1 per five levels); a touch lends that bonus to an ally for 1 minute, 3 + Wis times a day.", guide: "character-creation#protection-domain"),
         (key: "cleric/domain/repose/gentle-rest", name: "Gentle Rest", summary: "Melee touch staggers for 1 round, or puts a staggered target to sleep; undead staggered for Wis rounds; 3 + Wis uses a day.", guide: "character-creation#repose-domain"),
-        (key: "cleric/domain/repose/ward-against-death", name: "Ward Against Death", summary: "From 8th level, living creatures within 30 feet are immune to death effects and level drain; class level rounds a day.", guide: "character-creation#repose-domain"),
+        (key: "cleric/domain/repose/ward-against-death", name: "Ward Against Death", summary: "From 8th level, a 30-foot aura shields living creatures from death effects and level drain, for class level rounds a day.", guide: "character-creation#repose-domain"),
         (key: "cleric/domain/rune/blast-rune", name: "Blast Rune", summary: "A rune trap for class level rounds that deals 1d6 energy +1 per two levels; 3 + Wisdom modifier uses a day.", guide: "character-creation#rune-domain"),
         (key: "cleric/domain/rune/warding-rune", name: "Warding Rune", summary: "From 8th level, creatures coming within 5 feet can't attack for half your level in rounds unless they pass Will; 1/day, +1 at 12th, 16th, 20th.", guide: "character-creation#rune-domain"),
         (key: "cleric/domain/scalykind/animal-companion", name: "Animal Companion", summary: "At 4th level, a monitor lizard or velociraptor companion at class level -2.", guide: "character-creation#scalykind-domain"),
         (key: "cleric/domain/scalykind/venomous-stare", name: "Venomous Stare", summary: "Gaze within 30 feet: 1d6 + class level damage and fascinated 1 round unless Will (DC 10 + half level + Wis); 3 + Wis uses a day.", guide: "character-creation#scalykind-domain"),
-        (key: "cleric/domain/strength/might-of-the-gods", name: "Might of the Gods", summary: "From 8th level, add half your class level as an enhancement bonus to Athletics checks.", guide: "character-creation#strength-domain"),
-        (key: "cleric/domain/strength/strength-surge", name: "Strength Surge", summary: "Target gets half your class level as an enhancement bonus to melee attacks and Athletics for 1 round; 3 + Wis uses a day.", guide: "character-creation#strength-domain"),
+        (key: "cleric/domain/strength/might-of-the-gods", name: "Might of the Gods", summary: "From 8th level, Athletics checks get an enhancement bonus of half your class level.", guide: "character-creation#strength-domain"),
+        (key: "cleric/domain/strength/strength-surge", name: "Strength Surge", summary: "For 1 round, the target adds an enhancement bonus of half your level to melee attacks and Athletics; 3 + Wis uses a day.", guide: "character-creation#strength-domain"),
         (key: "cleric/domain/sun/nimbus-of-light", name: "Nimbus of Light", summary: "From 8th level, a 30-foot aura blinds hostile creatures failing Fortitude and deals your level to undead each round; class level rounds a day.", guide: "character-creation#sun-domain"),
         (key: "cleric/domain/sun/suns-blessing", name: "Sun\'s Blessing", summary: "Channeling positive energy against undead adds your class level to the damage, and they get no channel resistance.", guide: "character-creation#sun-domain"),
         (key: "cleric/domain/travel/agile-feet", name: "Agile Feet", summary: "+10 feet base speed; free action to ignore difficult terrain for 1 round, 3 + Wisdom modifier times a day.", guide: "character-creation#travel-domain"),
@@ -80,7 +80,7 @@ Class(
         (key: "cleric/domain/trickery/copycat", name: "Copycat", summary: "Move action: a single Mirror Image for class level rounds; 3 + Wisdom modifier uses a day; Stealth and Trickery are class skills.", guide: "character-creation#trickery-domain"),
         (key: "cleric/domain/trickery/masters-illusion", name: "Master\'s Illusion", summary: "From 8th level, all allies within 30 feet become invisible; class level rounds a day.", guide: "character-creation#trickery-domain"),
         (key: "cleric/domain/undead/deaths-embrace", name: "Death\'s Embrace", summary: "From 8th level, channeled negative energy heals you, or positive energy doesn't harm you if you're undead.", guide: "character-creation#undead-subdomain"),
-        (key: "cleric/domain/undead/deaths-kiss", name: "Death\'s Kiss", summary: "Touch makes a creature count as undead for positive and negative energy for half your level in rounds; 3 + Wis uses a day.", guide: "character-creation#undead-subdomain"),
+        (key: "cleric/domain/undead/deaths-kiss", name: "Death\'s Kiss", summary: "Makes a creature count as undead for positive and negative energy for half your class level in rounds; 3 + Wisdom modifier uses a day.", guide: "character-creation#undead-subdomain"),
         (key: "cleric/domain/war/battle-rage", name: "Battle Rage", summary: "Standard action: the target adds half your class level to damage next round; 3 + Wisdom modifier uses a day.", guide: "character-creation#war-domain"),
         (key: "cleric/domain/water/cold-resistance", name: "Cold Resistance", summary: "Cold resistance 10 at 6th level, 20 at 12th, and immunity at 20th.", guide: "character-creation#water-domain"),
         (key: "cleric/domain/water/icicle", name: "Icicle", summary: "30-foot ranged touch for 1d6 cold +1 per two levels; 3 + Wisdom modifier uses a day.", guide: "character-creation#water-domain"),
@@ -139,7 +139,7 @@ Class(
                 (
                     key: "cleric/domain/charm",
                     name: "Charm Domain",
-                    summary: "Dazing Touch and swift Charm Person from 8th level; enchantment spells up to Dominate Monster.",
+                    summary: "Dazing Touch and swift Charm Person from 8th level; spells from Hypnotism to Dominate Monster.",
                     guide: "character-creation#charm-domain",
                     levels: [
                         (level: 1, features: ["cleric/domain/charm/dazing-touch"]),
@@ -251,7 +251,7 @@ Class(
                 (
                     key: "cleric/domain/ice",
                     name: "Ice Subdomain",
-                    summary: "Icicle and Body of Ice from 8th level (DR/- and cold immunity); cold spells up to Mass Icy Prison.",
+                    summary: "Icicle, and Body of Ice from 8th level (DR/- and cold immunity, but double fire damage); spells from Snowball to Mass Icy Prison.",
                     guide: "character-creation#ice-subdomain",
                     levels: [
                         (level: 1, features: ["cleric/domain/ice/icicle"]),
@@ -546,11 +546,11 @@ Class(
         (
             key: "cleric/angelfire-apostle",
             name: "Angelfire Apostle",
-            summary: "Good support cleric: positive channel only with Extra Channel, healing spells and fire through channel, but light armor and fewer spells.",
+            summary: "Good support cleric with two domains and Extra Channel; positive channel only, spent on healing spells and fire; light armor and fewer spells.",
             guide: "cleric#angelfire-apostle",
             prerequisite: All([Any([Alignment(LawfulGood), Alignment(NeutralGood), Alignment(ChaoticGood)]), DeityOffers("cleric/domain/good")]),
             features: [
-                (key: "cleric/angelfire-apostle/channel-positive-energy", name: "Channel Positive Energy", summary: "Channels positive energy only, healing the living and harming undead.", guide: "cleric#angelfire-apostle"),
+                (key: "cleric/angelfire-apostle/channel-positive-energy", name: "Channel Positive Energy", summary: "Channel energy that can only be positive, never negative.", guide: "cleric#angelfire-apostle"),
                 (key: "cleric/angelfire-apostle/cleansing-flames", name: "Cleansing Flames", summary: "From 9th level, spend a channel as a swift action when casting: 1d4 per highest spell level, half fire half divine, to foes within 20 feet.", guide: "cleric#cleansing-flames"),
                 (key: "cleric/angelfire-apostle/versatile-healing-channel", name: "Versatile Healing Channel", summary: "From 5th level, spend two channels to cast Lesser Restoration or Remove Blindness, adding spells up to Resurrection at 19th.", guide: "cleric#versatile-healing-channel"),
             ],
@@ -652,7 +652,7 @@ Class(
         (
             key: "cleric/separatist",
             name: "Separatist",
-            summary: "Takes a second domain from outside the deity's list, working two levels behind. Lord of Nothing DLC.",
+            summary: "Lord of Nothing DLC: takes a second domain from outside the deity's list, working two levels behind.",
             guide: "cleric#separatist",
             features: [
                 (key: "cleric/separatist/forbidden-rites", name: "Forbidden Rites", summary: "A domain not on your deity's list (no opposed alignment domain), working as if you were two levels lower.", guide: "cleric#forbidden-rites"),

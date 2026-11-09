@@ -139,7 +139,7 @@ Class(
                 (
                     key: "oracle/mystery/life",
                     name: "Life",
-                    summary: "Life: healing spells from Remove Sickness to Mass Heal, revelations like Channel, and immunity to many conditions at 20th.",
+                    summary: "Life: healing spells from Remove Sickness to Mass Heal plus Heroic Invocation, revelations like Channel, and broad condition immunity at 20th.",
                     guide: "oracle#life",
                     pool: "oracle/revelations/life",
                     levels: [
@@ -283,7 +283,7 @@ Class(
                 (key: "oracle/revelations/bones/armor-of-bones", name: "Armor of Bones", summary: "+4 armor bonus barrier for 1 hour per level, +2 at 7th and every 4 levels (+12 at 19th); DR 5/bludgeoning from 13th.", guide: "oracle#armor-of-bones"),
                 (key: "oracle/revelations/bones/deaths-touch", name: "Death\'s Touch", summary: "Melee touch for 1d6 negative energy +1 per two class levels; 3 + Charisma modifier uses a day.", guide: "oracle#deaths-touch"),
                 (key: "oracle/revelations/bones/near-death", name: "Near Death", summary: "+2 insight on saves vs disease, mind-affecting and poison; also death, sleep and stun from 7th; +4 from 11th.", guide: "oracle#near-death"),
-                (key: "oracle/revelations/bones/resist-life", name: "Resist Life", summary: "Positive and negative energy affect you as undead; channel resistance +3 at 7th, +5 at 11th, +7 at 15th.", guide: "oracle#resist-life"),
+                (key: "oracle/revelations/bones/resist-life", name: "Resist Life", summary: "Positive and negative energy affect you as undead; channel resistance +3 at 7th, rising by 2 at 11th and again at 15th.", guide: "oracle#resist-life"),
                 (key: "oracle/revelations/bones/soul-siphon", name: "Soul Siphon", summary: "From 7th level, a ranged touch within 30 feet gives a negative level for Cha modifier minutes and heals you class level HP; 1/day, more later.", guide: "oracle#soul-siphon", prerequisite: Any([ClassLevel(class: "arcanist", level: 7), ClassLevel(class: "oracle", level: 7)])),
                 (key: "oracle/revelations/bones/spirit-walk", name: "Spirit Walk", summary: "From 11th level, become incorporeal and invisible for class level rounds; once a day, twice from 15th.", guide: "oracle#spirit-walk", prerequisite: Any([ClassLevel(class: "arcanist", level: 11), ClassLevel(class: "oracle", level: 11)])),
             ],
@@ -330,7 +330,7 @@ Class(
                 (key: "oracle/revelations/nature/friend-to-animals", name: "Friend to Animals", summary: "Adds Summon Nature's Ally spells to your spells known; animals within 30 feet add your Charisma modifier to saves.", guide: "oracle#friend-to-animals"),
                 (key: "oracle/revelations/nature/life-leech", name: "Life Leech", summary: "From 7th level, drain 1d6 per two levels from a creature within 30 feet as temporary HP (Fortitude halves); 1/day, more later.", guide: "oracle#life-leech", prerequisite: Any([ClassLevel(class: "arcanist", level: 7), ClassLevel(class: "oracle", level: 7)])),
                 (key: "oracle/revelations/nature/natures-whispers", name: "Nature\'s Whispers", summary: "Use your Charisma modifier instead of Dexterity for AC and CMD.", guide: "oracle#natures-whispers"),
-                (key: "oracle/revelations/nature/spirit-of-nature", name: "Spirit of Nature", summary: "Below 0 HP, you get fast healing 1 per 5 oracle levels for 1d4 rounds.", guide: "oracle#spirit-of-nature"),
+                (key: "oracle/revelations/nature/spirit-of-nature", name: "Spirit of Nature", summary: "Dropping to negative HP triggers fast healing equal to your oracle level / 5 for 1d4 rounds.", guide: "oracle#spirit-of-nature"),
             ],
         ),
         (
@@ -375,7 +375,7 @@ Class(
                 (key: "oracle/revelations/waves/freezing-spells", name: "Freezing Spells", summary: "A creature hurt by your cold spell that fails its Reflex save is slowed for 1 round (1d4 rounds from 11th).", guide: "oracle#freezing-spells"),
                 (key: "oracle/revelations/waves/ice-armor", name: "Ice Armor", summary: "+4 armor bonus barrier for 1 hour per level, +2 at 7th and every 4 levels (+12 at 19th); DR 5/piercing from 13th.", guide: "oracle#ice-armor"),
                 (key: "oracle/revelations/waves/icy-skin", name: "Icy Skin", summary: "Cold resistance 5, 10 at 5th level, 20 at 11th, and cold immunity at 17th.", guide: "oracle#icy-skin"),
-                (key: "oracle/revelations/waves/punitive-transformation", name: "Punitive Transformation", summary: "From 7th level, turn an enemy into a harmless animal for 1 round per level; Charisma modifier uses a day.", guide: "oracle#punitive-transformation", prerequisite: Any([ClassLevel(class: "arcanist", level: 7), ClassLevel(class: "oracle", level: 7)])),
+                (key: "oracle/revelations/waves/punitive-transformation", name: "Punitive Transformation", summary: "From 7th level, polymorph a foe into a harmless beast for class level rounds, Charisma modifier times a day.", guide: "oracle#punitive-transformation", prerequisite: Any([ClassLevel(class: "arcanist", level: 7), ClassLevel(class: "oracle", level: 7)])),
                 (key: "oracle/revelations/waves/wintry-touch", name: "Wintry Touch", summary: "Melee touch for 1d6 cold +1 per two levels, 3 + Cha modifier uses a day; from 11th your weapons are Frost.", guide: "oracle#wintry-touch"),
             ],
         ),
@@ -483,7 +483,7 @@ Class(
         (
             key: "oracle/dual-cursed-oracle",
             name: "Dual-Cursed Oracle",
-            summary: "Takes two curses, one never improving, for extra revelations at 5th and 13th and bonus curse spells. Lord of Nothing DLC.",
+            summary: "Lord of Nothing DLC: takes two curses, one never improving, for extra revelations at 5th and 13th and bonus curse spells.",
             guide: "oracle#dual-cursed-oracle",
             features: [
                 (key: "oracle/dual-cursed-oracle/curse-2", name: "Curse 2", summary: "At 5th level, your curse moves to its next stage.", guide: "oracle#dual-cursed-oracle"),
@@ -607,7 +607,7 @@ Class(
                 (key: "oracle/possessed-oracle/curse-2", name: "Curse 2", summary: "At 5th level, your curse moves to its next stage.", guide: "oracle#possessed-oracle"),
                 (key: "oracle/possessed-oracle/curse-3", name: "Curse 3", summary: "At 10th level, your curse moves to its next stage.", guide: "oracle#possessed-oracle"),
                 (key: "oracle/possessed-oracle/curse-4", name: "Curse 4", summary: "At 15th level, your curse moves to its final stage.", guide: "oracle#possessed-oracle"),
-                (key: "oracle/possessed-oracle/powerless-prophecy", name: "Powerless Prophecy", summary: "The required curse: staggered in combat's first round but Uncanny Dodge, +4 initiative at 5th, Improved Uncanny Dodge at 10th.", guide: "oracle#possessed-oracle"),
+                (key: "oracle/possessed-oracle/powerless-prophecy", name: "Powerless Prophecy", summary: "Required curse: staggered in the first round, but Uncanny Dodge, +4 initiative at 5th, Improved Uncanny Dodge at 10th, +4 saves and AC in round one at 15th.", guide: "oracle#possessed-oracle"),
                 (key: "oracle/possessed-oracle/two-minds", name: "Two Minds", summary: "+2 against mind-affecting effects, +4 from 7th level.", guide: "oracle#two-minds"),
             ],
             levels: [
@@ -624,12 +624,12 @@ Class(
             guide: "oracle#purifier",
             prerequisite: Race("aasimar"),
             features: [
-                (key: "oracle/purifier/celestial-armor", name: "Celestial Armor", summary: "From 7th level, Armor Training as a fighter four levels lower, and Heavy Armor Proficiency at 11th.", guide: "oracle#celestial-armor"),
+                (key: "oracle/purifier/celestial-armor", name: "Celestial Armor", summary: "From 7th level, Armor Training at fighter level minus 4, plus Heavy Armor Proficiency at 11th.", guide: "oracle#celestial-armor"),
                 (key: "oracle/purifier/curse-2", name: "Curse 2", summary: "At 5th level, your curse moves to its next stage.", guide: "oracle#purifier"),
                 (key: "oracle/purifier/curse-3", name: "Curse 3", summary: "At 10th level, your curse moves to its next stage.", guide: "oracle#purifier"),
                 (key: "oracle/purifier/curse-4", name: "Curse 4", summary: "At 15th level, your curse moves to its final stage.", guide: "oracle#purifier"),
                 (key: "oracle/purifier/sacred-scourge", name: "Sacred Scourge", summary: "From 5th level, channel positive energy as a cleric of your level to harm evil outsiders, 1 + Charisma modifier times a day.", guide: "oracle#sacred-scourge"),
-                (key: "oracle/purifier/sin-eater", name: "Sin Eater", summary: "From 11th level, as a full-round action, dispel a curse, enchantment or emotion effect (Cha bonus to the check), then you're sickened 1d4 rounds.", guide: "oracle#sin-eater"),
+                (key: "oracle/purifier/sin-eater", name: "Sin Eater", summary: "From 11th level, Cha modifier times a day, a full-round dispel check (+Cha) against a curse, enchantment or emotion effect; success sickens you 1d4 rounds.", guide: "oracle#sin-eater"),
             ],
             levels: [
                 (level: 1, feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"], selections: ["oracle/mystery", "oracle/oracles-curse", "oracle/revelation"]),
