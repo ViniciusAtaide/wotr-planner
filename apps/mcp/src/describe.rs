@@ -2,8 +2,9 @@
 //! rank, the Feature selections it defines.
 
 use rules::{
-    Archetype, Class, Engine, FeatKey, FeatSlot, FeatValue, FeatureKey, FeatureSelection,
-    FeatureSelectionKey, Save, SelectionOptionKey, effective_row,
+    Archetype, BackgroundKey, BonusItem, Class, Engine, FeatKey, FeatSlot, FeatValue, FeatureKey,
+    FeatureSelection, FeatureSelectionKey, MythicAbilityKey, MythicFeatKey, RaceKey, Save,
+    SelectionOptionKey, effective_row,
 };
 
 use crate::planner::Planner;
@@ -28,6 +29,7 @@ pub(crate) fn describe(planner: &Planner, kind: Kind, key: &str) -> Result<Item,
         subraces: None,
         alignments: None,
         domains: None,
+        interactions: interactions(planner, kind, key),
     };
     let engine = &planner.engine;
     let data = &planner.data;
@@ -190,6 +192,21 @@ pub(crate) fn describe(planner: &Planner, kind: Kind, key: &str) -> Result<Item,
         }
     }
     Ok(item)
+}
+
+/// The item's interactions note (ticket 124), for the kinds an `interactions.ron` note can be on.
+fn interactions(planner: &Planner, kind: Kind, key: &str) -> Option<String> {
+    let key = key.to_owned();
+    let item = match kind {
+        Kind::Feat => BonusItem::Feat(FeatKey(key)),
+        Kind::MythicFeat => BonusItem::MythicFeat(MythicFeatKey(key)),
+        Kind::MythicAbility => BonusItem::MythicAbility(MythicAbilityKey(key)),
+        Kind::SelectionOption => BonusItem::SelectionOption(SelectionOptionKey(key)),
+        Kind::Race => BonusItem::Race(RaceKey(key)),
+        Kind::Background => BonusItem::Background(BackgroundKey(key)),
+        _ => return None,
+    };
+    planner.engine.interactions(&item).map(str::to_owned)
 }
 
 /// "No archetype has the key `x`", with the closest matches.
