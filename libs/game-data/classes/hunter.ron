@@ -57,7 +57,7 @@ Class(
             features: [
                 (key: "hunter/colluding-scoundrel/backstabber", name: "Backstabber", summary: "From 8th level, +2d6 precision damage against an enemy threatened by her scapegoat, 3d6 from 15th.", guide: "hunter#backstabber"),
                 (key: "hunter/colluding-scoundrel/master-backstabber", name: "Master Backstabber", summary: "At 20th level, a standard-action attack on the scapegoat's foe forces a Fort save (DC 20 + Wis) or death.", guide: "hunter#master-backstabber"),
-                (key: "hunter/colluding-scoundrel/scapegoat", name: "Scapegoat", summary: "Swift action, level times a day (free on her companion): an adjacent foe takes -2 to attack others for 1 minute (-4 at 8th, -6 at 15th).", guide: "hunter#scapegoat"),
+                (key: "hunter/colluding-scoundrel/scapegoat", name: "Scapegoat", summary: "Swift action: an adjacent foe gets -2 to attack others (-4 at 8th, -6 at 15th) and 10% spell failure for 1 minute; level/day, free on her companion.", guide: "hunter#scapegoat"),
             ],
             levels: [
                 (level: 1, features: ["hunter/animal-companion", "hunter/colluding-scoundrel/scapegoat", "hunter/nature-sense"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
@@ -171,7 +171,7 @@ Class(
             summary: "Hunter without an animal companion who gains terrains, bonus combat feats and stealth.",
             guide: "hunter#forester",
             features: [
-                (key: "hunter/forester/breath-of-life", name: "Breath of Life", summary: "From 10th level, Breath of Life as a spell-like ability.", guide: "hunter#breath-of-life"),
+                (key: "hunter/forester/breath-of-life", name: "Breath of Life", summary: "From 10th level, Breath of Life becomes one of her spell-like abilities.", guide: "hunter#breath-of-life"),
                 (key: "hunter/forester/camouflage", name: "Camouflage", summary: "From 7th level, uses Stealth in her favoured terrain without cover.", guide: "hunter#camouflage"),
                 (key: "hunter/forester/evasion", name: "Evasion", guide: "hunter#forester"),
                 (key: "hunter/forester/favored-terrain", name: "Favored Terrain", summary: "A favoured terrain like the Ranger's at 5th level, another every 4 levels.", guide: "hunter#favored-terrain"),
@@ -205,7 +205,7 @@ Class(
             guide: "hunter#tandem-executioner",
             features: [
                 (key: "hunter/tandem-executioner/aversion-to-spellcasting", name: "Aversion to Spellcasting", summary: "Gains no spells and has no caster level.", guide: "hunter#aversion-to-spellcasting"),
-                (key: "hunter/tandem-executioner/studied-target", name: "Studied Target", summary: "As the Slayer's Studied Target, shared with her companion while it is within 60 feet.", guide: "hunter#studied-target"),
+                (key: "hunter/tandem-executioner/studied-target", name: "Studied Target", summary: "As the Slayer's, shared with her companion within 60 feet: move action for +1 attack, damage and DCs against a foe, +1 at 5th, 10th, 15th, 20th.", guide: "hunter#studied-target"),
                 (key: "hunter/tandem-executioner/studied-target-swift", name: "Studied Target (Swift)", summary: "From 7th level, Studied Target is a swift action.", guide: "hunter#studied-target-swift"),
             ],
             selections: [
@@ -287,7 +287,7 @@ Class(
             guide: "hunter#wandering-marksman",
             features: [
                 (key: "hunter/wandering-marksman/emergency-swap", name: "Emergency Swap", summary: "From 9th level, once per encounter, a standard action swaps places with her companion within 30 feet without provoking.", guide: "hunter#emergency-swap"),
-                (key: "hunter/wandering-marksman/imminent-attack", name: "Imminent Attack", summary: "From 15th level, a shot marks foes in 10 feet: her companion gets +3 attack and damage and bypasses DR against them.", guide: "hunter#imminent-attack"),
+                (key: "hunter/wandering-marksman/imminent-attack", name: "Imminent Attack", summary: "From 15th level, a shot marks foes in a 10-foot area; her companion gets +3 morale attack and damage and beats cold iron, mithral and adamantine DR on them.", guide: "hunter#imminent-attack"),
                 (key: "hunter/wandering-marksman/planned-distraction", name: "Planned Distraction", summary: "From 3rd level, +1 attack and damage against a foe fighting her companion, +2 at 12th and +3 at 18th.", guide: "hunter#planned-distraction"),
                 (key: "hunter/wandering-marksman/self-reliance", name: "Self Reliance", summary: "From 6th level, her companion gets +1 morale AC per 4 class levels while more than 10 feet from her.", guide: "hunter#self-reliance"),
             ],

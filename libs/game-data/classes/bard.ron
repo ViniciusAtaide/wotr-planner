@@ -12,8 +12,8 @@ Class(
     spontaneous: true,
     features: [
         (key: "bard/bard-proficiencies", name: "Bard Proficiencies", summary: "Simple weapons, longsword, rapier, short sword, shortbow, light armour and shields.", guide: "bard#bard-proficiencies"),
-        (key: "bard/bardic-knowledge", name: "Bardic Knowledge", summary: "Adds half the class level to all Knowledge and Lore checks.", guide: "bard#bardic-knowledge"),
-        (key: "bard/bardic-performance-move-action", name: "Bardic Performance (Move Action)", summary: "From 7th level, starts a performance as a move action instead of a standard action.", guide: "bard#bardic-performance-move-action"),
+        (key: "bard/bardic-knowledge", name: "Bardic Knowledge", summary: "Half the class level is added as a bonus on every Knowledge and Lore check.", guide: "bard#bardic-knowledge"),
+        (key: "bard/bardic-performance-move-action", name: "Bardic Performance (Move Action)", summary: "From 7th level, a performance can be started as a move action rather than a standard one.", guide: "bard#bardic-performance-move-action"),
         (key: "bard/bardic-performance-swift-action", name: "Bardic Performance (Swift Action)", summary: "From 13th level, starts a performance as a swift action.", guide: "bard#bardic-performance-swift-action"),
         (key: "bard/deadly-performance", name: "Deadly Performance", summary: "At 20th level, once a day, an enemy within 30 feet hearing 1 round of song saves (DC 20 + Cha) or dies; on a save it is staggered 1-4 rounds.", guide: "bard#deadly-performance"),
         (key: "bard/dirge-of-doom", name: "Dirge of Doom", summary: "From 8th level, Fascinate also makes its targets shaken.", guide: "bard#dirge-of-doom"),
@@ -21,12 +21,12 @@ Class(
         (key: "bard/frightening-tune", name: "Frightening Tune", summary: "From 14th level, Fascinate also inflicts fear (DC 10 + half level + Cha).", guide: "bard#frightening-tune"),
         (key: "bard/inspire-competence", name: "Inspire Competence", summary: "From 3rd level, allies within 30 feet get +2 competence to skill checks, +1 at 7th, 11th, 15th and 19th (max +6).", guide: "bard#inspire-competence"),
         (key: "bard/inspire-courage", name: "Inspire Courage", summary: "Allies get +1 morale to saves against charm and fear and +1 competence to attack and damage; +2 at 5th, +3 at 11th, +4 at 17th.", guide: "bard#inspire-courage"),
-        (key: "bard/inspire-greatness", name: "Inspire Greatness", summary: "From 9th level, allies get 2d10 temporary HP, +2 competence to attacks and +1 to Fortitude saves.", guide: "bard#inspire-greatness"),
+        (key: "bard/inspire-greatness", name: "Inspire Greatness", summary: "From 9th level, allies gain 2d10 hit points, +2 competence to attacks and +1 competence to Fortitude saves.", guide: "bard#inspire-greatness"),
         (key: "bard/inspire-heroics", name: "Inspire Heroics", summary: "From 15th level, allies get +4 morale to saves and +4 dodge AC.", guide: "bard#inspire-heroics"),
         (key: "bard/jack-of-all-trades", name: "Jack of All Trades", summary: "From 10th level, +1 to all skill checks.", guide: "bard#jack-of-all-trades"),
-        (key: "bard/lore-master", name: "Lore Master", summary: "From 5th level, can take 10 on any Knowledge or Lore check she has ranks in.", guide: "bard#lore-master"),
+        (key: "bard/lore-master", name: "Lore Master", summary: "From 5th level, may take 10 on Knowledge and Lore checks in skills where she has ranks.", guide: "bard#lore-master"),
         (key: "bard/soothing-performance", name: "Soothing Performance", summary: "From 12th level, 4 rounds of performance work as Mass Cure Serious Wounds and remove fatigued, sickened and shaken from allies.", guide: "bard#soothing-performance"),
-        (key: "bard/well-versed", name: "Well Versed", summary: "From 2nd level, +4 to saves against bardic performance, sonic and language-dependent effects.", guide: "bard#well-versed"),
+        (key: "bard/well-versed", name: "Well Versed", summary: "From 2nd level, saving throws against sonic, language-dependent and bardic performance effects get +4.", guide: "bard#well-versed"),
     ],
     levels: [
         (level: 1, arcane_spell_level: 1, features: ["bard/bard-proficiencies", "bard/bardic-knowledge", "bard/inspire-courage"], feats: ["armor-proficiency-light-armor", "shield-proficiency", "simple-weapon-proficiency"]),
@@ -54,7 +54,7 @@ Class(
         (
             key: "bard/archaeologist",
             name: "Archaeologist",
-            summary: "Rogue-like bard with a luck bonus, Evasion, Uncanny Dodge and rogue talents instead of performances.",
+            summary: "Rogue-like bard with a luck bonus, Evasion, Uncanny Dodge and bard talents (advanced rogue talents from 10th) instead of performances.",
             guide: "bard#archaeologist",
             features: [
                 (key: "bard/archaeologist/advanced-talents", name: "Advanced Talents", summary: "From 10th level, can choose advanced rogue talents.", guide: "bard#advanced-talents"),
@@ -91,7 +91,7 @@ Class(
             features: [
                 (key: "bard/beast-tamer/beast-call", name: "Beast Call", summary: "Summon Nature's Ally as a standard-action spell-like ability 3 + Cha times a day, its level rising every 2 levels to IX at 17th.", guide: "bard#beast-call"),
                 (key: "bard/beast-tamer/inspire-ferocity", name: "Inspire Ferocity", summary: "Animal companions and summons get +1 morale vs charm and fear and +1 to attack and damage (up to +4), later Magic Fang and better DR bypass.", guide: "bard#inspire-ferocity"),
-                (key: "bard/beast-tamer/spontaneous-summoning", name: "Spontaneous Summoning", summary: "Can cast a Summon Nature's Ally spell in place of a spell of the same level.", guide: "bard#spontaneous-summoning"),
+                (key: "bard/beast-tamer/spontaneous-summoning", name: "Spontaneous Summoning", summary: "Can swap any prepared spell for a Summon Nature's Ally spell of the same level.", guide: "bard#spontaneous-summoning"),
                 (key: "bard/beast-tamer/summon-natures-ally-i", name: "Summon Nature\'s Ally I", summary: "Beast Call summons with Summon Nature's Ally I from 1st level.", guide: "bard#beast-tamer"),
                 (key: "bard/beast-tamer/summon-natures-ally-ii", name: "Summon Nature\'s Ally II", summary: "Beast Call summons with Summon Nature's Ally II from 3rd level.", guide: "bard#beast-tamer"),
                 (key: "bard/beast-tamer/summon-natures-ally-iii", name: "Summon Nature\'s Ally III", summary: "Beast Call summons with Summon Nature's Ally III from 5th level.", guide: "bard#beast-tamer"),
@@ -128,7 +128,7 @@ Class(
                 (key: "bard/chelaxian-diva/blazing-rondo", name: "Blazing Rondo", summary: "From 9th level, the song hastes allies within 60 feet (bonuses of a fifth of her level); 3+ rounds risks fatigue.", guide: "bard#blazing-rondo"),
                 (key: "bard/chelaxian-diva/deadly-vibrato", name: "Deadly Vibrato", summary: "From 6th level, 1 more round of song adds 1d8 sonic damage (Fort negates), 2d8 at 14th and 3d8 at 20th.", guide: "bard#deadly-vibrato"),
                 (key: "bard/chelaxian-diva/devastating-aria", name: "Devastating Aria", summary: "From 2nd level, 1d6 + level sonic damage to an object (half to creatures), +1d6 at 7th and every 4 levels (max 5d6).", guide: "bard#devastating-aria"),
-                (key: "bard/chelaxian-diva/famous", name: "Famous", summary: "Adds half the class level to Persuasion (Bluff and Diplomacy) checks.", guide: "bard#famous"),
+                (key: "bard/chelaxian-diva/famous", name: "Famous", summary: "Persuasion (Bluff and Diplomacy) checks get a bonus of half the class level.", guide: "bard#famous"),
                 (key: "bard/chelaxian-diva/prima-donna", name: "Prima Donna", summary: "From 5th level, 1 round of performance raises her songs' save DCs by +2.", guide: "bard#prima-donna"),
                 (key: "bard/chelaxian-diva/tragedy-of-false-hope", name: "Tragedy of False Hope", summary: "From 3rd level, the song leaves enemies within 30 feet flat-footed unless they save on Will; Uncanny Dodge grants immunity.", guide: "bard#chelaxian-diva"),
                 (key: "bard/chelaxian-diva/vindictive-soliloquy", name: "Vindictive Soliloquy", summary: "From 12th level, the song works as a sonic Call Lightning Storm; a DC 30 Persuasion check makes a bolt 5d10 instead of 5d6.", guide: "bard#vindictive-soliloquy"),
@@ -170,7 +170,7 @@ Class(
             guide: "bard#flame-dancer",
             features: [
                 (key: "bard/flame-dancer/detect-magic", name: "Detect Magic", guide: "bard#flame-dancer"),
-                (key: "bard/flame-dancer/fan-the-flames", name: "Fan the Flames", summary: "From 8th level, adds Burning Hands, Burning Arc and Fireball to her spell list.", guide: "bard#fan-the-flames"),
+                (key: "bard/flame-dancer/fan-the-flames", name: "Fan the Flames", summary: "From 8th level, her spell list gains Burning Hands, Burning Arc and Fireball.", guide: "bard#fan-the-flames"),
                 (key: "bard/flame-dancer/fire-dance", name: "Fire Dance", summary: "From 3rd level, her performance gives allies within 30 feet fire resistance 10, 20 at 6th and 30 at 11th.", guide: "bard#fire-dance"),
             ],
             levels: [

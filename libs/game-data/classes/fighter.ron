@@ -77,7 +77,7 @@ Class(
                     guide: "fighter#order",
                     options: [
                         (key: "fighter/armiger/order/order-of-the-chain", name: "Order of the Chain", summary: "+2 to CMB and CMD from 1st level, +1 at 5th and 9th.", guide: "fighter#order-of-the-chain"),
-                        (key: "fighter/armiger/order/order-of-the-gate", name: "Order of the Gate", summary: "Arcane spell failure in armour drops by 5% at 1st level, 10% at 5th and 20% at 9th.", guide: "fighter#order-of-the-gate"),
+                        (key: "fighter/armiger/order/order-of-the-gate", name: "Order of the Gate", summary: "Arcane spell failure in armour drops by 5% from 1st level, 10% from 5th and 20% from 9th.", guide: "fighter#order-of-the-gate"),
                         (key: "fighter/armiger/order/order-of-the-godclaw", name: "Order of the Godclaw", summary: "Three times a day, a 1-minute aura gives allies within 30 feet +1 morale AC, attack and damage against chaotic foes (+1 at 5th and 9th).", guide: "fighter#order-of-the-godclaw"),
                         (key: "fighter/armiger/order/order-of-the-nail", name: "Order of the Nail", summary: "+2 attack and damage against one Ranger favoured enemy type, +2 more at 5th and 9th.", guide: "fighter#order-of-the-nail"),
                         (key: "fighter/armiger/order/order-of-the-pyre", name: "Order of the Pyre", summary: "After taking fire damage, fast healing 5 for rounds equal to class level; 10 from 5th, 15 from 9th.", guide: "fighter#order-of-the-pyre"),
@@ -98,7 +98,7 @@ Class(
             summary: "Visitors from Morta fighter with shield attacks and blocks, delayed Weapon Training and 3 skill points per level.",
             guide: "fighter#defender-of-the-hearth",
             features: [
-                (key: "fighter/defender-of-the-hearth/defenders-gift", name: "Defender\'s Gift", summary: "At 20th level, deals double weapon damage for 1 round after a Shield Block.", guide: "fighter#defenders-gift"),
+                (key: "fighter/defender-of-the-hearth/defenders-gift", name: "Defender\'s Gift", summary: "At 20th level, after a Shield Block his weapon damage is doubled for the next round.", guide: "fighter#defenders-gift"),
                 (key: "fighter/defender-of-the-hearth/heaven-strike", name: "Heaven Strike", summary: "From 5th level, once per combat with a weapon and shield, deals weapon damage to every enemy within 20 feet without an attack roll.", guide: "fighter#heaven-strike"),
                 (key: "fighter/defender-of-the-hearth/shield-block", name: "Shield Block", summary: "With a heavy or tower shield, the first hit against him deals 20% less damage; +1 attack covered at 5th and every 5 levels (max 5).", guide: "fighter#shield-block"),
             ],
@@ -236,9 +236,9 @@ Class(
             summary: "Fighter with bonuses for two-handed weapons, losing Armor Training and Armor Mastery.",
             guide: "fighter#two-handed-fighter",
             features: [
-                (key: "fighter/two-handed-fighter/backswing", name: "Backswing", summary: "From 7th level, in a full attack with a two-handed weapon, every attack after the first adds double his Strength bonus to damage.", guide: "fighter#backswing"),
+                (key: "fighter/two-handed-fighter/backswing", name: "Backswing", summary: "From 7th level, when full attacking two-handed, every attack after the first adds double his Strength bonus to damage.", guide: "fighter#backswing"),
                 (key: "fighter/two-handed-fighter/devastating-blow", name: "Devastating Blow", summary: "From 19th level, a standard-action two-handed attack at -5 that is an automatic critical threat; on-crit weapon effects don't trigger.", guide: "fighter#devastating-blow"),
-                (key: "fighter/two-handed-fighter/greater-power-attack", name: "Greater Power Attack", summary: "From 15th level, Power Attack's bonus damage is doubled instead of increased by half.", guide: "fighter#greater-power-attack"),
+                (key: "fighter/two-handed-fighter/greater-power-attack", name: "Greater Power Attack", summary: "From 15th level, Power Attack's extra damage is multiplied by 2 rather than by 1.5.", guide: "fighter#greater-power-attack"),
                 (key: "fighter/two-handed-fighter/overhand-chop", name: "Overhand Chop", summary: "From 3rd level, a single two-handed attack (attack action or charge) adds double his Strength bonus to damage.", guide: "fighter#overhand-chop"),
                 (key: "fighter/two-handed-fighter/piledriver", name: "Piledriver", summary: "From 11th level, a standard-action two-handed hit allows a free bull rush or trip without provoking.", guide: "fighter#piledriver"),
                 (key: "fighter/two-handed-fighter/strong-grip", name: "Strong Grip", summary: "From 2nd level, +1 to CMB and CMD for sunder and disarm, +1 more every 4 levels (max +5 at 18th).", guide: "fighter#strong-grip"),

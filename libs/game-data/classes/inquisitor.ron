@@ -80,7 +80,7 @@ Class(
             summary: "Swift action: a judgment's bonus lasts until combat ends; once a day at 1st, twice at 4th, 3 times at 7th, up to 7 at 19th.",
             guide: "inquisitor#judgment",
             options: [
-                (key: "inquisitor/judgment/judgement-resiliency", name: "Judgement - Resiliency", summary: "DR 1/magic, +1 per 5 levels; from 10th level it bypasses only the alignment opposite his.", guide: "inquisitor#judgement-resiliency"),
+                (key: "inquisitor/judgment/judgement-resiliency", name: "Judgement - Resiliency", summary: "DR 1/magic, +1 per 5 levels; from 10th level it is overcome by the alignment opposite his instead of by magic.", guide: "inquisitor#judgement-resiliency"),
                 (key: "inquisitor/judgment/judgement-resistance", name: "Judgement - Resistance", summary: "Resistance 2 to all energy types, +2 per 3 levels.", guide: "inquisitor#judgement-resistance"),
                 (key: "inquisitor/judgment/judgment-destruction", name: "Judgment - Destruction", summary: "+1 sacred bonus to damage rolls, +1 per 3 levels.", guide: "inquisitor#judgment-destruction"),
                 (key: "inquisitor/judgment/judgment-healing", name: "Judgment - Healing", summary: "Fast healing 1, +1 per 3 levels.", guide: "inquisitor#judgment-healing"),
@@ -312,7 +312,7 @@ Class(
                 (key: "inquisitor/tactical-leader/battle-acumen", name: "Battle Acumen", summary: "From 14th level, gives one ally within 30 feet his judgment bonuses for 1 minute, Wis times a day.", guide: "inquisitor#battle-acumen"),
                 (key: "inquisitor/tactical-leader/leaders-words", name: "Leader\'s Words", summary: "Morale bonus equal to half the class level on Persuasion (Diplomacy) checks.", guide: "inquisitor#leaders-words"),
                 (key: "inquisitor/tactical-leader/orisons", name: "Orisons", guide: "inquisitor#tactical-leader"),
-                (key: "inquisitor/tactical-leader/swift-tactician", name: "Swift Tactician", summary: "From 3rd level, shares his teamwork feats with allies within 30 feet for 3 + half level rounds; swift action from 12th.", guide: "inquisitor#swift-tactician"),
+                (key: "inquisitor/tactical-leader/swift-tactician", name: "Swift Tactician", summary: "From 3rd level, a standard action (swift from 12th) shares his teamwork feats with allies in 30 ft for 3 + half level rounds; 1/day, +1 at 6/9/15/18.", guide: "inquisitor#swift-tactician"),
             ],
             levels: [
                 (level: 1, features: ["inquisitor/inquisitor-proficiencies", "inquisitor/tactical-leader/leaders-words", "inquisitor/tactical-leader/orisons"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"], selections: ["inquisitor/domain", "inquisitor/judgment"]),

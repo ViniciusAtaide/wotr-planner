@@ -44,7 +44,7 @@ Class(
                 ),
                 (key: "rogue/rogue-talents/confounding-blades", name: "Confounding Blades", summary: "A melee sneak attack stops the target making attacks of opportunity for 2 to 5 rounds.", guide: "rogue#confounding-blades", prerequisite: All([Any([Feature(feature: "alchemist/vivisectionist/advanced-talents", count: 1), Feature(feature: "bard/archaeologist/advanced-talents", count: 1), Feature(feature: "rogue/advanced-talents", count: 1), Feature(feature: "slayer/advanced-talents", count: 1)]), SelectionOption("rogue/rogue-talents/slow-reactions")])),
                 (key: "rogue/rogue-talents/crippling-strike", name: "Crippling Strike", summary: "Sneak attacks deal 2 Strength damage.", guide: "rogue#crippling-strike", prerequisite: Any([Feature(feature: "alchemist/vivisectionist/advanced-talents", count: 1), Feature(feature: "bard/archaeologist/advanced-talents", count: 1), Feature(feature: "rogue/advanced-talents", count: 1), Feature(feature: "slayer/advanced-talents", count: 1)])),
-                (key: "rogue/rogue-talents/dispelling-attack", name: "Dispelling Attack", summary: "A sneak attack casts a targeted Dispel Magic on one of the target's active spells, at caster level equal to character level.", guide: "rogue#dispelling-attack", prerequisite: Any([Feature(feature: "alchemist/vivisectionist/advanced-talents", count: 1), Feature(feature: "bard/archaeologist/advanced-talents", count: 1), Feature(feature: "rogue/advanced-talents", count: 1), Feature(feature: "slayer/advanced-talents", count: 1)])),
+                (key: "rogue/rogue-talents/dispelling-attack", name: "Dispelling Attack", summary: "Her sneak attacks also dispel one active spell on the target, using her character level as the caster level.", guide: "rogue#dispelling-attack", prerequisite: Any([Feature(feature: "alchemist/vivisectionist/advanced-talents", count: 1), Feature(feature: "bard/archaeologist/advanced-talents", count: 1), Feature(feature: "rogue/advanced-talents", count: 1), Feature(feature: "slayer/advanced-talents", count: 1)])),
                 (key: "rogue/rogue-talents/double-debilitation", name: "Double Debilitation", summary: "Debilitating Injury applies two penalties at once.", guide: "rogue#double-debilitation", prerequisite: All([Any([Feature(feature: "bard/archaeologist/advanced-talents", count: 1), Feature(feature: "rogue/advanced-talents", count: 1), Feature(feature: "slayer/advanced-talents", count: 1)]), Feature(feature: "rogue/debilitating-injury", count: 1)])),
                 (key: "rogue/rogue-talents/emboldening-strike", name: "Emboldening Strike", summary: "A sneak attack gives +1 to saving throws per 2 sneak dice rolled, for 1 round.", guide: "rogue#emboldening-strike"),
                 (key: "rogue/rogue-talents/familiar", name: "Familiar", summary: "Gains a familiar, as a Wizard's arcane bond.", guide: "rogue#familiar", prerequisite: Any([Feature(feature: "bard/archaeologist/advanced-talents", count: 1), Feature(feature: "rogue/advanced-talents", count: 1), Feature(feature: "slayer/advanced-talents", count: 1)])),
@@ -53,7 +53,7 @@ Class(
                 (key: "rogue/rogue-talents/focusing-attack-shaken", name: "Focusing Attack - Shaken", summary: "Dealing sneak attack damage ends her own shaken condition.", guide: "rogue#focusing-attack-shaken"),
                 (key: "rogue/rogue-talents/focusing-attack-sickened", name: "Focusing Attack - Sickened", summary: "Dealing sneak attack damage ends her own sickened condition.", guide: "rogue#focusing-attack-sickened"),
                 (key: "rogue/rogue-talents/hunters-surprise", name: "Hunter\'s Surprise", summary: "Once a day, her attacks against one adjacent enemy add sneak attack damage until the end of her next turn.", guide: "rogue#hunters-surprise", prerequisite: Any([Feature(feature: "bard/archaeologist/advanced-talents", count: 1), Feature(feature: "rogue/advanced-talents", count: 1), Feature(feature: "slayer/advanced-talents", count: 1)])),
-                (key: "rogue/rogue-talents/improved-evasion", name: "Improved Evasion", summary: "No damage on a successful Reflex save and half damage on a failed one.", guide: "rogue#improved-evasion", prerequisite: Any([Feature(feature: "bard/archaeologist/advanced-talents", count: 1), Feature(feature: "rogue/advanced-talents", count: 1), Feature(feature: "slayer/advanced-talents", count: 1)])),
+                (key: "rogue/rogue-talents/improved-evasion", name: "Improved Evasion", summary: "A successful Reflex save means no damage, and a failed one only half damage.", guide: "rogue#improved-evasion", prerequisite: Any([Feature(feature: "bard/archaeologist/advanced-talents", count: 1), Feature(feature: "rogue/advanced-talents", count: 1), Feature(feature: "slayer/advanced-talents", count: 1)])),
                 (key: "rogue/rogue-talents/intimidating-prowess", name: "Intimidating Prowess", summary: "Gains the Intimidating Prowess feat.", guide: "rogue#intimidating-prowess", feats: ["intimidating-prowess"]),
                 (key: "rogue/rogue-talents/iron-guts", name: "Iron Guts", summary: "+1 to saves against poison and +4 against sickening and nauseating effects.", guide: "rogue#iron-guts"),
                 (key: "rogue/rogue-talents/jump-up", name: "Jump Up", summary: "Standing up from prone does not provoke attacks of opportunity.", guide: "rogue#jump-up"),
@@ -65,7 +65,7 @@ Class(
                 (key: "rogue/rogue-talents/skill-mastery-lore", name: "Skill Mastery (Lore)", summary: "Can take 10 on Lore (Nature) and Lore (Religion) checks.", guide: "rogue#skill-mastery-lore", prerequisite: Any([Feature(feature: "bard/archaeologist/advanced-talents", count: 1), Feature(feature: "rogue/advanced-talents", count: 1), Feature(feature: "slayer/advanced-talents", count: 1)])),
                 (key: "rogue/rogue-talents/skill-mastery-stealth-and-trickery", name: "Skill Mastery (Stealth and Trickery)", summary: "Can take 10 on Stealth and Trickery checks.", guide: "rogue#skill-mastery-stealth-and-trickery", prerequisite: Any([Feature(feature: "bard/archaeologist/advanced-talents", count: 1), Feature(feature: "rogue/advanced-talents", count: 1), Feature(feature: "slayer/advanced-talents", count: 1)])),
                 (key: "rogue/rogue-talents/slippery-mind", name: "Slippery Mind", summary: "Adds her Dexterity modifier to saves against mind-affecting effects.", guide: "rogue#slippery-mind", prerequisite: Any([Feature(feature: "bard/archaeologist/advanced-talents", count: 1), Feature(feature: "rogue/advanced-talents", count: 1), Feature(feature: "slayer/advanced-talents", count: 1)])),
-                (key: "rogue/rogue-talents/slow-reactions", name: "Slow Reactions", summary: "Targets of her sneak attacks cannot make attacks of opportunity for 1 round.", guide: "rogue#slow-reactions"),
+                (key: "rogue/rogue-talents/slow-reactions", name: "Slow Reactions", summary: "Foes hit by her sneak attacks lose their attacks of opportunity for 1 round.", guide: "rogue#slow-reactions"),
                 (key: "rogue/rogue-talents/survivalist", name: "Survivalist", summary: "Lore (Nature) becomes a class skill.", guide: "rogue#survivalist"),
                 (key: "rogue/rogue-talents/terrain-mastery", name: "Terrain Mastery", summary: "A favoured terrain like the Ranger's, but its bonus does not grow with level.", guide: "rogue#terrain-mastery"),
                 (key: "rogue/rogue-talents/trailblazer", name: "Trailblazer", summary: "Immune to difficult terrain.", guide: "rogue#trailblazer"),
@@ -159,7 +159,7 @@ Class(
             guide: "rogue#knife-master",
             features: [
                 (key: "rogue/knife-master/blade-sense", name: "Blade Sense", summary: "From 3rd level, +1 dodge AC against light blades, +1 more every 3 levels (max +6 at 18th).", guide: "rogue#blade-sense"),
-                (key: "rogue/knife-master/sneak-stab", name: "Sneak Stab", summary: "Sneak attack uses d8s with a dagger, kukri, punching dagger, starknife or sai, and d4s with other weapons.", guide: "rogue#sneak-stab"),
+                (key: "rogue/knife-master/sneak-stab", name: "Sneak Stab", summary: "Sneak attack dice are d8s with daggers, kukris, punching daggers, starknives or sai, and d4s with anything else.", guide: "rogue#sneak-stab"),
             ],
             levels: [
                 (level: 1, features: ["rogue/knife-master/sneak-stab", "rogue/rogue-proficiencies", "rogue/sneak-attack"], feats: ["armor-proficiency-light-armor", "simple-weapon-proficiency", "weapon-finesse"]),
@@ -174,8 +174,8 @@ Class(
             prerequisite: Race("half-elf"),
             class_skills: ["athletics", "knowledge-arcana", "knowledge-world", "lore-nature", "lore-religion", "mobility", "perception", "persuasion", "stealth", "trickery", "use-magic-device"],
             features: [
-                (key: "rogue/master-of-all/bardic-knowledge", name: "Bardic Knowledge", summary: "Adds half the class level to all Knowledge and Lore checks.", guide: "rogue#bardic-knowledge"),
-                (key: "rogue/master-of-all/sneak-attack-master-of-all", name: "Sneak Attack (Master of All)", summary: "+1d6 sneak attack, +1d6 more at 5th, 7th, 11th, 13th, 17th and 19th level.", guide: "rogue#sneak-attack-master-of-all"),
+                (key: "rogue/master-of-all/bardic-knowledge", name: "Bardic Knowledge", summary: "Half the class level is added as a bonus on every Knowledge and Lore check.", guide: "rogue#bardic-knowledge"),
+                (key: "rogue/master-of-all/sneak-attack-master-of-all", name: "Sneak Attack (Master of All)", summary: "+1d6 sneak attack, gaining another 1d6 at levels 5, 7, 11, 13, 17 and 19.", guide: "rogue#sneak-attack-master-of-all"),
             ],
             feat_lists: [
                 (key: "rogue/master-of-all/skill-focus", name: "Skill Focus (Master of All)", guide: "rogue#skill-focus-master-of-all", ignores_prerequisites: true, feats: ["skill-focus"]),
@@ -333,14 +333,14 @@ Class(
             guide: "rogue#underground-chemist",
             features: [
                 (key: "rogue/underground-chemist/chemical-weapons", name: "Chemical Weapons", summary: "From 2nd level, gains Throw Anything and adds Intelligence to splash weapon damage.", guide: "rogue#chemical-weapons"),
-                (key: "rogue/underground-chemist/discovery", name: "Discovery", summary: "From 10th level, can take Enhance Potion, Extend Potion, Nauseating Flesh, Preserve Organs, Spontaneous Healing or Mummification instead of a talent.", guide: "rogue#discovery"),
+                (key: "rogue/underground-chemist/discovery", name: "Discovery", summary: "From 10th level, can swap a talent for Enhance Potion, Extend Potion, Preserve Organs, Nauseating Flesh, Spontaneous Healing or Mummification.", guide: "rogue#discovery"),
                 (key: "rogue/underground-chemist/precise-splash-weapons", name: "Precise Splash Weapons", summary: "From 4th level, splash weapons deal sneak attack damage.", guide: "rogue#precise-splash-weapons"),
             ],
             selections: [
                 (
                     key: "rogue/underground-chemist/discovery",
                     name: "Discovery",
-                    summary: "From 10th level, can take Enhance Potion, Extend Potion, Nauseating Flesh, Preserve Organs, Spontaneous Healing or Mummification instead of a talent.",
+                    summary: "From 10th level, can swap a talent for Enhance Potion, Extend Potion, Preserve Organs, Nauseating Flesh, Spontaneous Healing or Mummification.",
                     guide: "rogue#discovery",
                     option_levels: ["rogue"],
                     options: [],

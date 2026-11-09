@@ -16,7 +16,7 @@ Class(
         (key: "ranger/favored-terrain", name: "Favored Terrain", summary: "From 3rd level, +2 initiative, Lore (Nature), Perception and Stealth in a chosen terrain; more at 8th, 13th and 18th, each raising one by +2.", guide: "ranger#favored-terrain"),
         (key: "ranger/hunters-bond", name: "Hunter\'s Bond", summary: "Move action: allies within 30 feet get half his favoured enemy bonus for Wis rounds; or an animal companion sharing his enemy and terrain bonuses.", guide: "ranger#hunters-bond"),
         (key: "ranger/improved-evasion", name: "Improved Evasion", summary: "From 16th level, a failed Reflex save against a half-damage effect deals only half damage.", guide: "ranger#improved-evasion"),
-        (key: "ranger/improved-quarry", name: "Improved Quarry", summary: "At 19th level, designates a quarry as a free action, and the quarry attack bonus rises to +4.", guide: "ranger#improved-quarry"),
+        (key: "ranger/improved-quarry", name: "Improved Quarry", summary: "At 19th level, a quarry can be marked as a free action and its attack bonus rises to +4.", guide: "ranger#improved-quarry"),
         (key: "ranger/master-hunter", name: "Master Hunter", summary: "At 20th level, 5 times a day, a standard-action attack on a favoured enemy forces a Fort save (DC 20 + Wis) or death; once per creature.", guide: "ranger#master-hunter"),
         (key: "ranger/quarry", name: "Quarry", summary: "From 11th level, standard action to mark one quarry: +2 insight to attack it and every critical hit against it is confirmed.", guide: "ranger#quarry"),
     ],

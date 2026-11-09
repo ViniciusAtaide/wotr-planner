@@ -11,10 +11,10 @@ Class(
     class_skills: ["athletics", "knowledge-world", "lore-nature", "mobility", "perception", "persuasion", "stealth"],
     features: [
         (key: "slayer/advanced-talents", name: "Advanced Talents", summary: "From 10th level, can choose advanced rogue talents.", guide: "slayer#advanced-talents"),
-        (key: "slayer/improved-quarry", name: "Improved Quarry", summary: "At 19th level, designates a quarry as a free action, and the quarry attack bonus rises to +4.", guide: "slayer#improved-quarry"),
+        (key: "slayer/improved-quarry", name: "Improved Quarry", summary: "At 19th level, a quarry can be marked as a free action and its attack bonus rises to +4.", guide: "slayer#improved-quarry"),
         (key: "slayer/master-slayer", name: "Master Slayer", summary: "At 20th level, a standard-action attack on a studied target forces a Fort save (DC 20 + Int) or death; once per opponent.", guide: "slayer#master-slayer"),
         (key: "slayer/quarry", name: "Quarry", summary: "From 14th level, standard action to mark one quarry: +2 insight to attack it and every critical hit against it is confirmed.", guide: "slayer#quarry"),
-        (key: "slayer/slayer-proficiencies", name: "Slayer Proficiencies", summary: "Simple and martial weapons, light and medium armour and shields.", guide: "slayer#slayer-proficiencies"),
+        (key: "slayer/slayer-proficiencies", name: "Slayer Proficiencies", summary: "Proficient with simple and martial weapons, shields, and light and medium armour.", guide: "slayer#slayer-proficiencies"),
         (key: "slayer/slayers-advance", name: "Slayer\'s Advance", summary: "From 13th level, once a day +30 feet speed for 1 round with no attacks of opportunity; twice a day from 17th.", guide: "slayer#slayers-advance"),
         (key: "slayer/sneak-attack", name: "Sneak Attack", summary: "From 3rd level, +1d6 damage against flanked foes or those denied Dexterity to AC, +1d6 per 3 levels (max 6d6 at 18th).", guide: "slayer#sneak-attack"),
         (key: "slayer/studied-target", name: "Studied Target", summary: "Move action: +1 to weapon attack, damage and slayer ability DCs against the studied foe, +1 more at 5th, 10th, 15th and 20th.", guide: "slayer#studied-target"),
@@ -265,7 +265,7 @@ Class(
                 (
                     key: "slayer/imitator/imitation",
                     name: "Imitation",
-                    summary: "Free action: a Fighter, Barbarian, Monk or Rogue stance for 1 minute, half level + Int times a day.",
+                    summary: "Free action: one of four stances (Fighter, Barbarian, Monk, Rogue) for 1 minute, half level + Int times a day.",
                     guide: "slayer#imitation",
                     options: [
                         (key: "slayer/imitator/imitation/barbarian-stance", name: "Barbarian Stance", summary: "Temporary HP equal to class level, Uncanny Dodge from 4th and DR 1/- from 7th (+1 per 3 levels, max 5/-).", guide: "slayer#barbarian-stance"),
