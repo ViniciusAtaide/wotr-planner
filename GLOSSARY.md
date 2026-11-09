@@ -198,6 +198,10 @@ _Avoid_: Level-up screen, summary page, character sheet
 The sheet's tab for Mythic ranks 1–10 at their fixed character levels, with the First ascension at MR 1, the path at MR 3 and any Path switch at MR 8, and under each rank the features its path row gives. MR 1 and 2 show the first ascension's path and rows. A rank is reached, partly dropped by a switch (its general pick or the old path's grants lost, or a grant the switch drops by name), dropped (both lost), or never reached; the picks a switch took away are marked lost from the switch on, and an empty slot of such a rank can still be filled (it is held until the switch). A rank the Build doesn't reach holds no picks: Remove level and a switch that ends the ascensions (Legend: MR 8 to 10) drop them, and Remove level drops the path or the switch with its rank.
 _Avoid_: Mythic tab, mythic levels
 
+**Build sheet**:
+A Build as plain text a player reads and follows in the game, which the sheet's "Copy build sheet" copies (or "Download .txt" saves): `WotR build v1`, the Build's link (which reopens it exactly), the Build start, the first ascension, path and Path switch, each level's class and picks by slot label, ability increase and skill ranks, then each Mythic rank's picks. Only the choices are data; what is derived from them is a ` # ` comment (a pick a Path switch takes away). The link stays the share format: there is no import yet.
+_Avoid_: Build file, export format, character sheet
+
 **Stale link**:
 A link whose Build the current game data can't hold: a key the data no longer has, a pick that no longer fits, a pick for a slot or Mythic rank the Build doesn't reach, or a rule broken (the game data changed since the link was made). A damaged or hand-edited link counts the same. It opens nothing: the sheet shows one generic error, "This link no longer works with the current game data", and a blank Build, never a reason. Every Build the sheet's edits make is possible, so nothing on the sheet is ever marked broken.
 _Avoid_: Problem, broken pick, stale-link banner

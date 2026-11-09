@@ -1,10 +1,14 @@
-//! The browser API the sheet needs: the URL fragment that holds the Build.
+//! The browser API the sheet needs: the URL fragment that holds the Build, and the clipboard and a file download
+//! for the build sheet.
 //!
 //! Everything here runs only in the browser: the sheet renders only once the game data has loaded there.
 
-use leptos::prelude::window;
-use leptos::wasm_bindgen::JsValue;
+use std::time::Duration;
+
+use leptos::prelude::{document, set_timeout, window};
+use leptos::wasm_bindgen::{JsCast, JsValue};
 use rules::{Build, encode_build};
+use wasm_bindgen_futures::JsFuture;
 
 /// What the fragment holds: `#b=<code>`.
 const FRAGMENT_PREFIX: &str = "#b=";
@@ -49,4 +53,52 @@ pub fn write_fragment(build: &Build) {
         // A failure leaves the old URL; the Build on the sheet is unaffected.
         let _ = history.replace_state_with_url(&JsValue::NULL, "", Some(&url));
     }
+}
+
+/// The page's address before the fragment (`https://…/wotr-planner/`), which a Build's link adds its fragment to.
+pub fn page_url() -> String {
+    let location = window().location();
+    let origin = location.origin().unwrap_or_default();
+    let path = location.pathname().unwrap_or_else(|_| "/".into());
+    format!("{origin}{path}")
+}
+
+/// Copies text to the clipboard. `false` when the browser has no clipboard here (a page not served over HTTPS or
+/// from localhost) or refuses.
+pub async fn copy_text(text: &str) -> bool {
+    let navigator = window().navigator();
+    // `navigator.clipboard` is undefined outside a secure context: calling it then would throw.
+    let has_clipboard = js_sys::Reflect::get(&navigator, &JsValue::from_str("clipboard"))
+        .is_ok_and(|clipboard| !clipboard.is_undefined());
+    if !has_clipboard {
+        return false;
+    }
+    JsFuture::from(navigator.clipboard().write_text(text))
+        .await
+        .is_ok()
+}
+
+/// Saves text as a plain-text file named `file_name`, through a link to it that is clicked and dropped. `false` when
+/// the browser refuses.
+pub fn download_text(file_name: &str, text: &str) -> bool {
+    let download = || -> Result<(), JsValue> {
+        let options = web_sys::BlobPropertyBag::new();
+        options.set_type("text/plain;charset=utf-8");
+        let parts = js_sys::Array::of1(&JsValue::from_str(text));
+        let blob = web_sys::Blob::new_with_str_sequence_and_options(&parts, &options)?;
+        let url = web_sys::Url::create_object_url_with_blob(&blob)?;
+        let link: web_sys::HtmlAnchorElement = document().create_element("a")?.unchecked_into();
+        link.set_href(&url);
+        link.set_download(file_name);
+        link.click();
+        // Revoked later, not at once: some browsers read the file only after the click returns.
+        set_timeout(
+            move || {
+                let _ = web_sys::Url::revoke_object_url(&url);
+            },
+            Duration::from_secs(10),
+        );
+        Ok(())
+    };
+    download().is_ok()
 }

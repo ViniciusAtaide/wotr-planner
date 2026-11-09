@@ -28,6 +28,7 @@ use crate::parameter::{Parameter, ParameterKind};
 use crate::state::CharacterState;
 
 mod attack;
+mod build_sheet;
 mod catalog;
 mod controls;
 mod labels;
