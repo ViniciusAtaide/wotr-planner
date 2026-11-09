@@ -6,7 +6,7 @@
         name: "Animate Dead, Lesser",
         school: Necromancy,
         guide: "wizard-spells#animate-dead-lesser-necromancy",
-        summary: "Raises 1d3+1 skeletal champions to fight for you (47 HP, AC 22, DR 5/bludgeoning, longsword +8 for d8+9).",
+        summary: "Calls up 1d3+1 skeleton champions that fight for you (47 HP, AC 22, DR 5/bludgeoning, longsword +8 for d8+9).",
         target: "Target point within close range",
         duration: "1 round / level",
         saving_throw: "N/A",
