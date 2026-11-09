@@ -17,7 +17,8 @@ small hand-written example of the layout.
 | File | Holds |
 | --- | --- |
 | `progression.ron` | `Progression`: the mythic rank table (the Character level of each Mythic rank) |
-| `bonuses.ron` | `Vec<ItemBonus>`: the flat bonuses items give while held, each naming its item (ticket 119): spell DCs, caster level against spell resistance, concentration |
+| `bonuses.ron` | `Vec<ItemBonus>`: the flat bonuses items give while held, each naming its item (tickets 119 and 120): spell DCs, caster level against spell resistance, concentration, initiative, saves, skills |
+| `interactions.ron` | `Vec<ItemInteractions>`: what the guide says about how an item combines with others, at most one note per item (ticket 124); optional |
 | `races.ron` | `Vec<Race>`, with subraces and the race's own feat lists (the half-elf's Adaptability) |
 | `skills.ron` | `Vec<Skill>` |
 | `weapons.ron` | `Vec<Weapon>`: the weapons a feat can be taken for, from the guide's simple, martial and exotic lists (`proficiency`; the Sawtooth Saber is exotic, from Weapon Finesse's list), plus what Weapon Focus names besides weapons (unarmed strike, touch attacks, rays), each natural attack the guide names (bite, claw, gore, hoof, slam, spike, tail, talon, wing), Kinetic Blast and Bomb; each weapon's stats for the attack line (ticket 114) |
@@ -575,6 +576,30 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   bonuses from one school"): Spell Focus, Greater and Mythic, from the school where they add up to most, and nothing
   in a school with Spell Focus feats of its own ("this has no effect"). The real-data test `caster_line` holds the
   Max DC run's Build and its numbers.
+- The totals' bonuses (ticket 120), in `bonuses.ron` beside the caster line's. The item may also be a `Background`
+  (the user's list: Pickpocket +2 initiative; Farmhand, Lumberjack, Miner and Smith +1 Fortitude, though the guide's
+  table shows it for the Farmhand only; Varisian Explorer +1 Reflex; Nexian Scholar and Osirian Historian +2 to their
+  Knowledge) or a `MythicAbility`. The target may be `Initiative`, `Save(Fortitude)`, `AllSaves`,
+  `Skill("perception")`, `AllSkills`, or `Held`: the skill or stat a parameterised feat is held for (Skill Focus
+  (Persuasion), Stat Focus (Initiative); Stat Focus's other stats count nowhere). The amount may also be
+  `TenRanks(amount: 3, with_ten_ranks: 6)` (Skill Focus, Alertness, Persuasive and their kin: the higher number with
+  10 or more ranks in the skill, on skill targets only) or `AbilityModifier(Charisma)` (Divine Grace; Cunning
+  Initiative's Wisdom beside the Dexterity every initiative counts). Every race and subrace has its skill bonuses
+  from the guide's racial traits (a subrace's in place of its race's): Keen Senses, Elven Magic, Obsessive,
+  Sure-Footed, the heritages' pairs. Bonuses for one use of a skill ("Persuasion when used for diplomacy", for bluff
+  or to intimidate, the Andoran Diplomat's diplomacy), against one kind of effect or foe, in one place (underground,
+  a favoured terrain), with one weapon, that grow with class level, and the mythic Iron Will, Great Fortitude and
+  Lightning Reflexes (rerolls) stay out, in the totals' `leaves_out`. Steps at a class level use `requires`: the
+  Duelist's Improved Reaction (+2, +4 at Duelist 8), Powerless Prophecy (+4 from oracle 5). The real-data test
+  `totals` holds the Max DC run's initiative, Will and Persuasion, a halfling paladin's saves and Skill Focus at 10
+  ranks.
+- `interactions.ron` (ticket 124) holds notes on how an item combines with others (`rules::ItemInteractions`):
+  `(item: MythicFeat("expanded-arsenal"), interactions: "…")`, the item named as in `bonuses.ron`, at most one note
+  per item, in our own words from the saved guide pages, saying "the guide doesn't say" where it doesn't. Only the
+  items an agent run showed two summaries weren't enough for (ticket 124's five: Favorable Magic, Persistent Spell,
+  Expanded Arsenal, Second Bloodline, Bloodline Ascendance, and the Fey and Infernal bloodlines' arcana against School
+  Power); new notes as later runs find them, no sweep. `describe` shows the note. The real-data test `totals` checks
+  they're present.
 - Keys are readable text from the guide's anchors: `power-attack` (a feat), `rogue` (a class),
   `rogue/dark-lurker` (an archetype), `rogue/rogue-talents/fast-stealth` (a selection option). A key has no type
   prefix: where it sits says what it names, so keys of two kinds may be equal (the feature and the selection

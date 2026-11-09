@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "SELECT race_key, subrace_key, feat_key, mythic_feat_key, feature_key, selection_option_key, target,\n            scope, spell_school, subschool, energy, amount_kind, amount, prerequisite_root_id\n        FROM item_bonus ORDER BY id",
+  "query": "SELECT race_key, subrace_key, background_key, feat_key, mythic_feat_key, mythic_ability_key, feature_key,\n            selection_option_key, target, scope, spell_school, subschool, energy, save, skill_key, amount_kind, amount,\n            amount_with_ten_ranks, ability, prerequisite_root_id\n        FROM item_bonus ORDER BY id",
   "describe": {
     "columns": [
       {
@@ -26,8 +26,19 @@
         }
       },
       {
-        "name": "feat_key",
+        "name": "background_key",
         "ordinal": 2,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "item_bonus",
+            "name": "background_key"
+          }
+        }
+      },
+      {
+        "name": "feat_key",
+        "ordinal": 3,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -38,7 +49,7 @@
       },
       {
         "name": "mythic_feat_key",
-        "ordinal": 3,
+        "ordinal": 4,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -48,8 +59,19 @@
         }
       },
       {
+        "name": "mythic_ability_key",
+        "ordinal": 5,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "item_bonus",
+            "name": "mythic_ability_key"
+          }
+        }
+      },
+      {
         "name": "feature_key",
-        "ordinal": 4,
+        "ordinal": 6,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -60,7 +82,7 @@
       },
       {
         "name": "selection_option_key",
-        "ordinal": 5,
+        "ordinal": 7,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -71,7 +93,7 @@
       },
       {
         "name": "target",
-        "ordinal": 6,
+        "ordinal": 8,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -82,7 +104,7 @@
       },
       {
         "name": "scope",
-        "ordinal": 7,
+        "ordinal": 9,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -93,7 +115,7 @@
       },
       {
         "name": "spell_school",
-        "ordinal": 8,
+        "ordinal": 10,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -104,7 +126,7 @@
       },
       {
         "name": "subschool",
-        "ordinal": 9,
+        "ordinal": 11,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -115,7 +137,7 @@
       },
       {
         "name": "energy",
-        "ordinal": 10,
+        "ordinal": 12,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -125,8 +147,30 @@
         }
       },
       {
+        "name": "save",
+        "ordinal": 13,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "item_bonus",
+            "name": "save"
+          }
+        }
+      },
+      {
+        "name": "skill_key",
+        "ordinal": 14,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "item_bonus",
+            "name": "skill_key"
+          }
+        }
+      },
+      {
         "name": "amount_kind",
-        "ordinal": 11,
+        "ordinal": 15,
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -137,7 +181,7 @@
       },
       {
         "name": "amount",
-        "ordinal": 12,
+        "ordinal": 16,
         "type_info": "Integer",
         "origin": {
           "Table": {
@@ -147,8 +191,30 @@
         }
       },
       {
+        "name": "amount_with_ten_ranks",
+        "ordinal": 17,
+        "type_info": "Integer",
+        "origin": {
+          "Table": {
+            "table": "item_bonus",
+            "name": "amount_with_ten_ranks"
+          }
+        }
+      },
+      {
+        "name": "ability",
+        "ordinal": 18,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "item_bonus",
+            "name": "ability"
+          }
+        }
+      },
+      {
         "name": "prerequisite_root_id",
-        "ordinal": 13,
+        "ordinal": 19,
         "type_info": "Integer",
         "origin": {
           "Table": {
@@ -168,15 +234,21 @@
       true,
       true,
       true,
-      false,
-      true,
-      true,
       true,
       true,
       false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      false,
+      true,
+      true,
       true,
       true
     ]
   },
-  "hash": "bff468893741d5d50c8509aece7bf4eade09ae80b502e225326d199138c218ee"
+  "hash": "5e5e4cd5fcd94e93c6e0f6a630032e38090e73b2c1eb159c8351d6d7939b05de"
 }

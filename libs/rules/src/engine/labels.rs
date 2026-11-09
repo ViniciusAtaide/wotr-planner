@@ -320,6 +320,17 @@ impl Engine {
             .map_or(key.as_str(), |background| &background.name)
     }
 
+    /// What the guide says about how an item combines with others (`interactions.ron`, ticket 124); `None` for an
+    /// item without a note.
+    pub fn interactions(&self, item: &crate::bonus::BonusItem) -> Option<&str> {
+        self.catalog
+            .data()
+            .interactions
+            .iter()
+            .find(|note| &note.item == item)
+            .map(|note| note.interactions.as_str())
+    }
+
     pub fn deity_name<'a>(&'a self, key: &'a DeityKey) -> &'a str {
         self.catalog
             .deity(key)

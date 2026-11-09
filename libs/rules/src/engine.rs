@@ -37,11 +37,13 @@ mod pickers;
 mod removable;
 mod slots;
 mod switch;
+mod totals;
 mod walk;
 
 pub use attack::{ATTACK_LINE_LEAVES_OUT, AttackLine, AttackPart, PowerAttack};
 pub use caster::{CASTER_LINE_LEAVES_OUT, CasterLine, CasterPart, SpellDc};
 use catalog::Catalog;
+pub use totals::{CLASS_SKILL_BONUS, SkillTotal, TOTALS_LEAVE_OUT, Total, TotalPart, Totals};
 
 /// The highest character level without a path that raises it.
 pub const BASE_LEVEL_CAP: u8 = 20;

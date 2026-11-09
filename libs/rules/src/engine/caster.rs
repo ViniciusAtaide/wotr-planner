@@ -12,7 +12,7 @@ use std::collections::BTreeMap;
 use crate::bonus::{BonusAmount, BonusItem, BonusTarget, ItemBonus, SpellScope, SpellTraits};
 use crate::build::BuildStart;
 use crate::game_data::Ability;
-use crate::keys::{ClassKey, FeatKey};
+use crate::keys::{ClassKey, FeatKey, SkillKey};
 use crate::parameter::{Parameter, SpellSchool};
 use crate::state::CharacterState;
 
@@ -119,7 +119,7 @@ impl Engine {
             } else if scope.applies(&spell, value.as_ref()) {
                 dc_parts.push(CasterPart {
                     name: name.clone(),
-                    value: amount(bonus.amount, state),
+                    value: amount(bonus.amount, state, None),
                 });
             }
         }
@@ -128,7 +128,7 @@ impl Engine {
                 .filter(|(bonus, _, _)| bonus.target == target)
                 .map(|(bonus, _, name)| CasterPart {
                     name: name.clone(),
-                    value: amount(bonus.amount, state),
+                    value: amount(bonus.amount, state, None),
                 })
                 .collect()
         };
@@ -204,8 +204,8 @@ impl Engine {
     }
 
     /// Every bonus the character holds, once for each value its item is held for, with the part's name; those whose
-    /// `requires` the character doesn't meet are left out. In the data's order.
-    fn held_bonuses<'a>(
+    /// `requires` the character doesn't meet are left out. In the data's order. Shared with [`Engine::totals`].
+    pub(super) fn held_bonuses<'a>(
         &'a self,
         start: &BuildStart,
         state: &CharacterState,
@@ -261,6 +261,20 @@ impl Engine {
                         .is_some_and(|(owner, _)| start.race.as_ref() == Some(&owner.key));
                 if holds {
                     vec![(None, self.subrace_name(subrace).to_owned())]
+                } else {
+                    vec![]
+                }
+            }
+            BonusItem::Background(background) => {
+                if start.background.as_ref() == Some(background) {
+                    vec![(None, self.background_name(background).to_owned())]
+                } else {
+                    vec![]
+                }
+            }
+            BonusItem::MythicAbility(ability) => {
+                if state.mythic_abilities.contains(ability) {
+                    vec![(None, self.mythic_ability_name(ability).to_owned())]
                 } else {
                     vec![]
                 }
@@ -354,18 +368,26 @@ fn expanded_arsenal(
     })
 }
 
-/// What a bonus adds for a character.
-fn amount(amount: BonusAmount, state: &CharacterState) -> i16 {
+/// What a bonus adds for a character; for a skill bonus, `skill` is the skill whose ranks it may rise with.
+pub(super) fn amount(amount: BonusAmount, state: &CharacterState, skill: Option<&SkillKey>) -> i16 {
     match amount {
         BonusAmount::Flat(value) => i16::from(value),
         BonusAmount::HalfMythicRank => i16::from(state.mythic_rank / 2),
         BonusAmount::MythicRank => i16::from(state.mythic_rank),
         // Only Expanded Arsenal, which `caster_line` works out apart.
         BonusAmount::SpellFocusOfAnotherSchool => 0,
+        BonusAmount::TenRanks {
+            amount,
+            with_ten_ranks,
+        } => {
+            let ranks = skill.map_or(0, |skill| state.prerequisite_skill_ranks(skill));
+            i16::from(if ranks >= 10 { with_ten_ranks } else { amount })
+        }
+        BonusAmount::AbilityModifier(ability) => modifier(state.ability_scores.get(ability)),
     }
 }
 
 /// An ability score's modifier: −1 for 8 or 9, +7 for 24 or 25.
-fn modifier(score: u8) -> i16 {
+pub(super) fn modifier(score: u8) -> i16 {
     (i16::from(score) - 10).div_euclid(2)
 }

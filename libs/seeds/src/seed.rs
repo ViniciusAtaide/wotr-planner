@@ -319,6 +319,7 @@ async fn insert_all(
         insert_spell_list(conn, list).await?;
     }
     bonuses::insert(conn, &data.bonuses).await?;
+    bonuses::insert_interactions(conn, &data.interactions).await?;
 
     sqlx::query!("INSERT INTO game_data_seed (hash) VALUES ($1)", hash)
         .execute(&mut *conn)

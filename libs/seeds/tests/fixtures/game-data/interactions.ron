@@ -1,0 +1,6 @@
+// Hand-written test fixture: interactions notes (ticket 124) on items of several kinds, not checked against the guide.
+[
+    (item: MythicAbility("second-bloodline"), interactions: "A note on a mythic ability."),
+    (item: Feat("skill-focus"), interactions: "A note on a feat."),
+    (item: Background("aldori-swordsman"), interactions: "A note on a background."),
+]

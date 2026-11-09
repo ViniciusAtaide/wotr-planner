@@ -2,6 +2,7 @@
 //! depends on hold in them.
 
 mod support;
+mod totals;
 
 mod alignment;
 mod archetype_saves;

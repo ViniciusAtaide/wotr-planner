@@ -82,6 +82,7 @@ async fn load(db: &Database) -> Result<GameData, sqlx::Error> {
     let mythic_abilities = load_mythic_abilities(conn, &mut trees, &mut grants).await?;
     let mythic_feats = load_mythic_feats(conn, &mut trees).await?;
     let bonuses = bonuses::load(conn, &mut trees).await?;
+    let interactions = bonuses::load_interactions(conn).await?;
     let backgrounds = load_backgrounds(conn, &mut grants, &mut class_skills).await?;
     let deities = load_deities(conn).await?;
     let spells = load_spells(conn).await?;
@@ -124,6 +125,7 @@ async fn load(db: &Database) -> Result<GameData, sqlx::Error> {
         mythic_abilities,
         mythic_feats,
         bonuses,
+        interactions,
         mythic_paths,
         backgrounds,
         deities,

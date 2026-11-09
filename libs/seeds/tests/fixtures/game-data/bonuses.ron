@@ -1,4 +1,4 @@
-// Hand-written test fixture: every shape of an item bonus (ticket 119), not checked against the guide.
+// Hand-written test fixture: every shape of an item bonus (tickets 119 and 120), not checked against the guide.
 [
     (item: Feat("spell-focus"), target: SpellDc(Value), amount: Flat(1)),
     (item: Feat("elemental-focus"), target: SpellDc(Value), amount: Flat(1)),
@@ -13,4 +13,10 @@
     (item: Feat("toughness"), target: SpellDc(All), amount: Flat(-1)),
     (item: Feat("power-attack"), target: Concentration, amount: HalfMythicRank, requires: Not(Feat("dodge"))),
     (item: Feat("power-attack"), target: Concentration, amount: MythicRank, requires: All([Feat("dodge"), Feat("toughness")])),
+    (item: Background("shackles-corsair"), target: Initiative, amount: Flat(2)),
+    (item: MythicAbility("mythic-charge"), target: Save(Will), amount: AbilityModifier(Charisma)),
+    (item: Race("elf"), target: AllSaves, amount: Flat(1)),
+    (item: Feat("toughness"), target: Skill("persuasion"), amount: TenRanks(amount: 2, with_ten_ranks: 4)),
+    (item: Feat("dodge"), target: AllSkills, amount: MythicRank),
+    (item: Feat("skill-focus"), target: Held, amount: TenRanks(amount: 3, with_ten_ranks: 6)),
 ]

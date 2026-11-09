@@ -11,7 +11,7 @@ use std::collections::BTreeSet;
 
 use serde::{Deserialize, Serialize};
 
-use crate::bonus::ItemBonus;
+use crate::bonus::{ItemBonus, ItemInteractions};
 use crate::keys::{
     ArchetypeKey, BackgroundKey, ClassKey, DeityKey, FeatKey, FeatListKey, FeatureKey,
     FeatureSelectionKey, MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey,
@@ -56,10 +56,14 @@ pub struct GameData {
     pub prestige_classes: Vec<Class>,
     pub mythic_abilities: Vec<MythicAbility>,
     pub mythic_feats: Vec<MythicFeat>,
-    /// The flat bonuses items give while held (`bonuses.ron`, ticket 119): spell DCs, caster level against spell
-    /// resistance, concentration.
+    /// The flat bonuses items give while held (`bonuses.ron`, tickets 119 and 120): spell DCs, caster level against
+    /// spell resistance, concentration, initiative, saves and skills.
     #[serde(default)]
     pub bonuses: Vec<ItemBonus>,
+    /// What the guide says about how some items combine with others (`interactions.ron`, ticket 124), at most one
+    /// note per item.
+    #[serde(default)]
+    pub interactions: Vec<ItemInteractions>,
     pub mythic_paths: Vec<MythicPath>,
     /// The backgrounds chosen at Build start (`backgrounds.ron`, the user's list).
     pub backgrounds: Vec<Background>,
@@ -222,6 +226,7 @@ impl GameData {
                 b.requires.clone(),
             )
         });
+        sort_by_key(&mut self.interactions, |note| note.item.clone());
         sort_by_key(&mut self.mythic_paths, |p| p.key.clone());
         for path in &mut self.mythic_paths {
             canonicalize_features(&mut path.features);
