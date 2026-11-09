@@ -12,6 +12,7 @@ use crate::error::ToolError;
 use crate::options::{Offer, issue_code, issue_reason, offers};
 use crate::planner::Planner;
 use crate::shapes::{ChoiceValue, ChooseArgs, ChooseResult, Rejected};
+use crate::similar::{FLOOR, closeness, distance};
 
 /// How many offered values a `not_an_option` reason names.
 const CLOSEST: usize = 5;
@@ -218,7 +219,8 @@ fn stepper_value(build: &Build, address: &Address) -> u8 {
     }
 }
 
-/// Why a value isn't taken at an address: a prestige class that needs its `advances`, or the closest values offered.
+/// Why a value isn't taken at an address: a prestige class that needs its `advances`, or the closest values offered
+/// (only those at or above the [`FLOOR`], so a value sharing one word of two isn't named).
 fn not_offered(address: &Address, value: &ChoiceValue, offers: &[Offer]) -> ToolError {
     if let ChoiceValue::Class {
         advances: None,
@@ -252,32 +254,30 @@ fn not_offered(address: &Address, value: &ChoiceValue, offers: &[Offer]) -> Tool
     if offers.is_empty() {
         return ToolError::not_an_option(format!("`{address}` offers nothing now."));
     }
-    let mut ranked: Vec<(usize, &Offer)> = offers.iter().enumerate().collect();
     let given = value_text(value);
-    let given_words = words(&given);
-    ranked.sort_by_cached_key(|(order, offer)| {
-        let offered = value_text(&offer.value);
-        let mut offered_words = words(&offered);
-        offered_words.extend(words(&offer.name));
-        let shared = given_words
-            .iter()
-            .filter(|word| {
-                offered_words.iter().any(|other| {
-                    other.starts_with(word.as_str()) || word.starts_with(other.as_str())
-                })
+    let plain = plain_text(value);
+    let mut ranked: Vec<(f64, usize, &Offer)> = offers
+        .iter()
+        .enumerate()
+        .filter_map(|(order, offer)| {
+            let closeness =
+                closeness(&plain, &plain_text(&offer.value)).max(closeness(&plain, &offer.name));
+            (closeness >= FLOOR).then_some((closeness, order, offer))
+        })
+        .collect();
+    ranked.sort_by(|(a, a_order, a_offer), (b, b_order, b_offer)| {
+        b.total_cmp(a)
+            .then_with(|| {
+                distance(&given, &value_text(&a_offer.value))
+                    .cmp(&distance(&given, &value_text(&b_offer.value)))
             })
-            .count();
-        (
-            std::cmp::Reverse(shared),
-            distance(&given, &offered),
-            offer.status.is_err(),
-            *order,
-        )
+            .then_with(|| a_offer.status.is_err().cmp(&b_offer.status.is_err()))
+            .then_with(|| a_order.cmp(b_order))
     });
     let closest: Vec<String> = ranked
         .iter()
         .take(CLOSEST)
-        .map(|(_, offer)| {
+        .map(|(_, _, offer)| {
             let open = if offer.status.is_ok() {
                 ""
             } else {
@@ -286,10 +286,13 @@ fn not_offered(address: &Address, value: &ChoiceValue, offers: &[Offer]) -> Tool
             format!("{} (`{}`{open})", offer.name, value_text(&offer.value))
         })
         .collect();
+    let closest = match closest.is_empty() {
+        true => ", and no offered value is close to it".to_owned(),
+        false => format!(". Closest: {}", closest.join(", ")),
+    };
     ToolError::not_an_option(format!(
-        "`{given}` isn't an option for `{address}`. Closest: {}. `options` lists what it takes, with `values: true` \
-         for a parameterised feat's values.",
-        closest.join(", ")
+        "`{given}` isn't an option for `{address}`{closest}. `options` lists what it takes, with `values: true` for a \
+         parameterised feat's values."
     ))
 }
 
@@ -312,29 +315,14 @@ fn value_text(value: &ChoiceValue) -> String {
     serde_json::to_string(value).expect("a value serialises")
 }
 
-/// The lower-case words of a text (letters and digits).
-fn words(text: &str) -> Vec<String> {
-    text.split(|c: char| !c.is_alphanumeric())
-        .filter(|word| !word.is_empty())
-        .map(str::to_lowercase)
-        .collect()
-}
-
-/// The edit distance between two texts, ignoring case.
-fn distance(a: &str, b: &str) -> usize {
-    let a: Vec<char> = a.to_lowercase().chars().collect();
-    let b: Vec<char> = b.to_lowercase().chars().collect();
-    let mut row: Vec<usize> = (0..=b.len()).collect();
-    for (i, ca) in a.iter().enumerate() {
-        let mut diagonal = row[0];
-        row[0] = i + 1;
-        for (j, cb) in b.iter().enumerate() {
-            let above = row[j + 1];
-            row[j + 1] = (above + 1)
-                .min(row[j] + 1)
-                .min(diagonal + usize::from(ca != cb));
-            diagonal = above;
-        }
+/// A value's keys, numbers and parameter as plain text, to measure how close it is to another.
+fn plain_text(value: &ChoiceValue) -> String {
+    match value {
+        ChoiceValue::Number(n) => n.to_string(),
+        ChoiceValue::Key(key) => key.clone(),
+        ChoiceValue::Parameterised { key, parameter } => format!("{key} {parameter}"),
+        ChoiceValue::Class {
+            class, archetype, ..
+        } => format!("{class} {}", archetype.as_deref().unwrap_or_default()),
     }
-    row[b.len()]
 }

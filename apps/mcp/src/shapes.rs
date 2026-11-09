@@ -42,25 +42,72 @@ pub enum Kind {
     Background,
 }
 
+impl Kind {
+    /// The kind as the tools write it: `feat`, `mythic_feat`, `option`, …
+    pub fn noun(self) -> &'static str {
+        match self {
+            Kind::Class => "class",
+            Kind::Archetype => "archetype",
+            Kind::Path => "path",
+            Kind::Feat => "feat",
+            Kind::MythicAbility => "mythic_ability",
+            Kind::MythicFeat => "mythic_feat",
+            Kind::SelectionOption => "option",
+            Kind::Race => "race",
+            Kind::Deity => "deity",
+            Kind::Background => "background",
+        }
+    }
+}
+
 /// `search`'s arguments.
 #[derive(Debug, Deserialize, JsonSchema)]
 pub struct SearchArgs {
-    /// Words of a name, a key, or initials ("BFT" for Brown-Fur Transmuter). Case doesn't matter.
+    /// Words of a name, a key, or initials ("BFT" for Brown-Fur Transmuter). Case doesn't matter. May be empty or
+    /// left out when `kinds` or `category` is given: then every item they allow matches.
+    #[serde(default)]
     pub query: String,
     /// Only these kinds; every kind when left out.
     #[serde(default)]
     pub kinds: Option<Vec<Kind>>,
-    /// At most this many matches (default 10, at most 50).
+    /// Only items in this category, or in any of these (case doesn't matter): a feat's category ("Weapon", "Magic",
+    /// …), a mythic ability's or feat's group ("Melee", "Ranged", …), an option's Feature selection by name ("Rage
+    /// Power") or key, "Base class" or "Prestige class", a background's group.
+    #[serde(default)]
+    pub category: Option<OneOrMany>,
+    /// At most this many matches (default 10, or 50 for an empty query; at most 100).
     #[serde(default)]
     pub limit: Option<u32>,
+}
+
+/// One text, or a list of them.
+#[derive(Debug, Deserialize, JsonSchema)]
+#[serde(untagged)]
+pub enum OneOrMany {
+    One(String),
+    Many(Vec<String>),
+}
+
+impl OneOrMany {
+    pub fn into_vec(self) -> Vec<String> {
+        match self {
+            OneOrMany::One(one) => vec![one],
+            OneOrMany::Many(many) => many,
+        }
+    }
 }
 
 /// `search`'s result.
 #[derive(Debug, Serialize, JsonSchema)]
 pub struct SearchResult {
     /// The best match first: exact names and keys, then initials, then names starting with the query, then
-    /// names holding its words, then any name or key containing it.
+    /// names holding its words, then any name or key containing it. For an empty query, by kind, then name.
     pub matches: Vec<Hit>,
+    /// How many items match in all; more than `matches` holds when `limit` cut the list.
+    pub total: u32,
+    /// When nothing matches: says so, and names the near names (or categories), if any is close.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub note: Option<String>,
 }
 
 /// One item, as `search` lists it and `describe` heads it.

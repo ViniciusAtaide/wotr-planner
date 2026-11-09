@@ -207,12 +207,17 @@ fn not_found(planner: &Planner, kind: Kind, key: &str) -> String {
     let kind_name = kind_name.as_str().unwrap_or_default();
     let mut message = format!("No {kind_name} has the key `{key}`.");
     let query = key.replace(['/', '-'], " ");
-    let closest: Vec<Hit> = planner
-        .index
-        .search(key, None, Some(5))
-        .filter(|hits| !hits.is_empty())
-        .or_else(|| planner.index.search(&query, None, Some(5)))
-        .unwrap_or_default();
+    let search = |query: &str| {
+        planner
+            .index
+            .search(query, None, None, Some(5))
+            .map(|found| found.matches)
+            .unwrap_or_default()
+    };
+    let mut closest: Vec<Hit> = search(key);
+    if closest.is_empty() {
+        closest = search(&query);
+    }
     if !closest.is_empty() {
         let closest: Vec<String> = closest
             .iter()

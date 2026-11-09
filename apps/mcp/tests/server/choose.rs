@@ -97,6 +97,24 @@ async fn an_unoffered_value_is_not_an_option_with_the_closest_names() {
 }
 
 #[tokio::test]
+async fn a_name_that_shares_only_a_word_gets_no_closest_names() {
+    let fighter = build("human", &["fighter"]);
+    let refused = choose(
+        &fighter,
+        json!([{ "choice": "slot.feat.1.general.0", "value": "furious-focus" }]),
+    )
+    .await;
+    assert_eq!(refused["rejected"]["issue"], "not_an_option");
+    let reason = text(&refused["rejected"]["reason"]);
+    assert!(!reason.contains("Closest"), "{reason}");
+    assert!(!reason.contains("weapon-focus"), "{reason}");
+    assert!(
+        reason.contains("no offered value is close to it"),
+        "{reason}"
+    );
+}
+
+#[tokio::test]
 async fn a_batch_stops_at_its_first_failure() {
     let fighter = build("human", &["fighter"]);
     let batch = choose(

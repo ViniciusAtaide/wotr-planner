@@ -11,6 +11,7 @@
 //!   Build-taking tool returns; `address.rs` writes and reads choice addresses; `values.rs` writes choices' values;
 //!   `error.rs` is the server's refusals (`stale_link`, `no_such_choice`, `not_an_option`, `not_removable`,
 //!   `invalid_arguments`, `internal`).
+//! - `similar.rs`: how close a given name is to the planner's, for the hints after a miss, above one floor.
 
 mod address;
 mod choose;
@@ -24,6 +25,7 @@ mod search;
 mod server;
 mod shapes;
 mod sheet;
+mod similar;
 mod values;
 mod withdraw;
 

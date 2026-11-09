@@ -20,8 +20,8 @@ use crate::options::options;
 use crate::planner::Planner;
 use crate::shapes::{
     BuildResult, ChooseArgs, ChooseResult, CompareArgs, CompareResult, DescribeArgs, Item,
-    NewBuildArgs, OptionsArgs, OptionsResult, SearchArgs, SearchResult, SheetArgs, SheetResult,
-    WithdrawArgs,
+    NewBuildArgs, OneOrMany, OptionsArgs, OptionsResult, SearchArgs, SearchResult, SheetArgs,
+    SheetResult, WithdrawArgs,
 };
 use crate::sheet::sheet;
 use crate::withdraw::withdraw;
@@ -107,7 +107,11 @@ impl Server {
             selection: an arcanist exploit, a rogue talent, a bloodline, a Lich power), race, deity, background. \
             Each match has the key `describe` takes, its parent (an archetype's class, an option's selection), its \
             category, its prerequisite in the planner's words, and a guide link for the user (never fetch it). Best \
-            match first.",
+            match first. `category` filters by a feat's category (\"Weapon\", \"Magic\", …), a mythic pick's group \
+            (\"Melee\", \"Ranged\", …) or an option's Feature selection (\"Rage Power\"), one or a list; with \
+            `kinds` or `category`, `query` may be empty to list every item they allow (\"every Melee mythic \
+            feat\"). `total` counts every match, beyond `limit`. When nothing matches, `note` says so and names \
+            only near names: the data holds what the guide lists, so a name it lacks isn't in the planner.",
         annotations(read_only_hint = true, open_world_hint = false)
     )]
     async fn search(
@@ -115,11 +119,16 @@ impl Server {
         Parameters(args): Parameters<SearchArgs>,
     ) -> Result<Json<SearchResult>, String> {
         self.blocking(move |planner| {
-            let matches = planner
+            let categories = args.category.map(OneOrMany::into_vec);
+            planner
                 .index
-                .search(&args.query, args.kinds.as_deref(), args.limit)
-                .ok_or("The query is empty: give a name, a key or initials.")?;
-            Ok(Json(SearchResult { matches }))
+                .search(
+                    &args.query,
+                    args.kinds.as_deref(),
+                    categories.as_deref(),
+                    args.limit,
+                )
+                .map(Json)
         })
         .await
     }
