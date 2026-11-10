@@ -14,10 +14,7 @@ use crate::error::ToolError;
 use crate::options::{Offer, issue_code, issue_reason, offers};
 use crate::planner::Planner;
 use crate::shapes::{ChoiceValue, ChooseArgs, ChooseResult, Rejected};
-use crate::similar::{FLOOR, closeness, distance};
-
-/// How many offered values a `not_an_option` reason names.
-const CLOSEST: usize = 5;
+use crate::similar::{closeness, closest_note, distance, nearest};
 
 /// `choose`: the steps applied in order up to the first refused, with the code as the last applied one left it.
 pub(crate) fn choose(planner: &Planner, args: ChooseArgs) -> Result<ChooseResult, ToolError> {
@@ -326,7 +323,7 @@ fn stepper_value(build: &Build, address: &Address) -> u8 {
 }
 
 /// Why a value isn't taken at an address: a prestige class that needs its `advances`, or the closest values offered
-/// (only those at or above the [`FLOOR`], so a value sharing one word of two isn't named).
+/// ([`nearest`]: only those close enough, so a value sharing one word of two isn't named).
 fn not_offered(address: &Address, value: &ChoiceValue, offers: &[Offer]) -> ToolError {
     if let ChoiceValue::Class {
         advances: None,
@@ -362,28 +359,18 @@ fn not_offered(address: &Address, value: &ChoiceValue, offers: &[Offer]) -> Tool
     }
     let given = value_text(value);
     let plain = plain_text(value);
-    let mut ranked: Vec<(f64, usize, &Offer)> = offers
-        .iter()
-        .enumerate()
-        .filter_map(|(order, offer)| {
-            let closeness =
-                closeness(&plain, &plain_text(&offer.value)).max(closeness(&plain, &offer.name));
-            (closeness >= FLOOR).then_some((closeness, order, offer))
-        })
-        .collect();
-    ranked.sort_by(|(a, a_order, a_offer), (b, b_order, b_offer)| {
-        b.total_cmp(a)
-            .then_with(|| {
-                distance(&given, &value_text(&a_offer.value))
-                    .cmp(&distance(&given, &value_text(&b_offer.value)))
-            })
-            .then_with(|| a_offer.status.is_err().cmp(&b_offer.status.is_err()))
-            .then_with(|| a_order.cmp(b_order))
-    });
+    let ranked = nearest(
+        offers,
+        |offer| closeness(&plain, &plain_text(&offer.value)).max(closeness(&plain, &offer.name)),
+        |one, other| {
+            distance(&given, &value_text(&one.value))
+                .cmp(&distance(&given, &value_text(&other.value)))
+                .then_with(|| one.status.is_err().cmp(&other.status.is_err()))
+        },
+    );
     let closest: Vec<String> = ranked
         .iter()
-        .take(CLOSEST)
-        .map(|(_, _, offer)| {
+        .map(|offer| {
             let open = if offer.status.is_ok() {
                 ""
             } else {
@@ -392,10 +379,8 @@ fn not_offered(address: &Address, value: &ChoiceValue, offers: &[Offer]) -> Tool
             format!("{} (`{}`{open})", offer.name, value_text(&offer.value))
         })
         .collect();
-    let closest = match closest.is_empty() {
-        true => ", and no offered value is close to it".to_owned(),
-        false => format!(". Closest: {}", closest.join(", ")),
-    };
+    let closest = closest_note(&closest)
+        .unwrap_or_else(|| ", and no offered value is close to it".to_owned());
     ToolError::not_an_option(format!(
         "`{given}` isn't an option for `{address}`{closest}. `options` lists what it takes, with `values: true` for a \
          parameterised feat's values."

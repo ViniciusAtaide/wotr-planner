@@ -5,7 +5,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use super::{GrantSource, Held, Pending, Walker};
 use crate::build::{FeatSource, LevelUp, SlotId};
-use crate::choice::Choice;
+use crate::choice::{Choice, Issue};
 use crate::engine::catalog::Catalog;
 use crate::engine::{
     SkillPoints, Slot, SlotKind, advanced_spellcasting, class_level_cap, most_advanced,
@@ -17,31 +17,42 @@ use crate::state::{CharacterState, ClassLevels};
 impl<'a> Walker<'a> {
     /// On a class's first level: the class, archetype and advancement choices are checked against the character
     /// before the level. An archetype stating an alignment requirement replaces the class's
-    /// ([`Catalog::entry_prerequisites`]).
+    /// ([`Catalog::entry_prerequisites`]). A class or archetype whose prerequisites aren't met fails with
+    /// [`Issue::Unmet`]; a key the data lacks (the class's, the archetype's, an advanced class's) with
+    /// [`Issue::UnknownKey`]; an archetype of another class or an advancement the class can't take with
+    /// [`Issue::NotAllowed`].
     pub(super) fn check_class_entry(&mut self, level: u8, level_up: &LevelUp) {
         if self.state.class_level(&level_up.class) > 0 {
             return;
         }
         let catalog = &self.engine.catalog;
         let Some((class, _)) = catalog.class(&level_up.class) else {
-            self.fail(Choice::Class { level });
+            self.fail(Choice::Class { level }, Issue::UnknownKey);
             return;
         };
         let choice = self.build.class_choices.get(&level_up.class);
         let key = choice.and_then(|choice| choice.archetype.as_ref());
         let archetype = catalog.archetype_of(class, key);
         let [class_needs, archetype_needs] = catalog.entry_prerequisites(class, archetype);
-        let fails = |needs: Option<&_>| needs.is_some_and(|needs| self.state.check(needs).is_err());
-        let class_fails = fails(class_needs);
+        let unmet = |needs: Option<&_>| needs.and_then(|needs| self.state.check(needs).err());
+        let class_unmet = unmet(class_needs);
         // A key the data lacks, an archetype of another class, or one whose prerequisites aren't met.
-        let archetype_fails = key.is_some() && (archetype.is_none() || fails(archetype_needs));
-        if class_fails {
-            self.fail(Choice::Class { level });
+        let archetype_issue = match (key, archetype) {
+            (None, _) => None,
+            (Some(key), None) if catalog.archetype(key).is_none() => Some(Issue::UnknownKey),
+            (Some(_), None) => Some(Issue::NotAllowed),
+            (Some(_), Some(_)) => unmet(archetype_needs).map(Issue::Unmet),
+        };
+        if let Some(unmet) = class_unmet {
+            self.fail(Choice::Class { level }, Issue::Unmet(unmet));
         }
-        if archetype_fails {
-            self.fail(Choice::Archetype {
-                class: level_up.class.clone(),
-            });
+        if let Some(issue) = archetype_issue {
+            self.fail(
+                Choice::Archetype {
+                    class: level_up.class.clone(),
+                },
+                issue,
+            );
         }
         if let Some(choice) = choice
             && !choice.advances.is_empty()
@@ -51,9 +62,19 @@ impl<'a> Walker<'a> {
     }
 
     /// A prestige class advances at most one arcane and one divine class (one class in all when it advances
-    /// `Either`: [`most_advanced`]), each already taken and casting the spells it advances.
+    /// `Either`: [`most_advanced`]), each already taken and casting the spells it advances; one the data lacks is
+    /// [`Issue::UnknownKey`].
     fn check_advances(&mut self, prestige: &Class, advances: &BTreeSet<ClassKey>) {
         let catalog = &self.engine.catalog;
+        if advances.iter().any(|key| catalog.class(key).is_none()) {
+            self.fail(
+                Choice::Advances {
+                    class: prestige.key.clone(),
+                },
+                Issue::UnknownKey,
+            );
+            return;
+        }
         let (advances_arcane, advances_divine) = advanced_spellcasting(prestige);
         // For each named class: (can take the arcane advancement, can take the divine one).
         let mut serves = Vec::new();
@@ -77,9 +98,12 @@ impl<'a> Walker<'a> {
                 _ => false,
             };
         if !fits {
-            self.fail(Choice::Advances {
-                class: prestige.key.clone(),
-            });
+            self.fail(
+                Choice::Advances {
+                    class: prestige.key.clone(),
+                },
+                Issue::NotAllowed,
+            );
         }
     }
 
@@ -129,7 +153,7 @@ impl<'a> Walker<'a> {
         };
         let cap = class_level_cap(class);
         if class_level > cap {
-            self.fail(Choice::Class { level });
+            self.fail(Choice::Class { level }, Issue::ClassLevelCap { cap });
         }
         let archetype = self.state.classes[index].archetype.as_ref();
         if let Some(row) = catalog.row(class, archetype, class_level) {
@@ -207,14 +231,18 @@ impl<'a> Walker<'a> {
     }
 
     /// The Level-up's ranks and its skill points. Ranks never go above the character level
-    /// (`Build::keeps_fixed_rules`), so only unknown skills and overspent points fail.
+    /// (`Build::keeps_fixed_rules`), so only unknown skills ([`Issue::UnknownKey`]) and overspent points
+    /// ([`Issue::NotAllowed`]) fail.
     pub(super) fn skill_ranks(&mut self, level: u8, level_up: &LevelUp) -> SkillPoints {
         for (skill, ranks) in &level_up.skill_ranks {
             if self.engine.catalog.skill(skill).is_none() {
-                self.fail(Choice::SkillRanks {
-                    level,
-                    skill: skill.clone(),
-                });
+                self.fail(
+                    Choice::SkillRanks {
+                        level,
+                        skill: skill.clone(),
+                    },
+                    Issue::UnknownKey,
+                );
             }
             let total = self.state.skill_ranks.entry(skill.clone()).or_default();
             *total = total.saturating_add(*ranks);
@@ -243,7 +271,7 @@ impl<'a> Walker<'a> {
             .values()
             .fold(0u8, |sum, ranks| sum.saturating_add(*ranks));
         if spent > available {
-            self.fail(Choice::SkillPoints { level });
+            self.fail(Choice::SkillPoints { level }, Issue::NotAllowed);
         }
         SkillPoints { available, spent }
     }

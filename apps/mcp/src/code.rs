@@ -55,32 +55,33 @@ pub(crate) fn envelope(engine: &Engine, build: &Build, sheet: &Sheet) -> Envelop
 /// open (Favorite Metamagic's metamagic), not those a Path switch dropped.
 fn todo(engine: &Engine, build: &Build, sheet: &Sheet) -> Vec<Todo> {
     let mut todo = Vec::new();
-    let mut open = |address: Address, label: String| {
+    // Open at an address, labelled as the address is ([`Address::label`]) unless a label is given.
+    let mut open = |address: Address, label: Option<String>| {
         todo.push(Todo {
+            label: label.unwrap_or_else(|| address.label(engine, None)),
             choice: address.to_string(),
-            label,
         })
     };
     let start = &build.start;
     if start.race.is_none() {
-        open(Address::Race, "Race".to_owned());
+        open(Address::Race, None);
     }
     if engine.chooses_racial_ability(start) && start.racial_ability.is_none() {
-        open(Address::RacialAbility, "Racial ability bonus".to_owned());
+        open(Address::RacialAbility, None);
     }
     if start.deity.is_none() {
-        open(Address::Faith, "Faith".to_owned());
+        open(Address::Faith, None);
     }
     if start.alignment.is_none() {
-        open(Address::Alignment, "Alignment".to_owned());
+        open(Address::Alignment, None);
     }
     if start.background.is_none() {
-        open(Address::Background, "Background".to_owned());
+        open(Address::Background, None);
     }
     for (level_up, level) in build.levels.iter().zip(&sheet.levels) {
         let n = level.character_level;
         if has_ability_increase(n) && level_up.ability_increase.is_none() {
-            open(Address::Increase(n), format!("Level {n}: ability increase"));
+            open(Address::Increase(n), None);
         }
         let points = level.skill_points;
         let room = engine
@@ -88,19 +89,16 @@ fn todo(engine: &Engine, build: &Build, sheet: &Sheet) -> Vec<Todo> {
             .iter()
             .any(|skill| level.state.skill_ranks(&skill.key) < n);
         if points.spent < points.available && room {
-            open(
-                Address::SkillPoints(n),
-                format!(
-                    "Level {n}: {} of {} skill points unspent",
-                    points.available - points.spent,
-                    points.available
-                ),
-            );
+            let address = Address::SkillPoints(n);
+            let label = address.placed(&format!(
+                "{} of {} skill points unspent",
+                points.available - points.spent,
+                points.available
+            ));
+            open(address, Some(label));
         }
         for slot in &level.slots {
-            if let Some(what) = open_in(engine, slot) {
-                open(Address::Slot(slot.id.clone()), format!("Level {n}: {what}"));
-            }
+            open_slot(engine, slot, &mut open);
         }
     }
     for rank in &sheet.ranks {
@@ -112,29 +110,35 @@ fn todo(engine: &Engine, build: &Build, sheet: &Sheet) -> Vec<Todo> {
             && build.first_ascension.is_none()
             && build.mythic_path.is_none()
         {
-            open(Address::FirstAscension, format!("MR {r}: first ascension"));
+            open(Address::FirstAscension, None);
         }
         if r == PATH_CHOICE_RANK && build.mythic_path.is_none() {
-            open(Address::Path, format!("MR {r}: Mythic path"));
+            open(Address::Path, None);
         }
         let dropped = |id: &SlotId| rank.dropped_slots.contains(id);
         for slot in rank.slots.iter().filter(|slot| !dropped(&slot.id)) {
-            if let Some(what) = open_in(engine, slot) {
-                open(Address::Slot(slot.id.clone()), format!("MR {r}: {what}"));
-            }
+            open_slot(engine, slot, &mut open);
         }
     }
     todo
 }
 
-/// What's open in a slot: the slot itself while empty ("General feat"), or its pick's value while the pick names
-/// none ("Favorite Metamagic: choose a metamagic", which `choose` fills at the slot's address with
-/// `{key, parameter}`). `None` when nothing is.
-fn open_in(engine: &Engine, slot: &Slot) -> Option<String> {
+/// What's open in a slot, if anything: the slot itself while empty ("Level 1: General feat"), or its pick's value
+/// while the pick names none ("MR 3: Favorite Metamagic: choose a metamagic", which `choose` fills at the slot's
+/// address with `{key, parameter}`).
+fn open_slot(engine: &Engine, slot: &Slot, open: &mut impl FnMut(Address, Option<String>)) {
+    let address = Address::Slot(slot.id.clone());
     match &slot.pick {
-        None => Some(engine.slot_label(slot)),
-        Some(pick) => engine
-            .value_left_open(pick)
-            .map(|kind| format!("{}: choose {}", engine.pick_name(pick), kind.with_article())),
+        None => {
+            let label = address.label(engine, Some(slot));
+            open(address, Some(label));
+        }
+        Some(pick) => {
+            if let Some(kind) = engine.value_left_open(pick) {
+                let what = format!("{}: choose {}", engine.pick_name(pick), kind.with_article());
+                let label = address.placed(&what);
+                open(address, Some(label));
+            }
+        }
     }
 }

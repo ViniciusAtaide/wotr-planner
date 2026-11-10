@@ -25,9 +25,10 @@ use crate::rank::{ImproveArgs, ImproveResult, improve};
 use crate::shapes::{
     BuildResult, ChooseArgs, ChooseResult, CompareArgs, CompareResult, DescribeArgs, Item,
     NewBuildArgs, OneOrMany, OptionsArgs, OptionsResult, SearchArgs, SearchResult, SheetArgs,
-    SheetResult, WithdrawArgs,
+    SheetResult, ValidateArgs, ValidateResult, WithdrawArgs,
 };
 use crate::sheet::sheet;
+use crate::validate::validate;
 use crate::withdraw::withdraw;
 
 /// What every client is told on connecting: what to know before planning (ticket 117; the pick order within a level,
@@ -69,6 +70,11 @@ Feature selections, ability increases, skill points.
 5. Fill the Mythic ranks once their levels are reached: the first ascension at MR 1, the path at MR 3, and each \
 rank's picks.
 6. Give the user the final `link`.
+
+Planned whole: once you have planned the whole Build, send it to `validate` as one map of address → value (the \
+values `choose` takes; the order doesn't matter). It returns every mistake at once, each failure under the earlier \
+one that causes it: fix the roots first (their `children` often go away), `validate` again, then keep the code it \
+returns with `status: \"valid\"` (its `todo` lists what is still open) and `choose` the rest.
 
 Batching: send many steps in one `choose`. It stops at the first refused step: read `rejected` (its issue and \
 reason), fix that step, and resend the rest from the code it returned.
@@ -454,6 +460,36 @@ impl Server {
         Parameters(args): Parameters<ImproveArgs>,
     ) -> Result<Json<ImproveResult>, String> {
         self.blocking(move |planner| Ok(Json(improve(planner, args)?)))
+            .await
+    }
+
+    #[tool(
+        description = "Check a whole planned Build at once: `choices` maps each choice's address to its value, as \
+            `choose` takes them (`{\"start.race\": \"human\", \"start.faith\": \"atheism\", \"start.alignment\": \
+            \"true-neutral\", \"start.score.str\": 16, \"level.1.class\": {\"class\": \"fighter\"}, \
+            \"level.1.skill\": {\"athletics\": 1}, \"slot.feat.1.class.0\": \"power-attack\", …}`), in any order. \
+            Every level from 1 is declared by its class (`level.N.class`); a class's archetype and `advances` come \
+            with it, the same wherever given (or the archetype at `class.<class>.archetype`); a skill's ranks at a \
+            level go in `level.N.skill`'s map or at `level.N.skill.<skill>`; choices left out stay open. The planner \
+            walks the declared Build once and returns `status: \"valid\"` with the envelope (`build`, `link`, `todo`: \
+            the same code `choose` would make), or `status: \"invalid\"` with `count` and `failures`: every failed \
+            choice, each {choice, label, issue, reason, needs, also_needs, children}, placed under the earliest \
+            failure it needs (a refused Power Attack holds the Cleave that needs it; a refused class holds the picks \
+            in slots its level doesn't give, `not_reached`). `issue` is the engine's (`unmet`, `already_held`, \
+            `not_allowed` (not taken there), `unknown_key` (not in the game data, with the closest keys), \
+            `not_reached`, `class_level_cap`, `not_from_path`, `deity_alignment`, `needs_faith`, …) or the \
+            declaration's: `no_such_choice`, `not_an_option`, `needs_parameter`, `declared_twice` (one thing \
+            declared two ways with different values), `fixed_rule` (a point-buy score outside 7 to 18 or over the budget, an ability \
+            increase off every 4th level, a skill's ranks above the character level), `missing_level`. `needs` lists \
+            an `unmet` failure's prerequisites in short; `also_needs` names other failed choices it needs too. An \
+            invalid Build gets no code. It changes nothing.",
+        annotations(read_only_hint = true, open_world_hint = false)
+    )]
+    async fn validate(
+        &self,
+        Parameters(args): Parameters<ValidateArgs>,
+    ) -> Result<Json<ValidateResult>, String> {
+        self.blocking(move |planner| Ok(Json(validate(planner, args)?)))
             .await
     }
 }

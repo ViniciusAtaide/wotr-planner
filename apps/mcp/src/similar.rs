@@ -1,9 +1,44 @@
 //! How close a name an agent gave is to one the planner has, for the hints after a miss: `search`'s note when nothing
-//! matches, and `choose`'s closest values for `not_an_option`. Only names at or above [`FLOOR`] are hinted at, so a
-//! name that shares one word of two with the given one ("Furious Focus" and "Shield Focus") isn't offered as near.
+//! matches, `choose`'s closest values for `not_an_option`, and `validate`'s closest keys for `unknown_key`. Only names
+//! at or above [`FLOOR`] are hinted at, so a name that shares one word of two with the given one ("Furious Focus" and
+//! "Shield Focus") isn't offered as near.
+
+use std::cmp::Ordering;
 
 /// The least closeness a name needs to be hinted at.
 pub(crate) const FLOOR: f64 = 0.6;
+
+/// How many near names a hint gives at most.
+pub(crate) const NEAREST: usize = 5;
+
+/// The candidates at or above [`FLOOR`] by `close`, closest first, ties ordered by `then` and then as given; at most
+/// [`NEAREST`] of them.
+pub(crate) fn nearest<T>(
+    candidates: impl IntoIterator<Item = T>,
+    close: impl Fn(&T) -> f64,
+    then: impl Fn(&T, &T) -> Ordering,
+) -> Vec<T> {
+    let mut ranked: Vec<(f64, T)> = candidates
+        .into_iter()
+        .filter_map(|candidate| {
+            let closeness = close(&candidate);
+            (closeness >= FLOOR).then_some((closeness, candidate))
+        })
+        .collect();
+    // A stable sort: equal ones stay in the order given.
+    ranked.sort_by(|(a, one), (b, other)| b.total_cmp(a).then_with(|| then(one, other)));
+    ranked
+        .into_iter()
+        .take(NEAREST)
+        .map(|(_, candidate)| candidate)
+        .collect()
+}
+
+/// The hint naming the near names, as a sentence goes on: ". Closest: Power Attack (`power-attack`), …"; `None`
+/// when there's none.
+pub(crate) fn closest_note(names: &[String]) -> Option<String> {
+    (!names.is_empty()).then(|| format!(". Closest: {}", names.join(", ")))
+}
 
 /// The least likeness by edit distance that reads as a misspelling ("atack" for "attack").
 const TYPO: f64 = 0.75;

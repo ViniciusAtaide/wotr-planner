@@ -21,6 +21,7 @@ mod derived;
 mod edits;
 mod extra_picks;
 mod facts;
+mod failures;
 mod feat_lists;
 mod first_ascension;
 mod granted_feats;

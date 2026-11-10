@@ -8,7 +8,7 @@ use super::{
     RankSheet, RankStatus, Sheet, SkillPoints, SlotKind, racial_amounts,
 };
 use crate::build::{Build, Faith, LevelUp, Pick, SlotId, has_ability_increase};
-use crate::choice::Choice;
+use crate::choice::{Choice, Failure, Issue};
 use crate::codec::{StaleLink, decode_build};
 use crate::game_data::Ability;
 use crate::keys::{
@@ -29,6 +29,17 @@ impl Engine {
     /// Walks the whole Build.
     pub fn evaluate(&self, build: &Build) -> Sheet {
         Walker::new(self, build, None).run().sheet
+    }
+
+    /// Every choice of the Build that fails, with why, in walk order: the Build start's, each level's (its class,
+    /// archetype and advancement on first entry, its skill ranks, its picks in slot order, its Mythic ranks'), then
+    /// those no level checked (a pick for a slot the walk didn't reach, a class choice for a class no level takes, the
+    /// first ascension, path and switch). A failed pick isn't held, so whatever needs it fails too, later in the list.
+    /// Empty exactly when the Build [is possible](Self::is_possible).
+    ///
+    /// One full walk, without the sheet.
+    pub fn failures(&self, build: &Build) -> Vec<Failure> {
+        Walker::new(self, build, None).without_sheet().run().failed
     }
 
     /// Walks the Build up to a probe, stopping after the level it's in.
@@ -147,7 +158,7 @@ pub(super) struct Walker<'a> {
     pub(super) build: &'a Build,
     state: CharacterState,
     /// The choices that don't hold up, in walk order.
-    failed: Vec<Choice>,
+    failed: Vec<Failure>,
     /// The slots the walk has reached, so a pick for any other is found at the end.
     reached: HashSet<SlotId>,
     /// What Mythic ascensions granted, by rank and source, so a Path switch can drop it.
@@ -235,6 +246,7 @@ struct Holding {
 pub(super) struct Walk {
     sheet: Sheet,
     probed: Probed,
+    failed: Vec<Failure>,
 }
 
 impl<'a> Walker<'a> {
@@ -286,12 +298,12 @@ impl<'a> Walker<'a> {
         self
     }
 
-    /// Notes a choice that doesn't hold up. Only whether one does matters (it locks an edit, and makes a link
-    /// stale), never why.
-    fn fail(&mut self, at: Choice) {
+    /// Notes a choice that doesn't hold up, and why. A recheck asks only whether one does (it locks an edit, and makes
+    /// a link stale); [`Engine::failures`] keeps why.
+    fn fail(&mut self, at: Choice, issue: Issue) {
         match &mut self.recheck {
             Some(recheck) => recheck.broken |= !recheck.allowed.contains(&at),
-            None => self.failed.push(at),
+            None => self.failed.push(Failure { choice: at, issue }),
         }
     }
 
@@ -300,7 +312,10 @@ impl<'a> Walker<'a> {
     /// first other choice that fails. A pick for a level's slot the level didn't reach fails once the level is
     /// walked, rather than at the end.
     pub(super) fn holds(mut self, first: u8, allowed: Vec<Choice>) -> bool {
-        let broken = self.failed.iter().any(|choice| !allowed.contains(choice));
+        let broken = self
+            .failed
+            .iter()
+            .any(|failure| !allowed.contains(&failure.choice));
         self.recheck = Some(RecheckWalk { allowed, broken });
         let build = self.build;
         if first == 0 {
@@ -320,7 +335,7 @@ impl<'a> Walker<'a> {
                 .cloned()
                 .collect();
             for slot in unreached {
-                self.fail(Choice::Slot(slot));
+                self.fail(Choice::Slot(slot), Issue::NotReached);
             }
         }
         self.check_unreached();
@@ -361,42 +376,67 @@ impl<'a> Walker<'a> {
                 level_cap: self.level_cap,
             },
             probed: self.probed,
+            failed: self.failed,
         }
     }
 
     /// The choices no level checked: a pick for a slot the walk didn't reach (one a level doesn't have, past the
     /// last level, or at a rank not reached), a class choice for a class no level takes, and the first ascension,
-    /// path and switch, which must be ones the Build can take, at ranks it reaches.
+    /// path and switch, which must be ones the Build can take (the data's, [`Issue::UnknownKey`]; a path that rank
+    /// takes, [`Issue::NotAllowed`]; a switch also open from the Build's path, [`Issue::NotFromPath`]), at ranks it
+    /// reaches ([`Issue::NotReached`]), each checked in that order.
     fn check_unreached(&mut self) {
         let build = self.build;
         for slot in build.picks.keys() {
             if !self.reached.contains(slot) {
-                self.fail(Choice::Slot(slot.clone()));
+                self.fail(Choice::Slot(slot.clone()), Issue::NotReached);
             }
         }
         for class in build.class_choices.keys() {
             if !build.levels.iter().any(|level| &level.class == class) {
-                self.fail(Choice::Archetype {
-                    class: class.clone(),
-                });
+                self.fail(
+                    Choice::Archetype {
+                        class: class.clone(),
+                    },
+                    Issue::NotReached,
+                );
             }
         }
         let engine = self.engine;
-        if let Some(key) = &build.first_ascension
-            && (engine.first_ascension_option(key).is_none()
-                || !engine.reaches(build, FIRST_ASCENSION_RANK))
-        {
-            self.fail(Choice::FirstAscension);
-        }
-        if build.mythic_path.is_some()
-            && (engine.chosen_path(build).is_none() || !engine.reaches(build, PATH_CHOICE_RANK))
-        {
-            self.fail(Choice::MythicPath);
-        }
-        if build.path_switch.is_some()
-            && (engine.chosen_switch(build).is_none() || !engine.reaches(build, PATH_SWITCH_RANK))
-        {
-            self.fail(Choice::PathSwitch);
+        let fits = [
+            (
+                Choice::FirstAscension,
+                FIRST_ASCENSION_RANK,
+                build
+                    .first_ascension
+                    .as_ref()
+                    .map(|key| engine.first_ascension_fit(key).map(|_| ())),
+            ),
+            (
+                Choice::MythicPath,
+                PATH_CHOICE_RANK,
+                build
+                    .mythic_path
+                    .as_ref()
+                    .map(|key| engine.path_fit(key).map(|_| ())),
+            ),
+            (
+                Choice::PathSwitch,
+                PATH_SWITCH_RANK,
+                build
+                    .path_switch
+                    .as_ref()
+                    .map(|key| engine.switch_fit(build, key).map(|_| ())),
+            ),
+        ];
+        for (choice, rank, fit) in fits {
+            let issue = match fit {
+                None => continue,
+                Some(Err(issue)) => issue,
+                Some(Ok(())) if !engine.reaches(build, rank) => Issue::NotReached,
+                Some(Ok(())) => continue,
+            };
+            self.fail(choice, issue);
         }
     }
 
@@ -412,19 +452,24 @@ impl<'a> Walker<'a> {
             Some(key) => {
                 let race = catalog.race(key);
                 if race.is_none() {
-                    self.fail(Choice::Race);
+                    self.fail(Choice::Race, Issue::UnknownKey);
                 }
                 race
             }
             None => None,
         };
         // A key the data lacks, or a subrace of another race.
-        if let Some(key) = &start.subrace
-            && !catalog
-                .subrace(key)
-                .is_some_and(|(owner, _)| race.is_some_and(|race| race.key == owner.key))
-        {
-            self.fail(Choice::Subrace);
+        if let Some(key) = &start.subrace {
+            let issue = match catalog.subrace(key) {
+                None => Some(Issue::UnknownKey),
+                Some((owner, _)) if !race.is_some_and(|race| race.key == owner.key) => {
+                    Some(Issue::NotAllowed)
+                }
+                Some(_) => None,
+            };
+            if let Some(issue) = issue {
+                self.fail(Choice::Subrace, issue);
+            }
         }
 
         let mut scores = start.ability_scores.scores();
@@ -448,14 +493,14 @@ impl<'a> Walker<'a> {
     fn faith(&mut self) {
         let start = &self.build.start;
         self.state.faith = start.deity.clone();
-        if let Some((choice, _)) = self.engine.faith_misfit(start) {
-            self.fail(choice);
+        if let Some((choice, issue)) = self.engine.faith_misfit(start) {
+            self.fail(choice, issue);
         }
         let Some(key) = start.deity.as_ref().and_then(Faith::deity) else {
             return;
         };
         let Some(deity) = self.engine.catalog.deity(key) else {
-            self.fail(Choice::Deity);
+            self.fail(Choice::Deity, Issue::UnknownKey);
             return;
         };
         self.state.deity_domains = deity.domains.clone();
@@ -469,7 +514,7 @@ impl<'a> Walker<'a> {
             return;
         };
         let Some(background) = catalog.background(key) else {
-            self.fail(Choice::Background);
+            self.fail(Choice::Background, Issue::UnknownKey);
             return;
         };
         for skill in &background.class_skills {
@@ -497,7 +542,7 @@ impl<'a> Walker<'a> {
             self.probed.state = Some(self.state.clone());
         }
         if level > self.level_cap {
-            self.fail(Choice::CharacterLevel { level });
+            self.fail(Choice::CharacterLevel { level }, Issue::NotReached);
         }
         // Entry prerequisites are checked against the character before this level.
         self.check_class_entry(level, level_up);

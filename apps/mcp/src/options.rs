@@ -86,6 +86,8 @@ pub(crate) fn issue_code(issue: &Issue) -> &'static str {
         Issue::AlreadyHeld => "already_held",
         Issue::MaxTimes { .. } => "max_times",
         Issue::NotAllowed => "not_allowed",
+        Issue::UnknownKey => "unknown_key",
+        Issue::NotReached => "not_reached",
         Issue::ClassLevelCap { .. } => "class_level_cap",
         Issue::NotFromPath { .. } => "not_from_path",
         Issue::DeityAlignment { .. } => "deity_alignment",

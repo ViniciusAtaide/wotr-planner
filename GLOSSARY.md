@@ -252,6 +252,18 @@ _Avoid_: Build file, export format, character sheet
 A link whose Build the current game data can't hold: a key the data no longer has, a pick that no longer fits, a pick for a slot or Mythic rank the Build doesn't reach, or a rule broken (the game data changed since the link was made). A damaged or hand-edited link counts the same. It opens nothing: the sheet shows one generic error, "This link no longer works with the current game data", and a blank Build, never a reason. Every Build the sheet's edits make is possible, so nothing on the sheet is ever marked broken.
 _Avoid_: Problem, broken pick, stale-link banner
 
+**Declared Build**:
+A whole Build an agent plans and sends to the MCP server's `validate` at once: a map of each choice's address to its value, as `choose` takes them, in any order. The server sets it straight into a Build (never through the pickers), walks it once and returns every **Failure** as a tree of root causes (a failure sits under the earliest earlier one it needs), or, when nothing fails, the same code `choose` would have made. Diagnostics only: a declared Build with a failure never becomes a code, so the planner still holds only possible Builds.
+_Avoid_: Draft, plan, import
+
+**Failure**:
+A choice of a Build that doesn't hold up, with its issue (the walk's: unmet prerequisites, already held, not taken there, an **Unknown key**, not reached, …), which `Engine::failures` lists in walk order. Only a **Declared Build** shows them; a **Stale link** never says why.
+_Avoid_: Error, validation error
+
+**Unknown key**:
+A key a Build names that the game data lacks: a pick's item, a race, subrace, deity, background, class, archetype, skill, an advanced class or a path. The walk tells it apart from a key the data has in the wrong place ("not taken here": a feat outside its slot's list, a subrace of another race, an archetype of another class). No picker shows either; a **Stale link** or a **Declared Build** has them.
+_Avoid_: Missing key, invalid key
+
 **Removable**:
 A choice the sheet may remove or change now: no later choice depends on it. Choices come off from the leaves inward: of Power Attack, Cleave and Great Cleave, Great Cleave first, then Cleave. A picker locks an option that would break a later choice, greyed out with no reason.
 _Avoid_: Would-break, conflict

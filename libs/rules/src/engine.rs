@@ -8,7 +8,8 @@
 //! The sheet only ever holds a possible Build: it offers no edit that would break another choice
 //! ([`Engine::allows`]), so choices come off from the leaves inward ([`Engine::removable`]) and the pickers lock
 //! what would break a later choice. A link to a Build that isn't possible opens nothing ([`Engine::open_link`]):
-//! the walk says only whether a choice fails, never why.
+//! it says only that it doesn't open, never why. [`Engine::failures`] lists every choice that fails and why, for a
+//! Build planned whole (the MCP server's `validate`); it never makes a Build possible.
 
 use std::collections::BTreeSet;
 
@@ -147,6 +148,13 @@ impl Engine {
             return None;
         }
         self.catalog.pick_item(pick)?.parameter
+    }
+
+    /// The kind of value a pick's item takes, whatever the pick names: `Some(None)` for an item that takes none, and
+    /// `None` for a key the game data lacks among items of the pick's kind (a walk fails it with
+    /// [`Issue::UnknownKey`]).
+    pub fn value_kind(&self, pick: &Pick) -> Option<Option<ParameterKind>> {
+        Some(self.catalog.pick_item(pick)?.parameter)
     }
 
     /// A feat list by key, wherever it's defined.

@@ -23,5 +23,6 @@ mod summaries;
 mod support;
 mod test_world;
 mod totals;
+mod validate;
 mod walks;
 mod withdraw;

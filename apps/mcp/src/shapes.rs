@@ -832,6 +832,59 @@ pub struct Rejected {
     pub reason: String,
 }
 
+/// `validate`'s arguments.
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct ValidateArgs {
+    /// The whole Build, declared: each choice's address and its value, as `choose` takes them (`{"start.race":
+    /// "human", "start.faith": "atheism", "start.alignment": "true-neutral", "start.score.str": 16,
+    /// "level.1.class": {"class": "fighter"}, "level.1.skill": {"athletics": 1}, "slot.feat.1.general.0":
+    /// "power-attack", "mythic.path": "aeon", …}`). The order doesn't matter. A level is declared by its class
+    /// (`level.N.class`, every level from 1 with no gap); a class's archetype and advanced classes come with it,
+    /// at any of its levels (or the archetype at `class.<class>.archetype`), the same at each. A skill's ranks at a
+    /// level go in `level.N.skill`'s map or at `level.N.skill.<skill>`. Choices left out are open, not mistakes.
+    pub choices: BTreeMap<String, ChoiceValue>,
+}
+
+/// `validate`'s result: the Build, when every choice holds; otherwise every mistake, as a tree of causes.
+#[derive(Debug, Serialize, JsonSchema)]
+#[serde(tag = "status", rename_all = "snake_case")]
+pub enum ValidateResult {
+    /// Every declared choice holds: the Build's envelope (`build`, `link`, `todo`), as `choose` would have made it.
+    Valid {
+        #[serde(flatten)]
+        envelope: Envelope,
+    },
+    /// Some choices fail: no Build code. `failures` are the root causes, each with the failures it causes as its
+    /// `children`.
+    Invalid {
+        /// Every failure, children included.
+        count: u32,
+        failures: Vec<FailureLine>,
+    },
+}
+
+/// One declared choice that fails, and the later failures it causes.
+#[derive(Debug, Serialize, JsonSchema)]
+pub struct FailureLine {
+    /// Its address, as declared.
+    pub choice: String,
+    /// What it is: "Level 1: Combat feat", "Race", "Level 4: class".
+    pub label: String,
+    /// Why, as a code: the engine's issue (`unmet`, `already_held`, `max_times`, `not_allowed`, `unknown_key`,
+    /// `not_reached`, `class_level_cap`, `not_from_path`, `deity_alignment`, `needs_faith`, `deity_domain`), or the
+    /// declaration's (`no_such_choice`, `not_an_option`, `needs_parameter`, `declared_twice`, `fixed_rule`,
+    /// `missing_level`, `not_reached`).
+    pub issue: String,
+    /// The planner's reason, in full.
+    pub reason: String,
+    /// For `unmet`: each prerequisite not met, in short ("Strength 13 (have 12)", "Power Attack").
+    pub needs: Vec<String>,
+    /// Other failed choices its prerequisites name, besides the one it sits under, by address: fix them too.
+    pub also_needs: Vec<String>,
+    /// The failures this one causes: they often go once it's fixed.
+    pub children: Vec<FailureLine>,
+}
+
 /// `withdraw`'s arguments.
 #[derive(Debug, Deserialize, JsonSchema)]
 pub struct WithdrawArgs {

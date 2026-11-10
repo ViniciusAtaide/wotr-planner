@@ -225,7 +225,7 @@ pub(crate) fn check_pick_with(
     let value = pick.parameter();
     let prerequisite = match (kind, pick) {
         (_, Pick::Feat { feat: key, .. }) => {
-            let feat = catalog.feat(key).ok_or(Issue::NotAllowed)?;
+            let feat = catalog.feat(key).ok_or(Issue::UnknownKey)?;
             let SlotKind::Feat(slot) = kind else {
                 return Err(Issue::NotAllowed);
             };
@@ -245,7 +245,7 @@ pub(crate) fn check_pick_with(
             feat.prerequisite.as_ref()
         }
         (_, Pick::SelectionOption { option: key, .. }) => {
-            let option = catalog.option(key).ok_or(Issue::NotAllowed)?;
+            let option = catalog.option(key).ok_or(Issue::UnknownKey)?;
             let SlotKind::Selection(selection) = kind else {
                 return Err(Issue::NotAllowed);
             };
@@ -298,7 +298,7 @@ pub(crate) fn check_pick_with(
             option.prerequisite.as_ref()
         }
         (_, Pick::MythicAbility { ability: key, .. }) => {
-            let ability = catalog.mythic_ability(key).ok_or(Issue::NotAllowed)?;
+            let ability = catalog.mythic_ability(key).ok_or(Issue::UnknownKey)?;
             if kind != &SlotKind::MythicAbility || !catalog.value_fits(ability.parameter, value) {
                 return Err(Issue::NotAllowed);
             }
@@ -309,7 +309,7 @@ pub(crate) fn check_pick_with(
             ability.prerequisite.as_ref()
         }
         (_, Pick::MythicFeat { feat: key, .. }) => {
-            let feat = catalog.mythic_feat(key).ok_or(Issue::NotAllowed)?;
+            let feat = catalog.mythic_feat(key).ok_or(Issue::UnknownKey)?;
             if kind != &SlotKind::MythicFeat || !catalog.value_fits(feat.parameter, value) {
                 return Err(Issue::NotAllowed);
             }

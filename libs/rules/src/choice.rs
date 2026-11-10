@@ -57,9 +57,10 @@ pub enum Choice {
     Slot(SlotId),
 }
 
-/// Why a picker's option can't be taken. A Build the sheet holds is always possible, and a link to one that isn't
-/// opens nothing ([`Engine::open_link`](crate::Engine::open_link)), so these are only the reasons a picker shows,
-/// and [`NotAllowed`](Self::NotAllowed), which the walk needs to lock an edit.
+/// Why a picker's option can't be taken, or why a choice of a Build fails ([`Failure`]). A Build the sheet holds is
+/// always possible, and a link to one that isn't opens nothing ([`Engine::open_link`](crate::Engine::open_link)), so
+/// the pickers show these, the walk locks an edit on any of them, and [`Engine::failures`](crate::Engine::failures)
+/// says which a whole Build has.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Issue {
     /// The prerequisites aren't met at that point of the Build.
@@ -69,11 +70,22 @@ pub enum Issue {
     AlreadyHeld,
     /// Already taken as many times as it can be (Extra Hex: 3).
     MaxTimes { times: u8 },
-    /// Not a pick the slot takes: a feat outside its list, an option outside its selection, a key the game data
-    /// lacks, or a value of the wrong kind (or none where one is needed). No picker shows it, since a picker offers
-    /// only what its slot takes; it's how a walk finds a pick that an earlier change left in the wrong slot (another
-    /// class at the level, another option held).
+    /// Not taken here: a feat outside its slot's list, an option outside its selection, an item of another kind
+    /// than the slot takes, or a value of the wrong kind (or none where one is needed). No picker shows it, since a
+    /// picker offers only what its slot takes; it's how a walk finds a pick that an earlier change left in the wrong
+    /// slot (another class at the level, another option held). The walk gives it too for a subrace of another race,
+    /// an archetype of another class, an advancement the prestige class can't take, a path the first ascension or
+    /// MR 3 doesn't take (or a switch that isn't one), and skill points spent past the level's.
     NotAllowed,
+    /// A key the game data lacks: a pick's item, a race, subrace, deity, background, class, archetype, skill, a
+    /// class an advancement names, or a path. No picker shows it, since a picker offers only what the data has; a
+    /// walk finds it in a hand-made Build (a stale link, a declared Build).
+    UnknownKey,
+    /// A choice in a place the Build doesn't reach: a pick for a slot the walk never reached (one the level's class
+    /// doesn't give, past the last level, at a Mythic rank not reached), a class choice for a class no level takes,
+    /// the first ascension, path or switch while the Build doesn't reach its rank, and a character level past the
+    /// level cap. No picker shows it: a picker only offers what's there.
+    NotReached,
     /// The class level would go above the class's table.
     ClassLevelCap { cap: u8 },
     /// A Path switch open only from other paths than the Build's (Devil: from Aeon or Azata).
@@ -94,6 +106,13 @@ pub enum Issue {
     /// the option replaces): the later choice comes off first, as choices come off from the leaves inward
     /// ([`Engine::removable`](crate::Engine::removable)).
     BreaksLater,
+}
+
+/// A choice of a Build that fails, and why: what [`Engine::failures`](crate::Engine::failures) lists, in walk order.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Failure {
+    pub choice: Choice,
+    pub issue: Issue,
 }
 
 /// Why a Prerequisite fails, shaped like the part of the tree that fails.

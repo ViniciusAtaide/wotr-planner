@@ -19,7 +19,10 @@
 use std::fmt;
 use std::str::FromStr;
 
-use rules::{Ability, AbilityScores, Choice, ClassKey, FeatSource, SkillKey, SlotId};
+use rules::{
+    Ability, AbilityScores, Choice, ClassKey, Engine, FIRST_ASCENSION_RANK, FeatSource,
+    PATH_CHOICE_RANK, PATH_SWITCH_RANK, SkillKey, Slot, SlotId,
+};
 
 /// One choice of a Build, by where it sits.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -85,6 +88,67 @@ impl Address {
             Address::Switch => Choice::PathSwitch,
             Address::Slot(slot) => Choice::Slot(slot.clone()),
         })
+    }
+
+    /// Where the choice sits, as its label begins: "Level 4" for a level's choices and slots, "MR 3" for a Mythic
+    /// rank's; `None` for the Build start's and a class's own.
+    pub(crate) fn place(&self) -> Option<String> {
+        let rank = |rank: u8| Some(format!("MR {rank}"));
+        match self {
+            Address::Level(level)
+            | Address::Class(level)
+            | Address::Increase(level)
+            | Address::SkillPoints(level)
+            | Address::Skill(level, _) => Some(format!("Level {level}")),
+            Address::FirstAscension => rank(FIRST_ASCENSION_RANK),
+            Address::Path => rank(PATH_CHOICE_RANK),
+            Address::Switch => rank(PATH_SWITCH_RANK),
+            Address::Slot(slot) => match (slot.level(), slot.rank()) {
+                (Some(level), _) => Some(format!("Level {level}")),
+                (_, Some(r)) => rank(r),
+                _ => None,
+            },
+            _ => None,
+        }
+    }
+
+    /// What the choice is, as `todo` and `validate` name it: "Race", "Strength (point buy)", "Level 4: class",
+    /// "MR 3: Mythic path", and for a slot what it takes, from the sheet's `slot` ("Level 1: Combat feat"), or "slot"
+    /// without one.
+    pub(crate) fn label(&self, engine: &Engine, slot: Option<&Slot>) -> String {
+        let what = match self {
+            Address::Race => return "Race".to_owned(),
+            Address::Subrace => return "Subrace".to_owned(),
+            Address::Faith => return "Faith".to_owned(),
+            Address::Alignment => return "Alignment".to_owned(),
+            Address::Background => return "Background".to_owned(),
+            Address::RacialAbility => return "Racial ability bonus".to_owned(),
+            Address::Score(ability) => return format!("{} (point buy)", ability.name()),
+            Address::Archetype(class) => return format!("{}: archetype", engine.class_name(class)),
+            Address::Advances(class) => {
+                return format!("{}: advanced classes", engine.class_name(class));
+            }
+            Address::Level(level) => return format!("Level {level}"),
+            Address::Class(_) => "class".to_owned(),
+            Address::Increase(_) => "ability increase".to_owned(),
+            Address::SkillPoints(_) => "skill points".to_owned(),
+            Address::Skill(_, skill) => format!("{} ranks", engine.skill_name(skill)),
+            Address::FirstAscension => "first ascension".to_owned(),
+            Address::Path => "Mythic path".to_owned(),
+            Address::Switch => "Path switch".to_owned(),
+            Address::Slot(_) => {
+                slot.map_or_else(|| "slot".to_owned(), |slot| engine.slot_label(slot))
+            }
+        };
+        self.placed(&what)
+    }
+
+    /// A text about the choice, after its place when it has one: "Level 3: 2 of 4 skill points unspent".
+    pub(crate) fn placed(&self, what: &str) -> String {
+        match self.place() {
+            Some(place) => format!("{place}: {what}"),
+            None => what.to_owned(),
+        }
     }
 }
 

@@ -530,6 +530,8 @@ impl Engine {
             Issue::AlreadyHeld => "Already taken".to_owned(),
             Issue::MaxTimes { times } => format!("Already taken {times} times"),
             Issue::NotAllowed => "Not allowed here".to_owned(),
+            Issue::UnknownKey => "Not in the game data".to_owned(),
+            Issue::NotReached => "Not reached: the Build doesn't get this far".to_owned(),
             Issue::ClassLevelCap { cap } => format!("All {cap} levels taken"),
             Issue::NotFromPath { from } => {
                 let paths: Vec<&str> = from.iter().map(|path| self.path_name(path)).collect();

@@ -4,23 +4,41 @@
 
 use super::{Engine, FIRST_ASCENSION_RANK, PATH_CHOICE_RANK, PATH_SWITCH_RANK};
 use crate::build::{Build, Edit};
+use crate::choice::Issue;
 use crate::game_data::{MythicPath, PathSwitch};
 use crate::keys::MythicPathKey;
 
 impl Engine {
     /// The Build's path, when it's one that can be chosen at MR 3: a path without a switch rule.
     pub(super) fn chosen_path(&self, build: &Build) -> Option<&MythicPath> {
-        self.catalog
-            .path(build.mythic_path.as_ref()?)
-            .filter(|path| path.switch.is_none())
+        self.path_fit(build.mythic_path.as_ref()?).ok()
+    }
+
+    /// Whether a path can be chosen at MR 3: [`Issue::UnknownKey`] for a key the data lacks, [`Issue::NotAllowed`]
+    /// for a path only a switch takes. The one rule [`chosen_path`](Self::chosen_path) and the walk share.
+    pub(super) fn path_fit(&self, key: &MythicPathKey) -> Result<&MythicPath, Issue> {
+        let path = self.catalog.path(key).ok_or(Issue::UnknownKey)?;
+        match path.switch {
+            None => Ok(path),
+            Some(_) => Err(Issue::NotAllowed),
+        }
     }
 
     /// A path the first ascension can name: one that can be chosen at MR 3 and has an MR 1 row (its path-linked
     /// ability).
     pub(super) fn first_ascension_option(&self, key: &MythicPathKey) -> Option<&MythicPath> {
-        self.catalog
-            .path(key)
-            .filter(|path| path.switch.is_none() && path.row(FIRST_ASCENSION_RANK).is_some())
+        self.first_ascension_fit(key).ok()
+    }
+
+    /// Whether the first ascension can name a path: [`Issue::UnknownKey`] for a key the data lacks,
+    /// [`Issue::NotAllowed`] for one that can't be chosen at MR 3 or has no MR 1 row. The one rule
+    /// [`first_ascension_option`](Self::first_ascension_option) and the walk share.
+    pub(super) fn first_ascension_fit(&self, key: &MythicPathKey) -> Result<&MythicPath, Issue> {
+        let path = self.path_fit(key)?;
+        match path.row(FIRST_ASCENSION_RANK) {
+            Some(_) => Ok(path),
+            None => Err(Issue::NotAllowed),
+        }
     }
 
     /// The path whose MR 1 and 2 rows the Build takes: its first ascension's, when it can name one, or without one
@@ -36,11 +54,26 @@ impl Engine {
 
     /// The Build's Path switch with its rule, when it's a path with one, open from the Build's path.
     pub(super) fn chosen_switch(&self, build: &Build) -> Option<(&MythicPath, &PathSwitch)> {
-        let path = self.catalog.path(build.path_switch.as_ref()?)?;
-        let switch = path.switch.as_ref()?;
-        switch
-            .open_from(build.mythic_path.as_ref())
-            .then_some((path, switch))
+        self.switch_fit(build, build.path_switch.as_ref()?).ok()
+    }
+
+    /// Whether a Build can take a Path switch: [`Issue::UnknownKey`] for a key the data lacks,
+    /// [`Issue::NotAllowed`] for a path with no switch rule, [`Issue::NotFromPath`] for one not open from the Build's
+    /// path. The one rule [`chosen_switch`](Self::chosen_switch) and the walk share.
+    pub(super) fn switch_fit(
+        &self,
+        build: &Build,
+        key: &MythicPathKey,
+    ) -> Result<(&MythicPath, &PathSwitch), Issue> {
+        let path = self.catalog.path(key).ok_or(Issue::UnknownKey)?;
+        let switch = path.switch.as_ref().ok_or(Issue::NotAllowed)?;
+        if switch.open_from(build.mythic_path.as_ref()) {
+            Ok((path, switch))
+        } else {
+            Err(Issue::NotFromPath {
+                from: switch.from.clone(),
+            })
+        }
     }
 
     /// Applies an edit as the sheet makes it: [`Build::apply`], then whatever the sheet no longer shows goes, so the

@@ -3,6 +3,13 @@
 
 use std::fmt;
 
+/// The address isn't one, or names a choice the Build doesn't have: [`ToolError::no_such_choice`]'s code.
+pub(crate) const NO_SUCH_CHOICE: &str = "no_such_choice";
+/// The value isn't one the choice takes: [`ToolError::not_an_option`]'s code.
+pub(crate) const NOT_AN_OPTION: &str = "not_an_option";
+/// A parameterised item given by its key alone: [`ToolError::needs_parameter`]'s code.
+pub(crate) const NEEDS_PARAMETER: &str = "needs_parameter";
+
 /// A refusal with its code.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub(crate) struct ToolError {
@@ -24,7 +31,7 @@ impl ToolError {
     /// The address isn't one, or names a choice the Build doesn't have (or one with no options of its own).
     pub fn no_such_choice(reason: impl Into<String>) -> Self {
         Self {
-            code: "no_such_choice",
+            code: NO_SUCH_CHOICE,
             reason: reason.into(),
         }
     }
@@ -32,7 +39,7 @@ impl ToolError {
     /// The value given for a choice isn't one its picker or stepper offers.
     pub fn not_an_option(reason: impl Into<String>) -> Self {
         Self {
-            code: "not_an_option",
+            code: NOT_AN_OPTION,
             reason: reason.into(),
         }
     }
@@ -40,7 +47,7 @@ impl ToolError {
     /// A parameterised feat or option given by its key alone: it needs `{key, parameter}`.
     pub fn needs_parameter(reason: impl Into<String>) -> Self {
         Self {
-            code: "needs_parameter",
+            code: NEEDS_PARAMETER,
             reason: reason.into(),
         }
     }

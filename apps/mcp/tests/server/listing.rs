@@ -18,6 +18,7 @@ async fn the_server_offers_its_tools() {
             "options",
             "search",
             "sheet",
+            "validate",
             "withdraw"
         ]
     );
@@ -66,6 +67,7 @@ async fn the_instructions_give_the_workflow() {
         "`advances`",
         "number to reach",
         "`compare`",
+        "`validate`",
         "wotr://glossary",
     ] {
         assert!(

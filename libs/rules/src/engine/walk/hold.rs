@@ -60,7 +60,7 @@ impl<'a> Walker<'a> {
         if let Some(pick) = &pick {
             match self.check_pick(&kind, pick) {
                 Ok(()) => self.hold_pick(&kind, pick, source.as_ref()),
-                Err(_) => self.fail(Choice::Slot(id.clone())),
+                Err(issue) => self.fail(Choice::Slot(id.clone()), issue),
             }
         }
         if let (Some(before), Some(later), Some(pick)) = (before, self.probed.later.as_mut(), &pick)
