@@ -8,8 +8,8 @@
 
 use std::time::{Duration, Instant};
 
-use rules::agreement::judge;
-use rules::{Build, Edit, Pick, SlotKind};
+use rules::agreement::{judge_all, known_for};
+use rules::{Build, Edit, Engine, Pick, SlotKind};
 
 use crate::support::*;
 
@@ -23,43 +23,34 @@ const SAMPLE_LEVELS: usize = 10;
 
 #[test]
 fn every_picker_agrees_with_the_walk_on_the_bench_builds_first_levels() {
+    let engine = engine();
     let builds: Vec<(String, Build)> = bench()
         .into_iter()
         .map(|(name, build)| {
             (
                 format!("{name} to {SAMPLE_LEVELS}"),
-                cut(build, SAMPLE_LEVELS),
+                cut(&engine, build, SAMPLE_LEVELS),
             )
         })
         .collect();
-    let found = sweep(&builds);
-    let known: Vec<&str> = KNOWN
-        .iter()
-        .copied()
-        .filter(|line| {
-            builds
-                .iter()
-                .any(|(name, _)| line.starts_with(&format!("{name}: ")))
-        })
-        .collect();
-    assert_eq!(found, known, "{} disagreements", found.len());
+    agrees(&engine, &builds);
 }
 
 #[test]
 #[ignore = "six whole real-data Builds: about 40 s in a debug build"]
 fn every_picker_agrees_with_the_walk_on_the_whole_bench_builds() {
-    let builds = bench();
-    let found = sweep(&builds);
-    let known: Vec<&str> = KNOWN
-        .iter()
-        .copied()
-        .filter(|line| {
-            builds
-                .iter()
-                .any(|(name, _)| line.starts_with(&format!("{name}: ")))
-        })
-        .collect();
-    assert_eq!(found, known, "{} disagreements", found.len());
+    agrees(&engine(), &bench());
+}
+
+/// Every picker agrees with the walk on the Builds, but for the [`KNOWN`] disagreements.
+fn agrees(engine: &Engine, builds: &[(String, Build)]) {
+    let (_, found) = judge_all(engine, builds);
+    assert_eq!(
+        found,
+        known_for(KNOWN, builds),
+        "{} disagreements",
+        found.len()
+    );
 }
 
 /// Ticket 150's design question 1, option C: what a feat slot's candidates cost when each is judged by a walk of its
@@ -132,38 +123,9 @@ fn timed<T>(work: impl FnOnce() -> T) -> (T, Duration) {
 }
 
 /// The Build cut to its first `levels` levels, as Remove level takes the last ones off.
-fn cut(mut build: Build, levels: usize) -> Build {
-    let engine = engine();
+fn cut(engine: &Engine, mut build: Build, levels: usize) -> Build {
     while build.levels.len() > levels {
         engine.apply(&mut build, &Edit::RemoveLevel);
     }
     build
-}
-
-/// Judges each Build on a thread of its own: the disagreements, sorted, each with its Build's name.
-fn sweep(builds: &[(String, Build)]) -> Vec<String> {
-    let engine = engine();
-    let mut found: Vec<String> = std::thread::scope(|scope| {
-        let workers: Vec<_> = builds
-            .iter()
-            .map(|(name, build)| {
-                let engine = &engine;
-                scope.spawn(move || {
-                    let agreement = judge(engine, build);
-                    assert!(agreement.judged > 0, "{name}");
-                    agreement
-                        .disagreements
-                        .iter()
-                        .map(|disagreement| format!("{name}: {disagreement}"))
-                        .collect::<Vec<_>>()
-                })
-            })
-            .collect();
-        workers
-            .into_iter()
-            .flat_map(|worker| worker.join().expect("a judging thread"))
-            .collect()
-    });
-    found.sort();
-    found
 }

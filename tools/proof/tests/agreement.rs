@@ -43,11 +43,7 @@ fn every_picker_agrees_with_the_walk_on_the_proof_builds() {
         .collect();
     let judged: Vec<(usize, Vec<String>)> = in_parallel(&all, threads, |(name, build)| {
         let agreement = judge(&engine, build);
-        let lines: Vec<String> = agreement
-            .disagreements
-            .iter()
-            .map(|disagreement| format!("{name}: {disagreement}"))
-            .collect();
+        let lines = agreement.lines(name);
         for line in &lines {
             eprintln!("DISAGREEMENT {line}");
         }

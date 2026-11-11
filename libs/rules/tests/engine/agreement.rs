@@ -2,7 +2,7 @@
 //! every slot and level it has, an option a picker marks open is an edit whose Build is possible, and one it marks
 //! closed is an edit whose Build isn't ([`rules::agreement`]). This is the oracle the cursor refactor keeps green.
 
-use rules::agreement::{Agreement, judge};
+use rules::agreement::{judge_all, known_for};
 use rules::{Build, Edit, Engine};
 
 use crate::support::*;
@@ -114,18 +114,14 @@ fn every_picker_agrees_with_the_walk_on_a_sample_of_the_test_world() {
     let engine = engine();
     let corpus = corpus(&engine, 1..=1, Some(SAMPLE));
     assert!(corpus.len() > 150, "a sample of {} Builds", corpus.len());
-    let (judged, found) = sweep(&engine, &corpus);
+    let (judged, found) = judge_all(&engine, &corpus);
     assert!(judged > 50_000, "{judged} options judged");
-    let known: Vec<&str> = KNOWN
-        .iter()
-        .copied()
-        .filter(|line| {
-            corpus
-                .iter()
-                .any(|(name, _)| line.starts_with(&format!("{name}: ")))
-        })
-        .collect();
-    assert_eq!(found, known, "{} disagreements", found.len());
+    assert_eq!(
+        found,
+        known_for(KNOWN, &corpus),
+        "{} disagreements",
+        found.len()
+    );
 }
 
 /// The whole corpus, which holds the sample: every plan grown with three seeds and judged at every level (and just
@@ -136,46 +132,9 @@ fn every_picker_agrees_with_the_walk_on_a_sample_of_the_test_world() {
 fn every_picker_agrees_with_the_walk_on_the_whole_test_world_corpus() {
     let engine = engine();
     let corpus = corpus(&engine, 1..=3, None);
-    let (judged, found) = sweep(&engine, &corpus);
+    let (judged, found) = judge_all(&engine, &corpus);
     eprintln!("{} Builds, {judged} options judged", corpus.len());
     assert_eq!(found, KNOWN, "{} disagreements", found.len());
-}
-
-/// Judges every Build of a corpus on every core: how many options, and the disagreements, sorted, each with its
-/// Build's name.
-fn sweep(engine: &Engine, corpus: &[(String, Build)]) -> (usize, Vec<String>) {
-    let threads = std::thread::available_parallelism().map_or(4, std::num::NonZero::get);
-    let next = std::sync::atomic::AtomicUsize::new(0);
-    let results: Vec<(usize, Vec<String>)> = std::thread::scope(|scope| {
-        let workers: Vec<_> = (0..threads)
-            .map(|_| {
-                scope.spawn(|| {
-                    let mut judged = 0;
-                    let mut found = Vec::new();
-                    loop {
-                        let index = next.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-                        let Some((name, build)) = corpus.get(index) else {
-                            return (judged, found);
-                        };
-                        let Agreement {
-                            judged: options,
-                            disagreements,
-                        } = judge(engine, build);
-                        judged += options;
-                        found.extend(disagreements.iter().map(|d| format!("{name}: {d}")));
-                    }
-                })
-            })
-            .collect();
-        workers
-            .into_iter()
-            .map(|worker| worker.join().expect("a sweep thread"))
-            .collect()
-    });
-    let judged = results.iter().map(|(judged, _)| judged).sum();
-    let mut found: Vec<String> = results.into_iter().flat_map(|(_, found)| found).collect();
-    found.sort();
-    (judged, found)
 }
 
 /// The check itself, so an empty list of disagreements means something: an option said open whose edit the walk
@@ -309,13 +268,22 @@ fn corpus(
     seeds: std::ops::RangeInclusive<u64>,
     at: Option<&[u8]>,
 ) -> Vec<(String, Build)> {
-    let mut corpus = vec![("blank".to_owned(), Build::default())];
-    for plan in plans() {
-        for seed in seeds.clone() {
-            corpus.extend(grow(engine, &plan, seed, at));
-        }
-    }
-    corpus
+    // Each plan and seed grows on a thread of its own (each with its own chooser), joined in order.
+    let plans = plans();
+    let grown: Vec<Vec<(String, Build)>> = std::thread::scope(|scope| {
+        let growers: Vec<_> = plans
+            .iter()
+            .flat_map(|plan| seeds.clone().map(move |seed| (plan, seed)))
+            .map(|(plan, seed)| scope.spawn(move || grow(engine, plan, seed, at)))
+            .collect();
+        growers
+            .into_iter()
+            .map(|grower| grower.join().expect("a growing thread"))
+            .collect()
+    });
+    std::iter::once(("blank".to_owned(), Build::default()))
+        .chain(grown.into_iter().flatten())
+        .collect()
 }
 
 /// A small deterministic chooser.
@@ -333,7 +301,7 @@ impl Chooser {
 
 /// Applies one of the edits, chosen, among those that change the Build and keep it possible; `false` when none does.
 fn take(engine: &Engine, build: &mut Build, chooser: &mut Chooser, edits: Vec<Edit>) -> bool {
-    let kept: Vec<Build> = edits
+    let mut kept: Vec<Build> = edits
         .iter()
         .filter_map(|edit| {
             let mut after = build.clone();
@@ -344,7 +312,7 @@ fn take(engine: &Engine, build: &mut Build, chooser: &mut Chooser, edits: Vec<Ed
     if kept.is_empty() {
         return false;
     }
-    *build = kept[chooser.pick(kept.len())].clone();
+    *build = kept.swap_remove(chooser.pick(kept.len()));
     true
 }
 

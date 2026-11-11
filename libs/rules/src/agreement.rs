@@ -18,8 +18,8 @@
 use std::fmt;
 
 use crate::{
-    Build, Edit, Engine, FIRST_ASCENSION_RANK, Issue, PATH_CHOICE_RANK, PATH_SWITCH_RANK,
-    PathOption, RankStatus,
+    Build, ChoiceOption, Edit, Engine, FIRST_ASCENSION_RANK, Issue, PATH_CHOICE_RANK,
+    PATH_SWITCH_RANK, PathOption, RankStatus, Stepper,
 };
 
 /// One option on which a picker and the walk disagree.
@@ -64,6 +64,67 @@ impl Agreement {
         self.judged += 1;
         self.disagreements.extend(disagreement);
     }
+}
+
+impl Agreement {
+    /// Its disagreements as the tests pin them, each after its Build's name: `name: disagreement`.
+    pub fn lines(&self, name: &str) -> Vec<String> {
+        self.disagreements
+            .iter()
+            .map(|disagreement| format!("{name}: {disagreement}"))
+            .collect()
+    }
+}
+
+/// Judges every Build of a corpus on every core, each thread taking the next Build as it finishes one: how many
+/// options, and the disagreements' [`lines`](Agreement::lines), sorted.
+///
+/// # Panics
+///
+/// When a Build isn't possible, or one has no option to judge.
+pub fn judge_all(engine: &Engine, builds: &[(String, Build)]) -> (usize, Vec<String>) {
+    let threads = std::thread::available_parallelism().map_or(4, std::num::NonZero::get);
+    let next = std::sync::atomic::AtomicUsize::new(0);
+    let results: Vec<(usize, Vec<String>)> = std::thread::scope(|scope| {
+        let workers: Vec<_> = (0..threads)
+            .map(|_| {
+                scope.spawn(|| {
+                    let mut judged = 0;
+                    let mut found = Vec::new();
+                    while let Some((name, build)) =
+                        builds.get(next.fetch_add(1, std::sync::atomic::Ordering::Relaxed))
+                    {
+                        let agreement = judge(engine, build);
+                        assert!(agreement.judged > 0, "{name}");
+                        judged += agreement.judged;
+                        found.extend(agreement.lines(name));
+                    }
+                    (judged, found)
+                })
+            })
+            .collect();
+        workers
+            .into_iter()
+            .map(|worker| worker.join().expect("a judging thread"))
+            .collect()
+    });
+    let judged = results.iter().map(|(judged, _)| judged).sum();
+    let mut found: Vec<String> = results.into_iter().flat_map(|(_, found)| found).collect();
+    found.sort();
+    (judged, found)
+}
+
+/// The lines of `known` about the Builds of `builds`: what a part of a corpus finds of its pinned disagreements.
+pub fn known_for<'a>(known: &[&'a str], builds: &[(String, Build)]) -> Vec<&'a str> {
+    known
+        .iter()
+        .copied()
+        .filter(|line| {
+            builds
+                .iter()
+                .any(|(name, _)| line.starts_with(&format!("{name}: ")))
+        })
+        .collect()
 }
 
 /// Judges one option: a disagreement when the picker's `status` is open but the walk refuses the edit, closed but
@@ -117,68 +178,35 @@ pub fn judge(engine: &Engine, build: &Build) -> Agreement {
         engine.is_possible(build),
         "the pickers answer for possible Builds"
     );
-    let mut agreement = Agreement::default();
-    let check = |agreement: &mut Agreement,
-                 picker: &str,
-                 option: String,
-                 status: &Result<(), Issue>,
-                 edit: &Edit| {
-        agreement.add(judge_one(engine, build, picker, &option, status, edit));
+    let mut judge = Judge {
+        engine,
+        build,
+        agreement: Agreement::default(),
     };
 
     // The Build start.
-    for o in engine.race_options(build) {
-        let option = format!("{:?}", o.value);
-        check(&mut agreement, "race_options", option, &o.status, &o.edit);
-    }
-    for o in engine.faith_options(build) {
-        let option = format!("{:?}", o.value);
-        check(&mut agreement, "faith_options", option, &o.status, &o.edit);
-    }
-    for o in engine.alignment_options(build) {
-        let option = format!("{:?}", o.value);
-        check(
-            &mut agreement,
-            "alignment_options",
-            option,
-            &o.status,
-            &o.edit,
-        );
-    }
-    for o in engine.background_options(build) {
-        let option = o.value.to_string();
-        check(
-            &mut agreement,
-            "background_options",
-            option,
-            &o.status,
-            &o.edit,
-        );
-    }
-    for o in engine.racial_ability_options(build) {
-        let option = format!("{:?}", o.value);
-        check(
-            &mut agreement,
-            "racial_ability_options",
-            option,
-            &o.status,
-            &o.edit,
-        );
-    }
-    for stepper in engine.point_buy_steps(build) {
-        for (way, step) in [("down", stepper.down), ("up", stepper.up)] {
-            if let Some(step) = step {
-                let option = format!("{:?} {way}", stepper.value);
-                check(
-                    &mut agreement,
-                    "point_buy_steps",
-                    option,
-                    &step.status,
-                    &step.edit,
-                );
-            }
-        }
-    }
+    judge.choices("race_options", engine.race_options(build), |v| {
+        format!("{v:?}")
+    });
+    judge.choices("faith_options", engine.faith_options(build), |v| {
+        format!("{v:?}")
+    });
+    judge.choices("alignment_options", engine.alignment_options(build), |v| {
+        format!("{v:?}")
+    });
+    judge.choices(
+        "background_options",
+        engine.background_options(build),
+        ToString::to_string,
+    );
+    judge.choices(
+        "racial_ability_options",
+        engine.racial_ability_options(build),
+        |v| format!("{v:?}"),
+    );
+    judge.steps("point_buy_steps", engine.point_buy_steps(build), |v| {
+        format!("{v:?}")
+    });
 
     // Each level, and the class one past the last while the cap allows another.
     let sheet = engine.evaluate(build);
@@ -192,14 +220,14 @@ pub fn judge(engine: &Engine, build: &Build) -> Agreement {
                 None => o.class.to_string(),
             };
             if !engine.asks_advances(build, level, &o.class) {
-                check(&mut agreement, &picker, option, &o.status, &o.edit);
+                judge.check(&picker, &option, &o.status, &o.edit);
                 continue;
             }
             // A prestige class that asks what it advances is taken through its advancement picker, never with the
             // option's own edit (the sheet and the MCP server ask `advances_options` once it's chosen): the walk
             // keeps it when it keeps some advancement, and each advancement offered must be one the walk keeps.
             let answers = engine.advances_options(build, level, &o);
-            agreement.add(verdict(
+            judge.agreement.add(verdict(
                 &picker,
                 &format!("{option} (asks advances)"),
                 &o.status,
@@ -209,24 +237,21 @@ pub fn judge(engine: &Engine, build: &Build) -> Agreement {
             let picker = format!("advances_options {level}");
             for a in answers {
                 let advances = format!("{option} advancing {:?}", a.advances);
-                check(&mut agreement, &picker, advances, &Ok(()), &a.edit);
+                judge.check(&picker, &advances, &Ok(()), &a.edit);
             }
         }
-        let picker = format!("ability_increase_options {level}");
-        let increases = engine.ability_increase_options(build, level);
-        for o in increases.unwrap_or_default() {
-            let option = format!("{:?}", o.value);
-            check(&mut agreement, &picker, option, &o.status, &o.edit);
-        }
-        let picker = format!("skill_steps {level}");
-        for stepper in engine.skill_steps(build, level).unwrap_or_default() {
-            for (way, step) in [("down", stepper.down), ("up", stepper.up)] {
-                if let Some(step) = step {
-                    let option = format!("{} {way}", stepper.value);
-                    check(&mut agreement, &picker, option, &step.status, &step.edit);
-                }
-            }
-        }
+        judge.choices(
+            &format!("ability_increase_options {level}"),
+            engine
+                .ability_increase_options(build, level)
+                .unwrap_or_default(),
+            |v| format!("{v:?}"),
+        );
+        judge.steps(
+            &format!("skill_steps {level}"),
+            engine.skill_steps(build, level).unwrap_or_default(),
+            ToString::to_string,
+        );
     }
 
     // Every slot of the sheet's levels and reached ranks.
@@ -238,8 +263,7 @@ pub fn judge(engine: &Engine, build: &Build) -> Agreement {
     {
         let picker = format!("options {:?}", slot.id);
         for o in engine.options(build, &slot.id).unwrap_or_default() {
-            let option = format!("{:?}", o.pick);
-            check(&mut agreement, &picker, option, &o.status, &o.edit);
+            judge.check(&picker, &format!("{:?}", o.pick), &o.status, &o.edit);
         }
     }
 
@@ -263,10 +287,48 @@ pub fn judge(engine: &Engine, build: &Build) -> Agreement {
     for (rank, picker, options) in mythic {
         if reached(rank) {
             for o in options(engine, build) {
-                let option = o.path.to_string();
-                check(&mut agreement, picker, option, &o.status, &o.edit);
+                judge.check(picker, &o.path.to_string(), &o.status, &o.edit);
             }
         }
     }
-    agreement
+    judge.agreement
+}
+
+/// The check of one Build under way: the Build, and what it has found so far.
+struct Judge<'a> {
+    engine: &'a Engine,
+    build: &'a Build,
+    agreement: Agreement,
+}
+
+impl Judge<'_> {
+    /// Judges one option ([`judge_one`]).
+    fn check(&mut self, picker: &str, option: &str, status: &Result<(), Issue>, edit: &Edit) {
+        let disagreement = judge_one(self.engine, self.build, picker, option, status, edit);
+        self.agreement.add(disagreement);
+    }
+
+    /// Judges a start or level picker's options, each named by its value.
+    fn choices<T>(
+        &mut self,
+        picker: &str,
+        options: Vec<ChoiceOption<T>>,
+        name: impl Fn(&T) -> String,
+    ) {
+        for o in options {
+            self.check(picker, &name(&o.value), &o.status, &o.edit);
+        }
+    }
+
+    /// Judges a picker's steppers, each step named by its value and its way (`down`, `up`).
+    fn steps<T>(&mut self, picker: &str, steppers: Vec<Stepper<T>>, name: impl Fn(&T) -> String) {
+        for stepper in steppers {
+            for (way, step) in [("down", stepper.down), ("up", stepper.up)] {
+                if let Some(step) = step {
+                    let option = format!("{} {way}", name(&stepper.value));
+                    self.check(picker, &option, &step.status, &step.edit);
+                }
+            }
+        }
+    }
 }
