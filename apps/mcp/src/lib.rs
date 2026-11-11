@@ -2,7 +2,8 @@
 //! possible Build. It calls `rules` directly, the same engine the browser runs as wasm.
 //!
 //! - [`Planner`] (`planner.rs`): the checked game data, the [`rules::Engine`] and the search index, loaded once.
-//! - [`Server`] (`server.rs`): the tools, the instructions and the one resource (`wotr://glossary`); each tool call
+//! - [`Server`] (`server.rs`): the tools, the instructions and the two resources (`wotr://glossary` and
+//!   `wotr://build-guide`, the `wotr-build` skill's text); each tool call
 //!   runs on a blocking thread.
 //! - `shapes.rs`: every JSON shape a tool takes or returns (the `rules` types stay serde-free for this).
 //! - One module per tool's work: `search.rs`, `describe.rs`, `sheet.rs`, `options.rs`, `choose.rs`, `withdraw.rs`,
@@ -45,5 +46,5 @@ mod withdraw;
 
 pub use address::{Address, NotAnAddress};
 pub use planner::Planner;
-pub use server::{GLOSSARY, GLOSSARY_URI, INSTRUCTIONS, Server};
+pub use server::{BUILD_GUIDE_URI, GLOSSARY, GLOSSARY_URI, INSTRUCTIONS, Server, build_guide};
 pub use shapes::{ChoiceValue, Kind};

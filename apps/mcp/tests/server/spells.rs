@@ -279,12 +279,10 @@ async fn a_class_archetype_or_path_names_the_lists_it_casts_from() {
 }
 
 #[tokio::test]
-async fn the_instructions_make_the_spell_catalogue_planner_data() {
-    let instructions = Client::start().await.instructions();
-    let boundary = instructions
-        .find("The honesty boundary:")
-        .expect("the honesty boundary");
-    let boundary = &instructions[boundary..];
+async fn the_guide_makes_the_spell_catalogue_planner_data() {
+    let client = Client::start().await;
+    let guide = client.guide().await;
+    let boundary = client.guide_section("The honesty boundary").await;
     for phrase in [
         "spell catalogue",
         "`kind: spell`",
@@ -299,12 +297,6 @@ async fn the_instructions_make_the_spell_catalogue_planner_data() {
         assert!(boundary.contains(phrase), "no {phrase} in {boundary}");
     }
     // Spells as a whole are no longer only the agent's knowledge.
-    assert!(
-        !instructions.contains("spells and spell availability"),
-        "{instructions}"
-    );
-    assert!(
-        !instructions.contains("Which spells exist"),
-        "{instructions}"
-    );
+    assert!(!guide.contains("spells and spell availability"), "{guide}");
+    assert!(!guide.contains("Which spells exist"), "{guide}");
 }

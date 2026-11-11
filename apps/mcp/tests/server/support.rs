@@ -54,6 +54,29 @@ impl Client {
             .unwrap_or_default()
     }
 
+    /// The build guide's text, read from the resource `wotr://build-guide`.
+    pub async fn guide(&self) -> String {
+        let read = self
+            .read_resource("wotr://build-guide")
+            .await
+            .expect("the build guide reads");
+        match &read.contents[..] {
+            [rmcp::model::ResourceContents::TextResourceContents { text, .. }] => text.clone(),
+            other => panic!("one text: {other:?}"),
+        }
+    }
+
+    /// One `## ` section of the build guide, from its heading to the next.
+    pub async fn guide_section(&self, heading: &str) -> String {
+        let guide = self.guide().await;
+        let start = guide
+            .find(&format!("## {heading}\n"))
+            .unwrap_or_else(|| panic!("no section {heading} in {guide}"));
+        let body = &guide[start + 3..];
+        let end = body.find("\n## ").map_or(body.len(), |at| at + 1);
+        body[..end].to_string()
+    }
+
     /// The server's capabilities, from its `initialize` reply.
     pub fn capabilities(&self) -> ServerCapabilities {
         self.0

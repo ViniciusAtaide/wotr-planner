@@ -1,4 +1,4 @@
-//! The MCP server: its tools, its instructions and its one resource, the glossary.
+//! The MCP server: its tools, its instructions and its two resources, the glossary and the build guide.
 
 use rmcp::handler::server::router::tool::ToolRouter;
 use rmcp::handler::server::wrapper::Parameters;
@@ -31,120 +31,31 @@ use crate::sheet::sheet;
 use crate::validate::validate;
 use crate::withdraw::withdraw;
 
-/// What every client is told on connecting: what to know before planning (ticket 117; the pick order within a level,
-/// ticket 126), the workflow, how to batch,
-/// value and branch, and the honesty boundary (plan, ticket 104, section 1; the spell catalogue, ticket 121). Short
-/// and imperative; the tools' descriptions hold the details.
+/// What every client is told on connecting: where the build guide is, the loop in short, and the honesty boundary in
+/// short (plan, ticket 104, section 1). Short on purpose: a client may cut long instructions, so the
+/// rest lives in the guide, `wotr://build-guide`.
 pub const INSTRUCTIONS: &str = "\
 wotr-planner builds Pathfinder: Wrath of the Righteous characters with the rules engine of a build planner. Every \
 Build its tools return is one the planner's rules allow.
 
-Before you plan:
-- Point-buy scores start at 10 and run from 7 to 18 on a 25-point budget; `sheet` gives `point_buy_spent` and \
-`point_buy_budget`.
-- Choose the faith (a deity, or atheism) before the alignment: no alignment is open until the faith is chosen, and a \
-deity allows only some.
-- `sheet` gives each Mythic rank's `character_level`, the character level its ascension comes at.
-- Within a level, picks are checked in order: class selections and class feat slots (`slot.selection.N.I`, \
-`slot.feat.N.class.I`), race slots, the general slot (`slot.feat.N.general.0`), the slots options and feats give, \
-then each Mythic rank that comes at that level (`slot.mythic.R`, `slot.path-feat.R.I`, `slot.path-selection.R.I`). \
-A pick that needs another taken at the same level goes in the later slot: Spell Focus in the sorcerer's level-1 \
-class slot and Greater Spell Focus in the general slot, not the reverse. A refusal that says the prerequisite's pick \
-\"comes after this slot\" names that pick's slot: swap the two picks, or take this one at a later level.
-- A class split decides what the last levels can take: Fighter 5 / Barbarian 15 gives up Barbarian levels 16 to 20 \
-and whatever needs them. Before you commit to a class split, branch the candidates from one code (Barbarian 20, and \
-Fighter 5 / Barbarian 15), add their levels, and `compare` the branches: it lists the feats and features each gains \
-that the other doesn't. `options` with `only_open: false` says what a closed option still needs (\"Needs Barbarian \
-level 16 (have 14)\").
+Read the build guide before your first Build: the resource `wotr://build-guide` (in Claude Code, the `wotr-build` \
+skill holds the same text). It gives what to know before you plan, the workflow, the choice addresses and their \
+values, batching, branching, ranking by a number and the honesty boundary in full. In short:
+1. Resolve each name the user gives with `search`; if a name could mean more than one item, ask the user which one.
+2. `new_build`, then plan the whole Build as one map of address → value and check it with `validate`; `choose` what \
+is still open, reading `rejected` when a step is refused.
+3. Give the user the final `link`.
 
-Workflow:
-1. Resolve every name the user gives with `search` (names, keys and initials: \"BFT\" finds the Brown-Fur \
-Transmuter; words of what an item does, such as \"DC\", also find it by its summary). Spells too: `kinds: \
-[\"spell\"]`, and `category` for a school or a descriptor (\"Compulsion\"). If a name could mean more than one \
-item, ask the user which one before you build.
-2. Start with `new_build`. Every Build tool takes the Build's code (`build`) and returns a new code, the planner \
-`link` and `todo`, the choices still open, each by its address (`options` only with `envelope: true`).
-3. Fill the Build start: race, racial ability, faith, alignment, background, point-buy scores.
-4. Add levels with `level.N.class` (N one past the last level adds one) and fill each level's open choices: feats, \
-Feature selections, ability increases, skill points.
-5. Fill the Mythic ranks once their levels are reached: the first ascension at MR 1, the path at MR 3, and each \
-rank's picks.
-6. Give the user the final `link`.
-
-Planned whole: once you have planned the whole Build, send it to `validate` as one map of address → value (the \
-values `choose` takes; the order doesn't matter). It returns every mistake at once, each failure under the earlier \
-one that causes it: fix the roots first (their `children` often go away), `validate` again, then keep the code it \
-returns with `status: \"valid\"` (its `todo` lists what is still open) and `choose` the rest.
-
-Batching: send many steps in one `choose`. It stops at the first refused step: read `rejected` (its issue and \
-reason), fix that step, and resend the rest from the code it returned.
-
-Values: take them from `options`, which lists what a choice can take now and why the rest is closed. A \
-parameterised feat or mythic ability (Favorite Metamagic: a metamagic) needs `{key, parameter}`: list them with \
-`options {values: true}`. A `todo` entry on a filled slot is a pick whose value is still open: choose the value \
-there. A spellcasting prestige class needs `advances`, the classes it advances (`[]` for none). A point-buy score \
-or a skill's ranks take the number to reach; `level.N.skill` takes a map `{skill: ranks}` to spend a level's skill \
-points in one step. \
-`compact: true` on `options` and `search` leaves out summaries (and `search`'s prerequisites and guide links) when \
-you need only the names.
-
-Branching: for alternatives (Lich or Aeon), build the shared part once, `choose` each alternative from that same \
-code, fill each branch, then `compare` the codes. Report its differences as facts, without ranking them by your own \
-judgement.
-
-Ranking by a number: when the user's goal is a number the planner computes (a spell DC, caster level against spell \
-resistance, concentration, the first attack's bonus or the damage bonus per hit), the planner ranks by it, and that \
-ranking is a fact. `compare` with `by` (`{\"caster_line\": {\"school\": \"enchantment\", \"subschool\": \
-\"compulsion\"}}` or `{\"attack_line\": {\"weapon\": \"greatsword\"}}`) orders the Builds by that number at their \
-last level. `improve` with a Build, a choice's address and the same `by` takes each option open there and orders \
-them by the change each makes to the number; `no_change` lists those that change nothing. Say what the number \
-leaves out (`leaves_out`: gear, buffs, conditional effects such as rolling twice or a gaze): an option in \
-`no_change` may still matter through its summary, and which Build or option is better overall stays your judgement, \
-to label as such.
-
-The honesty boundary:
-- State as fact only what the tools return: every choice in the Build is legal under the planner's rules at the \
-level it is taken; the link opens in the planner; and the features, numbers (BAB, saves, scores, skill ranks, \
-caster level from class levels, spell-level access) and path features the sheet lists.
-- The attack line (`sheet` or `compare` with a `weapon`) is fact too: each attack's bonus, damage per hit, Power \
-Attack's trade and the critical range, from BAB, the character's own scores and the weapon feats held. It leaves \
-out rage, stances, mythic feats, class features, buffs and gear unless assumed (`attack_leaves_out` lists all it \
-leaves out): label anything you add for them as your own game knowledge.
-- The caster line (`sheet` or `compare` with a `caster`: a school, and optionally a subschool, an energy type and \
-metamagic) is fact too: the save DC of each spell level the casting class can cast, with its breakdown by source \
-(the casting ability's modifier, Spell Focus and its kin, racial DCs, bloodline arcana, School Power), caster \
-level against spell resistance and the concentration bonus, from the class levels, the character's own scores and \
-the items held. It leaves out gear unless assumed, buffs, abilities switched on in a fight (the Aeon's gaze), \
-bonuses that grow with class level and what changes the target's roll instead of the DC (`caster_leaves_out` lists \
-all it leaves out): label anything you add for them as your own game knowledge. Which spells have a school or \
-subschool is in the spell catalogue.
-- The totals (`sheet`'s `totals`) are fact too: initiative, each save and each skill's total, with what each \
-counts, from the character's own scores, the class progressions, the skill ranks and class skills and the flat \
-bonuses of the items held (Improved Initiative, Iron Will, Skill Focus, racial and background bonuses). They \
-leave out gear unless assumed, buffs, bonuses against one kind of effect or for one use of a skill (Persuasion to intimidate) and \
-bonuses that grow with class level (`totals_leave_out` lists all they leave out): label anything you add for \
-them as your own game knowledge.
-- Assumed numbers (`assumed`, from `assume` on `sheet` or `compare`) are your assumption on top of the planner's \
-facts, not facts: the planner adds the gear you assume (ability score bonuses, a weapon's enhancement, a resistance \
-bonus, the guide's caster level and spell DC items where their circumstance matches) to its numbers as given. Say \
-what you assumed beside them, and keep the unassisted numbers as the facts. Gear is never part of the Build, its \
-link or a prerequisite: an assumed headband opens no feat.
-- The spell catalogue (`search` and `describe` with `kind: spell` or `kind: spell_list`) is fact too: each \
-spell's school, descriptors (its subschool among them), target, duration, saving throw, spell resistance, casting \
-time and material component as the guide prints them, and every spell list it is on with its level there, the \
-classes and archetypes that cast from each list, and a footnote limiting an entry to an archetype or a story branch. \
-It is reference data: no Build choice names a spell.
-- Most items carry a `summary`, spells too: what the guide says the item does, in one sentence in the planner's own \
-words, checked against the guide. Cite it as the planner's summary of the guide, not as a rule the planner enforces: the \
-engine checks prerequisites, not effects.
-- A few items carry `interactions` in `describe`: what the guide says about how the item combines with others \
-(or that it doesn't say), in the planner's own words. Cite it as the planner's note on the guide; where it says \
-the guide doesn't say, any answer is your own game knowledge.
-- Label everything else as your own game knowledge: what an item or a spell does beyond its summary and facts, how \
-items and spells interact, spells known or prepared, spells per day, bonus spells the catalogue lacks (a shaman \
-spirit's, an oracle mystery's, the Beast Tamer's), merging a Mythic spellbook into a class's, what a duration or a \
-damage roll comes to at a caster level, caster level arithmetic beyond the caster line, item and buff effects, \
-summons' stats, and which choice is better. The planner checks none of it.
+The honesty boundary, in short:
+- State as fact only what the tools return: every choice in the Build is legal under the planner's rules, the link \
+opens, and the sheet, the attack line, the caster line and the totals are the planner's numbers.
+- Each line says what it leaves out (`attack_leaves_out`: rage, stances, mythic feats, class features, buffs, gear \
+unless assumed; `caster_leaves_out`; `totals_leave_out`): label anything you add for them as your own game \
+knowledge. Assumed numbers (`assume`) are your assumption: say what you assumed beside them.
+- When the planner ranks Builds or options by a number (`compare` or `improve` with `by`), that ranking is a fact. \
+Report `compare`'s other differences as facts, without ranking them by your own judgement, and label which choice \
+is better overall as your judgement.
+- Summaries and `interactions` (`describe`) are the planner's notes on the guide, not rules it enforces.
 - Guide links (`guide_url`) are for the user to read: never fetch them yourself.
 
 The resource `wotr://glossary` defines the planner's terms (Build start, Slot, Withdrawal, Path switch, …).";
@@ -154,6 +65,20 @@ pub const GLOSSARY_URI: &str = "wotr://glossary";
 
 /// The project's glossary (`GLOSSARY.md`), embedded at build time so the binary needs no file at run time.
 pub const GLOSSARY: &str = include_str!("../../../GLOSSARY.md");
+
+/// The resource that serves the build guide.
+pub const BUILD_GUIDE_URI: &str = "wotr://build-guide";
+
+/// The `wotr-build` skill's file, embedded at build time: one text for Claude Code's skill and the MCP resource.
+const BUILD_GUIDE_FILE: &str = include_str!("../../../.claude/skills/wotr-build/SKILL.md");
+
+/// The build guide: the skill's text without its frontmatter (the skill's name and description).
+pub fn build_guide() -> &'static str {
+    BUILD_GUIDE_FILE
+        .strip_prefix("---\n")
+        .and_then(|rest| rest.split_once("\n---\n"))
+        .map_or(BUILD_GUIDE_FILE, |(_, body)| body.trim_start())
+}
 
 /// The server: the loaded data and the tools over it. Each tool call runs on a blocking thread.
 #[derive(Clone, Debug)]
@@ -515,7 +440,10 @@ impl ServerHandler for Server {
         _request: Option<PaginatedRequestParams>,
         _context: RequestContext<RoleServer>,
     ) -> Result<ListResourcesResult, ErrorData> {
-        Ok(ListResourcesResult::with_all_items(vec![glossary()]))
+        Ok(ListResourcesResult::with_all_items(vec![
+            glossary(),
+            guide(),
+        ]))
     }
 
     async fn read_resource(
@@ -523,16 +451,19 @@ impl ServerHandler for Server {
         request: ReadResourceRequestParams,
         _context: RequestContext<RoleServer>,
     ) -> Result<ReadResourceResponse, ErrorData> {
-        if request.uri != GLOSSARY_URI {
-            return Err(ErrorData::resource_not_found(
-                format!(
-                    "No resource `{}`: the one resource is `{GLOSSARY_URI}`.",
-                    request.uri
-                ),
-                None,
-            ));
-        }
-        let text = ResourceContents::text(GLOSSARY, GLOSSARY_URI).with_mime_type("text/markdown");
+        let text = match request.uri.as_str() {
+            GLOSSARY_URI => GLOSSARY,
+            BUILD_GUIDE_URI => build_guide(),
+            uri => {
+                return Err(ErrorData::resource_not_found(
+                    format!(
+                        "No resource `{uri}`: the resources are `{GLOSSARY_URI}` and `{BUILD_GUIDE_URI}`."
+                    ),
+                    None,
+                ));
+            }
+        };
+        let text = ResourceContents::text(text, request.uri).with_mime_type("text/markdown");
         Ok(ReadResourceResult::new(vec![text]).into())
     }
 }
@@ -547,4 +478,17 @@ fn glossary() -> Resource {
         )
         .with_mime_type("text/markdown")
         .with_size(GLOSSARY.len() as u64)
+}
+
+/// The build guide resource, as `resources/list` lists it.
+fn guide() -> Resource {
+    Resource::new(BUILD_GUIDE_URI, "build-guide")
+        .with_title("WotR Build Planner build guide")
+        .with_description(
+            "How to plan a Build with these tools: what to know before you plan, the workflow, addresses and values, \
+             `validate`, branching, ranking by a number, and the honesty boundary in full. Read it before your \
+             first Build.",
+        )
+        .with_mime_type("text/markdown")
+        .with_size(build_guide().len() as u64)
 }
