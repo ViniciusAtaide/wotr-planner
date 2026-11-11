@@ -9,6 +9,9 @@ edition.workspace = true
 base64 = { version = "0.22.1", default-features = false, features = ["alloc"] }
 miniz_oxide = { version = "0.9.1", default-features = false, features = ["with-alloc"] }
 serde.workspace = true
+# A fast hasher for the engine's lookups by key (`Catalog`) and the walk's slot set: its keys come from the game data
+# and the Build, never from an attacker who could flood one bucket, so SipHash's seeding buys nothing (ticket 158).
+rustc-hash = "2.1.3"
 
 [features]
 # Helpers only tests use (`Engine::state_before`, `LinkKeys::of_build`, `rules::agreement`); never turned on by the

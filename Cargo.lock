@@ -2317,6 +2317,7 @@ dependencies = [
  "miniz_oxide",
  "proptest",
  "rules",
+ "rustc-hash",
  "serde",
 ]
 
