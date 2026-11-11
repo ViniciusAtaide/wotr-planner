@@ -73,7 +73,7 @@ fn an_archetype_that_replaces_its_classs_skills_gives_its_own() {
         .find(|a| a.key.as_str() == "rogue/eldritch-scoundrel")
         .unwrap();
     archetype.class_skills = Some(BTreeSet::from([skill("knowledge-arcana")]));
-    let engine = rules::Engine::new(data);
+    let engine = engine_on(data);
     let mut build = build("dwarf", &["rogue"]);
     let plain: BTreeSet<String> = engine
         .evaluate(&build)

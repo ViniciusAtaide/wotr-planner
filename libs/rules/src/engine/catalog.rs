@@ -6,6 +6,7 @@ use std::collections::{BTreeSet, HashMap, HashSet};
 
 use super::{EffectiveRow, canonical_archetype_row, class_row, effective_rows, merged_row};
 use crate::build::{BuildStart, Pick};
+use crate::check::CheckedGameData;
 use crate::game_data::{
     AbilityBonus, AbilityModifier, Archetype, Background, Class, Deity, EXOTIC_WEAPON_PROFICIENCY,
     Feat, FeatCategory, FeatList, FeatureSelection, GameData, IMPROVED_UNARMED_STRIKE,
@@ -61,8 +62,8 @@ pub(super) struct PickItem<'a> {
 
 impl Catalog {
     /// Indexes the game data, after putting it in canonical order.
-    pub(super) fn new(data: GameData) -> Self {
-        let data = data.canonical();
+    pub(super) fn new(data: CheckedGameData) -> Self {
+        let data = data.into_data().canonical();
         let without_alignment = data
             .classes
             .iter()
@@ -96,7 +97,7 @@ impl Catalog {
             .filter_map(|key| {
                 let pool = catalog
                     .selection(catalog.option(key)?.pool.as_ref()?)
-                    .expect("an option's pool is a selection of the data (GameData::check)");
+                    .expect("an option's pool is a selection of the data (CheckedGameData)");
                 let members = pool.offered().into_iter().cloned().collect();
                 Some((key.clone(), members))
             })

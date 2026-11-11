@@ -6,7 +6,9 @@ edition.workspace = true
 # The behaviour proof: a command (`record`, `compare`, `export`), not a test, since a full record takes minutes.
 # Native only: it reads the game data through `seeds`. Run it through `scripts/proof.sh`.
 [dependencies]
-rules.workspace = true
+# `unchecked`: the proof records game data that fails `GameData::check` too, with a warning (side A of a `data` proof
+# whose ticket adds a check rule with its data fix). `scripts/proof.sh` adds the feature to a ref's crates without it.
+rules = { workspace = true, features = ["unchecked"] }
 seeds.workspace = true
 serde_json = "1"
 

@@ -4,8 +4,10 @@
 
 use leptos::prelude::*;
 use leptos::wasm_bindgen::{JsCast, JsValue};
-use rules::GameData;
+use rules::{CheckedGameData, GameData};
 use wasm_bindgen_futures::JsFuture;
+
+use crate::timings::timed;
 
 /// The game data's URL, relative to the page (`./game-data/<hash>.json`), so it works under any path prefix. The
 /// server provides it as context to the shell.
@@ -24,8 +26,10 @@ pub fn GameDataPreload() -> impl IntoView {
     })
 }
 
-/// Downloads the game data from the URL the head's preload link names. Browser only.
-pub async fn load() -> Result<GameData, String> {
+/// Downloads the game data from the URL the head's preload link names, and checks it ([`GameData::check`]), since
+/// the engine takes only checked data: the browser holds data checked by the same code that guards the engine.
+/// Browser only.
+pub async fn load() -> Result<CheckedGameData, String> {
     let url = document()
         .get_element_by_id(LINK_ID)
         .and_then(|link| link.get_attribute("href"))
@@ -43,7 +47,12 @@ pub async fn load() -> Result<GameData, String> {
         .map_err(js_error)?
         .as_string()
         .ok_or("the game data isn't text")?;
-    serde_json::from_str(&text).map_err(|error| error.to_string())
+    let data: GameData = serde_json::from_str(&text).map_err(|error| error.to_string())?;
+    timed("check", || data.checked()).map_err(|problems| match problems.as_slice() {
+        [only] => format!("it has 1 problem: {only}"),
+        [first, ..] => format!("it has {} problems, the first: {first}", problems.len()),
+        [] => unreachable!("checked fails only with a problem"),
+    })
 }
 
 fn js_error(error: impl Into<JsValue>) -> String {

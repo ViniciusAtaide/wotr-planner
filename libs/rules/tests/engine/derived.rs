@@ -2,8 +2,8 @@
 //! race's penalty), skills, spell-level access.
 
 use rules::{
-    Ability, ClassChoice, ClassKey, Engine, LevelUp, Save, SaveException, SaveProgression,
-    SkillPoints, SlotId, SubraceKey,
+    Ability, ClassChoice, ClassKey, LevelUp, Save, SaveException, SaveProgression, SkillPoints,
+    SlotId, SubraceKey,
 };
 
 use crate::support::*;
@@ -55,7 +55,7 @@ fn a_save_exception_replaces_the_formula_at_its_level_only() {
         save: Save::Will,
         value: 9,
     });
-    let sheet = Engine::new(data).evaluate(&build("elf", &times("wizard", 3)));
+    let sheet = engine_on(data).evaluate(&build("elf", &times("wizard", 3)));
 
     let will: Vec<_> = (1..=3).map(|level| sheet.at(level).unwrap().will).collect();
     assert_eq!(will, [2, 9, 3]);
@@ -100,7 +100,7 @@ fn an_archetype_save_progression_replaces_its_classs() {
         Some(SaveProgression::Poor),
         Some(SaveProgression::Good),
     );
-    let engine = Engine::new(data);
+    let engine = engine_on(data);
 
     let saves = |build: &rules::Build, level| {
         let sheet = engine.evaluate(build);
@@ -135,7 +135,7 @@ fn an_archetype_save_progression_replaces_the_class_exceptions_for_that_save_onl
             value: 7,
         },
     ];
-    let sheet = Engine::new(data).evaluate(&armiger_build(2));
+    let sheet = engine_on(data).evaluate(&armiger_build(2));
 
     let at_2 = sheet.at(2).unwrap();
     // Will is the armiger's good progression (2 + ⌊2/2⌋ = 3), not the fighter's cell; Fortitude is still the

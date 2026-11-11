@@ -24,7 +24,8 @@ const KNOWN: &[&str] = &[];
 #[ignore = "sweeps about 2,000 real-data Builds: minutes in release"]
 fn every_picker_agrees_with_the_walk_on_the_proof_builds() {
     let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../libs/game-data");
-    let (engine, data) = proof::engine_on(&dir).expect("the game data reads");
+    let (engine, data, problems) = proof::engine_on(&dir).expect("the game data reads");
+    assert_eq!(problems, [], "the working tree's game data passes `check`");
     let threads = std::env::var("AGREEMENT_THREADS")
         .ok()
         .and_then(|threads| threads.parse().ok())

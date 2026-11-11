@@ -59,7 +59,7 @@ impl Engine {
                 let selection = self
                     .catalog
                     .selection(key)
-                    .expect("a slot names a selection of the data (GameData::check)");
+                    .expect("a slot names a selection of the data (CheckedGameData)");
                 // Own options and shared ones (a pool selection's: the held options' pools), in key order.
                 let pools = self.catalog.pools(selection, &state);
                 let mut keys: Vec<&SelectionOptionKey> = selection

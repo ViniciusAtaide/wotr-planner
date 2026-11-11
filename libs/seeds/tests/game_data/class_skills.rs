@@ -418,13 +418,16 @@ fn a_sohei_holds_lore_nature_as_a_class_skill_and_a_plain_monk_doesnt() {
 /// The real data with `skill` taken off `class`'s own list, so that the skill an option row gives shows.
 fn engine_without_class_skill(class: &str, skill: &str) -> Engine {
     let mut data = DATA.clone();
-    let class = data
+    let edited = data
         .classes
         .iter_mut()
         .find(|c| c.key.as_str() == class)
         .unwrap();
-    assert!(class.class_skills.remove(&SkillKey::new(skill)));
-    Engine::new(data)
+    assert!(edited.class_skills.remove(&SkillKey::new(skill)));
+    let checked = data.checked().unwrap_or_else(|problems| {
+        panic!("the game data with {skill} taken off {class}'s list has problems: {problems:#?}")
+    });
+    Engine::new(checked)
 }
 
 /// `engine` gives `skill` as a class skill from `level` on, not before.
