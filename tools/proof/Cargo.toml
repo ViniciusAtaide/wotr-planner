@@ -9,3 +9,7 @@ edition.workspace = true
 rules.workspace = true
 seeds.workspace = true
 serde_json = "1"
+
+[dev-dependencies]
+# The agreement sweep (ticket 150) uses the rules crate's test helpers.
+rules = { workspace = true, features = ["testing"] }

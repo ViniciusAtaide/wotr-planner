@@ -11,7 +11,8 @@ miniz_oxide = { version = "0.9.1", default-features = false, features = ["with-a
 serde.workspace = true
 
 [features]
-# Helpers only tests use (`Engine::state_before`, `LinkKeys::of_build`); never turned on by the apps.
+# Helpers only tests use (`Engine::state_before`, `LinkKeys::of_build`, `rules::agreement`); never turned on by the
+# apps.
 testing = []
 # `rules::test_world`: a small invented game world and helpers for writing Builds against it, for tests outside this
 # crate too (`apps/mcp`). Only test targets turn it on, through dev-dependencies; never turned on by the apps.
