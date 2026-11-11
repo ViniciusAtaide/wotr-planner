@@ -214,7 +214,8 @@ impl Server {
             Every choice has its address (`start.race`, `level.4.class`, `slot.feat.3.general.0`, …) for `options`, \
             its value and its name. `removable: true` also marks which held choices can be withdrawn now. \
             Each level's attack line (`attack`, naming its weapon): for `weapon` (a weapon key) when given, else for \
-            the weapon of the Build's first Weapon Focus, and none without one. `caster` ({school, subschool?, \
+            the weapon of the Build's earliest Weapon Focus (by level; within a level, the first weapon key), and \
+            none without one. `caster` ({school, subschool?, \
             energy?, metamagic?}) adds each level's caster line for those spells: the save DC of each spell level \
             castable (and heightened, with Heighten Spell) broken down by source, caster level against spell \
             resistance and the concentration bonus. Every number is naked: no gear. Plus the envelope (`build`, \
@@ -309,7 +310,8 @@ impl Server {
             the planner's sheets. For each Build, a summary at its last level: classes and levels, BAB, saves, \
             scores, caster level (class levels only), spell-level access, Mythic rank, first ascension, path, Path \
             switch, level cap, link, its attack line (`attack`, naming its weapon: `weapon`, a weapon key, when \
-            given, else the weapon of that Build's first Weapon Focus, and none without one), and with `caster` \
+            given, else the weapon of that Build's earliest Weapon Focus (by level; within a level, the first \
+            weapon key), and none without one), and with `caster` \
             ({school, subschool?, energy?, metamagic?}) its caster line; every number naked, with no gear. Then only \
             what differs: the Build start's choices; \
             by character level, the \
@@ -319,7 +321,8 @@ impl Server {
             `builds`. Facts only: it doesn't say which Build is better. `by` (`{\"caster_line\": {school, \
             subschool?, energy?, metamagic?, number?}}`, `number` one of `dc` (the default: the DC of the highest \
             spell level castable), `spell_penetration`, `concentration`; or `{\"attack_line\": {weapon?, number?}}`, \
-            `weapon` left out for each Build's own Weapon Focus weapon, `number` `attack` (the default: the first \
+            `weapon` left out for the line shown (`weapon`'s when given, else each Build's own Weapon Focus \
+            weapon), `number` `attack` (the default: the first \
             attack's bonus) or `damage` (the bonus per hit)) orders the \
             Builds by that number at their last level, highest first, and gives each summary its `number` and its \
             place in `builds` (`given`), and `by` in the result says what the number leaves out: a ranking by a \
@@ -341,9 +344,11 @@ impl Server {
             …; a parameterised feat once per value) is taken by the planner's own edit, and the number `by` names \
             is read at the resulting Build's last level: `{\"caster_line\": {school, subschool?, energy?, \
             metamagic?, number?}}` (`number`: `dc`, the default, the DC of the highest spell level castable; \
-            `spell_penetration`; `concentration`) or `{\"attack_line\": {weapon?, number?}}` (`weapon` left out: \
-            the Build's Weapon Focus weapon; `number`: `attack`, the default, the first attack's bonus; `damage`, \
-            the bonus per hit). Returns the Build's number now \
+            `spell_penetration`; `concentration`) or `{\"attack_line\": {weapon?, number?}}` (`number`: `attack`, \
+            the default, the first attack's bonus; `damage`, the bonus per hit; `weapon` left out: the Build's \
+            Weapon Focus weapon, which every option must keep: refused with `invalid_arguments` when the Build has \
+            none or an option would change it, such as on the slot holding that Weapon Focus or an earlier one \
+            open to another; give `weapon` there). Returns the Build's number now \
             (`current`), `options`: those that change it, highest number first, each with its `value` (what \
             `choose` takes), `number` and `change`; `no_change`: those that leave it as it is (the one held now \
             among them; conditional effects such as rolling twice stay in their summaries); `no_line`: those whose \

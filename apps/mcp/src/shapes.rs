@@ -440,7 +440,8 @@ pub struct SheetArgs {
     #[serde(default)]
     pub removable: bool,
     /// The base weapon of each level's attack line (a weapon key: `greatsword`), from the planner's engine. Left
-    /// out: the weapon of the Build's first Weapon Focus, and no attack line without one. Not part of the Build.
+    /// out: the weapon of the Build's earliest Weapon Focus (by level; within a level, the first weapon key), and no
+    /// attack line without one. Not part of the Build.
     #[serde(default)]
     pub weapon: Option<String>,
     /// Also give each level the caster line for these spells (`{"school": "enchantment", "subschool":
@@ -895,7 +896,8 @@ pub struct CompareArgs {
     /// is opened checked, and every per-Build list in the result follows this order.
     pub builds: Vec<String>,
     /// The base weapon of each Build's summary's attack line (a weapon key: `greatsword`). Left out: each Build's
-    /// own Weapon Focus weapon (its first Weapon Focus), and no attack line for a Build without one.
+    /// own Weapon Focus weapon (its earliest Weapon Focus by level; within a level, the first weapon key), and no
+    /// attack line for a Build without one.
     #[serde(default)]
     pub weapon: Option<String>,
     /// Also give each Build's summary the caster line for these spells (`{"school": "enchantment", "subschool":

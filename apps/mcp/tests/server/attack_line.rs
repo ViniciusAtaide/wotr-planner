@@ -178,6 +178,21 @@ async fn compare_gives_each_builds_summary_its_attack_line() {
 }
 
 #[tokio::test]
+async fn compare_of_builds_without_levels_has_no_attack_leaves_out() {
+    let client = Client::on_the_test_world().await;
+    let start = build("human", &[]);
+    let compared: Value = client
+        .ok(
+            "compare",
+            json!({ "builds": [code(&start)], "weapon": "longsword" }),
+        )
+        .await;
+
+    assert_eq!(compared["builds"][0].get("attack"), None, "{compared}");
+    assert_eq!(compared.get("attack_leaves_out"), None, "{compared}");
+}
+
+#[tokio::test]
 async fn compare_without_a_weapon_gives_each_build_its_own_weapon_focus_line() {
     let client = Client::on_the_test_world().await;
     let mut dagger = fighter();

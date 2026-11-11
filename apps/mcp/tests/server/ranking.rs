@@ -333,6 +333,52 @@ async fn compare_by_the_attack_line_without_a_weapon_reads_each_builds_weapon_fo
 }
 
 #[tokio::test]
+async fn compare_by_an_attack_line_without_a_weapon_ranks_by_the_weapon_given() {
+    let client = Client::on_the_test_world().await;
+    let mut dagger = fighter();
+    dagger.picks.insert(
+        class_slot(2, 0),
+        pick_feat_for("weapon-focus", weapon("dagger")),
+    );
+    let compared = client
+        .ok(
+            "compare",
+            json!({
+                "builds": [code(&dagger), code(&fighter())],
+                "weapon": "longsword",
+                "by": { "attack_line": {} },
+            }),
+        )
+        .await;
+
+    // Both on the longsword shown: Weapon Focus (Longsword) +1 puts the second Build first, 8 to 7.
+    let ranked: Vec<(Value, Value, Value, Value)> = compared["builds"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|summary| {
+            (
+                summary["given"].clone(),
+                summary["number"].clone(),
+                summary["attack"]["weapon"]["key"].clone(),
+                summary["attack"]["attacks"][0].clone(),
+            )
+        })
+        .collect();
+    assert_eq!(
+        ranked,
+        [
+            (json!(1), json!(8), json!("longsword"), json!(8)),
+            (json!(0), json!(7), json!("longsword"), json!(7)),
+        ]
+    );
+    assert!(
+        text(&compared["by"]["number"]).contains("longsword"),
+        "{compared}"
+    );
+}
+
+#[tokio::test]
 async fn improve_by_the_attack_line_without_a_weapon_reads_the_builds_weapon_focus_weapon() {
     let client = Client::on_the_test_world().await;
     let improved = client
@@ -340,18 +386,72 @@ async fn improve_by_the_attack_line_without_a_weapon_reads_the_builds_weapon_foc
             "improve",
             json!({
                 "build": code(&fighter()),
-                "choice": "slot.feat.1.class.0",
-                "by": { "attack_line": {} },
+                "choice": "slot.feat.4.class.0",
+                "by": { "attack_line": { "number": "damage" } },
             }),
         )
         .await;
 
-    // The longsword's line, the Build's Weapon Focus weapon, read for every option.
-    assert_eq!(improved["current"], 8, "{improved}");
+    // The longsword's line, the Build's Weapon Focus weapon, read for every option: Str +3, and Weapon
+    // Specialization (Longsword) adds +2, which no other weapon's line would count.
+    assert_eq!(improved["current"], 3, "{improved}");
     assert!(
         text(&improved["number"]).contains("longsword"),
         "{improved}"
     );
+    let options = improved["options"].as_array().unwrap();
+    assert_eq!(options.len(), 1, "{improved}");
+    assert_eq!(
+        options[0]["value"],
+        json!({ "key": "weapon-specialization", "parameter": "longsword" }),
+        "{improved}"
+    );
+    assert_eq!(options[0]["number"], 5, "{improved}");
+    assert_eq!(options[0]["change"], 2, "{improved}");
+}
+
+#[tokio::test]
+async fn improve_by_the_attack_line_without_a_weapon_is_refused_where_an_option_would_change_the_weapon()
+ {
+    let client = Client::on_the_test_world().await;
+    let mut unfocused = fighter();
+    unfocused.picks.remove(&class_slot(2, 0));
+    for (build, choice, reason) in [
+        // The slot that holds Weapon Focus (Longsword): any other feat there changes the weapon, to none or to
+        // another Weapon Focus's.
+        (code(&fighter()), "slot.feat.2.class.0", "would change it"),
+        // An earlier slot: a Weapon Focus at level 1 would come first.
+        (code(&fighter()), "slot.feat.1.class.0", "weapon-focus ("),
+        // No Weapon Focus: no weapon to read.
+        (code(&unfocused), "slot.feat.4.class.0", "no Weapon Focus"),
+    ] {
+        let result = client
+            .call(
+                "improve",
+                json!({ "build": build, "choice": choice, "by": { "attack_line": {} } }),
+            )
+            .await;
+        assert_eq!(error_code(&result), "invalid_arguments", "{result:?}");
+        let message = error_text(&result);
+        assert!(message.contains(reason), "{choice}: {message}");
+        assert!(message.contains("`weapon`"), "{choice}: {message}");
+
+        // With a weapon, every option is read for it.
+        let improved = client
+            .ok(
+                "improve",
+                json!({
+                    "build": build,
+                    "choice": choice,
+                    "by": { "attack_line": { "weapon": "longsword" } },
+                }),
+            )
+            .await;
+        assert!(
+            text(&improved["number"]).contains("longsword"),
+            "{improved}"
+        );
+    }
 }
 
 #[tokio::test]

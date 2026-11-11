@@ -49,7 +49,9 @@ pub(crate) fn compare(planner: &Planner, args: CompareArgs) -> Result<CompareRes
         .by
         .as_ref()
         .map(|by| rank::Number::from_args(engine, by))
-        .transpose()?;
+        .transpose()?
+        // An attack line that names no weapon ranks by the line shown: `weapon`'s, or else each Build's own.
+        .map(|number| number.or_weapon(weapon.clone()));
     let mut sheets: Vec<Sheet> = builds.iter().map(|build| engine.evaluate(build)).collect();
     // With `by`, every per-Build list follows the order of the numbers: the Builds are put in it first.
     let mut ranked: Vec<(usize, Option<i16>)> = Vec::new();
@@ -135,7 +137,7 @@ pub(crate) fn compare(planner: &Planner, args: CompareArgs) -> Result<CompareRes
         levels,
         ranks,
         path_features,
-        attack_leaves_out: (weapon.is_some() || any_attack_line).then(attack::leaves_out),
+        attack_leaves_out: any_attack_line.then(attack::leaves_out),
         caster_leaves_out: spell.is_some().then(caster::leaves_out),
         by: number.map(|number| RankedBy {
             number: number.describe(engine),

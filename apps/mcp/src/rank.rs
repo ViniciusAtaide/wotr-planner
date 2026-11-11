@@ -49,8 +49,9 @@ pub enum CasterNumber {
 
 #[derive(Clone, Debug, Deserialize, JsonSchema)]
 pub struct AttackNumberArgs {
-    /// A base weapon's key (`greatsword`). Left out: the weapon of the Build's first Weapon Focus (`compare`: each
-    /// Build's own; `improve`: the Build's before any option is taken, or each option's Build's when it has none).
+    /// A base weapon's key (`greatsword`). Left out: `compare`'s `weapon`, else each Build's Weapon Focus weapon (its
+    /// earliest Weapon Focus by level; within a level, the first weapon key); for `improve`, the Build's, which every
+    /// option must keep (refused when the Build has none or an option would change it).
     #[serde(default)]
     pub weapon: Option<String>,
     /// Which number (default `attack`): `attack`, the first attack's bonus; `damage`, the bonus each hit adds to the
@@ -71,7 +72,8 @@ pub enum AttackNumber {
 #[derive(Clone, Debug)]
 pub(crate) enum Number {
     Caster(SpellTraits, CasterNumber),
-    /// The attack line's number for a weapon; for each Build's Weapon Focus weapon when `None`.
+    /// The attack line's number for a weapon; for each Build's Weapon Focus weapon when `None` (`compare` without
+    /// `weapon`).
     Attack(Option<WeaponKey>, AttackNumber),
 }
 
@@ -91,11 +93,11 @@ impl Number {
         })
     }
 
-    /// The number with the attack line's weapon fixed to this Build's Weapon Focus weapon when none was given and
-    /// the Build has one: `improve` reads every option's Build for the same weapon.
-    pub(crate) fn pinned(self, engine: &Engine, sheet: &Sheet) -> Self {
+    /// The number with this weapon for an attack line that names none: `compare`'s `weapon`, so the Builds are
+    /// ranked by the line they show, or `improve`'s pinned weapon.
+    pub(crate) fn or_weapon(self, weapon: Option<WeaponKey>) -> Self {
         match self {
-            Self::Attack(None, number) => Self::Attack(engine.default_attack_weapon(sheet), number),
+            Self::Attack(None, number) => Self::Attack(weapon, number),
             number => number,
         }
     }
@@ -156,7 +158,7 @@ impl Number {
             Self::Attack(weapon, number) => {
                 let weapon = match weapon {
                     Some(weapon) => format!("a {}", engine.weapon_name(weapon)),
-                    None => "each Build's Weapon Focus weapon (its first Weapon Focus)".to_owned(),
+                    None => "each Build's Weapon Focus weapon".to_owned(),
                 };
                 match number {
                     AttackNumber::Attack => {
@@ -212,8 +214,8 @@ pub struct ImproveArgs {
     pub choice: String,
     /// The number to rank the options by: `{"caster_line": {"school": "enchantment", "subschool": "compulsion"}}`
     /// (`number`: `dc`, the default, `spell_penetration` or `concentration`) or `{"attack_line": {"weapon":
-    /// "greatsword"}}` (`weapon` left out: the Build's Weapon Focus weapon; `number`: `attack`, the default, or
-    /// `damage`).
+    /// "greatsword"}}` (`weapon` left out: the Build's Weapon Focus weapon, refused when the Build has none or an
+    /// option would change it; `number`: `attack`, the default, or `damage`).
     pub by: NumberArgs,
     /// Only options whose name or value holds every word of this (case doesn't matter), as `options` filters them.
     #[serde(default)]
@@ -268,7 +270,19 @@ pub(crate) fn improve(planner: &Planner, args: ImproveArgs) -> Result<ImproveRes
         .parse()
         .map_err(|error: NotAnAddress| ToolError::no_such_choice(error.to_string()))?;
     let sheet = engine.evaluate(&build);
-    let number = Number::from_args(engine, &args.by)?.pinned(engine, &sheet);
+    let number = Number::from_args(engine, &args.by)?;
+    // An attack line that names no weapon reads the Build's Weapon Focus weapon, which every option tried must keep:
+    // otherwise options would be read for different weapons, or for one their own sheets don't show.
+    let kept = match number {
+        Number::Attack(None, _) => Some(engine.default_attack_weapon(&sheet).ok_or_else(|| {
+            ToolError::invalid_arguments(
+                "`by`'s `attack_line` names no `weapon`, and the Build has no Weapon Focus whose weapon it could \
+                 read. Give `weapon` to read every option for one weapon.",
+            )
+        })?),
+        _ => None,
+    };
+    let number = number.or_weapon(kept.clone());
     let current = number.of(engine, &build, &sheet);
     let words: Vec<String> = args
         .query
@@ -296,7 +310,23 @@ pub(crate) fn improve(planner: &Planner, args: ImproveArgs) -> Result<ImproveRes
         }
         let mut next = build.clone();
         engine.apply(&mut next, edit);
-        match number.of(engine, &next, &engine.evaluate(&next)) {
+        let next_sheet = engine.evaluate(&next);
+        if let Some(kept) = &kept {
+            let after = engine.default_attack_weapon(&next_sheet);
+            if after.as_ref() != Some(kept) {
+                let after = after.map_or("none".to_owned(), |weapon| {
+                    format!("the {}", engine.weapon_name(&weapon))
+                });
+                return Err(ToolError::invalid_arguments(format!(
+                    "`by`'s `attack_line` names no `weapon`, so it reads the Build's Weapon Focus weapon, the {}; \
+                     but {} at {address} would change it to {after}, so the options would be read for different \
+                     weapons. Give `weapon` to read every option for one weapon.",
+                    engine.weapon_name(kept),
+                    offer.name,
+                )));
+            }
+        }
+        match number.of(engine, &next, &next_sheet) {
             None => no_line.push(offer.name),
             Some(after) if Some(after) == current => no_change.push(offer.name),
             Some(after) => options.push(ImproveLine {
