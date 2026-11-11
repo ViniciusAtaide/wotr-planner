@@ -401,7 +401,6 @@ fn an_option_repeats_up_to_its_number_of_times() {
 fn engine_with(change: impl FnOnce(&mut GameData)) -> Engine {
     let mut data = world();
     change(&mut data);
-    assert_eq!(data.check(), []);
     engine_on(data)
 }
 

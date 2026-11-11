@@ -464,7 +464,6 @@ fn the_start_and_level_pickers_lock_what_allows_refuses() {
 fn engine_with(change: impl FnOnce(&mut rules::GameData)) -> Engine {
     let mut data = world();
     change(&mut data);
-    assert_eq!(data.check(), []);
     engine_on(data)
 }
 

@@ -32,10 +32,10 @@ impl Planner {
         Ok(Self::new(data.checked()?))
     }
 
-    fn new(data: CheckedGameData) -> Self {
+    fn new(checked: CheckedGameData) -> Self {
+        let data = GameData::clone(&checked);
         let site_file = site_file(&data);
-        let engine = Engine::new(data.clone());
-        let data = GameData::clone(&data);
+        let engine = Engine::new(checked);
         let index = SearchIndex::new(&data, &engine);
         let classes = data.classes.iter().chain(&data.prestige_classes);
         let feature_summaries = classes

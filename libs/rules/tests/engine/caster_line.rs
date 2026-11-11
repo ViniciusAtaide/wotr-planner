@@ -404,7 +404,6 @@ fn with_expanded_arsenal() -> Engine {
         removes_racial_penalty: false,
         ..template
     });
-    assert_eq!(data.check(), [], "the data checks");
     engine_on(data)
 }
 

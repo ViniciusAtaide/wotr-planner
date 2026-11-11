@@ -70,7 +70,8 @@ pub type Named = (String, Build);
 /// must.
 pub fn engine_on(dir: &Path) -> Result<(Engine, GameData), seeds::Error> {
     let data = seeds::check_game_data_files(dir)?;
-    Ok((Engine::new(data.clone()), GameData::clone(&data)))
+    let copy = GameData::clone(&data);
+    Ok((Engine::new(data), copy))
 }
 
 /// Runs `work` on each Build on `threads` threads, keeping the Builds' order.
