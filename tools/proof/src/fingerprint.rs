@@ -17,7 +17,10 @@
 //!   lock-reason texts, hashed;
 //! - `paths`, `switches`: the path and switch pickers (Debug, without the edits); `path_reasons`, `switch_reasons`:
 //!   their lock-reason texts, hashed;
-//! - `allows`: [`Engine::allows`] for each edit of [`battery`], a `0` or `1` each.
+//! - `allows`: [`Engine::allows`] for each edit of [`battery`], a `0` or `1` each;
+//! - `totals`: [`Engine::totals`] at each level of the sheet, its Debug text hashed (ticket 151);
+//! - `caster_lines`: [`Engine::caster_line`] at each level of the sheet for each spell of [`spells`], its Debug text
+//!   hashed (ticket 151).
 //!
 //! Recording also checks, panicking on a difference: [`Engine::is_removable`] and [`Engine::withdrawal`] against
 //! `removable` for every choice the Build holds ([`Engine::held_choices`]) and some it doesn't,
@@ -38,8 +41,8 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Mutex, OnceLock, PoisonError};
 
 use rules::{
-    ArchetypeKey, Build, Choice, ChoiceOption, ClassKey, Edit, Engine, Issue, MythicPathKey, Pick,
-    SlotKind, SlotOption, Stepper,
+    ArchetypeKey, Build, Choice, ChoiceOption, ClassKey, Edit, Energy, Engine, Issue,
+    MythicPathKey, Pick, SlotKind, SlotOption, SpellSchool, SpellTraits, Stepper, Subschool,
 };
 use serde_json::{Value, json};
 
@@ -339,7 +342,59 @@ pub fn fingerprint(engine: &Engine, name: &str, build: &Build) -> Value {
         "switches": format!("{:?}", mirrors(Some(&switches)).unwrap_or_default()),
         "switch_reasons": hashed(&switch_reasons),
         "allows": allows.iter().map(|allowed| if *allowed { '1' } else { '0' }).collect::<String>(),
+        "totals": totals_hash(engine, build, &sheet),
+        "caster_lines": caster_lines_hash(engine, build, &sheet),
     })
+}
+
+/// Each level's totals, their Debug texts hashed together.
+fn totals_hash(engine: &Engine, build: &Build, sheet: &rules::Sheet) -> String {
+    let totals: Vec<rules::Totals> = sheet
+        .levels
+        .iter()
+        .map(|level| engine.totals(&build.start, &level.state))
+        .collect();
+    hashed(&totals)
+}
+
+/// Each level's caster line for each spell of [`spells`], their Debug texts hashed together.
+fn caster_lines_hash(engine: &Engine, build: &Build, sheet: &rules::Sheet) -> String {
+    let spells = spells();
+    let lines: Vec<Option<rules::CasterLine>> = sheet
+        .levels
+        .iter()
+        .flat_map(|level| {
+            spells
+                .iter()
+                .map(|spell| engine.caster_line(&build.start, &level.state, *spell))
+        })
+        .collect();
+    hashed(&lines)
+}
+
+/// The spells the caster lines are recorded for: one of each school, one of each subschool, one of each energy type
+/// (an evocation) and one with metamagic, so every bonus scope of the data is met.
+fn spells() -> Vec<SpellTraits> {
+    let plain = |school| SpellTraits {
+        school,
+        subschool: None,
+        energy: None,
+        metamagic: false,
+    };
+    let mut spells: Vec<SpellTraits> = SpellSchool::ALL.into_iter().map(plain).collect();
+    spells.extend(Subschool::ALL.into_iter().map(|subschool| SpellTraits {
+        subschool: Some(subschool),
+        ..plain(subschool.school())
+    }));
+    spells.extend(Energy::ALL.into_iter().map(|energy| SpellTraits {
+        energy: Some(energy),
+        ..plain(SpellSchool::Evocation)
+    }));
+    spells.push(SpellTraits {
+        metamagic: true,
+        ..plain(SpellSchool::Evocation)
+    });
+    spells
 }
 
 /// The sheet's Debug text, hashed, without a state's empty faith (ticket 86's `faith: None, deity_domains: {}`): a
