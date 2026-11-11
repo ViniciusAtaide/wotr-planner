@@ -10,6 +10,7 @@ mod archetype_rows;
 mod attack_line;
 mod backgrounds;
 mod bonus_feats;
+mod bonuses_in_force;
 mod build_sheet;
 mod canonical;
 mod caster_line;

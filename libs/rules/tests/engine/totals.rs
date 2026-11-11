@@ -1,15 +1,17 @@
 //! Initiative, the saves and each skill's total (ticket 120): the character's own scores, the saves' class
 //! progressions, the skill ranks and class skills, and the bonuses of the items held. Unconditional numbers only.
 //! And the interactions notes (ticket 124): looked up by item, checked like the bonuses.
+//!
+//! Each total is read off a walked Build's state (ticket 151).
 
 use std::collections::BTreeSet;
 
 use rules::{
-    Ability, Background, BackgroundKey, BonusAmount, BonusItem, BonusTarget, BuildStart,
-    CharacterState, DataIssue, Engine, Feat, FeatCategory, FeatKey, GameData, GuideRef, ItemBonus,
-    ItemInteractions, MythicAbility, MythicAbilityGroup, MythicAbilityKey, MythicFeat,
-    MythicFeatGroup, MythicFeatKey, Parameter, ParameterKind, Prerequisite, RaceKey, Repeat, Save,
-    SkillKey, Stat, Subrace, SubraceKey, Total,
+    Ability, Background, BackgroundKey, BonusAmount, BonusItem, BonusTarget, Build, DataIssue,
+    Engine, Feat, FeatCategory, GameData, GuideRef, ItemBonus, ItemInteractions, MythicAbility,
+    MythicAbilityGroup, MythicAbilityKey, MythicFeat, MythicFeatGroup, MythicFeatKey, Parameter,
+    ParameterKind, Pick, Prerequisite, RaceKey, Repeat, Save, SkillKey, SlotId, Stat, Subrace,
+    SubraceKey, Total,
 };
 
 use crate::support::*;
@@ -31,7 +33,7 @@ fn engine_with(bonuses: impl IntoIterator<Item = ItemBonus>) -> Engine {
 
 /// The test world with the items these tests' bonuses name that it lacks, each with no more than a kind needs (no
 /// prerequisite, feature, group or feat), named by its key as the parts already are; and Stat Focus taken for a
-/// stat as the guide's is: so the data checks.
+/// stat as the guide's is, with no prerequisite: so the data checks.
 fn world_with_bonus_items() -> GameData {
     let mut data = world();
     for key in ["improved-initiative", "iron-will"] {
@@ -50,6 +52,7 @@ fn world_with_bonus_items() -> GameData {
     let stat_focus = data.feats.iter_mut().find(|f| f.key == feat("stat-focus"));
     let stat_focus = stat_focus.unwrap();
     (stat_focus.parameter, stat_focus.repeat) = (Some(ParameterKind::Stat), Repeat::PerValue);
+    stat_focus.prerequisite = None;
     data.mythic_feats.push(MythicFeat {
         key: MythicFeatKey::new("improved-initiative-mythic"),
         name: "improved-initiative-mythic".into(),
@@ -103,25 +106,13 @@ fn parts(total: &Total) -> Vec<(&str, i16)> {
         .collect()
 }
 
-/// A character with these scores (Str, Dex, Con, Int, Wis, Cha), holding nothing.
-fn character(values: [u8; 6]) -> CharacterState {
-    CharacterState {
-        ability_scores: scores(values),
-        ..CharacterState::default()
-    }
-}
-
-fn hold_feat(state: &mut CharacterState, key: &str) {
-    *state.feats.entry(FeatKey::new(key)).or_default() += 1;
-}
-
-fn hold_feat_for(state: &mut CharacterState, key: &str, value: Parameter) {
-    hold_feat(state, key);
-    state
-        .feat_values
-        .entry(FeatKey::new(key))
-        .or_default()
-        .insert(value, 1);
+/// A human Build of these classes with these point-buy scores (Str, Dex, Con, Int, Wis, Cha) and the race's +2 to
+/// Strength.
+fn character(scores: [u8; 6], classes: &[&str]) -> Build {
+    let mut build = build("human", classes);
+    build.start.ability_scores = point_buy(scores);
+    build.start.racial_ability = Some(Ability::Strength);
+    build
 }
 
 #[test]
@@ -148,19 +139,22 @@ fn initiative_is_dexterity_plus_the_bonuses_held_a_mythic_one_by_rank() {
             BonusAmount::Flat(1),
         ),
     ]);
-    let mut state = character([10, 16, 10, 10, 10, 10]);
-    hold_feat(&mut state, "improved-initiative");
-    state
-        .mythic_feats
-        .insert(MythicFeatKey::new("improved-initiative-mythic"));
-    state.mythic_rank = 6;
-    hold_feat_for(&mut state, "stat-focus", Parameter::Stat(Stat::Initiative));
-    let start = BuildStart {
-        background: Some(BackgroundKey::new("pickpocket")),
-        ..BuildStart::default()
-    };
+    // A fighter 15 (Mythic rank 6) with Dexterity 16.
+    let mut build = character([10, 16, 10, 10, 10, 10], &times("fighter", 15));
+    build.start.background = Some(BackgroundKey::new("pickpocket"));
+    build
+        .picks
+        .insert(general_slot(1), pick_feat("improved-initiative"));
+    build.picks.insert(
+        race_slot(0),
+        pick_feat_for("stat-focus", Parameter::Stat(Stat::Initiative)),
+    );
+    build.picks.insert(
+        SlotId::Mythic { rank: 2 },
+        Pick::mythic_feat(MythicFeatKey::new("improved-initiative-mythic")),
+    );
 
-    let totals = engine.totals(&start, &state);
+    let totals = engine.totals(&last_level(&engine, &build));
 
     assert_eq!(
         parts(&totals.initiative),
@@ -174,7 +168,8 @@ fn initiative_is_dexterity_plus_the_bonuses_held_a_mythic_one_by_rank() {
     );
     assert_eq!(totals.initiative.total, 16);
     // Without the background, its bonus is gone.
-    let without = engine.totals(&BuildStart::default(), &state);
+    build.start.background = None;
+    let without = engine.totals(&last_level(&engine, &build));
     assert_eq!(without.initiative.total, 14);
     assert_eq!(totals.leaves_out, rules::TOTALS_LEAVE_OUT);
 }
@@ -203,24 +198,26 @@ fn a_save_is_its_base_its_ability_and_the_bonuses_for_it_or_every_save() {
             BonusAmount::Flat(1),
         ),
     ]);
-    let mut state = character([10, 12, 14, 10, 8, 18]);
-    (state.fort, state.reflex, state.will) = (6, 2, 3);
-    hold_feat(&mut state, "iron-will");
-    hold_feat_for(&mut state, "stat-focus", Parameter::Stat(Stat::Reflex));
-    state
-        .mythic_abilities
-        .insert(MythicAbilityKey::new("grace"));
-    let start = BuildStart {
-        race: Some(RaceKey::new("human")),
-        ..BuildStart::default()
-    };
+    // A fighter 5 / rogue 1 (base saves 4, 3 and 1, so each save's total is its own; Mythic rank 1).
+    let mut classes = times("fighter", 5);
+    classes.push("rogue");
+    let mut build = character([10, 12, 14, 10, 8, 18], &classes);
+    build.picks.insert(general_slot(1), pick_feat("iron-will"));
+    build.picks.insert(
+        race_slot(0),
+        pick_feat_for("stat-focus", Parameter::Stat(Stat::Reflex)),
+    );
+    build.picks.insert(
+        SlotId::Mythic { rank: 1 },
+        Pick::mythic_ability(MythicAbilityKey::new("grace")),
+    );
 
-    let totals = engine.totals(&start, &state);
+    let totals = engine.totals(&last_level(&engine, &build));
 
     assert_eq!(
         parts(&totals.fortitude),
         [
-            ("Base save", 6),
+            ("Base save", 4),
             ("Constitution", 2),
             ("Human", 1),
             ("grace", 4)
@@ -229,7 +226,7 @@ fn a_save_is_its_base_its_ability_and_the_bonuses_for_it_or_every_save() {
     assert_eq!(
         parts(&totals.reflex),
         [
-            ("Base save", 2),
+            ("Base save", 3),
             ("Dexterity", 1),
             ("Human", 1),
             ("stat-focus (Reflex)", 1),
@@ -239,14 +236,14 @@ fn a_save_is_its_base_its_ability_and_the_bonuses_for_it_or_every_save() {
     assert_eq!(
         parts(&totals.will),
         [
-            ("Base save", 3),
+            ("Base save", 1),
             ("Wisdom", -1),
             ("Human", 1),
             ("iron-will", 2),
             ("grace", 4)
         ]
     );
-    assert_eq!(Save::ALL.map(|save| totals.save(save).total), [13, 9, 9]);
+    assert_eq!(Save::ALL.map(|save| totals.save(save).total), [11, 10, 7]);
 }
 
 #[test]
@@ -274,16 +271,25 @@ fn a_skill_is_its_ranks_its_ability_the_class_skill_bonus_when_trained_and_its_b
             BonusAmount::HalfMythicRank,
         ),
     ]);
-    let mut state = character([14, 10, 10, 12, 10, 16]);
-    state.skill_ranks.insert(skill("persuasion"), 10);
-    state.skill_ranks.insert(skill("athletics"), 9);
-    state.class_skills.insert(skill("persuasion"));
-    state.class_skills.insert(skill("mobility"));
-    hold_feat_for(&mut state, "skill-focus", skill_value("persuasion"));
-    hold_feat(&mut state, "toughness");
-    state.mythic_rank = 5;
+    // A bard 9 / monk 1: Persuasion and Mobility are class skills, Athletics isn't. Persuasion's ranks at every
+    // level, Athletics' at the first nine. The race's +2 to Intelligence.
+    let mut classes = times("bard", 9);
+    classes.push("monk");
+    let mut build = character([14, 10, 10, 12, 10, 16], &classes);
+    build.start.racial_ability = Some(Ability::Intelligence);
+    for (index, level) in build.levels.iter_mut().enumerate() {
+        level.skill_ranks.insert(skill("persuasion"), 1);
+        if index < 9 {
+            level.skill_ranks.insert(skill("athletics"), 1);
+        }
+    }
+    build.picks.insert(
+        general_slot(1),
+        pick_feat_for("skill-focus", skill_value("persuasion")),
+    );
+    build.picks.insert(race_slot(0), pick_feat("toughness"));
 
-    let totals = engine.totals(&BuildStart::default(), &state);
+    let totals = engine.totals(&last_level(&engine, &build));
     let total = |key: &str| totals.skill(&skill(key)).expect("a skill of the data");
 
     // Every skill of the data, in its (canonical) order.
@@ -322,19 +328,26 @@ fn a_skill_is_its_ranks_its_ability_the_class_skill_bonus_when_trained_and_its_b
 #[test]
 fn under_perfect_mind_every_skill_is_a_class_skill_with_ranks_at_least_the_mythic_rank() {
     let engine = engine();
-    let mut state = character([10, 10, 10, 10, 10, 10]);
-    state.skill_ranks_at_least_mythic_rank = true;
-    state.mythic_rank = 9;
-    state.skill_ranks.insert(skill("athletics"), 12);
+    // A fighter 17 switched to Gold Dragon: Perfect Mind at MR 9, with every score at least 18 and the highest +6:
+    // Strength 24, Dexterity 18. Athletics' ranks at the first twelve levels.
+    let mut build = character([16, 14, 12, 13, 10, 8], &times("fighter", 17));
+    build.mythic_path = Some(path("trickster"));
+    build.path_switch = Some(path("gold-dragon"));
+    for level in build.levels.iter_mut().take(12) {
+        level.skill_ranks.insert(skill("athletics"), 1);
+    }
+    let level = last_level(&engine, &build);
+    assert!(level.state.skill_ranks_at_least_mythic_rank);
+    assert_eq!(level.state.mythic_rank, 9);
 
-    let totals = engine.totals(&BuildStart::default(), &state);
+    let totals = engine.totals(&level);
 
     let athletics = totals.skill(&skill("athletics")).unwrap();
-    assert_eq!(athletics.total.total, 15);
+    assert_eq!(athletics.total.total, 22);
     let mobility = totals.skill(&skill("mobility")).unwrap();
     assert_eq!(
         parts(&mobility.total),
-        [("Ranks", 9), ("Dexterity", 0), ("Class skill", 3)]
+        [("Ranks", 9), ("Dexterity", 4), ("Class skill", 3)]
     );
 }
 
@@ -358,16 +371,13 @@ fn a_bonus_counts_only_with_what_it_requires() {
             )
         },
     ]);
-    let mut state = character([10, 10, 10, 10, 10, 10]);
-    hold_feat(&mut state, "toughness");
+    let mut build = character([10, 10, 10, 10, 10, 10], &times("fighter", 8));
+    build.picks.insert(race_slot(0), pick_feat("toughness"));
+    let sheet = walked(&engine, &build);
+    let initiative = |level: usize| engine.totals(&sheet.levels[level - 1]).initiative.total;
 
-    assert_eq!(
-        engine
-            .totals(&BuildStart::default(), &state)
-            .initiative
-            .total,
-        2
-    );
+    // Fighter 8 brings the second.
+    assert_eq!([initiative(7), initiative(8)], [2, 6]);
 }
 
 #[test]
@@ -429,6 +439,30 @@ fn the_data_check_refuses_a_held_or_ten_ranks_bonus_without_a_skill_and_two_note
             "{expected:?} in {issues:?}"
         );
     }
+}
+
+#[test]
+fn the_data_check_refuses_a_ten_ranks_bonus_on_every_skill() {
+    // The walk works out a bonus's amount once, so a ten-ranks bonus is for one skill.
+    let mut data: GameData = world();
+    data.bonuses.push(bonus(
+        BonusItem::Feat(feat("toughness")),
+        BonusTarget::AllSkills,
+        BonusAmount::TenRanks {
+            amount: 2,
+            with_ten_ranks: 4,
+        },
+    ));
+    let issues: Vec<(String, DataIssue)> = data
+        .check()
+        .into_iter()
+        .map(|problem| (problem.at.to_string(), problem.issue))
+        .collect();
+
+    assert!(
+        issues.contains(&("feat toughness".to_owned(), DataIssue::TenRanksWithoutSkill)),
+        "{issues:?}"
+    );
 }
 
 #[test]

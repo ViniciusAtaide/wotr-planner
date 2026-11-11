@@ -1,19 +1,15 @@
 //! Initiative, the saves and each skill's total at one point of a Build (ticket 120).
 //!
 //! Unconditional numbers only, from what the Build fixes: the character's own scores, the saves' class progressions,
-//! the skill ranks and class skills, and the bonuses of the items held ([`ItemBonus`](crate::ItemBonus),
-//! `bonuses.ron`): Improved Initiative, Iron Will and its kin, Skill Focus, racial and background bonuses, Halfling
-//! Luck, Mythic Resolve, Divine Grace. Everything else is [`TOTALS_LEAVE_OUT`].
+//! the skill ranks and class skills, and the Item bonuses in force ([`BonusInForce`], from `bonuses.ron`): Improved
+//! Initiative, Iron Will and its kin, Skill Focus, racial and background bonuses, Halfling Luck, Mythic Resolve,
+//! Divine Grace. Everything else is [`TOTALS_LEAVE_OUT`].
 
-use crate::bonus::BonusTarget;
-use crate::build::BuildStart;
+use crate::bonus::BonusInForce;
 use crate::game_data::{Ability, Save};
 use crate::keys::SkillKey;
-use crate::parameter::Parameter;
-use crate::state::CharacterState;
 
-use super::Engine;
-use super::caster::{amount, modifier};
+use super::{Engine, LevelSheet};
 
 /// The class skill bonus: a trained class skill's checks get +3.
 pub const CLASS_SKILL_BONUS: i16 = 3;
@@ -91,30 +87,35 @@ pub const TOTALS_LEAVE_OUT: &[&str] = &[
 ];
 
 impl Engine {
-    /// Initiative, the saves and each skill's total at a character state, the Build start giving the race, subrace
-    /// and background.
-    pub fn totals(&self, start: &BuildStart, state: &CharacterState) -> Totals {
-        let held = self.held_bonuses(start, state);
+    /// Initiative, the saves and each skill's total at a level of the sheet ([`Engine::evaluate`]), at the state
+    /// that ends it.
+    ///
+    /// It takes the sheet's level rather than a bare state because only the sheet's states record the bonuses in
+    /// force ([`bonuses_in_force`](crate::CharacterState::bonuses_in_force)): a state from anywhere else
+    /// ([`Engine::state_before`], one built by hand) has none, and its totals would leave out every item bonus
+    /// without an error.
+    pub fn totals(&self, level: &LevelSheet) -> Totals {
+        let state = &level.state;
         let ability = |ability: Ability| TotalPart {
             name: ability.name().to_owned(),
-            value: modifier(state.ability_scores.get(ability)),
+            value: i16::from(state.ability_scores.modifier(ability)),
         };
-        let bonuses = |adds: &dyn Fn(&BonusTarget, Option<&Parameter>) -> bool,
-                       skill: Option<&SkillKey>| {
-            held.iter()
-                .filter(|(bonus, value, _)| adds(&bonus.target, value.as_ref()))
-                .map(|(bonus, _, name)| TotalPart {
-                    name: name.clone(),
-                    value: amount(bonus.amount, state, skill),
+        let bonuses = |adds: &dyn Fn(&BonusInForce) -> bool| {
+            state
+                .bonuses_in_force
+                .iter()
+                .filter(|bonus| adds(bonus))
+                .map(|bonus| TotalPart {
+                    name: bonus.name.clone(),
+                    value: bonus.amount,
                 })
                 .collect::<Vec<_>>()
         };
 
         let mut initiative = vec![ability(Ability::Dexterity)];
-        initiative.extend(bonuses(
-            &|target, value| target.adds_to_initiative(value),
-            None,
-        ));
+        initiative.extend(bonuses(&|bonus| {
+            bonus.target.adds_to_initiative(bonus.value.as_ref())
+        }));
 
         let save = |save: Save, base: u8, own: Ability| {
             let mut parts = vec![
@@ -124,10 +125,9 @@ impl Engine {
                 },
                 ability(own),
             ];
-            parts.extend(bonuses(
-                &|target, value| target.adds_to_save(save, value),
-                None,
-            ));
+            parts.extend(bonuses(&|bonus| {
+                bonus.target.adds_to_save(save, bonus.value.as_ref())
+            }));
             total(parts)
         };
 
@@ -154,10 +154,9 @@ impl Engine {
                         value: CLASS_SKILL_BONUS,
                     });
                 }
-                parts.extend(bonuses(
-                    &|target, value| target.adds_to_skill(key, value),
-                    Some(key),
-                ));
+                parts.extend(bonuses(&|bonus| {
+                    bonus.target.adds_to_skill(key, bonus.value.as_ref())
+                }));
                 SkillTotal {
                     skill: key.clone(),
                     ranks,

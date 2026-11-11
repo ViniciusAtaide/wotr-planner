@@ -19,7 +19,7 @@ fn totals(engine: &Engine, build: &Build) -> Vec<Totals> {
         .evaluate(build)
         .levels
         .iter()
-        .map(|level| engine.totals(&build.start, &level.state))
+        .map(|level| engine.totals(level))
         .collect()
 }
 

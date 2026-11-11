@@ -1,7 +1,9 @@
 //! What a character has at one point of its Build, and Prerequisite checks against it.
 
 use std::collections::{BTreeMap, BTreeSet};
+use std::sync::Arc;
 
+use crate::bonus::BonusInForce;
 use crate::build::{AbilityScores, Faith};
 use crate::choice::Unmet;
 use crate::game_data::{Alignment, OptionGroup, SpellType};
@@ -84,6 +86,14 @@ pub struct CharacterState {
     /// The Mythic rank reached: 3 after a Legend switch, whatever the rank before.
     pub mythic_rank: u8,
     pub mythic_path: Option<MythicPathKey>,
+    /// The Item bonuses in force at the end of the level, in the data's order: what the caster line and the totals
+    /// add up. The walk records them on the sheet's states ([`Engine::evaluate`]), and levels with the same bonuses
+    /// share one list; a walk that keeps no sheet (a picker's or a recheck's) leaves them empty, as does a state
+    /// just before a slot. So the two lines take a level of the sheet ([`LevelSheet`]), never a bare state.
+    ///
+    /// [`Engine::evaluate`]: crate::Engine::evaluate
+    /// [`LevelSheet`]: crate::LevelSheet
+    pub bonuses_in_force: Arc<[BonusInForce]>,
 }
 
 /// The levels taken in one class.

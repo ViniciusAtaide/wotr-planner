@@ -34,7 +34,7 @@ fn lines(engine: &Engine, build: &Build, spell: SpellTraits) -> Vec<Option<Caste
         .evaluate(build)
         .levels
         .iter()
-        .map(|level| engine.caster_line(&build.start, &level.state, spell))
+        .map(|level| engine.caster_line(level, spell))
         .collect()
 }
 

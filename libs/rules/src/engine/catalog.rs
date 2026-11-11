@@ -5,6 +5,7 @@
 use std::collections::{BTreeSet, HashMap, HashSet};
 
 use super::{EffectiveRow, canonical_archetype_row, class_row, effective_rows, merged_row};
+use crate::bonus::BonusItemKind;
 use crate::build::{BuildStart, Pick};
 use crate::check::CheckedGameData;
 use crate::game_data::{
@@ -41,6 +42,32 @@ pub(super) struct Catalog {
     /// The prerequisite of each class with an alignment requirement and archetypes, without that requirement:
     /// what an archetype stating its own leaves of the class's (`None`: nothing).
     without_alignment: HashMap<ClassKey, Option<Prerequisite>>,
+    /// Where each item's bonuses are in `data.bonuses` ([`bonus_rows`](Self::bonus_rows)).
+    bonus_rows: BonusRows,
+}
+
+/// The positions in `data.bonuses` of each item's bonuses, by the item's kind (`kind as usize`) then its key's text
+/// ([`BonusItem::kind_and_key`]), so the walk finds an item's bonuses as it holds it without building a
+/// [`BonusItem`].
+///
+/// [`BonusItem`]: crate::BonusItem
+/// [`BonusItem::kind_and_key`]: crate::BonusItem::kind_and_key
+#[derive(Clone, Debug, Default)]
+struct BonusRows(Vec<HashMap<String, Vec<usize>>>);
+
+impl BonusRows {
+    fn new(data: &GameData) -> Self {
+        let mut rows = Self::default();
+        for (at, bonus) in data.bonuses.iter().enumerate() {
+            let (kind, key) = bonus.item.kind_and_key();
+            let kind = kind as usize;
+            if rows.0.len() <= kind {
+                rows.0.resize_with(kind + 1, HashMap::new);
+            }
+            rows.0[kind].entry(key.to_owned()).or_default().push(at);
+        }
+        rows
+    }
 }
 
 /// What a pick takes, read once ([`Catalog::pick_item`]): its name, picker chip, summary, prerequisite, the kind
@@ -82,6 +109,7 @@ impl Catalog {
             pools: HashMap::new(),
             casting: Casting::new(&data),
             without_alignment,
+            bonus_rows: BonusRows::new(&data),
             data,
         };
         catalog.single_options = catalog
@@ -917,5 +945,17 @@ impl SelectionAt {
             } => &data.classes[class].archetypes[archetype].selections[index],
             SelectionAt::Path { path, index } => &data.mythic_paths[path].selections[index],
         }
+    }
+}
+
+/// The Item bonuses (ticket 151).
+impl Catalog {
+    /// The positions in the data's bonuses ([`GameData::bonuses`]) of the bonuses an item gives, by its kind and its
+    /// key's text ([`BonusItem::kind_and_key`](crate::BonusItem::kind_and_key)), in the data's order; empty for one
+    /// that gives none.
+    pub(super) fn bonus_rows(&self, kind: BonusItemKind, key: &str) -> &[usize] {
+        (self.bonus_rows.0.get(kind as usize))
+            .and_then(|rows| rows.get(key))
+            .map_or(&[], Vec::as_slice)
     }
 }

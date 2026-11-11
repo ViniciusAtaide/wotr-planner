@@ -52,6 +52,13 @@
 //! `proof.sh` adds the feature to a ref's `rules` from before it (where it does nothing), so the harness still
 //! compiles against those crates.
 //!
+//! Ticket 151: the fingerprint records each level's totals and caster lines, and those two calls lost their Build
+//! start, then took a level of the sheet rather than its state. The build script reads which of the three the `rules`
+//! crate beside it takes, from the two functions' parameters wherever its sources define them (`cfg(lines_take_start)`,
+//! `cfg(lines_take_state)`, or neither), so the harness compiles against crates back to ticket 120, which brought the
+//! totals, and fails to build with what it found on anything else; the sheet hashes without the states' new
+//! `bonuses_in_force`, so records from before it still compare.
+//!
 //! A ticket that needs a special breakdown (only the Builds with some class, say) filters `compare`'s output or the
 //! records themselves (each line names its Build's classes in `who`); the fingerprint keeps only what isn't tied to
 //! one ticket.

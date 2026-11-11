@@ -3,7 +3,7 @@
 //! number is a fact (the attack line's or the caster line's, unconditional numbers only), so ranking by it is too; what
 //! it leaves out is the line's own `leaves_out`.
 
-use rules::{Address, Build, Engine, NotAnAddress, Sheet, SpellTraits, WeaponKey};
+use rules::{Address, Engine, NotAnAddress, Sheet, SpellTraits, WeaponKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -102,11 +102,11 @@ impl Number {
     }
 
     /// The number at a Build's last level; `None` when it has no such line there (no level, no casting class, …).
-    pub(crate) fn of(&self, engine: &Engine, build: &Build, sheet: &Sheet) -> Option<i16> {
-        let last = &sheet.levels.last()?.state;
+    pub(crate) fn of(&self, engine: &Engine, sheet: &Sheet) -> Option<i16> {
+        let last = sheet.levels.last()?;
         match self {
             Self::Caster(spell, number) => {
-                let line = engine.caster_line(&build.start, last, *spell)?;
+                let line = engine.caster_line(last, *spell)?;
                 match number {
                     CasterNumber::Dc => {
                         line.heightened.as_ref().or(line.dcs.last()).map(|dc| dc.dc)
@@ -117,7 +117,7 @@ impl Number {
             }
             Self::Attack(weapon, number) => {
                 let weapon = attack::weapon_or_default(engine, weapon.as_ref(), sheet)?;
-                let line = engine.attack_line(last, &weapon)?;
+                let line = engine.attack_line(&last.state, &weapon)?;
                 match number {
                     AttackNumber::Attack => line.attacks.first().copied(),
                     AttackNumber::Damage => Some(line.damage_bonus),
@@ -282,7 +282,7 @@ pub(crate) fn improve(planner: &Planner, args: ImproveArgs) -> Result<ImproveRes
         _ => None,
     };
     let number = number.or_weapon(kept.clone());
-    let current = number.of(engine, &build, &sheet);
+    let current = number.of(engine, &sheet);
     let words: Vec<String> = args
         .query
         .as_deref()
@@ -325,7 +325,7 @@ pub(crate) fn improve(planner: &Planner, args: ImproveArgs) -> Result<ImproveRes
                 )));
             }
         }
-        match number.of(engine, &next, &next_sheet) {
+        match number.of(engine, &next_sheet) {
             None => no_line.push(offer.name),
             Some(after) if Some(after) == current => no_change.push(offer.name),
             Some(after) => options.push(ImproveLine {

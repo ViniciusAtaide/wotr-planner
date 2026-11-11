@@ -2,22 +2,18 @@
 //! concentration bonus, at one point of a Build (ticket 119).
 //!
 //! Unconditional numbers only, from what the Build fixes: the casting class's caster level and casting ability
-//! (the character's own score), and the flat bonuses of the items held ([`ItemBonus`], `bonuses.ron`): Spell Focus
+//! (the character's own score), and the Item bonuses in force ([`BonusInForce`], from `bonuses.ron`): Spell Focus
 //! and its kin, racial DCs, bloodline arcana, School Power, Spell Penetration, Combat Casting. Everything else is
 //! [`CASTER_LINE_LEAVES_OUT`]. The line is for a spell the caller describes ([`SpellTraits`]: a school, and
 //! optionally a subschool, an energy type and metamagic), so no spell catalogue is needed.
 
-use std::collections::BTreeMap;
-
-use crate::bonus::{BonusAmount, BonusItem, BonusTarget, ItemBonus, SpellScope, SpellTraits};
-use crate::build::BuildStart;
+use crate::bonus::{BonusInForce, BonusTarget, SpellTraits};
 use crate::game_data::Ability;
-use crate::keys::{ClassKey, FeatKey, SkillKey};
-use crate::parameter::{Parameter, SpellSchool};
+use crate::keys::{ClassKey, FeatKey};
 use crate::state::CharacterState;
 
 use super::walk::advancing_levels;
-use super::{Engine, class_level_cap};
+use super::{Engine, LevelSheet, class_level_cap};
 
 /// A spell's numbers at one point of a Build ([`Engine::caster_line`]).
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -91,50 +87,38 @@ struct Casting {
 }
 
 impl Engine {
-    /// The caster line for a spell at a character state, the Build start giving the race and subrace: `None` for a
-    /// character with no class that casts spells (or none castable yet).
-    pub fn caster_line(
-        &self,
-        start: &BuildStart,
-        state: &CharacterState,
-        spell: SpellTraits,
-    ) -> Option<CasterLine> {
+    /// The caster line for a spell at a level of the sheet ([`Engine::evaluate`]), at the state that ends it: `None`
+    /// for a character with no class that casts spells (or none castable yet).
+    ///
+    /// It takes the sheet's level rather than a bare state because only the sheet's states record the bonuses in
+    /// force ([`CharacterState::bonuses_in_force`]): a state from anywhere else ([`Engine::state_before`], one built
+    /// by hand) has none, and its line would give a DC without Spell Focus without an error.
+    pub fn caster_line(&self, level: &LevelSheet, spell: SpellTraits) -> Option<CasterLine> {
+        let state = &level.state;
         let casting = self.casting(state)?;
-        let ability = modifier(state.ability_scores.get(casting.ability));
-        let held = self.held_bonuses(start, state);
-
-        let mut dc_parts = vec![CasterPart {
-            name: casting.ability.name().to_owned(),
-            value: ability,
-        }];
-        let focus = spell_focus_totals(&held);
-        for (bonus, value, name) in &held {
-            let BonusTarget::SpellDc(scope) = bonus.target else {
-                continue;
-            };
-            if bonus.amount == BonusAmount::SpellFocusOfAnotherSchool {
-                if let Some(part) = expanded_arsenal(&focus, spell, value.as_ref(), name) {
-                    dc_parts.push(part);
-                }
-            } else if scope.applies(&spell, value.as_ref()) {
-                dc_parts.push(CasterPart {
-                    name: name.clone(),
-                    value: amount(bonus.amount, state, None),
-                });
-            }
-        }
-        let flat = |target: BonusTarget| -> Vec<CasterPart> {
-            held.iter()
-                .filter(|(bonus, _, _)| bonus.target == target)
-                .map(|(bonus, _, name)| CasterPart {
-                    name: name.clone(),
-                    value: amount(bonus.amount, state, None),
+        let parts = |adds: &dyn Fn(&BonusInForce) -> bool| {
+            state
+                .bonuses_in_force
+                .iter()
+                .filter(|bonus| adds(bonus))
+                .map(|bonus| CasterPart {
+                    name: bonus.name.clone(),
+                    value: bonus.amount,
                 })
-                .collect()
+                .collect::<Vec<_>>()
         };
-        let spell_penetration_parts = flat(BonusTarget::SpellPenetration);
-        let mut concentration_parts = vec![dc_parts[0].clone()];
-        concentration_parts.extend(flat(BonusTarget::Concentration));
+        let ability = CasterPart {
+            name: casting.ability.name().to_owned(),
+            value: i16::from(state.ability_scores.modifier(casting.ability)),
+        };
+        let mut dc_parts = vec![ability.clone()];
+        dc_parts.extend(parts(&|bonus| match bonus.target {
+            BonusTarget::SpellDc(scope) => scope.applies(&spell, bonus.value.as_ref()),
+            _ => false,
+        }));
+        let spell_penetration_parts = parts(&|bonus| bonus.target == BonusTarget::SpellPenetration);
+        let mut concentration_parts = vec![ability];
+        concentration_parts.extend(parts(&|bonus| bonus.target == BonusTarget::Concentration));
 
         let sum = |parts: &[CasterPart]| parts.iter().map(|part| part.value).sum::<i16>();
         let dc_bonus = sum(&dc_parts);
@@ -202,193 +186,4 @@ impl Engine {
         }
         best
     }
-
-    /// Every bonus the character holds, once for each value its item is held for, with the part's name; those whose
-    /// `requires` the character doesn't meet are left out. In the data's order. Shared with [`Engine::totals`].
-    pub(super) fn held_bonuses<'a>(
-        &'a self,
-        start: &BuildStart,
-        state: &CharacterState,
-    ) -> Vec<(&'a ItemBonus, Option<Parameter>, String)> {
-        let mut held = Vec::new();
-        for bonus in &self.catalog.data().bonuses {
-            if bonus
-                .requires
-                .as_ref()
-                .is_some_and(|requires| state.check(requires).is_err())
-            {
-                continue;
-            }
-            for (value, name) in self.holdings(&bonus.item, start, state) {
-                held.push((bonus, value, name));
-            }
-        }
-        held
-    }
-
-    /// How a character holds an item: once per value for a parameterised feat or mythic feat (with the value), once
-    /// for anything else held, never for what it doesn't hold. Each with the part's name.
-    fn holdings(
-        &self,
-        item: &BonusItem,
-        start: &BuildStart,
-        state: &CharacterState,
-    ) -> Vec<(Option<Parameter>, String)> {
-        let with_value = |name: &str, value: &Parameter| {
-            (
-                Some(value.clone()),
-                format!("{name} ({})", self.parameter_name(value)),
-            )
-        };
-        match item {
-            BonusItem::Race(race) => {
-                let own_subrace = start
-                    .subrace
-                    .as_ref()
-                    .and_then(|key| self.catalog.subrace(key))
-                    .is_some_and(|(owner, _)| &owner.key == race);
-                if start.race.as_ref() == Some(race) && !own_subrace {
-                    vec![(None, self.race_name(race).to_owned())]
-                } else {
-                    vec![]
-                }
-            }
-            BonusItem::Subrace(subrace) => {
-                let holds = start.subrace.as_ref() == Some(subrace)
-                    && self
-                        .catalog
-                        .subrace(subrace)
-                        .is_some_and(|(owner, _)| start.race.as_ref() == Some(&owner.key));
-                if holds {
-                    vec![(None, self.subrace_name(subrace).to_owned())]
-                } else {
-                    vec![]
-                }
-            }
-            BonusItem::Background(background) => {
-                if start.background.as_ref() == Some(background) {
-                    vec![(None, self.background_name(background).to_owned())]
-                } else {
-                    vec![]
-                }
-            }
-            BonusItem::MythicAbility(ability) => {
-                if state.mythic_abilities.contains(ability) {
-                    vec![(None, self.mythic_ability_name(ability).to_owned())]
-                } else {
-                    vec![]
-                }
-            }
-            BonusItem::Feat(feat) => {
-                let name = self.feat_name(feat);
-                match state.feat_values.get(feat) {
-                    Some(values) => values.keys().map(|value| with_value(name, value)).collect(),
-                    None if state.feat_count(feat) > 0 => vec![(None, name.to_owned())],
-                    None => vec![],
-                }
-            }
-            BonusItem::MythicFeat(feat) => {
-                let name = self.mythic_feat_name(feat);
-                match state.mythic_feat_values.get(feat) {
-                    Some(values) => values.iter().map(|value| with_value(name, value)).collect(),
-                    None if state.mythic_feats.contains(feat) => vec![(None, name.to_owned())],
-                    None => vec![],
-                }
-            }
-            BonusItem::Feature(feature) => {
-                if state.feature_count(feature) > 0 {
-                    vec![(None, self.feature_name_apart(feature))]
-                } else {
-                    vec![]
-                }
-            }
-            BonusItem::SelectionOption(option) => {
-                if state.option_count(option) == 0 {
-                    return vec![];
-                }
-                let name = match self.catalog.selection_of(option) {
-                    Some(selection) => {
-                        format!("{} ({})", selection.name, self.option_name(option))
-                    }
-                    None => self.option_name(option).to_owned(),
-                };
-                vec![(None, name)]
-            }
-        }
-    }
-}
-
-/// What the Spell Focus feats held add up to for each school: the flat spell DC bonuses of the feats and mythic
-/// feats held for a school whose scope is the school they're held for.
-fn spell_focus_totals(
-    held: &[(&ItemBonus, Option<Parameter>, String)],
-) -> BTreeMap<SpellSchool, i16> {
-    let mut totals = BTreeMap::new();
-    for (bonus, value, _) in held {
-        let (BonusTarget::SpellDc(SpellScope::Value), BonusAmount::Flat(amount)) =
-            (&bonus.target, bonus.amount)
-        else {
-            continue;
-        };
-        if !matches!(bonus.item, BonusItem::Feat(_) | BonusItem::MythicFeat(_)) {
-            continue;
-        }
-        if let Some(Parameter::SpellSchool(school)) = value {
-            *totals.entry(*school).or_insert(0) += i16::from(amount);
-        }
-    }
-    totals
-}
-
-/// Expanded Arsenal held for `value`, for a spell: the Spell Focus feats of the school where they add up to the
-/// most (the first such school in school order), when the spell is of the school it's held for and that school has
-/// none of its own; `None` otherwise.
-fn expanded_arsenal(
-    focus: &BTreeMap<SpellSchool, i16>,
-    spell: SpellTraits,
-    value: Option<&Parameter>,
-    name: &str,
-) -> Option<CasterPart> {
-    let Some(Parameter::SpellSchool(school)) = value else {
-        return None;
-    };
-    if *school != spell.school || focus.get(school).is_some_and(|total| *total > 0) {
-        return None;
-    }
-    let (from, total) = focus.iter().filter(|(other, _)| *other != school).fold(
-        None::<(SpellSchool, i16)>,
-        |best, (other, total)| match best {
-            Some((_, most)) if most >= *total => best,
-            _ => Some((*other, *total)),
-        },
-    )?;
-    (total > 0).then(|| CasterPart {
-        name: format!("{name}: {}'s Spell Focus feats", from.name()),
-        value: total,
-    })
-}
-
-/// What a bonus adds for a character, from its own scores; for a skill bonus, `skill` is the skill whose ranks it may
-/// rise with.
-pub(super) fn amount(amount: BonusAmount, state: &CharacterState, skill: Option<&SkillKey>) -> i16 {
-    match amount {
-        BonusAmount::Flat(value) => i16::from(value),
-        BonusAmount::HalfMythicRank => i16::from(state.mythic_rank / 2),
-        BonusAmount::MythicRank => i16::from(state.mythic_rank),
-        // Only Expanded Arsenal, which `caster_line` works out apart.
-        BonusAmount::SpellFocusOfAnotherSchool => 0,
-        BonusAmount::TenRanks {
-            amount,
-            with_ten_ranks,
-        } => {
-            let ranks = skill.map_or(0, |skill| state.prerequisite_skill_ranks(skill));
-            i16::from(if ranks >= 10 { with_ten_ranks } else { amount })
-        }
-        BonusAmount::AbilityModifier(ability) => modifier(state.ability_scores.get(ability)),
-    }
-}
-
-/// An ability score's modifier: −1 for 8 or 9, +7 for 24 or 25.
-pub(super) fn modifier(score: u8) -> i16 {
-    (i16::from(score) - 10).div_euclid(2)
 }

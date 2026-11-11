@@ -19,6 +19,7 @@ use crate::parameter::Parameter;
 use crate::state::CharacterState;
 
 mod ascension;
+mod bonuses;
 mod cursor;
 mod hold;
 mod judge;
@@ -196,6 +197,14 @@ struct Walker<'a> {
     probed: Probed,
     /// Whether the walk keeps the sheet's rows; a recheck's walk doesn't ([`without_sheet`](Self::without_sheet)).
     sheet: bool,
+    /// While the walk keeps the sheet, the positions in the data's bonuses of those whose item the walk has held
+    /// (and may have released since), the Build start's included, in the data's order. Each level's end looks at
+    /// those ([`record_bonuses`](Self::record_bonuses)).
+    bonuses_noted: Vec<usize>,
+    /// Where each of the state's bonuses in force comes from, in step with them, so a level's end tells which of
+    /// the last level's still stand; and the buffer the next level's end fills.
+    bonus_keys: Vec<bonuses::BonusKey>,
+    bonus_keys_next: Vec<bonuses::BonusKey>,
     /// Set while the walk only answers whether a choice fails ([`holds`](Self::holds)).
     recheck: Option<RecheckWalk>,
 }
@@ -288,6 +297,9 @@ impl<'a> Walker<'a> {
             probe: None,
             probed: Probed::default(),
             sheet: true,
+            bonuses_noted: Vec::new(),
+            bonus_keys: Vec::new(),
+            bonus_keys_next: Vec::new(),
             recheck: None,
         }
     }
@@ -485,6 +497,9 @@ impl<'a> Walker<'a> {
         }
         self.state.base_ability_scores = scores;
         self.refresh_ability_scores();
+        if self.sheet {
+            self.note_start_bonuses();
+        }
         self.background();
         self.faith();
     }
@@ -583,6 +598,9 @@ impl<'a> Walker<'a> {
             slots.extend(self.fill_pending(level));
         }
 
+        if self.sheet {
+            self.record_bonuses();
+        }
         self.sheet.then(|| LevelSheet {
             character_level: level,
             class: level_up.class.clone(),

@@ -134,6 +134,9 @@ impl<'a> Walker<'a> {
 
     /// Holds an item; `source` says which Mythic ascension granted it, so a Path switch can take it back.
     pub(super) fn hold(&mut self, item: Held, source: Option<GrantSource>) {
+        if self.sheet {
+            self.note_bonuses(&item);
+        }
         let state = &mut self.state;
         match &item {
             Held::Feat(key, values) => {

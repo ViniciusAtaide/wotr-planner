@@ -1,10 +1,10 @@
 //! The caster line `sheet` and `compare` add for an optional `caster` (ticket 119): the engine's
-//! [`rules::Engine::caster_line`] at a character state, as JSON. The spell it describes is no part of the Build or its
+//! [`rules::Engine::caster_line`] at a level of the sheet, as JSON. The spell it describes is no part of the Build or its
 //! code.
 
 use rules::{
-    BuildStart, CASTER_LINE_LEAVES_OUT, CasterLine, CasterPart, CharacterState, Energy, Engine,
-    SpellDc, SpellSchool, SpellTraits, Subschool,
+    CASTER_LINE_LEAVES_OUT, CasterLine, CasterPart, Energy, Engine, LevelSheet, SpellDc,
+    SpellSchool, SpellTraits, Subschool,
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -149,14 +149,13 @@ fn counts(parts: &[CasterPart]) -> Vec<CasterPartShape> {
         .collect()
 }
 
-/// The caster line for a spell at a character state; `None` for a character that casts no spells yet.
+/// The caster line for a spell at a level of the Build's sheet; `None` for a character that casts no spells yet.
 pub(crate) fn caster_line(
     engine: &Engine,
-    start: &BuildStart,
-    state: &CharacterState,
+    level: &LevelSheet,
     spell: SpellTraits,
 ) -> Option<CasterLineShape> {
-    let line = engine.caster_line(start, state, spell)?;
+    let line = engine.caster_line(level, spell)?;
     Some(shape(engine, &line))
 }
 

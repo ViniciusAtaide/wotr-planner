@@ -1,35 +1,40 @@
 //! The caster line: a spell's save DC at each spell level, caster level against spell resistance and concentration,
 //! from the casting class, the character's own casting ability and the flat bonuses of the items held. Unconditional
 //! numbers only.
-
-use std::collections::{BTreeMap, BTreeSet};
+//!
+//! Each line is read off a walked Build's state (ticket 151).
 
 use rules::{
-    Ability, BonusAmount, BonusItem, BonusTarget, BuildStart, CharacterState, ClassLevels,
-    DataIssue, Energy, Engine, FeatKey, FeatureKey, GameData, ItemBonus, MythicFeat, MythicFeatKey,
-    Parameter, ParameterKind, Prerequisite, RaceKey, Repeat, SpellDc, SpellSchool, SpellScope,
-    SpellTraits, SubraceKey, Subschool,
+    Ability, BonusAmount, BonusItem, BonusTarget, Build, ClassChoice, DataIssue, Energy, Engine,
+    Feat, FeatCategory, FeatKey, FeatureKey, GameData, ItemBonus, MythicFeat, MythicFeatKey,
+    Parameter, ParameterKind, Pick, Prerequisite, RaceKey, Repeat, SlotId, SpellDc, SpellSchool,
+    SpellScope, SpellTraits, SubraceKey, Subschool,
 };
 
 use crate::support::*;
 
-fn levels(class_key: &str, level: u8) -> ClassLevels {
-    ClassLevels {
-        class: class(class_key),
-        prestige: false,
-        archetype: None,
-        advances: BTreeSet::new(),
-        level,
-    }
+/// A human sorcerer of this many levels with these point-buy scores (Str, Dex, Con, Int, Wis, Cha), the race's +2
+/// to Strength, holding nothing else.
+fn sorcerer_with(levels: usize, scores: [u8; 6]) -> Build {
+    let mut build = build("human", &times("sorcerer", levels));
+    build.start.ability_scores = point_buy(scores);
+    build.start.racial_ability = Some(Ability::Strength);
+    build
 }
 
-/// A sorcerer of this level with this Charisma (the rest 10), holding nothing else.
-fn sorcerer(level: u8, charisma: u8) -> CharacterState {
-    CharacterState {
-        classes: vec![levels("sorcerer", level)],
-        ability_scores: scores([10, 10, 10, 10, 10, charisma]),
-        ..CharacterState::default()
+/// A human sorcerer of this many levels with Charisma 10, holding nothing else.
+fn sorcerer(levels: usize) -> Build {
+    sorcerer_with(levels, [10, 10, 10, 10, 10, 10])
+}
+
+/// A sorcerer 20 with Charisma 24: 18 bought, the race's +2 and four of the five increases.
+fn sorcerer_20_charisma_24() -> Build {
+    let mut build = sorcerer_with(20, [10, 10, 10, 10, 10, 18]);
+    build.start.racial_ability = Some(Ability::Charisma);
+    for level in [4, 8, 12, 16] {
+        build.levels[level - 1].ability_increase = Some(Ability::Charisma);
     }
+    build
 }
 
 fn spell(school: SpellSchool) -> SpellTraits {
@@ -41,23 +46,8 @@ fn spell(school: SpellSchool) -> SpellTraits {
     }
 }
 
-fn holding_for(state: &mut CharacterState, feat: &str, school: SpellSchool) {
-    state
-        .feat_values
-        .entry(FeatKey::new(feat))
-        .or_default()
-        .insert(Parameter::SpellSchool(school), 1);
-    *state.feats.entry(FeatKey::new(feat)).or_default() += 1;
-}
-
-fn holding_mythic_for(state: &mut CharacterState, feat: &str, school: SpellSchool) {
-    let key = MythicFeatKey::new(feat);
-    state.mythic_feats.insert(key.clone());
-    state
-        .mythic_feat_values
-        .entry(key)
-        .or_default()
-        .insert(Parameter::SpellSchool(school));
+fn school(school: SpellSchool) -> Parameter {
+    Parameter::SpellSchool(school)
 }
 
 fn bonus(item: BonusItem, target: BonusTarget, amount: BonusAmount) -> ItemBonus {
@@ -75,6 +65,11 @@ fn with_bonuses(bonuses: impl IntoIterator<Item = ItemBonus>) -> GameData {
     data
 }
 
+/// The caster line for a spell at the last level of a Build that holds up.
+fn line(engine: &Engine, build: &Build, spell: SpellTraits) -> Option<rules::CasterLine> {
+    engine.caster_line(&last_level(engine, build), spell)
+}
+
 fn dcs(line: &rules::CasterLine) -> Vec<(u8, i16)> {
     line.dcs.iter().map(|dc| (dc.spell_level, dc.dc)).collect()
 }
@@ -89,13 +84,13 @@ fn parts(parts: &[rules::CasterPart]) -> Vec<(&str, i16)> {
 #[test]
 fn a_sorcerers_dcs_are_10_plus_the_spell_level_plus_charisma_at_each_level_castable() {
     // Sorcerer 20, Cha 24 (+7): spells of levels 1 to 9.
-    let line = engine()
-        .caster_line(
-            &BuildStart::default(),
-            &sorcerer(20, 24),
-            spell(SpellSchool::Enchantment),
-        )
-        .expect("a sorcerer casts");
+    let engine = engine();
+    let line = line(
+        &engine,
+        &sorcerer_20_charisma_24(),
+        spell(SpellSchool::Enchantment),
+    )
+    .expect("a sorcerer casts");
 
     assert_eq!(line.class, class("sorcerer"));
     assert_eq!(line.ability, Ability::Charisma);
@@ -118,13 +113,13 @@ fn a_sorcerers_dcs_are_10_plus_the_spell_level_plus_charisma_at_each_level_casta
 #[test]
 fn the_spell_levels_follow_the_class_level() {
     // The test world's sorcerer casts up to ⌈level/2⌉: 3rd-level spells at 5.
-    let line = engine()
-        .caster_line(
-            &BuildStart::default(),
-            &sorcerer(5, 16),
-            spell(SpellSchool::Evocation),
-        )
-        .unwrap();
+    let engine = engine();
+    let line = line(
+        &engine,
+        &sorcerer_with(5, [10, 10, 10, 10, 10, 16]),
+        spell(SpellSchool::Evocation),
+    )
+    .unwrap();
 
     assert_eq!(dcs(&line), [(1, 14), (2, 15), (3, 16)]);
     assert_eq!(line.caster_level, 5);
@@ -132,38 +127,43 @@ fn the_spell_levels_follow_the_class_level() {
 
 #[test]
 fn a_character_with_no_casting_class_has_no_line() {
-    let fighter = CharacterState {
-        classes: vec![levels("fighter", 10)],
-        ..CharacterState::default()
-    };
+    let engine = engine();
+    let fighter = build("human", &times("fighter", 10));
 
-    assert_eq!(
-        engine().caster_line(
-            &BuildStart::default(),
-            &fighter,
-            spell(SpellSchool::Evocation)
-        ),
-        None
-    );
+    assert_eq!(line(&engine, &fighter, spell(SpellSchool::Evocation)), None);
 }
 
 #[test]
 fn spell_focus_its_mythic_feat_and_school_power_count_for_their_school_only() {
-    let mut state = sorcerer(20, 24);
-    holding_for(&mut state, "spell-focus", SpellSchool::Evocation);
-    holding_mythic_for(&mut state, "spell-focus-mythic", SpellSchool::Evocation);
-    *state
-        .selection_options
-        .entry(rules::SelectionOptionKey::new(
-            "sorcerer/school-power/evocation",
-        ))
-        .or_default() += 1;
+    // The Arcane bloodline, and its School Power at 15.
+    let mut build = sorcerer_20_charisma_24();
+    build.picks.extend([
+        (
+            selection_slot(1, 0),
+            pick_option("sorcerer/bloodline/arcane"),
+        ),
+        (
+            general_slot(1),
+            pick_feat_for("spell-focus", school(SpellSchool::Evocation)),
+        ),
+        (
+            SlotId::Mythic { rank: 2 },
+            Pick::mythic_feat_for(
+                MythicFeatKey::new("spell-focus-mythic"),
+                school(SpellSchool::Evocation),
+            ),
+        ),
+        (
+            SlotId::OptionSelection {
+                level: 15,
+                index: 0,
+            },
+            pick_option("sorcerer/school-power/evocation"),
+        ),
+    ]);
     let engine = engine();
-    let line = |school| {
-        engine
-            .caster_line(&BuildStart::default(), &state, spell(school))
-            .unwrap()
-    };
+    let level = last_level(&engine, &build);
+    let line = |school| engine.caster_line(&level, spell(school)).unwrap();
 
     let evocation = line(SpellSchool::Evocation);
     assert_eq!(
@@ -191,18 +191,17 @@ fn spell_focus_its_mythic_feat_and_school_power_count_for_their_school_only() {
 #[test]
 fn the_line_follows_the_casting_class_with_the_highest_caster_level() {
     // Wizard 3 / sorcerer 5: the sorcerer's caster level, spells and Charisma.
-    let state = CharacterState {
-        classes: vec![levels("wizard", 3), levels("sorcerer", 5)],
-        ability_scores: scores([10, 10, 10, 18, 10, 14]),
-        ..CharacterState::default()
-    };
-    let line = engine()
-        .caster_line(
-            &BuildStart::default(),
-            &state,
-            spell(SpellSchool::Evocation),
-        )
-        .unwrap();
+    let mut build = build(
+        "human",
+        &[
+            "wizard", "wizard", "wizard", "sorcerer", "sorcerer", "sorcerer", "sorcerer",
+            "sorcerer",
+        ],
+    );
+    build.start.ability_scores = point_buy([10, 10, 10, 18, 10, 14]);
+    build.start.racial_ability = Some(Ability::Strength);
+    let engine = engine();
+    let line = line(&engine, &build, spell(SpellSchool::Evocation)).unwrap();
 
     assert_eq!(line.class, class("sorcerer"));
     assert_eq!((line.ability, line.caster_level), (Ability::Charisma, 5));
@@ -211,26 +210,23 @@ fn the_line_follows_the_casting_class_with_the_highest_caster_level() {
 
 #[test]
 fn prestige_levels_that_advance_the_class_raise_its_caster_level() {
-    // Sorcerer 6 / Arcane Trickster 4 advancing the sorcerer: caster level 10, 5th-level spells.
-    let state = CharacterState {
-        classes: vec![
-            levels("sorcerer", 6),
-            ClassLevels {
-                prestige: true,
-                advances: BTreeSet::from([class("sorcerer")]),
-                ..levels("arcane-trickster", 4)
-            },
-        ],
-        ability_scores: scores([10, 10, 10, 10, 10, 10]),
-        ..CharacterState::default()
-    };
-    let line = engine()
-        .caster_line(
-            &BuildStart::default(),
-            &state,
-            spell(SpellSchool::Evocation),
-        )
-        .unwrap();
+    // Rogue 3 / sorcerer 6 / Arcane Trickster 4 advancing the sorcerer: caster level 10, 5th-level spells.
+    let mut classes = times("rogue", 3);
+    classes.extend(times("sorcerer", 6));
+    classes.extend(times("arcane-trickster", 4));
+    let mut build = build("elf", &classes);
+    for level in build.levels.iter_mut().take(4) {
+        level.skill_ranks.insert(skill("mobility"), 1);
+    }
+    build.class_choices.insert(
+        class("arcane-trickster"),
+        ClassChoice {
+            archetype: None,
+            advances: [class("sorcerer")].into(),
+        },
+    );
+    let engine = engine();
+    let line = line(&engine, &build, spell(SpellSchool::Evocation)).unwrap();
 
     assert_eq!(line.caster_level, 10);
     assert_eq!(line.dcs.len(), 5);
@@ -239,16 +235,25 @@ fn prestige_levels_that_advance_the_class_raise_its_caster_level() {
 
 #[test]
 fn an_archetype_may_cast_with_another_ability() {
-    // The Sage casts with Intelligence.
-    let mut state = sorcerer(10, 20);
-    state.classes[0].archetype = Some(rules::ArchetypeKey::new("sorcerer/sage"));
-    state.ability_scores.intelligence = 16;
-    let line = engine()
-        .caster_line(
-            &BuildStart::default(),
-            &state,
-            spell(SpellSchool::Evocation),
-        )
+    // The Sage casts with Intelligence: a sorcerer 10 with Intelligence 16 and Charisma 20 (16 bought, the race's
+    // +2 and two increases).
+    let mut build = sorcerer_with(10, [10, 10, 10, 16, 10, 16]);
+    build.start.racial_ability = Some(Ability::Charisma);
+    for level in [4, 8] {
+        build.levels[level - 1].ability_increase = Some(Ability::Charisma);
+    }
+    build.class_choices.insert(
+        class("sorcerer"),
+        ClassChoice {
+            archetype: Some(rules::ArchetypeKey::new("sorcerer/sage")),
+            ..ClassChoice::default()
+        },
+    );
+    let engine = engine();
+    let level = last_level(&engine, &build);
+    assert_eq!(level.state.ability_scores.charisma, 20);
+    let line = engine
+        .caster_line(&level, spell(SpellSchool::Evocation))
         .unwrap();
 
     assert_eq!(line.ability, Ability::Intelligence);
@@ -264,21 +269,17 @@ fn a_subraces_bonuses_replace_its_races() {
         BonusTarget::SpellPenetration,
         BonusAmount::Flat(1),
     )]));
-    let start = |subrace: Option<&str>| BuildStart {
-        race: Some(RaceKey::new("half-elf")),
-        subrace: subrace.map(SubraceKey::new),
-        ..BuildStart::default()
-    };
-    let penetration = |start: &BuildStart| {
-        let line = engine
-            .caster_line(start, &sorcerer(10, 10), spell(SpellSchool::Evocation))
-            .unwrap();
+    let penetration = |subrace: Option<&str>| {
+        let mut build = build("half-elf", &times("sorcerer", 10));
+        build.start.subrace = subrace.map(SubraceKey::new);
+        build.start.racial_ability = Some(Ability::Strength);
+        let line = line(&engine, &build, spell(SpellSchool::Evocation)).unwrap();
         (line.spell_penetration, line.spell_penetration_parts)
     };
 
-    let (race, race_parts) = penetration(&start(None));
+    let (race, race_parts) = penetration(None);
     assert_eq!((race, parts(&race_parts)), (11, vec![("Half-Elf", 1)]));
-    let (subrace, subrace_parts) = penetration(&start(Some("half-elf/dual-heritage")));
+    let (subrace, subrace_parts) = penetration(Some("half-elf/dual-heritage"));
     assert_eq!(
         (subrace, parts(&subrace_parts)),
         (12, vec![("Dual Heritage", 2)])
@@ -308,25 +309,24 @@ fn a_bonus_counts_only_when_its_requirement_holds() {
             )
         },
     ]));
-    let mut state = sorcerer(20, 10);
-    state.mythic_rank = 7;
-    state
-        .mythic_feats
-        .insert(MythicFeatKey::new("dodge-mythic"));
-    let penetration = |state: &CharacterState| {
-        engine
-            .caster_line(&BuildStart::default(), state, spell(SpellSchool::Evocation))
+    // A sorcerer 16: Mythic rank 7.
+    let mut build = sorcerer(16);
+    build.picks.insert(
+        SlotId::Mythic { rank: 2 },
+        Pick::mythic_feat(MythicFeatKey::new("dodge-mythic")),
+    );
+    let penetration = |build: &Build| {
+        line(&engine, build, spell(SpellSchool::Evocation))
             .unwrap()
             .spell_penetration
     };
 
-    assert_eq!(penetration(&state), 23);
-    *state
-        .feats
-        .entry(FeatKey::new("spell-penetration"))
-        .or_default() += 1;
+    assert_eq!(penetration(&build), 19);
+    build
+        .picks
+        .insert(general_slot(5), pick_feat("spell-penetration"));
     // Spell Penetration's own +2, and the full rank.
-    assert_eq!(penetration(&state), 29);
+    assert_eq!(penetration(&build), 25);
 }
 
 #[test]
@@ -346,13 +346,15 @@ fn subschool_energy_and_metamagic_bonuses_count_when_the_spell_has_them() {
         ),
         bonus(arcana, dc(SpellScope::Metamagic), BonusAmount::Flat(1)),
     ]));
-    let mut state = sorcerer(20, 10);
-    state.features =
-        BTreeMap::from([(FeatureKey::new("sorcerer/bloodline/arcane/arcane-bond"), 1)]);
+    // The Arcane bloodline gives Arcane Bond at 1.
+    let mut build = sorcerer(20);
+    build.picks.insert(
+        selection_slot(1, 0),
+        pick_option("sorcerer/bloodline/arcane"),
+    );
+    let level = last_level(&engine, &build);
     let bonus_for = |spell: SpellTraits| {
-        let line = engine
-            .caster_line(&BuildStart::default(), &state, spell)
-            .unwrap();
+        let line = engine.caster_line(&level, spell).unwrap();
         line.dc_parts.iter().map(|part| part.value).sum::<i16>()
     };
     let plain = spell(SpellSchool::Enchantment);
@@ -383,7 +385,8 @@ fn subschool_energy_and_metamagic_bonuses_count_when_the_spell_has_them() {
     );
 }
 
-/// The test world with Expanded Arsenal (a mythic feat taken for a school) copying Spell Focus feats.
+/// The test world with Expanded Arsenal (a mythic feat taken for a school) copying Spell Focus feats, and Spell
+/// Focus taken once per school.
 fn with_expanded_arsenal() -> Engine {
     let mut data = with_bonuses([bonus(
         BonusItem::MythicFeat(MythicFeatKey::new("expanded-arsenal")),
@@ -401,23 +404,49 @@ fn with_expanded_arsenal() -> Engine {
         removes_racial_penalty: false,
         ..template
     });
+    let spell_focus = data.feats.iter_mut().find(|f| f.key == feat("spell-focus"));
+    spell_focus.unwrap().repeat = Repeat::PerValue;
     engine_on(data)
 }
 
 #[test]
 fn expanded_arsenal_gives_its_school_the_spell_focus_feats_of_another() {
-    let mut state = sorcerer(20, 10);
-    holding_for(&mut state, "spell-focus", SpellSchool::Evocation);
-    holding_mythic_for(&mut state, "spell-focus-mythic", SpellSchool::Evocation);
-    holding_for(&mut state, "spell-focus", SpellSchool::Illusion);
-    holding_mythic_for(&mut state, "expanded-arsenal", SpellSchool::Necromancy);
-    holding_mythic_for(&mut state, "expanded-arsenal", SpellSchool::Illusion);
+    // A sorcerer 15: mythic feats at MR 2, 4 and 6.
+    let mut build = sorcerer(15);
+    build.picks.extend([
+        (
+            general_slot(1),
+            pick_feat_for("spell-focus", school(SpellSchool::Evocation)),
+        ),
+        (
+            race_slot(0),
+            pick_feat_for("spell-focus", school(SpellSchool::Illusion)),
+        ),
+        (
+            SlotId::Mythic { rank: 2 },
+            Pick::mythic_feat_for(
+                MythicFeatKey::new("spell-focus-mythic"),
+                school(SpellSchool::Evocation),
+            ),
+        ),
+        (
+            SlotId::Mythic { rank: 4 },
+            Pick::mythic_feat_for(
+                MythicFeatKey::new("expanded-arsenal"),
+                school(SpellSchool::Necromancy),
+            ),
+        ),
+        (
+            SlotId::Mythic { rank: 6 },
+            Pick::mythic_feat_for(
+                MythicFeatKey::new("expanded-arsenal"),
+                school(SpellSchool::Illusion),
+            ),
+        ),
+    ]);
     let engine = with_expanded_arsenal();
-    let line = |school| {
-        engine
-            .caster_line(&BuildStart::default(), &state, spell(school))
-            .unwrap()
-    };
+    let level = last_level(&engine, &build);
+    let line = |school| engine.caster_line(&level, spell(school)).unwrap();
 
     // Necromancy gets the school with the most: Evocation's two.
     assert_eq!(
@@ -439,18 +468,21 @@ fn expanded_arsenal_gives_its_school_the_spell_focus_feats_of_another() {
 
 #[test]
 fn heighten_spell_gives_the_highest_levels_dc_to_any_spell() {
-    let mut state = sorcerer(20, 24);
-    *state
-        .feats
-        .entry(FeatKey::new("metamagic-heighten-spell"))
-        .or_default() += 1;
-    let line = engine()
-        .caster_line(
-            &BuildStart::default(),
-            &state,
-            spell(SpellSchool::Enchantment),
-        )
-        .unwrap();
+    let mut data = world();
+    let template = data.feats[0].clone();
+    data.feats.push(Feat {
+        key: feat("metamagic-heighten-spell"),
+        name: "Heighten Spell".into(),
+        category: FeatCategory::Magic,
+        prerequisite: None,
+        ..template
+    });
+    let engine = engine_on(data);
+    let mut build = sorcerer_20_charisma_24();
+    build
+        .picks
+        .insert(general_slot(1), pick_feat("metamagic-heighten-spell"));
+    let line = line(&engine, &build, spell(SpellSchool::Enchantment)).unwrap();
 
     assert_eq!(
         line.heightened,
