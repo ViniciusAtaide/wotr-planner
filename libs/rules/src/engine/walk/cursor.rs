@@ -189,9 +189,15 @@ impl<'a> Cursor<'a> {
     /// Whether `edit` breaks no choice other than the `allowed` ones (an edit's own: [`Edit::choices`]). An edit
     /// that changes nothing breaks nothing.
     pub(crate) fn keeps(&self, edit: &Edit, allowed: Vec<Choice>) -> bool {
+        let edited = self.edited(edit);
+        &edited == self.build || self.walks(edit, &edited, allowed)
+    }
+
+    /// The Build with `edit` applied.
+    fn edited(&self, edit: &Edit) -> Build {
         let mut edited = self.build.clone();
         self.engine.apply(&mut edited, edit);
-        &edited == self.build || self.walks(edit, &edited, allowed)
+        edited
     }
 
     /// Whether the walk of `edited` (the Build with `edit` applied) fails no choice but the `allowed` ones, even
@@ -223,9 +229,7 @@ impl<'a> Cursor<'a> {
     /// which fails a choice only when the Build isn't possible): what an option gets when its walk is the same as
     /// that one.
     fn later_walked(&self, edit: &Edit) -> Result<(), Issue> {
-        let mut edited = self.build.clone();
-        self.engine.apply(&mut edited, edit);
-        status(self.walks(edit, &edited, edit.choices()))
+        status(self.walks(edit, &self.edited(edit), edit.choices()))
     }
 
     /// The first character level whose walk an edit can change; 0 for the Build start, and past the end for an
@@ -233,11 +237,7 @@ impl<'a> Cursor<'a> {
     fn first_level(&self, edit: &Edit) -> u8 {
         let (engine, build) = (self.engine, self.build);
         match edit {
-            Edit::Pick { slot, .. } | Edit::Clear(slot) => match (slot.level(), slot.rank()) {
-                (Some(level), _) => level,
-                (None, Some(rank)) => engine.rank_level(rank),
-                (None, None) => 0,
-            },
+            Edit::Pick { slot, .. } | Edit::Clear(slot) => self.level_of(slot).unwrap_or(0),
             // A new archetype or advancement holds from the class's first level.
             Edit::Class {
                 level,
@@ -417,17 +417,16 @@ impl<'a> AtSlot<'_, 'a> {
     fn later_picks(&self) -> Vec<Checkpoint> {
         let cursor = self.cursor;
         let (build, slot) = (cursor.build, &self.slot);
-        let level = cursor.level_of(slot);
+        let Some(level) = cursor.level_of(slot) else {
+            return Vec::new();
+        };
         if !build
             .picks
             .keys()
-            .any(|other| other != slot && cursor.level_of(other) == level)
+            .any(|other| other != slot && cursor.level_of(other) == Some(level))
         {
             return Vec::new();
         }
-        let Some(level) = level else {
-            return Vec::new();
-        };
         let mut without = build.clone();
         without.picks.remove(slot);
         let index = usize::from(level) - 1;
