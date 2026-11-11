@@ -1,7 +1,7 @@
 # The walk judges every choice: a cursor for the pickers
 
 Type: design
-Status: open
+Status: resolved
 Blocked by: none
 Map: [WotR Build Planner](../map.md)
 
@@ -139,3 +139,73 @@ Once the design is decided. A refactor: the engine's answers don't change.
   - An open option whose edit leaves the Build unchanged is a disagreement unless it's the pick the Build holds there (each picker's held value: the start's fields, the level's class with its archetype, its ability increase, the slot's pick, the paths; a step is never held). The pickers mark the held pick `Ok` with a no-op edit; none marks any other no-op open. New test: `the_check_names_an_open_option_whose_edit_changes_nothing`.
   - `KNOWN` is pinned by content: the test world's Builds are keyed by their plan's name, not by seed and corpus position, so the 88 cases of disagreement 1 are 7 lines (plan, `class_options` level, option, verdicts); `judge_all` returns a `Sweep` (options judged, disagreements, deduplicated lines). The suite's sample checks that each line it finds is pinned; the whole corpus, that it finds exactly the pins. The proof's sweep filters its pins with the shared `known_for`, by the names of the Builds it sweeps.
   - Counts: no new disagreement. Test world 2,387 Builds, 2,878,430 options, 88 disagreements (7 pins), 40–53 s in release on a machine at load 130–250 (other agents building; about 30 s expected unloaded, from 22 s and the 24% more options); bench Builds whole, 0 (6 s in release); the proof's 2,003 Builds, 24,180,268 options, 0 disagreements, 372 s in release on 8 threads (same load). `scripts/check.sh`: ALL-OK.
+- 2026-11-11, Build step 2, the cursor (an agent in its own worktree, branch `worktree-agent-a9b2f2f44e2b66570`, fast-forwarded to `main`'s `32a1ab0`; ticket 152 was built at the same time in another worktree, in `apps/mcp`, `labels.rs` and `build_sheet.rs`, which this step doesn't touch). The user said not to stop, so the Findings' recommendations were taken (Answer). Baseline: the workspace's test list (`cargo test --workspace -- --list`, 1,121 lines) and a `git archive 32a1ab0` copy for the benchmark, both in the scratchpad (`t150/`).
+  - Built in one pass and committed as one (`c3d9a9d`), since the families share the cursor's walks: the cursor and the walk's own checks (`walk/cursor.rs`, `walk/judge.rs`), then the slot pickers, the class pickers (with class entry judged once), the paths, the start pickers and `Recheck`'s users moved onto it. The agreement suite was green after it; the whole test-world sweep then found no disagreement, so the 7 pins of disagreement 1 came off.
+  - New test: `advances::the_class_picker_opens_a_prestige_class_that_some_advancement_keeps` (a cleric 5 with Spell Penetration at level 5: Winter Witch at level 4 is open, and only advancing the cleric keeps the Build). It fails on `32a1ab0` (`Err(BreaksLater)`).
+  - Checks, the proof and the benchmark: see the Answer.
+
+## Answer
+
+**Decided 2026-11-11: the recommendations, taken under the user's "don't stop until all tasks are done".**
+1. Q1: option A, a cursor over today's walk. `until(slot | level)` pauses the walk, and `try(edit)` gives a candidate's verdict, `Result<(), Issue>`. The check is level by level, since `Walker::level` can't resume mid-level. It covers the slot's own check, in the mode the slot needs, and whether the edit breaks a later choice.
+2. Q2: the paused `&CharacterState` stays readable for presentation (slot lists, pools, the class picker's taken classes, the skill steppers' points). Only verdicts go through `try`.
+3. Q3: no `Walker` split. What `Recheck` did moved behind the cursor.
+4. Q4: the cursor is `pub(crate)`, and `Engine::state_before` stays (now `until_slot`'s state). `GLOSSARY.md` is unchanged: the cursor isn't a public engine term.
+5. Disagreement 1 is fixed: a prestige class that asks for advances is open when some advancement keeps the Build. This is the one behaviour change.
+
+**Done.** Every verdict a picker gives is the walk's, asked of the walk paused at the picker's slot or level. The pickers list candidates and present them. Class entry has one implementation. `Recheck` is gone; its walks are the cursor's. The agreement test finds no disagreement anywhere, and its pins are gone.
+
+### The cursor (`engine/walk/cursor.rs`, `pub(crate)`)
+
+- **`Cursor<'a> { engine, build, paused: RefCell<Vec<Walker>> }`**: the Build's walk paused before each level, filled as far as the questions asked need. This is `Recheck`'s store, moved. Build one per picker.
+  - `until_slot(&SlotId) -> Option<AtSlot>` clones the walk paused before the slot's level, then walks that level with the slot probe. The old probe was a separate full walk with the sheet.
+  - `until_level(u8) -> Option<AtLevel>`: the state off the paused walk. One past the last level gives the state after it.
+  - `try_edit(&Edit) -> Result<(), Issue>`: an edit's own check, then `BreaksLater`. The own checks are: a start's `faith_misfit`; the first ascension's, path's and switch's `*_fit` (so the switch picker's `NotFromPath` is now `switch_fit`'s); and a pick or a class, routed through `until_slot`/`until_level`.
+  - `keeps(&Edit, allowed)`: what `allows` and the withdrawals ask.
+  - `skill_points(level)`.
+  - Private: `later`, `later_walked`, `walks`, `first_level` (moved from `removable.rs`), `named_feats` (from `pickers.rs`) and `level_of`.
+- **`AtSlot`**: `state()`, `kind()`, `lists()` for presentation.
+  - `try_pick(&Pick)`: `check_pick_with` against the paused state, with `MetLater` on an unmet prerequisite, then the later walk. A feat no check names shares the slot-left-empty walk.
+  - Private: `met_later`, `later_pick` and `later_picks`. The "without this pick" probe now walks only the slot's level, from the paused walk.
+- **`AtLevel`**: `state()`, and `try_class(&Edit)`. It checks, in order:
+  - the cap (`ClassLevelCap`);
+  - on first entry, `class_entry(..).issue()`;
+  - past the last level, nothing more;
+  - for a prestige class that asks advances, whether any of `advancements(..)` keeps the Build (the edit's own advancement first), walked with nothing excused, so the walk's `check_advances` judges it;
+  - otherwise, whether the edit breaks a later choice.
+
+### What moved where
+
+| From | To |
+| --- | --- |
+| `slots.rs`: `check_pick`, `check_pick_with`, `check_repeat`, `check_deity_domain` | `walk/judge.rs` (`pub(super)`). `slots.rs` keeps the `impl Catalog` of what a slot accepts. |
+| `walk/level.rs` `check_class_entry`'s prerequisite part, and `pickers.rs` `class_status` | One `judge::class_entry(&Catalog, &state, &Class, archetype) -> Entry { class, archetype }`. The walk fails `Choice::Class`/`Choice::Archetype` with its parts, and `Entry::issue` joins them for a class option. |
+| `pickers.rs`: `advances_options`' candidate sets and `subsets` | `walk/level.rs` `advancements(build, level, prestige)`, shared by the cursor and `advances_options` |
+| `pickers.rs`: `later_picks`, `met_later`, `named_feats` | `AtSlot` and `Cursor` |
+| `removable.rs`: `Recheck`, `Engine::first_level` | `Cursor` |
+| `walk.rs`: `Engine::probe`, `Probe::Level`, `Walk::probed`, `Walker::finish` | Gone. `Probe::{Slot, Later}` and `Probed` stay, private to `walk`, set only by the cursor. `Walker`, its fields (`build`, `skill_points`) and its methods are private to `walk/`. |
+
+`Engine`'s public interface is unchanged. Only docs changed: `class_options` and `ClassOption::status` describe decision 5.
+
+### Done when
+
+- **Class entry in one place:** `judge::class_entry`. A grep for `state.check*` outside `walk/` and `state.rs` finds only `engine/caster.rs:218`: an item bonus's `requires`, which is a bonus's condition, not a choice's prerequisite. Ticket 151 moves the bonuses in force into the walk.
+- **`Recheck` reads no `Walker` field:** `Recheck` is gone, and only `walk/` reads `Walker`.
+- **Agreement:**
+  - The suite passes.
+  - Test world, whole corpus, release: 2,387 Builds, 2,878,430 options, **0 disagreements** (was 88 in 7 pins), 28 s.
+  - Real data, the bench Builds whole and the option C timing, release: 0 disagreements.
+  - The proof's Builds (`tools/proof`'s sweep), release on 8 threads: 2,003 Builds, 24,180,268 options, 0 disagreements, 218 s.
+  - Every test's `KNOWN` is empty.
+- **Test list:** the same as `32a1ab0`'s, plus `advances::the_class_picker_opens_a_prestige_class_that_some_advancement_keeps`.
+- **Proof:** `scripts/proof.sh rules <out> 32a1ab0` (with `CARGO_TARGET_DIR=$TMPDIR/wotr-proof-150b`). The comparison is empty: 2,163 Builds, none differing, and `A.jsonl` and `B.jsonl` are byte-identical (17,599,587 B). So the real data's Builds show no difference of any kind. Decision 5's change shows only where an asks-advances prestige class replaces a caster's level that a later pick needs, which no recorded real-data Build does: the Findings' 0 disagreements there, now confirmed. Its one kind of difference, a class option `Err(BreaksLater)` → `Ok(())` for a prestige class that asks advances when an advancement keeps the Build, is pinned by the test world: the 88 cases in 7 lines that the agreement test no longer finds, and the new `advances` test. A class option open with an advancement the walk refuses (the Findings' hazard) could also turn closed. It had 0 cases before and has 0 now.
+- **Benchmark:** ticket 48's browser benchmark (`t48/bench`) no longer exists. The scratchpad's `bench/` holds only ticket 149's load timing (`check-timing.js`). So the engine calls an edit and the pickers make were timed natively instead: `t150/bench150.rs`, a `seeds` example built in release on each side and not committed. It runs on ticket 48's bench Builds, 31 runs a call, median. The machine was heavily loaded (load average 60–156, other agents building), so the table gives the best median of 4–5 runs per side, run alternately. Raw runs are in `t150/bench-runs.txt`. Times are in ms, `32a1ab0` → now:
+
+  | Build | level-1 feat picker (`options`) | class picker, level 1 | class picker, level 7 | edit (`allows`, `apply`, `evaluate`, `removable_classes`) |
+  | --- | --- | --- | --- | --- |
+  | fighter20 | 0.783 → 0.784 | 1.169 → 1.186 | 1.455 → 1.451 | 0.385 → 0.390 |
+  | multi_prestige20 | 0.930 → 0.908 | 1.692 → 1.730 | 7.987 → 8.015 | 0.887 → 0.872 |
+  | legend40 | 0.879 → 0.879 | 1.733 → 1.762 | 1.970 → 1.986 | 1.029 → 1.004 |
+
+  The start pickers (race, point buy, skill steps) are within ±3%. The class picker is up to 2% slower, and on the blank-level Build `start` it went 0.040 → 0.051 ms. That is `try_class` looking each class up by key (one index lookup per option, about 230 options), where `class_status` was handed the class. It is within the runs' spread on the long Builds, and far under ticket 48's budget.
+- **`scripts/check.sh`:** ALL-OK (fmt, clippy, wasm clippy, tests, the rules wasm build, the seed's check).
