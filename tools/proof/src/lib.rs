@@ -47,6 +47,11 @@
 //! changed only to hash the options without their edits and to drop `Engine::allows_many`); and each option's status
 //! is checked against `allows`. The options hash as they did before (without their edits), so older records compare.
 //!
+//! Ticket 149: the engine takes only checked data (`rules::CheckedGameData`), and the harness reaches it past the
+//! check through `rules`' `unchecked` feature ([`engine_on`]), so it records data with problems too, with a warning.
+//! `proof.sh` adds the feature to a ref's `rules` from before it (where it does nothing), so the harness still
+//! compiles against those crates.
+//!
 //! A ticket that needs a special breakdown (only the Builds with some class, say) filters `compare`'s output or the
 //! records themselves (each line names its Build's classes in `who`); the fingerprint keeps only what isn't tied to
 //! one ticket.
@@ -59,19 +64,23 @@ pub mod links;
 
 use std::path::Path;
 
-use rules::{Build, Engine, GameData};
+use rules::{Build, DataProblem, Engine, GameData};
 
 /// A Build with the name the records know it by.
 pub type Named = (String, Build);
 
-/// The engine on the game data under `dir`, and that game data in the canonical order the engine holds it in. The
-/// harness keeps its own copy for the lists it walks (every race, skill, class…): the engine doesn't hand out its
-/// data. The files reader already returns it canonical. The data must pass [`GameData::check`], as the engine's
-/// must.
-pub fn engine_on(dir: &Path) -> Result<(Engine, GameData), seeds::Error> {
-    let data = seeds::check_game_data_files(dir)?;
-    let copy = GameData::clone(&data);
-    Ok((Engine::new(data), copy))
+/// The engine on the game data under `dir`, that game data in the canonical order the engine holds it in, and the
+/// problems [`GameData::check`] finds in it. The harness keeps its own copy for the lists it walks (every race,
+/// skill, class…): the engine doesn't hand out its data. The files reader already returns it canonical.
+///
+/// Data with problems gets an engine too, past the check (`rules`' `unchecked` feature, ticket 149): side A of a
+/// `data` proof is the older data, which fails a check rule its ticket adds together with the data fix, and that
+/// change most needs its comparison. The caller warns with the problems. `data.into()` is that way past the check,
+/// and `GameData` itself for crates from before [`rules::CheckedGameData`], whose `Engine::new` takes any data.
+pub fn engine_on(dir: &Path) -> Result<(Engine, GameData, Vec<DataProblem>), seeds::FilesError> {
+    let data = seeds::read_game_data_files(dir)?;
+    let problems = data.check();
+    Ok((Engine::new(data.clone().into()), data, problems))
 }
 
 /// Runs `work` on each Build on `threads` threads, keeping the Builds' order.

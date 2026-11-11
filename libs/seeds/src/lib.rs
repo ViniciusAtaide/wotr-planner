@@ -107,11 +107,12 @@ pub fn check_game_data_files(dir: &Path) -> Result<rules::CheckedGameData, Error
     read_game_data_files(dir)?.checked().map_err(Error::Invalid)
 }
 
-/// Reads the data files under `dir`, checks them, and replaces the database at `database` with a new one
-/// holding them and the files' hash ([`replace_game_data`]). Returns the hash.
+/// Reads the data files under `dir`, checks them ([`check_game_data_files`]), and replaces the database at
+/// `database` with a new one holding them and the files' hash ([`replace_game_data`]). Returns the hash. Data with
+/// problems writes nothing.
 pub async fn seed(database: &Path, dir: &Path) -> Result<String, Error> {
     let hash = game_data_hash(dir)?;
-    let data = read_game_data_files(dir)?;
+    let data = check_game_data_files(dir)?;
     replace_game_data(database, &data, &hash).await?;
     Ok(hash)
 }

@@ -66,8 +66,18 @@ fn options(args: &[String], links_allowed: bool) -> Result<Options, String> {
 
 /// The engine on the game data, the game data in the engine's order, and the Builds the options name.
 fn engine_and_builds(options: &Options) -> Result<(Engine, GameData, Vec<Named>), String> {
-    let (engine, data) = proof::engine_on(Path::new(&options.data))
+    let (engine, data, problems) = proof::engine_on(Path::new(&options.data))
         .map_err(|error| format!("reading {}: {error:?}", options.data))?;
+    if !problems.is_empty() {
+        eprintln!(
+            "warning: the game data under {} has {} problem(s) (GameData::check), recorded anyway:",
+            options.data,
+            problems.len()
+        );
+        for problem in &problems {
+            eprintln!("  {problem}");
+        }
+    }
     let read =
         |path: &str| std::fs::read_to_string(path).map_err(|error| format!("{path}: {error}"));
     let mut builds = match (&options.links, &options.builds) {

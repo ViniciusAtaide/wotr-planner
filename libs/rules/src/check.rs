@@ -1,7 +1,7 @@
 //! [`GameData::check`]: mistakes in the game data that its types can't rule out.
 //!
 //! The seed refuses data with problems, and the engine takes only data that passed ([`CheckedGameData`], which only
-//! [`GameData::checked`] makes), so the database and the engine can rely on these rules. Every key an entity
+//! [`GameData::checked`] makes, the behaviour proof's `unchecked` feature aside), so the database and the engine can rely on these rules. Every key an entity
 //! names is one of an entity of its kind ([`DataIssue::UnknownKey`]), and every Mythic rank a path names is one of the
 //! progression's ([`DataIssue::UnknownRank`]); the database's foreign keys check the same again, as a backstop.
 //!
@@ -686,14 +686,34 @@ impl GameData {
 
 /// Game data that [`GameData::check`] found no problem in, the only data [`Engine::new`](crate::Engine::new) takes:
 /// the engine relies on the check's rules (every feat list or selection a slot names is one of the data's, every
-/// option's pool is a selection). Only [`GameData::checked`] makes one, and it lends the data only for reading.
+/// option's pool is a selection). Only [`GameData::checked`] makes one (and, for the behaviour proof alone, the
+/// `unchecked` feature's [`From`]). Outside this crate it lends the data only for reading: it derefs to
+/// `&GameData`, with no `DerefMut` and no way to take the data back out. Inside it, [`Engine::new`](crate::Engine::new)
+/// takes the data owned (`into_data`) and puts it in canonical order, which only sorts it, so the check's rules
+/// still hold.
 #[derive(Clone, Debug)]
 pub struct CheckedGameData(GameData);
 
 impl CheckedGameData {
-    /// The data, for the engine to own.
+    /// The data, for the engine to own (and sort into canonical order).
     pub(crate) fn into_data(self) -> GameData {
         self.0
+    }
+}
+
+/// The behaviour proof's way past [`GameData::check`], behind the `unchecked` feature, which only `tools/proof`
+/// turns on (never the apps or the tests). A ticket that adds a `check` rule together with the data fix it needs
+/// proves the fix with `scripts/proof.sh data`, whose side A is the older data, which fails the new rule: the proof
+/// records it anyway, warning with its problems, rather than giving that change no comparison. A `From` rather than
+/// a named constructor so the harness's `Engine::new(data.into())` compiles against crates from before this type
+/// too, where `Engine::new` takes `GameData` itself.
+///
+/// A workspace-wide build (`cargo clippy --workspace`) unifies the feature into every crate's `rules`; an app's own
+/// build (`cargo leptos`, `-p backend`) doesn't have it, so no app can rely on it.
+#[cfg(feature = "unchecked")]
+impl From<GameData> for CheckedGameData {
+    fn from(data: GameData) -> Self {
+        Self(data)
     }
 }
 

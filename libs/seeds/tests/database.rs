@@ -609,7 +609,8 @@ async fn every_prerequisite_variant_round_trips() {
     evocation.prerequisite = Some(Prerequisite::All(about_the_pick));
     let game_data = game_data.canonical();
 
-    seeds::replace_game_data(&test.path, &game_data, &"0".repeat(64))
+    let checked = game_data.clone().checked().unwrap();
+    seeds::replace_game_data(&test.path, &checked, &"0".repeat(64))
         .await
         .unwrap();
 
@@ -1696,7 +1697,8 @@ async fn every_background_group_round_trips() {
     }
     let game_data = game_data.canonical();
 
-    seeds::replace_game_data(&test.path, &game_data, &"0".repeat(64))
+    let checked = game_data.clone().checked().unwrap();
+    seeds::replace_game_data(&test.path, &checked, &"0".repeat(64))
         .await
         .unwrap();
 

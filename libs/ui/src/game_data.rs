@@ -48,12 +48,10 @@ pub async fn load() -> Result<CheckedGameData, String> {
         .as_string()
         .ok_or("the game data isn't text")?;
     let data: GameData = serde_json::from_str(&text).map_err(|error| error.to_string())?;
-    timed("check", || data.checked()).map_err(|problems| {
-        format!(
-            "it has {} problems, the first: {}",
-            problems.len(),
-            problems[0]
-        )
+    timed("check", || data.checked()).map_err(|problems| match problems.as_slice() {
+        [only] => format!("it has 1 problem: {only}"),
+        [first, ..] => format!("it has {} problems, the first: {first}", problems.len()),
+        [] => unreachable!("checked fails only with a problem"),
     })
 }
 

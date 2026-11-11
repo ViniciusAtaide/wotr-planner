@@ -11,7 +11,9 @@ use rules::{
 
 fn engine() -> (Engine, GameData) {
     let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../libs/game-data");
-    proof::engine_on(&dir).expect("the game data reads")
+    let (engine, data, problems) = proof::engine_on(&dir).expect("the game data reads");
+    assert_eq!(problems, [], "the game data checks");
+    (engine, data)
 }
 
 fn character(class: &str, levels: usize) -> Build {

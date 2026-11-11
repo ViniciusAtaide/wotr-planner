@@ -5,10 +5,10 @@ use std::fmt;
 use std::path::{Path, PathBuf};
 
 use rules::{
-    AbilityBonus, AbilityModifier, Archetype, ArchetypeLevelRow, Background, Class, ClassLevelRow,
-    CountsToward, Deity, FeatKey, FeatList, FeatListKey, FeatSlot, FeatValue, Feature, FeatureKey,
-    FeatureSelection, FeatureSelectionKey, GameData, MythicPath, Race, SelectionOptionKey,
-    SkillKey, Spell, SpellCaster, SpellList, SpellListOnly,
+    AbilityBonus, AbilityModifier, Archetype, ArchetypeLevelRow, Background, CheckedGameData,
+    Class, ClassLevelRow, CountsToward, Deity, FeatKey, FeatList, FeatListKey, FeatSlot, FeatValue,
+    Feature, FeatureKey, FeatureSelection, FeatureSelectionKey, GameData, MythicPath, Race,
+    SelectionOptionKey, SkillKey, Spell, SpellCaster, SpellList, SpellListOnly,
 };
 use sqlx::sqlite::{SqliteConnectOptions, SqlitePoolOptions};
 use sqlx::{AssertSqlSafe, Row, SqliteConnection};
@@ -24,21 +24,21 @@ use crate::columns::{
 };
 use crate::{Error, MIGRATOR, bonuses, gear, prerequisites};
 
-/// Checks `data` ([`GameData::check`], references to missing keys included), then builds a new database next to
-/// `database` (its name plus `.new`): runs the migration, loads `data` and records `hash` as the data the tables
+/// Builds a new database next to `database` (its name plus `.new`) from checked `data` ([`GameData::checked`],
+/// references to missing keys included): runs the migration, loads `data` and records `hash` as the data the tables
 /// came from, in one transaction that commits only when no foreign key fails (`PRAGMA foreign_key_check`, every
 /// failure reported: a backstop behind the check's references), and renames the new file over `database`. Either
-/// all of it happens or none of it does: data with problems writes nothing, and the old database stays as it was.
-/// A running server keeps reading the file it opened.
-pub async fn replace_game_data(database: &Path, data: &GameData, hash: &str) -> Result<(), Error> {
-    let problems = data.check();
-    if !problems.is_empty() {
-        return Err(Error::Invalid(problems));
-    }
+/// all of it happens or none of it does, and the old database stays as it was. A running server keeps reading the
+/// file it opened.
+pub async fn replace_game_data(
+    database: &Path,
+    data: &CheckedGameData,
+    hash: &str,
+) -> Result<(), Error> {
     replace_unchecked(database, data, hash).await
 }
 
-/// [`replace_game_data`] without the data check: only the foreign keys stand between `data` and the database.
+/// [`replace_game_data`] on any data: only the foreign keys stand between `data` and the database.
 async fn replace_unchecked(database: &Path, data: &GameData, hash: &str) -> Result<(), Error> {
     // One seed at a time per database: a second one waits here rather than deleting the first's `.new`. The lock
     // is released when `lock` drops; the empty file stays, since removing it would reopen the race.
