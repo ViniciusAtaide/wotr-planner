@@ -136,10 +136,14 @@ async fn a_pick_refused_while_reading_holds_the_picks_that_need_it() {
     assert_eq!(roots(&result), ["slot.feat.1.class.0"], "{result}");
     let weapon_focus = failure(&result["failures"], "slot.feat.1.class.0");
     assert_eq!(weapon_focus["issue"], "needs_parameter");
+    // A refusal on a slot is labelled by the sheet's slot, as the walk's failures are.
+    assert_eq!(weapon_focus["label"], "Level 1: Combat feat");
     assert_eq!(
         choices(&weapon_focus["children"]),
         ["slot.feat.1.general.0", "slot.feat.3.general.0"]
     );
+    let aldori = failure(&weapon_focus["children"], "slot.feat.3.general.0");
+    assert_eq!(aldori["label"], "Level 3: Feat");
 
     // The same with a weapon that isn't one, and with the slot declared twice.
     let result = validate(with(
@@ -201,6 +205,18 @@ async fn a_key_the_data_lacks_is_unknown_and_a_known_one_out_of_place_is_not_all
         unknown["reason"],
         "`power-atack` isn't a feat in the planner's data. Closest: power-attack (`power-attack`)."
     );
+}
+
+#[tokio::test]
+async fn an_empty_faith_is_no_faith() {
+    let result = validate(with(fighter(1, 16), &[("start.faith", json!(" "))])).await;
+    assert!(
+        roots(&result).contains(&"start.faith".to_owned()),
+        "{result}"
+    );
+    let faith = failure(&result["failures"], "start.faith");
+    assert_eq!(faith["issue"], "not_an_option");
+    assert_eq!(faith["label"], "Faith");
 }
 
 #[tokio::test]

@@ -142,6 +142,7 @@ fn racial_choice(start: &BuildStart) -> Option<impl IntoView + use<>> {
     if options.is_empty() {
         return None;
     }
+    let label = planner.engine().choice_label(&Address::RacialAbility, None);
     let buttons = options
         .into_iter()
         .map(|option| {
@@ -165,7 +166,7 @@ fn racial_choice(start: &BuildStart) -> Option<impl IntoView + use<>> {
         .collect_view();
     Some(view! {
         <div class="field">
-            <span class="field-label">"+2 to"</span>
+            <span class="field-label">{label}</span>
             <div class="segs">{buttons}</div>
         </div>
     })

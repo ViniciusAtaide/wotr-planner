@@ -2,12 +2,7 @@
 //! its name, whether it can be taken now and, when not, the engine's issue and reason. Each option keeps the edit
 //! the engine gives it, so `choose` applies the matching offer's edit and never builds one.
 
-use std::collections::BTreeSet;
-
-use rules::{
-    Address, ArchetypeKey, Build, ClassKey, Edit, Engine, Issue, NotAnAddress, RankStatus, Sheet,
-    SlotId, Step,
-};
+use rules::{Address, Build, Edit, Engine, Issue, NotAnAddress, RankStatus, Sheet, SlotId, Step};
 
 use crate::code::{envelope, open};
 use crate::error::ToolError;
@@ -15,32 +10,6 @@ use crate::planner::Planner;
 use crate::shapes::{
     ChoiceValue, Kind, Open, OptionLine, OptionStatus, OptionsArgs, OptionsResult,
 };
-
-/// A class as the class picker names it: "Fighter", "Armiger (Fighter)", "Eldritch Knight, advancing Wizard",
-/// "Eldritch Knight, advancing nothing".
-pub(crate) fn class_name(
-    engine: &Engine,
-    class: &ClassKey,
-    archetype: Option<&ArchetypeKey>,
-    advances: Option<&BTreeSet<ClassKey>>,
-) -> String {
-    let name = match archetype {
-        Some(archetype) => format!(
-            "{} ({})",
-            engine.archetype_name(archetype),
-            engine.class_name(class)
-        ),
-        None => engine.class_name(class).to_owned(),
-    };
-    match advances {
-        Some(advances) if advances.is_empty() => format!("{name}, advancing nothing"),
-        Some(advances) => {
-            let names: Vec<&str> = advances.iter().map(|key| engine.class_name(key)).collect();
-            format!("{name}, advancing {}", names.join(" and "))
-        }
-        None => name,
-    }
-}
 
 /// One option the engine offers for a choice.
 #[derive(Clone, Debug)]
@@ -497,7 +466,7 @@ fn class_offers(engine: &Engine, build: &Build, level: u8) -> Option<Vec<Offer>>
                 // No advancement keeps the Build possible.
                 let mut offer = Offer::new(
                     ChoiceValue::class(&option.class, archetype, None),
-                    class_name(engine, &option.class, archetype, None),
+                    engine.class_value_name(&option.class, archetype, None),
                     Err(Issue::BreaksLater),
                     option.edit.clone(),
                 );
@@ -511,7 +480,7 @@ fn class_offers(engine: &Engine, build: &Build, level: u8) -> Option<Vec<Offer>>
                     .map(|choice| &choice.advances);
                 let mut offer = Offer::new(
                     ChoiceValue::class(&option.class, archetype, Some(&answer.advances)),
-                    class_name(engine, &option.class, archetype, Some(&answer.advances)),
+                    engine.class_value_name(&option.class, archetype, Some(&answer.advances)),
                     Ok(()),
                     answer.edit,
                 )
@@ -522,7 +491,7 @@ fn class_offers(engine: &Engine, build: &Build, level: u8) -> Option<Vec<Offer>>
         } else {
             let mut offer = Offer::new(
                 ChoiceValue::class(&option.class, archetype, None),
-                class_name(engine, &option.class, archetype, None),
+                engine.class_value_name(&option.class, archetype, None),
                 option.status,
                 option.edit,
             )

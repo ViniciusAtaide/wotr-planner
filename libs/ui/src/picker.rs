@@ -541,6 +541,8 @@ fn ClassPicker(level: u8) -> impl IntoView {
     } else {
         title
     };
+    // The advancement step keeps the level: "Level 7: Spellcasting advancement".
+    let advancement_place = Address::Class(level).placed("Spellcasting advancement");
 
     // A prestige class first taken here asks which classes it advances.
     let choose = move |options: Arc<Vec<ClassOption>>, option: ClassOption| {
@@ -563,7 +565,7 @@ fn ClassPicker(level: u8) -> impl IntoView {
                 return view! {
                     <Head
                         title=title.clone()
-                        place="Spellcasting advancement"
+                        place=advancement_place.clone()
                         back=Some(Callback::new(move |()| step.set(ClassStep::List(options.clone()))))
                     />
                     <Advances level option=*option/>

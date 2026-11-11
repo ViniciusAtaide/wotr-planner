@@ -26,6 +26,8 @@ async fn a_new_build_is_empty_with_the_build_start_to_do() {
         ]
     );
     assert_eq!(empty["todo"][0]["label"], "Race");
+    // The glossary's Faith (a deity, or atheism), not "Deity".
+    assert_eq!(empty["todo"][1]["label"], "Faith");
 }
 
 #[tokio::test]

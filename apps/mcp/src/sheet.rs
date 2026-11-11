@@ -12,7 +12,6 @@ use rules::{
 use crate::attack;
 use crate::caster;
 use crate::code::envelope;
-use crate::options::class_name;
 use crate::planner::Planner;
 use crate::shapes::ChoiceValue;
 use crate::shapes::{
@@ -278,7 +277,7 @@ impl Lines<'_> {
                 None,
                 Some((
                     ChoiceValue::class(&level.class, archetype, advances.as_ref()),
-                    class_name(engine, &level.class, archetype, advances.as_ref()),
+                    engine.class_value_name(&level.class, archetype, advances.as_ref()),
                 )),
             )];
             if has_ability_increase(n) {

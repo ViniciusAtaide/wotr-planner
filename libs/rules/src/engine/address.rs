@@ -154,10 +154,12 @@ impl Address {
     }
 
     /// A text about the choice, after its level or rank when it has one: "Level 3: 2 of 4 skill points unspent".
-    /// The Build start's choices need no place before them.
+    /// The Build start's choices need no place before them, and a level itself none either: it is its place, which
+    /// its label already names ("Level 4", never "Level 4: Level 4").
     pub fn placed(&self, what: &str) -> String {
-        match self.place() {
-            Some(place @ (Place::Level(_) | Place::Rank(_))) => format!("{place}: {what}"),
+        match (self, self.place()) {
+            (Address::Level(_), _) => what.to_owned(),
+            (_, Some(place @ (Place::Level(_) | Place::Rank(_)))) => format!("{place}: {what}"),
             _ => what.to_owned(),
         }
     }
@@ -192,14 +194,14 @@ impl From<&Choice> for Address {
 
 impl Engine {
     /// What the choice is, in sentence case, as the sheet's lines and the pickers' headings name it: "Race",
-    /// "Deity", "Strength (point buy)", "Class", "Ability increase", "Skill ranks", "Athletics ranks", "Fighter:
+    /// "Faith", "Strength (point buy)", "Class", "Ability increase", "Skill ranks", "Athletics ranks", "Fighter:
     /// archetype", "Mythic path", and for a slot what it takes ([`slot_label`](Self::slot_label)), or "slot"
     /// without the sheet's slot. A level itself is "Level 4".
     pub fn choice_label(&self, address: &Address, slot: Option<&Slot>) -> String {
         match address {
             Address::Race => "Race".to_owned(),
             Address::Subrace => "Subrace".to_owned(),
-            Address::Faith => "Deity".to_owned(),
+            Address::Faith => "Faith".to_owned(),
             Address::Alignment => "Alignment".to_owned(),
             Address::Background => "Background".to_owned(),
             Address::RacialAbility => "Racial ability bonus".to_owned(),
@@ -223,11 +225,7 @@ impl Engine {
     /// The choice's label after its level or rank, as the MCP server's `todo` and `validate` name it: "Race",
     /// "Level 4: Class", "MR 3: Mythic path", "Level 1: Combat feat"; a level itself, "Level 4".
     pub fn placed_label(&self, address: &Address, slot: Option<&Slot>) -> String {
-        let label = self.choice_label(address, slot);
-        match address {
-            Address::Level(_) => label,
-            address => address.placed(&label),
-        }
+        address.placed(&self.choice_label(address, slot))
     }
 
     /// A parameter of a kind from its key ([`Parameter::value_key`]), in any case: one of the kind's values.
@@ -312,14 +310,14 @@ impl Faith {
     }
 
     /// A faith from its key, in any case: atheism, or the deity the key names (which the walk checks the game data
-    /// has).
-    pub fn from_key(text: &str) -> Faith {
+    /// has); `None` for an empty or blank key, which names nothing.
+    pub fn from_key(text: &str) -> Option<Faith> {
         let text = text.trim().to_lowercase();
-        if text == ATHEISM {
-            Faith::Atheism
-        } else {
-            Faith::Deity(DeityKey::new(text))
-        }
+        Some(match text.as_str() {
+            "" => return None,
+            ATHEISM => Faith::Atheism,
+            _ => Faith::Deity(DeityKey::new(text)),
+        })
     }
 }
 
@@ -411,12 +409,34 @@ impl Element {
 
 // ---- the grammar ----------------------------------------------------------------------------------------------
 
-/// A feat slot's source as its address names it; `parse_slot` reads it back.
+/// Each feat slot source with its token in an address, the one table both directions read: `source_token` writes a
+/// source by its entry, `parse_slot` finds the entry by its token.
+const FEAT_SOURCES: [(FeatSource, &str); 3] = [
+    (FeatSource::Race, "race"),
+    (FeatSource::Class, "class"),
+    (FeatSource::General, "general"),
+];
+
+// Each entry holds the source its place in `source_token` says.
+const _: () = {
+    let [
+        (FeatSource::Race, _),
+        (FeatSource::Class, _),
+        (FeatSource::General, _),
+    ] = FEAT_SOURCES
+    else {
+        panic!("FEAT_SOURCES out of order");
+    };
+};
+
+/// A feat slot's source as its address names it. The match is exhaustive and each arm takes its entry of
+/// [`FEAT_SOURCES`] by place, so a new source fails to compile here until the table has it, and then reads back.
 fn source_token(source: FeatSource) -> &'static str {
+    let [(_, race), (_, class), (_, general)] = FEAT_SOURCES;
     match source {
-        FeatSource::Race => "race",
-        FeatSource::Class => "class",
-        FeatSource::General => "general",
+        FeatSource::Race => race,
+        FeatSource::Class => class,
+        FeatSource::General => general,
     }
 }
 
@@ -547,9 +567,9 @@ fn parse_slot(parts: &[&str]) -> Option<SlotId> {
     Some(match *parts {
         ["feat", level, source, i] => SlotId::Feat {
             level: ordinal(level)?,
-            source: [FeatSource::Race, FeatSource::Class, FeatSource::General]
+            source: FEAT_SOURCES
                 .into_iter()
-                .find(|kind| source_token(*kind) == source)?,
+                .find_map(|(kind, token)| (token == source).then_some(kind))?,
             index: index(i)?,
         },
         ["selection", level, i] => SlotId::Selection {

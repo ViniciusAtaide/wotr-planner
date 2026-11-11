@@ -234,6 +234,49 @@ fn every_choice_of_the_test_world_reads_back_from_its_address() {
     assert_eq!(covered.len(), 17, "{covered:?}");
 }
 
+/// Every parameter kind. The match is exhaustive and each arm names a kind's place in the array, so a new kind fails
+/// to compile here until the array (and with it the round trip below) holds it.
+fn every_parameter_kind() -> [ParameterKind; 9] {
+    use ParameterKind::*;
+    let kinds = [
+        Skill,
+        Weapon,
+        ExoticWeapon,
+        SpellSchool,
+        Energy,
+        ArmourType,
+        Metamagic,
+        Stat,
+        Element,
+    ];
+    let [
+        skill,
+        weapon,
+        exotic,
+        school,
+        energy,
+        armour,
+        metamagic,
+        stat,
+        element,
+    ] = kinds;
+    for kind in kinds {
+        let placed = match kind {
+            Skill => skill,
+            Weapon => weapon,
+            ExoticWeapon => exotic,
+            SpellSchool => school,
+            Energy => energy,
+            ArmourType => armour,
+            Metamagic => metamagic,
+            Stat => stat,
+            Element => element,
+        };
+        assert_eq!(placed, kind);
+    }
+    kinds
+}
+
 #[test]
 fn every_value_without_a_game_data_key_reads_back_from_its_key() {
     let engine = engine();
@@ -250,20 +293,17 @@ fn every_value_without_a_game_data_key_reads_back_from_its_key() {
             .map(|deity| Faith::Deity(deity.key.clone())),
     );
     for faith in faiths {
-        assert_eq!(Faith::from_key(faith.key()), faith);
+        assert_eq!(Faith::from_key(faith.key()), Some(faith));
     }
-    for kind in [
-        ParameterKind::Skill,
-        ParameterKind::Weapon,
-        ParameterKind::ExoticWeapon,
-        ParameterKind::SpellSchool,
-        ParameterKind::Energy,
-        ParameterKind::ArmourType,
-        ParameterKind::Metamagic,
-        ParameterKind::Stat,
-        ParameterKind::Element,
-    ] {
-        for value in engine.parameter_values(kind) {
+    for kind in every_parameter_kind() {
+        let values = engine.parameter_values(kind);
+        // Each kind for real; the test world has no metamagic feat, so the game data's round trip covers Metamagic
+        // (`seeds`' `game_data::value_keys`).
+        assert!(
+            !values.is_empty() || kind == ParameterKind::Metamagic,
+            "no {kind:?} in the test world"
+        );
+        for value in values {
             assert_eq!(
                 engine.parameter_from_key(kind, value.value_key()),
                 Some(value.clone()),
@@ -322,11 +362,24 @@ fn a_key_is_read_in_any_case_and_an_ability_by_its_full_name() {
         Some(Alignment::LawfulGood)
     );
     assert_eq!(Alignment::from_key("lawful good"), None);
-    assert_eq!(Faith::from_key("Atheism"), Faith::Atheism);
+    assert_eq!(Faith::from_key("Atheism"), Some(Faith::Atheism));
+    assert_eq!(
+        Faith::from_key(" Lawgiver "),
+        Some(Faith::Deity(rules::DeityKey::new("lawgiver")))
+    );
     assert_eq!(
         "start.score.Intelligence".parse::<Address>(),
         Ok(Address::Score(Ability::Intelligence))
     );
+}
+
+#[test]
+fn an_empty_or_blank_key_names_no_value() {
+    for text in ["", " ", "\t"] {
+        assert_eq!(Faith::from_key(text), None, "{text:?}");
+        assert_eq!(Ability::from_key(text), None, "{text:?}");
+        assert_eq!(Alignment::from_key(text), None, "{text:?}");
+    }
 }
 
 #[test]
@@ -358,13 +411,19 @@ fn each_choice_is_labelled_in_sentence_case_after_its_place() {
     let engine = engine();
     let label = |address: Address| engine.placed_label(&address, None);
     assert_eq!(label(Address::Race), "Race");
-    assert_eq!(label(Address::Faith), "Deity");
+    // The glossary's Faith: a deity, or atheism.
+    assert_eq!(label(Address::Faith), "Faith");
     assert_eq!(label(Address::RacialAbility), "Racial ability bonus");
     assert_eq!(
         label(Address::Score(Ability::Strength)),
         "Strength (point buy)"
     );
+    // A level is its own place: named once.
     assert_eq!(label(Address::Level(4)), "Level 4");
+    assert_eq!(
+        Address::Level(4).placed(&engine.choice_label(&Address::Level(4), None)),
+        "Level 4"
+    );
     assert_eq!(label(Address::Class(4)), "Level 4: Class");
     assert_eq!(label(Address::Increase(4)), "Level 4: Ability increase");
     assert_eq!(label(Address::SkillPoints(4)), "Level 4: Skill ranks");
