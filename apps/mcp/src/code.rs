@@ -2,11 +2,10 @@
 //! the envelope every such tool returns (the code, its link and the open choices).
 
 use rules::{
-    Build, Engine, FIRST_ASCENSION_RANK, PATH_CHOICE_RANK, RankStatus, Sheet, Slot, SlotId,
-    encode_build, has_ability_increase,
+    Address, Build, Engine, FIRST_ASCENSION_RANK, PATH_CHOICE_RANK, RankStatus, Sheet, Slot,
+    SlotId, encode_build, has_ability_increase,
 };
 
-use crate::address::Address;
 use crate::error::ToolError;
 use crate::planner::Planner;
 use crate::shapes::{Envelope, Todo};
@@ -55,10 +54,10 @@ pub(crate) fn envelope(engine: &Engine, build: &Build, sheet: &Sheet) -> Envelop
 /// open (Favorite Metamagic's metamagic), not those a Path switch dropped.
 fn todo(engine: &Engine, build: &Build, sheet: &Sheet) -> Vec<Todo> {
     let mut todo = Vec::new();
-    // Open at an address, labelled as the address is ([`Address::label`]) unless a label is given.
+    // Open at an address, labelled as the engine labels it ([`Engine::placed_label`]) unless a label is given.
     let mut open = |address: Address, label: Option<String>| {
         todo.push(Todo {
-            label: label.unwrap_or_else(|| address.label(engine, None)),
+            label: label.unwrap_or_else(|| engine.placed_label(&address, None)),
             choice: address.to_string(),
         })
     };
@@ -130,7 +129,7 @@ fn open_slot(engine: &Engine, slot: &Slot, open: &mut impl FnMut(Address, Option
     let address = Address::Slot(slot.id.clone());
     match &slot.pick {
         None => {
-            let label = address.label(engine, Some(slot));
+            let label = engine.placed_label(&address, Some(slot));
             open(address, Some(label));
         }
         Some(pick) => {

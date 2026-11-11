@@ -87,9 +87,7 @@ fn level_row(engine: &Engine, build: &Build, level: &LevelSheet) -> impl IntoVie
         .collect_view();
     let increase = level.ability_increase.then(|| {
         let ability = build.levels[usize::from(n) - 1].ability_increase;
-        let value = ability.map_or("+".to_owned(), |ability| {
-            format!("+1 {}", ability.short_name())
-        });
+        let value = ability.map_or("+".to_owned(), |ability| ability.increase_short_name());
         view! {
             <button
                 class="chip"

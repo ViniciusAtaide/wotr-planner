@@ -169,6 +169,32 @@ fn a_pick_is_named_with_its_value() {
 }
 
 #[test]
+fn a_class_value_is_named_with_its_archetype_and_what_it_advances() {
+    let engine = engine();
+    let armiger = ArchetypeKey::new("fighter/armiger");
+    assert_eq!(
+        engine.class_value_name(&class("fighter"), None, None),
+        "Fighter"
+    );
+    assert_eq!(
+        engine.class_value_name(&class("fighter"), Some(&armiger), None),
+        "Armiger (Fighter)"
+    );
+    let theurge = class("mystic-theurge");
+    let both = BTreeSet::from([class("wizard"), class("cleric")]);
+    assert_eq!(
+        engine.class_value_name(&theurge, None, Some(&both)),
+        "Mystic Theurge, advancing Cleric and Wizard"
+    );
+    assert_eq!(
+        engine.class_value_name(&theurge, None, Some(&BTreeSet::new())),
+        "Mystic Theurge, advancing nothing"
+    );
+    // The Build sheet writes the same ", advancing …" after a prestige class it advances something with.
+    assert_eq!(engine.advancing(&both), ", advancing Cleric and Wizard");
+}
+
+#[test]
 fn ability_alignment_and_category_names_are_the_games() {
     assert_eq!(Ability::Strength.name(), "Strength");
     assert_eq!(Ability::Charisma.short_name(), "Cha");

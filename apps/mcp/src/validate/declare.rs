@@ -4,7 +4,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use rules::{
-    Ability, AbilityScores, Alignment, ArchetypeKey, BackgroundKey, Build, ClassKey, DeityKey,
+    Ability, AbilityScores, Address, Alignment, ArchetypeKey, BackgroundKey, Build, ClassKey,
     Faith, FeatKey, GameData, LevelUp, MythicAbilityKey, MythicExtraPick, MythicFeatKey,
     MythicPathKey, MythicPickKind, Parameter, Pick, PointBuy, RaceKey, SelectionOptionKey,
     SkillKey, SlotId, SubraceKey, has_ability_increase, mythic_pick_kind,
@@ -12,10 +12,8 @@ use rules::{
 
 use super::tree::{At, Given, Node, pick_gives};
 use super::{Refused, closest};
-use crate::address::{Address, ability_token, parse_ability};
 use crate::planner::Planner;
 use crate::shapes::ChoiceValue;
-use crate::values::{alignment_key, parameter_text};
 
 /// The declared Build, and what the declaration refused while building it.
 pub(super) struct Declared {
@@ -58,7 +56,7 @@ impl Declared {
         for (address, value) in &entries {
             declared.entry(planner, &mut gathered, address, value);
         }
-        declared.point_buy(planner, &gathered);
+        declared.point_buy(&gathered);
         declared.racial_ability(planner, &gathered);
         declared.levels(planner, &gathered);
         declared.class_choices(planner, &gathered);
@@ -76,14 +74,8 @@ impl Declared {
         self.refusals.push(node);
     }
 
-    fn refuse_at(
-        &mut self,
-        planner: &Planner,
-        address: &Address,
-        refused: Refused,
-        reason: String,
-    ) {
-        self.refuse(Node::refused(planner, address.clone(), refused, reason));
+    fn refuse_at(&mut self, address: &Address, refused: Refused, reason: String) {
+        self.refuse(Node::refused(address.clone(), refused, reason));
     }
 
     /// The declared addresses with their values. Text that isn't an address is refused; two spellings of one
@@ -127,8 +119,7 @@ impl Declared {
                     .collect(),
                 _ => Vec::new(),
             };
-            let node =
-                Node::refused(planner, address, Refused::DeclaredTwice, reason).giving(gives);
+            let node = Node::refused(address, Refused::DeclaredTwice, reason).giving(gives);
             self.refuse(node);
         }
         taken
@@ -173,7 +164,7 @@ impl Declared {
                             held.as_str(),
                             key.as_str()
                         );
-                        self.refuse_at(planner, address, Refused::DeclaredTwice, reason);
+                        self.refuse_at(address, Refused::DeclaredTwice, reason);
                     }
                     _ => {
                         let start = &mut self.build.start;
@@ -188,36 +179,32 @@ impl Declared {
                     }
                 }
             }
-            (Address::Faith, ChoiceValue::Key(key)) => {
-                let key = key_text(key);
-                self.build.start.deity = Some(match key.as_str() {
-                    "atheism" => Faith::Atheism,
-                    _ => Faith::Deity(DeityKey::new(key)),
-                });
-            }
+            (Address::Faith, ChoiceValue::Key(key)) => match Faith::from_key(key) {
+                Some(faith) => self.build.start.deity = Some(faith),
+                None => {
+                    let reason = "An empty key isn't a faith: a deity's key, or `atheism`.".to_owned();
+                    self.refuse_at(address, Refused::NotAnOption, reason);
+                }
+            },
             (Address::Alignment, ChoiceValue::Key(key)) => {
-                let key = key_text(key);
-                match Alignment::ALL
-                    .into_iter()
-                    .find(|alignment| alignment_key(*alignment) == key)
-                {
+                match Alignment::from_key(key) {
                     Some(alignment) => self.build.start.alignment = Some(alignment),
                     None => {
-                        let keys: Vec<String> =
-                            Alignment::ALL.into_iter().map(alignment_key).collect();
+                        let key = key_text(key);
+                        let keys: Vec<&str> = Alignment::ALL.into_iter().map(Alignment::key).collect();
                         let reason =
                             format!("`{key}` isn't an alignment: one of {}.", keys.join(", "));
-                        self.refuse_at(planner, address, Refused::NotAnOption, reason);
+                        self.refuse_at(address, Refused::NotAnOption, reason);
                     }
                 }
             }
             (Address::Background, ChoiceValue::Key(key)) => {
                 self.build.start.background = Some(BackgroundKey::new(key_text(key)));
             }
-            (Address::RacialAbility, ChoiceValue::Key(key)) => match parse_ability(key) {
+            (Address::RacialAbility, ChoiceValue::Key(key)) => match Ability::from_key(key) {
                 Some(ability) => gathered.racial_ability = Some(ability),
                 None => {
-                    self.refuse_at(planner, address, Refused::NotAnOption, not_an_ability(key))
+                    self.refuse_at(address, Refused::NotAnOption, not_an_ability(key))
                 }
             },
             (Address::Score(ability), ChoiceValue::Number(score)) => {
@@ -259,12 +246,12 @@ impl Declared {
                     .or_default()
                     .push((address.clone(), ArchetypeKey::new(key_text(key))));
             }
-            (Address::Increase(level), ChoiceValue::Key(key)) => match parse_ability(key) {
+            (Address::Increase(level), ChoiceValue::Key(key)) => match Ability::from_key(key) {
                 Some(ability) => {
                     gathered.increases.insert(*level, ability);
                 }
                 None => {
-                    self.refuse_at(planner, address, Refused::NotAnOption, not_an_ability(key))
+                    self.refuse_at(address, Refused::NotAnOption, not_an_ability(key))
                 }
             },
             (Address::SkillPoints(level), ChoiceValue::Ranks(map)) => {
@@ -288,18 +275,14 @@ impl Declared {
             (Address::Slot(slot), ChoiceValue::Key(_) | ChoiceValue::Parameterised { .. }) => {
                 gathered.picks.push((slot.clone(), value));
             }
-            (Address::Level(level), _) => self.refuse_at(
-                planner,
-                address,
+            (Address::Level(level), _) => self.refuse_at(address,
                 Refused::NoSuchChoice,
                 format!(
                     "`level.{level}` is the level itself, which only `withdraw` takes: a level is declared by its \
                      class, `level.{level}.class`."
                 ),
             ),
-            (Address::Advances(class), _) => self.refuse_at(
-                planner,
-                address,
+            (Address::Advances(class), _) => self.refuse_at(address,
                 Refused::NoSuchChoice,
                 format!(
                     "A class's advanced classes are declared with it: `advances` in the value of a `level.N.class` \
@@ -316,7 +299,7 @@ impl Declared {
                     _ => "a key",
                 };
                 let reason = format!("`{address}` takes {shape}.");
-                self.refuse_at(planner, address, Refused::NotAnOption, reason);
+                self.refuse_at(address, Refused::NotAnOption, reason);
             }
         }
     }
@@ -341,7 +324,6 @@ impl Declared {
                 );
                 ranks.remove(&(level, skill.clone()));
                 self.refuse_at(
-                    planner,
                     &Address::Skill(level, skill),
                     Refused::DeclaredTwice,
                     reason,
@@ -356,7 +338,7 @@ impl Declared {
 
     /// The point buy: each score from 7 to 18, then the budget. A score outside the range stays 10; scores over the
     /// budget all stay 10, and the rest of the Build is checked with them.
-    fn point_buy(&mut self, planner: &Planner, gathered: &Gathered) {
+    fn point_buy(&mut self, gathered: &Gathered) {
         let mut scores = AbilityScores::default();
         for (ability, score) in &gathered.scores {
             if PointBuy::default().with(*ability, *score).is_some() {
@@ -367,13 +349,8 @@ impl Declared {
             let reason = format!(
                 "{name} {score}: a point-buy score runs from 7 to 18. The rest is checked with {name} 10."
             );
-            let node = Node::refused(
-                planner,
-                Address::Score(*ability),
-                Refused::FixedRule,
-                reason,
-            )
-            .giving(vec![Given::Score(*ability)]);
+            let node = Node::refused(Address::Score(*ability), Refused::FixedRule, reason)
+                .giving(vec![Given::Score(*ability)]);
             self.refuse(node);
         }
         match PointBuy::try_from(scores) {
@@ -389,7 +366,7 @@ impl Declared {
                     .map_or(Ability::Strength, |(_, ability)| ability);
                 let listed: Vec<String> = AbilityScores::ABILITIES
                     .into_iter()
-                    .map(|ability| format!("{} {}", ability_token(ability), scores.get(ability)))
+                    .map(|ability| format!("{} {}", ability.key(), scores.get(ability)))
                     .collect();
                 let reason = format!(
                     "The point buy ({}) costs more than the {}-point budget: {error}. The rest is checked with \
@@ -397,9 +374,8 @@ impl Declared {
                     listed.join(", "),
                     rules::POINT_BUY_BUDGET
                 );
-                let mut node =
-                    Node::refused(planner, Address::Score(highest), Refused::FixedRule, reason)
-                        .giving(AbilityScores::ABILITIES.map(Given::Score).to_vec());
+                let mut node = Node::refused(Address::Score(highest), Refused::FixedRule, reason)
+                    .giving(AbilityScores::ABILITIES.map(Given::Score).to_vec());
                 node.label = "Point buy".to_owned();
                 self.refuse(node);
             }
@@ -416,12 +392,7 @@ impl Declared {
         } else {
             let reason = "The Build's race doesn't choose where a racial bonus goes (or no race is declared)."
                 .to_owned();
-            self.refuse_at(
-                planner,
-                &Address::RacialAbility,
-                Refused::NotAnOption,
-                reason,
-            );
+            self.refuse_at(&Address::RacialAbility, Refused::NotAnOption, reason);
         }
     }
 
@@ -448,13 +419,12 @@ impl Declared {
                     "Level {level} has no class declared, so the Build stops at level {last}: declare \
                      `level.{level}.class`."
                 );
-                self.refuse_at(planner, &missing, Refused::MissingLevel, reason);
+                self.refuse_at(&missing, Refused::MissingLevel, reason);
             }
             for later in beyond {
                 let reason = format!("The Build stops at level {last}, below level {later}.");
-                let node =
-                    Node::refused(planner, Address::Class(later), Refused::NotReached, reason)
-                        .under(missing.clone());
+                let node = Node::refused(Address::Class(later), Refused::NotReached, reason)
+                    .under(missing.clone());
                 self.refuse(node);
             }
         }
@@ -463,14 +433,14 @@ impl Declared {
         for (&at, &ability) in &gathered.increases {
             let address = Address::Increase(at);
             if at > last {
-                let node = Node::refused(planner, address, Refused::NotReached, past(at))
+                let node = Node::refused(address, Refused::NotReached, past(at))
                     .giving(vec![Given::Score(ability)])
                     .under(Address::Class(at));
                 self.refuse(node);
             } else if !has_ability_increase(at) {
                 let reason =
                     format!("Level {at} has no ability increase: only every 4th level does.");
-                let node = Node::refused(planner, address, Refused::FixedRule, reason)
+                let node = Node::refused(address, Refused::FixedRule, reason)
                     .giving(vec![Given::Score(ability)]);
                 self.refuse(node);
             } else {
@@ -484,7 +454,7 @@ impl Declared {
                 continue;
             }
             if at > last {
-                let node = Node::refused(planner, address.clone(), Refused::NotReached, past(at))
+                let node = Node::refused(address.clone(), Refused::NotReached, past(at))
                     .under(Address::Class(at));
                 self.refuse(node);
                 continue;
@@ -499,7 +469,7 @@ impl Declared {
                     "{} would have {total} ranks at level {at}: a skill's ranks never go above the character level.",
                     planner.engine.skill_name(skill)
                 );
-                self.refuse_at(planner, address, Refused::FixedRule, reason);
+                self.refuse_at(address, Refused::FixedRule, reason);
                 continue;
             }
             totals.insert(skill, total);
@@ -539,8 +509,7 @@ impl Declared {
                     .map(Given::Archetype)
                     .collect();
                 let address = Address::Archetype(class.clone());
-                let node =
-                    Node::refused(planner, address, Refused::DeclaredTwice, reason).giving(gives);
+                let node = Node::refused(address, Refused::DeclaredTwice, reason).giving(gives);
                 self.refuse(node);
                 continue;
             }
@@ -569,7 +538,7 @@ impl Declared {
                     said.join(", ")
                 );
                 let address = Address::Advances(class.clone());
-                self.refuse_at(planner, &address, Refused::DeclaredTwice, reason);
+                self.refuse_at(&address, Refused::DeclaredTwice, reason);
                 continue;
             }
             if let Some((_, set)) = given.first() {
@@ -592,8 +561,7 @@ impl Declared {
         let address = Address::Slot(slot.clone());
         let bare = bare_pick(&planner.data, &self.build.picks, &slot, key);
         let refuse = |refused: Refused, reason: String| {
-            Node::refused(planner, address.clone(), refused, reason)
-                .giving(pick_gives(&planner.data, &bare))
+            Node::refused(address.clone(), refused, reason).giving(pick_gives(&planner.data, &bare))
         };
         let pick = match (parameter, engine.value_kind(&bare)) {
             // A key the data lacks: the walk refuses it, naming the closest.
@@ -616,29 +584,21 @@ impl Declared {
                 self.refuse(refuse(Refused::NotAnOption, reason));
                 return;
             }
-            (Some(text), Some(Some(kind))) => {
-                let values = engine.parameter_values(kind);
-                let found = values
-                    .iter()
-                    .find(|value| parameter_text(value).eq_ignore_ascii_case(text));
-                match found {
-                    Some(value) => with_parameter(bare.clone(), value.clone()),
-                    None => {
-                        let texts: Vec<String> = values.iter().map(parameter_text).collect();
-                        let near = closest(
-                            text,
-                            texts.iter().map(|text| (text.as_str(), text.as_str())),
-                        );
-                        let reason = format!(
-                            "`{text}` isn't {} `{}` takes{near}.",
-                            kind.with_article(),
-                            bare.key()
-                        );
-                        self.refuse(refuse(Refused::NotAnOption, reason));
-                        return;
-                    }
+            (Some(text), Some(Some(kind))) => match engine.parameter_from_key(kind, text) {
+                Some(value) => with_parameter(bare.clone(), value),
+                None => {
+                    let values = engine.parameter_values(kind);
+                    let texts: Vec<&str> = values.iter().map(Parameter::value_key).collect();
+                    let near = closest(text, texts.iter().map(|text| (*text, *text)));
+                    let reason = format!(
+                        "`{text}` isn't {} `{}` takes{near}.",
+                        kind.with_article(),
+                        bare.key()
+                    );
+                    self.refuse(refuse(Refused::NotAnOption, reason));
+                    return;
                 }
-            }
+            },
         };
         self.build.picks.insert(slot, pick);
     }

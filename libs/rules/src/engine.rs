@@ -29,6 +29,7 @@ use crate::keys::{
 use crate::parameter::{Parameter, ParameterKind};
 use crate::state::CharacterState;
 
+mod address;
 mod attack;
 mod build_sheet;
 mod caster;
@@ -42,6 +43,7 @@ mod switch;
 mod totals;
 mod walk;
 
+pub use address::{Address, NotAnAddress, Place};
 pub use attack::{ATTACK_LINE_LEAVES_OUT, AttackLine, AttackPart, PowerAttack};
 pub use caster::{CASTER_LINE_LEAVES_OUT, CasterLine, CasterPart, SpellDc};
 use catalog::Catalog;

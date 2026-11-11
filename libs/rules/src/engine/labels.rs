@@ -7,6 +7,8 @@
 //! A key the game data lacks is named by its key: the sheet never holds one (a link naming one opens nothing), but
 //! a label should never fail.
 
+use std::collections::BTreeSet;
+
 use super::{Engine, SlotKind};
 use crate::build::{Faith, FeatSource, Pick, SlotId};
 use crate::choice::{Issue, LaterPick, Unmet};
@@ -130,6 +132,39 @@ impl Engine {
         self.catalog
             .class(key)
             .map_or(key.as_str(), |(class, _)| &class.name)
+    }
+
+    /// A class as a class choice's value names it: "Fighter", "Armiger (Fighter)", and with `advances` (a prestige
+    /// class that asks which classes it advances) "Eldritch Knight, advancing Wizard" or "Eldritch Knight, advancing
+    /// nothing".
+    pub fn class_value_name(
+        &self,
+        class: &ClassKey,
+        archetype: Option<&ArchetypeKey>,
+        advances: Option<&BTreeSet<ClassKey>>,
+    ) -> String {
+        let name = match archetype {
+            Some(archetype) => format!(
+                "{} ({})",
+                self.archetype_name(archetype),
+                self.class_name(class)
+            ),
+            None => self.class_name(class).to_owned(),
+        };
+        match advances {
+            Some(advances) => name + &self.advancing(advances),
+            None => name,
+        }
+    }
+
+    /// What a prestige class's levels advance, after its name: ", advancing Cleric and Wizard", or ", advancing
+    /// nothing".
+    pub fn advancing(&self, advances: &BTreeSet<ClassKey>) -> String {
+        if advances.is_empty() {
+            return ", advancing nothing".to_owned();
+        }
+        let names: Vec<&str> = advances.iter().map(|key| self.class_name(key)).collect();
+        format!(", advancing {}", names.join(" and "))
     }
 
     /// Whether a class is a prestige class.

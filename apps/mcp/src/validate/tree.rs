@@ -8,12 +8,12 @@
 use std::fmt;
 
 use rules::{
-    Ability, ArchetypeKey, ClassKey, FeatKey, GameData, Issue, MythicAbilityKey, MythicFeatKey,
-    Parameter, Pick, Prerequisite, SelectionOptionKey, Unmet,
+    Ability, Address, ArchetypeKey, ClassKey, FeatKey, GameData, Issue, MythicAbilityKey,
+    MythicFeatKey, Parameter, Pick, Prerequisite, SelectionOptionKey, Unmet,
 };
 
 use super::Refused;
-use crate::address::Address;
+use super::wording::Wording;
 use crate::options::{issue_code, issue_reason};
 use crate::planner::Planner;
 use crate::shapes::FailureLine;
@@ -82,15 +82,11 @@ pub(super) struct Node {
 }
 
 impl Node {
-    /// A failure the declaration finds at an address, labelled without a sheet.
-    pub(super) fn refused(
-        planner: &Planner,
-        address: Address,
-        refused: Refused,
-        reason: String,
-    ) -> Self {
+    /// A failure the declaration finds at an address. It has no label until the Build's sheet is there to name its
+    /// slot ([`labelled`](Self::labelled)), unless the declaration gives it one.
+    pub(super) fn refused(address: Address, refused: Refused, reason: String) -> Self {
         Self {
-            label: address.label(&planner.engine, None),
+            label: String::new(),
             at: At::Address(address),
             why: Why::Refused(refused),
             reason,
@@ -109,6 +105,16 @@ impl Node {
             gives: Vec::new(),
             under: None,
         }
+    }
+
+    /// The failure labelled at its address as the walk's failures are ([`Wording::label`]), so a refused slot is
+    /// "Level 3: Feat" like a failed one. A label the declaration gave (the point buy's, text that isn't an address)
+    /// stays.
+    pub(super) fn labelled(mut self, wording: &Wording) -> Self {
+        if let (true, At::Address(address)) = (self.label.is_empty(), &self.at) {
+            self.label = wording.label(address);
+        }
+        self
     }
 
     /// The failure with what it would have given, so the failures that need that sit under it.
