@@ -7,134 +7,63 @@ use rules::{Build, Edit, Engine};
 
 use crate::support::*;
 
-/// The disagreements the test world's corpus finds, as `agreement` writes them, with the Build's name before each.
-/// Each one is a bug candidate for the user (ticket 150's Findings); none is fixed in step 1.
+/// The disagreements the test world's corpus finds, as `agreement` writes them, each pinned by its content: the plan
+/// its Build grows from, the picker with its level or slot, the option and the verdicts. Each one is a bug candidate
+/// for the user (ticket 150's Findings); none is fixed in step 1.
 const KNOWN: &[&str] = &[
-    // ticket 150: disagreement 1. The class picker judges a prestige class that asks what it advances with the
-    // Build's own advancement for it (none, for a class it doesn't take), so at a level the Build has it locks Winter
-    // Witch as breaking a later choice, though advancing the class it replaces keeps the Build (`advances_options`
-    // offers that advancement).
-    "bard #2 level 10 unfilled: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "bard #2 level 10: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "bard #2 level 11: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "bard #2 level 12: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "bard #2 level 13 unfilled: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "bard #2 level 13: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "bard #2 level 14: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "bard #2 level 15: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "bard #2 level 16 unfilled: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "bard #2 level 16: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "bard #2 level 17 unfilled: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "bard #2 level 17: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "bard #2 level 18 unfilled: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "bard #2 level 18: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "bard #2 level 19 unfilled: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "bard #2 level 19: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "bard #2 level 20 unfilled: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "bard #2 level 20: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "bard #2 level 5: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "bard #2 level 6 unfilled: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "bard #2 level 6: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "bard #2 level 7 unfilled: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "bard #2 level 7: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "bard #2 level 8: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "bard #2 level 9 unfilled: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "bard #2 level 9: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "cleric #2 level 5: class_options 4 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "cleric #2 level 5: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "cleric #2 level 6 unfilled: class_options 4 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "cleric #2 level 6 unfilled: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "cleric #2 level 6: class_options 4 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "cleric #2 level 6: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "cleric #2 level 7 unfilled: class_options 4 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "cleric #2 level 7 unfilled: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "cleric #2 level 7: class_options 4 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "cleric #2 level 7: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "eldritch knight #1 level 7: class_options 6 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "eldritch knight #1 level 7: class_options 7 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "eldritch knight #1 level 8: class_options 6 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "eldritch knight #1 level 8: class_options 7 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "eldritch knight #1 level 9 unfilled: class_options 6 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "eldritch knight #1 level 9 unfilled: class_options 7 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "mystic theurge #3 level 10 unfilled: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "mystic theurge #3 level 10 unfilled: class_options 6 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "mystic theurge #3 level 10: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "mystic theurge #3 level 10: class_options 6 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "mystic theurge #3 level 11: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "mystic theurge #3 level 11: class_options 6 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "mystic theurge #3 level 12: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "mystic theurge #3 level 12: class_options 6 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "mystic theurge #3 level 13 unfilled: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "mystic theurge #3 level 13 unfilled: class_options 6 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "mystic theurge #3 level 13: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "mystic theurge #3 level 13: class_options 6 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "mystic theurge #3 level 14: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "mystic theurge #3 level 14: class_options 6 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "mystic theurge #3 level 15: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "mystic theurge #3 level 15: class_options 6 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "mystic theurge #3 level 16 unfilled: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "mystic theurge #3 level 16 unfilled: class_options 6 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "mystic theurge #3 level 16: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "mystic theurge #3 level 16: class_options 6 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "mystic theurge #3 level 17 unfilled: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "mystic theurge #3 level 17 unfilled: class_options 6 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "mystic theurge #3 level 17: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "mystic theurge #3 level 17: class_options 6 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "mystic theurge #3 level 18 unfilled: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "mystic theurge #3 level 18 unfilled: class_options 6 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "mystic theurge #3 level 18: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "mystic theurge #3 level 18: class_options 6 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "mystic theurge #3 level 19 unfilled: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "mystic theurge #3 level 19 unfilled: class_options 6 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "mystic theurge #3 level 19: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "mystic theurge #3 level 19: class_options 6 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "mystic theurge #3 level 20 unfilled: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "mystic theurge #3 level 20 unfilled: class_options 6 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "mystic theurge #3 level 20: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "mystic theurge #3 level 20: class_options 6 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "mystic theurge #3 level 7 unfilled: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "mystic theurge #3 level 7 unfilled: class_options 6 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "mystic theurge #3 level 7: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "mystic theurge #3 level 7: class_options 6 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "mystic theurge #3 level 8: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "mystic theurge #3 level 8: class_options 6 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "mystic theurge #3 level 9 unfilled: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "mystic theurge #3 level 9 unfilled: class_options 6 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "mystic theurge #3 level 9: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "mystic theurge #3 level 9: class_options 6 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
+    // ticket 150: disagreement 1 (88 cases among the three seeds' Builds of these four plans, levels 5 to 20). The
+    // class picker judges a prestige class that asks what it advances with the Build's own advancement for it (none,
+    // for a class it doesn't take), so at a level the Build has it locks Winter Witch as breaking a later choice,
+    // though advancing the class it replaces keeps the Build (`advances_options` offers that advancement).
+    "bard: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
+    "cleric: class_options 4 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
+    "cleric: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
+    "eldritch knight: class_options 6 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
+    "eldritch knight: class_options 7 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
+    "mystic theurge: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
+    "mystic theurge: class_options 6 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
 ];
 
 /// The levels the suite's sample judges each plan at, filled and just after the level's class: the first levels,
 /// MR 1 (level 6) and MR 3 (level 9), the first ascension and path choices.
 const SAMPLE: &[u8] = &[1, 2, 6, 9];
 
-/// The suite's sample: every plan grown with one seed and judged at the Build start and the [`SAMPLE`] levels.
+/// The suite's sample: every plan grown with one seed and judged at the Build start and the [`SAMPLE`] levels. Each
+/// disagreement it finds is pinned in [`KNOWN`]; the whole corpus finds them all.
 #[test]
 fn every_picker_agrees_with_the_walk_on_a_sample_of_the_test_world() {
     let engine = engine();
     let corpus = corpus(&engine, 1..=1, Some(SAMPLE));
     assert!(corpus.len() > 150, "a sample of {} Builds", corpus.len());
-    let (judged, found) = judge_all(&engine, &corpus);
-    assert!(judged > 50_000, "{judged} options judged");
-    assert_eq!(
-        found,
-        known_for(KNOWN, &corpus),
-        "{} disagreements",
-        found.len()
-    );
+    let sweep = judge_all(&engine, &corpus);
+    assert!(sweep.judged > 50_000, "{} options judged", sweep.judged);
+    let known = known_for(KNOWN, &corpus);
+    let unknown: Vec<&String> = sweep
+        .lines
+        .iter()
+        .filter(|line| !known.contains(&line.as_str()))
+        .collect();
+    assert!(unknown.is_empty(), "{unknown:#?}");
 }
 
 /// The whole corpus, which holds the sample: every plan grown with three seeds and judged at every level (and just
-/// after some levels' class). Ignored for its time (about a minute in release, on every core):
-/// `cargo test --release -p rules --test engine agreement -- --ignored`.
+/// after some levels' class). Ignored for its time (about 30 s in release, on every core):
+/// `cargo test --release -p rules --test engine agreement -- --ignored --nocapture`.
 #[test]
-#[ignore = "about 2,000 Builds: over a minute in release"]
+#[ignore = "about 2,400 Builds: about 30 s in release"]
 fn every_picker_agrees_with_the_walk_on_the_whole_test_world_corpus() {
     let engine = engine();
+    let start = std::time::Instant::now();
     let corpus = corpus(&engine, 1..=3, None);
-    let (judged, found) = judge_all(&engine, &corpus);
-    eprintln!("{} Builds, {judged} options judged", corpus.len());
-    assert_eq!(found, KNOWN, "{} disagreements", found.len());
+    let sweep = judge_all(&engine, &corpus);
+    eprintln!(
+        "{} Builds, {} options judged, {} disagreements in {:?}",
+        corpus.len(),
+        sweep.judged,
+        sweep.disagreements,
+        start.elapsed()
+    );
+    assert_eq!(sweep.lines, KNOWN, "{} disagreements", sweep.lines.len());
 }
 
 /// The check itself, so an empty list of disagreements means something: an option said open whose edit the walk
@@ -156,12 +85,43 @@ fn the_check_names_an_open_option_the_walk_refuses() {
         "no-such-class",
         &Ok(()),
         &edit,
+        false,
     );
     let found = found.expect("a disagreement").to_string();
     assert!(
         found.starts_with("class at 1 no-such-class: picker Ok, walk refuses"),
         "{found}"
     );
+}
+
+/// An open option whose edit changes nothing (a level the Build lacks, which `apply` drops) is named, unless it is
+/// the pick the Build holds there.
+#[test]
+fn the_check_names_an_open_option_whose_edit_changes_nothing() {
+    let engine = engine();
+    let build = build("human", &["fighter"]);
+    let edit = Edit::AbilityIncrease {
+        level: 4,
+        ability: Some(rules::Ability::Strength),
+    };
+    let judge = |held| {
+        rules::agreement::judge_one(
+            &engine,
+            &build,
+            "increase at 4",
+            "Strength",
+            &Ok(()),
+            &edit,
+            held,
+        )
+    };
+    let found = judge(false).expect("a disagreement").to_string();
+    assert!(
+        found.starts_with("increase at 4 Strength: picker Ok, walk keeps")
+            && found.ends_with("the edit changes nothing"),
+        "{found}"
+    );
+    assert_eq!(judge(true), None);
 }
 
 // ---- the corpus -----------------------------------------------------------------------------------------------
@@ -262,7 +222,8 @@ fn plans() -> Vec<Plan> {
 /// Every plan grown with each seed, each Build taken at several points of its growth: its start, then just after a
 /// level's class (its slots empty) and once the level is filled, at the levels `at` names (every level when `None`;
 /// then just after the class only at the [`SAMPLE`] levels, every third level and from 17 on, so the whole corpus
-/// holds the sample).
+/// holds the sample). Each Build is keyed by its plan's name, which pins its disagreements ([`KNOWN`]) whatever the
+/// seeds draw.
 fn corpus(
     engine: &Engine,
     seeds: std::ops::RangeInclusive<u64>,
@@ -274,7 +235,14 @@ fn corpus(
         let growers: Vec<_> = plans
             .iter()
             .flat_map(|plan| seeds.clone().map(move |seed| (plan, seed)))
-            .map(|(plan, seed)| scope.spawn(move || grow(engine, plan, seed, at)))
+            .map(|(plan, seed)| {
+                scope.spawn(move || {
+                    grow(engine, plan, seed, at)
+                        .into_iter()
+                        .map(|build| (plan.name.to_owned(), build))
+                        .collect()
+                })
+            })
             .collect();
         growers
             .into_iter()
@@ -332,8 +300,8 @@ fn options<T>(options: Vec<rules::ChoiceOption<T>>) -> Vec<(Result<(), rules::Is
 
 /// A plan grown through the pickers, as a player would: the Build start, then level by level the class, the Mythic
 /// choices its ascensions reach, the ability increase, the skill ranks and every slot, each choice one the pickers
-/// open and the walk keeps. The Builds along the way, named.
-fn grow(engine: &Engine, plan: &Plan, seed: u64, at: Option<&[u8]>) -> Vec<(String, Build)> {
+/// open and the walk keeps. The Builds along the way.
+fn grow(engine: &Engine, plan: &Plan, seed: u64, at: Option<&[u8]>) -> Vec<Build> {
     let mut chooser = Chooser(seed);
     let mut build = Build::default();
     let mut out = Vec::new();
@@ -454,7 +422,7 @@ fn grow(engine: &Engine, plan: &Plan, seed: u64, at: Option<&[u8]>) -> Vec<(Stri
     for (name, build) in &out {
         assert!(engine.is_possible(build), "{name} is possible");
     }
-    out
+    out.into_iter().map(|(_, build)| build).collect()
 }
 
 /// Fills every empty slot of a level and of the Mythic ranks it reaches, with options the pickers open, until no

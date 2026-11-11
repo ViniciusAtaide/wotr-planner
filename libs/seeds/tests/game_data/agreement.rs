@@ -44,12 +44,12 @@ fn every_picker_agrees_with_the_walk_on_the_whole_bench_builds() {
 
 /// Every picker agrees with the walk on the Builds, but for the [`KNOWN`] disagreements.
 fn agrees(engine: &Engine, builds: &[(String, Build)]) {
-    let (_, found) = judge_all(engine, builds);
+    let sweep = judge_all(engine, builds);
     assert_eq!(
-        found,
+        sweep.lines,
         known_for(KNOWN, builds),
         "{} disagreements",
-        found.len()
+        sweep.lines.len()
     );
 }
 

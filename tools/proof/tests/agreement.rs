@@ -14,7 +14,7 @@ use std::path::Path;
 use std::time::Instant;
 
 use proof::{builds, in_parallel};
-use rules::agreement::judge;
+use rules::agreement::{judge, known_for};
 
 /// The disagreements the sweep finds, as `agreement` writes them, with the Build's name before each. Each one is a
 /// bug candidate for the user (ticket 150's Findings); none is fixed in step 1.
@@ -53,14 +53,11 @@ fn every_picker_agrees_with_the_walk_on_the_proof_builds() {
     let mut found: Vec<String> = judged.into_iter().flat_map(|(_, lines)| lines).collect();
     found.sort();
     eprintln!("{options} options judged in {:?}", start.elapsed());
-    let known: Vec<&str> = KNOWN
-        .iter()
-        .copied()
-        .filter(|line| {
-            line.split(": ")
-                .next()
-                .is_some_and(|name| name.contains(&only))
-        })
-        .collect();
-    assert_eq!(found, known, "{} disagreements", found.len());
+    // The pinned disagreements of the Builds swept: those `AGREEMENT_ONLY` keeps and the walk finds possible.
+    assert_eq!(
+        found,
+        known_for(KNOWN, &all),
+        "{} disagreements",
+        found.len()
+    );
 }
