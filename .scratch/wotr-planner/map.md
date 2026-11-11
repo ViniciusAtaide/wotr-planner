@@ -49,6 +49,13 @@ A working, locally run Leptos app at `~/code/wotr-planner` for planning Pathfind
   Waiting on the user: 144's bonus types, 146's golden-build write-ups and 138's saved pages for the class features.
 
   Not ticketed, because the user already decided them: granted features on the Sheet ([93](issues/93-show-granted-features.md), won't do), choices that gate no pick staying labels ([54](issues/54-mercies-and-enforcer-exploits.md)), the two items left as they are above, and what Out of scope names.
+- **Architecture review** (2026-11-11, the user's "write tickets for the strong ones"): four deepening refactors, none changing behaviour.
+  - [149](issues/149-checked-game-data.md): checked game data, a type `Engine::new` requires.
+  - [150](issues/150-the-walk-judges-every-choice.md) (design, the review's top pick): the walk judges every choice, through a cursor the pickers ask, with class entry judged once.
+  - [151](issues/151-bonuses-in-force.md): the walk records the Item bonuses in force, so totals and the caster line take no `BuildStart`. It comes after 148 and 150, and before 139, 141 and 143 where the queue allows.
+  - [152](issues/152-one-name-per-choice.md): one name per choice (address, label and value key) in the rules, after 148.
+
+  The review's weaker candidates weren't ticketed: the engine saying what is open, an offer module and one number-lines module in the MCP. Its speculative candidate, dropping the SQLite hop, goes against the decision of 2026-11-06.
 - **Rules:** the rules live in a plain Rust crate with no DB or Leptos code, running in the browser. The browser loads the game data once, filters choices immediately, and decodes and encodes the Build from the URL.
 - **Mobile:** design mobile-first. The main targets are the Galaxy Z Fold 7 cover screen (folded, tall and narrow, ~21:9) and inner screen (unfolded, nearly square, ~6:5). Desktop is secondary. Both Fold screens must work for touch: no hover-only interactions, and tap targets large enough for a thumb. The layout should adapt when the phone is folded or unfolded without losing the user's place.
 - **Builds and links:** no accounts and no saved-build table. The URL fragment encodes every choice, updates live, and is the share link. `/` with no fragment is a blank Build.
