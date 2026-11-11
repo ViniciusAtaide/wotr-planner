@@ -19,6 +19,7 @@ use crate::parameter::Parameter;
 use crate::state::CharacterState;
 
 mod ascension;
+mod bonuses;
 mod cursor;
 mod hold;
 mod judge;
@@ -196,6 +197,12 @@ struct Walker<'a> {
     probed: Probed,
     /// Whether the walk keeps the sheet's rows; a recheck's walk doesn't ([`without_sheet`](Self::without_sheet)).
     sheet: bool,
+    /// While the walk keeps the sheet, for each of the data's bonuses: whether the walk has held its item (and may
+    /// have released it since), the Build start's included. Each level's end looks at those
+    /// ([`record_bonuses`](Self::record_bonuses)).
+    bonuses_noted: Vec<bool>,
+    /// The bonuses in force the last level's end found, so a level that finds the same shares its list.
+    bonuses_found: Vec<bonuses::Found<Parameter>>,
     /// Set while the walk only answers whether a choice fails ([`holds`](Self::holds)).
     recheck: Option<RecheckWalk>,
 }
@@ -288,6 +295,8 @@ impl<'a> Walker<'a> {
             probe: None,
             probed: Probed::default(),
             sheet: true,
+            bonuses_noted: Vec::new(),
+            bonuses_found: Vec::new(),
             recheck: None,
         }
     }
@@ -485,6 +494,9 @@ impl<'a> Walker<'a> {
         }
         self.state.base_ability_scores = scores;
         self.refresh_ability_scores();
+        if self.sheet {
+            self.note_start_bonuses();
+        }
         self.background();
         self.faith();
     }
@@ -583,6 +595,9 @@ impl<'a> Walker<'a> {
             slots.extend(self.fill_pending(level));
         }
 
+        if self.sheet {
+            self.record_bonuses();
+        }
         self.sheet.then(|| LevelSheet {
             character_level: level,
             class: level_up.class.clone(),

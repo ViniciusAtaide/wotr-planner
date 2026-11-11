@@ -3,7 +3,7 @@
 
 use std::collections::BTreeMap;
 
-use rules::{BuildStart, CharacterState, Engine, TOTALS_LEAVE_OUT, Total, Totals};
+use rules::{CharacterState, Engine, TOTALS_LEAVE_OUT, Total, Totals};
 use schemars::JsonSchema;
 use serde::Serialize;
 
@@ -56,8 +56,8 @@ fn shape(total: &Total) -> TotalShape {
 }
 
 /// The totals at a character state.
-pub(crate) fn totals(engine: &Engine, start: &BuildStart, state: &CharacterState) -> TotalsShape {
-    shape_of(&engine.totals(start, state))
+pub(crate) fn totals(engine: &Engine, state: &CharacterState) -> TotalsShape {
+    shape_of(&engine.totals(state))
 }
 
 /// Totals as JSON.

@@ -56,10 +56,9 @@ pub(crate) fn compare(planner: &Planner, args: CompareArgs) -> Result<CompareRes
     // With `by`, every per-Build list follows the order of the numbers: the Builds are put in it first.
     let mut ranked: Vec<(usize, Option<i16>)> = Vec::new();
     if let Some(number) = &number {
-        let numbers: Vec<Option<i16>> = builds
+        let numbers: Vec<Option<i16>> = sheets
             .iter()
-            .zip(&sheets)
-            .map(|(build, sheet)| number.of(engine, build, sheet))
+            .map(|sheet| number.of(engine, sheet))
             .collect();
         let order = rank::order(&numbers);
         ranked = order.iter().map(|&i| (i, numbers[i])).collect();
@@ -119,7 +118,7 @@ pub(crate) fn compare(planner: &Planner, args: CompareArgs) -> Result<CompareRes
                 summary.attack = attack::attack_line(engine, &last.state, weapon);
             }
             if let (Some(spell), Some(last)) = (spell, sheet.levels.last()) {
-                summary.caster = caster::caster_line(engine, &build.start, &last.state, spell);
+                summary.caster = caster::caster_line(engine, &last.state, spell);
             }
             summary
         })

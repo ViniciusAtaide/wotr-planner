@@ -1,7 +1,8 @@
 //! Flat bonuses that items give while a character holds them: the save DC of spells, caster level against spell
 //! resistance and concentration (ticket 119), initiative, the saves and the skills (ticket 120). `bonuses.ron` lists
-//! them, one [`ItemBonus`] per bonus, each naming the item that gives it; the engine sums the ones a character holds
-//! ([`Engine::caster_line`], [`Engine::totals`]).
+//! them, one [`ItemBonus`] per bonus, each naming the item that gives it. The walk records the ones a character
+//! holds on its state, each a [`BonusInForce`] (ticket 151), and the engine sums those ([`Engine::caster_line`],
+//! [`Engine::totals`]).
 //!
 //! The shape is meant to grow: a new kind of number is a new [`BonusTarget`], a new kind of giver a new
 //! [`BonusItem`], and the amount, the condition and the item stay as they are.
@@ -35,6 +36,28 @@ pub struct ItemBonus {
     /// Penetration (Mythic)'s full Mythic rank: Greater Spell Penetration). `None`: the item alone.
     #[serde(default)]
     pub requires: Option<Prerequisite>,
+}
+
+/// An [`ItemBonus`] in force at a point of a Build: one the character holds there, whose `requires` it meets, once
+/// for each value its item is held for, with its amount worked out at that point. The walk records them on the state
+/// at the end of each level ([`CharacterState::bonuses_in_force`]), in the data's order; the caster line and the
+/// totals pick out the ones for their numbers and add them up.
+///
+/// [`CharacterState::bonuses_in_force`]: crate::CharacterState::bonuses_in_force
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct BonusInForce {
+    /// The item that gives it.
+    pub item: BonusItem,
+    /// The value its item is held for (Spell Focus (Evocation): Evocation); `None` for an item taken for none.
+    pub value: Option<Parameter>,
+    pub target: BonusTarget,
+    /// What it adds there: its [`BonusAmount`] worked out from the Mythic rank, the character's own ability scores
+    /// and the ranks of the skill it's for. Expanded Arsenal's is the copy of the other school's Spell Focus feats.
+    pub amount: i16,
+    /// The part's name: the item's, with the value it's held for ("Spell Focus (Evocation)"), a selection option's
+    /// with its selection's ("School Power (Evocation)"), and for Expanded Arsenal the school copied ("Expanded
+    /// Arsenal (Necromancy): Evocation's Spell Focus feats").
+    pub name: String,
 }
 
 /// The item that gives a bonus (or that an [`ItemInteractions`] note is on). A race's bonus counts for a character of
@@ -170,8 +193,7 @@ pub enum BonusAmount {
     /// [`SpellScope::Value`].
     SpellFocusOfAnotherSchool,
     /// A skill bonus that rises with 10 or more ranks in the skill (Skill Focus: +3, +6 with 10 ranks; Persuasive:
-    /// +2, +4). Only on a skill target: [`BonusTarget::Skill`], [`BonusTarget::AllSkills`] or a skill
-    /// [`BonusTarget::Held`].
+    /// +2, +4). Only on one skill's target: [`BonusTarget::Skill`] or a skill [`BonusTarget::Held`].
     TenRanks { amount: i8, with_ten_ranks: i8 },
     /// An ability's modifier, from the character's own score (Divine Grace: Charisma to every save).
     AbilityModifier(Ability),

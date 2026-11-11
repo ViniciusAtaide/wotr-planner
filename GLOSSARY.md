@@ -93,8 +93,12 @@ A spell's numbers at a point of a Build, computed by the rules for a spell descr
 _Avoid_: DC calculator, spell DC estimate
 
 **Item bonus**:
-A flat bonus an item (a race or subrace, a background, a feat, a mythic feat, a mythic ability, a feature, a selection option) gives while the character holds it, kept in the game data (`bonuses.ron`): its target (a spell DC of a scope, caster level against spell resistance, concentration, initiative, a save or every save, a skill or every skill, or the skill or stat the item is held for), its amount (a number, a number that rises with 10 ranks in the skill, half or all the Mythic rank, an ability's modifier, or Expanded Arsenal's copy of another school's Spell Focus feats) and what else it may require. The **Caster line** and the **Totals** sum the ones held.
+A flat bonus an item (a race or subrace, a background, a feat, a mythic feat, a mythic ability, a feature, a selection option) gives while the character holds it, kept in the game data (`bonuses.ron`): its target (a spell DC of a scope, caster level against spell resistance, concentration, initiative, a save or every save, a skill or every skill, or the skill or stat the item is held for), its amount (a number, a number that rises with 10 ranks in the skill, half or all the Mythic rank, an ability's modifier, or Expanded Arsenal's copy of another school's Spell Focus feats) and what else it may require. The **Caster line** and the **Totals** sum the **Bonuses in force**.
 _Avoid_: Modifier, effect
+
+**Bonus in force**:
+An **Item bonus** the character holds at the end of a character level, with what it requires met there: once for each value its item is held for, with its amount worked out at that level (the Mythic rank, the character's own ability modifier, the ranks of its skill; Expanded Arsenal's copy too) and its name as the line shows it. The walk records them on each level's character state (`bonuses_in_force`), in the game data's order, and the **Caster line** and the **Totals** add up the ones for each number, so they read the state alone.
+_Avoid_: Held bonus, active bonus (an ability switched on in a fight is another thing)
 
 **Ranking number**:
 One number of an **Attack line** (the first attack's bonus, or the bonus each hit adds to the dice) or a **Caster line** (the DC of the highest spell level castable, caster level against spell resistance, or concentration), read at a Build's last level. The MCP server orders Builds (`compare`'s `by`) and a choice's open options (`improve`) by it: an order by a number the rules compute is a fact, and it counts nothing its line leaves out. An option that leaves it as it is is a **no change**, whatever else it does.

@@ -306,7 +306,7 @@ pub enum DataIssue {
     /// a feat or mythic feat taken for a skill or a stat.
     HeldBonusWithoutSkillOrStat,
     /// A bonus that rises with 10 ranks ([`BonusAmount::TenRanks`](crate::BonusAmount::TenRanks)) on a target that
-    /// isn't a skill.
+    /// isn't one skill (every skill's included: the walk works out a bonus's amount once, for the skill it's for).
     TenRanksWithoutSkill,
     /// A second `interactions.ron` note on the same item.
     InteractionsTwice,
@@ -498,7 +498,7 @@ impl fmt::Display for DataProblem {
                 "a bonus for what its item is held for needs a feat or mythic feat taken for a skill or a stat",
             ),
             DataIssue::TenRanksWithoutSkill => {
-                f.write_str("a bonus that rises with 10 ranks needs a skill target")
+                f.write_str("a bonus that rises with 10 ranks needs one skill as its target")
             }
             DataIssue::InteractionsTwice => f.write_str("it has two interactions notes"),
             DataIssue::SharesOwnOption(option) => {
@@ -1412,7 +1412,7 @@ impl Checker {
                 self.problem(&at, DataIssue::HeldBonusWithoutSkillOrStat);
             }
             let on_skill = match bonus.target {
-                BonusTarget::Skill(_) | BonusTarget::AllSkills => true,
+                BonusTarget::Skill(_) => true,
                 BonusTarget::Held => parameter == Some(ParameterKind::Skill),
                 _ => false,
             };

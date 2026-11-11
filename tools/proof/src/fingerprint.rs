@@ -7,7 +7,8 @@
 //! - `who`, `levels`, `picks`: what it is (its classes, each with its archetype; its level and pick counts), for
 //!   filtering a comparison;
 //! - `possible`: [`Engine::is_possible`];
-//! - `sheet`: the sheet ([`Engine::evaluate`]), its Debug text hashed (without a state's empty faith);
+//! - `sheet`: the sheet ([`Engine::evaluate`]), its Debug text hashed (without a state's empty faith, and without its
+//!   bonuses in force, which `totals` and `caster_lines` read);
 //! - `removable`: [`Engine::removable`], listed;
 //! - `slots`: per slot of the sheet, by its id's Debug text: `options` (the picker's options with their statuses,
 //!   hashed, without their edits: [`Hashed`]), `open` (how many are open), `total`, `kind`, and the lock-reason texts: `reasons` (those of options
@@ -21,6 +22,10 @@
 //! - `totals`: [`Engine::totals`] at each level of the sheet, its Debug text hashed (ticket 151);
 //! - `caster_lines`: [`Engine::caster_line`] at each level of the sheet for each spell of [`spells`], its Debug text
 //!   hashed (ticket 151).
+//!
+//! Ticket 151 took the Build start out of the two lines' calls, and gave each state its bonuses in force
+//! (`CharacterState::bonuses_in_force`). The harness calls the lines either way (`cfg(lines_take_start)`, set by its
+//! build script), and the sheet hashes without the bonuses in force, so records from before it still compare.
 //!
 //! Recording also checks, panicking on a difference: [`Engine::is_removable`] and [`Engine::withdrawal`] against
 //! `removable` for every choice the Build holds ([`Engine::held_choices`]) and some it doesn't,
@@ -352,7 +357,7 @@ fn totals_hash(engine: &Engine, build: &Build, sheet: &rules::Sheet) -> String {
     let totals: Vec<rules::Totals> = sheet
         .levels
         .iter()
-        .map(|level| engine.totals(&build.start, &level.state))
+        .map(|level| totals(engine, build, &level.state))
         .collect();
     hashed(&totals)
 }
@@ -366,10 +371,42 @@ fn caster_lines_hash(engine: &Engine, build: &Build, sheet: &rules::Sheet) -> St
         .flat_map(|level| {
             spells
                 .iter()
-                .map(|spell| engine.caster_line(&build.start, &level.state, *spell))
+                .map(|spell| caster_line(engine, build, &level.state, *spell))
         })
         .collect();
     hashed(&lines)
+}
+
+/// [`Engine::totals`] at a state of the Build's sheet.
+#[cfg(lines_take_start)]
+fn totals(engine: &Engine, build: &Build, state: &rules::CharacterState) -> rules::Totals {
+    engine.totals(&build.start, state)
+}
+
+#[cfg(not(lines_take_start))]
+fn totals(engine: &Engine, _: &Build, state: &rules::CharacterState) -> rules::Totals {
+    engine.totals(state)
+}
+
+/// [`Engine::caster_line`] at a state of the Build's sheet.
+#[cfg(lines_take_start)]
+fn caster_line(
+    engine: &Engine,
+    build: &Build,
+    state: &rules::CharacterState,
+    spell: SpellTraits,
+) -> Option<rules::CasterLine> {
+    engine.caster_line(&build.start, state, spell)
+}
+
+#[cfg(not(lines_take_start))]
+fn caster_line(
+    engine: &Engine,
+    _: &Build,
+    state: &rules::CharacterState,
+    spell: SpellTraits,
+) -> Option<rules::CasterLine> {
+    engine.caster_line(state, spell)
 }
 
 /// The spells the caster lines are recorded for: one of each school, one of each subschool, one of each energy type
@@ -398,11 +435,55 @@ fn spells() -> Vec<SpellTraits> {
 }
 
 /// The sheet's Debug text, hashed, without a state's empty faith (ticket 86's `faith: None, deity_domains: {}`): a
-/// Build without one walks to the same sheet as on a side before deities, whose states have no such fields.
+/// Build without one walks to the same sheet as on a side before deities, whose states have no such fields. And
+/// without a state's bonuses in force (ticket 151), which a side before them doesn't have.
 fn sheet_hash(sheet: &rules::Sheet) -> String {
     let text =
         as_before_ticket_125(&format!("{sheet:?}")).replace("faith: None, deity_domains: {}, ", "");
-    format!("{:016x}", fnv(&text))
+    format!("{:016x}", fnv(&without_bonuses_in_force(&text)))
+}
+
+/// A Debug text without its states' bonuses in force: each `, bonuses_in_force: […]` left out.
+fn without_bonuses_in_force(text: &str) -> String {
+    const FIELD: &str = ", bonuses_in_force: [";
+    let mut out = String::with_capacity(text.len());
+    let mut rest = text;
+    while let Some(at) = rest.find(FIELD) {
+        out.push_str(&rest[..at]);
+        let list = &rest[at + FIELD.len()..];
+        rest = &list[list_end(list)..];
+    }
+    out.push_str(rest);
+    out
+}
+
+/// Where a Debug list opened just before `text` ends: just past its `]`, skipping the brackets of the lists in it
+/// and of quoted text.
+fn list_end(text: &str) -> usize {
+    let (mut depth, mut quoted, mut escaped) = (1_usize, false, false);
+    for (at, c) in text.char_indices() {
+        if quoted {
+            match c {
+                _ if escaped => escaped = false,
+                '\\' => escaped = true,
+                '"' => quoted = false,
+                _ => {}
+            }
+            continue;
+        }
+        match c {
+            '"' => quoted = true,
+            '[' => depth += 1,
+            ']' => {
+                depth -= 1;
+                if depth == 0 {
+                    return at + 1;
+                }
+            }
+            _ => {}
+        }
+    }
+    text.len()
 }
 
 /// The Build's classes, each with its archetype ("slayer:slayer/arcane-enforcer").

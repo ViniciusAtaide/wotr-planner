@@ -3,8 +3,8 @@
 //! code.
 
 use rules::{
-    BuildStart, CASTER_LINE_LEAVES_OUT, CasterLine, CasterPart, CharacterState, Energy, Engine,
-    SpellDc, SpellSchool, SpellTraits, Subschool,
+    CASTER_LINE_LEAVES_OUT, CasterLine, CasterPart, CharacterState, Energy, Engine, SpellDc,
+    SpellSchool, SpellTraits, Subschool,
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -152,11 +152,10 @@ fn counts(parts: &[CasterPart]) -> Vec<CasterPartShape> {
 /// The caster line for a spell at a character state; `None` for a character that casts no spells yet.
 pub(crate) fn caster_line(
     engine: &Engine,
-    start: &BuildStart,
     state: &CharacterState,
     spell: SpellTraits,
 ) -> Option<CasterLineShape> {
-    let line = engine.caster_line(start, state, spell)?;
+    let line = engine.caster_line(state, spell)?;
     Some(shape(engine, &line))
 }
 

@@ -5,6 +5,7 @@
 use std::collections::{BTreeSet, HashMap, HashSet};
 
 use super::{EffectiveRow, canonical_archetype_row, class_row, effective_rows, merged_row};
+use crate::bonus::BonusItem;
 use crate::build::{BuildStart, Pick};
 use crate::check::CheckedGameData;
 use crate::game_data::{
@@ -41,6 +42,57 @@ pub(super) struct Catalog {
     /// The prerequisite of each class with an alignment requirement and archetypes, without that requirement:
     /// what an archetype stating its own leaves of the class's (`None`: nothing).
     without_alignment: HashMap<ClassKey, Option<Prerequisite>>,
+    /// Where each item's bonuses are in `data.bonuses` ([`bonus_rows`](Self::bonus_rows)).
+    bonus_rows: BonusRows,
+}
+
+/// An item that may give Item bonuses ([`Catalog::bonus_rows`]).
+#[derive(Clone, Copy)]
+pub(super) enum BonusGiver<'a> {
+    Race(&'a RaceKey),
+    Subrace(&'a SubraceKey),
+    Background(&'a BackgroundKey),
+    Feat(&'a FeatKey),
+    MythicFeat(&'a MythicFeatKey),
+    MythicAbility(&'a MythicAbilityKey),
+    Feature(&'a FeatureKey),
+    SelectionOption(&'a SelectionOptionKey),
+}
+
+/// The positions in `data.bonuses` of each item's bonuses, by the item's kind, so the walk finds an item's
+/// bonuses as it holds it without building a [`BonusItem`].
+#[derive(Clone, Debug, Default)]
+struct BonusRows {
+    feats: HashMap<FeatKey, Vec<usize>>,
+    mythic_feats: HashMap<MythicFeatKey, Vec<usize>>,
+    mythic_abilities: HashMap<MythicAbilityKey, Vec<usize>>,
+    features: HashMap<FeatureKey, Vec<usize>>,
+    options: HashMap<SelectionOptionKey, Vec<usize>>,
+    races: HashMap<RaceKey, Vec<usize>>,
+    subraces: HashMap<SubraceKey, Vec<usize>>,
+    backgrounds: HashMap<BackgroundKey, Vec<usize>>,
+}
+
+impl BonusRows {
+    fn new(data: &GameData) -> Self {
+        let mut rows = Self::default();
+        for (at, bonus) in data.bonuses.iter().enumerate() {
+            let list = match &bonus.item {
+                BonusItem::Race(key) => rows.races.entry(key.clone()).or_default(),
+                BonusItem::Subrace(key) => rows.subraces.entry(key.clone()).or_default(),
+                BonusItem::Background(key) => rows.backgrounds.entry(key.clone()).or_default(),
+                BonusItem::Feat(key) => rows.feats.entry(key.clone()).or_default(),
+                BonusItem::MythicFeat(key) => rows.mythic_feats.entry(key.clone()).or_default(),
+                BonusItem::MythicAbility(key) => {
+                    rows.mythic_abilities.entry(key.clone()).or_default()
+                }
+                BonusItem::Feature(key) => rows.features.entry(key.clone()).or_default(),
+                BonusItem::SelectionOption(key) => rows.options.entry(key.clone()).or_default(),
+            };
+            list.push(at);
+        }
+        rows
+    }
 }
 
 /// What a pick takes, read once ([`Catalog::pick_item`]): its name, picker chip, summary, prerequisite, the kind
@@ -82,6 +134,7 @@ impl Catalog {
             pools: HashMap::new(),
             casting: Casting::new(&data),
             without_alignment,
+            bonus_rows: BonusRows::new(&data),
             data,
         };
         catalog.single_options = catalog
@@ -917,5 +970,25 @@ impl SelectionAt {
             } => &data.classes[class].archetypes[archetype].selections[index],
             SelectionAt::Path { path, index } => &data.mythic_paths[path].selections[index],
         }
+    }
+}
+
+/// The Item bonuses (ticket 151).
+impl Catalog {
+    /// The positions in the data's bonuses ([`GameData::bonuses`]) of the bonuses an item gives, in the data's
+    /// order; empty for one that gives none.
+    pub(super) fn bonus_rows(&self, giver: BonusGiver<'_>) -> &[usize] {
+        let rows = &self.bonus_rows;
+        let found = match giver {
+            BonusGiver::Race(key) => rows.races.get(key),
+            BonusGiver::Subrace(key) => rows.subraces.get(key),
+            BonusGiver::Background(key) => rows.backgrounds.get(key),
+            BonusGiver::Feat(key) => rows.feats.get(key),
+            BonusGiver::MythicFeat(key) => rows.mythic_feats.get(key),
+            BonusGiver::MythicAbility(key) => rows.mythic_abilities.get(key),
+            BonusGiver::Feature(key) => rows.features.get(key),
+            BonusGiver::SelectionOption(key) => rows.options.get(key),
+        };
+        found.map_or(&[], Vec::as_slice)
     }
 }
