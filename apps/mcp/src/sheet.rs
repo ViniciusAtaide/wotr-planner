@@ -5,14 +5,14 @@
 use std::collections::BTreeSet;
 
 use rules::{
-    AbilityScores, Build, CharacterState, Choice, Engine, POINT_BUY_BUDGET, RankStatus, Sheet,
-    Slot, SpellTraits, WeaponKey, has_ability_increase,
+    AbilityScores, Address, Build, CharacterState, Choice, Engine, POINT_BUY_BUDGET, RankStatus,
+    Sheet, Slot, SpellTraits, WeaponKey, has_ability_increase,
 };
 
-use crate::address::Address;
 use crate::attack;
 use crate::caster;
 use crate::code::envelope;
+use crate::options::class_name;
 use crate::planner::Planner;
 use crate::shapes::ChoiceValue;
 use crate::shapes::{
@@ -20,9 +20,6 @@ use crate::shapes::{
     SpellLevels,
 };
 use crate::totals;
-use crate::values::{
-    ability_value, alignment_key, class_name, class_value, faith_key, pick_value, race_value,
-};
 
 /// The sheet of a possible Build; with `removable`, each held choice marked with whether it can be withdrawn now;
 /// each level's attack line for the `weapon` given, or else for the Build's Weapon Focus weapon
@@ -144,13 +141,15 @@ struct Lines<'a> {
 }
 
 impl Lines<'_> {
-    /// A choice's line: open when `held` is `None`.
+    /// A choice's line, labelled as the engine labels it ([`Engine::choice_label`]), with the sheet's slot at a slot
+    /// address: open when `held` is `None`.
     fn line(
         &self,
         address: Address,
-        label: String,
+        slot: Option<&Slot>,
         held: Option<(ChoiceValue, String)>,
     ) -> PickLine {
+        let label = self.engine.choice_label(&address, slot);
         let removable = match (&held, self.removable, address.choice()) {
             (Some(_), Some(removable), Some(choice)) if withdrawable(&address) => {
                 Some(removable.contains(&choice))
@@ -171,12 +170,8 @@ impl Lines<'_> {
         let held = slot
             .pick
             .as_ref()
-            .map(|pick| (pick_value(pick), self.engine.pick_name(pick)));
-        self.line(
-            Address::Slot(slot.id.clone()),
-            self.engine.slot_label(slot),
-            held,
-        )
+            .map(|pick| (ChoiceValue::pick(pick), self.engine.pick_name(pick)));
+        self.line(Address::Slot(slot.id.clone()), Some(slot), held)
     }
 
     fn start(&self, build: &Build) -> Vec<PickLine> {
@@ -184,19 +179,22 @@ impl Lines<'_> {
         let start = &build.start;
         let mut lines = vec![self.line(
             Address::Race,
-            "Race".to_owned(),
+            None,
             start.race.as_ref().map(|race| {
                 let name = match &start.subrace {
                     Some(subrace) => engine.subrace_name(subrace),
                     None => engine.race_name(race),
                 };
-                (race_value(race, start.subrace.as_ref()), name.to_owned())
+                (
+                    ChoiceValue::race(race, start.subrace.as_ref()),
+                    name.to_owned(),
+                )
             }),
         )];
         if let Some(subrace) = &start.subrace {
             lines.push(self.line(
                 Address::Subrace,
-                "Subrace".to_owned(),
+                None,
                 Some((
                     ChoiceValue::Key(subrace.as_str().to_owned()),
                     engine.subrace_name(subrace).to_owned(),
@@ -207,36 +205,36 @@ impl Lines<'_> {
             lines.push(
                 self.line(
                     Address::RacialAbility,
-                    "Racial ability bonus".to_owned(),
+                    None,
                     start
                         .racial_ability
-                        .map(|ability| (ability_value(ability), ability.name().to_owned())),
+                        .map(|ability| (ChoiceValue::ability(ability), ability.name().to_owned())),
                 ),
             );
         }
         lines.push(self.line(
             Address::Faith,
-            "Faith".to_owned(),
+            None,
             start.deity.as_ref().map(|faith| {
                 (
-                    ChoiceValue::Key(faith_key(faith)),
+                    ChoiceValue::Key(faith.key().to_owned()),
                     engine.faith_name(faith).to_owned(),
                 )
             }),
         ));
         lines.push(self.line(
             Address::Alignment,
-            "Alignment".to_owned(),
+            None,
             start.alignment.map(|alignment| {
                 (
-                    ChoiceValue::Key(alignment_key(alignment)),
+                    ChoiceValue::Key(alignment.key().to_owned()),
                     alignment.name().to_owned(),
                 )
             }),
         ));
         lines.push(self.line(
             Address::Background,
-            "Background".to_owned(),
+            None,
             start.background.as_ref().map(|background| {
                 (
                     ChoiceValue::Key(background.as_str().to_owned()),
@@ -248,7 +246,7 @@ impl Lines<'_> {
             let score = start.ability_scores.get(ability);
             lines.push(self.line(
                 Address::Score(ability),
-                format!("{} (point buy)", ability.name()),
+                None,
                 Some((ChoiceValue::Number(score), score.to_string())),
             ));
         }
@@ -277,9 +275,9 @@ impl Lines<'_> {
             });
             let mut picks = vec![self.line(
                 Address::Class(n),
-                "Class".to_owned(),
+                None,
                 Some((
-                    class_value(&level.class, archetype, advances.as_ref()),
+                    ChoiceValue::class(&level.class, archetype, advances.as_ref()),
                     class_name(engine, &level.class, archetype, advances.as_ref()),
                 )),
             )];
@@ -287,9 +285,9 @@ impl Lines<'_> {
                 picks.push(
                     self.line(
                         Address::Increase(n),
-                        "Ability increase".to_owned(),
+                        None,
                         level_up.ability_increase.map(|ability| {
-                            (ability_value(ability), format!("+1 {}", ability.name()))
+                            (ChoiceValue::ability(ability), ability.increase_name())
                         }),
                     ),
                 );
@@ -298,7 +296,7 @@ impl Lines<'_> {
                 let name = engine.skill_name(skill);
                 picks.push(self.line(
                     Address::Skill(n, skill.clone()),
-                    format!("{name} ranks"),
+                    None,
                     Some((ChoiceValue::Number(*ranks), format!("{name} +{ranks}"))),
                 ));
             }

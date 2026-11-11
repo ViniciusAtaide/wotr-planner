@@ -1,9 +1,9 @@
 //! The Build start (race, alignment, deity, background, point buy) and a level's skill ranks.
 
 use leptos::prelude::*;
-use rules::{Build, BuildStart, Edit, POINT_BUY_BUDGET, Step};
+use rules::{Address, Build, BuildStart, Choice, Edit, POINT_BUY_BUDGET, Step};
 
-use crate::picker::Head;
+use crate::picker::{Head, heading};
 use crate::planner::{Target, use_planner};
 use crate::timings::timed;
 
@@ -97,16 +97,17 @@ fn StartBody() -> AnyView {
             .as_ref()
             .map(|key| engine.background_note(key).to_owned())
             .filter(|note| !note.is_empty());
+        let label = |address: Address| engine.choice_label(&address, None);
         // Only a race that chooses where its bonus goes has options.
         let chosen = racial_choice(&start);
         view! {
             <div class="start-body">
-                {choice_row("Race", race, Target::Race)}
+                {choice_row(label(Address::Race), race, Target::Race)}
                 {chosen}
                 // The faith before the alignment, which needs it (ticket 94).
-                {choice_row("Deity", deity, Target::Deity)}
-                {choice_row("Alignment", alignment, Target::Alignment)}
-                {choice_row("Background", background, Target::Background)}
+                {choice_row(label(Address::Faith), deity, Target::Deity)}
+                {choice_row(label(Address::Alignment), alignment, Target::Alignment)}
+                {choice_row(label(Address::Background), background, Target::Background)}
                 {note.map(|note| view! { <p class="note">{note}</p> })}
                 <PointBuyRows current=build/>
             </div>
@@ -115,7 +116,7 @@ fn StartBody() -> AnyView {
     .into_any()
 }
 
-fn choice_row(label: &'static str, value: Option<String>, target: Target) -> impl IntoView + use<> {
+fn choice_row(label: String, value: Option<String>, target: Target) -> impl IntoView + use<> {
     let planner = use_planner();
     let empty = value.is_none();
     view! {
@@ -254,6 +255,7 @@ fn PointBuyRows(current: Build) -> impl IntoView {
 pub fn SkillsPanel(level: u8) -> impl IntoView {
     let planner = use_planner();
     let engine = planner.engine();
+    let (title, place) = heading(&engine, &Choice::SkillPoints { level });
     let index = usize::from(level) - 1;
     let rows = move || {
         let sheet = planner.sheet.get();
@@ -350,7 +352,7 @@ pub fn SkillsPanel(level: u8) -> impl IntoView {
         .into_any()
     };
     view! {
-        <Head title="Skill ranks" place=format!("Level {level}")/>
+        <Head title place/>
         {rows}
     }
 }

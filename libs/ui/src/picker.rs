@@ -9,8 +9,8 @@ use std::time::Duration;
 
 use leptos::prelude::*;
 use rules::{
-    Alignment, Build, Choice, ClassOption, Edit, Engine, FIRST_ASCENSION_RANK, Faith, FeatCategory,
-    Issue, PATH_CHOICE_RANK, PATH_SWITCH_RANK, SlotEntry, SlotId, SlotOption,
+    Address, Alignment, Build, Choice, ClassOption, Edit, Engine, FIRST_ASCENSION_RANK, Faith,
+    FeatCategory, Issue, Place, SlotEntry, SlotId, SlotOption,
 };
 
 use crate::icons::feat_icon;
@@ -355,13 +355,15 @@ fn reason(engine: &Engine, status: &Result<(), Issue>) -> Option<String> {
         .and_then(|issue| engine.issue_text(issue))
 }
 
-/// Where a slot is: "Level 3" or "Mythic rank 4".
-pub fn slot_place(slot: &SlotId) -> String {
-    match (slot.level(), slot.rank()) {
-        (Some(level), _) => format!("Level {level}"),
-        (_, Some(rank)) => format!("Mythic rank {rank}"),
-        _ => String::new(),
-    }
+/// Where a choice sits, as a heading says it: "Build start", "Level 3" or "Mythic rank 4" ([`Place::heading`]).
+fn place_heading(address: &Address) -> String {
+    address.place().map_or_else(String::new, Place::heading)
+}
+
+/// A picker's heading for a choice: what the engine labels it ([`Engine::choice_label`]) and where it sits.
+pub fn heading(engine: &Engine, choice: &Choice) -> (String, String) {
+    let address = Address::from(choice);
+    (engine.choice_label(&address, None), place_heading(&address))
 }
 
 /// A slot's picker: the engine's entries (one per feat, option or mythic pick), an entry of values opening the list of
@@ -382,7 +384,7 @@ fn SlotPicker(id: SlotId) -> impl IntoView {
         .into_any();
     };
     let current = found.pick.clone();
-    let title = engine.slot_label(&found);
+    let title = engine.choice_label(&Address::Slot(slot.clone()), Some(&found));
     let remove = Some(Choice::Slot(slot.clone()));
 
     let step = RwSignal::new(SlotStep::Loading);
@@ -395,7 +397,7 @@ fn SlotPicker(id: SlotId) -> impl IntoView {
             Arc::new(entries)
         });
     }
-    let place = slot_place(&slot);
+    let place = place_heading(&Address::Slot(slot.clone()));
     let current = StoredValue::new(current);
     let is_current = move |option: &SlotOption| {
         current.with_value(|current| current.as_ref() == Some(&option.pick))
@@ -533,10 +535,11 @@ fn ClassPicker(level: u8) -> impl IntoView {
     let adding = planner
         .build
         .with_untracked(|build| usize::from(level) > build.levels.len());
+    let (title, place) = engine.with_value(|engine| heading(engine, &Choice::Class { level }));
     let title = if adding {
-        format!("Level {level}: add a class")
+        "Add a class".to_owned()
     } else {
-        format!("Class at level {level}")
+        title
     };
 
     // A prestige class first taken here asks which classes it advances.
@@ -586,7 +589,7 @@ fn ClassPicker(level: u8) -> impl IntoView {
             }
         };
         view! {
-            <Head title=title.clone()/>
+            <Head title=title.clone() place=place.clone()/>
             {list}
         }
         .into_any()
@@ -733,12 +736,9 @@ fn FirstAscensionPicker() -> impl IntoView {
             }
         })
         .collect();
+    let (title, place) = heading(&engine, &Choice::FirstAscension);
     view! {
-        <Head
-            title="First ascension"
-            place=format!("Mythic rank {FIRST_ASCENSION_RANK}")
-            remove=Some(Choice::FirstAscension)
-        />
+        <Head title place remove=Some(Choice::FirstAscension)/>
         <ItemList
             items
             on_pick=move |index: usize| planner.pick(options[index].edit.clone())
@@ -771,19 +771,12 @@ fn PathPicker(switch: bool) -> impl IntoView {
             ..Item::new(engine.path_name(&option.path))
         })
         .collect();
-    let (title, place, remove) = if switch {
-        (
-            "Path switch",
-            format!("Mythic rank {PATH_SWITCH_RANK}"),
-            Choice::PathSwitch,
-        )
+    let remove = if switch {
+        Choice::PathSwitch
     } else {
-        (
-            "Mythic path",
-            format!("Mythic rank {PATH_CHOICE_RANK}"),
-            Choice::MythicPath,
-        )
+        Choice::MythicPath
     };
+    let (title, place) = heading(&engine, &remove);
     view! {
         <Head title place remove=Some(remove)/>
         <ItemList
@@ -797,7 +790,6 @@ fn PathPicker(switch: bool) -> impl IntoView {
 /// first paint as the slot picker's is. A locked option shows its reason (a faith and alignment that don't fit), or
 /// none when it would break a later choice.
 fn start_picker(
-    title: &'static str,
     remove: Choice,
     options: impl FnOnce(&Engine) -> Vec<(Item, Edit)> + 'static,
 ) -> impl IntoView {
@@ -820,8 +812,9 @@ fn start_picker(
         }
         .into_any()
     };
+    let (title, place) = heading(&planner.engine(), &remove);
     view! {
-        <Head title place="Build start" remove=Some(remove)/>
+        <Head title place remove=Some(remove)/>
         {list}
     }
 }
@@ -838,7 +831,7 @@ fn with_status(engine: &Engine, item: Item, status: &Result<(), Issue>) -> Item 
 #[component]
 fn RacePicker() -> impl IntoView {
     let planner = use_planner();
-    start_picker("Race", Choice::Race, move |engine| {
+    start_picker(Choice::Race, move |engine| {
         let current = planner.build.with_untracked(|build| build.start.clone());
         let options = planner.ask("race_options", |engine, build| engine.race_options(build));
         options
@@ -916,8 +909,9 @@ fn AlignmentPicker() -> impl IntoView {
             .or(current.alignment)
             .map_or("Choose an alignment", Alignment::name)
     };
+    let (title, place) = heading(&engine, &Choice::Alignment);
     view! {
-        <Head title="Alignment" place="Build start" remove=Some(Choice::Alignment)/>
+        <Head title place remove=Some(Choice::Alignment)/>
         <p class="alignment-name">{name}</p>
         <div class="alignment-wheel" role="radiogroup" aria-label="Alignment">
             {nodes}
@@ -932,7 +926,7 @@ fn AlignmentPicker() -> impl IntoView {
 #[component]
 fn DeityPicker() -> impl IntoView {
     let planner = use_planner();
-    start_picker("Deity", Choice::Deity, move |engine| {
+    start_picker(Choice::Deity, move |engine| {
         let current = planner
             .build
             .with_untracked(|build| build.start.deity.clone());
@@ -1007,7 +1001,7 @@ fn wheel_place(alignment: Alignment) -> &'static str {
 #[component]
 fn BackgroundPicker() -> impl IntoView {
     let planner = use_planner();
-    start_picker("Background", Choice::Background, move |engine| {
+    start_picker(Choice::Background, move |engine| {
         let current = planner
             .build
             .with_untracked(|build| build.start.background.clone());
@@ -1053,14 +1047,14 @@ fn AbilityIncreasePicker(level: u8) -> impl IntoView {
         .map(|option| {
             let item = Item {
                 current: current == Some(option.value),
-                ..Item::new(format!("+1 {}", option.value.name()))
+                ..Item::new(option.value.increase_name())
             };
             with_status(&engine, item, &option.status)
         })
         .collect();
-    let place = format!("Level {level}");
+    let (title, place) = heading(&engine, &Choice::AbilityIncrease { level });
     view! {
-        <Head title="Ability increase" place remove=Some(Choice::AbilityIncrease { level })/>
+        <Head title place remove=Some(Choice::AbilityIncrease { level })/>
         <ItemList
             items
             on_pick=move |index: usize| planner.pick(options[index].edit.clone())

@@ -8,12 +8,11 @@
 use std::fmt;
 
 use rules::{
-    Ability, ArchetypeKey, ClassKey, FeatKey, GameData, Issue, MythicAbilityKey, MythicFeatKey,
-    Parameter, Pick, Prerequisite, SelectionOptionKey, Unmet,
+    Ability, Address, ArchetypeKey, ClassKey, FeatKey, GameData, Issue, MythicAbilityKey,
+    MythicFeatKey, Parameter, Pick, Prerequisite, SelectionOptionKey, Unmet,
 };
 
 use super::Refused;
-use crate::address::Address;
 use crate::options::{issue_code, issue_reason};
 use crate::planner::Planner;
 use crate::shapes::FailureLine;
@@ -90,7 +89,7 @@ impl Node {
         reason: String,
     ) -> Self {
         Self {
-            label: address.label(&planner.engine, None),
+            label: planner.engine.placed_label(&address, None),
             at: At::Address(address),
             why: Why::Refused(refused),
             reason,

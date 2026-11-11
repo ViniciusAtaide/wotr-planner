@@ -2,18 +2,45 @@
 //! its name, whether it can be taken now and, when not, the engine's issue and reason. Each option keeps the edit
 //! the engine gives it, so `choose` applies the matching offer's edit and never builds one.
 
-use rules::{Build, Edit, Engine, Issue, RankStatus, Sheet, SlotId, Step};
+use std::collections::BTreeSet;
 
-use crate::address::{Address, NotAnAddress};
+use rules::{
+    Address, ArchetypeKey, Build, ClassKey, Edit, Engine, Issue, NotAnAddress, RankStatus, Sheet,
+    SlotId, Step,
+};
+
 use crate::code::{envelope, open};
 use crate::error::ToolError;
 use crate::planner::Planner;
 use crate::shapes::{
     ChoiceValue, Kind, Open, OptionLine, OptionStatus, OptionsArgs, OptionsResult,
 };
-use crate::values::{
-    ability_value, alignment_key, class_name, class_value, faith_key, pick_value, race_value,
-};
+
+/// A class as the class picker names it: "Fighter", "Armiger (Fighter)", "Eldritch Knight, advancing Wizard",
+/// "Eldritch Knight, advancing nothing".
+pub(crate) fn class_name(
+    engine: &Engine,
+    class: &ClassKey,
+    archetype: Option<&ArchetypeKey>,
+    advances: Option<&BTreeSet<ClassKey>>,
+) -> String {
+    let name = match archetype {
+        Some(archetype) => format!(
+            "{} ({})",
+            engine.archetype_name(archetype),
+            engine.class_name(class)
+        ),
+        None => engine.class_name(class).to_owned(),
+    };
+    match advances {
+        Some(advances) if advances.is_empty() => format!("{name}, advancing nothing"),
+        Some(advances) => {
+            let names: Vec<&str> = advances.iter().map(|key| engine.class_name(key)).collect();
+            format!("{name}, advancing {}", names.join(" and "))
+        }
+        None => name,
+    }
+}
 
 /// One option the engine offers for a choice.
 #[derive(Clone, Debug)]
@@ -138,7 +165,7 @@ pub(crate) fn offers(
                 let current =
                     start.race.as_ref() == Some(race) && start.subrace.as_ref() == subrace;
                 Offer::new(
-                    race_value(race, subrace),
+                    ChoiceValue::race(race, subrace),
                     name.to_owned(),
                     option.status,
                     option.edit,
@@ -152,7 +179,7 @@ pub(crate) fn offers(
             .map(|option| {
                 let current = start.deity.as_ref() == Some(&option.value);
                 Offer::new(
-                    ChoiceValue::Key(faith_key(&option.value)),
+                    ChoiceValue::Key(option.value.key().to_owned()),
                     engine.faith_name(&option.value).to_owned(),
                     option.status,
                     option.edit,
@@ -165,7 +192,7 @@ pub(crate) fn offers(
             .into_iter()
             .map(|option| {
                 Offer::new(
-                    ChoiceValue::Key(alignment_key(option.value)),
+                    ChoiceValue::Key(option.value.key().to_owned()),
                     option.value.name().to_owned(),
                     option.status,
                     option.edit,
@@ -196,7 +223,7 @@ pub(crate) fn offers(
                 .into_iter()
                 .map(|option| {
                     Offer::new(
-                        ability_value(option.value),
+                        ChoiceValue::ability(option.value),
                         option.value.name().to_owned(),
                         option.status,
                         option.edit,
@@ -213,8 +240,8 @@ pub(crate) fn offers(
                 let current =
                     build.levels[usize::from(*level) - 1].ability_increase == Some(option.value);
                 Offer::new(
-                    ability_value(option.value),
-                    format!("+1 {}", option.value.name()),
+                    ChoiceValue::ability(option.value),
+                    option.value.increase_name(),
                     option.status,
                     option.edit,
                 )
@@ -409,7 +436,7 @@ fn slot_offers(engine: &Engine, build: &Build, slot: &SlotId, values: bool) -> O
                 for option in entry.options {
                     let pick = option.option.pick;
                     offers.push(Offer {
-                        value: pick_value(&pick),
+                        value: ChoiceValue::pick(&pick),
                         name: engine.pick_name(&pick),
                         status: option.option.status,
                         reason: option.reason,
@@ -469,7 +496,7 @@ fn class_offers(engine: &Engine, build: &Build, level: u8) -> Option<Vec<Offer>>
             if answers.is_empty() {
                 // No advancement keeps the Build possible.
                 let mut offer = Offer::new(
-                    class_value(&option.class, archetype, None),
+                    ChoiceValue::class(&option.class, archetype, None),
                     class_name(engine, &option.class, archetype, None),
                     Err(Issue::BreaksLater),
                     option.edit.clone(),
@@ -483,7 +510,7 @@ fn class_offers(engine: &Engine, build: &Build, level: u8) -> Option<Vec<Offer>>
                     .get(&option.class)
                     .map(|choice| &choice.advances);
                 let mut offer = Offer::new(
-                    class_value(&option.class, archetype, Some(&answer.advances)),
+                    ChoiceValue::class(&option.class, archetype, Some(&answer.advances)),
                     class_name(engine, &option.class, archetype, Some(&answer.advances)),
                     Ok(()),
                     answer.edit,
@@ -494,7 +521,7 @@ fn class_offers(engine: &Engine, build: &Build, level: u8) -> Option<Vec<Offer>>
             }
         } else {
             let mut offer = Offer::new(
-                class_value(&option.class, archetype, None),
+                ChoiceValue::class(&option.class, archetype, None),
                 class_name(engine, &option.class, archetype, None),
                 option.status,
                 option.edit,

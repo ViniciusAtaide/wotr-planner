@@ -5,7 +5,8 @@
 
 use leptos::prelude::*;
 use rules::{
-    FIRST_ASCENSION_RANK, MythicPathKey, PATH_CHOICE_RANK, PATH_SWITCH_RANK, RankSheet, RankStatus,
+    Address, FIRST_ASCENSION_RANK, MythicPathKey, PATH_CHOICE_RANK, PATH_SWITCH_RANK, RankSheet,
+    RankStatus,
 };
 
 use crate::grid::slot_chip;
@@ -94,7 +95,8 @@ fn rank_row(
         RankStatus::Dropped => Some("Lost to the Path switch"),
     };
     let not_reached = rank.status == RankStatus::NotReached;
-    let chooser = |label: &'static str, value: Option<Chosen>, target: Target| {
+    let chooser = |address: Address, value: Option<Chosen>, target: Target| {
+        let label = engine.choice_label(&address, None);
         let empty = value.is_none();
         let (name, key) = value.map_or(("+".to_owned(), None), |chosen| {
             (chosen.name, Some(chosen.path.as_str().to_owned()))
@@ -112,8 +114,9 @@ fn rank_row(
             </button>
         }
     };
-    let first_chip = first.map(|value| chooser("First ascension", value, Target::FirstAscension));
-    let path_chip = path.map(|value| chooser("Mythic path", value, Target::Path));
+    let first_chip =
+        first.map(|value| chooser(Address::FirstAscension, value, Target::FirstAscension));
+    let path_chip = path.map(|value| chooser(Address::Path, value, Target::Path));
     let features: Vec<&str> = engine
         .rank_features(rank)
         .into_iter()
@@ -121,7 +124,7 @@ fn rank_row(
         .collect();
     let features = (!features.is_empty())
         .then(|| view! { <span class="rank-features">{features.join(" · ")}</span> });
-    let switch_chip = switch.map(|value| chooser("Path switch", value, Target::Switch));
+    let switch_chip = switch.map(|value| chooser(Address::Switch, value, Target::Switch));
     let chips = rank
         .slots
         .iter()

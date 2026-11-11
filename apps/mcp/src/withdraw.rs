@@ -5,7 +5,8 @@
 //! `Choice` of its own), and `level.N.class`, whose engine Withdrawal sets a class key no data has: an agent changes
 //! a level's class with `choose`, and drops the last level with `level.N`.
 
-use crate::address::{Address, NotAnAddress};
+use rules::{Address, NotAnAddress};
+
 use crate::code::{envelope, open, reopen};
 use crate::error::ToolError;
 use crate::planner::Planner;

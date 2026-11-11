@@ -3,11 +3,10 @@
 //! number is a fact (the attack line's or the caster line's, unconditional numbers only), so ranking by it is too; what
 //! it leaves out is the line's own `leaves_out`.
 
-use rules::{Build, Engine, Sheet, SpellTraits, WeaponKey};
+use rules::{Address, Build, Engine, NotAnAddress, Sheet, SpellTraits, WeaponKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::address::{Address, NotAnAddress};
 use crate::attack;
 use crate::caster::{self, CasterArgs};
 use crate::code::open;

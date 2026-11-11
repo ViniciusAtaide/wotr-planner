@@ -1,6 +1,10 @@
-//! Choice addresses: the strings the sheet prints for each choice of a Build and the agent copies back to `options`
-//! (and to `choose` and `withdraw`). Each one names one [`Choice`] the engine knows, except the
-//! racial ability, which the engine folds into the race's.
+//! One name per choice (ticket 152): a choice's **Address**, the text an agent copies between the MCP server's tools,
+//! read and written here; its label, the words the sheet, the pickers and the MCP server name it by; and the key of
+//! each value that has no game-data key (an ability, an alignment, a faith, a parameter such as a school), written
+//! out rather than derived from the value's display name, so renaming a name never breaks a key.
+//!
+//! Each address names one [`Choice`] the engine knows, except the racial ability, which the engine folds into the
+//! race's: it is an address beside the choices, so the engine's `Choice` stays as the walk needs it.
 //!
 //! The grammar (ticket 104's, refined in ticket 107):
 //!
@@ -19,10 +23,12 @@
 use std::fmt;
 use std::str::FromStr;
 
-use rules::{
-    Ability, AbilityScores, Choice, ClassKey, Engine, FIRST_ASCENSION_RANK, FeatSource,
-    PATH_CHOICE_RANK, PATH_SWITCH_RANK, SkillKey, Slot, SlotId,
-};
+use super::{Engine, FIRST_ASCENSION_RANK, PATH_CHOICE_RANK, PATH_SWITCH_RANK, Slot};
+use crate::build::{AbilityScores, Faith, FeatSource, SlotId};
+use crate::choice::Choice;
+use crate::game_data::{Ability, Alignment};
+use crate::keys::{ClassKey, DeityKey, SkillKey};
+use crate::parameter::{ArmourType, Element, Energy, Parameter, ParameterKind, SpellSchool, Stat};
 
 /// One choice of a Build, by where it sits.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -34,7 +40,7 @@ pub enum Address {
     Faith,
     Alignment,
     Background,
-    /// Where a "+2 to one ability score" racial bonus goes.
+    /// Where a "+2 to one ability score" racial bonus goes: the one address with no [`Choice`] of its own.
     RacialAbility,
     /// One point-buy score.
     Score(Ability),
@@ -56,6 +62,35 @@ pub enum Address {
     Path,
     Switch,
     Slot(SlotId),
+}
+
+/// Where a choice sits: the Build start, a character level or a Mythic rank.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Place {
+    Start,
+    Level(u8),
+    Rank(u8),
+}
+
+impl Place {
+    /// The place as a picker's heading says it: "Build start", "Level 4", "Mythic rank 3".
+    pub fn heading(self) -> String {
+        match self {
+            Place::Rank(rank) => format!("Mythic rank {rank}"),
+            place => place.to_string(),
+        }
+    }
+}
+
+impl fmt::Display for Place {
+    /// The place as a label begins: "Build start", "Level 4", "MR 3".
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Place::Start => write!(f, "Build start"),
+            Place::Level(level) => write!(f, "Level {level}"),
+            Place::Rank(rank) => write!(f, "MR {rank}"),
+        }
+    }
 }
 
 impl Address {
@@ -90,64 +125,40 @@ impl Address {
         })
     }
 
-    /// Where the choice sits, as its label begins: "Level 4" for a level's choices and slots, "MR 3" for a Mythic
-    /// rank's; `None` for the Build start's and a class's own.
-    pub(crate) fn place(&self) -> Option<String> {
-        let rank = |rank: u8| Some(format!("MR {rank}"));
+    /// Where the choice sits: the Build start for its choices, the level for a level's choices and slots, the rank
+    /// for the Mythic track's; `None` for a class's own choices, which sit with the class wherever it's first taken.
+    pub fn place(&self) -> Option<Place> {
         match self {
+            Address::Race
+            | Address::Subrace
+            | Address::Faith
+            | Address::Alignment
+            | Address::Background
+            | Address::RacialAbility
+            | Address::Score(_) => Some(Place::Start),
             Address::Level(level)
             | Address::Class(level)
             | Address::Increase(level)
             | Address::SkillPoints(level)
-            | Address::Skill(level, _) => Some(format!("Level {level}")),
-            Address::FirstAscension => rank(FIRST_ASCENSION_RANK),
-            Address::Path => rank(PATH_CHOICE_RANK),
-            Address::Switch => rank(PATH_SWITCH_RANK),
+            | Address::Skill(level, _) => Some(Place::Level(*level)),
+            Address::FirstAscension => Some(Place::Rank(FIRST_ASCENSION_RANK)),
+            Address::Path => Some(Place::Rank(PATH_CHOICE_RANK)),
+            Address::Switch => Some(Place::Rank(PATH_SWITCH_RANK)),
             Address::Slot(slot) => match (slot.level(), slot.rank()) {
-                (Some(level), _) => Some(format!("Level {level}")),
-                (_, Some(r)) => rank(r),
+                (Some(level), _) => Some(Place::Level(level)),
+                (_, Some(rank)) => Some(Place::Rank(rank)),
                 _ => None,
             },
-            _ => None,
+            Address::Archetype(_) | Address::Advances(_) => None,
         }
     }
 
-    /// What the choice is, as `todo` and `validate` name it: "Race", "Strength (point buy)", "Level 4: class",
-    /// "MR 3: Mythic path", and for a slot what it takes, from the sheet's `slot` ("Level 1: Combat feat"), or "slot"
-    /// without one.
-    pub(crate) fn label(&self, engine: &Engine, slot: Option<&Slot>) -> String {
-        let what = match self {
-            Address::Race => return "Race".to_owned(),
-            Address::Subrace => return "Subrace".to_owned(),
-            Address::Faith => return "Faith".to_owned(),
-            Address::Alignment => return "Alignment".to_owned(),
-            Address::Background => return "Background".to_owned(),
-            Address::RacialAbility => return "Racial ability bonus".to_owned(),
-            Address::Score(ability) => return format!("{} (point buy)", ability.name()),
-            Address::Archetype(class) => return format!("{}: archetype", engine.class_name(class)),
-            Address::Advances(class) => {
-                return format!("{}: advanced classes", engine.class_name(class));
-            }
-            Address::Level(level) => return format!("Level {level}"),
-            Address::Class(_) => "class".to_owned(),
-            Address::Increase(_) => "ability increase".to_owned(),
-            Address::SkillPoints(_) => "skill points".to_owned(),
-            Address::Skill(_, skill) => format!("{} ranks", engine.skill_name(skill)),
-            Address::FirstAscension => "first ascension".to_owned(),
-            Address::Path => "Mythic path".to_owned(),
-            Address::Switch => "Path switch".to_owned(),
-            Address::Slot(_) => {
-                slot.map_or_else(|| "slot".to_owned(), |slot| engine.slot_label(slot))
-            }
-        };
-        self.placed(&what)
-    }
-
-    /// A text about the choice, after its place when it has one: "Level 3: 2 of 4 skill points unspent".
-    pub(crate) fn placed(&self, what: &str) -> String {
+    /// A text about the choice, after its level or rank when it has one: "Level 3: 2 of 4 skill points unspent".
+    /// The Build start's choices need no place before them.
+    pub fn placed(&self, what: &str) -> String {
         match self.place() {
-            Some(place) => format!("{place}: {what}"),
-            None => what.to_owned(),
+            Some(place @ (Place::Level(_) | Place::Rank(_))) => format!("{place}: {what}"),
+            _ => what.to_owned(),
         }
     }
 }
@@ -177,18 +188,228 @@ impl From<&Choice> for Address {
     }
 }
 
-/// An ability as an address names it: `str`, `dex`, `con`, `int`, `wis`, `cha`.
-pub fn ability_token(ability: Ability) -> String {
-    ability.short_name().to_lowercase()
+// ---- labels ---------------------------------------------------------------------------------------------------
+
+impl Engine {
+    /// What the choice is, in sentence case, as the sheet's lines and the pickers' headings name it: "Race",
+    /// "Deity", "Strength (point buy)", "Class", "Ability increase", "Skill ranks", "Athletics ranks", "Fighter:
+    /// archetype", "Mythic path", and for a slot what it takes ([`slot_label`](Self::slot_label)), or "slot"
+    /// without the sheet's slot. A level itself is "Level 4".
+    pub fn choice_label(&self, address: &Address, slot: Option<&Slot>) -> String {
+        match address {
+            Address::Race => "Race".to_owned(),
+            Address::Subrace => "Subrace".to_owned(),
+            Address::Faith => "Deity".to_owned(),
+            Address::Alignment => "Alignment".to_owned(),
+            Address::Background => "Background".to_owned(),
+            Address::RacialAbility => "Racial ability bonus".to_owned(),
+            Address::Score(ability) => format!("{} (point buy)", ability.name()),
+            Address::Level(level) => format!("Level {level}"),
+            Address::Class(_) => "Class".to_owned(),
+            Address::Increase(_) => "Ability increase".to_owned(),
+            Address::SkillPoints(_) => "Skill ranks".to_owned(),
+            Address::Skill(_, skill) => format!("{} ranks", self.skill_name(skill)),
+            Address::Archetype(class) => format!("{}: archetype", self.class_name(class)),
+            Address::Advances(class) => format!("{}: advanced classes", self.class_name(class)),
+            Address::FirstAscension => "First ascension".to_owned(),
+            Address::Path => "Mythic path".to_owned(),
+            Address::Switch => "Path switch".to_owned(),
+            Address::Slot(_) => {
+                slot.map_or_else(|| "slot".to_owned(), |slot| self.slot_label(slot))
+            }
+        }
+    }
+
+    /// The choice's label after its level or rank, as the MCP server's `todo` and `validate` name it: "Race",
+    /// "Level 4: Class", "MR 3: Mythic path", "Level 1: Combat feat"; a level itself, "Level 4".
+    pub fn placed_label(&self, address: &Address, slot: Option<&Slot>) -> String {
+        let label = self.choice_label(address, slot);
+        match address {
+            Address::Level(_) => label,
+            address => address.placed(&label),
+        }
+    }
+
+    /// A parameter of a kind from its key ([`Parameter::value_key`]), in any case: one of the kind's values.
+    pub fn parameter_from_key(&self, kind: ParameterKind, key: &str) -> Option<Parameter> {
+        self.parameter_values(kind)
+            .into_iter()
+            .find(|value| value.value_key().eq_ignore_ascii_case(key))
+    }
 }
 
-/// An ability from its token, or its full name in any case ("Intelligence").
-pub fn parse_ability(text: &str) -> Option<Ability> {
-    let text = text.trim().to_lowercase();
-    AbilityScores::ABILITIES
-        .into_iter()
-        .find(|ability| ability_token(*ability) == text || ability.name().to_lowercase() == text)
+impl Ability {
+    /// An ability increase's value as the sheet names it: "+1 Strength".
+    pub fn increase_name(self) -> String {
+        format!("+1 {}", self.name())
+    }
+
+    /// An ability increase's value as a level's chip names it: "+1 Str".
+    pub fn increase_short_name(self) -> String {
+        format!("+1 {}", self.short_name())
+    }
 }
+
+// ---- value keys -----------------------------------------------------------------------------------------------
+
+impl Ability {
+    /// The ability as an address and a value name it: `str`, `dex`, `con`, `int`, `wis`, `cha`.
+    pub fn key(self) -> &'static str {
+        match self {
+            Ability::Strength => "str",
+            Ability::Dexterity => "dex",
+            Ability::Constitution => "con",
+            Ability::Intelligence => "int",
+            Ability::Wisdom => "wis",
+            Ability::Charisma => "cha",
+        }
+    }
+
+    /// An ability from its key, or its full name ("Intelligence"), in any case.
+    pub fn from_key(text: &str) -> Option<Ability> {
+        let text = text.trim();
+        AbilityScores::ABILITIES.into_iter().find(|ability| {
+            ability.key().eq_ignore_ascii_case(text) || ability.name().eq_ignore_ascii_case(text)
+        })
+    }
+}
+
+impl Alignment {
+    /// The alignment as a value names it: `lawful-good`, …, `true-neutral`, …, `chaotic-evil`.
+    pub fn key(self) -> &'static str {
+        match self {
+            Alignment::LawfulGood => "lawful-good",
+            Alignment::NeutralGood => "neutral-good",
+            Alignment::ChaoticGood => "chaotic-good",
+            Alignment::LawfulNeutral => "lawful-neutral",
+            Alignment::TrueNeutral => "true-neutral",
+            Alignment::ChaoticNeutral => "chaotic-neutral",
+            Alignment::LawfulEvil => "lawful-evil",
+            Alignment::NeutralEvil => "neutral-evil",
+            Alignment::ChaoticEvil => "chaotic-evil",
+        }
+    }
+
+    /// An alignment from its key, in any case.
+    pub fn from_key(text: &str) -> Option<Alignment> {
+        let text = text.trim();
+        Alignment::ALL
+            .into_iter()
+            .find(|alignment| alignment.key().eq_ignore_ascii_case(text))
+    }
+}
+
+/// Atheism's key: no deity has it.
+const ATHEISM: &str = "atheism";
+
+impl Faith {
+    /// The faith as a value names it: the deity's key, or `atheism`.
+    pub fn key(&self) -> &str {
+        match self {
+            Faith::Deity(key) => key.as_str(),
+            Faith::Atheism => ATHEISM,
+        }
+    }
+
+    /// A faith from its key, in any case: atheism, or the deity the key names (which the walk checks the game data
+    /// has).
+    pub fn from_key(text: &str) -> Faith {
+        let text = text.trim().to_lowercase();
+        if text == ATHEISM {
+            Faith::Atheism
+        } else {
+            Faith::Deity(DeityKey::new(text))
+        }
+    }
+}
+
+impl Parameter {
+    /// The value as a choice's value names it: a skill's, weapon's or metamagic feat's key, or a school, energy
+    /// type, armour type, stat or element in lower case with dashes (`attacks-of-opportunity`, `negative-energy`).
+    /// [`Engine::parameter_from_key`] reads it back.
+    pub fn value_key(&self) -> &str {
+        match self {
+            Parameter::Skill(key) => key.as_str(),
+            Parameter::Weapon(key) => key.as_str(),
+            Parameter::Metamagic(key) => key.as_str(),
+            Parameter::SpellSchool(school) => school.key(),
+            Parameter::Energy(energy) => energy.key(),
+            Parameter::ArmourType(armour) => armour.key(),
+            Parameter::Stat(stat) => stat.key(),
+            Parameter::Element(element) => element.key(),
+        }
+    }
+}
+
+impl SpellSchool {
+    fn key(self) -> &'static str {
+        match self {
+            Self::Abjuration => "abjuration",
+            Self::Conjuration => "conjuration",
+            Self::Divination => "divination",
+            Self::Enchantment => "enchantment",
+            Self::Evocation => "evocation",
+            Self::Illusion => "illusion",
+            Self::Necromancy => "necromancy",
+            Self::Transmutation => "transmutation",
+        }
+    }
+}
+
+impl Energy {
+    fn key(self) -> &'static str {
+        match self {
+            Self::Acid => "acid",
+            Self::Cold => "cold",
+            Self::Electricity => "electricity",
+            Self::Fire => "fire",
+        }
+    }
+}
+
+impl ArmourType {
+    fn key(self) -> &'static str {
+        match self {
+            Self::Light => "light",
+            Self::Medium => "medium",
+            Self::Heavy => "heavy",
+        }
+    }
+}
+
+impl Stat {
+    fn key(self) -> &'static str {
+        match self {
+            Self::ArmourClass => "ac",
+            Self::Attack => "attack",
+            Self::AttacksOfOpportunity => "attacks-of-opportunity",
+            Self::CombatManeuverBonus => "cmb",
+            Self::CombatManeuverDefense => "cmd",
+            Self::Damage => "damage",
+            Self::HitPoints => "hp",
+            Self::Initiative => "initiative",
+            Self::Fortitude => "fortitude",
+            Self::Reflex => "reflex",
+            Self::Will => "will",
+            Self::Speed => "speed",
+        }
+    }
+}
+
+impl Element {
+    fn key(self) -> &'static str {
+        match self {
+            Self::Acid => "acid",
+            Self::Cold => "cold",
+            Self::Electricity => "electricity",
+            Self::Fire => "fire",
+            Self::Sonic => "sonic",
+            Self::NegativeEnergy => "negative-energy",
+        }
+    }
+}
+
+// ---- the grammar ----------------------------------------------------------------------------------------------
 
 fn source_token(source: FeatSource) -> &'static str {
     match source {
@@ -207,7 +428,7 @@ impl fmt::Display for Address {
             Address::Alignment => write!(f, "start.alignment"),
             Address::Background => write!(f, "start.background"),
             Address::RacialAbility => write!(f, "start.racial-ability"),
-            Address::Score(ability) => write!(f, "start.score.{}", ability_token(*ability)),
+            Address::Score(ability) => write!(f, "start.score.{}", ability.key()),
             Address::Level(level) => write!(f, "level.{level}"),
             Address::Class(level) => write!(f, "level.{level}.class"),
             Address::Increase(level) => write!(f, "level.{level}.increase"),
@@ -264,6 +485,8 @@ impl fmt::Display for NotAnAddress {
     }
 }
 
+impl std::error::Error for NotAnAddress {}
+
 impl FromStr for Address {
     type Err = NotAnAddress;
 
@@ -303,7 +526,7 @@ fn parse(text: &str) -> Option<Address> {
         ["start", "alignment"] => Address::Alignment,
         ["start", "background"] => Address::Background,
         ["start", "racial-ability"] => Address::RacialAbility,
-        ["start", "score", ability] => Address::Score(parse_ability(ability)?),
+        ["start", "score", ability] => Address::Score(Ability::from_key(ability)?),
         ["level", n] => Address::Level(ordinal(n)?),
         ["level", n, "class"] => Address::Class(ordinal(n)?),
         ["level", n, "increase"] => Address::Increase(ordinal(n)?),

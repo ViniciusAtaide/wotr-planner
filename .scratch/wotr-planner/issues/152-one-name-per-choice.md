@@ -1,7 +1,7 @@
 # One name per choice: address, label and value key in the rules
 
 Type: task
-Status: open
+Status: resolved
 Blocked by: 148
 Map: [WotR Build Planner](../map.md)
 
@@ -49,3 +49,59 @@ AFK. A refactor: what tools return doesn't change, apart from any label casing t
 - The MCP server tests pass, unchanged apart from any label casing the Answer lists.
 - `cargo test --workspace -- --list` lists the same tests, apart from the ones moved.
 - `scripts/check.sh` passes.
+
+## Progress log
+
+- 2026-11-11: worktree fast-forwarded to `main`'s `8d8be9b` (ticket 148 merged); own `.env` and database. Baseline `cargo test --workspace -- --list` saved before any edit (1,113 tests).
+- 2026-11-11: test first. `libs/rules/tests/engine/addresses.rs` written against a `rules::Address` that didn't exist yet (27 compile errors), with the MCP's four address tests moved into it; then `libs/rules/src/engine/address.rs` made it pass (10 tests).
+- 2026-11-11: the MCP server moved onto it: `apps/mcp/src/address.rs`, `values.rs` and `tests/server/address.rs` deleted; the web app's picker headings, start rows, Mythic chips and level chip, and the build sheet's start lines, take the labels from it. MCP server tests (148) pass unchanged.
+- 2026-11-11: checks, proof and the test-list diff (see Answer).
+
+## Answer
+
+**Done.** A choice's address, its label and the keys of its values without a game-data key live in one place, `libs/rules/src/engine/address.rs` (beside `engine/labels.rs`), as `rules::Address`. The address grammar is unchanged, and so is every MCP answer apart from the label wording listed below.
+
+### The codec
+
+- **`Address`**, the MCP's enum moved as it was: one variant per choice, `choice()` (to the engine's `Choice`), `From<&Choice>`, `Display` and `FromStr` (the ticket 104/107 grammar, `NotAnAddress` for anything else, now also a `std::error::Error`).
+- **`Place`** (`Start`, `Level(n)`, `Rank(r)`) from `Address::place()`: `Display` is how a label begins ("Level 4", "MR 3"), `heading()` how a picker's heading says it ("Build start", "Level 4", "Mythic rank 3"). A class's archetype and advanced classes have none. `Address::placed(what)` puts a level's or rank's place before a text ("Level 3: 2 of 4 skill points unspent").
+- **Labels**, `impl Engine`: `choice_label(address, slot)`, sentence case, unplaced, as the sheet's lines and the pickers' headings name a choice ("Class", "Ability increase", "Athletics ranks", a slot's `slot_label`); `placed_label(address, slot)`, as `todo` and `validate` name it ("Level 4: Ability increase", "MR 3: Mythic path"). `Ability::increase_name()` ("+1 Strength") and `increase_short_name()` ("+1 Str", the level's chip).
+- **Value keys**, written out per variant, never derived from a display name: `Ability::key`/`from_key` (`str` …, and the full name in any case as before), `Alignment::key`/`from_key` (`lawful-good` …), `Faith::key`/`from_key` (a deity's key, or `atheism`), and `Parameter::value_key` with `Engine::parameter_from_key(kind, key)` for a school, energy type, armour type, stat or element (`attacks-of-opportunity`, `negative-energy`). The keys are the same strings agents already used (a test pins them).
+
+### Where it's used
+
+- **MCP server**: `address.rs` and `values.rs` are gone and `lib.rs` re-exports no `Address`. `todo` (`code.rs`), `validate` (`wording.rs`, `tree.rs`) take `placed_label`; `sheet` takes `choice_label` for every line (its hard-coded "Race" … "Class", "Ability increase", "{skill} ranks", "+1 {}" are gone); `options` and `sheet` write values with the keys above; `validate`'s declaration reads them back with `from_key` and `parameter_from_key`. What `values.rs` built from MCP shapes became `ChoiceValue::{pick, ability, race, class}` in `shapes.rs`, and the class picker's name (`class_name`) moved to `options.rs`.
+- **Web app**: every picker heading takes its title and place from the codec (`picker::heading`): race, deity, alignment, background, ability increase, class, slot, first ascension, path, switch, and the skill ranks panel. The Build start's rows and the Mythic track's chips take `choice_label`; the ability increase's items `increase_name`, its grid chip `increase_short_name`.
+- **Build sheet** (`engine/build_sheet.rs`): the start lines Race, Subrace, Deity, Alignment, Background, First ascension, Mythic path and Path switch take `choice_label`, and the level's ability `increase_name`; its text is unchanged (its tests pass as they were). "Racial +2", "Point buy", "Ability" and "Skills" stay its own: they name its format's lines, not a choice the other places name the same way.
+
+### Decisions
+
+- **`RacialAbility`: an address beside `Choice`.** The ticket's lean. The engine keeps the racial ability with the race: the walk checks it with the Build start, and a race's Withdrawal takes it along. A `Choice` of its own would reach into the walk's failures, `removable` and the withdrawals, a behaviour change this refactor doesn't need; as an address the codec knows, it has a label and a key like any choice, and `choice()` is `None` for it alone (the MCP's `withdraw` still refuses it, as before).
+- **Name: `Address`**, as the MCP, its tests and the skill already called it. Added to `GLOSSARY.md` (callers see it in every tool).
+- **Places**: "MR 3" in a label, as the ticket's shape and the MCP's labels have it; "Mythic rank 3" in a picker's heading, as the web app has it. Both come from one `Place`.
+- **Value keys for parameters** too: they are values without a game-data key like the three the ticket names, and the MCP built them from display names the same way (`key().to_lowercase().replace(' ', "-")`).
+
+### Label changes (old → new)
+
+Where the MCP and the web app worded a label differently, the web app's wording was taken:
+
+| Choice | MCP before | Now (MCP and web app) | Where the MCP shows it |
+| --- | --- | --- | --- |
+| `start.faith` | Faith | Deity | `sheet`, `todo`, `validate` |
+| `level.N.class` | Level N: class | Level N: Class | `validate` |
+| `level.N.increase` | Level N: ability increase | Level N: Ability increase | `todo`, `validate` |
+| `level.N.skill` | Level N: skill points | Level N: Skill ranks | `validate` (`todo` keeps "N of M skill points unspent") |
+| `mythic.first-ascension` | MR 1: first ascension | MR 1: First ascension | `todo`, `validate` |
+
+And one in the web app, so its class picker heads like the others (title and place): "Class at level N" → "Class" over "Level N", and "Level N: add a class" → "Add a class" over "Level N". No MCP server test asserted any of these labels, so none changed.
+
+### Done when
+
+- `apps/mcp/src/address.rs` and `values.rs` are gone; `lib.rs` re-exports no `Address`.
+- Grep of `apps/mcp/src` and `libs/ui/src` for `"Ability increase"`, `"Class"`, `+1 {`, `"Faith"`, `"atheism"` and `to_lowercase().replace`: only doc comments and a `validate` unit test's declared value (`"start.faith": "atheism"`). (`rank.rs`'s lower-cased subschool and energy are spell descriptions, not keys.)
+- Round trip: `addresses::every_choice_of_the_test_world_reads_back_from_its_address` takes every choice of the test world (the Build start's, each ability score, levels 1–40 with each skill's ranks and every level slot kind, each class's archetype and advanced classes, MR 1–10 with every rank slot kind) through address → text → parse → choice, and checks all 17 `Choice` variants are among them (an exhaustive `match` fails to compile on a new one). `every_value_without_a_game_data_key_reads_back_from_its_key` does key → parse → value for every ability, alignment, faith (atheism and each deity) and each parameter kind's values.
+- MCP server tests: 148 pass, unchanged.
+- Test list: the same apart from the moved tests. Gone from `mcp`'s `server`: `address::{an_ability_may_be_named_in_full, every_engine_choice_has_an_address_and_back, every_kind_of_address_is_written_and_read_back, text_outside_the_grammar_is_no_address}` (152 → 148). New in `rules`' `engine` (567 → 577): `addresses::` the three kept by name, `a_key_is_read_in_any_case_and_an_ability_by_its_full_name` (the full-name test, with keys in any case), and six new: `every_choice_of_the_test_world_reads_back_from_its_address`, `every_value_without_a_game_data_key_reads_back_from_its_key`, `value_keys_are_the_ones_agents_already_use`, `each_choice_is_labelled_in_sentence_case_after_its_place`, `a_place_is_short_in_a_label_and_long_in_a_heading`, `an_ability_increase_is_named_by_its_ability`.
+- `scripts/check.sh`: ALL-OK (fmt, clippy, wasm clippy, tests, rules wasm, seed check).
+- Proof: `scripts/proof.sh rules` against HEAD `8d8be9b`: 2,163 Builds on each side, none differing; `compare.txt` empty. (The proof records the engine, and the engine's answers didn't change; the label changes are the MCP's and the web app's.)
+- No schema, data or link-format change.

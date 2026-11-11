@@ -38,7 +38,7 @@ use std::fmt::Write as _;
 use crate::build::{AbilityScores, Build};
 use crate::codec::encode_build;
 
-use super::{Engine, Sheet};
+use super::{Address, Engine, Sheet};
 
 /// The first line: what the text is, and its format's version.
 const HEADER: &str = "WotR build v1";
@@ -66,24 +66,41 @@ impl Engine {
         if let Some(name) = &build.name {
             writeln!(text, "Name: {name}")?;
         }
+        // A choice's line, after the label the sheet and the pickers give it ([`Engine::choice_label`]).
+        let label = |address: Address| self.choice_label(&address, None);
         let start = &build.start;
         if let Some(race) = &start.race {
-            writeln!(text, "Race: {}", self.race_name(race))?;
+            writeln!(text, "{}: {}", label(Address::Race), self.race_name(race))?;
         }
         if let Some(subrace) = &start.subrace {
-            writeln!(text, "Subrace: {}", self.subrace_name(subrace))?;
+            writeln!(
+                text,
+                "{}: {}",
+                label(Address::Subrace),
+                self.subrace_name(subrace)
+            )?;
         }
         if let Some(ability) = start.racial_ability {
             writeln!(text, "Racial +2: {}", ability.name())?;
         }
         if let Some(faith) = &start.deity {
-            writeln!(text, "Deity: {}", self.faith_name(faith))?;
+            writeln!(
+                text,
+                "{}: {}",
+                label(Address::Faith),
+                self.faith_name(faith)
+            )?;
         }
         if let Some(alignment) = start.alignment {
-            writeln!(text, "Alignment: {}", alignment.name())?;
+            writeln!(text, "{}: {}", label(Address::Alignment), alignment.name())?;
         }
         if let Some(background) = &start.background {
-            writeln!(text, "Background: {}", self.background_name(background))?;
+            writeln!(
+                text,
+                "{}: {}",
+                label(Address::Background),
+                self.background_name(background)
+            )?;
         }
         let scores: Vec<String> = AbilityScores::ABILITIES
             .iter()
@@ -97,13 +114,18 @@ impl Engine {
             .collect();
         writeln!(text, "Point buy: {}", scores.join(", "))?;
         if let Some(path) = &build.first_ascension {
-            writeln!(text, "First ascension: {}", self.first_ascension_name(path))?;
+            writeln!(
+                text,
+                "{}: {}",
+                label(Address::FirstAscension),
+                self.first_ascension_name(path)
+            )?;
         }
         if let Some(path) = &build.mythic_path {
-            writeln!(text, "Mythic path: {}", self.path_name(path))?;
+            writeln!(text, "{}: {}", label(Address::Path), self.path_name(path))?;
         }
         if let Some(path) = &build.path_switch {
-            writeln!(text, "Path switch: {}", self.path_name(path))?;
+            writeln!(text, "{}: {}", label(Address::Switch), self.path_name(path))?;
         }
         Ok(())
     }
@@ -133,7 +155,7 @@ impl Engine {
             }
             writeln!(text)?;
             if let Some(ability) = level_up.ability_increase {
-                writeln!(text, "  Ability: +1 {}", ability.name())?;
+                writeln!(text, "  Ability: {}", ability.increase_name())?;
             }
             for slot in &level.slots {
                 if let Some(pick) = &slot.pick {

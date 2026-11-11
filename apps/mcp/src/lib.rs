@@ -12,7 +12,7 @@
 //!   default the Build's Weapon Focus weapon), and `caster.rs` the caster line they add for a `caster`, each with its
 //!   own shapes; `totals.rs` is the initiative, save and skill totals `sheet` gives. Every number is naked: no gear.
 //! - Builds: `code.rs` opens a Build code (only through the engine's checked decode) and writes the envelope every
-//!   Build-taking tool returns; `address.rs` writes and reads choice addresses; `values.rs` writes choices' values;
+//!   Build-taking tool returns; choice addresses, labels and value keys are the rules crate's ([`rules::Address`]);
 //!   `error.rs` is the server's refusals (`stale_link`, `no_such_choice`, `not_an_option`, `needs_parameter`,
 //!   `not_removable`, `invalid_arguments`, `internal`).
 //! - `spells.rs`: the spell catalogue (ticket 121) as `search` and `describe` give it.
@@ -20,7 +20,6 @@
 //! - [`http`]: the server over streamable HTTP on a loopback port (`WOTR_MCP_PORT`), which `wotr-mcp` and the app's
 //!   server both serve; over stdio, `wotr-mcp` uses rmcp's own transport.
 
-mod address;
 mod attack;
 mod caster;
 mod choose;
@@ -40,10 +39,8 @@ mod similar;
 mod spells;
 mod totals;
 mod validate;
-mod values;
 mod withdraw;
 
-pub use address::{Address, NotAnAddress};
 pub use planner::Planner;
 pub use server::{BUILD_GUIDE_URI, GLOSSARY, GLOSSARY_URI, INSTRUCTIONS, Server, build_guide};
 pub use shapes::{ChoiceValue, Kind};

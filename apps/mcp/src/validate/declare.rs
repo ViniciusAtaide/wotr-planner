@@ -4,7 +4,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use rules::{
-    Ability, AbilityScores, Alignment, ArchetypeKey, BackgroundKey, Build, ClassKey, DeityKey,
+    Ability, AbilityScores, Address, Alignment, ArchetypeKey, BackgroundKey, Build, ClassKey,
     Faith, FeatKey, GameData, LevelUp, MythicAbilityKey, MythicExtraPick, MythicFeatKey,
     MythicPathKey, MythicPickKind, Parameter, Pick, PointBuy, RaceKey, SelectionOptionKey,
     SkillKey, SlotId, SubraceKey, has_ability_increase, mythic_pick_kind,
@@ -12,10 +12,8 @@ use rules::{
 
 use super::tree::{At, Given, Node, pick_gives};
 use super::{Refused, closest};
-use crate::address::{Address, ability_token, parse_ability};
 use crate::planner::Planner;
 use crate::shapes::ChoiceValue;
-use crate::values::{alignment_key, parameter_text};
 
 /// The declared Build, and what the declaration refused while building it.
 pub(super) struct Declared {
@@ -189,22 +187,14 @@ impl Declared {
                 }
             }
             (Address::Faith, ChoiceValue::Key(key)) => {
-                let key = key_text(key);
-                self.build.start.deity = Some(match key.as_str() {
-                    "atheism" => Faith::Atheism,
-                    _ => Faith::Deity(DeityKey::new(key)),
-                });
+                self.build.start.deity = Some(Faith::from_key(key));
             }
             (Address::Alignment, ChoiceValue::Key(key)) => {
-                let key = key_text(key);
-                match Alignment::ALL
-                    .into_iter()
-                    .find(|alignment| alignment_key(*alignment) == key)
-                {
+                match Alignment::from_key(key) {
                     Some(alignment) => self.build.start.alignment = Some(alignment),
                     None => {
-                        let keys: Vec<String> =
-                            Alignment::ALL.into_iter().map(alignment_key).collect();
+                        let key = key_text(key);
+                        let keys: Vec<&str> = Alignment::ALL.into_iter().map(Alignment::key).collect();
                         let reason =
                             format!("`{key}` isn't an alignment: one of {}.", keys.join(", "));
                         self.refuse_at(planner, address, Refused::NotAnOption, reason);
@@ -214,7 +204,7 @@ impl Declared {
             (Address::Background, ChoiceValue::Key(key)) => {
                 self.build.start.background = Some(BackgroundKey::new(key_text(key)));
             }
-            (Address::RacialAbility, ChoiceValue::Key(key)) => match parse_ability(key) {
+            (Address::RacialAbility, ChoiceValue::Key(key)) => match Ability::from_key(key) {
                 Some(ability) => gathered.racial_ability = Some(ability),
                 None => {
                     self.refuse_at(planner, address, Refused::NotAnOption, not_an_ability(key))
@@ -259,7 +249,7 @@ impl Declared {
                     .or_default()
                     .push((address.clone(), ArchetypeKey::new(key_text(key))));
             }
-            (Address::Increase(level), ChoiceValue::Key(key)) => match parse_ability(key) {
+            (Address::Increase(level), ChoiceValue::Key(key)) => match Ability::from_key(key) {
                 Some(ability) => {
                     gathered.increases.insert(*level, ability);
                 }
@@ -389,7 +379,7 @@ impl Declared {
                     .map_or(Ability::Strength, |(_, ability)| ability);
                 let listed: Vec<String> = AbilityScores::ABILITIES
                     .into_iter()
-                    .map(|ability| format!("{} {}", ability_token(ability), scores.get(ability)))
+                    .map(|ability| format!("{} {}", ability.key(), scores.get(ability)))
                     .collect();
                 let reason = format!(
                     "The point buy ({}) costs more than the {}-point budget: {error}. The rest is checked with \
@@ -616,29 +606,21 @@ impl Declared {
                 self.refuse(refuse(Refused::NotAnOption, reason));
                 return;
             }
-            (Some(text), Some(Some(kind))) => {
-                let values = engine.parameter_values(kind);
-                let found = values
-                    .iter()
-                    .find(|value| parameter_text(value).eq_ignore_ascii_case(text));
-                match found {
-                    Some(value) => with_parameter(bare.clone(), value.clone()),
-                    None => {
-                        let texts: Vec<String> = values.iter().map(parameter_text).collect();
-                        let near = closest(
-                            text,
-                            texts.iter().map(|text| (text.as_str(), text.as_str())),
-                        );
-                        let reason = format!(
-                            "`{text}` isn't {} `{}` takes{near}.",
-                            kind.with_article(),
-                            bare.key()
-                        );
-                        self.refuse(refuse(Refused::NotAnOption, reason));
-                        return;
-                    }
+            (Some(text), Some(Some(kind))) => match engine.parameter_from_key(kind, text) {
+                Some(value) => with_parameter(bare.clone(), value),
+                None => {
+                    let values = engine.parameter_values(kind);
+                    let texts: Vec<&str> = values.iter().map(Parameter::value_key).collect();
+                    let near = closest(text, texts.iter().map(|text| (*text, *text)));
+                    let reason = format!(
+                        "`{text}` isn't {} `{}` takes{near}.",
+                        kind.with_article(),
+                        bare.key()
+                    );
+                    self.refuse(refuse(Refused::NotAnOption, reason));
+                    return;
                 }
-            }
+            },
         };
         self.build.picks.insert(slot, pick);
     }

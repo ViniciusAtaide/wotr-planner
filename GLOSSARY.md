@@ -244,6 +244,10 @@ _Avoid_: Build file, export format, character sheet
 A link whose Build the current game data can't hold: a key the data no longer has, a pick that no longer fits, a pick for a slot or Mythic rank the Build doesn't reach, or a rule broken (the game data changed since the link was made). A damaged or hand-edited link counts the same. It opens nothing: the sheet shows one generic error, "This link no longer works with the current game data", and a blank Build, never a reason. Every Build the sheet's edits make is possible, so nothing on the sheet is ever marked broken.
 _Avoid_: Problem, broken pick, stale-link banner
 
+**Address**:
+The one name of a Build's choice, as the MCP server's tools print it and an agent copies it back: `start.race`, `start.faith`, `level.4.increase`, `level.4.skill.athletics`, `mythic.path`, `slot.feat.3.general.0`. Each names one choice the engine knows, except `start.racial-ability`, which the engine keeps with the race. With it, the rules crate gives the choice's label in sentence case, with its place ("Level 4: Ability increase", "MR 3: Mythic path"; a picker heads it "Mythic rank 3"), the same on the sheet, the pickers, the **Build sheet** and the MCP server; and the key of a value that has no game-data key (an ability `str`, an alignment `lawful-good`, a faith `atheism`, a **Parameter** such as `negative-energy`), written out rather than taken from a display name.
+_Avoid_: Choice path, choice id, slot address (for any choice that isn't a slot)
+
 **Declared Build**:
 A whole Build an agent plans and sends to the MCP server's `validate` at once: a map of each choice's address to its value, as `choose` takes them, in any order. The server sets it straight into a Build (never through the pickers), walks it once and returns every **Failure** as a tree of root causes (a failure sits under the earliest earlier one it needs), or, when nothing fails, the same code `choose` would have made. Diagnostics only: a declared Build with a failure never becomes a code, so the planner still holds only possible Builds.
 _Avoid_: Draft, plan, import

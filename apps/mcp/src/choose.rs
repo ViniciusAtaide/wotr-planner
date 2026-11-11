@@ -6,9 +6,8 @@
 
 use std::collections::BTreeMap;
 
-use rules::{Build, Engine, POINT_BUY_BUDGET, SkillKey};
+use rules::{Address, Build, Engine, NotAnAddress, POINT_BUY_BUDGET, SkillKey};
 
-use crate::address::{Address, NotAnAddress};
 use crate::code::{envelope, open, reopen};
 use crate::error::ToolError;
 use crate::options::{Offer, issue_code, issue_reason, offers};

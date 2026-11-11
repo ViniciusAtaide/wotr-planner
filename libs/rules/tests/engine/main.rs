@@ -2,6 +2,7 @@
 
 mod support;
 
+mod addresses;
 mod advances;
 mod alignment;
 mod archetype_rows;
