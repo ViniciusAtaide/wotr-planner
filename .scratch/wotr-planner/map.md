@@ -58,6 +58,12 @@ A working, locally run Leptos app at `~/code/wotr-planner` for planning Pathfind
   - [156](issues/156-offers-module.md): the MCP's offers in one module. This is the smaller piece that [the spike](research/offer-module-spike.md) found worth doing, after 151.
 
   Not ticketed: the engine saying what is open, and one number-lines module in the MCP. The speculative candidate, dropping the SQLite hop, goes against the decision of 2026-11-06.
+- **Other sessions' finished branches, and faster proofs** (2026-11-11, the user's "queue them after 151" and "let's do 1 2 and 3"): three branches another session resolved but never merged, renumbered because `main` reused their numbers.
+  - 153, the stale `wotr-mcp` at session start, from `claude/keen-lalande-707022` (its 135).
+  - 154, the proof's build folder per checkout, from `claude/beautiful-burnell-865ae9` (its 132).
+  - 155, weapon groups and proficiency in the attack line, from `claude/confident-lehmann-421a54` (its 134).
+
+  [157](issues/157-faster-proofs.md) caches the proof's side A, runs the full proof once per ticket and lets one proof run at a time. The queue: 151, then 154 with 157 in one worktree, then 153 beside 156, then 155.
 - **Rules:** the rules live in a plain Rust crate with no DB or Leptos code, running in the browser. The browser loads the game data once, filters choices immediately, and decodes and encodes the Build from the URL.
 - **Mobile:** design mobile-first. The main targets are the Galaxy Z Fold 7 cover screen (folded, tall and narrow, ~21:9) and inner screen (unfolded, nearly square, ~6:5). Desktop is secondary. Both Fold screens must work for touch: no hover-only interactions, and tap targets large enough for a thumb. The layout should adapt when the phone is folded or unfolded without losing the user's place.
 - **Builds and links:** no accounts and no saved-build table. The URL fragment encodes every choice, updates live, and is the share link. `/` with no fragment is a blank Build.
