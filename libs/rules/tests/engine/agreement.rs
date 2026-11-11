@@ -8,21 +8,10 @@ use rules::{Build, Edit, Engine};
 use crate::support::*;
 
 /// The disagreements the test world's corpus finds, as `agreement` writes them, each pinned by its content: the plan
-/// its Build grows from, the picker with its level or slot, the option and the verdicts. Each one is a bug candidate
-/// for the user (ticket 150's Findings); none is fixed in step 1.
-const KNOWN: &[&str] = &[
-    // ticket 150: disagreement 1 (88 cases among the three seeds' Builds of these four plans, levels 5 to 20). The
-    // class picker judges a prestige class that asks what it advances with the Build's own advancement for it (none,
-    // for a class it doesn't take), so at a level the Build has it locks Winter Witch as breaking a later choice,
-    // though advancing the class it replaces keeps the Build (`advances_options` offers that advancement).
-    "bard: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "cleric: class_options 4 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "cleric: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "eldritch knight: class_options 6 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "eldritch knight: class_options 7 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "mystic theurge: class_options 5 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-    "mystic theurge: class_options 6 winter-witch (asks advances): picker Err(BreaksLater), walk keeps, allows false",
-];
+/// its Build grows from, the picker with its level or slot, the option and the verdicts. None: disagreement 1 of
+/// ticket 150's Findings (the class picker locking a prestige class an advancement would keep) is fixed by the
+/// cursor, which judges such a class by every advancement it can take.
+const KNOWN: &[&str] = &[];
 
 /// The levels the suite's sample judges each plan at, filled and just after the level's class: the first levels,
 /// MR 1 (level 6) and MR 3 (level 9), the first ascension and path choices.

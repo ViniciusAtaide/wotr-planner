@@ -1,10 +1,10 @@
 //! Filling a slot, and holding or releasing what a pick or grant gives, with the ability scores and floors that
 //! follow from it.
 
+use super::judge::check_pick;
 use super::{Checkpoint, GrantSource, Held, Pending, Probe, RankGrant, Walker};
 use crate::build::{Pick, SlotId};
 use crate::choice::{Choice, Issue};
-use crate::engine::slots::check_pick;
 use crate::engine::{Slot, SlotKind, with_bonuses};
 use crate::keys::{FeatKey, FeatureKey, MythicFeatKey};
 use crate::parameter::Parameter;

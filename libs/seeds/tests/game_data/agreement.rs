@@ -13,8 +13,8 @@ use rules::{Build, Edit, Engine, Pick, SlotKind};
 
 use crate::support::*;
 
-/// The disagreements the bench Builds find, as `agreement` writes them, with the Build's name before each. Each one
-/// is a bug candidate for the user (ticket 150's Findings); none is fixed in step 1.
+/// The disagreements the bench Builds find, as `agreement` writes them, with the Build's name before each. None: a new one
+/// is a bug, for the user to decide (ticket 150).
 const KNOWN: &[&str] = &[];
 
 /// How many levels the suite keeps of each bench Build: about 5 s in a debug build, where the whole Builds take about

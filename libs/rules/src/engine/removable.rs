@@ -1,17 +1,14 @@
 //! Which edits keep a possible Build possible ([`Engine::allows`]) and which choices may come off now
-//! ([`Engine::removable`]), both by walking the edited Build again from the first level the edit changes. Those
-//! walks keep no sheet and stop at the first choice that fails. Which choices a Build holds, each with its
-//! [`Withdrawal`] ([`Engine::held_choices`]).
+//! ([`Engine::removable`]), both by walking the edited Build again from the first level the edit changes (the
+//! cursor's walks, [`Cursor::keeps`]). Which choices a Build holds, each with its [`Withdrawal`]
+//! ([`Engine::held_choices`]).
 
-use std::cell::RefCell;
 use std::collections::BTreeSet;
 
-use super::walk::Walker;
-use super::{
-    Engine, FIRST_ASCENSION_RANK, PATH_CHOICE_RANK, PATH_SWITCH_RANK, SkillPoints, Withdrawal,
-};
+use super::walk::Cursor;
+use super::{Engine, Withdrawal};
 use crate::build::{AbilityScores, Build, BuildStart, ClassChoice, Edit};
-use crate::choice::{Choice, Issue};
+use crate::choice::Choice;
 use crate::keys::ClassKey;
 
 impl Engine {
@@ -21,7 +18,7 @@ impl Engine {
     ///
     /// Costs one walk of the Build up to the first level the edit changes, then one from there.
     pub fn allows(&self, build: &Build, edit: &Edit) -> bool {
-        Recheck::new(self, build).keeps(edit, edit.choices())
+        Cursor::new(self, build).keeps(edit, edit.choices())
     }
 
     /// The choices in a possible Build the sheet may remove or change now: each that no later choice depends on.
@@ -54,7 +51,7 @@ impl Engine {
             .held_choices(build)
             .into_iter()
             .find(|held| &held.choice == choice)?;
-        let removable = Recheck::new(self, build).keeps(&held.edit, held.excused);
+        let removable = Cursor::new(self, build).keeps(&held.edit, held.excused);
         Some((held.edit, removable))
     }
 
@@ -74,10 +71,10 @@ impl Engine {
 
     /// The choices [`removable`](Self::removable) has among those `wanted` picks out.
     fn removable_among(&self, build: &Build, wanted: impl Fn(&Choice) -> bool) -> BTreeSet<Choice> {
-        let recheck = Recheck::new(self, build);
+        let cursor = Cursor::new(self, build);
         self.held_choices(build)
             .into_iter()
-            .filter(|held| wanted(&held.choice) && recheck.keeps(&held.edit, held.excused.clone()))
+            .filter(|held| wanted(&held.choice) && cursor.keeps(&held.edit, held.excused.clone()))
             .map(|held| held.choice)
             .collect()
     }
@@ -235,146 +232,6 @@ impl Engine {
             );
         }
         withdrawals
-    }
-
-    /// The first character level whose walk an edit can change; 0 for the Build start, and past the end for an
-    /// edit that changes no level.
-    fn first_level(&self, build: &Build, edit: &Edit) -> u8 {
-        match edit {
-            Edit::Pick { slot, .. } | Edit::Clear(slot) => match (slot.level(), slot.rank()) {
-                (Some(level), _) => level,
-                (None, Some(rank)) => self.rank_level(rank),
-                (None, None) => 0,
-            },
-            // A new archetype or advancement holds from the class's first level.
-            Edit::Class {
-                level,
-                class,
-                choice,
-            } => {
-                let first = choice
-                    .as_ref()
-                    .and_then(|_| build.levels.iter().position(|l| &l.class == class))
-                    .map(|index| u8::try_from(index + 1).unwrap_or(u8::MAX));
-                first.map_or(*level, |first| first.min(*level))
-            }
-            Edit::AbilityIncrease { level, .. } | Edit::SkillRanks { level, .. } => *level,
-            Edit::Start(_) => 0,
-            Edit::FirstAscension(_) => self.rank_level(FIRST_ASCENSION_RANK),
-            // Without a first ascension of its own, the Build takes the MR 3 path's, from MR 1.
-            Edit::MythicPath(_) if build.first_ascension.is_none() => {
-                self.rank_level(FIRST_ASCENSION_RANK)
-            }
-            Edit::MythicPath(_) => self.rank_level(PATH_CHOICE_RANK),
-            Edit::PathSwitch(_) => self.rank_level(PATH_SWITCH_RANK),
-            Edit::RemoveLevel | Edit::SetName(_) => u8::MAX,
-        }
-    }
-}
-
-/// A possible Build walked once and paused before each level, so an edit is walked only from the first level it
-/// changes. The walk goes only as far as the edits asked about need.
-pub(super) struct Recheck<'a> {
-    engine: &'a Engine,
-    build: &'a Build,
-    /// `paused[i]` is the walk just before character level `i + 1` (after the Build start); the one after the last
-    /// level is the last there can be. Filled as far as an edit has needed.
-    paused: RefCell<Vec<Walker<'a>>>,
-}
-
-impl<'a> Recheck<'a> {
-    pub(super) fn new(engine: &'a Engine, build: &'a Build) -> Self {
-        Self {
-            engine,
-            build,
-            paused: RefCell::new(Vec::new()),
-        }
-    }
-
-    /// The walk just before character level `index + 1`; `None` past the one after the last level.
-    fn paused(&self, index: usize) -> Option<Walker<'a>> {
-        self.walk_to(index)
-            .then(|| self.paused.borrow().get(index).cloned())
-            .flatten()
-    }
-
-    /// The skill points of a character level the Build has, off the walk paused after it.
-    pub(super) fn skill_points(&self, level: u8) -> Option<SkillPoints> {
-        let index = usize::from(level);
-        (level > 0 && self.walk_to(index)).then(|| self.paused.borrow()[index].skill_points)
-    }
-
-    /// Walks as far as just before character level `index + 1`; `false` past the one after the last level.
-    fn walk_to(&self, index: usize) -> bool {
-        let build = self.build;
-        if index > build.levels.len() {
-            return false;
-        }
-        let mut paused = self.paused.borrow_mut();
-        if paused.is_empty() {
-            let mut walker = Walker::new(self.engine, build, None).without_sheet();
-            walker.start();
-            paused.push(walker);
-        }
-        while paused.len() <= index {
-            let walked = paused.len() - 1;
-            let mut walker = paused[walked].clone();
-            walker.level(
-                u8::try_from(walked + 1).unwrap_or(u8::MAX),
-                &build.levels[walked],
-            );
-            paused.push(walker);
-        }
-        true
-    }
-
-    /// Whether `edit` breaks no choice other than the `allowed` ones (an edit's own: [`Edit::choices`]). An edit
-    /// that changes nothing breaks nothing.
-    pub(super) fn keeps(&self, edit: &Edit, allowed: Vec<Choice>) -> bool {
-        let mut edited = self.build.clone();
-        self.engine.apply(&mut edited, edit);
-        &edited == self.build || self.walks(edit, &edited, allowed)
-    }
-
-    /// Whether the walk of `edited` (the Build with `edit` applied) fails no choice but the `allowed` ones, even
-    /// when `edit` changes nothing: then it's the Build's own walk.
-    fn walks(&self, edit: &Edit, edited: &Build, allowed: Vec<Choice>) -> bool {
-        let first = self.engine.first_level(self.build, edit);
-        match first.checked_sub(1) {
-            None => Walker::new(self.engine, edited, None)
-                .without_sheet()
-                .holds(0, allowed),
-            Some(index) => {
-                let Some(mut walker) = self.paused(usize::from(index)) else {
-                    // Nothing after the last level depends on an edit past it (Remove level, a name).
-                    return true;
-                };
-                walker.build = edited;
-                walker.holds(first, allowed)
-            }
-        }
-    }
-
-    /// A picker's status for an option open at its point of the Build: `Ok`, or [`Issue::BreaksLater`].
-    pub(super) fn later(&self, edit: &Edit) -> Result<(), Issue> {
-        status(self.keeps(edit, edit.choices()))
-    }
-
-    /// [`later`](Self::later) for an edit's walk even when the edit changes nothing (the walk of the Build itself,
-    /// which fails a choice only when the Build isn't possible): what a picker's option gets when its walk is the
-    /// same as that one.
-    pub(super) fn later_walked(&self, edit: &Edit) -> Result<(), Issue> {
-        let mut edited = self.build.clone();
-        self.engine.apply(&mut edited, edit);
-        status(self.walks(edit, &edited, edit.choices()))
-    }
-}
-
-fn status(keeps: bool) -> Result<(), Issue> {
-    if keeps {
-        Ok(())
-    } else {
-        Err(Issue::BreaksLater)
     }
 }
 
