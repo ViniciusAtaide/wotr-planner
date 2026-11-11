@@ -64,6 +64,8 @@ A working, locally run Leptos app at `~/code/wotr-planner` for planning Pathfind
   - 155, weapon groups and proficiency in the attack line, from `claude/confident-lehmann-421a54` (its 134).
 
   [157](issues/157-faster-proofs.md) caches the proof's side A, runs the full proof once per ticket and lets one proof run at a time. The queue: 151, then 154 with 157 in one worktree, then 153 beside 156, then 155.
+
+  [158](issues/158-faster-engine-walk.md) makes the engine's walk faster with no change in behaviour: a fast hasher, keys that clone cheaply and fewer state clones, each part proved on its own. It comes from the profile behind commit `b573ef9`, which halved the proof's record time in the harness alone. The user wants it run right after 151 (2026-11-11). It edits `engine/catalog.rs` like 155, so 155 comes after it; its slot beside 154/157 and 153/156 is agreed with the session running the queue.
 - **Rules:** the rules live in a plain Rust crate with no DB or Leptos code, running in the browser. The browser loads the game data once, filters choices immediately, and decodes and encodes the Build from the URL.
 - **Mobile:** design mobile-first. The main targets are the Galaxy Z Fold 7 cover screen (folded, tall and narrow, ~21:9) and inner screen (unfolded, nearly square, ~6:5). Desktop is secondary. Both Fold screens must work for touch: no hover-only interactions, and tap targets large enough for a thumb. The layout should adapt when the phone is folded or unfolded without losing the user's place.
 - **Builds and links:** no accounts and no saved-build table. The URL fragment encodes every choice, updates live, and is the share link. `/` with no fragment is a blank Build.
