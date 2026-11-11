@@ -411,6 +411,7 @@ impl Element {
 
 // ---- the grammar ----------------------------------------------------------------------------------------------
 
+/// A feat slot's source as its address names it; `parse_slot` reads it back.
 fn source_token(source: FeatSource) -> &'static str {
     match source {
         FeatSource::Race => "race",
@@ -546,12 +547,9 @@ fn parse_slot(parts: &[&str]) -> Option<SlotId> {
     Some(match *parts {
         ["feat", level, source, i] => SlotId::Feat {
             level: ordinal(level)?,
-            source: match source {
-                "race" => FeatSource::Race,
-                "class" => FeatSource::Class,
-                "general" => FeatSource::General,
-                _ => return None,
-            },
+            source: [FeatSource::Race, FeatSource::Class, FeatSource::General]
+                .into_iter()
+                .find(|kind| source_token(*kind) == source)?,
             index: index(i)?,
         },
         ["selection", level, i] => SlotId::Selection {
