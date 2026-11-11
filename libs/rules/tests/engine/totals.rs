@@ -3,9 +3,10 @@
 //! And the interactions notes (ticket 124): looked up by item, checked like the bonuses.
 
 use rules::{
-    Ability, BackgroundKey, BonusAmount, BonusItem, BonusTarget, BuildStart, CharacterState,
-    DataIssue, Engine, FeatKey, GameData, ItemBonus, ItemInteractions, MythicAbilityKey,
-    MythicFeatKey, Parameter, Prerequisite, RaceKey, Save, SkillKey, Stat, SubraceKey, Total,
+    Ability, Background, BackgroundKey, BonusAmount, BonusItem, BonusTarget, BuildStart,
+    CharacterState, DataIssue, Engine, Feat, FeatKey, GameData, ItemBonus, ItemInteractions,
+    MythicAbility, MythicAbilityKey, MythicFeat, MythicFeatKey, Parameter, ParameterKind,
+    Prerequisite, RaceKey, Repeat, Save, SkillKey, Stat, Subrace, SubraceKey, Total,
 };
 
 use crate::support::*;
@@ -20,10 +21,59 @@ fn bonus(item: BonusItem, target: BonusTarget, amount: BonusAmount) -> ItemBonus
 }
 
 fn engine_with(bonuses: impl IntoIterator<Item = ItemBonus>) -> Engine {
-    let mut data = world();
+    let mut data = world_with_bonus_items();
     data.bonuses.extend(bonuses);
-    // The bonuses may name items the test world lacks: their parts are named by key.
-    Engine::new(data)
+    engine_on(data)
+}
+
+/// The test world with the items these tests' bonuses name that it lacks, each a copy of one of its kind under the
+/// new key (and the key as its name), and Stat Focus taken for a stat as the guide's is: so the data checks.
+fn world_with_bonus_items() -> GameData {
+    let mut data = world();
+    let toughness = data.feats.iter().find(|f| f.key == feat("toughness"));
+    let toughness = toughness.unwrap().clone();
+    for key in ["improved-initiative", "iron-will"] {
+        data.feats.push(Feat {
+            key: feat(key),
+            name: key.into(),
+            ..toughness.clone()
+        });
+    }
+    let stat_focus = data.feats.iter_mut().find(|f| f.key == feat("stat-focus"));
+    let stat_focus = stat_focus.unwrap();
+    (stat_focus.parameter, stat_focus.repeat) = (Some(ParameterKind::Stat), Repeat::PerValue);
+    let dodge = data
+        .mythic_feats
+        .iter()
+        .find(|f| f.key.as_str() == "dodge-mythic");
+    data.mythic_feats.push(MythicFeat {
+        key: MythicFeatKey::new("improved-initiative-mythic"),
+        name: "improved-initiative-mythic".into(),
+        ..dodge.unwrap().clone()
+    });
+    let unstoppable = data
+        .mythic_abilities
+        .iter()
+        .find(|a| a.key.as_str() == "unstoppable");
+    data.mythic_abilities.push(MythicAbility {
+        key: MythicAbilityKey::new("grace"),
+        name: "grace".into(),
+        ..unstoppable.unwrap().clone()
+    });
+    let none = data.backgrounds.iter().find(|b| b.key.as_str() == "none");
+    data.backgrounds.push(Background {
+        key: BackgroundKey::new("pickpocket"),
+        name: "pickpocket".into(),
+        ..none.unwrap().clone()
+    });
+    let half_elf = data.races.iter_mut().find(|r| r.key.as_str() == "half-elf");
+    let half_elf = half_elf.unwrap();
+    half_elf.subraces.push(Subrace {
+        key: SubraceKey::new("half-elf/kindred"),
+        name: "half-elf/kindred".into(),
+        ..half_elf.subraces[0].clone()
+    });
+    data
 }
 
 fn parts(total: &Total) -> Vec<(&str, i16)> {
@@ -369,7 +419,7 @@ fn an_items_interactions_note_is_found_by_the_item() {
         item: BonusItem::Feat(feat("dodge")),
         interactions: "The guide doesn't say.".to_owned(),
     });
-    let engine = Engine::new(data);
+    let engine = engine_on(data);
 
     assert_eq!(
         engine.interactions(&BonusItem::Feat(feat("dodge"))),

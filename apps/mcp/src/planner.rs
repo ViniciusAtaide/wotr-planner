@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use std::path::Path;
 use std::sync::Arc;
 
-use rules::{DataProblem, Engine, FeatureKey, FeatureSelection, GameData};
+use rules::{CheckedGameData, DataProblem, Engine, FeatureKey, FeatureSelection, GameData};
 use sha2::{Digest, Sha256};
 
 use crate::search::SearchIndex;
@@ -29,17 +29,13 @@ impl Planner {
 
     /// Game data already in memory (the tests' `rules::test_world`), after [`GameData::check`] finds no problem.
     pub fn from_data(data: GameData) -> Result<Self, Vec<DataProblem>> {
-        let problems = data.check();
-        if problems.is_empty() {
-            Ok(Self::new(data))
-        } else {
-            Err(problems)
-        }
+        Ok(Self::new(data.checked()?))
     }
 
-    fn new(data: GameData) -> Self {
+    fn new(data: CheckedGameData) -> Self {
         let site_file = site_file(&data);
         let engine = Engine::new(data.clone());
+        let data = GameData::clone(&data);
         let index = SearchIndex::new(&data, &engine);
         let classes = data.classes.iter().chain(&data.prestige_classes);
         let feature_summaries = classes

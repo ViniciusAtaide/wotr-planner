@@ -100,7 +100,7 @@ fn world_with_lawful_monk() -> GameData {
 }
 
 fn lawful_monk_engine() -> Engine {
-    Engine::new(world_with_lawful_monk())
+    engine_on(world_with_lawful_monk())
 }
 
 /// A monk 1 of `archetype` (or none) at `alignment`, with Wisdom 12.

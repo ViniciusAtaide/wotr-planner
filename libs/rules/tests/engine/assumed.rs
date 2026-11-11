@@ -5,7 +5,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use rules::{
     Ability, Assumed, BonusAmount, BonusItem, BonusTarget, BuildStart, CharacterState, ClassLevels,
-    DataIssue, Engine, FeatKey, GameData, GearBonus, GearCircumstance, GearItem, GearKey, GearSlot,
+    DataIssue, FeatKey, GameData, GearBonus, GearCircumstance, GearItem, GearKey, GearSlot,
     GearTarget, GuideRef, ItemBonus, Prerequisite, Save, SpellSchool, SpellScope, SpellTraits,
     Subschool, WeaponKey,
 };
@@ -214,7 +214,7 @@ fn the_assumed_attack_line_takes_the_raised_strength_and_the_weapons_enhancement
 #[test]
 fn the_assumed_caster_line_takes_the_raised_casting_ability_and_the_items_whose_circumstance_matches()
  {
-    let engine = Engine::new(armoury());
+    let engine = engine_on(armoury());
     let state = sorcerer(20, 24);
     let start = BuildStart::default();
     let assumed = Assumed {
@@ -283,7 +283,7 @@ fn the_assumed_caster_line_takes_the_raised_casting_ability_and_the_items_whose_
 
 #[test]
 fn an_assumed_caster_level_item_raises_the_caster_level_and_both_checks_with_it() {
-    let engine = Engine::new(armoury());
+    let engine = engine_on(armoury());
     let line = engine
         .assumed_caster_line(
             &BuildStart::default(),
@@ -308,7 +308,7 @@ fn an_assumed_caster_level_item_raises_the_caster_level_and_both_checks_with_it(
 
 #[test]
 fn save_mind_affecting_and_class_circumstances_need_the_spell_or_the_class_to_match() {
-    let engine = Engine::new(armoury());
+    let engine = engine_on(armoury());
     let start = BuildStart::default();
     let state = sorcerer(20, 10);
     let assumed = assuming(&["fortitude-robe", "mind-goggles", "witch-rags"]);
@@ -387,7 +387,7 @@ fn a_prerequisite_never_sees_an_assumed_bonus() {
         amount: BonusAmount::Flat(4),
         requires: Some(requires.clone()),
     });
-    let engine = Engine::new(data);
+    let engine = engine_on(data);
     let mut state = sorcerer(20, 14);
     *state
         .feats

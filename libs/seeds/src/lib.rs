@@ -101,16 +101,10 @@ pub fn game_data_dir() -> PathBuf {
 }
 
 /// Reads the data files under `dir` and runs [`rules::GameData::check`] on them, without a database.
-/// Returns the data when it has no problems, references to keys that don't exist included: the check catches
-/// those before [`seed`]'s foreign keys, which stay as a backstop.
-pub fn check_game_data_files(dir: &Path) -> Result<rules::GameData, Error> {
-    let data = read_game_data_files(dir)?;
-    let problems = data.check();
-    if problems.is_empty() {
-        Ok(data)
-    } else {
-        Err(Error::Invalid(problems))
-    }
+/// Returns the data, checked, when it has no problems, references to keys that don't exist included: the check
+/// catches those before [`seed`]'s foreign keys, which stay as a backstop.
+pub fn check_game_data_files(dir: &Path) -> Result<rules::CheckedGameData, Error> {
+    read_game_data_files(dir)?.checked().map_err(Error::Invalid)
 }
 
 /// Reads the data files under `dir`, checks them, and replaces the database at `database` with a new one

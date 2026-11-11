@@ -139,7 +139,16 @@ pub fn times(key: &'static str, n: usize) -> Vec<&'static str> {
 }
 
 pub fn engine() -> Engine {
-    Engine::new(world())
+    engine_on(world())
+}
+
+/// The engine on `data`, a test world that must pass [`GameData::check`]: every engine a test builds is one an app
+/// could build. Panics with the problems otherwise.
+pub fn engine_on(data: GameData) -> Engine {
+    Engine::new(
+        data.checked()
+            .unwrap_or_else(|problems| panic!("the test world has problems: {problems:#?}")),
+    )
 }
 
 // ---- impossible Builds ----------------------------------------------------------------------------------------

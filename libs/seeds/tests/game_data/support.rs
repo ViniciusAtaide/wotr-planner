@@ -4,14 +4,18 @@ use std::collections::{BTreeSet, HashMap};
 use std::sync::LazyLock;
 
 use rules::{
-    ArchetypeKey, Build, CharacterState, ClassChoice, ClassKey, Engine, FeatKey, FeatSource,
-    FeatureKey, GameData, Issue, LevelUp, MythicPathKey, Parameter, Pick, Prerequisite,
+    ArchetypeKey, Build, CharacterState, CheckedGameData, ClassChoice, ClassKey, Engine, FeatKey,
+    FeatSource, FeatureKey, GameData, Issue, LevelUp, MythicPathKey, Parameter, Pick, Prerequisite,
     SelectionOptionKey, SkillKey, SlotId, SlotKind, SlotOption, Unmet, WeaponKey,
 };
 
 pub static DATA: LazyLock<GameData> = LazyLock::new(|| {
     seeds::read_game_data_files(&seeds::game_data_dir()).expect("game-data reads")
 });
+
+/// [`DATA`], checked once for every engine the tests build.
+static CHECKED: LazyLock<CheckedGameData> =
+    LazyLock::new(|| DATA.clone().checked().expect("game-data checks"));
 
 /// Every failing single condition in an `Unmet`, as a flat list.
 pub fn conditions(unmet: &Unmet) -> Vec<(&Prerequisite, Option<u8>)> {
@@ -26,7 +30,7 @@ pub fn conditions(unmet: &Unmet) -> Vec<(&Prerequisite, Option<u8>)> {
 }
 
 pub fn engine() -> Engine {
-    Engine::new(DATA.clone())
+    Engine::new(CHECKED.clone())
 }
 
 /// Why the pick in `slot` can't be taken there, for a Build that only that pick makes impossible (it's possible

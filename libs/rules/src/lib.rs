@@ -18,7 +18,7 @@ pub mod test_world;
 
 pub use bonus::*;
 pub use build::*;
-pub use check::{DataAt, DataIssue, DataProblem};
+pub use check::{CheckedGameData, DataAt, DataIssue, DataProblem};
 pub use choice::*;
 pub use codec::*;
 pub use engine::*;

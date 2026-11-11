@@ -561,7 +561,7 @@ fn the_fixture_passes_the_data_check() {
 fn checking_the_files_needs_no_database_and_passes_the_fixture() {
     let data = seeds::check_game_data_files(&fixture_dir()).unwrap();
 
-    assert_eq!(data, read_fixture());
+    assert_eq!(*data, read_fixture());
 }
 
 #[test]

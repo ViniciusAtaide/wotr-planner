@@ -3,8 +3,8 @@
 //! feature that grants them; prerequisites ask for a deity, a given deity, atheism, or a deity offering a domain.
 
 use rules::{
-    Alignment, Build, ClassChoice, DeityDomains, DeityKey, Edit, Engine, Faith, Issue,
-    Prerequisite, Unmet, encode_build,
+    Alignment, Build, ClassChoice, DeityDomains, DeityKey, Edit, Faith, Issue, Prerequisite, Unmet,
+    encode_build,
 };
 
 use crate::support::*;
@@ -520,7 +520,7 @@ fn the_deity_comes_off_once_nothing_needs_it() {
 
 #[test]
 fn every_deity_is_listed_by_name() {
-    let engine = Engine::new(world());
+    let engine = engine_on(world());
     let names: Vec<&str> = engine.deities().iter().map(|d| d.name.as_str()).collect();
     assert_eq!(names, ["Balance", "Fist", "Lawgiver"]);
 }
@@ -585,7 +585,7 @@ fn the_deity_picker_names_a_domain_without_domain_or_subdomain() {
             .unwrap()
             .name = name.into();
     }
-    let engine = Engine::new(data);
+    let engine = engine_on(data);
     let name = |key: &str| engine.domain_name(&option(key)).to_owned();
     assert_eq!(name("cleric/domain/fire"), "Fire");
     assert_eq!(name("cleric/domain/water"), "Water");

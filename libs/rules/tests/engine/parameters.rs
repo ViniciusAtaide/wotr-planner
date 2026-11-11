@@ -402,7 +402,7 @@ fn engine_with(change: impl FnOnce(&mut GameData)) -> Engine {
     let mut data = world();
     change(&mut data);
     assert_eq!(data.check(), []);
-    Engine::new(data)
+    engine_on(data)
 }
 
 fn rogue_talent_mut<'a>(data: &'a mut GameData, key: &str) -> &'a mut SelectionOption {

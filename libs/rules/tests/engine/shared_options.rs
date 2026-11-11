@@ -167,7 +167,7 @@ fn a_shared_options_any_over_each_classs_level_lets_either_class_qualify() {
             level: 10,
         },
     ]));
-    let engine = Engine::new(data);
+    let engine = engine_on(data);
     let crippling_strike = pick_option("rogue/rogue-talents/crippling-strike");
 
     // A slayer 10 qualifies through the slayer's level.

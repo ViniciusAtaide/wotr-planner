@@ -94,7 +94,7 @@ fn a_link_whose_pick_no_longer_fits_is_stale() {
         ability: Ability::Strength,
         score: 18,
     });
-    let stale = Engine::new(data);
+    let stale = engine_on(data);
     assert!(!stale.is_possible(&build));
     assert_eq!(open(&stale, &build), Err(StaleLink));
 }

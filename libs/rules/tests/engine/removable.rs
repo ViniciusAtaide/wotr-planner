@@ -465,7 +465,7 @@ fn engine_with(change: impl FnOnce(&mut rules::GameData)) -> Engine {
     let mut data = world();
     change(&mut data);
     assert_eq!(data.check(), []);
-    Engine::new(data)
+    engine_on(data)
 }
 
 /// An option's status in a slot's picker.

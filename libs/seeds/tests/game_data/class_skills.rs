@@ -424,7 +424,7 @@ fn engine_without_class_skill(class: &str, skill: &str) -> Engine {
         .find(|c| c.key.as_str() == class)
         .unwrap();
     assert!(class.class_skills.remove(&SkillKey::new(skill)));
-    Engine::new(data)
+    Engine::new(data.checked().expect("the data checks"))
 }
 
 /// `engine` gives `skill` as a class skill from `level` on, not before.

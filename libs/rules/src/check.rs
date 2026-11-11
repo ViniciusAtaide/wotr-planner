@@ -1,6 +1,7 @@
 //! [`GameData::check`]: mistakes in the game data that its types can't rule out.
 //!
-//! The seed refuses data with problems, so the database and the engine can rely on these rules. Every key an entity
+//! The seed refuses data with problems, and the engine takes only data that passed ([`CheckedGameData`], which only
+//! [`GameData::checked`] makes), so the database and the engine can rely on these rules. Every key an entity
 //! names is one of an entity of its kind ([`DataIssue::UnknownKey`]), and every Mythic rank a path names is one of the
 //! progression's ([`DataIssue::UnknownRank`]); the database's foreign keys check the same again, as a backstop.
 //!
@@ -670,6 +671,37 @@ impl GameData {
         }
         check.problems.sort();
         check.problems
+    }
+
+    /// The data as [`CheckedGameData`] when [`check`](Self::check) finds no problem, otherwise every problem.
+    pub fn checked(self) -> Result<CheckedGameData, Vec<DataProblem>> {
+        let problems = self.check();
+        if problems.is_empty() {
+            Ok(CheckedGameData(self))
+        } else {
+            Err(problems)
+        }
+    }
+}
+
+/// Game data that [`GameData::check`] found no problem in, the only data [`Engine::new`](crate::Engine::new) takes:
+/// the engine relies on the check's rules (every feat list or selection a slot names is one of the data's, every
+/// option's pool is a selection). Only [`GameData::checked`] makes one, and it lends the data only for reading.
+#[derive(Clone, Debug)]
+pub struct CheckedGameData(GameData);
+
+impl CheckedGameData {
+    /// The data, for the engine to own.
+    pub(crate) fn into_data(self) -> GameData {
+        self.0
+    }
+}
+
+impl std::ops::Deref for CheckedGameData {
+    type Target = GameData;
+
+    fn deref(&self) -> &GameData {
+        &self.0
     }
 }
 

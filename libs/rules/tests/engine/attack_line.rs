@@ -41,7 +41,7 @@ fn armoury() -> Engine {
         ),
         weapon("rays", None),
     ]);
-    Engine::new(data)
+    engine_on(data)
 }
 
 /// A character with this BAB and Str and Dex (the rest 10), holding no feats.

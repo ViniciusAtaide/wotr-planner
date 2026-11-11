@@ -2,7 +2,7 @@
 //! `effective_row` is the one place they meet the base class's rows.
 
 use rules::{
-    ArchetypeKey, ArchetypeLevelRow, Build, ClassChoice, Engine, FeatSlot, GameData, SpellLevels,
+    ArchetypeKey, ArchetypeLevelRow, Build, ClassChoice, FeatSlot, GameData, SpellLevels,
     effective_row,
 };
 
@@ -42,7 +42,7 @@ fn a_level_the_archetype_leaves_out_is_the_base_class_row() {
         "fighter",
         "fighter/armiger",
     );
-    let sheet = Engine::new(data).evaluate(&build);
+    let sheet = engine_on(data).evaluate(&build);
 
     let kinds_at_3: Vec<_> = sheet.levels[2].slots.iter().map(|s| s.id.clone()).collect();
     assert_eq!(kinds_at_3, [class_slot(3, 0), general_slot(3)]);
@@ -101,7 +101,7 @@ fn an_archetype_row_keeps_the_base_spell_levels_unless_it_sets_its_own() {
     ];
     cleric.archetypes.push(archetype);
     let build = as_archetype(build("elf", &times("cleric", 5)), "cleric", "cleric/herald");
-    let sheet = Engine::new(data).evaluate(&build);
+    let sheet = engine_on(data).evaluate(&build);
 
     let divine: Vec<_> = (1..=5)
         .map(|level| sheet.at(level).unwrap().divine_spell_level)

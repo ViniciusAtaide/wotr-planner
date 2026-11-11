@@ -261,7 +261,7 @@ fn an_archetype_may_cast_with_another_ability() {
 #[test]
 fn a_subraces_bonuses_replace_its_races() {
     // An invented +1 for the half-elf race; Dual Heritage's +2 replaces it.
-    let engine = Engine::new(with_bonuses([bonus(
+    let engine = engine_on(with_bonuses([bonus(
         BonusItem::Race(RaceKey::new("half-elf")),
         BonusTarget::SpellPenetration,
         BonusAmount::Flat(1),
@@ -292,7 +292,7 @@ fn a_bonus_counts_only_when_its_requirement_holds() {
     // As Spell Penetration (Mythic): half the Mythic rank, or the full rank with Greater Spell Penetration.
     let mythic = BonusItem::MythicFeat(MythicFeatKey::new("dodge-mythic"));
     let greater = Prerequisite::Feat(FeatKey::new("spell-penetration"));
-    let engine = Engine::new(with_bonuses([
+    let engine = engine_on(with_bonuses([
         ItemBonus {
             requires: Some(Prerequisite::Not(Box::new(greater.clone()))),
             ..bonus(
@@ -335,7 +335,7 @@ fn a_bonus_counts_only_when_its_requirement_holds() {
 fn subschool_energy_and_metamagic_bonuses_count_when_the_spell_has_them() {
     let arcana = BonusItem::Feature(FeatureKey::new("sorcerer/bloodline/arcane/arcane-bond"));
     let dc = BonusTarget::SpellDc;
-    let engine = Engine::new(with_bonuses([
+    let engine = engine_on(with_bonuses([
         bonus(
             arcana.clone(),
             dc(SpellScope::Subschool(Subschool::Compulsion)),
@@ -405,7 +405,7 @@ fn with_expanded_arsenal() -> Engine {
         ..template
     });
     assert_eq!(data.check(), [], "the data checks");
-    Engine::new(data)
+    engine_on(data)
 }
 
 #[test]
