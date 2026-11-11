@@ -60,8 +60,8 @@ pub(crate) fn totals(engine: &Engine, start: &BuildStart, state: &CharacterState
     shape_of(&engine.totals(start, state))
 }
 
-/// Totals as JSON: the unassisted ones, or with assumed gear.
-pub(crate) fn shape_of(totals: &Totals) -> TotalsShape {
+/// Totals as JSON.
+fn shape_of(totals: &Totals) -> TotalsShape {
     TotalsShape {
         initiative: shape(&totals.initiative),
         fortitude: shape(&totals.fortitude),
@@ -84,7 +84,7 @@ pub(crate) fn shape_of(totals: &Totals) -> TotalsShape {
     }
 }
 
-/// What no total counts: gear unless assumed.
+/// What no total counts.
 pub(crate) fn leaves_out() -> Vec<String> {
-    crate::assume::unless_assumed(TOTALS_LEAVE_OUT)
+    TOTALS_LEAVE_OUT.iter().map(ToString::to_string).collect()
 }

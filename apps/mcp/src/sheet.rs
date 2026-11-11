@@ -5,12 +5,11 @@
 use std::collections::BTreeSet;
 
 use rules::{
-    AbilityScores, Assumed, Build, CharacterState, Choice, Engine, POINT_BUY_BUDGET, RankStatus,
-    Sheet, Slot, SpellTraits, WeaponKey, has_ability_increase,
+    AbilityScores, Build, CharacterState, Choice, Engine, POINT_BUY_BUDGET, RankStatus, Sheet,
+    Slot, SpellTraits, WeaponKey, has_ability_increase,
 };
 
 use crate::address::Address;
-use crate::assume;
 use crate::attack;
 use crate::caster;
 use crate::code::envelope;
@@ -26,21 +25,20 @@ use crate::values::{
 };
 
 /// The sheet of a possible Build; with `removable`, each held choice marked with whether it can be withdrawn now;
-/// with a `weapon`, each level's attack line for it; with a `caster` spell, each level's caster line for it; with
-/// `assumed` gear, the last level's lines and totals with it.
+/// each level's attack line for the `weapon` given, or else for the Build's Weapon Focus weapon
+/// ([`Engine::default_attack_weapon`]), none without one; with a `caster` spell, each level's caster line for it.
 pub(crate) fn sheet(
     planner: &Planner,
     build: &Build,
     removable: bool,
-    weapon: Option<&WeaponKey>,
+    weapon: Option<WeaponKey>,
     caster: Option<SpellTraits>,
-    assumed: Option<&Assumed>,
 ) -> SheetResult {
     let evaluated = planner.engine.evaluate(build);
     let mut result = sheet_of(planner, build, &evaluated, removable);
-    if let Some(weapon) = weapon {
+    if let Some(weapon) = attack::weapon_or_default(&planner.engine, weapon.as_ref(), &evaluated) {
         for (line, level) in result.levels.iter_mut().zip(&evaluated.levels) {
-            line.attack = attack::attack_line(&planner.engine, &level.state, weapon);
+            line.attack = attack::attack_line(&planner.engine, &level.state, &weapon);
         }
         result.attack_leaves_out = Some(attack::leaves_out());
     }
@@ -49,19 +47,6 @@ pub(crate) fn sheet(
             line.caster = caster::caster_line(&planner.engine, &build.start, &level.state, spell);
         }
         result.caster_leaves_out = Some(caster::leaves_out());
-    }
-    if let Some(assumed) = assumed {
-        let empty = CharacterState::default();
-        let last = evaluated.levels.last().map_or(&empty, |level| &level.state);
-        result.assumed = Some(assume::assumed(
-            &planner.engine,
-            &build.start,
-            last,
-            assumed,
-            weapon,
-            caster,
-            true,
-        ));
     }
     result
 }
@@ -113,7 +98,6 @@ pub(crate) fn sheet_of(
         }),
         attack_leaves_out: None,
         caster_leaves_out: None,
-        assumed: None,
     }
 }
 

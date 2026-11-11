@@ -10,10 +10,9 @@
 use std::collections::BTreeMap;
 
 use crate::bonus::{BonusAmount, BonusItem, BonusTarget, ItemBonus, SpellScope, SpellTraits};
-use crate::build::{AbilityScores, BuildStart};
+use crate::build::BuildStart;
 use crate::game_data::Ability;
-use crate::gear::{Assumed, GearItem, GearTarget};
-use crate::keys::{ClassKey, FeatKey, GearKey, SkillKey};
+use crate::keys::{ClassKey, FeatKey, SkillKey};
 use crate::parameter::{Parameter, SpellSchool};
 use crate::state::CharacterState;
 
@@ -29,11 +28,8 @@ pub struct CasterLine {
     pub ability: Ability,
     /// The spell the line is for.
     pub spell: SpellTraits,
-    /// The class's caster level: its class levels plus the prestige levels that advance it, plus
-    /// [`caster_level_parts`](Self::caster_level_parts).
+    /// The class's caster level: its class levels plus the prestige levels that advance it.
     pub caster_level: u8,
-    /// What raises the caster level beyond the class levels: only assumed items (ticket 122), so empty without them.
-    pub caster_level_parts: Vec<CasterPart>,
     /// The save DC of a spell of each level the class can cast, from the 1st to the highest: 10 + the spell level +
     /// what [`dc_parts`](Self::dc_parts) add.
     pub dcs: Vec<SpellDc>,
@@ -103,59 +99,8 @@ impl Engine {
         state: &CharacterState,
         spell: SpellTraits,
     ) -> Option<CasterLine> {
-        self.caster_line_with(start, state, spell, &state.ability_scores, &[])
-    }
-
-    /// [`caster_line`](Self::caster_line) with what an agent assumes on top of the Build (ticket 122): the scores
-    /// raised by the assumed ability bonuses, and the bonuses of the assumed items (`gear.ron`) whose circumstance
-    /// matches the spell and the casting class, each a part of its own. An item the data lacks adds nothing.
-    pub fn assumed_caster_line(
-        &self,
-        start: &BuildStart,
-        state: &CharacterState,
-        spell: SpellTraits,
-        assumed: &Assumed,
-    ) -> Option<CasterLine> {
-        let gear: Vec<&GearItem> = assumed
-            .items
-            .iter()
-            .filter_map(|key| self.gear_item(key))
-            .collect();
-        self.caster_line_with(
-            start,
-            state,
-            spell,
-            &assumed.scores(state.ability_scores),
-            &gear,
-        )
-    }
-
-    /// The items of `gear.ron` an agent may assume, by key.
-    pub fn gear(&self) -> &[GearItem] {
-        &self.catalog.data().gear
-    }
-
-    /// An item of `gear.ron` by key.
-    pub fn gear_item(&self, key: &GearKey) -> Option<&GearItem> {
-        self.catalog
-            .data()
-            .gear
-            .iter()
-            .find(|item| &item.key == key)
-    }
-
-    /// The caster line from these ability scores (the character's own, or with assumed bonuses) and assumed items.
-    /// What the character holds, and so every `requires`, is read from `state` alone.
-    fn caster_line_with(
-        &self,
-        start: &BuildStart,
-        state: &CharacterState,
-        spell: SpellTraits,
-        scores: &AbilityScores,
-        gear: &[&GearItem],
-    ) -> Option<CasterLine> {
         let casting = self.casting(state)?;
-        let ability = modifier(scores.get(casting.ability));
+        let ability = modifier(state.ability_scores.get(casting.ability));
         let held = self.held_bonuses(start, state);
 
         let mut dc_parts = vec![CasterPart {
@@ -174,7 +119,7 @@ impl Engine {
             } else if scope.applies(&spell, value.as_ref()) {
                 dc_parts.push(CasterPart {
                     name: name.clone(),
-                    value: amount(bonus.amount, state, scores, None),
+                    value: amount(bonus.amount, state, None),
                 });
             }
         }
@@ -183,31 +128,13 @@ impl Engine {
                 .filter(|(bonus, _, _)| bonus.target == target)
                 .map(|(bonus, _, name)| CasterPart {
                     name: name.clone(),
-                    value: amount(bonus.amount, state, scores, None),
+                    value: amount(bonus.amount, state, None),
                 })
                 .collect()
         };
-        let mut spell_penetration_parts = flat(BonusTarget::SpellPenetration);
+        let spell_penetration_parts = flat(BonusTarget::SpellPenetration);
         let mut concentration_parts = vec![dc_parts[0].clone()];
         concentration_parts.extend(flat(BonusTarget::Concentration));
-        let mut caster_level_parts = Vec::new();
-        for item in gear {
-            for bonus in &item.bonuses {
-                if !bonus.circumstance.applies(&spell, &casting.class) {
-                    continue;
-                }
-                let part = CasterPart {
-                    name: Assumed::label(&item.name),
-                    value: i16::from(bonus.amount),
-                };
-                match bonus.target {
-                    GearTarget::SpellDc => dc_parts.push(part),
-                    GearTarget::CasterLevel => caster_level_parts.push(part),
-                    GearTarget::SpellPenetration => spell_penetration_parts.push(part),
-                    GearTarget::Concentration => concentration_parts.push(part),
-                }
-            }
-        }
 
         let sum = |parts: &[CasterPart]| parts.iter().map(|part| part.value).sum::<i16>();
         let dc_bonus = sum(&dc_parts);
@@ -215,13 +142,12 @@ impl Engine {
             spell_level,
             dc: 10 + i16::from(spell_level) + dc_bonus,
         };
-        let caster_level = i16::from(casting.caster_level) + sum(&caster_level_parts);
+        let caster_level = i16::from(casting.caster_level);
         Some(CasterLine {
             class: casting.class,
             ability: casting.ability,
             spell,
-            caster_level: u8::try_from(caster_level).unwrap_or(u8::MAX),
-            caster_level_parts,
+            caster_level: casting.caster_level,
             dcs: (1..=casting.spell_level).map(dc).collect(),
             heightened: (state.feat_count(&FeatKey::new(HEIGHTEN_SPELL)) > 0)
                 .then(|| dc(casting.spell_level)),
@@ -442,14 +368,9 @@ fn expanded_arsenal(
     })
 }
 
-/// What a bonus adds for a character with these ability scores (its own, or with assumed bonuses); for a skill
-/// bonus, `skill` is the skill whose ranks it may rise with.
-pub(super) fn amount(
-    amount: BonusAmount,
-    state: &CharacterState,
-    scores: &AbilityScores,
-    skill: Option<&SkillKey>,
-) -> i16 {
+/// What a bonus adds for a character, from its own scores; for a skill bonus, `skill` is the skill whose ranks it may
+/// rise with.
+pub(super) fn amount(amount: BonusAmount, state: &CharacterState, skill: Option<&SkillKey>) -> i16 {
     match amount {
         BonusAmount::Flat(value) => i16::from(value),
         BonusAmount::HalfMythicRank => i16::from(state.mythic_rank / 2),
@@ -463,7 +384,7 @@ pub(super) fn amount(
             let ranks = skill.map_or(0, |skill| state.prerequisite_skill_ranks(skill));
             i16::from(if ranks >= 10 { with_ten_ranks } else { amount })
         }
-        BonusAmount::AbilityModifier(ability) => modifier(scores.get(ability)),
+        BonusAmount::AbilityModifier(ability) => modifier(state.ability_scores.get(ability)),
     }
 }
 

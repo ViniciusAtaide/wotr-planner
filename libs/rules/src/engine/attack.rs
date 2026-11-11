@@ -7,9 +7,7 @@
 //! Focus, Weapon Specialization and Greater Weapon Specialization held for the weapon; Improved Critical's doubled
 //! threat range and the Trickster's critical feats after it (ticket 131); and Power Attack's trade beside it. Everything else is [`ATTACK_LINE_LEAVES_OUT`].
 
-use crate::build::AbilityScores;
 use crate::game_data::{Ability, Dice, Handedness, Ranged, Weapon};
-use crate::gear::Assumed;
 use crate::keys::{FeatKey, WeaponKey};
 use crate::parameter::Parameter;
 use crate::state::CharacterState;
@@ -144,43 +142,10 @@ impl Engine {
         None
     }
 
-    /// One base weapon's attack line for a character: `None` for a weapon the data lacks or that has no stats.
+    /// One base weapon's attack line for a character, from the character's own scores: `None` for a weapon the data
+    /// lacks or that has no stats.
     pub fn attack_line(&self, state: &CharacterState, weapon: &WeaponKey) -> Option<AttackLine> {
-        self.attack_line_with(state, weapon, &state.ability_scores)
-    }
-
-    /// [`attack_line`](Self::attack_line) with what an agent assumes on top of the Build (ticket 122): the scores
-    /// raised by the assumed ability bonuses, and the weapon's assumed enhancement bonus as a part of its own.
-    pub fn assumed_attack_line(
-        &self,
-        state: &CharacterState,
-        weapon: &WeaponKey,
-        assumed: &Assumed,
-    ) -> Option<AttackLine> {
-        let mut line =
-            self.attack_line_with(state, weapon, &assumed.scores(state.ability_scores))?;
-        let enhancement = i16::from(assumed.weapon_enhancement);
-        if enhancement > 0 {
-            line.parts.push(AttackPart {
-                name: Assumed::label(&format!("Weapon enhancement +{enhancement}")),
-                attack: enhancement,
-                damage: enhancement,
-            });
-            for attack in &mut line.attacks {
-                *attack += enhancement;
-            }
-            line.damage_bonus += enhancement;
-        }
-        Some(line)
-    }
-
-    /// The attack line from these ability scores: the character's own, or with assumed bonuses.
-    fn attack_line_with(
-        &self,
-        state: &CharacterState,
-        weapon: &WeaponKey,
-        scores: &AbilityScores,
-    ) -> Option<AttackLine> {
+        let scores = &state.ability_scores;
         let stats = self.catalog.weapon(weapon)?.stats?;
         let finesse = stats.finesse
             && state.feat_count(&FeatKey::new(WEAPON_FINESSE)) > 0

@@ -439,20 +439,15 @@ pub struct SheetArgs {
     /// walk of the Build per choice.
     #[serde(default)]
     pub removable: bool,
-    /// Also give each level the attack line of this base weapon (a weapon key: `greatsword`), from the planner's
-    /// engine. Not part of the Build.
+    /// The base weapon of each level's attack line (a weapon key: `greatsword`), from the planner's engine. Left
+    /// out: the weapon of the Build's earliest Weapon Focus (by level; within a level, the first weapon key), and no
+    /// attack line without one. Not part of the Build.
     #[serde(default)]
     pub weapon: Option<String>,
     /// Also give each level the caster line for these spells (`{"school": "enchantment", "subschool":
     /// "compulsion", "metamagic": true}`), from the planner's engine. Not part of the Build.
     #[serde(default)]
     pub caster: Option<crate::caster::CasterArgs>,
-    /// Also give, at the last level, the attack line, the caster line and the totals with gear assumed on top
-    /// (`assumed`, beside the unassisted numbers): `{"enhancement": {"cha": 8}, "inherent": {"cha": 4},
-    /// "weapon_enhancement": 5, "resistance": 7, "items": ["rod-of-power-source"]}`. The agent's assumption: not
-    /// part of the Build, its link or any prerequisite.
-    #[serde(default)]
-    pub assume: Option<crate::assume::AssumeArgs>,
 }
 
 /// A value for a choice, as `options` gives it and `choose` takes it:
@@ -592,16 +587,12 @@ pub struct SheetResult {
     /// advanced classes, and the last level, `level.N`, included; a level's class never: `choose` changes it).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub removable: Option<Vec<String>>,
-    /// With a `weapon`: what no attack line counts.
+    /// With an attack line: what no attack line counts.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub attack_leaves_out: Option<Vec<String>>,
     /// With a `caster`: what no caster line counts.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub caster_leaves_out: Option<Vec<String>>,
-    /// With `assume`: the totals, and with a `weapon` or a `caster` their lines, at the last level with the assumed
-    /// gear. The agent's assumption on top of the planner's facts, beside the unassisted numbers above.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub assumed: Option<crate::assume::AssumedShape>,
 }
 
 /// One character level of the sheet.
@@ -632,7 +623,7 @@ pub struct LevelLine {
     /// The Mythic ranks reached at this level.
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub mythic_ranks: Vec<u8>,
-    /// With a `weapon`: its attack line at the end of the level.
+    /// The attack line at the end of the level, for the `weapon` given or the Build's Weapon Focus weapon.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub attack: Option<crate::attack::AttackLineShape>,
     /// With a `caster`: the caster line at the end of the level, once a class casts.
@@ -904,21 +895,19 @@ pub struct CompareArgs {
     /// 1 to 4 Build codes (links work too), for example two branches of one Build; one gets its summary alone. Each
     /// is opened checked, and every per-Build list in the result follows this order.
     pub builds: Vec<String>,
-    /// Also give each Build's summary the attack line of this base weapon (a weapon key: `greatsword`).
+    /// The base weapon of each Build's summary's attack line (a weapon key: `greatsword`). Left out: each Build's
+    /// own Weapon Focus weapon (its earliest Weapon Focus by level; within a level, the first weapon key), and no
+    /// attack line for a Build without one.
     #[serde(default)]
     pub weapon: Option<String>,
     /// Also give each Build's summary the caster line for these spells (`{"school": "enchantment", "subschool":
     /// "compulsion"}`).
     #[serde(default)]
     pub caster: Option<crate::caster::CasterArgs>,
-    /// Also give each Build's summary its attack line (with a `weapon`) and caster line (with a `caster`) with gear
-    /// assumed on top (`assumed`, beside the unassisted lines), as `sheet`'s `assume`. Needs `weapon` or `caster`.
-    #[serde(default)]
-    pub assume: Option<crate::assume::AssumeArgs>,
     /// Order the summaries by this number at each Build's last level, highest first: `{"caster_line": {"school":
     /// "enchantment", "subschool": "compulsion"}}` (`number`: `dc`, the default, `spell_penetration` or
-    /// `concentration`) or `{"attack_line": {"weapon": "greatsword"}}` (`number`: `attack`, the default, or
-    /// `damage`). Every per-Build list then follows that order.
+    /// `concentration`) or `{"attack_line": {"weapon": "greatsword"}}` (`weapon` left out: each Build's own Weapon
+    /// Focus weapon; `number`: `attack`, the default, or `damage`). Every per-Build list then follows that order.
     #[serde(default)]
     pub by: Option<crate::rank::NumberArgs>,
 }
@@ -937,7 +926,7 @@ pub struct CompareResult {
     pub ranks: Vec<RankDiff>,
     /// By Mythic rank: the path features each Build's sheet lists at that rank and some other Build's doesn't.
     pub path_features: Vec<FeaturesDiff>,
-    /// With a `weapon`: what no attack line counts.
+    /// With an attack line: what no attack line counts.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub attack_leaves_out: Option<Vec<String>>,
     /// With a `caster`: what no caster line counts.
@@ -983,15 +972,12 @@ pub struct BuildSummary {
     pub switch: Option<Named>,
     /// The character level cap: 20, or 40 after a Legend switch.
     pub level_cap: u8,
-    /// With a `weapon`: its attack line at the last level.
+    /// The attack line at the last level, for the `weapon` given or this Build's Weapon Focus weapon.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub attack: Option<crate::attack::AttackLineShape>,
     /// With a `caster`: the caster line at the last level.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub caster: Option<crate::caster::CasterLineShape>,
-    /// With `assume`: those lines at the last level with the assumed gear, beside the unassisted ones.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub assumed: Option<crate::assume::AssumedShape>,
     /// With `by`: the number at the last level; absent when the Build has no such line (no casting class, …).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub number: Option<i16>,

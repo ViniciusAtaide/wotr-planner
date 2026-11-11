@@ -4,7 +4,7 @@ The attack line gives one hit's damage and the regular attacks. A martial goal (
 
 ## The worksheet
 
-1. **The line.** `compare` the branches with `weapon` and the standard `assume` below. Take each attack's bonus, the damage per hit, Power Attack's trade and the critical range: these are the planner's facts.
+1. **The line.** `compare` the branches: each Build's attack line is for its own Weapon Focus weapon (give `weapon` to put every branch on one weapon). Take each attack's bonus, the damage per hit, Power Attack's trade and the critical range: these are the planner's facts, naked, with no gear.
 2. **What it leaves out.** Go through `attack_leaves_out` item by item. For each class feature, mythic feat, mythic ability and path feature the Build holds that adds to attack or damage, read its summary with `describe` and add its number at level 20, labelled as your own game knowledge. These are the usual large ones:
    - **Damage per hit:** Two-Handed Weapon Training, Backswing and Overhand Chop (double Strength bonus), Greater Power Attack (Power Attack ×2), Ki Weapon, a Sohei's Weapon Training, rage, Demonic Rage, the Demonic aspects (Incubus), Unrelenting Assault, the weapon mythic feats.
    - **Critical hits:** Weapon Mastery (+1 multiplier and automatic confirmation), the Trickster's critical chain, Critical Focus (+4 to confirm).
@@ -14,9 +14,9 @@ The attack line gives one hit's damage and the regular attacks. A martial goal (
 4. **The round.** Write the plan's JSON, one entry per branch, and run `python3 -I .claude/skills/wotr-build/dpr.py plan.json` from the repo root. Price the round at AC 30, 45 and 60 unless the user names a foe.
 5. **The report.** Give each branch's damage per round at each AC, with the inputs from steps 2 and 3 beside it, as your estimate. Say which inputs are least certain, and how the order of the branches changes across the ACs.
 
-## The standard assumption
+## Gear
 
-Use one `assume` for every branch of one comparison: `{"enhancement": {"str": 8}, "inherent": {"str": 4}, "weapon_enhancement": 5}`, adding the second ability a class leans on (`"wis": 8` for a monk). The guide doesn't say whether inherent bonuses stack, so name the assumption in the report.
+Compare the branches naked, as the planner's numbers are. Add gear only if the user asks for it, the same gear on every branch, as your own judgement, labelled as such beside the naked numbers.
 
 ## Traps that cost a rebuild
 

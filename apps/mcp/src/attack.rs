@@ -1,7 +1,8 @@
-//! The attack line `sheet` and `compare` add for an optional `weapon` (ticket 114): the engine's
-//! [`rules::Engine::attack_line`] at a character state, as JSON. The weapon is no part of the Build or its code.
+//! The attack line `sheet` and `compare` add (ticket 114): the engine's [`rules::Engine::attack_line`] at a
+//! character state, as JSON, for the `weapon` given or else the Build's Weapon Focus weapon
+//! ([`rules::Engine::default_attack_weapon`], ticket 148). The weapon is no part of the Build or its code.
 
-use rules::{ATTACK_LINE_LEAVES_OUT, AttackLine, CharacterState, Engine, WeaponKey};
+use rules::{ATTACK_LINE_LEAVES_OUT, AttackLine, CharacterState, Engine, Sheet, WeaponKey};
 use schemars::JsonSchema;
 use serde::Serialize;
 
@@ -59,6 +60,18 @@ pub(crate) fn weapon_argument(
     }
 }
 
+/// The weapon an attack line is drawn for: the one given, or else the Build's Weapon Focus weapon
+/// ([`Engine::default_attack_weapon`]); `None` with neither.
+pub(crate) fn weapon_or_default(
+    engine: &Engine,
+    given: Option<&WeaponKey>,
+    sheet: &Sheet,
+) -> Option<WeaponKey> {
+    given
+        .cloned()
+        .or_else(|| engine.default_attack_weapon(sheet))
+}
+
 /// The attack line for a weapon at a character state.
 pub(crate) fn attack_line(
     engine: &Engine,
@@ -69,8 +82,8 @@ pub(crate) fn attack_line(
     Some(shape(engine, weapon, &line))
 }
 
-/// An attack line as JSON: the unassisted one, or one with assumed gear.
-pub(crate) fn shape(engine: &Engine, weapon: &WeaponKey, line: &AttackLine) -> AttackLineShape {
+/// An attack line as JSON.
+fn shape(engine: &Engine, weapon: &WeaponKey, line: &AttackLine) -> AttackLineShape {
     AttackLineShape {
         weapon: Named {
             key: weapon.to_string(),
@@ -95,7 +108,10 @@ pub(crate) fn shape(engine: &Engine, weapon: &WeaponKey, line: &AttackLine) -> A
     }
 }
 
-/// What no attack line counts, for a result that has one: gear unless assumed.
+/// What no attack line counts, for a result that has one.
 pub(crate) fn leaves_out() -> Vec<String> {
-    crate::assume::unless_assumed(ATTACK_LINE_LEAVES_OUT)
+    ATTACK_LINE_LEAVES_OUT
+        .iter()
+        .map(ToString::to_string)
+        .collect()
 }

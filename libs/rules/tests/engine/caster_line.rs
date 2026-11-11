@@ -38,8 +38,6 @@ fn spell(school: SpellSchool) -> SpellTraits {
         subschool: None,
         energy: None,
         metamagic: false,
-        save: None,
-        mind_affecting: false,
     }
 }
 
@@ -380,7 +378,6 @@ fn subschool_energy_and_metamagic_bonuses_count_when_the_spell_has_them() {
             energy: Some(Energy::Fire),
             metamagic: true,
             subschool: None,
-            ..plain
         }),
         2
     );

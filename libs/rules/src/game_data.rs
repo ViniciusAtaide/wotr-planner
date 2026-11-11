@@ -12,7 +12,6 @@ use std::collections::BTreeSet;
 use serde::{Deserialize, Serialize};
 
 use crate::bonus::{ItemBonus, ItemInteractions};
-use crate::gear::GearItem;
 use crate::keys::{
     ArchetypeKey, BackgroundKey, ClassKey, DeityKey, FeatKey, FeatListKey, FeatureKey,
     FeatureSelectionKey, MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey,
@@ -65,11 +64,6 @@ pub struct GameData {
     /// note per item.
     #[serde(default)]
     pub interactions: Vec<ItemInteractions>,
-    /// The guide's caster level and spell DC items (`gear.ron`, ticket 122), which an agent may assume on top of a
-    /// Build's numbers: never part of a Build or a prerequisite. Like [`spells`](Self::spells), never serialised:
-    /// the browser's rules don't read them.
-    #[serde(skip_serializing, default)]
-    pub gear: Vec<GearItem>,
     pub mythic_paths: Vec<MythicPath>,
     /// The backgrounds chosen at Build start (`backgrounds.ron`, the user's list).
     pub backgrounds: Vec<Background>,
@@ -165,7 +159,7 @@ impl GameData {
     }
 
     /// How much of each kind of thing the data holds, labelled, as a quick check that seeding worked.
-    pub fn counts(&self) -> [(&'static str, usize); 15] {
+    pub fn counts(&self) -> [(&'static str, usize); 14] {
         [
             ("Races", self.races.len()),
             ("Skills", self.skills.len()),
@@ -181,7 +175,6 @@ impl GameData {
             ("Deities", self.deities.len()),
             ("Spells", self.spells.len()),
             ("Spell lists", self.spell_lists.len()),
-            ("Gear items", self.gear.len()),
         ]
     }
 
@@ -234,10 +227,6 @@ impl GameData {
             )
         });
         sort_by_key(&mut self.interactions, |note| note.item.clone());
-        sort_by_key(&mut self.gear, |item| item.key.clone());
-        for item in &mut self.gear {
-            item.bonuses.sort();
-        }
         sort_by_key(&mut self.mythic_paths, |p| p.key.clone());
         for path in &mut self.mythic_paths {
             canonicalize_features(&mut path.features);

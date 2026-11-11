@@ -5,10 +5,9 @@
 
 use rules::{
     Ability, Advancement, Alignment, ArmourType, BabProgression, BackgroundGroup, CastingTime,
-    DeityDomains, Energy, FeatCategory, GearSlot, GearTarget, Handedness, LevelFrom,
-    MythicAbilityGroup, MythicExtraPick, MythicFeatGroup, OptionGroup, ParameterKind, Ranged,
-    Repeat, Save, SaveProgression, SpellDescriptor, SpellSchool, SpellType, Story,
-    WeaponProficiency,
+    DeityDomains, Energy, FeatCategory, Handedness, LevelFrom, MythicAbilityGroup, MythicExtraPick,
+    MythicFeatGroup, OptionGroup, ParameterKind, Ranged, Repeat, Save, SaveProgression,
+    SpellDescriptor, SpellSchool, SpellType, Story, WeaponProficiency,
 };
 
 /// A row that doesn't fit the `rules` types (should be impossible given the constraints).
@@ -465,27 +464,4 @@ text_column!(AbilityBonusKind, ability_bonus_kind_from, ability_bonus_kind_text 
     Every => "every",
     Highest => "highest",
     AtLeast => "at_least",
-});
-
-text_column!(GearSlot, gear_slot_from, gear_slot_text {
-    Dagger => "dagger",
-    Quarterstaff => "quarterstaff",
-    Scimitar => "scimitar",
-    Estoc => "estoc",
-    Bracers => "bracers",
-    Cloak => "cloak",
-    Glasses => "glasses",
-    Gloves => "gloves",
-    Headwear => "headwear",
-    Necklace => "necklace",
-    Ring => "ring",
-    Robe => "robe",
-    Rod => "rod",
-});
-
-text_column!(GearTarget, gear_target_from, gear_target_text {
-    SpellDc => "spell_dc",
-    CasterLevel => "caster_level",
-    SpellPenetration => "spell_penetration",
-    Concentration => "concentration",
 });

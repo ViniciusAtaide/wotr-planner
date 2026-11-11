@@ -6,9 +6,8 @@
 //! Luck, Mythic Resolve, Divine Grace. Everything else is [`TOTALS_LEAVE_OUT`].
 
 use crate::bonus::BonusTarget;
-use crate::build::{AbilityScores, BuildStart};
+use crate::build::BuildStart;
 use crate::game_data::{Ability, Save};
-use crate::gear::Assumed;
 use crate::keys::SkillKey;
 use crate::parameter::Parameter;
 use crate::state::CharacterState;
@@ -95,38 +94,10 @@ impl Engine {
     /// Initiative, the saves and each skill's total at a character state, the Build start giving the race, subrace
     /// and background.
     pub fn totals(&self, start: &BuildStart, state: &CharacterState) -> Totals {
-        self.totals_with(start, state, &state.ability_scores, 0)
-    }
-
-    /// [`totals`](Self::totals) with what an agent assumes on top of the Build (ticket 122): the scores raised by the
-    /// assumed ability bonuses, and the assumed resistance bonus as a part of its own on each save.
-    pub fn assumed_totals(
-        &self,
-        start: &BuildStart,
-        state: &CharacterState,
-        assumed: &Assumed,
-    ) -> Totals {
-        self.totals_with(
-            start,
-            state,
-            &assumed.scores(state.ability_scores),
-            assumed.resistance,
-        )
-    }
-
-    /// The totals from these ability scores (the character's own, or with assumed bonuses) and a resistance bonus
-    /// to saves (only assumed). What the character holds, and so every `requires`, is read from `state` alone.
-    fn totals_with(
-        &self,
-        start: &BuildStart,
-        state: &CharacterState,
-        scores: &AbilityScores,
-        resistance: u8,
-    ) -> Totals {
         let held = self.held_bonuses(start, state);
         let ability = |ability: Ability| TotalPart {
             name: ability.name().to_owned(),
-            value: modifier(scores.get(ability)),
+            value: modifier(state.ability_scores.get(ability)),
         };
         let bonuses = |adds: &dyn Fn(&BonusTarget, Option<&Parameter>) -> bool,
                        skill: Option<&SkillKey>| {
@@ -134,7 +105,7 @@ impl Engine {
                 .filter(|(bonus, value, _)| adds(&bonus.target, value.as_ref()))
                 .map(|(bonus, _, name)| TotalPart {
                     name: name.clone(),
-                    value: amount(bonus.amount, state, scores, skill),
+                    value: amount(bonus.amount, state, skill),
                 })
                 .collect::<Vec<_>>()
         };
@@ -157,12 +128,6 @@ impl Engine {
                 &|target, value| target.adds_to_save(save, value),
                 None,
             ));
-            if resistance > 0 {
-                parts.push(TotalPart {
-                    name: Assumed::label(&format!("Resistance +{resistance}")),
-                    value: i16::from(resistance),
-                });
-            }
             total(parts)
         };
 
