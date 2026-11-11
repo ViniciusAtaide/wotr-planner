@@ -490,8 +490,13 @@ pub struct ClassOption {
     /// advancement keeps the Build ([`Engine::advances_options`] lists those).
     pub status: Result<(), Issue>,
     /// The edit that takes it: a class first taken at that level gets the option's archetype and keeps any
-    /// advancement the Build has for it (a prestige class that asks which classes it advances offers its own edits:
-    /// [`Engine::advances_options`]); one taken before keeps its choice.
+    /// advancement the Build has for it; one taken before keeps its choice.
+    ///
+    /// For a prestige class that asks which classes it advances ([`Engine::asks_advances`]), this edit alone may
+    /// break the Build even when the option is `Ok`: the option is open when *some* advancement keeps the Build,
+    /// and this edit carries the Build's own (none, for a class the Build doesn't take). The caller picks the
+    /// advancement first and applies that answer's edit instead ([`Engine::advances_options`], each of which keeps
+    /// the Build).
     pub edit: Edit,
 }
 

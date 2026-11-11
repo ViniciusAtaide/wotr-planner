@@ -450,6 +450,46 @@ async fn a_prestige_class_needs_its_advances() {
     assert_eq!(none["applied"], 1, "{none}");
 }
 
+/// Ticket 150, decision 5: a prestige class open only through one advancement (the class picker marks it open
+/// when some advancement keeps the Build) is taken only with that one. Its option's own edit, without it, would
+/// make a Build that isn't possible, and `choose` never applies it.
+#[tokio::test]
+async fn a_prestige_class_open_through_one_advancement_is_taken_only_with_it() {
+    // Cleric 5 with Spell Penetration (caster level 5) at level 5: Winter Witch at level 4 keeps it only by
+    // advancing the cleric.
+    let mut cleric = build("elf", &times("cleric", 5));
+    cleric
+        .picks
+        .insert(general_slot(5), pick_feat("spell-penetration"));
+    let winter_witch = |advances: Value| {
+        let mut value = json!({ "class": "winter-witch" });
+        if !advances.is_null() {
+            value["advances"] = advances;
+        }
+        json!([{ "choice": "level.4.class", "value": value }])
+    };
+
+    // Without `advances`, it asks for them, naming the one that keeps the Build.
+    let bare = choose(&cleric, winter_witch(Value::Null)).await;
+    assert_eq!(bare["applied"], 0, "{bare}");
+    assert_eq!(bare["rejected"]["issue"], "not_an_option", "{bare}");
+    let reason = text(&bare["rejected"]["reason"]);
+    assert!(reason.contains("[\"cleric\"]"), "{reason}");
+    assert_eq!(bare["build"], code(&cleric));
+
+    // Advancing nothing breaks Spell Penetration: refused.
+    let none = choose(&cleric, winter_witch(json!([]))).await;
+    assert_eq!(none["applied"], 0, "{none}");
+    assert_eq!(none["build"], code(&cleric));
+
+    // Advancing the cleric is taken, and the Build stays possible.
+    let taken = choose(&cleric, winter_witch(json!(["cleric"]))).await;
+    assert_eq!(taken["applied"], 1, "{taken}");
+    let build = decode(&text(&taken["build"]));
+    assert_eq!(build.levels[3].class, ClassKey::new("winter-witch"));
+    assert!(rules::test_world::engine().is_possible(&build));
+}
+
 #[tokio::test]
 async fn real_data_augment_summoning_waits_for_spell_focus_conjuration() {
     let client = Client::start().await;

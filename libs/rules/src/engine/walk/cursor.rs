@@ -7,6 +7,8 @@
 //! - [`AtSlot::try_pick`], [`AtLevel::try_class`] and [`Cursor::try_edit`] give a candidate's verdict,
 //!   `Result<(), Issue>`: the choice's own check at the pause, in the mode it needs (the walk's own checks, in
 //!   `judge`), then whether it breaks a later choice ([`Issue::BreaksLater`]).
+//! - [`Cursor::kept_advancements`] lists the advancements of a prestige class that keep the Build, which both the
+//!   class's verdict and the advancement picker read.
 //!
 //! The walk can't resume mid-level ([`Walker::level`] works a level's slots out at its start), so the cursor keeps
 //! the walk paused before each level, filled as far as the questions asked need, and a candidate's later choices are
@@ -14,19 +16,20 @@
 //! the first choice that fails. [`Engine::allows`] and the withdrawals ask the same walks ([`Cursor::keeps`]).
 
 use std::cell::{OnceCell, RefCell};
-use std::collections::HashSet;
+use std::collections::{BTreeSet, HashSet};
 
 use super::judge::{check_pick, check_pick_with, class_entry};
-use super::level::advancements;
-use super::{Checkpoint, Probe, Walker};
+use super::level::{advancements, first_taken_at};
+use super::{Checkpoint, Probe, RecheckWalk, Walker};
 use crate::build::{Build, ClassChoice, Edit, Pick, SlotId};
 use crate::choice::{Choice, Issue, LaterPick, Unmet};
 use crate::engine::{
-    Engine, FIRST_ASCENSION_RANK, PATH_CHOICE_RANK, PATH_SWITCH_RANK, SkillPoints, SlotKind,
-    class_level_cap,
+    AdvancesOption, Engine, FIRST_ASCENSION_RANK, PATH_CHOICE_RANK, PATH_SWITCH_RANK, SkillPoints,
+    SlotKind, class_level_cap, most_advanced,
 };
-use crate::game_data::FeatList;
-use crate::keys::FeatKey;
+use crate::game_data::{Class, FeatList};
+use crate::keys::{ArchetypeKey, ClassKey, FeatKey};
+use crate::prerequisite::Prerequisite;
 use crate::state::CharacterState;
 
 /// A Build's walk, paused before each character level as far as the questions asked of it need. Build one per
@@ -54,7 +57,11 @@ impl<'a> Cursor<'a> {
     /// it; one past the last level gives the character after the last. `None` for level 0 and past that.
     pub(crate) fn until_level(&self, level: u8) -> Option<AtLevel<'_, 'a>> {
         let index = usize::from(level).checked_sub(1)?;
-        let state = self.with_paused(index, |walker| walker.state.clone())?;
+        let state = if index == self.build.levels.len() {
+            self.after_last()
+        } else {
+            self.with_paused(index, |walker| walker.state.clone())?
+        };
         Some(AtLevel {
             cursor: self,
             level,
@@ -107,6 +114,28 @@ impl<'a> Cursor<'a> {
             .or_else(|| self.engine.catalog.ascension_level(slot.rank()?))
     }
 
+    /// The character after the last level: the walk kept after it, or else the furthest one kept walked on without
+    /// keeping the levels between (a level after the last walks nothing later, so nothing asks for them).
+    fn after_last(&self) -> CharacterState {
+        let build = self.build;
+        let paused = self.paused.borrow();
+        if let Some(walker) = paused.get(build.levels.len()) {
+            return walker.state.clone();
+        }
+        let (mut walker, walked) = match paused.last() {
+            Some(walker) => (walker.clone(), paused.len() - 1),
+            None => {
+                let mut walker = Walker::new(self.engine, build).without_sheet();
+                walker.start();
+                (walker, 0)
+            }
+        };
+        for (index, level_up) in build.levels.iter().enumerate().skip(walked) {
+            walker.level(u8::try_from(index + 1).unwrap_or(u8::MAX), level_up);
+        }
+        walker.state
+    }
+
     /// The walk just before character level `index + 1`; `None` past the one after the last level.
     fn paused(&self, index: usize) -> Option<Walker<'a>> {
         self.with_paused(index, Walker::clone)
@@ -146,27 +175,15 @@ impl<'a> Cursor<'a> {
 
     // ---- Verdicts ---------------------------------------------------------------------------------------------
 
-    /// An edit's verdict (`try(edit)`): its own check, then whether it breaks a later choice. The own check is the
-    /// walk's: a Build start's faith and alignment ([`Engine::faith_misfit`]); the first ascension, path and switch
-    /// the Build can take ([`Engine::first_ascension_fit`], [`Engine::path_fit`], [`Engine::switch_fit`]); a pick
-    /// in its slot and a class at its level, at the paused walk ([`AtSlot::try_pick`], [`AtLevel::try_class`]: a
-    /// picker pauses once for all its candidates). An ability increase and skill ranks have none beyond what the
-    /// steppers' range keeps.
+    /// An edit's verdict (`try(edit)`) for the pickers outside a slot or a level's class (a pick's is
+    /// [`AtSlot::try_pick`] and a class's [`AtLevel::try_class`], since a picker pauses once for all its
+    /// candidates): its own check, then whether it breaks a later choice. The own check is the walk's: a Build
+    /// start's faith and alignment ([`Engine::faith_misfit`]); the first ascension, path and switch the Build can take
+    /// ([`Engine::first_ascension_fit`], [`Engine::path_fit`], [`Engine::switch_fit`]). An ability increase and skill
+    /// ranks have none beyond what the steppers' range keeps.
     pub(crate) fn try_edit(&self, edit: &Edit) -> Result<(), Issue> {
         let engine = self.engine;
         match edit {
-            Edit::Pick { slot, pick } => {
-                return self
-                    .until_slot(slot)
-                    .ok_or(Issue::NotReached)?
-                    .try_pick(pick);
-            }
-            Edit::Class { level, .. } => {
-                return self
-                    .until_level(*level)
-                    .ok_or(Issue::NotReached)?
-                    .try_class(edit);
-            }
             Edit::Start(start) => {
                 if let Some((_, issue)) = engine.faith_misfit(start) {
                     return Err(issue);
@@ -203,20 +220,82 @@ impl<'a> Cursor<'a> {
     /// Whether the walk of `edited` (the Build with `edit` applied) fails no choice but the `allowed` ones, even
     /// when `edit` changes nothing: then it's the Build's own walk.
     fn walks(&self, edit: &Edit, edited: &Build, allowed: Vec<Choice>) -> bool {
+        self.recheck(edit, edited, allowed).broken.is_none()
+    }
+
+    /// [`walks`](Self::walks), with why the walk broke, if it did, and whether an `allowed` choice failed.
+    fn recheck(&self, edit: &Edit, edited: &Build, allowed: Vec<Choice>) -> RecheckWalk {
         let first = self.first_level(edit);
         match first.checked_sub(1) {
             None => Walker::new(self.engine, edited)
                 .without_sheet()
-                .holds(0, allowed),
+                .recheck(0, allowed),
             Some(index) => {
                 let Some(mut walker) = self.paused(usize::from(index)) else {
                     // Nothing after the last level depends on an edit past it (Remove level, a name).
-                    return true;
+                    return RecheckWalk::default();
                 };
                 walker.build = edited;
-                walker.holds(first, allowed)
+                walker.recheck(first, allowed)
             }
         }
+    }
+
+    /// The advancements of a prestige class taken at a character level (with `archetype`) that keep the Build, each
+    /// with the edit that takes the class with it: the class picker's verdict for a prestige class that asks what it
+    /// advances (open when there is one: [`AtLevel::try_class`]) and the advancement picker's list
+    /// ([`Engine::advances_options`]), so the two can't disagree. The candidates are [`advancements`]; one keeps the
+    /// Build when the walk of the Build with its edit fails no choice, the Build's own walk when the edit changes
+    /// nothing (so none keeps a Build that isn't possible).
+    ///
+    /// `own` (the class option's advancement), or else the first candidate, is walked first, and comes first when it
+    /// keeps; the rest follow in the candidates' order, each walked when the iterator gets to it. That first walk
+    /// excuses only the advancement itself ([`Choice::Advances`]). When it fails on another choice whose check reads
+    /// no spellcasting ([`spellcasting_could_meet`]), no advancement can keep the Build (they differ only in the
+    /// spell levels and caster level they give), so no other is walked.
+    pub(crate) fn kept_advancements(
+        &self,
+        level: u8,
+        prestige: &'a Class,
+        archetype: Option<&ArchetypeKey>,
+        own: Option<&BTreeSet<ClassKey>>,
+    ) -> impl Iterator<Item = AdvancesOption> + '_ {
+        let first_taken = first_taken_at(self.build, &prestige.key, level);
+        let archetype = archetype.cloned();
+        let edit = move |advances: BTreeSet<ClassKey>| Edit::Class {
+            level,
+            class: prestige.key.clone(),
+            choice: first_taken.then(|| ClassChoice {
+                archetype: archetype.clone(),
+                advances,
+            }),
+        };
+        let candidates = advancements(self.build, level, prestige);
+        let first = own.or(candidates.first()).cloned().unwrap_or_default();
+        let advances_choice = Choice::Advances {
+            class: prestige.key.clone(),
+        };
+        let first_edit = edit(first.clone());
+        let walked = self.recheck(
+            &first_edit,
+            &self.edited(&first_edit),
+            vec![advances_choice],
+        );
+        let first_keeps = walked.broken.is_none() && !walked.excused;
+        let others_may = walked.broken.as_ref().is_none_or(spellcasting_could_meet);
+        let first_kept = first_keeps.then(|| AdvancesOption {
+            advances: first.clone(),
+            edit: first_edit,
+        });
+        let others = candidates
+            .into_iter()
+            .filter(move |advances| others_may && advances != &first)
+            .map(move |advances| AdvancesOption {
+                edit: edit(advances.clone()),
+                advances,
+            })
+            .filter(|option| self.walks(&option.edit, &self.edited(&option.edit), Vec::new()));
+        first_kept.into_iter().chain(others)
     }
 
     /// An option open at its point of the Build: `Ok`, or [`Issue::BreaksLater`] when its edit breaks a choice but
@@ -450,69 +529,74 @@ pub(crate) struct AtLevel<'c, 'a> {
     state: CharacterState,
 }
 
-impl AtLevel<'_, '_> {
+impl<'a> AtLevel<'_, 'a> {
     /// The character just before the level.
     pub(crate) fn state(&self) -> &CharacterState {
         &self.state
     }
 
-    /// A class's verdict at the level (`try(edit)` for [`Edit::Class`]): the class table's end
-    /// ([`Issue::ClassLevelCap`]), then on its first level the walk's class-entry check ([`class_entry`]: the
-    /// class's and archetype's prerequisites, one issue), then, at a level the Build has, whether it breaks a later
-    /// choice ([`Issue::BreaksLater`]; a level after the last breaks nothing). A prestige class that asks which
-    /// classes it advances ([`Engine::asks_advances`]) keeps the Build when some advancement does
-    /// ([`advancements`]): the edit's own first, then the rest, each walked with nothing excused, so its advancement
-    /// is judged as the walk's class entry judges it. The advancement picker ([`Engine::advances_options`]) then
-    /// lists those.
-    pub(crate) fn try_class(&self, edit: &Edit) -> Result<(), Issue> {
+    /// The verdict for taking `class` (`prestige` when it's a prestige class) at the level with `choice`, the
+    /// archetype and advancement its edit sets on the class's first level (`try(edit)` for [`Edit::Class`]): the
+    /// class table's end ([`Issue::ClassLevelCap`]), then on its first level the walk's class-entry check
+    /// ([`class_entry`]: the class's and archetype's prerequisites, one issue), then, at a level the Build has,
+    /// whether it breaks a later choice ([`Issue::BreaksLater`]; a level after the last breaks nothing). A prestige
+    /// class that asks which classes it advances ([`Engine::asks_advances`]) is open at a level the Build has when
+    /// some advancement keeps the Build ([`Cursor::kept_advancements`], which the advancement picker lists). One
+    /// past the last level, every class that meets its entry is open without a walk, as before: within the level
+    /// cap the advancement picker lists some advancement there too (the agreement test sweeps it); past the cap the
+    /// walk refuses the level itself, so it lists none.
+    pub(crate) fn try_class(
+        &self,
+        class: &'a Class,
+        prestige: bool,
+        choice: Option<&ClassChoice>,
+    ) -> Result<(), Issue> {
         let cursor = self.cursor;
-        let Edit::Class {
-            level,
-            class: key,
-            choice,
-        } = edit
-        else {
-            return cursor.try_edit(edit);
-        };
-        if *level != self.level {
-            return cursor.try_edit(edit);
-        }
-        let (engine, build) = (cursor.engine, cursor.build);
-        let (class, _) = engine.catalog.class(key).ok_or(Issue::UnknownKey)?;
         let cap = class_level_cap(class);
-        let held = self.state.class_level(key);
+        let held = self.state.class_level(&class.key);
         if held >= cap {
             return Err(Issue::ClassLevelCap { cap });
         }
+        let archetype = choice.and_then(|choice| choice.archetype.as_ref());
         if held == 0 {
-            let archetype = choice.as_ref().and_then(|choice| choice.archetype.as_ref());
-            class_entry(&engine.catalog, &self.state, class, archetype).issue()?;
+            class_entry(&cursor.engine.catalog, &self.state, class, archetype).issue()?;
         }
-        if usize::from(*level) > build.levels.len() {
+        if usize::from(self.level) > cursor.build.levels.len() {
             return Ok(());
         }
-        let Some(choice) = choice
-            .as_ref()
-            .filter(|_| engine.asks_advances(build, *level, key))
-        else {
-            return cursor.later(edit);
-        };
-        let with = |advances| Edit::Class {
-            level: *level,
-            class: key.clone(),
-            choice: Some(ClassChoice {
-                archetype: choice.archetype.clone(),
-                advances,
-            }),
-        };
-        let others = advancements(build, *level, class)
-            .into_iter()
-            .filter(|advances| advances != &choice.advances);
-        let kept = std::iter::once(choice.advances.clone())
-            .chain(others)
-            .any(|advances| cursor.keeps(&with(advances), Vec::new()));
-        status(kept)
+        if held == 0 && prestige && most_advanced(class) > 0 {
+            let own = choice.map(|choice| &choice.advances);
+            let mut kept = cursor.kept_advancements(self.level, class, archetype, own);
+            return status(kept.next().is_some());
+        }
+        cursor.later(&Edit::Class {
+            level: self.level,
+            class: class.key.clone(),
+            choice: choice.cloned(),
+        })
     }
+}
+
+/// Whether an advancement could meet what `issue` says fails: an unmet prerequisite with a spell level or caster
+/// level in it, the only parts of a walk an advancement changes, besides its own check ([`Choice::Advances`]).
+fn spellcasting_could_meet(issue: &Issue) -> bool {
+    fn reads_spellcasting(unmet: &Unmet) -> bool {
+        match unmet {
+            Unmet::Condition { needs, .. } => needs.leaves().any(|leaf| {
+                matches!(
+                    leaf,
+                    Prerequisite::SpellLevel { .. }
+                        | Prerequisite::SpontaneousSpellLevel { .. }
+                        | Prerequisite::CasterLevel(_)
+                )
+            }),
+            Unmet::All(unmet) | Unmet::Any(unmet) | Unmet::AtLeast { failed: unmet, .. } => {
+                unmet.iter().any(reads_spellcasting)
+            }
+            Unmet::MetLater { unmet, .. } => reads_spellcasting(unmet),
+        }
+    }
+    matches!(issue, Issue::Unmet(unmet) if reads_spellcasting(unmet))
 }
 
 fn status(keeps: bool) -> Result<(), Issue> {

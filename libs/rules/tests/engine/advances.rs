@@ -2,7 +2,7 @@
 
 use std::collections::BTreeSet;
 
-use rules::{Build, ClassChoice, ClassKey, ClassOption, Edit, FeatSource, Pick, SlotId};
+use rules::{Build, ClassChoice, ClassKey, ClassOption, Edit, FeatSource, Issue, Pick, SlotId};
 
 use crate::support::*;
 
@@ -234,6 +234,113 @@ fn the_class_picker_opens_a_prestige_class_that_some_advancement_keeps() {
         advances(&engine.advances_options(&build, 4, &winter_witch)),
         sets(&[&["cleric"], &[]])
     );
+}
+
+/// Ticket 150, decision 5, the other way: a prestige class that asks what it advances stays locked when no
+/// advancement keeps the Build, here because the level it replaces is one a later pick needs whatever it casts.
+#[test]
+fn the_class_picker_locks_a_prestige_class_that_no_advancement_keeps() {
+    // Wizard 3 / Fighter 4, with Weapon Specialization (fighter level 4) in the general slot at level 7.
+    let mut build = build(
+        "elf",
+        &[
+            "wizard", "wizard", "wizard", "fighter", "fighter", "fighter", "fighter",
+        ],
+    );
+    build.picks.insert(
+        general_slot(5),
+        pick_feat_for("weapon-focus", weapon("longsword")),
+    );
+    build.picks.insert(
+        general_slot(7),
+        pick_feat_for("weapon-specialization", weapon("longsword")),
+    );
+    let engine = engine();
+    assert!(engine.is_possible(&build));
+
+    // Winter Witch in place of the 3rd fighter level leaves fighter 3 at level 7, however it advances.
+    let winter_witch = class_option(&build, 6, "winter-witch");
+    assert_eq!(winter_witch.status, Err(Issue::BreaksLater));
+    assert!(engine.advances_options(&build, 6, &winter_witch).is_empty());
+
+    // Without the feat, it's open.
+    build.picks.remove(&general_slot(7));
+    let winter_witch = class_option(&build, 6, "winter-witch");
+    assert_eq!(winter_witch.status, Ok(()));
+    assert!(!engine.advances_options(&build, 6, &winter_witch).is_empty());
+}
+
+/// Ticket 150, decision 5, for a prestige class that advances one class, arcane or divine (`Either`): it's open
+/// when advancing the class it replaces keeps the Build, whichever spell type that class casts, and the
+/// advancement picker offers only that class.
+#[test]
+fn a_prestige_class_advancing_either_spell_type_is_open_through_the_class_it_must_advance() {
+    // Mystic Theurge at level 7 needs 2nd-level arcane and divine spells. Winter Witch in place of the 3rd level of
+    // one of its two classes keeps that only by advancing that class.
+    for (classes, replaced) in [
+        (
+            [
+                "wizard",
+                "wizard",
+                "wizard",
+                "cleric",
+                "cleric",
+                "cleric",
+                "mystic-theurge",
+            ],
+            "cleric",
+        ),
+        (
+            [
+                "cleric",
+                "cleric",
+                "cleric",
+                "wizard",
+                "wizard",
+                "wizard",
+                "mystic-theurge",
+            ],
+            "wizard",
+        ),
+    ] {
+        let build = with_advances(&classes, "mystic-theurge", &["wizard", "cleric"]);
+        let engine = engine();
+        assert!(engine.is_possible(&build), "{replaced}");
+
+        let winter_witch = class_option(&build, 6, "winter-witch");
+        assert_eq!(winter_witch.status, Ok(()), "{replaced}");
+        assert_eq!(
+            advances(&engine.advances_options(&build, 6, &winter_witch)),
+            sets(&[&[replaced]]),
+        );
+    }
+}
+
+/// Ticket 150's review: the class picker's status for a prestige class that asks what it advances and the
+/// advancement picker come from one routine, so they agree even on a Build that isn't possible (which no picker is
+/// asked about): the Winter Witch the Build holds is closed there, as no advancement makes the Build possible.
+#[test]
+fn the_class_and_advancement_pickers_agree_on_a_build_that_is_not_possible() {
+    let mut build = with_advances(&["cleric"; 5], "winter-witch", &["cleric"]);
+    build.levels[3] = rules::LevelUp::new(class("winter-witch"));
+    let engine = engine();
+    assert!(engine.is_possible(&build));
+    let winter_witch = class_option(&build, 4, "winter-witch");
+    assert_eq!(winter_witch.status, Ok(()));
+    assert_eq!(
+        advances(&engine.advances_options(&build, 4, &winter_witch)),
+        sets(&[&["cleric"], &[]])
+    );
+
+    // Weapon Specialization in the general slot at level 5 fails: no fighter levels.
+    build.picks.insert(
+        general_slot(5),
+        pick_feat_for("weapon-specialization", weapon("longsword")),
+    );
+    assert!(!engine.is_possible(&build));
+    let winter_witch = class_option(&build, 4, "winter-witch");
+    assert!(engine.advances_options(&build, 4, &winter_witch).is_empty());
+    assert_eq!(winter_witch.status, Err(Issue::BreaksLater));
 }
 
 #[test]

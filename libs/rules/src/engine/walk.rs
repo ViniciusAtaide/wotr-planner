@@ -26,7 +26,7 @@ mod level;
 mod options;
 
 pub(super) use cursor::Cursor;
-pub(super) use level::{advancements, advancing_levels};
+pub(super) use level::{advancing_levels, first_taken_at};
 
 impl Engine {
     /// Walks the whole Build.
@@ -210,12 +210,14 @@ enum Pending {
 }
 
 /// What a walk that only answers whether a choice fails keeps instead of the failed choices.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 struct RecheckWalk {
     /// The choices whose failing doesn't count: the ones an edit sets, and any it may take with it.
     allowed: Vec<Choice>,
-    /// Whether any other choice has failed.
-    broken: bool,
+    /// Why the first other choice failed, once one has: the walk stops there.
+    broken: Option<Issue>,
+    /// Whether an `allowed` choice has failed.
+    excused: bool,
 }
 
 /// One option held through a selection with option levels: which of its rows it has got, and what each holds.
@@ -300,7 +302,10 @@ impl<'a> Walker<'a> {
     /// a link stale); [`Engine::failures`] keeps why.
     fn fail(&mut self, at: Choice, issue: Issue) {
         match &mut self.recheck {
-            Some(recheck) => recheck.broken |= !recheck.allowed.contains(&at),
+            Some(recheck) if recheck.allowed.contains(&at) => recheck.excused = true,
+            Some(recheck) => {
+                recheck.broken.get_or_insert(issue);
+            }
             None => self.failed.push(Failure { choice: at, issue }),
         }
     }
@@ -309,12 +314,22 @@ impl<'a> Walker<'a> {
     /// `first` on (the ones before it are walked already, and count with what failed in them), and stops at the
     /// first other choice that fails. A pick for a level's slot the level didn't reach fails once the level is
     /// walked, rather than at the end.
-    fn holds(mut self, first: u8, allowed: Vec<Choice>) -> bool {
-        let broken = self
-            .failed
-            .iter()
-            .any(|failure| !allowed.contains(&failure.choice));
-        self.recheck = Some(RecheckWalk { allowed, broken });
+    fn holds(self, first: u8, allowed: Vec<Choice>) -> bool {
+        self.recheck(first, allowed).broken.is_none()
+    }
+
+    /// [`holds`](Self::holds), with why the walk broke, if it did, and whether an `allowed` choice failed.
+    fn recheck(mut self, first: u8, allowed: Vec<Choice>) -> RecheckWalk {
+        let excused = |failure: &&Failure| allowed.contains(&failure.choice);
+        let broken = (self.failed.iter())
+            .find(|failure| !excused(failure))
+            .map(|failure| failure.issue.clone());
+        let excused = self.failed.iter().any(|failure| excused(&failure));
+        self.recheck = Some(RecheckWalk {
+            allowed,
+            broken,
+            excused,
+        });
         let build = self.build;
         if first == 0 {
             self.start();
@@ -323,7 +338,7 @@ impl<'a> Walker<'a> {
         for (index, level_up) in build.levels.iter().enumerate().skip(skipped) {
             let level = u8::try_from(index + 1).unwrap_or(u8::MAX);
             if self.broken() {
-                return false;
+                break;
             }
             self.level(level, level_up);
             let unreached: Vec<SlotId> = build
@@ -336,12 +351,16 @@ impl<'a> Walker<'a> {
                 self.fail(Choice::Slot(slot), Issue::NotReached);
             }
         }
-        self.check_unreached();
-        !self.broken()
+        if !self.broken() {
+            self.check_unreached();
+        }
+        self.recheck.unwrap_or_default()
     }
 
     fn broken(&self) -> bool {
-        self.recheck.as_ref().is_some_and(|recheck| recheck.broken)
+        self.recheck
+            .as_ref()
+            .is_some_and(|recheck| recheck.broken.is_some())
     }
 
     /// Walks the whole Build, then reports.

@@ -586,6 +586,15 @@ pub(in crate::engine) fn advancements(
     sets
 }
 
+/// Whether a class is first taken at this character level: no level before it takes it.
+pub(in crate::engine) fn first_taken_at(build: &Build, class: &ClassKey, level: u8) -> bool {
+    !build
+        .levels
+        .iter()
+        .take(usize::from(level).saturating_sub(1))
+        .any(|level_up| &level_up.class == class)
+}
+
 /// Every set of `size` of the items, in order: by the first item's place, then the next's.
 fn subsets(items: &[&ClassKey], size: usize) -> Vec<BTreeSet<ClassKey>> {
     if size == 0 {
