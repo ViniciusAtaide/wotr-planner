@@ -55,7 +55,9 @@ A working, locally run Leptos app at `~/code/wotr-planner` for planning Pathfind
   - [151](issues/151-bonuses-in-force.md): the walk records the Item bonuses in force, so totals and the caster line take no `BuildStart`. It comes after 148 and 150, and before 139, 141 and 143 where the queue allows.
   - [152](issues/152-one-name-per-choice.md): one name per choice (address, label and value key) in the rules, after 148.
 
-  The review's weaker candidates weren't ticketed: the engine saying what is open, an offer module and one number-lines module in the MCP. Its speculative candidate, dropping the SQLite hop, goes against the decision of 2026-11-06.
+  - [156](issues/156-offers-module.md): the MCP's offers in one module. This is the smaller piece that [the spike](research/offer-module-spike.md) found worth doing, after 151.
+
+  Not ticketed: the engine saying what is open, and one number-lines module in the MCP. The speculative candidate, dropping the SQLite hop, goes against the decision of 2026-11-06.
 - **Rules:** the rules live in a plain Rust crate with no DB or Leptos code, running in the browser. The browser loads the game data once, filters choices immediately, and decodes and encodes the Build from the URL.
 - **Mobile:** design mobile-first. The main targets are the Galaxy Z Fold 7 cover screen (folded, tall and narrow, ~21:9) and inner screen (unfolded, nearly square, ~6:5). Desktop is secondary. Both Fold screens must work for touch: no hover-only interactions, and tap targets large enough for a thumb. The layout should adapt when the phone is folded or unfolded without losing the user's place.
 - **Builds and links:** no accounts and no saved-build table. The URL fragment encodes every choice, updates live, and is the share link. `/` with no fragment is a blank Build.
