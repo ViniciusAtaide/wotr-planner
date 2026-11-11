@@ -4,6 +4,7 @@
 mod support;
 mod totals;
 
+mod agreement;
 mod alignment;
 mod archetype_saves;
 mod backgrounds;

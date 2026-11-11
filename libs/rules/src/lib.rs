@@ -1,5 +1,7 @@
 //! Game rules for the WotR build planner. Pure Rust + serde, compiled for both the browser and the server.
 
+#[cfg(any(test, feature = "testing"))]
+pub mod agreement;
 mod bonus;
 mod build;
 mod check;

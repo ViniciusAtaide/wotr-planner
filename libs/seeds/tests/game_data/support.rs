@@ -724,3 +724,32 @@ pub fn with_mr_1_ability(mut build: Build, ability: &str) -> Build {
 pub fn mr_1_selection() -> SlotId {
     SlotId::MythicSelection { rank: 1, index: 0 }
 }
+
+/// The benchmark's Builds (ticket 48's), one `name<TAB>link` line each; an empty link is the blank Build.
+const BENCH: &str = include_str!("../../../../tools/proof/bench-links.tsv");
+
+/// The bench Builds by name, opened as the planner opens a link. Those made before deities (an alignment and no
+/// faith, a stale link since ticket 94) are atheists, as `proof`'s bench Builds are.
+pub fn bench() -> Vec<(String, Build)> {
+    let engine = engine();
+    let keys = rules::LinkKeys::new(&DATA);
+    BENCH
+        .lines()
+        .filter(|line| !line.trim().is_empty())
+        .map(|line| {
+            let (name, link) = line.split_once('\t').unwrap_or((line, ""));
+            let build = if link.is_empty() {
+                Build::default()
+            } else {
+                engine.open_link(link).unwrap_or_else(|_| {
+                    let mut build =
+                        rules::decode_build(link, &keys).expect("the bench links decode");
+                    build.start.deity = Some(rules::Faith::Atheism);
+                    build
+                })
+            };
+            assert!(engine.is_possible(&build), "{name}");
+            (name.to_owned(), build)
+        })
+        .collect()
+}
