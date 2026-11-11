@@ -70,6 +70,7 @@ pub mod generate;
 pub mod links;
 
 use std::path::Path;
+use std::sync::atomic::{AtomicUsize, Ordering};
 
 use rules::{Build, DataProblem, Engine, GameData};
 
@@ -91,25 +92,40 @@ pub fn engine_on(dir: &Path) -> Result<(Engine, GameData, Vec<DataProblem>), see
 }
 
 /// Runs `work` on each Build on `threads` threads, keeping the Builds' order.
+///
+/// Each thread takes the next Build not yet taken, so the threads finish together: a Build's cost varies a
+/// hundredfold (a full level-20 Build with ticket 48's shortcut checks against a level-1 one), and the costly ones
+/// come last, so fixed chunks left one thread with six times another's work.
 pub fn in_parallel<T: Send>(
     builds: &[Named],
     threads: usize,
     work: impl Fn(&Named) -> T + Sync,
 ) -> Vec<T> {
-    if builds.is_empty() {
-        return Vec::new();
-    }
-    let work = &work;
-    std::thread::scope(|scope| {
-        let handles: Vec<_> = builds
-            .chunks(builds.len().div_ceil(threads.max(1)))
-            .map(|chunk| scope.spawn(move || chunk.iter().map(work).collect::<Vec<_>>()))
+    let next = AtomicUsize::new(0);
+    let (work, next) = (&work, &next);
+    let mut done: Vec<(usize, T)> = std::thread::scope(|scope| {
+        let handles: Vec<_> = (0..threads.clamp(1, builds.len().max(1)))
+            .map(|_| {
+                scope.spawn(move || {
+                    let mut done = Vec::new();
+                    loop {
+                        // Relaxed: the counter only hands out indices; the scope's join publishes the results.
+                        let index = next.fetch_add(1, Ordering::Relaxed);
+                        let Some(build) = builds.get(index) else {
+                            break done;
+                        };
+                        done.push((index, work(build)));
+                    }
+                })
+            })
             .collect();
         handles
             .into_iter()
             .flat_map(|handle| handle.join().expect("a proof thread panicked"))
             .collect()
-    })
+    });
+    done.sort_unstable_by_key(|(index, _)| *index);
+    done.into_iter().map(|(_, result)| result).collect()
 }
 
 /// The record of `builds`: one JSON line each, in their order.

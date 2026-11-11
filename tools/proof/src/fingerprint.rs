@@ -48,7 +48,8 @@ use std::sync::{Mutex, OnceLock, PoisonError};
 
 use rules::{
     ArchetypeKey, Build, Choice, ChoiceOption, ClassKey, Edit, Energy, Engine, Issue,
-    MythicPathKey, Pick, SlotKind, SlotOption, SpellSchool, SpellTraits, Stepper, Subschool,
+    MythicPathKey, Pick, SlotId, SlotKind, SlotOption, SpellSchool, SpellTraits, Stepper,
+    Subschool,
 };
 use serde_json::{Value, json};
 
@@ -247,6 +248,12 @@ pub fn held_counts() -> BTreeMap<String, usize> {
 pub fn fingerprint(engine: &Engine, name: &str, build: &Build) -> Value {
     let sheet = engine.evaluate(build);
     let removable = engine.removable(build);
+    let unfull = name.strip_prefix("full ").unwrap_or(name);
+    let shortcut_checked = SHORTCUT_CHECKED
+        .iter()
+        .any(|prefix| unfull.starts_with(prefix));
+    // The feat slots' options, unfolded, for the shortcut checks: the walks the slots below already pay.
+    let mut feat_options: Vec<(&SlotId, Vec<SlotOption>)> = Vec::new();
     let mut slots = BTreeMap::new();
     for slot in sheet
         .levels
@@ -254,7 +261,11 @@ pub fn fingerprint(engine: &Engine, name: &str, build: &Build) -> Value {
         .flat_map(|level| &level.slots)
         .chain(sheet.ranks.iter().flat_map(|rank| &rank.slots))
     {
-        let options = engine.options(build, &slot.id).map(folded);
+        let options = engine.options(build, &slot.id);
+        if shortcut_checked && matches!(slot.kind, SlotKind::Feat(_)) {
+            feat_options.push((&slot.id, options.clone().unwrap_or_default()));
+        }
+        let options = options.map(folded);
         let open = options
             .iter()
             .flatten()
@@ -289,8 +300,13 @@ pub fn fingerprint(engine: &Engine, name: &str, build: &Build) -> Value {
         );
     }
     let past_end = u8::try_from(build.levels.len() + 1).expect("at most 254 levels");
-    let classes: Vec<String> = (1..=past_end)
-        .map(|level| hashed(&mirrors(engine.class_options(build, level).as_ref())))
+    // Each level's class picker once: the hashed options and their lock reasons both read it.
+    let class_options: Vec<Option<Vec<rules::ClassOption>>> = (1..=past_end)
+        .map(|level| engine.class_options(build, level))
+        .collect();
+    let classes: Vec<String> = class_options
+        .iter()
+        .map(|options| hashed(&mirrors(options.as_ref())))
         .collect();
     let reason = |status: &Result<(), Issue>| {
         status
@@ -298,12 +314,12 @@ pub fn fingerprint(engine: &Engine, name: &str, build: &Build) -> Value {
             .err()
             .and_then(|issue| engine.issue_text(issue))
     };
-    let class_reasons: Vec<Vec<Option<String>>> = (1..=past_end)
-        .map(|level| {
-            engine
-                .class_options(build, level)
-                .unwrap_or_default()
+    let class_reasons: Vec<Vec<Option<String>>> = class_options
+        .iter()
+        .map(|options| {
+            options
                 .iter()
+                .flatten()
                 .map(|option| reason(&option.status))
                 .collect()
         })
@@ -317,19 +333,15 @@ pub fn fingerprint(engine: &Engine, name: &str, build: &Build) -> Value {
         .map(|option| reason(&option.status))
         .collect();
     let controls = controls(engine, build);
-    let edits = battery(engine, build);
+    let edits = battery(engine, build, &controls);
     let allows: Vec<bool> = edits
         .iter()
         .map(|edit| engine.allows(build, edit))
         .collect();
 
     consistency_checks(engine, build, &removable, &controls, &allows);
-    let unfull = name.strip_prefix("full ").unwrap_or(name);
-    if SHORTCUT_CHECKED
-        .iter()
-        .any(|prefix| unfull.starts_with(prefix))
-    {
-        shortcut_checks(engine, build);
+    if shortcut_checked {
+        shortcut_checks(engine, build, feat_options);
     }
 
     json!({
@@ -533,13 +545,14 @@ pub fn controls(engine: &Engine, build: &Build) -> Vec<(Result<(), Issue>, Edit)
 }
 
 /// The edits whose `allows` the fingerprint holds: every option and step of the start and level pickers
-/// ([`controls`]), each first ascension, each held choice's withdrawal ([`Engine::held_choices`]), and the edits
-/// past the end.
-pub fn battery(engine: &Engine, build: &Build) -> Vec<Edit> {
-    let mut edits: Vec<Edit> = controls(engine, build)
-        .into_iter()
-        .map(|(_, edit)| edit)
-        .collect();
+/// ([`controls`], passed in: each of their statuses costs a walk, which the fingerprint has already paid), each
+/// first ascension, each held choice's withdrawal ([`Engine::held_choices`]), and the edits past the end.
+pub fn battery(
+    engine: &Engine,
+    build: &Build,
+    controls: &[(Result<(), Issue>, Edit)],
+) -> Vec<Edit> {
+    let mut edits: Vec<Edit> = controls.iter().map(|(_, edit)| edit.clone()).collect();
     edits.extend(
         engine
             .first_ascension_options(build)
@@ -654,17 +667,10 @@ fn consistency_checks(
 
 /// Ticket 48's picker shortcut, checked: every feat a feat slot accepts is open, not `BreaksLater`, exactly when
 /// `allows` keeps the Build with it picked there (a full walk of the later choices; the shortcut gives a feat no later
-/// check names the slot-left-empty answer). Panics on a difference.
-fn shortcut_checks(engine: &Engine, build: &Build) {
-    let sheet = engine.evaluate(build);
-    for slot in sheet
-        .levels
-        .iter()
-        .flat_map(|level| &level.slots)
-        .chain(sheet.ranks.iter().flat_map(|rank| &rank.slots))
-        .filter(|slot| matches!(slot.kind, SlotKind::Feat(_)))
-    {
-        let options: Vec<SlotOption> = engine.options(build, &slot.id).unwrap_or_default();
+/// check names the slot-left-empty answer). `feat_options` is each feat slot's options, in the sheet's order. Panics
+/// on a difference.
+fn shortcut_checks(engine: &Engine, build: &Build, feat_options: Vec<(&SlotId, Vec<SlotOption>)>) {
+    for (slot, options) in feat_options {
         for option in options {
             // Only a feat the slot accepts: the shortcut answers whether it breaks a later choice.
             if !matches!(option.pick, Pick::Feat { .. })
@@ -676,7 +682,7 @@ fn shortcut_checks(engine: &Engine, build: &Build) {
             let allowed = engine.allows(
                 build,
                 &Edit::Pick {
-                    slot: slot.id.clone(),
+                    slot: slot.clone(),
                     pick: option.pick.clone(),
                 },
             );
@@ -684,7 +690,7 @@ fn shortcut_checks(engine: &Engine, build: &Build) {
                 option.status.is_ok(),
                 allowed,
                 "{:?} {:?}: {:?}",
-                slot.id,
+                slot,
                 option.pick,
                 option.status
             );

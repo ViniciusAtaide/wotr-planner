@@ -22,6 +22,20 @@ After a schema change, rebuild your checkout's database, from its root:
 
 `scripts/check.sh --schema` doesn't need the dev database: it checks the queries against a new file migrated in a temporary folder.
 
+## Parallel agents
+
+The machine has 8 cores and 24 GB of RAM. Builds, tests, proofs and benchmarks are all CPU-bound and compete for them: three agents building at once drove the load to 85–250 and made each one slower. Reading, writing and reviewing cost almost no local CPU, so those run side by side for free.
+
+- **Two at most:** no more than two agents building at once, each in its own worktree. Tickets whose diffs touch the same files run one after the other, however small.
+- **Heavy runs one at a time:** `scripts/proof.sh`, the full agreement sweeps (`--ignored`) and benchmarks. Time speed only on a quiet machine (`uptime` load near 8 or under), comparing medians of alternating runs on both sides.
+- **Before spawning an agent into a checkout:**
+  - its blockers are merged;
+  - no other agent is still live there; an agent "waiting on its own background work" is live;
+  - no process of another agent runs under that checkout's path.
+- **A new worktree starts from current `main`:** confirm with `git merge-base --is-ancestor <main's commit> HEAD` before the first edit, since a new worktree can start from an older commit.
+- **The proof's target folder:** until ticket 154 lands, give `scripts/proof.sh` a target folder of its own per checkout (`CARGO_TARGET_DIR=$TMPDIR/wotr-proof-<ticket>`), since its default is shared.
+- **RustRover in a worktree:** it has only the main checkout open, so in a worktree its tools read and write main's files. Edit and read there with the built-in tools.
+
 ## Rust tests
 
 Cargo compiles only the test modules that are declared:
