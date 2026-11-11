@@ -36,25 +36,32 @@ impl Walker<'_> {
             Held::MythicFeat(key, _) => BonusGiver::MythicFeat(key),
             Held::ClassSkill(_) => return,
         };
-        for row in self.engine.catalog.bonus_rows(giver) {
-            self.bonuses_noted[*row] = true;
+        self.note_giver(giver);
+    }
+
+    /// Notes the bonuses of the Build start's race or subrace and background: those of its subrace when the subrace
+    /// is the race's (they replace the race's, as its ability modifiers do: `Catalog::racial_modifiers`), the race's
+    /// otherwise. The start is never released, so these stay held.
+    pub(super) fn note_start_bonuses(&mut self) {
+        let (engine, start) = (self.engine, &self.build.start);
+        self.bonuses_noted = vec![false; engine.catalog.data().bonuses.len()];
+        let own_subrace = start.subrace.as_ref().filter(|key| {
+            (engine.catalog.subrace(key))
+                .is_some_and(|(owner, _)| start.race.as_ref() == Some(&owner.key))
+        });
+        let racial = match own_subrace {
+            Some(subrace) => Some(BonusGiver::Subrace(subrace)),
+            None => start.race.as_ref().map(BonusGiver::Race),
+        };
+        let background = start.background.as_ref().map(BonusGiver::Background);
+        for giver in [racial, background].into_iter().flatten() {
+            self.note_giver(giver);
         }
     }
 
-    /// Notes the bonuses of the race, subrace and background the Build start names.
-    pub(super) fn note_start_bonuses(&mut self) {
-        let catalog = &self.engine.catalog;
-        let start = &self.build.start;
-        let givers = [
-            start.race.as_ref().map(BonusGiver::Race),
-            start.subrace.as_ref().map(BonusGiver::Subrace),
-            start.background.as_ref().map(BonusGiver::Background),
-        ];
-        self.bonuses_noted = vec![false; catalog.data().bonuses.len()];
-        for giver in givers.into_iter().flatten() {
-            for row in catalog.bonus_rows(giver) {
-                self.bonuses_noted[*row] = true;
-            }
+    fn note_giver(&mut self, giver: BonusGiver<'_>) {
+        for row in self.engine.catalog.bonus_rows(giver) {
+            self.bonuses_noted[*row] = true;
         }
     }
 
@@ -174,31 +181,16 @@ impl Walker<'_> {
     }
 
     /// Calls `held` for each way the character holds an item: once per value for a parameterised feat or mythic feat
-    /// (with the value), once for anything else held, never for what it doesn't hold. A race's item counts without
-    /// a subrace of it, a subrace's with its own race.
+    /// (with the value), once for anything else held, never for what it doesn't hold. Only for an item noted: a Build
+    /// start's item is held once noted ([`note_start_bonuses`](Self::note_start_bonuses)).
     fn for_each_holding<'s>(
         &'s self,
         item: &BonusItem,
         mut held: impl FnMut(Option<&'s Parameter>),
     ) {
-        let catalog = &self.engine.catalog;
-        let (start, state) = (&self.build.start, &self.state);
+        let state = &self.state;
         let holds = match item {
-            BonusItem::Race(race) => {
-                let own_subrace = start
-                    .subrace
-                    .as_ref()
-                    .and_then(|key| catalog.subrace(key))
-                    .is_some_and(|(owner, _)| &owner.key == race);
-                start.race.as_ref() == Some(race) && !own_subrace
-            }
-            BonusItem::Subrace(subrace) => {
-                start.subrace.as_ref() == Some(subrace)
-                    && catalog
-                        .subrace(subrace)
-                        .is_some_and(|(owner, _)| start.race.as_ref() == Some(&owner.key))
-            }
-            BonusItem::Background(background) => start.background.as_ref() == Some(background),
+            BonusItem::Race(_) | BonusItem::Subrace(_) | BonusItem::Background(_) => true,
             BonusItem::MythicAbility(ability) => state.mythic_abilities.contains(ability),
             BonusItem::Feat(feat) => match state.feat_values.get(feat) {
                 Some(values) => {
