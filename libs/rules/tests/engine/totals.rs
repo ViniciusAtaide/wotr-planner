@@ -2,10 +2,14 @@
 //! progressions, the skill ranks and class skills, and the bonuses of the items held. Unconditional numbers only.
 //! And the interactions notes (ticket 124): looked up by item, checked like the bonuses.
 
+use std::collections::BTreeSet;
+
 use rules::{
-    Ability, BackgroundKey, BonusAmount, BonusItem, BonusTarget, BuildStart, CharacterState,
-    DataIssue, Engine, FeatKey, GameData, ItemBonus, ItemInteractions, MythicAbilityKey,
-    MythicFeatKey, Parameter, Prerequisite, RaceKey, Save, SkillKey, Stat, SubraceKey, Total,
+    Ability, Background, BackgroundKey, BonusAmount, BonusItem, BonusTarget, BuildStart,
+    CharacterState, DataIssue, Engine, Feat, FeatCategory, FeatKey, GameData, GuideRef, ItemBonus,
+    ItemInteractions, MythicAbility, MythicAbilityGroup, MythicAbilityKey, MythicFeat,
+    MythicFeatGroup, MythicFeatKey, Parameter, ParameterKind, Prerequisite, RaceKey, Repeat, Save,
+    SkillKey, Stat, Subrace, SubraceKey, Total,
 };
 
 use crate::support::*;
@@ -20,10 +24,75 @@ fn bonus(item: BonusItem, target: BonusTarget, amount: BonusAmount) -> ItemBonus
 }
 
 fn engine_with(bonuses: impl IntoIterator<Item = ItemBonus>) -> Engine {
-    let mut data = world();
+    let mut data = world_with_bonus_items();
     data.bonuses.extend(bonuses);
-    // The bonuses may name items the test world lacks: their parts are named by key.
-    Engine::new(data)
+    engine_on(data)
+}
+
+/// The test world with the items these tests' bonuses name that it lacks, each with no more than a kind needs (no
+/// prerequisite, feature, group or feat), named by its key as the parts already are; and Stat Focus taken for a
+/// stat as the guide's is: so the data checks.
+fn world_with_bonus_items() -> GameData {
+    let mut data = world();
+    for key in ["improved-initiative", "iron-will"] {
+        data.feats.push(Feat {
+            key: feat(key),
+            name: key.into(),
+            category: FeatCategory::Miscellaneous,
+            summary: String::new(),
+            guide: GuideRef::new(key),
+            parameter: None,
+            repeat: Repeat::Once,
+            extra_pick_of: BTreeSet::new(),
+            prerequisite: None,
+        });
+    }
+    let stat_focus = data.feats.iter_mut().find(|f| f.key == feat("stat-focus"));
+    let stat_focus = stat_focus.unwrap();
+    (stat_focus.parameter, stat_focus.repeat) = (Some(ParameterKind::Stat), Repeat::PerValue);
+    data.mythic_feats.push(MythicFeat {
+        key: MythicFeatKey::new("improved-initiative-mythic"),
+        name: "improved-initiative-mythic".into(),
+        group: MythicFeatGroup::Miscellaneous,
+        summary: String::new(),
+        guide: GuideRef::new("improved-initiative-mythic"),
+        parameter: None,
+        repeat: Repeat::Once,
+        removes_racial_penalty: false,
+        extra_pick: None,
+        prerequisite: None,
+    });
+    data.mythic_abilities.push(MythicAbility {
+        key: MythicAbilityKey::new("grace"),
+        name: "grace".into(),
+        group: MythicAbilityGroup::Miscellaneous,
+        summary: String::new(),
+        guide: GuideRef::new("grace"),
+        prerequisite: None,
+        features: Vec::new(),
+        selections: Vec::new(),
+        parameter: None,
+    });
+    data.backgrounds.push(Background {
+        key: BackgroundKey::new("pickpocket"),
+        name: "pickpocket".into(),
+        group: None,
+        note: String::new(),
+        class_skills: BTreeSet::new(),
+        feats: BTreeSet::new(),
+        feats_for: BTreeSet::new(),
+    });
+    let half_elf = data.races.iter_mut().find(|r| r.key.as_str() == "half-elf");
+    half_elf.unwrap().subraces.push(Subrace {
+        key: SubraceKey::new("half-elf/kindred"),
+        name: "half-elf/kindred".into(),
+        summary: String::new(),
+        guide: GuideRef::new("half-elf/kindred"),
+        ability_modifiers: Vec::new(),
+        feat_slots: Vec::new(),
+        skill_points: 0,
+    });
+    data
 }
 
 fn parts(total: &Total) -> Vec<(&str, i16)> {
@@ -369,7 +438,7 @@ fn an_items_interactions_note_is_found_by_the_item() {
         item: BonusItem::Feat(feat("dodge")),
         interactions: "The guide doesn't say.".to_owned(),
     });
-    let engine = Engine::new(data);
+    let engine = engine_on(data);
 
     assert_eq!(
         engine.interactions(&BonusItem::Feat(feat("dodge"))),

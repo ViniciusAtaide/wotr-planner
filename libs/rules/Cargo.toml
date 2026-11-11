@@ -11,11 +11,15 @@ miniz_oxide = { version = "0.9.1", default-features = false, features = ["with-a
 serde.workspace = true
 
 [features]
-# Helpers only tests use (`Engine::state_before`, `LinkKeys::of_build`); never turned on by the apps.
+# Helpers only tests use (`Engine::state_before`, `LinkKeys::of_build`, `rules::agreement`); never turned on by the
+# apps.
 testing = []
 # `rules::test_world`: a small invented game world and helpers for writing Builds against it, for tests outside this
 # crate too (`apps/mcp`). Only test targets turn it on, through dev-dependencies; never turned on by the apps.
 test-world = []
+# The behaviour proof's way past `GameData::check` (`From<GameData> for CheckedGameData`), so it can record older game
+# data that fails a check rule added with its data fix. Only `tools/proof` turns it on; never the apps or the tests.
+unchecked = []
 
 [dev-dependencies]
 proptest = "1.12.0"

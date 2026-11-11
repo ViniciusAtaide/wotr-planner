@@ -4,6 +4,7 @@ mod support;
 
 mod addresses;
 mod advances;
+mod agreement;
 mod alignment;
 mod archetype_rows;
 mod attack_line;

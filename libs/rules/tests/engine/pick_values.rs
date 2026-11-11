@@ -72,7 +72,7 @@ fn world_with_pick_values() -> GameData {
 }
 
 fn pick_engine() -> Engine {
-    Engine::new(world_with_pick_values())
+    engine_on(world_with_pick_values())
 }
 
 fn metamagic(key: &str) -> Parameter {

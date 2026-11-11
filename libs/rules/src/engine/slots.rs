@@ -112,17 +112,17 @@ impl Catalog {
     }
 
     /// A feat list a slot or an option row names: one of the data's, which
-    /// [`GameData::check`](crate::GameData::check) makes sure of.
+    /// [`CheckedGameData`](crate::CheckedGameData) guarantees.
     fn slot_list(&self, key: &FeatListKey) -> &FeatList {
         self.feat_list(key)
-            .expect("a slot or an option row names a feat list of the data (GameData::check)")
+            .expect("a slot or an option row names a feat list of the data (CheckedGameData)")
     }
 
     /// The selection an `OptionList` slot names: one of the data's, which
-    /// [`GameData::check`](crate::GameData::check) makes sure of.
+    /// [`CheckedGameData`](crate::CheckedGameData) guarantees.
     fn slot_selection(&self, key: &FeatureSelectionKey) -> &FeatureSelection {
         self.selection(key)
-            .expect("a slot names a selection of the data (GameData::check)")
+            .expect("a slot names a selection of the data (CheckedGameData)")
     }
 
     /// [`slot_accepts`](Self::slot_accepts) for a character whose lists for the slot are `lists`
@@ -172,7 +172,7 @@ impl Catalog {
     /// # Panics
     ///
     /// For a `OneOf` naming a list the data lacks: a slot is the data's, and
-    /// [`GameData::check`](crate::GameData::check) makes sure of its list.
+    /// [`CheckedGameData`](crate::CheckedGameData) guarantees its list.
     pub(super) fn slot_accepts(&self, slot: &FeatSlot, feat: &Feat) -> bool {
         match slot {
             FeatSlot::General => true,
@@ -191,7 +191,7 @@ impl Engine {
     /// # Panics
     ///
     /// For a `OneOf` naming a list the data lacks: a slot is the data's, and
-    /// [`GameData::check`](crate::GameData::check) makes sure of its list.
+    /// [`CheckedGameData`](crate::CheckedGameData) guarantees its list.
     pub fn slot_accepts(&self, slot: &FeatSlot, feat: &Feat) -> bool {
         self.catalog.slot_accepts(slot, feat)
     }

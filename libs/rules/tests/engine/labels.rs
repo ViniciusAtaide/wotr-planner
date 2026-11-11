@@ -91,7 +91,7 @@ fn a_background_note_and_a_path_summary_come_from_the_game_data() {
         .find(|p| p.key == path("legend"))
         .unwrap();
     legend.summary = "Raises the level cap to 40.".into();
-    let engine = Engine::new(data);
+    let engine = engine_on(data);
     assert_eq!(
         engine.background_note(&rules::BackgroundKey::new("guard")),
         "Shortsword and light crossbow proficiency."
@@ -128,7 +128,7 @@ fn a_class_and_an_archetype_summary_come_from_the_game_data() {
         .find(|a| a.key.as_str() == "sorcerer/sage")
         .unwrap();
     sage.summary = "Casts with Intelligence.".into();
-    let engine = Engine::new(data);
+    let engine = engine_on(data);
     assert_eq!(
         engine.class_summary(&class("sorcerer")),
         "Spontaneous arcane caster."

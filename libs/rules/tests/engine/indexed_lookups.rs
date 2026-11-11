@@ -4,8 +4,8 @@
 //! wouldn't.
 
 use rules::{
-    ArchetypeKey, Build, ClassChoice, Engine, FeatureSelectionKey, GameData, SlotId, SlotKind,
-    SpellLevels,
+    Ability, ArchetypeKey, Build, ClassChoice, Engine, FeatSlot, FeatureSelectionKey, GameData,
+    SlotId, SlotKind, SpellLevels, effective_row,
 };
 
 use crate::support::*;
@@ -51,16 +51,20 @@ fn offered(engine: &Engine, build: &Build, slot: &SlotId) -> Vec<String> {
 
 #[test]
 fn a_class_level_gets_the_row_of_its_own_number_when_the_table_has_a_gap() {
-    // Without its row 2, the fighter's row 3 is second in the table and row 4 (a Combat feat slot) third.
+    // Without its row 2, the fighter's row 3 is second in the table and row 4 (a Combat feat slot) third. The data
+    // check refuses a table with a gap, so no engine holds one; `effective_row` takes any class.
     let mut data = world();
-    class_mut(&mut data, "fighter").levels.remove(1);
-    let engine = Engine::new(data);
-    let build = build("elf", &times("fighter", 3));
+    let fighter = class_mut(&mut data, "fighter");
+    fighter.levels.remove(1);
 
-    assert_eq!(slot_ids(&engine, &build, 2), []);
-    assert_eq!(slot_ids(&engine, &build, 3), [general_slot(3)]);
-    let at_2 = engine.evaluate(&build).at(2).cloned().unwrap();
-    assert_eq!(at_2.feature_count(&feature("fighter/bravery")), 0);
+    assert!(effective_row(fighter, None, 2).is_none());
+    let row_3 = effective_row(fighter, None, 3).unwrap();
+    assert_eq!((row_3.level, row_3.feat_slots), (3, &[][..]));
+    let row_4 = effective_row(fighter, None, 4).unwrap();
+    assert_eq!(
+        (row_4.level, row_4.feat_slots),
+        (4, &[FeatSlot::CombatFeat][..])
+    );
 }
 
 #[test]
@@ -75,7 +79,7 @@ fn an_archetypes_rows_stored_out_of_level_order_apply_at_their_own_levels() {
         "fighter/armiger",
     );
 
-    let reversed = Engine::new(data);
+    let reversed = engine_on(data);
     assert_eq!(slot_ids(&reversed, &build, 2), [class_slot(2, 0)]);
     assert_eq!(slot_ids(&reversed, &build, 3), [general_slot(3)]);
     assert_eq!(slot_ids(&reversed, &build, 4), []);
@@ -83,10 +87,11 @@ fn an_archetypes_rows_stored_out_of_level_order_apply_at_their_own_levels() {
 
 #[test]
 fn whether_a_class_casts_follows_its_archetype() {
-    // An armiger whose 2nd-level row casts 1st-level arcane spells: the fighter casts arcane spells only with it,
-    // so only then can an Eldritch Knight advance it.
+    // An armiger whose 2nd-level row casts 1st-level arcane spells (with Intelligence): the fighter casts arcane
+    // spells only with it, so only then can an Eldritch Knight advance it.
     let mut data = world();
     let armiger = &mut class_mut(&mut data, "fighter").archetypes[0];
+    armiger.casting_ability = Some(Ability::Intelligence);
     armiger
         .levels
         .iter_mut()
@@ -96,7 +101,7 @@ fn whether_a_class_casts_follows_its_archetype() {
         arcane: 1,
         divine: 0,
     });
-    let casting = Engine::new(data);
+    let casting = engine_on(data);
     let mut classes = times("wizard", 3);
     classes.extend(times("fighter", 2));
     classes.extend(times("eldritch-knight", 2));
@@ -199,7 +204,7 @@ fn a_selection_sharing_exactly_one_option_grants_it_with_no_pick() {
     class_mut(&mut data, "warpriest").archetypes[0].selections[0]
         .shared_options
         .remove(&option("warpriest/blessings/good"));
-    let engine = Engine::new(data);
+    let engine = engine_on(data);
     let build = with_archetype(
         build("elf", &["warpriest"]),
         "warpriest",
@@ -229,7 +234,7 @@ fn a_selection_sharing_exactly_one_option_grants_it_with_no_pick() {
 fn a_pool_offers_the_options_of_its_selection() {
     // A shared key no selection defines would be a data problem (`GameData::check`, ticket 98), so the pool no
     // longer looks for one.
-    let engine = Engine::new(world());
+    let engine = engine_on(world());
     let mut build = build("elf", &times("cleric", 3));
     build
         .picks

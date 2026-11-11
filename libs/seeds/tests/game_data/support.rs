@@ -4,14 +4,18 @@ use std::collections::{BTreeSet, HashMap};
 use std::sync::LazyLock;
 
 use rules::{
-    ArchetypeKey, Build, CharacterState, ClassChoice, ClassKey, Engine, FeatKey, FeatSource,
-    FeatureKey, GameData, Issue, LevelUp, MythicPathKey, Parameter, Pick, Prerequisite,
+    ArchetypeKey, Build, CharacterState, CheckedGameData, ClassChoice, ClassKey, Engine, FeatKey,
+    FeatSource, FeatureKey, GameData, Issue, LevelUp, MythicPathKey, Parameter, Pick, Prerequisite,
     SelectionOptionKey, SkillKey, SlotId, SlotKind, SlotOption, Unmet, WeaponKey,
 };
 
 pub static DATA: LazyLock<GameData> = LazyLock::new(|| {
     seeds::read_game_data_files(&seeds::game_data_dir()).expect("game-data reads")
 });
+
+/// [`DATA`], checked once for every engine the tests build.
+static CHECKED: LazyLock<CheckedGameData> =
+    LazyLock::new(|| DATA.clone().checked().expect("game-data checks"));
 
 /// Every failing single condition in an `Unmet`, as a flat list.
 pub fn conditions(unmet: &Unmet) -> Vec<(&Prerequisite, Option<u8>)> {
@@ -26,7 +30,7 @@ pub fn conditions(unmet: &Unmet) -> Vec<(&Prerequisite, Option<u8>)> {
 }
 
 pub fn engine() -> Engine {
-    Engine::new(DATA.clone())
+    Engine::new(CHECKED.clone())
 }
 
 /// Why the pick in `slot` can't be taken there, for a Build that only that pick makes impossible (it's possible
@@ -723,4 +727,33 @@ pub fn with_mr_1_ability(mut build: Build, ability: &str) -> Build {
 /// The slot MR 1's mythic ability grants.
 pub fn mr_1_selection() -> SlotId {
     SlotId::MythicSelection { rank: 1, index: 0 }
+}
+
+/// The benchmark's Builds (ticket 48's), one `name<TAB>link` line each; an empty link is the blank Build.
+const BENCH: &str = include_str!("../../../../tools/proof/bench-links.tsv");
+
+/// The bench Builds by name, opened as the planner opens a link. Those made before deities (an alignment and no
+/// faith, a stale link since ticket 94) are atheists, as `proof`'s bench Builds are.
+pub fn bench() -> Vec<(String, Build)> {
+    let engine = engine();
+    let keys = rules::LinkKeys::new(&DATA);
+    BENCH
+        .lines()
+        .filter(|line| !line.trim().is_empty())
+        .map(|line| {
+            let (name, link) = line.split_once('\t').unwrap_or((line, ""));
+            let build = if link.is_empty() {
+                Build::default()
+            } else {
+                engine.open_link(link).unwrap_or_else(|_| {
+                    let mut build =
+                        rules::decode_build(link, &keys).expect("the bench links decode");
+                    build.start.deity = Some(rules::Faith::Atheism);
+                    build
+                })
+            };
+            assert!(engine.is_possible(&build), "{name}");
+            (name.to_owned(), build)
+        })
+        .collect()
 }

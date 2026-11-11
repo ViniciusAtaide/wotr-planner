@@ -14,12 +14,13 @@
 use std::collections::BTreeSet;
 
 use crate::build::{AbilityScores, BuildStart, Edit, Faith, Pick, SlotId};
+use crate::check::CheckedGameData;
 use crate::choice::{Choice, Issue};
 use crate::codec::LinkKeys;
 use crate::game_data::{
     Ability, AbilityBonus, AbilityModifier, Advancement, Archetype, ArchetypeLevelRow, Background,
-    Class, ClassLevelRow, Deity, FeatCategory, FeatList, FeatSlot, FeatValue, GameData, Race,
-    Skill, SpellLevels,
+    Class, ClassLevelRow, Deity, FeatCategory, FeatList, FeatSlot, FeatValue, Race, Skill,
+    SpellLevels,
 };
 use crate::keys::{
     ArchetypeKey, ClassKey, FeatKey, FeatListKey, FeatureKey, FeatureSelectionKey, MythicPathKey,
@@ -57,7 +58,8 @@ pub const PATH_CHOICE_RANK: u8 = 3;
 /// The Mythic rank at which a Path switch can happen.
 pub const PATH_SWITCH_RANK: u8 = 8;
 
-/// The game data plus lookups by key. Build it once when the game data arrives, then ask it about Builds.
+/// The game data plus lookups by key. Build it once when the game data arrives, then ask it about Builds. It takes
+/// only [`CheckedGameData`]: every engine is on data that passed [`GameData::check`](crate::GameData::check).
 #[derive(Clone, Debug)]
 pub struct Engine {
     /// The game data and its lookups by key.
@@ -68,7 +70,7 @@ pub struct Engine {
 
 impl Engine {
     /// Indexes the game data, after putting it in canonical order.
-    pub fn new(data: GameData) -> Self {
+    pub fn new(data: CheckedGameData) -> Self {
         let catalog = Catalog::new(data);
         Self {
             link_keys: LinkKeys::new(catalog.data()),

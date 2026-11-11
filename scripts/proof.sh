@@ -75,6 +75,10 @@ record() {
     shift 2
     echo "proof: recording side $side" >&2
     "$bin" record "$@" ${options[@]+"${options[@]}"} >"$out/$side.jsonl" 2>"$out/$side.err"
+    # Data that fails GameData::check is recorded anyway, with a warning (ticket 149).
+    if grep '^warning:' "$out/$side.err" >&2; then
+        echo "proof: side $side's data problems are listed in $out/$side.err" >&2
+    fi
     tail -n 2 "$out/$side.err" >&2
 }
 
@@ -110,6 +114,16 @@ rules | both)
     cp -R "$repo/tools/proof" "$src/tools/proof"
     perl -pi -e 's{"libs/proof"}{"tools/proof"}' "$src/Cargo.toml"
     grep -q '"tools/proof"' "$src/Cargo.toml" || perl -pi -e 's/^members = \[/members = ["tools\/proof", /' "$src/Cargo.toml"
+    # The harness turns on rules' `unchecked` feature (ticket 149), which a ref from before it lacks; there it does
+    # nothing, since that ref's engine takes any data.
+    rules_toml=$src/libs/rules/Cargo.toml
+    if ! grep -q '^unchecked = ' "$rules_toml"; then
+        if grep -q '^\[features\]' "$rules_toml"; then
+            perl -pi -e 's/^\[features\]$/[features]\nunchecked = []/' "$rules_toml"
+        else
+            printf '\n[features]\nunchecked = []\n' >>"$rules_toml"
+        fi
+    fi
     build "$src" "$out/proof-A" "$CARGO_TARGET_DIR/A"
     data_a=$repo/libs/game-data
     [[ $mode == both ]] && data_a=$src/libs/game-data

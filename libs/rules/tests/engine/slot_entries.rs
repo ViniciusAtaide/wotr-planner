@@ -275,7 +275,7 @@ fn an_entrys_detail_is_its_summary_then_its_story_note() {
         .find(|row| row.key == feat("dodge"))
         .unwrap();
     dodge.summary = "+1 AC.".into();
-    let engine = Engine::new(data);
+    let engine = engine_on(data);
     let entries = entries(&engine, &build("elf", &["fighter"]), &general_slot(1));
 
     let toughness = entry(&entries, "toughness");
@@ -300,7 +300,7 @@ fn an_entry_of_values_names_what_they_are() {
         .find(|row| row.key == feat("weapon-focus"))
         .unwrap()
         .summary = "+1 to hit.".into();
-    let engine = Engine::new(data);
+    let engine = engine_on(data);
     let entries = entries(&engine, &build("elf", &["fighter"]), &general_slot(1));
     let noun = |key: &str| entry(&entries, key).noun;
     assert_eq!(noun("weapon-focus"), Some("a weapon"));

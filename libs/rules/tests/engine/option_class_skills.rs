@@ -111,7 +111,7 @@ fn a_character_without_the_option_lacks_its_class_skills() {
 
 #[test]
 fn an_option_rows_class_skills_join_when_its_level_is_reached() {
-    let engine = Engine::new(world_with_row_skills(ABYSSAL, 3, &["mobility"]));
+    let engine = engine_on(world_with_row_skills(ABYSSAL, 3, &["mobility"]));
     let build = sorcerer(ABYSSAL, 3);
     assert_eq!(
         class_skills_with(&engine, &build, 2),
@@ -148,7 +148,7 @@ fn an_option_taken_late_gives_its_class_skills_from_the_pick() {
 #[test]
 fn an_archetype_skipping_the_row_gets_none_of_its_class_skills() {
     // The Sage's bloodline skips the Arcane bloodline's 1st-level row.
-    let engine = Engine::new(world_with_row_skills(ARCANE, 1, &["mobility"]));
+    let engine = engine_on(world_with_row_skills(ARCANE, 1, &["mobility"]));
     assert_eq!(
         class_skills_with(&engine, &sorcerer(ARCANE, 1), 1),
         strings(&["knowledge-arcana", "mobility"])
@@ -186,7 +186,7 @@ fn a_second_bloodline_giving_only_its_lists_gives_no_class_skills() {
 #[test]
 fn a_replaced_row_takes_back_its_class_skills_but_not_those_held_otherwise() {
     // The Abyssal row at 3 gives Mobility and the sorcerer's own Knowledge (Arcana); a Primalist's talents replace it.
-    let engine = Engine::new(world_with_row_skills(
+    let engine = engine_on(world_with_row_skills(
         ABYSSAL,
         3,
         &["knowledge-arcana", "mobility"],

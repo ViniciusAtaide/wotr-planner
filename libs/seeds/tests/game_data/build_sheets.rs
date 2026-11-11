@@ -1,40 +1,10 @@
 //! The build sheet (ticket 87) of the six bench Builds (`tools/proof/bench-links.tsv`): their second line reopens
 //! them, each level and each pick has its line, and the parts that matter are pinned.
 
-use rules::{Build, Faith, LinkKeys, decode_build};
-
 use crate::support::*;
-
-/// The benchmark's Builds, one `name<TAB>link` line each; an empty link is the blank Build.
-const BENCH: &str = include_str!("../../../../tools/proof/bench-links.tsv");
 
 /// The planner's address before the fragment, as the page gives it.
 const PAGE: &str = "https://viniciusataide.github.io/wotr-planner/";
-
-/// The bench Builds by name, opened as the planner opens a link. Those made before deities (an alignment and no
-/// faith, a stale link since ticket 94) are atheists, as `proof`'s bench Builds are.
-fn bench() -> Vec<(String, Build)> {
-    let engine = engine();
-    let keys = LinkKeys::new(&DATA);
-    BENCH
-        .lines()
-        .filter(|line| !line.trim().is_empty())
-        .map(|line| {
-            let (name, link) = line.split_once('\t').unwrap_or((line, ""));
-            let build = if link.is_empty() {
-                Build::default()
-            } else {
-                engine.open_link(link).unwrap_or_else(|_| {
-                    let mut build = decode_build(link, &keys).expect("the bench links decode");
-                    build.start.deity = Some(Faith::Atheism);
-                    build
-                })
-            };
-            assert!(engine.is_possible(&build), "{name}");
-            (name.to_owned(), build)
-        })
-        .collect()
-}
 
 fn sheet_of(name: &str) -> String {
     let (_, build) = bench()
