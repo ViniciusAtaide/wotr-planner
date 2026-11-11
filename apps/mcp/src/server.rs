@@ -12,7 +12,6 @@ use rmcp::{Json, RoleServer, ServerHandler, tool, tool_handler, tool_router};
 
 use rules::{Build, Edit};
 
-use crate::assume::assume_argument;
 use crate::attack::weapon_argument as attack_weapon;
 use crate::caster::caster_argument;
 use crate::choose::choose;
@@ -49,9 +48,9 @@ is still open, reading `rejected` when a step is refused.
 The honesty boundary, in short:
 - State as fact only what the tools return: every choice in the Build is legal under the planner's rules, the link \
 opens, and the sheet, the attack line, the caster line and the totals are the planner's numbers.
-- Each line says what it leaves out (`attack_leaves_out`: rage, stances, mythic feats, class features, buffs, gear \
-unless assumed; `caster_leaves_out`; `totals_leave_out`): label anything you add for them as your own game \
-knowledge. Assumed numbers (`assume`) are your assumption: say what you assumed beside them.
+- The numbers are naked: no gear, and the attack line's weapon is the Build's Weapon Focus weapon unless you give \
+one. Each line says what it leaves out (`attack_leaves_out`: rage, stances, mythic feats, class features, buffs, \
+gear; `caster_leaves_out`; `totals_leave_out`): label anything you add for them as your own game knowledge.
 - When the planner ranks Builds or options by a number (`compare` or `improve` with `by`), that ranking is a fact. \
 Report `compare`'s other differences as facts, without ranking them by your own judgement, and label which choice \
 is better overall as your judgement.
@@ -214,33 +213,12 @@ impl Server {
             (ability modifiers, base saves, ranks, the class skill bonus, the flat bonuses of the items held). \
             Every choice has its address (`start.race`, `level.4.class`, `slot.feat.3.general.0`, …) for `options`, \
             its value and its name. `removable: true` also marks which held choices can be withdrawn now. \
-            `weapon` (a weapon key) adds each level's attack line for that base weapon. `caster` ({school, \
-            subschool?, energy?, metamagic?, save?, mind_affecting?}) adds each level's caster line for those spells: \
-            the save DC of each spell level castable (and heightened, with Heighten Spell) broken down by source, \
-            caster level against spell resistance and the concentration bonus. \
-            `assume` ({enhancement?: {ability: n}, inherent?: {ability: n}, weapon_enhancement?, resistance?, \
-            items?: [key]}) adds `assumed`: at the last level, the totals, and with `weapon` or `caster` those lines, \
-            with gear assumed on top, beside the unassisted numbers, each part it adds named \"(assumed)\". The \
-            agent's assumption: never part of the Build, its link or any prerequisite. The guide's highest values \
-            (its saved item pages): enhancement +8 to each ability score (Belt of Physical Perfection +8: Str, Dex, \
-            Con; Headband of Mental Perfection +8, Razmir's Mask, Darkness Caress: Int, Wis, Cha), 1 to 8; inherent +2 \
-            to one ability (a tome or manual), +2 to all (Elixir of Inconceivable Transmutations), +1 to all (Potion \
-            of Humanity), +4 to all (Tome of Ancient Perfection): the guide doesn't say whether they stack, 1 to 9; \
-            `weapon_enhancement` +5 (attack line); `resistance` +7 to every save (Cloak of Resistance +7; totals). \
-            `items`: the guide's caster level and spell DC tables, each bonus counted only where its circumstance \
-            matches the `caster` spell (DC unless said; SR: against spell resistance): any spell: \
-            heartstone-of-the-night-hag-queen +3, dagger-of-the-betrayer +2, quarterstaff-of-the-war-mage +2 and SR \
-            +4, sin-mages-staff +1 and CL +3, robe-of-the-seven-sins +1, CL +3 and SR +5, fiery-spell-weaver CL +1 \
-            and SR +4; conjuration: rod-of-power-source +4; enchantment: mindmasters-eyes, twisted-temptation, \
-            ring-of-chaotic-fascination +2; evocation: destroyer-of-planes, scorching-bracers, cloak-of-carnage +2, \
-            purple-stone-knife +1, ashmaker CL +2; illusion: magicians-ring +2, phantasmal-guide CL +3; necromancy: \
-            awakened-driftwood +1 (SR +3 for any); transmutation: scimitar-of-wind, headband-of-reshaping CL +1; \
-            cold: robe-of-water +2, flow-of-water +1; electricity: robe-of-air +2; acid: robe-of-earth +2; fire: \
-            robe-of-fire +2; `mind_affecting`: goggles-of-mind-control +2 and CL +2, glass-amulet-of-clarity +2, \
-            robe-of-the-overmind +1; `save: will`: quarterstaff-of-coercion +1; `save: fortitude`: \
-            robe-of-determination +2 (SR +2 and concentration +4 for any); a witch's spells: blackened-rags +1; a \
-            druid's: web-strider CL +1. One item per slot and how bonuses stack are the agent's to judge. Plus the \
-            envelope (`build`, `link`, `todo`).",
+            Each level's attack line (`attack`, naming its weapon): for `weapon` (a weapon key) when given, else for \
+            the weapon of the Build's first Weapon Focus, and none without one. `caster` ({school, subschool?, \
+            energy?, metamagic?}) adds each level's caster line for those spells: the save DC of each spell level \
+            castable (and heightened, with Heighten Spell) broken down by source, caster level against spell \
+            resistance and the concentration bonus. Every number is naked: no gear. Plus the envelope (`build`, \
+            `link`, `todo`).",
         annotations(read_only_hint = true, open_world_hint = false)
     )]
     async fn sheet(
@@ -251,15 +229,7 @@ impl Server {
             let build = open(planner, &args.build)?;
             let weapon = attack_weapon(&planner.engine, args.weapon.as_deref())?;
             let spell = caster_argument(args.caster.as_ref())?;
-            let assumed = assume_argument(&planner.engine, args.assume.as_ref())?;
-            Ok(Json(sheet(
-                planner,
-                &build,
-                args.removable,
-                weapon.as_ref(),
-                spell,
-                assumed.as_ref(),
-            )))
+            Ok(Json(sheet(planner, &build, args.removable, weapon, spell)))
         })
         .await
     }
@@ -338,9 +308,9 @@ impl Server {
         description = "Compare 1 to 4 Builds (`builds`: their codes, for example two branches of one Build), from \
             the planner's sheets. For each Build, a summary at its last level: classes and levels, BAB, saves, \
             scores, caster level (class levels only), spell-level access, Mythic rank, first ascension, path, Path \
-            switch, level cap, link, with `weapon` (a weapon key) its attack line, and with `caster` ({school, \
-            subschool?, energy?, metamagic?, save?, mind_affecting?}) its caster line; with `assume` (as `sheet`'s, \
-            with a `weapon` or a `caster`) those lines with gear assumed on top, as `assumed` beside them. Then only \
+            switch, level cap, link, its attack line (`attack`, naming its weapon: `weapon`, a weapon key, when \
+            given, else the weapon of that Build's first Weapon Focus, and none without one), and with `caster` \
+            ({school, subschool?, energy?, metamagic?}) its caster line; every number naked, with no gear. Then only \
             what differs: the Build start's choices; \
             by character level, the \
             numbers (class level, BAB, saves, scores), the choices by address and the feats and features each Build \
@@ -348,8 +318,9 @@ impl Server {
             the path features each Build has that another lacks. Every per-Build list follows the order of \
             `builds`. Facts only: it doesn't say which Build is better. `by` (`{\"caster_line\": {school, \
             subschool?, energy?, metamagic?, number?}}`, `number` one of `dc` (the default: the DC of the highest \
-            spell level castable), `spell_penetration`, `concentration`; or `{\"attack_line\": {weapon, number?}}`, \
-            `number` `attack` (the default: the first attack's bonus) or `damage` (the bonus per hit)) orders the \
+            spell level castable), `spell_penetration`, `concentration`; or `{\"attack_line\": {weapon?, number?}}`, \
+            `weapon` left out for each Build's own Weapon Focus weapon, `number` `attack` (the default: the first \
+            attack's bonus) or `damage` (the bonus per hit)) orders the \
             Builds by that number at their last level, highest first, and gives each summary its `number` and its \
             place in `builds` (`given`), and `by` in the result says what the number leaves out: a ranking by a \
             number, still a fact. One code gives its summary alone, with no differences. Errors: `invalid_arguments` (not 1 to 4 codes), `stale_link` (naming the code that \
@@ -370,8 +341,9 @@ impl Server {
             …; a parameterised feat once per value) is taken by the planner's own edit, and the number `by` names \
             is read at the resulting Build's last level: `{\"caster_line\": {school, subschool?, energy?, \
             metamagic?, number?}}` (`number`: `dc`, the default, the DC of the highest spell level castable; \
-            `spell_penetration`; `concentration`) or `{\"attack_line\": {weapon, number?}}` (`number`: `attack`, \
-            the default, the first attack's bonus; `damage`, the bonus per hit). Returns the Build's number now \
+            `spell_penetration`; `concentration`) or `{\"attack_line\": {weapon?, number?}}` (`weapon` left out: \
+            the Build's Weapon Focus weapon; `number`: `attack`, the default, the first attack's bonus; `damage`, \
+            the bonus per hit). Returns the Build's number now \
             (`current`), `options`: those that change it, highest number first, each with its `value` (what \
             `choose` takes), `number` and `change`; `no_change`: those that leave it as it is (the one held now \
             among them; conditional effects such as rolling twice stay in their summaries); `no_line`: those whose \

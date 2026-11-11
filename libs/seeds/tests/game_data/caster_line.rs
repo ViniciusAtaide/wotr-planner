@@ -25,8 +25,6 @@ fn compulsion(metamagic: bool) -> SpellTraits {
         subschool: Some(Subschool::Compulsion),
         energy: None,
         metamagic,
-        save: None,
-        mind_affecting: false,
     }
 }
 
@@ -137,8 +135,6 @@ fn the_max_dc_runs_expanded_arsenal_gives_conjuration_enchantments_spell_focus_f
         subschool: None,
         energy: None,
         metamagic: false,
-        save: None,
-        mind_affecting: false,
     };
     let line = lines(&engine, &build, conjuration).pop().flatten().unwrap();
 

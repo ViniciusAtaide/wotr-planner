@@ -285,6 +285,76 @@ async fn improve_and_compare_rank_by_the_attack_line() {
 }
 
 #[tokio::test]
+async fn compare_by_the_attack_line_without_a_weapon_reads_each_builds_weapon_focus_weapon() {
+    let client = Client::on_the_test_world().await;
+    let mut dagger = fighter();
+    dagger.picks.insert(
+        class_slot(2, 0),
+        pick_feat_for("weapon-focus", weapon("dagger")),
+    );
+    let mut unfocused = fighter();
+    unfocused.picks.remove(&class_slot(2, 0));
+    let compared = client
+        .ok(
+            "compare",
+            json!({
+                "builds": [code(&unfocused), code(&dagger), code(&fighter())],
+                "by": { "attack_line": { "number": "attack" } },
+            }),
+        )
+        .await;
+
+    // Each Build's own Weapon Focus weapon: BAB +4, Str +3, Weapon Focus +1, the dagger's as the longsword's (no
+    // Weapon Finesse), so in the order given. No Weapon Focus: no line, last.
+    let ranked: Vec<(Value, Value, Value)> = compared["builds"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|summary| {
+            (
+                summary["given"].clone(),
+                summary["number"].clone(),
+                summary["attack"]["weapon"]["key"].clone(),
+            )
+        })
+        .collect();
+    assert_eq!(
+        ranked,
+        [
+            (json!(1), json!(8), json!("dagger")),
+            (json!(2), json!(8), json!("longsword")),
+            (json!(0), Value::Null, Value::Null),
+        ]
+    );
+    assert!(
+        text(&compared["by"]["number"]).contains("Weapon Focus"),
+        "{compared}"
+    );
+}
+
+#[tokio::test]
+async fn improve_by_the_attack_line_without_a_weapon_reads_the_builds_weapon_focus_weapon() {
+    let client = Client::on_the_test_world().await;
+    let improved = client
+        .ok(
+            "improve",
+            json!({
+                "build": code(&fighter()),
+                "choice": "slot.feat.1.class.0",
+                "by": { "attack_line": {} },
+            }),
+        )
+        .await;
+
+    // The longsword's line, the Build's Weapon Focus weapon, read for every option.
+    assert_eq!(improved["current"], 8, "{improved}");
+    assert!(
+        text(&improved["number"]).contains("longsword"),
+        "{improved}"
+    );
+}
+
+#[tokio::test]
 async fn a_number_that_isnt_one_and_a_choice_the_build_lacks_are_refused() {
     let client = Client::start().await;
     for (choice, by, code) in [

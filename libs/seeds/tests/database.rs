@@ -1705,8 +1705,7 @@ async fn every_background_group_round_trips() {
 
 /// Tickets 119, 120 and 124: a bonus names exactly one item that exists, a spell DC bonus has a scope and its value
 /// column, a save or skill bonus its save or skill, an amount its columns, a casting ability is an ability, and an
-/// interactions note names one item once. Ticket 122: a gear bonus belongs to an item and has its circumstance's
-/// columns.
+/// interactions note names one item once.
 #[tokio::test]
 async fn the_schema_keeps_item_bonuses_and_casting_abilities_consistent() {
     let test = TestDatabase::new();
@@ -1798,44 +1797,6 @@ async fn the_schema_keeps_item_bonuses_and_casting_abilities_consistent() {
         ),
         (
             "UPDATE item_interactions SET interactions = '' WHERE feat_key = 'skill-focus'",
-            "check constraint",
-        ),
-        // Ticket 122: a gear bonus belongs to an item, is at least +1, and has its circumstance's columns, a spells
-        // circumstance a scope other than `value`.
-        (
-            "UPDATE gear_bonus SET gear_item_key = 'no-such-item' WHERE gear_item_key = 'plain-staff'",
-            "foreign key",
-        ),
-        (
-            "UPDATE gear_bonus SET amount = 0 WHERE gear_item_key = 'plain-staff'",
-            "check constraint",
-        ),
-        (
-            "UPDATE gear_bonus SET scope = 'value' WHERE scope = 'all'",
-            "check constraint",
-        ),
-        (
-            "UPDATE gear_bonus SET scope = NULL WHERE circumstance = 'spells'",
-            "check constraint",
-        ),
-        (
-            "UPDATE gear_bonus SET spell_school = NULL WHERE scope = 'school'",
-            "check constraint",
-        ),
-        (
-            "UPDATE gear_bonus SET save = NULL WHERE circumstance = 'save'",
-            "check constraint",
-        ),
-        (
-            "UPDATE gear_bonus SET save = 'will' WHERE circumstance = 'mind_affecting'",
-            "check constraint",
-        ),
-        (
-            "UPDATE gear_bonus SET class_key = 'no-such-class' WHERE circumstance = 'class'",
-            "foreign key",
-        ),
-        (
-            "UPDATE gear_item SET slot = 'boots' WHERE key = 'plain-staff'",
             "check constraint",
         ),
     ] {

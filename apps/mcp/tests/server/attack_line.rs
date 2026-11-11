@@ -65,15 +65,85 @@ async fn the_sheet_gives_each_level_the_weapons_attack_line() {
     );
 }
 
+/// The fighter without Weapon Focus.
+fn unfocused() -> Build {
+    let mut fighter = fighter();
+    fighter.picks.remove(&class_slot(2, 0));
+    fighter
+}
+
 #[tokio::test]
-async fn without_a_weapon_the_sheet_has_no_attack_line() {
+async fn without_a_weapon_the_sheet_gives_the_weapon_focus_weapons_line() {
     let client = Client::on_the_test_world().await;
     let sheet = client
         .ok("sheet", json!({ "build": code(&fighter()) }))
         .await;
 
+    // Every level's line is the longsword's, Weapon Focus (Longsword) taken at level 2.
+    for level in 0..4 {
+        assert_eq!(
+            sheet["levels"][level]["attack"]["weapon"],
+            json!({ "key": "longsword", "name": "longsword" }),
+            "{sheet}"
+        );
+    }
+    assert_eq!(sheet["levels"][3]["attack"]["attacks"], json!([8]));
+    assert!(sheet["attack_leaves_out"].is_array());
+}
+
+#[tokio::test]
+async fn without_a_weapon_or_weapon_focus_the_sheet_has_no_attack_line() {
+    let client = Client::on_the_test_world().await;
+    let sheet = client
+        .ok("sheet", json!({ "build": code(&unfocused()) }))
+        .await;
+
     assert_eq!(sheet["levels"][0].get("attack"), None);
     assert_eq!(sheet.get("attack_leaves_out"), None);
+}
+
+#[tokio::test]
+async fn on_the_game_data_weapon_focus_greatsword_gives_the_greatswords_line() {
+    let client = Client::start().await;
+    let empty = client.ok("new_build", json!({})).await;
+    let fighter = client
+        .ok(
+            "choose",
+            json!({
+                "build": empty["build"],
+                "steps": [
+                    { "choice": "level.1.class", "value": { "class": "fighter" } },
+                    {
+                        "choice": "slot.feat.1.class.0",
+                        "value": { "key": "weapon-focus", "parameter": "greatsword" },
+                    },
+                ],
+            }),
+        )
+        .await;
+    assert_eq!(fighter["applied"], 2, "{fighter}");
+    let sheet = client
+        .ok("sheet", json!({ "build": fighter["build"] }))
+        .await;
+
+    let attack = &sheet["levels"][0]["attack"];
+    assert_eq!(attack["weapon"]["key"], "greatsword", "{sheet}");
+    assert_eq!(attack["damage"], "2d6");
+    // BAB +1, Str +0 (10), Weapon Focus +1.
+    assert_eq!(attack["attacks"], json!([2]));
+}
+
+#[tokio::test]
+async fn a_weapon_given_overrides_the_weapon_focus_weapon() {
+    let client = Client::on_the_test_world().await;
+    let sheet = client
+        .ok(
+            "sheet",
+            json!({ "build": code(&fighter()), "weapon": "dagger" }),
+        )
+        .await;
+
+    assert_eq!(sheet["levels"][3]["attack"]["weapon"]["key"], "dagger");
 }
 
 #[tokio::test]
@@ -105,6 +175,59 @@ async fn compare_gives_each_builds_summary_its_attack_line() {
     assert_eq!(compared["builds"][1]["attack"]["attacks"], json!([4]));
     assert_eq!(compared["builds"][1]["attack"]["power_attack"], Value::Null);
     assert!(compared["attack_leaves_out"].is_array());
+}
+
+#[tokio::test]
+async fn compare_without_a_weapon_gives_each_build_its_own_weapon_focus_line() {
+    let client = Client::on_the_test_world().await;
+    let mut dagger = fighter();
+    dagger.picks.insert(
+        class_slot(2, 0),
+        pick_feat_for("weapon-focus", weapon("dagger")),
+    );
+    let compared: Value = client
+        .ok(
+            "compare",
+            json!({ "builds": [code(&fighter()), code(&dagger), code(&unfocused())] }),
+        )
+        .await;
+
+    assert_eq!(
+        compared["builds"][0]["attack"]["weapon"]["key"],
+        "longsword"
+    );
+    assert_eq!(compared["builds"][1]["attack"]["weapon"]["key"], "dagger");
+    assert_eq!(compared["builds"][2].get("attack"), None, "{compared}");
+    assert!(compared["attack_leaves_out"].is_array());
+}
+
+#[tokio::test]
+async fn no_tool_takes_assume_and_the_numbers_are_naked() {
+    let client = Client::on_the_test_world().await;
+    for tool in client.tool_names().await {
+        let description = client.tool_description(&tool).await;
+        assert!(!description.contains("assume"), "{tool}: {description}");
+    }
+    let sheet = client
+        .ok("sheet", json!({ "build": code(&fighter()) }))
+        .await;
+    assert_eq!(sheet.get("assumed"), None);
+    let leaves_out = sheet["attack_leaves_out"].as_array().unwrap();
+    assert!(
+        leaves_out
+            .iter()
+            .all(|item| !text(item).contains("assumed")),
+        "{leaves_out:?}"
+    );
+    let instructions = client.instructions();
+    assert!(
+        instructions.contains("The numbers are naked"),
+        "{instructions}"
+    );
+    assert!(!instructions.contains("assume"), "{instructions}");
+    let guide = client.guide().await;
+    assert!(guide.contains("The planner's numbers are naked"), "{guide}");
+    assert!(!guide.contains("assume"), "{guide}");
 }
 
 #[tokio::test]

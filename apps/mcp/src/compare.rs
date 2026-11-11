@@ -7,7 +7,6 @@ use std::collections::BTreeSet;
 
 use rules::{CharacterState, Sheet};
 
-use crate::assume;
 use crate::attack;
 use crate::caster;
 use crate::code::open;
@@ -46,13 +45,6 @@ pub(crate) fn compare(planner: &Planner, args: CompareArgs) -> Result<CompareRes
     let engine = &planner.engine;
     let weapon = attack::weapon_argument(engine, args.weapon.as_deref())?;
     let spell = caster::caster_argument(args.caster.as_ref())?;
-    let assumed = assume::assume_argument(engine, args.assume.as_ref())?;
-    if assumed.is_some() && weapon.is_none() && spell.is_none() {
-        return Err(ToolError::invalid_arguments(
-            "`assume` on `compare` applies to the attack line and the caster line: give a `weapon` or a `caster`              too (`sheet` with `assume` gives the totals with it)."
-                .to_owned(),
-        ));
-    }
     let number = args
         .by
         .as_ref()
@@ -109,38 +101,33 @@ pub(crate) fn compare(planner: &Planner, args: CompareArgs) -> Result<CompareRes
         })
         .collect();
 
+    let summaries: Vec<BuildSummary> = builds
+        .iter()
+        .zip(&sheets)
+        .zip(&lines)
+        .enumerate()
+        .map(|(i, ((build, sheet), line))| {
+            let mut summary = summary(planner, build, sheet, line);
+            if let Some(&(given, number)) = ranked.get(i) {
+                summary.given = u32::try_from(given).ok();
+                summary.number = number;
+            }
+            let weapon = weapon
+                .clone()
+                .or_else(|| engine.default_attack_weapon(sheet));
+            if let (Some(weapon), Some(last)) = (&weapon, sheet.levels.last()) {
+                summary.attack = attack::attack_line(engine, &last.state, weapon);
+            }
+            if let (Some(spell), Some(last)) = (spell, sheet.levels.last()) {
+                summary.caster = caster::caster_line(engine, &build.start, &last.state, spell);
+            }
+            summary
+        })
+        .collect();
+    let any_attack_line = summaries.iter().any(|summary| summary.attack.is_some());
+
     Ok(CompareResult {
-        builds: builds
-            .iter()
-            .zip(&sheets)
-            .zip(&lines)
-            .enumerate()
-            .map(|(i, ((build, sheet), line))| {
-                let mut summary = summary(planner, build, sheet, line);
-                if let Some(&(given, number)) = ranked.get(i) {
-                    summary.given = u32::try_from(given).ok();
-                    summary.number = number;
-                }
-                if let (Some(weapon), Some(last)) = (&weapon, sheet.levels.last()) {
-                    summary.attack = attack::attack_line(engine, &last.state, weapon);
-                }
-                if let (Some(spell), Some(last)) = (spell, sheet.levels.last()) {
-                    summary.caster = caster::caster_line(engine, &build.start, &last.state, spell);
-                }
-                if let (Some(assumed), Some(last)) = (&assumed, sheet.levels.last()) {
-                    summary.assumed = Some(assume::assumed(
-                        engine,
-                        &build.start,
-                        &last.state,
-                        assumed,
-                        weapon.as_ref(),
-                        spell,
-                        false,
-                    ));
-                }
-                summary
-            })
-            .collect(),
+        builds: summaries,
         start: pick_diffs(
             &lines
                 .iter()
@@ -150,7 +137,7 @@ pub(crate) fn compare(planner: &Planner, args: CompareArgs) -> Result<CompareRes
         levels,
         ranks,
         path_features,
-        attack_leaves_out: weapon.is_some().then(attack::leaves_out),
+        attack_leaves_out: (weapon.is_some() || any_attack_line).then(attack::leaves_out),
         caster_leaves_out: spell.is_some().then(caster::leaves_out),
         by: number.map(|number| RankedBy {
             number: number.describe(engine),
@@ -229,7 +216,6 @@ fn summary(
         level_cap: line.level_cap,
         attack: None,
         caster: None,
-        assumed: None,
         number: None,
         given: None,
     }

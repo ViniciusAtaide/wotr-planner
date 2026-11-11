@@ -5,7 +5,6 @@ mod support;
 mod advances;
 mod alignment;
 mod archetype_rows;
-mod assumed;
 mod attack_line;
 mod backgrounds;
 mod bonus_feats;

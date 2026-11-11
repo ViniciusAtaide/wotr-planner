@@ -22,7 +22,8 @@ use crate::shapes::ChoiceValue;
 pub enum NumberArgs {
     /// A number of the caster line for these spells (`{"school": "enchantment", "subschool": "compulsion"}`).
     CasterLine(CasterNumberArgs),
-    /// A number of the attack line for this base weapon (`{"weapon": "greatsword"}`).
+    /// A number of the attack line for this base weapon (`{"weapon": "greatsword"}`), or without one for the
+    /// Build's Weapon Focus weapon.
     AttackLine(AttackNumberArgs),
 }
 
@@ -48,8 +49,10 @@ pub enum CasterNumber {
 
 #[derive(Clone, Debug, Deserialize, JsonSchema)]
 pub struct AttackNumberArgs {
-    /// A base weapon's key (`greatsword`).
-    pub weapon: String,
+    /// A base weapon's key (`greatsword`). Left out: the weapon of the Build's first Weapon Focus (`compare`: each
+    /// Build's own; `improve`: the Build's before any option is taken, or each option's Build's when it has none).
+    #[serde(default)]
+    pub weapon: Option<String>,
     /// Which number (default `attack`): `attack`, the first attack's bonus; `damage`, the bonus each hit adds to the
     /// weapon's dice (Power Attack not taken).
     #[serde(default)]
@@ -68,7 +71,8 @@ pub enum AttackNumber {
 #[derive(Clone, Debug)]
 pub(crate) enum Number {
     Caster(SpellTraits, CasterNumber),
-    Attack(WeaponKey, AttackNumber),
+    /// The attack line's number for a weapon; for each Build's Weapon Focus weapon when `None`.
+    Attack(Option<WeaponKey>, AttackNumber),
 }
 
 impl Number {
@@ -80,12 +84,20 @@ impl Number {
                     .expect("a caster argument given gives a spell");
                 Self::Caster(spell, args.number)
             }
-            NumberArgs::AttackLine(args) => {
-                let weapon = attack::weapon_argument(engine, Some(&args.weapon))?
-                    .expect("a weapon argument given gives a weapon");
-                Self::Attack(weapon, args.number)
-            }
+            NumberArgs::AttackLine(args) => Self::Attack(
+                attack::weapon_argument(engine, args.weapon.as_deref())?,
+                args.number,
+            ),
         })
+    }
+
+    /// The number with the attack line's weapon fixed to this Build's Weapon Focus weapon when none was given and
+    /// the Build has one: `improve` reads every option's Build for the same weapon.
+    pub(crate) fn pinned(self, engine: &Engine, sheet: &Sheet) -> Self {
+        match self {
+            Self::Attack(None, number) => Self::Attack(engine.default_attack_weapon(sheet), number),
+            number => number,
+        }
     }
 
     /// The number at a Build's last level; `None` when it has no such line there (no level, no casting class, …).
@@ -103,7 +115,10 @@ impl Number {
                 }
             }
             Self::Attack(weapon, number) => {
-                let line = engine.attack_line(last, weapon)?;
+                let weapon = weapon
+                    .clone()
+                    .or_else(|| engine.default_attack_weapon(sheet))?;
+                let line = engine.attack_line(last, &weapon)?;
                 match number {
                     AttackNumber::Attack => line.attacks.first().copied(),
                     AttackNumber::Damage => Some(line.damage_bonus),
@@ -141,13 +156,16 @@ impl Number {
                 }
             }
             Self::Attack(weapon, number) => {
-                let weapon = engine.weapon_name(weapon);
+                let weapon = match weapon {
+                    Some(weapon) => format!("a {}", engine.weapon_name(weapon)),
+                    None => "each Build's Weapon Focus weapon (its first Weapon Focus)".to_owned(),
+                };
                 match number {
                     AttackNumber::Attack => {
-                        format!("the first attack's bonus with a {weapon}, at the last level")
+                        format!("the first attack's bonus with {weapon}, at the last level")
                     }
                     AttackNumber::Damage => format!(
-                        "the bonus each hit with a {weapon} adds to its dice (Power Attack not taken), at the last \
+                        "the bonus each hit with {weapon} adds to its dice (Power Attack not taken), at the last \
                          level"
                     ),
                 }
@@ -196,7 +214,8 @@ pub struct ImproveArgs {
     pub choice: String,
     /// The number to rank the options by: `{"caster_line": {"school": "enchantment", "subschool": "compulsion"}}`
     /// (`number`: `dc`, the default, `spell_penetration` or `concentration`) or `{"attack_line": {"weapon":
-    /// "greatsword"}}` (`number`: `attack`, the default, or `damage`).
+    /// "greatsword"}}` (`weapon` left out: the Build's Weapon Focus weapon; `number`: `attack`, the default, or
+    /// `damage`).
     pub by: NumberArgs,
     /// Only options whose name or value holds every word of this (case doesn't matter), as `options` filters them.
     #[serde(default)]
@@ -250,8 +269,8 @@ pub(crate) fn improve(planner: &Planner, args: ImproveArgs) -> Result<ImproveRes
         .choice
         .parse()
         .map_err(|error: NotAnAddress| ToolError::no_such_choice(error.to_string()))?;
-    let number = Number::from_args(engine, &args.by)?;
     let sheet = engine.evaluate(&build);
+    let number = Number::from_args(engine, &args.by)?.pinned(engine, &sheet);
     let current = number.of(engine, &build, &sheet);
     let words: Vec<String> = args
         .query

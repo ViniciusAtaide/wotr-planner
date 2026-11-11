@@ -17,10 +17,9 @@ use crate::game_data::{
     FeatSlot, FeatValue, Feature, FeatureSelection, GameData, LevelFrom, MythicPath, Save,
     SelectionOption, SpellLevels, WeaponProficiency,
 };
-use crate::gear::{GearCircumstance, GearItem};
 use crate::keys::{
     ArchetypeKey, BackgroundKey, ClassKey, DeityKey, FeatKey, FeatListKey, FeatureKey,
-    FeatureSelectionKey, GearKey, MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey,
+    FeatureSelectionKey, MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey,
     SelectionOptionKey, SkillKey, SpellKey, SpellListKey, SubraceKey, WeaponKey,
 };
 use crate::parameter::{Parameter, ParameterKind, Repeat};
@@ -69,8 +68,6 @@ pub enum DataAt {
     Weapon(WeaponKey),
     Spell(SpellKey),
     SpellList(SpellListKey),
-    /// An item of `gear.ron` (ticket 122).
-    Gear(GearKey),
 }
 
 impl DataAt {
@@ -96,7 +93,6 @@ impl DataAt {
             DataAt::Weapon(_) => "weapon",
             DataAt::Spell(_) => "spell",
             DataAt::SpellList(_) => "spell list",
-            DataAt::Gear(_) => "gear item",
         }
     }
 
@@ -122,7 +118,6 @@ impl DataAt {
             DataAt::Weapon(key) => key.as_str(),
             DataAt::Spell(key) => key.as_str(),
             DataAt::SpellList(key) => key.as_str(),
-            DataAt::Gear(key) => key.as_str(),
         })
     }
 }
@@ -314,11 +309,6 @@ pub enum DataIssue {
     TenRanksWithoutSkill,
     /// A second `interactions.ron` note on the same item.
     InteractionsTwice,
-    /// A gear item's bonus scoped to the value its item is held for ([`SpellScope::Value`](crate::SpellScope::Value)):
-    /// gear isn't taken for a value.
-    GearBonusForValue,
-    /// A gear item with no bonuses, or a bonus of 0 or less.
-    GearWithoutBonus,
 }
 
 impl fmt::Display for DataProblem {
@@ -510,12 +500,6 @@ impl fmt::Display for DataProblem {
                 f.write_str("a bonus that rises with 10 ranks needs a skill target")
             }
             DataIssue::InteractionsTwice => f.write_str("it has two interactions notes"),
-            DataIssue::GearBonusForValue => {
-                f.write_str("a gear bonus can't be for the value its item is held for")
-            }
-            DataIssue::GearWithoutBonus => {
-                f.write_str("a gear item needs bonuses, each of at least +1")
-            }
             DataIssue::SharesOwnOption(option) => {
                 write!(
                     f,
@@ -652,9 +636,6 @@ impl GameData {
         }
         check.bonuses(self);
         check.interactions(self);
-        for item in &self.gear {
-            check.gear(item);
-        }
         check.deity_limits(self);
         check.favoured_weapon_features(self);
         check.counts_toward_features(self);
@@ -1397,25 +1378,6 @@ impl Checker {
             self.names(&at, at.clone());
             if !seen.insert(&note.item) {
                 self.problem(&at, DataIssue::InteractionsTwice);
-            }
-        }
-    }
-
-    /// A gear item's key is its own, its bonuses are positive, and a circumstance names a class that exists and no
-    /// value.
-    fn gear(&mut self, item: &GearItem) {
-        let at = DataAt::Gear(item.key.clone());
-        self.key(&at);
-        if item.bonuses.is_empty() || item.bonuses.iter().any(|bonus| bonus.amount <= 0) {
-            self.problem(&at, DataIssue::GearWithoutBonus);
-        }
-        for bonus in &item.bonuses {
-            match &bonus.circumstance {
-                GearCircumstance::Spells(SpellScope::Value) => {
-                    self.problem(&at, DataIssue::GearBonusForValue);
-                }
-                GearCircumstance::Class(class) => self.names(&at, DataAt::Class(class.clone())),
-                _ => {}
             }
         }
     }

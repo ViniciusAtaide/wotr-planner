@@ -19,7 +19,6 @@ small hand-written example of the layout.
 | `progression.ron` | `Progression`: the mythic rank table (the Character level of each Mythic rank) |
 | `bonuses.ron` | `Vec<ItemBonus>`: the flat bonuses items give while held, each naming its item (tickets 119 and 120): spell DCs, caster level against spell resistance, concentration, initiative, saves, skills |
 | `interactions.ron` | `Vec<ItemInteractions>`: what the guide says about how an item combines with others, at most one note per item (ticket 124); optional |
-| `gear.ron` | `Vec<GearItem>`: the guide's caster level and spell DC items, which an agent may assume on top of a Build's numbers (ticket 122); never part of a Build or a prerequisite; optional |
 | `races.ron` | `Vec<Race>`, with subraces and the race's own feat lists (the half-elf's Adaptability) |
 | `skills.ron` | `Vec<Skill>` |
 | `weapons.ron` | `Vec<Weapon>`: the weapons a feat can be taken for, from the guide's simple, martial and exotic lists (`proficiency`; the Sawtooth Saber is exotic, from Weapon Finesse's list), plus what Weapon Focus names besides weapons (unarmed strike, touch attacks, rays), each natural attack the guide names (bite, claw, gore, hoof, slam, spike, tail, talon, wing), Kinetic Blast and Bomb; each weapon's stats for the attack line (ticket 114) |
@@ -601,20 +600,9 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   Expanded Arsenal, Second Bloodline, Bloodline Ascendance, and the Fey and Infernal bloodlines' arcana against School
   Power); new notes as later runs find them, no sweep. `describe` shows the note. The real-data test `totals` checks
   they're present.
-- `gear.ron` (ticket 122) holds the guide's two "Caster Level and Spell DC Boosting Items" tables on its `items` page
-  (`rules::GearItem`): `(key: "rod-of-power-source", name: "Rod of Power Source", slot: Rod, guide: "items",
-  bonuses: [(target: SpellDc, amount: 4, circumstance: Spells(School(Conjuration)))])`. Gear stays out of every Build
-  and prerequisite: `sheet` and `compare` take these items in `assume`, and the caster line adds a bonus where its
-  circumstance matches. The target is `SpellDc`, `CasterLevel` (which raises both checks with it),
-  `SpellPenetration` or `Concentration`; the circumstance is the table's column: `Spells(scope)` with ticket 119's
-  scopes (left out: `All`, the table's "-"), `Save(Will)` ("vs. Will"), `MindAffecting`, or `Class("druid")` (the
-  table's "Druid" and "Witch spells": the caster line's casting class). Each item's bonuses are its table rows plus
-  the caster-line bonuses its own row on the page lists (Robe of Determination's +2 against spell resistance and +4
-  concentration); its other properties stay out (an ability score bonus is the agent's to assume generically). Six
-  rows are left out, since the caster line can't tell when they apply: Delamere's Armor (Plant domain), Nature's Agony
-  and Voice of the Fearless (sonic), the Amulet of Blackened Mirror (hexes), Legacy of the Last Azlanti ("elemental"),
-  and the Cloak of the Ancient Herald (its row gives the compulsion DC only after channelling energy to heal). The
-  real-data test `gear` pins rows and the Max DC run's DC with gear assumed.
+- `gear.ron` (ticket 122, the guide's caster level and spell DC items) was removed by ticket 148: the numbers are
+  naked, with no gear assumed (user, 2026-11-10), and the migration `20261111152919_148-drop-gear.sql` drops its
+  tables.
 - Keys are readable text from the guide's anchors: `power-attack` (a feat), `rogue` (a class),
   `rogue/dark-lurker` (an archetype), `rogue/rogue-talents/fast-stealth` (a selection option). A key has no type
   prefix: where it sits says what it names, so keys of two kinds may be equal (the feature and the selection
