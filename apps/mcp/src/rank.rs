@@ -115,9 +115,7 @@ impl Number {
                 }
             }
             Self::Attack(weapon, number) => {
-                let weapon = weapon
-                    .clone()
-                    .or_else(|| engine.default_attack_weapon(sheet))?;
+                let weapon = attack::weapon_or_default(engine, weapon.as_ref(), sheet)?;
                 let line = engine.attack_line(last, &weapon)?;
                 match number {
                     AttackNumber::Attack => line.attacks.first().copied(),

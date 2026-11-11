@@ -86,5 +86,5 @@ fn shape_of(totals: &Totals) -> TotalsShape {
 
 /// What no total counts.
 pub(crate) fn leaves_out() -> Vec<String> {
-    crate::caster::owned(TOTALS_LEAVE_OUT)
+    TOTALS_LEAVE_OUT.iter().map(ToString::to_string).collect()
 }

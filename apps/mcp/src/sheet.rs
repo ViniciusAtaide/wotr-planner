@@ -36,7 +36,7 @@ pub(crate) fn sheet(
 ) -> SheetResult {
     let evaluated = planner.engine.evaluate(build);
     let mut result = sheet_of(planner, build, &evaluated, removable);
-    if let Some(weapon) = weapon.or_else(|| planner.engine.default_attack_weapon(&evaluated)) {
+    if let Some(weapon) = attack::weapon_or_default(&planner.engine, weapon.as_ref(), &evaluated) {
         for (line, level) in result.levels.iter_mut().zip(&evaluated.levels) {
             line.attack = attack::attack_line(&planner.engine, &level.state, &weapon);
         }

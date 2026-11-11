@@ -181,10 +181,8 @@ fn shape(engine: &Engine, line: &CasterLine) -> CasterLineShape {
 
 /// What no caster line counts, for a result that has one.
 pub(crate) fn leaves_out() -> Vec<String> {
-    owned(CASTER_LINE_LEAVES_OUT)
-}
-
-/// A fixed leaves-out list as the server gives it.
-pub(crate) fn owned(list: &[&str]) -> Vec<String> {
-    list.iter().map(|item| (*item).to_owned()).collect()
+    CASTER_LINE_LEAVES_OUT
+        .iter()
+        .map(ToString::to_string)
+        .collect()
 }

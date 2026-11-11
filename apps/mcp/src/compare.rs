@@ -112,9 +112,7 @@ pub(crate) fn compare(planner: &Planner, args: CompareArgs) -> Result<CompareRes
                 summary.given = u32::try_from(given).ok();
                 summary.number = number;
             }
-            let weapon = weapon
-                .clone()
-                .or_else(|| engine.default_attack_weapon(sheet));
+            let weapon = attack::weapon_or_default(engine, weapon.as_ref(), sheet);
             if let (Some(weapon), Some(last)) = (&weapon, sheet.levels.last()) {
                 summary.attack = attack::attack_line(engine, &last.state, weapon);
             }
