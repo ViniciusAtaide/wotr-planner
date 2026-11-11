@@ -60,6 +60,7 @@ pub(crate) fn validate(planner: &Planner, args: ValidateArgs) -> Result<Validate
     };
     let nodes: Vec<Node> = refusals
         .into_iter()
+        .map(|refusal| refusal.labelled(&wording))
         .chain(failures.iter().map(|failure| wording.node(failure)))
         .collect();
     let count = u32::try_from(nodes.len()).unwrap_or(u32::MAX);

@@ -43,9 +43,9 @@ fn a_blank_build_gives_the_header_its_link_and_the_point_buy() {
     );
 }
 
-#[test]
-fn the_build_start_comes_in_the_order_the_game_asks_for_it() {
-    let build = Build {
+/// A half-elf of the Balance with every Build start choice made and no level.
+fn spear_of_the_balance() -> Build {
+    Build {
         name: Some("Spear of the Balance".into()),
         start: BuildStart {
             race: Some(rules::RaceKey::new("half-elf")),
@@ -57,7 +57,12 @@ fn the_build_start_comes_in_the_order_the_game_asks_for_it() {
             ability_scores: point_buy([16, 14, 12, 13, 10, 8]),
         },
         ..Build::default()
-    };
+    }
+}
+
+#[test]
+fn the_build_start_comes_in_the_order_the_game_asks_for_it() {
+    let build = spear_of_the_balance();
     assert_eq!(
         sheet(&build),
         format!(
@@ -155,8 +160,9 @@ fn a_class_s_archetype_shows_where_the_class_is_first_taken() {
     assert!(text.contains("\nLevel 2: Fighter\n"), "{text}");
 }
 
-#[test]
-fn a_prestige_class_names_the_classes_it_advances_where_it_is_first_taken() {
+/// An elf wizard 3 / cleric 3 / Mystic Theurge 2 advancing both, with a rank in Mobility at each of the first four
+/// levels.
+fn mystic_theurge() -> Build {
     let mut build = build(
         "elf",
         &[
@@ -180,7 +186,12 @@ fn a_prestige_class_names_the_classes_it_advances_where_it_is_first_taken() {
             advances: [class("wizard"), class("cleric")].into(),
         },
     );
-    let text = sheet(&build);
+    build
+}
+
+#[test]
+fn a_prestige_class_names_the_classes_it_advances_where_it_is_first_taken() {
+    let text = sheet(&mystic_theurge());
     assert!(
         text.contains("\nLevel 7: Mystic Theurge, advancing Cleric and Wizard\n"),
         "{text}"
@@ -319,5 +330,182 @@ fn the_second_line_reopens_the_same_build() {
         assert_eq!(engine.open_link(code).as_ref(), Ok(&build));
         // The same Build always gives the same text.
         assert_eq!(engine.build_sheet(&build, PAGE), text);
+    }
+}
+
+/// What the build sheet of `8d8be9b` wrote for [`spear_of_the_balance`], after the header and the link.
+const SPEAR_OF_THE_BALANCE_V1: &str = r#"Name: Spear of the Balance
+Race: Half-Elf
+Subrace: Dual Heritage
+Racial +2: Strength
+Deity: Balance
+Alignment: True Neutral
+Background: guard
+Point buy: Str 16, Dex 14, Con 12, Int 13, Wis 10, Cha 8
+"#;
+
+/// What the build sheet of `8d8be9b` wrote for [`fighter`], after the header and the link.
+const FIGHTER_V1: &str = r#"Race: Human
+Racial +2: Strength
+Deity: Atheism
+Alignment: True Neutral
+Point buy: Str 16, Dex 14, Con 12, Int 13, Wis 10, Cha 8
+
+Level 1: Fighter
+  Combat feat: weapon-focus (longsword)
+  Bonus feat: toughness
+  Feat: power-attack
+  Skills: Athletics 1, Mobility 1
+
+Level 2: Fighter
+
+Level 3: Fighter
+
+Level 4: Fighter
+  Ability: +1 Strength
+"#;
+
+/// What the build sheet of `8d8be9b` wrote for an Armiger of two levels, after the header and the link.
+const ARMIGER_V1: &str = r#"Race: Human
+Deity: Atheism
+Alignment: True Neutral
+Point buy: Str 16, Dex 14, Con 12, Int 13, Wis 10, Cha 8
+
+Level 1: Fighter (Armiger)
+
+Level 2: Fighter
+"#;
+
+/// What the build sheet of `8d8be9b` wrote for [`mystic_theurge`], after the header and the link.
+const MYSTIC_THEURGE_V1: &str = r#"Race: Elf
+Deity: Atheism
+Alignment: True Neutral
+Point buy: Str 16, Dex 14, Con 12, Int 13, Wis 10, Cha 8
+
+Level 1: Wizard
+  Skills: Mobility 1
+
+Level 2: Wizard
+  Skills: Mobility 1
+
+Level 3: Wizard
+  Skills: Mobility 1
+
+Level 4: Cleric
+  Skills: Mobility 1
+
+Level 5: Cleric
+
+Level 6: Cleric
+
+Level 7: Mystic Theurge, advancing Cleric and Wizard
+
+Level 8: Mystic Theurge
+"#;
+
+/// What the build sheet of `8d8be9b` wrote for [`trickster`] with its first ascension, switched to Gold Dragon, after the header and the link.
+const SWITCHED_TRICKSTER_V1: &str = r#"Race: Human
+Deity: Atheism
+Alignment: True Neutral
+Point buy: Str 16, Dex 14, Con 12, Int 13, Wis 10, Cha 8
+First ascension: Bit of Fun
+Mythic path: Trickster
+Path switch: Gold Dragon
+
+Level 1: Fighter
+  Bonus feat: toughness
+  Feat: power-attack
+
+Level 2: Fighter
+
+Level 3: Fighter
+
+Level 4: Fighter
+
+Level 5: Fighter
+
+Level 6: Fighter
+
+Level 7: Fighter
+
+Level 8: Fighter
+
+Level 9: Fighter
+
+Level 10: Fighter
+
+Level 11: Fighter
+
+Level 12: Fighter
+
+Level 13: Fighter
+
+Level 14: Fighter
+
+Level 15: Fighter
+
+Level 16: Fighter
+
+Level 17: Fighter
+
+Level 18: Fighter
+
+Level 19: Fighter
+
+Level 20: Fighter
+
+Mythic track
+MR 1 (level 6)
+  Mythic ability: mythic-charge
+MR 2 (level 7)
+  Mythic feat: extra-mythic-ability
+MR 3 (level 9)
+  Mythic ability: limitless-smite
+  Trickster Tricks: perception-1 # lost to the Path switch
+MR 4 (level 11)
+  Mythic feat: improved-critical-mythic
+  trickster/bonus-feats: dodge # lost to the Path switch
+MR 5 (level 14)
+  Mythic ability: unstoppable
+MR 6 (level 15)
+  Mythic feat: dodge-mythic
+MR 7 (level 16)
+  Mythic ability: inspired-strike
+MR 8 (level 17)
+  Mythic feat: power-attack-mythic
+MR 9 (level 17)
+  Mythic ability: dimensional-retribution
+MR 10 (level 19)
+  Mythic feat: toughness-mythic
+"#;
+
+/// The Build sheet's format is "WotR build v1": its line keys are its own, not the labels the sheet and the pickers
+/// show, so rewording a label never changes an export. Each text is the one `8d8be9b` (before ticket 152) wrote for
+/// the same Build, byte for byte.
+#[test]
+fn the_v1_text_is_byte_for_byte_the_one_ticket_87_wrote() {
+    let engine = engine();
+    let mut armiger = build("human", &times("fighter", 2));
+    armiger.class_choices.insert(
+        class("fighter"),
+        ClassChoice {
+            archetype: Some(rules::ArchetypeKey::new("fighter/armiger")),
+            ..ClassChoice::default()
+        },
+    );
+    let mut switched = trickster();
+    switched.first_ascension = Some(path("trickster"));
+    engine.apply(&mut switched, &Edit::PathSwitch(Some(path("gold-dragon"))));
+    for (build, v1) in [
+        (spear_of_the_balance(), SPEAR_OF_THE_BALANCE_V1),
+        (fighter(), FIGHTER_V1),
+        (armiger, ARMIGER_V1),
+        (mystic_theurge(), MYSTIC_THEURGE_V1),
+        (switched, SWITCHED_TRICKSTER_V1),
+    ] {
+        assert_eq!(
+            sheet(&build),
+            format!("WotR build v1\n{}\n{v1}", link(&build))
+        );
     }
 }

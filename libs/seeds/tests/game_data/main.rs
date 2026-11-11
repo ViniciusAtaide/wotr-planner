@@ -37,5 +37,6 @@ mod repeating_talents;
 mod report_gaps;
 mod spells;
 mod summaries;
+mod value_keys;
 mod weapons;
 mod wild_talents;

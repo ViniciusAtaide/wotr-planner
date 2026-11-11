@@ -4,11 +4,12 @@
 //! Conventions: field names are `snake_case`; a result is always an object (a list sits in a named field, as
 //! `search`'s `matches`); an optional field that doesn't apply is left out, except `prerequisite`, which is
 //! `null` when there is none (`search`'s `compact` leaves it out); a reference to another item is a [`Named`] `{key, name}`. Every result about a Build
-//! flattens the [`Envelope`] into it (`build`, `link`, `todo`); a choice is named by its address (`address.rs`) and
+//! flattens the [`Envelope`] into it (`build`, `link`, `todo`); a choice is named by its address (`rules::Address`) and
 //! holds a [`ChoiceValue`].
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
+use rules::{Ability, ArchetypeKey, ClassKey, Pick, RaceKey, SubraceKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -482,6 +483,42 @@ pub enum ChoiceValue {
 }
 
 impl ChoiceValue {
+    /// A pick's value: its key, with its parameter's key ([`rules::Parameter::value_key`]) when it names one. The
+    /// same for what the sheet shows a choice holds and for what `options` offers, so a value copied from either
+    /// matches.
+    pub(crate) fn pick(pick: &Pick) -> Self {
+        match pick.parameter() {
+            Some(parameter) => ChoiceValue::Parameterised {
+                key: pick.key().to_owned(),
+                parameter: parameter.value_key().to_owned(),
+            },
+            None => ChoiceValue::Key(pick.key().to_owned()),
+        }
+    }
+
+    /// An ability's value: its key, `str`, `dex`, …
+    pub(crate) fn ability(ability: Ability) -> Self {
+        ChoiceValue::Key(ability.key().to_owned())
+    }
+
+    /// The race picker's value: the subrace's key when there is one (it starts with the race's), else the race's.
+    pub(crate) fn race(race: &RaceKey, subrace: Option<&SubraceKey>) -> Self {
+        ChoiceValue::Key(subrace.map_or(race.as_str(), SubraceKey::as_str).to_owned())
+    }
+
+    /// A class's value: the class, its archetype, and for a prestige class that asks, the classes it advances.
+    pub(crate) fn class(
+        class: &ClassKey,
+        archetype: Option<&ArchetypeKey>,
+        advances: Option<&BTreeSet<ClassKey>>,
+    ) -> Self {
+        ChoiceValue::Class {
+            class: class.as_str().to_owned(),
+            archetype: archetype.map(|key| key.as_str().to_owned()),
+            advances: advances.map(|set| set.iter().map(|key| key.as_str().to_owned()).collect()),
+        }
+    }
+
     /// Whether a value given for a choice names this offered one: keys and parameters ignoring case and spaces at the
     /// ends, numbers equal, and a class's archetype equal and its advanced classes the same set (left out matches
     /// only an offer that asks none). `choose` finds the offer it applies with this.
@@ -859,7 +896,7 @@ pub enum ValidateResult {
 pub struct FailureLine {
     /// Its address, as declared.
     pub choice: String,
-    /// What it is: "Level 1: Combat feat", "Race", "Level 4: class".
+    /// What it is: "Level 1: Combat feat", "Race", "Level 4: Class".
     pub label: String,
     /// Why, as a code: the engine's issue (`unmet`, `already_held`, `max_times`, `not_allowed`, `unknown_key`,
     /// `not_reached`, `class_level_cap`, `not_from_path`, `deity_alignment`, `needs_faith`, `deity_domain`), or the

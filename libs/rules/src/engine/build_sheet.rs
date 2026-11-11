@@ -27,6 +27,10 @@
 //!   Trickster Tricks: … # lost to the Path switch
 //! ```
 //!
+//! The line keys ("Race:", "Deity:", "Racial +2:", "  Ability:" …) are the format's own, fixed with its version:
+//! they are not the labels the sheet, the pickers and the MCP server show ([`Engine::choice_label`]), so rewording a
+//! label never changes what a v1 export says.
+//!
 //! The link on the second line always reopens the exact Build; the rest is for reading. Only the choices are data:
 //! what's derived from them (here only a pick a Path switch takes away) is a comment, from ` # ` to the end of its
 //! line, which a later import ignores. A choice not made yet is left out, a level with nothing chosen names only its
@@ -42,6 +46,31 @@ use super::{Engine, Sheet};
 
 /// The first line: what the text is, and its format's version.
 const HEADER: &str = "WotR build v1";
+
+/// The v1 format's line keys, each line's text before its value.
+mod key {
+    pub const NAME: &str = "Name";
+    pub const RACE: &str = "Race";
+    pub const SUBRACE: &str = "Subrace";
+    pub const RACIAL_ABILITY: &str = "Racial +2";
+    pub const FAITH: &str = "Deity";
+    pub const ALIGNMENT: &str = "Alignment";
+    pub const BACKGROUND: &str = "Background";
+    pub const POINT_BUY: &str = "Point buy";
+    pub const FIRST_ASCENSION: &str = "First ascension";
+    pub const PATH: &str = "Mythic path";
+    pub const SWITCH: &str = "Path switch";
+    /// A level's line: "Level 4: Fighter".
+    pub const LEVEL: &str = "Level";
+    /// A level's ability increase: "  Ability: +1 Strength".
+    pub const INCREASE: &str = "Ability";
+    /// A level's skill ranks: "  Skills: Athletics 1, Mobility 1".
+    pub const SKILLS: &str = "Skills";
+    /// The Mythic track's heading.
+    pub const TRACK: &str = "Mythic track";
+    /// A rank's line: "MR 3 (level 9)".
+    pub const RANK: &str = "MR";
+}
 
 /// The comment on a pick a Path switch takes away.
 const LOST_TO_THE_SWITCH: &str = "lost to the Path switch";
@@ -64,26 +93,31 @@ impl Engine {
         writeln!(text, "{HEADER}")?;
         writeln!(text, "{page}#b={}", encode_build(build))?;
         if let Some(name) = &build.name {
-            writeln!(text, "Name: {name}")?;
+            writeln!(text, "{}: {name}", key::NAME)?;
         }
         let start = &build.start;
         if let Some(race) = &start.race {
-            writeln!(text, "Race: {}", self.race_name(race))?;
+            writeln!(text, "{}: {}", key::RACE, self.race_name(race))?;
         }
         if let Some(subrace) = &start.subrace {
-            writeln!(text, "Subrace: {}", self.subrace_name(subrace))?;
+            writeln!(text, "{}: {}", key::SUBRACE, self.subrace_name(subrace))?;
         }
         if let Some(ability) = start.racial_ability {
-            writeln!(text, "Racial +2: {}", ability.name())?;
+            writeln!(text, "{}: {}", key::RACIAL_ABILITY, ability.name())?;
         }
         if let Some(faith) = &start.deity {
-            writeln!(text, "Deity: {}", self.faith_name(faith))?;
+            writeln!(text, "{}: {}", key::FAITH, self.faith_name(faith))?;
         }
         if let Some(alignment) = start.alignment {
-            writeln!(text, "Alignment: {}", alignment.name())?;
+            writeln!(text, "{}: {}", key::ALIGNMENT, alignment.name())?;
         }
         if let Some(background) = &start.background {
-            writeln!(text, "Background: {}", self.background_name(background))?;
+            writeln!(
+                text,
+                "{}: {}",
+                key::BACKGROUND,
+                self.background_name(background)
+            )?;
         }
         let scores: Vec<String> = AbilityScores::ABILITIES
             .iter()
@@ -95,15 +129,20 @@ impl Engine {
                 )
             })
             .collect();
-        writeln!(text, "Point buy: {}", scores.join(", "))?;
+        writeln!(text, "{}: {}", key::POINT_BUY, scores.join(", "))?;
         if let Some(path) = &build.first_ascension {
-            writeln!(text, "First ascension: {}", self.first_ascension_name(path))?;
+            writeln!(
+                text,
+                "{}: {}",
+                key::FIRST_ASCENSION,
+                self.first_ascension_name(path)
+            )?;
         }
         if let Some(path) = &build.mythic_path {
-            writeln!(text, "Mythic path: {}", self.path_name(path))?;
+            writeln!(text, "{}: {}", key::PATH, self.path_name(path))?;
         }
         if let Some(path) = &build.path_switch {
-            writeln!(text, "Path switch: {}", self.path_name(path))?;
+            writeln!(text, "{}: {}", key::SWITCH, self.path_name(path))?;
         }
         Ok(())
     }
@@ -113,7 +152,8 @@ impl Engine {
         for (level, level_up) in sheet.levels.iter().zip(&build.levels) {
             write!(
                 text,
-                "\nLevel {}: {}",
+                "\n{} {}: {}",
+                key::LEVEL,
                 level.character_level,
                 self.class_name(&level.class)
             )?;
@@ -123,17 +163,12 @@ impl Engine {
                     write!(text, " ({})", self.archetype_name(archetype))?;
                 }
                 if !choice.advances.is_empty() {
-                    let advances: Vec<&str> = choice
-                        .advances
-                        .iter()
-                        .map(|class| self.class_name(class))
-                        .collect();
-                    write!(text, ", advancing {}", advances.join(" and "))?;
+                    write!(text, "{}", self.advancing(&choice.advances))?;
                 }
             }
             writeln!(text)?;
             if let Some(ability) = level_up.ability_increase {
-                writeln!(text, "  Ability: +1 {}", ability.name())?;
+                writeln!(text, "  {}: +1 {}", key::INCREASE, ability.name())?;
             }
             for slot in &level.slots {
                 if let Some(pick) = &slot.pick {
@@ -151,7 +186,7 @@ impl Engine {
                     .iter()
                     .map(|(skill, ranks)| format!("{} {ranks}", self.skill_name(skill)))
                     .collect();
-                writeln!(text, "  Skills: {}", ranks.join(", "))?;
+                writeln!(text, "  {}: {}", key::SKILLS, ranks.join(", "))?;
             }
         }
         Ok(())
@@ -166,10 +201,16 @@ impl Engine {
             .filter(|rank| rank.slots.iter().any(|slot| slot.pick.is_some()))
             .peekable();
         if ranks.peek().is_some() {
-            writeln!(text, "\nMythic track")?;
+            writeln!(text, "\n{}", key::TRACK)?;
         }
         for rank in ranks {
-            writeln!(text, "MR {} (level {})", rank.rank, rank.character_level)?;
+            writeln!(
+                text,
+                "{} {} (level {})",
+                key::RANK,
+                rank.rank,
+                rank.character_level
+            )?;
             for slot in &rank.slots {
                 let Some(pick) = &slot.pick else { continue };
                 write!(

@@ -3,13 +3,13 @@
 //! here only to name the closest keys after an unknown one.
 
 use rules::{
-    ArchetypeKey, BackgroundKey, Build, Choice, ClassKey, DeityKey, Engine, Failure, Faith,
-    GameData, Issue, MythicPathKey, Pick, RaceKey, RankStatus, Sheet, Slot, SlotId, SubraceKey,
+    Address, ArchetypeKey, BackgroundKey, Build, Choice, ClassKey, DeityKey, Engine, Failure,
+    Faith, GameData, Issue, MythicPathKey, Pick, RaceKey, RankStatus, Sheet, Slot, SlotId,
+    SubraceKey,
 };
 
 use super::closest;
 use super::tree::{At, Given, Node, Why, pick_gives};
-use crate::address::Address;
 use crate::options::issue_reason;
 use crate::planner::{Planner, all_selections};
 
@@ -37,7 +37,7 @@ impl Wording<'_> {
             choice => Address::from(choice),
         };
         Node {
-            label: address.label(self.engine(), self.slot_of(&address)),
+            label: self.label(&address),
             reason: self.reason(choice, issue),
             gives: self.gives(choice),
             under: match issue {
@@ -47,6 +47,12 @@ impl Wording<'_> {
             why: Why::Walk(issue.clone()),
             at: At::Address(address),
         }
+    }
+
+    /// A failure's label at an address, after its place, with the sheet's slot at a slot address
+    /// ([`Engine::placed_label`]): the walk's failures and the declaration's refusals alike.
+    pub(super) fn label(&self, address: &Address) -> String {
+        self.engine().placed_label(address, self.slot_of(address))
     }
 
     /// The sheet's slot at a slot address, when the walk reached it.
@@ -348,7 +354,7 @@ impl Wording<'_> {
             Choice::Slot(slot) => match build.picks.get(slot) {
                 Some(pick) => {
                     let address = Address::Slot(slot.clone());
-                    let label = address.label(engine, self.slot_of(&address));
+                    let label = self.label(&address);
                     format!(
                         "{} isn't a pick this slot takes ({label}), or not with that value: `options` lists what it \
                          takes.",
