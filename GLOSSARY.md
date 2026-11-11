@@ -97,7 +97,7 @@ A flat bonus an item (a race or subrace, a background, a feat, a mythic feat, a 
 _Avoid_: Modifier, effect
 
 **Bonus in force**:
-An **Item bonus** the character holds at the end of a character level, with what it requires met there: once for each value its item is held for, with its amount worked out at that level (the Mythic rank, the character's own ability modifier, the ranks of its skill; Expanded Arsenal's copy too) and its name as the line shows it. The walk records them on each level's character state (`bonuses_in_force`), in the game data's order, and the **Caster line** and the **Totals** add up the ones for each number, so they read the state alone.
+An **Item bonus** the character holds at the end of a character level, with what it requires met there: once for each value its item is held for, with its amount worked out at that level (the Mythic rank, the character's own ability modifier, the ranks of its skill; Expanded Arsenal's copy too) and its name as the line shows it. The walk records them on each level's character state (`bonuses_in_force`), in the game data's order, and the **Caster line** and the **Totals** add up the ones for each number, so they read a level of the sheet alone (only the sheet's states record them).
 _Avoid_: Held bonus, active bonus (an ability switched on in a fight is another thing)
 
 **Ranking number**:

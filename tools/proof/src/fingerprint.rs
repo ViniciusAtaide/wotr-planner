@@ -23,9 +23,10 @@
 //! - `caster_lines`: [`Engine::caster_line`] at each level of the sheet for each spell of [`spells`], its Debug text
 //!   hashed (ticket 151).
 //!
-//! Ticket 151 took the Build start out of the two lines' calls, and gave each state its bonuses in force
-//! (`CharacterState::bonuses_in_force`). The harness calls the lines either way (`cfg(lines_take_start)`, set by its
-//! build script), and the sheet hashes without the bonuses in force, so records from before it still compare.
+//! Ticket 151 changed what the two lines take (a Build start and a state, then the state, then a level of the
+//! sheet), and gave each state its bonuses in force (`CharacterState::bonuses_in_force`). The harness calls the lines
+//! whichever way (`cfg(lines_take_start)`, `cfg(lines_take_state)`, set by its build script from the functions'
+//! parameters), and the sheet hashes without the bonuses in force, so records from before it still compare.
 //!
 //! Recording also checks, panicking on a difference: [`Engine::is_removable`] and [`Engine::withdrawal`] against
 //! `removable` for every choice the Build holds ([`Engine::held_choices`]) and some it doesn't,
@@ -357,7 +358,7 @@ fn totals_hash(engine: &Engine, build: &Build, sheet: &rules::Sheet) -> String {
     let totals: Vec<rules::Totals> = sheet
         .levels
         .iter()
-        .map(|level| totals(engine, build, &level.state))
+        .map(|level| totals(engine, build, level))
         .collect();
     hashed(&totals)
 }
@@ -371,42 +372,40 @@ fn caster_lines_hash(engine: &Engine, build: &Build, sheet: &rules::Sheet) -> St
         .flat_map(|level| {
             spells
                 .iter()
-                .map(|spell| caster_line(engine, build, &level.state, *spell))
+                .map(|spell| caster_line(engine, build, level, *spell))
         })
         .collect();
     hashed(&lines)
 }
 
-/// [`Engine::totals`] at a state of the Build's sheet.
-#[cfg(lines_take_start)]
-fn totals(engine: &Engine, build: &Build, state: &rules::CharacterState) -> rules::Totals {
-    engine.totals(&build.start, state)
+/// [`Engine::totals`] at a level of the Build's sheet, whatever the `rules` beside the harness takes (its build
+/// script: before ticket 151, the Build start and the level's state; its first commits, the state; then the level).
+fn totals(engine: &Engine, build: &Build, level: &rules::LevelSheet) -> rules::Totals {
+    // The Build is read only before ticket 151.
+    let _ = build;
+    #[cfg(lines_take_start)]
+    return engine.totals(&build.start, &level.state);
+    #[cfg(lines_take_state)]
+    return engine.totals(&level.state);
+    #[cfg(not(any(lines_take_start, lines_take_state)))]
+    engine.totals(level)
 }
 
-#[cfg(not(lines_take_start))]
-fn totals(engine: &Engine, _: &Build, state: &rules::CharacterState) -> rules::Totals {
-    engine.totals(state)
-}
-
-/// [`Engine::caster_line`] at a state of the Build's sheet.
-#[cfg(lines_take_start)]
+/// [`Engine::caster_line`] at a level of the Build's sheet, whatever the `rules` beside the harness takes (as
+/// [`totals`]).
 fn caster_line(
     engine: &Engine,
     build: &Build,
-    state: &rules::CharacterState,
+    level: &rules::LevelSheet,
     spell: SpellTraits,
 ) -> Option<rules::CasterLine> {
-    engine.caster_line(&build.start, state, spell)
-}
-
-#[cfg(not(lines_take_start))]
-fn caster_line(
-    engine: &Engine,
-    _: &Build,
-    state: &rules::CharacterState,
-    spell: SpellTraits,
-) -> Option<rules::CasterLine> {
-    engine.caster_line(state, spell)
+    let _ = build;
+    #[cfg(lines_take_start)]
+    return engine.caster_line(&build.start, &level.state, spell);
+    #[cfg(lines_take_state)]
+    return engine.caster_line(&level.state, spell);
+    #[cfg(not(any(lines_take_start, lines_take_state)))]
+    engine.caster_line(level, spell)
 }
 
 /// The spells the caster lines are recorded for: one of each school, one of each subschool, one of each energy type

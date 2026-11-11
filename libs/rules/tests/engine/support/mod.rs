@@ -5,7 +5,7 @@
 
 pub use rules::test_world::*;
 
-use rules::{Build, CharacterState, Engine, Prerequisite, Sheet, Unmet};
+use rules::{Build, Engine, LevelSheet, Prerequisite, Sheet, Unmet};
 
 /// The sheet of a Build every choice of which holds up, so its states hold all the Build names.
 pub fn walked(engine: &Engine, build: &Build) -> Sheet {
@@ -14,10 +14,10 @@ pub fn walked(engine: &Engine, build: &Build) -> Sheet {
     engine.evaluate(build)
 }
 
-/// The character after the last level of a Build that holds up ([`walked`]).
-pub fn last_state(engine: &Engine, build: &Build) -> CharacterState {
-    let sheet = walked(engine, build);
-    sheet.levels.last().expect("a level").state.clone()
+/// The last level of the sheet of a Build that holds up ([`walked`]), which the totals and the caster line read.
+pub fn last_level(engine: &Engine, build: &Build) -> LevelSheet {
+    let mut sheet = walked(engine, build);
+    sheet.levels.pop().expect("a level")
 }
 
 /// Every failing single condition in an `Unmet`, as a flat list.

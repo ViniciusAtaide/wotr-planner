@@ -118,7 +118,7 @@ pub(crate) fn compare(planner: &Planner, args: CompareArgs) -> Result<CompareRes
                 summary.attack = attack::attack_line(engine, &last.state, weapon);
             }
             if let (Some(spell), Some(last)) = (spell, sheet.levels.last()) {
-                summary.caster = caster::caster_line(engine, &last.state, spell);
+                summary.caster = caster::caster_line(engine, last, spell);
             }
             summary
         })

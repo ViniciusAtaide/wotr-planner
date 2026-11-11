@@ -103,7 +103,7 @@ impl Number {
 
     /// The number at a Build's last level; `None` when it has no such line there (no level, no casting class, …).
     pub(crate) fn of(&self, engine: &Engine, sheet: &Sheet) -> Option<i16> {
-        let last = &sheet.levels.last()?.state;
+        let last = sheet.levels.last()?;
         match self {
             Self::Caster(spell, number) => {
                 let line = engine.caster_line(last, *spell)?;
@@ -117,7 +117,7 @@ impl Number {
             }
             Self::Attack(weapon, number) => {
                 let weapon = attack::weapon_or_default(engine, weapon.as_ref(), sheet)?;
-                let line = engine.attack_line(last, &weapon)?;
+                let line = engine.attack_line(&last.state, &weapon)?;
                 match number {
                     AttackNumber::Attack => line.attacks.first().copied(),
                     AttackNumber::Damage => Some(line.damage_bonus),

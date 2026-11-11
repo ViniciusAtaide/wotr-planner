@@ -40,7 +40,7 @@ pub(crate) fn sheet(
     }
     if let Some(spell) = caster {
         for (line, level) in result.levels.iter_mut().zip(&evaluated.levels) {
-            line.caster = caster::caster_line(&planner.engine, &level.state, spell);
+            line.caster = caster::caster_line(&planner.engine, level, spell);
         }
         result.caster_leaves_out = Some(caster::leaves_out());
     }
@@ -81,7 +81,10 @@ pub(crate) fn sheet_of(
             .iter()
             .map(|skill| named(skill, engine.skill_name(skill)))
             .collect(),
-        totals: totals::totals(engine, last),
+        totals: sheet
+            .levels
+            .last()
+            .map(|level| totals::totals(engine, level)),
         totals_leave_out: totals::leaves_out(),
         notes: notes(engine, build, last),
         removable: removable.map(|choices| {

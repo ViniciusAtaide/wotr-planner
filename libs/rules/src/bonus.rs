@@ -81,6 +81,37 @@ pub enum BonusItem {
     SelectionOption(SelectionOptionKey),
 }
 
+/// A [`BonusItem`]'s kind, without its key. With the key's text it's what the engine indexes each item's bonuses
+/// by ([`BonusItem::kind_and_key`]), so the walk finds the bonuses of what it holds without building a `BonusItem`
+/// (a copy of the key) for each item it holds.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub(crate) enum BonusItemKind {
+    Race,
+    Subrace,
+    Background,
+    Feat,
+    MythicFeat,
+    MythicAbility,
+    Feature,
+    SelectionOption,
+}
+
+impl BonusItem {
+    /// The item's kind and its key's text.
+    pub(crate) fn kind_and_key(&self) -> (BonusItemKind, &str) {
+        match self {
+            Self::Race(key) => (BonusItemKind::Race, key.as_str()),
+            Self::Subrace(key) => (BonusItemKind::Subrace, key.as_str()),
+            Self::Background(key) => (BonusItemKind::Background, key.as_str()),
+            Self::Feat(key) => (BonusItemKind::Feat, key.as_str()),
+            Self::MythicFeat(key) => (BonusItemKind::MythicFeat, key.as_str()),
+            Self::MythicAbility(key) => (BonusItemKind::MythicAbility, key.as_str()),
+            Self::Feature(key) => (BonusItemKind::Feature, key.as_str()),
+            Self::SelectionOption(key) => (BonusItemKind::SelectionOption, key.as_str()),
+        }
+    }
+}
+
 /// What a bonus adds to.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub enum BonusTarget {

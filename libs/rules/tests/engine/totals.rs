@@ -154,7 +154,7 @@ fn initiative_is_dexterity_plus_the_bonuses_held_a_mythic_one_by_rank() {
         Pick::mythic_feat(MythicFeatKey::new("improved-initiative-mythic")),
     );
 
-    let totals = engine.totals(&last_state(&engine, &build));
+    let totals = engine.totals(&last_level(&engine, &build));
 
     assert_eq!(
         parts(&totals.initiative),
@@ -169,7 +169,7 @@ fn initiative_is_dexterity_plus_the_bonuses_held_a_mythic_one_by_rank() {
     assert_eq!(totals.initiative.total, 16);
     // Without the background, its bonus is gone.
     build.start.background = None;
-    let without = engine.totals(&last_state(&engine, &build));
+    let without = engine.totals(&last_level(&engine, &build));
     assert_eq!(without.initiative.total, 14);
     assert_eq!(totals.leaves_out, rules::TOTALS_LEAVE_OUT);
 }
@@ -198,8 +198,10 @@ fn a_save_is_its_base_its_ability_and_the_bonuses_for_it_or_every_save() {
             BonusAmount::Flat(1),
         ),
     ]);
-    // A fighter 6 (base saves 5, 2 and 2; Mythic rank 1).
-    let mut build = character([10, 12, 14, 10, 8, 18], &times("fighter", 6));
+    // A fighter 5 / rogue 1 (base saves 4, 3 and 1, so each save's total is its own; Mythic rank 1).
+    let mut classes = times("fighter", 5);
+    classes.push("rogue");
+    let mut build = character([10, 12, 14, 10, 8, 18], &classes);
     build.picks.insert(general_slot(1), pick_feat("iron-will"));
     build.picks.insert(
         race_slot(0),
@@ -210,12 +212,12 @@ fn a_save_is_its_base_its_ability_and_the_bonuses_for_it_or_every_save() {
         Pick::mythic_ability(MythicAbilityKey::new("grace")),
     );
 
-    let totals = engine.totals(&last_state(&engine, &build));
+    let totals = engine.totals(&last_level(&engine, &build));
 
     assert_eq!(
         parts(&totals.fortitude),
         [
-            ("Base save", 5),
+            ("Base save", 4),
             ("Constitution", 2),
             ("Human", 1),
             ("grace", 4)
@@ -224,7 +226,7 @@ fn a_save_is_its_base_its_ability_and_the_bonuses_for_it_or_every_save() {
     assert_eq!(
         parts(&totals.reflex),
         [
-            ("Base save", 2),
+            ("Base save", 3),
             ("Dexterity", 1),
             ("Human", 1),
             ("stat-focus (Reflex)", 1),
@@ -234,14 +236,14 @@ fn a_save_is_its_base_its_ability_and_the_bonuses_for_it_or_every_save() {
     assert_eq!(
         parts(&totals.will),
         [
-            ("Base save", 2),
+            ("Base save", 1),
             ("Wisdom", -1),
             ("Human", 1),
             ("iron-will", 2),
             ("grace", 4)
         ]
     );
-    assert_eq!(Save::ALL.map(|save| totals.save(save).total), [12, 9, 8]);
+    assert_eq!(Save::ALL.map(|save| totals.save(save).total), [11, 10, 7]);
 }
 
 #[test]
@@ -287,7 +289,7 @@ fn a_skill_is_its_ranks_its_ability_the_class_skill_bonus_when_trained_and_its_b
     );
     build.picks.insert(race_slot(0), pick_feat("toughness"));
 
-    let totals = engine.totals(&last_state(&engine, &build));
+    let totals = engine.totals(&last_level(&engine, &build));
     let total = |key: &str| totals.skill(&skill(key)).expect("a skill of the data");
 
     // Every skill of the data, in its (canonical) order.
@@ -334,11 +336,11 @@ fn under_perfect_mind_every_skill_is_a_class_skill_with_ranks_at_least_the_mythi
     for level in build.levels.iter_mut().take(12) {
         level.skill_ranks.insert(skill("athletics"), 1);
     }
-    let state = last_state(&engine, &build);
-    assert!(state.skill_ranks_at_least_mythic_rank);
-    assert_eq!(state.mythic_rank, 9);
+    let level = last_level(&engine, &build);
+    assert!(level.state.skill_ranks_at_least_mythic_rank);
+    assert_eq!(level.state.mythic_rank, 9);
 
-    let totals = engine.totals(&state);
+    let totals = engine.totals(&level);
 
     let athletics = totals.skill(&skill("athletics")).unwrap();
     assert_eq!(athletics.total.total, 22);
@@ -372,7 +374,7 @@ fn a_bonus_counts_only_with_what_it_requires() {
     let mut build = character([10, 10, 10, 10, 10, 10], &times("fighter", 8));
     build.picks.insert(race_slot(0), pick_feat("toughness"));
     let sheet = walked(&engine, &build);
-    let initiative = |level| engine.totals(sheet.at(level).unwrap()).initiative.total;
+    let initiative = |level: usize| engine.totals(&sheet.levels[level - 1]).initiative.total;
 
     // Fighter 8 brings the second.
     assert_eq!([initiative(7), initiative(8)], [2, 6]);

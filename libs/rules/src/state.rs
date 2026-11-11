@@ -89,9 +89,10 @@ pub struct CharacterState {
     /// The Item bonuses in force at the end of the level, in the data's order: what the caster line and the totals
     /// add up. The walk records them on the sheet's states ([`Engine::evaluate`]), and levels with the same bonuses
     /// share one list; a walk that keeps no sheet (a picker's or a recheck's) leaves them empty, as does a state
-    /// just before a slot.
+    /// just before a slot. So the two lines take a level of the sheet ([`LevelSheet`]), never a bare state.
     ///
     /// [`Engine::evaluate`]: crate::Engine::evaluate
+    /// [`LevelSheet`]: crate::LevelSheet
     pub bonuses_in_force: Arc<[BonusInForce]>,
 }
 

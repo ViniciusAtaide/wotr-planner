@@ -67,7 +67,7 @@ fn with_bonuses(bonuses: impl IntoIterator<Item = ItemBonus>) -> GameData {
 
 /// The caster line for a spell at the last level of a Build that holds up.
 fn line(engine: &Engine, build: &Build, spell: SpellTraits) -> Option<rules::CasterLine> {
-    engine.caster_line(&last_state(engine, build), spell)
+    engine.caster_line(&last_level(engine, build), spell)
 }
 
 fn dcs(line: &rules::CasterLine) -> Vec<(u8, i16)> {
@@ -162,8 +162,8 @@ fn spell_focus_its_mythic_feat_and_school_power_count_for_their_school_only() {
         ),
     ]);
     let engine = engine();
-    let state = last_state(&engine, &build);
-    let line = |school| engine.caster_line(&state, spell(school)).unwrap();
+    let level = last_level(&engine, &build);
+    let line = |school| engine.caster_line(&level, spell(school)).unwrap();
 
     let evocation = line(SpellSchool::Evocation);
     assert_eq!(
@@ -250,10 +250,10 @@ fn an_archetype_may_cast_with_another_ability() {
         },
     );
     let engine = engine();
-    let state = last_state(&engine, &build);
-    assert_eq!(state.ability_scores.charisma, 20);
+    let level = last_level(&engine, &build);
+    assert_eq!(level.state.ability_scores.charisma, 20);
     let line = engine
-        .caster_line(&state, spell(SpellSchool::Evocation))
+        .caster_line(&level, spell(SpellSchool::Evocation))
         .unwrap();
 
     assert_eq!(line.ability, Ability::Intelligence);
@@ -352,9 +352,9 @@ fn subschool_energy_and_metamagic_bonuses_count_when_the_spell_has_them() {
         selection_slot(1, 0),
         pick_option("sorcerer/bloodline/arcane"),
     );
-    let state = last_state(&engine, &build);
+    let level = last_level(&engine, &build);
     let bonus_for = |spell: SpellTraits| {
-        let line = engine.caster_line(&state, spell).unwrap();
+        let line = engine.caster_line(&level, spell).unwrap();
         line.dc_parts.iter().map(|part| part.value).sum::<i16>()
     };
     let plain = spell(SpellSchool::Enchantment);
@@ -445,8 +445,8 @@ fn expanded_arsenal_gives_its_school_the_spell_focus_feats_of_another() {
         ),
     ]);
     let engine = with_expanded_arsenal();
-    let state = last_state(&engine, &build);
-    let line = |school| engine.caster_line(&state, spell(school)).unwrap();
+    let level = last_level(&engine, &build);
+    let line = |school| engine.caster_line(&level, spell(school)).unwrap();
 
     // Necromancy gets the school with the most: Evocation's two.
     assert_eq!(

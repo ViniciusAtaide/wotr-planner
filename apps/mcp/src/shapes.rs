@@ -612,8 +612,9 @@ pub struct SheetResult {
     /// At the last level: the class skills.
     pub class_skills: Vec<Named>,
     /// At the last level: initiative, the saves and each skill's total, each with what it counts. Unconditional
-    /// numbers only (`totals_leave_out` lists what they leave out).
-    pub totals: crate::totals::TotalsShape,
+    /// numbers only (`totals_leave_out` lists what they leave out). Absent before the first level.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub totals: Option<crate::totals::TotalsShape>,
     /// What no total counts: gear, buffs, abilities switched on in a fight, bonuses against one kind of effect or for
     /// one use of a skill, bonuses that grow with class level.
     pub totals_leave_out: Vec<String>,

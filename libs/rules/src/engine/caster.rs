@@ -13,7 +13,7 @@ use crate::keys::{ClassKey, FeatKey};
 use crate::state::CharacterState;
 
 use super::walk::advancing_levels;
-use super::{Engine, class_level_cap};
+use super::{Engine, LevelSheet, class_level_cap};
 
 /// A spell's numbers at one point of a Build ([`Engine::caster_line`]).
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -87,9 +87,14 @@ struct Casting {
 }
 
 impl Engine {
-    /// The caster line for a spell at a character state of the sheet: `None` for a character with no class that casts
-    /// spells (or none castable yet).
-    pub fn caster_line(&self, state: &CharacterState, spell: SpellTraits) -> Option<CasterLine> {
+    /// The caster line for a spell at a level of the sheet ([`Engine::evaluate`]), at the state that ends it: `None`
+    /// for a character with no class that casts spells (or none castable yet).
+    ///
+    /// It takes the sheet's level rather than a bare state because only the sheet's states record the bonuses in
+    /// force ([`CharacterState::bonuses_in_force`]): a state from anywhere else ([`Engine::state_before`], one built
+    /// by hand) has none, and its line would give a DC without Spell Focus without an error.
+    pub fn caster_line(&self, level: &LevelSheet, spell: SpellTraits) -> Option<CasterLine> {
+        let state = &level.state;
         let casting = self.casting(state)?;
         let parts = |adds: &dyn Fn(&BonusInForce) -> bool| {
             state

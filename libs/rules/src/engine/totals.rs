@@ -8,9 +8,8 @@
 use crate::bonus::BonusInForce;
 use crate::game_data::{Ability, Save};
 use crate::keys::SkillKey;
-use crate::state::CharacterState;
 
-use super::Engine;
+use super::{Engine, LevelSheet};
 
 /// The class skill bonus: a trained class skill's checks get +3.
 pub const CLASS_SKILL_BONUS: i16 = 3;
@@ -88,8 +87,15 @@ pub const TOTALS_LEAVE_OUT: &[&str] = &[
 ];
 
 impl Engine {
-    /// Initiative, the saves and each skill's total at a character state of the sheet.
-    pub fn totals(&self, state: &CharacterState) -> Totals {
+    /// Initiative, the saves and each skill's total at a level of the sheet ([`Engine::evaluate`]), at the state
+    /// that ends it.
+    ///
+    /// It takes the sheet's level rather than a bare state because only the sheet's states record the bonuses in
+    /// force ([`bonuses_in_force`](crate::CharacterState::bonuses_in_force)): a state from anywhere else
+    /// ([`Engine::state_before`], one built by hand) has none, and its totals would leave out every item bonus
+    /// without an error.
+    pub fn totals(&self, level: &LevelSheet) -> Totals {
+        let state = &level.state;
         let ability = |ability: Ability| TotalPart {
             name: ability.name().to_owned(),
             value: i16::from(state.ability_scores.modifier(ability)),

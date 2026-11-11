@@ -5,7 +5,7 @@
 use std::collections::{BTreeSet, HashMap, HashSet};
 
 use super::{EffectiveRow, canonical_archetype_row, class_row, effective_rows, merged_row};
-use crate::bonus::BonusItem;
+use crate::bonus::BonusItemKind;
 use crate::build::{BuildStart, Pick};
 use crate::check::CheckedGameData;
 use crate::game_data::{
@@ -46,50 +46,25 @@ pub(super) struct Catalog {
     bonus_rows: BonusRows,
 }
 
-/// An item that may give Item bonuses ([`Catalog::bonus_rows`]).
-#[derive(Clone, Copy)]
-pub(super) enum BonusGiver<'a> {
-    Race(&'a RaceKey),
-    Subrace(&'a SubraceKey),
-    Background(&'a BackgroundKey),
-    Feat(&'a FeatKey),
-    MythicFeat(&'a MythicFeatKey),
-    MythicAbility(&'a MythicAbilityKey),
-    Feature(&'a FeatureKey),
-    SelectionOption(&'a SelectionOptionKey),
-}
-
-/// The positions in `data.bonuses` of each item's bonuses, by the item's kind, so the walk finds an item's
-/// bonuses as it holds it without building a [`BonusItem`].
+/// The positions in `data.bonuses` of each item's bonuses, by the item's kind (`kind as usize`) then its key's text
+/// ([`BonusItem::kind_and_key`]), so the walk finds an item's bonuses as it holds it without building a
+/// [`BonusItem`].
+///
+/// [`BonusItem`]: crate::BonusItem
+/// [`BonusItem::kind_and_key`]: crate::BonusItem::kind_and_key
 #[derive(Clone, Debug, Default)]
-struct BonusRows {
-    feats: HashMap<FeatKey, Vec<usize>>,
-    mythic_feats: HashMap<MythicFeatKey, Vec<usize>>,
-    mythic_abilities: HashMap<MythicAbilityKey, Vec<usize>>,
-    features: HashMap<FeatureKey, Vec<usize>>,
-    options: HashMap<SelectionOptionKey, Vec<usize>>,
-    races: HashMap<RaceKey, Vec<usize>>,
-    subraces: HashMap<SubraceKey, Vec<usize>>,
-    backgrounds: HashMap<BackgroundKey, Vec<usize>>,
-}
+struct BonusRows(Vec<HashMap<String, Vec<usize>>>);
 
 impl BonusRows {
     fn new(data: &GameData) -> Self {
         let mut rows = Self::default();
         for (at, bonus) in data.bonuses.iter().enumerate() {
-            let list = match &bonus.item {
-                BonusItem::Race(key) => rows.races.entry(key.clone()).or_default(),
-                BonusItem::Subrace(key) => rows.subraces.entry(key.clone()).or_default(),
-                BonusItem::Background(key) => rows.backgrounds.entry(key.clone()).or_default(),
-                BonusItem::Feat(key) => rows.feats.entry(key.clone()).or_default(),
-                BonusItem::MythicFeat(key) => rows.mythic_feats.entry(key.clone()).or_default(),
-                BonusItem::MythicAbility(key) => {
-                    rows.mythic_abilities.entry(key.clone()).or_default()
-                }
-                BonusItem::Feature(key) => rows.features.entry(key.clone()).or_default(),
-                BonusItem::SelectionOption(key) => rows.options.entry(key.clone()).or_default(),
-            };
-            list.push(at);
+            let (kind, key) = bonus.item.kind_and_key();
+            let kind = kind as usize;
+            if rows.0.len() <= kind {
+                rows.0.resize_with(kind + 1, HashMap::new);
+            }
+            rows.0[kind].entry(key.to_owned()).or_default().push(at);
         }
         rows
     }
@@ -975,20 +950,12 @@ impl SelectionAt {
 
 /// The Item bonuses (ticket 151).
 impl Catalog {
-    /// The positions in the data's bonuses ([`GameData::bonuses`]) of the bonuses an item gives, in the data's
-    /// order; empty for one that gives none.
-    pub(super) fn bonus_rows(&self, giver: BonusGiver<'_>) -> &[usize] {
-        let rows = &self.bonus_rows;
-        let found = match giver {
-            BonusGiver::Race(key) => rows.races.get(key),
-            BonusGiver::Subrace(key) => rows.subraces.get(key),
-            BonusGiver::Background(key) => rows.backgrounds.get(key),
-            BonusGiver::Feat(key) => rows.feats.get(key),
-            BonusGiver::MythicFeat(key) => rows.mythic_feats.get(key),
-            BonusGiver::MythicAbility(key) => rows.mythic_abilities.get(key),
-            BonusGiver::Feature(key) => rows.features.get(key),
-            BonusGiver::SelectionOption(key) => rows.options.get(key),
-        };
-        found.map_or(&[], Vec::as_slice)
+    /// The positions in the data's bonuses ([`GameData::bonuses`]) of the bonuses an item gives, by its kind and its
+    /// key's text ([`BonusItem::kind_and_key`](crate::BonusItem::kind_and_key)), in the data's order; empty for one
+    /// that gives none.
+    pub(super) fn bonus_rows(&self, kind: BonusItemKind, key: &str) -> &[usize] {
+        (self.bonus_rows.0.get(kind as usize))
+            .and_then(|rows| rows.get(key))
+            .map_or(&[], Vec::as_slice)
     }
 }

@@ -55,6 +55,18 @@ async fn the_sheet_gives_initiative_saves_and_skill_totals_with_what_they_count(
     );
 }
 
+/// The totals are a level's (ticket 151's review): a Build with no level yet has none, rather than totals without
+/// its race's and background's bonuses.
+#[tokio::test]
+async fn a_build_without_a_level_has_no_totals() {
+    let client = Client::on_the_test_world().await;
+    let empty = client.ok("new_build", json!({})).await;
+    let sheet = client.ok("sheet", json!({ "build": empty["build"] })).await;
+
+    assert!(sheet.get("totals").is_none(), "{sheet}");
+    assert!(sheet["levels"].as_array().unwrap().is_empty(), "{sheet}");
+}
+
 #[tokio::test]
 async fn the_instructions_let_an_agent_state_the_totals_and_cite_interactions() {
     let client = Client::start().await;

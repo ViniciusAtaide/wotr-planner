@@ -1,5 +1,7 @@
 //! The Item bonuses in force (ticket 151): the walk records them on each state of the sheet, with what each adds at
-//! that level, so the caster line and the totals read the state alone.
+//! that level, so the caster line and the totals read a level of the sheet alone.
+
+use std::sync::Arc;
 
 use rules::{
     BonusAmount, BonusInForce, BonusItem, BonusTarget, Build, Engine, ItemBonus, Parameter,
@@ -112,4 +114,18 @@ fn a_bonus_is_in_force_once_its_requirement_holds_with_its_amount_at_each_level(
             ("toughness", 1),
         ])
     );
+}
+
+#[test]
+fn a_level_with_the_last_levels_bonuses_shares_its_list_and_one_that_changes_keeps_the_rest() {
+    let engine = engine_with_toughness();
+    let sheet = walked(&engine, &sorcerer());
+    let list = |level: usize| &sheet.levels[level - 1].state.bonuses_in_force;
+
+    // Toughness's half Mythic rank: 0 at 6 (MR 1), 1 at 7 (MR 2), still 1 at 8 and 9 (MR 3).
+    assert!(!Arc::ptr_eq(list(6), list(7)));
+    assert!(Arc::ptr_eq(list(7), list(8)) && Arc::ptr_eq(list(8), list(9)));
+    // The new list keeps Spell Focus and Spell Penetration as they were.
+    assert_eq!(list(6)[..2], list(7)[..2]);
+    assert_eq!((list(6)[2].amount, list(7)[2].amount), (0, 1));
 }

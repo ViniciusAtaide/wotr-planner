@@ -53,8 +53,10 @@
 //! compiles against those crates.
 //!
 //! Ticket 151: the fingerprint records each level's totals and caster lines, and those two calls lost their Build
-//! start. The build script reads which side of that the `rules` crate beside it is on (`cfg(lines_take_start)`), so
-//! the harness still compiles against crates from before it; the sheet hashes without the states' new
+//! start, then took a level of the sheet rather than its state. The build script reads which of the three the `rules`
+//! crate beside it takes, from the two functions' parameters wherever its sources define them (`cfg(lines_take_start)`,
+//! `cfg(lines_take_state)`, or neither), so the harness compiles against crates back to ticket 120, which brought the
+//! totals, and fails to build with what it found on anything else; the sheet hashes without the states' new
 //! `bonuses_in_force`, so records from before it still compare.
 //!
 //! A ticket that needs a special breakdown (only the Builds with some class, say) filters `compare`'s output or the

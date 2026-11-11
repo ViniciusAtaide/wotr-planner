@@ -1,42 +1,39 @@
 //! The Item bonuses in force at the end of a level (ticket 151): which the character holds, through the Build start
 //! (race, subrace, background) or the state (feats, mythic feats and abilities, features, options), whether each
 //! meets its `requires`, and what each adds there. The walk records them on the sheet's states, so the caster line
-//! and the totals read the state alone.
+//! and the totals read a level of the sheet alone.
 //!
 //! The walk notes each bonus whose item it holds as it holds it ([`Walker::note_bonuses`]), so a level's end looks
-//! only at those, not at every bonus of the data. A level whose bonuses are the last level's (most are) shares the
-//! last level's list rather than building it again.
+//! only at those, not at every bonus of the data. A level's end then keeps the last level's list while what it finds
+//! matches it entry by entry (most levels: it shares that list), and builds a new one only from the first entry
+//! that differs, reusing the last level's entry (its name) for each bonus that only changed its amount or stayed.
 
+use std::cell::OnceCell;
 use std::collections::BTreeMap;
-use std::sync::Arc;
 
 use super::{Held, Walker};
-use crate::bonus::{BonusAmount, BonusInForce, BonusItem, BonusTarget, ItemBonus, SpellScope};
-use crate::engine::catalog::BonusGiver;
+use crate::bonus::{
+    BonusAmount, BonusInForce, BonusItem, BonusItemKind, BonusTarget, ItemBonus, SpellScope,
+};
 use crate::parameter::{Parameter, SpellSchool};
 
-/// A bonus in force as a level's end finds it, before it's named: its position in the data's bonuses, the value its
-/// item is held for, what it adds, and for Expanded Arsenal the school whose Spell Focus feats it copies.
-#[derive(Clone)]
-pub(super) struct Found<V> {
-    row: usize,
-    value: Option<V>,
-    amount: i16,
-    copies: Option<SpellSchool>,
-}
+/// Where a bonus in force comes from: its position in the data's bonuses, and for Expanded Arsenal the school
+/// whose Spell Focus feats it copies. With the entry's value, it says which bonus an entry is; the walk keeps one
+/// beside each entry of the state's list (`Walker::bonus_keys`), so a level's end compares without the item's key.
+pub(super) type BonusKey = (usize, Option<SpellSchool>);
 
 impl Walker<'_> {
     /// Notes the bonuses an item gives as the walk holds it, so the level's end looks at them.
     pub(super) fn note_bonuses(&mut self, item: &Held) {
-        let giver = match item {
-            Held::Feat(key, _) => BonusGiver::Feat(key),
-            Held::Feature(key) => BonusGiver::Feature(key),
-            Held::SelectionOption(key, _) => BonusGiver::SelectionOption(key),
-            Held::MythicAbility(key) => BonusGiver::MythicAbility(key),
-            Held::MythicFeat(key, _) => BonusGiver::MythicFeat(key),
+        let (kind, key) = match item {
+            Held::Feat(key, _) => (BonusItemKind::Feat, key.as_str()),
+            Held::Feature(key) => (BonusItemKind::Feature, key.as_str()),
+            Held::SelectionOption(key, _) => (BonusItemKind::SelectionOption, key.as_str()),
+            Held::MythicAbility(key) => (BonusItemKind::MythicAbility, key.as_str()),
+            Held::MythicFeat(key, _) => (BonusItemKind::MythicFeat, key.as_str()),
             Held::ClassSkill(_) => return,
         };
-        self.note_giver(giver);
+        self.note(kind, key);
     }
 
     /// Notes the bonuses of the Build start's race or subrace and background: those of its subrace when the subrace
@@ -44,112 +41,132 @@ impl Walker<'_> {
     /// otherwise. The start is never released, so these stay held.
     pub(super) fn note_start_bonuses(&mut self) {
         let (engine, start) = (self.engine, &self.build.start);
-        self.bonuses_noted = vec![false; engine.catalog.data().bonuses.len()];
+        self.bonuses_noted.clear();
         let own_subrace = start.subrace.as_ref().filter(|key| {
             (engine.catalog.subrace(key))
                 .is_some_and(|(owner, _)| start.race.as_ref() == Some(&owner.key))
         });
         let racial = match own_subrace {
-            Some(subrace) => Some(BonusGiver::Subrace(subrace)),
-            None => start.race.as_ref().map(BonusGiver::Race),
+            Some(subrace) => Some((BonusItemKind::Subrace, subrace.as_str())),
+            None => (start.race.as_ref()).map(|race| (BonusItemKind::Race, race.as_str())),
         };
-        let background = start.background.as_ref().map(BonusGiver::Background);
-        for giver in [racial, background].into_iter().flatten() {
-            self.note_giver(giver);
+        let background =
+            (start.background.as_ref()).map(|key| (BonusItemKind::Background, key.as_str()));
+        for (kind, key) in [racial, background].into_iter().flatten() {
+            self.note(kind, key);
         }
     }
 
-    fn note_giver(&mut self, giver: BonusGiver<'_>) {
-        for row in self.engine.catalog.bonus_rows(giver) {
-            self.bonuses_noted[*row] = true;
+    /// Adds an item's bonuses to those noted, in the data's order.
+    fn note(&mut self, kind: BonusItemKind, key: &str) {
+        let engine = self.engine;
+        for &row in engine.catalog.bonus_rows(kind, key) {
+            if let Err(at) = self.bonuses_noted.binary_search(&row) {
+                self.bonuses_noted.insert(at, row);
+            }
         }
     }
 
-    /// Records the Item bonuses in force on the state ([`CharacterState::bonuses_in_force`]): the last level's list
-    /// when they're the same, a new one otherwise.
+    /// Records the Item bonuses in force on the state ([`CharacterState::bonuses_in_force`]): those noted
+    /// ([`note_bonuses`](Self::note_bonuses)) whose item is held and whose `requires` holds, in the data's order,
+    /// once per value the item is held for, with what each adds. The last level's list stands while each entry
+    /// found matches its own; from the first that doesn't, a new list.
     ///
     /// [`CharacterState::bonuses_in_force`]: crate::CharacterState::bonuses_in_force
     pub(super) fn record_bonuses(&mut self) {
-        let found = self.find_bonuses();
-        let same = found.len() == self.bonuses_found.len()
-            && found.iter().zip(&self.bonuses_found).all(|(new, old)| {
-                (new.row, new.value, new.amount, new.copies)
-                    == (old.row, old.value.as_ref(), old.amount, old.copies)
-            });
-        if same {
-            return;
-        }
         let bonuses = &self.engine.catalog.data().bonuses;
-        let recorded: Arc<[BonusInForce]> = found
-            .iter()
-            .map(|found| {
-                let bonus = &bonuses[found.row];
-                BonusInForce {
-                    item: bonus.item.clone(),
-                    value: found.value.cloned(),
-                    target: bonus.target.clone(),
-                    amount: found.amount,
-                    name: self.bonus_name(&bonus.item, found.value, found.copies),
-                }
-            })
-            .collect();
-        let owned = found
-            .into_iter()
-            .map(|found| Found {
-                value: found.value.cloned(),
-                row: found.row,
-                amount: found.amount,
-                copies: found.copies,
-            })
-            .collect();
-        self.bonuses_found = owned;
-        self.state.bonuses_in_force = recorded;
+        let (last, last_keys) = (&self.state.bonuses_in_force, &self.bonus_keys);
+        let mut keys = std::mem::take(&mut self.bonus_keys_next);
+        keys.clear();
+        // The new list, once an entry differs from the last level's.
+        let mut new: Option<Vec<BonusInForce>> = None;
+        // How far the search for a last level's entry to reuse has gone.
+        let mut reuse_from = 0;
+        let focus = OnceCell::new();
+        for &row in &self.bonuses_noted {
+            let bonus = &bonuses[row];
+            if !self.requirement_holds(bonus) {
+                continue;
+            }
+            self.for_each_holding(&bonus.item, |value| {
+                let (amount, copies) = if bonus.amount == BonusAmount::SpellFocusOfAnotherSchool {
+                    // Expanded Arsenal's copy; one that copies nothing isn't in force.
+                    let focus = focus.get_or_init(|| self.spell_focus_totals());
+                    let Some((amount, from)) = expanded_arsenal(focus, value) else {
+                        return;
+                    };
+                    (amount, Some(from))
+                } else {
+                    (self.amount(bonus, value), None)
+                };
+                let key = (row, copies);
+                let at = keys.len();
+                keys.push(key);
+                let list = match &mut new {
+                    Some(list) => list,
+                    None if last.get(at).is_some_and(|entry| {
+                        last_keys[at] == key
+                            && entry.value.as_ref() == value
+                            && entry.amount == amount
+                    }) =>
+                    {
+                        return;
+                    }
+                    None => new.insert(last[..at].to_vec()),
+                };
+                let entry = match reusable(last, last_keys, &mut reuse_from, key, value) {
+                    Some(entry) => BonusInForce {
+                        amount,
+                        ..entry.clone()
+                    },
+                    None => BonusInForce {
+                        item: bonus.item.clone(),
+                        value: value.cloned(),
+                        target: bonus.target.clone(),
+                        amount,
+                        name: self.bonus_name(&bonus.item, value, copies),
+                    },
+                };
+                list.push(entry);
+            });
+        }
+        // The last level's list stands, or its first entries do (its last ones are no longer in force).
+        let new = new.or_else(|| (keys.len() < last.len()).then(|| last[..keys.len()].to_vec()));
+        if let Some(new) = new {
+            self.state.bonuses_in_force = new.into();
+        }
+        self.bonus_keys_next = std::mem::replace(&mut self.bonus_keys, keys);
     }
 
-    /// The bonuses in force now, in the data's order: those noted ([`note_bonuses`](Self::note_bonuses)) whose item
-    /// is held and whose `requires` holds, once per value the item is held for, with what each adds.
-    fn find_bonuses(&self) -> Vec<Found<&Parameter>> {
+    /// Whether a bonus's `requires` holds now (one without holds).
+    fn requirement_holds(&self, bonus: &ItemBonus) -> bool {
+        (bonus.requires.as_ref()).is_none_or(|requires| self.state.check(requires).is_ok())
+    }
+
+    /// What the Spell Focus feats held add up to for each school: the flat spell DC bonuses in force of the feats and
+    /// mythic feats held for a school whose scope is the school they're held for. Expanded Arsenal copies them.
+    fn spell_focus_totals(&self) -> BTreeMap<SpellSchool, i16> {
         let bonuses = &self.engine.catalog.data().bonuses;
-        let mut found = Vec::new();
-        let noted =
-            (self.bonuses_noted.iter().enumerate()).filter_map(|(row, noted)| noted.then_some(row));
-        for row in noted {
+        let mut totals = BTreeMap::new();
+        for &row in &self.bonuses_noted {
             let bonus = &bonuses[row];
-            if bonus
-                .requires
-                .as_ref()
-                .is_some_and(|requires| self.state.check(requires).is_err())
+            let (BonusTarget::SpellDc(SpellScope::Value), BonusAmount::Flat(amount)) =
+                (&bonus.target, bonus.amount)
+            else {
+                continue;
+            };
+            if !matches!(bonus.item, BonusItem::Feat(_) | BonusItem::MythicFeat(_))
+                || !self.requirement_holds(bonus)
             {
                 continue;
             }
             self.for_each_holding(&bonus.item, |value| {
-                found.push(Found {
-                    row,
-                    value,
-                    amount: self.amount(bonus, value),
-                    copies: None,
-                });
-            });
-        }
-        // Expanded Arsenal's copies, once the Spell Focus feats held are known; one that copies nothing isn't in
-        // force.
-        if found
-            .iter()
-            .any(|found| bonuses[found.row].amount == BonusAmount::SpellFocusOfAnotherSchool)
-        {
-            let focus = spell_focus_totals(bonuses, &found);
-            found.retain_mut(|found| {
-                if bonuses[found.row].amount != BonusAmount::SpellFocusOfAnotherSchool {
-                    return true;
+                if let Some(Parameter::SpellSchool(school)) = value {
+                    *totals.entry(*school).or_insert(0) += i16::from(amount);
                 }
-                let Some((amount, from)) = expanded_arsenal(&focus, found.value) else {
-                    return false;
-                };
-                (found.amount, found.copies) = (amount, Some(from));
-                true
             });
         }
-        found
+        totals
     }
 
     /// What a bonus held for `value` adds for the character now, from its own scores, its Mythic rank and the ranks of
@@ -247,28 +264,22 @@ impl Walker<'_> {
     }
 }
 
-/// What the Spell Focus feats held add up to for each school: the flat spell DC bonuses of the feats and mythic
-/// feats held for a school whose scope is the school they're held for.
-fn spell_focus_totals(
-    bonuses: &[ItemBonus],
-    found: &[Found<&Parameter>],
-) -> BTreeMap<SpellSchool, i16> {
-    let mut totals = BTreeMap::new();
-    for found in found {
-        let bonus = &bonuses[found.row];
-        let (BonusTarget::SpellDc(SpellScope::Value), BonusAmount::Flat(amount)) =
-            (&bonus.target, bonus.amount)
-        else {
-            continue;
-        };
-        if !matches!(bonus.item, BonusItem::Feat(_) | BonusItem::MythicFeat(_)) {
-            continue;
-        }
-        if let Some(Parameter::SpellSchool(school)) = found.value {
-            *totals.entry(*school).or_insert(0) += i16::from(amount);
-        }
+/// The last level's entry for the bonus `key` held for `value`, if it had one: the search goes on from `from`, as
+/// the entries of both levels are in the data's order.
+fn reusable<'l>(
+    last: &'l [BonusInForce],
+    last_keys: &[BonusKey],
+    from: &mut usize,
+    key: BonusKey,
+    value: Option<&Parameter>,
+) -> Option<&'l BonusInForce> {
+    while last_keys.get(*from).is_some_and(|(row, _)| *row < key.0) {
+        *from += 1;
     }
-    totals
+    (*from..last_keys.len())
+        .take_while(|&at| last_keys[at].0 == key.0)
+        .find(|&at| last_keys[at] == key && last[at].value.as_ref() == value)
+        .map(|at| &last[at])
 }
 
 /// Expanded Arsenal held for `value`: what the Spell Focus feats of the school where they add up to the most (the
