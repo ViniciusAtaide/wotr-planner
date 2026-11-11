@@ -1,5 +1,5 @@
-//! The walk: one pass over a Build, level by level, that gives the sheet, the choices that fail, and the state
-//! at a probe.
+//! The walk: one pass over a Build, level by level, that gives the sheet and the choices that fail; and the cursor,
+//! the walk paused where a picker asks, which judges each candidate there (`cursor`).
 
 use std::collections::{BTreeMap, BTreeSet, HashSet};
 
@@ -19,16 +19,19 @@ use crate::parameter::Parameter;
 use crate::state::CharacterState;
 
 mod ascension;
+mod cursor;
 mod hold;
+mod judge;
 mod level;
 mod options;
 
-pub(super) use level::advancing_levels;
+pub(super) use cursor::Cursor;
+pub(super) use level::{advancements, advancing_levels};
 
 impl Engine {
     /// Walks the whole Build.
     pub fn evaluate(&self, build: &Build) -> Sheet {
-        Walker::new(self, build, None).run().sheet
+        Walker::new(self, build).run().sheet
     }
 
     /// Every choice of the Build that fails, with why, in walk order: the Build start's, each level's (its class,
@@ -39,12 +42,7 @@ impl Engine {
     ///
     /// One full walk, without the sheet.
     pub fn failures(&self, build: &Build) -> Vec<Failure> {
-        Walker::new(self, build, None).without_sheet().run().failed
-    }
-
-    /// Walks the Build up to a probe, stopping after the level it's in.
-    pub(super) fn probe(&self, build: &Build, probe: Probe<'_>) -> Probed {
-        Walker::new(self, build, Some(probe)).run().probed
+        Walker::new(self, build).without_sheet().run().failed
     }
 
     /// Whether every choice in the Build holds up with the current game data: every key known, every pick in a
@@ -53,7 +51,7 @@ impl Engine {
     ///
     /// Costs at most one walk of the Build, without the sheet; it stops at the first choice that fails.
     pub fn is_possible(&self, build: &Build) -> bool {
-        Walker::new(self, build, None)
+        Walker::new(self, build)
             .without_sheet()
             .holds(0, Vec::new())
     }
@@ -71,7 +69,9 @@ impl Engine {
     /// The state just before a slot is filled, or `None` when the Build has no such slot. Tests only.
     #[cfg(any(test, feature = "testing"))]
     pub fn state_before(&self, build: &Build, slot: &SlotId) -> Option<CharacterState> {
-        self.probe(build, Probe::Slot(slot)).state
+        Cursor::new(self, build)
+            .until_slot(slot)
+            .map(|at| at.state().clone())
     }
 }
 
@@ -122,40 +122,39 @@ struct RankGrant {
     item: Held,
 }
 
-/// Where a walk stops to report the state: just before a slot is filled, or just before a level's Level-up; or at
-/// the end of a slot's character level, with the picks after the slot ([`Probed::later`]).
+/// What the cursor has a level's walk note as it goes ([`Cursor::until_slot`] and its later picks): the state just
+/// before a slot is filled, or the picks after a slot at its level ([`Probed::later`]).
 #[derive(Clone, Copy)]
-pub(super) enum Probe<'a> {
+enum Probe<'a> {
     Slot(&'a SlotId),
-    Level(u8),
     Later(&'a SlotId),
 }
 
-/// What a probe found: nothing when the Build has no such slot or level.
+/// What a probe found: nothing when the level has no such slot.
 #[derive(Clone, Default)]
-pub(super) struct Probed {
-    pub(super) state: Option<CharacterState>,
+struct Probed {
+    state: Option<CharacterState>,
     /// For a slot probe, what the slot accepts.
-    pub(super) kind: Option<SlotKind>,
+    kind: Option<SlotKind>,
     /// For a later probe, once the walk has reached the slot: each pick the slot's character level holds after it,
     /// in walk order.
-    pub(super) later: Option<Vec<Checkpoint>>,
+    later: Option<Vec<Checkpoint>>,
 }
 
 /// A pick a later probe passed, with the state just before and just after its slot was filled.
 #[derive(Clone)]
-pub(super) struct Checkpoint {
-    pub(super) slot: SlotId,
-    pub(super) kind: SlotKind,
-    pub(super) pick: Pick,
-    pub(super) before: CharacterState,
-    pub(super) after: CharacterState,
+struct Checkpoint {
+    slot: SlotId,
+    kind: SlotKind,
+    pick: Pick,
+    before: CharacterState,
+    after: CharacterState,
 }
 
 #[derive(Clone)]
-pub(super) struct Walker<'a> {
+struct Walker<'a> {
     engine: &'a Engine,
-    pub(super) build: &'a Build,
+    build: &'a Build,
     state: CharacterState,
     /// The choices that don't hold up, in walk order.
     failed: Vec<Failure>,
@@ -192,7 +191,7 @@ pub(super) struct Walker<'a> {
     /// How many selection slots feats have given this level so far.
     feat_selection_slots: u8,
     /// The skill points of the last level walked, which the skill steppers read off a paused walk.
-    pub(super) skill_points: SkillPoints,
+    skill_points: SkillPoints,
     probe: Option<Probe<'a>>,
     probed: Probed,
     /// Whether the walk keeps the sheet's rows; a recheck's walk doesn't ([`without_sheet`](Self::without_sheet)).
@@ -243,14 +242,13 @@ struct Holding {
     granted_by: Option<SelectionOptionKey>,
 }
 
-pub(super) struct Walk {
+struct Walk {
     sheet: Sheet,
-    probed: Probed,
     failed: Vec<Failure>,
 }
 
 impl<'a> Walker<'a> {
-    pub(super) fn new(engine: &'a Engine, build: &'a Build, probe: Option<Probe<'a>>) -> Self {
+    fn new(engine: &'a Engine, build: &'a Build) -> Self {
         let mut ascensions = engine.catalog.data().progression.mythic_ascensions.clone();
         ascensions.sort_by_key(|a| a.rank);
         let ranks = ascensions
@@ -285,7 +283,7 @@ impl<'a> Walker<'a> {
             option_feat_slots: 0,
             feat_selection_slots: 0,
             skill_points: SkillPoints::default(),
-            probe,
+            probe: None,
             probed: Probed::default(),
             sheet: true,
             recheck: None,
@@ -293,7 +291,7 @@ impl<'a> Walker<'a> {
     }
 
     /// The same walk without the sheet's rows (the state at each level), which a recheck doesn't read.
-    pub(super) fn without_sheet(mut self) -> Self {
+    fn without_sheet(mut self) -> Self {
         self.sheet = false;
         self
     }
@@ -311,7 +309,7 @@ impl<'a> Walker<'a> {
     /// `first` on (the ones before it are walked already, and count with what failed in them), and stops at the
     /// first other choice that fails. A pick for a level's slot the level didn't reach fails once the level is
     /// walked, rather than at the end.
-    pub(super) fn holds(mut self, first: u8, allowed: Vec<Choice>) -> bool {
+    fn holds(mut self, first: u8, allowed: Vec<Choice>) -> bool {
         let broken = self
             .failed
             .iter()
@@ -346,27 +344,14 @@ impl<'a> Walker<'a> {
         self.recheck.as_ref().is_some_and(|recheck| recheck.broken)
     }
 
-    pub(super) fn run(mut self) -> Walk {
+    /// Walks the whole Build, then reports.
+    fn run(mut self) -> Walk {
         self.start();
-        self.finish(1)
-    }
-
-    /// Walks the Build's levels from `first` on (the ones before it are walked already), then reports.
-    pub(super) fn finish(mut self, first: u8) -> Walk {
         let build = self.build;
         let mut levels = Vec::with_capacity(build.levels.len());
-        let skipped = usize::from(first).saturating_sub(1);
-        for (index, level_up) in build.levels.iter().enumerate().skip(skipped) {
+        for (index, level_up) in build.levels.iter().enumerate() {
             let level = u8::try_from(index + 1).unwrap_or(u8::MAX);
             levels.extend(self.level(level, level_up));
-            if self.probed.state.is_some() {
-                break;
-            }
-        }
-        if let Some(Probe::Level(level)) = self.probe
-            && usize::from(level) == self.build.levels.len() + 1
-        {
-            self.probed.state = Some(self.state.clone());
         }
         self.check_unreached();
         Walk {
@@ -375,7 +360,6 @@ impl<'a> Walker<'a> {
                 ranks: self.ranks,
                 level_cap: self.level_cap,
             },
-            probed: self.probed,
             failed: self.failed,
         }
     }
@@ -442,7 +426,7 @@ impl<'a> Walker<'a> {
 
     // ---- Build start --------------------------------------------------------------------------------------
 
-    pub(super) fn start(&mut self) {
+    fn start(&mut self) {
         let catalog = &self.engine.catalog;
         let start = &self.build.start;
         self.state.race = start.race.clone();
@@ -535,12 +519,7 @@ impl<'a> Walker<'a> {
     // ---- Level-up -----------------------------------------------------------------------------------------
 
     /// Walks one level; its sheet row, unless the walk keeps no sheet.
-    pub(super) fn level(&mut self, level: u8, level_up: &'a LevelUp) -> Option<LevelSheet> {
-        if let Some(Probe::Level(probed)) = self.probe
-            && probed == level
-        {
-            self.probed.state = Some(self.state.clone());
-        }
+    fn level(&mut self, level: u8, level_up: &'a LevelUp) -> Option<LevelSheet> {
         if level > self.level_cap {
             self.fail(Choice::CharacterLevel { level }, Issue::NotReached);
         }
@@ -583,10 +562,6 @@ impl<'a> Walker<'a> {
                 mythic_ranks.push(rank);
             }
             slots.extend(self.fill_pending(level));
-        }
-        // A later probe stops at the end of its slot's level.
-        if matches!(self.probe, Some(Probe::Later(_))) && self.probed.later.is_some() {
-            self.probed.state = Some(self.state.clone());
         }
 
         self.sheet.then(|| LevelSheet {

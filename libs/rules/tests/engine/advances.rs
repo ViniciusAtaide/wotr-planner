@@ -2,7 +2,7 @@
 
 use std::collections::BTreeSet;
 
-use rules::{Build, ClassChoice, ClassKey, ClassOption, Edit};
+use rules::{Build, ClassChoice, ClassKey, ClassOption, Edit, FeatSource, Pick, SlotId};
 
 use crate::support::*;
 
@@ -192,6 +192,47 @@ fn a_prestige_class_advancing_either_spell_type_offers_one_class_at_a_time() {
     assert_eq!(
         advances(&engine().advances_options(&build, 7, &winter_witch)),
         sets(&[&["wizard"], &["cleric"], &[]])
+    );
+}
+
+/// Ticket 150, disagreement 1: the class picker judged a prestige class that asks what it advances by the
+/// advancement the Build holds for it (none, for a class it doesn't take), so it locked one that advancing the class
+/// it replaces would keep, and the advancement picker that offers that advancement was out of reach.
+#[test]
+fn the_class_picker_opens_a_prestige_class_that_some_advancement_keeps() {
+    // Cleric 5 with Spell Penetration (caster level 5) in the general slot at level 5.
+    let mut build = build("elf", &["cleric"; 5]);
+    let spell_penetration = SlotId::Feat {
+        level: 5,
+        source: FeatSource::General,
+        index: 0,
+    };
+    build.picks.insert(
+        spell_penetration.clone(),
+        Pick::feat(feat("spell-penetration")),
+    );
+    let engine = engine();
+    assert!(engine.is_possible(&build));
+
+    // Winter Witch in place of the 4th cleric level keeps it only advancing the cleric.
+    let winter_witch = class_option(&build, 4, "winter-witch");
+    assert_eq!(winter_witch.status, Ok(()));
+    assert_eq!(
+        advances(&engine.advances_options(&build, 4, &winter_witch)),
+        sets(&[&["cleric"]])
+    );
+    let without = Edit::Class {
+        level: 4,
+        class: class("winter-witch"),
+        choice: Some(ClassChoice::default()),
+    };
+    assert!(!engine.allows(&build, &without));
+
+    // Without the feat, every advancement keeps the Build.
+    build.picks.remove(&spell_penetration);
+    assert_eq!(
+        advances(&engine.advances_options(&build, 4, &winter_witch)),
+        sets(&[&["cleric"], &[]])
     );
 }
 

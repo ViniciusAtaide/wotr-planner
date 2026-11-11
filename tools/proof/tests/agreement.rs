@@ -16,8 +16,8 @@ use std::time::Instant;
 use proof::{builds, in_parallel};
 use rules::agreement::{judge, known_for};
 
-/// The disagreements the sweep finds, as `agreement` writes them, with the Build's name before each. Each one is a
-/// bug candidate for the user (ticket 150's Findings); none is fixed in step 1.
+/// The disagreements the sweep finds, as `agreement` writes them, with the Build's name before each. None: a new one is a
+/// bug, for the user to decide (ticket 150).
 const KNOWN: &[&str] = &[];
 
 #[test]

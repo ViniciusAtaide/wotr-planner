@@ -1,24 +1,23 @@
 //! The pickers: every option a slot, a level's class, the path or the Path switch can take, each with whether it
 //! can be taken there and why not, and the edit that takes it; a slot's options also come grouped as its picker shows
 //! them ([`Engine::slot_entries`]). The Build start's and a level's other controls are in `controls`.
+//!
+//! A picker lists its candidates and presents them; whether each can be taken is the walk's verdict, asked of the
+//! walk paused at the picker's slot or level ([`Cursor`]), so a picker and the walk can't judge a choice two ways.
 
-use std::cell::OnceCell;
-use std::collections::{BTreeSet, HashSet};
+use std::collections::BTreeSet;
 
-use super::removable::Recheck;
-use super::slots::{check_pick, check_pick_with};
-use super::walk::{Checkpoint, Probe};
+use super::walk::{Cursor, advancements};
 use super::{
     AdvancesOption, ClassOption, Engine, EntryOption, PathOption, SlotEntry, SlotKind, SlotOption,
-    advanced_spellcasting, class_level_cap, most_advanced,
+    advanced_spellcasting,
 };
 use crate::build::{Build, ClassChoice, Edit, Pick, SlotId};
-use crate::choice::{Issue, LaterPick, Unmet};
-use crate::game_data::{Archetype, Class, FeatList};
-use crate::keys::{ArchetypeKey, ClassKey, FeatKey, SelectionOptionKey};
+use crate::choice::Issue;
+use crate::game_data::Archetype;
+use crate::keys::{ClassKey, SelectionOptionKey};
 use crate::parameter::ParameterKind;
 use crate::prerequisite::Prerequisite;
-use crate::state::{CharacterState, ClassLevels};
 
 impl Engine {
     /// Every option a slot accepts, in key order (a selection's own options and the ones it shares), each with
@@ -26,25 +25,24 @@ impl Engine {
     /// is [`Issue::BreaksLater`] (Toughness at level 1 with Toughness at level 3; anything but Cleave in Cleave's
     /// slot while Great Cleave needs it). `None` when the Build has no such slot.
     ///
+    /// Each option's status is the walk's verdict at the slot ([`Cursor::until_slot`], `AtSlot::try_pick`); the
+    /// picker lists the candidates and words the reasons.
+    ///
     /// Costs one walk to the slot's level, then a walk from the slot's level for the slot left empty and for each
-    /// option open there that a later check could see ([`named_feats`](Self::named_feats)); each stops at the
-    /// first choice that fails.
+    /// option open there that a later check could see (the cursor's named feats); each stops at the first choice
+    /// that fails.
     pub fn options(&self, build: &Build, slot: &SlotId) -> Option<Vec<SlotOption>> {
-        let probed = self.probe(build, Probe::Slot(slot));
-        let (state, kind) = (probed.state?, probed.kind?);
-        // A feat slot's lists, worked out once for every feat.
-        let lists = match &kind {
-            SlotKind::Feat(feat_slot) => self.catalog.slot_lists(feat_slot, &state),
-            _ => Vec::new(),
-        };
-        let candidates: Vec<Pick> = match &kind {
+        let cursor = Cursor::new(self, build);
+        let at = cursor.until_slot(slot)?;
+        let (state, kind, lists) = (at.state(), at.kind(), at.lists());
+        let candidates: Vec<Pick> = match kind {
             // A parameterised feat once per value.
             SlotKind::Feat(feat_slot) => self
                 .catalog
                 .data()
                 .feats
                 .iter()
-                .filter(|feat| self.catalog.slot_accepts_with(feat_slot, feat, &lists))
+                .filter(|feat| self.catalog.slot_accepts_with(feat_slot, feat, lists))
                 .flat_map(|feat| match feat.parameter {
                     None => vec![Pick::feat(feat.key.clone())],
                     Some(kind) => self
@@ -61,7 +59,7 @@ impl Engine {
                     .selection(key)
                     .expect("a slot names a selection of the data (CheckedGameData)");
                 // Own options and shared ones (a pool selection's: the held options' pools), in key order.
-                let pools = self.catalog.pools(selection, &state);
+                let pools = self.catalog.pools(selection, state);
                 let mut keys: Vec<&SelectionOptionKey> = selection
                     .options
                     .iter()
@@ -115,114 +113,21 @@ impl Engine {
                 })
                 .collect(),
         };
-        let recheck = Recheck::new(self, build);
-        let named = self.named_feats(build);
-        let left_empty = OnceCell::new();
-        // An unmet prerequisite a later pick at the same level meets says so (ticket 126).
-        let checkpoints = OnceCell::new();
-        let met_later = |pick: &Pick, issue: Issue| match issue {
-            Issue::Unmet(unmet) => {
-                let checkpoints = checkpoints.get_or_init(|| self.later_picks(build, slot));
-                match self.met_later(checkpoints, &state, &kind, &lists, pick) {
-                    Some(later) => Issue::Unmet(Unmet::MetLater {
-                        unmet: Box::new(unmet),
-                        later: Box::new(later),
-                    }),
-                    None => Issue::Unmet(unmet),
-                }
-            }
-            issue => issue,
-        };
-        let later = |pick: &Pick, edit: &Edit| match pick {
-            // A feat no check names breaks later just what the slot left empty would.
-            Pick::Feat { feat, .. } if !named.contains(feat) => left_empty
-                .get_or_init(|| recheck.later_walked(&Edit::Clear(slot.clone())))
-                .clone(),
-            _ => recheck.later(edit),
-        };
         Some(
             candidates
                 .into_iter()
-                .map(|pick| {
-                    let edit = Edit::Pick {
+                .map(|pick| SlotOption {
+                    status: at
+                        .try_pick(&pick)
+                        .map_err(|issue| self.reason_for(issue, state)),
+                    edit: Edit::Pick {
                         slot: slot.clone(),
                         pick: pick.clone(),
-                    };
-                    SlotOption {
-                        status: check_pick_with(&self.catalog, &state, &kind, &lists, &pick)
-                            .map_err(|issue| met_later(&pick, self.reason_for(issue, &state)))
-                            .and_then(|()| later(&pick, &edit)),
-                        pick,
-                        edit,
-                    }
+                    },
+                    pick,
                 })
                 .collect(),
         )
-    }
-
-    /// The picks after a slot at its character level, in walk order, each with the state either side of it, in the
-    /// Build without the slot's own pick. Empty when no other pick is at that level, without a walk.
-    fn later_picks(&self, build: &Build, slot: &SlotId) -> Vec<Checkpoint> {
-        let level_of = |slot: &SlotId| {
-            slot.level().or_else(|| {
-                let rank = slot.rank()?;
-                self.catalog
-                    .data()
-                    .progression
-                    .mythic_ascensions
-                    .iter()
-                    .find(|ascension| ascension.rank == rank)
-                    .map(|ascension| ascension.character_level)
-            })
-        };
-        let level = level_of(slot);
-        if !build
-            .picks
-            .keys()
-            .any(|other| other != slot && level_of(other) == level)
-        {
-            return Vec::new();
-        }
-        let mut without = build.clone();
-        without.picks.remove(slot);
-        self.probe(&without, Probe::Later(slot))
-            .later
-            .unwrap_or_default()
-    }
-
-    /// The first of a slot's later picks ([`later_picks`](Self::later_picks)) whose own slot makes `pick` open
-    /// there: it fails just before that slot and holds just after it. `None` when none does, or when what comes
-    /// between picks does (a Mythic rank's row).
-    fn met_later(
-        &self,
-        checkpoints: &[Checkpoint],
-        state: &CharacterState,
-        kind: &SlotKind,
-        lists: &[&FeatList],
-        pick: &Pick,
-    ) -> Option<LaterPick> {
-        let open = |state: &CharacterState| {
-            check_pick_with(&self.catalog, state, kind, lists, pick).is_ok()
-        };
-        for checkpoint in checkpoints {
-            if open(&checkpoint.before) {
-                return None;
-            }
-            if open(&checkpoint.after) {
-                // Each slot takes the other's pick: the later one here now, this one there after it.
-                let swap = check_pick_with(&self.catalog, state, kind, lists, &checkpoint.pick)
-                    .is_ok()
-                    && check_pick(&self.catalog, &checkpoint.after, &checkpoint.kind, pick).is_ok();
-                return Some(LaterPick {
-                    slot: checkpoint.slot.clone(),
-                    kind: checkpoint.kind.clone(),
-                    pick: checkpoint.pick.clone(),
-                    level: state.character_level,
-                    swap,
-                });
-            }
-        }
-        None
     }
 
     /// A slot's options as its picker shows them: grouped by what the pick takes, in [`options`](Self::options)'
@@ -264,45 +169,6 @@ impl Engine {
         Some(entries)
     }
 
-    /// The feats a walk of the Build can look at: each feat picked (whether it's held already), each option's
-    /// chosen feat, the feats named by the prerequisites of the picks and of the classes and archetypes the Build
-    /// takes, and every feat with an extra pick. Holding any other feat touches nothing but that feat's entries in
-    /// the state, so a feat pick outside these changes no later check: the walk with it fails exactly the choices
-    /// the walk without it fails. A feat with an extra pick also gives a slot, which takes its level's next
-    /// [`SlotId::FeatSelection`] index from a later feat's, so it's always walked.
-    fn named_feats<'b>(&'b self, build: &'b Build) -> HashSet<&'b FeatKey> {
-        let mut named: HashSet<&FeatKey> = self
-            .catalog
-            .data()
-            .feats
-            .iter()
-            .filter(|feat| !feat.extra_pick_of.is_empty())
-            .map(|feat| &feat.key)
-            .collect();
-        for item in build
-            .picks
-            .values()
-            .filter_map(|pick| self.catalog.pick_item(pick))
-        {
-            named.extend(item.feat);
-            if let Some(prerequisite) = item.prerequisite {
-                prerequisite.collect_feats(&mut named);
-            }
-        }
-        for level in &build.levels {
-            if let Some((class, _)) = self.catalog.class(&level.class) {
-                let archetypes = class.archetypes.iter().map(|a| a.prerequisite.as_ref());
-                for prerequisite in std::iter::once(class.prerequisite.as_ref())
-                    .chain(archetypes)
-                    .flatten()
-                {
-                    prerequisite.collect_feats(&mut named);
-                }
-            }
-        }
-        named
-    }
-
     /// The entry that starts with `option`: what its pick takes, as the picker shows it.
     fn slot_entry(&self, option: &SlotOption) -> SlotEntry {
         let item = self.catalog.pick_item(&option.pick);
@@ -334,16 +200,19 @@ impl Engine {
     /// its archetypes, then every prestige class, each in key order. A class the Build already has before that
     /// level is offered only with its archetype, which was fixed when it was first taken. At a level the Build
     /// has, a class that would break a later choice (or the level's own skill ranks) is [`Issue::BreaksLater`];
-    /// a level after the last breaks nothing. `None` for a level that isn't in the Build or next.
+    /// a level after the last breaks nothing. A prestige class that asks which classes it advances is open when some
+    /// advancement keeps the Build ([`advances_options`](Self::advances_options) lists those). Each status is the
+    /// walk's verdict at the level ([`Cursor::until_level`], `AtLevel::try_class`). `None` for a level that isn't in
+    /// the Build or next.
     pub fn class_options(&self, build: &Build, level: u8) -> Option<Vec<ClassOption>> {
         if level == 0 || usize::from(level) > build.levels.len() + 1 {
             return None;
         }
-        let state = self.probe(build, Probe::Level(level)).state?;
-        let recheck = (usize::from(level) <= build.levels.len()).then(|| Recheck::new(self, build));
+        let cursor = Cursor::new(self, build);
+        let at = cursor.until_level(level)?;
         let mut options = Vec::new();
         for class in self.catalog.data().all_classes() {
-            let taken = state.classes.iter().find(|c| c.class == class.key);
+            let taken = at.state().classes.iter().find(|c| c.class == class.key);
             let archetypes: Vec<Option<&Archetype>> = match taken {
                 Some(taken) => vec![self.catalog.archetype_of(class, taken.archetype.as_ref())],
                 None => std::iter::once(None)
@@ -362,52 +231,15 @@ impl Engine {
                     class: class.key.clone(),
                     choice,
                 };
-                let mut status = self.class_status(&state, class, archetype.as_ref(), taken);
-                if status.is_ok()
-                    && let Some(recheck) = &recheck
-                {
-                    status = recheck.later(&edit);
-                }
                 options.push(ClassOption {
                     class: class.key.clone(),
                     archetype,
-                    status,
+                    status: at.try_class(&edit),
                     edit,
                 });
             }
         }
         Some(options)
-    }
-
-    /// Whether a class (with an archetype) can be taken next by a character in `state`. An archetype stating an
-    /// alignment requirement replaces the class's, so the reason names the archetype's.
-    fn class_status(
-        &self,
-        state: &CharacterState,
-        class: &Class,
-        archetype: Option<&ArchetypeKey>,
-        taken: Option<&ClassLevels>,
-    ) -> Result<(), Issue> {
-        let archetype = self.catalog.archetype_of(class, archetype);
-        let cap = class_level_cap(class);
-        if state.class_level(&class.key) >= cap {
-            return Err(Issue::ClassLevelCap { cap });
-        }
-        if taken.is_some() {
-            return Ok(());
-        }
-        let unmet: Vec<Unmet> = self
-            .catalog
-            .entry_prerequisites(class, archetype)
-            .into_iter()
-            .flatten()
-            .filter_map(|prerequisite| state.check(prerequisite).err())
-            .collect();
-        match <[Unmet; 1]>::try_from(unmet) {
-            Ok([unmet]) => Err(Issue::Unmet(unmet)),
-            Err(unmet) if unmet.is_empty() => Ok(()),
-            Err(unmet) => Err(Issue::Unmet(Unmet::All(unmet))),
-        }
     }
 
     /// The advancement choices for a prestige class option taken at a character level: which held classes its
@@ -420,23 +252,10 @@ impl Engine {
         level: u8,
         option: &ClassOption,
     ) -> Vec<AdvancesOption> {
-        let most = self
-            .catalog
-            .class(&option.class)
-            .map_or(0, |(class, _)| most_advanced(class));
-        let mut held: Vec<&ClassKey> = Vec::new();
-        for level_up in build
-            .levels
-            .iter()
-            .take(usize::from(level).saturating_sub(1))
-        {
-            if !held.contains(&&level_up.class) {
-                held.push(&level_up.class);
-            }
-        }
-        let mut candidates: Vec<BTreeSet<ClassKey>> =
-            (1..=most).flat_map(|size| subsets(&held, size)).collect();
-        candidates.push(BTreeSet::new());
+        let candidates = match self.catalog.class(&option.class) {
+            Some((class, _)) => advancements(build, level, class),
+            None => vec![BTreeSet::new()],
+        };
         candidates
             .into_iter()
             .filter(|advances| {
@@ -487,7 +306,7 @@ impl Engine {
     /// The path picker at MR 3: every path without a switch rule, in key order; one that would break a later
     /// choice (a pick in the Build's path's slots) is [`Issue::BreaksLater`].
     pub fn path_options(&self, build: &Build) -> Vec<PathOption> {
-        let recheck = Recheck::new(self, build);
+        let cursor = Cursor::new(self, build);
         self.catalog
             .data()
             .mythic_paths
@@ -497,7 +316,7 @@ impl Engine {
                 let edit = Edit::MythicPath(Some(path.key.clone()));
                 PathOption {
                     path: path.key.clone(),
-                    status: recheck.later(&edit),
+                    status: cursor.try_edit(&edit),
                     edit,
                 }
             })
@@ -507,7 +326,7 @@ impl Engine {
     /// The first ascension's picker at MR 1: every path with a path-linked ability, in key order; one that would
     /// break a later choice is [`Issue::BreaksLater`].
     pub fn first_ascension_options(&self, build: &Build) -> Vec<PathOption> {
-        let recheck = Recheck::new(self, build);
+        let cursor = Cursor::new(self, build);
         self.catalog
             .data()
             .mythic_paths
@@ -517,7 +336,7 @@ impl Engine {
                 let edit = Edit::FirstAscension(Some(path.key.clone()));
                 PathOption {
                     path: path.key.clone(),
-                    status: recheck.later(&edit),
+                    status: cursor.try_edit(&edit),
                     edit,
                 }
             })
@@ -528,23 +347,17 @@ impl Engine {
     /// path the Build chose at MR 3; one that would break a later choice (Gold Dragon for a Build past level 20)
     /// is [`Issue::BreaksLater`].
     pub fn switch_options(&self, build: &Build) -> Vec<PathOption> {
-        let recheck = Recheck::new(self, build);
+        let cursor = Cursor::new(self, build);
         self.catalog
             .data()
             .mythic_paths
             .iter()
-            .filter_map(|path| Some((path, path.switch.as_ref()?)))
-            .map(|(path, switch)| {
+            .filter(|path| path.switch.is_some())
+            .map(|path| {
                 let edit = Edit::PathSwitch(Some(path.key.clone()));
                 PathOption {
                     path: path.key.clone(),
-                    status: if switch.open_from(build.mythic_path.as_ref()) {
-                        recheck.later(&edit)
-                    } else {
-                        Err(Issue::NotFromPath {
-                            from: switch.from.clone(),
-                        })
-                    },
+                    status: cursor.try_edit(&edit),
                     edit,
                 }
             })
@@ -596,19 +409,4 @@ fn held_advances(build: &Build, class: &ClassKey) -> BTreeSet<ClassKey> {
         .get(class)
         .map(|choice| choice.advances.clone())
         .unwrap_or_default()
-}
-
-/// Every set of `size` of the items, in order: by the first item's place, then the next's.
-fn subsets(items: &[&ClassKey], size: usize) -> Vec<BTreeSet<ClassKey>> {
-    if size == 0 {
-        return vec![BTreeSet::new()];
-    }
-    let mut sets = Vec::new();
-    for (index, first) in items.iter().enumerate() {
-        for mut rest in subsets(&items[index + 1..], size - 1) {
-            rest.insert((*first).clone());
-            sets.push(rest);
-        }
-    }
-    sets
 }

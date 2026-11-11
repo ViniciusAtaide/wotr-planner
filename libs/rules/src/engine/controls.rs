@@ -2,7 +2,7 @@
 //! racial ability, the point buy, and a level's ability increase and skill ranks. Each option and step carries the
 //! edit that takes it and whether it can be taken now.
 
-use super::removable::Recheck;
+use super::walk::Cursor;
 use super::{ChoiceOption, Engine, RaceChoice, Step, Stepper};
 use crate::build::{AbilityScores, Build, BuildStart, Edit, Faith, has_ability_increase};
 use crate::game_data::{Ability, Alignment};
@@ -16,7 +16,7 @@ impl Engine {
     ///
     /// Costs a walk of the Build for each race or subrace but the Build's.
     pub fn race_options(&self, build: &Build) -> Vec<ChoiceOption<RaceChoice>> {
-        let recheck = Recheck::new(self, build);
+        let cursor = Cursor::new(self, build);
         let mut options = Vec::new();
         for race in self.races() {
             let subraces = race
@@ -36,7 +36,7 @@ impl Engine {
                     race: race.key.clone(),
                     subrace,
                 };
-                options.push(self.start_option(&recheck, value, start));
+                options.push(self.start_option(&cursor, value, start));
             }
         }
         options
@@ -48,7 +48,7 @@ impl Engine {
     ///
     /// Costs a walk of the Build for each faith that fits but isn't the Build's.
     pub fn faith_options(&self, build: &Build) -> Vec<ChoiceOption<Faith>> {
-        let recheck = Recheck::new(self, build);
+        let cursor = Cursor::new(self, build);
         std::iter::once(Faith::Atheism)
             .chain(
                 self.deities()
@@ -60,7 +60,7 @@ impl Engine {
                     deity: Some(faith.clone()),
                     ..build.start.clone()
                 };
-                self.start_option(&recheck, faith, start)
+                self.start_option(&cursor, faith, start)
             })
             .collect()
     }
@@ -73,7 +73,7 @@ impl Engine {
     ///
     /// Costs a walk of the Build for each alignment that fits but isn't the Build's.
     pub fn alignment_options(&self, build: &Build) -> Vec<ChoiceOption<Alignment>> {
-        let recheck = Recheck::new(self, build);
+        let cursor = Cursor::new(self, build);
         Alignment::ALL
             .into_iter()
             .map(|alignment| {
@@ -81,7 +81,7 @@ impl Engine {
                     alignment: Some(alignment),
                     ..build.start.clone()
                 };
-                self.start_option(&recheck, alignment, start)
+                self.start_option(&cursor, alignment, start)
             })
             .collect()
     }
@@ -91,7 +91,7 @@ impl Engine {
     ///
     /// Costs a walk of the Build for each background but the Build's.
     pub fn background_options(&self, build: &Build) -> Vec<ChoiceOption<BackgroundKey>> {
-        let recheck = Recheck::new(self, build);
+        let cursor = Cursor::new(self, build);
         self.backgrounds()
             .iter()
             .map(|background| {
@@ -99,7 +99,7 @@ impl Engine {
                     background: Some(background.key.clone()),
                     ..build.start.clone()
                 };
-                self.start_option(&recheck, background.key.clone(), start)
+                self.start_option(&cursor, background.key.clone(), start)
             })
             .collect()
     }
@@ -113,7 +113,7 @@ impl Engine {
         if !self.chooses_racial_ability(&build.start) {
             return Vec::new();
         }
-        let recheck = Recheck::new(self, build);
+        let cursor = Cursor::new(self, build);
         AbilityScores::ABILITIES
             .into_iter()
             .map(|ability| {
@@ -121,7 +121,7 @@ impl Engine {
                     racial_ability: Some(ability),
                     ..build.start.clone()
                 };
-                self.start_option(&recheck, ability, start)
+                self.start_option(&cursor, ability, start)
             })
             .collect()
     }
@@ -140,7 +140,7 @@ impl Engine {
         if level == 0 || !has_ability_increase(level) || usize::from(level) > build.levels.len() {
             return None;
         }
-        let recheck = Recheck::new(self, build);
+        let cursor = Cursor::new(self, build);
         let options = AbilityScores::ABILITIES
             .into_iter()
             .map(|ability| {
@@ -150,7 +150,7 @@ impl Engine {
                 };
                 ChoiceOption {
                     value: ability,
-                    status: recheck.later(&edit),
+                    status: cursor.try_edit(&edit),
                     edit,
                 }
             })
@@ -164,7 +164,7 @@ impl Engine {
     ///
     /// Costs a walk of the Build for each step in the range.
     pub fn point_buy_steps(&self, build: &Build) -> Vec<Stepper<Ability>> {
-        let recheck = Recheck::new(self, build);
+        let cursor = Cursor::new(self, build);
         let point_buy = build.start.ability_scores;
         let step = |ability: Ability, delta: i8| {
             let next = point_buy.get(ability).checked_add_signed(delta)?;
@@ -173,7 +173,7 @@ impl Engine {
                 ..build.start.clone()
             });
             Some(Step {
-                status: recheck.later(&edit),
+                status: cursor.try_edit(&edit),
                 edit,
             })
         };
@@ -196,8 +196,8 @@ impl Engine {
     /// Costs one walk of the Build to the end of the level, then one from the level for each step in the range.
     pub fn skill_steps(&self, build: &Build, level: u8) -> Option<Vec<Stepper<SkillKey>>> {
         let level_up = build.levels.get(usize::from(level).checked_sub(1)?)?;
-        let recheck = Recheck::new(self, build);
-        let points = recheck.skill_points(level)?;
+        let cursor = Cursor::new(self, build);
+        let points = cursor.skill_points(level)?;
         let step = |skill: &SkillKey, ranks: u8| {
             let edit = Edit::SkillRanks {
                 level,
@@ -207,7 +207,7 @@ impl Engine {
             let mut after = build.clone();
             after.apply(&edit);
             (&after != build).then(|| Step {
-                status: recheck.later(&edit),
+                status: cursor.try_edit(&edit),
                 edit,
             })
         };
@@ -231,23 +231,13 @@ impl Engine {
         Some(steppers)
     }
 
-    /// A Build start picker's option for a new start: its faith and alignment's misfit, else whether it breaks a
-    /// later choice (the walk of the Build with it, unless it changes nothing).
-    fn start_option<T>(
-        &self,
-        recheck: &Recheck<'_>,
-        value: T,
-        start: BuildStart,
-    ) -> ChoiceOption<T> {
-        let misfit = self.faith_misfit(&start);
+    /// A Build start picker's option for a new start, with the cursor's verdict: its faith and alignment's misfit,
+    /// else whether it breaks a later choice (the walk of the Build with it, unless it changes nothing).
+    fn start_option<T>(&self, cursor: &Cursor<'_>, value: T, start: BuildStart) -> ChoiceOption<T> {
         let edit = Edit::Start(start);
-        let status = match misfit {
-            Some((_, issue)) => Err(issue),
-            None => recheck.later(&edit),
-        };
         ChoiceOption {
             value,
-            status,
+            status: cursor.try_edit(&edit),
             edit,
         }
     }

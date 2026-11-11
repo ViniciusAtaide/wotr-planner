@@ -3,8 +3,9 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
+use super::judge::{Entry, class_entry};
 use super::{GrantSource, Held, Pending, Walker};
-use crate::build::{FeatSource, LevelUp, SlotId};
+use crate::build::{Build, FeatSource, LevelUp, SlotId};
 use crate::choice::{Choice, Issue};
 use crate::engine::catalog::Catalog;
 use crate::engine::{
@@ -16,11 +17,10 @@ use crate::state::{CharacterState, ClassLevels};
 
 impl<'a> Walker<'a> {
     /// On a class's first level: the class, archetype and advancement choices are checked against the character
-    /// before the level. An archetype stating an alignment requirement replaces the class's
-    /// ([`Catalog::entry_prerequisites`]). A class or archetype whose prerequisites aren't met fails with
-    /// [`Issue::Unmet`]; a key the data lacks (the class's, the archetype's, an advanced class's) with
-    /// [`Issue::UnknownKey`]; an archetype of another class or an advancement the class can't take with
-    /// [`Issue::NotAllowed`].
+    /// before the level ([`class_entry`], the check a class option's verdict shares). A class or archetype whose
+    /// prerequisites aren't met fails with [`Issue::Unmet`]; a key the data lacks (the class's, the archetype's, an
+    /// advanced class's) with [`Issue::UnknownKey`]; an archetype of another class or an advancement the class
+    /// can't take with [`Issue::NotAllowed`].
     pub(super) fn check_class_entry(&mut self, level: u8, level_up: &LevelUp) {
         if self.state.class_level(&level_up.class) > 0 {
             return;
@@ -32,17 +32,10 @@ impl<'a> Walker<'a> {
         };
         let choice = self.build.class_choices.get(&level_up.class);
         let key = choice.and_then(|choice| choice.archetype.as_ref());
-        let archetype = catalog.archetype_of(class, key);
-        let [class_needs, archetype_needs] = catalog.entry_prerequisites(class, archetype);
-        let unmet = |needs: Option<&_>| needs.and_then(|needs| self.state.check(needs).err());
-        let class_unmet = unmet(class_needs);
-        // A key the data lacks, an archetype of another class, or one whose prerequisites aren't met.
-        let archetype_issue = match (key, archetype) {
-            (None, _) => None,
-            (Some(key), None) if catalog.archetype(key).is_none() => Some(Issue::UnknownKey),
-            (Some(_), None) => Some(Issue::NotAllowed),
-            (Some(_), Some(_)) => unmet(archetype_needs).map(Issue::Unmet),
-        };
+        let Entry {
+            class: class_unmet,
+            archetype: archetype_issue,
+        } = class_entry(catalog, &self.state, class, key);
         if let Some(unmet) = class_unmet {
             self.fail(Choice::Class { level }, Issue::Unmet(unmet));
         }
@@ -565,4 +558,45 @@ pub(in crate::engine) fn advancing_levels(
         levels = levels.saturating_add(u8::try_from(count).unwrap_or(u8::MAX));
     }
     levels
+}
+
+/// The advancements a prestige class first taken at a character level can name: every set of the classes the Build
+/// takes before that level (in the order it first takes them), from one class up to as many as the prestige class
+/// may advance ([`most_advanced`]), then none. The walk keeps those that fit ([`Walker::check_advances`]); the
+/// cursor judges a class option by them, and the advancement picker lists the ones the Build stays possible with.
+pub(in crate::engine) fn advancements(
+    build: &Build,
+    level: u8,
+    prestige: &Class,
+) -> Vec<BTreeSet<ClassKey>> {
+    let mut held: Vec<&ClassKey> = Vec::new();
+    for level_up in build
+        .levels
+        .iter()
+        .take(usize::from(level).saturating_sub(1))
+    {
+        if !held.contains(&&level_up.class) {
+            held.push(&level_up.class);
+        }
+    }
+    let mut sets: Vec<BTreeSet<ClassKey>> = (1..=most_advanced(prestige))
+        .flat_map(|size| subsets(&held, size))
+        .collect();
+    sets.push(BTreeSet::new());
+    sets
+}
+
+/// Every set of `size` of the items, in order: by the first item's place, then the next's.
+fn subsets(items: &[&ClassKey], size: usize) -> Vec<BTreeSet<ClassKey>> {
+    if size == 0 {
+        return vec![BTreeSet::new()];
+    }
+    let mut sets = Vec::new();
+    for (index, first) in items.iter().enumerate() {
+        for mut rest in subsets(&items[index + 1..], size - 1) {
+            rest.insert((*first).clone());
+            sets.push(rest);
+        }
+    }
+    sets
 }
