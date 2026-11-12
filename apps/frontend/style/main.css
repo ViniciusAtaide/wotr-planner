@@ -1470,3 +1470,61 @@ ul.skills {
   color: var(--muted);
   opacity: 0.5;
 }
+
+/* ---- a Mythic rank taken at another level (ticket 171) --------------------------------------------------- */
+
+/* A rank's badge with its move control beside it, kept together when the chips wrap. */
+.rank-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+/* The move control: a small round button in the remove control's language, in the rank's colour. Its ::before
+   stretches the tap target to a thumb's size. */
+.rank-move {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  min-height: 0;
+  padding: 0;
+  border-color: color-mix(in srgb, var(--path, var(--mythic)) 55%, transparent);
+  border-radius: 50%;
+  background: var(--bg);
+  color: var(--path, var(--mythic));
+  font-size: 13px;
+  line-height: 1;
+}
+
+.rank-move::before {
+  position: absolute;
+  inset: calc((var(--tap) - 24px) / -2) -4px;
+  content: "";
+}
+
+.rank-move:hover,
+.rank-move:active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* A rank taken later than the rank table's level says where it came from, under its badge and beside its level. */
+.chip-moved,
+.rank-moved {
+  color: var(--path, var(--mythic));
+  font-size: 10.5px;
+  white-space: nowrap;
+}
+
+.mythic-badge.moved {
+  border-style: dashed;
+}
+
+.rank-at {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
