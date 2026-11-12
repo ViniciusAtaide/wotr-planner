@@ -20,9 +20,9 @@
 #
 # Record options: --only <name substring>, --threads N (default 8), --light. A full record takes about 45 seconds a
 # side on 8 threads, after the two release builds.
-# --light (ticket 162) leaves out the `allows` battery and the consistency and shortcut checks, most of a record's cost,
-# and keeps every other field (sheet, every slot's options, pickers, totals, caster lines): every Build in a few seconds
-# a side. Reach for it between the snapshot check and the full proof, to see a change's reach over the whole corpus
+# --light (ticket 162) leaves out the `allows` battery and the consistency and shortcut checks, about a third of a
+# record's cost, and keeps every other field (sheet, every slot's options, pickers, totals, caster lines): about 29
+# seconds a side against 45. Reach for it between the snapshot check and the full proof, to see a change's reach over the whole corpus
 # early. It misses a change that only the battery's edits or the checks see; the once-per-queue proof is a full one. A
 # light record only compares with a light one (compare refuses a mixed pair).
 # Every build goes under one folder, $CARGO_TARGET_DIR (default ${TMPDIR:-/tmp}/wotr-planner-proof-target), outside the

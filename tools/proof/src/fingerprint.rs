@@ -250,7 +250,7 @@ pub fn held_counts() -> BTreeMap<String, usize> {
 pub enum Mode {
     /// Every field, after the consistency and shortcut checks.
     Full,
-    /// Without the `allows` battery and without the consistency and shortcut checks: the costly part of a record.
+    /// Without the `allows` battery and without the consistency and shortcut checks: about a third of a record's cost.
     /// Each line says so (`"light": true`), so `compare` refuses a light record against a full one.
     Light,
 }
@@ -345,7 +345,7 @@ pub fn fingerprint(engine: &Engine, name: &str, build: &Build, mode: Mode) -> Va
         .iter()
         .map(|option| reason(&option.status))
         .collect();
-    // The battery and the checks: most of a full record's cost, and left out of a light one.
+    // The battery and the checks: about a third of a full record's cost, and left out of a light one.
     let allows = (!light).then(|| {
         let controls = controls(engine, build);
         let edits = battery(engine, build, &controls);

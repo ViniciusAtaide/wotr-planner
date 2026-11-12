@@ -23,8 +23,8 @@
 //! comparison isn't empty.
 //!
 //! **Light mode** (ticket 162, `--light`): the record leaves out the `allows` battery and the consistency and shortcut
-//! checks ([`fingerprint::Mode`]), most of a record's cost, and keeps every other field, so every Build is compared in
-//! a few seconds a side. Reach for it between the snapshot check (a few dozen Builds, one side) and the full proof:
+//! checks ([`fingerprint::Mode`]), about a third of a record's cost, and keeps every other field: about 29 seconds a
+//! side against 45 (the pickers it keeps are most of the rest). Reach for it between the snapshot check (a few dozen Builds, one side) and the full proof:
 //! to see a change's reach over the whole corpus early. It misses a change only the full proof sees (a Build whose
 //! pickers and sheet agree but where `allows` of some edit differs, and a mismatch between a shortcut and its full
 //! answer, which the checks panic on). A light record says so on every line, and [`compare`] refuses to compare it
