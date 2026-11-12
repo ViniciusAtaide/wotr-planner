@@ -28,10 +28,15 @@
 # Every build goes under one folder, $CARGO_TARGET_DIR (default ${TMPDIR:-/tmp}/wotr-planner-proof-target), outside the
 # repo: B/ for the working tree's harness, A/ for the ref's. <out-dir> must be outside the repo too; it gets A.jsonl,
 # B.jsonl, compare.txt (empty when the sides agree) and the logs. Exits 1 when the comparison isn't empty.
+# Side A's source (rules and both) stays in $CARGO_TARGET_DIR/src-A with a stamp beside it, src-A.stamp: the ref's
+# commit, a hash of tools/proof (the harness copied in) and the mode. While the stamp matches, a run reuses the source
+# and cargo rebuilds none of side A's crates ("side A's source: reused"). Otherwise the source is extracted again
+# (files stamped with the current time, tar -m) and A/ is deleted, so side A builds from clean: cargo once took an
+# older ref's build for a newer one (ticket 157). One CARGO_TARGET_DIR holds one src-A: run one proof at a time.
 set -euo pipefail
 
 usage() {
-    sed -n '2,31p' "$0" | sed 's/^# \{0,1\}//' >&2
+    sed -n '2,35p' "$0" | sed 's/^# \{0,1\}//' >&2
     exit 2
 }
 
@@ -78,6 +83,11 @@ build() {
     cp "$3/release/proof" "$2"
 }
 
+# A hash of the working tree's harness, tools/proof, as it is copied into side A's source (every file, untracked too).
+harness_hash() {
+    (cd "$repo/tools/proof" && find . -type f -not -path './target/*' | LC_ALL=C sort | xargs shasum -a 256 | shasum -a 256 | cut -d' ' -f1)
+}
+
 # Records side $1 with the harness $2: `proof record <the rest>`, timed into $1.err.
 record() {
     local side=$1 bin=$2
@@ -112,26 +122,37 @@ rules | both)
         "$out/proof-B" export "$repo/libs/game-data" ${options[@]+"${options[@]}"} >"$out/links.tsv" 2>"$out/export.err"
     fi
     tail -n 1 "$out/export.err" >&2
-    # The ref's crates with the working tree's harness, so both sides fingerprint alike.
-    src=$out/src-A
-    rm -rf "$src"
-    mkdir -p "$src"
-    git -C "$repo" archive "$commit" | tar -x -C "$src"
-    # A ref from before the harness moved to tools/ lists it as libs/proof, and one from before ticket 73 not at all.
-    rm -rf "$src/libs/proof" "$src/tools/proof"
-    mkdir -p "$src/tools"
-    cp -R "$repo/tools/proof" "$src/tools/proof"
-    perl -pi -e 's{"libs/proof"}{"tools/proof"}' "$src/Cargo.toml"
-    grep -q '"tools/proof"' "$src/Cargo.toml" || perl -pi -e 's/^members = \[/members = ["tools\/proof", /' "$src/Cargo.toml"
-    # The harness turns on rules' `unchecked` feature (ticket 149), which a ref from before it lacks; there it does
-    # nothing, since that ref's engine takes any data.
-    rules_toml=$src/libs/rules/Cargo.toml
-    if ! grep -q '^unchecked = ' "$rules_toml"; then
-        if grep -q '^\[features\]' "$rules_toml"; then
-            perl -pi -e 's/^\[features\]$/[features]\nunchecked = []/' "$rules_toml"
-        else
-            printf '\n[features]\nunchecked = []\n' >>"$rules_toml"
+    # The ref's crates with the working tree's harness, so both sides fingerprint alike. The source lives beside
+    # the build folders and is reused while its stamp (the ref's commit, the harness's hash, the mode) matches.
+    src=$CARGO_TARGET_DIR/src-A
+    stamp=$CARGO_TARGET_DIR/src-A.stamp
+    want=$(printf 'format 1\ncommit %s\nharness %s\nmode %s\n' "$commit" "$(harness_hash)" "$mode")
+    if [[ -f $stamp && -d $src && $(cat "$stamp") == "$want" ]]; then
+        echo "proof: side A's source: reused ($commit)" >&2
+    else
+        echo "proof: side A's source: extracted ($commit)" >&2
+        # No stamp while the source is half made, and no build of an older source: cargo would take it for this one.
+        rm -rf "$stamp" "$src" "$CARGO_TARGET_DIR/A"
+        mkdir -p "$src"
+        # -m: the files take the current time, not their commit's, so cargo sees them newer than any build.
+        git -C "$repo" archive "$commit" | tar -x -m -C "$src"
+        # A ref from before the harness moved to tools/ lists it as libs/proof, and one from before ticket 73 not at all.
+        rm -rf "$src/libs/proof" "$src/tools/proof"
+        mkdir -p "$src/tools"
+        cp -R "$repo/tools/proof" "$src/tools/proof"
+        perl -pi -e 's{"libs/proof"}{"tools/proof"}' "$src/Cargo.toml"
+        grep -q '"tools/proof"' "$src/Cargo.toml" || perl -pi -e 's/^members = \[/members = ["tools\/proof", /' "$src/Cargo.toml"
+        # The harness turns on rules' `unchecked` feature (ticket 149), which a ref from before it lacks; there it does
+        # nothing, since that ref's engine takes any data.
+        rules_toml=$src/libs/rules/Cargo.toml
+        if ! grep -q '^unchecked = ' "$rules_toml"; then
+            if grep -q '^\[features\]' "$rules_toml"; then
+                perl -pi -e 's/^\[features\]$/[features]\nunchecked = []/' "$rules_toml"
+            else
+                printf '\n[features]\nunchecked = []\n' >>"$rules_toml"
+            fi
         fi
+        printf '%s\n' "$want" >"$stamp"
     fi
     build "$src" "$out/proof-A" "$CARGO_TARGET_DIR/A"
     data_a=$repo/libs/game-data
