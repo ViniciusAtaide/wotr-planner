@@ -293,3 +293,66 @@ async fn the_instructions_and_the_guide_say_a_rank_can_be_taken_later() {
         );
     }
 }
+
+/// A Legend of 22 levels with its switch taken at level 20.
+fn late_legend() -> Build {
+    let mut build = build("human", &[times("fighter", 20), times("rogue", 2)].concat());
+    build.mythic_path = Some(path("trickster"));
+    build.path_switch = Some(path("legend"));
+    build.rank_levels.insert(8, 20);
+    build
+}
+
+#[tokio::test]
+async fn a_rank_that_is_never_reached_shows_the_tables_level_and_no_move() {
+    let sheet = ok("sheet", json!({ "build": code(&late_legend()) })).await;
+    let ranks = sheet["ranks"].as_array().unwrap();
+    // MR 9 and 10 never come after a Legend switch: their table levels, as before, with nothing moved.
+    for (index, level) in [(8, 17), (9, 19)] {
+        assert_eq!(ranks[index]["status"], "not_reached", "{sheet}");
+        assert_eq!(ranks[index]["character_level"], level);
+        assert_eq!(ranks[index].get("table_level"), None);
+    }
+    // The switch itself is taken at level 20, and says so.
+    assert_eq!(ranks[7]["character_level"], 20);
+    assert_eq!(ranks[7]["table_level"], 17);
+    // A Build too short for a rank shows its table level too.
+    let short = ok("sheet", json!({ "build": code(&moved()) })).await;
+    assert_eq!(short["ranks"][4]["character_level"], 14);
+    assert_eq!(short["ranks"][4].get("table_level"), None);
+    // And compare has no level to report for a rank neither Build takes.
+    let mut at_table = late_legend();
+    at_table.rank_levels.clear();
+    let compared = ok(
+        "compare",
+        json!({ "builds": [code(&at_table), code(&late_legend())] }),
+    )
+    .await;
+    let levels: Vec<(u64, Value)> = (compared["ranks"].as_array().unwrap().iter())
+        .filter(|rank| rank.get("character_level").is_some())
+        .map(|rank| {
+            (
+                rank["rank"].as_u64().unwrap(),
+                rank["character_level"].clone(),
+            )
+        })
+        .collect();
+    assert_eq!(levels, [(8, json!([17, 20]))]);
+}
+
+#[tokio::test]
+async fn the_level_that_opens_a_pick_names_the_ranks_the_move_takes_along() {
+    // Toughness (Mythic) at MR 2: MR 2 at level 13 opens it, and takes MR 3 and 4 with it.
+    let refused = ok(
+        "choose",
+        json!({ "build": code(&fighter()), "steps": [
+            { "choice": "slot.mythic.2", "value": "toughness-mythic" },
+        ] }),
+    )
+    .await;
+    assert_eq!(
+        refused["rejected"]["reason"],
+        "Needs toughness. MR 2 taken at level 13 opens it, which moves MR 3 to level 13, MR 4 to level 13: \
+         `choose` `mythic.2.level` 13 first"
+    );
+}

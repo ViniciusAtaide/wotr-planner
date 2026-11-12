@@ -49,6 +49,17 @@ impl Engine {
         Walker::new(self, build).without_sheet().run().failed
     }
 
+    /// The slots keyed by their place at a level that a Mythic rank's pick gives, each with that rank: one walk,
+    /// without the sheet.
+    pub(super) fn rank_slots(&self, build: &Build) -> Vec<(SlotId, u8)> {
+        let mut walker = Walker::new(self, build).without_sheet();
+        walker.start();
+        for (index, level_up) in build.levels.iter().enumerate() {
+            walker.level(u8::try_from(index + 1).unwrap_or(u8::MAX), level_up);
+        }
+        walker.rank_slots
+    }
+
     /// Whether every choice in the Build holds up with the current game data: every key known, every pick in a
     /// slot the Build reaches and fitting it there, the path and switch at ranks it reaches, every rule kept. Every
     /// Build the sheet's edits make is.
@@ -214,6 +225,12 @@ struct Walker<'a> {
     recheck: Option<RecheckWalk>,
     /// What the Build's gear adds, worked out at the Build start; nothing for a Build without gear.
     gear: gear::WornGear,
+    /// The Mythic rank being taken, while one is: what gives the slots filled meanwhile.
+    ascending: Option<u8>,
+    /// Each slot a level keys by its place among the slots granted there (an option row's, a feat's extra pick)
+    /// that a Mythic rank's pick gave, with that rank: a rank taken at another level takes its slots along, and
+    /// the places of the slots after them shift ([`Engine::shifted_picks`]).
+    rank_slots: Vec<(SlotId, u8)>,
 }
 
 /// A slot granted at a level, filled once the level's own slots are.
@@ -307,6 +324,8 @@ impl<'a> Walker<'a> {
             bonus_keys_next: Vec::new(),
             recheck: None,
             gear: gear::WornGear::default(),
+            ascending: None,
+            rank_slots: Vec::new(),
         }
     }
 
@@ -404,6 +423,20 @@ impl<'a> Walker<'a> {
             levels.extend(self.level(level, level_up));
         }
         self.check_unreached();
+        // A rank a switch ended the ascensions before never comes, so it shows the rank table's level, as it always
+        // did, wherever the switch's rank was taken (the walk kept it after that rank only to keep the ranks in
+        // order).
+        if self.ascensions_over {
+            let engine = self.engine;
+            for rank in &mut self.ranks {
+                if rank.rank > PATH_SWITCH_RANK
+                    && rank.status == RankStatus::NotReached
+                    && let Some(earliest) = engine.rank_table_level(rank.rank)
+                {
+                    rank.character_level = earliest;
+                }
+            }
+        }
         Walk {
             sheet: Sheet {
                 levels,
@@ -628,10 +661,12 @@ impl<'a> Walker<'a> {
             .map(|rank| rank.rank)
             .collect();
         for rank in due {
+            self.ascending = Some(rank);
             if self.ascend(rank) {
                 mythic_ranks.push(rank);
             }
             slots.extend(self.fill_pending(level));
+            self.ascending = None;
         }
 
         if self.sheet {

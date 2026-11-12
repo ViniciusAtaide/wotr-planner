@@ -43,6 +43,19 @@ pub struct RankLevelOption {
     pub edit: Edit,
 }
 
+/// A pick in a slot that a Mythic rank's pick gives at the rank's level, which a move of a rank would shift
+/// ([`Engine::shifted_picks`]). Such a slot is keyed by its place among the slots granted at its level, so when a
+/// rank is taken at another level the slot goes with it, and the slots of the ranks after it at either level change
+/// place: the pick would end up in another rank's slot, or in none.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ShiftedPick {
+    pub slot: SlotId,
+    /// The rank whose pick gives the slot now.
+    pub from: u8,
+    /// The rank whose pick would give the slot after the move; `None` when the level would have no such slot.
+    pub to: Option<u8>,
+}
+
 /// How many of the choices a move would refuse its reason names; the rest are counted ("and 4 more").
 const NAMED: usize = 3;
 
@@ -71,7 +84,6 @@ impl Engine {
             return Vec::new();
         }
         let cursor = Cursor::new(self, build);
-        let now: Vec<(u8, u8)> = self.rank_levels(build).collect();
         let failing = std::cell::OnceCell::new();
         (floor..=last)
             .map(|level| {
@@ -87,8 +99,17 @@ impl Engine {
                 };
                 let mut edited = build.clone();
                 self.apply(&mut edited, &edit);
+                // A move that would shift a pick says so, whatever else it would refuse.
+                let shifted = match status {
+                    Ok(()) => Vec::new(),
+                    Err(_) => self.shifted_between(build, &edited),
+                };
                 let needed_by = if status.is_ok() {
                     Vec::new()
+                } else if !shifted.is_empty() {
+                    (shifted.iter())
+                        .map(|pick| Choice::Slot(pick.slot.clone()))
+                        .collect()
                 } else {
                     let failing = failing.get_or_init(|| self.failing_choices(build));
                     let mut refused: Vec<Choice> = Vec::new();
@@ -101,6 +122,9 @@ impl Engine {
                     refused
                 };
                 let reason = status.is_err().then(|| {
+                    if !shifted.is_empty() {
+                        return self.shifted_reason(build, &shifted);
+                    }
                     // The first few by name: a rank moved past a Legend's level 20 would refuse every level after.
                     let named = &needed_by[..needed_by.len().min(NAMED)];
                     let mut names = self.choice_names(build, named);
@@ -115,17 +139,7 @@ impl Engine {
                     let way = if level > held { "earlier" } else { "later" };
                     format!("{names} {verb} MR {rank} {way} than level {level}")
                 });
-                let moves = self
-                    .rank_levels(&edited)
-                    .zip(&now)
-                    .filter(|((other, to), (_, from))| {
-                        *other > rank
-                            && to != from
-                            && (*to <= last || *from <= last)
-                            && !ascensions_end.is_some_and(|end| *other > end)
-                    })
-                    .map(|(moved, _)| moved)
-                    .collect();
+                let moves = self.moved_along(build, &edited, rank);
                 RankLevelOption {
                     level,
                     held: is_held,
@@ -140,6 +154,93 @@ impl Engine {
             .collect()
     }
 
+    /// The picks an edit would shift: each pick the Build keeps in a slot that a Mythic rank's pick gives at the
+    /// rank's level (a feat's extra pick, an option row's slot), when after the edit another rank's pick would give
+    /// the slot at that place, or none would. Only an edit that changes the level a rank is taken at shifts any
+    /// (a rank moved, or the last level removed from under one). The engine refuses such an edit
+    /// ([`Engine::allows`], the level picker's and the withdrawals' verdicts), though the walk of the edited Build
+    /// may fail no choice: the pick would silently change owner.
+    ///
+    /// Costs nothing for an edit that moves no rank, and otherwise two walks.
+    pub fn shifted_picks(&self, build: &Build, edit: &Edit) -> Vec<ShiftedPick> {
+        let mut edited = build.clone();
+        self.apply(&mut edited, edit);
+        self.shifted_between(build, &edited)
+    }
+
+    /// [`shifted_picks`](Self::shifted_picks), for a Build and the Build an edit makes of it.
+    pub(super) fn shifted_between(&self, build: &Build, edited: &Build) -> Vec<ShiftedPick> {
+        if self.rank_levels(build).eq(self.rank_levels(edited)) {
+            return Vec::new();
+        }
+        let before = self.rank_slots(build);
+        if before.is_empty() {
+            return Vec::new();
+        }
+        let after = self.rank_slots(edited);
+        before
+            .into_iter()
+            .filter(|(slot, _)| build.picks.contains_key(slot) && edited.picks.contains_key(slot))
+            .filter_map(|(slot, from)| {
+                let to = (after.iter())
+                    .find(|(other, _)| *other == slot)
+                    .map(|(_, rank)| *rank);
+                (to != Some(from)).then_some(ShiftedPick { slot, from, to })
+            })
+            .collect()
+    }
+
+    /// Why a move that would shift picks is locked: "Fast Stealth fills a slot MR 9's pick gives at level 17, which
+    /// the move would give to MR 4's: clear it first", or "…, which would move with the rank: clear it first" when
+    /// the level would have no such slot.
+    fn shifted_reason(&self, build: &Build, shifted: &[ShiftedPick]) -> String {
+        let first = &shifted[0];
+        let names: Vec<Choice> = (shifted.iter())
+            .map(|pick| Choice::Slot(pick.slot.clone()))
+            .collect();
+        let names = self.choice_names(build, &names[..names.len().min(NAMED)]);
+        let (verb, level) = (
+            if shifted.len() == 1 { "fills" } else { "fill" },
+            first.slot.level().unwrap_or(0),
+        );
+        let what = match (shifted.len(), first.to) {
+            (1, Some(to)) => format!("which the move would give to MR {to}'s"),
+            (1, None) => "which would move with the rank".to_owned(),
+            _ => "which the move would shift".to_owned(),
+        };
+        let slots = if shifted.len() == 1 {
+            format!("a slot MR {}'s pick gives at level {level}", first.from)
+        } else {
+            "slots that Mythic ranks' picks give at their levels".to_owned()
+        };
+        format!("{names} {verb} {slots}, {what}: clear it first")
+    }
+
+    /// The ranks above `rank` that taking it at the level `edited` holds would move, each with its new level: those
+    /// the Build reaches before or after, and that the ascensions get to.
+    fn moved_along(&self, build: &Build, edited: &Build, rank: u8) -> Vec<(u8, u8)> {
+        let last = u8::try_from(build.levels.len()).unwrap_or(u8::MAX);
+        let ascensions_end = self.ascensions_end(build);
+        self.rank_levels(edited)
+            .zip(self.rank_levels(build))
+            .filter(|((other, to), (_, from))| {
+                *other > rank
+                    && to != from
+                    && (*to <= last || *from <= last)
+                    && !ascensions_end.is_some_and(|end| *other > end)
+            })
+            .map(|(moved, _)| moved)
+            .collect()
+    }
+
+    /// The ranks a move takes along, as a picker and a hint say them: "MR 2 to level 17, MR 3 to level 17".
+    pub fn moves_text(moves: &[(u8, u8)]) -> String {
+        let moves: Vec<String> = (moves.iter())
+            .map(|(rank, level)| format!("MR {rank} to level {level}"))
+            .collect();
+        moves.join(", ")
+    }
+
     /// The rank a Build's switch ends the ascensions at (Legend: MR 8, where the switch itself still comes); `None`
     /// while they go on.
     fn ascensions_end(&self, build: &Build) -> Option<u8> {
@@ -148,7 +249,7 @@ impl Engine {
     }
 
     /// For a Mythic rank's slot and a pick it refuses for an unmet prerequisite: the earliest later level at which
-    /// taking the rank opens the pick, when there is one (Shield Focus (Mythic) at MR 10, with Shield Focus taken at
+    /// taking the rank opens the pick, with the ranks above that the move takes along, when there is one (Shield Focus (Mythic) at MR 10, with Shield Focus taken at
     /// level 20: level 20). `None` for a level's slot, a pick the slot takes now or refuses for another reason, and
     /// when no later level of the Build opens it. `sheet` is the Build's.
     ///
@@ -164,7 +265,7 @@ impl Engine {
         sheet: &Sheet,
         slot: &SlotId,
         pick: &Pick,
-    ) -> Option<u8> {
+    ) -> Option<(u8, Vec<(u8, u8)>)> {
         let rank = slot.rank()?;
         let held = self.rank_level(build, rank)?;
         let kind = &sheet.slot(slot)?.kind;
@@ -183,8 +284,12 @@ impl Engine {
                 rank,
                 level: Some(level.character_level),
             };
+            if !self.allows(build, &moved) {
+                continue;
+            }
             let mut edited = build.clone();
             self.apply(&mut edited, &moved);
+            let moves = self.moved_along(build, &edited, rank);
             self.apply(
                 &mut edited,
                 &Edit::Pick {
@@ -193,7 +298,7 @@ impl Engine {
                 },
             );
             if self.is_possible(&edited) {
-                return Some(level.character_level);
+                return Some((level.character_level, moves));
             }
         }
         None

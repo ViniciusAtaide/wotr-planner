@@ -43,7 +43,11 @@ pub fn MythicTrack() -> AnyView {
                 });
                 let moved_from = engine
                     .rank_table_level(rank.rank)
-                    .filter(|earliest| ascends && rank.character_level > *earliest);
+                    .filter(|earliest| ascends && rank.character_level > *earliest)
+                    // A rank that is never taken shows no move; the switch's own rank says where the switch is.
+                    .filter(|_| {
+                        rank.status != RankStatus::NotReached || rank.rank == PATH_SWITCH_RANK
+                    });
                 let move_control = planner
                     .build
                     .with(|build| rank_move(&engine, build, &sheet, rank.rank))

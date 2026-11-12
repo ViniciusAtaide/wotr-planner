@@ -417,10 +417,10 @@ fn rank_level_offers(engine: &Engine, build: &Build, rank: u8) -> Result<Vec<Off
                 name.push_str(" (the earliest)");
             }
             if !option.moves.is_empty() {
-                let moves: Vec<String> = (option.moves.iter())
-                    .map(|(rank, level)| format!("MR {rank} to level {level}"))
-                    .collect();
-                name.push_str(&format!(", which moves {}", moves.join(", ")));
+                name.push_str(&format!(
+                    ", which moves {}",
+                    Engine::moves_text(&option.moves)
+                ));
             }
             let mut offer = Offer::new(
                 ChoiceValue::Number(option.level),
@@ -544,8 +544,9 @@ fn slot_offers(
 }
 
 /// For a Mythic rank's slot and a pick it refuses for an unmet prerequisite: the later level of the rank that opens
-/// it, as a sentence naming the address to `choose` ("MR 10 taken at level 20 opens it: `choose` `mythic.10.level`
-/// 20 first").
+/// it, as a sentence naming the address to `choose` and the ranks above that the move takes along ("MR 10 taken at
+/// level 20 opens it: `choose` `mythic.10.level` 20 first"; "MR 2 taken at level 13 opens it, which moves MR 3 to
+/// level 13, MR 4 to level 13: …").
 fn later_rank_level(
     engine: &Engine,
     build: &Build,
@@ -554,9 +555,13 @@ fn later_rank_level(
     pick: &rules::Pick,
 ) -> Option<String> {
     let rank = slot.rank()?;
-    let level = engine.rank_level_that_opens(build, sheet, slot, pick)?;
+    let (level, moves) = engine.rank_level_that_opens(build, sheet, slot, pick)?;
+    let along = match moves.is_empty() {
+        true => String::new(),
+        false => format!(", which moves {}", Engine::moves_text(&moves)),
+    };
     Some(format!(
-        "MR {rank} taken at level {level} opens it: `choose` `{}` {level} first",
+        "MR {rank} taken at level {level} opens it{along}: `choose` `{}` {level} first",
         Address::RankLevel(rank)
     ))
 }

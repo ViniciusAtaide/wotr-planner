@@ -3,8 +3,8 @@
 //! rule's ([`PathSwitch::drops`]); the walker (`walk::ascension`) takes it away during the walk.
 
 use super::{Engine, FIRST_ASCENSION_RANK, PATH_CHOICE_RANK, PATH_SWITCH_RANK};
-use crate::build::{Build, Edit};
-use crate::choice::Issue;
+use crate::build::{Build, Edit, SlotId};
+use crate::choice::{Choice, Issue};
 use crate::game_data::{MythicPath, PathSwitch};
 use crate::keys::MythicPathKey;
 
@@ -85,13 +85,25 @@ impl Engine {
     ///   reached (MR 8 and 9 with level 17), and a switch that ends the ascensions drops the picks of the ranks from
     ///   the switch rank on (Legend: MR 8 to 10);
     /// - a rank's later level ([`Build::rank_levels`]) that isn't one: at or before the rank table's level, past the
-    ///   last level (removing the level a rank was moved to takes the rank's picks and puts it back where it comes
-    ///   without the move), or of a rank after the one a switch ends the ascensions at.
+    ///   last level, or of a rank after the one a switch ends the ascensions at. Removing the level a rank was
+    ///   moved to puts the rank where it comes without that move; when the Build still has that level, the rank
+    ///   keeps the picks (and the path or switch chosen at it) that are still legal there, and loses the others.
     ///
     /// The picks a switch takes away at earlier ranks stay, held from their ranks until the switch, as the Mythic
     /// track shows them ([`RankSheet::dropped_slots`](super::RankSheet::dropped_slots)).
     pub fn apply(&self, build: &mut Build, edit: &Edit) {
         build.apply(edit);
+        // A rank's later level that isn't one goes first, so each rank is judged by where it comes without it: a
+        // rank moved to a level the Build no longer has comes where it would without that move (its earliest level,
+        // or a later one a rank below still holds it at).
+        let levels = build.levels.len();
+        let before: Vec<(u8, u8)> = self.rank_levels(build).collect();
+        build.rank_levels.retain(|rank, level| {
+            self.catalog
+                .ascension_level(*rank)
+                .is_some_and(|earliest| *level > earliest)
+                && usize::from(*level) <= levels
+        });
         if !self.reaches(build, FIRST_ASCENSION_RANK) {
             build.first_ascension = None;
         }
@@ -101,10 +113,12 @@ impl Engine {
         if !self.reaches(build, PATH_SWITCH_RANK) {
             build.path_switch = None;
         }
-        let levels = build.levels.len();
         let ascensions_end = self
             .chosen_switch(build)
             .and_then(|(_, switch)| switch.ends_ascensions_at());
+        build
+            .rank_levels
+            .retain(|rank, _| !ascensions_end.is_some_and(|end| *rank > end));
         let placed: Vec<(u8, u8)> = self.rank_levels(build).collect();
         build
             .picks
@@ -118,15 +132,28 @@ impl Engine {
                 }
                 (None, None) => true,
             });
-        // Last, so a rank placed at a level the Build no longer has was judged not reached above, and lost its picks
-        // (and the path or switch chosen at it) as any rank does with its level.
-        build.rank_levels.retain(|rank, level| {
-            self.catalog
-                .ascension_level(*rank)
-                .is_some_and(|earliest| *level > earliest)
-                && usize::from(*level) <= levels
-                && !ascensions_end.is_some_and(|end| *rank > end)
-        });
+        // The ranks that came at a level the Build no longer has and still come, earlier: each keeps the picks that
+        // are still legal where it comes now, and loses the others (a mythic feat whose feat went with the level).
+        // A pick that goes can take another with it, so the walk is asked again until none fails.
+        let returned: Vec<u8> = (before.iter().zip(&placed))
+            .filter(|((_, was), (_, is))| usize::from(*was) > levels && usize::from(*is) <= levels)
+            .map(|((rank, _), _)| *rank)
+            .collect();
+        while !returned.is_empty() {
+            let failing: Vec<SlotId> = (self.failures(build).into_iter())
+                .filter_map(|failure| match failure.choice {
+                    Choice::Slot(slot) => Some(slot),
+                    _ => None,
+                })
+                .filter(|slot| slot.rank().is_some_and(|rank| returned.contains(&rank)))
+                .collect();
+            if failing.is_empty() {
+                break;
+            }
+            for slot in failing {
+                build.picks.remove(&slot);
+            }
+        }
     }
 
     /// The character level each Mythic rank of the data is taken at in a Build, in rank order (ticket 171): the

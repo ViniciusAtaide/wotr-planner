@@ -216,9 +216,14 @@ impl<'a> Cursor<'a> {
 
     /// Whether `edit` breaks no choice other than the `allowed` ones (an edit's own: [`Edit::choices`]). An edit
     /// that changes nothing breaks nothing.
+    /// An edit that moves a Mythic rank and would shift a pick in a slot a rank's pick gives at its level is
+    /// refused too, though the walk may fail nothing: the pick would change owner
+    /// ([`Engine::shifted_picks`](crate::Engine::shifted_picks)).
     pub(crate) fn keeps(&self, edit: &Edit, allowed: Vec<Choice>) -> bool {
         let edited = self.edited(edit);
-        &edited == self.build || self.walks(edit, &edited, allowed)
+        &edited == self.build
+            || (self.engine.shifted_between(self.build, &edited).is_empty()
+                && self.walks(edit, &edited, allowed))
     }
 
     /// [`keeps`](Self::keeps), as the cursor's only question: its walk goes on from the paused walk itself rather
@@ -226,9 +231,10 @@ impl<'a> Cursor<'a> {
     pub(crate) fn keeps_once(self, edit: &Edit, allowed: Vec<Choice>) -> bool {
         let edited = self.edited(edit);
         &edited == self.build
-            || (self.recheck_with(edit, &edited, allowed, Self::take_paused))
-                .broken
-                .is_none()
+            || (self.engine.shifted_between(self.build, &edited).is_empty()
+                && (self.recheck_with(edit, &edited, allowed, Self::take_paused))
+                    .broken
+                    .is_none())
     }
 
     /// The Build with `edit` applied.

@@ -697,7 +697,7 @@ fn the_enforcers_mythic_shield_focus_needs_mr_10_taken_at_level_20() {
     assert_eq!(sheet.ranks[9].character_level, 19);
     assert_eq!(
         engine.rank_level_that_opens(&at_table, &sheet, &slot, &pick),
-        Some(20)
+        Some((20, vec![]))
     );
     let levels: Vec<(u8, bool, bool)> = (engine.rank_level_options(&at_table, 10).iter())
         .map(|option| (option.level, option.held, option.status.is_ok()))

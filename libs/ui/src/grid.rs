@@ -1,6 +1,7 @@
 //! The levels grid: a row per character level with its class, one chip per slot, the ability increase, skill
-//! ranks and a badge for each Mythic rank taken there, with the control that moves the rank to another level; then
-//! the summary of where the Build ends, with each rank's level.
+//! ranks and a badge for the Mythic ranks taken there (a rank taken later than the rank table's level has its own,
+//! with the control that moves it); then the summary of where the Build ends, with each rank's level once one is
+//! moved.
 
 use leptos::prelude::*;
 use rules::{
@@ -124,44 +125,69 @@ fn level_row(
             <span class="chip-value">{format!("{}/{}", points.spent, points.available)}</span>
         </button>
     };
-    // Each Mythic rank taken at this level: its badge, which opens the Mythic track, and beside it the control that
-    // moves the rank to another level (ticket 171).
-    let mythic = level
-        .mythic_ranks
-        .iter()
-        .map(|&rank| {
-            // The Build's path at this level, if it has one, sets the badge's colour.
-            let path = level
-                .state
-                .mythic_path
-                .as_ref()
-                .map(|key| key.as_str().to_owned());
-            let moved_from = engine.rank_table_level(rank).filter(|earliest| n > *earliest);
-            let move_control = rank_move(engine, build, sheet, rank);
-            view! {
-                <span class="rank-badge">
-                    <button
-                        class="chip mythic-badge"
-                        class:moved=moved_from.is_some()
-                        data-path=path
-                        data-rank=rank
-                        title="Open the Mythic track"
-                        on:click=move |_| planner.tab.set(Tab::Mythic)
-                    >
-                        <span class="chip-label">"Mythic"</span>
-                        <span class="chip-value">{format!("✦ MR {rank}")}</span>
-                        {moved_from
-                            .map(|earliest| {
-                                view! {
-                                    <span class="chip-moved">{format!("from level {earliest}")}</span>
-                                }
-                            })}
-                    </button>
-                    {move_control}
-                </span>
+    // The Mythic ranks taken at this level. Those at their rank table's level share one badge, as they always did;
+    // a rank taken later (ticket 171) has a badge of its own that says where it came from, with the control that
+    // moves it. Either badge opens the Mythic track, where every reached rank has that control.
+    // The Build's path at this level, if it has one, sets the badges' colour.
+    let path = level
+        .state
+        .mythic_path
+        .as_ref()
+        .map(|key| key.as_str().to_owned());
+    let moved_from = |rank: u8| {
+        engine
+            .rank_table_level(rank)
+            .filter(|earliest| n > *earliest)
+    };
+    let mut mythic = Vec::new();
+    let mut ranks = level.mythic_ranks.iter().copied().peekable();
+    while let Some(rank) = ranks.next() {
+        let path = path.clone();
+        match moved_from(rank) {
+            Some(earliest) => {
+                let move_control = rank_move(engine, build, sheet, rank);
+                mythic.push(
+                    view! {
+                        <span class="rank-badge">
+                            <button
+                                class="chip mythic-badge moved"
+                                data-path=path
+                                data-rank=rank
+                                title="Open the Mythic track"
+                                on:click=move |_| planner.tab.set(Tab::Mythic)
+                            >
+                                <span class="chip-label">"Mythic"</span>
+                                <span class="chip-value">{format!("✦ MR {rank}")}</span>
+                                <span class="chip-moved">{format!("from level {earliest}")}</span>
+                            </button>
+                            {move_control}
+                        </span>
+                    }
+                    .into_any(),
+                );
             }
-        })
-        .collect_view();
+            None => {
+                let mut together = vec![rank.to_string()];
+                while let Some(next) = ranks.next_if(|next| moved_from(*next).is_none()) {
+                    together.push(next.to_string());
+                }
+                mythic.push(
+                    view! {
+                        <button
+                            class="chip mythic-badge"
+                            data-path=path
+                            title="Open the Mythic track"
+                            on:click=move |_| planner.tab.set(Tab::Mythic)
+                        >
+                            <span class="chip-label">"Mythic"</span>
+                            <span class="chip-value">{format!("✦ MR {}", together.join(" · "))}</span>
+                        </button>
+                    }
+                    .into_any(),
+                );
+            }
+        }
+    }
     view! {
         <div class="row" role="listitem">
             {remove}
@@ -187,8 +213,8 @@ fn level_row(
     }
 }
 
-/// The control that moves a Mythic rank to another level: a small button beside the rank, which opens the rank's
-/// level picker. `None` for a rank with nowhere to go (not reached, or reached only at the Build's last level with
+/// The control that moves a Mythic rank to another level: a thumb-sized button beside the rank that draws a small
+/// round mark, which opens the rank's level picker. `None` for a rank with nowhere to go (not reached, or reached only at the Build's last level with
 /// nothing to come back from).
 pub fn rank_move(
     engine: &Engine,
@@ -208,7 +234,9 @@ pub fn rank_move(
                 title=label
                 on:click=move |_| planner.open(Target::RankLevel(rank))
             >
-                "⇅"
+                <span class="rank-move-mark" aria-hidden="true">
+                    "⇅"
+                </span>
             </button>
         }
     })
@@ -352,20 +380,24 @@ fn Summary(sheet: std::sync::Arc<Sheet>) -> impl IntoView {
             None => name,
         }
     });
-    // Each reached rank's level, a rank taken later than the rank table's level saying so (ticket 171).
-    let rank_levels: Vec<String> = sheet
-        .ranks
-        .iter()
-        .filter(|rank| rank.status != rules::RankStatus::NotReached)
-        .map(|rank| {
-            let later = engine
-                .rank_table_level(rank.rank)
-                .filter(|earliest| rank.character_level > *earliest)
-                .map(|earliest| format!(" (from {earliest})"))
-                .unwrap_or_default();
-            format!("MR {} at {}{later}", rank.rank, rank.character_level)
-        })
-        .collect();
+    // Each reached rank's level, once the Build takes a rank later than the rank table's level, each such rank
+    // saying so (ticket 171). A Build that moves no rank has no such line.
+    let later = |rank: &rules::RankSheet| {
+        (engine.rank_table_level(rank.rank)).filter(|earliest| rank.character_level > *earliest)
+    };
+    let reached =
+        || (sheet.ranks.iter()).filter(|rank| rank.status != rules::RankStatus::NotReached);
+    let rank_levels: Vec<String> = match reached().any(|rank| later(rank).is_some()) {
+        false => Vec::new(),
+        true => reached()
+            .map(|rank| {
+                let later = later(rank)
+                    .map(|earliest| format!(" (from {earliest})"))
+                    .unwrap_or_default();
+                format!("MR {} at {}{later}", rank.rank, rank.character_level)
+            })
+            .collect(),
+    };
     let mythic = (state.mythic_rank > 0).then(|| {
         let path = state
             .mythic_path

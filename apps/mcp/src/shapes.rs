@@ -834,7 +834,8 @@ pub struct RankLine {
     /// The character level its ascension is taken at: the rank table's level, or a later one the Build places it at
     /// (`mythic.R.level`; a rank placed later takes the ranks above it along).
     pub character_level: u8,
-    /// For a rank taken later than the rank table's level: that level, the earliest the rank ever comes at.
+    /// For a rank taken later than the rank table's level: that level, the earliest the rank ever comes at. A rank
+    /// that is never reached has none, but for MR 8 under a Legend switch taken later (the switch's level).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub table_level: Option<u8>,
     pub status: RankState,

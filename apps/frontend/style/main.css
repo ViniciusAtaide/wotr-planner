@@ -1477,35 +1477,38 @@ ul.skills {
 .rank-badge {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
 }
 
-/* The move control: a small round button in the remove control's language, in the rank's colour. Its ::before
-   stretches the tap target to a thumb's size. */
+/* The move control: a thumb-sized button with nothing drawn but its mark, a small round badge in the remove
+   control's language and the rank's colour. The button's own box is the tap target, so it never reaches over the
+   badge beside it. */
 .rank-move {
-  position: relative;
   display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: var(--tap);
+  height: var(--tap);
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--path, var(--mythic));
+}
+
+.rank-move-mark {
+  display: grid;
   place-items: center;
   width: 24px;
   height: 24px;
-  min-height: 0;
-  padding: 0;
-  border-color: color-mix(in srgb, var(--path, var(--mythic)) 55%, transparent);
+  border: 1px solid color-mix(in srgb, var(--path, var(--mythic)) 55%, transparent);
   border-radius: 50%;
   background: var(--bg);
-  color: var(--path, var(--mythic));
   font-size: 13px;
   line-height: 1;
 }
 
-.rank-move::before {
-  position: absolute;
-  inset: calc((var(--tap) - 24px) / -2) -4px;
-  content: "";
-}
-
-.rank-move:hover,
-.rank-move:active {
+.rank-move:hover .rank-move-mark,
+.rank-move:active .rank-move-mark {
   border-color: var(--accent);
   color: var(--accent);
 }
@@ -1525,6 +1528,22 @@ ul.skills {
 .rank-at {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   white-space: nowrap;
+}
+
+/* On the Mythic track the control sits on the rank's level line: centred on it, and drawn into the line's own
+   height above and below so a row stays close to the height it had. */
+.rank-level {
+  align-items: center;
+}
+
+.rank-at .rank-move {
+  margin: -6px 0;
+}
+
+@media (min-width: 600px) {
+  .rank-level {
+    align-items: flex-start;
+  }
 }

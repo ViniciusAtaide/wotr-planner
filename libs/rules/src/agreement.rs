@@ -359,6 +359,21 @@ pub fn judge(engine: &Engine, build: &Build) -> Agreement {
     for rank in &sheet.ranks {
         let picker = format!("rank_level_options {}", rank.rank);
         for o in engine.rank_level_options(build, rank.rank) {
+            // A move that would shift a pick into another rank's slot is refused whatever the walk says of the
+            // moved Build: locked, and not allowed.
+            if !o.held && !engine.shifted_picks(build, &o.edit).is_empty() {
+                let allows = engine.allows(build, &o.edit);
+                let agrees = o.status == Err(Issue::BreaksLater) && !allows;
+                judge.agreement.add((!agrees).then(|| Disagreement {
+                    picker: picker.clone(),
+                    option: o.level.to_string(),
+                    status: Some(o.status.clone()),
+                    possible: false,
+                    allows,
+                    unchanged: false,
+                }));
+                continue;
+            }
             judge.check(&picker, &o.level.to_string(), &o.status, &o.edit, o.held);
         }
     }

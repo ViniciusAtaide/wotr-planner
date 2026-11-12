@@ -603,10 +603,18 @@ fn later_rank_levels(
                 continue;
             }
             let pick = &option.option.pick;
-            let Some(level) = engine.rank_level_that_opens(build, sheet, slot, pick) else {
+            let Some((level, moves)) = engine.rank_level_that_opens(build, sheet, slot, pick)
+            else {
                 continue;
             };
-            let opens = format!("MR {rank} taken at level {level} opens it");
+            // The ranks above that the move takes along, as the level picker's option says them.
+            let opens = match moves.is_empty() {
+                true => format!("MR {rank} taken at level {level} opens it"),
+                false => format!(
+                    "MR {rank} taken at level {level} opens it, moving {}",
+                    Engine::moves_text(&moves)
+                ),
+            };
             first.get_or_insert_with(|| match option.value.is_empty() {
                 true => opens.clone(),
                 false => format!("{opens} for {}", option.value),
