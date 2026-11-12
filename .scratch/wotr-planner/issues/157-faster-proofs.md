@@ -27,6 +27,7 @@ AFK. `scripts/proof.sh` only: no engine, data or schema change.
 - Beside it, a stamp file holding the ref's commit and a hash of `tools/proof` (the harness that is copied in) and of the mode. When the stamp matches, skip the extract, the copy and the `Cargo.toml` patches.
 - On a mismatch, remove the folder and extract with `tar -x -m`, so the files take the current time. That closes the hazard the script warns about (ticket 86), where an archive's commit-time files count as up to date against an older build.
 - Never share one `A/` build folder between source trees at different paths: the script's own comment describes that failure. One `CARGO_TARGET_DIR` holds one `src-A`.
+- **A stale side A build, found by ticket 162:** the script keeps `$CARGO_TARGET_DIR/A` across refs, and cargo reused a build of an older ref for a newer one: a run against `87890ea` after one against `e150fa2` failed on `gear.ron` until `A/` was deleted. The stamp must cover the build folder too: when the ref changes, side A is rebuilt from clean.
 - Say on stderr which happened: "side A's source: reused (<commit>)" or "side A's source: extracted (<commit>)".
 - Update the script's header and `tools/proof`'s crate docs.
 - Coordinate with tickets [162](162-proof-light-mode.md) and [164](164-cheap-key-clones.md), which edit the script or the harness: one at a time.
