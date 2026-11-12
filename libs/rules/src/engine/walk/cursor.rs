@@ -109,11 +109,11 @@ impl<'a> Cursor<'a> {
         self.with_paused(usize::from(level), |walker| walker.skill_points)
     }
 
-    /// The character level whose walk fills a slot: its own, or its Mythic rank's ascension's. `None` for a rank the
-    /// data lacks.
+    /// The character level whose walk fills a slot: its own, or the one its Mythic rank is taken at in the Build.
+    /// `None` for a rank the data lacks.
     fn level_of(&self, slot: &SlotId) -> Option<u8> {
         slot.level()
-            .or_else(|| self.engine.catalog.ascension_level(slot.rank()?))
+            .or_else(|| self.engine.rank_level(self.build, slot.rank()?))
     }
 
     /// The character after the last level: the walk kept after it, or else the furthest one kept walked on without
@@ -267,7 +267,7 @@ impl<'a> Cursor<'a> {
                     // Nothing after the last level depends on an edit past it (Remove level, a name).
                     return RecheckWalk::default();
                 };
-                walker.build = edited;
+                walker.on(edited);
                 walker.recheck(first, allowed)
             }
         }
@@ -363,14 +363,25 @@ impl<'a> Cursor<'a> {
             }
             Edit::AbilityIncrease { level, .. } | Edit::SkillRanks { level, .. } => *level,
             Edit::Start(_) => 0,
-            Edit::FirstAscension(_) => engine.rank_level(FIRST_ASCENSION_RANK),
+            Edit::FirstAscension(_) => engine.rank_walk_level(build, FIRST_ASCENSION_RANK),
             // Without a first ascension of its own, the Build takes the MR 3 path's, from MR 1.
             Edit::MythicPath(_) if build.first_ascension.is_none() => {
-                engine.rank_level(FIRST_ASCENSION_RANK)
+                engine.rank_walk_level(build, FIRST_ASCENSION_RANK)
             }
-            Edit::MythicPath(_) => engine.rank_level(PATH_CHOICE_RANK),
-            Edit::PathSwitch(_) => engine.rank_level(PATH_SWITCH_RANK),
-            Edit::RemoveLevel | Edit::SetName(_) => u8::MAX,
+            Edit::MythicPath(_) => engine.rank_walk_level(build, PATH_CHOICE_RANK),
+            Edit::PathSwitch(_) => engine.rank_walk_level(build, PATH_SWITCH_RANK),
+            // A rank moved to the last level goes back to where it comes without the move, and the ranks it took
+            // along with it: the walk changes from the earliest any of them can come at. No other removal changes a
+            // level that stays.
+            Edit::RemoveLevel => (build.rank_levels.iter())
+                .filter(|(_, level)| usize::from(**level) >= build.levels.len())
+                .filter_map(|(rank, _)| engine.rank_floor(build, *rank))
+                .min()
+                .unwrap_or(u8::MAX),
+            Edit::SetName(_) => u8::MAX,
+            // The rank comes no earlier than its floor before the edit or after it, and the ranks it takes along
+            // come after it.
+            Edit::RankLevel { rank, .. } => engine.rank_floor(build, *rank).unwrap_or(0),
             // Gear counts from the Build start.
             Edit::Wear { .. } | Edit::Use { .. } => 0,
         }
@@ -570,7 +581,7 @@ impl<'a> AtSlot<'_, 'a> {
         let Some(mut walker) = cursor.paused(index) else {
             return Vec::new();
         };
-        walker.build = &without;
+        walker.on(&without);
         walker.probe = Some(Probe::Later(slot));
         walker.level(level, &without.levels[index]);
         walker.probed.later.unwrap_or_default()

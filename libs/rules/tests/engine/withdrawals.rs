@@ -33,12 +33,13 @@ fn kind(choice: &Choice) -> &'static str {
         Choice::PathSwitch => "PathSwitch",
         Choice::Slot(_) => "Slot",
         Choice::Gear(_) => "Gear",
+        Choice::RankLevel { .. } => "RankLevel",
     }
 }
 
 /// A Build that makes every kind of choice: a half-elf of the Dual Heritage with its +2 on Strength, a background,
 /// atheism, an armiger fighter, a wizard and an Arcane Trickster advancing it (21 levels), an ability increase, skill
-/// ranks, a first ascension, a path, a Legend switch, a pick, a belt and a manual.
+/// ranks, a first ascension, a path, a Legend switch, MR 2 taken at level 8, a pick, a belt and a manual.
 fn holding_everything() -> Build {
     let mut build = build(
         "half-elf",
@@ -66,6 +67,7 @@ fn holding_everything() -> Build {
     build.first_ascension = Some(path("trickster"));
     build.mythic_path = Some(path("trickster"));
     build.path_switch = Some(path("legend"));
+    build.rank_levels.insert(2, 8);
     build
         .picks
         .insert(general_slot(1), pick_feat("power-attack"));
@@ -105,6 +107,7 @@ fn the_held_choices_cover_every_kind_of_choice_a_build_makes() {
         "FirstAscension",
         "MythicPath",
         "PathSwitch",
+        "RankLevel",
         "Slot",
         "Gear",
     ]);

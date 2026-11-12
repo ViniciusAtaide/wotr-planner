@@ -267,13 +267,11 @@ struct Walk {
 
 impl<'a> Walker<'a> {
     fn new(engine: &'a Engine, build: &'a Build) -> Self {
-        let mut ascensions = engine.catalog.data().progression.mythic_ascensions.clone();
-        ascensions.sort_by_key(|a| a.rank);
-        let ranks = ascensions
-            .iter()
-            .map(|a| RankSheet {
-                rank: a.rank,
-                character_level: a.character_level,
+        let ranks = engine
+            .rank_levels(build)
+            .map(|(rank, character_level)| RankSheet {
+                rank,
+                character_level,
                 status: RankStatus::NotReached,
                 path: None,
                 slots: Vec::new(),
@@ -309,6 +307,19 @@ impl<'a> Walker<'a> {
             bonus_keys_next: Vec::new(),
             recheck: None,
             gear: gear::WornGear::default(),
+        }
+    }
+
+    /// Walks on over another Build: the same one up to the level the walk is paused before, as a recheck's edited
+    /// Build is. The ranks not reached yet come at the levels that Build takes them at.
+    fn on(&mut self, build: &'a Build) {
+        self.build = build;
+        for (rank, character_level) in self.engine.rank_levels(build) {
+            if let Some(sheet) = self.ranks.iter_mut().find(|sheet| sheet.rank == rank)
+                && sheet.status == RankStatus::NotReached
+            {
+                sheet.character_level = character_level;
+            }
         }
     }
 
@@ -460,6 +471,22 @@ impl<'a> Walker<'a> {
                 Some(Ok(())) => continue,
             };
             self.fail(choice, issue);
+        }
+        // A rank's later level: one later than the rank table's ([`Issue::NotAllowed`] otherwise: the table's is no
+        // move, and none is earlier), at a level the Build has, of a rank the data has and the ascensions get to
+        // ([`Issue::NotReached`]).
+        let ascensions_end = engine
+            .chosen_switch(build)
+            .and_then(|(_, switch)| switch.ends_ascensions_at());
+        for (&rank, &level) in &build.rank_levels {
+            let issue = match engine.rank_table_level(rank) {
+                None => Issue::NotReached,
+                Some(earliest) if level <= earliest => Issue::NotAllowed,
+                Some(_) if usize::from(level) > build.levels.len() => Issue::NotReached,
+                Some(_) if ascensions_end.is_some_and(|end| rank > end) => Issue::NotReached,
+                Some(_) => continue,
+            };
+            self.fail(Choice::RankLevel { rank }, issue);
         }
     }
 

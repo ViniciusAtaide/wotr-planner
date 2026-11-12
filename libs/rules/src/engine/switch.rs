@@ -1,5 +1,5 @@
 //! The first ascension, the path and the Path switch at their ranks: which ones the Build takes, the character levels
-//! of the Mythic ranks, and what [`Engine::apply`] drops once a rank isn't reached. What a switch takes away is its
+//! of the Mythic ranks (the rank table's, or the later ones a Build places them at), and what [`Engine::apply`] drops once a rank isn't reached. What a switch takes away is its
 //! rule's ([`PathSwitch::drops`]); the walker (`walk::ascension`) takes it away during the walk.
 
 use super::{Engine, FIRST_ASCENSION_RANK, PATH_CHOICE_RANK, PATH_SWITCH_RANK};
@@ -83,7 +83,10 @@ impl Engine {
     ///   before its rank;
     /// - the picks of the Mythic ranks the Build no longer reaches: removing a level drops the picks of the ranks it
     ///   reached (MR 8 and 9 with level 17), and a switch that ends the ascensions drops the picks of the ranks from
-    ///   the switch rank on (Legend: MR 8 to 10).
+    ///   the switch rank on (Legend: MR 8 to 10);
+    /// - a rank's later level ([`Build::rank_levels`]) that isn't one: at or before the rank table's level, past the
+    ///   last level (removing the level a rank was moved to takes the rank's picks and puts it back where it comes
+    ///   without the move), or of a rank after the one a switch ends the ascensions at.
     ///
     /// The picks a switch takes away at earlier ranks stay, held from their ranks until the switch, as the Mythic
     /// track shows them ([`RankSheet::dropped_slots`](super::RankSheet::dropped_slots)).
@@ -102,33 +105,85 @@ impl Engine {
         let ascensions_end = self
             .chosen_switch(build)
             .and_then(|(_, switch)| switch.ends_ascensions_at());
+        let placed: Vec<(u8, u8)> = self.rank_levels(build).collect();
         build
             .picks
             .retain(|slot, _| match (slot.level(), slot.rank()) {
                 (Some(level), _) => usize::from(level) <= levels,
                 (None, Some(rank)) => {
                     !ascensions_end.is_some_and(|end| rank >= end)
-                        && self
-                            .catalog
-                            .ascension_level(rank)
-                            .is_some_and(|level| usize::from(level) <= levels)
+                        && placed
+                            .iter()
+                            .any(|&(placed, level)| placed == rank && usize::from(level) <= levels)
                 }
                 (None, None) => true,
             });
+        // Last, so a rank placed at a level the Build no longer has was judged not reached above, and lost its picks
+        // (and the path or switch chosen at it) as any rank does with its level.
+        build.rank_levels.retain(|rank, level| {
+            self.catalog
+                .ascension_level(*rank)
+                .is_some_and(|earliest| *level > earliest)
+                && usize::from(*level) <= levels
+                && !ascensions_end.is_some_and(|end| *rank > end)
+        });
     }
 
-    /// Whether the Build has the character level of a Mythic rank's ascension (whether or not a Legend switch
-    /// ended the ascensions before it).
+    /// The character level each Mythic rank of the data is taken at in a Build, in rank order (ticket 171): the
+    /// level the Build places it at ([`Build::rank_levels`]) or else the rank table's, and never before the rank
+    /// below it, so a rank taken later takes the ranks above along until they are placed later still.
+    pub(super) fn rank_levels<'a>(
+        &'a self,
+        build: &'a Build,
+    ) -> impl Iterator<Item = (u8, u8)> + 'a {
+        let mut floor = 0;
+        (self.catalog.data().progression.mythic_ascensions.iter()).map(move |ascension| {
+            let placed = build.rank_levels.get(&ascension.rank).copied();
+            floor = floor
+                .max(ascension.character_level)
+                .max(placed.unwrap_or(0));
+            (ascension.rank, floor)
+        })
+    }
+
+    /// The character level a Mythic rank is taken at in a Build: the rank table's, or a later one the Build places
+    /// it at, or the rank below's when that one comes later still (ticket 171). `None` for a rank the data lacks.
+    /// Whether the Build has that level is another question ([`Sheet::ranks`](super::Sheet::ranks)).
+    pub fn rank_level(&self, build: &Build, rank: u8) -> Option<u8> {
+        self.rank_levels(build)
+            .find(|&(placed, _)| placed == rank)
+            .map(|(_, level)| level)
+    }
+
+    /// The rank table's character level of a Mythic rank: the earliest it is ever taken. `None` for a rank the
+    /// data lacks.
+    pub fn rank_table_level(&self, rank: u8) -> Option<u8> {
+        self.catalog.ascension_level(rank)
+    }
+
+    /// The earliest a Mythic rank can be taken in a Build as it is: the rank table's level, or the rank below's
+    /// when that one is taken later. `None` for a rank the data lacks.
+    pub(super) fn rank_floor(&self, build: &Build, rank: u8) -> Option<u8> {
+        let earliest = self.catalog.ascension_level(rank)?;
+        let below = self
+            .rank_levels(build)
+            .take_while(|&(placed, _)| placed < rank)
+            .last()
+            .map_or(0, |(_, level)| level);
+        Some(earliest.max(below))
+    }
+
+    /// Whether the Build has the character level a Mythic rank's ascension is taken at (whether or not a Legend
+    /// switch ended the ascensions before it).
     pub(super) fn reaches(&self, build: &Build, rank: u8) -> bool {
-        self.catalog
-            .ascension_level(rank)
+        self.rank_level(build, rank)
             .is_some_and(|level| usize::from(level) <= build.levels.len())
     }
 
-    /// The character level of a Mythic rank's ascension; 0 (the whole walk) for a rank the data lacks. The ranks
-    /// asked about aren't the data's: an edit's slot names whatever rank its Build does, and the engine's own ranks
-    /// are constants, so [`GameData::check`](crate::GameData::check) can't vouch for them.
-    pub(super) fn rank_level(&self, rank: u8) -> u8 {
-        self.catalog.ascension_level(rank).unwrap_or(0)
+    /// The character level whose walk first changes with what a Mythic rank holds; 0 (the whole walk) for a rank the
+    /// data lacks. The ranks asked about aren't the data's: an edit's slot names whatever rank its Build does, and
+    /// the engine's own ranks are constants, so [`GameData::check`](crate::GameData::check) can't vouch for them.
+    pub(super) fn rank_walk_level(&self, build: &Build, rank: u8) -> u8 {
+        self.rank_level(build, rank).unwrap_or(0)
     }
 }

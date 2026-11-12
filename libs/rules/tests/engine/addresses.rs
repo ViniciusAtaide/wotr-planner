@@ -96,6 +96,7 @@ fn every_kind() -> Vec<(Address, &'static str)> {
             Address::Slot(SlotId::MythicExtra { rank: 6 }),
             "slot.mythic-extra.6",
         ),
+        (Address::RankLevel(10), "mythic.10.level"),
         (Address::Gear(GearSpot::Worn(GearPlace::Belt)), "gear.belt"),
         (
             Address::Gear(GearSpot::Worn(GearPlace::FirstRing)),
@@ -156,6 +157,7 @@ fn variant(choice: &Choice) -> &'static str {
         Choice::PathSwitch => "PathSwitch",
         Choice::Slot(_) => "Slot",
         Choice::Gear(_) => "Gear",
+        Choice::RankLevel { .. } => "RankLevel",
     }
 }
 
@@ -226,6 +228,7 @@ fn every_choice_of_the_test_world() -> Vec<Choice> {
     );
     choices.extend((world.gear.iter()).map(|item| Choice::Gear(GearSpot::Used(item.key.clone()))));
     for rank in 1..=10 {
+        choices.push(Choice::RankLevel { rank });
         choices.push(Choice::Slot(SlotId::Mythic { rank }));
         choices.push(Choice::Slot(SlotId::MythicExtra { rank }));
         for index in 0..3 {
@@ -252,7 +255,7 @@ fn every_choice_of_the_test_world_reads_back_from_its_address() {
     }
     // Every variant of `Choice` is among them.
     let covered: BTreeSet<&str> = choices.iter().map(variant).collect();
-    assert_eq!(covered.len(), 18, "{covered:?}");
+    assert_eq!(covered.len(), 19, "{covered:?}");
 }
 
 /// Every parameter kind. The match is exhaustive and each arm names a kind's place in the array, so a new kind fails

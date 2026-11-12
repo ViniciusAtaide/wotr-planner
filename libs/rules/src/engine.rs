@@ -39,6 +39,7 @@ mod controls;
 mod gear;
 mod labels;
 mod pickers;
+mod ranks;
 mod removable;
 mod slots;
 mod switch;
@@ -50,6 +51,7 @@ pub use attack::{ATTACK_LINE_LEAVES_OUT, AttackLine, AttackPart, PowerAttack};
 pub use caster::{CASTER_LINE_LEAVES_OUT, CasterLine, CasterPart, SpellDc};
 use catalog::Catalog;
 pub use gear::{GearDependent, GearNeed, GearOption};
+pub use ranks::RankLevelOption;
 pub use totals::{CLASS_SKILL_BONUS, SkillTotal, TOTALS_LEAVE_OUT, Total, TotalPart, Totals};
 
 /// The highest character level without a path that raises it.
@@ -349,7 +351,8 @@ pub struct LevelSheet {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct RankSheet {
     pub rank: u8,
-    /// The fixed character level of this rank's Mythic ascension.
+    /// The character level this rank's Mythic ascension is taken at: the rank table's, or a later one the Build
+    /// places it at ([`Engine::rank_level`]).
     pub character_level: u8,
     pub status: RankStatus,
     /// The path whose row this rank gives: the path in force from MR 3. MR 1 and 2 show the first ascension's path

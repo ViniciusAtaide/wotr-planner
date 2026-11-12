@@ -575,3 +575,45 @@ fn a_build_with_gear_lists_it_between_the_start_and_the_levels() {
         .unwrap();
     assert_eq!(engine().open_link(code), Ok(build));
 }
+
+/// Ticket 171: a rank taken later than the rank table's level says so on its line, with or without a pick; a rank
+/// it takes along does too; and a Build that moves no rank gives the text it always did (the v1 test above).
+#[test]
+fn a_rank_taken_later_says_so_on_its_line_and_no_other_line_changes() {
+    let engine = engine();
+    let mut build = build("human", &times("fighter", 13));
+    build.mythic_path = Some(path("trickster"));
+    build.picks.insert(
+        SlotId::Mythic { rank: 1 },
+        pick_mythic_ability("mythic-charge"),
+    );
+    let before = sheet(&build);
+    assert!(
+        before.ends_with("\n\nMythic track\nMR 1 (level 6)\n  Mythic ability: mythic-charge\n")
+    );
+
+    let mut later = build.clone();
+    engine.apply(
+        &mut later,
+        &Edit::RankLevel {
+            rank: 3,
+            level: Some(12),
+        },
+    );
+    let text = sheet(&later);
+    let track = text.split("\n\nMythic track\n").nth(1).unwrap();
+    assert_eq!(
+        track,
+        "MR 1 (level 6)\n  Mythic ability: mythic-charge\nMR 3 (level 12, taken later than level 9)\nMR 4 (level \
+         12, taken later than level 11)\n"
+    );
+    // The link aside, nothing before the track differs.
+    let head = |text: &str| -> Vec<String> {
+        let head = text.split("\n\nMythic track\n").next().unwrap();
+        head.lines()
+            .filter(|line| !line.contains("#b="))
+            .map(str::to_owned)
+            .collect()
+    };
+    assert_eq!(head(&text), head(&before));
+}

@@ -50,6 +50,12 @@ pub struct Build {
     /// The gear (ticket 166): none unless the player adds it. It belongs to no level: an item counts at every one.
     #[serde(default)]
     pub gear: Gear,
+    /// The character level of each Mythic rank taken later than the rank table's level (ticket 171), by rank. The
+    /// table's level is the earliest a rank comes at, and a rank without an entry comes there, or with the rank
+    /// below it when that one comes later: ranks keep their order
+    /// ([`Engine::rank_level`](crate::Engine::rank_level)). Empty for every Build that moves no rank.
+    #[serde(default)]
+    pub rank_levels: BTreeMap<u8, u8>,
 }
 
 /// The items a Build holds: one worn in each place at most, and any number of usable ones (the manuals and tomes,
@@ -638,6 +644,13 @@ pub enum Edit {
         item: GearKey,
         used: bool,
     },
+    /// Take a Mythic rank at a character level later than the rank table's; `None` takes it as early as it comes
+    /// again (the table's level, or the rank below's when that one is later). [`Engine::apply`](crate::Engine::apply)
+    /// keeps only a level later than the table's and no later than the last level.
+    RankLevel {
+        rank: u8,
+        level: Option<u8>,
+    },
 }
 
 impl Edit {
@@ -691,6 +704,7 @@ impl Edit {
                 .map(|place| Choice::Gear(GearSpot::Worn(place)))
                 .collect(),
             Edit::Use { item, .. } => vec![Choice::Gear(GearSpot::Used(item.clone()))],
+            Edit::RankLevel { rank, .. } => vec![Choice::RankLevel { rank: *rank }],
         }
     }
 }
@@ -789,6 +803,12 @@ impl Build {
                 } else {
                     self.gear.used.remove(item);
                 }
+            }
+            Edit::RankLevel { rank, level } => {
+                match level {
+                    Some(level) => self.rank_levels.insert(*rank, *level),
+                    None => self.rank_levels.remove(rank),
+                };
             }
         }
     }

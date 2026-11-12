@@ -46,6 +46,7 @@ mod pick_values;
 mod pickers;
 mod possible;
 mod prerequisites;
+mod rank_levels;
 mod removable;
 mod shared_options;
 mod slot_entries;
