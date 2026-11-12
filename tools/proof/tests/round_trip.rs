@@ -3,7 +3,7 @@
 
 use std::path::Path;
 
-use proof::{Named, compare::compare, links};
+use proof::{Named, compare::compare, fingerprint::Mode, links};
 use rules::{
     Alignment, Build, ClassKey, Engine, GameData, LevelUp, Pick, RaceKey, SelectionOptionKey,
     SlotId,
@@ -62,7 +62,7 @@ fn builds() -> Vec<Named> {
 fn record_export_and_compare_round_trip() {
     let (engine, data) = engine();
     let builds = builds();
-    let record = proof::record(&engine, &builds, 2).join("\n");
+    let record = proof::record(&engine, &builds, 2, Mode::Full).join("\n");
 
     // A record agrees with itself.
     let same = compare(&record, &record).expect("records parse");
@@ -74,7 +74,10 @@ fn record_export_and_compare_round_trip() {
     let (read, failed) = links::read(&data, &text);
     assert!(failed.is_empty(), "{failed:?}");
     assert_eq!(read, builds);
-    assert_eq!(proof::record(&engine, &read, 1).join("\n"), record);
+    assert_eq!(
+        proof::record(&engine, &read, 1, Mode::Full).join("\n"),
+        record
+    );
 
     // Through JSON (ticket 86), the same Builds too.
     let (read, failed) = links::read_json(&links::export_json(&builds));
@@ -88,7 +91,7 @@ fn record_export_and_compare_round_trip() {
         .levels
         .push(LevelUp::new(ClassKey::new("fighter")));
     changed.retain(|(name, _)| name != "blank");
-    let other = proof::record(&engine, &changed, 2).join("\n");
+    let other = proof::record(&engine, &changed, 2, Mode::Full).join("\n");
     let comparison = compare(&record, &other).expect("records parse");
     let differs: Vec<&String> = comparison
         .lines
@@ -116,4 +119,40 @@ fn record_export_and_compare_round_trip() {
             .filter(|line| line.starts_with("slot\t"))
             .all(|line| line.starts_with("slot\tfighter 2\t"))
     );
+}
+
+/// Ticket 162: a light record has no `allows` and says it is light; it compares with another light one, and the
+/// comparison with a full one is refused.
+#[test]
+fn light_record_compares_only_with_a_light_one() {
+    let (engine, _) = engine();
+    let builds = builds();
+    let light = proof::record(&engine, &builds, 2, Mode::Light).join("\n");
+    let full = proof::record(&engine, &builds, 2, Mode::Full).join("\n");
+    assert!(light.lines().all(|line| line.contains("\"light\":true")));
+    assert!(light.lines().all(|line| !line.contains("\"allows\"")));
+    assert!(full.lines().all(|line| !line.contains("\"light\"")));
+
+    assert!(compare(&light, &light).expect("records parse").is_empty());
+
+    // A changed Build still shows in a light record.
+    let mut changed = builds.clone();
+    changed[1]
+        .1
+        .levels
+        .push(LevelUp::new(ClassKey::new("fighter")));
+    let other = proof::record(&engine, &changed, 2, Mode::Light).join("\n");
+    let comparison = compare(&light, &other).expect("records parse");
+    assert!(
+        comparison
+            .lines
+            .iter()
+            .any(|line| line.starts_with("differs\tfighter 2\t")),
+        "{:?}",
+        comparison.lines
+    );
+
+    let refused = compare(&light, &full).err().expect("refused");
+    assert!(refused.contains("light"), "{refused}");
+    assert!(compare(&full, &light).is_err());
 }

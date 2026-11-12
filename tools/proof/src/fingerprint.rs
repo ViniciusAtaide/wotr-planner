@@ -18,7 +18,8 @@
 //!   lock-reason texts, hashed;
 //! - `paths`, `switches`: the path and switch pickers (Debug, without the edits); `path_reasons`, `switch_reasons`:
 //!   their lock-reason texts, hashed;
-//! - `allows`: [`Engine::allows`] for each edit of [`battery`], a `0` or `1` each;
+//! - `allows`: [`Engine::allows`] for each edit of [`battery`], a `0` or `1` each (a light record has none, and
+//!   `light: true` instead: see [`Mode`]);
 //! - `totals`: [`Engine::totals`] at each level of the sheet, its Debug text hashed (ticket 151);
 //! - `caster_lines`: [`Engine::caster_line`] at each level of the sheet for each spell of [`spells`], its Debug text
 //!   hashed (ticket 151).
@@ -28,7 +29,7 @@
 //! whichever way (`cfg(lines_take_start)`, `cfg(lines_take_state)`, set by its build script from the functions'
 //! parameters), and the sheet hashes without the bonuses in force, so records from before it still compare.
 //!
-//! Recording also checks, panicking on a difference: [`Engine::is_removable`] and [`Engine::withdrawal`] against
+//! Recording also checks (not in a light record), panicking on a difference: [`Engine::is_removable`] and [`Engine::withdrawal`] against
 //! `removable` for every choice the Build holds ([`Engine::held_choices`]) and some it doesn't,
 //! [`Engine::removable_classes`] against `removable`'s class levels, each Build start and level option and step's
 //! status against `allows` of its edit (ticket 96: the pickers share one walk where `allows` walks each), and, on
@@ -244,14 +245,26 @@ pub fn held_counts() -> BTreeMap<String, usize> {
     HELD.lock().unwrap_or_else(PoisonError::into_inner).clone()
 }
 
-/// The Build's fingerprint (see the module docs), after its consistency checks.
-pub fn fingerprint(engine: &Engine, name: &str, build: &Build) -> Value {
+/// How much of a fingerprint a record holds (ticket 162).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Mode {
+    /// Every field, after the consistency and shortcut checks.
+    Full,
+    /// Without the `allows` battery and without the consistency and shortcut checks: the costly part of a record.
+    /// Each line says so (`"light": true`), so `compare` refuses a light record against a full one.
+    Light,
+}
+
+/// The Build's fingerprint (see the module docs), after its consistency checks unless the mode is light.
+pub fn fingerprint(engine: &Engine, name: &str, build: &Build, mode: Mode) -> Value {
+    let light = mode == Mode::Light;
     let sheet = engine.evaluate(build);
     let removable = engine.removable(build);
     let unfull = name.strip_prefix("full ").unwrap_or(name);
-    let shortcut_checked = SHORTCUT_CHECKED
-        .iter()
-        .any(|prefix| unfull.starts_with(prefix));
+    let shortcut_checked = !light
+        && SHORTCUT_CHECKED
+            .iter()
+            .any(|prefix| unfull.starts_with(prefix));
     // The feat slots' options, unfolded, for the shortcut checks: the walks the slots below already pay.
     let mut feat_options: Vec<(&SlotId, Vec<SlotOption>)> = Vec::new();
     let mut slots = BTreeMap::new();
@@ -332,19 +345,25 @@ pub fn fingerprint(engine: &Engine, name: &str, build: &Build) -> Value {
         .iter()
         .map(|option| reason(&option.status))
         .collect();
-    let controls = controls(engine, build);
-    let edits = battery(engine, build, &controls);
-    let allows: Vec<bool> = edits
-        .iter()
-        .map(|edit| engine.allows(build, edit))
-        .collect();
+    // The battery and the checks: most of a full record's cost, and left out of a light one.
+    let allows = (!light).then(|| {
+        let controls = controls(engine, build);
+        let edits = battery(engine, build, &controls);
+        let allows: Vec<bool> = edits
+            .iter()
+            .map(|edit| engine.allows(build, edit))
+            .collect();
+        consistency_checks(engine, build, &removable, &controls, &allows);
+        if shortcut_checked {
+            shortcut_checks(engine, build, feat_options);
+        }
+        allows
+            .iter()
+            .map(|allowed| if *allowed { '1' } else { '0' })
+            .collect::<String>()
+    });
 
-    consistency_checks(engine, build, &removable, &controls, &allows);
-    if shortcut_checked {
-        shortcut_checks(engine, build, feat_options);
-    }
-
-    json!({
+    let mut record = json!({
         "build": name,
         "who": who(build),
         "levels": build.levels.len(),
@@ -359,10 +378,15 @@ pub fn fingerprint(engine: &Engine, name: &str, build: &Build) -> Value {
         "path_reasons": hashed(&path_reasons),
         "switches": format!("{:?}", mirrors(Some(&switches)).unwrap_or_default()),
         "switch_reasons": hashed(&switch_reasons),
-        "allows": allows.iter().map(|allowed| if *allowed { '1' } else { '0' }).collect::<String>(),
         "totals": totals_hash(engine, build, &sheet),
         "caster_lines": caster_lines_hash(engine, build, &sheet),
-    })
+    });
+    // A full record keeps its fields and their order as before (`allows` sorts among them: the maps are ordered).
+    match allows {
+        Some(allows) => record["allows"] = Value::String(allows),
+        None => record["light"] = Value::Bool(true),
+    }
+    record
 }
 
 /// Each level's totals, their Debug texts hashed together. The "leaves out" texts aren't hashed: they are wording,
