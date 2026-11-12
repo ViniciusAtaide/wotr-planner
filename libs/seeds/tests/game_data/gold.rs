@@ -738,7 +738,7 @@ struct Expected {
 }
 
 /// A gold name read as planner names, by [`NAMES`], or else "Name - Value" as the planner's "Name (Value)" (with
-/// [`VALUES`]), or else as itself; each must name a planner item ([`Planner::knows`]).
+/// [`VALUES`]), or else as itself; each must name a planner item ([`Planner::knows`]), else the name that doesn't.
 fn expected(planner: &Planner, gold: &str) -> Result<Expected, String> {
     let owned = |names: &[&str]| names.iter().map(|name| (*name).to_owned()).collect();
     let out = match NAMES.iter().find(|(name, ..)| *name == gold) {
@@ -765,7 +765,7 @@ fn expected(planner: &Planner, gold: &str) -> Result<Expected, String> {
     };
     for name in out.gained.iter().chain(&out.held) {
         if !planner.knows(name) {
-            return Err(format!("\"{name}\" names no planner item"));
+            return Err(name.clone());
         }
     }
     Ok(out)
@@ -1040,12 +1040,26 @@ fn picked(engine: &Engine, slots: &[Slot]) -> Vec<String> {
 
 // ---- the comparison -------------------------------------------------------------------------------------------
 
-/// One gold line the engine's sheet disagrees with.
+/// What a disagreement is about: a known gap covers one of these on its line, and no other.
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+enum Failure {
+    /// A planner item the sheet doesn't gain at the line's place.
+    NotGained(String),
+    /// A planner item the sheet doesn't hold by the line's place.
+    NotHeld(String),
+    /// A name that resolves to no planner item.
+    NoPlannerItem(String),
+    /// The start's, a level's class or a rank's path, or no Second Bloodline for a bracketed line.
+    Other,
+}
+
+/// One gold line the engine's sheet disagrees with, and on what.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
 struct Disagreement {
     build: &'static str,
     place: Place,
     line: String,
+    failure: Failure,
     what: String,
 }
 
@@ -1065,11 +1079,12 @@ fn compare(build_name: &'static str, gold: &Gold, build: &Build) -> Vec<Disagree
     let planner = Planner::new();
     let gains = Gains::new(&engine, build);
     let mut out = Vec::new();
-    let mut disagree = |place: Place, line: &str, what: String| {
+    let mut disagree = |place: Place, line: &str, failure: Failure, what: String| {
         out.push(Disagreement {
             build: build_name,
             place,
             line: line.to_owned(),
+            failure,
             what,
         });
     };
@@ -1078,16 +1093,17 @@ fn compare(build_name: &'static str, gold: &Gold, build: &Build) -> Vec<Disagree
         let place = Place::Level(level.level);
         let class = level_class(&engine, &gains.sheet.levels[usize::from(level.level) - 1]);
         if class != level.class {
-            disagree(place, &level.class, format!("the sheet's class is {class}"));
+            let what = format!("the sheet's class is {class}");
+            disagree(place, &level.class, Failure::Other, what);
         }
         for line in &level.gains {
-            for what in check_line(&planner, &gains, place, line) {
-                disagree(place, line, what);
+            for (failure, what) in check_line(&planner, &gains, place, line) {
+                disagree(place, line, failure, what);
             }
         }
         for spell in &level.bloodline_spells {
-            for what in check_bloodline_spell(&planner, &gains, level.level, spell) {
-                disagree(place, &format!("Bloodline Spell - {spell}"), what);
+            for (failure, what) in check_bloodline_spell(&planner, &gains, level.level, spell) {
+                disagree(place, &format!("Bloodline Spell - {spell}"), failure, what);
             }
         }
     }
@@ -1095,16 +1111,22 @@ fn compare(build_name: &'static str, gold: &Gold, build: &Build) -> Vec<Disagree
         let place = Place::Rank(rank.rank);
         let sheet = &gains.sheet.ranks[usize::from(rank.rank) - 1];
         let path = sheet.path.as_ref().map(|path| engine.path_name(path));
+        // MR 1 and 2 show the first ascension's path (the MR 3 path's without one).
+        let first_ascension = build
+            .first_ascension
+            .as_ref()
+            .or(build.mythic_path.as_ref());
         let fits = match rank.path.as_str() {
-            MYTHIC_HERO => rank.rank < 3 && path.is_some(),
+            MYTHIC_HERO => rank.rank < 3 && sheet.path.as_ref() == first_ascension,
             name => rank.rank >= 3 && path == Some(name),
         };
         if !fits {
-            disagree(place, &rank.path, format!("the sheet's path is {path:?}"));
+            let what = format!("the sheet's path is {path:?}");
+            disagree(place, &rank.path, Failure::Other, what);
         }
         for line in &rank.gains {
-            for what in check_line(&planner, &gains, place, line) {
-                disagree(place, line, what);
+            for (failure, what) in check_line(&planner, &gains, place, line) {
+                disagree(place, line, failure, what);
             }
         }
     }
@@ -1128,11 +1150,17 @@ fn level_class<'a>(engine: &'a Engine, level: &'a LevelSheet) -> &'a str {
 /// What a gold line asks that the sheet doesn't do, one entry per planner name. A line in brackets, "(Dragon
 /// Resistances I)", is the write-up's mark for the second bloodline's: each of its items is gained at its level, or at
 /// the Second Bloodline's rank when that comes later.
-fn check_line(planner: &Planner, gains: &Gains, place: Place, line: &str) -> Vec<String> {
+fn check_line(
+    planner: &Planner,
+    gains: &Gains,
+    place: Place,
+    line: &str,
+) -> Vec<(Failure, String)> {
     let (names, place) = match line.strip_prefix('(').and_then(|l| l.strip_suffix(')')) {
         Some(inner) => {
             let Some(second) = gains.second_bloodline_level() else {
-                return vec!["no Mythic rank takes the Second Bloodline".to_owned()];
+                let what = "no Mythic rank takes the Second Bloodline".to_owned();
+                return vec![(Failure::Other, what)];
             };
             let at = Place::Level(gains.level_of(place).max(second));
             (items(inner), at)
@@ -1143,8 +1171,9 @@ fn check_line(planner: &Planner, gains: &Gains, place: Place, line: &str) -> Vec
     for name in names {
         let expected = match expected(planner, &name) {
             Ok(expected) => expected,
-            Err(why) => {
-                out.push(why);
+            Err(unknown) => {
+                let what = format!("\"{unknown}\" names no planner item");
+                out.push((Failure::NoPlannerItem(unknown), what));
                 continue;
             }
         };
@@ -1152,16 +1181,18 @@ fn check_line(planner: &Planner, gains: &Gains, place: Place, line: &str) -> Vec
             if !gains.gains(place, gained) {
                 let why = gains.why_not(place, gained);
                 // The planner's name only where it isn't the line's own.
-                out.push(match gained.as_str() == line {
+                let what = match gained.as_str() == line {
                     true => why,
                     false => format!("{gained}: {why}"),
-                });
+                };
+                out.push((Failure::NotGained(gained.clone()), what));
             }
         }
         let level = gains.level_of(place);
         for held in &expected.held {
             if !gains.held[&level].contains(held) {
-                out.push(format!("{held}: not held by level {level}"));
+                let what = format!("{held}: not held by level {level}");
+                out.push((Failure::NotHeld(held.clone()), what));
             }
         }
     }
@@ -1172,17 +1203,24 @@ fn check_line(planner: &Planner, gains: &Gains, place: Place, line: &str) -> Vec
 /// feature "Bloodline spell - Entangle"; and in brackets the second bloodline's, which the data doesn't hold (spells
 /// known aren't Build choices), so it isn't compared. [`the_second_bloodlines_spells_arent_in_the_data`] says when
 /// it would be.
-fn check_bloodline_spell(planner: &Planner, gains: &Gains, level: u8, spell: &str) -> Vec<String> {
+fn check_bloodline_spell(
+    planner: &Planner,
+    gains: &Gains,
+    level: u8,
+    spell: &str,
+) -> Vec<(Failure, String)> {
     let own = spell.split_once(" (+").map_or(spell, |(own, _)| own).trim();
     let name = format!("Bloodline spell - {own}");
     if !planner.knows(&name) {
-        return vec![format!("\"{name}\" names no planner item")];
+        let what = format!("\"{name}\" names no planner item");
+        return vec![(Failure::NoPlannerItem(name), what)];
     }
     let place = Place::Level(level);
     if gains.gains(place, &name) {
         Vec::new()
     } else {
-        vec![format!("{name}: {}", gains.why_not(place, &name))]
+        let what = format!("{name}: {}", gains.why_not(place, &name));
+        vec![(Failure::NotGained(name), what)]
     }
 }
 
@@ -1196,15 +1234,16 @@ fn second_bloodline_spells(gold: &Gold) -> Vec<String> {
         .collect()
 }
 
-/// The Build start: the race, background, classes and the race's +2 by name; the attributes are the level-1 scores
-/// within the point-buy budget; each listed alignment allows the Build; each listed skill is a class skill or has
-/// ranks at level 1.
+/// The Build start. The race, background, classes and the race's +2 are the Build's own input, compared by name. The
+/// engine's part: the attributes are the level-1 scores (the point buy with the engine's racial modifiers) within the
+/// point-buy budget; the engine allows the Build at each listed alignment; and its skill points give a rank in each
+/// listed skill at every level.
 fn start(
     engine: &Engine,
     gold: &Gold,
     build: &Build,
     gains: &Gains,
-    disagree: &mut impl FnMut(Place, &str, String),
+    disagree: &mut impl FnMut(Place, &str, Failure, String),
 ) {
     let start = &gold.start;
     let planner_name = |written: &str| -> String {
@@ -1218,7 +1257,12 @@ fn start(
     };
     let race = build.start.race.as_ref().map(|race| engine.race_name(race));
     if race != Some(planner_name(&start.race).as_str()) {
-        disagree(Place::Start, &start.race, format!("the race is {race:?}"));
+        disagree(
+            Place::Start,
+            &start.race,
+            Failure::Other,
+            format!("the race is {race:?}"),
+        );
     }
     let background = build
         .start
@@ -1227,7 +1271,7 @@ fn start(
         .map(|key| engine.background_name(key));
     if background != Some(planner_name(&start.background).as_str()) {
         let what = format!("the background is {background:?}");
-        disagree(Place::Start, &start.background, what);
+        disagree(Place::Start, &start.background, Failure::Other, what);
     }
     let mut classes: Vec<(String, u8)> = Vec::new();
     for level in &gains.sheet.levels {
@@ -1239,12 +1283,17 @@ fn start(
     }
     if classes != start.classes {
         let what = format!("the levels' classes are {classes:?}");
-        disagree(Place::Start, "Classes", what);
+        disagree(Place::Start, "Classes", Failure::Other, what);
     }
     if let Some(bonus) = &start.ability_bonus {
         let chosen = build.start.racial_ability.map(Ability::name);
         if chosen != Some(bonus.as_str()) {
-            disagree(Place::Start, bonus, format!("the race's +2 is {chosen:?}"));
+            disagree(
+                Place::Start,
+                bonus,
+                Failure::Other,
+                format!("the race's +2 is {chosen:?}"),
+            );
         }
     }
     let level_1 = &gains.sheet.levels[0].state;
@@ -1255,20 +1304,30 @@ fn start(
             .unwrap_or_else(|| panic!("no ability {label}"));
         let have = level_1.base_ability_scores.get(ability);
         if have != *score {
-            disagree(Place::Start, label, format!("{score} is {have} at level 1"));
+            disagree(
+                Place::Start,
+                label,
+                Failure::Other,
+                format!("{score} is {have} at level 1"),
+            );
         }
     }
     let spent = build.start.ability_scores.cost();
     if i16::from(spent) > i16::from(POINT_BUY_BUDGET) {
         let what = format!("the point buy costs {spent} of {POINT_BUY_BUDGET}");
-        disagree(Place::Start, "Attributes", what);
+        disagree(Place::Start, "Attributes", Failure::Other, what);
     }
     for alignment in &start.alignments {
         let Some(chosen) = Alignment::ALL
             .into_iter()
             .find(|candidate| candidate.short_name() == alignment)
         else {
-            disagree(Place::Start, alignment, "names no alignment".to_owned());
+            disagree(
+                Place::Start,
+                alignment,
+                Failure::Other,
+                "names no alignment".to_owned(),
+            );
             continue;
         };
         let mut aligned = build.clone();
@@ -1277,64 +1336,117 @@ fn start(
             disagree(
                 Place::Start,
                 alignment,
+                Failure::Other,
                 "the Build isn't possible".to_owned(),
             );
         }
     }
     for written in &start.skills {
-        let Some(skill) = DATA.skills.iter().find(|skill| &skill.name == written) else {
-            disagree(Place::Start, written, "names no skill".to_owned());
-            continue;
-        };
-        let class_skill = level_1.class_skills.contains(&skill.key);
-        let ranks = level_1.skill_ranks.get(&skill.key).copied().unwrap_or(0);
-        if !class_skill && ranks == 0 {
-            let what = "neither a class skill nor ranked at level 1".to_owned();
-            disagree(Place::Start, written, what);
+        if !DATA.skills.iter().any(|skill| &skill.name == written) {
+            disagree(
+                Place::Start,
+                written,
+                Failure::Other,
+                "names no skill".to_owned(),
+            );
+        }
+    }
+    // The engine's skill points (class, Intelligence, race) cover a rank in each listed skill at every level.
+    let listed = start.skills.len();
+    for level in &gains.sheet.levels {
+        let available = usize::from(level.skill_points.available);
+        if available < listed {
+            let what = format!(
+                "level {} has {available} skill points for {listed} skills",
+                level.character_level
+            );
+            disagree(Place::Start, "Skills", Failure::Other, what);
         }
     }
 }
 
 // ---- the known gaps -------------------------------------------------------------------------------------------
 
-/// What a known gap waits on.
+/// What a known gap waits on: always a ticket, of one of four kinds.
 enum Why {
-    /// A bug, fixed by this ticket.
-    Ticket(u16),
-    /// A decision on the map that the planner won't model the line; the gold standard asks the user whether to
-    /// reopen it (ticket 160's Answer).
-    Decision(&'static str),
+    /// A bug in the engine or the data.
+    Bug(u16),
+    /// Gear, which the Build doesn't hold yet (ticket 163's plan).
+    Gear(u16),
+    /// A map decision that kept the planner from modelling the line, reopened by the user (2026-11-11) as this
+    /// ticket.
+    Reopened(u16, &'static str),
+    /// The write-up against the guide, whose list the data files (the planner's source of truth) follow; the
+    /// question is open in this design ticket.
+    AgainstTheGuide(u16, &'static str),
 }
 
 impl fmt::Display for Why {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Why::Ticket(ticket) => write!(f, "ticket {ticket}"),
-            Why::Decision(decision) => write!(f, "the map's decision: {decision}"),
+            Why::Bug(ticket) => write!(f, "a bug, ticket {ticket}"),
+            Why::Gear(ticket) => write!(f, "gear, ticket {ticket}"),
+            Why::Reopened(ticket, decision) => {
+                write!(f, "a reopened map decision, ticket {ticket}: {decision}")
+            }
+            Why::AgainstTheGuide(ticket, conflict) => {
+                write!(
+                    f,
+                    "the write-up against the guide, ticket {ticket}: {conflict}"
+                )
+            }
         }
     }
 }
 
-/// A gold line the engine disagrees with today: `(build, place, line, why)`.
+/// The one failure on its line that a known gap covers: a planner item not gained there, or a name that resolves to
+/// no planner item. Any other failure on the same line is still reported.
+#[derive(Debug)]
+enum Covers {
+    NotGained(&'static str),
+    NoPlannerItem(&'static str),
+}
+
+impl Covers {
+    fn matches(&self, failure: &Failure) -> bool {
+        match (self, failure) {
+            (Covers::NotGained(item), Failure::NotGained(failed))
+            | (Covers::NoPlannerItem(item), Failure::NoPlannerItem(failed)) => item == failed,
+            _ => false,
+        }
+    }
+}
+
+/// A gold line the engine disagrees with today, on one failure.
 struct Gap {
     build: &'static str,
     place: Place,
     line: &'static str,
+    covers: Covers,
     why: Why,
 }
 
-const fn gap(build: &'static str, place: Place, line: &'static str, why: Why) -> Gap {
+const fn gap(
+    build: &'static str,
+    place: Place,
+    line: &'static str,
+    covers: Covers,
+    why: Why,
+) -> Gap {
     Gap {
         build,
         place,
         line,
+        covers,
         why,
     }
 }
 
-const STUDIED_TARGET_AND_DRAGON_RESISTANCES: Why = Why::Ticket(170);
+/// Studied Target and Draconic Resistances, granted once where the game's level-up names each step.
+const STEPS: Why = Why::Bug(170);
 
-/// The gold lines the engine gets wrong today. The list only shrinks: a fix deletes its entry.
+/// The gold lines the engine gets wrong today, each on the one failure it covers. The list only shrinks: a fix
+/// deletes its entry.
 const KNOWN_GAPS: &[Gap] = &[
     // ---- bugs ----
     // The data grants Studied Target once, at 1; the game's level-up names each +1 (as the data does for the
@@ -1343,96 +1455,123 @@ const KNOWN_GAPS: &[Gap] = &[
         "enforcer",
         Place::Level(5),
         "Studied Target +2",
-        STUDIED_TARGET_AND_DRAGON_RESISTANCES,
+        Covers::NotGained("Studied Target"),
+        STEPS,
     ),
     gap(
         "enforcer",
         Place::Level(10),
         "Studied Target +3",
-        STUDIED_TARGET_AND_DRAGON_RESISTANCES,
+        Covers::NotGained("Studied Target"),
+        STEPS,
     ),
     gap(
         "enforcer",
         Place::Level(15),
         "Studied Target +4",
-        STUDIED_TARGET_AND_DRAGON_RESISTANCES,
+        Covers::NotGained("Studied Target"),
+        STEPS,
     ),
     // The data grants Draconic Resistances once, at bloodline level 3; the game's level-up names II and III.
     gap(
         "jack",
         Place::Level(9),
         "(Dragon Resistances II)",
-        STUDIED_TARGET_AND_DRAGON_RESISTANCES,
+        Covers::NotGained("Draconic Resistances"),
+        STEPS,
     ),
     gap(
         "jack",
         Place::Level(15),
         "(Dragon Resistances III; Wings)",
-        STUDIED_TARGET_AND_DRAGON_RESISTANCES,
+        Covers::NotGained("Draconic Resistances"),
+        STEPS,
     ),
+    // ---- gear ----
     // Dex 17 without gear; ticket 168 gives the Enforcer a belt of Dexterity +2.
     gap(
         "enforcer",
         Place::Level(19),
         "Greater Two-Weapon Fighting",
-        Why::Ticket(168),
+        Covers::NotGained("Greater Two-Weapon Fighting"),
+        Why::Gear(168),
     ),
-    // ---- decisions on the map ----
+    // ---- map decisions the user reopened ----
     gap(
-        "jack",
-        Place::Level(1),
-        "Animal Companion - Elk",
-        Why::Decision("choices that gate no pick stay labels (ticket 54): no choice of animal"),
+        "enforcer",
+        Place::Rank(10),
+        "Mythic Shield Focus",
+        Covers::NotGained("Shield Focus (Mythic)"),
+        Why::Reopened(
+            171,
+            "MR 10 comes at level 19, before Shield Focus at 20; the mythic picks may come after the levels",
+        ),
     ),
     gap(
         "enforcer",
         Place::Level(18),
         "Finesse Training - Light Shield",
-        Why::Decision("choices that gate no pick stay labels (ticket 54): no choice of weapon"),
+        Covers::NoPlannerItem("Finesse Training (Light Shield)"),
+        Why::Reopened(172, "Finesse Training takes a weapon"),
     ),
+    gap(
+        "jack",
+        Place::Level(1),
+        "Animal Companion - Elk",
+        Covers::NoPlannerItem("Animal Companion (Elk)"),
+        Why::Reopened(174, "animal companions"),
+    ),
+    // ---- the write-up against the guide ----
     gap(
         "enforcer",
         Place::Level(8),
         "Uncanny Dodge",
-        Why::Decision(
-            "the guide is the source of truth (map Notes): its slayer talents have no Uncanny Dodge (ticket 88)",
-        ),
-    ),
-    gap(
-        "enforcer",
-        Place::Rank(10),
-        "Mythic Shield Focus",
-        Why::Decision(
-            "MR 10 comes at level 19, before Shield Focus at 20 (ticket 04's rank levels)",
+        Covers::NotGained("Uncanny Dodge"),
+        Why::AgainstTheGuide(
+            173,
+            "the write-up takes Uncanny Dodge as a slayer talent; the guide's slayer talents, which the data \
+             follows, have none",
         ),
     ),
 ];
 
-/// Every gold line against the engine: the disagreements, less the known gaps, and the known gaps that now agree.
-fn unexplained() -> Vec<String> {
+/// The disagreements no known gap covers, and the known gaps that cover none (they now agree).
+fn unexplained_by(disagreements: &[Disagreement], gaps: &[Gap]) -> Vec<String> {
+    let covered = |d: &Disagreement, gap: &Gap| {
+        gap.build == d.build
+            && gap.place == d.place
+            && gap.line == d.line
+            && gap.covers.matches(&d.failure)
+    };
+    let mut out: Vec<String> = disagreements
+        .iter()
+        .filter(|d| !gaps.iter().any(|gap| covered(d, gap)))
+        .map(ToString::to_string)
+        .collect();
+    for gap in gaps {
+        if !disagreements.iter().any(|d| covered(d, gap)) {
+            out.push(format!(
+                "{} {}: {}: listed as a known gap ({:?}; {}) but now agrees: delete its entry",
+                gap.build, gap.place, gap.line, gap.covers, gap.why
+            ));
+        }
+    }
+    out
+}
+
+/// Both gold files against their Builds' sheets.
+fn disagreements() -> Vec<Disagreement> {
     let mut disagreements = Vec::new();
     for ((name, build), (short, text)) in builds().into_iter().zip(GOLD) {
         assert_eq!(name, short);
         disagreements.extend(compare(name, &gold(text), &build));
     }
     disagreements.sort();
-    let listed = |d: &Disagreement, gap: &Gap| {
-        gap.build == d.build && gap.place == d.place && gap.line == d.line
-    };
-    let mut out: Vec<String> = disagreements
-        .iter()
-        .filter(|d| !KNOWN_GAPS.iter().any(|gap| listed(d, gap)))
-        .map(ToString::to_string)
-        .collect();
-    for gap in KNOWN_GAPS {
-        if !disagreements.iter().any(|d| listed(d, gap)) {
-            out.push(format!(
-                "{} {}: {}: listed as a known gap ({}) but now agrees: delete its entry",
-                gap.build, gap.place, gap.line, gap.why
-            ));
-        }
-    }
-    out
+    disagreements
+}
+
+fn unexplained() -> Vec<String> {
+    unexplained_by(&disagreements(), KNOWN_GAPS)
 }
 
 #[test]
@@ -1502,4 +1641,41 @@ fn gold_names_tables_are_all_used() {
             "VALUES: {written} is in no gold file"
         );
     }
+}
+
+/// A known gap covers its one failure, not its line: a Jack whose second bloodline is Elemental (Fire), not Draconic
+/// (Bronze), fails "(Dragon Resistances III; Wings)" on Wings too, which the line's entry (on Draconic Resistances)
+/// doesn't hide.
+#[test]
+fn a_known_gap_hides_no_other_failure_on_its_line() {
+    let (_, mut jack) = builds().into_iter().next().unwrap();
+    jack.picks.insert(
+        SlotId::MythicSelection { rank: 1, index: 0 },
+        option("sorcerer/bloodline/elemental-fire"),
+    );
+    assert!(support::possible(&jack));
+    let found = compare("jack", &gold(GOLD[0].1), &jack);
+    let line = |d: &&Disagreement| {
+        d.place == Place::Level(15) && d.line == "(Dragon Resistances III; Wings)"
+    };
+    let failures: Vec<&Failure> = found.iter().filter(line).map(|d| &d.failure).collect();
+    assert_eq!(
+        failures,
+        [
+            &Failure::NotGained("Draconic Resistances".to_owned()),
+            &Failure::NotGained("Wings".to_owned()),
+        ]
+    );
+    let unexplained = unexplained_by(&found, KNOWN_GAPS);
+    let at_15: Vec<&String> = unexplained
+        .iter()
+        .filter(|line| line.starts_with("jack level 15: (Dragon Resistances III; Wings)"))
+        .collect();
+    assert_eq!(
+        at_15,
+        [
+            "jack level 15: (Dragon Resistances III; Wings): Wings: not gained at any level or rank, nor offered by an \
+          empty slot here"
+        ]
+    );
 }

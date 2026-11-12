@@ -706,20 +706,33 @@ is the engine's or the data's, never the write-up's.
 - **What is compared:** everything a write-up lists at a level or rank is gained there on the engine's sheet, as the
   snapshot check projects a level's or rank's gains (the slot picks, the ability increase, the feats, features and
   options the level's state holds more of; a rank's picks and its path row's features). The engine may show more.
-  The start: the race, background, classes and racial +2 by name, the attributes as the level-1 scores within the
-  point buy, each listed alignment possible, each listed skill a class skill or ranked. A gold name is read as
-  planner names through the test's `NAMES` table (the write-up's spelling beside the planner's: "Bypass Epic DR",
-  "Bypass Epic Damage Reduction"), else "Name - Value" as "Name (Value)" (with `VALUES`: "Battleaxe", "Battle
-  Axe"), else as itself; a name that resolves to no planner item is a disagreement. A bracketed group,
-  "(Dragon Resistances I)", is the second bloodline's: gained at its level, or at the Second Bloodline's rank when
-  that is later. A bloodline spell is compared by its own bloodline's part ("Bloodline spell - Entangle", which the
-  Sylvan Sorcerer's data grants); its "(+ …)" second-bloodline part isn't, since the data holds no Draconic
-  bloodline spells (`the_second_bloodlines_spells_arent_in_the_data` fails when it does).
-- **Known gaps:** `KNOWN_GAPS` lists the gold lines the engine gets wrong today, each with its ticket, or with the
-  map decision that keeps the planner from modelling it (marked apart). The test reports every disagreement in one
-  panic, a line each (`enforcer level 19: Greater Two-Weapon Fighting: locked in the Feat slot, "Needs Dex 19 (have
-  17)"`), and fails on one that isn't listed and on a listed one that now agrees: a fix deletes its entry. The list
-  only shrinks.
+  A gold name is read as planner names through the test's `NAMES` table (the write-up's spelling beside the
+  planner's: "Bypass Epic DR", "Bypass Epic Damage Reduction"), else "Name - Value" as "Name (Value)" (with
+  `VALUES`: "Battleaxe", "Battle Axe"), else as itself; a name that resolves to no planner item is a disagreement.
+  A bracketed group, "(Dragon Resistances I)", is the second bloodline's: gained at its level, or at the Second
+  Bloodline's rank when that is later. A bloodline spell is compared by its own bloodline's part ("Bloodline spell -
+  Entangle", which the Sylvan Sorcerer's data grants); its "(+ …)" second-bloodline part isn't, since the data holds
+  no Draconic bloodline spells (`the_second_bloodlines_spells_arent_in_the_data` fails when it does). A rank's path is
+  the write-up's ("Azata"), and "Mythic Hero" at MR 1 and 2 is the first ascension's path.
+- **Which lines test the engine:** a line the Build picks (a feat, a Feature selection's option, a mythic ability or
+  feat, an ability increase) agrees by construction: the test's Build puts it in a slot, so its line proves only
+  that the engine gives that slot at that level or rank and accepts the pick there (the Build is possible). The real
+  comparison is the granted lines: the features and options gained between levels (Woodland Stride, Sneak Attack,
+  Studied Target, the second bloodline's), a rank's path-row features (Instrument of Freedom, the Songs and
+  Summons) and the bloodline spells. A pick the engine refuses can't be in the Build, so its line shows up as a
+  disagreement with the refusal's reason (Greater Two-Weapon Fighting's).
+- **The start** proves less. The race, background, classes and racial +2 are the Build's own input, compared only by
+  name. The engine's part: the attributes are the level-1 scores the engine makes of the point buy with its racial
+  modifiers, within the budget; the engine allows the Build at each listed alignment; and its skill points give a
+  rank in each listed skill at every level. It doesn't prove the point buy is the only one, nor that a listed skill
+  is a class skill (the write-ups don't say so).
+- **Known gaps:** `KNOWN_GAPS` lists the gold lines the engine gets wrong today. Each entry names the one failure on
+  its line it covers (a planner item not gained there, or a name that resolves to no planner item), so another
+  failure on the same line is still reported (`a_known_gap_hides_no_other_failure_on_its_line`), and a ticket, of
+  one of four kinds kept apart: a bug, gear, a map decision the user reopened, or the write-up against the guide (an
+  open design question). The test reports every disagreement in one panic, a line each (`enforcer level 19: Greater
+  Two-Weapon Fighting: locked in the Feat slot, "Needs Dex 19 (have 17)"`), and fails on one that isn't listed and on
+  a listed one that now agrees: a fix deletes its entry. The list only shrinks.
 
 ## Seeding
 

@@ -25,7 +25,12 @@ jack level 15: (Dragon Resistances III; Wings): Draconic Resistances: not gained
 
 ## Build
 
-- Data only: the extra grants in `slayer.ron` and `sorcerer.ron`, a `libs/game-data/README.md` note, a real-data test. Sweep the other copies of both features (the Sanctified Slayer's and the Tandem Executioner's Studied Target, which their summaries also say rise; the bloodrager's and the Dragon Disciple's draconic resistances, if any) and give each the same treatment, or say in the Answer why not.
+- Data only: the extra grants in `slayer.ron` and `sorcerer.ron`, a `libs/game-data/README.md` note, a real-data test. The copies to cover, each granted once today (found in the ticket 160 review; sweep for more):
+  - **Studied Target** (`slayer/studied-target`) in the slayer's own table (`slayer.ron` line 121) and in every slayer archetype that keeps it: the Arcane Enforcer (line 155), the Bloodseeker (around 206), the Deliverer (around 232), the Executioner (around 248) and the Vanguard (around 317), and any other the sweep finds. The Sanctified Slayer's (`inquisitor.ron`) and the Tandem Executioner's (`hunter.ron`) copies, whose summaries also say they rise.
+  - **Draconic Resistances** (`sorcerer/bloodline/draconic/draconic-resistances`) at bloodline levels 9 and 15, for every Draconic colour.
+  - **The bloodrager's resistances,** which rise in steps too, each granted once (`bloodrager.ron`): Draconic Resistance (4; 8 and 16 by its summary, in each Draconic colour's rows), Demon Resistances (8; 16), Celestial Resistances (4; 12) and Serpentine Resistances (4; every four levels from 8).
+  
+  Give each the same treatment, or say in the Answer why not.
 - Delete the five entries from `gold.rs`'s `KNOWN_GAPS`; regenerate the snapshots (`SNAPSHOTS=write cargo test -p seeds --test game_data snapshots`) and check that only the stepped features' lines move.
 
 **Done when:** the gold test passes without the five entries; the snapshot diff shows only the new grants; `scripts/check.sh` passes.

@@ -69,6 +69,7 @@ AFK, with one question for the user below. Test files only; an engine or data fi
 - 2026-11-11: judged each disagreement against the data and the saved pages (`guide-cache/slayer.html`, `sorcerer.html`, read only): the guide's tables list Studied Target once (slayer 1) and Draconic Resistances once (bloodline 3), the data matches them, and the game's level-up names each step, as the write-ups do; filed [170](170-scaling-features-granted-once.md). The rest have tickets or map decisions.
 - 2026-11-11: throwaway check (reverted): with the Greater Two-Weapon Fighting entry removed and a made-up entry for a line that agrees ("jack level 1: Mounted Combat"), the test failed with `enforcer level 19: Greater Two-Weapon Fighting: locked in the Feat slot, "Needs Dex 19 (have 17)"` and `jack level 1: Mounted Combat: listed as a known gap (ticket 999) but now agrees: delete its entry`.
 - 2026-11-11: both Builds added to the snapshot corpus; `SNAPSHOTS=write` added `snapshots/gold-jack.txt` and `snapshots/gold-enforcer.txt` and changed no other file (`git status`).
+- 2026-11-11: review (no blocker) and the user's answers to the question on the four decision-backed lines: each now names a ticket on `main` (171–174). Review fixes: a known gap covers one failure on its line (a planner item not gained, or a name that resolves to none), not the whole line, with a test that a second failure on a listed line is still reported; "Mythic Hero" checks the first ascension's path; the start's skills check, which couldn't fail (both Builds rank every listed skill), is now the engine's skill points covering a rank in each listed skill at every level; the README says which lines test the engine; ticket 170's sweep names the other slayer archetypes and the bloodrager's resistances.
 
 ## Answer
 
@@ -77,11 +78,12 @@ AFK, with one question for the user below. Test files only; an engine or data fi
 ### What was built
 
 - **`libs/seeds/tests/game_data/gold/`:** `source.txt` (the write-ups, unchanged), `jack-in-the-green.ron` and `enforcer.ron` (the start, 20 levels, 10 ranks, in the write-ups' names).
-- **`libs/seeds/tests/game_data/gold.rs`** (`mod gold;` in `main.rs`), five tests:
+- **`libs/seeds/tests/game_data/gold.rs`** (`mod gold;` in `main.rs`), six tests:
   - `gold_files_match_the_write_ups`: reads `source.txt` as the conversion does (cells split at semicolons outside brackets, a wrapped cell joined, the `LABELS` prefixes dropped, "Bloodline Spell - " items apart) and asserts each RON file says the same, item by item and in order: the second read, made mechanical.
   - `gold_builds_are_possible`: both Builds are possible and every pick has its slot on the sheet.
   - `gold_builds_gain_what_the_write_ups_list`: every gold line against the engine's sheet, the disagreements less `KNOWN_GAPS`, one panic with a line each; a listed line that now agrees fails too.
   - `the_second_bloodlines_spells_arent_in_the_data`: see "Bloodline spells".
+  - `a_known_gap_hides_no_other_failure_on_its_line`: a Jack with an Elemental (Fire) second bloodline fails "(Dragon Resistances III; Wings)" on both Draconic Resistances and Wings; the entry covers the first, and the second is still reported.
   - `gold_names_tables_are_all_used`: every entry of the names tables (below) reads a name of the gold files, so neither keeps a stale spelling.
 - **The snapshot corpus** (`snapshots.rs`) takes both Builds, sheet only: `snapshots/gold-jack.txt`, `snapshots/gold-enforcer.txt`.
 
@@ -89,29 +91,39 @@ AFK, with one question for the user below. Test files only; an engine or data fi
 
 ### Known gaps
 
-Ten lines, each with what the engine does.
+Ten lines, each covering one failure on its line (a planner item not gained there, or a name that resolves to no planner item; any other failure on the line is still reported), and each naming a ticket of one of four kinds, kept apart in the test (`Why`).
 
-**Bugs** (each names its ticket):
+**Bugs:**
 
-| Build, place | Write-up line | What the engine does | Ticket |
+| Build, place | Write-up line | Covers: what the engine does | Ticket |
 |---|---|---|---|
-| Enforcer level 5 | Studied Target +2 | Studied Target is gained at level 1 only | [170](170-scaling-features-granted-once.md) |
+| Enforcer level 5 | Studied Target +2 | Studied Target not gained: only at level 1 | [170](170-scaling-features-granted-once.md) |
 | Enforcer level 10 | Studied Target +3 | the same | 170 |
 | Enforcer level 15 | Studied Target +4 | the same | 170 |
-| Jack level 9 | (Dragon Resistances II) | Draconic Resistances is gained at level 6 (MR 1's Second Bloodline) only | 170 |
-| Jack level 15 | (Dragon Resistances III; Wings) | Wings is gained; Draconic Resistances isn't (level 6 only) | 170 |
-| Enforcer level 19 | Greater Two-Weapon Fighting | locked in the Feat slot, "Needs Dex 19 (have 17)": no gear yet | [168](168-gear-in-the-mcp.md) (the Enforcer's Dex +2 belt) |
+| Jack level 9 | (Dragon Resistances II) | Draconic Resistances not gained: only at level 6 (MR 1's Second Bloodline) | 170 |
+| Jack level 15 | (Dragon Resistances III; Wings) | Draconic Resistances not gained (Wings is, and isn't covered) | 170 |
 
-**Map decisions** (marked apart in the test, `Why::Decision`; the question below):
+**Gear:**
 
-| Build, place | Write-up line | What the engine does | Decision |
+| Build, place | Write-up line | Covers: what the engine does | Ticket |
 |---|---|---|---|
-| Enforcer MR 10 | Mythic Shield Focus | Shield Focus (Mythic) locked in the Mythic feat slot, "Needs Shield Focus": MR 10 comes at level 19, Shield Focus at 20 | MR 10 at level 19 ([04](04-progression-model.md)'s rank levels) |
-| Enforcer level 18 | Finesse Training - Light Shield | Finesse Training is gained, with no weapon: "Finesse Training (Light Shield)" names no planner item | choices that gate no pick stay labels ([54](54-mercies-and-enforcer-exploits.md)) |
-| Enforcer level 8 | Slayer Talents - Uncanny Dodge | no slot offers it (the level's Slayer Talents slot is left empty); nothing gains it | the guide is the source of truth (map Notes): its slayer talents have no Uncanny Dodge ([88](88-qa-full-builds.md) called it the write-up's mistake) |
-| Jack level 1 | Animal Companion - Elk | Animal Companion is gained, with no animal: "Animal Companion (Elk)" names no planner item | choices that gate no pick stay labels (54) |
+| Enforcer level 19 | Greater Two-Weapon Fighting | not gained: locked in the Feat slot, "Needs Dex 19 (have 17)" | [168](168-gear-in-the-mcp.md) (the Enforcer's Dex +2 belt) |
 
-The fourth decision line, the Elk, is one ticket 88 didn't count as a deviation ("not a bug"); by the user's rule it is a line the engine doesn't gain, so it's listed with the other three.
+**Map decisions the user reopened** (2026-11-11):
+
+| Build, place | Write-up line | Covers: what the engine does | Ticket |
+|---|---|---|---|
+| Enforcer MR 10 | Mythic Shield Focus | Shield Focus (Mythic) not gained: locked in the Mythic feat slot, "Needs Shield Focus" (MR 10 comes at level 19, Shield Focus at 20) | [171](171-mythic-picks-after-the-levels.md) |
+| Enforcer level 18 | Finesse Training - Light Shield | "Finesse Training (Light Shield)" names no planner item: Finesse Training has no weapon | [172](172-finesse-training-takes-a-weapon.md) |
+| Jack level 1 | Animal Companion - Elk | "Animal Companion (Elk)" names no planner item: the companion has no animal | [174](174-animal-companions.md) (design) |
+
+**The write-up against the guide:**
+
+| Build, place | Write-up line | Covers: what the engine does | Ticket |
+|---|---|---|---|
+| Enforcer level 8 | Slayer Talents - Uncanny Dodge | Uncanny Dodge not gained: no empty slot at level 8 offers it | [173](173-uncanny-dodge-as-a-slayer-talent.md) (design; the question stays open there) |
+
+The Uncanny Dodge line is not a user decision: the checked-in data files are the planner's source of truth, and they follow the guide's slayer talents (the rogue talents plus Trapfinding and Slayer Camouflage), which have no Uncanny Dodge; the write-up takes it as one. Ticket 173 decides which way it goes. The Elk is a line ticket 88 didn't count as a deviation ("not a bug"); by the user's rule it is a line the engine doesn't gain.
 
 ### Tickets 89–92, re-checked
 
@@ -151,26 +163,27 @@ and two rules: "Name - Value" is the planner's "Name (Value)" ("Spell Focus - Ev
 - **The conversion:** a prefix is dropped as a label only when it names a slot or a list ("Bonus Feat", "Bloodline Feat", "Exploit", "Slayer Talents", "Advanced Talents", "Fey Tricks", "Superpower"); one that names an item gained or held stays ("Second Bloodline - Bronze Dragon", "Extra Mythic Ability - Abundant Casting", "Menacing Style - Intimidating Prowess", "Animal Companion - Elk", "Finesse Training - Light Shield"). A bracketed group stays one item, brackets included, so the gold file carries the write-up's mark and the test reads it. The bloodline spell keeps its bracket ("Entangle (+ Mage Armor)"). Levels with "-" have no gains. `source.txt`'s rank 4 cells wrap onto the next line with an empty line after; the reader joins them.
 - **Bracketed items** are the second bloodline's: the write-up lists them at the sorcerer level that would give them, and the game gives them with MR 1's Second Bloodline. The test expects each at the later of its level and the Second Bloodline's rank's level; the Draconic Arcana and Grow Claws (level 1) and Dragon Resistances I (level 3) are gained at 6 and agree.
 - **"Life-Bonding Friendship (X)"** is the teamwork feat X gained at that rank with the superpower held (at MR 7 the write-up repeats the superpower's name for its second feat); **"Menacing Style - X"** the feat X with the Menacing Feats style held.
-- **Rank gains** are the rank's slot picks and its path row's features; "Mythic Hero" (MR 1 and 2) is any path shown before MR 3, the first ascension's.
+- **Rank gains** are the rank's slot picks and its path row's features; "Mythic Hero" (MR 1 and 2) is the first ascension's path (the MR 3 path's without one), which the sheet shows there.
 - **The Builds:** ticket 88's settled choices (Halfling (Hasty), Chaotic Good, atheism, one rank a level in each listed skill, the Enforcer's rogue levels' extra points in Mobility and Stealth); Jack's level-1 Bonus Feat in the Magic feat slot (ticket 92) and his Bloodline Feats in the class slots at 7, 13 and 19; Jack's first ascension Azata (Instrument of Freedom at MR 1), the Enforcer's Trickster (Bit of Fun); the Enforcer's level-13 exploit in the Greater Exploits slot, leaving the Arcanist Exploits slot empty (ticket 88's reading); the Combat Style Feat talents at 2, 6 and 12 with Menacing Feats at 2; Iceplant through the Fey Tricks slot (`witch/hex/iceplant`); the slots the known gaps leave empty: level 8's Slayer Talents, level 19's Feat and MR 10's Mythic feat.
-- **The start's checks:** the attributes are the level-1 scores before increases (point buy and racial modifiers: Jack 12/14/14/12/8/17, the Enforcer 16/16/14/10/8/12, both 25 of 25); each listed alignment is checked by setting it on the whole Build (atheist) and asking whether it's possible; a skill passes as a class skill or with ranks at level 1.
+- **The start's checks:** the race, background, classes and racial +2 are the Build's own input, compared by name only. The engine's part: the attributes are the level-1 scores the engine makes of the point buy with its racial modifiers (Jack 12/14/14/12/8/17, the Enforcer 16/16/14/10/8/12, both 25 of 25); each listed alignment is set on the whole Build (atheist) and the engine must allow it; the engine's skill points give a rank in each listed skill at every level. The first version asked whether each listed skill was a class skill or ranked at level 1, which couldn't fail (both Builds rank every listed skill); the review had it replaced.
+- **Which lines test the engine:** a picked line (a feat, an option, a mythic pick, an ability increase) agrees by construction, proving only that the engine gives the slot there and accepts the pick; the granted lines (features and options gained between levels, rank path-row features, the bloodline spells) are the real comparison. Said in the README.
 
-### The question for the user
+### The question for the user, answered
 
-The gold standard says the write-ups are right, but four of their lines fail because of decisions already on the map, not bugs. Each is on the known-gaps list with its decision, and stays there for good unless the decision is reopened. Does the gold standard reopen any of them?
+Four lines failed because of decisions on the map, and the Answer asked whether the gold standard reopens any. The user (2026-11-11):
 
-1. **Mythic Shield Focus at the Enforcer's MR 10.** The planner places MR 10 at character level 19 (ticket 04's rank table), before the Mutation Warrior's Shield Focus at level 20, so Shield Focus (Mythic) is locked "Needs Shield Focus". Reopening means MR 10 (or its picks) can come after level 20's, or the rank levels change.
-2. **Finesse Training - Light Shield at the Enforcer's level 18.** Finesse Training is granted with no weapon choice (ticket 54: choices that gate no pick stay labels). Reopening means Finesse Training takes a weapon value.
-3. **Uncanny Dodge as the Enforcer's level-8 slayer talent.** The guide's slayer talents (the rogue talents plus Trapfinding and Slayer Camouflage) don't include it, and the guide is the planner's source of truth; ticket 88 called it the write-up's mistake. Reopening means adding Uncanny Dodge to the slayer talents against the guide.
-4. **Animal Companion - Elk at Jack's level 1.** The same decision as 2: the Sylvan Sorcerer's companion is granted with no choice of animal. Reopening means a choice of companion.
+1. Mythic Shield Focus at MR 10: "you can select mythic feats after leveling all base levels so it's perfectly fine to level mythic shield focus mythic 10 at level 20." Ticket [171](171-mythic-picks-after-the-levels.md).
+2. Finesse Training - Light Shield: "make finesse training take a weapon". Ticket [172](172-finesse-training-takes-a-weapon.md).
+3. Uncanny Dodge: "let's deal with it in a subsequent ticket". Ticket [173](173-uncanny-dodge-as-a-slayer-talent.md) (design; the question stays open there).
+4. Animal Companion - Elk: "Add animal companions as a subsequent ticket". Ticket [174](174-animal-companions.md) (design).
 
-For each: keep the decision (the line stays a known gap) or reopen it (a ticket builds it and deletes the entry)?
+So every known gap names a ticket.
 
 ### Done when
 
-- `cargo test -p seeds --test game_data -- --list` lists `gold::gold_builds_gain_what_the_write_ups_list` and the four other `gold::` tests.
+- `cargo test -p seeds --test game_data -- --list` lists `gold::gold_builds_gain_what_the_write_ups_list` and the five other `gold::` tests.
 - Both RON files match `source.txt` item for item: `gold_files_match_the_write_ups` reads the source and compares, and a second read by hand agreed.
-- Every disagreement is in the known-gaps list with a ticket or a map decision (above).
+- Every disagreement is in the known-gaps list, covering its one failure, with a ticket (above).
 - Removing one entry fails the test with that line's message (progress log).
 - `snapshots/gold-jack.txt` and `snapshots/gold-enforcer.txt` are in the corpus.
 - `scripts/check.sh`: ALL-OK.
