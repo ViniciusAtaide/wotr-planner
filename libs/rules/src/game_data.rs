@@ -1308,7 +1308,8 @@ pub struct SelectionOption {
     #[serde(default)]
     pub values: BTreeSet<Parameter>,
     /// How many times it can be taken (Increased Damage Reduction: three times; Combat Trick: any number).
-    /// `PerValue` only with a chosen feat: once for each value of it (the Skill Focus talents: once per skill).
+    /// `PerValue` only for an option that takes a value: once for each value of its chosen feat (the Skill Focus
+    /// talents: once per skill), or of its own `parameter` (Finesse Training: once per weapon).
     #[serde(default)]
     pub repeat: Repeat,
     #[serde(default)]

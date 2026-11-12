@@ -761,27 +761,22 @@ fn repeats_and_chosen_feats_fit_their_feats() {
 }
 
 #[test]
-fn an_option_repeats_once_per_value_only_of_its_chosen_feat() {
+fn an_option_repeats_once_per_value_only_when_it_takes_a_value() {
     let mut data = world();
     // The rogue talent Weapon Focus once per weapon, as its chosen feat: the Skill Focus talents' kind (ticket 47).
     rogue_talent_mut(&mut data, "rogue/rogue-talents/weapon-focus").repeat = Repeat::PerValue;
-    assert_eq!(issues(&data), []);
-    // An option that takes no value, or one of its own (Battle Master's weapon, for its rows), has no chosen feat to
-    // count the values of.
-    rogue_talent_mut(&mut data, "rogue/rogue-talents/fast-stealth").repeat = Repeat::PerValue;
+    // An option taking a value of its own (Battle Master's weapon), once per weapon: Finesse Training's kind (ticket
+    // 172).
     slayer_talent_mut(&mut data, "slayer/slayer-talents/battle-master").repeat = Repeat::PerValue;
+    assert_eq!(issues(&data), []);
+    // An option that takes no value has none to count.
+    rogue_talent_mut(&mut data, "rogue/rogue-talents/fast-stealth").repeat = Repeat::PerValue;
     assert_eq!(
-        sorted(issues(&data)),
-        sorted(vec![
-            (
-                at_option("rogue/rogue-talents/fast-stealth"),
-                DataIssue::PerValueWithoutChosenFeat
-            ),
-            (
-                at_option("slayer/slayer-talents/battle-master"),
-                DataIssue::PerValueWithoutChosenFeat
-            ),
-        ])
+        issues(&data),
+        [(
+            at_option("rogue/rogue-talents/fast-stealth"),
+            DataIssue::PerValueOptionWithoutValue
+        )]
     );
 }
 

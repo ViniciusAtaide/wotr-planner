@@ -34,7 +34,7 @@ impl Walker<'_> {
             Held::SelectionOption(key, _) => (BonusItemKind::SelectionOption, key.as_str()),
             Held::MythicAbility(key) => (BonusItemKind::MythicAbility, key.as_str()),
             Held::MythicFeat(key, _) => (BonusItemKind::MythicFeat, key.as_str()),
-            Held::ClassSkill(_) => return,
+            Held::OptionValue(..) | Held::ClassSkill(_) => return,
         };
         self.note(kind, key);
     }

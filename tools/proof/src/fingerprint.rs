@@ -7,8 +7,8 @@
 //! - `who`, `levels`, `picks`: what it is (its classes, each with its archetype; its level and pick counts), for
 //!   filtering a comparison;
 //! - `possible`: [`Engine::is_possible`];
-//! - `sheet`: the sheet ([`Engine::evaluate`]), its Debug text hashed (without a state's empty faith, and without its
-//!   bonuses in force, which `totals` and `caster_lines` read);
+//! - `sheet`: the sheet ([`Engine::evaluate`]), its Debug text hashed (without a state's empty faith and empty option
+//!   values, and without its bonuses in force, which `totals` and `caster_lines` read);
 //! - `removable`: [`Engine::removable`], listed;
 //! - `slots`: per slot of the sheet, by its id's Debug text: `options` (the picker's options with their statuses,
 //!   hashed, without their edits: [`Hashed`]), `open` (how many are open), `total`, `kind`, and the lock-reason texts: `reasons` (those of options
@@ -481,10 +481,12 @@ fn spells() -> Vec<SpellTraits> {
 
 /// The sheet's Debug text, hashed, without a state's empty faith (ticket 86's `faith: None, deity_domains: {}`): a
 /// Build without one walks to the same sheet as on a side before deities, whose states have no such fields. And
-/// without a state's bonuses in force (ticket 151), which a side before them doesn't have.
+/// without a state's bonuses in force (ticket 151), which a side before them doesn't have, nor its empty option values
+/// (ticket 172's `option_values: {}`), for the same reason: a state that holds one differs.
 fn sheet_hash(sheet: &rules::Sheet) -> String {
-    let text =
-        as_before_ticket_125(&format!("{sheet:?}")).replace("faith: None, deity_domains: {}, ", "");
+    let text = as_before_ticket_125(&format!("{sheet:?}"))
+        .replace("faith: None, deity_domains: {}, ", "")
+        .replace("option_values: {}, ", "");
     format!("{:016x}", fnv(&without_bonuses_in_force(&text)))
 }
 
