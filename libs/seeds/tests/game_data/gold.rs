@@ -299,6 +299,10 @@ fn option(key: &str) -> Pick {
     Pick::option(SelectionOptionKey::new(key))
 }
 
+fn option_for(key: &str, value: Parameter) -> Pick {
+    Pick::option_for(SelectionOptionKey::new(key), value)
+}
+
 fn ability(key: &str) -> Pick {
     Pick::mythic_ability(MythicAbilityKey::new(key))
 }
@@ -576,6 +580,14 @@ fn enforcer() -> Build {
         (general(15), feat("improved-initiative")),
         (selection(17, 0), option("witch/hex/iceplant")),
         (general(17), feat("bashing-finish")),
+        // Rogue level 3: Finesse Training in the light shield's bash (ticket 172).
+        (
+            selection(18, 0),
+            option_for(
+                "rogue/finesse-training/weapon",
+                support::weapon("light-shield-bash"),
+            ),
+        ),
         (
             selection(19, 0),
             option("rogue/rogue-talents/double-debilitation"),
@@ -735,7 +747,10 @@ const NAMES: &[(&str, &[&str], &[&str])] = &[
 ];
 
 /// The values the planner spells otherwise, in a "Name - Value" name: `(write-up, planner)`.
-const VALUES: &[(&str, &str)] = &[("Battleaxe", "Battle Axe")];
+const VALUES: &[(&str, &str)] = &[
+    ("Battleaxe", "Battle Axe"),
+    ("Light Shield", "Light Shield Bash"),
+];
 
 /// The write-up's name of the path before MR 3's: the first ascension's, shown at MR 1 and 2.
 const MYTHIC_HERO: &str = "Mythic Hero";
@@ -1449,51 +1464,9 @@ const fn gap(
     }
 }
 
-/// Studied Target and Draconic Resistances, granted once where the game's level-up names each step.
-const STEPS: Why = Why::Bug(170);
-
 /// The gold lines the engine gets wrong today, each on the one failure it covers. The list only shrinks: a fix
 /// deletes its entry.
 const KNOWN_GAPS: &[Gap] = &[
-    // ---- bugs ----
-    // The data grants Studied Target once, at 1; the game's level-up names each +1 (as the data does for the
-    // Divine Scion's).
-    gap(
-        "enforcer",
-        Place::Level(5),
-        "Studied Target +2",
-        Covers::NotGained("Studied Target"),
-        STEPS,
-    ),
-    gap(
-        "enforcer",
-        Place::Level(10),
-        "Studied Target +3",
-        Covers::NotGained("Studied Target"),
-        STEPS,
-    ),
-    gap(
-        "enforcer",
-        Place::Level(15),
-        "Studied Target +4",
-        Covers::NotGained("Studied Target"),
-        STEPS,
-    ),
-    // The data grants Draconic Resistances once, at bloodline level 3; the game's level-up names II and III.
-    gap(
-        "jack",
-        Place::Level(9),
-        "(Dragon Resistances II)",
-        Covers::NotGained("Draconic Resistances"),
-        STEPS,
-    ),
-    gap(
-        "jack",
-        Place::Level(15),
-        "(Dragon Resistances III; Wings)",
-        Covers::NotGained("Draconic Resistances"),
-        STEPS,
-    ),
     // ---- map decisions the user reopened ----
     gap(
         "enforcer",
@@ -1504,13 +1477,6 @@ const KNOWN_GAPS: &[Gap] = &[
             171,
             "MR 10 comes at level 19, before Shield Focus at 20; the mythic picks may come after the levels",
         ),
-    ),
-    gap(
-        "enforcer",
-        Place::Level(18),
-        "Finesse Training - Light Shield",
-        Covers::NoPlannerItem("Finesse Training (Light Shield)"),
-        Why::Reopened(172, "Finesse Training takes a weapon"),
     ),
     gap(
         "jack",
@@ -1642,8 +1608,8 @@ fn gold_names_tables_are_all_used() {
 }
 
 /// A known gap covers its one failure, not its line: a Jack whose second bloodline is Elemental (Fire), not Draconic
-/// (Bronze), fails "(Dragon Resistances III; Wings)" on Wings too, which the line's entry (on Draconic Resistances)
-/// doesn't hide.
+/// (Bronze), fails "(Dragon Resistances III; Wings)" on Draconic Resistances and on Wings; an entry on Draconic
+/// Resistances (made up here: the list holds none) doesn't hide Wings.
 #[test]
 fn a_known_gap_hides_no_other_failure_on_its_line() {
     let (_, mut jack) = builds().into_iter().next().unwrap();
@@ -1664,7 +1630,14 @@ fn a_known_gap_hides_no_other_failure_on_its_line() {
             &Failure::NotGained("Wings".to_owned()),
         ]
     );
-    let unexplained = unexplained_by(&found, KNOWN_GAPS);
+    let draconic_resistances = [gap(
+        "jack",
+        Place::Level(15),
+        "(Dragon Resistances III; Wings)",
+        Covers::NotGained("Draconic Resistances"),
+        Why::Bug(0),
+    )];
+    let unexplained = unexplained_by(&found, &draconic_resistances);
     let at_15: Vec<&String> = unexplained
         .iter()
         .filter(|line| line.starts_with("jack level 15: (Dragon Resistances III; Wings)"))

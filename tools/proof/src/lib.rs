@@ -30,6 +30,13 @@
 //! answer, which the checks panic on). A light record says so on every line, and [`compare`] refuses to compare it
 //! with a full one.
 //!
+//! **Side A's source** (ticket 157, `rules` and `both`): `scripts/proof.sh` keeps the ref's source, with this harness
+//! copied in, in `$CARGO_TARGET_DIR/src-A`, and a stamp beside it (`src-A.stamp`: the ref's commit, a hash of
+//! `tools/proof` and the mode). While the stamp matches, a run says "side A's source: reused" and cargo rebuilds none
+//! of side A's crates. On any change it says "extracted", deletes `A/` and extracts again with `tar -m` (the files take
+//! the current time, not their commit's), so side A builds from clean: cargo once took an older ref's build for a
+//! newer one. One `CARGO_TARGET_DIR` holds one `src-A`, so run one proof at a time per target folder.
+//!
 //! The binary's commands:
 //!
 //! - `proof record <game-data dir> [--links <file> | --builds <file>] [--threads N] [--only <name substring>]

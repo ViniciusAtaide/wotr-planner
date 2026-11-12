@@ -87,6 +87,8 @@ enum Held {
     Feature(FeatureKey),
     /// An option, through the selection that gave it.
     SelectionOption(SelectionOptionKey, FeatureSelectionKey),
+    /// The value an option's pick names when it's the option's own (Finesse Training's weapon), not a chosen feat's.
+    OptionValue(SelectionOptionKey, Parameter),
     MythicAbility(MythicAbilityKey),
     /// A mythic feat, for its value when it's parameterised.
     MythicFeat(MythicFeatKey, Option<Parameter>),

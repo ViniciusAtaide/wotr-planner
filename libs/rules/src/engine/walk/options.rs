@@ -36,11 +36,17 @@ impl<'a> Walker<'a> {
                 source.cloned(),
             );
         }
-        if let Some(feat) = &defined.chosen_feat {
-            self.hold(
+        match (&defined.chosen_feat, parameter) {
+            (Some(feat), _) => self.hold(
                 Held::Feat(feat.clone(), parameter.iter().cloned().cloned().collect()),
                 source.cloned(),
-            );
+            ),
+            // A value of the option's own (Finesse Training's weapon), which its repeat counts.
+            (None, Some(value)) => self.hold(
+                Held::OptionValue(option.clone(), value.clone()),
+                source.cloned(),
+            ),
+            (None, None) => {}
         }
         if let Some(through) = catalog.selection(selection)
             && (!through.option_levels.is_empty() || through.level_from.is_some())

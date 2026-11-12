@@ -58,6 +58,31 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   `feat_slots` and `selections` replace the base row's in full (a row with none takes them away), and
   `spell_levels: (arcane: 1, divine: 0)` replaces the base row's spell levels when set. A level without a row is
   the base class's. The check refuses a row that changes nothing and spell levels equal to the base row's.
+- A feature that improves in steps is granted again at each step, on the row of the level the game's level-up names it
+  at, so its count on the sheet is the step it has reached (ticket 170; Sneak Attack per die, the Divine Scion's
+  Studied Target, the Elemental Rampager's Energy Resistance and Strength of the Abyss did already). The slayer's
+  Studied Target is granted at 1, 5, 10, 15 and 20 (the base class's rows, so each archetype that keeps it inherits
+  the steps, and the rows that replace a base row at those levels carry it too; the Sanctified Slayer's and the
+  Tandem Executioner's copies follow the same levels); the Draconic bloodlines' Draconic Resistances at bloodline
+  levels 3, 9 and 15; the bloodrager's Draconic Resistance at 4, 8 and 16, Demon Resistances at 8 and 16, Celestial
+  Resistances at 4 and 12 and Serpentine Resistances at 4, 8, 12, 16 and 20. Nothing reads the count of the features this ticket stepped, so a second grant changes no
+  number there; that is not true in general (the Arcane Trickster's prerequisite is `Feature(..., count: 2)`, and
+  `ability_bonuses` multiply by the count), so an author stepping another feature checks both first. An archetype
+  that falls back to the base class's row at a step level gets the step too: one that loses the feature (the
+  Imitator's Studied Target) needs its own row at that level without it. `scaling_features.rs` pins the steps.
+- The rogue's Finesse Training is a pick, not a label (ticket 172: the user's "make finesse training take a weapon",
+  for the Enforcer's "Finesse Training - Light Shield", reversing ticket 54's "choices that gate no pick stay labels"
+  for this feature only). The guide (`rogue#finesse-training`): "At 3rd level, a Rogue may select a finessable weapon
+  … She can select a second weapon at 11th level and a third at 19th level", from its list of 21 ("Bite, Claw, Dagger,
+  …, Starknife, Unarmed"). So `rogue/finesse-training` is a selection, not a feature, on the rogue's rows 3, 11 and 19
+  and on the rows of the archetypes that replace those rows and keep it (Eldritch Scoundrel, Knife Master, Master of
+  All, Thug); the Dark Lurker, the Sylvan Trickster and the Underground Chemist take the base rows, and the Rowdy's
+  own rows at 3, 11 and 19 leave it out ("Loses finesse training"). Its one option, `rogue/finesse-training/weapon`
+  ("Finesse Training"), takes a weapon of its own (`parameter: Weapon`) from the guide's list (`values`: its
+  "Handaxe", "Light Shield", "Shortsword" and "Unarmed" are the Hand Axe, the Light Shield Bash, the Short Sword and
+  the Unarmed Strike), once per weapon (`repeat: PerValue`, which an option taking a value of its own may now have:
+  the state counts the values it's held for). The guide's "that she has proficiency in" isn't checked, as no weapon
+  value is (Weapon Focus's neither). `finesse_training.rs` pins the levels, the list and an older link.
 - Only prestige classes set `advances_arcane`/`advances_divine` (the spell types a level advances), and only base
   classes have archetypes. A Build names the advanced classes on entry: one per spell type the rows advance
   (Mystic Theurge: an arcane and a divine class), or, with `advances: Either` on the class, one class of either
@@ -537,7 +562,7 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   `Times(3)` ("up to 3 times"), `Unlimited` ("may be taken multiple times"). A mythic feat takes `parameter` and
   `repeat` the same way (Improved Critical (Mythic): a weapon, once per weapon), and `removes_racial_penalty: true`
   (Destiny Beyond Birth) gives back the race's ability penalties while it's held. A selection option may repeat too
-  (`repeat: Times(3)`, never `PerValue`), and one that is a
+  (`repeat: Times(3)`; `PerValue` only when it takes a value, of its chosen feat or its own), and one that is a
   parameterised feat of the player's choosing names it as `chosen_feat: "weapon-focus"` (its pick names the
   value); a parameterised feat in an option's `feats` or a row's `feats` is held for every value (All-skilled:
   Exotic Weapon Proficiency in every exotic weapon).

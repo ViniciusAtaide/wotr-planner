@@ -180,6 +180,15 @@ impl<'a> Walker<'a> {
                     state.option_groups.insert(key.clone(), group);
                 }
             }
+            Held::OptionValue(key, value) => {
+                let holds = state
+                    .option_values
+                    .entry(key.clone())
+                    .or_default()
+                    .entry(value.clone())
+                    .or_default();
+                *holds = holds.saturating_add(1);
+            }
             Held::MythicAbility(key) => {
                 state.mythic_abilities.insert(key.clone());
             }
@@ -278,6 +287,19 @@ impl<'a> Walker<'a> {
                     }
                     if options.is_empty() {
                         state.options_through.remove(through);
+                    }
+                }
+            }
+            Held::OptionValue(key, value) => {
+                if let Some(held) = state.option_values.get_mut(key) {
+                    if let Some(holds) = held.get_mut(value) {
+                        *holds = holds.saturating_sub(1);
+                        if *holds == 0 {
+                            held.remove(value);
+                        }
+                    }
+                    if held.is_empty() {
+                        state.option_values.remove(key);
                     }
                 }
             }

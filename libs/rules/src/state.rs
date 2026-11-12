@@ -67,6 +67,10 @@ pub struct CharacterState {
     /// The options held through each selection that gave them, with how many times (Expanded Element: the
     /// elements picked at 7 and 15). An option granted outside a selection's slot isn't here.
     pub options_through: BTreeMap<FeatureSelectionKey, BTreeMap<SelectionOptionKey, u8>>,
+    /// Each option held whose pick names a value of the option's own (not a chosen feat's, which `feat_values`
+    /// holds), with the values and how many picks hold each (Finesse Training: Dagger 1, Light Shield Bash 1;
+    /// ticket 172).
+    pub option_values: BTreeMap<SelectionOptionKey, BTreeMap<Parameter, u8>>,
     /// The group of each option held that belongs to one (a Draconic bloodline).
     pub option_groups: BTreeMap<SelectionOptionKey, OptionGroup>,
     /// The option level of each option held through a selection with option levels (a sorcerer 5 / Dragon
@@ -199,6 +203,13 @@ impl CharacterState {
     /// How many times a selection option was taken; 0 when never.
     pub fn option_count(&self, option: &SelectionOptionKey) -> u8 {
         self.selection_options.get(option).copied().unwrap_or(0)
+    }
+
+    /// Whether an option that takes a value of its own is held for a value (Finesse Training for the dagger).
+    pub fn has_option_for(&self, option: &SelectionOptionKey, value: &Parameter) -> bool {
+        self.option_values
+            .get(option)
+            .is_some_and(|values| values.contains_key(value))
     }
 
     /// The class level a feat's prerequisites see: the class level plus the levels of classes that count as it

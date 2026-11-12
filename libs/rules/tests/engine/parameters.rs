@@ -981,3 +981,70 @@ fn an_option_can_take_a_value_for_its_rows_alone() {
     );
     assert_eq!(why_not(&build, &selection_slot(2, 0)), None);
 }
+
+#[test]
+fn an_option_once_per_value_repeats_for_another_value_of_its_own() {
+    // Battle Master taken once per weapon, as Finesse Training is in the real data (ticket 172): the option's own
+    // value, with no chosen feat.
+    let talent = "slayer/slayer-talents/battle-master";
+    let engine = engine_with(|data| {
+        let slayer = data
+            .classes
+            .iter_mut()
+            .find(|class| class.key.as_str() == "slayer")
+            .unwrap();
+        let option = slayer.selections[0]
+            .options
+            .iter_mut()
+            .find(|option| option.key.as_str() == talent)
+            .unwrap();
+        option.repeat = Repeat::PerValue;
+    });
+    let mut build = build("elf", &times("slayer", 6));
+    build.picks.insert(
+        selection_slot(2, 0),
+        pick_option_for(talent, weapon("dagger")),
+    );
+    build.picks.insert(
+        selection_slot(4, 0),
+        pick_option_for(talent, weapon("longsword")),
+    );
+    assert!(engine.is_possible(&build));
+    let state = engine.evaluate(&build).at(4).unwrap().clone();
+    assert_eq!(state.option_count(&option(talent)), 2);
+    assert_eq!(
+        state.option_values[&option(talent)],
+        BTreeMap::from([(weapon("dagger"), 1), (weapon("longsword"), 1)])
+    );
+    assert!(state.has_option_for(&option(talent), &weapon("dagger")));
+    // At 6: the weapons it's held for are taken, another is open.
+    let offered = engine.options(&build, &selection_slot(6, 0)).unwrap();
+    for (value, status) in [
+        ("dagger", Err(Issue::AlreadyHeld)),
+        ("longsword", Err(Issue::AlreadyHeld)),
+        ("dueling-sword", Ok(())),
+    ] {
+        assert_eq!(
+            status_of(&offered, &pick_option_for(talent, weapon(value))),
+            status,
+            "{value}"
+        );
+    }
+    build.picks.insert(
+        selection_slot(6, 0),
+        pick_option_for(talent, weapon("dagger")),
+    );
+    assert_eq!(
+        why_not_by(&engine, &build, &selection_slot(6, 0)),
+        Issue::AlreadyHeld
+    );
+    // Withdrawing the dagger's pick lets it go: the state no longer holds the option for it.
+    let mut fewer = build.clone();
+    fewer.picks.remove(&selection_slot(6, 0));
+    fewer.picks.remove(&selection_slot(2, 0));
+    let state = engine.evaluate(&fewer).at(6).unwrap().clone();
+    assert_eq!(
+        state.option_values[&option(talent)],
+        BTreeMap::from([(weapon("longsword"), 1)])
+    );
+}
