@@ -108,3 +108,7 @@ text_key!(
     /// `wizard`, `angel/merged`: a spell list, keyed by its owner.
     SpellListKey
 );
+text_key!(
+    /// `belt-of-physical-perfection-6`: a gear item (ticket 165).
+    GearKey
+);

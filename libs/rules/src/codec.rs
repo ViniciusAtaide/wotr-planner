@@ -19,7 +19,7 @@
 //!
 //! The structure gives each key's kind, and a hash is looked up only among the current game data's keys of that
 //! kind ([`LinkKeys`]): races, subraces, backgrounds, deities, skills, weapons, classes (base and prestige together),
-//! archetypes, mythic paths, feats, selection options, mythic abilities and mythic feats ([`KeyKind`]). Keys of two
+//! archetypes, mythic paths, feats, selection options, mythic abilities, mythic feats and gear items ([`KeyKind`]). Keys of two
 //! kinds may share a hash; two keys of one kind may not. `seeds`'s real-data test
 //! `no_two_keys_of_one_kind_share_a_link_hash` fails if a game-data change ever makes two collide; then the hash
 //! gets wider or another offset basis, which is a new format. A hash no key of its kind has (a key the game data no
@@ -198,6 +198,8 @@ pub enum KeyKind {
     SelectionOption,
     MythicAbility,
     MythicFeat,
+    /// A gear item (ticket 165): no Build names one yet.
+    Gear,
 }
 
 /// Two keys of one kind with the same hash: a link naming either can't say which.
@@ -264,6 +266,9 @@ impl LinkKeys {
         }
         for feat in &data.mythic_feats {
             keys.insert(KeyKind::MythicFeat, feat.key.as_str());
+        }
+        for item in &data.gear {
+            keys.insert(KeyKind::Gear, item.key.as_str());
         }
         keys
     }

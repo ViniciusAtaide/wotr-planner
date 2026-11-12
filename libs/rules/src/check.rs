@@ -11,16 +11,17 @@
 use std::collections::{BTreeSet, HashMap, HashSet};
 use std::fmt;
 
-use crate::bonus::{BonusAmount, BonusItem, BonusTarget, SpellScope};
+use crate::bonus::{BonusAmount, BonusItem, BonusTarget, BonusType, SpellScope};
 use crate::engine::{BASE_LEVEL_CAP, PATH_CHOICE_RANK, PATH_SWITCH_RANK};
 use crate::game_data::{
     Advancement, Archetype, Class, ClassLevelRow, CountsToward, DOMAIN_SELECTION, Feat, FeatList,
     FeatSlot, FeatValue, Feature, FeatureSelection, GameData, LevelFrom, MythicPath, Save,
     SelectionOption, SpellLevels, WeaponProficiency,
 };
+use crate::gear::GearTarget;
 use crate::keys::{
     ArchetypeKey, BackgroundKey, ClassKey, DeityKey, FeatKey, FeatListKey, FeatureKey,
-    FeatureSelectionKey, MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey,
+    FeatureSelectionKey, GearKey, MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey,
     SelectionOptionKey, SkillKey, SpellKey, SpellListKey, SubraceKey, WeaponKey,
 };
 use crate::parameter::{Parameter, ParameterKind, Repeat};
@@ -69,6 +70,7 @@ pub enum DataAt {
     Weapon(WeaponKey),
     Spell(SpellKey),
     SpellList(SpellListKey),
+    Gear(GearKey),
 }
 
 impl DataAt {
@@ -94,6 +96,7 @@ impl DataAt {
             DataAt::Weapon(_) => "weapon",
             DataAt::Spell(_) => "spell",
             DataAt::SpellList(_) => "spell list",
+            DataAt::Gear(_) => "gear item",
         }
     }
 
@@ -119,6 +122,7 @@ impl DataAt {
             DataAt::Weapon(key) => key.as_str(),
             DataAt::Spell(key) => key.as_str(),
             DataAt::SpellList(key) => key.as_str(),
+            DataAt::Gear(key) => key.as_str(),
         })
     }
 }
@@ -310,6 +314,18 @@ pub enum DataIssue {
     TenRanksWithoutSkill,
     /// A second `interactions.ron` note on the same item.
     InteractionsTwice,
+    /// A gear item with no bonus.
+    GearWithoutBonus,
+    /// A gear bonus of 0, or a negative one that isn't untyped (every penalty is).
+    GearAmountInvalid,
+    /// A gear item with two bonuses of one target and type.
+    GearBonusTwice,
+    /// A gear item named like another.
+    GearNameTwice,
+    /// A gear bonus on a spell DC of the value its item is held for: an item is held for none.
+    GearSpellDcOfValue,
+    /// A gear other-effects line that is empty or appears twice.
+    GearEffectInvalid,
 }
 
 impl fmt::Display for DataProblem {
@@ -501,6 +517,20 @@ impl fmt::Display for DataProblem {
                 f.write_str("a bonus that rises with 10 ranks needs one skill as its target")
             }
             DataIssue::InteractionsTwice => f.write_str("it has two interactions notes"),
+            DataIssue::GearWithoutBonus => f.write_str("the item has no bonus"),
+            DataIssue::GearAmountInvalid => {
+                f.write_str("a bonus is 0, or negative and not untyped")
+            }
+            DataIssue::GearBonusTwice => {
+                f.write_str("two bonuses share a target and a type")
+            }
+            DataIssue::GearNameTwice => f.write_str("another item has the same name"),
+            DataIssue::GearSpellDcOfValue => f.write_str(
+                "a spell DC bonus is for the value an item is held for, which gear isn't",
+            ),
+            DataIssue::GearEffectInvalid => {
+                f.write_str("an other-effects line is empty or appears twice")
+            }
             DataIssue::SharesOwnOption(option) => {
                 write!(
                     f,
@@ -637,6 +667,7 @@ impl GameData {
         }
         check.bonuses(self);
         check.interactions(self);
+        check.gear(self);
         check.deity_limits(self);
         check.favoured_weapon_features(self);
         check.counts_toward_features(self);
@@ -1430,6 +1461,44 @@ impl Checker {
             self.names(&at, at.clone());
             if !seen.insert(&note.item) {
                 self.problem(&at, DataIssue::InteractionsTwice);
+            }
+        }
+    }
+
+    /// Each gear item: a unique key and name, at least one bonus, each valid and none repeating a target and type,
+    /// each skill named a skill of the data, and sound other-effects lines.
+    fn gear(&mut self, data: &GameData) {
+        let mut names = HashSet::new();
+        for item in &data.gear {
+            let at = DataAt::Gear(item.key.clone());
+            self.key(&at);
+            if !names.insert(item.name.as_str()) {
+                self.problem(&at, DataIssue::GearNameTwice);
+            }
+            if item.bonuses.is_empty() {
+                self.problem(&at, DataIssue::GearWithoutBonus);
+            }
+            let mut seen = HashSet::new();
+            for bonus in &item.bonuses {
+                if bonus.amount == 0 || (bonus.amount < 0 && bonus.kind != BonusType::Untyped) {
+                    self.problem(&at, DataIssue::GearAmountInvalid);
+                }
+                if !seen.insert((&bonus.target, bonus.kind)) {
+                    self.problem(&at, DataIssue::GearBonusTwice);
+                }
+                match &bonus.target {
+                    GearTarget::Skill(skill) => self.names(&at, DataAt::Skill(skill.clone())),
+                    GearTarget::SpellDc(SpellScope::Value) => {
+                        self.problem(&at, DataIssue::GearSpellDcOfValue);
+                    }
+                    _ => {}
+                }
+            }
+            let mut lines = HashSet::new();
+            for line in &item.other_effects {
+                if line.trim().is_empty() || !lines.insert(line.as_str()) {
+                    self.problem(&at, DataIssue::GearEffectInvalid);
+                }
             }
         }
     }

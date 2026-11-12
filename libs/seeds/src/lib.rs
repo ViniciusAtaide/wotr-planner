@@ -8,6 +8,7 @@
 mod bonuses;
 mod columns;
 mod files;
+mod gear;
 mod load;
 mod prerequisites;
 mod seed;

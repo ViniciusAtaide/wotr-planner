@@ -1806,3 +1806,99 @@ async fn the_schema_keeps_item_bonuses_and_casting_abilities_consistent() {
         assert!(error.contains(expected), "{sql}: {error}");
     }
 }
+
+/// Ticket 165: gear items round-trip through the tables with every kind of target, every slot's text, every bonus
+/// type and an item with no guide reference.
+#[tokio::test]
+async fn gear_items_round_trip_with_every_target_slot_and_type() {
+    use rules::{
+        Ability, BonusType, GearBonus, GearItem, GearKey, GearSlot, GearTarget, GuideRef, Save,
+        SpellScope, Subschool,
+    };
+    let test = TestDatabase::new();
+    let mut game_data = seeds::read_game_data_files(&fixture_dir()).unwrap();
+    let targets = [
+        GearTarget::Ability(Ability::Charisma),
+        GearTarget::AllSaves,
+        GearTarget::Save(Save::Reflex),
+        GearTarget::Initiative,
+        GearTarget::Skill(SkillKey::new("athletics")),
+        GearTarget::SpellDc(SpellScope::All),
+        GearTarget::SpellDc(SpellScope::School(rules::SpellSchool::Evocation)),
+        GearTarget::SpellDc(SpellScope::Subschool(Subschool::Charm)),
+        GearTarget::SpellDc(SpellScope::Energy(rules::Energy::Fire)),
+        GearTarget::SpellDc(SpellScope::Metamagic),
+        GearTarget::CasterLevel,
+        GearTarget::SpellPenetration,
+        GearTarget::Concentration,
+    ];
+    for (index, slot) in GearSlot::ALL.into_iter().enumerate() {
+        let kind = BonusType::ALL[index % BonusType::ALL.len()];
+        let mut bonuses: Vec<GearBonus> = targets
+            .iter()
+            .cloned()
+            .map(|target| GearBonus {
+                target,
+                amount: 3,
+                kind,
+            })
+            .collect();
+        if index == 0 {
+            bonuses.push(GearBonus {
+                target: GearTarget::Initiative,
+                amount: -2,
+                kind: BonusType::Untyped,
+            });
+        }
+        game_data.gear.push(GearItem {
+            key: GearKey::new(format!("item-{index}")),
+            name: format!("Item {index}"),
+            slot,
+            guide: (index % 2 == 0).then(|| GuideRef::new("items#belts")),
+            bonuses,
+            other_effects: vec!["One.".to_owned(), "Two.".to_owned()],
+        });
+    }
+    let game_data = game_data.canonical();
+
+    let checked = game_data.clone().checked().unwrap();
+    seeds::replace_game_data(&test.path, &checked, &"0".repeat(64))
+        .await
+        .unwrap();
+    assert_eq!(test.load().await.unwrap(), game_data);
+
+    let pool = test.writer().await;
+    for (sql, expected) in [
+        (
+            "UPDATE gear_bonus SET amount = 0 WHERE gear_item_key = 'item-0'",
+            "check constraint",
+        ),
+        (
+            "UPDATE gear_bonus SET amount = -1, bonus_type = 'luck' WHERE gear_item_key = 'item-1' AND target = 'ability'",
+            "check constraint",
+        ),
+        (
+            "UPDATE gear_bonus SET ability = NULL WHERE target = 'ability'",
+            "check constraint",
+        ),
+        (
+            "UPDATE gear_bonus SET skill_key = 'no-such-skill' WHERE target = 'skill'",
+            "foreign key constraint",
+        ),
+        (
+            "UPDATE gear_item SET name = 'Item 1' WHERE key = 'item-0'",
+            "unique constraint",
+        ),
+        (
+            "INSERT INTO gear_other_effect (gear_item_key, text) VALUES ('item-0', 'One.')",
+            "unique constraint",
+        ),
+        (
+            "UPDATE gear_item SET guide = '' WHERE key = 'item-0'",
+            "check constraint",
+        ),
+    ] {
+        let reason = rejected(&pool, sql).await;
+        assert!(reason.contains(expected), "{sql}: {reason}");
+    }
+}
