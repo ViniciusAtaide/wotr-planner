@@ -19,10 +19,14 @@ Decided in 163:
   - a summary of the modelled bonuses, generated from the data ("Dex +6 enhancement"), shown under the name as a race's is;
   - its other effects, one short line each in our own words ("On a critical hit: the target is staggered for 1 round"), shown in the item's detail. The guide's text is never copied (map, Out of scope).
 - **A link to the item's guide section,** as other items have.
+- **The generic stat items** (user, 2026-11-11): the six plain belts and headbands at +2, +4 and +6, eighteen items the guide doesn't list, added by hand with no guide link. The list is in [research/gear-item-shape.md](../research/gear-item-shape.md).
+- **A robe and an armour share one body place; caster level is counted in the first stage** (user, 2026-11-11). Both are in the same file.
 
 ## Build
 
 AFK. Game data, its reader and the seed; a schema change (a new migration, `CLAUDE.md`'s "Database").
+
+**The shape is designed: [research/gear-item-shape.md](../research/gear-item-shape.md).** Build to it: the types, the RON format, the summary rule, the tables, the checks and the calls on what becomes text. Where it and this ticket disagree, it holds. In particular: the types are serde-only like the rest of `game_data.rs`, not serde-free; the count is about 67 distinct items, not 77; an unknown slot, target or type is refused by the RON parse, not the data check; the link-hash test needs no edit. Its "Open, for the user" list is answered in this ticket's Question before the build starts.
 
 **Order:** after [159](159-snapshot-check.md) and before [166](166-gear-in-the-engine.md), never beside either. It shares `libs/seeds/tests/game_data/main.rs` and `libs/game-data/README.md` with 159, and `libs/rules/src/game_data.rs` and the codec with 166 (`CLAUDE.md`, "Parallel agents": tickets whose diffs touch the same files run one after the other).
 

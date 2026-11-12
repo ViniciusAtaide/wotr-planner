@@ -25,6 +25,8 @@ Decided in 163:
 
 AFK. `libs/rules` only, plus its tests. No schema change. Behaviour without gear must not change.
 
+**The item's shape** is in [research/gear-item-shape.md](../research/gear-item-shape.md), landed by 165. Its "Notes for the builders" apply here: `BonusInForce` gets a source type of its own (no gear variant on `BonusItem`, which would force a migration), and gear's signed amounts go onto the base scores before `with_bonuses`. Items carry always-on penalties too; they count.
+
 **Order:** after [165](165-gear-data.md), which lands the item's shape and the real items; the two share `libs/rules/src/game_data.rs` and the codec. It can run beside [160](160-gold-builds.md), which touches only `libs/seeds/tests/`. Ticket [164](164-cheap-key-clones.md) changes the text keys across the engine: never beside it.
 
 - **The Build:** a gear field, slot to item key, `#[serde(default)]` and empty by default. Two ring places.
