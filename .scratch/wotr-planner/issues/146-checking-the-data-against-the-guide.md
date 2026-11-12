@@ -23,3 +23,5 @@ The user has chosen. The chosen checks have run once, each mismatch is a ticket,
 ## Answer
 
 **Decided** (user, 2026-11-10): A (spot checks) and B (golden builds). A runs now. B waits on build write-ups from the user, and each one becomes a real-data test. C is not taken.
+
+**B is built** by [ticket 160](160-gold-builds.md) (2026-11-11), from the two write-ups the user gave (Jack-in-the-Green and the Enforcer, both Azata): the real-data test `gold` (`libs/seeds/tests/game_data/gold.rs`) builds each and asserts every level's and rank's listed gain is on the engine's sheet there, with its known gaps listed by ticket or map decision. How it works and how to read a failure: `libs/game-data/README.md`, "The gold standard". A further write-up becomes a third gold file and Build there.
