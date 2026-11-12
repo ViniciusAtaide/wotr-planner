@@ -7,8 +7,9 @@
 //!
 //! The sheet only ever holds a possible Build: it offers no edit that would break another choice
 //! ([`Engine::allows`]), so choices come off from the leaves inward ([`Engine::removable`]) and the pickers lock
-//! what would break a later choice. A link to a Build that isn't possible opens nothing ([`Engine::open_link`]):
-//! it says only that it doesn't open, never why. [`Engine::failures`] lists every choice that fails and why, for a
+//! what would break a later choice. Gear is the one exception the user decided (ticket 163): an item comes off
+//! whatever needs it, and what needed it stays in the Build, refused ([`Engine::gear_dependents`]). A link to a
+//! Build that isn't possible opens nothing ([`Engine::open_link`]): it says only that it doesn't open, never why. [`Engine::failures`] lists every choice that fails and why, for a
 //! Build planned whole (the MCP server's `validate`); it never makes a Build possible.
 
 use std::collections::BTreeSet;
@@ -35,6 +36,7 @@ mod build_sheet;
 mod caster;
 mod catalog;
 mod controls;
+mod gear;
 mod labels;
 mod pickers;
 mod removable;
@@ -47,6 +49,7 @@ pub use address::{Address, NotAnAddress, Place};
 pub use attack::{ATTACK_LINE_LEAVES_OUT, AttackLine, AttackPart, PowerAttack};
 pub use caster::{CASTER_LINE_LEAVES_OUT, CasterLine, CasterPart, SpellDc};
 use catalog::Catalog;
+pub use gear::{GearDependent, GearNeed, GearOption};
 pub use totals::{CLASS_SKILL_BONUS, SkillTotal, TOTALS_LEAVE_OUT, Total, TotalPart, Totals};
 
 /// The highest character level without a path that raises it.
@@ -407,6 +410,9 @@ pub struct SlotOption {
     pub status: Result<(), Issue>,
     /// The edit that picks it: [`Edit::Pick`] in the slot.
     pub edit: Edit,
+    /// For an option open only because of the Build's gear (the slot takes it with the gear and not without):
+    /// the items it needs. `None` for any other, and always for a Build without gear.
+    pub with_gear: Option<GearNeed>,
 }
 
 /// One entry of a slot's picker, as the sheet shows it ([`Engine::slot_entries`]): what a pick takes (a feat,
@@ -423,6 +429,10 @@ pub struct SlotEntry {
     pub summary: String,
     /// "(Story: Vow of Dahak)", for the story conditions in its prerequisite, which never block it.
     pub story_note: Option<String>,
+    /// "With Belt of Incredible Dexterity +2", for an entry open only because of the Build's gear: every open
+    /// option of it needs gear ([`SlotOption::with_gear`]), and the note is the first one's
+    /// ([`Engine::gear_note`]).
+    pub gear_note: Option<String>,
     /// What its picks name, with the article ("a weapon"), for an entry whose picks name a value: it opens the list
     /// of its options' values.
     pub noun: Option<&'static str>,
@@ -468,7 +478,7 @@ impl SlotEntry {
 /// levels of its class after it each move down one); the last level removed; a class's archetype or advanced classes
 /// unchosen; a point-buy score at 7; a level's ability increase or a skill's ranks at a level gone; the race (with
 /// its subrace and racial ability), subrace, alignment, background, faith, first ascension, path or Path switch
-/// unchosen.
+/// unchosen; an item of the gear taken off.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Withdrawal {
     pub choice: Choice,
@@ -546,6 +556,10 @@ pub struct RaceChoice {
 pub struct Step {
     pub status: Result<(), Issue>,
     pub edit: Edit,
+    /// For a point-buy step that can be taken only because of the Build's gear: after it, some choice that holds
+    /// today without the gear would need it ([`Engine::newly_gear_dependent`]). A step to show as allowed, but not
+    /// as safe. Always `false` for a Build without gear, and for a skill's step (ranks never see gear).
+    pub with_gear: bool,
 }
 
 /// A stepper of one point-buy score or one skill's ranks at a level: a step down and a step up, each `None` past the

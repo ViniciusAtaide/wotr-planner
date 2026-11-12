@@ -4,8 +4,8 @@
 use std::sync::Arc;
 
 use rules::{
-    BonusAmount, BonusInForce, BonusItem, BonusTarget, Build, Engine, ItemBonus, Parameter,
-    Prerequisite, SpellSchool, SpellScope,
+    BonusAmount, BonusInForce, BonusItem, BonusSource, BonusTarget, BonusType, Build, Engine,
+    InForceTarget, ItemBonus, Parameter, Prerequisite, SpellSchool, SpellScope,
 };
 
 use crate::support::*;
@@ -69,10 +69,11 @@ fn each_state_of_the_sheet_records_the_bonuses_held_there_with_their_item_value_
     assert_eq!(
         sheet.at(1).unwrap().bonuses_in_force[..],
         [BonusInForce {
-            item: BonusItem::Feat(feat("spell-focus")),
+            source: BonusSource::Item(BonusItem::Feat(feat("spell-focus"))),
             value: Some(Parameter::SpellSchool(SpellSchool::Evocation)),
-            target: BonusTarget::SpellDc(SpellScope::Value),
+            target: InForceTarget::Number(BonusTarget::SpellDc(SpellScope::Value)),
             amount: 1,
+            kind: BonusType::Untyped,
             name: "spell-focus (Evocation)".to_owned(),
         }]
     );

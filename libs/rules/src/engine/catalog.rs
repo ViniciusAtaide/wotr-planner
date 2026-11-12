@@ -16,9 +16,10 @@ use crate::game_data::{
     MythicAbility, MythicFeat, MythicPath, OptionRow, Race, SelectionOption, Skill, Subrace,
     UNARMED_STRIKE, Weapon, WeaponProficiency,
 };
+use crate::gear::GearItem;
 use crate::keys::{
     ArchetypeKey, BackgroundKey, ClassKey, DeityKey, FeatKey, FeatListKey, FeatureKey,
-    FeatureSelectionKey, MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey,
+    FeatureSelectionKey, GearKey, MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey,
     SelectionOptionKey, SkillKey, SubraceKey, WeaponKey,
 };
 use crate::parameter::{ArmourType, Element, Energy, Parameter, ParameterKind, SpellSchool, Stat};
@@ -209,6 +210,13 @@ impl Catalog {
             .deities
             .get(key)
             .map(|&index| &self.data.deities[index])
+    }
+
+    pub(super) fn gear_item(&self, key: &GearKey) -> Option<&GearItem> {
+        self.indexes
+            .gear
+            .get(key)
+            .map(|&index| &self.data.gear[index])
     }
 
     pub(super) fn feat(&self, key: &FeatKey) -> Option<&Feat> {
@@ -635,6 +643,7 @@ struct Indexes {
     paths: FxHashMap<MythicPathKey, usize>,
     backgrounds: FxHashMap<BackgroundKey, usize>,
     deities: FxHashMap<DeityKey, usize>,
+    gear: FxHashMap<GearKey, usize>,
 }
 
 impl Indexes {
@@ -653,6 +662,7 @@ impl Indexes {
             paths: index(&data.mythic_paths, |p| &p.key),
             backgrounds: index(&data.backgrounds, |b| &b.key),
             deities: index(&data.deities, |d| &d.key),
+            gear: index(&data.gear, |item| &item.key),
             classes,
             archetypes,
             races,

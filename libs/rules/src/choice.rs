@@ -2,7 +2,7 @@
 
 use std::collections::BTreeSet;
 
-use crate::build::{Pick, SlotId};
+use crate::build::{GearSpot, Pick, SlotId};
 use crate::engine::SlotKind;
 use crate::game_data::{Ability, DeityDomains};
 use crate::keys::{ClassKey, DeityKey, MythicPathKey, SkillKey};
@@ -55,6 +55,9 @@ pub enum Choice {
     MythicPath,
     PathSwitch,
     Slot(SlotId),
+    /// An item the Build holds, by where it holds it (ticket 166). It belongs to no level; the walk checks it at the
+    /// Build start.
+    Gear(GearSpot),
 }
 
 /// Why a picker's option can't be taken, or why a choice of a Build fails ([`Failure`]). A Build the sheet holds is
@@ -66,7 +69,8 @@ pub enum Issue {
     /// The prerequisites aren't met at that point of the Build.
     Unmet(Unmet),
     /// Already held: taken earlier in the Build (or earlier at the same level). For a feat taken once per value,
-    /// already held for this value.
+    /// already held for this value. The walk gives it too for a gear item the Build holds twice (one ring in both
+    /// ring places).
     AlreadyHeld,
     /// Already taken as many times as it can be (Extra Hex: 3).
     MaxTimes { times: u8 },
@@ -75,10 +79,11 @@ pub enum Issue {
     /// picker offers only what its slot takes; it's how a walk finds a pick that an earlier change left in the wrong
     /// slot (another class at the level, another option held). The walk gives it too for a subrace of another race,
     /// an archetype of another class, an advancement the prestige class can't take, a path the first ascension or
-    /// MR 3 doesn't take (or a switch that isn't one), and skill points spent past the level's.
+    /// MR 3 doesn't take (or a switch that isn't one), skill points spent past the level's, and a gear item where
+    /// its slot doesn't go (a belt on the hands, a manual worn, a belt used).
     NotAllowed,
     /// A key the game data lacks: a pick's item, a race, subrace, deity, background, class, archetype, skill, a
-    /// class an advancement names, or a path. No picker shows it, since a picker offers only what the data has; a
+    /// class an advancement names, a path, or a gear item. No picker shows it, since a picker offers only what the data has; a
     /// walk finds it in a hand-made Build (a stale link, a declared Build).
     UnknownKey,
     /// A choice in a place the Build doesn't reach: a pick for a slot the walk never reached (one the level's class

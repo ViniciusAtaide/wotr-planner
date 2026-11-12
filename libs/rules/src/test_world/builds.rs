@@ -27,6 +27,9 @@ pub fn option(key: &str) -> SelectionOptionKey {
 pub fn feat_list(key: &str) -> FeatListKey {
     FeatListKey::new(key)
 }
+pub fn gear_item(key: &str) -> GearKey {
+    GearKey::new(key)
+}
 
 pub fn weapon(key: &str) -> Parameter {
     Parameter::Weapon(WeaponKey::new(key))
@@ -130,6 +133,18 @@ pub fn build(race: &str, classes: &[&str]) -> Build {
     for key in classes {
         build.levels.push(LevelUp::new(class(key)));
     }
+    build
+}
+
+/// The Build wearing an item in a place.
+pub fn wearing(mut build: Build, place: GearPlace, item: &str) -> Build {
+    build.gear.worn.insert(place, gear_item(item));
+    build
+}
+
+/// The Build using a usable item.
+pub fn using(mut build: Build, item: &str) -> Build {
+    build.gear.used.insert(gear_item(item));
     build
 }
 

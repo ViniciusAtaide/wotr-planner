@@ -162,7 +162,10 @@ impl Engine {
     /// one, each `None` past the point buy's range (a score from 7 to 18, within the budget). A step that would break
     /// a later choice (a score a prerequisite needs) is [`Issue::BreaksLater`](crate::Issue::BreaksLater).
     ///
-    /// Costs a walk of the Build for each step in the range.
+    /// The steps are judged with the Build's gear, as the walk judges the Build: a step the gear keeps legal is
+    /// open. One that is open only because of the gear says so ([`Step::with_gear`]), so it never looks safe.
+    ///
+    /// Costs a walk of the Build for each step in the range; with gear, four more for each open step.
     pub fn point_buy_steps(&self, build: &Build) -> Vec<Stepper<Ability>> {
         let cursor = Cursor::new(self, build);
         let point_buy = build.start.ability_scores;
@@ -172,9 +175,15 @@ impl Engine {
                 ability_scores: point_buy.with(ability, next)?,
                 ..build.start.clone()
             });
+            let status = cursor.try_edit(&edit);
+            // Allowed with the gear: whether it's allowed only because of it.
+            let with_gear = status.is_ok()
+                && !build.gear.is_empty()
+                && !self.newly_gear_dependent(build, &edit).is_empty();
             Some(Step {
-                status: cursor.try_edit(&edit),
+                status,
                 edit,
+                with_gear,
             })
         };
         AbilityScores::ABILITIES
@@ -209,6 +218,7 @@ impl Engine {
             (&after != build).then(|| Step {
                 status: cursor.try_edit(&edit),
                 edit,
+                with_gear: false,
             })
         };
         let steppers = self

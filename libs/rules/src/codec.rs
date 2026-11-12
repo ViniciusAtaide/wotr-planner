@@ -31,7 +31,7 @@
 //! a key of that kind.
 //!
 //! ```text
-//! structure     = name, start, levels, class choices, path, path [the switch], picks, first ascension
+//! structure     = name, start, levels, class choices, path, path [the switch], picks, first ascension, gear
 //! name          = opt(varint length in bytes, UTF-8 bytes)
 //! start         = opt(key(race)), opt(key(subrace)), ability [racial], alignment, opt(key(background)), faith,
 //!                 6 × u8 score [point buy: Str, Dex, Con, Int, Wis, Cha]
@@ -42,6 +42,7 @@
 //! path          = opt(key(mythic path))
 //! picks         = varint count, count × group
 //! first ascension = nothing [none] | 1, key(mythic path)
+//! gear          = nothing [none] | 2, varint count (at least 1), count × (u8 place, key(gear item))
 //! group         = u8 slot kind, varint count (at least 1), count × (u8 step, slot fields, pick)
 //! pick          = 0, key(feat), parameter | 1, key(selection option), parameter | 2, key(mythic ability)
 //!               | 3, key(mythic feat), parameter | 4, key(mythic ability), parameter [not none]
@@ -71,10 +72,18 @@
 //! writes nothing when there is none: every link made before it reads as a Build without one, and a Build without
 //! one writes the link it always did. Its key, when there is one, is the last hash listed.
 //!
+//! The gear ([`Build::gear`], ticket 166) came later still, so it goes after the first ascension, behind a tag of
+//! its own (`2`, which a first ascension never starts with), and writes nothing when the Build holds none: every
+//! link made before it reads as a Build without gear, and a Build without gear writes the link it always did. Each
+//! item is its place and its key: a worn item's place is its index in [`GearPlace::ALL`] (`0` Belt to `11` Weapon,
+//! with `8` and `9` the two rings and `10` the body), each place once and in that order; then the usable items
+//! used, each with place `12`, in their keys' text order. Their keys are the last hashes listed.
+//!
 //! **Exact.** A Build reads back unchanged from its link, given the keys it names, and has only one body: decoding
 //! refuses ([`DecodeError::Format`]) anything the encoder never writes: an unknown tag; groups or slots out of order,
 //! a slot named twice, a group with no picks; a map or set out of key order or naming a key twice; a varint longer
-//! than needed; a hash listed but not named; bytes left over. It also refuses a Build no planner could make,
+//! than needed; a hash listed but not named; bytes left over; a gear section with no item, a place out of order or
+//! named twice, a used item out of key order. It also refuses a Build no planner could make,
 //! whatever the game data: a point buy that doesn't fit, ranks above the character level, an ability increase on a
 //! level without one.
 //!
@@ -93,13 +102,13 @@ use base64::Engine as _;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 
 use crate::build::{
-    AbilityScores, Build, BuildStart, ClassChoice, Faith, FeatSource, LevelUp, Pick, PointBuy,
-    SlotId,
+    AbilityScores, Build, BuildStart, ClassChoice, Faith, FeatSource, Gear, GearPlace, LevelUp,
+    Pick, PointBuy, SlotId,
 };
 use crate::game_data::{Ability, Alignment, GameData};
 use crate::keys::{
-    ArchetypeKey, BackgroundKey, ClassKey, DeityKey, FeatKey, MythicAbilityKey, MythicFeatKey,
-    MythicPathKey, RaceKey, SelectionOptionKey, SkillKey, SubraceKey, WeaponKey,
+    ArchetypeKey, BackgroundKey, ClassKey, DeityKey, FeatKey, GearKey, MythicAbilityKey,
+    MythicFeatKey, MythicPathKey, RaceKey, SelectionOptionKey, SkillKey, SubraceKey, WeaponKey,
 };
 use crate::parameter::{ArmourType, Element, Energy, Parameter, SpellSchool, Stat};
 
@@ -198,7 +207,7 @@ pub enum KeyKind {
     SelectionOption,
     MythicAbility,
     MythicFeat,
-    /// A gear item (ticket 165): no Build names one yet.
+    /// A gear item a Build holds (ticket 166).
     Gear,
 }
 
@@ -396,6 +405,13 @@ fn level_or_rank(slot: &SlotId) -> u8 {
         .expect("every slot has a level or a rank")
 }
 
+/// The tag before the first ascension, when there is one.
+const FIRST_ASCENSION_TAG: u8 = 1;
+/// The tag before the gear, when the Build holds any.
+const GEAR_TAG: u8 = 2;
+/// The place of a usable item used, after every place an item is worn in ([`GearPlace::ALL`]).
+const USED_PLACE: u8 = GearPlace::ALL.len() as u8;
+
 /// Writes a version 1 structure, collecting the keys it names in order.
 struct Writer<'a> {
     keys: Vec<(KeyKind, &'a str)>,
@@ -451,6 +467,7 @@ impl<'a> Writer<'a> {
             mythic_path,
             path_switch,
             picks,
+            gear,
         } = build;
         match name {
             None => self.byte(0),
@@ -532,6 +549,20 @@ impl<'a> Writer<'a> {
         if let Some(path) = first_ascension {
             self.byte(1);
             self.key(KeyKind::MythicPath, path.as_str());
+        }
+        // Nothing either without gear: a Build without it writes the link it always did.
+        let Gear { worn, used } = gear;
+        if !gear.is_empty() {
+            self.byte(GEAR_TAG);
+            self.varint(worn.len() + used.len());
+            for (place, item) in worn {
+                self.byte(index_of(&GearPlace::ALL, place));
+                self.key(KeyKind::Gear, item.as_str());
+            }
+            for item in used {
+                self.byte(USED_PLACE);
+                self.key(KeyKind::Gear, item.as_str());
+            }
         }
     }
 
@@ -833,13 +864,20 @@ impl<'a> Reader<'a> {
         let mythic_path = self.opt_key(KeyKind::MythicPath)?.map(MythicPathKey);
         let path_switch = self.opt_key(KeyKind::MythicPath)?.map(MythicPathKey);
         let picks = self.picks()?;
-        // Absent, or `1` and the key: the encoder never writes a `0` here.
-        let first_ascension = if self.bytes.is_empty() {
-            None
-        } else if self.byte()? == 1 {
-            Some(MythicPathKey(self.key(KeyKind::MythicPath)?))
+        // Each absent, or its tag and what follows, the first ascension before the gear: the encoder never writes
+        // a `0` here.
+        let mut tag = self.tag()?;
+        let first_ascension = if tag == Some(FIRST_ASCENSION_TAG) {
+            let path = MythicPathKey(self.key(KeyKind::MythicPath)?);
+            tag = self.tag()?;
+            Some(path)
         } else {
-            return Err(DecodeError::Format);
+            None
+        };
+        let gear = match tag {
+            None => Gear::default(),
+            Some(GEAR_TAG) => self.gear()?,
+            Some(_) => return Err(DecodeError::Format),
         };
 
         if !self.bytes.is_empty() || self.hashes.len() > 0 {
@@ -854,7 +892,47 @@ impl<'a> Reader<'a> {
             mythic_path,
             path_switch,
             picks,
+            gear,
         })
+    }
+
+    /// The next section's tag; `None` at the end of the body.
+    fn tag(&mut self) -> Result<Option<u8>, DecodeError> {
+        if self.bytes.is_empty() {
+            Ok(None)
+        } else {
+            self.byte().map(Some)
+        }
+    }
+
+    /// The gear after its tag: at least one item, the worn ones in place order and the used ones after them in key
+    /// order, each place and each used item once.
+    fn gear(&mut self) -> Result<Gear, DecodeError> {
+        let count = self.count()?;
+        if count == 0 {
+            return Err(DecodeError::Format);
+        }
+        let mut gear = Gear::default();
+        for _ in 0..count {
+            let place = self.byte()?;
+            let item = GearKey(self.key(KeyKind::Gear)?);
+            if place == USED_PLACE {
+                if gear.used.last().is_some_and(|last| *last >= item) {
+                    return Err(DecodeError::Format);
+                }
+                gear.used.insert(item);
+            } else {
+                let place = *GearPlace::ALL
+                    .get(usize::from(place))
+                    .ok_or(DecodeError::Format)?;
+                // A worn item never follows a used one.
+                if !gear.used.is_empty() {
+                    return Err(DecodeError::Format);
+                }
+                insert_in_order(&mut gear.worn, place, item)?;
+            }
+        }
+        Ok(gear)
     }
 
     fn picks(&mut self) -> Result<BTreeMap<SlotId, Pick>, DecodeError> {
@@ -1104,6 +1182,82 @@ mod tests {
         let mut no_hash = BLANK.to_vec();
         no_hash.push(1);
         assert_eq!(decode(&no_hash), Err(DecodeError::Format));
+    }
+
+    /// The gear goes last, after the first ascension when there is one: `2`, how many items, then each item's place
+    /// and key (listed last), the worn ones in place order and the used ones (place `12`) in key order. Only when
+    /// the Build holds gear; never an empty section, a place out of order or twice, or a used item out of order.
+    #[test]
+    fn the_gear_follows_the_first_ascension_only_when_there_is_some() {
+        use crate::build::{Gear, GearPlace};
+        use crate::keys::GearKey;
+
+        let gear = Gear {
+            worn: BTreeMap::from([
+                (GearPlace::Belt, GearKey::new("b")),
+                (GearPlace::SecondRing, GearKey::new("r")),
+                (GearPlace::Body, GearKey::new("a")),
+            ]),
+            used: BTreeSet::from([GearKey::new("t"), GearKey::new("m")]),
+        };
+        let build = Build {
+            gear: gear.clone(),
+            ..Build::default()
+        };
+        let hashes = |keys: &[&str]| -> Vec<u8> {
+            let mut bytes = vec![u8::try_from(keys.len()).unwrap()];
+            for key in keys {
+                bytes.extend(&key_hash(key).to_le_bytes()[..3]);
+            }
+            bytes
+        };
+        // Belt (0), the second ring (9), the body (10), then the used ones in key order.
+        let section = [2, 5, 0, 9, 10, 12, 12];
+        let mut expected = hashes(&["b", "r", "a", "m", "t"]);
+        expected.extend(&BLANK[1..]);
+        expected.extend(section);
+        assert_eq!(body(&build), expected);
+        let keys = LinkKeys::of_build(&build);
+        assert_eq!(decode_build(&link(&expected), &keys), Ok(build));
+
+        // After a first ascension: its tag and key first.
+        let both = Build {
+            first_ascension: Some(MythicPathKey::new("p")),
+            gear,
+            ..Build::default()
+        };
+        let mut expected = hashes(&["p", "b", "r", "a", "m", "t"]);
+        expected.extend(&BLANK[1..]);
+        expected.push(1);
+        expected.extend(section);
+        assert_eq!(body(&both), expected);
+        let keys = LinkKeys::of_build(&both);
+        assert_eq!(decode_build(&link(&expected), &keys), Ok(both));
+
+        // What the encoder never writes.
+        let refused = |keys: &[&str], section: &[u8]| {
+            let mut body = hashes(keys);
+            body.extend(&BLANK[1..]);
+            body.extend(section);
+            let mut names = LinkKeys::default();
+            for key in keys {
+                names.insert(KeyKind::Gear, key);
+            }
+            assert_eq!(
+                decode_build(&link(&body), &names),
+                Err(DecodeError::Format),
+                "{section:?}"
+            );
+        };
+        refused(&[], &[2, 0]); // no item
+        refused(&["a", "b"], &[2, 2, 9, 0]); // places out of order
+        refused(&["a", "b"], &[2, 2, 0, 0]); // a place twice
+        refused(&["a"], &[2, 1, 13]); // no such place
+        refused(&["b", "a"], &[2, 2, 12, 12]); // used items out of key order
+        refused(&["a", "a"], &[2, 2, 12, 12]); // a used item twice
+        refused(&["a", "b"], &[2, 2, 12, 0]); // a worn item after a used one
+        refused(&["a"], &[2, 1, 0, 1]); // the first ascension after the gear
+        refused(&["a"], &[3, 1, 0]); // an unknown tag
     }
 
     /// Ticket 125's tags, after links had shipped: a mythic ability with a value is pick `4` (with none it's `2`, as

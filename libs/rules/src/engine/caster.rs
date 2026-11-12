@@ -2,12 +2,13 @@
 //! concentration bonus, at one point of a Build (ticket 119).
 //!
 //! Unconditional numbers only, from what the Build fixes: the casting class's caster level and casting ability
-//! (the character's own score), and the Item bonuses in force ([`BonusInForce`], from `bonuses.ron`): Spell Focus
-//! and its kin, racial DCs, bloodline arcana, School Power, Spell Penetration, Combat Casting. Everything else is
-//! [`CASTER_LINE_LEAVES_OUT`]. The line is for a spell the caller describes ([`SpellTraits`]: a school, and
+//! (the character's score, its gear's bonuses included), and the bonuses in force ([`BonusInForce`]): the Item
+//! bonuses of `bonuses.ron` (Spell Focus and its kin, racial DCs, bloodline arcana, School Power, Spell Penetration,
+//! Combat Casting) and the always-on bonuses of the Build's gear to the DC, the caster level, spell penetration and
+//! concentration, stacked by type ([`counted`]). Everything else is [`CASTER_LINE_LEAVES_OUT`]. The line is for a spell the caller describes ([`SpellTraits`]: a school, and
 //! optionally a subschool, an energy type and metamagic), so no spell catalogue is needed.
 
-use crate::bonus::{BonusInForce, BonusTarget, SpellTraits};
+use crate::bonus::{BonusInForce, BonusTarget, InForceTarget, SpellTraits, counted};
 use crate::game_data::Ability;
 use crate::keys::{ClassKey, FeatKey};
 use crate::state::CharacterState;
@@ -24,7 +25,9 @@ pub struct CasterLine {
     pub ability: Ability,
     /// The spell the line is for.
     pub spell: SpellTraits,
-    /// The class's caster level: its class levels plus the prestige levels that advance it.
+    /// The class's caster level: its class levels plus the prestige levels that advance it, plus what the Build's
+    /// gear adds to the caster level (stacked by type; no part lists it). Prerequisites never see gear's part:
+    /// they read [`CharacterState::caster_level`].
     pub caster_level: u8,
     /// The save DC of a spell of each level the class can cast, from the 1st to the highest: 10 + the spell level +
     /// what [`dc_parts`](Self::dc_parts) add.
@@ -65,7 +68,8 @@ pub struct CasterPart {
 /// What a caster line leaves out, the same for every line: it holds only the numbers a Build fixes whatever happens
 /// in a fight.
 pub const CASTER_LINE_LEAVES_OUT: &[&str] = &[
-    "gear: ability-score items, and items raising DCs, caster level or concentration",
+    "gear the Build doesn't hold, and what its items do besides their always-on bonuses: a caster level or DC \
+     bonus for one school or one kind of spell, activated abilities, set bonuses",
     "buffs and spells cast on the character",
     "abilities switched on in a fight: the Aeon's gaze, Demonic Rage and aspects, the Devil's decrees, Studied Target",
     "bonuses that grow with class level (Combat Casting Adept, Horn Call, Cold Specialization, Overwhelming \
@@ -96,16 +100,18 @@ impl Engine {
     pub fn caster_line(&self, level: &LevelSheet, spell: SpellTraits) -> Option<CasterLine> {
         let state = &level.state;
         let casting = self.casting(state)?;
+        // The bonuses in force that add to one number and count there: gear's stack by type.
         let parts = |adds: &dyn Fn(&BonusInForce) -> bool| {
-            state
-                .bonuses_in_force
-                .iter()
-                .filter(|bonus| adds(bonus))
+            counted(state.bonuses_in_force.iter().filter(|bonus| adds(bonus)))
+                .into_iter()
                 .map(|bonus| CasterPart {
                     name: bonus.name.clone(),
                     value: bonus.amount,
                 })
                 .collect::<Vec<_>>()
+        };
+        let adds_to = |bonus: &BonusInForce, target: &BonusTarget| {
+            bonus.target == InForceTarget::Number(target.clone())
         };
         let ability = CasterPart {
             name: casting.ability.name().to_owned(),
@@ -113,12 +119,15 @@ impl Engine {
         };
         let mut dc_parts = vec![ability.clone()];
         dc_parts.extend(parts(&|bonus| match bonus.target {
-            BonusTarget::SpellDc(scope) => scope.applies(&spell, bonus.value.as_ref()),
+            InForceTarget::Number(BonusTarget::SpellDc(scope)) => {
+                scope.applies(&spell, bonus.value.as_ref())
+            }
             _ => false,
         }));
-        let spell_penetration_parts = parts(&|bonus| bonus.target == BonusTarget::SpellPenetration);
+        let spell_penetration_parts =
+            parts(&|bonus| adds_to(bonus, &BonusTarget::SpellPenetration));
         let mut concentration_parts = vec![ability];
-        concentration_parts.extend(parts(&|bonus| bonus.target == BonusTarget::Concentration));
+        concentration_parts.extend(parts(&|bonus| adds_to(bonus, &BonusTarget::Concentration)));
 
         let sum = |parts: &[CasterPart]| parts.iter().map(|part| part.value).sum::<i16>();
         let dc_bonus = sum(&dc_parts);
@@ -126,12 +135,17 @@ impl Engine {
             spell_level,
             dc: 10 + i16::from(spell_level) + dc_bonus,
         };
-        let caster_level = i16::from(casting.caster_level);
+        // Gear's caster level bonuses raise the level the line reports, and with it the two checks made with it.
+        let from_gear: i16 = parts(&|bonus| bonus.target == InForceTarget::CasterLevel)
+            .iter()
+            .map(|part| part.value)
+            .sum();
+        let caster_level = (i16::from(casting.caster_level) + from_gear).clamp(0, 255);
         Some(CasterLine {
             class: casting.class,
             ability: casting.ability,
             spell,
-            caster_level: casting.caster_level,
+            caster_level: u8::try_from(caster_level).unwrap_or(u8::MAX),
             dcs: (1..=casting.spell_level).map(dc).collect(),
             heightened: (state.feat_count(&FeatKey::new(HEIGHTEN_SPELL)) > 0)
                 .then(|| dc(casting.spell_level)),

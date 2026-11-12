@@ -254,7 +254,8 @@ impl<'a> Walker<'a> {
                 .and_then(|archetype| archetype.skill_points)
                 .unwrap_or(class.skill_points)
         });
-        let intelligence = self.state.ability_scores.modifier(Ability::Intelligence);
+        // The score without gear, so the ranks stay valid whatever is worn.
+        let intelligence = self.skill_point_scores().modifier(Ability::Intelligence);
         let race_points = catalog.racial_skill_points(&self.build.start);
         let available =
             (i16::from(class_points) + i16::from(intelligence)).max(1) + i16::from(race_points);

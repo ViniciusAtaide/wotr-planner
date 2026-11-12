@@ -1,7 +1,8 @@
 //! The Item bonuses in force at the end of a level (ticket 151): which the character holds, through the Build start
 //! (race, subrace, background) or the state (feats, mythic feats and abilities, features, options), whether each
 //! meets its `requires`, and what each adds there. The walk records them on the sheet's states, so the caster line
-//! and the totals read a level of the sheet alone.
+//! and the totals read a level of the sheet alone. The bonuses of the Build's gear follow them at every level
+//! (ticket 166; worked out in `gear`).
 //!
 //! The walk notes each bonus whose item it holds as it holds it ([`Walker::note_bonuses`]), so a level's end looks
 //! only at those, not at every bonus of the data. A level's end then keeps the last level's list while what it finds
@@ -13,12 +14,13 @@ use std::collections::BTreeMap;
 
 use super::{Held, Walker};
 use crate::bonus::{
-    BonusAmount, BonusInForce, BonusItem, BonusItemKind, BonusTarget, ItemBonus, SpellScope,
+    BonusAmount, BonusInForce, BonusItem, BonusItemKind, BonusSource, BonusTarget, BonusType,
+    InForceTarget, ItemBonus, SpellScope,
 };
 use crate::parameter::{Parameter, SpellSchool};
 
-/// Where a bonus in force comes from: its position in the data's bonuses, and for Expanded Arsenal the school
-/// whose Spell Focus feats it copies. With the entry's value, it says which bonus an entry is; the walk keeps one
+/// Where a bonus in force comes from: its position in the data's bonuses (a gear item's bonus: past the data's
+/// last, in the order the Build holds them), and for Expanded Arsenal the school whose Spell Focus feats it copies. With the entry's value, it says which bonus an entry is; the walk keeps one
 /// beside each entry of the state's list (`Walker::bonus_keys`), so a level's end compares without the item's key.
 pub(super) type BonusKey = (usize, Option<SpellSchool>);
 
@@ -67,10 +69,10 @@ impl Walker<'_> {
         }
     }
 
-    /// Records the Item bonuses in force on the state ([`CharacterState::bonuses_in_force`]): those noted
+    /// Records the bonuses in force on the state ([`CharacterState::bonuses_in_force`]): the Item bonuses noted
     /// ([`note_bonuses`](Self::note_bonuses)) whose item is held and whose `requires` holds, in the data's order,
-    /// once per value the item is held for, with what each adds. The last level's list stands while each entry
-    /// found matches its own; from the first that doesn't, a new list.
+    /// once per value the item is held for, with what each adds; then the gear's (ticket 166). The last level's list
+    /// stands while each entry found matches its own; from the first that doesn't, a new list.
     ///
     /// [`CharacterState::bonuses_in_force`]: crate::CharacterState::bonuses_in_force
     pub(super) fn record_bonuses(&mut self) {
@@ -82,6 +84,33 @@ impl Walker<'_> {
         let mut new: Option<Vec<BonusInForce>> = None;
         // How far the search for a last level's entry to reuse has gone.
         let mut reuse_from = 0;
+        // Adds the bonus `key` held for `value` with its amount: nothing while the last level's list still matches,
+        // else onto the new list, as the last level's entry when it had one and as `fresh` otherwise.
+        let mut add = |key: BonusKey,
+                       value: Option<&Parameter>,
+                       amount: i16,
+                       fresh: &dyn Fn() -> BonusInForce| {
+            let at = keys.len();
+            keys.push(key);
+            let list = match &mut new {
+                Some(list) => list,
+                None if last.get(at).is_some_and(|entry| {
+                    last_keys[at] == key && entry.value.as_ref() == value && entry.amount == amount
+                }) =>
+                {
+                    return;
+                }
+                None => new.insert(last[..at].to_vec()),
+            };
+            let entry = match reusable(last, last_keys, &mut reuse_from, key, value) {
+                Some(entry) => BonusInForce {
+                    amount,
+                    ..entry.clone()
+                },
+                None => fresh(),
+            };
+            list.push(entry);
+        };
         let focus = OnceCell::new();
         for &row in &self.bonuses_noted {
             let bonus = &bonuses[row];
@@ -99,35 +128,20 @@ impl Walker<'_> {
                 } else {
                     (self.amount(bonus, value), None)
                 };
-                let key = (row, copies);
-                let at = keys.len();
-                keys.push(key);
-                let list = match &mut new {
-                    Some(list) => list,
-                    None if last.get(at).is_some_and(|entry| {
-                        last_keys[at] == key
-                            && entry.value.as_ref() == value
-                            && entry.amount == amount
-                    }) =>
-                    {
-                        return;
-                    }
-                    None => new.insert(last[..at].to_vec()),
-                };
-                let entry = match reusable(last, last_keys, &mut reuse_from, key, value) {
-                    Some(entry) => BonusInForce {
-                        amount,
-                        ..entry.clone()
-                    },
-                    None => BonusInForce {
-                        item: bonus.item.clone(),
-                        value: value.cloned(),
-                        target: bonus.target.clone(),
-                        amount,
-                        name: self.bonus_name(&bonus.item, value, copies),
-                    },
-                };
-                list.push(entry);
+                add((row, copies), value, amount, &|| BonusInForce {
+                    source: BonusSource::Item(bonus.item.clone()),
+                    value: value.cloned(),
+                    target: InForceTarget::Number(bonus.target.clone()),
+                    amount,
+                    kind: BonusType::Untyped,
+                    name: self.bonus_name(&bonus.item, value, copies),
+                });
+            });
+        }
+        // The gear's bonuses, the same at every level, after the data's: each keyed past the data's last row.
+        for (at, bonus) in self.gear.bonuses.iter().enumerate() {
+            add((bonuses.len() + at, None), None, bonus.amount, &|| {
+                bonus.clone()
             });
         }
         // The last level's list stands, or its first entries do (its last ones are no longer in force).
