@@ -11,12 +11,12 @@
 //!   class's verdict and the advancement picker read.
 //!
 //! The walk can't resume mid-level ([`Walker::level`] works a level's slots out at its start), so the cursor keeps
-//! the walk paused before each level, filled as far as the questions asked need, and a candidate's later choices are
+//! the walk paused before the levels the questions asked need, and a candidate's later choices are
 //! walked from the start of the first level it changes, on the edited Build. Those walks keep no sheet and stop at
 //! the first choice that fails. [`Engine::allows`] and the withdrawals ask the same walks ([`Cursor::keeps`]).
 
 use std::cell::{OnceCell, RefCell};
-use std::collections::{BTreeSet, HashSet};
+use std::collections::{BTreeMap, BTreeSet, HashSet};
 
 use super::judge::{check_pick, check_pick_with, class_entry};
 use super::level::{advancements, first_taken_at};
@@ -32,14 +32,16 @@ use crate::keys::{ArchetypeKey, ClassKey, FeatKey};
 use crate::prerequisite::Prerequisite;
 use crate::state::CharacterState;
 
-/// A Build's walk, paused before each character level as far as the questions asked of it need. Build one per
-/// picker (or per question), for the Build it judges.
+/// A Build's walk, paused before the character levels the questions asked of it need. Build one per picker (or
+/// per question), for the Build it judges.
 pub(crate) struct Cursor<'a> {
     engine: &'a Engine,
     build: &'a Build,
-    /// `paused[i]` is the walk just before character level `i + 1` (after the Build start); the one after the last
-    /// level is the last there can be. Filled as far as a question has needed.
-    paused: RefCell<Vec<Walker<'a>>>,
+    /// The walk just before character level `i + 1` (after the Build start) at key `i`, for each level a question
+    /// has asked about; the one after the last level is the last there can be. Only those are kept: a level asked
+    /// about is walked on from the closest kept before it, without a copy of the walk at each level between (most
+    /// cursors answer one question, at one level: ticket 158).
+    paused: RefCell<BTreeMap<usize, Walker<'a>>>,
 }
 
 impl<'a> Cursor<'a> {
@@ -47,7 +49,7 @@ impl<'a> Cursor<'a> {
         Self {
             engine,
             build,
-            paused: RefCell::new(Vec::new()),
+            paused: RefCell::new(BTreeMap::new()),
         }
     }
 
@@ -119,16 +121,12 @@ impl<'a> Cursor<'a> {
     fn after_last(&self) -> CharacterState {
         let build = self.build;
         let paused = self.paused.borrow();
-        if let Some(walker) = paused.get(build.levels.len()) {
+        if let Some(walker) = paused.get(&build.levels.len()) {
             return walker.state.clone();
         }
-        let (mut walker, walked) = match paused.last() {
-            Some(walker) => (walker.clone(), paused.len() - 1),
-            None => {
-                let mut walker = Walker::new(self.engine, build).without_sheet();
-                walker.start();
-                (walker, 0)
-            }
+        let (mut walker, walked) = match paused.last_key_value() {
+            Some((&walked, walker)) => (walker.clone(), walked),
+            None => (self.started(), 0),
         };
         for (index, level_up) in build.levels.iter().enumerate().skip(walked) {
             walker.level(u8::try_from(index + 1).unwrap_or(u8::MAX), level_up);
@@ -145,32 +143,37 @@ impl<'a> Cursor<'a> {
     /// one after the last level.
     fn with_paused<T>(&self, index: usize, read: impl FnOnce(&Walker<'a>) -> T) -> Option<T> {
         self.walk_to(index)
-            .then(|| self.paused.borrow().get(index).map(read))
+            .then(|| self.paused.borrow().get(&index).map(read))
             .flatten()
     }
 
-    /// Walks as far as just before character level `index + 1`; `false` past the one after the last level.
+    /// Keeps the walk just before character level `index + 1`, walked on from the closest one kept before it (or
+    /// from the Build start); `false` past the one after the last level.
     fn walk_to(&self, index: usize) -> bool {
         let build = self.build;
         if index > build.levels.len() {
             return false;
         }
         let mut paused = self.paused.borrow_mut();
-        if paused.is_empty() {
-            let mut walker = Walker::new(self.engine, build).without_sheet();
-            walker.start();
-            paused.push(walker);
+        if paused.contains_key(&index) {
+            return true;
         }
-        while paused.len() <= index {
-            let walked = paused.len() - 1;
-            let mut walker = paused[walked].clone();
-            walker.level(
-                u8::try_from(walked + 1).unwrap_or(u8::MAX),
-                &build.levels[walked],
-            );
-            paused.push(walker);
+        let (mut walker, walked) = match paused.range(..index).next_back() {
+            Some((&walked, walker)) => (walker.clone(), walked),
+            None => (self.started(), 0),
+        };
+        for (at, level_up) in build.levels.iter().enumerate().take(index).skip(walked) {
+            walker.level(u8::try_from(at + 1).unwrap_or(u8::MAX), level_up);
         }
+        paused.insert(index, walker);
         true
+    }
+
+    /// The walk just after the Build start, before the first level, without the sheet.
+    fn started(&self) -> Walker<'a> {
+        let mut walker = Walker::new(self.engine, self.build).without_sheet();
+        walker.start();
+        walker
     }
 
     // ---- Verdicts ---------------------------------------------------------------------------------------------
