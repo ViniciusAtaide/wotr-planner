@@ -452,9 +452,9 @@ fn jack() -> Build {
 /// The Enforcer: a Half-Elf (+2 Strength) Arcane Enforcer 15 / Sylvan Trickster 4 / Mutation Warrior 1, Chaotic
 /// Good and atheist, a rank each in Athletics, Perception and Persuasion a level and the rogue levels' two more in
 /// Mobility and Stealth (ticket 88's settled choices), the Trickster's first ascension (ticket 91) and the Azata
-/// path. The slots its known gaps leave empty: level 8's Slayer Talents and MR 10's Mythic feat; and level 13's
-/// Arcanist Exploits, beside the Greater Exploits slot its exploit goes in (ticket 88). It wears a Dexterity +2 belt
-/// (ticket 168), so level 19's Greater Two-Weapon Fighting is legal.
+/// path, with MR 10 taken at level 20, after Shield Focus (ticket 171). The slot its known gap leaves empty: level
+/// 8's Slayer Talents; and level 13's Arcanist Exploits, beside the Greater Exploits slot its exploit goes in (ticket
+/// 88). It wears a Dexterity +2 belt (ticket 168), so level 19's Greater Two-Weapon Fighting is legal.
 fn enforcer() -> Build {
     let mut build = Build::default();
     let start = &mut build.start;
@@ -631,11 +631,19 @@ fn enforcer() -> Build {
         ),
         (SlotId::Mythic { rank: 9 }, ability("ever-ready")),
         (
+            SlotId::Mythic { rank: 10 },
+            mythic_feat("shield-focus-mythic"),
+        ),
+        (
             path_selection(10),
             option("azata/superpowers/supersonic-speed"),
         ),
     ];
     build.picks.extend(picks);
+    // MR 10 after the last level (ticket 171): its Shield Focus (Mythic) needs Shield Focus, which the write-up
+    // takes at level 20, and the rank table's level for MR 10 is 19. "You can select mythic feats after leveling all
+    // base levels" (the user, 2026-11-11).
+    build.rank_levels.insert(10, 20);
     build
 }
 
@@ -669,6 +677,42 @@ fn gold_builds_are_possible() {
             assert!(sheet.slot(slot).is_some(), "{name}: {slot:?}");
         }
     }
+}
+
+/// Ticket 171 on the real data: at the rank table's level (19), MR 10's Mythic feat slot refuses Shield Focus
+/// (Mythic), since Shield Focus comes at level 20; the engine says MR 10 taken at level 20 opens it, the level picker
+/// offers that level, and once the feat is taken there the rank can't come back until the feat does.
+#[test]
+fn the_enforcers_mythic_shield_focus_needs_mr_10_taken_at_level_20() {
+    let engine = support::engine();
+    let gold = enforcer();
+    let slot = SlotId::Mythic { rank: 10 };
+    let pick = gold.picks[&slot].clone();
+    let mut at_table = gold.clone();
+    at_table.rank_levels.clear();
+    assert!(!engine.is_possible(&at_table));
+    at_table.picks.remove(&slot);
+    assert!(engine.is_possible(&at_table));
+    let sheet = engine.evaluate(&at_table);
+    assert_eq!(sheet.ranks[9].character_level, 19);
+    assert_eq!(
+        engine.rank_level_that_opens(&at_table, &sheet, &slot, &pick),
+        Some(20)
+    );
+    let levels: Vec<(u8, bool, bool)> = (engine.rank_level_options(&at_table, 10).iter())
+        .map(|option| (option.level, option.held, option.status.is_ok()))
+        .collect();
+    assert_eq!(levels, [(19, true, true), (20, false, true)]);
+
+    let back = &engine.rank_level_options(&gold, 10)[0];
+    assert_eq!(back.status, Err(rules::Issue::BreaksLater));
+    assert_eq!(
+        back.reason.as_deref(),
+        Some("Shield Focus (Mythic) needs MR 10 later than level 19")
+    );
+    // Its link holds the move, and reopens to the same Build.
+    let code = rules::encode_build(&gold);
+    assert_eq!(engine.open_link(&code), Ok(gold));
 }
 
 // ---- names ----------------------------------------------------------------------------------------------------
@@ -1468,16 +1512,6 @@ const fn gap(
 /// deletes its entry.
 const KNOWN_GAPS: &[Gap] = &[
     // ---- map decisions the user reopened ----
-    gap(
-        "enforcer",
-        Place::Rank(10),
-        "Mythic Shield Focus",
-        Covers::NotGained("Shield Focus (Mythic)"),
-        Why::Reopened(
-            171,
-            "MR 10 comes at level 19, before Shield Focus at 20; the mythic picks may come after the levels",
-        ),
-    ),
     gap(
         "jack",
         Place::Level(1),
