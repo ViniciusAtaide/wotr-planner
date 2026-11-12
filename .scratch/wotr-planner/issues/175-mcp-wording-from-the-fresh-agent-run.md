@@ -1,7 +1,7 @@
 # The MCP's wording: what a fresh agent had to find out by trial
 
 Type: task
-Status: open
+Status: resolved
 Blocked by: none
 Model: Sonnet to build; a fresh Sonnet agent repeats the run to check it.
 Map: [WotR Build Planner](../map.md)
@@ -31,3 +31,13 @@ AFK. `apps/mcp` (the instructions, the tool descriptions, the `wotr://build-guid
 - Each of the five points is answered by the server's own text.
 - A fresh agent, given only the server over HTTP, repeats both builds without a refusal on points 1 and 4, and says whether anything else was unclear.
 - `scripts/check.sh` passes.
+
+## Answer
+
+Built 2026-11-12 on branch `ticket-175`, from `main` at `440626a`. Not merged. Wording only; no tool's behaviour changed, the snapshot files are untouched, and the instructions are 3,644 characters (limit 4,000). The last Done-when item (a fresh agent repeating both builds) is the main session's.
+
+1. **A skill's value.** The number at `level.N.skill.<skill>` is the ranks that level adds, not a running total; no skill's total over the levels goes above the character level (at level 1, one rank at most), and a level adds ranks only up to its skill points. Said in the guide's "Values" and in `choose`'s description.
+2. **`todo` is not a requirement.** `todo` lists what is open; a Build is valid with any of it open (the Mythic ranks, unspent skill points). Said in the instructions (one clause) and in the guide's "Planned whole".
+3. **Gear before the pick it opens.** The same holds for a lowered score or a moved ability increase under a worn item (`leans_on_gear` reports it). Said in the instructions and in the guide's gear section.
+4. **Two codes, one case.** The pair is how the server already works: any choice something later depends on is `breaks_later` from `choose` (and `options`) and `not_removable` from `withdraw`; gear is not the odd one out. So the codes stay and `choose`, `withdraw`, the instructions and the guide each say they are the same case.
+5. **`start.score.<ability>` is the point-buy base**, before the racial bonus, which is added on top. Said in the guide's "Values" and in `choose`'s description.

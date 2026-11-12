@@ -42,7 +42,7 @@ skill holds the same text). It gives what to know before you plan, the workflow,
 values, batching, branching, ranking by a number and the honesty boundary in full. In short:
 1. Resolve each name the user gives with `search`; if a name could mean more than one item, ask the user which one.
 2. `new_build`, then plan the whole Build as one map of address → value and check it with `validate`; `choose` what \
-is still open, reading `rejected` when a step is refused.
+is still open (`todo` is what is open, not what is required), reading `rejected` when a step is refused.
 3. Give the user the final `link`.
 
 Gear: a Build has no gear unless the user asks for it; never add an item yourself. To add one the user names, \
@@ -51,9 +51,9 @@ its place: `gear.belt`, \
 `gear.headwear`, `gear.ring.0`, `gear.ring.1`, `gear.body` (robe or armour), … or `gear.usable.<key>` for a \
 manual or tome (`options` on a place lists its items; in `validate`'s map, the same addresses). An item's \
 always-on bonuses count at every level, for prerequisites and every number (never for skill points), so it can \
-open a feat (`choose` the item before that feat): `options` marks such an option `{\"with_gear\": …}`, and \
+open a feat or let a score be lowered (`choose` the item first): `options` marks such an option `{\"with_gear\": …}`, and \
 `sheet`'s `gear_dependent` lists each choice only gear allows with its item; a `choose` or `withdraw` step that \
-leaves one so names it in `leans_on_gear`. Report them, naming each pick and its item. An item a pick needs can't be withdrawn, or replaced by one that doesn't keep the pick, until the pick is. \
+leaves one so names it in `leans_on_gear`. Report them, naming each pick and its item. An item a pick needs can't be withdrawn (`not_removable`), or replaced by one that doesn't keep the pick (`breaks_later`), until the pick is: one case, two tools. \
 The planner's items are those that \
 give an ability score bonus, with manuals and tomes; weapons' and armour's enhancements, armour class and other \
 items aren't modelled yet: what they add is your own game knowledge.
@@ -304,11 +304,15 @@ impl Server {
             only an option the planner offers and finds open, by the planner's own edit, and \
             the result is checked again, so the Build stays possible. A point-buy score (`start.score.int`) or a \
             skill's ranks at a level (`level.N.skill.<skill>`) take the number to reach, reached one step at a time, \
-            each checked; the current value is a no-op. `level.N.skill` takes a map {skill: ranks} (`{\"athletics\": \
-            1, \"perception\": 1}`), each skill's ranks at that level reached the same way, all in one step. The first \
+            each checked; the current value is a no-op. A score is the point-buy base, before the racial bonus. \
+            A skill's number is the ranks that level adds, not a running total: no skill's total over the levels \
+            goes above the character level (at level 1, 1 rank at most) and a level adds ranks only up to its skill \
+            points. `level.N.skill` takes a map {skill: ranks} (`{\"athletics\": 1, \"perception\": 1}`), each \
+            skill's ranks at that level reached the same way, all in one step. The first \
             step refused stops the rest (a refused rank refuses its whole step): `applied` counts the steps applied, \
             and `rejected` {step, choice, issue, reason} gives the engine's issue (`unmet`, `already_held`, \
-            `breaks_later`, …) or the server's (`not_an_option`, with the closest values; `needs_parameter`, a \
+            `breaks_later`, …; the one `withdraw` calls `not_removable`: an item a pick needs, taken off, is both) or the \
+            server's (`not_an_option`, with the closest values; `needs_parameter`, a \
             parameterised feat given by its key alone, with what it takes and its open values; `no_such_choice`). \
             Returns the envelope (`build`, `link`, `todo`) of the Build as the applied steps left \
             it; `moved` {step, choice, item, name, from} for a ring a step took from the other ring place (that \
@@ -331,7 +335,7 @@ impl Server {
             removed (`level.N`), a level's ability increase or a skill's ranks gone, a class's archetype or advanced \
             classes unchosen (`class.<class>.archetype|advances`), a point-buy score back to 7, a Build start choice, \
             the first ascension, path or Path switch unchosen, or a gear item taken off (`gear.belt`, \
-            `gear.usable.<item key>`, …). Only a choice nothing later depends on comes off (an item a pick needs is \
+            `gear.usable.<item key>`, …). Only a choice nothing later depends on comes off (`choose` calls the same refusal `breaks_later`; an item a pick needs is \
             refused naming the pick: withdraw the pick first, or `choose` an item that keeps it): \
             otherwise `not_removable` (`sheet` with `removable: true` lists what can come off now, so chains come \
             off from the leaves inward). A level's class isn't withdrawn (`choose` another class, or withdraw the \
