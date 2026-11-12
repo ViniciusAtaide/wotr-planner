@@ -2,7 +2,10 @@
 //! ranks and a badge for the Mythic ranks reached there; then the summary of where the Build ends.
 
 use leptos::prelude::*;
-use rules::{AbilityScores, Build, Choice, Engine, LevelSheet, Sheet, Slot, WeaponKey};
+use rules::{
+    AbilityScores, Build, Choice, Engine, LevelSheet, Save, Sheet, Slot, SpellSchool, SpellTraits,
+    WeaponKey,
+};
 
 use crate::icons::feat_icon;
 use crate::planner::{AttackWeapon, Tab, Target, use_planner};
@@ -80,6 +83,8 @@ fn level_row(engine: &Engine, build: &Build, level: &LevelSheet) -> impl IntoVie
         .filter(|_| level.class_level == 1)
         .map(|archetype| engine.archetype_name(archetype).to_owned());
     let changeable = planner.class_removable(n);
+    // A class whose entry only the gear meets says which items, under its archetype.
+    let gear = planner.gear_note(&Choice::Class { level: n });
     let chips = level
         .slots
         .iter()
@@ -147,6 +152,7 @@ fn level_row(engine: &Engine, build: &Build, level: &LevelSheet) -> impl IntoVie
                         .then(|| view! { <span class="lock" aria-label="Locked">"🔒"</span> })}
                 </span>
                 {archetype.map(|archetype| view! { <span class="class-archetype">{archetype}</span> })}
+                {gear.map(|gear| view! { <span class="class-gear">{gear}</span> })}
             </button>
             <div class="chips">{chips} {increase} {skills} {mythic}</div>
         </div>
@@ -175,12 +181,20 @@ pub fn slot_chip(engine: &Engine, slot: &Slot, lost: bool) -> impl IntoView + us
         .as_ref()
         .and_then(|pick| engine.feat_category(pick));
     let empty = value.is_none();
+    // A pick allowed only by the Build's gear says which items, under its value (where a story note goes).
+    let gear = planner.gear_note(&Choice::Slot(slot.id.clone()));
+    let title = match &gear {
+        Some(gear) => format!("{title} · {gear}"),
+        None => title,
+    };
     let id = slot.id.clone();
+    let with_gear = gear.is_some();
     view! {
         <button
             class="chip"
             class:empty=empty
             class:lost=lost
+            class:with-gear=with_gear
             title=title
             on:click=move |_| planner.open(Target::Slot(id.clone()))
         >
@@ -191,6 +205,7 @@ pub fn slot_chip(engine: &Engine, slot: &Slot, lost: bool) -> impl IntoView + us
                 {value.unwrap_or_else(|| "+".to_owned())}
                 {lost.then(|| view! { <span class="lost-tag">"lost"</span> })}
             </span>
+            {gear.map(|gear| view! { <span class="chip-gear">{gear}</span> })}
         </button>
     }
 }
@@ -214,15 +229,56 @@ fn Summary(sheet: std::sync::Arc<Sheet>) -> impl IntoView {
         .iter()
         .map(|class| format!("{} {}", engine.class_name(&class.class), class.level))
         .collect();
-    let scores: Vec<String> = AbilityScores::ABILITIES
+    // With gear, each score it changes has its naked value beside it, smaller; without gear there's none.
+    let naked = planner.naked.get();
+    let naked_scores = (naked.as_ref())
+        .and_then(|naked| naked.levels.last())
+        .map(|level| level.state.ability_scores);
+    let scores = AbilityScores::ABILITIES
         .into_iter()
-        .map(|ability| {
-            format!(
-                "{} {}",
-                ability.short_name(),
-                state.ability_scores.get(ability)
-            )
+        .enumerate()
+        .map(|(index, ability)| {
+            let score = state.ability_scores.get(ability);
+            let bare = naked_scores
+                .map(|scores| scores.get(ability))
+                .filter(|bare| *bare != score);
+            view! {
+                {(index > 0).then_some(" · ")}
+                {format!("{} {score}", ability.short_name())}
+                {bare.map(|bare| naked_number(bare.to_string()))}
+            }
         })
+        .collect_view();
+    // With gear, every other total it changes, with both numbers: none without gear, and nothing when none differs.
+    let gear_totals = (naked.as_ref())
+        .and_then(|naked| naked.levels.last())
+        .map(|bare| gear_totals(&engine, last, bare))
+        .filter(|totals| !totals.is_empty())
+        .map(|totals| {
+            let totals = totals
+                .into_iter()
+                .enumerate()
+                .map(|(index, total)| {
+                    view! {
+                        {(index > 0).then_some(" · ")}
+                        <span class="gear-total">
+                            {format!("{} {}", total.label, total.with)}
+                            {naked_number(total.naked)}
+                        </span>
+                    }
+                })
+                .collect_view();
+            view! {
+                <p class="summary-numbers gear-totals">
+                    <span class="gear-totals-label">"Totals with gear: "</span>
+                    {totals}
+                </p>
+            }
+        });
+    let gear_dependents: Vec<String> = planner
+        .gear_dependents()
+        .into_iter()
+        .map(|(name, note)| format!("{name} · {note}"))
         .collect();
     let class_skills: Vec<&str> = state
         .class_skills
@@ -265,7 +321,16 @@ fn Summary(sheet: std::sync::Arc<Sheet>) -> impl IntoView {
                     state.will,
                 )}
             </p>
-            <p class="summary-numbers">{scores.join(" · ")}</p>
+            <p class="summary-numbers">{scores}</p>
+            {gear_totals}
+            {(!gear_dependents.is_empty())
+                .then(|| {
+                    view! {
+                        <p class="summary-note gear-note">
+                            {format!("Gear-dependent: {}", gear_dependents.join("; "))}
+                        </p>
+                    }
+                })}
             {faith.map(|faith| view! { <p class="summary-note">{format!("Faith: {faith}")}</p> })}
             {(!class_skills.is_empty())
                 .then(|| {
@@ -344,11 +409,31 @@ fn AttackBlock(sheet: std::sync::Arc<Sheet>) -> impl IntoView {
                 .iter()
                 .map(|item| view! { <li>{*item}</li> })
                 .collect_view();
+            // The same weapon's line without the gear, when it differs.
+            let texts = |line: &rules::AttackLine| {
+                (
+                    line.attacks_text(),
+                    line.damage_text(),
+                    line.critical_text(),
+                )
+            };
+            let bare = (planner.naked.get())
+                .and_then(|naked| engine.attack_line(&naked.levels.last()?.state, &key))
+                .map(|bare| texts(&bare))
+                .filter(|bare| *bare != texts(&line))
+                .map(|(attacks, damage, critical)| {
+                    view! {
+                        <p class="summary-numbers naked-line">
+                            {naked_number(format!("{attacks} · {damage} · {critical}"))}
+                        </p>
+                    }
+                });
             Some(view! {
                 <p class="summary-numbers attack-numbers">
                     <strong>{line.attacks_text()}</strong>
                     {format!(" · {} · {}", line.damage_text(), line.critical_text())}
                 </p>
+                {bare}
                 {power_attack.map(|text| view! { <p class="summary-note">{text}</p> })}
                 <p class="summary-note">{format!("Counts: BAB; {}", counts.join("; "))}</p>
                 <details class="attack-leaves-out">
@@ -381,4 +466,136 @@ fn AttackBlock(sheet: std::sync::Arc<Sheet>) -> impl IntoView {
             {line}
         </div>
     }
+}
+
+/// A naked number beside its number with gear: smaller, labelled "naked" (the number without the Build's gear).
+fn naked_number(text: String) -> impl IntoView {
+    view! {
+        <span class="naked" title="Without gear">
+            <span class="naked-label">" naked "</span>
+            {text}
+        </span>
+    }
+}
+
+/// A highest spell level's DC changed by gear: the spell level, the DC with gear and naked.
+type DcChange = (u8, i16, i16);
+
+/// A total that gear changes: its label, and its number with gear and naked.
+struct GearTotal {
+    label: String,
+    with: String,
+    naked: String,
+}
+
+/// Every total the gear changes at the Build's last level (`level`, and `bare`, the same level of the naked sheet),
+/// in the summary's order: the saves, initiative, each skill, then the caster line's caster level, spell
+/// penetration, concentration and its highest spell level's DC. Only those that differ.
+fn gear_totals(engine: &Engine, level: &LevelSheet, bare: &LevelSheet) -> Vec<GearTotal> {
+    let mut totals = Vec::new();
+    let mut add = |label: &str, with: i16, naked: i16, signed: bool| {
+        if with != naked {
+            let text = |number: i16| {
+                if signed {
+                    format!("{number:+}")
+                } else {
+                    number.to_string()
+                }
+            };
+            totals.push(GearTotal {
+                label: label.to_owned(),
+                with: text(with),
+                naked: text(naked),
+            });
+        }
+    };
+    let (with, naked) = (engine.totals(level), engine.totals(bare));
+    for (save, label) in [
+        (Save::Fortitude, "Fortitude"),
+        (Save::Reflex, "Reflex"),
+        (Save::Will, "Will"),
+    ] {
+        add(label, with.save(save).total, naked.save(save).total, true);
+    }
+    add(
+        "Initiative",
+        with.initiative.total,
+        naked.initiative.total,
+        true,
+    );
+    for skill in &with.skills {
+        if let Some(bare) = naked.skill(&skill.skill) {
+            add(
+                engine.skill_name(&skill.skill),
+                skill.total.total,
+                bare.total.total,
+                true,
+            );
+        }
+    }
+    // The caster line of a spell of each school: the caster level, spell penetration and concentration are the
+    // same for every school, a DC may not be (a bonus to one school's).
+    let lines = |level: &LevelSheet| {
+        SpellSchool::ALL.map(|school| {
+            let spell = SpellTraits {
+                school,
+                subschool: None,
+                energy: None,
+                metamagic: false,
+            };
+            engine.caster_line(level, spell)
+        })
+    };
+    let (with_lines, naked_lines) = (lines(level), lines(bare));
+    if let (Some(with_line), Some(naked_line)) = (&with_lines[0], &naked_lines[0]) {
+        add(
+            "Caster level",
+            i16::from(with_line.caster_level),
+            i16::from(naked_line.caster_level),
+            false,
+        );
+        add(
+            "Spell penetration",
+            with_line.spell_penetration,
+            naked_line.spell_penetration,
+            true,
+        );
+        add(
+            "Concentration",
+            with_line.concentration,
+            naked_line.concentration,
+            true,
+        );
+        // The highest spell level's DC, once for the schools that change alike: "Spell DC (level 3)" when every
+        // school does, else naming them.
+        let mut groups: Vec<(DcChange, Vec<&str>)> = Vec::new();
+        for (school, (with_line, naked_line)) in SpellSchool::ALL
+            .into_iter()
+            .zip(with_lines.iter().zip(&naked_lines))
+        {
+            let (Some(with_dc), Some(naked_dc)) = (
+                with_line.as_ref().and_then(|line| line.dcs.last()),
+                naked_line.as_ref().and_then(|line| line.dcs.last()),
+            ) else {
+                continue;
+            };
+            if with_dc.spell_level != naked_dc.spell_level || with_dc.dc == naked_dc.dc {
+                continue;
+            }
+            let key = (with_dc.spell_level, with_dc.dc, naked_dc.dc);
+            match groups.iter_mut().find(|(same, _)| *same == key) {
+                Some((_, schools)) => schools.push(school.name()),
+                None => groups.push((key, vec![school.name()])),
+            }
+        }
+        for ((spell_level, with_dc, naked_dc), schools) in groups {
+            let label = if schools.len() == SpellSchool::ALL.len() {
+                format!("Spell DC (level {spell_level})")
+            } else {
+                format!("Spell DC (level {spell_level}, {})", schools.join(", "))
+            };
+            add(&label, with_dc, naked_dc, false);
+        }
+    }
+    totals
 }

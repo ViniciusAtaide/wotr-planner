@@ -3,7 +3,7 @@
 use leptos::prelude::*;
 use rules::{Address, Build, BuildStart, Choice, Edit, POINT_BUY_BUDGET, Step};
 
-use crate::picker::{Head, heading};
+use crate::picker::{Head, heading, lean_note};
 use crate::planner::{Target, use_planner};
 use crate::timings::timed;
 
@@ -142,16 +142,37 @@ fn racial_choice(start: &BuildStart) -> Option<impl IntoView + use<>> {
     if options.is_empty() {
         return None;
     }
-    let label = planner.engine().choice_label(&Address::RacialAbility, None);
+    let engine = planner.engine();
+    let label = engine.choice_label(&Address::RacialAbility, None);
+    // A choice that would leave a pick allowed only by gear is marked, and says so under the buttons.
+    let build = planner.build.get_untracked();
+    // Choices with the same note share one line: "Str, Con, Int: Greater Two-Weapon Fighting would then need gear".
+    let mut grouped: Vec<(Vec<&str>, String)> = Vec::new();
+    for option in &options {
+        let Some(note) = lean_note(&engine, &build, &option.leans_on_gear) else {
+            continue;
+        };
+        let name = option.value.short_name();
+        match grouped.iter_mut().find(|(_, same)| *same == note) {
+            Some((names, _)) => names.push(name),
+            None => grouped.push((vec![name], note)),
+        }
+    }
+    let leans: Vec<String> = grouped
+        .into_iter()
+        .map(|(names, note)| format!("{}: {note}", names.join(", ")))
+        .collect();
     let buttons = options
         .into_iter()
         .map(|option| {
             let on = start.racial_ability == Some(option.value);
+            let leans = !option.leans_on_gear.is_empty();
             let edit = option.edit;
             view! {
                 <button
                     class="seg"
                     class:on=on
+                    class:leans=leans
                     disabled=option.status.is_err()
                     on:click=move |_| {
                         if !on {
@@ -164,11 +185,16 @@ fn racial_choice(start: &BuildStart) -> Option<impl IntoView + use<>> {
             }
         })
         .collect_view();
+    let leans = leans
+        .into_iter()
+        .map(|note| view! { <p class="note lean-note">{note}</p> })
+        .collect_view();
     Some(view! {
         <div class="field">
             <span class="field-label">{label}</span>
             <div class="segs">{buttons}</div>
         </div>
+        {leans}
     })
 }
 
@@ -191,10 +217,30 @@ fn PointBuyRows(current: Build) -> impl IntoView {
     let steppers = planner.ask("point_buy_steps", |engine, build| {
         engine.point_buy_steps(build)
     });
+    // A step that would leave a pick allowed only by gear is marked, and says so under its score.
+    let leaning = |step: &Option<Step>| {
+        step.as_ref()
+            .filter(|step| step.status.is_ok())
+            .and_then(|step| lean_note(&engine, &build, &step.leans_on_gear))
+    };
     let rows = steppers
         .into_iter()
         .map(|stepper| {
             let ability = stepper.value;
+            let (lean_down, lean_up) = (leaning(&stepper.down), leaning(&stepper.up));
+            let (down_leans, up_leans) = (lean_down.is_some(), lean_up.is_some());
+            let notes = [("Lowering", lean_down), ("Raising", lean_up)]
+                .into_iter()
+                .filter_map(|(verb, note)| {
+                    note.map(|note| {
+                        view! {
+                            <p class="note lean-note">
+                                {format!("{verb} {}: {note}", ability.short_name())}
+                            </p>
+                        }
+                    })
+                })
+                .collect_view();
             let (down, up) = (open_step(stepper.down), open_step(stepper.up));
             let score = point_buy.get(ability);
             let modifier = engine.racial_modifier(&start, ability);
@@ -209,6 +255,7 @@ fn PointBuyRows(current: Build) -> impl IntoView {
                     <span class="score-name">{ability.short_name()}</span>
                     <button
                         class="step"
+                        class:leans=down_leans
                         aria-label=format!("Lower {}", ability.name())
                         disabled=down.is_none()
                         on:click=move |_| {
@@ -222,6 +269,7 @@ fn PointBuyRows(current: Build) -> impl IntoView {
                     <span class="score-value">{score}</span>
                     <button
                         class="step"
+                        class:leans=up_leans
                         aria-label=format!("Raise {}", ability.name())
                         disabled=up.is_none()
                         on:click=move |_| {
@@ -235,6 +283,7 @@ fn PointBuyRows(current: Build) -> impl IntoView {
                     <span class="score-racial">{racial}</span>
                     <span class="score-total">{total}</span>
                 </div>
+                {notes}
             }
         })
         .collect_view();

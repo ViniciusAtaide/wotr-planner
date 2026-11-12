@@ -16,6 +16,11 @@
 //! Mythic path: Trickster
 //! Path switch: Gold Dragon
 //!
+//! Gear                         (only when the Build holds some, ticket 167)
+//!   Belt: Belt of Incredible Dexterity +2   (one line per place worn, in the places' order)
+//!   Ring 2: …
+//!   Used: Tome of Clear Thought +2          (one line per usable item used, by key)
+//!
 //! Level 1: Fighter (Armiger)   (the archetype where the class is first taken; a prestige class's ", advancing …")
 //!   Ability: +1 Strength       (the ability increase)
 //!   Combat feat: Weapon Focus (Longsword)
@@ -34,12 +39,16 @@
 //! The link on the second line always reopens the exact Build; the rest is for reading. Only the choices are data:
 //! what's derived from them (here only a pick a Path switch takes away) is a comment, from ` # ` to the end of its
 //! line, which a later import ignores. A choice not made yet is left out, a level with nothing chosen names only its
-//! class, and a rank with no pick is left out. The same Build always renders the same text: the start, the levels in
-//! order, each level's picks in slot order as the sheet checks them, then the ranks in order.
+//! class, and a rank with no pick is left out. The same Build always renders the same text: the start, the gear, the
+//! levels in order, each level's picks in slot order as the sheet checks them, then the ranks in order.
+//!
+//! The gear (ticket 167) is a block of its own after the start, written only when the Build holds some, so a Build
+//! without gear gives the text it always did. Its keys are the format's own too, and the point buy stays the point
+//! buy: no line adds the gear's bonuses in.
 
 use std::fmt::Write as _;
 
-use crate::build::{AbilityScores, Build};
+use crate::build::{AbilityScores, Build, GearPlace, GearSpot};
 use crate::codec::encode_build;
 
 use super::{Engine, Sheet};
@@ -70,6 +79,29 @@ mod key {
     pub const TRACK: &str = "Mythic track";
     /// A rank's line: "MR 3 (level 9)".
     pub const RANK: &str = "MR";
+    /// The gear's heading (ticket 167).
+    pub const GEAR: &str = "Gear";
+    /// A usable item used: "  Used: Tome of Clear Thought +2".
+    pub const USED: &str = "Used";
+}
+
+/// A gear place's line key: "  Belt: Belt of Incredible Dexterity +2". The format's own, not the Gear tab's row
+/// names ([`GearPlace::name`]), so rewording a row never changes an export.
+fn place_key(place: GearPlace) -> &'static str {
+    match place {
+        GearPlace::Belt => "Belt",
+        GearPlace::Boots => "Boots",
+        GearPlace::Bracers => "Bracers",
+        GearPlace::Cloak => "Cloak",
+        GearPlace::Glasses => "Glasses",
+        GearPlace::Gloves => "Gloves",
+        GearPlace::Headwear => "Headwear",
+        GearPlace::Necklace => "Necklace",
+        GearPlace::FirstRing => "Ring 1",
+        GearPlace::SecondRing => "Ring 2",
+        GearPlace::Body => "Body",
+        GearPlace::Weapon => "Weapon",
+    }
 }
 
 /// The comment on a pick a Path switch takes away.
@@ -83,6 +115,7 @@ impl Engine {
         let mut text = String::new();
         // Writing to a String never fails.
         let _ = self.write_start(&mut text, build, page);
+        let _ = self.write_gear(&mut text, build);
         let _ = self.write_levels(&mut text, build, &sheet);
         let _ = self.write_track(&mut text, &sheet);
         text
@@ -143,6 +176,23 @@ impl Engine {
         }
         if let Some(path) = &build.path_switch {
             writeln!(text, "{}: {}", key::SWITCH, self.path_name(path))?;
+        }
+        Ok(())
+    }
+
+    /// The gear after a blank line: the item worn in each place, in the places' order, then each usable item used,
+    /// by key (the order the link writes them in). Nothing for a Build without gear.
+    fn write_gear(&self, text: &mut String, build: &Build) -> std::fmt::Result {
+        if build.gear.is_empty() {
+            return Ok(());
+        }
+        writeln!(text, "\n{}", key::GEAR)?;
+        for (spot, item) in build.gear.items() {
+            let key = match spot {
+                GearSpot::Worn(place) => place_key(place),
+                GearSpot::Used(_) => key::USED,
+            };
+            writeln!(text, "  {key}: {}", self.gear_name(item))?;
         }
         Ok(())
     }

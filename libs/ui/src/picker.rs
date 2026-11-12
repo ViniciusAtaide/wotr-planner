@@ -5,6 +5,7 @@
 
 use std::collections::BTreeMap;
 use std::sync::Arc;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::Duration;
 
 use leptos::prelude::*;
@@ -34,10 +35,18 @@ pub struct Item {
     pub current: bool,
     /// Opens a list of values instead of picking.
     pub more: bool,
+    /// What it has to do with the gear, where a story note goes: "With Belt of Incredible Dexterity +2" for an
+    /// option open only because of gear, or what it would leave allowed only by gear.
+    pub gear: Option<String>,
+    /// More about it than its line, folded under it: a tap on its info button opens it, and a pointer resting on it
+    /// shows it.
+    pub info: Option<ItemInfo>,
+    /// A tick, for a list where each item is ticked or not (the tomes): whether it is ticked.
+    pub tick: Option<bool>,
 }
 
 impl Item {
-    fn new(name: impl Into<String>) -> Self {
+    pub fn new(name: impl Into<String>) -> Self {
         Self {
             name: name.into(),
             detail: String::new(),
@@ -47,7 +56,109 @@ impl Item {
             reason: None,
             current: false,
             more: false,
+            gear: None,
+            info: None,
+            tick: None,
         }
+    }
+}
+
+/// What an item does besides its summary, and its guide link: a gear item's detail.
+#[derive(Clone, Debug, PartialEq, Eq, Default)]
+pub struct ItemInfo {
+    /// One short line each.
+    pub lines: Vec<String>,
+    /// The guide's page for it.
+    pub guide: Option<String>,
+}
+
+impl ItemInfo {
+    /// `None` when there is nothing to show.
+    pub fn new(lines: Vec<String>, guide: Option<String>) -> Option<Self> {
+        (!lines.is_empty() || guide.is_some()).then_some(Self { lines, guide })
+    }
+}
+
+/// The ids that tie an info button to the detail it opens (`aria-controls`), one per detail shown.
+static DETAIL_IDS: AtomicUsize = AtomicUsize::new(0);
+
+/// An item's info button and its detail, folded under its line until the button opens it (or, with a pointer, while
+/// the pointer rests on it). The button is thumb-sized, beside the item, and names the detail it controls.
+pub fn item_detail(open: RwSignal<bool>, name: &str, info: ItemInfo) -> impl IntoView + use<> {
+    let id = format!("item-more-{}", DETAIL_IDS.fetch_add(1, Ordering::Relaxed));
+    let lines = (!info.lines.is_empty()).then(|| {
+        let lines = info
+            .lines
+            .into_iter()
+            .map(|line| view! { <li>{line}</li> })
+            .collect_view();
+        view! { <ul>{lines}</ul> }
+    });
+    let guide = info.guide.map(|url| {
+        view! {
+            <a class="guide-link" href=url target="_blank" rel="noopener noreferrer">
+                "In the guide ↗"
+            </a>
+        }
+    });
+    view! {
+        <button
+            class="icon info"
+            aria-label=format!("More about {name}")
+            aria-controls=id.clone()
+            aria-expanded=move || open.get().to_string()
+            on:click=move |_| open.update(|open| *open = !*open)
+        >
+            <span class="info-mark" aria-hidden="true">
+                "i"
+            </span>
+        </button>
+        <div class="item-more" id=id>
+            {lines}
+            {guide}
+        </div>
+    }
+}
+
+/// One row of a picker list: the item's button, which picks it, and its info button and detail when it has some.
+pub fn item_row(item: Item, on_pick: impl Fn() + 'static) -> impl IntoView {
+    let locked = item.locked;
+    let open = RwSignal::new(false);
+    let has_info = item.info.is_some();
+    let info = item.info.map(|info| item_detail(open, &item.name, info));
+    let tick = item.tick;
+    view! {
+        <li class="item-row" class:has-info=has_info class:open=move || open.get()>
+            <button
+                class="item"
+                class:current=item.current
+                disabled=locked
+                role=tick.map(|_| "checkbox")
+                aria-checked=tick.map(|on| on.to_string())
+                aria-current=(item.current && tick.is_none()).then_some("true")
+                on:click=move |_| on_pick()
+            >
+                <span class="item-name">
+                    {tick
+                        .map(|on| {
+                            view! {
+                                <span class="tick" class:on=on aria-hidden="true">
+                                    {on.then_some("✓")}
+                                </span>
+                            }
+                        })}
+                    {item.feat_category.map(feat_icon)}
+                    {item.name}
+                    {(item.current && tick.is_none()).then_some(" ✓")}
+                    {item.more.then(|| view! { <span class="more">" ›"</span> })}
+                </span>
+                {(!item.detail.is_empty())
+                    .then(|| view! { <span class="item-detail">{item.detail}</span> })}
+                {item.gear.map(|gear| view! { <span class="item-gear">{gear}</span> })}
+                {item.reason.map(|reason| view! { <span class="item-reason">{reason}</span> })}
+            </button>
+            {info}
+        </li>
     }
 }
 
@@ -81,6 +192,8 @@ fn body(target: Target) -> AnyView {
         Target::Background => view! { <BackgroundPicker/> }.into_any(),
         Target::AbilityIncrease(level) => view! { <AbilityIncreasePicker level/> }.into_any(),
         Target::Skills(level) => view! { <crate::start::SkillsPanel level/> }.into_any(),
+        Target::Gear(place) => view! { <crate::gear::GearPicker place/> }.into_any(),
+        Target::Tomes => view! { <crate::gear::TomesPicker/> }.into_any(),
     }
 }
 
@@ -185,30 +298,7 @@ pub fn ItemList(
                 .collect()
         })
     };
-    let row = move |(index, item): (usize, Item)| {
-        let locked = item.locked;
-        view! {
-            <li>
-                <button
-                    class="item"
-                    class:current=item.current
-                    disabled=locked
-                    aria-current=item.current.then_some("true")
-                    on:click=move |_| on_pick.run(index)
-                >
-                    <span class="item-name">
-                        {item.feat_category.map(feat_icon)}
-                        {item.name}
-                        {item.current.then_some(" ✓")}
-                        {item.more.then(|| view! { <span class="more">" ›"</span> })}
-                    </span>
-                    {(!item.detail.is_empty())
-                        .then(|| view! { <span class="item-detail">{item.detail}</span> })}
-                    {item.reason.map(|reason| view! { <span class="item-reason">{reason}</span> })}
-                </button>
-            </li>
-        }
-    };
+    let row = move |(index, item): (usize, Item)| item_row(item, move || on_pick.run(index));
     view! {
         <div class="picker-tools">
             {searchable
@@ -307,7 +397,7 @@ pub fn ItemList(
 }
 
 /// A picker's step, which starts out loading and gets its list after the first paint ([`after_paint`]).
-trait Step<T> {
+pub trait Step<T> {
     /// Moves from loading to the list; any other step stays. Whether the step changed.
     fn list(&mut self, list: T) -> bool;
 }
@@ -326,7 +416,7 @@ impl<T> Step<T> for Option<T> {
 /// Works out a picker's list after the browser has painted, so the picker opens at once and shows that it's working
 /// meanwhile, then moves its step from loading to the list. A picker closed before then has disposed `step` and every
 /// value the work reads, so the work is skipped.
-fn after_paint<T: 'static, S: Step<T> + Send + Sync + 'static>(
+pub fn after_paint<T: 'static, S: Step<T> + Send + Sync + 'static>(
     step: RwSignal<S>,
     work: impl FnOnce() -> T + 'static,
 ) {
@@ -343,7 +433,7 @@ fn after_paint<T: 'static, S: Step<T> + Send + Sync + 'static>(
     });
 }
 
-fn loading() -> AnyView {
+pub fn loading() -> AnyView {
     view! { <p class="empty">"Working out the options…"</p> }.into_any()
 }
 
@@ -353,6 +443,16 @@ fn reason(engine: &Engine, status: &Result<(), Issue>) -> Option<String> {
         .as_ref()
         .err()
         .and_then(|issue| engine.issue_text(issue))
+}
+
+/// What an open option would leave allowed only because of the gear, said where a story note goes, so it never looks
+/// like any other safe option: "Greater Two-Weapon Fighting would then need gear". `None` when it leaves nothing so.
+/// `build` is the Build that holds those choices: the one the picker is for.
+pub fn lean_note(engine: &Engine, build: &Build, leans: &[Choice]) -> Option<String> {
+    (!leans.is_empty()).then(|| {
+        let names = engine.choice_names(build, leans);
+        format!("{names} would then need gear")
+    })
 }
 
 /// Where a choice sits, as a heading says it: "Build start", "Level 3" or "Mythic rank 4" ([`Place::heading`]).
@@ -410,7 +510,6 @@ fn SlotPicker(id: SlotId) -> impl IntoView {
             let items = entries
                 .iter()
                 .map(|entry| Item {
-                    name: entry.name.clone(),
                     detail: entry.detail(),
                     category: entry.category.clone(),
                     feat_category: entry.feat_category,
@@ -421,6 +520,8 @@ fn SlotPicker(id: SlotId) -> impl IntoView {
                         .iter()
                         .any(|option| is_current(&option.option)),
                     more: entry.noun.is_some(),
+                    gear: entry.gear_note.clone(),
+                    ..Item::new(entry.name.clone())
                 })
                 .collect();
             view! {
@@ -443,6 +544,7 @@ fn SlotPicker(id: SlotId) -> impl IntoView {
         }
         SlotStep::Values { entries, entry } => {
             let name = entries[entry].name.clone();
+            let engine = planner.engine();
             let items = entries[entry]
                 .options
                 .iter()
@@ -450,6 +552,7 @@ fn SlotPicker(id: SlotId) -> impl IntoView {
                     locked: option.option.status.is_err(),
                     reason: option.reason.clone(),
                     current: is_current(&option.option),
+                    gear: (option.option.with_gear.as_ref()).map(|needs| engine.gear_note(needs)),
                     ..Item::new(option.value.clone())
                 })
                 .collect();
@@ -638,6 +741,18 @@ fn class_item(engine: &Engine, build: &Build, level: u8, option: &ClassOption) -
             engine.class_summary(&option.class).to_owned(),
         ),
     };
+    // A class whose own entry only the gear meets lists itself among what would lean on the gear.
+    let own = Choice::Class { level };
+    let others: Vec<Choice> = (option.leans_on_gear.iter())
+        .filter(|choice| **choice != own)
+        .cloned()
+        .collect();
+    let entry =
+        (option.leans_on_gear.contains(&own)).then(|| "Open only because of gear".to_owned());
+    let gear = match (entry, lean_note(engine, build, &others)) {
+        (Some(entry), Some(others)) => Some(format!("{entry}; {others}")),
+        (entry, others) => entry.or(others),
+    };
     Item {
         detail,
         category: if prestige {
@@ -648,6 +763,7 @@ fn class_item(engine: &Engine, build: &Build, level: u8, option: &ClassOption) -
         locked: option.status.is_err(),
         reason: reason(engine, &option.status),
         current: holds_class_option(build, level, option),
+        gear,
         ..Item::new(name)
     }
 }
@@ -834,7 +950,8 @@ fn with_status(engine: &Engine, item: Item, status: &Result<(), Issue>) -> Item 
 fn RacePicker() -> impl IntoView {
     let planner = use_planner();
     start_picker(Choice::Race, move |engine| {
-        let current = planner.build.with_untracked(|build| build.start.clone());
+        let build = planner.build.get_untracked();
+        let current = build.start.clone();
         let options = planner.ask("race_options", |engine, build| engine.race_options(build));
         options
             .into_iter()
@@ -854,6 +971,7 @@ fn RacePicker() -> impl IntoView {
                     detail: summary,
                     current: current.race.as_ref() == Some(&option.value.race)
                         && current.subrace == option.value.subrace,
+                    gear: lean_note(engine, &build, &option.leans_on_gear),
                     ..Item::new(name)
                 };
                 Some((with_status(engine, item, &option.status), option.edit))
@@ -1033,12 +1151,11 @@ fn BackgroundPicker() -> impl IntoView {
 fn AbilityIncreasePicker(level: u8) -> impl IntoView {
     let planner = use_planner();
     let engine = planner.engine();
-    let current = planner.build.with_untracked(|build| {
-        build
-            .levels
-            .get(usize::from(level) - 1)
-            .and_then(|level_up| level_up.ability_increase)
-    });
+    let build = planner.build.get_untracked();
+    let current = build
+        .levels
+        .get(usize::from(level) - 1)
+        .and_then(|level_up| level_up.ability_increase);
     let options = planner
         .ask("ability_increase_options", |engine, build| {
             engine.ability_increase_options(build, level)
@@ -1049,6 +1166,7 @@ fn AbilityIncreasePicker(level: u8) -> impl IntoView {
         .map(|option| {
             let item = Item {
                 current: current == Some(option.value),
+                gear: lean_note(&engine, &build, &option.leans_on_gear),
                 ..Item::new(option.value.increase_name())
             };
             with_status(&engine, item, &option.status)
