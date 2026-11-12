@@ -65,9 +65,9 @@ opens, and the sheet, the attack line, the caster line and the totals are the pl
 `improve` rank by naked numbers unless you pass `with_gear: true` (`numbers` says which). The attack line's weapon \
 is the Build's Weapon Focus weapon unless you give one. Each line says what it leaves out (`attack_leaves_out`: \
 rage, stances, mythic feats, class features, buffs, gear but for its ability score bonuses; `caster_leaves_out`; \
-`totals_leave_out`), and an item's `other_effects`, and the lines of its summary that aren't bonuses (damage \
-reduction, an immunity, its armour's own enhancement), count in no number: label anything you add for them as \
-your own game knowledge.
+`totals_leave_out`), and the numbers include an item's bonuses and none of its `uncounted` lines (the always-on \
+effects at the end of its `summary`: damage reduction, an immunity) or its `other_effects`: label anything you add \
+for them as your own game knowledge.
 - When the planner ranks Builds or options by a number (`compare` or `improve` with `by`), that ranking is a fact. \
 Report `compare`'s other differences as facts, without ranking them by your own judgement, and label which choice \
 is better overall as your judgement.
@@ -137,13 +137,13 @@ impl Server {
             only when the user asks, so found only when `kinds` names `gear`, never by an unfiltered search: \
             matched by name, by its place (\"belt\") and by its bonuses' words (\"Dex\", \
             \"enhancement\"); its `category` is its slot (\"Belt\", \"Ring\", \"Usable\"), and it carries \
-            `other_effects` (what is conditional or by use, text only, in no number; what is always on but isn't a \
-            bonus is in its `summary`, also in no number) and `places`, the addresses `choose` takes its key at). \
+            `other_effects` (what is conditional or by use, text only, in no number), `uncounted` (the always-on \
+            lines of its `summary` that no number counts) and `places`, the addresses `choose` takes its key at). \
             Each match has the key `describe` takes, its short summary when the data has one, its parent (an \
             archetype's class, an option's selection), its category, its prerequisite in the planner's words (a long \
             one shortened: \"one of 49 hexes (Air Barrier, …)\"; `describe` gives it whole), and a guide link for \
             the user (never fetch it). `compact: true` gives each match as kind, key, name and category only (no \
-            `other_effects` or `places`). Best \
+            `other_effects`, `uncounted` or `places`). Best \
             match first. `category` filters by a feat's category (\"Weapon\", \"Magic\", …), a mythic pick's group \
             (\"Melee\", \"Ranged\", …), an option's Feature selection (\"Rage Power\"), or a spell's school \
             (\"Enchantment\") or descriptor, its subschool among them (\"Compulsion\", \"Mind-Affecting\"), one or \
@@ -185,8 +185,8 @@ impl Server {
             saving throw, spell resistance, casting time, material component) and every spell list it's on \
             (`lists`), each with the spell's level there, its owner, the classes and archetypes that use it, and \
             any footnote (\"Flame Dancer only\"). A spell list: its owner, `used_by` and its spells by level, \
-            each with its school and descriptors. A gear item: its summary (its always-on bonuses, then its other always-on effects, which count in no \
-            number), `other_effects` (the conditional ones) and `places`. The item, and each feature and selection option \
+            each with its school and descriptors. A gear item: its summary (its bonuses, then its other always-on effects), `uncounted` (those \
+            effects, which no number counts), `other_effects` (the conditional ones) and `places`. The item, and each feature and selection option \
             it lists, carries its short summary when the data has one; beyond those, what an item does is not in the \
             planner's data.",
         annotations(read_only_hint = true, open_world_hint = false)
@@ -243,7 +243,7 @@ impl Server {
             energy?, metamagic?}) adds each level's caster line for those spells: the save DC of each spell level \
             castable (and heightened, with Heighten Spell) broken down by source, caster level against spell \
             resistance and the concentration bonus. A Build with gear (only what the user chose) also has `gear`, \
-            each item at its address with its summary and `other_effects`; `gear_dependent`, each choice only the \
+            each item at its address with its summary, `uncounted` and `other_effects`; `gear_dependent`, each choice only the \
             gear allows, with the items it needs (also `with_gear` on its line), to report as such; and `naked`, \
             the numbers its gear changes (scores, attack and caster lines by level, totals) without the gear. Every \
             other number counts the gear's always-on bonuses (a level's skill points never do). Plus the envelope \
@@ -278,11 +278,11 @@ impl Server {
             the rank is reached, or a gear place (`gear.belt`, `gear.boots`, `gear.bracers`, `gear.cloak`, \
             `gear.glasses`, `gear.gloves`, `gear.headwear`, `gear.necklace`, `gear.ring.0`, `gear.ring.1`, \
             `gear.body`, `gear.weapon`: \"None\" (`none`) and each item it takes, with its summary (what it always \
-            does) and `other_effects` (what is conditional or by use)) or `gear.usable.<item key>` (a manual, tome or other usable item: `none` or its key). \
+            does), `uncounted` (its other always-on lines, in no number) and `other_effects` (what is conditional or by use)) or `gear.usable.<item key>` (a manual, tome or other usable item: `none` or its key). \
             An item a choice needs can't be taken off (\"None\" is locked with the choice's name), nor replaced by \
             an item that would refuse the choice (locked the same way); an item that keeps it is open. By default only the options open now are listed and `closed` counts the rest; \
             `only_open: false` lists them with their reasons. `values: true` lists a parameterised feat once per \
-            value. `query` filters by name or key. `compact: true` leaves out the summaries and other effects. It \
+            value. `query` filters by name or key. `compact: true` leaves out the summaries, `uncounted` and other effects. It \
             changes nothing, so \
             the envelope (`build`, `link`, `todo`) comes only with `envelope: true`. Errors: `no_such_choice` for an \
             address the Build lacks, `stale_link` for a code that doesn't open.",

@@ -81,33 +81,43 @@ Judgement calls:
 
 ### Always-on effects (ticket 176)
 
-The 92 items' lines were reclassified against the saved pages: of the 74 `other_effects` lines on 54 items, 32 were
-always on and moved (one of them, the Offroad Boots', was two effects and split) to a new `always_on` list, and 42
-stayed whole; 43 lines on 38 items are now the detail's. `always_on` has 33 lines on 26 items. The 22 hand-added items
-have neither list. 16 items (Display of Power, Flawless Belt and Flawless Headband of Mental Perfection +8, Goggles of
-Ferocious Pact, Hammer Fists, Bookworm's Headband, Darkness Caress, Headband of Confidence, of the Wise Negotiator and of
-Reshaping, Razmir's Ring, Earth's Embrace, Half-Plate of Vigor, Life Infuser, Snakeskin and Sin Mage's Staff) are left
-with no conditional line, so no detail and no info button.
+The 92 items' lines were reclassified against the saved pages: of the 74 `other_effects` lines on 54 items, 35 were
+always on and moved to a new `always_on` list, and 39 stayed whole; 41 lines on 36 items are now the detail's (the 39,
+plus the remainders of the Offroad Boots' and Draven's Hat's lines, each of which held an always-on and a conditional
+effect and was split). `always_on` has 36 lines on 28 items: the 35 moved lines, plus one more because Razmir's Mask's
+one line became two. The 22 hand-added items have neither list. 18 items (Display of Power, Flawless Belt and Flawless
+Headband of Mental Perfection +8, Goggles of Ferocious Pact, Hammer Fists, Bookworm's Headband, Darkness Caress,
+Headband of Confidence, of the Wise Negotiator and of Reshaping, Razmir's Ring, Earth's Embrace, Grand Festival Cloak,
+Jester Cap, Half-Plate of Vigor, Life Infuser, Snakeskin and Sin Mage's Staff) are left with no conditional line, so no
+detail and no info button. The always-on lines count in no number, and the MCP lists them as `uncounted`.
 
 The rule: what applies while the item is worn with no trigger, use or enemy is always on; a number that applies only
 when something happens, a number of times, against a kind of enemy or with another item stays. Calls that were not
 obvious:
 
-- **Saves against one kind of effect** (+4 against mind-affecting for the Headband of Confidence and the Wise
-  Negotiator, against fire for Earth's Embrace, against poison for the Amulet of Alchemical Knowledge): always on, as a
-  resistance is, since nothing triggers them. **Against a kind of creature** (Midnight Hunter's Ring vs lycanthropes,
-  Ustlavic Pride's DR 5/- vs undead, Dirge for Sarkoris' holy damage vs undead, Belt of the Venerated Champion vs evil)
-  stays: it depends on the enemy.
-- **A bonus scoped to the wearer's own spells** (Headband of Reshaping's +1 caster level for Transmutation, the Jester
-  Cap's +2 DC for fused spells): always on, with its scope in the line.
+- **Bonuses limited to one use of a skill, one kind of effect or the wearer's own spells** are always on: Persuasion
+  (Bluff) +5 on the Grand Festival Cloak and the Jester Cap, saves against one kind of effect (+4 against
+  mind-affecting for the Headband of Confidence and the Wise Negotiator, against fire for Earth's Embrace, against
+  poison for the Amulet of Alchemical Knowledge), Headband of Reshaping's +1 caster level for Transmutation and the
+  Jester Cap's +2 DC for fused spells. Nothing triggers them. **Against a kind of creature** (Midnight Hunter's Ring vs
+  lycanthropes, Ustlavic Pride's DR 5/- vs undead, Dirge for Sarkoris' holy damage vs undead, Belt of the Venerated
+  Champion vs evil) stays: it depends on the enemy.
 - **Extra uses of an ability or resource a day** (Flamboyant Hat, Headband of Rigorous Training, Amulet of Alchemical
-  Knowledge's bombs): stay, as limited in uses.
-- **Offroad Boots:** "ignores difficult terrain" is always on; the +10 feet of speed for one round on crossing it is a
-  trigger and stays. **Razmir's Mask:** immunity to Divination magic and Spell Turning are always on; casting a spell
-  each round as a free action is an activated use and stays. **Gorgon Belt:** "ignores difficult terrain" moved, the
-  breath stays. **Heart of Ice:** the +4 armour bonus to AC moved ("AC +4 armour"), Ice Cascade stays.
+  Knowledge's bombs) stay, as limited in uses.
+- **Splits.** Offroad Boots: "ignores difficult terrain" is always on; the +10 feet of speed for one round on crossing
+  it is a trigger and stays. Draven's Hat: Slow and Haste spells are quickened is always on, the free quicken once a day
+  stays (the page lists them as two lines). Razmir's Mask: immunity to Divination magic and Spell Turning are two
+  always-on lines; casting a spell each round as a free action is an activated use and stays. Gorgon Belt, Heart of Ice
+  and Cat's Boots were not split: one of their lines moved whole and the others stayed ("ignores difficult terrain",
+  "AC +4 armour", "moving provokes no attacks of opportunity").
 - **Goggles of Ferocious Pact:** "-2 penalty to AC" and "+4 damage" are in the row's one sentence with the score
   changes, so always on. **Display of Power:** the aura's -2 to enemies' Will saves has no trigger in the row, so always
   on. **Mangling Frenzy:** the damage reduction moved, the critical hit while raging stays.
+- **Belt of the Venerated Champion:** the page's "+2 to Fortitude saves and +1 insight to AC against evil creatures"
+  is ambiguous about which part is against evil creatures, so it is treated as conditional and its one line stays in
+  the detail (the wording note is kept here, not in the line).
+- **Borderline, for the user:** Doubling Annoyance's "summon two wizards when casting Perpetually Annoyed Wizard"
+  stays in the detail, as a trigger; the saves against one kind of effect and the spell-scoped bonuses above could be
+  read the other way.
 - Lines that moved were shortened to the summary's style, with no full stop ("Damage reduction 3/-." became "DR 3/-");
-  the lines that stayed are unchanged, but for the Offroad Boots'.
+  the lines that stayed are unchanged, but for the two remainders and the Venerated Champion's note.

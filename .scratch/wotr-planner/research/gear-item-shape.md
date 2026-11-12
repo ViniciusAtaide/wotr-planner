@@ -214,6 +214,7 @@ A new migration; the names are free since `20261111152919_148-drop-gear.sql`.
 - `gear_item`: `key` (primary key, the `text_key` CHECK), `name`, `slot` (CHECK on the 13 values), `guide`.
 - `gear_bonus`: `id`, `gear_item_key` (FK), `target` (CHECK: `ability`, `all_saves`, `save`, `initiative`, `skill`, `spell_dc`, `spell_penetration`, `concentration`), `ability`, `save`, `skill_key` (FK `skill`), `scope`, `spell_school`, `subschool`, `energy`, `amount` (CHECK -128 to 127 and not 0), `bonus_type` (CHECK on the 19 values). "Column present exactly with its target" constraints as on `item_bonus`; a CHECK that a negative amount is `untyped`; an index on `gear_item_key`.
 - `gear_other_effect`: `id`, `gear_item_key` (FK), `text` (CHECK not empty), UNIQUE (`gear_item_key`, `text`).
+- The MCP carries `always_on` as `uncounted` beside `summary` (ticket 176): the lines no number counts.
 - `gear_always_on_effect` (ticket 176, migration `20261112092431_176-gear-always-on.sql`): the same columns; read back in `id` order, which is the summary's order.
 
 `GameData::check`, under a new `DataAt::Gear(GearKey)`, refuses: a duplicate key, and two items with one name; an item with no bonus; an amount of 0, or a negative amount with a type other than `Untyped`; two bonuses on one item with the same target and type; a `Skill` target naming no skill; `SpellDc(Value)`; an empty or repeated other-effect or always-on line, and a line in both lists. An unknown slot, target or type never reaches the check: the RON parse refuses it.

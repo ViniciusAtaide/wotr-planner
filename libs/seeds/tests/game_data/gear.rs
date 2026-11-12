@@ -292,15 +292,16 @@ fn a_three_score_belt_matches_its_page_line() {
 #[test]
 fn an_item_with_other_effects_matches_its_page_line() {
     // items#cloaks: "+7 resistance bonus to saves / +5 circumstance bonus to Persuasion (Bluff) / +2 circumstance
-    // bonus to Charisma": the use of Persuasion for bluffing is a line, not a bonus.
+    // bonus to Charisma": the use of Persuasion for bluffing is an always-on line (ticket 176), not a bonus.
     assert_eq!(
         summary("grand-festival-cloak"),
-        "Cha +2 circumstance; Saves +7 resistance"
+        "Cha +2 circumstance; Saves +7 resistance; Persuasion (Bluff) +5 circumstance"
     );
     assert_eq!(
-        item("grand-festival-cloak").other_effects,
-        ["Persuasion used to bluff: +5 circumstance."]
+        item("grand-festival-cloak").always_on,
+        ["Persuasion (Bluff) +5 circumstance"]
     );
+    assert!(item("grand-festival-cloak").other_effects.is_empty());
     // Odd wordings and penalties.
     assert_eq!(summary("timely-assistance"), "Con, Wis +4 enhancement");
     assert_eq!(
@@ -328,8 +329,8 @@ fn an_item_with_other_effects_matches_its_page_line() {
 
 #[test]
 fn mangling_frenzys_damage_reduction_is_in_its_summary_and_its_crit_line_stays_in_the_detail() {
-    // items#belts: "+4 enhancement bonus to Strength, Dexterity and Constitution / 3 DR / On a crit while raging:
-    // +4d6 slashing damage". Ticket 176: what is always on is in the summary, what needs a trigger is in the detail.
+    // items#belts: the three scores, a damage reduction of 3 with no condition, and +4d6 slashing damage on a
+    // critical hit while raging. Ticket 176: what is always on is in the summary, what needs a trigger is in the detail.
     assert_eq!(
         summary("mangling-frenzy"),
         "Str, Dex, Con +4 enhancement; DR 3/-"
@@ -357,6 +358,18 @@ fn an_item_keeps_its_conditional_lines_and_shows_its_always_on_ones() {
     assert_eq!(
         item("ustlavic-pride").other_effects,
         ["DR 5/- against attacks from undead."]
+    );
+    // Draven's Hat: the page's two lines, always-quickened Slow and Haste and one free quicken a day, were one line.
+    assert_eq!(
+        item("dravens-hat").always_on,
+        ["Slow and Haste spells are quickened"]
+    );
+    assert_eq!(
+        item("dravens-hat").other_effects,
+        [
+            "Good characters cannot wear it.",
+            "Once a day: any spell can be quickened."
+        ]
     );
     // Offroad Boots: ignoring difficult terrain is always on, the speed it grants is a one-round trigger.
     assert!(summary("offroad-boots").ends_with("; Ignores difficult terrain"));

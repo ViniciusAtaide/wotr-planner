@@ -1,6 +1,8 @@
 // The gear items (ticket 165): `rules::GearItem`, one per block, grouped by slot. Each lists its always-on bonuses (a
 // target, an amount, a bonus type; `kind` is left out for an untyped one) and, in the planner's own words, what else it
-// does (`other_effects`): a bonus in some circumstance, a use per day, who may wear it. Items whose properties give no
+// does: `always_on` (ticket 176), the lines of what it does while worn that no number counts, which the summary
+// appends (damage reduction, an immunity, an AC bonus), and `other_effects`, what is conditional or by use: a bonus in
+// some circumstance, a use per day, who may wear it. Items whose properties give no
 // always-on ability score bonus wait for the second stage (ticket 169).
 // The first group comes from the user, not the guide: the plain stat belts and headbands, with no `guide`.
 [
@@ -290,7 +292,7 @@
             (target: Ability(Constitution), amount: 6, kind: Enhancement),
         ],
         other_effects: [
-            "Against evil creatures: +2 on Fortitude saves and +1 insight to AC (the wording is ambiguous, so not counted as always on).",
+            "Against evil creatures: +2 on Fortitude saves and +1 insight to AC.",
         ],
     ),
     (
@@ -459,8 +461,8 @@
             (target: AllSaves, amount: 7, kind: Resistance),
             (target: Ability(Charisma), amount: 2, kind: Circumstance),
         ],
-        other_effects: [
-            "Persuasion used to bluff: +5 circumstance.",
+        always_on: [
+            "Persuasion (Bluff) +5 circumstance",
         ],
     ),
     // Glasses.
@@ -617,8 +619,11 @@
         bonuses: [
             (target: Ability(Intelligence), amount: 2, kind: Profane),
         ],
+        always_on: [
+            "Slow and Haste spells are quickened",
+        ],
         other_effects: [
-            "Casting Slow or Haste quickens it automatically; once a day, any spell can be quickened.",
+            "Once a day: any spell can be quickened.",
             "Good characters cannot wear it.",
         ],
     ),
@@ -744,10 +749,8 @@
             (target: Ability(Charisma), amount: 6, kind: Enhancement),
         ],
         always_on: [
+            "Persuasion (Bluff) +5 competence",
             "Spell DC +2 (fused spells)",
-        ],
-        other_effects: [
-            "Persuasion used to bluff: +5 competence.",
         ],
     ),
     (

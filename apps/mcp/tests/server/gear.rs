@@ -431,6 +431,45 @@ async fn search_finds_gear_by_name_place_and_bonus() {
         mangling["matches"][0]["other_effects"],
         json!(["Critical hit while raging: +4d6 slashing damage."])
     );
+    // `uncounted` tells a counted summary line from an uncounted one that reads the same: Sin Mage's Staff's "Spell DC
+    // +1" is a bonus, the Jester Cap's "Spell DC +2 (fused spells)" is in no number.
+    let jester = client
+        .ok(
+            "search",
+            json!({ "query": "jester cap", "kinds": ["gear"] }),
+        )
+        .await;
+    assert!(
+        jester["matches"][0]["summary"]
+            .as_str()
+            .unwrap()
+            .ends_with("Persuasion (Bluff) +5 competence; Spell DC +2 (fused spells)")
+    );
+    assert_eq!(
+        jester["matches"][0]["uncounted"],
+        json!([
+            "Persuasion (Bluff) +5 competence",
+            "Spell DC +2 (fused spells)"
+        ])
+    );
+    let staff = client
+        .ok(
+            "describe",
+            json!({ "kind": "gear", "key": "sin-mages-staff" }),
+        )
+        .await;
+    assert_eq!(
+        staff["summary"],
+        "Int +6; Spell DC +1; Caster level +3; A +5 quarterstaff"
+    );
+    assert_eq!(staff["uncounted"], json!(["A +5 quarterstaff"]));
+    let compact_jester = client
+        .ok(
+            "search",
+            json!({ "query": "jester cap", "kinds": ["gear"], "compact": true }),
+        )
+        .await;
+    assert_eq!(compact_jester["matches"][0].get("uncounted"), None);
     let ring = client
         .ok(
             "describe",
