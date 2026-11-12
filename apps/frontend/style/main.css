@@ -25,6 +25,8 @@
   --mythic-bg: rgb(185 162 255 / 0.14);
   --bad: #ff8a80;
   --bad-bg: rgb(255 138 128 / 0.12);
+  /* What has to do with the gear: a pick only gear allows, an option that would lean on it. */
+  --gear: #7fd6c2;
   --focus: #f3c96b;
   --good: #1c2846;
   --neutral: #262338;
@@ -367,6 +369,19 @@ input[type="search"] {
   font-size: 18px;
 }
 
+/* A step or racial choice that would leave a pick allowed only by gear: dashed in the gear colour, with a note
+   under it saying which pick. */
+.step.leans,
+.seg.leans {
+  border-style: dashed;
+  border-color: var(--gear);
+  color: var(--gear);
+}
+
+.lean-note {
+  color: var(--gear);
+}
+
 /* ---- tabs and summary ----------------------------------------------------------------------------------- */
 
 .tabs {
@@ -382,10 +397,23 @@ input[type="search"] {
   backdrop-filter: blur(10px);
 }
 
+/* Three tabs on one line, even on the cover screen. */
 .tabs button {
   flex: 1;
+  min-width: 0;
+  padding-inline: 6px;
   border-radius: 999px;
+  overflow: hidden;
   text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 599px) {
+  .tabs button {
+    font-size: 14px;
+    letter-spacing: 0.01em;
+  }
 }
 
 .tabs button.on {
@@ -410,6 +438,21 @@ input[type="search"] {
 
 .summary-note {
   color: var(--muted);
+}
+
+/* A naked number beside its number with gear: smaller and muted, labelled. */
+.naked {
+  color: var(--muted);
+  font-size: 11.5px;
+  white-space: nowrap;
+}
+
+.naked-label {
+  letter-spacing: 0.03em;
+}
+
+.summary-note.gear-note {
+  color: var(--gear);
 }
 
 /* The attack line under the summary's numbers: a native weapon select (the phone's own picker, thumb-sized), then
@@ -629,6 +672,25 @@ input[type="search"] {
   margin-left: 4px;
   color: var(--bad);
   text-decoration: none;
+}
+
+/* A pick or class allowed only by gear: "With Belt of …" under its value, in the gear colour. */
+.chip.with-gear {
+  border-color: color-mix(in srgb, var(--gear) 55%, transparent);
+}
+
+.chip-gear,
+.class-gear {
+  max-width: 24ch;
+  overflow: hidden;
+  color: var(--gear);
+  font-size: 10.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.class-gear {
+  max-width: 100%;
 }
 
 /* The level's Mythic ranks, in the colour of the Build's path there (`data-path`), if it has one; and the Mythic
@@ -923,6 +985,186 @@ body:has(.picker) {
 .item-reason {
   color: var(--bad);
   font-size: 12.5px;
+}
+
+.item-gear {
+  color: var(--gear);
+  font-size: 12.5px;
+}
+
+/* A tick, for a list of items each used or not (the tomes). */
+.tick {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  margin-right: 8px;
+  border: 1.5px solid var(--muted);
+  border-radius: 5px;
+  font-size: 13px;
+  line-height: 1;
+  vertical-align: -4px;
+}
+
+.tick.on {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--bg);
+  font-weight: 700;
+}
+
+/* ---- an item's detail: folded under its row behind a thumb-sized info button; a pointer resting on the row shows
+   it too (desktop), over the rows below. ---------------------------------------------------------------------- */
+
+.item-row {
+  position: relative;
+}
+
+.item-row.has-info {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--tap);
+  align-items: stretch;
+  gap: 4px;
+}
+
+.info {
+  color: var(--muted);
+}
+
+.info[aria-expanded="true"] {
+  color: var(--accent);
+}
+
+.info-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  font: italic 600 13px/1 Georgia, serif;
+}
+
+.item-more {
+  display: none;
+  grid-column: 1 / -1;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgb(28 28 48 / 0.97);
+  font-size: 13px;
+}
+
+.item-more ul {
+  margin: 2px 0;
+  padding-left: 18px;
+}
+
+.item-row.open > .item-more {
+  display: block;
+}
+
+.guide-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+  color: var(--accent);
+}
+
+@media (hover: hover) {
+  .item-row.has-info:not(.open) > .item-more {
+    position: absolute;
+    top: calc(100% + 2px);
+    right: calc(var(--tap) + 4px);
+    left: 0;
+    z-index: 5;
+    display: block;
+    visibility: hidden;
+    opacity: 0;
+    box-shadow: var(--shadow);
+    pointer-events: none;
+    transition:
+      opacity 0.12s,
+      visibility 0s linear 0.12s;
+  }
+
+  .item-row.has-info:not(.open):hover > .item-more {
+    visibility: visible;
+    opacity: 1;
+    transition-delay: 0.3s;
+  }
+}
+
+/* ---- the Gear tab --------------------------------------------------------------------------------------- */
+
+.gear .row.gear-row {
+  grid-template-columns: 76px minmax(0, 1fr);
+  align-items: center;
+}
+
+/* Desktop: the rows in two columns. */
+@media (min-width: 900px) {
+  .grid.gear {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+}
+
+.gear .row.gear-row.has-info {
+  grid-template-columns: 76px minmax(0, 1fr) var(--tap);
+}
+
+.gear-place {
+  color: var(--accent);
+  font-family: Marcellus, serif;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+}
+
+.gear-value {
+  display: grid;
+  align-content: center;
+  gap: 1px;
+  width: 100%;
+  padding: 6px 10px;
+  border-radius: 10px;
+  line-height: 1.25;
+}
+
+.gear-value.empty {
+  background: transparent;
+  border-style: dashed;
+}
+
+.gear-name {
+  font-weight: 600;
+}
+
+.gear-summary,
+.gear-needed {
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+.gear-none {
+  color: var(--muted);
+}
+
+/* Each tome used, one under another in the Tomes row. */
+.gear-used {
+  display: grid;
+}
+
+.gear-used + .gear-used {
+  margin-top: 4px;
+}
+
+.lock-mark {
+  font-size: 10px;
+}
+
+.locked-note {
+  color: var(--text);
 }
 
 .show-locked {

@@ -5,10 +5,14 @@ use std::collections::BTreeSet;
 use std::sync::Arc;
 
 use leptos::prelude::*;
-use rules::{Build, Choice, Edit, Engine, Sheet, SlotId, StaleLink, WeaponKey};
+use rules::{
+    Build, Choice, Edit, Engine, GearDependent, GearKey, GearPlace, Sheet, SlotId, StaleLink,
+    WeaponKey,
+};
 
 use crate::browser::{self, Fragment};
 use crate::export::BuildSheetActions;
+use crate::gear::GearTab;
 use crate::grid::LevelsGrid;
 use crate::mythic::MythicTrack;
 use crate::picker::Picker;
@@ -31,12 +35,17 @@ pub enum Target {
     Background,
     AbilityIncrease(u8),
     Skills(u8),
+    /// The item worn in a gear place.
+    Gear(GearPlace),
+    /// The usable items (the manuals and tomes), a tick each.
+    Tomes,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Tab {
     Levels,
     Mythic,
+    Gear,
 }
 
 /// The weapon the summary's attack line is for. Not part of the Build or its link.
@@ -61,6 +70,12 @@ pub struct Planner {
     /// The levels whose class may be changed now, once per edit (and only when something asks): the grid's class
     /// buttons. Any other choice is asked about one at a time ([`withdrawal`](Self::withdrawal)).
     removable_classes: Memo<Arc<BTreeSet<u8>>>,
+    /// The sheet of the Build without its gear, for the naked numbers, once per edit (and only when something
+    /// asks): `None` for a Build without gear, at no cost.
+    pub naked: Memo<Option<Arc<Sheet>>>,
+    /// The choices the Build makes only because of its gear, each with the items it needs, once per edit (and only
+    /// when something asks): empty for a Build without gear, at no cost.
+    gear_dependents: Memo<Arc<Vec<GearDependent>>>,
     pub picker: RwSignal<Option<Target>>,
     pub tab: RwSignal<Tab>,
     /// The weapon the summary's attack line is for: the engine's default until one is chosen.
@@ -88,11 +103,24 @@ impl Planner {
                 build.with(|build| timed("removable_classes", || engine.removable_classes(build)));
             (Arc::new(levels), true)
         });
+        let naked = Memo::new_owning(move |_| {
+            let engine = engine.get_value();
+            let naked = build.with(|build| timed("naked_sheet", || engine.naked_sheet(build)));
+            (naked.map(Arc::new), true)
+        });
+        let gear_dependents = Memo::new_owning(move |_| {
+            let engine = engine.get_value();
+            let dependents =
+                build.with(|build| timed("gear_dependents", || engine.gear_dependents(build)));
+            (Arc::new(dependents), true)
+        });
         Self {
             engine,
             build,
             sheet,
             removable_classes,
+            naked,
+            gear_dependents,
             picker: RwSignal::new(None),
             tab: RwSignal::new(Tab::Levels),
             attack_weapon: RwSignal::new(AttackWeapon::Default),
@@ -151,6 +179,49 @@ impl Planner {
         let engine = self.engine();
         self.build
             .with(|build| timed("withdrawal", || engine.withdrawal(build, choice)))
+    }
+
+    /// The mark on a choice the Build makes only because of its gear ("With Belt of Incredible Dexterity +2");
+    /// `None` for any other. Tracked: asked again after each edit.
+    pub fn gear_note(&self, choice: &Choice) -> Option<String> {
+        self.gear_dependents.with(|dependents| {
+            (dependents.iter())
+                .find(|dependent| dependent.choice == *choice)
+                .map(|dependent| self.engine().gear_note(&dependent.needs))
+        })
+    }
+
+    /// Every choice the Build makes only because of its gear, named as a reason names it, with its mark
+    /// (`("Greater Two-Weapon Fighting", "With Belt of Incredible Dexterity +2")`). Tracked.
+    pub fn gear_dependents(&self) -> Vec<(String, String)> {
+        let engine = self.engine();
+        self.gear_dependents.with(|dependents| {
+            self.build.with(|build| {
+                (dependents.iter())
+                    .map(|dependent| {
+                        let name =
+                            engine.choice_names(build, std::slice::from_ref(&dependent.choice));
+                        (name, engine.gear_note(&dependent.needs))
+                    })
+                    .collect()
+            })
+        })
+    }
+
+    /// The choices that can't do without an item the Build holds, named and joined ("Greater Two-Weapon
+    /// Fighting"): those whose every way to stay allowed needs it. `None` when none does. Tracked.
+    pub fn needing(&self, item: &GearKey) -> Option<String> {
+        let engine = self.engine();
+        self.gear_dependents.with(|dependents| {
+            let choices: Vec<Choice> = (dependents.iter())
+                .filter(|dependent| dependent.needs.all_of.contains(item))
+                .map(|dependent| dependent.choice.clone())
+                .collect();
+            (!choices.is_empty()).then(|| {
+                self.build
+                    .with(|build| engine.choice_names(build, &choices))
+            })
+        })
     }
 
     pub fn open(&self, target: Target) {
@@ -266,7 +337,7 @@ fn ErrorBanner() -> AnyView {
     .into_any()
 }
 
-/// The Levels and Mythic track tabs, and the one shown.
+/// The Levels, Mythic track and Gear tabs, and the one shown.
 #[component]
 fn Tabs() -> AnyView {
     let tab = use_planner().tab;
@@ -288,10 +359,19 @@ fn Tabs() -> AnyView {
             >
                 "✦ Mythic track"
             </button>
+            <button
+                role="tab"
+                class:on=move || tab.get() == Tab::Gear
+                aria-selected=move || (tab.get() == Tab::Gear).to_string()
+                on:click=move |_| tab.set(Tab::Gear)
+            >
+                "Gear"
+            </button>
         </nav>
         {move || match tab.get() {
             Tab::Levels => view! { <LevelsGrid/> }.into_any(),
             Tab::Mythic => view! { <MythicTrack/> }.into_any(),
+            Tab::Gear => view! { <GearTab/> }.into_any(),
         }}
     }
     .into_any()

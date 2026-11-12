@@ -80,6 +80,8 @@ fn level_row(engine: &Engine, build: &Build, level: &LevelSheet) -> impl IntoVie
         .filter(|_| level.class_level == 1)
         .map(|archetype| engine.archetype_name(archetype).to_owned());
     let changeable = planner.class_removable(n);
+    // A class whose entry only the gear meets says which items, under its archetype.
+    let gear = planner.gear_note(&Choice::Class { level: n });
     let chips = level
         .slots
         .iter()
@@ -147,6 +149,7 @@ fn level_row(engine: &Engine, build: &Build, level: &LevelSheet) -> impl IntoVie
                         .then(|| view! { <span class="lock" aria-label="Locked">"🔒"</span> })}
                 </span>
                 {archetype.map(|archetype| view! { <span class="class-archetype">{archetype}</span> })}
+                {gear.map(|gear| view! { <span class="class-gear">{gear}</span> })}
             </button>
             <div class="chips">{chips} {increase} {skills} {mythic}</div>
         </div>
@@ -175,12 +178,20 @@ pub fn slot_chip(engine: &Engine, slot: &Slot, lost: bool) -> impl IntoView + us
         .as_ref()
         .and_then(|pick| engine.feat_category(pick));
     let empty = value.is_none();
+    // A pick allowed only by the Build's gear says which items, under its value (where a story note goes).
+    let gear = planner.gear_note(&Choice::Slot(slot.id.clone()));
+    let title = match &gear {
+        Some(gear) => format!("{title} · {gear}"),
+        None => title,
+    };
     let id = slot.id.clone();
+    let with_gear = gear.is_some();
     view! {
         <button
             class="chip"
             class:empty=empty
             class:lost=lost
+            class:with-gear=with_gear
             title=title
             on:click=move |_| planner.open(Target::Slot(id.clone()))
         >
@@ -191,6 +202,7 @@ pub fn slot_chip(engine: &Engine, slot: &Slot, lost: bool) -> impl IntoView + us
                 {value.unwrap_or_else(|| "+".to_owned())}
                 {lost.then(|| view! { <span class="lost-tag">"lost"</span> })}
             </span>
+            {gear.map(|gear| view! { <span class="chip-gear">{gear}</span> })}
         </button>
     }
 }
@@ -214,15 +226,30 @@ fn Summary(sheet: std::sync::Arc<Sheet>) -> impl IntoView {
         .iter()
         .map(|class| format!("{} {}", engine.class_name(&class.class), class.level))
         .collect();
-    let scores: Vec<String> = AbilityScores::ABILITIES
+    // With gear, each score it changes has its naked value beside it, smaller; without gear there's none.
+    let naked = planner.naked.get();
+    let naked_scores = (naked.as_ref())
+        .and_then(|naked| naked.levels.last())
+        .map(|level| level.state.ability_scores);
+    let scores = AbilityScores::ABILITIES
         .into_iter()
-        .map(|ability| {
-            format!(
-                "{} {}",
-                ability.short_name(),
-                state.ability_scores.get(ability)
-            )
+        .enumerate()
+        .map(|(index, ability)| {
+            let score = state.ability_scores.get(ability);
+            let bare = naked_scores
+                .map(|scores| scores.get(ability))
+                .filter(|bare| *bare != score);
+            view! {
+                {(index > 0).then_some(" · ")}
+                {format!("{} {score}", ability.short_name())}
+                {bare.map(|bare| naked_number(bare.to_string()))}
+            }
         })
+        .collect_view();
+    let gear_dependents: Vec<String> = planner
+        .gear_dependents()
+        .into_iter()
+        .map(|(name, note)| format!("{name} · {note}"))
         .collect();
     let class_skills: Vec<&str> = state
         .class_skills
@@ -265,7 +292,15 @@ fn Summary(sheet: std::sync::Arc<Sheet>) -> impl IntoView {
                     state.will,
                 )}
             </p>
-            <p class="summary-numbers">{scores.join(" · ")}</p>
+            <p class="summary-numbers">{scores}</p>
+            {(!gear_dependents.is_empty())
+                .then(|| {
+                    view! {
+                        <p class="summary-note gear-note">
+                            {format!("Gear-dependent: {}", gear_dependents.join("; "))}
+                        </p>
+                    }
+                })}
             {faith.map(|faith| view! { <p class="summary-note">{format!("Faith: {faith}")}</p> })}
             {(!class_skills.is_empty())
                 .then(|| {
@@ -344,11 +379,31 @@ fn AttackBlock(sheet: std::sync::Arc<Sheet>) -> impl IntoView {
                 .iter()
                 .map(|item| view! { <li>{*item}</li> })
                 .collect_view();
+            // The same weapon's line without the gear, when it differs.
+            let texts = |line: &rules::AttackLine| {
+                (
+                    line.attacks_text(),
+                    line.damage_text(),
+                    line.critical_text(),
+                )
+            };
+            let bare = (planner.naked.get())
+                .and_then(|naked| engine.attack_line(&naked.levels.last()?.state, &key))
+                .map(|bare| texts(&bare))
+                .filter(|bare| *bare != texts(&line))
+                .map(|(attacks, damage, critical)| {
+                    view! {
+                        <p class="summary-numbers naked-line">
+                            {naked_number(format!("{attacks} · {damage} · {critical}"))}
+                        </p>
+                    }
+                });
             Some(view! {
                 <p class="summary-numbers attack-numbers">
                     <strong>{line.attacks_text()}</strong>
                     {format!(" · {} · {}", line.damage_text(), line.critical_text())}
                 </p>
+                {bare}
                 {power_attack.map(|text| view! { <p class="summary-note">{text}</p> })}
                 <p class="summary-note">{format!("Counts: BAB; {}", counts.join("; "))}</p>
                 <details class="attack-leaves-out">
@@ -380,5 +435,15 @@ fn AttackBlock(sheet: std::sync::Arc<Sheet>) -> impl IntoView {
             </label>
             {line}
         </div>
+    }
+}
+
+/// A naked number beside its number with gear: smaller, labelled "naked" (the number without the Build's gear).
+fn naked_number(text: String) -> impl IntoView {
+    view! {
+        <span class="naked" title="Without gear">
+            <span class="naked-label">" naked "</span>
+            {text}
+        </span>
     }
 }
