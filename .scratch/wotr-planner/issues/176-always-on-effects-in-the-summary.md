@@ -2,7 +2,7 @@
 
 Type: task
 Status: open
-Blocked by: 170
+Blocked by: none
 Model: Sonnet to reclassify the data and build; Opus to check a sample of the classification against the saved pages.
 Map: [WotR Build Planner](../map.md)
 
@@ -20,7 +20,9 @@ other_effects: [
 ],
 ```
 
-The rule the user's sentence gives: **what is always on shows in the base description; only what is conditional, triggered or activated stays in the detail.** Whether the planner counts an effect in a number doesn't decide where it shows.
+A second report the same day: "fix all hoverable items that has no hover description just a link to the guide". An item with no other effect still gets an info button, and its detail holds nothing but "In the guide". Moving the always-on lines to the summary will leave more items like that.
+
+The rule the user's first sentence gives: **what is always on shows in the base description; only what is conditional, triggered or activated stays in the detail.** Whether the planner counts an effect in a number doesn't decide where it shows.
 
 ## Build
 
@@ -35,13 +37,16 @@ AFK. The gear data, its shape, the seed (a schema change: a new migration, `CLAU
   Record the count moved and every call that wasn't obvious in the ticket's Answer and in `libs/game-data/EXTRACTION_REPORT.md`. Keep each line short: the summary sits under the name on a phone's cover screen.
 - **The data check:** an always-on line is non-empty, not repeated, and not also in `other_effects`.
 - **The tables:** the always-on lines get a table of their own, or a column that tells the two apart; the seed round-trips both.
-- **The web app:** nothing new to design: the row's summary line grows. Check on the cover screen that a long summary wraps without pushing the info button off the row; an item with nothing left in its detail shows no info button unless it has a guide link.
+- **The web app:** the row's summary line grows. Check on the cover screen that a long summary wraps without pushing the info button off the row.
+- **Nothing to hover when there is nothing to say** (the user's second report): an item is hoverable, and gets its info button, only when its detail has a description to show, which for gear means at least one line left in `other_effects`. A guide link alone is not a description. For such an item there is no info button and no hover; its guide link shows as a small plain link ("Guide") on the worn item's row in the Gear tab, and nowhere in the picker's list. An item with a detail keeps its guide link inside it, as today.
+  - Apply the same rule to everything else in the app that opens a detail by hover or by an info button (feats, features, options, classes, races and the rest, in every picker and on the chips): find each case where the detail can be empty or hold only a guide link, list them in the Answer, and give them no hover and no info button. Don't remove a detail that has text.
 - **The MCP:** `summary` carries the always-on effects; `other_effects` keeps the rest. Say so in the `search` and `options` descriptions in one clause. They still count in no number: the instructions already say an item's `other_effects` count in nothing; say the same of the always-on effects that aren't bonuses.
 - **The engine ignores the new lines:** the snapshot check passes with the snapshot files untouched, and `scripts/check.sh --schema` passes.
 - Run the app and look at Mangling Frenzy's row and picker entry on the cover screen and on desktop; screenshots in the Answer.
 
 ## Done when
 
+- No item in the app has an info button or a hover whose detail is empty or only a guide link: shown by a browser script that opens every gear picker and one picker of each other kind, at the cover size and on desktop, and asserts it.
 - Mangling Frenzy's summary reads `Str, Dex, Con +4 enhancement; DR 3/-` in the Gear tab and in the MCP's `search`, and its detail holds only the critical-hit line.
 - Every item's lines are classified, with the counts and the judgement calls in the Answer; a second agent has checked a sample of 15 items against the saved pages.
 - No `other_effects` line is always on, and no always-on line is conditional, in that sample.
