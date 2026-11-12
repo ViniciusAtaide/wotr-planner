@@ -20,6 +20,9 @@ Decided in 163:
 - **Both numbers:** every number is available with gear and without.
 - **Gear-dependent picks:** a pick that is allowed only because of gear is marked with the item that allows it. If the item is removed, the pick stays in the Build and is refused with the usual reason.
 - **One item per slot,** two rings.
+- **Tomes are gear** (user, 2026-11-11: "yes tomes are gear, add the Tomes row"). The six manuals and tomes (`slot: Usable`, a permanent inherent bonus each) don't compete for a place: a Build holds any number of them, each at most once.
+- **A robe and an armour share one body place** (user, 2026-11-11).
+- **Inherent bonuses, unverified:** the stacking rule makes two inherent bonuses to one score count as the higher one, so the Tome of Ancient Perfection's +4 hides a +2 manual. That is the tabletop rule; nothing in the saved guide pages says whether this game follows it, and the user asked (2026-11-11, "are you sure inherent bonuses don't stack?"). Build it as highest-only, in one place that is easy to flip, and say so in the Answer.
 
 ## Build
 

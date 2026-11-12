@@ -23,6 +23,8 @@ Decided in 163:
 AFK. `libs/ui` and the app; no engine or schema change. Mobile-first on both Fold screens, as the map's Notes require.
 
 - **The tab:** one row per slot, in the guide's slot order, with two ring rows. A row shows the worn item's name and summary, or "None".
+  - **A Tomes row** (user, 2026-11-11): the manuals and tomes are listed with a tick each, since a character can use all of them. It shows the ticked ones' names and summaries.
+  - Robes and armours are picked in one body row.
   - Tapping a row opens the picker the feats use (`libs/ui/src/picker.rs`), listing that slot's items with name and summary, a search box, and "None" first.
   - An item's detail (the picker's existing `detail` area) lists its other effects and its guide link. Desktop shows it on hover as well; touch by tapping the item. A worn item's row expands to the same detail.
   - Picking an item updates the link at once, as every other choice does.

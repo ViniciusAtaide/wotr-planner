@@ -18,6 +18,8 @@ What the first stage leaves out, each a question here:
 - **Circumstance bonuses:** a bonus against one kind of enemy or for one school of spells. Ticket 122 modelled spell circumstances; ticket [143](143-switched-on-abilities.md) plans abilities switched on in a fight. Which of these become numbers, and which stay other effects?
 - **Stacking with feats and features:** ticket [144](144-bonus-types-and-stacking.md) is still waiting on the user's list of bonus types. Gear's types come from the guide's wording; does that list now settle 144?
 - **Inherent bonuses from books:** permanent, not worn. Are they gear, or a part of the character?
+  Answered for the six manuals and tomes (user, 2026-11-11): they are gear, on a Tomes row.
+- **Relics and artifacts** (found by ticket 165): the guide lists them in prose with upgrade tiers, not in table rows, so the first stage has none. Several give ability score bonuses: the Face-Stealer's Mask belts and headbands, the Stone of Ghostly Pathways circlets, Zaoris's Pin headbands. Are they in, and is each tier an item?
 
 ## Done when
 
