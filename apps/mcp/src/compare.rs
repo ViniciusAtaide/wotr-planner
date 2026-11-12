@@ -392,8 +392,12 @@ fn rank_diff(at: &[Option<&RankLine>]) -> Option<RankDiff> {
                 .map(|path| path.name.clone())
         })
         .collect();
+    let levels: Vec<_> = (at.iter())
+        .map(|line| line.map(|line| line.character_level))
+        .collect();
     let diff = RankDiff {
         rank,
+        character_level: differ(&levels).then(|| levels.into_iter().flatten().collect()),
         status: differ(&status).then(|| status.into_iter().flatten().collect()),
         path: differ(&path).then_some(path),
         picks: pick_diffs(
@@ -402,7 +406,10 @@ fn rank_diff(at: &[Option<&RankLine>]) -> Option<RankDiff> {
                 .collect::<Vec<_>>(),
         ),
     };
-    let same = diff.status.is_none() && diff.path.is_none() && diff.picks.is_empty();
+    let same = diff.character_level.is_none()
+        && diff.status.is_none()
+        && diff.path.is_none()
+        && diff.picks.is_empty();
     (!same).then_some(diff)
 }
 

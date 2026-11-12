@@ -272,6 +272,11 @@ impl Declared {
                     _ => self.build.path_switch = path,
                 }
             }
+            // The level a Mythic rank is taken at; the walk checks it is later than the rank table's and one the
+            // Build has.
+            (Address::RankLevel(rank), ChoiceValue::Number(level)) => {
+                self.build.rank_levels.insert(*rank, *level);
+            }
             (Address::Slot(slot), ChoiceValue::Key(_) | ChoiceValue::Parameterised { .. }) => {
                 gathered.picks.push((slot.clone(), value));
             }
@@ -312,7 +317,7 @@ impl Declared {
             }
             (address, _) => {
                 let shape = match address {
-                    Address::Score(_) | Address::Skill(..) => "a number",
+                    Address::Score(_) | Address::Skill(..) | Address::RankLevel(_) => "a number",
                     Address::Class(_) => "a class: `{class, archetype?, advances?}`",
                     Address::SkillPoints(_) => "a map `{skill: ranks}`",
                     Address::Slot(_) => "a key, or `{key, parameter}`",

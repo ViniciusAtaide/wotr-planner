@@ -15,6 +15,7 @@ mod interactions;
 mod listing;
 mod options;
 mod pick_values;
+mod rank_levels;
 mod ranking;
 mod search;
 mod sheet;

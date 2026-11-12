@@ -481,7 +481,8 @@ pub struct SheetArgs {
 ///   prestige class that asks, the classes it advances (`[]` for none);
 /// - a gear item's key, for its place (`gear.belt`: `belt-of-incredible-dexterity-2`; `none` takes the place's item
 ///   off) or for its own `gear.usable.<item key>`;
-/// - a number: a point-buy score (`start.score.int`), or the ranks a level adds to a skill (`level.N.skill.<skill>`);
+/// - a number: a point-buy score (`start.score.int`), the ranks a level adds to a skill (`level.N.skill.<skill>`),
+///   or the character level a Mythic rank is taken at (`mythic.R.level`);
 /// - `{skill: ranks}`: for `level.N.skill`, the ranks the level adds to each skill (`{"athletics": 1, "perception":
 ///   1}`), each as `level.N.skill.<skill>` takes it, in one step.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
@@ -830,8 +831,12 @@ pub struct SkillPointsLine {
 #[derive(Debug, Serialize, JsonSchema)]
 pub struct RankLine {
     pub rank: u8,
-    /// The character level its ascension comes at.
+    /// The character level its ascension is taken at: the rank table's level, or a later one the Build places it at
+    /// (`mythic.R.level`; a rank placed later takes the ranks above it along).
     pub character_level: u8,
+    /// For a rank taken later than the rank table's level: that level, the earliest the rank ever comes at.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub table_level: Option<u8>,
     pub status: RankState,
     /// The path whose row it gives (MR 1–2: the first ascension's).
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1126,8 +1131,9 @@ pub struct WithdrawArgs {
     pub build: String,
     /// The address of the choice to take back: a slot, `level.N` (the last level), `level.N.increase`,
     /// `level.N.skill.<skill>`, `class.<class>.archetype|advances`, `start.race|subrace|faith|alignment|background`,
-    /// `start.score.<ability>` (back to 7), `mythic.first-ascension|path|switch`, a gear place (`gear.belt`, …) or a
-    /// usable item (`gear.usable.<item key>`).
+    /// `start.score.<ability>` (back to 7), `mythic.first-ascension|path|switch`, `mythic.R.level` (a Mythic rank
+    /// taken later: back to the earliest level it comes at), a gear place (`gear.belt`, …) or a usable item
+    /// (`gear.usable.<item key>`).
     pub choice: String,
 }
 
@@ -1310,6 +1316,9 @@ pub struct LevelDiff {
 #[derive(Debug, Serialize, JsonSchema)]
 pub struct RankDiff {
     pub rank: u8,
+    /// One per Build, when they differ: the character level the rank is taken at (`mythic.R.level`).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub character_level: Option<Vec<u8>>,
     /// One per Build, when they differ.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub status: Option<Vec<RankState>>,

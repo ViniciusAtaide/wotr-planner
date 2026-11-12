@@ -381,6 +381,14 @@ impl Wording<'_> {
                 }
                 None => issue_reason(engine, &Issue::NotAllowed),
             },
+            Choice::RankLevel { rank } => match engine.rank_table_level(*rank) {
+                Some(earliest) => format!(
+                    "MR {rank} comes at level {earliest} at the earliest (the rank table's level): `mythic.{rank}.level` \
+                     takes a later level, up to the Build's last. To take the rank at level {earliest}, leave \
+                     `mythic.{rank}.level` out."
+                ),
+                None => format!("There is no MR {rank}: the Mythic ranks are 1 to 10."),
+            },
             _ => issue_reason(engine, &Issue::NotAllowed),
         }
     }
@@ -442,6 +450,16 @@ impl Wording<'_> {
                 "Level {level} is past the level cap of {} (40 after a Legend Path switch).",
                 sheet.level_cap
             ),
+            Choice::RankLevel { rank } => match self.build.rank_levels.get(rank) {
+                Some(level) if usize::from(*level) > levels => format!(
+                    "MR {rank} can't be taken at level {level}: the Build has {levels} level(s), and a rank is taken \
+                     at a level the Build has."
+                ),
+                Some(_) if engine.rank_table_level(*rank).is_some() => format!(
+                    "MR {rank} never comes: the Path switch ends the ascensions before it, so it has no level."
+                ),
+                _ => format!("There is no MR {rank}: the Mythic ranks are 1 to 10."),
+            },
             _ => issue_reason(engine, &Issue::NotReached),
         }
     }

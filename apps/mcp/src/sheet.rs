@@ -401,6 +401,9 @@ impl Lines<'_> {
         RankLine {
             rank: rank.rank,
             character_level: rank.character_level,
+            table_level: engine
+                .rank_table_level(rank.rank)
+                .filter(|earliest| rank.character_level > *earliest),
             status: match rank.status {
                 RankStatus::Reached => RankState::Reached,
                 RankStatus::PartlyDropped => RankState::PartlyDropped,
