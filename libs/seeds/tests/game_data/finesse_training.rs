@@ -279,3 +279,105 @@ fn with_pick_value(mut build: Build, slot: SlotId, pick: Pick) -> Build {
     build.picks.insert(slot, pick);
     build
 }
+
+// ---- the review's tests: later picks, withdrawals and a multiclass rogue -----------------------------------------
+
+/// The status `slot`'s picker gives Finesse Training for `weapon`.
+fn status_of(build: &Build, slot: &SlotId, weapon: &str) -> Result<(), rules::Issue> {
+    engine()
+        .options(build, slot)
+        .unwrap_or_else(|| panic!("no slot {slot:?}"))
+        .into_iter()
+        .find(|option| option.pick == trained(weapon))
+        .unwrap_or_else(|| panic!("{weapon} isn't offered in {slot:?}"))
+        .status
+}
+
+/// A weapon picked at a later level blocks it in an earlier slot (the later pick would break), and one picked at an
+/// earlier level is already held later; a weapon twice in one Build is impossible.
+#[test]
+fn a_weapon_picked_later_breaks_it_earlier_and_one_picked_earlier_is_held_later() {
+    use rules::Issue::{AlreadyHeld, BreaksLater};
+    let both = with_picks(
+        build("rogue", 20),
+        &[(3, trained("dagger")), (11, trained("rapier"))],
+    );
+    assert!(possible(&both));
+    let [at_3, at_11, at_19] = LEVELS.map(selection_slot);
+    assert_eq!(status_of(&both, &at_3, "rapier"), Err(BreaksLater));
+    assert_eq!(status_of(&both, &at_3, "dagger"), Ok(()));
+    assert_eq!(status_of(&both, &at_11, "dagger"), Err(AlreadyHeld));
+    assert_eq!(status_of(&both, &at_11, "rapier"), Ok(()));
+    assert_eq!(status_of(&both, &at_19, "dagger"), Err(AlreadyHeld));
+    assert_eq!(status_of(&both, &at_19, "rapier"), Err(AlreadyHeld));
+    assert_eq!(status_of(&both, &at_19, "kukri"), Ok(()));
+
+    let only_11 = with_picks(build("rogue", 20), &[(11, trained("dagger"))]);
+    assert!(possible(&only_11));
+    assert_eq!(status_of(&only_11, &at_3, "dagger"), Err(BreaksLater));
+    assert_eq!(status_of(&only_11, &at_3, "rapier"), Ok(()));
+
+    let again_at_19 = with_picks(
+        build("rogue", 20),
+        &[
+            (3, trained("dagger")),
+            (11, trained("rapier")),
+            (19, trained("dagger")),
+        ],
+    );
+    assert!(!possible(&again_at_19));
+    assert_eq!(why_not(&again_at_19, &at_19), Some(AlreadyHeld));
+}
+
+/// Each Finesse Training pick comes off on its own; the Build stays possible, the weapon is no longer held, and it's
+/// open again in the other slot.
+#[test]
+fn a_finesse_training_pick_withdraws_and_frees_its_weapon() {
+    let engine = engine();
+    let both = with_picks(
+        build("rogue", 11),
+        &[(3, trained("dagger")), (11, trained("rapier"))],
+    );
+    assert!(possible(&both));
+    let option = SelectionOptionKey::new(OPTION);
+    for (level, weapon, other) in [(3, "dagger", 11), (11, "rapier", 3)] {
+        let choice = rules::Choice::Slot(selection_slot(level));
+        assert!(engine.is_removable(&both, &choice), "{level}");
+        let (edit, removable) = engine.withdrawal(&both, &choice).expect("the pick is held");
+        assert!(removable, "{level}");
+        let mut fewer = both.clone();
+        engine.apply(&mut fewer, &edit);
+        assert_eq!(fewer.picks.get(&selection_slot(level)), None, "{level}");
+        assert!(possible(&fewer), "{level}");
+        assert!(
+            !at(&fewer, 11).has_option_for(&option, &weapon_value(weapon)),
+            "{level}"
+        );
+        assert_eq!(
+            status_of(&fewer, &selection_slot(other), weapon),
+            Ok(()),
+            "{level}"
+        );
+    }
+}
+
+/// A rogue 3 / fighter 2 / rogue 9 has its Finesse Training slots at character levels 3 and 13 (rogue 3 and 11), and
+/// takes a weapon once across both.
+#[test]
+fn a_multiclass_rogue_chooses_at_its_rogue_levels_and_once_per_weapon() {
+    let build = multiclass(&[("rogue", None, 3), ("fighter", None, 2), ("rogue", None, 9)]);
+    assert!(possible(&build));
+    assert_eq!(levels_with_slot_of(&build, SELECTION), [3, 13]);
+    let with_dagger = with_picks(build, &[(3, trained("dagger"))]);
+    assert!(possible(&with_dagger));
+    assert_eq!(
+        status_of(&with_dagger, &selection_slot(13), "dagger"),
+        Err(rules::Issue::AlreadyHeld)
+    );
+    let twice = with_picks(with_dagger, &[(13, trained("dagger"))]);
+    assert!(!possible(&twice));
+    assert_eq!(
+        why_not(&twice, &selection_slot(13)),
+        Some(rules::Issue::AlreadyHeld)
+    );
+}

@@ -91,7 +91,7 @@ The same, levels and ranks wildcarded:
 
 **Tests:**
 
-- `libs/seeds/tests/game_data/finesse_training.rs` (5 tests):
+- `libs/seeds/tests/game_data/finesse_training.rs` (5 tests, and 3 more from the review below):
   - the option's list is the guide's 21, `PerValue`, and no feature is left;
   - a rogue 20 has the slot at 3, 11 and 19, labelled and offering all 21, with the picker's one entry; three weapons filled is possible, and the pick's name;
   - a weapon taken at 3 is "Already taken" at 11, and the longsword is refused;
@@ -101,5 +101,13 @@ The same, levels and ranks wildcarded:
 - `rules`: `an_option_once_per_value_repeats_for_another_value_of_its_own` (the test world's Battle Master once per weapon) and the check test reworded.
 - `seeds/tests/database.rs`: the CHECK accepts `per_value` on an option with a parameter.
 - MCP: `finesse_training.rs` (3 tests).
+
+**Review tests** (the independent review found no bug, and asked that three behaviours be pinned):
+
+- `finesse_training.rs`:
+  - `a_weapon_picked_later_breaks_it_earlier_and_one_picked_earlier_is_held_later`: a rogue 20 with the dagger at 3 and the rapier at 11. The level-3 picker shows the rapier `BreaksLater` and its own dagger open. The level-11 picker shows the dagger already held. The level-19 picker shows both held and the kukri open. With only the dagger at 11, the level-3 picker shows the dagger `BreaksLater`. The dagger again at 19 makes the Build impossible.
+  - `a_finesse_training_pick_withdraws_and_frees_its_weapon`: with weapons at 3 and 11, each pick is removable (`is_removable`, `withdrawal`). Withdrawing one leaves the Build possible, with that weapon no longer held and open again in the other slot.
+  - `a_multiclass_rogue_chooses_at_its_rogue_levels_and_once_per_weapon`: a rogue 3 / fighter 2 / rogue 9 has its slots at character levels 3 and 13, and refuses the dagger at 13 after taking it at 3.
+- `tools/proof/src/fingerprint.rs`: `the_sheet_text_drops_an_empty_option_values_and_keeps_a_held_one`, a unit test of the strip, through `sheet_text`, now split out of `sheet_hash`.
 
 **For the queue's proof:** the proof's sheet hash leaves out an empty `option_values` (`tools/proof/src/fingerprint.rs`), as it does a state's empty faith. A Build that picks an option with a value of its own still differs there: the shaman's (and the test world's slayer's) Battle Master, besides every rogue Build's new Finesse Training slots. That difference is the new field, not a change in what is allowed.

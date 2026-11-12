@@ -484,10 +484,15 @@ fn spells() -> Vec<SpellTraits> {
 /// without a state's bonuses in force (ticket 151), which a side before them doesn't have, nor its empty option values
 /// (ticket 172's `option_values: {}`), for the same reason: a state that holds one differs.
 fn sheet_hash(sheet: &rules::Sheet) -> String {
-    let text = as_before_ticket_125(&format!("{sheet:?}"))
+    format!("{:016x}", fnv(&sheet_text(&format!("{sheet:?}"))))
+}
+
+/// A sheet's (or a state's) Debug text as [`sheet_hash`] hashes it.
+fn sheet_text(debug: &str) -> String {
+    let text = as_before_ticket_125(debug)
         .replace("faith: None, deity_domains: {}, ", "")
         .replace("option_values: {}, ", "");
-    format!("{:016x}", fnv(&without_bonuses_in_force(&text)))
+    without_bonuses_in_force(&text)
 }
 
 /// A Debug text without its states' bonuses in force: each `, bonuses_in_force: […]` left out.
@@ -733,4 +738,40 @@ fn shortcut_checks(engine: &Engine, build: &Build, feat_options: Vec<(&SlotId, V
         }
     }
     SHORTCUT_BUILDS.fetch_add(1, Ordering::Relaxed);
+}
+
+#[cfg(test)]
+mod tests {
+    use std::collections::BTreeMap;
+
+    use rules::{CharacterState, Parameter, SelectionOptionKey, WeaponKey};
+
+    use super::sheet_text;
+
+    /// Ticket 172's strip: a state's empty `option_values` is left out of the text the sheet hashes, as a side before
+    /// the field has none; one that holds a value stays.
+    #[test]
+    fn the_sheet_text_drops_an_empty_option_values_and_keeps_a_held_one() {
+        let empty = format!("{:?}", CharacterState::default());
+        assert!(empty.contains("option_values: {}, "), "{empty}");
+        let text = sheet_text(&empty);
+        assert!(!text.contains("option_values"), "{text}");
+        // Only the field is gone: the fields either side of it stay.
+        assert!(
+            text.contains("options_through: {}, option_groups: {}"),
+            "{text}"
+        );
+
+        let mut held = CharacterState::default();
+        held.option_values.insert(
+            SelectionOptionKey::new("rogue/finesse-training/weapon"),
+            BTreeMap::from([(Parameter::Weapon(WeaponKey::new("dagger")), 1)]),
+        );
+        let text = sheet_text(&format!("{held:?}"));
+        assert!(
+            text.contains("option_values: {SelectionOptionKey("),
+            "{text}"
+        );
+        assert!(text.contains("WeaponKey(\"dagger\")"), "{text}");
+    }
 }
