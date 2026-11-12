@@ -710,8 +710,8 @@ impl Edit {
 }
 
 impl Build {
-    /// Applies an edit. Edits naming a level the Build doesn't have (other than the next one, for a class) do
-    /// nothing, and so do edits that would break a fixed rule ([`keeps_fixed_rules`](Self::keeps_fixed_rules)):
+    /// Applies an edit. Edits naming a level the Build doesn't have (other than the next one, for a class; a Mythic
+    /// rank taken at such a level included) do nothing, and so do edits that would break a fixed rule ([`keeps_fixed_rules`](Self::keeps_fixed_rules)):
     /// an ability increase on a level without one, or ranks that take a skill above the character level. The sheet
     /// applies edits through [`Engine::apply`](crate::Engine::apply), which also drops what the sheet no longer shows:
     /// the path, switch and picks of Mythic ranks the Build no longer reaches (that needs the game data's ascension
@@ -806,6 +806,8 @@ impl Build {
             }
             Edit::RankLevel { rank, level } => {
                 match level {
+                    // A level the Build doesn't have is no move: the rank stays where it is.
+                    Some(level) if usize::from(*level) > self.levels.len() => None,
                     Some(level) => self.rank_levels.insert(*rank, *level),
                     None => self.rank_levels.remove(rank),
                 };

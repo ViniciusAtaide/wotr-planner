@@ -151,6 +151,15 @@ fn the_edit_keeps_only_a_level_later_than_the_tables_that_the_build_has() {
     // Past the last level, or of a rank the data lacks.
     assert_eq!(moved(&build, 4, 14), build);
     assert_eq!(moved(&build, 11, 12), build);
+    // A level past the last leaves the rank, its picks and the path chosen at it as they are.
+    let mut filled = build.clone();
+    filled.picks.insert(
+        SlotId::PathSelection { rank: 3, index: 0 },
+        pick_option("trickster/tricks/perception-1"),
+    );
+    assert!(engine.is_possible(&filled));
+    assert_eq!(moved(&filled, 3, 99), filled);
+    assert_eq!(moved(&filled, 3, 14), filled);
     // Taking it back as early as it comes.
     let later = moved(&build, 4, 13);
     let mut back = later.clone();
