@@ -77,6 +77,8 @@ A working, locally run Leptos app at `~/code/wotr-planner` for planning Pathfind
   - **The queue** (2026-11-11, with each ticket's model in its header): 159; then 165; then 166 beside 160; then 167 beside 168; then 161 by the main session and 162. Tickets that share files run one after the other.
 
   Until 161 lands, the lines above on 154 and 157 and `CLAUDE.md`'s proof rules stand as written.
+
+  The gold test found four lines that map decisions kept from agreeing. The user's answers (2026-11-11), each a ticket after 160: [171](issues/171-mythic-picks-after-the-levels.md) Mythic picks can come after the levels ("you can select mythic feats after leveling all base levels"), [172](issues/172-finesse-training-takes-a-weapon.md) Finesse Training takes a weapon, [173](issues/173-uncanny-dodge-as-a-slayer-talent.md) Uncanny Dodge as a slayer talent (design, later), and [174](issues/174-animal-companions.md) animal companions (design; reopens "companions stay out").
 - **Rules:** the rules live in a plain Rust crate with no DB or Leptos code, running in the browser. The browser loads the game data once, filters choices immediately, and decodes and encodes the Build from the URL.
 - **Mobile:** design mobile-first. The main targets are the Galaxy Z Fold 7 cover screen (folded, tall and narrow, ~21:9) and inner screen (unfolded, nearly square, ~6:5). Desktop is secondary. Both Fold screens must work for touch: no hover-only interactions, and tap targets large enough for a thumb. The layout should adapt when the phone is folded or unfolded without losing the user's place.
 - **Builds and links:** no accounts and no saved-build table. The URL fragment encodes every choice, updates live, and is the share link. `/` with no fragment is a blank Build.
