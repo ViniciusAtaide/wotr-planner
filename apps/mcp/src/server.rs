@@ -38,7 +38,7 @@ wotr-planner builds Pathfinder: Wrath of the Righteous characters with the rules
 Build its tools return is one the planner's rules allow.
 
 Read the build guide before your first Build: the resource `wotr://build-guide` (in Claude Code, the `wotr-build` \
-skill holds the same text). It gives what to know before you plan, the workflow, the choice addresses and their \
+skill holds the same text). It gives what to know before you plan (the point-buy costs too), the workflow, the choice addresses and their \
 values, batching, branching, ranking by a number and the honesty boundary in full. In short:
 1. Resolve each name the user gives with `search`; if a name could mean more than one item, ask the user which one.
 2. `new_build`, then plan the whole Build as one map of address → value and check it with `validate`; `choose` what \
@@ -335,7 +335,7 @@ impl Server {
             removed (`level.N`), a level's ability increase or a skill's ranks gone, a class's archetype or advanced \
             classes unchosen (`class.<class>.archetype|advances`), a point-buy score back to 7, a Build start choice, \
             the first ascension, path or Path switch unchosen, or a gear item taken off (`gear.belt`, \
-            `gear.usable.<item key>`, …). Only a choice nothing later depends on comes off (`choose` calls the same refusal `breaks_later`; an item a pick needs is \
+            `gear.usable.<item key>`, …). Only a choice nothing later depends on comes off (an item a pick needs, taken off, is `not_removable` here and `breaks_later` from `choose`: one case, two codes; an item a pick needs is \
             refused naming the pick: withdraw the pick first, or `choose` an item that keeps it): \
             otherwise `not_removable` (`sheet` with `removable: true` lists what can come off now, so chains come \
             off from the leaves inward). A level's class isn't withdrawn (`choose` another class, or withdraw the \

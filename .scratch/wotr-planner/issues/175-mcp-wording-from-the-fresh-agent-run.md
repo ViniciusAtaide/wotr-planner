@@ -41,3 +41,11 @@ Built 2026-11-12 on branch `ticket-175`, from `main` at `440626a`. Not merged. W
 3. **Gear before the pick it opens.** The same holds for a lowered score or a moved ability increase under a worn item (`leans_on_gear` reports it). Said in the instructions and in the guide's gear section.
 4. **Two codes, one case.** The pair is how the server already works: any choice something later depends on is `breaks_later` from `choose` (and `options`) and `not_removable` from `withdraw`; gear is not the odd one out. So the codes stay and `choose`, `withdraw`, the instructions and the guide each say they are the same case.
 5. **`start.score.<ability>` is the point-buy base**, before the racial bonus, which is added on top. Said in the guide's "Values" and in `choose`'s description.
+
+### The fresh agent's rerun, and the second pass
+
+The rerun (2026-11-12, a fresh agent on a server built from this branch) answered all five points from the server's text and hit one unintended refusal across both builds, not on the ticket's list: the point-buy costs. The server gave the range and the budget but not the cost of a score, so the agent guessed them, overspent, and `validate` refused. Second pass, same branch:
+
+- **The costs** (from `point_buy_cost` in `libs/rules/src/build.rs`): 7 = -4, 8 = -2, 9 = -1, 10 = 0, 11 = 1, 12 = 2, 13 = 3, 14 = 5, 15 = 7, 16 = 10, 17 = 13, 18 = 17. In the guide's "Before you plan", and the instructions say the guide has them (3,670 characters). A test, `the_guides_point_buy_costs_are_the_engines`, builds that line from the engine's `PointBuy::cost` for every score from 7 to 18 and asserts the guide contains it.
+- **The two codes**: the `withdraw` description and the guide now say, as plainly as `choose`'s, that it is one case in two codes.
+- `cargo test -p mcp` and `scripts/check.sh` pass.

@@ -227,3 +227,19 @@ async fn an_unknown_resource_is_not_found() {
     let read = client.read_resource("wotr://nothing").await;
     assert!(read.is_err(), "{read:?}");
 }
+
+#[tokio::test]
+async fn the_guides_point_buy_costs_are_the_engines() {
+    let guide = Client::start().await.guide().await;
+    let costs: Vec<String> = (7..=18u8)
+        .map(|score| {
+            let spent = rules::PointBuy::default()
+                .with(rules::Ability::Strength, score)
+                .expect("a score from 7 to 18 fits")
+                .cost();
+            format!("{score} = {spent}")
+        })
+        .collect();
+    let line = costs.join(", ");
+    assert!(guide.contains(&line), "no {line} in the guide");
+}
