@@ -638,11 +638,16 @@ those stay in the behaviour proof (`scripts/proof.sh`).
   Classes and paths come from the data's own lists, so a new one fails the test until it has a snapshot. A
   pick-less Build that's impossible as it is gets the first alignment (with a faith that fits) that makes it
   possible: the paladin is lawful good. Prestige classes have no pick-less Build (their entry needs feats and
-  ranks); the bench's Assassin is the only one covered.
+  ranks), so none has a Build of its own (the bench's `multi_prestige20` takes the Assassin). Instead the test
+  holds the list of prestige classes known to be uncovered, `UNCOVERED_PRESTIGE_CLASSES` (all 13 today), and
+  `snapshots_list_every_uncovered_prestige_class` fails when `prestige/` has a class not on it or the list names one
+  that's gone: add a Build for the new class to the corpus, or add it to the list.
 - **The lines:** each file is `path = value` lines in tree order. The Build start (`start.*`, `mythic.*`); per level
   its class, class level, BAB, saves, scores, skill points, the ranks it adds, each slot (`slot.feat.5.general.0 =
   Feat: power-attack "Power Attack"`, `-` while empty), and the feats and features gained at that level
-  (`level.2.feature/fighter/bravery`); per Mythic rank the same (`rank.*`); then the last level's spellcasting,
+  (`level.2.feature/fighter/bravery`, with `×2` when the level gives two copies, and again at a later level that
+  gives another); per Mythic rank the same (`rank.*`, its status one of `reached`, `partly-dropped`, `dropped`,
+  `not-reached`); then the last level's spellcasting,
   totals (`totals.*`) and caster lines (`caster.*`: each school, Evocation for each energy and with metamagic,
   Enchantment for charm and compulsion). The pick-less class and path Builds also list each slot's open options,
   `slot.feat.1.general.0.open = alertness, …`, a parameterised one as `key(value)`.
@@ -651,9 +656,11 @@ those stay in the behaviour proof (`scripts/proof.sh`).
   option at a time, so a newly legal feat reads `+ slot.feat.5.general.0.open/power-attack in 36 Builds: …`. A
   second grouping wildcards the level or rank (the path's first number), so one newly legal feat is one line:
   `slot.feat.*.general.0.open/power-attack: + in 36 Builds, 357 slots`. A missing or extra snapshot file is named
-  as such.
+  as such, a file that doesn't parse (a merge conflict's markers) by its first bad line, and a file with the same
+  lines in another order or with a line twice as "same lines, different order or duplicates".
 - **Regenerating:** when every change is intended, `SNAPSHOTS=write cargo test -p seeds --test game_data snapshots`
-  rewrites the files (and deletes those of Builds no longer in the corpus); commit them with the change.
+  rewrites the files (and deletes those of Builds no longer in the corpus) without reading them, so it also
+  repairs a file that doesn't parse; commit them with the change.
 
 ## Seeding
 

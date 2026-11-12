@@ -15,8 +15,8 @@ use std::path::{Path, PathBuf};
 
 use rules::{
     AbilityScores, Address, Alignment, Build, CharacterState, Energy, Engine, LevelSheet,
-    MythicPathKey, POINT_BUY_BUDGET, Pick, Sheet, Slot, SpellSchool, SpellTraits, Subschool, Total,
-    has_ability_increase,
+    MythicPathKey, POINT_BUY_BUDGET, Pick, RankStatus, Sheet, Slot, SpellSchool, SpellTraits,
+    Subschool, Total, has_ability_increase,
 };
 
 use crate::support::{self, DATA};
@@ -313,14 +313,12 @@ impl Projection<'_> {
             for (feat, name) in new_feats(engine, before, state) {
                 self.line(at(&format!("feat/{feat}")), name);
             }
-            for feature in state
-                .features
-                .iter()
-                .filter(|(feature, times)| before.feature_count(feature) < **times)
-                .map(|(feature, _)| feature)
-            {
-                let name = engine.feature_name_apart(feature);
-                self.line(at(&format!("feature/{feature}")), name);
+            for (feature, times) in &state.features {
+                let gained = times.saturating_sub(before.feature_count(feature));
+                if gained > 0 {
+                    let name = times_over(engine.feature_name_apart(feature), gained.into());
+                    self.line(at(&format!("feature/{feature}")), name);
+                }
             }
             before = state;
         }
@@ -355,7 +353,13 @@ impl Projection<'_> {
         for rank in &sheet.ranks {
             let at = |what: &str| format!("rank.{}.{what}", rank.rank);
             self.line(at("character-level"), rank.character_level.to_string());
-            self.line(at("status"), format!("{:?}", rank.status));
+            let status = match rank.status {
+                RankStatus::Reached => "reached",
+                RankStatus::PartlyDropped => "partly-dropped",
+                RankStatus::Dropped => "dropped",
+                RankStatus::NotReached => "not-reached",
+            };
+            self.line(at("status"), status);
             if let Some(path) = &rank.path {
                 self.line(at("path"), named(path.as_str(), engine.path_name(path)));
             }
@@ -371,10 +375,7 @@ impl Projection<'_> {
                 }
             }
             for (feature, times) in features {
-                let mut name = engine.feature_name_apart(feature);
-                if times > 1 {
-                    name += &format!(" ×{times}");
-                }
+                let name = times_over(engine.feature_name_apart(feature), times);
                 self.line(at(&format!("feature/{feature}")), name);
             }
             if !rank.dropped_slots.is_empty() {
@@ -476,28 +477,51 @@ fn lower(name: &str) -> String {
     name.to_lowercase().replace(' ', "-")
 }
 
-/// The feats held at the end of a level and not before it, as `(key, name)`: a parameterised one once per new value
-/// (`weapon-focus(longsword)`, "Weapon Focus (Longsword)").
+/// A feat's or feature's name with how many copies a level or rank gives, `×2` when more than one (the Trickster's
+/// Sneak Attack at one rank), so gaining one copy and two read differently.
+fn times_over(name: String, times: usize) -> String {
+    if times > 1 {
+        format!("{name} ×{times}")
+    } else {
+        name
+    }
+}
+
+/// The feats a level gives, as `(key, name)`: each held more times at its end than before it (a feat gained again,
+/// Extra Hex taken a second time, included), a parameterised one once per value it gains (`weapon-focus(longsword)`,
+/// "Weapon Focus (Longsword)"), with [`times_over`]'s count.
 fn new_feats(
     engine: &Engine,
     before: &CharacterState,
     after: &CharacterState,
 ) -> Vec<(String, String)> {
     let mut feats = Vec::new();
-    for feat in after.feats.keys() {
+    for (feat, times) in &after.feats {
         let name = engine.feat_name(feat);
         match after.feat_values.get(feat) {
             Some(values) => {
-                for value in values
-                    .keys()
-                    .filter(|value| !before.has_feat_for(feat, value))
-                {
-                    let key = format!("{feat}({})", value.value_key());
-                    feats.push((key, format!("{name} ({})", engine.parameter_name(value))));
+                for (value, times) in values {
+                    let held = before
+                        .feat_values
+                        .get(feat)
+                        .and_then(|values| values.get(value))
+                        .copied()
+                        .unwrap_or(0);
+                    let gained = times.saturating_sub(held);
+                    if gained > 0 {
+                        let key = format!("{feat}({})", value.value_key());
+                        let name = format!("{name} ({})", engine.parameter_name(value));
+                        feats.push((key, times_over(name, gained.into())));
+                    }
                 }
             }
-            None if !before.feats.contains_key(feat) => feats.push((feat.to_string(), name.into())),
-            None => {}
+            None => {
+                let held = before.feats.get(feat).copied().unwrap_or(0);
+                let gained = times.saturating_sub(held);
+                if gained > 0 {
+                    feats.push((feat.to_string(), times_over(name.into(), gained.into())));
+                }
+            }
         }
     }
     feats
@@ -521,33 +545,47 @@ fn render(lines: &Lines) -> String {
         .collect()
 }
 
-fn parse(text: &str) -> Lines {
+/// A stored snapshot: its lines, or why it can't be read (the first line that isn't `path = value`, a merge
+/// conflict's marker for one).
+type Stored = Result<Lines, String>;
+
+fn parse(text: &str) -> Stored {
     text.lines()
-        .filter(|line| !line.is_empty())
-        .map(|line| {
+        .enumerate()
+        .map(|(index, line)| {
             let (path, value) = line
                 .split_once(" = ")
-                .unwrap_or_else(|| panic!("a snapshot line is `path = value`: {line}"));
-            (path.to_owned(), value.to_owned())
+                .ok_or_else(|| format!("line {} isn't `path = value`: {line}", index + 1))?;
+            Ok((path.to_owned(), value.to_owned()))
         })
         .collect()
 }
 
-/// The stored snapshots by name.
-fn read_snapshots(dir: &Path) -> BTreeMap<String, Lines> {
-    let mut stored = BTreeMap::new();
+/// The names of the snapshot files in `dir` (`<name>.txt`), read or not.
+fn snapshot_names(dir: &Path) -> Vec<String> {
     let Ok(entries) = std::fs::read_dir(dir) else {
-        return stored;
+        return Vec::new();
     };
-    for entry in entries {
-        let path = entry.expect("a snapshot directory entry").path();
-        if path.extension().is_some_and(|ext| ext == "txt") {
-            let name = path.file_stem().unwrap().to_string_lossy().into_owned();
-            let text = std::fs::read_to_string(&path).expect("a snapshot reads");
-            stored.insert(name, parse(&text));
-        }
-    }
-    stored
+    let mut names: Vec<String> = entries
+        .map(|entry| entry.expect("a snapshot directory entry").path())
+        .filter(|path| path.extension().is_some_and(|ext| ext == "txt"))
+        .map(|path| path.file_stem().unwrap().to_string_lossy().into_owned())
+        .collect();
+    names.sort();
+    names
+}
+
+/// The stored snapshots by name, each parsed or with why it can't be.
+fn read_snapshots(dir: &Path) -> BTreeMap<String, Stored> {
+    snapshot_names(dir)
+        .into_iter()
+        .map(|name| {
+            let stored = std::fs::read_to_string(dir.join(format!("{name}.txt")))
+                .map_err(|error| format!("can't be read: {error}"))
+                .and_then(|text| parse(&text));
+            (name, stored)
+        })
+        .collect()
 }
 
 /// Every Build of the corpus projected, by name, on as many threads as the machine has.
@@ -584,7 +622,8 @@ fn snapshots_match_the_engine() {
     match std::env::var("SNAPSHOTS").as_deref() {
         Ok("write") => {
             std::fs::create_dir_all(&dir).expect("the snapshot directory");
-            for (name, _) in read_snapshots(&dir) {
+            // Names only: a file that doesn't parse (a merge conflict's) is rewritten or removed, never read.
+            for name in snapshot_names(&dir) {
                 if !current.contains_key(&name) {
                     std::fs::remove_file(dir.join(format!("{name}.txt")))
                         .expect("a stale snapshot goes");
@@ -605,6 +644,45 @@ fn snapshots_match_the_engine() {
     }
 }
 
+/// The prestige classes no Build of the corpus covers, by key. A prestige class has no pick-less Build (its entry
+/// needs feats and skill ranks), so each would need a Build of its own written with the picks its entry needs. The
+/// bench's `multi_prestige20` takes the Assassin, which is listed all the same: no Build is written for it here.
+const UNCOVERED_PRESTIGE_CLASSES: [&str; 13] = [
+    "aldori-swordlord",
+    "arcane-trickster",
+    "assassin",
+    "dragon-disciple",
+    "duelist",
+    "eldritch-knight",
+    "hellknight",
+    "hellknight-signifer",
+    "loremaster",
+    "mystic-theurge",
+    "stalwart-defender",
+    "student-of-war",
+    "winter-witch",
+];
+
+/// Every prestige class of the data is on [`UNCOVERED_PRESTIGE_CLASSES`], and the list names none that's gone, so a
+/// new prestige class can't go without a snapshot unnoticed.
+#[test]
+fn snapshots_list_every_uncovered_prestige_class() {
+    let data: BTreeSet<&str> = DATA
+        .prestige_classes
+        .iter()
+        .map(|class| class.key.as_str())
+        .collect();
+    let listed: BTreeSet<&str> = UNCOVERED_PRESTIGE_CLASSES.into_iter().collect();
+    let new: Vec<&&str> = data.difference(&listed).collect();
+    let gone: Vec<&&str> = listed.difference(&data).collect();
+    assert!(
+        new.is_empty() && gone.is_empty(),
+        "prestige classes without a snapshot Build: {new:?}; listed but no longer in the data: {gone:?}. Add a \
+         Build for a new prestige class to the corpus in snapshots.rs, or add it to UNCOVERED_PRESTIGE_CLASSES; \
+         take a gone one off the list"
+    );
+}
+
 // ---- the message ----------------------------------------------------------------------------------------------
 
 /// The failure message: what changed between the stored and the current lines, grouped by path.
@@ -612,7 +690,7 @@ mod message {
     use std::collections::{BTreeMap, BTreeSet};
     use std::fmt::Write;
 
-    use super::{Lines, REGENERATE};
+    use super::{Lines, REGENERATE, Stored};
 
     /// How many lines each grouping shows before saying how many more there are.
     const SHOWN: usize = 60;
@@ -729,7 +807,7 @@ mod message {
 
     /// What differs between the stored snapshots and the current lines, by Build name; `None` when nothing does.
     pub(super) fn message(
-        stored: &BTreeMap<String, Lines>,
+        stored: &BTreeMap<String, Stored>,
         current: &BTreeMap<String, Lines>,
     ) -> Option<String> {
         let missing: Vec<&String> = current
@@ -743,16 +821,26 @@ mod message {
         // (path, change) → the Builds it's in; (wildcarded path, change) → the Builds and the paths it's at.
         let mut by_path: BTreeMap<(String, Change), BTreeSet<&String>> = BTreeMap::new();
         let mut by_shape: BTreeMap<(String, Change), (BTreeSet<&String>, usize)> = BTreeMap::new();
-        let mut changed = 0;
+        let mut unreadable = Vec::new();
+        let mut reordered = Vec::new();
+        let mut differing = missing.len();
         for (name, lines) in current {
             let Some(before) = stored.get(name) else {
                 continue;
             };
-            let (before, after) = (expand(before), expand(lines));
-            let paths: BTreeSet<&String> = before.keys().chain(after.keys()).collect();
+            let before = match before {
+                Ok(before) => before,
+                Err(why) => {
+                    unreadable.push(format!("{name}.txt: {why}"));
+                    differing += 1;
+                    continue;
+                }
+            };
+            let (expanded, after) = (expand(before), expand(lines));
+            let paths: BTreeSet<&String> = expanded.keys().chain(after.keys()).collect();
             let mut differs = false;
             for path in paths {
-                let change = match (before.get(path), after.get(path)) {
+                let change = match (expanded.get(path), after.get(path)) {
                     (Some(a), Some(b)) if a == b => continue,
                     (Some(a), Some(b)) => Change::Changed(a.clone(), b.clone()),
                     (None, Some(b)) => Change::Added(b.clone()),
@@ -768,16 +856,29 @@ mod message {
                 shape.0.insert(name);
                 shape.1 += 1;
             }
-            changed += usize::from(differs);
+            // The same lines by path, but not as written: reordered, a line twice, an `.open` list out of order.
+            if !differs && before != lines {
+                reordered.push(format!("{name}.txt"));
+                differs = true;
+            }
+            differing += usize::from(differs);
         }
-        if missing.is_empty() && extra.is_empty() && by_path.is_empty() {
+        if differing == 0 && extra.is_empty() {
             return None;
         }
         let mut out = format!(
-            "the engine's output differs from the snapshots in {} of {} Builds\n",
-            changed,
+            "the engine's output differs from the snapshots in {differing} of {} Builds",
             current.len()
         );
+        if !extra.is_empty() {
+            write!(
+                out,
+                ", and {} with no Build",
+                count(extra.len(), "snapshot file")
+            )
+            .unwrap();
+        }
+        out.push('\n');
         if !by_path.is_empty() {
             let mut lines: Vec<(usize, String)> = by_path
                 .iter()
@@ -821,6 +922,16 @@ mod message {
                 lines.into_iter().map(|(_, line)| line).collect(),
             );
         }
+        if !reordered.is_empty() {
+            section(
+                &mut out,
+                "Same lines, different order or duplicates:",
+                reordered,
+            );
+        }
+        if !unreadable.is_empty() {
+            section(&mut out, "Snapshot files that don't parse:", unreadable);
+        }
         if !missing.is_empty() {
             let names = missing
                 .iter()
@@ -850,20 +961,28 @@ mod message {
             .collect()
     }
 
-    fn snapshots(builds: &[(&str, &[(&str, &str)])]) -> BTreeMap<String, Lines> {
+    fn current(builds: &[(&str, &[(&str, &str)])]) -> BTreeMap<String, Lines> {
         builds
             .iter()
             .map(|(name, pairs)| (name.to_string(), lines(pairs)))
             .collect()
     }
 
+    /// Stored snapshots, each read.
+    fn snapshots(builds: &[(&str, &[(&str, &str)])]) -> BTreeMap<String, Stored> {
+        current(builds)
+            .into_iter()
+            .map(|(name, lines)| (name, Ok(lines)))
+            .collect()
+    }
+
     #[test]
     fn snapshots_message_none_when_nothing_differs() {
-        let same = snapshots(&[(
-            "a",
-            &[("level.1.bab", "1"), ("x.open", "dodge, power-attack")],
-        )]);
-        assert_eq!(message(&same, &same), None);
+        let pairs: &[(&str, &str)] = &[("level.1.bab", "1"), ("x.open", "dodge, power-attack")];
+        assert_eq!(
+            message(&snapshots(&[("a", pairs)]), &current(&[("a", pairs)])),
+            None
+        );
     }
 
     #[test]
@@ -875,7 +994,7 @@ mod message {
             ("d", &[("level.5.saves.will", "4")]),
             ("e", &[("level.5.saves.will", "1")]),
         ]);
-        let current = snapshots(&[
+        let current = current(&[
             ("a", &[("level.5.saves.will", "5")]),
             ("b", &[("level.5.saves.will", "5")]),
             ("c", &[("level.5.saves.will", "5")]),
@@ -909,7 +1028,7 @@ mod message {
             ),
             ("rogue", &[("slot.feat.1.general.0.open", "-")]),
         ]);
-        let current = snapshots(&[
+        let current = current(&[
             (
                 "fighter",
                 &[
@@ -937,7 +1056,7 @@ mod message {
     #[test]
     fn snapshots_message_names_added_and_removed_lines_with_their_values() {
         let stored = snapshots(&[("a", &[("level.2.feature/x", "X")])]);
-        let current = snapshots(&[("a", &[("level.3.feature/y", "Y")])]);
+        let current = current(&[("a", &[("level.3.feature/y", "Y")])]);
         let message = message(&stored, &current).unwrap();
         assert!(
             message.contains("\n  - level.2.feature/x = X in 1 Build: a\n"),
@@ -956,7 +1075,7 @@ mod message {
     #[test]
     fn snapshots_message_names_missing_and_extra_files_and_ends_with_the_command() {
         let stored = snapshots(&[("a", &[("x", "1")]), ("gone", &[("x", "1")])]);
-        let current = snapshots(&[("a", &[("x", "1")]), ("class-new", &[("x", "1")])]);
+        let current = current(&[("a", &[("x", "1")]), ("class-new", &[("x", "1")])]);
         let message = message(&stored, &current).unwrap();
         assert!(
             message.contains("\n  class-new.txt: no snapshot file (a new Build)\n"),
@@ -984,5 +1103,203 @@ mod message {
             "rank.*.feature/azata/x2"
         );
         assert_eq!(wildcard("totals.skill.athletics"), "totals.skill.athletics");
+    }
+
+    /// The lines of a section of the message, without their indent.
+    fn section_lines<'a>(message: &'a str, title: &str) -> Vec<&'a str> {
+        message
+            .split_once(&format!("\n{title}\n"))
+            .unwrap_or_else(|| panic!("no section {title} in:\n{message}"))
+            .1
+            .lines()
+            .take_while(|line| line.starts_with("  "))
+            .map(str::trim_start)
+            .collect()
+    }
+
+    const CHANGES: &str = "Changes, each with the Builds it's in:";
+    const WILDCARDED: &str = "The same, levels and ranks wildcarded:";
+
+    #[test]
+    fn snapshots_message_keeps_different_new_values_of_one_path_apart() {
+        let stored = snapshots(&[
+            ("a", &[("level.5.saves.will", "4")]),
+            ("b", &[("level.5.saves.will", "4")]),
+        ]);
+        let current = current(&[
+            ("a", &[("level.5.saves.will", "5")]),
+            ("b", &[("level.5.saves.will", "6")]),
+        ]);
+        let message = message(&stored, &current).unwrap();
+        assert_eq!(
+            section_lines(&message, CHANGES),
+            [
+                "level.5.saves.will: 4 → 5 in 1 Build: a",
+                "level.5.saves.will: 4 → 6 in 1 Build: b",
+            ]
+        );
+        assert_eq!(
+            section_lines(&message, WILDCARDED),
+            [
+                "level.*.saves.will: 4 → 5 in 1 Build, 1 line",
+                "level.*.saves.will: 4 → 6 in 1 Build, 1 line",
+            ]
+        );
+    }
+
+    #[test]
+    fn snapshots_message_sorts_the_most_builds_first() {
+        let stored = snapshots(&[
+            ("a", &[("level.1.bab", "0"), ("level.9.bab", "8")]),
+            ("b", &[("level.1.bab", "0"), ("level.9.bab", "8")]),
+            ("c", &[("level.1.bab", "0"), ("level.9.bab", "8")]),
+        ]);
+        let current = current(&[
+            ("a", &[("level.1.bab", "1"), ("level.9.bab", "9")]),
+            ("b", &[("level.1.bab", "0"), ("level.9.bab", "9")]),
+            ("c", &[("level.1.bab", "0"), ("level.9.bab", "9")]),
+        ]);
+        let message = message(&stored, &current).unwrap();
+        assert_eq!(
+            section_lines(&message, CHANGES),
+            [
+                "level.9.bab: 8 → 9 in 3 Builds: a, b, c",
+                "level.1.bab: 0 → 1 in 1 Build: a",
+            ]
+        );
+    }
+
+    #[test]
+    fn snapshots_message_names_three_builds_without_an_ellipsis() {
+        assert_eq!(
+            first_names(&["a".to_string(), "b".into(), "c".into()]),
+            "a, b, c"
+        );
+        assert_eq!(
+            first_names(&["a".to_string(), "b".into(), "c".into(), "d".into()]),
+            "a, b, c, …"
+        );
+    }
+
+    #[test]
+    fn snapshots_message_shows_60_lines_then_how_many_more() {
+        let before: Vec<(String, String)> = (0..61)
+            .map(|n| (format!("x.{n}.y"), "0".to_string()))
+            .collect();
+        let after: Vec<(String, String)> = (0..61)
+            .map(|n| (format!("x.{n}.y"), "1".to_string()))
+            .collect();
+        let stored = BTreeMap::from([("a".to_string(), Ok(before))]);
+        let current = BTreeMap::from([("a".to_string(), after)]);
+        let message = message(&stored, &current).unwrap();
+        let changes = section_lines(&message, CHANGES);
+        assert_eq!(changes.len(), 61, "{message}");
+        assert_eq!(changes[60], "… and 1 more");
+        // The wildcard grouping folds the 61 into one line.
+        assert_eq!(
+            section_lines(&message, WILDCARDED),
+            ["x.*.y: 0 → 1 in 1 Build, 61 lines"]
+        );
+    }
+
+    #[test]
+    fn snapshots_message_never_merges_different_changes_into_one_wildcard() {
+        let stored = snapshots(&[(
+            "a",
+            &[
+                ("level.1.bab", "0"),
+                ("level.2.bab", "1"),
+                ("level.3.feature/x", "X"),
+            ],
+        )]);
+        let current = current(&[(
+            "a",
+            &[
+                ("level.1.bab", "1"),
+                ("level.2.bab", "3"),
+                ("level.4.feature/x", "X"),
+            ],
+        )]);
+        let message = message(&stored, &current).unwrap();
+        assert_eq!(
+            section_lines(&message, WILDCARDED),
+            [
+                "level.*.bab: 0 → 1 in 1 Build, 1 line",
+                "level.*.bab: 1 → 3 in 1 Build, 1 line",
+                "level.*.feature/x: + X in 1 Build, 1 line",
+                "level.*.feature/x: - X in 1 Build, 1 line",
+            ]
+        );
+    }
+
+    #[test]
+    fn snapshots_message_names_a_file_that_does_not_parse() {
+        let stored = BTreeMap::from([
+            (
+                "a".to_string(),
+                super::parse("x = 1\n<<<<<<< HEAD\nx = 2\n"),
+            ),
+            ("b".to_string(), Ok(lines(&[("x", "1")]))),
+        ]);
+        assert_eq!(
+            stored["a"],
+            Err("line 2 isn't `path = value`: <<<<<<< HEAD".to_string())
+        );
+        let current = current(&[("a", &[("x", "1")]), ("b", &[("x", "1")])]);
+        let message = message(&stored, &current).unwrap();
+        assert!(
+            message
+                .starts_with("the engine's output differs from the snapshots in 1 of 2 Builds\n"),
+            "{message}"
+        );
+        assert_eq!(
+            section_lines(&message, "Snapshot files that don't parse:"),
+            ["a.txt: line 2 isn't `path = value`: <<<<<<< HEAD"]
+        );
+    }
+
+    #[test]
+    fn snapshots_message_counts_missing_and_extra_files_in_its_header() {
+        let stored = snapshots(&[("a", &[("x", "1")]), ("gone", &[("x", "1")])]);
+        let only_extra = message(&stored, &current(&[("a", &[("x", "1")])])).unwrap();
+        assert!(
+            only_extra.starts_with(
+                "the engine's output differs from the snapshots in 0 of 1 Builds, and 1 snapshot file \
+                 with no Build\n"
+            ),
+            "{only_extra}"
+        );
+        let missing = current(&[("a", &[("x", "1")]), ("new", &[("x", "1")])]);
+        let stored = snapshots(&[("a", &[("x", "1")])]);
+        let only_missing = message(&stored, &missing).unwrap();
+        assert!(
+            only_missing
+                .starts_with("the engine's output differs from the snapshots in 1 of 2 Builds\n"),
+            "{only_missing}"
+        );
+    }
+
+    #[test]
+    fn snapshots_message_names_a_file_with_its_lines_reordered_or_doubled() {
+        let current = current(&[
+            ("a", &[("x", "1"), ("y", "2")]),
+            ("b", &[("x", "1"), ("y", "2")]),
+            ("c", &[("x.open", "p, q")]),
+        ]);
+        let stored = snapshots(&[
+            ("a", &[("y", "2"), ("x", "1")]),
+            ("b", &[("x", "1"), ("y", "2"), ("y", "2")]),
+            ("c", &[("x.open", "q, p")]),
+        ]);
+        let message = message(&stored, &current).unwrap();
+        assert!(
+            message
+                .starts_with("the engine's output differs from the snapshots in 3 of 3 Builds\n"),
+            "{message}"
+        );
+        assert_eq!(
+            section_lines(&message, "Same lines, different order or duplicates:"),
+            ["a.txt", "b.txt", "c.txt"]
+        );
     }
 }
