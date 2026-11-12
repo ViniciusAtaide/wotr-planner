@@ -69,7 +69,12 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   number there; that is not true in general (the Arcane Trickster's prerequisite is `Feature(..., count: 2)`, and
   `ability_bonuses` multiply by the count), so an author stepping another feature checks both first. An archetype
   that falls back to the base class's row at a step level gets the step too: one that loses the feature (the
-  Imitator's Studied Target) needs its own row at that level without it. `scaling_features.rs` pins the steps.
+  Imitator's Studied Target) needs its own row at that level without it. Likewise a selection sharing an option
+  that skips the row of a feature's first grant skips the rows of its steps too, or it gains a step of a feature it
+  never had (ticket 179: the Dragonheir Scion takes none of its Draconic bloodline's rows, as its table gives none
+  of the bloodline's powers, so its `skipped_levels` are `[1, 3, 9, 15, 20]`, the resistances' step at 9 included).
+  `scaling_features.rs` pins the steps, and checks the skipped rows of every selection against every option it
+  offers.
 - The rogue's Finesse Training is a pick, not a label (ticket 172: the user's "make finesse training take a weapon",
   for the Enforcer's "Finesse Training - Light Shield", reversing ticket 54's "choices that gate no pick stay labels"
   for this feature only). The guide (`rogue#finesse-training`): "At 3rd level, a Rogue may select a finessable weapon

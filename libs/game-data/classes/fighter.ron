@@ -129,7 +129,7 @@ Class(
                     summary: "You gain a draconic bloodline, whose energy type your other draconic abilities use.",
                     guide: "fighter#draconic-bloodline",
                     option_levels: ["fighter"],
-                    skipped_levels: [1, 3, 15, 20],
+                    skipped_levels: [1, 3, 9, 15, 20],
                     options: [],
                     shared_options: [
                         "sorcerer/bloodline/draconic-black",
