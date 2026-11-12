@@ -1,0 +1,85 @@
+// The Enforcer, converted by hand from `source.txt` (ticket 160): the gold standard's expected side.
+//
+// The write-up's own names, line by line. What the conversion changes, and nothing else:
+// - a level's or rank's cell becomes a list, split at its semicolons; a cell that wraps onto the next line is one
+//   cell;
+// - the label prefixes are dropped, as `gold.rs`'s `LABELS` lists them: "Exploit - Wooden Flesh" is "Wooden Flesh".
+// What a name means to the planner is `gold.rs`'s to say, never this file's.
+(
+    name: "Enforcer",
+    start: (
+        race: "Half-Elf",
+        background: "Andoren Diplomat",
+        classes: [("Arcane Enforcer", 15), ("Sylvan Trickster", 4), ("Mutation Warrior", 1)],
+        ability_bonus: Some("Strength"),
+        attributes: [("STR", 18), ("DEX", 16), ("CON", 14), ("INT", 10), ("WIS", 8), ("CHA", 12)],
+        skills: ["Athletics", "Perception", "Persuasion"],
+        alignments: ["CN", "CG", "NG"],
+    ),
+    levels: [
+        (
+            level: 1,
+            class: "Arcane Enforcer",
+            gains: ["Arcane Reservoir", "Studied Target +1", "Wooden Flesh", "Two-Weapon Fighting", "Skill Focus - Persuasion"],
+        ),
+        (level: 2, class: "Arcane Enforcer", gains: ["Menacing Style - Intimidating Prowess"]),
+        (level: 3, class: "Arcane Enforcer", gains: ["+1d6 sneak", "Shield Bash"]),
+        (level: 4, class: "Arcane Enforcer", gains: ["Armored Mask", "+1 Strength"]),
+        (level: 5, class: "Arcane Enforcer", gains: ["Studied Target +2", "Outflank"]),
+        (level: 6, class: "Arcane Enforcer", gains: ["+1d6 sneak", "Menacing Style - Shatter Defenses"]),
+        (level: 7, class: "Arcane Enforcer", gains: ["Studied Target (Swift)", "Dimensional Slide", "Combat Reflexes"]),
+        (level: 8, class: "Arcane Enforcer", gains: ["Uncanny Dodge", "+1 Strength"]),
+        (level: 9, class: "Arcane Enforcer", gains: ["+1d6 sneak", "Improved Critical - Battleaxe"]),
+        (level: 10, class: "Arcane Enforcer", gains: ["Studied Target +3", "Spell Resistance"]),
+        (level: 11, class: "Arcane Enforcer", gains: ["Shield Master"]),
+        (level: 12, class: "Arcane Enforcer", gains: ["+1d6 sneak", "Menacing Style - Dreadful Carnage", "+1 Dexterity"]),
+        (level: 13, class: "Arcane Enforcer", gains: ["Greater Spell Resistance", "Improved Two-Weapon Fighting"]),
+        (level: 14, class: "Arcane Enforcer", gains: ["Crippling Strike"]),
+        (level: 15, class: "Arcane Enforcer", gains: ["Studied Target +4", "+1d6 sneak", "Improved Initiative"]),
+        (level: 16, class: "Sylvan Trickster", gains: ["Weapon Finesse", "Trapfinding", "+1d6 sneak", "+1 Strength"]),
+        (level: 17, class: "Sylvan Trickster", gains: ["Evasion", "Iceplant", "Bashing Finish"]),
+        (level: 18, class: "Sylvan Trickster", gains: ["Danger Sense", "+1d6 sneak", "Finesse Training - Light Shield"]),
+        (
+            level: 19,
+            class: "Sylvan Trickster",
+            gains: ["Debilitating Injury", "Resist Nature's Lure", "Double Debilitation", "Greater Two-Weapon Fighting"],
+        ),
+        (level: 20, class: "Mutation Warrior", gains: ["Shield Focus", "+1 Strength"]),
+    ],
+    ranks: [
+        (rank: 1, path: "Mythic Hero", gains: ["Bypass Epic DR", "Bit of Fun", "Defensive Study"]),
+        (
+            rank: 2,
+            path: "Mythic Hero",
+            gains: ["Hard to Kill", "Summon Will-o'-Wisp", "Creative Approach", "Two-Weapon Fighting (Mythic)"],
+        ),
+        (
+            rank: 3,
+            path: "Azata",
+            gains: ["Dragon Companion", "Song of Heroic Resolve", "Summon Mastodon", "Inspirational Leader"],
+        ),
+        (
+            rank: 4,
+            path: "Azata",
+            gains: ["Summon Movanic Deva", "Incredible Might", "Improved Critical (Mythic) - Battleaxe"],
+        ),
+        (rank: 5, path: "Azata", gains: ["Song of Broken Chains", "Summon Azata Ghael", "Archmage Armor"]),
+        (
+            rank: 6,
+            path: "Azata",
+            gains: ["Song of Defiance", "Summon Astral Deva", "Life-Bonding Friendship (Shield Wall)", "Improved Initiative (Mythic)"],
+        ),
+        (
+            rank: 7,
+            path: "Azata",
+            gains: ["Song of Courageous Defender", "Summon Astral Devas", "Life-Bonding Friendship (Shake It Off)", "Enduring Spells"],
+        ),
+        (
+            rank: 8,
+            path: "Azata",
+            gains: ["Summon Azata Ghaels and Astral Devas", "Marvelous Endurance", "Extra Mythic Ability - Greater Enduring Spells"],
+        ),
+        (rank: 9, path: "Azata", gains: ["Summon Hamadryads", "Ever Ready"]),
+        (rank: 10, path: "Azata", gains: ["Supersonic Speed", "Mythic Shield Focus"]),
+    ],
+)

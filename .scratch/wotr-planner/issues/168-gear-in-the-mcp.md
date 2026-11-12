@@ -24,6 +24,7 @@ Decided in 163:
 AFK. `apps/mcp`, `.claude/skills/wotr-build/`, the map, and one gold test. No engine or schema change.
 
 - **`options` and `choose`:** gear addresses arrive with the grammar (166). `options` on a gear slot lists its items with summary and other effects. `todo` never lists an empty gear slot: gear is optional.
+- **An item a pick needs can't be removed or replaced** (user, 2026-11-12): `options` shows such an item's alternatives as closed with the reason, and `choose` and `withdraw` refuse with it. The MCP tests' "withdraw the belt and see the pick refused" becomes: withdrawing the belt is refused, naming the pick; after the pick is withdrawn, the belt comes off.
 - **`options` statuses:** `Open` gains a second variant for an option open only because of gear, naming the item (`apps/mcp/src/shapes.rs`; today it is the single `"ok"`).
 - **`sheet`:** the worn items with their summaries; each number with gear, and a `naked` block with the numbers gear changes; the list of gear-dependent picks, each with its item. The scores' doc ("feature bonuses included, gear never") changes to match.
 - **`compare`:** shows both numbers; its differences and `by` rank on the naked ones by default, and on the geared ones with a new argument. Say which was used in the result.
