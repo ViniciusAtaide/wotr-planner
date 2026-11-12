@@ -1,7 +1,9 @@
 //! The walk: one pass over a Build, level by level, that gives the sheet and the choices that fail; and the cursor,
 //! the walk paused where a picker asks, which judges each candidate there (`cursor`).
 
-use std::collections::{BTreeMap, BTreeSet, HashSet};
+use std::collections::{BTreeMap, BTreeSet};
+
+use rustc_hash::FxHashSet;
 
 use super::{
     BASE_LEVEL_CAP, Engine, FIRST_ASCENSION_RANK, LevelSheet, PATH_CHOICE_RANK, PATH_SWITCH_RANK,
@@ -160,7 +162,7 @@ struct Walker<'a> {
     /// The choices that don't hold up, in walk order.
     failed: Vec<Failure>,
     /// The slots the walk has reached, so a pick for any other is found at the end.
-    reached: HashSet<SlotId>,
+    reached: FxHashSet<SlotId>,
     /// What Mythic ascensions granted, by rank and source, so a Path switch can drop it.
     rank_grants: Vec<RankGrant>,
     ranks: Vec<RankSheet>,
@@ -278,7 +280,7 @@ impl<'a> Walker<'a> {
             build,
             state: CharacterState::default(),
             failed: Vec::new(),
-            reached: HashSet::new(),
+            reached: FxHashSet::default(),
             rank_grants: Vec::new(),
             ranks,
             level_cap: BASE_LEVEL_CAP,
