@@ -45,7 +45,13 @@ pub struct GearItem {
     pub guide: GuideRef,
     /// Its always-on bonuses, one per number changed.
     pub bonuses: Vec<GearBonus>,
-    /// Everything else it does, one short line each, in the planner's own words.
+    /// What it does while worn that no bonus counts (DR, an immunity, an AC or speed bonus, an armour's own
+    /// enhancement): one short line each, in the planner's own words, in the order the summary appends them.
+    /// Ticket 176. Not sorted by `canonicalize`: the order is the summary's.
+    #[serde(default)]
+    pub always_on: Vec<String>,
+    /// What it does only in some circumstance or by use (on a crit, while raging, against a kind of enemy, N times a
+    /// day, with another item, who may wear it): one short line each, shown in the detail only.
     #[serde(default)]
     pub other_effects: Vec<String>,
 }
@@ -104,13 +110,13 @@ Why:
 - **A gear-specific target, not an extended `BonusTarget`:** `BonusTarget` has `Held` and `AllSkills`, which no item means; adding `Ability` to it would let `bonuses.ron` give a feat a score bonus, which the engine applies by another route (`AbilityBonus`); and it would force a new arm into the seed's `target_columns` and the `item_bonus` CHECK. `bonus_target()` is the bridge 166 uses.
 - **A signed `i8` amount:** no item scales, and six first-stage items carry always-on penalties (Bookworm's Headband: -2 Charisma, -3 Persuasion; Goggles of Ferocious Pact: -5 Persuasion, -2 Fortitude).
 - **One bonus per target:** "Strength, Dexterity and Constitution" is three entries; the summary regroups them.
-- **Other effects** are a `Vec<String>`, sorted by `canonicalize` like every other child list.
+- **Other effects** are a `Vec<String>`, sorted by `canonicalize` like every other child list. **Always-on effects** (ticket 176) are one too, in written order.
 
 Additive later, with no reshaping: `GearTarget::CasterLevel`, AC, attack and damage targets, `GearSlot::Shield` and `Rod`, a `weapon: Option<WeaponKey>` field, a set-bonus field.
 
 ## The RON format
 
-`libs/game-data/gear.ron` is one `Vec<GearItem>`, one item per block, grouped by slot with a comment per guide section. `kind` is left out for an untyped bonus, and `other_effects` when empty.
+`libs/game-data/gear.ron` is one `Vec<GearItem>`, one item per block, grouped by slot with a comment per guide section. `kind` is left out for an untyped bonus, and `always_on` and `other_effects` when empty.
 
 - **Key:** the name in lower case, apostrophes dropped, every other run of non-alphanumerics a single hyphen (`assailants-belt`, `belt-of-physical-perfection-6`).
 - **A row repeated on a DLC page with the same properties** is one entry with the main page's reference.
@@ -165,6 +171,7 @@ A penalty is written `(target: Ability(Charisma), amount: -2)`.
 2. Group the bonuses that share amount and type. Groups keep the order of their first target; targets keep their order inside a group.
 3. Print a group as its target names joined by ", ", a space, the signed amount (`+6`, `-2`), then a space and the type's lower-case name. An untyped bonus prints no type.
 4. Join groups with "; ". No full stop.
+5. Then append the item's `always_on` lines, as written, each after "; " (ticket 176): `Str, Dex, Con +4 enhancement; DR 3/-`. `other_effects` are never in the summary.
 
 Target names: `Str`, `Dex`, `Con`, `Int`, `Wis`, `Cha`; `Saves`, `Fortitude`, `Reflex`, `Will`; `Initiative`; a skill's `name` from `skills.ron`; `Spell DC`, or `Spell DC (Evocation)` when scoped; `Spell penetration`; `Concentration`.
 
@@ -186,7 +193,7 @@ An other-effect line in the first stage:
 | --- | --- | --- |
 | AC | Hammer Fists +2 morale; Heart of Ice +4 armour | a target once AC is computed |
 | Attack and damage | Goggles +4 damage; Midnight Hunter's Ring vs lycanthropes | second-stage target |
-| CMD, critical range, DR, speed, immunities | Ustlavic Pride +4 CMD | text |
+| CMD, critical range, DR, speed, immunities | Ustlavic Pride +4 CMD | text (`always_on`, in the summary, since ticket 176) |
 | Caster level | Sin Mage's Staff +3; Headband of Reshaping +1 for Transmutation | `GearTarget::CasterLevel` |
 | A weapon's or armour's own enhancement and base type | Sin Mage's Staff is a +5 quarterstaff | second-stage fields; one line now |
 | One use of a skill | Persuasion (Bluff) +5 | text, as `bonuses.ron` already leaves these out |
@@ -207,8 +214,9 @@ A new migration; the names are free since `20261111152919_148-drop-gear.sql`.
 - `gear_item`: `key` (primary key, the `text_key` CHECK), `name`, `slot` (CHECK on the 13 values), `guide`.
 - `gear_bonus`: `id`, `gear_item_key` (FK), `target` (CHECK: `ability`, `all_saves`, `save`, `initiative`, `skill`, `spell_dc`, `spell_penetration`, `concentration`), `ability`, `save`, `skill_key` (FK `skill`), `scope`, `spell_school`, `subschool`, `energy`, `amount` (CHECK -128 to 127 and not 0), `bonus_type` (CHECK on the 19 values). "Column present exactly with its target" constraints as on `item_bonus`; a CHECK that a negative amount is `untyped`; an index on `gear_item_key`.
 - `gear_other_effect`: `id`, `gear_item_key` (FK), `text` (CHECK not empty), UNIQUE (`gear_item_key`, `text`).
+- `gear_always_on_effect` (ticket 176, migration `20261112092431_176-gear-always-on.sql`): the same columns; read back in `id` order, which is the summary's order.
 
-`GameData::check`, under a new `DataAt::Gear(GearKey)`, refuses: a duplicate key, and two items with one name; an item with no bonus; an amount of 0, or a negative amount with a type other than `Untyped`; two bonuses on one item with the same target and type; a `Skill` target naming no skill; `SpellDc(Value)`; an empty or repeated other-effect line. An unknown slot, target or type never reaches the check: the RON parse refuses it.
+`GameData::check`, under a new `DataAt::Gear(GearKey)`, refuses: a duplicate key, and two items with one name; an item with no bonus; an amount of 0, or a negative amount with a type other than `Untyped`; two bonuses on one item with the same target and type; a `Skill` target naming no skill; `SpellDc(Value)`; an empty or repeated other-effect or always-on line, and a line in both lists. An unknown slot, target or type never reaches the check: the RON parse refuses it.
 
 Real-data tests (first-stage rules, not check rules, since the second stage breaks them): every item has a positive `Ability` bonus; every type is one of the ten; every guide reference is one of the three pages and its section matches the slot; no other-effect line is over about 140 characters; the three hand-picked items; every summary is non-empty.
 

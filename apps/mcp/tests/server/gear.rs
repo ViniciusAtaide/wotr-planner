@@ -416,6 +416,21 @@ async fn search_finds_gear_by_name_place_and_bonus() {
         assailant["other_effects"],
         json!(["Landing a critical hit: +2 circumstance on attacks and damage for 3 rounds."])
     );
+    // An always-on effect is in the summary and the conditional one stays in `other_effects` (ticket 176).
+    let mangling = client
+        .ok(
+            "search",
+            json!({ "query": "mangling frenzy", "kinds": ["gear"] }),
+        )
+        .await;
+    assert_eq!(
+        mangling["matches"][0]["summary"],
+        "Str, Dex, Con +4 enhancement; DR 3/-"
+    );
+    assert_eq!(
+        mangling["matches"][0]["other_effects"],
+        json!(["Critical hit while raging: +4d6 slashing damage."])
+    );
     let ring = client
         .ok(
             "describe",

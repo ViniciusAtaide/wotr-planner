@@ -12,6 +12,7 @@ fn item(key: &str, name: &str, slot: GearSlot, bonuses: Vec<GearBonus>) -> GearI
         slot,
         guide: None,
         bonuses,
+        always_on: Vec::new(),
         other_effects: Vec::new(),
     }
 }

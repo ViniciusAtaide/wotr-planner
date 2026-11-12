@@ -4,7 +4,8 @@
 //!
 //! A bonus has a [`GearTarget`] (an ability score, or a number the planner already computes), an amount and a
 //! [`BonusType`]. What an item does besides (a bonus in some circumstance, a use per day, who may wear it) is a short
-//! line of the planner's own words in [`GearItem::other_effects`].
+//! line of the planner's own words in [`GearItem::other_effects`], and what it does while worn without being a
+//! counted bonus is a line in [`GearItem::always_on`], which the summary appends to the bonuses.
 
 use std::fmt::Write as _;
 
@@ -28,7 +29,14 @@ pub struct GearItem {
     pub guide: Option<GuideRef>,
     /// Its always-on bonuses, one per number changed.
     pub bonuses: Vec<GearBonus>,
-    /// Everything else it does, one short line each, in the planner's own words.
+    /// What it also does while worn that no number counts (ticket 176): damage reduction, an immunity, an AC or
+    /// speed bonus, the weapon's or armour's own enhancement. One short line each, in the planner's own words, in
+    /// the order [`GearItem::summary`] appends them.
+    #[serde(default)]
+    pub always_on: Vec<String>,
+    /// What it does only in some circumstance or by use: on a critical hit, while raging, against a kind of enemy,
+    /// a number of times a day, with another item, or only for some wearers. One short line each, in the planner's
+    /// own words, shown in the detail and not in the summary.
     #[serde(default)]
     pub other_effects: Vec<String>,
 }
@@ -169,8 +177,9 @@ impl GearTarget {
 
 impl GearItem {
     /// The summary of its bonuses, generated so the web app and the MCP show one text: the bonuses in
-    /// [`GearTarget`]'s order, those sharing an amount and a type grouped ("Str, Dex, Con +6 enhancement"), groups
-    /// joined by "; ", an untyped bonus with no type, no full stop. `skills` gives a skill target its name.
+    /// [`GearTarget`]'s order, those sharing an amount and a type grouped ("Str, Dex, Con +6 enhancement"), then
+    /// the [`always_on`](Self::always_on) lines as written, all joined by "; ", an untyped bonus with no type, no
+    /// full stop ("Str, Dex, Con +4 enhancement; DR 3/-"). `skills` gives a skill target its name.
     pub fn summary(&self, skills: &[Skill]) -> String {
         let mut bonuses: Vec<&GearBonus> = self.bonuses.iter().collect();
         bonuses.sort_by(|a, b| a.target.cmp(&b.target));
@@ -194,6 +203,12 @@ impl GearItem {
             if *kind != BonusType::Untyped {
                 let _ = write!(text, " {}", kind.name());
             }
+        }
+        for line in &self.always_on {
+            if !text.is_empty() {
+                text.push_str("; ");
+            }
+            text.push_str(line);
         }
         text
     }
@@ -233,6 +248,7 @@ mod tests {
             slot: GearSlot::Belt,
             guide: None,
             bonuses,
+            always_on: Vec::new(),
             other_effects: Vec::new(),
         }
     }
@@ -324,6 +340,20 @@ mod tests {
         assert_eq!(
             item.summary(&skills()),
             "Spell DC (Evocation) +1; Caster level +3"
+        );
+    }
+
+    #[test]
+    fn always_on_lines_follow_the_bonuses() {
+        let mut belt = item(
+            [Ability::Strength, Ability::Dexterity, Ability::Constitution]
+                .map(|a| bonus(ability(a), 4, BonusType::Enhancement))
+                .to_vec(),
+        );
+        belt.always_on = vec!["DR 3/-".to_owned(), "Immune to acid".to_owned()];
+        assert_eq!(
+            belt.summary(&skills()),
+            "Str, Dex, Con +4 enhancement; DR 3/-; Immune to acid"
         );
     }
 }

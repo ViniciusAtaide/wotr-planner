@@ -127,6 +127,7 @@ fn exactly_the_users_twenty_two_generic_items_have_no_guide_reference() {
     assert_eq!(without, expected);
     for item in DATA.gear.iter().filter(|item| item.guide.is_none()) {
         assert!(item.other_effects.is_empty(), "{}", item.name);
+        assert!(item.always_on.is_empty(), "{}", item.name);
         assert!(
             item.bonuses
                 .iter()
@@ -183,6 +184,7 @@ fn the_manuals_tomes_and_all_score_consumables_are_usable_inherent_bonuses() {
     let mut all_scores = Vec::new();
     for item in usable {
         assert!(item.other_effects.is_empty(), "{}", item.name);
+        assert!(item.always_on.is_empty(), "{}", item.name);
         assert!(
             item.bonuses
                 .iter()
@@ -243,14 +245,16 @@ fn trusted_friend_is_a_necklace() {
 #[test]
 fn an_armour_and_a_weapon_name_their_own_enhancement_and_base_type() {
     for (key, line) in [
-        ("snakeskin", "A +4 leather armour."),
-        ("life-infuser", "A +5 breastplate."),
-        ("half-plate-of-vigor", "A +1 half-plate."),
-        ("ustlavic-pride", "A +3 full plate."),
-        ("sin-mages-staff", "A +5 quarterstaff."),
-        ("dirge-for-sarkoris", "A +2 keen club."),
+        ("snakeskin", "A +4 leather armour"),
+        ("life-infuser", "A +5 breastplate"),
+        ("half-plate-of-vigor", "A +1 half-plate"),
+        ("ustlavic-pride", "A +3 full plate"),
+        ("sin-mages-staff", "A +5 quarterstaff"),
+        ("dirge-for-sarkoris", "A +2 keen club"),
     ] {
-        assert!(item(key).other_effects.iter().any(|l| l == line), "{key}");
+        // Always on, so in the summary and not behind the detail (ticket 176).
+        assert!(item(key).always_on.iter().any(|l| l == line), "{key}");
+        assert!(summary(key).contains(line), "{key}");
     }
 }
 
@@ -299,15 +303,18 @@ fn an_item_with_other_effects_matches_its_page_line() {
     );
     // Odd wordings and penalties.
     assert_eq!(summary("timely-assistance"), "Con, Wis +4 enhancement");
-    assert_eq!(summary("life-infuser"), "Str, Con +8 armour");
-    assert_eq!(summary("half-plate-of-vigor"), "Con +2");
+    assert_eq!(
+        summary("life-infuser"),
+        "Str, Con +8 armour; A +5 breastplate; Moderate fortification"
+    );
+    assert_eq!(summary("half-plate-of-vigor"), "Con +2; A +1 half-plate");
     assert_eq!(
         summary("sin-mages-staff"),
-        "Int +6; Spell DC +1; Caster level +3"
+        "Int +6; Spell DC +1; Caster level +3; A +5 quarterstaff"
     );
     assert_eq!(
         summary("bookworms-headband"),
-        "Int +2 enhancement; Cha -2; Persuasion -3"
+        "Int +2 enhancement; Cha -2; Persuasion -3; Immune to compulsion effects"
     );
     assert_eq!(
         summary("gloves-of-the-ambassador"),
@@ -315,8 +322,62 @@ fn an_item_with_other_effects_matches_its_page_line() {
     );
     assert_eq!(
         summary("goggles-of-ferocious-pact"),
-        "Wis +2 enhancement; Fortitude -2; Will +3; Persuasion -5"
+        "Wis +2 enhancement; Fortitude -2; Will +3; Persuasion -5; AC -2; Damage +4"
     );
+}
+
+#[test]
+fn mangling_frenzys_damage_reduction_is_in_its_summary_and_its_crit_line_stays_in_the_detail() {
+    // items#belts: "+4 enhancement bonus to Strength, Dexterity and Constitution / 3 DR / On a crit while raging:
+    // +4d6 slashing damage". Ticket 176: what is always on is in the summary, what needs a trigger is in the detail.
+    assert_eq!(
+        summary("mangling-frenzy"),
+        "Str, Dex, Con +4 enhancement; DR 3/-"
+    );
+    assert_eq!(item("mangling-frenzy").always_on, ["DR 3/-"]);
+    assert_eq!(
+        item("mangling-frenzy").other_effects,
+        ["Critical hit while raging: +4d6 slashing damage."]
+    );
+}
+
+#[test]
+fn an_item_keeps_its_conditional_lines_and_shows_its_always_on_ones() {
+    // Snakeskin: all three lines apply while it is worn; nothing is left for a detail.
+    assert_eq!(
+        summary("snakeskin"),
+        "Dex +4 profane; A +4 leather armour; +20 feet base speed; Immune to acid"
+    );
+    assert!(item("snakeskin").other_effects.is_empty());
+    // Ustlavic Pride: the armour and the CMD bonus are always on, the damage reduction is against undead only.
+    assert_eq!(
+        summary("ustlavic-pride"),
+        "Cha +3 enhancement; A +3 full plate; CMD +4 enhancement"
+    );
+    assert_eq!(
+        item("ustlavic-pride").other_effects,
+        ["DR 5/- against attacks from undead."]
+    );
+    // Offroad Boots: ignoring difficult terrain is always on, the speed it grants is a one-round trigger.
+    assert!(summary("offroad-boots").ends_with("; Ignores difficult terrain"));
+    assert_eq!(item("offroad-boots").other_effects.len(), 1);
+}
+
+#[test]
+fn no_line_is_in_both_lists_and_every_line_is_short() {
+    for item in &DATA.gear {
+        for line in &item.always_on {
+            assert!(!line.trim().is_empty(), "{}", item.name);
+            assert!(line.chars().count() <= 60, "{}: {line}", item.name);
+            assert!(!item.other_effects.contains(line), "{}: {line}", item.name);
+            assert_eq!(
+                item.always_on.iter().filter(|l| *l == line).count(),
+                1,
+                "{}: {line}",
+                item.name
+            );
+        }
+    }
 }
 
 #[test]

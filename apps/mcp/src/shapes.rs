@@ -169,8 +169,8 @@ pub struct Hit {
     /// initials. Left out for those.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub matched: Option<Matched>,
-    /// A gear item's other effects, one short line each in the planner's own words: what it does besides the bonuses
-    /// its `summary` lists. Text only: no number counts them. Left out when it has none, and by `search`'s
+    /// A gear item's other effects, one short line each in the planner's own words: what it does only in some
+    /// circumstance or by use. What it always does is in its `summary`. Text only: no number counts them. Left out when it has none, and by `search`'s
     /// `compact`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub other_effects: Option<Vec<String>>,
@@ -677,9 +677,10 @@ pub struct GearLine {
     /// Its key, as `choose` takes it.
     pub value: String,
     pub name: String,
-    /// Its always-on bonuses, which every number counts ("Dex +2 enhancement").
+    /// Its always-on bonuses, which every number counts ("Dex +2 enhancement"), then its other always-on effects,
+    /// which no number counts ("DR 3/-").
     pub summary: String,
-    /// What else it does, one short line each: text only, in no number.
+    /// What it does only in some circumstance or by use, one short line each: text only, in no number.
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub other_effects: Vec<String>,
     /// With `removable: true`: whether `withdraw` can take it off now (no choice needs it).

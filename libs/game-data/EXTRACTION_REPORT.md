@@ -78,3 +78,36 @@ Judgement calls:
   bonuses; "a +5 quarterstaff" is an other effect (the table's sub-heading). **Dirge for Sarkoris**: Str +2 untyped.
 - Untyped: Half-Plate of Vigor, Dirge for Sarkoris, Sin Mage's Staff and the +3 Will of the Goggles of Ferocious Pact (the guide gives no type). Life Infuser's "+8
   armour bonus" is typed `Armour` as written.
+
+### Always-on effects (ticket 176)
+
+The 92 items' lines were reclassified against the saved pages: of the 74 `other_effects` lines on 54 items, 32 were
+always on and moved (one of them, the Offroad Boots', was two effects and split) to a new `always_on` list, and 42
+stayed whole; 43 lines on 38 items are now the detail's. `always_on` has 33 lines on 26 items. The 22 hand-added items
+have neither list. 16 items (Display of Power, Flawless Belt and Flawless Headband of Mental Perfection +8, Goggles of
+Ferocious Pact, Hammer Fists, Bookworm's Headband, Darkness Caress, Headband of Confidence, of the Wise Negotiator and of
+Reshaping, Razmir's Ring, Earth's Embrace, Half-Plate of Vigor, Life Infuser, Snakeskin and Sin Mage's Staff) are left
+with no conditional line, so no detail and no info button.
+
+The rule: what applies while the item is worn with no trigger, use or enemy is always on; a number that applies only
+when something happens, a number of times, against a kind of enemy or with another item stays. Calls that were not
+obvious:
+
+- **Saves against one kind of effect** (+4 against mind-affecting for the Headband of Confidence and the Wise
+  Negotiator, against fire for Earth's Embrace, against poison for the Amulet of Alchemical Knowledge): always on, as a
+  resistance is, since nothing triggers them. **Against a kind of creature** (Midnight Hunter's Ring vs lycanthropes,
+  Ustlavic Pride's DR 5/- vs undead, Dirge for Sarkoris' holy damage vs undead, Belt of the Venerated Champion vs evil)
+  stays: it depends on the enemy.
+- **A bonus scoped to the wearer's own spells** (Headband of Reshaping's +1 caster level for Transmutation, the Jester
+  Cap's +2 DC for fused spells): always on, with its scope in the line.
+- **Extra uses of an ability or resource a day** (Flamboyant Hat, Headband of Rigorous Training, Amulet of Alchemical
+  Knowledge's bombs): stay, as limited in uses.
+- **Offroad Boots:** "ignores difficult terrain" is always on; the +10 feet of speed for one round on crossing it is a
+  trigger and stays. **Razmir's Mask:** immunity to Divination magic and Spell Turning are always on; casting a spell
+  each round as a free action is an activated use and stays. **Gorgon Belt:** "ignores difficult terrain" moved, the
+  breath stays. **Heart of Ice:** the +4 armour bonus to AC moved ("AC +4 armour"), Ice Cascade stays.
+- **Goggles of Ferocious Pact:** "-2 penalty to AC" and "+4 damage" are in the row's one sentence with the score
+  changes, so always on. **Display of Power:** the aura's -2 to enemies' Will saves has no trigger in the row, so always
+  on. **Mangling Frenzy:** the damage reduction moved, the critical hit while raging stays.
+- Lines that moved were shortened to the summary's style, with no full stop ("Damage reduction 3/-." became "DR 3/-");
+  the lines that stayed are unchanged, but for the Offroad Boots'.

@@ -324,7 +324,7 @@ pub enum DataIssue {
     GearNameTwice,
     /// A gear bonus on a spell DC of the value its item is held for: an item is held for none.
     GearSpellDcOfValue,
-    /// A gear other-effects line that is empty or appears twice.
+    /// A gear always-on or other-effects line that is empty, appears twice, or is in both lists.
     GearEffectInvalid,
 }
 
@@ -529,7 +529,9 @@ impl fmt::Display for DataProblem {
                 "a spell DC bonus is for the value an item is held for, which gear isn't",
             ),
             DataIssue::GearEffectInvalid => {
-                f.write_str("an other-effects line is empty or appears twice")
+                f.write_str(
+                    "an always-on or other-effects line is empty, appears twice, or is in both lists",
+                )
             }
             DataIssue::SharesOwnOption(option) => {
                 write!(
@@ -1495,7 +1497,7 @@ impl Checker {
                 }
             }
             let mut lines = HashSet::new();
-            for line in &item.other_effects {
+            for line in item.always_on.iter().chain(&item.other_effects) {
                 if line.trim().is_empty() || !lines.insert(line.as_str()) {
                     self.problem(&at, DataIssue::GearEffectInvalid);
                 }

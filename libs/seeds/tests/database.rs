@@ -1856,6 +1856,7 @@ async fn gear_items_round_trip_with_every_target_slot_and_type() {
             slot,
             guide: (index % 2 == 0).then(|| GuideRef::new("items#belts")),
             bonuses,
+            always_on: vec!["DR 3/-".to_owned(), "Immune to acid".to_owned()],
             other_effects: vec!["One.".to_owned(), "Two.".to_owned()],
         });
     }
@@ -1892,6 +1893,14 @@ async fn gear_items_round_trip_with_every_target_slot_and_type() {
         (
             "INSERT INTO gear_other_effect (gear_item_key, text) VALUES ('item-0', 'One.')",
             "unique constraint",
+        ),
+        (
+            "INSERT INTO gear_always_on_effect (gear_item_key, text) VALUES ('item-0', 'DR 3/-')",
+            "unique constraint",
+        ),
+        (
+            "INSERT INTO gear_always_on_effect (gear_item_key, text) VALUES ('item-0', '')",
+            "check constraint",
         ),
         (
             "UPDATE gear_item SET guide = '' WHERE key = 'item-0'",
