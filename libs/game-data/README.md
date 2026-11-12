@@ -624,6 +624,37 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
 - A `//` comment line is allowed anywhere and is kept for readers only: the Crusader's bonus lists carry one saying
   they skip every prerequisite though the guide skips only BAB and fighter level (the user's decision).
 
+## The snapshot check
+
+The real-data test `snapshots` (`libs/seeds/tests/game_data/snapshots.rs`, ticket 159) is the cheap behaviour check
+that runs with every `cargo test`: it says nothing changed in a small corpus of Builds. It runs the current engine
+only; the other side is the snapshot files committed in `libs/seeds/tests/game_data/snapshots/`, one per Build, so an
+intended change shows up as a snapshot diff in its commit. It has no `allows` battery and no consistency checks:
+those stay in the behaviour proof (`scripts/proof.sh`).
+
+- **The corpus:** the six bench Builds (`bench-<name>`, from `tools/proof/bench-links.tsv`), one Build per class of
+  `classes/` at level 20 with no picks (`class-<key>`), and one fighter 20 per mythic path with no pick beyond the
+  path (`path-<key>`; a path taken only by a switch is switched to from the first path, in key order, it can be).
+  Classes and paths come from the data's own lists, so a new one fails the test until it has a snapshot. A
+  pick-less Build that's impossible as it is gets the first alignment (with a faith that fits) that makes it
+  possible: the paladin is lawful good. Prestige classes have no pick-less Build (their entry needs feats and
+  ranks); the bench's Assassin is the only one covered.
+- **The lines:** each file is `path = value` lines in tree order. The Build start (`start.*`, `mythic.*`); per level
+  its class, class level, BAB, saves, scores, skill points, the ranks it adds, each slot (`slot.feat.5.general.0 =
+  Feat: power-attack "Power Attack"`, `-` while empty), and the feats and features gained at that level
+  (`level.2.feature/fighter/bravery`); per Mythic rank the same (`rank.*`); then the last level's spellcasting,
+  totals (`totals.*`) and caster lines (`caster.*`: each school, Evocation for each energy and with metamagic,
+  Enchantment for charm and compulsion). The pick-less class and path Builds also list each slot's open options,
+  `slot.feat.1.general.0.open = alertness, …`, a parameterised one as `key(value)`.
+- **Reading a failure:** the message lists each changed line with the Builds it's in, most Builds first:
+  `level.5.saves.will: 4 → 5 in 12 Builds: …`, `+ level.3.feature/x = X`, `- …`. An `.open` list is compared one
+  option at a time, so a newly legal feat reads `+ slot.feat.5.general.0.open/power-attack in 36 Builds: …`. A
+  second grouping wildcards the level or rank (the path's first number), so one newly legal feat is one line:
+  `slot.feat.*.general.0.open/power-attack: + in 36 Builds, 357 slots`. A missing or extra snapshot file is named
+  as such.
+- **Regenerating:** when every change is intended, `SNAPSHOTS=write cargo test -p seeds --test game_data snapshots`
+  rewrites the files (and deletes those of Builds no longer in the corpus); commit them with the change.
+
 ## Seeding
 
 ```sh
