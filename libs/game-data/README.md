@@ -16,7 +16,7 @@ small hand-written example of the layout.
 
 | File | Holds |
 | --- | --- |
-| `progression.ron` | `Progression`: the mythic rank table (the Character level of each Mythic rank) |
+| `progression.ron` | `Progression`: the mythic rank table (the Character level each Mythic rank comes at, at the earliest: a Build may take a rank at a later level, ticket 171) |
 | `bonuses.ron` | `Vec<ItemBonus>`: the flat bonuses items give while held, each naming its item (tickets 119 and 120): spell DCs, caster level against spell resistance, concentration, initiative, saves, skills |
 | `interactions.ron` | `Vec<ItemInteractions>`: what the guide says about how an item combines with others, at most one note per item (ticket 124); optional |
 | `gear.ron` | `Vec<GearItem>`: the named items a character wears or wields, with their always-on bonuses and a few words on what else they do (ticket 165); optional |
@@ -734,7 +734,8 @@ is the engine's or the data's, never the write-up's.
 - **The Builds** are written in Rust in `gold.rs`, slot by slot, with ticket 88's settled choices (Halfling (Hasty),
   Chaotic Good, atheism, the Enforcer's rogue skill points in Mobility and Stealth). The write-ups name no items; the
   Enforcer wears the Belt of Incredible Dexterity +2, the user's choice of the smallest assumption that makes its
-  level-19 Greater Two-Weapon Fighting (Dex 19, the Build's own 17) legal (ticket 168).
+  level-19 Greater Two-Weapon Fighting (Dex 19, the Build's own 17) legal (ticket 168). It takes MR 10 at level 20,
+  after the rank table's 19, so its Mythic Shield Focus comes after Shield Focus at level 20 (ticket 171).
 - **What is compared:** everything a write-up lists at a level or rank is gained there on the engine's sheet, as the
   snapshot check projects a level's or rank's gains (the slot picks, the ability increase, the feats, features and
   options the level's state holds more of; a rank's picks and its path row's features). The engine may show more.
@@ -752,7 +753,7 @@ is the engine's or the data's, never the write-up's.
   comparison is the granted lines: the features and options gained between levels (Woodland Stride, Sneak Attack,
   Studied Target, the second bloodline's), a rank's path-row features (Instrument of Freedom, the Songs and
   Summons) and the bloodline spells. A pick the engine refuses can't be in the Build, so its line shows up as a
-  disagreement with the refusal's reason (Mythic Shield Focus's).
+  disagreement with the refusal's reason.
 - **The start** proves less. The race, background, classes and racial +2 are the Build's own input, compared only by
   name. The engine's part: the attributes are the level-1 scores the engine makes of the point buy with its racial
   modifiers, within the budget; the engine allows the Build at each listed alignment; and its skill points give a

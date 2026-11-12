@@ -41,7 +41,7 @@ What a Build fixes for a class when it's first taken: at most one archetype and,
 _Avoid_: Archetype level, entry choice
 
 **Mythic ascension**:
-Everything chosen at one mythic rank: a mythic ability or mythic feat, plus any path-specific picks. It happens at a fixed character level.
+Everything chosen at one mythic rank: a mythic ability or mythic feat, plus any path-specific picks. It happens at the rank's **Rank level**: the rank table's character level, or a later one the Build takes the rank at.
 _Avoid_: Mythic level-up, tier-up
 
 **First ascension**:
@@ -83,6 +83,10 @@ _Avoid_: Caster level (a different thing), spellcasting level
 **Mythic rank**:
 Progress along a mythic path, 1–10, separate from character level. Two ranks come at character level 17, so a prerequisite on the rank ("Mythic Rank: 9") checks the rank, not the level. After a Legend switch it stays 3.
 _Avoid_: Mythic level, tier
+
+**Rank level**:
+The character level a Mythic rank is taken at in a Build. The rank table's level (6, 7, 9, 11, 14, 15, 16, 17, 17, 19) is the earliest a rank comes at, and a Build may take a rank at any later level it has: only such a rank's level is part of the Build and its link (`mythic.R.level`). Ranks keep their order, so a rank taken later takes the ranks above it along until they are taken later still. A rank's picks are checked at its level, after that level's own picks, and what the rank gives is held from there; a move that would refuse a choice is locked, naming the choice, and removing the level a rank was moved to takes the rank's picks and puts it back where it comes without the move.
+_Avoid_: Fixed level, ascension level (for the rank table's level, say so)
 
 **Attack line**:
 One base weapon's full attack at a point of a Build, computed by the rules: each iterative attack's bonus (BAB, the character's own Strength or Dexterity, Weapon Focus and Greater Weapon Focus in it), the damage per hit (its dice, Strength, 1½ times two-handed, Weapon Specialization and Greater Weapon Specialization), the critical range (doubled by Improved Critical in it, then widened by the Trickster's Improved Improved Critical and Improved Improved Improved Critical) and multiplier (+1 for Improved Improved Improved Critical Improved), and Power Attack's trade beside it. Unconditional numbers only: it leaves out rage, stances, mythic feats, class features and buffs, and of the **Gear** everything but its ability score bonuses. The weapon is chosen beside the Build, not in it; left unchosen, it is the weapon of the Build's earliest Weapon Focus (by level; within a level, the first by weapon key), and without one there is no attack line.
@@ -250,7 +254,7 @@ The one planning screen and its summary: a grid with a row per character level a
 _Avoid_: Level-up screen, summary page, character sheet
 
 **Mythic track**:
-The sheet's tab for Mythic ranks 1–10 at their fixed character levels, with the First ascension at MR 1, the path at MR 3 and any Path switch at MR 8, and under each rank the features its path row gives. MR 1 and 2 show the first ascension's path and rows. A rank is reached, partly dropped by a switch (its general pick or the old path's grants lost, or a grant the switch drops by name), dropped (both lost), or never reached; the picks a switch took away are marked lost from the switch on, and an empty slot of such a rank can still be filled (it is held until the switch). A rank the Build doesn't reach holds no picks: Remove level and a switch that ends the ascensions (Legend: MR 8 to 10) drop them, and Remove level drops the path or the switch with its rank.
+The sheet's tab for Mythic ranks 1–10 at their **Rank levels**, each with the control that takes it at another level, with the First ascension at MR 1, the path at MR 3 and any Path switch at MR 8, and under each rank the features its path row gives. MR 1 and 2 show the first ascension's path and rows. A rank is reached, partly dropped by a switch (its general pick or the old path's grants lost, or a grant the switch drops by name), dropped (both lost), or never reached; the picks a switch took away are marked lost from the switch on, and an empty slot of such a rank can still be filled (it is held until the switch). A rank the Build doesn't reach holds no picks: Remove level and a switch that ends the ascensions (Legend: MR 8 to 10) drop them, and Remove level drops the path or the switch with its rank.
 _Avoid_: Mythic tab, mythic levels
 
 **Build sheet**:
