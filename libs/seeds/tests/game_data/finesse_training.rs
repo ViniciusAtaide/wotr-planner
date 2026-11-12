@@ -117,6 +117,16 @@ fn a_rogue_chooses_a_weapon_at_3_11_and_19() {
             ),
             "Finesse Training"
         );
+        // The web app's picker: one entry, which opens the list of the 21 weapons.
+        let entries = engine()
+            .slot_entries(&build, &selection_slot(level))
+            .unwrap();
+        let [entry] = entries.as_slice() else {
+            panic!("{} entries at {level}", entries.len())
+        };
+        assert_eq!(entry.name, "Finesse Training");
+        assert_eq!(entry.noun, Some("a weapon"));
+        assert_eq!(entry.options.len(), WEAPONS.len());
     }
     // Filled, with three weapons, the Build is possible and holds the option for each.
     let filled = with_picks(
