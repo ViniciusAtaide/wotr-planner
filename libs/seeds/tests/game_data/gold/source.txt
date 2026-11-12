@@ -1,0 +1,156 @@
+Jack-in-the-Green
+Carries the green flag all the winter long
+
+Race	Halfling
+Background	Warrior of the Linnorm Kings
+Classes	Sylvan Sorcerer (20)
+Attributes
+STR: 10, DEX: 16, CON: 14, INT: 12, WIS: 8, CHA: 19
+
+Skills	Mobility, Persuasion, Use Magic Device
+Alignment	CN, CG, NG
+Lvl	Class	Level-up Bonuses
+1	Sylvan Sorcerer	Animal Companion - Elk; (Draconic Bloodline Arcana; Grow Claws);
+Bonus Feat - Spell Penetration; Mounted Combat
+2	Sylvan Sorcerer	-
+3	Sylvan Sorcerer	Woodland Stride; (Dragon Resistances I); Bloodline Spell - Entangle (+ Mage Armor); Metamagic (Bolstered)
+4	Sylvan Sorcerer	Charisma +1
+5	Sylvan Sorcerer	Bloodline Spell - Hideous Laughter (+ Resist Electricity); Spell Focus - Evocation
+6	Sylvan Sorcerer	-
+7	Sylvan Sorcerer	Bloodline Spell - Deep Slumber (+ Dispel Magic); Bloodline Feat - Skill Focus (Mobility); Metamagic (Heighten)
+8	Sylvan Sorcerer	Charisma +1
+9	Sylvan Sorcerer	Fleeting Glance; (Dragon Resistances II); Bloodline Spell - Poison (+ Fear); Outflank
+10	Sylvan Sorcerer	-
+11	Sylvan Sorcerer	Bloodline Spell - Vinetrap (+ Spell Resistance); Spell Specialization
+12	Sylvan Sorcerer	Charisma +1
+13	Sylvan Sorcerer	Bloodline Spell - Dispel Magic, Greater (+Dragonkind I);
+Bloodline Feat - Improved Initiative; Greater Spell Penetration
+14	Sylvan Sorcerer	-
+15	Sylvan Sorcerer	Fey Magic; (Dragon Resistances III; Wings); Bloodline Spell - Changestaff (+Dragonkind II);
+Greater Spell Focus - Evocation
+16	Sylvan Sorcerer	Charisma +1
+17	Sylvan Sorcerer	Bloodline Spell - Summon Nereid (+ Dragonkind III); Indomitable Mount
+18	Sylvan Sorcerer	-
+19	Sylvan Sorcerer	Bloodline Spell - Summon Hamadryad (+Overwhelming Presence);
+Bloodline Feat - Great Fortitude; Elemental Focus - Electricity
+20	Sylvan Sorcerer	Soul of the Fey (Power of Wyrms); Charisma +1
+Mythic Path
+1	Mythic Hero	Bypass Epic DR; Instrument of Freedom; Second Bloodline - Bronze Dragon
+2	Mythic Hero	Hard to Kill; Freedom's Child; Summon Azata Bralani; Extra Mythic Ability - Abundant Casting
+3	Azata	Dragon Companion; Song of Heroic Resolve; Summon Mastodon; Ascendant Element - Electricity
+4	Azata
+Summon Movanic Deva; Superpower - Zippy Magic; Spell Penetration (Mythic)
+
+5	Azata	Song of Broken Chains; Summon Azata Ghael; Improved Abundant Casting
+6	Azata	Song of Defiance; Summon Astral Deva;
+Superpower - Life-Bonding Friendship (Shake It Off); Expanded Arsenal - Enchantment
+7	Azata	Song of Courageous Defender; Summon Astral Devas;
+Life-Bonding Friendship (Allied Spellcaster); Mythical Beast
+8	Azata	Summon Azata Ghaels and Astral Devas;
+Superpower - Favorable Magic; Spell Focus (Mythic) - Evocation
+9	Azata	Summon Hamadryads; Greater Abundant Casting
+10	Azata	Superpower - Marvelous Endurance; Sorcerous Reflex
+Azata is a much better fit for a Sylvan Sorcerer than the Lich path. After all, what business does a sylvan sorcerer have filling a ziggurat with skulls? A halfling can ride most animal companion types from the get-go and the Mobility bonus synergises with the Mounted Combat feat which allows your companion to avoid one attack per round. The Hasty subtype is also good since there is no arguing with +2 initiative. If you don't mind waiting until 7th level to saddle up, a kitsune gets very similar bonuses along with a DC boost to Enchantment. The choice of background gives you Mobility as a class skill and not-bad weapon proficiencies for the early game. If you prefer scimitars to axes, Shackles Corsair works as well.
+
+Elk as the animal companion is thematic (and pretty decent) although if you prefer power to flavour, there is nothing to stop you choosing a smilodon instead.
+
+The focus of the build is electricity magic so that you can destroy every enemy on the screen with Chain Lightning and Zippy Magic. You will want to make Chain Lightning your Spell Specialization until 20th level at which point you'll need to switch to something else (Mass Icy Prison, maybe). Favorable Magic makes save-or-else spells doubly-deadly, so there is a side order of Enchantment as well.
+
+A bloodline, full casting and an animal companion makes for a very crowded mythic path which means that there simply isn't room for a number of desirable abilities, such as Favorite Metamagic and Archmage Armor. Even though Favorable Magic is the more important superpower, we take Life-Bonding Friendship at rank 6. This is because mythic ranks 6 to 8 unlock in quick succession and taking LBF first allows us to get the second teamwork feat earlier.
+
+A suggested companion build is as follows:
+
+Type	Elk (Daredevil)
+Lvl	Level-Up Bonuses
+1	Artful Acrobat; Dodge
+2	Evasion
+3	Combat Reflexes
+4	Intelligence +1
+5	Improved Unarmed Strike
+6	Combat Mobility
+7	Outflank
+8	Strength +1
+9	Devil May Care; Crane Style
+11	Crane Wing
+12	Strength +1
+13	Crane Riposte
+15	Improved Evasion; Improved Initiative
+16	Strength +1
+17	Improved Critical - Gore
+19	Weapon Focus - Gore
+20	Strength +1
+Finally, suggested spells are:
+
+Lvl	Spells
+1	Grease, Shield
+2	-
+3	Shocking Grasp
+4	Glitterdust
+5	True Strike, Frigid Touch
+6	Haste
+7	Magic Missile, Sense Vitals, Vampiric Touch
+8	Overwhelming Grief
+9	Blur, Force Punch, Dragon's Breath
+10	Constricting Coils
+11	Protection from Arrows, Displacement, Dimension Door, Echolocation
+12	Chain Lightning
+13	Greater Invisibility, Life Bubble, Cloak of Dreams
+14	Waves of Ecstasy
+15	Mind Fog, Sirocco, Ice Body
+16	Stormbolts
+17	Legendary Proportions, Prediction of Failure
+18	Icy Prison (Mass)
+19	Protection from Spells, Dominate Monster
+20	Foresight
+Enforcer
+A licky boom-boom down.
+
+Race	Half-Elf
+Background	Andoren Diplomat
+Classes	Arcane Enforcer (15) / Sylvan Trickster (4) / Mutation Warrior (1)
+Ability Bonus	Strength
+Attributes
+STR: 18, DEX: 16, CON: 14, INT: 10, WIS: 8, CHA: 12
+
+Skills	Athletics, Perception, Persuasion
+Alignment	CN, CG, NG
+Lvl	Class	Level-up Bonuses
+1	Arcane Enforcer	Arcane Reservoir; Studied Target +1; Exploit - Wooden Flesh; Two-Weapon Fighting; Skill Focus - Persuasion
+2	Arcane Enforcer	Menacing Style - Intimidating Prowess
+3	Arcane Enforcer	+1d6 sneak; Shield Bash
+4	Arcane Enforcer	Exploit - Armored Mask; +1 Strength
+5	Arcane Enforcer	Studied Target +2; Outflank
+6	Arcane Enforcer	+1d6 sneak; Menacing Style - Shatter Defenses
+7	Arcane Enforcer	Studied Target (Swift); Exploit - Dimensional Slide; Combat Reflexes
+8	Arcane Enforcer	Slayer Talents - Uncanny Dodge; +1 Strength
+9	Arcane Enforcer	+1d6 sneak; Improved Critical - Battleaxe
+10	Arcane Enforcer	Studied Target +3; Exploit - Spell Resistance
+11	Arcane Enforcer	Shield Master
+12	Arcane Enforcer	+1d6 sneak; Menacing Style - Dreadful Carnage; +1 Dexterity
+13	Arcane Enforcer	Exploit - Greater Spell Resistance; Improved Two-Weapon Fighting
+14	Arcane Enforcer	Advanced Talents - Crippling Strike
+15	Arcane Enforcer	Studied Target +4; +1d6 sneak; Improved Initiative
+16	Sylvan Trickster	Weapon Finesse; Trapfinding; +1d6 sneak; +1 Strength
+17	Sylvan Trickster	Evasion; Fey Tricks - Iceplant; Bashing Finish
+18	Sylvan Trickster	Danger Sense; +1d6 sneak; Finesse Training - Light Shield
+19	Sylvan Trickster	Debilitating Injury; Resist Nature's Lure; Fey Tricks - Double Debilitation; Greater Two-Weapon Fighting
+20	Mutation Warrior	Bonus Feat - Shield Focus; +1 Strength
+Mythic Path
+1	Mythic Hero	Bypass Epic DR; Bit of Fun; Defensive Study
+2	Mythic Hero	Hard to Kill; Summon Will-o'-Wisp; Creative Approach; Two-Weapon Fighting (Mythic)
+3	Azata	Dragon Companion; Song of Heroic Resolve; Summon Mastodon; Inspirational Leader
+4	Azata
+Summon Movanic Deva; Superpower - Incredible Might; Improved Critical (Mythic) - Battleaxe
+
+5	Azata	Song of Broken Chains; Summon Azata Ghael; Archmage Armor
+6	Azata	Song of Defiance; Summon Astral Deva; Superpower - Life-Bonding Friendship (Shield Wall);
+Improved Initiative (Mythic)
+7	Azata	Song of Courageous Defender; Summon Astral Devas; Life-Bonding Friendship (Shake It Off);
+Enduring Spells
+8	Azata	Summon Azata Ghaels and Astral Devas; Superpower - Marvelous Endurance;
+Extra Mythic Ability - Greater Enduring Spells
+9	Azata	Summon Hamadryads; Ever Ready
+10	Azata	Superpower - Supersonic Speed; Mythic Shield Focus
+Shield Bash Slayer with a magical twist. The first three exploits are the key ones: Wooden Flesh gives you a decent AC boost while Armored Mask opens up Archmage Armor and can be doubled up for a decent deflection bonus. Dimensional Slide is useful for avoiding attacks of opportunity when assassinating annoying archers and casters (or for getting out of trouble if you've overreached yourself). The other exploits are irrelevant. Menacing Style avoids the feat tax for Shatter Defenses and delays committing to a weapon until later by which time you should be able to forge the Grave Singer.
+
+Arcane Enforcer peaks at 15th level since the only remaining exploits are kinda useless. Switching career effectively trades +1AB and a rank of Studied Target for +1d6 sneak, Evasion, Iceplant and Debilitating Injury. At 20th level, I take a level of Mutation Warrior for a bonus feat. On the off chance that you want to switch to Legend at mythic rank 8, Mutation Warrior makes for a great second career.
