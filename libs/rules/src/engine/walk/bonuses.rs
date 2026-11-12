@@ -200,11 +200,7 @@ impl Walker<'_> {
     /// Calls `held` for each way the character holds an item: once per value for a parameterised feat or mythic feat
     /// (with the value), once for anything else held, never for what it doesn't hold. Only for an item noted: a Build
     /// start's item is held once noted ([`note_start_bonuses`](Self::note_start_bonuses)).
-    fn for_each_holding<'s>(
-        &'s self,
-        item: &BonusItem,
-        mut held: impl FnMut(Option<&'s Parameter>),
-    ) {
+    fn for_each_holding(&self, item: &BonusItem, mut held: impl FnMut(Option<&Parameter>)) {
         let state = &self.state;
         let holds = match item {
             BonusItem::Race(_) | BonusItem::Subrace(_) | BonusItem::Background(_) => true,
