@@ -3,16 +3,20 @@
 //! then opens the result's code again ([`reopen`]) as the final gate, so an impossible Build can never come back. No
 //! edit is ever built from the agent's input. A point-buy score or a skill's ranks move one stepper step at a time,
 //! each step checked the same way; a map of skills to ranks spends a level's skill points so, in one step.
+//!
+//! A step is never refused for making a choice lean on the Build's gear, but its result says so (`leans_on_gear`,
+//! from [`Engine::newly_gear_dependent`] of each edit it applies), and says when a ring moved from the other ring
+//! place (`moved`).
 
 use std::collections::BTreeMap;
 
-use rules::{Address, Build, Engine, POINT_BUY_BUDGET, SkillKey};
+use rules::{Address, Build, Choice, Engine, GearSpot, POINT_BUY_BUDGET, SkillKey};
 
 use crate::code::{envelope, open, reopen};
 use crate::error::ToolError;
 use crate::options::{Offer, issue_code, issue_reason, offers};
 use crate::planner::Planner;
-use crate::shapes::{ChoiceValue, ChooseArgs, ChooseResult, Rejected};
+use crate::shapes::{ChoiceValue, ChooseArgs, ChooseResult, LeaningStep, MovedItem, Rejected};
 use crate::similar::{closeness, closest_note, distance, nearest};
 
 /// `choose`: the steps applied in order up to the first refused, with the code as the last applied one left it.
@@ -21,9 +25,39 @@ pub(crate) fn choose(planner: &Planner, args: ChooseArgs) -> Result<ChooseResult
     let mut build = open(planner, &args.build)?;
     let mut applied = 0;
     let mut rejected = None;
+    let (mut moved, mut leans_on_gear) = (Vec::new(), Vec::new());
     for (index, step) in args.steps.iter().enumerate() {
-        match take(engine, &build, &step.choice, &step.value, index) {
+        let mut leaning = Vec::new();
+        match take(
+            engine,
+            &build,
+            &step.choice,
+            &step.value,
+            index,
+            &mut leaning,
+        ) {
             Ok(next) => {
+                moved.extend(moved_items(engine, &build, &next, applied, &step.choice));
+                if !leaning.is_empty() {
+                    // Worded from the Build the step made; only those still leaning once the step is done.
+                    let lines =
+                        crate::gear::dependent_lines(engine, &next, &engine.evaluate(&next));
+                    let leaning: Vec<_> = lines
+                        .into_iter()
+                        .filter(|line| {
+                            leaning
+                                .iter()
+                                .any(|choice| leaning_address(choice) == line.choice)
+                        })
+                        .collect();
+                    if !leaning.is_empty() {
+                        leans_on_gear.push(LeaningStep {
+                            step: applied,
+                            choice: step.choice.clone(),
+                            leaning,
+                        });
+                    }
+                }
                 build = next;
                 applied += 1;
             }
@@ -43,22 +77,61 @@ pub(crate) fn choose(planner: &Planner, args: ChooseArgs) -> Result<ChooseResult
         envelope: envelope(engine, &build, &sheet),
         applied,
         rejected,
+        moved,
+        leans_on_gear,
     })
 }
 
+/// A choice's address as `gear_dependent` writes it.
+pub(crate) fn leaning_address(choice: &Choice) -> String {
+    match choice {
+        Choice::CharacterLevel { level } => Address::Class(*level),
+        choice => Address::from(choice),
+    }
+    .to_string()
+}
+
+/// The items a step at a gear place took from another place: a ring worn in the other ring place moves.
+fn moved_items(
+    engine: &Engine,
+    before: &Build,
+    after: &Build,
+    step: u32,
+    choice: &str,
+) -> Vec<MovedItem> {
+    let Ok(Address::Gear(GearSpot::Worn(place))) = choice.parse::<Address>() else {
+        return Vec::new();
+    };
+    (before.gear.worn.iter())
+        .filter(|(other, item)| {
+            **other != place
+                && after.gear.worn.get(other) != Some(*item)
+                && after.gear.worn.get(&place) == Some(*item)
+        })
+        .map(|(other, item)| MovedItem {
+            step,
+            choice: choice.to_owned(),
+            item: item.as_str().to_owned(),
+            name: engine.gear_name(item).to_owned(),
+            from: Address::Gear(GearSpot::Worn(*other)).to_string(),
+        })
+        .collect()
+}
+
 /// One step: the Build with the value taken at the address, or why not. `index` names the step in an `internal`
-/// refusal.
+/// refusal; `leaning` gathers the choices its edits leave allowed only because of the gear.
 fn take(
     engine: &Engine,
     build: &Build,
     choice: &str,
     value: &ChoiceValue,
     index: usize,
+    leaning: &mut Vec<Choice>,
 ) -> Result<Build, ToolError> {
     let address: Address = crate::gear::parse_address(choice)?;
     if let (Address::Score(_) | Address::Skill(..), ChoiceValue::Number(target)) = (&address, value)
     {
-        return step_to(engine, build, &address, *target, index);
+        return step_to(engine, build, &address, *target, index, leaning);
     }
     if let ChoiceValue::Ranks(ranks) = value {
         let Address::SkillPoints(level) = address else {
@@ -66,7 +139,7 @@ fn take(
                 "A map of skills to ranks is for `level.N.skill`, a level's skill points, not `{address}`."
             )));
         };
-        return skill_map(engine, build, level, ranks, index);
+        return skill_map(engine, build, level, ranks, index, leaning);
     }
     let offers = offers_at(engine, build, &address)?;
     let offer = find(value, &offers).ok_or_else(|| {
@@ -77,7 +150,7 @@ fn take(
         // What the Build holds already: nothing to change.
         return Ok(build.clone());
     }
-    apply_offer(engine, build, &address, offer, index)
+    apply_offer(engine, build, &address, offer, index, leaning)
 }
 
 /// The offer a value names ([`ChoiceValue::matches`]). One leniency: a class taken before with an archetype is
@@ -121,13 +194,15 @@ fn offers_at(engine: &Engine, build: &Build, address: &Address) -> Result<Vec<Of
     offers(engine, build, &sheet, address, true)
 }
 
-/// Applies an offer's own edit, if it's open, and passes the result through the final gate.
+/// Applies an offer's own edit, if it's open, and passes the result through the final gate. The choices the edit
+/// leaves allowed only because of the gear join `leaning`.
 fn apply_offer(
     engine: &Engine,
     build: &Build,
     address: &Address,
     offer: &Offer,
     index: usize,
+    leaning: &mut Vec<Choice>,
 ) -> Result<Build, ToolError> {
     if let Err(issue) = &offer.status {
         return Err(ToolError {
@@ -146,6 +221,11 @@ fn apply_offer(
             value_text(&offer.value)
         )));
     };
+    for choice in engine.newly_gear_dependent(build, edit) {
+        if !leaning.contains(&choice) {
+            leaning.push(choice);
+        }
+    }
     let mut next = build.clone();
     engine.apply(&mut next, edit);
     reopen(engine, &next).ok_or_else(|| {
@@ -165,6 +245,7 @@ fn step_to(
     address: &Address,
     target: u8,
     index: usize,
+    leaning: &mut Vec<Choice>,
 ) -> Result<Build, ToolError> {
     let mut build = build.clone();
     loop {
@@ -204,11 +285,12 @@ fn step_to(
                 "{at}: there is no such step ({limits}). Nothing was changed."
             )));
         };
-        build =
-            apply_offer(engine, &build, address, offer, index).map_err(|refusal| ToolError {
+        build = apply_offer(engine, &build, address, offer, index, leaning).map_err(|refusal| {
+            ToolError {
                 reason: format!("{at}: {}. Nothing was changed.", refusal.reason),
                 ..refusal
-            })?;
+            }
+        })?;
     }
 }
 
@@ -221,6 +303,7 @@ fn skill_map(
     level: u8,
     ranks: &BTreeMap<String, u8>,
     index: usize,
+    leaning: &mut Vec<Choice>,
 ) -> Result<Build, ToolError> {
     let held = |skill: &SkillKey| {
         usize::from(level)
@@ -237,7 +320,14 @@ fn skill_map(
     moves.sort_by_key(|(skill, target)| *target >= held(skill));
     let mut next = build.clone();
     for (skill, target) in moves {
-        next = step_to(engine, &next, &Address::Skill(level, skill), target, index)?;
+        next = step_to(
+            engine,
+            &next,
+            &Address::Skill(level, skill),
+            target,
+            index,
+            leaning,
+        )?;
     }
     Ok(next)
 }

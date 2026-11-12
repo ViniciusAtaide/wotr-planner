@@ -368,7 +368,8 @@ impl SearchIndex {
         Self { entries }
     }
 
-    /// The matches for a query, best first, limited to `kinds` and `categories` when given. An empty query matches
+    /// The matches for a query, best first, limited to `kinds` and `categories` when given; gear items only when
+    /// `kinds` names `gear`. An empty query matches
     /// every item the filters allow, by kind and then name. When nothing matches, the result's note says so and names
     /// the near names and categories ([`similar::FLOOR`]). An error for an empty query without a filter.
     pub(crate) fn search(
@@ -386,9 +387,13 @@ impl SearchIndex {
                         to list every item they allow."
                 .to_owned());
         }
+        // Gear only when asked for by kind: a Build holds gear only when the user asks for it, so a search that
+        // doesn't name the kind finds none.
         let allowed = |entry: &&Entry| {
-            kinds.is_none_or(|kinds| kinds.contains(&entry.hit.kind))
-                && categories.is_none_or(|categories| entry.in_category(categories))
+            (match kinds {
+                Some(kinds) => kinds.contains(&entry.hit.kind),
+                None => entry.hit.kind != Kind::Gear,
+            }) && categories.is_none_or(|categories| entry.in_category(categories))
         };
         let default_limit = match query {
             Some(_) => DEFAULT_LIMIT,
@@ -489,8 +494,9 @@ impl SearchIndex {
                 note.push_str(&format!(" Near names: {}.", near.join(", ")));
             }
         }
+        let gear = kinds.is_some_and(|kinds| kinds.contains(&Kind::Gear));
         for category in categories.into_iter().flatten() {
-            if let Some(near) = self.near_categories(category) {
+            if let Some(near) = self.near_categories(category, gear) {
                 note.push_str(&near);
             }
         }
@@ -528,18 +534,14 @@ impl SearchIndex {
             .collect()
     }
 
-    /// For a category no item has: says so, with the categories close to it.
-    fn near_categories(&self, category: &str) -> Option<String> {
-        if self
-            .entries
-            .iter()
-            .any(|entry| entry.in_category(&[category.to_owned()]))
-        {
+    /// For a category no item has: says so, with the categories close to it (gear's slots only with `gear`).
+    fn near_categories(&self, category: &str, gear: bool) -> Option<String> {
+        let entries =
+            || (self.entries.iter()).filter(move |entry| gear || entry.hit.kind != Kind::Gear);
+        if entries().any(|entry| entry.in_category(&[category.to_owned()])) {
             return None;
         }
-        let mut known: Vec<&str> = self
-            .entries
-            .iter()
+        let mut known: Vec<&str> = entries()
             .flat_map(|entry| {
                 entry
                     .hit

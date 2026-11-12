@@ -13,10 +13,10 @@ use rules::Address;
 use crate::code::{envelope, open, reopen};
 use crate::error::ToolError;
 use crate::planner::Planner;
-use crate::shapes::{BuildResult, WithdrawArgs};
+use crate::shapes::{WithdrawArgs, WithdrawResult};
 
 /// `withdraw`: the Build without the choice, or why it can't come off.
-pub(crate) fn withdraw(planner: &Planner, args: WithdrawArgs) -> Result<BuildResult, ToolError> {
+pub(crate) fn withdraw(planner: &Planner, args: WithdrawArgs) -> Result<WithdrawResult, ToolError> {
     let engine = &planner.engine;
     let build = open(planner, &args.build)?;
     let address: Address = crate::gear::parse_address(&args.choice)?;
@@ -60,8 +60,9 @@ pub(crate) fn withdraw(planner: &Planner, args: WithdrawArgs) -> Result<BuildRes
             && let Some(reason) = crate::gear::needed_reason(engine, &build, spot)
         {
             return Err(ToolError::not_removable(format!(
-                "{reason}, so `{address}` can't be withdrawn or replaced now: withdraw that choice first. `sheet` \
-                 lists the choices only gear allows under `gear_dependent`."
+                "{reason}, so `{address}` can't be withdrawn now, nor replaced by an item that doesn't keep that choice: \
+                 withdraw the choice first, or `choose` an item that keeps it (`options` on `{address}` lists them \
+                 open). `sheet` lists the choices only gear allows under `gear_dependent`."
             )));
         }
         return Err(ToolError::not_removable(format!(
@@ -69,6 +70,7 @@ pub(crate) fn withdraw(planner: &Planner, args: WithdrawArgs) -> Result<BuildRes
              `sheet` with `removable: true` lists what can be withdrawn now."
         )));
     }
+    let leaning = engine.newly_gear_dependent(&build, &edit);
     let mut next = build;
     engine.apply(&mut next, &edit);
     let next = reopen(engine, &next).ok_or_else(|| {
@@ -78,7 +80,17 @@ pub(crate) fn withdraw(planner: &Planner, args: WithdrawArgs) -> Result<BuildRes
         ))
     })?;
     let sheet = engine.evaluate(&next);
-    Ok(BuildResult {
+    let leans_on_gear = match leaning.is_empty() {
+        true => Vec::new(),
+        false => crate::gear::dependent_lines(engine, &next, &sheet)
+            .into_iter()
+            .filter(|line| {
+                (leaning.iter()).any(|choice| crate::choose::leaning_address(choice) == line.choice)
+            })
+            .collect(),
+    };
+    Ok(WithdrawResult {
         envelope: envelope(engine, &next, &sheet),
+        leans_on_gear,
     })
 }

@@ -24,7 +24,7 @@ use crate::rank::{ImproveArgs, ImproveResult, improve};
 use crate::shapes::{
     BuildResult, ChooseArgs, ChooseResult, CompareArgs, CompareResult, DescribeArgs, Item,
     NewBuildArgs, OneOrMany, OptionsArgs, OptionsResult, SearchArgs, SearchResult, SheetArgs,
-    SheetResult, ValidateArgs, ValidateResult, WithdrawArgs,
+    SheetResult, ValidateArgs, ValidateResult, WithdrawArgs, WithdrawResult,
 };
 use crate::sheet::sheet;
 use crate::validate::validate;
@@ -46,13 +46,15 @@ is still open, reading `rejected` when a step is refused.
 3. Give the user the final `link`.
 
 Gear: a Build has no gear unless the user asks for it; never add an item yourself. To add one the user names, \
-`search` with `kinds: [\"gear\"]` (a name, or a bonus: \"Dex\"), then `choose` its key at its place: `gear.belt`, \
+`search` with `kinds: [\"gear\"]` (only that finds gear; a name, or a bonus: \"Dex\"), then `choose` its key at \
+its place: `gear.belt`, \
 `gear.headwear`, `gear.ring.0`, `gear.ring.1`, `gear.body` (robe or armour), … or `gear.usable.<key>` for a \
 manual or tome (`options` on a place lists its items; in `validate`'s map, the same addresses). An item's \
 always-on bonuses count at every level, for prerequisites and every number (never for skill points), so it can \
 open a feat (`choose` the item before that feat): `options` marks such an option `{\"with_gear\": …}`, and \
-`sheet`'s `gear_dependent` lists each choice only gear allows with its item. Report them, naming each pick and its \
-item. An item a pick needs can't be withdrawn or replaced until the pick is. The planner's items are those that \
+`sheet`'s `gear_dependent` lists each choice only gear allows with its item; a `choose` or `withdraw` step that \
+leaves one so names it in `leans_on_gear`. Report them, naming each pick and its item. An item a pick needs can't be withdrawn, or replaced by one that doesn't keep the pick, until the pick is. \
+The planner's items are those that \
 give an ability score bonus, with manuals and tomes; weapons' and armour's enhancements, armour class and other \
 items aren't modelled yet: what they add is your own game knowledge.
 
@@ -131,7 +133,8 @@ impl Server {
             selection: an arcanist exploit, a rogue talent, a bloodline, a Lich power), race, deity, background, \
             spell (the spell catalogue: a spell's category is its school, and it carries its descriptors), \
             spell_list (a class's, an archetype's or a Mythic path's spells by level), gear (an item a Build holds \
-            only when the user asks: matched by name, by its place (\"belt\") and by its bonuses' words (\"Dex\", \
+            only when the user asks, so found only when `kinds` names `gear`, never by an unfiltered search: \
+            matched by name, by its place (\"belt\") and by its bonuses' words (\"Dex\", \
             \"enhancement\"); its `category` is its slot (\"Belt\", \"Ring\", \"Usable\"), and it carries \
             `other_effects` (text only, in no number) and `places`, the addresses `choose` takes its key at). \
             Each match has the key `describe` takes, its short summary when the data has one, its parent (an \
@@ -274,8 +277,8 @@ impl Server {
             `gear.glasses`, `gear.gloves`, `gear.headwear`, `gear.necklace`, `gear.ring.0`, `gear.ring.1`, \
             `gear.body`, `gear.weapon`: \"None\" (`none`) and each item it takes, with its summary and \
             `other_effects`) or `gear.usable.<item key>` (a manual, tome or other usable item: `none` or its key). \
-            An item a choice needs is locked with the choice's name, and so is every item that would refuse one: \
-            withdraw the choice first. By default only the options open now are listed and `closed` counts the rest; \
+            An item a choice needs can't be taken off (\"None\" is locked with the choice's name), nor replaced by \
+            an item that would refuse the choice (locked the same way); an item that keeps it is open. By default only the options open now are listed and `closed` counts the rest; \
             `only_open: false` lists them with their reasons. `values: true` lists a parameterised feat once per \
             value. `query` filters by name or key. `compact: true` leaves out the summaries and other effects. It \
             changes nothing, so \
@@ -306,7 +309,11 @@ impl Server {
             `breaks_later`, …) or the server's (`not_an_option`, with the closest values; `needs_parameter`, a \
             parameterised feat given by its key alone, with what it takes and its open values; `no_such_choice`). \
             Returns the envelope (`build`, `link`, `todo`) of the Build as the applied steps left \
-            it. A code that doesn't open is `stale_link`.",
+            it; `moved` {step, choice, item, name, from} for a ring a step took from the other ring place (that \
+            place is then empty); and `leans_on_gear` {step, choice, leaning} for each applied step that left \
+            choices allowed only because of the Build's gear (a Dexterity lowered under a belt, with a feat that \
+            needs it), each as `sheet`'s `gear_dependent` lists it: the step is applied all the same. A code that \
+            doesn't open is `stale_link`.",
         annotations(read_only_hint = true, open_world_hint = false)
     )]
     async fn choose(
@@ -323,18 +330,19 @@ impl Server {
             classes unchosen (`class.<class>.archetype|advances`), a point-buy score back to 7, a Build start choice, \
             the first ascension, path or Path switch unchosen, or a gear item taken off (`gear.belt`, \
             `gear.usable.<item key>`, …). Only a choice nothing later depends on comes off (an item a pick needs is \
-            refused naming the pick: withdraw the pick first): \
+            refused naming the pick: withdraw the pick first, or `choose` an item that keeps it): \
             otherwise `not_removable` (`sheet` with `removable: true` lists what can come off now, so chains come \
             off from the leaves inward). A level's class isn't withdrawn (`choose` another class, or withdraw the \
             last level), nor the racial ability (change the race, or choose another ability). Errors: \
             `not_removable`, `no_such_choice` (nothing held there), `stale_link`. Returns the envelope (`build`, \
-            `link`, `todo`).",
+            `link`, `todo`), and `leans_on_gear`, the choices the withdrawal left allowed only because of the \
+            Build's gear, as `sheet`'s `gear_dependent` lists them (the withdrawal is made all the same).",
         annotations(read_only_hint = true, open_world_hint = false)
     )]
     async fn withdraw(
         &self,
         Parameters(args): Parameters<WithdrawArgs>,
-    ) -> Result<Json<BuildResult>, String> {
+    ) -> Result<Json<WithdrawResult>, String> {
         self.blocking(move |planner| Ok(Json(withdraw(planner, args)?)))
             .await
     }

@@ -455,3 +455,137 @@ async fn the_instructions_and_the_guide_say_gear_comes_only_when_asked() {
         assert!(!text.contains("The numbers are naked"), "{text}");
     }
 }
+
+#[tokio::test]
+async fn an_unfiltered_search_finds_no_gear() {
+    let client = Client::start().await;
+    for query in ["belt", "dex"] {
+        let found = client.search(json!({ "query": query, "limit": 100 })).await;
+        assert!(
+            found.iter().all(|(kind, _)| kind != "gear"),
+            "{query}: {found:?}"
+        );
+    }
+    // Asked for by kind, it is there.
+    let found = client
+        .search(json!({ "query": "belt", "kinds": ["gear", "feat"], "limit": 100 }))
+        .await;
+    assert!(found.iter().any(|(kind, _)| kind == "gear"), "{found:?}");
+}
+
+#[tokio::test]
+async fn choosing_a_worn_ring_at_the_other_ring_place_says_it_moved() {
+    let client = client().await;
+    let result = client
+        .ok(
+            "choose",
+            json!({ "build": code(&fighter()), "steps": [
+                { "choice": "gear.ring.0", "value": "ring-of-luck" },
+                { "choice": "gear.ring.1", "value": "ring-of-luck" },
+            ] }),
+        )
+        .await;
+    assert_eq!(result["applied"], 2, "{result}");
+    assert_eq!(
+        result["moved"],
+        json!([{
+            "step": 1,
+            "choice": "gear.ring.1",
+            "item": "ring-of-luck",
+            "name": "Ring of Luck",
+            "from": "gear.ring.0",
+        }])
+    );
+    let build = decode(&result["build"]);
+    assert_eq!(build.gear.worn.get(&GearPlace::FirstRing), None);
+    assert_eq!(
+        build.gear.worn.get(&GearPlace::SecondRing),
+        Some(&gear_item("ring-of-luck"))
+    );
+    // A ring chosen at an empty place moves nothing.
+    let single = client
+        .ok(
+            "choose",
+            json!({ "build": code(&fighter()), "steps": [{ "choice": "gear.ring.1", "value": "ring-of-luck" }] }),
+        )
+        .await;
+    assert_eq!(single.get("moved"), None, "{single}");
+}
+
+/// Taking off what isn't there is a no-op, as choosing what the Build already holds is anywhere: the step counts as
+/// applied and the code doesn't change.
+#[tokio::test]
+async fn none_at_an_empty_place_is_a_no_op_like_any_held_value() {
+    let client = client().await;
+    let build = code(&fighter());
+    for (choice, value) in [("gear.body", "none"), ("start.race", "human")] {
+        let result = client
+            .ok(
+                "choose",
+                json!({ "build": build, "steps": [{ "choice": choice, "value": value }] }),
+            )
+            .await;
+        assert_eq!(result["applied"], 1, "{choice}: {result}");
+        assert_eq!(result["build"], build, "{choice}");
+        assert_eq!(result.get("rejected"), None, "{choice}");
+    }
+}
+
+#[tokio::test]
+async fn a_step_that_leaves_a_pick_leaning_on_the_gear_is_applied_and_says_so() {
+    let client = client().await;
+    let leaning = json!([{
+        "choice": "slot.feat.1.general.0",
+        "label": "Level 1: Feat",
+        "name": "Greater Two-Weapon Fighting",
+        "needs": "With Belt of Dexterity +2",
+        "items": [BELT],
+    }]);
+    // Dexterity 17 with the racial +2 is 19 on its own; a point less leans on the belt.
+    let mut build = belted_two_weapon_fighter();
+    build.start.racial_ability = Some(Ability::Dexterity);
+    let result = client
+        .ok(
+            "choose",
+            json!({ "build": code(&build), "steps": [{ "choice": "start.score.dex", "value": 16 }] }),
+        )
+        .await;
+    assert_eq!(result["applied"], 1, "{result}");
+    assert_eq!(
+        result["leans_on_gear"],
+        json!([{ "step": 0, "choice": "start.score.dex", "leaning": leaning }])
+    );
+    // A step that leaves nothing leaning says nothing.
+    let up = client
+        .ok(
+            "choose",
+            json!({ "build": code(&build), "steps": [{ "choice": "start.score.dex", "value": 18 }] }),
+        )
+        .await;
+    assert_eq!(up.get("leans_on_gear"), None, "{up}");
+
+    // A withdrawal too: a fighter 5 whose Dexterity 19 at level 5 needs its level-4 increase.
+    let mut fifth = rules::test_world::build("human", &["fighter"; 5]);
+    fifth.start.ability_scores = point_buy([10, 16, 10, 10, 10, 10]);
+    fifth.start.racial_ability = Some(Ability::Dexterity);
+    fifth.levels[3].ability_increase = Some(Ability::Dexterity);
+    fifth.gear.worn.insert(GearPlace::Belt, gear_item(BELT));
+    fifth.picks.insert(general_slot(5), pick_feat(GTWF));
+    let withdrawn = client
+        .ok(
+            "withdraw",
+            json!({ "build": code(&fifth), "choice": "level.4.increase" }),
+        )
+        .await;
+    assert_eq!(
+        withdrawn["leans_on_gear"],
+        json!([{
+            "choice": "slot.feat.5.general.0",
+            "label": "Level 5: Feat",
+            "name": "Greater Two-Weapon Fighting",
+            "needs": "With Belt of Dexterity +2",
+            "items": [BELT],
+        }]),
+        "{withdrawn}"
+    );
+}

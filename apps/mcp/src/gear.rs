@@ -4,7 +4,8 @@
 //! ([`Engine::naked_sheet`]) and the marks on an option that is open only because of gear or would lean on it.
 //!
 //! - `options` and `choose` take a place's items through [`gear_offers`], each with the engine's edit and verdict:
-//!   an item a choice needs can't be removed or replaced, and the offer says which choice.
+//!   an item a choice needs can't be taken off, or replaced by one that doesn't keep the choice, and the offer says
+//!   which choice.
 //! - `sheet` lists the gear held ([`gear_lines`]) and the choices it allows ([`dependent_lines`]), and gives the
 //!   numbers without it where they differ (`sheet.rs`).
 //! - `compare` and `improve` count the naked numbers unless asked ([`counted`]), and never add an item.
@@ -92,7 +93,8 @@ fn usable<'a>(engine: &'a Engine, key: &rules::GearKey) -> Result<&'a GearItem, 
 
 /// The options at a gear address, in the engine's order: "None" (`none`) first, then each item the place takes,
 /// each with its edit and the engine's verdict. A usable item's address offers "None" (stop using it) and the item
-/// itself. An item that a choice needs can't be removed or replaced: the offer is `breaks_later`, its reason naming
+/// itself. An item that a choice needs can't be taken off, or replaced by one that doesn't keep the choice: such an
+/// offer is `breaks_later`, its reason naming
 /// the choice ("Greater Two-Weapon Fighting needs Belt of Incredible Dexterity +2").
 pub(crate) fn gear_offers(
     engine: &Engine,

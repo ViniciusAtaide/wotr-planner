@@ -656,7 +656,8 @@ pub struct SheetResult {
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub gear: Vec<GearLine>,
     /// The choices the Build can make only because of its gear, each with the items it needs: an item one of them
-    /// needs can't be withdrawn or replaced until that choice is withdrawn. Left out when there are none.
+    /// needs can't be withdrawn, or replaced by an item that doesn't keep the choice, until that choice is withdrawn.
+    /// Left out when there are none.
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub gear_dependent: Vec<GearDependentLine>,
     /// The numbers without the gear, where the gear changes them: every other number of the sheet counts the Build's
@@ -926,7 +927,7 @@ pub struct OptionLine {
 pub enum OptionStatus {
     Open(Open),
     /// Open, only because of the Build's gear: the items it needs ("With Belt of Incredible Dexterity +2"). Once
-    /// taken, those items can't come off until it is withdrawn.
+    /// taken, those items can't come off (or give way to items that don't keep it) until it is withdrawn.
     WithGear {
         with_gear: String,
     },
@@ -987,6 +988,52 @@ pub struct ChooseResult {
     /// The step that was refused, which stopped the rest. Left out when every step was applied.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rejected: Option<Rejected>,
+    /// The items a step took from another gear place: a ring chosen at `gear.ring.1` while it was worn at
+    /// `gear.ring.0` moves, and `gear.ring.0` is then empty. Left out when none moved.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub moved: Vec<MovedItem>,
+    /// The applied steps that left choices allowed only because of the Build's gear (a Dexterity lowered under a
+    /// belt, with a feat that needs it): applied all the same, each with those choices and the items they now
+    /// need. Left out when none did.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub leans_on_gear: Vec<LeaningStep>,
+}
+
+/// An item a `choose` step moved from another gear place.
+#[derive(Debug, Serialize, JsonSchema)]
+pub struct MovedItem {
+    /// The step's index in `steps`, from 0.
+    pub step: u32,
+    /// The step's address: where the item is now.
+    pub choice: String,
+    /// The item's key and name.
+    pub item: String,
+    pub name: String,
+    /// Where it was, now empty.
+    pub from: String,
+}
+
+/// A `choose` step that left choices allowed only because of the gear.
+#[derive(Debug, Serialize, JsonSchema)]
+pub struct LeaningStep {
+    /// The step's index in `steps`, from 0.
+    pub step: u32,
+    /// The step's address, as given.
+    pub choice: String,
+    /// The choices it left allowed only because of the gear, as `sheet`'s `gear_dependent` lists them.
+    pub leaning: Vec<GearDependentLine>,
+}
+
+/// `withdraw`'s result: the envelope, and what the withdrawal left leaning on the gear.
+#[derive(Debug, Serialize, JsonSchema)]
+pub struct WithdrawResult {
+    #[serde(flatten)]
+    pub envelope: Envelope,
+    /// The choices the withdrawal left allowed only because of the Build's gear (an ability increase in Dexterity
+    /// withdrawn under a belt), with the items they now need, as `sheet`'s `gear_dependent` lists them. The
+    /// withdrawal is made all the same. Left out when there are none.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub leans_on_gear: Vec<GearDependentLine>,
 }
 
 /// A refused step of `choose`.
