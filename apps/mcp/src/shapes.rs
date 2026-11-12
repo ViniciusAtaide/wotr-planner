@@ -45,6 +45,9 @@ pub enum Kind {
     Spell,
     /// A spell list: a class's, an archetype's or a Mythic path's spells by level.
     SpellList,
+    /// A gear item: a belt, a ring, a robe, a manual or tome, …, which a Build holds only when the user states it
+    /// (`gear.<place>`, `gear.usable.<item key>`).
+    Gear,
 }
 
 impl Kind {
@@ -63,6 +66,7 @@ impl Kind {
             Kind::Background => "background",
             Kind::Spell => "spell",
             Kind::SpellList => "spell_list",
+            Kind::Gear => "gear",
         }
     }
 }
@@ -165,6 +169,16 @@ pub struct Hit {
     /// initials. Left out for those.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub matched: Option<Matched>,
+    /// A gear item's other effects, one short line each in the planner's own words: what it does besides the bonuses
+    /// its `summary` lists. Text only: no number counts them. Left out when it has none, and by `search`'s
+    /// `compact`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub other_effects: Option<Vec<String>>,
+    /// A gear item's addresses, where `choose` takes its key: `gear.belt`; `gear.ring.0` and `gear.ring.1`;
+    /// `gear.body` for a robe or an armour; `gear.usable.<its key>` for a manual, tome or other usable item. Left
+    /// out for other kinds, and by `search`'s `compact`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub places: Option<Vec<String>>,
 }
 
 /// How a `search` hit matched, when not by its name, key or initials.
@@ -460,6 +474,8 @@ pub struct SheetArgs {
 ///   "conjuration"}`): a skill or weapon key, or a school, energy or armour type in lower case;
 /// - `{class, archetype?, advances?}`: the class taken at a level, with the archetype when first taken, and for a
 ///   prestige class that asks, the classes it advances (`[]` for none);
+/// - a gear item's key, for its place (`gear.belt`: `belt-of-incredible-dexterity-2`; `none` takes the place's item
+///   off) or for its own `gear.usable.<item key>`;
 /// - a number: a point-buy score (`start.score.int`), or the ranks a level adds to a skill (`level.N.skill.<skill>`);
 /// - `{skill: ranks}`: for `level.N.skill`, the ranks the level adds to each skill (`{"athletics": 1, "perception":
 ///   1}`), each as `level.N.skill.<skill>` takes it, in one step.
@@ -583,6 +599,10 @@ pub struct PickLine {
     /// open choice, and for a level's class and the racial ability, which aren't withdrawn (`choose` another value).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub removable: Option<bool>,
+    /// For a choice the Build can make only because of its gear: the items it needs ("With Belt of Incredible
+    /// Dexterity +2"), as `gear_dependent` lists it. Left out for every other.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub with_gear: Option<String>,
 }
 
 /// `sheet`'s result.
@@ -631,6 +651,111 @@ pub struct SheetResult {
     /// With a `caster`: what no caster line counts.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub caster_leaves_out: Option<Vec<String>>,
+    /// The gear the Build holds, as the user stated it: each item at its address, with its summary and other effects.
+    /// Left out when it holds none (a Build has no gear unless it's chosen).
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub gear: Vec<GearLine>,
+    /// The choices the Build can make only because of its gear, each with the items it needs: an item one of them
+    /// needs can't be withdrawn or replaced until that choice is withdrawn. Left out when there are none.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub gear_dependent: Vec<GearDependentLine>,
+    /// The numbers without the gear, where the gear changes them: every other number of the sheet counts the Build's
+    /// gear. They are the numbers of the same Build with no gear at all, so a choice only gear allows counts for
+    /// nothing in them. Left out for a Build without gear, or whose gear changes none of them.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub naked: Option<NakedNumbers>,
+}
+
+/// An item the Build holds.
+#[derive(Debug, Serialize, JsonSchema)]
+pub struct GearLine {
+    /// Its address: `gear.belt`, `gear.ring.0`, `gear.usable.<item key>`, …
+    pub choice: String,
+    /// Where it is: "Gear: Belt", "Gear: Usable: Manual of Gainful Exercise +2", …
+    pub label: String,
+    /// Its key, as `choose` takes it.
+    pub value: String,
+    pub name: String,
+    /// Its always-on bonuses, which every number counts ("Dex +2 enhancement").
+    pub summary: String,
+    /// What else it does, one short line each: text only, in no number.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub other_effects: Vec<String>,
+    /// With `removable: true`: whether `withdraw` can take it off now (no choice needs it).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub removable: Option<bool>,
+}
+
+/// A choice the Build can make only because of its gear.
+#[derive(Clone, Debug, Serialize, JsonSchema)]
+pub struct GearDependentLine {
+    /// Its address.
+    pub choice: String,
+    /// What it is, with its place: "Level 19: Feat".
+    pub label: String,
+    /// What it holds: "Greater Two-Weapon Fighting".
+    pub name: String,
+    /// The items it needs, in the planner's words: "With Belt of Incredible Dexterity +2"; "With A or B" when either
+    /// is enough.
+    pub needs: String,
+    /// The keys of the items `needs` names.
+    pub items: Vec<String>,
+}
+
+/// The sheet's numbers without the Build's gear, only where they differ from those with it.
+#[derive(Debug, Serialize, JsonSchema)]
+pub struct NakedNumbers {
+    /// By character level, the levels where any differs.
+    pub levels: Vec<NakedLevel>,
+    /// The last level's totals without gear, when any differs.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub totals: Option<crate::totals::TotalsShape>,
+}
+
+/// One level's numbers without gear, each left out where the gear doesn't change it.
+#[derive(Debug, Serialize, JsonSchema)]
+pub struct NakedLevel {
+    pub level: u8,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub scores: Option<Scores>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub attack: Option<crate::attack::AttackLineShape>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub caster: Option<crate::caster::CasterLineShape>,
+}
+
+/// Which numbers `compare` and `improve` count: the Builds' without gear (the default), or with the gear each holds.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum Numbers {
+    /// Without gear: the numbers of each Build with no gear at all.
+    Naked,
+    /// With the gear each Build holds (`with_gear: true`).
+    WithGear,
+}
+
+impl Numbers {
+    pub(crate) fn from_flag(with_gear: Option<bool>) -> Self {
+        match with_gear {
+            Some(true) => Self::WithGear,
+            _ => Self::Naked,
+        }
+    }
+}
+
+/// A Build summary's other numbers: with gear beside naked ones, or naked beside ones with gear, each left out where
+/// the gear doesn't change it.
+#[derive(Debug, Serialize, JsonSchema)]
+pub struct OtherNumbers {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub scores: Option<Scores>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub attack: Option<crate::attack::AttackLineShape>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub caster: Option<crate::caster::CasterLineShape>,
+    /// With `by`: the number.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub number: Option<i16>,
 }
 
 /// One character level of the sheet.
@@ -648,7 +773,9 @@ pub struct LevelLine {
     pub fort: u8,
     pub reflex: u8,
     pub will: u8,
-    /// The character's own scores at the end of the level, feature bonuses included, gear never.
+    /// The scores at the end of the level: the point buy, racial and level increases, feature bonuses and the
+    /// Build's gear (`naked` gives them without the gear where it changes them). A level's skill points never count
+    /// gear.
     pub scores: Scores,
     /// Skill points: available at this level and spent by it.
     pub skill_points: SkillPointsLine,
@@ -672,7 +799,7 @@ pub struct LevelLine {
     pub picks: Vec<PickLine>,
 }
 
-#[derive(Clone, Debug, Serialize, JsonSchema)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, JsonSchema)]
 pub struct Scores {
     pub str: u8,
     pub dex: u8,
@@ -727,7 +854,8 @@ pub struct OptionsArgs {
     /// The Build's code (a link works too).
     pub build: String,
     /// The choice's address, as `sheet` and `todo` print it: `start.race`, `level.4.class`,
-    /// `slot.feat.3.general.0`, …
+    /// `slot.feat.3.general.0`, …; a gear place (`gear.belt`, `gear.ring.0`, `gear.body`, …) or a usable item
+    /// (`gear.usable.<item key>`).
     pub choice: String,
     /// Only options whose name or value holds every word of this (case doesn't matter).
     #[serde(default)]
@@ -740,7 +868,7 @@ pub struct OptionsArgs {
     /// status (default false: once, with `takes` saying what a value is).
     #[serde(default)]
     pub values: Option<bool>,
-    /// Each option without its summary (default false).
+    /// Each option without its summary and a gear item's other effects (default false).
     #[serde(default)]
     pub compact: Option<bool>,
     /// Also return the envelope, `build`, `link` and `todo` (default false: `options` changes nothing, so the
@@ -770,9 +898,14 @@ pub struct OptionLine {
     pub value: ChoiceValue,
     /// As the planner names it.
     pub name: String,
-    /// A short summary in the planner's own words (a background's: its note); left out when the data has none.
+    /// A short summary in the planner's own words (a background's: its note; a gear item's: its always-on bonuses);
+    /// left out when the data has none.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub summary: Option<String>,
+    /// A gear item's other effects, one short line each: text only, in no number. Left out when it has none, and by
+    /// `compact`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub other_effects: Option<Vec<String>>,
     pub status: OptionStatus,
     /// The filter group it's under: a feat's category, an option's Feature selection, "Base class", …
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -786,11 +919,22 @@ pub struct OptionLine {
     pub current: bool,
 }
 
-/// `"ok"` when it can be taken now, else why not.
+/// `"ok"` when it can be taken now; `{"with_gear": …}` when it can be taken now only because of the Build's gear;
+/// `{"leans_on_gear": …}` when taking it would leave other choices allowed only because of the gear; else why not.
 #[derive(Debug, Serialize, JsonSchema)]
 #[serde(untagged)]
 pub enum OptionStatus {
     Open(Open),
+    /// Open, only because of the Build's gear: the items it needs ("With Belt of Incredible Dexterity +2"). Once
+    /// taken, those items can't come off until it is withdrawn.
+    WithGear {
+        with_gear: String,
+    },
+    /// Open, but taking it leaves these choices allowed only because of the gear ("Greater Two-Weapon Fighting
+    /// would then be allowed only because of the gear"): legal, but not safe if the gear changes.
+    LeansOnGear {
+        leans_on_gear: String,
+    },
     Closed {
         /// The engine's issue: `unmet`, `already_held`, `max_times`, `not_allowed`, `class_level_cap`,
         /// `not_from_path`, `deity_alignment`, `needs_faith`, `deity_domain`, `breaks_later`.
@@ -921,7 +1065,8 @@ pub struct WithdrawArgs {
     pub build: String,
     /// The address of the choice to take back: a slot, `level.N` (the last level), `level.N.increase`,
     /// `level.N.skill.<skill>`, `class.<class>.archetype|advances`, `start.race|subrace|faith|alignment|background`,
-    /// `start.score.<ability>` (back to 7), `mythic.first-ascension|path|switch`.
+    /// `start.score.<ability>` (back to 7), `mythic.first-ascension|path|switch`, a gear place (`gear.belt`, …) or a
+    /// usable item (`gear.usable.<item key>`).
     pub choice: String,
 }
 
@@ -948,6 +1093,11 @@ pub struct CompareArgs {
     /// Focus weapon; `number`: `attack`, the default, or `damage`). Every per-Build list then follows that order.
     #[serde(default)]
     pub by: Option<crate::rank::NumberArgs>,
+    /// Count each Build's gear in the summaries' numbers, the differences and `by` (default false: they are naked,
+    /// the numbers of each Build with no gear; each summary's `with_gear` then gives the numbers its gear changes).
+    /// `compare` never adds gear: each Build counts only the gear it holds.
+    #[serde(default)]
+    pub with_gear: Option<bool>,
 }
 
 /// `compare`'s result: each Build's summary, then only what differs between them, all read from the planner's
@@ -973,6 +1123,12 @@ pub struct CompareResult {
     /// With `by`: the number the Builds are ordered by, the order, and what the number leaves out.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub by: Option<crate::rank::RankedBy>,
+    /// Which numbers the summaries, the differences and `by` count: `"naked"` (the default: each Build with no gear)
+    /// or `"with_gear"` (each with the gear it holds).
+    pub numbers: Numbers,
+    /// The gear places and usable items whose item differs, by address.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub gear: Vec<PickDiff>,
 }
 
 /// One Build's sheet in short, at its last level.
@@ -993,6 +1149,7 @@ pub struct BuildSummary {
     pub fort: u8,
     pub reflex: u8,
     pub will: u8,
+    /// As `numbers` counts them.
     pub scores: Scores,
     /// Class levels only (no mythic, gear or buff bonus), as `sheet` gives it.
     pub caster_level: u8,
@@ -1022,6 +1179,18 @@ pub struct BuildSummary {
     /// With `by`: this Build's place in the `builds` given, from 0.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub given: Option<u32>,
+    /// The gear it holds, by key and name. Left out when none.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub gear: Vec<Named>,
+    /// The choices it can make only because of its gear. Left out when none.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub gear_dependent: Vec<GearDependentLine>,
+    /// With `numbers: "naked"`: the numbers with its gear, where the gear changes them.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub with_gear: Option<OtherNumbers>,
+    /// With `numbers: "with_gear"`: the numbers without its gear, where the gear changes them.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub naked: Option<OtherNumbers>,
 }
 
 /// One class of a Build.

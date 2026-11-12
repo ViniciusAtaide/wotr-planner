@@ -4,8 +4,11 @@
 //! Two addresses are refused by design: `start.racial-ability`, which the engine keeps with the race (it has no
 //! `Choice` of its own), and `level.N.class`, whose engine Withdrawal sets a class key no data has: an agent changes
 //! a level's class with `choose`, and drops the last level with `level.N`.
+//!
+//! A gear item comes off the same way (`gear.belt`, `gear.usable.<item key>`), unless a choice needs it: then the
+//! refusal names that choice, as the engine words it ([`crate::gear::needed_reason`]).
 
-use rules::{Address, NotAnAddress};
+use rules::Address;
 
 use crate::code::{envelope, open, reopen};
 use crate::error::ToolError;
@@ -16,10 +19,7 @@ use crate::shapes::{BuildResult, WithdrawArgs};
 pub(crate) fn withdraw(planner: &Planner, args: WithdrawArgs) -> Result<BuildResult, ToolError> {
     let engine = &planner.engine;
     let build = open(planner, &args.build)?;
-    let address: Address = args
-        .choice
-        .parse()
-        .map_err(|error: NotAnAddress| ToolError::no_such_choice(error.to_string()))?;
+    let address: Address = crate::gear::parse_address(&args.choice)?;
     let last = build.levels.len();
     match &address {
         Address::RacialAbility => {
@@ -55,6 +55,15 @@ pub(crate) fn withdraw(planner: &Planner, args: WithdrawArgs) -> Result<BuildRes
         return Err(ToolError::no_such_choice(reason));
     };
     if !removable {
+        // An item a choice needs: the engine names the choice ("Greater Two-Weapon Fighting needs Belt of …").
+        if let Address::Gear(spot) = &address
+            && let Some(reason) = crate::gear::needed_reason(engine, &build, spot)
+        {
+            return Err(ToolError::not_removable(format!(
+                "{reason}, so `{address}` can't be withdrawn or replaced now: withdraw that choice first. `sheet` \
+                 lists the choices only gear allows under `gear_dependent`."
+            )));
+        }
         return Err(ToolError::not_removable(format!(
             "A later choice depends on `{address}`, so it can't be withdrawn now: withdraw what depends on it first. \
              `sheet` with `removable: true` lists what can be withdrawn now."

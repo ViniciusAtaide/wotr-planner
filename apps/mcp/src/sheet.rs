@@ -1,8 +1,10 @@
 //! `sheet`: a Build as the engine's sheet has it, level by level and rank by rank, each choice by its address.
 //! Everything comes from [`Engine::evaluate`]'s [`Sheet`] and the engine's labels; the only work here is saying
-//! what each level adds (its feats and features: the state at its end against the one before).
+//! what each level adds (its feats and features: the state at its end against the one before). A Build with gear
+//! also gets its items, the choices only they allow, and the numbers without them where they differ
+//! ([`Engine::naked_sheet`]).
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 use rules::{
     AbilityScores, Address, Build, CharacterState, Choice, Engine, POINT_BUY_BUDGET, RankStatus,
@@ -12,17 +14,19 @@ use rules::{
 use crate::attack;
 use crate::caster;
 use crate::code::envelope;
+use crate::gear::{dependent_lines, gear_lines, if_differs};
 use crate::planner::Planner;
 use crate::shapes::ChoiceValue;
 use crate::shapes::{
-    LevelLine, Named, PickLine, RankLine, RankState, Scores, SheetResult, SkillPointsLine,
-    SpellLevels,
+    LevelLine, NakedLevel, NakedNumbers, Named, PickLine, RankLine, RankState, Scores, SheetResult,
+    SkillPointsLine, SpellLevels,
 };
 use crate::totals;
 
 /// The sheet of a possible Build; with `removable`, each held choice marked with whether it can be withdrawn now;
 /// each level's attack line for the `weapon` given, or else for the Build's Weapon Focus weapon
 /// ([`Engine::default_attack_weapon`]), none without one; with a `caster` spell, each level's caster line for it.
+/// Every number counts the Build's gear; `naked` gives those the gear changes without it.
 pub(crate) fn sheet(
     planner: &Planner,
     build: &Build,
@@ -30,21 +34,66 @@ pub(crate) fn sheet(
     weapon: Option<WeaponKey>,
     caster: Option<SpellTraits>,
 ) -> SheetResult {
-    let evaluated = planner.engine.evaluate(build);
+    let engine = &planner.engine;
+    let evaluated = engine.evaluate(build);
     let mut result = sheet_of(planner, build, &evaluated, removable);
-    if let Some(weapon) = attack::weapon_or_default(&planner.engine, weapon.as_ref(), &evaluated) {
+    let weapon = attack::weapon_or_default(engine, weapon.as_ref(), &evaluated);
+    if let Some(weapon) = &weapon {
         for (line, level) in result.levels.iter_mut().zip(&evaluated.levels) {
-            line.attack = attack::attack_line(&planner.engine, &level.state, &weapon);
+            line.attack = attack::attack_line(engine, &level.state, weapon);
         }
         result.attack_leaves_out = Some(attack::leaves_out());
     }
     if let Some(spell) = caster {
         for (line, level) in result.levels.iter_mut().zip(&evaluated.levels) {
-            line.caster = caster::caster_line(&planner.engine, level, spell);
+            line.caster = caster::caster_line(engine, level, spell);
         }
         result.caster_leaves_out = Some(caster::leaves_out());
     }
+    if let Some(naked) = engine.naked_sheet(build) {
+        result.naked = naked_numbers(engine, &result, &naked, weapon.as_ref(), caster);
+    }
     result
+}
+
+/// The numbers of the sheet without the Build's gear (`naked`, from [`Engine::naked_sheet`]), only where they differ
+/// from the sheet's: each level's scores, attack line and caster line, and the last level's totals. `None` when the
+/// gear changes none.
+fn naked_numbers(
+    engine: &Engine,
+    result: &SheetResult,
+    naked: &Sheet,
+    weapon: Option<&WeaponKey>,
+    caster: Option<SpellTraits>,
+) -> Option<NakedNumbers> {
+    let levels: Vec<NakedLevel> = (result.levels.iter())
+        .zip(&naked.levels)
+        .filter_map(|(line, level)| {
+            let numbers = NakedLevel {
+                level: line.level,
+                scores: if_differs(Some(&line.scores), Some(scores(level.state.ability_scores))),
+                attack: if_differs(
+                    line.attack.as_ref(),
+                    weapon.and_then(|weapon| attack::attack_line(engine, &level.state, weapon)),
+                ),
+                caster: if_differs(
+                    line.caster.as_ref(),
+                    caster.and_then(|spell| caster::caster_line(engine, level, spell)),
+                ),
+            };
+            let any =
+                numbers.scores.is_some() || numbers.attack.is_some() || numbers.caster.is_some();
+            any.then_some(numbers)
+        })
+        .collect();
+    let totals = if_differs(
+        result.totals.as_ref(),
+        naked
+            .levels
+            .last()
+            .map(|level| totals::totals(engine, level)),
+    );
+    (!levels.is_empty() || totals.is_some()).then_some(NakedNumbers { levels, totals })
 }
 
 /// [`sheet`] from the Build's sheet already evaluated (`compare` reads the engine's sheet once per Build).
@@ -56,10 +105,15 @@ pub(crate) fn sheet_of(
 ) -> SheetResult {
     let engine = &planner.engine;
     let removable = removable.then(|| engine.removable(build));
+    let gear_dependent = dependent_lines(engine, build, sheet);
     let lines = Lines {
         engine,
         removable: removable.as_ref(),
+        with_gear: (gear_dependent.iter())
+            .map(|line| (line.choice.clone(), line.needs.clone()))
+            .collect(),
     };
+    let gear = gear_lines(engine, build, removable.as_ref());
     let empty = CharacterState::default();
     let last = sheet.levels.last().map_or(&empty, |level| &level.state);
     SheetResult {
@@ -97,6 +151,9 @@ pub(crate) fn sheet_of(
         }),
         attack_leaves_out: None,
         caster_leaves_out: None,
+        gear,
+        gear_dependent,
+        naked: None,
     }
 }
 
@@ -140,6 +197,8 @@ fn notes(engine: &Engine, build: &Build, last: &CharacterState) -> Vec<String> {
 struct Lines<'a> {
     engine: &'a Engine,
     removable: Option<&'a BTreeSet<Choice>>,
+    /// The note of each choice only the gear allows, by address.
+    with_gear: BTreeMap<String, String>,
 }
 
 impl Lines<'_> {
@@ -159,8 +218,10 @@ impl Lines<'_> {
             _ => None,
         };
         let (value, name) = held.unzip();
+        let choice = address.to_string();
         PickLine {
-            choice: address.to_string(),
+            with_gear: self.with_gear.get(&choice).cloned(),
+            choice,
             label,
             value,
             name,

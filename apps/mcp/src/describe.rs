@@ -211,6 +211,8 @@ pub(crate) fn describe(planner: &Planner, kind: Kind, key: &str) -> Result<Item,
             item.facts = Some(spells::facts(spell));
             item.lists = Some(spells::lists_of(engine, data, spell));
         }
+        // Its summary, other effects and places are on its hit, as `search` gives them.
+        Kind::Gear => {}
         Kind::SpellList => {
             let list = data
                 .spell_lists

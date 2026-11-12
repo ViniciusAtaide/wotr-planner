@@ -4,7 +4,7 @@ The attack line gives one hit's damage and the regular attacks. A martial goal (
 
 ## The worksheet
 
-1. **The line.** `compare` the branches: each Build's attack line is for its own Weapon Focus weapon (give `weapon` to put every branch on one weapon). Take each attack's bonus, the damage per hit, Power Attack's trade and the critical range: these are the planner's facts, naked, with no gear.
+1. **The line.** `compare` the branches: each Build's attack line is for its own Weapon Focus weapon (give `weapon` to put every branch on one weapon). Take each attack's bonus, the damage per hit, Power Attack's trade and the critical range: these are the planner's facts, naked unless you pass `with_gear: true` (`numbers` says which).
 2. **What it leaves out.** Go through `attack_leaves_out` item by item. For each class feature, mythic feat, mythic ability and path feature the Build holds that adds to attack or damage, read its summary with `describe` and add its number at level 20, labelled as your own game knowledge. These are the usual large ones:
    - **Damage per hit:** Two-Handed Weapon Training, Backswing and Overhand Chop (double Strength bonus), Greater Power Attack (Power Attack ×2), Ki Weapon, a Sohei's Weapon Training, rage, Demonic Rage, the Demonic aspects (Incubus), Unrelenting Assault, the weapon mythic feats.
    - **Critical hits:** Weapon Mastery (+1 multiplier and automatic confirmation), the Trickster's critical chain, Critical Focus (+4 to confirm).
@@ -16,7 +16,7 @@ The attack line gives one hit's damage and the regular attacks. A martial goal (
 
 ## Gear
 
-Compare the branches naked, as the planner's numbers are. Add gear only if the user asks for it, the same gear on every branch, as your own judgement, labelled as such beside the naked numbers.
+A Build has no gear unless the user asks for it. Compare the branches naked, as `compare` does by default. If the user asks for gear, `choose` the same items on every branch at their addresses (`gear.belt`, `gear.gloves`, …; see Gear in [SKILL.md](SKILL.md)), `compare` with `with_gear: true`, and give both rankings. A belt's or a gauntlet's ability score bonus is then the planner's fact; a weapon's enhancement and properties, armour and the items' `other_effects` are not modelled: add them as your own judgement, labelled as such. Name every pick that needs the gear (`gear_dependent`), with its item.
 
 ## Traps that cost a rebuild
 

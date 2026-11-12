@@ -9,6 +9,7 @@ mod compact;
 mod compare;
 mod describe;
 mod end_to_end;
+mod gear;
 mod interactions;
 mod listing;
 mod options;

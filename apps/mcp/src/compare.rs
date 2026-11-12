@@ -2,6 +2,10 @@
 //! summary alone). Everything is read from each Build's sheet as `sheet` writes it (`sheet::sheet_of` on
 //! [`rules::Engine::evaluate`]'s sheet), so a difference here is one the two sheets show. Nothing is ranked by
 //! judgement: with `by`, the Builds are ordered by a number the engine computes (`rank.rs`), a fact like the rest.
+//!
+//! The numbers (the summaries', the differences' and `by`'s) are naked unless `with_gear`: each Build's with no gear
+//! at all ([`rules::Engine::naked_sheet`]). A Build with gear also gets the other numbers where its gear changes
+//! them. `compare` never adds gear: each Build counts only the gear it holds.
 
 use std::collections::BTreeSet;
 
@@ -11,13 +15,14 @@ use crate::attack;
 use crate::caster;
 use crate::code::open;
 use crate::error::ToolError;
+use crate::gear::if_differs;
 use crate::planner::Planner;
 use crate::rank::{self, RankedBy};
 use crate::shapes::{
     BuildSummary, ClassSummary, CompareArgs, CompareResult, FeaturesDiff, LevelDiff, LevelLine,
-    Named, NumberDiff, PickDiff, PickLine, RankDiff, RankLine, SheetResult,
+    Named, NumberDiff, Numbers, OtherNumbers, PickDiff, PickLine, RankDiff, RankLine, SheetResult,
 };
-use crate::sheet::sheet_of;
+use crate::sheet::{scores, sheet_of};
 
 /// The fewest and most Builds `compare` takes.
 const BUILDS: std::ops::RangeInclusive<usize> = 1..=4;
@@ -52,11 +57,25 @@ pub(crate) fn compare(planner: &Planner, args: CompareArgs) -> Result<CompareRes
         .transpose()?
         // An attack line that names no weapon ranks by the line shown: `weapon`'s, or else each Build's own.
         .map(|number| number.or_weapon(weapon.clone()));
+    let counts = Numbers::from_flag(args.with_gear);
     let mut sheets: Vec<Sheet> = builds.iter().map(|build| engine.evaluate(build)).collect();
+    // Each Build's numbers as `counts` says (`counted`), and, for a Build with gear, the other ones beside them.
+    let naked: Vec<Option<Sheet>> = builds
+        .iter()
+        .map(|build| engine.naked_sheet(build))
+        .collect();
+    let (mut counted, mut other): (Vec<Sheet>, Vec<Option<Sheet>>) = (sheets.iter())
+        .zip(naked)
+        .map(|(sheet, naked)| match (counts, naked) {
+            (Numbers::Naked, Some(naked)) => (naked, Some(sheet.clone())),
+            (Numbers::WithGear, naked) => (sheet.clone(), naked),
+            (Numbers::Naked, None) => (sheet.clone(), None),
+        })
+        .unzip();
     // With `by`, every per-Build list follows the order of the numbers: the Builds are put in it first.
     let mut ranked: Vec<(usize, Option<i16>)> = Vec::new();
     if let Some(number) = &number {
-        let numbers: Vec<Option<i16>> = sheets
+        let numbers: Vec<Option<i16>> = counted
             .iter()
             .map(|sheet| number.of(engine, sheet))
             .collect();
@@ -64,12 +83,20 @@ pub(crate) fn compare(planner: &Planner, args: CompareArgs) -> Result<CompareRes
         ranked = order.iter().map(|&i| (i, numbers[i])).collect();
         builds = order.iter().map(|&i| builds[i].clone()).collect();
         sheets = order.iter().map(|&i| sheets[i].clone()).collect();
+        counted = order.iter().map(|&i| counted[i].clone()).collect();
+        other = order.iter().map(|&i| other[i].clone()).collect();
     }
-    let lines: Vec<SheetResult> = builds
+    let mut lines: Vec<SheetResult> = builds
         .iter()
         .zip(&sheets)
         .map(|(build, sheet)| sheet_of(planner, build, sheet, false))
         .collect();
+    // The differences' numbers are the counted ones; the choices, feats and features are the Build's own.
+    for (line, counted) in lines.iter_mut().zip(&counted) {
+        for (level, at) in line.levels.iter_mut().zip(&counted.levels) {
+            level.scores = scores(at.state.ability_scores);
+        }
+    }
 
     let path_keys: Vec<BTreeSet<&str>> = lines
         .iter()
@@ -113,14 +140,61 @@ pub(crate) fn compare(planner: &Planner, args: CompareArgs) -> Result<CompareRes
                 summary.given = u32::try_from(given).ok();
                 summary.number = number;
             }
+            // The attack line's weapon is the Build's own Weapon Focus weapon, whichever numbers count.
             let weapon = attack::weapon_or_default(engine, weapon.as_ref(), sheet);
-            if let (Some(weapon), Some(last)) = (&weapon, sheet.levels.last()) {
-                summary.attack = attack::attack_line(engine, &last.state, weapon);
+            let numbers_of = |sheet: &Sheet| {
+                let last = sheet.levels.last();
+                OtherNumbers {
+                    scores: last.map(|last| scores(last.state.ability_scores)),
+                    attack: (weapon.as_ref().zip(last)).and_then(|(weapon, last)| {
+                        attack::attack_line(engine, &last.state, weapon)
+                    }),
+                    caster: (spell.zip(last))
+                        .and_then(|(spell, last)| caster::caster_line(engine, last, spell)),
+                    number: number.as_ref().and_then(|number| number.of(engine, sheet)),
+                }
+            };
+            let counted = numbers_of(&counted[i]);
+            if let Some(scores) = counted.scores.clone() {
+                summary.scores = scores;
             }
-            if let (Some(spell), Some(last)) = (spell, sheet.levels.last()) {
-                summary.caster = caster::caster_line(engine, last, spell);
+            if let Some(other) = &other[i] {
+                let other = numbers_of(other);
+                let other = OtherNumbers {
+                    scores: if_differs(Some(&summary.scores), other.scores),
+                    attack: if_differs(counted.attack.as_ref(), other.attack),
+                    caster: if_differs(counted.caster.as_ref(), other.caster),
+                    number: if_differs(counted.number.as_ref(), other.number),
+                };
+                let any = other.scores.is_some()
+                    || other.attack.is_some()
+                    || other.caster.is_some()
+                    || other.number.is_some();
+                if any {
+                    match counts {
+                        Numbers::Naked => summary.with_gear = Some(other),
+                        Numbers::WithGear => summary.naked = Some(other),
+                    }
+                }
             }
+            summary.attack = counted.attack;
+            summary.caster = counted.caster;
             summary
+        })
+        .collect();
+    let gear_lines: Vec<Vec<PickLine>> = lines
+        .iter()
+        .map(|line| {
+            (line.gear.iter())
+                .map(|item| PickLine {
+                    choice: item.choice.clone(),
+                    label: item.label.clone(),
+                    value: Some(crate::shapes::ChoiceValue::Key(item.value.clone())),
+                    name: Some(item.name.clone()),
+                    removable: None,
+                    with_gear: None,
+                })
+                .collect()
         })
         .collect();
     let any_attack_line = summaries.iter().any(|summary| summary.attack.is_some());
@@ -143,6 +217,13 @@ pub(crate) fn compare(planner: &Planner, args: CompareArgs) -> Result<CompareRes
             order: rank::ORDER,
             leaves_out: number.leaves_out(),
         }),
+        numbers: counts,
+        gear: pick_diffs(
+            &gear_lines
+                .iter()
+                .map(|lines| Some(&lines[..]))
+                .collect::<Vec<_>>(),
+        ),
     })
 }
 
@@ -217,6 +298,17 @@ fn summary(
         caster: None,
         number: None,
         given: None,
+        gear: build
+            .gear
+            .items()
+            .map(|(_, key)| Named {
+                key: key.as_str().to_owned(),
+                name: engine.gear_name(key).to_owned(),
+            })
+            .collect(),
+        gear_dependent: line.gear_dependent.clone(),
+        with_gear: None,
+        naked: None,
     }
 }
 

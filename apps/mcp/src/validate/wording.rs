@@ -4,7 +4,7 @@
 
 use rules::{
     Address, ArchetypeKey, BackgroundKey, Build, Choice, ClassKey, DeityKey, Engine, Failure,
-    Faith, GameData, Issue, MythicPathKey, Pick, RaceKey, RankStatus, Sheet, Slot, SlotId,
+    Faith, GameData, GearKey, Issue, MythicPathKey, Pick, RaceKey, RankStatus, Sheet, Slot, SlotId,
     SubraceKey,
 };
 
@@ -246,6 +246,11 @@ impl Wording<'_> {
                 let near = closest(pick.key(), items.into_iter());
                 (pick.key(), noun, near)
             }
+            Choice::Gear(spot) => {
+                let given = build.gear.at(spot).map_or("", GearKey::as_str);
+                let items = (data.gear.iter()).map(|item| (item.name.as_str(), item.key.as_str()));
+                (given, "a gear item", closest(given, items))
+            }
             _ => return issue_reason(self.engine(), &Issue::UnknownKey),
         };
         format!("`{given}` isn't {noun} in the planner's data{near}.")
@@ -350,6 +355,19 @@ impl Wording<'_> {
                     .filter(|path| path.switch.is_some())
                     .map(|path| (path.name.as_str(), path.key.as_str()));
                 format!("`{given}` isn't a Path switch{}.", closest(given, paths))
+            }
+            Choice::Gear(spot) => {
+                let item = build.gear.at(spot).and_then(|key| engine.gear_item(key));
+                match item {
+                    Some(item) => format!(
+                        "{} ({}) doesn't go at `{}`: its place is {}.",
+                        item.name,
+                        item.slot.name(),
+                        Address::Gear(spot.clone()),
+                        crate::gear::places(item).join(" or ")
+                    ),
+                    None => issue_reason(engine, &Issue::NotAllowed),
+                }
             }
             Choice::Slot(slot) => match build.picks.get(slot) {
                 Some(pick) => {

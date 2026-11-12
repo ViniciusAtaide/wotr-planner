@@ -40,6 +40,9 @@ struct Entry {
     initials: String,
     /// The summary's words, lower case, apostrophes dropped.
     summary_words: Vec<String>,
+    /// More words that match as the summary's do, but only together with it or when they hold every query word: a
+    /// gear item's slot ("belt") and the abilities its summary shortens ("Dexterity" for "Dex").
+    more_words: Vec<String>,
     /// The prerequisite shortened, when its whole text is long ([`LONG_PREREQUISITE`]).
     short_prerequisite: Option<String>,
 }
@@ -103,6 +106,8 @@ impl SearchIndex {
                         prerequisite: prerequisite(&class.prerequisite),
                         guide_url: guide(&class.guide),
                         matched: None,
+                        other_effects: None,
+                        places: None,
                     },
                     &class.prerequisite,
                 );
@@ -119,6 +124,8 @@ impl SearchIndex {
                             prerequisite: prerequisite(&archetype.prerequisite),
                             guide_url: guide(&archetype.guide),
                             matched: None,
+                            other_effects: None,
+                            places: None,
                         },
                         &archetype.prerequisite,
                     );
@@ -138,6 +145,8 @@ impl SearchIndex {
                     prerequisite: Some(None),
                     guide_url: guide(&path.guide),
                     matched: None,
+                    other_effects: None,
+                    places: None,
                 },
                 &None,
             );
@@ -155,6 +164,8 @@ impl SearchIndex {
                     prerequisite: prerequisite(&feat.prerequisite),
                     guide_url: guide(&feat.guide),
                     matched: None,
+                    other_effects: None,
+                    places: None,
                 },
                 &feat.prerequisite,
             );
@@ -172,6 +183,8 @@ impl SearchIndex {
                     prerequisite: prerequisite(&ability.prerequisite),
                     guide_url: guide(&ability.guide),
                     matched: None,
+                    other_effects: None,
+                    places: None,
                 },
                 &ability.prerequisite,
             );
@@ -189,6 +202,8 @@ impl SearchIndex {
                     prerequisite: prerequisite(&feat.prerequisite),
                     guide_url: guide(&feat.guide),
                     matched: None,
+                    other_effects: None,
+                    places: None,
                 },
                 &feat.prerequisite,
             );
@@ -207,6 +222,8 @@ impl SearchIndex {
                         prerequisite: prerequisite(&option.prerequisite),
                         guide_url: guide(&option.guide),
                         matched: None,
+                        other_effects: None,
+                        places: None,
                     },
                     &option.prerequisite,
                 );
@@ -225,6 +242,8 @@ impl SearchIndex {
                     prerequisite: Some(None),
                     guide_url: guide(&race.guide),
                     matched: None,
+                    other_effects: None,
+                    places: None,
                 },
                 &None,
             );
@@ -242,6 +261,8 @@ impl SearchIndex {
                     prerequisite: Some(None),
                     guide_url: guide(&deity.guide),
                     matched: None,
+                    other_effects: None,
+                    places: None,
                 },
                 &None,
             );
@@ -260,6 +281,8 @@ impl SearchIndex {
                     // The user's list, not the guide's: no link.
                     guide_url: None,
                     matched: None,
+                    other_effects: None,
+                    places: None,
                 },
                 &None,
             );
@@ -278,6 +301,8 @@ impl SearchIndex {
                     prerequisite: None,
                     guide_url: guide(&spell.guide),
                     matched: None,
+                    other_effects: None,
+                    places: None,
                 },
                 &None,
             );
@@ -295,9 +320,50 @@ impl SearchIndex {
                     prerequisite: None,
                     guide_url: guide(&list.guide),
                     matched: None,
+                    other_effects: None,
+                    places: None,
                 },
                 &None,
             );
+        }
+        for item in &data.gear {
+            add(
+                Hit {
+                    kind: Kind::Gear,
+                    key: item.key.as_str().to_owned(),
+                    name: item.name.clone(),
+                    summary: summary(&engine.gear_summary(&item.key)),
+                    parent: None,
+                    category: Some(item.slot.name().to_owned()),
+                    descriptors: None,
+                    // Nothing to meet: an item is worn whatever the character.
+                    prerequisite: Some(None),
+                    // The generic stat belts and headbands, from the user, have no guide entry.
+                    guide_url: item.guide.as_ref().and_then(guide),
+                    matched: None,
+                    other_effects: (!item.other_effects.is_empty())
+                        .then(|| item.other_effects.clone()),
+                    places: Some(crate::gear::places(item)),
+                },
+                &None,
+            );
+        }
+        // A gear item also matches by its slot ("belt", "robe") and by the abilities its summary shortens ("Dex" is
+        // Dexterity), as more words of its summary.
+        for entry in &mut entries {
+            if entry.hit.kind != Kind::Gear {
+                continue;
+            }
+            let item = (data.gear.iter())
+                .find(|item| item.key.as_str() == entry.hit.key)
+                .expect("an indexed gear item");
+            let abilities = item.bonuses.iter().filter_map(|bonus| match bonus.target {
+                rules::GearTarget::Ability(ability) => Some(ability.name()),
+                _ => None,
+            });
+            for text in std::iter::once(item.slot.name()).chain(abilities) {
+                entry.more_words.extend(words(text));
+            }
         }
         Self { entries }
     }
@@ -520,6 +586,7 @@ impl Entry {
         Self {
             short_prerequisite,
             summary_words: hit.summary.as_deref().map(self::words).unwrap_or_default(),
+            more_words: Vec::new(),
             name: hit.name.to_lowercase(),
             initials: words
                 .iter()
@@ -546,6 +613,8 @@ impl Entry {
                 prerequisite: None,
                 guide_url: None,
                 matched,
+                other_effects: None,
+                places: None,
             },
             false => Hit {
                 matched,
@@ -582,17 +651,16 @@ impl Entry {
         {
             Some(Rank::InitialsStart)
         } else {
-            let missing = query
-                .words
-                .iter()
-                .filter(|word| {
-                    !self
-                        .summary_words
-                        .iter()
-                        .any(|summary_word| same_word(word, summary_word))
-                })
+            let held = |words: &[String], word: &str| words.iter().any(|own| same_word(word, own));
+            let in_summary = (query.words.iter())
+                .filter(|word| held(&self.summary_words, word))
                 .count();
-            (missing < query.words.len()).then_some(Rank::Summary { missing })
+            let missing = (query.words.iter())
+                .filter(|word| !held(&self.summary_words, word) && !held(&self.more_words, word))
+                .count();
+            // The more words alone match only when they hold every query word: a staff is no match for "weapon
+            // focus" for its slot's name.
+            (in_summary > 0 || missing == 0).then_some(Rank::Summary { missing })
         }
     }
 

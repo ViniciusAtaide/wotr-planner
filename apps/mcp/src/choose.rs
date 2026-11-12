@@ -6,7 +6,7 @@
 
 use std::collections::BTreeMap;
 
-use rules::{Address, Build, Engine, NotAnAddress, POINT_BUY_BUDGET, SkillKey};
+use rules::{Address, Build, Engine, POINT_BUY_BUDGET, SkillKey};
 
 use crate::code::{envelope, open, reopen};
 use crate::error::ToolError;
@@ -55,9 +55,7 @@ fn take(
     value: &ChoiceValue,
     index: usize,
 ) -> Result<Build, ToolError> {
-    let address: Address = choice
-        .parse()
-        .map_err(|error: NotAnAddress| ToolError::no_such_choice(error.to_string()))?;
+    let address: Address = crate::gear::parse_address(choice)?;
     if let (Address::Score(_) | Address::Skill(..), ChoiceValue::Number(target)) = (&address, value)
     {
         return step_to(engine, build, &address, *target, index);

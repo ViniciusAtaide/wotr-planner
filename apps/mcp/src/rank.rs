@@ -2,8 +2,11 @@
 //! and `improve` tries every open option of one choice and orders them by the change each makes to that number. The
 //! number is a fact (the attack line's or the caster line's, unconditional numbers only), so ranking by it is too; what
 //! it leaves out is the line's own `leaves_out`.
+//!
+//! Both rank by the naked numbers, each Build's with no gear at all, unless `with_gear` asks for the gear it holds
+//! to count; the result says which (`numbers`). Neither ever adds an item: `improve` refuses a gear address.
 
-use rules::{Address, Engine, NotAnAddress, Sheet, SpellTraits, WeaponKey};
+use rules::{Address, Engine, Sheet, SpellTraits, WeaponKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -11,9 +14,10 @@ use crate::attack;
 use crate::caster::{self, CasterArgs};
 use crate::code::open;
 use crate::error::ToolError;
+use crate::gear::counted;
 use crate::options::offers;
 use crate::planner::Planner;
-use crate::shapes::ChoiceValue;
+use crate::shapes::{ChoiceValue, Numbers};
 
 /// A number to rank by: one of the caster line's or one of the attack line's, at the Build's last level.
 #[derive(Clone, Debug, Deserialize, JsonSchema)]
@@ -219,6 +223,10 @@ pub struct ImproveArgs {
     /// Only options whose name or value holds every word of this (case doesn't matter), as `options` filters them.
     #[serde(default)]
     pub query: Option<String>,
+    /// Count the Build's gear in the number (default false: the naked number, the Build's with no gear at all, so an
+    /// option open only because of gear changes nothing). `improve` never proposes an item.
+    #[serde(default)]
+    pub with_gear: Option<bool>,
 }
 
 /// `improve`'s result.
@@ -228,6 +236,8 @@ pub struct ImproveResult {
     pub choice: String,
     /// The number, in words.
     pub number: String,
+    /// Which number counts: `"naked"` (the default: the Build with no gear) or `"with_gear"` (with the gear it holds).
+    pub numbers: Numbers,
     /// The Build's number now; absent when it has no such line.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub current: Option<i16>,
@@ -264,10 +274,14 @@ pub struct ImproveLine {
 pub(crate) fn improve(planner: &Planner, args: ImproveArgs) -> Result<ImproveResult, ToolError> {
     let engine = &planner.engine;
     let build = open(planner, &args.build)?;
-    let address: Address = args
-        .choice
-        .parse()
-        .map_err(|error: NotAnAddress| ToolError::no_such_choice(error.to_string()))?;
+    let address: Address = crate::gear::parse_address(&args.choice)?;
+    if let Address::Gear(_) = address {
+        return Err(ToolError::invalid_arguments(format!(
+            "`improve` never proposes gear: a Build holds only the gear the user states. Use `options` on \
+             `{address}` to list its items, and `choose` one the user asked for."
+        )));
+    }
+    let numbers = Numbers::from_flag(args.with_gear);
     let sheet = engine.evaluate(&build);
     let number = Number::from_args(engine, &args.by)?;
     // An attack line that names no weapon reads the Build's Weapon Focus weapon, which every option tried must keep:
@@ -282,7 +296,7 @@ pub(crate) fn improve(planner: &Planner, args: ImproveArgs) -> Result<ImproveRes
         _ => None,
     };
     let number = number.or_weapon(kept.clone());
-    let current = number.of(engine, &sheet);
+    let current = number.of(engine, &counted(engine, &build, &sheet, numbers));
     let words: Vec<String> = args
         .query
         .as_deref()
@@ -325,7 +339,7 @@ pub(crate) fn improve(planner: &Planner, args: ImproveArgs) -> Result<ImproveRes
                 )));
             }
         }
-        match number.of(engine, &next_sheet) {
+        match number.of(engine, &counted(engine, &next, &next_sheet, numbers)) {
             None => no_line.push(offer.name),
             Some(after) if Some(after) == current => no_change.push(offer.name),
             Some(after) => options.push(ImproveLine {
@@ -340,6 +354,7 @@ pub(crate) fn improve(planner: &Planner, args: ImproveArgs) -> Result<ImproveRes
     Ok(ImproveResult {
         choice: address.to_string(),
         number: number.describe(engine),
+        numbers,
         current,
         options,
         no_change,
