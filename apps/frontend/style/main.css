@@ -455,6 +455,15 @@ input[type="search"] {
   color: var(--gear);
 }
 
+/* The totals gear changes: each kept whole on a line, so the line breaks only between them on the cover screen. */
+.gear-totals-label {
+  color: var(--muted);
+}
+
+.gear-total {
+  white-space: nowrap;
+}
+
 /* The attack line under the summary's numbers: a native weapon select (the phone's own picker, thumb-sized), then
    the engine's numbers, what they count and, folded, what they leave out. */
 .attack {

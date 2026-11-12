@@ -5,6 +5,7 @@
 
 use std::collections::BTreeMap;
 use std::sync::Arc;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::Duration;
 
 use leptos::prelude::*;
@@ -78,9 +79,13 @@ impl ItemInfo {
     }
 }
 
-/// An item's detail, folded under its line until its info button opens it (or, with a pointer, while the pointer
-/// rests on it).
-pub fn item_more(info: ItemInfo) -> impl IntoView {
+/// The ids that tie an info button to the detail it opens (`aria-controls`), one per detail shown.
+static DETAIL_IDS: AtomicUsize = AtomicUsize::new(0);
+
+/// An item's info button and its detail, folded under its line until the button opens it (or, with a pointer, while
+/// the pointer rests on it). The button is thumb-sized, beside the item, and names the detail it controls.
+pub fn item_detail(open: RwSignal<bool>, name: &str, info: ItemInfo) -> impl IntoView + use<> {
+    let id = format!("item-more-{}", DETAIL_IDS.fetch_add(1, Ordering::Relaxed));
     let lines = (!info.lines.is_empty()).then(|| {
         let lines = info
             .lines
@@ -96,15 +101,11 @@ pub fn item_more(info: ItemInfo) -> impl IntoView {
             </a>
         }
     });
-    view! { <div class="item-more">{lines} {guide}</div> }
-}
-
-/// The button that opens and folds an item's detail: thumb-sized, beside the item.
-pub fn info_button(open: RwSignal<bool>, name: String) -> impl IntoView {
     view! {
         <button
             class="icon info"
             aria-label=format!("More about {name}")
+            aria-controls=id.clone()
             aria-expanded=move || open.get().to_string()
             on:click=move |_| open.update(|open| *open = !*open)
         >
@@ -112,6 +113,10 @@ pub fn info_button(open: RwSignal<bool>, name: String) -> impl IntoView {
                 "i"
             </span>
         </button>
+        <div class="item-more" id=id>
+            {lines}
+            {guide}
+        </div>
     }
 }
 
@@ -120,9 +125,7 @@ pub fn item_row(item: Item, on_pick: impl Fn() + 'static) -> impl IntoView {
     let locked = item.locked;
     let open = RwSignal::new(false);
     let has_info = item.info.is_some();
-    let info = item
-        .info
-        .map(|info| view! { {info_button(open, item.name.clone())} {item_more(info)} });
+    let info = item.info.map(|info| item_detail(open, &item.name, info));
     let tick = item.tick;
     view! {
         <li class="item-row" class:has-info=has_info class:open=move || open.get()>

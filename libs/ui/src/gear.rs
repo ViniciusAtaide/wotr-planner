@@ -13,7 +13,7 @@ use leptos::prelude::*;
 use rules::{Choice, Edit, Engine, GearItem, GearKey, GearOption, GearPlace, GearSpot, GuideRef};
 
 use crate::picker::{
-    Head, Item, ItemInfo, ItemList, after_paint, heading, info_button, item_more, item_row, loading,
+    Head, Item, ItemInfo, ItemList, after_paint, heading, item_detail, item_row, loading,
 };
 use crate::planner::{Target, use_planner};
 use crate::timings::timed;
@@ -81,7 +81,7 @@ fn place_row(engine: &Engine, place: GearPlace, worn: Option<&GearKey>) -> impl 
     };
     let detail = info.map(|info| {
         let name = item.map_or_else(String::new, |item| item.name.clone());
-        view! { {info_button(open, name)} {item_more(info)} }
+        item_detail(open, &name, info)
     });
     view! {
         <div
