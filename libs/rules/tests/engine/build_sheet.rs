@@ -3,7 +3,8 @@
 //! the Mythic track; derived values only as `#` comments.
 
 use rules::{
-    Ability, Alignment, Build, BuildStart, ClassChoice, DeityKey, Edit, Faith, SlotId, encode_build,
+    Ability, Alignment, Build, BuildStart, ClassChoice, DeityKey, Edit, Faith, GearPlace, SlotId,
+    encode_build,
 };
 
 use crate::support::*;
@@ -508,4 +509,69 @@ fn the_v1_text_is_byte_for_byte_the_one_ticket_87_wrote() {
             format!("WotR build v1\n{}\n{v1}", link(&build))
         );
     }
+}
+
+/// [`fighter`] with gear in three places (the second ring's among them) and two usable items.
+fn geared_fighter() -> Build {
+    let build = wearing(fighter(), GearPlace::Belt, "belt-of-dexterity-2");
+    let build = wearing(build, GearPlace::SecondRing, "ring-of-luck");
+    let build = wearing(build, GearPlace::Body, "robe-of-the-mage");
+    let build = using(build, "tome-of-perfection-4");
+    using(build, "manual-of-dexterity-2")
+}
+
+/// The build sheet of [`geared_fighter`] as ticket 167 first wrote it, after the header and the link: [`FIGHTER_V1`]
+/// with the gear's block between the start and the levels.
+const GEARED_FIGHTER_V1: &str = r#"Race: Human
+Racial +2: Strength
+Deity: Atheism
+Alignment: True Neutral
+Point buy: Str 16, Dex 14, Con 12, Int 13, Wis 10, Cha 8
+
+Gear
+  Belt: Belt of Dexterity +2
+  Ring 2: Ring of Luck
+  Body: Robe of the Mage
+  Used: Manual of Dexterity +2
+  Used: Tome of Perfection +4
+
+Level 1: Fighter
+  Combat feat: weapon-focus (longsword)
+  Bonus feat: toughness
+  Feat: power-attack
+  Skills: Athletics 1, Mobility 1
+
+Level 2: Fighter
+
+Level 3: Fighter
+
+Level 4: Fighter
+  Ability: +1 Strength
+"#;
+
+/// A Build with gear gets a block of its own after the start: one line per item worn, in the places' order, then
+/// one per usable item used, by key, each with its own key. The point buy line is still the point buy.
+#[test]
+fn a_build_with_gear_lists_it_between_the_start_and_the_levels() {
+    let build = geared_fighter();
+    assert_eq!(
+        sheet(&build),
+        format!("WotR build v1\n{}\n{GEARED_FIGHTER_V1}", link(&build))
+    );
+    // The gear is all the two sheets differ by, but the link.
+    let without: String = GEARED_FIGHTER_V1
+        .split("\n\n")
+        .filter(|block| !block.starts_with("Gear\n"))
+        .collect::<Vec<_>>()
+        .join("\n\n");
+    assert_eq!(without, FIGHTER_V1);
+    // The second line still reopens the exact Build, gear and all.
+    let text = sheet(&build);
+    let code = text
+        .lines()
+        .nth(1)
+        .unwrap()
+        .strip_prefix(&format!("{PAGE}#b="))
+        .unwrap();
+    assert_eq!(engine().open_link(code), Ok(build));
 }
