@@ -50,6 +50,7 @@ What gear does:
 - **Gear counts before "highest score" features** (Q23: "b"), so a belt can move Perfect Body's bonus.
 - **Both numbers are kept.** "we can have both numbers one with gear and one without." The summary and the MCP's `sheet` show both when they differ. `compare` and `improve` rank by the naked number unless asked.
 - **A pick open only because of gear** is marked with the item's name. If the item is removed, the pick stays and is refused with the usual reason.
+  **Changed** (user, 2026-11-12, after ticket 166 showed that such a Build is impossible, so its link doesn't open and every other picker locks): removing or replacing an item that a pick needs is locked, with the reason naming the pick. The user clears the pick first. This is how the point-buy steps already behave.
 
 Scope and order:
 
