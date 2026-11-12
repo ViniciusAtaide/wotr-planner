@@ -2,7 +2,7 @@
 
 Type: task
 Status: open
-Blocked by: 160, 166; the user's choice below
+Blocked by: 160, 166, 167, 168
 Model: Fable to build (it changes the order the walk checks picks in); review on Opus.
 Map: [WotR Build Planner](../map.md)
 
@@ -19,13 +19,21 @@ That reverses the map decision for this case. Two ways to build it, for the user
 
 *Recommend:* A if the game always gives rank 10 at the very end; B if the user wants ranks placed freely, as a larger ticket.
 
+**Decided** (user, 2026-11-11): B. Any rank may be taken later than its table level.
+
 ## Build
 
-AFK once the user has chosen. `libs/rules`, and the web app and MCP where a rank's level shows.
+AFK. `libs/rules`, the web app and the MCP. It runs after the gear tickets (166, 167, 168), since it edits the Build, the link, the level screen and the MCP as they do.
 
 - Read ticket 04's Answer and the map's Notes on Mythic rank timing first: they record why each rank has its level.
+- **The model:** each rank has a character level it is taken at. It defaults to the rank table's level, which stays the earliest allowed, and the user may move it later, up to the Build's last level. Ranks keep their order: a rank is never placed before the rank below it. A rank's picks are checked at the level it is placed, after that level's own picks, as today.
+- **The Build and the link:** a rank's placement is stored only when it differs from the table, in a trailing optional part of the link (ticket 91's pattern, and 166's for gear). Every existing link opens unchanged and writes the link it always did.
+- **The web app:** on the level screen, a rank shows at the level it is placed, with a control to move it later or back. The summary shows each rank's level.
+- **The MCP:** `sheet`'s `character_level` per rank is the placed level; an address moves a rank (`mythic.R.level`), offered by `options`. The server's instructions say a pick that "comes after this slot" can also be fixed by taking the rank later.
+- If the design needs a decision this ticket doesn't settle (a rank's features that the level's own picks depend on, a path switch at a moved rank), stop and put it to the user rather than choosing.
 - Prove what changes with the snapshot check: the ranks' `character_level` lines and whatever opens because of them, and nothing else.
-- Remove the Mythic Shield Focus entry from the gold test's known gaps, and fill the Enforcer's rank 10 Mythic feat slot. The test then proves it.
+- With nothing moved, the snapshots don't change at all.
+- Remove the Mythic Shield Focus entry from the gold test's known gaps: place the Enforcer's rank 10 at level 20 and fill its Mythic feat slot. The test then proves it.
 - Old links must still open: a Build whose rank picks were legal stays legal.
 
 ## Done when
