@@ -65,8 +65,11 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   the steps, and the rows that replace a base row at those levels carry it too; the Sanctified Slayer's and the
   Tandem Executioner's copies follow the same levels); the Draconic bloodlines' Draconic Resistances at bloodline
   levels 3, 9 and 15; the bloodrager's Draconic Resistance at 4, 8 and 16, Demon Resistances at 8 and 16, Celestial
-  Resistances at 4 and 12 and Serpentine Resistances at 4, 8, 12, 16 and 20. Nothing reads the count: a prerequisite
-  or a bonus names a feature only as held, so a second grant changes no number. `scaling_features.rs` pins the steps.
+  Resistances at 4 and 12 and Serpentine Resistances at 4, 8, 12, 16 and 20. Nothing reads the count of the features this ticket stepped, so a second grant changes no
+  number there; that is not true in general (the Arcane Trickster's prerequisite is `Feature(..., count: 2)`, and
+  `ability_bonuses` multiply by the count), so an author stepping another feature checks both first. An archetype
+  that falls back to the base class's row at a step level gets the step too: one that loses the feature (the
+  Imitator's Studied Target) needs its own row at that level without it. `scaling_features.rs` pins the steps.
 - Only prestige classes set `advances_arcane`/`advances_divine` (the spell types a level advances), and only base
   classes have archetypes. A Build names the advanced classes on entry: one per spell type the rows advance
   (Mystic Theurge: an arcane and a divine class), or, with `advances: Either` on the class, one class of either

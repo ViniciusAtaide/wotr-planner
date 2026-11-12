@@ -279,6 +279,7 @@ Class(
                 (level: 1, features: ["slayer/slayer-proficiencies"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], selections: ["slayer/imitator/imitation"]),
                 (level: 3, features: ["slayer/imitator/sneak-attack-imitator"]),
                 (level: 4),
+                (level: 5),
                 (level: 6, selections: ["slayer/slayer-talents"]),
                 (level: 7),
                 (level: 9, features: ["slayer/imitator/sneak-attack-imitator"]),
@@ -288,6 +289,7 @@ Class(
                 (level: 15, features: ["slayer/imitator/sneak-attack-imitator"]),
                 (level: 16),
                 (level: 18, selections: ["slayer/slayer-talents"]),
+                (level: 20, features: ["slayer/master-slayer"], selections: ["slayer/slayer-talents"]),
             ],
         ),
         (
