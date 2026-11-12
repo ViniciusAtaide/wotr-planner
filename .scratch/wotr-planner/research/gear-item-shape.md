@@ -224,7 +224,7 @@ Real-data tests (first-stage rules, not check rules, since the second stage brea
 ## Open, for the user
 
 1. **Manuals and tomes** ("1 charge: +2 inherent bonus"): six, each a different score, and a character can use all of them. Are they gear? If so, a single `Usable` place would allow only one.
-   Still open.
+   Still open with the user when ticket 165 started (2026-11-11), so 165 leaves the six out: no `Usable` item in the first stage, and the Answer names them as left out. Adding them later is additive.
 2. **Robe and armour:** separate guide sections. **Answered** (user, 2026-11-11): "same slot. only cloth armor can be worn with an armor." A robe and an armour share one body place in the Build; `GearSlot` keeps both sections, and ticket 166 maps both to that place.
 3. **Caster level:** **Answered** (user, 2026-11-11): "counted now". Add `GearTarget::CasterLevel` in the first stage, after `SpellDc` in the summary's order and named `Caster level`; the table's `target` CHECK gains `caster_level`. Only an always-on, unscoped bonus is a `CasterLevel` bonus (Sin Mage's Staff +3); one for a single school stays text. Ticket 166 adds it to the caster level the caster line reports, and so to spell penetration and concentration.
 4. **The Enforcer's Dex +2:** **Answered** (user, 2026-11-11): "belt of incredible dexterity 2". That belt is on none of the saved pages: the guide lists unique items, not the plain stat belts and headbands. So the catalogue holds items the guide doesn't back; see "The generic stat items".
