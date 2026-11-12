@@ -122,7 +122,7 @@ impl Engine {
         let _ = self.write_start(&mut text, build, page);
         let _ = self.write_gear(&mut text, build);
         let _ = self.write_levels(&mut text, build, &sheet);
-        let _ = self.write_track(&mut text, &sheet);
+        let _ = self.write_track(&mut text, build, &sheet);
         text
     }
 
@@ -247,9 +247,10 @@ impl Engine {
         Ok(())
     }
 
-    /// The Mythic track after a blank line: each rank with a pick, its character level and its picks, and each
-    /// reached rank taken later than the rank table's level, which its line says. Nothing when there is none.
-    fn write_track(&self, text: &mut String, sheet: &Sheet) -> std::fmt::Result {
+    /// The Mythic track after a blank line: each rank with a pick, its character level and its picks, and each rank
+    /// taken later than the rank table's level, which its line says: one the Build reaches, or places itself (the
+    /// rank of a Legend's switch, which is never reached as a rank). Nothing when there is none.
+    fn write_track(&self, text: &mut String, build: &Build, sheet: &Sheet) -> std::fmt::Result {
         let later = |rank: &RankSheet| {
             (self.rank_table_level(rank.rank)).filter(|earliest| rank.character_level > *earliest)
         };
@@ -258,7 +259,9 @@ impl Engine {
             .iter()
             .filter(|rank| {
                 rank.slots.iter().any(|slot| slot.pick.is_some())
-                    || (rank.status != RankStatus::NotReached && later(rank).is_some())
+                    || (later(rank).is_some()
+                        && (rank.status != RankStatus::NotReached
+                            || build.rank_levels.contains_key(&rank.rank)))
             })
             .peekable();
         if ranks.peek().is_some() {

@@ -32,8 +32,9 @@ pub struct RankLevelOption {
     pub status: Result<(), Issue>,
     /// The choices the move would refuse, in walk order; empty for an open option.
     pub needed_by: Vec<Choice>,
-    /// Why it is locked, naming those choices: "Trick Feat needs MR 3 earlier than level 12", or, for a move back,
-    /// "Shield Focus (Mythic) needs MR 10 later than level 19". `None` for an open option.
+    /// Why it is locked, naming those choices (the first three, then how many more): "Trick Feat needs MR 3 earlier
+    /// than level 12", or, for a move back, "Shield Focus (Mythic) needs MR 10 later than level 19". `None` for an
+    /// open option.
     pub reason: Option<String>,
     /// The ranks above that the move takes with it, each with the level it would then be taken at: those it pushes
     /// later, and those that follow it back. Only ranks the Build reaches.
@@ -41,6 +42,9 @@ pub struct RankLevelOption {
     /// The edit that takes the rank at this level ([`Edit::RankLevel`]).
     pub edit: Edit,
 }
+
+/// How many of the choices a move would refuse its reason names; the rest are counted ("and 4 more").
+const NAMED: usize = 3;
 
 impl Engine {
     /// A Mythic rank's level picker: every character level the rank can be taken at, from the earliest it comes at
@@ -97,7 +101,12 @@ impl Engine {
                     refused
                 };
                 let reason = status.is_err().then(|| {
-                    let names = self.choice_names(build, &needed_by);
+                    // The first few by name: a rank moved past a Legend's level 20 would refuse every level after.
+                    let named = &needed_by[..needed_by.len().min(NAMED)];
+                    let mut names = self.choice_names(build, named);
+                    if needed_by.len() > NAMED {
+                        names = format!("{names} and {} more", needed_by.len() - NAMED);
+                    }
                     let verb = if needed_by.len() == 1 {
                         "needs"
                     } else {

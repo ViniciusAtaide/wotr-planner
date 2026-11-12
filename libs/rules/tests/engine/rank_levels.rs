@@ -364,6 +364,24 @@ fn a_legend_switch_moves_with_its_rank_and_the_ranks_it_ends_have_no_level() {
         at_21.needed_by.first(),
         Some(&Choice::CharacterLevel { level: 21 })
     );
+    assert_eq!(
+        at_21.reason.as_deref(),
+        Some("Level 21 needs MR 8 earlier than level 21")
+    );
+    // A reason names the first three choices and counts the rest.
+    let rank_1 = engine.rank_level_options(&build, 1);
+    let at_22 = rank_1.iter().find(|option| option.level == 22).unwrap();
+    assert_eq!(at_22.needed_by.len(), 2);
+    assert_eq!(
+        at_22.reason.as_deref(),
+        Some("Level 21 and Level 22 need MR 1 earlier than level 22")
+    );
+    // The text export gives the switch's level, though a Legend never reaches MR 8 as a rank.
+    let text = engine.build_sheet(&moved(&build, 8, 20), "https://x/");
+    assert!(
+        text.ends_with("\n\nMythic track\nMR 8 (level 20, taken later than level 17)\n"),
+        "{text}"
+    );
     let later = moved(&build, 8, 20);
     assert!(engine.is_possible(&later));
     let sheet = engine.evaluate(&later);
