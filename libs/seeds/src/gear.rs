@@ -1,5 +1,5 @@
-//! The `gear_item`, `gear_bonus` and `gear_other_effect` tables (ticket 165; migration
-//! `20261111180000_165-gear.sql`): [`GearItem`] rows in and out, kept apart from `seed.rs` and `load.rs`.
+//! The `gear_item`, `gear_bonus`, `gear_always_on_effect` and `gear_other_effect` tables (ticket 165; migration
+//! `20261111180000_165-gear.sql`, and `20261112092431_176-gear-always-on.sql` for the always-on lines): [`GearItem`] rows in and out, kept apart from `seed.rs` and `load.rs`.
 
 use std::collections::BTreeMap;
 
@@ -192,7 +192,7 @@ fn target_from(row: BonusRow) -> Result<GearTarget, sqlx::Error> {
     })
 }
 
-/// Writes every item, its bonuses and its other-effect lines.
+/// Writes every item, its bonuses, its always-on lines and its other-effect lines.
 pub(crate) async fn insert(
     conn: &mut SqliteConnection,
     items: &[GearItem],
@@ -228,6 +228,15 @@ pub(crate) async fn insert(
             .execute(&mut *conn)
             .await?;
         }
+        for line in &item.always_on {
+            sqlx::query!(
+                "INSERT INTO gear_always_on_effect (gear_item_key, text) VALUES ($1, $2)",
+                item.key.as_str(),
+                line,
+            )
+            .execute(&mut *conn)
+            .await?;
+        }
         for line in &item.other_effects {
             sqlx::query!(
                 "INSERT INTO gear_other_effect (gear_item_key, text) VALUES ($1, $2)",
@@ -254,6 +263,7 @@ pub(crate) async fn load(conn: &mut SqliteConnection) -> Result<Vec<GearItem>, s
             slot: slot_from(&row.slot)?,
             guide: row.guide.map(GuideRef),
             bonuses: Vec::new(),
+            always_on: Vec::new(),
             other_effects: Vec::new(),
         };
         items.insert(row.key, item);
@@ -283,6 +293,16 @@ pub(crate) async fn load(conn: &mut SqliteConnection) -> Result<Vec<GearItem>, s
             amount: to_i8(row.amount, "gear_bonus.amount")?,
             kind: type_from(&row.bonus_type)?,
         });
+    }
+    for row in sqlx::query!("SELECT gear_item_key, text FROM gear_always_on_effect ORDER BY id")
+        .fetch_all(&mut *conn)
+        .await?
+    {
+        items
+            .get_mut(&row.gear_item_key)
+            .ok_or_else(|| corrupt("gear_always_on_effect of no item"))?
+            .always_on
+            .push(row.text);
     }
     for row in sqlx::query!("SELECT gear_item_key, text FROM gear_other_effect ORDER BY id")
         .fetch_all(&mut *conn)

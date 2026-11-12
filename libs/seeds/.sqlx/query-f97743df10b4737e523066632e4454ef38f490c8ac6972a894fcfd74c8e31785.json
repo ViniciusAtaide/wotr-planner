@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO gear_always_on_effect (gear_item_key, text) VALUES ($1, $2)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "f97743df10b4737e523066632e4454ef38f490c8ac6972a894fcfd74c8e31785"
+}

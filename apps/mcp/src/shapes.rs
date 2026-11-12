@@ -169,11 +169,16 @@ pub struct Hit {
     /// initials. Left out for those.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub matched: Option<Matched>,
-    /// A gear item's other effects, one short line each in the planner's own words: what it does besides the bonuses
-    /// its `summary` lists. Text only: no number counts them. Left out when it has none, and by `search`'s
+    /// A gear item's other effects, one short line each in the planner's own words: what it does only in some
+    /// circumstance or by use. What it always does is in its `summary`. Text only: no number counts them. Left out when it has none, and by `search`'s
     /// `compact`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub other_effects: Option<Vec<String>>,
+    /// A gear item's always-on lines that no number counts ("DR 3/-"): the part of its `summary` after its
+    /// bonuses, which the planner's numbers include and none of these. Left out when it has none, and by
+    /// `search`'s `compact`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub uncounted: Option<Vec<String>>,
     /// A gear item's addresses, where `choose` takes its key: `gear.belt`; `gear.ring.0` and `gear.ring.1`;
     /// `gear.body` for a robe or an armour; `gear.usable.<its key>` for a manual, tome or other usable item. Left
     /// out for other kinds, and by `search`'s `compact`.
@@ -677,11 +682,16 @@ pub struct GearLine {
     /// Its key, as `choose` takes it.
     pub value: String,
     pub name: String,
-    /// Its always-on bonuses, which every number counts ("Dex +2 enhancement").
+    /// Its always-on bonuses, which every number counts ("Dex +2 enhancement"), then its other always-on effects,
+    /// which no number counts ("DR 3/-").
     pub summary: String,
-    /// What else it does, one short line each: text only, in no number.
+    /// What it does only in some circumstance or by use, one short line each: text only, in no number.
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub other_effects: Vec<String>,
+    /// The always-on lines of `summary` that no number counts (the ones after its bonuses); the planner's numbers
+    /// include the item's bonuses and none of these.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub uncounted: Vec<String>,
     /// With `removable: true`: whether `withdraw` can take it off now (no choice needs it).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub removable: Option<bool>,
@@ -899,14 +909,18 @@ pub struct OptionLine {
     pub value: ChoiceValue,
     /// As the planner names it.
     pub name: String,
-    /// A short summary in the planner's own words (a background's: its note; a gear item's: its always-on bonuses);
-    /// left out when the data has none.
+    /// A short summary in the planner's own words (a background's: its note; a gear item's: its bonuses, then its
+    /// other always-on effects); left out when the data has none.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub summary: Option<String>,
-    /// A gear item's other effects, one short line each: text only, in no number. Left out when it has none, and by
-    /// `compact`.
+    /// A gear item's other effects, one short line each: what it does only in some circumstance or by use; text
+    /// only, in no number. Left out when it has none, and by `compact`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub other_effects: Option<Vec<String>>,
+    /// A gear item's always-on lines that no number counts: the part of its `summary` after its bonuses. The
+    /// planner's numbers include the item's bonuses and none of these. Left out when it has none, and by `compact`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub uncounted: Option<Vec<String>>,
     pub status: OptionStatus,
     /// The filter group it's under: a feat's category, an option's Feature selection, "Base class", …
     #[serde(skip_serializing_if = "Option::is_none")]

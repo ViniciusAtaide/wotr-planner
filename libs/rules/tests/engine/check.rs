@@ -1773,6 +1773,7 @@ fn gear_item(key: &str, name: &str, bonuses: Vec<rules::GearBonus>) -> rules::Ge
         slot: rules::GearSlot::Belt,
         guide: None,
         bonuses,
+        always_on: Vec::new(),
         other_effects: Vec::new(),
     }
 }
@@ -1811,8 +1812,16 @@ fn gear_mistakes_are_found() {
         ],
     );
     bad.other_effects = vec![String::new(), "Twice.".to_owned(), "Twice.".to_owned()];
+    let mut both = gear_item(
+        "both",
+        "Both",
+        vec![gear_bonus(dex(), 2, BonusType::Enhancement)],
+    );
+    both.always_on = vec!["DR 3/-".to_owned()];
+    both.other_effects = vec!["DR 3/-".to_owned()];
     data.gear = vec![
         bad,
+        both,
         gear_item("empty", "Same", Vec::new()),
         gear_item("empty", "Other", Vec::new()),
     ];
@@ -1823,6 +1832,7 @@ fn gear_mistakes_are_found() {
         ("bad", DataIssue::GearAmountInvalid),
         ("bad", DataIssue::GearSpellDcOfValue),
         ("bad", DataIssue::GearEffectInvalid),
+        ("both", DataIssue::GearEffectInvalid),
         ("empty", DataIssue::GearWithoutBonus),
         ("empty", DataIssue::DuplicateKey),
         ("empty", DataIssue::GearNameTwice),

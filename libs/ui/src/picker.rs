@@ -63,19 +63,22 @@ impl Item {
     }
 }
 
-/// What an item does besides its summary, and its guide link: a gear item's detail.
-#[derive(Clone, Debug, PartialEq, Eq, Default)]
+/// What an item does besides its summary, and its guide link: a gear item's detail. The only way to make one is
+/// [`ItemInfo::new`], which is the one place that decides whether an item has a detail at all, so no info button
+/// and no hover can come out empty or hold only a link.
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ItemInfo {
-    /// One short line each.
-    pub lines: Vec<String>,
-    /// The guide's page for it.
-    pub guide: Option<String>,
+    /// One short line each, never none.
+    lines: Vec<String>,
+    /// The guide's page for it, shown inside the detail.
+    guide: Option<String>,
 }
 
 impl ItemInfo {
-    /// `None` when there is nothing to show.
+    /// `None` when there is no description to show: a guide link alone is not one. An item without a detail is not
+    /// hoverable and gets no info button; where its guide link goes then is the caller's concern.
     pub fn new(lines: Vec<String>, guide: Option<String>) -> Option<Self> {
-        (!lines.is_empty() || guide.is_some()).then_some(Self { lines, guide })
+        (!lines.is_empty()).then_some(Self { lines, guide })
     }
 }
 
@@ -86,14 +89,11 @@ static DETAIL_IDS: AtomicUsize = AtomicUsize::new(0);
 /// the pointer rests on it). The button is thumb-sized, beside the item, and names the detail it controls.
 pub fn item_detail(open: RwSignal<bool>, name: &str, info: ItemInfo) -> impl IntoView + use<> {
     let id = format!("item-more-{}", DETAIL_IDS.fetch_add(1, Ordering::Relaxed));
-    let lines = (!info.lines.is_empty()).then(|| {
-        let lines = info
-            .lines
-            .into_iter()
-            .map(|line| view! { <li>{line}</li> })
-            .collect_view();
-        view! { <ul>{lines}</ul> }
-    });
+    let lines = info
+        .lines
+        .into_iter()
+        .map(|line| view! { <li>{line}</li> })
+        .collect_view();
     let guide = info.guide.map(|url| {
         view! {
             <a class="guide-link" href=url target="_blank" rel="noopener noreferrer">
@@ -114,7 +114,7 @@ pub fn item_detail(open: RwSignal<bool>, name: &str, info: ItemInfo) -> impl Int
             </span>
         </button>
         <div class="item-more" id=id>
-            {lines}
+            <ul>{lines}</ul>
             {guide}
         </div>
     }

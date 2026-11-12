@@ -647,9 +647,14 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   changed, with its type as the guide words it (`kind` left out for none or "untyped"; a penalty is always
   untyped). The targets are an ability score, all saves or one, initiative, one skill, spell DC, caster level, spell
   penetration and concentration. A bonus for one use of a skill ("Persuasion (Bluff)"), against one kind of foe, in
-  some circumstance, per day or after an event is an other effect. **Other effects:** short lines in our own words
-  (never the guide's), at most about 140 characters; an AC, attack, damage, CMD or speed bonus is one of them until
-  the second stage. `GearItem::summary` generates the text under a name ("Str, Dex, Con +6 enhancement"). The
+  some circumstance, per day or after an event is an other effect. **Always-on and other effects**
+  (ticket 176): what an item does while worn that no bonus counts (damage reduction, an immunity, an AC, CMD,
+  damage or speed bonus, an armour's or weapon's own enhancement and base type, a critical-range change) is a short
+  line of `always_on`, which the summary appends; what is conditional, triggered, activated, limited in uses, set
+  with another item or a restriction on the wearer is a line of `other_effects`, shown in the detail only. Both are
+  lines in our own words (never the guide's), `always_on` at most about 60 characters, `other_effects` about 140; no
+  line is in both lists; neither counts in any number until the second stage. `GearItem::summary` generates the text
+  under a name: the bonuses, then the always-on lines ("Str, Dex, Con +4 enhancement; DR 3/-"). The
   real-data test `gear` checks the file and three items against their pages.
 - Keys are readable text from the guide's anchors: `power-attack` (a feat), `rogue` (a class),
   `rogue/dark-lurker` (an archetype), `rogue/rogue-talents/fast-stealth` (a selection option). A key has no type

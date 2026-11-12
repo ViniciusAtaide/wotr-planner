@@ -172,6 +172,7 @@ fn offer(engine: &Engine, option: GearOption) -> Offer {
             let summary = engine.gear_summary(key);
             offer.summary = (!summary.is_empty()).then_some(summary);
             offer.other_effects = item.other_effects.clone();
+            offer.uncounted = item.always_on.clone();
             offer.category = Some(item.slot.name().to_owned());
             offer
         }
@@ -231,6 +232,10 @@ pub(crate) fn gear_lines(
                 other_effects: engine
                     .gear_item(key)
                     .map(|item| item.other_effects.clone())
+                    .unwrap_or_default(),
+                uncounted: engine
+                    .gear_item(key)
+                    .map(|item| item.always_on.clone())
                     .unwrap_or_default(),
                 removable: removable.map(|set| set.contains(&Choice::Gear(spot))),
             }

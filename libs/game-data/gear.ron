@@ -1,6 +1,8 @@
 // The gear items (ticket 165): `rules::GearItem`, one per block, grouped by slot. Each lists its always-on bonuses (a
 // target, an amount, a bonus type; `kind` is left out for an untyped one) and, in the planner's own words, what else it
-// does (`other_effects`): a bonus in some circumstance, a use per day, who may wear it. Items whose properties give no
+// does: `always_on` (ticket 176), the lines of what it does while worn that no number counts, which the summary
+// appends (damage reduction, an immunity, an AC bonus), and `other_effects`, what is conditional or by use: a bonus in
+// some circumstance, a use per day, who may wear it. Items whose properties give no
 // always-on ability score bonus wait for the second stage (ticket 169).
 // The first group comes from the user, not the guide: the plain stat belts and headbands, with no `guide`.
 [
@@ -290,7 +292,7 @@
             (target: Ability(Constitution), amount: 6, kind: Enhancement),
         ],
         other_effects: [
-            "Against evil creatures: +2 on Fortitude saves and +1 insight to AC (the wording is ambiguous, so not counted as always on).",
+            "Against evil creatures: +2 on Fortitude saves and +1 insight to AC.",
         ],
     ),
     (
@@ -314,8 +316,8 @@
         bonuses: [
             (target: Ability(Strength), amount: 6, kind: Enhancement),
         ],
-        other_effects: [
-            "Enemies within 15 feet take -2 on Will saves.",
+        always_on: [
+            "Enemies within 15 feet: -2 Will saves",
         ],
     ),
     (
@@ -328,8 +330,8 @@
             (target: Ability(Dexterity), amount: 8, kind: Enhancement),
             (target: Ability(Constitution), amount: 8, kind: Enhancement),
         ],
-        other_effects: [
-            "Weapon critical threat range +1.",
+        always_on: [
+            "Critical threat range +1",
         ],
     ),
     (
@@ -340,8 +342,10 @@
         bonuses: [
             (target: Ability(Strength), amount: 4, kind: Enhancement),
         ],
+        always_on: [
+            "Ignores difficult terrain",
+        ],
         other_effects: [
-            "Ignores difficult terrain.",
             "Once a day: breathes a 50-foot cone that paralyses foes for 1d4 rounds (save DC 18 + Con mod).",
         ],
     ),
@@ -353,8 +357,10 @@
         bonuses: [
             (target: Ability(Constitution), amount: 4, kind: Enhancement),
         ],
+        always_on: [
+            "AC +4 armour",
+        ],
         other_effects: [
-            "Adds 4 to AC as an armour bonus.",
             "Once a day: casts Ice Cascade.",
         ],
     ),
@@ -368,8 +374,10 @@
             (target: Ability(Dexterity), amount: 4, kind: Enhancement),
             (target: Ability(Constitution), amount: 4, kind: Enhancement),
         ],
+        always_on: [
+            "DR 3/-",
+        ],
         other_effects: [
-            "Damage reduction 3/-.",
             "Critical hit while raging: +4d6 slashing damage.",
         ],
     ),
@@ -408,8 +416,10 @@
         bonuses: [
             (target: Ability(Dexterity), amount: 4, kind: Enhancement),
         ],
+        always_on: [
+            "Moving provokes no attacks of opportunity",
+        ],
         other_effects: [
-            "Moving does not trigger attacks of opportunity.",
             "With the Owl's Cowl too: the Dexterity bonus becomes +6 and initiative gets +5.",
         ],
     ),
@@ -421,8 +431,11 @@
         bonuses: [
             (target: Ability(Dexterity), amount: 4, kind: Enhancement),
         ],
+        always_on: [
+            "Ignores difficult terrain",
+        ],
         other_effects: [
-            "Difficult terrain doesn't slow the wearer, and crossing it adds 10 feet of speed for 1 round.",
+            "Crossing difficult terrain: +10 feet of speed for 1 round.",
         ],
     ),
     // Bracers.
@@ -448,8 +461,8 @@
             (target: AllSaves, amount: 7, kind: Resistance),
             (target: Ability(Charisma), amount: 2, kind: Circumstance),
         ],
-        other_effects: [
-            "Persuasion used to bluff: +5 circumstance.",
+        always_on: [
+            "Persuasion (Bluff) +5 circumstance",
         ],
     ),
     // Glasses.
@@ -464,9 +477,9 @@
             (target: Save(Fortitude), amount: -2),
             (target: Skill("persuasion"), amount: -5),
         ],
-        other_effects: [
-            "-2 penalty to AC.",
-            "+4 damage.",
+        always_on: [
+            "AC -2",
+            "Damage +4",
         ],
     ),
     // Gloves.
@@ -489,8 +502,8 @@
         bonuses: [
             (target: Ability(Strength), amount: 4, kind: Enhancement),
         ],
-        other_effects: [
-            "A +2 morale boost to AC.",
+        always_on: [
+            "AC +2 morale",
         ],
     ),
     (
@@ -539,8 +552,8 @@
             (target: Ability(Charisma), amount: -2),
             (target: Skill("persuasion"), amount: -3),
         ],
-        other_effects: [
-            "Immune to compulsion effects.",
+        always_on: [
+            "Immune to compulsion effects",
         ],
     ),
     (
@@ -579,8 +592,8 @@
             (target: Ability(Wisdom), amount: 8, kind: Enhancement),
             (target: Ability(Charisma), amount: 8, kind: Enhancement),
         ],
-        other_effects: [
-            "Adds the Charisma bonus to all ranged weapon damage.",
+        always_on: [
+            "Adds Cha bonus to ranged weapon damage",
         ],
     ),
     (
@@ -606,8 +619,11 @@
         bonuses: [
             (target: Ability(Intelligence), amount: 2, kind: Profane),
         ],
+        always_on: [
+            "Slow and Haste spells are quickened",
+        ],
         other_effects: [
-            "Casting Slow or Haste quickens it automatically; once a day, any spell can be quickened.",
+            "Once a day: any spell can be quickened.",
             "Good characters cannot wear it.",
         ],
     ),
@@ -633,8 +649,8 @@
             (target: Ability(Wisdom), amount: 8, kind: Enhancement),
             (target: Ability(Charisma), amount: 8, kind: Enhancement),
         ],
-        other_effects: [
-            "Cannot be affected by mind-affecting spells or conditions.",
+        always_on: [
+            "Immune to mind-affecting effects",
         ],
     ),
     (
@@ -658,8 +674,8 @@
             (target: Ability(Wisdom), amount: 4, kind: Enhancement),
             (target: Ability(Charisma), amount: 4, kind: Enhancement),
         ],
-        other_effects: [
-            "Gains +4 on saving throws versus mind-affecting conditions.",
+        always_on: [
+            "Saves +4 vs mind-affecting",
         ],
     ),
     (
@@ -681,8 +697,8 @@
         bonuses: [
             (target: Ability(Wisdom), amount: 6, kind: Enhancement),
         ],
-        other_effects: [
-            "+1 caster level for Transmutation spells.",
+        always_on: [
+            "Caster level +1 (Transmutation)",
         ],
     ),
     (
@@ -718,8 +734,8 @@
             (target: Ability(Charisma), amount: 4, kind: Enhancement),
             (target: Ability(Wisdom), amount: 4, kind: Enhancement),
         ],
-        other_effects: [
-            "Gains +4 on saving throws versus mind-affecting conditions.",
+        always_on: [
+            "Saves +4 vs mind-affecting",
         ],
     ),
     (
@@ -732,9 +748,9 @@
             (target: Ability(Wisdom), amount: 6, kind: Enhancement),
             (target: Ability(Charisma), amount: 6, kind: Enhancement),
         ],
-        other_effects: [
-            "Persuasion used to bluff: +5 competence.",
-            "+2 DC for fused spells.",
+        always_on: [
+            "Persuasion (Bluff) +5 competence",
+            "Spell DC +2 (fused spells)",
         ],
     ),
     (
@@ -760,8 +776,11 @@
             (target: Ability(Wisdom), amount: 8, kind: Enhancement),
             (target: Ability(Charisma), amount: 8, kind: Enhancement),
         ],
+        always_on: [
+            "Immune to divination magic",
+            "Spell Turning",
+        ],
         other_effects: [
-            "Divination magic cannot affect the wearer, who also has Spell Turning.",
             "Each round, the wearer may cast a single spell as a free action.",
         ],
     ),
@@ -788,8 +807,10 @@
         bonuses: [
             (target: Ability(Intelligence), amount: 2, kind: Alchemical),
         ],
+        always_on: [
+            "Saves +4 alchemical vs poison",
+        ],
         other_effects: [
-            "+4 alchemical bonus to saves against poison.",
             "+3 bombs a day.",
         ],
     ),
@@ -854,9 +875,9 @@
             (target: Ability(Wisdom), amount: 8, kind: Enhancement),
             (target: Ability(Charisma), amount: 8, kind: Enhancement),
         ],
-        other_effects: [
-            "Every spell you cast counts as Intensified and Piercing.",
-            "Gives the powers of the Magic domain.",
+        always_on: [
+            "All spells Intensified and Piercing",
+            "Powers of the Magic domain",
         ],
     ),
     // Robe.
@@ -869,8 +890,8 @@
             (target: Ability(Constitution), amount: 2, kind: Enhancement),
             (target: Skill("lore-nature"), amount: 4, kind: Competence),
         ],
-        other_effects: [
-            "+4 on saves against fire.",
+        always_on: [
+            "Saves +4 vs fire",
         ],
     ),
     (
@@ -1004,8 +1025,8 @@
         bonuses: [
             (target: Ability(Constitution), amount: 2),
         ],
-        other_effects: [
-            "A +1 half-plate.",
+        always_on: [
+            "A +1 half-plate",
         ],
     ),
     (
@@ -1017,9 +1038,9 @@
             (target: Ability(Constitution), amount: 8, kind: Armour),
             (target: Ability(Strength), amount: 8, kind: Armour),
         ],
-        other_effects: [
-            "A +5 breastplate.",
-            "Moderate fortification.",
+        always_on: [
+            "A +5 breastplate",
+            "Moderate fortification",
         ],
     ),
     (
@@ -1030,10 +1051,10 @@
         bonuses: [
             (target: Ability(Dexterity), amount: 4, kind: Profane),
         ],
-        other_effects: [
-            "A +4 leather armour.",
-            "+20 feet base speed.",
-            "Immune to acid.",
+        always_on: [
+            "A +4 leather armour",
+            "+20 feet base speed",
+            "Immune to acid",
         ],
     ),
     (
@@ -1044,9 +1065,11 @@
         bonuses: [
             (target: Ability(Charisma), amount: 3, kind: Enhancement),
         ],
+        always_on: [
+            "A +3 full plate",
+            "CMD +4 enhancement",
+        ],
         other_effects: [
-            "A +3 full plate.",
-            "Adds 4 to CMD as an enhancement bonus.",
             "DR 5/- against attacks from undead.",
         ],
     ),
@@ -1059,8 +1082,10 @@
         bonuses: [
             (target: Ability(Strength), amount: 2),
         ],
+        always_on: [
+            "A +2 keen club",
+        ],
         other_effects: [
-            "A +2 keen club.",
             "Extra holy damage against undead: 2d8.",
         ],
     ),
@@ -1074,8 +1099,8 @@
             (target: SpellDc(All), amount: 1),
             (target: CasterLevel, amount: 3),
         ],
-        other_effects: [
-            "A +5 quarterstaff.",
+        always_on: [
+            "A +5 quarterstaff",
         ],
     ),
 ]

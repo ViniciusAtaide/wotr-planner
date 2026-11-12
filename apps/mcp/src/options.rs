@@ -39,6 +39,8 @@ pub(crate) struct Offer {
     pub gear: Option<GearMark>,
     /// A gear item's other effects.
     pub other_effects: Vec<String>,
+    /// A gear item's always-on lines that no number counts.
+    pub uncounted: Vec<String>,
 }
 
 impl Offer {
@@ -60,6 +62,7 @@ impl Offer {
             current: false,
             gear: None,
             other_effects: Vec::new(),
+            uncounted: Vec::new(),
         }
     }
 
@@ -452,6 +455,7 @@ fn slot_offers(engine: &Engine, build: &Build, slot: &SlotId, values: bool) -> O
                     current: held.is_some_and(|pick| pick.key() == first.key()),
                     gear: entry.gear_note.clone().map(GearMark::WithGear),
                     other_effects: Vec::new(),
+                    uncounted: Vec::new(),
                 });
             }
             _ => {
@@ -471,6 +475,7 @@ fn slot_offers(engine: &Engine, build: &Build, slot: &SlotId, values: bool) -> O
                         current: held == Some(&pick),
                         gear,
                         other_effects: Vec::new(),
+                        uncounted: Vec::new(),
                     });
                 }
             }
@@ -650,6 +655,7 @@ pub(crate) fn options(planner: &Planner, args: OptionsArgs) -> Result<OptionsRes
             },
             other_effects: (!compact && !offer.other_effects.is_empty())
                 .then_some(offer.other_effects),
+            uncounted: (!compact && !offer.uncounted.is_empty()).then_some(offer.uncounted),
             value: offer.value,
             name: offer.name,
             category: offer.category,

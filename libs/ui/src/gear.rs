@@ -1,7 +1,7 @@
 //! The Gear tab (ticket 167): a row per place a Build wears an item in, in the guide's slot order (two ring rows,
 //! one body row for a robe or an armour), then a Tomes row for the usable items, each a tick. A row shows its item's
-//! name with the summary of its bonuses below, as races show theirs, or "None"; its info button (or a pointer
-//! resting on it) unfolds what else the item does and its guide link. Tapping a row opens its picker.
+//! name with its summary below, as races show theirs, or "None"; an item with a conditional effect has an info button (or
+//! a pointer resting on it) that unfolds those effects and its guide link, and one without has a plain "Guide" link. Tapping a row opens its picker.
 //!
 //! Gear belongs to no level, so the tab is independent of the levels: the engine counts an item at every one. An
 //! item that a choice needs can't be removed or replaced: the engine locks those options, with the reason naming the
@@ -18,7 +18,8 @@ use crate::picker::{
 use crate::planner::{Target, use_planner};
 use crate::timings::timed;
 
-/// What an item does besides its bonuses, and its guide link: its detail.
+/// What an item does only in some circumstance, and its guide link: its detail. `None` for an item with no
+/// conditional line: what it always does is in its summary, and the guide link alone makes no detail.
 fn item_info(item: &GearItem) -> Option<ItemInfo> {
     ItemInfo::new(
         item.other_effects.clone(),
@@ -63,6 +64,23 @@ fn needed(item: &GearKey) -> Option<impl IntoView + use<>> {
     })
 }
 
+/// An item's guide link as a small plain link on its row, for an item with no detail to hold it: "Guide", named for
+/// its item and saying it opens in a new tab. `None` for an item with no guide entry.
+fn plain_guide_link(item: &GearItem) -> Option<impl IntoView + use<>> {
+    let guide = item.guide.as_ref()?;
+    Some(view! {
+        <a
+            class="guide-link plain"
+            href=guide.url()
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label=format!("Guide: {} (opens in a new tab)", item.name)
+        >
+            "Guide"
+        </a>
+    })
+}
+
 /// A place's row: its name, the item worn there (or "None"), which opens the place's picker, and the item's detail.
 fn place_row(engine: &Engine, place: GearPlace, worn: Option<&GearKey>) -> impl IntoView + use<> {
     let planner = use_planner();
@@ -70,6 +88,9 @@ fn place_row(engine: &Engine, place: GearPlace, worn: Option<&GearKey>) -> impl 
     let item = worn.and_then(|key| engine.gear_item(key));
     let info = item.and_then(item_info);
     let has_info = info.is_some();
+    let has_guide = !has_info && item.is_some_and(|item| item.guide.is_some());
+    // With no detail to open, the guide link is a small plain link on the row.
+    let guide = item.filter(|_| !has_info).and_then(plain_guide_link);
     let value = match worn {
         Some(key) => view! {
             <span class="gear-name">{engine.gear_name(key).to_owned()}</span>
@@ -87,6 +108,7 @@ fn place_row(engine: &Engine, place: GearPlace, worn: Option<&GearKey>) -> impl 
         <div
             class="row gear-row item-row"
             class:has-info=has_info
+            class:has-guide=has_guide
             class:open=move || open.get()
             role="listitem"
         >
@@ -100,6 +122,7 @@ fn place_row(engine: &Engine, place: GearPlace, worn: Option<&GearKey>) -> impl 
                 {value}
             </button>
             {detail}
+            {guide}
         </div>
     }
 }
@@ -123,8 +146,14 @@ fn tomes_row(engine: &Engine, used: &[GearKey]) -> impl IntoView + use<> {
             .collect_view()
             .into_any()
     };
+    // Each used item has no detail, so its guide link is a plain link on the row.
+    let guides: Vec<_> = used
+        .iter()
+        .filter_map(|key| engine.gear_item(key).and_then(plain_guide_link))
+        .collect();
+    let has_guide = !guides.is_empty();
     view! {
-        <div class="row gear-row" role="listitem">
+        <div class="row gear-row" class:has-guide=has_guide role="listitem">
             <span class="gear-place">"Tomes"</span>
             <button
                 class="gear-value"
@@ -134,6 +163,7 @@ fn tomes_row(engine: &Engine, used: &[GearKey]) -> impl IntoView + use<> {
             >
                 {value}
             </button>
+            {has_guide.then(|| view! { <span class="gear-guides">{guides}</span> })}
         </div>
     }
 }

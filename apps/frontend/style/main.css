@@ -1093,7 +1093,7 @@ body:has(.picker) {
   padding: 6px 12px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: rgb(28 28 48 / 0.97);
+  background: rgb(28 28 48);
   font-size: 13px;
 }
 
@@ -1163,8 +1163,21 @@ body:has(.picker) {
   }
 }
 
-.gear .row.gear-row.has-info {
+.gear .row.gear-row.has-info,
+.gear .row.gear-row.has-guide {
   grid-template-columns: 76px minmax(0, 1fr) var(--tap);
+}
+
+/* The Tomes row's guide links, one under another. */
+.gear-guides {
+  display: grid;
+  align-content: center;
+}
+
+/* An item with no detail: its guide link, small and plain, where the info button would be. */
+.guide-link.plain {
+  justify-content: center;
+  font-size: 12.5px;
 }
 
 .gear-place {
