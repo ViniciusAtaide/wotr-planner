@@ -702,7 +702,9 @@ is the engine's or the data's, never the write-up's.
   the test's `LABELS`) are dropped; parameters stay ("Spell Focus - Evocation"). `gold_files_match_the_write_ups`
   reads `source.txt` the same way and fails on any difference, so the conversion is checked item by item.
 - **The Builds** are written in Rust in `gold.rs`, slot by slot, with ticket 88's settled choices (Halfling (Hasty),
-  Chaotic Good, atheism, the Enforcer's rogue skill points in Mobility and Stealth).
+  Chaotic Good, atheism, the Enforcer's rogue skill points in Mobility and Stealth). The write-ups name no items; the
+  Enforcer wears the Belt of Incredible Dexterity +2, the user's choice of the smallest assumption that makes its
+  level-19 Greater Two-Weapon Fighting (Dex 19, the Build's own 17) legal (ticket 168).
 - **What is compared:** everything a write-up lists at a level or rank is gained there on the engine's sheet, as the
   snapshot check projects a level's or rank's gains (the slot picks, the ability increase, the feats, features and
   options the level's state holds more of; a rank's picks and its path row's features). The engine may show more.
@@ -720,7 +722,7 @@ is the engine's or the data's, never the write-up's.
   comparison is the granted lines: the features and options gained between levels (Woodland Stride, Sneak Attack,
   Studied Target, the second bloodline's), a rank's path-row features (Instrument of Freedom, the Songs and
   Summons) and the bloodline spells. A pick the engine refuses can't be in the Build, so its line shows up as a
-  disagreement with the refusal's reason (Greater Two-Weapon Fighting's).
+  disagreement with the refusal's reason (Mythic Shield Focus's).
 - **The start** proves less. The race, background, classes and racial +2 are the Build's own input, compared only by
   name. The engine's part: the attributes are the level-1 scores the engine makes of the point buy with its racial
   modifiers, within the budget; the engine allows the Build at each listed alignment; and its skill points give a
@@ -729,10 +731,11 @@ is the engine's or the data's, never the write-up's.
 - **Known gaps:** `KNOWN_GAPS` lists the gold lines the engine gets wrong today. Each entry names the one failure on
   its line it covers (a planner item not gained there, or a name that resolves to no planner item), so another
   failure on the same line is still reported (`a_known_gap_hides_no_other_failure_on_its_line`), and a ticket, of
-  one of four kinds kept apart: a bug, gear, a map decision the user reopened, or the write-up against the guide (an
-  open design question). The test reports every disagreement in one panic, a line each (`enforcer level 19: Greater
-  Two-Weapon Fighting: locked in the Feat slot, "Needs Dex 19 (have 17)"`), and fails on one that isn't listed and on
-  a listed one that now agrees: a fix deletes its entry. The list only shrinks.
+  one of three kinds kept apart: a bug, a map decision the user reopened, or the write-up against the guide (an open
+  design question). The test reports every disagreement in one panic, a line each (`enforcer MR 10: Mythic Shield
+  Focus: Shield Focus (Mythic): locked in the Mythic feat slot, "Needs Shield Focus"`), and fails on one that isn't
+  listed and on a listed one that now agrees: a fix deletes its entry. The list only shrinks (ticket 168 deleted
+  Greater Two-Weapon Fighting's, the gear kind's only entry).
 
 ## Seeding
 
