@@ -655,7 +655,8 @@ only; the other side is the snapshot files committed in `libs/seeds/tests/game_d
 intended change shows up as a snapshot diff in its commit. It has no `allows` battery and no consistency checks:
 those stay in the behaviour proof (`scripts/proof.sh`).
 
-- **The corpus:** the six bench Builds (`bench-<name>`, from `tools/proof/bench-links.tsv`), one Build per class of
+- **The corpus:** the six bench Builds (`bench-<name>`, from `tools/proof/bench-links.tsv`), the two gold Builds
+  (`gold-jack`, `gold-enforcer`; see "The gold standard" below), one Build per class of
   `classes/` at level 20 with no picks (`class-<key>`), and one fighter 20 per mythic path with no pick beyond the
   path (`path-<key>`; a path taken only by a switch is switched to from the first path, in key order, it can be).
   Classes and paths come from the data's own lists, so a new one fails the test until it has a snapshot. A
@@ -684,6 +685,41 @@ those stay in the behaviour proof (`scripts/proof.sh`).
 - **Regenerating:** when every change is intended, `SNAPSHOTS=write cargo test -p seeds --test game_data snapshots`
   rewrites the files (and deletes those of Builds no longer in the corpus) without reading them, so it also
   repairs a file that doesn't parse; commit them with the change.
+
+## The gold standard
+
+The real-data test `gold` (`libs/seeds/tests/game_data/gold.rs`, ticket 160) checks the engine against two real build
+write-ups the user knows work in the game: Jack-in-the-Green (a Halfling Sylvan Sorcerer 20) and the Enforcer (a
+Half-Elf Arcane Enforcer 15 / Sylvan Trickster 4 / Mutation Warrior 1), both Azata. Where the snapshot check says
+nothing changed, this says the engine matches the game. The write-ups are right (user, 2026-11-11): a disagreement
+is the engine's or the data's, never the write-up's.
+
+- **The files** (`libs/seeds/tests/game_data/gold/`): `source.txt` is the write-ups as written, prose, companion
+  build and suggested spells included (nothing checks those). `jack-in-the-green.ron` and `enforcer.ron` are the
+  same in the write-ups' own names: the start, then per level its class, its gains and its bloodline spells, and per
+  Mythic rank its path ("Mythic Hero" at 1 and 2) and its gains. A cell is split at its semicolons, a group in
+  brackets stays one item, and the label prefixes that name a slot ("Bonus Feat - ", "Exploit - ", "Superpower - ",
+  the test's `LABELS`) are dropped; parameters stay ("Spell Focus - Evocation"). `gold_files_match_the_write_ups`
+  reads `source.txt` the same way and fails on any difference, so the conversion is checked item by item.
+- **The Builds** are written in Rust in `gold.rs`, slot by slot, with ticket 88's settled choices (Halfling (Hasty),
+  Chaotic Good, atheism, the Enforcer's rogue skill points in Mobility and Stealth).
+- **What is compared:** everything a write-up lists at a level or rank is gained there on the engine's sheet, as the
+  snapshot check projects a level's or rank's gains (the slot picks, the ability increase, the feats, features and
+  options the level's state holds more of; a rank's picks and its path row's features). The engine may show more.
+  The start: the race, background, classes and racial +2 by name, the attributes as the level-1 scores within the
+  point buy, each listed alignment possible, each listed skill a class skill or ranked. A gold name is read as
+  planner names through the test's `NAMES` table (the write-up's spelling beside the planner's: "Bypass Epic DR",
+  "Bypass Epic Damage Reduction"), else "Name - Value" as "Name (Value)" (with `VALUES`: "Battleaxe", "Battle
+  Axe"), else as itself; a name that resolves to no planner item is a disagreement. A bracketed group,
+  "(Dragon Resistances I)", is the second bloodline's: gained at its level, or at the Second Bloodline's rank when
+  that is later. A bloodline spell is compared by its own bloodline's part ("Bloodline spell - Entangle", which the
+  Sylvan Sorcerer's data grants); its "(+ …)" second-bloodline part isn't, since the data holds no Draconic
+  bloodline spells (`the_second_bloodlines_spells_arent_in_the_data` fails when it does).
+- **Known gaps:** `KNOWN_GAPS` lists the gold lines the engine gets wrong today, each with its ticket, or with the
+  map decision that keeps the planner from modelling it (marked apart). The test reports every disagreement in one
+  panic, a line each (`enforcer level 19: Greater Two-Weapon Fighting: locked in the Feat slot, "Needs Dex 19 (have
+  17)"`), and fails on one that isn't listed and on a listed one that now agrees: a fix deletes its entry. The list
+  only shrinks.
 
 ## Seeding
 

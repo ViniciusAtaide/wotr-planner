@@ -1,10 +1,11 @@
 //! The cheap behaviour check (ticket 159): a small corpus of Builds, each projected into flat `path = value` lines
 //! from the engine's output and compared with the snapshot committed beside this file (`snapshots/<name>.txt`).
 //!
-//! The corpus: the bench Builds ([`support::bench`]), every base class at level 20 with no picks, and a fighter 20
-//! (Mythic rank 10, or as far as a Legend switch goes) on every mythic path with no picks beyond the path, the last
-//! two from the data's own lists. The bench Builds get their sheet; the pick-less ones their sheet and every slot's
-//! open options. Prestige classes have no pick-less Build: their entry needs feats and skill ranks.
+//! The corpus: the bench Builds ([`support::bench`]), the two gold Builds (`gold.rs`, ticket 160), every base class at
+//! level 20 with no picks, and a fighter 20 (Mythic rank 10, or as far as a Legend switch goes) on every mythic path
+//! with no picks beyond the path, the last two from the data's own lists. The bench and gold Builds get their sheet;
+//! the pick-less ones their sheet and every slot's open options. Prestige classes have no pick-less Build: their
+//! entry needs feats and skill ranks.
 //!
 //! The claim is weaker than the behaviour proof's (`scripts/proof.sh`): nothing changed in these Builds. A difference
 //! fails the test with the changes grouped by path ([`message`]); an intended one is accepted by regenerating:
@@ -37,8 +38,8 @@ struct Subject {
     options: bool,
 }
 
-/// The bench Builds, then one pick-less Build per class and per mythic path, each asserted possible: an impossible
-/// Build has no options and would snapshot as empty.
+/// The bench Builds, the gold Builds, then one pick-less Build per class and per mythic path, each asserted
+/// possible: an impossible Build has no options and would snapshot as empty.
 fn corpus() -> Vec<Subject> {
     let mut subjects: Vec<Subject> = support::bench()
         .into_iter()
@@ -48,6 +49,13 @@ fn corpus() -> Vec<Subject> {
             options: false,
         })
         .collect();
+    for (name, build) in crate::gold::builds() {
+        subjects.push(Subject {
+            name: format!("gold-{name}"),
+            build,
+            options: false,
+        });
+    }
     for class in &DATA.classes {
         let build = possible(support::build(class.key.as_str(), 20));
         subjects.push(Subject {

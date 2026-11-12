@@ -1,0 +1,129 @@
+// Jack-in-the-Green, converted by hand from `source.txt` (ticket 160): the gold standard's expected side.
+//
+// The write-up's own names, line by line. What the conversion changes, and nothing else:
+// - a level's or rank's cell becomes a list, split at its semicolons; a cell that wraps onto the next line is one
+//   cell; a cell of "-" is an empty list;
+// - the label prefixes are dropped, as `gold.rs`'s `LABELS` lists them: "Bonus Feat - Spell Penetration" is
+//   "Spell Penetration";
+// - a "Bloodline Spell - …" item goes in `bloodline_spells`, without its prefix;
+// - a group in brackets stays one item, brackets and all: "(Draconic Bloodline Arcana; Grow Claws)".
+// What a name means to the planner is `gold.rs`'s to say, never this file's.
+(
+    name: "Jack-in-the-Green",
+    start: (
+        race: "Halfling",
+        background: "Warrior of the Linnorm Kings",
+        classes: [("Sylvan Sorcerer", 20)],
+        ability_bonus: None,
+        attributes: [("STR", 10), ("DEX", 16), ("CON", 14), ("INT", 12), ("WIS", 8), ("CHA", 19)],
+        skills: ["Mobility", "Persuasion", "Use Magic Device"],
+        alignments: ["CN", "CG", "NG"],
+    ),
+    levels: [
+        (
+            level: 1,
+            class: "Sylvan Sorcerer",
+            gains: ["Animal Companion - Elk", "(Draconic Bloodline Arcana; Grow Claws)", "Spell Penetration", "Mounted Combat"],
+        ),
+        (level: 2, class: "Sylvan Sorcerer", gains: []),
+        (
+            level: 3,
+            class: "Sylvan Sorcerer",
+            gains: ["Woodland Stride", "(Dragon Resistances I)", "Metamagic (Bolstered)"],
+            bloodline_spells: ["Entangle (+ Mage Armor)"],
+        ),
+        (level: 4, class: "Sylvan Sorcerer", gains: ["Charisma +1"]),
+        (
+            level: 5,
+            class: "Sylvan Sorcerer",
+            gains: ["Spell Focus - Evocation"],
+            bloodline_spells: ["Hideous Laughter (+ Resist Electricity)"],
+        ),
+        (level: 6, class: "Sylvan Sorcerer", gains: []),
+        (
+            level: 7,
+            class: "Sylvan Sorcerer",
+            gains: ["Skill Focus (Mobility)", "Metamagic (Heighten)"],
+            bloodline_spells: ["Deep Slumber (+ Dispel Magic)"],
+        ),
+        (level: 8, class: "Sylvan Sorcerer", gains: ["Charisma +1"]),
+        (
+            level: 9,
+            class: "Sylvan Sorcerer",
+            gains: ["Fleeting Glance", "(Dragon Resistances II)", "Outflank"],
+            bloodline_spells: ["Poison (+ Fear)"],
+        ),
+        (level: 10, class: "Sylvan Sorcerer", gains: []),
+        (
+            level: 11,
+            class: "Sylvan Sorcerer",
+            gains: ["Spell Specialization"],
+            bloodline_spells: ["Vinetrap (+ Spell Resistance)"],
+        ),
+        (level: 12, class: "Sylvan Sorcerer", gains: ["Charisma +1"]),
+        (
+            level: 13,
+            class: "Sylvan Sorcerer",
+            gains: ["Improved Initiative", "Greater Spell Penetration"],
+            bloodline_spells: ["Dispel Magic, Greater (+Dragonkind I)"],
+        ),
+        (level: 14, class: "Sylvan Sorcerer", gains: []),
+        (
+            level: 15,
+            class: "Sylvan Sorcerer",
+            gains: ["Fey Magic", "(Dragon Resistances III; Wings)", "Greater Spell Focus - Evocation"],
+            bloodline_spells: ["Changestaff (+Dragonkind II)"],
+        ),
+        (level: 16, class: "Sylvan Sorcerer", gains: ["Charisma +1"]),
+        (
+            level: 17,
+            class: "Sylvan Sorcerer",
+            gains: ["Indomitable Mount"],
+            bloodline_spells: ["Summon Nereid (+ Dragonkind III)"],
+        ),
+        (level: 18, class: "Sylvan Sorcerer", gains: []),
+        (
+            level: 19,
+            class: "Sylvan Sorcerer",
+            gains: ["Great Fortitude", "Elemental Focus - Electricity"],
+            bloodline_spells: ["Summon Hamadryad (+Overwhelming Presence)"],
+        ),
+        (level: 20, class: "Sylvan Sorcerer", gains: ["Soul of the Fey (Power of Wyrms)", "Charisma +1"]),
+    ],
+    ranks: [
+        (
+            rank: 1,
+            path: "Mythic Hero",
+            gains: ["Bypass Epic DR", "Instrument of Freedom", "Second Bloodline - Bronze Dragon"],
+        ),
+        (
+            rank: 2,
+            path: "Mythic Hero",
+            gains: ["Hard to Kill", "Freedom's Child", "Summon Azata Bralani", "Extra Mythic Ability - Abundant Casting"],
+        ),
+        (
+            rank: 3,
+            path: "Azata",
+            gains: ["Dragon Companion", "Song of Heroic Resolve", "Summon Mastodon", "Ascendant Element - Electricity"],
+        ),
+        (rank: 4, path: "Azata", gains: ["Summon Movanic Deva", "Zippy Magic", "Spell Penetration (Mythic)"]),
+        (rank: 5, path: "Azata", gains: ["Song of Broken Chains", "Summon Azata Ghael", "Improved Abundant Casting"]),
+        (
+            rank: 6,
+            path: "Azata",
+            gains: ["Song of Defiance", "Summon Astral Deva", "Life-Bonding Friendship (Shake It Off)", "Expanded Arsenal - Enchantment"],
+        ),
+        (
+            rank: 7,
+            path: "Azata",
+            gains: ["Song of Courageous Defender", "Summon Astral Devas", "Life-Bonding Friendship (Allied Spellcaster)", "Mythical Beast"],
+        ),
+        (
+            rank: 8,
+            path: "Azata",
+            gains: ["Summon Azata Ghaels and Astral Devas", "Favorable Magic", "Spell Focus (Mythic) - Evocation"],
+        ),
+        (rank: 9, path: "Azata", gains: ["Summon Hamadryads", "Greater Abundant Casting"]),
+        (rank: 10, path: "Azata", gains: ["Marvelous Endurance", "Sorcerous Reflex"]),
+    ],
+)
