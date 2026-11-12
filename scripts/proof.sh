@@ -18,15 +18,20 @@
 # When: once per queue of tickets, by the main session, when the queue is merged (CLAUDE.md, "Behaviour checks"). A
 # ticket's own check is the snapshot check.
 #
-# Record options: --only <name substring>, --threads N (default 8). A full record takes about 45 seconds a side on 8
-# threads, after the two release builds.
+# Record options: --only <name substring>, --threads N (default 8), --light. A full record takes about 45 seconds a
+# side on 8 threads, after the two release builds.
+# --light (ticket 162) leaves out the `allows` battery and the consistency and shortcut checks, most of a record's cost,
+# and keeps every other field (sheet, every slot's options, pickers, totals, caster lines): every Build in a few seconds
+# a side. Reach for it between the snapshot check and the full proof, to see a change's reach over the whole corpus
+# early. It misses a change that only the battery's edits or the checks see; the once-per-queue proof is a full one. A
+# light record only compares with a light one (compare refuses a mixed pair).
 # Every build goes under one folder, $CARGO_TARGET_DIR (default ${TMPDIR:-/tmp}/wotr-planner-proof-target), outside the
 # repo: B/ for the working tree's harness, A/ for the ref's. <out-dir> must be outside the repo too; it gets A.jsonl,
 # B.jsonl, compare.txt (empty when the sides agree) and the logs. Exits 1 when the comparison isn't empty.
 set -euo pipefail
 
 usage() {
-    sed -n '2,25p' "$0" | sed 's/^# \{0,1\}//' >&2
+    sed -n '2,31p' "$0" | sed 's/^# \{0,1\}//' >&2
     exit 2
 }
 

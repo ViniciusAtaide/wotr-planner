@@ -10,7 +10,7 @@ use rules::{Engine, GameData};
 
 const USAGE: &str = "usage:
   proof record <game-data dir> [--links <file> | --builds <file>] [--threads N] [--only <name substring>]
-               [--fold-values <key>,…]
+               [--fold-values <key>,…] [--light]
   proof compare <a.jsonl> <b.jsonl>
   proof export <game-data dir> [--json] [--threads N] [--only <name substring>]";
 
@@ -27,6 +27,8 @@ struct Options {
     /// `record`: the keys whose options each slot folds into one (ticket 125); `export` ignores it, since
     /// `proof.sh` passes the record options to both.
     fold_values: BTreeSet<String>,
+    /// `record`: a light record (ticket 162); `export` ignores it, as it does `--fold-values`.
+    light: bool,
 }
 
 fn options(args: &[String], links_allowed: bool) -> Result<Options, String> {
@@ -40,6 +42,7 @@ fn options(args: &[String], links_allowed: bool) -> Result<Options, String> {
         threads: 8,
         only: None,
         fold_values: BTreeSet::new(),
+        light: false,
     };
     while let Some(flag) = args.next() {
         let mut value = || {
@@ -58,6 +61,7 @@ fn options(args: &[String], links_allowed: bool) -> Result<Options, String> {
             "--fold-values" => {
                 options.fold_values = value()?.split(',').map(str::to_owned).collect();
             }
+            "--light" => options.light = true,
             other => return Err(format!("unknown option {other}")),
         }
     }
@@ -109,16 +113,25 @@ fn record(options: &Options) -> Result<ExitCode, String> {
     fingerprint::fold_values(options.fold_values.clone());
     let (engine, _, builds) = engine_and_builds(options)?;
     eprintln!("{} Builds", builds.len());
-    for line in proof::record(&engine, &builds, options.threads) {
+    let mode = if options.light {
+        fingerprint::Mode::Light
+    } else {
+        fingerprint::Mode::Full
+    };
+    for line in proof::record(&engine, &builds, options.threads, mode) {
         println!("{line}");
     }
-    let (checked, feat_options) = fingerprint::shortcut_counts();
-    eprintln!("shortcut checked on {checked} Builds, {feat_options} feat options");
-    let held: Vec<String> = fingerprint::held_counts()
-        .into_iter()
-        .map(|(kind, count)| format!("{kind} {count}"))
-        .collect();
-    eprintln!("held choices checked: {}", held.join(", "));
+    if options.light {
+        eprintln!("light record: no allows battery, no consistency or shortcut checks");
+    } else {
+        let (checked, feat_options) = fingerprint::shortcut_counts();
+        eprintln!("shortcut checked on {checked} Builds, {feat_options} feat options");
+        let held: Vec<String> = fingerprint::held_counts()
+            .into_iter()
+            .map(|(kind, count)| format!("{kind} {count}"))
+            .collect();
+        eprintln!("held choices checked: {}", held.join(", "));
+    }
     eprintln!("recorded in {:.1?}", started.elapsed());
     Ok(ExitCode::SUCCESS)
 }

@@ -17,14 +17,23 @@
 //! **When:** once per queue of tickets, by the main session, when the queue is merged (`CLAUDE.md`, "Behaviour
 //! checks"). A ticket's own check is the snapshot check in `libs/seeds/tests/game_data/snapshots.rs`.
 //!
-//! Either takes `-- <record options>` last (`--only <name substring>`, `--threads N`). A full record takes about 45
-//! seconds a side on 8 threads, after the two release builds. The outputs (`A.jsonl`, `B.jsonl`, `compare.txt` and the logs) go to `<out-dir>`, which must
-//! be outside the repo. The script exits non-zero when the comparison isn't empty.
+//! Either takes `-- <record options>` last (`--only <name substring>`, `--threads N`, `--light`). A full record takes
+//! about 45 seconds a side on 8 threads, after the two release builds. The outputs (`A.jsonl`, `B.jsonl`,
+//! `compare.txt` and the logs) go to `<out-dir>`, which must be outside the repo. The script exits non-zero when the
+//! comparison isn't empty.
+//!
+//! **Light mode** (ticket 162, `--light`): the record leaves out the `allows` battery and the consistency and shortcut
+//! checks ([`fingerprint::Mode`]), most of a record's cost, and keeps every other field, so every Build is compared in
+//! a few seconds a side. Reach for it between the snapshot check (a few dozen Builds, one side) and the full proof:
+//! to see a change's reach over the whole corpus early. It misses a change only the full proof sees (a Build whose
+//! pickers and sheet agree but where `allows` of some edit differs, and a mismatch between a shortcut and its full
+//! answer, which the checks panic on). A light record says so on every line, and [`compare`] refuses to compare it
+//! with a full one.
 //!
 //! The binary's commands:
 //!
 //! - `proof record <game-data dir> [--links <file> | --builds <file>] [--threads N] [--only <name substring>]
-//!   [--fold-values <key>,…]` writes one JSON line per Build ([`fingerprint`]), in a stable order. Without `--links`
+//!   [--fold-values <key>,…] [--light]` writes one JSON line per Build ([`fingerprint`]), in a stable order. Without `--links`
 //!   or `--builds` it records the harness's own Builds ([`builds`]); with one, exactly the Builds of that file (links,
 //!   or JSON lines). `--fold-values` folds each listed item's options into one per slot (ticket 125: items that came
 //!   to take a value).
@@ -132,8 +141,13 @@ pub fn in_parallel<T: Send>(
 }
 
 /// The record of `builds`: one JSON line each, in their order.
-pub fn record(engine: &Engine, builds: &[Named], threads: usize) -> Vec<String> {
+pub fn record(
+    engine: &Engine,
+    builds: &[Named],
+    threads: usize,
+    mode: fingerprint::Mode,
+) -> Vec<String> {
     in_parallel(builds, threads, |(name, build)| {
-        fingerprint::fingerprint(engine, name, build).to_string()
+        fingerprint::fingerprint(engine, name, build, mode).to_string()
     })
 }

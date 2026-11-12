@@ -7,7 +7,8 @@
 //! - `slot<TAB><build><TAB><slot id><TAB><what>`: for a Build whose `slots` differ, each slot that differs: `only in
 //!   A`, `only in B`, or the slot's fields that differ.
 //!
-//! Nothing when the records agree.
+//! Nothing when the records agree. A light record (`record --light`, ticket 162: its lines say `light`) and a full
+//! one aren't compared: the comparison is refused with a message.
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -35,6 +36,13 @@ struct Record {
 }
 
 impl Record {
+    /// Whether the record is a light one (its Builds say so; see [`crate::fingerprint::Mode`]).
+    fn is_light(&self) -> bool {
+        self.builds
+            .values()
+            .any(|fields| fields.contains_key("light"))
+    }
+
     fn parse(record: &str, side: &str) -> Result<Self, String> {
         let mut order = Vec::new();
         let mut builds = BTreeMap::new();
@@ -82,6 +90,15 @@ fn differing<'a>(a: &'a Map<String, Value>, b: &'a Map<String, Value>) -> Vec<&'
 pub fn compare(a: &str, b: &str) -> Result<Comparison, String> {
     let a = Record::parse(a, "A")?;
     let b = Record::parse(b, "B")?;
+    if a.is_light() != b.is_light() {
+        let kind = |light| if light { "light" } else { "full" };
+        return Err(format!(
+            "A is a {} record and B a {} one: a light record leaves out `allows`, so it only compares with another \
+             light one (record both with `--light`, or neither)",
+            kind(a.is_light()),
+            kind(b.is_light())
+        ));
+    }
     let mut lines = Vec::new();
     let mut differ = 0;
     for name in &a.order {
