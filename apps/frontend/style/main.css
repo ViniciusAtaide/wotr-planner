@@ -552,8 +552,9 @@ input[type="search"] {
 }
 
 .row {
+  position: relative;
   display: grid;
-  grid-template-columns: 24px 94px 1fr;
+  grid-template-columns: 28px 94px 1fr;
   align-items: start;
   gap: 6px;
   padding: 3px 5px;
@@ -562,9 +563,41 @@ input[type="search"] {
   background: rgb(255 255 255 / 0.035);
 }
 
-/* Left-aligned, so the rows line up with the summary above them. */
+/* Remove level: a small round × on the last row's top-left corner, out of the grid's columns so the row keeps its
+   layout. The ::before stretches its tap target to a thumb's size around the badge. */
+.remove-level {
+  position: absolute;
+  top: -7px;
+  left: -7px;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  min-height: 0;
+  padding: 0;
+  border-radius: 50%;
+  background: var(--bg);
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1;
+}
+
+.remove-level::before {
+  position: absolute;
+  inset: calc((var(--tap) - 20px) / -2);
+  content: "";
+}
+
+.remove-level:not(:disabled):hover,
+.remove-level:not(:disabled):active {
+  border-color: var(--evil-ink);
+  color: var(--evil-ink);
+}
+
+/* Left-aligned, a little in from the card's edge. */
 .row-number {
-  padding-top: 12px;
+  padding: 12px 0 0 4px;
   color: var(--accent);
   font-size: 17px;
   font-variant-numeric: tabular-nums;
@@ -1081,6 +1114,9 @@ body:has(.picker) {
 }
 
 @media (hover: hover) {
+  /* The detail is the row's child, so a pointer on it keeps the row hovered and its link clickable. Hidden, it
+     takes no pointer; it waits a moment before fading, and its ::before covers the gap above it, so the pointer
+     can move from the row onto it. */
   .item-row.has-info:not(.open) > .item-more {
     position: absolute;
     top: calc(100% + 2px);
@@ -1091,10 +1127,18 @@ body:has(.picker) {
     visibility: hidden;
     opacity: 0;
     box-shadow: var(--shadow);
-    pointer-events: none;
     transition:
-      opacity 0.12s,
-      visibility 0s linear 0.12s;
+      opacity 0.12s 0.15s,
+      visibility 0s linear 0.27s;
+  }
+
+  .item-row.has-info:not(.open) > .item-more::before {
+    position: absolute;
+    right: 0;
+    bottom: 100%;
+    left: 0;
+    height: 4px;
+    content: "";
   }
 
   .item-row.has-info:not(.open):hover > .item-more {

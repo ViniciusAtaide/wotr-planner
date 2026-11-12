@@ -24,9 +24,6 @@ pub fn LevelsGrid() -> AnyView {
                 .collect_view();
             let next = u8::try_from(build.levels.len() + 1).unwrap_or(u8::MAX);
             let can_add = next <= sheet.level_cap;
-            let last = u8::try_from(build.levels.len()).unwrap_or(u8::MAX);
-            // The last level's withdrawal: Remove level.
-            let remove = planner.withdrawal(&Choice::CharacterLevel { level: last });
             view! {
                 <Summary sheet=sheet.clone()/>
                 <div class="grid" role="list">
@@ -41,19 +38,6 @@ pub fn LevelsGrid() -> AnyView {
                                     on:click=move |_| planner.open(Target::Class(next))
                                 >
                                     {format!("+ Level {next}")}
-                                </button>
-                            }
-                        })}
-                    {remove
-                        .map(|(edit, removable)| {
-                            let edit = StoredValue::new(edit);
-                            view! {
-                                <button
-                                    class="remove-level"
-                                    disabled=!removable
-                                    on:click=move |_| planner.edit(edit.get_value())
-                                >
-                                    {format!("Remove level {last}")}
                                 </button>
                             }
                         })}
@@ -83,6 +67,25 @@ fn level_row(engine: &Engine, build: &Build, level: &LevelSheet) -> impl IntoVie
         .filter(|_| level.class_level == 1)
         .map(|archetype| engine.archetype_name(archetype).to_owned());
     let changeable = planner.class_removable(n);
+    // The last level's withdrawal, Remove level: an × on the row's left edge.
+    let remove = (usize::from(n) == build.levels.len())
+        .then(|| planner.withdrawal(&Choice::CharacterLevel { level: n }))
+        .flatten()
+        .map(|(edit, removable)| {
+            let edit = StoredValue::new(edit);
+            let label = format!("Remove level {n}");
+            view! {
+                <button
+                    class="remove-level"
+                    aria-label=label.clone()
+                    title=label
+                    disabled=!removable
+                    on:click=move |_| planner.edit(edit.get_value())
+                >
+                    "×"
+                </button>
+            }
+        });
     // A class whose entry only the gear meets says which items, under its archetype.
     let gear = planner.gear_note(&Choice::Class { level: n });
     let chips = level
@@ -137,6 +140,7 @@ fn level_row(engine: &Engine, build: &Build, level: &LevelSheet) -> impl IntoVie
     });
     view! {
         <div class="row" role="listitem">
+            {remove}
             <span class="row-number">{n}</span>
             <button
                 class="class-button"
