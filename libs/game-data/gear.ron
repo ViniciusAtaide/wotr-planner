@@ -1,0 +1,1033 @@
+// The gear items (ticket 165): `rules::GearItem`, one per block, grouped by slot. Each lists its always-on bonuses (a
+// target, an amount, a bonus type; `kind` is left out for an untyped one) and, in the planner's own words, what else it
+// does (`other_effects`): a bonus in some circumstance, a use per day, who may wear it. Items whose properties give no
+// always-on ability score bonus wait for the second stage (ticket 169).
+// The first group comes from the user, not the guide: the plain stat belts and headbands, with no `guide`.
+[
+    // Generic stat belts and headbands, from the user (no guide reference).
+    (
+        key: "belt-of-giant-strength-2",
+        name: "Belt of Giant Strength +2",
+        slot: Belt,
+        bonuses: [
+            (target: Ability(Strength), amount: 2, kind: Enhancement),
+        ],
+    ),
+    (
+        key: "belt-of-giant-strength-4",
+        name: "Belt of Giant Strength +4",
+        slot: Belt,
+        bonuses: [
+            (target: Ability(Strength), amount: 4, kind: Enhancement),
+        ],
+    ),
+    (
+        key: "belt-of-giant-strength-6",
+        name: "Belt of Giant Strength +6",
+        slot: Belt,
+        bonuses: [
+            (target: Ability(Strength), amount: 6, kind: Enhancement),
+        ],
+    ),
+    (
+        key: "belt-of-incredible-dexterity-2",
+        name: "Belt of Incredible Dexterity +2",
+        slot: Belt,
+        bonuses: [
+            (target: Ability(Dexterity), amount: 2, kind: Enhancement),
+        ],
+    ),
+    (
+        key: "belt-of-incredible-dexterity-4",
+        name: "Belt of Incredible Dexterity +4",
+        slot: Belt,
+        bonuses: [
+            (target: Ability(Dexterity), amount: 4, kind: Enhancement),
+        ],
+    ),
+    (
+        key: "belt-of-incredible-dexterity-6",
+        name: "Belt of Incredible Dexterity +6",
+        slot: Belt,
+        bonuses: [
+            (target: Ability(Dexterity), amount: 6, kind: Enhancement),
+        ],
+    ),
+    (
+        key: "belt-of-physical-perfection-2",
+        name: "Belt of Physical Perfection +2",
+        slot: Belt,
+        bonuses: [
+            (target: Ability(Strength), amount: 2, kind: Enhancement),
+            (target: Ability(Dexterity), amount: 2, kind: Enhancement),
+            (target: Ability(Constitution), amount: 2, kind: Enhancement),
+        ],
+    ),
+    (
+        key: "belt-of-physical-perfection-4",
+        name: "Belt of Physical Perfection +4",
+        slot: Belt,
+        bonuses: [
+            (target: Ability(Strength), amount: 4, kind: Enhancement),
+            (target: Ability(Dexterity), amount: 4, kind: Enhancement),
+            (target: Ability(Constitution), amount: 4, kind: Enhancement),
+        ],
+    ),
+    (
+        key: "belt-of-the-mighty-constitution-2",
+        name: "Belt of the Mighty Constitution +2",
+        slot: Belt,
+        bonuses: [
+            (target: Ability(Constitution), amount: 2, kind: Enhancement),
+        ],
+    ),
+    (
+        key: "belt-of-the-mighty-constitution-4",
+        name: "Belt of the Mighty Constitution +4",
+        slot: Belt,
+        bonuses: [
+            (target: Ability(Constitution), amount: 4, kind: Enhancement),
+        ],
+    ),
+    (
+        key: "belt-of-the-mighty-constitution-6",
+        name: "Belt of the Mighty Constitution +6",
+        slot: Belt,
+        bonuses: [
+            (target: Ability(Constitution), amount: 6, kind: Enhancement),
+        ],
+    ),
+    (
+        key: "headband-of-alluring-charisma-2",
+        name: "Headband of Alluring Charisma +2",
+        slot: Headwear,
+        bonuses: [
+            (target: Ability(Charisma), amount: 2, kind: Enhancement),
+        ],
+    ),
+    (
+        key: "headband-of-alluring-charisma-4",
+        name: "Headband of Alluring Charisma +4",
+        slot: Headwear,
+        bonuses: [
+            (target: Ability(Charisma), amount: 4, kind: Enhancement),
+        ],
+    ),
+    (
+        key: "headband-of-alluring-charisma-6",
+        name: "Headband of Alluring Charisma +6",
+        slot: Headwear,
+        bonuses: [
+            (target: Ability(Charisma), amount: 6, kind: Enhancement),
+        ],
+    ),
+    (
+        key: "headband-of-inspired-wisdom-2",
+        name: "Headband of Inspired Wisdom +2",
+        slot: Headwear,
+        bonuses: [
+            (target: Ability(Wisdom), amount: 2, kind: Enhancement),
+        ],
+    ),
+    (
+        key: "headband-of-inspired-wisdom-4",
+        name: "Headband of Inspired Wisdom +4",
+        slot: Headwear,
+        bonuses: [
+            (target: Ability(Wisdom), amount: 4, kind: Enhancement),
+        ],
+    ),
+    (
+        key: "headband-of-inspired-wisdom-6",
+        name: "Headband of Inspired Wisdom +6",
+        slot: Headwear,
+        bonuses: [
+            (target: Ability(Wisdom), amount: 6, kind: Enhancement),
+        ],
+    ),
+    (
+        key: "headband-of-mental-perfection-2",
+        name: "Headband of Mental Perfection +2",
+        slot: Headwear,
+        bonuses: [
+            (target: Ability(Intelligence), amount: 2, kind: Enhancement),
+            (target: Ability(Wisdom), amount: 2, kind: Enhancement),
+            (target: Ability(Charisma), amount: 2, kind: Enhancement),
+        ],
+    ),
+    (
+        key: "headband-of-mental-perfection-4",
+        name: "Headband of Mental Perfection +4",
+        slot: Headwear,
+        bonuses: [
+            (target: Ability(Intelligence), amount: 4, kind: Enhancement),
+            (target: Ability(Wisdom), amount: 4, kind: Enhancement),
+            (target: Ability(Charisma), amount: 4, kind: Enhancement),
+        ],
+    ),
+    (
+        key: "headband-of-vast-intelligence-2",
+        name: "Headband of Vast Intelligence +2",
+        slot: Headwear,
+        bonuses: [
+            (target: Ability(Intelligence), amount: 2, kind: Enhancement),
+        ],
+    ),
+    (
+        key: "headband-of-vast-intelligence-4",
+        name: "Headband of Vast Intelligence +4",
+        slot: Headwear,
+        bonuses: [
+            (target: Ability(Intelligence), amount: 4, kind: Enhancement),
+        ],
+    ),
+    (
+        key: "headband-of-vast-intelligence-6",
+        name: "Headband of Vast Intelligence +6",
+        slot: Headwear,
+        bonuses: [
+            (target: Ability(Intelligence), amount: 6, kind: Enhancement),
+        ],
+    ),
+    // Belt.
+    (
+        key: "assailants-belt",
+        name: "Assailant's Belt",
+        slot: Belt,
+        guide: "items#belts",
+        bonuses: [
+            (target: Ability(Dexterity), amount: 6, kind: Enhancement),
+        ],
+        other_effects: [
+            "After a critical hit: +2 circumstance to attack and damage rolls for 3 rounds.",
+        ],
+    ),
+    (
+        key: "belt-of-alacrity",
+        name: "Belt of Alacrity",
+        slot: Belt,
+        guide: "items-lord-of-nothing#belts",
+        bonuses: [
+            (target: Ability(Dexterity), amount: 4, kind: Enhancement),
+            (target: Save(Reflex), amount: 4, kind: Competence),
+        ],
+    ),
+    (
+        key: "belt-of-bloodlust",
+        name: "Belt of Bloodlust",
+        slot: Belt,
+        guide: "items#belts",
+        bonuses: [
+            (target: Ability(Strength), amount: 4, kind: Enhancement),
+            (target: Ability(Dexterity), amount: 4, kind: Enhancement),
+        ],
+        other_effects: [
+            "After a kill: +5 morale to the next attack roll.",
+        ],
+    ),
+    (
+        key: "belt-of-lesser-shadowform",
+        name: "Belt of Lesser Shadowform",
+        slot: Belt,
+        guide: "items-lord-of-nothing#belts",
+        bonuses: [
+            (target: Ability(Dexterity), amount: 2, kind: Enhancement),
+        ],
+        other_effects: [
+            "5 rounds a day: becomes incorporeal.",
+        ],
+    ),
+    (
+        key: "belt-of-physical-form-6",
+        name: "Belt of Physical Form +6",
+        slot: Belt,
+        guide: "items#belts",
+        bonuses: [
+            (target: Ability(Dexterity), amount: 6, kind: Enhancement),
+            (target: Ability(Constitution), amount: 6, kind: Enhancement),
+        ],
+    ),
+    (
+        key: "belt-of-physical-perfection-6",
+        name: "Belt of Physical Perfection +6",
+        slot: Belt,
+        guide: "items#belts",
+        bonuses: [
+            (target: Ability(Strength), amount: 6, kind: Enhancement),
+            (target: Ability(Dexterity), amount: 6, kind: Enhancement),
+            (target: Ability(Constitution), amount: 6, kind: Enhancement),
+        ],
+    ),
+    (
+        key: "belt-of-physical-perfection-8",
+        name: "Belt of Physical Perfection +8",
+        slot: Belt,
+        guide: "items-inevitable-excess#belts",
+        bonuses: [
+            (target: Ability(Strength), amount: 8, kind: Enhancement),
+            (target: Ability(Dexterity), amount: 8, kind: Enhancement),
+            (target: Ability(Constitution), amount: 8, kind: Enhancement),
+        ],
+    ),
+    (
+        key: "belt-of-thunderous-charging",
+        name: "Belt of Thunderous Charging",
+        slot: Belt,
+        guide: "items#belts",
+        bonuses: [
+            (target: Ability(Strength), amount: 6, kind: Enhancement),
+        ],
+        other_effects: [
+            "On a charge: the target takes -2 AC against ranged attacks for 4 rounds.",
+        ],
+    ),
+    (
+        key: "belt-of-the-venerated-champion",
+        name: "Belt of the Venerated Champion",
+        slot: Belt,
+        guide: "items#belts",
+        bonuses: [
+            (target: Ability(Constitution), amount: 6, kind: Enhancement),
+            (target: Save(Fortitude), amount: 2),
+        ],
+        other_effects: [
+            "Against evil creatures: +1 insight to AC.",
+        ],
+    ),
+    (
+        key: "clutch-of-corruption",
+        name: "Clutch of Corruption",
+        slot: Belt,
+        guide: "items#belts",
+        bonuses: [
+            (target: Ability(Strength), amount: 4, kind: Enhancement),
+            (target: Ability(Constitution), amount: 8, kind: Enhancement),
+        ],
+        other_effects: [
+            "Confirmed critical with a natural weapon: the target is vulnerable to negative and unholy damage for 2 rounds.",
+        ],
+    ),
+    (
+        key: "display-of-power",
+        name: "Display of Power",
+        slot: Belt,
+        guide: "items#belts",
+        bonuses: [
+            (target: Ability(Strength), amount: 6, kind: Enhancement),
+        ],
+        other_effects: [
+            "Enemies within 15 feet take -2 on Will saves.",
+        ],
+    ),
+    (
+        key: "flawless-belt-of-physical-perfection-8",
+        name: "Flawless Belt of Physical Perfection +8",
+        slot: Belt,
+        guide: "items-inevitable-excess#belts",
+        bonuses: [
+            (target: Ability(Strength), amount: 8, kind: Enhancement),
+            (target: Ability(Dexterity), amount: 8, kind: Enhancement),
+            (target: Ability(Constitution), amount: 8, kind: Enhancement),
+        ],
+        other_effects: [
+            "Weapon critical threat range +1.",
+        ],
+    ),
+    (
+        key: "gorgon-belt",
+        name: "Gorgon Belt",
+        slot: Belt,
+        guide: "items#belts",
+        bonuses: [
+            (target: Ability(Strength), amount: 4, kind: Enhancement),
+        ],
+        other_effects: [
+            "Ignores difficult terrain.",
+            "Once a day: a 50-foot cone of breath that paralyses for 1d4 rounds (Fortitude DC 18 + Con modifier).",
+        ],
+    ),
+    (
+        key: "heart-of-ice",
+        name: "Heart of Ice",
+        slot: Belt,
+        guide: "items-lord-of-nothing#belts",
+        bonuses: [
+            (target: Ability(Constitution), amount: 4, kind: Enhancement),
+        ],
+        other_effects: [
+            "+4 armour bonus to AC.",
+            "Once a day: casts Ice Cascade.",
+        ],
+    ),
+    (
+        key: "mangling-frenzy",
+        name: "Mangling Frenzy",
+        slot: Belt,
+        guide: "items#belts",
+        bonuses: [
+            (target: Ability(Strength), amount: 4, kind: Enhancement),
+            (target: Ability(Dexterity), amount: 4, kind: Enhancement),
+            (target: Ability(Constitution), amount: 4, kind: Enhancement),
+        ],
+        other_effects: [
+            "Damage reduction 3/-.",
+            "Critical hit while raging: +4d6 slashing damage.",
+        ],
+    ),
+    (
+        key: "timely-assistance",
+        name: "Timely Assistance",
+        slot: Belt,
+        guide: "items#belts",
+        bonuses: [
+            (target: Ability(Constitution), amount: 4, kind: Enhancement),
+            (target: Ability(Wisdom), amount: 4, kind: Enhancement),
+        ],
+        other_effects: [
+            "When an ally within 20 feet lands a killing blow, the wearer's next spell is extended.",
+        ],
+    ),
+    (
+        key: "unceasing-slaughter",
+        name: "Unceasing Slaughter",
+        slot: Belt,
+        guide: "items#belts",
+        bonuses: [
+            (target: Ability(Dexterity), amount: 4, kind: Enhancement),
+            (target: Ability(Constitution), amount: 4, kind: Enhancement),
+        ],
+        other_effects: [
+            "After a kill: +2 to Dexterity and Constitution for 3 rounds.",
+        ],
+    ),
+    // Boots.
+    (
+        key: "cats-boots",
+        name: "Cat's Boots",
+        slot: Boots,
+        guide: "items#boots",
+        bonuses: [
+            (target: Ability(Dexterity), amount: 4, kind: Enhancement),
+        ],
+        other_effects: [
+            "Movement does not provoke attacks of opportunity.",
+            "Worn with the Owl's Cowl: Dexterity +6 instead, and +5 initiative.",
+        ],
+    ),
+    (
+        key: "offroad-boots",
+        name: "Offroad Boots",
+        slot: Boots,
+        guide: "items#boots",
+        bonuses: [
+            (target: Ability(Dexterity), amount: 4, kind: Enhancement),
+        ],
+        other_effects: [
+            "Ignores difficult terrain; difficult terrain gives +10 feet of speed for 1 round.",
+        ],
+    ),
+    // Bracers.
+    (
+        key: "bracers-of-mighty-boar",
+        name: "Bracers of Mighty Boar",
+        slot: Bracers,
+        guide: "items#bracers",
+        bonuses: [
+            (target: Ability(Strength), amount: 6, kind: Enhancement),
+        ],
+        other_effects: [
+            "Charging with natural attacks: the first attack's base damage is tripled.",
+        ],
+    ),
+    // Cloak.
+    (
+        key: "grand-festival-cloak",
+        name: "Grand Festival Cloak",
+        slot: Cloak,
+        guide: "items#cloaks",
+        bonuses: [
+            (target: AllSaves, amount: 7, kind: Resistance),
+            (target: Ability(Charisma), amount: 2, kind: Circumstance),
+        ],
+        other_effects: [
+            "Persuasion used to bluff: +5 circumstance.",
+        ],
+    ),
+    // Glasses.
+    (
+        key: "goggles-of-ferocious-pact",
+        name: "Goggles of Ferocious Pact",
+        slot: Glasses,
+        guide: "items#glasses",
+        bonuses: [
+            (target: Ability(Wisdom), amount: 2, kind: Enhancement),
+            (target: Save(Will), amount: 3),
+            (target: Save(Fortitude), amount: -2),
+            (target: Skill("persuasion"), amount: -5),
+        ],
+        other_effects: [
+            "-2 penalty to AC.",
+            "+4 damage.",
+        ],
+    ),
+    // Gloves.
+    (
+        key: "gloves-of-the-ambassador",
+        name: "Gloves of the Ambassador",
+        slot: Gloves,
+        guide: "items#gloves",
+        bonuses: [
+            (target: Ability(Charisma), amount: 2, kind: Enhancement),
+            (target: Skill("knowledge-world"), amount: 5, kind: Competence),
+            (target: Skill("persuasion"), amount: 5, kind: Competence),
+        ],
+    ),
+    (
+        key: "hammer-fists",
+        name: "Hammer Fists",
+        slot: Gloves,
+        guide: "items#gloves",
+        bonuses: [
+            (target: Ability(Strength), amount: 4, kind: Enhancement),
+        ],
+        other_effects: [
+            "+2 morale bonus to AC.",
+        ],
+    ),
+    (
+        key: "soaring-fist",
+        name: "Soaring Fist",
+        slot: Gloves,
+        guide: "items#gloves",
+        bonuses: [
+            (target: Ability(Constitution), amount: 2, kind: Enhancement),
+            (target: Skill("mobility"), amount: 4, kind: Competence),
+        ],
+    ),
+    // Headwear.
+    (
+        key: "battlemages-headband",
+        name: "Battlemage's Headband",
+        slot: Headwear,
+        guide: "items#headwear",
+        bonuses: [
+            (target: Ability(Intelligence), amount: 2, kind: Enhancement),
+            (target: Ability(Charisma), amount: 2, kind: Enhancement),
+        ],
+        other_effects: [
+            "After a melee kill: the next spell is empowered.",
+        ],
+    ),
+    (
+        key: "blazing-crown",
+        name: "Blazing Crown",
+        slot: Headwear,
+        guide: "items#headwear",
+        bonuses: [
+            (target: Ability(Charisma), amount: 4, kind: Enhancement),
+        ],
+        other_effects: [
+            "Damaging an enemy with a spell: 10 temporary hit points for 3 rounds.",
+        ],
+    ),
+    (
+        key: "bookworms-headband",
+        name: "Bookworm's Headband",
+        slot: Headwear,
+        guide: "items#headwear",
+        bonuses: [
+            (target: Ability(Intelligence), amount: 2, kind: Enhancement),
+            (target: Ability(Charisma), amount: -2),
+            (target: Skill("persuasion"), amount: -3),
+        ],
+        other_effects: [
+            "Immune to compulsion effects.",
+        ],
+    ),
+    (
+        key: "broken-trickster",
+        name: "Broken Trickster",
+        slot: Headwear,
+        guide: "items#headwear",
+        bonuses: [
+            (target: Ability(Wisdom), amount: 6, kind: Enhancement),
+            (target: Ability(Charisma), amount: 6, kind: Enhancement),
+        ],
+        other_effects: [
+            "Taking energy damage: resistance 20 to that energy for 1 round.",
+            "Taking physical damage: DR 20/- for 1 round.",
+        ],
+    ),
+    (
+        key: "crushing-presence",
+        name: "Crushing Presence",
+        slot: Headwear,
+        guide: "items#headwear",
+        bonuses: [
+            (target: Ability(Charisma), amount: 6, kind: Enhancement),
+        ],
+        other_effects: [
+            "3 times a day: pushes enemies within 15 feet back 10 feet and deals bludgeoning damage (1d8 + caster level).",
+        ],
+    ),
+    (
+        key: "darkness-caress",
+        name: "Darkness Caress",
+        slot: Headwear,
+        guide: "items#headwear",
+        bonuses: [
+            (target: Ability(Intelligence), amount: 8, kind: Enhancement),
+            (target: Ability(Wisdom), amount: 8, kind: Enhancement),
+            (target: Ability(Charisma), amount: 8, kind: Enhancement),
+        ],
+        other_effects: [
+            "Adds the Charisma bonus to all ranged weapon damage.",
+        ],
+    ),
+    (
+        key: "doubling-annoyance",
+        name: "Doubling Annoyance",
+        slot: Headwear,
+        guide: "items#headwear",
+        bonuses: [
+            (target: Ability(Intelligence), amount: 6, kind: Enhancement),
+            (target: Ability(Wisdom), amount: 6, kind: Enhancement),
+            (target: Ability(Charisma), amount: 6, kind: Enhancement),
+        ],
+        other_effects: [
+            "Casting Perpetually Annoyed Wizard summons two wizards.",
+            "Only the main character can wear it.",
+        ],
+    ),
+    (
+        key: "dravens-hat",
+        name: "Draven's Hat",
+        slot: Headwear,
+        guide: "items#headwear",
+        bonuses: [
+            (target: Ability(Intelligence), amount: 2, kind: Profane),
+        ],
+        other_effects: [
+            "Slow and Haste spells are quickened; once a day, any spell is quickened.",
+            "Good characters cannot wear it.",
+        ],
+    ),
+    (
+        key: "flamboyant-hat",
+        name: "Flamboyant Hat",
+        slot: Headwear,
+        guide: "items-lord-of-nothing#headwear",
+        bonuses: [
+            (target: Ability(Charisma), amount: 2, kind: Enhancement),
+        ],
+        other_effects: [
+            "+2 rounds of bardic performance a day.",
+        ],
+    ),
+    (
+        key: "flawless-headband-of-mental-perfection-8",
+        name: "Flawless Headband of Mental Perfection +8",
+        slot: Headwear,
+        guide: "items#headwear",
+        bonuses: [
+            (target: Ability(Intelligence), amount: 8, kind: Enhancement),
+            (target: Ability(Wisdom), amount: 8, kind: Enhancement),
+            (target: Ability(Charisma), amount: 8, kind: Enhancement),
+        ],
+        other_effects: [
+            "Immune to mind-affecting spells and conditions.",
+        ],
+    ),
+    (
+        key: "gnawing-magic",
+        name: "Gnawing Magic",
+        slot: Headwear,
+        guide: "items#headwear",
+        bonuses: [
+            (target: Ability(Intelligence), amount: 6, kind: Enhancement),
+        ],
+        other_effects: [
+            "Spell on an enemy: +1 on spell resistance checks for you, -1 to the target's attacks, damage and saves for 3 rounds, stacking to 4.",
+        ],
+    ),
+    (
+        key: "headband-of-confidence",
+        name: "Headband of Confidence",
+        slot: Headwear,
+        guide: "items-inevitable-excess#headwear",
+        bonuses: [
+            (target: Ability(Wisdom), amount: 4, kind: Enhancement),
+            (target: Ability(Charisma), amount: 4, kind: Enhancement),
+        ],
+        other_effects: [
+            "+4 on saves against mind-affecting conditions.",
+        ],
+    ),
+    (
+        key: "headband-of-mental-perfection-6",
+        name: "Headband of Mental Perfection +6",
+        slot: Headwear,
+        guide: "items#headwear",
+        bonuses: [
+            (target: Ability(Intelligence), amount: 6, kind: Enhancement),
+            (target: Ability(Wisdom), amount: 6, kind: Enhancement),
+            (target: Ability(Charisma), amount: 6, kind: Enhancement),
+        ],
+    ),
+    (
+        key: "headband-of-reshaping",
+        name: "Headband of Reshaping",
+        slot: Headwear,
+        guide: "items#headwear",
+        bonuses: [
+            (target: Ability(Wisdom), amount: 6, kind: Enhancement),
+        ],
+        other_effects: [
+            "+1 caster level for Transmutation spells.",
+        ],
+    ),
+    (
+        key: "headband-of-rigorous-training",
+        name: "Headband of Rigorous Training",
+        slot: Headwear,
+        guide: "items#headwear",
+        bonuses: [
+            (target: Ability(Wisdom), amount: 6, kind: Enhancement),
+        ],
+        other_effects: [
+            "5 extra uses of Perfect Strike a day.",
+        ],
+    ),
+    (
+        key: "headband-of-subjugator",
+        name: "Headband of Subjugator",
+        slot: Headwear,
+        guide: "items#headwear",
+        bonuses: [
+            (target: Ability(Intelligence), amount: 6, kind: Enhancement),
+        ],
+        other_effects: [
+            "First hit on an enemy dazzles it for 3 rounds (Fortitude DC 30); it is blinded instead if movement-impaired.",
+        ],
+    ),
+    (
+        key: "headband-of-the-wise-negotiator",
+        name: "Headband of the Wise Negotiator",
+        slot: Headwear,
+        guide: "items#headwear",
+        bonuses: [
+            (target: Ability(Charisma), amount: 4, kind: Enhancement),
+            (target: Ability(Wisdom), amount: 4, kind: Enhancement),
+        ],
+        other_effects: [
+            "+4 on saves against mind-affecting conditions.",
+        ],
+    ),
+    (
+        key: "jester-cap",
+        name: "Jester Cap",
+        slot: Headwear,
+        guide: "items#headwear",
+        bonuses: [
+            (target: Ability(Intelligence), amount: 6, kind: Enhancement),
+            (target: Ability(Wisdom), amount: 6, kind: Enhancement),
+            (target: Ability(Charisma), amount: 6, kind: Enhancement),
+        ],
+        other_effects: [
+            "Persuasion used to bluff: +5 competence.",
+            "+2 DC for fused spells.",
+        ],
+    ),
+    (
+        key: "owls-cowl",
+        name: "Owl's Cowl",
+        slot: Headwear,
+        guide: "items#headwear",
+        bonuses: [
+            (target: Ability(Wisdom), amount: 6, kind: Enhancement),
+        ],
+        other_effects: [
+            "Using a shifter aspect: +2 circumstance to natural attacks.",
+            "Worn with the Cat's Boots: +2 circumstance to AC.",
+        ],
+    ),
+    (
+        key: "razmirs-mask",
+        name: "Razmir's Mask",
+        slot: Headwear,
+        guide: "items#headwear",
+        bonuses: [
+            (target: Ability(Intelligence), amount: 8, kind: Enhancement),
+            (target: Ability(Wisdom), amount: 8, kind: Enhancement),
+            (target: Ability(Charisma), amount: 8, kind: Enhancement),
+        ],
+        other_effects: [
+            "Immune to Divination magic and has Spell Turning.",
+            "Casts one spell per round as a free action.",
+        ],
+    ),
+    (
+        key: "wardens-circlet",
+        name: "Warden's Circlet",
+        slot: Headwear,
+        guide: "items#headwear",
+        bonuses: [
+            (target: Ability(Intelligence), amount: 4, kind: Enhancement),
+            (target: Ability(Wisdom), amount: 4, kind: Enhancement),
+            (target: Ability(Charisma), amount: 4, kind: Enhancement),
+        ],
+        other_effects: [
+            "Twice a day: summons two Labyrinth Demodand Destroyers for 2 minutes.",
+        ],
+    ),
+    // Necklace.
+    (
+        key: "amulet-of-alchemical-knowledge",
+        name: "Amulet of Alchemical Knowledge",
+        slot: Necklace,
+        guide: "items-lord-of-nothing#necklaces",
+        bonuses: [
+            (target: Ability(Intelligence), amount: 2, kind: Alchemical),
+        ],
+        other_effects: [
+            "+4 alchemical bonus to saves against poison.",
+            "+3 bombs a day.",
+        ],
+    ),
+    (
+        key: "life-veil",
+        name: "Life Veil",
+        slot: Necklace,
+        guide: "items#necklaces",
+        bonuses: [
+            (target: Ability(Constitution), amount: 6, kind: Enhancement),
+        ],
+        other_effects: [
+            "Twice a day: casts Cure Serious Wounds as a 5th-level cleric.",
+        ],
+    ),
+    // Ring.
+    (
+        key: "colossus-ring",
+        name: "Colossus Ring",
+        slot: Ring,
+        guide: "items#rings",
+        bonuses: [
+            (target: Ability(Constitution), amount: 2, kind: Luck),
+        ],
+        other_effects: [
+            "Twice a day: casts Enlarge Person as a 1st-level wizard.",
+        ],
+    ),
+    (
+        key: "midnight-hunters-ring",
+        name: "Midnight Hunter's Ring",
+        slot: Ring,
+        guide: "items#rings",
+        bonuses: [
+            (target: Ability(Dexterity), amount: 2, kind: Enhancement),
+        ],
+        other_effects: [
+            "+2 enhancement to attacks against lycanthropes.",
+            "Once a day: hastes the wearer for 5 rounds.",
+        ],
+    ),
+    (
+        key: "razmirs-ring",
+        name: "Razmir's Ring",
+        slot: Ring,
+        guide: "items#rings",
+        bonuses: [
+            (target: Ability(Intelligence), amount: 8, kind: Enhancement),
+            (target: Ability(Wisdom), amount: 8, kind: Enhancement),
+            (target: Ability(Charisma), amount: 8, kind: Enhancement),
+        ],
+        other_effects: [
+            "All spells are Intensified and Piercing.",
+            "Grants the abilities of the Magic domain.",
+        ],
+    ),
+    // Robe.
+    (
+        key: "earths-embrace",
+        name: "Earth's Embrace",
+        slot: Robe,
+        guide: "items#robes",
+        bonuses: [
+            (target: Ability(Constitution), amount: 2, kind: Enhancement),
+            (target: Skill("lore-nature"), amount: 4, kind: Competence),
+        ],
+        other_effects: [
+            "+4 on saves against fire.",
+        ],
+    ),
+    (
+        key: "robe-of-angelic-presence",
+        name: "Robe of Angelic Presence",
+        slot: Robe,
+        guide: "items#robes",
+        bonuses: [
+            (target: Ability(Charisma), amount: 4, kind: Enhancement),
+            (target: Ability(Wisdom), amount: 4, kind: Enhancement),
+        ],
+        other_effects: [
+            "Casts Greater Angelic Aspect at will.",
+        ],
+    ),
+    (
+        key: "robe-of-unspeakable-truth",
+        name: "Robe of Unspeakable Truth",
+        slot: Robe,
+        guide: "items#robes",
+        bonuses: [
+            (target: Ability(Wisdom), amount: 2, kind: Circumstance),
+        ],
+        other_effects: [
+            "Worn with the Glasses of Undeniable Truth: projects fear in a 10-foot radius (DC 25 + Charisma modifier).",
+        ],
+    ),
+    // Usable.
+    (
+        key: "manual-of-bodily-health-2",
+        name: "Manual of Bodily Health +2",
+        slot: Usable,
+        guide: "items#equipable-and-consumable",
+        bonuses: [
+            (target: Ability(Constitution), amount: 2, kind: Inherent),
+        ],
+    ),
+    (
+        key: "manual-of-gainful-exercise-2",
+        name: "Manual of Gainful Exercise +2",
+        slot: Usable,
+        guide: "items#equipable-and-consumable",
+        bonuses: [
+            (target: Ability(Strength), amount: 2, kind: Inherent),
+        ],
+    ),
+    (
+        key: "manual-of-quickness-of-action-2",
+        name: "Manual of Quickness of Action +2",
+        slot: Usable,
+        guide: "items#equipable-and-consumable",
+        bonuses: [
+            (target: Ability(Dexterity), amount: 2, kind: Inherent),
+        ],
+    ),
+    (
+        key: "tome-of-clear-thought-2",
+        name: "Tome of Clear Thought +2",
+        slot: Usable,
+        guide: "items#equipable-and-consumable",
+        bonuses: [
+            (target: Ability(Intelligence), amount: 2, kind: Inherent),
+        ],
+    ),
+    (
+        key: "tome-of-leadership-and-influence-2",
+        name: "Tome of Leadership and Influence +2",
+        slot: Usable,
+        guide: "items#equipable-and-consumable",
+        bonuses: [
+            (target: Ability(Charisma), amount: 2, kind: Inherent),
+        ],
+    ),
+    (
+        key: "tome-of-understanding-2",
+        name: "Tome of Understanding +2",
+        slot: Usable,
+        guide: "items#equipable-and-consumable",
+        bonuses: [
+            (target: Ability(Wisdom), amount: 2, kind: Inherent),
+        ],
+    ),
+    (
+        key: "trusted-friend",
+        name: "Trusted Friend",
+        slot: Usable,
+        guide: "items#equipable-and-consumable",
+        bonuses: [
+            (target: Ability(Charisma), amount: 2, kind: Circumstance),
+            (target: Skill("persuasion"), amount: 5, kind: Circumstance),
+        ],
+        other_effects: [
+            "Only the Knight Commander can equip it.",
+        ],
+    ),
+    // Armour.
+    (
+        key: "half-plate-of-vigor",
+        name: "Half-Plate of Vigor",
+        slot: Armour,
+        guide: "items#unique-armour",
+        bonuses: [
+            (target: Ability(Constitution), amount: 2),
+        ],
+    ),
+    (
+        key: "life-infuser",
+        name: "Life Infuser",
+        slot: Armour,
+        guide: "items#unique-armour",
+        bonuses: [
+            (target: Ability(Constitution), amount: 8, kind: Armour),
+            (target: Ability(Strength), amount: 8, kind: Armour),
+        ],
+        other_effects: [
+            "Moderate fortification.",
+        ],
+    ),
+    (
+        key: "snakeskin",
+        name: "Snakeskin",
+        slot: Armour,
+        guide: "items#unique-armour",
+        bonuses: [
+            (target: Ability(Dexterity), amount: 4, kind: Profane),
+        ],
+        other_effects: [
+            "+20 feet base speed.",
+            "Immune to acid.",
+        ],
+    ),
+    (
+        key: "ustlavic-pride",
+        name: "Ustlavic Pride",
+        slot: Armour,
+        guide: "items#unique-armour",
+        bonuses: [
+            (target: Ability(Charisma), amount: 3, kind: Enhancement),
+        ],
+        other_effects: [
+            "+4 enhancement bonus to CMD.",
+            "DR 5/- against attacks from undead.",
+        ],
+    ),
+    // Weapon.
+    (
+        key: "dirge-for-sarkoris",
+        name: "Dirge for Sarkoris",
+        slot: Weapon,
+        guide: "items-lord-of-nothing#weapons",
+        bonuses: [
+            (target: Ability(Strength), amount: 2),
+        ],
+        other_effects: [
+            "A +2 keen weapon; +2d8 holy damage against undead.",
+        ],
+    ),
+    (
+        key: "sin-mages-staff",
+        name: "Sin Mage's Staff",
+        slot: Weapon,
+        guide: "items#weapon-properties",
+        bonuses: [
+            (target: Ability(Intelligence), amount: 6),
+            (target: SpellDc(All), amount: 1),
+            (target: CasterLevel, amount: 3),
+        ],
+        other_effects: [
+            "A +5 quarterstaff.",
+        ],
+    ),
+]

@@ -223,8 +223,7 @@ Real-data tests (first-stage rules, not check rules, since the second stage brea
 
 ## Open, for the user
 
-1. **Manuals and tomes** ("1 charge: +2 inherent bonus"): six, each a different score, and a character can use all of them. Are they gear? If so, a single `Usable` place would allow only one.
-   Still open with the user when ticket 165 started (2026-11-11), so 165 leaves the six out: no `Usable` item in the first stage, and the Answer names them as left out. Adding them later is additive.
+1. **Manuals and tomes** ("1 charge: +2 inherent bonus"): six, each a different score, and a character can use all of them. **Answered** (user, 2026-11-11): "yes tomes are gear, add the Tomes row". They are in the first stage: `slot: Usable`, one `Inherent` bonus each, with their guide reference. A character can use all six at once, so `Usable` is not a one-item place; that is ticket 166's concern.
 2. **Robe and armour:** separate guide sections. **Answered** (user, 2026-11-11): "same slot. only cloth armor can be worn with an armor." A robe and an armour share one body place in the Build; `GearSlot` keeps both sections, and ticket 166 maps both to that place.
 3. **Caster level:** **Answered** (user, 2026-11-11): "counted now". Add `GearTarget::CasterLevel` in the first stage, after `SpellDc` in the summary's order and named `Caster level`; the table's `target` CHECK gains `caster_level`. Only an always-on, unscoped bonus is a `CasterLevel` bonus (Sin Mage's Staff +3); one for a single school stays text. Ticket 166 adds it to the caster level the caster line reports, and so to spell penetration and concentration.
 4. **The Enforcer's Dex +2:** **Answered** (user, 2026-11-11): "belt of incredible dexterity 2". That belt is on none of the saved pages: the guide lists unique items, not the plain stat belts and headbands. So the catalogue holds items the guide doesn't back; see "The generic stat items".
@@ -240,11 +239,11 @@ The user's list (2026-11-11), added by hand. The guide has none of them, so the 
 - Headband of Vast Intelligence +2, +4, +6
 - Headband of Inspired Wisdom +2, +4, +6
 
-Eighteen items, each one enhancement bonus to its score and no other effect. Belts are `slot: Belt`, headbands `slot: Headwear`. Keys follow the rule (`belt-of-incredible-dexterity-2`). The two-score and three-score belts and headbands are not on the list: don't add them.
+Eighteen single-score items, each one enhancement bonus to its score and no other effect. Belts are `slot: Belt`, headbands `slot: Headwear`. Keys follow the rule (`belt-of-incredible-dexterity-2`). The user then added the three-score ones (2026-11-11): Belt of Physical Perfection (Str, Dex, Con) and Headband of Mental Perfection (Int, Wis, Cha), each an enhancement bonus to its three scores at +2, +4 and +6. The guide already lists the +6 of each (`items#belts`, `items#headwear`), so those two keep the guide's entry and reference; the +2 and +4 of each are added by hand with no guide reference (four more items). The two-score variants are not on the list: don't add them.
 
 What this changes in the shape:
 
 - `GearItem.guide` becomes `Option<GuideRef>`, left out in the file for these eighteen (`#[serde(default)]`); the table's `guide` column is nullable.
 - `gear.ron` puts them first, under a comment saying they come from the user and not from the guide.
-- The real-data test on guide references applies to the items that have one, and a second test pins that exactly these eighteen have none.
+- The real-data test on guide references applies to the items that have one, and a second test pins that exactly these eighteen and the four hand-added three-score items have none.
 - An item with no guide reference shows no guide link in the app or the MCP.

@@ -23,3 +23,42 @@ Nothing left.
 ## Races and skills (0)
 
 Nothing left.
+
+## Gear (`gear.ron`, ticket 165)
+
+Read from the saved pages `items`, `items-inevitable-excess` and `items-lord-of-nothing` only, with a throwaway
+script (kept out of the repo) that lists every table row under the guide's item headings. A row counts when its
+Properties (for armour and weapons, the third column) give an always-on `+N <type> bonus` to a score; the 70 rows are
+checked by hand against the page.
+
+| Page | Belt | Boots | Bracers | Cloak | Glasses | Gloves | Headwear | Necklace | Ring | Robe | Usable | Armour | Weapon | Rows |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `items` | 12 | 2 | 1 | 1 | 1 | 3 | 19 | 1 | 3 | 3 | 7 | 4 | 1 | 58 |
+| `items-inevitable-excess` | 2 | 0 | 0 | 0 | 0 | 0 | 2 | 0 | 0 | 0 | 0 | 0 | 0 | 4 |
+| `items-lord-of-nothing` | 3 | 0 | 0 | 0 | 0 | 2 | 1 | 1 | 0 | 0 | 0 | 0 | 1 | 8 |
+
+70 rows, 3 repeats (Flawless Headband of Mental Perfection +8 on `items-inevitable-excess`, Hammer Fists and Soaring
+Fist on `items-lord-of-nothing`: the same properties as the main page's rows, so one entry each with the main page's
+reference), 67 distinct items. That agrees with the design's count (58 + 4 + 8 rows, 3 repeats). Of the 67, 6 are the
+manuals and tomes. Plus 22 items from the user with no page: 18 single-score belts and headbands at +2, +4 and +6,
+and Belt of Physical Perfection and Headband of Mental Perfection at +2 and +4 (their +6 are the guide's). 89 items.
+
+Judgement calls:
+
+- **Left out, though a score is named:** Glasses of Undeniable Truth (+2 Int only worn with a robe), Bestial Rags
+  (+2 racial to three scores only in a major form), Robe of False Death (a -6 Con penalty only), Mutilated Angel
+  (a -3 Cha penalty only), Nimble Edge (+2 morale Dex for a few rounds after a crit); and every row that names a
+  score only as damage, a DC or a modifier (Attrition Dagger, Poisonous Dart, Peacemaker, Rusty Dawn, The
+  Debilitator, Eviscerating Doom, Burning Torment, Smasher, Decimation, Rulebreaker, Mystic Grace, Trailblazer's
+  Armor, Carapace, Cloak of the Ancient Herald, Skinned Leather Cloak, Gloves of Phlebotomy, Helmet of Weakening
+  Torture, Amulet of Agile Fists, Demon's Eye, Dead Man's Hat, Grave Shivering).
+- **Relics and artifacts** (`items#relics`, `#artifacts`) are listed in prose with upgrade tiers and a chosen form
+  (Face-Stealer's Mask's belts and headbands, the Stone of Ghostly Pathways' circlets, Zaoris's Pin's headbands),
+  not as table rows, and the design counted table rows. They are not in the file; a later ticket may add them.
+- **Trusted Friend** sits in "Equipable and Consumable" with no slot in its text: `Usable`, as the manuals.
+- **Sin Mage's Staff** (`Weapon`, `items#weapon-properties`): Int +6 untyped, spell DC +1 and caster level +3 are
+  bonuses; "a +5 quarterstaff" is its one other effect (the weapon's type is the caster-level table's, which names
+  it a quarterstaff). **Dirge for Sarkoris**: Str +2 untyped; "a +2 keen weapon" (its type isn't given).
+- Untyped: Half-Plate of Vigor, Dirge for Sarkoris, Sin Mage's Staff and the +2 Fortitude of the Belt of the
+  Venerated Champion, the +3 Will of the Goggles of Ferocious Pact (the guide gives no type). Life Infuser's "+8
+  armour bonus" is typed `Armour` as written.

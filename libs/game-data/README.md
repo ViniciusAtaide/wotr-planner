@@ -19,6 +19,7 @@ small hand-written example of the layout.
 | `progression.ron` | `Progression`: the mythic rank table (the Character level of each Mythic rank) |
 | `bonuses.ron` | `Vec<ItemBonus>`: the flat bonuses items give while held, each naming its item (tickets 119 and 120): spell DCs, caster level against spell resistance, concentration, initiative, saves, skills |
 | `interactions.ron` | `Vec<ItemInteractions>`: what the guide says about how an item combines with others, at most one note per item (ticket 124); optional |
+| `gear.ron` | `Vec<GearItem>`: the named items a character wears or wields, with their always-on bonuses and a few words on what else they do (ticket 165); optional |
 | `races.ron` | `Vec<Race>`, with subraces and the race's own feat lists (the half-elf's Adaptability) |
 | `skills.ron` | `Vec<Skill>` |
 | `weapons.ron` | `Vec<Weapon>`: the weapons a feat can be taken for, from the guide's simple, martial and exotic lists (`proficiency`; the Sawtooth Saber is exotic, from Weapon Finesse's list), plus what Weapon Focus names besides weapons (unarmed strike, touch attacks, rays), each natural attack the guide names (bite, claw, gore, hoof, slam, spike, tail, talon, wing), Kinetic Blast and Bomb; each weapon's stats for the attack line (ticket 114) |
@@ -600,9 +601,28 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   Expanded Arsenal, Second Bloodline, Bloodline Ascendance, and the Fey and Infernal bloodlines' arcana against School
   Power); new notes as later runs find them, no sweep. `describe` shows the note. The real-data test `totals` checks
   they're present.
-- `gear.ron` (ticket 122, the guide's caster level and spell DC items) was removed by ticket 148: the numbers are
-  naked, with no gear assumed (user, 2026-11-10), and the migration `20261111152919_148-drop-gear.sql` drops its
-  tables.
+- `gear.ron` (ticket 165; ticket 122's file of that name was removed by ticket 148) holds the gear items
+  (`rules::GearItem`, `rules::GearBonus`, `rules::GearTarget`, `rules::BonusType`), one block each, grouped by slot.
+  **Which items:** every item on the saved pages `items`, `items-inevitable-excess` and `items-lord-of-nothing` whose
+  properties give an always-on bonus to an ability score (67 distinct items: 70 rows, 3 of them repeated on a DLC
+  page), plus 22 the user added by hand with no `guide` (the plain stat belts and headbands at +2, +4 and +6, and
+  the two three-score ones at +2 and +4; the guide lists the +6 ones itself). Items whose only score change is a
+  penalty or holds in a circumstance (Glasses of Undeniable Truth, Bestial Rags, Robe of False Death, Mutilated
+  Angel, Nimble Edge) and the relics and artifacts (listed in prose with upgrade tiers, not in tables) are out;
+  the second stage ([169](../../.scratch/wotr-planner/issues/169-gear-second-stage.md)) takes the items with no score
+  bonus. **Key:** the name in lower case, apostrophes dropped, every other run of non-alphanumerics one hyphen.
+  **Slot:** the guide's section (`Belt` … `Robe`, `Usable` for "Equipable and Consumable": the six manuals and tomes
+  and the Trusted Friend), plus `Armour` and `Weapon` for the six armour and weapon rows that give a score bonus;
+  how many of a slot a Build holds, and that a robe and an armour share one body place, is the engine's.
+  **Guide:** `page#section`, e.g. `items#belts`, `items#unique-armour`, `items#weapon-properties`,
+  `items-lord-of-nothing#weapons`; a row repeated on a DLC page keeps the main page's. **Bonuses:** one per number
+  changed, with its type as the guide words it (`kind` left out for none or "untyped"; a penalty is always
+  untyped). The targets are an ability score, all saves or one, initiative, one skill, spell DC, caster level, spell
+  penetration and concentration. A bonus for one use of a skill ("Persuasion (Bluff)"), against one kind of foe, in
+  some circumstance, per day or after an event is an other effect. **Other effects:** short lines in our own words
+  (never the guide's), at most about 140 characters; an AC, attack, damage, CMD or speed bonus is one of them until
+  the second stage. `GearItem::summary` generates the text under a name ("Str, Dex, Con +6 enhancement"). The
+  real-data test `gear` checks the file and three items against their pages.
 - Keys are readable text from the guide's anchors: `power-attack` (a feat), `rogue` (a class),
   `rogue/dark-lurker` (an archetype), `rogue/rogue-talents/fast-stealth` (a selection option). A key has no type
   prefix: where it sits says what it names, so keys of two kinds may be equal (the feature and the selection
