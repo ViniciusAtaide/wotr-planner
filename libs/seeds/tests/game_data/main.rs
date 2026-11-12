@@ -17,6 +17,7 @@ mod class_skills;
 mod data;
 mod deities;
 mod extra_picks;
+mod finesse_training;
 mod first_ascension;
 mod follow_ups;
 mod gear;
