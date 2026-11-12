@@ -46,7 +46,7 @@ A working, locally run Leptos app at `~/code/wotr-planner` for planning Pathfind
   - [146](issues/146-checking-the-data-against-the-guide.md) checking the data against the guide, and [147](issues/147-end-to-end-smoke-tests.md) end-to-end smoke tests (Playwright);
   - [148](issues/148-naked-numbers.md) naked numbers: `assume` and `gear.ron` are removed (reversing 122), the MCP attack line defaults to the Build's Weapon Focus weapon, and the wotr-build skill compares without gear.
 
-  Waiting on the user: 144's bonus types, 138's saved pages for the class features, [171](issues/171-mythic-picks-after-the-levels.md)'s choice between its two ways to build it, and the design tickets [173](issues/173-uncanny-dodge-as-a-slayer-talent.md) (Uncanny Dodge as a slayer talent) and [174](issues/174-animal-companions.md) (animal companions).
+  Waiting on the user: 144's bonus types, 138's saved pages for the class features, and the design tickets [173](issues/173-uncanny-dodge-as-a-slayer-talent.md) (Uncanny Dodge as a slayer talent) and [174](issues/174-animal-companions.md) (animal companions).
 
   Not ticketed, because the user already decided them: granted features on the Sheet ([93](issues/93-show-granted-features.md), won't do), choices that gate no pick staying labels ([54](issues/54-mercies-and-enforcer-exploits.md)), the two items left as they are above, and what Out of scope names.
 - **Architecture review** (2026-11-11, the user's "write tickets for the strong ones"): four deepening refactors, none changing behaviour.
