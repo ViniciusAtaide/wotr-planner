@@ -1,11 +1,12 @@
 //! Initiative, the saves and each skill's total at one point of a Build (ticket 120).
 //!
-//! Unconditional numbers only, from what the Build fixes: the character's own scores, the saves' class progressions,
-//! the skill ranks and class skills, and the Item bonuses in force ([`BonusInForce`], from `bonuses.ron`): Improved
-//! Initiative, Iron Will and its kin, Skill Focus, racial and background bonuses, Halfling Luck, Mythic Resolve,
-//! Divine Grace. Everything else is [`TOTALS_LEAVE_OUT`].
+//! Unconditional numbers only, from what the Build fixes: the character's scores (its gear's bonuses included), the
+//! saves' class progressions, the skill ranks and class skills, and the bonuses in force ([`BonusInForce`]): the Item
+//! bonuses of `bonuses.ron` (Improved Initiative, Iron Will and its kin, Skill Focus, racial and background bonuses,
+//! Halfling Luck, Mythic Resolve, Divine Grace) and the always-on bonuses of the Build's gear, stacked by type
+//! ([`counted`]). Everything else is [`TOTALS_LEAVE_OUT`].
 
-use crate::bonus::BonusInForce;
+use crate::bonus::{BonusInForce, BonusTarget, counted};
 use crate::game_data::{Ability, Save};
 use crate::keys::SkillKey;
 
@@ -64,7 +65,7 @@ pub struct SkillTotal {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct TotalPart {
     /// "Base save", "Ranks", "Dexterity", "Class skill", or the item's name ("Improved Initiative", "Skill Focus
-    /// (Persuasion)", "Halfling").
+    /// (Persuasion)", "Halfling", "Grand Festival Cloak").
     pub name: String,
     pub value: i16,
 }
@@ -72,7 +73,8 @@ pub struct TotalPart {
 /// What the totals leave out, the same for every Build: they hold only the numbers a Build fixes whatever happens in
 /// a fight.
 pub const TOTALS_LEAVE_OUT: &[&str] = &[
-    "gear: ability-score items, resistance bonuses, skill items",
+    "gear the Build doesn't hold, and what its items do besides their always-on bonuses: bonuses in some \
+     circumstance or against one thing, activated abilities, set bonuses",
     "buffs, spells, songs and auras cast on the character, an ally's included",
     "abilities switched on in a fight: rage, aspects, judgments, stances, a shifter's aspects",
     "bonuses against one kind of effect or foe (+2 against fear, poison, enchantments, demons, traps)",
@@ -100,11 +102,12 @@ impl Engine {
             name: ability.name().to_owned(),
             value: i16::from(state.ability_scores.modifier(ability)),
         };
-        let bonuses = |adds: &dyn Fn(&BonusInForce) -> bool| {
-            state
-                .bonuses_in_force
-                .iter()
-                .filter(|bonus| adds(bonus))
+        // The bonuses in force that add to one number and count there: gear's stack by type.
+        let bonuses = |adds: &dyn Fn(&BonusTarget, &BonusInForce) -> bool| {
+            let adding = (state.bonuses_in_force.iter())
+                .filter(|bonus| bonus.target.number().is_some_and(|to| adds(to, bonus)));
+            counted(adding)
+                .into_iter()
                 .map(|bonus| TotalPart {
                     name: bonus.name.clone(),
                     value: bonus.amount,
@@ -113,8 +116,8 @@ impl Engine {
         };
 
         let mut initiative = vec![ability(Ability::Dexterity)];
-        initiative.extend(bonuses(&|bonus| {
-            bonus.target.adds_to_initiative(bonus.value.as_ref())
+        initiative.extend(bonuses(&|target, bonus| {
+            target.adds_to_initiative(bonus.value.as_ref())
         }));
 
         let save = |save: Save, base: u8, own: Ability| {
@@ -125,8 +128,8 @@ impl Engine {
                 },
                 ability(own),
             ];
-            parts.extend(bonuses(&|bonus| {
-                bonus.target.adds_to_save(save, bonus.value.as_ref())
+            parts.extend(bonuses(&|target, bonus| {
+                target.adds_to_save(save, bonus.value.as_ref())
             }));
             total(parts)
         };
@@ -154,8 +157,8 @@ impl Engine {
                         value: CLASS_SKILL_BONUS,
                     });
                 }
-                parts.extend(bonuses(&|bonus| {
-                    bonus.target.adds_to_skill(key, bonus.value.as_ref())
+                parts.extend(bonuses(&|target, bonus| {
+                    target.adds_to_skill(key, bonus.value.as_ref())
                 }));
                 SkillTotal {
                     skill: key.clone(),

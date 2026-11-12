@@ -371,6 +371,8 @@ impl<'a> Cursor<'a> {
             Edit::MythicPath(_) => engine.rank_level(PATH_CHOICE_RANK),
             Edit::PathSwitch(_) => engine.rank_level(PATH_SWITCH_RANK),
             Edit::RemoveLevel | Edit::SetName(_) => u8::MAX,
+            // Gear counts from the Build start.
+            Edit::Wear { .. } | Edit::Use { .. } => 0,
         }
     }
 
@@ -412,6 +414,29 @@ impl<'a> Cursor<'a> {
         }
         named
     }
+}
+
+/// The state just before a slot is filled and what the slot accepts, in a Build: `None` when the Build has no such
+/// slot. What tells a pick open only because of gear: the same slot, asked of the Build without it.
+pub(crate) fn before_slot(
+    engine: &Engine,
+    build: &Build,
+    slot: &SlotId,
+) -> Option<(CharacterState, SlotKind)> {
+    let cursor = Cursor::new(engine, build);
+    let at = cursor.until_slot(slot)?;
+    Some((at.state, at.kind))
+}
+
+/// Whether a slot takes a pick at a state, by the walk's own check alone ([`check_pick`]), whatever the pick would
+/// break later.
+pub(crate) fn pick_fits(
+    engine: &Engine,
+    state: &CharacterState,
+    kind: &SlotKind,
+    pick: &Pick,
+) -> bool {
+    check_pick(&engine.catalog, state, kind, pick).is_ok()
 }
 
 /// The walk paused just before a slot is filled ([`Cursor::until_slot`]): the character's state there and what the

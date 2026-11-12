@@ -7,7 +7,7 @@ use std::collections::BTreeSet;
 
 use super::walk::Cursor;
 use super::{Engine, Withdrawal};
-use crate::build::{AbilityScores, Build, BuildStart, ClassChoice, Edit};
+use crate::build::{AbilityScores, Build, BuildStart, ClassChoice, Edit, GearSpot};
 use crate::choice::Choice;
 use crate::keys::ClassKey;
 
@@ -27,6 +27,9 @@ impl Engine {
     ///
     /// Taking a choice back is its [`Withdrawal`]. A level's own skill points don't count against changing its
     /// class: the class picker locks a class with too few.
+    ///
+    /// An item of the gear is here when no choice needs it, like any other: one that a choice needs comes off only
+    /// after the choice.
     ///
     /// Costs one walk of the Build, then for each choice a walk from its level (the Build start's: all of it). The
     /// sheet asks only for the class rows ([`removable_classes`](Self::removable_classes)) and for one choice at a
@@ -85,8 +88,8 @@ impl Engine {
 
     /// Every choice the Build holds, removable or not, each once with its [`Withdrawal`]: the Build start's
     /// (every point-buy score always), each level's class, ability increase and skill ranks, the last level, each
-    /// class's archetype and advanced classes, the first ascension, path and Path switch, and each pick. A level's
-    /// skill points are what its ranks spend, not a choice of their own.
+    /// class's archetype and advanced classes, the first ascension, path and Path switch, each pick, and each item of
+    /// its gear. A level's skill points are what its ranks spend, not a choice of their own.
     ///
     /// Costs no walk.
     pub fn held_choices(&self, build: &Build) -> Vec<Withdrawal> {
@@ -234,6 +237,25 @@ impl Engine {
                 Edit::Clear(slot.clone()),
                 vec![],
             );
+        }
+        for (spot, item) in build.gear.items() {
+            let edit = match &spot {
+                GearSpot::Worn(place) => Edit::Wear {
+                    place: *place,
+                    item: None,
+                },
+                GearSpot::Used(_) => Edit::Use {
+                    item: item.clone(),
+                    used: false,
+                },
+            };
+            let own = vec![Choice::Gear(spot.clone())];
+            let withdrawal = Withdrawal {
+                choice: Choice::Gear(spot),
+                edit,
+                excused: own,
+            };
+            withdrawals.push(withdrawal);
         }
         withdrawals
     }

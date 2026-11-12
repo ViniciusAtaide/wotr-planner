@@ -7,6 +7,7 @@
 
 use std::collections::BTreeSet;
 
+use super::gear::GearLean;
 use super::walk::{Cursor, first_taken_at};
 use super::{
     AdvancesOption, ClassOption, Engine, EntryOption, PathOption, SlotEntry, SlotKind, SlotOption,
@@ -28,9 +29,12 @@ impl Engine {
     /// Each option's status is the walk's verdict at the slot ([`Cursor::until_slot`], `AtSlot::try_pick`); the
     /// picker lists the candidates and words the reasons.
     ///
+    /// An option open only because of the Build's gear says which items it needs ([`SlotOption::with_gear`]).
+    ///
     /// Costs one walk to the slot's level, then a walk from the slot's level for the slot left empty and for each
     /// option open there that a later check could see (the cursor's named feats); each stops at the first choice
-    /// that fails.
+    /// that fails. A Build with gear costs one more walk to the slot's level, without the gear, and when an option
+    /// needs gear one more for each item held (two, when an option needs no single item).
     pub fn options(&self, build: &Build, slot: &SlotId) -> Option<Vec<SlotOption>> {
         let cursor = Cursor::new(self, build);
         let at = cursor.until_slot(slot)?;
@@ -113,18 +117,28 @@ impl Engine {
                 })
                 .collect(),
         };
+        // With gear: the same slot without it, to mark what only the gear opens.
+        let gear = self.gear_at_slot(build, slot);
         Some(
             candidates
                 .into_iter()
-                .map(|pick| SlotOption {
-                    status: at
+                .map(|pick| {
+                    let status = at
                         .try_pick(&pick)
-                        .map_err(|issue| self.reason_for(issue, state)),
-                    edit: Edit::Pick {
-                        slot: slot.clone(),
-                        pick: pick.clone(),
-                    },
-                    pick,
+                        .map_err(|issue| self.reason_for(issue, state));
+                    let with_gear = match (&gear, &status) {
+                        (Some(gear), Ok(())) => gear.need(&pick),
+                        _ => None,
+                    };
+                    SlotOption {
+                        status,
+                        edit: Edit::Pick {
+                            slot: slot.clone(),
+                            pick: pick.clone(),
+                        },
+                        with_gear,
+                        pick,
+                    }
                 })
                 .collect(),
         )
@@ -161,9 +175,14 @@ impl Engine {
             });
         }
         for entry in &mut entries {
-            entry.open = entry.options.iter().any(|o| o.option.status.is_ok());
+            let mut open = (entry.options.iter()).filter(|o| o.option.status.is_ok());
+            entry.open = open.clone().next().is_some();
             if !entry.open {
                 entry.reason = entry_reason(&entry.options);
+            } else if open.clone().all(|o| o.option.with_gear.is_some()) {
+                entry.gear_note = (open.next())
+                    .and_then(|o| o.option.with_gear.as_ref())
+                    .map(|needs| self.gear_note(needs));
             }
         }
         Some(entries)
@@ -184,6 +203,7 @@ impl Engine {
                 .as_ref()
                 .and_then(|item| item.prerequisite)
                 .and_then(story_note),
+            gear_note: None,
             // The kind its picks name ("a value" for a key the data lacks, which no option has).
             noun: option.pick.parameter().map(|_| {
                 item.as_ref()
@@ -203,13 +223,18 @@ impl Engine {
     /// a level after the last breaks nothing. A prestige class that asks which classes it advances is open when some
     /// advancement keeps the Build ([`advances_options`](Self::advances_options) lists those). Each status is the
     /// walk's verdict at the level ([`Cursor::until_level`], `AtLevel::try_class`). `None` for a level that isn't in
-    /// the Build or next.
+    /// the Build or next. An open class that only the Build's gear lets in, or that would leave another choice
+    /// leaning on the gear, says so ([`ClassOption::leans_on_gear`]).
     pub fn class_options(&self, build: &Build, level: u8) -> Option<Vec<ClassOption>> {
         if level == 0 || usize::from(level) > build.levels.len() + 1 {
             return None;
         }
         let cursor = Cursor::new(self, build);
         let at = cursor.until_level(level)?;
+        let naked = self.naked_build(build);
+        let lean = naked
+            .as_ref()
+            .map(|naked| GearLean::new(self, build, naked));
         let mut options = Vec::new();
         let data = self.catalog.data();
         let base = data.classes.iter().map(|class| (class, false));
@@ -230,15 +255,17 @@ impl Engine {
                     advances: held_advances(build, &class.key),
                 });
                 let status = at.try_class(class, prestige, choice.as_ref());
+                let edit = Edit::Class {
+                    level,
+                    class: class.key.clone(),
+                    choice,
+                };
                 options.push(ClassOption {
                     class: class.key.clone(),
                     archetype,
+                    leans_on_gear: GearLean::lean(lean.as_ref(), &status, &edit),
                     status,
-                    edit: Edit::Class {
-                        level,
-                        class: class.key.clone(),
-                        choice,
-                    },
+                    edit,
                 });
             }
         }

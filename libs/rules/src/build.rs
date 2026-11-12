@@ -16,9 +16,10 @@ use serde::{Deserialize, Serialize};
 
 use crate::choice::Choice;
 use crate::game_data::{Ability, Alignment};
+use crate::gear::GearSlot;
 use crate::keys::{
-    ArchetypeKey, BackgroundKey, ClassKey, DeityKey, FeatKey, MythicAbilityKey, MythicFeatKey,
-    MythicPathKey, RaceKey, SelectionOptionKey, SkillKey, SubraceKey,
+    ArchetypeKey, BackgroundKey, ClassKey, DeityKey, FeatKey, GearKey, MythicAbilityKey,
+    MythicFeatKey, MythicPathKey, RaceKey, SelectionOptionKey, SkillKey, SubraceKey,
 };
 use crate::parameter::Parameter;
 
@@ -46,6 +47,141 @@ pub struct Build {
     /// Feats, Feature selections, mythic abilities and mythic feats, keyed by the slot they fill. A slot's id says
     /// which Level-up or Mythic ascension it belongs to.
     pub picks: BTreeMap<SlotId, Pick>,
+    /// The gear (ticket 166): none unless the player adds it. It belongs to no level: an item counts at every one.
+    #[serde(default)]
+    pub gear: Gear,
+}
+
+/// The items a Build holds: one worn in each place at most, and any number of usable ones (the manuals and tomes,
+/// an elixir, a potion), each once.
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Gear {
+    /// The item worn in each place. A place takes the items of its slots ([`GearPlace::takes`]).
+    pub worn: BTreeMap<GearPlace, GearKey>,
+    /// The usable items used ([`GearSlot::Usable`]): they share no place, so a Build holds as many as it likes.
+    pub used: BTreeSet<GearKey>,
+}
+
+impl Gear {
+    pub fn is_empty(&self) -> bool {
+        self.worn.is_empty() && self.used.is_empty()
+    }
+
+    /// Every item held with where it is, in the order the walk counts them and the link writes them: the worn ones
+    /// in place order, then the used ones in key order.
+    pub fn items(&self) -> impl Iterator<Item = (GearSpot, &GearKey)> {
+        let worn = self
+            .worn
+            .iter()
+            .map(|(place, item)| (GearSpot::Worn(*place), item));
+        let used = self
+            .used
+            .iter()
+            .map(|item| (GearSpot::Used(item.clone()), item));
+        worn.chain(used)
+    }
+
+    /// The item held at a spot, if any.
+    pub fn at(&self, spot: &GearSpot) -> Option<&GearKey> {
+        match spot {
+            GearSpot::Worn(place) => self.worn.get(place),
+            GearSpot::Used(item) => self.used.get(item),
+        }
+    }
+}
+
+/// A place a Build wears one item in. The guide's slots map onto them ([`GearPlace::takes`]): a slot is a place,
+/// except that rings have two and a robe and an armour share the body.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+pub enum GearPlace {
+    Belt,
+    Boots,
+    Bracers,
+    Cloak,
+    Glasses,
+    Gloves,
+    Headwear,
+    Necklace,
+    FirstRing,
+    SecondRing,
+    /// A robe or an armour: only one is worn.
+    Body,
+    Weapon,
+}
+
+impl GearPlace {
+    pub const ALL: [Self; 12] = [
+        Self::Belt,
+        Self::Boots,
+        Self::Bracers,
+        Self::Cloak,
+        Self::Glasses,
+        Self::Gloves,
+        Self::Headwear,
+        Self::Necklace,
+        Self::FirstRing,
+        Self::SecondRing,
+        Self::Body,
+        Self::Weapon,
+    ];
+
+    /// The place as the Gear tab names its row: "Belt", "Ring 1", "Body".
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::Belt => "Belt",
+            Self::Boots => "Boots",
+            Self::Bracers => "Bracers",
+            Self::Cloak => "Cloak",
+            Self::Glasses => "Glasses",
+            Self::Gloves => "Gloves",
+            Self::Headwear => "Headwear",
+            Self::Necklace => "Necklace",
+            Self::FirstRing => "Ring 1",
+            Self::SecondRing => "Ring 2",
+            Self::Body => "Body",
+            Self::Weapon => "Weapon",
+        }
+    }
+
+    /// The guide's slots whose items the place takes: its own, both rings the ring slot's, the body a robe or an
+    /// armour. No place takes a usable item ([`Gear::used`]).
+    pub fn slots(self) -> &'static [GearSlot] {
+        match self {
+            Self::Belt => &[GearSlot::Belt],
+            Self::Boots => &[GearSlot::Boots],
+            Self::Bracers => &[GearSlot::Bracers],
+            Self::Cloak => &[GearSlot::Cloak],
+            Self::Glasses => &[GearSlot::Glasses],
+            Self::Gloves => &[GearSlot::Gloves],
+            Self::Headwear => &[GearSlot::Headwear],
+            Self::Necklace => &[GearSlot::Necklace],
+            Self::FirstRing | Self::SecondRing => &[GearSlot::Ring],
+            Self::Body => &[GearSlot::Robe, GearSlot::Armour],
+            Self::Weapon => &[GearSlot::Weapon],
+        }
+    }
+
+    /// Whether the place takes an item of a slot.
+    pub fn takes(self, slot: GearSlot) -> bool {
+        self.slots().contains(&slot)
+    }
+
+    /// The other ring place, for a ring place: an item is worn once, so one ring isn't on both.
+    pub fn other_ring(self) -> Option<Self> {
+        match self {
+            Self::FirstRing => Some(Self::SecondRing),
+            Self::SecondRing => Some(Self::FirstRing),
+            _ => None,
+        }
+    }
+}
+
+/// Where a Build holds one item: worn in a place, or used (a usable item, which is its own spot, since it shares
+/// none).
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+pub enum GearSpot {
+    Worn(GearPlace),
+    Used(GearKey),
 }
 
 /// The choices made before level 1.
@@ -491,6 +627,17 @@ pub enum Edit {
     /// the picks of the Mythic ranks it reached, and the path or the switch at a rank it reached).
     RemoveLevel,
     SetName(Option<String>),
+    /// Wear an item in a place, instead of the one there; `None` takes the place's item off. A ring worn in the
+    /// other ring place moves here.
+    Wear {
+        place: GearPlace,
+        item: Option<GearKey>,
+    },
+    /// Use a usable item (`used`), or stop using it.
+    Use {
+        item: GearKey,
+        used: bool,
+    },
 }
 
 impl Edit {
@@ -538,6 +685,12 @@ impl Edit {
             Edit::PathSwitch(_) => vec![Choice::PathSwitch],
             // Nothing after the last level can depend on it, and a name breaks nothing.
             Edit::RemoveLevel | Edit::SetName(_) => vec![],
+            // A ring may move here from the other ring place.
+            Edit::Wear { place, .. } => std::iter::once(*place)
+                .chain(place.other_ring())
+                .map(|place| Choice::Gear(GearSpot::Worn(place)))
+                .collect(),
+            Edit::Use { item, .. } => vec![Choice::Gear(GearSpot::Used(item.clone()))],
         }
     }
 }
@@ -617,6 +770,26 @@ impl Build {
                 }
             }
             Edit::SetName(name) => self.name = name.clone(),
+            Edit::Wear { place, item } => match item {
+                Some(item) => {
+                    if let Some(other) = place.other_ring()
+                        && self.gear.worn.get(&other) == Some(item)
+                    {
+                        self.gear.worn.remove(&other);
+                    }
+                    self.gear.worn.insert(*place, item.clone());
+                }
+                None => {
+                    self.gear.worn.remove(place);
+                }
+            },
+            Edit::Use { item, used } => {
+                if *used {
+                    self.gear.used.insert(item.clone());
+                } else {
+                    self.gear.used.remove(item);
+                }
+            }
         }
     }
 

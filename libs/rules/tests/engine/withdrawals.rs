@@ -32,12 +32,13 @@ fn kind(choice: &Choice) -> &'static str {
         Choice::MythicPath => "MythicPath",
         Choice::PathSwitch => "PathSwitch",
         Choice::Slot(_) => "Slot",
+        Choice::Gear(_) => "Gear",
     }
 }
 
 /// A Build that makes every kind of choice: a half-elf of the Dual Heritage with its +2 on Strength, a background,
 /// atheism, an armiger fighter, a wizard and an Arcane Trickster advancing it (21 levels), an ability increase, skill
-/// ranks, a first ascension, a path, a Legend switch and a pick.
+/// ranks, a first ascension, a path, a Legend switch, a pick, a belt and a manual.
 fn holding_everything() -> Build {
     let mut build = build(
         "half-elf",
@@ -68,7 +69,8 @@ fn holding_everything() -> Build {
     build
         .picks
         .insert(general_slot(1), pick_feat("power-attack"));
-    build
+    let build = wearing(build, rules::GearPlace::Belt, "belt-of-dexterity-2");
+    using(build, "manual-of-dexterity-2")
 }
 
 /// The held choices' withdrawals, by choice.
@@ -104,6 +106,7 @@ fn the_held_choices_cover_every_kind_of_choice_a_build_makes() {
         "MythicPath",
         "PathSwitch",
         "Slot",
+        "Gear",
     ]);
     assert_eq!(held, expected);
 }

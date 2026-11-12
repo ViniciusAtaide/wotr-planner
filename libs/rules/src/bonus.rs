@@ -1,8 +1,9 @@
 //! Flat bonuses that items give while a character holds them: the save DC of spells, caster level against spell
 //! resistance and concentration (ticket 119), initiative, the saves and the skills (ticket 120). `bonuses.ron` lists
 //! them, one [`ItemBonus`] per bonus, each naming the item that gives it. The walk records the ones a character
-//! holds on its state, each a [`BonusInForce`] (ticket 151), and the engine sums those ([`Engine::caster_line`],
-//! [`Engine::totals`]).
+//! holds on its state, each a [`BonusInForce`] (ticket 151), with the bonuses of the gear the Build holds (ticket
+//! 166), and the engine sums those that count ([`counted`]; [`Engine::caster_line`], [`Engine::totals`]). A bonus
+//! has a [`BonusType`], and the stacking rule ([`stacking`]) says which of several to one number count.
 //!
 //! The shape is meant to grow: a new kind of number is a new [`BonusTarget`], a new kind of giver a new
 //! [`BonusItem`], and the amount, the condition and the item stay as they are.
@@ -17,7 +18,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::game_data::{Ability, Save};
 use crate::keys::{
-    BackgroundKey, FeatKey, FeatureKey, MythicAbilityKey, MythicFeatKey, RaceKey,
+    BackgroundKey, FeatKey, FeatureKey, GearKey, MythicAbilityKey, MythicFeatKey, RaceKey,
     SelectionOptionKey, SkillKey, SubraceKey,
 };
 use crate::parameter::{Energy, Parameter, SpellSchool, Stat};
@@ -38,26 +39,122 @@ pub struct ItemBonus {
     pub requires: Option<Prerequisite>,
 }
 
-/// An [`ItemBonus`] in force at a point of a Build: one the character holds there, whose `requires` it meets, once
-/// for each value its item is held for, with its amount worked out at that point. The walk records them on the state
-/// at the end of each level ([`CharacterState::bonuses_in_force`]), in the data's order; the caster line and the
-/// totals pick out the ones for their numbers and add them up.
+/// A bonus in force at a point of a Build: an [`ItemBonus`] the character holds there, whose `requires` it meets,
+/// once for each value its item is held for, with its amount worked out at that point; or a bonus of a gear item the
+/// Build holds (ticket 166), other than one to an ability score, which goes through the scores. The walk records
+/// them on the state at the end of each level ([`CharacterState::bonuses_in_force`]): the Item bonuses in the data's
+/// order, then gear's in the order the Build holds its items. The caster line and the totals pick out the ones for
+/// their numbers and add up those that count ([`counted`]).
 ///
 /// [`CharacterState::bonuses_in_force`]: crate::CharacterState::bonuses_in_force
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct BonusInForce {
-    /// The item that gives it.
-    pub item: BonusItem,
-    /// The value its item is held for (Spell Focus (Evocation): Evocation); `None` for an item taken for none.
+    /// What gives it.
+    pub source: BonusSource,
+    /// The value its item is held for (Spell Focus (Evocation): Evocation); `None` for an item taken for none, and
+    /// for gear.
     pub value: Option<Parameter>,
-    pub target: BonusTarget,
-    /// What it adds there: its [`BonusAmount`] worked out from the Mythic rank, the character's own ability scores
+    pub target: InForceTarget,
+    /// What it adds there: its [`BonusAmount`] worked out from the Mythic rank, the character's ability scores
     /// and the ranks of the skill it's for. Expanded Arsenal's is the copy of the other school's Spell Focus feats.
+    /// Negative for a gear item's penalty.
     pub amount: i16,
+    /// Its type, which says whether it counts beside another to the same number ([`counted`]). Always
+    /// [`BonusType::Untyped`] for an Item bonus, until ticket 144 gives those their types.
+    pub kind: BonusType,
     /// The part's name: the item's, with the value it's held for ("Spell Focus (Evocation)"), a selection option's
     /// with its selection's ("School Power (Evocation)"), and for Expanded Arsenal the school copied ("Expanded
-    /// Arsenal (Necromancy): Evocation's Spell Focus feats").
+    /// Arsenal (Necromancy): Evocation's Spell Focus feats"). A gear item's is its name.
     pub name: String,
+}
+
+/// What gives a [`BonusInForce`]: an item of `bonuses.ron`, or a gear item the Build holds. Gear is no
+/// [`BonusItem`]: that one is what the data's tables name a bonus's item by, and no bonus of `bonuses.ron` is a gear
+/// item's.
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum BonusSource {
+    Item(BonusItem),
+    Gear(GearKey),
+}
+
+/// What a [`BonusInForce`] adds to: a number an Item bonus can add to, or the caster level, which only gear raises
+/// ([`GearTarget::CasterLevel`](crate::GearTarget::CasterLevel)).
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum InForceTarget {
+    Number(BonusTarget),
+    /// The caster level the caster line reports, and with it caster level checks and concentration.
+    CasterLevel,
+}
+
+impl InForceTarget {
+    /// The number it adds to; `None` for the caster level.
+    pub fn number(&self) -> Option<&BonusTarget> {
+        match self {
+            Self::Number(target) => Some(target),
+            Self::CasterLevel => None,
+        }
+    }
+}
+
+impl BonusType {
+    /// Whether two bonuses of this type to one number both count: only an untyped one's do. Of any other type the
+    /// highest counts, an inherent one included (the user, 2026-11-11: "inherent bonuses don't stack, keep highest
+    /// only"), so the Tome of Ancient Perfection's +4 hides a +2 manual.
+    pub fn stacks(self) -> bool {
+        self == Self::Untyped
+    }
+}
+
+/// The stacking rule (ticket 144's, applied to gear first: ticket 166), for typed amounts that add to one number:
+/// which of them count, in step with `bonuses`. A penalty (a negative amount) always counts; so does every bonus of
+/// a type that stacks ([`BonusType::stacks`]); of any other type only the highest counts, the first of equals.
+/// Bonuses of different types all count, so they add.
+pub fn stacking(bonuses: &[(BonusType, i16)]) -> Vec<bool> {
+    bonuses
+        .iter()
+        .enumerate()
+        .map(|(at, &(kind, amount))| {
+            amount < 0
+                || kind.stacks()
+                || !bonuses.iter().enumerate().any(|(other, &(of, more))| {
+                    of == kind && (more > amount || (more == amount && other < at))
+                })
+        })
+        .collect()
+}
+
+/// What typed amounts to one number add up to under the stacking rule ([`stacking`]).
+pub fn stacked(bonuses: &[(BonusType, i16)]) -> i16 {
+    let counts = stacking(bonuses);
+    bonuses
+        .iter()
+        .zip(counts)
+        .filter(|(_, counts)| *counts)
+        .map(|((_, amount), _)| amount)
+        .sum()
+}
+
+/// Of the bonuses in force that add to one number, those that count, in their order: every Item bonus (a feat's or
+/// feature's still adds as it always did, until ticket 144), and gear's under the stacking rule among themselves
+/// ([`stacking`]): two belts' worth of enhancement count as the higher one.
+pub fn counted<'a>(adding: impl IntoIterator<Item = &'a BonusInForce>) -> Vec<&'a BonusInForce> {
+    let adding: Vec<&BonusInForce> = adding.into_iter().collect();
+    let gear: Vec<(BonusType, i16)> = adding
+        .iter()
+        .filter(|bonus| matches!(bonus.source, BonusSource::Gear(_)))
+        .map(|bonus| (bonus.kind, bonus.amount))
+        .collect();
+    if gear.is_empty() {
+        return adding;
+    }
+    let mut counts = stacking(&gear).into_iter();
+    adding
+        .into_iter()
+        .filter(|bonus| match bonus.source {
+            BonusSource::Item(_) => true,
+            BonusSource::Gear(_) => counts.next().unwrap_or(true),
+        })
+        .collect()
 }
 
 /// The item that gives a bonus (or that an [`ItemInteractions`] note is on). A race's bonus counts for a character of

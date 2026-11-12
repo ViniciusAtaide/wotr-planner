@@ -114,6 +114,8 @@ pub(crate) fn offers(
     let start = &build.start;
     Ok(match address {
         Address::Slot(slot) => slot_offers(engine, build, slot, values).ok_or_else(lacks)?,
+        // Gear's options arrive with ticket 168; until then the server offers none.
+        Address::Gear(_) => return Err(lacks()),
         // The class picker offers a level past the cap too: the web app shows no add control there.
         Address::Class(level) if *level > sheet.level_cap => {
             return Err(ToolError::no_such_choice(format!(

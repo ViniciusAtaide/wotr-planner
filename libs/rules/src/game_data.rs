@@ -65,8 +65,8 @@ pub struct GameData {
     /// note per item.
     #[serde(default)]
     pub interactions: Vec<ItemInteractions>,
-    /// The named items a character wears or wields, with their always-on bonuses (`gear.ron`, ticket 165). No
-    /// Build choice names one yet.
+    /// The named items a character wears or wields, with their always-on bonuses (`gear.ron`, ticket 165). A
+    /// Build holds them in its gear ([`Build::gear`](crate::Build::gear), ticket 166).
     #[serde(default)]
     pub gear: Vec<GearItem>,
     pub mythic_paths: Vec<MythicPath>,
@@ -1109,8 +1109,8 @@ pub struct Feature {
     pub summary: String,
     pub guide: GuideRef,
     /// What the feature does to the character's own ability scores while it's held (Legend: +4 to every score).
-    /// They count toward ability-score prerequisites like point buy and level increases do; gear never does. A
-    /// feature granted more than once adds them once per grant (Strength of the Abyss: +2 at 9, 13 and 17).
+    /// They count toward ability-score prerequisites like point buy and level increases do, after the gear's
+    /// bonuses (ticket 166). A feature granted more than once adds them once per grant (Strength of the Abyss: +2 at 9, 13 and 17).
     #[serde(default)]
     pub ability_bonuses: Vec<AbilityBonus>,
     /// The row at one option level of the option held in a selection, which the feature grants while it's held

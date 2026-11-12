@@ -57,7 +57,7 @@ Replacing the mythic path at MR 8 with Legend, Gold Dragon, Swarm That Walks or 
 _Avoid_: Path change, respec
 
 **Ability bonus**:
-What a feature does to the character's own ability scores while it's held: a fixed amount to one score, to every score (Legend +4), to the highest score (Perfect Body +4), or a floor on every score (Perfect Body: at least 14). It counts toward ability-score prerequisites like point buy and level increases do; gear never does.
+What a feature does to the character's own ability scores while it's held: a fixed amount to one score, to every score (Legend +4), to the highest score (Perfect Body +4), or a floor on every score (Perfect Body: at least 14). It counts toward ability-score prerequisites like point buy and level increases do, after the bonuses of the **Gear** the Build holds.
 _Avoid_: Buff, stat boost, enhancement bonus
 
 **Prerequisite floor**:
@@ -85,11 +85,11 @@ Progress along a mythic path, 1–10, separate from character level. Two ranks c
 _Avoid_: Mythic level, tier
 
 **Attack line**:
-One base weapon's full attack at a point of a Build, computed by the rules: each iterative attack's bonus (BAB, the character's own Strength or Dexterity, Weapon Focus and Greater Weapon Focus in it), the damage per hit (its dice, Strength, 1½ times two-handed, Weapon Specialization and Greater Weapon Specialization), the critical range (doubled by Improved Critical in it, then widened by the Trickster's Improved Improved Critical and Improved Improved Improved Critical) and multiplier (+1 for Improved Improved Improved Critical Improved), and Power Attack's trade beside it. Unconditional numbers only: it leaves out rage, stances, mythic feats, class features, gear and buffs: the numbers are naked. The weapon is chosen beside the Build, not in it; left unchosen, it is the weapon of the Build's earliest Weapon Focus (by level; within a level, the first by weapon key), and without one there is no attack line.
+One base weapon's full attack at a point of a Build, computed by the rules: each iterative attack's bonus (BAB, the character's own Strength or Dexterity, Weapon Focus and Greater Weapon Focus in it), the damage per hit (its dice, Strength, 1½ times two-handed, Weapon Specialization and Greater Weapon Specialization), the critical range (doubled by Improved Critical in it, then widened by the Trickster's Improved Improved Critical and Improved Improved Improved Critical) and multiplier (+1 for Improved Improved Improved Critical Improved), and Power Attack's trade beside it. Unconditional numbers only: it leaves out rage, stances, mythic feats, class features and buffs, and of the **Gear** everything but its ability score bonuses. The weapon is chosen beside the Build, not in it; left unchosen, it is the weapon of the Build's earliest Weapon Focus (by level; within a level, the first by weapon key), and without one there is no attack line.
 _Avoid_: Damage estimate, DPR
 
 **Caster line**:
-A spell's numbers at a point of a Build, computed by the rules for a spell described by its school (and optionally a subschool, an energy type and metamagic): the save DC of each spell level the casting class can cast (10 + the spell level + the casting ability's modifier + the **Item bonuses** that apply), with Heighten Spell the DC of any such spell raised to the highest level, caster level against spell resistance and the concentration bonus, each broken down by source. It follows the casting class with the highest caster level. Unconditional numbers only: it leaves out gear, buffs, abilities switched on in a fight and bonuses that grow with class level. The spell is described beside the Build, not in it.
+A spell's numbers at a point of a Build, computed by the rules for a spell described by its school (and optionally a subschool, an energy type and metamagic): the save DC of each spell level the casting class can cast (10 + the spell level + the casting ability's modifier + the **Item bonuses** that apply), with Heighten Spell the DC of any such spell raised to the highest level, caster level against spell resistance and the concentration bonus, each broken down by source. It follows the casting class with the highest caster level. Unconditional numbers only: it counts the always-on bonuses of the **Gear** the Build holds, and leaves out buffs, abilities switched on in a fight and bonuses that grow with class level. The spell is described beside the Build, not in it.
 _Avoid_: DC calculator, spell DC estimate
 
 **Item bonus**:
@@ -97,15 +97,28 @@ A flat bonus an item (a race or subrace, a background, a feat, a mythic feat, a 
 _Avoid_: Modifier, effect
 
 **Bonus in force**:
-An **Item bonus** the character holds at the end of a character level, with what it requires met there: once for each value its item is held for, with its amount worked out at that level (the Mythic rank, the character's own ability modifier, the ranks of its skill; Expanded Arsenal's copy too) and its name as the line shows it. The walk records them on each level's character state (`bonuses_in_force`), in the game data's order, and the **Caster line** and the **Totals** add up the ones for each number, so they read a level of the sheet alone (only the sheet's states record them).
+An **Item bonus** the character holds at the end of a character level, with what it requires met there: once for each value its item is held for, with its amount worked out at that level (the Mythic rank, the character's own ability modifier, the ranks of its skill; Expanded Arsenal's copy too) and its name as the line shows it. The walk records them on each level's character state (`bonuses_in_force`), in the game data's order, and the **Caster line** and the **Totals** add up the ones for each number, so they read a level of the sheet alone (only the sheet's states record them). The always-on bonuses of the Build's **Gear** to those numbers follow them at every level, each with its type and its item, and count under the **Stacking** rule.
 _Avoid_: Held bonus, active bonus (an ability switched on in a fight is another thing)
+
+**Gear**:
+The items a Build holds: one worn in each place (belt, boots, bracers, cloak, glasses, gloves, headwear, necklace, two rings, the body for a robe or an armour, the weapon), and any number of usable items (the manuals and tomes, an elixir, a potion), each used once. A Build has none unless the player adds it, and its link names it only then. Gear belongs to no level: an item's always-on bonuses count at every level, for the ability scores (and so for prerequisites and every derived number, but never a level's skill points) and for the numbers the rules compute. What an item does besides is text.
+_Avoid_: Equipment, inventory, assumed gear
+
+**Stacking**:
+Which of several typed bonuses to one number count: the highest of each type, an inherent one included; bonuses of different types add; an untyped bonus always adds and a penalty always applies. Applied among the **Gear**'s bonuses only, until feats' and features' bonuses have their types.
+
+**Naked numbers**:
+A Build's numbers without its **Gear**: those of the same Build holding none. Shown beside the numbers with gear when they differ.
+
+**Gear-dependent**:
+A choice the rules allow only because of the Build's **Gear**: allowed with it, refused without. It is marked with the items it needs ("With Belt of Incredible Dexterity +2"). An item that a choice needs can't be removed or replaced: its picker locks "None" and every item that wouldn't keep the choice allowed, with a reason naming the choice, until the choice is cleared. An option elsewhere that would leave a choice gear-dependent (a point-buy step, the racial bonus, an ability increase, a class) is open, and says which choice would lean on the gear.
 
 **Ranking number**:
 One number of an **Attack line** (the first attack's bonus, or the bonus each hit adds to the dice) or a **Caster line** (the DC of the highest spell level castable, caster level against spell resistance, or concentration), read at a Build's last level. The MCP server orders Builds (`compare`'s `by`) and a choice's open options (`improve`) by it: an order by a number the rules compute is a fact, and it counts nothing its line leaves out. An option that leaves it as it is is a **no change**, whatever else it does.
 _Avoid_: Score, rating, best
 
 **Totals**:
-Initiative, each save and each skill's total at a point of a Build, computed by the rules, each broken down by source: initiative is Dexterity's modifier plus the **Item bonuses** for it; a save its class progressions' base save, its ability's modifier and the bonuses for it; a skill its ranks, its ability's modifier, +3 when it's a class skill with a rank, and the bonuses for it. Unconditional numbers only: they leave out gear, buffs, bonuses against one kind of effect or for one use of a skill, and bonuses that grow with class level.
+Initiative, each save and each skill's total at a point of a Build, computed by the rules, each broken down by source: initiative is Dexterity's modifier plus the **Item bonuses** for it; a save its class progressions' base save, its ability's modifier and the bonuses for it; a skill its ranks, its ability's modifier, +3 when it's a class skill with a rank, and the bonuses for it. Unconditional numbers only: they count the always-on bonuses of the **Gear** the Build holds, and leave out buffs, bonuses against one kind of effect or for one use of a skill, and bonuses that grow with class level.
 _Avoid_: Skill modifier, save bonus
 
 **Interactions note**:

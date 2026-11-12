@@ -8,9 +8,10 @@ use proptest::option;
 use proptest::prelude::*;
 use rules::{
     Ability, AbilityScores, Alignment, ArchetypeKey, ArmourType, BackgroundKey, Build, BuildStart,
-    ClassChoice, ClassKey, DecodeError, DeityKey, Element, Energy, Faith, FeatSource, KeyCollision,
-    KeyKind, LevelUp, LinkKeys, MythicPathKey, Parameter, Pick, PointBuy, RaceKey, SkillKey,
-    SlotId, SpellSchool, Stat, SubraceKey, decode_build, encode_build, key_hash,
+    ClassChoice, ClassKey, DecodeError, DeityKey, Element, Energy, Faith, FeatSource, Gear,
+    GearKey, GearPlace, KeyCollision, KeyKind, LevelUp, LinkKeys, MythicPathKey, Parameter, Pick,
+    PointBuy, RaceKey, SkillKey, SlotId, SpellSchool, Stat, SubraceKey, decode_build, encode_build,
+    key_hash,
 };
 
 use crate::support::*;
@@ -194,6 +195,16 @@ fn pick() -> impl Strategy<Value = Pick> {
     ]
 }
 
+/// Any gear, often none: an item in any of the places, and any usable items.
+fn gear() -> impl Strategy<Value = Gear> {
+    let place = prop::sample::select(GearPlace::ALL.to_vec());
+    (
+        btree_map(place, key().prop_map(GearKey), 0..6),
+        btree_set(key().prop_map(GearKey), 0..4),
+    )
+        .prop_map(|(worn, used)| Gear { worn, used })
+}
+
 fn any_build() -> impl Strategy<Value = Build> {
     (
         option::of(".{0,40}"),
@@ -204,6 +215,7 @@ fn any_build() -> impl Strategy<Value = Build> {
         option::of(key().prop_map(MythicPathKey)),
         option::of(key().prop_map(MythicPathKey)),
         btree_map(slot_id(), pick(), 0..40),
+        gear(),
     )
         .prop_map(
             |(
@@ -215,6 +227,7 @@ fn any_build() -> impl Strategy<Value = Build> {
                 mythic_path,
                 path_switch,
                 picks,
+                gear,
             )| {
                 Build {
                     name,
@@ -225,6 +238,7 @@ fn any_build() -> impl Strategy<Value = Build> {
                     mythic_path,
                     path_switch,
                     picks,
+                    gear,
                 }
             },
         )
@@ -332,6 +346,41 @@ const V1_LINK: &str = "AR2KPQrCQBSE3-was4b41yQeQrCwFSHaCGJlaRUkCKIgKSwURSwCKURJK
 #[test]
 fn a_version_1_link_still_decodes() {
     assert_eq!(decode(V1_LINK), Ok(v1_build()));
+}
+
+/// Gear came after links had shipped (ticket 166): an old link reads as a Build without gear, and a Build without
+/// gear writes the link it always did, byte for byte.
+#[test]
+fn a_build_without_gear_reads_and_writes_the_link_it_always_did() {
+    let decoded = decode(V1_LINK).unwrap();
+    assert!(decoded.gear.is_empty());
+    assert_eq!(encode_build(&v1_build()), V1_LINK);
+    assert_eq!(encode_build(&decoded), V1_LINK);
+}
+
+/// The Build frozen in [`V1_GEAR_LINK`]: [`v1_build`] with a belt, a ring in the second ring place, a robe on the
+/// body and two usable items. Never change either.
+fn v1_gear_build() -> Build {
+    let mut build = v1_build();
+    build = wearing(build, GearPlace::Belt, "belt-of-dexterity-2");
+    build = wearing(build, GearPlace::SecondRing, "ring-of-luck");
+    build = wearing(build, GearPlace::Body, "robe-of-the-mage");
+    build = using(build, "tome-of-perfection-4");
+    using(build, "manual-of-dexterity-2")
+}
+
+/// `encode_build(&v1_gear_build())` as ticket 166 first wrote it (2026-11-11, miniz_oxide level 9): version 1 with
+/// its gear section after the picks.
+const V1_GEAR_LINK: &str = "AR2KrwrCUByF7-9e5-7m9V9xgiazYLAOYbOIYjKahgxBNpAFg6LIwmBBlEVFH0DYOxgsaxbxFQSTySR4vYfDB-fwVebn_mfpvaK9n7fMy5HTfRq897E2xaUkjJOJzpq9XTgsGh1vFCeLViMor6OtdgpWG_U2qDtvPeMeurXrt2o-NB_ktmNbM9sDBBLgQo5lVUoQAOLhBEQREQMJYl4ALiCMAQMhKUmstHBloNyh4lHg70pIURn7AQ";
+
+#[test]
+fn a_link_with_gear_is_pinned_and_round_trips() {
+    assert_eq!(decode(V1_GEAR_LINK), Ok(v1_gear_build()));
+    assert_eq!(encode_build(&v1_gear_build()), V1_GEAR_LINK);
+    // The gear is all the two links differ by.
+    let mut without = decode(V1_GEAR_LINK).unwrap();
+    without.gear = Gear::default();
+    assert_eq!(encode_build(&without), V1_LINK);
 }
 
 #[test]

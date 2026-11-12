@@ -26,6 +26,7 @@ mod facts;
 mod failures;
 mod feat_lists;
 mod first_ascension;
+mod gear;
 mod granted_feats;
 mod indexed_lookups;
 mod labels;

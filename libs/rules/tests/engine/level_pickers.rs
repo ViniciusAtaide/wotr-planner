@@ -128,6 +128,7 @@ fn ranks_step_no_higher_than_the_character_level_here_or_later() {
                 skill: skill("athletics"),
                 ranks: 0,
             },
+            leans_on_gear: Vec::new(),
         })
     );
     // At level 2 athletics may take its second rank.

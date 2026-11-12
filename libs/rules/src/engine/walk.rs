@@ -23,12 +23,13 @@ use crate::state::CharacterState;
 mod ascension;
 mod bonuses;
 mod cursor;
+mod gear;
 mod hold;
 mod judge;
 mod level;
 mod options;
 
-pub(super) use cursor::Cursor;
+pub(super) use cursor::{Cursor, before_slot, pick_fits};
 pub(super) use level::{advancing_levels, first_taken_at};
 
 impl Engine {
@@ -209,6 +210,8 @@ struct Walker<'a> {
     bonus_keys_next: Vec<bonuses::BonusKey>,
     /// Set while the walk only answers whether a choice fails ([`holds`](Self::holds)).
     recheck: Option<RecheckWalk>,
+    /// What the Build's gear adds, worked out at the Build start; nothing for a Build without gear.
+    gear: gear::WornGear,
 }
 
 /// A slot granted at a level, filled once the level's own slots are.
@@ -303,6 +306,7 @@ impl<'a> Walker<'a> {
             bonus_keys: Vec::new(),
             bonus_keys_next: Vec::new(),
             recheck: None,
+            gear: gear::WornGear::default(),
         }
     }
 
@@ -498,6 +502,7 @@ impl<'a> Walker<'a> {
             }
         }
         self.state.base_ability_scores = scores;
+        self.wear_gear();
         self.refresh_ability_scores();
         if self.sheet {
             self.note_start_bonuses();

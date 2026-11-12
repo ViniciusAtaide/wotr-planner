@@ -426,3 +426,26 @@ async fn two_archetypes_for_one_class_are_declared_twice() {
     let twice = failure(&result["failures"], "class.fighter.archetype");
     assert_eq!(twice["issue"], "declared_twice");
 }
+
+/// Gear addresses parse since ticket 166, but the server offers no gear until ticket 168: a declared one is no
+/// choice, key or not, as `options` says of it.
+#[tokio::test]
+async fn a_declared_gear_address_is_no_choice_yet() {
+    let result = validate(with(
+        fighter(1, 12),
+        &[
+            ("gear.belt", json!("belt-of-dexterity-2")),
+            (
+                "gear.usable.manual-of-dexterity-2",
+                json!("manual-of-dexterity-2"),
+            ),
+        ],
+    ))
+    .await;
+    assert_eq!(result["status"], "invalid", "{result}");
+    for choice in ["gear.belt", "gear.usable.manual-of-dexterity-2"] {
+        let refused = failure(&result["failures"], choice);
+        assert_eq!(refused["issue"], "no_such_choice", "{result}");
+        assert!(!refused.to_string().contains("takes a key"), "{refused}");
+    }
+}

@@ -5,8 +5,8 @@
 use std::collections::BTreeSet;
 
 use rules::{
-    Ability, AbilityScores, Address, Alignment, Choice, ClassKey, Faith, FeatSource, Parameter,
-    ParameterKind, Place, SkillKey, SlotId,
+    Ability, AbilityScores, Address, Alignment, Choice, ClassKey, Faith, FeatSource, GearPlace,
+    GearSpot, Parameter, ParameterKind, Place, SkillKey, SlotId,
 };
 
 use crate::support::*;
@@ -96,6 +96,20 @@ fn every_kind() -> Vec<(Address, &'static str)> {
             Address::Slot(SlotId::MythicExtra { rank: 6 }),
             "slot.mythic-extra.6",
         ),
+        (Address::Gear(GearSpot::Worn(GearPlace::Belt)), "gear.belt"),
+        (
+            Address::Gear(GearSpot::Worn(GearPlace::FirstRing)),
+            "gear.ring.0",
+        ),
+        (
+            Address::Gear(GearSpot::Worn(GearPlace::SecondRing)),
+            "gear.ring.1",
+        ),
+        (Address::Gear(GearSpot::Worn(GearPlace::Body)), "gear.body"),
+        (
+            Address::Gear(GearSpot::Used(gear_item("manual-of-dexterity-2"))),
+            "gear.usable.manual-of-dexterity-2",
+        ),
     ]
 }
 
@@ -141,6 +155,7 @@ fn variant(choice: &Choice) -> &'static str {
         Choice::MythicPath => "MythicPath",
         Choice::PathSwitch => "PathSwitch",
         Choice::Slot(_) => "Slot",
+        Choice::Gear(_) => "Gear",
     }
 }
 
@@ -204,6 +219,12 @@ fn every_choice_of_the_test_world() -> Vec<Choice> {
             );
         }
     }
+    choices.extend(
+        GearPlace::ALL
+            .into_iter()
+            .map(|place| Choice::Gear(GearSpot::Worn(place))),
+    );
+    choices.extend((world.gear.iter()).map(|item| Choice::Gear(GearSpot::Used(item.key.clone()))));
     for rank in 1..=10 {
         choices.push(Choice::Slot(SlotId::Mythic { rank }));
         choices.push(Choice::Slot(SlotId::MythicExtra { rank }));
@@ -231,7 +252,7 @@ fn every_choice_of_the_test_world_reads_back_from_its_address() {
     }
     // Every variant of `Choice` is among them.
     let covered: BTreeSet<&str> = choices.iter().map(variant).collect();
-    assert_eq!(covered.len(), 17, "{covered:?}");
+    assert_eq!(covered.len(), 18, "{covered:?}");
 }
 
 /// Every parameter kind. The match is exhaustive and each arm names a kind's place in the array, so a new kind fails

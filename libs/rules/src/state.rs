@@ -30,8 +30,9 @@ pub struct CharacterState {
     pub fort: u8,
     pub reflex: u8,
     pub will: u8,
-    /// The character's own ability scores, as prerequisites and skill points see them: the base scores plus the
-    /// ability bonuses of the features held (Legend's +4). Gear never counts.
+    /// The character's ability scores, as prerequisites and every derived number see them: the base scores, the
+    /// always-on bonuses and penalties of the gear the Build holds, stacked by type (ticket 166), then the ability
+    /// bonuses of the features held (Legend's +4). Only a level's skill points read the scores without the gear.
     pub ability_scores: AbilityScores,
     /// Point buy, racial modifiers and the level increases so far, before any feature's bonus.
     pub base_ability_scores: AbilityScores,
@@ -86,8 +87,8 @@ pub struct CharacterState {
     /// The Mythic rank reached: 3 after a Legend switch, whatever the rank before.
     pub mythic_rank: u8,
     pub mythic_path: Option<MythicPathKey>,
-    /// The Item bonuses in force at the end of the level, in the data's order: what the caster line and the totals
-    /// add up. The walk records them on the sheet's states ([`Engine::evaluate`]), and levels with the same bonuses
+    /// The bonuses in force at the end of the level: the Item bonuses in the data's order, then those of the gear
+    /// the Build holds. What the caster line and the totals add up. The walk records them on the sheet's states ([`Engine::evaluate`]), and levels with the same bonuses
     /// share one list; a walk that keeps no sheet (a picker's or a recheck's) leaves them empty, as does a state
     /// just before a slot. So the two lines take a level of the sheet ([`LevelSheet`]), never a bare state.
     ///

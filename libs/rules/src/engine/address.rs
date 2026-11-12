@@ -19,15 +19,21 @@
 //!   `slot.option-feat.N.I`, `slot.option-selection.N.I`, `slot.feat-selection.N.I` (N a character level), and
 //!   `slot.mythic.R`, `slot.mythic-extra.R`, `slot.path-feat.R.I`, `slot.path-selection.R.I`,
 //!   `slot.mythic-selection.R.I` (R a Mythic rank). I counts from 0, levels and ranks from 1.
+//! - The gear (ticket 166), which belongs to no level: `gear.<place>` for the item worn in a place (`gear.belt`,
+//!   `gear.boots`, `gear.bracers`, `gear.cloak`, `gear.glasses`, `gear.gloves`, `gear.headwear`, `gear.necklace`,
+//!   `gear.ring.0`, `gear.ring.1`, `gear.body` for a robe or an armour, `gear.weapon`), and `gear.usable.<item>`
+//!   for a usable item used (a manual, a tome, an elixir, a potion). A usable item shares no place, so a Build
+//!   holds any number of them and each is its own address, named by the item's key: the address stays put when
+//!   another is added or taken off, and none can be held twice.
 
 use std::fmt;
 use std::str::FromStr;
 
 use super::{Engine, FIRST_ASCENSION_RANK, PATH_CHOICE_RANK, PATH_SWITCH_RANK, Slot};
-use crate::build::{AbilityScores, Faith, FeatSource, SlotId};
+use crate::build::{AbilityScores, Faith, FeatSource, GearPlace, GearSpot, SlotId};
 use crate::choice::Choice;
 use crate::game_data::{Ability, Alignment};
-use crate::keys::{ClassKey, DeityKey, SkillKey};
+use crate::keys::{ClassKey, DeityKey, GearKey, SkillKey};
 use crate::parameter::{ArmourType, Element, Energy, Parameter, ParameterKind, SpellSchool, Stat};
 
 /// One choice of a Build, by where it sits.
@@ -62,14 +68,17 @@ pub enum Address {
     Path,
     Switch,
     Slot(SlotId),
+    /// An item the Build holds: the one worn in a place, or a usable item used.
+    Gear(GearSpot),
 }
 
-/// Where a choice sits: the Build start, a character level or a Mythic rank.
+/// Where a choice sits: the Build start, a character level, a Mythic rank, or the gear, which belongs to no level.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Place {
     Start,
     Level(u8),
     Rank(u8),
+    Gear,
 }
 
 impl Place {
@@ -83,12 +92,13 @@ impl Place {
 }
 
 impl fmt::Display for Place {
-    /// The place as a label begins: "Build start", "Level 4", "MR 3".
+    /// The place as a label begins: "Build start", "Level 4", "MR 3", "Gear".
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Place::Start => write!(f, "Build start"),
             Place::Level(level) => write!(f, "Level {level}"),
             Place::Rank(rank) => write!(f, "MR {rank}"),
+            Place::Gear => write!(f, "Gear"),
         }
     }
 }
@@ -122,6 +132,7 @@ impl Address {
             Address::Path => Choice::MythicPath,
             Address::Switch => Choice::PathSwitch,
             Address::Slot(slot) => Choice::Slot(slot.clone()),
+            Address::Gear(spot) => Choice::Gear(spot.clone()),
         })
     }
 
@@ -150,16 +161,20 @@ impl Address {
                 _ => None,
             },
             Address::Archetype(_) | Address::Advances(_) => None,
+            Address::Gear(_) => Some(Place::Gear),
         }
     }
 
-    /// A text about the choice, after its level or rank when it has one: "Level 3: 2 of 4 skill points unspent".
+    /// A text about the choice, after its level or rank when it has one ("Level 3: 2 of 4 skill points unspent"),
+    /// or after "Gear" for an item ("Gear: Belt").
     /// The Build start's choices need no place before them, and a level itself none either: it is its place, which
     /// its label already names ("Level 4", never "Level 4: Level 4").
     pub fn placed(&self, what: &str) -> String {
         match (self, self.place()) {
             (Address::Level(_), _) => what.to_owned(),
-            (_, Some(place @ (Place::Level(_) | Place::Rank(_)))) => format!("{place}: {what}"),
+            (_, Some(place @ (Place::Level(_) | Place::Rank(_) | Place::Gear))) => {
+                format!("{place}: {what}")
+            }
             _ => what.to_owned(),
         }
     }
@@ -186,6 +201,7 @@ impl From<&Choice> for Address {
             Choice::MythicPath => Address::Path,
             Choice::PathSwitch => Address::Switch,
             Choice::Slot(slot) => Address::Slot(slot.clone()),
+            Choice::Gear(spot) => Address::Gear(spot.clone()),
         }
     }
 }
@@ -219,6 +235,8 @@ impl Engine {
             Address::Slot(_) => {
                 slot.map_or_else(|| "slot".to_owned(), |slot| self.slot_label(slot))
             }
+            Address::Gear(GearSpot::Worn(place)) => place.name().to_owned(),
+            Address::Gear(GearSpot::Used(item)) => format!("Usable: {}", self.gear_name(item)),
         }
     }
 
@@ -407,6 +425,26 @@ impl Element {
     }
 }
 
+impl GearPlace {
+    /// The place as an address names it: `belt`, …, `ring.0`, `ring.1`, `body`, `weapon`.
+    pub fn token(self) -> &'static str {
+        match self {
+            Self::Belt => "belt",
+            Self::Boots => "boots",
+            Self::Bracers => "bracers",
+            Self::Cloak => "cloak",
+            Self::Glasses => "glasses",
+            Self::Gloves => "gloves",
+            Self::Headwear => "headwear",
+            Self::Necklace => "necklace",
+            Self::FirstRing => "ring.0",
+            Self::SecondRing => "ring.1",
+            Self::Body => "body",
+            Self::Weapon => "weapon",
+        }
+    }
+}
+
 // ---- the grammar ----------------------------------------------------------------------------------------------
 
 /// Each feat slot source with its token in an address, the one table both directions read: `source_token` writes a
@@ -486,6 +524,8 @@ impl fmt::Display for Address {
                 }
                 SlotId::MythicExtra { rank } => write!(f, "slot.mythic-extra.{rank}"),
             },
+            Address::Gear(GearSpot::Worn(place)) => write!(f, "gear.{}", place.token()),
+            Address::Gear(GearSpot::Used(item)) => write!(f, "gear.usable.{}", item.as_str()),
         }
     }
 }
@@ -499,7 +539,8 @@ impl fmt::Display for NotAnAddress {
         write!(
             f,
             "`{}` is not a choice address. Addresses look like `start.race`, `start.score.int`, `level.4.class`, \
-             `level.4.increase`, `level.4.skill.athletics`, `mythic.path` or `slot.feat.3.general.0`; `sheet` and \
+             `level.4.increase`, `level.4.skill.athletics`, `mythic.path`, `slot.feat.3.general.0` or `gear.belt`; \
+             `sheet` and \
              `todo` print every address a Build has.",
             self.0
         )
@@ -559,6 +600,14 @@ fn parse(text: &str) -> Option<Address> {
         ["mythic", "path"] => Address::Path,
         ["mythic", "switch"] => Address::Switch,
         ["slot", rest @ ..] => Address::Slot(parse_slot(rest)?),
+        ["gear", "usable", item @ ..] if !item.is_empty() => {
+            Address::Gear(GearSpot::Used(GearKey::new(key(&item.join("."))?)))
+        }
+        ["gear", place @ ..] => {
+            let token = place.join(".");
+            let place = (GearPlace::ALL.into_iter()).find(|place| place.token() == token)?;
+            Address::Gear(GearSpot::Worn(place))
+        }
         _ => return None,
     })
 }

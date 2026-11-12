@@ -1,7 +1,8 @@
 //! The attack line: one base weapon's attacks at a point of a Build (ticket 114).
 //!
-//! Unconditional numbers only, from what the Build fixes: the iterative attacks from BAB; the character's own
-//! Strength (Dexterity to attack for a ranged weapon, or with Weapon Finesse and a finessable weapon when higher;
+//! Unconditional numbers only, from what the Build fixes: the iterative attacks from BAB; the character's
+//! Strength, its gear's bonuses included (Dexterity to attack for a ranged weapon, or with Weapon Finesse and a
+//! finessable weapon when higher;
 //! 1½ times the Strength bonus to damage two-handed, none for a weapon that shoots unless the game gives it the
 //! Strength trait, as the sling staff); Weapon Focus, Greater Weapon
 //! Focus, Weapon Specialization and Greater Weapon Specialization held for the weapon; Improved Critical's doubled
@@ -43,7 +44,8 @@ pub const ATTACK_LINE_LEAVES_OUT: &[&str] = &[
     "rage, stances and other abilities switched on in a fight",
     "mythic feats and mythic abilities",
     "class features (Weapon Training, sneak attack, a monk's unarmed damage, …)",
-    "gear: enhancement, masterwork and magic items",
+    "gear but for its ability score bonuses: a weapon's enhancement and properties, armour, masterwork, and \
+     attack and damage bonuses from items",
     "buffs and spells",
     "Deadly Aim and Piranha Strike",
     "a second weapon, off-hand attacks and two-weapon fighting",
@@ -142,8 +144,8 @@ impl Engine {
         None
     }
 
-    /// One base weapon's attack line for a character, from the character's own scores: `None` for a weapon the data
-    /// lacks or that has no stats.
+    /// One base weapon's attack line for a character, from the character's scores (its gear's bonuses included):
+    /// `None` for a weapon the data lacks or that has no stats.
     pub fn attack_line(&self, state: &CharacterState, weapon: &WeaponKey) -> Option<AttackLine> {
         let scores = &state.ability_scores;
         let stats = self.catalog.weapon(weapon)?.stats?;

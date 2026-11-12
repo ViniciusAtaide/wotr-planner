@@ -3,7 +3,7 @@
 
 use super::judge::check_pick;
 use super::{Checkpoint, GrantSource, Held, Pending, Probe, RankGrant, Walker};
-use crate::build::{Pick, SlotId};
+use crate::build::{AbilityScores, Pick, SlotId};
 use crate::choice::{Choice, Issue};
 use crate::engine::{Slot, SlotKind, with_bonuses};
 use crate::keys::{FeatKey, FeatureKey, MythicFeatKey};
@@ -354,9 +354,17 @@ impl<'a> Walker<'a> {
         self.state.skill_ranks_at_least_mythic_rank = skills;
     }
 
-    /// The character's own scores: the base scores with the bonuses of every feature held, once per grant, and
-    /// without the race's penalties while a mythic feat removes them (Destiny Beyond Birth).
+    /// The character's scores, as every reader but a level's skill points sees them ([`own_scores`](Self::own_scores),
+    /// with the gear).
     pub(super) fn refresh_ability_scores(&mut self) {
+        self.state.ability_scores = self.own_scores(true);
+    }
+
+    /// The character's scores: the base scores, without the race's penalties while a mythic feat removes them
+    /// (Destiny Beyond Birth); then, with `gear`, the gear's bonuses and penalties, stacked by type; then the bonuses
+    /// of every feature held, once per grant. Gear counts before the features (the user's choice, ticket 163), so a
+    /// belt that makes another score the highest moves a "highest score" bonus (Perfect Body) to it.
+    pub(super) fn own_scores(&self, gear: bool) -> AbilityScores {
         let catalog = &self.engine.catalog;
         let mut base = self.state.base_ability_scores;
         if self
@@ -370,6 +378,9 @@ impl<'a> Walker<'a> {
                 *score = score.saturating_add(*penalty);
             }
         }
+        if gear && self.gear.changes_scores() {
+            base = self.gear.onto(base);
+        }
         let bonuses = self
             .state
             .features
@@ -379,7 +390,7 @@ impl<'a> Walker<'a> {
                 Some(std::iter::repeat_n(bonuses, usize::from(*count)).flatten())
             })
             .flatten();
-        self.state.ability_scores = with_bonuses(base, bonuses);
+        with_bonuses(base, bonuses)
     }
 }
 

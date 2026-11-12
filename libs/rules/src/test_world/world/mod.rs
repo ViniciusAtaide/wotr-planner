@@ -4,6 +4,7 @@ mod backgrounds;
 mod classes;
 mod deities;
 mod feats;
+mod gear;
 mod mythic;
 mod paths;
 mod races;
@@ -67,7 +68,7 @@ pub fn world() -> GameData {
         mythic_feats: mythic_feats(),
         bonuses: bonuses(),
         interactions: Vec::new(),
-        gear: Vec::new(),
+        gear: gear::gear(),
         mythic_paths: vec![
             trickster(),
             aeon(),

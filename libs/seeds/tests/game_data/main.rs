@@ -20,6 +20,7 @@ mod extra_picks;
 mod first_ascension;
 mod follow_ups;
 mod gear;
+mod gear_engine;
 mod gold;
 mod infusions;
 mod instinctual_rage_powers;
