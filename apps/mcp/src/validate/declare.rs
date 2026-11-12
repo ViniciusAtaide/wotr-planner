@@ -290,6 +290,11 @@ impl Declared {
                     class.as_str()
                 ),
             ),
+            // Gear's choices arrive with ticket 168; until then a declared Build has none, as `options` says.
+            (Address::Gear(_), _) => self.refuse_at(address,
+                Refused::NoSuchChoice,
+                format!("The Build has no choice `{address}`: `sheet` and `todo` print the addresses it has."),
+            ),
             (address, _) => {
                 let shape = match address {
                     Address::Score(_) | Address::Skill(..) => "a number",

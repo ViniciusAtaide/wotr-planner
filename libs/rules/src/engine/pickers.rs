@@ -7,6 +7,7 @@
 
 use std::collections::BTreeSet;
 
+use super::gear::GearLean;
 use super::walk::{Cursor, first_taken_at};
 use super::{
     AdvancesOption, ClassOption, Engine, EntryOption, PathOption, SlotEntry, SlotKind, SlotOption,
@@ -222,13 +223,18 @@ impl Engine {
     /// a level after the last breaks nothing. A prestige class that asks which classes it advances is open when some
     /// advancement keeps the Build ([`advances_options`](Self::advances_options) lists those). Each status is the
     /// walk's verdict at the level ([`Cursor::until_level`], `AtLevel::try_class`). `None` for a level that isn't in
-    /// the Build or next.
+    /// the Build or next. An open class that only the Build's gear lets in, or that would leave another choice
+    /// leaning on the gear, says so ([`ClassOption::leans_on_gear`]).
     pub fn class_options(&self, build: &Build, level: u8) -> Option<Vec<ClassOption>> {
         if level == 0 || usize::from(level) > build.levels.len() + 1 {
             return None;
         }
         let cursor = Cursor::new(self, build);
         let at = cursor.until_level(level)?;
+        let naked = self.naked_build(build);
+        let lean = naked
+            .as_ref()
+            .map(|naked| GearLean::new(self, build, naked));
         let mut options = Vec::new();
         let data = self.catalog.data();
         let base = data.classes.iter().map(|class| (class, false));
@@ -249,15 +255,17 @@ impl Engine {
                     advances: held_advances(build, &class.key),
                 });
                 let status = at.try_class(class, prestige, choice.as_ref());
+                let edit = Edit::Class {
+                    level,
+                    class: class.key.clone(),
+                    choice,
+                };
                 options.push(ClassOption {
                     class: class.key.clone(),
                     archetype,
+                    leans_on_gear: GearLean::lean(lean.as_ref(), &status, &edit),
                     status,
-                    edit: Edit::Class {
-                        level,
-                        class: class.key.clone(),
-                        choice,
-                    },
+                    edit,
                 });
             }
         }

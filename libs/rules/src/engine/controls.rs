@@ -2,6 +2,7 @@
 //! racial ability, the point buy, and a level's ability increase and skill ranks. Each option and step carries the
 //! edit that takes it and whether it can be taken now.
 
+use super::gear::GearLean;
 use super::walk::Cursor;
 use super::{ChoiceOption, Engine, RaceChoice, Step, Stepper};
 use crate::build::{AbilityScores, Build, BuildStart, Edit, Faith, has_ability_increase};
@@ -17,6 +18,11 @@ impl Engine {
     /// Costs a walk of the Build for each race or subrace but the Build's.
     pub fn race_options(&self, build: &Build) -> Vec<ChoiceOption<RaceChoice>> {
         let cursor = Cursor::new(self, build);
+        let naked = self.naked_build(build);
+        let lean = naked
+            .as_ref()
+            .map(|naked| GearLean::new(self, build, naked));
+        let lean = lean.as_ref();
         let mut options = Vec::new();
         for race in self.races() {
             let subraces = race
@@ -36,7 +42,7 @@ impl Engine {
                     race: race.key.clone(),
                     subrace,
                 };
-                options.push(self.start_option(&cursor, value, start));
+                options.push(self.start_option(&cursor, lean, value, start));
             }
         }
         options
@@ -49,6 +55,8 @@ impl Engine {
     /// Costs a walk of the Build for each faith that fits but isn't the Build's.
     pub fn faith_options(&self, build: &Build) -> Vec<ChoiceOption<Faith>> {
         let cursor = Cursor::new(self, build);
+        // A faith changes no score and no entry the gear could meet.
+        let lean = None;
         std::iter::once(Faith::Atheism)
             .chain(
                 self.deities()
@@ -60,7 +68,7 @@ impl Engine {
                     deity: Some(faith.clone()),
                     ..build.start.clone()
                 };
-                self.start_option(&cursor, faith, start)
+                self.start_option(&cursor, lean, faith, start)
             })
             .collect()
     }
@@ -74,6 +82,8 @@ impl Engine {
     /// Costs a walk of the Build for each alignment that fits but isn't the Build's.
     pub fn alignment_options(&self, build: &Build) -> Vec<ChoiceOption<Alignment>> {
         let cursor = Cursor::new(self, build);
+        // Nor does an alignment.
+        let lean = None;
         Alignment::ALL
             .into_iter()
             .map(|alignment| {
@@ -81,7 +91,7 @@ impl Engine {
                     alignment: Some(alignment),
                     ..build.start.clone()
                 };
-                self.start_option(&cursor, alignment, start)
+                self.start_option(&cursor, lean, alignment, start)
             })
             .collect()
     }
@@ -92,6 +102,8 @@ impl Engine {
     /// Costs a walk of the Build for each background but the Build's.
     pub fn background_options(&self, build: &Build) -> Vec<ChoiceOption<BackgroundKey>> {
         let cursor = Cursor::new(self, build);
+        // Nor does a background.
+        let lean = None;
         self.backgrounds()
             .iter()
             .map(|background| {
@@ -99,7 +111,7 @@ impl Engine {
                     background: Some(background.key.clone()),
                     ..build.start.clone()
                 };
-                self.start_option(&cursor, background.key.clone(), start)
+                self.start_option(&cursor, lean, background.key.clone(), start)
             })
             .collect()
     }
@@ -114,6 +126,10 @@ impl Engine {
             return Vec::new();
         }
         let cursor = Cursor::new(self, build);
+        let naked = self.naked_build(build);
+        let lean = naked
+            .as_ref()
+            .map(|naked| GearLean::new(self, build, naked));
         AbilityScores::ABILITIES
             .into_iter()
             .map(|ability| {
@@ -121,7 +137,7 @@ impl Engine {
                     racial_ability: Some(ability),
                     ..build.start.clone()
                 };
-                self.start_option(&cursor, ability, start)
+                self.start_option(&cursor, lean.as_ref(), ability, start)
             })
             .collect()
     }
@@ -141,6 +157,10 @@ impl Engine {
             return None;
         }
         let cursor = Cursor::new(self, build);
+        let naked = self.naked_build(build);
+        let lean = naked
+            .as_ref()
+            .map(|naked| GearLean::new(self, build, naked));
         let options = AbilityScores::ABILITIES
             .into_iter()
             .map(|ability| {
@@ -148,9 +168,11 @@ impl Engine {
                     level,
                     ability: Some(ability),
                 };
+                let status = cursor.try_edit(&edit);
                 ChoiceOption {
                     value: ability,
-                    status: cursor.try_edit(&edit),
+                    leans_on_gear: GearLean::lean(lean.as_ref(), &status, &edit),
+                    status,
                     edit,
                 }
             })
@@ -163,11 +185,18 @@ impl Engine {
     /// a later choice (a score a prerequisite needs) is [`Issue::BreaksLater`](crate::Issue::BreaksLater).
     ///
     /// The steps are judged with the Build's gear, as the walk judges the Build: a step the gear keeps legal is
-    /// open. One that is open only because of the gear says so ([`Step::with_gear`]), so it never looks safe.
+    /// open. One that is open only because of the gear says what would lean on it ([`Step::leans_on_gear`]), so it
+    /// never looks safe; the race, racial ability and ability increase pickers and the class picker say the same
+    /// of their options.
     ///
-    /// Costs a walk of the Build for each step in the range; with gear, four more for each open step.
+    /// Costs a walk of the Build for each step in the range; with gear, three more once, one more for each open
+    /// step, and two more for each that leans on the gear.
     pub fn point_buy_steps(&self, build: &Build) -> Vec<Stepper<Ability>> {
         let cursor = Cursor::new(self, build);
+        let naked = self.naked_build(build);
+        let lean = naked
+            .as_ref()
+            .map(|naked| GearLean::new(self, build, naked));
         let point_buy = build.start.ability_scores;
         let step = |ability: Ability, delta: i8| {
             let next = point_buy.get(ability).checked_add_signed(delta)?;
@@ -176,14 +205,11 @@ impl Engine {
                 ..build.start.clone()
             });
             let status = cursor.try_edit(&edit);
-            // Allowed with the gear: whether it's allowed only because of it.
-            let with_gear = status.is_ok()
-                && !build.gear.is_empty()
-                && !self.newly_gear_dependent(build, &edit).is_empty();
             Some(Step {
+                // Allowed with the gear: what it would lean on the gear for.
+                leans_on_gear: GearLean::lean(lean.as_ref(), &status, &edit),
                 status,
                 edit,
-                with_gear,
             })
         };
         AbilityScores::ABILITIES
@@ -218,7 +244,7 @@ impl Engine {
             (&after != build).then(|| Step {
                 status: cursor.try_edit(&edit),
                 edit,
-                with_gear: false,
+                leans_on_gear: Vec::new(),
             })
         };
         let steppers = self
@@ -243,11 +269,19 @@ impl Engine {
 
     /// A Build start picker's option for a new start, with the cursor's verdict: its faith and alignment's misfit,
     /// else whether it breaks a later choice (the walk of the Build with it, unless it changes nothing).
-    fn start_option<T>(&self, cursor: &Cursor<'_>, value: T, start: BuildStart) -> ChoiceOption<T> {
+    fn start_option<T>(
+        &self,
+        cursor: &Cursor<'_>,
+        lean: Option<&GearLean<'_>>,
+        value: T,
+        start: BuildStart,
+    ) -> ChoiceOption<T> {
         let edit = Edit::Start(start);
+        let status = cursor.try_edit(&edit);
         ChoiceOption {
             value,
-            status: cursor.try_edit(&edit),
+            leans_on_gear: GearLean::lean(lean, &status, &edit),
+            status,
             edit,
         }
     }

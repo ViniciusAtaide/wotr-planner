@@ -28,10 +28,8 @@ impl Engine {
     /// Taking a choice back is its [`Withdrawal`]. A level's own skill points don't count against changing its
     /// class: the class picker locks a class with too few.
     ///
-    /// An item of the gear is here when no choice needs it, like any other. The user decided all the same that an
-    /// item comes off whatever needs it, and what needed it then stays in the Build, refused (ticket 163): so a
-    /// caller may apply a gear withdrawal's edit when this says no, and [`Engine::failures`] then names what it
-    /// broke ([`Engine::gear_dependents`] says beforehand).
+    /// An item of the gear is here when no choice needs it, like any other: one that a choice needs comes off only
+    /// after the choice.
     ///
     /// Costs one walk of the Build, then for each choice a walk from its level (the Build start's: all of it). The
     /// sheet asks only for the class rows ([`removable_classes`](Self::removable_classes)) and for one choice at a

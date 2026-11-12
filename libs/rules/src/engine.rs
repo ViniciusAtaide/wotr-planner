@@ -7,9 +7,9 @@
 //!
 //! The sheet only ever holds a possible Build: it offers no edit that would break another choice
 //! ([`Engine::allows`]), so choices come off from the leaves inward ([`Engine::removable`]) and the pickers lock
-//! what would break a later choice. Gear is the one exception the user decided (ticket 163): an item comes off
-//! whatever needs it, and what needed it stays in the Build, refused ([`Engine::gear_dependents`]). A link to a
-//! Build that isn't possible opens nothing ([`Engine::open_link`]): it says only that it doesn't open, never why. [`Engine::failures`] lists every choice that fails and why, for a
+//! what would break a later choice, an item of the gear that a choice needs included ([`Engine::gear_options`]).
+//! A link to a Build that isn't possible opens nothing ([`Engine::open_link`]): it says only that it doesn't open,
+//! never why. [`Engine::failures`] lists every choice that fails and why, for a
 //! Build planned whole (the MCP server's `validate`); it never makes a Build possible.
 
 use std::collections::BTreeSet;
@@ -508,6 +508,11 @@ pub struct ClassOption {
     /// advancement first and applies that answer's edit instead ([`Engine::advances_options`], each of which keeps
     /// the Build).
     pub edit: Edit,
+    /// For an open option at a level the Build has or the next: the choices that, with it, would be allowed only
+    /// because of the Build's gear and aren't today. The class itself is among them when only the gear meets its
+    /// entry (or its archetype's): [`Choice::Class`] at that level, or [`Choice::Archetype`]. Always empty for a
+    /// Build without gear.
+    pub leans_on_gear: Vec<Choice>,
 }
 
 /// One answer to which classes a prestige class's levels advance ([`Engine::advances_options`]), with the edit that
@@ -542,6 +547,10 @@ pub struct ChoiceOption<T> {
     /// The edit that chooses it, side effects included (a race without a racial choice also clears the racial
     /// ability).
     pub edit: Edit,
+    /// For an open option: the choices that, after it, would be allowed only because of the Build's gear and aren't
+    /// today (the racial +2 moved off Dexterity, under a belt, with a feat needing the score). With any, the option
+    /// is allowed but not safe. Always empty for a Build without gear.
+    pub leans_on_gear: Vec<Choice>,
 }
 
 /// What the race picker chooses: a race, or one of its subraces.
@@ -556,10 +565,10 @@ pub struct RaceChoice {
 pub struct Step {
     pub status: Result<(), Issue>,
     pub edit: Edit,
-    /// For a point-buy step that can be taken only because of the Build's gear: after it, some choice that holds
-    /// today without the gear would need it ([`Engine::newly_gear_dependent`]). A step to show as allowed, but not
-    /// as safe. Always `false` for a Build without gear, and for a skill's step (ranks never see gear).
-    pub with_gear: bool,
+    /// For an open point-buy step: the choices that, after it, would be allowed only because of the Build's gear and
+    /// aren't today ([`Engine::newly_gear_dependent`]). With any, the step is allowed but not safe. Always empty
+    /// for a Build without gear, and for a skill's step (ranks never see gear).
+    pub leans_on_gear: Vec<Choice>,
 }
 
 /// A stepper of one point-buy score or one skill's ranks at a level: a step down and a step up, each `None` past the

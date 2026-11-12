@@ -18,7 +18,7 @@ Decided in 163:
 - **Stacking:** the highest bonus of each type per target, and different types add. This is ticket [144](144-bonus-types-and-stacking.md)'s rule, applied to gear first; 144 extends it to feats and features.
 - **Order:** gear counts before "highest score" features (Perfect Body and its like), so a belt can move such a feature's bonus (user, Q23).
 - **Both numbers:** every number is available with gear and without.
-- **Gear-dependent picks:** a pick that is allowed only because of gear is marked with the item that allows it. If the item is removed, the pick stays in the Build and is refused with the usual reason.
+- **Gear-dependent picks:** a pick that is allowed only because of gear is marked with the item that allows it. An item that a pick needs can't be removed or replaced: it is locked, with the reason naming the pick, and the user clears the pick first (user, 2026-11-12; this replaces "the pick stays in the Build and is refused", which left a Build whose link opens nothing).
 - **One item per slot,** two rings.
 - **Tomes are gear** (user, 2026-11-11: "yes tomes are gear, add the Tomes row"). The six manuals and tomes (`slot: Usable`, a permanent inherent bonus each) don't compete for a place: a Build holds any number of them, each at most once.
 - **A robe and an armour share one body place** (user, 2026-11-11).
@@ -60,7 +60,7 @@ AFK. `libs/rules` only, plus its tests. No schema change. Behaviour without gear
 
 ## Answer
 
-**Built**, 2026-11-11 on branch `ticket-166`, from `main` at `995564e`. Not merged. `scripts/check.sh` passes, and the snapshot check passes with the snapshot files untouched.
+**Built**, 2026-11-11 on branch `ticket-166`, from `main` at `995564e`; review fixes and the user's decision on removal on 2026-11-12, after merging `main` at `93b9da1`. Not merged. `scripts/check.sh` passes, and the snapshot check passes with the snapshot files untouched, the two gold Builds included.
 
 ### What was built
 
@@ -76,6 +76,16 @@ AFK. `libs/rules` only, plus its tests. No schema change. Behaviour without gear
 - **Caster level:** `GearTarget::CasterLevel` adds to `CasterLine::caster_level`, and so to spell penetration and concentration. Prerequisites still read `CharacterState::caster_level`, which gear doesn't change.
 - **Bonuses in force:** `BonusInForce` has `source: BonusSource` (`Item(BonusItem)` or `Gear(GearKey)`) in place of `item`, a `kind: BonusType` (`Untyped` for today's Item bonuses) and `target: InForceTarget` (`Number(BonusTarget)` or `CasterLevel`). `BonusItem` and `BonusTarget` are unchanged, so there is no schema change. Gear's entries follow the Item bonuses at every level.
 
+### An item a choice needs can't be removed or replaced
+
+The user's decision of 2026-11-12. The engine holds it, so no caller has to police it:
+
+- **`gear_options(build, place)`** lists "None" first, then every item the place takes. "None" and every item that wouldn't keep the Build possible are `Issue::BreaksLater`, with `needed_by` (the choices they would refuse) and a `reason` naming them: "Greater Two-Weapon Fighting needs Belt of Incredible Dexterity +2". An item that keeps every choice allowed stays open (a stronger belt, say).
+- **An item whose own penalty would refuse a choice** is locked too, and its reason blames the item: "Scholar's Headband would refuse Silver Tongue".
+- **`usable_options(build)`** is a tick per item: the edit uses it, or stops using it when it is used, and stopping a needed one is locked the same way.
+- **`Engine::allows`** refuses those edits, and **`Engine::withdrawal`** says the item isn't removable, as for any other choice something depends on.
+- **A link that is already impossible** opens nothing, as before.
+
 ### What each reader of the scores sees
 
 `CharacterState::ability_scores` is still written only by `Walker::refresh_ability_scores`, now as: base scores, then gear's stacked bonuses and penalties, then the features' bonuses (`with_bonuses`).
@@ -88,36 +98,43 @@ AFK. `libs/rules` only, plus its tests. No schema change. Behaviour without gear
 | Item bonuses of an ability's modifier (Divine Grace) | yes | Derived from the score. |
 | The sheet's states, the web grid, the MCP's `sheet` scores | yes | They read the same field. `Engine::naked_sheet` gives the other number. |
 | A level's skill points (`walk/level.rs`) | **no** | The user's rule: ranks stay valid whatever is worn. They read `Walker::skill_point_scores`. |
-| The point buy's steppers (`BreaksLater`) | yes | They are judged as the walk judges the Build, so a step the gear keeps legal is open. A step open only because of the gear sets `Step::with_gear`, so it never looks safe. |
+| The point buy's steppers (`BreaksLater`) | yes | They are judged as the walk judges the Build, so a step the gear keeps legal is open. Such a step lists what would lean on the gear (`Step::leans_on_gear`), so it never looks safe. |
+| The race, racial ability and ability increase pickers, and the class picker | yes | The same walk, and the same mark: `ChoiceOption::leans_on_gear`, `ClassOption::leans_on_gear`. A class whose entry only the gear meets lists itself. |
 | `removable`, `is_removable`, `withdrawal`, `allows` | yes | The same walk. A withdrawal the gear alone keeps legal is removable; `Engine::newly_gear_dependent(build, edit)` names the choices it would make lean on the gear. |
 | The text export's "Point buy" line | no | It prints the point buy, as before. |
 
 ### The API for tickets 167 and 168
 
 - **The data:** `Engine::gear()`, `gear_item(key)`, `gear_name(key)`, `gear_summary(key)`.
-- **A place's options:** `Engine::gear_options(build, place)`, every item the place takes, each with `held` and its `edit`. None is ever locked. `Engine::usable_options(build)` does the same for the usable items.
-- **Taking an item off:** `Engine::withdrawal(build, &Choice::Gear(spot))`, which gives the edit and whether anything needs the item.
+- **A place's options:** `Engine::gear_options(build, place)`. Each `GearOption` has `item` (`None` for "None"), `held`, `status`, `needed_by`, `reason` and `edit`.
+- **The usable items:** `Engine::usable_options(build)`, a tick each; the same `GearOption`.
+- **Taking an item off by its address:** `Engine::withdrawal(build, &Choice::Gear(spot))`, as for any choice.
 - **The naked numbers:** `Engine::naked_sheet(build)`, the sheet of the Build without its gear; `None` for a Build without gear, at no cost. Pass its levels to `totals`, `caster_line` and `attack_line`.
-- **Gear-dependent choices:** `Engine::gear_dependents(build)`, each choice with a `GearNeed` (`items`, and `all`: every item needed, or any one enough). `Engine::gear_note(&need)` words it: "With Belt of Incredible Dexterity +2".
+- **Gear-dependent choices:** `Engine::gear_dependents(build)`, each choice with a `GearNeed`. `Engine::gear_note(&need)` words it.
+- **`GearNeed`** has `all_of` (each needed), `one_of` (one more is needed, and any of these is enough) and `for_example` (two or more further items are needed and no single one is enough: one set that is). Only items that matter are named. The notes read "With A and B", "With A or B", "With A and one of B or C", "With gear such as A and B".
 - **In a slot's picker:** `SlotOption::with_gear` (the `GearNeed` of an option open only because of gear) and `SlotEntry::gear_note`.
-- **Before offering an edit as safe:** `Engine::newly_gear_dependent(build, edit)`; `Step::with_gear` carries it for the point buy.
+- **In the other pickers:** `leans_on_gear` on `Step`, `ChoiceOption` and `ClassOption`: the choices that would be allowed only because of gear after the option, and aren't today. `Engine::choice_names(build, &choices)` names them.
+- **Any other edit:** `Engine::newly_gear_dependent(build, edit)`.
 
-### What tickets 167 and 168 must decide
+### Left for 167 and 168
 
-- **A Build whose item was removed is not possible, so its link opens nothing.** The user decided the pick stays and is refused; `Engine::open_link` refuses every Build that isn't possible, and the web app writes the link at once. Until the user fixes the pick or wears the item again, a reload shows the stale-link error. The MCP's `withdraw` refuses a choice that isn't removable, so today it refuses a belt a feat needs.
-- **While a pick is refused, every other picker locks its options** (`BreaksLater`), because each recheck stops at the refused pick. Only clearing that pick or wearing an item again is open.
-- So `withdrawal` reports honestly whether anything needs the item, and the engine applies the edit either way. Whether the app warns, removes the dependent picks as well, or lets the Build go impossible is the caller's choice, and probably the user's.
 - **The text export has no gear lines yet** (167 lists them). A Build with gear exports its link, which holds the gear, and nothing else about it.
-- **The MCP** parses gear addresses now; `options` on one answers `no_such_choice` until 168.
+- **The MCP** parses gear addresses now; `options` and `validate` answer `no_such_choice` for one until 168. `withdraw` on a gear address already works through the engine's withdrawal.
+- **Withdrawals carry no `leans_on_gear`:** `withdrawal` returns an edit and a flag. A caller that wants the mark on a remove control asks `newly_gear_dependent`.
+- **A slot's picker marks an option open only because of gear, not one that would make another pick lean on it** (a pick replaced by one that gives up a score bonus). `newly_gear_dependent` answers it.
 
 ### Judgement calls
 
 - **One item is held once:** the same ring in both ring places fails (`AlreadyHeld`), and wearing it in the second place moves it.
 - **A choice that needs another gear-dependent choice** is gear-dependent too, with the same items.
-- **When no single item is needed** (a belt or a manual, either enough), the note says "With A or B".
+- **`for_example` is one set that is enough, not every such set.** Finding every combination costs a walk per subset; this one is true and cheap.
 - **The naked numbers** are those of the same Build with no gear, exactly: a feat only gear allows isn't held in that walk, so what it gave is missing too.
-- **The test world** has 12 invented gear items, for these tests and for 168's.
-- **`Step` and `SlotOption` gained a field,** and `BonusInForce` changed shape; nothing outside `rules` built them by hand.
+- **The test world** has 13 invented gear items, for these tests and for 168's.
+- **`Step`, `SlotOption`, `ChoiceOption` and `ClassOption` gained a field,** and `BonusInForce` changed shape; nothing outside `rules` built them by hand.
+
+### Cost
+
+On a level-20 fighter with ten items, in a debug build, `point_buy_steps` takes about 2.0 ms against 0.8 ms without gear (medians of 15). What the Build leans on already is worked out once per picker, and each open step then costs one walk from the Build start that stops at the first new failure.
 
 ### For the queue's proof
 
@@ -126,6 +143,7 @@ AFK. `libs/rules` only, plus its tests. No schema change. Behaviour without gear
 
 ### Edits outside `libs/rules`
 
-- `apps/mcp/src/options.rs`: one match arm for `Address::Gear`.
+- `apps/mcp/src/options.rs` and `apps/mcp/src/validate/declare.rs`: one arm each for `Address::Gear`, answering `no_such_choice`; a test in `apps/mcp/tests/server/validate.rs`.
+- `libs/seeds/tests/game_data/gear_engine.rs` (and its `mod` line): the real Belt of Incredible Dexterity +2 and Greater Two-Weapon Fighting.
 - `GLOSSARY.md`: Gear, Stacking, Naked numbers, Gear-dependent, and four sentences that said gear never counts.
 - `libs/game-data/README.md`: one sentence that said the same.

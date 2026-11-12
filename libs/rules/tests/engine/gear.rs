@@ -11,8 +11,10 @@ use rules::{
 use crate::support::*;
 
 const GTWF: &str = "greater-two-weapon-fighting";
+const SILVER_TONGUE: &str = "silver-tongue";
 
-/// The test world with a feat that needs Dexterity 19, as Greater Two-Weapon Fighting does.
+/// The test world with a feat that needs Dexterity 19, as Greater Two-Weapon Fighting does, and one that needs
+/// Charisma 9.
 fn engine_with_gtwf() -> Engine {
     let mut data = world();
     let mut gtwf = (data.feats.iter())
@@ -25,7 +27,15 @@ fn engine_with_gtwf() -> Engine {
         ability: Ability::Dexterity,
         score: 19,
     });
+    let mut silver = gtwf.clone();
+    silver.key = feat(SILVER_TONGUE);
+    silver.name = "Silver Tongue".into();
+    silver.prerequisite = Some(Prerequisite::AbilityScore {
+        ability: Ability::Charisma,
+        score: 9,
+    });
     data.feats.push(gtwf);
+    data.feats.push(silver);
     engine_on(data)
 }
 
@@ -52,6 +62,18 @@ fn final_scores(engine: &Engine, build: &Build) -> [u8; 6] {
     let sheet = engine.evaluate(build);
     let scores = sheet.levels.last().expect("a level").state.ability_scores;
     rules::AbilityScores::ABILITIES.map(|ability| scores.get(ability))
+}
+
+fn keys(items: &[&str]) -> Vec<rules::GearKey> {
+    items.iter().map(|item| gear_item(item)).collect()
+}
+
+/// A need of each of these items.
+fn all_of(items: &[&str]) -> GearNeed {
+    GearNeed {
+        all_of: keys(items),
+        ..GearNeed::default()
+    }
 }
 
 fn needs_dex_19() -> Issue {
@@ -94,10 +116,7 @@ fn a_feat_needing_dex_19_is_refused_at_17_allowed_with_a_belt_marked_and_refused
     let geared = belt(naked.clone());
     assert_eq!(engine.failures(&geared), []);
     assert!(engine.is_possible(&geared));
-    let needs = GearNeed {
-        items: vec![gear_item("belt-of-dexterity-2")],
-        all: true,
-    };
+    let needs = all_of(&["belt-of-dexterity-2"]);
     assert_eq!(
         engine.gear_dependents(&geared),
         [GearDependent {
@@ -107,16 +126,20 @@ fn a_feat_needing_dex_19_is_refused_at_17_allowed_with_a_belt_marked_and_refused
     );
     assert_eq!(engine.gear_note(&needs), "With Belt of Dexterity +2");
 
-    // Refused again when the belt is withdrawn: the pick stays, with the usual reason.
+    // The belt can't come off while the feat needs it; without the belt the feat is refused with the usual reason.
+    let the_belt = Choice::Gear(GearSpot::Worn(GearPlace::Belt));
     let (edit, removable) = engine
-        .withdrawal(&geared, &Choice::Gear(GearSpot::Worn(GearPlace::Belt)))
+        .withdrawal(&geared, &the_belt)
         .expect("the Build holds the belt");
     assert!(!removable, "the feat needs the belt");
+    assert!(!engine.allows(&geared, &edit));
     let mut withdrawn = geared.clone();
     engine.apply(&mut withdrawn, &edit);
     assert_eq!(withdrawn, naked);
     assert_eq!(engine.failures(&withdrawn), refused);
     assert_eq!(engine.gear_dependents(&withdrawn), []);
+    // The feat cleared first, the belt comes off.
+    assert!(engine.is_removable(&without(&geared, &slot), &the_belt));
 }
 
 #[test]
@@ -145,13 +168,7 @@ fn a_pickers_option_open_only_because_of_gear_carries_the_items_note() {
     let geared = belt(empty);
     let open = option(&geared, GTWF);
     assert_eq!(open.status, Ok(()));
-    assert_eq!(
-        open.with_gear,
-        Some(GearNeed {
-            items: vec![gear_item("belt-of-dexterity-2")],
-            all: true,
-        })
-    );
+    assert_eq!(open.with_gear, Some(all_of(&["belt-of-dexterity-2"])));
     assert_eq!(option(&geared, "dodge").with_gear, None);
     let gtwf = entry(&geared, "Greater Two-Weapon Fighting");
     assert!(gtwf.open);
@@ -172,11 +189,8 @@ fn a_choice_that_either_of_two_items_allows_names_both_as_alternatives() {
     let dependents = engine.gear_dependents(&build);
 
     let needs = GearNeed {
-        items: vec![
-            gear_item("belt-of-dexterity-2"),
-            gear_item("manual-of-dexterity-2"),
-        ],
-        all: false,
+        one_of: keys(&["belt-of-dexterity-2", "manual-of-dexterity-2"]),
+        ..GearNeed::default()
     };
     assert_eq!(
         dependents,
@@ -188,6 +202,111 @@ fn a_choice_that_either_of_two_items_allows_names_both_as_alternatives() {
     assert_eq!(
         engine.gear_note(&needs),
         "With Belt of Dexterity +2 or Manual of Dexterity +2"
+    );
+}
+
+/// A fighter with this Dexterity and the feat needing 19.
+fn needing_dex_19(dexterity: u8) -> Build {
+    let mut build = character([10, dexterity, 10, 10, 10, 10], &["fighter"]);
+    build.picks.insert(general_slot(1), pick_feat(GTWF));
+    build
+}
+
+/// The one gear-dependent choice's need, and its note.
+fn need_and_note(engine: &Engine, build: &Build) -> (GearNeed, String) {
+    assert!(engine.is_possible(build));
+    let mut dependents = engine.gear_dependents(build);
+    assert_eq!(dependents.len(), 1, "{dependents:?}");
+    let needs = dependents.remove(0).needs;
+    // The slot's picker says the same of the option.
+    let mut empty = build.clone();
+    let pick = empty.picks.remove(&general_slot(1)).expect("the pick");
+    let option = (engine
+        .options(&empty, &general_slot(1))
+        .unwrap()
+        .into_iter())
+    .find(|option| option.pick == pick)
+    .expect("offered");
+    assert_eq!(option.with_gear.as_ref(), Some(&needs));
+    let note = engine.gear_note(&needs);
+    (needs, note)
+}
+
+#[test]
+fn a_choice_that_needs_both_of_two_items_names_both() {
+    let engine = engine_with_gtwf();
+    // 15 + 2 enhancement + 2 inherent; the cloak has nothing to do with it.
+    let mut build = using(belt(needing_dex_19(15)), "manual-of-dexterity-2");
+    build = wearing(build, GearPlace::Cloak, "cloak-of-resistance-3");
+
+    let (needs, note) = need_and_note(&engine, &build);
+
+    assert_eq!(
+        needs,
+        all_of(&["belt-of-dexterity-2", "manual-of-dexterity-2"])
+    );
+    assert_eq!(note, "With Belt of Dexterity +2 and Manual of Dexterity +2");
+}
+
+#[test]
+fn a_choice_that_needs_any_two_of_three_items_names_one_set_that_is_enough_and_no_other_item() {
+    let engine = engine_with_gtwf();
+    // 15 and any two of three +2s of different types (the bracers' is untyped); a cloak beside them.
+    let mut build = using(belt(needing_dex_19(15)), "manual-of-dexterity-2");
+    build = wearing(build, GearPlace::Bracers, "bracers-of-agility");
+    build = wearing(build, GearPlace::Cloak, "cloak-of-resistance-3");
+
+    let (needs, note) = need_and_note(&engine, &build);
+
+    assert_eq!(
+        needs,
+        GearNeed {
+            for_example: keys(&["bracers-of-agility", "manual-of-dexterity-2"]),
+            ..GearNeed::default()
+        }
+    );
+    assert_eq!(
+        note,
+        "With gear such as Bracers of Agility and Manual of Dexterity +2"
+    );
+}
+
+#[test]
+fn a_choice_that_needs_one_item_and_either_of_two_others_says_so() {
+    let engine = engine_with_gtwf();
+    // 13 + the gloves' 4, then 2 more from the bracers or the manual; a cloak beside them.
+    let mut build = wearing(
+        needing_dex_19(13),
+        GearPlace::Gloves,
+        "gloves-of-dexterity-4",
+    );
+    build = wearing(build, GearPlace::Bracers, "bracers-of-agility");
+    build = wearing(build, GearPlace::Cloak, "cloak-of-resistance-3");
+    build = using(build, "manual-of-dexterity-2");
+
+    let (needs, note) = need_and_note(&engine, &build);
+
+    assert_eq!(
+        needs,
+        GearNeed {
+            all_of: keys(&["gloves-of-dexterity-4"]),
+            one_of: keys(&["bracers-of-agility", "manual-of-dexterity-2"]),
+            ..GearNeed::default()
+        }
+    );
+    assert_eq!(
+        note,
+        "With Gloves of Dexterity +4 and one of Bracers of Agility or Manual of Dexterity +2"
+    );
+    // Three further items with none enough alone and one needed for sure.
+    let example = GearNeed {
+        all_of: keys(&["gloves-of-dexterity-4"]),
+        for_example: keys(&["bracers-of-agility", "manual-of-dexterity-2"]),
+        ..GearNeed::default()
+    };
+    assert_eq!(
+        engine.gear_note(&example),
+        "With Gloves of Dexterity +4 and more gear, such as Bracers of Agility and Manual of Dexterity +2"
     );
 }
 
@@ -209,7 +328,7 @@ fn a_choice_needing_a_gear_dependent_one_depends_on_the_same_item() {
         [&Choice::Slot(race_slot(0)), &Choice::Slot(general_slot(1))]
     );
     for dependent in &dependents {
-        assert_eq!(dependent.needs.items, [gear_item("tome-of-perfection-4")]);
+        assert_eq!(dependent.needs, all_of(&["tome-of-perfection-4"]));
     }
 }
 
@@ -455,80 +574,172 @@ fn the_naked_numbers_of_a_build_with_gear_equal_the_numbers_of_the_same_build_wi
 // ---- places, options and edits ----------------------------------------------------------------------------------
 
 #[test]
-fn a_place_offers_every_item_of_its_slots_and_none_is_locked() {
-    let engine = engine_with_gtwf();
-    let build = belt(two_weapon_fighter());
+fn a_place_offers_none_and_every_item_of_its_slots() {
+    let engine = engine();
+    let build = build("human", &["fighter"]);
     let keys = |place| -> Vec<String> {
         (engine.gear_options(&build, place).into_iter())
-            .map(|option| option.item.as_str().to_owned())
+            .map(|option| {
+                option
+                    .item
+                    .map_or("none".to_owned(), |item| item.as_str().to_owned())
+            })
             .collect()
     };
     assert_eq!(
         keys(GearPlace::Belt),
-        ["belt-of-constitution-2", "belt-of-dexterity-2"]
+        ["none", "belt-of-constitution-2", "belt-of-dexterity-2"]
     );
     // A robe and an armour share the body; both ring places take a ring.
     assert_eq!(
         keys(GearPlace::Body),
-        ["plate-of-vigor", "robe-of-the-mage"]
+        ["none", "plate-of-vigor", "robe-of-the-mage"]
     );
     assert_eq!(
         keys(GearPlace::FirstRing),
-        ["ring-of-fortitude", "ring-of-luck"]
+        ["none", "ring-of-fortitude", "ring-of-luck"]
     );
     assert_eq!(keys(GearPlace::SecondRing), keys(GearPlace::FirstRing));
-
-    // The worn one is marked; the other replaces it, though the feat needs the one worn.
-    let options = engine.gear_options(&build, GearPlace::Belt);
-    assert_eq!(
-        options.iter().map(|option| option.held).collect::<Vec<_>>(),
-        [false, true]
-    );
-    assert!(!engine.allows(&build, &options[0].edit));
-    let mut swapped = build.clone();
-    engine.apply(&mut swapped, &options[0].edit);
-    assert_eq!(
-        swapped.gear.worn[&GearPlace::Belt],
-        gear_item("belt-of-constitution-2")
-    );
-    assert_eq!(swapped.gear.worn.len(), 1);
-    assert_eq!(engine.failures(&swapped).len(), 1);
+    // Nothing needs anything: every option is open, and "None" is what the empty place holds.
+    for place in GearPlace::ALL {
+        let options = engine.gear_options(&build, place);
+        assert!(options.iter().all(|option| option.status.is_ok()));
+        assert!(options.iter().all(|option| option.reason.is_none()));
+        let held: Vec<bool> = options.iter().map(|option| option.held).collect();
+        assert_eq!(held.iter().filter(|held| **held).count(), 1);
+        assert!(held[0], "{place:?}");
+    }
 }
 
 #[test]
-fn usable_items_share_no_place_and_each_is_held_once() {
+fn an_item_a_pick_needs_cant_be_removed_or_replaced_until_the_pick_is_cleared() {
+    let engine = engine_with_gtwf();
+    let geared = belt(two_weapon_fighter());
+    let slot = Choice::Slot(general_slot(1));
+    let reason = "Greater Two-Weapon Fighting needs Belt of Dexterity +2";
+
+    let options = engine.gear_options(&geared, GearPlace::Belt);
+
+    let shown: Vec<(Option<&str>, bool, bool, Option<&str>)> = (options.iter())
+        .map(|option| {
+            (
+                option.item.as_ref().map(|item| item.as_str()),
+                option.held,
+                option.status.is_ok(),
+                option.reason.as_deref(),
+            )
+        })
+        .collect();
+    assert_eq!(
+        shown,
+        [
+            // "None" and the other belt are locked, naming the feat; the belt worn stays open.
+            (None, false, false, Some(reason)),
+            (Some("belt-of-constitution-2"), false, false, Some(reason)),
+            (Some("belt-of-dexterity-2"), true, true, None),
+        ]
+    );
+    for option in &options[..2] {
+        assert_eq!(option.status, Err(Issue::BreaksLater));
+        assert_eq!(option.needed_by, std::slice::from_ref(&slot));
+        // The edit is refused as any edit that breaks a choice is.
+        assert!(!engine.allows(&geared, &option.edit));
+    }
+    // An item elsewhere that keeps the feat legal is open.
+    let gloves = engine.gear_options(&geared, GearPlace::Gloves);
+    assert!(gloves.iter().all(|option| option.status.is_ok()));
+    // With the gloves' +4 too, the belt is no longer needed: it comes off or is replaced.
+    let both = wearing(geared.clone(), GearPlace::Gloves, "gloves-of-dexterity-4");
+    let options = engine.gear_options(&both, GearPlace::Belt);
+    assert!(options.iter().all(|option| option.status.is_ok()));
+    // And with the feat cleared, everything is open again.
+    let cleared = without(&geared, &general_slot(1));
+    let options = engine.gear_options(&cleared, GearPlace::Belt);
+    assert!(options.iter().all(|option| option.status.is_ok()));
+    let mut bare = cleared.clone();
+    engine.apply(&mut bare, &options[0].edit);
+    assert!(bare.gear.is_empty());
+}
+
+#[test]
+fn an_item_whose_own_penalty_would_refuse_a_pick_is_locked_and_says_so() {
+    let engine = engine_with_gtwf();
+    // Silver Tongue needs Charisma 9; the Scholar's Headband takes 10 to 8.
+    let mut build = character([10, 10, 10, 10, 10, 10], &["fighter"]);
+    build
+        .picks
+        .insert(general_slot(1), pick_feat(SILVER_TONGUE));
+    assert!(engine.is_possible(&build));
+
+    let options = engine.gear_options(&build, GearPlace::Headwear);
+
+    let headband = (options.iter())
+        .find(|option| option.item == Some(gear_item("scholars-headband")))
+        .expect("the headband");
+    assert_eq!(headband.status, Err(Issue::BreaksLater));
+    assert_eq!(
+        headband.reason.as_deref(),
+        Some("Scholar's Headband would refuse Silver Tongue")
+    );
+    assert!(options[0].held && options[0].status.is_ok());
+}
+
+#[test]
+fn usable_items_share_no_place_each_is_a_tick_and_a_needed_one_stays_ticked() {
     let engine = engine();
     let mut build = build("human", &["fighter"]);
-    let options = engine.usable_options(&build);
+    let ticks = |build: &Build| -> Vec<(String, bool)> {
+        (engine.usable_options(build).into_iter())
+            .map(|option| {
+                (
+                    option.item.expect("an item").as_str().to_owned(),
+                    option.held,
+                )
+            })
+            .collect()
+    };
     assert_eq!(
-        options
-            .iter()
-            .map(|option| option.item.as_str())
-            .collect::<Vec<_>>(),
-        ["manual-of-dexterity-2", "tome-of-perfection-4"]
+        ticks(&build),
+        [
+            ("manual-of-dexterity-2".to_owned(), false),
+            ("tome-of-perfection-4".to_owned(), false)
+        ]
     );
-    for option in &options {
-        engine.apply(&mut build, &option.edit);
-        // Used twice is used once.
+    // Each tick uses its item; both are held at once.
+    for option in engine.usable_options(&build) {
+        assert_eq!(option.status, Ok(()));
         engine.apply(&mut build, &option.edit);
     }
     assert_eq!(build.gear.used.len(), 2);
     assert!(engine.is_possible(&build));
-    assert!(
-        engine
-            .usable_options(&build)
-            .iter()
-            .all(|option| option.held)
-    );
-
-    let manual = Choice::Gear(GearSpot::Used(gear_item("manual-of-dexterity-2")));
-    let (edit, removable) = engine.withdrawal(&build, &manual).expect("held");
-    assert!(removable);
-    engine.apply(&mut build, &edit);
+    assert!(ticks(&build).iter().all(|(_, held)| *held));
+    // A held tick's edit stops using it.
+    let manual = &engine.usable_options(&build)[0];
+    assert_eq!(manual.status, Ok(()));
+    let mut fewer = build.clone();
+    engine.apply(&mut fewer, &manual.edit);
     assert_eq!(
-        build.gear.used.iter().collect::<Vec<_>>(),
+        fewer.gear.used.iter().collect::<Vec<_>>(),
         [&gear_item("tome-of-perfection-4")]
     );
+    let withdrawal = Choice::Gear(GearSpot::Used(gear_item("manual-of-dexterity-2")));
+    assert_eq!(
+        engine.withdrawal(&build, &withdrawal),
+        Some((manual.edit.clone(), true))
+    );
+
+    // Dodge needs Dexterity 13: at 11, only the manual's +2 gives it, so its tick is locked.
+    let mut dodger = character([10, 11, 10, 10, 10, 10], &["fighter"]);
+    dodger.picks.insert(general_slot(1), pick_feat("dodge"));
+    let dodger = using(dodger, "manual-of-dexterity-2");
+    let manual = &engine.usable_options(&dodger)[0];
+    assert!(manual.held);
+    assert_eq!(manual.status, Err(Issue::BreaksLater));
+    assert_eq!(
+        manual.reason.as_deref(),
+        Some("dodge needs Manual of Dexterity +2")
+    );
+    assert!(!engine.allows(&dodger, &manual.edit));
 }
 
 #[test]
@@ -635,13 +846,14 @@ fn a_point_buy_step_that_only_gear_keeps_legal_is_open_and_says_it_leans_on_the_
 
     // 18 to 17 keeps 19 without gear: safe either way.
     let safe = down(&gloved);
-    assert_eq!((safe.status.clone(), safe.with_gear), (Ok(()), false));
+    assert_eq!((safe.status.clone(), safe.leans_on_gear.len()), (Ok(()), 0));
     // 17 to 16 makes 18 without the gloves: refused without them, open with them but not safe.
     let mut lower = build.clone();
     engine.apply(&mut lower, &safe.edit);
     assert_eq!(down(&lower).status, Err(Issue::BreaksLater));
     let leaning = down(&wearing(lower, GearPlace::Gloves, "gloves-of-dexterity-4"));
-    assert_eq!((leaning.status.clone(), leaning.with_gear), (Ok(()), true));
+    assert_eq!(leaning.status, Ok(()));
+    assert_eq!(leaning.leans_on_gear, [Choice::Slot(general_slot(1))]);
     assert_eq!(
         engine.newly_gear_dependent(&gloved, &leaning.edit),
         [Choice::Slot(general_slot(1))]
@@ -677,5 +889,131 @@ fn the_withdrawals_see_the_gear_and_an_item_something_needs_is_not_removable() {
     assert_eq!(
         engine.newly_gear_dependent(&gloved, &edit),
         [Choice::Slot(general_slot(5))]
+    );
+}
+
+// ---- the other pickers that change a score or a class -----------------------------------------------------------
+
+#[test]
+fn moving_the_racial_bonus_off_a_score_a_feat_needs_is_open_under_a_belt_and_says_what_leans_on_it()
+{
+    let engine = engine_with_gtwf();
+    // Dexterity 17 + the human's 2: 19 without gear.
+    let mut build = two_weapon_fighter();
+    build.start.racial_ability = Some(Ability::Dexterity);
+    assert!(engine.is_possible(&build));
+    let option = |build: &Build, ability: Ability| {
+        (engine.racial_ability_options(build).into_iter())
+            .find(|option| option.value == ability)
+            .expect("the ability")
+    };
+    // Without the belt the move is refused.
+    assert_eq!(
+        option(&build, Ability::Strength).status,
+        Err(Issue::BreaksLater)
+    );
+
+    let geared = belt(build);
+    let strength = option(&geared, Ability::Strength);
+    assert_eq!(strength.status, Ok(()));
+    assert_eq!(strength.leans_on_gear, [Choice::Slot(general_slot(1))]);
+    // The ability it is on leans on nothing.
+    let dexterity = option(&geared, Ability::Dexterity);
+    assert_eq!(
+        (dexterity.status, dexterity.leans_on_gear),
+        (Ok(()), vec![])
+    );
+    // Nor does any option once the feat needs the belt already.
+    let leaning = belt(two_weapon_fighter());
+    assert!(
+        engine
+            .racial_ability_options(&leaning)
+            .iter()
+            .all(|option| option.leans_on_gear.is_empty())
+    );
+    // The race picker, which moves the bonus too, marks each open race as the engine's own answer does.
+    let races = engine.race_options(&geared);
+    assert!(races.iter().any(|option| !option.leans_on_gear.is_empty()));
+    for race in races.iter().filter(|option| option.status.is_ok()) {
+        assert_eq!(
+            race.leans_on_gear,
+            engine.newly_gear_dependent(&geared, &race.edit),
+            "{:?}",
+            race.value
+        );
+    }
+}
+
+#[test]
+fn a_levels_ability_increase_moved_off_a_score_a_feat_needs_says_what_leans_on_the_gear() {
+    let engine = engine_with_gtwf();
+    // Dexterity 18, the level-4 increase on it, and the feat at 5: 19 without gear.
+    let mut build = character([10, 18, 10, 10, 10, 10], &times("fighter", 5));
+    build.levels[3].ability_increase = Some(Ability::Dexterity);
+    build.picks.insert(general_slot(5), pick_feat(GTWF));
+    assert!(engine.is_possible(&build));
+    let strength = |build: &Build| {
+        (engine
+            .ability_increase_options(build, 4)
+            .expect("level 4")
+            .into_iter())
+        .find(|option| option.value == Ability::Strength)
+        .expect("Strength")
+    };
+    assert_eq!(strength(&build).status, Err(Issue::BreaksLater));
+
+    let gloved = wearing(build, GearPlace::Gloves, "gloves-of-dexterity-4");
+    let option = strength(&gloved);
+    assert_eq!(option.status, Ok(()));
+    assert_eq!(option.leans_on_gear, [Choice::Slot(general_slot(5))]);
+}
+
+#[test]
+fn a_class_whose_entry_only_the_gear_meets_is_open_and_says_it_leans_on_the_gear() {
+    // The monk asks for Dexterity 19 here.
+    let mut data = world();
+    let monk = (data.classes.iter_mut())
+        .find(|row| row.key == class("monk"))
+        .expect("the test world has a monk");
+    monk.prerequisite = Some(Prerequisite::AbilityScore {
+        ability: Ability::Dexterity,
+        score: 19,
+    });
+    let engine = engine_on(data);
+    let build = character([10, 17, 10, 10, 10, 10], &["fighter"]);
+    let option = |build: &Build, level: u8, key: &str| {
+        (engine
+            .class_options(build, level)
+            .expect("the level")
+            .into_iter())
+        .find(|option| option.class == class(key) && option.archetype.is_none())
+        .expect("the class")
+    };
+    assert!(option(&build, 2, "monk").status.is_err());
+
+    let geared = belt(build);
+    // One past the last level, and at a level the Build has.
+    let monk = option(&geared, 2, "monk");
+    assert_eq!(monk.status, Ok(()));
+    assert_eq!(monk.leans_on_gear, [Choice::Class { level: 2 }]);
+    let fighter = option(&geared, 2, "fighter");
+    assert_eq!((fighter.status, fighter.leans_on_gear), (Ok(()), vec![]));
+    let first = option(&geared, 1, "monk");
+    assert_eq!(first.status, Ok(()));
+    assert_eq!(first.leans_on_gear, [Choice::Class { level: 1 }]);
+    // Taken, the class is reported as the Build's other gear-dependent choices are, and locks the belt.
+    let mut taken = geared.clone();
+    engine.apply(&mut taken, &monk.edit);
+    assert_eq!(
+        engine.gear_dependents(&taken),
+        [GearDependent {
+            choice: Choice::Class { level: 2 },
+            needs: all_of(&["belt-of-dexterity-2"]),
+        }]
+    );
+    let none = &engine.gear_options(&taken, GearPlace::Belt)[0];
+    assert_eq!(
+        none.reason.as_deref(),
+        Some("Level 2: Monk needs Belt of Dexterity +2")
     );
 }

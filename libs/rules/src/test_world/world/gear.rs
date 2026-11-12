@@ -45,6 +45,12 @@ pub(super) fn gear() -> Vec<GearItem> {
             vec![score(Constitution, 2, Enhancement)],
         ),
         item(
+            "bracers-of-agility",
+            "Bracers of Agility",
+            GearSlot::Bracers,
+            vec![score(Dexterity, 2, Untyped)],
+        ),
+        item(
             "gloves-of-dexterity-4",
             "Gloves of Dexterity +4",
             GearSlot::Gloves,
