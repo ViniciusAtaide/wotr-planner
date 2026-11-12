@@ -1,7 +1,7 @@
 # A cheap behaviour check: snapshots of a small corpus
 
 Type: task
-Status: open
+Status: done
 Blocked by: 158
 Model: Opus to build (it designs the projection and the message every later ticket reads); review on another model.
 Map: [WotR Build Planner](../map.md)
@@ -53,3 +53,58 @@ AFK. A new test and its files: no engine, data or schema change.
 - A throwaway change to one feat's prerequisite (reverted) fails the test with a grouped message that names the feat, and `SNAPSHOTS=write` then makes it pass.
 - The Answer records the corpus size, the snapshots' total size and the measured run time.
 - `scripts/check.sh` passes.
+
+## Answer
+
+**Done**, 2026-11-11 on branch `ticket-159`, from `main` at `34143b5` (158 merged). The real-data test `snapshots` (`libs/seeds/tests/game_data/snapshots.rs`, `mod snapshots;` in its `main.rs`) and 42 snapshot files in `libs/seeds/tests/game_data/snapshots/`; no engine, data or schema change. Documented in `libs/game-data/README.md`, "The snapshot check".
+
+### What was built
+
+- **The corpus, 42 Builds:** the 6 bench Builds (`bench-<name>`: blank, start, fighter20, fighter20_nopath, multi_prestige20, legend40), the 26 classes of `DATA.classes` at level 20 with no picks (`class-<key>`) and the 10 mythic paths of `DATA.mythic_paths` on a fighter 20 with no pick beyond the path (`path-<key>`). Classes and paths are read from the data's lists, so a new one is a missing snapshot file and fails the test. Each is asserted possible before it is projected.
+- **The projection** turns a Build into `path = value` lines in tree order, from `evaluate`, `options`, `totals`, `caster_line`, `choice_label`, `pick_name`, `feat_name`, `feature_name_apart`, `class_value_name`, `rank_features` and `Address`'s `Display` (the engine stays serde-free). The shape is the MCP's `SheetResult`: the Build start (`start.*`, with the point buy spent, and `mythic.first-ascension`/`path`/`switch`); per level the class (with archetype and advances), class level, BAB, the three saves, the six scores, skill points available and spent, the ability increase, the ranks the level adds per skill, each slot as `Label: key "Name"` (`-` while empty), and the feats and features gained at that level (`level.N.feat/<key>`, `level.N.feature/<key>`); per Mythic rank its character level, status, path, slots, features (`×2` for one given twice, the Trickster's Sneak Attack) and dropped slots; at the last level the caster level, spell levels, class skills, the totals (initiative, saves, each skill, each with its parts) and the caster lines. The pick-less class and path Builds also get `<slot address>.open = key, key, …` after each slot, the keys `options` returns as open, sorted, a parameterised one `key(value)` (`Parameter::value_key`).
+- **Regenerating:** `SNAPSHOTS=write cargo test -p seeds --test game_data snapshots` rewrites every file and deletes the file of a Build no longer in the corpus. Any other value of `SNAPSHOTS` fails the test.
+- **The message** (`snapshots::message`): `.open` lists are expanded to one path per key with no value, then each Build's stored and current lines are compared by path. The first grouping is one line per path and change with its number of Builds and the first three names, most Builds first (`level.5.saves.will: 4 → 5 in 4 Builds: a, b, c, …`, `+ slot.feat.5.general.0.open/power-attack in 36 Builds: …`, `- level.2.feature/x = X …`). The second wildcards the path's first number, its level or rank, keeping slot indices as the ticket's example does (`slot.feat.*.general.0.open/power-attack: + in 36 Builds, 357 slots`). Missing and extra files are named as such, and the regeneration command is the last line. Each grouping shows 60 lines, then "… and N more".
+- **The message's own tests**, on made-up line sets: nothing differs (`None`); a changed value grouped by Build; added and removed options with the wildcarded grouping; added and removed lines with their values; missing and extra files with the command last; what the wildcard replaces.
+
+### Sizes and time
+
+- **Corpus:** 42 Builds, 36 of them with options.
+- **Snapshots:** 3,703,016 bytes (3.6 MB), 18,415 lines. The bench sheets are 1–32 KB (93 KB in all), the class Builds 67–126 KB (2.2 MB), the path Builds 128–221 KB (1.4 MB). Most of a pick-less file is its `.open` lines (fighter: 113 of 124 KB), since a parameterised feat is listed once per value. Above the 2–3 MB estimate, mostly because each path Build is a fighter 20 whose feat slots are listed too; kept, since a path's features can open feats (Legend's +4, the Swarm's Str and Dex).
+- **Run time:** 1.5 s wall in a debug build (`snapshots::snapshots_match_the_engine` alone, 5 runs of the test binary: 1.51–1.54 s; 1-minute load 9–10 from another agent reading files), the Builds projected on 8 threads. Writing the snapshots takes the same. Under the 2–4 s estimate, so the corpus wasn't trimmed.
+
+### The throwaway change
+
+Power Attack's prerequisite in `feats.ron` lowered from Strength 13 to 10, then reverted (the snapshots regenerated after the revert are byte-identical to those committed). The test failed with:
+
+```
+the engine's output differs from the snapshots in 36 of 42 Builds
+
+Changes, each with the Builds it's in:
+  + slot.feat.1.general.0.open/power-attack in 36 Builds: class-alchemist, class-arcanist, class-barbarian, …
+  + slot.feat.11.general.0.open/power-attack in 36 Builds: class-alchemist, class-arcanist, class-barbarian, …
+  …
+  + slot.feat.12.class.0.open/power-attack in 13 Builds: class-cavalier, class-fighter, class-warpriest, …
+  …
+  + slot.feat.9.class.0.open/power-attack in 1 Build: class-warpriest
+
+The same, levels and ranks wildcarded:
+  slot.feat.*.general.0.open/power-attack: + in 36 Builds, 357 slots
+  slot.feat.*.class.0.open/power-attack: + in 14 Builds, 127 slots
+
+If every change is intended, regenerate the snapshots:
+SNAPSHOTS=write cargo test -p seeds --test game_data snapshots
+```
+
+(27 lines in the first grouping in all.) `SNAPSHOTS=write` then rewrote 36 files and the test passed.
+
+### Judgement calls
+
+- **"Every class" is every base class.** A prestige class has no pick-less Build: its entry needs feats and skill ranks, and it has 10 levels, not 20. Covering one means a hand-written Build per prestige class with the picks its entry needs, which the ticket's corpus doesn't describe; only the bench's Assassin (`multi_prestige20`) is covered. Archetypes aren't in the corpus either (a pick-less archetype Build can be impossible, `arcanist/phantasmal-mage`).
+- **A pick-less Build that's impossible gets an alignment.** Each class Build starts as `support::build` makes it (with a faith a deity-bound class needs: the cleric, inquisitor and warpriest follow Abadar); one still impossible gets the first alignment of `Alignment::ALL`, with a faith that fits, that makes it possible (`support::realigned`): the barbarian, druid, monk, paladin and shifter. Every class and path came out possible this way.
+- **Path Builds:** a fighter 20 (MR 10 comes at 19), as `support::mythic` makes them. A path taken only by a switch (Devil, Gold Dragon, Legend, Swarm-That-Walks) is switched to from the first path, in key order, it can be switched to from (Aeon for all four); no first ascension.
+- **The bench Builds come from `bench()`,** as the ticket says, so from `tools/proof/bench-links.tsv`'s link codes, not from Rust like the rest. `bench()` already opens a stale one as an atheist and asserts each possible.
+- **Skill ranks per level are the ranks the level adds** (`level.N.skill.<skill>`, its choice), not the running totals, so one rank moved is one or two lines; the totals at the last level carry each skill's ranks.
+- **Caster lines:** 15 per casting Build, for the spell traits whose bonuses the data distinguishes: each school, Evocation for each energy type and with metamagic, and Enchantment for charm and compulsion. The class, ability, caster level, spell penetration and concentration don't depend on the spell and are written once (`caster.*`). No attack line: the ticket's sheet doesn't list one.
+- **Names beside keys:** values are `key "Name"` where the MCP gives both, so a renamed feat or feature shows up too.
+- **The projection is about 400 lines** with the formatting, not 150–200: it writes the whole sheet, the totals and the caster lines, each a few lines per field.
+- **One path per line:** the projection asserts no path repeats, since the comparison is by path.
