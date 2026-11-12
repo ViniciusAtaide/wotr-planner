@@ -12,6 +12,7 @@ use std::collections::BTreeSet;
 use serde::{Deserialize, Serialize};
 
 use crate::bonus::{ItemBonus, ItemInteractions};
+use crate::gear::GearItem;
 use crate::keys::{
     ArchetypeKey, BackgroundKey, ClassKey, DeityKey, FeatKey, FeatListKey, FeatureKey,
     FeatureSelectionKey, MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey,
@@ -64,6 +65,10 @@ pub struct GameData {
     /// note per item.
     #[serde(default)]
     pub interactions: Vec<ItemInteractions>,
+    /// The named items a character wears or wields, with their always-on bonuses (`gear.ron`, ticket 165). No
+    /// Build choice names one yet.
+    #[serde(default)]
+    pub gear: Vec<GearItem>,
     pub mythic_paths: Vec<MythicPath>,
     /// The backgrounds chosen at Build start (`backgrounds.ron`, the user's list).
     pub backgrounds: Vec<Background>,
@@ -159,7 +164,7 @@ impl GameData {
     }
 
     /// How much of each kind of thing the data holds, labelled, as a quick check that seeding worked.
-    pub fn counts(&self) -> [(&'static str, usize); 14] {
+    pub fn counts(&self) -> [(&'static str, usize); 15] {
         [
             ("Races", self.races.len()),
             ("Skills", self.skills.len()),
@@ -175,6 +180,7 @@ impl GameData {
             ("Deities", self.deities.len()),
             ("Spells", self.spells.len()),
             ("Spell lists", self.spell_lists.len()),
+            ("Gear", self.gear.len()),
         ]
     }
 
@@ -227,6 +233,11 @@ impl GameData {
             )
         });
         sort_by_key(&mut self.interactions, |note| note.item.clone());
+        sort_by_key(&mut self.gear, |item| item.key.clone());
+        for item in &mut self.gear {
+            item.bonuses.sort();
+            item.other_effects.sort();
+        }
         sort_by_key(&mut self.mythic_paths, |p| p.key.clone());
         for path in &mut self.mythic_paths {
             canonicalize_features(&mut path.features);

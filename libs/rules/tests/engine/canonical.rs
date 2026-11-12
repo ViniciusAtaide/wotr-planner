@@ -104,6 +104,7 @@ fn counts_summarise_each_catalog() {
             ("Deities", 3),
             ("Spells", 0),
             ("Spell lists", 0),
+            ("Gear", 0),
         ]
     );
 }

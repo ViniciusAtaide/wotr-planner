@@ -230,6 +230,80 @@ pub enum BonusAmount {
     AbilityModifier(Ability),
 }
 
+/// A bonus's type, as the guide words it. Two bonuses of one type to one number don't stack: the higher counts.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+pub enum BonusType {
+    Alchemical,
+    Armour,
+    Circumstance,
+    Competence,
+    Deflection,
+    Dodge,
+    Enhancement,
+    Inherent,
+    Insight,
+    Luck,
+    Morale,
+    NaturalArmour,
+    Profane,
+    Racial,
+    Resistance,
+    Sacred,
+    Shield,
+    Size,
+    /// The guide gives no type, or says "untyped". Always adds. Every penalty is untyped.
+    Untyped,
+}
+
+impl BonusType {
+    pub const ALL: [Self; 19] = [
+        Self::Alchemical,
+        Self::Armour,
+        Self::Circumstance,
+        Self::Competence,
+        Self::Deflection,
+        Self::Dodge,
+        Self::Enhancement,
+        Self::Inherent,
+        Self::Insight,
+        Self::Luck,
+        Self::Morale,
+        Self::NaturalArmour,
+        Self::Profane,
+        Self::Racial,
+        Self::Resistance,
+        Self::Sacred,
+        Self::Shield,
+        Self::Size,
+        Self::Untyped,
+    ];
+
+    /// Lower case, as a summary prints it ("enhancement", "natural armour"); "" for [`Untyped`](Self::Untyped).
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::Alchemical => "alchemical",
+            Self::Armour => "armour",
+            Self::Circumstance => "circumstance",
+            Self::Competence => "competence",
+            Self::Deflection => "deflection",
+            Self::Dodge => "dodge",
+            Self::Enhancement => "enhancement",
+            Self::Inherent => "inherent",
+            Self::Insight => "insight",
+            Self::Luck => "luck",
+            Self::Morale => "morale",
+            Self::NaturalArmour => "natural armour",
+            Self::Profane => "profane",
+            Self::Racial => "racial",
+            Self::Resistance => "resistance",
+            Self::Sacred => "sacred",
+            Self::Shield => "shield",
+            Self::Size => "size",
+            Self::Untyped => "",
+        }
+    }
+}
+
 /// What the guide says about how an item combines with another, in the planner's own words (ticket 124): only for
 /// items an agent run showed two summaries weren't enough for, and "the guide doesn't say" where it doesn't.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]

@@ -1770,3 +1770,75 @@ fn a_weapons_stats_are_dice_a_threat_range_and_multiplier_a_weapon_can_have() {
         ]
     );
 }
+
+fn gear_item(key: &str, name: &str, bonuses: Vec<rules::GearBonus>) -> rules::GearItem {
+    rules::GearItem {
+        key: rules::GearKey::new(key),
+        name: name.to_owned(),
+        slot: rules::GearSlot::Belt,
+        guide: None,
+        bonuses,
+        other_effects: Vec::new(),
+    }
+}
+
+fn gear_bonus(target: rules::GearTarget, amount: i8, kind: rules::BonusType) -> rules::GearBonus {
+    rules::GearBonus {
+        target,
+        amount,
+        kind,
+    }
+}
+
+#[test]
+fn gear_mistakes_are_found() {
+    use rules::{Ability, BonusType, GearTarget};
+    let dex = || GearTarget::Ability(Ability::Dexterity);
+    let mut data = world();
+    let mut bad = gear_item(
+        "bad",
+        "Same",
+        vec![
+            gear_bonus(dex(), 2, BonusType::Enhancement),
+            gear_bonus(dex(), 4, BonusType::Enhancement),
+            gear_bonus(GearTarget::Initiative, -1, BonusType::Luck),
+            gear_bonus(GearTarget::Concentration, 0, BonusType::Untyped),
+            gear_bonus(
+                GearTarget::Skill(rules::SkillKey::new("cooking")),
+                1,
+                BonusType::Untyped,
+            ),
+            gear_bonus(
+                GearTarget::SpellDc(rules::SpellScope::Value),
+                1,
+                BonusType::Untyped,
+            ),
+        ],
+    );
+    bad.other_effects = vec![String::new(), "Twice.".to_owned(), "Twice.".to_owned()];
+    data.gear = vec![
+        bad,
+        gear_item("empty", "Same", Vec::new()),
+        gear_item("empty", "Other", Vec::new()),
+    ];
+    let at = |key: &str| DataAt::Gear(rules::GearKey::new(key));
+    let found = issues(&data);
+    for (key, issue) in [
+        ("bad", DataIssue::GearBonusTwice),
+        ("bad", DataIssue::GearAmountInvalid),
+        ("bad", DataIssue::GearSpellDcOfValue),
+        ("bad", DataIssue::GearEffectInvalid),
+        ("empty", DataIssue::GearWithoutBonus),
+        ("empty", DataIssue::DuplicateKey),
+        ("empty", DataIssue::GearNameTwice),
+    ] {
+        assert!(
+            found.contains(&(at(key), issue.clone())),
+            "{key}: {issue:?}"
+        );
+    }
+    assert!(found.contains(&(
+        at("bad"),
+        DataIssue::UnknownKey(DataAt::Skill(rules::SkillKey::new("cooking")))
+    )));
+}
