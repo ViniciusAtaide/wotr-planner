@@ -5,6 +5,9 @@
 //! `Choice` of its own), and `level.N.class`, whose engine Withdrawal sets a class key no data has: an agent changes
 //! a level's class with `choose`, and drops the last level with `level.N`.
 //!
+//! A Mythic rank taken later than the rank table's level comes back the same way (`mythic.R.level`: the rank is taken
+//! as early as it comes again), unless a pick needs it where it is: then the refusal names that pick.
+//!
 //! A gear item comes off the same way (`gear.belt`, `gear.usable.<item key>`), unless a choice needs it: then the
 //! refusal names that choice, as the engine words it ([`crate::gear::needed_reason`]).
 
@@ -63,6 +66,18 @@ pub(crate) fn withdraw(planner: &Planner, args: WithdrawArgs) -> Result<Withdraw
                 "{reason}, so `{address}` can't be withdrawn now, nor replaced by an item that doesn't keep that choice: \
                  withdraw the choice first, or `choose` an item that keeps it (`options` on `{address}` lists them \
                  open). `sheet` lists the choices only gear allows under `gear_dependent`."
+            )));
+        }
+        // A rank taken later that a pick needs there: the engine names the pick ("Shield Focus (Mythic) needs MR
+        // 10 later than level 19").
+        if let Address::RankLevel(rank) = &address
+            && let Some(reason) = (engine.rank_level_options(&build, *rank).into_iter())
+                .find(|option| option.earliest)
+                .and_then(|option| option.reason)
+        {
+            return Err(ToolError::not_removable(format!(
+                "{reason}, so `{address}` can't be withdrawn now: withdraw that choice first. `options` on \
+                 `{address}` lists the levels MR {rank} can be taken at."
             )));
         }
         return Err(ToolError::not_removable(format!(

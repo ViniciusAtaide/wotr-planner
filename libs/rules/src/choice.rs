@@ -58,6 +58,11 @@ pub enum Choice {
     /// An item the Build holds, by where it holds it (ticket 166). It belongs to no level; the walk checks it at the
     /// Build start.
     Gear(GearSpot),
+    /// The character level a Mythic rank is taken at, when it is later than the rank table's
+    /// ([`Build::rank_levels`](crate::Build::rank_levels), ticket 171).
+    RankLevel {
+        rank: u8,
+    },
 }
 
 /// Why a picker's option can't be taken, or why a choice of a Build fails ([`Failure`]). A Build the sheet holds is
@@ -80,7 +85,8 @@ pub enum Issue {
     /// slot (another class at the level, another option held). The walk gives it too for a subrace of another race,
     /// an archetype of another class, an advancement the prestige class can't take, a path the first ascension or
     /// MR 3 doesn't take (or a switch that isn't one), skill points spent past the level's, and a gear item where
-    /// its slot doesn't go (a belt on the hands, a manual worn, a belt used).
+    /// its slot doesn't go (a belt on the hands, a manual worn, a belt used), and a Mythic rank's later level
+    /// that is no later than the rank table's.
     NotAllowed,
     /// A key the game data lacks: a pick's item, a race, subrace, deity, background, class, archetype, skill, a
     /// class an advancement names, a path, or a gear item. No picker shows it, since a picker offers only what the data has; a
@@ -88,8 +94,8 @@ pub enum Issue {
     UnknownKey,
     /// A choice in a place the Build doesn't reach: a pick for a slot the walk never reached (one the level's class
     /// doesn't give, past the last level, at a Mythic rank not reached), a class choice for a class no level takes,
-    /// the first ascension, path or switch while the Build doesn't reach its rank, and a character level past the
-    /// level cap. No picker shows it: a picker only offers what's there.
+    /// the first ascension, path or switch while the Build doesn't reach its rank, a character level past the
+    /// level cap, and a Mythic rank's later level past the last level (or of a rank the Build never gets to). No picker shows it: a picker only offers what's there.
     NotReached,
     /// The class level would go above the class's table.
     ClassLevelCap { cap: u8 },

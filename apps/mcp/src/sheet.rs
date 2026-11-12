@@ -401,6 +401,14 @@ impl Lines<'_> {
         RankLine {
             rank: rank.rank,
             character_level: rank.character_level,
+            // Only a rank that is taken somewhere: one a Legend's switch ended the ascensions before shows the
+            // table's level and no move, though the switch's own rank (never reached as a rank) says where it is.
+            table_level: engine
+                .rank_table_level(rank.rank)
+                .filter(|earliest| rank.character_level > *earliest)
+                .filter(|_| {
+                    rank.status != RankStatus::NotReached || rank.rank == rules::PATH_SWITCH_RANK
+                }),
             status: match rank.status {
                 RankStatus::Reached => RankState::Reached,
                 RankStatus::PartlyDropped => RankState::PartlyDropped,

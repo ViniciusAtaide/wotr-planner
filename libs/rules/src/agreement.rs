@@ -13,8 +13,8 @@
 //! The pickers judged, for a possible Build, at every slot and level it has: the Build start's (race, faith,
 //! alignment, background, racial ability, the point buy's steps), each level's class (and one past the last, while
 //! the level cap allows another) with a prestige class's advancement, ability increase and skill steps, every slot of
-//! the sheet's levels and reached Mythic ranks, and the first ascension, path and switch at the ranks that choose
-//! them, once the Build reaches them (as the MCP server offers them).
+//! the sheet's levels and reached Mythic ranks, the first ascension, path and switch at the ranks that choose
+//! them, once the Build reaches them (as the MCP server offers them), and each reached rank's level picker.
 //!
 //! A prestige class that asks what it advances is judged against advancements the check lists itself, not the
 //! advancement picker's: every set of at most two of the classes the Build takes (the game's rule: one arcane and one
@@ -352,6 +352,29 @@ pub fn judge(engine: &Engine, build: &Build) -> Agreement {
                 let held = held.as_ref() == Some(&o.path);
                 judge.check(picker, &o.path.to_string(), &o.status, &o.edit, held);
             }
+        }
+    }
+
+    // Each rank's level picker (ticket 171): empty for a rank the Build doesn't reach.
+    for rank in &sheet.ranks {
+        let picker = format!("rank_level_options {}", rank.rank);
+        for o in engine.rank_level_options(build, rank.rank) {
+            // A move that would shift a pick into another rank's slot is refused whatever the walk says of the
+            // moved Build: locked, and not allowed.
+            if !o.held && !engine.shifted_picks(build, &o.edit).is_empty() {
+                let allows = engine.allows(build, &o.edit);
+                let agrees = o.status == Err(Issue::BreaksLater) && !allows;
+                judge.agreement.add((!agrees).then(|| Disagreement {
+                    picker: picker.clone(),
+                    option: o.level.to_string(),
+                    status: Some(o.status.clone()),
+                    possible: false,
+                    allows,
+                    unchanged: false,
+                }));
+                continue;
+            }
+            judge.check(&picker, &o.level.to_string(), &o.status, &o.edit, o.held);
         }
     }
     judge.agreement

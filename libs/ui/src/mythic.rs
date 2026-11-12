@@ -1,4 +1,5 @@
-//! The Mythic track: MR 1–10 at their fixed character levels, the first ascension at MR 1, the path at MR 3 and the
+//! The Mythic track: MR 1–10 at the character levels they are taken at (the rank table's, or a later one the Build
+//! places a rank at, with the control that moves it), the first ascension at MR 1, the path at MR 3 and the
 //! Path switch at MR 8, and under each rank the features its path row gives (MR 1 and 2: the first ascension's). A
 //! rank is reached, partly dropped or dropped by a switch, or not reached (shown greyed, with no label); the picks a
 //! switch took away stay, marked lost from the switch on, and an empty slot there still has a picker.
@@ -9,7 +10,7 @@ use rules::{
     RankStatus,
 };
 
-use crate::grid::slot_chip;
+use crate::grid::{rank_move, slot_chip};
 use crate::planner::{Target, use_planner};
 
 #[component]
@@ -40,9 +41,22 @@ pub fn MythicTrack() -> AnyView {
                     name: engine.first_ascension_name(key),
                     path: key.clone(),
                 });
+                let moved_from = engine
+                    .rank_table_level(rank.rank)
+                    .filter(|earliest| ascends && rank.character_level > *earliest)
+                    // A rank that is never taken shows no move; the switch's own rank says where the switch is.
+                    .filter(|_| {
+                        rank.status != RankStatus::NotReached || rank.rank == PATH_SWITCH_RANK
+                    });
+                let move_control = planner
+                    .build
+                    .with(|build| rank_move(&engine, build, &sheet, rank.rank))
+                    .map(|control| control.into_any());
                 rank_row(
                     rank,
                     ascends,
+                    moved_from,
+                    move_control,
                     (rank.rank == FIRST_ASCENSION_RANK).then_some(first),
                     (rank.rank == PATH_CHOICE_RANK).then(|| path.clone()),
                     (rank.rank == PATH_SWITCH_RANK).then(|| switch.clone()),
@@ -52,7 +66,7 @@ pub fn MythicTrack() -> AnyView {
         view! {
             <p class="summary muted">
                 {format!(
-                    "Each Mythic ascension happens at a fixed character level. The first ascension at MR {FIRST_ASCENSION_RANK} takes one path's path-linked ability, with its follow-ups at MR {}; the path is chosen at MR {PATH_CHOICE_RANK}; a Path switch can come at MR {PATH_SWITCH_RANK}.",
+                    "Each Mythic rank comes at its character level at the earliest, and ⇅ takes it at a later level (the ranks above it never come before it). The first ascension at MR {FIRST_ASCENSION_RANK} takes one path's path-linked ability, with its follow-ups at MR {}; the path is chosen at MR {PATH_CHOICE_RANK}; a Path switch can come at MR {PATH_SWITCH_RANK}.",
                     FIRST_ASCENSION_RANK + 1,
                 )}
             </p>
@@ -72,11 +86,15 @@ struct Chosen {
 }
 
 /// One rank's row. `first`, `path` and `switch` are set on the ranks that choose them: the chosen one, if any.
+/// `moved_from` is the rank table's level of a rank taken later than it, and `move_control` the control that moves
+/// the rank, when it has somewhere to go.
 /// `ascends`: the Build has the rank's character level, so its first ascension, path or switch can be chosen. The
 /// row, its path's name and each chosen path chip carry their path's key as `data-path`, which sets their colour.
 fn rank_row(
     rank: &RankSheet,
     ascends: bool,
+    moved_from: Option<u8>,
+    move_control: Option<AnyView>,
     first: Option<Option<Chosen>>,
     path: Option<Option<Chosen>>,
     switch: Option<Option<Chosen>>,
@@ -140,7 +158,14 @@ fn rank_row(
         >
             <span class="row-number mythic-number">{format!("MR {}", rank.rank)}</span>
             <span class="rank-level">
-                {format!("Level {}", rank.character_level)}
+                <span class="rank-at">
+                    {format!("Level {}", rank.character_level)}
+                    {moved_from
+                        .map(|earliest| {
+                            view! { <span class="rank-moved">{format!(" from {earliest}")}</span> }
+                        })}
+                    {move_control}
+                </span>
                 {path_name
                     .map(|(name, key)| view! { <span class="rank-path" data-path=key>{name}</span> })}
             </span>

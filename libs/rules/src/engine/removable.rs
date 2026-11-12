@@ -88,8 +88,9 @@ impl Engine {
 
     /// Every choice the Build holds, removable or not, each once with its [`Withdrawal`]: the Build start's
     /// (every point-buy score always), each level's class, ability increase and skill ranks, the last level, each
-    /// class's archetype and advanced classes, the first ascension, path and Path switch, each pick, and each item of
-    /// its gear. A level's skill points are what its ranks spend, not a choice of their own.
+    /// class's archetype and advanced classes, the first ascension, path and Path switch, each Mythic rank taken later
+    /// than the rank table's level (its Withdrawal takes it as early as it comes again), each pick, and each item
+    /// of its gear. A level's skill points are what its ranks spend, not a choice of their own.
     ///
     /// Costs no walk.
     pub fn held_choices(&self, build: &Build) -> Vec<Withdrawal> {
@@ -230,6 +231,13 @@ impl Engine {
         }
         if build.path_switch.is_some() {
             push(Choice::PathSwitch, Edit::PathSwitch(None), vec![]);
+        }
+        for &rank in build.rank_levels.keys() {
+            push(
+                Choice::RankLevel { rank },
+                Edit::RankLevel { rank, level: None },
+                vec![],
+            );
         }
         for slot in build.picks.keys() {
             push(

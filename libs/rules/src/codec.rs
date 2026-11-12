@@ -31,7 +31,8 @@
 //! a key of that kind.
 //!
 //! ```text
-//! structure     = name, start, levels, class choices, path, path [the switch], picks, first ascension, gear
+//! structure     = name, start, levels, class choices, path, path [the switch], picks, first ascension, gear,
+//!                 rank levels
 //! name          = opt(varint length in bytes, UTF-8 bytes)
 //! start         = opt(key(race)), opt(key(subrace)), ability [racial], alignment, opt(key(background)), faith,
 //!                 6 × u8 score [point buy: Str, Dex, Con, Int, Wis, Cha]
@@ -43,6 +44,7 @@
 //! picks         = varint count, count × group
 //! first ascension = nothing [none] | 1, key(mythic path)
 //! gear          = nothing [none] | 2, varint count (at least 1), count × (u8 place, key(gear item))
+//! rank levels   = nothing [none] | 3, varint count (at least 1), count × (u8 rank, u8 level)
 //! group         = u8 slot kind, varint count (at least 1), count × (u8 step, slot fields, pick)
 //! pick          = 0, key(feat), parameter | 1, key(selection option), parameter | 2, key(mythic ability)
 //!               | 3, key(mythic feat), parameter | 4, key(mythic ability), parameter [not none]
@@ -79,11 +81,18 @@
 //! with `8` and `9` the two rings and `10` the body), each place once and in that order; then the usable items
 //! used, each with place `12`, in their keys' text order. Their keys are the last hashes listed.
 //!
+//! The rank levels ([`Build::rank_levels`], ticket 171) came after the gear, so they go after it, behind the next
+//! tag (`3`), and write nothing when no rank is taken later than the rank table's level: every link made before
+//! them reads as a Build that moves no rank, and such a Build writes the link it always did. Each is a Mythic rank
+//! and the character level it is taken at, in rank order, each rank once; they name no key. The three trailing
+//! sections are each there or not on their own, always in the order of their tags (`1`, `2`, `3`).
+//!
 //! **Exact.** A Build reads back unchanged from its link, given the keys it names, and has only one body: decoding
 //! refuses ([`DecodeError::Format`]) anything the encoder never writes: an unknown tag; groups or slots out of order,
 //! a slot named twice, a group with no picks; a map or set out of key order or naming a key twice; a varint longer
 //! than needed; a hash listed but not named; bytes left over; a gear section with no item, a place out of order or
-//! named twice, a used item out of key order. It also refuses a Build no planner could make,
+//! named twice, a used item out of key order; a rank levels section with no rank, a rank out of order or named twice,
+//! a rank or a level of 0; a trailing section before one with a lower tag. It also refuses a Build no planner could make,
 //! whatever the game data: a point buy that doesn't fit, ranks above the character level, an ability increase on a
 //! level without one.
 //!
@@ -411,6 +420,8 @@ const FIRST_ASCENSION_TAG: u8 = 1;
 const GEAR_TAG: u8 = 2;
 /// The place of a usable item used, after every place an item is worn in ([`GearPlace::ALL`]).
 const USED_PLACE: u8 = GearPlace::ALL.len() as u8;
+/// The tag before the rank levels, when a rank is taken later than the rank table's level.
+const RANK_LEVELS_TAG: u8 = 3;
 
 /// Writes a version 1 structure, collecting the keys it names in order.
 struct Writer<'a> {
@@ -468,6 +479,7 @@ impl<'a> Writer<'a> {
             path_switch,
             picks,
             gear,
+            rank_levels,
         } = build;
         match name {
             None => self.byte(0),
@@ -562,6 +574,15 @@ impl<'a> Writer<'a> {
             for item in used {
                 self.byte(USED_PLACE);
                 self.key(KeyKind::Gear, item.as_str());
+            }
+        }
+        // Nothing either when no rank is taken later: such a Build writes the link it always did.
+        if !rank_levels.is_empty() {
+            self.byte(RANK_LEVELS_TAG);
+            self.varint(rank_levels.len());
+            for (rank, level) in rank_levels {
+                self.byte(*rank);
+                self.byte(*level);
             }
         }
     }
@@ -864,8 +885,8 @@ impl<'a> Reader<'a> {
         let mythic_path = self.opt_key(KeyKind::MythicPath)?.map(MythicPathKey);
         let path_switch = self.opt_key(KeyKind::MythicPath)?.map(MythicPathKey);
         let picks = self.picks()?;
-        // Each absent, or its tag and what follows, the first ascension before the gear: the encoder never writes
-        // a `0` here.
+        // Each absent, or its tag and what follows, in the order of their tags (the first ascension, the gear, the
+        // rank levels): the encoder never writes a `0` here.
         let mut tag = self.tag()?;
         let first_ascension = if tag == Some(FIRST_ASCENSION_TAG) {
             let path = MythicPathKey(self.key(KeyKind::MythicPath)?);
@@ -874,9 +895,16 @@ impl<'a> Reader<'a> {
         } else {
             None
         };
-        let gear = match tag {
-            None => Gear::default(),
-            Some(GEAR_TAG) => self.gear()?,
+        let gear = if tag == Some(GEAR_TAG) {
+            let gear = self.gear()?;
+            tag = self.tag()?;
+            gear
+        } else {
+            Gear::default()
+        };
+        let rank_levels = match tag {
+            None => BTreeMap::new(),
+            Some(RANK_LEVELS_TAG) => self.rank_levels()?,
             Some(_) => return Err(DecodeError::Format),
         };
 
@@ -893,6 +921,7 @@ impl<'a> Reader<'a> {
             path_switch,
             picks,
             gear,
+            rank_levels,
         })
     }
 
@@ -933,6 +962,23 @@ impl<'a> Reader<'a> {
             }
         }
         Ok(gear)
+    }
+
+    /// The rank levels after their tag: at least one, in rank order, each rank once, no rank or level of 0.
+    fn rank_levels(&mut self) -> Result<BTreeMap<u8, u8>, DecodeError> {
+        let count = self.count()?;
+        if count == 0 {
+            return Err(DecodeError::Format);
+        }
+        let mut rank_levels = BTreeMap::new();
+        for _ in 0..count {
+            let (rank, level) = (self.byte()?, self.byte()?);
+            if rank == 0 || level == 0 {
+                return Err(DecodeError::Format);
+            }
+            insert_in_order(&mut rank_levels, rank, level)?;
+        }
+        Ok(rank_levels)
     }
 
     fn picks(&mut self) -> Result<BTreeMap<SlotId, Pick>, DecodeError> {
@@ -1257,7 +1303,7 @@ mod tests {
         refused(&["a", "a"], &[2, 2, 12, 12]); // a used item twice
         refused(&["a", "b"], &[2, 2, 12, 0]); // a worn item after a used one
         refused(&["a"], &[2, 1, 0, 1]); // the first ascension after the gear
-        refused(&["a"], &[3, 1, 0]); // an unknown tag
+        refused(&["a"], &[4, 1, 0]); // an unknown tag
     }
 
     /// Ticket 125's tags, after links had shipped: a mythic ability with a value is pick `4` (with none it's `2`, as

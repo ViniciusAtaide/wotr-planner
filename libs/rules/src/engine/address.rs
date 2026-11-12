@@ -14,7 +14,9 @@
 //!   end adds a level), `level.N.increase`, `level.N.skill` (the level's skill points as a whole),
 //!   `level.N.skill.<skill>`.
 //! - A class's own choices, made when it's first taken: `class.<class>.archetype`, `class.<class>.advances`.
-//! - The Mythic track: `mythic.first-ascension`, `mythic.path`, `mythic.switch`.
+//! - The Mythic track: `mythic.first-ascension`, `mythic.path`, `mythic.switch`, and `mythic.R.level`, the character
+//!   level Mythic rank R is taken at (ticket 171): a Build holds it only for a rank taken later than the rank
+//!   table's level.
 //! - A slot, one form per [`SlotId`] variant: `slot.feat.N.<race|class|general>.I`, `slot.selection.N.I`,
 //!   `slot.option-feat.N.I`, `slot.option-selection.N.I`, `slot.feat-selection.N.I` (N a character level), and
 //!   `slot.mythic.R`, `slot.mythic-extra.R`, `slot.path-feat.R.I`, `slot.path-selection.R.I`,
@@ -67,6 +69,8 @@ pub enum Address {
     FirstAscension,
     Path,
     Switch,
+    /// The character level a Mythic rank is taken at.
+    RankLevel(u8),
     Slot(SlotId),
     /// An item the Build holds: the one worn in a place, or a usable item used.
     Gear(GearSpot),
@@ -131,6 +135,7 @@ impl Address {
             Address::FirstAscension => Choice::FirstAscension,
             Address::Path => Choice::MythicPath,
             Address::Switch => Choice::PathSwitch,
+            Address::RankLevel(rank) => Choice::RankLevel { rank: *rank },
             Address::Slot(slot) => Choice::Slot(slot.clone()),
             Address::Gear(spot) => Choice::Gear(spot.clone()),
         })
@@ -155,6 +160,7 @@ impl Address {
             Address::FirstAscension => Some(Place::Rank(FIRST_ASCENSION_RANK)),
             Address::Path => Some(Place::Rank(PATH_CHOICE_RANK)),
             Address::Switch => Some(Place::Rank(PATH_SWITCH_RANK)),
+            Address::RankLevel(rank) => Some(Place::Rank(*rank)),
             Address::Slot(slot) => match (slot.level(), slot.rank()) {
                 (Some(level), _) => Some(Place::Level(level)),
                 (_, Some(rank)) => Some(Place::Rank(rank)),
@@ -202,6 +208,7 @@ impl From<&Choice> for Address {
             Choice::PathSwitch => Address::Switch,
             Choice::Slot(slot) => Address::Slot(slot.clone()),
             Choice::Gear(spot) => Address::Gear(spot.clone()),
+            Choice::RankLevel { rank } => Address::RankLevel(*rank),
         }
     }
 }
@@ -211,7 +218,7 @@ impl From<&Choice> for Address {
 impl Engine {
     /// What the choice is, in sentence case, as the sheet's lines and the pickers' headings name it: "Race",
     /// "Faith", "Strength (point buy)", "Class", "Ability increase", "Skill ranks", "Athletics ranks", "Fighter:
-    /// archetype", "Mythic path", and for a slot what it takes ([`slot_label`](Self::slot_label)), or "slot"
+    /// archetype", "Mythic path", "Character level" (of a Mythic rank), and for a slot what it takes ([`slot_label`](Self::slot_label)), or "slot"
     /// without the sheet's slot. A level itself is "Level 4".
     pub fn choice_label(&self, address: &Address, slot: Option<&Slot>) -> String {
         match address {
@@ -232,6 +239,7 @@ impl Engine {
             Address::FirstAscension => "First ascension".to_owned(),
             Address::Path => "Mythic path".to_owned(),
             Address::Switch => "Path switch".to_owned(),
+            Address::RankLevel(_) => "Character level".to_owned(),
             Address::Slot(_) => {
                 slot.map_or_else(|| "slot".to_owned(), |slot| self.slot_label(slot))
             }
@@ -498,6 +506,7 @@ impl fmt::Display for Address {
             Address::FirstAscension => write!(f, "mythic.first-ascension"),
             Address::Path => write!(f, "mythic.path"),
             Address::Switch => write!(f, "mythic.switch"),
+            Address::RankLevel(rank) => write!(f, "mythic.{rank}.level"),
             Address::Slot(slot) => match *slot {
                 SlotId::Feat {
                     level,
@@ -599,6 +608,7 @@ fn parse(text: &str) -> Option<Address> {
         ["mythic", "first-ascension"] => Address::FirstAscension,
         ["mythic", "path"] => Address::Path,
         ["mythic", "switch"] => Address::Switch,
+        ["mythic", rank, "level"] => Address::RankLevel(ordinal(rank)?),
         ["slot", rest @ ..] => Address::Slot(parse_slot(rest)?),
         ["gear", "usable", item @ ..] if !item.is_empty() => {
             Address::Gear(GearSpot::Used(GearKey::new(key(&item.join("."))?)))

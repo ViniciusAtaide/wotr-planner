@@ -186,6 +186,7 @@ fn body(target: Target) -> AnyView {
         Target::FirstAscension => view! { <FirstAscensionPicker/> }.into_any(),
         Target::Path => view! { <PathPicker switch=false/> }.into_any(),
         Target::Switch => view! { <PathPicker switch=true/> }.into_any(),
+        Target::RankLevel(rank) => view! { <RankLevelPicker rank/> }.into_any(),
         Target::Race => view! { <RacePicker/> }.into_any(),
         Target::Alignment => view! { <AlignmentPicker/> }.into_any(),
         Target::Deity => view! { <DeityPicker/> }.into_any(),
@@ -492,8 +493,12 @@ fn SlotPicker(id: SlotId) -> impl IntoView {
         let slot = slot.clone();
         after_paint(step, move || {
             let build = planner.build.get_untracked();
-            let entries =
+            let mut entries =
                 timed("options", || engine.slot_entries(&build, &slot)).unwrap_or_default();
+            let sheet = planner.sheet.get_untracked();
+            timed("rank_level_that_opens", || {
+                later_rank_levels(&engine, &build, &sheet, &slot, &mut entries);
+            });
             Arc::new(entries)
         });
     }
@@ -576,6 +581,95 @@ fn SlotPicker(id: SlotId) -> impl IntoView {
         {list}
     }
     .into_any()
+}
+
+/// For a Mythic rank's slot: each option refused for a prerequisite that a later level of the Build meets says
+/// which level of the rank opens it, after its reason ("Needs Shield Focus · MR 10 taken at level 20 opens it"), and
+/// so does its entry's one reason. Any other slot's entries stay as they are.
+fn later_rank_levels(
+    engine: &Engine,
+    build: &Build,
+    sheet: &rules::Sheet,
+    slot: &SlotId,
+    entries: &mut [SlotEntry],
+) {
+    let Some(rank) = slot.rank() else {
+        return;
+    };
+    for entry in entries.iter_mut().filter(|entry| !entry.open) {
+        let mut first = None;
+        for option in &mut entry.options {
+            if !matches!(option.option.status, Err(Issue::Unmet(_))) {
+                continue;
+            }
+            let pick = &option.option.pick;
+            let Some((level, moves)) = engine.rank_level_that_opens(build, sheet, slot, pick)
+            else {
+                continue;
+            };
+            // The ranks above that the move takes along, as the level picker's option says them.
+            let opens = match moves.is_empty() {
+                true => format!("MR {rank} taken at level {level} opens it"),
+                false => format!(
+                    "MR {rank} taken at level {level} opens it, moving {}",
+                    Engine::moves_text(&moves)
+                ),
+            };
+            first.get_or_insert_with(|| match option.value.is_empty() {
+                true => opens.clone(),
+                false => format!("{opens} for {}", option.value),
+            });
+            option.reason = Some(match option.reason.take() {
+                Some(reason) => format!("{reason} · {opens}"),
+                None => opens,
+            });
+        }
+        if let Some(opens) = first {
+            entry.reason = Some(match entry.reason.take() {
+                Some(reason) => format!("{reason} · {opens}"),
+                None => opens,
+            });
+        }
+    }
+}
+
+/// A Mythic rank's level picker (ticket 171): the levels the rank can be taken at, from the earliest it comes at to
+/// the Build's last level. A level says when it is the earliest and which ranks above move with it; one that would
+/// refuse a choice is locked, with the engine's reason naming the choice. Remove takes the rank back as early as it
+/// comes.
+#[component]
+fn RankLevelPicker(rank: u8) -> impl IntoView {
+    let planner = use_planner();
+    start_picker(Choice::RankLevel { rank }, move |engine| {
+        let options = planner.ask("rank_level_options", |engine, build| {
+            engine.rank_level_options(build, rank)
+        });
+        let table = engine.rank_table_level(rank);
+        options
+            .into_iter()
+            .map(|option| {
+                let mut notes = Vec::new();
+                if option.earliest {
+                    notes.push(match table == Some(option.level) {
+                        true => "The earliest: the rank table's level".to_owned(),
+                        false => "The earliest: never before the rank below it".to_owned(),
+                    });
+                }
+                notes.extend(
+                    (option.moves.iter())
+                        .map(|(other, level)| format!("MR {other} moves to level {level}")),
+                );
+                let item = Item {
+                    detail: notes.join(" · "),
+                    locked: option.status.is_err(),
+                    reason: option.reason,
+                    current: option.held,
+                    ..Item::new(format!("Level {}", option.level))
+                };
+                (item, option.edit)
+            })
+            .collect()
+    })
 }
 
 /// A slot picker's step: its entries being worked out, then their list, then an entry's values.

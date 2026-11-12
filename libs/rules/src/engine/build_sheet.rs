@@ -30,6 +30,7 @@
 //! MR 3 (level 9)
 //!   Mythic ability: …
 //!   Trickster Tricks: … # lost to the Path switch
+//! MR 10 (level 20, taken later than level 19)   (a rank taken later than the rank table's level, ticket 171)
 //! ```
 //!
 //! The line keys ("Race:", "Deity:", "Racial +2:", "  Ability:" …) are the format's own, fixed with its version:
@@ -39,7 +40,8 @@
 //! The link on the second line always reopens the exact Build; the rest is for reading. Only the choices are data:
 //! what's derived from them (here only a pick a Path switch takes away) is a comment, from ` # ` to the end of its
 //! line, which a later import ignores. A choice not made yet is left out, a level with nothing chosen names only its
-//! class, and a rank with no pick is left out. The same Build always renders the same text: the start, the gear, the
+//! class, and a rank with no pick is left out unless it is taken later than the rank table's level: only such a
+//! rank's line says so, so a Build that moves no rank gives the text it always did. The same Build always renders the same text: the start, the gear, the
 //! levels in order, each level's picks in slot order as the sheet checks them, then the ranks in order.
 //!
 //! The gear (ticket 167) is a block of its own after the start, written only when the Build holds some, so a Build
@@ -51,7 +53,7 @@ use std::fmt::Write as _;
 use crate::build::{AbilityScores, Build, GearPlace, GearSpot};
 use crate::codec::encode_build;
 
-use super::{Engine, Sheet};
+use super::{Engine, RankSheet, RankStatus, Sheet};
 
 /// The first line: what the text is, and its format's version.
 const HEADER: &str = "WotR build v1";
@@ -79,6 +81,9 @@ mod key {
     pub const TRACK: &str = "Mythic track";
     /// A rank's line: "MR 3 (level 9)".
     pub const RANK: &str = "MR";
+    /// What follows the level of a rank taken later than the rank table's: "MR 10 (level 20, taken later than level
+    /// 19)" (ticket 171).
+    pub const LATER_THAN: &str = "taken later than level";
     /// The gear's heading (ticket 167).
     pub const GEAR: &str = "Gear";
     /// A usable item used: "  Used: Tome of Clear Thought +2".
@@ -117,7 +122,7 @@ impl Engine {
         let _ = self.write_start(&mut text, build, page);
         let _ = self.write_gear(&mut text, build);
         let _ = self.write_levels(&mut text, build, &sheet);
-        let _ = self.write_track(&mut text, &sheet);
+        let _ = self.write_track(&mut text, build, &sheet);
         text
     }
 
@@ -242,25 +247,38 @@ impl Engine {
         Ok(())
     }
 
-    /// The Mythic track after a blank line: each rank with a pick, its character level and its picks. Nothing when
-    /// no rank has one.
-    fn write_track(&self, text: &mut String, sheet: &Sheet) -> std::fmt::Result {
+    /// The Mythic track after a blank line: each rank with a pick, its character level and its picks, and each rank
+    /// taken later than the rank table's level, which its line says: one the Build reaches, or places itself (the
+    /// rank of a Legend's switch, which is never reached as a rank). Nothing when there is none.
+    fn write_track(&self, text: &mut String, build: &Build, sheet: &Sheet) -> std::fmt::Result {
+        let later = |rank: &RankSheet| {
+            (self.rank_table_level(rank.rank)).filter(|earliest| rank.character_level > *earliest)
+        };
         let mut ranks = sheet
             .ranks
             .iter()
-            .filter(|rank| rank.slots.iter().any(|slot| slot.pick.is_some()))
+            .filter(|rank| {
+                rank.slots.iter().any(|slot| slot.pick.is_some())
+                    || (later(rank).is_some()
+                        && (rank.status != RankStatus::NotReached
+                            || build.rank_levels.contains_key(&rank.rank)))
+            })
             .peekable();
         if ranks.peek().is_some() {
             writeln!(text, "\n{}", key::TRACK)?;
         }
         for rank in ranks {
-            writeln!(
+            write!(
                 text,
-                "{} {} (level {})",
+                "{} {} (level {}",
                 key::RANK,
                 rank.rank,
                 rank.character_level
             )?;
+            if let Some(earliest) = later(rank) {
+                write!(text, ", {} {earliest}", key::LATER_THAN)?;
+            }
+            writeln!(text, ")")?;
             for slot in &rank.slots {
                 let Some(pick) = &slot.pick else { continue };
                 write!(

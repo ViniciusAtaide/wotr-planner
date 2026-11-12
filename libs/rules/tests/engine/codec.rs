@@ -1,7 +1,7 @@
 //! The URL codec: `/#b=<code>` is a version byte, then the deflated Build with every key as a 24-bit hash, in
 //! base64url. Reading a link back needs the keys it may name ([`LinkKeys`]): the game data's, or a Build's own.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use proptest::collection::{btree_map, btree_set, vec};
 use proptest::option;
@@ -216,6 +216,8 @@ fn any_build() -> impl Strategy<Value = Build> {
         option::of(key().prop_map(MythicPathKey)),
         btree_map(slot_id(), pick(), 0..40),
         gear(),
+        // Any rank levels, often none: the link holds whatever the Build does, ranks and levels from 1.
+        btree_map(1..=20u8, 1..=u8::MAX, 0..4),
     )
         .prop_map(
             |(
@@ -228,6 +230,7 @@ fn any_build() -> impl Strategy<Value = Build> {
                 path_switch,
                 picks,
                 gear,
+                rank_levels,
             )| {
                 Build {
                     name,
@@ -239,6 +242,7 @@ fn any_build() -> impl Strategy<Value = Build> {
                     path_switch,
                     picks,
                     gear,
+                    rank_levels,
                 }
             },
         )
@@ -381,6 +385,158 @@ fn a_link_with_gear_is_pinned_and_round_trips() {
     let mut without = decode(V1_GEAR_LINK).unwrap();
     without.gear = Gear::default();
     assert_eq!(encode_build(&without), V1_LINK);
+}
+
+/// The Build frozen in [`V1_RANK_LEVELS_LINK`]: [`v1_gear_build`] with MR 1 taken at level 3 and MR 10 at level 20.
+/// Never change either.
+fn v1_rank_levels_build() -> Build {
+    let mut build = v1_gear_build();
+    build.rank_levels = BTreeMap::from([(1, 3), (10, 20)]);
+    build
+}
+
+/// `encode_build(&v1_rank_levels_build())` as ticket 171 first wrote it (2026-11-12, miniz_oxide level 9): version 1
+/// with its rank levels section after the gear.
+const V1_RANK_LEVELS_LINK: &str = "AR2KrwrCUByF7-9ep9v1-g_ECZrMgsE6hM0iisloGjIE2UAWDIoiC4MFURYVfQBh72CwrFnEVxBMJpPg9R4OH5zDV5mf-5-l-wr3Xs40LkdO56nz3sfqFJfiIIonGmv2dsGwoHfcURQvWg2_vA636slfbehtULffWto5dGvXb9V4qB6k2rZlziwXEEiA81mWoTJBAIiHE5CMiBhIEPMCcAFhDBgISUhiJYWbApk7sngU-LsSUihjhJu0-AM";
+
+#[test]
+fn a_link_with_a_rank_taken_later_is_pinned_and_round_trips() {
+    assert_eq!(encode_build(&v1_rank_levels_build()), V1_RANK_LEVELS_LINK);
+    assert_eq!(decode(V1_RANK_LEVELS_LINK), Ok(v1_rank_levels_build()));
+    // The rank levels are all the two links differ by, and without the gear too it is the first link.
+    let mut without = decode(V1_RANK_LEVELS_LINK).unwrap();
+    without.rank_levels.clear();
+    assert_eq!(encode_build(&without), V1_GEAR_LINK);
+    without.gear = Gear::default();
+    assert_eq!(encode_build(&without), V1_LINK);
+}
+
+/// Rank levels came after links had shipped (ticket 171): an old link reads as a Build that moves no rank.
+#[test]
+fn a_link_made_before_rank_levels_reads_as_a_build_that_moves_no_rank() {
+    assert!(decode(V1_LINK).unwrap().rank_levels.is_empty());
+    assert!(decode(V1_GEAR_LINK).unwrap().rank_levels.is_empty());
+}
+
+/// A Build with all three trailing sections: [`v1_rank_levels_build`] with a first ascension.
+fn with_every_trailing_section() -> Build {
+    let mut build = v1_rank_levels_build();
+    build.first_ascension = Some(path("trickster"));
+    build
+}
+
+/// The three trailing sections (the first ascension, the gear, the rank levels) are each there or not on their own:
+/// all eight combinations read back, and each writes only its own sections.
+#[test]
+fn every_combination_of_the_trailing_sections_round_trips() {
+    let full = with_every_trailing_section();
+    let mut codes = BTreeSet::new();
+    for mask in 0..8u8 {
+        let mut build = full.clone();
+        if mask & 1 == 0 {
+            build.first_ascension = None;
+        }
+        if mask & 2 == 0 {
+            build.gear = Gear::default();
+        }
+        if mask & 4 == 0 {
+            build.rank_levels.clear();
+        }
+        let code = encode_build(&build);
+        assert_eq!(decode(&code), Ok(build), "sections {mask:03b}");
+        codes.insert(code);
+    }
+    assert_eq!(codes.len(), 8);
+}
+
+/// The body of a link, and a link around a body: the version byte, then the body deflated.
+fn body_of(code: &str) -> Vec<u8> {
+    use base64::Engine as _;
+    let bytes = base64::engine::general_purpose::URL_SAFE_NO_PAD
+        .decode(code)
+        .unwrap();
+    miniz_oxide::inflate::decompress_to_vec(&bytes[1..]).unwrap()
+}
+
+fn link_of(body: &[u8]) -> String {
+    use base64::Engine as _;
+    let mut bytes = vec![1];
+    bytes.extend(miniz_oxide::deflate::compress_to_vec(body, 9));
+    base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(bytes)
+}
+
+/// Ticket 166's review fuzz, over all eight combinations of the trailing sections: a body cut short anywhere, or
+/// with any byte after it, never decodes to another Build than its own and never panics. A cut body may only read
+/// as the Build without the sections cut off whole.
+#[test]
+fn a_cut_or_padded_body_with_trailing_sections_is_refused() {
+    let full = with_every_trailing_section();
+    let (mut cuts, mut pads) = (0, 0);
+    for mask in 0..8u8 {
+        let mut build = full.clone();
+        if mask & 1 == 0 {
+            build.first_ascension = None;
+        }
+        if mask & 2 == 0 {
+            build.gear = Gear::default();
+        }
+        if mask & 4 == 0 {
+            build.rank_levels.clear();
+        }
+        let body = body_of(&encode_build(&build));
+        for cut in 0..body.len() {
+            cuts += 1;
+            if let Ok(read) = decode(&link_of(&body[..cut])) {
+                // Only whole sections came off the end, and the link it then writes is that body.
+                assert_ne!(read, build, "sections {mask:03b}, cut at {cut}");
+                assert_eq!(body_of(&encode_build(&read)), &body[..cut]);
+            }
+        }
+        for byte in 0..=u8::MAX {
+            pads += 1;
+            let mut padded = body.clone();
+            padded.push(byte);
+            assert!(
+                decode(&link_of(&padded)).is_err(),
+                "sections {mask:03b}, byte {byte}"
+            );
+        }
+    }
+    assert!(cuts > 500 && pads == 8 * 256, "{cuts} cuts, {pads} pads");
+}
+
+/// What the encoder never writes in a rank levels section: none, a rank out of order or twice, a rank or level of
+/// 0, the section before the gear or the first ascension, bytes after it.
+#[test]
+fn a_rank_levels_section_the_encoder_never_writes_does_not_decode() {
+    let plain = body_of(&encode_build(&v1_build()));
+    let with = |section: &[u8]| {
+        let mut body = plain.clone();
+        body.extend(section);
+        decode(&link_of(&body))
+    };
+    assert_eq!(
+        with(&[3, 2, 1, 3, 10, 20]).map(|build| build.rank_levels),
+        Ok(BTreeMap::from([(1, 3), (10, 20)]))
+    );
+    for section in [
+        &[3][..],
+        &[3, 0],
+        &[3, 1, 1],
+        &[3, 2, 1, 3],
+        &[3, 2, 10, 20, 1, 3],
+        &[3, 2, 4, 12, 4, 13],
+        &[3, 1, 0, 3],
+        &[3, 1, 1, 0],
+        &[3, 1, 1, 3, 0],
+        &[3, 1, 1, 3, 3, 1, 2, 4],
+        &[3, 1, 1, 3, 2],
+        &[3, 1, 1, 3, 1],
+        &[4, 1, 1, 3],
+        &[0],
+    ] {
+        assert_eq!(with(section), Err(DecodeError::Format), "{section:?}");
+    }
 }
 
 #[test]

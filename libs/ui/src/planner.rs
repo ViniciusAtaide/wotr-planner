@@ -29,6 +29,8 @@ pub enum Target {
     FirstAscension,
     Path,
     Switch,
+    /// The character level a Mythic rank is taken at.
+    RankLevel(u8),
     Race,
     Alignment,
     Deity,

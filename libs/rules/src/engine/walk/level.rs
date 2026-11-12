@@ -421,6 +421,7 @@ impl<'a> Walker<'a> {
                         let index = self.feat_selection_slots;
                         self.feat_selection_slots = self.feat_selection_slots.saturating_add(1);
                         let id = SlotId::FeatSelection { level, index };
+                        self.note_rank_slot(&id);
                         slots.push(self.fill(id, SlotKind::Selection(selection), None));
                     }
                     continue;
@@ -443,10 +444,18 @@ impl<'a> Walker<'a> {
                     SlotId::OptionFeat { level, index }
                 }
             };
+            self.note_rank_slot(&id);
             slots.push(self.fill(id, kind, None));
             self.granting = None;
         }
         slots
+    }
+
+    /// Notes a slot keyed by its place at the level as a Mythic rank's, while one is being taken.
+    fn note_rank_slot(&mut self, id: &SlotId) {
+        if let Some(rank) = self.ascending {
+            self.rank_slots.push((id.clone(), rank));
+        }
     }
 
     /// The selection a feat's extra pick is of: the one of its [`extra_pick_of`](crate::Feat::extra_pick_of) the

@@ -245,7 +245,7 @@ impl Engine {
     }
 
     /// The choices that fail in a Build, as a set.
-    fn failing_choices(&self, build: &Build) -> BTreeSet<Choice> {
+    pub(super) fn failing_choices(&self, build: &Build) -> BTreeSet<Choice> {
         (self.failures(build).into_iter())
             .map(|failure| failure.choice)
             .collect()

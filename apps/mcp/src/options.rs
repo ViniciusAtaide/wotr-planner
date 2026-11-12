@@ -140,7 +140,7 @@ pub(crate) fn offers(
     let lacks = || no_such_choice(build, address);
     let start = &build.start;
     Ok(match address {
-        Address::Slot(slot) => slot_offers(engine, build, slot, values).ok_or_else(lacks)?,
+        Address::Slot(slot) => slot_offers(engine, build, sheet, slot, values).ok_or_else(lacks)?,
         Address::Gear(spot) => gear::gear_offers(engine, build, spot)?,
         // The class picker offers a level past the cap too: the web app shows no add control there.
         Address::Class(level) if *level > sheet.level_cap => {
@@ -373,6 +373,7 @@ pub(crate) fn offers(
                 })
                 .collect()
         }
+        Address::RankLevel(rank) => rank_level_offers(engine, build, *rank)?,
         Address::Subrace => {
             return Err(ToolError::no_such_choice(
                 "The subrace is chosen with the race: see `options` for `start.race`.",
@@ -390,6 +391,48 @@ pub(crate) fn offers(
             ));
         }
     })
+}
+
+/// A Mythic rank's level picker (`mythic.R.level`): each character level the rank can be taken at, from the earliest
+/// it comes at to the Build's last level. A level's name says when it is the earliest and which ranks above move
+/// with it; a move that would refuse a choice is closed with the engine's reason, which names the choice.
+fn rank_level_offers(engine: &Engine, build: &Build, rank: u8) -> Result<Vec<Offer>, ToolError> {
+    let options = engine.rank_level_options(build, rank);
+    if options.is_empty() {
+        return Err(ToolError::no_such_choice(
+            match engine.rank_table_level(rank) {
+                None => format!("There is no MR {rank}: the Mythic ranks are 1 to 10."),
+                Some(earliest) => format!(
+                    "The Build doesn't reach MR {rank}, so it has no level to take it at: MR {rank} comes at level \
+                 {earliest} at the earliest, and not after a Path switch that ends the ascensions (Legend)."
+                ),
+            },
+        ));
+    }
+    Ok(options
+        .into_iter()
+        .map(|option| {
+            let mut name = format!("Level {}", option.level);
+            if option.earliest {
+                name.push_str(" (the earliest)");
+            }
+            if !option.moves.is_empty() {
+                name.push_str(&format!(
+                    ", which moves {}",
+                    Engine::moves_text(&option.moves)
+                ));
+            }
+            let mut offer = Offer::new(
+                ChoiceValue::Number(option.level),
+                name,
+                option.status,
+                option.edit,
+            )
+            .current(option.held);
+            offer.reason = option.reason;
+            offer
+        })
+        .collect())
 }
 
 fn step_offer(
@@ -429,7 +472,13 @@ fn no_such_choice(build: &Build, address: &Address) -> ToolError {
 
 /// A slot's options from [`Engine::slot_entries`]: each entry once, or with `values` each of its options; `None`
 /// when the Build has no such slot.
-fn slot_offers(engine: &Engine, build: &Build, slot: &SlotId, values: bool) -> Option<Vec<Offer>> {
+fn slot_offers(
+    engine: &Engine,
+    build: &Build,
+    sheet: &Sheet,
+    slot: &SlotId,
+    values: bool,
+) -> Option<Vec<Offer>> {
     let held = build.picks.get(slot);
     let mut offers = Vec::new();
     for entry in engine.slot_entries(build, slot)? {
@@ -463,11 +512,21 @@ fn slot_offers(engine: &Engine, build: &Build, slot: &SlotId, values: bool) -> O
                     let gear = (option.option.with_gear.as_ref())
                         .map(|needs| GearMark::WithGear(engine.gear_note(needs)));
                     let pick = option.option.pick;
+                    // A Mythic rank's pick that a later level of the rank would open says so (ticket 171).
+                    let reason = match (&option.option.status, option.reason) {
+                        (Err(Issue::Unmet(_)), Some(reason)) => {
+                            Some(match later_rank_level(engine, build, sheet, slot, &pick) {
+                                Some(later) => format!("{reason}. {later}"),
+                                None => reason,
+                            })
+                        }
+                        (_, reason) => reason,
+                    };
                     offers.push(Offer {
                         value: ChoiceValue::pick(&pick),
                         name: engine.pick_name(&pick),
                         status: option.option.status,
-                        reason: option.reason,
+                        reason,
                         edit: Some(option.option.edit),
                         category: category.clone(),
                         summary: summary.clone(),
@@ -482,6 +541,29 @@ fn slot_offers(engine: &Engine, build: &Build, slot: &SlotId, values: bool) -> O
         }
     }
     Some(offers)
+}
+
+/// For a Mythic rank's slot and a pick it refuses for an unmet prerequisite: the later level of the rank that opens
+/// it, as a sentence naming the address to `choose` and the ranks above that the move takes along ("MR 10 taken at
+/// level 20 opens it: `choose` `mythic.10.level` 20 first"; "MR 2 taken at level 13 opens it, which moves MR 3 to
+/// level 13, MR 4 to level 13: …").
+fn later_rank_level(
+    engine: &Engine,
+    build: &Build,
+    sheet: &Sheet,
+    slot: &SlotId,
+    pick: &rules::Pick,
+) -> Option<String> {
+    let rank = slot.rank()?;
+    let (level, moves) = engine.rank_level_that_opens(build, sheet, slot, pick)?;
+    let along = match moves.is_empty() {
+        true => String::new(),
+        false => format!(", which moves {}", Engine::moves_text(&moves)),
+    };
+    Some(format!(
+        "MR {rank} taken at level {level} opens it{along}: `choose` `{}` {level} first",
+        Address::RankLevel(rank)
+    ))
 }
 
 /// The issue a locked entry shows, chosen as the engine chooses its one reason: the first option's that isn't

@@ -42,7 +42,9 @@ skill holds the same text). It gives what to know before you plan (the point-buy
 values, batching, branching, ranking by a number and the honesty boundary in full. In short:
 1. Resolve each name the user gives with `search`; if a name could mean more than one item, ask the user which one.
 2. `new_build`, then plan the whole Build as one map of address → value and check it with `validate`; `choose` what \
-is still open (`todo` is what is open, not what is required), reading `rejected` when a step is refused.
+is still open (`todo` is what is open, not what is required), reading `rejected` when a step is refused. A Mythic \
+rank's pick whose prerequisite comes after this slot, at a later level, opens when the rank is taken later: \
+`mythic.R.level`, a level up to the last (the refusal names it).
 3. Give the user the final `link`.
 
 Gear: a Build has no gear unless the user asks for it; never add an item yourself. To add one the user names, \
@@ -275,7 +277,8 @@ impl Server {
             last level adds a level), `level.N.increase`, `level.N.skill` (one rank more in a skill), \
             `level.N.skill.<skill>` and `start.score.<ability>` (a step down or up), the Build start's \
             `start.race|faith|alignment|background|racial-ability`, `mythic.first-ascension|path|switch` once \
-            the rank is reached, or a gear place (`gear.belt`, `gear.boots`, `gear.bracers`, `gear.cloak`, \
+            the rank is reached, `mythic.R.level` (the character levels Mythic rank R can be taken at, from the \
+            earliest to the last level; a level that would refuse a pick is closed, naming it), or a gear place (`gear.belt`, `gear.boots`, `gear.bracers`, `gear.cloak`, \
             `gear.glasses`, `gear.gloves`, `gear.headwear`, `gear.necklace`, `gear.ring.0`, `gear.ring.1`, \
             `gear.body`, `gear.weapon`: \"None\" (`none`) and each item it takes, with its summary (what it always \
             does), `uncounted` (its other always-on lines, in no number) and `other_effects` (what is conditional or by use)) or `gear.usable.<item key>` (a manual, tome or other usable item: `none` or its key). \
@@ -334,7 +337,7 @@ impl Server {
         description = "Take one choice back, by the planner's own withdrawal: a pick cleared, the last level \
             removed (`level.N`), a level's ability increase or a skill's ranks gone, a class's archetype or advanced \
             classes unchosen (`class.<class>.archetype|advances`), a point-buy score back to 7, a Build start choice, \
-            the first ascension, path or Path switch unchosen, or a gear item taken off (`gear.belt`, \
+            the first ascension, path or Path switch unchosen, a Mythic rank taken later back at the earliest level it comes at (`mythic.R.level`), or a gear item taken off (`gear.belt`, \
             `gear.usable.<item key>`, …). Only a choice nothing later depends on comes off (an item a pick needs, taken off, is `not_removable` here and `breaks_later` from `choose`: one case, two codes; an item a pick needs is \
             refused naming the pick: withdraw the pick first, or `choose` an item that keeps it): \
             otherwise `not_removable` (`sheet` with `removable: true` lists what can come off now, so chains come \
