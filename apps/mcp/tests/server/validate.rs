@@ -427,14 +427,15 @@ async fn two_archetypes_for_one_class_are_declared_twice() {
     assert_eq!(twice["issue"], "declared_twice");
 }
 
-/// Gear addresses parse since ticket 166, but the server offers no gear until ticket 168: a declared one is no
-/// choice, key or not, as `options` says of it.
+/// Gear the user asked for is declared at its place (ticket 168): a belt is worn, and a usable item at its own
+/// address is used, so the Build's code holds them.
 #[tokio::test]
-async fn a_declared_gear_address_is_no_choice_yet() {
+async fn declared_gear_is_held() {
     let result = validate(with(
         fighter(1, 12),
         &[
             ("gear.belt", json!("belt-of-dexterity-2")),
+            ("gear.ring.0", json!("none")),
             (
                 "gear.usable.manual-of-dexterity-2",
                 json!("manual-of-dexterity-2"),
@@ -442,10 +443,52 @@ async fn a_declared_gear_address_is_no_choice_yet() {
         ],
     ))
     .await;
+    assert_eq!(result["status"], "valid", "{result}");
+    let build = decode(&text(&result["build"]));
+    assert_eq!(
+        build
+            .gear
+            .worn
+            .values()
+            .map(|key| key.as_str())
+            .collect::<Vec<_>>(),
+        ["belt-of-dexterity-2"]
+    );
+    assert!(
+        build
+            .gear
+            .used
+            .iter()
+            .any(|key| key.as_str() == "manual-of-dexterity-2")
+    );
+}
+
+/// An item the data lacks, one at a place that doesn't take it, and a usable address given another key each fail
+/// with what fits.
+#[tokio::test]
+async fn declared_gear_that_doesnt_fit_fails() {
+    let result = validate(with(
+        fighter(1, 12),
+        &[
+            ("gear.belt", json!("belt-of-dexterity-3")),
+            ("gear.cloak", json!("ring-of-luck")),
+            ("gear.usable.manual-of-dexterity-2", json!("ring-of-luck")),
+        ],
+    ))
+    .await;
     assert_eq!(result["status"], "invalid", "{result}");
-    for choice in ["gear.belt", "gear.usable.manual-of-dexterity-2"] {
-        let refused = failure(&result["failures"], choice);
-        assert_eq!(refused["issue"], "no_such_choice", "{result}");
-        assert!(!refused.to_string().contains("takes a key"), "{refused}");
-    }
+    let unknown = failure(&result["failures"], "gear.belt");
+    assert_eq!(unknown["issue"], "unknown_key", "{result}");
+    assert!(
+        text(&unknown["reason"]).contains("belt-of-dexterity-2"),
+        "{unknown}"
+    );
+    let misplaced = failure(&result["failures"], "gear.cloak");
+    assert_eq!(misplaced["issue"], "not_allowed", "{result}");
+    assert!(
+        text(&misplaced["reason"]).contains("gear.ring.0"),
+        "{misplaced}"
+    );
+    let usable = failure(&result["failures"], "gear.usable.manual-of-dexterity-2");
+    assert_eq!(usable["issue"], "not_an_option", "{result}");
 }

@@ -211,6 +211,8 @@ pub(crate) fn describe(planner: &Planner, kind: Kind, key: &str) -> Result<Item,
             item.facts = Some(spells::facts(spell));
             item.lists = Some(spells::lists_of(engine, data, spell));
         }
+        // Its summary, other effects and places are on its hit, as `search` gives them.
+        Kind::Gear => {}
         Kind::SpellList => {
             let list = data
                 .spell_lists
@@ -251,10 +253,13 @@ fn not_found(planner: &Planner, kind: Kind, key: &str) -> String {
     let kind_name = kind_name.as_str().unwrap_or_default();
     let mut message = format!("No {kind_name} has the key `{key}`.");
     let query = key.replace(['/', '-'], " ");
+    // Gear is found only when asked for by kind.
+    let gear = [Kind::Gear];
+    let kinds = (kind == Kind::Gear).then_some(&gear[..]);
     let search = |query: &str| {
         planner
             .index
-            .search(query, None, None, Some(5), true)
+            .search(query, kinds, None, Some(5), true)
             .map(|found| found.matches)
             .unwrap_or_default()
             .into_iter()

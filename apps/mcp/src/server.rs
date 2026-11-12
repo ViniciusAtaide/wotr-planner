@@ -24,7 +24,7 @@ use crate::rank::{ImproveArgs, ImproveResult, improve};
 use crate::shapes::{
     BuildResult, ChooseArgs, ChooseResult, CompareArgs, CompareResult, DescribeArgs, Item,
     NewBuildArgs, OneOrMany, OptionsArgs, OptionsResult, SearchArgs, SearchResult, SheetArgs,
-    SheetResult, ValidateArgs, ValidateResult, WithdrawArgs,
+    SheetResult, ValidateArgs, ValidateResult, WithdrawArgs, WithdrawResult,
 };
 use crate::sheet::sheet;
 use crate::validate::validate;
@@ -45,12 +45,28 @@ values, batching, branching, ranking by a number and the honesty boundary in ful
 is still open, reading `rejected` when a step is refused.
 3. Give the user the final `link`.
 
+Gear: a Build has no gear unless the user asks for it; never add an item yourself. To add one the user names, \
+`search` with `kinds: [\"gear\"]` (only that finds gear; a name, or a bonus: \"Dex\"), then `choose` its key at \
+its place: `gear.belt`, \
+`gear.headwear`, `gear.ring.0`, `gear.ring.1`, `gear.body` (robe or armour), … or `gear.usable.<key>` for a \
+manual or tome (`options` on a place lists its items; in `validate`'s map, the same addresses). An item's \
+always-on bonuses count at every level, for prerequisites and every number (never for skill points), so it can \
+open a feat (`choose` the item before that feat): `options` marks such an option `{\"with_gear\": …}`, and \
+`sheet`'s `gear_dependent` lists each choice only gear allows with its item; a `choose` or `withdraw` step that \
+leaves one so names it in `leans_on_gear`. Report them, naming each pick and its item. An item a pick needs can't be withdrawn, or replaced by one that doesn't keep the pick, until the pick is. \
+The planner's items are those that \
+give an ability score bonus, with manuals and tomes; weapons' and armour's enhancements, armour class and other \
+items aren't modelled yet: what they add is your own game knowledge.
+
 The honesty boundary, in short:
 - State as fact only what the tools return: every choice in the Build is legal under the planner's rules, the link \
 opens, and the sheet, the attack line, the caster line and the totals are the planner's numbers.
-- The numbers are naked: no gear, and the attack line's weapon is the Build's Weapon Focus weapon unless you give \
-one. Each line says what it leaves out (`attack_leaves_out`: rage, stances, mythic feats, class features, buffs, \
-gear; `caster_leaves_out`; `totals_leave_out`): label anything you add for them as your own game knowledge.
+- The numbers count the Build's gear, and only it; `sheet`'s `naked` gives them without it. `compare` and \
+`improve` rank by naked numbers unless you pass `with_gear: true` (`numbers` says which). The attack line's weapon \
+is the Build's Weapon Focus weapon unless you give one. Each line says what it leaves out (`attack_leaves_out`: \
+rage, stances, mythic feats, class features, buffs, gear but for its ability score bonuses; `caster_leaves_out`; \
+`totals_leave_out`), and an item's `other_effects` count in no number: label anything you add for them as your \
+own game knowledge.
 - When the planner ranks Builds or options by a number (`compare` or `improve` with `by`), that ranking is a fact. \
 Report `compare`'s other differences as facts, without ranking them by your own judgement, and label which choice \
 is better overall as your judgement.
@@ -116,11 +132,16 @@ impl Server {
             class, archetype, path (Mythic path), feat, mythic_ability, mythic_feat, option (an option of a Feature \
             selection: an arcanist exploit, a rogue talent, a bloodline, a Lich power), race, deity, background, \
             spell (the spell catalogue: a spell's category is its school, and it carries its descriptors), \
-            spell_list (a class's, an archetype's or a Mythic path's spells by level). \
+            spell_list (a class's, an archetype's or a Mythic path's spells by level), gear (an item a Build holds \
+            only when the user asks, so found only when `kinds` names `gear`, never by an unfiltered search: \
+            matched by name, by its place (\"belt\") and by its bonuses' words (\"Dex\", \
+            \"enhancement\"); its `category` is its slot (\"Belt\", \"Ring\", \"Usable\"), and it carries \
+            `other_effects` (text only, in no number) and `places`, the addresses `choose` takes its key at). \
             Each match has the key `describe` takes, its short summary when the data has one, its parent (an \
             archetype's class, an option's selection), its category, its prerequisite in the planner's words (a long \
             one shortened: \"one of 49 hexes (Air Barrier, …)\"; `describe` gives it whole), and a guide link for \
-            the user (never fetch it). `compact: true` gives each match as kind, key, name and category only. Best \
+            the user (never fetch it). `compact: true` gives each match as kind, key, name and category only (no \
+            `other_effects` or `places`). Best \
             match first. `category` filters by a feat's category (\"Weapon\", \"Magic\", …), a mythic pick's group \
             (\"Melee\", \"Ranged\", …), an option's Feature selection (\"Rage Power\"), or a spell's school \
             (\"Enchantment\") or descriptor, its subschool among them (\"Compulsion\", \"Mind-Affecting\"), one or \
@@ -162,7 +183,8 @@ impl Server {
             saving throw, spell resistance, casting time, material component) and every spell list it's on \
             (`lists`), each with the spell's level there, its owner, the classes and archetypes that use it, and \
             any footnote (\"Flame Dancer only\"). A spell list: its owner, `used_by` and its spells by level, \
-            each with its school and descriptors. The item, and each feature and selection option \
+            each with its school and descriptors. A gear item: its summary (its always-on bonuses), `other_effects` \
+            and `places`. The item, and each feature and selection option \
             it lists, carries its short summary when the data has one; beyond those, what an item does is not in the \
             planner's data.",
         annotations(read_only_hint = true, open_world_hint = false)
@@ -218,8 +240,12 @@ impl Server {
             none without one. `caster` ({school, subschool?, \
             energy?, metamagic?}) adds each level's caster line for those spells: the save DC of each spell level \
             castable (and heightened, with Heighten Spell) broken down by source, caster level against spell \
-            resistance and the concentration bonus. Every number is naked: no gear. Plus the envelope (`build`, \
-            `link`, `todo`).",
+            resistance and the concentration bonus. A Build with gear (only what the user chose) also has `gear`, \
+            each item at its address with its summary and `other_effects`; `gear_dependent`, each choice only the \
+            gear allows, with the items it needs (also `with_gear` on its line), to report as such; and `naked`, \
+            the numbers its gear changes (scores, attack and caster lines by level, totals) without the gear. Every \
+            other number counts the gear's always-on bonuses (a level's skill points never do). Plus the envelope \
+            (`build`, `link`, `todo`).",
         annotations(read_only_hint = true, open_world_hint = false)
     )]
     async fn sheet(
@@ -238,16 +264,24 @@ impl Server {
     #[tool(
         description = "What one choice of a Build can take, from the planner's own picker or stepper for it: each \
             option's `value` (what `choose` takes), its name, its short summary when the data has one, and its \
-            status: \"ok\", or {issue, reason} with the \
+            status: \"ok\"; `{\"with_gear\": \"With <item>\"}`, open only because of the Build's gear; \
+            `{\"leans_on_gear\": …}`, open but leaving other choices allowed only because of the gear; or \
+            {issue, reason} with the \
             engine's issue (`unmet`, `already_held`, `max_times`, `class_level_cap`, `not_from_path`, \
             `deity_alignment`, `needs_faith`, `deity_domain`, `breaks_later`, …) and the planner's reason. `choice` \
             is an address from `sheet` or `todo`: a slot (`slot.feat.3.general.0`), `level.N.class` (N one past the \
             last level adds a level), `level.N.increase`, `level.N.skill` (one rank more in a skill), \
             `level.N.skill.<skill>` and `start.score.<ability>` (a step down or up), the Build start's \
-            `start.race|faith|alignment|background|racial-ability`, or `mythic.first-ascension|path|switch` once \
-            the rank is reached. By default only the options open now are listed and `closed` counts the rest; \
+            `start.race|faith|alignment|background|racial-ability`, `mythic.first-ascension|path|switch` once \
+            the rank is reached, or a gear place (`gear.belt`, `gear.boots`, `gear.bracers`, `gear.cloak`, \
+            `gear.glasses`, `gear.gloves`, `gear.headwear`, `gear.necklace`, `gear.ring.0`, `gear.ring.1`, \
+            `gear.body`, `gear.weapon`: \"None\" (`none`) and each item it takes, with its summary and \
+            `other_effects`) or `gear.usable.<item key>` (a manual, tome or other usable item: `none` or its key). \
+            An item a choice needs can't be taken off (\"None\" is locked with the choice's name), nor replaced by \
+            an item that would refuse the choice (locked the same way); an item that keeps it is open. By default only the options open now are listed and `closed` counts the rest; \
             `only_open: false` lists them with their reasons. `values: true` lists a parameterised feat once per \
-            value. `query` filters by name or key. `compact: true` leaves out the summaries. It changes nothing, so \
+            value. `query` filters by name or key. `compact: true` leaves out the summaries and other effects. It \
+            changes nothing, so \
             the envelope (`build`, `link`, `todo`) comes only with `envelope: true`. Errors: `no_such_choice` for an \
             address the Build lacks, `stale_link` for a code that doesn't open.",
         annotations(read_only_hint = true, open_world_hint = false)
@@ -264,7 +298,8 @@ impl Server {
         description = "Make choices in a Build, in order: `steps` is a list of {choice, value}, each `choice` an \
             address (from `todo`, `sheet` or `options`) and each `value` one `options` lists for it (with `values: \
             true` for a parameterised feat's {key, parameter}; a prestige class that asks needs `advances`, `[]` for \
-            none). Each step takes only an option the planner offers and finds open, by the planner's own edit, and \
+            none; a gear place an item's key, or `none`). Add gear only when the user asks for it. Each step takes \
+            only an option the planner offers and finds open, by the planner's own edit, and \
             the result is checked again, so the Build stays possible. A point-buy score (`start.score.int`) or a \
             skill's ranks at a level (`level.N.skill.<skill>`) take the number to reach, reached one step at a time, \
             each checked; the current value is a no-op. `level.N.skill` takes a map {skill: ranks} (`{\"athletics\": \
@@ -274,7 +309,11 @@ impl Server {
             `breaks_later`, …) or the server's (`not_an_option`, with the closest values; `needs_parameter`, a \
             parameterised feat given by its key alone, with what it takes and its open values; `no_such_choice`). \
             Returns the envelope (`build`, `link`, `todo`) of the Build as the applied steps left \
-            it. A code that doesn't open is `stale_link`.",
+            it; `moved` {step, choice, item, name, from} for a ring a step took from the other ring place (that \
+            place is then empty); and `leans_on_gear` {step, choice, leaning} for each applied step that left \
+            choices allowed only because of the Build's gear (a Dexterity lowered under a belt, with a feat that \
+            needs it), each as `sheet`'s `gear_dependent` lists it: the step is applied all the same. A code that \
+            doesn't open is `stale_link`.",
         annotations(read_only_hint = true, open_world_hint = false)
     )]
     async fn choose(
@@ -289,18 +328,21 @@ impl Server {
         description = "Take one choice back, by the planner's own withdrawal: a pick cleared, the last level \
             removed (`level.N`), a level's ability increase or a skill's ranks gone, a class's archetype or advanced \
             classes unchosen (`class.<class>.archetype|advances`), a point-buy score back to 7, a Build start choice, \
-            or the first ascension, path or Path switch unchosen. Only a choice nothing later depends on comes off: \
+            the first ascension, path or Path switch unchosen, or a gear item taken off (`gear.belt`, \
+            `gear.usable.<item key>`, …). Only a choice nothing later depends on comes off (an item a pick needs is \
+            refused naming the pick: withdraw the pick first, or `choose` an item that keeps it): \
             otherwise `not_removable` (`sheet` with `removable: true` lists what can come off now, so chains come \
             off from the leaves inward). A level's class isn't withdrawn (`choose` another class, or withdraw the \
             last level), nor the racial ability (change the race, or choose another ability). Errors: \
             `not_removable`, `no_such_choice` (nothing held there), `stale_link`. Returns the envelope (`build`, \
-            `link`, `todo`).",
+            `link`, `todo`), and `leans_on_gear`, the choices the withdrawal left allowed only because of the \
+            Build's gear, as `sheet`'s `gear_dependent` lists them (the withdrawal is made all the same).",
         annotations(read_only_hint = true, open_world_hint = false)
     )]
     async fn withdraw(
         &self,
         Parameters(args): Parameters<WithdrawArgs>,
-    ) -> Result<Json<BuildResult>, String> {
+    ) -> Result<Json<WithdrawResult>, String> {
         self.blocking(move |planner| Ok(Json(withdraw(planner, args)?)))
             .await
     }
@@ -312,8 +354,11 @@ impl Server {
             switch, level cap, link, its attack line (`attack`, naming its weapon: `weapon`, a weapon key, when \
             given, else the weapon of that Build's earliest Weapon Focus (by level; within a level, the first \
             weapon key), and none without one), and with `caster` \
-            ({school, subschool?, energy?, metamagic?}) its caster line; every number naked, with no gear. Then only \
-            what differs: the Build start's choices; \
+            ({school, subschool?, energy?, metamagic?}) its caster line, and the gear it holds (`gear`) and the \
+            choices only its gear allows (`gear_dependent`). Its numbers (scores, lines, `by`'s number) are naked, \
+            each Build's with no gear at all, unless `with_gear: true`; `numbers` in the result says which, and a \
+            Build with gear also gets the other ones its gear changes (`with_gear`, or `naked`). It never adds gear. \
+            Then only what differs: the Build start's choices; the gear (`gear`, by address); \
             by character level, the \
             numbers (class level, BAB, saves, scores), the choices by address and the feats and features each Build \
             gains that another doesn't; by Mythic rank, the status, path and choices; and `path_features`, by rank, \
@@ -326,7 +371,7 @@ impl Server {
             attack's bonus) or `damage` (the bonus per hit)) orders the \
             Builds by that number at their last level, highest first, and gives each summary its `number` and its \
             place in `builds` (`given`), and `by` in the result says what the number leaves out: a ranking by a \
-            number, still a fact. One code gives its summary alone, with no differences. Errors: `invalid_arguments` (not 1 to 4 codes), `stale_link` (naming the code that \
+            number, still a fact (by the naked number unless `with_gear`). One code gives its summary alone, with no differences. Errors: `invalid_arguments` (not 1 to 4 codes), `stale_link` (naming the code that \
             doesn't open).",
         annotations(read_only_hint = true, open_world_hint = false)
     )]
@@ -353,8 +398,11 @@ impl Server {
             `choose` takes), `number` and `change`; `no_change`: those that leave it as it is (the one held now \
             among them; conditional effects such as rolling twice stay in their summaries); `no_line`: those whose \
             Build has no such line; `closed`, how many can't be taken now; and `leaves_out`, what the number \
-            doesn't count. `query` filters the options by name or key. The order is by the number, a fact; it \
-            changes nothing. Errors: `no_such_choice`, `invalid_arguments`, `stale_link`.",
+            doesn't count. The number is naked (the Build's with no gear at all, so an option open only because of \
+            gear changes nothing) unless `with_gear: true` counts the gear the Build holds; `numbers` says which. It \
+            never proposes gear: a gear address is `invalid_arguments`. `query` filters the options by name or key. \
+            The order is by the number, a fact; it changes nothing. Errors: `no_such_choice`, \
+            `invalid_arguments`, `stale_link`.",
         annotations(read_only_hint = true, open_world_hint = false)
     )]
     async fn improve(
@@ -372,7 +420,9 @@ impl Server {
             \"level.1.skill\": {\"athletics\": 1}, \"slot.feat.1.class.0\": \"power-attack\", …}`), in any order. \
             Every level from 1 is declared by its class (`level.N.class`); a class's archetype and `advances` come \
             with it, the same wherever given (or the archetype at `class.<class>.archetype`); a skill's ranks at a \
-            level go in `level.N.skill`'s map or at `level.N.skill.<skill>`; choices left out stay open. The planner \
+            level go in `level.N.skill`'s map or at `level.N.skill.<skill>`; gear the user asked for goes at its \
+            place (`\"gear.belt\": \"<item key>\"`, `\"gear.usable.<item key>\": \"<item key>\"`); choices left out \
+            stay open. The planner \
             walks the declared Build once and returns `status: \"valid\"` with the envelope (`build`, `link`, `todo`: \
             the same code `choose` would make), or `status: \"invalid\"` with `count` and `failures`: every failed \
             choice, each {choice, label, issue, reason, needs, also_needs, children}, placed under the earliest \

@@ -5,9 +5,9 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use rules::{
     Ability, AbilityScores, Address, Alignment, ArchetypeKey, BackgroundKey, Build, ClassKey,
-    Faith, FeatKey, GameData, LevelUp, MythicAbilityKey, MythicExtraPick, MythicFeatKey,
-    MythicPathKey, MythicPickKind, Parameter, Pick, PointBuy, RaceKey, SelectionOptionKey,
-    SkillKey, SlotId, SubraceKey, has_ability_increase, mythic_pick_kind,
+    Faith, FeatKey, GameData, GearKey, GearSpot, LevelUp, MythicAbilityKey, MythicExtraPick,
+    MythicFeatKey, MythicPathKey, MythicPickKind, Parameter, Pick, PointBuy, RaceKey,
+    SelectionOptionKey, SkillKey, SlotId, SubraceKey, has_ability_increase, mythic_pick_kind,
 };
 
 use super::tree::{At, Given, Node, pick_gives};
@@ -290,17 +290,33 @@ impl Declared {
                     class.as_str()
                 ),
             ),
-            // Gear's choices arrive with ticket 168; until then a declared Build has none, as `options` says.
-            (Address::Gear(_), _) => self.refuse_at(address,
-                Refused::NoSuchChoice,
-                format!("The Build has no choice `{address}`: `sheet` and `todo` print the addresses it has."),
-            ),
+            // An item at its place (`none`: no item there); the walk checks the key and the place.
+            (Address::Gear(GearSpot::Worn(place)), ChoiceValue::Key(key)) => {
+                let key = key_text(key);
+                if key != crate::gear::NONE {
+                    self.build.gear.worn.insert(*place, GearKey::new(key));
+                }
+            }
+            // A usable item's own address takes its own key (`none`: not used).
+            (Address::Gear(GearSpot::Used(item)), ChoiceValue::Key(key)) => {
+                let key = key_text(key);
+                if key == item.as_str() {
+                    self.build.gear.used.insert(item.clone());
+                } else if key != crate::gear::NONE {
+                    let reason = format!(
+                        "`{address}` takes its own item's key, `{}` (or `none`), not `{key}`.",
+                        item.as_str()
+                    );
+                    self.refuse_at(address, Refused::NotAnOption, reason);
+                }
+            }
             (address, _) => {
                 let shape = match address {
                     Address::Score(_) | Address::Skill(..) => "a number",
                     Address::Class(_) => "a class: `{class, archetype?, advances?}`",
                     Address::SkillPoints(_) => "a map `{skill: ranks}`",
                     Address::Slot(_) => "a key, or `{key, parameter}`",
+                    Address::Gear(_) => "a gear item's key, or `none`",
                     _ => "a key",
                 };
                 let reason = format!("`{address}` takes {shape}.");

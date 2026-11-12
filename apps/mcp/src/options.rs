@@ -2,10 +2,11 @@
 //! its name, whether it can be taken now and, when not, the engine's issue and reason. Each option keeps the edit
 //! the engine gives it, so `choose` applies the matching offer's edit and never builds one.
 
-use rules::{Address, Build, Edit, Engine, Issue, NotAnAddress, RankStatus, Sheet, SlotId, Step};
+use rules::{Address, Build, Edit, Engine, Issue, RankStatus, Sheet, SlotId, Step};
 
 use crate::code::{envelope, open};
 use crate::error::ToolError;
+use crate::gear::{self, GearMark};
 use crate::planner::Planner;
 use crate::shapes::{
     ChoiceValue, Kind, Open, OptionLine, OptionStatus, OptionsArgs, OptionsResult,
@@ -33,10 +34,20 @@ pub(crate) struct Offer {
     pub takes: Option<&'static str>,
     /// Whether the Build holds it now.
     pub current: bool,
+    /// For an open option: whether it is open only because of the Build's gear, or would leave other choices
+    /// allowed only because of it.
+    pub gear: Option<GearMark>,
+    /// A gear item's other effects.
+    pub other_effects: Vec<String>,
 }
 
 impl Offer {
-    fn new(value: ChoiceValue, name: String, status: Result<(), Issue>, edit: Edit) -> Self {
+    pub(crate) fn new(
+        value: ChoiceValue,
+        name: String,
+        status: Result<(), Issue>,
+        edit: Edit,
+    ) -> Self {
         Self {
             value,
             name,
@@ -47,11 +58,24 @@ impl Offer {
             summary: None,
             takes: None,
             current: false,
+            gear: None,
+            other_effects: Vec::new(),
         }
     }
 
     fn current(mut self, current: bool) -> Self {
         self.current = current;
+        self
+    }
+
+    /// Marks an open option whose edit would leave these choices allowed only because of the gear (a picker's
+    /// `leans_on_gear`).
+    fn leaning(mut self, engine: &Engine, build: &Build, leans_on_gear: &[rules::Choice]) -> Self {
+        if self.status.is_ok()
+            && let Some(edit) = &self.edit
+        {
+            self.gear = gear::leaning(engine, build, edit, leans_on_gear);
+        }
         self
     }
 
@@ -114,8 +138,7 @@ pub(crate) fn offers(
     let start = &build.start;
     Ok(match address {
         Address::Slot(slot) => slot_offers(engine, build, slot, values).ok_or_else(lacks)?,
-        // Gear's options arrive with ticket 168; until then the server offers none.
-        Address::Gear(_) => return Err(lacks()),
+        Address::Gear(spot) => gear::gear_offers(engine, build, spot)?,
         // The class picker offers a level past the cap too: the web app shows no add control there.
         Address::Class(level) if *level > sheet.level_cap => {
             return Err(ToolError::no_such_choice(format!(
@@ -142,6 +165,7 @@ pub(crate) fn offers(
                     option.edit,
                 )
                 .current(current)
+                .leaning(engine, build, &option.leans_on_gear)
             })
             .collect(),
         Address::Faith => engine
@@ -156,6 +180,7 @@ pub(crate) fn offers(
                     option.edit,
                 )
                 .current(current)
+                .leaning(engine, build, &option.leans_on_gear)
             })
             .collect(),
         Address::Alignment => engine
@@ -169,6 +194,7 @@ pub(crate) fn offers(
                     option.edit,
                 )
                 .current(start.alignment == Some(option.value))
+                .leaning(engine, build, &option.leans_on_gear)
             })
             .collect(),
         Address::Background => engine
@@ -183,6 +209,7 @@ pub(crate) fn offers(
                     option.edit,
                 )
                 .current(current)
+                .leaning(engine, build, &option.leans_on_gear)
             })
             .collect(),
         Address::RacialAbility => {
@@ -200,6 +227,7 @@ pub(crate) fn offers(
                         option.edit,
                     )
                     .current(start.racial_ability == Some(option.value))
+                    .leaning(engine, build, &option.leans_on_gear)
                 })
                 .collect()
         }
@@ -217,6 +245,7 @@ pub(crate) fn offers(
                     option.edit,
                 )
                 .current(current)
+                .leaning(engine, build, &option.leans_on_gear)
             })
             .collect(),
         Address::Score(ability) => {
@@ -239,7 +268,13 @@ pub(crate) fn offers(
                         after.ability_scores.cost(),
                         rules::POINT_BUY_BUDGET
                     );
-                    Some(step_offer(ChoiceValue::Number(score), name, step))
+                    Some(step_offer(
+                        engine,
+                        build,
+                        ChoiceValue::Number(score),
+                        name,
+                        step,
+                    ))
                 })
                 .collect()
         }
@@ -262,7 +297,13 @@ pub(crate) fn offers(
                         "{name}: {ranks} rank{} at level {level}",
                         if ranks == 1 { "" } else { "s" }
                     );
-                    Some(step_offer(ChoiceValue::Number(ranks), text, step))
+                    Some(step_offer(
+                        engine,
+                        build,
+                        ChoiceValue::Number(ranks),
+                        text,
+                        step,
+                    ))
                 })
                 .collect()
         }
@@ -280,6 +321,8 @@ pub(crate) fn offers(
                     engine.skill_name(&stepper.value)
                 );
                 Some(step_offer(
+                    engine,
+                    build,
                     ChoiceValue::Key(stepper.value.as_str().to_owned()),
                     name,
                     step,
@@ -346,8 +389,14 @@ pub(crate) fn offers(
     })
 }
 
-fn step_offer(value: ChoiceValue, name: String, step: Step) -> Offer {
-    Offer::new(value, name, step.status, step.edit)
+fn step_offer(
+    engine: &Engine,
+    build: &Build,
+    value: ChoiceValue,
+    name: String,
+    step: Step,
+) -> Offer {
+    Offer::new(value, name, step.status, step.edit).leaning(engine, build, &step.leans_on_gear)
 }
 
 /// Why the Build has no choice at an address.
@@ -401,10 +450,14 @@ fn slot_offers(engine: &Engine, build: &Build, slot: &SlotId, values: bool) -> O
                     summary,
                     takes: Some(noun),
                     current: held.is_some_and(|pick| pick.key() == first.key()),
+                    gear: entry.gear_note.clone().map(GearMark::WithGear),
+                    other_effects: Vec::new(),
                 });
             }
             _ => {
                 for option in entry.options {
+                    let gear = (option.option.with_gear.as_ref())
+                        .map(|needs| GearMark::WithGear(engine.gear_note(needs)));
                     let pick = option.option.pick;
                     offers.push(Offer {
                         value: ChoiceValue::pick(&pick),
@@ -416,6 +469,8 @@ fn slot_offers(engine: &Engine, build: &Build, slot: &SlotId, values: bool) -> O
                         summary: summary.clone(),
                         takes: None,
                         current: held == Some(&pick),
+                        gear,
+                        other_effects: Vec::new(),
                     });
                 }
             }
@@ -497,7 +552,8 @@ fn class_offers(engine: &Engine, build: &Build, level: u8) -> Option<Vec<Offer>>
                 option.status,
                 option.edit,
             )
-            .current(current);
+            .current(current)
+            .leaning(engine, build, &option.leans_on_gear);
             offer.category = Some(category.to_owned());
             offers.push(offer);
         }
@@ -540,10 +596,7 @@ fn summary_of(planner: &Planner, address: &Address, value: &ChoiceValue) -> Opti
 pub(crate) fn options(planner: &Planner, args: OptionsArgs) -> Result<OptionsResult, ToolError> {
     let engine = &planner.engine;
     let build = open(planner, &args.build)?;
-    let address: Address = args
-        .choice
-        .parse()
-        .map_err(|error: NotAnAddress| ToolError::no_such_choice(error.to_string()))?;
+    let address: Address = crate::gear::parse_address(&args.choice)?;
     let sheet = engine.evaluate(&build);
     let offers = offers(
         engine,
@@ -573,9 +626,15 @@ pub(crate) fn options(planner: &Planner, args: OptionsArgs) -> Result<OptionsRes
             continue;
         }
         lines.push(OptionLine {
-            status: match &offer.status {
-                Ok(()) => OptionStatus::Open(Open::Ok),
-                Err(issue) => OptionStatus::Closed {
+            status: match (&offer.status, &offer.gear) {
+                (Ok(()), None) => OptionStatus::Open(Open::Ok),
+                (Ok(()), Some(GearMark::WithGear(note))) => OptionStatus::WithGear {
+                    with_gear: note.clone(),
+                },
+                (Ok(()), Some(GearMark::LeansOnGear(note))) => OptionStatus::LeansOnGear {
+                    leans_on_gear: note.clone(),
+                },
+                (Err(issue), _) => OptionStatus::Closed {
                     issue: issue_code(issue).to_owned(),
                     reason: offer
                         .reason
@@ -589,6 +648,8 @@ pub(crate) fn options(planner: &Planner, args: OptionsArgs) -> Result<OptionsRes
                     .summary
                     .or_else(|| summary_of(planner, &address, &offer.value)),
             },
+            other_effects: (!compact && !offer.other_effects.is_empty())
+                .then_some(offer.other_effects),
             value: offer.value,
             name: offer.name,
             category: offer.category,

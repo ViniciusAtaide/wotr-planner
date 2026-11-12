@@ -16,9 +16,10 @@ use std::fmt;
 
 use rules::{
     Ability, AbilityScores, Alignment, ArchetypeKey, BackgroundKey, Build, CharacterState,
-    ClassChoice, ClassKey, Element, Energy, Engine, Faith, FeatKey, FeatSource, LevelSheet,
-    LevelUp, MythicAbilityKey, MythicFeatKey, MythicPathKey, POINT_BUY_BUDGET, Parameter, Pick,
-    PointBuy, RaceKey, SelectionOptionKey, Sheet, SkillKey, Slot, SlotId, SpellSchool, SubraceKey,
+    ClassChoice, ClassKey, Element, Energy, Engine, Faith, FeatKey, FeatSource, GearKey, GearPlace,
+    LevelSheet, LevelUp, MythicAbilityKey, MythicFeatKey, MythicPathKey, POINT_BUY_BUDGET,
+    Parameter, Pick, PointBuy, RaceKey, SelectionOptionKey, Sheet, SkillKey, Slot, SlotId,
+    SpellSchool, SubraceKey,
 };
 use serde::Deserialize;
 
@@ -447,8 +448,9 @@ fn jack() -> Build {
 /// The Enforcer: a Half-Elf (+2 Strength) Arcane Enforcer 15 / Sylvan Trickster 4 / Mutation Warrior 1, Chaotic
 /// Good and atheist, a rank each in Athletics, Perception and Persuasion a level and the rogue levels' two more in
 /// Mobility and Stealth (ticket 88's settled choices), the Trickster's first ascension (ticket 91) and the Azata
-/// path. The slots its known gaps leave empty: level 8's Slayer Talents, level 19's Feat and MR 10's Mythic feat;
-/// and level 13's Arcanist Exploits, beside the Greater Exploits slot its exploit goes in (ticket 88).
+/// path. The slots its known gaps leave empty: level 8's Slayer Talents and MR 10's Mythic feat; and level 13's
+/// Arcanist Exploits, beside the Greater Exploits slot its exploit goes in (ticket 88). It wears a Dexterity +2 belt
+/// (ticket 168), so level 19's Greater Two-Weapon Fighting is legal.
 fn enforcer() -> Build {
     let mut build = Build::default();
     let start = &mut build.start;
@@ -496,6 +498,13 @@ fn enforcer() -> Build {
     }
     build.first_ascension = Some(MythicPathKey::new("trickster"));
     build.mythic_path = Some(MythicPathKey::new("azata"));
+    // The write-up names no item. Greater Two-Weapon Fighting at level 19 needs Dex 19 and the Build's own is 17; in
+    // the game a belt covers it. The user's choice (ticket 163) is the smallest assumption that makes level 19 legal:
+    // a belt with a Dexterity +2 enhancement bonus, the real Belt of Incredible Dexterity +2.
+    build.gear.worn.insert(
+        GearPlace::Belt,
+        GearKey::new("belt-of-incredible-dexterity-2"),
+    );
     let battle_axe = || support::weapon("battle-axe");
     let picks = [
         (
@@ -571,6 +580,7 @@ fn enforcer() -> Build {
             selection(19, 0),
             option("rogue/rogue-talents/double-debilitation"),
         ),
+        (general(19), feat("greater-two-weapon-fighting")),
         (feat_slot(20, FeatSource::Class), feat("shield-focus")),
         (SlotId::Mythic { rank: 1 }, ability("defensive-study")),
         (
@@ -1367,12 +1377,10 @@ fn start(
 
 // ---- the known gaps -------------------------------------------------------------------------------------------
 
-/// What a known gap waits on: always a ticket, of one of four kinds.
+/// What a known gap waits on: always a ticket, of one of three kinds.
 enum Why {
     /// A bug in the engine or the data.
     Bug(u16),
-    /// Gear, which the Build doesn't hold yet (ticket 163's plan).
-    Gear(u16),
     /// A map decision that kept the planner from modelling the line, reopened by the user (2026-11-11) as this
     /// ticket.
     Reopened(u16, &'static str),
@@ -1385,7 +1393,6 @@ impl fmt::Display for Why {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Why::Bug(ticket) => write!(f, "a bug, ticket {ticket}"),
-            Why::Gear(ticket) => write!(f, "gear, ticket {ticket}"),
             Why::Reopened(ticket, decision) => {
                 write!(f, "a reopened map decision, ticket {ticket}: {decision}")
             }
@@ -1486,15 +1493,6 @@ const KNOWN_GAPS: &[Gap] = &[
         "(Dragon Resistances III; Wings)",
         Covers::NotGained("Draconic Resistances"),
         STEPS,
-    ),
-    // ---- gear ----
-    // Dex 17 without gear; ticket 168 gives the Enforcer a belt of Dexterity +2.
-    gap(
-        "enforcer",
-        Place::Level(19),
-        "Greater Two-Weapon Fighting",
-        Covers::NotGained("Greater Two-Weapon Fighting"),
-        Why::Gear(168),
     ),
     // ---- map decisions the user reopened ----
     gap(

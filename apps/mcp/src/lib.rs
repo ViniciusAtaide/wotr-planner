@@ -10,7 +10,9 @@
 //!   `compare.rs`, `rank.rs` (`improve`, and the number `compare`'s `by` orders by), `validate/` (a whole declared
 //!   Build's failures as a tree); `attack.rs` is the attack line `sheet` and `compare` add for a `weapon` (by
 //!   default the Build's Weapon Focus weapon), and `caster.rs` the caster line they add for a `caster`, each with its
-//!   own shapes; `totals.rs` is the initiative, save and skill totals `sheet` gives. Every number is naked: no gear.
+//!   own shapes; `totals.rs` is the initiative, save and skill totals `sheet` gives. `gear.rs` is the Build's gear
+//!   (ticket 168): a place's options, the choices only gear allows, and the numbers without gear, which `compare`
+//!   and `improve` rank by unless asked to count the gear. A Build has no gear unless the user states it.
 //! - Builds: `code.rs` opens a Build code (only through the engine's checked decode) and writes the envelope every
 //!   Build-taking tool returns; choice addresses, labels and value keys are the rules crate's ([`rules::Address`]);
 //!   `error.rs` is the server's refusals (`stale_link`, `no_such_choice`, `not_an_option`, `needs_parameter`,
@@ -27,6 +29,7 @@ mod code;
 mod compare;
 mod describe;
 mod error;
+mod gear;
 pub mod http;
 mod options;
 mod planner;

@@ -217,7 +217,7 @@ async fn compare_without_a_weapon_gives_each_build_its_own_weapon_focus_line() {
 }
 
 #[tokio::test]
-async fn no_tool_takes_assume_and_the_numbers_are_naked() {
+async fn no_tool_takes_assume_and_gear_counts_only_when_held() {
     let client = Client::on_the_test_world().await;
     for tool in client.tool_names().await {
         let description = client.tool_description(&tool).await;
@@ -234,14 +234,18 @@ async fn no_tool_takes_assume_and_the_numbers_are_naked() {
             .all(|item| !text(item).contains("assumed")),
         "{leaves_out:?}"
     );
+    // Gear counts only when the Build holds it: the user states it, nothing assumes it (ticket 168).
     let instructions = client.instructions();
     assert!(
-        instructions.contains("The numbers are naked"),
+        instructions.contains("a Build has no gear unless the user asks for it"),
         "{instructions}"
     );
     assert!(!instructions.contains("assume"), "{instructions}");
     let guide = client.guide().await;
-    assert!(guide.contains("The planner's numbers are naked"), "{guide}");
+    assert!(
+        guide.contains("A Build has no gear unless the user asks for it"),
+        "{guide}"
+    );
     assert!(!guide.contains("assume"), "{guide}");
 }
 
