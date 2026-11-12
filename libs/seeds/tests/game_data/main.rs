@@ -38,6 +38,7 @@ mod pick_values;
 mod races;
 mod repeating_talents;
 mod report_gaps;
+mod scaling_features;
 mod snapshots;
 mod spells;
 mod summaries;

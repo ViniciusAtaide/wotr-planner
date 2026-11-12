@@ -58,6 +58,15 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   `feat_slots` and `selections` replace the base row's in full (a row with none takes them away), and
   `spell_levels: (arcane: 1, divine: 0)` replaces the base row's spell levels when set. A level without a row is
   the base class's. The check refuses a row that changes nothing and spell levels equal to the base row's.
+- A feature that improves in steps is granted again at each step, on the row of the level the game's level-up names it
+  at, so its count on the sheet is the step it has reached (ticket 170; Sneak Attack per die, the Divine Scion's
+  Studied Target, the Elemental Rampager's Energy Resistance and Strength of the Abyss did already). The slayer's
+  Studied Target is granted at 1, 5, 10, 15 and 20 (the base class's rows, so each archetype that keeps it inherits
+  the steps, and the rows that replace a base row at those levels carry it too; the Sanctified Slayer's and the
+  Tandem Executioner's copies follow the same levels); the Draconic bloodlines' Draconic Resistances at bloodline
+  levels 3, 9 and 15; the bloodrager's Draconic Resistance at 4, 8 and 16, Demon Resistances at 8 and 16, Celestial
+  Resistances at 4 and 12 and Serpentine Resistances at 4, 8, 12, 16 and 20. Nothing reads the count: a prerequisite
+  or a bonus names a feature only as held, so a second grant changes no number. `scaling_features.rs` pins the steps.
 - Only prestige classes set `advances_arcane`/`advances_divine` (the spell types a level advances), and only base
   classes have archetypes. A Build names the advanced classes on entry: one per spell type the rows advance
   (Mystic Theurge: an arcane and a divine class), or, with `advances: Either` on the class, one class of either

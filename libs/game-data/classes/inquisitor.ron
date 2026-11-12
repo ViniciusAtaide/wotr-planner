@@ -295,14 +295,16 @@ Class(
             levels: [
                 (level: 1, features: ["inquisitor/inquisitor-proficiencies", "inquisitor/sanctified-slayer/orisons", "inquisitor/sanctified-slayer/studied-target", "inquisitor/stern-gaze"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"], selections: ["inquisitor/domain"]),
                 (level: 4, features: ["inquisitor/sanctified-slayer/sneak-attack"]),
+                (level: 5, features: ["inquisitor/bane", "inquisitor/sanctified-slayer/studied-target"]),
                 (level: 7, features: ["inquisitor/sanctified-slayer/sneak-attack", "inquisitor/sanctified-slayer/studied-target-swift"]),
                 (level: 8, selections: ["slayer/slayer-talents"]),
-                (level: 10, features: ["inquisitor/sanctified-slayer/sneak-attack"]),
+                (level: 10, features: ["inquisitor/sanctified-slayer/sneak-attack", "inquisitor/sanctified-slayer/studied-target"]),
                 (level: 13, features: ["inquisitor/sanctified-slayer/sneak-attack"]),
+                (level: 15, features: ["inquisitor/sanctified-slayer/studied-target"], feat_slots: [Category(Teamwork)]),
                 (level: 16, features: ["inquisitor/sanctified-slayer/sneak-attack"], selections: ["slayer/slayer-talents"]),
                 (level: 17, selections: ["slayer/slayer-talents"]),
                 (level: 19, features: ["inquisitor/sanctified-slayer/sneak-attack"]),
-                (level: 20, selections: ["slayer/slayer-talents"]),
+                (level: 20, features: ["inquisitor/sanctified-slayer/studied-target"], selections: ["slayer/slayer-talents"]),
             ],
         ),
         (
