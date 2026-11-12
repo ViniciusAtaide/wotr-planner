@@ -18,7 +18,7 @@ impl Engine {
     ///
     /// Costs one walk of the Build up to the first level the edit changes, then one from there.
     pub fn allows(&self, build: &Build, edit: &Edit) -> bool {
-        Cursor::new(self, build).keeps(edit, edit.choices())
+        Cursor::new(self, build).keeps_once(edit, edit.choices())
     }
 
     /// The choices in a possible Build the sheet may remove or change now: each that no later choice depends on.
@@ -39,7 +39,11 @@ impl Engine {
     ///
     /// Costs one walk of the Build up to the choice's level, then one from there.
     pub fn is_removable(&self, build: &Build, choice: &Choice) -> bool {
-        !self.removable_among(build, |c| c == choice).is_empty()
+        // The Build holds each choice once (`held_choices`).
+        self.held_choices(build)
+            .into_iter()
+            .find(|held| &held.choice == choice)
+            .is_some_and(|held| Cursor::new(self, build).keeps_once(&held.edit, held.excused))
     }
 
     /// What a picker's remove control asks of one choice: `None` when the Build doesn't hold it, otherwise its
@@ -51,7 +55,7 @@ impl Engine {
             .held_choices(build)
             .into_iter()
             .find(|held| &held.choice == choice)?;
-        let removable = Cursor::new(self, build).keeps(&held.edit, held.excused);
+        let removable = Cursor::new(self, build).keeps_once(&held.edit, held.excused);
         Some((held.edit, removable))
     }
 

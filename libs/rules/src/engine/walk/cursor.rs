@@ -139,6 +139,14 @@ impl<'a> Cursor<'a> {
         self.with_paused(index, Walker::clone)
     }
 
+    /// [`paused`](Self::paused), taken out of the cursor rather than copied, for a question that is the cursor's
+    /// last ([`keeps_once`](Self::keeps_once)).
+    fn take_paused(&self, index: usize) -> Option<Walker<'a>> {
+        self.walk_to(index)
+            .then(|| self.paused.borrow_mut().remove(&index))
+            .flatten()
+    }
+
     /// What `read` reads off the walk just before character level `index + 1`, without cloning it; `None` past the
     /// one after the last level.
     fn with_paused<T>(&self, index: usize, read: impl FnOnce(&Walker<'a>) -> T) -> Option<T> {
@@ -213,6 +221,16 @@ impl<'a> Cursor<'a> {
         &edited == self.build || self.walks(edit, &edited, allowed)
     }
 
+    /// [`keeps`](Self::keeps), as the cursor's only question: its walk goes on from the paused walk itself rather
+    /// than from a copy of it (ticket 158). What [`Engine::allows`] and the withdrawals ask.
+    pub(crate) fn keeps_once(self, edit: &Edit, allowed: Vec<Choice>) -> bool {
+        let edited = self.edited(edit);
+        &edited == self.build
+            || (self.recheck_with(edit, &edited, allowed, Self::take_paused))
+                .broken
+                .is_none()
+    }
+
     /// The Build with `edit` applied.
     fn edited(&self, edit: &Edit) -> Build {
         let mut edited = self.build.clone();
@@ -228,13 +246,24 @@ impl<'a> Cursor<'a> {
 
     /// [`walks`](Self::walks), with why the walk broke, if it did, and whether an `allowed` choice failed.
     fn recheck(&self, edit: &Edit, edited: &Build, allowed: Vec<Choice>) -> RecheckWalk {
+        self.recheck_with(edit, edited, allowed, Self::paused)
+    }
+
+    /// [`recheck`](Self::recheck), going on from the paused walk `paused` gives: a copy, or the walk itself.
+    fn recheck_with(
+        &self,
+        edit: &Edit,
+        edited: &Build,
+        allowed: Vec<Choice>,
+        paused: impl FnOnce(&Self, usize) -> Option<Walker<'a>>,
+    ) -> RecheckWalk {
         let first = self.first_level(edit);
         match first.checked_sub(1) {
             None => Walker::new(self.engine, edited)
                 .without_sheet()
                 .recheck(0, allowed),
             Some(index) => {
-                let Some(mut walker) = self.paused(usize::from(index)) else {
+                let Some(mut walker) = paused(self, usize::from(index)) else {
                     // Nothing after the last level depends on an edit past it (Remove level, a name).
                     return RecheckWalk::default();
                 };
