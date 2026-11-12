@@ -1449,51 +1449,9 @@ const fn gap(
     }
 }
 
-/// Studied Target and Draconic Resistances, granted once where the game's level-up names each step.
-const STEPS: Why = Why::Bug(170);
-
 /// The gold lines the engine gets wrong today, each on the one failure it covers. The list only shrinks: a fix
 /// deletes its entry.
 const KNOWN_GAPS: &[Gap] = &[
-    // ---- bugs ----
-    // The data grants Studied Target once, at 1; the game's level-up names each +1 (as the data does for the
-    // Divine Scion's).
-    gap(
-        "enforcer",
-        Place::Level(5),
-        "Studied Target +2",
-        Covers::NotGained("Studied Target"),
-        STEPS,
-    ),
-    gap(
-        "enforcer",
-        Place::Level(10),
-        "Studied Target +3",
-        Covers::NotGained("Studied Target"),
-        STEPS,
-    ),
-    gap(
-        "enforcer",
-        Place::Level(15),
-        "Studied Target +4",
-        Covers::NotGained("Studied Target"),
-        STEPS,
-    ),
-    // The data grants Draconic Resistances once, at bloodline level 3; the game's level-up names II and III.
-    gap(
-        "jack",
-        Place::Level(9),
-        "(Dragon Resistances II)",
-        Covers::NotGained("Draconic Resistances"),
-        STEPS,
-    ),
-    gap(
-        "jack",
-        Place::Level(15),
-        "(Dragon Resistances III; Wings)",
-        Covers::NotGained("Draconic Resistances"),
-        STEPS,
-    ),
     // ---- map decisions the user reopened ----
     gap(
         "enforcer",
@@ -1642,8 +1600,8 @@ fn gold_names_tables_are_all_used() {
 }
 
 /// A known gap covers its one failure, not its line: a Jack whose second bloodline is Elemental (Fire), not Draconic
-/// (Bronze), fails "(Dragon Resistances III; Wings)" on Wings too, which the line's entry (on Draconic Resistances)
-/// doesn't hide.
+/// (Bronze), fails "(Dragon Resistances III; Wings)" on Draconic Resistances and on Wings; an entry on Draconic
+/// Resistances (made up here: the list holds none) doesn't hide Wings.
 #[test]
 fn a_known_gap_hides_no_other_failure_on_its_line() {
     let (_, mut jack) = builds().into_iter().next().unwrap();
@@ -1664,7 +1622,14 @@ fn a_known_gap_hides_no_other_failure_on_its_line() {
             &Failure::NotGained("Wings".to_owned()),
         ]
     );
-    let unexplained = unexplained_by(&found, KNOWN_GAPS);
+    let draconic_resistances = [gap(
+        "jack",
+        Place::Level(15),
+        "(Dragon Resistances III; Wings)",
+        Covers::NotGained("Draconic Resistances"),
+        Why::Bug(0),
+    )];
+    let unexplained = unexplained_by(&found, &draconic_resistances);
     let at_15: Vec<&String> = unexplained
         .iter()
         .filter(|line| line.starts_with("jack level 15: (Dragon Resistances III; Wings)"))
