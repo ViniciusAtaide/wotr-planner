@@ -85,10 +85,12 @@ pub(super) fn check_pick_with(
                     return Err(Issue::AlreadyHeld);
                 }
                 // Once for each value of its chosen feat (the Skill Focus talents: once per skill), so not for one
-                // the feat is held for.
+                // the feat is held for; or of its own (Finesse Training: once per weapon), so not for one it's held
+                // for.
                 Repeat::PerValue => {
                     let held = match (&option.chosen_feat, value) {
                         (Some(feat), Some(value)) => state.has_feat_for(feat, value),
+                        (None, Some(value)) => state.has_option_for(key, value),
                         _ => state.option_count(key) > 0,
                     };
                     if held {

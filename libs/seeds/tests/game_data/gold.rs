@@ -299,6 +299,10 @@ fn option(key: &str) -> Pick {
     Pick::option(SelectionOptionKey::new(key))
 }
 
+fn option_for(key: &str, value: Parameter) -> Pick {
+    Pick::option_for(SelectionOptionKey::new(key), value)
+}
+
 fn ability(key: &str) -> Pick {
     Pick::mythic_ability(MythicAbilityKey::new(key))
 }
@@ -576,6 +580,14 @@ fn enforcer() -> Build {
         (general(15), feat("improved-initiative")),
         (selection(17, 0), option("witch/hex/iceplant")),
         (general(17), feat("bashing-finish")),
+        // Rogue level 3: Finesse Training in the light shield's bash (ticket 172).
+        (
+            selection(18, 0),
+            option_for(
+                "rogue/finesse-training/weapon",
+                support::weapon("light-shield-bash"),
+            ),
+        ),
         (
             selection(19, 0),
             option("rogue/rogue-talents/double-debilitation"),
@@ -735,7 +747,10 @@ const NAMES: &[(&str, &[&str], &[&str])] = &[
 ];
 
 /// The values the planner spells otherwise, in a "Name - Value" name: `(write-up, planner)`.
-const VALUES: &[(&str, &str)] = &[("Battleaxe", "Battle Axe")];
+const VALUES: &[(&str, &str)] = &[
+    ("Battleaxe", "Battle Axe"),
+    ("Light Shield", "Light Shield Bash"),
+];
 
 /// The write-up's name of the path before MR 3's: the first ascension's, shown at MR 1 and 2.
 const MYTHIC_HERO: &str = "Mythic Hero";
@@ -1462,13 +1477,6 @@ const KNOWN_GAPS: &[Gap] = &[
             171,
             "MR 10 comes at level 19, before Shield Focus at 20; the mythic picks may come after the levels",
         ),
-    ),
-    gap(
-        "enforcer",
-        Place::Level(18),
-        "Finesse Training - Light Shield",
-        Covers::NoPlannerItem("Finesse Training (Light Shield)"),
-        Why::Reopened(172, "Finesse Training takes a weapon"),
     ),
     gap(
         "jack",

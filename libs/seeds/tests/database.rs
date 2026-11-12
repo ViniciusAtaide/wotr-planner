@@ -1072,7 +1072,8 @@ async fn the_schema_keeps_repeats_and_parameters_consistent() {
             "UPDATE feat SET parameter = 'colour' WHERE key = 'weapon-focus'",
             "parameter_kind",
         ),
-        // An option is taken once per value only of its chosen feat (ticket 47).
+        // An option is taken once per value only of a value it takes: its chosen feat's (ticket 47) or its own
+        // (ticket 172).
         (
             "UPDATE selection_option SET repeat = 'per_value'
             WHERE key = 'rogue/rogue-talents/combat-trick'",
@@ -1109,6 +1110,15 @@ async fn the_schema_keeps_repeats_and_parameters_consistent() {
     .await
     .unwrap();
     assert!(updated.rows_affected() > 0);
+    // And with a value of its own (Finesse Training, once per weapon).
+    let updated = sqlx::query(
+        "UPDATE selection_option SET repeat = 'per_value'
+        WHERE key = 'rogue/rogue-talents/weapon-training'",
+    )
+    .execute(&pool)
+    .await
+    .unwrap();
+    assert_eq!(updated.rows_affected(), 1);
 }
 
 #[tokio::test]

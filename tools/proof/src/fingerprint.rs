@@ -7,8 +7,8 @@
 //! - `who`, `levels`, `picks`: what it is (its classes, each with its archetype; its level and pick counts), for
 //!   filtering a comparison;
 //! - `possible`: [`Engine::is_possible`];
-//! - `sheet`: the sheet ([`Engine::evaluate`]), its Debug text hashed (without a state's empty faith, and without its
-//!   bonuses in force, which `totals` and `caster_lines` read);
+//! - `sheet`: the sheet ([`Engine::evaluate`]), its Debug text hashed (without a state's empty faith and empty option
+//!   values, and without its bonuses in force, which `totals` and `caster_lines` read);
 //! - `removable`: [`Engine::removable`], listed;
 //! - `slots`: per slot of the sheet, by its id's Debug text: `options` (the picker's options with their statuses,
 //!   hashed, without their edits: [`Hashed`]), `open` (how many are open), `total`, `kind`, and the lock-reason texts: `reasons` (those of options
@@ -481,11 +481,18 @@ fn spells() -> Vec<SpellTraits> {
 
 /// The sheet's Debug text, hashed, without a state's empty faith (ticket 86's `faith: None, deity_domains: {}`): a
 /// Build without one walks to the same sheet as on a side before deities, whose states have no such fields. And
-/// without a state's bonuses in force (ticket 151), which a side before them doesn't have.
+/// without a state's bonuses in force (ticket 151), which a side before them doesn't have, nor its empty option values
+/// (ticket 172's `option_values: {}`), for the same reason: a state that holds one differs.
 fn sheet_hash(sheet: &rules::Sheet) -> String {
-    let text =
-        as_before_ticket_125(&format!("{sheet:?}")).replace("faith: None, deity_domains: {}, ", "");
-    format!("{:016x}", fnv(&without_bonuses_in_force(&text)))
+    format!("{:016x}", fnv(&sheet_text(&format!("{sheet:?}"))))
+}
+
+/// A sheet's (or a state's) Debug text as [`sheet_hash`] hashes it.
+fn sheet_text(debug: &str) -> String {
+    let text = as_before_ticket_125(debug)
+        .replace("faith: None, deity_domains: {}, ", "")
+        .replace("option_values: {}, ", "");
+    without_bonuses_in_force(&text)
 }
 
 /// A Debug text without its states' bonuses in force: each `, bonuses_in_force: […]` left out.
@@ -731,4 +738,40 @@ fn shortcut_checks(engine: &Engine, build: &Build, feat_options: Vec<(&SlotId, V
         }
     }
     SHORTCUT_BUILDS.fetch_add(1, Ordering::Relaxed);
+}
+
+#[cfg(test)]
+mod tests {
+    use std::collections::BTreeMap;
+
+    use rules::{CharacterState, Parameter, SelectionOptionKey, WeaponKey};
+
+    use super::sheet_text;
+
+    /// Ticket 172's strip: a state's empty `option_values` is left out of the text the sheet hashes, as a side before
+    /// the field has none; one that holds a value stays.
+    #[test]
+    fn the_sheet_text_drops_an_empty_option_values_and_keeps_a_held_one() {
+        let empty = format!("{:?}", CharacterState::default());
+        assert!(empty.contains("option_values: {}, "), "{empty}");
+        let text = sheet_text(&empty);
+        assert!(!text.contains("option_values"), "{text}");
+        // Only the field is gone: the fields either side of it stay.
+        assert!(
+            text.contains("options_through: {}, option_groups: {}"),
+            "{text}"
+        );
+
+        let mut held = CharacterState::default();
+        held.option_values.insert(
+            SelectionOptionKey::new("rogue/finesse-training/weapon"),
+            BTreeMap::from([(Parameter::Weapon(WeaponKey::new("dagger")), 1)]),
+        );
+        let text = sheet_text(&format!("{held:?}"));
+        assert!(
+            text.contains("option_values: {SelectionOptionKey("),
+            "{text}"
+        );
+        assert!(text.contains("WeaponKey(\"dagger\")"), "{text}");
+    }
 }
