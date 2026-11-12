@@ -20,7 +20,8 @@ use crate::bonus::{
 use crate::parameter::{Parameter, SpellSchool};
 
 /// Where a bonus in force comes from: its position in the data's bonuses (a gear item's bonus: past the data's
-/// last, in the order the Build holds them), and for Expanded Arsenal the school whose Spell Focus feats it copies. With the entry's value, it says which bonus an entry is; the walk keeps one
+/// last, in the order the Build holds them), and for Expanded Arsenal the school whose Spell Focus feats it
+/// copies. With the entry's value, it says which bonus an entry is; the walk keeps one
 /// beside each entry of the state's list (`Walker::bonus_keys`), so a level's end compares without the item's key.
 pub(super) type BonusKey = (usize, Option<SpellSchool>);
 
