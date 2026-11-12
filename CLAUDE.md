@@ -27,13 +27,12 @@ After a schema change, rebuild your checkout's database, from its root:
 The machine has 8 cores and 24 GB of RAM. Builds, tests, proofs and benchmarks are all CPU-bound and compete for them: three agents building at once drove the load to 85–250 and made each one slower. Reading, writing and reviewing cost almost no local CPU, so those run side by side for free.
 
 - **Two at most:** no more than two agents building at once, each in its own worktree. Tickets whose diffs touch the same files run one after the other, however small.
-- **Heavy runs one at a time:** `scripts/proof.sh`, the full agreement sweeps (`--ignored`) and benchmarks. Time speed only on a quiet machine (`uptime` load near 8 or under), comparing medians of alternating runs on both sides.
+- **Heavy runs one at a time:** `scripts/proof.sh` (the main session's, once per queue: see "Behaviour checks"), the full agreement sweeps (`--ignored`) and benchmarks. Time speed only on a quiet machine (`uptime` load near 8 or under), comparing medians of alternating runs on both sides.
 - **Before spawning an agent into a checkout:**
   - its blockers are merged;
   - no other agent is still live there; an agent "waiting on its own background work" is live;
   - no process of another agent runs under that checkout's path.
 - **A new worktree starts from current `main`:** confirm with `git merge-base --is-ancestor <main's commit> HEAD` before the first edit, since a new worktree can start from an older commit.
-- **The proof's target folder:** until ticket 154 lands, give `scripts/proof.sh` a target folder of its own per checkout (`CARGO_TARGET_DIR=$TMPDIR/wotr-proof-<ticket>`), since its default is shared.
 - **RustRover in a worktree:** it has only the main checkout open, so in a worktree its tools read and write main's files. Edit and read there with the built-in tools.
 
 ## Rust tests
@@ -47,11 +46,17 @@ A new test is done when its name shows up in `cargo test -p <crate> -- --list`.
 
 ## Checks
 
-Before reporting a change done, run `scripts/check.sh` (add `--schema` after a migration or query change; `--full`, the cargo-leptos builds, only at the end of a queue of tickets). A pre-commit hook in `.githooks/` runs its fmt and clippy steps; enable it in a new clone with `git config core.hooksPath .githooks`.
+Before reporting a change done, run `scripts/check.sh` (add `--schema` after a migration or query change; `--full`, the cargo-leptos builds, only at the end of a queue of tickets). Its tests include the snapshot check and the gold builds (see "Behaviour checks"). A pre-commit hook in `.githooks/` runs its fmt and clippy steps; enable it in a new clone with `git config core.hooksPath .githooks`.
 
-## Behaviour proof
+## Behaviour checks
 
-To prove a change to `rules` or `libs/game-data/` changes no behaviour but the intended one, run `scripts/proof.sh` (usage in its header and in `tools/proof`'s crate docs); a ticket filters its comparison for any special breakdown.
+A change to `rules` or `libs/game-data/` must change no behaviour but the intended one. There are two tiers (`libs/game-data/README.md` describes both tests):
+
+- **Every ticket: the snapshot check.** `cargo test -p seeds --test game_data snapshots`, which `scripts/check.sh` runs. It compares the engine's output for a small corpus of Builds with snapshot files in `libs/seeds/tests/game_data/snapshots/`, and its message groups the differences by path.
+  - A ticket that changes no behaviour leaves the snapshot files untouched. If the check reports a difference, find the cause.
+  - A ticket that means to change behaviour regenerates them (`SNAPSHOTS=write cargo test -p seeds --test game_data snapshots`), shows the check's grouped message in its report, and commits the files. Every changed line must follow from the intended change.
+  - The gold builds (`gold.rs` beside it) compare two real player builds with the engine. A known-gap entry is deleted by the ticket that fixes it, never added to get a test to pass.
+- **Once per queue: the proof.** The main session runs `scripts/proof.sh` once, when a queue of tickets is merged, alongside `scripts/check.sh --full` (usage in the script's header and in `tools/proof`'s crate docs). It records about 2,000 Builds on two sides, so it catches what the small corpus can't. A ticket's agent doesn't run it.
 
 ## Formatting
 

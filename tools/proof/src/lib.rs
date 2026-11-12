@@ -14,8 +14,11 @@
 //!   working tree's `export --json` supplies the Builds as JSON ([`links::read_json`]): a side whose Build start holds
 //!   no faith drops it, and leaves out the deity Builds (`t86 …`, full ones too).
 //!
-//! Either takes `-- <record options>` last (`--only <name substring>`, `--threads N`). A full record takes about 4
-//! minutes on 8 threads. The outputs (`A.jsonl`, `B.jsonl`, `compare.txt` and the logs) go to `<out-dir>`, which must
+//! **When:** once per queue of tickets, by the main session, when the queue is merged (`CLAUDE.md`, "Behaviour
+//! checks"). A ticket's own check is the snapshot check in `libs/seeds/tests/game_data/snapshots.rs`.
+//!
+//! Either takes `-- <record options>` last (`--only <name substring>`, `--threads N`). A full record takes about 45
+//! seconds a side on 8 threads, after the two release builds. The outputs (`A.jsonl`, `B.jsonl`, `compare.txt` and the logs) go to `<out-dir>`, which must
 //! be outside the repo. The script exits non-zero when the comparison isn't empty.
 //!
 //! The binary's commands:

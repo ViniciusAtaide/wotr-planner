@@ -25,7 +25,7 @@ Questions for the build: which of the class features' numbers the guide states (
 
 ## Done when
 
-The Human Two-Handed Fighter 20 with a falchion from ticket 131 shows a `counts` row for each source it holds, and its numbers move by the guide's amounts. Real-data tests cover each source. `ATTACK_LINE_LEAVES_OUT` no longer names what is now counted. `scripts/proof.sh` shows that only attack lines changed. `scripts/check.sh --schema` passes.
+The Human Two-Handed Fighter 20 with a falchion from ticket 131 shows a `counts` row for each source it holds, and its numbers move by the guide's amounts. Real-data tests cover each source. `ATTACK_LINE_LEAVES_OUT` no longer names what is now counted. The snapshot check passes with the snapshot files untouched, since they hold no attack line (`CLAUDE.md`, "Behaviour checks"). `scripts/check.sh --schema` passes.
 
 ## Answer
 

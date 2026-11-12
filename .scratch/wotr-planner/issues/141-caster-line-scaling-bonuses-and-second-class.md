@@ -23,7 +23,7 @@ Questions for the build: each bonus's amount by level as the guide states it, an
 
 ## Done when
 
-A Build holding each source shows it as a `CasterPart` with the guide's amount at its level. A two-class caster can ask for either class's line. Real-data tests cover each case. `CASTER_LINE_LEAVES_OUT` no longer names what is now counted. `scripts/proof.sh` shows that only caster lines changed. `scripts/check.sh --schema` passes.
+A Build holding each source shows it as a `CasterPart` with the guide's amount at its level. A two-class caster can ask for either class's line. Real-data tests cover each case. `CASTER_LINE_LEAVES_OUT` no longer names what is now counted. The snapshot check's message shows that only caster lines changed, and the snapshots are regenerated (`CLAUDE.md`, "Behaviour checks"). `scripts/check.sh --schema` passes.
 
 ## Answer
 

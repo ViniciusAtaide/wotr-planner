@@ -365,26 +365,36 @@ pub fn fingerprint(engine: &Engine, name: &str, build: &Build) -> Value {
     })
 }
 
-/// Each level's totals, their Debug texts hashed together.
+/// Each level's totals, their Debug texts hashed together. The "leaves out" texts aren't hashed: they are wording,
+/// which ticket 166 rewrote for every Build, and hashing them hid whether any number had changed.
 fn totals_hash(engine: &Engine, build: &Build, sheet: &rules::Sheet) -> String {
     let totals: Vec<rules::Totals> = sheet
         .levels
         .iter()
-        .map(|level| totals(engine, build, level))
+        .map(|level| {
+            let mut totals = totals(engine, build, level);
+            totals.leaves_out = &[];
+            totals
+        })
         .collect();
     hashed(&totals)
 }
 
-/// Each level's caster line for each spell of [`spells`], their Debug texts hashed together.
+/// Each level's caster line for each spell of [`spells`], their Debug texts hashed together, without the "leaves
+/// out" texts (as [`totals_hash`]).
 fn caster_lines_hash(engine: &Engine, build: &Build, sheet: &rules::Sheet) -> String {
     let spells = spells();
     let lines: Vec<Option<rules::CasterLine>> = sheet
         .levels
         .iter()
         .flat_map(|level| {
-            spells
-                .iter()
-                .map(|spell| caster_line(engine, build, level, *spell))
+            spells.iter().map(|spell| {
+                let mut line = caster_line(engine, build, level, *spell);
+                if let Some(line) = &mut line {
+                    line.leaves_out = &[];
+                }
+                line
+            })
         })
         .collect();
     hashed(&lines)

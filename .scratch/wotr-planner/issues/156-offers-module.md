@@ -50,5 +50,5 @@ AFK. A refactor.
 - The new unit tests appear in `cargo test -p mcp -- --list`.
 - `cargo test --workspace -- --list` is otherwise the same.
 - Every existing MCP server test passes unchanged.
-- `scripts/proof.sh rules` gives an empty comparison.
+- The snapshot check passes with the snapshot files untouched (`CLAUDE.md`, "Behaviour checks").
 - `scripts/check.sh` passes.

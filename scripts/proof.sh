@@ -15,14 +15,18 @@
 #        tree's Builds as JSON (builds.tsv) rather than links. A side whose Build start has no faith drops it and
 #        leaves out the deity Builds (`t86 …`, full ones too).
 #
-# Record options: --only <name substring>, --threads N (default 8). A full record takes about 4 minutes on 8 threads.
+# When: once per queue of tickets, by the main session, when the queue is merged (CLAUDE.md, "Behaviour checks"). A
+# ticket's own check is the snapshot check.
+#
+# Record options: --only <name substring>, --threads N (default 8). A full record takes about 45 seconds a side on 8
+# threads, after the two release builds.
 # Every build goes under one folder, $CARGO_TARGET_DIR (default ${TMPDIR:-/tmp}/wotr-planner-proof-target), outside the
 # repo: B/ for the working tree's harness, A/ for the ref's. <out-dir> must be outside the repo too; it gets A.jsonl,
 # B.jsonl, compare.txt (empty when the sides agree) and the logs. Exits 1 when the comparison isn't empty.
 set -euo pipefail
 
 usage() {
-    sed -n '2,21p' "$0" | sed 's/^# \{0,1\}//' >&2
+    sed -n '2,25p' "$0" | sed 's/^# \{0,1\}//' >&2
     exit 2
 }
 

@@ -20,7 +20,7 @@ Options:
 
 ## Done when
 
-The user has chosen. For A, the branch is deleted and the map records the difference. For B, the hold-back commit is reverted on `main`. For C, B is built plus the drop and a test that an old Int 18 link opens with its last ranks dropped. In each case `scripts/proof.sh` names the Builds that changed, and `scripts/check.sh` passes.
+The user has chosen. For A, the branch is deleted and the map records the difference. For B, the hold-back commit is reverted on `main`. For C, B is built plus the drop and a test that an old Int 18 link opens with its last ranks dropped. In each case the snapshot check's message names what changed (`CLAUDE.md`, "Behaviour checks"), and `scripts/check.sh` passes.
 
 ## Answer
 

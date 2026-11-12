@@ -1,7 +1,7 @@
 # The proof runs once per queue; the snapshot check is each ticket's requirement
 
 Type: task
-Status: open
+Status: done
 Blocked by: 158, 159
 Model: the main session (Fable), not a spawned agent: it edits `CLAUDE.md`, the map and other tickets.
 Map: [WotR Build Planner](../map.md)
@@ -40,3 +40,27 @@ Main session, in a commit of its own: it edits the plan and `CLAUDE.md`, which e
 - `CLAUDE.md` describes the two tiers and no longer mentions ticket 154.
 - 154 is closed, and 157 is rewritten and still open.
 - The map's Notes and Decisions say the same as `CLAUDE.md`.
+
+## Answer
+
+Done 2026-11-12, by the main session, once tickets 159, 160 and 165 to 168 were merged and no agent was live.
+
+- **`CLAUDE.md`:** "Behaviour proof" is now "Behaviour checks", with the two tiers: the snapshot check and the gold builds for every ticket, the proof once per queue by the main session. "Checks" names the snapshot check. "Parallel agents" lost the "until ticket 154 lands" line; the proof stays a heavy run.
+- **Open tickets:** 137, 139, 141 and 156 ask for the snapshot check where they asked for a proof run. 139's snapshots stay untouched, since they hold no attack line. 164 is another session's and already says to follow this ticket's process, so it is left as written. 162 (the proof's light mode) and 157 are about the proof itself.
+- **[157](157-faster-proofs.md)** is rewritten down to side A's source in a fixed folder. Its cache, its "one full run per ticket" and its lock are dropped. It is still open.
+- **154** has no ticket file on `main` (its file is on branch `claude/beautiful-burnell-865ae9`). The map's Notes record it as closed unbuilt, with the branch left for the user to delete.
+- **The map:** the Notes on 154, 157 and the two tiers, and a Decisions line.
+- **`scripts/proof.sh`'s header and `tools/proof`'s crate docs** say when the proof runs, and that a record takes about 45 seconds a side (it was "about 4 minutes").
+- **The glossary:** an item a choice needs can't be removed, "or replaced by an item that doesn't keep the choice allowed" (left over from ticket 166's review).
+
+### This queue's proof
+
+`scripts/proof.sh both <out> e150fa2`, the commit before the queue, against `main` with 159, 160 and 165 to 168 merged: 2,163 Builds a side, each record in about 45 seconds.
+
+- **First run:** 2,161 Builds differed, in `totals` (all) and `caster_lines` (1,367) only. No sheet, slot, option or `allows` field differed. The cause was the one ticket 166 predicted: it rewrote the "leaves out" texts, and the harness hashed them with the numbers. So the run couldn't say whether a number had changed.
+- **The harness change** (`tools/proof/src/fingerprint.rs`): `totals_hash` and `caster_lines_hash` blank `leaves_out` before hashing. Both sides have the field, so the harness still compiles against older crates.
+- **Second run:** `A: 2163 Builds, B: 2163; only in A: 0, only in B: 0, differing: 0`. The queue changed no behaviour for any Build without gear, and the proof's Builds hold none.
+
+What the proof doesn't cover: a Build with gear. The link's gear section, the gear tests in `libs/rules/tests/engine/gear.rs`, the real-data test and the Enforcer's snapshot cover those.
+
+`scripts/check.sh` passed on `main` with 167 and 168 merged together, before this ticket's edits.
