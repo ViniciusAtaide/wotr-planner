@@ -65,32 +65,35 @@ AFK. Game data, its reader and the seed; a schema change (a new migration, `CLAU
 - **The check** (`DataAt::Gear`): a duplicate key or name, no bonus, an amount of 0 or a negative one that isn't untyped, two bonuses with one target and type, an unknown skill, `SpellDc(Value)`, an empty or repeated other-effect line.
 - **The reader:** `gear.ron` is optional (`SINGLE_FILES`).
 - **The migration** `20261111180000_165-gear.sql`: `gear_item` (nullable `guide`, unique name), `gear_bonus` (target and column checks, `caster_level` included), `gear_other_effect`; `libs/seeds/src/gear.rs` writes and reads them; the `.sqlx` metadata is prepared.
-- **The data:** `libs/game-data/gear.ron`, 89 items.
+- **The data:** `libs/game-data/gear.ron`, 92 items.
 
 ### The slots found
 
-`Belt`, `Boots`, `Bracers`, `Cloak`, `Glasses`, `Gloves`, `Headwear`, `Necklace`, `Ring`, `Robe`, `Usable` (the guide's "Equipable and Consumable"), `Armour` (4: Half-Plate of Vigor, Life Infuser, Snakeskin, Ustlavic Pride) and `Weapon` (2: Sin Mage's Staff, Dirge for Sarkoris). No shield and no rod. Calls on the "Equipable and Consumable" section: the six manuals and tomes are `Usable` (the user: tomes are gear); Trusted Friend, whose text gives no slot, is `Usable` too.
+`Belt`, `Boots`, `Bracers`, `Cloak`, `Glasses`, `Gloves`, `Headwear`, `Necklace`, `Ring`, `Robe`, `Usable` (the consumables of the guide's "Equipable and Consumable": 9), `Armour` (4: Half-Plate of Vigor, Life Infuser, Snakeskin, Ustlavic Pride) and `Weapon` (2: Sin Mage's Staff, Dirge for Sarkoris). No shield and no rod. Calls on the "Equipable and Consumable" section: the six manuals and tomes are `Usable` (the user: tomes are gear), and so are the Tome of Ancient Perfection, the Elixir of Inconceivable Transmutations of Body, and Soul, and Also Mind and the Potion of Humanity (added after review: their "all ability scores" and "all attributes" wordings slipped past the first recount, six Inherent bonuses each); Trusted Friend is a `Necklace`, since the guide's Skill Boosting Items table lists it as an "Amulet", and keeps its `items#equipable-and-consumable` reference.
 
 ### Counts against an independent recount
 
-A script over the saved pages' table rows, not the research file's list, found 70 rows with an always-on ability score bonus: `items` 58 (53 in the item sections, 4 armour, 1 weapon), `items-inevitable-excess` 4, `items-lord-of-nothing` 8. Three repeat a main-page row (Flawless Headband of Mental Perfection +8, Hammer Fists, Soaring Fist), so 67 distinct items, the research file's count. Per slot (distinct): Belt 17, Boots 2, Bracers 1, Cloak 1, Glasses 1, Gloves 3, Headwear 21, Necklace 2, Ring 3, Robe 3, Usable 7, Armour 4, Weapon 2. The tables per page and slot are in the extraction report; a real-data test pins the per-slot counts.
+A script over the saved pages' table rows, not the research file's list, found 73 rows with an always-on ability score bonus (the pattern now also catches "all ability scores" and "all attributes"): `items` 61 (56 in the item sections, 4 armour, 1 weapon), `items-inevitable-excess` 4, `items-lord-of-nothing` 8. Three repeat a main-page row (Flawless Headband of Mental Perfection +8, Hammer Fists, Soaring Fist), so 70 distinct items: the research file's 67 and the three consumables its score-name pattern missed. A last pass with "all", "every", "highest", "attribute" and the abbreviations found nothing else worn or used. Per slot (distinct): Belt 17, Boots 2, Bracers 1, Cloak 1, Glasses 1, Gloves 3, Headwear 21, Necklace 3, Ring 3, Robe 3, Usable 9, Armour 4, Weapon 2. The tables per page and slot are in the extraction report; a real-data test pins the per-slot counts.
 
 ### The generic items and the manuals
 
-- **From the guide:** the six manuals and tomes (`Usable`, one Inherent +2 each, no other effect), Belt of Physical Perfection +6 (`items#belts`) and Headband of Mental Perfection +6 (`items#headwear`).
+- **From the guide:** the six manuals and tomes (`Usable`, one Inherent +2 each, no other effect) and the three all-score consumables, Belt of Physical Perfection +6 (`items#belts`) and Headband of Mental Perfection +6 (`items#headwear`).
 - **Added by hand, no guide reference, 22 items, for the user to confirm** (names and sizes rest on the main session's reading of the request): Belt of Incredible Dexterity, Belt of Giant Strength, Belt of the Mighty Constitution, Headband of Alluring Charisma, Headband of Vast Intelligence and Headband of Inspired Wisdom, each at +2, +4 and +6 (18, Enhancement to the one score); and Belt of Physical Perfection (Str, Dex, Con) and Headband of Mental Perfection (Int, Wis, Cha), each at +2 and +4 (4, Enhancement to the three scores). No two-score variants.
 
 ### Judgement calls
 
-- **Left out though a score is named:** Glasses of Undeniable Truth, Bestial Rags, Robe of False Death, Mutilated Angel (the research file's four) and Nimble Edge (a few rounds after a critical hit). The rest of the 14 rows the first regex caught name a score only as damage, a modifier or a cap (listed in the report).
+- **Left out for the second stage:** Vellexia's Magnifying Amulet (`items#necklaces`), whose "+2 bonus to highest current ability score" the shape cannot hold.
+- **Left out though a score is named:** Glasses of Undeniable Truth, Bestial Rags, Robe of False Death, Mutilated Angel (the research file's four) and Nimble Edge (a few rounds after a critical hit). The rest name a score only as damage, a modifier or a cap, or a penalty on a foe (listed in the report); the Conflagrant Taco, a meal in a recipe table with "+4 bonus to all ability scores", has no item slot and is out.
 - **Relics and artifacts** (prose with upgrade tiers, no table rows) are not in the file: Face-Stealer's Mask, the Stone of Ghostly Pathways, Zaoris's Pin and others give score bonuses. The design counted table rows. Worth a decision for the second stage.
+- **Belt of the Venerated Champion:** its "+2 bonus to Fortitude saves and a +1 insight bonus to AC against evil creatures" is ambiguous, so as the research file's table says it is one other-effect line; only Con +6 is a bonus.
+- **Armour and weapon types:** each of the four armours and two weapons has a line naming its enhancement and base type from the table's sub-heading (Snakeskin a +4 leather armour, Life Infuser a +5 breastplate, Half-Plate of Vigor a +1 half-plate, Ustlavic Pride a +3 full plate, Sin Mage's Staff a +5 quarterstaff, Dirge for Sarkoris a +2 keen club: its row sits under the "Club" sub-heading on `items-lord-of-nothing#weapons`).
 - **Caster level:** only Sin Mage's Staff has an always-on unscoped bonus (+3), as `CasterLevel`; Headband of Reshaping's +1 for Transmutation stays a line.
 - **Untyped:** Half-Plate of Vigor, Dirge for Sarkoris, Sin Mage's Staff (Int, spell DC, caster level), the +2 Fortitude of the Belt of the Venerated Champion and the +3 Will of the Goggles of Ferocious Pact; Life Infuser is `Armour`, as written.
-- **Other effects** are my own wording, at most 131 characters (a test holds 140).
+- **Other effects** are my own wording, at most 131 characters (a test holds 140); none shares a run of five words with its row but game terms, numbers and item names.
 
 ### Done when
 
-- `gear.ron` holds all 67 first-stage items from the pages plus the 22 hand-added ones (counts above).
+- `gear.ron` holds all 70 first-stage items from the pages plus the 22 hand-added ones (counts above): 92.
 - No engine behaviour changes: `cargo test -p seeds --test game_data snapshots` passes with the snapshot files untouched.
 - `scripts/check.sh --schema` passes.
 - Left to the main session: the second agent's sample of 15 items.

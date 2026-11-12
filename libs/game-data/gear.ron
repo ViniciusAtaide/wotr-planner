@@ -199,7 +199,7 @@
             (target: Ability(Dexterity), amount: 6, kind: Enhancement),
         ],
         other_effects: [
-            "After a critical hit: +2 circumstance to attack and damage rolls for 3 rounds.",
+            "Landing a critical hit: +2 circumstance on attacks and damage for 3 rounds.",
         ],
     ),
     (
@@ -222,7 +222,7 @@
             (target: Ability(Dexterity), amount: 4, kind: Enhancement),
         ],
         other_effects: [
-            "After a kill: +5 morale to the next attack roll.",
+            "Killing an enemy: +5 morale on the next attack.",
         ],
     ),
     (
@@ -278,7 +278,7 @@
             (target: Ability(Strength), amount: 6, kind: Enhancement),
         ],
         other_effects: [
-            "On a charge: the target takes -2 AC against ranged attacks for 4 rounds.",
+            "Charging: the target's AC drops by 2 versus ranged attacks, lasting 4 rounds.",
         ],
     ),
     (
@@ -288,10 +288,9 @@
         guide: "items#belts",
         bonuses: [
             (target: Ability(Constitution), amount: 6, kind: Enhancement),
-            (target: Save(Fortitude), amount: 2),
         ],
         other_effects: [
-            "Against evil creatures: +1 insight to AC.",
+            "Against evil creatures: +2 on Fortitude saves and +1 insight to AC (the wording is ambiguous, so not counted as always on).",
         ],
     ),
     (
@@ -304,7 +303,7 @@
             (target: Ability(Constitution), amount: 8, kind: Enhancement),
         ],
         other_effects: [
-            "Confirmed critical with a natural weapon: the target is vulnerable to negative and unholy damage for 2 rounds.",
+            "Crit with a natural weapon: for 2 rounds the target is weak to unholy and negative-energy damage.",
         ],
     ),
     (
@@ -343,7 +342,7 @@
         ],
         other_effects: [
             "Ignores difficult terrain.",
-            "Once a day: a 50-foot cone of breath that paralyses for 1d4 rounds (Fortitude DC 18 + Con modifier).",
+            "Once a day: breathes a 50-foot cone that paralyses foes for 1d4 rounds (save DC 18 + Con mod).",
         ],
     ),
     (
@@ -355,7 +354,7 @@
             (target: Ability(Constitution), amount: 4, kind: Enhancement),
         ],
         other_effects: [
-            "+4 armour bonus to AC.",
+            "Adds 4 to AC as an armour bonus.",
             "Once a day: casts Ice Cascade.",
         ],
     ),
@@ -397,7 +396,7 @@
             (target: Ability(Constitution), amount: 4, kind: Enhancement),
         ],
         other_effects: [
-            "After a kill: +2 to Dexterity and Constitution for 3 rounds.",
+            "Killing an enemy: Dexterity and Constitution each rise by 2 for 3 rounds.",
         ],
     ),
     // Boots.
@@ -410,8 +409,8 @@
             (target: Ability(Dexterity), amount: 4, kind: Enhancement),
         ],
         other_effects: [
-            "Movement does not provoke attacks of opportunity.",
-            "Worn with the Owl's Cowl: Dexterity +6 instead, and +5 initiative.",
+            "Moving does not trigger attacks of opportunity.",
+            "With the Owl's Cowl too: the Dexterity bonus becomes +6 and initiative gets +5.",
         ],
     ),
     (
@@ -423,7 +422,7 @@
             (target: Ability(Dexterity), amount: 4, kind: Enhancement),
         ],
         other_effects: [
-            "Ignores difficult terrain; difficult terrain gives +10 feet of speed for 1 round.",
+            "Difficult terrain doesn't slow the wearer, and crossing it adds 10 feet of speed for 1 round.",
         ],
     ),
     // Bracers.
@@ -491,7 +490,7 @@
             (target: Ability(Strength), amount: 4, kind: Enhancement),
         ],
         other_effects: [
-            "+2 morale bonus to AC.",
+            "A +2 morale boost to AC.",
         ],
     ),
     (
@@ -515,7 +514,7 @@
             (target: Ability(Charisma), amount: 2, kind: Enhancement),
         ],
         other_effects: [
-            "After a melee kill: the next spell is empowered.",
+            "Killing with a melee weapon empowers the next spell cast.",
         ],
     ),
     (
@@ -527,7 +526,7 @@
             (target: Ability(Charisma), amount: 4, kind: Enhancement),
         ],
         other_effects: [
-            "Damaging an enemy with a spell: 10 temporary hit points for 3 rounds.",
+            "Spell damage to a foe: gain 10 temporary hit points, lasting 3 rounds.",
         ],
     ),
     (
@@ -554,8 +553,8 @@
             (target: Ability(Charisma), amount: 6, kind: Enhancement),
         ],
         other_effects: [
-            "Taking energy damage: resistance 20 to that energy for 1 round.",
-            "Taking physical damage: DR 20/- for 1 round.",
+            "Hit by energy damage: resist 20 against that energy for a round.",
+            "Hit by physical damage: DR 20/- for a round.",
         ],
     ),
     (
@@ -608,7 +607,7 @@
             (target: Ability(Intelligence), amount: 2, kind: Profane),
         ],
         other_effects: [
-            "Slow and Haste spells are quickened; once a day, any spell is quickened.",
+            "Casting Slow or Haste quickens it automatically; once a day, any spell can be quickened.",
             "Good characters cannot wear it.",
         ],
     ),
@@ -621,7 +620,7 @@
             (target: Ability(Charisma), amount: 2, kind: Enhancement),
         ],
         other_effects: [
-            "+2 rounds of bardic performance a day.",
+            "Two more rounds of bardic performance daily.",
         ],
     ),
     (
@@ -635,7 +634,7 @@
             (target: Ability(Charisma), amount: 8, kind: Enhancement),
         ],
         other_effects: [
-            "Immune to mind-affecting spells and conditions.",
+            "Cannot be affected by mind-affecting spells or conditions.",
         ],
     ),
     (
@@ -660,7 +659,7 @@
             (target: Ability(Charisma), amount: 4, kind: Enhancement),
         ],
         other_effects: [
-            "+4 on saves against mind-affecting conditions.",
+            "Gains +4 on saving throws versus mind-affecting conditions.",
         ],
     ),
     (
@@ -707,7 +706,7 @@
             (target: Ability(Intelligence), amount: 6, kind: Enhancement),
         ],
         other_effects: [
-            "First hit on an enemy dazzles it for 3 rounds (Fortitude DC 30); it is blinded instead if movement-impaired.",
+            "The first hit on a foe dazzles it for 3 rounds (resisted by a DC 30 Fortitude save); blinds it instead if its movement is impaired.",
         ],
     ),
     (
@@ -720,7 +719,7 @@
             (target: Ability(Wisdom), amount: 4, kind: Enhancement),
         ],
         other_effects: [
-            "+4 on saves against mind-affecting conditions.",
+            "Gains +4 on saving throws versus mind-affecting conditions.",
         ],
     ),
     (
@@ -747,8 +746,8 @@
             (target: Ability(Wisdom), amount: 6, kind: Enhancement),
         ],
         other_effects: [
-            "Using a shifter aspect: +2 circumstance to natural attacks.",
-            "Worn with the Cat's Boots: +2 circumstance to AC.",
+            "While in a shifter aspect, natural attacks get +2 circumstance.",
+            "With the Cat's Boots too: +2 circumstance to AC.",
         ],
     ),
     (
@@ -762,8 +761,8 @@
             (target: Ability(Charisma), amount: 8, kind: Enhancement),
         ],
         other_effects: [
-            "Immune to Divination magic and has Spell Turning.",
-            "Casts one spell per round as a free action.",
+            "Divination magic cannot affect the wearer, who also has Spell Turning.",
+            "Each round, the wearer may cast a single spell as a free action.",
         ],
     ),
     (
@@ -777,7 +776,7 @@
             (target: Ability(Charisma), amount: 4, kind: Enhancement),
         ],
         other_effects: [
-            "Twice a day: summons two Labyrinth Demodand Destroyers for 2 minutes.",
+            "Two uses a day: calls up a pair of Labyrinth Demodand Destroyers lasting 2 minutes.",
         ],
     ),
     // Necklace.
@@ -803,7 +802,20 @@
             (target: Ability(Constitution), amount: 6, kind: Enhancement),
         ],
         other_effects: [
-            "Twice a day: casts Cure Serious Wounds as a 5th-level cleric.",
+            "Twice a day: Cure Serious Wounds at caster level 5 (cleric).",
+        ],
+    ),
+    (
+        key: "trusted-friend",
+        name: "Trusted Friend",
+        slot: Necklace,
+        guide: "items#equipable-and-consumable",
+        bonuses: [
+            (target: Ability(Charisma), amount: 2, kind: Circumstance),
+            (target: Skill("persuasion"), amount: 5, kind: Circumstance),
+        ],
+        other_effects: [
+            "Only the Knight Commander can equip it.",
         ],
     ),
     // Ring.
@@ -816,7 +828,7 @@
             (target: Ability(Constitution), amount: 2, kind: Luck),
         ],
         other_effects: [
-            "Twice a day: casts Enlarge Person as a 1st-level wizard.",
+            "Twice a day: Enlarge Person, at wizard caster level 1.",
         ],
     ),
     (
@@ -843,8 +855,8 @@
             (target: Ability(Charisma), amount: 8, kind: Enhancement),
         ],
         other_effects: [
-            "All spells are Intensified and Piercing.",
-            "Grants the abilities of the Magic domain.",
+            "Every spell you cast counts as Intensified and Piercing.",
+            "Gives the powers of the Magic domain.",
         ],
     ),
     // Robe.
@@ -871,7 +883,7 @@
             (target: Ability(Wisdom), amount: 4, kind: Enhancement),
         ],
         other_effects: [
-            "Casts Greater Angelic Aspect at will.",
+            "Greater Angelic Aspect can be used at will.",
         ],
     ),
     (
@@ -883,10 +895,24 @@
             (target: Ability(Wisdom), amount: 2, kind: Circumstance),
         ],
         other_effects: [
-            "Worn with the Glasses of Undeniable Truth: projects fear in a 10-foot radius (DC 25 + Charisma modifier).",
+            "Together with Glasses of Undeniable Truth: radiates fear 10 feet around, save DC 25 + Cha modifier.",
         ],
     ),
     // Usable.
+    (
+        key: "elixir-of-inconceivable-transmutations-of-body-and-soul-and-also-mind",
+        name: "Elixir of Inconceivable Transmutations of Body, and Soul, and Also Mind",
+        slot: Usable,
+        guide: "items#equipable-and-consumable",
+        bonuses: [
+            (target: Ability(Strength), amount: 2, kind: Inherent),
+            (target: Ability(Dexterity), amount: 2, kind: Inherent),
+            (target: Ability(Constitution), amount: 2, kind: Inherent),
+            (target: Ability(Intelligence), amount: 2, kind: Inherent),
+            (target: Ability(Wisdom), amount: 2, kind: Inherent),
+            (target: Ability(Charisma), amount: 2, kind: Inherent),
+        ],
+    ),
     (
         key: "manual-of-bodily-health-2",
         name: "Manual of Bodily Health +2",
@@ -912,6 +938,34 @@
         guide: "items#equipable-and-consumable",
         bonuses: [
             (target: Ability(Dexterity), amount: 2, kind: Inherent),
+        ],
+    ),
+    (
+        key: "potion-of-humanity",
+        name: "Potion of Humanity",
+        slot: Usable,
+        guide: "items#equipable-and-consumable",
+        bonuses: [
+            (target: Ability(Strength), amount: 1, kind: Inherent),
+            (target: Ability(Dexterity), amount: 1, kind: Inherent),
+            (target: Ability(Constitution), amount: 1, kind: Inherent),
+            (target: Ability(Intelligence), amount: 1, kind: Inherent),
+            (target: Ability(Wisdom), amount: 1, kind: Inherent),
+            (target: Ability(Charisma), amount: 1, kind: Inherent),
+        ],
+    ),
+    (
+        key: "tome-of-ancient-perfection",
+        name: "Tome of Ancient Perfection",
+        slot: Usable,
+        guide: "items#equipable-and-consumable",
+        bonuses: [
+            (target: Ability(Strength), amount: 4, kind: Inherent),
+            (target: Ability(Dexterity), amount: 4, kind: Inherent),
+            (target: Ability(Constitution), amount: 4, kind: Inherent),
+            (target: Ability(Intelligence), amount: 4, kind: Inherent),
+            (target: Ability(Wisdom), amount: 4, kind: Inherent),
+            (target: Ability(Charisma), amount: 4, kind: Inherent),
         ],
     ),
     (
@@ -941,19 +995,6 @@
             (target: Ability(Wisdom), amount: 2, kind: Inherent),
         ],
     ),
-    (
-        key: "trusted-friend",
-        name: "Trusted Friend",
-        slot: Usable,
-        guide: "items#equipable-and-consumable",
-        bonuses: [
-            (target: Ability(Charisma), amount: 2, kind: Circumstance),
-            (target: Skill("persuasion"), amount: 5, kind: Circumstance),
-        ],
-        other_effects: [
-            "Only the Knight Commander can equip it.",
-        ],
-    ),
     // Armour.
     (
         key: "half-plate-of-vigor",
@@ -962,6 +1003,9 @@
         guide: "items#unique-armour",
         bonuses: [
             (target: Ability(Constitution), amount: 2),
+        ],
+        other_effects: [
+            "A +1 half-plate.",
         ],
     ),
     (
@@ -974,6 +1018,7 @@
             (target: Ability(Strength), amount: 8, kind: Armour),
         ],
         other_effects: [
+            "A +5 breastplate.",
             "Moderate fortification.",
         ],
     ),
@@ -986,6 +1031,7 @@
             (target: Ability(Dexterity), amount: 4, kind: Profane),
         ],
         other_effects: [
+            "A +4 leather armour.",
             "+20 feet base speed.",
             "Immune to acid.",
         ],
@@ -999,7 +1045,8 @@
             (target: Ability(Charisma), amount: 3, kind: Enhancement),
         ],
         other_effects: [
-            "+4 enhancement bonus to CMD.",
+            "A +3 full plate.",
+            "Adds 4 to CMD as an enhancement bonus.",
             "DR 5/- against attacks from undead.",
         ],
     ),
@@ -1013,7 +1060,8 @@
             (target: Ability(Strength), amount: 2),
         ],
         other_effects: [
-            "A +2 keen weapon; +2d8 holy damage against undead.",
+            "A +2 keen club.",
+            "Extra holy damage against undead: 2d8.",
         ],
     ),
     (

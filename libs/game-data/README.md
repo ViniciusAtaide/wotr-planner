@@ -604,15 +604,18 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
 - `gear.ron` (ticket 165; ticket 122's file of that name was removed by ticket 148) holds the gear items
   (`rules::GearItem`, `rules::GearBonus`, `rules::GearTarget`, `rules::BonusType`), one block each, grouped by slot.
   **Which items:** every item on the saved pages `items`, `items-inevitable-excess` and `items-lord-of-nothing` whose
-  properties give an always-on bonus to an ability score (67 distinct items: 70 rows, 3 of them repeated on a DLC
+  properties give an always-on bonus to an ability score (70 distinct items: 73 rows, 3 of them repeated on a DLC
   page), plus 22 the user added by hand with no `guide` (the plain stat belts and headbands at +2, +4 and +6, and
   the two three-score ones at +2 and +4; the guide lists the +6 ones itself). Items whose only score change is a
   penalty or holds in a circumstance (Glasses of Undeniable Truth, Bestial Rags, Robe of False Death, Mutilated
-  Angel, Nimble Edge) and the relics and artifacts (listed in prose with upgrade tiers, not in tables) are out;
+  Angel, Nimble Edge), Vellexia's Magnifying Amulet ("+2 to the highest current ability score", which the shape
+  cannot hold) and the relics and artifacts (listed in prose with upgrade tiers, not in tables) are out;
   the second stage ([169](../../.scratch/wotr-planner/issues/169-gear-second-stage.md)) takes the items with no score
   bonus. **Key:** the name in lower case, apostrophes dropped, every other run of non-alphanumerics one hyphen.
-  **Slot:** the guide's section (`Belt` … `Robe`, `Usable` for "Equipable and Consumable": the six manuals and tomes
-  and the Trusted Friend), plus `Armour` and `Weapon` for the six armour and weapon rows that give a score bonus;
+  **Slot:** the guide's section (`Belt` … `Robe`, `Usable` for the consumables of "Equipable and Consumable": the six
+  manuals and tomes, the Tome of Ancient Perfection, the Elixir of Inconceivable Transmutations and the Potion of
+  Humanity; the Trusted Friend sits in that section but is a `Necklace`, since the guide's skill table calls it an
+  amulet), plus `Armour` and `Weapon` for the six armour and weapon rows that give a score bonus;
   how many of a slot a Build holds, and that a robe and an armour share one body place, is the engine's.
   **Guide:** `page#section`, e.g. `items#belts`, `items#unique-armour`, `items#weapon-properties`,
   `items-lord-of-nothing#weapons`; a row repeated on a DLC page keeps the main page's. **Bonuses:** one per number

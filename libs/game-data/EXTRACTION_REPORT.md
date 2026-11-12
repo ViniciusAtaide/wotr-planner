@@ -28,23 +28,33 @@ Nothing left.
 
 Read from the saved pages `items`, `items-inevitable-excess` and `items-lord-of-nothing` only, with a throwaway
 script (kept out of the repo) that lists every table row under the guide's item headings. A row counts when its
-Properties (for armour and weapons, the third column) give an always-on `+N <type> bonus` to a score; the 70 rows are
-checked by hand against the page.
+Properties (for armour and weapons, the third column) give an always-on `+N <type> bonus` to a score, including the
+wordings "all ability scores" and "all attributes" (the first pass matched score names only and missed three
+consumables); the 73 rows are checked by hand against the page.
 
 | Page | Belt | Boots | Bracers | Cloak | Glasses | Gloves | Headwear | Necklace | Ring | Robe | Usable | Armour | Weapon | Rows |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `items` | 12 | 2 | 1 | 1 | 1 | 3 | 19 | 1 | 3 | 3 | 7 | 4 | 1 | 58 |
+| `items` | 12 | 2 | 1 | 1 | 1 | 3 | 19 | 1 | 3 | 3 | 10 | 4 | 1 | 61 |
 | `items-inevitable-excess` | 2 | 0 | 0 | 0 | 0 | 0 | 2 | 0 | 0 | 0 | 0 | 0 | 0 | 4 |
 | `items-lord-of-nothing` | 3 | 0 | 0 | 0 | 0 | 2 | 1 | 1 | 0 | 0 | 0 | 0 | 1 | 8 |
 
-70 rows, 3 repeats (Flawless Headband of Mental Perfection +8 on `items-inevitable-excess`, Hammer Fists and Soaring
+73 rows (by the guide's section; Usable includes the Trusted Friend), 3 repeats (Flawless Headband of Mental Perfection +8 on `items-inevitable-excess`, Hammer Fists and Soaring
 Fist on `items-lord-of-nothing`: the same properties as the main page's rows, so one entry each with the main page's
-reference), 67 distinct items. That agrees with the design's count (58 + 4 + 8 rows, 3 repeats). Of the 67, 6 are the
-manuals and tomes. Plus 22 items from the user with no page: 18 single-score belts and headbands at +2, +4 and +6,
-and Belt of Physical Perfection and Headband of Mental Perfection at +2 and +4 (their +6 are the guide's). 89 items.
+reference), 70 distinct items (the design's 67, plus the three consumables below). Of the 70, 9 are `Usable` (the six
+manuals and tomes and the three all-score consumables) and the Trusted Friend is a `Necklace`. Plus 22 items from the user with no page: 18 single-score belts and headbands at +2, +4 and +6,
+and Belt of Physical Perfection and Headband of Mental Perfection at +2 and +4 (their +6 are the guide's). 92 items.
 
 Judgement calls:
 
+- **Added after review:** Tome of Ancient Perfection (+4 inherent to all ability scores), Elixir of Inconceivable
+  Transmutations of Body, and Soul, and Also Mind (+2) and Potion of Humanity (+1 "to all attributes"), each six
+  `Inherent` bonuses, `Usable`. A wider pattern ("all ability scores", "all attributes", "highest", "ability score",
+  "attribute", abbreviations) over every row of the three pages found nothing else that is a worn or used item's
+  bonus: the rest are damage, penalties on a foe, caps, or what is already listed. Two near-misses are out: the
+  Conflagrant Taco (a cooking recipe in the Recipe table, a meal with "+4 bonus to all ability
+  scores" and no item slot) and Savamelekh Spine (a penalty on its target).
+- **Left out, for the second stage:** Vellexia's Magnifying Amulet (`items#necklaces`): its "+2 bonus to highest
+  current ability score" depends on which score is highest, which `GearTarget` cannot say.
 - **Left out, though a score is named:** Glasses of Undeniable Truth (+2 Int only worn with a robe), Bestial Rags
   (+2 racial to three scores only in a major form), Robe of False Death (a -6 Con penalty only), Mutilated Angel
   (a -3 Cha penalty only), Nimble Edge (+2 morale Dex for a few rounds after a crit); and every row that names a
@@ -55,10 +65,16 @@ Judgement calls:
 - **Relics and artifacts** (`items#relics`, `#artifacts`) are listed in prose with upgrade tiers and a chosen form
   (Face-Stealer's Mask's belts and headbands, the Stone of Ghostly Pathways' circlets, Zaoris's Pin's headbands),
   not as table rows, and the design counted table rows. They are not in the file; a later ticket may add them.
-- **Trusted Friend** sits in "Equipable and Consumable" with no slot in its text: `Usable`, as the manuals.
+- **Trusted Friend** sits in "Equipable and Consumable", but the guide's Skill Boosting Items table lists it as an
+  "Amulet": `Necklace`, keeping its `items#equipable-and-consumable` reference.
+- **Belt of the Venerated Champion:** its "+2 bonus to Fortitude saves and a +1 insight bonus to AC against evil
+  creatures" is ambiguous about which part is against evil creatures, so by the design it is treated as conditional:
+  one other-effect line, and only Con +6 as a bonus.
+- **Armour and weapon lines:** each names its own enhancement and base type from the table's sub-heading: Snakeskin a
+  +4 leather armour, Life Infuser a +5 breastplate, Half-Plate of Vigor a +1 half-plate, Ustlavic Pride a +3 full
+  plate, Sin Mage's Staff a +5 quarterstaff, Dirge for Sarkoris a +2 keen club (`items-lord-of-nothing#weapons`,
+  under the "Club" sub-heading).
 - **Sin Mage's Staff** (`Weapon`, `items#weapon-properties`): Int +6 untyped, spell DC +1 and caster level +3 are
-  bonuses; "a +5 quarterstaff" is its one other effect (the weapon's type is the caster-level table's, which names
-  it a quarterstaff). **Dirge for Sarkoris**: Str +2 untyped; "a +2 keen weapon" (its type isn't given).
-- Untyped: Half-Plate of Vigor, Dirge for Sarkoris, Sin Mage's Staff and the +2 Fortitude of the Belt of the
-  Venerated Champion, the +3 Will of the Goggles of Ferocious Pact (the guide gives no type). Life Infuser's "+8
+  bonuses; "a +5 quarterstaff" is an other effect (the table's sub-heading). **Dirge for Sarkoris**: Str +2 untyped.
+- Untyped: Half-Plate of Vigor, Dirge for Sarkoris, Sin Mage's Staff and the +3 Will of the Goggles of Ferocious Pact (the guide gives no type). Life Infuser's "+8
   armour bonus" is typed `Armour` as written.

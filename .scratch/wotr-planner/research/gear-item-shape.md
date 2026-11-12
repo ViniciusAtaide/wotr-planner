@@ -5,7 +5,7 @@ The spec for ticket [165](../issues/165-gear-data.md), and the surface ticket [1
 ## Corrections to the tickets
 
 - **The data types are serde-only, not serde-free.** Every type in `libs/rules/src/game_data.rs` derives `Serialize, Deserialize` with `#[serde(deny_unknown_fields)]`, and the RON files deserialise straight into them. The gear types do the same.
-- **About 67 distinct items, not 77.** A script over the table rows found 70 rows with an always-on ability score bonus: 58 on `items`, 4 on `items-inevitable-excess`, 8 on `items-lord-of-nothing`. Three repeat a main-page row (Flawless Headband of Mental Perfection +8, Hammer Fists, Soaring Fist). The extractor recounts independently.
+- **About 70 distinct items, not 77** (67 by the table rows' score names; ticket 165's review added three consumables worded "all ability scores" and "all attributes"). A script over the table rows found 70 rows with an always-on ability score bonus: 58 on `items`, 4 on `items-inevitable-excess`, 8 on `items-lord-of-nothing`. Three repeat a main-page row (Flawless Headband of Mental Perfection +8, Hammer Fists, Soaring Fist). The extractor recounts independently.
 
 ## The Rust types
 

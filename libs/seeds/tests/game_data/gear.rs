@@ -83,8 +83,13 @@ fn guide_references_are_one_of_the_three_pages_and_match_the_slot() {
             "{}: {guide:?}",
             item.name
         );
+        // Trusted Friend sits in the guide's "Equipable and Consumable" table, but its Skill Boosting Items row calls
+        // it an amulet.
+        let exception = item.key.as_str() == "trusted-friend"
+            && item.slot == GearSlot::Necklace
+            && section == "equipable-and-consumable";
         assert!(
-            sections[&item.slot].contains(&section),
+            exception || sections[&item.slot].contains(&section),
             "{}: {section} for {:?}",
             item.name,
             item.slot
@@ -155,39 +160,50 @@ fn the_items_count_per_slot_matches_the_extraction_report() {
             (GearSlot::Glasses, 1),
             (GearSlot::Gloves, 3),
             (GearSlot::Headwear, 21),
-            (GearSlot::Necklace, 2),
+            (GearSlot::Necklace, 3),
             (GearSlot::Ring, 3),
             (GearSlot::Robe, 3),
             (GearSlot::Armour, 4),
             (GearSlot::Weapon, 2),
-            (GearSlot::Usable, 7),
+            (GearSlot::Usable, 9),
         ])
     );
-    assert_eq!(DATA.gear.len(), 89);
+    assert_eq!(DATA.gear.len(), 92);
 }
 
 #[test]
-fn the_six_manuals_and_tomes_are_usable_inherent_bonuses() {
+fn the_manuals_tomes_and_all_score_consumables_are_usable_inherent_bonuses() {
     let usable: Vec<&GearItem> = DATA
         .gear
         .iter()
         .filter(|item| item.slot == GearSlot::Usable)
         .collect();
-    assert_eq!(usable.len(), 7);
+    assert_eq!(usable.len(), 9);
     let mut scores = Vec::new();
-    for item in usable
-        .iter()
-        .filter(|item| item.name.starts_with("Manual") || item.name.starts_with("Tome"))
-    {
-        let [bonus] = item.bonuses.as_slice() else {
-            panic!("{}", item.name)
-        };
-        assert_eq!((bonus.amount, bonus.kind), (2, BonusType::Inherent));
-        assert!(item.other_effects.is_empty());
-        let GearTarget::Ability(ability) = bonus.target else {
-            panic!("{}", item.name)
-        };
-        scores.push(ability);
+    let mut all_scores = Vec::new();
+    for item in usable {
+        assert!(item.other_effects.is_empty(), "{}", item.name);
+        assert!(
+            item.bonuses
+                .iter()
+                .all(|bonus| bonus.kind == BonusType::Inherent),
+            "{}",
+            item.name
+        );
+        match item.bonuses.as_slice() {
+            [bonus] => {
+                assert_eq!(bonus.amount, 2, "{}", item.name);
+                let GearTarget::Ability(ability) = bonus.target else {
+                    panic!("{}", item.name)
+                };
+                scores.push(ability);
+            }
+            bonuses => {
+                assert_eq!(bonuses.len(), 6, "{}", item.name);
+                assert!(bonuses.iter().all(|b| b.amount == bonuses[0].amount));
+                all_scores.push((item.name.as_str(), bonuses[0].amount));
+            }
+        }
     }
     scores.sort();
     assert_eq!(
@@ -200,6 +216,49 @@ fn the_six_manuals_and_tomes_are_usable_inherent_bonuses() {
             Ability::Wisdom,
             Ability::Charisma,
         ]
+    );
+    all_scores.sort();
+    assert_eq!(
+        all_scores,
+        [
+            (
+                "Elixir of Inconceivable Transmutations of Body, and Soul, and Also Mind",
+                2
+            ),
+            ("Potion of Humanity", 1),
+            ("Tome of Ancient Perfection", 4),
+        ]
+    );
+}
+
+#[test]
+fn trusted_friend_is_a_necklace() {
+    assert_eq!(item("trusted-friend").slot, GearSlot::Necklace);
+    assert_eq!(
+        summary("trusted-friend"),
+        "Cha +2 circumstance; Persuasion +5 circumstance"
+    );
+}
+
+#[test]
+fn an_armour_and_a_weapon_name_their_own_enhancement_and_base_type() {
+    for (key, line) in [
+        ("snakeskin", "A +4 leather armour."),
+        ("life-infuser", "A +5 breastplate."),
+        ("half-plate-of-vigor", "A +1 half-plate."),
+        ("ustlavic-pride", "A +3 full plate."),
+        ("sin-mages-staff", "A +5 quarterstaff."),
+        ("dirge-for-sarkoris", "A +2 keen club."),
+    ] {
+        assert!(item(key).other_effects.iter().any(|l| l == line), "{key}");
+    }
+}
+
+#[test]
+fn the_venerated_champions_fortitude_is_an_effect_not_a_bonus() {
+    assert_eq!(
+        summary("belt-of-the-venerated-champion"),
+        "Con +6 enhancement"
     );
 }
 
