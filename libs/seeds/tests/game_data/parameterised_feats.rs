@@ -363,6 +363,11 @@ fn rage_powers_discoveries_incense_and_mutations_repeat_as_the_guide_says() {
     );
     expected.insert("rogue/rogue-talents/skill-focus".into(), Repeat::PerValue);
     expected.insert("rogue/rogue-talents/combat-trick".into(), Repeat::Unlimited);
+    // The Battle Scion's teamwork feat in place of a rage power, as often as it likes (ticket 189).
+    expected.insert(
+        "skald/battle-scion/rage-power-or-teamwork-feat/teamwork-feat".into(),
+        Repeat::Unlimited,
+    );
     // "She can select a second weapon at 11th level and a third at 19th level" (ticket 172): once per weapon.
     expected.insert("rogue/finesse-training/weapon".into(), Repeat::PerValue);
     let expected: HashMap<&str, Repeat> = expected

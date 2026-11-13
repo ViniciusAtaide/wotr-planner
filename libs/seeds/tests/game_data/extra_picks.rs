@@ -29,7 +29,13 @@ const EXTRA_PICKS: [(&str, &[&str]); 9] = [
     ),
     ("extra-hex", &["shaman/hex", "witch/hex"]),
     ("extra-mercy", &["paladin/mercy"]),
-    ("extra-rage-power", &["barbarian/rage-power"]),
+    (
+        "extra-rage-power",
+        &[
+            "barbarian/rage-power",
+            "skald/battle-scion/rage-power-or-teamwork-feat",
+        ],
+    ),
     (
         "extra-rogue-talent",
         &[
