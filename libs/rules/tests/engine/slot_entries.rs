@@ -180,7 +180,11 @@ fn a_locked_entry_shows_a_reason_other_than_already_taken() {
             ("bastard-sword", Some("Needs BAB +1 (have +0)")),
             ("dagger", Some("Needs BAB +1 (have +0)")),
             ("dueling-sword", Some("Needs BAB +1 (have +0)")),
-            ("longsword", Some("Already taken")),
+            // Ticket 192: it says where the pick it holds is.
+            (
+                "longsword",
+                Some("weapon-focus (longsword) is taken in level 1's warpriest/weapon-focus slot")
+            ),
             ("unarmed-strike", Some("Needs BAB +1 (have +0)")),
         ]
     );
@@ -194,11 +198,10 @@ fn an_entry_held_already_says_so() {
     let entries = entries(&engine, &build, &general_slot(1));
     let toughness = entry(&entries, "toughness");
     assert!(!toughness.open);
-    assert_eq!(toughness.reason.as_deref(), Some("Already taken"));
-    assert_eq!(
-        toughness.options[0].reason.as_deref(),
-        Some("Already taken")
-    );
+    // Ticket 192: it says where the pick is held.
+    let held = "toughness is taken in level 1's Combat feat slot";
+    assert_eq!(toughness.reason.as_deref(), Some(held));
+    assert_eq!(toughness.options[0].reason.as_deref(), Some(held));
 }
 
 #[test]
@@ -226,7 +229,10 @@ fn an_entry_with_a_value_open_is_open_and_shows_no_reason() {
     let focus = entry(&entries, "weapon-focus");
     assert!(focus.open);
     assert_eq!(focus.reason, None);
-    assert_eq!(focus.options[3].reason.as_deref(), Some("Already taken"));
+    assert_eq!(
+        focus.options[3].reason.as_deref(),
+        Some("weapon-focus (longsword) is taken in level 1's Combat feat slot")
+    );
 }
 
 #[test]
@@ -347,4 +353,57 @@ fn an_option_that_names_a_value_opens_its_values_too() {
     assert_eq!(focus.noun, Some("a weapon"));
     assert_eq!(focus.options.len(), 5);
     assert_eq!(focus.options[1].value, "dagger");
+}
+
+#[test]
+fn values_held_in_different_slots_each_say_where() {
+    // Ticket 192: two weapons held, at levels 1 and 2; the reason of the second must not be reused for the first.
+    let engine = engine();
+    let mut build = build("elf", &times("fighter", 3));
+    build.picks.insert(
+        class_slot(1, 0),
+        pick_feat_for("weapon-focus", weapon("longsword")),
+    );
+    build.picks.insert(
+        class_slot(2, 0),
+        pick_feat_for("weapon-focus", weapon("dagger")),
+    );
+    let entries = entries(&engine, &build, &general_slot(3));
+    let focus = entry(&entries, "weapon-focus");
+    let reasons: Vec<(&str, Option<&str>)> = focus
+        .options
+        .iter()
+        .filter(|o| o.value == "longsword" || o.value == "dagger")
+        .map(|o| (o.value.as_str(), o.reason.as_deref()))
+        .collect();
+    assert_eq!(
+        reasons,
+        [
+            (
+                "dagger",
+                Some("weapon-focus (dagger) is taken in level 2's Combat feat slot")
+            ),
+            (
+                "longsword",
+                Some("weapon-focus (longsword) is taken in level 1's Combat feat slot")
+            ),
+        ]
+    );
+}
+
+#[test]
+fn a_pick_held_in_a_mythic_ranks_slot_says_the_rank_and_its_level() {
+    // Ticket 192: Dodge in MR 4's bonus feat slot (MR 4 comes at level 11), refused again at level 13.
+    let engine = engine();
+    let mut build = build("human", &times("fighter", 13));
+    build.mythic_path = Some(path("trickster"));
+    build
+        .picks
+        .insert(SlotId::PathFeat { rank: 4, index: 0 }, pick_feat("dodge"));
+    let entries = entries(&engine, &build, &general_slot(13));
+    let dodge = entry(&entries, "dodge");
+    assert_eq!(
+        dodge.reason.as_deref(),
+        Some("dodge is taken in Mythic rank 4's trickster/bonus-feats slot, at level 11")
+    );
 }

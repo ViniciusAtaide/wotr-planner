@@ -581,11 +581,25 @@ fn slot_offers(
                     true => Ok(()),
                     false => Err(entry_issue(&entry.options)),
                 };
+                // A later rank's pick that the entry needs says where it is (ticket 192).
+                let reason = match (&status, &entry.reason) {
+                    (Err(issue @ Issue::Unmet(_)), Some(reason)) => later_rank_note(
+                        engine,
+                        build,
+                        sheet,
+                        slot,
+                        &entry.options[0].option.pick,
+                        issue,
+                        reason,
+                    )
+                    .or_else(|| entry.reason.clone()),
+                    _ => entry.reason.clone(),
+                };
                 offers.push(Offer {
                     value: ChoiceValue::Key(first.key().to_owned()),
                     name: entry.name.clone(),
                     status,
-                    reason: entry.reason.clone(),
+                    reason,
                     edit: None,
                     category,
                     summary,
@@ -603,10 +617,14 @@ fn slot_offers(
                     let pick = option.option.pick;
                     // A Mythic rank's pick that a later level of the rank would open says so (ticket 171).
                     let reason = match (&option.option.status, option.reason) {
-                        (Err(Issue::Unmet(_)), Some(reason)) => {
+                        (Err(issue @ Issue::Unmet(_)), Some(reason)) => {
                             Some(match later_rank_level(engine, build, sheet, slot, &pick) {
                                 Some(later) => format!("{reason}. {later}"),
-                                None => reason,
+                                // Or a prerequisite that a later rank's pick meets (ticket 192).
+                                None => later_rank_note(
+                                    engine, build, sheet, slot, &pick, issue, &reason,
+                                )
+                                .unwrap_or(reason),
                             })
                         }
                         (_, reason) => reason,
@@ -645,14 +663,40 @@ fn later_rank_level(
 ) -> Option<String> {
     let rank = slot.rank()?;
     let (level, moves) = engine.rank_level_that_opens(build, sheet, slot, pick)?;
+    Some(opens_text(rank, level, &moves))
+}
+
+/// "MR 10 taken at level 20 opens it: `choose` `mythic.10.level` 20 first", with ", which moves MR 3 to level 13, …"
+/// when the move takes ranks above along.
+fn opens_text(rank: u8, level: u8, moves: &[(u8, u8)]) -> String {
     let along = match moves.is_empty() {
         true => String::new(),
-        false => format!(", which moves {}", Engine::moves_text(&moves)),
+        false => format!(", which moves {}", Engine::moves_text(moves)),
     };
-    Some(format!(
+    format!(
         "MR {rank} taken at level {level} opens it{along}: `choose` `{}` {level} first",
         Address::RankLevel(rank)
-    ))
+    )
+}
+
+/// For a slot's pick refused for a prerequisite that a pick of a Mythic rank taken at a later level meets: the
+/// engine's reason with where that pick is (as the web app says it), and which level of the rank would let the pick
+/// in. `None` when no later rank's pick is what it needs (ticket 192).
+fn later_rank_note(
+    engine: &Engine,
+    build: &Build,
+    sheet: &Sheet,
+    slot: &SlotId,
+    pick: &rules::Pick,
+    issue: &Issue,
+    reason: &str,
+) -> Option<String> {
+    let later = engine.later_rank_pick(build, sheet, slot, issue)?;
+    let mut text = format!("{reason}: {}", engine.later_rank_text(&later));
+    if let Some((level, moves)) = engine.rank_level_that_lets_in(build, slot, pick, &later) {
+        text.push_str(&format!(". {}", opens_text(later.rank, level, &moves)));
+    }
+    Some(text)
 }
 
 /// The issue a locked entry shows, chosen as the engine chooses its one reason: the first option's that isn't

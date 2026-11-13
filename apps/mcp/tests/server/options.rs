@@ -101,7 +101,11 @@ async fn a_parameterised_feat_lists_its_values_on_request() {
         json!({ "key": "weapon-focus", "parameter": "longsword" }),
     );
     assert_eq!(longsword["status"]["issue"], "already_held");
-    assert_eq!(longsword["status"]["reason"], "Already taken");
+    // Ticket 192: it says where the pick is held.
+    assert_eq!(
+        longsword["status"]["reason"],
+        "weapon-focus (longsword) is taken in level 1's Combat feat slot"
+    );
 }
 
 #[tokio::test]

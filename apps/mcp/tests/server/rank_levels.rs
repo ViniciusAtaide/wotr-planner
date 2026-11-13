@@ -656,3 +656,47 @@ async fn withdraw_says_a_rank_at_its_earliest_level_has_nothing_to_withdraw() {
         "There is no MR 11: the Mythic ranks are 1 to 10."
     );
 }
+
+#[tokio::test]
+async fn a_pick_whose_prerequisite_is_a_later_ranks_says_where_and_which_level_opens_it() {
+    // Ticket 192: Dodge is MR 4's pick, taken at level 14; Crane Style at level 13 needs it.
+    let mut build = build("human", &times("fighter", 14));
+    build.mythic_path = Some(path("trickster"));
+    build
+        .picks
+        .insert(SlotId::PathFeat { rank: 4, index: 0 }, pick_feat("dodge"));
+    build.rank_levels.insert(4, 14);
+    let expected = "Needs dodge: dodge is in Mythic rank 4's trickster/bonus-feats slot, taken at level 14, after \
+                    this slot's level 13. MR 4 taken at level 12 opens it: `choose` `mythic.4.level` 12 first";
+    let client = Client::on_the_test_world().await;
+    let options = client
+        .ok(
+            "options",
+            json!({ "build": code(&build), "choice": "slot.feat.13.general.0", "only_open": false, "query": "crane" }),
+        )
+        .await;
+    assert_eq!(
+        options["options"][0]["status"]["reason"], expected,
+        "{options}"
+    );
+    let chosen = client
+        .ok(
+            "choose",
+            json!({ "build": code(&build), "steps": [
+                { "choice": "slot.feat.13.general.0", "value": "crane-style" },
+            ] }),
+        )
+        .await;
+    assert_eq!(chosen["rejected"]["reason"], expected, "{chosen}");
+    // Taking the rank where it says opens the pick.
+    let opened = client
+        .ok(
+            "choose",
+            json!({ "build": code(&build), "steps": [
+                { "choice": "mythic.4.level", "value": 12 },
+                { "choice": "slot.feat.13.general.0", "value": "crane-style" },
+            ] }),
+        )
+        .await;
+    assert_eq!(opened["applied"], 2, "{opened}");
+}

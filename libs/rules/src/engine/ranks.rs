@@ -13,9 +13,10 @@
 //! which later level of the rank would open it, for the pickers to say beside the reason.
 
 use super::walk::{Cursor, before_slot, pick_fits};
-use super::{Engine, RankStatus, Sheet};
+use super::{Engine, RankStatus, Sheet, Slot, SlotKind};
 use crate::build::{Build, Edit, Pick, SlotId};
-use crate::choice::{Choice, Issue};
+use crate::choice::{Choice, Failure, Issue, Unmet};
+use crate::prerequisite::Prerequisite;
 
 /// One option of a Mythic rank's level picker ([`Engine::rank_level_options`]): a character level the rank can be
 /// taken at.
@@ -41,6 +42,66 @@ pub struct RankLevelOption {
     pub moves: Vec<(u8, u8)>,
     /// The edit that takes the rank at this level ([`Edit::RankLevel`]).
     pub edit: Edit,
+}
+
+/// A pick of a Mythic rank, taken at a later level than a slot, that a pick the slot refuses needs
+/// ([`Engine::later_rank_pick`]).
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct LaterRankPick {
+    pub rank: u8,
+    pub slot: SlotId,
+    pub kind: SlotKind,
+    pub pick: Pick,
+    /// The level the rank is taken at.
+    pub level: u8,
+    /// The level of the slot that refuses.
+    pub at: u8,
+}
+
+/// The conditions an unmet prerequisite is made of.
+fn unmet_leaves<'a>(unmet: &'a Unmet, out: &mut Vec<&'a Prerequisite>) {
+    match unmet {
+        Unmet::Condition { needs, .. } => prerequisite_leaves(needs, out),
+        Unmet::All(children) | Unmet::Any(children) => {
+            (children.iter()).for_each(|child| unmet_leaves(child, out));
+        }
+        Unmet::AtLeast { failed, .. } => (failed.iter()).for_each(|child| unmet_leaves(child, out)),
+        Unmet::MetLater { unmet, .. } => unmet_leaves(unmet, out),
+    }
+}
+
+fn prerequisite_leaves<'a>(prerequisite: &'a Prerequisite, out: &mut Vec<&'a Prerequisite>) {
+    match prerequisite {
+        Prerequisite::All(children)
+        | Prerequisite::Any(children)
+        | Prerequisite::AtLeast(_, children) => {
+            (children.iter()).for_each(|child| prerequisite_leaves(child, out));
+        }
+        // What a pick must not be isn't something it needs.
+        Prerequisite::Not(_) => {}
+        leaf => out.push(leaf),
+    }
+}
+
+/// Whether a condition names what a pick is.
+fn names_pick(condition: &Prerequisite, pick: &Pick) -> bool {
+    match (condition, pick) {
+        (Prerequisite::SelectionOption(option), Pick::SelectionOption { option: held, .. }) => {
+            option == held
+        }
+        (
+            Prerequisite::Feat(feat)
+            | Prerequisite::FeatFor { feat, .. }
+            | Prerequisite::FeatIfValue { feat, .. }
+            | Prerequisite::FeatForSameValue(feat),
+            Pick::Feat { feat: held, .. },
+        ) => feat == held,
+        (Prerequisite::MythicFeat(feat), Pick::MythicFeat { feat: held, .. }) => feat == held,
+        (Prerequisite::MythicAbility(ability), Pick::MythicAbility { ability: held, .. }) => {
+            ability == held
+        }
+        _ => false,
+    }
 }
 
 /// A pick in a slot that a Mythic rank's pick gives at the rank's level, which a move of a rank would shift
@@ -104,16 +165,20 @@ impl Engine {
                     Ok(()) => Vec::new(),
                     Err(_) => self.shifted_between(build, &edited),
                 };
-                let needed_by = if status.is_ok() {
+                let refusals: Vec<Failure> = if status.is_ok() || !shifted.is_empty() {
                     Vec::new()
-                } else if !shifted.is_empty() {
+                } else {
+                    let failing = failing.get_or_init(|| self.failing_choices(build));
+                    self.refusals(build, failing, &edit)
+                };
+                let needed_by: Vec<Choice> = if !shifted.is_empty() {
                     (shifted.iter())
                         .map(|pick| Choice::Slot(pick.slot.clone()))
                         .collect()
                 } else {
-                    let failing = failing.get_or_init(|| self.failing_choices(build));
-                    self.refused_by(build, failing, &edit)
+                    refusals.iter().map(|f| f.choice.clone()).collect()
                 };
+                let moves = self.moved_along(build, &edited, rank);
                 let reason = status.is_err().then(|| {
                     if !shifted.is_empty() {
                         return self.shifted_reason(build, &shifted);
@@ -126,9 +191,17 @@ impl Engine {
                         "need"
                     };
                     let way = if level > held { "earlier" } else { "later" };
+                    // What the named choices need is a pick of a rank the move takes along, not of this one.
+                    if let Some((other, pick, to)) =
+                        self.pick_moved_along(build, &refusals[..refusals.len().min(NAMED)], &moves)
+                    {
+                        return format!(
+                            "{names} {verb} MR {other}'s {} {way} than level {to}: MR {other} moves with MR {rank}",
+                            self.pick_name(&pick)
+                        );
+                    }
                     format!("{names} {verb} MR {rank} {way} than level {level}")
                 });
-                let moves = self.moved_along(build, &edited, rank);
                 RankLevelOption {
                     level,
                     held: is_held,
@@ -298,6 +371,141 @@ impl Engine {
             }
         }
         None
+    }
+
+    /// The held picks in Mythic ranks' slots that meet a leaf of an unmet prerequisite: what it names, held by a
+    /// rank, whatever level the rank is taken at. In slot order. No walk.
+    fn rank_picks_meeting(&self, build: &Build, unmet: &Unmet) -> Vec<(SlotId, Pick)> {
+        let mut leaves = Vec::new();
+        unmet_leaves(unmet, &mut leaves);
+        (build.picks.iter())
+            .filter(|(slot, _)| slot.rank().is_some())
+            .filter(|(_, pick)| leaves.iter().any(|leaf| names_pick(leaf, pick)))
+            .map(|(slot, pick)| (slot.clone(), pick.clone()))
+            .collect()
+    }
+
+    /// For the choices a rank's move would refuse: the one pick they all fail for, when it is held by a rank the
+    /// move takes along, as (that rank, the pick, the level the rank would be taken at). `None` when they fail for
+    /// anything else, for more than one pick, or for a pick of the moved rank itself.
+    fn pick_moved_along(
+        &self,
+        build: &Build,
+        refusals: &[Failure],
+        moves: &[(u8, u8)],
+    ) -> Option<(u8, Pick, u8)> {
+        let mut found: Option<(SlotId, Pick)> = None;
+        for failure in refusals {
+            let Issue::Unmet(unmet) = &failure.issue else {
+                return None;
+            };
+            let mut held = self.rank_picks_meeting(build, unmet);
+            if held.len() != 1 {
+                return None;
+            }
+            let one = held.remove(0);
+            if found.as_ref().is_some_and(|seen| *seen != one) {
+                return None;
+            }
+            found = Some(one);
+        }
+        let (slot, pick) = found?;
+        let other = slot.rank()?;
+        let to = moves.iter().find(|(rank, _)| *rank == other)?.1;
+        Some((other, pick, to))
+    }
+
+    /// For a pick a slot refuses for an unmet prerequisite that a pick of a Mythic rank taken at a later level
+    /// would meet (Stat Focus at level 13 needs Perception II, which MR 4's slot holds at level 14): that pick, its
+    /// slot and the level its rank is taken at. `None` for any other issue, and when no held rank pick that the
+    /// prerequisite names comes after the slot. `sheet` is the Build's.
+    ///
+    /// Costs no walk.
+    pub fn later_rank_pick(
+        &self,
+        build: &Build,
+        sheet: &Sheet,
+        slot: &SlotId,
+        issue: &Issue,
+    ) -> Option<LaterRankPick> {
+        let Issue::Unmet(unmet) = issue else {
+            return None;
+        };
+        let at = slot
+            .level()
+            .or_else(|| self.rank_level(build, slot.rank()?))?;
+        self.rank_picks_meeting(build, unmet)
+            .into_iter()
+            .find_map(|(held, pick)| {
+                let rank = held.rank()?;
+                let level = self.rank_level(build, rank)?;
+                if level <= at {
+                    return None;
+                }
+                Some(LaterRankPick {
+                    rank,
+                    kind: sheet.slot(&held)?.kind.clone(),
+                    slot: held,
+                    pick,
+                    level,
+                    at,
+                })
+            })
+    }
+
+    /// Where a later rank's pick is, as a clause for a reason that says what the slot needs: "Perception II is in
+    /// Mythic rank 4's Improved Mythic Trick slot, taken at level 14, after this slot's level 13".
+    pub fn later_rank_text(&self, later: &LaterRankPick) -> String {
+        let slot = Slot {
+            id: later.slot.clone(),
+            kind: later.kind.clone(),
+            pick: Some(later.pick.clone()),
+        };
+        format!(
+            "{} is in Mythic rank {}'s {} slot, taken at level {}, after this slot's level {}",
+            self.pick_name(&later.pick),
+            later.rank,
+            self.slot_label(&slot),
+            later.level,
+            later.at
+        )
+    }
+
+    /// For a slot and a pick it refuses because of a later rank's pick ([`later_rank_pick`](Self::later_rank_pick)):
+    /// the latest level below the slot's at which taking that rank lets the pick in, with the ranks above that the
+    /// move takes along. The level is one whose move the engine allows, with the pick allowed after it: both are
+    /// walked. `None` when the rank can't come before the slot's level, or no level works.
+    ///
+    /// Costs a walk for the rank's slots, then at most two for each level tried, from the slot's level down.
+    pub fn rank_level_that_lets_in(
+        &self,
+        build: &Build,
+        slot: &SlotId,
+        pick: &Pick,
+        later: &LaterRankPick,
+    ) -> Option<(u8, Vec<(u8, u8)>)> {
+        let rank = later.rank;
+        let floor = self.rank_floor(build, rank)?;
+        (floor..later.at).rev().find_map(|level| {
+            let moved = Edit::RankLevel {
+                rank,
+                level: (level > floor).then_some(level),
+            };
+            if !self.allows(build, &moved) {
+                return None;
+            }
+            let mut edited = build.clone();
+            self.apply(&mut edited, &moved);
+            let moves = self.moved_along(build, &edited, rank);
+            self.apply(
+                &mut edited,
+                &Edit::Pick {
+                    slot: slot.clone(),
+                    pick: pick.clone(),
+                },
+            );
+            self.is_possible(&edited).then_some((level, moves))
+        })
     }
 
     /// Whether a Mythic rank is taken later than the rank table's level in a sheet's Build: what the sheet marks a

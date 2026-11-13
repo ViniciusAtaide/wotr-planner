@@ -24,7 +24,7 @@ use std::collections::{BTreeSet, HashMap};
 use super::walk::{Cursor, before_slot, pick_fits};
 use super::{Address, Engine, Sheet, SlotKind};
 use crate::build::{Build, Edit, Gear, GearPlace, GearSpot, Pick, SlotId};
-use crate::choice::{Choice, Issue};
+use crate::choice::{Choice, Failure, Issue};
 use crate::gear::{GearItem, GearSlot};
 use crate::keys::GearKey;
 use crate::state::CharacterState;
@@ -311,12 +311,21 @@ impl Engine {
         failing: &BTreeSet<Choice>,
         edit: &Edit,
     ) -> Vec<Choice> {
+        (self.refusals(build, failing, edit).into_iter())
+            .map(|failure| failure.choice)
+            .collect()
+    }
+
+    /// [`refused_by`](Self::refused_by) with each choice's issue.
+    pub fn refusals(&self, build: &Build, failing: &BTreeSet<Choice>, edit: &Edit) -> Vec<Failure> {
         let mut edited = build.clone();
         self.apply(&mut edited, edit);
-        let mut refused: Vec<Choice> = Vec::new();
+        let mut refused: Vec<Failure> = Vec::new();
         for failure in self.failures(&edited) {
-            if !failing.contains(&failure.choice) && !refused.contains(&failure.choice) {
-                refused.push(failure.choice);
+            if !failing.contains(&failure.choice)
+                && !refused.iter().any(|seen| seen.choice == failure.choice)
+            {
+                refused.push(failure);
             }
         }
         refused

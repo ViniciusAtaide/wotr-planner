@@ -124,8 +124,22 @@ impl Wording<'_> {
             Issue::UnknownKey => self.unknown(choice),
             Issue::NotAllowed => self.not_allowed(choice),
             Issue::NotReached => self.not_reached(choice),
+            Issue::AlreadyHeld => self.already_held(choice),
             issue => issue_reason(self.engine(), issue),
         }
+    }
+
+    /// A pick held already: where the declaration holds it, when a slot does (ticket 192), else the engine's text.
+    fn already_held(&self, choice: &Choice) -> String {
+        let engine = self.engine();
+        let Choice::Slot(slot) = choice else {
+            return issue_reason(engine, &Issue::AlreadyHeld);
+        };
+        self.build
+            .picks
+            .get(slot)
+            .and_then(|pick| engine.held_where(self.build, self.sheet, slot, pick))
+            .unwrap_or_else(|| issue_reason(engine, &Issue::AlreadyHeld))
     }
 
     /// A key the game data lacks, with the closest of its kind.
