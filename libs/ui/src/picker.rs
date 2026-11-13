@@ -600,9 +600,16 @@ fn SlotPicker(id: SlotId) -> impl IntoView {
     .into_any()
 }
 
-/// For a Mythic rank's slot: each option refused for a prerequisite that a later level of the Build meets says
-/// which level of the rank opens it, after its reason ("Needs Shield Focus · MR 10 taken at level 20 opens it"), and
-/// so does its entry's one reason. Any other slot's entries stay as they are.
+/// Each option refused for an unmet prerequisite that a later level of the Build meets says so, after its reason.
+///
+/// - In a Mythic rank's slot, the level of the rank that opens it ("Needs Shield Focus · MR 10 taken at level 20
+///   opens it").
+/// - In any slot, a prerequisite that a pick of a rank taken at a later level meets (ticket 192): where that pick is,
+///   and the level of that rank that would let the pick in ("Needs Perception II: Perception II is in Mythic rank
+///   4's Improved Mythic Trick slot, taken at level 14, after this slot's level 13 · MR 4 taken at level 12 opens
+///   it").
+///
+/// The entry's one reason says the same for its first such option. Any other entry stays as it is.
 fn later_rank_levels(
     engine: &Engine,
     build: &Build,
@@ -610,44 +617,69 @@ fn later_rank_levels(
     slot: &SlotId,
     entries: &mut [SlotEntry],
 ) {
-    let Some(rank) = slot.rank() else {
-        return;
+    // "MR 4 taken at level 12 opens it", with ", moving MR 5 to level 12, …" for the ranks the move takes along.
+    let opens_text = |rank: u8, level: u8, moves: &[(u8, u8)]| match moves.is_empty() {
+        true => format!("MR {rank} taken at level {level} opens it"),
+        false => format!(
+            "MR {rank} taken at level {level} opens it, moving {}",
+            Engine::moves_text(moves)
+        ),
     };
     for entry in entries.iter_mut().filter(|entry| !entry.open) {
-        let mut first = None;
+        let mut first: Option<String> = None;
+        let mut first_later: Option<(String, Option<String>)> = None;
         for option in &mut entry.options {
-            if !matches!(option.option.status, Err(Issue::Unmet(_))) {
+            let Err(issue @ Issue::Unmet(_)) = &option.option.status else {
+                continue;
+            };
+            let pick = &option.option.pick;
+            let opened = slot.rank().and_then(|rank| {
+                let (level, moves) = engine.rank_level_that_opens(build, sheet, slot, pick)?;
+                Some(opens_text(rank, level, &moves))
+            });
+            if let Some(opens) = opened {
+                first.get_or_insert_with(|| match option.value.is_empty() {
+                    true => opens.clone(),
+                    false => format!("{opens} for {}", option.value),
+                });
+                option.reason = Some(match option.reason.take() {
+                    Some(reason) => format!("{reason} · {opens}"),
+                    None => opens,
+                });
                 continue;
             }
-            let pick = &option.option.pick;
-            let Some((level, moves)) = engine.rank_level_that_opens(build, sheet, slot, pick)
-            else {
+            let Some(later) = engine.later_rank_pick(build, sheet, slot, issue) else {
                 continue;
             };
-            // The ranks above that the move takes along, as the level picker's option says them.
-            let opens = match moves.is_empty() {
-                true => format!("MR {rank} taken at level {level} opens it"),
-                false => format!(
-                    "MR {rank} taken at level {level} opens it, moving {}",
-                    Engine::moves_text(&moves)
-                ),
-            };
-            first.get_or_insert_with(|| match option.value.is_empty() {
-                true => opens.clone(),
-                false => format!("{opens} for {}", option.value),
-            });
-            option.reason = Some(match option.reason.take() {
-                Some(reason) => format!("{reason} · {opens}"),
-                None => opens,
-            });
+            let clause = engine.later_rank_text(&later);
+            let tail = engine
+                .rank_level_that_lets_in(build, slot, pick, &later)
+                .map(|(level, moves)| opens_text(later.rank, level, &moves));
+            first_later.get_or_insert_with(|| (clause.clone(), tail.clone()));
+            option.reason = Some(joined(option.reason.take(), &clause, tail.as_deref()));
         }
         if let Some(opens) = first {
             entry.reason = Some(match entry.reason.take() {
                 Some(reason) => format!("{reason} · {opens}"),
                 None => opens,
             });
+        } else if let Some((clause, tail)) = first_later {
+            entry.reason = Some(joined(entry.reason.take(), &clause, tail.as_deref()));
         }
     }
+}
+
+/// A reason, then the clause that says where the pick it needs is, then what would let the pick in.
+fn joined(reason: Option<String>, clause: &str, tail: Option<&str>) -> String {
+    let mut text = match reason {
+        Some(reason) => format!("{reason}: {clause}"),
+        None => clause.to_owned(),
+    };
+    if let Some(tail) = tail {
+        text.push_str(" · ");
+        text.push_str(tail);
+    }
+    text
 }
 
 /// A Mythic rank's level picker (ticket 171): the levels the rank can be taken at, from the earliest it comes at to

@@ -492,3 +492,40 @@ async fn declared_gear_that_doesnt_fit_fails() {
     let usable = failure(&result["failures"], "gear.usable.manual-of-dexterity-2");
     assert_eq!(usable["issue"], "not_an_option", "{result}");
 }
+
+#[tokio::test]
+async fn real_data_a_locked_rage_power_names_only_the_class_the_character_has() {
+    // Ticket 192 (after 189): Clear Mind needs "Barbarian level 8 or Skald level 8"; a barbarian names its own class,
+    // in `validate` as in the picker.
+    let client = Client::start().await;
+    let mut choices = rmcp::serde_json::Map::new();
+    for (address, value) in [
+        ("start.race", json!("human")),
+        ("start.faith", json!("atheism")),
+        ("start.alignment", json!("true-neutral")),
+        (
+            "slot.selection.4.0",
+            json!("barbarian/rage-power/clear-mind"),
+        ),
+    ] {
+        choices.insert(address.to_owned(), value);
+    }
+    for level in 1..=4 {
+        choices.insert(
+            format!("level.{level}.class"),
+            json!({ "class": "barbarian" }),
+        );
+    }
+    let validated = client.ok("validate", json!({ "choices": choices })).await;
+    assert_eq!(validated["status"], "invalid", "{validated}");
+    let failure = validated["failures"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|failure| failure["choice"] == "slot.selection.4.0")
+        .unwrap_or_else(|| panic!("no failure in {validated}"));
+    assert_eq!(
+        failure["reason"], "Needs Barbarian level 8 (have 4)",
+        "{validated}"
+    );
+}

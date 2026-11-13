@@ -798,3 +798,66 @@ fn a_table_rows_feat_slot_is_labelled_as_its_slot_would_be() {
 fn reason(engine: &Engine, issue: &Issue) -> String {
     engine.issue_text(issue).expect("a reason")
 }
+
+#[test]
+fn an_and_of_two_texts_that_read_alike_reads_once_and_an_or_keeps_every_alternative() {
+    // Ticket 192: the Dragon Disciple's "no Bloodline yet, no Bloodline yet" (the Sorcerer's and the Bloodrager's
+    // selections are both named "Bloodline").
+    let engine = engine();
+    let none = || Prerequisite::NoOptionFrom(FeatureSelectionKey::new("rogue/rogue-talents"));
+    let fire = Prerequisite::SelectionOption(option("cleric/domain/fire"));
+    let either = Prerequisite::Any(vec![Prerequisite::All(vec![none(), none()]), fire.clone()]);
+    let fire_name = engine.prerequisite_text(&fire, None);
+    assert_eq!(
+        engine.prerequisite_text(&either, None),
+        format!("no Rogue Talents yet or {fire_name}")
+    );
+    // Shortened for `search`, with the same inner text.
+    assert_eq!(
+        engine.short_prerequisite_text(&either, 1),
+        format!("one of 2 alternatives (no Rogue Talents yet, {fire_name})")
+    );
+    // An "and" of two different texts keeps its brackets; an "or" never merges alternatives.
+    let mixed = Prerequisite::Any(vec![
+        Prerequisite::All(vec![none(), fire.clone()]),
+        fire.clone(),
+    ]);
+    assert_eq!(
+        engine.prerequisite_text(&mixed, None),
+        format!("(no Rogue Talents yet, {fire_name}) or {fire_name}")
+    );
+    let twice = Prerequisite::Any(vec![none(), none()]);
+    assert_eq!(
+        engine.prerequisite_text(&twice, None),
+        "no Rogue Talents yet or no Rogue Talents yet"
+    );
+    // The same in a reason.
+    let unmet = |prerequisite: Prerequisite| needs(prerequisite, None);
+    assert_eq!(
+        reason(
+            &engine,
+            &Issue::Unmet(Unmet::Any(vec![
+                Unmet::All(vec![unmet(none()), unmet(none())]),
+                unmet(fire.clone()),
+            ]))
+        ),
+        format!("Needs no Rogue Talents yet or {fire_name}")
+    );
+}
+
+#[test]
+fn a_selection_named_x_labels_its_option_list_feat_slot_x_feat() {
+    // Ticket 192: the ranger's selection was named "Combat Style Feat" and its feat slot read "Combat Style Feat
+    // feat"; the data names it "Combat Style" so the slot reads "Combat Style feat".
+    let engine = engine();
+    let slot = Slot {
+        id: SlotId::OptionFeat { level: 2, index: 0 },
+        kind: SlotKind::Feat(FeatSlot::OptionList {
+            selection: FeatureSelectionKey::new("rogue/rogue-talents"),
+            at_level: None,
+            label: None,
+        }),
+        pick: None,
+    };
+    assert_eq!(engine.slot_label(&slot), "Rogue Talents feat");
+}

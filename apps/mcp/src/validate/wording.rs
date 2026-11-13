@@ -124,8 +124,61 @@ impl Wording<'_> {
             Issue::UnknownKey => self.unknown(choice),
             Issue::NotAllowed => self.not_allowed(choice),
             Issue::NotReached => self.not_reached(choice),
+            Issue::AlreadyHeld => self.already_held(choice),
+            issue @ Issue::Unmet(_) => self.unmet(choice, issue),
             issue => issue_reason(self.engine(), issue),
         }
+    }
+
+    /// A prerequisite unmet: the engine's text, and when a pick of a Mythic rank taken at a later level is what the
+    /// pick needs, where that pick is and which level of the rank would let it in (ticket 192, as `options` says it).
+    /// The level is tried on the declared Build without the failing pick, which must then be possible: with another
+    /// failure beside this one, the declaration says no level, only where the pick is.
+    fn unmet(&self, choice: &Choice, issue: &Issue) -> String {
+        let engine = self.engine();
+        let Choice::Slot(slot) = choice else {
+            return issue_reason(engine, issue);
+        };
+        // As the picker words it: of an "or", only the alternatives the character's classes give (ticket 189's
+        // "Barbarian level 8 or Skald level 8" reads "Barbarian level 8 (have 4)" for a barbarian).
+        let level = slot
+            .level()
+            .or_else(|| engine.rank_level(self.build, slot.rank()?));
+        let trimmed = match level.and_then(|level| self.sheet.at(level)) {
+            Some(state) => engine.reason_for(issue.clone(), state),
+            None => issue.clone(),
+        };
+        let reason = issue_reason(engine, &trimmed);
+        let Some(pick) = self.build.picks.get(slot) else {
+            return reason;
+        };
+        // The declared Build without the failing pick, when that is all that fails in it.
+        let mut without = self.build.clone();
+        engine.apply(&mut without, &rules::Edit::Clear(slot.clone()));
+        let tried_on = engine.is_possible(&without).then_some(&without);
+        crate::options::later_rank_note(
+            engine,
+            self.build,
+            self.sheet,
+            (slot, pick),
+            issue,
+            &reason,
+            tried_on,
+        )
+        .unwrap_or(reason)
+    }
+
+    /// A pick held already: where the declaration holds it, when a slot does (ticket 192), else the engine's text.
+    fn already_held(&self, choice: &Choice) -> String {
+        let engine = self.engine();
+        let Choice::Slot(slot) = choice else {
+            return issue_reason(engine, &Issue::AlreadyHeld);
+        };
+        self.build
+            .picks
+            .get(slot)
+            .and_then(|pick| engine.held_where(self.build, self.sheet, slot, pick))
+            .unwrap_or_else(|| issue_reason(engine, &Issue::AlreadyHeld))
     }
 
     /// A key the game data lacks, with the closest of its kind.
@@ -403,7 +456,10 @@ impl Wording<'_> {
                         };
                     }
                     let why = if comes_at > earliest {
-                        format!("MR {} is taken at level {comes_at}", rank - 1)
+                        format!(
+                            "MR {} is taken at level {comes_at}, and ranks keep their order",
+                            rank - 1
+                        )
                     } else {
                         "the rank table's level".to_owned()
                     };
