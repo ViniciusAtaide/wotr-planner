@@ -7,7 +7,7 @@
 # libs/game-data/ (the dev database is never touched), builds with `cargo leptos build --release`, starts the release
 # server on a free local port, and saves
 #   - its page at `/` as index.html, server-rendered, which the wasm hydrates as it does from the server;
-#   - pkg/: the wasm, JS and CSS from the site root, without .br/.gz copies (Pages compresses by itself) or .d.ts;
+#   - pkg/: the wasm, JS and CSS from the site root, without .d.ts files, uncompressed (Pages compresses them);
 #   - game-data/<hash>.json, the game data the page names;
 #   - the files of apps/frontend/public/ (the link preview image, the font), cargo-leptos's assets-dir.
 # The page names those files relative to itself (./pkg/…, ./game-data/…) and the stylesheet relative to itself
@@ -61,7 +61,7 @@ site=http://127.0.0.1:$port
 LEPTOS_SITE_ADDR=127.0.0.1:$port WOTR_MCP_PORT=0 LEPTOS_SITE_ROOT=target/site LEPTOS_SITE_PKG_DIR=pkg \
     LEPTOS_OUTPUT_NAME=wotr-planner LEPTOS_ENV=PROD target/release/server >"$tmp/server.log" 2>&1 &
 server=$!
-# The server compresses the game data before it listens: about 2 s in a release build.
+# The server serialises the game data before it listens.
 for _ in $(seq 120); do
     curl -fsS -o "$out/index.html" "$site/" 2>/dev/null && break
     if ! kill -0 "$server" 2>/dev/null; then
@@ -93,7 +93,7 @@ curl -fsS -o "$out/$game_data" "$site/$game_data"
 
 cp -R target/site/pkg "$out/pkg"
 # wasm-bindgen's TypeScript declarations aren't served either.
-find "$out/pkg" \( -name '*.br' -o -name '*.gz' -o -name '*.d.ts' \) -delete
+find "$out/pkg" -name '*.d.ts' -delete
 # The assets (apps/frontend/public/), which the server serves from the site root.
 cp -R apps/frontend/public/. "$out/"
 

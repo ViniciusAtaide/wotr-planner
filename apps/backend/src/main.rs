@@ -6,7 +6,6 @@ use axum::middleware::map_response;
 use axum::response::Response;
 use leptos::prelude::*;
 use leptos_axum::{LeptosRoutes, generate_route_list, site_pkg_dir_service_route_path};
-use tower_http::compression::CompressionLayer;
 use tower_http::services::ServeDir;
 use ui::{App, GameDataUrl, SiteUrl, shell};
 
@@ -37,7 +36,7 @@ async fn main() {
     let started = Instant::now();
     let game_data = GameDataFile::new(&game_data);
     println!(
-        "game data at {game_data} (serialised and compressed in {} ms)",
+        "game data at {game_data} (serialised in {} ms)",
         started.elapsed().as_millis()
     );
 
@@ -103,18 +102,17 @@ fn app(
     let routes = generate_route_list(App);
 
     // The page's head preloads the game data from its URL, which the context gives the shell.
-    // Everything is compressed (brotli or gzip) for a browser that takes it:
-    // - the game data once, at startup;
-    // - in a release build, the wasm, JS and CSS once, by `cargo leptos build --release --precompress`. Only its
-    //   `.br` files are served (`precompressed_br`): its `.gz` files (libflate) are 11–17 % bigger than the gzip
-    //   `CompressionLayer` makes on the fly, so a browser without brotli still gets that;
-    // - the rest, the HTML, on the fly, and in a dev build the wasm, JS and CSS too (`site_pkg`).
-    Router::new()
-        .merge(game_data.routes())
+    // Nothing is compressed here: the published site is these files saved as they are (`scripts/build-site.sh`),
+    // and GitHub Pages compresses what it serves (ticket 185).
+    let site_pkg = Router::new()
         .route_service(
             &site_pkg_dir_service_route_path(&leptos_options),
-            site_pkg(&leptos_options.site_root, !cfg!(debug_assertions)),
+            ServeDir::new(&*leptos_options.site_root),
         )
+        .layer(map_response(revalidate));
+    Router::new()
+        .merge(game_data.routes())
+        .merge(site_pkg)
         .leptos_routes_with_context(
             &leptos_options,
             routes,
@@ -127,37 +125,16 @@ fn app(
         // A file in the site root, or else a plain 404: the app is the sheet whatever the path, so it isn't
         // rendered here.
         .fallback(leptos_axum::file_and_error_handler(|_| "Not found."))
-        .layer(map_response(vary_on_accept_encoding))
-        .layer(CompressionLayer::new())
         .with_state(leptos_options)
 }
 
-/// The site root's files for `site-pkg-dir` (the wasm, JS and CSS), with a file's `.br` copy in its place for a
-/// browser that takes brotli when `precompressed`. Only a release server asks for that: dev and release builds
-/// share the site root, and a dev build rewrites only the plain files, so an earlier release build's `.br` copies
-/// would shadow them with stale wasm and JS.
-fn site_pkg(site_root: &str, precompressed: bool) -> ServeDir {
-    let files = ServeDir::new(site_root);
-    if precompressed {
-        files.precompressed_br()
-    } else {
-        files
-    }
-}
-
-/// Adds `Vary: Accept-Encoding` to a compressed response that lacks it. A precompressed static file comes
-/// without it (tower-http's `ServeDir` never sets `Vary`), and `CompressionLayer` adds it only to the responses
-/// it compresses itself.
-async fn vary_on_accept_encoding(mut response: Response) -> Response {
-    let headers = response.headers_mut();
-    let varies = headers.get_all(header::VARY).iter().any(|value| {
-        value
-            .to_str()
-            .is_ok_and(|value| value.to_ascii_lowercase().contains("accept-encoding"))
-    });
-    if headers.contains_key(header::CONTENT_ENCODING) && !varies {
-        headers.append(header::VARY, HeaderValue::from_static("accept-encoding"));
-    }
+/// `Cache-Control: no-cache` on the wasm, JS and CSS: their names never change, so without it a browser guesses a
+/// lifetime from their age and keeps an old build's files after a rebuild. It asks every time instead, and an
+/// unchanged file costs a 304.
+async fn revalidate(mut response: Response) -> Response {
+    response
+        .headers_mut()
+        .insert(header::CACHE_CONTROL, HeaderValue::from_static("no-cache"));
     response
 }
 
@@ -308,41 +285,31 @@ mod tests {
         );
     }
 
-    /// A fresh JS file beside a stale `.br` copy of it, as a dev build leaves them after a release build:
-    /// `site_pkg` serves the copy only when asked to, and the server asks only in a release build. (Both files are
-    /// under `CompressionLayer`'s minimum size, so nothing is compressed on the fly.)
+    /// The site's wasm, JS and CSS as they are on disk, never a compressed copy beside them, and revalidated on
+    /// every load, so a rebuild's files reach the browser at once.
     #[tokio::test]
-    async fn only_a_release_server_serves_a_precompressed_copy() {
-        async fn fetch(app: Router) -> (Option<HeaderValue>, String) {
-            let request = Request::get("/pkg/wotr-planner.js")
-                .header(header::ACCEPT_ENCODING, "br")
-                .body(Body::empty())
-                .unwrap();
-            let response = app.oneshot(request).await.unwrap();
-            let encoding = response.headers().get(header::CONTENT_ENCODING).cloned();
-            let body = to_bytes(response.into_body(), usize::MAX).await.unwrap();
-            (encoding, String::from_utf8(body.to_vec()).unwrap())
-        }
+    async fn the_site_files_are_served_as_they_are_and_revalidated() {
         let site_root = tempfile::tempdir().unwrap();
         let pkg = site_root.path().join("pkg");
         std::fs::create_dir(&pkg).unwrap();
         std::fs::write(pkg.join("wotr-planner.js"), "fresh").unwrap();
         std::fs::write(pkg.join("wotr-planner.js.br"), "stale").unwrap();
-        let root = site_root.path().to_str().unwrap();
-        let fresh = (None, "fresh".to_owned());
-        let stale = (Some(HeaderValue::from_static("br")), "stale".to_owned());
-
-        let files = |precompressed| Router::new().fallback_service(site_pkg(root, precompressed));
-        assert_eq!(fetch(files(false)).await, fresh);
-        assert_eq!(fetch(files(true)).await, stale);
-
         let options = LeptosOptions::builder()
             .output_name("wotr-planner")
-            .site_root(root)
+            .site_root(site_root.path().to_str().unwrap())
             .build();
         let app = app(GameDataFile::from_json(b"{}".to_vec()), options, None);
-        let served = if cfg!(debug_assertions) { fresh } else { stale };
-        assert_eq!(fetch(app).await, served);
+        let request = Request::get("/pkg/wotr-planner.js")
+            .header(header::ACCEPT_ENCODING, "gzip, deflate, br")
+            .body(Body::empty())
+            .unwrap();
+        let response = app.oneshot(request).await.unwrap();
+        assert_eq!(response.status(), StatusCode::OK);
+        let headers = response.headers();
+        assert_eq!(headers.get(header::CONTENT_ENCODING), None);
+        assert_eq!(headers[header::CACHE_CONTROL], "no-cache");
+        let body = to_bytes(response.into_body(), usize::MAX).await.unwrap();
+        assert_eq!(body, "fresh");
     }
 
     #[tokio::test]
@@ -357,46 +324,5 @@ mod tests {
         let (status, html) = get(app, "/wotr-planner/").await;
         assert_eq!(status, StatusCode::NOT_FOUND);
         assert!(html.contains("Not found."), "{html}");
-    }
-
-    async fn vary_of(headers: &[(header::HeaderName, &'static str)]) -> Vec<HeaderValue> {
-        let mut response = Response::new(axum::body::Body::empty());
-        for (name, value) in headers {
-            response
-                .headers_mut()
-                .append(name, HeaderValue::from_static(value));
-        }
-        let response = vary_on_accept_encoding(response).await;
-        response
-            .headers()
-            .get_all(header::VARY)
-            .iter()
-            .cloned()
-            .collect()
-    }
-
-    #[tokio::test]
-    async fn a_precompressed_file_varies_on_accept_encoding() {
-        assert_eq!(
-            vary_of(&[(header::CONTENT_ENCODING, "br")]).await,
-            ["accept-encoding"]
-        );
-        assert_eq!(
-            vary_of(&[(header::CONTENT_ENCODING, "gzip"), (header::VARY, "origin")]).await,
-            ["origin", "accept-encoding"]
-        );
-    }
-
-    #[tokio::test]
-    async fn vary_is_left_alone_when_it_names_accept_encoding_or_nothing_is_compressed() {
-        assert_eq!(
-            vary_of(&[
-                (header::CONTENT_ENCODING, "br"),
-                (header::VARY, "Accept-Encoding")
-            ])
-            .await,
-            ["Accept-Encoding"]
-        );
-        assert!(vary_of(&[]).await.is_empty());
     }
 }
