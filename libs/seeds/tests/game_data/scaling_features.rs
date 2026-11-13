@@ -555,7 +555,10 @@ fn gains(build: &Build, feature: &str) -> Vec<u8> {
 /// turn (the default first), that makes it possible as it is (the Reformed Fiend: a good tiefling); the prepared
 /// Build then tries every alignment with it (the Razmiri Infiltrator is neutral or evil). `None` when none is
 /// possible (an option the Build's class does not offer).
-fn playable(make: impl Fn() -> Build, prepare: impl Fn(Build) -> Build) -> Option<Build> {
+pub(crate) fn playable(
+    make: impl Fn() -> Build,
+    prepare: impl Fn(Build) -> Build,
+) -> Option<Build> {
     let engine = engine();
     let races = std::iter::once(None).chain(DATA.races.iter().map(|race| Some(race.key.clone())));
     let variant = |race: &Option<rules::RaceKey>, alignment: Option<rules::Alignment>| {
@@ -2127,5 +2130,25 @@ fn the_invulnerable_rager_has_a_rage_power_at_every_even_level() {
     assert_eq!(
         levels_with_slot_of(&build, "barbarian/rage-power"),
         [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
+    );
+}
+
+/// Ticket 188: the base classes' stepped features. The barbarian's Danger Sense (the guide: +1 every 3 levels, +6 at
+/// 18) is granted at 3, 6, 9, 12, 15 and 18. The Armored Hulk, the Flesheater and the Invulnerable Rager lose it
+/// (Resilience of Steel, nothing, Extreme Endurance), so none of them holds a step; every archetype that keeps it
+/// gets it on its own rows at the steps (the Beastskin Berserker's 12, the Instinctual Warrior's 6, 12 and 18, the
+/// Mad Dog's and the Pack Rager's 6 and 18).
+#[test]
+fn the_barbarians_danger_sense_steps_every_three_levels() {
+    assert_gains(
+        "barbarian",
+        "barbarian/danger-sense",
+        &|_, build| build,
+        &[3, 6, 9, 12, 15, 18],
+        &[
+            ("barbarian/armored-hulk", Some(&[])),
+            ("barbarian/flesheater", Some(&[])),
+            (INVULNERABLE_RAGER, Some(&[])),
+        ],
     );
 }
