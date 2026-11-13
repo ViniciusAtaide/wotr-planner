@@ -110,6 +110,8 @@ No archetype or sharer leaks: `no_selection_gains_a_step_of_a_feature_whose_firs
 
 **For the user, two options:** (A) leave it: the Primalist's row choice replaces the row's contents, steps included, as the data does now, and a note says so; or (B) make the choice carry the abilities, so a step belongs to the ability it improves: a step is gained only by a Primalist that holds (kept, not traded) the ability's first grant, and a step on a row it traded for rage powers is still gained when the ability itself was kept. B needs a rule the engine lacks (179 declined the simple form, "a step is not gained without the feature", for the reasons in its Answer; this form would also need the step to stay when its own row is traded). Nothing reads these features, so it shows only on the sheet's gained lines.
 
+**Decided** (user, 2026-11-13): A. "leave the primalist as is". The Primalist's row choice replaces the row's contents, steps included; the test pins it for both bloodlines, and nothing reads these features.
+
 **Snapshot check** (before regenerating; `git status` shows one snapshot file, `bench-multi_prestige20.txt`, whose Assassin levels 5 and 8 are Build levels 11 and 14):
 
 ```text

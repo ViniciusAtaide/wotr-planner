@@ -26,4 +26,5 @@ brotli = "9.1.1"
 flate2 = "1.1.10"
 
 [dev-dependencies]
+tempfile = "3.27.0"
 tower = { version = "0.5.3", features = ["util"] }
