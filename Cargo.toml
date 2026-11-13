@@ -43,21 +43,6 @@ debug = "line-tables-only"
 [profile.dev.package.sqlx-macros]
 opt-level = 3
 
-# The server compresses the game data at startup (`apps/backend/src/game_data.rs`). Unoptimised, these crates
-# add seconds to every dev server restart; optimised, a debug build's startup compression takes about 130 ms.
-[profile.dev.package.brotli]
-opt-level = 3
-[profile.dev.package.alloc-no-stdlib]
-opt-level = 3
-[profile.dev.package.alloc-stdlib]
-opt-level = 3
-[profile.dev.package.flate2]
-opt-level = 3
-[profile.dev.package.miniz_oxide]
-opt-level = 3
-[profile.dev.package.crc32fast]
-opt-level = 3
-
 [[workspace.metadata.leptos]]
 name = "wotr-planner"
 bin-package = "server"
