@@ -10,8 +10,8 @@ use std::time::Duration;
 
 use leptos::prelude::*;
 use rules::{
-    Address, Alignment, Build, Choice, ClassOption, Edit, Engine, FIRST_ASCENSION_RANK, Faith,
-    FeatCategory, FeatSlot, Issue, Place, SlotEntry, SlotId, SlotKind, SlotOption,
+    Address, Alignment, Build, Choice, ClassKey, ClassOption, Edit, Engine, FIRST_ASCENSION_RANK,
+    Faith, FeatCategory, FeatSlot, Issue, Place, SlotEntry, SlotId, SlotKind, SlotOption,
 };
 
 use crate::icons::feat_icon;
@@ -33,6 +33,8 @@ pub struct Item {
     pub reason: Option<String>,
     /// What the Build holds now.
     pub current: bool,
+    /// Lifted to the top of its list as the likely pick (the class picker's class of the level before): tinted.
+    pub lifted: bool,
     /// Opens a list of values instead of picking.
     pub more: bool,
     /// What it has to do with the gear, where a story note goes: "With Belt of Incredible Dexterity +2" for an
@@ -55,6 +57,7 @@ impl Item {
             locked: false,
             reason: None,
             current: false,
+            lifted: false,
             more: false,
             gear: None,
             info: None,
@@ -132,6 +135,7 @@ pub fn item_row(item: Item, on_pick: impl Fn() + 'static) -> impl IntoView {
             <button
                 class="item"
                 class:current=item.current
+                class:lifted=item.lifted
                 disabled=locked
                 role=tick.map(|_| "checkbox")
                 aria-checked=tick.map(|on| on.to_string())
@@ -741,11 +745,8 @@ fn ClassPicker(level: u8) -> impl IntoView {
             timed("class_options", || engine.class_options(&build, level)).unwrap_or_default()
         });
         // The class the Build took at the level before comes first; the rest keep the engine's order.
-        if let Some(previous) = usize::from(level)
-            .checked_sub(2)
-            .and_then(|index| build.levels.get(index))
-        {
-            lift(&mut options, |option| option.class == previous.class);
+        if let Some(previous) = previous_class(&build, level) {
+            lift(&mut options, |option| option.class == *previous);
         }
         Arc::new(options)
     });
@@ -792,10 +793,14 @@ fn ClassPicker(level: u8) -> impl IntoView {
             ClassStep::Loading => loading(),
             ClassStep::List(options) => {
                 let build = planner.build.get_untracked();
+                let previous = previous_class(&build, level);
                 let items = engine.with_value(|engine| {
                     options
                         .iter()
-                        .map(|option| class_item(engine, &build, level, option))
+                        .map(|option| Item {
+                            lifted: previous == Some(&option.class),
+                            ..class_item(engine, &build, level, option)
+                        })
                         .collect()
                 });
                 view! {
@@ -820,6 +825,12 @@ fn lift<T>(items: &mut [T], is_it: impl Fn(&T) -> bool) {
     if let Some(index) = items.iter().position(is_it) {
         items[..=index].rotate_right(1);
     }
+}
+
+/// The class the Build took at the level before `level`: `None` at level 1.
+fn previous_class(build: &Build, level: u8) -> Option<&ClassKey> {
+    let index = usize::from(level).checked_sub(2)?;
+    build.levels.get(index).map(|level_up| &level_up.class)
 }
 
 /// A class picker's step: its options being worked out, then their list, then which classes the chosen prestige
