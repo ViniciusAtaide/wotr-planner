@@ -420,9 +420,9 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   Combat feat does. The selection now has 38 options; the sharers (the slayer, the Fey Tricks, the Underground
   Chemist, the Feyform Shifter, the Vivisectionist) list their keys one by one, so none gained them. `Archetype`
   looks at the whole Build, so an Eldritch Scoundrel with bard or skald levels may take them through those slots
-  too (accepted, as for the Sanctified Slayer's talents). PROVISIONAL: Improved needs `Feature(feature:
-  "rogue/uncanny-dodge", count: 1)`, the rogue's order (Uncanny Dodge 4, Improved 8); the guide doesn't say so, and
-  the user confirms it. To drop it, remove that condition and rewrite
+  too (accepted, as for the Sanctified Slayer's talents). Improved needs `Feature(feature: "rogue/uncanny-dodge",
+  count: 1)`, the rogue's order (Uncanny Dodge 4, Improved 8): the guide doesn't say so (user, 2026-11-13: the
+  recommended option). To drop it, remove that condition and rewrite
   `an_eldritch_scoundrel_takes_improved_uncanny_dodge_only_after_uncanny_dodge`.
 - Ticket 67 (ticket 62's decision, user, 2026-11-02): the Dual-Cursed Oracle's "Second
   Curse" feature is a second slot of the oracle's own `oracle/oracles-curse` on its level-1 row ("The Oracle must

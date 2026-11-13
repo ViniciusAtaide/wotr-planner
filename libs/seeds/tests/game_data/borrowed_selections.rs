@@ -592,9 +592,9 @@ fn an_eldritch_scoundrel_is_offered_uncanny_dodge_at_each_talent_level() {
     assert!(!holds(&at(&build, 20), "rogue/improved-uncanny-dodge"));
 }
 
-/// PROVISIONAL (ticket 190, decided by the main session, for the user to confirm): the guide's sentence doesn't say
-/// that Improved Uncanny Dodge needs Uncanny Dodge first; the rogue's own order (4, then 8) is taken. To flip it,
-/// drop the `Feature("rogue/uncanny-dodge")` from the option's prerequisite and rewrite this test.
+/// The guide's sentence doesn't say that Improved Uncanny Dodge needs Uncanny Dodge first; the rogue's own order
+/// (4, then 8) is taken (user, 2026-11-13: the recommended option). To flip it, drop the
+/// `Feature("rogue/uncanny-dodge")` from the option's prerequisite and rewrite this test.
 #[test]
 fn an_eldritch_scoundrel_takes_improved_uncanny_dodge_only_after_uncanny_dodge() {
     let improved = rogue_talent(IMPROVED_UNCANNY_DODGE);
