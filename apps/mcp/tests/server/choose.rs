@@ -373,7 +373,7 @@ async fn a_refused_rank_in_a_skill_map_stops_the_step_and_changes_nothing() {
     assert_eq!(refused["rejected"]["issue"], "not_an_option");
     let reason = text(&refused["rejected"]["reason"]);
     // The rank refused, one step at a time: no skill's total goes above the character level.
-    assert!(reason.contains("at level 1 1 → 2"), "{reason}");
+    assert!(reason.contains("at level 1, 1 → 2"), "{reason}");
     assert!(reason.contains("Nothing was changed"), "{reason}");
     assert_eq!(refused["build"], code(&fighter));
 
