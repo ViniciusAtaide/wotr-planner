@@ -3,6 +3,7 @@
 Type: bugfix
 Status: open
 Blocked by: none
+Model: Sonnet to build (data against the guide, as ticket 170); Opus to review the data and the archetype table.
 Map: [WotR Build Planner](../map.md)
 
 ## Question

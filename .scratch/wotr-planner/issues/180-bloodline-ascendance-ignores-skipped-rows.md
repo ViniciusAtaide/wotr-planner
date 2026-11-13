@@ -22,6 +22,8 @@ No stepped feature is on any bloodline's 20th-level row (179's test asserts it),
 
 Recommended: A, the smallest, and it reads as `skipped_levels` already does elsewhere ("rows an option held through this selection doesn't get").
 
+**Decided** (user, 2026-11-13, "do as the recommended"): A.
+
 ## Done when
 
 The chosen rule is built with a real-data test of the repro, the README's Bloodline Ascendance line says it, and `scripts/check.sh` passes.
