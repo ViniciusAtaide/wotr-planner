@@ -153,6 +153,10 @@ fn the_borrowed_selections_offer_the_guides_lists() {
     let rogue = any_selection(ROGUE_TALENTS);
     let advanced: BTreeSet<String> = ADVANCED_TALENTS.iter().map(|t| rogue_talent(t)).collect();
     let all_talents = keys(rogue);
+    // The guide's 36 talents and the Eldritch Scoundrel's two (ticket 190), which no borrower shares.
+    assert_eq!(all_talents.len(), 38);
+    let scoundrels = BTreeSet::from(SCOUNDRELS_TALENTS.map(rogue_talent));
+    let all_talents = &all_talents - &scoundrels;
     assert_eq!(all_talents.len(), 36);
     assert!(advanced.is_subset(&all_talents));
     let classes = |selection: &rules::FeatureSelection| -> BTreeSet<String> {
@@ -329,7 +333,7 @@ fn a_bard_takes_rogue_talents_and_an_archaeologist_advanced_ones_from_10() {
     let crippling = rogue_talent("crippling-strike");
     for build in [borrower("bard", None, 2), borrower("skald", None, 2)] {
         let offered = offered(&build, 2);
-        assert_eq!(offered.len(), 36, "{:?}", build.levels[0].class);
+        assert_eq!(offered.len(), 38, "{:?}", build.levels[0].class);
         assert_eq!(offered[&rogue_talent("fast-stealth")], Ok(()));
         assert!(offered[&crippling].is_err());
     }
@@ -555,4 +559,135 @@ fn an_option_taken_through_one_class_isnt_offered_again_through_another() {
         build.picks.insert(slot, pick(option));
         assert!(!possible(&build), "{who}: twice");
     }
+}
+
+const ELDRITCH_SCOUNDREL: &str = "rogue/eldritch-scoundrel";
+const UNCANNY_DODGE: &str = "uncanny-dodge";
+const IMPROVED_UNCANNY_DODGE: &str = "improved-uncanny-dodge";
+/// The Eldritch Scoundrel's two options of the rogue talents.
+const SCOUNDRELS_TALENTS: [&str; 2] = [UNCANNY_DODGE, IMPROVED_UNCANNY_DODGE];
+
+fn scoundrel(levels: usize) -> Build {
+    archetype_build("rogue", ELDRITCH_SCOUNDREL, levels)
+}
+
+/// Whether the slot of `level` offers `option` to the Build, open to pick.
+fn open_at(build: &Build, level: u8, option: &str) -> bool {
+    matches!(offered(build, level).get(option), Some(Ok(())))
+}
+
+/// "An Eldritch Scoundrel can select (Improved) Uncanny Dodge as Rogue Talents" (`rogue#rogue-talents`, ticket 190);
+/// its table has talents at 2, 8, 12, 16 and 20 and no Uncanny Dodge of its own.
+#[test]
+fn an_eldritch_scoundrel_is_offered_uncanny_dodge_at_each_talent_level() {
+    let uncanny_dodge = rogue_talent(UNCANNY_DODGE);
+    let build = scoundrel(20);
+    for level in [2, 8, 12, 16, 20] {
+        assert!(open_at(&build, level, &uncanny_dodge), "level {level}");
+    }
+    // Finesse Training's slot at 3 is another selection.
+    assert!(!offered(&build, 3).contains_key(&uncanny_dodge));
+    // The archetype has neither feature of its own.
+    assert!(!holds(&at(&build, 20), "rogue/uncanny-dodge"));
+    assert!(!holds(&at(&build, 20), "rogue/improved-uncanny-dodge"));
+}
+
+/// The guide's sentence doesn't say that Improved Uncanny Dodge needs Uncanny Dodge first; the rogue's own order
+/// (4, then 8) is taken (user, 2026-11-13: the recommended option). To flip it, drop the
+/// `Feature("rogue/uncanny-dodge")` from the option's prerequisite and rewrite this test.
+#[test]
+fn an_eldritch_scoundrel_takes_improved_uncanny_dodge_only_after_uncanny_dodge() {
+    let improved = rogue_talent(IMPROVED_UNCANNY_DODGE);
+    let build = scoundrel(20);
+    for level in [2, 8, 12, 16, 20] {
+        assert!(!open_at(&build, level, &improved), "level {level}");
+    }
+    let first = with_picks(build, &[(2, pick(&rogue_talent(UNCANNY_DODGE)))]);
+    for level in [8, 12, 16, 20] {
+        assert!(open_at(&first, level, &improved), "level {level}");
+    }
+    let both = with_picks(first, &[(8, pick(&improved))]);
+    assert!(possible(&both));
+    // Improved at 2 with Uncanny Dodge only at 8 is out of order.
+    let reversed = with_picks(
+        scoundrel(8),
+        &[
+            (2, pick(&improved)),
+            (8, pick(&rogue_talent(UNCANNY_DODGE))),
+        ],
+    );
+    assert!(!possible(&reversed));
+}
+
+#[test]
+fn the_scoundrels_talents_grant_the_rogues_features_once() {
+    let uncanny_dodge = rogue_talent(UNCANNY_DODGE);
+    let improved = rogue_talent(IMPROVED_UNCANNY_DODGE);
+    let build = with_picks(
+        scoundrel(8),
+        &[(2, pick(&uncanny_dodge)), (8, pick(&improved))],
+    );
+    assert!(possible(&build));
+    let count = |level: u8, feature: &str| {
+        at(&build, level).feature_count(&rules::FeatureKey::new(feature))
+    };
+    assert_eq!(count(2, "rogue/uncanny-dodge"), 1);
+    assert_eq!(count(2, "rogue/improved-uncanny-dodge"), 0);
+    assert_eq!(count(8, "rogue/uncanny-dodge"), 1);
+    assert_eq!(count(8, "rogue/improved-uncanny-dodge"), 1);
+    // Once each.
+    let taken = with_picks(scoundrel(12), &[(2, pick(&uncanny_dodge))]);
+    assert_eq!(
+        offered(&taken, 8)[&uncanny_dodge],
+        Err(rules::Issue::AlreadyHeld)
+    );
+}
+
+#[test]
+fn no_other_class_or_archetype_is_offered_the_scoundrels_talents() {
+    let options = SCOUNDRELS_TALENTS.map(rogue_talent);
+    let archetypes = [
+        "rogue/dark-lurker",
+        "rogue/knife-master",
+        "rogue/master-of-all",
+        "rogue/rowdy",
+        "rogue/sylvan-trickster",
+        "rogue/thug",
+        "rogue/underground-chemist",
+    ];
+    let builds = [
+        build("rogue", 20),
+        borrower("bard", None, 20),
+        borrower("skald", None, 20),
+        build("slayer", 20),
+        borrower("bard", Some(ARCHAEOLOGIST), 20),
+    ]
+    .into_iter()
+    .chain(archetypes.map(|archetype| archetype_build("rogue", archetype, 20)));
+    for (who, build) in builds.enumerate() {
+        for level in
+            (1..=20).filter(|level| engine().options(&build, &selection_slot(*level)).is_some())
+        {
+            for option in &options {
+                assert!(
+                    !open_at(&build, level, option),
+                    "build {who} level {level}: {option}"
+                );
+            }
+        }
+    }
+    // The shared lists never gained them.
+    for selection in [SLAYER_TALENTS, FEYFORM_TALENT, MEDICAL_DISCOVERY] {
+        let keys = keys(any_selection(selection));
+        assert!(options.iter().all(|key| !keys.contains(key)), "{selection}");
+    }
+}
+
+/// An Eldritch Scoundrel who also has bard levels meets the prerequisite there too (`Archetype` looks at the whole
+/// Build): accepted for ticket 190, as for the Sanctified Slayer's talents.
+#[test]
+fn a_scoundrel_with_bard_levels_may_take_them_through_the_bards_slots() {
+    let build = multiclass(&[("rogue", Some(ELDRITCH_SCOUNDREL), 2), ("bard", None, 2)]);
+    // Character level 4 is the bard's level 2: its Rogue Talent slot.
+    assert!(open_at(&build, 4, &rogue_talent(UNCANNY_DODGE)));
 }
