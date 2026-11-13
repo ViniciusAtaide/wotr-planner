@@ -618,9 +618,15 @@ input[type="search"] {
   line-height: 1.2;
 }
 
-.class-button:disabled {
-  opacity: 1;
+/* A locked class: still tappable, for the reason it shows (`.class-locked`). */
+.class-button.locked {
   background: transparent;
+}
+
+.class-locked {
+  color: var(--muted);
+  font-size: 10.5px;
+  line-height: 1.25;
 }
 
 .class-line {
