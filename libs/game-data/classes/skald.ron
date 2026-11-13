@@ -166,10 +166,12 @@ Class(
                 (level: 3, features: ["skald/demon-dancer/fiendish-maw"]),
                 (level: 4, features: ["skald/demon-dancer/uncanny-dodge"]),
                 (level: 6, features: ["skald/demon-dancer/fiend-totem", "skald/song-of-strength"]),
-                (level: 7, features: ["skald/demon-dancer/demonic-conquest", "skald/demon-dancer/lore-master", "skald/raging-song-move-action"], selections: ["rogue/rogue-talents"]),
+                (level: 7, features: ["skald/demon-dancer/demonic-conquest", "skald/demon-dancer/fiendish-maw", "skald/demon-dancer/lore-master", "skald/raging-song-move-action"], selections: ["rogue/rogue-talents"]),
                 (level: 8, features: ["skald/demon-dancer/improved-uncanny-dodge"]),
                 (level: 9, features: ["skald/damage-reduction"]),
                 (level: 10, features: ["skald/demon-dancer/dirge-of-doom", "skald/demon-dancer/fiend-totem-greater"]),
+                (level: 12, features: ["skald/rage-powers", "skald/demon-dancer/fiendish-maw"], selections: ["rogue/rogue-talents"]),
+                (level: 17, features: ["skald/demon-dancer/fiendish-maw"], selections: ["rogue/rogue-talents"]),
             ],
         ),
         (

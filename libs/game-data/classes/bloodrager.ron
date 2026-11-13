@@ -104,8 +104,8 @@ Class(
                         (level: 4, features: ["bloodrager/bloodline/abyssal/demonic-bulk"]),
                         (level: 8, features: ["bloodrager/bloodline/abyssal/demon-resistances"]),
                         (level: 12, features: ["bloodrager/bloodline/abyssal/abyssal-bloodrage"]),
-                        (level: 16, features: ["bloodrager/bloodline/abyssal/demonic-aura", "bloodrager/bloodline/abyssal/demon-resistances"]),
-                        (level: 20, features: ["bloodrager/bloodline/abyssal/demonic-immunities"]),
+                        (level: 16, features: ["bloodrager/bloodline/abyssal/demonic-aura", "bloodrager/bloodline/abyssal/demon-resistances", "bloodrager/bloodline/abyssal/abyssal-bloodrage"]),
+                        (level: 20, features: ["bloodrager/bloodline/abyssal/demonic-immunities", "bloodrager/bloodline/abyssal/abyssal-bloodrage"]),
                     ],
                 ),
                 (
@@ -395,7 +395,7 @@ Class(
                     levels: [
                         (level: 1, features: ["bloodrager/bloodline/infernal/hellfire-strike"], feat_list: "bloodrager/bloodline/infernal/feats"),
                         (level: 4, features: ["bloodrager/bloodline/infernal/infernal-resistance"]),
-                        (level: 8, features: ["bloodrager/bloodline/infernal/diabolical-arrogance"]),
+                        (level: 8, features: ["bloodrager/bloodline/infernal/diabolical-arrogance", "bloodrager/bloodline/infernal/infernal-resistance"]),
                         (level: 12, features: ["bloodrager/bloodline/infernal/dark-wings"]),
                         (level: 16, features: ["bloodrager/bloodline/infernal/hellfire-charge"]),
                         (level: 20, features: ["bloodrager/bloodline/infernal/fiend-of-the-pit"]),
