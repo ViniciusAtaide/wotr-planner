@@ -11,7 +11,7 @@
 //! A gear item comes off the same way (`gear.belt`, `gear.usable.<item key>`), unless a choice needs it: then the
 //! refusal names that choice, as the engine words it ([`crate::gear::needed_reason`]).
 
-use rules::Address;
+use rules::{Address, Build, Engine};
 
 use crate::code::{envelope, open, reopen};
 use crate::error::ToolError;
@@ -51,6 +51,7 @@ pub(crate) fn withdraw(planner: &Planner, args: WithdrawArgs) -> Result<Withdraw
             Address::Level(level) if (1..=last).contains(&usize::from(level)) => {
                 format!("Only the last level, `level.{last}`, can be withdrawn.")
             }
+            Address::RankLevel(rank) => unplaced_rank(engine, &build, rank),
             _ => format!(
                 "The Build holds nothing at `{address}`: `sheet` prints what it holds, by address."
             ),
@@ -108,4 +109,42 @@ pub(crate) fn withdraw(planner: &Planner, args: WithdrawArgs) -> Result<Withdraw
         envelope: envelope(engine, &next, &sheet),
         leans_on_gear,
     })
+}
+
+/// Why a Mythic rank's level has nothing to withdraw: the rank is taken where it comes at the earliest (the rank
+/// table's level, or the rank below's when that one is taken later), the Build doesn't reach it, or there is no such
+/// rank.
+fn unplaced_rank(engine: &Engine, build: &Build, rank: u8) -> String {
+    let Some(table) = engine.rank_table_level(rank) else {
+        return format!("There is no MR {rank}: the Mythic ranks are 1 to 10.");
+    };
+    if !engine.rank_reached(build, rank) {
+        let levels = build.levels.len();
+        let comes_at = engine.rank_floor(build, rank).unwrap_or(table);
+        return match usize::from(comes_at) > levels {
+            true => format!(
+                "The Build doesn't reach MR {rank}, so there is nothing to withdraw: MR {rank} comes at level \
+                 {comes_at} at the earliest, and the Build has {levels} level(s)."
+            ),
+            false => format!(
+                "The Build doesn't reach MR {rank}, so there is nothing to withdraw: its Path switch (Legend) ends \
+                 the ascensions at MR {}.",
+                rules::PATH_SWITCH_RANK
+            ),
+        };
+    }
+    let at = engine.rank_level(build, rank).unwrap_or(table);
+    let nothing = format!("there is nothing to withdraw at `mythic.{rank}.level`");
+    if at > table {
+        let below = rank - 1;
+        format!(
+            "MR {rank} comes at level {at} at the earliest (MR {below} is taken at level {at}, and ranks keep their \
+             order) and is taken there: {nothing}. To take MR {rank} earlier, take MR {below} earlier: `options` on \
+             `mythic.{below}.level` lists its levels."
+        )
+    } else {
+        format!(
+            "MR {rank} comes at level {at} at the earliest (the rank table's level) and is taken there: {nothing}."
+        )
+    }
 }

@@ -403,7 +403,10 @@ impl Wording<'_> {
                         };
                     }
                     let why = if comes_at > earliest {
-                        format!("MR {} is taken at level {comes_at}", rank - 1)
+                        format!(
+                            "MR {} is taken at level {comes_at}, and ranks keep their order",
+                            rank - 1
+                        )
                     } else {
                         "the rank table's level".to_owned()
                     };

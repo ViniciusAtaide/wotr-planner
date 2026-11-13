@@ -144,7 +144,7 @@ fn take(
     let offers = offers_at(engine, build, &address)?;
     let offer = find(value, &offers).ok_or_else(|| {
         missing_parameter(engine, build, &address, value, &offers)
-            .unwrap_or_else(|| not_offered(&address, value, &offers))
+            .unwrap_or_else(|| not_offered(engine, build, &address, value, &offers))
     })?;
     if offer.current {
         // What the Build holds already: nothing to change.
@@ -411,7 +411,18 @@ fn stepper_value(build: &Build, address: &Address) -> u8 {
 
 /// Why a value isn't taken at an address: a prestige class that needs its `advances`, or the closest values offered
 /// ([`nearest`]: only those close enough, so a value sharing one word of two isn't named).
-fn not_offered(address: &Address, value: &ChoiceValue, offers: &[Offer]) -> ToolError {
+fn not_offered(
+    engine: &Engine,
+    build: &Build,
+    address: &Address,
+    value: &ChoiceValue,
+    offers: &[Offer],
+) -> ToolError {
+    if let (Address::RankLevel(rank), ChoiceValue::Number(given)) = (address, value)
+        && let Some(refusal) = rank_level_not_offered(engine, build, *rank, *given)
+    {
+        return refusal;
+    }
     if let ChoiceValue::Class {
         advances: None,
         class,
@@ -446,8 +457,13 @@ fn not_offered(address: &Address, value: &ChoiceValue, offers: &[Offer]) -> Tool
     }
     let given = value_text(value);
     let plain = plain_text(value);
+    // A level is a number, not a name: nothing is "close" to it by its text.
+    let nameable: &[Offer] = match address {
+        Address::RankLevel(_) => &[],
+        _ => offers,
+    };
     let ranked = nearest(
-        offers,
+        nameable,
         |offer| closeness(&plain, &plain_text(&offer.value)).max(closeness(&plain, &offer.name)),
         |one, other| {
             distance(&given, &value_text(&one.value))
@@ -468,10 +484,48 @@ fn not_offered(address: &Address, value: &ChoiceValue, offers: &[Offer]) -> Tool
         .collect();
     let closest = closest_note(&closest)
         .unwrap_or_else(|| ", and no offered value is close to it".to_owned());
+    // Only a slot's values can be parameterised feats.
+    let values = match address {
+        Address::Slot(_) => ", with `values: true` for a parameterised feat's values",
+        _ => "",
+    };
     ToolError::not_an_option(format!(
-        "`{given}` isn't an option for `{address}`{closest}. `options` lists what it takes, with `values: true` for a \
-         parameterised feat's values."
+        "`{given}` isn't an option for `{address}`{closest}. `options` lists what it takes{values}."
     ))
+}
+
+/// Why a level isn't one a Mythic rank can be taken at: below where the rank comes (the rank table's level, or the
+/// rank below's when that one is taken later) or past the Build's last level. `None` for a level the picker offers
+/// and for a rank it has no levels for (the address check refuses those).
+fn rank_level_not_offered(
+    engine: &Engine,
+    build: &Build,
+    rank: u8,
+    given: u8,
+) -> Option<ToolError> {
+    let levels = build.levels.len();
+    let floor = engine.rank_level_options(build, rank).first()?.level;
+    let table = engine.rank_table_level(rank)?;
+    let lists = format!("`options` on `mythic.{rank}.level` lists the levels.");
+    let head = format!("MR {rank} can't be taken at level {given}");
+    let reason = if given < floor && floor > table {
+        format!(
+            "{head}: MR {rank} comes at level {floor} at the earliest (MR {} is taken at level {floor}, and ranks \
+             keep their order). {lists}",
+            rank - 1
+        )
+    } else if given < floor {
+        format!(
+            "{head}: MR {rank} comes at level {floor} at the earliest (the rank table's level). {lists}"
+        )
+    } else if usize::from(given) > levels {
+        format!(
+            "{head}: the Build has {levels} level(s), and a rank is taken at a level the Build has. {lists}"
+        )
+    } else {
+        return None;
+    };
+    Some(ToolError::not_an_option(reason))
 }
 
 /// A class value without its `advances`, to tell a prestige class given without them.

@@ -453,7 +453,7 @@ async fn validate_still_refuses_a_level_before_where_a_rank_comes() {
     let reason = text(&failure["reason"]);
     assert!(
         reason.contains("MR 4 comes at level 13 at the earliest")
-            && reason.contains("MR 3 is taken at level 13"),
+            && reason.contains("(MR 3 is taken at level 13, and ranks keep their order)"),
         "{reason}"
     );
 }
@@ -537,4 +537,122 @@ async fn validate_takes_every_level_options_offers_for_a_rank() {
             assert_eq!(valid["status"], "valid", "{address} {option}: {valid}");
         }
     }
+}
+
+/// The refusal `choose` gives for a level at an address, as `(issue, reason)`.
+async fn refused_level(build: &Build, address: &str, value: Value) -> (String, String) {
+    let chosen = ok(
+        "choose",
+        json!({ "build": code(build), "steps": [{ "choice": address, "value": value }] }),
+    )
+    .await;
+    assert_eq!(chosen["applied"], 0, "{chosen}");
+    (
+        text(&chosen["rejected"]["issue"]),
+        text(&chosen["rejected"]["reason"]),
+    )
+}
+
+#[tokio::test]
+async fn choose_says_why_a_level_is_not_one_a_rank_can_be_taken_at() {
+    // Ticket 192. Below the rank table's level.
+    let (issue, reason) = refused_level(&fighter(), "mythic.4.level", json!(10)).await;
+    assert_eq!(issue, "not_an_option");
+    assert_eq!(
+        reason,
+        "MR 4 can't be taken at level 10: MR 4 comes at level 11 at the earliest (the rank table's level). \
+         `options` on `mythic.4.level` lists the levels."
+    );
+    // Below a floor that the rank below raises: MR 3 at 13 holds MR 4 there.
+    let mut later = fighter();
+    later.rank_levels.insert(3, 13);
+    let (_, reason) = refused_level(&later, "mythic.4.level", json!(12)).await;
+    assert_eq!(
+        reason,
+        "MR 4 can't be taken at level 12: MR 4 comes at level 13 at the earliest (MR 3 is taken at level 13, and \
+         ranks keep their order). `options` on `mythic.4.level` lists the levels."
+    );
+    // Past the Build's last level; no "closest" level is named for a number.
+    let (_, reason) = refused_level(&fighter(), "mythic.4.level", json!(14)).await;
+    assert_eq!(
+        reason,
+        "MR 4 can't be taken at level 14: the Build has 13 level(s), and a rank is taken at a level the Build has. \
+         `options` on `mythic.4.level` lists the levels."
+    );
+    let (_, reason) = refused_level(&fighter(), "mythic.4.level", json!(5)).await;
+    assert!(
+        reason.starts_with("MR 4 can't be taken at level 5:"),
+        "{reason}"
+    );
+    assert!(!reason.contains("Closest"), "{reason}");
+    // A value that isn't a number: the generic text, with no word about parameterised feats.
+    let (_, reason) = refused_level(&fighter(), "mythic.4.level", json!("soon")).await;
+    assert!(
+        reason.contains("isn't an option for `mythic.4.level`"),
+        "{reason}"
+    );
+    assert!(!reason.contains("parameterised"), "{reason}");
+    assert!(!reason.contains("Closest"), "{reason}");
+}
+
+#[tokio::test]
+async fn withdraw_says_a_rank_at_its_earliest_level_has_nothing_to_withdraw() {
+    // Ticket 192. At the rank table's level.
+    let client = Client::on_the_test_world().await;
+    // The reason, without the code before it.
+    let refusal_text = |refused: &_| {
+        let full = error_text(refused);
+        full.split_once(": ")
+            .map_or(full.clone(), |(_, reason)| reason.to_owned())
+    };
+    let nothing = client
+        .call(
+            "withdraw",
+            json!({ "build": code(&fighter()), "choice": "mythic.4.level" }),
+        )
+        .await;
+    assert_eq!(error_code(&nothing), "no_such_choice");
+    assert_eq!(
+        refusal_text(&nothing),
+        "MR 4 comes at level 11 at the earliest (the rank table's level) and is taken there: there is nothing to \
+         withdraw at `mythic.4.level`."
+    );
+    // Held there by the rank below.
+    let mut later = fighter();
+    later.rank_levels.insert(3, 13);
+    let pushed = client
+        .call(
+            "withdraw",
+            json!({ "build": code(&later), "choice": "mythic.4.level" }),
+        )
+        .await;
+    assert_eq!(error_code(&pushed), "no_such_choice");
+    assert_eq!(
+        refusal_text(&pushed),
+        "MR 4 comes at level 13 at the earliest (MR 3 is taken at level 13, and ranks keep their order) and is \
+         taken there: there is nothing to withdraw at `mythic.4.level`. To take MR 4 earlier, take MR 3 earlier: \
+         `options` on `mythic.3.level` lists its levels."
+    );
+    // A rank the Build doesn't reach, and one that doesn't exist.
+    let short = client
+        .call(
+            "withdraw",
+            json!({ "build": code(&fighter()), "choice": "mythic.5.level" }),
+        )
+        .await;
+    assert_eq!(
+        refusal_text(&short),
+        "The Build doesn't reach MR 5, so there is nothing to withdraw: MR 5 comes at level 14 at the earliest, \
+         and the Build has 13 level(s)."
+    );
+    let none = client
+        .call(
+            "withdraw",
+            json!({ "build": code(&fighter()), "choice": "mythic.11.level" }),
+        )
+        .await;
+    assert_eq!(
+        refusal_text(&none),
+        "There is no MR 11: the Mythic ranks are 1 to 10."
+    );
 }
