@@ -1229,3 +1229,745 @@ fn a_primalists_rage_powers_replace_the_row_and_its_step_with_it() {
         2
     );
 }
+
+/// The levels at which the sheet has a bloodline feat slot (a Feat slot listing the held bloodline's options).
+fn bloodline_feat_levels(build: &Build) -> Vec<u8> {
+    engine()
+        .evaluate(build)
+        .levels
+        .iter()
+        .flat_map(|level| &level.slots)
+        .filter(|slot| {
+            matches!(
+                &slot.kind,
+                rules::SlotKind::Feat(rules::FeatSlot::OptionList { selection, .. })
+                    if selection.as_str() == "bloodrager/bloodline"
+            )
+        })
+        .map(|slot| match slot.id {
+            rules::SlotId::Feat { level, .. } => level,
+            ref other => panic!("a bloodline feat slot at {other:?}"),
+        })
+        .collect()
+}
+
+/// The Herald of the Horn's Horn Call (7, 13, 19) keeps the skald's Raging Song (Swift Action) at 13 and Damage
+/// Reduction at 19 on the rows that now carry it (ticket 182).
+#[test]
+fn the_heralds_horn_call_steps_and_keeps_what_the_skalds_rows_give() {
+    assert_gains(
+        "skald",
+        "skald/herald-of-the-horn/horn-call",
+        &|_, build| build,
+        &[],
+        &[("skald/herald-of-the-horn", Some(&[7, 13, 19]))],
+    );
+    let skald = build("skald", 20);
+    let herald = archetype_build("skald", "skald/herald-of-the-horn", 20);
+    assert!(engine().is_possible(&herald));
+    // The Herald's table keeps both, as the class's does: Damage Reduction at 9, 14 and 19, the swift-action song
+    // at 13.
+    for (feature, expected) in [
+        ("skald/damage-reduction", &[9u8, 14, 19][..]),
+        ("skald/raging-song-swift-action", &[13][..]),
+        ("skald/raging-song-move-action", &[7][..]),
+    ] {
+        assert_eq!(gains(&skald, feature), expected, "{feature}");
+        assert_eq!(gains(&herald, feature), expected, "{feature}");
+    }
+}
+
+/// The Reformed Fiend's Hatred Against Evil (5, 10, 15, 20) and its Damage Reduction (7, 10, 13, 16, 19, already
+/// stepped), with the bloodline feat slot at 15 and Mighty Bloodrage at 20 kept on the new rows.
+#[test]
+fn the_reformed_fiends_hatred_against_evil_steps_and_its_rows_keep_what_the_base_gives() {
+    for bloodline in [
+        "bloodrager/bloodline/abyssal",
+        "bloodrager/bloodline/infernal",
+    ] {
+        let build = playable(
+            || archetype_build("bloodrager", "bloodrager/reformed-fiend", 20),
+            |build| with_option(build, 1, 0, bloodline),
+        )
+        .unwrap();
+        assert_eq!(
+            gains(&build, "bloodrager/reformed-fiend/hatred-against-evil"),
+            [5, 10, 15, 20],
+            "{bloodline}"
+        );
+        assert_eq!(
+            gains(
+                &build,
+                "bloodrager/reformed-fiend/damage-reduction-reformed-fiend"
+            ),
+            [7, 10, 13, 16, 19],
+            "{bloodline}"
+        );
+        assert_eq!(
+            gains(&build, "bloodrager/mighty-bloodrage"),
+            [20],
+            "{bloodline}"
+        );
+        // The base row's bloodline feat slot at 15 stays, beside the ones at 6, 9, 12 and 18: those of the class.
+        assert_eq!(
+            bloodline_feat_levels(&build),
+            [6, 9, 12, 15, 18],
+            "{bloodline}"
+        );
+    }
+    // Only the Reformed Fiend has it.
+    assert_gains(
+        "bloodrager",
+        "bloodrager/reformed-fiend/hatred-against-evil",
+        &|archetype, build| match archetype {
+            Some("bloodrager/reformed-fiend") => {
+                with_option(build, 1, 0, "bloodrager/bloodline/abyssal")
+            }
+            _ => build,
+        },
+        &[],
+        &[("bloodrager/reformed-fiend", Some(&[5, 10, 15, 20]))],
+    );
+}
+
+/// The Flesheater's Devour Essence (2, 8, 13, 18) and Power from Flesh (2, 9, 18): the row at 18 keeps the rage power
+/// the Flesheater's table keeps there (4, 10, 12, 16, 18 and 20; none at 8).
+#[test]
+fn the_flesheaters_devour_essence_and_power_from_flesh_step() {
+    assert_gains(
+        "barbarian",
+        "barbarian/flesheater/devour-essence",
+        &|_, build| build,
+        &[],
+        &[("barbarian/flesheater", Some(&[2, 8, 13, 18]))],
+    );
+    assert_gains(
+        "barbarian",
+        "barbarian/flesheater/power-from-flesh",
+        &|_, build| build,
+        &[],
+        &[("barbarian/flesheater", Some(&[2, 9, 18]))],
+    );
+    let flesheater = playable(
+        || archetype_build("barbarian", "barbarian/flesheater", 20),
+        |build| build,
+    )
+    .unwrap();
+    assert_eq!(
+        levels_with_slot_of(&flesheater, "barbarian/rage-power"),
+        [4, 10, 12, 16, 18, 20]
+    );
+}
+
+/// The Fiendflesh Shifter's Fiendish Resilience is one feature stepped at 2, 4, 8, 12, 16 and 20: the guide gives
+/// it as one ability with two series (natural armour at 2, 4, 12 and 20; the resistance at 2, 8 and 16), and each
+/// step improves one of them. Nothing reads its count.
+#[test]
+fn the_fiendflesh_shifters_fiendish_resilience_steps_at_both_series() {
+    assert_gains(
+        "shifter",
+        "shifter/fiendflesh-shifter/fiendish-resilience",
+        &|_, build| build,
+        &[],
+        &[("shifter/fiendflesh-shifter", Some(&[2, 4, 8, 12, 16, 20]))],
+    );
+}
+
+/// The Fake Celebrity's Inhibit Greatness (12, 17) beside Inhibit Courage's.
+#[test]
+fn the_fake_celebritys_inhibit_greatness_steps_at_17() {
+    const WAYS: &str = "arcanist/magic-deceiver/ways-of-the-deceiver";
+    for way in [
+        "fake-celebrity",
+        "living-deity",
+        "magic-inventor",
+        "razmiri-infiltrator",
+        "time-manipulator",
+        "way-of-the-charlatan",
+    ] {
+        let option = format!("{WAYS}/{way}");
+        let expected: &[u8] = if way == "fake-celebrity" {
+            &[12, 17]
+        } else {
+            &[]
+        };
+        assert_gains_of_option(
+            "arcanist",
+            "arcanist/magic-deceiver/ways-of-the-deceiver/fake-celebrity/inhibit-greatness",
+            &option,
+            &|archetype| archetype == Some("arcanist/magic-deceiver"),
+            &|archetype, build| match archetype {
+                Some("arcanist/magic-deceiver") => {
+                    let slot = slot_of(&build, 1, WAYS);
+                    with_pick(build, slot, &option)
+                }
+                _ => build,
+            },
+            &[],
+            &[("arcanist/magic-deceiver", Some(expected))],
+        );
+    }
+}
+
+/// The Overwhelming Soul's Mental Prowess: its use at 6 and one more at 10, 14 and 18 (the feature itself is
+/// granted at 1 in the class's table, so the count at 18 is 4: the first use and three more). The rows at 10, 14 and
+/// 18 keep the wild talent.
+#[test]
+fn the_overwhelming_souls_mental_prowess_steps_at_10_14_and_18() {
+    assert_gains(
+        "kineticist",
+        "kineticist/overwhelming-soul/mental-prowess",
+        &|_, build| build,
+        &[],
+        &[("kineticist/overwhelming-soul", Some(&[1, 10, 14, 18]))],
+    );
+    let soul = archetype_build("kineticist", "kineticist/overwhelming-soul", 20);
+    assert!(engine().is_possible(&soul));
+    let base = build("kineticist", 20);
+    assert_eq!(
+        levels_with_slot_of(&soul, "kineticist/wild-talents"),
+        levels_with_slot_of(&base, "kineticist/wild-talents")
+    );
+}
+
+/// Ticket 182's sweep: each feature an archetype owns, with the levels the guide's sentence gives it at (the ticket's
+/// Answer quotes each). `assert_gains` builds the class and every archetype of it: the owner gains the feature at
+/// exactly these levels (a level once for each rise of its count) and no other archetype or the class gains it.
+#[test]
+fn the_barbarian_archetypes_step_the_features_the_guide_gives_steps_to() {
+    for (feature, levels) in [
+        (
+            "barbarian/armored-hulk/resilience-of-steel",
+            &[3, 6, 9, 12, 15, 18][..],
+        ),
+        (
+            "barbarian/invulnerable-rager/extreme-endurance",
+            &[3, 6, 9, 12, 15, 18][..],
+        ),
+    ] {
+        let archetype = feature.rsplit_once('/').unwrap().0;
+        assert_gains(
+            "barbarian",
+            feature,
+            &|_, build| build,
+            &[],
+            &[(archetype, Some(levels))],
+        );
+    }
+}
+
+#[test]
+fn the_bard_archetypes_step_the_features_the_guide_gives_steps_to() {
+    for (feature, levels) in [
+        (
+            "bard/archaeologist/archaeologists-luck",
+            &[1, 5, 11, 17][..],
+        ),
+        (
+            "bard/archaeologist/danger-sense",
+            &[3, 6, 9, 12, 15, 18][..],
+        ),
+        (
+            "bard/beast-tamer/beast-call",
+            &[1, 3, 5, 7, 9, 11, 13, 15, 17][..],
+        ),
+        ("bard/chelaxian-diva/deadly-vibrato", &[6, 14, 20][..]),
+        (
+            "bard/chelaxian-diva/devastating-aria",
+            &[2, 7, 11, 15, 19][..],
+        ),
+        ("bard/dirge-bard/haunting-refrain", &[5, 10, 15, 20][..]),
+        ("bard/flame-dancer/fire-dance", &[3, 6, 11][..]),
+        ("bard/thundercaller/thunder-call", &[3, 7, 11, 15, 19][..]),
+        (
+            "bard/tranquil-whisperer/inspire-tranquility",
+            &[1, 5, 11, 17][..],
+        ),
+    ] {
+        let archetype = feature.rsplit_once('/').unwrap().0;
+        assert_gains(
+            "bard",
+            feature,
+            &|_, build| build,
+            &[],
+            &[(archetype, Some(levels))],
+        );
+    }
+}
+
+#[test]
+fn the_bloodrager_archetypes_step_the_features_the_guide_gives_steps_to() {
+    for (feature, levels) in [
+        ("bloodrager/greenrager/furious-summoning", &[9, 11, 20][..]),
+        (
+            "bloodrager/hag-riven/claws-of-the-hag",
+            &[1, 2, 5, 9, 13, 17][..],
+        ),
+        (
+            "bloodrager/hag-riven/scarred-hide",
+            &[7, 10, 13, 16, 19][..],
+        ),
+    ] {
+        let archetype = feature.rsplit_once('/').unwrap().0;
+        assert_gains(
+            "bloodrager",
+            feature,
+            &|_, build| build,
+            &[],
+            &[(archetype, Some(levels))],
+        );
+    }
+}
+
+#[test]
+fn the_cavalier_archetypes_step_the_features_the_guide_gives_steps_to() {
+    for (feature, levels) in [
+        (
+            "cavalier/disciple-of-the-pike/bigger-they-are",
+            &[1, 6, 12][..],
+        ),
+        (
+            "cavalier/disciple-of-the-pike/weapon-training-spears-polearms",
+            &[5, 9, 13, 17][..],
+        ),
+        (
+            "cavalier/fearsome-leader/fearmonger",
+            &[3, 6, 9, 12, 15, 18][..],
+        ),
+        (
+            "cavalier/standard-bearer/banner-of-solace",
+            &[11, 15, 19][..],
+        ),
+    ] {
+        let archetype = feature.rsplit_once('/').unwrap().0;
+        assert_gains(
+            "cavalier",
+            feature,
+            &|_, build| build,
+            &[],
+            &[(archetype, Some(levels))],
+        );
+    }
+}
+
+#[test]
+fn the_druid_archetypes_step_the_features_the_guide_gives_steps_to() {
+    for (feature, levels) in [
+        ("druid/elemental-rampager/claws", &[1, 9, 15][..]),
+        (
+            "druid/elemental-rampager/elemental-rampage",
+            &[4, 11, 20][..],
+        ),
+        ("druid/elemental-rampager/rampage", &[1, 6, 11, 16][..]),
+        ("druid/primal-druid/primal-size", &[1, 8, 16][..]),
+        ("druid/winter-child/arctic-native", &[4, 8, 12, 16, 20][..]),
+        ("druid/winter-child/call-a-feast", &[1, 10, 15][..]),
+    ] {
+        let archetype = feature.rsplit_once('/').unwrap().0;
+        assert_gains(
+            "druid",
+            feature,
+            &|_, build| build,
+            &[],
+            &[(archetype, Some(levels))],
+        );
+    }
+}
+
+#[test]
+fn the_fighter_archetypes_step_the_features_the_guide_gives_steps_to() {
+    for (feature, levels) in [
+        (
+            "fighter/defender-of-the-hearth/shield-block",
+            &[1, 5, 10, 15, 20][..],
+        ),
+        (
+            "fighter/tower-shield-specialist/burst-barrier",
+            &[2, 6, 10, 14, 18][..],
+        ),
+        (
+            "fighter/two-handed-fighter/strong-grip",
+            &[2, 6, 10, 14, 18][..],
+        ),
+        (
+            "fighter/two-handed-fighter/two-handed-weapon-training",
+            &[5, 9, 13, 17][..],
+        ),
+    ] {
+        let archetype = feature.rsplit_once('/').unwrap().0;
+        assert_gains(
+            "fighter",
+            feature,
+            &|_, build| build,
+            &[],
+            &[(archetype, Some(levels))],
+        );
+    }
+}
+
+#[test]
+fn the_hunter_archetypes_step_the_features_the_guide_gives_steps_to() {
+    for (feature, levels) in [
+        ("hunter/colluding-scoundrel/backstabber", &[8, 15][..]),
+        ("hunter/colluding-scoundrel/scapegoat", &[1, 8, 15][..]),
+        ("hunter/forester/tactician", &[3, 7, 12, 17][..]),
+        (
+            "hunter/wandering-marksman/planned-distraction",
+            &[3, 12, 18][..],
+        ),
+    ] {
+        let archetype = feature.rsplit_once('/').unwrap().0;
+        assert_gains(
+            "hunter",
+            feature,
+            &|_, build| build,
+            &[],
+            &[(archetype, Some(levels))],
+        );
+    }
+}
+
+#[test]
+fn the_inquisitor_archetypes_step_the_features_the_guide_gives_steps_to() {
+    for (feature, levels) in [
+        (
+            "inquisitor/faith-hunter/sworn-enemy-smite",
+            &[6, 10, 14, 18][..],
+        ),
+        (
+            "inquisitor/living-grimoire/blessed-script",
+            &[5, 10, 16][..],
+        ),
+        (
+            "inquisitor/tactical-leader/swift-tactician",
+            &[3, 6, 9, 12, 15, 18][..],
+        ),
+    ] {
+        let archetype = feature.rsplit_once('/').unwrap().0;
+        assert_gains(
+            "inquisitor",
+            feature,
+            &|_, build| build,
+            &[],
+            &[(archetype, Some(levels))],
+        );
+    }
+}
+
+#[test]
+fn the_kineticist_archetypes_step_the_features_the_guide_gives_steps_to() {
+    let feature = "kineticist/kinetic-knight/knights-resolve";
+    let levels = &[3, 5, 7, 9, 11, 13, 15, 17, 19][..];
+    assert_gains(
+        "kineticist",
+        feature,
+        &|_, build| build,
+        &[],
+        &[(feature.rsplit_once('/').unwrap().0, Some(levels))],
+    );
+}
+
+#[test]
+fn the_magus_archetypes_step_the_features_the_guide_gives_steps_to() {
+    for (feature, levels) in [
+        ("magus/bladebound/black-blade", &[1, 5, 9, 13, 17][..]),
+        (
+            "magus/bladebound/sharpening-the-black-blade",
+            &[3, 6, 9, 12, 15, 18][..],
+        ),
+        (
+            "magus/armored-battlemage/arcane-pool-armored-battlemage",
+            &[1, 5, 9, 13, 17][..],
+        ),
+        ("magus/spell-dancer/spell-dance", &[1, 5, 9, 13, 17][..]),
+    ] {
+        let archetype = feature.rsplit_once('/').unwrap().0;
+        assert_gains(
+            "magus",
+            feature,
+            &|_, build| build,
+            &[],
+            &[(archetype, Some(levels))],
+        );
+    }
+}
+
+#[test]
+fn the_monk_archetypes_step_the_features_the_guide_gives_steps_to() {
+    for (feature, levels) in [
+        ("monk/drunken-master/drunken-courage", &[7, 11][..]),
+        (
+            "monk/drunken-master/drunken-ki",
+            &[3, 5, 7, 8, 9, 11, 13, 15, 17, 19][..],
+        ),
+        ("monk/drunken-master/drunken-resilience", &[9, 15, 19][..]),
+        ("monk/sensei/mystic-powers", &[6, 10][..]),
+        ("monk/sensei/mystic-wisdom", &[10, 14][..]),
+        ("monk/sohei/ki-weapon", &[4, 8, 12, 16, 20][..]),
+        ("monk/student-of-stone/bones-of-stone", &[7, 10, 15][..]),
+        ("monk/student-of-stone/soul-of-stone", &[12, 16][..]),
+    ] {
+        let archetype = feature.rsplit_once('/').unwrap().0;
+        assert_gains(
+            "monk",
+            feature,
+            &|_, build| build,
+            &[],
+            &[(archetype, Some(levels))],
+        );
+    }
+}
+
+#[test]
+fn the_oracle_archetypes_step_the_features_the_guide_gives_steps_to() {
+    for (feature, levels) in [
+        (
+            "oracle/enlightened-philosopher/mental-acuity",
+            &[7, 10, 13, 16, 19][..],
+        ),
+        ("oracle/lone-strider/fade-from-memory", &[7, 14][..]),
+        ("oracle/lone-strider/recluses-stride", &[1, 5, 10][..]),
+        (
+            "oracle/possessed-oracle/powerless-prophecy",
+            &[1, 5, 10, 15][..],
+        ),
+        ("oracle/purifier/celestial-armor", &[7, 11][..]),
+        ("oracle/wind-whisperer/haste-of-the-wind", &[7, 13, 19][..]),
+    ] {
+        let archetype = feature.rsplit_once('/').unwrap().0;
+        assert_gains(
+            "oracle",
+            feature,
+            &|_, build| build,
+            &[],
+            &[(archetype, Some(levels))],
+        );
+    }
+}
+
+#[test]
+fn the_paladin_archetypes_step_the_features_the_guide_gives_steps_to() {
+    for (feature, levels) in [
+        (
+            "paladin/hospitaler/smite-evil-hospitaler",
+            &[1, 7, 13, 19][..],
+        ),
+        ("paladin/stonelord/stoneblood", &[3, 9, 15][..]),
+        ("paladin/tortured-crusader/second-chance", &[2, 8, 15][..]),
+        (
+            "paladin/warrior-of-the-holy-light/power-of-faith",
+            &[4, 8, 12, 16, 20][..],
+        ),
+    ] {
+        let archetype = feature.rsplit_once('/').unwrap().0;
+        assert_gains(
+            "paladin",
+            feature,
+            &|_, build| build,
+            &[],
+            &[(archetype, Some(levels))],
+        );
+    }
+}
+
+#[test]
+fn the_ranger_archetypes_step_the_features_the_guide_gives_steps_to() {
+    for (feature, levels) in [
+        ("ranger/flamewarden/touch-of-flame", &[4, 12][..]),
+        ("ranger/stormwalker/wind-treader", &[4, 12][..]),
+    ] {
+        let archetype = feature.rsplit_once('/').unwrap().0;
+        assert_gains(
+            "ranger",
+            feature,
+            &|_, build| build,
+            &[],
+            &[(archetype, Some(levels))],
+        );
+    }
+}
+
+#[test]
+fn the_rogue_archetypes_step_the_features_the_guide_gives_steps_to() {
+    for (feature, levels) in [
+        ("rogue/knife-master/blade-sense", &[3, 6, 9, 12, 15, 18][..]),
+        (
+            "rogue/sylvan-trickster/fey-resistance",
+            &[8, 11, 14, 17, 20][..],
+        ),
+    ] {
+        let archetype = feature.rsplit_once('/').unwrap().0;
+        assert_gains(
+            "rogue",
+            feature,
+            &|_, build| build,
+            &[],
+            &[(archetype, Some(levels))],
+        );
+    }
+}
+
+#[test]
+fn the_shaman_archetypes_step_the_features_the_guide_gives_steps_to() {
+    for (feature, levels) in [
+        ("shaman/shadow-shaman/shadows", &[4, 9, 14][..]),
+        (
+            "shaman/spirit-hunter/spirit-weapon-enchantment",
+            &[1, 5, 9, 13, 17][..],
+        ),
+    ] {
+        let archetype = feature.rsplit_once('/').unwrap().0;
+        assert_gains(
+            "shaman",
+            feature,
+            &|_, build| build,
+            &[],
+            &[(archetype, Some(levels))],
+        );
+    }
+}
+
+#[test]
+fn the_shifter_archetypes_step_the_features_the_guide_gives_steps_to() {
+    for (feature, levels) in [
+        (
+            "shifter/child-of-the-manticore/manticore-aspect",
+            &[1, 5, 10, 15, 20][..],
+        ),
+        (
+            "shifter/child-of-the-manticore/manticore-shape",
+            &[4, 9, 14][..],
+        ),
+        ("shifter/griffonheart-shifter/griffon-form", &[4, 9, 14][..]),
+        ("shifter/wild-effigy/heart-of-earth", &[4, 9, 15][..]),
+    ] {
+        let archetype = feature.rsplit_once('/').unwrap().0;
+        assert_gains(
+            "shifter",
+            feature,
+            &|_, build| build,
+            &[],
+            &[(archetype, Some(levels))],
+        );
+    }
+}
+
+#[test]
+fn the_skald_archetypes_step_the_features_the_guide_gives_steps_to() {
+    for (feature, levels) in [
+        (
+            "skald/court-poet/insightful-contemplation",
+            &[1, 4, 8, 12, 16, 20][..],
+        ),
+        ("skald/inciter/caustic-ridicule", &[10, 15][..]),
+        ("skald/inciter/prompted-by-backstabbing", &[8, 13, 18][..]),
+    ] {
+        let archetype = feature.rsplit_once('/').unwrap().0;
+        assert_gains(
+            "skald",
+            feature,
+            &|_, build| build,
+            &[],
+            &[(archetype, Some(levels))],
+        );
+    }
+}
+
+#[test]
+fn the_slayer_archetypes_step_the_features_the_guide_gives_steps_to() {
+    for (feature, levels) in [
+        ("slayer/executioner/assassinate", &[10, 14, 19][..]),
+        ("slayer/stygian-slayer/invisibiliy", &[4, 8, 12, 16, 20][..]),
+        ("slayer/spawn-slayer/studied-spawn", &[5, 10, 15, 20][..]),
+    ] {
+        let archetype = feature.rsplit_once('/').unwrap().0;
+        assert_gains(
+            "slayer",
+            feature,
+            &|_, build| build,
+            &[],
+            &[(archetype, Some(levels))],
+        );
+    }
+}
+
+#[test]
+fn the_warpriest_archetypes_step_the_features_the_guide_gives_steps_to() {
+    for (feature, levels) in [
+        (
+            "warpriest/champion-of-the-faith/smite",
+            &[4, 8, 12, 16, 20][..],
+        ),
+        (
+            "warpriest/disenchanter/mystic-interference",
+            &[4, 8, 12, 16, 20][..],
+        ),
+        ("warpriest/mantis-zealot/mantis-swarm", &[4, 11, 18][..]),
+        ("warpriest/mantis-zealot/fading", &[7, 10, 13, 16, 19][..]),
+        (
+            "warpriest/proclaimer/cleanser-of-evil",
+            &[2, 5, 7, 8, 11, 13, 14, 17, 19, 20][..],
+        ),
+    ] {
+        let archetype = feature.rsplit_once('/').unwrap().0;
+        assert_gains(
+            "warpriest",
+            feature,
+            &|_, build| build,
+            &[],
+            &[(archetype, Some(levels))],
+        );
+    }
+}
+
+#[test]
+fn the_witch_archetypes_step_the_features_the_guide_gives_steps_to() {
+    for (feature, levels) in [
+        ("witch/hag-of-gyronna/sunder-hope", &[8, 14, 20][..]),
+        ("witch/hagbound/hunched-muscle", &[2, 8, 14][..]),
+        ("witch/witch-of-the-veil/shrouded-step", &[2, 8, 16][..]),
+    ] {
+        let archetype = feature.rsplit_once('/').unwrap().0;
+        assert_gains(
+            "witch",
+            feature,
+            &|_, build| build,
+            &[],
+            &[(archetype, Some(levels))],
+        );
+    }
+}
+
+#[test]
+fn the_wizard_archetypes_step_the_features_the_guide_gives_steps_to() {
+    for (feature, levels) in [
+        ("wizard/shadowcaster/umbral-mind", &[10, 12, 14, 16, 18][..]),
+        ("wizard/spell-master/focused-spells", &[1, 8, 16][..]),
+        (
+            "wizard/spell-master/item-bond-specialization",
+            &[5, 10, 15, 20][..],
+        ),
+    ] {
+        let archetype = feature.rsplit_once('/').unwrap().0;
+        assert_gains(
+            "wizard",
+            feature,
+            &|_, build| build,
+            &[],
+            &[(archetype, Some(levels))],
+        );
+    }
+}
+
+#[test]
+fn the_arcanist_archetypes_step_the_features_the_guide_gives_steps_to() {
+    let feature = "arcanist/phantasmal-mage/arcane-metamagic";
+    let levels = &[1, 5, 11, 17][..];
+    assert_gains(
+        "arcanist",
+        feature,
+        &|_, build| build,
+        &[],
+        &[(feature.rsplit_once('/').unwrap().0, Some(levels))],
+    );
+}
