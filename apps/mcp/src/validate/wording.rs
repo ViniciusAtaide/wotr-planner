@@ -382,11 +382,22 @@ impl Wording<'_> {
                 None => issue_reason(engine, &Issue::NotAllowed),
             },
             Choice::RankLevel { rank } => match engine.rank_table_level(*rank) {
-                Some(earliest) => format!(
-                    "MR {rank} comes at level {earliest} at the earliest (the rank table's level): `mythic.{rank}.level` \
-                     takes a later level, up to the Build's last. To take the rank at level {earliest}, leave \
-                     `mythic.{rank}.level` out."
-                ),
+                Some(earliest) => {
+                    // Where the rank comes without this declaration: the table's level, or the rank below's.
+                    let mut without = self.build.clone();
+                    without.rank_levels.remove(rank);
+                    let comes_at = engine.rank_floor(&without, *rank).unwrap_or(earliest);
+                    let why = if comes_at > earliest {
+                        format!("MR {} is taken at level {comes_at}", rank - 1)
+                    } else {
+                        "the rank table's level".to_owned()
+                    };
+                    format!(
+                        "MR {rank} comes at level {comes_at} at the earliest ({why}): `mythic.{rank}.level` takes \
+                         level {comes_at} (where it comes) or a later level, up to the Build's last. To take the rank \
+                         at level {comes_at}, leave `mythic.{rank}.level` out."
+                    )
+                }
                 None => format!("There is no MR {rank}: the Mythic ranks are 1 to 10."),
             },
             _ => issue_reason(engine, &Issue::NotAllowed),

@@ -59,6 +59,7 @@ impl Declared {
         declared.point_buy(&gathered);
         declared.racial_ability(planner, &gathered);
         declared.levels(planner, &gathered);
+        declared.rank_levels(planner);
         declared.class_choices(planner, &gathered);
         for (slot, value) in &gathered.picks {
             declared.pick(planner, slot.clone(), value);
@@ -272,8 +273,9 @@ impl Declared {
                     _ => self.build.path_switch = path,
                 }
             }
-            // The level a Mythic rank is taken at; the walk checks it is later than the rank table's and one the
-            // Build has.
+            // The level a Mythic rank is taken at, kept as declared for now: `rank_levels` drops one that is where
+            // the rank comes anyway, and the walk checks the rest is later than the rank table's and one the Build
+            // has.
             (Address::RankLevel(rank), ChoiceValue::Number(level)) => {
                 self.build.rank_levels.insert(*rank, *level);
             }
@@ -504,6 +506,28 @@ impl Declared {
                 .insert(skill.clone(), number);
         }
         debug_assert!(self.build.keeps_fixed_rules());
+    }
+
+    /// Drops a declared rank level that is where the rank comes already (the rank table's level, or the rank below's
+    /// when that is later), as `choose` takes it: the current value, a no-op, so the Build is the one without it. Each
+    /// rank is judged in rank order, by where it comes without its own entry. A level before that, or any level of
+    /// a rank the Build doesn't reach, stays for the walk to refuse; a level after it stays too, a rank's own level
+    /// under a later rank below included (ticket 171's dormant level).
+    fn rank_levels(&mut self, planner: &Planner) {
+        let engine = &planner.engine;
+        let declared: Vec<(u8, u8)> = self
+            .build
+            .rank_levels
+            .iter()
+            .map(|(&r, &l)| (r, l))
+            .collect();
+        for (rank, level) in declared {
+            self.build.rank_levels.remove(&rank);
+            let comes_at = engine.rank_floor(&self.build, rank);
+            if comes_at != Some(level) || !engine.rank_reached(&self.build, rank) {
+                self.build.rank_levels.insert(rank, level);
+            }
+        }
     }
 
     /// Each class's archetype and advanced classes, the same wherever they're declared; two that differ are declared
