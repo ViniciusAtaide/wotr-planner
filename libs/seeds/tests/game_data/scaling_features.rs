@@ -555,10 +555,7 @@ fn gains(build: &Build, feature: &str) -> Vec<u8> {
 /// turn (the default first), that makes it possible as it is (the Reformed Fiend: a good tiefling); the prepared
 /// Build then tries every alignment with it (the Razmiri Infiltrator is neutral or evil). `None` when none is
 /// possible (an option the Build's class does not offer).
-pub(crate) fn playable(
-    make: impl Fn() -> Build,
-    prepare: impl Fn(Build) -> Build,
-) -> Option<Build> {
+fn playable(make: impl Fn() -> Build, prepare: impl Fn(Build) -> Build) -> Option<Build> {
     let engine = engine();
     let races = std::iter::once(None).chain(DATA.races.iter().map(|race| Some(race.key.clone())));
     let variant = |race: &Option<rules::RaceKey>, alignment: Option<rules::Alignment>| {
