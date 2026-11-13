@@ -125,8 +125,39 @@ impl Wording<'_> {
             Issue::NotAllowed => self.not_allowed(choice),
             Issue::NotReached => self.not_reached(choice),
             Issue::AlreadyHeld => self.already_held(choice),
+            issue @ Issue::Unmet(_) => self.unmet(choice, issue),
             issue => issue_reason(self.engine(), issue),
         }
+    }
+
+    /// A prerequisite unmet: the engine's text, and when a pick of a Mythic rank taken at a later level is what the
+    /// pick needs, where that pick is and which level of the rank would let it in (ticket 192, as `options` says it).
+    /// The level is tried on the declared Build without the failing pick, which must then be possible: with another
+    /// failure beside this one, the declaration says no level, only where the pick is.
+    fn unmet(&self, choice: &Choice, issue: &Issue) -> String {
+        let engine = self.engine();
+        let reason = issue_reason(engine, issue);
+        let Choice::Slot(slot) = choice else {
+            return reason;
+        };
+        let Some(later) = engine.later_rank_pick(self.build, self.sheet, slot, issue) else {
+            return reason;
+        };
+        let mut text = format!("{reason}: {}", engine.later_rank_text(&later));
+        if let Some(pick) = self.build.picks.get(slot) {
+            let mut without = self.build.clone();
+            engine.apply(&mut without, &rules::Edit::Clear(slot.clone()));
+            if engine.is_possible(&without)
+                && let Some((level, moves)) =
+                    engine.rank_level_that_lets_in(&without, slot, pick, &later)
+            {
+                text.push_str(&format!(
+                    ". {}",
+                    crate::options::opens_text(later.rank, level, &moves)
+                ));
+            }
+        }
+        text
     }
 
     /// A pick held already: where the declaration holds it, when a slot does (ticket 192), else the engine's text.

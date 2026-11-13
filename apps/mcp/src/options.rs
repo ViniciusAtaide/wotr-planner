@@ -28,6 +28,9 @@ pub(crate) struct Offer {
     /// The engine's edit that takes it; `None` for a slot's parameterised entry listed without its values, which
     /// needs one of them.
     pub edit: Option<Edit>,
+    /// For an entry listed without its values, the edit of its first value: it stands for them when the entry
+    /// breaks a later choice and the reason must name what ([`Breaks::reason`]). No edit is applied from it.
+    pub like: Option<Edit>,
     /// The filter chip it's filed under: a feat's category, an option's selection, "Base class", …
     pub category: Option<String>,
     /// A slot entry's summary, from the engine's picker; `None` when empty, and for the other pickers, whose summary
@@ -59,6 +62,7 @@ impl Offer {
             status,
             reason: None,
             edit: Some(edit),
+            like: None,
             category: None,
             summary: None,
             takes: None,
@@ -601,6 +605,10 @@ fn slot_offers(
                     status,
                     reason,
                     edit: None,
+                    like: entry
+                        .options
+                        .first()
+                        .map(|option| option.option.edit.clone()),
                     category,
                     summary,
                     takes: Some(noun),
@@ -635,6 +643,7 @@ fn slot_offers(
                         status: option.option.status,
                         reason,
                         edit: Some(option.option.edit),
+                        like: None,
                         category: category.clone(),
                         summary: summary.clone(),
                         takes: None,
@@ -668,7 +677,7 @@ fn later_rank_level(
 
 /// "MR 10 taken at level 20 opens it: `choose` `mythic.10.level` 20 first", with ", which moves MR 3 to level 13, …"
 /// when the move takes ranks above along.
-fn opens_text(rank: u8, level: u8, moves: &[(u8, u8)]) -> String {
+pub(crate) fn opens_text(rank: u8, level: u8, moves: &[(u8, u8)]) -> String {
     let along = match moves.is_empty() {
         true => String::new(),
         false => format!(", which moves {}", Engine::moves_text(moves)),
@@ -858,7 +867,7 @@ pub(crate) fn options(planner: &Planner, args: OptionsArgs) -> Result<OptionsRes
                 (Err(issue), _) => OptionStatus::Closed {
                     issue: issue_code(issue).to_owned(),
                     reason: offer.reason.clone().unwrap_or_else(|| {
-                        match (issue, &offer.edit) {
+                        match (issue, offer.edit.as_ref().or(offer.like.as_ref())) {
                             (Issue::BreaksLater, Some(edit)) => breaks.reason(&address, edit),
                             _ => None,
                         }

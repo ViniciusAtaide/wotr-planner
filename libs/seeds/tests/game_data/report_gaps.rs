@@ -475,3 +475,58 @@ fn extra_slayer_talent_needs_slayer_level_2() {
             .ends_with("or Slayer level 2 (have 0)"),
     );
 }
+
+// ---- ticket 192: labels and prerequisite texts ----------------------------------------------------------------
+
+/// The ranger's selection is "Combat Style" (it read "Combat Style Feat", and its feat slots "Combat Style Feat
+/// feat"): the level-2 slot that picks the style says so, and the feat slots it gives read "Combat Style feat".
+#[test]
+fn the_rangers_combat_style_slots_read_combat_style_and_combat_style_feat() {
+    let engine = engine();
+    let build = build("ranger", 20);
+    let sheet = engine.evaluate(&build);
+    let label = |slot: &rules::SlotId| engine.slot_label(sheet.slot(slot).expect("a ranger slot"));
+    assert_eq!(label(&selection_slot(2)), "Combat Style");
+    for level in [2, 6, 10, 14, 18] {
+        assert_eq!(label(&class_slot(level)), "Combat Style feat", "{level}");
+    }
+}
+
+/// The Dragon Disciple's first alternative is "no Bloodline yet" once, not once for each of the Sorcerer's and the
+/// Bloodrager's selections (which share a name): in `search`'s one line, in `describe`, and in a refusal.
+#[test]
+fn the_dragon_disciples_no_bloodline_yet_reads_once() {
+    let engine = engine();
+    let prerequisite = class("dragon-disciple")
+        .prerequisite
+        .as_ref()
+        .expect("a prerequisite");
+    // `search` shortens a group of more than three alternatives (`MOST_ALTERNATIVES` in the MCP server).
+    assert_eq!(
+        engine.short_prerequisite_text(prerequisite, 3),
+        "(one of 11 alternatives (no Bloodline yet, Draconic (Black), Draconic (Blue), …)), 5 ranks in Knowledge \
+         (Arcana), to cast 1st-level arcane spells spontaneously, character level 6"
+    );
+    let whole = engine.prerequisite_text(prerequisite, None);
+    assert!(
+        whole.starts_with("(no Bloodline yet or Draconic (Black) or Draconic (Blue) or "),
+        "{whole}"
+    );
+    assert_eq!(whole.matches("no Bloodline yet").count(), 1, "{whole}");
+    // A sorcerer with an Abyssal bloodline is refused the class with it said once too.
+    let sorcerer = with_option(build("sorcerer", 6), 1, 0, ABYSSAL);
+    let option = engine
+        .class_options(&sorcerer, 7)
+        .expect("the next level")
+        .into_iter()
+        .find(|option| option.class == ClassKey::new("dragon-disciple"))
+        .expect("the class is offered");
+    let reason = engine
+        .issue_text(&option.status.expect_err("a locked class"))
+        .expect("a reason");
+    assert!(
+        reason.starts_with("Needs (no Bloodline yet or Draconic (Black) or "),
+        "{reason}"
+    );
+    assert_eq!(reason.matches("no Bloodline yet").count(), 1, "{reason}");
+}

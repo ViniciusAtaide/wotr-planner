@@ -617,3 +617,22 @@ async fn withdraw_names_what_depends_on_a_choice() {
         error_text(&refused)
     );
 }
+
+#[tokio::test]
+async fn a_parameterised_entry_listed_without_its_values_names_what_it_breaks() {
+    // Ticket 192: Weapon Focus (a weapon) in the slot Cleave's Power Attack holds breaks Cleave, whatever the weapon.
+    let client = Client::on_the_test_world().await;
+    let options = client
+        .ok(
+            "options",
+            json!({ "build": code(&dependent_fighter()), "choice": "slot.feat.1.class.0",
+                    "only_open": false, "query": "weapon-focus" }),
+        )
+        .await;
+    let status = &options["options"][0]["status"];
+    assert_eq!(status["issue"], "breaks_later", "{options}");
+    assert_eq!(
+        status["reason"], "cleave depends on what `slot.feat.1.class.0` holds now",
+        "{options}"
+    );
+}

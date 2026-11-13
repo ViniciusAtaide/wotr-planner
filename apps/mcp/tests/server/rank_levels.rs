@@ -700,3 +700,38 @@ async fn a_pick_whose_prerequisite_is_a_later_ranks_says_where_and_which_level_o
         .await;
     assert_eq!(opened["applied"], 2, "{opened}");
 }
+
+#[tokio::test]
+async fn validate_says_where_a_later_ranks_pick_is_and_which_level_would_open_it() {
+    // Ticket 192: the same Build as for `options` and `choose`, declared whole.
+    let more = [
+        ("start.score.dex", json!(13)),
+        ("mythic.path", json!("trickster")),
+        ("slot.path-feat.4.0", json!("dodge")),
+        ("mythic.4.level", json!(14)),
+        ("slot.feat.13.general.0", json!("crane-style")),
+    ];
+    let invalid = ok("validate", plain(14, &more)).await;
+    assert_eq!(invalid["status"], "invalid", "{invalid}");
+    assert_eq!(
+        at(&invalid["failures"], "slot.feat.13.general.0")["reason"],
+        "Needs dodge: dodge is in Mythic rank 4's trickster/bonus-feats slot, taken at level 14, after this slot's \
+         level 13. MR 4 taken at level 12 opens it: `choose` `mythic.4.level` 12 first",
+        "{invalid}"
+    );
+    // With the rank at the level it says, the declaration is valid.
+    let mut fixed = more.to_vec();
+    fixed[3] = ("mythic.4.level", json!(12));
+    let valid = ok("validate", plain(14, &fixed)).await;
+    assert_eq!(valid["status"], "valid", "{valid}");
+    // Another failure beside it: only where the pick is, since no level can be tried on a Build that fails twice.
+    let mut twice = more.to_vec();
+    twice.push(("slot.feat.1.general.0", json!("no-such-feat")));
+    let invalid = ok("validate", plain(14, &twice)).await;
+    assert_eq!(
+        at(&invalid["failures"], "slot.feat.13.general.0")["reason"],
+        "Needs dodge: dodge is in Mythic rank 4's trickster/bonus-feats slot, taken at level 14, after this slot's \
+         level 13",
+        "{invalid}"
+    );
+}

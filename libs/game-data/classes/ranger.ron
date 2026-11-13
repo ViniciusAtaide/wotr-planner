@@ -24,7 +24,7 @@ Class(
     selections: [
         (
             key: "ranger/combat-style-feat",
-            name: "Combat Style Feat",
+            name: "Combat Style",
             summary: "A combat feat from your style, ignoring its prerequisites, or Dodge, Great Fortitude, Iron Will, Lightning Reflexes or Toughness; Skill Focus from 10th.",
             guide: "ranger#combat-style-feat",
             option_levels: ["ranger"],
