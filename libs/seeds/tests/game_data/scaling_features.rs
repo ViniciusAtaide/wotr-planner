@@ -2152,3 +2152,17 @@ fn the_barbarians_danger_sense_steps_every_three_levels() {
         ],
     );
 }
+
+/// Ticket 188: the rogue's Danger Sense (+1 every 3 levels, +6 at 18) at 3, 6, 9, 12, 15 and 18. The Knife Master
+/// (Blade Sense) and the Thug (Brutal Beating) lose it, and the Thug, with no rows at the steps, has rows of its own
+/// that carry the class's rogue talents and Sneak Attack without it.
+#[test]
+fn the_rogues_danger_sense_steps_every_three_levels() {
+    assert_gains(
+        "rogue",
+        "rogue/danger-sense",
+        &|_, build| build,
+        &[3, 6, 9, 12, 15, 18],
+        &[("rogue/knife-master", Some(&[])), ("rogue/thug", Some(&[]))],
+    );
+}
