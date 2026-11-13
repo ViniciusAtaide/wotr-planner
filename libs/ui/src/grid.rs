@@ -5,8 +5,8 @@
 
 use leptos::prelude::*;
 use rules::{
-    AbilityScores, Build, Choice, Engine, LevelSheet, Save, Sheet, Slot, SpellSchool, SpellTraits,
-    WeaponKey,
+    AbilityScores, Build, Choice, Engine, FeatCategory, LevelSheet, Save, Sheet, Slot, SpellSchool,
+    SpellTraits, WeaponKey,
 };
 
 use crate::icons::feat_icon;
@@ -426,55 +426,57 @@ fn Summary(sheet: std::sync::Arc<Sheet>) -> impl IntoView {
     });
     view! {
         <section class="summary" aria-label="Summary">
-            <p class="summary-classes">
-                <strong>{format!("Level {}", state.character_level)}</strong>
-                {format!(" · {}", classes.join(" / "))}
-                {mythic}
-            </p>
-            <p class="summary-numbers">
-                {format!(
-                    "BAB +{} · Fort +{} · Ref +{} · Will +{}",
-                    state.bab,
-                    state.fort,
-                    state.reflex,
-                    state.will,
-                )}
-            </p>
-            <p class="summary-numbers">{scores}</p>
-            {gear_totals}
-            {(!gear_dependents.is_empty())
-                .then(|| {
-                    view! {
-                        <p class="summary-note gear-note">
-                            {format!("Gear-dependent: {}", gear_dependents.join("; "))}
-                        </p>
-                    }
-                })}
-            {(!rank_levels.is_empty())
-                .then(|| {
-                    view! {
-                        <p class="summary-note rank-levels">
-                            {format!("Mythic ranks by level: {}", rank_levels.join(" · "))}
-                        </p>
-                    }
-                })}
-            {faith.map(|faith| view! { <p class="summary-note">{format!("Faith: {faith}")}</p> })}
-            {(!class_skills.is_empty())
-                .then(|| {
-                    view! {
-                        <p class="summary-note">
-                            {format!("Class skills: {}", class_skills.join(", "))}
-                        </p>
-                    }
-                })}
-            {(!daily.is_empty())
-                .then(|| {
-                    view! {
-                        <p class="summary-note">
-                            {format!("Chosen each day in the game: {}", daily.join(", "))}
-                        </p>
-                    }
-                })}
+            <div class="summary-info">
+                <p class="summary-classes">
+                    <strong>{format!("Level {}", state.character_level)}</strong>
+                    {format!(" · {}", classes.join(" / "))}
+                    {mythic}
+                </p>
+                <p class="summary-numbers">
+                    {format!(
+                        "BAB +{} · Fort +{} · Ref +{} · Will +{}",
+                        state.bab,
+                        state.fort,
+                        state.reflex,
+                        state.will,
+                    )}
+                </p>
+                <p class="summary-numbers">{scores}</p>
+                {gear_totals}
+                {(!gear_dependents.is_empty())
+                    .then(|| {
+                        view! {
+                            <p class="summary-note gear-note">
+                                {format!("Gear-dependent: {}", gear_dependents.join("; "))}
+                            </p>
+                        }
+                    })}
+                {(!rank_levels.is_empty())
+                    .then(|| {
+                        view! {
+                            <p class="summary-note rank-levels">
+                                {format!("Mythic ranks by level: {}", rank_levels.join(" · "))}
+                            </p>
+                        }
+                    })}
+                {faith.map(|faith| view! { <p class="summary-note">{format!("Faith: {faith}")}</p> })}
+                {(!class_skills.is_empty())
+                    .then(|| {
+                        view! {
+                            <p class="summary-note">
+                                {format!("Class skills: {}", class_skills.join(", "))}
+                            </p>
+                        }
+                    })}
+                {(!daily.is_empty())
+                    .then(|| {
+                        view! {
+                            <p class="summary-note">
+                                {format!("Chosen each day in the game: {}", daily.join(", "))}
+                            </p>
+                        }
+                    })}
+            </div>
             <AttackBlock sheet=sheet.clone()/>
         </section>
     }
@@ -572,9 +574,9 @@ fn AttackBlock(sheet: std::sync::Arc<Sheet>) -> impl IntoView {
     };
     view! {
         <div class="attack">
-            <label class="attack-weapon">
-                <span class="attack-label">"Attack with"</span>
-                <select on:change=move |event| {
+            <label class="attack-weapon" title="Attack with">
+                <span class="attack-label">{feat_icon(FeatCategory::Weapon)}</span>
+                <select aria-label="Attack with" on:change=move |event| {
                     let value = event_target_value(&event);
                     planner
                         .attack_weapon
