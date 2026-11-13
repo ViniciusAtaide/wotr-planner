@@ -192,19 +192,52 @@ input[type="search"] {
   color: var(--bad);
 }
 
-/* The build sheet's actions: two buttons side by side, and the confirmation after them (below them when the cover
-   screen has no room). */
+/* The build sheet's actions: a ⋯ button at the end of the header that opens a small menu under it, above the sticky
+   tabs and below the picker. The confirmation shows in the same place once the menu closes. */
 .export {
+  position: relative;
+  flex: none;
+}
+
+.export-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 19;
+}
+
+.export-menu,
+.export-status {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 20;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg);
+  box-shadow: var(--shadow);
+}
+
+.export-menu {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  margin: 0 0 10px;
+  flex-direction: column;
+  min-width: 200px;
+  padding: 4px;
+}
+
+.export-menu button {
+  border-color: transparent;
+  background: transparent;
+}
+
+.export-menu button:hover {
+  background: var(--surface-2);
 }
 
 .export-status {
+  padding: 8px 12px;
   color: var(--accent);
   font-size: 14px;
+  white-space: nowrap;
 }
 
 .export-status:empty {

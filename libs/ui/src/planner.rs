@@ -306,9 +306,9 @@ fn SheetView(engine: Arc<Engine>) -> impl IntoView {
             <header class="top">
                 <h1>"WotR Planner"</h1>
                 <BuildName/>
+                <BuildSheetActions/>
             </header>
             <ErrorBanner/>
-            <BuildSheetActions/>
             <BuildStartPanel/>
             <Tabs/>
             <Picker/>

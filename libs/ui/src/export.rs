@@ -1,6 +1,7 @@
 //! The build sheet's actions (ticket 87): copy the Build as a readable build sheet ([`rules::Engine::build_sheet`])
-//! to the clipboard, or save it as a `.txt` file, each confirmed by a short message. Plain buttons, so they work by
-//! touch on both Fold screens.
+//! to the clipboard, or save it as a `.txt` file, each confirmed by a short message. They sit in a small menu at the
+//! end of the header, so they take no row of their own; its items are plain buttons, so they work by touch on both
+//! Fold screens.
 
 use std::time::Duration;
 
@@ -15,6 +16,7 @@ const CONFIRMATION: Duration = Duration::from_secs(3);
 #[component]
 pub fn BuildSheetActions() -> AnyView {
     let planner = use_planner();
+    let open = RwSignal::new(false);
     let status = RwSignal::new(None::<&'static str>);
     // Each message clears itself unless a later one replaced it.
     let confirm = move |message: &'static str| {
@@ -39,6 +41,7 @@ pub fn BuildSheetActions() -> AnyView {
         })
     };
     let copy = move |_| {
+        open.set(false);
         let text = text();
         leptos::task::spawn_local(async move {
             if browser::copy_text(&text).await {
@@ -49,6 +52,7 @@ pub fn BuildSheetActions() -> AnyView {
         });
     };
     let download = move |_| {
+        open.set(false);
         let name = planner
             .build
             .with_untracked(|build| file_name(build.name.as_deref()));
@@ -59,13 +63,41 @@ pub fn BuildSheetActions() -> AnyView {
         }
     };
     view! {
-        <div class="export">
-            <button class="export-copy" on:click=copy>
-                "Copy build sheet"
+        <div
+            class="export"
+            on:keydown=move |event| {
+                if event.key() == "Escape" {
+                    open.set(false);
+                }
+            }
+        >
+            <button
+                class="icon export-toggle"
+                aria-label="Export build sheet"
+                title="Export build sheet"
+                aria-haspopup="menu"
+                aria-expanded=move || open.get().to_string()
+                on:click=move |_| open.update(|open| *open = !*open)
+            >
+                "⋯"
             </button>
-            <button class="export-download" on:click=download>
-                "Download .txt"
-            </button>
+            {move || {
+                open.get()
+                    .then(|| {
+                        view! {
+                            // A click anywhere outside the menu closes it.
+                            <div class="export-backdrop" on:click=move |_| open.set(false)></div>
+                            <div class="export-menu" role="menu">
+                                <button class="export-copy" role="menuitem" on:click=copy>
+                                    "Copy build sheet"
+                                </button>
+                                <button class="export-download" role="menuitem" on:click=download>
+                                    "Download .txt"
+                                </button>
+                            </div>
+                        }
+                    })
+            }}
             <span class="export-status" role="status" aria-live="polite">
                 {move || status.get()}
             </span>
