@@ -107,7 +107,7 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   never had (ticket 179: the Dragonheir Scion takes none of its Draconic bloodline's rows, as its table gives none
   of the bloodline's powers, so its `skipped_levels` are `[1, 3, 9, 15, 20]`, the resistances' step at 9 included).
   `scaling_features.rs` pins the steps, and checks the skipped rows of every selection against every option it
-  offers.
+  offers. The Invulnerable Rager's Damage Reduction is its own feature, `barbarian/invulnerable-rager/damage-reduction-invulnerable-rager` (key slugged from its name "Damage Reduction (Invulnerable Rager)", as the archetype variants of a base feature are), granted at every even level 2 to 20: ten grants, read from the guide's table and the overview's 10/-, since the guide has no sentence for it. Its rows at 10 and 16 are its own: with none, those levels fall back to the base rows and grant the barbarian's Damage Reduction (ticket 193).
 - The rogue's Finesse Training is a pick, not a label (ticket 172: the user's "make finesse training take a weapon",
   for the Enforcer's "Finesse Training - Light Shield", reversing ticket 54's "choices that gate no pick stay labels"
   for this feature only). The guide (`rogue#finesse-training`): "At 3rd level, a Rogue may select a finessable weapon

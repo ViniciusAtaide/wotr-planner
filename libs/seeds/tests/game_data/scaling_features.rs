@@ -2061,3 +2061,71 @@ fn features_whose_steps_are_features_of_their_own_are_granted_once() {
             .contains_key(&rules::FeatKey::new("armor-proficiency-heavy-armor"))
     );
 }
+
+const INVULNERABLE_RAGER: &str = "barbarian/invulnerable-rager";
+const RAGER_DAMAGE_REDUCTION: &str =
+    "barbarian/invulnerable-rager/damage-reduction-invulnerable-rager";
+
+/// Ticket 193: the Invulnerable Rager's table gives Damage Reduction at every even level from 2 to 20. It is a
+/// feature of the archetype's own, on its rows at 10 and 16 as well (the archetype has no other row there to
+/// take it from the base class's), and no other archetype or the class gains it.
+#[test]
+fn the_invulnerable_ragers_damage_reduction_is_its_own_at_every_even_level() {
+    assert_gains(
+        "barbarian",
+        RAGER_DAMAGE_REDUCTION,
+        &|_, build| build,
+        &[],
+        &[(
+            INVULNERABLE_RAGER,
+            Some(&[2, 4, 6, 8, 10, 12, 14, 16, 18, 20]),
+        )],
+    );
+}
+
+/// The barbarian's own Damage Reduction (7, 10, 13, 16, 19) is not the Invulnerable Rager's, and the other
+/// archetypes keep what they had: the Armored Hulk and the Beastskin Berserker the class's rows, the Mad Dog its
+/// delayed 10 and then the class's, the Flesheater, the Instinctual Warrior and the Pack Rager none.
+#[test]
+fn the_barbarians_damage_reduction_is_not_the_invulnerable_ragers() {
+    assert_gains(
+        "barbarian",
+        "barbarian/damage-reduction",
+        &|_, build| build,
+        &[7, 10, 13, 16, 19],
+        &[
+            (INVULNERABLE_RAGER, Some(&[])),
+            ("barbarian/flesheater", Some(&[])),
+            ("barbarian/instinctual-warrior", Some(&[])),
+            ("barbarian/pack-rager", Some(&[])),
+            ("barbarian/mad-dog", Some(&[10, 13, 16, 19])),
+        ],
+    );
+}
+
+#[test]
+fn the_two_damage_reductions_are_named_for_their_owners() {
+    let engine = engine();
+    assert_eq!(
+        engine.feature_name_apart(&FeatureKey::new(RAGER_DAMAGE_REDUCTION)),
+        "Damage Reduction (Invulnerable Rager)"
+    );
+    assert_eq!(
+        engine.feature_name_apart(&FeatureKey::new("barbarian/damage-reduction")),
+        "Damage Reduction (Barbarian)"
+    );
+}
+
+/// The rows at 10 and 16 carry the rage power the class's rows give there.
+#[test]
+fn the_invulnerable_rager_has_a_rage_power_at_every_even_level() {
+    let build = playable(
+        || archetype_build("barbarian", INVULNERABLE_RAGER, 20),
+        |build| build,
+    )
+    .unwrap();
+    assert_eq!(
+        levels_with_slot_of(&build, "barbarian/rage-power"),
+        [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
+    );
+}
