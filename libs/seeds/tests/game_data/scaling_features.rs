@@ -524,8 +524,6 @@ fn no_selection_gains_a_step_of_a_feature_whose_first_row_it_skips() {
 
 // ---- ticket 177: the other stepped features ----------------------------------------------------------------------
 
-use std::collections::BTreeMap;
-
 const ALIGNMENTS: [rules::Alignment; 9] = [
     rules::Alignment::LawfulGood,
     rules::Alignment::NeutralGood,
@@ -613,37 +611,105 @@ fn with_own_or_base(
     }
 }
 
-/// What each archetype of `class` (and the class itself, under `""`) gains `feature` at, at class level 20, as a
-/// possible Build `prepare` has taken the option or choice that carries the feature (`None` when no Build is
-/// possible).
-fn class_gains(
+/// Whether the archetype's level 1 (the class's own when the archetype has no row there) has a selection that offers
+/// `option`, own or shared.
+fn offers(class_key: &str, archetype: Option<&str>, option: &str) -> bool {
+    let class = class(class_key);
+    let own = archetype.and_then(|key| {
+        class
+            .archetypes
+            .iter()
+            .find(|archetype| archetype.key.as_str() == key)
+            .and_then(|archetype| archetype.levels.iter().find(|row| row.level == 1))
+            .map(|row| &row.selections)
+    });
+    let selections = own.unwrap_or_else(|| {
+        &class
+            .levels
+            .iter()
+            .find(|row| row.level == 1)
+            .unwrap()
+            .selections
+    });
+    selections.iter().any(|key| {
+        DATA.selections()
+            .find(|selection| selection.key == *key)
+            .is_some_and(|selection| {
+                selection
+                    .offered()
+                    .iter()
+                    .any(|offered| offered.as_str() == option)
+            })
+    })
+}
+
+/// Asserts what each archetype of `class_key` (and the class itself) gains `feature` at, at class level 20: the class
+/// and every archetype not named in `exceptions` gain it at `default`, each exception at its own levels. Every
+/// archetype is built as a possible Build.
+///
+/// `option` is the option that carries the feature (`""` for a feature that is the archetype's own). An archetype that
+/// `takes` it must be offered it and hold it on its sheet; an exception `None` names an archetype that is not offered
+/// it (checked from the selections' options, not from a failed Build) and holds the feature never.
+fn assert_gains_of_option(
     class_key: &str,
     feature: &str,
+    option: &str,
+    takes: &dyn Fn(Option<&str>) -> bool,
     prepare: &dyn Fn(Option<&str>, Build) -> Build,
-) -> BTreeMap<String, Option<Vec<u8>>> {
+    default: &[u8],
+    exceptions: &[(&str, Option<&[u8]>)],
+) {
     let archetypes = class(class_key)
         .archetypes
         .iter()
         .map(|a| Some(a.key.as_str()));
-    std::iter::once(None)
-        .chain(archetypes)
-        .map(|archetype| {
-            let make = || match archetype {
-                Some(key) => archetype_build(class_key, key, 20),
-                None => build(class_key, 20),
-            };
-            let build = playable(make, |build| prepare(archetype, build));
-            (
-                archetype.unwrap_or("").to_owned(),
-                build.map(|build| gains(&build, feature)),
-            )
-        })
-        .collect()
+    for (key, _) in exceptions {
+        assert!(
+            class(class_key)
+                .archetypes
+                .iter()
+                .any(|a| a.key.as_str() == *key),
+            "{class_key}: {key}"
+        );
+    }
+    for archetype in std::iter::once(None).chain(archetypes) {
+        let make = || match archetype {
+            Some(key) => archetype_build(class_key, key, 20),
+            None => build(class_key, 20),
+        };
+        let label = format!("{class_key} {archetype:?}: {feature}");
+        let expected = exceptions
+            .iter()
+            .find(|(key, _)| Some(*key) == archetype)
+            .map_or(Some(default), |(_, levels)| *levels);
+        let Some(expected) = expected else {
+            assert!(!option.is_empty(), "{label}: no option to be offered");
+            assert!(
+                !offers(class_key, archetype, option),
+                "{label}: offered {option}"
+            );
+            let build = playable(make, |build| build).unwrap();
+            assert_eq!(gains(&build, feature), Vec::<u8>::new(), "{label}");
+            continue;
+        };
+        let taking = !option.is_empty() && takes(archetype);
+        if taking {
+            assert!(
+                offers(class_key, archetype, option),
+                "{label}: not offered {option}"
+            );
+        }
+        let build = playable(make, |build| prepare(archetype, build))
+            .unwrap_or_else(|| panic!("{label}: no possible Build"));
+        if taking {
+            let held = at(&build, 20).option_count(&rules::SelectionOptionKey::new(option));
+            assert_eq!(held, 1, "{label}: holds {option}");
+        }
+        assert_eq!(gains(&build, feature), expected, "{label}");
+    }
 }
 
-/// Asserts `class_gains`: the class and every archetype not named in `exceptions` gain `feature` at `default`, and
-/// each exception at its own levels (`None`: no possible Build, the option is not offered to it). Every archetype of
-/// the class is built; an exception names an archetype the class has.
+/// [`assert_gains_of_option`] for a feature that is the archetype's own: no option to take.
 fn assert_gains(
     class_key: &str,
     feature: &str,
@@ -651,21 +717,15 @@ fn assert_gains(
     default: &[u8],
     exceptions: &[(&str, Option<&[u8]>)],
 ) {
-    let actual = class_gains(class_key, feature, prepare);
-    for (archetype, _) in exceptions {
-        assert!(actual.contains_key(*archetype), "{class_key}: {archetype}");
-    }
-    let expected: BTreeMap<String, Option<Vec<u8>>> = actual
-        .keys()
-        .map(|archetype| {
-            let levels = exceptions
-                .iter()
-                .find(|(key, _)| key == archetype)
-                .map_or(Some(default), |(_, levels)| *levels);
-            (archetype.clone(), levels.map(<[u8]>::to_vec))
-        })
-        .collect();
-    assert_eq!(actual, expected, "{class_key}: {feature}");
+    assert_gains_of_option(
+        class_key,
+        feature,
+        "",
+        &|_| true,
+        prepare,
+        default,
+        exceptions,
+    );
 }
 
 /// The sorcerer's bloodlines whose power steps at bloodline level 9 (ticket 177), with the guide's sentence for each
@@ -720,26 +780,32 @@ fn every_sorcerer_archetype_holds_the_steps_of_the_bloodline_resistances() {
     ];
     for (option, feature, levels) in steps {
         let celestial = option == "sorcerer/bloodline/celestial";
-        let empyreal: &[u8] = if celestial { levels } else { &[] };
-        assert_gains(
+        let empyreal: Option<&[u8]> = celestial.then_some(levels);
+        assert_gains_of_option(
             "sorcerer",
             feature,
+            option,
+            &|_| true,
             &|archetype, build| {
                 with_own_or_base(build, archetype, "bloodline", "sorcerer/bloodline", option)
             },
             levels,
             &[
+                // The Seeker is offered every bloodline and holds the one it picks, but none of its steps.
                 ("sorcerer/seeker-sorcerer", Some(&[])),
-                ("sorcerer/empyreal-sorcerer", Some(empyreal)),
-                ("sorcerer/sage-sorcerer", Some(&[])),
-                ("sorcerer/sylvan-sorcerer", Some(&[])),
+                // The Empyreal Sorcerer's fixed bloodline is Celestial; the Sage's Arcane and the Sylvan's Fey.
+                ("sorcerer/empyreal-sorcerer", empyreal),
+                ("sorcerer/sage-sorcerer", None),
+                ("sorcerer/sylvan-sorcerer", None),
             ],
         );
     }
     // The fourth Elemental element, and every one of the four through the class itself.
-    assert_gains(
+    assert_gains_of_option(
         "sorcerer",
         "sorcerer/bloodline/elemental/elemental-resistances",
+        "sorcerer/bloodline/elemental-water",
+        &|_| true,
         &|archetype, build| {
             with_own_or_base(
                 build,
@@ -752,9 +818,9 @@ fn every_sorcerer_archetype_holds_the_steps_of_the_bloodline_resistances() {
         &[3, 9],
         &[
             ("sorcerer/seeker-sorcerer", Some(&[])),
-            ("sorcerer/empyreal-sorcerer", Some(&[])),
-            ("sorcerer/sage-sorcerer", Some(&[])),
-            ("sorcerer/sylvan-sorcerer", Some(&[])),
+            ("sorcerer/empyreal-sorcerer", None),
+            ("sorcerer/sage-sorcerer", None),
+            ("sorcerer/sylvan-sorcerer", None),
         ],
     );
 }
@@ -776,9 +842,11 @@ fn the_bloodragers_infernal_resistance_and_abyssal_bloodrage_step() {
             &[12, 16, 20][..],
         ),
     ] {
-        assert_gains(
+        assert_gains_of_option(
             "bloodrager",
             feature,
+            option,
+            &|_| true,
             &|_, build| with_option(build, 1, 0, option),
             levels,
             &[
@@ -819,16 +887,20 @@ fn the_dragonheir_scions_defences_and_fearful_might_step() {
             Some("fighter/dragonheir-scion") => with_option(build, 1, 0, &option),
             _ => build,
         };
-        assert_gains(
+        assert_gains_of_option(
             "fighter",
             "fighter/dragonheir-scion/draconic-defences",
+            &option,
+            &|archetype| archetype == Some("fighter/dragonheir-scion"),
             &prepare,
             &[],
             &[("fighter/dragonheir-scion", Some(&[3, 7, 13]))],
         );
-        assert_gains(
+        assert_gains_of_option(
             "fighter",
             "fighter/dragonheir-scion/fearful-might",
+            &option,
+            &|archetype| archetype == Some("fighter/dragonheir-scion"),
             &prepare,
             &[],
             &[("fighter/dragonheir-scion", Some(&[2, 6, 10, 14, 18]))],
@@ -872,9 +944,11 @@ fn the_fake_celebritys_inhibit_courage_steps() {
         } else {
             &[]
         };
-        assert_gains(
+        assert_gains_of_option(
             "arcanist",
             "arcanist/magic-deceiver/ways-of-the-deceiver/fake-celebrity/inhibit-courage",
+            &option,
+            &|archetype| archetype == Some("arcanist/magic-deceiver"),
             &|archetype, build| match archetype {
                 Some("arcanist/magic-deceiver") => {
                     let slot = slot_of(&build, 1, WAYS);
@@ -941,9 +1015,11 @@ fn the_shifters_aspects_and_defences_step() {
 
 #[test]
 fn the_battle_spirit_steps_at_8_and_16_for_every_shaman_that_takes_it() {
-    assert_gains(
+    assert_gains_of_option(
         "shaman",
         "shaman/spirit/battle/battle-spirit",
+        "shaman/spirit/battle",
+        &|_| true,
         &|archetype, build| {
             with_own_or_base(
                 build,
@@ -955,9 +1031,9 @@ fn the_battle_spirit_steps_at_8_and_16_for_every_shaman_that_takes_it() {
         },
         &[1, 8, 16],
         &[
-            // A fixed Pestilence spirit; wandering spirits only: no spirit to pick, none held.
-            ("shaman/prophet-of-pestilence", Some(&[])),
-            ("shaman/unsworn-shaman", Some(&[])),
+            // A fixed Pestilence spirit; wandering spirits only: the Battle spirit is not offered to them.
+            ("shaman/prophet-of-pestilence", None),
+            ("shaman/unsworn-shaman", None),
         ],
     );
 }
@@ -1113,12 +1189,12 @@ fn the_selections_sharing_a_stepped_option_hold_the_steps_its_rows_give() {
 /// traded away), and one taking them at 8 loses the step.
 #[test]
 fn a_primalists_rage_powers_replace_the_row_and_its_step_with_it() {
-    let primalist = |rage_powers_at: &[u8]| {
+    let primalist = |option: &str, rage_powers_at: &[u8]| {
         let mut build = with_option(
             archetype_build("bloodrager", "bloodrager/primalist", 20),
             1,
             0,
-            "bloodrager/bloodline/infernal",
+            option,
         );
         for &level in rage_powers_at {
             let slot = slot_of(&build, level, "bloodrager/primalist/primal-choices");
@@ -1131,9 +1207,25 @@ fn a_primalists_rage_powers_replace_the_row_and_its_step_with_it() {
         assert!(engine().is_possible(&build), "{rage_powers_at:?}");
         build
     };
-    const FEATURE: &str = "bloodrager/bloodline/infernal/infernal-resistance";
-    assert_eq!(gains(&primalist(&[]), FEATURE), [4, 8]);
-    assert_eq!(gains(&primalist(&[4]), FEATURE), [8]);
-    assert_eq!(gains(&primalist(&[8]), FEATURE), [4]);
-    assert_eq!(gains(&primalist(&[4, 8]), FEATURE), Vec::<u8>::new());
+    const INFERNAL: &str = "bloodrager/bloodline/infernal";
+    const RESISTANCE: &str = "bloodrager/bloodline/infernal/infernal-resistance";
+    assert_eq!(gains(&primalist(INFERNAL, &[]), RESISTANCE), [4, 8]);
+    assert_eq!(gains(&primalist(INFERNAL, &[4]), RESISTANCE), [8]);
+    assert_eq!(gains(&primalist(INFERNAL, &[8]), RESISTANCE), [4]);
+    assert_eq!(
+        gains(&primalist(INFERNAL, &[4, 8]), RESISTANCE),
+        Vec::<u8>::new()
+    );
+    // The Abyssal bloodline's Abyssal Bloodrage (first at 12, steps at 16 and 20) leaks the same way: trading the
+    // row at 12 never grants it, yet the steps still come; trading a later row drops that step.
+    const ABYSSAL: &str = "bloodrager/bloodline/abyssal";
+    const BLOODRAGE: &str = "bloodrager/bloodline/abyssal/abyssal-bloodrage";
+    assert_eq!(gains(&primalist(ABYSSAL, &[]), BLOODRAGE), [12, 16, 20]);
+    assert_eq!(gains(&primalist(ABYSSAL, &[12]), BLOODRAGE), [16, 20]);
+    assert_eq!(gains(&primalist(ABYSSAL, &[16]), BLOODRAGE), [12, 20]);
+    assert_eq!(gains(&primalist(ABYSSAL, &[20]), BLOODRAGE), [12, 16]);
+    assert_eq!(
+        at(&primalist(ABYSSAL, &[12]), 20).feature_count(&FeatureKey::new(BLOODRAGE)),
+        2
+    );
 }
