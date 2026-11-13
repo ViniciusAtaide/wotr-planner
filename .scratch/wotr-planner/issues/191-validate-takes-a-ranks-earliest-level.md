@@ -41,6 +41,8 @@ Done 2026-11-13 (branch `ticket/191-validate-rank-earliest-level`, from `main` a
 4. A rank's own level under a later rank below (171's dormant level, `{3: 13, 4: 12}`) behaves as before, and is pinned.
 5. No edit to `validate`'s description or the `wotr-build` skill: left as they are.
 
+- **Review fix:** for a rank the Build does not reach, declared at the level it would come at, the `not_allowed` reason says the Build doesn't reach the rank, and why: too few levels ("MR 5 comes at level 14 at the earliest, and the Build has 13 level(s)"), or a Legend switch ("its Path switch (Legend) ends the ascensions at MR 8"). The issue code is unchanged; both reasons are pinned in `validate_refuses_the_earliest_level_of_a_rank_the_build_does_not_reach`.
+
 ### Tests (`apps/mcp/tests/server/rank_levels.rs`)
 
 - Changed: `validate_takes_a_ranks_level_and_says_why_one_is_none` no longer expects the table's level to be refused; level 10 is.

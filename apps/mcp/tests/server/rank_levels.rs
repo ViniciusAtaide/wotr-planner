@@ -480,6 +480,11 @@ async fn validate_refuses_the_earliest_level_of_a_rank_the_build_does_not_reach(
         at(&short["failures"], "mythic.5.level")["issue"],
         "not_allowed"
     );
+    assert_eq!(
+        text(&at(&short["failures"], "mythic.5.level")["reason"]),
+        "The Build doesn't reach MR 5, so `mythic.5.level` has no level to take it at: MR 5 comes at level 14 at \
+         the earliest, and the Build has 13 level(s)."
+    );
     let refused = Client::on_the_test_world()
         .await
         .call(
@@ -503,6 +508,11 @@ async fn validate_refuses_the_earliest_level_of_a_rank_the_build_does_not_reach(
     assert_eq!(
         at(&ended["failures"], "mythic.9.level")["issue"],
         "not_allowed"
+    );
+    assert_eq!(
+        text(&at(&ended["failures"], "mythic.9.level")["reason"]),
+        "The Build doesn't reach MR 9, so `mythic.9.level` has no level to take it at: its Path switch (Legend) \
+         ends the ascensions at MR 8."
     );
 }
 
