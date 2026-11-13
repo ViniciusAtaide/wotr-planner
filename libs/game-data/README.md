@@ -428,25 +428,30 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   `barbarian/rage-power`, held directly by the skald's rows (as the Primalist's and a rogue-talent borrower's are), at
   its table's levels 3, 6, 9, 12, 15 and 18 and at each archetype's own: the Battle Singer 6, 12, 18; the Court Poet
   none; the Demon Dancer 12, 15, 18; the Herald of the Horn all six; the Hunt Caller 3, 9, 12, 15; the Inciter 3, 6,
-  12, 18; the Battle Scion all six (see below). The `skald/rage-powers` feature, which only labelled them, is gone.
-  A row lists all its selections, sorted by key, so at 12 the rage power slot is index 0 and the rogue talents'
-  moves to index 1 (accepted by the user). The guide says nothing of which level a rage power's prerequisite reads,
-  so the 14 options gated by "Barbarian level" (the Instinctual Warrior's five need its archetype as well and are
-  as before) accept either class, `Any([ClassLevel(class: "barbarian", level: 8), ClassLevel(class: "skald", level:
-  8)])`, as ticket 25's shared gates do: barbarian and skald levels do not add up (barbarian 4 / skald 6 meets no
-  level-8 power; user, 2026-11-13: the recommended option). The Battle Scion's "Battle Prowess" ("whenever a Battle
-  Scion can add a Rage Power to her song, she can instead take any teamwork feat") is the same slot, so the
-  selection has one more option, `barbarian/rage-power/teamwork-feat` ("Teamwork Feat"): `repeat: Unlimited`, open
-  only with `Archetype("skald/battle-scion")`, and a level-1 row `feat_slots: [Category(Teamwork)]`, as Combat Trick
-  gives a Combat feat. The row needs an option level, so the selection has `option_levels: ["skald"]`: no other
-  option has a row, so nothing else changes for the barbarian, the Primalist or the Instinctual Warrior (and a
-  Battle Scion's pick in a barbarian slot gets no feat slot; `Archetype` is Build-wide, so a Battle Scion with
-  barbarian levels may take it there: accepted). The selection has 39 options; Extra Rage Power reaches the skald and
-  the Battle Scion through `barbarian/rage-power` with no change, and its prerequisite doesn't name the Teamwork Feat
-  (a teamwork feat is no rage power). The Battle Scion keeps its Battle Prowess feature on its six rows. The Demon
-  Dancer's Fiend Totem and Greater are features, so the totems' exclusivity doesn't stop it taking another totem in
-  its slots at 12, 15 and 18 (not modelled; user, 2026-11-13). `skald_rage_powers.rs` pins the levels, the gates and
-  the Teamwork Feat.
+  12, 18. The `skald/rage-powers` feature, which only labelled them, is gone. A row lists all its selections, sorted
+  by key, so at 12 the rage power slot is index 0 and the rogue talents' moves to index 1 (accepted by the user). The
+  guide says nothing of which level a rage power's prerequisite reads, so the 14 options gated by "Barbarian level"
+  (the Instinctual Warrior's five need its archetype as well and are as before) accept either class,
+  `Any([ClassLevel(class: "barbarian", level: 8), ClassLevel(class: "skald", level: 8)])`, as ticket 25's shared
+  gates do: barbarian and skald levels do not add up (barbarian 4 / skald 6 meets no level-8 power; user, 2026-11-13:
+  the recommended option). A picker names the classes the character holds ("Needs Barbarian level 8 (have 4)"); a
+  Primalist, with neither, and the prerequisite as the data states it read "Barbarian level 8 or Skald level 8".
+  The Battle Scion's "Battle Prowess" ("whenever a Battle Scion can add a Rage Power to her song, she can instead take
+  any teamwork feat") is the same slot, so its six cells are slots of its own selection,
+  `skald/battle-scion/rage-power-or-teamwork-feat` ("Rage Power or Teamwork Feat"): every `barbarian/rage-power`
+  option in `shared_options` (a test compares the lists, so a new rage power must join it), one option of its own,
+  `.../teamwork-feat` ("Teamwork Feat", `repeat: Unlimited`, a level-1 row `feat_slots: [Category(Teamwork)]`, as
+  Combat Trick gives a Combat feat) and `option_levels: ["skald"]`. It is a selection of its own, not an option of
+  `barbarian/rage-power`, because `Archetype` looks at the whole Build: such an option would give a Battle Scion with
+  barbarian levels a teamwork feat from a barbarian's, a Primalist's or an Extra Rage Power slot, which the guide
+  doesn't give, and an `option_levels` on the barbarian's selection would add a state entry for every rage power held.
+  `barbarian/rage-power` is as before but for the 14 gates. Extra Rage Power's `extra_pick_of` names both selections
+  (a Battle Scion's extra slot is one of its own); its prerequisite doesn't name the Teamwork Feat (a teamwork feat is
+  no rage power). A rage power is taken once across a barbarian's slots and the Battle Scion's (the shared key). The
+  Battle Scion keeps its Battle Prowess feature on its six rows; its rogue talents stay at index 0 at 12, its own
+  selection sorting after them at index 1. The Demon Dancer's Fiend Totem and Greater are features, so the totems'
+  exclusivity doesn't stop it taking another totem in its slots at 12, 15 and 18 (not modelled; user, 2026-11-13).
+  `skald_rage_powers.rs` pins the levels, the gates and the Teamwork Feat.
 - Ticket 67 (ticket 62's decision, user, 2026-11-02): the Dual-Cursed Oracle's "Second
   Curse" feature is a second slot of the oracle's own `oracle/oracles-curse` on its level-1 row ("The Oracle must
   choose a second curse"), so the row holds that selection twice, as a cleric's holds `cleric/domain` twice. Every

@@ -28,7 +28,6 @@ Class(
             name: "Rage Power",
             summary: "From 2nd level, a new ability that works while raging; choosing one totem closes off the other totem lines.",
             guide: "barbarian#rage-power",
-            option_levels: ["skald"],
             options: [
                 (key: "barbarian/rage-power/animal-fury", name: "Animal Fury", summary: "Bite attack at full BAB -5 for 1d4 + half the Strength modifier.", guide: "barbarian#animal-fury"),
                 (key: "barbarian/rage-power/beast-totem", name: "Beast Totem", summary: "+1 natural armour, +1 more per 4 levels.", guide: "barbarian#beast-totem", prerequisite: All([Not(SelectionOption("barbarian/rage-power/celestial-totem")), Not(SelectionOption("barbarian/rage-power/celestial-totem-greater")), Not(SelectionOption("barbarian/rage-power/celestial-totem-lesser")), Not(SelectionOption("barbarian/rage-power/daemon-totem")), Not(SelectionOption("barbarian/rage-power/daemon-totem-greater")), Not(SelectionOption("barbarian/rage-power/daemon-totem-lesser")), Not(SelectionOption("barbarian/rage-power/fiend-totem")), Not(SelectionOption("barbarian/rage-power/fiend-totem-greater")), Not(SelectionOption("barbarian/rage-power/fiend-totem-lesser")), Any([ClassLevel(class: "barbarian", level: 6), ClassLevel(class: "skald", level: 6)]), SelectionOption("barbarian/rage-power/beast-totem-lesser")])),
@@ -68,17 +67,6 @@ Class(
                 (key: "barbarian/rage-power/scent", name: "Scent", summary: "Senses enemies within 30 feet, working like blindsense.", guide: "barbarian#scent"),
                 (key: "barbarian/rage-power/swift-foot", name: "Swift Foot", summary: "+10 feet speed; can be taken up to three times.", guide: "barbarian#swift-foot", repeat: Times(3)),
                 (key: "barbarian/rage-power/wrecking-blows", name: "Wrecking Blows", summary: "In Powerful Stance, melee and thrown attacks add the Con modifier to damage (+1 at 16th and 20th); bypasses DR, not multiplied on crits.", guide: "barbarian#wrecking-blows", prerequisite: All([Any([ClassLevel(class: "barbarian", level: 12), ClassLevel(class: "skald", level: 12)]), SelectionOption("barbarian/rage-power/powerful-stance")])),
-                (
-                    key: "barbarian/rage-power/teamwork-feat",
-                    name: "Teamwork Feat",
-                    summary: "A Battle Scion's teamwork feat in place of a rage power, added to Inspired Rage for 3 rounds of song.",
-                    guide: "skald#battle-prowess",
-                    prerequisite: Archetype("skald/battle-scion"),
-                    repeat: Unlimited,
-                    levels: [
-                        (level: 1, feat_slots: [Category(Teamwork)]),
-                    ],
-                ),
             ],
         ),
     ],
