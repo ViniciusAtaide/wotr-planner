@@ -8,6 +8,7 @@ mod agreement;
 mod alignment;
 mod archetype_saves;
 mod backgrounds;
+mod bloodline_ascendance;
 mod bonus_feat_choices;
 mod borrowed_selections;
 mod build_sheets;
