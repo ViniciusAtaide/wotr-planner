@@ -65,8 +65,22 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   the steps, and the rows that replace a base row at those levels carry it too; the Sanctified Slayer's and the
   Tandem Executioner's copies follow the same levels); the Draconic bloodlines' Draconic Resistances at bloodline
   levels 3, 9 and 15; the bloodrager's Draconic Resistance at 4, 8 and 16, Demon Resistances at 8 and 16, Celestial
-  Resistances at 4 and 12 and Serpentine Resistances at 4, 8, 12, 16 and 20. Nothing reads the count of the features this ticket stepped, so a second grant changes no
-  number there; that is not true in general (the Arcane Trickster's prerequisite is `Feature(..., count: 2)`, and
+  Resistances at 4 and 12 and Serpentine Resistances at 4, 8, 12, 16 and 20. Ticket 177 steps the rest the guide gives
+  a step to, on the owner's own level scale: the sorcerer's Demon, Celestial, Infernal, Elemental and Undead
+  resistances at bloodline levels 3 and 9 and Snakeskin at 9, 13 and 17; the bloodrager's Infernal Resistance at 4 and
+  8 and Abyssal Bloodrage at 12, 16 and 20; the Instinctual Warrior's Cunning Elusion at 2 and every four levels; the
+  Dragonheir Scion's Draconic Defences at 3, 7 and 13 and Fearful Might at 2 and every four levels; the Reanimator's
+  Corpse Studying at 1, 5, 11 and 17; the Metamorph's Adaptive Physiology at 3, 6 and 18; the Fake Celebrity's Inhibit
+  Courage at 1, 5, 11 and 17; the Defender of the True World's Fey Stalker at 3, 8, 13 and 18; the Overwhelming Soul's
+  Overwhelming Power at 3 and every three levels; the Battle spirit's Battle Spirit at 1, 8 and 16; the Weretouched's
+  Lycanthropic Aspect at 1, 8 and 16; the Rageshaper's Invulnerable Defenses at 2, 10, 15 and 20; the Fiendflesh
+  Shifter's Fiendish Aspect at 1, 5, 10, 15 and 20; the Flesheater's Crush and Tear at 1, 5, 11 and 17; the Demon
+  Dancer's Fiendish Maw at 3, 7, 12 and 17; the Assassin's Cold Minded at 2, 5 and 8 and the Winter Witch's Cold
+  Specialization at 1, 5 and 10. An archetype row that carries a step also carries what the base row gives at that
+  level (the Dragonheir Scion's combat feats at 10, 14 and 18, the Flesheater's Tireless Rage at 17, the Overwhelming
+  Soul's wild talents at 6, 12 and 18). The bloodrager's Elemental Resistance does not step (the guide: "At 4th
+  level, you gain resistance 10 against your bloodline's energy type"). Nothing reads the count of the features
+  stepped so far, so a second grant changes no number there; that is not true in general (the Arcane Trickster's prerequisite is `Feature(..., count: 2)`, and
   `ability_bonuses` multiply by the count), so an author stepping another feature checks both first. An archetype
   that falls back to the base class's row at a step level gets the step too: one that loses the feature (the
   Imitator's Studied Target) needs its own row at that level without it. Likewise a selection sharing an option
