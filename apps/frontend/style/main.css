@@ -27,6 +27,10 @@
   --bad-bg: rgb(255 138 128 / 0.12);
   /* What has to do with the gear: a pick only gear allows, an option that would lean on it. */
   --gear: #7fd6c2;
+  /* The likely pick lifted to the top of a list (the class of the level before): a soft sage, apart from the
+     gear's teal. */
+  --again: #b4dfa6;
+  --again-bg: rgb(180 223 166 / 0.09);
   --focus: #f3c96b;
   --good: #1c2846;
   --neutral: #262338;
@@ -192,19 +196,52 @@ input[type="search"] {
   color: var(--bad);
 }
 
-/* The build sheet's actions: two buttons side by side, and the confirmation after them (below them when the cover
-   screen has no room). */
+/* The build sheet's actions: a ⋯ button at the end of the header that opens a small menu under it, above the sticky
+   tabs and below the picker. The confirmation shows in the same place once the menu closes. */
 .export {
+  position: relative;
+  flex: none;
+}
+
+.export-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 19;
+}
+
+.export-menu,
+.export-status {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 20;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg);
+  box-shadow: var(--shadow);
+}
+
+.export-menu {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  margin: 0 0 10px;
+  flex-direction: column;
+  min-width: 200px;
+  padding: 4px;
+}
+
+.export-menu button {
+  border-color: transparent;
+  background: transparent;
+}
+
+.export-menu button:hover {
+  background: var(--surface-2);
 }
 
 .export-status {
+  padding: 8px 12px;
   color: var(--accent);
   font-size: 14px;
+  white-space: nowrap;
 }
 
 .export-status:empty {
@@ -467,32 +504,55 @@ input[type="search"] {
   white-space: nowrap;
 }
 
-/* The attack line under the summary's numbers: a native weapon select (the phone's own picker, thumb-sized), then
-   the engine's numbers, what they count and, folded, what they leave out. */
+/* The attack line: a native weapon select (the phone's own picker, thumb-sized) after a sword for its label, then
+   the engine's numbers, what they count and, folded, what they leave out. Under the summary's numbers on a phone;
+   beside them from 600px up, where it's a column of its own. */
 .attack {
   margin-top: 8px;
   padding-top: 8px;
   border-top: 1px solid var(--line);
 }
 
+@media (min-width: 600px) {
+  .summary:has(> .attack) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(200px, 280px);
+    column-gap: 20px;
+    align-items: start;
+  }
+
+  .attack {
+    margin-top: 0;
+    padding-top: 0;
+    padding-left: 16px;
+    border-top: 0;
+    border-left: 1px solid var(--line);
+  }
+}
+
 .attack-weapon {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   margin-bottom: 4px;
 }
 
 .attack-label {
   color: var(--muted);
-  white-space: nowrap;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.attack-label .feat-icon {
+  margin-right: 0;
 }
 
 .attack-weapon select {
   flex: 1 1 auto;
   min-width: 0;
-  max-width: 260px;
+  max-width: 220px;
   min-height: var(--tap);
-  padding: 6px 12px;
+  padding: 4px 10px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface-2);
@@ -540,6 +600,18 @@ input[type="search"] {
 .attack-leaves-out ul {
   margin: 0 0 4px;
   padding-left: 18px;
+}
+
+/* With a mouse, the select and the fold needn't be thumb-sized. */
+@media (hover: hover) and (pointer: fine) {
+  .attack-weapon select {
+    min-height: 30px;
+    padding: 2px 8px;
+  }
+
+  .attack-leaves-out summary {
+    min-height: 24px;
+  }
 }
 
 /* ---- the grid ------------------------------------------------------------------------------------------- */
@@ -1016,6 +1088,16 @@ body:has(.picker) {
   border-color: var(--accent);
   background: var(--accent-bg);
   box-shadow: 0 0 12px rgb(243 201 107 / 0.2);
+}
+
+/* The likely pick at the top: a light green tint, under the gold of the current pick when it's both. */
+.item.lifted:not(.current) {
+  border-color: color-mix(in srgb, var(--again) 40%, transparent);
+  background: var(--again-bg);
+}
+
+.item.lifted:not(.current) .item-name {
+  color: var(--again);
 }
 
 .item-name {

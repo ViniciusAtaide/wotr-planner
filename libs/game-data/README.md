@@ -76,7 +76,26 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   Lycanthropic Aspect at 1, 8 and 16; the Rageshaper's Invulnerable Defenses at 2, 10, 15 and 20; the Fiendflesh
   Shifter's Fiendish Aspect at 1, 5, 10, 15 and 20; the Flesheater's Crush and Tear at 1, 5, 11 and 17; the Demon
   Dancer's Fiendish Maw at 3, 7, 12 and 17; the Assassin's Cold Minded at 2, 5 and 8 and the Winter Witch's Cold
-  Specialization at 1, 5 and 10. An archetype row that carries a step also carries what the base row gives at that
+  Specialization at 1, 5 and 10. Ticket 182 steps the next lot: the Herald of the Horn's Horn Call at 7, 13 and 19;
+  the Reformed Fiend's Hatred Against Evil at 5, 10, 15 and 20 (its Damage Reduction already stepped); the
+  Flesheater's Devour Essence at 2, 8, 13 and 18 and Power from Flesh at 2, 9 and 18; the Fiendflesh Shifter's Fiendish
+  Resilience at 2, 4, 8, 12, 16 and 20 (one feature: the guide names one ability whose natural armour and resistance
+  series each step it); the Fake Celebrity's Inhibit Greatness at 12 and 17; the Overwhelming Soul's Mental Prowess at
+  10, 14 and 18 (and its grant at 1); and, from a sweep of the summaries, the features of one archetype that rise at
+  levels the guide's sentence gives (`scaling_features.rs` lists each with its levels). A feature the guide gives no
+  step by level to, or gives numbers that disagree, stays granted once (the Hag-Riven's Sorcerous Claws: "+1 every 3
+  additional class levels (maximum +4 at 13th level)"; the Drunken Master's Drunken Power: "+1d8 every 3 additional
+  levels (max +5d8 at 18th level)"; the Mantis Zealot's Red Shroud: "+1 every four levels up to a maximum of +6 at
+  20th level", which names no level). Nor does a feature whose steps the data already grants as features of their own,
+  one per step, as the magus's Arcane Weapon +2 to +5: stepping it too would count each step twice (the Phantasmal
+  Mage's Arcane Metamagic, with Arcane Metamagic I to III; the Beast Tamer's Beast Call, with Summon Nature's Ally II
+  to IX; the Hag-Riven's Claws of the Hag, with its Magic, 1d6, Rend, Critical and Weakness; the Elemental Rampager's
+  Elemental Rampage, with Elemental Damage and Elemental Ability; the Winter Child's Call a Feast, with Cover of Snow
+  and Biting Frost; the Armored Battlemage's Arcane Pool, with Arcane Armor +2 to +5; the Spell Dancer's Spell Dance,
+  with Spell Dance (II) to (IV); the Possessed Oracle's Powerless Prophecy, with Curse 2 to 4; the Purifier's
+  Celestial Armor, whose 11th-level gain is the Heavy Armor Proficiency its row grants). Option rows (bloodline, domain, spirit, blessing and school powers) and the base classes' own features
+  are not stepped here: an option's rows are shared by selections on other level scales, and the base classes' are
+  ticket 182's open question. An archetype row that carries a step also carries what the base row gives at that
   level (the Dragonheir Scion's combat feats at 10, 14 and 18, the Flesheater's Tireless Rage at 17, the Overwhelming
   Soul's wild talents at 6, 12 and 18). The bloodrager's Elemental Resistance does not step (the guide: "At 4th
   level, you gain resistance 10 against your bloodline's energy type"). Nothing reads the count of the features
