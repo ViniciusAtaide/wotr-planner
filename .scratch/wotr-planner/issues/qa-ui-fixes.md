@@ -22,7 +22,7 @@ Done 2026-11-13 (branch `qa/ui-fixes`).
 1. `ItemList` (`libs/ui/src/picker.rs`) tells a list with no items at all from a search or chip that hides every item: only the second says "Nothing matches."; the first says its `empty` text, by default "No options here yet.". Its old `nothing` prop was never passed, so it was repurposed. The slot picker passes a reason for a slot whose list comes from a held option (`FeatSlot::OptionList`, the sorcerer's bloodline feat): "Nothing to choose yet: choose the Bloodline first.", with the selection's name from `Engine::selection_name`. Every other picker gets the default.
 2. `libs/ui/src/start.rs`: "skill point" and "rank" in the singular for 1. `libs/rules/src/engine/labels.rs`: the skill ranks prerequisite says "1 rank in …". No other count in `libs/ui` takes a plural noun after a number that can be 1 ("Show N locked" has no noun; the game data's problems already have a one-problem arm).
 3. `apps/frontend/style/main.css`: under 600 px the tabs are `flex: 1 1 auto`, so each is as wide as its label and they share what's left. They no longer split the width equally there. At 360 px they're 88, 149 and 82 px wide, and at 320 px 74, 135 and 68 px, all 44 px tall, with no ellipsis and no horizontal scroll. From 600 px up they stay equal widths.
-4. `libs/ui/src/grid.rs`: the locked class button isn't `disabled` any more. It is `aria-disabled` and stays tappable. A tap shows "Later choices depend on this class" under the class name (`.class-locked`, `role="status"`), and another tap hides it. It doesn't open the class picker. The `title` stays for a pointer. An unlocked class still opens the picker.
+4. `libs/ui/src/grid.rs`: the locked class button isn't `disabled` any more. It is `aria-disabled` and stays tappable. A tap shows "Later choices depend on this class" under the class name (`.class-locked`), and another tap hides it. It doesn't open the class picker. The `title` stays for a pointer. An unlocked class still opens the picker.
 
 Other `disabled` controls, checked and left as they are, since none hides a reason in a `title`:
 
@@ -32,3 +32,12 @@ Other `disabled` controls, checked and left as they are, since none hides a reas
 - The racial ability segments and the point-buy and skill steppers (`start.rs`): `disabled` without a `title`, at the end of a range or an option the engine refuses.
 
 **Checks.** Seen fixed in the running app (its own dev server on port 3950) at 360 × 840 and 320 × 840. No unit tests: screens get end-to-end smoke tests only, and the rules change is one label. `scripts/check.sh` passes with the snapshot files untouched.
+
+**Review (2026-11-13).**
+
+- The reason span lost its `role="status"`: a button's children are presentational, so the role did nothing. A screen reader gets the reason from the button's `title` (its description) without the tap.
+- The MCP server's Todo label had the same plural slip, "1 of 1 skill points unspent" (`apps/mcp/src/code.rs`); it says "skill point" for 1 now.
+- Left as they are:
+  - A pool selection with nothing held (an Oracle's Revelation before the Mystery) says the default "No options here yet.", not which choice to make first: the engine gives the sheet no way to ask what a slot's list depends on.
+  - The reason names the slot's own selection, so a Dragon Disciple without a bloodline reads "choose the Bloodline first" where its chip is "Blood of Dragons".
+  - Under 600 px the tabs aren't equal widths even where equal ones would fit (412 px).

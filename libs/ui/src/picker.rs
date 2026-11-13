@@ -263,8 +263,11 @@ pub fn ItemList(
     empty: Option<String>,
 ) -> impl IntoView {
     let searchable = items.len() > 8;
-    let no_items = items.is_empty();
-    let empty = empty.unwrap_or_else(|| "No options here yet.".to_owned());
+    let nothing = if items.is_empty() {
+        empty.unwrap_or_else(|| "No options here yet.".to_owned())
+    } else {
+        "Nothing matches.".to_owned()
+    };
     // Each filter chip once, in name order, with a feat category's icon only when every item under it takes a feat
     // of that one category: a feat picker's "Weapon" chip, not a talent picker's "Rogue Talents", whose talents
     // grant different feats or none.
@@ -362,10 +365,7 @@ pub fn ItemList(
                 let count = locked.len();
                 view! {
                     {(open.is_empty() && count == 0)
-                        .then(|| {
-                            let text = if no_items { empty.clone() } else { "Nothing matches.".to_owned() };
-                            view! { <p class="empty">{text}</p> }
-                        })}
+                        .then(|| view! { <p class="empty">{nothing.clone()}</p> })}
                     {(count > 0)
                         .then(|| {
                             view! {

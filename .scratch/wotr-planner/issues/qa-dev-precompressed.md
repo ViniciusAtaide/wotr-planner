@@ -19,6 +19,8 @@ Done 2026-11-13 (branch `qa/dev-precompressed`). The site's `ServeDir` calls `pr
 
 **`scripts/check.sh --full` left as it is.** Deleting the `.br`/`.gz` files after its `leptos-release` step would cover only that one way of leaving them (a release build by hand leaves them too) and would take them from a release server run afterwards, so the server fix alone is the simpler and safer one. A release build without `--precompress` after one with it still leaves stale `.br` files that a release server serves; the README already says to always pass the flag.
 
-**Test.** `apps/backend/src/main.rs`, `only_a_release_server_serves_a_precompressed_copy`: a site root with `pkg/wotr-planner.js` ("fresh") beside a `.br` copy ("stale"), asked with `Accept-Encoding: br`. A debug build (the tests' default) gets the plain file with no `Content-Encoding`; a release build (`cargo test --release`) the `.br` file. It failed before the fix with `(Some("br"), "stale")`.
+**Test.** `apps/backend/src/main.rs`, `only_a_release_server_serves_a_precompressed_copy`: a site root with `pkg/wotr-planner.js` ("fresh") beside a `.br` copy ("stale"), asked with `Accept-Encoding: br`. `site_pkg(root, precompressed)` holds the choice, so a debug run checks both arms: without `precompressed` the plain file with no `Content-Encoding`, with it the `.br` file. The server itself then answers as its build does (debug: the plain file). It failed before the fix with `(Some("br"), "stale")`.
+
+**Not covered: the site root's other files.** The fonts and the preview image are served by `leptos_axum::file_and_error_handler`, which takes a `.br` or `.gz` copy in any build, and `--precompress` writes those copies too. A changed font or image would be served stale by a dev server after a release build. They rarely change and a stale one breaks nothing, so the fallback is left as it is.
 
 **Behaviour checks.** No change to `rules` or `libs/game-data/`; `scripts/check.sh` passes.

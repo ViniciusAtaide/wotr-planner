@@ -90,9 +90,10 @@ fn todo(engine: &Engine, build: &Build, sheet: &Sheet) -> Vec<Todo> {
         if points.spent < points.available && room {
             let address = Address::SkillPoints(n);
             let label = address.placed(&format!(
-                "{} of {} skill points unspent",
+                "{} of {} skill point{} unspent",
                 points.available - points.spent,
-                points.available
+                points.available,
+                if points.available == 1 { "" } else { "s" },
             ));
             open(address, Some(label));
         }
