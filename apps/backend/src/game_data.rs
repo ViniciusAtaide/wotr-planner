@@ -1,6 +1,6 @@
 //! The game data as a cacheable GET: one JSON document at a URL that names its content hash, so a browser keeps
-//! it for good (`Cache-Control: immutable`) and a reseed, which changes the hash, gives a new URL. The page's head
-//! preloads that URL (`ui::GameDataPreload`), so the download starts with the wasm's.
+//! it for good (`Cache-Control: immutable`) and an edit to the data files, which changes the hash, gives a new URL.
+//! The page's head preloads that URL (`ui::GameDataPreload`), so the download starts with the wasm's.
 //!
 //! It's served as it is, never compressed: the published site is this file saved as it is, and GitHub Pages
 //! compresses what it serves (ticket 185).

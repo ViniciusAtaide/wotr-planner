@@ -1,4 +1,4 @@
-//! Reading the `libs/game-data/**/*.ron` files into [`GameData`] and hashing them.
+//! Reading the `libs/game-data/**/*.ron` files into [`GameData`].
 //!
 //! Layout (relative to the data folder):
 //!
@@ -17,7 +17,7 @@
 //! extensions (a README) are ignored. Order in the files means nothing: the result is
 //! [canonical](GameData::canonicalize).
 
-use std::fmt::{self, Write as _};
+use std::fmt;
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
@@ -25,7 +25,6 @@ use std::path::{Path, PathBuf};
 use ron::extensions::Extensions;
 use rules::GameData;
 use serde::de::DeserializeOwned;
-use sha2::{Digest, Sha256};
 
 const SINGLE_FILES: [&str; 13] = [
     "progression.ron",
@@ -116,24 +115,6 @@ pub fn read_game_data_files(dir: &Path) -> Result<GameData, FilesError> {
         spell_lists: read_spell_lists(&dir.join(SPELLS))?,
     };
     Ok(data.canonical())
-}
-
-/// A hex SHA-256 over every `.ron` file under `dir`: their paths relative to `dir` and their contents.
-pub fn game_data_hash(dir: &Path) -> Result<String, FilesError> {
-    let mut hasher = Sha256::new();
-    for file in ron_files(dir)? {
-        let path = dir.join(&file);
-        let bytes = fs::read(&path).map_err(|source| FilesError::Io { path, source })?;
-        hasher.update(file.as_bytes());
-        hasher.update([0]);
-        hasher.update((bytes.len() as u64).to_le_bytes());
-        hasher.update(&bytes);
-    }
-    let mut hex = String::with_capacity(64);
-    for byte in hasher.finalize().iter() {
-        write!(hex, "{byte:02x}").expect("writing to a String can't fail");
-    }
-    Ok(hex)
 }
 
 fn is_in_layout(file: &str) -> bool {

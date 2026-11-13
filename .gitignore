@@ -1,8 +1,7 @@
-# Any crate's: `#[sqlx::test]` keeps its SQLite files in `target/sqlx/test-dbs` under the crate it runs in.
 target/
 /guide-cache/
 .env
-# The game data database (`DATABASE_URL`'s default), and the new file and journal a seed makes beside it.
+# The game data database of the checkouts from before ticket 187, which may still be lying around.
 /wotr-planner.db*
 .DS_Store
 /.idea/

@@ -1,13 +1,13 @@
 # Game data
 
 The planner's game data, as RON files that deserialise straight into the `rules` crate types
-(`libs/rules/src/game_data.rs`). These files are the source of truth (ticket 75): fix data by editing them, then
-reseed.
+(`libs/rules/src/game_data.rs`). These files are the source of truth (ticket 75), and the only copy: the servers read
+them at startup (ticket 187). Fix data by editing them, then restart a running server.
 
 The files were extracted once from the guide pages saved in `guide-cache/` and have been corrected by hand since;
 the extractor is gone (ticket 82). A data change edits the `.ron` files by hand, adds a note under Layout below (the
 ticket, the decision behind it and what the data now says, as the earlier tickets' notes do) and adds a real-data
-test in `libs/seeds/tests/game_data/`; then check the files (`--check-only`, under Seeding) and reseed.
+test in `libs/seeds/tests/game_data/`; then check the files (under Checking).
 `EXTRACTION_REPORT.md` is the hand-kept list of open data gaps, by category (it began as what the extractor couldn't
 turn into data): fix an item in the `.ron` files and delete its line. `libs/seeds/tests/fixtures/game-data/` is a
 small hand-written example of the layout.
@@ -808,17 +808,14 @@ is the engine's or the data's, never the write-up's.
   listed and on a listed one that now agrees: a fix deletes its entry. The list only shrinks (ticket 168 deleted
   Greater Two-Weapon Fighting's, the gear kind's only entry).
 
-## Seeding
+## Checking
 
 ```sh
-cargo run -p seeds --bin seed -- --check-only   # read and check the files only, no database
-cargo run -p seeds --bin seed            # this folder (or $GAME_DATA_DIR)
-cargo run -p seeds --bin seed -- <dir>   # another folder, e.g. libs/seeds/tests/fixtures/game-data
+cargo run -p seeds --bin check-data            # this folder (or $GAME_DATA_DIR)
+cargo run -p seeds --bin check-data -- <dir>   # another folder, e.g. libs/seeds/tests/fixtures/game-data
 ```
 
-The seed first runs `GameData::check` and refuses data with problems, listing them. `--check-only` stops
-there, never touching Postgres, so several editors can check at once; keys that don't exist are only caught by a
-real seed (the database's foreign keys). Then it replaces every game
-table in one transaction and stores a hash of the `.ron` files. The server loads the game data once at startup,
-so restart it after a reseed. It logs a warning at startup when the stored hash doesn't match the files in
-`$GAME_DATA_DIR` (default: this folder); it never reseeds on its own.
+It reads the files and runs `GameData::check`, then lists every problem (keys the data names but doesn't have
+among them) or, when there is none, how many of each entity the data holds. The web server and the MCP server run the same check
+when they start, and refuse data with problems; they read the files once, so restart them after an edit. The
+real-data test `the_game_data_passes_the_data_check` runs it too.

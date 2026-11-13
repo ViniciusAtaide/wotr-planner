@@ -1,4 +1,4 @@
-//! Reading and hashing the `libs/game-data/` RON files.
+//! Reading and checking the `libs/game-data/` RON files.
 
 mod common;
 
@@ -7,12 +7,12 @@ use std::fs;
 
 use common::{copy_fixture, fixture_dir};
 use rules::{
-    Ability, AbilityBonus, Advancement, ArchetypeLevelRow, ArmourType, BabProgression,
-    BackgroundGroup, ClassKey, CountsAs, CountsToward, FeatKey, FeatListKey, FeatSlot, FeatValue,
-    FeatureKey, FeatureSelectionKey, GameData, LevelFrom, MythicAbilityGroup, MythicFeatGroup,
-    MythicPathKey, OptionGroup, OptionLevelRow, OptionRow, Parameter, ParameterKind, Prerequisite,
-    Repeat, Save, SaveException, SaveProgression, SelectionOptionKey, SkillKey, SpellLevels, Story,
-    WeaponKey, WeaponProficiency,
+    Ability, AbilityBonus, Advancement, ArchetypeKey, ArchetypeLevelRow, ArmourType,
+    BabProgression, BackgroundGroup, ClassKey, CountsAs, CountsToward, DataAt, FeatKey,
+    FeatListKey, FeatSlot, FeatValue, FeatureKey, FeatureSelectionKey, GameData, LevelFrom,
+    MythicAbilityGroup, MythicFeatGroup, MythicPathKey, OptionGroup, OptionLevelRow, OptionRow,
+    Parameter, ParameterKind, Prerequisite, Repeat, Save, SaveException, SaveProgression,
+    SelectionOptionKey, SkillKey, SpellLevels, Story, WeaponKey, WeaponProficiency,
 };
 
 fn read_fixture() -> GameData {
@@ -530,35 +530,12 @@ fn reads_spells_and_spell_lists_and_defaults_them() {
 }
 
 #[test]
-fn the_hash_changes_only_when_a_ron_file_changes() {
-    let dir = copy_fixture();
-    let original = seeds::game_data_hash(dir.path()).unwrap();
-    assert_eq!(original.len(), 64, "hex sha-256");
-
-    fs::write(dir.path().join("README.md"), "not data").unwrap();
-    assert_eq!(seeds::game_data_hash(dir.path()).unwrap(), original);
-
-    let skills = dir.path().join("skills.ron");
-    let text = fs::read_to_string(&skills).unwrap();
-    fs::write(&skills, text.replace("Athletics", "Athletics!")).unwrap();
-    assert_ne!(seeds::game_data_hash(dir.path()).unwrap(), original);
-}
-
-#[test]
-fn the_hash_does_not_depend_on_where_the_folder_is() {
-    assert_eq!(
-        seeds::game_data_hash(copy_fixture().path()).unwrap(),
-        seeds::game_data_hash(&fixture_dir()).unwrap()
-    );
-}
-
-#[test]
 fn the_fixture_passes_the_data_check() {
     assert_eq!(read_fixture().check(), []);
 }
 
 #[test]
-fn checking_the_files_needs_no_database_and_passes_the_fixture() {
+fn checking_the_files_passes_the_fixture() {
     let data = seeds::check_game_data_files(&fixture_dir()).unwrap();
 
     assert_eq!(*data, read_fixture());
@@ -584,6 +561,70 @@ fn checking_the_files_lists_the_data_problems() {
         error.contains("names skill mobility, which the data doesn't have"),
         "{error}"
     );
+}
+
+/// The check names every key the data lacks, each where it is named, not just that one is missing.
+#[test]
+fn checking_the_files_names_every_missing_key() {
+    let dir = copy_fixture();
+    let feats = dir.path().join("feats.ron");
+    let text = fs::read_to_string(&feats).unwrap();
+    fs::write(
+        &feats,
+        text.replace("Feat(\"power-attack\")", "Feat(\"no-such-feat\")")
+            .replacen(
+                "        repeat: Times(3),\n",
+                "        repeat: Times(3),\n        extra_pick_of: [\"rogue/no-such-selection\"],\n",
+                1,
+            ),
+    )
+    .unwrap();
+
+    let error = seeds::check_game_data_files(dir.path()).unwrap_err();
+
+    let seeds::Error::Invalid(problems) = &error else {
+        panic!("{error}");
+    };
+    assert_eq!(
+        problems
+            .iter()
+            .map(|problem| problem.to_string())
+            .collect::<Vec<_>>(),
+        [
+            "feat cornugon-smash: names feat no-such-feat, which the data doesn't have",
+            "feat critical-mastery: names feat no-such-feat, which the data doesn't have",
+            "feat extra-rage: names selection rogue/no-such-selection, which the data doesn't have",
+        ]
+    );
+}
+
+#[test]
+fn checking_the_files_names_where_each_problem_is() {
+    let dir = copy_fixture();
+    let fighter = dir.path().join("classes/fighter.ron");
+    let text = fs::read_to_string(&fighter).unwrap();
+    // The fighter's own level 2 row goes missing, so the Armiger's row there is outside its class too, and the
+    // Bravery that row granted, which the Eldritch Knight counts toward, is granted nowhere.
+    let row = text
+        .lines()
+        .find(|line| line.starts_with("        (level: 2,"))
+        .unwrap();
+    fs::write(&fighter, text.replacen(&format!("{row}\n"), "", 1)).unwrap();
+
+    let error = seeds::check_game_data_files(dir.path()).unwrap_err();
+
+    let seeds::Error::Invalid(problems) = &error else {
+        panic!("{error}");
+    };
+    assert_eq!(
+        problems.iter().map(|p| &p.at).collect::<Vec<_>>(),
+        [
+            &DataAt::Class(ClassKey::new("eldritch-knight")),
+            &DataAt::Class(ClassKey::new("fighter")),
+            &DataAt::Archetype(ArchetypeKey::new("fighter/armiger"))
+        ]
+    );
+    assert!(error.to_string().contains("class fighter"), "{error}");
 }
 
 #[test]

@@ -15,39 +15,29 @@ mod game_data;
 
 #[tokio::main]
 async fn main() {
-    // DATABASE_URL comes from the environment or, failing that, from `.env` in the working directory; without it,
-    // the database is `wotr-planner.db` at the repo root.
+    // GAME_DATA_DIR and WOTR_MCP_PORT come from the environment or, failing that, from `.env` in the working
+    // directory.
     dotenvy::dotenv().ok();
-    let db_path = seeds::database_path().expect("read DATABASE_URL (see .env.example)");
-    let db = seeds::Database::open(&db_path)
-        .await
-        .unwrap_or_else(|error| {
-            panic!(
-                "open the game data database {}: {error} (build it with `cargo run -p seeds --bin seed`)",
-                db_path.display()
-            )
-        });
-    warn_if_game_data_is_stale(&db).await;
-    // Loaded once: the game data changes only through a reseed, and the server picks that up on
-    // its next start.
-    let game_data = seeds::load_game_data(&db)
-        .await
-        .expect("load the game data from the database");
+    // Read once, from the files themselves: the server picks up an edit to them on its next start.
+    let dir = seeds::game_data_dir();
     let started = Instant::now();
-    let game_data = GameDataFile::new(&game_data);
+    let game_data = seeds::check_game_data_files(&dir)
+        .unwrap_or_else(|error| panic!("load the game data in {}: {error}", dir.display()));
+    let game_data_file = GameDataFile::new(&game_data);
     println!(
-        "game data at {game_data} (serialised in {} ms)",
+        "game data from {} at {game_data_file} (read, checked and serialised in {} ms)",
+        dir.display(),
         started.elapsed().as_millis()
     );
 
     let conf = get_configuration(None).expect("read [[workspace.metadata.leptos]] configuration");
     let addr = conf.leptos_options.site_addr;
-    let app = app(game_data, conf.leptos_options, site_url());
+    let app = app(game_data_file, conf.leptos_options, site_url());
 
     let listener = tokio::net::TcpListener::bind(&addr)
         .await
         .expect("bind site-addr");
-    serve_mcp().await;
+    serve_mcp(game_data).await;
     println!("listening on http://{addr}");
     axum::serve(listener, app.into_make_service())
         .await
@@ -55,18 +45,14 @@ async fn main() {
 }
 
 /// Serves the MCP server (`apps/mcp`) over streamable HTTP beside the site, on its own loopback port: `WOTR_MCP_PORT`,
-/// else [`mcp::http::DEFAULT_PORT`]. It reads the game data files, as `wotr-mcp` does, rather than the database.
-/// A failure is a warning: the site is served either way.
-async fn serve_mcp() {
+/// else [`mcp::http::DEFAULT_PORT`]. It answers from the same game data as the site. A failure is a warning: the site
+/// is served either way.
+async fn serve_mcp(game_data: rules::CheckedGameData) {
     let port = match mcp::http::port_from_env() {
         Ok(port) => port.unwrap_or(mcp::http::DEFAULT_PORT),
         Err(error) => return eprintln!("warning: no MCP server: {error}"),
     };
-    let dir = seeds::game_data_dir();
-    let planner = match mcp::Planner::load(&dir) {
-        Ok(planner) => planner,
-        Err(error) => return eprintln!("warning: no MCP server: {}: {error}", dir.display()),
-    };
+    let planner = mcp::Planner::new(game_data);
     let listener = match mcp::http::Listener::bind(mcp::Server::new(planner), port).await {
         Ok(listener) => listener,
         Err(error) => {
@@ -136,27 +122,6 @@ async fn revalidate(mut response: Response) -> Response {
         .headers_mut()
         .insert(header::CACHE_CONTROL, HeaderValue::from_static("no-cache"));
     response
-}
-
-/// Logs a warning when the game tables don't match the data files. Never reseeds.
-async fn warn_if_game_data_is_stale(db: &seeds::Database) {
-    let dir = seeds::game_data_dir();
-    let reseed = format!(
-        "run `cargo run -p seeds --bin seed -- {}`, then restart the server",
-        dir.display()
-    );
-    match seeds::game_data_status(db, &dir).await {
-        Ok(seeds::GameDataStatus::Current) => {}
-        Ok(seeds::GameDataStatus::NeverSeeded) => {
-            eprintln!("warning: the game data tables have never been seeded; {reseed}");
-        }
-        Ok(seeds::GameDataStatus::Stale { seeded, files }) => eprintln!(
-            "warning: the game data tables are stale: seeded from data with hash {seeded}, but \
-             the files in {} hash to {files}; {reseed}",
-            dir.display()
-        ),
-        Err(error) => eprintln!("warning: couldn't check whether the game data is stale: {error}"),
-    }
 }
 
 #[cfg(test)]

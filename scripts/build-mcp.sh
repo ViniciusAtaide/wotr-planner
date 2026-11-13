@@ -13,5 +13,5 @@
 set -euo pipefail
 
 cd "$(git -C "$(dirname "$0")" rev-parse --show-toplevel)"
-SQLX_OFFLINE=true cargo build -q -p mcp --release
+cargo build -q -p mcp --release
 echo "built $PWD/target/release/wotr-mcp"

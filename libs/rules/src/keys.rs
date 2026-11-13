@@ -1,6 +1,6 @@
 //! Text keys that identify game entities, such as `power-attack` (a feat) or `rogue/dark-lurker` (an archetype).
 //!
-//! Keys come from the guide's anchors and stay the same across re-seeds, so saved Builds can refer to them.
+//! Keys come from the guide's anchors and stay the same across edits to the data, so saved Builds can refer to them.
 //! In the data files and in JSON each key is a plain string.
 //!
 //! A key carries no type prefix: its Rust type (and its table) says what kind of thing it names, so keys of two

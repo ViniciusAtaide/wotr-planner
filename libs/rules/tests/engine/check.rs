@@ -1891,3 +1891,140 @@ fn gear_mistakes_are_found() {
         DataIssue::UnknownKey(DataAt::Skill(rules::SkillKey::new("cooking")))
     )));
 }
+
+/// Ticket 187: the database's `text_key` constraint, now the check's.
+#[test]
+fn every_key_is_lowercase_slugs() {
+    let mut data = world();
+    let skill = data.skills[0].clone();
+    for key in [
+        "two-words",
+        "owner/slug-1/2nd",
+        "Upper",
+        "a b",
+        "a--b",
+        "a/-b",
+        "a//b",
+        "-a",
+        "a/",
+        "a_b",
+    ] {
+        data.skills.push(rules::Skill {
+            key: rules::SkillKey::new(key),
+            ..skill.clone()
+        });
+    }
+    let at = |key: &str| DataAt::Skill(rules::SkillKey::new(key));
+
+    assert_eq!(
+        sorted(issues(&data)),
+        sorted(
+            ["Upper", "a b", "a--b", "a/-b", "a//b", "-a", "a/", "a_b"]
+                .map(|key| (at(key), DataIssue::MalformedKey))
+                .to_vec()
+        )
+    );
+}
+
+/// Ticket 187: the database's `feature_selection_pool_of_not_itself` and `feature_selection_mythic_ranks_on_a_path`.
+#[test]
+fn a_selection_is_no_pool_of_itself_and_only_a_paths_is_levelled_by_mythic_ranks() {
+    let mut data = world();
+    let key = FeatureSelectionKey::new("cleric/impossible-domain");
+    let selection = cleric_selection(&mut data, key.as_str());
+    selection.pool_of = Some(key.clone());
+    selection.level_from = Some(rules::LevelFrom::MythicRanks);
+    selection.level_also_from = None;
+
+    assert_eq!(
+        sorted(issues(&data)),
+        [
+            (
+                DataAt::FeatureSelection(key.clone()),
+                DataIssue::PoolOfItself
+            ),
+            (
+                DataAt::FeatureSelection(key),
+                DataIssue::MythicRanksOffAPath
+            ),
+        ]
+    );
+}
+
+/// Ticket 187: the database's `feature_ability_bonus_unique`.
+#[test]
+fn a_feature_has_one_ability_bonus_of_each_kind() {
+    use rules::{Ability, AbilityBonus};
+    let mut data = world();
+    let feature = &mut class_mut(&mut data, "fighter").features[0];
+    feature.ability_bonuses = vec![
+        AbilityBonus::Fixed {
+            ability: Ability::Strength,
+            amount: 2,
+        },
+        AbilityBonus::Fixed {
+            ability: Ability::Dexterity,
+            amount: 2,
+        },
+        AbilityBonus::Every { amount: 4 },
+        AbilityBonus::Highest { amount: 4 },
+        AbilityBonus::AtLeast { score: 14 },
+        AbilityBonus::Fixed {
+            ability: Ability::Strength,
+            amount: 4,
+        },
+        AbilityBonus::Every { amount: 2 },
+    ];
+    let at = DataAt::Feature(feature.key.clone());
+
+    assert_eq!(
+        issues(&data),
+        [
+            (at.clone(), DataIssue::AbilityBonusTwice),
+            (at, DataIssue::AbilityBonusTwice)
+        ]
+    );
+}
+
+/// Ticket 187: the database's `<> ''` constraints on a slot's label, an interactions note, and a gear item's name
+/// and guide reference.
+#[test]
+fn a_text_that_is_there_is_not_empty() {
+    let mut data = world();
+    let fighter = class_mut(&mut data, "fighter");
+    fighter.levels[0].feat_slots.push(FeatSlot::OptionList {
+        selection: FeatureSelectionKey::new("fighter/bonus-feats"),
+        at_level: None,
+        label: Some(" ".to_owned()),
+    });
+    let feat = data.feats[0].key.clone();
+    data.interactions.push(rules::ItemInteractions {
+        item: rules::BonusItem::Feat(feat.clone()),
+        interactions: String::new(),
+    });
+    let mut item = gear_item(
+        "nameless",
+        "",
+        vec![gear_bonus(
+            rules::GearTarget::Initiative,
+            1,
+            rules::BonusType::Untyped,
+        )],
+    );
+    item.guide = Some(rules::GuideRef::new(""));
+    data.gear.push(item);
+    let gear = DataAt::Gear(rules::GearKey::new("nameless"));
+
+    let found = issues_but_unknown_keys(&data);
+    for problem in [
+        (at_class("fighter"), DataIssue::EmptyText("slot label")),
+        (
+            DataAt::Feat(feat),
+            DataIssue::EmptyText("interactions note"),
+        ),
+        (gear.clone(), DataIssue::EmptyText("name")),
+        (gear, DataIssue::EmptyText("guide reference")),
+    ] {
+        assert!(found.contains(&problem), "{problem:?} in {found:?}");
+    }
+}
