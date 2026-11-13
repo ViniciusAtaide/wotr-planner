@@ -2290,3 +2290,25 @@ fn the_standard_bearers_own_banner_steps_at_10_15_and_20() {
         &[("cavalier/standard-bearer", Some(&[1, 10, 15, 20]))],
     );
 }
+
+/// Ticket 188: the paladin's Smite Evil (the guide: one a day, another at 4 and every three levels after, 7 at 19)
+/// at 1, 4, 7, 10, 13, 16 and 19. The Divine Scion, the Martyr, the Stonelord and the Tortured Crusader have none
+/// (their tables give none), and the Hospitaler has its own, stepped at 1, 7, 13 and 19, so none of the five holds
+/// a step of the class's. The rows they take at the steps keep the class's Channel Positive Energy at 4 (the Divine
+/// Scion, the Martyr).
+#[test]
+fn the_paladins_smite_evil_steps_every_three_levels_after_4() {
+    assert_gains(
+        "paladin",
+        "paladin/smite-evil",
+        &|_, build| build,
+        &[1, 4, 7, 10, 13, 16, 19],
+        &[
+            ("paladin/divine-scion", Some(&[])),
+            ("paladin/hospitaler", Some(&[])),
+            ("paladin/martyr", Some(&[])),
+            ("paladin/stonelord", Some(&[])),
+            ("paladin/tortured-crusader", Some(&[])),
+        ],
+    );
+}
