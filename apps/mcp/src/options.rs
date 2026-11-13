@@ -591,10 +591,10 @@ fn slot_offers(
                         engine,
                         build,
                         sheet,
-                        slot,
-                        &entry.options[0].option.pick,
+                        (slot, &entry.options[0].option.pick),
                         issue,
                         reason,
+                        Some(build),
                     )
                     .or_else(|| entry.reason.clone()),
                     _ => entry.reason.clone(),
@@ -630,7 +630,13 @@ fn slot_offers(
                                 Some(later) => format!("{reason}. {later}"),
                                 // Or a prerequisite that a later rank's pick meets (ticket 192).
                                 None => later_rank_note(
-                                    engine, build, sheet, slot, &pick, issue, &reason,
+                                    engine,
+                                    build,
+                                    sheet,
+                                    (slot, &pick),
+                                    issue,
+                                    &reason,
+                                    Some(build),
                                 )
                                 .unwrap_or(reason),
                             })
@@ -691,18 +697,21 @@ pub(crate) fn opens_text(rank: u8, level: u8, moves: &[(u8, u8)]) -> String {
 /// For a slot's pick refused for a prerequisite that a pick of a Mythic rank taken at a later level meets: the
 /// engine's reason with where that pick is (as the web app says it), and which level of the rank would let the pick
 /// in. `None` when no later rank's pick is what it needs (ticket 192).
-fn later_rank_note(
+pub(crate) fn later_rank_note(
     engine: &Engine,
     build: &Build,
     sheet: &Sheet,
-    slot: &SlotId,
-    pick: &rules::Pick,
+    (slot, pick): (&SlotId, &rules::Pick),
     issue: &Issue,
     reason: &str,
+    // The possible Build the level is tried on, when there is one (`validate`'s declaration may not be).
+    tried_on: Option<&Build>,
 ) -> Option<String> {
     let later = engine.later_rank_pick(build, sheet, slot, issue)?;
     let mut text = format!("{reason}: {}", engine.later_rank_text(&later));
-    if let Some((level, moves)) = engine.rank_level_that_lets_in(build, slot, pick, &later) {
+    if let Some((level, moves)) =
+        tried_on.and_then(|tried| engine.rank_level_that_lets_in(tried, slot, pick, &later))
+    {
         text.push_str(&format!(". {}", opens_text(later.rank, level, &moves)));
     }
     Some(text)
