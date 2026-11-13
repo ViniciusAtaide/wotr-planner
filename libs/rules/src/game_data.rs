@@ -7,7 +7,7 @@
 //! number, and set-like children either are sets or get sorted. [`GameData::canonicalize`] puts a value in that
 //! one order, so two `GameData`s with the same content compare equal however their files were written.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 use serde::{Deserialize, Serialize};
 
@@ -1181,6 +1181,12 @@ pub struct FeatureSelection {
     /// archetype's own rows replace them.
     #[serde(default)]
     pub skipped_levels: BTreeSet<u8>,
+    /// The feature the selection gives, at a skipped level, in place of the option's row (the Empyreal Sorcerer's
+    /// Apotheosis at 20 for the Celestial bloodline's Ascension). It is held once, as a row of the option is: at
+    /// the option level, or early through a feature's [`OptionRow`] (Bloodline Ascendance). Each level is one of
+    /// `skipped_levels`.
+    #[serde(default)]
+    pub replaced_by: BTreeMap<u8, FeatureKey>,
     /// Set when an option held through this selection gives only its feat lists and its arcana (Crossblooded's
     /// second bloodline).
     #[serde(default)]

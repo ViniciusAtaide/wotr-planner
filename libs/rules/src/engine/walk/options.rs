@@ -7,7 +7,7 @@ use super::{GrantSource, Held, Holding, Pending, Walker};
 use crate::build::SlotId;
 use crate::engine::{Slot, SlotKind};
 use crate::game_data::{LevelFrom, MythicRankRow, OptionRow};
-use crate::keys::{FeatureSelectionKey, SelectionOptionKey};
+use crate::keys::{FeatureKey, FeatureSelectionKey, SelectionOptionKey};
 use crate::parameter::Parameter;
 
 impl<'a> Walker<'a> {
@@ -230,6 +230,32 @@ impl<'a> Walker<'a> {
             }
             self.holdings[index].applied.insert(row.level, held);
         }
+        // What its selection gives in place of the rows it skips, as each level is reached.
+        let holding = &self.holdings[index];
+        if !holding.lists_only
+            && let Some(through) = catalog.selection(&holding.selection)
+        {
+            for (at, feature) in through.replaced_by.range(..=level) {
+                self.grant_replacement(index, *at, feature, source.as_ref());
+            }
+        }
+    }
+
+    /// Gives a holding the feature its selection has in place of the row it skips at `level`, unless it has it
+    /// already (the row's `applied` entry: so once, whether it came at the option level or early).
+    fn grant_replacement(
+        &mut self,
+        index: usize,
+        level: u8,
+        feature: &FeatureKey,
+        source: Option<&GrantSource>,
+    ) {
+        if self.holdings[index].applied.contains_key(&level) {
+            return;
+        }
+        let held = Held::Feature(feature.clone());
+        self.hold(held.clone(), source.cloned());
+        self.holdings[index].applied.insert(level, vec![held]);
     }
 
     /// Whether a held feature's option row is this row of a lists-only selection's options (Expanded Defense's,
@@ -322,6 +348,16 @@ impl<'a> Walker<'a> {
         };
         for index in 0..self.holdings.len() {
             let holding = &self.holdings[index];
+            // Where its selection skips the row and gives a feature of its own in its place, that is what it gets.
+            let replacement = (!holding.lists_only && holding.selection != row.selection)
+                .then(|| catalog.selection(&holding.selection))
+                .flatten()
+                .and_then(|held| held.replaced_by.get(&row.level))
+                .filter(|_| catalog.offers(selection, &holding.option));
+            if let Some(feature) = replacement {
+                self.grant_replacement(index, row.level, feature, source);
+                continue;
+            }
             let passed_over = if holding.lists_only {
                 holding.selection != row.selection || holding.unlocked.contains(&row.level)
             } else {

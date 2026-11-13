@@ -850,9 +850,11 @@ async fn insert_selections(
         }
         for level in selection.skipped_levels.iter() {
             sqlx::query!(
-                "INSERT INTO selection_skipped_level (selection_key, level) VALUES ($1, $2)",
+                "INSERT INTO selection_skipped_level (selection_key, level, replaced_by_feature_key)
+                VALUES ($1, $2, $3)",
                 selection.key.as_str(),
                 i16::from(*level),
+                selection.replaced_by.get(level).map(FeatureKey::as_str),
             )
             .execute(&mut *conn)
             .await?;

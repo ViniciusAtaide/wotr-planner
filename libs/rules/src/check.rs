@@ -249,6 +249,8 @@ pub enum DataIssue {
     /// An option whose level counts beside the other options held (`level_also_from`) on a selection not levelled
     /// by the other options held.
     LevelAlsoFromWithoutOtherOptions,
+    /// A selection's `replaced_by` names a level it doesn't skip.
+    ReplacementAtUnskippedLevel(u8),
     /// An option's arcana that none of its rows grants.
     ArcanaNotInRows(FeatureKey),
     /// A prerequisite that looks at the pick (`NoOtherOptionOfGroup`, `PickedThrough`) outside a selection
@@ -469,6 +471,10 @@ impl fmt::Display for DataProblem {
             ),
             DataIssue::LevelAlsoFromWithoutOtherOptions => f.write_str(
                 "names an option whose level counts beside the other options held, but isn't levelled by them",
+            ),
+            DataIssue::ReplacementAtUnskippedLevel(level) => write!(
+                f,
+                "gives a feature in place of option level {level}'s row, which it doesn't skip"
             ),
             DataIssue::ArcanaNotInRows(feature) => {
                 write!(f, "its arcana {feature} isn't granted by any of its rows")
@@ -1219,6 +1225,15 @@ impl Checker {
             }
             for level in &selection.skipped_levels {
                 self.level(&selection_at, *level);
+            }
+            for (level, feature) in &selection.replaced_by {
+                self.names(&selection_at, DataAt::Feature(feature.clone()));
+                if !selection.skipped_levels.contains(level) {
+                    self.problem(
+                        &selection_at,
+                        DataIssue::ReplacementAtUnskippedLevel(*level),
+                    );
+                }
             }
             if selection.level_from.is_some() && !selection.option_levels.is_empty() {
                 self.problem(&selection_at, DataIssue::LevelFromWithClasses);

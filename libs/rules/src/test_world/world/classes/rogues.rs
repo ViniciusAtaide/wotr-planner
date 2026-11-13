@@ -1,6 +1,6 @@
 //! Rogue and Slayer, who share talents.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 use crate::*;
 
@@ -74,6 +74,7 @@ pub(in crate::test_world::world) fn rogue() -> Class {
             shared_options: BTreeSet::new(),
             option_levels: BTreeSet::new(),
             skipped_levels: BTreeSet::new(),
+            replaced_by: BTreeMap::new(),
             feat_lists_only: false,
             only_without_option: false,
             pool_of: None,
@@ -216,6 +217,7 @@ pub(in crate::test_world::world) fn slayer() -> Class {
                 .collect(),
                 option_levels: BTreeSet::from([class("slayer")]),
                 skipped_levels: BTreeSet::new(),
+                replaced_by: BTreeMap::new(),
                 feat_lists_only: false,
                 only_without_option: false,
                 pool_of: None,

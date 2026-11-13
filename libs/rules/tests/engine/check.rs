@@ -1329,6 +1329,23 @@ fn an_option_levelled_alongside_the_others_needs_other_options() {
     );
 }
 
+#[test]
+fn a_replacement_belongs_to_a_skipped_level() {
+    let mut data = world();
+    let selection = cleric_selection(&mut data, "cleric/impossible-domain");
+    selection.replaced_by.insert(
+        7,
+        rules::FeatureKey::new("sorcerer/bloodline/arcane/apotheosis"),
+    );
+    assert_eq!(
+        issues(&data),
+        [(
+            DataAt::FeatureSelection(FeatureSelectionKey::new("cleric/impossible-domain")),
+            DataIssue::ReplacementAtUnskippedLevel(7)
+        )]
+    );
+}
+
 fn at_background(key: &str) -> DataAt {
     DataAt::Background(rules::BackgroundKey::new(key))
 }

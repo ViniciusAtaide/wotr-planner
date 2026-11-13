@@ -1,6 +1,8 @@
 //! Bloodline Ascendance (ticket 180) grants the 20th-level row of every bloodline option held that
 //! `sorcerer/bloodline` offers, except one the holding's own selection skips: the Dragonheir Scion's Draconic
-//! bloodline gets nothing from it, since its table gives Might of Wyrms at 20 instead.
+//! bloodline gets nothing from it, since its table gives Might of Wyrms at 20 instead. Where the selection says what
+//! it gives in place of the skipped row (`replaced_by`: the Empyreal Sorcerer's Apotheosis, ticket 181), the ability
+//! grants that, early, and it is held once.
 
 use rules::{Build, Pick, SlotId};
 
@@ -145,4 +147,90 @@ fn an_empyreal_sorcerers_bloodline_gets_nothing_from_bloodline_ascendance() {
         &at(&build, 20),
         "sorcerer/empyreal-sorcerer/apotheosis"
     ));
+}
+
+const APOTHEOSIS: &str = "sorcerer/empyreal-sorcerer/apotheosis";
+const ASCENSION: &str = "sorcerer/bloodline/celestial/ascension";
+
+fn empyreal(levels: usize) -> Build {
+    archetype_build("sorcerer", "sorcerer/empyreal-sorcerer", levels)
+}
+
+fn count(state: &rules::CharacterState, feature: &str) -> u32 {
+    u32::from(state.feature_count(&rules::FeatureKey::new(feature)))
+}
+
+/// Without the ability an Empyreal Sorcerer gains Apotheosis at 20, once, and never the Celestial's Ascension.
+#[test]
+fn an_empyreal_sorcerer_gains_apotheosis_at_20_without_the_ability() {
+    let build = empyreal(20);
+    assert!(engine().is_possible(&build));
+    for level in 1..=20 {
+        let state = at(&build, level);
+        assert_eq!(count(&state, APOTHEOSIS), u32::from(level == 20), "{level}");
+        assert_eq!(count(&state, ASCENSION), 0, "{level}");
+    }
+}
+
+/// With the ability (MR 1, level 6) it holds Apotheosis from the rank's level, once at every level up to 20 (the
+/// class's 20th level does not give it again), and never the Celestial's Ascension.
+#[test]
+fn an_empyreal_sorcerer_holds_apotheosis_early_through_the_ability_once() {
+    let build = ascending(empyreal(20));
+    assert!(engine().is_possible(&build));
+    for level in 1..=20 {
+        let state = at(&build, level);
+        assert_eq!(count(&state, APOTHEOSIS), u32::from(level >= 6), "{level}");
+        assert_eq!(count(&state, ASCENSION), 0, "{level}");
+    }
+}
+
+/// The ability taken at the level the class reaches 20 (the latest a rank can come: a Build has 20 levels, and the
+/// class's 20th is the Empyreal Sorcerer's last): the class row's level comes first in a level and the rank after,
+/// and Apotheosis is held once at 20, not twice.
+#[test]
+fn apotheosis_is_held_once_when_the_ability_comes_at_level_20() {
+    let mut build = empyreal(20);
+    build.rank_levels.insert(1, 20);
+    let build = ascending(build);
+    assert!(
+        engine().is_possible(&build),
+        "{:?}",
+        engine().failures(&build)
+    );
+    assert_eq!(engine().rank_level(&build, 1), Some(20));
+    for level in 1..=20 {
+        assert_eq!(
+            count(&at(&build, level), APOTHEOSIS),
+            u32::from(level == 20),
+            "level {level}"
+        );
+    }
+}
+
+/// Withdrawing the ability (a Build without the pick) returns Apotheosis to level 20.
+#[test]
+fn withdrawing_the_ability_returns_apotheosis_to_level_20() {
+    let with = ascending(empyreal(20));
+    let mut without = with.clone();
+    without.picks.remove(&SlotId::Mythic { rank: 1 });
+    assert!(holds(&at(&with, 6), APOTHEOSIS));
+    assert!(!holds(&at(&without, 6), APOTHEOSIS));
+    assert!(!holds(&at(&without, 19), APOTHEOSIS));
+    assert_eq!(count(&at(&without, 20), APOTHEOSIS), 1);
+}
+
+/// The Dragonheir Scion's Might of Wyrms stays out of the
+/// ability's reach (ticket 181 leaves it for the user to decide).
+#[test]
+fn the_dragonheir_scion_gets_no_replacement_from_the_ability() {
+    let build = ascending(sorcerer_then(
+        "fighter",
+        "fighter/dragonheir-scion",
+        19,
+        DRACONIC_RED,
+    ));
+    let state = at(&build, 20);
+    assert!(!holds(&state, APOTHEOSIS));
+    assert!(!holds(&state, "fighter/dragonheir-scion/might-of-wyrms"));
 }

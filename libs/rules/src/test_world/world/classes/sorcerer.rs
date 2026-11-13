@@ -1,6 +1,6 @@
 //! Sorcerer, its bloodlines and archetypes.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 use crate::*;
 
@@ -174,6 +174,7 @@ pub(in crate::test_world::world) fn sorcerer() -> Class {
     let seeker = Archetype {
         selections: vec![FeatureSelection {
             skipped_levels: BTreeSet::from([3, 9, 15]),
+            replaced_by: BTreeMap::new(),
             ..levelled_selection(
                 "sorcerer/seeker/bloodline",
                 &["sorcerer", "dragon-disciple"],
@@ -213,6 +214,7 @@ pub(in crate::test_world::world) fn sorcerer() -> Class {
         features: vec![plain_feature("sorcerer/sage/arcane-bolt", "Arcane Bolt")],
         selections: vec![FeatureSelection {
             skipped_levels: BTreeSet::from([1]),
+            replaced_by: BTreeMap::new(),
             ..levelled_selection(
                 "sorcerer/sage/bloodline",
                 &["sorcerer", "dragon-disciple"],

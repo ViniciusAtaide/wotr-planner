@@ -1,6 +1,6 @@
 //! The test world's mythic paths: the Trickster and Aeon, and the switches.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 use crate::*;
 
@@ -38,6 +38,7 @@ pub(super) fn trickster() -> MythicPath {
             shared_options: BTreeSet::new(),
             option_levels: BTreeSet::new(),
             skipped_levels: BTreeSet::new(),
+            replaced_by: BTreeMap::new(),
             feat_lists_only: false,
             only_without_option: false,
             pool_of: None,
@@ -217,6 +218,7 @@ pub(super) fn gold_dragon() -> MythicPath {
             shared_options: BTreeSet::new(),
             option_levels: BTreeSet::new(),
             skipped_levels: BTreeSet::new(),
+            replaced_by: BTreeMap::new(),
             feat_lists_only: false,
             only_without_option: false,
             pool_of: None,
@@ -337,6 +339,7 @@ pub(super) fn aeon() -> MythicPath {
             shared_options: BTreeSet::new(),
             option_levels: BTreeSet::new(),
             skipped_levels: BTreeSet::new(),
+            replaced_by: BTreeMap::new(),
             feat_lists_only: false,
             only_without_option: false,
             pool_of: None,
