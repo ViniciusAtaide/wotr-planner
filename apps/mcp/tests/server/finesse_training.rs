@@ -2,7 +2,7 @@
 //! opens with the weapon in `todo`, `options` lists the guide's 21 weapons, `choose` takes one, and the next Finesse
 //! Training slot has that weapon taken.
 
-use rmcp::serde_json::{Value, json};
+use rmcp::serde_json::{Map, Value, json};
 use rules::{Build, ClassChoice, ClassKey, LevelUp};
 
 use crate::support::*;
@@ -80,7 +80,11 @@ async fn real_data_finesse_training_lists_the_guides_weapons_and_takes_one() {
         .unwrap_or_else(|| panic!("no Light Shield Bash in {next}"));
     assert_eq!(
         taken["status"],
-        json!({ "issue": "already_held", "reason": "Already taken" }),
+        json!({
+            "issue": "already_held",
+            // Ticket 192: it says where the weapon is held.
+            "reason": "Finesse Training (Light Shield Bash) is taken in level 3's Finesse Training slot",
+        }),
         "{taken}"
     );
 }
@@ -99,4 +103,45 @@ async fn real_data_finesse_training_by_its_key_alone_needs_its_weapon() {
         .await;
     assert_eq!(chosen["applied"], 0, "{chosen}");
     assert_eq!(chosen["rejected"]["issue"], "needs_parameter", "{chosen}");
+}
+
+#[tokio::test]
+async fn real_data_a_weapon_taken_twice_says_where_in_choose_and_validate() {
+    // Ticket 192.
+    let client = Client::start().await;
+    let held = "Finesse Training (Light Shield Bash) is taken in level 3's Finesse Training slot";
+    let chosen = client
+        .ok(
+            "choose",
+            json!({ "build": code(&rogue(11)), "steps": [
+                { "choice": AT_3, "value": shield() },
+                { "choice": AT_11, "value": shield() },
+            ] }),
+        )
+        .await;
+    assert_eq!(chosen["applied"], 1, "{chosen}");
+    assert_eq!(chosen["rejected"]["reason"], held, "{chosen}");
+    let mut choices = Map::new();
+    for (address, value) in [
+        ("start.race", json!("human")),
+        ("start.faith", json!("atheism")),
+        ("start.alignment", json!("true-neutral")),
+        (AT_3, shield()),
+        (AT_11, shield()),
+    ] {
+        choices.insert(address.to_owned(), value);
+    }
+    for level in 1..=11 {
+        choices.insert(format!("level.{level}.class"), json!({ "class": "rogue" }));
+    }
+    let validated = client.ok("validate", json!({ "choices": choices })).await;
+    assert_eq!(validated["status"], "invalid", "{validated}");
+    let failure = validated["failures"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|failure| failure["choice"] == AT_11)
+        .unwrap_or_else(|| panic!("no failure at {AT_11} in {validated}"));
+    assert_eq!(failure["issue"], "already_held");
+    assert_eq!(failure["reason"], held);
 }

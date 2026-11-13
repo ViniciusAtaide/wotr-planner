@@ -300,7 +300,10 @@ async fn a_step_that_breaks_a_later_choice_is_rejected_with_the_engines_issue() 
     .await;
     assert_eq!(refused["rejected"]["issue"], "breaks_later");
     let reason = text(&refused["rejected"]["reason"]);
-    assert!(reason.contains("Strength 13 → 12"), "{reason}");
+    assert_eq!(
+        reason,
+        "At Strength 13 → 12: power-attack needs Strength above 12. Nothing was changed."
+    );
     assert_eq!(refused["build"], code(&strong));
 }
 
@@ -370,7 +373,7 @@ async fn a_refused_rank_in_a_skill_map_stops_the_step_and_changes_nothing() {
     assert_eq!(refused["rejected"]["issue"], "not_an_option");
     let reason = text(&refused["rejected"]["reason"]);
     // The rank refused, one step at a time: no skill's total goes above the character level.
-    assert!(reason.contains("at level 1 1 → 2"), "{reason}");
+    assert!(reason.contains("at level 1, 1 → 2"), "{reason}");
     assert!(reason.contains("Nothing was changed"), "{reason}");
     assert_eq!(refused["build"], code(&fighter));
 
@@ -546,5 +549,90 @@ async fn real_data_augment_summoning_waits_for_spell_focus_conjuration() {
     assert_eq!(
         at(&after["levels"][2]["picks"], "slot.feat.3.general.0")["name"],
         "Augment Summoning"
+    );
+}
+
+/// A fighter 3 with a Mobility rank at each level and Deft Maneuvers (3 Mobility ranks) in level 3's general slot,
+/// Power Attack in level 1's class slot and Cleave (which needs it) in level 2's.
+fn dependent_fighter() -> Build {
+    let mut build = build("human", &times("fighter", 3));
+    for level_up in &mut build.levels {
+        level_up
+            .skill_ranks
+            .insert(rules::test_world::skill("mobility"), 1);
+    }
+    build
+        .picks
+        .insert(general_slot(3), pick_feat("deft-maneuvers"));
+    build
+        .picks
+        .insert(class_slot(1, 0), pick_feat("power-attack"));
+    build.picks.insert(class_slot(2, 0), pick_feat("cleave"));
+    build
+}
+
+#[tokio::test]
+async fn a_refusal_that_breaks_a_later_choice_names_it() {
+    // Ticket 192. A skill's ranks lowered under a feat that needs them.
+    let build = dependent_fighter();
+    let refused = choose(
+        &build,
+        json!([{ "choice": "level.1.skill.mobility", "value": 0 }]),
+    )
+    .await;
+    assert_eq!(refused["rejected"]["issue"], "breaks_later", "{refused}");
+    assert_eq!(
+        refused["rejected"]["reason"],
+        "At Mobility ranks at level 1, 1 → 0: deft-maneuvers needs more than 0 Mobility ranks at level 1. Nothing \
+         was changed."
+    );
+    // A slot's pick replaced under a pick that depends on it, and a class replaced under its levels' picks.
+    let replaced = choose(
+        &build,
+        json!([{ "choice": "slot.feat.1.class.0", "value": "toughness" }]),
+    )
+    .await;
+    assert_eq!(
+        replaced["rejected"]["reason"],
+        "cleave depends on what `slot.feat.1.class.0` holds now"
+    );
+}
+
+#[tokio::test]
+async fn withdraw_names_what_depends_on_a_choice() {
+    // Ticket 192.
+    let client = Client::on_the_test_world().await;
+    let refused = client
+        .call(
+            "withdraw",
+            json!({ "build": code(&dependent_fighter()), "choice": "slot.feat.1.class.0" }),
+        )
+        .await;
+    assert_eq!(error_code(&refused), "not_removable");
+    assert!(
+        error_text(&refused).ends_with(
+            "cleave depends on `slot.feat.1.class.0`, so it can't be withdrawn now: withdraw that choice first."
+        ),
+        "{}",
+        error_text(&refused)
+    );
+}
+
+#[tokio::test]
+async fn a_parameterised_entry_listed_without_its_values_names_what_it_breaks() {
+    // Ticket 192: Weapon Focus (a weapon) in the slot Cleave's Power Attack holds breaks Cleave, whatever the weapon.
+    let client = Client::on_the_test_world().await;
+    let options = client
+        .ok(
+            "options",
+            json!({ "build": code(&dependent_fighter()), "choice": "slot.feat.1.class.0",
+                    "only_open": false, "query": "weapon-focus" }),
+        )
+        .await;
+    let status = &options["options"][0]["status"];
+    assert_eq!(status["issue"], "breaks_later", "{options}");
+    assert_eq!(
+        status["reason"], "cleave depends on what `slot.feat.1.class.0` holds now",
+        "{options}"
     );
 }

@@ -837,3 +837,86 @@ fn the_level_that_opens_a_ranks_pick_comes_with_the_ranks_the_move_takes_along()
         "MR 3 to level 13, MR 4 to level 13"
     );
 }
+
+/// A Trickster fighter of 13 levels with Dodge in MR 4's bonus feat slot (MR 4 comes at level 11) and Crane Style,
+/// which needs Dodge, in level 13's general slot.
+fn crane_style_after_its_prerequisite() -> Build {
+    let mut build = trickster(13);
+    build
+        .picks
+        .insert(SlotId::PathFeat { rank: 4, index: 0 }, pick_feat("dodge"));
+    build
+        .picks
+        .insert(general_slot(13), pick_feat("crane-style"));
+    build
+}
+
+#[test]
+fn a_move_that_refuses_a_pick_for_a_rank_it_takes_along_names_that_rank_and_its_pick() {
+    // Ticket 192: MR 3 at level 13 takes MR 4 there, after Crane Style, which needs MR 4's Dodge.
+    let engine = engine();
+    let build = crane_style_after_its_prerequisite();
+    assert!(engine.is_possible(&build));
+    let options = engine.rank_level_options(&build, 3);
+    let at_13 = options.iter().find(|option| option.level == 13).unwrap();
+    assert_eq!(at_13.moves, [(4, 13)]);
+    assert_eq!(at_13.status, Err(Issue::BreaksLater));
+    assert_eq!(
+        at_13.reason.as_deref(),
+        Some("crane-style needs MR 4's dodge earlier than level 13: MR 4 moves with MR 3")
+    );
+    // MR 4 itself is the rank that holds Dodge: the text names it as it always has.
+    let own = engine.rank_level_options(&build, 4);
+    let own_13 = own.iter().find(|option| option.level == 13).unwrap();
+    assert_eq!(
+        own_13.reason.as_deref(),
+        Some("crane-style needs MR 4 earlier than level 13")
+    );
+}
+
+#[test]
+fn a_pick_whose_prerequisite_is_a_later_ranks_says_where_and_what_would_open_it() {
+    // Ticket 192: MR 4 is taken at level 14 with Dodge, so Crane Style at level 13 is refused.
+    let engine = engine();
+    let mut build = trickster(14);
+    build
+        .picks
+        .insert(SlotId::PathFeat { rank: 4, index: 0 }, pick_feat("dodge"));
+    build = moved(&build, 4, 14);
+    let sheet = engine.evaluate(&build);
+    let slot = general_slot(13);
+    let pick = pick_feat("crane-style");
+    let issue = engine
+        .options(&build, &slot)
+        .expect("the slot")
+        .into_iter()
+        .find(|option| option.pick == pick)
+        .expect("offered")
+        .status
+        .unwrap_err();
+    let later = engine
+        .later_rank_pick(&build, &sheet, &slot, &issue)
+        .expect("Dodge is in a later rank");
+    assert_eq!(
+        (later.rank, later.level, later.at, &later.pick),
+        (4, 14, 13, &pick_feat("dodge"))
+    );
+    assert_eq!(
+        engine.later_rank_text(&later),
+        "dodge is in Mythic rank 4's trickster/bonus-feats slot, taken at level 14, after this slot's level 13"
+    );
+    // MR 4 at level 12 (the latest below 13) opens it; no rank above moves.
+    assert_eq!(
+        engine.rank_level_that_lets_in(&build, &slot, &pick, &later),
+        Some((12, vec![]))
+    );
+    // An issue that isn't an unmet prerequisite, and a slot after the rank, have none.
+    assert_eq!(
+        engine.later_rank_pick(&build, &sheet, &slot, &Issue::AlreadyHeld),
+        None
+    );
+    assert_eq!(
+        engine.later_rank_pick(&build, &sheet, &general_slot(14), &issue),
+        None
+    );
+}

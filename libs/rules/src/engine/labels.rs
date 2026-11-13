@@ -241,7 +241,7 @@ impl Engine {
     /// A picker's reason for this character: of each "or", only the alternatives the character's classes give
     /// (Advanced Weapon Training for a fighter needs the Fighter's Weapon Training, not the Sohei's), or every
     /// alternative when none does. The pick is locked either way; this only keeps the reason to the point.
-    pub(super) fn reason_for(&self, issue: Issue, state: &CharacterState) -> Issue {
+    pub fn reason_for(&self, issue: Issue, state: &CharacterState) -> Issue {
         match issue {
             Issue::Unmet(unmet) => Issue::Unmet(self.unmet_for(unmet, state)),
             issue => issue,
@@ -800,11 +800,7 @@ impl Engine {
     pub fn unmet_text(&self, unmet: &Unmet) -> String {
         match unmet {
             Unmet::Condition { needs, has } => self.prerequisite_text(needs, *has),
-            Unmet::All(children) => children
-                .iter()
-                .map(|child| self.nested_unmet_text(child))
-                .collect::<Vec<_>>()
-                .join(", "),
+            Unmet::All(children) => self.unmet_all_texts(children).join(", "),
             Unmet::Any(children) => {
                 let texts = children
                     .iter()
@@ -838,11 +834,25 @@ impl Engine {
         }
     }
 
-    /// A group inside another reads in brackets.
+    /// The failing children of an "and", each once: two that read alike (both "no Bloodline yet") are one.
+    fn unmet_all_texts(&self, children: &[Unmet]) -> Vec<String> {
+        distinct(
+            children
+                .iter()
+                .map(|child| self.nested_unmet_text(child))
+                .collect(),
+        )
+    }
+
+    /// A group inside another reads in brackets, unless it is an "and" left with one text.
     fn nested_unmet_text(&self, unmet: &Unmet) -> String {
         match unmet {
             Unmet::Condition { .. } => self.unmet_text(unmet),
             Unmet::MetLater { unmet, .. } => self.nested_unmet_text(unmet),
+            Unmet::All(children) => match self.unmet_all_texts(children).as_slice() {
+                [one] => one.clone(),
+                _ => format!("({})", self.unmet_text(unmet)),
+            },
             _ => format!("({})", self.unmet_text(unmet)),
         }
     }
@@ -861,6 +871,35 @@ impl Engine {
         self.prerequisite_text_within(prerequisite, None, Some(most))
     }
 
+    /// The texts of a group's children, each group among them in brackets (an "and" left with one text, not), with
+    /// the options of one name told apart ([`Self::told_apart`]).
+    fn group_texts(&self, children: &[Prerequisite], most: Option<usize>) -> Vec<String> {
+        let texts = children
+            .iter()
+            .map(|child| match child {
+                Prerequisite::All(inner) => match self.all_texts(inner, most).as_slice() {
+                    [one] => one.clone(),
+                    parts => format!("({})", parts.join(", ")),
+                },
+                Prerequisite::Any(_) | Prerequisite::AtLeast(..) => {
+                    format!("({})", self.prerequisite_text_within(child, None, most))
+                }
+                _ => self.prerequisite_text_within(child, None, most),
+            })
+            .collect();
+        let options = children.iter().map(|child| match child {
+            Prerequisite::SelectionOption(option) => Some(option),
+            _ => None,
+        });
+        self.told_apart(texts, options)
+    }
+
+    /// The texts of an "and"'s children, each once: "no Bloodline yet" twice (the Sorcerer's and the Bloodrager's
+    /// Bloodline selections share a name) is one. An "or" keeps every alternative.
+    fn all_texts(&self, children: &[Prerequisite], most: Option<usize>) -> Vec<String> {
+        distinct(self.group_texts(children, most))
+    }
+
     /// The text of a prerequisite, its groups of more than `most` alternatives shortened when `most` is given.
     fn prerequisite_text_within(
         &self,
@@ -874,28 +913,12 @@ impl Engine {
             Some(value) => format!("{text} (have {value})"),
             None => text,
         };
-        let texts = |children: &[Prerequisite]| {
-            let texts = children
-                .iter()
-                .map(|child| match child {
-                    Prerequisite::All(_) | Prerequisite::Any(_) | Prerequisite::AtLeast(..) => {
-                        format!("({})", self.prerequisite_text_within(child, None, most))
-                    }
-                    _ => self.prerequisite_text_within(child, None, most),
-                })
-                .collect();
-            let options = children.iter().map(|child| match child {
-                Prerequisite::SelectionOption(option) => Some(option),
-                _ => None,
-            });
-            self.told_apart(texts, options)
-        };
         match prerequisite {
-            Prerequisite::All(children) => texts(children).join(", "),
+            Prerequisite::All(children) => self.all_texts(children, most).join(", "),
             Prerequisite::Any(children) | Prerequisite::AtLeast(_, children)
                 if most.is_some_and(|most| children.len() > most) =>
             {
-                let texts = texts(children);
+                let texts = self.group_texts(children, most);
                 let mut shown = texts[..SHOWN.min(texts.len())].join(", ");
                 if texts.len() > SHOWN {
                     shown.push_str(", …");
@@ -910,8 +933,10 @@ impl Engine {
                     self.alternatives_noun(children)
                 )
             }
-            Prerequisite::Any(children) => texts(children).join(" or "),
-            Prerequisite::AtLeast(n, children) => format!("{n} of: {}", texts(children).join(", ")),
+            Prerequisite::Any(children) => self.group_texts(children, most).join(" or "),
+            Prerequisite::AtLeast(n, children) => {
+                format!("{n} of: {}", self.group_texts(children, most).join(", "))
+            }
             // Two negations cancel.
             Prerequisite::Not(child) => match &**child {
                 Prerequisite::Not(held) => self.prerequisite_text(held, has),
@@ -1168,6 +1193,17 @@ impl ParameterKind {
             ParameterKind::Element => "an element",
         }
     }
+}
+
+/// The texts without a repeat, in order.
+fn distinct(texts: Vec<String>) -> Vec<String> {
+    let mut seen: Vec<String> = Vec::with_capacity(texts.len());
+    for text in texts {
+        if !seen.contains(&text) {
+            seen.push(text);
+        }
+    }
+    seen
 }
 
 impl Ability {

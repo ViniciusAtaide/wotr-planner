@@ -5,19 +5,20 @@
 //! A picker lists its candidates and presents them; whether each can be taken is the walk's verdict, asked of the
 //! walk paused at the picker's slot or level ([`Cursor`]), so a picker and the walk can't judge a choice two ways.
 
+use std::cell::OnceCell;
 use std::collections::BTreeSet;
 
 use super::gear::GearLean;
 use super::walk::{Cursor, first_taken_at};
 use super::{
-    AdvancesOption, ClassOption, Engine, EntryOption, PathOption, SlotEntry, SlotKind, SlotOption,
-    advanced_spellcasting,
+    AdvancesOption, ClassOption, Engine, EntryOption, PathOption, Sheet, Slot, SlotEntry, SlotKind,
+    SlotOption, advanced_spellcasting,
 };
 use crate::build::{Build, ClassChoice, Edit, Pick, SlotId};
 use crate::choice::Issue;
 use crate::game_data::Archetype;
 use crate::keys::{ClassKey, SelectionOptionKey};
-use crate::parameter::ParameterKind;
+use crate::parameter::{ParameterKind, Repeat};
 use crate::prerequisite::Prerequisite;
 
 impl Engine {
@@ -149,6 +150,8 @@ impl Engine {
     /// and each option with its value's name and its own reason. `None` when the Build has no such slot.
     pub fn slot_entries(&self, build: &Build, slot: &SlotId) -> Option<Vec<SlotEntry>> {
         let mut entries: Vec<SlotEntry> = Vec::new();
+        // The sheet, walked when the first option held already asks where it is held.
+        let sheet: OnceCell<Sheet> = OnceCell::new();
         for option in self.options(build, slot)? {
             let same_item = entries
                 .last()
@@ -160,6 +163,12 @@ impl Engine {
             // Values often fail alike (BAB +1 for every weapon): the last one's reason, when it's the same issue.
             let reason = match (&option.status, entry.options.last()) {
                 (Ok(()), _) => None,
+                // Where a pick is held is its own to say: the last value's place is another's.
+                (Err(Issue::AlreadyHeld), _) => {
+                    let sheet = sheet.get_or_init(|| self.evaluate(build));
+                    self.held_where(build, sheet, slot, &option.pick)
+                        .or_else(|| self.issue_text(&Issue::AlreadyHeld))
+                }
                 (Err(issue), Some(last)) if last.option.status.as_ref().err() == Some(issue) => {
                     last.reason.clone()
                 }
@@ -186,6 +195,102 @@ impl Engine {
             }
         }
         Some(entries)
+    }
+
+    /// For a pick a slot refuses as already held: where the Build holds it, by the pick it holds, in the place
+    /// phrase a pick order's reasons use: "Finesse Training (Rapier) is taken in level 3's Finesse Training slot",
+    /// or in a Mythic rank's slot "…is taken in Mythic rank 4's Improved Mythic Trick slot, at level 14". The pick
+    /// named is the one held, which can differ from the one refused (a chosen-feat option refused for the feat in a
+    /// feat slot; a mythic ability held with another value). `None` when no slot of the sheet holds it: a grant has
+    /// no slot, and the reason stays "Already taken". `sheet` is the Build's.
+    ///
+    /// Costs no walk.
+    pub fn held_where(
+        &self,
+        build: &Build,
+        sheet: &Sheet,
+        slot: &SlotId,
+        pick: &Pick,
+    ) -> Option<String> {
+        let held: &Slot = (sheet.levels.iter())
+            .flat_map(|level| &level.slots)
+            .chain(sheet.ranks.iter().flat_map(|rank| &rank.slots))
+            .filter(|other| &other.id != slot)
+            .find(|other| {
+                other
+                    .pick
+                    .as_ref()
+                    .is_some_and(|held| self.holds_the_same(held, pick))
+            })?;
+        let name = self.pick_name(held.pick.as_ref()?);
+        let label = self.slot_label(held);
+        Some(match (held.id.level(), held.id.rank()) {
+            (Some(level), _) => format!("{name} is taken in level {level}'s {label} slot"),
+            (None, Some(rank)) => {
+                let at = self.rank_level(build, rank)?;
+                format!("{name} is taken in Mythic rank {rank}'s {label} slot, at level {at}")
+            }
+            (None, None) => return None,
+        })
+    }
+
+    /// Whether a held pick is what keeps a pick from being taken again: the same pick; the same feat, option or
+    /// mythic ability that counts once whatever its value; an option's chosen feat and the feat itself.
+    fn holds_the_same(&self, held: &Pick, wanted: &Pick) -> bool {
+        if held == wanted {
+            return true;
+        }
+        let catalog = &self.catalog;
+        match (held, wanted) {
+            (Pick::Feat { feat: a, .. }, Pick::Feat { feat: b, .. }) => {
+                a == b
+                    && catalog
+                        .feat(a)
+                        .is_some_and(|feat| feat.repeat == Repeat::Once)
+            }
+            (Pick::SelectionOption { option: a, .. }, Pick::SelectionOption { option: b, .. }) => {
+                a == b
+                    && catalog
+                        .option(a)
+                        .is_some_and(|option| option.repeat == Repeat::Once)
+            }
+            (Pick::MythicAbility { ability: a, .. }, Pick::MythicAbility { ability: b, .. }) => {
+                a == b
+            }
+            (Pick::MythicFeat { feat: a, .. }, Pick::MythicFeat { feat: b, .. }) => {
+                a == b
+                    && catalog
+                        .mythic_feat(a)
+                        .is_some_and(|feat| feat.repeat != Repeat::PerValue)
+            }
+            (
+                Pick::SelectionOption {
+                    option,
+                    parameter: value,
+                },
+                Pick::Feat {
+                    feat,
+                    parameter: wanted,
+                },
+            )
+            | (
+                Pick::Feat {
+                    feat,
+                    parameter: wanted,
+                },
+                Pick::SelectionOption {
+                    option,
+                    parameter: value,
+                },
+            ) => {
+                value == wanted
+                    && catalog
+                        .option(option)
+                        .and_then(|option| option.chosen_feat.as_ref())
+                        == Some(feat)
+            }
+            _ => false,
+        }
     }
 
     /// The entry that starts with `option`: what its pick takes, as the picker shows it.
