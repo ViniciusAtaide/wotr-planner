@@ -2350,3 +2350,53 @@ fn the_druids_wild_shape_wolf_steps_every_two_levels_and_in_each_archetypes_own_
         );
     }
 }
+
+/// Ticket 188: the warpriest's Channel Energy (the guide: 1d6 plus 1d6 per three levels above 2nd, 7d6 at 20) at 4, 5,
+/// 8, 11, 14, 17 and 20, and Fervor (1d6 plus 1d6 per three more levels, 7d6 at 20) at 2, 5, 8, 11, 14, 17 and 20.
+/// Only the Feral Champion keeps the class's Channel Energy: the Champion of the Faith, the Cult Leader, the
+/// Disenchanter, the Mantis Zealot and the Proclaimer replace it, and the Shieldbearer has its own, which takes the
+/// same steps (an inference: its sentence gives none). Every archetype keeps Fervor.
+#[test]
+fn the_warpriests_channel_energy_and_fervor_step() {
+    assert_gains(
+        "warpriest",
+        "warpriest/channel-energy",
+        &|_, build| build,
+        &[4, 5, 8, 11, 14, 17, 20],
+        &[
+            ("warpriest/champion-of-the-faith", Some(&[])),
+            ("warpriest/cult-leader", Some(&[])),
+            ("warpriest/disenchanter", Some(&[])),
+            ("warpriest/mantis-zealot", Some(&[])),
+            ("warpriest/proclaimer", Some(&[])),
+            ("warpriest/shieldbearer", Some(&[])),
+        ],
+    );
+    assert_gains(
+        "warpriest",
+        "warpriest/shieldbearer/channel-energy-shieldbearer",
+        &|_, build| build,
+        &[],
+        &[("warpriest/shieldbearer", Some(&[4, 5, 8, 11, 14, 17, 20]))],
+    );
+    assert_gains(
+        "warpriest",
+        "warpriest/fervor",
+        &|_, build| build,
+        &[2, 5, 8, 11, 14, 17, 20],
+        &[],
+    );
+}
+
+/// Ticket 188: the Feral Champion's Wild Shape (Wolf) (the guide: once a day at 7, one more use every four levels,
+/// 4 at 19) at 7, 11, 15 and 19, on rows that keep the bear form at 11 and the combat feat at 15.
+#[test]
+fn the_feral_champions_wild_shape_wolf_steps_every_four_levels() {
+    assert_gains(
+        "warpriest",
+        "warpriest/feral-champion/wild-shape-wolf",
+        &|_, build| build,
+        &[],
+        &[("warpriest/feral-champion", Some(&[7, 11, 15, 19]))],
+    );
+}
