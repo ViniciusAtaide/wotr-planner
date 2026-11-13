@@ -2166,3 +2166,74 @@ fn the_rogues_danger_sense_steps_every_three_levels() {
         &[("rogue/knife-master", Some(&[])), ("rogue/thug", Some(&[]))],
     );
 }
+
+/// Ticket 188: the fighter's Bravery (+1 every four levels, +5 at 18), Armor Training (every four levels from 3, to
+/// 15) and Weapon Training (every four levels from 5, to 17). An archetype whose table has no Bravery (the Armiger's
+/// Ardent, the Dragonheir Scion's Fearful Might, the Tower Shield Specialist's Burst Barrier, the Two-Handed
+/// Fighter's Strong Grip), no Armor Training (the Aldori Defender, the Dragonheir Scion, the Mutation Warrior, the
+/// Titan Fighter, the Two-Handed Fighter) or no Weapon Training (the Titan Fighter, ticket 131; the Tower Shield
+/// Specialist; the Two-Handed Fighter) holds none of its steps. The Defender of the Hearth's first Weapon Training
+/// is its delayed one at 9 and it inherits the steps at 13 and 17 (an inference: the guide gives it none).
+#[test]
+fn the_fighters_bravery_armor_training_and_weapon_training_step() {
+    assert_gains(
+        "fighter",
+        "fighter/bravery",
+        &|_, build| build,
+        &[2, 6, 10, 14, 18],
+        &[
+            ("fighter/armiger", Some(&[])),
+            ("fighter/dragonheir-scion", Some(&[])),
+            ("fighter/tower-shield-specialist", Some(&[])),
+            ("fighter/two-handed-fighter", Some(&[])),
+        ],
+    );
+    assert_gains(
+        "fighter",
+        "fighter/armor-training",
+        &|_, build| build,
+        &[3, 7, 11, 15],
+        &[
+            ("fighter/aldori-defender", Some(&[])),
+            ("fighter/dragonheir-scion", Some(&[])),
+            ("fighter/mutation-warrior", Some(&[])),
+            ("fighter/titan-fighter", Some(&[])),
+            ("fighter/two-handed-fighter", Some(&[])),
+        ],
+    );
+    assert_gains(
+        "fighter",
+        "fighter/weapon-training",
+        &|_, build| build,
+        &[5, 9, 13, 17],
+        &[
+            ("fighter/defender-of-the-hearth", Some(&[9, 13, 17])),
+            ("fighter/titan-fighter", Some(&[])),
+            ("fighter/tower-shield-specialist", Some(&[])),
+            ("fighter/two-handed-fighter", Some(&[])),
+        ],
+    );
+}
+
+/// Ticket 188: the two archetype features that replace a stepped base feature and rise themselves (the guide: the
+/// Armiger's Ardent +1 every four levels from 2, +5 at 18; the Aldori Defender's Defensive Parry +1 every four levels
+/// after 3, +5 at 19), on the rows the base features' steps force the two archetypes to have.
+#[test]
+fn the_armigers_ardent_and_the_aldoris_defensive_parry_step() {
+    for (feature, levels) in [
+        ("fighter/armiger/ardent", &[2, 6, 10, 14, 18][..]),
+        (
+            "fighter/aldori-defender/defensive-parry",
+            &[3, 7, 11, 15, 19][..],
+        ),
+    ] {
+        let archetype = feature.rsplit_once('/').unwrap().0;
+        assert_gains(
+            "fighter",
+            feature,
+            &|_, build| build,
+            &[],
+            &[(archetype, Some(levels))],
+        );
+    }
+}
