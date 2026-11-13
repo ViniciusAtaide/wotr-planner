@@ -490,6 +490,7 @@ level.18.skill.stealth = 1
 slot.selection.18.0 = Rogue Talents: rogue/rogue-talents/combat-trick "Combat Trick"
 slot.option-feat.18.0 = Combat feat: blind-fight "Blind Fight"
 level.18.feat/blind-fight = Blind Fight
+level.18.feature/rogue/danger-sense = Danger Sense (Rogue)
 level.19.class = rogue "Rogue"
 level.19.class-level = 7
 level.19.bab = 14
