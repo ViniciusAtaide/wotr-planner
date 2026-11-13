@@ -107,10 +107,16 @@ fn app(
     // - the game data once, at startup;
     // - in a release build, the wasm, JS and CSS once, by `cargo leptos build --release --precompress`. Only its
     //   `.br` files are served (`precompressed_br`): its `.gz` files (libflate) are 11–17 % bigger than the gzip
-    //   `CompressionLayer` makes on the fly, so a browser without brotli still gets that. A dev build has no
-    //   `.br` files, so everything is compressed on the fly there;
-    // - the rest, the HTML, on the fly.
-    let site_pkg = ServeDir::new(&*leptos_options.site_root).precompressed_br();
+    //   `CompressionLayer` makes on the fly, so a browser without brotli still gets that;
+    // - the rest, the HTML, on the fly, and in a dev build the wasm, JS and CSS too.
+    // A dev server never serves a `.br` file: dev and release builds share the site root, and a dev build rewrites
+    // only the plain files, so an earlier release build's `.br` copies would shadow them with stale wasm and JS.
+    let site_pkg = ServeDir::new(&*leptos_options.site_root);
+    let site_pkg = if cfg!(debug_assertions) {
+        site_pkg
+    } else {
+        site_pkg.precompressed_br()
+    };
     Router::new()
         .merge(game_data.routes())
         .route_service(&site_pkg_dir_service_route_path(&leptos_options), site_pkg)
@@ -292,6 +298,44 @@ mod tests {
             html.contains(r#"<link rel="icon" href="data:,">"#),
             "{html}"
         );
+    }
+
+    /// Dev and release builds share the site root, so a dev build's fresh JS can sit beside an earlier release
+    /// build's `.br` copy of it: a dev server serves the plain file, and only a release server the `.br` file.
+    /// (Both files are under `CompressionLayer`'s minimum size, so nothing is compressed on the fly.)
+    #[tokio::test]
+    async fn only_a_release_server_serves_a_precompressed_copy() {
+        let site_root =
+            std::env::temp_dir().join(format!("wotr-planner-precompressed-{}", std::process::id()));
+        let pkg = site_root.join("pkg");
+        std::fs::create_dir_all(&pkg).unwrap();
+        std::fs::write(pkg.join("wotr-planner.js"), "fresh").unwrap();
+        std::fs::write(pkg.join("wotr-planner.js.br"), "stale").unwrap();
+        let options = LeptosOptions::builder()
+            .output_name("wotr-planner")
+            .site_root(site_root.to_str().unwrap())
+            .build();
+        let app = app(GameDataFile::from_json(b"{}".to_vec()), options, None);
+        let response = app
+            .oneshot(
+                Request::get("/pkg/wotr-planner.js")
+                    .header(header::ACCEPT_ENCODING, "br")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        let encoding = response.headers().get(header::CONTENT_ENCODING).cloned();
+        let body = to_bytes(response.into_body(), usize::MAX).await.unwrap();
+        std::fs::remove_dir_all(&site_root).unwrap();
+        if cfg!(debug_assertions) {
+            assert_eq!((encoding, &body[..]), (None, &b"fresh"[..]));
+        } else {
+            assert_eq!(
+                (encoding, &body[..]),
+                (Some(HeaderValue::from_static("br")), &b"stale"[..])
+            );
+        }
     }
 
     #[tokio::test]
