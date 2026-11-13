@@ -2312,3 +2312,41 @@ fn the_paladins_smite_evil_steps_every_three_levels_after_4() {
         ],
     );
 }
+
+/// Ticket 188: the druid's Wild Shape (Wolf) (the guide: once a day, one more use every two levels above 4th, 8 at
+/// 18) at 4, 6, 8, ..., 18. No archetype holds the class's: the Drovier and the Winter Child have no Wild Shape, and
+/// the five others have a copy of their own, each held at the same levels (the Feyspeaker's at 6, 8, ..., 18: the
+/// guide says only that its Wild Shape comes two levels later, so each even level from 6, an inference).
+#[test]
+fn the_druids_wild_shape_wolf_steps_every_two_levels_and_in_each_archetypes_own_copy() {
+    let class = class("druid");
+    assert_gains(
+        "druid",
+        "druid/wild-shape-wolf",
+        &|_, build| build,
+        &[4, 6, 8, 10, 12, 14, 16, 18],
+        &class
+            .archetypes
+            .iter()
+            .map(|archetype| (archetype.key.as_str(), Some(&[][..])))
+            .collect::<Vec<_>>(),
+    );
+    for (archetype, levels) in [
+        ("blight-druid", &[4, 6, 8, 10, 12, 14, 16, 18][..]),
+        (
+            "defender-of-the-true-world",
+            &[4, 6, 8, 10, 12, 14, 16, 18][..],
+        ),
+        ("elemental-rampager", &[4, 6, 8, 10, 12, 14, 16, 18][..]),
+        ("feyspeaker", &[6, 8, 10, 12, 14, 16, 18][..]),
+        ("primal-druid", &[4, 6, 8, 10, 12, 14, 16, 18][..]),
+    ] {
+        assert_gains(
+            "druid",
+            &format!("druid/{archetype}/wild-shape-wolf"),
+            &|_, build| build,
+            &[],
+            &[(&format!("druid/{archetype}"), Some(levels))],
+        );
+    }
+}
