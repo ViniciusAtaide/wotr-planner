@@ -82,7 +82,7 @@ Class(
                     levels: [
                         (level: 1, features: ["sorcerer/bloodline/abyssal/demonic-arcana", "sorcerer/bloodline/abyssal/grow-claws"], feat_list: "sorcerer/bloodline/abyssal/feats", class_skills: ["athletics"]),
                         (level: 3, features: ["sorcerer/bloodline/abyssal/demon-resistances"]),
-                        (level: 9, features: ["sorcerer/bloodline/abyssal/strength-of-the-abyss"]),
+                        (level: 9, features: ["sorcerer/bloodline/abyssal/strength-of-the-abyss", "sorcerer/bloodline/abyssal/demon-resistances"]),
                         (level: 13, features: ["sorcerer/bloodline/abyssal/strength-of-the-abyss"]),
                         (level: 15, features: ["sorcerer/bloodline/abyssal/added-summonings"], feats: ["wings"]),
                         (level: 17, features: ["sorcerer/bloodline/abyssal/strength-of-the-abyss"]),
@@ -111,7 +111,7 @@ Class(
                     levels: [
                         (level: 1, features: ["sorcerer/bloodline/celestial/angelic-arcana", "sorcerer/bloodline/celestial/heavenly-fire"], feat_list: "sorcerer/bloodline/celestial/feats", class_skills: ["lore-religion"]),
                         (level: 3, features: ["sorcerer/bloodline/celestial/celestial-resistances"]),
-                        (level: 9, features: ["sorcerer/bloodline/celestial/aura-of-heaven"]),
+                        (level: 9, features: ["sorcerer/bloodline/celestial/aura-of-heaven", "sorcerer/bloodline/celestial/celestial-resistances"]),
                         (level: 15, features: ["sorcerer/bloodline/celestial/conviction"], feats: ["wings"]),
                         (level: 20, features: ["sorcerer/bloodline/celestial/ascension"]),
                     ],
@@ -287,7 +287,7 @@ Class(
                     levels: [
                         (level: 1, features: ["sorcerer/bloodline/elemental/elemental-arcana", "sorcerer/bloodline/elemental/elemental-ray"], feat_list: "sorcerer/bloodline/elemental/feats", class_skills: ["mobility"]),
                         (level: 3, features: ["sorcerer/bloodline/elemental/elemental-resistances"]),
-                        (level: 9, features: ["sorcerer/bloodline/elemental/elemental-blast"]),
+                        (level: 9, features: ["sorcerer/bloodline/elemental/elemental-blast", "sorcerer/bloodline/elemental/elemental-resistances"]),
                         (level: 15, features: ["sorcerer/bloodline/elemental/elemental-movement-air"]),
                         (level: 20, features: ["sorcerer/bloodline/elemental/elemental-body"]),
                     ],
@@ -303,7 +303,7 @@ Class(
                     levels: [
                         (level: 1, features: ["sorcerer/bloodline/elemental/elemental-arcana", "sorcerer/bloodline/elemental/elemental-ray"], feat_list: "sorcerer/bloodline/elemental/feats", class_skills: ["mobility"]),
                         (level: 3, features: ["sorcerer/bloodline/elemental/elemental-resistances"]),
-                        (level: 9, features: ["sorcerer/bloodline/elemental/elemental-blast"]),
+                        (level: 9, features: ["sorcerer/bloodline/elemental/elemental-blast", "sorcerer/bloodline/elemental/elemental-resistances"]),
                         (level: 20, features: ["sorcerer/bloodline/elemental/elemental-body"]),
                     ],
                 ),
@@ -318,7 +318,7 @@ Class(
                     levels: [
                         (level: 1, features: ["sorcerer/bloodline/elemental/elemental-arcana", "sorcerer/bloodline/elemental/elemental-ray"], feat_list: "sorcerer/bloodline/elemental/feats", class_skills: ["mobility"]),
                         (level: 3, features: ["sorcerer/bloodline/elemental/elemental-resistances"]),
-                        (level: 9, features: ["sorcerer/bloodline/elemental/elemental-blast"]),
+                        (level: 9, features: ["sorcerer/bloodline/elemental/elemental-blast", "sorcerer/bloodline/elemental/elemental-resistances"]),
                         (level: 15, features: ["sorcerer/bloodline/elemental/elemental-movement-fire"]),
                         (level: 20, features: ["sorcerer/bloodline/elemental/elemental-body"]),
                     ],
@@ -334,7 +334,7 @@ Class(
                     levels: [
                         (level: 1, features: ["sorcerer/bloodline/elemental/elemental-arcana", "sorcerer/bloodline/elemental/elemental-ray"], feat_list: "sorcerer/bloodline/elemental/feats", class_skills: ["mobility"]),
                         (level: 3, features: ["sorcerer/bloodline/elemental/elemental-resistances"]),
-                        (level: 9, features: ["sorcerer/bloodline/elemental/elemental-blast"]),
+                        (level: 9, features: ["sorcerer/bloodline/elemental/elemental-blast", "sorcerer/bloodline/elemental/elemental-resistances"]),
                         (level: 15, features: ["sorcerer/bloodline/elemental/elemental-movement-water"]),
                         (level: 20, features: ["sorcerer/bloodline/elemental/elemental-body"]),
                     ],
@@ -362,7 +362,7 @@ Class(
                     levels: [
                         (level: 1, features: ["sorcerer/bloodline/infernal/corrupting-touch", "sorcerer/bloodline/infernal/infernal-arcana"], feat_list: "sorcerer/bloodline/infernal/feats", class_skills: ["knowledge-world"]),
                         (level: 3, features: ["sorcerer/bloodline/infernal/infernal-resistances"]),
-                        (level: 9, features: ["sorcerer/bloodline/infernal/hellfire"]),
+                        (level: 9, features: ["sorcerer/bloodline/infernal/hellfire", "sorcerer/bloodline/infernal/infernal-resistances"]),
                         (level: 15, feats: ["wings"]),
                         (level: 20, features: ["sorcerer/bloodline/infernal/power-of-the-pit"]),
                     ],
@@ -376,7 +376,9 @@ Class(
                     levels: [
                         (level: 1, features: ["sorcerer/bloodline/serpentine/serpentine-arcana", "sorcerer/bloodline/serpentine/serpents-fang"], feat_list: "sorcerer/bloodline/serpentine/feats", class_skills: ["stealth"]),
                         (level: 9, features: ["sorcerer/bloodline/serpentine/snakeskin"]),
+                        (level: 13, features: ["sorcerer/bloodline/serpentine/snakeskin"]),
                         (level: 15, features: ["sorcerer/bloodline/serpentine/den-of-vermin"]),
+                        (level: 17, features: ["sorcerer/bloodline/serpentine/snakeskin"]),
                         (level: 20, features: ["sorcerer/bloodline/serpentine/scaled-soul"]),
                     ],
                 ),
@@ -389,7 +391,7 @@ Class(
                     levels: [
                         (level: 1, features: ["sorcerer/bloodline/undead/grave-touch", "sorcerer/bloodline/undead/undead-arcana"], feat_list: "sorcerer/bloodline/undead/feats", class_skills: ["lore-religion"]),
                         (level: 3, features: ["sorcerer/bloodline/undead/deaths-gift"]),
-                        (level: 9, features: ["sorcerer/bloodline/undead/grasp-of-the-dead"]),
+                        (level: 9, features: ["sorcerer/bloodline/undead/grasp-of-the-dead", "sorcerer/bloodline/undead/deaths-gift"]),
                         (level: 15, features: ["sorcerer/bloodline/undead/incorporeal-form"]),
                         (level: 20, features: ["sorcerer/bloodline/undead/one-of-us"]),
                     ],
