@@ -180,10 +180,12 @@ Class(
                 (level: 1, features: ["alchemist/alchemist-proficiencies", "alchemist/mutagen"], feats: ["armor-proficiency-light-armor", "brew-potions", "simple-weapon-proficiency"]),
                 (level: 3, features: ["alchemist/metamorph/adaptive-physiology"]),
                 (level: 4, features: ["alchemist/metamorph/shapechanger-beast-shape-i"], selections: ["alchemist/discovery"]),
+                (level: 6, features: ["alchemist/metamorph/adaptive-physiology"], selections: ["alchemist/discovery"]),
                 (level: 9, features: ["alchemist/metamorph/shapechanger-beast-shape-ii"]),
                 (level: 11, features: ["alchemist/metamorph/shapechanger-beast-shape-iii"]),
                 (level: 13, features: ["alchemist/metamorph/shapechanger-beast-shape-iv-dragonkind-i"]),
                 (level: 15, features: ["alchemist/metamorph/shapechanger-dragonkind-ii"]),
+                (level: 18, features: ["alchemist/metamorph/adaptive-physiology"], selections: ["alchemist/discovery"]),
             ],
         ),
         (
@@ -222,9 +224,10 @@ Class(
             ],
             levels: [
                 (level: 1, features: ["alchemist/alchemist-proficiencies", "alchemist/mutagen", "alchemist/reanimator/bomb-reanimator", "alchemist/reanimator/corpse-studying"], feats: ["armor-proficiency-light-armor", "brew-potions", "simple-weapon-proficiency", "throw-anything"]),
-                (level: 5, features: ["alchemist/reanimator/simple-reanimation"]),
-                (level: 11, features: ["alchemist/reanimator/improved-reanimation"]),
+                (level: 5, features: ["alchemist/reanimator/simple-reanimation", "alchemist/reanimator/corpse-studying"]),
+                (level: 11, features: ["alchemist/reanimator/improved-reanimation", "alchemist/reanimator/corpse-studying"]),
                 (level: 15, features: ["alchemist/reanimator/greater-reanimation"]),
+                (level: 17, features: ["alchemist/reanimator/corpse-studying"]),
             ],
         ),
         (

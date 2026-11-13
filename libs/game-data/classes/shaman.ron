@@ -125,8 +125,8 @@ Class(
                     guide: "shaman#battle",
                     levels: [
                         (level: 1, features: ["shaman/spirit/battle/battle-spirit"]),
-                        (level: 8, features: ["shaman/spirit/battle/enemies-bane"]),
-                        (level: 16, features: ["shaman/spirit/battle/paragon-of-battle"]),
+                        (level: 8, features: ["shaman/spirit/battle/enemies-bane", "shaman/spirit/battle/battle-spirit"]),
+                        (level: 16, features: ["shaman/spirit/battle/paragon-of-battle", "shaman/spirit/battle/battle-spirit"]),
                         (level: 20, features: ["shaman/spirit/battle/manifestation-battle"]),
                     ],
                 ),

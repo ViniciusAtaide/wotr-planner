@@ -160,10 +160,12 @@ Class(
                 (level: 3, features: ["druid/defender-of-the-true-world/fey-stalker"]),
                 (level: 4, features: ["druid/defender-of-the-true-world/feybane", "druid/defender-of-the-true-world/wild-shape-wolf"]),
                 (level: 6, features: ["druid/defender-of-the-true-world/wild-shape-leopard-small-elemental"]),
-                (level: 8, features: ["druid/defender-of-the-true-world/wild-shape-bear-medium-elemental"]),
+                (level: 8, features: ["druid/defender-of-the-true-world/wild-shape-bear-medium-elemental", "druid/defender-of-the-true-world/fey-stalker"]),
                 (level: 9, features: ["druid/defender-of-the-true-world/beguiling-immunity"]),
                 (level: 10, features: ["druid/defender-of-the-true-world/wild-shape-smilodon-large-elemental-shambling-mound"]),
                 (level: 12, features: ["druid/defender-of-the-true-world/wild-shape-huge-elemental"]),
+                (level: 13, features: ["druid/defender-of-the-true-world/fey-stalker"]),
+                (level: 18, features: ["druid/defender-of-the-true-world/fey-stalker"]),
             ],
         ),
         (

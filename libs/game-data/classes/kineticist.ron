@@ -379,8 +379,12 @@ Class(
                 (level: 1, features: ["kineticist/gather-power", "kineticist/infusion", "kineticist/kinetic-blast", "kineticist/overwhelming-soul/mental-prowess", "kineticist/overwhelming-soul/mind-over-matter"], feats: ["armor-proficiency-light-armor", "simple-weapon-proficiency"], selections: ["kineticist/element"]),
                 (level: 3, features: ["kineticist/overwhelming-soul/overwhelming-power"], selections: ["kineticist/infusions"]),
                 (level: 5, features: ["kineticist/infusion-specialization", "kineticist/overwhelming-soul/metakinesis-empowered"], selections: ["kineticist/infusions"]),
-                (level: 9, features: ["kineticist/overwhelming-soul/metakinesis-maximized"], selections: ["kineticist/infusions"]),
+                (level: 6, features: ["kineticist/overwhelming-soul/overwhelming-power"], selections: ["kineticist/wild-talents"]),
+                (level: 9, features: ["kineticist/overwhelming-soul/metakinesis-maximized", "kineticist/overwhelming-soul/overwhelming-power"], selections: ["kineticist/infusions"]),
+                (level: 12, features: ["kineticist/overwhelming-soul/overwhelming-power"], selections: ["kineticist/wild-talents"]),
                 (level: 13, features: ["kineticist/overwhelming-soul/metakinesis-quicken"], selections: ["kineticist/infusions"]),
+                (level: 15, features: ["kineticist/overwhelming-soul/overwhelming-power"], selections: ["kineticist/expanded-element"]),
+                (level: 18, features: ["kineticist/overwhelming-soul/overwhelming-power"], selections: ["kineticist/wild-talents"]),
             ],
         ),
         (

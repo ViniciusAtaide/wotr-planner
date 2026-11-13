@@ -25,11 +25,11 @@ Class(
         (level: 2, advances_arcane: true, advances_divine: true),
         (level: 3, advances_arcane: true, advances_divine: true, features: ["winter-witch/freezing-cold"]),
         (level: 4, advances_arcane: true, advances_divine: true),
-        (level: 5, advances_arcane: true, advances_divine: true),
+        (level: 5, advances_arcane: true, advances_divine: true, features: ["winter-witch/cold-specialization"]),
         (level: 6, advances_arcane: true, advances_divine: true, features: ["winter-witch/freezing-cold"]),
         (level: 7, advances_arcane: true, advances_divine: true),
         (level: 8, advances_arcane: true, advances_divine: true, features: ["winter-witch/unearthly-cold"]),
         (level: 9, advances_arcane: true, advances_divine: true),
-        (level: 10, advances_arcane: true, advances_divine: true),
+        (level: 10, advances_arcane: true, advances_divine: true, features: ["winter-witch/cold-specialization"]),
     ],
 )
