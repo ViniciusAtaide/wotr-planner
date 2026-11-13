@@ -1,6 +1,6 @@
 //! A Build: the choices a player makes, and nothing derived from them.
 //!
-//! Everything is stored as game-data text keys, so a Build survives re-seeds. Its link holds a hash of each key,
+//! Everything is stored as game-data text keys, so a Build survives edits to the data. Its link holds a hash of each key,
 //! which the game data's keys turn back into the key (see the codec). A link may name things that no longer exist; it
 //! then opens nothing ([`Engine::open_link`](crate::Engine::open_link)).
 //!

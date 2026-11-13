@@ -21,8 +21,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      # The query macros compile against the checked-in libs/seeds/.sqlx metadata (the script sets it too).
-      SQLX_OFFLINE: "true"
       CARGO_TERM_COLOR: always
     steps:
       - uses: actions/checkout@v5

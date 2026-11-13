@@ -1,7 +1,7 @@
 //! The game data the planner works from: races, skills, feats, classes, mythic paths and the progression facts.
 //!
 //! These types are the single shape of the data. The `libs/game-data/*.ron` files deserialise straight into them,
-//! the database is loaded from and read back into them, and the browser receives them as JSON.
+//! and the browser receives them as JSON.
 //!
 //! Order carries no meaning anywhere in the data: catalogs are ordered by key, level and rank rows by their
 //! number, and set-like children either are sets or get sorted. [`GameData::canonicalize`] puts a value in that
@@ -163,7 +163,7 @@ impl GameData {
             .chain(self.mythic_paths.iter().flat_map(|path| &path.feat_lists))
     }
 
-    /// How much of each kind of thing the data holds, labelled, as a quick check that seeding worked.
+    /// How much of each kind of thing the data holds, labelled, as a quick check that reading the files worked.
     pub fn counts(&self) -> [(&'static str, usize); 15] {
         [
             ("Races", self.races.len()),

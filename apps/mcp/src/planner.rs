@@ -32,7 +32,8 @@ impl Planner {
         Ok(Self::new(data.checked()?))
     }
 
-    fn new(checked: CheckedGameData) -> Self {
+    /// Game data already read and checked: the web server's, which it also serves to the browser.
+    pub fn new(checked: CheckedGameData) -> Self {
         let data = GameData::clone(&checked);
         let site_file = site_file(&data);
         let engine = Engine::new(checked);
@@ -97,8 +98,8 @@ pub(crate) fn all_selections(data: &GameData) -> impl Iterator<Item = &FeatureSe
 }
 
 /// `game-data/<hash>.json`, named as the server names the file it serves (`apps/backend/src/game_data.rs`): the
-/// first 16 hex digits of the SHA-256 of the data's JSON. The site's data comes from the database, which loads
-/// back equal to the files (`seeds`' round-trip test), so the JSON and the hash are the same.
+/// first 16 hex digits of the SHA-256 of the data's JSON. Both read the same files, so the JSON and the hash are the
+/// same.
 fn site_file(data: &GameData) -> String {
     let json = serde_json::to_vec(data).expect("the game data serialises to JSON");
     let hash: String = Sha256::digest(&json)[..8]

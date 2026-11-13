@@ -1,5 +1,4 @@
-//! The real `libs/game-data/` files, read without a database: they pass the data check, and a few facts the planner
-//! depends on hold in them.
+//! The real `libs/game-data/` files: they pass the data check, and a few facts the planner depends on hold in them.
 
 mod support;
 mod totals;

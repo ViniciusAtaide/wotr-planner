@@ -69,7 +69,8 @@ export CARGO_TARGET_DIR=${CARGO_TARGET_DIR:-${XDG_CACHE_HOME:-$HOME/.cache}/wotr
 mkdir -p "$CARGO_TARGET_DIR"
 CARGO_TARGET_DIR=$(cd "$CARGO_TARGET_DIR" && pwd -P)
 outside_repo "$CARGO_TARGET_DIR" "CARGO_TARGET_DIR"
-# The checked-in query data, so a build never needs the database.
+# Side A from before ticket 187 still compiles sqlx's query macros: against its checked-in query data, so its build
+# never needs a database.
 export SQLX_OFFLINE=true
 commit=$(git -C "$repo" rev-parse --verify "$ref^{commit}")
 echo "proof: $mode, A = $ref ($commit), B = the working tree; outputs in $out" >&2

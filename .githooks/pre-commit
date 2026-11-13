@@ -4,7 +4,7 @@
 # `git config core.hooksPath .githooks`; `git commit --no-verify` skips it.
 set -euo pipefail
 
-if ! git diff --cached --name-only | grep -qE '\.rs$|(^|/)Cargo\.(toml|lock)$|^\.sqlx/|/\.sqlx/|^rustfmt\.toml$|^rust-toolchain\.toml$'; then
+if ! git diff --cached --name-only | grep -qE '\.rs$|(^|/)Cargo\.(toml|lock)$|^rustfmt\.toml$|^rust-toolchain\.toml$'; then
     exit 0
 fi
 cargo fmt --all --check || {

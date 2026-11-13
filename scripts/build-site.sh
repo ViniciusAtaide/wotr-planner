@@ -3,9 +3,8 @@
 #
 #   [SITE_URL=https://<user>.github.io/<repo>/] scripts/build-site.sh <out-dir>
 #
-# The site is the release server's own output, saved as files: it seeds a new database in a temporary folder from
-# libs/game-data/ (the dev database is never touched), builds with `cargo leptos build --release`, starts the release
-# server on a free local port, and saves
+# The site is the release server's own output, saved as files: it builds with `cargo leptos build --release`, starts
+# the release server on a free local port (it reads the game data in libs/game-data/), and saves
 #   - its page at `/` as index.html, server-rendered, which the wasm hydrates as it does from the server;
 #   - pkg/: the wasm, JS and CSS from the site root, without .d.ts files, uncompressed (Pages compresses them);
 #   - game-data/<hash>.json, the game data the page names;
@@ -14,12 +13,11 @@
 # (../fonts/…), so the folder works at `/` and under a path prefix such as a project site's `/<repo>/`. Only the
 # link preview's image is named by an absolute URL, made from SITE_URL, the site's public address (the Pages
 # workflow sets it); without it the page names no preview image. <out-dir> must be missing or empty.
-# Needs: the toolchain in rust-toolchain.toml, cargo-leptos, curl and python3 (to find a free port). Builds with
-# SQLX_OFFLINE=true, against the checked-in libs/seeds/.sqlx metadata.
+# Needs: the toolchain in rust-toolchain.toml, cargo-leptos, curl and python3 (to find a free port).
 set -euo pipefail
 
 if [[ $# -ne 1 ]]; then
-    sed -n '2,19p' "$0" | sed 's/^# \{0,1\}//' >&2
+    sed -n '2,17p' "$0" | sed 's/^# \{0,1\}//' >&2
     exit 2
 fi
 mkdir -p "$1"
@@ -41,17 +39,16 @@ cleanup() {
 }
 trap cleanup EXIT
 
-export SQLX_OFFLINE=true
-export DATABASE_URL=sqlite://$tmp/site.db
-unset LEPTOS_WATCH GAME_DATA_DIR
+unset LEPTOS_WATCH
+# The site's game data is libs/game-data/, whatever `.env` says: the server's dotenvy never overrides a variable
+# that is already set.
+export GAME_DATA_DIR=$PWD/libs/game-data
 # SITE_URL as the server reads it (`ui::SiteUrl`): without surrounding spaces or trailing slashes.
 site_url=$(printf '%s' "${SITE_URL:-}" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//; s#/+$##')
 if [[ -z $site_url ]]; then
     echo "build-site: no SITE_URL, so the page names no link preview image" >&2
 fi
 
-echo "build-site: seeding $DATABASE_URL"
-cargo run -q --release -p seeds --bin seed
 echo "build-site: building the release server and wasm"
 cargo leptos build --release
 
@@ -61,7 +58,7 @@ site=http://127.0.0.1:$port
 LEPTOS_SITE_ADDR=127.0.0.1:$port WOTR_MCP_PORT=0 LEPTOS_SITE_ROOT=target/site LEPTOS_SITE_PKG_DIR=pkg \
     LEPTOS_OUTPUT_NAME=wotr-planner LEPTOS_ENV=PROD target/release/server >"$tmp/server.log" 2>&1 &
 server=$!
-# The server serialises the game data before it listens.
+# The server reads, checks and serialises the game data before it listens.
 for _ in $(seq 120); do
     curl -fsS -o "$out/index.html" "$site/" 2>/dev/null && break
     if ! kill -0 "$server" 2>/dev/null; then

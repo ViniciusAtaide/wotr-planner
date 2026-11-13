@@ -1,9 +1,10 @@
 //! [`GameData::check`]: mistakes in the game data that its types can't rule out.
 //!
-//! The seed refuses data with problems, and the engine takes only data that passed ([`CheckedGameData`], which only
-//! [`GameData::checked`] makes, the behaviour proof's `unchecked` feature aside), so the database and the engine can rely on these rules. Every key an entity
-//! names is one of an entity of its kind ([`DataIssue::UnknownKey`]), and every Mythic rank a path names is one of the
-//! progression's ([`DataIssue::UnknownRank`]); the database's foreign keys check the same again, as a backstop.
+//! The servers refuse data with problems, and the engine takes only data that passed ([`CheckedGameData`], which only
+//! [`GameData::checked`] makes, the behaviour proof's `unchecked` feature aside), so the engine and the browser can
+//! rely on these rules. Every key an entity names is one of an entity of its kind ([`DataIssue::UnknownKey`]), and
+//! every Mythic rank a path names is one of the progression's ([`DataIssue::UnknownRank`]). This is the only check of
+//! references: there is no database behind it (ticket 187).
 //!
 //! Keys carry no type prefix, so two kinds may share one (a feat and a feature both `power-attack`): each kind is
 //! its own table, and a [`DataAt`] names the kind as well as the key.
@@ -14,9 +15,9 @@ use std::fmt;
 use crate::bonus::{BonusAmount, BonusItem, BonusTarget, BonusType, SpellScope};
 use crate::engine::{BASE_LEVEL_CAP, PATH_CHOICE_RANK, PATH_SWITCH_RANK};
 use crate::game_data::{
-    Advancement, Archetype, Class, ClassLevelRow, CountsToward, DOMAIN_SELECTION, Feat, FeatList,
-    FeatSlot, FeatValue, Feature, FeatureSelection, GameData, LevelFrom, MythicPath, Save,
-    SelectionOption, SpellLevels, WeaponProficiency,
+    AbilityBonus, Advancement, Archetype, Class, ClassLevelRow, CountsToward, DOMAIN_SELECTION,
+    Feat, FeatList, FeatSlot, FeatValue, Feature, FeatureSelection, GameData, LevelFrom,
+    MythicPath, Save, SelectionOption, SpellLevels, WeaponProficiency,
 };
 use crate::gear::GearTarget;
 use crate::keys::{
@@ -330,6 +331,17 @@ pub enum DataIssue {
     GearSpellDcOfValue,
     /// A gear always-on or other-effects line that is empty, appears twice, or is in both lists.
     GearEffectInvalid,
+    /// A key that isn't lowercase slugs: only `a-z`, `0-9`, `-` and `/`, never starting or ending with `-` or `/`,
+    /// and no two of them in a row (`rogue/rogue-talents/fast-stealth`).
+    MalformedKey,
+    /// A selection that is a pool of itself.
+    PoolOfItself,
+    /// A selection levelled by the Mythic ranks reached ([`LevelFrom::MythicRanks`]) that isn't a path's.
+    MythicRanksOffAPath,
+    /// A feature with two ability bonuses of one kind (and, for a fixed one, one ability).
+    AbilityBonusTwice,
+    /// A text that is there but empty: what it is (`slot label`, `interactions note`, `name`, `guide reference`).
+    EmptyText(&'static str),
 }
 
 impl fmt::Display for DataProblem {
@@ -545,6 +557,17 @@ impl fmt::Display for DataProblem {
                     "an always-on or other-effects line is empty, appears twice, or is in both lists",
                 )
             }
+            DataIssue::MalformedKey => f.write_str(
+                "the key isn't lowercase slugs: a-z, 0-9, and single - or / between them",
+            ),
+            DataIssue::PoolOfItself => f.write_str("the selection is a pool of itself"),
+            DataIssue::MythicRanksOffAPath => f.write_str(
+                "levelled by the Mythic ranks reached, but the selection isn't a path's",
+            ),
+            DataIssue::AbilityBonusTwice => {
+                f.write_str("two ability bonuses of one kind, for one ability")
+            }
+            DataIssue::EmptyText(what) => write!(f, "the {what} is empty"),
             DataIssue::SharesOwnOption(option) => {
                 write!(
                     f,
@@ -585,7 +608,7 @@ impl GameData {
         for race in &self.races {
             let at = DataAt::Race(race.key.clone());
             check.key(&at);
-            check.owned(race.key.as_str(), &[], &[], &race.feat_lists);
+            check.owned(race.key.as_str(), false, &[], &[], &race.feat_lists);
             check.no_bonus_list(&at, &race.feat_slots, Some(race.key.as_str()));
             for subrace in &race.subraces {
                 let at = DataAt::Subrace(subrace.key.clone());
@@ -773,6 +796,18 @@ struct Checker {
     problems: Vec<DataProblem>,
 }
 
+/// Whether `key` is lowercase slugs joined by `/`, each slug words of `a-z` and `0-9` joined by single `-`s.
+fn well_formed_key(key: &str) -> bool {
+    key.split('/').all(|slug| {
+        slug.split('-').all(|word| {
+            !word.is_empty()
+                && word
+                    .bytes()
+                    .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit())
+        })
+    })
+}
+
 /// Whether `key` is `owner/…`.
 fn owned_by(key: &str, owner: &str) -> bool {
     key.strip_prefix(owner)
@@ -790,6 +825,16 @@ impl Checker {
     fn key(&mut self, at: &DataAt) {
         if !self.keys.insert(at.clone()) {
             self.problem(at, DataIssue::DuplicateKey);
+        }
+        if at.key().is_some_and(|key| !well_formed_key(key)) {
+            self.problem(at, DataIssue::MalformedKey);
+        }
+    }
+
+    /// A text that is there must say something.
+    fn not_empty(&mut self, at: &DataAt, text: &str, what: &'static str) {
+        if text.trim().is_empty() {
+            self.problem(at, DataIssue::EmptyText(what));
         }
     }
 
@@ -864,8 +909,13 @@ impl Checker {
                     self.named_lists.insert(list.clone());
                     self.names(at, DataAt::FeatList(list.clone()));
                 }
-                FeatSlot::OptionList { selection, .. } => {
+                FeatSlot::OptionList {
+                    selection, label, ..
+                } => {
                     self.names(at, DataAt::FeatureSelection(selection.clone()));
+                    if let Some(label) = label {
+                        self.not_empty(at, label, "slot label");
+                    }
                 }
                 FeatSlot::General | FeatSlot::CombatFeat | FeatSlot::Category(_) => {}
             }
@@ -888,10 +938,12 @@ impl Checker {
         }
     }
 
-    /// What `owner` defines: features, selections (and their options) and feat lists, each keyed under it.
+    /// What `owner` defines: features, selections (and their options) and feat lists, each keyed under it. `path`:
+    /// whether the owner is a Mythic path.
     fn owned(
         &mut self,
         owner: &str,
+        path: bool,
         features: &[Feature],
         selections: &[FeatureSelection],
         lists: &[FeatList],
@@ -906,6 +958,16 @@ impl Checker {
                 self.level(&at, row.level);
                 self.names(&at, DataAt::FeatureSelection(row.selection.clone()));
             }
+            let mut bonuses = HashSet::new();
+            for bonus in &feature.ability_bonuses {
+                let ability = match bonus {
+                    AbilityBonus::Fixed { ability, .. } => Some(*ability),
+                    _ => None,
+                };
+                if !bonuses.insert((std::mem::discriminant(bonus), ability)) {
+                    self.problem(&at, DataIssue::AbilityBonusTwice);
+                }
+            }
         }
         for selection in selections {
             if !owned_by(selection.key.as_str(), owner) {
@@ -915,7 +977,7 @@ impl Checker {
                 );
             }
         }
-        self.selections(selections);
+        self.selections(selections, path);
         for list in lists {
             let at = DataAt::FeatList(list.key.clone());
             self.key(&at);
@@ -1129,10 +1191,16 @@ impl Checker {
         }
     }
 
-    fn selections(&mut self, selections: &[FeatureSelection]) {
+    fn selections(&mut self, selections: &[FeatureSelection], path: bool) {
         for selection in selections {
             let selection_at = DataAt::FeatureSelection(selection.key.clone());
             self.key(&selection_at);
+            if selection.pool_of.as_ref() == Some(&selection.key) {
+                self.problem(&selection_at, DataIssue::PoolOfItself);
+            }
+            if selection.level_from == Some(LevelFrom::MythicRanks) && !path {
+                self.problem(&selection_at, DataIssue::MythicRanksOffAPath);
+            }
             for shared in &selection.shared_options {
                 if owned_by(shared.as_str(), selection.key.as_str()) {
                     self.problem(&selection_at, DataIssue::SharesOwnOption(shared.clone()));
@@ -1508,6 +1576,7 @@ impl Checker {
         for note in &data.interactions {
             let at = item_at(&note.item);
             self.names(&at, at.clone());
+            self.not_empty(&at, &note.interactions, "interactions note");
             if !seen.insert(&note.item) {
                 self.problem(&at, DataIssue::InteractionsTwice);
             }
@@ -1523,6 +1592,10 @@ impl Checker {
             self.key(&at);
             if !names.insert(item.name.as_str()) {
                 self.problem(&at, DataIssue::GearNameTwice);
+            }
+            self.not_empty(&at, &item.name, "name");
+            if let Some(guide) = &item.guide {
+                self.not_empty(&at, &guide.0, "guide reference");
             }
             if item.bonuses.is_empty() {
                 self.problem(&at, DataIssue::GearWithoutBonus);
@@ -1566,6 +1639,7 @@ impl Checker {
         self.alignment_on_its_own(&at, class.prerequisite.as_ref());
         self.owned(
             class.key.as_str(),
+            false,
             &class.features,
             &class.selections,
             &class.feat_lists,
@@ -1601,6 +1675,7 @@ impl Checker {
             self.alignment_on_its_own(&at, archetype.prerequisite.as_ref());
             self.owned(
                 archetype.key.as_str(),
+                false,
                 &archetype.features,
                 &archetype.selections,
                 &archetype.feat_lists,
@@ -1792,6 +1867,7 @@ impl Checker {
         self.key(&at);
         self.owned(
             path.key.as_str(),
+            true,
             &path.features,
             &path.selections,
             &path.feat_lists,
