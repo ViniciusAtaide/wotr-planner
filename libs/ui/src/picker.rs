@@ -11,7 +11,7 @@ use std::time::Duration;
 use leptos::prelude::*;
 use rules::{
     Address, Alignment, Build, Choice, ClassOption, Edit, Engine, FIRST_ASCENSION_RANK, Faith,
-    FeatCategory, Issue, Place, SlotEntry, SlotId, SlotOption,
+    FeatCategory, FeatSlot, Issue, Place, SlotEntry, SlotId, SlotKind, SlotOption,
 };
 
 use crate::icons::feat_icon;
@@ -257,11 +257,14 @@ pub fn Head(
 pub fn ItemList(
     items: Vec<Item>,
     #[prop(into)] on_pick: Callback<usize>,
-    /// What an empty search says.
-    #[prop(optional)]
-    nothing: Option<&'static str>,
+    /// What a list with no items at all says, ideally why ("Nothing to choose yet: choose the Bloodline first.");
+    /// without one, "No options here yet.". A search or chip that hides every item says "Nothing matches." instead.
+    #[prop(default = None)]
+    empty: Option<String>,
 ) -> impl IntoView {
     let searchable = items.len() > 8;
+    let no_items = items.is_empty();
+    let empty = empty.unwrap_or_else(|| "No options here yet.".to_owned());
     // Each filter chip once, in name order, with a feat category's icon only when every item under it takes a feat
     // of that one category: a feat picker's "Weapon" chip, not a talent picker's "Rogue Talents", whose talents
     // grant different feats or none.
@@ -360,7 +363,8 @@ pub fn ItemList(
                 view! {
                     {(open.is_empty() && count == 0)
                         .then(|| {
-                            view! { <p class="empty">{nothing.unwrap_or("Nothing matches.")}</p> }
+                            let text = if no_items { empty.clone() } else { "Nothing matches.".to_owned() };
+                            view! { <p class="empty">{text}</p> }
                         })}
                     {(count > 0)
                         .then(|| {
@@ -486,6 +490,14 @@ fn SlotPicker(id: SlotId) -> impl IntoView {
     };
     let current = found.pick.clone();
     let title = engine.choice_label(&Address::Slot(slot.clone()), Some(&found));
+    // A slot whose list comes from a held option (a sorcerer's bloodline feat) has none until that option is chosen.
+    let empty = match &found.kind {
+        SlotKind::Feat(FeatSlot::OptionList { selection, .. }) => Some(format!(
+            "Nothing to choose yet: choose the {} first.",
+            engine.selection_name(selection)
+        )),
+        _ => None,
+    };
     let remove = Some(Choice::Slot(slot.clone()));
 
     let step = RwSignal::new(SlotStep::Loading);
@@ -532,6 +544,7 @@ fn SlotPicker(id: SlotId) -> impl IntoView {
             view! {
                 <ItemList
                     items
+                    empty=empty.clone()
                     on_pick=move |index: usize| {
                         let entry = &entries[index];
                         if entry.noun.is_some() {
