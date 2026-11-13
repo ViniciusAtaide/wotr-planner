@@ -75,6 +75,27 @@ async fn an_archetype_has_its_rows_merged_over_its_classs() {
 }
 
 #[tokio::test]
+async fn an_archetypes_replacement_for_a_skipped_option_row_is_in_its_table() {
+    // The Empyreal Sorcerer's Apotheosis is its selection's `replaced_by` at 20, not on a class row.
+    let client = Client::start().await;
+    let empyreal = client
+        .ok(
+            "describe",
+            json!({ "kind": "archetype", "key": "sorcerer/empyreal-sorcerer" }),
+        )
+        .await;
+    let levels = empyreal["levels"].as_array().unwrap();
+    assert_eq!(
+        keys(&levels[19]["features"]),
+        ["sorcerer/empyreal-sorcerer/apotheosis"]
+    );
+    assert!(
+        !keys(&levels[18]["features"])
+            .contains(&"sorcerer/empyreal-sorcerer/apotheosis".to_owned())
+    );
+}
+
+#[tokio::test]
 async fn a_mythic_path_has_its_features_by_rank_and_its_selections() {
     let client = Client::start().await;
     let lich = client

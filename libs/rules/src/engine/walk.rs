@@ -261,6 +261,10 @@ struct Holding {
     option: SelectionOptionKey,
     /// The rows got so far, by option level, with what each holds.
     applied: BTreeMap<u8, Vec<Held>>,
+    /// The rows in `applied` that a feature granted ahead of the option level (Bloodline Ascendance's row, or the
+    /// replacement for a skipped one), with its source: a Path switch that drops the source takes the row back,
+    /// so the option level gives it again when it reaches it.
+    early: BTreeMap<u8, GrantSource>,
     /// Option levels it never gets the rows of: its selection's skipped levels and the rows a pick replaced.
     skipped: BTreeSet<u8>,
     /// Only its feat lists count (Crossblooded's second bloodline).

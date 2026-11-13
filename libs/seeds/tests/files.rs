@@ -901,6 +901,7 @@ fn reads_options_with_rows_by_option_level_and_defaults_them() {
         panic!("three selections");
     };
     assert_eq!(own.skipped_levels, BTreeSet::from([3]));
+    assert_eq!(own.replaced_by.len(), 1);
     assert!(second.feat_lists_only && second.only_without_option);
     assert!(!own.feat_lists_only && !own.only_without_option);
     assert_eq!(

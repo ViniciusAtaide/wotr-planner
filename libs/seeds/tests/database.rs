@@ -1921,3 +1921,22 @@ async fn gear_items_round_trip_with_every_target_slot_and_type() {
         assert!(reason.contains(expected), "{sql}: {reason}");
     }
 }
+
+/// A selection's `replaced_by` (the fixture's Seeker gives a feature in place of its skipped row 3) is stored on
+/// the skipped level and read back; the round trip above compares it with the files'.
+#[tokio::test]
+async fn a_selections_replacement_for_a_skipped_row_round_trips() {
+    let test = TestDatabase::new();
+    test.seed(&fixture_dir()).await.unwrap();
+    let data = test.load().await.unwrap();
+    let seeker = data
+        .all_classes()
+        .flat_map(|class| &class.archetypes)
+        .flat_map(|archetype| &archetype.selections)
+        .find(|selection| selection.key.as_str() == "sorcerer/seeker/bloodline")
+        .unwrap();
+    assert_eq!(
+        seeker.replaced_by.get(&3).map(rules::FeatureKey::as_str),
+        Some("sorcerer/bloodline/draconic/claws")
+    );
+}

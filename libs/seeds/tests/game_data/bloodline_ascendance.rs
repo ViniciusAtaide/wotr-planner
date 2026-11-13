@@ -185,8 +185,9 @@ fn an_empyreal_sorcerer_holds_apotheosis_early_through_the_ability_once() {
     }
 }
 
-/// The ability taken at the level the class reaches 20 (the latest a rank can come: a Build has 20 levels, and the
-/// class's 20th is the Empyreal Sorcerer's last): the class row's level comes first in a level and the rank after,
+/// The ability taken at the level the class reaches 20 (the latest a rank can come in a Build that reaches it first:
+/// levels past 20 need the Legend switch, and ranks never come before the ones before them, so a rank placed past
+/// 20 pushes the switch past 20 and the Build is refused): the class row's level comes first in a level and the rank after,
 /// and Apotheosis is held once at 20, not twice.
 #[test]
 fn apotheosis_is_held_once_when_the_ability_comes_at_level_20() {
@@ -233,4 +234,126 @@ fn the_dragonheir_scion_gets_no_replacement_from_the_ability() {
     let state = at(&build, 20);
     assert!(!holds(&state, APOTHEOSIS));
     assert!(!holds(&state, "fighter/dragonheir-scion/might-of-wyrms"));
+}
+
+/// The Build `parts` on the Aeon path with the Legend switch, and Bloodline Ascendance at MR `rank` (the ability
+/// slot of every rank is `slot.mythic.R`).
+fn legend_ascending(parts: &[(&str, Option<&str>, usize)], rank: u8) -> Build {
+    let mut build = multiclass(parts);
+    build.mythic_path = Some(rules::MythicPathKey::new("aeon"));
+    build.path_switch = Some(rules::MythicPathKey::new("legend"));
+    build.picks.insert(
+        SlotId::Mythic { rank },
+        Pick::mythic_ability(rules::MythicAbilityKey::new("bloodline-ascendance")),
+    );
+    faithful(build)
+}
+
+/// What `feature` should count at each level of a Legend Build with Ascendance at `rank`: held from the rank's
+/// level while the rank is, and from the level the sorcerer reaches 20 whatever happens to the rank. Asserts it
+/// at every level from the rank's level to the last, and that the switch drops the rank when `drops_rank`.
+fn assert_legend_counts(
+    build: &Build,
+    rank: u8,
+    feature: &str,
+    sorcerer_before: usize,
+    drops: bool,
+) {
+    assert!(
+        engine().is_possible(build),
+        "{:?}",
+        engine().failures(build)
+    );
+    let rank_level = engine().rank_level(build, rank).unwrap();
+    let last = build.levels.len() as u8;
+    let switch = (1..=last)
+        .find(|&level| at(build, level).mythic_path.as_ref().map(|p| p.as_str()) == Some("legend"))
+        .expect("the switch is reached");
+    for level in rank_level..=last {
+        let sorcerer_level = (usize::from(level)).saturating_sub(sorcerer_before);
+        let early = level >= rank_level && !(drops && level >= switch);
+        let at_20 = sorcerer_level >= 20;
+        assert_eq!(
+            count(&at(build, level), feature),
+            u32::from(early || at_20),
+            "{feature}, ability at MR {rank} (level {rank_level}), switch at {switch}, level {level}"
+        );
+    }
+}
+
+/// Legend drops the ranks 3 to 7: an ability taken there goes at the switch, and what it granted early goes with
+/// it, so sorcerer level 20 gives the power at its own level (before ticket 181's review fix it never did).
+#[test]
+fn a_legend_empyreal_sorcerer_gets_apotheosis_at_20_whatever_happens_to_the_rank() {
+    for rank in [1, 3, 5, 7] {
+        let drops = rank >= 3;
+        let build = legend_ascending(
+            &[
+                ("sorcerer", Some("sorcerer/empyreal-sorcerer"), 20),
+                ("fighter", None, 5),
+            ],
+            rank,
+        );
+        assert_legend_counts(&build, rank, APOTHEOSIS, 0, drops);
+        let build = legend_ascending(
+            &[
+                ("fighter", None, 5),
+                ("sorcerer", Some("sorcerer/empyreal-sorcerer"), 20),
+            ],
+            rank,
+        );
+        assert_legend_counts(&build, rank, APOTHEOSIS, 5, drops);
+    }
+}
+
+/// The same for an ordinary bloodline row the ability granted (it was lost on `main` too): an Abyssal sorcerer 20 /
+/// fighter 5 with Ascendance at MR 3 holds Demonic Might again from sorcerer level 20.
+#[test]
+fn a_legend_sorcerer_gets_its_20th_level_power_at_20_whatever_happens_to_the_rank() {
+    for rank in [1, 3, 5, 7] {
+        let build = legend_ascending(&[("sorcerer", None, 20), ("fighter", None, 5)], rank);
+        let build = with_option(build, 1, 0, ABYSSAL);
+        assert_legend_counts(&build, rank, DEMONIC_MIGHT, 0, rank >= 3);
+    }
+}
+
+/// Pins what the data does today, which is a question for the user (ticket 181's Answer): the Empyreal bloodline's
+/// option level counts Dragon Disciple levels (`option_levels: ["dragon-disciple", "sorcerer"]`), so an Empyreal
+/// Sorcerer 6 / Dragon Disciple 10 / Empyreal Sorcerer 4 (the Dragon Disciple reached through the Mythic Second
+/// Bloodline, Draconic) gains Apotheosis at character level 20 with only 10 sorcerer levels. The Empyreal table puts
+/// it at sorcerer level 20.
+#[test]
+fn dragon_disciple_levels_count_towards_an_empyreal_sorcerers_apotheosis() {
+    let mut build = multiclass(&[
+        ("sorcerer", Some("sorcerer/empyreal-sorcerer"), 6),
+        ("dragon-disciple", None, 10),
+        ("sorcerer", Some("sorcerer/empyreal-sorcerer"), 4),
+    ]);
+    build.picks.insert(
+        SlotId::Mythic { rank: 1 },
+        Pick::mythic_ability(rules::MythicAbilityKey::new("second-bloodline")),
+    );
+    build.picks.insert(
+        SlotId::MythicSelection { rank: 1, index: 0 },
+        pick(DRACONIC_RED),
+    );
+    // Dragon Disciple needs 5 ranks in Knowledge (Arcana).
+    for level_up in build.levels.iter_mut().take(5) {
+        level_up
+            .skill_ranks
+            .insert(rules::SkillKey::new("knowledge-arcana"), 1);
+    }
+    let build = faithful(build);
+    assert!(
+        engine().is_possible(&build),
+        "{:?}",
+        engine().failures(&build)
+    );
+    for level in 1..=20 {
+        assert_eq!(
+            count(&at(&build, level), APOTHEOSIS),
+            u32::from(level == 20),
+            "level {level}"
+        );
+    }
 }

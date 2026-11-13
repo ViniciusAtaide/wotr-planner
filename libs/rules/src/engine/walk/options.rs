@@ -55,6 +55,7 @@ impl<'a> Walker<'a> {
                 selection: selection.clone(),
                 option: option.clone(),
                 applied: BTreeMap::new(),
+                early: BTreeMap::new(),
                 skipped: through.skipped_levels.clone(),
                 lists_only: through.feat_lists_only,
                 unlocked: BTreeSet::new(),
@@ -241,6 +242,26 @@ impl<'a> Walker<'a> {
         }
     }
 
+    /// After a Path switch took back what a rank's grants gave: each row a feature granted early from a dropped
+    /// source is no longer applied (its items went with the grants), so the holding's option level gives it again,
+    /// at once when it has reached it.
+    pub(super) fn take_back_early_rows(&mut self, drops: impl Fn(&GrantSource) -> bool) {
+        for holding in &mut self.holdings {
+            let levels: Vec<u8> = holding
+                .early
+                .iter()
+                .filter(|(_, source)| drops(source))
+                .map(|(level, _)| *level)
+                .collect();
+            for level in levels {
+                holding.early.remove(&level);
+                holding.applied.remove(&level);
+                holding.unlocked.remove(&level);
+            }
+        }
+        self.advance_holdings();
+    }
+
     /// Gives a holding the feature its selection has in place of the row it skips at `level`, unless it has it
     /// already (the row's `applied` entry: so once, whether it came at the option level or early).
     fn grant_replacement(
@@ -256,6 +277,9 @@ impl<'a> Walker<'a> {
         let held = Held::Feature(feature.clone());
         self.hold(held.clone(), source.cloned());
         self.holdings[index].applied.insert(level, vec![held]);
+        if let Some(source) = source {
+            self.holdings[index].early.insert(level, source.clone());
+        }
     }
 
     /// Whether a held feature's option row is this row of a lists-only selection's options (Expanded Defense's,
@@ -329,6 +353,7 @@ impl<'a> Walker<'a> {
             let level = self.holding_level(holding);
             let holding = &mut self.holdings[index];
             holding.skipped.insert(level);
+            holding.early.remove(&level);
             if let Some(held) = holding.applied.remove(&level) {
                 for item in &held {
                     self.release(item);
@@ -391,6 +416,9 @@ impl<'a> Walker<'a> {
             let key = self.holdings[index].option.clone();
             let held = self.grant_row(option_row, &key, parameter.as_ref(), source);
             self.holdings[index].applied.insert(row.level, held);
+            if let Some(source) = source {
+                self.holdings[index].early.insert(row.level, source.clone());
+            }
         }
     }
 }

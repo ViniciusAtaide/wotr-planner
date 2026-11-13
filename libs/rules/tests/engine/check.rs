@@ -1346,6 +1346,33 @@ fn a_replacement_belongs_to_a_skipped_level() {
     );
 }
 
+#[test]
+fn a_replacement_is_on_no_row_of_its_class() {
+    let mut data = world();
+    let class = data
+        .all_classes_mut()
+        .find(|class| {
+            !class.selections.is_empty() && class.levels.iter().any(|row| !row.features.is_empty())
+        })
+        .unwrap();
+    let feature = class
+        .levels
+        .iter()
+        .find_map(|row| row.features.first().cloned())
+        .unwrap();
+    let selection = class.selections.first_mut().unwrap();
+    let key = selection.key.clone();
+    selection.skipped_levels.insert(7);
+    selection.replaced_by.insert(7, feature.clone());
+    assert_eq!(
+        issues(&data),
+        [(
+            DataAt::FeatureSelection(key),
+            DataIssue::ReplacementOnClassRow(feature)
+        )]
+    );
+}
+
 fn at_background(key: &str) -> DataAt {
     DataAt::Background(rules::BackgroundKey::new(key))
 }

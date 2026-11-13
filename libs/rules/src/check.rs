@@ -251,6 +251,8 @@ pub enum DataIssue {
     LevelAlsoFromWithoutOtherOptions,
     /// A selection's `replaced_by` names a level it doesn't skip.
     ReplacementAtUnskippedLevel(u8),
+    /// A selection's `replaced_by` feature that a row of its class's table grants too, which would hold it twice.
+    ReplacementOnClassRow(FeatureKey),
     /// An option's arcana that none of its rows grants.
     ArcanaNotInRows(FeatureKey),
     /// A prerequisite that looks at the pick (`NoOtherOptionOfGroup`, `PickedThrough`) outside a selection
@@ -475,6 +477,10 @@ impl fmt::Display for DataProblem {
             DataIssue::ReplacementAtUnskippedLevel(level) => write!(
                 f,
                 "gives a feature in place of option level {level}'s row, which it doesn't skip"
+            ),
+            DataIssue::ReplacementOnClassRow(feature) => write!(
+                f,
+                "gives {feature} in place of a skipped option row, and a row of its class's table grants it too"
             ),
             DataIssue::ArcanaNotInRows(feature) => {
                 write!(f, "its arcana {feature} isn't granted by any of its rows")
@@ -1339,8 +1345,33 @@ impl Checker {
         }
     }
 
+    /// A selection's replacement feature is on no row of the table it belongs to: the class's rows, or the
+    /// archetype's merged over them (`rows`: the features of every row that can apply).
+    fn replacements_off_the_rows<'r>(
+        &mut self,
+        selections: &[FeatureSelection],
+        rows: impl Iterator<Item = &'r Vec<FeatureKey>> + Clone,
+    ) {
+        for selection in selections {
+            for feature in selection.replaced_by.values() {
+                if rows.clone().any(|features| features.contains(feature)) {
+                    let at = DataAt::FeatureSelection(selection.key.clone());
+                    self.problem(&at, DataIssue::ReplacementOnClassRow(feature.clone()));
+                }
+            }
+        }
+    }
+
     /// An archetype stores only the levels where it differs from its base class, each once.
     fn archetype_rows(&mut self, at: &DataAt, class: &Class, archetype: &Archetype) {
+        self.replacements_off_the_rows(
+            &archetype.selections,
+            class
+                .levels
+                .iter()
+                .map(|row| &row.features)
+                .chain(archetype.levels.iter().map(|row| &row.features)),
+        );
         let mut seen = HashSet::new();
         for row in &archetype.levels {
             self.grants(at, &row.features, &row.feats, &row.selections);
@@ -1540,6 +1571,10 @@ impl Checker {
             &class.feat_lists,
         );
         self.rows(&at, &class.levels, prestige);
+        self.replacements_off_the_rows(
+            &class.selections,
+            class.levels.iter().map(|row| &row.features),
+        );
         self.save_exceptions(&at, class, prestige);
         let advances = |spell_type: fn(&ClassLevelRow) -> bool| class.levels.iter().any(spell_type);
         if class.advances == Advancement::Either
