@@ -2237,3 +2237,56 @@ fn the_armigers_ardent_and_the_aldoris_defensive_parry_step() {
         );
     }
 }
+
+/// Ticket 188: the cavalier's Banner (+1 at 10 and every five levels after, to 20), Tactician (an extra use at 5 and
+/// every five levels after, to 20) and Challenge (an extra use every three levels beyond 1st, to 19). The Disciple of
+/// the Pike and the Ghost Rider lose the Banner (the Standard Bearer's own, below); the Fearsome Leader, the
+/// Gendarme, the Ghost Rider and the Knight of the Wall lose Tactician with all their teamwork abilities. Each
+/// holds none of a step it lost, on rows of its own where it has none, which keep what the class's rows give there
+/// (the Supreme Charge at 20).
+#[test]
+fn the_cavaliers_banner_tactician_and_challenge_step() {
+    assert_gains(
+        "cavalier",
+        "cavalier/banner",
+        &|_, build| build,
+        &[5, 10, 15, 20],
+        &[
+            ("cavalier/disciple-of-the-pike", Some(&[])),
+            ("cavalier/ghost-rider", Some(&[])),
+            ("cavalier/standard-bearer", Some(&[])),
+        ],
+    );
+    assert_gains(
+        "cavalier",
+        "cavalier/tactician",
+        &|_, build| build,
+        &[1, 5, 10, 15, 20],
+        &[
+            ("cavalier/fearsome-leader", Some(&[])),
+            ("cavalier/gendarme", Some(&[])),
+            ("cavalier/ghost-rider", Some(&[])),
+            ("cavalier/knight-of-the-wall", Some(&[])),
+        ],
+    );
+    assert_gains(
+        "cavalier",
+        "cavalier/challenge",
+        &|_, build| build,
+        &[1, 4, 7, 10, 13, 16, 19],
+        &[],
+    );
+}
+
+/// The Standard Bearer's own Banner (granted at 1) steps where the class's does after 5: 10, 15 and 20 (an inference,
+/// ticket 188: the guide says only that it has Banner at 1st level).
+#[test]
+fn the_standard_bearers_own_banner_steps_at_10_15_and_20() {
+    assert_gains(
+        "cavalier",
+        "cavalier/standard-bearer/banner-standard-bearer",
+        &|_, build| build,
+        &[],
+        &[("cavalier/standard-bearer", Some(&[1, 10, 15, 20]))],
+    );
+}
