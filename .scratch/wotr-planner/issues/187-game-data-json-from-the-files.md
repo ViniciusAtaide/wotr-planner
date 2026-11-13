@@ -84,3 +84,9 @@ Done 2026-11-13.
 - The snapshot files are untouched; `scripts/check.sh` and `scripts/check.sh --full` pass.
 - The app works in its own dev server (port 3960): the page loads the data, "+ Level 1" opens the class picker
   with every class, and choosing Alchemist makes level 1 with its numbers, with no console error.
+- After merging `main` (ticket 182's data, which changed only `.ron` files and a test, no seed code or types; the
+  JSON is now `765d8f894994f577`, 2,063,549 bytes): `scripts/check.sh --full` passes, the static site's JSON is the
+  dev server's byte for byte, and a QA pass in the dev server works: a Human Fighter of Abadar, Lawful Neutral;
+  Power Attack locked at Str 12 with its reason; Weapon Focus (Battle Axe) and its attack line; level 2's picker
+  with Fighter first (ticket 186); the Build reopened from its link on reload; the Mythic track; a Belt of Giant
+  Strength +2 giving Str 14 and opening Power Attack "With Belt of Giant Strength +2"; no console error.
