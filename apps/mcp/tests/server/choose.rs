@@ -583,7 +583,7 @@ async fn a_refusal_that_breaks_a_later_choice_names_it() {
     assert_eq!(refused["rejected"]["issue"], "breaks_later", "{refused}");
     assert_eq!(
         refused["rejected"]["reason"],
-        "At Mobility ranks at level 1 1 → 0: deft-maneuvers needs more than 0 Mobility ranks at level 1. Nothing \
+        "At Mobility ranks at level 1, 1 → 0: deft-maneuvers needs more than 0 Mobility ranks at level 1. Nothing \
          was changed."
     );
     // A slot's pick replaced under a pick that depends on it, and a class replaced under its levels' picks.

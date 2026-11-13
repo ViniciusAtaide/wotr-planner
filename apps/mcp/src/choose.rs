@@ -271,7 +271,13 @@ fn step_to(
             }
             _ => unreachable!("only scores and skill ranks step"),
         };
-        let at = format!("At {what} {current} → {next}");
+        // "At Strength 13 → 12", "At Mobility ranks at level 1, 1 → 0".
+        let comma = if matches!(address, Address::Skill(..)) {
+            ","
+        } else {
+            ""
+        };
+        let at = format!("At {what}{comma} {current} → {next}");
         let Some(offer) = offers
             .iter()
             .find(|offer| offer.value == ChoiceValue::Number(next))

@@ -78,3 +78,9 @@ The Dragon Disciple's class reasons (`class_reasons`) change text, and nothing e
 ### Checked
 
 `scripts/check.sh`: ALL-OK (fmt, clippy, wasm-clippy, test with the snapshot check, rules-wasm, data-check). `cargo fmt --all --check` passes. Not run, by the queue's rule: `scripts/check.sh --full` and `scripts/proof.sh`. Not done yet: the README note for the ranger rename, and its line 386 prose, which wait for ticket 189.
+
+### After ticket 189 (2026-11-13, part 2b)
+
+- **README** (`libs/game-data/README.md`): a note for the ranger's selection named "Combat Style" (its option-list feat slots read "Combat Style feat"), and the ticket 62 line about a held curse now says the picker and `options` say where it is held ("Plagued is taken in level 1's Oracle's Curse slot"), while `issue_text` still reads "Already taken".
+- **`choose`'s skill-rank prefix** reads "At Mobility ranks at level 1, 1 → 0: …" (a comma after the skill's place; a score's prefix is as it was: "At Strength 13 → 12"). The pinned text in `apps/mcp/tests/server/choose.rs` is updated.
+- **`validate` words an `Any` as the picker does.** With 189's gates, a barbarian 4 declaring Clear Mind read "Needs Barbarian level 8 (have 4) or Skald level 8 (have 0)" in `validate`'s failure, where the picker says "Needs Barbarian level 8 (have 4)". `Wording::unmet` now passes the issue through `Engine::reason_for` (made `pub`) with the state at the slot's level, so the reason reads "Needs Barbarian level 8 (have 4)"; pinned by `real_data_a_locked_rage_power_names_only_the_class_the_character_has` in `apps/mcp/tests/server/validate.rs`. The failure's `needs` list is untouched: it still gives the prerequisite as the data states it.

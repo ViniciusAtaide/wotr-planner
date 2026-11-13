@@ -388,7 +388,9 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   ("You can select any hex for which you meet the prerequisites") gives one slot of `witch/hex`, each hex's own
   prerequisites checked, and needs a hex held, the witch's or the shaman's: its "Prequisites: Hex" (so spelt in the
   guide, which the extraction passed over) is Extra Hex's `Any`. Beneficial Curse ("You gain an additional Curse")
-  gives one slot of `oracle/oracles-curse`; a curse held is "Already taken" there.
+  gives one slot of `oracle/oracles-curse`; a curse held is refused there, and the picker and `options` say where it is
+  held ("Plagued is taken in level 1's Oracle's Curse slot"; ticket 192), though `issue_text` still reads
+  "Already taken".
 - Ticket 63 (ticket 58's question 1, user, 2026-11-02): an archetype's alignment
   requirement replaces its class's, and the class's other conditions still hold (`rules` does this; the Drunken
   Master's "Cannot be Lawful" replaces the monk's "Lawful"). So a class's or an archetype's alignment requirement is a
@@ -452,6 +454,11 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   selection sorting after them at index 1. The Demon Dancer's Fiend Totem and Greater are features, so the totems'
   exclusivity doesn't stop it taking another totem in its slots at 12, 15 and 18 (not modelled; user, 2026-11-13).
   `skald_rage_powers.rs` pins the levels, the gates and the Teamwork Feat.
+- Ticket 192 (the Opus wording review, 2026-11-13): the ranger's selection `ranger/combat-style-feat` is named
+  "Combat Style" (the key stays), so its option-list feat slots, which a sheet labels `<selection name> feat`, read
+  "Combat Style feat" and its level-2 slot "Combat Style", as the slayer's "Combat Style (Slayer)" slots do. The name
+  "Combat Style Feat" read "Combat Style Feat feat" on the feat slots. The slayer's talent options named "Combat
+  Style Feat (2nd or 4th level)" are options and keep their names.
 - Ticket 67 (ticket 62's decision, user, 2026-11-02): the Dual-Cursed Oracle's "Second
   Curse" feature is a second slot of the oracle's own `oracle/oracles-curse` on its level-1 row ("The Oracle must
   choose a second curse"), so the row holds that selection twice, as a cleric's holds `cleric/domain` twice. Every

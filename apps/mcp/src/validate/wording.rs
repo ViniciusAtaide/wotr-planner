@@ -136,10 +136,19 @@ impl Wording<'_> {
     /// failure beside this one, the declaration says no level, only where the pick is.
     fn unmet(&self, choice: &Choice, issue: &Issue) -> String {
         let engine = self.engine();
-        let reason = issue_reason(engine, issue);
         let Choice::Slot(slot) = choice else {
-            return reason;
+            return issue_reason(engine, issue);
         };
+        // As the picker words it: of an "or", only the alternatives the character's classes give (ticket 189's
+        // "Barbarian level 8 or Skald level 8" reads "Barbarian level 8 (have 4)" for a barbarian).
+        let level = slot
+            .level()
+            .or_else(|| engine.rank_level(self.build, slot.rank()?));
+        let trimmed = match level.and_then(|level| self.sheet.at(level)) {
+            Some(state) => engine.reason_for(issue.clone(), state),
+            None => issue.clone(),
+        };
+        let reason = issue_reason(engine, &trimmed);
         let Some(pick) = self.build.picks.get(slot) else {
             return reason;
         };

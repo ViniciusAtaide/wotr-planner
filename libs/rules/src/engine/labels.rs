@@ -241,7 +241,7 @@ impl Engine {
     /// A picker's reason for this character: of each "or", only the alternatives the character's classes give
     /// (Advanced Weapon Training for a fighter needs the Fighter's Weapon Training, not the Sohei's), or every
     /// alternative when none does. The pick is locked either way; this only keeps the reason to the point.
-    pub(super) fn reason_for(&self, issue: Issue, state: &CharacterState) -> Issue {
+    pub fn reason_for(&self, issue: Issue, state: &CharacterState) -> Issue {
         match issue {
             Issue::Unmet(unmet) => Issue::Unmet(self.unmet_for(unmet, state)),
             issue => issue,
