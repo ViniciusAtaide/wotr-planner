@@ -190,7 +190,7 @@ impl Engine {
 
     /// The earliest a Mythic rank can be taken in a Build as it is: the rank table's level, or the rank below's
     /// when that one is taken later. `None` for a rank the data lacks.
-    pub(super) fn rank_floor(&self, build: &Build, rank: u8) -> Option<u8> {
+    pub fn rank_floor(&self, build: &Build, rank: u8) -> Option<u8> {
         let earliest = self.catalog.ascension_level(rank)?;
         let below = self
             .rank_levels(build)

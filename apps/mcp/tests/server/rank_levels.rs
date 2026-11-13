@@ -227,12 +227,12 @@ async fn validate_takes_a_ranks_level_and_says_why_one_is_none() {
     let build = decode(&text(&valid["build"]));
     assert_eq!(build.rank_levels.get(&4), Some(&13));
 
-    // Without the move the mythic feat fails; at the table's level, or past the last, the level itself does.
+    // Without the move the mythic feat fails; before the table's level, or past the last, the level itself does.
     let unmoved = ok("validate", declared(&[mythic])).await;
     assert_eq!(choices(&unmoved["failures"]), ["slot.mythic.4"]);
-    let table = ok("validate", declared(&[("mythic.4.level", json!(11))])).await;
-    let failure = at(&table["failures"], "mythic.4.level");
-    assert_eq!(failure["issue"], "not_allowed", "{table}");
+    let early = ok("validate", declared(&[("mythic.4.level", json!(10))])).await;
+    let failure = at(&early["failures"], "mythic.4.level");
+    assert_eq!(failure["issue"], "not_allowed", "{early}");
     assert!(
         text(&failure["reason"]).contains("MR 4 comes at level 11 at the earliest"),
         "{failure}"
@@ -355,4 +355,186 @@ async fn the_level_that_opens_a_pick_names_the_ranks_the_move_takes_along() {
         "Needs toughness. MR 2 taken at level 13 opens it, which moves MR 3 to level 13, MR 4 to level 13: \
          `choose` `mythic.2.level` 13 first"
     );
+}
+
+/// A human fighter of `levels` levels (a rogue past the 20th) as `validate` takes it, with more choices.
+fn plain(levels: u8, more: &[(&str, Value)]) -> Value {
+    let mut choices = Map::new();
+    for (address, value) in [
+        ("start.race", json!("human")),
+        ("start.faith", json!("atheism")),
+        ("start.alignment", json!("true-neutral")),
+    ] {
+        choices.insert(address.to_owned(), value);
+    }
+    for level in 1..=levels {
+        choices.insert(
+            format!("level.{level}.class"),
+            json!({ "class": if level <= 20 { "fighter" } else { "rogue" } }),
+        );
+    }
+    for (address, value) in more {
+        choices.insert((*address).to_owned(), value.clone());
+    }
+    json!({ "choices": choices })
+}
+
+/// The rank levels a valid `validate` result's Build holds.
+fn rank_levels_of(valid: &Value) -> Vec<(u8, u8)> {
+    assert_eq!(valid["status"], "valid", "{valid}");
+    decode(&text(&valid["build"]))
+        .rank_levels
+        .into_iter()
+        .collect()
+}
+
+#[tokio::test]
+async fn validate_takes_the_level_a_rank_comes_at_as_no_change() {
+    // Each rank's table level, on a 14-level Build, is the Build with neither declared.
+    let none = ok("validate", plain(14, &[])).await;
+    let both = ok(
+        "validate",
+        plain(
+            14,
+            &[("mythic.4.level", json!(11)), ("mythic.5.level", json!(14))],
+        ),
+    )
+    .await;
+    assert_eq!(both["status"], "valid", "{both}");
+    assert_eq!(both["build"], none["build"]);
+    assert_eq!(both["link"], none["link"]);
+    // One alone, on the 13-level fighter, too.
+    let one = ok("validate", declared(&[("mythic.4.level", json!(11))])).await;
+    let without = ok("validate", declared(&[])).await;
+    assert_eq!(one["status"], "valid", "{one}");
+    assert_eq!(one["build"], without["build"]);
+}
+
+#[tokio::test]
+async fn validate_takes_the_level_the_rank_below_holds_a_rank_at_as_no_change() {
+    // MR 3 at 13 holds MR 4 at 13: that is where MR 4 comes, so declaring it changes nothing (`choose` stores
+    // the same Build).
+    let both = ok(
+        "validate",
+        declared(&[("mythic.3.level", json!(13)), ("mythic.4.level", json!(13))]),
+    )
+    .await;
+    let alone = ok("validate", declared(&[("mythic.3.level", json!(13))])).await;
+    assert_eq!(both["status"], "valid", "{both}");
+    assert_eq!(both["build"], alone["build"]);
+    assert_eq!(rank_levels_of(&both), [(3, 13)]);
+    let chosen = ok(
+        "choose",
+        json!({ "build": code(&fighter()), "steps": [
+            { "choice": "mythic.3.level", "value": 13 },
+            { "choice": "mythic.4.level", "value": 13 },
+        ] }),
+    )
+    .await;
+    assert_eq!(
+        decode(&text(&chosen["build"])).rank_levels,
+        decode(&text(&both["build"])).rank_levels
+    );
+}
+
+#[tokio::test]
+async fn validate_still_refuses_a_level_before_where_a_rank_comes() {
+    let early = ok("validate", declared(&[("mythic.4.level", json!(10))])).await;
+    let failure = at(&early["failures"], "mythic.4.level");
+    assert_eq!(failure["issue"], "not_allowed", "{early}");
+    // MR 3 at 13 holds MR 4 there: MR 4's own table level, 11, is before where it comes, and the reason says so.
+    let below = ok(
+        "validate",
+        declared(&[("mythic.3.level", json!(13)), ("mythic.4.level", json!(11))]),
+    )
+    .await;
+    let failure = at(&below["failures"], "mythic.4.level");
+    assert_eq!(failure["issue"], "not_allowed", "{below}");
+    let reason = text(&failure["reason"]);
+    assert!(
+        reason.contains("MR 4 comes at level 13 at the earliest")
+            && reason.contains("MR 3 is taken at level 13"),
+        "{reason}"
+    );
+}
+
+#[tokio::test]
+async fn validate_keeps_a_level_a_rank_has_of_its_own_under_a_later_rank_below() {
+    // 171's dormant level: MR 4 at 12 under MR 3 at 13 is accepted and kept, as it was.
+    let dormant = ok(
+        "validate",
+        declared(&[("mythic.3.level", json!(13)), ("mythic.4.level", json!(12))]),
+    )
+    .await;
+    assert_eq!(rank_levels_of(&dormant), [(3, 13), (4, 12)]);
+    let alone = ok("validate", declared(&[("mythic.3.level", json!(13))])).await;
+    assert_ne!(dormant["build"], alone["build"]);
+}
+
+#[tokio::test]
+async fn validate_refuses_the_earliest_level_of_a_rank_the_build_does_not_reach() {
+    // Too few levels: MR 5 comes at level 14, the Build has 13. `choose` and `options` refuse it too.
+    let short = ok("validate", declared(&[("mythic.5.level", json!(14))])).await;
+    assert_eq!(short["status"], "invalid", "{short}");
+    assert_eq!(
+        at(&short["failures"], "mythic.5.level")["issue"],
+        "not_allowed"
+    );
+    assert_eq!(
+        text(&at(&short["failures"], "mythic.5.level")["reason"]),
+        "The Build doesn't reach MR 5, so `mythic.5.level` has no level to take it at: MR 5 comes at level 14 at \
+         the earliest, and the Build has 13 level(s)."
+    );
+    let refused = Client::on_the_test_world()
+        .await
+        .call(
+            "options",
+            json!({ "build": code(&fighter()), "choice": "mythic.5.level" }),
+        )
+        .await;
+    assert_eq!(error_code(&refused), "no_such_choice");
+
+    // A Legend switch ended the ascensions at MR 8: MR 9 comes at level 17 and is never reached.
+    let legend = [
+        ("mythic.path", json!("trickster")),
+        ("mythic.switch", json!("legend")),
+    ];
+    let legend_build = ok("validate", plain(22, &legend)).await;
+    assert_eq!(legend_build["status"], "valid", "{legend_build}");
+    let mut with_nine = legend.to_vec();
+    with_nine.push(("mythic.9.level", json!(17)));
+    let ended = ok("validate", plain(22, &with_nine)).await;
+    assert_eq!(ended["status"], "invalid", "{ended}");
+    assert_eq!(
+        at(&ended["failures"], "mythic.9.level")["issue"],
+        "not_allowed"
+    );
+    assert_eq!(
+        text(&at(&ended["failures"], "mythic.9.level")["reason"]),
+        "The Build doesn't reach MR 9, so `mythic.9.level` has no level to take it at: its Path switch (Legend) \
+         ends the ascensions at MR 8."
+    );
+}
+
+#[tokio::test]
+async fn validate_takes_every_level_options_offers_for_a_rank() {
+    let client = Client::on_the_test_world().await;
+    for rank in [3, 4] {
+        let address = format!("mythic.{rank}.level");
+        let options = client
+            .ok(
+                "options",
+                json!({ "build": code(&fighter()), "choice": address }),
+            )
+            .await;
+        for option in options["options"].as_array().unwrap() {
+            let valid = client
+                .ok(
+                    "validate",
+                    declared(&[(address.as_str(), option["value"].clone())]),
+                )
+                .await;
+            assert_eq!(valid["status"], "valid", "{address} {option}: {valid}");
+        }
+    }
 }

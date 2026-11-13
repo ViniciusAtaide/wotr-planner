@@ -241,6 +241,13 @@ impl Engine {
         moves.join(", ")
     }
 
+    /// Whether a Build takes a Mythic rank at all: it has the character level the rank comes at
+    /// ([`Engine::rank_level`]), and no Path switch ended the ascensions before it (Legend: after MR 8). The
+    /// rank's level picker ([`Engine::rank_level_options`]) has levels exactly when this holds.
+    pub fn rank_reached(&self, build: &Build, rank: u8) -> bool {
+        self.reaches(build, rank) && !self.ascensions_end(build).is_some_and(|end| rank > end)
+    }
+
     /// The rank a Build's switch ends the ascensions at (Legend: MR 8, where the switch itself still comes); `None`
     /// while they go on.
     fn ascensions_end(&self, build: &Build) -> Option<u8> {
