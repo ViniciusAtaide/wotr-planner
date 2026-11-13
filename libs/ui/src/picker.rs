@@ -737,9 +737,16 @@ fn ClassPicker(level: u8) -> impl IntoView {
     let step = RwSignal::new(ClassStep::Loading);
     after_paint(step, move || {
         let build = planner.build.get_untracked();
-        let options = engine.with_value(|engine| {
+        let mut options = engine.with_value(|engine| {
             timed("class_options", || engine.class_options(&build, level)).unwrap_or_default()
         });
+        // The class the Build took at the level before comes first; the rest keep the engine's order.
+        if let Some(previous) = usize::from(level)
+            .checked_sub(2)
+            .and_then(|index| build.levels.get(index))
+        {
+            lift(&mut options, |option| option.class == previous.class);
+        }
         Arc::new(options)
     });
     let adding = planner
@@ -805,6 +812,13 @@ fn ClassPicker(level: u8) -> impl IntoView {
             {list}
         }
         .into_any()
+    }
+}
+
+/// Moves the first item `is_it` picks to the front, the others keeping their order.
+fn lift<T>(items: &mut [T], is_it: impl Fn(&T) -> bool) {
+    if let Some(index) = items.iter().position(is_it) {
+        items[..=index].rotate_right(1);
     }
 }
 
@@ -1286,5 +1300,26 @@ fn AbilityIncreasePicker(level: u8) -> impl IntoView {
             items
             on_pick=move |index: usize| planner.pick(options[index].edit.clone())
         />
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::lift;
+
+    #[test]
+    fn lift_moves_the_first_match_to_the_front() {
+        let mut items = [1, 2, 3, 4, 3];
+        lift(&mut items, |item| *item == 3);
+        assert_eq!(items, [3, 1, 2, 4, 3]);
+    }
+
+    #[test]
+    fn lift_without_a_match_keeps_the_order() {
+        let mut items = [1, 2, 3];
+        lift(&mut items, |item| *item == 5);
+        assert_eq!(items, [1, 2, 3]);
+        lift(&mut items, |item| *item == 1);
+        assert_eq!(items, [1, 2, 3]);
     }
 }
