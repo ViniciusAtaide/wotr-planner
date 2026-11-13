@@ -46,10 +46,11 @@ async fn a_choice_something_depends_on_is_not_removable() {
     fighter.picks.insert(general_slot(1), pick_feat("cleave"));
     let refused = withdraw(&fighter, "slot.feat.1.class.0").await;
     assert_eq!(error_code(&refused), "not_removable");
-    assert!(
-        error_text(&refused).contains("`sheet` with `removable: true`"),
-        "{}",
-        error_text(&refused)
+    // Ticket 192: it names the choice that depends on it.
+    assert_eq!(
+        error_text(&refused),
+        "not_removable: cleave depends on `slot.feat.1.class.0`, so it can't be withdrawn now: withdraw that choice \
+         first."
     );
     // Cleave, the leaf, comes off.
     let after = withdrawn(&fighter, "slot.feat.1.general.0").await;

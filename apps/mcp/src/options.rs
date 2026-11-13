@@ -2,7 +2,10 @@
 //! its name, whether it can be taken now and, when not, the engine's issue and reason. Each option keeps the edit
 //! the engine gives it, so `choose` applies the matching offer's edit and never builds one.
 
-use rules::{Address, Build, Edit, Engine, Issue, RankStatus, Sheet, SlotId, Step};
+use std::cell::OnceCell;
+use std::collections::BTreeSet;
+
+use rules::{Address, Build, Choice, Edit, Engine, Issue, RankStatus, Sheet, SlotId, Step};
 
 use crate::code::{envelope, open};
 use crate::error::ToolError;
@@ -102,6 +105,91 @@ impl Offer {
 pub(crate) const BREAKS_LATER: &str = "Would break a later choice, which must be withdrawn first (`sheet` with \
     `removable: true` shows what can come off now)";
 
+/// How many of the choices an edit would break its reason names; the rest are counted ("and 4 more").
+const NAMED: usize = 3;
+
+/// The verb of a reason that names `count` choices: "needs"/"need", "depends"/"depend".
+pub(crate) fn verb<'a>(count: usize, one: &'a str, many: &'a str) -> &'a str {
+    if count == 1 { one } else { many }
+}
+
+/// What the edits of one Build would break, told from the choices the Build already fails (none, in a possible
+/// one). It walks the Build once, when the first reason is asked, and each edit once more.
+pub(crate) struct Breaks<'a> {
+    engine: &'a Engine,
+    build: &'a Build,
+    failing: OnceCell<BTreeSet<Choice>>,
+}
+
+impl<'a> Breaks<'a> {
+    pub(crate) fn new(engine: &'a Engine, build: &'a Build) -> Self {
+        Self {
+            engine,
+            build,
+            failing: OnceCell::new(),
+        }
+    }
+
+    /// The choices an edit would refuse, in walk order.
+    pub(crate) fn refused(&self, edit: &Edit) -> Vec<Choice> {
+        let failing = self
+            .failing
+            .get_or_init(|| self.engine.failing_choices(self.build));
+        self.engine.refused_by(self.build, failing, edit)
+    }
+
+    /// The first few of the choices, named as a reason names them.
+    pub(crate) fn names(&self, refused: &[Choice]) -> String {
+        self.engine.choice_names_within(self.build, refused, NAMED)
+    }
+
+    /// Why an option that breaks a later choice does, naming what it would break: "Dodge needs Dexterity above 10"
+    /// for a score lowered, "…needs more than 2 Stealth ranks at level 3" for a skill's ranks, otherwise "Power
+    /// Attack depends on what `slot.feat.1.general.0` holds now". `None` when the edit refuses nothing the walk can
+    /// name (the caller falls back to [`BREAKS_LATER`]).
+    pub(crate) fn reason(&self, address: &Address, edit: &Edit) -> Option<String> {
+        let (engine, build) = (self.engine, self.build);
+        let refused = self.refused(edit);
+        if refused.is_empty() {
+            return None;
+        }
+        let names = self.names(&refused);
+        let count = refused.len();
+        let needs = verb(count, "needs", "need");
+        Some(match (address, edit) {
+            (Address::Score(ability), Edit::Start(after)) => {
+                let (was, now) = (
+                    build.start.ability_scores.get(*ability),
+                    after.ability_scores.get(*ability),
+                );
+                let side = if now < was { "above" } else { "below" };
+                format!("{names} {needs} {} {side} {now}", ability.name())
+            }
+            (
+                Address::Skill(level, _) | Address::SkillPoints(level),
+                Edit::SkillRanks { skill, ranks, .. },
+            ) => {
+                let was = usize::from(*level)
+                    .checked_sub(1)
+                    .and_then(|index| build.levels.get(index))
+                    .and_then(|level_up| level_up.skill_ranks.get(skill))
+                    .copied()
+                    .unwrap_or(0);
+                let side = if ranks < &was { "more" } else { "fewer" };
+                let noun = if *ranks == 1 { "rank" } else { "ranks" };
+                format!(
+                    "{names} {needs} {side} than {ranks} {} {noun} at level {level}",
+                    engine.skill_name(skill)
+                )
+            }
+            _ => format!(
+                "{names} {} on what `{address}` holds now",
+                verb(count, "depends", "depend")
+            ),
+        })
+    }
+}
+
 /// An engine issue as a code: the variant's name in snake case.
 pub(crate) fn issue_code(issue: &Issue) -> &'static str {
     match issue {
@@ -120,7 +208,8 @@ pub(crate) fn issue_code(issue: &Issue) -> &'static str {
     }
 }
 
-/// An issue's reason: the engine's own text, or for one that would break a later choice, [`BREAKS_LATER`].
+/// An issue's reason: the engine's own text, or for one that would break a later choice, [`BREAKS_LATER`] (the
+/// last fallback: [`Breaks::reason`] names the choices when it can).
 pub(crate) fn issue_reason(engine: &Engine, issue: &Issue) -> String {
     engine
         .issue_text(issue)
@@ -701,6 +790,7 @@ pub(crate) fn options(planner: &Planner, args: OptionsArgs) -> Result<OptionsRes
         .collect();
     let only_open = args.only_open.unwrap_or(true);
     let compact = args.compact.unwrap_or(false);
+    let breaks = Breaks::new(engine, &build);
     let mut closed = 0;
     let mut lines = Vec::new();
     for offer in offers {
@@ -723,10 +813,13 @@ pub(crate) fn options(planner: &Planner, args: OptionsArgs) -> Result<OptionsRes
                 },
                 (Err(issue), _) => OptionStatus::Closed {
                     issue: issue_code(issue).to_owned(),
-                    reason: offer
-                        .reason
-                        .clone()
-                        .unwrap_or_else(|| issue_reason(engine, issue)),
+                    reason: offer.reason.clone().unwrap_or_else(|| {
+                        match (issue, &offer.edit) {
+                            (Issue::BreaksLater, Some(edit)) => breaks.reason(&address, edit),
+                            _ => None,
+                        }
+                        .unwrap_or_else(|| issue_reason(engine, issue))
+                    }),
                 },
             },
             summary: match compact {

@@ -112,25 +112,14 @@ impl Engine {
                         .collect()
                 } else {
                     let failing = failing.get_or_init(|| self.failing_choices(build));
-                    let mut refused: Vec<Choice> = Vec::new();
-                    for failure in self.failures(&edited) {
-                        if !failing.contains(&failure.choice) && !refused.contains(&failure.choice)
-                        {
-                            refused.push(failure.choice);
-                        }
-                    }
-                    refused
+                    self.refused_by(build, failing, &edit)
                 };
                 let reason = status.is_err().then(|| {
                     if !shifted.is_empty() {
                         return self.shifted_reason(build, &shifted);
                     }
                     // The first few by name: a rank moved past a Legend's level 20 would refuse every level after.
-                    let named = &needed_by[..needed_by.len().min(NAMED)];
-                    let mut names = self.choice_names(build, named);
-                    if needed_by.len() > NAMED {
-                        names = format!("{names} and {} more", needed_by.len() - NAMED);
-                    }
+                    let names = self.choice_names_within(build, &needed_by, NAMED);
                     let verb = if needed_by.len() == 1 {
                         "needs"
                     } else {

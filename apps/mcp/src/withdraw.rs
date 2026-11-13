@@ -15,6 +15,7 @@ use rules::{Address, Build, Engine};
 
 use crate::code::{envelope, open, reopen};
 use crate::error::ToolError;
+use crate::options::{Breaks, verb};
 use crate::planner::Planner;
 use crate::shapes::{WithdrawArgs, WithdrawResult};
 
@@ -79,6 +80,18 @@ pub(crate) fn withdraw(planner: &Planner, args: WithdrawArgs) -> Result<Withdraw
             return Err(ToolError::not_removable(format!(
                 "{reason}, so `{address}` can't be withdrawn now: withdraw that choice first. `options` on \
                  `{address}` lists the levels MR {rank} can be taken at."
+            )));
+        }
+        // The choices that would fail without it, by name.
+        let breaks = Breaks::new(engine, &build);
+        let refused = breaks.refused(&edit);
+        if !refused.is_empty() {
+            let count = refused.len();
+            return Err(ToolError::not_removable(format!(
+                "{} {} on `{address}`, so it can't be withdrawn now: withdraw {} first.",
+                breaks.names(&refused),
+                verb(count, "depends", "depend"),
+                verb(count, "that choice", "those choices")
             )));
         }
         return Err(ToolError::not_removable(format!(

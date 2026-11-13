@@ -244,8 +244,9 @@ impl Engine {
         after
     }
 
-    /// The choices that fail in a Build, as a set.
-    pub(super) fn failing_choices(&self, build: &Build) -> BTreeSet<Choice> {
+    /// The choices that fail in a Build, as a set: what an edit's refusals are told from
+    /// ([`refused_by`](Self::refused_by)). One walk.
+    pub fn failing_choices(&self, build: &Build) -> BTreeSet<Choice> {
         (self.failures(build).into_iter())
             .map(|failure| failure.choice)
             .collect()
@@ -298,6 +299,36 @@ impl Engine {
                 list(&needs.for_example, "and")
             ),
             (_, true, true) => format!("With {all_of}"),
+        }
+    }
+
+    /// The choices an edit would refuse, in walk order: those that fail in the edited Build and are not in `failing`,
+    /// the choices that fail in `build` already ([`failing_choices`](Self::failing_choices), none in a possible
+    /// Build). One walk, of the edited Build.
+    pub fn refused_by(
+        &self,
+        build: &Build,
+        failing: &BTreeSet<Choice>,
+        edit: &Edit,
+    ) -> Vec<Choice> {
+        let mut edited = build.clone();
+        self.apply(&mut edited, edit);
+        let mut refused: Vec<Choice> = Vec::new();
+        for failure in self.failures(&edited) {
+            if !failing.contains(&failure.choice) && !refused.contains(&failure.choice) {
+                refused.push(failure.choice);
+            }
+        }
+        refused
+    }
+
+    /// [`choice_names`](Self::choice_names) of the first `most` choices, then how many more: "A, B and C and 4
+    /// more".
+    pub fn choice_names_within(&self, build: &Build, choices: &[Choice], most: usize) -> String {
+        let names = self.choice_names(build, &choices[..choices.len().min(most)]);
+        match choices.len().checked_sub(most) {
+            Some(more) if more > 0 => format!("{names} and {more} more"),
+            _ => names,
         }
     }
 
@@ -380,15 +411,7 @@ impl<'a> GearJudge<'a> {
         let failing = self
             .failing
             .get_or_init(|| engine.failing_choices(self.build));
-        let mut edited = self.build.clone();
-        engine.apply(&mut edited, edit);
-        let mut refused: Vec<Choice> = Vec::new();
-        for failure in engine.failures(&edited) {
-            if !failing.contains(&failure.choice) && !refused.contains(&failure.choice) {
-                refused.push(failure.choice);
-            }
-        }
-        refused
+        engine.refused_by(self.build, failing, edit)
     }
 
     /// An option: open when the Build holds it already or its edit keeps the Build possible; otherwise locked, with

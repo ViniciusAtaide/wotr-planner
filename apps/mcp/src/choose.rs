@@ -10,11 +10,11 @@
 
 use std::collections::BTreeMap;
 
-use rules::{Address, Build, Choice, Engine, GearSpot, POINT_BUY_BUDGET, SkillKey};
+use rules::{Address, Build, Choice, Engine, GearSpot, Issue, POINT_BUY_BUDGET, SkillKey};
 
 use crate::code::{envelope, open, reopen};
 use crate::error::ToolError;
-use crate::options::{Offer, issue_code, issue_reason, offers};
+use crate::options::{Breaks, Offer, issue_code, issue_reason, offers};
 use crate::planner::Planner;
 use crate::shapes::{ChoiceValue, ChooseArgs, ChooseResult, LeaningStep, MovedItem, Rejected};
 use crate::similar::{closeness, closest_note, distance, nearest};
@@ -207,10 +207,15 @@ fn apply_offer(
     if let Err(issue) = &offer.status {
         return Err(ToolError {
             code: issue_code(issue),
-            reason: offer
-                .reason
-                .clone()
-                .unwrap_or_else(|| issue_reason(engine, issue)),
+            reason: offer.reason.clone().unwrap_or_else(|| {
+                match (issue, &offer.edit) {
+                    (Issue::BreaksLater, Some(edit)) => {
+                        Breaks::new(engine, build).reason(address, edit)
+                    }
+                    _ => None,
+                }
+                .unwrap_or_else(|| issue_reason(engine, issue))
+            }),
         });
     }
     let Some(edit) = &offer.edit else {

@@ -302,11 +302,9 @@ async fn a_point_buy_stepper_offers_a_step_each_way() {
     .await;
     let down = option(&str_steps, json!(12));
     assert_eq!(down["status"]["issue"], "breaks_later");
-    assert!(
-        down["status"]["reason"]
-            .as_str()
-            .unwrap()
-            .contains("later choice"),
+    // Ticket 192: it names what it would break.
+    assert_eq!(
+        down["status"]["reason"], "power-attack needs Strength above 12",
         "{down}"
     );
     assert_eq!(option(&str_steps, json!(14))["status"], "ok");
