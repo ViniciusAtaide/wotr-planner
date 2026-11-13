@@ -1467,10 +1467,6 @@ fn the_bard_archetypes_step_the_features_the_guide_gives_steps_to() {
             "bard/archaeologist/danger-sense",
             &[3, 6, 9, 12, 15, 18][..],
         ),
-        (
-            "bard/beast-tamer/beast-call",
-            &[1, 3, 5, 7, 9, 11, 13, 15, 17][..],
-        ),
         ("bard/chelaxian-diva/deadly-vibrato", &[6, 14, 20][..]),
         (
             "bard/chelaxian-diva/devastating-aria",
@@ -1499,10 +1495,6 @@ fn the_bard_archetypes_step_the_features_the_guide_gives_steps_to() {
 fn the_bloodrager_archetypes_step_the_features_the_guide_gives_steps_to() {
     for (feature, levels) in [
         ("bloodrager/greenrager/furious-summoning", &[9, 11, 20][..]),
-        (
-            "bloodrager/hag-riven/claws-of-the-hag",
-            &[1, 2, 5, 9, 13, 17][..],
-        ),
         (
             "bloodrager/hag-riven/scarred-hide",
             &[7, 10, 13, 16, 19][..],
@@ -1554,14 +1546,9 @@ fn the_cavalier_archetypes_step_the_features_the_guide_gives_steps_to() {
 fn the_druid_archetypes_step_the_features_the_guide_gives_steps_to() {
     for (feature, levels) in [
         ("druid/elemental-rampager/claws", &[1, 9, 15][..]),
-        (
-            "druid/elemental-rampager/elemental-rampage",
-            &[4, 11, 20][..],
-        ),
         ("druid/elemental-rampager/rampage", &[1, 6, 11, 16][..]),
         ("druid/primal-druid/primal-size", &[1, 8, 16][..]),
         ("druid/winter-child/arctic-native", &[4, 8, 12, 16, 20][..]),
-        ("druid/winter-child/call-a-feast", &[1, 10, 15][..]),
     ] {
         let archetype = feature.rsplit_once('/').unwrap().0;
         assert_gains(
@@ -1675,11 +1662,6 @@ fn the_magus_archetypes_step_the_features_the_guide_gives_steps_to() {
             "magus/bladebound/sharpening-the-black-blade",
             &[3, 6, 9, 12, 15, 18][..],
         ),
-        (
-            "magus/armored-battlemage/arcane-pool-armored-battlemage",
-            &[1, 5, 9, 13, 17][..],
-        ),
-        ("magus/spell-dancer/spell-dance", &[1, 5, 9, 13, 17][..]),
     ] {
         let archetype = feature.rsplit_once('/').unwrap().0;
         assert_gains(
@@ -1727,11 +1709,6 @@ fn the_oracle_archetypes_step_the_features_the_guide_gives_steps_to() {
         ),
         ("oracle/lone-strider/fade-from-memory", &[7, 14][..]),
         ("oracle/lone-strider/recluses-stride", &[1, 5, 10][..]),
-        (
-            "oracle/possessed-oracle/powerless-prophecy",
-            &[1, 5, 10, 15][..],
-        ),
-        ("oracle/purifier/celestial-armor", &[7, 11][..]),
         ("oracle/wind-whisperer/haste-of-the-wind", &[7, 13, 19][..]),
     ] {
         let archetype = feature.rsplit_once('/').unwrap().0;
@@ -1959,15 +1936,128 @@ fn the_wizard_archetypes_step_the_features_the_guide_gives_steps_to() {
     }
 }
 
+/// The owner's class, the feature, its first level, and the features that carry its steps with their levels.
+type GrantedOnce = (
+    &'static str,
+    &'static str,
+    u8,
+    &'static [(&'static str, &'static [u8])],
+);
+
+/// Features whose steps the data already grants as features of their own, one per step, as the magus's Arcane
+/// Weapon: each stays granted once, at its first level, and the step features carry the rises (ticket 182's review).
+/// Stepping the feature as well would count every step twice.
 #[test]
-fn the_arcanist_archetypes_step_the_features_the_guide_gives_steps_to() {
-    let feature = "arcanist/phantasmal-mage/arcane-metamagic";
-    let levels = &[1, 5, 11, 17][..];
-    assert_gains(
-        "arcanist",
-        feature,
-        &|_, build| build,
-        &[],
-        &[(feature.rsplit_once('/').unwrap().0, Some(levels))],
+fn features_whose_steps_are_features_of_their_own_are_granted_once() {
+    let cases: [GrantedOnce; 9] = [
+        (
+            "arcanist",
+            "arcanist/phantasmal-mage/arcane-metamagic",
+            1,
+            &[
+                ("arcanist/phantasmal-mage/arcane-metamagic-i", &[5]),
+                ("arcanist/phantasmal-mage/arcane-metamagic-ii", &[11]),
+                ("arcanist/phantasmal-mage/arcane-metamagic-iii", &[17]),
+            ],
+        ),
+        (
+            "bard",
+            "bard/beast-tamer/beast-call",
+            1,
+            &[
+                ("bard/beast-tamer/summon-natures-ally-ii", &[3]),
+                ("bard/beast-tamer/summon-natures-ally-ix", &[17]),
+            ],
+        ),
+        (
+            "bloodrager",
+            "bloodrager/hag-riven/claws-of-the-hag",
+            1,
+            &[
+                ("bloodrager/hag-riven/claws-of-the-hag-magic", &[2]),
+                ("bloodrager/hag-riven/claws-of-the-hag-1d6", &[5]),
+                ("bloodrager/hag-riven/claws-of-the-hag-rend", &[9]),
+                ("bloodrager/hag-riven/claws-of-the-hag-critical", &[13]),
+                ("bloodrager/hag-riven/claws-of-the-hag-weakness", &[17]),
+            ],
+        ),
+        (
+            "druid",
+            "druid/elemental-rampager/elemental-rampage",
+            4,
+            &[
+                ("druid/elemental-rampager/elemental-damage", &[4, 11, 20]),
+                ("druid/elemental-rampager/elemental-ability", &[11, 20]),
+            ],
+        ),
+        (
+            "druid",
+            "druid/winter-child/call-a-feast",
+            1,
+            &[
+                ("druid/winter-child/call-a-feast-cover-of-snow", &[10]),
+                ("druid/winter-child/call-a-feast-biting-frost", &[15]),
+            ],
+        ),
+        (
+            "magus",
+            "magus/armored-battlemage/arcane-pool-armored-battlemage",
+            1,
+            &[
+                ("magus/armored-battlemage/arcane-armor-2", &[5]),
+                ("magus/armored-battlemage/arcane-armor-5", &[17]),
+            ],
+        ),
+        (
+            "magus",
+            "magus/spell-dancer/spell-dance",
+            1,
+            &[
+                ("magus/spell-dancer/spell-dance-ii", &[5]),
+                ("magus/spell-dancer/spell-dance-iii", &[9]),
+                ("magus/spell-dancer/spell-dance-iv", &[13]),
+            ],
+        ),
+        (
+            "oracle",
+            "oracle/possessed-oracle/powerless-prophecy",
+            1,
+            &[
+                ("oracle/possessed-oracle/curse-2", &[5]),
+                ("oracle/possessed-oracle/curse-3", &[10]),
+                ("oracle/possessed-oracle/curse-4", &[15]),
+            ],
+        ),
+        ("oracle", "oracle/purifier/celestial-armor", 7, &[]),
+    ];
+    for (class_key, feature, first, steps) in cases {
+        let archetype = feature.rsplit_once('/').unwrap().0;
+        assert_gains(
+            class_key,
+            feature,
+            &|_, build| build,
+            &[],
+            &[(archetype, Some(&[first]))],
+        );
+        let build = playable(|| archetype_build(class_key, archetype, 20), |build| build).unwrap();
+        for (step, levels) in steps {
+            assert_eq!(gains(&build, step), *levels, "{step}");
+        }
+    }
+    // The Purifier's step at 11 is the bonus feat its row grants.
+    let purifier = playable(
+        || archetype_build("oracle", "oracle/purifier", 20),
+        |build| build,
+    )
+    .unwrap();
+    assert!(
+        !at(&purifier, 10)
+            .feats
+            .contains_key(&rules::FeatKey::new("armor-proficiency-heavy-armor"))
+    );
+    assert!(
+        at(&purifier, 11)
+            .feats
+            .contains_key(&rules::FeatKey::new("armor-proficiency-heavy-armor"))
     );
 }

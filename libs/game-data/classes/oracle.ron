@@ -617,9 +617,9 @@ Class(
             ],
             levels: [
                 (level: 1, features: ["oracle/additional-spells", "oracle/possessed-oracle/powerless-prophecy", "oracle/possessed-oracle/two-minds"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"], selections: ["oracle/mystery"]),
-                (level: 5, features: ["oracle/possessed-oracle/curse-2", "oracle/possessed-oracle/powerless-prophecy"]),
-                (level: 10, features: ["oracle/possessed-oracle/curse-3", "oracle/possessed-oracle/powerless-prophecy"]),
-                (level: 15, features: ["oracle/possessed-oracle/curse-4", "oracle/possessed-oracle/powerless-prophecy"], selections: ["oracle/revelation"]),
+                (level: 5, features: ["oracle/possessed-oracle/curse-2"]),
+                (level: 10, features: ["oracle/possessed-oracle/curse-3"]),
+                (level: 15, features: ["oracle/possessed-oracle/curse-4"], selections: ["oracle/revelation"]),
             ],
         ),
         (
@@ -642,7 +642,7 @@ Class(
                 (level: 5, features: ["oracle/purifier/curse-2", "oracle/purifier/sacred-scourge"]),
                 (level: 7, features: ["oracle/purifier/celestial-armor"]),
                 (level: 10, features: ["oracle/purifier/curse-3"]),
-                (level: 11, features: ["oracle/purifier/celestial-armor", "oracle/purifier/sin-eater"], feats: ["armor-proficiency-heavy-armor"]),
+                (level: 11, features: ["oracle/purifier/sin-eater"], feats: ["armor-proficiency-heavy-armor"]),
                 (level: 15, features: ["oracle/purifier/curse-4"], selections: ["oracle/revelation"]),
             ],
         ),
