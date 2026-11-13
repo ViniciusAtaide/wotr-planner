@@ -29,7 +29,9 @@ A release build: `cargo leptos build --release --precompress`, then run `target/
 `--precompress` writes brotli (quality 11) and gzip copies of the wasm, JS and CSS next to them. The server sends
 the brotli copy to a browser that takes brotli; without the flag they are compressed on every request, at brotli
 quality 4. The gzip copies go unused: the server's own gzip is smaller. cargo-leptos has no `Cargo.toml` key for
-the flag, so always pass it.
+the flag, so always pass it. A dev server (`cargo leptos watch`, a debug build) never sends the brotli copies: dev and
+release builds share `target/site/`, and a dev build rewrites only the plain files, so a release build's copies left
+beside them would be stale.
 
 A static site, for GitHub Pages: `scripts/build-site.sh <out-dir>` saves the release server's page, wasm, JS, CSS
 and game data as files (usage in its header). The page names them relative to itself, so the folder works at `/`

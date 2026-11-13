@@ -409,8 +409,11 @@ input[type="search"] {
   white-space: nowrap;
 }
 
+/* On a narrow screen each tab is as wide as its label, then they share what's left, so "✦ Mythic track" isn't cut
+   short to keep the widths equal (it fits down to 320px). */
 @media (max-width: 599px) {
   .tabs button {
+    flex: 1 1 auto;
     font-size: 14px;
     letter-spacing: 0.01em;
   }
@@ -615,9 +618,15 @@ input[type="search"] {
   line-height: 1.2;
 }
 
-.class-button:disabled {
-  opacity: 1;
+/* A locked class: still tappable, for the reason it shows (`.class-locked`). */
+.class-button.locked {
   background: transparent;
+}
+
+.class-locked {
+  color: var(--muted);
+  font-size: 10.5px;
+  line-height: 1.25;
 }
 
 .class-line {

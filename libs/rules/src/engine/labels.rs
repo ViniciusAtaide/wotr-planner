@@ -962,7 +962,8 @@ impl Engine {
                 format!("taken as {}", self.selection_name(selection))
             }
             Prerequisite::SkillRanks { skill, ranks } => {
-                have(format!("{ranks} ranks in {}", self.skill_name(skill)))
+                let noun = if *ranks == 1 { "rank" } else { "ranks" };
+                have(format!("{ranks} {noun} in {}", self.skill_name(skill)))
             }
             Prerequisite::AbilityScore { ability, score } => {
                 have(format!("{} {score}", ability.short_name()))

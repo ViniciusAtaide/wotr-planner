@@ -107,13 +107,14 @@ fn app(
     // - the game data once, at startup;
     // - in a release build, the wasm, JS and CSS once, by `cargo leptos build --release --precompress`. Only its
     //   `.br` files are served (`precompressed_br`): its `.gz` files (libflate) are 11–17 % bigger than the gzip
-    //   `CompressionLayer` makes on the fly, so a browser without brotli still gets that. A dev build has no
-    //   `.br` files, so everything is compressed on the fly there;
-    // - the rest, the HTML, on the fly.
-    let site_pkg = ServeDir::new(&*leptos_options.site_root).precompressed_br();
+    //   `CompressionLayer` makes on the fly, so a browser without brotli still gets that;
+    // - the rest, the HTML, on the fly, and in a dev build the wasm, JS and CSS too (`site_pkg`).
     Router::new()
         .merge(game_data.routes())
-        .route_service(&site_pkg_dir_service_route_path(&leptos_options), site_pkg)
+        .route_service(
+            &site_pkg_dir_service_route_path(&leptos_options),
+            site_pkg(&leptos_options.site_root, !cfg!(debug_assertions)),
+        )
         .leptos_routes_with_context(
             &leptos_options,
             routes,
@@ -129,6 +130,19 @@ fn app(
         .layer(map_response(vary_on_accept_encoding))
         .layer(CompressionLayer::new())
         .with_state(leptos_options)
+}
+
+/// The site root's files for `site-pkg-dir` (the wasm, JS and CSS), with a file's `.br` copy in its place for a
+/// browser that takes brotli when `precompressed`. Only a release server asks for that: dev and release builds
+/// share the site root, and a dev build rewrites only the plain files, so an earlier release build's `.br` copies
+/// would shadow them with stale wasm and JS.
+fn site_pkg(site_root: &str, precompressed: bool) -> ServeDir {
+    let files = ServeDir::new(site_root);
+    if precompressed {
+        files.precompressed_br()
+    } else {
+        files
+    }
 }
 
 /// Adds `Vary: Accept-Encoding` to a compressed response that lacks it. A precompressed static file comes
@@ -292,6 +306,43 @@ mod tests {
             html.contains(r#"<link rel="icon" href="data:,">"#),
             "{html}"
         );
+    }
+
+    /// A fresh JS file beside a stale `.br` copy of it, as a dev build leaves them after a release build:
+    /// `site_pkg` serves the copy only when asked to, and the server asks only in a release build. (Both files are
+    /// under `CompressionLayer`'s minimum size, so nothing is compressed on the fly.)
+    #[tokio::test]
+    async fn only_a_release_server_serves_a_precompressed_copy() {
+        async fn fetch(app: Router) -> (Option<HeaderValue>, String) {
+            let request = Request::get("/pkg/wotr-planner.js")
+                .header(header::ACCEPT_ENCODING, "br")
+                .body(Body::empty())
+                .unwrap();
+            let response = app.oneshot(request).await.unwrap();
+            let encoding = response.headers().get(header::CONTENT_ENCODING).cloned();
+            let body = to_bytes(response.into_body(), usize::MAX).await.unwrap();
+            (encoding, String::from_utf8(body.to_vec()).unwrap())
+        }
+        let site_root = tempfile::tempdir().unwrap();
+        let pkg = site_root.path().join("pkg");
+        std::fs::create_dir(&pkg).unwrap();
+        std::fs::write(pkg.join("wotr-planner.js"), "fresh").unwrap();
+        std::fs::write(pkg.join("wotr-planner.js.br"), "stale").unwrap();
+        let root = site_root.path().to_str().unwrap();
+        let fresh = (None, "fresh".to_owned());
+        let stale = (Some(HeaderValue::from_static("br")), "stale".to_owned());
+
+        let files = |precompressed| Router::new().fallback_service(site_pkg(root, precompressed));
+        assert_eq!(fetch(files(false)).await, fresh);
+        assert_eq!(fetch(files(true)).await, stale);
+
+        let options = LeptosOptions::builder()
+            .output_name("wotr-planner")
+            .site_root(root)
+            .build();
+        let app = app(GameDataFile::from_json(b"{}".to_vec()), options, None);
+        let served = if cfg!(debug_assertions) { fresh } else { stale };
+        assert_eq!(fetch(app).await, served);
     }
 
     #[tokio::test]

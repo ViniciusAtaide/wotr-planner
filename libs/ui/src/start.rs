@@ -385,9 +385,11 @@ pub fn SkillsPanel(level: u8) -> impl IntoView {
         view! {
             <p class="picker-step">
                 {format!(
-                    "{} of {} skill points spent · at most {level} ranks in a skill",
+                    "{} of {} skill point{} spent · at most {level} rank{} in a skill",
                     points.spent,
                     points.available,
+                    if points.available == 1 { "" } else { "s" },
+                    if level == 1 { "" } else { "s" },
                 )}
             </p>
             <div class="picker-list">

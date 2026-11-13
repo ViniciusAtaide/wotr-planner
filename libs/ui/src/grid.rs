@@ -58,6 +58,9 @@ pub fn LevelsGrid() -> AnyView {
     .into_any()
 }
 
+/// Why a level's class can't be changed now: a tap on its button shows it.
+const LOCKED_CLASS: &str = "Later choices depend on this class";
+
 fn level_row(
     engine: &Engine,
     build: &Build,
@@ -188,25 +191,40 @@ fn level_row(
             }
         }
     }
+    // A locked class stays tappable: a tap shows why it's locked under its name, and another hides it again, since a
+    // touch screen never shows a title.
+    let why = RwSignal::new(false);
+    let locked = !changeable;
     view! {
         <div class="row" role="listitem">
             {remove}
             <span class="row-number">{n}</span>
             <button
                 class="class-button"
-                disabled=!changeable
-                title=(!changeable).then_some("Later choices depend on this class")
-                on:click=move |_| planner.open(Target::Class(n))
+                class:locked=locked
+                aria-disabled=locked.then_some("true")
+                title=locked.then_some(LOCKED_CLASS)
+                on:click=move |_| {
+                    if locked {
+                        why.update(|why| *why = !*why);
+                    } else {
+                        planner.open(Target::Class(n));
+                    }
+                }
             >
                 <span class="class-line">
                     <span class="class-name">{class_name}</span>
                     " "
                     <span class="class-level">{level.class_level}</span>
-                    {(!changeable)
+                    {locked
                         .then(|| view! { <span class="lock" aria-label="Locked">"🔒"</span> })}
                 </span>
                 {archetype.map(|archetype| view! { <span class="class-archetype">{archetype}</span> })}
                 {gear.map(|gear| view! { <span class="class-gear">{gear}</span> })}
+                {move || {
+                    why.get()
+                        .then(|| view! { <span class="class-locked">{LOCKED_CLASS}</span> })
+                }}
             </button>
             <div class="chips">{chips} {increase} {skills} {mythic}</div>
         </div>
