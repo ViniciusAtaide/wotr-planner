@@ -255,7 +255,7 @@ Class(
                                 (level: 5, features: ["arcanist/magic-deceiver/ways-of-the-deceiver/fake-celebrity/inhibit-courage"]),
                                 (level: 11, features: ["arcanist/magic-deceiver/ways-of-the-deceiver/fake-celebrity/inhibit-courage"]),
                                 (level: 12, features: ["arcanist/magic-deceiver/ways-of-the-deceiver/fake-celebrity/inhibit-greatness"]),
-                                (level: 17, features: ["arcanist/magic-deceiver/ways-of-the-deceiver/fake-celebrity/inhibit-courage"]),
+                                (level: 17, features: ["arcanist/magic-deceiver/ways-of-the-deceiver/fake-celebrity/inhibit-courage", "arcanist/magic-deceiver/ways-of-the-deceiver/fake-celebrity/inhibit-greatness"]),
                                 (level: 20, features: ["arcanist/magic-deceiver/ways-of-the-deceiver/fake-celebrity/inhibit-heroics"]),
                             ],
                         ),

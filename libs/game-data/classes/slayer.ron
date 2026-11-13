@@ -248,8 +248,8 @@ Class(
                 (level: 1, features: ["slayer/executioner/focused-killer", "slayer/slayer-proficiencies", "slayer/studied-target"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
                 (level: 4, features: ["slayer/executioner/painful-strike"]),
                 (level: 10, features: ["slayer/studied-target", "slayer/advanced-talents", "slayer/executioner/assassinate"], selections: ["slayer/slayer-talents"]),
-                (level: 14, selections: ["slayer/slayer-talents"]),
-                (level: 19),
+                (level: 14, features: ["slayer/executioner/assassinate"], selections: ["slayer/slayer-talents"]),
+                (level: 19, features: ["slayer/executioner/assassinate"]),
             ],
         ),
         (
@@ -304,6 +304,9 @@ Class(
             levels: [
                 (level: 5, features: ["slayer/studied-target", "slayer/spawn-slayer/studied-spawn"]),
                 (level: 7, features: ["slayer/spawn-slayer/gain-leverage"]),
+                (level: 10, features: ["slayer/advanced-talents", "slayer/spawn-slayer/studied-spawn", "slayer/studied-target"], selections: ["slayer/slayer-talents"]),
+                (level: 15, features: ["slayer/sneak-attack", "slayer/spawn-slayer/studied-spawn", "slayer/studied-target"]),
+                (level: 20, features: ["slayer/master-slayer", "slayer/spawn-slayer/studied-spawn", "slayer/studied-target"], selections: ["slayer/slayer-talents"]),
             ],
         ),
         (
@@ -318,7 +321,11 @@ Class(
             levels: [
                 (level: 1, features: ["slayer/studied-target"], feats: ["armor-proficiency-light-armor", "martial-weapons-proficiency", "simple-weapon-proficiency"]),
                 (level: 4, features: ["slayer/stygian-slayer/invisibiliy"]),
+                (level: 8, features: ["slayer/stygian-slayer/invisibiliy"], selections: ["slayer/slayer-talents"]),
                 (level: 10, features: ["slayer/studied-target", "slayer/advanced-talents", "slayer/stygian-slayer/shadowy-mist-form"]),
+                (level: 12, features: ["slayer/sneak-attack", "slayer/stygian-slayer/invisibiliy"], selections: ["slayer/slayer-talents"]),
+                (level: 16, features: ["slayer/stygian-slayer/invisibiliy"], selections: ["slayer/slayer-talents"]),
+                (level: 20, features: ["slayer/master-slayer", "slayer/studied-target", "slayer/stygian-slayer/invisibiliy"], selections: ["slayer/slayer-talents"]),
             ],
         ),
         (

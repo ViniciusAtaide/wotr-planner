@@ -192,7 +192,7 @@ Class(
             levels: [
                 (level: 4, features: ["ranger/flamewarden/spellcasting", "ranger/flamewarden/touch-of-flame"]),
                 (level: 9, features: ["ranger/evasion", "ranger/flamewarden/stoking-the-embers"]),
-                (level: 12, features: ["ranger/flamewarden/burning-renewal"]),
+                (level: 12, features: ["ranger/flamewarden/burning-renewal", "ranger/flamewarden/touch-of-flame"]),
                 (level: 16, features: ["ranger/flamewarden/phoenix-blast", "ranger/improved-evasion"]),
                 (level: 20, features: ["ranger/favored-enemy", "ranger/flamewarden/phoenix-rising"]),
             ],
@@ -273,6 +273,7 @@ Class(
                 (level: 6, feat_slots: [OneOf(list: "ranger/bonus-feats-6b")]),
                 (level: 10, features: ["ranger/favored-enemy"], feat_slots: [OneOf(list: "ranger/bonus-feats-10b")]),
                 (level: 11, features: ["ranger/stormwalker/flash-step"]),
+                (level: 12, features: ["ranger/camouflage", "ranger/stormwalker/wind-treader"]),
                 (level: 14, feat_slots: [OneOf(list: "ranger/bonus-feats-10b")]),
                 (level: 16, features: ["ranger/stormwalker/one-with-the-storm"]),
                 (level: 18, features: ["ranger/favored-terrain"], feat_slots: [OneOf(list: "ranger/bonus-feats-10b")]),

@@ -204,6 +204,11 @@ Class(
             levels: [
                 (level: 1, features: ["rogue/knife-master/sneak-stab", "rogue/rogue-proficiencies", "rogue/sneak-attack"], feats: ["armor-proficiency-light-armor", "simple-weapon-proficiency", "weapon-finesse"]),
                 (level: 3, features: ["rogue/knife-master/blade-sense", "rogue/sneak-attack"], selections: ["rogue/finesse-training"]),
+                (level: 6, features: ["rogue/knife-master/blade-sense"], selections: ["rogue/rogue-talents"]),
+                (level: 9, features: ["rogue/knife-master/blade-sense", "rogue/sneak-attack"]),
+                (level: 12, features: ["rogue/knife-master/blade-sense"], selections: ["rogue/rogue-talents"]),
+                (level: 15, features: ["rogue/knife-master/blade-sense", "rogue/sneak-attack"]),
+                (level: 18, features: ["rogue/knife-master/blade-sense"], selections: ["rogue/rogue-talents"]),
             ],
         ),
         (
@@ -345,11 +350,13 @@ Class(
                 (level: 6, features: ["rogue/sylvan-trickster/fey-tricks"], selections: ["rogue/sylvan-trickster/fey-tricks"]),
                 (level: 8, features: ["rogue/sylvan-trickster/fey-resistance", "rogue/sylvan-trickster/fey-tricks"], selections: ["rogue/sylvan-trickster/fey-tricks"]),
                 (level: 10, features: ["rogue/advanced-talents", "rogue/sylvan-trickster/fey-tricks", "rogue/sylvan-trickster/major-hexes"], selections: ["rogue/sylvan-trickster/fey-tricks"]),
+                (level: 11, features: ["rogue/sneak-attack", "rogue/sylvan-trickster/fey-resistance"], selections: ["rogue/finesse-training"]),
                 (level: 12, features: ["rogue/sylvan-trickster/fey-tricks"], selections: ["rogue/sylvan-trickster/fey-tricks"]),
-                (level: 14, features: ["rogue/sylvan-trickster/fey-tricks"], selections: ["rogue/sylvan-trickster/fey-tricks"]),
+                (level: 14, features: ["rogue/sylvan-trickster/fey-resistance", "rogue/sylvan-trickster/fey-tricks"], selections: ["rogue/sylvan-trickster/fey-tricks"]),
                 (level: 16, features: ["rogue/sylvan-trickster/fey-tricks"], selections: ["rogue/sylvan-trickster/fey-tricks"]),
+                (level: 17, features: ["rogue/sneak-attack", "rogue/sylvan-trickster/fey-resistance"]),
                 (level: 18, features: ["rogue/sylvan-trickster/fey-tricks", "rogue/sylvan-trickster/grand-hex"], selections: ["rogue/sylvan-trickster/fey-tricks"]),
-                (level: 20, features: ["rogue/master-strike", "rogue/sylvan-trickster/fey-tricks"], selections: ["rogue/sylvan-trickster/fey-tricks"]),
+                (level: 20, features: ["rogue/master-strike", "rogue/sylvan-trickster/fey-resistance", "rogue/sylvan-trickster/fey-tricks"], selections: ["rogue/sylvan-trickster/fey-tricks"]),
             ],
         ),
         (

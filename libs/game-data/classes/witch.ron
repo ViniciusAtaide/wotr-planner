@@ -132,6 +132,8 @@ Class(
                 (level: 2, features: ["witch/hag-of-gyronna/curdle-thoughts"]),
                 (level: 8, features: ["witch/hag-of-gyronna/sunder-hope"]),
                 (level: 12, features: ["witch/hag-of-gyronna/hag-crony"]),
+                (level: 14, features: ["witch/hag-of-gyronna/sunder-hope"], selections: ["witch/hex"]),
+                (level: 20, features: ["witch/hag-of-gyronna/sunder-hope"], selections: ["witch/hex"]),
             ],
         ),
         (
@@ -150,9 +152,9 @@ Class(
             levels: [
                 (level: 1, features: ["witch/familiar", "witch/hagbound/cantrips", "witch/hagbound/hagbound-patron", "witch/hagbound/hags-claws"], feats: ["simple-weapon-proficiency"]),
                 (level: 2, features: ["witch/hagbound/hunched-muscle"]),
-                (level: 8),
+                (level: 8, features: ["witch/hagbound/hunched-muscle"]),
                 (level: 10, features: ["witch/hagbound/vile-curse", "witch/major-hexes"]),
-                (level: 14),
+                (level: 14, features: ["witch/hagbound/hunched-muscle"]),
                 (level: 20, features: ["witch/hagbound/hag-transformation"]),
             ],
         ),
@@ -233,8 +235,8 @@ Class(
             levels: [
                 (level: 1, features: ["witch/familiar", "witch/witch-of-the-veil/cantrips", "witch/witch-of-the-veil/deception-witch-of-the-veil", "witch/witch-of-the-veil/secrecy"], feats: ["simple-weapon-proficiency"], selections: ["witch/hex"]),
                 (level: 2, features: ["witch/witch-of-the-veil/shrouded-step"]),
-                (level: 8),
-                (level: 16),
+                (level: 8, features: ["witch/witch-of-the-veil/shrouded-step"]),
+                (level: 16, features: ["witch/witch-of-the-veil/shrouded-step"]),
             ],
         ),
     ],
