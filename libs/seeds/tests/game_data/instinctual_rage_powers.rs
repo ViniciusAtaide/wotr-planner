@@ -89,7 +89,8 @@ fn the_instinctual_warriors_monk_powers_are_rage_power_options_for_it_alone() {
         .iter()
         .find(|selection| selection.key.as_str() == RAGE_POWER)
         .expect("the rage power selection");
-    assert_eq!(selection.options.len(), 38);
+    // 33 rage powers, the five monk powers and the Battle Scion's Teamwork Feat (ticket 189), which is no rage power.
+    assert_eq!(selection.options.len(), 39);
     let Some(Prerequisite::Any(children)) = &feat("extra-rage-power").prerequisite else {
         panic!("Extra Rage Power's prerequisite isn't an Any");
     };
@@ -104,6 +105,7 @@ fn the_instinctual_warriors_monk_powers_are_rage_power_options_for_it_alone() {
         .options
         .iter()
         .map(|o| o.key.to_string())
+        .filter(|key| key != "barbarian/rage-power/teamwork-feat")
         .collect();
     assert_eq!(named, every);
 }

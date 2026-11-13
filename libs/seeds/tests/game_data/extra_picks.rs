@@ -104,8 +104,9 @@ fn a_barbarian_with_extra_rage_power_at_3_gets_a_rage_power_slot_there() {
             .collect()
     };
     assert_eq!(keys(&extra_slot(3, 0)), keys(&selection_slot(2)));
-    // 33, and the Instinctual Warrior's five monk powers (ticket 66), locked here.
-    assert_eq!(keys(&extra_slot(3, 0)).len(), 38);
+    // 33, the Instinctual Warrior's five monk powers (ticket 66) and the Battle Scion's Teamwork Feat (ticket 189),
+    // locked here.
+    assert_eq!(keys(&extra_slot(3, 0)).len(), 39);
     let sheet = engine.evaluate(&build);
     let slot = sheet.slot(&extra_slot(3, 0)).unwrap();
     assert_eq!(engine.slot_label(slot), "Rage Power");
