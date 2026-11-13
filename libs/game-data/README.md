@@ -147,7 +147,9 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   are the class's (`sorcerer/bloodline/abyssal/grow-claws`; the ten dragons share `sorcerer/bloodline/draconic/...`).
   Spells stay out. A Primalist's choice replaces the bloodline's row with `replaces_row_of:
   "bloodrager/bloodline"`; a feature can grant one row of a held option, `option_row: (selection:
-  "sorcerer/bloodline", level: 20)` (Bloodline Ascendance); a mythic ability grants `features` and `selections`
+  "sorcerer/bloodline", level: 20)` (Bloodline Ascendance: the row of each bloodline held that the sorcerer's selection offers, unless the
+  holding already had it or its own selection skips it, as the Dragonheir Scion's and the Empyreal Sorcerer's skip the 20th; a feature whose
+  row is of the very selection a holding comes through, the Kinetic Knight's Defensive Wild Talent, is not stopped by that selection's skip); a mythic ability grants `features` and `selections`
   (Second Bloodline). A choice the game asks for every day is `daily_choice: true` on its feature (Mixed
   Bloodline). A class (or archetype, `spontaneous: Some(true)`) that casts spontaneously says `spontaneous: true`,
   which `SpontaneousSpellLevel(spell_type: Arcane, level: 1)` checks; `NoOptionFrom("sorcerer/bloodline")` needs

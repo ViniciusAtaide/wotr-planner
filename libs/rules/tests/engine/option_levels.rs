@@ -444,6 +444,40 @@ fn bloodline_ascendance_grants_the_bloodlines_20th_level_row() {
     ));
 }
 
+/// A bloodline held through a selection that skips its 20th row gets nothing from Bloodline Ascendance (ticket 180);
+/// one whose selection skips other rows (the Seeker's 3, 9 and 15) still gets it.
+#[test]
+fn bloodline_ascendance_passes_over_a_row_the_holdings_selection_skips() {
+    let mut build = with(
+        &times("sorcerer", 7),
+        Some(("sorcerer", "sorcerer/seeker")),
+        &[(selection_slot(1, 0), ABYSSAL)],
+    );
+    build.picks.insert(
+        SlotId::Mythic { rank: 1 },
+        pick_mythic_ability("bloodline-ascendance"),
+    );
+    let might = FeatureKey::new("sorcerer/bloodline/abyssal/demonic-might");
+    let held_at_7 = |engine: &rules::Engine| {
+        assert!(engine.is_possible(&build));
+        engine.evaluate(&build).at(7).unwrap().feature_count(&might)
+    };
+    assert_eq!(held_at_7(&engine()), 1);
+    // The Seeker invented to skip the 20th row too.
+    let mut data = world();
+    let seeker = data
+        .all_classes_mut()
+        .find(|class| class.key.as_str() == "sorcerer")
+        .unwrap()
+        .archetypes
+        .iter_mut()
+        .flat_map(|archetype| &mut archetype.selections)
+        .find(|selection| selection.key.as_str() == "sorcerer/seeker/bloodline")
+        .unwrap();
+    seeker.skipped_levels.insert(20);
+    assert_eq!(held_at_7(&engine_on(data)), 0);
+}
+
 const FIRE: &str = "kineticist/element/fire";
 const AIR: &str = "kineticist/element/air";
 const WATER: &str = "kineticist/element/water";

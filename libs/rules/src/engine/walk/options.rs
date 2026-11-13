@@ -312,7 +312,8 @@ impl<'a> Walker<'a> {
     }
 
     /// A feature's option row (Bloodline Ascendance): the row at its level of each option held that its selection
-    /// offers, unless already had. A lists-only holding has it only when held through that very selection
+    /// offers, unless already had or skipped by the selection it is held through (`skipped_levels`, unless the row is of that very
+    /// selection). A lists-only holding has it only when held through that very selection
     /// (Expanded Defense: an expanded element's defensive talent), in place of the arcana it had of the row.
     pub(super) fn grant_option_row(&mut self, row: &OptionRow, source: Option<&GrantSource>) {
         let catalog = &self.engine.catalog;
@@ -324,7 +325,14 @@ impl<'a> Walker<'a> {
             let passed_over = if holding.lists_only {
                 holding.selection != row.selection || holding.unlocked.contains(&row.level)
             } else {
+                // Nor a row the holding's own selection skips (the Dragonheir Scion's table gives Might of Wyrms
+                // at 20 in place of its bloodline's row), unless the feature's row is of that very selection
+                // (the Kinetic Knight's Defensive Wild Talent is the row its selection skips).
                 holding.applied.contains_key(&row.level)
+                    || (holding.selection != row.selection
+                        && catalog
+                            .selection(&holding.selection)
+                            .is_some_and(|held| held.skipped_levels.contains(&row.level)))
             };
             if passed_over || !catalog.offers(selection, &holding.option) {
                 continue;
