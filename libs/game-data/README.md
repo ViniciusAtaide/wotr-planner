@@ -413,6 +413,17 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   Purity of Body, Diamond Body, Diamond Soul and Perfect Self barbarian level 8, 12, 16 and 20 (`ClassLevel`, as
   every rage power's level is). They aren't the monk's ki powers or features, and holding one is holding a rage
   power, so Extra Rage Power's `Any` names them too.
+- Ticket 190 (found by a QA session, 2026-11-13): "An Eldritch Scoundrel can select (Improved) Uncanny Dodge as
+  Rogue Talents" (`rogue#rogue-talents`), so `rogue/rogue-talents` has two more options, `uncanny-dodge` and
+  `improved-uncanny-dodge`. Each is open only with `Archetype("rogue/eldritch-scoundrel")` and grants the rogue's own
+  feature (`rogue/uncanny-dodge`, `rogue/improved-uncanny-dodge`) through a level-1 option row, as Combat Trick's
+  Combat feat does. The selection now has 38 options; the sharers (the slayer, the Fey Tricks, the Underground
+  Chemist, the Feyform Shifter, the Vivisectionist) list their keys one by one, so none gained them. `Archetype`
+  looks at the whole Build, so an Eldritch Scoundrel with bard or skald levels may take them through those slots
+  too (accepted, as for the Sanctified Slayer's talents). PROVISIONAL: Improved needs `Feature(feature:
+  "rogue/uncanny-dodge", count: 1)`, the rogue's order (Uncanny Dodge 4, Improved 8); the guide doesn't say so, and
+  the user confirms it. To drop it, remove that condition and rewrite
+  `an_eldritch_scoundrel_takes_improved_uncanny_dodge_only_after_uncanny_dodge`.
 - Ticket 67 (ticket 62's decision, user, 2026-11-02): the Dual-Cursed Oracle's "Second
   Curse" feature is a second slot of the oracle's own `oracle/oracles-curse` on its level-1 row ("The Oracle must
   choose a second curse"), so the row holds that selection twice, as a cleric's holds `cleric/domain` twice. Every
