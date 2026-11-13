@@ -1,6 +1,6 @@
 //! Fighter, Monk (with Zen Archer), Warpriest and Ranger.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 use crate::*;
 
@@ -92,6 +92,7 @@ pub(in crate::test_world::world) fn fighter() -> Class {
                 shared_options: BTreeSet::new(),
                 option_levels: BTreeSet::new(),
                 skipped_levels: BTreeSet::new(),
+                replaced_by: BTreeMap::new(),
                 feat_lists_only: false,
                 only_without_option: false,
                 pool_of: None,

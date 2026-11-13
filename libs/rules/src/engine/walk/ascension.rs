@@ -186,6 +186,7 @@ impl<'a> Walker<'a> {
                     .is_some_and(|source| source.dropped_by(switch, None))
             });
         self.holdings = holdings;
+        self.take_back_early_rows(|source| source.dropped_by(switch, None));
         for holding in gone {
             self.state.option_levels.remove(&holding.option);
             self.state.option_feat_lists.remove(&holding.option);

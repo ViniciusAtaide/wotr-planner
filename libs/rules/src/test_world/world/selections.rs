@@ -1,6 +1,6 @@
 //! Building Feature selections and their options, with rows by option level or without.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 use crate::*;
 
@@ -71,6 +71,7 @@ pub(super) fn levelled_selection(
         shared_options: shared.iter().map(|key| option(key)).collect(),
         option_levels: levels.iter().map(|key| class(key)).collect(),
         skipped_levels: BTreeSet::new(),
+        replaced_by: BTreeMap::new(),
         feat_lists_only: false,
         only_without_option: false,
         pool_of: None,

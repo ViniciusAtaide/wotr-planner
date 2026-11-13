@@ -858,16 +858,19 @@ async fn load_selections(
         level_classes.push(row.selection_key, ClassKey(row.class_key));
     }
     let mut skipped = Grouped::new();
+    let mut replaced_by: Grouped<String, (u8, FeatureKey)> = Grouped::new();
     for row in sqlx::query!(
-        "SELECT selection_key, level FROM selection_skipped_level ORDER BY selection_key, level"
+        "SELECT selection_key, level, replaced_by_feature_key FROM selection_skipped_level
+        ORDER BY selection_key, level"
     )
     .fetch_all(&mut *conn)
     .await?
     {
-        skipped.push(
-            row.selection_key,
-            to_u8(row.level, "selection_skipped_level.level")?,
-        );
+        let level = to_u8(row.level, "selection_skipped_level.level")?;
+        if let Some(feature) = row.replaced_by_feature_key {
+            replaced_by.push(row.selection_key.clone(), (level, FeatureKey(feature)));
+        }
+        skipped.push(row.selection_key, level);
     }
 
     let mut selections = Grouped::new();
@@ -896,6 +899,7 @@ async fn load_selections(
                 shared_options: shared.take(&row.key).into_iter().collect(),
                 option_levels: taken_set(&mut level_classes, &row.key),
                 skipped_levels: taken_set(&mut skipped, &row.key),
+                replaced_by: replaced_by.take(&row.key).into_iter().collect(),
                 key: FeatureSelectionKey(row.key),
                 name: row.name,
                 summary: row.summary,
@@ -922,6 +926,7 @@ async fn load_selections(
     chosen_feats.finish("option_level_chosen_feat")?;
     level_classes.finish("selection_level_class")?;
     skipped.finish("selection_skipped_level")?;
+    replaced_by.finish("selection_skipped_level")?;
     shared.finish("selection_shared_option")?;
     Ok(selections)
 }

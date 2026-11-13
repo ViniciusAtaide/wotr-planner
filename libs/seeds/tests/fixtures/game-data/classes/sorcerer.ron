@@ -128,6 +128,7 @@ Class(
                     shared_options: ["sorcerer/bloodline/abyssal", "sorcerer/bloodline/draconic-red"],
                     option_levels: ["sorcerer"],
                     skipped_levels: [3],
+                    replaced_by: {3: "sorcerer/bloodline/draconic/claws"},
                     levels_behind: 2,
                     options: [],
                 ),

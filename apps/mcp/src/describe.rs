@@ -340,7 +340,17 @@ fn class_rows(
                 .filter(|(advances, _)| *advances)
                 .map(|(_, kind)| kind.to_owned())
                 .collect(),
-                features: features(planner, row.features.iter()),
+                // What the archetype's selections give at this level in place of an option row they skip (the
+                // Empyreal Sorcerer's Apotheosis at 20) is part of its table.
+                features: features(
+                    planner,
+                    row.features.iter().chain(
+                        archetype
+                            .into_iter()
+                            .flat_map(|archetype| &archetype.selections)
+                            .filter_map(|selection| selection.replaced_by.get(&level)),
+                    ),
+                ),
                 feats: feats(engine, row.feats.iter(), row.feats_for.iter()),
                 feat_slots: feat_slots(engine, row.feat_slots),
                 selections: selection_names(engine, row.selections),

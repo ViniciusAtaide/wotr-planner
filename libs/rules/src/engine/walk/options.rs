@@ -7,7 +7,7 @@ use super::{GrantSource, Held, Holding, Pending, Walker};
 use crate::build::SlotId;
 use crate::engine::{Slot, SlotKind};
 use crate::game_data::{LevelFrom, MythicRankRow, OptionRow};
-use crate::keys::{FeatureSelectionKey, SelectionOptionKey};
+use crate::keys::{FeatureKey, FeatureSelectionKey, SelectionOptionKey};
 use crate::parameter::Parameter;
 
 impl<'a> Walker<'a> {
@@ -55,6 +55,7 @@ impl<'a> Walker<'a> {
                 selection: selection.clone(),
                 option: option.clone(),
                 applied: BTreeMap::new(),
+                early: BTreeMap::new(),
                 skipped: through.skipped_levels.clone(),
                 lists_only: through.feat_lists_only,
                 unlocked: BTreeSet::new(),
@@ -230,6 +231,55 @@ impl<'a> Walker<'a> {
             }
             self.holdings[index].applied.insert(row.level, held);
         }
+        // What its selection gives in place of the rows it skips, as each level is reached.
+        let holding = &self.holdings[index];
+        if !holding.lists_only
+            && let Some(through) = catalog.selection(&holding.selection)
+        {
+            for (at, feature) in through.replaced_by.range(..=level) {
+                self.grant_replacement(index, *at, feature, source.as_ref());
+            }
+        }
+    }
+
+    /// After a Path switch took back what a rank's grants gave: each row a feature granted early from a dropped
+    /// source is no longer applied (its items went with the grants), so the holding's option level gives it again,
+    /// at once when it has reached it.
+    pub(super) fn take_back_early_rows(&mut self, drops: impl Fn(&GrantSource) -> bool) {
+        for holding in &mut self.holdings {
+            let levels: Vec<u8> = holding
+                .early
+                .iter()
+                .filter(|(_, source)| drops(source))
+                .map(|(level, _)| *level)
+                .collect();
+            for level in levels {
+                holding.early.remove(&level);
+                holding.applied.remove(&level);
+                holding.unlocked.remove(&level);
+            }
+        }
+        self.advance_holdings();
+    }
+
+    /// Gives a holding the feature its selection has in place of the row it skips at `level`, unless it has it
+    /// already (the row's `applied` entry: so once, whether it came at the option level or early).
+    fn grant_replacement(
+        &mut self,
+        index: usize,
+        level: u8,
+        feature: &FeatureKey,
+        source: Option<&GrantSource>,
+    ) {
+        if self.holdings[index].applied.contains_key(&level) {
+            return;
+        }
+        let held = Held::Feature(feature.clone());
+        self.hold(held.clone(), source.cloned());
+        self.holdings[index].applied.insert(level, vec![held]);
+        if let Some(source) = source {
+            self.holdings[index].early.insert(level, source.clone());
+        }
     }
 
     /// Whether a held feature's option row is this row of a lists-only selection's options (Expanded Defense's,
@@ -303,6 +353,7 @@ impl<'a> Walker<'a> {
             let level = self.holding_level(holding);
             let holding = &mut self.holdings[index];
             holding.skipped.insert(level);
+            holding.early.remove(&level);
             if let Some(held) = holding.applied.remove(&level) {
                 for item in &held {
                     self.release(item);
@@ -322,6 +373,16 @@ impl<'a> Walker<'a> {
         };
         for index in 0..self.holdings.len() {
             let holding = &self.holdings[index];
+            // Where its selection skips the row and gives a feature of its own in its place, that is what it gets.
+            let replacement = (!holding.lists_only && holding.selection != row.selection)
+                .then(|| catalog.selection(&holding.selection))
+                .flatten()
+                .and_then(|held| held.replaced_by.get(&row.level))
+                .filter(|_| catalog.offers(selection, &holding.option));
+            if let Some(feature) = replacement {
+                self.grant_replacement(index, row.level, feature, source);
+                continue;
+            }
             let passed_over = if holding.lists_only {
                 holding.selection != row.selection || holding.unlocked.contains(&row.level)
             } else {
@@ -355,6 +416,9 @@ impl<'a> Walker<'a> {
             let key = self.holdings[index].option.clone();
             let held = self.grant_row(option_row, &key, parameter.as_ref(), source);
             self.holdings[index].applied.insert(row.level, held);
+            if let Some(source) = source {
+                self.holdings[index].early.insert(row.level, source.clone());
+            }
         }
     }
 }

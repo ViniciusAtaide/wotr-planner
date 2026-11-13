@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "SELECT selection_key, level FROM selection_skipped_level ORDER BY selection_key, level",
+  "query": "SELECT selection_key, level, replaced_by_feature_key FROM selection_skipped_level\n        ORDER BY selection_key, level",
   "describe": {
     "columns": [
       {
@@ -24,6 +24,17 @@
             "name": "level"
           }
         }
+      },
+      {
+        "name": "replaced_by_feature_key",
+        "ordinal": 2,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "selection_skipped_level",
+            "name": "replaced_by_feature_key"
+          }
+        }
       }
     ],
     "parameters": {
@@ -31,8 +42,9 @@
     },
     "nullable": [
       false,
-      false
+      false,
+      true
     ]
   },
-  "hash": "a6817a3da275874565d617620f64bb834f38c2dde8242e6e7a63cdd48829af2f"
+  "hash": "337e9b38c072838eaeb860e3deb89a35202f9dfa50fa133bf2485ac7072b6753"
 }

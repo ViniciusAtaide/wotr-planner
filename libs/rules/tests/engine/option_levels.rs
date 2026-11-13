@@ -478,6 +478,54 @@ fn bloodline_ascendance_passes_over_a_row_the_holdings_selection_skips() {
     assert_eq!(held_at_7(&engine_on(data)), 0);
 }
 
+/// A selection's `replaced_by` is what a holding gets at a skipped level in place of the row (ticket 181): early
+/// through Bloodline Ascendance, else at the option level, and once at every level either way.
+#[test]
+fn a_replacement_for_a_skipped_row_is_held_once_early_or_at_its_level() {
+    let mut build = with(
+        &times("sorcerer", 20),
+        Some(("sorcerer", "sorcerer/seeker")),
+        &[(selection_slot(1, 0), ABYSSAL)],
+    );
+    let plain = build.clone();
+    build.picks.insert(
+        SlotId::Mythic { rank: 1 },
+        pick_mythic_ability("bloodline-ascendance"),
+    );
+    let mut data = world();
+    let seeker = data
+        .all_classes_mut()
+        .find(|class| class.key.as_str() == "sorcerer")
+        .unwrap()
+        .archetypes
+        .iter_mut()
+        .flat_map(|archetype| &mut archetype.selections)
+        .find(|selection| selection.key.as_str() == "sorcerer/seeker/bloodline")
+        .unwrap();
+    seeker.skipped_levels.insert(20);
+    let replacement = FeatureKey::new("sorcerer/bloodline/arcane/apotheosis");
+    seeker.replaced_by.insert(20, replacement.clone());
+    let engine = engine_on(data);
+    let might = FeatureKey::new("sorcerer/bloodline/abyssal/demonic-might");
+    assert!(engine.is_possible(&build) && engine.is_possible(&plain));
+    let rank = engine.rank_level(&build, 1).unwrap();
+    for level in 1..=20 {
+        let state = engine.evaluate(&build).at(level).cloned().unwrap();
+        assert_eq!(
+            state.feature_count(&replacement),
+            u8::from(level >= rank),
+            "with the ability, level {level}"
+        );
+        assert_eq!(state.feature_count(&might), 0, "level {level}");
+        let state = engine.evaluate(&plain).at(level).cloned().unwrap();
+        assert_eq!(
+            state.feature_count(&replacement),
+            u8::from(level == 20),
+            "without it, level {level}"
+        );
+    }
+}
+
 const FIRE: &str = "kineticist/element/fire";
 const AIR: &str = "kineticist/element/air";
 const WATER: &str = "kineticist/element/water";

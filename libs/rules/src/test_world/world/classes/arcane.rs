@@ -1,6 +1,6 @@
 //! Wizard, Witch (with False God) and Bard.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 use crate::*;
 
@@ -138,6 +138,7 @@ pub(in crate::test_world::world) fn witch() -> Class {
             shared_options: BTreeSet::new(),
             option_levels: BTreeSet::new(),
             skipped_levels: BTreeSet::new(),
+            replaced_by: BTreeMap::new(),
             feat_lists_only: false,
             only_without_option: false,
             pool_of: None,

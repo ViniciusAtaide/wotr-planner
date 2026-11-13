@@ -162,7 +162,7 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   Spells stay out. A Primalist's choice replaces the bloodline's row with `replaces_row_of:
   "bloodrager/bloodline"`; a feature can grant one row of a held option, `option_row: (selection:
   "sorcerer/bloodline", level: 20)` (Bloodline Ascendance: the row of each bloodline held that the sorcerer's selection offers, unless the
-  holding already had it or its own selection skips it, as the Dragonheir Scion's and the Empyreal Sorcerer's skip the 20th; a feature whose
+  holding already had it or its own selection skips it, as the Dragonheir Scion's and the Empyreal Sorcerer's skip the 20th, except that a selection's `replaced_by: {20: "sorcerer/empyreal-sorcerer/apotheosis"}` names the feature it gives at that skipped level in place of the row, which the ability then grants early and which is held once, as a row is (the Empyreal Sorcerer's Apotheosis; the class row doesn't list it, and the data check refuses one that does). A row or replacement the ability granted early goes with the ability when a Path switch drops its rank (Legend, MR 3 to 7), and the option level gives it again when it reaches it; a feature whose
   row is of the very selection a holding comes through, the Kinetic Knight's Defensive Wild Talent, is not stopped by that selection's skip); a mythic ability grants `features` and `selections`
   (Second Bloodline). A choice the game asks for every day is `daily_choice: true` on its feature (Mixed
   Bloodline). A class (or archetype, `spontaneous: Some(true)`) that casts spontaneously says `spontaneous: true`,
