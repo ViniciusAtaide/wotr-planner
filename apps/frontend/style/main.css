@@ -409,8 +409,11 @@ input[type="search"] {
   white-space: nowrap;
 }
 
+/* On a narrow screen each tab is as wide as its label, then they share what's left, so "✦ Mythic track" isn't cut
+   short to keep the widths equal (it fits down to 320px). */
 @media (max-width: 599px) {
   .tabs button {
+    flex: 1 1 auto;
     font-size: 14px;
     letter-spacing: 0.01em;
   }
