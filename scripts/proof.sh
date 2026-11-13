@@ -25,7 +25,8 @@
 # seconds a side against 45. Reach for it between the snapshot check and the full proof, to see a change's reach over the whole corpus
 # early. It misses a change that only the battery's edits or the checks see; the once-per-queue proof is a full one. A
 # light record only compares with a light one (compare refuses a mixed pair).
-# Every build goes under one folder, $CARGO_TARGET_DIR (default ${TMPDIR:-/tmp}/wotr-planner-proof-target), outside the
+# Every build goes under one folder, $CARGO_TARGET_DIR (default ${XDG_CACHE_HOME:-$HOME/.cache}/wotr-planner-proof-target:
+# not the temp folder, whose cleanup once deleted a generated file and broke the build), outside the
 # repo: B/ for the working tree's harness, A/ for the ref's. <out-dir> must be outside the repo too; it gets A.jsonl,
 # B.jsonl, compare.txt (empty when the sides agree) and the logs. Exits 1 when the comparison isn't empty.
 # Side A's source (rules and both) stays in $CARGO_TARGET_DIR/src-A with a stamp beside it, src-A.stamp: the ref's
@@ -64,7 +65,7 @@ outside_repo() {
 mkdir -p "$out"
 out=$(cd "$out" && pwd -P)
 outside_repo "$out" "the out dir"
-export CARGO_TARGET_DIR=${CARGO_TARGET_DIR:-${TMPDIR:-/tmp}/wotr-planner-proof-target}
+export CARGO_TARGET_DIR=${CARGO_TARGET_DIR:-${XDG_CACHE_HOME:-$HOME/.cache}/wotr-planner-proof-target}
 mkdir -p "$CARGO_TARGET_DIR"
 CARGO_TARGET_DIR=$(cd "$CARGO_TARGET_DIR" && pwd -P)
 outside_repo "$CARGO_TARGET_DIR" "CARGO_TARGET_DIR"
