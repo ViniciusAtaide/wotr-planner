@@ -9,7 +9,7 @@ Map: [WotR Build Planner](../map.md)
 
 Ticket [131](131-gaps-from-the-second-martial-run.md)'s option B, which wasn't built. Most of what decides a martial Build's damage is unconditional, yet `ATTACK_LINE_LEAVES_OUT` (`libs/rules/src/engine/attack.rs`) leaves it out:
 
-- **Class features:** Weapon Training, Two-Handed Weapon Training, Backswing, Greater Power Attack, Weapon Mastery.
+- **Class features:** Weapon Training, Two-Handed Weapon Training, Backswing, Greater Power Attack, Weapon Mastery, and Finesse Training's Dexterity to damage with its weapon (ticket [172](172-finesse-training-takes-a-weapon.md) left it here, beside Fencing Grace and Slashing Grace, the feats that do the same). A QA session (2026-11-13) found the gap: a rogue 19 with Dex 16, Str 8 and Finesse Training (Rapier) has the rapier line at "1d6-1".
 - **Mythic feats:** Power Attack, Improved Critical, Weapon Focus and Weapon Specialization (Mythic).
 - **Mythic abilities** that raise attack or damage without being switched on.
 
