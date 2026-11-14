@@ -50,6 +50,7 @@ A change to `rules` or `libs/game-data/` must change no behaviour but the intend
   - The gold builds (`gold.rs` beside it) compare two real player builds with the engine. A known-gap entry is deleted by the ticket that fixes it, never added to get a test to pass.
 - **Once per queue: the proof.** The main session runs `scripts/proof.sh` once, when a queue of tickets is merged, alongside `scripts/check.sh --full` (usage in the script's header and in `tools/proof`'s crate docs). It records about 2,000 Builds on two sides, so it catches what the small corpus can't. A ticket's agent doesn't run it.
   - `scripts/proof.sh <mode> <out> -- --light` records every Build without the `allows` battery and the checks, about 29 seconds a side against 45 for a full record, after the builds. Reach for it between the two tiers, to see a change's reach over the whole corpus before the queue's proof; it misses what only the battery and the checks see, so it never replaces that proof.
+  - `scripts/proof.sh <mode> <out> <ref> -- --explain` also writes `explain.txt` when the sides differ: what changed, grouped by path and change with the largest group first, and whether the data or the code caused it. Attribute each group to a ticket from there. Delete `A.dump` and `B.dump` afterwards: about 1.5 MB a Build.
 
 ## Formatting
 

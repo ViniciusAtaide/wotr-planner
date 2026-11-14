@@ -17,8 +17,8 @@ Read at review, by the reviewer (`.claude/agents/ticket-reviewer.md`). These are
 
 ## Game data
 
-- **An archetype row replaces the base row in full.** A new or changed row carries everything the base row gives at that level (features, feats, feat slots, selections), less what the archetype loses there.
-- **A list that names a selection's options moves with the selection.** A feat's `Any` of a selection's options, a sharer's `shared_options`: an option added to the selection is added there or left out for a stated reason.
+- **A loss is the guide's, and the list says so.** A test holds that an archetype row keeps what the base row gives (`libs/seeds/tests/game_data/archetype_losses.rs`), so the judgement is in its list: a new entry in `archetype_losses.ron` matches the guide's table for that archetype, an entry with `at` has a reason that names what the table shows at those levels, and a base item the archetype swaps for its own copy carries `replaced_by`, not a bare loss.
+- **An exception is a decision.** A test holds that a feat's `Any` of a selection's options names all of them (`option_lists.rs`). A new entry in its exception table has a reason the guide or a ticket bears out. A sharer's `shared_options` is a deliberate subset no test checks: when a selection gains an option, each sharer takes it or leaves it for a stated reason.
 - **The guide's two places.** An archetype's overview and the note under its table can say different things about one feature. Read both before deciding what a count stands for.
 - **An inference is recorded as one,** in the ticket's Answer and the note file, with the sentence it rests on.
 - **Summaries are in our own words;** the guide's text is never copied at length.
