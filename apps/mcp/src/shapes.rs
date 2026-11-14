@@ -4,8 +4,9 @@
 //! Conventions: field names are `snake_case`; a result is always an object (a list sits in a named field, as
 //! `search`'s `matches`); an optional field that doesn't apply is left out, except `prerequisite`, which is
 //! `null` when there is none (`search`'s `compact` leaves it out); a reference to another item is a [`Named`] `{key, name}`. A result about a Build
-//! flattens the [`Envelope`] into it (`build`, `link`, `todo`), except `choose` and `withdraw`, which return
-//! `build`, `link` and the changes to `todo` ([`TodoReport`]); a choice is named by its address (`rules::Address`) and
+//! flattens the [`Envelope`] into it (`build`, `link`, `todo`: `new_build`, `validate`, and `options` on request with
+//! `envelope`), except `choose` and `withdraw`, which return `build`, `link` and the changes to `todo`
+//! ([`TodoReport`]), and `sheet`, which gives `build` and `link` and `todo` only on request; a choice is named by its address (`rules::Address`) and
 //! holds a [`ChoiceValue`].
 
 use std::collections::{BTreeMap, BTreeSet};
@@ -512,12 +513,12 @@ pub struct SheetArgs {
     /// With `ranks` but no `levels`, no level rows.
     #[serde(default)]
     pub levels: Option<Vec<u8>>,
-    /// Only these Mythic ranks' rows (ranks the Build reaches). Left out: every rank, or none when `levels` is
-    /// given. `[]`: no rank.
+    /// Only these Mythic ranks' rows (1 to 10; a rank the Build doesn't reach comes back as its `not_reached` row).
+    /// Left out: every rank, or none when `levels` is given. `[]`: no rank.
     #[serde(default)]
     pub ranks: Option<Vec<u8>>,
-    /// `true` adds `todo`, the whole list of open choices (`choose` and `new_build` give what changed). Left out:
-    /// no `todo`.
+    /// `true` adds `todo`, the whole list of open choices (`new_build` and `validate` give the whole list; `choose`
+    /// and `withdraw` give what changed in it). Left out: no `todo`.
     #[serde(default)]
     pub todo: Option<bool>,
 }
@@ -674,7 +675,8 @@ pub struct SheetResult<L = LevelLine> {
     pub build: String,
     /// The Build in the planner, for the user: `https://viniciusataide.github.io/wotr-planner/#b=<code>`.
     pub link: String,
-    /// The choices still open (as `choose` and `new_build` give them), only with `todo: true`.
+    /// The whole list of choices still open, only with `todo: true` (`new_build` and `validate` give the whole list;
+    /// `choose` and `withdraw` give what changed in it).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub todo: Option<Vec<Todo>>,
     /// The Build's name, when it has one.
@@ -809,7 +811,9 @@ pub struct GearDependentLine {
 /// The sheet's numbers without the Build's gear, only where they differ from those with it.
 #[derive(Debug, Serialize, JsonSchema)]
 pub struct NakedNumbers {
-    /// By character level, the levels where any differs.
+    /// By character level, the levels where any differs; left out when none does (and for a narrowed `sheet` call,
+    /// when none of the levels asked for does).
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub levels: Vec<NakedLevel>,
     /// The last level's totals without gear, when any differs.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -910,12 +914,13 @@ pub struct LevelLine {
 /// One character level as `sheet` gives it. Three kinds of field, so a reader never needs a level it wasn't sent:
 /// the numbers that move almost every level, always given; what the level adds, with nothing for none; and what
 /// stays the same most levels, left out when it is the same as on the nearest earlier row that has it. On a full
-/// sheet the first row sent has them all, and so has every row of a `levels` call.
+/// sheet the first row sent has them all, and so has every row of a `levels` call, but for an empty list or map,
+/// which is left out as saying nothing: absent on the first row, or on a row of a `levels` call, means none.
 #[derive(Debug, Serialize, JsonSchema)]
 pub struct SheetLevel {
     pub level: u8,
     /// Left out when the class and the archetype are the same as on the row before; a row that gives `class` has
-    /// its archetype or none.
+    /// its archetype or, with no `archetype`, none.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub class: Option<Named>,
     /// The class's archetype, if any: given whenever `class` is.
@@ -937,7 +942,7 @@ pub struct SheetLevel {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub skill_points: Option<SkillPointsLine>,
     /// Total ranks by skill key at the end of the level (skills with none left out). Left out when the same as on
-    /// the row before.
+    /// the row before, and when empty.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub skill_ranks: Option<BTreeMap<String, u8>>,
     /// The feats first held at this level, granted or picked (a parameterised one with its value). Left out for
@@ -967,7 +972,9 @@ pub(crate) fn if_changed<T: PartialEq + Clone>(now: &T, before: Option<&T>) -> O
     (before != Some(now)).then(|| now.clone())
 }
 
-/// [`if_changed`] for a list or map, where having none is the same as having no row before.
+/// [`if_changed`] for a list or map, where having none is the same as having no row before: an empty one is left out
+/// on the first row. (A list that went from non-empty to empty would also be left out of the row, which reads as
+/// "unchanged": a level's lists only grow, so none does.)
 pub(crate) fn if_list_changed<T: PartialEq + Clone + Default>(
     now: &T,
     before: Option<&T>,

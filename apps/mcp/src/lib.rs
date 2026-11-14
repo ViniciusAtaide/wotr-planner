@@ -14,7 +14,8 @@
 //!   (ticket 168): a place's options, the choices only gear allows, and the numbers without gear, which `compare`
 //!   and `improve` rank by unless asked to count the gear. A Build has no gear unless the user states it.
 //! - Builds: `code.rs` opens a Build code (only through the engine's checked decode) and writes the envelope (`build`,
-//!   `link`, the whole `todo`) most Build tools return, and the changes to `todo` `choose` and `withdraw` return; choice addresses, labels and value keys are the rules crate's ([`rules::Address`]);
+//!   `link`, the whole `todo`) `new_build`, `validate` and `options` (on request) return, the changes to `todo`
+//!   `choose` and `withdraw` return, and `todo` for `sheet` on request; choice addresses, labels and value keys are the rules crate's ([`rules::Address`]);
 //!   `error.rs` is the server's refusals (`stale_link`, `no_such_choice`, `not_an_option`, `needs_parameter`,
 //!   `not_removable`, `invalid_arguments`, `internal`).
 //! - `spells.rs`: the spell catalogue (ticket 121) as `search` and `describe` give it.

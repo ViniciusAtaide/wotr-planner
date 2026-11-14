@@ -23,7 +23,7 @@ use crate::shapes::{
     SheetLevel, SheetResult, SkillPointsLine, SpellLevels, level_rows,
 };
 use crate::totals;
-use crate::unreached::Unreached;
+use crate::unreached::{Unreached, no_such_level};
 
 /// What a `sheet` call asks for besides the numbers' weapon and spell: which levels and ranks, and whether the whole
 /// list of open choices comes along.
@@ -47,25 +47,22 @@ impl Asked {
         ranks: Option<&[u8]>,
         todo: Option<bool>,
     ) -> Result<Self, ToolError> {
-        if let Some(&level) = levels.and_then(|levels| {
-            levels
-                .iter()
-                .find(|&&level| level == 0 || usize::from(level) > build.levels.len())
-        }) {
-            let reach = format!(
-                "`levels`: The Build has {}, so it doesn't reach level {level}.",
-                crate::words::levels(build.levels.len())
-            );
-            return Err(ToolError::invalid_arguments(match level {
-                0 => format!("{reach} Levels start at 1."),
-                _ => reach,
-            }));
+        let levels_in_build = build.levels.len();
+        let bad_level = levels.and_then(|levels| {
+            (levels.iter()).find(|&&level| level == 0 || usize::from(level) > levels_in_build)
+        });
+        if let Some(&level) = bad_level {
+            return Err(ToolError::invalid_arguments(format!(
+                "`levels`: {}",
+                no_such_level(level, levels_in_build)
+            )));
         }
+        // A rank the Build doesn't reach has its `not_reached` row: only a rank that doesn't exist is refused.
         for &rank in ranks.unwrap_or_default() {
-            if let Some(unreached) = Unreached::of(engine, build, rank) {
+            if Unreached::of(engine, build, rank) == Some(Unreached::NoSuchRank) {
                 return Err(ToolError::invalid_arguments(format!(
                     "`ranks`: {}",
-                    unreached.reason(rank, &Unreached::no_row())
+                    Unreached::NoSuchRank.reason(rank, "")
                 )));
             }
         }
@@ -90,18 +87,13 @@ impl Asked {
 /// each level's attack line for the `weapon` given, or else for the Build's Weapon Focus weapon
 /// ([`Engine::default_attack_weapon`]), none without one; with a `caster` spell, each level's caster line for it.
 /// Every number counts the Build's gear; `naked` gives those the gear changes without it.
-///
-/// A full sheet (`asked.levels` is `None`) leaves out of each level row what is the same as on the row before
-/// ([`level_rows`]); the levels asked for come in full. Only the rows asked for are given, but the numbers read the
-/// whole Build.
-pub(crate) fn sheet(
+fn full_sheet(
     planner: &Planner,
     build: &Build,
     removable: bool,
     weapon: Option<WeaponKey>,
     caster: Option<SpellTraits>,
-    asked: &Asked,
-) -> SheetResult<SheetLevel> {
+) -> SheetResult<LevelLine> {
     let engine = &planner.engine;
     let evaluated = engine.evaluate(build);
     let mut result = sheet_of(planner, build, &evaluated, removable);
@@ -121,6 +113,21 @@ pub(crate) fn sheet(
     if let Some(naked) = engine.naked_sheet(build) {
         result.naked = naked_numbers(engine, &result, &naked, weapon.as_ref(), caster);
     }
+    result
+}
+
+/// [`full_sheet`] as the `sheet` tool gives it: `todo` only when asked, only the rows asked for, and on a full sheet
+/// each level row leaving out what is the same as on the row before ([`level_rows`]); the levels asked for come in
+/// full. The numbers read the whole Build.
+pub(crate) fn sheet(
+    planner: &Planner,
+    build: &Build,
+    removable: bool,
+    weapon: Option<WeaponKey>,
+    caster: Option<SpellTraits>,
+    asked: &Asked,
+) -> SheetResult<SheetLevel> {
+    let mut result = full_sheet(planner, build, removable, weapon, caster);
     if !asked.todo {
         result.todo = None;
     }
@@ -588,5 +595,60 @@ fn gained(key: &impl std::fmt::Display, name: &str, times: usize) -> Gained {
         key: key.to_string(),
         name: name.to_owned(),
         times: u8::try_from(times).ok().filter(|times| *times > 1),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use rmcp::serde_json::{Value, to_value};
+    use rules::Ability;
+    use rules::test_world::{build, class_slot, pick_feat, pick_feat_for, times, weapon, world};
+
+    use super::*;
+
+    /// A value without its empty arrays and maps, which a row leaves out.
+    fn without_empties(value: Value) -> Value {
+        match value {
+            Value::Array(items) => Value::Array(items.into_iter().map(without_empties).collect()),
+            Value::Object(fields) => Value::Object(
+                fields
+                    .into_iter()
+                    .map(|(key, value)| (key, without_empties(value)))
+                    .filter(|(_, value)| !matches!(value, Value::Array(a) if a.is_empty()))
+                    .filter(|(_, value)| !matches!(value, Value::Object(o) if o.is_empty()))
+                    .collect(),
+            ),
+            other => other,
+        }
+    }
+
+    /// Rows with no trimming are the full lines, but for what a row leaves out when empty: a field the rows drop in
+    /// both modes shows here.
+    #[test]
+    fn rows_without_trimming_say_all_the_full_lines_say() {
+        let planner = Planner::from_data(world()).expect("the test world checks");
+        let mut fighter = build("human", &times("fighter", 5));
+        fighter
+            .picks
+            .insert(class_slot(1, 0), pick_feat("power-attack"));
+        fighter.picks.insert(
+            class_slot(2, 0),
+            pick_feat_for("weapon-focus", weapon("longsword")),
+        );
+        fighter.levels[3].ability_increase = Some(Ability::Strength);
+        let full = full_sheet(&planner, &fighter, false, None, None);
+        let rows = level_rows(full.levels.clone(), false);
+        assert_eq!(rows.len(), 5);
+        for (line, row) in full.levels.iter().zip(&rows) {
+            let line = without_empties(to_value(line).unwrap());
+            let row = without_empties(to_value(row).unwrap());
+            assert_eq!(row, line, "level {}", row["level"]);
+        }
+        // The trimmed rows are smaller, so the trimming is doing something here.
+        let trimmed = level_rows(full.levels, true);
+        assert!(
+            to_value(&trimmed).unwrap().to_string().len()
+                < to_value(&rows).unwrap().to_string().len()
+        );
     }
 }

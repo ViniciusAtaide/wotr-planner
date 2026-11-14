@@ -518,10 +518,7 @@ impl Wording<'_> {
             Choice::Slot(slot) => {
                 if let Some(level) = slot.level() {
                     let Some(row) = sheet.levels.get(usize::from(level) - 1) else {
-                        return format!(
-                            "The Build has {}, so it doesn't reach level {level}.",
-                            crate::words::levels(levels)
-                        );
+                        return crate::unreached::no_such_level(level, levels);
                     };
                     return format!(
                         "Level {level} ({} {}) has no such slot. Its slots: {}.",

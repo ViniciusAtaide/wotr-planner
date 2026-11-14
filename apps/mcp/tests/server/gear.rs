@@ -162,6 +162,21 @@ async fn sheet_shows_both_numbers_and_the_dependent_pick() {
     assert_eq!(pick["with_gear"], "With Belt of Dexterity +2");
 }
 
+/// A narrowed sheet (ticket 210) keeps the gear's totals without the naked level rows of the levels not asked for.
+#[tokio::test]
+async fn a_narrowed_sheet_has_no_empty_naked_levels() {
+    let client = client().await;
+    let sheet = client
+        .ok(
+            "sheet",
+            json!({ "build": code(&belted_two_weapon_fighter()), "levels": [] }),
+        )
+        .await;
+    assert!(sheet["levels"].as_array().unwrap().is_empty());
+    assert_eq!(sheet["naked"]["totals"]["reflex"]["total"], 3, "{sheet}");
+    assert!(sheet["naked"].get("levels").is_none(), "{sheet}");
+}
+
 #[tokio::test]
 async fn withdrawing_the_belt_is_refused_naming_the_pick_until_the_pick_is_withdrawn() {
     let client = client().await;

@@ -456,7 +456,7 @@ async fn ranks_returns_those_rank_rows_alone() {
 }
 
 #[tokio::test]
-async fn a_level_or_rank_the_build_lacks_is_refused_with_the_reason() {
+async fn a_level_the_build_lacks_and_a_rank_that_does_not_exist_are_refused_with_the_reason() {
     let client = Client::on_the_test_world().await;
     let refused = |arguments: Value| async {
         let result = client.call("sheet", arguments).await;
@@ -472,20 +472,65 @@ async fn a_level_or_rank_the_build_lacks_is_refused_with_the_reason() {
     );
     let (_, text_) = refused(json!({ "build": build, "levels": [0] })).await;
     assert!(
-        text_.contains("`levels`: The Build has 4 levels, so it doesn't reach level 0.")
-            && text_.contains("Levels start at 1."),
+        text_.contains("`levels`: There is no level 0: levels start at 1."),
         "{text_}"
     );
-    // A fighter 4 reaches no Mythic rank; and there is no MR 11.
-    let (code_, text_) = refused(json!({ "build": build, "ranks": [1] })).await;
+    let (code_, text_) = refused(json!({ "build": build, "ranks": [3, 11] })).await;
     assert_eq!(code_, "invalid_arguments");
-    assert!(
-        text_.contains("`ranks`: The Build doesn't reach MR 1, so `sheet` has no row for it"),
-        "{text_}"
-    );
-    let (_, text_) = refused(json!({ "build": build, "ranks": [11] })).await;
     assert!(
         text_.contains("`ranks`: There is no MR 11: the Mythic ranks are 1 to 10."),
         "{text_}"
     );
+    // A rank that exists but isn't reached comes back as its `not_reached` row, as in the whole sheet.
+    let sheet = client
+        .ok("sheet", json!({ "build": build, "ranks": [1] }))
+        .await;
+    assert_eq!(sheet["ranks"].as_array().unwrap().len(), 1, "{sheet}");
+    assert_eq!(sheet["ranks"][0]["status"], "not_reached");
+}
+
+/// A human fighter 2, then an arcanist (the Brown-Fur Transmuter) to level 10, on the real data: the class and the
+/// archetype change at level 3, and the caster line starts there.
+async fn fighter_then_archetyped_arcanist(client: &Client) -> String {
+    let mut choices = Map::new();
+    for (address, value) in [
+        ("start.race", json!("human")),
+        ("start.faith", json!("atheism")),
+        ("start.alignment", json!("true-neutral")),
+        ("start.score.int", json!(16)),
+        ("start.score.str", json!(14)),
+    ] {
+        choices.insert(address.to_owned(), value);
+    }
+    for level in 1..=10 {
+        let class = match level {
+            1 | 2 => json!({ "class": "fighter" }),
+            3 => json!({ "class": "arcanist", "archetype": "arcanist/brown-fur-transmuter" }),
+            _ => json!({ "class": "arcanist" }),
+        };
+        choices.insert(format!("level.{level}.class"), class);
+    }
+    let declared = client.ok("validate", json!({ "choices": choices })).await;
+    assert_eq!(declared["status"], "valid", "{declared}");
+    text(&declared["build"])
+}
+
+#[tokio::test]
+async fn real_data_a_multiclass_with_an_archetype_and_a_late_caster_line_rebuilds_from_the_trimmed_sheet()
+ {
+    let client = Client::start().await;
+    let build = fighter_then_archetyped_arcanist(&client).await;
+    let arguments = json!({ "build": build, "caster": { "school": "transmutation" } });
+    assert_every_row_rebuilds(&client, arguments.clone()).await;
+
+    let sheet = client.ok("sheet", arguments).await;
+    let rows = sheet["levels"].as_array().unwrap();
+    // The class changes at 3 and the archetype comes with it; 4 says neither.
+    assert!(rows[2].get("class").is_some() && rows[2].get("archetype").is_some());
+    assert!(rows[3].get("class").is_none() && rows[3].get("archetype").is_none());
+    assert_eq!(full_row(&sheet, 4)["archetype"], rows[2]["archetype"]);
+    // No caster line before the arcanist; its first one has everything and the next leaves the class out.
+    assert!(rows[1].get("caster").is_none());
+    assert!(rows[2]["caster"].get("class").is_some(), "{}", rows[2]);
+    assert!(rows[3]["caster"].get("class").is_none(), "{}", rows[3]);
 }

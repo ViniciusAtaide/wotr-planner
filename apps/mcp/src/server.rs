@@ -268,7 +268,7 @@ impl Server {
             features it adds, and its choices; per Mythic rank its status, path, choices and path features; the \
             caster level (class levels only) and spell-level access at the last level, class skills and notes; \
             `totals` at the last level: initiative, each save and each skill's total, each with what it counts \
-            (ability modifiers, base saves, ranks, the class skill bonus, the flat bonuses of the items held). \
+            (ability modifiers, base saves, ranks, the class skill bonus, the flat bonuses of the items held; a part worth 0 is left out). \
             Every choice has its address (`start.race`, `level.4.class`, `slot.feat.3.general.0`, …) for `options`, \
             its value and its name. `removable: true` also marks which held choices can be withdrawn now. \
             Each level's attack line (`attack`, naming its weapon): for `weapon` (a weapon key) when given, else for \
@@ -281,15 +281,18 @@ impl Server {
             gear allows, with the items it needs (also `with_gear` on its line), to report as such; and `naked`, \
             the numbers its gear changes (scores, attack and caster lines by level, totals) without the gear. Every \
             other number counts the gear's always-on bonuses (a level's skill points never do). Plus `build` and \
-            `link`; `todo: true` adds the whole list of open choices (`choose` and `new_build` give them). \
+            `link`; `todo: true` adds the whole list of open choices (`new_build` and `validate` give the whole \
+            list; `choose` and `withdraw` give what changed in it). \
             A level row has three kinds of field: always given (BAB, saves, `class_level`, the attack line's \
             `attacks` and `damage`, the caster line's DCs and bonuses); what the level adds (`feats`, `features`, \
             `mythic_ranks`, `picks`: absent means none); and left out when unchanged since the row before \
             (`class` with `archetype`, `scores` (all six when any changed), `skill_points`, `skill_ranks`, the \
             attack line's `weapon`, `critical` and `counts`, the caster line's `class`, `ability` and counts): \
-            read them from the nearest earlier row; the first row sent, and every row of a `levels` call, has \
-            them all. `levels` ([9]) and `ranks` ([3]) give only those levels' and ranks' rows, each level in \
-            full: ask for the ones a question is about.",
+            read them from the nearest earlier row that has them (the line's, from the nearest earlier row that \
+            has the line); a row giving `class` without `archetype` has none. The first row sent, and every row \
+            of a `levels` call, has them all, but an empty list or map is left out: absent there means none. \
+            `levels` ([9]) and `ranks` ([3]) give only those levels' and ranks' rows (a rank not reached comes \
+            back as its `not_reached` row), each level in full: ask for the ones a question is about.",
         annotations(read_only_hint = true, open_world_hint = false)
     )]
     async fn sheet(
