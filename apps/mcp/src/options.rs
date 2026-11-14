@@ -14,7 +14,7 @@ use crate::error::ToolError;
 use crate::gear::{self, GearMark};
 use crate::planner::Planner;
 use crate::shapes::{
-    ChoiceValue, Kind, Open, OptionLine, OptionStatus, OptionsArgs, OptionsResult,
+    ChoiceValue, Kind, Open, OptionGroup, OptionLine, OptionStatus, OptionsArgs, OptionsResult,
 };
 use crate::unreached::Unreached;
 
@@ -932,7 +932,8 @@ fn summary_of(planner: &Planner, address: &Address, value: &ChoiceValue) -> Opti
 }
 
 /// `options`: the offers at an address of a Build code, filtered by the query and, unless `only_open` is false, to
-/// those open now, with the envelope.
+/// those open now, with the envelope. The rows come grouped by category, in the order of each category's first row,
+/// and an open row leaves out its status when `only_open` is true.
 pub(crate) fn options(planner: &Planner, args: OptionsArgs) -> Result<OptionsResult, ToolError> {
     let engine = &planner.engine;
     let build = open(planner, &args.build)?;
@@ -957,7 +958,7 @@ pub(crate) fn options(planner: &Planner, args: OptionsArgs) -> Result<OptionsRes
     let breaks = Breaks::new(engine, &build);
     let later = LaterLevels::new(engine, &build);
     let mut closed = 0;
-    let mut lines = Vec::new();
+    let mut groups: Vec<OptionGroup> = Vec::new();
     for offer in offers {
         let text = offer.search_text();
         if !words.iter().all(|word| text.contains(word.as_str())) {
@@ -967,16 +968,19 @@ pub(crate) fn options(planner: &Planner, args: OptionsArgs) -> Result<OptionsRes
             closed += 1;
             continue;
         }
-        lines.push(OptionLine {
+        let category = offer.category.clone();
+        let line = OptionLine {
             status: match (&offer.status, &offer.gear) {
-                (Ok(()), None) => OptionStatus::Open(Open::Ok),
-                (Ok(()), Some(GearMark::WithGear(note))) => OptionStatus::WithGear {
+                // Every row listed is open, so a plain one has nothing to say.
+                (Ok(()), None) if only_open => None,
+                (Ok(()), None) => Some(OptionStatus::Open(Open::Ok)),
+                (Ok(()), Some(GearMark::WithGear(note))) => Some(OptionStatus::WithGear {
                     with_gear: note.clone(),
-                },
-                (Ok(()), Some(GearMark::LeansOnGear(note))) => OptionStatus::LeansOnGear {
+                }),
+                (Ok(()), Some(GearMark::LeansOnGear(note))) => Some(OptionStatus::LeansOnGear {
                     leans_on_gear: note.clone(),
-                },
-                (Err(issue), _) => OptionStatus::Closed {
+                }),
+                (Err(issue), _) => Some(OptionStatus::Closed {
                     issue: issue_code(issue).to_owned(),
                     reason: {
                         let reason = offer.reason.clone().unwrap_or_else(|| {
@@ -993,7 +997,7 @@ pub(crate) fn options(planner: &Planner, args: OptionsArgs) -> Result<OptionsRes
                             .and_then(|opens| later.tail(opens, Fix::Choose));
                         format!("{reason}{}", tail.unwrap_or_default())
                     },
-                },
+                }),
             },
             summary: match compact {
                 true => None,
@@ -1006,10 +1010,17 @@ pub(crate) fn options(planner: &Planner, args: OptionsArgs) -> Result<OptionsRes
             uncounted: (!compact && !offer.uncounted.is_empty()).then_some(offer.uncounted),
             value: offer.value,
             name: offer.name,
-            category: offer.category,
             takes: offer.takes.map(str::to_owned),
             current: offer.current,
-        });
+        };
+        // Grouped by category, in the order of each one's first option.
+        match groups.iter_mut().find(|group| group.category == category) {
+            Some(group) => group.options.push(line),
+            None => groups.push(OptionGroup {
+                category,
+                options: vec![line],
+            }),
+        }
     }
     Ok(OptionsResult {
         envelope: args
@@ -1017,7 +1028,7 @@ pub(crate) fn options(planner: &Planner, args: OptionsArgs) -> Result<OptionsRes
             .unwrap_or(false)
             .then(|| envelope(engine, &build, &sheet)),
         choice: address.to_string(),
-        options: lines,
+        groups,
         closed,
     })
 }

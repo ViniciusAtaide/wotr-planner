@@ -630,7 +630,7 @@ async fn a_parameterised_entry_listed_without_its_values_names_what_it_breaks() 
                     "only_open": false, "query": "weapon-focus" }),
         )
         .await;
-    let status = &options["options"][0]["status"];
+    let status = &rows(&options)[0]["status"];
     assert_eq!(status["issue"], "breaks_later", "{options}");
     assert_eq!(
         status["reason"], "cleave depends on what `slot.feat.1.class.0` holds now",
@@ -647,13 +647,10 @@ async fn closed_reason(build: &Build, choice: &str, query: &str, value: Value) -
             json!({ "build": code(build), "choice": choice, "only_open": false, "query": query }),
         )
         .await;
-    let found = options["options"]
-        .as_array()
-        .unwrap()
-        .iter()
+    let found = rows(&options)
+        .into_iter()
         .find(|option| option["value"] == value)
-        .unwrap_or_else(|| panic!("no {value} in {options}"))
-        .clone();
+        .unwrap_or_else(|| panic!("no {value} in {options}"));
     found["status"].clone()
 }
 
@@ -732,7 +729,7 @@ async fn a_parameterised_entry_speaks_for_the_value_whose_reason_it_shows() {
         )
         .await;
     assert_eq!(
-        options["options"][0]["status"]["reason"],
+        rows(&options)[0]["status"]["reason"],
         "cleave depends on what `slot.feat.1.general.0` holds now",
         "{options}"
     );

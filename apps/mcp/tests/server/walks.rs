@@ -79,7 +79,7 @@ impl Walker<'_> {
             return Vec::new();
         }
         let content = result.structured_content.expect("structured content");
-        content["options"].as_array().cloned().unwrap_or_default()
+        rows(&content)
     }
 
     /// `choose` one step; the new code.
@@ -98,7 +98,7 @@ impl Walker<'_> {
     async fn take_open(&mut self, code: &str, choice: &str) -> Option<String> {
         let open = self.options(code, choice, true).await;
         let option = self.dice.pick(&open)?.clone();
-        assert_eq!(option["status"], "ok");
+        assert!(option["status"]["issue"].is_null(), "{option}");
         let chosen = self.choose(code, choice, option["value"].clone()).await;
         assert_eq!(
             (chosen["applied"].clone(), chosen.get("rejected")),

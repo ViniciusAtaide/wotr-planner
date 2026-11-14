@@ -50,13 +50,13 @@ async fn real_data_favorite_metamagic_lists_each_metamagic_and_takes_one() {
             json!({ "build": older, "choice": "slot.mythic.1", "values": true, "query": "favorite" }),
         )
         .await;
-    let options = listed["options"].as_array().unwrap();
+    let options = rows(&listed);
     assert_eq!(options.len(), 12, "{listed}");
     let offered = options
         .iter()
         .find(|option| option["value"] == persistent())
         .unwrap_or_else(|| panic!("no Persistent Spell in {listed}"));
-    assert_eq!(offered["status"], "ok");
+    assert!(offered.get("status").is_none(), "{offered}");
     assert_eq!(offered["name"], "Favorite Metamagic (Persistent Spell)");
 
     let chosen = client

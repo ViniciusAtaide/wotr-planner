@@ -156,7 +156,7 @@ async fn calls(client: &Client) -> Vec<(&'static str, &'static str, usize, Value
         (
             "options, a feat slot",
             "options",
-            15_500,
+            12_900,
             json!({ "build": fighter, "choice": "slot.feat.7.general.0" }),
         ),
         (

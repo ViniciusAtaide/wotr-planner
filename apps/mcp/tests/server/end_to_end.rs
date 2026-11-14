@@ -52,7 +52,7 @@ impl<'a> Agent<'a> {
             arguments["query"] = json!(query);
         }
         let options = self.client.ok("options", arguments).await;
-        options["options"].as_array().unwrap().clone()
+        rows(&options)
     }
 
     /// The open option a query names, as `choose` takes it: the only match, or the one whose name is the query

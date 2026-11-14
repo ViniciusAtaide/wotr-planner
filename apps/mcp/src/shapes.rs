@@ -1100,8 +1100,9 @@ pub struct OptionsArgs {
     /// Only options whose name or value holds every word of this (case doesn't matter).
     #[serde(default)]
     pub query: Option<String>,
-    /// Only the options that can be taken now (default true); the others are counted in `closed`. False lists them
-    /// too, each with its issue and reason.
+    /// Only the options that can be taken now (default true); the others are counted in `closed`. Then an open row
+    /// leaves out its `status` (only a gear mark stays). False lists every option with its status, each closed one
+    /// with its issue and reason.
     #[serde(default)]
     pub only_open: Option<bool>,
     /// For a slot: list a parameterised feat or option once per value (`{key, parameter}`), each with its own
@@ -1125,10 +1126,21 @@ pub struct OptionsResult {
     pub envelope: Option<Envelope>,
     /// The address the options are for, as the server writes it.
     pub choice: String,
-    /// In the planner's order.
-    pub options: Vec<OptionLine>,
+    /// The options grouped by category, in the order of each category's first option; a choice without categories
+    /// is one group with no `category`.
+    pub groups: Vec<OptionGroup>,
     /// How many options `only_open` hid: those that can't be taken now.
     pub closed: u32,
+}
+
+/// The options of one category, each category named once, in the planner's order within it.
+#[derive(Debug, Serialize, JsonSchema)]
+pub struct OptionGroup {
+    /// The filter group: a feat's category, an option's Feature selection, "Base class", a gear item's slot, …
+    /// Left out for the options that have none.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub category: Option<String>,
+    pub options: Vec<OptionLine>,
 }
 
 /// One option for a choice.
@@ -1150,10 +1162,10 @@ pub struct OptionLine {
     /// planner's numbers include the item's bonuses and none of these. Left out when it has none, and by `compact`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub uncounted: Option<Vec<String>>,
-    pub status: OptionStatus,
-    /// The filter group it's under: a feat's category, an option's Feature selection, "Base class", …
+    /// Left out for a plain open option when `only_open` is true (every row listed is open then); a gear mark and
+    /// every row of `only_open: false` keep it.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub category: Option<String>,
+    pub status: Option<OptionStatus>,
     /// For an entry listed without its values (`values: false`): what a value is ("a weapon"). Ask again with
     /// `values: true` for the values and their statuses.
     #[serde(skip_serializing_if = "Option::is_none")]

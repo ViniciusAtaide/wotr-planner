@@ -19,20 +19,16 @@ async fn options(build: &Build, arguments: Value) -> Value {
 }
 
 /// The option with this value.
-fn option(result: &Value, value: Value) -> &Value {
-    result["options"]
-        .as_array()
-        .unwrap()
-        .iter()
+fn option(result: &Value, value: Value) -> Value {
+    rows(result)
+        .into_iter()
         .find(|option| option["value"] == value)
         .unwrap_or_else(|| panic!("no option {value} in {result}"))
 }
 
 /// The options' values.
 fn values(result: &Value) -> Vec<Value> {
-    result["options"]
-        .as_array()
-        .unwrap()
+    rows(result)
         .iter()
         .map(|option| option["value"].clone())
         .collect()
@@ -43,8 +39,9 @@ async fn a_feat_slot_lists_its_open_feats_and_counts_the_rest() {
     let fighter = build("human", &["fighter"]);
     let open = options(&fighter, json!({ "choice": "slot.feat.1.general.0" })).await;
     assert_eq!(open["choice"], "slot.feat.1.general.0");
-    assert_eq!(option(&open, json!("power-attack"))["status"], "ok");
-    assert_eq!(option(&open, json!("toughness"))["status"], "ok");
+    // Every row is open, so none says so (ticket 211).
+    assert_eq!(option(&open, json!("power-attack")).get("status"), None);
+    assert_eq!(option(&open, json!("toughness")).get("status"), None);
     assert_eq!(option(&open, json!("power-attack"))["category"], "Weapon");
     // Cleave needs Power Attack: hidden, and counted.
     assert!(!values(&open).contains(&json!("cleave")));
@@ -82,7 +79,7 @@ async fn a_parameterised_feat_lists_its_values_on_request() {
     let entries = options(&fighter, json!({ "choice": "slot.feat.1.general.0" })).await;
     let focus = option(&entries, json!("weapon-focus"));
     assert_eq!(focus["takes"], "a weapon");
-    assert_eq!(focus["status"], "ok");
+    assert_eq!(focus.get("status"), None);
 
     // Once per value, the longsword already held.
     let values = options(
@@ -181,7 +178,7 @@ async fn a_prestige_class_is_offered_once_per_advancement() {
         json!({ "class": "eldritch-knight", "advances": ["wizard"] }),
     );
     assert_eq!(advancing["name"], "Eldritch Knight, advancing Wizard");
-    assert_eq!(advancing["status"], "ok");
+    assert_eq!(advancing.get("status"), None);
     option(
         &fourth,
         json!({ "class": "eldritch-knight", "advances": [] }),
@@ -407,11 +404,168 @@ async fn real_data_names_the_class_options() {
         )
         .await;
     assert_eq!(
-        classes["options"][0]["value"],
+        rows(&classes)[0]["value"],
         json!({ "class": "arcanist", "archetype": "arcanist/brown-fur-transmuter" })
     );
+    assert_eq!(rows(&classes)[0]["name"], "Brown-Fur Transmuter (Arcanist)");
+}
+
+/// The rows of `options` on the test world's fighter 1, at a feat slot.
+async fn feat_slot(only_open: bool) -> Value {
+    options(
+        &build("human", &["fighter"]),
+        json!({ "choice": "slot.feat.1.general.0", "only_open": only_open }),
+    )
+    .await
+}
+
+#[tokio::test]
+async fn options_group_their_rows_by_category_each_named_once() {
+    let open = feat_slot(true).await;
+    let groups = open["groups"].as_array().unwrap();
+    let names: Vec<&Value> = groups.iter().map(|group| &group["category"]).collect();
+    assert!(names.len() > 1, "{open}");
+    for (at, name) in names.iter().enumerate() {
+        assert!(!name.is_null(), "{open}");
+        assert!(!names[..at].contains(name), "{name} twice in {open}");
+    }
+    for group in groups {
+        let options = group["options"].as_array().unwrap();
+        assert!(!options.is_empty(), "an empty group in {open}");
+        // The category is said by the group alone.
+        assert!(
+            options.iter().all(|row| row.get("category").is_none()),
+            "{group}"
+        );
+    }
+    // The rows are those that were open and the count of the rest is unchanged: the groups hold the same row set
+    // as the full listing's open rows.
+    let all = feat_slot(false).await;
+    let is_open = |row: &Value| !row["status"]["issue"].is_string();
+    let mut grouped = values(&open);
+    let mut flat: Vec<Value> = rows(&all)
+        .iter()
+        .filter(|row| is_open(row))
+        .map(|row| row["value"].clone())
+        .collect();
+    grouped.sort_by_key(Value::to_string);
+    flat.sort_by_key(Value::to_string);
+    assert_eq!(grouped, flat);
     assert_eq!(
-        classes["options"][0]["name"],
-        "Brown-Fur Transmuter (Arcanist)"
+        open["closed"].as_u64().unwrap() as usize,
+        rows(&all).len() - flat.len()
+    );
+}
+
+#[tokio::test]
+async fn groups_keep_the_engines_order_and_start_at_a_categorys_first_row() {
+    let all = feat_slot(false).await;
+    // The engine lists feats by key, so their categories interleave (acrobatic-spellcaster: Magic, aldori-dueling-
+    // mastery: Weapon, armor-focus: Armour and Shield, boon-companion: Miscellaneous, … cleave: Weapon again). The
+    // groups come in the order of each category's first feat in that list: not alphabetical, and not the order of
+    // each category's last or most numerous row.
+    let categories: Vec<&str> = all["groups"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|group| group["category"].as_str().unwrap())
+        .collect();
+    assert_eq!(
+        categories,
+        [
+            "Magic",
+            "Weapon",
+            "Armour and Shield",
+            "Miscellaneous",
+            "Skill",
+            "Combat Manoeuvres",
+            "Unarmed Combat",
+            "Class",
+            "Teamwork",
+        ],
+        "{all}"
+    );
+    // A query keeps the rows it matches in the order they had in their group.
+    let narrowed = options(
+        &build("human", &["fighter"]),
+        json!({ "choice": "slot.feat.1.general.0", "only_open": false, "query": "weapon" }),
+    )
+    .await;
+    let full = rows(&all);
+    let position = |row: &Value| full.iter().position(|other| other["value"] == row["value"]);
+    for group in narrowed["groups"].as_array().unwrap() {
+        let at: Vec<Option<usize>> = group["options"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(position)
+            .collect();
+        assert!(at.iter().all(Option::is_some), "{group}");
+        assert!(at.is_sorted(), "{group}");
+    }
+}
+
+#[tokio::test]
+async fn a_choice_without_categories_is_one_group_with_no_category() {
+    let race = options(
+        &build("human", &["fighter"]),
+        json!({ "choice": "start.race" }),
+    )
+    .await;
+    let groups = race["groups"].as_array().unwrap();
+    assert_eq!(groups.len(), 1, "{race}");
+    assert!(
+        groups[0].as_object().unwrap().get("category").is_none(),
+        "{race}"
+    );
+    assert!(groups[0]["options"].as_array().unwrap().len() > 1, "{race}");
+}
+
+#[tokio::test]
+async fn only_open_false_keeps_every_rows_status_ok_included() {
+    let open = feat_slot(true).await;
+    assert!(rows(&open).iter().all(|row| row.get("status").is_none()));
+    let all = feat_slot(false).await;
+    let listed = rows(&all);
+    assert!(
+        listed.iter().all(|row| row.get("status").is_some()),
+        "{all}"
+    );
+    assert!(listed.iter().any(|row| row["status"] == "ok"), "{all}");
+    assert!(
+        listed.iter().any(|row| row["status"]["issue"].is_string()),
+        "{all}"
+    );
+}
+
+#[tokio::test]
+async fn a_values_listing_is_grouped_too_with_no_category_on_a_row() {
+    let fighter = build("human", &["fighter"]);
+    let listed = options(
+        &fighter,
+        json!({ "choice": "slot.feat.1.general.0", "values": true }),
+    )
+    .await;
+    assert!(listed["groups"].as_array().unwrap().len() > 1, "{listed}");
+    for group in listed["groups"].as_array().unwrap() {
+        assert!(group["category"].is_string(), "{group}");
+        assert!(
+            group["options"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .all(|row| row.get("category").is_none()),
+            "{group}"
+        );
+    }
+    // `compact` with `only_open: false` still says every row's status.
+    let compact = options(
+        &fighter,
+        json!({ "choice": "slot.feat.1.general.0", "compact": true, "only_open": false }),
+    )
+    .await;
+    assert!(
+        rows(&compact).iter().all(|row| row.get("status").is_some()),
+        "{compact}"
     );
 }

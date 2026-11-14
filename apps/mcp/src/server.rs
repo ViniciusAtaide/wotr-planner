@@ -323,11 +323,14 @@ impl Server {
     }
 
     #[tool(
-        description = "What one choice of a Build can take, from the planner's own picker or stepper for it: each \
+        description = "What one choice of a Build can take, from the planner's own picker or stepper for it: the \
+            options in `groups`, one per category (a feat's category, a gear item's slot), each with its \
+            `category` named once (left out for a choice without categories) and its `options`: each \
             option's `value` (what `choose` takes), its name, its short summary when the data has one, and its \
-            status: \"ok\"; `{\"with_gear\": \"With <item>\"}`, open only because of the Build's gear; \
-            `{\"leans_on_gear\": …}`, open but leaving other choices allowed only because of the gear; or \
-            {issue, reason} with the \
+            status, left out for an open option when `only_open` is true (the default; every row is open then) and \
+            otherwise \"ok\"; `{\"with_gear\": \"With <item>\"}`, open only because of the Build's gear \
+            (always kept); `{\"leans_on_gear\": …}`, open but leaving other choices allowed only because of the \
+            gear (always kept); or {issue, reason} with the \
             engine's issue (`unmet`, `already_held`, `max_times`, `class_level_cap`, `not_from_path`, \
             `deity_alignment`, `needs_faith`, `deity_domain`, `breaks_later`, …) and the planner's reason. `choice` \
             is an address from `sheet` or `todo`: a slot (`slot.feat.3.general.0`), `level.N.class` (N one past the \

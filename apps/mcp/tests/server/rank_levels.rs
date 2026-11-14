@@ -42,12 +42,12 @@ async fn options_list_the_levels_a_rank_can_be_taken_at() {
     .await;
     assert_eq!(options["choice"], "mythic.4.level");
     assert_eq!(
-        options["options"],
-        json!([
-            { "value": 11, "name": "Level 11 (the earliest)", "status": "ok", "current": true },
-            { "value": 12, "name": "Level 12", "status": "ok" },
-            { "value": 13, "name": "Level 13", "status": "ok" },
-        ])
+        options["groups"],
+        json!([{ "options": [
+            { "value": 11, "name": "Level 11 (the earliest)", "current": true },
+            { "value": 12, "name": "Level 12" },
+            { "value": 13, "name": "Level 13" },
+        ] }])
     );
     // A move that takes the ranks above along says so.
     let options = ok(
@@ -56,7 +56,7 @@ async fn options_list_the_levels_a_rank_can_be_taken_at() {
     )
     .await;
     assert_eq!(
-        options["options"][3]["name"],
+        rows(&options)[3]["name"],
         "Level 12, which moves MR 4 to level 12"
     );
 }
@@ -610,7 +610,7 @@ async fn validate_takes_every_level_options_offers_for_a_rank() {
                 json!({ "build": code(&fighter()), "choice": address }),
             )
             .await;
-        for option in options["options"].as_array().unwrap() {
+        for option in rows(&options) {
             let valid = client
                 .ok(
                     "validate",
@@ -757,10 +757,7 @@ async fn a_pick_whose_prerequisite_is_a_later_ranks_says_where_and_which_level_o
             json!({ "build": code(&build), "choice": "slot.feat.13.general.0", "only_open": false, "query": "crane" }),
         )
         .await;
-    assert_eq!(
-        options["options"][0]["status"]["reason"], expected,
-        "{options}"
-    );
+    assert_eq!(rows(&options)[0]["status"]["reason"], expected, "{options}");
     let chosen = client
         .ok(
             "choose",

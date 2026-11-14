@@ -46,13 +46,13 @@ async fn real_data_finesse_training_lists_the_guides_weapons_and_takes_one() {
             json!({ "build": older, "choice": AT_3, "values": true }),
         )
         .await;
-    let options = listed["options"].as_array().unwrap();
+    let options = rows(&listed);
     assert_eq!(options.len(), 21, "{listed}");
     let offered = options
         .iter()
         .find(|option| option["value"] == shield())
         .unwrap_or_else(|| panic!("no Light Shield Bash in {listed}"));
-    assert_eq!(offered["status"], "ok");
+    assert!(offered.get("status").is_none(), "{offered}");
     assert_eq!(offered["name"], "Finesse Training (Light Shield Bash)");
 
     let chosen = client
@@ -72,10 +72,8 @@ async fn real_data_finesse_training_lists_the_guides_weapons_and_takes_one() {
             json!({ "build": chosen["build"], "choice": AT_11, "values": true, "only_open": false }),
         )
         .await;
-    let taken = next["options"]
-        .as_array()
-        .unwrap()
-        .iter()
+    let taken = rows(&next)
+        .into_iter()
         .find(|option| option["value"] == shield())
         .unwrap_or_else(|| panic!("no Light Shield Bash in {next}"));
     assert_eq!(
