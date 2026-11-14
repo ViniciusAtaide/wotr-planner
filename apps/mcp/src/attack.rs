@@ -60,7 +60,7 @@ pub struct AttackRow {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub power_attack: Option<PowerAttackShape>,
     /// What the numbers count besides the BAB (the ability modifiers, then each feat held for the weapon, with what
-    /// each adds to attack and to damage); left out when the same as before, and when empty.
+    /// each adds to attack and to damage); left out when the same as before, and when empty on the first row.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub counts: Option<Vec<AttackPartShape>>,
 }

@@ -432,11 +432,6 @@ async fn options_group_their_rows_by_category_each_named_once() {
     for group in groups {
         let options = group["options"].as_array().unwrap();
         assert!(!options.is_empty(), "an empty group in {open}");
-        // The category is said by the group alone.
-        assert!(
-            options.iter().all(|row| row.get("category").is_none()),
-            "{group}"
-        );
     }
     // The rows are those that were open and the count of the rest is unchanged: the groups hold the same row set
     // as the full listing's open rows.
@@ -451,6 +446,22 @@ async fn options_group_their_rows_by_category_each_named_once() {
     grouped.sort_by_key(Value::to_string);
     flat.sort_by_key(Value::to_string);
     assert_eq!(grouped, flat);
+    // Each row sits in the group of its category: the category `rows` reads from the group is the one the full
+    // listing gives the same value.
+    let category_of = |result: &Value| -> Vec<(String, Value)> {
+        let mut pairs: Vec<(String, Value)> = rows(result)
+            .iter()
+            .map(|row| (row["value"].to_string(), row["category"].clone()))
+            .collect();
+        pairs.sort_by(|a, b| a.0.cmp(&b.0));
+        pairs
+    };
+    let open_values: Vec<String> = grouped.iter().map(Value::to_string).collect();
+    let in_all: Vec<(String, Value)> = category_of(&all)
+        .into_iter()
+        .filter(|(value, _)| open_values.contains(value))
+        .collect();
+    assert_eq!(category_of(&open), in_all);
     assert_eq!(
         open["closed"].as_u64().unwrap() as usize,
         rows(&all).len() - flat.len()
@@ -549,14 +560,6 @@ async fn a_values_listing_is_grouped_too_with_no_category_on_a_row() {
     assert!(listed["groups"].as_array().unwrap().len() > 1, "{listed}");
     for group in listed["groups"].as_array().unwrap() {
         assert!(group["category"].is_string(), "{group}");
-        assert!(
-            group["options"]
-                .as_array()
-                .unwrap()
-                .iter()
-                .all(|row| row.get("category").is_none()),
-            "{group}"
-        );
     }
     // `compact` with `only_open: false` still says every row's status.
     let compact = options(

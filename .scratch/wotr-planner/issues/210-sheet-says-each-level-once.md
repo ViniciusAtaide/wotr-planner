@@ -48,3 +48,8 @@ Done 2026-11-14.
 - **One wording for a level the Build lacks:** `unreached::no_such_level(level, levels)` ("The Build has 13 levels, so it doesn't reach level 14."; level 0 as above), called from `sheet`, `validate/wording.rs` and `validate/declare.rs`; their output is unchanged (their tests pass). unreached.rs's module doc names `sheet`.
 - **Tests:** `sheet::tests::rows_without_trimming_say_all_the_full_lines_say` (unit test in sheet.rs: `level_rows` without trimming serialises equal to the full `LevelLine`s with empty arrays and maps stripped; `sheet()` is split into `full_sheet` and the narrowing so the test reads the full lines) and `sheet::real_data_a_multiclass_with_an_archetype_and_a_late_caster_line_rebuilds_from_the_trimmed_sheet` (fighter 2, then a Brown-Fur Transmuter arcanist to 10, with `caster`). Checked by breaking `level_rows` on purpose: with `bab` set to 0, and with `skill_points` never given, the unit test fails and the rebuild tests still pass (both sides of a rebuild come from the same rows), so the unit test is the one that catches a field dropped in both modes.
 - **Nits:** compare's open-choices count reads `todo` with an `expect` saying `sheet_of` always gives it.
+
+### Queue review (209–211)
+
+- **A skill's non-zero `Ranks` count part stays beside `ranks`** (decided by the main session): the counts of a total sum to `total`, as every other total's do, so a reader adds them without a special case; the `ranks` figure beside it is the same number the rank rows give, not a second source.
+- **A rank row's `path` stays** (decided by the main session): it is about 430 characters on a Trickster, but a rank row is read on its own (`ranks: [3]`), and without `path` it would not say which path's features it lists.

@@ -3,11 +3,11 @@
 //!
 //! Conventions: field names are `snake_case`; a result is always an object (a list sits in a named field, as
 //! `search`'s `matches`); an optional field that doesn't apply is left out, except `prerequisite`, which is
-//! `null` when there is none (`search`'s `compact` leaves it out); a reference to another item is a [`Named`] `{key, name}`. A result about a Build
-//! flattens the [`Envelope`] into it (`build`, `link`, `todo`: `new_build`, `validate`, and `options` on request with
-//! `envelope`), except `choose` and `withdraw`, which return `build`, `link` and the changes to `todo`
-//! ([`TodoReport`]), and `sheet`, which gives `build` and `link` and `todo` only on request; a choice is named by its address (`rules::Address`) and
-//! holds a [`ChoiceValue`].
+//! `null` when there is none (`search`'s `compact` leaves it out); a reference to another item is a [`Named`]
+//! `{key, name}`. A result about a Build flattens the [`Envelope`] into it (`build`, `link`, `todo`: `new_build`,
+//! `validate`, and `options` on request with `envelope`), except `choose` and `withdraw`, which return `build`,
+//! `link` and the changes to `todo` ([`TodoReport`]), and `sheet`, which gives `build` and `link` and `todo` only on
+//! request; a choice is named by its address (`rules::Address`) and holds a [`ChoiceValue`].
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -942,7 +942,7 @@ pub struct SheetLevel {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub skill_points: Option<SkillPointsLine>,
     /// Total ranks by skill key at the end of the level (skills with none left out). Left out when the same as on
-    /// the row before, and when empty.
+    /// the row before, and when empty on the first row.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub skill_ranks: Option<BTreeMap<String, u8>>,
     /// The feats first held at this level, granted or picked (a parameterised one with its value). Left out for
@@ -973,8 +973,8 @@ pub(crate) fn if_changed<T: PartialEq + Clone>(now: &T, before: Option<&T>) -> O
 }
 
 /// [`if_changed`] for a list or map, where having none is the same as having no row before: an empty one is left out
-/// on the first row. (A list that went from non-empty to empty would also be left out of the row, which reads as
-/// "unchanged": a level's lists only grow, so none does.)
+/// on the first row. (A list that went from non-empty to empty gives `Some` of the empty list, so the row says it
+/// emptied.)
 pub(crate) fn if_list_changed<T: PartialEq + Clone + Default>(
     now: &T,
     before: Option<&T>,
@@ -1128,14 +1128,14 @@ pub struct OptionsResult {
     pub choice: String,
     /// The options grouped by category, in the order of each category's first option; a choice without categories
     /// is one group with no `category`.
-    pub groups: Vec<OptionGroup>,
+    pub groups: Vec<CategoryGroup>,
     /// How many options `only_open` hid: those that can't be taken now.
     pub closed: u32,
 }
 
 /// The options of one category, each category named once, in the planner's order within it.
 #[derive(Debug, Serialize, JsonSchema)]
-pub struct OptionGroup {
+pub struct CategoryGroup {
     /// The filter group: a feat's category, an option's Feature selection, "Base class", a gear item's slot, …
     /// Left out for the options that have none.
     #[serde(skip_serializing_if = "Option::is_none")]

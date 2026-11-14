@@ -14,7 +14,12 @@ use crate::planner::Planner;
 use crate::shapes::{Envelope, Todo, TodoReport};
 
 /// Where the planner opens a Build: the link is this and the code.
-pub(crate) const LINK_BASE: &str = "https://viniciusataide.github.io/wotr-planner/#b=";
+const LINK_BASE: &str = "https://viniciusataide.github.io/wotr-planner/#b=";
+
+/// The planner link for a code.
+pub(crate) fn link(code: &str) -> String {
+    format!("{LINK_BASE}{code}")
+}
 
 /// The code in a planner link (`…#b=<code>`), or a bare code.
 pub(crate) fn code_of(text: &str) -> &str {
@@ -44,7 +49,7 @@ pub(crate) fn reopen(engine: &Engine, build: &Build) -> Option<Build> {
 pub(crate) fn envelope(engine: &Engine, build: &Build, sheet: &Sheet) -> Envelope {
     let code = encode_build(build);
     Envelope {
-        link: format!("{LINK_BASE}{code}"),
+        link: link(&code),
         build: code,
         todo: todo(engine, build, sheet),
     }

@@ -2,10 +2,12 @@
 //! the returned code opens through the engine's checked open (`Engine::open_link`: decoded and possible).
 //!
 //! Each walk starts from an empty Build with a random run of 0 to 12 levels and, at each step, either adds a level,
-//! takes an offered `ok` value at an open choice from `todo`, changes a choice the Build already holds (from
+//! takes an open option's value at an open choice from `todo`, changes a choice the Build already holds (from
 //! `sheet`'s picks, the point buy included), tries an option that isn't open (it must be refused, with the code
 //! unchanged), moves a score to a random target (several single steps, which may be refused), or withdraws a choice
 //! `sheet` marks removable. Every open option tried must be applied, and every removable choice must come off.
+
+use std::collections::{BTreeMap, HashMap};
 
 use rmcp::serde_json::{Value, json};
 use rules::Engine;
@@ -46,6 +48,8 @@ struct Walker<'a> {
     /// The walk so far, for the failure message.
     moves: Vec<String>,
     tally: Tally,
+    /// `sheet`'s whole `todo` (address to label) per code already read.
+    todos: HashMap<String, BTreeMap<String, String>>,
 }
 
 /// What the walks did, so the test shows they covered each kind of step.
@@ -65,6 +69,50 @@ struct Tally {
 }
 
 impl Walker<'_> {
+    /// `sheet {todo: true}`'s `todo` for a code, as address to label.
+    async fn todo_of(&mut self, code: &str) -> BTreeMap<String, String> {
+        if let Some(todo) = self.todos.get(code) {
+            return todo.clone();
+        }
+        let sheet = self
+            .client
+            .ok("sheet", json!({ "build": code, "todo": true }))
+            .await;
+        let todo: BTreeMap<String, String> = sheet["todo"]
+            .as_array()
+            .expect("the todo list")
+            .iter()
+            .map(|item| (text(&item["choice"]), text(&item["label"])))
+            .collect();
+        self.todos.insert(code.to_owned(), todo.clone());
+        todo
+    }
+
+    /// The `opened`, `closed` and `open` of a `choose` or `withdraw` result must turn the old whole `todo` into the
+    /// new Build's `sheet` `todo`.
+    async fn check_report(&mut self, old: &str, result: &Value) {
+        let mut todo = self.todo_of(old).await;
+        for address in result["closed"].as_array().into_iter().flatten() {
+            todo.remove(&text(address));
+        }
+        for item in result["opened"].as_array().into_iter().flatten() {
+            todo.insert(text(&item["choice"]), text(&item["label"]));
+        }
+        let new = text(&result["build"]);
+        let expected = self.todo_of(&new).await;
+        assert_eq!(
+            todo, expected,
+            "the report doesn't turn the old todo into the new one: {result} after {:?}",
+            self.moves
+        );
+        assert_eq!(
+            result["open"],
+            json!(expected.len()),
+            "open is the length of the new todo: {:?}",
+            self.moves
+        );
+    }
+
     /// The options at an address (`only_open` as given), or none when the Build has no such choice.
     async fn options(&self, code: &str, choice: &str, only_open: bool) -> Vec<Value> {
         let result = self
@@ -85,12 +133,15 @@ impl Walker<'_> {
     /// `choose` one step; the new code.
     async fn choose(&mut self, code: &str, choice: &str, value: Value) -> Value {
         self.moves.push(format!("choose {choice} {value}"));
-        self.client
+        let result = self
+            .client
             .ok(
                 "choose",
                 json!({ "build": code, "steps": [{ "choice": choice, "value": value }] }),
             )
-            .await
+            .await;
+        self.check_report(code, &result).await;
+        result
     }
 
     /// Takes a random open option at an address, which must be applied; the new code, or `None` when nothing is
@@ -167,6 +218,7 @@ impl Walker<'_> {
                 self.moves
             );
             let content = result.structured_content.expect("structured content");
+            self.check_report(&code, &content).await;
             self.tally.withdrawn += 1;
             return text(&content["build"]);
         }
@@ -231,6 +283,7 @@ async fn random_walks_never_return_an_impossible_build() {
         dice: Dice(SEED),
         moves: Vec::new(),
         tally: Tally::default(),
+        todos: HashMap::new(),
     };
     let mut deepest = 0;
     for walk in 0..WALKS {
