@@ -460,20 +460,31 @@ async fn options_group_their_rows_by_category_each_named_once() {
 #[tokio::test]
 async fn groups_keep_the_engines_order_and_start_at_a_categorys_first_row() {
     let all = feat_slot(false).await;
-    // The groups come in the order of each category's first row.
-    let mut first_seen: Vec<Value> = Vec::new();
-    for row in rows(&all) {
-        if !first_seen.contains(&row["category"]) {
-            first_seen.push(row["category"].clone());
-        }
-    }
-    let categories: Vec<Value> = all["groups"]
+    // The engine lists feats by key, so their categories interleave (acrobatic-spellcaster: Magic, aldori-dueling-
+    // mastery: Weapon, armor-focus: Armour and Shield, boon-companion: Miscellaneous, … cleave: Weapon again). The
+    // groups come in the order of each category's first feat in that list: not alphabetical, and not the order of
+    // each category's last or most numerous row.
+    let categories: Vec<&str> = all["groups"]
         .as_array()
         .unwrap()
         .iter()
-        .map(|group| group["category"].clone())
+        .map(|group| group["category"].as_str().unwrap())
         .collect();
-    assert_eq!(categories, first_seen);
+    assert_eq!(
+        categories,
+        [
+            "Magic",
+            "Weapon",
+            "Armour and Shield",
+            "Miscellaneous",
+            "Skill",
+            "Combat Manoeuvres",
+            "Unarmed Combat",
+            "Class",
+            "Teamwork",
+        ],
+        "{all}"
+    );
     // A query keeps the rows it matches in the order they had in their group.
     let narrowed = options(
         &build("human", &["fighter"]),
@@ -524,5 +535,37 @@ async fn only_open_false_keeps_every_rows_status_ok_included() {
     assert!(
         listed.iter().any(|row| row["status"]["issue"].is_string()),
         "{all}"
+    );
+}
+
+#[tokio::test]
+async fn a_values_listing_is_grouped_too_with_no_category_on_a_row() {
+    let fighter = build("human", &["fighter"]);
+    let listed = options(
+        &fighter,
+        json!({ "choice": "slot.feat.1.general.0", "values": true }),
+    )
+    .await;
+    assert!(listed["groups"].as_array().unwrap().len() > 1, "{listed}");
+    for group in listed["groups"].as_array().unwrap() {
+        assert!(group["category"].is_string(), "{group}");
+        assert!(
+            group["options"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .all(|row| row.get("category").is_none()),
+            "{group}"
+        );
+    }
+    // `compact` with `only_open: false` still says every row's status.
+    let compact = options(
+        &fighter,
+        json!({ "choice": "slot.feat.1.general.0", "compact": true, "only_open": false }),
+    )
+    .await;
+    assert!(
+        rows(&compact).iter().all(|row| row.get("status").is_some()),
+        "{compact}"
     );
 }

@@ -932,7 +932,8 @@ fn summary_of(planner: &Planner, address: &Address, value: &ChoiceValue) -> Opti
 }
 
 /// `options`: the offers at an address of a Build code, filtered by the query and, unless `only_open` is false, to
-/// those open now, with the envelope.
+/// those open now, with the envelope. The rows come grouped by category, in the order of each category's first row,
+/// and an open row leaves out its status when `only_open` is true.
 pub(crate) fn options(planner: &Planner, args: OptionsArgs) -> Result<OptionsResult, ToolError> {
     let engine = &planner.engine;
     let build = open(planner, &args.build)?;
