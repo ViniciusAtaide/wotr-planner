@@ -528,4 +528,10 @@ async fn real_data_a_locked_rage_power_names_only_the_class_the_character_has() 
         failure["reason"], "Needs Barbarian level 8 (have 4)",
         "{validated}"
     );
+    // `needs` says the same, not the "or Skald level 8 (have 0)" of the data.
+    assert_eq!(
+        failure["needs"],
+        json!(["Barbarian level 8 (have 4)"]),
+        "{validated}"
+    );
 }

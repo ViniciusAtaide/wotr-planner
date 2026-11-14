@@ -958,3 +958,27 @@ fn a_later_ranks_pick_is_named_only_for_the_value_it_would_meet() {
     );
     assert_eq!(refusal("longsword"), None);
 }
+
+#[test]
+fn a_list_of_names_that_goes_on_is_joined_by_commas_and_one_and() {
+    // Ticket 192 (QA): "A, B and C and 2 more" read with a doubled "and".
+    let build = trickster(20);
+    let names = |count: u8| {
+        let choices: Vec<Choice> = (1..=count).map(|level| Choice::Class { level }).collect();
+        engine().choice_names_within(&build, &choices, 3)
+    };
+    assert_eq!(names(1), "Level 1: Fighter");
+    assert_eq!(names(2), "Level 1: Fighter and Level 2: Fighter");
+    assert_eq!(
+        names(3),
+        "Level 1: Fighter, Level 2: Fighter and Level 3: Fighter"
+    );
+    assert_eq!(
+        names(5),
+        "Level 1: Fighter, Level 2: Fighter, Level 3: Fighter and 2 more"
+    );
+    assert_eq!(
+        names(4),
+        "Level 1: Fighter, Level 2: Fighter, Level 3: Fighter and 1 more"
+    );
+}

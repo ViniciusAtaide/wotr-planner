@@ -1129,7 +1129,8 @@ pub struct FailureLine {
     pub issue: String,
     /// The planner's reason, in full.
     pub reason: String,
-    /// For `unmet`: each prerequisite not met, in short ("Strength 13 (have 12)", "Power Attack").
+    /// For `unmet`: each prerequisite not met, in short ("Strength 13 (have 12)", "Power Attack"), as `reason` words
+    /// it: of an "or", only the alternatives the character's classes give.
     pub needs: Vec<String>,
     /// Other failed choices its prerequisites name, besides the one it sits under, by address: fix them too.
     pub also_needs: Vec<String>,

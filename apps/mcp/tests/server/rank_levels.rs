@@ -241,7 +241,7 @@ async fn validate_takes_a_ranks_level_and_says_why_one_is_none() {
     let failure = at(&past["failures"], "mythic.4.level");
     assert_eq!(failure["issue"], "not_reached", "{past}");
     assert!(
-        text(&failure["reason"]).contains("the Build has 13 level(s)"),
+        text(&failure["reason"]).contains("the Build has 13 levels"),
         "{failure}"
     );
     // A key isn't a level.
@@ -483,7 +483,7 @@ async fn validate_refuses_the_earliest_level_of_a_rank_the_build_does_not_reach(
     assert_eq!(
         text(&at(&short["failures"], "mythic.5.level")["reason"]),
         "The Build doesn't reach MR 5, so `mythic.5.level` has no level to take it at: MR 5 comes at level 14 at \
-         the earliest, and the Build has 13 level(s)."
+         the earliest, and the Build has 13 levels."
     );
     let refused = Client::on_the_test_world()
         .await
@@ -513,6 +513,82 @@ async fn validate_refuses_the_earliest_level_of_a_rank_the_build_does_not_reach(
         text(&at(&ended["failures"], "mythic.9.level")["reason"]),
         "The Build doesn't reach MR 9, so `mythic.9.level` has no level to take it at: its Path switch (Legend) \
          ends the ascensions at MR 8."
+    );
+}
+
+#[tokio::test]
+async fn validate_says_a_rank_is_not_reached_whatever_level_is_declared() {
+    // Ticket 192 (QA): the Build has 13 levels, MR 5 comes at 14. Declared at the level it comes at or at a level
+    // past the Build's last, the reason is the same one `options` and `choose` give.
+    let short = "The Build doesn't reach MR 5, so `mythic.5.level` has no level to take it at: MR 5 comes at level \
+                 14 at the earliest, and the Build has 13 levels.";
+    for level in [14, 20] {
+        let past = ok("validate", declared(&[("mythic.5.level", json!(level))])).await;
+        let failure = at(&past["failures"], "mythic.5.level");
+        assert_eq!(text(&failure["reason"]), short, "level {level}: {past}");
+    }
+    // The code is the walk's, as it was: past the last level it is `not_reached`.
+    let past = ok("validate", declared(&[("mythic.5.level", json!(20))])).await;
+    assert_eq!(
+        at(&past["failures"], "mythic.5.level")["issue"],
+        "not_reached"
+    );
+
+    // A Legend switch ended the ascensions at MR 8: MR 10 declared at the last level names it, as `choose` does.
+    let legend = [
+        ("mythic.path", json!("trickster")),
+        ("mythic.switch", json!("legend")),
+        ("mythic.10.level", json!(20)),
+    ];
+    let ended = ok("validate", plain(20, &legend)).await;
+    let want = "The Build doesn't reach MR 10, so `mythic.10.level` has no level to take it at: its Path switch \
+                (Legend) ends the ascensions at MR 8.";
+    assert_eq!(
+        text(&at(&ended["failures"], "mythic.10.level")["reason"]),
+        want,
+        "{ended}"
+    );
+    let built = ok("validate", plain(20, &legend[..2])).await;
+    let chosen = ok(
+        "choose",
+        json!({ "build": built["build"], "steps": [{ "choice": "mythic.10.level", "value": 20 }] }),
+    )
+    .await;
+    assert_eq!(text(&chosen["rejected"]["reason"]), want);
+
+    // A rank the Build does reach, declared past its last level, keeps its own text.
+    let reached = ok("validate", declared(&[("mythic.4.level", json!(20))])).await;
+    assert_eq!(
+        text(&at(&reached["failures"], "mythic.4.level")["reason"]),
+        "MR 4 can't be taken at level 20: the Build has 13 levels, and a rank is taken at a level the Build has."
+    );
+}
+
+#[tokio::test]
+async fn a_level_count_of_one_reads_level_not_levels() {
+    // Ticket 192 (QA): "1 level", "13 levels".
+    let one = ok("validate", plain(1, &[])).await;
+    let refused = Client::on_the_test_world()
+        .await
+        .call(
+            "options",
+            json!({ "build": one["build"], "choice": "level.5.class" }),
+        )
+        .await;
+    assert!(
+        error_text(&refused).contains("The Build has 1 level: `level.N.class` takes N from 1 to 2"),
+        "{}",
+        error_text(&refused)
+    );
+    let past = ok(
+        "validate",
+        plain(1, &[("slot.feat.3.general.0", json!("toughness"))]),
+    )
+    .await;
+    assert!(
+        text(&at(&past["failures"], "slot.feat.3.general.0")["reason"])
+            .contains("The Build has 1 level, so it doesn't reach level 3."),
+        "{past}"
     );
 }
 
@@ -576,7 +652,7 @@ async fn choose_says_why_a_level_is_not_one_a_rank_can_be_taken_at() {
     let (_, reason) = refused_level(&fighter(), "mythic.4.level", json!(14)).await;
     assert_eq!(
         reason,
-        "MR 4 can't be taken at level 14: the Build has 13 level(s), and a rank is taken at a level the Build has. \
+        "MR 4 can't be taken at level 14: the Build has 13 levels, and a rank is taken at a level the Build has. \
          `options` on `mythic.4.level` lists the levels."
     );
     let (_, reason) = refused_level(&fighter(), "mythic.4.level", json!(5)).await;
@@ -585,14 +661,13 @@ async fn choose_says_why_a_level_is_not_one_a_rank_can_be_taken_at() {
         "{reason}"
     );
     assert!(!reason.contains("Closest"), "{reason}");
-    // A value that isn't a number: the generic text, with no word about parameterised feats.
-    let (_, reason) = refused_level(&fighter(), "mythic.4.level", json!("soon")).await;
-    assert!(
-        reason.contains("isn't an option for `mythic.4.level`"),
-        "{reason}"
+    // A value that isn't a number says what `validate` says, and where the levels are listed.
+    let (issue, reason) = refused_level(&fighter(), "mythic.4.level", json!("fourteen")).await;
+    assert_eq!(issue, "not_an_option");
+    assert_eq!(
+        reason,
+        "`mythic.4.level` takes a number. `options` on `mythic.4.level` lists the levels."
     );
-    assert!(!reason.contains("parameterised"), "{reason}");
-    assert!(!reason.contains("Closest"), "{reason}");
 }
 
 #[tokio::test]
@@ -643,7 +718,7 @@ async fn withdraw_says_a_rank_at_its_earliest_level_has_nothing_to_withdraw() {
     assert_eq!(
         refusal_text(&short),
         "The Build doesn't reach MR 5, so there is nothing to withdraw: MR 5 comes at level 14 at the earliest, \
-         and the Build has 13 level(s)."
+         and the Build has 13 levels."
     );
     let none = client
         .call(
@@ -716,7 +791,7 @@ async fn validate_says_where_a_later_ranks_pick_is_and_which_level_would_open_it
     assert_eq!(
         at(&invalid["failures"], "slot.feat.13.general.0")["reason"],
         "Needs dodge: dodge is in Mythic rank 4's trickster/bonus-feats slot, taken at level 14, after this slot's \
-         level 13. MR 4 taken at level 12 opens it: `choose` `mythic.4.level` 12 first",
+         level 13. MR 4 taken at level 12 opens it: declare `mythic.4.level` 12",
         "{invalid}"
     );
     // With the rank at the level it says, the declaration is valid.
@@ -785,7 +860,7 @@ async fn options_choose_validate_and_withdraw_say_alike_why_a_rank_is_not_reache
     let short = ok("choose", json!({ "build": code(&fighter()), "steps": [] })).await;
     let short = short["build"].clone();
     let want = "The Build doesn't reach MR 5, so `mythic.5.level` has no level to take it at: MR 5 comes at level 14 \
-                at the earliest, and the Build has 13 level(s).";
+                at the earliest, and the Build has 13 levels.";
     let options = client
         .call(
             "options",

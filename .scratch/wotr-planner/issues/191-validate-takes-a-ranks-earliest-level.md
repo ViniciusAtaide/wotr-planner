@@ -56,3 +56,8 @@ Done 2026-11-13 (branch `ticket/191-validate-rank-earliest-level`, from `main` a
 ### Checked
 
 The tests were seen to fail before the change. `scripts/check.sh`: ALL-OK (fmt, clippy, wasm-clippy, test with the snapshot check showing no difference, rules-wasm, data-check). `cargo fmt --all --check` passes. Not run, by the queue's rule: `scripts/check.sh --full` and `scripts/proof.sh`.
+
+### After the QA session (2026-11-14)
+
+`validate` words a rank the Build doesn't reach as `options`, `choose` and `withdraw` do whatever level is declared for it, not only the rank's earliest: see ticket 192's "QA session fixes (2026-11-14)", item 1. The issue codes are as they were.
+

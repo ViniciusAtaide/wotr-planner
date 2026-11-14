@@ -74,13 +74,14 @@ pub(crate) fn withdraw(planner: &Planner, args: WithdrawArgs) -> Result<Withdraw
         // A rank taken later that a pick needs there: the engine names the pick ("Shield Focus (Mythic) needs MR
         // 10 later than level 19").
         if let Address::RankLevel(rank) = &address
-            && let Some(reason) = (engine.rank_level_options(&build, *rank).into_iter())
+            && let Some((reason, count)) = (engine.rank_level_options(&build, *rank).into_iter())
                 .find(|option| option.earliest)
-                .and_then(|option| option.reason)
+                .and_then(|option| Some((option.reason?, option.needed_by.len())))
         {
             return Err(ToolError::not_removable(format!(
-                "{reason}, so `{address}` can't be withdrawn now: withdraw that choice first. `options` on \
-                 `{address}` lists the levels MR {rank} can be taken at."
+                "{reason}, so `{address}` can't be withdrawn now: withdraw {} first. `options` on `{address}` lists \
+                 the levels MR {rank} can be taken at.",
+                verb(count, "it", "them")
             )));
         }
         // The choices that would fail without it, by name.
@@ -93,20 +94,17 @@ pub(crate) fn withdraw(planner: &Planner, args: WithdrawArgs) -> Result<Withdraw
                 .collect();
             let count = refused.len();
             let names = breaks.names(&refused);
-            let (first, so) = match breaks.cause(&refusals) {
-                Cause::Needs => (
-                    format!(
-                        "{names} {} on `{address}`",
-                        verb(count, "depends", "depend")
-                    ),
-                    "it",
+            let first = match breaks.cause(&refusals) {
+                Cause::Needs => format!(
+                    "{names} {} on `{address}`",
+                    verb(count, "depends", "depend")
                 ),
-                _ => (format!("Would break {names}"), "`{address}`"),
+                _ => format!("Would break {names}"),
             };
-            let so = so.replace("{address}", &address.to_string());
+            // The address again, not "it": "withdraw it first" is then the choice named, not the address.
             return Err(ToolError::not_removable(format!(
-                "{first}, so {so} can't be withdrawn now: withdraw {} first.",
-                verb(count, "that choice", "those choices")
+                "{first}, so `{address}` can't be withdrawn now: withdraw {} first.",
+                verb(count, "it", "them")
             )));
         }
         return Err(ToolError::not_removable(format!(

@@ -49,8 +49,8 @@ async fn a_choice_something_depends_on_is_not_removable() {
     // Ticket 192: it names the choice that depends on it.
     assert_eq!(
         error_text(&refused),
-        "not_removable: cleave depends on `slot.feat.1.class.0`, so it can't be withdrawn now: withdraw that choice \
-         first."
+        "not_removable: cleave depends on `slot.feat.1.class.0`, so `slot.feat.1.class.0` can't be withdrawn now: \
+         withdraw it first."
     );
     // Cleave, the leaf, comes off.
     let after = withdrawn(&fighter, "slot.feat.1.general.0").await;
@@ -110,4 +110,24 @@ async fn the_build_start_choices_come_off() {
     assert_eq!(error_code(&refused), "not_removable");
     let after = withdrawn(&fighter, "start.alignment").await;
     assert_eq!(after.start.alignment, None);
+}
+
+#[tokio::test]
+async fn withdraw_says_it_first_for_one_dependent_and_them_first_for_several() {
+    // Ticket 192 (QA): "withdraw that choice first" read as the slot just named.
+    let mut fighter = build("human", &times("fighter", 5));
+    fighter
+        .picks
+        .insert(class_slot(1, 0), pick_feat("power-attack"));
+    fighter.picks.insert(general_slot(1), pick_feat("cleave"));
+    fighter
+        .picks
+        .insert(general_slot(5), pick_feat("great-cleave"));
+    let refused = withdraw(&fighter, "slot.feat.1.class.0").await;
+    assert_eq!(error_code(&refused), "not_removable");
+    assert_eq!(
+        error_text(&refused),
+        "not_removable: cleave and great-cleave depend on `slot.feat.1.class.0`, so `slot.feat.1.class.0` can't be \
+         withdrawn now: withdraw them first."
+    );
 }

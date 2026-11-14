@@ -461,8 +461,12 @@ impl Declared {
                 self.refuse(node);
             }
         }
-        let past =
-            |at: u8| format!("The Build has {last} level(s), so it doesn't reach level {at}.");
+        let past = |at: u8| {
+            format!(
+                "The Build has {}, so it doesn't reach level {at}.",
+                crate::words::levels(usize::from(last))
+            )
+        };
         for (&at, &ability) in &gathered.increases {
             let address = Address::Increase(at);
             if at > last {

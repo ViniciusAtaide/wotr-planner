@@ -44,6 +44,7 @@ mod totals;
 mod unreached;
 mod validate;
 mod withdraw;
+mod words;
 
 pub use planner::Planner;
 pub use server::{BUILD_GUIDE_URI, GLOSSARY, GLOSSARY_URI, INSTRUCTIONS, Server, build_guide};

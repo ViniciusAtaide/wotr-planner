@@ -14,7 +14,7 @@ use rules::{Address, Build, Choice, Engine, GearSpot, Issue, POINT_BUY_BUDGET, S
 
 use crate::code::{envelope, open, reopen};
 use crate::error::ToolError;
-use crate::options::{Breaks, LaterLevels, Offer, issue_code, issue_reason, offers};
+use crate::options::{Breaks, Fix, LaterLevels, Offer, issue_code, issue_reason, offers};
 use crate::planner::Planner;
 use crate::shapes::{ChoiceValue, ChooseArgs, ChooseResult, LeaningStep, MovedItem, Rejected};
 use crate::similar::{closeness, closest_note, distance, nearest};
@@ -154,6 +154,12 @@ fn take(
         _ => value,
     };
     let offers = offers_at(engine, build, &address)?;
+    // As `validate` says it, with where the levels are listed.
+    if matches!(address, Address::RankLevel(_)) && !matches!(value, ChoiceValue::Number(_)) {
+        return Err(ToolError::not_an_option(format!(
+            "`{address}` takes a number. `options` on `{address}` lists the levels."
+        )));
+    }
     let offer = find(value, &offers).ok_or_else(|| {
         missing_parameter(engine, build, &address, value, &offers)
             .unwrap_or_else(|| not_offered(engine, build, &address, value, &offers))
@@ -233,7 +239,7 @@ fn apply_offer(
                 let tail = offer
                     .opens
                     .as_ref()
-                    .and_then(|opens| LaterLevels::new(engine, build).tail(opens));
+                    .and_then(|opens| LaterLevels::new(engine, build).tail(opens, Fix::Choose));
                 format!("{reason}{}", tail.unwrap_or_default())
             },
         });
@@ -551,7 +557,8 @@ fn rank_level_not_offered(
         )
     } else if usize::from(given) > levels {
         format!(
-            "{head}: the Build has {levels} level(s), and a rank is taken at a level the Build has. {lists}"
+            "{head}: the Build has {}, and a rank is taken at a level the Build has. {lists}",
+            crate::words::levels(levels)
         )
     } else {
         return None;
