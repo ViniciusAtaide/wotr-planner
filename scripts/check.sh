@@ -3,17 +3,18 @@
 #
 #   scripts/check.sh [--full | --ui]
 #
-# Always: fmt, clippy (workspace and the frontend's wasm target), the workspace tests, the rules wasm build and
-# `check-data` (the data files).
+# Always: fmt, css-classes (scripts/css-classes.sh: every class in the stylesheet is used), clippy (workspace and the
+# frontend's wasm target), the workspace tests, the rules wasm build and `check-data` (the data files).
 # --full:   also the cargo-leptos dev and release builds. They are slow and rarely break, so run them once at the end
 #           of a queue of tickets, not per ticket. Then scripts/build-mcp.sh, the standalone MCP server (`wotr-mcp`).
-# --ui:     for a change only to the web UI: fmt, clippy and the tests of `ui` and `frontend` alone. Refuses when the
-#           branch (since main) or the working tree changes a path outside libs/ui/, apps/frontend/, .scratch/ and *.md.
+# --ui:     for a change only to the web UI: fmt, css-classes, clippy and the tests of `ui` and `frontend` alone.
+#           Refuses when the branch (since main) or the working tree changes a path outside libs/ui/, apps/frontend/,
+#           .scratch/ and *.md.
 # Prints one line per step with its time, and ALL-OK at the end. Stops at the first failing step and shows its output.
 set -euo pipefail
 
 usage() {
-    sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//' >&2
+    sed -n '2,13p' "$0" | sed 's/^# \{0,1\}//' >&2
     exit 2
 }
 
@@ -64,6 +65,7 @@ step() {
 }
 
 step fmt cargo fmt --all --check
+step css-classes scripts/css-classes.sh
 if $ui; then
     step clippy cargo clippy -q -p ui -p frontend --all-targets -- -D warnings
     step wasm-clippy cargo clippy -q -p frontend --target wasm32-unknown-unknown -- -D warnings
