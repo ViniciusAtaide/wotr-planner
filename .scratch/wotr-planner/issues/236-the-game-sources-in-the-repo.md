@@ -54,6 +54,9 @@ The script commits nothing of the game's: it fetches the community's published f
 
 **Tests:** none to add (no Rust change). **Snapshot message:** silent (the check runs inside `scripts/check.sh`). **What the queue's proof should show:** no difference; nothing in the engine or data changed.
 
+**Review fixes** (main session, after the review): the script finds the checkout it lives in (`git -C "$(dirname "$0")"`), not the shell's; one EXIT trap removes a download or clone in progress, so an interrupted run leaves no `blueprints.part.*` and no half-cloned `decompiled/`; a failed `gh` falls back to `curl`, and a download that fails says so instead of reporting an empty hash; an unborn `decompiled/` HEAD reads as `none`; the ignore rules drop their trailing slash, so a symlinked folder is ignored too. Tested with fake `gh` and `curl` (both failing: refused, nothing left; `gh` copying the dump: fetched), a truncated dump (refused, both hashes named) and the filled folders (current).
+
+
 ## Done when
 
 - `scripts/game-sources.sh` on a clone with neither folder leaves both filled at the pins. On a filled one it changes nothing and says it's current.

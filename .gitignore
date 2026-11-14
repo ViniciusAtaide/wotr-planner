@@ -1,9 +1,9 @@
 target/
 /guide-cache/
 # The game's decompiled code (xADDBx/WrathDecompiled, patch 2.7.0x), read for facts only: never committed (ticket 234).
-/decompiled/
+/decompiled
 # The game's blueprints (BubblePrintsData, patch 2.7.0x), fetched by scripts/game-sources.sh: never committed (ticket 236).
-/blueprints/
+/blueprints
 /blueprints.part.*/
 .env
 # The game data database of the checkouts from before ticket 187, which may still be lying around.
