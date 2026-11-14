@@ -51,7 +51,7 @@ pub use attack::{ATTACK_LINE_LEAVES_OUT, AttackLine, AttackPart, PowerAttack};
 pub use caster::{CASTER_LINE_LEAVES_OUT, CasterLine, CasterPart, SpellDc};
 use catalog::Catalog;
 pub use gear::{GearDependent, GearNeed, GearOption};
-pub use ranks::{LaterRankPick, RankLevelOption, ShiftedPick};
+pub use ranks::{LaterRankLevels, LaterRankPick, RankLevelOption, ShiftedPick};
 pub use totals::{CLASS_SKILL_BONUS, SkillTotal, TOTALS_LEAVE_OUT, Total, TotalPart, Totals};
 
 /// The highest character level without a path that raises it.
@@ -459,6 +459,14 @@ pub struct EntryOption {
 }
 
 impl SlotEntry {
+    /// For a locked entry, the option whose refusal it shows (its reason, and the issue, pick and edit that stand
+    /// for the entry): the first not already held, else the first locked. `None` for an open entry.
+    pub fn shown(&self) -> Option<&EntryOption> {
+        (!self.open)
+            .then(|| pickers::shown_option(&self.options))
+            .flatten()
+    }
+
     /// The line under its name: "Choose a weapon." for an entry of values, then its summary and story note.
     pub fn detail(&self) -> String {
         let choose = self.noun.map(|noun| format!("Choose {noun}."));

@@ -636,3 +636,103 @@ async fn a_parameterised_entry_listed_without_its_values_names_what_it_breaks() 
         "{options}"
     );
 }
+
+/// The reason `options` gives for a value at an address on the test world.
+async fn closed_reason(build: &Build, choice: &str, query: &str, value: Value) -> Value {
+    let options = Client::on_the_test_world()
+        .await
+        .ok(
+            "options",
+            json!({ "build": code(build), "choice": choice, "only_open": false, "query": query }),
+        )
+        .await;
+    let found = options["options"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|option| option["value"] == value)
+        .unwrap_or_else(|| panic!("no {value} in {options}"))
+        .clone();
+    found["status"].clone()
+}
+
+#[tokio::test]
+async fn a_pick_that_would_be_held_twice_says_where_it_is_held_not_what_the_slot_holds() {
+    // Ticket 192 review: Toughness at level 1 with Toughness at level 3 would be held twice; slot 1 holds nothing.
+    let mut build = build("human", &times("fighter", 3));
+    build.picks.insert(general_slot(3), pick_feat("toughness"));
+    let status = closed_reason(
+        &build,
+        "slot.feat.1.general.0",
+        "toughness",
+        json!("toughness"),
+    )
+    .await;
+    assert_eq!(status["issue"], "breaks_later", "{status}");
+    assert_eq!(
+        status["reason"],
+        "toughness is taken in level 3's Feat slot"
+    );
+    // `choose` says the same.
+    let chosen = choose(
+        &build,
+        json!([{ "choice": "slot.feat.1.general.0", "value": "toughness" }]),
+    )
+    .await;
+    assert_eq!(
+        chosen["rejected"]["reason"],
+        "toughness is taken in level 3's Feat slot"
+    );
+}
+
+#[tokio::test]
+async fn a_change_that_breaks_a_pick_for_another_reason_says_only_what_it_would_break() {
+    // Ticket 192 review: a class swapped under the rogue talent its level gives; the talent is refused as no longer
+    // offered, which no slot "holds".
+    let mut rogue = build("human", &times("rogue", 2));
+    rogue.picks.insert(
+        rules::test_world::selection_slot(2, 0),
+        rules::test_world::pick_option("rogue/rogue-talents/combat-trick"),
+    );
+    let status = closed_reason(
+        &rogue,
+        "level.2.class",
+        "fighter",
+        json!({ "class": "fighter" }),
+    )
+    .await;
+    assert_eq!(status["issue"], "breaks_later", "{status}");
+    assert_eq!(status["reason"], "Would break combat-trick");
+}
+
+#[tokio::test]
+async fn a_parameterised_entry_speaks_for_the_value_whose_reason_it_shows() {
+    // Ticket 192 review: Weapon Focus (Bastard Sword) is held in the class slot, so it is the entry's first value and
+    // is refused as held; the entry shows the next value's reason, and its names must be that value's: replacing
+    // Power Attack breaks Cleave, and Power Attack is the slot's own pick.
+    let mut build = build("human", &times("fighter", 2));
+    build.picks.insert(
+        class_slot(1, 0),
+        rules::test_world::pick_feat_for(
+            "weapon-focus",
+            rules::test_world::weapon("bastard-sword"),
+        ),
+    );
+    build
+        .picks
+        .insert(general_slot(1), pick_feat("power-attack"));
+    build.picks.insert(class_slot(2, 0), pick_feat("cleave"));
+    let options = Client::on_the_test_world()
+        .await
+        .ok(
+            "options",
+            json!({ "build": code(&build), "choice": "slot.feat.1.general.0",
+                    "only_open": false, "query": "weapon-focus" }),
+        )
+        .await;
+    assert_eq!(
+        options["options"][0]["status"]["reason"],
+        "cleave depends on what `slot.feat.1.general.0` holds now",
+        "{options}"
+    );
+}

@@ -12,6 +12,7 @@ use super::closest;
 use super::tree::{At, Given, Node, Why, pick_gives};
 use crate::options::issue_reason;
 use crate::planner::{Planner, all_selections};
+use crate::unreached::Unreached;
 
 /// What a walk failure is worded from.
 pub(super) struct Wording<'a> {
@@ -152,20 +153,25 @@ impl Wording<'_> {
         let Some(pick) = self.build.picks.get(slot) else {
             return reason;
         };
-        // The declared Build without the failing pick, when that is all that fails in it.
-        let mut without = self.build.clone();
-        engine.apply(&mut without, &rules::Edit::Clear(slot.clone()));
-        let tried_on = engine.is_possible(&without).then_some(&without);
-        crate::options::later_rank_note(
+        // No walk: most unmet prerequisites meet no later rank's pick.
+        let Some((text, opens)) = crate::options::later_rank_clause(
             engine,
             self.build,
             self.sheet,
             (slot, pick),
             issue,
             &reason,
-            tried_on,
-        )
-        .unwrap_or(reason)
+        ) else {
+            return reason;
+        };
+        // The declared Build without the failing pick, when that is all that fails in it.
+        let mut without = self.build.clone();
+        engine.apply(&mut without, &rules::Edit::Clear(slot.clone()));
+        if !engine.is_possible(&without) {
+            return text;
+        }
+        let tail = crate::options::LaterLevels::new(engine, &without).tail(&opens);
+        format!("{text}{}", tail.unwrap_or_default())
     }
 
     /// A pick held already: where the declaration holds it, when a slot does (ticket 192), else the engine's text.
@@ -440,20 +446,8 @@ impl Wording<'_> {
                     let mut without = self.build.clone();
                     without.rank_levels.remove(rank);
                     let comes_at = engine.rank_floor(&without, *rank).unwrap_or(earliest);
-                    if !engine.rank_reached(&without, *rank) {
-                        let levels = without.levels.len();
-                        return match comes_at > u8::try_from(levels).unwrap_or(u8::MAX) {
-                            true => format!(
-                                "The Build doesn't reach MR {rank}, so `mythic.{rank}.level` has no level to take it at: \
-                                 MR {rank} comes at level {comes_at} at the earliest, and the Build has {levels} \
-                                 level(s)."
-                            ),
-                            false => format!(
-                                "The Build doesn't reach MR {rank}, so `mythic.{rank}.level` has no level to take it at: \
-                                 its Path switch (Legend) ends the ascensions at MR {}.",
-                                rules::PATH_SWITCH_RANK
-                            ),
-                        };
+                    if let Some(unreached) = Unreached::of(engine, &without, *rank) {
+                        return unreached.reason(*rank, &Unreached::no_level(*rank));
                     }
                     let why = if comes_at > earliest {
                         format!(

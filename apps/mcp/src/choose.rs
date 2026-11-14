@@ -14,7 +14,7 @@ use rules::{Address, Build, Choice, Engine, GearSpot, Issue, POINT_BUY_BUDGET, S
 
 use crate::code::{envelope, open, reopen};
 use crate::error::ToolError;
-use crate::options::{Breaks, Offer, issue_code, issue_reason, offers};
+use crate::options::{Breaks, LaterLevels, Offer, issue_code, issue_reason, offers};
 use crate::planner::Planner;
 use crate::shapes::{ChoiceValue, ChooseArgs, ChooseResult, LeaningStep, MovedItem, Rejected};
 use crate::similar::{closeness, closest_note, distance, nearest};
@@ -141,6 +141,18 @@ fn take(
         };
         return skill_map(engine, build, level, ranks, index, leaning);
     }
+    // A level written as text ("13") is the level, as a number is: a key that reads as a number at a rank's level.
+    let as_level;
+    let value = match (&address, value) {
+        (Address::RankLevel(_), ChoiceValue::Key(key)) => match key.trim().parse::<u8>() {
+            Ok(level) => {
+                as_level = ChoiceValue::Number(level);
+                &as_level
+            }
+            Err(_) => value,
+        },
+        _ => value,
+    };
     let offers = offers_at(engine, build, &address)?;
     let offer = find(value, &offers).ok_or_else(|| {
         missing_parameter(engine, build, &address, value, &offers)
@@ -207,15 +219,23 @@ fn apply_offer(
     if let Err(issue) = &offer.status {
         return Err(ToolError {
             code: issue_code(issue),
-            reason: offer.reason.clone().unwrap_or_else(|| {
-                match (issue, &offer.edit) {
-                    (Issue::BreaksLater, Some(edit)) => {
-                        Breaks::new(engine, build).reason(address, edit)
+            reason: {
+                let reason = offer.reason.clone().unwrap_or_else(|| {
+                    match (issue, &offer.edit) {
+                        (Issue::BreaksLater, Some(edit)) => {
+                            Breaks::new(engine, build).reason(address, edit)
+                        }
+                        _ => None,
                     }
-                    _ => None,
-                }
-                .unwrap_or_else(|| issue_reason(engine, issue))
-            }),
+                    .unwrap_or_else(|| issue_reason(engine, issue))
+                });
+                // The level of a later rank that would let the pick in.
+                let tail = offer
+                    .opens
+                    .as_ref()
+                    .and_then(|opens| LaterLevels::new(engine, build).tail(opens));
+                format!("{reason}{}", tail.unwrap_or_default())
+            },
         });
     }
     let Some(edit) = &offer.edit else {
@@ -515,7 +535,7 @@ fn rank_level_not_offered(
     given: u8,
 ) -> Option<ToolError> {
     let levels = build.levels.len();
-    let floor = engine.rank_level_options(build, rank).first()?.level;
+    let floor = engine.rank_floor(build, rank)?;
     let table = engine.rank_table_level(rank)?;
     let lists = format!("`options` on `mythic.{rank}.level` lists the levels.");
     let head = format!("MR {rank} can't be taken at level {given}");

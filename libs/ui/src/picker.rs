@@ -509,9 +509,11 @@ fn SlotPicker(id: SlotId) -> impl IntoView {
         let slot = slot.clone();
         after_paint(step, move || {
             let build = planner.build.get_untracked();
-            let mut entries =
-                timed("options", || engine.slot_entries(&build, &slot)).unwrap_or_default();
             let sheet = planner.sheet.get_untracked();
+            let mut entries = timed("options", || {
+                engine.slot_entries_in(&build, Some(&sheet), &slot)
+            })
+            .unwrap_or_default();
             timed("rank_level_that_opens", || {
                 later_rank_levels(&engine, &build, &sheet, &slot, &mut entries);
             });
@@ -625,9 +627,12 @@ fn later_rank_levels(
             Engine::moves_text(moves)
         ),
     };
+    // The levels a later rank can be taken at before the slot, worked out once for each rank.
+    let mut levels: std::collections::BTreeMap<u8, rules::LaterRankLevels> = Default::default();
     for entry in entries.iter_mut().filter(|entry| !entry.open) {
         let mut first: Option<String> = None;
-        let mut first_later: Option<(String, Option<String>)> = None;
+        // Each option's clause and tail, by its pick: the entry says those of the option whose reason it shows.
+        let mut later_notes: Vec<(rules::Pick, String, Option<String>)> = Vec::new();
         for option in &mut entry.options {
             let Err(issue @ Issue::Unmet(_)) = &option.option.status else {
                 continue;
@@ -648,23 +653,30 @@ fn later_rank_levels(
                 });
                 continue;
             }
-            let Some(later) = engine.later_rank_pick(build, sheet, slot, issue) else {
+            let Some(later) = engine.later_rank_pick(build, sheet, slot, pick, issue) else {
                 continue;
             };
             let clause = engine.later_rank_text(&later);
+            let rank_levels = levels
+                .entry(later.rank)
+                .or_insert_with(|| engine.later_rank_levels(build, &later));
             let tail = engine
-                .rank_level_that_lets_in(build, slot, pick, &later)
+                .level_that_lets_in(rank_levels, slot, pick)
                 .map(|(level, moves)| opens_text(later.rank, level, &moves));
-            first_later.get_or_insert_with(|| (clause.clone(), tail.clone()));
             option.reason = Some(joined(option.reason.take(), &clause, tail.as_deref()));
+            later_notes.push((pick.clone(), clause, tail));
         }
         if let Some(opens) = first {
             entry.reason = Some(match entry.reason.take() {
                 Some(reason) => format!("{reason} · {opens}"),
                 None => opens,
             });
-        } else if let Some((clause, tail)) = first_later {
-            entry.reason = Some(joined(entry.reason.take(), &clause, tail.as_deref()));
+        } else if let Some((_, clause, tail)) = entry.shown().and_then(|shown| {
+            later_notes
+                .iter()
+                .find(|(pick, ..)| *pick == shown.option.pick)
+        }) {
+            entry.reason = Some(joined(entry.reason.take(), clause, tail.as_deref()));
         }
     }
 }

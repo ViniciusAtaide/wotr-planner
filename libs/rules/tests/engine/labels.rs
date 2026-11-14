@@ -861,3 +861,28 @@ fn a_selection_named_x_labels_its_option_list_feat_slot_x_feat() {
     };
     assert_eq!(engine.slot_label(&slot), "Rogue Talents feat");
 }
+
+#[test]
+fn a_group_exclusion_counts_as_a_negation_and_a_plain_need_does_not() {
+    // Ticket 192 review: Draconic (Blue) needs "no other Draconic option"; a held Draconic (Red) excludes it, and a
+    // reason must not say the pick "depends on" what a slot holds.
+    let condition = |needs| Unmet::Condition { needs, has: None };
+    let group = condition(Prerequisite::NoOtherOptionOfGroup(OptionGroup::Draconic));
+    let none = condition(Prerequisite::NoOptionFrom(FeatureSelectionKey::new(
+        "sorcerer/bloodline",
+    )));
+    let plain = condition(Prerequisite::Feat(feat("dodge")));
+    let not = condition(Prerequisite::Not(Box::new(Prerequisite::Feat(feat(
+        "dodge",
+    )))));
+    assert!(Engine::unmet_negates(&group));
+    assert!(Engine::unmet_negates(&none));
+    assert!(Engine::unmet_negates(&not));
+    assert!(!Engine::unmet_negates(&plain));
+    // Inside a group of failures: one negation among them is enough.
+    assert!(Engine::unmet_negates(&Unmet::All(vec![
+        plain.clone(),
+        group
+    ])));
+    assert!(!Engine::unmet_negates(&Unmet::All(vec![plain])));
+}

@@ -2,10 +2,12 @@
 //! its name, whether it can be taken now and, when not, the engine's issue and reason. Each option keeps the edit
 //! the engine gives it, so `choose` applies the matching offer's edit and never builds one.
 
-use std::cell::OnceCell;
-use std::collections::BTreeSet;
+use std::cell::{OnceCell, RefCell};
+use std::collections::{BTreeMap, BTreeSet};
 
-use rules::{Address, Build, Choice, Edit, Engine, Issue, RankStatus, Sheet, SlotId, Step};
+use rules::{
+    Address, Build, Choice, Edit, Engine, Failure, Issue, RankStatus, Sheet, SlotId, Step,
+};
 
 use crate::code::{envelope, open};
 use crate::error::ToolError;
@@ -14,6 +16,7 @@ use crate::planner::Planner;
 use crate::shapes::{
     ChoiceValue, Kind, Open, OptionLine, OptionStatus, OptionsArgs, OptionsResult,
 };
+use crate::unreached::Unreached;
 
 /// One option the engine offers for a choice.
 #[derive(Clone, Debug)]
@@ -28,9 +31,13 @@ pub(crate) struct Offer {
     /// The engine's edit that takes it; `None` for a slot's parameterised entry listed without its values, which
     /// needs one of them.
     pub edit: Option<Edit>,
-    /// For an entry listed without its values, the edit of its first value: it stands for them when the entry
+    /// For an entry listed without its values, the edit of the value whose refusal the entry shows
+    /// ([`rules::SlotEntry::shown`]): it stands for them when the entry
     /// breaks a later choice and the reason must name what ([`Breaks::reason`]). No edit is applied from it.
     pub like: Option<Edit>,
+    /// For a slot's pick refused because a later rank's pick meets its prerequisite: what the level that would let it
+    /// in is told from, worked out only when the reason is shown ([`LaterLevels::tail`]).
+    pub opens: Option<Opens>,
     /// The filter chip it's filed under: a feat's category, an option's selection, "Base class", …
     pub category: Option<String>,
     /// A slot entry's summary, from the engine's picker; `None` when empty, and for the other pickers, whose summary
@@ -63,6 +70,7 @@ impl Offer {
             reason: None,
             edit: Some(edit),
             like: None,
+            opens: None,
             category: None,
             summary: None,
             takes: None,
@@ -123,6 +131,8 @@ pub(crate) struct Breaks<'a> {
     engine: &'a Engine,
     build: &'a Build,
     failing: OnceCell<BTreeSet<Choice>>,
+    /// The Build's sheet, walked when a reason must say where a pick is held.
+    sheet: OnceCell<Sheet>,
 }
 
 impl<'a> Breaks<'a> {
@@ -131,15 +141,43 @@ impl<'a> Breaks<'a> {
             engine,
             build,
             failing: OnceCell::new(),
+            sheet: OnceCell::new(),
         }
     }
 
-    /// The choices an edit would refuse, in walk order.
-    pub(crate) fn refused(&self, edit: &Edit) -> Vec<Choice> {
+    /// The choices an edit would refuse, in walk order, each with its issue.
+    pub(crate) fn refusals(&self, edit: &Edit) -> Vec<Failure> {
         let failing = self
             .failing
             .get_or_init(|| self.engine.failing_choices(self.build));
-        self.engine.refused_by(self.build, failing, edit)
+        self.engine.refusals(self.build, failing, edit)
+    }
+
+    /// Where the Build holds the pick of a slot, when a slot holds one ("Toughness is taken in level 3's Feat slot").
+    fn taken_in(&self, slot: &SlotId) -> Option<String> {
+        let sheet = self.sheet.get_or_init(|| self.engine.evaluate(self.build));
+        self.engine.taken_in(self.build, sheet.slot(slot)?)
+    }
+
+    /// Why the choices an edit would refuse are refused, as a reason says it (`depends`/`depend` and the word to
+    /// follow, for a withdrawal's and a pick's reason): `Held` for the first that would be held twice, `Needs` when
+    /// all fail a prerequisite that isn't a negation, `Other` for anything else.
+    pub(crate) fn cause(&self, refusals: &[Failure]) -> Cause {
+        let held = refusals.iter().find_map(|failure| {
+            let Choice::Slot(slot) = &failure.choice else {
+                return None;
+            };
+            matches!(failure.issue, Issue::AlreadyHeld | Issue::MaxTimes { .. })
+                .then(|| self.taken_in(slot))
+                .flatten()
+        });
+        if let Some(text) = held {
+            return Cause::Held(text);
+        }
+        let needs = refusals.iter().all(|failure| {
+            matches!(&failure.issue, Issue::Unmet(unmet) if !Engine::unmet_negates(unmet))
+        });
+        if needs { Cause::Needs } else { Cause::Other }
     }
 
     /// The first few of the choices, named as a reason names them.
@@ -153,10 +191,11 @@ impl<'a> Breaks<'a> {
     /// name (the caller falls back to [`BREAKS_LATER`]).
     pub(crate) fn reason(&self, address: &Address, edit: &Edit) -> Option<String> {
         let (engine, build) = (self.engine, self.build);
-        let refused = self.refused(edit);
-        if refused.is_empty() {
+        let refusals = self.refusals(edit);
+        if refusals.is_empty() {
             return None;
         }
+        let refused: Vec<Choice> = refusals.iter().map(|f| f.choice.clone()).collect();
         let names = self.names(&refused);
         let count = refused.len();
         let needs = verb(count, "needs", "need");
@@ -186,12 +225,30 @@ impl<'a> Breaks<'a> {
                     engine.skill_name(skill)
                 )
             }
-            _ => format!(
-                "{names} {} on what `{address}` holds now",
-                verb(count, "depends", "depend")
-            ),
+            _ => match self.cause(&refusals) {
+                Cause::Held(text) => text,
+                // The slot's pick is what they need, so it depends on what the slot holds.
+                Cause::Needs if matches!(address, Address::Slot(slot) if build.picks.contains_key(slot)) =>
+                {
+                    format!(
+                        "{names} {} on what `{address}` holds now",
+                        verb(count, "depends", "depend")
+                    )
+                }
+                _ => format!("Would break {names}"),
+            },
         })
     }
+}
+
+/// What the choices an edit would refuse fail for ([`Breaks::cause`]).
+pub(crate) enum Cause {
+    /// A pick would be held twice: where it is held now.
+    Held(String),
+    /// A prerequisite the edit would leave unmet.
+    Needs,
+    /// Anything else (a pick that excludes another, one no longer offered).
+    Other,
 }
 
 /// An engine issue as a code: the variant's name in snake case.
@@ -492,15 +549,12 @@ pub(crate) fn offers(
 fn rank_level_offers(engine: &Engine, build: &Build, rank: u8) -> Result<Vec<Offer>, ToolError> {
     let options = engine.rank_level_options(build, rank);
     if options.is_empty() {
-        return Err(ToolError::no_such_choice(
-            match engine.rank_table_level(rank) {
-                None => format!("There is no MR {rank}: the Mythic ranks are 1 to 10."),
-                Some(earliest) => format!(
-                    "The Build doesn't reach MR {rank}, so it has no level to take it at: MR {rank} comes at level \
-                 {earliest} at the earliest, and not after a Path switch that ends the ascensions (Legend)."
-                ),
-            },
-        ));
+        // No levels: the rank doesn't exist, or the Build doesn't reach it.
+        let reason = match Unreached::of(engine, build, rank) {
+            Some(unreached) => unreached.reason(rank, &Unreached::no_level(rank)),
+            None => format!("MR {rank} has no level to take it at."),
+        };
+        return Err(ToolError::no_such_choice(reason));
     }
     Ok(options
         .into_iter()
@@ -574,30 +628,40 @@ fn slot_offers(
 ) -> Option<Vec<Offer>> {
     let held = build.picks.get(slot);
     let mut offers = Vec::new();
-    for entry in engine.slot_entries(build, slot)? {
+    for entry in engine.slot_entries_in(build, Some(sheet), slot)? {
         let category = (!entry.category.is_empty()).then(|| entry.category.clone());
         let summary = (!entry.summary.is_empty()).then(|| entry.summary.clone());
         match entry.noun {
             Some(noun) if !values => {
                 // One line for the entry: open when any value is.
                 let first = &entry.options[0].option.pick;
-                let status = match entry.open {
-                    true => Ok(()),
-                    false => Err(entry_issue(&entry.options)),
+                // The value whose refusal the entry shows: its issue, pick and edit stand for the entry.
+                let shown = entry.shown();
+                let status = match shown {
+                    None => Ok(()),
+                    Some(option) => Err(option
+                        .option
+                        .status
+                        .clone()
+                        .expect_err("a locked entry's shown value is locked")),
                 };
                 // A later rank's pick that the entry needs says where it is (ticket 192).
-                let reason = match (&status, &entry.reason) {
-                    (Err(issue @ Issue::Unmet(_)), Some(reason)) => later_rank_note(
-                        engine,
-                        build,
-                        sheet,
-                        (slot, &entry.options[0].option.pick),
-                        issue,
-                        reason,
-                        Some(build),
-                    )
-                    .or_else(|| entry.reason.clone()),
-                    _ => entry.reason.clone(),
+                let clause = match (&status, &entry.reason, shown) {
+                    (Err(issue @ Issue::Unmet(_)), Some(reason), Some(option)) => {
+                        later_rank_clause(
+                            engine,
+                            build,
+                            sheet,
+                            (slot, &option.option.pick),
+                            issue,
+                            reason,
+                        )
+                    }
+                    _ => None,
+                };
+                let (reason, opens) = match clause {
+                    Some((reason, opens)) => (Some(reason), Some(opens)),
+                    None => (entry.reason.clone(), None),
                 };
                 offers.push(Offer {
                     value: ChoiceValue::Key(first.key().to_owned()),
@@ -605,10 +669,8 @@ fn slot_offers(
                     status,
                     reason,
                     edit: None,
-                    like: entry
-                        .options
-                        .first()
-                        .map(|option| option.option.edit.clone()),
+                    like: shown.map(|option| option.option.edit.clone()),
+                    opens,
                     category,
                     summary,
                     takes: Some(noun),
@@ -624,21 +686,26 @@ fn slot_offers(
                         .map(|needs| GearMark::WithGear(engine.gear_note(needs)));
                     let pick = option.option.pick;
                     // A Mythic rank's pick that a later level of the rank would open says so (ticket 171).
+                    let mut opens = None;
                     let reason = match (&option.option.status, option.reason) {
                         (Err(issue @ Issue::Unmet(_)), Some(reason)) => {
                             Some(match later_rank_level(engine, build, sheet, slot, &pick) {
                                 Some(later) => format!("{reason}. {later}"),
                                 // Or a prerequisite that a later rank's pick meets (ticket 192).
-                                None => later_rank_note(
+                                None => match later_rank_clause(
                                     engine,
                                     build,
                                     sheet,
                                     (slot, &pick),
                                     issue,
                                     &reason,
-                                    Some(build),
-                                )
-                                .unwrap_or(reason),
+                                ) {
+                                    Some((reason, found)) => {
+                                        opens = Some(found);
+                                        reason
+                                    }
+                                    None => reason,
+                                },
                             })
                         }
                         (_, reason) => reason,
@@ -650,6 +717,7 @@ fn slot_offers(
                         reason,
                         edit: Some(option.option.edit),
                         like: None,
+                        opens,
                         category: category.clone(),
                         summary: summary.clone(),
                         takes: None,
@@ -694,43 +762,66 @@ pub(crate) fn opens_text(rank: u8, level: u8, moves: &[(u8, u8)]) -> String {
     )
 }
 
+/// What a pick refused because a later rank's pick meets its prerequisite needs to say which level would let it in.
+#[derive(Clone, Debug)]
+pub(crate) struct Opens {
+    later: rules::LaterRankPick,
+    slot: SlotId,
+    pick: rules::Pick,
+}
+
 /// For a slot's pick refused for a prerequisite that a pick of a Mythic rank taken at a later level meets: the
-/// engine's reason with where that pick is (as the web app says it), and which level of the rank would let the pick
-/// in. `None` when no later rank's pick is what it needs (ticket 192).
-pub(crate) fn later_rank_note(
+/// engine's reason with where that pick is (as the web app says it), and what the level that would let the pick in
+/// is told from ([`LaterLevels::tail`]). `None` when no later rank's pick is what it needs (ticket 192). No walk.
+pub(crate) fn later_rank_clause(
     engine: &Engine,
     build: &Build,
     sheet: &Sheet,
     (slot, pick): (&SlotId, &rules::Pick),
     issue: &Issue,
     reason: &str,
-    // The possible Build the level is tried on, when there is one (`validate`'s declaration may not be).
-    tried_on: Option<&Build>,
-) -> Option<String> {
-    let later = engine.later_rank_pick(build, sheet, slot, issue)?;
-    let mut text = format!("{reason}: {}", engine.later_rank_text(&later));
-    if let Some((level, moves)) =
-        tried_on.and_then(|tried| engine.rank_level_that_lets_in(tried, slot, pick, &later))
-    {
-        text.push_str(&format!(". {}", opens_text(later.rank, level, &moves)));
-    }
-    Some(text)
+) -> Option<(String, Opens)> {
+    let later = engine.later_rank_pick(build, sheet, slot, pick, issue)?;
+    let text = format!("{reason}: {}", engine.later_rank_text(&later));
+    let opens = Opens {
+        later,
+        slot: slot.clone(),
+        pick: pick.clone(),
+    };
+    Some((text, opens))
 }
 
-/// The issue a locked entry shows, chosen as the engine chooses its one reason: the first option's that isn't
-/// already holding it (Weapon Focus held for a longsword but needing BAB +1 for the rest says the BAB), else the first
-/// option's.
-fn entry_issue(options: &[rules::EntryOption]) -> Issue {
-    let failing = || {
-        options
-            .iter()
-            .filter_map(|option| option.option.status.as_ref().err())
-    };
-    failing()
-        .find(|issue| !matches!(issue, Issue::AlreadyHeld | Issue::MaxTimes { .. }))
-        .or_else(|| failing().next())
-        .cloned()
-        .unwrap_or(Issue::NotAllowed)
+/// The levels later ranks can be taken at before a slot, for one slot of one call (it is keyed by rank alone): worked
+/// out once for a rank, and only when a reason that needs them is shown.
+pub(crate) struct LaterLevels<'a> {
+    engine: &'a Engine,
+    /// The Build the levels are tried on: a possible one.
+    build: &'a Build,
+    levels: RefCell<BTreeMap<u8, rules::LaterRankLevels>>,
+}
+
+impl<'a> LaterLevels<'a> {
+    pub(crate) fn new(engine: &'a Engine, build: &'a Build) -> Self {
+        Self {
+            engine,
+            build,
+            levels: RefCell::new(BTreeMap::new()),
+        }
+    }
+
+    /// ". MR 4 taken at level 12 opens it: `choose` `mythic.4.level` 12 first", or nothing when no level before the
+    /// slot lets the pick in.
+    pub(crate) fn tail(&self, opens: &Opens) -> Option<String> {
+        let rank = opens.later.rank;
+        let mut levels = self.levels.borrow_mut();
+        let levels = levels
+            .entry(rank)
+            .or_insert_with(|| self.engine.later_rank_levels(self.build, &opens.later));
+        let (level, moves) = self
+            .engine
+            .level_that_lets_in(levels, &opens.slot, &opens.pick)?;
+        Some(format!(". {}", opens_text(rank, level, &moves)))
+    }
 }
 
 /// The class picker at a level from [`Engine::class_options`]; a spellcasting prestige class first taken there is
@@ -853,6 +944,7 @@ pub(crate) fn options(planner: &Planner, args: OptionsArgs) -> Result<OptionsRes
     let only_open = args.only_open.unwrap_or(true);
     let compact = args.compact.unwrap_or(false);
     let breaks = Breaks::new(engine, &build);
+    let later = LaterLevels::new(engine, &build);
     let mut closed = 0;
     let mut lines = Vec::new();
     for offer in offers {
@@ -875,13 +967,18 @@ pub(crate) fn options(planner: &Planner, args: OptionsArgs) -> Result<OptionsRes
                 },
                 (Err(issue), _) => OptionStatus::Closed {
                     issue: issue_code(issue).to_owned(),
-                    reason: offer.reason.clone().unwrap_or_else(|| {
-                        match (issue, offer.edit.as_ref().or(offer.like.as_ref())) {
-                            (Issue::BreaksLater, Some(edit)) => breaks.reason(&address, edit),
-                            _ => None,
-                        }
-                        .unwrap_or_else(|| issue_reason(engine, issue))
-                    }),
+                    reason: {
+                        let reason = offer.reason.clone().unwrap_or_else(|| {
+                            match (issue, offer.edit.as_ref().or(offer.like.as_ref())) {
+                                (Issue::BreaksLater, Some(edit)) => breaks.reason(&address, edit),
+                                _ => None,
+                            }
+                            .unwrap_or_else(|| issue_reason(engine, issue))
+                        });
+                        // The level of a later rank that would let a pick in, only for the lines shown.
+                        let tail = offer.opens.as_ref().and_then(|opens| later.tail(opens));
+                        format!("{reason}{}", tail.unwrap_or_default())
+                    },
                 },
             },
             summary: match compact {

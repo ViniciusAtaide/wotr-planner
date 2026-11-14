@@ -18,8 +18,8 @@ use crate::gear::{dependent_lines, gear_lines, if_differs};
 use crate::planner::Planner;
 use crate::shapes::ChoiceValue;
 use crate::shapes::{
-    LevelLine, NakedLevel, NakedNumbers, Named, PickLine, RankLine, RankState, Scores, SheetResult,
-    SkillPointsLine, SpellLevels,
+    Gained, LevelLine, NakedLevel, NakedNumbers, Named, PickLine, RankLine, RankState, Scores,
+    SheetResult, SkillPointsLine, SpellLevels,
 };
 use crate::totals;
 
@@ -420,11 +420,21 @@ impl Lines<'_> {
                 .as_ref()
                 .map(|path| named(path, engine.path_name(path))),
             picks: rank.slots.iter().map(|slot| self.slot(slot)).collect(),
-            features: engine
-                .rank_features(rank)
-                .into_iter()
-                .map(|feature| named(feature, &engine.feature_name_apart(feature)))
-                .collect(),
+            features: {
+                // A row that lists a feature twice gives it twice: one entry, `times` 2.
+                let mut counted: Vec<(&rules::FeatureKey, usize)> = Vec::new();
+                for feature in engine.rank_features(rank) {
+                    match counted.iter_mut().find(|(seen, _)| *seen == feature) {
+                        Some((_, times)) => *times += 1,
+                        None => counted.push((feature, 1)),
+                    }
+                }
+                (counted.into_iter())
+                    .map(|(feature, times)| {
+                        gained(feature, &engine.feature_name_apart(feature), times)
+                    })
+                    .collect()
+            },
             dropped: rank
                 .dropped_slots
                 .iter()
@@ -467,12 +477,24 @@ fn new_feats(engine: &Engine, before: &CharacterState, after: &CharacterState) -
     feats
 }
 
-/// The features granted at a level: each held more times at its end than before it.
-fn new_features(engine: &Engine, before: &CharacterState, after: &CharacterState) -> Vec<Named> {
+/// The features granted at a level: each held more times at its end than before it, with how many more when that is
+/// more than one.
+fn new_features(engine: &Engine, before: &CharacterState, after: &CharacterState) -> Vec<Gained> {
     after
         .features
         .iter()
-        .filter(|(feature, times)| before.feature_count(feature) < **times)
-        .map(|(feature, _)| named(feature, &engine.feature_name_apart(feature)))
+        .filter_map(|(feature, times)| {
+            let more = times.checked_sub(before.feature_count(feature))?;
+            (more > 0).then(|| gained(feature, &engine.feature_name_apart(feature), more.into()))
+        })
         .collect()
+}
+
+/// A feature gained `times` times at once.
+fn gained(key: &impl std::fmt::Display, name: &str, times: usize) -> Gained {
+    Gained {
+        key: key.to_string(),
+        name: name.to_owned(),
+        times: u8::try_from(times).ok().filter(|times| *times > 1),
+    }
 }

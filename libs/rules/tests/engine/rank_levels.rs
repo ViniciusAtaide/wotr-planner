@@ -895,7 +895,7 @@ fn a_pick_whose_prerequisite_is_a_later_ranks_says_where_and_what_would_open_it(
         .status
         .unwrap_err();
     let later = engine
-        .later_rank_pick(&build, &sheet, &slot, &issue)
+        .later_rank_pick(&build, &sheet, &slot, &pick, &issue)
         .expect("Dodge is in a later rank");
     assert_eq!(
         (later.rank, later.level, later.at, &later.pick),
@@ -906,17 +906,55 @@ fn a_pick_whose_prerequisite_is_a_later_ranks_says_where_and_what_would_open_it(
         "dodge is in Mythic rank 4's trickster/bonus-feats slot, taken at level 14, after this slot's level 13"
     );
     // MR 4 at level 12 (the latest below 13) opens it; no rank above moves.
+    let levels = engine.later_rank_levels(&build, &later);
     assert_eq!(
-        engine.rank_level_that_lets_in(&build, &slot, &pick, &later),
+        engine.level_that_lets_in(&levels, &slot, &pick),
         Some((12, vec![]))
     );
     // An issue that isn't an unmet prerequisite, and a slot after the rank, have none.
     assert_eq!(
-        engine.later_rank_pick(&build, &sheet, &slot, &Issue::AlreadyHeld),
+        engine.later_rank_pick(&build, &sheet, &slot, &pick, &Issue::AlreadyHeld),
         None
     );
     assert_eq!(
-        engine.later_rank_pick(&build, &sheet, &general_slot(14), &issue),
+        engine.later_rank_pick(&build, &sheet, &general_slot(14), &pick, &issue),
         None
     );
+}
+
+#[test]
+fn a_later_ranks_pick_is_named_only_for_the_value_it_would_meet() {
+    // Ticket 192 review: Weapon Specialization needs Weapon Focus in the same weapon. MR 4's Extra Feat holds Weapon
+    // Focus (Dagger), taken at level 14: that is why Weapon Specialization (Dagger) at level 13 is refused, and not
+    // why Weapon Specialization (Longsword) is.
+    let engine = engine();
+    let mut build = trickster(14);
+    build
+        .picks
+        .insert(SlotId::Mythic { rank: 4 }, pick_mythic_feat("extra-feat"));
+    build.picks.insert(
+        SlotId::MythicExtra { rank: 4 },
+        pick_feat_for("weapon-focus", weapon("dagger")),
+    );
+    build = moved(&build, 4, 14);
+    let sheet = engine.evaluate(&build);
+    let slot = general_slot(13);
+    let refusal = |value: &str| {
+        let pick = pick_feat_for("weapon-specialization", weapon(value));
+        let issue = engine
+            .options(&build, &slot)
+            .expect("the slot")
+            .into_iter()
+            .find(|option| option.pick == pick)
+            .expect("offered")
+            .status
+            .unwrap_err();
+        engine.later_rank_pick(&build, &sheet, &slot, &pick, &issue)
+    };
+    let dagger = refusal("dagger").expect("the dagger's Weapon Focus is in a later rank");
+    assert_eq!(
+        engine.later_rank_text(&dagger),
+        "weapon-focus (dagger) is in Mythic rank 4's Feat slot, taken at level 14, after this slot's level 13"
+    );
+    assert_eq!(refusal("longsword"), None);
 }

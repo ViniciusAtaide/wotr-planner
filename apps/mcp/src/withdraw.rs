@@ -15,9 +15,10 @@ use rules::{Address, Build, Engine};
 
 use crate::code::{envelope, open, reopen};
 use crate::error::ToolError;
-use crate::options::{Breaks, verb};
+use crate::options::{Breaks, Cause, verb};
 use crate::planner::Planner;
 use crate::shapes::{WithdrawArgs, WithdrawResult};
+use crate::unreached::Unreached;
 
 /// `withdraw`: the Build without the choice, or why it can't come off.
 pub(crate) fn withdraw(planner: &Planner, args: WithdrawArgs) -> Result<WithdrawResult, ToolError> {
@@ -84,13 +85,27 @@ pub(crate) fn withdraw(planner: &Planner, args: WithdrawArgs) -> Result<Withdraw
         }
         // The choices that would fail without it, by name.
         let breaks = Breaks::new(engine, &build);
-        let refused = breaks.refused(&edit);
-        if !refused.is_empty() {
+        let refusals = breaks.refusals(&edit);
+        if !refusals.is_empty() {
+            let refused: Vec<_> = refusals
+                .iter()
+                .map(|failure| failure.choice.clone())
+                .collect();
             let count = refused.len();
+            let names = breaks.names(&refused);
+            let (first, so) = match breaks.cause(&refusals) {
+                Cause::Needs => (
+                    format!(
+                        "{names} {} on `{address}`",
+                        verb(count, "depends", "depend")
+                    ),
+                    "it",
+                ),
+                _ => (format!("Would break {names}"), "`{address}`"),
+            };
+            let so = so.replace("{address}", &address.to_string());
             return Err(ToolError::not_removable(format!(
-                "{} {} on `{address}`, so it can't be withdrawn now: withdraw {} first.",
-                breaks.names(&refused),
-                verb(count, "depends", "depend"),
+                "{first}, so {so} can't be withdrawn now: withdraw {} first.",
                 verb(count, "that choice", "those choices")
             )));
         }
@@ -128,24 +143,10 @@ pub(crate) fn withdraw(planner: &Planner, args: WithdrawArgs) -> Result<Withdraw
 /// table's level, or the rank below's when that one is taken later), the Build doesn't reach it, or there is no such
 /// rank.
 fn unplaced_rank(engine: &Engine, build: &Build, rank: u8) -> String {
-    let Some(table) = engine.rank_table_level(rank) else {
-        return format!("There is no MR {rank}: the Mythic ranks are 1 to 10.");
-    };
-    if !engine.rank_reached(build, rank) {
-        let levels = build.levels.len();
-        let comes_at = engine.rank_floor(build, rank).unwrap_or(table);
-        return match usize::from(comes_at) > levels {
-            true => format!(
-                "The Build doesn't reach MR {rank}, so there is nothing to withdraw: MR {rank} comes at level \
-                 {comes_at} at the earliest, and the Build has {levels} level(s)."
-            ),
-            false => format!(
-                "The Build doesn't reach MR {rank}, so there is nothing to withdraw: its Path switch (Legend) ends \
-                 the ascensions at MR {}.",
-                rules::PATH_SWITCH_RANK
-            ),
-        };
+    if let Some(unreached) = Unreached::of(engine, build, rank) {
+        return unreached.reason(rank, "there is nothing to withdraw");
     }
+    let table = engine.rank_table_level(rank).unwrap_or_default();
     let at = engine.rank_level(build, rank).unwrap_or(table);
     let nothing = format!("there is nothing to withdraw at `mythic.{rank}.level`");
     if at > table {

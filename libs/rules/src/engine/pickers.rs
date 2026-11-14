@@ -149,9 +149,19 @@ impl Engine {
     /// order, each entry named, filed under its chip and with its summary, story note and the one reason it shows,
     /// and each option with its value's name and its own reason. `None` when the Build has no such slot.
     pub fn slot_entries(&self, build: &Build, slot: &SlotId) -> Option<Vec<SlotEntry>> {
+        self.slot_entries_in(build, None, slot)
+    }
+
+    /// [`slot_entries`](Self::slot_entries) with the Build's sheet when the caller has it: an option held already
+    /// says where it is held from the sheet, which is otherwise walked once, when the first such option asks.
+    pub fn slot_entries_in(
+        &self,
+        build: &Build,
+        sheet: Option<&Sheet>,
+        slot: &SlotId,
+    ) -> Option<Vec<SlotEntry>> {
         let mut entries: Vec<SlotEntry> = Vec::new();
-        // The sheet, walked when the first option held already asks where it is held.
-        let sheet: OnceCell<Sheet> = OnceCell::new();
+        let walked: OnceCell<Sheet> = OnceCell::new();
         for option in self.options(build, slot)? {
             let same_item = entries
                 .last()
@@ -165,7 +175,8 @@ impl Engine {
                 (Ok(()), _) => None,
                 // Where a pick is held is its own to say: the last value's place is another's.
                 (Err(Issue::AlreadyHeld), _) => {
-                    let sheet = sheet.get_or_init(|| self.evaluate(build));
+                    let sheet =
+                        sheet.unwrap_or_else(|| walked.get_or_init(|| self.evaluate(build)));
                     self.held_where(build, sheet, slot, &option.pick)
                         .or_else(|| self.issue_text(&Issue::AlreadyHeld))
                 }
@@ -222,6 +233,12 @@ impl Engine {
                     .as_ref()
                     .is_some_and(|held| self.holds_the_same(held, pick))
             })?;
+        self.taken_in(build, held)
+    }
+
+    /// Where the Build holds a pick, in the phrase [`held_where`](Self::held_where) uses: "Toughness is taken in
+    /// level 3's Feat slot". `None` for a slot with no pick, or none of a level or a rank.
+    pub fn taken_in(&self, build: &Build, held: &Slot) -> Option<String> {
         let name = self.pick_name(held.pick.as_ref()?);
         let label = self.slot_label(held);
         Some(match (held.id.level(), held.id.rank()) {
@@ -479,10 +496,16 @@ fn story_note(prerequisite: &Prerequisite) -> Option<String> {
     Some(format!("(Story: {})", names.join(", ")))
 }
 
-/// The one reason a locked entry shows: the first option's whose issue isn't already holding it (Weapon Focus held
-/// for a longsword but needing BAB +1 for the rest says the BAB), else the first option's. `None` when that one shows
-/// none (it would break a later choice).
+/// The one reason a locked entry shows: that of the option [`shown_option`] names. `None` when it shows none (it
+/// would break a later choice).
 fn entry_reason(options: &[EntryOption]) -> Option<String> {
+    shown_option(options).and_then(|option| option.reason.clone())
+}
+
+/// The option whose refusal a locked entry shows: the first whose issue isn't already holding it (Weapon Focus held
+/// for a longsword but needing BAB +1 for the rest says the BAB), else the first locked one. `None` when none is
+/// locked.
+pub(super) fn shown_option(options: &[EntryOption]) -> Option<&EntryOption> {
     let held = |option: &&EntryOption| {
         matches!(
             option.option.status,
@@ -493,7 +516,6 @@ fn entry_reason(options: &[EntryOption]) -> Option<String> {
     failing()
         .find(|option| !held(option))
         .or_else(|| failing().next())
-        .and_then(|option| option.reason.clone())
 }
 
 /// The advancement the Build has for a class: none when it has no choice for it.
