@@ -2,7 +2,7 @@
 
 Type: feature
 Status: open
-Blocked by: none (edits `apps/mcp/src/{sheet,shapes}.rs` with [222](222-sheet-says-a-class-a-feat-and-a-feature-once.md): one after the other)
+Blocked by: none (edits `apps/mcp/src/{sheet,shapes}.rs` with [231](231-sheet-says-a-class-a-feat-and-a-feature-once.md): one after the other)
 Model: Sonnet.
 Map: [WotR Build Planner](../map.md)
 

@@ -2,7 +2,7 @@
 
 Type: feature
 Status: open
-Blocked by: none (edits `apps/mcp/src/{sheet,shapes}.rs` with [221](221-sheet-says-a-levels-skill-ranks-in-one-row.md): one after the other)
+Blocked by: none (edits `apps/mcp/src/{sheet,shapes}.rs` with [230](230-sheet-says-a-levels-skill-ranks-in-one-row.md): one after the other)
 Model: Sonnet to build; reviewed against 210's decisions.
 Map: [WotR Build Planner](../map.md)
 
