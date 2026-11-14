@@ -25,7 +25,7 @@ async fn withdrawn(build: &Build, choice: &str) -> Build {
     let result = withdraw(build, choice).await;
     assert_ne!(result.is_error, Some(true), "{choice}: {result:?}");
     let content = result.structured_content.expect("structured content");
-    assert!(content["todo"].is_array());
+    assert!(content["open"].is_u64(), "{content}");
     decode(&text(&content["build"]))
 }
 
@@ -177,4 +177,73 @@ async fn withdraw_names_the_one_choice_it_would_break_when_no_need_is_unmet() {
         "not_removable: Would break toughness, so `slot.selection.1.0` can't be withdrawn now: withdraw toughness \
          first."
     );
+}
+
+// ---- what changed in `todo` (ticket 209) -------------------------------------------------------------------------
+
+/// A successful `withdraw`'s whole result.
+async fn withdrawn_result(build: &Build, choice: &str, todo: bool) -> rmcp::serde_json::Value {
+    Client::on_the_test_world()
+        .await
+        .ok(
+            "withdraw",
+            json!({ "build": code(build), "choice": choice, "todo": todo }),
+        )
+        .await
+}
+
+#[tokio::test]
+async fn withdrawing_a_leaf_opens_its_slot() {
+    let mut fighter = build("human", &["fighter"]);
+    fighter
+        .picks
+        .insert(class_slot(1, 0), pick_feat("power-attack"));
+    let result = withdrawn_result(&fighter, "slot.feat.1.class.0", false).await;
+    assert_eq!(
+        choices(&result["opened"]),
+        ["slot.feat.1.class.0"],
+        "{result}"
+    );
+    assert!(result.get("closed").is_none(), "{result}");
+    assert!(result.get("todo").is_none(), "{result}");
+}
+
+#[tokio::test]
+async fn withdrawing_a_level_closes_its_slots() {
+    let fighter = build("human", &times("fighter", 3));
+    let whole = Client::on_the_test_world()
+        .await
+        .ok("sheet", json!({ "build": code(&fighter) }))
+        .await;
+    let level_3: Vec<String> = choices(&whole["todo"])
+        .into_iter()
+        .filter(|choice| choice.contains(".3.") || choice.ends_with(".3"))
+        .collect();
+    assert!(!level_3.is_empty(), "{whole}");
+    let result = withdrawn_result(&fighter, "level.3", false).await;
+    let closed: Vec<String> = result["closed"]
+        .as_array()
+        .expect("closed")
+        .iter()
+        .map(text)
+        .collect();
+    assert_eq!(closed, level_3, "{result}");
+    assert_eq!(
+        result["open"].as_u64(),
+        Some((choices(&whole["todo"]).len() - level_3.len()) as u64),
+        "{result}"
+    );
+}
+
+#[tokio::test]
+async fn withdraw_with_todo_true_returns_the_whole_list() {
+    let mut fighter = build("human", &["fighter"]);
+    fighter
+        .picks
+        .insert(class_slot(1, 0), pick_feat("power-attack"));
+    let result = withdrawn_result(&fighter, "slot.feat.1.class.0", true).await;
+    for field in ["opened", "closed", "open"] {
+        assert!(result.get(field).is_none(), "{field} in {result}");
+    }
+    assert!(choices(&result["todo"]).contains(&"slot.feat.1.class.0".to_owned()));
 }

@@ -35,7 +35,8 @@ async fn a_valid_choice_returns_a_new_code_whose_sheet_shows_it() {
     assert!(chosen.get("rejected").is_none(), "{chosen}");
     assert_ne!(chosen["build"], code(&fighter));
     assert!(text(&chosen["link"]).ends_with(&text(&chosen["build"])));
-    assert!(!choices(&chosen["todo"]).contains(&"slot.feat.1.class.0".to_owned()));
+    assert_eq!(chosen["closed"], json!(["slot.feat.1.class.0"]), "{chosen}");
+    assert!(chosen.get("todo").is_none(), "{chosen}");
 
     let after = sheet(&chosen["build"]).await;
     let pick = at(&after["levels"][0]["picks"], "slot.feat.1.class.0");
@@ -735,4 +736,221 @@ async fn a_parameterised_entry_speaks_for_the_value_whose_reason_it_shows() {
         "cleave depends on what `slot.feat.1.general.0` holds now",
         "{options}"
     );
+}
+
+// ---- what changed in `todo` (ticket 209) -------------------------------------------------------------------------
+
+/// A `todo` list, `{choice, label}` rows, as address → label.
+fn labelled(list: &Value) -> std::collections::BTreeMap<String, String> {
+    list.as_array()
+        .unwrap_or_else(|| panic!("{list} is a list"))
+        .iter()
+        .map(|row| (text(&row["choice"]), text(&row["label"])))
+        .collect()
+}
+
+/// The addresses of a `closed` list.
+fn closed_of(result: &Value) -> Vec<String> {
+    result["closed"]
+        .as_array()
+        .map_or_else(Vec::new, |list| list.iter().map(text).collect())
+}
+
+/// The whole `todo` of a code, from `sheet`.
+async fn todo_of(code: &Value) -> std::collections::BTreeMap<String, String> {
+    labelled(&sheet(code).await["todo"])
+}
+
+/// The open count of a result.
+fn open_of(result: &Value) -> usize {
+    usize::try_from(result["open"].as_u64().expect("open is a number")).expect("fits")
+}
+
+#[tokio::test]
+async fn a_closing_step_returns_its_address_and_the_count_not_the_list() {
+    let fighter = build("human", &["fighter"]);
+    let before = todo_of(&json!(code(&fighter))).await;
+    let chosen = choose(
+        &fighter,
+        json!([{ "choice": "slot.feat.1.class.0", "value": "power-attack" }]),
+    )
+    .await;
+    assert_eq!(closed_of(&chosen), ["slot.feat.1.class.0"], "{chosen}");
+    assert!(chosen.get("todo").is_none(), "{chosen}");
+    assert_eq!(open_of(&chosen), before.len() - 1, "{chosen}");
+}
+
+#[tokio::test]
+async fn an_opening_step_returns_the_choices_it_opened_with_their_labels() {
+    // A second level opens its slots, skill points and ability increase where the class gives them.
+    let fighter = build("human", &["fighter"]);
+    let before = todo_of(&json!(code(&fighter))).await;
+    let chosen = choose(
+        &fighter,
+        json!([{ "choice": "level.2.class", "value": { "class": "fighter" } }]),
+    )
+    .await;
+    let whole = todo_of(&chosen["build"]).await;
+    let opened = labelled(&chosen["opened"]);
+    assert!(opened.contains_key("level.2.skill"), "{chosen}");
+    assert!(
+        !opened.is_empty() && closed_of(&chosen).is_empty(),
+        "{chosen}"
+    );
+    for (choice, label) in &opened {
+        assert_eq!(whole.get(choice), Some(label), "{chosen}");
+        assert!(!before.contains_key(choice), "{choice} was open: {chosen}");
+    }
+    assert_eq!(open_of(&chosen), whole.len(), "{chosen}");
+}
+
+#[tokio::test]
+async fn real_data_a_new_level_returns_the_slots_it_opens_as_opened() {
+    // A third fighter level opens its feat slot and skill points, on the real data.
+    let client = Client::start().await;
+    let mut declared = json!({
+        "start.race": "human",
+        "start.faith": "atheism",
+        "start.alignment": "true-neutral",
+    });
+    for level in 1..=2 {
+        declared[format!("level.{level}.class")] = json!({ "class": "fighter" });
+    }
+    let validated = client.ok("validate", json!({ "choices": declared })).await;
+    let chosen = client
+        .ok(
+            "choose",
+            json!({ "build": validated["build"], "steps": [
+                { "choice": "level.3.class", "value": { "class": "fighter" } },
+            ] }),
+        )
+        .await;
+    let sheet = client
+        .ok("sheet", json!({ "build": chosen["build"] }))
+        .await;
+    let whole = labelled(&sheet["todo"]);
+    let opened = labelled(&chosen["opened"]);
+    assert!(!opened.is_empty(), "{chosen}");
+    assert!(
+        opened.keys().all(|choice| whole.contains_key(choice)),
+        "{chosen}"
+    );
+    assert_eq!(open_of(&chosen), whole.len(), "{chosen}");
+}
+
+#[tokio::test]
+async fn a_label_that_changes_counts_as_opened_with_the_new_label_not_closed() {
+    let fighter = build("human", &["fighter"]);
+    let before = todo_of(&json!(code(&fighter))).await;
+    let old = before.get("level.1.skill").expect("skill points are open");
+    let chosen = choose(
+        &fighter,
+        json!([{ "choice": "level.1.skill.athletics", "value": 1 }]),
+    )
+    .await;
+    assert_eq!(chosen["applied"], 1, "{chosen}");
+    let opened = labelled(&chosen["opened"]);
+    let new = opened.get("level.1.skill");
+    assert!(new.is_some_and(|label| label != old), "{chosen}");
+    assert!(
+        !closed_of(&chosen).contains(&"level.1.skill".to_owned()),
+        "{chosen}"
+    );
+    assert_eq!(open_of(&chosen), before.len(), "{chosen}");
+}
+
+#[tokio::test]
+async fn a_refused_step_returns_the_changes_of_the_steps_before_it() {
+    let fighter = build("human", &["fighter"]);
+    let before = todo_of(&json!(code(&fighter))).await;
+    let chosen = choose(
+        &fighter,
+        json!([
+            { "choice": "slot.feat.1.class.0", "value": "power-attack" },
+            { "choice": "slot.feat.1.general.0", "value": "no-such-feat" },
+        ]),
+    )
+    .await;
+    assert_eq!(chosen["applied"], 1, "{chosen}");
+    assert!(chosen.get("rejected").is_some(), "{chosen}");
+    assert_eq!(closed_of(&chosen), ["slot.feat.1.class.0"], "{chosen}");
+    assert_eq!(open_of(&chosen), before.len() - 1, "{chosen}");
+
+    // Refused at step 0: nothing opened or closed, the count still there.
+    let none = choose(
+        &fighter,
+        json!([{ "choice": "slot.feat.1.general.0", "value": "cleave" }]),
+    )
+    .await;
+    assert_eq!(none["applied"], 0, "{none}");
+    assert!(
+        none.get("opened").is_none() && none.get("closed").is_none(),
+        "{none}"
+    );
+    assert_eq!(open_of(&none), before.len(), "{none}");
+}
+
+#[tokio::test]
+async fn the_todo_flag_returns_the_whole_list_and_no_changes() {
+    let fighter = build("human", &["fighter"]);
+    let chosen = Client::on_the_test_world()
+        .await
+        .ok(
+            "choose",
+            json!({
+                "build": code(&fighter),
+                "todo": true,
+                "steps": [{ "choice": "slot.feat.1.class.0", "value": "power-attack" }],
+            }),
+        )
+        .await;
+    for field in ["opened", "closed", "open"] {
+        assert!(chosen.get(field).is_none(), "{field} in {chosen}");
+    }
+    assert_eq!(
+        labelled(&chosen["todo"]),
+        todo_of(&chosen["build"]).await,
+        "{chosen}"
+    );
+}
+
+#[tokio::test]
+async fn the_changes_over_several_steps_turn_the_old_list_into_the_new_one() {
+    let fighter = build("human", &["fighter"]);
+    let before = todo_of(&json!(code(&fighter))).await;
+    let chosen = choose(
+        &fighter,
+        json!([
+            { "choice": "slot.feat.1.class.0", "value": "power-attack" },
+            { "choice": "level.2.class", "value": { "class": "fighter" } },
+            { "choice": "level.1.skill.athletics", "value": 1 },
+            { "choice": "level.3.class", "value": { "class": "fighter" } },
+        ]),
+    )
+    .await;
+    assert_eq!(chosen["applied"], 4, "{chosen}");
+    let mut list = before;
+    for address in closed_of(&chosen) {
+        assert!(list.remove(&address).is_some(), "{address} was not open");
+    }
+    list.extend(labelled(&chosen["opened"]));
+    assert_eq!(list, todo_of(&chosen["build"]).await, "{chosen}");
+}
+
+#[tokio::test]
+async fn a_link_gives_the_same_changes_as_its_code() {
+    let fighter = build("human", &["fighter"]);
+    let steps = json!([{ "choice": "slot.feat.1.class.0", "value": "power-attack" }]);
+    let by_code = choose(&fighter, steps.clone()).await;
+    let by_link = Client::on_the_test_world()
+        .await
+        .ok(
+            "choose",
+            json!({
+                "build": format!("https://example.test/#b={}", code(&fighter)),
+                "steps": steps,
+            }),
+        )
+        .await;
+    assert_eq!(by_code, by_link);
 }

@@ -11,9 +11,9 @@
 //! A gear item comes off the same way (`gear.belt`, `gear.usable.<item key>`), unless a choice needs it: then the
 //! refusal names that choice, as the engine words it ([`crate::gear::needed_reason`]).
 
-use rules::{Address, Build, Engine};
+use rules::{Address, Build, Engine, encode_build};
 
-use crate::code::{envelope, open, reopen};
+use crate::code::{LINK_BASE, open, reopen, report, todo, todo_before};
 use crate::error::ToolError;
 use crate::options::{Breaks, Cause, verb};
 use crate::planner::Planner;
@@ -116,6 +116,7 @@ pub(crate) fn withdraw(planner: &Planner, args: WithdrawArgs) -> Result<Withdraw
              `sheet` with `removable: true` lists what can be withdrawn now."
         )));
     }
+    let before = todo_before(engine, &build, args.todo);
     let leaning = engine.newly_gear_dependent(&build, &edit);
     let mut next = build;
     engine.apply(&mut next, &edit);
@@ -135,8 +136,11 @@ pub(crate) fn withdraw(planner: &Planner, args: WithdrawArgs) -> Result<Withdraw
             })
             .collect(),
     };
+    let code = encode_build(&next);
     Ok(WithdrawResult {
-        envelope: envelope(engine, &next, &sheet),
+        link: format!("{LINK_BASE}{code}"),
+        build: code,
+        todo: report(todo(engine, &next, &sheet), before),
         leans_on_gear,
     })
 }

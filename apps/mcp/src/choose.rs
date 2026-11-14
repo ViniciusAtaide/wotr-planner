@@ -10,9 +10,11 @@
 
 use std::collections::BTreeMap;
 
-use rules::{Address, Build, Choice, Engine, GearSpot, Issue, POINT_BUY_BUDGET, SkillKey};
+use rules::{
+    Address, Build, Choice, Engine, GearSpot, Issue, POINT_BUY_BUDGET, SkillKey, encode_build,
+};
 
-use crate::code::{envelope, open, reopen};
+use crate::code::{LINK_BASE, open, reopen, report, todo, todo_before};
 use crate::error::ToolError;
 use crate::options::{Breaks, Fix, LaterLevels, Offer, issue_code, issue_reason, offers};
 use crate::planner::Planner;
@@ -23,6 +25,7 @@ use crate::similar::{closeness, closest_note, distance, nearest};
 pub(crate) fn choose(planner: &Planner, args: ChooseArgs) -> Result<ChooseResult, ToolError> {
     let engine = &planner.engine;
     let mut build = open(planner, &args.build)?;
+    let before = todo_before(engine, &build, args.todo);
     let mut applied = 0;
     let mut rejected = None;
     let (mut moved, mut leans_on_gear) = (Vec::new(), Vec::new());
@@ -73,8 +76,11 @@ pub(crate) fn choose(planner: &Planner, args: ChooseArgs) -> Result<ChooseResult
         }
     }
     let sheet = engine.evaluate(&build);
+    let code = encode_build(&build);
     Ok(ChooseResult {
-        envelope: envelope(engine, &build, &sheet),
+        link: format!("{LINK_BASE}{code}"),
+        build: code,
+        todo: report(todo(engine, &build, &sheet), before),
         applied,
         rejected,
         moved,

@@ -236,7 +236,7 @@ impl Server {
         description = "Start a Build: an empty one, or the Build of a planner link or code (`link`, opened only if \
             the planner's rules find it possible; otherwise `stale_link`). Returns the envelope every Build tool \
             returns: `build`, the code the other tools take (a new one after every change; keep an old one to \
-            branch); `link`, the planner link for the user; and `todo`, the open choices by address.",
+            branch); `link`, the planner link for the user; and `todo`, the open choices by address, whole (`choose` and `withdraw` return only what changed).",
         annotations(read_only_hint = true, open_world_hint = false)
     )]
     async fn new_build(
@@ -348,8 +348,13 @@ impl Server {
             `breaks_later`, …; the one `withdraw` calls `not_removable`: an item a pick needs, taken off, is both) or the \
             server's (`not_an_option`, with the closest values; `needs_parameter`, a \
             parameterised feat given by its key alone, with what it takes and its open values; `no_such_choice`). \
-            Returns the envelope (`build`, `link`, `todo`) of the Build as the applied steps left \
-            it; `moved` {step, choice, item, name, from} for a ring a step took from the other ring place (that \
+            Returns `build` and `link` of the Build as the applied steps left it, and what they did to `todo` \
+            against the code you sent (even when a step was refused: the steps before it count): `opened`, the \
+            choices they opened ({choice, label}; a choice open before whose label changed, skill points part \
+            spent, comes again with its new label), `closed`, the addresses they closed, and `open`, how many \
+            are open now; `opened` and `closed` are left out when empty. Keep your own list from `new_build`'s \
+            or `validate`'s `todo`, and pass `todo: true` for the whole list when you lose track (then no \
+            `opened`, `closed` or `open`). Also `moved` {step, choice, item, name, from} for a ring a step took from the other ring place (that \
             place is then empty); and `leans_on_gear` {step, choice, leaning} for each applied step that left \
             choices allowed only because of the Build's gear (a Dexterity lowered under a belt, with a feat that \
             needs it), each as `sheet`'s `gear_dependent` lists it: the step is applied all the same. A code that \
@@ -374,8 +379,9 @@ impl Server {
             otherwise `not_removable` (`sheet` with `removable: true` lists what can come off now, so chains come \
             off from the leaves inward). A level's class isn't withdrawn (`choose` another class, or withdraw the \
             last level), nor the racial ability (change the race, or choose another ability). Errors: \
-            `not_removable`, `no_such_choice` (nothing held there), `stale_link`. Returns the envelope (`build`, \
-            `link`, `todo`), and `leans_on_gear`, the choices the withdrawal left allowed only because of the \
+            `not_removable`, `no_such_choice` (nothing held there), `stale_link`. Returns `build` and `link`, and what \
+            the withdrawal did to `todo` against the code you sent, as `choose` does (`opened`, `closed`, `open`; \
+            `todo: true` for the whole list), and `leans_on_gear`, the choices the withdrawal left allowed only because of the \
             Build's gear, as `sheet`'s `gear_dependent` lists them (the withdrawal is made all the same).",
         annotations(read_only_hint = true, open_world_hint = false)
     )]
@@ -463,8 +469,8 @@ impl Server {
             level go in `level.N.skill`'s map or at `level.N.skill.<skill>`; gear the user asked for goes at its \
             place (`\"gear.belt\": \"<item key>\"`, `\"gear.usable.<item key>\": \"<item key>\"`); choices left out \
             stay open. The planner \
-            walks the declared Build once and returns `status: \"valid\"` with the envelope (`build`, `link`, `todo`: \
-            the same code `choose` would make), or `status: \"invalid\"` with `count` and `failures`: every failed \
+            walks the declared Build once and returns `status: \"valid\"` with the envelope (`build`, `link`, and `todo`, \
+            whole: the same code `choose` would make), or `status: \"invalid\"` with `count` and `failures`: every failed \
             choice, each {choice, label, issue, reason, needs, also_needs, children}, placed under the earliest \
             failure it needs (a refused Power Attack holds the Cleave that needs it; a refused class holds the picks \
             in slots its level doesn't give, `not_reached`). `issue` is the engine's (`unmet`, `already_held`, \

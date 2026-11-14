@@ -1,6 +1,8 @@
 //! Build codes, the handle every Build-taking tool takes: opening one only through the engine's checked decode, and
 //! the envelope every such tool returns (the code, its link and the open choices).
 
+use std::collections::HashMap;
+
 use rules::{
     Address, Build, Engine, FIRST_ASCENSION_RANK, PATH_CHOICE_RANK, RankStatus, Sheet, Slot,
     SlotId, encode_build, has_ability_increase,
@@ -8,7 +10,7 @@ use rules::{
 
 use crate::error::ToolError;
 use crate::planner::Planner;
-use crate::shapes::{Envelope, Todo};
+use crate::shapes::{Envelope, Todo, TodoReport};
 
 /// Where the planner opens a Build: the link is this and the code.
 pub(crate) const LINK_BASE: &str = "https://viniciusataide.github.io/wotr-planner/#b=";
@@ -47,12 +49,58 @@ pub(crate) fn envelope(engine: &Engine, build: &Build, sheet: &Sheet) -> Envelop
     }
 }
 
+/// The list of the Build `choose` and `withdraw` were given, unless the caller asked for the whole `todo` (`whole`).
+pub(crate) fn todo_before(
+    engine: &Engine,
+    build: &Build,
+    whole: Option<bool>,
+) -> Option<Vec<Todo>> {
+    (whole != Some(true)).then(|| todo(engine, build, &engine.evaluate(build)))
+}
+
+/// What `choose` and `withdraw` return of `todo` for the Build they made: the whole list when `before` is `None`
+/// (the caller asked for it), else only what changed against `before`, the list of the Build they were given: the
+/// choices opened (new, or open before under another label: skill points part spent), in the new order, and the
+/// addresses closed (gone from the list), in the old order, with the count now open.
+pub(crate) fn report(todo: Vec<Todo>, before: Option<Vec<Todo>>) -> TodoReport {
+    let Some(before) = before else {
+        return TodoReport {
+            open: None,
+            opened: Vec::new(),
+            closed: Vec::new(),
+            todo: Some(todo),
+        };
+    };
+    let labels = |list: &[Todo]| -> HashMap<String, String> {
+        list.iter()
+            .map(|t| (t.choice.clone(), t.label.clone()))
+            .collect()
+    };
+    let (was, now) = (labels(&before), labels(&todo));
+    let closed = before
+        .iter()
+        .filter(|t| !now.contains_key(&t.choice))
+        .map(|t| t.choice.clone())
+        .collect();
+    let open = u32::try_from(todo.len()).unwrap_or(u32::MAX);
+    let opened = todo
+        .into_iter()
+        .filter(|t| was.get(&t.choice) != Some(&t.label))
+        .collect();
+    TodoReport {
+        open: Some(open),
+        opened,
+        closed,
+        todo: None,
+    }
+}
+
 /// The open choices, in Build order: the Build start's unchosen choices; per level its unchosen ability increase,
 /// unspent skill points (while some skill can still take a rank), empty slots and picks whose value is still open
 /// (a link made before Stat Focus took its stat); then the first ascension (while neither it nor a path is chosen)
 /// and the path once their ranks are reached, and each reached rank's empty slots and picks whose value is still
 /// open (Favorite Metamagic's metamagic), not those a Path switch dropped.
-fn todo(engine: &Engine, build: &Build, sheet: &Sheet) -> Vec<Todo> {
+pub(crate) fn todo(engine: &Engine, build: &Build, sheet: &Sheet) -> Vec<Todo> {
     let mut todo = Vec::new();
     // Open at an address, labelled as the engine labels it ([`Engine::placed_label`]) unless a label is given.
     let mut open = |address: Address, label: Option<String>| {
