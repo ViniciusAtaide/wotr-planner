@@ -179,6 +179,23 @@ impl Catalog {
         }
     }
 
+    /// A Build start's weapon familiarity: the weapons it's proficient with and the exotic ones it treats as martial,
+    /// its subrace's in place of the race's, when the subrace is the race's. None without a race the data has.
+    pub(super) fn racial_weapons(
+        &self,
+        start: &BuildStart,
+    ) -> Option<(&BTreeSet<WeaponKey>, &BTreeSet<WeaponKey>)> {
+        let race = start.race.as_ref().and_then(|key| self.race(key))?;
+        Some(
+            match start.subrace.as_ref().and_then(|key| self.subrace(key)) {
+                Some((owner, subrace)) if owner.key == race.key => {
+                    (&subrace.weapons, &subrace.weapons_as_martial)
+                }
+                _ => (&race.weapons, &race.weapons_as_martial),
+            },
+        )
+    }
+
     /// The skill points a Build start's race adds at every level: its subrace's in place of the race's, when the
     /// subrace is the race's. 0 without a race the data has.
     pub(super) fn racial_skill_points(&self, start: &BuildStart) -> u8 {
@@ -590,6 +607,11 @@ impl Catalog {
         self.features.favoured_weapons.contains(feature)
     }
 
+    /// The weapons a feature makes the character proficient with while it's held; none for most.
+    pub(super) fn feature_weapons(&self, feature: &FeatureKey) -> Option<&BTreeSet<WeaponKey>> {
+        self.features.weapons.get(feature)
+    }
+
     /// The feats a follower of `deity` holds for its favoured weapons while holding a feature that grants them,
     /// each with the values it's held for: an exotic weapon's proficiency for that weapon, Improved Unarmed Strike for
     /// the unarmed strike, and nothing for a simple or martial weapon (no feat checks proficiency with one weapon).
@@ -841,6 +863,8 @@ struct FeatureFacts {
     daily_choices: FxHashSet<FeatureKey>,
     /// Every feature that grants the deity's favoured weapons (Cleric Proficiencies).
     favoured_weapons: FxHashSet<FeatureKey>,
+    /// The weapons of every feature that makes the character proficient with some (Wizard Proficiencies).
+    weapons: FxHashMap<FeatureKey, BTreeSet<WeaponKey>>,
     /// The features that set a floor for prerequisites (Perfect Mind): a BAB floor, and whether every skill's ranks
     /// are at least the Mythic rank.
     floors: FxHashMap<FeatureKey, (Option<u8>, bool)>,
@@ -901,11 +925,17 @@ impl FeatureFacts {
             .filter(|feature| feature.favoured_weapon_proficiency)
             .map(|feature| feature.key.clone())
             .collect();
+        let weapons = features
+            .iter()
+            .filter(|feature| !feature.weapons.is_empty())
+            .map(|feature| (feature.key.clone(), feature.weapons.clone()))
+            .collect();
         Self {
             bonuses,
             rows,
             daily_choices,
             favoured_weapons,
+            weapons,
             floors,
             names,
             shared_names,

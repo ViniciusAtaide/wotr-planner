@@ -1,5 +1,7 @@
 //! The test world's races and subraces.
 
+use std::collections::BTreeSet;
+
 use crate::*;
 
 use crate::test_world::builds::feat_list;
@@ -20,6 +22,8 @@ pub(super) fn races() -> Vec<Race> {
             }],
             feat_lists: vec![list("half-elf/adaptability", true, &["skill-focus"])],
             skill_points: 0,
+            weapons: BTreeSet::new(),
+            weapons_as_martial: BTreeSet::new(),
             // A subrace's slots replace the race's: Dual Heritage has none; an invented one keeps Adaptability.
             subraces: vec![
                 Subrace {
@@ -30,6 +34,8 @@ pub(super) fn races() -> Vec<Race> {
                     ability_modifiers: vec![AbilityModifier::Chosen { amount: 2 }],
                     feat_slots: vec![],
                     skill_points: 0,
+                    weapons: BTreeSet::new(),
+                    weapons_as_martial: BTreeSet::new(),
                 },
                 Subrace {
                     key: SubraceKey::new("half-elf/adaptable"),
@@ -42,6 +48,8 @@ pub(super) fn races() -> Vec<Race> {
                     }],
                     // Invented, as the Human-Raised half-orc's: a subrace's skill points replace the race's.
                     skill_points: 1,
+                    weapons: BTreeSet::new(),
+                    weapons_as_martial: BTreeSet::new(),
                 },
             ],
         },
@@ -54,6 +62,8 @@ pub(super) fn races() -> Vec<Race> {
             feat_slots: vec![FeatSlot::General],
             feat_lists: vec![],
             skill_points: 1,
+            weapons: BTreeSet::new(),
+            weapons_as_martial: BTreeSet::new(),
             subraces: vec![],
         },
         Race {
@@ -69,6 +79,8 @@ pub(super) fn races() -> Vec<Race> {
             feat_slots: vec![],
             feat_lists: vec![],
             skill_points: 0,
+            weapons: BTreeSet::new(),
+            weapons_as_martial: BTreeSet::new(),
             subraces: vec![Subrace {
                 key: SubraceKey::new("elf/blightborn"),
                 name: "Blightborn".into(),
@@ -81,6 +93,8 @@ pub(super) fn races() -> Vec<Race> {
                 ],
                 feat_slots: vec![],
                 skill_points: 0,
+                weapons: BTreeSet::new(),
+                weapons_as_martial: BTreeSet::new(),
             }],
         },
         Race {
@@ -96,6 +110,8 @@ pub(super) fn races() -> Vec<Race> {
             feat_slots: vec![],
             feat_lists: vec![],
             skill_points: 0,
+            weapons: BTreeSet::new(),
+            weapons_as_martial: BTreeSet::new(),
             subraces: vec![],
         },
     ]

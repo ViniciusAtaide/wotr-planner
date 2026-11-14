@@ -434,7 +434,7 @@ Class(
             skill_points: 3,
             class_skills: ["athletics", "knowledge-arcana", "knowledge-world", "lore-nature", "lore-religion", "mobility", "perception", "persuasion", "stealth"],
             features: [
-                (key: "warpriest/cult-leader/cult-leader-proficiencies", name: "Cult Leader Proficiencies", summary: "Simple weapons, rapiers, shortswords, shortbows, light armour and light shields; no free Weapon Focus.", guide: "warpriest#cult-leader-proficiencies"),
+                (key: "warpriest/cult-leader/cult-leader-proficiencies", name: "Cult Leader Proficiencies", summary: "Simple weapons, rapiers, shortswords, shortbows, light armour and light shields; no free Weapon Focus.", guide: "warpriest#cult-leader-proficiencies", weapons: ["rapier", "short-bow", "short-sword"]),
                 (key: "warpriest/cult-leader/enthrall", name: "Enthrall", summary: "From 4th level, two Fervor: enemies within 30' are fascinated for Wis mod rounds unless they make a Will save.", guide: "warpriest#enthrall"),
                 (key: "warpriest/cult-leader/hide-in-plain-sight", name: "Hide in Plain Sight", summary: "At 12th level, you can use Stealth while being observed.", guide: "warpriest#hide-in-plain-sight"),
                 (key: "warpriest/cult-leader/sneak-attack", name: "Sneak Attack", summary: "From 3rd level, +1d6 damage against flanked foes or foes denied Dex, +1d6 every three levels (6d6 at 18th).", guide: "warpriest#sneak-attack"),

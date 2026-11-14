@@ -34,6 +34,7 @@ level.1.skill.use-magic-device = 1
 slot.feat.1.class.0 = Magic feat: spell-penetration "Spell Penetration"
 slot.feat.1.general.0 = Feat: mounted-combat "Mounted Combat"
 level.1.feat/mounted-combat = Mounted Combat
+level.1.feat/simple-weapon-proficiency = Simple Weapon Proficiency
 level.1.feat/spell-penetration = Spell Penetration
 level.1.feature/sorcerer/sylvan-sorcerer/animal-companion = Animal Companion (Sylvan Sorcerer)
 level.1.feature/sorcerer/sylvan-sorcerer/cantrips = Cantrips (Sylvan Sorcerer)

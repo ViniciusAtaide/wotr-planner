@@ -16,7 +16,7 @@ Class(
         (key: "rogue/evasion", name: "Evasion", summary: "From 2nd level, a successful Reflex save against a half-damage effect means no damage.", guide: "rogue#evasion"),
         (key: "rogue/improved-uncanny-dodge", name: "Improved Uncanny Dodge", summary: "From 8th level, you cannot be flanked; rogues need 4 more rogue levels than you to sneak attack you.", guide: "rogue#improved-uncanny-dodge"),
         (key: "rogue/master-strike", name: "Master Strike", summary: "At 20th level, a sneak attack can kill outright on a failed Fort save (DC 20 + Dex); a target that saves becomes immune.", guide: "rogue#master-strike"),
-        (key: "rogue/rogue-proficiencies", name: "Rogue Proficiencies", summary: "Simple weapons, rapier, short sword, short bow and light armour; no shields.", guide: "rogue#rogue-proficiencies"),
+        (key: "rogue/rogue-proficiencies", name: "Rogue Proficiencies", summary: "Simple weapons, rapier, short sword, short bow and light armour; no shields.", guide: "rogue#rogue-proficiencies", weapons: ["rapier", "short-bow", "short-sword"]),
         (key: "rogue/sneak-attack", name: "Sneak Attack", summary: "+1d6 damage against flanked foes or those denied Dexterity to AC, +1d6 more every odd class level.", guide: "rogue#sneak-attack"),
         (key: "rogue/trapfinding", name: "Trapfinding", summary: "Adds half the class level to Perception checks.", guide: "rogue#trapfinding"),
         (key: "rogue/uncanny-dodge", name: "Uncanny Dodge", summary: "From 4th level, you are never caught flat-footed and keep your Dexterity bonus to AC against invisible attackers.", guide: "rogue#uncanny-dodge"),

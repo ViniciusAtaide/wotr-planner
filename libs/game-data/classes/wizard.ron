@@ -45,7 +45,7 @@ Class(
         (key: "wizard/school/universalist/mm-extend-and-reach-spell", name: "MM - Extend and Reach Spell", summary: "From 8th level, apply Extend or Reach to your next spell, 1/day plus 1 per two levels (7 at 20th), 1 use each.", guide: "wizard#universalist"),
         (key: "wizard/school/universalist/mm-maximise", name: "MM - Maximise", summary: "From 16th level, Metamagic Mastery can apply Maximise for 3 uses.", guide: "wizard#universalist"),
         (key: "wizard/school/universalist/mm-quicken", name: "MM - Quicken", summary: "At 20th level, Metamagic Mastery can apply Quicken for 4 uses.", guide: "wizard#universalist"),
-        (key: "wizard/wizard-proficiencies", name: "Wizard Proficiencies", summary: "Club, dagger, heavy and light crossbow and quarterstaff.", guide: "wizard#wizard-proficiencies"),
+        (key: "wizard/wizard-proficiencies", name: "Wizard Proficiencies", summary: "Club, dagger, heavy and light crossbow and quarterstaff.", guide: "wizard#wizard-proficiencies", weapons: ["club", "dagger", "heavy-crossbow", "light-crossbow", "quarterstaff"]),
     ],
     selections: [
         (
@@ -158,7 +158,7 @@ Class(
         ),
     ],
     levels: [
-        (level: 1, arcane_spell_level: 1, feats: ["scribe-scrolls"], feat_slots: [Category(Magic)], selections: ["wizard/school"]),
+        (level: 1, arcane_spell_level: 1, features: ["wizard/wizard-proficiencies"], feats: ["scribe-scrolls"], feat_slots: [Category(Magic)], selections: ["wizard/school"]),
         (level: 2, arcane_spell_level: 1),
         (level: 3, arcane_spell_level: 2),
         (level: 4, arcane_spell_level: 2),

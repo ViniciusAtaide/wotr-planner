@@ -498,9 +498,24 @@ fn AttackBlock(sheet: std::sync::Arc<Sheet>) -> impl IntoView {
         AttackWeapon::NoWeapon => None,
         AttackWeapon::Weapon(key) => Some(key),
     });
+    // Only the weapons the character is proficient with at the last level (ticket 198), and the one chosen if it
+    // isn't one of them (a Weapon Focus default, or a choice a later edit made unwieldable), so the select always
+    // shows what the line is drawn for.
+    let proficient = sheet.levels.last().map(|last| {
+        planner
+            .build
+            .with_untracked(|build| engine.proficient_weapons(&build.start, &last.state))
+    });
+    let chosen = weapon.get_untracked();
     let options = engine
         .attack_weapons()
         .into_iter()
+        .filter(|option| {
+            proficient
+                .as_ref()
+                .is_none_or(|proficient| proficient.contains(&option.key))
+                || chosen.as_ref() == Some(&option.key)
+        })
         .map(|option| {
             let key = option.key.as_str().to_owned();
             let selected = {

@@ -610,9 +610,13 @@ impl GameData {
             check.key(&at);
             check.owned(race.key.as_str(), false, &[], &[], &race.feat_lists);
             check.no_bonus_list(&at, &race.feat_slots, Some(race.key.as_str()));
+            check.names_each(&at, &race.weapons, DataAt::Weapon);
+            check.names_each(&at, &race.weapons_as_martial, DataAt::Weapon);
             for subrace in &race.subraces {
                 let at = DataAt::Subrace(subrace.key.clone());
                 check.key(&at);
+                check.names_each(&at, &subrace.weapons, DataAt::Weapon);
+                check.names_each(&at, &subrace.weapons_as_martial, DataAt::Weapon);
                 // A subrace's slots replace the race's, so they may name the race's own lists.
                 check.no_bonus_list(&at, &subrace.feat_slots, Some(race.key.as_str()));
             }
@@ -680,6 +684,7 @@ impl GameData {
             check.key(&at);
             check.names_each(&at, &background.class_skills, DataAt::Skill);
             check.names_each(&at, &background.feats, DataAt::Feat);
+            check.names_each(&at, &background.weapons, DataAt::Weapon);
             check.feats_for(&at, &background.feats_for);
         }
         for deity in &self.deities {
@@ -954,6 +959,7 @@ impl Checker {
             if !owned_by(feature.key.as_str(), owner) {
                 self.problem(&at, DataIssue::KeyOutsideItsOwner);
             }
+            self.names_each(&at, &feature.weapons, DataAt::Weapon);
             if let Some(row) = &feature.option_row {
                 self.level(&at, row.level);
                 self.names(&at, DataAt::FeatureSelection(row.selection.clone()));

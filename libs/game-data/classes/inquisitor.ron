@@ -17,7 +17,7 @@ Class(
         (key: "inquisitor/cunning-initiative", name: "Cunning Initiative", summary: "From 2nd level, adds both Wisdom and Dexterity modifiers to initiative.", guide: "inquisitor#cunning-initiative"),
         (key: "inquisitor/exploit-weakness", name: "Exploit Weakness", summary: "From 14th level, confirmed critical hits bypass DR and stop the target's regeneration for 1 round.", guide: "inquisitor#exploit-weakness"),
         (key: "inquisitor/greater-bane", name: "Greater Bane", summary: "From 12th level, Bane deals +4d6 damage per hit.", guide: "inquisitor#greater-bane"),
-        (key: "inquisitor/inquisitor-proficiencies", favoured_weapon_proficiency: true, name: "Inquisitor Proficiencies", guide: "inquisitor#inquisitor-proficiencies"),
+        (key: "inquisitor/inquisitor-proficiencies", favoured_weapon_proficiency: true, name: "Inquisitor Proficiencies", summary: "Simple weapons, longbow, shortbow and your deity's favoured weapon; light and medium armour and shields.", guide: "inquisitor#inquisitor-proficiencies", weapons: ["long-bow", "short-bow"]),
         (key: "inquisitor/orisons", name: "Orisons", guide: "inquisitor"),
         (key: "inquisitor/second-judgment", name: "Second Judgment", summary: "From 8th level, one use of Judgment pronounces two judgments.", guide: "inquisitor#second-judgment"),
         (key: "inquisitor/solo-tactics", name: "Solo Tactics", summary: "From 3rd level, you get the benefit of your teamwork feats even if allies lack them, as long as their position and actions fit.", guide: "inquisitor#solo-tactics"),

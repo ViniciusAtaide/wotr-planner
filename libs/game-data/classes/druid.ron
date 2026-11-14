@@ -12,7 +12,7 @@ Class(
     class_skills: ["athletics", "knowledge-arcana", "knowledge-world", "lore-nature", "perception"],
     prerequisite: Any([Alignment(NeutralGood), Alignment(LawfulNeutral), Alignment(TrueNeutral), Alignment(ChaoticNeutral), Alignment(NeutralEvil)]),
     features: [
-        (key: "druid/druid-proficiencies", name: "Druid Proficiencies", summary: "Club, dagger, dart, quarterstaff, scimitar, scythe, sickle, shortspear, sling, spear, light and medium armour and wooden shields; no metal armour.", guide: "druid#druid-proficiencies"),
+        (key: "druid/druid-proficiencies", name: "Druid Proficiencies", summary: "Club, dagger, dart, quarterstaff, scimitar, scythe, sickle, shortspear, sling, spear, light and medium armour and wooden shields; no metal armour.", guide: "druid#druid-proficiencies", weapons: ["club", "dagger", "dart", "quarterstaff", "scimitar", "scythe", "shortspear", "sickle", "spear"]),
         (key: "druid/nature-sense", name: "Nature Sense", summary: "+2 on Lore (Nature) checks.", guide: "druid#nature-sense"),
         (key: "druid/resist-natures-lure", name: "Resist Nature\'s Lure", summary: "From 4th level, +4 on saves against the spell-like and supernatural abilities of fey and plants.", guide: "druid#resist-natures-lure"),
         (key: "druid/spontaneous-summoning", name: "Spontaneous Summoning", summary: "Swap any prepared spell for a Summon Nature's Ally spell of the same level.", guide: "druid#spontaneous-summoning"),

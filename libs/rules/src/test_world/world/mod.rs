@@ -140,6 +140,7 @@ fn plain_feature(key: &str, name: &str) -> Feature {
         bab_floor: None,
         skill_ranks_at_least_mythic_rank: false,
         favoured_weapon_proficiency: false,
+        weapons: std::collections::BTreeSet::new(),
     }
 }
 

@@ -886,6 +886,19 @@ is the engine's or the data's, never the write-up's.
   Focus: Shield Focus (Mythic): locked in the Mythic feat slot, "Needs Shield Focus"`), and fails on one that isn't
   listed and on a listed one that now agrees: a fix deletes its entry. The list only shrinks (ticket 168 deleted
   Greater Two-Weapon Fighting's, the gear kind's only entry).
+- Weapon proficiency (ticket 198, the user, 2026-11-14: the web app's weapon picker lists only the weapons the
+  character can use). A whole list a feat grants (simple, martial) stays that feat on the level row. Every other
+  weapon proficiency is a `weapons` list of weapon keys beside the text that says it: on a `Feature` (Wizard, Druid,
+  Monk, Zen Archer, Rogue, Bard, Cult Leader, Inquisitor, Ecclesitheurge and Kinetic Sharpshooter Proficiencies, from
+  the guide's sentences; the sling, sap and whip aren't weapons the data has), on a `Race` or `Subrace` (its weapon
+  familiarity, the subrace's in place of the race's, as `skill_points`), and on a `Background` (its note's "Proficient
+  with …", shields left out). A race's `weapons_as_martial` are the exotic weapons it treats as martial: proficient
+  with them only with Martial Weapons Proficiency (the dwarf's Urgrosh and Waraxe, the elf's Curve Blade, every
+  gnome's Hooked Hammer, the half-orc's Orc Double Axe). A deity's favoured weapons count while a held feature has
+  `favoured_weapon_proficiency`. The same ticket gave the base wizard row Wizard Proficiencies, which only its
+  archetype rows had, and every sorcerer level 1 row Simple Weapon Proficiency: the guide names only "Sorcerer
+  Proficiencies", and the game's feature is the simple weapons. The real-data test `proficiency` checks that every
+  class and archetype can use some weapon at level 1.
 
 ## Checking
 

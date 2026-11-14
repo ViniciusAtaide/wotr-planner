@@ -18,6 +18,7 @@ pub(super) fn backgrounds() -> Vec<Background> {
         class_skills: skills.iter().map(|s| skill(s)).collect(),
         feats: feats.iter().map(|f| feat(f)).collect(),
         feats_for: BTreeSet::new(),
+        weapons: BTreeSet::new(),
     };
     vec![
         background(

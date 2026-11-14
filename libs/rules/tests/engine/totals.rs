@@ -84,6 +84,7 @@ fn world_with_bonus_items() -> GameData {
         class_skills: BTreeSet::new(),
         feats: BTreeSet::new(),
         feats_for: BTreeSet::new(),
+        weapons: BTreeSet::new(),
     });
     let half_elf = data.races.iter_mut().find(|r| r.key.as_str() == "half-elf");
     half_elf.unwrap().subraces.push(Subrace {
@@ -94,6 +95,8 @@ fn world_with_bonus_items() -> GameData {
         ability_modifiers: Vec::new(),
         feat_slots: Vec::new(),
         skill_points: 0,
+        weapons: BTreeSet::new(),
+        weapons_as_martial: BTreeSet::new(),
     });
     data
 }

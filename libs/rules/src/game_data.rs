@@ -433,6 +433,13 @@ pub struct Race {
     /// Skill points it adds at every level, on top of the class's and Intelligence's (a human's Skilled: 1).
     #[serde(default)]
     pub skill_points: u8,
+    /// The weapons its weapon familiarity makes the character proficient with (an elf's longbow), ticket 198.
+    #[serde(default)]
+    pub weapons: BTreeSet<WeaponKey>,
+    /// The exotic weapons it treats as martial ones: proficient with them while proficient with martial weapons (a
+    /// dwarf's Dwarven Waraxe), ticket 198.
+    #[serde(default)]
+    pub weapons_as_martial: BTreeSet<WeaponKey>,
     #[serde(default)]
     pub subraces: Vec<Subrace>,
 }
@@ -456,6 +463,12 @@ pub struct Subrace {
     /// Skill points it adds at every level, in place of the race's (a Human-Raised half-orc's: 1).
     #[serde(default)]
     pub skill_points: u8,
+    /// Its weapon familiarity, in place of the race's: [`Race::weapons`].
+    #[serde(default)]
+    pub weapons: BTreeSet<WeaponKey>,
+    /// Its exotic weapons treated as martial, in place of the race's: [`Race::weapons_as_martial`].
+    #[serde(default)]
+    pub weapons_as_martial: BTreeSet<WeaponKey>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -489,9 +502,13 @@ pub struct Background {
     /// The group the game lists it under; `None` for the background "None".
     #[serde(default)]
     pub group: Option<BackgroundGroup>,
-    /// What it gives that the planner doesn't model (a weapon's proficiency, +1 Fortitude), shown with the Build.
+    /// What it gives that the planner doesn't model (+1 Fortitude), shown with the Build. A weapon's proficiency is
+    /// in it too, and in [`weapons`](Self::weapons).
     #[serde(default)]
     pub note: String,
+    /// The weapons it makes the character proficient with (the Farmhand's scythe), ticket 198.
+    #[serde(default)]
+    pub weapons: BTreeSet<WeaponKey>,
     /// Skills that become class skills.
     #[serde(default)]
     pub class_skills: BTreeSet<SkillKey>,
@@ -1132,6 +1149,11 @@ pub struct Feature {
     /// Proficiencies): see [`Deity::favoured_weapons`].
     #[serde(default)]
     pub favoured_weapon_proficiency: bool,
+    /// The weapons the character is proficient with while the feature is held (Wizard Proficiencies: the club,
+    /// dagger, both crossbows and the quarterstaff), ticket 198. A whole list a feat grants (simple weapons) is that
+    /// feat on the level row instead.
+    #[serde(default)]
+    pub weapons: BTreeSet<WeaponKey>,
 }
 
 /// One option level's row of whatever option a selection holds.

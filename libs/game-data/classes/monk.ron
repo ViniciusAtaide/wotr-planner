@@ -23,7 +23,7 @@ Class(
         (key: "monk/ki-strike-cold-iron-and-silver", name: "Ki Strike - Cold Iron and Silver", summary: "At 7th level, unarmed strikes count as cold iron and silver against DR.", guide: "monk#ki-strike-cold-iron-and-silver"),
         (key: "monk/ki-strike-lawful", name: "Ki Strike - Lawful", summary: "At 10th level, unarmed strikes count as lawful against DR.", guide: "monk#ki-strike-lawful"),
         (key: "monk/ki-strike-magic", name: "Ki Strike - Magic", summary: "At 3rd level, unarmed strikes count as magic against DR.", guide: "monk#ki-strike-magic"),
-        (key: "monk/monk-proficiencies", name: "Monk Proficiencies", summary: "Club, crossbow, dagger, handaxe, javelin, kama, nunchaku, quarterstaff, sai, short sword, shortspear, spear and monk weapons.", guide: "monk#monk-proficiencies"),
+        (key: "monk/monk-proficiencies", name: "Monk Proficiencies", summary: "Club, crossbow, dagger, handaxe, javelin, kama, nunchaku, quarterstaff, sai, short sword, shortspear, spear and monk weapons.", guide: "monk#monk-proficiencies", weapons: ["club", "dagger", "hand-axe", "heavy-crossbow", "javelin", "kama", "light-crossbow", "nunchaku", "quarterstaff", "sai", "short-sword", "shortspear", "spear"]),
         (key: "monk/purity-of-body", name: "Purity of Body", summary: "At 5th level, immune to all diseases.", guide: "monk#purity-of-body"),
         (key: "monk/still-mind", name: "Still Mind", summary: "At 4th level, +2 on saves against enchantments.", guide: "monk#still-mind"),
         (key: "monk/stunning-fist", name: "Stunning Fist", summary: "Once a day per four levels, a hit forces a Fortitude save (DC 10 + half level + Wis) or the target is stunned for 1 round.", guide: "monk#stunning-fist"),
@@ -297,7 +297,7 @@ Class(
             features: [
                 (key: "monk/zen-archer/flurry-of-blows-zen-archer", name: "Flurry of Blows (Zen Archer)", summary: "Flurry of Blows only with a bow, and not together with Rapid Shot or Manyshot.", guide: "monk#flurry-of-blows-zen-archer"),
                 (key: "monk/zen-archer/ki-arrows", name: "Ki Arrows", summary: "At 5th level, arrows deal your unarmed strike damage.", guide: "monk#ki-arrows"),
-                (key: "monk/zen-archer/zen-archer-proficiencies", name: "Zen Archer Proficiencies", summary: "All bows, plus the monk's usual weapons.", guide: "monk#zen-archer-proficiencies"),
+                (key: "monk/zen-archer/zen-archer-proficiencies", name: "Zen Archer Proficiencies", summary: "All bows, plus the monk's usual weapons.", guide: "monk#zen-archer-proficiencies", weapons: ["club", "dagger", "hand-axe", "heavy-crossbow", "javelin", "kama", "light-crossbow", "long-bow", "nunchaku", "quarterstaff", "sai", "short-bow", "short-sword", "shortspear", "spear"]),
                 (key: "monk/zen-archer/zen-archery", name: "Zen Archery", summary: "From 3rd level, use Wis instead of Dex with bows.", guide: "monk#zen-archery"),
             ],
             selections: [

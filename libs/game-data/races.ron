@@ -34,9 +34,11 @@
         summary: "Speed 20 ft unslowed by armour; +2 saves vs poison/spells; +4 CMD vs bull rush/trip; +4 AC vs giants; +1 hit vs orcs/goblinoids; +2 Perception; dwarven weapons.",
         guide: "character-creation#dwarf",
         ability_modifiers: [Fixed(ability: Constitution, amount: 2), Fixed(ability: Wisdom, amount: 2), Fixed(ability: Charisma, amount: -2)],
+        weapons: ["battle-axe", "heavy-pick", "warhammer"],
+        weapons_as_martial: ["dwarven-urgrosh", "dwarven-waraxe"],
         subraces: [
-            (key: "dwarf/barrow-dwarf", name: "Barrow Dwarf", summary: "20 ft speed unslowed by armour; +2 saves vs poison and spells; +4 CMD vs bull rush/trip; +1 attack and dodge AC vs undead; +2 Lore (Religion); dwarven weapons.", guide: "character-creation#barrow-dwarf", ability_modifiers: [Fixed(ability: Constitution, amount: 2), Fixed(ability: Wisdom, amount: 2), Fixed(ability: Charisma, amount: -2)]),
-            (key: "dwarf/unstoppable-dwarf", name: "Unstoppable Dwarf", summary: "Speed 20 ft, unslowed by armour; +2 saves vs poison and spells; +1 attack vs orcs and goblinoids; dwarven weapons; Endurance and +1 Fortitude.", guide: "character-creation#unstoppable-dwarf", ability_modifiers: [Fixed(ability: Constitution, amount: 2), Fixed(ability: Wisdom, amount: 2), Fixed(ability: Charisma, amount: -2)]),
+            (key: "dwarf/barrow-dwarf", name: "Barrow Dwarf", summary: "20 ft speed unslowed by armour; +2 saves vs poison and spells; +4 CMD vs bull rush/trip; +1 attack and dodge AC vs undead; +2 Lore (Religion); dwarven weapons.", guide: "character-creation#barrow-dwarf", ability_modifiers: [Fixed(ability: Constitution, amount: 2), Fixed(ability: Wisdom, amount: 2), Fixed(ability: Charisma, amount: -2)], weapons: ["battle-axe", "heavy-pick", "warhammer"], weapons_as_martial: ["dwarven-urgrosh", "dwarven-waraxe"]),
+            (key: "dwarf/unstoppable-dwarf", name: "Unstoppable Dwarf", summary: "Speed 20 ft, unslowed by armour; +2 saves vs poison and spells; +1 attack vs orcs and goblinoids; dwarven weapons; Endurance and +1 Fortitude.", guide: "character-creation#unstoppable-dwarf", ability_modifiers: [Fixed(ability: Constitution, amount: 2), Fixed(ability: Wisdom, amount: 2), Fixed(ability: Charisma, amount: -2)], weapons: ["battle-axe", "heavy-pick", "warhammer"], weapons_as_martial: ["dwarven-urgrosh", "dwarven-waraxe"]),
         ],
     ),
     (
@@ -45,9 +47,11 @@
         summary: "+2 caster level vs spell resistance; immune to magic sleep and +2 saves vs enchantment; +2 Perception and Knowledge (Arcana); elven weapon proficiencies.",
         guide: "character-creation#elf",
         ability_modifiers: [Fixed(ability: Dexterity, amount: 2), Fixed(ability: Constitution, amount: -2), Fixed(ability: Intelligence, amount: 2)],
+        weapons: ["long-bow", "longsword", "rapier", "short-bow"],
+        weapons_as_martial: ["elven-curve-blade"],
         subraces: [
-            (key: "elf/blightborn", name: "Elf (Blightborn)", summary: "+2 saves vs necromancy and curses; +1 attack vs demons; +2 Perception; proficient with longbows, shortbows, longsword and rapier.", guide: "character-creation#elf-blightborn", ability_modifiers: [Fixed(ability: Dexterity, amount: 2), Fixed(ability: Constitution, amount: -2), Fixed(ability: Intelligence, amount: 2)]),
-            (key: "elf/loremaster", name: "Elf (Loremaster)", summary: "+2 Knowledge (Arcana), Use Magic Device and Perception; proficient with longbows, shortbows, longsword and rapier.", guide: "character-creation#elf-loremaster", ability_modifiers: [Fixed(ability: Dexterity, amount: 2), Fixed(ability: Constitution, amount: -2), Fixed(ability: Intelligence, amount: 2)]),
+            (key: "elf/blightborn", name: "Elf (Blightborn)", summary: "+2 saves vs necromancy and curses; +1 attack vs demons; +2 Perception; proficient with longbows, shortbows, longsword and rapier.", guide: "character-creation#elf-blightborn", ability_modifiers: [Fixed(ability: Dexterity, amount: 2), Fixed(ability: Constitution, amount: -2), Fixed(ability: Intelligence, amount: 2)], weapons: ["long-bow", "longsword", "rapier", "short-bow"], weapons_as_martial: ["elven-curve-blade"]),
+            (key: "elf/loremaster", name: "Elf (Loremaster)", summary: "+2 Knowledge (Arcana), Use Magic Device and Perception; proficient with longbows, shortbows, longsword and rapier.", guide: "character-creation#elf-loremaster", ability_modifiers: [Fixed(ability: Dexterity, amount: 2), Fixed(ability: Constitution, amount: -2), Fixed(ability: Intelligence, amount: 2)], weapons: ["long-bow", "longsword", "rapier", "short-bow"], weapons_as_martial: ["elven-curve-blade"]),
         ],
     ),
     (
@@ -56,9 +60,10 @@
         summary: "+4 AC vs giants; +1 attack vs reptilian and goblinoid foes; +2 saves vs illusions, +1 DC to your illusions; +2 Perception and Knowledge (World); speed 20 ft.",
         guide: "character-creation#gnome",
         ability_modifiers: [Fixed(ability: Strength, amount: -2), Fixed(ability: Constitution, amount: 2), Fixed(ability: Charisma, amount: 2)],
+        weapons_as_martial: ["gnome-hooked-hammer"],
         subraces: [
-            (key: "gnome/pyromaniac", name: "Gnome (Pyromaniac)", summary: "Fire resistance 5, +1 DC to fire spells; +4 AC vs giants; +1 attack vs reptilian and goblinoid foes; +2 Perception and Knowledge (World); speed 20 ft.", guide: "character-creation#gnome-pyromaniac", ability_modifiers: [Fixed(ability: Strength, amount: -2), Fixed(ability: Constitution, amount: 2), Fixed(ability: Charisma, amount: 2)]),
-            (key: "gnome/traveler", name: "Gnome (Traveler)", summary: "Speed 30 ft; +2 saves vs illusions and +1 DC to your illusions; +2 Perception, Knowledge (World) and Lore (Nature).", guide: "character-creation#gnome-traveler", ability_modifiers: [Fixed(ability: Strength, amount: -2), Fixed(ability: Constitution, amount: 2), Fixed(ability: Charisma, amount: 2)]),
+            (key: "gnome/pyromaniac", name: "Gnome (Pyromaniac)", summary: "Fire resistance 5, +1 DC to fire spells; +4 AC vs giants; +1 attack vs reptilian and goblinoid foes; +2 Perception and Knowledge (World); speed 20 ft.", guide: "character-creation#gnome-pyromaniac", ability_modifiers: [Fixed(ability: Strength, amount: -2), Fixed(ability: Constitution, amount: 2), Fixed(ability: Charisma, amount: 2)], weapons_as_martial: ["gnome-hooked-hammer"]),
+            (key: "gnome/traveler", name: "Gnome (Traveler)", summary: "Speed 30 ft; +2 saves vs illusions and +1 DC to your illusions; +2 Perception, Knowledge (World) and Lore (Nature).", guide: "character-creation#gnome-traveler", ability_modifiers: [Fixed(ability: Strength, amount: -2), Fixed(ability: Constitution, amount: 2), Fixed(ability: Charisma, amount: 2)], weapons_as_martial: ["gnome-hooked-hammer"]),
         ],
     ),
     (
@@ -82,9 +87,11 @@
         summary: "Orc Ferocity (as Diehard); +2 Persuasion to intimidate and +2 Perception; greataxe and falchion proficiency, orc double axe as a martial weapon.",
         guide: "character-creation#half-orc",
         ability_modifiers: [Chosen(amount: 2)],
+        weapons: ["falchion", "greataxe"],
+        weapons_as_martial: ["orc-double-axe"],
         subraces: [
             (key: "half-orc/human-raised", name: "Half-Orc (Human-Raised)", summary: "+1 skill point per level; +2 Persuasion to intimidate and +2 Perception.", guide: "character-creation#half-orc-human-raised", ability_modifiers: [Chosen(amount: 2)], skill_points: 1),
-            (key: "half-orc/tribal", name: "Half-Orc (Tribal)", summary: "+1 luck bonus to all saves; +2 Persuasion to intimidate and Lore (Nature); greataxe and falchion proficiency, orc double axe as martial.", guide: "character-creation#half-orc-tribal", ability_modifiers: [Chosen(amount: 2)]),
+            (key: "half-orc/tribal", name: "Half-Orc (Tribal)", summary: "+1 luck bonus to all saves; +2 Persuasion to intimidate and Lore (Nature); greataxe and falchion proficiency, orc double axe as martial.", guide: "character-creation#half-orc-tribal", ability_modifiers: [Chosen(amount: 2)], weapons: ["falchion", "greataxe"], weapons_as_martial: ["orc-double-axe"]),
         ],
     ),
     (

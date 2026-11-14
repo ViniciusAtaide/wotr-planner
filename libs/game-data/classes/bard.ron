@@ -12,7 +12,7 @@ Class(
     class_skills: ["athletics", "knowledge-arcana", "knowledge-world", "lore-nature", "lore-religion", "mobility", "perception", "persuasion", "stealth", "trickery", "use-magic-device"],
     spontaneous: true,
     features: [
-        (key: "bard/bard-proficiencies", name: "Bard Proficiencies", summary: "Simple weapons, longsword, rapier, short sword, shortbow, light armour and shields.", guide: "bard#bard-proficiencies"),
+        (key: "bard/bard-proficiencies", name: "Bard Proficiencies", summary: "Simple weapons, longsword, rapier, short sword, shortbow, light armour and shields.", guide: "bard#bard-proficiencies", weapons: ["longsword", "rapier", "short-bow", "short-sword"]),
         (key: "bard/bardic-knowledge", name: "Bardic Knowledge", summary: "Half the class level is added as a bonus on every Knowledge and Lore check.", guide: "bard#bardic-knowledge"),
         (key: "bard/bardic-performance-move-action", name: "Bardic Performance (Move Action)", summary: "From 7th level, a performance can be started as a move action rather than a standard one.", guide: "bard#bardic-performance-move-action"),
         (key: "bard/bardic-performance-swift-action", name: "Bardic Performance (Swift Action)", summary: "From 13th level, starts a performance as a swift action.", guide: "bard#bardic-performance-swift-action"),

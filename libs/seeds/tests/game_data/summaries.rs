@@ -125,7 +125,7 @@ fn counts() -> BTreeMap<&'static str, (usize, usize)> {
 const EMPTY: [(&str, usize); 14] = [
     ("archetype", 0),
     ("class", 0),
-    ("class feature", 113),
+    ("class feature", 104),
     ("class selection", 0),
     ("class selection option", 6),
     ("feat", 0),

@@ -36,6 +36,7 @@ mod option_levels;
 mod parameterised_feats;
 mod pick_order;
 mod pick_values;
+mod proficiency;
 mod races;
 mod repeating_talents;
 mod report_gaps;
