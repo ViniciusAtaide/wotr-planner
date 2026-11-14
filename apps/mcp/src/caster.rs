@@ -84,17 +84,17 @@ pub struct CasterRow {
     /// With Heighten Spell held: the DC of any of these spells raised to the highest level castable.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub heightened: Option<SpellDcShape>,
-    /// What every DC counts besides 10 and the spell level; left out when the same as before, and when empty.
+    /// What every DC counts besides 10 and the spell level; left out when the same as before, and when empty on the first row.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub dc_counts: Option<Vec<CasterPartShape>>,
     /// Caster level checks against spell resistance: `caster_level` plus `spell_penetration_counts`.
     pub spell_penetration: i16,
-    /// Left out when the same as before, and when empty.
+    /// Left out when the same as before, and when empty on the first row.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub spell_penetration_counts: Option<Vec<CasterPartShape>>,
     /// The concentration bonus: `caster_level` plus `concentration_counts`.
     pub concentration: i16,
-    /// Left out when the same as before, and when empty.
+    /// Left out when the same as before, and when empty on the first row.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub concentration_counts: Option<Vec<CasterPartShape>>,
 }

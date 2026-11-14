@@ -15,9 +15,9 @@
 //!   and `improve` rank by unless asked to count the gear. A Build has no gear unless the user states it.
 //! - Builds: `code.rs` opens a Build code (only through the engine's checked decode) and writes the envelope (`build`,
 //!   `link`, the whole `todo`) `new_build`, `validate` and `options` (on request) return, the changes to `todo`
-//!   `choose` and `withdraw` return, and `todo` for `sheet` on request; choice addresses, labels and value keys are the rules crate's ([`rules::Address`]);
-//!   `error.rs` is the server's refusals (`stale_link`, `no_such_choice`, `not_an_option`, `needs_parameter`,
-//!   `not_removable`, `invalid_arguments`, `internal`).
+//!   `choose` and `withdraw` return, and `todo` for `sheet` on request; choice addresses, labels and value keys are
+//!   the rules crate's ([`rules::Address`]); `error.rs` is the server's refusals (`stale_link`, `no_such_choice`,
+//!   `not_an_option`, `needs_parameter`, `not_removable`, `invalid_arguments`, `internal`).
 //! - `spells.rs`: the spell catalogue (ticket 121) as `search` and `describe` give it.
 //! - `similar.rs`: how close a given name is to the planner's, for the hints after a miss, above one floor.
 //! - [`http`]: the server over streamable HTTP on a loopback port (`WOTR_MCP_PORT`), which `wotr-mcp` and the app's

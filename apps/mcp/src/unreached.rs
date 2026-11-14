@@ -51,6 +51,11 @@ impl Unreached {
         }
     }
 
+    /// The reason a rank that doesn't exist gives (`Unreached::NoSuchRank`), which has no consequence to name.
+    pub(crate) fn no_such_rank(rank: u8) -> String {
+        Self::NoSuchRank.reason(rank, "")
+    }
+
     /// The consequence for a rank's level address (`options`, `choose`, `validate`).
     pub(crate) fn no_level(rank: u8) -> String {
         format!("`mythic.{rank}.level` has no level to take it at")

@@ -14,7 +14,7 @@ use crate::error::ToolError;
 use crate::gear::{self, GearMark};
 use crate::planner::Planner;
 use crate::shapes::{
-    ChoiceValue, Kind, Open, OptionGroup, OptionLine, OptionStatus, OptionsArgs, OptionsResult,
+    CategoryGroup, ChoiceValue, Kind, Open, OptionLine, OptionStatus, OptionsArgs, OptionsResult,
 };
 use crate::unreached::Unreached;
 
@@ -958,7 +958,7 @@ pub(crate) fn options(planner: &Planner, args: OptionsArgs) -> Result<OptionsRes
     let breaks = Breaks::new(engine, &build);
     let later = LaterLevels::new(engine, &build);
     let mut closed = 0;
-    let mut groups: Vec<OptionGroup> = Vec::new();
+    let mut groups: Vec<CategoryGroup> = Vec::new();
     for offer in offers {
         let text = offer.search_text();
         if !words.iter().all(|word| text.contains(word.as_str())) {
@@ -1016,7 +1016,7 @@ pub(crate) fn options(planner: &Planner, args: OptionsArgs) -> Result<OptionsRes
         // Grouped by category, in the order of each one's first option.
         match groups.iter_mut().find(|group| group.category == category) {
             Some(group) => group.options.push(line),
-            None => groups.push(OptionGroup {
+            None => groups.push(CategoryGroup {
                 category,
                 options: vec![line],
             }),

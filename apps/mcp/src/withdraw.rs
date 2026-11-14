@@ -13,7 +13,7 @@
 
 use rules::{Address, Build, Engine, encode_build};
 
-use crate::code::{LINK_BASE, open, reopen, report, todo, todo_before};
+use crate::code::{link, open, reopen, report, todo, todo_before};
 use crate::error::ToolError;
 use crate::options::{Breaks, Cause, verb};
 use crate::planner::Planner;
@@ -138,7 +138,7 @@ pub(crate) fn withdraw(planner: &Planner, args: WithdrawArgs) -> Result<Withdraw
     };
     let code = encode_build(&next);
     Ok(WithdrawResult {
-        link: format!("{LINK_BASE}{code}"),
+        link: link(&code),
         build: code,
         todo: report(todo(engine, &next, &sheet), before),
         leans_on_gear,

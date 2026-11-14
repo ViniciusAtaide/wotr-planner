@@ -264,8 +264,8 @@ impl Server {
 
     #[tool(
         description = "A Build's sheet, from the planner's rules engine: the Build start's choices; per character \
-            level its class and class level, BAB, saves, ability scores, skill points and ranks, the feats and \
-            features it adds, and its choices; per Mythic rank its status, path, choices and path features; the \
+            level a row of its class and class level, BAB, saves, ability scores, skill points and ranks, the feats \
+            and features it adds, and its choices (what a row leaves out when unchanged is below); per Mythic rank its status, path, choices and path features; the \
             caster level (class levels only) and spell-level access at the last level, class skills and notes; \
             `totals` at the last level: initiative, each save and each skill's total, each with what it counts \
             (ability modifiers, base saves, ranks, the class skill bonus, the flat bonuses of the items held; a part worth 0 is left out). \

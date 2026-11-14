@@ -62,7 +62,7 @@ impl Asked {
             if Unreached::of(engine, build, rank) == Some(Unreached::NoSuchRank) {
                 return Err(ToolError::invalid_arguments(format!(
                     "`ranks`: {}",
-                    Unreached::NoSuchRank.reason(rank, "")
+                    Unreached::no_such_rank(rank)
                 )));
             }
         }
