@@ -37,10 +37,19 @@ fn the_guide_only_trickster_fighter_reads_bab_25_at_level_20_and_21_at_level_16(
     // The first attack is the BAB plus the Build's 9 (Strength, Weapon Focus and its Greater form).
     assert_eq!(line(16).attacks, [30, 25, 20, 15, 10]);
     assert_eq!(line(20).attacks, [34, 29, 24, 19, 14]);
-    // Power Attack: 1 + BAB / 4 steps, a seventh at BAB 25 (the last one without the trick was at BAB 20: five).
+    // Power Attack: 1 + BAB / 4 steps, six steps at BAB 20 and a seventh at BAB 25.
     assert_eq!(line(16).power_attack.unwrap().attack_penalty, 6);
     assert_eq!(line(20).power_attack.unwrap().attack_penalty, 7);
     assert_eq!(line(15).attacks.len(), 3);
+    // Without the trick the same level 20 is BAB 20: four attacks and six steps.
+    let mut plain = build.clone();
+    plain.picks.remove(&path_selection(7));
+    let plain = engine.evaluate(&plain);
+    let line = engine
+        .attack_line(plain.at(20).unwrap(), &falchion)
+        .unwrap();
+    assert_eq!(line.attacks.len(), 4);
+    assert_eq!(line.power_attack.unwrap().attack_penalty, 6);
 }
 
 #[test]
@@ -113,12 +122,8 @@ fn a_wizard_with_athletics_iii_opens_critical_focus_from_the_next_level_it_could
             .find(|option| option.pick.key() == "critical-focus")
             .map(|option| option.status)
     };
-    // Needs BAB 9: the level's own general slot is checked before the rank's picks, the next level's is not.
+    // Needs BAB 9: the next odd level's slot sees the raise.
     let next = (rank_7 + 1..=20).find(|level| level % 2 == 1).unwrap();
-    let own = (rank_7 % 2 == 1).then_some(rank_7);
-    if let Some(own) = own {
-        assert!(status(&with, own).unwrap().is_err(), "own slot at {own}");
-    }
     assert_eq!(status(&with, next), Some(Ok(())));
     assert!(status(&without, next).unwrap().is_err());
     assert!(
@@ -126,6 +131,29 @@ fn a_wizard_with_athletics_iii_opens_critical_focus_from_the_next_level_it_could
             .check(&Prerequisite::BaseAttackBonus(9))
             .is_err()
     );
+}
+
+#[test]
+fn the_level_athletics_iii_is_taken_at_doesnt_see_it_in_its_own_feat_slot() {
+    let engine = engine();
+    // MR 7 at level 17, which has a general slot: the slot is filled before the rank's picks.
+    let mut build = trickster_wizard(true);
+    build.rank_levels.insert(7, 17);
+    assert!(engine.is_possible(&build));
+    assert_eq!(engine.evaluate(&build).ranks[6].character_level, 17);
+    let status = |level| {
+        engine
+            .options(&build, &general_slot(level))
+            .unwrap()
+            .into_iter()
+            .find(|option| option.pick.key() == "critical-focus")
+            .unwrap()
+            .status
+    };
+    // The wizard's table gives 8 at 17 and 9 at 19; the ranks spent are the level.
+    assert!(status(17).is_err());
+    assert_eq!(engine.evaluate(&build).at(17).unwrap().bab, 17);
+    assert_eq!(status(19), Ok(()));
 }
 
 #[test]
@@ -145,11 +173,23 @@ fn athletics_iii_is_the_only_option_that_sets_the_bab_by_ranks() {
         (rule.skill.as_str(), rule.extra_at_full_bab),
         ("athletics", 5)
     );
-    // No class, race or other selection sets one.
+    // No class, archetype or prestige class sets one.
+    let selections = DATA
+        .classes
+        .iter()
+        .flat_map(|class| {
+            class
+                .selections
+                .iter()
+                .chain(class.archetypes.iter().flat_map(|a| &a.selections))
+        })
+        .chain(
+            DATA.prestige_classes
+                .iter()
+                .flat_map(|class| &class.selections),
+        );
     assert!(
-        DATA.classes
-            .iter()
-            .flat_map(|class| &class.selections)
+        selections
             .flat_map(|selection| &selection.options)
             .all(|option| option.bab_from_ranks.is_none())
     );

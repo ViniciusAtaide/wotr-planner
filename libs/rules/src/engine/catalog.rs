@@ -11,10 +11,10 @@ use crate::bonus::BonusItemKind;
 use crate::build::{BuildStart, Pick};
 use crate::check::CheckedGameData;
 use crate::game_data::{
-    AbilityBonus, AbilityModifier, Archetype, Background, Class, Deity, EXOTIC_WEAPON_PROFICIENCY,
-    Feat, FeatCategory, FeatList, FeatureSelection, GameData, IMPROVED_UNARMED_STRIKE,
-    MythicAbility, MythicFeat, MythicPath, OptionRow, Race, SelectionOption, Skill, Subrace,
-    UNARMED_STRIKE, Weapon, WeaponProficiency,
+    AbilityBonus, AbilityModifier, Archetype, BabFromRanks, Background, Class, Deity,
+    EXOTIC_WEAPON_PROFICIENCY, Feat, FeatCategory, FeatList, FeatureSelection, GameData,
+    IMPROVED_UNARMED_STRIKE, MythicAbility, MythicFeat, MythicPath, OptionRow, Race,
+    SelectionOption, Skill, Subrace, UNARMED_STRIKE, Weapon, WeaponProficiency,
 };
 use crate::gear::GearItem;
 use crate::keys::{
@@ -351,6 +351,11 @@ impl Catalog {
         Some(self.indexes.selections.get(key)?.selection(&self.data))
     }
 
+    /// The options that set the base attack bonus by skill ranks (Athletics III), with their rule.
+    pub(super) fn bab_options(&self) -> &[(SelectionOptionKey, BabFromRanks)] {
+        &self.indexes.bab_options
+    }
+
     pub(super) fn option(&self, key: &SelectionOptionKey) -> Option<&SelectionOption> {
         let (selection, index) = self.indexes.options.get(key)?;
         self.selection(selection)
@@ -660,6 +665,8 @@ struct Indexes {
     feat_lists: FxHashMap<FeatListKey, FeatList>,
     selections: FxHashMap<FeatureSelectionKey, SelectionAt>,
     options: FxHashMap<SelectionOptionKey, (FeatureSelectionKey, usize)>,
+    /// The options that set the base attack bonus by skill ranks (Athletics III), few and in key order.
+    bab_options: Vec<(SelectionOptionKey, BabFromRanks)>,
     mythic_abilities: FxHashMap<MythicAbilityKey, usize>,
     mythic_feats: FxHashMap<MythicFeatKey, usize>,
     paths: FxHashMap<MythicPathKey, usize>,
@@ -673,8 +680,15 @@ impl Indexes {
         let (classes, archetypes) = index_classes(data);
         let (races, subraces) = index_races(data);
         let selections = index_selections(data);
+        let mut bab_options: Vec<_> = selections
+            .values()
+            .flat_map(|at| &at.selection(data).options)
+            .filter_map(|option| Some((option.key.clone(), option.bab_from_ranks.clone()?)))
+            .collect();
+        bab_options.sort_by(|a, b| a.0.cmp(&b.0));
         Self {
             options: index_options(data, &selections),
+            bab_options,
             feat_lists: index_feat_lists(data),
             skills: index(&data.skills, |s| &s.key),
             weapons: index(&data.weapons, |w| &w.key),

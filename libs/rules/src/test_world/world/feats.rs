@@ -125,7 +125,8 @@ pub(super) fn feats() -> Vec<Feat> {
             Weapon,
             Some(All(vec![needs_feat("cleave"), BaseAttackBonus(4)])),
         ),
-        // Invented: a feat a half-BAB class reaches only late, for Athletics III's raise of the BAB.
+        // Invented: a feat a half-BAB class reaches only late, for Athletics III's raise of the BAB (BAB 12 here, 9 in the
+        // game).
         feat_row("critical-focus", Weapon, Some(BaseAttackBonus(12))),
         // Invented third link so a chain of two dependants can be tested.
         feat_row("cleaving-finish", Weapon, Some(needs_feat("great-cleave"))),

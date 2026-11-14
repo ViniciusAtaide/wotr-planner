@@ -368,22 +368,24 @@ impl<'a> Walker<'a> {
     fn raises_bab(&self, option: &SelectionOptionKey) -> bool {
         self.engine
             .catalog
-            .option(option)
-            .is_some_and(|option| option.bab_from_ranks.is_some())
+            .bab_options()
+            .iter()
+            .any(|(key, _)| key == option)
     }
 
     /// The base attack bonus: the class tables', or the most the options held set by ranks spent (Athletics III: the
     /// ranks, and 5 more while the class tables' bonus equals the character level). The sheet, the attack line and
     /// every prerequisite read it.
     pub(super) fn refresh_bab(&mut self) {
-        let catalog = &self.engine.catalog;
         let state = &self.state;
         let full = self.class_bab == state.character_level;
-        let raised = state
-            .selection_options
-            .keys()
-            .filter_map(|key| catalog.option(key)?.bab_from_ranks.as_ref())
-            .map(|rule| {
+        let raised = self
+            .engine
+            .catalog
+            .bab_options()
+            .iter()
+            .filter(|(key, _)| state.selection_options.contains_key(key))
+            .map(|(_, rule)| {
                 let extra = if full { rule.extra_at_full_bab } else { 0 };
                 state.skill_ranks(&rule.skill).saturating_add(extra)
             })
