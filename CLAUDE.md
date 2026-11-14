@@ -15,6 +15,16 @@ The `.ron` files in `libs/game-data/` are the game data; there is no database (t
 - Build in the worktree's own `target/` (the default). Never share `CARGO_TARGET_DIR` between worktrees: the servers and the tests find the workspace root, and with it `libs/game-data/`, from the path they were compiled in, so a shared build reads another worktree's data.
 - A `.env` is optional; `.env.example` lists what it may set.
 
+## Game sources
+
+The game is the source of truth for rules (map Notes, ticket 234), at patch 2.7.0x. Two git-ignored folders at the repo root hold its sources; `scripts/game-sources.sh` fills them at the pins in `scripts/game-sources.pins` (the dump's SHA-256 and the code's commit) and checks a filled one against them.
+
+- **`blueprints/`:** BubblePrintsData's release `2.7.0x_0`, one `.binz` file (the game's blueprints as JSON, in BubblePrints' container).
+- **`decompiled/`:** xADDBx/WrathDecompiled, shallow, at the pinned commit: the game's code.
+- **Citing:** a fact or a rule cites a blueprint by name and GUID, or the code by file and method with the WrathDecompiled commit.
+- **Worktrees:** both folders live only in the main checkout; an agent in a worktree reads them there by absolute path and does not run the script.
+- **Never in the repo:** the game's text strings, the dump and its code, not even quoted in a ticket.
+
 ## Parallel agents
 
 The machine has 8 cores and 24 GB of RAM. Builds, tests, proofs and benchmarks are all CPU-bound and compete for them: three agents building at once drove the load to 85–250 and made each one slower. Reading, writing and reviewing cost almost no local CPU, so those run side by side for free.

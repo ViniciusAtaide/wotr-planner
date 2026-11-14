@@ -1,0 +1,10 @@
+# The pins of the game's two sources (ticket 236). Plain KEY=value lines, no expansions: scripts/game-sources.sh
+# sources this file and the game check (ticket 238) parses it. The pin moves only when both sources have a newer
+# patch; moving it changes the release, the asset, the size and the hash together.
+BLUEPRINTS_REPO=factubsio/BubblePrintsData
+BLUEPRINTS_RELEASE=2.7.0x_0
+BLUEPRINTS_ASSET=blueprints_raw_2.7.0x_0.binz
+BLUEPRINTS_BYTES=136905792
+BLUEPRINTS_SHA256=03ba6e29782c0c14e0c0383cd739560358641f7b5842f1dcfb690246e73c9c6a
+DECOMPILED_REPO=xADDBx/WrathDecompiled
+DECOMPILED_COMMIT=6ce4a6ba6d35039cc73ba16faf70c2d9952a63c2
