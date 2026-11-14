@@ -12,7 +12,7 @@ wotr-planner builds Pathfinder: Wrath of the Righteous characters with the rules
 1. **Resolve** every name the user gives with `search` (see Workflow). Done when each name is one key; if a name could mean more than one item, ask the user which one before you build.
 2. **Name the number** the goal is. A number the planner computes (a spell DC, caster level against spell resistance, concentration, the first attack's bonus, the damage bonus per hit) is ranked by the planner: see Ranking by a number. Damage per round is not one of them: for a martial goal, read [martial.md](martial.md) now. Done when you can say which tool gives the number and what it leaves out.
 3. **Scout** the route before you commit to it: `describe` each candidate class, archetype and Mythic path, and run `options` with `only_open: false` on the slots where the plan's key picks go. Branch a class split before you commit to it (see Before you plan). Done when every pick the plan rests on is open where you put it, or you know the level or prerequisite that opens it.
-4. **Plan the whole Build as a map** of address → value in a file in your scratchpad (`plan.json`), then `new_build` and `validate` the map (see Planned whole). Done when `validate` returns `status: "valid"` and `choose` has filled its `todo`, so `open` reads 0.
+4. **Plan the whole Build as a map** of address → value in a file in your scratchpad (`plan.json`), then `new_build` and `validate` the map (see Planned whole). Done when `validate` returns `status: "valid"` and `choose` has filled its `todo`, so `open` reads 0 (or `validate`'s `todo` is already empty).
 5. **Branch** each alternative by copying the map file and editing only the addresses that differ, then `validate` each copy and `compare` the codes (see Branching). A Mythic path or a class swap is an edit of the map, not a rebuild step by step.
 6. **Price** the goal's number for every branch: `compare` with `by`, whose numbers are naked on every branch unless you pass `with_gear: true` (see Gear; the attack line for each Build's Weapon Focus weapon unless you give a `weapon`); for damage per round, the worksheet in [martial.md](martial.md).
 7. **Report** in the shape under Report. Done when every link opens and every number is marked fact, assumption or estimate.
@@ -29,7 +29,7 @@ wotr-planner builds Pathfinder: Wrath of the Righteous characters with the rules
 ## Workflow
 
 1. Resolve every name the user gives with `search` (names, keys and initials: "BFT" finds the Brown-Fur Transmuter; words of what an item does, such as "DC", also find it by its summary). Spells too: `kinds: ["spell"]`, and `category` for a school or a descriptor ("Compulsion"). If a name could mean more than one item, ask the user which one before you build.
-2. Start with `new_build`. Every Build tool takes the Build's code (`build`) and returns a new code and the planner `link`. `new_build`, `validate` and `sheet` return `todo`, the whole list of choices still open, each by its address (`options` only with `envelope: true`); `choose` and `withdraw` return what changed in it against the code you sent: `opened` ({choice, label}; a choice whose label changed, skill points part spent, comes again as opened), `closed` (addresses) and `open`, the count now open. Keep your own list: drop what `closed` names, add `opened`. `todo: true` on either returns the whole list if you lose track.
+2. Start with `new_build`. Every Build tool takes the Build's code (`build`) and returns a new code and the planner `link`. `new_build`, `validate` and `sheet` return `todo`, the whole list of choices still open, each by its address (`options` only with `envelope: true`); `choose` and `withdraw` return what changed in it against the code you sent: `opened` ({choice, label}; a choice whose label changed, skill points part spent, comes again as opened), `closed` (addresses) and `open`, the count now open. Keep one list per code, and apply a result's `opened` and `closed` to the list of the code you sent: drop what `closed` names, add `opened` (an `opened` address already on the list replaces its label, not a second row). `todo: true` on either returns the whole list if you lose track.
 3. Fill the Build start: race, racial ability, faith, alignment, background, point-buy scores.
 4. Add levels with `level.N.class` (N one past the last level adds one) and fill each level's open choices: feats, Feature selections, ability increases, skill points.
 5. Fill the Mythic ranks once their levels are reached: the first ascension at MR 1, the path at MR 3, and each rank's picks.
@@ -51,7 +51,7 @@ Take them from `options`, which lists what a choice can take now and why the res
 
 ## Branching
 
-For alternatives (Lich or Aeon), build the shared part once, `choose` each alternative from that same code, fill each branch, then `compare` the codes. Report its differences as facts, without ranking them by your own judgement.
+For alternatives (Lich or Aeon), build the shared part once, `choose` each alternative from that same code, fill each branch, then `compare` the codes. Each branch from the same code keeps its own list (copy it), or passes `todo: true`. Report its differences as facts, without ranking them by your own judgement.
 
 ## Gear
 

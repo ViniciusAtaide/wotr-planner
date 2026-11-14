@@ -85,7 +85,7 @@ async fn calls(client: &Client) -> Vec<(&'static str, &'static str, usize, Value
     let fighter = declared(client, fighter()).await;
     let fighter_20 = declared(client, fighter_20()).await;
     let mut results = Vec::new();
-    // Each budget is about a tenth above the size when it was set (2026-11-14; `choose, fighter 20` 266 characters, 4,188 with `todo: true`).
+    // Each budget is about a tenth above the size when it was set (2026-11-14; `choose, fighter 20` 266 characters, 4,188 with `todo: true`; a level added to fighter 8 624, a withdraw 404).
     for (name, tool, budget, arguments) in [
         (
             "validate, failing",
@@ -101,6 +101,31 @@ async fn calls(client: &Client) -> Vec<(&'static str, &'static str, usize, Value
                 "build": fighter_20,
                 "steps": [{ "choice": "slot.feat.1.class.0", "value": "power-attack" }],
             }),
+        ),
+        (
+            "choose, fighter 20 with todo: true",
+            "choose",
+            4_600,
+            json!({
+                "build": fighter_20,
+                "steps": [{ "choice": "slot.feat.1.class.0", "value": "power-attack" }],
+                "todo": true,
+            }),
+        ),
+        (
+            "choose, a level added to fighter 8",
+            "choose",
+            690,
+            json!({
+                "build": fighter,
+                "steps": [{ "choice": "level.9.class", "value": { "class": "fighter" } }],
+            }),
+        ),
+        (
+            "withdraw, fighter 8 pick",
+            "withdraw",
+            445,
+            json!({ "build": fighter, "choice": "slot.feat.8.class.0" }),
         ),
         (
             "sheet, fighter 8",

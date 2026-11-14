@@ -3,8 +3,9 @@
 //!
 //! Conventions: field names are `snake_case`; a result is always an object (a list sits in a named field, as
 //! `search`'s `matches`); an optional field that doesn't apply is left out, except `prerequisite`, which is
-//! `null` when there is none (`search`'s `compact` leaves it out); a reference to another item is a [`Named`] `{key, name}`. Every result about a Build
-//! flattens the [`Envelope`] into it (`build`, `link`, `todo`); a choice is named by its address (`rules::Address`) and
+//! `null` when there is none (`search`'s `compact` leaves it out); a reference to another item is a [`Named`] `{key, name}`. A result about a Build
+//! flattens the [`Envelope`] into it (`build`, `link`, `todo`), except `choose` and `withdraw`, which return
+//! `build`, `link` and the changes to `todo` ([`TodoReport`]); a choice is named by its address (`rules::Address`) and
 //! holds a [`ChoiceValue`].
 
 use std::collections::{BTreeMap, BTreeSet};
@@ -426,8 +427,8 @@ pub struct Selection {
 
 // ---- Builds ------------------------------------------------------------------------------------------------------
 
-/// What every tool that takes or makes a Build returns with its result: the Build's code, its link and its open
-/// choices.
+/// What most tools that take or make a Build return with their result: the Build's code, its link and its whole
+/// list of open choices (`choose` and `withdraw` return `build`, `link` and [`TodoReport`] instead).
 #[derive(Debug, Serialize, JsonSchema)]
 pub struct Envelope {
     /// The Build's code: what every Build-taking tool takes as `build`. A new code for every change; keep an old one

@@ -1,5 +1,6 @@
 //! Build codes, the handle every Build-taking tool takes: opening one only through the engine's checked decode, and
-//! the envelope every such tool returns (the code, its link and the open choices).
+//! the envelope most such tools return (the code, its link and the whole list of open choices; `choose` and
+//! `withdraw` return the changes to that list instead).
 
 use std::collections::HashMap;
 

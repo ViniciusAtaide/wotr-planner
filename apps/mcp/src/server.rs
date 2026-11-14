@@ -234,9 +234,10 @@ impl Server {
 
     #[tool(
         description = "Start a Build: an empty one, or the Build of a planner link or code (`link`, opened only if \
-            the planner's rules find it possible; otherwise `stale_link`). Returns the envelope every Build tool \
-            returns: `build`, the code the other tools take (a new one after every change; keep an old one to \
-            branch); `link`, the planner link for the user; and `todo`, the open choices by address, whole (`choose` and `withdraw` return only what changed).",
+            the planner's rules find it possible; otherwise `stale_link`). Returns `build`, the code the other \
+            tools take (a new one after every change; keep an old one to branch); `link`, the planner link for the \
+            user; and `todo`, the whole list of open choices by address (`choose` and `withdraw` return only what \
+            changed).",
         annotations(read_only_hint = true, open_world_hint = false)
     )]
     async fn new_build(
@@ -352,8 +353,9 @@ impl Server {
             against the code you sent (even when a step was refused: the steps before it count): `opened`, the \
             choices they opened ({choice, label}; a choice open before whose label changed, skill points part \
             spent, comes again with its new label), `closed`, the addresses they closed, and `open`, how many \
-            are open now; `opened` and `closed` are left out when empty. Keep your own list from `new_build`'s \
-            or `validate`'s `todo`, and pass `todo: true` for the whole list when you lose track (then no \
+            are open now; `opened` and `closed` are left out when empty. Keep one list per code, from `new_build`'s \
+            or `validate`'s `todo`, and apply `opened` and `closed` to the list of the code you sent (an `opened` \
+            address already on it replaces its label, not a second row); pass `todo: true` for the whole list when you lose track (then no \
             `opened`, `closed` or `open`). Also `moved` {step, choice, item, name, from} for a ring a step took from the other ring place (that \
             place is then empty); and `leans_on_gear` {step, choice, leaning} for each applied step that left \
             choices allowed only because of the Build's gear (a Dexterity lowered under a belt, with a feat that \

@@ -13,8 +13,8 @@
 //!   own shapes; `totals.rs` is the initiative, save and skill totals `sheet` gives. `gear.rs` is the Build's gear
 //!   (ticket 168): a place's options, the choices only gear allows, and the numbers without gear, which `compare`
 //!   and `improve` rank by unless asked to count the gear. A Build has no gear unless the user states it.
-//! - Builds: `code.rs` opens a Build code (only through the engine's checked decode) and writes the envelope every
-//!   Build-taking tool returns; choice addresses, labels and value keys are the rules crate's ([`rules::Address`]);
+//! - Builds: `code.rs` opens a Build code (only through the engine's checked decode) and writes the envelope (`build`,
+//!   `link`, the whole `todo`) most Build tools return, and the changes to `todo` `choose` and `withdraw` return; choice addresses, labels and value keys are the rules crate's ([`rules::Address`]);
 //!   `error.rs` is the server's refusals (`stale_link`, `no_such_choice`, `not_an_option`, `needs_parameter`,
 //!   `not_removable`, `invalid_arguments`, `internal`).
 //! - `spells.rs`: the spell catalogue (ticket 121) as `search` and `describe` give it.

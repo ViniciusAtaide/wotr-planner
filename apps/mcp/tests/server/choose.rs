@@ -954,3 +954,45 @@ async fn a_link_gives_the_same_changes_as_its_code() {
         .await;
     assert_eq!(by_code, by_link);
 }
+
+#[tokio::test]
+async fn real_data_a_level_that_reaches_a_mythic_rank_returns_the_rank_slots_as_opened() {
+    // The rank half of `todo`: level 6 reaches MR 1, whose pick opens with it.
+    let client = Client::start().await;
+    let mut declared = json!({
+        "start.race": "human",
+        "start.faith": "atheism",
+        "start.alignment": "true-neutral",
+    });
+    for level in 1..=5 {
+        declared[format!("level.{level}.class")] = json!({ "class": "fighter" });
+    }
+    let validated = client.ok("validate", json!({ "choices": declared })).await;
+    let before = labelled(
+        &client
+            .ok("sheet", json!({ "build": validated["build"] }))
+            .await["todo"],
+    );
+    assert!(!before.contains_key("slot.mythic.1"));
+    let chosen = client
+        .ok(
+            "choose",
+            json!({ "build": validated["build"], "steps": [
+                { "choice": "level.6.class", "value": { "class": "fighter" } },
+            ] }),
+        )
+        .await;
+    let whole = labelled(
+        &client
+            .ok("sheet", json!({ "build": chosen["build"] }))
+            .await["todo"],
+    );
+    let opened = labelled(&chosen["opened"]);
+    assert_eq!(
+        opened.get("slot.mythic.1"),
+        Some(&"MR 1: Mythic ability".to_owned()),
+        "{chosen}"
+    );
+    assert_eq!(whole.get("slot.mythic.1"), opened.get("slot.mythic.1"));
+    assert_eq!(open_of(&chosen), whole.len(), "{chosen}");
+}
