@@ -112,7 +112,6 @@ Class(
             levels: [
                 (level: 1, features: ["fighter/defender-of-the-hearth/shield-block"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency", "tower-shield-proficiency"]),
                 (level: 5, features: ["fighter/defender-of-the-hearth/heaven-strike", "fighter/defender-of-the-hearth/shield-block"]),
-                (level: 9, features: ["fighter/weapon-training", "fighter/weapon-training"]),
                 (level: 10, features: ["fighter/bravery", "fighter/defender-of-the-hearth/shield-block"], feat_slots: [CombatFeat]),
                 (level: 15, features: ["fighter/armor-training", "fighter/defender-of-the-hearth/shield-block"]),
                 (level: 20, features: ["fighter/defender-of-the-hearth/defenders-gift", "fighter/defender-of-the-hearth/shield-block"], feat_slots: [CombatFeat]),

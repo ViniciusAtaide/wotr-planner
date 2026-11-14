@@ -124,12 +124,13 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   An archetype that loses a feature has its own rows at the steps it would inherit, carrying what the base row
   gives there (the Thug's rogue talents and Sneak Attack, the Flesheater's rage power at 12, the Ghost Rider's
   Supreme Charge at 20, the Cult Leader's Sacred Weapon and Aspect of War); one that keeps it has it on its rows at
-  the steps. A row that would equal the base class's is left out (the check refuses it). The Defender of the Hearth's
-  delayed Weapon Training at 9, where the guide has it take two ranks in the same weapon type, is a row of its own
-  that lists the feature twice (a row's features are a multiset, as the Trickster path's Sneak Attack at rank 3 is), so its grants
-  are 9, 9, 13 and 17. The Titan Fighter still has none (ticket 131). Four are inferences,
+  the steps. A row that would equal the base class's is left out (the check refuses it). A count of Weapon Training
+  stands for the weapon groups (one at 5, ..., four at 17), so the Defender of the Hearth, whose abilities cost one
+  rank of it (the fighter page's overview), holds three: 9 (its table), 13 and 17. The table's note, two ranks in the
+  same weapon type at 9, says how strong that one group is and is not modelled as a second grant (a review fix
+  that listed the feature twice at 9 was taken back). The Titan Fighter still has none (ticket 131). Four are inferences,
   where the guide gives no levels: the Defender of the Hearth's Weapon Training steps at 13 and 17 with the class's
-  rows (the two ranks at 9 are the guide's); the Standard Bearer's own Banner (granted at 1) at 10, 15 and 20; the Feyspeaker's Wild Shape
+  rows (the grant at 9 is its table's); the Standard Bearer's own Banner (granted at 1) at 10, 15 and 20; the Feyspeaker's Wild Shape
   (Wolf), which comes two levels later, at each even level from 6 to 18; the Shieldbearer's own Channel Energy on the
   warpriest's steps. Two gaps in the fighter's archetypes are closed with it, since each replaces a stepped base
   feature and rises itself: the Armiger's Ardent at 2, 6, 10, 14 and 18 and the Aldori Defender's Defensive Parry at

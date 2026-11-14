@@ -2196,9 +2196,11 @@ fn the_rogues_danger_sense_steps_every_three_levels() {
 /// Ardent, the Dragonheir Scion's Fearful Might, the Tower Shield Specialist's Burst Barrier, the Two-Handed
 /// Fighter's Strong Grip), no Armor Training (the Aldori Defender, the Dragonheir Scion, the Mutation Warrior, the
 /// Titan Fighter, the Two-Handed Fighter) or no Weapon Training (the Titan Fighter, ticket 131; the Tower Shield
-/// Specialist; the Two-Handed Fighter) holds none of its steps. The Defender of the Hearth's first Weapon Training
-/// is its delayed one at 9, where the guide has it take two ranks in the same weapon type (two grants, on a row of
-/// its own); it inherits the steps at 13 and 17 (an inference: the guide gives it none).
+/// Specialist; the Two-Handed Fighter) holds none of its steps. A count of Weapon Training stands for the weapon
+/// groups (a new one every four levels, four at 17). The Defender of the Hearth pays one for its abilities (the
+/// fighter page's overview), so it has three: its first at 9 (its table), then 13 and 17 with the class's rows (an
+/// inference: the guide gives it no steps). The table's note, two ranks in the same weapon type at 9, is how strong
+/// that one group is, not a second grant, and is not modelled.
 #[test]
 fn the_fighters_bravery_armor_training_and_weapon_training_step() {
     assert_gains(
@@ -2232,7 +2234,7 @@ fn the_fighters_bravery_armor_training_and_weapon_training_step() {
         &|_, build| build,
         &[5, 9, 13, 17],
         &[
-            ("fighter/defender-of-the-hearth", Some(&[9, 9, 13, 17])),
+            ("fighter/defender-of-the-hearth", Some(&[9, 13, 17])),
             ("fighter/titan-fighter", Some(&[])),
             ("fighter/tower-shield-specialist", Some(&[])),
             ("fighter/two-handed-fighter", Some(&[])),

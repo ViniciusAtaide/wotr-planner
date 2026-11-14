@@ -692,19 +692,13 @@ fn a_scoundrel_with_bard_levels_may_take_them_through_the_bards_slots() {
     assert!(open_at(&build, 4, &rogue_talent(UNCANNY_DODGE)));
 }
 
-/// Every option condition a prerequisite names, however deep in its `All`, `Any` and `AtLeast`.
+/// Every option condition a prerequisite names, wherever it sits in the tree (its groups and `Not`s: see
+/// [`Prerequisite::leaves`]).
 fn named_options(prerequisite: &Prerequisite, found: &mut BTreeSet<String>) {
-    match prerequisite {
-        Prerequisite::All(children) | Prerequisite::Any(children) => {
-            children
-                .iter()
-                .for_each(|child| named_options(child, found));
-        }
-        Prerequisite::SelectionOption(option) => {
-            found.insert(option.to_string());
-        }
-        _ => {}
-    }
+    found.extend(prerequisite.leaves().filter_map(|leaf| match leaf {
+        Prerequisite::SelectionOption(option) => Some(option.to_string()),
+        _ => None,
+    }));
 }
 
 /// Extra Rogue Talent's "Prerequisites: Rogue Talents or Fey Tricks" is holding any rogue talent, and the data lists
