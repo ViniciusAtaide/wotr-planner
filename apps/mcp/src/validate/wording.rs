@@ -152,20 +152,25 @@ impl Wording<'_> {
         let Some(pick) = self.build.picks.get(slot) else {
             return reason;
         };
-        // The declared Build without the failing pick, when that is all that fails in it.
-        let mut without = self.build.clone();
-        engine.apply(&mut without, &rules::Edit::Clear(slot.clone()));
-        let tried_on = engine.is_possible(&without).then_some(&without);
-        crate::options::later_rank_note(
+        // No walk: most unmet prerequisites meet no later rank's pick.
+        let Some((text, opens)) = crate::options::later_rank_clause(
             engine,
             self.build,
             self.sheet,
             (slot, pick),
             issue,
             &reason,
-            tried_on,
-        )
-        .unwrap_or(reason)
+        ) else {
+            return reason;
+        };
+        // The declared Build without the failing pick, when that is all that fails in it.
+        let mut without = self.build.clone();
+        engine.apply(&mut without, &rules::Edit::Clear(slot.clone()));
+        if !engine.is_possible(&without) {
+            return text;
+        }
+        let tail = crate::options::LaterLevels::new(engine, &without).tail(&opens);
+        format!("{text}{}", tail.unwrap_or_default())
     }
 
     /// A pick held already: where the declaration holds it, when a slot does (ticket 192), else the engine's text.

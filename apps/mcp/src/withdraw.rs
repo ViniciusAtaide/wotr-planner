@@ -15,7 +15,7 @@ use rules::{Address, Build, Engine};
 
 use crate::code::{envelope, open, reopen};
 use crate::error::ToolError;
-use crate::options::{Breaks, verb};
+use crate::options::{Breaks, Cause, verb};
 use crate::planner::Planner;
 use crate::shapes::{WithdrawArgs, WithdrawResult};
 
@@ -84,13 +84,27 @@ pub(crate) fn withdraw(planner: &Planner, args: WithdrawArgs) -> Result<Withdraw
         }
         // The choices that would fail without it, by name.
         let breaks = Breaks::new(engine, &build);
-        let refused = breaks.refused(&edit);
-        if !refused.is_empty() {
+        let refusals = breaks.refusals(&edit);
+        if !refusals.is_empty() {
+            let refused: Vec<_> = refusals
+                .iter()
+                .map(|failure| failure.choice.clone())
+                .collect();
             let count = refused.len();
+            let names = breaks.names(&refused);
+            let (first, so) = match breaks.cause(&refusals) {
+                Cause::Needs => (
+                    format!(
+                        "{names} {} on `{address}`",
+                        verb(count, "depends", "depend")
+                    ),
+                    "it",
+                ),
+                _ => (format!("Would break {names}"), "`{address}`"),
+            };
+            let so = so.replace("{address}", &address.to_string());
             return Err(ToolError::not_removable(format!(
-                "{} {} on `{address}`, so it can't be withdrawn now: withdraw {} first.",
-                breaks.names(&refused),
-                verb(count, "depends", "depend"),
+                "{first}, so {so} can't be withdrawn now: withdraw {} first.",
                 verb(count, "that choice", "those choices")
             )));
         }
