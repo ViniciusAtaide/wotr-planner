@@ -40,6 +40,8 @@ A new test is done when its name shows up in `cargo test -p <crate> -- --list`.
 
 Before reporting a change done, run `scripts/check.sh` (`--full`, the cargo-leptos builds, only at the end of a queue of tickets). Its tests include the snapshot check and the gold builds (see "Behaviour checks"). A pre-commit hook in `.githooks/` runs its fmt and clippy steps; enable it in a new clone with `git config core.hooksPath .githooks`.
 
+- **A change only to `libs/ui/` and `apps/frontend/`:** `scripts/check.sh --ui` is enough: fmt, clippy and the tests of those two crates. It refuses when the branch or the working tree changes any other path (but `.scratch/` and `*.md`).
+
 ## Behaviour checks
 
 A change to `rules` or `libs/game-data/` must change no behaviour but the intended one. There are two tiers (`libs/game-data/README.md` describes both tests):
