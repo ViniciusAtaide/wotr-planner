@@ -64,7 +64,7 @@ fn opens_at(needs: Option<u8>, level: u8) -> bool {
 
 /// "Besides the normal Barbarian rage powers, an Instinctual Warrior can select a number of Monk abilities and Ki
 /// powers": five options of the barbarian's rage power selection, each needing the archetype and the level (or, for
-/// Deflect Arrows, the feat) the guide gives. Extra Rage Power's "Rage Power" is met by holding any of them too.
+/// Deflect Arrows, the feat) the guide gives. Extra Rage Power's "Rage Power" is met by holding any of them too (`option_lists.rs` checks its list).
 #[test]
 fn the_instinctual_warriors_monk_powers_are_rage_power_options_for_it_alone() {
     let archetype = Prerequisite::Archetype(ArchetypeKey::new(INSTINCTUAL_WARRIOR));
@@ -90,22 +90,6 @@ fn the_instinctual_warriors_monk_powers_are_rage_power_options_for_it_alone() {
         .find(|selection| selection.key.as_str() == RAGE_POWER)
         .expect("the rage power selection");
     assert_eq!(selection.options.len(), 38);
-    let Some(Prerequisite::Any(children)) = &feat("extra-rage-power").prerequisite else {
-        panic!("Extra Rage Power's prerequisite isn't an Any");
-    };
-    let named: BTreeSet<String> = children
-        .iter()
-        .map(|child| match child {
-            Prerequisite::SelectionOption(key) => key.to_string(),
-            other => panic!("Extra Rage Power needs {other:?}"),
-        })
-        .collect();
-    let every: BTreeSet<String> = selection
-        .options
-        .iter()
-        .map(|o| o.key.to_string())
-        .collect();
-    assert_eq!(named, every);
 }
 
 /// The ticket's: an Instinctual Warrior's rage power picker offers each monk power from its level and not before,

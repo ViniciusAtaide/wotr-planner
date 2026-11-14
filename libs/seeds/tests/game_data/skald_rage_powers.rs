@@ -350,16 +350,10 @@ fn the_battle_scions_selection_shares_every_rage_power_and_adds_a_teamwork_feat(
             .collect::<Vec<_>>(),
         ["skald"]
     );
-    // Extra Rage Power gives a Battle Scion a slot of this selection, and doesn't name the Teamwork Feat.
+    // Extra Rage Power gives a Battle Scion a slot of this selection (that its prerequisite leaves out
+    // the Teamwork Feat is option_lists.rs's exception table).
     let extra = &feat("extra-rage-power").extra_pick_of;
     assert!(extra.iter().any(|s| s.as_str() == SCION_SLOT));
-    let Some(Prerequisite::Any(children)) = &feat("extra-rage-power").prerequisite else {
-        panic!("Extra Rage Power's prerequisite isn't an Any");
-    };
-    assert!(children.iter().all(|child| match child {
-        Prerequisite::SelectionOption(key) => key.as_str() != TEAMWORK_FEAT,
-        _ => false,
-    }));
 }
 
 fn any_selection(key: &str) -> &'static rules::FeatureSelection {
