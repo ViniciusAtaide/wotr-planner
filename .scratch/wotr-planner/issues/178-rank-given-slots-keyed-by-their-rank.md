@@ -1,7 +1,7 @@
 # Slots a Mythic rank's pick gives are keyed by their rank, not by their place at a level
 
 Type: design
-Status: open
+Status: resolved
 Blocked by: 171
 Model: Fable to design with the user; it changes slot ids, and so the link.
 Map: [WotR Build Planner](../map.md)
@@ -23,3 +23,7 @@ Should these slots be keyed by what gives them (the rank, and which of its picks
 
 - Whether B is wanted at all.
 - For B: the new ids and addresses; whether old links holding a `FeatSelection` pick at a rank's level are read as the new id (they can be told apart only by walking the Build) or kept as they are; what the proof and the snapshots show for Builds that hold such picks.
+
+## Answer
+
+**Decided** (user, 2026-11-14, in a grilling session): A, leave the slots keyed by their place. A move that would shift a filled slot stays locked, and the refusal names the pick to clear first. Nothing changes in the link. The fallback if the case turns out common: keep the ids and let the move withdraw and retake the shifted picks in one edit (no link change). Not built now.

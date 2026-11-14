@@ -3,7 +3,7 @@
 Type: design
 Status: open
 Blocked by: 160
-Model: Sonnet to gather the evidence; the user decides.
+Model: Sonnet to build (one entry in `gold.rs`).
 Map: [WotR Build Planner](../map.md)
 
 ## Question
@@ -21,6 +21,18 @@ What to find out before the user decides:
 Options:
 - **A.** Add Uncanny Dodge to the slayer talents, against the guide, on the user's word that the game offers it.
 - **B.** Keep the guide's list. The line stays a known gap for good, marked as the one place the gold standard and the guide disagree.
+
+## Answer
+
+**Decided** (user, 2026-11-14, in a grilling session): B. "Uncanny dodge is only available through the imitator slayer archetype." It is not a slayer talent, so the guide's list stands and the write-up is mistaken here.
+
+Evidence gathered for the decision:
+- The guide's slayer talents (`slayer#slayer-talents`): the rogue talents, a ranger's combat style feats, Trapfinding and Slayer Camouflage.
+- Uncanny Dodge is a rogue class feature. Only the Eldritch Scoundrel takes (Improved) Uncanny Dodge as a talent (`rogue.txt`, built by ticket 190).
+- The Arcane Enforcer's level 8 is a plain Slayer Talents slot.
+- In the data, slayers gain it only through an archetype: the Imitator's Barbarian and Rogue stances, and the Vanguard at 7th (`slayer#uncanny-dodge`, which the guide gives the Vanguard).
+
+The build: the gold test's entry (`gold.rs`, `Why::AgainstTheGuide(173, …)`) stays, and becomes permanent. Its reason names the write-up's mistake and the user's word. `gold/source.txt` keeps the write-up as it was written.
 
 ## Done when
 

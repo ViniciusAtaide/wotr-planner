@@ -2,7 +2,7 @@
 
 Type: design
 Status: open
-Blocked by: the user's list of bonus types
+Blocked by: [222](222-gear-other-items.md) (the bonus rows it adds), and [139](139-attack-line-weapon-features-and-mythic-feats.md)
 Map: [WotR Build Planner](../map.md)
 
 ## Question
@@ -23,3 +23,5 @@ For B: every line's and the totals' `leaves_out` says it, and the MCP instructio
 ## Answer
 
 **Decided** (user, 2026-11-10): A. The user gives each bonus's type, as they gave the skills table, and it goes in `research/`. Since [148](148-naked-numbers.md) removes assumed gear, the types cover the item bonuses (`bonuses.ron`) and whatever 139, 141 and 143 add.
+
+**Revised** (user, 2026-11-14, in ticket [169](169-gear-second-stage.md)'s grilling session, its question 7): the user no longer gives a list. The types come from the guide's own words: gear already carries them (Enhancement, Inherent, Competence, Circumstance, Armour, Profane, Alchemical, Luck, Resistance). Feats and features take a type where the guide names one, and are untyped (always stacking) where it doesn't. A later correction is a data edit. This ticket is now the build of stacking, third in 169's order: after the weapons and the other items, before armour class.
