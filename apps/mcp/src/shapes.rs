@@ -342,6 +342,17 @@ pub struct Named {
     pub name: String,
 }
 
+/// A feature a Build gains, by key and name, with how many times when that is more than once (the Trickster's third
+/// Mythic rank gives Sneak Attack twice).
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, JsonSchema)]
+pub struct Gained {
+    pub key: String,
+    pub name: String,
+    /// How many times it is gained at once; left out for one.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub times: Option<u8>,
+}
+
 /// A feature or selection option as `describe` lists it: by key and name, with its summary when the data has one.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, JsonSchema)]
 pub struct Summarised {
@@ -795,8 +806,9 @@ pub struct LevelLine {
     pub skill_ranks: BTreeMap<String, u8>,
     /// The feats first held at this level, granted or picked (a parameterised one with its value).
     pub feats: Vec<Named>,
-    /// The features gained at this level (one granted again, as Sneak Attack, is listed again).
-    pub features: Vec<Named>,
+    /// The features gained at this level; one gained more than once at the level (the Trickster's Sneak Attack at
+    /// MR 3) says `times`.
+    pub features: Vec<Gained>,
     /// The Mythic ranks reached at this level.
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub mythic_ranks: Vec<u8>,
@@ -844,8 +856,8 @@ pub struct RankLine {
     pub path: Option<Named>,
     /// Its slots by address: the general mythic pick, then the path's.
     pub picks: Vec<PickLine>,
-    /// The features its path row gives.
-    pub features: Vec<Named>,
+    /// The features its path row gives, one gained more than once with `times`.
+    pub features: Vec<Gained>,
     /// The slots whose picks a Path switch took away, by address.
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub dropped: Vec<String>,
@@ -1310,7 +1322,7 @@ pub struct LevelDiff {
     /// One list per Build: the features it gains at this level that some other Build doesn't, apart from its path
     /// rows' features, which are in `path_features`.
     #[serde(skip_serializing_if = "Vec::is_empty")]
-    pub features: Vec<Vec<Named>>,
+    pub features: Vec<Vec<Gained>>,
 }
 
 /// What differs at one Mythic rank, apart from its path features (those are in `path_features`).
@@ -1336,5 +1348,5 @@ pub struct RankDiff {
 pub struct FeaturesDiff {
     pub rank: u8,
     /// One list per Build: the features its path row gives at this rank that some other Build's doesn't.
-    pub only: Vec<Vec<Named>>,
+    pub only: Vec<Vec<Gained>>,
 }

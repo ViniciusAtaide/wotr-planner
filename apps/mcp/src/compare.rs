@@ -19,8 +19,9 @@ use crate::gear::if_differs;
 use crate::planner::Planner;
 use crate::rank::{self, RankedBy};
 use crate::shapes::{
-    BuildSummary, ClassSummary, CompareArgs, CompareResult, FeaturesDiff, LevelDiff, LevelLine,
-    Named, NumberDiff, Numbers, OtherNumbers, PickDiff, PickLine, RankDiff, RankLine, SheetResult,
+    BuildSummary, ClassSummary, CompareArgs, CompareResult, FeaturesDiff, Gained, LevelDiff,
+    LevelLine, Named, NumberDiff, Numbers, OtherNumbers, PickDiff, PickLine, RankDiff, RankLine,
+    SheetResult,
 };
 use crate::sheet::{scores, sheet_of};
 
@@ -319,7 +320,7 @@ type Number = fn(&LevelLine) -> u8;
 /// their path rows (`path_features`, by Build) are left to `path_features`, so they aren't listed twice.
 fn level_diff(at: &[Option<&LevelLine>], path_features: &[BTreeSet<&str>]) -> Option<LevelDiff> {
     let level = at.iter().flatten().next()?.level;
-    let features: Vec<Option<Vec<Named>>> = at
+    let features: Vec<Option<Vec<Gained>>> = at
         .iter()
         .zip(path_features)
         .map(|(line, path)| {
@@ -456,9 +457,9 @@ fn pick_diffs(lists: &[Option<&[PickLine]>]) -> Vec<PickDiff> {
 
 /// For each Build, the items of its list that some other Build's list lacks (a Build without the list has none); empty
 /// when every Build has the same items.
-fn only_some(lists: &[Option<&[Named]>]) -> Vec<Vec<Named>> {
-    let lists: Vec<&[Named]> = lists.iter().map(|list| list.unwrap_or(&[])).collect();
-    let only: Vec<Vec<Named>> = lists
+fn only_some<T: PartialEq + Clone>(lists: &[Option<&[T]>]) -> Vec<Vec<T>> {
+    let lists: Vec<&[T]> = lists.iter().map(|list| list.unwrap_or(&[])).collect();
+    let only: Vec<Vec<T>> = lists
         .iter()
         .map(|list| {
             list.iter()
@@ -471,5 +472,27 @@ fn only_some(lists: &[Option<&[Named]>]) -> Vec<Vec<Named>> {
         Vec::new()
     } else {
         only
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn sneak(times: Option<u8>) -> Gained {
+        Gained {
+            key: "trickster/sneak-attack".to_owned(),
+            name: "Sneak Attack (Trickster)".to_owned(),
+            times,
+        }
+    }
+
+    #[test]
+    fn a_feature_gained_twice_differs_from_the_same_one_gained_once() {
+        let (twice, once) = ([sneak(Some(2))], [sneak(None)]);
+        let only = only_some(&[Some(&twice[..]), Some(&once[..])]);
+        assert_eq!(only, [vec![sneak(Some(2))], vec![sneak(None)]]);
+        // The same count is no difference.
+        assert!(only_some(&[Some(&twice[..]), Some(&twice[..])]).is_empty());
     }
 }
