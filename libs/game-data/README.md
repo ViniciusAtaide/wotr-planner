@@ -117,16 +117,19 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   are granted again at each step the guide's sentence names, as the archetypes' were: the barbarian's and the
   rogue's Danger Sense at 3, 6, 9, 12, 15 and 18; the fighter's Bravery at 2, 6, 10, 14 and 18, Armor Training at 3,
   7, 11 and 15 and Weapon Training at 5, 9, 13 and 17; the cavalier's Banner at 5, 10, 15 and 20, Tactician at 1, 5,
-  10, 15 and 20 and Challenge at 1, 4, 7, 10, 13, 16 and 19; the paladin's Smite Evil at 1, 4, 7, 10, 13, 16 and 19;
+  10, 15 and 20 and Challenge at 1, 4, 7, 10, 13, 16 and 19; the paladin's Smite Evil at 1, 4, 7, 10, 13, 16 and 19, and the two features that replace it, the Stonelord's Stonestrike
+  and the Tortured Crusader's All is Darkness, at 1, 5, 10, 15 and 20;
   the druid's Wild Shape (Wolf) at 4, 6, ..., 18 and each druid archetype's own copy; the Feral Champion's at 7, 11,
   15 and 19; the warpriest's Channel Energy at 4, 5, 8, 11, 14, 17 and 20 and Fervor at 2, 5, 8, 11, 14, 17 and 20.
   An archetype that loses a feature has its own rows at the steps it would inherit, carrying what the base row
   gives there (the Thug's rogue talents and Sneak Attack, the Flesheater's rage power at 12, the Ghost Rider's
   Supreme Charge at 20, the Cult Leader's Sacred Weapon and Aspect of War); one that keeps it has it on its rows at
-  the steps. A row that becomes the base class's is left out: the Defender of the Hearth's row at 9, its delayed
-  first Weapon Training, is now the base row. The Titan Fighter still has none (ticket 131). Four are inferences,
-  where the guide gives no levels: the Defender of the Hearth's Weapon Training, first at 9, steps at 13 and 17 with
-  the class's rows; the Standard Bearer's own Banner (granted at 1) at 10, 15 and 20; the Feyspeaker's Wild Shape
+  the steps. A row that would equal the base class's is left out (the check refuses it). The Defender of the Hearth's
+  delayed Weapon Training at 9, where the guide has it take two ranks in the same weapon type, is a row of its own
+  that lists the feature twice (a row's features are a multiset, as the Trickster path's Sneak Attack at rank 3 is), so its grants
+  are 9, 9, 13 and 17. The Titan Fighter still has none (ticket 131). Four are inferences,
+  where the guide gives no levels: the Defender of the Hearth's Weapon Training steps at 13 and 17 with the class's
+  rows (the two ranks at 9 are the guide's); the Standard Bearer's own Banner (granted at 1) at 10, 15 and 20; the Feyspeaker's Wild Shape
   (Wolf), which comes two levels later, at each even level from 6 to 18; the Shieldbearer's own Channel Energy on the
   warpriest's steps. Two gaps in the fighter's archetypes are closed with it, since each replaces a stepped base
   feature and rises itself: the Armiger's Ardent at 2, 6, 10, 14 and 18 and the Aldori Defender's Defensive Parry at

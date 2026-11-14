@@ -55,12 +55,14 @@ Done 2026-11-13 (branch `ticket/188-base-classes-stepped-features`). Data and te
 | Druid Wild Shape (Wolf) and each archetype's copy | 4, 6, 8, ..., 18 | `druid`, Wild Shape: an extra use every 2 levels above 4, 8 at 18 |
 | Feral Champion Wild Shape (Wolf) | 7, 11, 15, 19 | `warpriest`, Wild Shape: one more every 4 levels, 4 at 19 |
 | Warpriest Channel Energy | 4, 5, 8, 11, 14, 17, 20 | `warpriest`, Channel Energy: 1d6 plus 1d6 per 3 levels above 2nd, 7d6 at 20 |
+| Stonelord, Stonestrike (review) | 1, 5, 10, 15, 20 | `paladin`, Stonestrike: +1 at 5th and every five levels after, +5 at 20 |
+| Tortured Crusader, All is Darkness (review) | 1, 5, 10, 15, 20 | `paladin`, All is Darkness: one a day, another at 5th and every five levels, 5 at 20 |
 | Warpriest Fervor | 2, 5, 8, 11, 14, 17, 20 | Fervor: the same per 3 more levels, 7d6 at 20 |
 
 The class tables list each of these once, at its first level, so table and sentence do not conflict; the sentence gives the steps.
 
 **The four inferences** (the guide gives no levels; the user took the recommended option):
-- the Defender of the Hearth's Weapon Training, first at 9 (its delayed grant), steps at 13 and 17 with the class's rows (count 3 at 17);
+- the Defender of the Hearth's Weapon Training steps at 13 and 17 with the class's rows; its first grant at 9 is two grants (the guide's note under its table: two ranks in the same weapon type), on a row of its own that lists the feature twice, so its grants are 9, 9, 13, 17 (a row's features are a multiset: the Trickster path's rank 3 row has precedent). The two ranks are the guide's; only the steps are the inference;
 - the Standard Bearer's own Banner (granted at 1) at 1, 10, 15 and 20;
 - the Feyspeaker's Wild Shape (Wolf), which comes two levels later, at each even level from 6 to 18 (7 grants);
 - the Shieldbearer's own Channel Energy on the warpriest's steps.
@@ -69,7 +71,7 @@ The class tables list each of these once, at its first level, so table and sente
 
 **Where the guide's archetype table decided against the plan:** nowhere. Each archetype's keep or lose was read from the guide's own table (the archetype headings of `barbarian`, `rogue`, `fighter`, `cavalier`, `paladin`, `druid`, `warpriest`) and agreed with the data-derived plan.
 
-**Row mechanics found while building:** a row that is the base row is refused ("leave the level out"), so the Defender of the Hearth's row at 9 (its first Weapon Training) was deleted: the class's row at 9 now carries it. A new row for an archetype that loses a feature carries what the base row gives there, minus the stepped features.
+**Row mechanics found while building:** a row that is the base row is refused ("leave the level out"), which is why the Defender's row at 9 lists Weapon Training twice rather than once. A new row for an archetype that loses a feature carries what the base row gives there, minus the stepped features.
 
 ### What reads each count
 
@@ -87,7 +89,9 @@ Levels are where the archetype holds the feature at the end of its level 20 Buil
 
 **Fighter Armor Training** (3, 7, 11, 15): the class and Armiger, Defender of the Hearth, Tower Shield Specialist keep. Aldori Defender, Dragonheir Scion, Mutation Warrior, Titan Fighter, Two-Handed Fighter lose. New rows: Aldori Defender 7, 11, 15 (Defensive Parry) and 19 (Armor Mastery, Defensive Parry); Dragonheir Scion 11.
 
-**Fighter Weapon Training** (5, 9, 13, 17): the class and Aldori Defender, Armiger, Dragonheir Scion, Mutation Warrior keep. Defender of the Hearth: 9, 13, 17 (inference). Titan Fighter (no Weapon Training, ticket 131), Tower Shield Specialist, Two-Handed Fighter lose. New rows: Titan Fighter 13, Tower Shield Specialist 17.
+**Fighter Weapon Training** (5, 9, 13, 17): the class and Aldori Defender, Armiger, Dragonheir Scion, Mutation Warrior keep. Defender of the Hearth: 9, 9, 13, 17 (two ranks at 9, the guide; the steps, inference). Titan Fighter (no Weapon Training, ticket 131), Tower Shield Specialist, Two-Handed Fighter lose. New rows: Titan Fighter 13, Tower Shield Specialist 17.
+
+**Stonelord's Stonestrike and Tortured Crusader's All is Darkness** (review follow-up; the page's Stonestrike and All is Darkness headings): 1, 5, 10, 15, 20, the owner only. New row: Stonelord 5 (Divine Bond, Stonestrike). The Tortured Crusader's 20th-level Unbroken Paragon adds three smite uses and is not modelled.
 
 **Armiger's Ardent** 2, 6, 10, 14, 18 and **Aldori Defender's Defensive Parry** 3, 7, 11, 15, 19: the owner only.
 
@@ -133,7 +137,7 @@ Every changed line is an added grant of a feature in scope. The fighter's 14 Bui
 
 ### Not in this ticket
 
-The second tier (bard Inspire Courage and Inspire Competence, alchemist Poison Resistance, monk AC Bonus and Fast Movement, kineticist Infusion Specialization, shifter Defensive Instinct, skald Inspired Rage, Slayer's Advance, the paladin's Divine Weapon Bond, All Is Darkness and Stonestrike) is [ticket 194](194-more-base-class-stepped-features.md).
+The second tier (bard Inspire Courage and Inspire Competence, alchemist Poison Resistance, monk AC Bonus and Fast Movement, kineticist Infusion Specialization, shifter Defensive Instinct, skald Inspired Rage, Slayer's Advance, the paladin's Divine Weapon Bond) is [ticket 194](194-more-base-class-stepped-features.md).
 
 ### `scripts/check.sh` (after `git merge main`, which brought 192's note; `cargo fmt --all --check` passes)
 
@@ -150,3 +154,12 @@ ALL-OK
 ### Simplify
 
 Run on the whole diff (data rows and ten tests): nothing to change. The tests use the existing `assert_gains`; the rows hold nothing derivable. The temporary dump test and the visibility changes it needed were removed before the commit.
+
+### Review fixes (Opus review follow-ups, 2026-11-13)
+
+1. **Stonestrike and All is Darkness stepped** (paladin page, both headings: each starts at 1st, improves at 5th and every five levels after, cap at 20th): 1, 5, 10, 15, 20 for the Stonelord and the Tortured Crusader, the owner only (`the_stonelords_stonestrike_and_the_tortured_crusaders_all_is_darkness_step`). The Stonelord needed a new row at 5 (Divine Bond, Stonestrike); its rows at 10, 15, 20 and the Tortured Crusader's at 5, 10, 15, 20 took the feature. The Tortured Crusader's 20th-level Unbroken Paragon (three more smite and lay on hands uses, a stun, an extra attack) is not modelled. Both are out of ticket 194.
+2. **The Defender of the Hearth's Weapon Training:** the guide's note under its table says it takes two ranks in the same weapon type at 9th level. A row's `features` is a multiset (the Trickster path's Sneak Attack is listed twice on its rank 3 row, `mythic/paths/trickster.ron`; the engine adds one per entry), so the Defender has its own row at 9 granting it twice, no longer equal to the base row: grants 9, 9, 13, 17. The two ranks are the guide's; the steps at 13 and 17 stay the accepted inference.
+3. **Ticket 194's text:** Divine Weapon Bond has two patterns (the enhancement, 5, 8, 11, 14, 17, 20, which the page gives; the uses, 5, 9, 13, 17, which I found only in the data's summary, not in the saved page) and the choice is open; Fast Movement names no cap level and fails the rule; AC Bonus and Defensive Instinct are flagged (the grant adds Wisdom and the +1 starts at 4, so six grants stand for a +5).
+4. **Tests assert what their comments say:** the paladin test that Divine Scion and Martyr hold Channel Positive Energy at 4; the Feral Champion's bear form at 11 and its slots at 15 (the class's count); the Supreme Charge at 20 for the Fearsome Leader, Ghost Rider and Knight of the Wall; the Thug's Sneak Attack counts and rogue talent levels equal to the rogue's.
+
+Snapshot check after these: no new difference (no corpus Build has these archetypes).
