@@ -9,10 +9,20 @@
 //!   feats-for-a-value: the shortfall is how many of each the base row has more than the row;
 //! - the spell levels, when the row sets them below the base row's (a row that raises them is a grant).
 //!
-//! A list entry is `(item, at, count, why)`. With no `at` the archetype loses the item at every level where the base
-//! row gives it, so a level where the archetype has no row (it keeps the item) fails the entry, which is how a step
-//! added to a base class later is caught. With `at`, exactly those levels. `count` (default 1) is the shortfall at
-//! each of them. A listed loss the rows don't make fails as well as an unlisted one the rows do.
+//! A list entry is `(item, at, count, replaced_by, why)`. With no `at` the archetype loses the item at every level
+//! where the base row gives it (for `SpellLevels`, where the base row sets spell levels), so a level where the
+//! archetype has no row (it keeps the item) fails the entry, which is how a step added to a base class later is
+//! caught. With `at`, exactly those levels, and a `why` saying what the guide's table shows there. `count` is the
+//! shortfall at each of them (default one). A listed loss the rows don't make fails as well as an unlisted one the
+//! rows do.
+//!
+//! `replaced_by` says what the archetype gives in the item's place (its own copy of a feature or selection under the
+//! same name, or the same name with the archetype's in brackets; its own bonus-feat list for the class's). The test
+//! checks that a row of the archetype grants each one at or after the first level the item is lost at: at a lost
+//! level for a substitution, later for a delay (the Standard Bearer's companion, lost at 1, comes at 5). It is there so
+//! that nobody takes a substitution for a loss and "restores" the base key. Left off where nothing takes the item's
+//! place. An archetype's own `why` is optional: it says only what the list can't (a decision of the user's, a guide
+//! table that shows more than its overview).
 //!
 //! Not here, because other tests own them: an archetype's replaced class skills (`class_skills.rs`), its replaced
 //! saves (`archetype_saves.rs`), and the option rows a selection skips with `skipped_levels` (`scaling_features.rs`,
@@ -56,6 +66,9 @@ struct Loss {
     at: BTreeSet<u8>,
     #[serde(default = "one")]
     count: u8,
+    /// What the archetype's rows grant in its place: each is held by a row at or after the first lost level.
+    #[serde(default)]
+    replaced_by: Vec<Item>,
     /// Required with `at`: what the guide's table shows at those levels.
     #[serde(default)]
     why: String,
@@ -65,11 +78,13 @@ fn one() -> u8 {
     1
 }
 
-/// What one archetype loses, with the guide's reason.
+/// What one archetype loses.
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct Losses {
     archetype: ArchetypeKey,
+    /// Optional: what the list itself can't say.
+    #[serde(default)]
     why: String,
     loses: Vec<Loss>,
 }
@@ -128,15 +143,19 @@ fn gives(base: &[ClassLevelRow]) -> ByLevel {
             &row.selections[..],
         );
         tally_row(&mut gives, row.level, grants);
+        if row.spell_levels().any() {
+            gives
+                .entry(Item::SpellLevels)
+                .or_default()
+                .insert(row.level, 1);
+        }
     }
     gives
 }
 
-/// What the base rows give and the archetype's rows lack, by item and level: the shortfall.
-fn shortfalls(base: &[ClassLevelRow], rows: &[ArchetypeLevelRow]) -> ByLevel {
-    let base_gives = gives(base);
+/// What an archetype's rows grant, by item and level.
+fn rows_grant(rows: &[ArchetypeLevelRow]) -> ByLevel {
     let mut own = ByLevel::new();
-    let mut shortfalls = ByLevel::new();
     for row in rows {
         let grants = (
             &row.features[..],
@@ -146,6 +165,15 @@ fn shortfalls(base: &[ClassLevelRow], rows: &[ArchetypeLevelRow]) -> ByLevel {
             &row.selections[..],
         );
         tally_row(&mut own, row.level, grants);
+    }
+    own
+}
+
+/// What the base rows give and the archetype's rows lack, by item and level: the shortfall.
+fn shortfalls(base: &[ClassLevelRow], rows: &[ArchetypeLevelRow]) -> ByLevel {
+    let own = rows_grant(rows);
+    let mut shortfalls = ByLevel::new();
+    for row in rows {
         let Some(base_row) = base.iter().find(|b| b.level == row.level) else {
             continue;
         };
@@ -160,7 +188,10 @@ fn shortfalls(base: &[ClassLevelRow], rows: &[ArchetypeLevelRow]) -> ByLevel {
             }
         }
     }
-    for (item, levels) in &base_gives {
+    for (item, levels) in &gives(base) {
+        if *item == Item::SpellLevels {
+            continue;
+        }
         for (&level, &has) in levels {
             if !rows.iter().any(|row| row.level == level) {
                 continue;
@@ -234,6 +265,30 @@ struct Findings {
     stale: Vec<String>,
 }
 
+/// An entry as the list file writes it, with the reasons it already has.
+fn entry_text(item: &Item, at: &[u8], count: u8, existing: Option<&Loss>) -> String {
+    let mut text = format!("(item: {}", written(item));
+    if !at.is_empty() {
+        let _ = write!(text, ", at: {at:?}");
+    }
+    if count > 1 {
+        let _ = write!(text, ", count: {count}");
+    }
+    if let Some(loss) = existing.filter(|loss| !loss.replaced_by.is_empty()) {
+        let items: Vec<String> = loss.replaced_by.iter().map(written).collect();
+        let _ = write!(text, ", replaced_by: [{}]", items.join(", "));
+    }
+    match existing {
+        Some(loss) if !loss.why.is_empty() => {
+            let _ = write!(text, ", why: {:?}", loss.why);
+        }
+        _ if !at.is_empty() => text.push_str(", why: \"...\""),
+        _ => {}
+    }
+    text.push_str("),");
+    text
+}
+
 /// Checks one archetype's rows against its list.
 fn check(
     class_key: &str,
@@ -245,6 +300,7 @@ fn check(
 ) -> Findings {
     let class_file = format!("libs/game-data/classes/{class_key}.ron");
     let base_gives = gives(base);
+    let own = rows_grant(rows);
     let shortfalls = shortfalls(base, rows);
     let mut found = Findings::default();
     let who = format!("{class_key} / {archetype}");
@@ -259,12 +315,12 @@ fn check(
                 .unwrap_or_default(),
             Some(loss) => loss.at.iter().map(|&l| (l, loss.count)).collect(),
         };
-        let mut unlisted = BTreeMap::new();
+        let mut unlisted = false;
         for (&level, &count) in levels {
             if expected.get(&level) == Some(&count) {
                 continue;
             }
-            unlisted.insert(level, count);
+            unlisted = true;
             let listing = match entry {
                 None => "no entry lists it".to_owned(),
                 Some(loss) if expected.contains_key(&level) => format!(
@@ -281,60 +337,105 @@ fn check(
                 described(item, names),
             );
         }
-        if !unlisted.is_empty() {
-            let every = base_gives
-                .get(item)
-                .is_some_and(|base_levels| base_levels.keys().eq(levels.keys()));
-            let count = levels.values().copied().max().unwrap_or(1);
-            let at = if every {
-                String::new()
-            } else {
-                format!(", at: {:?}", levels.keys().collect::<Vec<_>>())
-            };
-            let count = if count > 1 {
-                format!(", count: {count}")
-            } else {
-                String::new()
-            };
-            let why = if every { "" } else { ", why: \"...\"" };
-            found
-                .paste
-                .push(format!("(item: {}{at}{count}{why}),", written(item)));
+        if !unlisted {
+            continue;
         }
+        let every = base_gives
+            .get(item)
+            .is_some_and(|base_levels| base_levels.keys().eq(levels.keys()));
+        let counts: BTreeSet<u8> = levels.values().copied().collect();
+        if counts.len() > 1 {
+            found.paste.push(format!(
+                "{}: the rows lose different counts by level ({levels:?}), and an entry holds one count per item: \
+                 make the rows lose the same count at every level",
+                written(item)
+            ));
+            continue;
+        }
+        let at: Vec<u8> = if every {
+            Vec::new()
+        } else {
+            levels.keys().copied().collect()
+        };
+        let count = counts.first().copied().unwrap_or(1);
+        let text = entry_text(item, &at, count, entry);
+        found.paste.push(match entry {
+            Some(_) => format!(
+                "replace the existing entry for {} with: {text}",
+                written(item)
+            ),
+            None => text,
+        });
     }
 
     for loss in listed {
         let made = shortfalls.get(&loss.item);
+        let base_levels = base_gives.get(&loss.item);
+        let named = described(&loss.item, names);
         let expected: Vec<u8> = if loss.at.is_empty() {
-            base_gives
-                .get(&loss.item)
+            let all: Vec<u8> = base_levels
                 .map(|levels| levels.keys().copied().collect())
-                .unwrap_or_default()
-        } else {
-            loss.at.iter().copied().collect()
-        };
-        if expected.is_empty() {
-            found.stale.push(format!(
-                "{who}: the list says it loses {} but the base rows never give it (an entry for \
-                 SpellLevels needs `at`).",
-                described(&loss.item, names),
-            ));
-        }
-        for level in expected {
-            let shortfall = made.and_then(|levels| levels.get(&level)).copied();
-            if shortfall != Some(loss.count) {
-                let rows_say = match shortfall {
-                    None if rows.iter().any(|row| row.level == level) => {
-                        "its row at that level keeps it".to_owned()
-                    }
-                    None => "it has no row at that level, so it keeps it".to_owned(),
-                    Some(n) => format!("its row there loses {n}, not {}", loss.count),
-                };
+                .unwrap_or_default();
+            if all.is_empty() {
                 found.stale.push(format!(
-                    "{who}, level {level}: the list says it loses {} there, but {rows_say}. Fix the entry in \
-                     {LIST_FILE}, or give the archetype a row at that level without it ({class_file}).",
-                    described(&loss.item, names),
+                    "{who}: the list says it loses {named} but the base rows never give it."
                 ));
+            }
+            all
+        } else {
+            let (given, never): (Vec<u8>, Vec<u8>) = loss
+                .at
+                .iter()
+                .partition(|level| base_levels.is_some_and(|levels| levels.contains_key(level)));
+            for level in never {
+                found.stale.push(format!(
+                    "{who}, level {level}: the entry for {named} names level {level} in `at`, but the base row \
+                     gives it nothing there. Fix `at` in {LIST_FILE}."
+                ));
+            }
+            given
+        };
+        for &level in &expected {
+            let shortfall = made.and_then(|levels| levels.get(&level)).copied();
+            if shortfall == Some(loss.count) {
+                continue;
+            }
+            let message = match shortfall {
+                None if rows.iter().any(|row| row.level == level) => format!(
+                    "the list says it loses {named} there, but its row at that level keeps it. Take it off the \
+                     row ({class_file}), or fix the entry in {LIST_FILE}."
+                ),
+                None => format!(
+                    "the list says it loses {named} there, but it has no row at that level, so it keeps it. \
+                     Either add a row for level {level} that copies the base row less the item (a row replaces \
+                     the base row in full, {class_file}), or give the entry `at` with the guide's reason \
+                     ({LIST_FILE})."
+                ),
+                Some(n) => format!(
+                    "the list says it loses {named} there ({}), but its row there loses {n}. Fix `count` in \
+                     {LIST_FILE}, or the row ({class_file}).",
+                    loss.count
+                ),
+            };
+            found.stale.push(format!("{who}, level {level}: {message}"));
+        }
+        let lost_from = made
+            .and_then(|levels| levels.keys().next())
+            .or_else(|| expected.first())
+            .copied();
+        if let Some(first) = lost_from {
+            for replacement in &loss.replaced_by {
+                let granted = own
+                    .get(replacement)
+                    .is_some_and(|levels| levels.keys().any(|&level| level >= first));
+                if !granted {
+                    found.stale.push(format!(
+                        "{who}: the entry for {named} says {} replaces it, but no row of the archetype at or \
+                         after level {first} (where it first loses it) grants that. Fix `replaced_by` in \
+                         {LIST_FILE}, or the rows ({class_file}).",
+                        described(replacement, names),
+                    ));
+                }
             }
         }
     }
@@ -424,7 +525,7 @@ fn join(lines: &[&String]) -> String {
 }
 
 /// Every archetype has exactly one list (an archetype that loses nothing has an empty one), every list names an
-/// archetype of the data, and each carries its reasons.
+/// archetype of the data, and each entry with `at` carries its reason.
 #[test]
 fn every_archetype_has_one_list_and_every_list_names_an_archetype() {
     let lists = lists();
@@ -442,9 +543,8 @@ fn every_archetype_has_one_list_and_every_list_names_an_archetype() {
         if !seen.insert(&list.archetype) {
             problems.push(format!("{}: listed twice", list.archetype));
         }
-        let reason = list.why.trim();
-        if reason.is_empty() || reason == "TODO" {
-            problems.push(format!("{}: no reason (why)", list.archetype));
+        if list.why.trim() == "TODO" {
+            problems.push(format!("{}: a `why` of TODO", list.archetype));
         }
         let mut items = BTreeSet::new();
         for loss in &list.loses {
@@ -462,8 +562,14 @@ fn every_archetype_has_one_list_and_every_list_names_an_archetype() {
                     written(&loss.item)
                 ));
             }
-            let needs_why = !loss.at.is_empty() || loss.item == Item::SpellLevels;
-            if needs_why && (loss.why.trim().is_empty() || loss.why.trim() == "...") {
+            if loss.replaced_by.contains(&loss.item) {
+                problems.push(format!(
+                    "{}: {} is replaced by itself",
+                    list.archetype,
+                    written(&loss.item)
+                ));
+            }
+            if !loss.at.is_empty() && (loss.why.trim().is_empty() || loss.why.trim() == "...") {
                 problems.push(format!(
                     "{}: {} at {:?} has no reason (why: what the guide's table shows there)",
                     list.archetype,
@@ -552,4 +658,133 @@ fn the_check_names_the_class_the_archetype_the_level_and_the_item() {
     let found = check("rage", &key, &base, &rows, &names, &listed);
     assert_eq!(found.stale.len(), 1, "{:?}", found.stale);
     assert!(found.stale[0].contains("level 3") && found.stale[0].contains("keeps it"));
+}
+
+/// An entry's count is exact; the suggestion for an item that already has an entry replaces it, keeping its reasons.
+#[test]
+fn a_count_of_two_is_exact_and_the_suggestion_replaces_the_existing_entry() {
+    let names = BTreeMap::new();
+    let key = ArchetypeKey::new("rage/flesh");
+    let base = base_rows(r#"[(level: 1, selections: ["rage/blessing", "rage/blessing"])]"#);
+    let rows = archetype_rows("[(level: 1)]");
+
+    let one = entries(r#"[(item: Selection("rage/blessing"), why: "kept")]"#);
+    let found = check("rage", &key, &base, &rows, &names, &one);
+    assert!(
+        found
+            .unlisted
+            .contains("the entry lists 1 lost there, the rows lose 2")
+    );
+    assert_eq!(
+        found.paste,
+        vec![
+            "replace the existing entry for Selection(\"rage/blessing\") with: (item: Selection(\"rage/blessing\"), \
+             count: 2, why: \"kept\"),"
+                .to_owned()
+        ]
+    );
+
+    let two = entries(r#"[(item: Selection("rage/blessing"), count: 2)]"#);
+    let found = check("rage", &key, &base, &rows, &names, &two);
+    assert!(found.unlisted.is_empty() && found.stale.is_empty());
+
+    // A count the rows don't make is stale.
+    let three = entries(r#"[(item: Selection("rage/blessing"), count: 3)]"#);
+    let found = check("rage", &key, &base, &rows, &names, &three);
+    assert!(
+        found.stale[0].contains("(3), but its row there loses 2"),
+        "{:?}",
+        found.stale
+    );
+}
+
+/// Spell levels lowered below the base row's are a loss; a bare `SpellLevels` entry means every level where the base
+/// row sets them, so a class that starts casting where the archetype has no row is caught.
+#[test]
+fn lowered_spell_levels_are_a_loss_and_a_bare_entry_covers_every_casting_level() {
+    let names = BTreeMap::new();
+    let key = ArchetypeKey::new("paladin/guard");
+    let base = base_rows(
+        r#"[(level: 4, divine_spell_level: 1), (level: 5, divine_spell_level: 1), (level: 6, divine_spell_level: 2)]"#,
+    );
+    let rows = archetype_rows(
+        "[(level: 5, spell_levels: Some((arcane: 0, divine: 0))), (level: 6, spell_levels: Some((arcane: 0, divine: 0)))]",
+    );
+
+    let found = check("paladin", &key, &base, &rows, &names, &[]);
+    assert!(found.unlisted.contains("level 5") && found.unlisted.contains("spell levels"));
+    assert_eq!(
+        found.paste,
+        vec!["(item: SpellLevels, at: [5, 6], why: \"...\"),".to_owned()]
+    );
+
+    // Bare: the base row casts from 4, where the archetype has no row, so it keeps the casting.
+    let bare = entries("[(item: SpellLevels)]");
+    let found = check("paladin", &key, &base, &rows, &names, &bare);
+    assert_eq!(found.stale.len(), 1, "{:?}", found.stale);
+    assert!(found.stale[0].contains("level 4") && found.stale[0].contains("copies the base row"));
+
+    let at = entries(r#"[(item: SpellLevels, at: [5, 6], why: "no spells")]"#);
+    let found = check("paladin", &key, &base, &rows, &names, &at);
+    assert!(
+        found.unlisted.is_empty() && found.stale.is_empty(),
+        "{found:?}"
+    );
+
+    // `at` naming a level where the base row sets no spell levels points at the entry.
+    let wrong = entries(r#"[(item: SpellLevels, at: [3, 5, 6], why: "x")]"#);
+    let found = check("paladin", &key, &base, &rows, &names, &wrong);
+    assert_eq!(found.stale.len(), 1, "{:?}", found.stale);
+    assert!(found.stale[0].contains("level 3") && found.stale[0].contains("Fix `at`"));
+}
+
+/// A slot of one kind replaced by another at its level is a loss of the base kind, and `replaced_by` is checked
+/// against what the rows grant (at or after the first lost level).
+#[test]
+fn replaced_by_names_what_the_rows_grant_in_the_items_place() {
+    let names = BTreeMap::new();
+    let key = ArchetypeKey::new("warpriest/dis");
+    let base = base_rows(
+        r#"[(level: 3, feat_slots: [CombatFeat], features: ["w/channel"]), (level: 9, features: ["w/channel"])]"#,
+    );
+    let rows = archetype_rows(
+        r#"[(level: 3, feat_slots: [OneOf(list: "w/dis/bonus-3")], features: ["w/dis/channel"]),
+            (level: 9, features: ["w/dis/channel"])]"#,
+    );
+
+    let right = entries(
+        r#"[(item: Slot(CombatFeat), replaced_by: [Slot(OneOf(list: "w/dis/bonus-3"))]),
+            (item: Feature("w/channel"), replaced_by: [Feature("w/dis/channel")])]"#,
+    );
+    let found = check("w", &key, &base, &rows, &names, &right);
+    assert!(
+        found.unlisted.is_empty() && found.stale.is_empty(),
+        "{found:?}"
+    );
+
+    // Naming something the rows don't grant is stale, and the message says which row to look at.
+    let wrong = entries(
+        r#"[(item: Slot(CombatFeat), replaced_by: [Slot(OneOf(list: "w/dis/elsewhere"))]),
+            (item: Feature("w/channel"))]"#,
+    );
+    let found = check("w", &key, &base, &rows, &names, &wrong);
+    assert_eq!(found.stale.len(), 1, "{:?}", found.stale);
+    assert!(
+        found.stale[0].contains("w/dis/elsewhere")
+            && found.stale[0].contains("at or after level 3"),
+        "{:?}",
+        found.stale
+    );
+
+    // A delay: lost at 3, the copy granted only at 9, still a replacement.
+    let delayed_rows = archetype_rows(
+        r#"[(level: 3, feat_slots: [CombatFeat]), (level: 9, features: ["w/dis/channel"])]"#,
+    );
+    let delayed =
+        entries(r#"[(item: Feature("w/channel"), replaced_by: [Feature("w/dis/channel")])]"#);
+    let found = check("w", &key, &base, &delayed_rows, &names, &delayed);
+    assert!(
+        found.unlisted.is_empty() && found.stale.is_empty(),
+        "{found:?}"
+    );
 }

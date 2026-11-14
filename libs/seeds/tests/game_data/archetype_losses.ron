@@ -1,7 +1,6 @@
 [
     (
         archetype: "alchemist/chirurgeon",
-        why: "Chirurgeon gives up Poison Immunity, Poison Resistance.",
         loses: [
             (item: Feature("alchemist/poison-immunity")),
             (item: Feature("alchemist/poison-resistance")),
@@ -9,7 +8,6 @@
     ),
     (
         archetype: "alchemist/grenadier",
-        why: "Grenadier gives up Poison Immunity, Poison Resistance.",
         loses: [
             (item: Feature("alchemist/poison-immunity")),
             (item: Feature("alchemist/poison-resistance")),
@@ -17,7 +15,6 @@
     ),
     (
         archetype: "alchemist/incense-synthesizer",
-        why: "Incense Synthesizer gives up Mutagen, Persistent Mutagen.",
         loses: [
             (item: Feature("alchemist/mutagen")),
             (item: Feature("alchemist/persistent-mutagen")),
@@ -25,7 +22,6 @@
     ),
     (
         archetype: "alchemist/metamorph",
-        why: "Metamorph gives up Bomb, throw anything.",
         loses: [
             (item: Feature("alchemist/bomb")),
             (item: Feat("throw-anything")),
@@ -33,7 +29,6 @@
     ),
     (
         archetype: "alchemist/preservationist",
-        why: "Preservationist gives up Persistent Mutagen, Poison Immunity, Poison Resistance and has fewer or later Discovery than the class.",
         loses: [
             (item: Feature("alchemist/persistent-mutagen")),
             (item: Feature("alchemist/poison-immunity")),
@@ -43,14 +38,12 @@
     ),
     (
         archetype: "alchemist/reanimator",
-        why: "Reanimator gives up Bomb.",
         loses: [
-            (item: Feature("alchemist/bomb")),
+            (item: Feature("alchemist/bomb"), replaced_by: [Feature("alchemist/reanimator/bomb-reanimator")]),
         ],
     ),
     (
         archetype: "alchemist/vivisectionist",
-        why: "Vivisectionist gives up Bomb, Discovery.",
         loses: [
             (item: Feature("alchemist/bomb")),
             (item: Selection("alchemist/discovery")),
@@ -58,28 +51,25 @@
     ),
     (
         archetype: "arcanist/brown-fur-transmuter",
-        why: "Brown-Fur Transmuter gives up Cantrips, Magical Supremacy and has fewer or later Arcanist Exploits than the class.",
         loses: [
-            (item: Feature("arcanist/cantrips")),
+            (item: Feature("arcanist/cantrips"), replaced_by: [Feature("arcanist/brown-fur-transmuter/cantrips")]),
             (item: Feature("arcanist/magical-supremacy")),
             (item: Selection("arcanist/arcanist-exploits"), at: [3, 9], why: "table has no Arcanist Exploits at these levels; its rows there show 3: Powerful Change; 9: Shared Transmutation"),
         ],
     ),
     (
         archetype: "arcanist/eldritch-font",
-        why: "Eldritch Font gives up Cantrips, Magical Supremacy and has fewer or later Arcanist Exploits than the class.",
         loses: [
-            (item: Feature("arcanist/cantrips")),
+            (item: Feature("arcanist/cantrips"), replaced_by: [Feature("arcanist/eldritch-font/cantrips")]),
             (item: Feature("arcanist/magical-supremacy")),
             (item: Selection("arcanist/arcanist-exploits"), at: [3, 7, 13], why: "table has no Arcanist Exploits at these levels; its rows there show 3: Eldritch Surge; 7: Improved Surge; 13: Greater Surge"),
         ],
     ),
     (
         archetype: "arcanist/magic-deceiver",
-        why: "Magic Deceiver gives up Arcane Reservoir, Cantrips, Consume Spells, Magical Supremacy, Arcanist Exploits, Greater Exploits.",
         loses: [
             (item: Feature("arcanist/arcane-reservoir")),
-            (item: Feature("arcanist/cantrips")),
+            (item: Feature("arcanist/cantrips"), replaced_by: [Feature("arcanist/magic-deceiver/cantrips")]),
             (item: Feature("arcanist/consume-spells")),
             (item: Feature("arcanist/magical-supremacy")),
             (item: Selection("arcanist/arcanist-exploits")),
@@ -88,38 +78,33 @@
     ),
     (
         archetype: "arcanist/nature-mage",
-        why: "Nature Mage gives up Cantrips.",
         loses: [
-            (item: Feature("arcanist/cantrips")),
+            (item: Feature("arcanist/cantrips"), replaced_by: [Feature("arcanist/nature-mage/cantrips")]),
         ],
     ),
     (
         archetype: "arcanist/phantasmal-mage",
-        why: "Phantasmal Mage gives up Cantrips, Magical Supremacy and has fewer or later Arcanist Exploits than the class.",
         loses: [
-            (item: Feature("arcanist/cantrips")),
+            (item: Feature("arcanist/cantrips"), replaced_by: [Feature("arcanist/phantasmal-mage/cantrips")]),
             (item: Feature("arcanist/magical-supremacy")),
             (item: Selection("arcanist/arcanist-exploits"), at: [5, 11, 17], why: "table has no Arcanist Exploits at these levels; its rows there show 5: Arcane Metamagic I; 11: Greater Exploits, Arcane Metamagic II; 17: Arcane Metamagic III"),
         ],
     ),
     (
         archetype: "arcanist/unlettered-arcanist",
-        why: "Unlettered Arcanist gives up Cantrips.",
         loses: [
-            (item: Feature("arcanist/cantrips")),
+            (item: Feature("arcanist/cantrips"), replaced_by: [Feature("arcanist/unlettered-arcanist/cantrips")]),
         ],
     ),
     (
         archetype: "arcanist/white-mage",
-        why: "White Mage gives up Cantrips and has fewer or later Arcanist Exploits than the class.",
         loses: [
-            (item: Feature("arcanist/cantrips")),
+            (item: Feature("arcanist/cantrips"), replaced_by: [Feature("arcanist/white-mage/cantrips")]),
             (item: Selection("arcanist/arcanist-exploits"), at: [9], why: "table has no Arcanist Exploits at these levels; its rows there show 9: nothing"),
         ],
     ),
     (
         archetype: "barbarian/armored-hulk",
-        why: "Armored Hulk gives up Danger Sense, Fast Movement, Improved Uncanny Dodge, Uncanny Dodge.",
         loses: [
             (item: Feature("barbarian/danger-sense")),
             (item: Feature("barbarian/fast-movement")),
@@ -129,7 +114,6 @@
     ),
     (
         archetype: "barbarian/beastskin-berserker",
-        why: "Beastskin Berserker gives up Fast Movement and has fewer or later Rage Power than the class.",
         loses: [
             (item: Feature("barbarian/fast-movement")),
             (item: Selection("barbarian/rage-power"), at: [4, 8, 12], why: "table has no Rage Power at these levels; its rows there show 4: Feral Transformation I; 8: Feral Transformation II; 12: Feral Transformation III"),
@@ -150,7 +134,6 @@
     ),
     (
         archetype: "barbarian/instinctual-warrior",
-        why: "Instinctual Warrior gives up Damage Reduction, Greater Rage, Mighty Rage, Rage, Tireless Rage, armor proficiency light armor, armor proficiency medium armor and has fewer or later Rage Power than the class.",
         loses: [
             (item: Feature("barbarian/damage-reduction")),
             (item: Feature("barbarian/greater-rage")),
@@ -164,9 +147,8 @@
     ),
     (
         archetype: "barbarian/invulnerable-rager",
-        why: "Invulnerable Rager gives up Damage Reduction, Danger Sense, Improved Uncanny Dodge, Uncanny Dodge.",
         loses: [
-            (item: Feature("barbarian/damage-reduction")),
+            (item: Feature("barbarian/damage-reduction"), replaced_by: [Feature("barbarian/invulnerable-rager/damage-reduction-invulnerable-rager")]),
             (item: Feature("barbarian/danger-sense")),
             (item: Feature("barbarian/improved-uncanny-dodge")),
             (item: Feature("barbarian/uncanny-dodge")),
@@ -174,7 +156,6 @@
     ),
     (
         archetype: "barbarian/mad-dog",
-        why: "Mad Dog gives up Improved Uncanny Dodge, Indomitable Will, Rage, Uncanny Dodge and has fewer or later Damage Reduction, Rage Power than the class.",
         loses: [
             (item: Feature("barbarian/damage-reduction"), at: [7], why: "table has no Damage Reduction at these levels; its rows there show 7: nothing"),
             (item: Feature("barbarian/improved-uncanny-dodge")),
@@ -186,7 +167,6 @@
     ),
     (
         archetype: "barbarian/pack-rager",
-        why: "Pack Rager gives up Damage Reduction and has fewer or later Rage Power than the class.",
         loses: [
             (item: Feature("barbarian/damage-reduction")),
             (item: Selection("barbarian/rage-power"), at: [2, 6, 10, 14, 18], why: "table has no Rage Power at these levels; its rows there show 2: Uncanny Dodge, Bonus Teamwork Feat; 6: Bonus Teamwork Feat; 10: Bonus Teamwork Feat; 14: Indomitable Will, Bonus Teamwork Feat; 18: Bonus Teamwork Feat"),
@@ -194,7 +174,6 @@
     ),
     (
         archetype: "bard/archaeologist",
-        why: "Archaeologist gives up Bardic Performance (Move Action), Bardic Performance (Swift Action), Deadly Performance, Dirge of Doom, Fascinate, Frightening Tune, Inspire Competence, Inspire Courage, Inspire Greatness, Inspire Heroics, Soothing Performance, Well Versed.",
         loses: [
             (item: Feature("bard/bardic-performance-move-action")),
             (item: Feature("bard/bardic-performance-swift-action")),
@@ -212,7 +191,6 @@
     ),
     (
         archetype: "bard/beast-tamer",
-        why: "Beast Tamer gives up Dirge of Doom, Frightening Tune, Inspire Competence, Inspire Courage and has fewer or later Rogue Talents than the class.",
         loses: [
             (item: Feature("bard/dirge-of-doom")),
             (item: Feature("bard/frightening-tune")),
@@ -223,7 +201,6 @@
     ),
     (
         archetype: "bard/chelaxian-diva",
-        why: "Chelaxian Diva gives up Bardic Knowledge, Fascinate, Inspire Competence, Inspire Greatness, Inspire Heroics, Jack of All Trades, Lore Master, Soothing Performance, Well Versed.",
         loses: [
             (item: Feature("bard/bardic-knowledge")),
             (item: Feature("bard/fascinate")),
@@ -238,7 +215,6 @@
     ),
     (
         archetype: "bard/dirge-bard",
-        why: "Dirge Bard gives up Jack of All Trades, Well Versed.",
         loses: [
             (item: Feature("bard/jack-of-all-trades")),
             (item: Feature("bard/well-versed")),
@@ -246,7 +222,6 @@
     ),
     (
         archetype: "bard/flame-dancer",
-        why: "Flame Dancer gives up Dirge of Doom, Inspire Competence.",
         loses: [
             (item: Feature("bard/dirge-of-doom")),
             (item: Feature("bard/inspire-competence")),
@@ -254,7 +229,6 @@
     ),
     (
         archetype: "bard/thundercaller",
-        why: "Thundercaller gives up Bardic Knowledge, Dirge of Doom, Inspire Competence.",
         loses: [
             (item: Feature("bard/bardic-knowledge")),
             (item: Feature("bard/dirge-of-doom")),
@@ -263,7 +237,6 @@
     ),
     (
         archetype: "bard/tranquil-whisperer",
-        why: "Tranquil Whisperer gives up Deadly Performance, Inspire Competence, Inspire Courage, Well Versed.",
         loses: [
             (item: Feature("bard/deadly-performance")),
             (item: Feature("bard/inspire-competence")),
@@ -273,38 +246,35 @@
     ),
     (
         archetype: "bloodrager/bloodrider",
-        why: "Bloodrider gives up Bloodline Spell (1st), Bloodline Spell (2nd), Bloodline Spell (3rd), Bloodline Spell (4th), Damage Reduction, Fast Movement, Improved Uncanny Dodge, Indomitable Will, Uncanny Dodge.",
         loses: [
-            (item: Feature("bloodrager/bloodline-spell-1st")),
-            (item: Feature("bloodrager/bloodline-spell-2nd")),
-            (item: Feature("bloodrager/bloodline-spell-3rd")),
-            (item: Feature("bloodrager/bloodline-spell-4th")),
-            (item: Feature("bloodrager/damage-reduction")),
+            (item: Feature("bloodrager/bloodline-spell-1st"), replaced_by: [Feature("bloodrager/bloodrider/bloodline-spell-1st")]),
+            (item: Feature("bloodrager/bloodline-spell-2nd"), replaced_by: [Feature("bloodrager/bloodrider/bloodline-spell-2nd")]),
+            (item: Feature("bloodrager/bloodline-spell-3rd"), replaced_by: [Feature("bloodrager/bloodrider/bloodline-spell-3rd")]),
+            (item: Feature("bloodrager/bloodline-spell-4th"), replaced_by: [Feature("bloodrager/bloodrider/bloodline-spell-4th")]),
+            (item: Feature("bloodrager/damage-reduction"), replaced_by: [Feature("bloodrager/bloodrider/damage-reduction")]),
             (item: Feature("bloodrager/fast-movement")),
             (item: Feature("bloodrager/improved-uncanny-dodge")),
-            (item: Feature("bloodrager/indomitable-will")),
+            (item: Feature("bloodrager/indomitable-will"), replaced_by: [Feature("bloodrager/bloodrider/indomitable-will")]),
             (item: Feature("bloodrager/uncanny-dodge")),
         ],
     ),
     (
         archetype: "bloodrager/greenrager",
-        why: "Greenrager gives up Blood Sanctuary, Bloodline Spell (1st), Bloodline Spell (2nd), Bloodline Spell (3rd), Bloodline Spell (4th), Damage Reduction, Fast Movement, Improved Uncanny Dodge, Indomitable Will, Uncanny Dodge.",
         loses: [
             (item: Feature("bloodrager/blood-sanctuary")),
-            (item: Feature("bloodrager/bloodline-spell-1st")),
-            (item: Feature("bloodrager/bloodline-spell-2nd")),
-            (item: Feature("bloodrager/bloodline-spell-3rd")),
-            (item: Feature("bloodrager/bloodline-spell-4th")),
-            (item: Feature("bloodrager/damage-reduction")),
-            (item: Feature("bloodrager/fast-movement")),
-            (item: Feature("bloodrager/improved-uncanny-dodge")),
-            (item: Feature("bloodrager/indomitable-will")),
-            (item: Feature("bloodrager/uncanny-dodge")),
+            (item: Feature("bloodrager/bloodline-spell-1st"), replaced_by: [Feature("bloodrager/greenrager/bloodline-spell-1st")]),
+            (item: Feature("bloodrager/bloodline-spell-2nd"), replaced_by: [Feature("bloodrager/greenrager/bloodline-spell-2nd")]),
+            (item: Feature("bloodrager/bloodline-spell-3rd"), replaced_by: [Feature("bloodrager/greenrager/bloodline-spell-3rd")]),
+            (item: Feature("bloodrager/bloodline-spell-4th"), replaced_by: [Feature("bloodrager/greenrager/bloodline-spell-4th")]),
+            (item: Feature("bloodrager/damage-reduction"), replaced_by: [Feature("bloodrager/greenrager/damage-reduction")]),
+            (item: Feature("bloodrager/fast-movement"), replaced_by: [Feature("bloodrager/greenrager/fast-movement")]),
+            (item: Feature("bloodrager/improved-uncanny-dodge"), replaced_by: [Feature("bloodrager/greenrager/improved-uncanny-dodge")]),
+            (item: Feature("bloodrager/indomitable-will"), replaced_by: [Feature("bloodrager/greenrager/indomitable-will")]),
+            (item: Feature("bloodrager/uncanny-dodge"), replaced_by: [Feature("bloodrager/greenrager/uncanny-dodge")]),
         ],
     ),
     (
         archetype: "bloodrager/hag-riven",
-        why: "Hag-Riven gives up Bloodline Spell (1st), Bloodline Spell (2nd), Bloodline Spell (3rd), Bloodline Spell (4th), Damage Reduction, Fast Movement, Improved Uncanny Dodge, Indomitable Will, Uncanny Dodge, Bloodline.",
         loses: [
             (item: Feature("bloodrager/bloodline-spell-1st")),
             (item: Feature("bloodrager/bloodline-spell-2nd")),
@@ -313,107 +283,99 @@
             (item: Feature("bloodrager/damage-reduction")),
             (item: Feature("bloodrager/fast-movement")),
             (item: Feature("bloodrager/improved-uncanny-dodge")),
-            (item: Feature("bloodrager/indomitable-will")),
+            (item: Feature("bloodrager/indomitable-will"), replaced_by: [Feature("bloodrager/hag-riven/indomitable-will")]),
             (item: Feature("bloodrager/uncanny-dodge")),
-            (item: Selection("bloodrager/bloodline")),
+            (item: Selection("bloodrager/bloodline"), replaced_by: [Selection("bloodrager/hag-riven/bloodline")]),
         ],
     ),
     (
         archetype: "bloodrager/mixed-blood-rager",
-        why: "Mixed-Blood Rager gives up Bloodline Spell (1st), Bloodline Spell (2nd), Bloodline Spell (3rd), Bloodline Spell (4th), Damage Reduction, Fast Movement, Improved Uncanny Dodge, Indomitable Will, Uncanny Dodge, feat slots OptionList(selection: \"bloodrager/bloodline\"), Bloodline.",
         loses: [
             (item: Feature("bloodrager/bloodline-spell-1st")),
             (item: Feature("bloodrager/bloodline-spell-2nd")),
             (item: Feature("bloodrager/bloodline-spell-3rd")),
             (item: Feature("bloodrager/bloodline-spell-4th")),
-            (item: Feature("bloodrager/damage-reduction")),
-            (item: Feature("bloodrager/fast-movement")),
-            (item: Feature("bloodrager/improved-uncanny-dodge")),
-            (item: Feature("bloodrager/indomitable-will")),
-            (item: Feature("bloodrager/uncanny-dodge")),
+            (item: Feature("bloodrager/damage-reduction"), replaced_by: [Feature("bloodrager/mixed-blood-rager/damage-reduction")]),
+            (item: Feature("bloodrager/fast-movement"), replaced_by: [Feature("bloodrager/mixed-blood-rager/fast-movement")]),
+            (item: Feature("bloodrager/improved-uncanny-dodge"), replaced_by: [Feature("bloodrager/mixed-blood-rager/improved-uncanny-dodge")]),
+            (item: Feature("bloodrager/indomitable-will"), replaced_by: [Feature("bloodrager/mixed-blood-rager/indomitable-will")]),
+            (item: Feature("bloodrager/uncanny-dodge"), replaced_by: [Feature("bloodrager/mixed-blood-rager/uncanny-dodge")]),
             (item: Slot(OptionList(selection: "bloodrager/bloodline"))),
             (item: Selection("bloodrager/bloodline")),
         ],
     ),
     (
         archetype: "bloodrager/primalist",
-        why: "Primalist gives up Bloodline Spell (1st), Bloodline Spell (2nd), Bloodline Spell (3rd), Bloodline Spell (4th), Damage Reduction, Fast Movement, Improved Uncanny Dodge, Indomitable Will, Uncanny Dodge.",
         loses: [
-            (item: Feature("bloodrager/bloodline-spell-1st")),
-            (item: Feature("bloodrager/bloodline-spell-2nd")),
-            (item: Feature("bloodrager/bloodline-spell-3rd")),
-            (item: Feature("bloodrager/bloodline-spell-4th")),
-            (item: Feature("bloodrager/damage-reduction")),
-            (item: Feature("bloodrager/fast-movement")),
-            (item: Feature("bloodrager/improved-uncanny-dodge")),
-            (item: Feature("bloodrager/indomitable-will")),
-            (item: Feature("bloodrager/uncanny-dodge")),
+            (item: Feature("bloodrager/bloodline-spell-1st"), replaced_by: [Feature("bloodrager/primalist/bloodline-spell-1st")]),
+            (item: Feature("bloodrager/bloodline-spell-2nd"), replaced_by: [Feature("bloodrager/primalist/bloodline-spell-2nd")]),
+            (item: Feature("bloodrager/bloodline-spell-3rd"), replaced_by: [Feature("bloodrager/primalist/bloodline-spell-3rd")]),
+            (item: Feature("bloodrager/bloodline-spell-4th"), replaced_by: [Feature("bloodrager/primalist/bloodline-spell-4th")]),
+            (item: Feature("bloodrager/damage-reduction"), replaced_by: [Feature("bloodrager/primalist/damage-reduction")]),
+            (item: Feature("bloodrager/fast-movement"), replaced_by: [Feature("bloodrager/primalist/fast-movement")]),
+            (item: Feature("bloodrager/improved-uncanny-dodge"), replaced_by: [Feature("bloodrager/primalist/improved-uncanny-dodge")]),
+            (item: Feature("bloodrager/indomitable-will"), replaced_by: [Feature("bloodrager/primalist/indomitable-will")]),
+            (item: Feature("bloodrager/uncanny-dodge"), replaced_by: [Feature("bloodrager/primalist/uncanny-dodge")]),
         ],
     ),
     (
         archetype: "bloodrager/reformed-fiend",
-        why: "Reformed Fiend gives up Bloodline Spell (1st), Bloodline Spell (2nd), Bloodline Spell (3rd), Bloodline Spell (4th), Damage Reduction, Fast Movement, Improved Uncanny Dodge, Indomitable Will, Uncanny Dodge, Bloodline.",
         loses: [
-            (item: Feature("bloodrager/bloodline-spell-1st")),
-            (item: Feature("bloodrager/bloodline-spell-2nd")),
-            (item: Feature("bloodrager/bloodline-spell-3rd")),
-            (item: Feature("bloodrager/bloodline-spell-4th")),
-            (item: Feature("bloodrager/damage-reduction")),
-            (item: Feature("bloodrager/fast-movement")),
-            (item: Feature("bloodrager/improved-uncanny-dodge")),
-            (item: Feature("bloodrager/indomitable-will")),
-            (item: Feature("bloodrager/uncanny-dodge")),
-            (item: Selection("bloodrager/bloodline")),
+            (item: Feature("bloodrager/bloodline-spell-1st"), replaced_by: [Feature("bloodrager/reformed-fiend/bloodline-spell-1st")]),
+            (item: Feature("bloodrager/bloodline-spell-2nd"), replaced_by: [Feature("bloodrager/reformed-fiend/bloodline-spell-2nd")]),
+            (item: Feature("bloodrager/bloodline-spell-3rd"), replaced_by: [Feature("bloodrager/reformed-fiend/bloodline-spell-3rd")]),
+            (item: Feature("bloodrager/bloodline-spell-4th"), replaced_by: [Feature("bloodrager/reformed-fiend/bloodline-spell-4th")]),
+            (item: Feature("bloodrager/damage-reduction"), replaced_by: [Feature("bloodrager/reformed-fiend/damage-reduction-reformed-fiend")]),
+            (item: Feature("bloodrager/fast-movement"), replaced_by: [Feature("bloodrager/reformed-fiend/fast-movement")]),
+            (item: Feature("bloodrager/improved-uncanny-dodge"), replaced_by: [Feature("bloodrager/reformed-fiend/improved-uncanny-dodge")]),
+            (item: Feature("bloodrager/indomitable-will"), replaced_by: [Feature("bloodrager/reformed-fiend/indomitable-will")]),
+            (item: Feature("bloodrager/uncanny-dodge"), replaced_by: [Feature("bloodrager/reformed-fiend/uncanny-dodge")]),
+            (item: Selection("bloodrager/bloodline"), replaced_by: [Selection("bloodrager/reformed-fiend/bloodline")]),
         ],
     ),
     (
         archetype: "bloodrager/spelleater",
-        why: "Spelleater gives up Bloodline Spell (1st), Bloodline Spell (2nd), Bloodline Spell (3rd), Bloodline Spell (4th), Damage Reduction, Fast Movement, Improved Uncanny Dodge, Indomitable Will, Uncanny Dodge.",
         loses: [
-            (item: Feature("bloodrager/bloodline-spell-1st")),
-            (item: Feature("bloodrager/bloodline-spell-2nd")),
-            (item: Feature("bloodrager/bloodline-spell-3rd")),
-            (item: Feature("bloodrager/bloodline-spell-4th")),
+            (item: Feature("bloodrager/bloodline-spell-1st"), replaced_by: [Feature("bloodrager/spelleater/bloodline-spell-1st")]),
+            (item: Feature("bloodrager/bloodline-spell-2nd"), replaced_by: [Feature("bloodrager/spelleater/bloodline-spell-2nd")]),
+            (item: Feature("bloodrager/bloodline-spell-3rd"), replaced_by: [Feature("bloodrager/spelleater/bloodline-spell-3rd")]),
+            (item: Feature("bloodrager/bloodline-spell-4th"), replaced_by: [Feature("bloodrager/spelleater/bloodline-spell-4th")]),
             (item: Feature("bloodrager/damage-reduction")),
-            (item: Feature("bloodrager/fast-movement")),
+            (item: Feature("bloodrager/fast-movement"), replaced_by: [Feature("bloodrager/spelleater/fast-movement")]),
             (item: Feature("bloodrager/improved-uncanny-dodge")),
-            (item: Feature("bloodrager/indomitable-will")),
+            (item: Feature("bloodrager/indomitable-will"), replaced_by: [Feature("bloodrager/spelleater/indomitable-will")]),
             (item: Feature("bloodrager/uncanny-dodge")),
         ],
     ),
     (
         archetype: "bloodrager/steelblood",
-        why: "Steelblood gives up Bloodline Spell (1st), Bloodline Spell (2nd), Bloodline Spell (3rd), Bloodline Spell (4th), Damage Reduction, Fast Movement, Improved Uncanny Dodge, Indomitable Will, Uncanny Dodge.",
         loses: [
-            (item: Feature("bloodrager/bloodline-spell-1st")),
-            (item: Feature("bloodrager/bloodline-spell-2nd")),
-            (item: Feature("bloodrager/bloodline-spell-3rd")),
-            (item: Feature("bloodrager/bloodline-spell-4th")),
+            (item: Feature("bloodrager/bloodline-spell-1st"), replaced_by: [Feature("bloodrager/steelblood/bloodline-spell-1st")]),
+            (item: Feature("bloodrager/bloodline-spell-2nd"), replaced_by: [Feature("bloodrager/steelblood/bloodline-spell-2nd")]),
+            (item: Feature("bloodrager/bloodline-spell-3rd"), replaced_by: [Feature("bloodrager/steelblood/bloodline-spell-3rd")]),
+            (item: Feature("bloodrager/bloodline-spell-4th"), replaced_by: [Feature("bloodrager/steelblood/bloodline-spell-4th")]),
             (item: Feature("bloodrager/damage-reduction")),
             (item: Feature("bloodrager/fast-movement")),
             (item: Feature("bloodrager/improved-uncanny-dodge")),
-            (item: Feature("bloodrager/indomitable-will")),
+            (item: Feature("bloodrager/indomitable-will"), replaced_by: [Feature("bloodrager/steelblood/indomitable-will")]),
             (item: Feature("bloodrager/uncanny-dodge")),
         ],
     ),
     (
         archetype: "cavalier/beast-rider",
-        why: "Beast Rider gives up Animal Companion, armor proficiency heavy armor.",
         loses: [
-            (item: Feature("cavalier/animal-companion")),
+            (item: Feature("cavalier/animal-companion"), replaced_by: [Feature("cavalier/beast-rider/animal-companion-beast-rider")]),
             (item: Feat("armor-proficiency-heavy-armor")),
         ],
     ),
     (
         archetype: "cavalier/cavalier-of-the-paw",
-        why: "Cavalier of the Paw gives up Order.",
         loses: [
             (item: Selection("cavalier/order")),
         ],
     ),
     (
         archetype: "cavalier/disciple-of-the-pike",
-        why: "Disciple of the Pike gives up Animal Companion, Banner, Cavalier's Charge, Greater Banner, Mighty Charge, Supreme Charge.",
         loses: [
             (item: Feature("cavalier/animal-companion")),
             (item: Feature("cavalier/banner")),
@@ -425,7 +387,6 @@
     ),
     (
         archetype: "cavalier/fearsome-leader",
-        why: "Fearsome Leader gives up Greater Tactician, Tactician, teamwork bonus feats.",
         loses: [
             (item: Feature("cavalier/greater-tactician")),
             (item: Feature("cavalier/tactician")),
@@ -434,7 +395,6 @@
     ),
     (
         archetype: "cavalier/gendarme",
-        why: "Gendarme gives up Greater Tactician, Supreme Charge, Tactician, teamwork bonus feats.",
         loses: [
             (item: Feature("cavalier/greater-tactician")),
             (item: Feature("cavalier/supreme-charge")),
@@ -444,7 +404,6 @@
     ),
     (
         archetype: "cavalier/ghost-rider",
-        why: "Ghost Rider gives up Animal Companion, Banner, Cavalier's Charge, Greater Banner, Greater Tactician, Mighty Charge, Tactician, teamwork bonus feats.",
         loses: [
             (item: Feature("cavalier/animal-companion")),
             (item: Feature("cavalier/banner")),
@@ -458,7 +417,6 @@
     ),
     (
         archetype: "cavalier/knight-of-the-wall",
-        why: "Knight of the Wall gives up Greater Tactician, Tactician, teamwork bonus feats.",
         loses: [
             (item: Feature("cavalier/greater-tactician")),
             (item: Feature("cavalier/tactician")),
@@ -467,16 +425,14 @@
     ),
     (
         archetype: "cavalier/standard-bearer",
-        why: "Standard Bearer gives up Animal Companion, Banner, Supreme Charge.",
         loses: [
-            (item: Feature("cavalier/animal-companion")),
-            (item: Feature("cavalier/banner")),
+            (item: Feature("cavalier/animal-companion"), replaced_by: [Feature("cavalier/standard-bearer/animal-companion-standard-bearer")]),
+            (item: Feature("cavalier/banner"), replaced_by: [Feature("cavalier/standard-bearer/banner-standard-bearer")]),
             (item: Feature("cavalier/supreme-charge")),
         ],
     ),
     (
         archetype: "cleric/angelfire-apostle",
-        why: "Angelfire Apostle gives up Channel Energy, Cleric Proficiencies, armor proficiency medium armor.",
         loses: [
             (item: Feature("cleric/channel-energy")),
             (item: Feature("cleric/cleric-proficiencies")),
@@ -485,14 +441,12 @@
     ),
     (
         archetype: "cleric/crusader",
-        why: "Crusader gives up Domain.",
         loses: [
             (item: Selection("cleric/domain")),
         ],
     ),
     (
         archetype: "cleric/demonbane-priest",
-        why: "Demonbane Priest gives up Cleric Proficiencies, Domain.",
         loses: [
             (item: Feature("cleric/cleric-proficiencies")),
             (item: Selection("cleric/domain")),
@@ -500,7 +454,6 @@
     ),
     (
         archetype: "cleric/ecclesitheurge",
-        why: "Ecclesitheurge gives up Cleric Proficiencies, armor proficiency light armor, armor proficiency medium armor, shield proficiency, simple weapon proficiency.",
         loses: [
             (item: Feature("cleric/cleric-proficiencies")),
             (item: Feat("armor-proficiency-light-armor")),
@@ -511,7 +464,6 @@
     ),
     (
         archetype: "cleric/herald-caller",
-        why: "Herald Caller gives up armor proficiency medium armor, shield proficiency, Domain.",
         loses: [
             (item: Feat("armor-proficiency-medium-armor")),
             (item: Feat("shield-proficiency")),
@@ -520,7 +472,6 @@
     ),
     (
         archetype: "cleric/priest-of-balance",
-        why: "Priest of Balance gives up Channel Energy, Domain.",
         loses: [
             (item: Feature("cleric/channel-energy")),
             (item: Selection("cleric/domain")),
@@ -528,42 +479,38 @@
     ),
     (
         archetype: "cleric/separatist",
-        why: "Separatist gives up Domain.",
         loses: [
-            (item: Selection("cleric/domain")),
+            (item: Selection("cleric/domain"), replaced_by: [Selection("cleric/separatist/domain")]),
         ],
     ),
     (
         archetype: "druid/blight-druid",
-        why: "Blight Druid gives up Resist Nature's Lure, Venom Immunity, Wild Shape (Bear, Medium Elemental), Wild Shape (Huge Elemental), Wild Shape (Leopard, Small Elemental), Wild Shape (Smilodon, Large Elemental, Shambling Mound), Wild Shape (Wolf), Nature Bond.",
         loses: [
             (item: Feature("druid/resist-natures-lure")),
             (item: Feature("druid/venom-immunity")),
-            (item: Feature("druid/wild-shape-bear-medium-elemental")),
-            (item: Feature("druid/wild-shape-huge-elemental")),
-            (item: Feature("druid/wild-shape-leopard-small-elemental")),
-            (item: Feature("druid/wild-shape-smilodon-large-elemental-shambling-mound")),
-            (item: Feature("druid/wild-shape-wolf")),
+            (item: Feature("druid/wild-shape-bear-medium-elemental"), replaced_by: [Feature("druid/blight-druid/wild-shape-bear-medium-elemental")]),
+            (item: Feature("druid/wild-shape-huge-elemental"), replaced_by: [Feature("druid/blight-druid/wild-shape-huge-elemental")]),
+            (item: Feature("druid/wild-shape-leopard-small-elemental"), replaced_by: [Feature("druid/blight-druid/wild-shape-leopard-small-elemental")]),
+            (item: Feature("druid/wild-shape-smilodon-large-elemental-shambling-mound"), replaced_by: [Feature("druid/blight-druid/wild-shape-smilodon-large-elemental-shambling-mound")]),
+            (item: Feature("druid/wild-shape-wolf"), replaced_by: [Feature("druid/blight-druid/wild-shape-wolf")]),
             (item: Selection("druid/nature-bond")),
         ],
     ),
     (
         archetype: "druid/defender-of-the-true-world",
-        why: "Defender of the True World gives up Resist Nature's Lure, Spontaneous Summoning, Venom Immunity, Wild Shape (Bear, Medium Elemental), Wild Shape (Huge Elemental), Wild Shape (Leopard, Small Elemental), Wild Shape (Smilodon, Large Elemental, Shambling Mound), Wild Shape (Wolf).",
         loses: [
             (item: Feature("druid/resist-natures-lure")),
             (item: Feature("druid/spontaneous-summoning")),
             (item: Feature("druid/venom-immunity")),
-            (item: Feature("druid/wild-shape-bear-medium-elemental")),
-            (item: Feature("druid/wild-shape-huge-elemental")),
-            (item: Feature("druid/wild-shape-leopard-small-elemental")),
-            (item: Feature("druid/wild-shape-smilodon-large-elemental-shambling-mound")),
-            (item: Feature("druid/wild-shape-wolf")),
+            (item: Feature("druid/wild-shape-bear-medium-elemental"), replaced_by: [Feature("druid/defender-of-the-true-world/wild-shape-bear-medium-elemental")]),
+            (item: Feature("druid/wild-shape-huge-elemental"), replaced_by: [Feature("druid/defender-of-the-true-world/wild-shape-huge-elemental")]),
+            (item: Feature("druid/wild-shape-leopard-small-elemental"), replaced_by: [Feature("druid/defender-of-the-true-world/wild-shape-leopard-small-elemental")]),
+            (item: Feature("druid/wild-shape-smilodon-large-elemental-shambling-mound"), replaced_by: [Feature("druid/defender-of-the-true-world/wild-shape-smilodon-large-elemental-shambling-mound")]),
+            (item: Feature("druid/wild-shape-wolf"), replaced_by: [Feature("druid/defender-of-the-true-world/wild-shape-wolf")]),
         ],
     ),
     (
         archetype: "druid/drovier",
-        why: "Drovier gives up Wild Shape (Bear, Medium Elemental), Wild Shape (Huge Elemental), Wild Shape (Leopard, Small Elemental), Wild Shape (Smilodon, Large Elemental, Shambling Mound), Wild Shape (Wolf), Nature Bond.",
         loses: [
             (item: Feature("druid/wild-shape-bear-medium-elemental")),
             (item: Feature("druid/wild-shape-huge-elemental")),
@@ -575,46 +522,42 @@
     ),
     (
         archetype: "druid/elemental-rampager",
-        why: "Elemental Rampager gives up Resist Nature's Lure, Venom Immunity, Wild Shape (Bear, Medium Elemental), Wild Shape (Huge Elemental), Wild Shape (Leopard, Small Elemental), Wild Shape (Smilodon, Large Elemental, Shambling Mound), Wild Shape (Wolf), Nature Bond.",
         loses: [
             (item: Feature("druid/resist-natures-lure")),
             (item: Feature("druid/venom-immunity")),
-            (item: Feature("druid/wild-shape-bear-medium-elemental")),
-            (item: Feature("druid/wild-shape-huge-elemental")),
-            (item: Feature("druid/wild-shape-leopard-small-elemental")),
-            (item: Feature("druid/wild-shape-smilodon-large-elemental-shambling-mound")),
-            (item: Feature("druid/wild-shape-wolf")),
+            (item: Feature("druid/wild-shape-bear-medium-elemental"), replaced_by: [Feature("druid/elemental-rampager/wild-shape-bear-medium-elemental")]),
+            (item: Feature("druid/wild-shape-huge-elemental"), replaced_by: [Feature("druid/elemental-rampager/wild-shape-huge-elemental")]),
+            (item: Feature("druid/wild-shape-leopard-small-elemental"), replaced_by: [Feature("druid/elemental-rampager/wild-shape-leopard-small-elemental")]),
+            (item: Feature("druid/wild-shape-smilodon-large-elemental-shambling-mound"), replaced_by: [Feature("druid/elemental-rampager/wild-shape-smilodon-large-elemental-shambling-mound")]),
+            (item: Feature("druid/wild-shape-wolf"), replaced_by: [Feature("druid/elemental-rampager/wild-shape-wolf")]),
             (item: Selection("druid/nature-bond")),
         ],
     ),
     (
         archetype: "druid/feyspeaker",
-        why: "Feyspeaker gives up Spontaneous Summoning, Wild Shape (Bear, Medium Elemental), Wild Shape (Huge Elemental), Wild Shape (Leopard, Small Elemental), Wild Shape (Smilodon, Large Elemental, Shambling Mound), Wild Shape (Wolf).",
         loses: [
             (item: Feature("druid/spontaneous-summoning")),
             (item: Feature("druid/wild-shape-bear-medium-elemental")),
             (item: Feature("druid/wild-shape-huge-elemental")),
             (item: Feature("druid/wild-shape-leopard-small-elemental")),
             (item: Feature("druid/wild-shape-smilodon-large-elemental-shambling-mound")),
-            (item: Feature("druid/wild-shape-wolf")),
+            (item: Feature("druid/wild-shape-wolf"), replaced_by: [Feature("druid/feyspeaker/wild-shape-wolf")]),
         ],
     ),
     (
         archetype: "druid/primal-druid",
-        why: "Primal Druid gives up Nature Sense, Wild Shape (Bear, Medium Elemental), Wild Shape (Huge Elemental), Wild Shape (Leopard, Small Elemental), Wild Shape (Smilodon, Large Elemental, Shambling Mound), Wild Shape (Wolf), Nature Bond.",
         loses: [
             (item: Feature("druid/nature-sense")),
-            (item: Feature("druid/wild-shape-bear-medium-elemental")),
-            (item: Feature("druid/wild-shape-huge-elemental")),
-            (item: Feature("druid/wild-shape-leopard-small-elemental")),
-            (item: Feature("druid/wild-shape-smilodon-large-elemental-shambling-mound")),
-            (item: Feature("druid/wild-shape-wolf")),
+            (item: Feature("druid/wild-shape-bear-medium-elemental"), replaced_by: [Feature("druid/primal-druid/wild-shape-bear-medium-elemental")]),
+            (item: Feature("druid/wild-shape-huge-elemental"), replaced_by: [Feature("druid/primal-druid/wild-shape-huge-elemental")]),
+            (item: Feature("druid/wild-shape-leopard-small-elemental"), replaced_by: [Feature("druid/primal-druid/wild-shape-leopard-small-elemental")]),
+            (item: Feature("druid/wild-shape-smilodon-large-elemental-shambling-mound"), replaced_by: [Feature("druid/primal-druid/wild-shape-smilodon-large-elemental-shambling-mound")]),
+            (item: Feature("druid/wild-shape-wolf"), replaced_by: [Feature("druid/primal-druid/wild-shape-wolf")]),
             (item: Selection("druid/nature-bond")),
         ],
     ),
     (
         archetype: "druid/winter-child",
-        why: "Winter Child gives up Resist Nature's Lure, Spontaneous Summoning, Venom Immunity, Wild Shape (Bear, Medium Elemental), Wild Shape (Huge Elemental), Wild Shape (Leopard, Small Elemental), Wild Shape (Smilodon, Large Elemental, Shambling Mound), Wild Shape (Wolf), Nature Bond.",
         loses: [
             (item: Feature("druid/resist-natures-lure")),
             (item: Feature("druid/spontaneous-summoning")),
@@ -629,7 +572,6 @@
     ),
     (
         archetype: "fighter/aldori-defender",
-        why: "Aldori Defender gives up Armor Training and has fewer or later combat bonus feats than the class.",
         loses: [
             (item: Feature("fighter/armor-training")),
             (item: Slot(CombatFeat), at: [6, 8, 10], why: "table has no combat bonus feats at these levels; its rows there show 6: Disarming Strike; 8: Steel Net; 10: Counterattack"),
@@ -637,35 +579,31 @@
     ),
     (
         archetype: "fighter/armiger",
-        why: "Armiger gives up Bravery and has fewer or later combat bonus feats than the class.",
         loses: [
             (item: Feature("fighter/bravery")),
-            (item: Slot(CombatFeat), at: [1, 10], why: "table has no combat bonus feats at these levels; its rows there show 1: Studious Squire; 10: nothing"),
+            (item: Slot(CombatFeat), at: [1, 10], why: "table has no combat bonus feats at these levels; its rows there show 1: Studious Squire (level 0: Fighter Proficiencies, Order); 10: nothing"),
         ],
     ),
     (
         archetype: "fighter/defender-of-the-hearth",
-        why: "Defender of the Hearth gives up Weapon Mastery and has fewer or later Weapon Training, combat bonus feats than the class.",
         loses: [
             (item: Feature("fighter/weapon-mastery")),
             (item: Feature("fighter/weapon-training"), at: [5], why: "table has no Weapon Training at these levels; its rows there show 5: Heaven Strike"),
-            (item: Slot(CombatFeat), at: [1], why: "table has no combat bonus feats at these levels; its rows there show 1: Shield Block"),
+            (item: Slot(CombatFeat), at: [1], why: "table has no combat bonus feats at these levels; its rows there show 1: Shield Block (level 0: Fighter Proficiencies)"),
         ],
     ),
     (
         archetype: "fighter/dragonheir-scion",
-        why: "Dragonheir Scion gives up Armor Mastery, Armor Training, Bravery, Weapon Mastery and has fewer or later combat bonus feats than the class.",
         loses: [
             (item: Feature("fighter/armor-mastery")),
             (item: Feature("fighter/armor-training")),
             (item: Feature("fighter/bravery")),
             (item: Feature("fighter/weapon-mastery")),
-            (item: Slot(CombatFeat), at: [1, 4, 6], why: "table has no combat bonus feats at these levels; its rows there show 1: Arcane Strike; 4: Draconic Strike; 6: Draconic Presence"),
+            (item: Slot(CombatFeat), at: [1, 4, 6], why: "table has no combat bonus feats at these levels; its rows there show 1: Arcane Strike (level 0: Fighter Proficiencies, Draconic Bloodline); 4: Draconic Strike; 6: Draconic Presence"),
         ],
     ),
     (
         archetype: "fighter/mutation-warrior",
-        why: "Mutation Warrior gives up Armor Mastery, Armor Training.",
         loses: [
             (item: Feature("fighter/armor-mastery")),
             (item: Feature("fighter/armor-training")),
@@ -683,7 +621,6 @@
     ),
     (
         archetype: "fighter/tower-shield-specialist",
-        why: "Tower Shield Specialist gives up Bravery, Weapon Mastery, Weapon Training.",
         loses: [
             (item: Feature("fighter/bravery")),
             (item: Feature("fighter/weapon-mastery")),
@@ -692,7 +629,6 @@
     ),
     (
         archetype: "fighter/two-handed-fighter",
-        why: "Two-Handed Fighter gives up Armor Mastery, Armor Training, Bravery, Weapon Training.",
         loses: [
             (item: Feature("fighter/armor-mastery")),
             (item: Feature("fighter/armor-training")),
@@ -702,7 +638,6 @@
     ),
     (
         archetype: "hunter/colluding-scoundrel",
-        why: "Colluding Scoundrel gives up Animal Focus, Master Hunter, Second Animal Focus.",
         loses: [
             (item: Feature("hunter/animal-focus")),
             (item: Feature("hunter/master-hunter")),
@@ -711,9 +646,8 @@
     ),
     (
         archetype: "hunter/divine-hound",
-        why: "Divine Hound gives up Animal Companion, Animal Focus, Master Hunter, Second Animal Focus.",
         loses: [
-            (item: Feature("hunter/animal-companion")),
+            (item: Feature("hunter/animal-companion"), replaced_by: [Feature("hunter/divine-hound/animal-companion-divine-hound")]),
             (item: Feature("hunter/animal-focus")),
             (item: Feature("hunter/master-hunter")),
             (item: Feature("hunter/second-animal-focus")),
@@ -721,7 +655,6 @@
     ),
     (
         archetype: "hunter/divine-hunter",
-        why: "Divine Hunter gives up Hunter Tactics, bonus feats from bonus feats 3 (list hunter/bonus-feats-3).",
         loses: [
             (item: Feature("hunter/hunter-tactics")),
             (item: Slot(OneOf(list: "hunter/bonus-feats-3"))),
@@ -729,7 +662,6 @@
     ),
     (
         archetype: "hunter/forester",
-        why: "Forester gives up Animal Companion, Hunter Tactics, Raise Animal Companion, Second Animal Focus, bonus feats from bonus feats 2 (list hunter/bonus-feats-2).",
         loses: [
             (item: Feature("hunter/animal-companion")),
             (item: Feature("hunter/hunter-tactics")),
@@ -740,17 +672,15 @@
     ),
     (
         archetype: "hunter/tandem-executioner",
-        why: "Tandem Executioner gives up Raise Animal Companion.",
         loses: [
             (item: Feature("hunter/raise-animal-companion")),
-            (item: SpellLevels, at: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20], why: "The overview says it loses all spellcasting and its table has no spell columns; the base hunter's divine spell levels from 1 are gone."),
+            (item: SpellLevels, why: "The overview says it loses all spellcasting and its table has no spell columns; the base hunter's divine spell levels from 1 are gone."),
         ],
     ),
     (
         archetype: "hunter/urban-hunter",
-        why: "Urban Hunter gives up Animal Companion, Hunter Tactics, One with the Wild, bonus feats from bonus feats 3 (list hunter/bonus-feats-3).",
         loses: [
-            (item: Feature("hunter/animal-companion")),
+            (item: Feature("hunter/animal-companion"), replaced_by: [Feature("hunter/urban-hunter/animal-companion-urban-hunter")]),
             (item: Feature("hunter/hunter-tactics")),
             (item: Feature("hunter/one-with-the-wild")),
             (item: Slot(OneOf(list: "hunter/bonus-feats-3"))),
@@ -758,7 +688,6 @@
     ),
     (
         archetype: "hunter/wandering-marksman",
-        why: "Wandering Marksman gives up Hunter Tactics, bonus feats from bonus feats 3 (list hunter/bonus-feats-3).",
         loses: [
             (item: Feature("hunter/hunter-tactics")),
             (item: Slot(OneOf(list: "hunter/bonus-feats-3"))),
@@ -766,30 +695,27 @@
     ),
     (
         archetype: "inquisitor/faith-hunter",
-        why: "Faith Hunter gives up Orisons, Domain.",
         loses: [
-            (item: Feature("inquisitor/orisons")),
+            (item: Feature("inquisitor/orisons"), replaced_by: [Feature("inquisitor/faith-hunter/orisons")]),
             (item: Selection("inquisitor/domain")),
         ],
     ),
     (
         archetype: "inquisitor/judge",
-        why: "Judge gives up Bane, Greater Bane, Orisons, Solo Tactics, teamwork bonus feats.",
         loses: [
             (item: Feature("inquisitor/bane")),
             (item: Feature("inquisitor/greater-bane")),
-            (item: Feature("inquisitor/orisons")),
+            (item: Feature("inquisitor/orisons"), replaced_by: [Feature("inquisitor/judge/orisons")]),
             (item: Feature("inquisitor/solo-tactics")),
             (item: Slot(Category(Teamwork))),
         ],
     ),
     (
         archetype: "inquisitor/living-grimoire",
-        why: "Living Grimoire gives up Bane, Greater Bane, Orisons, Second Judgment, Third Judgment, True Judgment, Judgment.",
         loses: [
             (item: Feature("inquisitor/bane")),
             (item: Feature("inquisitor/greater-bane")),
-            (item: Feature("inquisitor/orisons")),
+            (item: Feature("inquisitor/orisons"), replaced_by: [Feature("inquisitor/living-grimoire/orisons")]),
             (item: Feature("inquisitor/second-judgment")),
             (item: Feature("inquisitor/third-judgment")),
             (item: Feature("inquisitor/true-judgment")),
@@ -798,9 +724,8 @@
     ),
     (
         archetype: "inquisitor/monster-tactician",
-        why: "Monster Tactician gives up Orisons, Second Judgment, Third Judgment, True Judgment, Judgment.",
         loses: [
-            (item: Feature("inquisitor/orisons")),
+            (item: Feature("inquisitor/orisons"), replaced_by: [Feature("inquisitor/monster-tactician/orisons")]),
             (item: Feature("inquisitor/second-judgment")),
             (item: Feature("inquisitor/third-judgment")),
             (item: Feature("inquisitor/true-judgment")),
@@ -809,22 +734,20 @@
     ),
     (
         archetype: "inquisitor/sacred-huntsmaster",
-        why: "Sacred Huntsmaster gives up Orisons, Second Judgment, Solo Tactics, Third Judgment, True Judgment, Domain, Judgment.",
         loses: [
-            (item: Feature("inquisitor/orisons")),
+            (item: Feature("inquisitor/orisons"), replaced_by: [Feature("inquisitor/sacred-huntsmaster/orisons")]),
             (item: Feature("inquisitor/second-judgment")),
             (item: Feature("inquisitor/solo-tactics")),
             (item: Feature("inquisitor/third-judgment")),
             (item: Feature("inquisitor/true-judgment")),
-            (item: Selection("inquisitor/domain")),
+            (item: Selection("inquisitor/domain"), replaced_by: [Selection("inquisitor/sacred-huntsmaster/domain")]),
             (item: Selection("inquisitor/judgment")),
         ],
     ),
     (
         archetype: "inquisitor/sanctified-slayer",
-        why: "Sanctified Slayer gives up Orisons, Second Judgment, Third Judgment, True Judgment, Judgment.",
         loses: [
-            (item: Feature("inquisitor/orisons")),
+            (item: Feature("inquisitor/orisons"), replaced_by: [Feature("inquisitor/sanctified-slayer/orisons")]),
             (item: Feature("inquisitor/second-judgment")),
             (item: Feature("inquisitor/third-judgment")),
             (item: Feature("inquisitor/true-judgment")),
@@ -833,10 +756,9 @@
     ),
     (
         archetype: "inquisitor/tactical-leader",
-        why: "The Tactical Leader trades teamwork-feat grants to its allies for fewer teamwork feats (the overview says so): its table has the Teamwork Feat at 3, 9 and 18 only, so the base slots at 6, 12 and 15 are lost.",
         loses: [
             (item: Feature("inquisitor/exploit-weakness")),
-            (item: Feature("inquisitor/orisons")),
+            (item: Feature("inquisitor/orisons"), replaced_by: [Feature("inquisitor/tactical-leader/orisons")]),
             (item: Feature("inquisitor/solo-tactics")),
             (item: Feature("inquisitor/stern-gaze")),
             (item: Slot(Category(Teamwork)), at: [6, 12, 15], why: "table has no teamwork bonus feats at these levels; its rows there show 6: Domain Ability^2; 12: Greater Bane; 15: nothing"),
@@ -844,40 +766,36 @@
     ),
     (
         archetype: "kineticist/blood-kineticist",
-        why: "Blood Kineticist gives up Infusion, Metakinesis - Empowered, Metakinesis - Maximized, Metakinesis - Quicken, Elemental Focus and has fewer or later Expanded Element, Infusion than the class.",
         loses: [
             (item: Feature("kineticist/infusion")),
-            (item: Feature("kineticist/metakinesis-empowered")),
-            (item: Feature("kineticist/metakinesis-maximized")),
-            (item: Feature("kineticist/metakinesis-quicken")),
-            (item: Selection("kineticist/element")),
+            (item: Feature("kineticist/metakinesis-empowered"), replaced_by: [Feature("kineticist/blood-kineticist/metakinesis-empowered")]),
+            (item: Feature("kineticist/metakinesis-maximized"), replaced_by: [Feature("kineticist/blood-kineticist/metakinesis-maximized")]),
+            (item: Feature("kineticist/metakinesis-quicken"), replaced_by: [Feature("kineticist/blood-kineticist/metakinesis-quicken")]),
+            (item: Selection("kineticist/element"), replaced_by: [Selection("kineticist/blood-kineticist/element")]),
             (item: Selection("kineticist/expanded-element"), at: [7], why: "table has no Expanded Element at these levels; its rows there show 7: Blood Blast"),
             (item: Selection("kineticist/infusions"), at: [5, 9, 11], why: "table has no Infusion at these levels; its rows there show 5: Bleeding Infusion, Metakinesis - Empowered, Infusion Specialization; 9: Gut-Wrenching Infusion, Metakinesis - Maximized; 11: Vampiric Infusion, Supercharge"),
         ],
     ),
     (
         archetype: "kineticist/dark-elementalist",
-        why: "Dark Elementalist gives up Burn, Metakinesis - Empowered, Metakinesis - Maximized, Metakinesis - Quicken.",
         loses: [
             (item: Feature("kineticist/burn")),
-            (item: Feature("kineticist/metakinesis-empowered")),
-            (item: Feature("kineticist/metakinesis-maximized")),
-            (item: Feature("kineticist/metakinesis-quicken")),
+            (item: Feature("kineticist/metakinesis-empowered"), replaced_by: [Feature("kineticist/dark-elementalist/metakinesis-empowered")]),
+            (item: Feature("kineticist/metakinesis-maximized"), replaced_by: [Feature("kineticist/dark-elementalist/metakinesis-maximized")]),
+            (item: Feature("kineticist/metakinesis-quicken"), replaced_by: [Feature("kineticist/dark-elementalist/metakinesis-quicken")]),
         ],
     ),
     (
         archetype: "kineticist/elemental-engine",
-        why: "Elemental Engine gives up Metakinesis - Empowered, Metakinesis - Maximized, Metakinesis - Quicken, Supercharge.",
         loses: [
-            (item: Feature("kineticist/metakinesis-empowered")),
-            (item: Feature("kineticist/metakinesis-maximized")),
-            (item: Feature("kineticist/metakinesis-quicken")),
+            (item: Feature("kineticist/metakinesis-empowered"), replaced_by: [Feature("kineticist/elemental-engine/metakinesis-empowered")]),
+            (item: Feature("kineticist/metakinesis-maximized"), replaced_by: [Feature("kineticist/elemental-engine/metakinesis-maximized")]),
+            (item: Feature("kineticist/metakinesis-quicken"), replaced_by: [Feature("kineticist/elemental-engine/metakinesis-quicken")]),
             (item: Feature("kineticist/supercharge")),
         ],
     ),
     (
         archetype: "kineticist/kinetic-knight",
-        why: "Kinetic Knight gives up Infusion, Metakinesis - Empowered, Metakinesis - Maximized, Metakinesis - Quicken, Metakinetic Master, Supercharge, Elemental Focus and has fewer or later Infusion than the class.",
         loses: [
             (item: Feature("kineticist/infusion")),
             (item: Feature("kineticist/metakinesis-empowered")),
@@ -885,54 +803,50 @@
             (item: Feature("kineticist/metakinesis-quicken")),
             (item: Feature("kineticist/metakinetic-master")),
             (item: Feature("kineticist/supercharge")),
-            (item: Selection("kineticist/element")),
+            (item: Selection("kineticist/element"), replaced_by: [Selection("kineticist/kinetic-knight/element")]),
             (item: Selection("kineticist/infusions"), at: [3, 9], why: "table has no Infusion at these levels; its rows there show 3: Elemental Overflow, Knight's Resolve; 9: Blade Whirlwind"),
         ],
     ),
     (
         archetype: "kineticist/kinetic-sharpshooter",
-        why: "Kinetic Sharpshooter gives up Gather Power, Infusion, Metakinesis - Empowered, Metakinesis - Maximized, Metakinesis - Quicken, Supercharge.",
         loses: [
             (item: Feature("kineticist/gather-power")),
             (item: Feature("kineticist/infusion")),
-            (item: Feature("kineticist/metakinesis-empowered")),
-            (item: Feature("kineticist/metakinesis-maximized")),
-            (item: Feature("kineticist/metakinesis-quicken")),
+            (item: Feature("kineticist/metakinesis-empowered"), replaced_by: [Feature("kineticist/kinetic-sharpshooter/metakinesis-empowered")]),
+            (item: Feature("kineticist/metakinesis-maximized"), replaced_by: [Feature("kineticist/kinetic-sharpshooter/metakinesis-maximized")]),
+            (item: Feature("kineticist/metakinesis-quicken"), replaced_by: [Feature("kineticist/kinetic-sharpshooter/metakinesis-quicken")]),
             (item: Feature("kineticist/supercharge")),
         ],
     ),
     (
         archetype: "kineticist/overwhelming-soul",
-        why: "Overwhelming Soul gives up Burn, Elemental Overflow, Metakinesis - Empowered, Metakinesis - Maximized, Metakinesis - Quicken.",
         loses: [
             (item: Feature("kineticist/burn")),
             (item: Feature("kineticist/elemental-overflow")),
-            (item: Feature("kineticist/metakinesis-empowered")),
-            (item: Feature("kineticist/metakinesis-maximized")),
-            (item: Feature("kineticist/metakinesis-quicken")),
+            (item: Feature("kineticist/metakinesis-empowered"), replaced_by: [Feature("kineticist/overwhelming-soul/metakinesis-empowered")]),
+            (item: Feature("kineticist/metakinesis-maximized"), replaced_by: [Feature("kineticist/overwhelming-soul/metakinesis-maximized")]),
+            (item: Feature("kineticist/metakinesis-quicken"), replaced_by: [Feature("kineticist/overwhelming-soul/metakinesis-quicken")]),
         ],
     ),
     (
         archetype: "kineticist/psychokineticist",
-        why: "Psychokineticist gives up Burn, Elemental Overflow, Metakinesis - Empowered, Metakinesis - Maximized, Metakinesis - Quicken.",
         loses: [
             (item: Feature("kineticist/burn")),
             (item: Feature("kineticist/elemental-overflow")),
-            (item: Feature("kineticist/metakinesis-empowered")),
-            (item: Feature("kineticist/metakinesis-maximized")),
-            (item: Feature("kineticist/metakinesis-quicken")),
+            (item: Feature("kineticist/metakinesis-empowered"), replaced_by: [Feature("kineticist/psychokineticist/metakinesis-empowered")]),
+            (item: Feature("kineticist/metakinesis-maximized"), replaced_by: [Feature("kineticist/psychokineticist/metakinesis-maximized")]),
+            (item: Feature("kineticist/metakinesis-quicken"), replaced_by: [Feature("kineticist/psychokineticist/metakinesis-quicken")]),
         ],
     ),
     (
         archetype: "magus/arcane-rider",
-        why: "Arcane Rider gives up Arcane Heavy Armor, Arcane Medium Armor, Arcane Weapon +2, Arcane Weapon +3, Arcane Weapon +4, Arcane Weapon +5, Improved Spell Recall, Spell Recall, armor proficiency heavy armor, armor proficiency medium armor.",
         loses: [
             (item: Feature("magus/arcane-heavy-armor")),
             (item: Feature("magus/arcane-medium-armor")),
-            (item: Feature("magus/arcane-weapon-2")),
-            (item: Feature("magus/arcane-weapon-3")),
-            (item: Feature("magus/arcane-weapon-4")),
-            (item: Feature("magus/arcane-weapon-5")),
+            (item: Feature("magus/arcane-weapon-2"), replaced_by: [Feature("magus/arcane-rider/arcane-weapon-2")]),
+            (item: Feature("magus/arcane-weapon-3"), replaced_by: [Feature("magus/arcane-rider/arcane-weapon-3")]),
+            (item: Feature("magus/arcane-weapon-4"), replaced_by: [Feature("magus/arcane-rider/arcane-weapon-4")]),
+            (item: Feature("magus/arcane-weapon-5"), replaced_by: [Feature("magus/arcane-rider/arcane-weapon-5")]),
             (item: Feature("magus/improved-spell-recall")),
             (item: Feature("magus/spell-recall")),
             (item: Feat("armor-proficiency-heavy-armor")),
@@ -941,11 +855,10 @@
     ),
     (
         archetype: "magus/armored-battlemage",
-        why: "Armored Battlemage gives up Arcane Heavy Armor, Arcane Medium Armor, Arcane Pool, Arcane Weapon +2, Arcane Weapon +3, Arcane Weapon +4, Arcane Weapon +5, Improved Spell Combat, Magus Proficiencies, Spell Combat, armor proficiency heavy armor, armor proficiency medium armor and has fewer or later Magus Arcana than the class.",
         loses: [
             (item: Feature("magus/arcane-heavy-armor")),
             (item: Feature("magus/arcane-medium-armor")),
-            (item: Feature("magus/arcane-pool")),
+            (item: Feature("magus/arcane-pool"), replaced_by: [Feature("magus/armored-battlemage/arcane-pool-armored-battlemage")]),
             (item: Feature("magus/arcane-weapon-2")),
             (item: Feature("magus/arcane-weapon-3")),
             (item: Feature("magus/arcane-weapon-4")),
@@ -960,28 +873,26 @@
     ),
     (
         archetype: "magus/bladebound",
-        why: "The Bladebound gives up the Arcane Pool's weapon enchantments for its black blade and has fewer magus arcana and bonus feats (the overview says so): its table has a bonus magus feat at 11 and 17 only, none at 5, and arcana at 6, 9 and 15.",
         loses: [
-            (item: Feature("magus/arcane-heavy-armor")),
-            (item: Feature("magus/arcane-medium-armor")),
-            (item: Feature("magus/arcane-weapon-2")),
-            (item: Feature("magus/arcane-weapon-3")),
-            (item: Feature("magus/arcane-weapon-4")),
-            (item: Feature("magus/arcane-weapon-5")),
-            (item: Slot(General), at: [5], why: "table has no general bonus feats at these levels; its rows there show 5: Arcane Weapon +2, Changeable Gist"),
+            (item: Feature("magus/arcane-heavy-armor"), replaced_by: [Feature("magus/bladebound/arcane-heavy-armor")]),
+            (item: Feature("magus/arcane-medium-armor"), replaced_by: [Feature("magus/bladebound/arcane-medium-armor")]),
+            (item: Feature("magus/arcane-weapon-2"), replaced_by: [Feature("magus/bladebound/arcane-weapon-2")]),
+            (item: Feature("magus/arcane-weapon-3"), replaced_by: [Feature("magus/bladebound/arcane-weapon-3")]),
+            (item: Feature("magus/arcane-weapon-4"), replaced_by: [Feature("magus/bladebound/arcane-weapon-4")]),
+            (item: Feature("magus/arcane-weapon-5"), replaced_by: [Feature("magus/bladebound/arcane-weapon-5")]),
+            (item: Slot(General), at: [5], why: "table has no bonus magus feat at 5 (its row shows Arcane Weapon +2, Changeable Gist) and has one at 11 and 17 only; the overview says it gains fewer magus arcana and bonus feats"),
             (item: Selection("magus/magus-arcana"), at: [3, 12, 18], why: "table has no Magus Arcana at these levels; its rows there show 3: Sharpening the Black Blade; 12: Independent Ego; 18: nothing"),
         ],
     ),
     (
         archetype: "magus/eldritch-archer",
-        why: "Eldritch Archer gives up Arcane Heavy Armor, Arcane Medium Armor, Arcane Weapon +2, Arcane Weapon +3, Arcane Weapon +4, Arcane Weapon +5, Counterstrike, Spell Combat, Spellstrike.",
         loses: [
-            (item: Feature("magus/arcane-heavy-armor")),
-            (item: Feature("magus/arcane-medium-armor")),
-            (item: Feature("magus/arcane-weapon-2")),
-            (item: Feature("magus/arcane-weapon-3")),
-            (item: Feature("magus/arcane-weapon-4")),
-            (item: Feature("magus/arcane-weapon-5")),
+            (item: Feature("magus/arcane-heavy-armor"), replaced_by: [Feature("magus/eldritch-archer/arcane-heavy-armor")]),
+            (item: Feature("magus/arcane-medium-armor"), replaced_by: [Feature("magus/eldritch-archer/arcane-medium-armor")]),
+            (item: Feature("magus/arcane-weapon-2"), replaced_by: [Feature("magus/eldritch-archer/arcane-weapon-2")]),
+            (item: Feature("magus/arcane-weapon-3"), replaced_by: [Feature("magus/eldritch-archer/arcane-weapon-3")]),
+            (item: Feature("magus/arcane-weapon-4"), replaced_by: [Feature("magus/eldritch-archer/arcane-weapon-4")]),
+            (item: Feature("magus/arcane-weapon-5"), replaced_by: [Feature("magus/eldritch-archer/arcane-weapon-5")]),
             (item: Feature("magus/counterstrike")),
             (item: Feature("magus/spell-combat")),
             (item: Feature("magus/spellstrike")),
@@ -989,15 +900,14 @@
     ),
     (
         archetype: "magus/eldritch-scion",
-        why: "Eldritch Scion gives up Arcane Heavy Armor, Arcane Medium Armor, Arcane Pool, Arcane Weapon +2, Arcane Weapon +3, Arcane Weapon +4, Arcane Weapon +5, Greater Spell Combat, Improved Spell Combat, Improved Spell Recall, Spell Recall.",
         loses: [
-            (item: Feature("magus/arcane-heavy-armor")),
-            (item: Feature("magus/arcane-medium-armor")),
+            (item: Feature("magus/arcane-heavy-armor"), replaced_by: [Feature("magus/eldritch-scion/arcane-heavy-armor")]),
+            (item: Feature("magus/arcane-medium-armor"), replaced_by: [Feature("magus/eldritch-scion/arcane-medium-armor")]),
             (item: Feature("magus/arcane-pool")),
-            (item: Feature("magus/arcane-weapon-2")),
-            (item: Feature("magus/arcane-weapon-3")),
-            (item: Feature("magus/arcane-weapon-4")),
-            (item: Feature("magus/arcane-weapon-5")),
+            (item: Feature("magus/arcane-weapon-2"), replaced_by: [Feature("magus/eldritch-scion/arcane-weapon-2")]),
+            (item: Feature("magus/arcane-weapon-3"), replaced_by: [Feature("magus/eldritch-scion/arcane-weapon-3")]),
+            (item: Feature("magus/arcane-weapon-4"), replaced_by: [Feature("magus/eldritch-scion/arcane-weapon-4")]),
+            (item: Feature("magus/arcane-weapon-5"), replaced_by: [Feature("magus/eldritch-scion/arcane-weapon-5")]),
             (item: Feature("magus/greater-spell-combat")),
             (item: Feature("magus/improved-spell-combat")),
             (item: Feature("magus/improved-spell-recall")),
@@ -1006,14 +916,13 @@
     ),
     (
         archetype: "magus/hexcrafter",
-        why: "Hexcrafter gives up Arcane Heavy Armor, Arcane Medium Armor, Arcane Weapon +2, Arcane Weapon +3, Arcane Weapon +4, Arcane Weapon +5, Improved Spell Recall, Spell Recall, Magus Arcana.",
         loses: [
-            (item: Feature("magus/arcane-heavy-armor")),
-            (item: Feature("magus/arcane-medium-armor")),
-            (item: Feature("magus/arcane-weapon-2")),
-            (item: Feature("magus/arcane-weapon-3")),
-            (item: Feature("magus/arcane-weapon-4")),
-            (item: Feature("magus/arcane-weapon-5")),
+            (item: Feature("magus/arcane-heavy-armor"), replaced_by: [Feature("magus/hexcrafter/arcane-heavy-armor")]),
+            (item: Feature("magus/arcane-medium-armor"), replaced_by: [Feature("magus/hexcrafter/arcane-medium-armor")]),
+            (item: Feature("magus/arcane-weapon-2"), replaced_by: [Feature("magus/hexcrafter/arcane-weapon-2")]),
+            (item: Feature("magus/arcane-weapon-3"), replaced_by: [Feature("magus/hexcrafter/arcane-weapon-3")]),
+            (item: Feature("magus/arcane-weapon-4"), replaced_by: [Feature("magus/hexcrafter/arcane-weapon-4")]),
+            (item: Feature("magus/arcane-weapon-5"), replaced_by: [Feature("magus/hexcrafter/arcane-weapon-5")]),
             (item: Feature("magus/improved-spell-recall")),
             (item: Feature("magus/spell-recall")),
             (item: Selection("magus/magus-arcana")),
@@ -1021,7 +930,6 @@
     ),
     (
         archetype: "magus/spell-dancer",
-        why: "The Spell Dancer trades its armour progression, weapon enchantment and Arcane Pool for dance abilities and mobility; its table has a bonus magus feat at 11 and 17 only, so the bonus feat at 5 is lost although the overview does not say so.",
         loses: [
             (item: Feature("magus/arcane-heavy-armor")),
             (item: Feature("magus/arcane-medium-armor")),
@@ -1032,19 +940,18 @@
             (item: Feature("magus/arcane-weapon-5")),
             (item: Feat("armor-proficiency-heavy-armor")),
             (item: Feat("armor-proficiency-medium-armor")),
-            (item: Slot(General), at: [5], why: "table has no general bonus feats at these levels; its rows there show 5: Arcane Movement, Spell Dance (II)"),
+            (item: Slot(General), at: [5], why: "table has no bonus magus feat at 5 (its row shows Arcane Movement, Spell Dance (II)) and has one at 11 and 17 only; the overview is silent on it, the table settles it"),
         ],
     ),
     (
         archetype: "magus/sword-saint",
-        why: "Sword Saint gives up Arcane Heavy Armor, Arcane Medium Armor, Arcane Weapon +2, Arcane Weapon +3, Arcane Weapon +4, Arcane Weapon +5, Fighter Training, Greater Spell Access, Improved Spell Recall, Magus Proficiencies, Spell Recall, True Magus, armor proficiency heavy armor, armor proficiency light armor, armor proficiency medium armor, martial weapons proficiency and has fewer or later Magus Arcana than the class.",
         loses: [
             (item: Feature("magus/arcane-heavy-armor")),
             (item: Feature("magus/arcane-medium-armor")),
-            (item: Feature("magus/arcane-weapon-2")),
-            (item: Feature("magus/arcane-weapon-3")),
-            (item: Feature("magus/arcane-weapon-4")),
-            (item: Feature("magus/arcane-weapon-5")),
+            (item: Feature("magus/arcane-weapon-2"), replaced_by: [Feature("magus/sword-saint/arcane-weapon-2")]),
+            (item: Feature("magus/arcane-weapon-3"), replaced_by: [Feature("magus/sword-saint/arcane-weapon-3")]),
+            (item: Feature("magus/arcane-weapon-4"), replaced_by: [Feature("magus/sword-saint/arcane-weapon-4")]),
+            (item: Feature("magus/arcane-weapon-5"), replaced_by: [Feature("magus/sword-saint/arcane-weapon-5")]),
             (item: Feature("magus/fighter-training")),
             (item: Feature("magus/greater-spell-access")),
             (item: Feature("magus/improved-spell-recall")),
@@ -1060,7 +967,6 @@
     ),
     (
         archetype: "monk/drunken-master",
-        why: "Drunken Master gives up Ki Pool, Ki Power: Perfect Self, Purity of Body, Still Mind.",
         loses: [
             (item: Feature("monk/ki-pool")),
             (item: Feature("monk/ki-power-perfect-self")),
@@ -1070,9 +976,8 @@
     ),
     (
         archetype: "monk/quarterstaff-master",
-        why: "Quarterstaff Master gives up Flurry of Blows, Ki Strike - Adamantine, Ki Strike - Cold Iron and Silver, Ki Strike - Lawful, Ki Strike - Magic, Stunning Fist, Stunning Fist: Fatigue, Stunning Fist: Sicken, Style Strike, Unarmed Strike.",
         loses: [
-            (item: Feature("monk/flurry-of-blows")),
+            (item: Feature("monk/flurry-of-blows"), replaced_by: [Feature("monk/quarterstaff-master/flurry-of-blows-quarterstaff-master")]),
             (item: Feature("monk/ki-strike-adamantine")),
             (item: Feature("monk/ki-strike-cold-iron-and-silver")),
             (item: Feature("monk/ki-strike-lawful")),
@@ -1086,72 +991,66 @@
     ),
     (
         archetype: "monk/scaled-fist",
-        why: "Scaled Fist gives up Still Mind, bonus feats from bonus feats 1 (list monk/bonus-feats-1), bonus feats from bonus feats 10 (list monk/bonus-feats-10), bonus feats from bonus feats 6 (list monk/bonus-feats-6) and has fewer or later Ki Power than the class.",
         loses: [
             (item: Feature("monk/still-mind")),
-            (item: Slot(OneOf(list: "monk/bonus-feats-1"))),
-            (item: Slot(OneOf(list: "monk/bonus-feats-10"))),
-            (item: Slot(OneOf(list: "monk/bonus-feats-6"))),
+            (item: Slot(OneOf(list: "monk/bonus-feats-1")), replaced_by: [Slot(OneOf(list: "monk/scaled-fist/bonus-feats-1"))]),
+            (item: Slot(OneOf(list: "monk/bonus-feats-10")), replaced_by: [Slot(OneOf(list: "monk/scaled-fist/bonus-feats-10"))]),
+            (item: Slot(OneOf(list: "monk/bonus-feats-6")), replaced_by: [Slot(OneOf(list: "monk/scaled-fist/bonus-feats-6"))]),
             (item: Selection("monk/ki-power"), at: [12], why: "table has no Ki Power at these levels; its rows there show 12: Dragon Breath"),
         ],
     ),
     (
         archetype: "monk/sensei",
-        why: "The Sensei gives up Fast Movement and Flurry of Blows for Advice abilities (the overview says so); its table has a bonus feat at 1 and 18 only, so the base monk's bonus feat slots at 2, 6, 10 and 14 are lost.",
         loses: [
             (item: Feature("monk/evasion")),
             (item: Feature("monk/fast-movement")),
             (item: Feature("monk/flurry-of-blows")),
             (item: Feature("monk/improved-evasion")),
             (item: Feature("monk/ki-power-extra-attack")),
-            (item: Slot(OneOf(list: "monk/bonus-feats-1")), at: [2], why: "table has no bonus feats from bonus feats 1 (list monk/bonus-feats-1) at these levels; its rows there show 2: Insightful Strike"),
-            (item: Slot(OneOf(list: "monk/bonus-feats-10")), at: [10, 14], why: "table has no bonus feats from bonus feats 10 (list monk/bonus-feats-10) at these levels; its rows there show 10: Ki Power, Ki Strike - Lawful, Mystic Wisdom; 14: Ki Power"),
+            (item: Slot(OneOf(list: "monk/bonus-feats-1")), at: [2], why: "table has no bonus feats from list monk/bonus-feats-1 at these levels; its rows there show 2: Insightful Strike"),
+            (item: Slot(OneOf(list: "monk/bonus-feats-10")), at: [10, 14], why: "table has no bonus feats from list monk/bonus-feats-10 at these levels; its rows there show 10: Ki Power, Ki Strike - Lawful, Mystic Wisdom; 14: Ki Power"),
             (item: Slot(OneOf(list: "monk/bonus-feats-6"))),
         ],
     ),
     (
         archetype: "monk/sohei",
-        why: "Sohei gives up Fast Movement, Flurry of Blows, Monk Proficiencies, Stunning Fist, Stunning Fist: Fatigue, Stunning Fist: Sicken, Unarmed Strike, bonus feats from bonus feats 1 (list monk/bonus-feats-1), bonus feats from bonus feats 10 (list monk/bonus-feats-10), bonus feats from bonus feats 6 (list monk/bonus-feats-6) and has fewer or later Ki Power than the class.",
         loses: [
             (item: Feature("monk/fast-movement")),
-            (item: Feature("monk/flurry-of-blows")),
+            (item: Feature("monk/flurry-of-blows"), replaced_by: [Feature("monk/sohei/flurry-of-blows-sohei")]),
             (item: Feature("monk/monk-proficiencies")),
             (item: Feature("monk/stunning-fist")),
             (item: Feature("monk/stunning-fist-fatigue")),
             (item: Feature("monk/stunning-fist-sicken")),
             (item: Feature("monk/unarmed-strike")),
-            (item: Slot(OneOf(list: "monk/bonus-feats-1"))),
-            (item: Slot(OneOf(list: "monk/bonus-feats-10"))),
-            (item: Slot(OneOf(list: "monk/bonus-feats-6"))),
+            (item: Slot(OneOf(list: "monk/bonus-feats-1")), replaced_by: [Slot(OneOf(list: "monk/sohei/bonus-feats-1"))]),
+            (item: Slot(OneOf(list: "monk/bonus-feats-10")), replaced_by: [Slot(OneOf(list: "monk/sohei/bonus-feats-10"))]),
+            (item: Slot(OneOf(list: "monk/bonus-feats-6")), replaced_by: [Slot(OneOf(list: "monk/sohei/bonus-feats-6"))]),
             (item: Selection("monk/ki-power"), at: [4], why: "table has no Ki Power at these levels; its rows there show 4: Ki Weapon, Still Mind"),
         ],
     ),
     (
         archetype: "monk/student-of-stone",
-        why: "Student of Stone gives up Evasion, Fast Movement, Improved Evasion, Ki Power - Extra Attack, bonus feats from bonus feats 10 (list monk/bonus-feats-10), bonus feats from bonus feats 6 (list monk/bonus-feats-6) and has fewer or later Ki Power than the class.",
         loses: [
             (item: Feature("monk/evasion")),
             (item: Feature("monk/fast-movement")),
             (item: Feature("monk/improved-evasion")),
             (item: Feature("monk/ki-power-extra-attack")),
-            (item: Slot(OneOf(list: "monk/bonus-feats-10"))),
-            (item: Slot(OneOf(list: "monk/bonus-feats-6"))),
+            (item: Slot(OneOf(list: "monk/bonus-feats-10")), replaced_by: [Slot(OneOf(list: "monk/student-of-stone/bonus-feats-10"))]),
+            (item: Slot(OneOf(list: "monk/bonus-feats-6")), replaced_by: [Slot(OneOf(list: "monk/student-of-stone/bonus-feats-6"))]),
             (item: Selection("monk/ki-power"), at: [6, 12], why: "table has no Ki Power at these levels; its rows there show 6: Bonus Feat; 12: Soul of Stone"),
         ],
     ),
     (
         archetype: "monk/traditional-monk",
-        why: "Traditional Monk gives up Ki Power.",
         loses: [
             (item: Selection("monk/ki-power")),
         ],
     ),
     (
         archetype: "monk/zen-archer",
-        why: "Zen Archer gives up Evasion, Flurry of Blows, Improved Evasion, Ki Power - Extra Attack, Monk Proficiencies, Purity of Body, Still Mind, Stunning Fist, Stunning Fist: Fatigue, Stunning Fist: Sicken, Style Strike, bonus feats from bonus feats 1 (list monk/bonus-feats-1), bonus feats from bonus feats 10 (list monk/bonus-feats-10), bonus feats from bonus feats 6 (list monk/bonus-feats-6) and has fewer or later Ki Power than the class.",
         loses: [
             (item: Feature("monk/evasion")),
-            (item: Feature("monk/flurry-of-blows")),
+            (item: Feature("monk/flurry-of-blows"), replaced_by: [Feature("monk/zen-archer/flurry-of-blows-zen-archer")]),
             (item: Feature("monk/improved-evasion")),
             (item: Feature("monk/ki-power-extra-attack")),
             (item: Feature("monk/monk-proficiencies")),
@@ -1161,110 +1060,100 @@
             (item: Feature("monk/stunning-fist-fatigue")),
             (item: Feature("monk/stunning-fist-sicken")),
             (item: Feature("monk/style-strike")),
-            (item: Slot(OneOf(list: "monk/bonus-feats-1"))),
-            (item: Slot(OneOf(list: "monk/bonus-feats-10"))),
-            (item: Slot(OneOf(list: "monk/bonus-feats-6"))),
+            (item: Slot(OneOf(list: "monk/bonus-feats-1")), replaced_by: [Slot(OneOf(list: "monk/zen-archer/bonus-feats-1"))]),
+            (item: Slot(OneOf(list: "monk/bonus-feats-10")), replaced_by: [Slot(OneOf(list: "monk/zen-archer/bonus-feats-10"))]),
+            (item: Slot(OneOf(list: "monk/bonus-feats-6")), replaced_by: [Slot(OneOf(list: "monk/zen-archer/bonus-feats-6"))]),
             (item: Selection("monk/ki-power"), at: [10], why: "table has no Ki Power at these levels; its rows there show 10: Bonus Feat, Ki Strike - Lawful"),
         ],
     ),
     (
         archetype: "oracle/divine-herbalist",
-        why: "Divine Herbalist gives up Curse 2, Curse 3, Curse 4, Mystery and has fewer or later Revelation than the class.",
         loses: [
-            (item: Feature("oracle/curse-2")),
-            (item: Feature("oracle/curse-3")),
-            (item: Feature("oracle/curse-4")),
-            (item: Selection("oracle/mystery")),
-            (item: Selection("oracle/revelation"), at: [1, 7], why: "table has no Revelation at these levels; its rows there show 1: Oracle's Curse, Brew Potions, Healer's Way; 7: Master Healing Technique"),
+            (item: Feature("oracle/curse-2"), replaced_by: [Feature("oracle/divine-herbalist/curse-2")]),
+            (item: Feature("oracle/curse-3"), replaced_by: [Feature("oracle/divine-herbalist/curse-3")]),
+            (item: Feature("oracle/curse-4"), replaced_by: [Feature("oracle/divine-herbalist/curse-4")]),
+            (item: Selection("oracle/mystery"), replaced_by: [Selection("oracle/divine-herbalist/mystery")]),
+            (item: Selection("oracle/revelation"), at: [1, 7], why: "table has no Revelation at these levels; its rows there show 1: Oracle's Curse, Brew Potions, Healer's Way (level 0: Oracle Proficiencies, Mystery, Additional Spells, Master Herbalist); 7: Master Healing Technique"),
         ],
     ),
     (
         archetype: "oracle/dual-cursed-oracle",
-        why: "Dual-Cursed Oracle gives up Curse 2, Curse 3, Curse 4, Revelation.",
         loses: [
-            (item: Feature("oracle/curse-2")),
-            (item: Feature("oracle/curse-3")),
-            (item: Feature("oracle/curse-4")),
-            (item: Selection("oracle/revelation")),
+            (item: Feature("oracle/curse-2"), replaced_by: [Feature("oracle/dual-cursed-oracle/curse-2")]),
+            (item: Feature("oracle/curse-3"), replaced_by: [Feature("oracle/dual-cursed-oracle/curse-3")]),
+            (item: Feature("oracle/curse-4"), replaced_by: [Feature("oracle/dual-cursed-oracle/curse-4")]),
+            (item: Selection("oracle/revelation"), replaced_by: [Selection("oracle/dual-cursed-oracle/revelation")]),
         ],
     ),
     (
         archetype: "oracle/enlightened-philosopher",
-        why: "Enlightened Philosopher gives up Curse 2, Curse 3, Curse 4, Mystery and has fewer or later Revelation than the class.",
         loses: [
-            (item: Feature("oracle/curse-2")),
-            (item: Feature("oracle/curse-3")),
-            (item: Feature("oracle/curse-4")),
-            (item: Selection("oracle/mystery")),
+            (item: Feature("oracle/curse-2"), replaced_by: [Feature("oracle/enlightened-philosopher/curse-2")]),
+            (item: Feature("oracle/curse-3"), replaced_by: [Feature("oracle/enlightened-philosopher/curse-3")]),
+            (item: Feature("oracle/curse-4"), replaced_by: [Feature("oracle/enlightened-philosopher/curse-4")]),
+            (item: Selection("oracle/mystery"), replaced_by: [Selection("oracle/enlightened-philosopher/mystery")]),
             (item: Selection("oracle/revelation"), at: [7], why: "table has no Revelation at these levels; its rows there show 7: Mental Acuity"),
         ],
     ),
     (
         archetype: "oracle/lone-strider",
-        why: "Lone Strider gives up Curse 2, Curse 3, Curse 4, Mystery and has fewer or later Revelation than the class.",
         loses: [
-            (item: Feature("oracle/curse-2")),
-            (item: Feature("oracle/curse-3")),
-            (item: Feature("oracle/curse-4")),
-            (item: Selection("oracle/mystery")),
-            (item: Selection("oracle/revelation"), at: [1, 7], why: "table has no Revelation at these levels; its rows there show 1: Oracle's Curse, Recluse's Stride; 7: Fade from Memory"),
+            (item: Feature("oracle/curse-2"), replaced_by: [Feature("oracle/lone-strider/curse-2")]),
+            (item: Feature("oracle/curse-3"), replaced_by: [Feature("oracle/lone-strider/curse-3")]),
+            (item: Feature("oracle/curse-4"), replaced_by: [Feature("oracle/lone-strider/curse-4")]),
+            (item: Selection("oracle/mystery"), replaced_by: [Selection("oracle/lone-strider/mystery")]),
+            (item: Selection("oracle/revelation"), at: [1, 7], why: "table has no Revelation at these levels; its rows there show 1: Oracle's Curse, Recluse's Stride (level 0: Oracle Proficiencies, Mystery, Additional Spells); 7: Fade from Memory"),
         ],
     ),
     (
         archetype: "oracle/possessed-oracle",
-        why: "Possessed Oracle gives up Curse 2, Curse 3, Curse 4, Oracle's Curse and has fewer or later Revelation than the class.",
         loses: [
-            (item: Feature("oracle/curse-2")),
-            (item: Feature("oracle/curse-3")),
-            (item: Feature("oracle/curse-4")),
+            (item: Feature("oracle/curse-2"), replaced_by: [Feature("oracle/possessed-oracle/curse-2")]),
+            (item: Feature("oracle/curse-3"), replaced_by: [Feature("oracle/possessed-oracle/curse-3")]),
+            (item: Feature("oracle/curse-4"), replaced_by: [Feature("oracle/possessed-oracle/curse-4")]),
             (item: Selection("oracle/oracles-curse")),
-            (item: Selection("oracle/revelation"), at: [1], why: "table has no Revelation at these levels; its rows there show 1: Powerless Prophecy, Two Minds"),
+            (item: Selection("oracle/revelation"), at: [1], why: "table has no Revelation at these levels; its rows there show 1: Powerless Prophecy, Two Minds (level 0: Oracle Proficiencies, Mystery, Additional Spells)"),
         ],
     ),
     (
         archetype: "oracle/purifier",
-        why: "Purifier gives up Additional Spells, Curse 2, Curse 3, Curse 4 and has fewer or later Revelation than the class.",
         loses: [
             (item: Feature("oracle/additional-spells")),
-            (item: Feature("oracle/curse-2")),
-            (item: Feature("oracle/curse-3")),
-            (item: Feature("oracle/curse-4")),
+            (item: Feature("oracle/curse-2"), replaced_by: [Feature("oracle/purifier/curse-2")]),
+            (item: Feature("oracle/curse-3"), replaced_by: [Feature("oracle/purifier/curse-3")]),
+            (item: Feature("oracle/curse-4"), replaced_by: [Feature("oracle/purifier/curse-4")]),
             (item: Selection("oracle/revelation"), at: [3, 7, 11], why: "table has no Revelation at these levels; its rows there show 3: nothing; 7: Celestial Armor; 11: Sin Eater"),
         ],
     ),
     (
         archetype: "oracle/seeker",
-        why: "Seeker gives up Curse 2, Curse 3, Curse 4 and has fewer or later Revelation than the class.",
         loses: [
-            (item: Feature("oracle/curse-2")),
-            (item: Feature("oracle/curse-3")),
-            (item: Feature("oracle/curse-4")),
+            (item: Feature("oracle/curse-2"), replaced_by: [Feature("oracle/seeker/curse-2")]),
+            (item: Feature("oracle/curse-3"), replaced_by: [Feature("oracle/seeker/curse-3")]),
+            (item: Feature("oracle/curse-4"), replaced_by: [Feature("oracle/seeker/curse-4")]),
             (item: Selection("oracle/revelation"), at: [3, 15], why: "table has no Revelation at these levels; its rows there show 3: nothing; 15: Curse 4, Bonus Feat"),
         ],
     ),
     (
         archetype: "oracle/wind-whisperer",
-        why: "Wind Whisperer gives up Curse 2, Curse 3, Curse 4, Mystery and has fewer or later Revelation than the class.",
         loses: [
-            (item: Feature("oracle/curse-2")),
-            (item: Feature("oracle/curse-3")),
-            (item: Feature("oracle/curse-4")),
-            (item: Selection("oracle/mystery")),
+            (item: Feature("oracle/curse-2"), replaced_by: [Feature("oracle/wind-whisperer/curse-2")]),
+            (item: Feature("oracle/curse-3"), replaced_by: [Feature("oracle/wind-whisperer/curse-3")]),
+            (item: Feature("oracle/curse-4"), replaced_by: [Feature("oracle/wind-whisperer/curse-4")]),
+            (item: Selection("oracle/mystery"), replaced_by: [Selection("oracle/wind-whisperer/mystery")]),
             (item: Selection("oracle/revelation"), at: [7, 15], why: "table has no Revelation at these levels; its rows there show 7: Haste of the Wind; 15: Curse 4, Freedom of the Wind"),
         ],
     ),
     (
         archetype: "paladin/divine-guardian",
-        why: "Divine Guardian gives up Aura of Courage, Lay On Hands.",
         loses: [
             (item: Feature("paladin/aura-of-courage")),
             (item: Feature("paladin/lay-on-hands")),
-            (item: SpellLevels, at: [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20], why: "The overview says it cannot cast spells; the base paladin's divine spell levels from 5 are gone."),
+            (item: SpellLevels, why: "The overview says it cannot cast spells; the base paladin's divine spell levels from 5 are gone."),
         ],
     ),
     (
         archetype: "paladin/divine-hunter-paladin",
-        why: "Divine Hunter (Paladin) gives up Aura of Courage, Aura of Faith, Aura of Resolve, Divine Bond, Mark of Justice, armor proficiency heavy armor and has fewer or later Mercy than the class.",
         loses: [
             (item: Feature("paladin/aura-of-courage")),
             (item: Feature("paladin/aura-of-faith")),
@@ -1277,7 +1166,6 @@
     ),
     (
         archetype: "paladin/divine-scion",
-        why: "Divine Scion gives up Divine Bond, Mark of Justice, Smite Evil.",
         loses: [
             (item: Feature("paladin/divine-bond")),
             (item: Feature("paladin/mark-of-justice")),
@@ -1286,19 +1174,17 @@
     ),
     (
         archetype: "paladin/hospitaler",
-        why: "Hospitaler gives up Channel Positive Energy, Divine Bond, Mark of Justice, Smite Evil.",
         loses: [
-            (item: Feature("paladin/channel-positive-energy")),
+            (item: Feature("paladin/channel-positive-energy"), replaced_by: [Feature("paladin/hospitaler/channel-positive-energy-hospitaler")]),
             (item: Feature("paladin/divine-bond")),
             (item: Feature("paladin/mark-of-justice")),
-            (item: Feature("paladin/smite-evil")),
+            (item: Feature("paladin/smite-evil"), replaced_by: [Feature("paladin/hospitaler/smite-evil-hospitaler")]),
         ],
     ),
     (
         archetype: "paladin/martyr",
-        why: "Martyr gives up Aura of Courage, Divine Grace, Divine Health, Mark of Justice, Smite Evil.",
         loses: [
-            (item: Feature("paladin/aura-of-courage")),
+            (item: Feature("paladin/aura-of-courage"), replaced_by: [Feature("paladin/martyr/aura-of-courage-martyr")]),
             (item: Feature("paladin/divine-grace")),
             (item: Feature("paladin/divine-health")),
             (item: Feature("paladin/mark-of-justice")),
@@ -1307,7 +1193,6 @@
     ),
     (
         archetype: "paladin/stonelord",
-        why: "Stonelord gives up Divine Grace, Divine Health, Holy Champion, Mark of Justice, Smite Evil and has fewer or later Mercy than the class.",
         loses: [
             (item: Feature("paladin/divine-grace")),
             (item: Feature("paladin/divine-health")),
@@ -1319,7 +1204,6 @@
     ),
     (
         archetype: "paladin/tortured-crusader",
-        why: "Tortured Crusader gives up Channel Positive Energy, Divine Bond, Divine Grace, Holy Champion, Lay On Hands, Mark of Justice, Smite Evil.",
         loses: [
             (item: Feature("paladin/channel-positive-energy")),
             (item: Feature("paladin/divine-bond")),
@@ -1332,15 +1216,13 @@
     ),
     (
         archetype: "paladin/warrior-of-the-holy-light",
-        why: "Warrior of the Holy Light gives up Aura of Faith.",
         loses: [
             (item: Feature("paladin/aura-of-faith")),
-            (item: SpellLevels, at: [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20], why: "The overview says it loses spellcasting; the base paladin's divine spell levels from 5 are gone."),
+            (item: SpellLevels, why: "The overview says it loses spellcasting; the base paladin's divine spell levels from 5 are gone."),
         ],
     ),
     (
         archetype: "ranger/demonslayer",
-        why: "Demonslayer gives up Favored Enemy, Improved Quarry, Quarry, endurance.",
         loses: [
             (item: Feature("ranger/favored-enemy")),
             (item: Feature("ranger/improved-quarry")),
@@ -1350,7 +1232,6 @@
     ),
     (
         archetype: "ranger/espionage-expert",
-        why: "Espionage Expert gives up Camouflage, Favored Terrain, Hunter's Bond, Master Hunter, endurance.",
         loses: [
             (item: Feature("ranger/camouflage")),
             (item: Feature("ranger/favored-terrain")),
@@ -1361,7 +1242,6 @@
     ),
     (
         archetype: "ranger/flamewarden",
-        why: "Flamewarden gives up Camouflage, Hunter's Bond, Master Hunter.",
         loses: [
             (item: Feature("ranger/camouflage")),
             (item: Feature("ranger/hunters-bond")),
@@ -1370,7 +1250,6 @@
     ),
     (
         archetype: "ranger/freebooter",
-        why: "Freebooter gives up Favored Enemy, Hunter's Bond.",
         loses: [
             (item: Feature("ranger/favored-enemy")),
             (item: Feature("ranger/hunters-bond")),
@@ -1378,7 +1257,6 @@
     ),
     (
         archetype: "ranger/nomad",
-        why: "Nomad gives up Hunter's Bond, feat slots OptionList(selection: \"ranger/combat-style-feat\"), Combat Style.",
         loses: [
             (item: Feature("ranger/hunters-bond")),
             (item: Slot(OptionList(selection: "ranger/combat-style-feat"))),
@@ -1387,10 +1265,9 @@
     ),
     (
         archetype: "ranger/sable-company-marine",
-        why: "Sable Company Marine gives up Camouflage, Favored Terrain, Hunter's Bond, Master Hunter, endurance and has fewer or later Favored Enemy than the class.",
         loses: [
             (item: Feature("ranger/camouflage")),
-            (item: Feature("ranger/favored-enemy"), at: [1], why: "table has no Favored Enemy at these levels; its rows there show 1: nothing"),
+            (item: Feature("ranger/favored-enemy"), at: [1], why: "table has no Favored Enemy at these levels; its rows there show 1: nothing (level 0: Ranger Proficiencies, Hippogriff Companion)"),
             (item: Feature("ranger/favored-terrain")),
             (item: Feature("ranger/hunters-bond")),
             (item: Feature("ranger/master-hunter")),
@@ -1399,7 +1276,6 @@
     ),
     (
         archetype: "ranger/stormwalker",
-        why: "Stormwalker gives up Hunter's Bond, Improved Evasion, Improved Quarry, Quarry, feat slots OptionList(selection: \"ranger/combat-style-feat\"), Combat Style.",
         loses: [
             (item: Feature("ranger/hunters-bond")),
             (item: Feature("ranger/improved-evasion")),
@@ -1411,7 +1287,6 @@
     ),
     (
         archetype: "rogue/dark-lurker",
-        why: "Dark Lurker gives up Evasion and has fewer or later Rogue Talents than the class.",
         loses: [
             (item: Feature("rogue/evasion")),
             (item: Selection("rogue/rogue-talents"), at: [2, 8, 14, 20], why: "table has no Rogue Talents at these levels; its rows there show 2: Blind Fight, Blade from the Shadows; 8: Improved Blind Fight, Improved Uncanny Dodge; 14: Greater Blind Fight, Blade from the Shadows (Full Attack); 20: Instinctual Sense, Master Strike"),
@@ -1419,18 +1294,16 @@
     ),
     (
         archetype: "rogue/eldritch-scoundrel",
-        why: "Eldritch Scoundrel gives up Improved Uncanny Dodge, Sneak Attack, Uncanny Dodge, armor proficiency light armor and has fewer or later Rogue Talents than the class.",
         loses: [
             (item: Feature("rogue/improved-uncanny-dodge")),
-            (item: Feature("rogue/sneak-attack")),
+            (item: Feature("rogue/sneak-attack"), replaced_by: [Feature("rogue/eldritch-scoundrel/sneak-attack-eldritch-scoundrel")]),
             (item: Feature("rogue/uncanny-dodge")),
             (item: Feat("armor-proficiency-light-armor")),
-            (item: Selection("rogue/rogue-talents"), at: [4, 6, 10, 14, 18], why: "table has no Rogue Talents at these levels; its rows there show 4: nothing; 6: nothing; 10: nothing; 14: nothing; 18: nothing"),
+            (item: Selection("rogue/rogue-talents"), at: [4, 6, 10, 14, 18], why: "table has no Rogue Talents at these levels; its rows there show 4: Debilitating Injury; 6: nothing; 10: Advanced Talents; 14: nothing; 18: nothing"),
         ],
     ),
     (
         archetype: "rogue/knife-master",
-        why: "Knife Master gives up Danger Sense, Trapfinding.",
         loses: [
             (item: Feature("rogue/danger-sense")),
             (item: Feature("rogue/trapfinding")),
@@ -1438,14 +1311,12 @@
     ),
     (
         archetype: "rogue/master-of-all",
-        why: "Master of All gives up Sneak Attack.",
         loses: [
-            (item: Feature("rogue/sneak-attack")),
+            (item: Feature("rogue/sneak-attack"), replaced_by: [Feature("rogue/master-of-all/sneak-attack-master-of-all")]),
         ],
     ),
     (
         archetype: "rogue/rowdy",
-        why: "Rowdy gives up Evasion, weapon finesse, Finesse Training.",
         loses: [
             (item: Feature("rogue/evasion")),
             (item: Feat("weapon-finesse")),
@@ -1454,7 +1325,6 @@
     ),
     (
         archetype: "rogue/sylvan-trickster",
-        why: "Sylvan Trickster gives up Improved Uncanny Dodge, Uncanny Dodge, Rogue Talents.",
         loses: [
             (item: Feature("rogue/improved-uncanny-dodge")),
             (item: Feature("rogue/uncanny-dodge")),
@@ -1463,7 +1333,6 @@
     ),
     (
         archetype: "rogue/thug",
-        why: "Thug gives up Danger Sense, Trapfinding.",
         loses: [
             (item: Feature("rogue/danger-sense")),
             (item: Feature("rogue/trapfinding")),
@@ -1479,20 +1348,18 @@
     ),
     (
         archetype: "shaman/possessed-shaman",
-        why: "Possessed Shaman gives up Orisons, Wandering Spirit - Greater Ability, Wandering Spirit - True Ability and has fewer or later Wandering Hex, Hex than the class.",
         loses: [
-            (item: Feature("shaman/orisons")),
+            (item: Feature("shaman/orisons"), replaced_by: [Feature("shaman/possessed-shaman/orisons")]),
             (item: Feature("shaman/wandering-hex"), at: [6], why: "table has no Wandering Hex at these levels; its rows there show 6: Wandering Skills"),
-            (item: Feature("shaman/wandering-spirit-greater-ability")),
-            (item: Feature("shaman/wandering-spirit-true-ability")),
+            (item: Feature("shaman/wandering-spirit-greater-ability"), replaced_by: [Feature("shaman/possessed-shaman/wandering-spirit-greater-ability")]),
+            (item: Feature("shaman/wandering-spirit-true-ability"), replaced_by: [Feature("shaman/possessed-shaman/wandering-spirit-true-ability")]),
             (item: Selection("shaman/hex"), at: [2], why: "table has no Hex at these levels; its rows there show 2: Crowded Vessel"),
         ],
     ),
     (
         archetype: "shaman/prophet-of-pestilence",
-        why: "Prophet of Pestilence gives up Orisons, Spirit Animal, Wandering Hex, Wandering Spirit, Wandering Spirit - Greater Ability, Wandering Spirit - True Ability, Spirit and has fewer or later Hex than the class.",
         loses: [
-            (item: Feature("shaman/orisons")),
+            (item: Feature("shaman/orisons"), replaced_by: [Feature("shaman/prophet-of-pestilence/orisons")]),
             (item: Feature("shaman/spirit-animal")),
             (item: Feature("shaman/wandering-hex")),
             (item: Feature("shaman/wandering-spirit")),
@@ -1504,9 +1371,8 @@
     ),
     (
         archetype: "shaman/shadow-shaman",
-        why: "Shadow Shaman gives up Orisons, Wandering Hex, Wandering Spirit, Wandering Spirit - Greater Ability, Wandering Spirit - True Ability and has fewer or later Hex than the class.",
         loses: [
-            (item: Feature("shaman/orisons")),
+            (item: Feature("shaman/orisons"), replaced_by: [Feature("shaman/shadow-shaman/orisons")]),
             (item: Feature("shaman/wandering-hex")),
             (item: Feature("shaman/wandering-spirit")),
             (item: Feature("shaman/wandering-spirit-greater-ability")),
@@ -1516,9 +1382,8 @@
     ),
     (
         archetype: "shaman/spirit-hunter",
-        why: "Spirit Hunter gives up Orisons, Spirit Animal, Wandering Hex, Wandering Spirit, Wandering Spirit - Greater Ability, Wandering Spirit - True Ability.",
         loses: [
-            (item: Feature("shaman/orisons")),
+            (item: Feature("shaman/orisons"), replaced_by: [Feature("shaman/spirit-hunter/orisons")]),
             (item: Feature("shaman/spirit-animal")),
             (item: Feature("shaman/wandering-hex")),
             (item: Feature("shaman/wandering-spirit")),
@@ -1528,19 +1393,17 @@
     ),
     (
         archetype: "shaman/spirit-warden",
-        why: "Spirit Warden gives up Orisons, Wandering Spirit - Greater Ability, Wandering Spirit - True Ability and has fewer or later Hex than the class.",
         loses: [
-            (item: Feature("shaman/orisons")),
-            (item: Feature("shaman/wandering-spirit-greater-ability")),
-            (item: Feature("shaman/wandering-spirit-true-ability")),
+            (item: Feature("shaman/orisons"), replaced_by: [Feature("shaman/spirit-warden/orisons")]),
+            (item: Feature("shaman/wandering-spirit-greater-ability"), replaced_by: [Feature("shaman/spirit-warden/wandering-spirit-greater-ability")]),
+            (item: Feature("shaman/wandering-spirit-true-ability"), replaced_by: [Feature("shaman/spirit-warden/wandering-spirit-true-ability")]),
             (item: Selection("shaman/hex"), at: [2, 10], why: "table has no Hex at these levels; its rows there show 2: Rebuke Spirits; 10: Laugh at Death"),
         ],
     ),
     (
         archetype: "shaman/unsworn-shaman",
-        why: "Unsworn Shaman gives up Orisons, Wandering Hex, Wandering Spirit, Wandering Spirit - Greater Ability, Wandering Spirit - True Ability, Hex, Spirit.",
         loses: [
-            (item: Feature("shaman/orisons")),
+            (item: Feature("shaman/orisons"), replaced_by: [Feature("shaman/unsworn-shaman/orisons")]),
             (item: Feature("shaman/wandering-hex")),
             (item: Feature("shaman/wandering-spirit")),
             (item: Feature("shaman/wandering-spirit-greater-ability")),
@@ -1551,30 +1414,27 @@
     ),
     (
         archetype: "shaman/wildland-shaman",
-        why: "Wildland Shaman gives up Orisons, Spirit Animal, Wandering Hex, Wandering Spirit, Wandering Spirit - Greater Ability, Wandering Spirit - True Ability, Spirit.",
         loses: [
-            (item: Feature("shaman/orisons")),
+            (item: Feature("shaman/orisons"), replaced_by: [Feature("shaman/wildland-shaman/orisons")]),
             (item: Feature("shaman/spirit-animal")),
             (item: Feature("shaman/wandering-hex")),
             (item: Feature("shaman/wandering-spirit")),
             (item: Feature("shaman/wandering-spirit-greater-ability")),
             (item: Feature("shaman/wandering-spirit-true-ability")),
-            (item: Selection("shaman/spirit")),
+            (item: Selection("shaman/spirit"), replaced_by: [Selection("shaman/wildland-shaman/spirit")]),
         ],
     ),
     (
         archetype: "shaman/witch-doctor",
-        why: "Witch Doctor gives up Orisons, Wandering Spirit - Greater Ability, Wandering Spirit - True Ability and has fewer or later Hex than the class.",
         loses: [
-            (item: Feature("shaman/orisons")),
-            (item: Feature("shaman/wandering-spirit-greater-ability")),
-            (item: Feature("shaman/wandering-spirit-true-ability")),
+            (item: Feature("shaman/orisons"), replaced_by: [Feature("shaman/witch-doctor/orisons")]),
+            (item: Feature("shaman/wandering-spirit-greater-ability"), replaced_by: [Feature("shaman/witch-doctor/wandering-spirit-greater-ability")]),
+            (item: Feature("shaman/wandering-spirit-true-ability"), replaced_by: [Feature("shaman/witch-doctor/wandering-spirit-true-ability")]),
             (item: Selection("shaman/hex"), at: [4, 8], why: "table has no Hex at these levels; its rows there show 4: Channel Energy, Wandering Spirit; 8: Counter Curse, Greater Spirit Ability"),
         ],
     ),
     (
         archetype: "shifter/child-of-the-manticore",
-        why: "Child of the Manticore gives up Chimeric Aspect, Final Aspect, Greater Chimeric Aspect, Major Form, Shifter Claws, Shifter Claws (+1 crit multiplier), Shifter Claws (1d10), Shifter Claws (1d6), Shifter Claws (1d8), Shifter Claws (adamantine and universal), Shifter Claws (cold iron, magic and silver), Shifter Aspect.",
         loses: [
             (item: Feature("shifter/chimeric-aspect")),
             (item: Feature("shifter/final-aspect")),
@@ -1592,74 +1452,69 @@
     ),
     (
         archetype: "shifter/dragonblood-shifter",
-        why: "Dragonblood Shifter gives up Chimeric Aspect, Final Aspect, Greater Chimeric Aspect, Major Form, Shifter Claws (+1 crit multiplier), Shifter Claws (1d10), Shifter Claws (1d6), Shifter Claws (1d8), Shifter Claws (adamantine and universal), Shifter Claws (cold iron, magic and silver), Shifter Aspect.",
         loses: [
             (item: Feature("shifter/chimeric-aspect")),
             (item: Feature("shifter/final-aspect")),
             (item: Feature("shifter/greater-chimeric-aspect")),
             (item: Feature("shifter/major-form")),
-            (item: Feature("shifter/shifter-claws-1-crit-multiplier")),
-            (item: Feature("shifter/shifter-claws-1d10")),
-            (item: Feature("shifter/shifter-claws-1d6")),
-            (item: Feature("shifter/shifter-claws-1d8")),
-            (item: Feature("shifter/shifter-claws-adamantine-and-universal")),
-            (item: Feature("shifter/shifter-claws-cold-iron-magic-and-silver")),
+            (item: Feature("shifter/shifter-claws-1-crit-multiplier"), replaced_by: [Feature("shifter/dragonblood-shifter/shifter-claws-1-crit-multiplier")]),
+            (item: Feature("shifter/shifter-claws-1d10"), replaced_by: [Feature("shifter/dragonblood-shifter/shifter-claws-1d10")]),
+            (item: Feature("shifter/shifter-claws-1d6"), replaced_by: [Feature("shifter/dragonblood-shifter/shifter-claws-1d6")]),
+            (item: Feature("shifter/shifter-claws-1d8"), replaced_by: [Feature("shifter/dragonblood-shifter/shifter-claws-1d8")]),
+            (item: Feature("shifter/shifter-claws-adamantine-and-universal"), replaced_by: [Feature("shifter/dragonblood-shifter/shifter-claws-adamantine-and-universal")]),
+            (item: Feature("shifter/shifter-claws-cold-iron-magic-and-silver"), replaced_by: [Feature("shifter/dragonblood-shifter/shifter-claws-cold-iron-magic-and-silver")]),
             (item: Selection("shifter/shifter-aspect")),
         ],
     ),
     (
         archetype: "shifter/feyform-shifter",
-        why: "Feyform Shifter gives up Chimeric Aspect, Final Aspect, Greater Chimeric Aspect, Major Form, Shifter Claws (+1 crit multiplier), Shifter Claws (1d10), Shifter Claws (1d6), Shifter Claws (1d8), Shifter Claws (adamantine and universal), Shifter Claws (cold iron, magic and silver), Shifter Aspect.",
         loses: [
             (item: Feature("shifter/chimeric-aspect")),
             (item: Feature("shifter/final-aspect")),
             (item: Feature("shifter/greater-chimeric-aspect")),
             (item: Feature("shifter/major-form")),
-            (item: Feature("shifter/shifter-claws-1-crit-multiplier")),
-            (item: Feature("shifter/shifter-claws-1d10")),
-            (item: Feature("shifter/shifter-claws-1d6")),
-            (item: Feature("shifter/shifter-claws-1d8")),
-            (item: Feature("shifter/shifter-claws-adamantine-and-universal")),
-            (item: Feature("shifter/shifter-claws-cold-iron-magic-and-silver")),
+            (item: Feature("shifter/shifter-claws-1-crit-multiplier"), replaced_by: [Feature("shifter/feyform-shifter/shifter-claws-1-crit-multiplier")]),
+            (item: Feature("shifter/shifter-claws-1d10"), replaced_by: [Feature("shifter/feyform-shifter/shifter-claws-1d10")]),
+            (item: Feature("shifter/shifter-claws-1d6"), replaced_by: [Feature("shifter/feyform-shifter/shifter-claws-1d6")]),
+            (item: Feature("shifter/shifter-claws-1d8"), replaced_by: [Feature("shifter/feyform-shifter/shifter-claws-1d8")]),
+            (item: Feature("shifter/shifter-claws-adamantine-and-universal"), replaced_by: [Feature("shifter/feyform-shifter/shifter-claws-adamantine-and-universal")]),
+            (item: Feature("shifter/shifter-claws-cold-iron-magic-and-silver"), replaced_by: [Feature("shifter/feyform-shifter/shifter-claws-cold-iron-magic-and-silver")]),
             (item: Selection("shifter/shifter-aspect")),
         ],
     ),
     (
         archetype: "shifter/fiendflesh-shifter",
-        why: "Fiendflesh Shifter gives up Chimeric Aspect, Defensive Instinct, Greater Chimeric Aspect, Major Form, Shifter Claws (+1 crit multiplier), Shifter Claws (1d10), Shifter Claws (1d6), Shifter Claws (1d8), Shifter Claws (adamantine and universal), Shifter Claws (cold iron, magic and silver), Shifter Aspect.",
         loses: [
             (item: Feature("shifter/chimeric-aspect")),
             (item: Feature("shifter/defensive-instinct")),
             (item: Feature("shifter/greater-chimeric-aspect")),
             (item: Feature("shifter/major-form")),
-            (item: Feature("shifter/shifter-claws-1-crit-multiplier")),
-            (item: Feature("shifter/shifter-claws-1d10")),
-            (item: Feature("shifter/shifter-claws-1d6")),
-            (item: Feature("shifter/shifter-claws-1d8")),
-            (item: Feature("shifter/shifter-claws-adamantine-and-universal")),
-            (item: Feature("shifter/shifter-claws-cold-iron-magic-and-silver")),
+            (item: Feature("shifter/shifter-claws-1-crit-multiplier"), replaced_by: [Feature("shifter/fiendflesh-shifter/shifter-claws-1-crit-multiplier")]),
+            (item: Feature("shifter/shifter-claws-1d10"), replaced_by: [Feature("shifter/fiendflesh-shifter/shifter-claws-1d10")]),
+            (item: Feature("shifter/shifter-claws-1d6"), replaced_by: [Feature("shifter/fiendflesh-shifter/shifter-claws-1d6")]),
+            (item: Feature("shifter/shifter-claws-1d8"), replaced_by: [Feature("shifter/fiendflesh-shifter/shifter-claws-1d8")]),
+            (item: Feature("shifter/shifter-claws-adamantine-and-universal"), replaced_by: [Feature("shifter/fiendflesh-shifter/shifter-claws-adamantine-and-universal")]),
+            (item: Feature("shifter/shifter-claws-cold-iron-magic-and-silver"), replaced_by: [Feature("shifter/fiendflesh-shifter/shifter-claws-cold-iron-magic-and-silver")]),
             (item: Selection("shifter/shifter-aspect")),
         ],
     ),
     (
         archetype: "shifter/griffonheart-shifter",
-        why: "Griffonheart Shifter gives up Chimeric Aspect, Greater Chimeric Aspect, Major Form, Shifter Claws (+1 crit multiplier), Shifter Claws (1d10), Shifter Claws (1d6), Shifter Claws (1d8), Shifter Claws (adamantine and universal), Shifter Claws (cold iron, magic and silver), Shifter Aspect.",
         loses: [
             (item: Feature("shifter/chimeric-aspect")),
             (item: Feature("shifter/greater-chimeric-aspect")),
             (item: Feature("shifter/major-form")),
-            (item: Feature("shifter/shifter-claws-1-crit-multiplier")),
-            (item: Feature("shifter/shifter-claws-1d10")),
-            (item: Feature("shifter/shifter-claws-1d6")),
-            (item: Feature("shifter/shifter-claws-1d8")),
-            (item: Feature("shifter/shifter-claws-adamantine-and-universal")),
-            (item: Feature("shifter/shifter-claws-cold-iron-magic-and-silver")),
+            (item: Feature("shifter/shifter-claws-1-crit-multiplier"), replaced_by: [Feature("shifter/griffonheart-shifter/shifter-claws-1-crit-multiplier")]),
+            (item: Feature("shifter/shifter-claws-1d10"), replaced_by: [Feature("shifter/griffonheart-shifter/shifter-claws-1d10")]),
+            (item: Feature("shifter/shifter-claws-1d6"), replaced_by: [Feature("shifter/griffonheart-shifter/shifter-claws-1d6")]),
+            (item: Feature("shifter/shifter-claws-1d8"), replaced_by: [Feature("shifter/griffonheart-shifter/shifter-claws-1d8")]),
+            (item: Feature("shifter/shifter-claws-adamantine-and-universal"), replaced_by: [Feature("shifter/griffonheart-shifter/shifter-claws-adamantine-and-universal")]),
+            (item: Feature("shifter/shifter-claws-cold-iron-magic-and-silver"), replaced_by: [Feature("shifter/griffonheart-shifter/shifter-claws-cold-iron-magic-and-silver")]),
             (item: Selection("shifter/shifter-aspect")),
         ],
     ),
     (
         archetype: "shifter/rageshaper",
-        why: "Rageshaper gives up Chimeric Aspect, Defensive Instinct, Final Aspect, Greater Chimeric Aspect, Major Form, Shifter Claws, Shifter Claws (+1 crit multiplier), Shifter Claws (1d10), Shifter Claws (1d6), Shifter Claws (1d8), Shifter Claws (adamantine and universal), Shifter Claws (cold iron, magic and silver), Shifter Aspect.",
         loses: [
             (item: Feature("shifter/chimeric-aspect")),
             (item: Feature("shifter/defensive-instinct")),
@@ -1678,18 +1533,17 @@
     ),
     (
         archetype: "shifter/weretouched",
-        why: "Weretouched gives up Chimeric Aspect, Final Aspect, Greater Chimeric Aspect, Major Form, Shifter Claws (+1 crit multiplier), Shifter Claws (1d10), Shifter Claws (1d6), Shifter Claws (1d8), Shifter Claws (adamantine and universal), Shifter Claws (cold iron, magic and silver), Track, Woodland Grace, Shifter Aspect.",
         loses: [
             (item: Feature("shifter/chimeric-aspect")),
             (item: Feature("shifter/final-aspect")),
             (item: Feature("shifter/greater-chimeric-aspect")),
             (item: Feature("shifter/major-form")),
-            (item: Feature("shifter/shifter-claws-1-crit-multiplier")),
-            (item: Feature("shifter/shifter-claws-1d10")),
-            (item: Feature("shifter/shifter-claws-1d6")),
-            (item: Feature("shifter/shifter-claws-1d8")),
-            (item: Feature("shifter/shifter-claws-adamantine-and-universal")),
-            (item: Feature("shifter/shifter-claws-cold-iron-magic-and-silver")),
+            (item: Feature("shifter/shifter-claws-1-crit-multiplier"), replaced_by: [Feature("shifter/weretouched/shifter-claws-1-crit-multiplier")]),
+            (item: Feature("shifter/shifter-claws-1d10"), replaced_by: [Feature("shifter/weretouched/shifter-claws-1d10")]),
+            (item: Feature("shifter/shifter-claws-1d6"), replaced_by: [Feature("shifter/weretouched/shifter-claws-1d6")]),
+            (item: Feature("shifter/shifter-claws-1d8"), replaced_by: [Feature("shifter/weretouched/shifter-claws-1d8")]),
+            (item: Feature("shifter/shifter-claws-adamantine-and-universal"), replaced_by: [Feature("shifter/weretouched/shifter-claws-adamantine-and-universal")]),
+            (item: Feature("shifter/shifter-claws-cold-iron-magic-and-silver"), replaced_by: [Feature("shifter/weretouched/shifter-claws-cold-iron-magic-and-silver")]),
             (item: Feature("shifter/track")),
             (item: Feature("shifter/woodland-grace")),
             (item: Selection("shifter/shifter-aspect")),
@@ -1697,116 +1551,108 @@
     ),
     (
         archetype: "shifter/wild-effigy",
-        why: "Wild Effigy gives up Defensive Instinct, Major Form, Shifter Claws (+1 crit multiplier), Shifter Claws (1d10), Shifter Claws (1d6), Shifter Claws (1d8), Shifter Claws (adamantine and universal), Shifter Claws (cold iron, magic and silver), Track.",
         loses: [
             (item: Feature("shifter/defensive-instinct")),
-            (item: Feature("shifter/major-form")),
-            (item: Feature("shifter/shifter-claws-1-crit-multiplier")),
-            (item: Feature("shifter/shifter-claws-1d10")),
-            (item: Feature("shifter/shifter-claws-1d6")),
-            (item: Feature("shifter/shifter-claws-1d8")),
-            (item: Feature("shifter/shifter-claws-adamantine-and-universal")),
-            (item: Feature("shifter/shifter-claws-cold-iron-magic-and-silver")),
+            (item: Feature("shifter/major-form"), replaced_by: [Feature("shifter/wild-effigy/major-form")]),
+            (item: Feature("shifter/shifter-claws-1-crit-multiplier"), replaced_by: [Feature("shifter/wild-effigy/shifter-claws-1-crit-multiplier")]),
+            (item: Feature("shifter/shifter-claws-1d10"), replaced_by: [Feature("shifter/wild-effigy/shifter-claws-1d10")]),
+            (item: Feature("shifter/shifter-claws-1d6"), replaced_by: [Feature("shifter/wild-effigy/shifter-claws-1d6")]),
+            (item: Feature("shifter/shifter-claws-1d8"), replaced_by: [Feature("shifter/wild-effigy/shifter-claws-1d8")]),
+            (item: Feature("shifter/shifter-claws-adamantine-and-universal"), replaced_by: [Feature("shifter/wild-effigy/shifter-claws-adamantine-and-universal")]),
+            (item: Feature("shifter/shifter-claws-cold-iron-magic-and-silver"), replaced_by: [Feature("shifter/wild-effigy/shifter-claws-cold-iron-magic-and-silver")]),
             (item: Feature("shifter/track")),
         ],
     ),
     (
         archetype: "skald/battle-scion",
-        why: "Battle Scion gives up Bardic Knowledge, Dirge of Doom, Improved Uncanny Dodge, Lore Master, Raging Song, Uncanny Dodge, Well Versed, Rage Power.",
         loses: [
-            (item: Feature("skald/bardic-knowledge")),
-            (item: Feature("skald/dirge-of-doom")),
-            (item: Feature("skald/improved-uncanny-dodge")),
-            (item: Feature("skald/lore-master")),
+            (item: Feature("skald/bardic-knowledge"), replaced_by: [Feature("skald/battle-scion/bardic-knowledge-battle-scion")]),
+            (item: Feature("skald/dirge-of-doom"), replaced_by: [Feature("skald/battle-scion/dirge-of-doom")]),
+            (item: Feature("skald/improved-uncanny-dodge"), replaced_by: [Feature("skald/battle-scion/improved-uncanny-dodge")]),
+            (item: Feature("skald/lore-master"), replaced_by: [Feature("skald/battle-scion/lore-master")]),
             (item: Feature("skald/raging-song")),
-            (item: Feature("skald/uncanny-dodge")),
-            (item: Feature("skald/well-versed")),
+            (item: Feature("skald/uncanny-dodge"), replaced_by: [Feature("skald/battle-scion/uncanny-dodge")]),
+            (item: Feature("skald/well-versed"), replaced_by: [Feature("skald/battle-scion/well-versed")]),
             (item: Selection("barbarian/rage-power")),
         ],
     ),
     (
         archetype: "skald/battle-singer",
-        why: "Battle Singer gives up Bardic Knowledge, Dirge of Doom, Improved Uncanny Dodge, Lore Master, Uncanny Dodge, Well Versed and has fewer or later Rage Power than the class.",
         loses: [
-            (item: Feature("skald/bardic-knowledge")),
-            (item: Feature("skald/dirge-of-doom")),
-            (item: Feature("skald/improved-uncanny-dodge")),
-            (item: Feature("skald/lore-master")),
-            (item: Feature("skald/uncanny-dodge")),
-            (item: Feature("skald/well-versed")),
+            (item: Feature("skald/bardic-knowledge"), replaced_by: [Feature("skald/battle-singer/bardic-knowledge")]),
+            (item: Feature("skald/dirge-of-doom"), replaced_by: [Feature("skald/battle-singer/dirge-of-doom")]),
+            (item: Feature("skald/improved-uncanny-dodge"), replaced_by: [Feature("skald/battle-singer/improved-uncanny-dodge")]),
+            (item: Feature("skald/lore-master"), replaced_by: [Feature("skald/battle-singer/lore-master")]),
+            (item: Feature("skald/uncanny-dodge"), replaced_by: [Feature("skald/battle-singer/uncanny-dodge")]),
+            (item: Feature("skald/well-versed"), replaced_by: [Feature("skald/battle-singer/well-versed")]),
             (item: Selection("barbarian/rage-power"), at: [3, 9, 15], why: "table has no Rage Power at these levels; its rows there show 3: Battle Song - First Verse; 9: Battle Song - Second Verse, Damage Reduction; 15: Battle Song - Final Verse"),
         ],
     ),
     (
         archetype: "skald/court-poet",
-        why: "Court Poet gives up Bardic Knowledge, Dirge of Doom, Improved Uncanny Dodge, Inspired Rage, Lore Master, Song of Strength, Uncanny Dodge, Well Versed, Rage Power.",
         loses: [
-            (item: Feature("skald/bardic-knowledge")),
-            (item: Feature("skald/dirge-of-doom")),
-            (item: Feature("skald/improved-uncanny-dodge")),
+            (item: Feature("skald/bardic-knowledge"), replaced_by: [Feature("skald/court-poet/bardic-knowledge")]),
+            (item: Feature("skald/dirge-of-doom"), replaced_by: [Feature("skald/court-poet/dirge-of-doom")]),
+            (item: Feature("skald/improved-uncanny-dodge"), replaced_by: [Feature("skald/court-poet/improved-uncanny-dodge")]),
             (item: Feature("skald/inspired-rage")),
-            (item: Feature("skald/lore-master")),
+            (item: Feature("skald/lore-master"), replaced_by: [Feature("skald/court-poet/lore-master")]),
             (item: Feature("skald/song-of-strength")),
-            (item: Feature("skald/uncanny-dodge")),
+            (item: Feature("skald/uncanny-dodge"), replaced_by: [Feature("skald/court-poet/uncanny-dodge")]),
             (item: Feature("skald/well-versed")),
             (item: Selection("barbarian/rage-power")),
         ],
     ),
     (
         archetype: "skald/demon-dancer",
-        why: "Demon Dancer gives up Bardic Knowledge, Dirge of Doom, Improved Uncanny Dodge, Lore Master, Uncanny Dodge, Well Versed and has fewer or later Rage Power than the class.",
         loses: [
-            (item: Feature("skald/bardic-knowledge")),
-            (item: Feature("skald/dirge-of-doom")),
-            (item: Feature("skald/improved-uncanny-dodge")),
-            (item: Feature("skald/lore-master")),
-            (item: Feature("skald/uncanny-dodge")),
-            (item: Feature("skald/well-versed")),
+            (item: Feature("skald/bardic-knowledge"), replaced_by: [Feature("skald/demon-dancer/bardic-knowledge")]),
+            (item: Feature("skald/dirge-of-doom"), replaced_by: [Feature("skald/demon-dancer/dirge-of-doom")]),
+            (item: Feature("skald/improved-uncanny-dodge"), replaced_by: [Feature("skald/demon-dancer/improved-uncanny-dodge")]),
+            (item: Feature("skald/lore-master"), replaced_by: [Feature("skald/demon-dancer/lore-master")]),
+            (item: Feature("skald/uncanny-dodge"), replaced_by: [Feature("skald/demon-dancer/uncanny-dodge")]),
+            (item: Feature("skald/well-versed"), replaced_by: [Feature("skald/demon-dancer/well-versed")]),
             (item: Selection("barbarian/rage-power"), at: [3, 6, 9], why: "table has no Rage Power at these levels; its rows there show 3: Fiendish Maw; 6: Song of Strength, Fiend Totem; 9: Damage Reduction"),
         ],
     ),
     (
         archetype: "skald/herald-of-the-horn",
-        why: "Herald of the Horn gives up Bardic Knowledge, Dirge of Doom, Improved Uncanny Dodge, Lore Master, Raging Song, Uncanny Dodge, Well Versed.",
         loses: [
-            (item: Feature("skald/bardic-knowledge")),
-            (item: Feature("skald/dirge-of-doom")),
-            (item: Feature("skald/improved-uncanny-dodge")),
+            (item: Feature("skald/bardic-knowledge"), replaced_by: [Feature("skald/herald-of-the-horn/bardic-knowledge")]),
+            (item: Feature("skald/dirge-of-doom"), replaced_by: [Feature("skald/herald-of-the-horn/dirge-of-doom")]),
+            (item: Feature("skald/improved-uncanny-dodge"), replaced_by: [Feature("skald/herald-of-the-horn/improved-uncanny-dodge")]),
             (item: Feature("skald/lore-master")),
             (item: Feature("skald/raging-song")),
-            (item: Feature("skald/uncanny-dodge")),
-            (item: Feature("skald/well-versed")),
+            (item: Feature("skald/uncanny-dodge"), replaced_by: [Feature("skald/herald-of-the-horn/uncanny-dodge")]),
+            (item: Feature("skald/well-versed"), replaced_by: [Feature("skald/herald-of-the-horn/well-versed")]),
         ],
     ),
     (
         archetype: "skald/hunt-caller",
-        why: "Hunt Caller gives up Bardic Knowledge, Dirge of Doom, Improved Uncanny Dodge, Lore Master, Song of Strength, Song of the Fallen, Uncanny Dodge, Well Versed and has fewer or later Rage Power than the class.",
         loses: [
-            (item: Feature("skald/bardic-knowledge")),
-            (item: Feature("skald/dirge-of-doom")),
-            (item: Feature("skald/improved-uncanny-dodge")),
-            (item: Feature("skald/lore-master")),
+            (item: Feature("skald/bardic-knowledge"), replaced_by: [Feature("skald/hunt-caller/bardic-knowledge")]),
+            (item: Feature("skald/dirge-of-doom"), replaced_by: [Feature("skald/hunt-caller/dirge-of-doom")]),
+            (item: Feature("skald/improved-uncanny-dodge"), replaced_by: [Feature("skald/hunt-caller/improved-uncanny-dodge")]),
+            (item: Feature("skald/lore-master"), replaced_by: [Feature("skald/hunt-caller/lore-master")]),
             (item: Feature("skald/song-of-strength")),
             (item: Feature("skald/song-of-the-fallen")),
-            (item: Feature("skald/uncanny-dodge")),
+            (item: Feature("skald/uncanny-dodge"), replaced_by: [Feature("skald/hunt-caller/uncanny-dodge")]),
             (item: Feature("skald/well-versed")),
             (item: Selection("barbarian/rage-power"), at: [6, 18], why: "table has no Rage Power at these levels; its rows there show 6: Inspire Scent, Scent; 18: Call of the Wild III"),
         ],
     ),
     (
         archetype: "skald/inciter",
-        why: "Inciter gives up Bardic Knowledge, Damage Reduction, Dirge of Doom, Improved Uncanny Dodge, Lore Master, Master Skald, Raging Song, Song of Strength, Song of the Fallen, Uncanny Dodge, Well Versed, scribe scrolls, Rogue Talents and has fewer or later Rage Power than the class.",
         loses: [
             (item: Feature("skald/bardic-knowledge")),
             (item: Feature("skald/damage-reduction")),
             (item: Feature("skald/dirge-of-doom")),
-            (item: Feature("skald/improved-uncanny-dodge")),
+            (item: Feature("skald/improved-uncanny-dodge"), replaced_by: [Feature("skald/inciter/improved-uncanny-dodge")]),
             (item: Feature("skald/lore-master")),
             (item: Feature("skald/master-skald")),
             (item: Feature("skald/raging-song")),
             (item: Feature("skald/song-of-strength")),
             (item: Feature("skald/song-of-the-fallen")),
-            (item: Feature("skald/uncanny-dodge")),
+            (item: Feature("skald/uncanny-dodge"), replaced_by: [Feature("skald/inciter/uncanny-dodge")]),
             (item: Feature("skald/well-versed")),
             (item: Feat("scribe-scrolls")),
             (item: Selection("barbarian/rage-power"), at: [9, 15], why: "table has no Rage Power at these levels; its rows there show 9: Skald Talent; 15: nothing"),
@@ -1815,7 +1661,6 @@
     ),
     (
         archetype: "slayer/arcane-enforcer",
-        why: "Arcane Enforcer gives up Improved Quarry, Quarry, Slayer's Advance and has fewer or later Slayer Talents than the class.",
         loses: [
             (item: Feature("slayer/improved-quarry")),
             (item: Feature("slayer/quarry")),
@@ -1825,7 +1670,6 @@
     ),
     (
         archetype: "slayer/bloodseeker",
-        why: "Bloodseeker gives up Advanced Talents, Master Slayer, Slayer Talents.",
         loses: [
             (item: Feature("slayer/advanced-talents")),
             (item: Feature("slayer/master-slayer")),
@@ -1834,14 +1678,12 @@
     ),
     (
         archetype: "slayer/deliverer",
-        why: "Deliverer has fewer or later Slayer Talents than the class.",
         loses: [
             (item: Selection("slayer/slayer-talents"), at: [2, 10], why: "table has no Slayer Talents at these levels; its rows there show 2: Determined Zeal; 10: Divine Anathema, Advanced Talents"),
         ],
     ),
     (
         archetype: "slayer/executioner",
-        why: "Executioner gives up Improved Quarry, Quarry and has fewer or later Slayer Talents than the class.",
         loses: [
             (item: Feature("slayer/improved-quarry")),
             (item: Feature("slayer/quarry")),
@@ -1850,10 +1692,9 @@
     ),
     (
         archetype: "slayer/imitator",
-        why: "Imitator gives up Slayer's Advance, Sneak Attack, Studied Target, Studied Target (Swift) and has fewer or later Slayer Talents than the class.",
         loses: [
             (item: Feature("slayer/slayers-advance")),
-            (item: Feature("slayer/sneak-attack")),
+            (item: Feature("slayer/sneak-attack"), replaced_by: [Feature("slayer/imitator/sneak-attack-imitator")]),
             (item: Feature("slayer/studied-target")),
             (item: Feature("slayer/studied-target-swift")),
             (item: Selection("slayer/slayer-talents"), at: [4, 10, 16], why: "table has no Slayer Talents at these levels; its rows there show 4: nothing; 10: Advanced Talents; 16: nothing"),
@@ -1861,14 +1702,12 @@
     ),
     (
         archetype: "slayer/spawn-slayer",
-        why: "Spawn Slayer gives up Studied Target (Swift).",
         loses: [
             (item: Feature("slayer/studied-target-swift")),
         ],
     ),
     (
         archetype: "slayer/stygian-slayer",
-        why: "Stygian Slayer gives up Slayer Proficiencies, armor proficiency medium armor, shield proficiency and has fewer or later Slayer Talents than the class.",
         loses: [
             (item: Feature("slayer/slayer-proficiencies")),
             (item: Feat("armor-proficiency-medium-armor")),
@@ -1878,40 +1717,32 @@
     ),
     (
         archetype: "slayer/vanguard",
-        why: "Vanguard has fewer or later Slayer Talents than the class.",
         loses: [
             (item: Selection("slayer/slayer-talents"), at: [2, 4], why: "table has no Slayer Talents at these levels; its rows there show 2: Teamwork Feat, Vanguard Tactician; 4: Vanguard's Bond"),
         ],
     ),
     (
         archetype: "sorcerer/crossblooded",
-        why: "Loses nothing the base class row gives.",
-        loses: [
-        ],
+        loses: [],
     ),
     (
         archetype: "sorcerer/empyreal-sorcerer",
-        why: "Empyreal Sorcerer gives up Bloodline.",
         loses: [
-            (item: Selection("sorcerer/bloodline")),
+            (item: Selection("sorcerer/bloodline"), replaced_by: [Selection("sorcerer/empyreal-sorcerer/bloodline")]),
         ],
     ),
     (
         archetype: "sorcerer/geomancer",
-        why: "Geomancer gives up feat slots OptionList(selection: \"sorcerer/bloodline\").",
         loses: [
             (item: Slot(OptionList(selection: "sorcerer/bloodline"))),
         ],
     ),
     (
         archetype: "sorcerer/nine-tailed-heir",
-        why: "Loses nothing the base class row gives.",
-        loses: [
-        ],
+        loses: [],
     ),
     (
         archetype: "sorcerer/overwhelming-mage",
-        why: "Overwhelming Mage gives up magic bonus feats, feat slots OptionList(selection: \"sorcerer/bloodline\").",
         loses: [
             (item: Slot(Category(Magic))),
             (item: Slot(OptionList(selection: "sorcerer/bloodline"))),
@@ -1919,28 +1750,24 @@
     ),
     (
         archetype: "sorcerer/sage-sorcerer",
-        why: "Sage Sorcerer gives up Bloodline.",
         loses: [
-            (item: Selection("sorcerer/bloodline")),
+            (item: Selection("sorcerer/bloodline"), replaced_by: [Selection("sorcerer/sage-sorcerer/bloodline")]),
         ],
     ),
     (
         archetype: "sorcerer/seeker-sorcerer",
-        why: "Seeker (Sorcerer) gives up Bloodline.",
         loses: [
-            (item: Selection("sorcerer/bloodline")),
+            (item: Selection("sorcerer/bloodline"), replaced_by: [Selection("sorcerer/seeker-sorcerer/bloodline")]),
         ],
     ),
     (
         archetype: "sorcerer/sylvan-sorcerer",
-        why: "Sylvan Sorcerer gives up Bloodline.",
         loses: [
-            (item: Selection("sorcerer/bloodline")),
+            (item: Selection("sorcerer/bloodline"), replaced_by: [Selection("sorcerer/sylvan-sorcerer/bloodline")]),
         ],
     ),
     (
         archetype: "warpriest/champion-of-the-faith",
-        why: "Champion of the Faith gives up Channel Energy, Blessings and has fewer or later Sacred Weapon than the class.",
         loses: [
             (item: Feature("warpriest/channel-energy")),
             (item: Feature("warpriest/sacred-weapon"), at: [4, 8, 12, 16, 20], why: "table has no Sacred Weapon at these levels; its rows there show 4: Smite, Sacred Weapon - Aligned Weapon; 8: nothing; 12: Bonus Combat Feat, Sacred Weapon - Aligned Weapon; 16: Sacred Armor +4; 20: Aspect of War"),
@@ -1949,7 +1776,6 @@
     ),
     (
         archetype: "warpriest/cult-leader",
-        why: "Cult Leader gives up Channel Energy, armor proficiency heavy armor, armor proficiency medium armor, martial weapons proficiency, shield proficiency, bonus feats from weapon focus (list warpriest/weapon-focus) and has fewer or later combat bonus feats than the class.",
         loses: [
             (item: Feature("warpriest/channel-energy")),
             (item: Feat("armor-proficiency-heavy-armor")),
@@ -1962,7 +1788,6 @@
     ),
     (
         archetype: "warpriest/disenchanter",
-        why: "Disenchanter gives up Channel Energy, combat bonus feats.",
         loses: [
             (item: Feature("warpriest/channel-energy")),
             (item: Slot(CombatFeat)),
@@ -1970,7 +1795,6 @@
     ),
     (
         archetype: "warpriest/feral-champion",
-        why: "Feral Champion gives up Sacred Armor, Blessings.",
         loses: [
             (item: Feature("warpriest/sacred-armor")),
             (item: Selection("warpriest/blessings"), count: 2),
@@ -1978,7 +1802,6 @@
     ),
     (
         archetype: "warpriest/mantis-zealot",
-        why: "Mantis Zealot gives up Aspect of War, Channel Energy, Sacred Armor, armor proficiency heavy armor, armor proficiency medium armor, shield proficiency, bonus feats from weapon focus (list warpriest/weapon-focus), Blessings and has fewer or later combat bonus feats than the class.",
         loses: [
             (item: Feature("warpriest/aspect-of-war")),
             (item: Feature("warpriest/channel-energy")),
@@ -1993,7 +1816,6 @@
     ),
     (
         archetype: "warpriest/proclaimer",
-        why: "Proclaimer gives up Channel Energy, Sacred Armor.",
         loses: [
             (item: Feature("warpriest/channel-energy")),
             (item: Feature("warpriest/sacred-armor")),
@@ -2001,139 +1823,122 @@
     ),
     (
         archetype: "warpriest/shieldbearer",
-        why: "Shieldbearer gives up Channel Energy, Sacred Armor, Sacred Weapon, bonus feats from weapon focus (list warpriest/weapon-focus).",
         loses: [
-            (item: Feature("warpriest/channel-energy")),
+            (item: Feature("warpriest/channel-energy"), replaced_by: [Feature("warpriest/shieldbearer/channel-energy-shieldbearer")]),
             (item: Feature("warpriest/sacred-armor")),
-            (item: Feature("warpriest/sacred-weapon")),
+            (item: Feature("warpriest/sacred-weapon"), replaced_by: [Feature("warpriest/shieldbearer/sacred-weapon-shieldbearer")]),
             (item: Slot(OneOf(list: "warpriest/weapon-focus"))),
         ],
     ),
     (
         archetype: "witch/elemental-witch",
-        why: "Elemental Witch gives up Cantrips, Patron and has fewer or later Hex than the class.",
         loses: [
-            (item: Feature("witch/cantrips")),
-            (item: Selection("witch/hex"), at: [1, 10, 14, 18], why: "table has no Hex at these levels; its rows there show 1: Elemental Ray, Elemental Patron; 10: Major Hex; 14: nothing; 18: Grand Hex"),
+            (item: Feature("witch/cantrips"), replaced_by: [Feature("witch/elemental-witch/cantrips")]),
+            (item: Selection("witch/hex"), at: [1, 10, 14, 18], why: "table has no Hex at these levels; its rows there show 1: Elemental Ray, Elemental Patron (level 0: Witch Proficiencies, Cantrips, Familiar); 10: Major Hex; 14: nothing; 18: Grand Hex"),
             (item: Selection("witch/patron")),
         ],
     ),
     (
         archetype: "witch/hag-of-gyronna",
-        why: "Hag of Gyronna gives up Cantrips, Patron and has fewer or later Hex than the class.",
         loses: [
-            (item: Feature("witch/cantrips")),
+            (item: Feature("witch/cantrips"), replaced_by: [Feature("witch/hag-of-gyronna/cantrips")]),
             (item: Selection("witch/hex"), at: [2, 8, 12], why: "table has no Hex at these levels; its rows there show 2: Curdle Thoughts; 8: Sunder Hope; 12: Hag Crony"),
             (item: Selection("witch/patron")),
         ],
     ),
     (
         archetype: "witch/hagbound",
-        why: "Hagbound gives up Cantrips, Patron and has fewer or later Hex than the class.",
         loses: [
-            (item: Feature("witch/cantrips")),
-            (item: Selection("witch/hex"), at: [1, 2, 8, 10, 14, 20], why: "table has no Hex at these levels; its rows there show 1: Hag's Claws, Hagbound Patron; 2: Hunched Muscle; 8: nothing; 10: Major Hex, Vile Curse; 14: nothing; 20: Hag Transformation"),
+            (item: Feature("witch/cantrips"), replaced_by: [Feature("witch/hagbound/cantrips")]),
+            (item: Selection("witch/hex"), at: [1, 2, 8, 10, 14, 20], why: "table has no Hex at these levels; its rows there show 1: Hag's Claws, Hagbound Patron (level 0: Witch Proficiencies, Cantrips, Familiar); 2: Hunched Muscle; 8: nothing; 10: Major Hex, Vile Curse; 14: nothing; 20: Hag Transformation"),
             (item: Selection("witch/patron")),
         ],
     ),
     (
         archetype: "witch/hex-channeler",
-        why: "Hex Channeler gives up Cantrips and has fewer or later Hex than the class.",
         loses: [
-            (item: Feature("witch/cantrips")),
+            (item: Feature("witch/cantrips"), replaced_by: [Feature("witch/hex-channeler/cantrips")]),
             (item: Selection("witch/hex"), at: [2], why: "table has no Hex at these levels; its rows there show 2: Channel Energy"),
         ],
     ),
     (
         archetype: "witch/keen-eyed-adventurer",
-        why: "Keen-Eyed Adventurer gives up Cantrips and has fewer or later Hex than the class.",
         loses: [
             (item: Feature("witch/cantrips")),
-            (item: Selection("witch/hex"), at: [1, 6, 20], why: "table has no Hex at these levels; its rows there show 1: Patron; 6: Elemental Vortex; 20: Cantrip Mastery"),
+            (item: Selection("witch/hex"), at: [1, 6, 20], why: "table has no Hex at these levels; its rows there show 1: Patron (level 0: Witch Proficiencies, Improved Cantrips, Familiar); 6: Elemental Vortex; 20: Cantrip Mastery"),
         ],
     ),
     (
         archetype: "witch/ley-line-guardian",
-        why: "Ley Line Guardian gives up Cantrips, Familiar and has fewer or later Hex than the class.",
         loses: [
-            (item: Feature("witch/cantrips")),
+            (item: Feature("witch/cantrips"), replaced_by: [Feature("witch/ley-line-guardian/cantrips")]),
             (item: Feature("witch/familiar")),
-            (item: Selection("witch/hex"), at: [1, 8], why: "table has no Hex at these levels; its rows there show 1: Conduit Surge, Patron; 8: nothing"),
+            (item: Selection("witch/hex"), at: [1, 8], why: "table has no Hex at these levels; its rows there show 1: Conduit Surge, Patron (level 0: Witch Proficiencies, Cantrips, Ley Line Powered); 8: nothing"),
         ],
     ),
     (
         archetype: "witch/stigmatized-witch",
-        why: "Stigmatized Witch gives up Cantrips, Patron.",
         loses: [
-            (item: Feature("witch/cantrips")),
+            (item: Feature("witch/cantrips"), replaced_by: [Feature("witch/stigmatized-witch/cantrips")]),
             (item: Selection("witch/patron")),
         ],
     ),
     (
         archetype: "witch/witch-of-the-veil",
-        why: "Witch of the Veil gives up Cantrips, Patron and has fewer or later Hex than the class.",
         loses: [
-            (item: Feature("witch/cantrips")),
+            (item: Feature("witch/cantrips"), replaced_by: [Feature("witch/witch-of-the-veil/cantrips")]),
             (item: Selection("witch/hex"), at: [2, 8, 16], why: "table has no Hex at these levels; its rows there show 2: Shrouded Step; 8: nothing; 16: nothing"),
             (item: Selection("witch/patron")),
         ],
     ),
     (
         archetype: "wizard/arcane-bomber",
-        why: "Arcane Bomber gives up School.",
         loses: [
             (item: Selection("wizard/school")),
         ],
     ),
     (
         archetype: "wizard/cruromancer",
-        why: "The Cruromancer is always a necromancy specialist, has no arcane bond and gains Blood Infusion; its table has a bonus feat at 1, 10, 15 and 20, so the slot at 5 is lost although the overview does not say so.",
         loses: [
-            (item: Slot(Category(Magic)), at: [5], why: "table has no magic bonus feats at these levels; its rows there show 5: Commanding Infusion"),
-            (item: Selection("wizard/school")),
+            (item: Slot(Category(Magic)), at: [5], why: "table has no bonus feat at 5 and has one at 1, 10, 15 and 20; the overview is silent on it, the table settles it"),
+            (item: Selection("wizard/school"), replaced_by: [Selection("wizard/cruromancer/school")]),
         ],
     ),
     (
         archetype: "wizard/elemental-specialist",
-        why: "Elemental Specialist gives up School.",
         loses: [
-            (item: Selection("wizard/school")),
+            (item: Selection("wizard/school"), replaced_by: [Selection("wizard/elemental-specialist/school")]),
         ],
     ),
     (
         archetype: "wizard/exploiter-wizard",
-        why: "Exploiter Wizard gives up School.",
         loses: [
             (item: Selection("wizard/school")),
         ],
     ),
     (
         archetype: "wizard/scroll-savant",
-        why: "The Scroll Savant gives up the arcane bond and a specialist's school choice is kept, but it receives fewer bonus feats (the overview says so): its table has a bonus feat at 15 and 20 only.",
         loses: [
-            (item: Slot(Category(Magic)), at: [1, 5, 10], why: "table has no magic bonus feats at these levels; its rows there show 1: Scroll Focus, Arcane Bond, Specialisation abilities; 5: Scroll Specialization; 10: Scroll Mastery"),
+            (item: Slot(Category(Magic)), at: [1, 5, 10], why: "table has no magic bonus feats at these levels; its rows there show 1: Scroll Focus, Arcane Bond, Specialisation abilities (level 0: Wizard Proficiencies, Cantrips, Scribe Scrolls); 5: Scroll Specialization; 10: Scroll Mastery"),
         ],
     ),
     (
         archetype: "wizard/shadowcaster",
-        why: "The Shadowcaster gives up the arcane bond for shadow spells and abilities and receives fewer bonus feats (the overview says so): its table has a bonus feat at 1 only.",
         loses: [
             (item: Slot(Category(Magic)), at: [5, 10, 15, 20], why: "table has no magic bonus feats at these levels; its rows there show 5: Shadowsight; 10: Umbral Mind; 15: nothing; 20: Shadowform, Specialisation ability"),
         ],
     ),
     (
         archetype: "wizard/spell-master",
-        why: "The Spell Master is always a universalist, has no familiar, and loses two bonus feats (the overview says so): its table has a bonus feat at 1, 10 and 20, so the slots at 5 and 15 are lost.",
         loses: [
             (item: Slot(Category(Magic)), at: [5, 15], why: "table has no magic bonus feats at these levels; its rows there show 5: Item Bond Specialization; 15: nothing"),
-            (item: Selection("wizard/school")),
+            (item: Selection("wizard/school"), replaced_by: [Selection("wizard/spell-master/school")]),
         ],
     ),
     (
         archetype: "wizard/thassilonian-specialist",
-        why: "Thassilonian Specialist gives up School.",
         loses: [
-            (item: Selection("wizard/school")),
+            (item: Selection("wizard/school"), replaced_by: [Selection("wizard/thassilonian-specialist/school")]),
         ],
     ),
 ]
