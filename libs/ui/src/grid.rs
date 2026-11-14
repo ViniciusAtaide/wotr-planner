@@ -39,7 +39,11 @@ pub fn LevelsGrid() -> AnyView {
                                     class="add-level"
                                     on:click=move |_| planner.open(Target::Class(next))
                                 >
-                                    {format!("+ Level {next}")}
+                                    {if next == 1 {
+                                        "Choose your first level".to_owned()
+                                    } else {
+                                        format!("+ Level {next}")
+                                    }}
                                 </button>
                             }
                         })}
@@ -311,18 +315,14 @@ pub fn slot_chip(engine: &Engine, slot: &Slot, lost: bool) -> impl IntoView + us
     }
 }
 
-/// Where the Build ends: classes, BAB, saves, ability scores, class skills and the notes the sheet shows.
+/// Where the Build ends: classes, BAB, saves, ability scores, class skills and the notes the sheet shows. A Build
+/// with no levels has none: the "Choose your first level" button under it is all the empty grid needs.
 #[component]
 fn Summary(sheet: std::sync::Arc<Sheet>) -> impl IntoView {
     let planner = use_planner();
     let engine = planner.engine();
     let Some(last) = sheet.levels.last() else {
-        return view! {
-            <p class="summary muted">
-                "Choose the Build start, then add level 1 below."
-            </p>
-        }
-        .into_any();
+        return ().into_any();
     };
     let state = &last.state;
     let classes: Vec<String> = state
@@ -351,7 +351,8 @@ fn Summary(sheet: std::sync::Arc<Sheet>) -> impl IntoView {
         })
         .collect_view();
     // With gear, every other total it changes, with both numbers: none without gear, and nothing when none differs.
-    let gear_totals = (naked.as_ref())
+    let gear_totals = naked
+        .as_ref()
         .and_then(|naked| naked.levels.last())
         .map(|bare| gear_totals(&engine, last, bare))
         .filter(|totals| !totals.is_empty())
@@ -401,7 +402,9 @@ fn Summary(sheet: std::sync::Arc<Sheet>) -> impl IntoView {
     // Each reached rank's level, once the Build takes a rank later than the rank table's level, each such rank
     // saying so (ticket 171). A Build that moves no rank has no such line.
     let later = |rank: &rules::RankSheet| {
-        (engine.rank_table_level(rank.rank)).filter(|earliest| rank.character_level > *earliest)
+        engine
+            .rank_table_level(rank.rank)
+            .filter(|earliest| rank.character_level > *earliest)
     };
     let reached =
         || (sheet.ranks.iter()).filter(|rank| rank.status != rules::RankStatus::NotReached);

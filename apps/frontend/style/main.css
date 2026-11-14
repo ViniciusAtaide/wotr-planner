@@ -744,11 +744,14 @@ input[type="search"] {
   min-width: 0;
 }
 
+/* A chip's label and value centred on each other, so a short value ("+", "0/3") sits under its label's middle. */
 .chip {
   display: inline-flex;
   flex-direction: column;
+  align-items: center;
   justify-content: center;
   max-width: 100%;
+  text-align: center;
   padding: 3px 9px;
   border: 1px solid var(--line);
   border-radius: 999px;
