@@ -22,6 +22,23 @@
 //! `compare.txt` and the logs) go to `<out-dir>`, which must be outside the repo. The script exits non-zero when the
 //! comparison isn't empty.
 //!
+//! **What changed, not only where** (ticket 203, `-- --explain`): `compare.txt` names the Builds, slots and fields that
+//! differ, and the record holds hashes for most of them, so it can't say what the difference is. Reach for `--explain`
+//! whenever it names more than a few Builds (every queue's proof that changes a rule or a data file):
+//!
+//! ```text
+//! scripts/proof.sh both <out-dir> <ref> -- --explain
+//! ```
+//!
+//! After the comparison, when it isn't empty, both harnesses [`dump`] the Builds `compare.txt` names, in clear, and
+//! `explain.txt` is written beside it: its first lines say whether the differences come from the data, the code or
+//! both (in `both` mode, from a third record: side A's crates on side B's game data, or B's on A's where A's can't
+//! read B's), then [`explain`] groups the differing facts by path and change, largest group first, each with its
+//! count of Builds and lines and three example Builds, as the snapshot check groups its message. Its first groups
+//! are the ones to read: a change of a lock reason shows its old and new texts and what the alternatives gained or
+//! lost. The dumps are a few GB for a proof that differs in every Build (about 1.5 MB a Build); `proof explain
+//! <a.dump> <b.dump> --top 0` lists every group, and it streams: one Build's lines from each dump are held at a time.
+//!
 //! **Light mode** (ticket 162, `--light`): the record leaves out the `allows` battery and the consistency and shortcut
 //! checks ([`fingerprint::Mode`]), about a third of a record's cost, and keeps every other field: about 29 seconds a
 //! side against 45 (the pickers it keeps are most of the rest). Reach for it between the snapshot check (a few dozen Builds, one side) and the full proof:
@@ -46,6 +63,11 @@
 //!   to take a value).
 //! - `proof compare <a.jsonl> <b.jsonl>` lists the Builds only in one side and, per Build that differs, the fields that
 //!   differ and, for slots, the slot ids ([`compare`]). It exits 1 when anything differs.
+//! - `proof dump <game-data dir> [--links <file> | --builds <file>] [--threads N] [--only <name substring>] [--names
+//!   <file>] [--fold-values <key>,…] [--light]` writes the facts behind every field of the record in clear, one a
+//!   line, `<build><TAB><path><TAB><value>`, sorted by Build and path ([`dump`]); `--names` keeps the Builds a file
+//!   of names lists (`scripts/proof.sh --explain` passes the Builds `compare` named).
+//! - `proof explain <a.dump> <b.dump> [--top N]` groups the differences of two dumps ([`explain`]).
 //! - `proof export <game-data dir> [--json] [--threads N] [--only <name substring>]` writes the harness's own Builds
 //!   as share links, one `name<TAB>link` line each, for `record --links`, or with `--json` as `name<TAB>json` lines
 //!   for `record --builds` ([`links`]).
@@ -84,6 +106,8 @@
 
 pub mod builds;
 pub mod compare;
+pub mod dump;
+pub mod explain;
 pub mod fingerprint;
 pub mod generate;
 pub mod links;
