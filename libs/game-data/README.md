@@ -451,6 +451,8 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   count: 1)`, the rogue's order (Uncanny Dodge 4, Improved 8): the guide doesn't say so (user, 2026-11-13: the
   recommended option). To drop it, remove that condition and rewrite
   `an_eldritch_scoundrel_takes_improved_uncanny_dodge_only_after_uncanny_dodge`.
+  Extra Rogue Talent's `Any` of rogue talents names both too, as Extra Rage Power's names the Instinctual Warrior's
+  powers: holding either is holding a rogue talent.
 - Ticket 189 (found by a QA session, 2026-11-13): the skald's Rage Power cells are slots of the barbarian's own
   `barbarian/rage-power`, held directly by the skald's rows (as the Primalist's and a rogue-talent borrower's are), at
   its table's levels 3, 6, 9, 12, 15 and 18 and at each archetype's own: the Battle Singer 6, 12, 18; the Court Poet

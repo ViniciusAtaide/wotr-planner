@@ -691,3 +691,64 @@ fn a_scoundrel_with_bard_levels_may_take_them_through_the_bards_slots() {
     // Character level 4 is the bard's level 2: its Rogue Talent slot.
     assert!(open_at(&build, 4, &rogue_talent(UNCANNY_DODGE)));
 }
+
+/// Every option condition a prerequisite names, however deep in its `All`, `Any` and `AtLeast`.
+fn named_options(prerequisite: &Prerequisite, found: &mut BTreeSet<String>) {
+    match prerequisite {
+        Prerequisite::All(children) | Prerequisite::Any(children) => {
+            children
+                .iter()
+                .for_each(|child| named_options(child, found));
+        }
+        Prerequisite::SelectionOption(option) => {
+            found.insert(option.to_string());
+        }
+        _ => {}
+    }
+}
+
+/// Extra Rogue Talent's "Prerequisites: Rogue Talents or Fey Tricks" is holding any rogue talent, and the data lists
+/// them (as Extra Rage Power lists the Instinctual Warrior's powers): the Eldritch Scoundrel's two too (ticket 190).
+#[test]
+fn extra_rogue_talent_counts_every_rogue_talent_option() {
+    let feat = DATA
+        .feats
+        .iter()
+        .find(|feat| feat.key.as_str() == "extra-rogue-talent")
+        .unwrap();
+    let mut named = BTreeSet::new();
+    named_options(feat.prerequisite.as_ref().unwrap(), &mut named);
+    assert_eq!(named, keys(any_selection(ROGUE_TALENTS)));
+}
+
+/// An Eldritch Scoundrel whose only talent is Uncanny Dodge meets Extra Rogue Talent's prerequisite, and its extra pick
+/// offers what her talent slots do; so with Improved Uncanny Dodge held too.
+#[test]
+fn a_scoundrel_with_only_uncanny_dodge_may_take_extra_rogue_talent() {
+    let extra = feat_pick_plain("extra-rogue-talent");
+    let first = with_picks(scoundrel(3), &[(2, pick(&rogue_talent(UNCANNY_DODGE)))]);
+    let with_extra = |mut build: Build, level: u8| {
+        build.picks.insert(general_slot(level), extra.clone());
+        build
+    };
+    assert_eq!(
+        feat_status(&first, &general_slot(3), "extra-rogue-talent"),
+        Ok(())
+    );
+    let build = with_extra(first, 3);
+    assert!(possible(&build));
+    assert_eq!(
+        offered_at(&build, &extra_slot(3, 0)),
+        offered_at(&build, &selection_slot(2))
+    );
+
+    let mut both = with_picks(
+        scoundrel(9),
+        &[
+            (2, pick(&rogue_talent(UNCANNY_DODGE))),
+            (8, pick(&rogue_talent(IMPROVED_UNCANNY_DODGE))),
+        ],
+    );
+    both = with_extra(both, 9);
+    assert!(possible(&both));
+}
