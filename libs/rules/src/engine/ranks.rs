@@ -60,12 +60,15 @@ pub struct LaterRankPick {
 }
 
 impl Engine {
-    /// Whether an unmet prerequisite holds a negation: a "not with X" that a held pick breaks, which no pick the
-    /// character lacks would mend. What a reason that says a pick "depends on" another must not claim of those.
+    /// Whether an unmet prerequisite holds a negation: a "not with X" (a `Not`, or a group exclusion such as
+    /// `NoOtherOptionOfGroup` and `NoOptionFrom`) that a held pick breaks, which no pick the character lacks would
+    /// mend. What a reason that says a pick "depends on" another must not claim of those.
     pub fn unmet_negates(unmet: &Unmet) -> bool {
         fn negates(prerequisite: &Prerequisite) -> bool {
             match prerequisite {
                 Prerequisite::Not(held) => !matches!(**held, Prerequisite::Not(_)),
+                // A group exclusion ("no other Draconic option", "no Bloodline yet") is a "not with" too.
+                Prerequisite::NoOtherOptionOfGroup(_) | Prerequisite::NoOptionFrom(_) => true,
                 Prerequisite::All(children)
                 | Prerequisite::Any(children)
                 | Prerequisite::AtLeast(_, children) => children.iter().any(negates),

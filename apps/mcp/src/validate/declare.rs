@@ -279,6 +279,11 @@ impl Declared {
             (Address::RankLevel(rank), ChoiceValue::Number(level)) => {
                 self.build.rank_levels.insert(*rank, *level);
             }
+            // A level written as text ("13") is that level, as `choose` reads it.
+            (Address::RankLevel(rank), ChoiceValue::Key(key)) if key.trim().parse::<u8>().is_ok() => {
+                let level = key.trim().parse::<u8>().unwrap_or_default();
+                self.build.rank_levels.insert(*rank, level);
+            }
             (Address::Slot(slot), ChoiceValue::Key(_) | ChoiceValue::Parameterised { .. }) => {
                 gathered.picks.push((slot.clone(), value));
             }

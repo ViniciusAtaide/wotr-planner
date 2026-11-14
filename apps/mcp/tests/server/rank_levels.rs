@@ -824,3 +824,23 @@ async fn choose_reads_a_level_given_as_a_string() {
             .1
     );
 }
+
+#[tokio::test]
+async fn validate_reads_a_level_given_as_text_as_choose_does() {
+    // Ticket 192 review: `"13"` is level 13 in `choose` and in `validate`, which take the same values.
+    let number = ok("validate", declared(&[("mythic.4.level", json!(13))])).await;
+    let written = ok("validate", declared(&[("mythic.4.level", json!("13"))])).await;
+    assert_eq!(number["status"], "valid", "{number}");
+    assert_eq!(written["build"], number["build"], "{written}");
+    // A level that isn't one is refused as the number is, not as "takes a number".
+    let early = ok("validate", declared(&[("mythic.4.level", json!("10"))])).await;
+    let reason = text(&at(&early["failures"], "mythic.4.level")["reason"]);
+    assert!(
+        reason.contains("comes at level 11 at the earliest"),
+        "{reason}"
+    );
+    // Text that is no number keeps its refusal.
+    let word = ok("validate", declared(&[("mythic.4.level", json!("soon"))])).await;
+    let reason = text(&at(&word["failures"], "mythic.4.level")["reason"]);
+    assert!(reason.contains("takes a number"), "{reason}");
+}

@@ -31,7 +31,8 @@ pub(crate) struct Offer {
     /// The engine's edit that takes it; `None` for a slot's parameterised entry listed without its values, which
     /// needs one of them.
     pub edit: Option<Edit>,
-    /// For an entry listed without its values, the edit of its first value: it stands for them when the entry
+    /// For an entry listed without its values, the edit of the value whose refusal the entry shows
+    /// ([`rules::SlotEntry::shown`]): it stands for them when the entry
     /// breaks a later choice and the reason must name what ([`Breaks::reason`]). No edit is applied from it.
     pub like: Option<Edit>,
     /// For a slot's pick refused because a later rank's pick meets its prerequisite: what the level that would let it
@@ -790,8 +791,8 @@ pub(crate) fn later_rank_clause(
     Some((text, opens))
 }
 
-/// The levels later ranks can be taken at before a slot, for the Build of one call: worked out once for a rank, and
-/// only when a reason that needs them is shown.
+/// The levels later ranks can be taken at before a slot, for one slot of one call (it is keyed by rank alone): worked
+/// out once for a rank, and only when a reason that needs them is shown.
 pub(crate) struct LaterLevels<'a> {
     engine: &'a Engine,
     /// The Build the levels are tried on: a possible one.
