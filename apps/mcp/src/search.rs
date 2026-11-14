@@ -7,6 +7,7 @@ use crate::planner::all_selections;
 use crate::shapes::{Hit, Kind, Matched, SearchResult};
 use crate::similar::{FLOOR, closeness, words};
 use crate::spells::{descriptor_names, list_category, school_name};
+use crate::words::plural;
 
 /// How many matches a search returns when it doesn't say (for a query, and for an empty one listing what the filters
 /// allow), and at most.
@@ -748,12 +749,4 @@ fn same_word(a: &str, b: &str) -> bool {
         plural.strip_suffix('s') == Some(single) || plural.strip_suffix("es") == Some(single)
     };
     a == b || plural_of(a, b) || plural_of(b, a)
-}
-
-/// One word or the other, by a count.
-fn plural(count: usize, one: &'static str, many: &'static str) -> &'static str {
-    match count {
-        1 => one,
-        _ => many,
-    }
 }

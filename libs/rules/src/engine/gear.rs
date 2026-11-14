@@ -331,20 +331,23 @@ impl Engine {
         refused
     }
 
-    /// [`choice_names`](Self::choice_names) of the first `most` choices, then how many more: "A, B and C and 4
-    /// more".
+    /// [`choice_names`](Self::choice_names) of the first `most` choices, then how many more: "A, B, C and 4 more".
+    /// The names are joined by commas alone when more follow, so the list has one "and".
     pub fn choice_names_within(&self, build: &Build, choices: &[Choice], most: usize) -> String {
-        let names = self.choice_names(build, &choices[..choices.len().min(most)]);
-        match choices.len().checked_sub(most) {
-            Some(more) if more > 0 => format!("{names} and {more} more"),
-            _ => names,
-        }
+        let more = choices.len().saturating_sub(most);
+        self.named(build, &choices[..choices.len().min(most)], more)
     }
 
     /// The choices, named as a reason names them, joined: a pick by what it takes ("Greater Two-Weapon Fighting"),
     /// a level's class by its level and class ("Level 3: Wizard"), any other by its label
     /// ([`placed_label`](Self::placed_label)). `build` is the Build that holds them.
     pub fn choice_names(&self, build: &Build, choices: &[Choice]) -> String {
+        self.named(build, choices, 0)
+    }
+
+    /// The names of `choices` joined ("A", "A and B", "A, B and C"), then "and `more` more" when `more` is not 0:
+    /// "A, B, C and 2 more".
+    fn named(&self, build: &Build, choices: &[Choice], more: usize) -> String {
         let names: Vec<String> = choices
             .iter()
             .map(|choice| match choice {
@@ -362,10 +365,11 @@ impl Engine {
                 choice => self.placed_label(&Address::from(choice), None),
             })
             .collect();
-        match names.as_slice() {
-            [] => String::new(),
-            [one] => one.clone(),
-            [rest @ .., last] => format!("{} and {last}", rest.join(", ")),
+        match (names.as_slice(), more) {
+            ([], _) => String::new(),
+            (names, 1..) => format!("{} and {more} more", names.join(", ")),
+            ([one], 0) => one.clone(),
+            ([rest @ .., last], 0) => format!("{} and {last}", rest.join(", ")),
         }
     }
 

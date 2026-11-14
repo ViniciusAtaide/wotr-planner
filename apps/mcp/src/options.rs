@@ -597,7 +597,8 @@ fn no_such_choice(build: &Build, address: &Address) -> ToolError {
     let levels = build.levels.len();
     let reason = match address {
         Address::Class(_) => format!(
-            "The Build has {levels} level(s): `level.N.class` takes N from 1 to {}, the last adding a level.",
+            "The Build has {}: `level.N.class` takes N from 1 to {}, the last adding a level.",
+            crate::words::levels(levels),
             levels + 1
         ),
         Address::Increase(level) if usize::from(*level) <= levels => {
@@ -746,20 +747,30 @@ fn later_rank_level(
 ) -> Option<String> {
     let rank = slot.rank()?;
     let (level, moves) = engine.rank_level_that_opens(build, sheet, slot, pick)?;
-    Some(opens_text(rank, level, &moves))
+    Some(opens_text(rank, level, &moves, Fix::Choose))
 }
 
-/// "MR 10 taken at level 20 opens it: `choose` `mythic.10.level` 20 first", with ", which moves MR 3 to level 13, …"
-/// when the move takes ranks above along.
-pub(crate) fn opens_text(rank: u8, level: u8, moves: &[(u8, u8)]) -> String {
+/// How a reason tells the reader to take a rank at the level that opens a pick, in the tool's own terms: `options` and
+/// `choose` are called in order, `validate` takes a map in which a value is declared.
+#[derive(Clone, Copy, Debug)]
+pub(crate) enum Fix {
+    Choose,
+    Declare,
+}
+
+/// "MR 10 taken at level 20 opens it: `choose` `mythic.10.level` 20 first" (`validate`: "…opens it: declare
+/// `mythic.10.level` 20"), with ", which moves MR 3 to level 13, …" when the move takes ranks above along.
+pub(crate) fn opens_text(rank: u8, level: u8, moves: &[(u8, u8)], fix: Fix) -> String {
     let along = match moves.is_empty() {
         true => String::new(),
         false => format!(", which moves {}", Engine::moves_text(moves)),
     };
-    format!(
-        "MR {rank} taken at level {level} opens it{along}: `choose` `{}` {level} first",
-        Address::RankLevel(rank)
-    )
+    let address = Address::RankLevel(rank);
+    let then = match fix {
+        Fix::Choose => format!("`choose` `{address}` {level} first"),
+        Fix::Declare => format!("declare `{address}` {level}"),
+    };
+    format!("MR {rank} taken at level {level} opens it{along}: {then}")
 }
 
 /// What a pick refused because a later rank's pick meets its prerequisite needs to say which level would let it in.
@@ -811,7 +822,7 @@ impl<'a> LaterLevels<'a> {
 
     /// ". MR 4 taken at level 12 opens it: `choose` `mythic.4.level` 12 first", or nothing when no level before the
     /// slot lets the pick in.
-    pub(crate) fn tail(&self, opens: &Opens) -> Option<String> {
+    pub(crate) fn tail(&self, opens: &Opens, fix: Fix) -> Option<String> {
         let rank = opens.later.rank;
         let mut levels = self.levels.borrow_mut();
         let levels = levels
@@ -820,7 +831,7 @@ impl<'a> LaterLevels<'a> {
         let (level, moves) = self
             .engine
             .level_that_lets_in(levels, &opens.slot, &opens.pick)?;
-        Some(format!(". {}", opens_text(rank, level, &moves)))
+        Some(format!(". {}", opens_text(rank, level, &moves, fix)))
     }
 }
 
@@ -976,7 +987,10 @@ pub(crate) fn options(planner: &Planner, args: OptionsArgs) -> Result<OptionsRes
                             .unwrap_or_else(|| issue_reason(engine, issue))
                         });
                         // The level of a later rank that would let a pick in, only for the lines shown.
-                        let tail = offer.opens.as_ref().and_then(|opens| later.tail(opens));
+                        let tail = offer
+                            .opens
+                            .as_ref()
+                            .and_then(|opens| later.tail(opens, Fix::Choose));
                         format!("{reason}{}", tail.unwrap_or_default())
                     },
                 },

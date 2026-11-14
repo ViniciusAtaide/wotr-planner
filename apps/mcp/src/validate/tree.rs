@@ -8,7 +8,7 @@
 use std::fmt;
 
 use rules::{
-    Ability, Address, ArchetypeKey, ClassKey, FeatKey, GameData, Issue, MythicAbilityKey,
+    Ability, Address, ArchetypeKey, ClassKey, Engine, FeatKey, GameData, Issue, MythicAbilityKey,
     MythicFeatKey, Parameter, Pick, Prerequisite, SelectionOptionKey, Unmet,
 };
 
@@ -79,6 +79,8 @@ pub(super) struct Node {
     /// The failure it can't be reached without, by address: the class of its slot's level, the path choice of its
     /// slot's rank, the mythic pick that gives its slot, the level missing below its own.
     pub(super) under: Option<Address>,
+    /// For an unmet prerequisite, each part not met, in short ([`needs`]).
+    pub(super) needs: Vec<String>,
 }
 
 impl Node {
@@ -92,6 +94,7 @@ impl Node {
             reason,
             gives: Vec::new(),
             under: None,
+            needs: Vec::new(),
         }
     }
 
@@ -104,6 +107,7 @@ impl Node {
             reason,
             gives: Vec::new(),
             under: None,
+            needs: Vec::new(),
         }
     }
 
@@ -258,16 +262,16 @@ fn leaves(unmet: &Unmet) -> Vec<&Prerequisite> {
 
 /// Each part of an unmet "and" on its own, in the engine's words without "Needs ": "Str 13 (have 12)",
 /// "power-attack". An "or" stays one part.
-fn needs(planner: &Planner, unmet: &Unmet) -> Vec<String> {
+pub(super) fn needs(engine: &Engine, unmet: &Unmet) -> Vec<String> {
     let parts: Vec<&Unmet> = match unmet {
         Unmet::All(children) => children.iter().collect(),
-        Unmet::MetLater { unmet, .. } => return needs(planner, unmet),
+        Unmet::MetLater { unmet, .. } => return needs(engine, unmet),
         unmet => vec![unmet],
     };
     parts
         .into_iter()
         .map(|part| {
-            let text = issue_reason(&planner.engine, &Issue::Unmet(part.clone()));
+            let text = issue_reason(engine, &Issue::Unmet(part.clone()));
             text.strip_prefix("Needs ")
                 .map(str::to_owned)
                 .unwrap_or(text)
@@ -303,11 +307,7 @@ pub(super) fn tree(planner: &Planner, nodes: Vec<Node>) -> Vec<FailureLine> {
                 choice: node.at.to_string(),
                 label: node.label,
                 issue: node.why.code().to_owned(),
-                needs: node
-                    .why
-                    .unmet()
-                    .map(|unmet| needs(planner, unmet))
-                    .unwrap_or_default(),
+                needs: node.needs,
                 reason: node.reason,
                 also_needs,
                 children: Vec::new(),

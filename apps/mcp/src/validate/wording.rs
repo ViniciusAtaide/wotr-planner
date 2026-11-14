@@ -9,8 +9,8 @@ use rules::{
 };
 
 use super::closest;
-use super::tree::{At, Given, Node, Why, pick_gives};
-use crate::options::issue_reason;
+use super::tree::{At, Given, Node, Why, needs, pick_gives};
+use crate::options::{Fix, LaterLevels, issue_reason};
 use crate::planner::{Planner, all_selections};
 use crate::unreached::Unreached;
 
@@ -41,6 +41,10 @@ impl Wording<'_> {
             label: self.label(&address),
             reason: self.reason(choice, issue),
             gives: self.gives(choice),
+            needs: match self.trimmed(choice, issue) {
+                Issue::Unmet(unmet) => needs(self.engine(), &unmet),
+                _ => Vec::new(),
+            },
             under: match issue {
                 Issue::NotReached => self.reached_through(choice),
                 _ => None,
@@ -131,6 +135,22 @@ impl Wording<'_> {
         }
     }
 
+    /// The issue as the picker words it: of an "or", only the alternatives the character's classes give (ticket 189's
+    /// "Barbarian level 8 or Skald level 8" reads "Barbarian level 8 (have 4)" for a barbarian), by the state at the
+    /// slot's level. The reason and `needs` both read it; the tree is placed by the issue as it is.
+    fn trimmed(&self, choice: &Choice, issue: &Issue) -> Issue {
+        let Choice::Slot(slot) = choice else {
+            return issue.clone();
+        };
+        let level = slot
+            .level()
+            .or_else(|| self.engine().rank_level(self.build, slot.rank()?));
+        match level.and_then(|level| self.sheet.at(level)) {
+            Some(state) => self.engine().reason_for(issue.clone(), state),
+            None => issue.clone(),
+        }
+    }
+
     /// A prerequisite unmet: the engine's text, and when a pick of a Mythic rank taken at a later level is what the
     /// pick needs, where that pick is and which level of the rank would let it in (ticket 192, as `options` says it).
     /// The level is tried on the declared Build without the failing pick, which must then be possible: with another
@@ -140,16 +160,7 @@ impl Wording<'_> {
         let Choice::Slot(slot) = choice else {
             return issue_reason(engine, issue);
         };
-        // As the picker words it: of an "or", only the alternatives the character's classes give (ticket 189's
-        // "Barbarian level 8 or Skald level 8" reads "Barbarian level 8 (have 4)" for a barbarian).
-        let level = slot
-            .level()
-            .or_else(|| engine.rank_level(self.build, slot.rank()?));
-        let trimmed = match level.and_then(|level| self.sheet.at(level)) {
-            Some(state) => engine.reason_for(issue.clone(), state),
-            None => issue.clone(),
-        };
-        let reason = issue_reason(engine, &trimmed);
+        let reason = issue_reason(engine, &self.trimmed(choice, issue));
         let Some(pick) = self.build.picks.get(slot) else {
             return reason;
         };
@@ -170,7 +181,7 @@ impl Wording<'_> {
         if !engine.is_possible(&without) {
             return text;
         }
-        let tail = crate::options::LaterLevels::new(engine, &without).tail(&opens);
+        let tail = LaterLevels::new(engine, &without).tail(&opens, Fix::Declare);
         format!("{text}{}", tail.unwrap_or_default())
     }
 
@@ -443,12 +454,11 @@ impl Wording<'_> {
             Choice::RankLevel { rank } => match engine.rank_table_level(*rank) {
                 Some(earliest) => {
                     // Where the rank comes without this declaration: the table's level, or the rank below's.
-                    let mut without = self.build.clone();
-                    without.rank_levels.remove(rank);
-                    let comes_at = engine.rank_floor(&without, *rank).unwrap_or(earliest);
-                    if let Some(unreached) = Unreached::of(engine, &without, *rank) {
-                        return unreached.reason(*rank, &Unreached::no_level(*rank));
+                    let without = self.without_rank_level(*rank);
+                    if let Some(reason) = self.unreached_rank(&without, *rank) {
+                        return reason;
                     }
+                    let comes_at = engine.rank_floor(&without, *rank).unwrap_or(earliest);
                     let why = if comes_at > earliest {
                         format!(
                             "MR {} is taken at level {comes_at}, and ranks keep their order",
@@ -469,6 +479,20 @@ impl Wording<'_> {
         }
     }
 
+    /// The declared Build without a rank's own level: where the rank comes whatever is declared for it.
+    fn without_rank_level(&self, rank: u8) -> Build {
+        let mut without = self.build.clone();
+        without.rank_levels.remove(&rank);
+        without
+    }
+
+    /// Why a rank has no level in the Build, told as `options`, `choose` and `withdraw` tell it; `without` is
+    /// [`without_rank_level`](Self::without_rank_level). `None` for a rank the Build reaches.
+    fn unreached_rank(&self, without: &Build, rank: u8) -> Option<String> {
+        Unreached::of(self.engine(), without, rank)
+            .map(|unreached| unreached.reason(rank, &Unreached::no_level(rank)))
+    }
+
     /// A choice the Build doesn't reach, with what it does have there.
     fn not_reached(&self, choice: &Choice) -> String {
         let engine = self.engine();
@@ -478,8 +502,9 @@ impl Wording<'_> {
         let rank_text = |rank: u8, what: &str| match rank_line(rank) {
             Some(line) => format!(
                 "The Build doesn't reach MR {rank}, where {what}: its ascension comes at character level {}, and the \
-                 Build has {levels} level(s).",
-                line.character_level
+                 Build has {}.",
+                line.character_level,
+                crate::words::levels(levels)
             ),
             None => format!("There is no MR {rank}."),
         };
@@ -494,7 +519,8 @@ impl Wording<'_> {
                 if let Some(level) = slot.level() {
                     let Some(row) = sheet.levels.get(usize::from(level) - 1) else {
                         return format!(
-                            "The Build has {levels} level(s), so it doesn't reach level {level}."
+                            "The Build has {}, so it doesn't reach level {level}.",
+                            crate::words::levels(levels)
                         );
                     };
                     return format!(
@@ -526,16 +552,21 @@ impl Wording<'_> {
                 "Level {level} is past the level cap of {} (40 after a Legend Path switch).",
                 sheet.level_cap
             ),
-            Choice::RankLevel { rank } => match self.build.rank_levels.get(rank) {
-                Some(level) if usize::from(*level) > levels => format!(
-                    "MR {rank} can't be taken at level {level}: the Build has {levels} level(s), and a rank is taken \
-                     at a level the Build has."
-                ),
-                Some(_) if engine.rank_table_level(*rank).is_some() => format!(
-                    "MR {rank} never comes: the Path switch ends the ascensions before it, so it has no level."
-                ),
-                _ => format!("There is no MR {rank}: the Mythic ranks are 1 to 10."),
-            },
+            // A rank the Build doesn't reach is worded as in every tool, whatever level is declared for it.
+            Choice::RankLevel { rank } => {
+                let without = self.without_rank_level(*rank);
+                if let Some(reason) = self.unreached_rank(&without, *rank) {
+                    return reason;
+                }
+                match self.build.rank_levels.get(rank) {
+                    Some(level) => format!(
+                        "MR {rank} can't be taken at level {level}: the Build has {}, and a rank is taken at a level \
+                         the Build has.",
+                        crate::words::levels(levels)
+                    ),
+                    None => issue_reason(engine, &Issue::NotReached),
+                }
+            }
             _ => issue_reason(engine, &Issue::NotReached),
         }
     }
