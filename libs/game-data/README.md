@@ -95,7 +95,7 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   with Spell Dance (II) to (IV); the Possessed Oracle's Powerless Prophecy, with Curse 2 to 4; the Purifier's
   Celestial Armor, whose 11th-level gain is the Heavy Armor Proficiency its row grants). Option rows (bloodline, domain, spirit, blessing and school powers) and the base classes' own features
   are not stepped here: an option's rows are shared by selections on other level scales, and the base classes' are
-  ticket 182's open question. An archetype row that carries a step also carries what the base row gives at that
+  ticket 188's (the next bullet). An archetype row that carries a step also carries what the base row gives at that
   level (the Dragonheir Scion's combat feats at 10, 14 and 18, the Flesheater's Tireless Rage at 17, the Overwhelming
   Soul's wild talents at 6, 12 and 18). The bloodrager's Elemental Resistance does not step (the guide: "At 4th
   level, you gain resistance 10 against your bloodline's energy type"). Nothing reads the count of the features
@@ -113,6 +113,31 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   ten grants, read from the guide's table and the overview's 10/-, since the guide has no sentence for it. Its
   rows at 10 and 16 are its own: with none, those levels fall back to the base rows and grant the barbarian's
   Damage Reduction (ticket 193).
+- Ticket 188 (the user, 2026-11-13, took the recommendation on every question): the base classes' stepped features
+  are granted again at each step the guide's sentence names, as the archetypes' were: the barbarian's and the
+  rogue's Danger Sense at 3, 6, 9, 12, 15 and 18; the fighter's Bravery at 2, 6, 10, 14 and 18, Armor Training at 3,
+  7, 11 and 15 and Weapon Training at 5, 9, 13 and 17; the cavalier's Banner at 5, 10, 15 and 20, Tactician at 1, 5,
+  10, 15 and 20 and Challenge at 1, 4, 7, 10, 13, 16 and 19; the paladin's Smite Evil at 1, 4, 7, 10, 13, 16 and 19, and the two features that replace it, the Stonelord's Stonestrike
+  and the Tortured Crusader's All is Darkness, at 1, 5, 10, 15 and 20;
+  the druid's Wild Shape (Wolf) at 4, 6, ..., 18 and each druid archetype's own copy; the Feral Champion's at 7, 11,
+  15 and 19; the warpriest's Channel Energy at 4, 5, 8, 11, 14, 17 and 20 and Fervor at 2, 5, 8, 11, 14, 17 and 20.
+  An archetype that loses a feature has its own rows at the steps it would inherit, carrying what the base row
+  gives there (the Thug's rogue talents and Sneak Attack, the Flesheater's rage power at 12, the Ghost Rider's
+  Supreme Charge at 20, the Cult Leader's Sacred Weapon and Aspect of War); one that keeps it has it on its rows at
+  the steps. A row that would equal the base class's is left out (the check refuses it). The Defender of the Hearth's
+  delayed Weapon Training at 9, where the guide has it take two ranks in the same weapon type, is a row of its own
+  that lists the feature twice (a row's features are a multiset, as the Trickster path's Sneak Attack at rank 3 is), so its grants
+  are 9, 9, 13 and 17. The Titan Fighter still has none (ticket 131). Four are inferences,
+  where the guide gives no levels: the Defender of the Hearth's Weapon Training steps at 13 and 17 with the class's
+  rows (the two ranks at 9 are the guide's); the Standard Bearer's own Banner (granted at 1) at 10, 15 and 20; the Feyspeaker's Wild Shape
+  (Wolf), which comes two levels later, at each even level from 6 to 18; the Shieldbearer's own Channel Energy on the
+  warpriest's steps. Two gaps in the fighter's archetypes are closed with it, since each replaces a stepped base
+  feature and rises itself: the Armiger's Ardent at 2, 6, 10, 14 and 18 and the Aldori Defender's Defensive Parry at
+  3, 7, 11, 15 and 19. Struck, with the reason: the cleric's Channel Energy and the paladin's Lay on Hands and
+  Channel Positive Energy (the guide gives a formula, with no named levels or cap level, the rule tickets 170, 177
+  and 182 used); the ranger's Favored Enemy and Favored Terrain, which the base rows already step. Nothing reads a
+  count of these features above 1 (Advanced Weapon Training, the Wild Shape feats, Selective and Extra Channel and
+  Abundant Smite name them with `count: 1`). Ticket 194 holds the same shape in other classes.
 - The rogue's Finesse Training is a pick, not a label (ticket 172: the user's "make finesse training take a weapon",
   for the Enforcer's "Finesse Training - Light Shield", reversing ticket 54's "choices that gate no pick stay labels"
   for this feature only). The guide (`rogue#finesse-training`): "At 3rd level, a Rogue may select a finessable weapon

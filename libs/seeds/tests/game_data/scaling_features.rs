@@ -2129,3 +2129,353 @@ fn the_invulnerable_rager_has_a_rage_power_at_every_even_level() {
         [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
     );
 }
+
+/// How many slots (feat and selection) each level of `build` offers.
+fn slot_counts(build: &Build) -> Vec<usize> {
+    engine()
+        .evaluate(build)
+        .levels
+        .iter()
+        .map(|level| level.slots.len())
+        .collect()
+}
+
+/// A possible level 20 Build of `archetype` of `class_key`.
+fn archetype_20(class_key: &str, archetype: &str) -> Build {
+    playable(|| archetype_build(class_key, archetype, 20), |build| build)
+        .unwrap_or_else(|| panic!("{archetype}: no possible Build"))
+}
+
+/// Ticket 188: the base classes' stepped features. The barbarian's Danger Sense (the guide: +1 every 3 levels, +6 at
+/// 18) is granted at 3, 6, 9, 12, 15 and 18. The Armored Hulk, the Flesheater and the Invulnerable Rager lose it
+/// (Resilience of Steel, nothing, Extreme Endurance), so none of them holds a step; every archetype that keeps it
+/// gets it on its own rows at the steps (the Beastskin Berserker's 12, the Instinctual Warrior's 6, 12 and 18, the
+/// Mad Dog's and the Pack Rager's 6 and 18).
+#[test]
+fn the_barbarians_danger_sense_steps_every_three_levels() {
+    assert_gains(
+        "barbarian",
+        "barbarian/danger-sense",
+        &|_, build| build,
+        &[3, 6, 9, 12, 15, 18],
+        &[
+            ("barbarian/armored-hulk", Some(&[])),
+            ("barbarian/flesheater", Some(&[])),
+            (INVULNERABLE_RAGER, Some(&[])),
+        ],
+    );
+}
+
+/// Ticket 188: the rogue's Danger Sense (+1 every 3 levels, +6 at 18) at 3, 6, 9, 12, 15 and 18. The Knife Master
+/// (Blade Sense) and the Thug (Brutal Beating) lose it, and the Thug, with no rows at the steps, has rows of its own
+/// that carry the class's rogue talents and Sneak Attack without it.
+#[test]
+fn the_rogues_danger_sense_steps_every_three_levels() {
+    assert_gains(
+        "rogue",
+        "rogue/danger-sense",
+        &|_, build| build,
+        &[3, 6, 9, 12, 15, 18],
+        &[("rogue/knife-master", Some(&[])), ("rogue/thug", Some(&[]))],
+    );
+    // The Thug's rows at the steps keep the class's rogue talents and Sneak Attack.
+    let (thug, rogue) = (archetype_20("rogue", "rogue/thug"), build("rogue", 20));
+    let levels = [6, 9, 12, 15, 18];
+    assert_eq!(
+        counts(&thug, "rogue/sneak-attack", &levels),
+        counts(&rogue, "rogue/sneak-attack", &levels)
+    );
+    assert_eq!(
+        levels_with_slot_of(&thug, "rogue/rogue-talents"),
+        levels_with_slot_of(&rogue, "rogue/rogue-talents")
+    );
+}
+
+/// Ticket 188: the fighter's Bravery (+1 every four levels, +5 at 18), Armor Training (every four levels from 3, to
+/// 15) and Weapon Training (every four levels from 5, to 17). An archetype whose table has no Bravery (the Armiger's
+/// Ardent, the Dragonheir Scion's Fearful Might, the Tower Shield Specialist's Burst Barrier, the Two-Handed
+/// Fighter's Strong Grip), no Armor Training (the Aldori Defender, the Dragonheir Scion, the Mutation Warrior, the
+/// Titan Fighter, the Two-Handed Fighter) or no Weapon Training (the Titan Fighter, ticket 131; the Tower Shield
+/// Specialist; the Two-Handed Fighter) holds none of its steps. The Defender of the Hearth's first Weapon Training
+/// is its delayed one at 9, where the guide has it take two ranks in the same weapon type (two grants, on a row of
+/// its own); it inherits the steps at 13 and 17 (an inference: the guide gives it none).
+#[test]
+fn the_fighters_bravery_armor_training_and_weapon_training_step() {
+    assert_gains(
+        "fighter",
+        "fighter/bravery",
+        &|_, build| build,
+        &[2, 6, 10, 14, 18],
+        &[
+            ("fighter/armiger", Some(&[])),
+            ("fighter/dragonheir-scion", Some(&[])),
+            ("fighter/tower-shield-specialist", Some(&[])),
+            ("fighter/two-handed-fighter", Some(&[])),
+        ],
+    );
+    assert_gains(
+        "fighter",
+        "fighter/armor-training",
+        &|_, build| build,
+        &[3, 7, 11, 15],
+        &[
+            ("fighter/aldori-defender", Some(&[])),
+            ("fighter/dragonheir-scion", Some(&[])),
+            ("fighter/mutation-warrior", Some(&[])),
+            ("fighter/titan-fighter", Some(&[])),
+            ("fighter/two-handed-fighter", Some(&[])),
+        ],
+    );
+    assert_gains(
+        "fighter",
+        "fighter/weapon-training",
+        &|_, build| build,
+        &[5, 9, 13, 17],
+        &[
+            ("fighter/defender-of-the-hearth", Some(&[9, 9, 13, 17])),
+            ("fighter/titan-fighter", Some(&[])),
+            ("fighter/tower-shield-specialist", Some(&[])),
+            ("fighter/two-handed-fighter", Some(&[])),
+        ],
+    );
+}
+
+/// Ticket 188: the two archetype features that replace a stepped base feature and rise themselves (the guide: the
+/// Armiger's Ardent +1 every four levels from 2, +5 at 18; the Aldori Defender's Defensive Parry +1 every four levels
+/// after 3, +5 at 19), on the rows the base features' steps force the two archetypes to have.
+#[test]
+fn the_armigers_ardent_and_the_aldoris_defensive_parry_step() {
+    for (feature, levels) in [
+        ("fighter/armiger/ardent", &[2, 6, 10, 14, 18][..]),
+        (
+            "fighter/aldori-defender/defensive-parry",
+            &[3, 7, 11, 15, 19][..],
+        ),
+    ] {
+        let archetype = feature.rsplit_once('/').unwrap().0;
+        assert_gains(
+            "fighter",
+            feature,
+            &|_, build| build,
+            &[],
+            &[(archetype, Some(levels))],
+        );
+    }
+}
+
+/// Ticket 188: the cavalier's Banner (+1 at 10 and every five levels after, to 20), Tactician (an extra use at 5 and
+/// every five levels after, to 20) and Challenge (an extra use every three levels beyond 1st, to 19). The Disciple of
+/// the Pike and the Ghost Rider lose the Banner (the Standard Bearer's own, below); the Fearsome Leader, the
+/// Gendarme, the Ghost Rider and the Knight of the Wall lose Tactician with all their teamwork abilities. Each
+/// holds none of a step it lost, on rows of its own where it has none, which keep what the class's rows give there
+/// (the Supreme Charge at 20).
+#[test]
+fn the_cavaliers_banner_tactician_and_challenge_step() {
+    assert_gains(
+        "cavalier",
+        "cavalier/banner",
+        &|_, build| build,
+        &[5, 10, 15, 20],
+        &[
+            ("cavalier/disciple-of-the-pike", Some(&[])),
+            ("cavalier/ghost-rider", Some(&[])),
+            ("cavalier/standard-bearer", Some(&[])),
+        ],
+    );
+    assert_gains(
+        "cavalier",
+        "cavalier/tactician",
+        &|_, build| build,
+        &[1, 5, 10, 15, 20],
+        &[
+            ("cavalier/fearsome-leader", Some(&[])),
+            ("cavalier/gendarme", Some(&[])),
+            ("cavalier/ghost-rider", Some(&[])),
+            ("cavalier/knight-of-the-wall", Some(&[])),
+        ],
+    );
+    assert_gains(
+        "cavalier",
+        "cavalier/challenge",
+        &|_, build| build,
+        &[1, 4, 7, 10, 13, 16, 19],
+        &[],
+    );
+    // The rows the archetypes that keep the Supreme Charge take at 20 keep it.
+    for archetype in [
+        "cavalier/fearsome-leader",
+        "cavalier/ghost-rider",
+        "cavalier/knight-of-the-wall",
+    ] {
+        assert!(
+            holds(
+                &at(&archetype_20("cavalier", archetype), 20),
+                "cavalier/supreme-charge"
+            ),
+            "{archetype}"
+        );
+    }
+}
+
+/// The Standard Bearer's own Banner (granted at 1) steps where the class's does after 5: 10, 15 and 20 (an inference,
+/// ticket 188: the guide says only that it has Banner at 1st level).
+#[test]
+fn the_standard_bearers_own_banner_steps_at_10_15_and_20() {
+    assert_gains(
+        "cavalier",
+        "cavalier/standard-bearer/banner-standard-bearer",
+        &|_, build| build,
+        &[],
+        &[("cavalier/standard-bearer", Some(&[1, 10, 15, 20]))],
+    );
+}
+
+/// Ticket 188: the paladin's Smite Evil (the guide: one a day, another at 4 and every three levels after, 7 at 19)
+/// at 1, 4, 7, 10, 13, 16 and 19. The Divine Scion, the Martyr, the Stonelord and the Tortured Crusader have none
+/// (their tables give none), and the Hospitaler has its own, stepped at 1, 7, 13 and 19, so none of the five holds
+/// a step of the class's. The rows they take at the steps keep the class's Channel Positive Energy at 4 (the Divine
+/// Scion, the Martyr).
+#[test]
+fn the_paladins_smite_evil_steps_every_three_levels_after_4() {
+    assert_gains(
+        "paladin",
+        "paladin/smite-evil",
+        &|_, build| build,
+        &[1, 4, 7, 10, 13, 16, 19],
+        &[
+            ("paladin/divine-scion", Some(&[])),
+            ("paladin/hospitaler", Some(&[])),
+            ("paladin/martyr", Some(&[])),
+            ("paladin/stonelord", Some(&[])),
+            ("paladin/tortured-crusader", Some(&[])),
+        ],
+    );
+    for archetype in ["paladin/divine-scion", "paladin/martyr"] {
+        assert!(
+            holds(
+                &at(&archetype_20("paladin", archetype), 4),
+                "paladin/channel-positive-energy"
+            ),
+            "{archetype}"
+        );
+    }
+}
+
+/// Ticket 188: the druid's Wild Shape (Wolf) (the guide: once a day, one more use every two levels above 4th, 8 at
+/// 18) at 4, 6, 8, ..., 18. No archetype holds the class's: the Drovier and the Winter Child have no Wild Shape, and
+/// the five others have a copy of their own, each held at the same levels (the Feyspeaker's at 6, 8, ..., 18: the
+/// guide says only that its Wild Shape comes two levels later, so each even level from 6, an inference).
+#[test]
+fn the_druids_wild_shape_wolf_steps_every_two_levels_and_in_each_archetypes_own_copy() {
+    let class = class("druid");
+    assert_gains(
+        "druid",
+        "druid/wild-shape-wolf",
+        &|_, build| build,
+        &[4, 6, 8, 10, 12, 14, 16, 18],
+        &class
+            .archetypes
+            .iter()
+            .map(|archetype| (archetype.key.as_str(), Some(&[][..])))
+            .collect::<Vec<_>>(),
+    );
+    for (archetype, levels) in [
+        ("blight-druid", &[4, 6, 8, 10, 12, 14, 16, 18][..]),
+        (
+            "defender-of-the-true-world",
+            &[4, 6, 8, 10, 12, 14, 16, 18][..],
+        ),
+        ("elemental-rampager", &[4, 6, 8, 10, 12, 14, 16, 18][..]),
+        ("feyspeaker", &[6, 8, 10, 12, 14, 16, 18][..]),
+        ("primal-druid", &[4, 6, 8, 10, 12, 14, 16, 18][..]),
+    ] {
+        assert_gains(
+            "druid",
+            &format!("druid/{archetype}/wild-shape-wolf"),
+            &|_, build| build,
+            &[],
+            &[(&format!("druid/{archetype}"), Some(levels))],
+        );
+    }
+}
+
+/// Ticket 188: the warpriest's Channel Energy (the guide: 1d6 plus 1d6 per three levels above 2nd, 7d6 at 20) at 4, 5,
+/// 8, 11, 14, 17 and 20, and Fervor (1d6 plus 1d6 per three more levels, 7d6 at 20) at 2, 5, 8, 11, 14, 17 and 20.
+/// Only the Feral Champion keeps the class's Channel Energy: the Champion of the Faith, the Cult Leader, the
+/// Disenchanter, the Mantis Zealot and the Proclaimer replace it, and the Shieldbearer has its own, which takes the
+/// same steps (an inference: its sentence gives none). Every archetype keeps Fervor.
+#[test]
+fn the_warpriests_channel_energy_and_fervor_step() {
+    assert_gains(
+        "warpriest",
+        "warpriest/channel-energy",
+        &|_, build| build,
+        &[4, 5, 8, 11, 14, 17, 20],
+        &[
+            ("warpriest/champion-of-the-faith", Some(&[])),
+            ("warpriest/cult-leader", Some(&[])),
+            ("warpriest/disenchanter", Some(&[])),
+            ("warpriest/mantis-zealot", Some(&[])),
+            ("warpriest/proclaimer", Some(&[])),
+            ("warpriest/shieldbearer", Some(&[])),
+        ],
+    );
+    assert_gains(
+        "warpriest",
+        "warpriest/shieldbearer/channel-energy-shieldbearer",
+        &|_, build| build,
+        &[],
+        &[("warpriest/shieldbearer", Some(&[4, 5, 8, 11, 14, 17, 20]))],
+    );
+    assert_gains(
+        "warpriest",
+        "warpriest/fervor",
+        &|_, build| build,
+        &[2, 5, 8, 11, 14, 17, 20],
+        &[],
+    );
+}
+
+/// Ticket 188: the Feral Champion's Wild Shape (Wolf) (the guide: once a day at 7, one more use every four levels,
+/// 4 at 19) at 7, 11, 15 and 19, on rows that keep the bear form at 11 and the combat feat at 15.
+#[test]
+fn the_feral_champions_wild_shape_wolf_steps_every_four_levels() {
+    assert_gains(
+        "warpriest",
+        "warpriest/feral-champion/wild-shape-wolf",
+        &|_, build| build,
+        &[],
+        &[("warpriest/feral-champion", Some(&[7, 11, 15, 19]))],
+    );
+    let feral = archetype_20("warpriest", "warpriest/feral-champion");
+    assert!(holds(
+        &at(&feral, 11),
+        "warpriest/feral-champion/wild-shape-bear"
+    ));
+    // The row at 15 keeps the class's combat feat slot.
+    assert_eq!(
+        slot_counts(&feral)[14],
+        slot_counts(&build("warpriest", 20))[14]
+    );
+}
+
+/// Ticket 188 (review): the two features that replace the paladin's Smite Evil and rise themselves, each from 1st
+/// level, at 5th and every five levels after, to 20th (the guide: the Stonelord's Stonestrike, +5 at 20; the
+/// Tortured Crusader's All is Darkness, 5 a day at 20). No other archetype or the class holds either. The
+/// Tortured Crusader's Unbroken Paragon at 20 adds three smite uses; it is not modelled.
+#[test]
+fn the_stonelords_stonestrike_and_the_tortured_crusaders_all_is_darkness_step() {
+    for feature in [
+        "paladin/stonelord/stonestrike",
+        "paladin/tortured-crusader/all-is-darkness",
+    ] {
+        let archetype = feature.rsplit_once('/').unwrap().0;
+        assert_gains(
+            "paladin",
+            feature,
+            &|_, build| build,
+            &[],
+            &[(archetype, Some(&[1, 5, 10, 15, 20]))],
+        );
+    }
+}
