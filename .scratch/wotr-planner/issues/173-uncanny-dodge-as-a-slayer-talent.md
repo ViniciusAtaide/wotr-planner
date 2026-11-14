@@ -1,7 +1,7 @@
 # Uncanny Dodge as the Enforcer's level-8 slayer talent
 
 Type: design
-Status: open
+Status: resolved
 Blocked by: 160
 Model: Sonnet to build (one entry in `gold.rs`).
 Map: [WotR Build Planner](../map.md)
@@ -33,6 +33,8 @@ Evidence gathered for the decision:
 - In the data, slayers gain it only through an archetype: the Imitator's Barbarian and Rogue stances, and the Vanguard at 7th (`slayer#uncanny-dodge`, which the guide gives the Vanguard).
 
 The build: the gold test's entry (`gold.rs`, `Why::AgainstTheGuide(173, …)`) stays, and becomes permanent. Its reason names the write-up's mistake and the user's word. `gold/source.txt` keeps the write-up as it was written.
+
+**Built.** In `libs/seeds/tests/game_data/gold.rs` the gold test's `Why::AgainstTheGuide` (whose doc called the question open) became `Why::WriteUpMistaken`, "the write-up is mistaken, decided by the user". The Enforcer's level-8 Uncanny Dodge entry uses it with a reason naming the write-up's mistake and the user's word (2026-11-14). The entry is permanent, `AgainstTheGuide` is gone (no other use), and no data changed. `cargo test -p seeds --test game_data gold` passes; the snapshot check stayed silent and the snapshot files are untouched.
 
 ## Done when
 

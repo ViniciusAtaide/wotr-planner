@@ -1443,9 +1443,10 @@ enum Why {
     /// A map decision that kept the planner from modelling the line, reopened by the user (2026-11-11) as this
     /// ticket.
     Reopened(u16, &'static str),
-    /// The write-up against the guide, whose list the data files (the planner's source of truth) follow; the
-    /// question is open in this design ticket.
-    AgainstTheGuide(u16, &'static str),
+    /// The write-up is mistaken against the guide, whose list the data files (the planner's source of truth)
+    /// follow. The user decided it in this design ticket, so the gap is permanent, the one place the gold standard
+    /// and the guide disagree.
+    WriteUpMistaken(u16, &'static str),
 }
 
 impl fmt::Display for Why {
@@ -1455,10 +1456,10 @@ impl fmt::Display for Why {
             Why::Reopened(ticket, decision) => {
                 write!(f, "a reopened map decision, ticket {ticket}: {decision}")
             }
-            Why::AgainstTheGuide(ticket, conflict) => {
+            Why::WriteUpMistaken(ticket, decision) => {
                 write!(
                     f,
-                    "the write-up against the guide, ticket {ticket}: {conflict}"
+                    "the write-up is mistaken, decided by the user, ticket {ticket}: {decision}"
                 )
             }
         }
@@ -1519,16 +1520,17 @@ const KNOWN_GAPS: &[Gap] = &[
         Covers::NoPlannerItem("Animal Companion (Elk)"),
         Why::Reopened(174, "animal companions"),
     ),
-    // ---- the write-up against the guide ----
+    // ---- the write-up is mistaken (permanent) ----
     gap(
         "enforcer",
         Place::Level(8),
         "Uncanny Dodge",
         Covers::NotGained("Uncanny Dodge"),
-        Why::AgainstTheGuide(
+        Why::WriteUpMistaken(
             173,
             "the write-up takes Uncanny Dodge as a slayer talent; the guide's slayer talents, which the data \
-             follows, have none",
+             follows, have none. The user (2026-11-14): \"Uncanny dodge is only available through the imitator \
+             slayer archetype.\"",
         ),
     ),
 ];
