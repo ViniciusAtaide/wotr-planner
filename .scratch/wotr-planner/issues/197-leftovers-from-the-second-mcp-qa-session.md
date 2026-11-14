@@ -24,6 +24,7 @@ Found by the second MCP QA session (2026-11-14, on `main` at `8a457a0`), after t
 12. **The Dragon Disciple's "no Bloodline yet"** still doesn't say what the alternative is (a character with no bloodline takes one through the class), nor what the character holds. Settled as a dedupe in 192; the session read the ticket as asking for more.
 13. **`search` matches on "of" and "the".** "Defender of the Hearth" returns the archetype, then 87 summary matches.
 14. **`improve` on the slot that holds the Build's Weapon Focus** returns `options: []` with `closed: 895` rather than saying why nothing is ranked.
+15. **An extra-pick feat whose prerequisite is met and whose slot may not come** (from ticket [204](204-data-guardrails-lists-and-archetype-snapshots.md)'s research, 2026-11-14; read from the code, not run). `Engine::extra_pick_selection` (`libs/rules/src/engine/walk/level.rs`) gives a slot of the first selection in `extra_pick_of` the walk had a slot of. A slayer holding a shared rogue talent through `slayer/slayer-talents` meets Extra Rogue Talent's prerequisite, which names `rogue/rogue-talents/*`, but `slayer/slayer-talents` isn't in that feat's `extra_pick_of`, so the feat would give no slot. The same for a Sylvan Trickster holding a witch hex and Extra Hex. Reproduce first; if it holds, either the feat is refused with a reason or the slot comes.
 
 Not problems, checked: "Knowlege (World) III" is the guide's spelling; Favorite Metamagic's parameter is a feat key, which the tool docs' list of parameter kinds leaves out (add it there).
 
