@@ -8,7 +8,7 @@ set -euo pipefail
 # A git transfer that stalls (under 1 kB/s for a minute) fails instead of hanging.
 export GIT_HTTP_LOW_SPEED_LIMIT=1000 GIT_HTTP_LOW_SPEED_TIME=60
 
-root=$(git rev-parse --show-toplevel)
+root=$(git -C "$(dirname "$0")" rev-parse --show-toplevel)
 # shellcheck source=game-sources.pins
 . "$root/scripts/game-sources.pins"
 
@@ -22,8 +22,10 @@ blueprints() {
   local dir="$root/blueprints" file="$root/blueprints/$BLUEPRINTS_ASSET" got
   if is_empty "$dir"; then
     mkdir -p "$dir"
-    local part
+    # The download lands beside the folder and moves in only once its hash matches; a failed or interrupted
+    # download leaves nothing behind.
     part=$(mktemp -d "$root/blueprints.part.XXXXXX")
+    trap 'rm -rf "$part"' EXIT
     echo "blueprints: fetching $BLUEPRINTS_REPO $BLUEPRINTS_RELEASE ($BLUEPRINTS_BYTES bytes)"
     if command -v gh >/dev/null 2>&1; then
       gh release download "$BLUEPRINTS_RELEASE" -R "$BLUEPRINTS_REPO" -p "$BLUEPRINTS_ASSET" -D "$part"
