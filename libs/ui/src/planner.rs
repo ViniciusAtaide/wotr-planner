@@ -6,8 +6,8 @@ use std::sync::Arc;
 
 use leptos::prelude::*;
 use rules::{
-    Build, Choice, Edit, Engine, GearDependent, GearKey, GearPlace, Sheet, SlotId, StaleLink,
-    WeaponKey,
+    Ability, Build, Choice, Edit, Engine, GearDependent, GearKey, GearPlace, GearTarget, Sheet,
+    SlotId, StaleLink, WeaponKey,
 };
 
 use crate::browser::{self, Fragment};
@@ -193,18 +193,36 @@ impl Planner {
         })
     }
 
-    /// Every choice the Build makes only because of its gear, named as a reason names it, with its mark
-    /// (`("Greater Two-Weapon Fighting", "With Belt of Incredible Dexterity +2")`). Tracked.
-    pub fn gear_dependents(&self) -> Vec<(String, String)> {
+    /// The choices the Build makes only because of gear that raises `ability`, grouped by their mark, each group's
+    /// choices named and joined (`("With Belt of Incredible Dexterity +2", "Improved Two-Weapon Fighting and
+    /// Greater Two-Weapon Fighting")`), in the order the Build makes them. A choice counts when an item it needs
+    /// (any of its lists) gives a bonus to `ability`. Tracked.
+    pub fn gear_dependents_raising(&self, ability: Ability) -> Vec<(String, String)> {
         let engine = self.engine();
+        let raises = |item: &GearKey| {
+            (engine.gear_item(item)).is_some_and(|item| {
+                (item.bonuses.iter()).any(|bonus| bonus.target == GearTarget::Ability(ability))
+            })
+        };
         self.gear_dependents.with(|dependents| {
+            let mut groups: Vec<(String, Vec<Choice>)> = Vec::new();
+            for dependent in dependents.iter() {
+                let needs = &dependent.needs;
+                let items = (needs.all_of.iter())
+                    .chain(&needs.one_of)
+                    .chain(&needs.for_example);
+                if !items.into_iter().any(raises) {
+                    continue;
+                }
+                let note = engine.gear_note(needs);
+                match groups.iter_mut().find(|(same, _)| *same == note) {
+                    Some((_, choices)) => choices.push(dependent.choice.clone()),
+                    None => groups.push((note, vec![dependent.choice.clone()])),
+                }
+            }
             self.build.with(|build| {
-                (dependents.iter())
-                    .map(|dependent| {
-                        let name =
-                            engine.choice_names(build, std::slice::from_ref(&dependent.choice));
-                        (name, engine.gear_note(&dependent.needs))
-                    })
+                (groups.into_iter())
+                    .map(|(note, choices)| (note, engine.choice_names(build, &choices)))
                     .collect()
             })
         })

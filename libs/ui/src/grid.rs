@@ -5,7 +5,7 @@
 
 use leptos::prelude::*;
 use rules::{
-    AbilityScores, Build, Choice, Engine, FeatCategory, LevelSheet, Save, Sheet, Slot, SpellSchool,
+    AbilityScores, Build, Choice, Engine, FeatCategory, LevelSheet, Sheet, Slot, SpellSchool,
     SpellTraits, WeaponKey,
 };
 
@@ -315,8 +315,10 @@ pub fn slot_chip(engine: &Engine, slot: &Slot, lost: bool) -> impl IntoView + us
     }
 }
 
-/// Where the Build ends: classes, BAB, saves, ability scores, class skills and the notes the sheet shows. A Build
-/// with no levels has none: the "Choose your first level" button under it is all the empty grid needs.
+/// Where the Build ends: classes, BAB, initiative and the saves, ability scores, the skills and caster numbers gear
+/// changes, class skills and the notes the sheet shows. A number gear changes is marked, and hovering it shows it
+/// without the gear. A Build with no levels has none: the "Choose your first level" button under it is all the
+/// empty grid needs.
 #[component]
 fn Summary(sheet: std::sync::Arc<Sheet>) -> impl IntoView {
     let planner = use_planner();
@@ -330,7 +332,8 @@ fn Summary(sheet: std::sync::Arc<Sheet>) -> impl IntoView {
         .iter()
         .map(|class| format!("{} {}", engine.class_name(&class.class), class.level))
         .collect();
-    // With gear, each score it changes has its naked value beside it, smaller; without gear there's none.
+    // With gear, each score it changes is marked, and hovering it (or focusing it) shows its naked value and the
+    // picks only that gear allows, with their items; without gear there's none.
     let naked = planner.naked.get();
     let naked_scores = (naked.as_ref())
         .and_then(|naked| naked.levels.last())
@@ -343,45 +346,74 @@ fn Summary(sheet: std::sync::Arc<Sheet>) -> impl IntoView {
             let bare = naked_scores
                 .map(|scores| scores.get(ability))
                 .filter(|bare| *bare != score);
+            let text = format!("{} {score}", ability.short_name());
             view! {
                 {(index > 0).then_some(" · ")}
-                {format!("{} {score}", ability.short_name())}
-                {bare.map(|bare| naked_number(bare.to_string()))}
+                {match bare {
+                    Some(bare) => {
+                        geared(text, bare.to_string(), planner.gear_dependents_raising(ability))
+                            .into_any()
+                    }
+                    None => text.into_any(),
+                }}
             }
         })
         .collect_view();
-    // With gear, every other total it changes, with both numbers: none without gear, and nothing when none differs.
-    let gear_totals = naked
-        .as_ref()
-        .and_then(|naked| naked.levels.last())
-        .map(|bare| gear_totals(&engine, last, bare))
-        .filter(|totals| !totals.is_empty())
-        .map(|totals| {
-            let totals = totals
-                .into_iter()
+    let bare = naked.as_ref().and_then(|naked| naked.levels.last());
+    // Initiative and the saves are the totals, each marked when the gear changes it.
+    let totals = engine.totals(last);
+    let naked_totals = bare.map(|bare| engine.totals(bare));
+    let total = |label: &str, total: &dyn Fn(&rules::Totals) -> i16| {
+        let with = total(&totals);
+        let text = format!(" · {label} {with:+}");
+        match naked_totals
+            .as_ref()
+            .map(total)
+            .filter(|naked| *naked != with)
+        {
+            Some(naked) => view! {
+                " · "
+                {geared(format!("{label} {with:+}"), format!("{naked:+}"), Vec::new())}
+            }
+            .into_any(),
+            None => text.into_any(),
+        }
+    };
+    let saves = view! {
+        {total("Init", &|totals| totals.initiative.total)}
+        {total("Fort", &|totals| totals.fortitude.total)}
+        {total("Ref", &|totals| totals.reflex.total)}
+        {total("Will", &|totals| totals.will.total)}
+    };
+    // The skills and the caster numbers the gear changes, a line each: none without gear, and none when nothing
+    // differs.
+    let changed = bare.map(|bare| gear_totals(&engine, last, bare));
+    let line = |label: &'static str, totals: Vec<GearTotal>| {
+        (!totals.is_empty()).then(|| {
+            let totals = (totals.into_iter())
                 .enumerate()
                 .map(|(index, total)| {
                     view! {
                         {(index > 0).then_some(" · ")}
-                        <span class="gear-total">
-                            {format!("{} {}", total.label, total.with)}
-                            {naked_number(total.naked)}
-                        </span>
+                        {geared(format!("{} {}", total.label, total.with), total.naked, Vec::new())}
                     }
                 })
                 .collect_view();
             view! {
-                <p class="summary-numbers gear-totals">
-                    <span class="gear-totals-label">"Totals with gear: "</span>
+                <p class="summary-numbers">
+                    <span class="summary-label">{label}</span>
                     {totals}
                 </p>
             }
-        });
-    let gear_dependents: Vec<String> = planner
-        .gear_dependents()
-        .into_iter()
-        .map(|(name, note)| format!("{name} · {note}"))
-        .collect();
+        })
+    };
+    let (skills, casting) = match changed {
+        Some(changed) => (
+            line("Skills: ", changed.skills),
+            line("Casting: ", changed.casting),
+        ),
+        None => (None, None),
+    };
     let class_skills: Vec<&str> = state
         .class_skills
         .iter()
@@ -436,24 +468,12 @@ fn Summary(sheet: std::sync::Arc<Sheet>) -> impl IntoView {
                     {mythic}
                 </p>
                 <p class="summary-numbers">
-                    {format!(
-                        "BAB +{} · Fort +{} · Ref +{} · Will +{}",
-                        state.bab,
-                        state.fort,
-                        state.reflex,
-                        state.will,
-                    )}
+                    {format!("BAB +{}", state.bab)}
+                    {saves}
                 </p>
                 <p class="summary-numbers">{scores}</p>
-                {gear_totals}
-                {(!gear_dependents.is_empty())
-                    .then(|| {
-                        view! {
-                            <p class="summary-note gear-note">
-                                {format!("Gear-dependent: {}", gear_dependents.join("; "))}
-                            </p>
-                        }
-                    })}
+                {skills}
+                {casting}
                 {(!rank_levels.is_empty())
                     .then(|| {
                         view! {
@@ -556,7 +576,7 @@ fn AttackBlock(sheet: std::sync::Arc<Sheet>) -> impl IntoView {
                 .iter()
                 .map(|item| view! { <li>{*item}</li> })
                 .collect_view();
-            // The same weapon's line without the gear, when it differs.
+            // The same weapon's line without the gear, when it differs, shown on hovering the line.
             let texts = |line: &rules::AttackLine| {
                 (
                     line.attacks_text(),
@@ -568,19 +588,18 @@ fn AttackBlock(sheet: std::sync::Arc<Sheet>) -> impl IntoView {
                 .and_then(|naked| engine.attack_line(&naked.levels.last()?.state, &key))
                 .map(|bare| texts(&bare))
                 .filter(|bare| *bare != texts(&line))
-                .map(|(attacks, damage, critical)| {
-                    view! {
-                        <p class="summary-numbers naked-line">
-                            {naked_number(format!("{attacks} · {damage} · {critical}"))}
-                        </p>
-                    }
-                });
+                .map(|(attacks, damage, critical)| format!("{attacks} · {damage} · {critical}"));
+            let numbers = view! {
+                <strong>{line.attacks_text()}</strong>
+                {format!(" · {} · {}", line.damage_text(), line.critical_text())}
+            };
             Some(view! {
                 <p class="summary-numbers attack-numbers">
-                    <strong>{line.attacks_text()}</strong>
-                    {format!(" · {} · {}", line.damage_text(), line.critical_text())}
+                    {match bare {
+                        Some(bare) => geared(numbers, bare, Vec::new()).into_any(),
+                        None => numbers.into_any(),
+                    }}
                 </p>
-                {bare}
                 {power_attack.map(|text| view! { <p class="summary-note">{text}</p> })}
                 <p class="summary-note">{format!("Counts: BAB; {}", counts.join("; "))}</p>
                 <details class="attack-leaves-out">
@@ -615,12 +634,34 @@ fn AttackBlock(sheet: std::sync::Arc<Sheet>) -> impl IntoView {
     }
 }
 
-/// A naked number beside its number with gear: smaller, labelled "naked" (the number without the Build's gear).
-fn naked_number(text: String) -> impl IntoView {
+/// A number the Build's gear changes: marked, and hovering or focusing it (a tap, on a phone) shows `naked`, the
+/// number without the gear, alone in a tip under it, then each of `dependents`: the picks only that gear allows,
+/// with their items (`(mark, picks)`, from [`Planner::gear_dependents_raising`]). A screen reader reads the tip's
+/// label with it.
+///
+/// [`Planner::gear_dependents_raising`]: crate::planner::Planner::gear_dependents_raising
+fn geared(
+    content: impl IntoView,
+    naked: String,
+    dependents: Vec<(String, String)>,
+) -> impl IntoView {
+    let lines: Vec<String> = (dependents.into_iter())
+        .map(|(note, picks)| format!("{picks} · {note}"))
+        .collect();
+    let label = std::iter::once(format!("without gear {naked}"))
+        .chain(lines.iter().cloned())
+        .collect::<Vec<_>>()
+        .join(". ");
+    let lines = (lines.into_iter())
+        .map(|line| view! { <span class="naked-tip-gear">{line}</span> })
+        .collect_view();
     view! {
-        <span class="naked" title="Without gear">
-            <span class="naked-label">" naked "</span>
-            {text}
+        <span class="geared" tabindex="0">
+            {content}
+            <span class="naked-tip" role="tooltip" aria-label=label>
+                <span class="naked-tip-number">{naked}</span>
+                {lines}
+            </span>
         </span>
     }
 }
@@ -635,13 +676,20 @@ struct GearTotal {
     naked: String,
 }
 
-/// Every total the gear changes at the Build's last level (`level`, and `bare`, the same level of the naked sheet),
-/// in the summary's order: the saves, initiative, each skill, then the caster line's caster level, spell
-/// penetration, concentration and its highest spell level's DC. Only those that differ.
-fn gear_totals(engine: &Engine, level: &LevelSheet, bare: &LevelSheet) -> Vec<GearTotal> {
-    let mut totals = Vec::new();
-    let mut add = |label: &str, with: i16, naked: i16, signed: bool| {
-        if with != naked {
+/// The totals the gear changes at the Build's last level, but initiative and the saves: the skills, and the
+/// caster line's numbers.
+struct GearTotals {
+    skills: Vec<GearTotal>,
+    /// The caster level, spell penetration, concentration and the highest spell level's DC.
+    casting: Vec<GearTotal>,
+}
+
+/// The skills and caster numbers the gear changes at the Build's last level (`level`, and `bare`, the same level of
+/// the naked sheet): each skill, then the caster line's caster level, spell penetration, concentration and its
+/// highest spell level's DC. Only those that differ.
+fn gear_totals(engine: &Engine, level: &LevelSheet, bare: &LevelSheet) -> GearTotals {
+    let changed = |label: &str, with: i16, naked: i16, signed: bool| {
+        (with != naked).then(|| {
             let text = |number: i16| {
                 if signed {
                     format!("{number:+}")
@@ -649,37 +697,26 @@ fn gear_totals(engine: &Engine, level: &LevelSheet, bare: &LevelSheet) -> Vec<Ge
                     number.to_string()
                 }
             };
-            totals.push(GearTotal {
+            GearTotal {
                 label: label.to_owned(),
                 with: text(with),
                 naked: text(naked),
-            });
-        }
+            }
+        })
     };
     let (with, naked) = (engine.totals(level), engine.totals(bare));
-    for (save, label) in [
-        (Save::Fortitude, "Fortitude"),
-        (Save::Reflex, "Reflex"),
-        (Save::Will, "Will"),
-    ] {
-        add(label, with.save(save).total, naked.save(save).total, true);
-    }
-    add(
-        "Initiative",
-        with.initiative.total,
-        naked.initiative.total,
-        true,
-    );
-    for skill in &with.skills {
-        if let Some(bare) = naked.skill(&skill.skill) {
-            add(
+    let skills = (with.skills.iter())
+        .filter_map(|skill| {
+            let bare = naked.skill(&skill.skill)?;
+            changed(
                 engine.skill_name(&skill.skill),
                 skill.total.total,
                 bare.total.total,
                 true,
-            );
-        }
-    }
+            )
+        })
+        .collect();
+    let mut casting = Vec::new();
     // The caster line of a spell of each school: the caster level, spell penetration and concentration are the
     // same for every school, a DC may not be (a bonus to one school's).
     let lines = |level: &LevelSheet| {
@@ -695,24 +732,24 @@ fn gear_totals(engine: &Engine, level: &LevelSheet, bare: &LevelSheet) -> Vec<Ge
     };
     let (with_lines, naked_lines) = (lines(level), lines(bare));
     if let (Some(with_line), Some(naked_line)) = (&with_lines[0], &naked_lines[0]) {
-        add(
+        casting.extend(changed(
             "Caster level",
             i16::from(with_line.caster_level),
             i16::from(naked_line.caster_level),
             false,
-        );
-        add(
+        ));
+        casting.extend(changed(
             "Spell penetration",
             with_line.spell_penetration,
             naked_line.spell_penetration,
             true,
-        );
-        add(
+        ));
+        casting.extend(changed(
             "Concentration",
             with_line.concentration,
             naked_line.concentration,
             true,
-        );
+        ));
         // The highest spell level's DC, once for the schools that change alike: "Spell DC (level 3)" when every
         // school does, else naming them.
         let mut groups: Vec<(DcChange, Vec<&str>)> = Vec::new();
@@ -741,8 +778,8 @@ fn gear_totals(engine: &Engine, level: &LevelSheet, bare: &LevelSheet) -> Vec<Ge
             } else {
                 format!("Spell DC (level {spell_level}, {})", schools.join(", "))
             };
-            add(&label, with_dc, naked_dc, false);
+            casting.extend(changed(&label, with_dc, naked_dc, false));
         }
     }
-    totals
+    GearTotals { skills, casting }
 }

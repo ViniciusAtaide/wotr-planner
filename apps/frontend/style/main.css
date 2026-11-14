@@ -480,28 +480,71 @@ input[type="search"] {
   color: var(--muted);
 }
 
-/* A naked number beside its number with gear: smaller and muted, labelled. */
-.naked {
-  color: var(--muted);
-  font-size: 11.5px;
+/* A number the gear changes: a dotted gear-coloured underline, and on hover or focus (a tap on a phone) a tip under
+   it with the number without the gear, alone. Each is kept whole on a line, so the line breaks only between them. */
+.geared {
+  position: relative;
   white-space: nowrap;
+  text-decoration: underline dotted var(--gear);
+  text-underline-offset: 3px;
+  cursor: help;
 }
 
-.naked-label {
-  letter-spacing: 0.03em;
+/* The attack line is one geared number, in a narrow column: it may wrap. */
+.attack-numbers > .geared {
+  white-space: normal;
 }
 
-.summary-note.gear-note {
+.geared:focus-visible {
+  outline: 1px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.naked-tip {
+  position: absolute;
+  /* Below the number: above it, a tip that wraps would slide under the tabs over the summary. */
+  top: calc(100% + 6px);
+  /* From the number's left edge, so a number that starts a line keeps its tip on screen. */
+  left: 0;
+  z-index: 5;
+  padding: 3px 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--bg);
+  box-shadow: 0 4px 14px rgb(0 0 0 / 0.5);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 400;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+
+/* Under the number, each pick only the gear allows, with its items: one per line, wrapping. */
+.naked-tip-number,
+.naked-tip-gear {
+  display: block;
+}
+
+.naked-tip:has(> .naked-tip-gear) {
+  width: max-content;
+  max-width: min(320px, 80vw);
+  white-space: normal;
+}
+
+.naked-tip-gear {
+  margin-top: 2px;
   color: var(--gear);
 }
 
-/* The totals gear changes: each kept whole on a line, so the line breaks only between them on the cover screen. */
-.gear-totals-label {
-  color: var(--muted);
+.geared:hover > .naked-tip,
+.geared:focus > .naked-tip {
+  opacity: 1;
 }
 
-.gear-total {
-  white-space: nowrap;
+/* "Skills: ", "Casting: ": the label of a line of the numbers gear changes. */
+.summary-label {
+  color: var(--muted);
 }
 
 /* The attack line: a native weapon select (the phone's own picker, thumb-sized) after a sword for its label, then
