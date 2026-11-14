@@ -37,6 +37,22 @@ fn fighter() -> Value {
     })
 }
 
+/// A human fighter 20 with only its classes chosen: every level's slots, skill points and increases are open.
+fn fighter_20() -> Value {
+    let mut build = json!({
+        "start.race": "human",
+        "start.faith": "atheism",
+        "start.alignment": "true-neutral",
+        "start.score.str": 17,
+        "start.score.dex": 13,
+        "start.score.con": 14,
+    });
+    for level in 1..=20 {
+        build[format!("level.{level}.class")] = json!({"class": "fighter"});
+    }
+    build
+}
+
 /// An elf rogue whose Power Attack fails for Strength, with the two feats that need it and a feat the data lacks.
 fn failing_rogue() -> Value {
     json!({
@@ -67,14 +83,49 @@ async fn declared(client: &Client, choices: Value) -> String {
 /// The fixed calls, by name, with each tool, its size budget in characters and its result.
 async fn calls(client: &Client) -> Vec<(&'static str, &'static str, usize, Value)> {
     let fighter = declared(client, fighter()).await;
+    let fighter_20 = declared(client, fighter_20()).await;
     let mut results = Vec::new();
-    // Each budget is about a tenth above the size when it was set (2026-11-14).
+    // Each budget is about a tenth above the size when it was set (2026-11-14; `choose, fighter 20` 266 characters, 4,188 with `todo: true`; a level added to fighter 8 624, a withdraw 404).
     for (name, tool, budget, arguments) in [
         (
             "validate, failing",
             "validate",
             600,
             json!({ "choices": failing_rogue() }),
+        ),
+        (
+            "choose, fighter 20",
+            "choose",
+            300,
+            json!({
+                "build": fighter_20,
+                "steps": [{ "choice": "slot.feat.1.class.0", "value": "power-attack" }],
+            }),
+        ),
+        (
+            "choose, fighter 20 with todo: true",
+            "choose",
+            4_600,
+            json!({
+                "build": fighter_20,
+                "steps": [{ "choice": "slot.feat.1.class.0", "value": "power-attack" }],
+                "todo": true,
+            }),
+        ),
+        (
+            "choose, a level added to fighter 8",
+            "choose",
+            690,
+            json!({
+                "build": fighter,
+                "steps": [{ "choice": "level.9.class", "value": { "class": "fighter" } }],
+            }),
+        ),
+        (
+            "withdraw, fighter 8 pick",
+            "withdraw",
+            445,
+            json!({ "build": fighter, "choice": "slot.feat.8.class.0" }),
         ),
         (
             "sheet, fighter 8",

@@ -12,7 +12,7 @@ You test and report. You edit no file and run no cargo command. Read the `wotr-b
 1. **Is the server current?** It reads the game data once, at startup. Pick one fact from the newest data change and one from the newest code change, and check both through the tools. If the data is older than the tickets under test, stop and say so.
 2. **Each ticket does what it says.** For every ticket named, read its file and `## Answer` in `.scratch/wotr-planner/issues/`, reproduce the original problem's steps, confirm the fix, then push at its edges: one level below, one above, a rank not reached, another class or archetype that must not be offered the thing, the same value through `options`, `choose`, `validate` and `withdraw`.
 3. **A regression sweep.** Build four characters from scratch to level 20 with a Mythic path, each through `search`, `new_build`, `validate` of the whole map, `choose` for what is open, `sheet`: a martial, an arcane caster with a prestige class, a multiclass that borrows selections, and a Legend to level 40 or a Build that moves Mythic ranks later. Along the way use `options` with `only_open: false` and with `values: true`, `withdraw` on a choice something depends on, `compare` of two variants and `improve` by a number.
-4. Done when every ticket has a pass or a fail for each thing checked, and all four Builds end with an empty `todo` or a reason they can't.
+4. Done when every ticket has a pass or a fail for each thing checked, and all four Builds end with `open` 0 (an empty `todo`) or a reason they can't.
 
 ## What to look for
 

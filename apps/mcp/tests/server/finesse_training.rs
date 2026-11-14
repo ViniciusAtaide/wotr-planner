@@ -58,7 +58,7 @@ async fn real_data_finesse_training_lists_the_guides_weapons_and_takes_one() {
     let chosen = client
         .ok(
             "choose",
-            json!({ "build": older, "steps": [{ "choice": AT_3, "value": shield() }] }),
+            json!({ "build": older, "steps": [{ "choice": AT_3, "value": shield() }], "todo": true }),
         )
         .await;
     assert_eq!(chosen["applied"], 1, "{chosen}");

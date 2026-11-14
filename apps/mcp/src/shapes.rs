@@ -3,8 +3,9 @@
 //!
 //! Conventions: field names are `snake_case`; a result is always an object (a list sits in a named field, as
 //! `search`'s `matches`); an optional field that doesn't apply is left out, except `prerequisite`, which is
-//! `null` when there is none (`search`'s `compact` leaves it out); a reference to another item is a [`Named`] `{key, name}`. Every result about a Build
-//! flattens the [`Envelope`] into it (`build`, `link`, `todo`); a choice is named by its address (`rules::Address`) and
+//! `null` when there is none (`search`'s `compact` leaves it out); a reference to another item is a [`Named`] `{key, name}`. A result about a Build
+//! flattens the [`Envelope`] into it (`build`, `link`, `todo`), except `choose` and `withdraw`, which return
+//! `build`, `link` and the changes to `todo` ([`TodoReport`]); a choice is named by its address (`rules::Address`) and
 //! holds a [`ChoiceValue`].
 
 use std::collections::{BTreeMap, BTreeSet};
@@ -426,8 +427,8 @@ pub struct Selection {
 
 // ---- Builds ------------------------------------------------------------------------------------------------------
 
-/// What every tool that takes or makes a Build returns with its result: the Build's code, its link and its open
-/// choices.
+/// What most tools that take or make a Build return with their result: the Build's code, its link and its whole
+/// list of open choices (`choose` and `withdraw` return `build`, `link` and [`TodoReport`] instead).
 #[derive(Debug, Serialize, JsonSchema)]
 pub struct Envelope {
     /// The Build's code: what every Build-taking tool takes as `build`. A new code for every change; keep an old one
@@ -439,6 +440,26 @@ pub struct Envelope {
     /// unspent skill points and empty slots, then the first ascension and path once their ranks are reached and the
     /// ranks' empty slots.
     pub todo: Vec<Todo>,
+}
+
+/// What `choose` and `withdraw` return of `todo`: the changes against the Build they were given, or with `todo: true`
+/// the whole list.
+#[derive(Debug, Serialize, JsonSchema)]
+pub struct TodoReport {
+    /// How many choices are open now: the length of `todo`. Left out with `todo: true`, which returns the list.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub open: Option<u32>,
+    /// The choices the call opened, in the new `todo`'s order: new ones, and ones open before whose label changed
+    /// (skill points part spent), with the new label. Left out when none, and with `todo: true`.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub opened: Vec<Todo>,
+    /// The addresses of the choices the call closed (open in the Build you sent, gone now), in that Build's order.
+    /// Left out when none, and with `todo: true`.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub closed: Vec<String>,
+    /// The whole list of open choices, only with `todo: true`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub todo: Option<Vec<Todo>>,
 }
 
 /// One open choice.
@@ -1009,6 +1030,10 @@ pub struct ChooseArgs {
     /// The choices to make, in order. Each is checked against the Build as the steps before it left it; the first
     /// one refused stops the rest.
     pub steps: Vec<ChooseStep>,
+    /// Return the whole `todo` of the Build made (default false: only what the steps opened and closed against the
+    /// code you sent, `opened`, `closed` and `open`).
+    #[serde(default)]
+    pub todo: Option<bool>,
 }
 
 /// One choice to make.
@@ -1027,9 +1052,13 @@ pub struct ChooseStep {
 /// `choose`'s result.
 #[derive(Debug, Serialize, JsonSchema)]
 pub struct ChooseResult {
-    /// The Build after the steps applied: the input's code when none was.
+    /// The Build's code after the steps applied: the input's code when none was.
+    pub build: String,
+    /// The Build in the planner, for the user.
+    pub link: String,
+    /// What the steps did to `todo`, against the code you sent.
     #[serde(flatten)]
-    pub envelope: Envelope,
+    pub todo: TodoReport,
     /// How many steps were applied, from the first (a step that changes nothing counts).
     pub applied: u32,
     /// The step that was refused, which stopped the rest. Left out when every step was applied.
@@ -1071,11 +1100,16 @@ pub struct LeaningStep {
     pub leaning: Vec<GearDependentLine>,
 }
 
-/// `withdraw`'s result: the envelope, and what the withdrawal left leaning on the gear.
+/// `withdraw`'s result: the Build, what the withdrawal did to `todo`, and what it left leaning on the gear.
 #[derive(Debug, Serialize, JsonSchema)]
 pub struct WithdrawResult {
+    /// The Build's code without the choice.
+    pub build: String,
+    /// The Build in the planner, for the user.
+    pub link: String,
+    /// What the withdrawal did to `todo`, against the code you sent.
     #[serde(flatten)]
-    pub envelope: Envelope,
+    pub todo: TodoReport,
     /// The choices the withdrawal left allowed only because of the Build's gear (an ability increase in Dexterity
     /// withdrawn under a belt), with the items they now need, as `sheet`'s `gear_dependent` lists them. The
     /// withdrawal is made all the same. Left out when there are none.
@@ -1169,6 +1203,10 @@ pub struct WithdrawArgs {
     /// taken later: back to the earliest level it comes at), a gear place (`gear.belt`, …) or a usable item
     /// (`gear.usable.<item key>`).
     pub choice: String,
+    /// Return the whole `todo` of the Build made (default false: only what the withdrawal opened and closed against
+    /// the code you sent, `opened`, `closed` and `open`).
+    #[serde(default)]
+    pub todo: Option<bool>,
 }
 
 // ---- compare -----------------------------------------------------------------------------------------------------

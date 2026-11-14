@@ -60,7 +60,7 @@ async fn real_data_favorite_metamagic_lists_each_metamagic_and_takes_one() {
     let chosen = client
         .ok(
             "choose",
-            json!({ "build": older, "steps": [{ "choice": "slot.mythic.1", "value": persistent() }] }),
+            json!({ "build": older, "steps": [{ "choice": "slot.mythic.1", "value": persistent() }], "todo": true }),
         )
         .await;
     assert_eq!(chosen["applied"], 1, "{chosen}");

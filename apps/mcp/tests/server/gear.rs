@@ -87,7 +87,7 @@ async fn choosing_a_belt_opens_a_locked_feat_with_the_gear_status() {
     let belted = client
         .ok(
             "choose",
-            json!({ "build": code(&fighter()), "steps": [{ "choice": "gear.belt", "value": BELT }] }),
+            json!({ "build": code(&fighter()), "steps": [{ "choice": "gear.belt", "value": BELT }], "todo": true }),
         )
         .await;
     assert_eq!(belted["applied"], 1, "{belted}");

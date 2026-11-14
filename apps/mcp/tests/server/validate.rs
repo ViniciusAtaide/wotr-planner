@@ -350,7 +350,10 @@ async fn a_valid_declared_build_returns_the_code_choose_makes() {
         { "choice": "slot.feat.3.general.0", "value": "combat-expertise" },
     ]);
     let chosen = client
-        .ok("choose", json!({ "build": start["build"], "steps": steps }))
+        .ok(
+            "choose",
+            json!({ "build": start["build"], "steps": steps, "todo": true }),
+        )
         .await;
     assert!(chosen.get("rejected").is_none(), "{chosen}");
     assert_eq!(result["build"], chosen["build"]);
