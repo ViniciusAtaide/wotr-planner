@@ -1,7 +1,7 @@
 # Nothing checks that an archetype row keeps what the base row gives
 
 Type: design
-Status: open
+Status: resolved
 Blocked by: none
 Model: the user decides; then Sonnet to build, Opus to review the lists.
 Map: [WotR Build Planner](../map.md)
@@ -33,3 +33,11 @@ The user has chosen. For A: the test and its lists, each list checked against th
 ## Answer
 
 User, 2026-11-14 ("do every recommendation", to the retrospective's list, which held this ticket's): option A, the generic real-data test with a per-archetype list of what each archetype loses.
+
+Built 2026-11-14.
+
+1. **What was built.** `libs/seeds/tests/game_data/archetype_losses.rs` and `archetype_losses.ron` (the lists, read with `include_str!` and serde, as `gold.rs` reads its files). For every archetype row, the base row's shortfall in features, feat slots and selections (multisets), granted feats and feats-for-a-value (sets), and spell levels set below the base row's must match the archetype's list exactly. A list entry is `(item, at, count, why)`: no `at` means lost at every level where the base row gives it (so a base step added later at a level where the archetype has no row fails the entry); `at` means exactly those levels; `count` is exact (default 1).
+2. **The lists.** 196 archetypes, 961 entries, 79 of them with `at` (76 partial levels and 3 spell-level entries); 2 archetypes (the Crossblooded and the Nine-Tailed Heir sorcerers) lose nothing and are pinned with `loses: []`. The 961 entries stand for 1610 dropped (level, item) pairs. Each archetype has one `why`, each entry with `at` has its own `why`, in our words: a paraphrase of what the guide's table shows at those levels (names of the table's cells at the lost levels). Most archetype `why`s are written from the list itself (the items it gives up) and bear out against the table, which review.txt sets beside every dropped item; those of the Flesheater, Spell Dancer, Bladebound, Sensei, Tactical Leader, Shadowcaster, Scroll Savant, Cruromancer, Spell Master, Titan Fighter and Underground Chemist are written by hand from the guide's sentences. The Titan Fighter's Weapon Training (the user's ticket 131 decision, against its table) and the Underground Chemist's rogue talents (its own Discovery selection carries the picks) are listed with those reasons.
+3. **Decisions** (the main session, 2026-11-14): one `why` per archetype plus one per `at` entry; class skills, save overrides and `skipped_levels` stay with `class_skills.rs`, `archetype_saves.rs` and `scaling_features.rs` (the test's doc comment says so); counts exact; no note file (no data changed); the hand assertions in `scaling_features.rs` stay.
+4. **Tests** (`archetype_losses.rs`): `an_archetype_row_keeps_what_the_base_row_gives_unless_the_list_says_it_is_lost`, `a_listed_loss_the_rows_do_not_make_fails`, `every_archetype_has_one_list_and_every_list_names_an_archetype`, `the_check_names_the_class_the_archetype_the_level_and_the_item` (the check on made-up rows). A failure names the class, the archetype, the level and the item, offers both ways out (carry it on the row, or list it as lost with the guide's reason) and prints the entries to paste.
+5. **Snapshots:** silent; no data or rules changed. **The queue's proof** should show nothing new from this ticket.

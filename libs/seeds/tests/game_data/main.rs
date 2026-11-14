@@ -5,6 +5,7 @@ mod totals;
 
 mod agreement;
 mod alignment;
+mod archetype_losses;
 mod archetype_saves;
 mod backgrounds;
 mod bloodline_ascendance;
