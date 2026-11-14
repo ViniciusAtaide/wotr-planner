@@ -287,3 +287,26 @@ pub fn full_row(sheet: &Value, n: u64) -> Value {
     }
     panic!("no level {n} in {sheet}");
 }
+
+/// The rows of an `options` answer, flattened out of its `groups` in order, each with its group's `category`
+/// put back (left out when the group has none).
+pub fn rows(result: &Value) -> Vec<Value> {
+    result["groups"]
+        .as_array()
+        .unwrap_or_else(|| panic!("{result} has groups"))
+        .iter()
+        .flat_map(|group| {
+            group["options"]
+                .as_array()
+                .unwrap_or_else(|| panic!("{group} has options"))
+                .iter()
+                .map(|row| {
+                    let mut row = row.clone();
+                    if let Some(category) = group.get("category") {
+                        row["category"] = category.clone();
+                    }
+                    row
+                })
+        })
+        .collect()
+}

@@ -127,23 +127,23 @@ async fn real_data_compact_options_leave_out_the_summaries() {
     let arguments = json!({ "build": empty["build"], "choice": "start.race" });
     let full = client.ok("options", arguments.clone()).await;
     assert!(
-        full["options"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|line| line.get("summary").is_some()),
+        rows(&full).iter().any(|line| line.get("summary").is_some()),
         "{full}"
     );
     let mut compact_arguments = arguments;
     compact_arguments["compact"] = json!(true);
     let compact = client.ok("options", compact_arguments).await;
-    let lines = compact["options"].as_array().unwrap();
-    assert_eq!(lines.len(), full["options"].as_array().unwrap().len());
+    let lines = rows(&compact);
+    assert_eq!(lines.len(), rows(&full).len());
     assert!(
         lines.iter().all(|line| line.get("summary").is_none()),
         "{compact}"
     );
-    assert!(lines.iter().all(|line| line["status"] == "ok"), "{compact}");
+    // Every row is open, so none says so.
+    assert!(
+        lines.iter().all(|line| line.get("status").is_none()),
+        "{compact}"
+    );
 }
 
 #[tokio::test]
@@ -152,7 +152,7 @@ async fn options_return_the_envelope_only_when_asked() {
     let empty = client.ok("new_build", json!({})).await;
     let arguments = json!({ "build": empty["build"], "choice": "start.race" });
     let bare = client.ok("options", arguments.clone()).await;
-    assert_eq!(keys(&bare), ["choice", "closed", "options"], "{bare}");
+    assert_eq!(keys(&bare), ["choice", "closed", "groups"], "{bare}");
 
     let mut with = arguments;
     with["envelope"] = json!(true);

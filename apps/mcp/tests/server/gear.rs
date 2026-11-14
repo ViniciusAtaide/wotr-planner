@@ -59,15 +59,13 @@ fn belted_two_weapon_fighter() -> Build {
 }
 
 /// The option of a list with this value.
-fn option<T>(options: &Value, value: T) -> &Value
+fn option<T>(options: &Value, value: T) -> Value
 where
     Value: PartialEq<T>,
     T: std::fmt::Display + Copy,
 {
-    options["options"]
-        .as_array()
-        .expect("options is a list")
-        .iter()
+    rows(options)
+        .into_iter()
         .find(|option| option["value"] == value)
         .unwrap_or_else(|| panic!("no {value} in {options}"))
 }
@@ -249,7 +247,10 @@ async fn a_usable_item_is_used_and_stopped_at_its_own_address() {
         )
         .await;
     assert_eq!(option(&options, "none")["current"], true, "{options}");
-    assert_eq!(option(&options, "manual-of-dexterity-2")["status"], "ok");
+    assert_eq!(
+        option(&options, "manual-of-dexterity-2").get("status"),
+        None
+    );
 
     let used = client
         .ok(
@@ -303,7 +304,7 @@ async fn a_step_that_would_lean_on_the_gear_says_so() {
         }),
         "{options}"
     );
-    assert_eq!(option(&options, 18)["status"], "ok");
+    assert_eq!(option(&options, 18).get("status"), None);
 }
 
 /// A human fighter 4 with this Strength who has a level-4 increase open, using the Tome of Perfection +4 or not.
@@ -667,5 +668,69 @@ async fn a_step_that_leaves_a_pick_leaning_on_the_gear_is_applied_and_says_so() 
             "items": [BELT],
         }]),
         "{withdrawn}"
+    );
+}
+
+#[tokio::test]
+async fn a_gear_place_groups_its_items_by_category_and_none_leads() {
+    let client = Client::start().await;
+    let empty = client.ok("new_build", json!({})).await;
+    let body = client
+        .ok(
+            "options",
+            json!({ "build": empty["build"], "choice": "gear.body" }),
+        )
+        .await;
+    let groups = body["groups"].as_array().unwrap();
+    let categories: Vec<Option<&str>> = groups
+        .iter()
+        .map(|group| {
+            group
+                .get("category")
+                .map(|category| category.as_str().unwrap())
+        })
+        .collect();
+    // None has no category and comes first; each category once, in the order of its first item.
+    assert_eq!(categories, [None, Some("Robe"), Some("Armour")], "{body}");
+    assert_eq!(groups[0]["options"][0]["value"], "none", "{body}");
+    assert_eq!(groups[0]["options"].as_array().unwrap().len(), 1, "{body}");
+    for group in &groups[1..] {
+        assert!(group["options"].as_array().unwrap().len() > 1, "{group}");
+    }
+}
+
+#[tokio::test]
+async fn open_rows_leave_out_status_but_gear_marks_stay() {
+    let client = client().await;
+    let slot = "slot.feat.1.general.0";
+    let belted = client
+        .ok(
+            "choose",
+            json!({ "build": code(&fighter()), "steps": [{ "choice": "gear.belt", "value": BELT }] }),
+        )
+        .await;
+    let ask = |only_open: bool| json!({ "build": belted["build"], "choice": slot, "only_open": only_open });
+    let open = client.ok("options", ask(true)).await;
+    // The belt opens Greater Two-Weapon Fighting: its mark stays; every other open row says nothing.
+    assert_eq!(
+        option(&open, GTWF)["status"],
+        json!({ "with_gear": "With Belt of Dexterity +2" })
+    );
+    let plain = rows(&open)
+        .into_iter()
+        .filter(|row| row["value"] != GTWF)
+        .collect::<Vec<_>>();
+    assert!(!plain.is_empty(), "{open}");
+    assert!(
+        plain.iter().all(|row| row.get("status").is_none()),
+        "{open}"
+    );
+    // Without `only_open`, a plain row says "ok".
+    let all = client.ok("options", ask(false)).await;
+    assert!(
+        rows(&all)
+            .iter()
+            .any(|row| row["value"] != GTWF && row["status"] == "ok"),
+        "{all}"
     );
 }

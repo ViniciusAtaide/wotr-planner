@@ -150,13 +150,10 @@ async fn option_lines_carry_their_summary_when_it_isnt_empty() {
     let fighter = code(&build("human", &["fighter"]));
     let options = |choice: &str, values: bool| json!({ "build": fighter, "choice": choice, "only_open": false, "values": values });
     let line = |list: &Value, value: Value| -> Value {
-        list["options"]
-            .as_array()
-            .unwrap()
-            .iter()
+        rows(list)
+            .into_iter()
             .find(|line| line["value"] == value)
             .unwrap_or_else(|| panic!("no {value} in {list}"))
-            .clone()
     };
 
     let feats = client
