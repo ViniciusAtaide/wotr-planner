@@ -2,7 +2,7 @@
 //! from the engine's output and compared with the snapshot committed beside this file (`snapshots/<name>.txt`).
 //!
 //! The corpus: the bench Builds ([`support::bench`]), the two gold Builds (`gold.rs`, ticket 160), every base class at
-//! level 20 with no picks, and a fighter 20 (Mythic rank 10, or as far as a Legend switch goes) on every mythic path
+//! level 20 with no picks, eight of them again with an archetype ([`ARCHETYPE_BUILDS`]), and a fighter 20 (Mythic rank 10, or as far as a Legend switch goes) on every mythic path
 //! with no picks beyond the path, the last two from the data's own lists. The bench and gold Builds get their sheet;
 //! the pick-less ones their sheet and every slot's open options. Prestige classes have no pick-less Build: their
 //! entry needs feats and skill ranks.
@@ -31,6 +31,21 @@ fn snapshot_dir() -> PathBuf {
 
 // ---- the corpus -----------------------------------------------------------------------------------------------
 
+/// The archetypes with a Build of their own, a pick-less level 20 beside their class's: the archetype of each class that
+/// differs most from it and that the stepping tickets (188 to 193) edited most, which no corpus Build covered (ticket
+/// 204). Each has no condition of its own, so it needs only what its class does. The Stonelord (a dwarf) and the
+/// Defender of the Hearth are left for a later ticket.
+const ARCHETYPE_BUILDS: [(&str, &str); 8] = [
+    ("barbarian", "barbarian/invulnerable-rager"),
+    ("cavalier", "cavalier/standard-bearer"),
+    ("druid", "druid/feyspeaker"),
+    ("fighter", "fighter/two-handed-fighter"),
+    ("paladin", "paladin/hospitaler"),
+    ("rogue", "rogue/eldritch-scoundrel"),
+    ("skald", "skald/battle-scion"),
+    ("warpriest", "warpriest/shieldbearer"),
+];
+
 /// A Build of the corpus, with its snapshot's name and whether the snapshot lists each slot's open options.
 struct Subject {
     name: String,
@@ -38,7 +53,8 @@ struct Subject {
     options: bool,
 }
 
-/// The bench Builds, the gold Builds, then one pick-less Build per class and per mythic path, each asserted
+/// The bench Builds, the gold Builds, then one pick-less Build per class, one per archetype of
+/// [`ARCHETYPE_BUILDS`] and one per mythic path, each asserted
 /// possible: an impossible Build has no options and would snapshot as empty.
 fn corpus() -> Vec<Subject> {
     let mut subjects: Vec<Subject> = support::bench()
@@ -61,6 +77,14 @@ fn corpus() -> Vec<Subject> {
         subjects.push(Subject {
             name: format!("class-{}", class.key),
             build,
+            options: true,
+        });
+    }
+    for (class, archetype) in ARCHETYPE_BUILDS {
+        let slug = archetype.rsplit('/').next().unwrap_or(archetype);
+        subjects.push(Subject {
+            name: format!("class-{class}-{slug}"),
+            build: possible(support::archetype_build(class, archetype, 20)),
             options: true,
         });
     }

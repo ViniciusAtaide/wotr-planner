@@ -52,7 +52,7 @@ Class(
             key: "wizard/school",
             name: "School",
             summary: "Specialise in a school for an extra slot per spell level (for that school) and two opposition schools costing double slots, or stay a Universalist.",
-            guide: "wizard#wizard",
+            guide: "wizard",
             option_levels: ["wizard"],
             options: [
                 (

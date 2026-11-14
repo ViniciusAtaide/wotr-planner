@@ -807,8 +807,12 @@ those stay in the behaviour proof (`scripts/proof.sh`).
 
 - **The corpus:** the six bench Builds (`bench-<name>`, from `tools/proof/bench-links.tsv`), the two gold Builds
   (`gold-jack`, `gold-enforcer`; see "The gold standard" below), one Build per class of
-  `classes/` at level 20 with no picks (`class-<key>`), and one fighter 20 per mythic path with no pick beyond the
-  path (`path-<key>`; a path taken only by a switch is switched to from the first path, in key order, it can be).
+  `classes/` at level 20 with no picks (`class-<key>`), eight of them again taken with an archetype
+  (`class-<class>-<archetype>`, `ARCHETYPE_BUILDS` in the test: the Invulnerable Rager, Standard Bearer, Feyspeaker,
+  Two-Handed Fighter, Hospitaler, Eldritch Scoundrel, Battle Scion and Shieldbearer, ticket 204; each needs only its
+  class's alignment and faith, none has a condition of its own), 52 Builds with them, and one fighter 20 per mythic
+  path with no pick beyond the path (`path-<key>`; a path taken only by a switch is switched to from the first path, in
+  key order, it can be).
   Classes and paths come from the data's own lists, so a new one fails the test until it has a snapshot. A
   pick-less Build that's impossible as it is gets the first alignment (with a faith that fits) that makes it
   possible: the paladin is lawful good. Prestige classes have no pick-less Build (their entry needs feats and
