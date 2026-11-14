@@ -134,6 +134,17 @@ async fn sheet_shows_both_numbers_and_the_dependent_pick() {
     assert_eq!(sheet["levels"][0]["scores"]["dex"], 19);
     assert_eq!(sheet["naked"]["levels"][0]["level"], 1);
     assert_eq!(sheet["naked"]["levels"][0]["scores"]["dex"], 17);
+    // Naked rows stay full (ticket 210 trims only the level rows): every score on every row that has them, and a
+    // line with its weapon and counts.
+    for row in sheet["naked"]["levels"].as_array().unwrap() {
+        if let Some(scores) = row.get("scores") {
+            assert_eq!(scores.as_object().unwrap().len(), 6, "{row}");
+        }
+        if let Some(attack) = row.get("attack") {
+            assert!(attack.get("weapon").is_some(), "{row}");
+            assert!(attack.get("counts").is_some(), "{row}");
+        }
+    }
     assert_eq!(sheet["naked"]["totals"]["reflex"]["total"], 3, "{sheet}");
     assert_eq!(sheet["totals"]["reflex"]["total"], 4, "{sheet}");
 
@@ -149,6 +160,21 @@ async fn sheet_shows_both_numbers_and_the_dependent_pick() {
     );
     let pick = at(&sheet["levels"][0]["picks"], "slot.feat.1.general.0");
     assert_eq!(pick["with_gear"], "With Belt of Dexterity +2");
+}
+
+/// A narrowed sheet (ticket 210) keeps the gear's totals without the naked level rows of the levels not asked for.
+#[tokio::test]
+async fn a_narrowed_sheet_has_no_empty_naked_levels() {
+    let client = client().await;
+    let sheet = client
+        .ok(
+            "sheet",
+            json!({ "build": code(&belted_two_weapon_fighter()), "levels": [] }),
+        )
+        .await;
+    assert!(sheet["levels"].as_array().unwrap().is_empty());
+    assert_eq!(sheet["naked"]["totals"]["reflex"]["total"], 3, "{sheet}");
+    assert!(sheet["naked"].get("levels").is_none(), "{sheet}");
 }
 
 #[tokio::test]

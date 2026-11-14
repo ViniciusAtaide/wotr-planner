@@ -1,5 +1,6 @@
-//! Why a Mythic rank has no level in a Build, said once for `options`, `choose`, `validate` and `withdraw`: there is
-//! no such rank, the Build has too few levels to reach it, or a Legend Path switch ended the ascensions before it.
+//! Why a Mythic rank has no level in a Build, said once for `options`, `choose`, `validate`, `withdraw` and `sheet`
+//! (a `ranks` entry that is no rank): there is no such rank, the Build has too few levels to reach it, or a Legend
+//! Path switch ended the ascensions before it. And why a character level isn't in a Build ([`no_such_level`]).
 
 use rules::{Build, Engine};
 
@@ -53,5 +54,17 @@ impl Unreached {
     /// The consequence for a rank's level address (`options`, `choose`, `validate`).
     pub(crate) fn no_level(rank: u8) -> String {
         format!("`mythic.{rank}.level` has no level to take it at")
+    }
+}
+
+/// Why a Build has no character level `level`: "The Build has 13 levels, so it doesn't reach level 14."; for level 0,
+/// "There is no level 0: levels start at 1."
+pub(crate) fn no_such_level(level: u8, levels: usize) -> String {
+    match level {
+        0 => "There is no level 0: levels start at 1.".to_owned(),
+        _ => format!(
+            "The Build has {}, so it doesn't reach level {level}.",
+            crate::words::levels(levels)
+        ),
     }
 }

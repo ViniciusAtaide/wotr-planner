@@ -7,7 +7,7 @@ use schemars::JsonSchema;
 use serde::Serialize;
 
 use crate::error::ToolError;
-use crate::shapes::Named;
+use crate::shapes::{Named, if_changed, if_list_changed};
 
 /// One base weapon's full attack at a level, from the planner's engine: unconditional numbers only.
 #[derive(Clone, Debug, Serialize, JsonSchema)]
@@ -34,11 +34,50 @@ pub struct PowerAttackShape {
     pub damage_bonus: i16,
 }
 
-#[derive(Clone, Debug, Serialize, JsonSchema)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, JsonSchema)]
 pub struct AttackPartShape {
     pub name: String,
     pub attack: i16,
     pub damage: i16,
+}
+
+/// An attack line as a level row of a full `sheet` gives it: `attacks`, `damage` and `power_attack` on every row, the
+/// rest left out when the same as on the nearest earlier row that has an attack line.
+#[derive(Clone, Debug, Serialize, JsonSchema)]
+pub struct AttackRow {
+    /// The weapon; left out when the same as before.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub weapon: Option<Named>,
+    /// The attack bonus of each attack of a full attack, from the first at the full BAB.
+    pub attacks: Vec<i16>,
+    /// A hit's damage: the weapon's dice and the bonus ("1d8+4").
+    pub damage: String,
+    /// The threat range and multiplier ("19–20/×2"); left out when the same as before.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub critical: Option<String>,
+    /// Power Attack's trade, when the character has it and the weapon is a melee weapon: a penalty to every attack
+    /// for a bonus to each hit's damage. The `attacks` and `damage` above don't take it. Absent: none.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub power_attack: Option<PowerAttackShape>,
+    /// What the numbers count besides the BAB (the ability modifiers, then each feat held for the weapon, with what
+    /// each adds to attack and to damage); left out when the same as before, and when empty.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub counts: Option<Vec<AttackPartShape>>,
+}
+
+impl AttackRow {
+    /// The row for `line`, leaving out what equals the same field of `before` (the nearest earlier line with an
+    /// attack line); all of it with none.
+    pub(crate) fn new(line: &AttackLineShape, before: Option<&AttackLineShape>) -> Self {
+        Self {
+            weapon: if_changed(&line.weapon, before.map(|before| &before.weapon)),
+            attacks: line.attacks.clone(),
+            damage: line.damage.clone(),
+            critical: if_changed(&line.critical, before.map(|before| &before.critical)),
+            power_attack: line.power_attack.clone(),
+            counts: if_list_changed(&line.counts, before.map(|before| &before.counts)),
+        }
+    }
 }
 
 /// The weapon a `weapon` argument names: `None` without one, refused when the data has no line for it.

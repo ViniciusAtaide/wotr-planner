@@ -252,10 +252,17 @@ fn summary(
         })
     };
     BuildSummary {
-        build: line.envelope.build.clone(),
-        link: line.envelope.link.clone(),
+        build: line.build.clone(),
+        link: line.link.clone(),
         name: line.name.clone(),
-        open_choices: u32::try_from(line.envelope.todo.len()).unwrap_or(u32::MAX),
+        open_choices: {
+            // `sheet_of` always gives the whole list; only the `sheet` tool leaves it out.
+            let todo = line
+                .todo
+                .as_ref()
+                .expect("`sheet_of` gives the whole `todo`");
+            u32::try_from(todo.len()).unwrap_or(u32::MAX)
+        },
         character_level: last.character_level,
         classes: last
             .classes

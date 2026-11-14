@@ -10,7 +10,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::error::ToolError;
-use crate::shapes::Named;
+use crate::shapes::{Named, if_changed, if_list_changed};
 
 /// The spells a caster line is for: a school, and optionally a subschool, an energy type and metamagic.
 #[derive(Clone, Debug, Deserialize, JsonSchema)]
@@ -55,16 +55,73 @@ pub struct CasterLineShape {
     pub concentration_counts: Vec<CasterPartShape>,
 }
 
-#[derive(Clone, Debug, Serialize, JsonSchema)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, JsonSchema)]
 pub struct SpellDcShape {
     pub spell_level: u8,
     pub dc: i16,
 }
 
-#[derive(Clone, Debug, Serialize, JsonSchema)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, JsonSchema)]
 pub struct CasterPartShape {
     pub name: String,
     pub value: i16,
+}
+
+/// A caster line as a level row of a full `sheet` gives it: the numbers that move on every row, the rest left out when
+/// the same as on the nearest earlier row that has a caster line.
+#[derive(Clone, Debug, Serialize, JsonSchema)]
+pub struct CasterRow {
+    /// The casting class the line follows; left out when the same as before.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub class: Option<Named>,
+    /// The ability its spells use ("Charisma"); left out when the same as before.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ability: Option<String>,
+    /// Its caster level: class levels plus the prestige levels that advance it.
+    pub caster_level: u8,
+    /// The save DC of a spell of each level castable, from the 1st to the highest: 10 + the spell level + `dc_counts`.
+    pub dcs: Vec<SpellDcShape>,
+    /// With Heighten Spell held: the DC of any of these spells raised to the highest level castable.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub heightened: Option<SpellDcShape>,
+    /// What every DC counts besides 10 and the spell level; left out when the same as before, and when empty.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub dc_counts: Option<Vec<CasterPartShape>>,
+    /// Caster level checks against spell resistance: `caster_level` plus `spell_penetration_counts`.
+    pub spell_penetration: i16,
+    /// Left out when the same as before, and when empty.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub spell_penetration_counts: Option<Vec<CasterPartShape>>,
+    /// The concentration bonus: `caster_level` plus `concentration_counts`.
+    pub concentration: i16,
+    /// Left out when the same as before, and when empty.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub concentration_counts: Option<Vec<CasterPartShape>>,
+}
+
+impl CasterRow {
+    /// The row for `line`, leaving out what equals the same field of `before` (the nearest earlier line with a
+    /// caster line); all of it with none.
+    pub(crate) fn new(line: &CasterLineShape, before: Option<&CasterLineShape>) -> Self {
+        Self {
+            class: if_changed(&line.class, before.map(|before| &before.class)),
+            ability: if_changed(&line.ability, before.map(|before| &before.ability)),
+            caster_level: line.caster_level,
+            dcs: line.dcs.clone(),
+            heightened: line.heightened.clone(),
+            dc_counts: if_list_changed(&line.dc_counts, before.map(|before| &before.dc_counts)),
+            spell_penetration: line.spell_penetration,
+            spell_penetration_counts: if_list_changed(
+                &line.spell_penetration_counts,
+                before.map(|before| &before.spell_penetration_counts),
+            ),
+            concentration: line.concentration,
+            concentration_counts: if_list_changed(
+                &line.concentration_counts,
+                before.map(|before| &before.concentration_counts),
+            ),
+        }
+    }
 }
 
 /// The spell a `caster` argument describes: `None` without one, refused when a value isn't known or the subschool

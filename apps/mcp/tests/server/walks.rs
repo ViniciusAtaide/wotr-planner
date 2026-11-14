@@ -184,7 +184,10 @@ impl Walker<'_> {
             }
             return text(&chosen["build"]);
         }
-        let sheet = self.client.ok("sheet", json!({ "build": code })).await;
+        let sheet = self
+            .client
+            .ok("sheet", json!({ "build": code, "todo": true }))
+            .await;
         let todo = choices(&sheet["todo"]);
         if roll < 40 {
             // Change a held choice: any of the sheet's pick lines, the point buy included.

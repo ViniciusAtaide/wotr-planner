@@ -4,8 +4,9 @@
 //! Conventions: field names are `snake_case`; a result is always an object (a list sits in a named field, as
 //! `search`'s `matches`); an optional field that doesn't apply is left out, except `prerequisite`, which is
 //! `null` when there is none (`search`'s `compact` leaves it out); a reference to another item is a [`Named`] `{key, name}`. A result about a Build
-//! flattens the [`Envelope`] into it (`build`, `link`, `todo`), except `choose` and `withdraw`, which return
-//! `build`, `link` and the changes to `todo` ([`TodoReport`]); a choice is named by its address (`rules::Address`) and
+//! flattens the [`Envelope`] into it (`build`, `link`, `todo`: `new_build`, `validate`, and `options` on request with
+//! `envelope`), except `choose` and `withdraw`, which return `build`, `link` and the changes to `todo`
+//! ([`TodoReport`]), and `sheet`, which gives `build` and `link` and `todo` only on request; a choice is named by its address (`rules::Address`) and
 //! holds a [`ChoiceValue`].
 
 use std::collections::{BTreeMap, BTreeSet};
@@ -507,6 +508,19 @@ pub struct SheetArgs {
     /// "compulsion", "metamagic": true}`), from the planner's engine. Not part of the Build.
     #[serde(default)]
     pub caster: Option<crate::caster::CasterArgs>,
+    /// Only these character levels' rows (1 to the Build's last), each in full: `[9]` is level 9 alone. Sorted and
+    /// once each. Left out: every level, each leaving out what is the same as on the row before. `[]`: no level.
+    /// With `ranks` but no `levels`, no level rows.
+    #[serde(default)]
+    pub levels: Option<Vec<u8>>,
+    /// Only these Mythic ranks' rows (1 to 10; a rank the Build doesn't reach comes back as its `not_reached` row).
+    /// Left out: every rank, or none when `levels` is given. `[]`: no rank.
+    #[serde(default)]
+    pub ranks: Option<Vec<u8>>,
+    /// `true` adds `todo`, the whole list of open choices (`new_build` and `validate` give the whole list; `choose`
+    /// and `withdraw` give what changed in it). Left out: no `todo`.
+    #[serde(default)]
+    pub todo: Option<bool>,
 }
 
 /// A value for a choice, as `options` gives it and `choose` takes it:
@@ -630,7 +644,7 @@ impl ChoiceValue {
 }
 
 /// One choice of a Build and what it holds.
-#[derive(Debug, Serialize, JsonSchema)]
+#[derive(Clone, Debug, Serialize, JsonSchema)]
 pub struct PickLine {
     /// Its address.
     pub choice: String,
@@ -653,11 +667,18 @@ pub struct PickLine {
     pub with_gear: Option<String>,
 }
 
-/// `sheet`'s result.
+/// `sheet`'s result, with each level as `L`: [`LevelLine`] in full (`compare` reads those), [`SheetLevel`] as the tool
+/// gives it.
 #[derive(Debug, Serialize, JsonSchema)]
-pub struct SheetResult {
-    #[serde(flatten)]
-    pub envelope: Envelope,
+pub struct SheetResult<L = LevelLine> {
+    /// The Build's code: what every Build-taking tool takes as `build`.
+    pub build: String,
+    /// The Build in the planner, for the user: `https://viniciusataide.github.io/wotr-planner/#b=<code>`.
+    pub link: String,
+    /// The whole list of choices still open, only with `todo: true` (`new_build` and `validate` give the whole list;
+    /// `choose` and `withdraw` give what changed in it).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub todo: Option<Vec<Todo>>,
     /// The Build's name, when it has one.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
@@ -666,9 +687,10 @@ pub struct SheetResult {
     /// Point-buy points spent, of `point_buy_budget`.
     pub point_buy_spent: i8,
     pub point_buy_budget: u8,
-    /// One per character level.
-    pub levels: Vec<LevelLine>,
-    /// MR 1–10, reached or not.
+    /// One per character level (the levels asked for with `levels`): a full sheet leaves out of a row what is the
+    /// same as on the row before it.
+    pub levels: Vec<L>,
+    /// MR 1–10, reached or not (the ranks asked for with `ranks`).
     pub ranks: Vec<RankLine>,
     /// The character level cap: 20, or 40 after a Legend switch.
     pub level_cap: u8,
@@ -715,6 +737,36 @@ pub struct SheetResult {
     pub naked: Option<NakedNumbers>,
 }
 
+impl<L> SheetResult<L> {
+    /// The same sheet with its levels made into another kind of row.
+    pub(crate) fn map_levels<M>(self, rows: impl FnOnce(Vec<L>) -> Vec<M>) -> SheetResult<M> {
+        SheetResult {
+            build: self.build,
+            link: self.link,
+            todo: self.todo,
+            name: self.name,
+            start: self.start,
+            point_buy_spent: self.point_buy_spent,
+            point_buy_budget: self.point_buy_budget,
+            levels: rows(self.levels),
+            ranks: self.ranks,
+            level_cap: self.level_cap,
+            caster_level: self.caster_level,
+            spell_levels: self.spell_levels,
+            class_skills: self.class_skills,
+            totals: self.totals,
+            totals_leave_out: self.totals_leave_out,
+            notes: self.notes,
+            removable: self.removable,
+            attack_leaves_out: self.attack_leaves_out,
+            caster_leaves_out: self.caster_leaves_out,
+            gear: self.gear,
+            gear_dependent: self.gear_dependent,
+            naked: self.naked,
+        }
+    }
+}
+
 /// An item the Build holds.
 #[derive(Debug, Serialize, JsonSchema)]
 pub struct GearLine {
@@ -759,7 +811,9 @@ pub struct GearDependentLine {
 /// The sheet's numbers without the Build's gear, only where they differ from those with it.
 #[derive(Debug, Serialize, JsonSchema)]
 pub struct NakedNumbers {
-    /// By character level, the levels where any differs.
+    /// By character level, the levels where any differs; left out when none does (and for a narrowed `sheet` call,
+    /// when none of the levels asked for does).
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub levels: Vec<NakedLevel>,
     /// The last level's totals without gear, when any differs.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -812,8 +866,8 @@ pub struct OtherNumbers {
     pub number: Option<i16>,
 }
 
-/// One character level of the sheet.
-#[derive(Debug, Serialize, JsonSchema)]
+/// One character level of the sheet, in full.
+#[derive(Clone, Debug, Serialize, JsonSchema)]
 pub struct LevelLine {
     pub level: u8,
     pub class: Named,
@@ -857,6 +911,127 @@ pub struct LevelLine {
     pub picks: Vec<PickLine>,
 }
 
+/// One character level as `sheet` gives it. Three kinds of field, so a reader never needs a level it wasn't sent:
+/// the numbers that move almost every level, always given; what the level adds, with nothing for none; and what
+/// stays the same most levels, left out when it is the same as on the nearest earlier row that has it. On a full
+/// sheet the first row sent has them all, and so has every row of a `levels` call, but for an empty list or map,
+/// which is left out as saying nothing: absent on the first row, or on a row of a `levels` call, means none.
+#[derive(Debug, Serialize, JsonSchema)]
+pub struct SheetLevel {
+    pub level: u8,
+    /// Left out when the class and the archetype are the same as on the row before; a row that gives `class` has
+    /// its archetype or, with no `archetype`, none.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub class: Option<Named>,
+    /// The class's archetype, if any: given whenever `class` is.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub archetype: Option<Named>,
+    /// The level this Level-up reaches in its class.
+    pub class_level: u8,
+    /// Base attack bonus at the end of the level.
+    pub bab: u8,
+    pub fort: u8,
+    pub reflex: u8,
+    pub will: u8,
+    /// The scores at the end of the level: the point buy, racial and level increases, feature bonuses and the
+    /// Build's gear (`naked` gives them without the gear where it changes them). Left out when none changed since
+    /// the row before; when any did, all six are given. A level's skill points never count gear.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub scores: Option<Scores>,
+    /// Skill points: available at this level and spent by it. Left out when the same as on the row before.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub skill_points: Option<SkillPointsLine>,
+    /// Total ranks by skill key at the end of the level (skills with none left out). Left out when the same as on
+    /// the row before, and when empty.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub skill_ranks: Option<BTreeMap<String, u8>>,
+    /// The feats first held at this level, granted or picked (a parameterised one with its value). Left out for
+    /// none.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub feats: Vec<Named>,
+    /// The features gained at this level; one gained more than once at the level (the Trickster's Sneak Attack at
+    /// MR 3) says `times`. Left out for none.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub features: Vec<Gained>,
+    /// The Mythic ranks reached at this level.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub mythic_ranks: Vec<u8>,
+    /// The attack line at the end of the level, for the `weapon` given or the Build's Weapon Focus weapon.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub attack: Option<crate::attack::AttackRow>,
+    /// With a `caster`: the caster line at the end of the level, once a class casts.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub caster: Option<crate::caster::CasterRow>,
+    /// The level's choices by address: class, ability increase (every 4th level), ranks added, then its slots in the
+    /// order they're checked.
+    pub picks: Vec<PickLine>,
+}
+
+/// `value` when it differs from the same field of the row before (or there is none), else `None`.
+pub(crate) fn if_changed<T: PartialEq + Clone>(now: &T, before: Option<&T>) -> Option<T> {
+    (before != Some(now)).then(|| now.clone())
+}
+
+/// [`if_changed`] for a list or map, where having none is the same as having no row before: an empty one is left out
+/// on the first row. (A list that went from non-empty to empty would also be left out of the row, which reads as
+/// "unchanged": a level's lists only grow, so none does.)
+pub(crate) fn if_list_changed<T: PartialEq + Clone + Default>(
+    now: &T,
+    before: Option<&T>,
+) -> Option<T> {
+    let none = T::default();
+    (before.unwrap_or(&none) != now).then(|| now.clone())
+}
+
+/// The rows of a sheet's levels from its full lines. With `trim`, a field the sheet leaves out when unchanged is
+/// left out where it equals the same field of the nearest earlier row that has it: the line before for every
+/// field but the attack and caster lines' parts, which are read against the nearest earlier line that has an attack
+/// or a caster line. Without it, every row is in full (a `levels` call).
+pub(crate) fn level_rows(lines: Vec<LevelLine>, trim: bool) -> Vec<SheetLevel> {
+    let mut rows = Vec::with_capacity(lines.len());
+    let mut before: Option<&LevelLine> = None;
+    let mut attack: Option<&crate::attack::AttackLineShape> = None;
+    let mut caster: Option<&crate::caster::CasterLineShape> = None;
+    for line in &lines {
+        let (prior, prior_attack, prior_caster) = match trim {
+            true => (before, attack, caster),
+            false => (None, None, None),
+        };
+        let same_class = prior.is_some_and(|prior| {
+            (&prior.class, &prior.archetype) == (&line.class, &line.archetype)
+        });
+        rows.push(SheetLevel {
+            level: line.level,
+            class: (!same_class).then(|| line.class.clone()),
+            archetype: if same_class {
+                None
+            } else {
+                line.archetype.clone()
+            },
+            class_level: line.class_level,
+            bab: line.bab,
+            fort: line.fort,
+            reflex: line.reflex,
+            will: line.will,
+            scores: if_changed(&line.scores, prior.map(|prior| &prior.scores)),
+            skill_points: if_changed(&line.skill_points, prior.map(|prior| &prior.skill_points)),
+            skill_ranks: if_list_changed(&line.skill_ranks, prior.map(|prior| &prior.skill_ranks)),
+            feats: line.feats.clone(),
+            features: line.features.clone(),
+            mythic_ranks: line.mythic_ranks.clone(),
+            attack: (line.attack.as_ref())
+                .map(|line| crate::attack::AttackRow::new(line, prior_attack)),
+            caster: (line.caster.as_ref())
+                .map(|line| crate::caster::CasterRow::new(line, prior_caster)),
+            picks: line.picks.clone(),
+        });
+        before = Some(line);
+        attack = line.attack.as_ref().or(attack);
+        caster = line.caster.as_ref().or(caster);
+    }
+    rows
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, JsonSchema)]
 pub struct Scores {
     pub str: u8,
@@ -867,14 +1042,14 @@ pub struct Scores {
     pub cha: u8,
 }
 
-#[derive(Debug, Serialize, JsonSchema)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, JsonSchema)]
 pub struct SkillPointsLine {
     pub available: u8,
     pub spent: u8,
 }
 
 /// One Mythic rank of the sheet.
-#[derive(Debug, Serialize, JsonSchema)]
+#[derive(Clone, Debug, Serialize, JsonSchema)]
 pub struct RankLine {
     pub rank: u8,
     /// The character level its ascension is taken at: the rank table's level, or a later one the Build places it at

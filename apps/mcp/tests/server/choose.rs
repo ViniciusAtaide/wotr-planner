@@ -19,7 +19,7 @@ async fn choose(build: &Build, steps: Value) -> Value {
 async fn sheet(code: &Value) -> Value {
     Client::on_the_test_world()
         .await
-        .ok("sheet", json!({ "build": code }))
+        .ok("sheet", json!({ "build": code, "todo": true }))
         .await
 }
 
@@ -826,7 +826,7 @@ async fn real_data_a_new_level_returns_the_slots_it_opens_as_opened() {
         )
         .await;
     let sheet = client
-        .ok("sheet", json!({ "build": chosen["build"] }))
+        .ok("sheet", json!({ "build": chosen["build"], "todo": true }))
         .await;
     let whole = labelled(&sheet["todo"]);
     let opened = labelled(&chosen["opened"]);
@@ -970,7 +970,10 @@ async fn real_data_a_level_that_reaches_a_mythic_rank_returns_the_rank_slots_as_
     let validated = client.ok("validate", json!({ "choices": declared })).await;
     let before = labelled(
         &client
-            .ok("sheet", json!({ "build": validated["build"] }))
+            .ok(
+                "sheet",
+                json!({ "build": validated["build"], "todo": true }),
+            )
             .await["todo"],
     );
     assert!(!before.contains_key("slot.mythic.1"));
@@ -984,7 +987,7 @@ async fn real_data_a_level_that_reaches_a_mythic_rank_returns_the_rank_slots_as_
         .await;
     let whole = labelled(
         &client
-            .ok("sheet", json!({ "build": chosen["build"] }))
+            .ok("sheet", json!({ "build": chosen["build"], "todo": true }))
             .await["todo"],
     );
     let opened = labelled(&chosen["opened"]);

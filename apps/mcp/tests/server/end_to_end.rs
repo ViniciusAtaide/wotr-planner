@@ -103,7 +103,7 @@ impl<'a> Agent<'a> {
 
     async fn sheet(&self) -> Value {
         self.client
-            .ok("sheet", json!({ "build": self.build }))
+            .ok("sheet", json!({ "build": self.build, "todo": true }))
             .await
     }
 }
@@ -283,8 +283,11 @@ async fn the_users_prompt_bft_summoner_lich_or_aeon() {
         assert!(spent["applied"].as_u64().unwrap() >= 7, "{spent}");
         agent.build = spent["build"].clone();
     }
-    let sheet = agent.sheet().await;
-    let last = &sheet["levels"][19];
+    let sheet = agent
+        .client
+        .ok("sheet", json!({ "build": agent.build, "levels": [20] }))
+        .await;
+    let last = &sheet["levels"][0];
     assert_eq!(last["class_level"], 20);
     assert_eq!(last["scores"]["int"], 25);
 

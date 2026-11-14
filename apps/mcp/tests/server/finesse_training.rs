@@ -30,7 +30,7 @@ fn shield() -> Value {
 async fn real_data_an_older_rogue_opens_with_its_finesse_training_weapon_in_todo() {
     let client = Client::start().await;
     let sheet = client
-        .ok("sheet", json!({ "build": code(&rogue(3)) }))
+        .ok("sheet", json!({ "build": code(&rogue(3)), "todo": true }))
         .await;
     let open = at(&sheet["todo"], AT_3);
     assert_eq!(open["label"], "Level 3: Finesse Training", "{open}");

@@ -37,6 +37,13 @@ fn fighter() -> Value {
     })
 }
 
+/// The fighter 8 with a belt of incredible Dexterity +2: its `naked` numbers differ.
+fn belted_fighter() -> Value {
+    let mut build = fighter();
+    build["gear.belt"] = json!("belt-of-incredible-dexterity-2");
+    build
+}
+
 /// A human fighter 20 with only its classes chosen: every level's slots, skill points and increases are open.
 fn fighter_20() -> Value {
     let mut build = json!({
@@ -84,8 +91,9 @@ async fn declared(client: &Client, choices: Value) -> String {
 async fn calls(client: &Client) -> Vec<(&'static str, &'static str, usize, Value)> {
     let fighter = declared(client, fighter()).await;
     let fighter_20 = declared(client, fighter_20()).await;
+    let belted = declared(client, belted_fighter()).await;
     let mut results = Vec::new();
-    // Each budget is about a tenth above the size when it was set (2026-11-14; `choose, fighter 20` 266 characters, 4,188 with `todo: true`; a level added to fighter 8 624, a withdraw 404).
+    // Each budget is about a tenth above the size when it was set (2026-11-14; `choose, fighter 20` 266 characters, 4,188 with `todo: true`; a level added to fighter 8 624, a withdraw 404; ticket 210: `sheet, fighter 8` 9,058 characters, `sheet, fighter 20` 10,553, against 12,979 and 18,027 before it).
     for (name, tool, budget, arguments) in [
         (
             "validate, failing",
@@ -130,8 +138,20 @@ async fn calls(client: &Client) -> Vec<(&'static str, &'static str, usize, Value
         (
             "sheet, fighter 8",
             "sheet",
-            14_500,
+            9_950,
             json!({ "build": fighter }),
+        ),
+        (
+            "sheet, fighter 20",
+            "sheet",
+            11_600,
+            json!({ "build": fighter_20 }),
+        ),
+        (
+            "sheet, belted fighter 8, ranks [3]",
+            "sheet",
+            4_800,
+            json!({ "build": belted, "ranks": [3] }),
         ),
         (
             "options, a feat slot",

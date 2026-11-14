@@ -75,3 +75,48 @@ async fn the_instructions_let_an_agent_state_the_totals_and_cite_interactions() 
     assert!(instructions.contains("totals_leave_out"), "{instructions}");
     assert!(instructions.contains("`interactions`"), "{instructions}");
 }
+
+/// A count that is 0 says nothing (ticket 210): a skill with no ranks has no `Ranks 0` part, and a total with no
+/// part left has no `counts` at all.
+#[tokio::test]
+async fn totals_leave_out_the_counts_that_are_zero() {
+    let client = Client::start().await;
+    let sheet = client.ok("sheet", json!({ "build": MAX_DC_RUN })).await;
+    let totals = &sheet["totals"];
+
+    // Mobility has no ranks: no `Ranks` part, but `ranks: 0` stays.
+    let mobility = &totals["skills"]["mobility"];
+    assert_eq!(mobility["ranks"], 0);
+    let counts = mobility["counts"].as_array().unwrap();
+    assert!(
+        counts
+            .iter()
+            .all(|part| part["name"] != "Ranks" && part["value"] != 0),
+        "{mobility}"
+    );
+    // No part of any total is 0, and none says `counts: []`.
+    fn check(total: &rmcp::serde_json::Value, at: &str) {
+        match total.get("counts") {
+            None => {}
+            Some(counts) => {
+                let parts = counts.as_array().unwrap();
+                assert!(!parts.is_empty(), "{at}: empty counts: {total}");
+                assert!(parts.iter().all(|part| part["value"] != 0), "{at}: {total}");
+            }
+        }
+    }
+    for save in ["initiative", "fortitude", "reflex", "will"] {
+        check(&totals[save], save);
+    }
+    for (skill, total) in totals["skills"].as_object().unwrap() {
+        check(total, skill);
+    }
+    // A skill whose total only its ability gives says it once.
+    assert!(
+        totals["skills"]
+            .as_object()
+            .unwrap()
+            .values()
+            .any(|skill| skill.get("counts").is_some())
+    );
+}
