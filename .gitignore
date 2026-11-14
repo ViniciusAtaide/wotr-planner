@@ -1,5 +1,7 @@
 target/
 /guide-cache/
+# The game's decompiled code (xADDBx/WrathDecompiled, patch 2.7.0x), read for facts only: never committed (ticket 234).
+/decompiled/
 .env
 # The game data database of the checkouts from before ticket 187, which may still be lying around.
 /wotr-planner.db*

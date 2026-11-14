@@ -4,7 +4,7 @@ Label: wayfinder:map
 
 ## Destination
 
-A working, locally run Leptos app at `~/code/wotr-planner` for planning Pathfinder: Wrath of the Righteous builds. You build a character level by level, and each level offers only the choices the game would allow at that point: class, archetype, feats, mythic feats, mythic abilities, feature selections and skill ranks. The app ends with a summary up to character level 20, or 40 on the Legend mythic path. Builds live entirely in the URL, which updates as you edit and is what you share. It works well on a phone, specifically the user's Galaxy Z Fold 7: both the folded ~21:9 cover screen and the unfolded ~6:5 inner screen. The source of truth is the [GameFAQs guide](https://gamefaqs.gamespot.com/ps4/324475-pathfinder-wrath-of-the-righteous/faqs/80843/introduction).
+A working, locally run Leptos app at `~/code/wotr-planner` for planning Pathfinder: Wrath of the Righteous builds. You build a character level by level, and each level offers only the choices the game would allow at that point: class, archetype, feats, mythic feats, mythic abilities, feature selections and skill ranks. The app ends with a summary up to character level 20, or 40 on the Legend mythic path. Builds live entirely in the URL, which updates as you edit and is what you share. It works well on a phone, specifically the user's Galaxy Z Fold 7: both the folded ~21:9 cover screen and the unfolded ~6:5 inner screen. The source of truth is the game itself at patch 2.7.0x: its blueprints for data and its decompiled code for how the rules apply them ([ticket 234](issues/234-game-blueprints-as-a-source.md)). The [GameFAQs guide](https://gamefaqs.gamespot.com/ps4/324475-pathfinder-wrath-of-the-righteous/faqs/80843/introduction), the source until 2026-11-14, supplies summaries and the links the planner shows.
 
 ## Notes
 
@@ -16,14 +16,20 @@ A working, locally run Leptos app at `~/code/wotr-planner` for planning Pathfind
 - **Game data:**
   - The source of truth is the checked-in data files (user, 2026-11-03, [ticket 75](issues/75-game-data-master.md)). They were extracted from the guide and are corrected by hand; the extractor was removed once the files held all it knew (tickets 81–82). A data change edits the `.ron` files, adds a note to `libs/game-data/README.md` and adds a real-data test in `libs/seeds/tests/game_data/`.
   - The servers read them at startup (`seeds::check_game_data_files`); there is no seed step since ticket 187. `cargo run -p seeds --bin check-data` checks them on their own.
-  - Store prerequisites, a short summary in our own words and a link to the guide, never the guide's full text.
-  - When the game and the guide disagree, the guide wins.
+  - **The game wins on rules** (user, 2026-11-14, [ticket 234](issues/234-game-blueprints-as-a-source.md), reversing "when the game and the guide disagree, the guide wins": "game wins on rules and guide only wins if it has a more descriptive description but must not contradict"):
+    - **Data** comes from the game's blueprints, the community's extraction BubblePrintsData release `2.7.0x_0`, kept in the git-ignored `blueprints/`.
+    - **How the rules apply** comes from the game's decompiled code, xADDBx/WrathDecompiled at `6ce4a6b` ("2.7.0x"), cloned into the git-ignored `decompiled/`. Both live only in the main checkout; an agent in a worktree reads them there by absolute path.
+    - **The patch is pinned at 2.7.0x**, the game's last update (2025-05-15). It moves only when both sources have caught up with a new one.
+    - **A difference with the guide** is applied by its ticket without asking, every change listed. **A difference with one of the user's facts** goes to the user first.
+    - **Citations.** A fact taken from the game is cited by blueprint name and GUID, a rule by the code's file and method with the WrathDecompiled commit.
+  - **What the repo holds:** facts in our own words, a summary and, where the guide has a section, a link to it (`guide` becomes optional). A blueprint GUID is held per entry, as a citation and the key of the game check. Never the guide's full text, the game's text strings, the blueprint dump or the game's code, not even as a quoted snippet in a ticket. The game's mechanics are Open Game Content under Owlcat's OGL notice, and the published site carries that notice and its Section 15 credit.
+  - **Summaries** come from whichever source says more, the guide or the game, and never contradict the game. A fact the guide gets wrong keeps its guide link, and the data's note records the difference.
   - **Never fetch GameFAQs or the fextralife wiki automatically.** Both robots.txt files disallow ClaudeBot. Agents parse only the pages the user saved to `guide-cache/`, which is git-ignored.
   - Include all DLC content, with no DLC gating. Prestige classes are in scope.
   - Committing extracted facts is OK.
   - **No derived values in the data** (user, 2026-10-31, said of the database). Anything computable from other fields or a simple rule belongs in Rust, not in the files. Examples: a `position` that equals `rank − 1`, or ability/feat counts that follow `rank % 2`.
   - **`GameData::check` is the only data check** (ticket 187): it names every reference to a missing key (since ticket 98; the database's foreign keys of 2026-11-03 were a backstop until 187 removed them) and the rules the schema's constraints held (key format, a pool of itself, Mythic-rank levelling off a path, a repeated ability bonus, empty texts).
-- **Rules followed:** the game's intended, current (patched) behaviour. Known exploits are not modelled.
+- **Rules followed:** the game's behaviour at patch 2.7.0x, as its code applies its data. The game's code is taken to work always (user, 2026-11-14, ticket 234: "assume the game code works always"), so where it does something other than its own text says (the Seven Virtues ring), the behaviour is modelled and the summary says where it differs. Known exploits, a player's tricks, are not modelled.
 - **The build guide is a skill** (user, 2026-11-10): a client cut the MCP server's 9,656-character instructions at about 4,500, so agents never saw the honesty boundary or `validate`. The instructions are now a short pointer, the loop and the honesty boundary in short (under 4,000 characters, a test holds it); the rest lives in the `wotr-build` skill (`.claude/skills/wotr-build/SKILL.md`), which the server also serves as the resource `wotr://build-guide`, embedded at build time, so the skill and the resource are one text. Guidance for agents goes in the skill, not the instructions. `martial.md` beside it holds the damage-per-round worksheet and the martial traps, and `dpr.py` prices a full attack against an AC.
 - **Rules:** the rules live in a plain Rust crate with no DB or Leptos code, running in the browser. The browser loads the game data once, filters choices immediately, and decodes and encodes the Build from the URL.
 - **Mobile:** design mobile-first. The main targets are the Galaxy Z Fold 7 cover screen (folded, tall and narrow, ~21:9) and inner screen (unfolded, nearly square, ~6:5). Desktop is secondary. Both Fold screens must work for touch: no hover-only interactions, and tap targets large enough for a thumb. The layout should adapt when the phone is folded or unfolded without losing the user's place.
@@ -31,12 +37,12 @@ A working, locally run Leptos app at `~/code/wotr-planner` for planning Pathfind
 - **Prerequisites checked:**
   - race, ability scores (point-buy and the +1 every 4 levels)
   - BAB
-  - caster level, only where the guide states it
+  - caster level, where the game has it
   - spell-level access (for example "can cast 3rd-level arcane spells"), which is a different check from caster level
   - skill ranks
   - alignment
   - other feats, class features
-- **Facts confirmed by the user** (not researched):
+- **Facts confirmed by the user** (not researched). Since ticket 234 the game wins over these too, but a difference with one goes to the user before the data changes:
   - Class skills are a nice-to-have, not crucial for planning (2026-11-01): a flat bonus added to a trained skill's total. They never decide which picks are legal, so the sheet shows them and nothing depends on them.
   - Skills questions take the recommended option (2026-11-01): open questions about class skills, skill points, expertise or background skills are decided by the recommendation without asking the user, and recorded as such in the ticket.
   - Skill points, class skills, expertise and backgrounds (2026-11-01): [research/skills-from-user.md](research/skills-from-user.md). Where it disagrees with the guide (Arcane Trickster, Dragon Disciple), the user's table wins.
@@ -44,10 +50,10 @@ A working, locally run Leptos app at `~/code/wotr-planner` for planning Pathfind
   - Characters gain a feat at every odd character level.
   - The Legend path raises the level cap to 40.
 - **Skills to use:**
-  - `tdd` for the rules crate; a game-data change gets a real-data test in `libs/seeds/tests/game_data/`; screens get end-to-end smoke tests only.
+  - `tdd` for the rules crate; a game-data change gets a real-data test in `libs/seeds/tests/game_data/`; screens get end-to-end smoke tests only. A test's expected value comes from the game, cited by blueprint GUID or by the code's file and method, never from the engine's earlier output (ticket 234). The engine's self-checks (picker against walk, the `allows` battery) never outrank the game.
   - `grilling` + `domain-modeling` for design tickets; keep [GLOSSARY.md](../../GLOSSARY.md) current.
 - **Tracker:** local markdown. Tickets are in `issues/`; research write-ups are in `research/`.
-- **Dated rounds of work** are under [History](#history), oldest first: each round's tickets, its queue and what it left open. The open ones as of 2026-11-14: Known gaps (2026-11-10; what waits on the user), the MCP QA session (2026-11-13; 194–197), the UI architecture review (2026-11-14; the Offer queue, 199–202), 208, the third martial run (2026-11-14; 212, 213, 215, 216), and the design tickets decided on 2026-11-14 (173, 212 and the builds of 169 and 174: 144, 217–223; new design tickets 219, 220, 224).
+- **Dated rounds of work** are under [History](#history), oldest first: each round's tickets, its queue and what it left open. The open ones as of 2026-11-14: Known gaps (2026-11-10; what waits on the user), the MCP QA session (2026-11-13; 194–197), the UI architecture review (2026-11-14; the Offer queue, 199–202), 208, the third martial run (2026-11-14; 212, 213, 215, 216), the design tickets decided on 2026-11-14 (173, 212 and the builds of 169 and 174: 144, 217–223; new design tickets 219, 220, 224), and the game as the source of truth (2026-11-14; 234's build, 235–242 and the difference tickets).
 
 ## History
 
@@ -147,6 +153,15 @@ Rounds of work, in the order they were recorded. Each holds its tickets, its que
   - [174](issues/174-animal-companions.md): companions are in, in two stages, [217](issues/217-animal-companions-stage-1.md) then [218](issues/218-animal-companions-stage-2.md). A second source continues the one companion's level, never above 20; rider bonuses count as if always riding. Follow-ups (design): [219](issues/219-mythic-path-companions.md) Aivu, the Skeletal Champion and the companion picks; [220](issues/220-a-companion-big-enough-to-ride.md) a mount's size.
   - [169](issues/169-gear-second-stage.md): the second stage of gear, built in order [221](issues/221-gear-weapons.md) weapons, [222](issues/222-gear-other-items.md) the other items, [144](issues/144-bonus-types-and-stacking.md) stacking (the guide's types; the user's list is no longer owed), [223](issues/223-armour-class.md) armour class. Every conditional bonus counts in a named row beside the headline. Relics and artifacts are [224](issues/224-relics-and-artifacts.md) (design).
   - [178](issues/178-rank-given-slots-keyed-by-their-rank.md): closed; slots keep their place ids and a move that would shift a filled one stays locked.
+- **The game as the source of truth** (2026-11-14). Research for tickets 139, 213, 219 and 222 hit questions the guide doesn't answer, and the game's own data answered them. The user: "wow this sounds much better source of truth than the gamefaqs guide".
+  - **Decided** in a grilling session on [234](issues/234-game-blueprints-as-a-source.md), whose Answer has each decision and the user's words. The game wins on rules: its blueprints (BubblePrintsData `2.7.0x_0`) and its decompiled code (WrathDecompiled `6ce4a6b`), both git-ignored in the repo, pinned at patch 2.7.0x. The guide keeps summaries and links. [146](issues/146-checking-the-data-against-the-guide.md) is superseded.
+  - **The snapshot check and the proof go** (user, against the recommendation: "c", and "remove them now"). Tests take their expected values from the game.
+  - **Built by**, in this order:
+    - [235](issues/235-remove-the-regression-checks.md) first;
+    - [236](issues/236-the-game-sources-in-the-repo.md), then [237](issues/237-a-blueprint-guid-per-entry.md), then [238](issues/238-the-game-check.md);
+    - [242](issues/242-the-tests-expected-values-from-the-game.md) after 235 and 236;
+    - [239](issues/239-the-guide-link-becomes-optional.md), [240](issues/240-agents-read-notes-on-the-game.md) and [241](issues/241-ogl-notice-and-credit.md), which depend on nothing.
+  - **A check of what exists:** an agent re-answered the open numbers from the game and compared the data and the engine with it ([research/game-source-check-2026-11-14.md](research/game-source-check-2026-11-14.md)). Its difference tickets are numbered from 244.
 
 ## Decisions so far
 
@@ -319,10 +334,10 @@ Rounds of work, in the order they were recorded. Each holds its tickets, its que
 - [Gear, second stage](issues/169-gear-second-stage.md): user, 2026-11-14. A held weapon sets the attack line's weapon; generic +1 to +5 weapons and armour; every unique item's always-on bonuses count; conditional bonuses in named rows beside the headline; stacking by the guide's types; armour class; built by 221, 222, 144 and 223; relics and artifacts deferred to 224.
 - [Animal companions](issues/174-animal-companions.md): user, 2026-11-14. The animal and archetype at the granting feature, the companion's level carried on by a second source up to 20, its numbers and attack lines, rider bonuses as if always riding, then its level-up; built by 217 and 218; follow-ups 219 and 220.
 - [Slots a Mythic rank's pick gives stay keyed by their place](issues/178-rank-given-slots-keyed-by-their-rank.md): user, 2026-11-14. Option A: the move that would shift a filled slot stays locked; no link change.
+- [The game's blueprints as a source of truth](issues/234-game-blueprints-as-a-source.md): user, 2026-11-14. The game wins on rules (blueprints for data, decompiled code for how rules apply, patch 2.7.0x); the guide keeps summaries that never contradict the game, and its links; a GUID per entry and a game check replace the snapshot check and the proof; [146](issues/146-checking-the-data-against-the-guide.md) superseded.
 
 ## Not yet specified
 
-- **Checking the data:** how we confirm the extracted data matches the guide, by spot checks or golden builds. The guide's sample-build pages aren't saved (the user dropped them), so golden builds would have to come from elsewhere. That page does hold independent BAB, ability-score and skill-rank prerequisite tables, which would cross-check the extracted feats if it's ever saved. Ticket [146](issues/146-checking-the-data-against-the-guide.md).
 - **End-to-end smoke tests:** tooling and which flows to cover. Ticket [147](issues/147-end-to-end-smoke-tests.md).
 
 ## Out of scope
@@ -330,4 +345,4 @@ Rounds of work, in the order they were recorded. Each holds its tickets, its que
 - Spells known or prepared: not part of the class/feat/mythic summary, and not Build choices. A spell catalogue as reference data is in scope: each spell's school, subschool, save, spell resistance and the lists and levels it's on, with no picks and no change to a Build or its link (user, 2026-11-09, [ticket 121](issues/121-spells-as-game-data.md), option B; built 2026-11-09).
 - Gear beyond its first stage, and companions. Gear is in (user, 2026-11-11, [ticket 163](issues/163-equipment.md), reversing "gear stays out of the Build, its link and every prerequisite" of 2026-10-31 and 2026-11-01): a Build has no gear unless the user asks for it, and the planner never assumes any. What the user states is part of the Build and its link: the named items that give an ability score bonus, one per place with two rings, and any manuals and tomes. Their always-on bonuses, typed and stacked by type, count at every level, for prerequisites and every computed number, never for a level's skill points. A pick only gear allows is marked with its item, and that item can't be withdrawn, or replaced by an item that doesn't keep the pick, until the pick is withdrawn. Both numbers are kept: `compare` and `improve` rank by the naked ones unless asked, and never add an item (tickets [165](issues/165-gear-data.md) to [168](issues/168-gear-in-the-mcp.md)). The second stage is decided (user, 2026-11-14, [169](issues/169-gear-second-stage.md)) and ticketed, not yet built: weapons with their enhancement and properties and generic +1 to +5 weapons and armour ([221](issues/221-gear-weapons.md)), every other unique item ([222](issues/222-gear-other-items.md)), stacking by the guide's bonus types ([144](issues/144-bonus-types-and-stacking.md)) and armour class ([223](issues/223-armour-class.md)). Conditional bonuses count in rows that name their condition, beside a line's headline number and never summed into it. Activated effects stay text. Still out: relics and artifacts ([224](issues/224-relics-and-artifacts.md), design). Companions are in (user, 2026-11-14, [174](issues/174-animal-companions.md)), ticketed, not yet built: the animal and archetype at the granting feature, the companion's level and numbers ([217](issues/217-animal-companions-stage-1.md)), then its level-up ([218](issues/218-animal-companions-stage-2.md)). Still out: the mythic paths' companions ([219](issues/219-mythic-path-companions.md), design) and whether a mount is big enough to ride ([220](issues/220-a-companion-big-enough-to-ride.md), design).
 - User accounts: Builds are anonymous and exist only as their link.
-- Reproducing the guide's full text: copyright; store a summary and a link instead.
+- Reproducing the guide's full text, the game's text strings or its code: copyright; store facts, a summary in our own words and a link instead.

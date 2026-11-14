@@ -247,6 +247,24 @@ _Avoid_: Spellbook (except a path's), class spells
 An Angel's or a Lich's spells joined with a 9th-level casting class's (Cleric / Angel, Wizard / Lich) instead of kept apart. The catalogue lists the spells merging adds (`angel/merged`, `lich/merged`) beside the path's own spellbook; the merging rules themselves are out of scope.
 _Avoid_: Combined spellbook
 
+### Sources
+
+**Game source**:
+The game itself at the pinned patch (2.7.0x), the source of truth for rules: its **Blueprints** for what a pick holds, its **Decompiled code** for how the rules apply them. It is taken to work always: where it does something other than its own text says, what it does is the rule.
+_Avoid_: Game files, the game's data (alone)
+
+**Blueprint**:
+One of the game's data objects, with a name and a GUID: a class, archetype, feat, selection, feature, buff, unit or item. Blueprints refer to each other only by GUID, so following the references from the classes, races, paths and feat selections reaches everything a player can get. A planner entry names its blueprint's GUID.
+_Avoid_: Game data (that's the planner's files), asset
+
+**Decompiled code**:
+The game's program in readable form, where the rules that apply the **Blueprints** are written (how dice scale with size, what a component does). A rule taken from it is cited by file and method.
+_Avoid_: Source code, the game's scripts
+
+**Guide**:
+The GameFAQs walkthrough the planner's data was first extracted from, the source of truth until 2026-11-14. It still supplies summaries where it says more than the game, never contradicting it, and the link a player reads.
+_Avoid_: Wiki, FAQ
+
 ### The planner
 
 **Sheet**:
