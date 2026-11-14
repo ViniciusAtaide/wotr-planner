@@ -157,10 +157,10 @@ pub struct Hit {
     /// `facts` give them.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub descriptors: Option<Vec<String>>,
-    /// What taking it needs, in the planner's words ("Spell Focus (Conjuration)"); `null` when nothing. In
+    /// What taking it needs, in the planner's words ("Spell Focus (Conjuration)"); left out when nothing. In
     /// `search`, a long one has each group of many alternatives shortened ("one of 49 hexes (Air Barrier, Battle
     /// Master, Battle Ward, …)"), and `describe` gives it whole; left out by `search`'s `compact`.
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "no_prerequisite")]
     pub prerequisite: Option<Option<String>>,
     /// Where the guide describes it, for the user to read. Never fetch it.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -382,12 +382,16 @@ pub struct LevelRow {
     /// A prestige class level that advances another class's spellcasting: "arcane", "divine".
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub advances: Vec<String>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub features: Vec<Summarised>,
     /// Feats granted outright (a parameterised one named with its value).
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub feats: Vec<Named>,
     /// Feat slots the level opens, by what they take ("Bonus feat", "Combat feat", a list's name).
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub feat_slots: Vec<String>,
     /// Feature selections the level gives a pick of.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub selections: Vec<Named>,
 }
 
@@ -401,8 +405,11 @@ pub struct SpellLevels {
 #[derive(Debug, Serialize, JsonSchema)]
 pub struct RankRow {
     pub rank: u8,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub features: Vec<Summarised>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub feat_slots: Vec<String>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub selections: Vec<Named>,
 }
 
@@ -608,9 +615,12 @@ pub struct PickLine {
     pub choice: String,
     /// What it is: "Race", "Class", "Combat feat", "Mythic ability", "Knowledge (Arcana) ranks".
     pub label: String,
-    /// What it holds, as `options` gives values; `null` while open.
+    /// What it holds, as `options` gives values; left out while open.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub value: Option<ChoiceValue>,
-    /// What it holds, as the planner names it; `null` while open.
+    /// What it holds, as the planner names it; left out while open, and for a number whose name would only repeat
+    /// its digits (a point-buy score).
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     /// With `removable: true`: whether `withdraw` can take it back now (nothing later depends on it). Left out for an
     /// open choice, and for a level's class and the racial ability, which aren't withdrawn (`choose` another value).
@@ -652,8 +662,8 @@ pub struct SheetResult {
     /// numbers only (`totals_leave_out` lists what they leave out). Absent before the first level.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub totals: Option<crate::totals::TotalsShape>,
-    /// What no total counts: gear, buffs, abilities switched on in a fight, bonuses against one kind of effect or for
-    /// one use of a skill, bonuses that grow with class level.
+    /// What no total counts, in short (`wotr://leaves-out` says each in full): gear, buffs, abilities switched on in
+    /// a fight, bonuses against one kind of effect or for one use of a skill, bonuses that grow with class level.
     pub totals_leave_out: Vec<String>,
     /// What the planner notes beside the Build: the background's note, favoured weapons, the choices the game asks
     /// for again each day.
@@ -662,10 +672,10 @@ pub struct SheetResult {
     /// advanced classes, and the last level, `level.N`, included; a level's class never: `choose` changes it).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub removable: Option<Vec<String>>,
-    /// With an attack line: what no attack line counts.
+    /// With an attack line: what no attack line counts, in short (`wotr://leaves-out` says each in full).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub attack_leaves_out: Option<Vec<String>>,
-    /// With a `caster`: what no caster line counts.
+    /// With a `caster`: what no caster line counts, in short (`wotr://leaves-out` says each in full).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub caster_leaves_out: Option<Vec<String>>,
     /// The gear the Build holds, as the user stated it: each item at its address, with its summary and other effects.
@@ -803,11 +813,14 @@ pub struct LevelLine {
     /// Skill points: available at this level and spent by it.
     pub skill_points: SkillPointsLine,
     /// Total ranks by skill key at the end of the level (skills with none left out).
+    #[serde(skip_serializing_if = "BTreeMap::is_empty")]
     pub skill_ranks: BTreeMap<String, u8>,
     /// The feats first held at this level, granted or picked (a parameterised one with its value).
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub feats: Vec<Named>,
     /// The features gained at this level; one gained more than once at the level (the Trickster's Sneak Attack at
     /// MR 3) says `times`.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub features: Vec<Gained>,
     /// The Mythic ranks reached at this level.
     #[serde(skip_serializing_if = "Vec::is_empty")]
@@ -855,8 +868,10 @@ pub struct RankLine {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub path: Option<Named>,
     /// Its slots by address: the general mythic pick, then the path's.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub picks: Vec<PickLine>,
     /// The features its path row gives, one gained more than once with `times`.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub features: Vec<Gained>,
     /// The slots whose picks a Path switch took away, by address.
     #[serde(skip_serializing_if = "Vec::is_empty")]
@@ -1115,7 +1130,8 @@ pub enum ValidateResult {
     },
 }
 
-/// One declared choice that fails, and the later failures it causes.
+/// One declared choice that fails, and the later failures it causes. An empty list is left out, and so is a `reason`
+/// that only says "Needs " and the `needs`.
 #[derive(Debug, Serialize, JsonSchema)]
 pub struct FailureLine {
     /// Its address, as declared.
@@ -1127,14 +1143,18 @@ pub struct FailureLine {
     /// declaration's (`no_such_choice`, `not_an_option`, `needs_parameter`, `declared_twice`, `fixed_rule`,
     /// `missing_level`, `not_reached`).
     pub issue: String,
-    /// The planner's reason, in full.
-    pub reason: String,
+    /// The planner's reason, in full; left out when it would only say "Needs " and the `needs`, joined by ", ".
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reason: Option<String>,
     /// For `unmet`: each prerequisite not met, in short ("Strength 13 (have 12)", "Power Attack"), as `reason` words
     /// it: of an "or", only the alternatives the character's classes give.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub needs: Vec<String>,
     /// Other failed choices its prerequisites name, besides the one it sits under, by address: fix them too.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub also_needs: Vec<String>,
     /// The failures this one causes: they often go once it's fixed.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub children: Vec<FailureLine>,
 }
 
@@ -1195,10 +1215,10 @@ pub struct CompareResult {
     pub ranks: Vec<RankDiff>,
     /// By Mythic rank: the path features each Build's sheet lists at that rank and some other Build's doesn't.
     pub path_features: Vec<FeaturesDiff>,
-    /// With an attack line: what no attack line counts.
+    /// With an attack line: what no attack line counts, in short (`wotr://leaves-out` says each in full).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub attack_leaves_out: Option<Vec<String>>,
-    /// With a `caster`: what no caster line counts.
+    /// With a `caster`: what no caster line counts, in short (`wotr://leaves-out` says each in full).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub caster_leaves_out: Option<Vec<String>>,
     /// With `by`: the number the Builds are ordered by, the order, and what the number leaves out.
@@ -1350,4 +1370,9 @@ pub struct FeaturesDiff {
     pub rank: u8,
     /// One list per Build: the features its path row gives at this rank that some other Build's doesn't.
     pub only: Vec<Vec<Gained>>,
+}
+
+/// Whether an item's `prerequisite` is left out: left out by `compact` (`None`), or none (`Some(None)`).
+fn no_prerequisite(prerequisite: &Option<Option<String>>) -> bool {
+    prerequisite.as_ref().is_none_or(Option::is_none)
 }

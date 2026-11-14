@@ -85,7 +85,7 @@ async fn three_independent_mistakes_come_back_as_three_roots() {
     let power_attack = failure(failures, "slot.feat.1.class.0");
     assert_eq!(power_attack["issue"], "unmet");
     assert_eq!(power_attack["needs"], json!(["Str 13 (have 12)"]));
-    assert_eq!(power_attack["children"], json!([]));
+    assert!(power_attack.get("children").is_none(), "{result}");
     let great_cleave = failure(failures, "slot.feat.3.general.0");
     assert_eq!(great_cleave["issue"], "unmet");
     assert_eq!(great_cleave["needs"].as_array().map(Vec::len), Some(2));
@@ -107,7 +107,8 @@ async fn a_refused_pick_holds_the_later_picks_that_need_it() {
     assert_eq!(result["count"], 3);
     assert_eq!(roots(&result), ["slot.feat.1.class.0"]);
     let power_attack = failure(&result["failures"], "slot.feat.1.class.0");
-    assert_eq!(power_attack["reason"], "Needs Str 13 (have 12)");
+    // Its reason would only say "Needs " and its `needs`, so it is left out.
+    assert!(power_attack.get("reason").is_none(), "{result}");
     assert_eq!(
         choices(&power_attack["children"]),
         ["slot.feat.3.general.0"]
@@ -116,7 +117,7 @@ async fn a_refused_pick_holds_the_later_picks_that_need_it() {
     assert_eq!(cleave["issue"], "unmet");
     assert_eq!(cleave["label"], "Level 3: Feat");
     assert_eq!(cleave["needs"], json!(["power-attack"]));
-    assert_eq!(cleave["also_needs"], json!([]));
+    assert!(cleave.get("also_needs").is_none(), "{result}");
     assert_eq!(choices(&cleave["children"]), ["slot.feat.5.general.0"]);
 }
 
@@ -524,11 +525,9 @@ async fn real_data_a_locked_rage_power_names_only_the_class_the_character_has() 
         .iter()
         .find(|failure| failure["choice"] == "slot.selection.4.0")
         .unwrap_or_else(|| panic!("no failure in {validated}"));
-    assert_eq!(
-        failure["reason"], "Needs Barbarian level 8 (have 4)",
-        "{validated}"
-    );
-    // `needs` says the same, not the "or Skald level 8 (have 0)" of the data.
+    // Its reason would only repeat `needs`, so it is left out.
+    assert!(failure.get("reason").is_none(), "{validated}");
+    // `needs` has the character's classes only, not the "or Skald level 8 (have 0)" of the data.
     assert_eq!(
         failure["needs"],
         json!(["Barbarian level 8 (have 4)"]),

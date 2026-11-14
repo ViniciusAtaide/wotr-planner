@@ -10,6 +10,7 @@
 
 use std::collections::BTreeSet;
 
+use super::LeftOut;
 use crate::build::BuildStart;
 use crate::game_data::{
     Ability, Dice, EXOTIC_WEAPON_PROFICIENCY, Handedness, Ranged, Weapon, WeaponProficiency,
@@ -40,21 +41,45 @@ pub struct AttackLine {
     /// each feat held for the weapon.
     pub parts: Vec<AttackPart>,
     /// What no attack line counts: [`ATTACK_LINE_LEAVES_OUT`].
-    pub leaves_out: &'static [&'static str],
+    pub leaves_out: &'static [LeftOut],
 }
 
 /// What an attack line leaves out, the same for every line: it holds only the numbers a Build fixes whatever happens
 /// in a fight.
-pub const ATTACK_LINE_LEAVES_OUT: &[&str] = &[
-    "rage, stances and other abilities switched on in a fight",
-    "mythic feats and mythic abilities",
-    "class features (Weapon Training, sneak attack, a monk's unarmed damage, …)",
-    "gear but for its ability score bonuses: a weapon's enhancement and properties, armour, masterwork, and \
-     attack and damage bonuses from items",
-    "buffs and spells",
-    "Deadly Aim and Piranha Strike",
-    "a second weapon, off-hand attacks and two-weapon fighting",
-    "size, proficiency and situational bonuses (flanking, charging, …)",
+pub const ATTACK_LINE_LEAVES_OUT: &[LeftOut] = &[
+    LeftOut {
+        short: "rage, stances and other abilities switched on in a fight",
+        full: "rage, stances and other abilities switched on in a fight",
+    },
+    LeftOut {
+        short: "mythic feats and mythic abilities",
+        full: "mythic feats and mythic abilities",
+    },
+    LeftOut {
+        short: "class features",
+        full: "class features (Weapon Training, sneak attack, a monk's unarmed damage, …)",
+    },
+    LeftOut {
+        short: "gear but for its ability score bonuses",
+        full: "gear but for its ability score bonuses: a weapon's enhancement and properties, armour, masterwork, \
+               and attack and damage bonuses from items",
+    },
+    LeftOut {
+        short: "buffs and spells",
+        full: "buffs and spells",
+    },
+    LeftOut {
+        short: "Deadly Aim and Piranha Strike",
+        full: "Deadly Aim and Piranha Strike",
+    },
+    LeftOut {
+        short: "a second weapon and two-weapon fighting",
+        full: "a second weapon, off-hand attacks and two-weapon fighting",
+    },
+    LeftOut {
+        short: "size, proficiency and situational bonuses",
+        full: "size, proficiency and situational bonuses (flanking, charging, …)",
+    },
 ];
 
 /// One thing an attack line counts, with what it adds to each attack and to each hit's damage.

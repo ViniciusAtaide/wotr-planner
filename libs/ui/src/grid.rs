@@ -574,7 +574,7 @@ fn AttackBlock(sheet: std::sync::Arc<Sheet>) -> impl IntoView {
             let leaves_out = line
                 .leaves_out
                 .iter()
-                .map(|item| view! { <li>{*item}</li> })
+                .map(|item| view! { <li>{item.full}</li> })
                 .collect_view();
             // The same weapon's line without the gear, when it differs, shown on hovering the line.
             let texts = |line: &rules::AttackLine| {

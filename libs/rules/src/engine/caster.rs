@@ -8,6 +8,7 @@
 //! concentration, stacked by type ([`counted`]). Everything else is [`CASTER_LINE_LEAVES_OUT`]. The line is for a spell the caller describes ([`SpellTraits`]: a school, and
 //! optionally a subschool, an energy type and metamagic), so no spell catalogue is needed.
 
+use super::LeftOut;
 use crate::bonus::{BonusInForce, BonusTarget, InForceTarget, SpellTraits, counted};
 use crate::game_data::Ability;
 use crate::keys::{ClassKey, FeatKey};
@@ -47,7 +48,7 @@ pub struct CasterLine {
     pub concentration: i16,
     pub concentration_parts: Vec<CasterPart>,
     /// What no caster line counts: [`CASTER_LINE_LEAVES_OUT`].
-    pub leaves_out: &'static [&'static str],
+    pub leaves_out: &'static [LeftOut],
 }
 
 /// One spell level's save DC.
@@ -67,17 +68,43 @@ pub struct CasterPart {
 
 /// What a caster line leaves out, the same for every line: it holds only the numbers a Build fixes whatever happens
 /// in a fight.
-pub const CASTER_LINE_LEAVES_OUT: &[&str] = &[
-    "gear the Build doesn't hold, and what its items do besides their always-on bonuses: a caster level or DC \
-     bonus for one school or one kind of spell, activated abilities, set bonuses",
-    "buffs and spells cast on the character",
-    "abilities switched on in a fight: the Aeon's gaze, Demonic Rage and aspects, the Devil's decrees, Studied Target",
-    "bonuses that grow with class level (Combat Casting Adept, Horn Call, Cold Specialization, Overwhelming \
-     Penetration, Haunting Refrain, Blessed Script)",
-    "caster level raised for one school (School Mastery) and casting defensively (Arcane Focus)",
-    "what changes the target's roll rather than the DC (Persistent Spell, Favorable Magic, Ambuscading Spells)",
-    "spell-like abilities, hexes, exploits, bombs and other class abilities with DCs of their own",
-    "a second casting class: the line follows the one with the highest caster level",
+pub const CASTER_LINE_LEAVES_OUT: &[LeftOut] = &[
+    LeftOut {
+        short: "gear the Build doesn't hold, and items' effects besides their always-on bonuses",
+        full: "gear the Build doesn't hold, and what its items do besides their always-on bonuses: a caster level \
+               or DC bonus for one school or one kind of spell, activated abilities, set bonuses",
+    },
+    LeftOut {
+        short: "buffs",
+        full: "buffs and spells cast on the character",
+    },
+    LeftOut {
+        short: "abilities switched on in a fight (the Aeon's gaze)",
+        full: "abilities switched on in a fight: the Aeon's gaze, Demonic Rage and aspects, the Devil's decrees, \
+               Studied Target",
+    },
+    LeftOut {
+        short: "bonuses that grow with class level",
+        full: "bonuses that grow with class level (Combat Casting Adept, Horn Call, Cold Specialization, \
+               Overwhelming Penetration, Haunting Refrain, Blessed Script)",
+    },
+    LeftOut {
+        short: "School Mastery's caster level and casting defensively",
+        full: "caster level raised for one school (School Mastery) and casting defensively (Arcane Focus)",
+    },
+    LeftOut {
+        short: "what changes the target's roll rather than the DC",
+        full: "what changes the target's roll rather than the DC (Persistent Spell, Favorable Magic, Ambuscading \
+               Spells)",
+    },
+    LeftOut {
+        short: "class abilities with DCs of their own",
+        full: "spell-like abilities, hexes, exploits, bombs and other class abilities with DCs of their own",
+    },
+    LeftOut {
+        short: "a second casting class: the line follows the highest caster level",
+        full: "a second casting class: the line follows the one with the highest caster level",
+    },
 ];
 
 const HEIGHTEN_SPELL: &str = "metamagic-heighten-spell";

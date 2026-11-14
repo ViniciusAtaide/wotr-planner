@@ -182,6 +182,6 @@ fn shape(engine: &Engine, line: &CasterLine) -> CasterLineShape {
 pub(crate) fn leaves_out() -> Vec<String> {
     CASTER_LINE_LEAVES_OUT
         .iter()
-        .map(ToString::to_string)
+        .map(|item| item.short.to_owned())
         .collect()
 }

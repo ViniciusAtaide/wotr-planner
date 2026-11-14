@@ -303,12 +303,13 @@ pub(super) fn tree(planner: &Planner, nodes: Vec<Node>) -> Vec<FailureLine> {
         .into_iter()
         .zip(also)
         .map(|(node, also_needs)| {
+            let reason = Some(node.reason).filter(|reason| !echoes(reason, &node.needs));
             Some(FailureLine {
                 choice: node.at.to_string(),
                 label: node.label,
                 issue: node.why.code().to_owned(),
                 needs: node.needs,
-                reason: node.reason,
+                reason,
                 also_needs,
                 children: Vec::new(),
             })
@@ -326,4 +327,48 @@ pub(super) fn tree(planner: &Planner, nodes: Vec<Node>) -> Vec<FailureLine> {
         }
     }
     lines.into_iter().flatten().collect()
+}
+
+/// Whether a reason says only "Needs " and the `needs`, joined by ", ", so a failure line can leave it out. A reason
+/// that says more (a pick held that refuses it, a later slot to swap with) is kept.
+fn echoes(reason: &str, needs: &[String]) -> bool {
+    !needs.is_empty() && reason.strip_prefix("Needs ") == Some(needs.join(", ").as_str())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::echoes;
+
+    fn needs(parts: &[&str]) -> Vec<String> {
+        parts.iter().map(|part| (*part).to_owned()).collect()
+    }
+
+    #[test]
+    fn a_reason_that_only_repeats_its_needs_is_left_out() {
+        assert!(echoes("Needs Power Attack", &needs(&["Power Attack"])));
+        assert!(echoes(
+            "Needs Weapon Focus in the same weapon, Fighter level 4 (have 0)",
+            &needs(&[
+                "Weapon Focus in the same weapon",
+                "Fighter level 4 (have 0)"
+            ]),
+        ));
+    }
+
+    #[test]
+    fn a_reason_that_says_more_than_its_needs_is_kept() {
+        // A pick held that refuses it.
+        assert!(!echoes(
+            "Has Two-Handed Fighter; needs Fighter level 4 (have 2)",
+            &needs(&["Fighter level 4 (have 2)"]),
+        ));
+        // A later slot holding what it needs.
+        assert!(!echoes(
+            "Needs Power Attack: Power Attack is in level 1's Feat slot, which comes after this slot in the level's \
+             pick order; swap them",
+            &needs(&["Power Attack"]),
+        ));
+        // No `needs` at all: the reason is all there is.
+        assert!(!echoes("Needs ", &[]));
+    }
 }

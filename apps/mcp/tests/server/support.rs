@@ -127,6 +127,19 @@ impl Client {
             .unwrap_or_default()
     }
 
+    /// A tool's output schema, as the tools list gives it to a client.
+    pub async fn output_schema(&self, tool: &str) -> Value {
+        self.0
+            .list_all_tools()
+            .await
+            .expect("the tools list")
+            .into_iter()
+            .find(|listed| listed.name == tool)
+            .and_then(|listed| listed.output_schema)
+            .map(|schema| Value::Object((*schema).clone()))
+            .unwrap_or_else(|| panic!("{tool} has an output schema"))
+    }
+
     /// Calls a tool with these arguments (a JSON object).
     pub async fn call(&self, tool: &str, arguments: Value) -> CallToolResult {
         let Value::Object(arguments) = arguments else {

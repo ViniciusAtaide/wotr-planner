@@ -179,7 +179,10 @@ async fn the_glossary_is_a_resource() {
         .iter()
         .map(|resource| resource.uri.as_str())
         .collect();
-    assert_eq!(uris, ["wotr://glossary", "wotr://build-guide"]);
+    assert_eq!(
+        uris,
+        ["wotr://glossary", "wotr://build-guide", "wotr://leaves-out"]
+    );
     assert_eq!(resources[0].mime_type.as_deref(), Some("text/markdown"));
 
     let read = client
@@ -195,6 +198,26 @@ async fn the_glossary_is_a_resource() {
         .expect("GLOSSARY.md reads");
     assert_eq!(text, &file);
     assert!(text.contains("**Withdrawal**"), "the glossary's terms");
+}
+
+#[tokio::test]
+async fn what_the_numbers_leave_out_is_a_resource_in_full() {
+    let client = Client::start().await;
+    let read = client
+        .read_resource("wotr://leaves-out")
+        .await
+        .expect("what the numbers leave out reads");
+    let [ResourceContents::TextResourceContents { text, .. }] = &read.contents[..] else {
+        panic!("one text: {read:?}");
+    };
+    // A response says each in short; the resource says each in full, with its examples.
+    for item in rules::ATTACK_LINE_LEAVES_OUT
+        .iter()
+        .chain(rules::CASTER_LINE_LEAVES_OUT)
+        .chain(rules::TOTALS_LEAVE_OUT)
+    {
+        assert!(text.contains(item.full), "{} in {text}", item.full);
+    }
 }
 
 #[tokio::test]

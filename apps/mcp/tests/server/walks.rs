@@ -192,8 +192,11 @@ impl Walker<'_> {
             for level in sheet["levels"].as_array().expect("levels") {
                 held.extend(choices(&level["picks"]));
             }
+            // A rank with no slots (not reached yet) leaves `picks` out.
             for rank in sheet["ranks"].as_array().expect("ranks") {
-                held.extend(choices(&rank["picks"]));
+                if !rank["picks"].is_null() {
+                    held.extend(choices(&rank["picks"]));
+                }
             }
             held.extend(
                 ["str", "dex", "con", "int", "wis", "cha"].map(|a| format!("start.score.{a}")),

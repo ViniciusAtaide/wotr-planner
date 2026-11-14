@@ -218,6 +218,10 @@ impl Lines<'_> {
             _ => None,
         };
         let (value, name) = held.unzip();
+        // A number's name only repeats its digits, which `value` says.
+        let name = name.filter(|name| {
+            !matches!(&value, Some(ChoiceValue::Number(number)) if *name == number.to_string())
+        });
         let choice = address.to_string();
         PickLine {
             with_gear: self.with_gear.get(&choice).cloned(),

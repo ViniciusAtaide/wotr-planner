@@ -38,6 +38,7 @@ mod catalog;
 mod controls;
 mod gear;
 mod labels;
+mod left_out;
 mod pickers;
 mod ranks;
 mod removable;
@@ -51,6 +52,7 @@ pub use attack::{ATTACK_LINE_LEAVES_OUT, AttackLine, AttackPart, PowerAttack};
 pub use caster::{CASTER_LINE_LEAVES_OUT, CasterLine, CasterPart, SpellDc};
 use catalog::Catalog;
 pub use gear::{GearDependent, GearNeed, GearOption};
+pub use left_out::LeftOut;
 pub use ranks::{LaterRankLevels, LaterRankPick, RankLevelOption, ShiftedPick};
 pub use totals::{CLASS_SKILL_BONUS, SkillTotal, TOTALS_LEAVE_OUT, Total, TotalPart, Totals};
 

@@ -112,6 +112,6 @@ fn shape(engine: &Engine, weapon: &WeaponKey, line: &AttackLine) -> AttackLineSh
 pub(crate) fn leaves_out() -> Vec<String> {
     ATTACK_LINE_LEAVES_OUT
         .iter()
-        .map(ToString::to_string)
+        .map(|item| item.short.to_owned())
         .collect()
 }

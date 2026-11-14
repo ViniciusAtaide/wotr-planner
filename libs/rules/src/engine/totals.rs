@@ -6,6 +6,7 @@
 //! Halfling Luck, Mythic Resolve, Divine Grace) and the always-on bonuses of the Build's gear, stacked by type
 //! ([`counted`]). Everything else is [`TOTALS_LEAVE_OUT`].
 
+use super::LeftOut;
 use crate::bonus::{BonusInForce, BonusTarget, counted};
 use crate::game_data::{Ability, Save};
 use crate::keys::SkillKey;
@@ -26,7 +27,7 @@ pub struct Totals {
     /// Every skill of the data, in its (canonical: key) order.
     pub skills: Vec<SkillTotal>,
     /// What no total counts: [`TOTALS_LEAVE_OUT`].
-    pub leaves_out: &'static [&'static str],
+    pub leaves_out: &'static [LeftOut],
 }
 
 impl Totals {
@@ -72,20 +73,53 @@ pub struct TotalPart {
 
 /// What the totals leave out, the same for every Build: they hold only the numbers a Build fixes whatever happens in
 /// a fight.
-pub const TOTALS_LEAVE_OUT: &[&str] = &[
-    "gear the Build doesn't hold, and what its items do besides their always-on bonuses: bonuses in some \
-     circumstance or against one thing, activated abilities, set bonuses",
-    "buffs, spells, songs and auras cast on the character, an ally's included",
-    "abilities switched on in a fight: rage, aspects, judgments, stances, a shifter's aspects",
-    "bonuses against one kind of effect or foe (+2 against fear, poison, enchantments, demons, traps)",
-    "bonuses to one use of a skill: Persuasion when used to intimidate, bluff or use diplomacy (an aasimar's, a \
-     tiefling's, a dhampir's, the half-orc's, the Andoran Diplomat's), Knowledge to identify items",
-    "bonuses in one place or with one weapon (underground, a favoured terrain, a dueling sword)",
-    "bonuses that grow with class level (Danger Sense, Bravery, Forewarned, Resistant Touch, Purity, a familiar's)",
-    "a background's other ability for a skill (Acolyte: Wisdom for Persuasion; Healer: Intelligence for the Lores): \
-     each skill counts its own ability",
-    "rerolls and taking 10 or 20 (the mythic Iron Will, Great Fortitude, Lightning Reflexes, Skill Focus (Mythic))",
-    "armour check penalties and size",
+pub const TOTALS_LEAVE_OUT: &[LeftOut] = &[
+    LeftOut {
+        short: "gear the Build doesn't hold, and items' effects besides their always-on bonuses",
+        full: "gear the Build doesn't hold, and what its items do besides their always-on bonuses: bonuses in some \
+               circumstance or against one thing, activated abilities, set bonuses",
+    },
+    LeftOut {
+        short: "buffs and auras, an ally's included",
+        full: "buffs, spells, songs and auras cast on the character, an ally's included",
+    },
+    LeftOut {
+        short: "abilities switched on in a fight (rage, stances)",
+        full: "abilities switched on in a fight: rage, aspects, judgments, stances, a shifter's aspects",
+    },
+    LeftOut {
+        short: "bonuses against one kind of effect or foe",
+        full: "bonuses against one kind of effect or foe (+2 against fear, poison, enchantments, demons, traps)",
+    },
+    LeftOut {
+        short: "bonuses to one use of a skill (Persuasion to intimidate)",
+        full: "bonuses to one use of a skill: Persuasion when used to intimidate, bluff or use diplomacy (an \
+               aasimar's, a tiefling's, a dhampir's, the half-orc's, the Andoran Diplomat's), Knowledge to \
+               identify items",
+    },
+    LeftOut {
+        short: "bonuses in one place or with one weapon",
+        full: "bonuses in one place or with one weapon (underground, a favoured terrain, a dueling sword)",
+    },
+    LeftOut {
+        short: "bonuses that grow with class level (Bravery, Danger Sense)",
+        full: "bonuses that grow with class level (Danger Sense, Bravery, Forewarned, Resistant Touch, Purity, a \
+               familiar's)",
+    },
+    LeftOut {
+        short: "a background's other ability for a skill",
+        full: "a background's other ability for a skill (Acolyte: Wisdom for Persuasion; Healer: Intelligence for \
+               the Lores): each skill counts its own ability",
+    },
+    LeftOut {
+        short: "rerolls and taking 10 or 20",
+        full: "rerolls and taking 10 or 20 (the mythic Iron Will, Great Fortitude, Lightning Reflexes, Skill Focus \
+               (Mythic))",
+    },
+    LeftOut {
+        short: "armour check penalties and size",
+        full: "armour check penalties and size",
+    },
 ];
 
 impl Engine {

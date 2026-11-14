@@ -1,4 +1,5 @@
-//! The MCP server: its tools, its instructions and its two resources, the glossary and the build guide.
+//! The MCP server: its tools, its instructions and its three resources: the glossary, the build guide and what the
+//! numbers leave out.
 
 use rmcp::handler::server::router::tool::ToolRouter;
 use rmcp::handler::server::wrapper::Parameters;
@@ -67,7 +68,8 @@ opens, and the sheet, the attack line, the caster line and the totals are the pl
 `improve` rank by naked numbers unless you pass `with_gear: true` (`numbers` says which). The attack line's weapon \
 is the Build's Weapon Focus weapon unless you give one. Each line says what it leaves out (`attack_leaves_out`: \
 rage, stances, mythic feats, class features, buffs, gear but for its ability score bonuses; `caster_leaves_out`; \
-`totals_leave_out`), and the numbers include an item's bonuses and none of its `uncounted` lines (the always-on \
+`totals_leave_out`; in short, and in full with examples in `wotr://leaves-out`), and the numbers include an \
+item's bonuses and none of its `uncounted` lines (the always-on \
 effects at the end of its `summary`: damage reduction, an immunity) or its `other_effects`: label anything you add \
 for them as your own game knowledge.
 - When the planner ranks Builds or options by a number (`compare` or `improve` with `by`), that ranking is a fact. \
@@ -96,6 +98,35 @@ pub fn build_guide() -> &'static str {
         .strip_prefix("---\n")
         .and_then(|rest| rest.split_once("\n---\n"))
         .map_or(BUILD_GUIDE_FILE, |(_, body)| body.trim_start())
+}
+
+/// The resource that serves what the numbers leave out, in full.
+pub const LEAVES_OUT_URI: &str = "wotr://leaves-out";
+
+/// What the attack line, the caster line and the totals leave out, each thing in full with its examples. A response
+/// says them in short (`attack_leaves_out`, `caster_leaves_out`, `totals_leave_out`, a ranking's `leaves_out`).
+pub fn leaves_out() -> String {
+    let mut text = String::from(
+        "# What the planner's numbers leave out\n\nA tool response lists these in short; here each is in full, \
+         with its examples. Label anything you add for them as your own game knowledge.\n",
+    );
+    for (heading, list) in [
+        (
+            "The attack line (`attack_leaves_out`; a ranking by it, `leaves_out`)",
+            rules::ATTACK_LINE_LEAVES_OUT,
+        ),
+        (
+            "The caster line (`caster_leaves_out`; a ranking by it, `leaves_out`)",
+            rules::CASTER_LINE_LEAVES_OUT,
+        ),
+        ("The totals (`totals_leave_out`)", rules::TOTALS_LEAVE_OUT),
+    ] {
+        text.push_str(&format!("\n## {heading}\n\n"));
+        for item in list {
+            text.push_str(&format!("- {}\n", item.full));
+        }
+    }
+    text
 }
 
 /// The server: the loaded data and the tools over it. Each tool call runs on a blocking thread.
@@ -442,8 +473,9 @@ impl Server {
             declaration's: `no_such_choice`, `not_an_option`, `needs_parameter`, `declared_twice` (one thing \
             declared two ways with different values), `fixed_rule` (a point-buy score outside 7 to 18 or over the budget, an ability \
             increase off every 4th level, a skill's ranks above the character level), `missing_level`. `needs` lists \
-            an `unmet` failure's prerequisites in short; `also_needs` names other failed choices it needs too. An \
-            invalid Build gets no code. It changes nothing.",
+            an `unmet` failure's prerequisites in short (its `reason` is left out when it would only repeat them); \
+            `also_needs` names other failed choices it needs too. An empty list is left out. An invalid Build gets \
+            no code. It changes nothing.",
         annotations(read_only_hint = true, open_world_hint = false)
     )]
     async fn validate(
@@ -479,6 +511,7 @@ impl ServerHandler for Server {
         Ok(ListResourcesResult::with_all_items(vec![
             glossary(),
             guide(),
+            leaves_out_resource(),
         ]))
     }
 
@@ -488,12 +521,14 @@ impl ServerHandler for Server {
         _context: RequestContext<RoleServer>,
     ) -> Result<ReadResourceResponse, ErrorData> {
         let text = match request.uri.as_str() {
-            GLOSSARY_URI => GLOSSARY,
-            BUILD_GUIDE_URI => build_guide(),
+            GLOSSARY_URI => GLOSSARY.to_owned(),
+            BUILD_GUIDE_URI => build_guide().to_owned(),
+            LEAVES_OUT_URI => leaves_out(),
             uri => {
                 return Err(ErrorData::resource_not_found(
                     format!(
-                        "No resource `{uri}`: the resources are `{GLOSSARY_URI}` and `{BUILD_GUIDE_URI}`."
+                        "No resource `{uri}`: the resources are `{GLOSSARY_URI}`, `{BUILD_GUIDE_URI}` and \
+                         `{LEAVES_OUT_URI}`."
                     ),
                     None,
                 ));
@@ -527,4 +562,16 @@ fn guide() -> Resource {
         )
         .with_mime_type("text/markdown")
         .with_size(build_guide().len() as u64)
+}
+
+/// What the numbers leave out, as `resources/list` lists it.
+fn leaves_out_resource() -> Resource {
+    Resource::new(LEAVES_OUT_URI, "leaves-out")
+        .with_title("What the WotR Build Planner's numbers leave out")
+        .with_description(
+            "Each thing the attack line, the caster line and the totals leave out, in full with its examples; a \
+             tool response lists them in short.",
+        )
+        .with_mime_type("text/markdown")
+        .with_size(leaves_out().len() as u64)
 }

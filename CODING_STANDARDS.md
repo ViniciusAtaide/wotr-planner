@@ -9,6 +9,7 @@ Read at review, by the reviewer (`.claude/agents/ticket-reviewer.md`). These are
 - **The rules crate names no tool.** A text built in `libs/rules` is shown in the web app too: no MCP tool name, no address. The MCP server appends those.
 - **A pronoun has one possible referent.** Name the choice ("withdraw Cleave first") where "it" could be the address.
 - **Counts agree in number.** "1 level", "13 levels": through `apps/mcp/src/words.rs`, never "level(s)".
+- **Each fact once in a tool response.** Prose adds to the structured fields beside it: a `reason` that only restates `needs`, or a `name` that only repeats its `value`, is left out (`apps/mcp/src/validate/tree.rs`'s `echoes` is the model). Text that is the same on every call is said in short and served once in full (`wotr://leaves-out`). A test holds the sizes and the empties (`apps/mcp/tests/server/responses.rs`); this rule is the duplication it can't see.
 
 ## Behaviour
 

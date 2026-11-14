@@ -126,8 +126,11 @@ fn the_line_names_what_it_counts_and_what_it_leaves_out() {
         "gear",
         "buffs",
     ] {
+        // In short too: the short form is what an MCP response carries.
         assert!(
-            line.leaves_out.iter().any(|item| item.contains(left_out)),
+            line.leaves_out
+                .iter()
+                .any(|item| item.short.contains(left_out) && item.full.contains(left_out)),
             "leaves out {left_out}"
         );
     }

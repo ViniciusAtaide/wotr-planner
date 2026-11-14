@@ -18,6 +18,7 @@ mod options;
 mod pick_values;
 mod rank_levels;
 mod ranking;
+mod responses;
 mod search;
 mod sheet;
 mod spells;
