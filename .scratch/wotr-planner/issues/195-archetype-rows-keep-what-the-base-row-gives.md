@@ -29,3 +29,7 @@ Options:
 ## Done when
 
 The user has chosen. For A: the test and its lists, each list checked against the guide's table for that archetype, and `scripts/check.sh` passing.
+
+## Answer
+
+User, 2026-11-14 ("do every recommendation", to the retrospective's list, which held this ticket's): option A, the generic real-data test with a per-archetype list of what each archetype loses.

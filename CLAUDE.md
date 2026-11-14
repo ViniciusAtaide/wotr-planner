@@ -2,10 +2,16 @@
 
 The plan for this project lives in `.scratch/wotr-planner/map.md`. Read its Notes before starting any work, and its tickets under `issues/` for the task at hand.
 
+- **Several tickets with subagents:** the `ticket-queue` skill. A builder is `.claude/agents/ticket-builder.md`, a reviewer `.claude/agents/ticket-reviewer.md`.
+- **Reviewing:** `CODING_STANDARDS.md`, read at review, not while building.
+- **A QA session through the MCP tools:** the `qa-session` skill.
+
 ## Game data
 
-The `.ron` files in `libs/game-data/` are the game data; there is no database (ticket 187). The web server and the MCP server read and check them at startup (`seeds::check_game_data_files`), so restart a running server after editing them. `cargo run -p seeds --bin check-data` checks them on their own.
+The `.ron` files in `libs/game-data/` are the game data; there is no database (ticket 187). The web server and the MCP server read and check them at startup (`seeds::check_game_data_files`). `cargo leptos watch` restarts its server when one changes; restart a standalone `wotr-mcp` yourself. `cargo run -p seeds --bin check-data` checks them on their own.
 
+- **A data ticket's note** goes in its own file, `libs/game-data/notes/<ticket>-<slug>.md`, so data tickets share no file.
+- **The guide as text:** `scripts/guide-text.sh` renders `guide-cache/*.html` to `guide-cache/txt/`, and its `INDEX.txt` leads from a `page#anchor` to the file and line. Read the guide there.
 - Build in the worktree's own `target/` (the default). Never share `CARGO_TARGET_DIR` between worktrees: the servers and the tests find the workspace root, and with it `libs/game-data/`, from the path they were compiled in, so a shared build reads another worktree's data.
 - A `.env` is optional; `.env.example` lists what it may set.
 
@@ -20,7 +26,6 @@ The machine has 8 cores and 24 GB of RAM. Builds, tests, proofs and benchmarks a
   - no other agent is still live there; an agent "waiting on its own background work" is live;
   - no process of another agent runs under that checkout's path.
 - **A new worktree starts from current `main`:** confirm with `git merge-base --is-ancestor <main's commit> HEAD` before the first edit, since a new worktree can start from an older commit.
-- **RustRover in a worktree:** it has only the main checkout open, so in a worktree its tools read and write main's files. Edit and read there with the built-in tools.
 
 ## Rust tests
 
@@ -61,5 +66,5 @@ Start the web app with RustRover's **Leptos** run configuration (`cargo leptos w
 - **It allows multiple instances** (`singleton="false"`), so each agent starts its own and leaves the others alone. Port 3900 (reload 3901) belongs to the user's server in the main checkout. Any other instance passes `envs` with its own ports, for example `{"LEPTOS_SITE_ADDR": "127.0.0.1:3950", "LEPTOS_RELOAD_PORT": "3951", "WOTR_MCP_PORT": "0"}` (`0` gives its built-in MCP server a free port instead of the sessions' 3902).
 - **In a worktree,** also pass `workingDirectory` with the worktree's absolute path: the configuration runs in the main checkout by default, the only one RustRover has open.
 - **It counts as a build** (see "Parallel agents"): starting it, and every save it rebuilds on, compiles.
-- **The server reads the game data once, at startup.** After the data files change, restart it: stop the instance, then start it again.
+- **The server reads the game data once, at startup.** `cargo leptos watch` restarts it when a file under `libs/game-data/` changes (`watch-additional-files` in `Cargo.toml`). An instance started before that setting was added needs one restart by hand: stop it, then start it again.
 - **Stop your own instance when you're done:** kill the `cargo-leptos` process whose working directory is your checkout (`lsof -a -d cwd -p <pid>`), then the server still listening on your port (`lsof -tiTCP:<port> -sTCP:LISTEN`).

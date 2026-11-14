@@ -1,0 +1,41 @@
+# Runs the per-change check (scripts/check.sh: fmt, clippy on both targets, the workspace tests, the rules wasm build
+# and the data check) on every push to main and every pull request, and by hand. The cargo-leptos builds of
+# `--full` are left to the Pages workflow, which builds the site.
+name: Check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# A newer push to the same branch replaces a check still running for an older one.
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    env:
+      CARGO_TERM_COLOR: always
+    steps:
+      - uses: actions/checkout@v5
+
+      # rustup is on the runner: this installs the nightly pinned in rust-toolchain.toml with its components.
+      - name: Install the pinned toolchain
+        run: |
+          rustup toolchain install
+          rustup target add wasm32-unknown-unknown
+          rustc --version
+
+      # Caches ~/.cargo and target/ between runs; its own key, so it doesn't evict the Pages build's cache.
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: check
+
+      - name: Check
+        run: scripts/check.sh

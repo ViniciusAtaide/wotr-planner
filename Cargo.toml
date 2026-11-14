@@ -49,6 +49,8 @@ assets-dir = "apps/frontend/public"
 # 0.0.0.0 so a phone on the LAN can reach the dev server; 3000 is taken on this machine.
 site-addr = "0.0.0.0:3900"
 reload-port = 3901
+# The server reads the game data once, at startup: a change to a data file restarts it.
+watch-additional-files = ["libs/game-data"]
 bin-features = []
 bin-default-features = false
 lib-features = []

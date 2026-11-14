@@ -5,9 +5,10 @@ The planner's game data, as RON files that deserialise straight into the `rules`
 them at startup (ticket 187). Fix data by editing them, then restart a running server.
 
 The files were extracted once from the guide pages saved in `guide-cache/` and have been corrected by hand since;
-the extractor is gone (ticket 82). A data change edits the `.ron` files by hand, adds a note under Layout below (the
-ticket, the decision behind it and what the data now says, as the earlier tickets' notes do) and adds a real-data
-test in `libs/seeds/tests/game_data/`; then check the files (under Checking).
+the extractor is gone (ticket 82). A data change edits the `.ron` files by hand, writes a note in its own file under
+`notes/` (`notes/README.md` has the form: the ticket, the decision behind it and what the data now says) and adds a
+real-data test in `libs/seeds/tests/game_data/`; then check the files (under Checking). The notes of tickets up to
+193 are under Layout below, where they were written before `notes/` existed.
 `EXTRACTION_REPORT.md` is the hand-kept list of open data gaps, by category (it began as what the extractor couldn't
 turn into data): fix an item in the `.ron` files and delete its line. `libs/seeds/tests/fixtures/game-data/` is a
 small hand-written example of the layout.
