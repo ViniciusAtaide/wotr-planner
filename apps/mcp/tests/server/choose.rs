@@ -702,8 +702,7 @@ async fn a_change_that_breaks_a_pick_for_another_reason_says_only_what_it_would_
     )
     .await;
     assert_eq!(status["issue"], "breaks_later", "{status}");
-    let reason = status["reason"].as_str().unwrap();
-    assert!(reason.starts_with("Would break "), "{reason}");
+    assert_eq!(status["reason"], "Would break combat-trick");
 }
 
 #[tokio::test]

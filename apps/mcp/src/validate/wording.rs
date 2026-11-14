@@ -12,6 +12,7 @@ use super::closest;
 use super::tree::{At, Given, Node, Why, pick_gives};
 use crate::options::issue_reason;
 use crate::planner::{Planner, all_selections};
+use crate::unreached::Unreached;
 
 /// What a walk failure is worded from.
 pub(super) struct Wording<'a> {
@@ -445,20 +446,8 @@ impl Wording<'_> {
                     let mut without = self.build.clone();
                     without.rank_levels.remove(rank);
                     let comes_at = engine.rank_floor(&without, *rank).unwrap_or(earliest);
-                    if !engine.rank_reached(&without, *rank) {
-                        let levels = without.levels.len();
-                        return match comes_at > u8::try_from(levels).unwrap_or(u8::MAX) {
-                            true => format!(
-                                "The Build doesn't reach MR {rank}, so `mythic.{rank}.level` has no level to take it at: \
-                                 MR {rank} comes at level {comes_at} at the earliest, and the Build has {levels} \
-                                 level(s)."
-                            ),
-                            false => format!(
-                                "The Build doesn't reach MR {rank}, so `mythic.{rank}.level` has no level to take it at: \
-                                 its Path switch (Legend) ends the ascensions at MR {}.",
-                                rules::PATH_SWITCH_RANK
-                            ),
-                        };
+                    if let Some(unreached) = Unreached::of(engine, &without, *rank) {
+                        return unreached.reason(*rank, &Unreached::no_level(*rank));
                     }
                     let why = if comes_at > earliest {
                         format!(

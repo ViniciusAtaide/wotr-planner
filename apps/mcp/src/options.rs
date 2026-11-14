@@ -16,6 +16,7 @@ use crate::planner::Planner;
 use crate::shapes::{
     ChoiceValue, Kind, Open, OptionLine, OptionStatus, OptionsArgs, OptionsResult,
 };
+use crate::unreached::Unreached;
 
 /// One option the engine offers for a choice.
 #[derive(Clone, Debug)]
@@ -547,15 +548,12 @@ pub(crate) fn offers(
 fn rank_level_offers(engine: &Engine, build: &Build, rank: u8) -> Result<Vec<Offer>, ToolError> {
     let options = engine.rank_level_options(build, rank);
     if options.is_empty() {
-        return Err(ToolError::no_such_choice(
-            match engine.rank_table_level(rank) {
-                None => format!("There is no MR {rank}: the Mythic ranks are 1 to 10."),
-                Some(earliest) => format!(
-                    "The Build doesn't reach MR {rank}, so it has no level to take it at: MR {rank} comes at level \
-                 {earliest} at the earliest, and not after a Path switch that ends the ascensions (Legend)."
-                ),
-            },
-        ));
+        // No levels: the rank doesn't exist, or the Build doesn't reach it.
+        let reason = match Unreached::of(engine, build, rank) {
+            Some(unreached) => unreached.reason(rank, &Unreached::no_level(rank)),
+            None => format!("MR {rank} has no level to take it at."),
+        };
+        return Err(ToolError::no_such_choice(reason));
     }
     Ok(options
         .into_iter()
@@ -629,7 +627,7 @@ fn slot_offers(
 ) -> Option<Vec<Offer>> {
     let held = build.picks.get(slot);
     let mut offers = Vec::new();
-    for entry in engine.slot_entries(build, slot)? {
+    for entry in engine.slot_entries_in(build, Some(sheet), slot)? {
         let category = (!entry.category.is_empty()).then(|| entry.category.clone());
         let summary = (!entry.summary.is_empty()).then(|| entry.summary.clone());
         match entry.noun {

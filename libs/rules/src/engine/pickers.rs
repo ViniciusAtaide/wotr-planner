@@ -149,9 +149,19 @@ impl Engine {
     /// order, each entry named, filed under its chip and with its summary, story note and the one reason it shows,
     /// and each option with its value's name and its own reason. `None` when the Build has no such slot.
     pub fn slot_entries(&self, build: &Build, slot: &SlotId) -> Option<Vec<SlotEntry>> {
+        self.slot_entries_in(build, None, slot)
+    }
+
+    /// [`slot_entries`](Self::slot_entries) with the Build's sheet when the caller has it: an option held already
+    /// says where it is held from the sheet, which is otherwise walked once, when the first such option asks.
+    pub fn slot_entries_in(
+        &self,
+        build: &Build,
+        sheet: Option<&Sheet>,
+        slot: &SlotId,
+    ) -> Option<Vec<SlotEntry>> {
         let mut entries: Vec<SlotEntry> = Vec::new();
-        // The sheet, walked when the first option held already asks where it is held.
-        let sheet: OnceCell<Sheet> = OnceCell::new();
+        let walked: OnceCell<Sheet> = OnceCell::new();
         for option in self.options(build, slot)? {
             let same_item = entries
                 .last()
@@ -165,7 +175,8 @@ impl Engine {
                 (Ok(()), _) => None,
                 // Where a pick is held is its own to say: the last value's place is another's.
                 (Err(Issue::AlreadyHeld), _) => {
-                    let sheet = sheet.get_or_init(|| self.evaluate(build));
+                    let sheet =
+                        sheet.unwrap_or_else(|| walked.get_or_init(|| self.evaluate(build)));
                     self.held_where(build, sheet, slot, &option.pick)
                         .or_else(|| self.issue_text(&Issue::AlreadyHeld))
                 }

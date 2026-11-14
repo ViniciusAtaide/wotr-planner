@@ -509,9 +509,11 @@ fn SlotPicker(id: SlotId) -> impl IntoView {
         let slot = slot.clone();
         after_paint(step, move || {
             let build = planner.build.get_untracked();
-            let mut entries =
-                timed("options", || engine.slot_entries(&build, &slot)).unwrap_or_default();
             let sheet = planner.sheet.get_untracked();
+            let mut entries = timed("options", || {
+                engine.slot_entries_in(&build, Some(&sheet), &slot)
+            })
+            .unwrap_or_default();
             timed("rank_level_that_opens", || {
                 later_rank_levels(&engine, &build, &sheet, &slot, &mut entries);
             });

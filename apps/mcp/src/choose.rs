@@ -141,6 +141,18 @@ fn take(
         };
         return skill_map(engine, build, level, ranks, index, leaning);
     }
+    // A level written as text ("13") is the level, as a number is: a key that reads as a number at a rank's level.
+    let as_level;
+    let value = match (&address, value) {
+        (Address::RankLevel(_), ChoiceValue::Key(key)) => match key.trim().parse::<u8>() {
+            Ok(level) => {
+                as_level = ChoiceValue::Number(level);
+                &as_level
+            }
+            Err(_) => value,
+        },
+        _ => value,
+    };
     let offers = offers_at(engine, build, &address)?;
     let offer = find(value, &offers).ok_or_else(|| {
         missing_parameter(engine, build, &address, value, &offers)
@@ -523,7 +535,7 @@ fn rank_level_not_offered(
     given: u8,
 ) -> Option<ToolError> {
     let levels = build.levels.len();
-    let floor = engine.rank_level_options(build, rank).first()?.level;
+    let floor = engine.rank_floor(build, rank)?;
     let table = engine.rank_table_level(rank)?;
     let lists = format!("`options` on `mythic.{rank}.level` lists the levels.");
     let head = format!("MR {rank} can't be taken at level {given}");

@@ -735,3 +735,92 @@ async fn validate_says_where_a_later_ranks_pick_is_and_which_level_would_open_it
         "{invalid}"
     );
 }
+
+#[tokio::test]
+async fn options_choose_validate_and_withdraw_say_alike_why_a_rank_is_not_reached() {
+    // Ticket 192 review: one helper words the unreached rank for the four tools.
+    let client = Client::on_the_test_world().await;
+    let cause = "its Path switch (Legend) ends the ascensions at MR 8";
+    let legend = [
+        ("mythic.path", json!("trickster")),
+        ("mythic.switch", json!("legend")),
+    ];
+    let built = ok("validate", plain(22, &legend)).await;
+    let build = built["build"].clone();
+    let body = |refused: &_| {
+        let full = error_text(refused);
+        full.split_once(": ")
+            .map_or(full.clone(), |(_, reason)| reason.to_owned())
+    };
+    let options = client
+        .call(
+            "options",
+            json!({ "build": build, "choice": "mythic.9.level" }),
+        )
+        .await;
+    assert_eq!(
+        body(&options),
+        format!(
+            "The Build doesn't reach MR 9, so `mythic.9.level` has no level to take it at: {cause}."
+        )
+    );
+    let chosen = client
+        .ok(
+            "choose",
+            json!({ "build": build, "steps": [{ "choice": "mythic.9.level", "value": 18 }] }),
+        )
+        .await;
+    assert_eq!(text(&chosen["rejected"]["reason"]), body(&options));
+    let withdraw = client
+        .call(
+            "withdraw",
+            json!({ "build": build, "choice": "mythic.9.level" }),
+        )
+        .await;
+    assert_eq!(
+        body(&withdraw),
+        format!("The Build doesn't reach MR 9, so there is nothing to withdraw: {cause}.")
+    );
+    // Too few levels: the level the rank comes at, and the Build's levels, in all four.
+    let short = ok("choose", json!({ "build": code(&fighter()), "steps": [] })).await;
+    let short = short["build"].clone();
+    let want = "The Build doesn't reach MR 5, so `mythic.5.level` has no level to take it at: MR 5 comes at level 14 \
+                at the earliest, and the Build has 13 level(s).";
+    let options = client
+        .call(
+            "options",
+            json!({ "build": short, "choice": "mythic.5.level" }),
+        )
+        .await;
+    assert_eq!(body(&options), want);
+    let chosen = client
+        .ok(
+            "choose",
+            json!({ "build": short, "steps": [{ "choice": "mythic.5.level", "value": 14 }] }),
+        )
+        .await;
+    assert_eq!(text(&chosen["rejected"]["reason"]), want);
+}
+
+#[tokio::test]
+async fn choose_reads_a_level_given_as_a_string() {
+    // Ticket 192 review: `"13"` is level 13, offered, so it is taken; `"10"` is refused as the number 10 is.
+    let chosen = ok(
+        "choose",
+        json!({ "build": code(&fighter()), "steps": [{ "choice": "mythic.4.level", "value": "13" }] }),
+    )
+    .await;
+    assert_eq!(chosen["applied"], 1, "{chosen}");
+    assert_eq!(
+        decode(&text(&chosen["build"])).rank_levels,
+        [(4, 13)].into_iter().collect()
+    );
+    let (issue, reason) = refused_level(&fighter(), "mythic.4.level", json!("10")).await;
+    assert_eq!(issue, "not_an_option");
+    assert_eq!(
+        reason,
+        refused_level(&fighter(), "mythic.4.level", json!(10))
+            .await
+            .1
+    );
+}
