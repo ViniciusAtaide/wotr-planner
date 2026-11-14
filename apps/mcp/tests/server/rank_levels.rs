@@ -154,6 +154,13 @@ async fn a_move_a_pick_needs_is_refused_by_choose_and_withdraw_naming_the_pick()
         reason.contains("toughness-mythic needs MR 4 later than level 11"),
         "{reason}"
     );
+    assert!(
+        reason.contains(
+            "toughness-mythic needs MR 4 later than level 11, so `mythic.4.level` can't be withdrawn now: withdraw \
+             toughness-mythic first."
+        ),
+        "{reason}"
+    );
     // It isn't among what can come off now; the pick is.
     let sheet = client
         .ok(

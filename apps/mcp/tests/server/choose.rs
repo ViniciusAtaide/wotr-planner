@@ -611,8 +611,7 @@ async fn withdraw_names_what_depends_on_a_choice() {
     assert_eq!(error_code(&refused), "not_removable");
     assert!(
         error_text(&refused).ends_with(
-            "cleave depends on `slot.feat.1.class.0`, so `slot.feat.1.class.0` can't be withdrawn now: withdraw it \
-             first."
+            "cleave depends on `slot.feat.1.class.0`, so it can't be withdrawn now: withdraw cleave first."
         ),
         "{}",
         error_text(&refused)

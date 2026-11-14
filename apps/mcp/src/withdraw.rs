@@ -74,14 +74,15 @@ pub(crate) fn withdraw(planner: &Planner, args: WithdrawArgs) -> Result<Withdraw
         // A rank taken later that a pick needs there: the engine names the pick ("Shield Focus (Mythic) needs MR
         // 10 later than level 19").
         if let Address::RankLevel(rank) = &address
-            && let Some((reason, count)) = (engine.rank_level_options(&build, *rank).into_iter())
-                .find(|option| option.earliest)
-                .and_then(|option| Some((option.reason?, option.needed_by.len())))
+            && let Some((reason, needed_by)) =
+                (engine.rank_level_options(&build, *rank).into_iter())
+                    .find(|option| option.earliest)
+                    .and_then(|option| Some((option.reason?, option.needed_by)))
         {
+            let first = withdraw_first(&engine.choice_names(&build, &needed_by), needed_by.len());
             return Err(ToolError::not_removable(format!(
-                "{reason}, so `{address}` can't be withdrawn now: withdraw {} first. `options` on `{address}` lists \
-                 the levels MR {rank} can be taken at.",
-                verb(count, "it", "them")
+                "{reason}, so `{address}` can't be withdrawn now: withdraw {first} first. `options` on `{address}` \
+                 lists the levels MR {rank} can be taken at."
             )));
         }
         // The choices that would fail without it, by name.
@@ -94,17 +95,20 @@ pub(crate) fn withdraw(planner: &Planner, args: WithdrawArgs) -> Result<Withdraw
                 .collect();
             let count = refused.len();
             let names = breaks.names(&refused);
-            let first = match breaks.cause(&refusals) {
-                Cause::Needs => format!(
-                    "{names} {} on `{address}`",
-                    verb(count, "depends", "depend")
+            // The address is named once: by the first clause ("so it") or by the second ("so `address`").
+            let (first, so) = match breaks.cause(&refusals) {
+                Cause::Needs => (
+                    format!(
+                        "{names} {} on `{address}`",
+                        verb(count, "depends", "depend")
+                    ),
+                    "it".to_owned(),
                 ),
-                _ => format!("Would break {names}"),
+                _ => (format!("Would break {names}"), format!("`{address}`")),
             };
-            // The address again, not "it": "withdraw it first" is then the choice named, not the address.
             return Err(ToolError::not_removable(format!(
-                "{first}, so `{address}` can't be withdrawn now: withdraw {} first.",
-                verb(count, "it", "them")
+                "{first}, so {so} can't be withdrawn now: withdraw {} first.",
+                withdraw_first(&names, count)
             )));
         }
         return Err(ToolError::not_removable(format!(
@@ -158,5 +162,14 @@ fn unplaced_rank(engine: &Engine, build: &Build, rank: u8) -> String {
         format!(
             "MR {rank} comes at level {at} at the earliest (the rank table's level) and is taken there: {nothing}."
         )
+    }
+}
+
+/// What to withdraw first: the choice by name when it is one ("it" would read as the address), "them" for several,
+/// whether or not the names end in "and N more".
+fn withdraw_first(names: &str, count: usize) -> String {
+    match count {
+        1 => names.to_owned(),
+        _ => "them".to_owned(),
     }
 }
