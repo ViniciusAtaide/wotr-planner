@@ -17,10 +17,10 @@ The `.ron` files in `libs/game-data/` are the game data; there is no database (t
 
 ## Parallel agents
 
-The machine has 8 cores and 24 GB of RAM. Builds, tests, proofs and benchmarks are all CPU-bound and compete for them: three agents building at once drove the load to 85–250 and made each one slower. Reading, writing and reviewing cost almost no local CPU, so those run side by side for free.
+The machine has 8 cores and 24 GB of RAM. Builds, tests, the long self-check runs and benchmarks are all CPU-bound and compete for them: three agents building at once drove the load to 85–250 and made each one slower. Reading, writing and reviewing cost almost no local CPU, so those run side by side for free.
 
 - **Two at most:** no more than two agents building at once, each in its own worktree. Tickets whose diffs touch the same files run one after the other, however small.
-- **Heavy runs one at a time:** `scripts/proof.sh` (the main session's, once per queue: see "Behaviour checks"), the full agreement sweeps (`--ignored`) and benchmarks. Time speed only on a quiet machine (`uptime` load near 8 or under), comparing medians of alternating runs on both sides.
+- **Heavy runs one at a time:** the self-checks' long runs (`--ignored`: the agreement sweeps and the corpus's checks; the main session's, once per queue: see "Behaviour checks") and benchmarks. Time speed only on a quiet machine (`uptime` load near 8 or under), comparing medians of alternating runs on both sides.
 - **Before spawning an agent into a checkout:**
   - its blockers are merged;
   - no other agent is still live there; an agent "waiting on its own background work" is live;
@@ -38,21 +38,18 @@ A new test is done when its name shows up in `cargo test -p <crate> -- --list`.
 
 ## Checks
 
-Before reporting a change done, run `scripts/check.sh` (`--full`, the cargo-leptos builds, only at the end of a queue of tickets). Its tests include the snapshot check and the gold builds (see "Behaviour checks"). A pre-commit hook in `.githooks/` runs its fmt and clippy steps; enable it in a new clone with `git config core.hooksPath .githooks`.
+Before reporting a change done, run `scripts/check.sh` (`--full`, the cargo-leptos builds, only at the end of a queue of tickets). Its tests include the self-checks' short runs and the gold builds (see "Behaviour checks"). A pre-commit hook in `.githooks/` runs its fmt and clippy steps; enable it in a new clone with `git config core.hooksPath .githooks`.
 
 - **A change only to `libs/ui/` and `apps/frontend/`:** `scripts/check.sh --ui` is enough: fmt, clippy and the tests of those two crates. It refuses when the branch or the working tree changes any other path (but `.scratch/` and `*.md`).
 
 ## Behaviour checks
 
-A change to `rules` or `libs/game-data/` must change no behaviour but the intended one. There are two tiers (`libs/game-data/README.md` describes both tests):
+The game is the source of truth for rules (map Notes; ticket 234). A change to `rules` or `libs/game-data/` is checked against the game, never against the engine's earlier output.
 
-- **Every ticket: the snapshot check.** `cargo test -p seeds --test game_data snapshots`, which `scripts/check.sh` runs. It compares the engine's output for a small corpus of Builds with snapshot files in `libs/seeds/tests/game_data/snapshots/`, and its message groups the differences by path.
-  - A ticket that changes no behaviour leaves the snapshot files untouched. If the check reports a difference, find the cause.
-  - A ticket that means to change behaviour regenerates them (`SNAPSHOTS=write cargo test -p seeds --test game_data snapshots`), shows the check's grouped message in its report, and commits the files. Every changed line must follow from the intended change.
-  - The gold builds (`gold.rs` beside it) compare two real player builds with the engine. A known-gap entry is deleted by the ticket that fixes it, never added to get a test to pass.
-- **Once per queue: the proof.** The main session runs `scripts/proof.sh` once, when a queue of tickets is merged, alongside `scripts/check.sh --full` (usage in the script's header and in `tools/proof`'s crate docs). It records about 2,000 Builds on two sides, so it catches what the small corpus can't. A ticket's agent doesn't run it.
-  - `scripts/proof.sh <mode> <out> -- --light` records every Build without the `allows` battery and the checks, about 29 seconds a side against 45 for a full record, after the builds. Reach for it between the two tiers, to see a change's reach over the whole corpus before the queue's proof; it misses what only the battery and the checks see, so it never replaces that proof.
-  - `scripts/proof.sh <mode> <out> <ref> -- --explain` also writes `explain.txt` when the sides differ: what changed, grouped by path and change with the largest group first, and whether the data or the code caused it. Attribute each group to a ticket from there. Delete `A.dump` and `B.dump` afterwards: about 1.5 MB a Build.
+- **Each changed fact has a real-data test** in `libs/seeds/tests/game_data/` whose expected value comes from the game, cited beside the assertion by blueprint name and GUID, or by the decompiled code's file and method with the WrathDecompiled commit.
+- **The engine's self-checks** check it against itself: every picker agrees with the walk (the agreement sweeps, ticket 150), each shortcut agrees with the full answer it stands for, and each option's status agrees with `allows` of its edit. Their short runs are in `scripts/check.sh`. The long ones, over the corpus's ~2,000 Builds (`tools/corpus`), run in release under `--ignored`, once per queue by the main session: `cargo test --release -p corpus -- --ignored` and `cargo test --release -p seeds --test game_data agreement -- --ignored`. A self-check never outranks the game: when one disagrees with it, the engine is fixed.
+- **The gold builds** (`libs/seeds/tests/game_data/gold.rs`) compare two real player builds with the engine. A known-gap entry is deleted by the ticket that fixes it, never added to get a test to pass. A gold build's gain that the game contradicts goes to the user.
+- **The game check** (ticket 238) runs by hand once it exists.
 
 ## Formatting
 

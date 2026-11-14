@@ -1,0 +1,14 @@
+[package]
+name = "corpus"
+version.workspace = true
+edition.workspace = true
+
+# The corpus: about 2,000 Builds of the real game data, which the engine's self-checks run on (`tests/`). A library,
+# not an app. Native only: it reads the game data through `seeds`.
+[dependencies]
+rules.workspace = true
+seeds.workspace = true
+
+[dev-dependencies]
+# The self-checks use the rules crate's test helpers (`rules::agreement`).
+rules = { workspace = true, features = ["testing"] }

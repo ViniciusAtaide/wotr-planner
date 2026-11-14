@@ -45,7 +45,6 @@ mod repeating_talents;
 mod report_gaps;
 mod scaling_features;
 mod skald_rage_powers;
-mod snapshots;
 mod spells;
 mod summaries;
 mod value_keys;

@@ -1,5 +1,5 @@
 //! Withdrawals (ticket 95): the choices a Build holds, each with the edit that takes it back, as the engine lists
-//! them for the proof and answers them one at a time for a picker's remove control.
+//! them for the self-checks (`tools/corpus`) and answers them one at a time for a picker's remove control.
 
 use std::collections::BTreeSet;
 

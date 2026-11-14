@@ -1,6 +1,6 @@
 ---
 name: ticket-queue
-description: Run a queue of wotr-planner tickets with subagents, from research to merge, proof and QA. Use when asked to dispatch agents for several tickets, or to finish the open tickets.
+description: Run a queue of wotr-planner tickets with subagents, from research to merge, checks and QA. Use when asked to dispatch agents for several tickets, or to finish the open tickets.
 ---
 
 # Running a queue of tickets
@@ -17,8 +17,8 @@ You are the main session: you answer questions, order the work, review, merge an
 6. **Build.** Brief a `ticket-builder` with the worktree, branch, base, the files it may touch, the decisions, and the research report. Resume the research agent for a small ticket; for a fix round on an agent whose context has grown past about 300k tokens, start a fresh builder with a pointed brief.
 7. **Review before the merge,** on the model the ticket names, with `ticket-reviewer`. Read the diff yourself too. A builder's report is a claim.
 8. **Merge** into local `main` with `git -C <main> merge --no-ff`, then move the lane to the next ticket's branch from `main`. A lane that worked beside another merges `main` into its branch and reruns `scripts/check.sh` first. When another session has staged files in the main checkout, a true merge there refuses: make the merge commit in the lane (`git switch -c integrate/<n> main`, `git merge --no-ff ticket/<n>-…`), then `git -C <main> merge --ff-only integrate/<n>`, which leaves their index and working tree alone. Commit your own files there with `git commit -m … -- <paths>`.
-9. **Close the queue,** with every lane idle: a code review of the merged range; `scripts/check.sh --full`; `scripts/proof.sh <mode> <out> <the commit before the queue> -- --explain`, each group of `explain.txt` attributed to a ticket (delete the dumps after: about 1.5 MB a Build); a QA session (the `qa-session` skill). Fix what the queue caused; write a ticket for what is older.
-10. **Record.** One entry per ticket and one for the proof in the map; follow-up tickets; then offer to remove the lane worktrees and merged branches.
+9. **Close the queue,** with every lane idle: a code review of the merged range; `scripts/check.sh --full`; the self-checks' long runs, a heavy run (`cargo test --release -p corpus -- --ignored`, then `cargo test --release -p seeds --test game_data agreement -- --ignored`); a QA session (the `qa-session` skill). Fix what the queue caused; write a ticket for what is older.
+10. **Record.** One entry per ticket and one for the queue's checks in the map; follow-up tickets; then offer to remove the lane worktrees and merged branches.
 
 ## Hazards met before
 

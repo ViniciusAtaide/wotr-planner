@@ -4,14 +4,13 @@
 //!
 //! - `progression.ron`, `bonuses.ron`, `races.ron`, `skills.ron`, `weapons.ron`, `feats.ron`, `backgrounds.ron`,
 //!   `deities.ron`
-//! - `interactions.ron` (ticket 124) and `gear.ron` (ticket 165): optional, since data from before them (which the
-//!   behaviour proof reads) has none
+//! - `interactions.ron` (ticket 124) and `gear.ron` (ticket 165): optional, since data from before them has none
 //! - `classes/<class>.ron`, `prestige/<class>.ron`
 //! - `mythic/abilities.ron`, `mythic/feats.ron`
 //! - `mythic/paths/<path>.ron`
 //! - `spells/lists.ron`, and `spells/<page>/level-<n>.ron`: the spells whose blocks sit under the guide page's
 //!   "Level <n>" heading (ticket 121), all read into one list. A folder without `spells/` (data from before
-//!   ticket 121, which the behaviour proof reads) has no spells and no lists.
+//!   ticket 121) has no spells and no lists.
 //!
 //! Any other `.ron` file is an error, so a misplaced file can't be silently skipped. Files with other
 //! extensions (a README) are ignored. Order in the files means nothing: the result is
