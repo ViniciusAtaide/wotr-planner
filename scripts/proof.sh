@@ -15,6 +15,17 @@
 #        tree's Builds as JSON (builds.tsv) rather than links. A side whose Build start has no faith drops it and
 #        leaves out the deity Builds (`t86 …`, full ones too).
 #
+# --explain (ticket 203), a record option the script takes out before it calls `record`: when the comparison isn't empty,
+#   scripts/proof.sh both <out-dir> <ref> -- --explain
+# both harnesses then dump, in clear, the Builds compare.txt names (A.dump, B.dump: about 1.5 MB a Build, so a few GB for a
+# proof that differs everywhere; delete them when done) and explain.txt is written beside compare.txt: its first lines
+# say whether the differences come from the data, the code or both (in `both` mode a third record tells: side A's crates on
+# side B's game data, or side B's on side A's where A's can't read B's), then `proof explain` groups the differing facts by path and change, largest group first,
+# each with its Builds and three examples. Reach for it when compare.txt names more than a few Builds: it says what
+# changed, where compare.txt says only where. `proof explain A.dump B.dump --top 0` lists every group. It adds about
+# the time of a full record per side. Other record options (--only, --light, --threads, --fold-values) apply to the
+# dumps too.
+#
 # When: once per queue of tickets, by the main session, when the queue is merged (CLAUDE.md, "Behaviour checks"). A
 # ticket's own check is the snapshot check.
 #
@@ -37,7 +48,7 @@
 set -euo pipefail
 
 usage() {
-    sed -n '2,35p' "$0" | sed 's/^# \{0,1\}//' >&2
+    sed -n '2,47p' "$0" | sed 's/^# \{0,1\}//' >&2
     exit 2
 }
 
@@ -54,7 +65,15 @@ if [[ $# -gt 0 ]]; then
     [[ $1 == -- ]] || usage
     shift
 fi
-options=("$@")
+options=()
+explain=0
+for option in "$@"; do
+    if [[ $option == --explain ]]; then
+        explain=1
+    else
+        options+=("$option")
+    fi
+done
 
 repo=$(cd "$(git -C "$(dirname "$0")" rev-parse --show-toplevel)" && pwd -P)
 outside_repo() {
@@ -169,4 +188,88 @@ status=0
 "$bin" compare "$out/A.jsonl" "$out/B.jsonl" >"$out/compare.txt" 2>"$out/compare.err" || status=$?
 cat "$out/compare.err" >&2
 head -n 20 "$out/compare.txt" >&2
+
+# The Builds `compare` names, one on a line, as a list for `dump --names`: an empty comparison has none.
+differing_builds() {
+    awk -F'\t' '$1 == "differs" || $1 ~ /^only in / { print $2 }' "$1" | LC_ALL=C sort -u
+}
+
+# How many Builds a comparison names (compare's output at $1).
+count_differing() {
+    differing_builds "$1" | wc -l | tr -d ' '
+}
+
+# Where the differences come from: the first lines of explain.txt. `rules` and `data` change one thing; `both` records
+# side A's crates on side B's game data (C), so A -> C is the data's effect and C -> B the code's.
+where_from() {
+    case $mode in
+    data) echo "These differences come from the data: one harness records both sides, on the ref's game data and on the working tree's." ;;
+    rules) echo "These differences come from the code: both sides record the working tree's game data, with the ref's crates and with the working tree's." ;;
+    both)
+        # An intermediate record X changes one thing from each side: C (A's crates on B's data) first, and where A's
+        # crates can't read B's data, D (B's crates on A's data).
+        local x kind ab from_a to_b data code
+        echo "proof: recording side A's crates on side B's game data (C)" >&2
+        if "$out/proof-A" record "$repo/libs/game-data" "${builds[@]}" ${options[@]+"${options[@]}"} >"$out/C.jsonl" 2>"$out/C.err"; then
+            x=$out/C.jsonl kind=C
+        else
+            echo "proof: side A's crates can't read side B's game data (C.err); recording side B's crates on side A's (D)" >&2
+            if ! "$out/proof-B" record "$data_a" "${builds[@]}" ${options[@]+"${options[@]}"} >"$out/D.jsonl" 2>"$out/D.err"; then
+                echo "Where from: not known. Side A's crates can't record side B's game data (C.err) nor side B's side A's (D.err)."
+                return
+            fi
+            x=$out/D.jsonl kind=D
+        fi
+        ab=$(count_differing "$out/compare.txt")
+        "$bin" compare "$out/A.jsonl" "$x" >"$out/compare-A-$kind.txt" 2>/dev/null || true
+        "$bin" compare "$x" "$out/B.jsonl" >"$out/compare-$kind-B.txt" 2>/dev/null || true
+        from_a=$(count_differing "$out/compare-A-$kind.txt")
+        to_b=$(count_differing "$out/compare-$kind-B.txt")
+        if [[ $kind == C ]]; then
+            data=$from_a code=$to_b
+            echo "Where from, by three records (A: the ref's crates on the ref's data; C: the ref's crates on the working tree's data; B: the working tree's on its own):"
+            echo "  A -> B differ in $ab Builds; A -> C (the data alone) in $data; C -> B (the code alone, on the new data) in $code."
+        else
+            code=$from_a data=$to_b
+            echo "Where from, by three records (A: the ref's crates on the ref's data; D: the working tree's crates on the ref's data, since the ref's crates can't read the new data; B: the working tree's on its own):"
+            echo "  A -> B differ in $ab Builds; A -> D (the code alone, on the old data) in $code; D -> B (the data alone, with the new code) in $data."
+        fi
+        if [[ $data -gt 0 && $code -eq 0 ]]; then
+            echo "  The differences come from the data: the code changes nothing the records hold."
+        elif [[ $data -eq 0 && $code -gt 0 ]]; then
+            echo "  The differences come from the code: the data changes nothing the records hold."
+        elif [[ $data -gt 0 && $code -gt 0 ]]; then
+            echo "  The differences come from both, the data and the code (a Build may be in both counts)."
+        else
+            echo "  Neither alone changes a Build: the differences need the data and the code together."
+        fi
+        ;;
+    esac
+}
+
+if [[ $explain -eq 1 && $status -ne 0 && -s $out/compare.txt ]]; then
+    differing_builds "$out/compare.txt" >"$out/differing.txt"
+    echo "proof: explaining $(wc -l <"$out/differing.txt" | tr -d ' ') Builds" >&2
+    if [[ $mode == data ]]; then
+        dump_a=("$out/proof" dump "$out/data-A/libs/game-data")
+        dump_b=("$out/proof" dump "$repo/libs/game-data")
+    else
+        dump_a=("$out/proof-A" dump "$data_a" "${builds[@]}")
+        dump_b=("$out/proof-B" dump "$repo/libs/game-data" "${builds[@]}")
+    fi
+    echo "proof: dumping side A" >&2
+    "${dump_a[@]}" --names "$out/differing.txt" ${options[@]+"${options[@]}"} >"$out/A.dump" 2>"$out/A-dump.err"
+    tail -n 1 "$out/A-dump.err" >&2
+    echo "proof: dumping side B" >&2
+    "${dump_b[@]}" --names "$out/differing.txt" ${options[@]+"${options[@]}"} >"$out/B.dump" 2>"$out/B-dump.err"
+    tail -n 1 "$out/B-dump.err" >&2
+    {
+        echo "proof explain: A = $ref ($commit), B = the working tree; mode $mode"
+        where_from
+        echo
+        "$bin" explain "$out/A.dump" "$out/B.dump"
+    } >"$out/explain.txt"
+    echo "proof: explain.txt written ($(du -h "$out/A.dump" "$out/B.dump" | awk '{printf "%s%s ", $1, ""}')for the two dumps, kept: delete them when done)" >&2
+    head -n 12 "$out/explain.txt" | cut -c1-240 >&2
+fi
 exit "$status"

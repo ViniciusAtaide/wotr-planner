@@ -1,7 +1,7 @@
 # The proof says where a Build differs, not what
 
 Type: tooling
-Status: open
+Status: resolved
 Blocked by: none
 Model: Sonnet to build.
 Map: [WotR Build Planner](../map.md)
@@ -26,3 +26,23 @@ Stretch, only if the rest is done and it is cheap: `scripts/proof.sh steps <out>
 ## Done when
 
 Run on the last queue (`scripts/proof.sh both <out> ce9cc3b -- --explain`, side B at `8118dd5` or later), `explain.txt` shows the Extra Rogue Talent group as the largest, with its old and new reason texts, and says the differences come from the data; a test in `tools/proof` pins `explain`'s grouping on two small hand-made dumps; `scripts/check.sh` passes. The main session runs the proof itself; the ticket's agent tests with `--only`.
+
+## Answer
+
+Built 2026-11-14 in the lane-tools worktree.
+
+**What was built** (`tools/proof` and `scripts/proof.sh` only):
+
+- **`proof dump`** (`tools/proof/src/dump.rs`): the facts behind every field of a record, one per line, `<build>\t<path>\t<value>`, sorted by Build then path (a path twice is numbered `#2`). Paths follow the snapshot files' dot form (`sheet.levels.3.state.bab`, `slot.Feat.1.General.0.option/power-attack`, `totals.5.…`, `caster.5.<spell>.…`, `classes.4.option/…`, `paths.option/…`, `switches.option/…`, `removable/<choice>`, `allows/<edit>`). A lock reason is its text. The sheet, totals and caster lines are the engine's Debug texts read into fields by a small reader (a map by its keys, a list by its elements' `id`, `rank`, `character_level`, `key` or `name`, so an insertion doesn't rename the rest), so the harness still compiles against an older ref's crates (checked: ref `ce9cc3b`'s crates build and agree with the working tree's harness on the old data). `--names <file>` keeps the Builds a file lists; `--only`, `--threads`, `--light`, `--fold-values`, `--links`, `--builds` are `record`'s. Builds go out in chunks, so memory is a chunk's lines.
+- **`proof explain <a> <b> [--top N]`** (`tools/proof/src/explain.rs`): streams the two dumps, holds one Build's lines from each, and groups the differences by wildcarded path (every number between dots is `*`; an option's key keeps its numbers) and change (`old → new`, `+ value`, `- value`), with the Builds and lines counted and three example Builds, largest group first (by Builds, then lines). A slot only on one side is a group of its own (`slot only in A (kind)`), as is a Build only on one side. A changed `-hash` line (option order, lock-reason issues) is a group only when no other line of its slot or picker differs. A value over 100 characters is cut, a change of a list of alternatives (`Needs a or b or c`) says which alternatives were added or dropped, and every cut value is given in full at the end as `[n]`.
+- **`scripts/proof.sh … -- --explain`**: taken out of the record options; after a non-empty comparison both harnesses dump the Builds `compare.txt` names (`differing.txt`, `A.dump`, `B.dump`) and `explain.txt` is written: first lines say where the differences come from, then `proof explain`. `data` and `rules` say so outright. `both` records side A's crates on B's game data (C: A->C is the data, C->B the code) and, where A's crates can't read B's data (an older crate rejects a field the new data has: it happens, `C.err`), side B's crates on A's data (D), and gives the three counts and a verdict. The usage is in the script's header and in the crate's docs.
+
+**Fields not in clear:** the order of a picker's options and the issues' Debug texts are hashed lines (`order-hash`, `reason-hash`: a reorder, or an issue that changes without changing its text, shows as that line); everything else a record hashes has its facts. An option's *edit* isn't in a record's hash either.
+
+**Decisions:** group order by Builds then lines, hash lines held back when explained, D as the fallback when C can't be read (all the builder's; the ticket text left them open).
+
+**Tests:** `tools/proof/tests/explain.rs` (`differences_are_grouped_by_wildcarded_path_and_change_largest_first` pins the grouping on two small hand-made dumps, plus wildcards, the long-value cut, an agreeing pair, an out-of-order dump); `tools/proof/tests/dump.rs` (every kind of fact, sorted and unique, full against light, Builds by name); the reader's unit tests in `dump.rs`.
+
+**Snapshot message:** none, the check was silent (no behaviour changed).
+
+**Not verified here:** the end-to-end `scripts/proof.sh both <out> ce9cc3b -- --explain` (the main session runs the proof). What was run: `dump` and `explain` by hand on the old data against the current (`--only rogue`: the Extra Rogue Talent group is first, 68 of 71 Builds), the script's `where_from` function with the sample records (C unreadable, D chosen, "from the data"). The proof's size: about 1.5 MB of dump a Build, so a few GB a side when most Builds differ.

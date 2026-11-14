@@ -71,7 +71,7 @@ fn hashed(value: &impl std::fmt::Debug) -> String {
 
 /// A Debug text with each mythic ability pick taking no value written as before ticket 125:
 /// `MythicAbility { ability: MythicAbilityKey("k"), parameter: None }` as `MythicAbility(MythicAbilityKey("k"))`.
-fn as_before_ticket_125(text: &str) -> String {
+pub(crate) fn as_before_ticket_125(text: &str) -> String {
     const NEW: &str = "MythicAbility { ability: ";
     const NO_VALUE: &str = ", parameter: None }";
     let mut out = String::with_capacity(text.len());
@@ -109,7 +109,7 @@ pub fn fold_values(keys: BTreeSet<String>) {
 }
 
 /// A slot's options with the options of each folded key as one: the first, with no value, open when any of them is.
-fn folded(options: Vec<SlotOption>) -> Vec<SlotOption> {
+pub(crate) fn folded(options: Vec<SlotOption>) -> Vec<SlotOption> {
     let Some(keys) = FOLDED.get().filter(|keys| !keys.is_empty()) else {
         return options;
     };
@@ -389,10 +389,14 @@ pub fn fingerprint(engine: &Engine, name: &str, build: &Build, mode: Mode) -> Va
     record
 }
 
-/// Each level's totals, their Debug texts hashed together. The "leaves out" texts aren't hashed: they are wording,
-/// which ticket 166 rewrote for every Build, and hashing them hid whether any number had changed.
-fn totals_hash(engine: &Engine, build: &Build, sheet: &rules::Sheet) -> String {
-    let totals: Vec<rules::Totals> = sheet
+/// Each level's totals, without the "leaves out" texts: they are wording, which ticket 166 rewrote for every Build, and
+/// hashing them hid whether any number had changed.
+pub(crate) fn level_totals(
+    engine: &Engine,
+    build: &Build,
+    sheet: &rules::Sheet,
+) -> Vec<rules::Totals> {
+    sheet
         .levels
         .iter()
         .map(|level| {
@@ -400,15 +404,23 @@ fn totals_hash(engine: &Engine, build: &Build, sheet: &rules::Sheet) -> String {
             totals.leaves_out = &[];
             totals
         })
-        .collect();
-    hashed(&totals)
+        .collect()
 }
 
-/// Each level's caster line for each spell of [`spells`], their Debug texts hashed together, without the "leaves
-/// out" texts (as [`totals_hash`]).
-fn caster_lines_hash(engine: &Engine, build: &Build, sheet: &rules::Sheet) -> String {
+/// Each level's totals, their Debug texts hashed together.
+fn totals_hash(engine: &Engine, build: &Build, sheet: &rules::Sheet) -> String {
+    hashed(&level_totals(engine, build, sheet))
+}
+
+/// Each level's caster line for each spell of [`spells`] (levels outer, spells inner), without the "leaves out" texts
+/// (as [`level_totals`]).
+pub(crate) fn level_caster_lines(
+    engine: &Engine,
+    build: &Build,
+    sheet: &rules::Sheet,
+) -> Vec<Option<rules::CasterLine>> {
     let spells = spells();
-    let lines: Vec<Option<rules::CasterLine>> = sheet
+    sheet
         .levels
         .iter()
         .flat_map(|level| {
@@ -420,8 +432,12 @@ fn caster_lines_hash(engine: &Engine, build: &Build, sheet: &rules::Sheet) -> St
                 line
             })
         })
-        .collect();
-    hashed(&lines)
+        .collect()
+}
+
+/// Each level's caster lines, their Debug texts hashed together.
+fn caster_lines_hash(engine: &Engine, build: &Build, sheet: &rules::Sheet) -> String {
+    hashed(&level_caster_lines(engine, build, sheet))
 }
 
 /// [`Engine::totals`] at a level of the Build's sheet, whatever the `rules` beside the harness takes (its build
@@ -456,7 +472,7 @@ fn caster_line(
 
 /// The spells the caster lines are recorded for: one of each school, one of each subschool, one of each energy type
 /// (an evocation) and one with metamagic, so every bonus scope of the data is met.
-fn spells() -> Vec<SpellTraits> {
+pub(crate) fn spells() -> Vec<SpellTraits> {
     let plain = |school| SpellTraits {
         school,
         subschool: None,
@@ -488,7 +504,7 @@ fn sheet_hash(sheet: &rules::Sheet) -> String {
 }
 
 /// A sheet's (or a state's) Debug text as [`sheet_hash`] hashes it.
-fn sheet_text(debug: &str) -> String {
+pub(crate) fn sheet_text(debug: &str) -> String {
     let text = as_before_ticket_125(debug)
         .replace("faith: None, deity_domains: {}, ", "")
         .replace("option_values: {}, ", "");
@@ -539,7 +555,7 @@ fn list_end(text: &str) -> usize {
 }
 
 /// The Build's classes, each with its archetype ("slayer:slayer/arcane-enforcer").
-fn who(build: &Build) -> Vec<String> {
+pub(crate) fn who(build: &Build) -> Vec<String> {
     build
         .class_choices
         .iter()

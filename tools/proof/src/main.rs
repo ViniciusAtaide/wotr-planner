@@ -5,13 +5,16 @@ use std::path::Path;
 use std::process::ExitCode;
 use std::time::Instant;
 
-use proof::{Named, builds, compare, fingerprint, links};
+use proof::{Named, builds, compare, dump, explain, fingerprint, links};
 use rules::{Engine, GameData};
 
 const USAGE: &str = "usage:
   proof record <game-data dir> [--links <file> | --builds <file>] [--threads N] [--only <name substring>]
                [--fold-values <key>,…] [--light]
+  proof dump <game-data dir> [--links <file> | --builds <file>] [--threads N] [--only <name substring>]
+             [--names <file>] [--fold-values <key>,…] [--light]
   proof compare <a.jsonl> <b.jsonl>
+  proof explain <a.dump> <b.dump> [--top N]
   proof export <game-data dir> [--json] [--threads N] [--only <name substring>]";
 
 /// The options `record` and `export` take.
@@ -29,6 +32,8 @@ struct Options {
     fold_values: BTreeSet<String>,
     /// `record`: a light record (ticket 162); `export` ignores it, as it does `--fold-values`.
     light: bool,
+    /// `dump`: a file of Build names, one a line; only those Builds are dumped.
+    names: Option<String>,
 }
 
 fn options(args: &[String], links_allowed: bool) -> Result<Options, String> {
@@ -43,6 +48,7 @@ fn options(args: &[String], links_allowed: bool) -> Result<Options, String> {
         only: None,
         fold_values: BTreeSet::new(),
         light: false,
+        names: None,
     };
     while let Some(flag) = args.next() {
         let mut value = || {
@@ -62,6 +68,7 @@ fn options(args: &[String], links_allowed: bool) -> Result<Options, String> {
                 options.fold_values = value()?.split(',').map(str::to_owned).collect();
             }
             "--light" => options.light = true,
+            "--names" if links_allowed => options.names = Some(value()?),
             other => return Err(format!("unknown option {other}")),
         }
     }
@@ -105,6 +112,10 @@ fn engine_and_builds(options: &Options) -> Result<(Engine, GameData, Vec<Named>)
     if let Some(only) = &options.only {
         builds.retain(|(name, _)| name.contains(only.as_str()));
     }
+    if let Some(path) = &options.names {
+        let names: BTreeSet<String> = read(path)?.lines().map(str::to_owned).collect();
+        builds.retain(|(name, _)| names.contains(name));
+    }
     Ok((engine, data, builds))
 }
 
@@ -133,6 +144,53 @@ fn record(options: &Options) -> Result<ExitCode, String> {
         eprintln!("held choices checked: {}", held.join(", "));
     }
     eprintln!("recorded in {:.1?}", started.elapsed());
+    Ok(ExitCode::SUCCESS)
+}
+
+fn dump(options: &Options) -> Result<ExitCode, String> {
+    use std::io::Write;
+    let started = Instant::now();
+    fingerprint::fold_values(options.fold_values.clone());
+    let (engine, _, builds) = engine_and_builds(options)?;
+    eprintln!("{} Builds", builds.len());
+    let mode = if options.light {
+        fingerprint::Mode::Light
+    } else {
+        fingerprint::Mode::Full
+    };
+    let mut out = std::io::BufWriter::new(std::io::stdout().lock());
+    let mut failed = None;
+    dump::dump(&engine, builds, options.threads, mode, |text| {
+        if failed.is_none()
+            && let Err(error) = out.write_all(text.as_bytes())
+        {
+            failed = Some(error);
+        }
+    });
+    out.flush().map_err(|error| error.to_string())?;
+    if let Some(error) = failed {
+        return Err(error.to_string());
+    }
+    eprintln!("dumped in {:.1?}", started.elapsed());
+    Ok(ExitCode::SUCCESS)
+}
+
+fn explain(args: &[String]) -> Result<ExitCode, String> {
+    let [a, b, rest @ ..] = args else {
+        return Err("explain takes two dumps".to_owned());
+    };
+    let top = match rest {
+        [] => explain::DEFAULT_TOP,
+        [flag, n] if flag == "--top" => n.parse().map_err(|_| "--top takes a number")?,
+        _ => return Err("unknown option".to_owned()),
+    };
+    let open = |path: &String| {
+        std::fs::File::open(path)
+            .map(std::io::BufReader::new)
+            .map_err(|error| format!("{path}: {error}"))
+    };
+    let text = explain::explain(open(a)?, open(b)?, top)?;
+    print!("{text}");
     Ok(ExitCode::SUCCESS)
 }
 
@@ -172,6 +230,8 @@ fn main() -> ExitCode {
     let result = match args.first().map(String::as_str) {
         Some("record") => options(&args[1..], true).and_then(|options| record(&options)),
         Some("export") => options(&args[1..], false).and_then(|options| export(&options)),
+        Some("dump") => options(&args[1..], true).and_then(|options| dump(&options)),
+        Some("explain") => explain(&args[1..]),
         Some("compare") if args.len() == 3 => compare(&args[1], &args[2]),
         _ => Err("no such command".to_owned()),
     };
