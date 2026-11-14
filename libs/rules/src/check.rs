@@ -1239,6 +1239,11 @@ impl Checker {
                 self.names_each(&at, &option.pool, DataAt::FeatureSelection);
                 self.names_each(&at, &option.replaces_row_of, DataAt::FeatureSelection);
                 self.names_each(&at, &option.arcana, DataAt::Feature);
+                self.names_each(
+                    &at,
+                    option.bab_from_ranks.as_ref().map(|bab| &bab.skill),
+                    DataAt::Skill,
+                );
                 // An option takes a value for its chosen feat, which must take one, or of its own kind.
                 let takes = option.chosen_feat.as_ref().and_then(|feat| {
                     let kind = self.parameters.get(feat).copied();

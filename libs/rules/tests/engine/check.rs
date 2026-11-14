@@ -1025,6 +1025,26 @@ fn an_options_arcana_is_one_of_its_rows_features() {
 }
 
 #[test]
+fn an_option_that_sets_the_bab_by_ranks_names_a_skill_the_data_has() {
+    let mut data = world();
+    let option = data
+        .mythic_paths
+        .iter_mut()
+        .flat_map(|path| &mut path.selections)
+        .flat_map(|selection| &mut selection.options)
+        .find(|option| option.key.as_str() == "trickster/tricks/athletics-3")
+        .unwrap();
+    option.bab_from_ranks.as_mut().unwrap().skill = skill("cooking");
+    assert_eq!(
+        issues(&data),
+        [unknown(
+            DataAt::SelectionOption(SelectionOptionKey::new("trickster/tricks/athletics-3")),
+            DataAt::Skill(skill("cooking")),
+        )]
+    );
+}
+
+#[test]
 fn a_selection_has_one_source_of_option_levels() {
     // Impossible Domain's levels come from the other domains held, not from classes as well.
     let mut data = world();

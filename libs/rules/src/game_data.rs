@@ -1365,6 +1365,20 @@ pub struct SelectionOption {
     /// blessing: the Air domain). A deity-limited selection checks it against the deity's domains.
     #[serde(default)]
     pub domain: Option<SelectionOptionKey>,
+    /// While the option is held, the base attack bonus is at least the ranks spent in a skill (Athletics III), ticket
+    /// 212.
+    #[serde(default)]
+    pub bab_from_ranks: Option<BabFromRanks>,
+}
+
+/// A base attack bonus that follows the ranks spent in a skill: "Your BAB is at least your Athletics rank. If your
+/// BAB is equal to your character level, it is at least your Athletics rank + 5."
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct BabFromRanks {
+    pub skill: SkillKey,
+    /// Added to the ranks while the class tables' base attack bonus equals the character level.
+    pub extra_at_full_bab: u8,
 }
 
 impl SelectionOption {

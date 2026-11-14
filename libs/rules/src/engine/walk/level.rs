@@ -532,6 +532,7 @@ impl<'a> Walker<'a> {
         let state = &mut self.state;
         state.feat_class_levels = feat_class_levels;
         state.bab = bab;
+        self.class_bab = bab;
         state.fort = fort;
         state.reflex = reflex;
         state.will = will;

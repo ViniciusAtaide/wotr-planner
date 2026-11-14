@@ -25,7 +25,7 @@ Check these with `options` (`only_open: false`) at the slot before the plan depe
 - **Proficiency.** `options {values: true}` on Exotic Weapon Proficiency lists every exotic weapon (the fauchard is one). A class without proficiency with the weapon needs that feat, or takes the non-proficiency penalty.
 - **Fighter-only feats.** Weapon Specialization, its Greater form, Critical Mastery and Advanced Weapon Training need Fighter levels, so a monk or Sohei can't take them, nor Weapon Specialization (Mythic), which needs the ordinary feat. Critical Mastery also needs two critical feats held.
 - **Trickster's critical chain.** Improved Improved Critical and the two after it need Perception II (an Improved Mythic Trick, from MR 4), so the first goes at a level after MR 4's, each in the same weapon as Improved Critical.
-- **Skill-gated tricks.** Athletics III makes BAB no lower than the Athletics ranks: spend a rank in Athletics every level.
+- **Skill-gated tricks.** Athletics III (the Greater Mythic Trick, taken at MR 7 or MR 10) makes BAB no lower than the Athletics ranks spent. It is ranks + 5 while the class tables' BAB equals the character level, so a Fighter 16 who takes a Rogue level drops to the ranks alone. The sheet, the attack line (a fifth attack comes at BAB 21) and BAB prerequisites count it from the level after the trick is taken, and in later picks of that rank, not in that level's own class and general slots: spend a rank in Athletics every level.
 - **Archetype feat lists.** An archetype's bonus feat slots take only their own list; Power Attack and Weapon Focus go in race or general slots.
 
 ## In the game, not the Build

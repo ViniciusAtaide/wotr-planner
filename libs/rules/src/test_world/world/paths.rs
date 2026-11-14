@@ -4,7 +4,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use crate::*;
 
-use crate::test_world::builds::{feat, feat_list, feature, option, path};
+use crate::test_world::builds::{feat, feat_list, feature, option, path, skill};
 use crate::test_world::world::selections::selection_option;
 use crate::test_world::world::{bonus_feature, guide, list, plain_feature};
 
@@ -58,6 +58,20 @@ pub(super) fn trickster() -> MythicPath {
                     ))),
                 ),
                 selection_option("trickster/tricks/athletics-1", None, None),
+                // Invented, like the data's Athletics III: BAB follows the Athletics ranks spent.
+                SelectionOption {
+                    bab_from_ranks: Some(BabFromRanks {
+                        skill: skill("athletics"),
+                        extra_at_full_bab: 5,
+                    }),
+                    ..selection_option(
+                        "trickster/tricks/athletics-3",
+                        None,
+                        Some(Prerequisite::SelectionOption(option(
+                            "trickster/tricks/athletics-1",
+                        ))),
+                    )
+                },
                 selection_option("trickster/tricks/mobility-1", None, None),
                 selection_option("trickster/tricks/persuasion-1", None, None),
                 // Invented, like Azata's All-skilled: one option granting several feats.

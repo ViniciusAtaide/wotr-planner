@@ -29,6 +29,7 @@ pub(super) fn selection_option(
         group: None,
         arcana: None,
         domain: None,
+        bab_from_ranks: None,
     }
 }
 

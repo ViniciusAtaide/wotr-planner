@@ -347,11 +347,11 @@ fn modifier(score: u8) -> i16 {
     (i16::from(score) - 10).div_euclid(2)
 }
 
-/// The base of each attack of a full attack: the BAB, then 5 less for each further attack while it stays above 0,
-/// four at most.
+/// The base of each attack of a full attack: the BAB, then 5 less for each further attack while it stays above 0:
+/// four at BAB 16 to 20, one more for each 5 past 20, and eight at most (`other-mythic-paths#playing-a-legend`).
 fn iteratives(bab: u8) -> impl Iterator<Item = i16> {
     let bab = i16::from(bab);
-    (0..4)
+    (0..8)
         .map(move |n| bab - 5 * n)
         .enumerate()
         .take_while(|(n, base)| *n == 0 || *base > 0)

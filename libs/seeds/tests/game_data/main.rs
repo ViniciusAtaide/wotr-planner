@@ -7,6 +7,7 @@ mod agreement;
 mod alignment;
 mod archetype_losses;
 mod archetype_saves;
+mod athletics_iii;
 mod backgrounds;
 mod bloodline_ascendance;
 mod bonus_feat_choices;
