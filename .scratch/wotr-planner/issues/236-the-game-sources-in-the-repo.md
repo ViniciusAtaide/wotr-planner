@@ -1,7 +1,7 @@
 # The game's blueprints and decompiled code in the repo, git-ignored
 
 Type: build
-Status: open
+Status: resolved
 Blocked by: none
 Model: Sonnet to build.
 Map: [WotR Build Planner](../map.md)
@@ -34,6 +34,25 @@ The only copy today sits in another session's temp scratchpad, which a reboot cl
 - **`libs/game-data/README.md`** says the same in a line, where it describes the data's sources.
 
 The script commits nothing of the game's: it fetches the community's published files into ignored folders.
+
+## Answer
+
+**Built (2026-11-14):**
+- `.gitignore` names `/blueprints/` beside `/decompiled/`.
+- `scripts/game-sources.pins`: the pins as plain `KEY=value` lines (`BLUEPRINTS_REPO/RELEASE/ASSET/BYTES/SHA256`, `DECOMPILED_REPO/COMMIT` with the full SHA `6ce4a6ba6d35039cc73ba16faf70c2d9952a63c2`). The script sources it and the game check ([238](238-the-game-check.md)) parses the same file. A comment says the pin moves release and hash together, and only when both sources have a newer patch.
+- `scripts/game-sources.sh` (bash, `set -euo pipefail`): fills `blueprints/` and `decompiled/` at the repo root of the checkout it runs in. A missing or empty folder is fetched (`gh release download`, curl as fallback, into a temp folder and moved in only when the SHA-256 matches; WrathDecompiled by `git init` + `fetch --depth 1 <sha>` + checkout, removed again if the fetch fails). A filled folder is checked: the `.binz`'s SHA-256, `decompiled/`'s HEAD. A difference is refused with both values named and exit 1. `shasum -a 256`, `sha256sum` as fallback. A stalled git transfer fails after a minute (`GIT_HTTP_LOW_SPEED_*`) instead of hanging: the first from-empty run hung 9 minutes on a stalled pack and was killed, then the script cleaned up and the second run fetched in 6.5 s.
+- `CLAUDE.md`: a "Game sources" section after "Game data" (what each folder holds, how to cite, main checkout only and read by absolute path from a worktree, never in the repo). `libs/game-data/README.md`: a short paragraph where it describes the data's sources.
+
+**Decisions:** the pins file as the single place, separate from the script (the main session). The folders and pins themselves (user, ticket 234).
+
+**Runs (in the worktree):**
+- Neither folder: `blueprints: fetched, SHA-256 03ba6e29...c6a`, `decompiled: current (xADDBx/WrathDecompiled at 6ce4a6ba...)`, exit 0 (real downloads).
+- Again: both `current`, exit 0, nothing changed.
+- Truncated `.binz` (`head -c 1000000`): `blueprints: REFUSED, ... has SHA-256 fac7cca2...3e8a, the pin is 03ba6e29...c6a`, exit 1.
+- Extra commit on `decompiled/`: `decompiled: REFUSED, HEAD is 97cb3aa3..., the pin is 6ce4a6ba...`, exit 1.
+- `git status` never listed either folder; both were deleted from the worktree afterwards.
+
+**Tests:** none to add (no Rust change). **Snapshot message:** silent (the check runs inside `scripts/check.sh`). **What the queue's proof should show:** no difference; nothing in the engine or data changed.
 
 ## Done when
 
