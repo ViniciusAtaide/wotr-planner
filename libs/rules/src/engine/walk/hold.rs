@@ -6,7 +6,7 @@ use super::{Checkpoint, GrantSource, Held, Pending, Probe, RankGrant, Walker};
 use crate::build::{AbilityScores, Pick, SlotId};
 use crate::choice::{Choice, Issue};
 use crate::engine::{Slot, SlotKind, with_bonuses};
-use crate::keys::{FeatKey, FeatureKey, MythicFeatKey};
+use crate::keys::{FeatKey, FeatureKey, MythicFeatKey, SelectionOptionKey};
 use crate::parameter::Parameter;
 use crate::state::CharacterState;
 
@@ -209,6 +209,7 @@ impl<'a> Walker<'a> {
             }
         }
         match &item {
+            Held::SelectionOption(key, _) if self.raises_bab(key) => self.refresh_bab(),
             Held::Feature(key) if self.engine.catalog.floor(key).is_some() => {
                 self.refresh_floors();
             }
@@ -332,6 +333,7 @@ impl<'a> Walker<'a> {
             }
         }
         match item {
+            Held::SelectionOption(key, _) if self.raises_bab(key) => self.refresh_bab(),
             Held::Feature(key) if self.engine.catalog.floor(key).is_some() => {
                 self.refresh_floors();
             }
@@ -360,6 +362,34 @@ impl<'a> Walker<'a> {
             .catalog
             .mythic_feat(key)
             .is_some_and(|feat| feat.removes_racial_penalty)
+    }
+
+    /// Whether an option sets the base attack bonus by ranks (Athletics III).
+    fn raises_bab(&self, option: &SelectionOptionKey) -> bool {
+        self.engine
+            .catalog
+            .option(option)
+            .is_some_and(|option| option.bab_from_ranks.is_some())
+    }
+
+    /// The base attack bonus: the class tables', or the most the options held set by ranks spent (Athletics III: the
+    /// ranks, and 5 more while the class tables' bonus equals the character level). The sheet, the attack line and
+    /// every prerequisite read it.
+    pub(super) fn refresh_bab(&mut self) {
+        let catalog = &self.engine.catalog;
+        let state = &self.state;
+        let full = self.class_bab == state.character_level;
+        let raised = state
+            .selection_options
+            .keys()
+            .filter_map(|key| catalog.option(key)?.bab_from_ranks.as_ref())
+            .map(|rule| {
+                let extra = if full { rule.extra_at_full_bab } else { 0 };
+                state.skill_ranks(&rule.skill).saturating_add(extra)
+            })
+            .max()
+            .unwrap_or(0);
+        self.state.bab = self.class_bab.max(raised);
     }
 
     /// The floors prerequisites see, from the features held (Perfect Mind: BAB 15, skill ranks at the Mythic rank).

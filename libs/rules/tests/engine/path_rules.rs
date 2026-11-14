@@ -895,3 +895,107 @@ fn perfect_mind_raises_bab_and_every_skills_ranks_for_prerequisites() {
             .is_err()
     );
 }
+
+// ---- Athletics III's base attack bonus (ticket 212) -----------------------------------------------------------
+
+/// `class` for 20 levels, one Athletics rank at each, Athletics I at MR 3 and the invented Athletics III at MR 7
+/// (level 16 here).
+fn athletics_build(class: &'static str, athletics_iii: bool) -> Build {
+    athletics_levels(&times(class, 20), athletics_iii)
+}
+
+fn athletics_levels(classes: &[&'static str], athletics_iii: bool) -> Build {
+    let mut build = build("human", classes);
+    build.mythic_path = Some(path("trickster"));
+    for level in &mut build.levels {
+        level.skill_ranks.insert(skill("athletics"), 1);
+    }
+    build.picks.insert(
+        path_selection(3),
+        pick_option("trickster/tricks/athletics-1"),
+    );
+    if athletics_iii {
+        build.picks.insert(
+            path_selection(7),
+            pick_option("trickster/tricks/athletics-3"),
+        );
+    }
+    build
+}
+
+#[test]
+fn athletics_iii_raises_bab_to_the_ranks_and_five_more_at_full_bab_from_its_level() {
+    let engine = engine();
+    let build = athletics_build("fighter", true);
+    assert!(engine.is_possible(&build));
+    assert_eq!(engine.evaluate(&build).ranks[6].character_level, 16);
+    let sheet = engine.evaluate(&build);
+    let bab = |level: u8| sheet.at(level).unwrap().bab;
+    // Before MR 7 the class table's; from its level the ranks spent (= the level) + 5.
+    assert_eq!([bab(14), bab(15)], [14, 15]);
+    assert_eq!([bab(16), bab(17), bab(20)], [21, 22, 25]);
+    // It is a raise of the BAB itself, not a floor for prerequisites alone.
+    assert_eq!(sheet.at(20).unwrap().prerequisite_bab(), 25);
+
+    // Without the trick the table's BAB stands.
+    let plain = engine.evaluate(&athletics_build("fighter", false));
+    assert_eq!(plain.at(20).unwrap().bab, 20);
+}
+
+#[test]
+fn athletics_iii_gives_a_class_that_lags_its_level_the_ranks_spent_and_no_more() {
+    let engine = engine();
+    let sheet = engine.evaluate(&athletics_build("wizard", true));
+    let bab = |level: u8| sheet.at(level).unwrap().bab;
+    // The wizard's table is half the level: 7 at 15, 8 at 16, 10 at 20; the ranks spent are the level.
+    assert_eq!([bab(15), bab(16), bab(17), bab(20)], [7, 16, 17, 20]);
+
+    // Ranks above the table's BAB win, and fewer ranks leave it: stop spending at 12 ranks.
+    let mut build = athletics_build("wizard", true);
+    for level in build.levels.iter_mut().skip(12) {
+        level.skill_ranks.clear();
+    }
+    let sheet = engine.evaluate(&build);
+    assert_eq!(sheet.at(20).unwrap().bab, 12);
+}
+
+#[test]
+fn athletics_iii_opens_a_bab_gated_feat_from_the_next_levels_picks_not_its_own() {
+    let engine = engine();
+    // Fifteen wizard levels, then fighter levels: the fighter's first level (16, MR 7's) has a bonus feat slot, and
+    // so has the next fighter level's (17).
+    let classes: Vec<&'static str> = times("wizard", 15)
+        .into_iter()
+        .chain(times("fighter", 5))
+        .collect();
+    let build = athletics_levels(&classes, true);
+    assert!(engine.is_possible(&build));
+    let status = |build: &Build, slot: SlotId| {
+        engine
+            .options(build, &slot)
+            .unwrap_or_else(|| panic!("no slot {slot:?}"))
+            .into_iter()
+            .find(|option| option.pick == pick_feat("critical-focus"))
+            .unwrap()
+            .status
+    };
+    // The table gives 7 + 1 = 8 at 16 and 7 + 2 = 9 at 17 (the invented Critical Focus needs 12), the ranks 16 and 17. MR 7 is
+    // taken at 16: the level's own slot is filled before the rank's picks, so it doesn't see the raise.
+    assert_eq!(engine.evaluate(&build).at(16).unwrap().bab, 16);
+    assert!(status(&build, class_slot(16, 0)).is_err());
+    assert_eq!(status(&build, class_slot(17, 0)), Ok(()));
+}
+
+#[test]
+fn a_legend_switch_takes_athletics_iiis_bab_back() {
+    let engine = engine();
+    let mut build = athletics_build("fighter", true);
+    build.path_switch = Some(path("legend"));
+    // Legend drops the picks of MR 3 to 8 at the switch (level 17 here): the BAB reads the table's again, and a
+    // rank spent after it doesn't bring the raise back.
+    let sheet = engine.evaluate(&build);
+    let bab: Vec<u8> = (15..=20)
+        .map(|level| sheet.at(level).unwrap().bab)
+        .collect();
+    assert_eq!(bab, [15, 21, 17, 18, 19, 20]);
+}

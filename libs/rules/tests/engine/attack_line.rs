@@ -416,3 +416,20 @@ fn the_trickster_critical_feats_add_to_the_threat_range_and_the_multiplier_after
         .unwrap();
     assert_eq!(greatsword.critical_text(), "19–20/×2");
 }
+
+#[test]
+fn a_fifth_attack_comes_at_bab_21_and_one_more_for_each_5_after_up_to_eight() {
+    let engine = engine();
+    let attacks = |bab| {
+        engine
+            .attack_line(&character(bab, 10, 10), &WeaponKey::new("longsword"))
+            .unwrap()
+            .attacks
+    };
+
+    assert_eq!(attacks(21), [21, 16, 11, 6, 1]);
+    assert_eq!(attacks(25), [25, 20, 15, 10, 5]);
+    assert_eq!(attacks(26), [26, 21, 16, 11, 6, 1]);
+    assert_eq!(attacks(36).len(), 8);
+    assert_eq!(attacks(40), [40, 35, 30, 25, 20, 15, 10, 5]);
+}

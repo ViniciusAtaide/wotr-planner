@@ -231,6 +231,9 @@ struct Walker<'a> {
     /// that a Mythic rank's pick gave, with that rank: a rank taken at another level takes its slots along, and
     /// the places of the slots after them shift ([`Engine::shifted_picks`]).
     rank_slots: Vec<(SlotId, u8)>,
+    /// The base attack bonus the class tables give at this level, before any option raises it
+    /// ([`refresh_bab`](Self::refresh_bab)).
+    class_bab: u8,
 }
 
 /// A slot granted at a level, filled once the level's own slots are.
@@ -330,6 +333,7 @@ impl<'a> Walker<'a> {
             gear: gear::WornGear::default(),
             ascending: None,
             rank_slots: Vec::new(),
+            class_bab: 0,
         }
     }
 
@@ -650,6 +654,7 @@ impl<'a> Walker<'a> {
         self.feat_selection_slots = 0;
         self.advance_holdings();
         let skill_points = self.skill_ranks(level, level_up);
+        self.refresh_bab();
         self.skill_points = skill_points;
 
         let level_slots = self.level_slots(level, level_up);
