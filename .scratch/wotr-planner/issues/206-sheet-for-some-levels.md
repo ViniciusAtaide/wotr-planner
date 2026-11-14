@@ -1,7 +1,7 @@
 # `sheet` has no narrow form
 
 Type: feature
-Status: open
+Status: closed, taken into 210
 Blocked by: [202](202-the-web-app-says-the-gear-notes-in-the-engines-words.md) (the Offers queue, 199 to 202, edits `apps/mcp`)
 Model: Sonnet to build.
 Map: [WotR Build Planner](../map.md)

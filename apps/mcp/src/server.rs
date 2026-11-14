@@ -25,9 +25,9 @@ use crate::rank::{ImproveArgs, ImproveResult, improve};
 use crate::shapes::{
     BuildResult, ChooseArgs, ChooseResult, CompareArgs, CompareResult, DescribeArgs, Item,
     NewBuildArgs, OneOrMany, OptionsArgs, OptionsResult, SearchArgs, SearchResult, SheetArgs,
-    SheetResult, ValidateArgs, ValidateResult, WithdrawArgs, WithdrawResult,
+    SheetLevel, SheetResult, ValidateArgs, ValidateResult, WithdrawArgs, WithdrawResult,
 };
-use crate::sheet::sheet;
+use crate::sheet::{Asked, sheet};
 use crate::validate::validate;
 use crate::withdraw::withdraw;
 
@@ -280,19 +280,41 @@ impl Server {
             each item at its address with its summary, `uncounted` and `other_effects`; `gear_dependent`, each choice only the \
             gear allows, with the items it needs (also `with_gear` on its line), to report as such; and `naked`, \
             the numbers its gear changes (scores, attack and caster lines by level, totals) without the gear. Every \
-            other number counts the gear's always-on bonuses (a level's skill points never do). Plus the envelope \
-            (`build`, `link`, `todo`).",
+            other number counts the gear's always-on bonuses (a level's skill points never do). Plus `build` and \
+            `link`; `todo: true` adds the whole list of open choices (`choose` and `new_build` give them). \
+            A level row has three kinds of field: always given (BAB, saves, `class_level`, the attack line's \
+            `attacks` and `damage`, the caster line's DCs and bonuses); what the level adds (`feats`, `features`, \
+            `mythic_ranks`, `picks`: absent means none); and left out when unchanged since the row before \
+            (`class` with `archetype`, `scores` (all six when any changed), `skill_points`, `skill_ranks`, the \
+            attack line's `weapon`, `critical` and `counts`, the caster line's `class`, `ability` and counts): \
+            read them from the nearest earlier row; the first row sent, and every row of a `levels` call, has \
+            them all. `levels` ([9]) and `ranks` ([3]) give only those levels' and ranks' rows, each level in \
+            full: ask for the ones a question is about.",
         annotations(read_only_hint = true, open_world_hint = false)
     )]
     async fn sheet(
         &self,
         Parameters(args): Parameters<SheetArgs>,
-    ) -> Result<Json<SheetResult>, String> {
+    ) -> Result<Json<SheetResult<SheetLevel>>, String> {
         self.blocking(move |planner| {
             let build = open(planner, &args.build)?;
             let weapon = attack_weapon(&planner.engine, args.weapon.as_deref())?;
             let spell = caster_argument(args.caster.as_ref())?;
-            Ok(Json(sheet(planner, &build, args.removable, weapon, spell)))
+            let asked = Asked::of(
+                &planner.engine,
+                &build,
+                args.levels.as_deref(),
+                args.ranks.as_deref(),
+                args.todo,
+            )?;
+            Ok(Json(sheet(
+                planner,
+                &build,
+                args.removable,
+                weapon,
+                spell,
+                &asked,
+            )))
         })
         .await
     }

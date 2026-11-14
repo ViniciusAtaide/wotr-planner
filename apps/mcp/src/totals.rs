@@ -27,6 +27,8 @@ pub struct TotalsShape {
 #[derive(Clone, Debug, Serialize, JsonSchema)]
 pub struct TotalShape {
     pub total: i16,
+    /// The parts that aren't 0; left out when none is.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub counts: Vec<CasterPartShape>,
 }
 
@@ -34,6 +36,8 @@ pub struct TotalShape {
 pub struct SkillTotalShape {
     pub ranks: u8,
     pub total: i16,
+    /// The parts that aren't 0 (a skill with no ranks has no `Ranks` part); left out when none is.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub counts: Vec<CasterPartShape>,
 }
 
@@ -41,6 +45,7 @@ fn counts(total: &Total) -> Vec<CasterPartShape> {
     total
         .parts
         .iter()
+        .filter(|part| part.value != 0)
         .map(|part| CasterPartShape {
             name: part.name.clone(),
             value: part.value,

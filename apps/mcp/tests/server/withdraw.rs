@@ -213,7 +213,7 @@ async fn withdrawing_a_level_closes_its_slots() {
     let fighter = build("human", &times("fighter", 3));
     let whole = Client::on_the_test_world()
         .await
-        .ok("sheet", json!({ "build": code(&fighter) }))
+        .ok("sheet", json!({ "build": code(&fighter), "todo": true }))
         .await;
     let level_3: Vec<String> = choices(&whole["todo"])
         .into_iter()

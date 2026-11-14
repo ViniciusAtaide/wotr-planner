@@ -54,4 +54,9 @@ impl Unreached {
     pub(crate) fn no_level(rank: u8) -> String {
         format!("`mythic.{rank}.level` has no level to take it at")
     }
+
+    /// The consequence for a rank `sheet` is asked for (`ranks`).
+    pub(crate) fn no_row() -> String {
+        "`sheet` has no row for it".to_owned()
+    }
 }

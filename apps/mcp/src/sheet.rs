@@ -14,26 +14,94 @@ use rules::{
 use crate::attack;
 use crate::caster;
 use crate::code::envelope;
+use crate::error::ToolError;
 use crate::gear::{dependent_lines, gear_lines, if_differs};
 use crate::planner::Planner;
 use crate::shapes::ChoiceValue;
 use crate::shapes::{
     Gained, LevelLine, NakedLevel, NakedNumbers, Named, PickLine, RankLine, RankState, Scores,
-    SheetResult, SkillPointsLine, SpellLevels,
+    SheetLevel, SheetResult, SkillPointsLine, SpellLevels, level_rows,
 };
 use crate::totals;
+use crate::unreached::Unreached;
+
+/// What a `sheet` call asks for besides the numbers' weapon and spell: which levels and ranks, and whether the whole
+/// list of open choices comes along.
+#[derive(Clone, Debug, Default)]
+pub(crate) struct Asked {
+    /// The character levels to give (each in full), sorted and once each; `None` for the whole sheet.
+    pub levels: Option<Vec<u8>>,
+    /// The Mythic ranks to give, sorted and once each; `None` for every rank.
+    pub ranks: Option<Vec<u8>>,
+    /// Whether `todo` comes with the sheet.
+    pub todo: bool,
+}
+
+impl Asked {
+    /// What the arguments ask: each list sorted and without repeats, each entry one the Build has (the first that
+    /// isn't, in the order given, is refused).
+    pub(crate) fn of(
+        engine: &Engine,
+        build: &Build,
+        levels: Option<&[u8]>,
+        ranks: Option<&[u8]>,
+        todo: Option<bool>,
+    ) -> Result<Self, ToolError> {
+        if let Some(&level) = levels.and_then(|levels| {
+            levels
+                .iter()
+                .find(|&&level| level == 0 || usize::from(level) > build.levels.len())
+        }) {
+            let reach = format!(
+                "`levels`: The Build has {}, so it doesn't reach level {level}.",
+                crate::words::levels(build.levels.len())
+            );
+            return Err(ToolError::invalid_arguments(match level {
+                0 => format!("{reach} Levels start at 1."),
+                _ => reach,
+            }));
+        }
+        for &rank in ranks.unwrap_or_default() {
+            if let Some(unreached) = Unreached::of(engine, build, rank) {
+                return Err(ToolError::invalid_arguments(format!(
+                    "`ranks`: {}",
+                    unreached.reason(rank, &Unreached::no_row())
+                )));
+            }
+        }
+        let sorted = |list: Option<&[u8]>| {
+            list.map(|list| {
+                list.iter()
+                    .copied()
+                    .collect::<BTreeSet<u8>>()
+                    .into_iter()
+                    .collect()
+            })
+        };
+        Ok(Self {
+            levels: sorted(levels),
+            ranks: sorted(ranks),
+            todo: todo == Some(true),
+        })
+    }
+}
 
 /// The sheet of a possible Build; with `removable`, each held choice marked with whether it can be withdrawn now;
 /// each level's attack line for the `weapon` given, or else for the Build's Weapon Focus weapon
 /// ([`Engine::default_attack_weapon`]), none without one; with a `caster` spell, each level's caster line for it.
 /// Every number counts the Build's gear; `naked` gives those the gear changes without it.
+///
+/// A full sheet (`asked.levels` is `None`) leaves out of each level row what is the same as on the row before
+/// ([`level_rows`]); the levels asked for come in full. Only the rows asked for are given, but the numbers read the
+/// whole Build.
 pub(crate) fn sheet(
     planner: &Planner,
     build: &Build,
     removable: bool,
     weapon: Option<WeaponKey>,
     caster: Option<SpellTraits>,
-) -> SheetResult {
+    asked: &Asked,
+) -> SheetResult<SheetLevel> {
     let engine = &planner.engine;
     let evaluated = engine.evaluate(build);
     let mut result = sheet_of(planner, build, &evaluated, removable);
@@ -53,7 +121,24 @@ pub(crate) fn sheet(
     if let Some(naked) = engine.naked_sheet(build) {
         result.naked = naked_numbers(engine, &result, &naked, weapon.as_ref(), caster);
     }
-    result
+    if !asked.todo {
+        result.todo = None;
+    }
+    // Given either list, the sheet holds only the rows asked for: none of the section whose list is left out.
+    let narrow = asked.levels.is_some() || asked.ranks.is_some();
+    if narrow {
+        let wanted = asked.levels.as_deref().unwrap_or_default();
+        result.levels.retain(|line| wanted.contains(&line.level));
+        if let Some(naked) = &mut result.naked {
+            naked.levels.retain(|line| wanted.contains(&line.level));
+            if naked.levels.is_empty() && naked.totals.is_none() {
+                result.naked = None;
+            }
+        }
+        let wanted = asked.ranks.as_deref().unwrap_or_default();
+        result.ranks.retain(|line| wanted.contains(&line.rank));
+    }
+    result.map_levels(|lines| level_rows(lines, !narrow))
 }
 
 /// The numbers of the sheet without the Build's gear (`naked`, from [`Engine::naked_sheet`]), only where they differ
@@ -61,7 +146,7 @@ pub(crate) fn sheet(
 /// gear changes none.
 fn naked_numbers(
     engine: &Engine,
-    result: &SheetResult,
+    result: &SheetResult<LevelLine>,
     naked: &Sheet,
     weapon: Option<&WeaponKey>,
     caster: Option<SpellTraits>,
@@ -102,7 +187,7 @@ pub(crate) fn sheet_of(
     build: &Build,
     sheet: &Sheet,
     removable: bool,
-) -> SheetResult {
+) -> SheetResult<LevelLine> {
     let engine = &planner.engine;
     let removable = removable.then(|| engine.removable(build));
     let gear_dependent = dependent_lines(engine, build, sheet);
@@ -116,8 +201,11 @@ pub(crate) fn sheet_of(
     let gear = gear_lines(engine, build, removable.as_ref());
     let empty = CharacterState::default();
     let last = sheet.levels.last().map_or(&empty, |level| &level.state);
+    let envelope = envelope(engine, build, sheet);
     SheetResult {
-        envelope: envelope(engine, build, sheet),
+        build: envelope.build,
+        link: envelope.link,
+        todo: Some(envelope.todo),
         name: build.name.clone(),
         start: lines.start(build),
         point_buy_spent: build.start.ability_scores.cost(),

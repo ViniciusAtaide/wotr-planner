@@ -85,7 +85,7 @@ async fn calls(client: &Client) -> Vec<(&'static str, &'static str, usize, Value
     let fighter = declared(client, fighter()).await;
     let fighter_20 = declared(client, fighter_20()).await;
     let mut results = Vec::new();
-    // Each budget is about a tenth above the size when it was set (2026-11-14; `choose, fighter 20` 266 characters, 4,188 with `todo: true`; a level added to fighter 8 624, a withdraw 404).
+    // Each budget is about a tenth above the size when it was set (2026-11-14; `choose, fighter 20` 266 characters, 4,188 with `todo: true`; a level added to fighter 8 624, a withdraw 404; ticket 210: `sheet, fighter 8` 9,058 characters, `sheet, fighter 20` 10,553, against 12,979 and 18,027 before it).
     for (name, tool, budget, arguments) in [
         (
             "validate, failing",
@@ -130,8 +130,14 @@ async fn calls(client: &Client) -> Vec<(&'static str, &'static str, usize, Value
         (
             "sheet, fighter 8",
             "sheet",
-            14_500,
+            9_950,
             json!({ "build": fighter }),
+        ),
+        (
+            "sheet, fighter 20",
+            "sheet",
+            11_600,
+            json!({ "build": fighter_20 }),
         ),
         (
             "options, a feat slot",

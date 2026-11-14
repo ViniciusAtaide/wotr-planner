@@ -7,7 +7,7 @@ use crate::support::*;
 
 /// The Max DC run's Build (2026-11-09): a Kitsune Sorcerer 20, Arcane bloodline, Second Bloodline Fey, Spell Focus,
 /// Greater and Mythic in Enchantment, School Power Enchantment.
-const MAX_DC_RUN: &str = "AdWOPUgDQRCFd3bPE2OyAQnYSNzGSi0sbKzU8xqDKIg_oEiWsKAGznCeKCkkWIigEBALU1gaTCdYqCjpVNAmYCFBEAwpIldYWCro7uFPKot0KebxzfDmzfCnyGpf4Gzwsxh96C98uNmel_qCEpue8AsHyqPtY_utHU3ddLtwNBfP5dxKkt4HZi-n7nqzW-mD2_UNQ0vtpheLummEu8pXbuI8_BaajCaO-Yzkw7bN5vj1c3DHzJ8M31RO85n3zCu-eJT50BlZcJZXLMFMKzbPLUfYrJTaYyN8jQ0ZbCDJHc7Gl-yYsIUNCBHAjZT6_C0hhAF-Sq_iWnsZDkhHVAFCWJ4i-Fel6XuK8J_8O1OJMtwHGAghnoJS5KHuoaZpylNVDRBUb3i78AU";
+pub const MAX_DC_RUN: &str = "AdWOPUgDQRCFd3bPE2OyAQnYSNzGSi0sbKzU8xqDKIg_oEiWsKAGznCeKCkkWIigEBALU1gaTCdYqCjpVNAmYCFBEAwpIldYWCro7uFPKot0KebxzfDmzfCnyGpf4Gzwsxh96C98uNmel_qCEpue8AsHyqPtY_utHU3ddLtwNBfP5dxKkt4HZi-n7nqzW-mD2_UNQ0vtpheLummEu8pXbuI8_BaajCaO-Yzkw7bN5vj1c3DHzJ8M31RO85n3zCu-eJT50BlZcJZXLMFMKzbPLUfYrJTaYyN8jQ0ZbCDJHc7Gl-yYsIUNCBHAjZT6_C0hhAF-Sq_iWnsZDkhHVAFCWJ4i-Fel6XuK8J_8O1OJMtwHGAghnoJS5KHuoaZpylNVDRBUb3i78AU";
 
 fn compulsion() -> Value {
     json!({ "school": "enchantment", "subschool": "compulsion" })
@@ -32,7 +32,7 @@ async fn the_sheet_gives_each_level_the_enchantment_compulsion_dcs_with_their_br
     );
     assert_eq!(caster(0)["ability"], "Charisma");
     // Level 20: 9th-level spells at DC 34, Heighten Spell held.
-    let last = caster(19);
+    let last = full_row(&sheet, 20)["caster"].clone();
     assert_eq!(last["caster_level"], 20);
     assert_eq!(last["dcs"][8], json!({ "spell_level": 9, "dc": 34 }));
     assert_eq!(last["heightened"], json!({ "spell_level": 9, "dc": 34 }));

@@ -20,7 +20,7 @@ You test and report. You edit no file and run no cargo command. Read the `wotr-b
 - A refusal that is untrue, names the wrong pick, level or rank, or carries a hint that doesn't apply.
 - A text that reads oddly: a doubled word, a raw key where a name belongs, "(s)", a pronoun with two possible referents.
 - A `todo` entry nothing can fill.
-- A `sheet` that disagrees with what was chosen; a number that is wrong against the guide's rule (check a few by hand).
+- A `sheet` that disagrees with what was chosen; a number that is wrong against the guide's rule (check a few by hand: `sheet` with `levels` or `ranks` gives just those rows).
 - An error, a panic, a timeout, a slow call (say which and roughly how long).
 
 ## Report

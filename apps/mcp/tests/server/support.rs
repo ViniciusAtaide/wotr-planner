@@ -9,7 +9,7 @@ use rmcp::model::{
 };
 use rmcp::service::{RoleClient, RunningService, ServiceError};
 use rmcp::{ServiceExt, serde_json};
-use serde_json::{Value, json};
+use serde_json::{Map, Value, json};
 
 /// The real game data, read and checked once for every test.
 static PLANNER: LazyLock<Planner> =
@@ -230,4 +230,60 @@ pub fn error_text(result: &CallToolResult) -> String {
         .filter_map(|content| content.as_text())
         .map(|text| text.text.as_str())
         .collect()
+}
+
+/// Level `n`'s full row, rebuilt from a full `sheet` answer (ticket 210): the row's own fields, and for each field
+/// the answer leaves out when it is the same as on the row before, its value from the nearest earlier row that
+/// gave it (`class` and `archetype` together; the attack line's and the caster line's from the nearest earlier row
+/// with that line). It must equal the row `sheet` gives for `levels: [n]`.
+pub fn full_row(sheet: &Value, n: u64) -> Value {
+    const CARRIED: [&str; 4] = ["scores", "skill_points", "skill_ranks", "class"];
+    const ATTACK_CARRIED: [&str; 3] = ["weapon", "critical", "counts"];
+    const CASTER_CARRIED: [&str; 5] = [
+        "class",
+        "ability",
+        "dc_counts",
+        "spell_penetration_counts",
+        "concentration_counts",
+    ];
+    fn merge(row: &mut Value, held: &mut Map<String, Value>, carried: &[&str]) {
+        for key in carried {
+            match row.get(*key) {
+                Some(value) => {
+                    held.insert((*key).to_owned(), value.clone());
+                }
+                None => {
+                    if let Some(value) = held.get(*key) {
+                        row[*key] = value.clone();
+                    }
+                }
+            }
+        }
+    }
+    let mut held = Map::new();
+    let mut attack = Map::new();
+    let mut caster = Map::new();
+    for row in sheet["levels"].as_array().expect("levels") {
+        let mut row = row.clone();
+        // A row that gives its class gives its archetype too (or has none).
+        if row.get("class").is_some() {
+            held.remove("archetype");
+            if let Some(archetype) = row.get("archetype") {
+                held.insert("archetype".to_owned(), archetype.clone());
+            }
+        } else if let Some(archetype) = held.get("archetype") {
+            row["archetype"] = archetype.clone();
+        }
+        merge(&mut row, &mut held, &CARRIED);
+        if row.get("attack").is_some() {
+            merge(&mut row["attack"], &mut attack, &ATTACK_CARRIED);
+        }
+        if row.get("caster").is_some() {
+            merge(&mut row["caster"], &mut caster, &CASTER_CARRIED);
+        }
+        if row["level"] == n {
+            return row;
+        }
+    }
+    panic!("no level {n} in {sheet}");
 }

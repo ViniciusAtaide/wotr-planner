@@ -30,7 +30,9 @@ fn persistent() -> Value {
 async fn real_data_an_older_favorite_metamagic_opens_with_its_metamagic_in_todo() {
     let client = Client::start().await;
     let older = code(&older_favorite_metamagic());
-    let sheet = client.ok("sheet", json!({ "build": older })).await;
+    let sheet = client
+        .ok("sheet", json!({ "build": older, "todo": true }))
+        .await;
     let open = at(&sheet["todo"], "slot.mythic.1");
     assert_eq!(
         open["label"],

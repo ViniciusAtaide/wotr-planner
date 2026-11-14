@@ -80,9 +80,9 @@ async fn without_a_weapon_the_sheet_gives_the_weapon_focus_weapons_line() {
         .await;
 
     // Every level's line is the longsword's, Weapon Focus (Longsword) taken at level 2.
-    for level in 0..4 {
+    for level in 1..=4 {
         assert_eq!(
-            sheet["levels"][level]["attack"]["weapon"],
+            full_row(&sheet, level)["attack"]["weapon"],
             json!({ "key": "longsword", "name": "longsword" }),
             "{sheet}"
         );
@@ -143,7 +143,9 @@ async fn a_weapon_given_overrides_the_weapon_focus_weapon() {
         )
         .await;
 
-    assert_eq!(sheet["levels"][3]["attack"]["weapon"]["key"], "dagger");
+    // Said once, on the first row; the rows after it carry it.
+    assert_eq!(sheet["levels"][0]["attack"]["weapon"]["key"], "dagger");
+    assert_eq!(full_row(&sheet, 4)["attack"]["weapon"]["key"], "dagger");
 }
 
 #[tokio::test]
