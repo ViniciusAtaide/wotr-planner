@@ -6,7 +6,7 @@
 use std::collections::BTreeSet;
 
 use rules::{
-    Build, Choice, Edit, FeatCategory, FeatSlot, Issue, LevelFrom, MythicPathKey, SlotId, SlotKind,
+    Build, Choice, Edit, FeatCategory, FeatSlot, LevelFrom, MythicPathKey, SlotId, SlotKind,
 };
 
 use crate::support::*;
@@ -64,6 +64,11 @@ fn life_bonding_friendship_gives_a_teamwork_feat_slot_at_its_rows_1_and_2_and_no
         .map(|row| (row.level, row.feat_slots.clone()))
         .collect();
     let teamwork = || vec![FeatSlot::Category(FeatCategory::Teamwork)];
+    // Game: AzataSuperpowersSelection 8a30e92cd04ff5b459ba7cb03584fda0's option LifeBondingFriendshipSelection
+    // cfad18f581584ac4ba066df067956477 is itself a teamwork selection granting LifeBondingFriendshipFeature
+    // 5b63a6690ebbaa4459df3e04fe094cbd; LifeBondingFriendshipSelection1 69a33d6ced23446e819667149d088898, at each
+    // Azata level of AzataProgression 9db53de4bf21b564ca1a90ff5bd16586, needs that feature and not its own, so it
+    // gives one more teamwork feat, once; no other superpower has more (equivalent model: rows 1 and 2).
     assert_eq!(rows, [(1, teamwork()), (2, teamwork())]);
     // The rows give nothing else.
     for row in &selection_option(LBF).levels {
@@ -83,6 +88,9 @@ fn taken_at_mr_6_it_gives_a_teamwork_feat_slot_at_mr_6_and_mr_7() {
     // MR 6 at level 15, MR 7 at 16.
     let build = azata("sorcerer", 16, 6);
     assert!(possible(&build));
+    // Game: the first pick at the superpower's own Azata level, the second (LifeBondingFriendshipSelection1
+    // 69a33d6ced23446e819667149d088898) at the next, its prerequisite checked before that level's picks
+    // (UnitLogic/Class/LevelUp/Actions/LevelUpHelper.AddFeaturesFromProgression, WrathDecompiled 6ce4a6b).
     assert_eq!(
         rank_slots(&build, 6),
         [
@@ -123,15 +131,24 @@ fn the_slots_offer_the_teamwork_feats_and_no_other_feat() {
         .collect();
     assert_eq!(teamwork.len(), 13);
     let sorcerer = azata("sorcerer", 16, 6);
+    // Which teamwork feats: `the_slots_offer_every_teamwork_feat_but_spell_chain`.
+    // Game: LifeBondingFriendshipSelection cfad18f581584ac4ba066df067956477 and LifeBondingFriendshipSelection1
+    // 69a33d6ced23446e819667149d088898 list only teamwork feats.
+    // Every teamwork feat but Spell Chain, whose place waits in that test.
+    let but_spell_chain: BTreeSet<String> = teamwork
+        .iter()
+        .filter(|feat| *feat != "spell-chain")
+        .cloned()
+        .collect();
     for rank in [6, 7] {
-        assert_eq!(
-            feats_offered(&sorcerer, &path_feat(rank)),
-            teamwork,
-            "MR {rank}"
-        );
+        let mut offered = feats_offered(&sorcerer, &path_feat(rank));
+        offered.remove("spell-chain");
+        assert_eq!(offered, but_spell_chain, "MR {rank}");
     }
-    // The ticket 88 write-ups' picks: Shake It Off and Allied Spellcaster open; Shield Wall needs Shield
-    // Proficiency, which a sorcerer lacks and a fighter has.
+    // The ticket 88 write-ups' picks: Shake It Off and Allied Spellcaster open; Shield Wall for a sorcerer:
+    // `the_slots_ignore_prerequisites`.
+    // Game: ShakeItOff 6337b37f2a7c11b4ab0831d6780bce2a and AlliedSpellcaster 9093ceeefe9b84746a5993d619d7c86f are
+    // in both lists.
     assert_eq!(
         feat_status(&sorcerer, &path_feat(6), "shake-it-off"),
         Ok(())
@@ -140,10 +157,7 @@ fn the_slots_offer_the_teamwork_feats_and_no_other_feat() {
         feat_status(&sorcerer, &path_feat(7), "allied-spellcaster"),
         Ok(())
     );
-    assert!(matches!(
-        feat_status(&sorcerer, &path_feat(6), "shield-wall"),
-        Err(Issue::Unmet(_))
-    ));
+    // Game: ShieldWall 8976de442862f82488a4b138a0a89907 is in both lists.
     let fighter = azata("fighter", 16, 6);
     assert_eq!(feat_status(&fighter, &path_feat(6), "shield-wall"), Ok(()));
 
@@ -174,20 +188,59 @@ fn the_slots_offer_the_teamwork_feats_and_no_other_feat() {
         .insert(path_feat(7), feat_pick_plain("shake-it-off"));
     assert!(possible(&enforcer));
 
-    // Not a non-teamwork feat, nor Shield Wall without Shield Proficiency.
-    let mut dodge = sorcerer.clone();
+    // Not a non-teamwork feat.
+    // Game: Dodge 97e216dbb46ae3c4faef90cf6bbe6fd5 is in neither list.
+    let mut dodge = sorcerer;
     dodge.picks.insert(path_feat(6), feat_pick_plain("dodge"));
     assert!(!possible(&dodge));
+}
+
+/// Both slots offer the teamwork feats but Spell Chain.
+#[test]
+#[ignore = "waits on ticket 266: the game gives Life-Bonding Friendship 12 teamwork feats, no Spell Chain"]
+fn the_slots_offer_every_teamwork_feat_but_spell_chain() {
+    let mut teamwork: BTreeSet<String> = DATA
+        .feats
+        .iter()
+        .filter(|feat| feat.category == FeatCategory::Teamwork)
+        .map(|feat| feat.key.to_string())
+        .collect();
+    // Game: LifeBondingFriendshipSelection cfad18f581584ac4ba066df067956477 and LifeBondingFriendshipSelection1
+    // 69a33d6ced23446e819667149d088898 list twelve teamwork feats; SpellChain d8d641edc9a74a64809f56feff9495b6 isn't
+    // one of them.
+    assert!(teamwork.remove("spell-chain"));
+    let sorcerer = azata("sorcerer", 16, 6);
+    for rank in [6, 7] {
+        assert_eq!(
+            feats_offered(&sorcerer, &path_feat(rank)),
+            teamwork,
+            "MR {rank}"
+        );
+    }
+}
+
+/// Both slots ignore the feats' prerequisites: a sorcerer takes Shield Wall without Shield Proficiency.
+#[test]
+#[ignore = "waits on ticket 266: the game gives a sorcerer Shield Wall there"]
+fn the_slots_ignore_prerequisites() {
+    let sorcerer = azata("sorcerer", 16, 6);
+    // Game: LifeBondingFriendshipSelection cfad18f581584ac4ba066df067956477 and LifeBondingFriendshipSelection1
+    // 69a33d6ced23446e819667149d088898 have IgnorePrerequisites (Blueprints/Classes/Selection/
+    // BlueprintFeatureSelection.CanSelect, WrathDecompiled 6ce4a6b).
+    assert_eq!(feat_status(&sorcerer, &path_feat(6), "shield-wall"), Ok(()));
     let mut shield_wall = sorcerer;
     shield_wall
         .picks
         .insert(path_feat(6), feat_pick_plain("shield-wall"));
-    assert!(!possible(&shield_wall));
+    assert!(possible(&shield_wall));
 }
 
 #[test]
 fn taken_at_mr_4_or_8_the_second_slot_comes_at_the_next_rank() {
     // MR 4 at level 11, MR 5 at 14; MR 8 and 9 both at 17.
+    // Game: LifeBondingFriendshipSelection1 69a33d6ced23446e819667149d088898 at the next Azata level, its
+    // prerequisite checked before that level's picks (UnitLogic/Class/LevelUp/Actions/
+    // LevelUpHelper.AddFeaturesFromProgression, WrathDecompiled 6ce4a6b).
     for (rank, levels) in [(4, 14), (8, 17)] {
         let build = azata("fighter", levels, rank);
         assert!(possible(&build), "MR {rank}");
@@ -208,6 +261,10 @@ fn taken_at_mr_4_or_8_the_second_slot_comes_at_the_next_rank() {
 fn taken_at_mr_10_it_gives_one_slot() {
     let build = azata("fighter", 20, 10);
     assert!(possible(&build));
+    // Game: AzataProgression 9db53de4bf21b564ca1a90ff5bd16586's last level (MR 10) holds both the superpower
+    // selection and LifeBondingFriendshipSelection1 69a33d6ced23446e819667149d088898; the latter is checked before
+    // the superpower is picked (UnitLogic/Class/LevelUp/Actions/LevelUpHelper.AddFeaturesFromProgression,
+    // WrathDecompiled 6ce4a6b), so one teamwork feat.
     assert_eq!(
         rank_slots(&build, 10),
         [

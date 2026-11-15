@@ -71,7 +71,8 @@ fn assert_stages(sheet: &Sheet, curse: &str, stages: &[(&str, &str, usize)]) {
 fn the_assassins_poison_saves_are_one_feature_ranked_at_assassin_5_and_9() {
     // Game: AssassinCreatePoisonIncreasedSavingThrows 0cbb2201a65cb374fb4d73d6c9830b01 (Ranks 5), named by
     // AssassinProgression a02e1f0e13baa8c43b758425eda9e973 at levels 5 and 9; the poison's buffs read its rank
-    // (ContextRankConfig FeatureRank on AssassinCreatePoisonAbilityStrBuffEffect).
+    // (ContextRankConfig FeatureRank on AssassinCreatePoisonAbilityStrBuffEffect
+    // 285290cc80941bc4c97461d6f50aaad9).
     let feature = "assassin/poison-use-saves-required";
     assert_eq!(
         feature_blueprint(feature),
@@ -112,9 +113,10 @@ fn fey_magic_is_one_feature_ranked_at_each_even_feyspeaker_level_from_4_to_18() 
 
 #[test]
 fn physical_enhancement_is_granted_once_and_its_two_abilities_come_at_wizard_20() {
-    // Game: SpecializationSchoolTransmutation grants TransmutationPhysicalEnhancementFeature
-    // 93919f8ce64dc5a4cbf058a486a44a1b (Ranks 1) once; its bonus scales by wizard level in its buffs
-    // (BuffScaling.ScaleBuff). SpecialisationSchoolTransmutationProgression b6a604dab356ac34788abf4ad79449ec names
+    // Game: SpecializationSchoolTransmutation c459c8200e666ef4c990873d3e501b91 grants
+    // TransmutationPhysicalEnhancementFeature 93919f8ce64dc5a4cbf058a486a44a1b (Ranks 1) once; its bonus scales by
+    // wizard level in its buffs (Designers/Mechanics/Buffs/BuffScaling.ScaleBuff, WrathDecompiled 6ce4a6b).
+    // SpecialisationSchoolTransmutationProgression b6a604dab356ac34788abf4ad79449ec names
     // TransmutationPhysicalEnhancementCapstone 6aa7d3496cd68e643adcd439a7306caa at 20.
     let capstone = "wizard/school/transmuter/physical-enhancement-capstone";
     assert_eq!(
@@ -257,9 +259,10 @@ fn a_curses_level_adds_half_the_other_classes_but_not_a_plain_witchs() {
 
 #[test]
 fn a_curses_level_adds_half_the_mythic_rank_as_another_class() {
-    // Game: BlueprintProgression.cs `CalcLevel` (WrathDecompiled 6ce4a6b) adds, for ForAllOtherClasses, every entry of
-    // `unit.Progression.Classes` the progression doesn't list, and that list holds the mythic classes too
-    // (UnitLogic/UnitProgressionData.cs `SetupLevelsIfNecessary` sums its mythic entries into the Mythic level).
+    // Game: Blueprints/Classes/BlueprintProgression.cs `CalcLevel` (WrathDecompiled 6ce4a6b) adds, for
+    // ForAllOtherClasses, every entry of `unit.Progression.Classes` the progression doesn't list, and that list holds
+    // the mythic classes too (UnitLogic/UnitProgressionData.cs `SetupLevelsIfNecessary` sums its mythic entries into
+    // the Mythic level).
     // Every level-up, a mythic one included, recomputes each progression's level
     // (UnitLogic/Class/LevelUp/Actions/ApplyClassMechanics.cs `ApplyProgressions`). BlackenedCurseProgression
     // ca1e4627a1ad8fc4f83158f6497d5c54 names BlackenedCurseFeatureLevel10 510d3d8e625df844496173fef12ff326 at 10.

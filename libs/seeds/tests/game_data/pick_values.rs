@@ -31,20 +31,36 @@ fn favorite(value: Option<&str>) -> Pick {
 
 const MR_1: SlotId = SlotId::Mythic { rank: 1 };
 
-/// The guide's metamagic feats: every "Metamagic (…)" feat, the Trickster's Completely Normal Spell included.
+/// The metamagic feats: every "Metamagic (…)" feat, the Trickster's Completely Normal Spell included.
+/// Game: the player feats with AddMetamagicFeat are these twelve, the rest being monsters'.
 const METAMAGIC_FEATS: [&str; 12] = [
-    "metamagic-bolster-spell",
-    "metamagic-completely-normal-spell",
-    "metamagic-empower-spell",
-    "metamagic-extend-spell",
-    "metamagic-heighten-spell",
-    "metamagic-intensified-spell",
-    "metamagic-maximise-spell",
-    "metamagic-persistent-spell",
-    "metamagic-piercing-spell",
-    "metamagic-quicken-spell",
-    "metamagic-reach-spell",
-    "metamagic-selective-spell",
+    "metamagic-bolster-spell", // Game: BolsteredSpellFeat fbf5d9ce931f47f3a0c818b3f8ef8414
+    "metamagic-completely-normal-spell", // Game: CompletelyNormalSpellFeat 094b6278f7b570f42aeaa98379f07cf2
+    "metamagic-empower-spell",           // Game: EmpowerSpellFeat a1de1e4f92195b442adb946f0e2b9d4e
+    "metamagic-extend-spell",            // Game: ExtendSpellFeat f180e72e4a9cbaa4da8be9bc958132ef
+    "metamagic-heighten-spell",          // Game: HeightenSpellFeat 2f5d1e705c7967546b72ad8218ccf99c
+    "metamagic-intensified-spell",       // Game: IntensifiedSpell 8ad7fd39abea4722b39eb5a67d606a41
+    "metamagic-maximise-spell",          // Game: MaximizeSpellFeat 7f2b282626862e345935bbea5e66424b
+    "metamagic-persistent-spell", // Game: PersistentSpellFeat cd26b9fa3f734461a0fcedc81cafaaac
+    "metamagic-piercing-spell",   // Game: PiercingSpell c101ad6879a94204a780506f7a554865
+    "metamagic-quicken-spell",    // Game: QuickenSpellFeat ef7ece7bb5bb66a41b256976b27f424e
+    "metamagic-reach-spell",      // Game: ReachSpellFeat 46fad72f54a33dc4692d3b62eca7bb78
+    "metamagic-selective-spell",  // Game: SelectiveSpellFeat 85f3340093d144dd944fff9a9adfd2f2
+];
+
+/// The metamagics Favorite Metamagic offers: every metamagic feat but Completely Normal Spell and Heighten Spell.
+/// Game: FavoriteMetamagicSelection 503fb196aa222b24cb6cfdc9a284e838's ten options.
+const FAVORITE_METAMAGICS: [&str; 10] = [
+    "metamagic-bolster-spell", // Game: FavoriteMetamagicBolstered 8d44a7d4950f4d6cbfda8530d108e63a
+    "metamagic-empower-spell", // Game: FavoriteMetamagicEmpower abebb469211025b48ac7a32da41f06e8
+    "metamagic-extend-spell",  // Game: FavoriteMetamagicExtend 37118163dcb572047b995158346f0058
+    "metamagic-intensified-spell", // Game: FavoriteMetamagicIntensified 8713d3ce0275459b8ff67ef799d31d4b
+    "metamagic-maximise-spell", // Game: FavoriteMetamagicMaximize 9430a7211ba62cb4091d90abfdde58d0
+    "metamagic-persistent-spell", // Game: FavoriteMetamagicPersistent eb6483b366a14a83afda1963799c3387
+    "metamagic-piercing-spell", // Game: FavoriteMetamagicPiercing bd38adc649b9431d89269f00b55014bc
+    "metamagic-quicken-spell",  // Game: FavoriteMetamagicQuicken 4ecf1a86ddc45d04c8b2df3a1c318e78
+    "metamagic-reach-spell",    // Game: FavoriteMetamagicReach ac946df6c29143544aeefbde2b360ff1
+    "metamagic-selective-spell", // Game: FavoriteMetamagicSelective 3cdc012185334b7da4ed42c6fcc948cf
 ];
 
 #[test]
@@ -68,11 +84,20 @@ fn the_metamagic_feats_are_the_guides_metamagic_feats() {
 }
 
 #[test]
-fn favorite_metamagic_offers_each_metamagic_at_a_mythic_rank() {
+fn favorite_metamagic_takes_a_metamagic() {
+    // Game: MythicAbilitySelection ba0e5a900b775be4a99702f1ed08914d offers FavoriteMetamagicSelection
+    // 503fb196aa222b24cb6cfdc9a284e838, one feature per metamagic (equivalent model: an ability with a value).
     assert_eq!(
         mythic_ability(FAVORITE_METAMAGIC).parameter,
         Some(ParameterKind::Metamagic)
     );
+}
+
+/// The game's Favorite Metamagic offers ten metamagics, each needing its metamagic feat: none is open to a trickster
+/// with no metamagic feat.
+#[test]
+#[ignore = "waits on ticket 265: the game gives ten metamagics, each needing its feat"]
+fn favorite_metamagic_offers_ten_metamagics_each_needing_its_feat() {
     let build = mythic("trickster", 20);
     let offered: Vec<(Pick, bool)> = engine()
         .options(&build, &MR_1)
@@ -81,9 +106,12 @@ fn favorite_metamagic_offers_each_metamagic_at_a_mythic_rank() {
         .filter(|option| option.pick.key() == FAVORITE_METAMAGIC)
         .map(|option| (option.pick, option.status.is_ok()))
         .collect();
-    let expected: Vec<(Pick, bool)> = METAMAGIC_FEATS
+    // Game: each of FavoriteMetamagicSelection 503fb196aa222b24cb6cfdc9a284e838's options has a PrerequisiteFeature on
+    // its metamagic feat (FavoriteMetamagicPersistent eb6483b366a14a83afda1963799c3387 on PersistentSpellFeat
+    // cd26b9fa3f734461a0fcedc81cafaaac, and so on).
+    let expected: Vec<(Pick, bool)> = FAVORITE_METAMAGICS
         .iter()
-        .map(|feat| (favorite(Some(feat)), true))
+        .map(|feat| (favorite(Some(feat)), false))
         .collect();
     assert_eq!(offered, expected);
 }
@@ -92,6 +120,12 @@ fn favorite_metamagic_offers_each_metamagic_at_a_mythic_rank() {
 fn favorite_metamagic_for_persistent_spell_is_named_and_round_trips() {
     let engine = engine();
     let mut build = mythic("trickster", 20);
+    // Game: FavoriteMetamagicPersistent eb6483b366a14a83afda1963799c3387 needs PersistentSpellFeat
+    // cd26b9fa3f734461a0fcedc81cafaaac, taken first.
+    build.picks.insert(
+        general_slot(1),
+        feat_pick_plain("metamagic-persistent-spell"),
+    );
     let pick = favorite(Some("metamagic-persistent-spell"));
     build.picks.insert(MR_1, pick.clone());
     assert!(engine.is_possible(&build));
@@ -112,21 +146,40 @@ fn an_older_link_with_favorite_metamagic_opens_with_its_metamagic_left_open() {
         engine.value_left_open(&favorite(None)),
         Some(ParameterKind::Metamagic)
     );
-    // Held once: a second one at MR 3 is refused, whatever its metamagic.
+}
+
+/// The game takes Favorite Metamagic again for another metamagic: the mythic ability is a selection, which skips the
+/// rank check, and only each metamagic's feature is held once.
+#[test]
+#[ignore = "waits on ticket 249: the game gives a second Favorite Metamagic for another metamagic"]
+fn favorite_metamagic_is_taken_again_for_another_metamagic() {
+    // Game: MythicAbilitySelection ba0e5a900b775be4a99702f1ed08914d offers FavoriteMetamagicSelection
+    // 503fb196aa222b24cb6cfdc9a284e838 (no prerequisite of its own); Blueprints/Classes/Selection/
+    // BlueprintFeatureSelection.CanSelect (WrathDecompiled 6ce4a6b) skips the rank check for a selection, and
+    // NestedFeatureSelectionUtils.AllNestedFeaturesUnavailable refuses it only when no option is left; each option
+    // (FavoriteMetamagicQuicken 4ecf1a86ddc45d04c8b2df3a1c318e78) has Ranks 1.
     let mut twice = mythic("trickster", 20);
-    twice.picks.insert(MR_1, favorite(None));
+    twice.picks.insert(
+        general_slot(1),
+        feat_pick_plain("metamagic-persistent-spell"),
+    );
+    twice
+        .picks
+        .insert(general_slot(3), feat_pick_plain("metamagic-quicken-spell"));
+    twice
+        .picks
+        .insert(MR_1, favorite(Some("metamagic-persistent-spell")));
     twice.picks.insert(
         SlotId::Mythic { rank: 3 },
         favorite(Some("metamagic-quicken-spell")),
     );
-    assert_eq!(
-        why_not(&twice, &SlotId::Mythic { rank: 3 }),
-        Some(rules::Issue::AlreadyHeld)
-    );
+    assert!(possible(&twice));
 }
 
 #[test]
 fn stat_focus_takes_a_stat_the_guide_lists() {
+    // Game: TricksterStatFocusFeatSelection 0d1d80bd3820a78488412581da3ad9c7: the same twelve stats, one feature each
+    // (equivalent model: a feat with a value).
     assert_eq!(feat("stat-focus").parameter, Some(ParameterKind::Stat));
     let build = mythic("trickster", 20);
     let stats: Vec<Parameter> = engine()
@@ -146,6 +199,7 @@ fn stat_focus_takes_a_stat_the_guide_lists() {
 
 #[test]
 fn ascendant_element_takes_an_element_the_guide_lists() {
+    // Game: AscendantElementSelection 535d4e5d8a5664f4797560c280941782: the same six elements.
     assert_eq!(
         mythic_ability("ascendant-element").parameter,
         Some(ParameterKind::Element)

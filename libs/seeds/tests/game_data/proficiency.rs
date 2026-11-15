@@ -47,6 +47,8 @@ fn with_race(mut build: Build, race: &str, subrace: Option<&str>) -> Build {
 
 #[test]
 fn a_wizard_has_the_wizard_proficiencies_and_the_unarmed_strike() {
+    // Game: WizardProficiencies a98d7cc4e30fe6c4bb3a2c2f69acc3fe: club, dagger, heavy and light crossbow,
+    // quarterstaff.
     assert_eq!(
         wieldable(&build("wizard", 1)),
         keys(&[
@@ -62,6 +64,8 @@ fn a_wizard_has_the_wizard_proficiencies_and_the_unarmed_strike() {
 
 #[test]
 fn a_rogue_has_the_simple_weapons_rapier_short_sword_and_short_bow() {
+    // Game: RogueProficiencies 33e2a7e4ad9daa54eaf808e1483bb43c: simple, rapier, short bow, short sword (and the hand
+    // crossbow, a category Enums/WeaponCategoryExtension.Data marks Disabled, WrathDecompiled 6ce4a6b).
     let mut expected = simple();
     expected.extend(keys(&["rapier", "short-bow", "short-sword"]));
     assert_eq!(wieldable(&build("rogue", 1)), expected);
@@ -69,6 +73,7 @@ fn a_rogue_has_the_simple_weapons_rapier_short_sword_and_short_bow() {
 
 #[test]
 fn a_hunter_has_the_simple_and_martial_weapons_and_no_exotic_one() {
+    // Game: HunterProficiencies 873f1f12bb43cda40bcc7d2878d16bf1: simple and martial.
     let mut expected = simple();
     expected.extend(of_list(rules::WeaponProficiency::Martial));
     assert_eq!(wieldable(&build("hunter", 1)), expected);
@@ -76,11 +81,14 @@ fn a_hunter_has_the_simple_and_martial_weapons_and_no_exotic_one() {
 
 #[test]
 fn a_sorcerer_has_the_simple_weapons() {
+    // Game: SorcererProficiencies 25c97697236ccf2479d0c6a4185eae7f: simple.
     assert_eq!(wieldable(&build("sorcerer", 1)), simple());
 }
 
 #[test]
 fn an_elf_wizard_adds_the_elven_weapons_but_not_the_curve_blade() {
+    // Game: ElvenWeaponFamiliarity 03fd1e043fc678a4baf73fe67c3780ce: longbow, longsword, rapier, short bow; the curved
+    // blade comes only through MartialWeaponProficiency 203992ef5b35c864390b4e4a1e200629's ElfRace entry.
     let elf = wieldable(&with_race(build("wizard", 1), "elf", None));
     for weapon in ["long-bow", "longsword", "rapier", "short-bow", "club"] {
         assert!(elf.contains(weapon), "{weapon}");
@@ -91,6 +99,8 @@ fn an_elf_wizard_adds_the_elven_weapons_but_not_the_curve_blade() {
 
 #[test]
 fn a_dwarf_fighter_wields_the_dwarven_waraxe_as_a_martial_weapon() {
+    // Game: MartialWeaponProficiency 203992ef5b35c864390b4e4a1e200629 adds the dwarven waraxe and urgrosh for DwarfRace
+    // (DwarvenWeaponFamiliarity a1619e8d27fe97c40ba443f6f8ab1763).
     let dwarf = wieldable(&with_race(build("fighter", 1), "dwarf", None));
     assert!(dwarf.contains("dwarven-waraxe"));
     assert!(dwarf.contains("dwarven-urgrosh"));
@@ -100,6 +110,8 @@ fn a_dwarf_fighter_wields_the_dwarven_waraxe_as_a_martial_weapon() {
 
 #[test]
 fn a_subrace_s_weapon_familiarity_replaces_the_race_s() {
+    // Game: HumanRaisedHalfOrc 289d95c2c26f4e638c1f26d5ea7c594b removes OrcWeaponFamiliarity
+    // 6ab6c271d1558344cbc746350243d17d (greataxe, falchion); TribalHalfOrc eb20cb0326444e348fc18f9b4d1644da keeps it.
     let human_raised = wieldable(&with_race(
         build("wizard", 1),
         "half-orc",
@@ -118,6 +130,7 @@ fn a_subrace_s_weapon_familiarity_replaces_the_race_s() {
 #[test]
 fn a_background_adds_its_weapons() {
     let mut farmhand = build("wizard", 1);
+    // Game: BackgroundFarmhand 25b35e09665310d4faac3020f8198cfb: ScytheProficiency.
     farmhand.start.background = Some(BackgroundKey::new("farmhand"));
     let farmhand = wieldable(&farmhand);
     assert!(farmhand.contains("scythe"));
@@ -127,6 +140,8 @@ fn a_background_adds_its_weapons() {
 #[test]
 fn a_cleric_wields_the_deity_s_martial_favoured_weapon() {
     // Erastil favours the longbow, a martial weapon no cleric feat grants.
+    // Game: ErastilFeature afc775188deb7a44aa4cbde03512c671: LongbowProficiency at cleric (or warpriest) level 1
+    // (AddFeatureOnClassLevel).
     let mut cleric = build("cleric", 1);
     cleric.start.deity = Some(rules::Faith::Deity(rules::DeityKey::new("erastil")));
     cleric.start.alignment = Some(rules::Alignment::LawfulGood);

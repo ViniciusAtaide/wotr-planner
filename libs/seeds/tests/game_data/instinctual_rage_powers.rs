@@ -3,7 +3,8 @@
 use std::collections::BTreeSet;
 
 use rules::{
-    ArchetypeKey, Build, ClassKey, FeatKey, Prerequisite, Repeat, SelectionOptionKey, SlotId,
+    Ability, ArchetypeKey, Build, ClassKey, FeatKey, Prerequisite, Repeat, SelectionOptionKey,
+    SlotId,
 };
 
 use crate::support::*;
@@ -13,28 +14,34 @@ const INSTINCTUAL_WARRIOR: &str = "barbarian/instinctual-warrior";
 
 /// The guide's monk abilities and ki powers an Instinctual Warrior may take as rage powers
 /// (`barbarian#rage-power-instinctual-warrior`): each one's key in the rage power selection, its name, and the
-/// barbarian level it needs (`None`: Deflect Arrows, which needs Improved Unarmed Strike instead).
+/// Instinctual Warrior level its blueprint's `PrerequisiteArchetypeLevel` names (`None`: Deflect Arrows, whose level 4
+/// is the archetype's first rage power, and which needs Improved Unarmed Strike and Dex 13 instead).
 const MONK_RAGE_POWERS: [(&str, &str, Option<u8>); 5] = [
+    // Game: RageDeflectArrowsFeature d971bbb15f354621ac37fd51d0ab9044
     (
         "barbarian/rage-power/deflect-arrows-instinctual-warrior",
         "Deflect Arrows (Instinctual Warrior)",
         None,
     ),
+    // Game: RagePurityOfBodyFeature a4418aa778cb4ebd965d78af19becced: level 5
     (
         "barbarian/rage-power/purity-of-body-instinctual-warrior",
         "Purity of Body (Instinctual Warrior)",
-        Some(8),
+        Some(5),
     ),
+    // Game: RageDiamondBodyFeature 39d6ef0cb9794afbb5af3cae7288029d: level 12
     (
         "barbarian/rage-power/diamond-body-instinctual-warrior",
         "Diamond Body (Instinctual Warrior)",
         Some(12),
     ),
+    // Game: RageDiamondSoulFeature d4c929bffb80464bbe6daf1471088bf8: level 14
     (
         "barbarian/rage-power/diamond-soul-instinctual-warrior",
         "Diamond Soul (Instinctual Warrior)",
-        Some(16),
+        Some(14),
     ),
+    // Game: RagePerfectSelfFeature 07777880a89d434c896660e4a521df92: level 20
     (
         "barbarian/rage-power/perfect-self-instinctual-warrior",
         "Perfect Self (Instinctual Warrior)",
@@ -42,12 +49,50 @@ const MONK_RAGE_POWERS: [(&str, &str, Option<u8>); 5] = [
     ),
 ];
 
+/// The monk powers whose prerequisite in the data isn't yet the game's: Deflect Arrows lacks Dex 13, Purity of Body
+/// asks barbarian 8 (the game 5) and Diamond Soul 16 (the game 14).
+const WAITING: [&str; 3] = [
+    "barbarian/rage-power/deflect-arrows-instinctual-warrior",
+    "barbarian/rage-power/purity-of-body-instinctual-warrior",
+    "barbarian/rage-power/diamond-soul-instinctual-warrior",
+];
+
+/// What a monk power needs: the archetype and the level (equivalent model: the game's `PrerequisiteArchetypeLevel` is
+/// the archetype taken and the barbarian level), or for Deflect Arrows the archetype, Improved Unarmed Strike and Dex
+/// 13 (the game's Int 3 always holds: no score goes below 3).
+fn monk_power_prerequisite(level: Option<u8>) -> Prerequisite {
+    let archetype = Prerequisite::Archetype(ArchetypeKey::new(INSTINCTUAL_WARRIOR));
+    let mut all = vec![archetype];
+    match level {
+        Some(level) => all.push(Prerequisite::ClassLevel {
+            class: ClassKey::new("barbarian"),
+            level,
+        }),
+        None => {
+            all.push(Prerequisite::Feat(FeatKey::new("improved-unarmed-strike")));
+            all.push(Prerequisite::AbilityScore {
+                ability: Ability::Dexterity,
+                score: 13,
+            });
+        }
+    }
+    let mut expected = Prerequisite::All(all);
+    expected.canonicalize();
+    expected
+}
+
 /// The Instinctual Warrior's rage power levels, by its table.
 const INSTINCTUAL_RAGE_POWER_LEVELS: [u8; 7] = [4, 8, 10, 12, 16, 18, 20];
 
-/// A chaotic neutral Instinctual Warrior of `levels` levels, with Improved Unarmed Strike at 1 when `unarmed`.
+/// A chaotic neutral Instinctual Warrior of `levels` levels with Dex 13 (the game's Deflect Arrows needs it), with
+/// Improved Unarmed Strike at 1 when `unarmed`.
 fn instinctual_warrior(levels: usize, unarmed: bool) -> Build {
     let mut build = chaotic(archetype_build("barbarian", INSTINCTUAL_WARRIOR, levels));
+    build.start.ability_scores = build
+        .start
+        .ability_scores
+        .with(Ability::Dexterity, 13)
+        .expect("Dex 13 fits the point buy");
     if unarmed {
         build
             .picks
@@ -67,7 +112,6 @@ fn opens_at(needs: Option<u8>, level: u8) -> bool {
 /// Deflect Arrows, the feat) the guide gives. Extra Rage Power's "Rage Power" is met by holding any of them too (`option_lists.rs` checks its list).
 #[test]
 fn the_instinctual_warriors_monk_powers_are_rage_power_options_for_it_alone() {
-    let archetype = Prerequisite::Archetype(ArchetypeKey::new(INSTINCTUAL_WARRIOR));
     for (key, name, level) in MONK_RAGE_POWERS {
         let option = selection_option(key);
         assert_eq!(option.name, name);
@@ -75,24 +119,86 @@ fn the_instinctual_warriors_monk_powers_are_rage_power_options_for_it_alone() {
             option.guide.as_ref().unwrap().0,
             "barbarian#rage-power-instinctual-warrior"
         );
+        // Game: each row's blueprint in MONK_RAGE_POWERS: Ranks 1.
         assert_eq!(option.repeat, Repeat::Once, "{name}");
-        let needs = match level {
-            Some(level) => Prerequisite::ClassLevel {
-                class: ClassKey::new("barbarian"),
-                level,
-            },
-            None => Prerequisite::Feat(FeatKey::new("improved-unarmed-strike")),
-        };
-        let mut expected = Prerequisite::All(vec![archetype.clone(), needs]);
-        expected.canonicalize();
-        assert_eq!(option.prerequisite, Some(expected), "{name}");
+        // Game: each row's blueprint (the rows of WAITING are
+        // `the_instinctual_warriors_monk_powers_need_the_levels_and_dex_their_blueprints_name`'s).
+        if WAITING.contains(&key) {
+            continue;
+        }
+        assert_eq!(
+            option.prerequisite,
+            Some(monk_power_prerequisite(level)),
+            "{name}"
+        );
     }
     let selection = class("barbarian")
         .selections
         .iter()
         .find(|selection| selection.key.as_str() == RAGE_POWER)
         .expect("the rage power selection");
+    // Game: RagePowerSelection 28710502f46848d48b3f0d6132817c4e (33) and InstinctualWarriorRagePowerSelection
+    // 609f0e5336084442a0dafa3abd4d31c5 (the same 33 and the five) (equivalent model: one list, the five gated by the
+    // archetype).
     assert_eq!(selection.options.len(), 38);
+}
+
+/// The game's Purity of Body needs Instinctual Warrior level 5 and Diamond Soul 14, and Deflect Arrows Dex 13 as well
+/// as Improved Unarmed Strike: Purity of Body opens in an Extra Rage Power slot at 5, and the reasons name 5 and 14.
+#[test]
+#[ignore = "waits on ticket 269: the game gives Purity of Body level 5, Diamond Soul 14, Deflect Arrows \
+            Dex 13"]
+fn the_instinctual_warriors_monk_powers_need_the_levels_and_dex_their_blueprints_name() {
+    // Game: RageDeflectArrowsFeature d971bbb15f354621ac37fd51d0ab9044 (ImprovedUnarmedStrike
+    // 7812ad3672a4b9a4fb894ea402095167, Dex 13); RagePurityOfBodyFeature a4418aa778cb4ebd965d78af19becced (level 5);
+    // RageDiamondSoulFeature d4c929bffb80464bbe6daf1471088bf8 (level 14).
+    for (key, name, level) in MONK_RAGE_POWERS {
+        if !WAITING.contains(&key) {
+            continue;
+        }
+        assert_eq!(
+            selection_option(key).prerequisite,
+            Some(monk_power_prerequisite(level)),
+            "{name}"
+        );
+    }
+    let build = instinctual_warrior(20, true);
+    assert_eq!(
+        lock_reason(&build, 4, MONK_RAGE_POWERS[1].0),
+        "Needs Barbarian level 5 (have 4)"
+    );
+    assert_eq!(
+        lock_reason(&build, 12, MONK_RAGE_POWERS[3].0),
+        "Needs Barbarian level 14 (have 12)"
+    );
+    // Without Dex 13, Deflect Arrows is locked.
+    let mut clumsy = instinctual_warrior(4, true);
+    clumsy.start.ability_scores = clumsy
+        .start
+        .ability_scores
+        .with(Ability::Dexterity, 10)
+        .unwrap();
+    assert!(!open_at(&clumsy, 4).contains(MONK_RAGE_POWERS[0].0));
+    // Game: ExtraRagePowerSelection 0c7f01fbbe687bb4baff8195cb02fe6a: its slot at 5 offers Purity of Body.
+    let mut extra = instinctual_warrior(5, true);
+    extra
+        .picks
+        .insert(selection_slot(4), pick(MONK_RAGE_POWERS[0].0));
+    extra
+        .picks
+        .insert(general_slot(5), feat_pick_plain("extra-rage-power"));
+    assert!(open_at_slot(&extra, &extra_slot(5, 0)).contains(MONK_RAGE_POWERS[1].0));
+}
+
+/// The options a slot leaves open, by key.
+fn open_at_slot(build: &Build, slot: &SlotId) -> BTreeSet<String> {
+    engine()
+        .options(build, slot)
+        .unwrap()
+        .into_iter()
+        .filter(|option| option.status.is_ok())
+        .map(|option| option.pick.key().to_owned())
+        .collect()
 }
 
 /// The ticket's: an Instinctual Warrior's rage power picker offers each monk power from its level and not before,
@@ -103,10 +209,13 @@ fn an_instinctual_warrior_is_offered_each_monk_power_from_its_level_and_not_befo
     let engine = engine();
     let build = instinctual_warrior(20, true);
     assert!(possible(&build));
+    // Game: InstinctualWarriorArchetype adffdd8a99094a89823a79292a503ee9: InstinctualWarriorRagePowerSelection
+    // 609f0e5336084442a0dafa3abd4d31c5 at 4, 8, 10, 12, 16, 18, 20.
     assert_eq!(
         levels_with_slot_of(&build, RAGE_POWER),
         INSTINCTUAL_RAGE_POWER_LEVELS
     );
+    // Game: each row's blueprint in MONK_RAGE_POWERS (Purity of Body's 5 and Diamond Soul's 14 fall between slots).
     for level in INSTINCTUAL_RAGE_POWER_LEVELS {
         let open = open_at(&build, level);
         for (key, name, needs) in MONK_RAGE_POWERS {
@@ -117,23 +226,19 @@ fn an_instinctual_warrior_is_offered_each_monk_power_from_its_level_and_not_befo
             );
         }
     }
-    assert_eq!(
-        lock_reason(&build, 4, MONK_RAGE_POWERS[1].0),
-        "Needs Barbarian level 8 (have 4)"
-    );
+    // Game: RageDiamondBodyFeature 39d6ef0cb9794afbb5af3cae7288029d (12); RagePerfectSelfFeature
+    // 07777880a89d434c896660e4a521df92 (20). Purity of Body's and Diamond Soul's reasons are
+    // `the_instinctual_warriors_monk_powers_need_the_levels_and_dex_their_blueprints_name`'s.
     assert_eq!(
         lock_reason(&build, 10, MONK_RAGE_POWERS[2].0),
         "Needs Barbarian level 12 (have 10)"
     );
     assert_eq!(
-        lock_reason(&build, 12, MONK_RAGE_POWERS[3].0),
-        "Needs Barbarian level 16 (have 12)"
-    );
-    assert_eq!(
         lock_reason(&build, 18, MONK_RAGE_POWERS[4].0),
         "Needs Barbarian level 20 (have 18)"
     );
-    // Without Improved Unarmed Strike, Deflect Arrows is locked.
+    // Without Improved Unarmed Strike, Deflect Arrows is locked. Game: RageDeflectArrowsFeature
+    // d971bbb15f354621ac37fd51d0ab9044 needs ImprovedUnarmedStrike 7812ad3672a4b9a4fb894ea402095167.
     let bare = instinctual_warrior(4, false);
     assert_eq!(
         lock_reason(&bare, 4, MONK_RAGE_POWERS[0].0),
@@ -153,13 +258,15 @@ fn an_instinctual_warrior_is_offered_each_monk_power_from_its_level_and_not_befo
         engine.option_name(&SelectionOptionKey::new(MONK_RAGE_POWERS[1].0)),
         "Purity of Body (Instinctual Warrior)"
     );
-    // A power taken is "Already taken" in a later slot.
+    // A power taken is "Already taken" in a later slot. Game: RageDeflectArrowsFeature
+    // d971bbb15f354621ac37fd51d0ab9044 (Ranks 1).
     assert_eq!(
         lock_reason(&taken, 10, MONK_RAGE_POWERS[0].0),
         "Already taken"
     );
 
-    // Taken before its level: impossible, for that reason.
+    // Taken before its level: impossible, for that reason. Game: RageDiamondBodyFeature
+    // 39d6ef0cb9794afbb5af3cae7288029d (12).
     let mut early = instinctual_warrior(8, true);
     early
         .picks
@@ -174,6 +281,8 @@ fn an_instinctual_warrior_is_offered_each_monk_power_from_its_level_and_not_befo
 /// slot, needing the archetype (and the level, before it), and can't take one.
 #[test]
 fn a_barbarian_without_the_archetype_is_not_offered_the_monk_powers() {
+    // Game: RagePowerSelection 28710502f46848d48b3f0d6132817c4e holds none of them, and each blueprint in
+    // MONK_RAGE_POWERS needs InstinctualWarriorArchetype adffdd8a99094a89823a79292a503ee9.
     for archetype in [None, Some("barbarian/armored-hulk")] {
         let mut build = match archetype {
             Some(archetype) => chaotic(archetype_build("barbarian", archetype, 20)),
@@ -189,6 +298,11 @@ fn a_barbarian_without_the_archetype_is_not_offered_the_monk_powers() {
             let open = open_at(&build, level);
             for (key, name, needs) in MONK_RAGE_POWERS {
                 assert!(!open.contains(key), "{name} at {level} ({archetype:?})");
+                // The reasons of the rows of WAITING follow their data (the game's are
+                // `the_instinctual_warriors_monk_powers_need_the_levels_and_dex_their_blueprints_name`'s).
+                if WAITING.contains(&key) {
+                    continue;
+                }
                 let reason = match needs {
                     Some(needs) if needs > level => format!(
                         "Needs Barbarian level {needs} (have {level}), the Instinctual Warrior archetype"
@@ -214,6 +328,9 @@ fn a_barbarian_without_the_archetype_is_not_offered_the_monk_powers() {
 /// slots do, from their levels. Holding only a monk power meets the feat's "Rage Power".
 #[test]
 fn extra_rage_power_offers_an_instinctual_warrior_its_monk_powers() {
+    // Game: ExtraRagePowerSelection 0c7f01fbbe687bb4baff8195cb02fe6a needs a rage power selection held (equivalent
+    // model: a monk power held at 4 means the slot at 4 was reached); a selection, so it repeats
+    // (Blueprints/Classes/Selection/BlueprintFeatureSelection.CanSelect, WrathDecompiled 6ce4a6b).
     let engine = engine();
     let mut build = instinctual_warrior(9, true);
     build
@@ -242,21 +359,18 @@ fn extra_rage_power_offers_an_instinctual_warrior_its_monk_powers() {
             .map(|option| option.pick.key().to_owned())
             .collect()
     };
+    // Game: ExtraRagePowerSelection 0c7f01fbbe687bb4baff8195cb02fe6a offers the same 38.
     assert_eq!(keys(&extra_slot(9, 0)), keys(&selection_slot(8)));
-    let open = |slot: &SlotId| -> BTreeSet<String> {
-        engine
-            .options(&build, slot)
-            .unwrap()
-            .into_iter()
-            .filter(|option| option.status.is_ok())
-            .map(|option| option.pick.key().to_owned())
-            .collect()
-    };
-    // Deflect Arrows is taken at 4; Purity of Body opens at 8, so in the slot at 9 but not at 5.
+    // Deflect Arrows is taken at 4; Purity of Body opens at 5 (the slot at 5 is
+    // `the_instinctual_warriors_monk_powers_need_the_levels_and_dex_their_blueprints_name`'s). Game: each row's
+    // blueprint in MONK_RAGE_POWERS.
     for (slot, level) in [(extra_slot(5, 0), 5), (extra_slot(9, 0), 9)] {
-        let open = open(&slot);
+        let open = open_at_slot(&build, &slot);
         assert!(!open.contains(MONK_RAGE_POWERS[0].0), "at {level}");
         for (key, name, needs) in &MONK_RAGE_POWERS[1..] {
+            if *key == MONK_RAGE_POWERS[1].0 && level == 5 {
+                continue;
+            }
             assert_eq!(
                 open.contains(*key),
                 opens_at(*needs, level),
@@ -271,7 +385,8 @@ fn extra_rage_power_offers_an_instinctual_warrior_its_monk_powers() {
     let filled = with_selections_filled(filled);
     assert!(possible(&filled));
 
-    // A plain barbarian's Extra Rage Power slot has them locked.
+    // A plain barbarian's Extra Rage Power slot has them locked. Game: each blueprint in MONK_RAGE_POWERS needs
+    // InstinctualWarriorArchetype adffdd8a99094a89823a79292a503ee9.
     let mut plain = with_selections_filled(barbarian(3));
     plain
         .picks

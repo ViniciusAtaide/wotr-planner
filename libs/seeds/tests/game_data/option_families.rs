@@ -17,6 +17,8 @@ fn a_cleric_8_holds_both_domains_second_powers() {
     // Fire and Glory: Sarenrae's (ticket 86: the deity offers both).
     let build = cleric(["fire", "glory"], 8);
     assert!(engine().is_possible(&build));
+    // Game: FireDomainProgression 881b2137a1779294c8956fe5b497cc35 (1, and its resistance at 6) and
+    // GloryDomainProgression f0a61a043bcdf0f4c8efc59962afafb8 (1, and its aura at 8).
     for power in [
         "cleric/domain/fire/fire-bolt",
         "cleric/domain/glory/touch-of-glory",
@@ -26,12 +28,16 @@ fn a_cleric_8_holds_both_domains_second_powers() {
     from_level(&build, 6, "cleric/domain/fire/fire-resistance");
     from_level(&build, 8, "cleric/domain/glory/aura-of-heroism");
     // Two picks of one domain aren't two domains.
+    // Game: FireDomainProgression 881b2137a1779294c8956fe5b497cc35 (Ranks 1) and FireDomainProgressionSecondary
+    // 2bd6aa3c4979fd045bbbda8da586d3fb shut each other out.
     let twice = cleric(["fire", "fire"], 1);
     assert!(why_not(&twice, &SlotId::Selection { level: 1, index: 1 }).is_some());
 }
 
 #[test]
 fn a_cleric_archetype_that_may_only_select_a_single_domain_picks_one() {
+    // Game: CrusaderArchetype 6bfb7e74b530f3749b590286dd2b9b30 removes SecondDomainsSelection
+    // 43281c3d7fe18cc4d91928395837cd1e; EcclesitheurgeArchetype 472af8cb3de628f4a805dc4a038971bc keeps both.
     let crusader = archetype_build("cleric", "cleric/crusader", 1);
     let sheet = engine().evaluate(&crusader);
     let domain_slots = sheet.levels[0]
@@ -59,6 +65,8 @@ fn the_war_domain_grants_a_bonus_combat_feat_at_8() {
     // War and Strength: Gorum's (ticket 86: the deity offers both).
     let build = cleric(["war", "strength"], 8);
     let slot = SlotId::OptionFeat { level: 8, index: 0 };
+    // Game: WarDomainProgression 8d454cbb7f25070419a1c8eaf89b5be5 at 8: WarDomainGreaterFeatSelection
+    // 79c6421dbdb028c4fa0c31b8eea95f16, of the combat feats.
     let sheet = engine().evaluate(&build);
     assert_eq!(
         sheet.slot(&slot).expect("the War domain's slot").kind,
@@ -79,6 +87,8 @@ fn the_war_domain_grants_a_bonus_combat_feat_at_8() {
 fn the_animal_domains_companion_comes_at_4_and_opens_boon_companion() {
     let boon_companion = feat("boon-companion").prerequisite.clone().unwrap();
     let animal = cleric(["animal", "fire"], 4);
+    // Game: AnimalDomainProgression 23d2f87aa54c89f418e68e790dba11e0 at 4: AnimalCompanionSelectionDomain
+    // 2ecd6c64683b59944a7fe544033bb533.
     from_level(&animal, 4, "cleric/domain/animal/animal-companion");
     assert!(at(&animal, 3).check(&boon_companion).is_err());
     assert_eq!(at(&animal, 4).check(&boon_companion), Ok(()));
@@ -105,6 +115,8 @@ fn a_druid_with_the_weather_domain_holds_lightning_lord_at_8_and_others_dont() {
         let druid = with_option(druid(None, levels), 1, 0, "druid/nature-bond/domain");
         with_pick(druid, option_slot(1, 0), &format!("cleric/domain/{which}"))
     };
+    // Game: DruidDomainSelection 5edfe84c93823d04f8c40ca2b4e0f039, eight domains; WeatherDomainProgressionDruid
+    // 4a3516fdc4cda764ebd1279b22d10205 at 8: WeatherDomainGreaterFeature 8e44306af595c8d44aad2f1260fd7be2.
     assert_eq!(
         offered_at(&domain("weather", 1), &option_slot(1, 0)).len(),
         8,
@@ -138,6 +150,8 @@ fn a_blight_druid_skips_the_animal_domains_companion_and_a_winter_child_holds_ic
         "cleric/domain/animal",
     );
     assert!(engine().is_possible(&blight));
+    // Game: AnimalCompanionSelectionDomain 2ecd6c64683b59944a7fe544033bb533 has NoSelectionIfAlreadyHasFeature
+    // BlightDruidBond 096fc02f6cc817a43991c4b437e12b8e (equivalent model: the planner skips the row).
     assert!(!holds(
         &at(&blight, 4),
         "cleric/domain/animal/animal-companion"
@@ -145,6 +159,9 @@ fn a_blight_druid_skips_the_animal_domains_companion_and_a_winter_child_holds_ic
     // The domain's Lore (Nature) sits on that skipped row too; a druid has it anyway.
     assert!(has_class_skill(&at(&blight, 4), "lore-nature"));
 
+    // Game: WinterChildDomainSelection 79922e274bf4444b93ea77ae0f876bd2 lists eight, each but Ice barred to the
+    // Winter Child, so IceSubdomainProgressionDruid 2ef9e78640ae4d99a7cf2ac1eedde69a: its power at 1, its greater
+    // at 8 (equivalent model: held with no pick).
     let winter = druid(Some("druid/winter-child"), 8);
     assert!(engine().is_possible(&winter));
     assert!(holds(&at(&winter, 1), "cleric/domain/ice/icicle"));
@@ -155,8 +172,12 @@ fn a_blight_druid_skips_the_animal_domains_companion_and_a_winter_child_holds_ic
 fn an_inquisitors_domain_runs_on_inquisitor_levels() {
     let build = with_option(build("inquisitor", 6), 1, 0, "cleric/domain/luck");
     assert!(engine().is_possible(&build));
+    // Game: LuckDomainProgression 8bd8cfad69085654b9118534e4aa215e lists InquisitorClass; its 6th-level power.
     from_level(&build, 6, "cleric/domain/luck/divine-fortune");
     let huntsmaster = archetype_build("inquisitor", "inquisitor/sacred-huntsmaster", 1);
+    // Game: AnimalDomainProgression 23d2f87aa54c89f418e68e790dba11e0 and ScalykindDomainProgression
+    // 67034c0985b240e5ad6e41e905461951 have PrerequisiteNoArchetype SacredHuntsmasterArchetype
+    // 46eb929c8b6d7164188eb4d9bcd0a012; FaithHunterArchetype ac87f40932cfd324c90b441f93857c40 removes the domains.
     let domains = offered(&huntsmaster, 1);
     assert!(!domains.contains_key("cleric/domain/animal"));
     assert!(!domains.contains_key("cleric/domain/scalykind"));
@@ -173,6 +194,7 @@ fn an_inquisitors_domain_runs_on_inquisitor_levels() {
 fn an_oracles_revelation_slot_offers_only_its_mysterys_revelations() {
     // Besides the Dual-Cursed Oracle's Fortune and Misfortune, which no mystery admits (ticket 243).
     let mystery_free = |key: &&String| !key.ends_with("/fortune") && !key.ends_with("/misfortune");
+    // Game: each option of OracleRevelationSelection 60008a10ad7ad6543b1f63016741a5d2 needs its mystery's feature.
     let battle = offered_at(&oracle("battle", 1), &revelation_slot(1));
     assert!(battle.contains("oracle/revelations/battle/weapon-mastery"));
     assert!(
@@ -191,6 +213,7 @@ fn an_oracles_revelation_slot_offers_only_its_mysterys_revelations() {
         "{flame:?}"
     );
     // "Prerequisites: Level 7"
+    // Game: OracleRevelationCombatHealer db1d9829383e78841a6f1145411a54b4 needs oracle 7.
     let mut early = oracle("battle", 3);
     early.picks.insert(
         revelation_slot(3),
@@ -210,6 +233,8 @@ fn weapon_mastery_grants_improved_critical_at_8_in_its_weapon() {
         ),
     );
     assert!(engine().is_possible(&build));
+    // Game: OracleRevelationWeaponMastery 0a4c3556355747241b2d3dcc0a88ec10: Weapon Focus at 1, Improved Critical at
+    // 8, Greater Weapon Focus at 12, in the chosen weapon.
     assert!(at(&build, 1).has_feat_for(&FeatKey::new("weapon-focus"), &weapon("longsword")));
     let critical = FeatKey::new("improved-critical");
     assert!(!at(&build, 7).has_feat_for(&critical, &weapon("longsword")));
@@ -223,6 +248,10 @@ fn weapon_mastery_grants_improved_critical_at_8_in_its_weapon() {
 #[test]
 fn an_oracle_holds_the_mysterys_class_skill_and_final_revelation() {
     let build = oracle("battle", 20);
+    // Game: OracleBattleMysteryFeature 6b8e676943cb91648b21b7ca72fbb833 adds Perception as a class skill; its final
+    // revelation at 20. DivineHerbalistBattleMysteryFeature c880da2dea6b54f4bad7d1f4b79c2d63 adds no class skill;
+    // WIndWhispererArchetype 77769e43e63647c2b32298efcc577aca adds OracleWindMysteryFeature
+    // 7c1fdd831af747b47bb2cce0051f309b.
     assert!(has_class_skill(&at(&build, 1), "perception"));
     from_level(&build, 20, "oracle/mystery/battle/battle-final-revelation");
     // "he does not gain additional class skills from his choice of mystery" (Divine Herbalist).
@@ -249,6 +278,9 @@ fn a_warpriest_10_holds_both_major_blessings() {
     // Fire and Sun: Sarenrae's (ticket 86: the deity offers both).
     let build = with_option(build, 1, 1, "warpriest/blessings/sun");
     assert!(engine().is_possible(&build));
+    // Game: FireBlessingFeature 2368212fa3856d74589e924d3e2074d8's AddFeatureOnClassLevel 10 (the major blessing);
+    // FeralChampionArchetype f68ca492c9c15e241ab73735fbd0fb9f removes both blessing selections and adds
+    // FeralChampionBlessing 6c52c34b462be9047b83ae7f2a3b5822.
     for blessing in ["fire", "sun"] {
         assert!(holds(
             &at(&build, 1),
@@ -279,6 +311,9 @@ fn a_warpriest_10_holds_both_major_blessings() {
 fn a_kineticist_holds_the_elements_class_skills_list_and_defensive_talent() {
     let build = kineticist("earth", 2);
     assert!(engine().is_possible(&build));
+    // Game: ElementalFocusEarth c6816ad80a3df9c4ea7d3b012b06bacd: Athletics and Knowledge (World), Flesh of Stone
+    // (FleshOfStoneFeature a275b35f282601944a97e694f6bc79f8) at 2; KineticKnightElementalFocusEarth
+    // d2a93ab18fcff8c419b03a2c3d573606 at 4.
     let one = at(&build, 1);
     assert!(has_class_skill(&one, "athletics"));
     assert!(has_class_skill(&one, "knowledge-world"));
@@ -304,6 +339,9 @@ fn a_kineticist_holds_the_elements_class_skills_list_and_defensive_talent() {
 #[test]
 fn expanded_element_takes_a_second_element_or_the_first_again_but_not_three_times() {
     let mut build = kineticist("fire", 15);
+    // Game: SecondatyElementalFocusSelection 4204bc10b3d5db440b1f52f0c375848b offers four; SecondaryElementWater
+    // faa5f1233600d864fa998bc0afe351ab gives the blast only; ThirdElementFire 56e2fc3abed8f2247a621ac37e75f303 has
+    // PrerequisiteNoFeature SecondaryElementFire caa7edca64af1914d9e14785beb6a143.
     assert_eq!(offered_at(&build, &selection_slot(7)).len(), 4);
     build
         .picks
@@ -350,6 +388,10 @@ fn a_living_deity_takes_a_mystery_revelations_and_two_domains_at_20() {
     let build = with_pick(build, option_slot(20, 0), "cleric/domain/fire");
     let build = with_pick(build, option_slot(20, 1), "cleric/domain/luck");
     assert!(engine().is_possible(&build));
+    // Game: MagicDeceiverWayOfLivingGodProgression 464ffaf88140474a949618bec7955e78: mystery, curse and revelation at
+    // 1, FakeDivineSparkSelection e6d337e709b4478cb6e5389d3f85b601 twice at 20; FireDomainProgression
+    // 881b2137a1779294c8956fe5b497cc35 lists the Magic Deceiver (Blueprints/Classes/BlueprintProgression.CalcLevel,
+    // WrathDecompiled 6ce4a6b).
     from_level(&build, 20, "oracle/mystery/battle/battle-final-revelation");
     let twenty = at(&build, 20);
     assert!(holds(&twenty, "cleric/domain/fire/fire-resistance"));
@@ -366,6 +408,10 @@ fn domain_zealot_needs_a_domain_held_whoever_gave_it() {
         .prerequisite
         .clone()
         .unwrap();
+    // Game: DomainMastery 2de64f6a1f2baee4f9b7e52e3f046ec5 needs (Any) DomainsSelection
+    // 48525e5da45c9c243a343fc6545dbdb9, DivineHunterDomainsSelection 72909a37a1ed5344f88ec9d1d31f5c5b,
+    // HellknightDisciplinePentamicFaith b9750875e9d7454e85347d739a1bc894, the Trickster's Religion tier 2 or the
+    // Living Deity's FakeDivineSparkFeature: a cleric's domain counts, a Faith Hunter has none.
     assert!(
         at(&build("cleric", 1), 1).check(&domain_zealot).is_err(),
         "no domain picked yet"
@@ -376,9 +422,26 @@ fn domain_zealot_needs_a_domain_held_whoever_gave_it() {
     );
     let faith_hunter = archetype_build("inquisitor", "inquisitor/faith-hunter", 1);
     assert!(at(&faith_hunter, 1).check(&domain_zealot).is_err());
-    assert_eq!(
-        at(&archetype_build("druid", "druid/winter-child", 1), 1).check(&domain_zealot),
-        Ok(())
+}
+
+/// A druid's domain doesn't open Domain Zealot: a Winter Child druid can't take it.
+#[test]
+#[ignore = "waits on ticket 265: the game gives Domain Zealot no druid's domain"]
+fn domain_zealot_isnt_open_to_a_druids_domain() {
+    let domain_zealot = DATA
+        .mythic_abilities
+        .iter()
+        .find(|a| a.key.as_str() == "domain-zealot")
+        .unwrap()
+        .prerequisite
+        .clone()
+        .unwrap();
+    // Game: DomainMastery 2de64f6a1f2baee4f9b7e52e3f046ec5's Any prerequisites don't name WinterChildDomainSelection
+    // 79922e274bf4444b93ea77ae0f876bd2 or DruidDomainSelection 5edfe84c93823d04f8c40ca2b4e0f039.
+    assert!(
+        at(&archetype_build("druid", "druid/winter-child", 1), 1)
+            .check(&domain_zealot)
+            .is_err()
     );
 }
 
@@ -390,6 +453,11 @@ fn a_hellknight_picks_an_order_unless_held_and_pentamic_faith_gives_a_domain() {
         .iter()
         .find(|s| s.key.as_str() == "hellknight/order")
         .expect("the Hellknight's order");
+    // Game: HellKnightOrderSelection e31d849e4eb2578458419c9df622270f, seven orders, with PrerequisiteNoFeature of
+    // itself; HellknightDisciplinePentamicFaith b9750875e9d7454e85347d739a1bc894 offers eleven domains, levelled by
+    // HellknightDisciplinePentamicFaithFeature 3758edaa5cc54cb88b0d87a9f4a34df1's ranks, one a Hellknight level
+    // (Blueprints/Classes/BlueprintProgression.CalcLevel, WrathDecompiled 6ce4a6b; equivalent model: levelled by
+    // Hellknight levels).
     assert!(order.only_without_option);
     assert_eq!(order.offered().len(), 7);
     assert!(hellknight.levels[0].selections.contains(&order.key));
@@ -457,6 +525,9 @@ fn no_druid_can_take_impossible_domain_whatever_its_domain() {
     );
     let winter = druid(Some("druid/winter-child"), 3);
     let companion = with_option(druid(None, 3), 1, 0, "druid/nature-bond/animal-companion");
+    // Game: ExtraDomain 213a8480d22206b45acbfa0619ca5aaf needs DomainsSelection 48525e5da45c9c243a343fc6545dbdb9,
+    // DivineHunterDomainsSelection 72909a37a1ed5344f88ec9d1d31f5c5b or FakeDivineSparkSelection
+    // e6d337e709b4478cb6e5389d3f85b601; a druid's domain is none of them (equivalent model).
     for (name, build, domain) in [
         ("Nature Bond", nature_bond, Some("weather")),
         ("Blight Druid", blight, Some("death")),
@@ -496,7 +567,8 @@ const SECOND_CURSE: SlotId = SlotId::Selection { level: 1, index: 3 };
 /// "The Oracle must choose a second curse" (oracle#second-curse): its table's "Second Curse" at 1 is a slot of its
 /// own, which offers the oracle's nine curses; the plain oracle and the other archetypes have none.
 /// Game: DualCursedOracleArchetype 4a6eb63858244f7ea4ed950a7e798a70 adds SecondCurseSelection
-/// cc6fda79e8c340b88c84689414a9abbe at 1, whose options are the nine `<Curse>CurseNoProgression`s.
+/// cc6fda79e8c340b88c84689414a9abbe at 1, whose options are the nine `<Curse>CurseNoProgression`s
+/// (LameCurseNoProgression 857c97115ec745d58cc8fa7bdedc794f).
 #[test]
 fn the_dual_cursed_oracles_second_curse_is_a_slot_of_its_own() {
     let oracle = class("oracle");
@@ -562,6 +634,8 @@ fn a_dual_cursed_oracle_1_picks_two_curses_the_second_not_offering_the_first() {
 
     // Either slot offers the nine curses, the one taken in the other locked: "Already taken" in the second slot, and
     // in the first, breaking the second's pick (as a cleric's two domain slots answer).
+    // Game: each NoProgression curse (LameCurseNoProgression 857c97115ec745d58cc8fa7bdedc794f) has
+    // PrerequisiteNoFeature of its regular progression (LameCurseProgression 3d319da9614c76a41a095a4467c3233f).
     let first = "oracle/oracles-curse/plagued";
     let second = "oracle/oracles-curse/lame";
     for (taken_in, other, issue) in [
@@ -603,6 +677,8 @@ fn beneficial_curse_offers_a_dual_cursed_oracle_neither_of_her_curses() {
     assert_eq!(held.len(), 2);
     let oracle = with_mr_1_ability(oracle, BENEFICIAL_CURSE);
     assert!(possible(&oracle));
+    // Game: each NoPenalty curse (DemonicCurseNoPenaltyProgression b1de8f8f1250b0c4aa342e1895348cac) has
+    // PrerequisiteNoFeature of both the regular and the NoProgression progression.
     let curses = offered_in(&oracle, &mr_1_selection());
     assert_eq!(curses.len(), 9);
     for (curse, status) in &curses {

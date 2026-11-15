@@ -20,6 +20,10 @@ fn one_of_group(group: rules::OptionGroup) -> Issue {
 
 #[test]
 fn a_crossblooded_sorcerer_cant_take_red_after_blue() {
+    // Game: the PrerequisiteCondition on each Crossblooded secondary
+    // (CrossbloodedSecondaryBloodlineDraconicBlackProgression 601387ac1873bba448bddcfbf00af8d7) and on
+    // BloodlineDraconicRedProgression 8c6e5b3cf12f71e43949f52c41ae70a8 bars a second dragon or element (equivalent
+    // model: one option group each).
     let blue_red = crossblooded("draconic-blue", "draconic-red");
     let second = SlotId::Selection { level: 1, index: 1 };
     assert_eq!(
@@ -61,6 +65,8 @@ fn a_crossblooded_sorcerer_cant_take_red_after_blue() {
 fn a_crossblooded_sorcerers_second_bloodline_gives_its_arcana() {
     let build = crossblooded("arcane", "abyssal");
     assert!(possible(&build));
+    // Game: CrossbloodedSecondaryBloodlineAbyssalProgression 7e9c25e11e2333b4ea16b39964c2f8f1: the arcana and the class
+    // skill at 1, then spells only; SorcererBloodlineSelection 24bef8d1bee12274686f6da6ccbc8914 offers 21.
     let one = at(&build, 1);
     assert!(holds(&one, "sorcerer/bloodline/arcane/arcane-arcana"));
     assert!(holds(&one, "sorcerer/bloodline/abyssal/demonic-arcana"));
@@ -116,6 +122,9 @@ fn elemental_movement_follows_the_element_and_earth_has_none() {
             15,
         )
     };
+    // Game: BloodlineElementalAirProgression cd788df497c6f10439c7025e87864ee4, BloodlineElementalFireProgression
+    // 17cc794d47408bc4986c55265475c06f and BloodlineElementalWaterProgression 7c692e90592257a4e901d12ae6ec1e41: an
+    // elemental movement feature at 15. Earth's: `the_earth_bloodline_has_its_own_elemental_movement_at_15`.
     for name in ["air", "fire", "water"] {
         assert!(
             holds(
@@ -125,12 +134,28 @@ fn elemental_movement_follows_the_element_and_earth_has_none() {
             "{name}"
         );
     }
-    let earth = element("earth");
+}
+
+/// The Earth bloodline has an elemental movement too, at 15 (a burrow ability).
+#[test]
+#[ignore = "waits on ticket 281: the game gives the Earth bloodline an elemental movement at 15"]
+fn the_earth_bloodline_has_its_own_elemental_movement_at_15() {
+    let earth = at(
+        &with_option(
+            build("sorcerer", 15),
+            1,
+            0,
+            "sorcerer/bloodline/elemental-earth",
+        ),
+        15,
+    );
+    // Game: BloodlineElementalEarthProgression 32393034410fb2f4d9c8beaa5c8c8ab7 at 15:
+    // BloodlineElementalEarthElementalMovementFeature 277d9c2a2392e8940a452888aa67f32e.
     assert!(
         earth
             .features
             .keys()
-            .all(|key| !key.as_str().contains("elemental-movement")),
+            .any(|key| key.as_str().contains("elemental-movement")),
         "{:?}",
         earth.features
     );
@@ -141,8 +166,10 @@ fn a_separatists_second_domain_comes_two_levels_late() {
     let one = separatist(1);
     assert!(possible(&one));
     let at_1 = at(&one, 1);
+    // Game: FireDomainProgression 881b2137a1779294c8956fe5b497cc35: its power at 1, its resistance at 6.
     assert!(holds(&at_1, "cleric/domain/fire/fire-bolt"));
-    assert!(!holds(&at_1, "cleric/domain/luck/bit-of-luck"));
+    // Luck's power at cleric 1: `a_separatists_second_domain_gives_its_1st_level_power_from_cleric_1`.
+    // Game: LuckDomainProgressionSeparatist 1f26551e7e61436c8ee188064038a896: its greater power at 8.
     let three = separatist(3);
     let at_3 = at(&three, 3);
     assert!(holds(&at_3, "cleric/domain/fire/fire-bolt"));
@@ -152,16 +179,33 @@ fn a_separatists_second_domain_comes_two_levels_late() {
     from_level(&separatist(8), 6, "cleric/domain/fire/fire-resistance");
 }
 
+/// The Separatist's second domain gives its 1st-level power from cleric 1; only its numbers count two levels lower.
 #[test]
-fn a_divine_hunter_8_holds_its_domains_level_8_power() {
+#[ignore = "waits on ticket 253: the game gives the Separatist's second domain power from cleric 1"]
+fn a_separatists_second_domain_gives_its_1st_level_power_from_cleric_1() {
+    // Game: LuckDomainProgressionSeparatist 1f26551e7e61436c8ee188064038a896 grants its base power at its level 1
+    // (cleric 1); SeparatistCasterLevelPropery 93d211bd5f4946f3bbed1b651d107377 lowers its numbers by two.
+    assert!(holds(
+        &at(&separatist(1), 1),
+        "cleric/domain/luck/bit-of-luck"
+    ));
+}
+
+/// A Divine Hunter's domain counts the hunter's level less two: Nobility's 8th-level power at hunter 10.
+#[test]
+#[ignore = "waits on ticket 253: the game gives the Divine Hunter's domain hunter level - 2"]
+fn a_divine_hunters_domain_runs_two_levels_behind_its_hunter_level() {
     let build = with_option(
-        archetype_build("hunter", "hunter/divine-hunter", 8),
+        archetype_build("hunter", "hunter/divine-hunter", 10),
         1,
         0,
         "cleric/domain/nobility",
     );
     assert!(possible(&build));
-    from_level(&build, 8, "cleric/domain/nobility/inspiring-command");
+    // Game: NobilityDomainProgression 8480f2d1ca764774895ee6fd610a568e lists DivineHunterArchetype
+    // f996f0a18e5d945459e710ee3a6dd485 with AdditionalLevel -2 (Blueprints/Classes/BlueprintProgression.CalcLevel,
+    // WrathDecompiled 6ce4a6b).
+    from_level(&build, 10, "cleric/domain/nobility/inspiring-command");
 }
 
 /// A Living Deity with the Battle mystery and the Plagued curse, arcanist `levels`, its two domains at 20.
@@ -200,6 +244,9 @@ fn a_living_deity_with_impossible_domain_holds_a_third_domain() {
     );
     let build = with_mythic_selection(build, "impossible-domain", "cleric/domain/nobility");
     assert!(possible(&build));
+    // Game: ExtraDomain 213a8480d22206b45acbfa0619ca5aaf offers the domain progressions, which list the Magic Deceiver
+    // and the cleric (NobilityDomainProgression 8480f2d1ca764774895ee6fd610a568e; Blueprints/Classes/
+    // BlueprintProgression.CalcLevel, WrathDecompiled 6ce4a6b).
     let twenty = at(&build, 20);
     for domain in ["fire", "luck", "nobility"] {
         assert_eq!(
@@ -228,6 +275,8 @@ fn cinder_dance_needs_no_lame_curse() {
         let build = with_option(build, 1, 1, &format!("oracle/oracles-curse/{curse}"));
         with_option(build, 1, 2, "oracle/revelations/flame/cinder-dance")
     };
+    // Game: OracleRevelationCinderDance 6e67eae3081853544b191943f5ed4534's PrerequisiteNoFeature
+    // LameCurseProgression 3d319da9614c76a41a095a4467c3233f.
     assert!(possible(&flame("plagued")));
     assert!(!possible(&flame("lame")));
 }
@@ -270,6 +319,8 @@ fn a_living_deitys_maneuver_mastery_and_second_mystery_count_arcanist_levels() {
         "oracle/revelations/battle/maneuver-mastery",
     );
     let build = with_pick(build, option_slot(1, 3), "oracle/maneuver-mastery/trip");
+    // Game: OracleRevelationManeuverMasteryTrip 86f1c6ea242b6c74e81e370e4ffad4d1's AddFeatureOnClassLevel 7
+    // (ImprovedTrip 0f15c6f70d8fb2b49aa6cc24239cc5fa), counting the Magic Deceiver's arcanist levels.
     let trip = FeatKey::new("trip");
     assert_eq!(at(&build, 6).feat_count(&trip), 0);
     assert_eq!(at(&build, 7).feat_count(&trip), 1);
@@ -281,6 +332,8 @@ fn a_living_deitys_maneuver_mastery_and_second_mystery_count_arcanist_levels() {
     );
     let build = with_mythic_selection(build, "second-mystery", "oracle/mystery/flame");
     assert!(possible(&build));
+    // Game: OracleFlameMysteryFeature 3b68909df737cd4458509d7f3a9c3706 adds Athletics as a class skill; its final
+    // revelation at 20.
     class_skill_from_level(&build, 6, "athletics");
     from_level(&build, 20, "oracle/mystery/flame/flame-final-revelation");
 }
@@ -307,28 +360,72 @@ fn a_champion_of_the_faiths_alignment_blessing_is_his_own_alignment() {
         // A deity offering that alignment's domain, if any (ticket 86, question 13).
         possible(&realigned(build, alignment))
     };
+    // Game: ChampionOfTheFaithGoodFeature 92b34412524dda24fa544c54189792d7 (not evil),
+    // ChampionOfTheFaithLawFeature 980004b88420d6248975b278a7efbdcd (not chaotic), ChampionOfTheFaithEvilFeature
+    // cf6e5f8927653434eab6179cbc76eb04 (not good) and ChampionOfTheFaithChaosFeature 4ee098d102ccf574a99f1cf63ee01a05
+    // (not lawful), by PrerequisiteAlignment (Blueprints/Classes/Prerequisites/PrerequisiteAlignment.CheckInternal,
+    // WrathDecompiled 6ce4a6b). A true neutral's Chaos: `a_true_neutral_champion_of_the_faith_takes_chaos`.
     assert!(champion(rules::Alignment::LawfulGood, "good"));
     assert!(champion(rules::Alignment::LawfulGood, "law"));
     assert!(!champion(rules::Alignment::LawfulGood, "evil"));
-    assert!(!champion(rules::Alignment::TrueNeutral, "chaos"));
     assert!(champion(rules::Alignment::ChaoticEvil, "chaos"));
-    // A warpriest's own blessings checked it too since ticket 86 (question 7): an evil one needs an evil warpriest.
+    // A warpriest's own Evil blessing, as a neutral evil follower of a deity offering Evil.
+    // Game: EvilBlessingFeature f38f3abf6ca3a07499a61f96e342bb16 needs the deity's Evil domain. Without that
+    // alignment: `a_warpriests_evil_blessing_needs_the_deity_not_the_alignment`.
     let blessings = with_option(
         build("warpriest", 1),
         1,
         0,
         "warpriest/blessings/evil-domain",
     );
-    assert_eq!(blessings.start.alignment, None);
-    assert!(!possible(&blessings));
     assert!(possible(&realigned(
         blessings,
         rules::Alignment::NeutralEvil
     )));
 }
 
+/// A true neutral Champion of the Faith may take Chaos as his chosen alignment: it needs only an alignment that
+/// isn't lawful.
+#[test]
+#[ignore = "waits on ticket 267: the game gives a true neutral Champion of the Faith Chaos"]
+fn a_true_neutral_champion_of_the_faith_takes_chaos() {
+    let mut build = archetype_build("warpriest", "warpriest/champion-of-the-faith", 1);
+    align(&mut build, rules::Alignment::TrueNeutral);
+    let slot = slot_of(
+        &build,
+        1,
+        "warpriest/champion-of-the-faith/chosen-alignment",
+    );
+    build
+        .picks
+        .insert(slot, pick("warpriest/blessings/chaos-domain"));
+    // Game: ChampionOfTheFaithChaosFeature 4ee098d102ccf574a99f1cf63ee01a05's PrerequisiteAlignment admits every
+    // alignment that isn't lawful, and names no deity.
+    assert!(possible(&realigned(build, rules::Alignment::TrueNeutral)));
+}
+
+/// A warpriest's Evil blessing needs a deity offering Evil, not an evil warpriest: a lawful neutral follower of
+/// Asmodeus takes it.
+#[test]
+#[ignore = "waits on ticket 267: the game gives a warpriest's alignment blessing a deity condition only"]
+fn a_warpriests_evil_blessing_needs_the_deity_not_the_alignment() {
+    let mut build = with_option(
+        build("warpriest", 1),
+        1,
+        0,
+        "warpriest/blessings/evil-domain",
+    );
+    build.start.alignment = Some(rules::Alignment::LawfulNeutral);
+    build.start.deity = Some(rules::Faith::Deity(rules::DeityKey::new("asmodeus")));
+    // Game: EvilBlessingFeature f38f3abf6ca3a07499a61f96e342bb16 needs only EvilDomainAllowed, which AsmodeusFeature
+    // a3a5ccc9c670e6f4ca4a686d23b89900 grants to its followers, lawful neutral among them.
+    assert!(possible(&build));
+}
+
 #[test]
 fn a_signifer_picks_one_of_the_seven_hellknight_orders() {
+    // Game: HellknightSigniferProgression 9dbe8102673d3e94e98e25cb9260e1c5 at 1: HellKnightOrderSelection
+    // e31d849e4eb2578458419c9df622270f, seven orders.
     let signifer = class("hellknight-signifer");
     let order = signifer
         .selections
@@ -348,6 +445,8 @@ fn a_signifer_picks_one_of_the_seven_hellknight_orders() {
 #[test]
 fn expanded_element_at_15_isnt_the_7th_level_element() {
     let mut build = kineticist("fire", 15);
+    // Game: ThirdElementWater 86eff374d040404438ad97fedd7218bc's PrerequisiteNoFeature SecondaryElementWater
+    // faa5f1233600d864fa998bc0afe351ab.
     build
         .picks
         .insert(selection_slot(7), pick("kineticist/element/water"));
@@ -370,6 +469,9 @@ fn a_slayer_who_picked_archery_cant_take_two_weapon_fighting_through_a_combat_st
     );
     let style = SlotId::OptionSelection { level: 2, index: 0 };
     // The five ranger styles.
+    // Game: RangerStyleSelection2 c6d0da9124735a44f93ac31df803b9a9 offers five; RangerStyleArcherySelection2
+    // 3cf94df3f1cf9a443a880bc1ae9be3c6 lists Rapid Shot, not Two-Weapon Fighting; RangerStyleArcherySelection6
+    // 6c799d09d5b93f344b9ade0e0c765c2d (Manyshot) needs Archery's stage 2.
     assert_eq!(offered_at(&slayer, &style).len(), 5);
     slayer
         .picks
@@ -420,6 +522,8 @@ fn a_dual_heritage_or_kindred_raised_half_elf_has_no_adaptability_pick() {
             .filter(|slot| slot.id == race_slot())
             .count()
     };
+    // Game: HalfElfHeritageSelection 9df7b68d60544bcf8e5b56c0a4688e04: only the basic heritage gives
+    // BaseRaseHalfElfSelection a9d54aab4e9243ca867341257aaa253e (Adaptability).
     assert_eq!(race_slots(&half_elf(None)), 1);
     for subrace in ["half-elf/dual-heritage", "half-elf/kindred-raised"] {
         assert_eq!(race_slots(&half_elf(Some(subrace))), 0, "{subrace}");
@@ -453,6 +557,8 @@ fn a_living_deity_with_impossible_domain_holds_the_domains_level_1_power_before_
     let build = living_deity_with_impossible_domain(8);
     assert!(possible(&build));
     // Arcanist levels from the pick: its 1st-level power at 6, its 8th-level one at 8.
+    // Game: NobilityDomainProgression 8480f2d1ca764774895ee6fd610a568e lists the Magic Deceiver
+    // (Blueprints/Classes/BlueprintProgression.CalcLevel, WrathDecompiled 6ce4a6b).
     from_level(&build, 6, "cleric/domain/nobility/inspiring-word");
     from_level(&build, 8, "cleric/domain/nobility/inspiring-command");
     assert_eq!(
@@ -493,35 +599,17 @@ fn pentamic_hellknight() -> Build {
     with_pick(build, option_slot(9, 0), "cleric/domain/law")
 }
 
+/// Pentamic Faith's domain doesn't open Impossible Domain: a Hellknight 3 holding one can't take it.
 #[test]
-fn a_hellknight_3_with_pentamic_faiths_domain_can_take_impossible_domain() {
+#[ignore = "waits on ticket 265: the game gives Impossible Domain no Pentamic Faith"]
+fn a_hellknight_3_with_pentamic_faiths_domain_cant_take_impossible_domain() {
     let build = pentamic_hellknight();
     assert!(possible(&build));
-    let mythic = SlotId::Mythic { rank: 3 };
-    let status = engine()
-        .options(&build, &mythic)
-        .unwrap()
-        .into_iter()
-        .find(|option| option.pick.key() == "impossible-domain")
-        .map(|option| option.status);
-    assert_eq!(status, Some(Ok(())));
-    // Its domain runs on Hellknight levels, like the Pentamic Faith domain.
-    let mut build = build;
-    build.picks.insert(
-        mythic,
-        Pick::mythic_ability(rules::MythicAbilityKey::new("impossible-domain")),
-    );
-    build.picks.insert(
-        SlotId::MythicSelection { rank: 3, index: 0 },
-        pick("cleric/domain/war"),
-    );
-    assert!(possible(&build));
-    let nine = at(&build, 9);
-    assert_eq!(
-        nine.option_level(&SelectionOptionKey::new("cleric/domain/war")),
-        3
-    );
-    assert!(holds(&nine, "cleric/domain/war/battle-rage"));
+    let status = feat_status(&build, &SlotId::Mythic { rank: 3 }, "impossible-domain");
+    // Game: ExtraDomain 213a8480d22206b45acbfa0619ca5aaf needs (Any) DomainsSelection 48525e5da45c9c243a343fc6545dbdb9,
+    // DivineHunterDomainsSelection 72909a37a1ed5344f88ec9d1d31f5c5b or FakeDivineSparkSelection
+    // e6d337e709b4478cb6e5389d3f85b601, not HellknightDisciplinePentamicFaith b9750875e9d7454e85347d739a1bc894.
+    assert!(status.is_err(), "{status:?}");
 }
 
 #[test]
@@ -551,6 +639,9 @@ fn a_hellknight_who_becomes_a_signifer_gets_no_second_order() {
         "fighter/armiger/order/order-of-the-chain",
     );
     align(&mut hellknight, rules::Alignment::LawfulNeutral);
+    // Game: the Hellknight and the Signifer share HellKnightOrderSelection e31d849e4eb2578458419c9df622270f, whose
+    // PrerequisiteNoFeature of itself is checked in the progression (UnitLogic/Class/LevelUp/Actions/
+    // LevelUpHelper.AddFeaturesFromProgression, WrathDecompiled 6ce4a6b).
     assert_eq!(order_slots(&hellknight, 8), 0);
     // Anyone holding no order picks one.
     let mut wizard = classes(&[
@@ -565,42 +656,44 @@ fn a_hellknight_who_becomes_a_signifer_gets_no_second_order() {
     assert_eq!(order_slots(&wizard, 6), 1);
 }
 
+/// Whether a Separatist of `alignment` may take `domain` as his second domain. The first domain one that a deity of
+/// the alignment offers (ticket 86): Protection (Abadar, Shelyn, Nethys), Trickery for a chaotic evil (Calistria).
+/// Then a deity that doesn't offer the second, if any.
+fn separatist_takes(alignment: rules::Alignment, domain: &str) -> bool {
+    let first = if alignment == rules::Alignment::ChaoticEvil {
+        "trickery"
+    } else {
+        "protection"
+    };
+    let mut build = archetype_build("cleric", "cleric/separatist", 1);
+    build
+        .picks
+        .insert(selection_slot(1), pick(&format!("cleric/domain/{first}")));
+    build.picks.insert(
+        SlotId::Selection { level: 1, index: 1 },
+        pick(&format!("cleric/domain/{domain}")),
+    );
+    possible(&realigned(build, alignment))
+}
+
 #[test]
 fn a_lawful_good_separatist_cant_take_chaos_or_evil_as_his_second_domain() {
-    // The first domain one that a deity of the alignment offers (ticket 86): Protection (Abadar, Shelyn, Nethys),
-    // Trickery for a chaotic evil (Calistria). Then a deity that doesn't offer the second, if any.
-    let separatist = |alignment: rules::Alignment, domain: &str| {
-        let first = if alignment == rules::Alignment::ChaoticEvil {
-            "trickery"
-        } else {
-            "protection"
-        };
-        let mut build = archetype_build("cleric", "cleric/separatist", 1);
-        build
-            .picks
-            .insert(selection_slot(1), pick(&format!("cleric/domain/{first}")));
-        build.picks.insert(
-            SlotId::Selection { level: 1, index: 1 },
-            pick(&format!("cleric/domain/{domain}")),
-        );
-        possible(&realigned(build, alignment))
-    };
     let lawful_good = rules::Alignment::LawfulGood;
-    assert!(!separatist(lawful_good, "chaos"));
-    assert!(!separatist(lawful_good, "evil"));
-    assert!(separatist(lawful_good, "good"));
-    assert!(separatist(lawful_good, "law"));
-    // A true neutral has none that conflicts; a chaotic evil can't take Law or Good.
-    for domain in ["chaos", "evil", "good", "law"] {
-        assert!(
-            separatist(rules::Alignment::TrueNeutral, domain),
-            "{domain}"
-        );
-    }
-    assert!(!separatist(rules::Alignment::ChaoticEvil, "law"));
-    assert!(!separatist(rules::Alignment::ChaoticEvil, "good"));
+    // Game: ChaosDomainProgressionSeparatist 714706ca6958440cbbb217c2d167e6ec, EvilDomainProgressionSeparatist
+    // bd2a6afae68a445da4d17b32116798fc, GoodDomainProgressionSeparatist 9370c9720dd84695bac921b711b44c66 and
+    // LawDomainProgressionSeparatist 94ea125ce3cd42a19bb804e267ab127c each need their alignment
+    // (Blueprints/Classes/Prerequisites/PrerequisiteAlignment.CheckInternal, WrathDecompiled 6ce4a6b). A true
+    // neutral: `a_true_neutral_separatist_takes_no_alignment_domain`.
+    assert!(!separatist_takes(lawful_good, "chaos"));
+    assert!(!separatist_takes(lawful_good, "evil"));
+    assert!(separatist_takes(lawful_good, "good"));
+    assert!(separatist_takes(lawful_good, "law"));
+    // A chaotic evil can't take Law or Good.
+    assert!(!separatist_takes(rules::Alignment::ChaoticEvil, "law"));
+    assert!(!separatist_takes(rules::Alignment::ChaoticEvil, "good"));
     // His first domain, a cleric's, isn't checked against it here; since ticket 86 a cleric's alignment domain needs
     // its alignment (question 7), so a lawful good one can't take Chaos at all.
+    // Game: ChaosDomainProgression 5a5d19c246961484a97e1e5dded98ab2's PrerequisiteAlignment: chaotic.
     let mut first = archetype_build("cleric", "cleric/separatist", 1);
     first
         .picks
@@ -612,8 +705,9 @@ fn a_lawful_good_separatist_cant_take_chaos_or_evil_as_his_second_domain() {
     )));
 }
 
+/// A ranger 10 / slayer 2 with Archery: the ranger's slot at 10 offers the style's 10th-level list.
 #[test]
-fn a_ranger_10_slayer_2_takes_the_slayers_2_or_4_feat_from_the_first_stage() {
+fn a_ranger_10s_style_slot_offers_the_10th_level_list() {
     let mut keys = vec!["ranger"; 10];
     keys.extend(["slayer", "slayer"]);
     let build = with_option(
@@ -622,25 +716,10 @@ fn a_ranger_10_slayer_2_takes_the_slayers_2_or_4_feat_from_the_first_stage() {
         0,
         "ranger/combat-style-feat/archery-feats",
     );
-    let build = with_option(build, 12, 0, "slayer/slayer-talents/combat-style-feat-2");
-    // One shared style: the slayer picks none.
-    assert!(
-        engine()
-            .evaluate(&build)
-            .slot(&option_slot(12, 0))
-            .is_none()
-    );
-    let feat_slot = SlotId::OptionFeat {
-        level: 12,
-        index: 0,
-    };
-    let offered = feats_offered(&build, &feat_slot);
-    assert!(offered.contains("rapid-shot"), "{offered:?}");
-    assert!(
-        !offered.contains("manyshot") && !offered.contains("improved-critical"),
-        "{offered:?}"
-    );
-    // The ranger's own slot at 10 is the style's 10th-level list.
+    // The slayer's 2nd-level combat style talent there: `a_ranger_10_slayer_2_cant_take_the_2nd_level_combat_style`.
+    // Game: RangerProgression 97261d609529d834eba4fd4da1bc44dc at 10: RangerStyleSelection10
+    // 78177315fc63b474ea3cbb8df38fafcd, Archery's 10th-level list (RangerStyleArcherySelection10
+    // 7ef950ca681955d47bc4efbe77073e2c).
     assert!(
         feats_offered(
             &build,
@@ -652,6 +731,26 @@ fn a_ranger_10_slayer_2_takes_the_slayers_2_or_4_feat_from_the_first_stage() {
         )
         .contains("improved-critical")
     );
+}
+
+/// A ranger 10 / slayer 2 can't take the slayer's 2nd-level combat style talent: he holds the ranger's
+/// RangerStyleSelection2 already.
+#[test]
+#[ignore = "waits on ticket 276: the game refuses the talent to a ranger who holds the stage-2 style"]
+fn a_ranger_10_slayer_2_cant_take_the_2nd_level_combat_style() {
+    let mut keys = vec!["ranger"; 10];
+    keys.extend(["slayer", "slayer"]);
+    let build = with_option(
+        classes(&keys),
+        2,
+        0,
+        "ranger/combat-style-feat/archery-feats",
+    );
+    let build = with_option(build, 12, 0, "slayer/slayer-talents/combat-style-feat-2");
+    // Game: RangerProgression 97261d609529d834eba4fd4da1bc44dc gives RangerStyleSelection2
+    // c6d0da9124735a44f93ac31df803b9a9 at ranger 2, and SlayerTalentSelection2 04430ad24988baa4daa0bcd4f1c7d118's
+    // option needs it not held (Blueprints/Classes/BlueprintFeature.MeetsPrerequisites, WrathDecompiled 6ce4a6b).
+    assert!(!possible(&build));
 }
 
 #[test]
@@ -675,6 +774,9 @@ fn a_bloodrager_with_a_dragon_bloodline_cant_take_a_second_dragon_through_second
             .collect();
         options
     };
+    // Game: BloodragerDragonBlueSecondBloodline 4c495ac785134983b99f77eb559a81a0 and
+    // BloodragerElementalFireSecondBloodline 5151e4d7512e41a2a35c1c2707281a64 test the bloodrager's own dragon or
+    // element (equivalent model: one option group each).
     let red = second("draconic-red");
     assert_eq!(
         red["bloodrager/bloodline/draconic-blue"],
@@ -698,4 +800,19 @@ fn a_bloodrager_with_a_dragon_bloodline_cant_take_a_second_dragon_through_second
     both.levels.push(LevelUp::new(ClassKey::new("bloodrager")));
     let both = with_option(both, 2, 0, "bloodrager/bloodline/draconic-blue");
     assert!(possible(&both));
+}
+
+/// A true neutral Separatist can take none of the alignment domains: each needs its alignment.
+#[test]
+#[ignore = "waits on ticket 267: the game gives a Separatist's alignment domain only to that alignment"]
+fn a_true_neutral_separatist_takes_no_alignment_domain() {
+    // Game: ChaosDomainProgressionSeparatist 714706ca6958440cbbb217c2d167e6ec, EvilDomainProgressionSeparatist
+    // bd2a6afae68a445da4d17b32116798fc, GoodDomainProgressionSeparatist 9370c9720dd84695bac921b711b44c66 and
+    // LawDomainProgressionSeparatist 94ea125ce3cd42a19bb804e267ab127c each need their alignment.
+    for domain in ["chaos", "evil", "good", "law"] {
+        assert!(
+            !separatist_takes(rules::Alignment::TrueNeutral, domain),
+            "{domain}"
+        );
+    }
 }

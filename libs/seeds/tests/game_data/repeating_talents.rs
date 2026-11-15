@@ -32,7 +32,10 @@ fn option_feat_slot(level: u8) -> SlotId {
 /// The Skill Focus wild talent and the rogue talent Skill Focus repeat once per skill (user, 2026-11-02): the option
 /// takes the skill of its chosen feat, Skill Focus, once for each.
 #[test]
-fn the_skill_focus_talents_repeat_once_per_skill_and_weapon_focus_doesnt() {
+fn the_skill_focus_talents_repeat_once_per_skill() {
+    // Game: WildTalentSelection 5c883ae0cd6d7d5448b7a420f51f8459 and RogueTalentSelection
+    // c074a5d615200494b8f2a9c845799d93 offer SkillFocusSelection c9629ef9eebb88b479b2fbc5e836656a itself, whose
+    // per-skill options have Ranks 1.
     for key in [talent("skill-focus"), rogue_talent("skill-focus")] {
         let option = selection_option(&key);
         assert_eq!(
@@ -42,15 +45,17 @@ fn the_skill_focus_talents_repeat_once_per_skill_and_weapon_focus_doesnt() {
         );
         assert_eq!(option.repeat, Repeat::PerValue, "{key}");
     }
+    // Game: RogueTalentSelection c074a5d615200494b8f2a9c845799d93 offers WeaponFocus 1e1f627d26ad36f43bbd26cc2bf8ac7e
+    // itself.
     let weapon_focus = selection_option(&rogue_talent("weapon-focus"));
     assert_eq!(weapon_focus.chosen_feat, Some(FeatKey::new("weapon-focus")));
-    assert_eq!(weapon_focus.repeat, Repeat::Once);
 }
 
 /// A kineticist takes Skill Focus (Perception) at 2 and Skill Focus (Stealth) at 4; Skill Focus (Perception) again at
 /// 6 is refused, another skill is open.
 #[test]
 fn a_kineticist_takes_the_skill_focus_talent_for_two_skills_but_not_one_twice() {
+    // Game: SkillFocusSelection c9629ef9eebb88b479b2fbc5e836656a (each skill's Skill Focus, Ranks 1).
     let focus = talent("skill-focus");
     let build = with_picks(
         kineticist("earth", 6),
@@ -85,6 +90,8 @@ fn a_kineticist_takes_the_skill_focus_talent_for_two_skills_but_not_one_twice() 
 /// slayer, who shares the rogue talents, too.
 #[test]
 fn a_rogue_and_a_slayer_take_the_skill_focus_talent_for_two_skills_but_not_one_twice() {
+    // Game: RogueTalentSelection c074a5d615200494b8f2a9c845799d93 and SlayerTalentSelection2
+    // 04430ad24988baa4daa0bcd4f1c7d118 offer SkillFocusSelection c9629ef9eebb88b479b2fbc5e836656a (Ranks 1 per skill).
     let focus = rogue_talent("skill-focus");
     for class in ["rogue", "slayer"] {
         let build = with_picks(
@@ -109,19 +116,39 @@ fn a_rogue_and_a_slayer_take_the_skill_focus_talent_for_two_skills_but_not_one_t
     }
 }
 
-/// The rogue talent Weapon Focus stays taken once (user, 2026-11-02), whatever the weapon.
+/// The game's rogue talent Weapon Focus is the feat itself, a parametrised feature the game repeats once per weapon:
+/// Longsword and then Dagger through the talent hold, Longsword twice doesn't (the user's "once" of 2026-11-02 gave way
+/// to the game's value, user, 2026-11-15).
 #[test]
-fn the_rogue_weapon_focus_talent_cant_be_taken_twice() {
+#[ignore = "waits on ticket 249: the game gives the rogue talent Weapon Focus once per \
+            weapon"]
+fn the_rogue_weapon_focus_talent_is_taken_once_per_weapon() {
+    // Game: WeaponFocus 1e1f627d26ad36f43bbd26cc2bf8ac7e;
+    // Blueprints/Classes/Selection/BlueprintFeatureSelection.CanSelect, WrathDecompiled 6ce4a6b (no rank limit for a
+    // parametrised feature); Blueprints/Classes/Selection/BlueprintParametrizedFeature.CanSelect, WrathDecompiled
+    // 6ce4a6b (refuses only a value already held).
+    assert_eq!(
+        selection_option(&rogue_talent("weapon-focus")).repeat,
+        Repeat::PerValue
+    );
     let focus = rogue_talent("weapon-focus");
-    let build = with_picks(
+    let two = with_picks(
         build("rogue", 4),
         &[
             (2, pick_for(&focus, weapon("longsword"))),
             (4, pick_for(&focus, weapon("dagger"))),
         ],
     );
+    assert_eq!(why_not(&two, &selection_slot(4)), None);
+    let twice = with_picks(
+        build("rogue", 4),
+        &[
+            (2, pick_for(&focus, weapon("longsword"))),
+            (4, pick_for(&focus, weapon("longsword"))),
+        ],
+    );
     assert_eq!(
-        why_not(&build, &selection_slot(4)),
+        why_not(&twice, &selection_slot(4)),
         Some(Issue::AlreadyHeld)
     );
 }
@@ -130,6 +157,9 @@ fn the_rogue_weapon_focus_talent_cant_be_taken_twice() {
 /// Combat feat slot whose feat's prerequisites are checked (user, 2026-11-02).
 #[test]
 fn combat_trick_repeats_and_grants_a_combat_feat_slot_each_time() {
+    // Game: CombatTrick c5158a6622d0b694a99efb1d0025d2c1, a selection of combat feats, so repeatable
+    // (Blueprints/Classes/Selection/BlueprintFeatureSelection.CanSelect, WrathDecompiled 6ce4a6b) (equivalent model:
+    // an unlimited option giving a combat feat slot).
     let trick = selection_option(&rogue_talent("combat-trick"));
     assert_eq!(trick.repeat, Repeat::Unlimited);
     assert_eq!(
@@ -157,7 +187,9 @@ fn combat_trick_repeats_and_grants_a_combat_feat_slot_each_time() {
         assert_eq!(slot.kind, SlotKind::Feat(FeatSlot::CombatFeat));
         assert_eq!(engine.slot_label(slot), "Combat feat");
     }
-    // Its feat's prerequisites are checked; a feat that isn't a Combat feat isn't offered.
+    // Its feat's prerequisites are checked; a feat that isn't a Combat feat isn't offered. Game: CombatTrick
+    // c5158a6622d0b694a99efb1d0025d2c1 lists WeaponFocus, not SkillFocus, IgnorePrerequisites false; CleaveFeature
+    // d809b6c4ff2aaff4fa70d712a70f7d7b needs PowerAttackFeature.
     let offered = feats_offered(&build, &option_feat_slot(2));
     assert!(offered.contains("weapon-focus"));
     assert!(!offered.contains("skill-focus"));
@@ -183,6 +215,8 @@ fn a_rogue_takes_weapon_focus_in_two_weapons_through_two_combat_tricks() {
     );
     build.picks.insert(option_feat_slot(2), focus("longsword"));
     build.picks.insert(option_feat_slot(4), focus("dagger"));
+    // Game: Blueprints/Classes/Selection/BlueprintParametrizedFeature.CanSelect, WrathDecompiled 6ce4a6b: one Weapon
+    // Focus per weapon.
     assert!(possible(&build));
     let state = at(&build, 4);
     for value in ["longsword", "dagger"] {
@@ -202,7 +236,8 @@ fn a_rogue_takes_weapon_focus_in_two_weapons_through_two_combat_tricks() {
         why_not(&twice, &option_feat_slot(4)),
         Some(Issue::AlreadyHeld)
     );
-    // The rogue talent Weapon Focus beside them: another weapon is open, Longsword isn't.
+    // The rogue talent Weapon Focus beside them: another weapon is open, Longsword isn't. Game:
+    // BlueprintParametrizedFeature.CanSelect, WrathDecompiled 6ce4a6b.
     let mut rogue_6 = build.clone();
     rogue_6.levels.extend([
         LevelUp::new(ClassKey::new("rogue")),
@@ -223,6 +258,11 @@ fn a_rogue_takes_weapon_focus_in_two_weapons_through_two_combat_tricks() {
 /// Fey Tricks and the Underground Chemist's Discovery (from rogue 10).
 #[test]
 fn combat_trick_grants_its_slot_through_every_selection_offering_it() {
+    // Game: CombatTrick c5158a6622d0b694a99efb1d0025d2c1 is offered by RogueTalentSelection,
+    // SlayerTalentSelection2/6/10, SylvanTricksterTalentSelection, UndergroundChemistSelection,
+    // VivsectionistDiscoverySelection, DarkLurkerRogueTalentSelection, BardTalentSelection, SkaldTalentSelection,
+    // ProvocateurTalentSelection and the Extra Rogue, Slayer and Vivisectionist selections (equivalent model: the
+    // planner reaches the bard, skald, Dark Lurker and Feyform rows through the rogue's or slayer's selection).
     let offering: BTreeSet<String> = DATA
         .classes
         .iter()
@@ -252,6 +292,10 @@ fn combat_trick_grants_its_slot_through_every_selection_offering_it() {
         )
     );
     let trick = pick(&rogue_talent("combat-trick"));
+    // Game: RogueProgression b57b2a75a5abcaf47a01cf84672b50e9, BardProgression 8127f5ff40f5b484b8be98609358b9d2,
+    // SkaldProgression 26418fed2bc153245972a5b54204ed75, FeyformShifterShifterArchetype
+    // 1cdfc7d306d1430eac19427539b62091, SylvanTricksterArchetype 490394869f666c141bf8647b1a365220,
+    // UndergroundChemistArchetype b4f5741d42c4cb04abf5ab3fe33f6fc5: one of those selections at each level here.
     for (build, level) in [
         (build("slayer", 2), 2),
         (archetype_build("rogue", "rogue/sylvan-trickster", 2), 2),
