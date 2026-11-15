@@ -108,3 +108,76 @@ fn greater_two_weapon_fighting_at_dex_17_needs_the_belt_of_incredible_dexterity_
     // The feat cleared first, the belt comes off.
     assert!(engine.is_removable(&without(&geared, &general_slot(13)), &the_belt));
 }
+
+/// A manual's Dexterity is an inherent bonus: it counts in every number but not toward an ability prerequisite, so the
+/// manual doesn't do what the belt does.
+// Game: ManualOfQuicknessOfActionPlus2 b8ea6d2f787c7004c9cab9f519f687f8 (uses ManualOfQuicknessOfActionPlus2_Feature
+// 741d033afc9eebf4ca4a5ba014100ee6: AddStatBonus, Inherent, Dexterity +2); Kingmaker/UnitLogic/FactLogic/AddStatBonus.cs
+// OnTurnOn (a modifier, not the base value), Kingmaker/EntitySystem/Stats/ModifiableValueAttributeStat.cs
+// CalculatePermanentValue and Kingmaker/EntitySystem/Stats/ModifiableValue.cs Modifier.IsPermanent (only a racial
+// modifier or an item's Enhancement), Kingmaker/Blueprints/Classes/Prerequisites/PrerequisiteStatValue.cs
+// GetStatValue (PermanentValue), WrathDecompiled 6ce4a6b
+#[test]
+fn a_manuals_inherent_dexterity_doesnt_meet_greater_two_weapon_fightings_dexterity() {
+    let engine = engine();
+    let mut read = two_weapon_fighter();
+    read.gear
+        .used
+        .insert(GearKey::new("manual-of-quickness-of-action-2"));
+    assert_eq!(at(&read, 13).ability_scores.dexterity, 19);
+    let failures = engine.failures(&read);
+    assert_eq!(failures.len(), 1, "{failures:?}");
+    assert_eq!(failures[0].choice, Choice::Slot(general_slot(13)));
+    assert_eq!(
+        engine.issue_text(&failures[0].issue).as_deref(),
+        Some("Needs Dex 19 (have 17)")
+    );
+}
+
+/// A fighter 1 with Intelligence 11 taking Combat Expertise (Intelligence 13) at level 1.
+fn expert_at_int_11() -> Build {
+    let mut build = build("fighter", 1);
+    let mut scores = AbilityScores::default();
+    *scores.get_mut(Ability::Intelligence) = 11;
+    build.start.ability_scores = PointBuy::try_from(scores).expect("in budget");
+    build
+        .picks
+        .insert(general_slot(1), feat_pick_plain("combat-expertise"));
+    build
+}
+
+/// Draven's Hat's profane Intelligence +2 counts in the scores but not toward Combat Expertise's Intelligence 13; a
+/// Headband of Vast Intelligence +2's enhancement does.
+// Game: CombatExpertiseFeature 4c44724ffa8844f4d9bedb5bb27d144a (PrerequisiteStatValue Intelligence 13); DravensHatItem
+// 0160c8eabe704db41b6309af0d26a8e0 (DravensHatEnchantment b3894ce33c4c0ce4abf0dbcff0d6729f: AddStatBonusEquipment,
+// Profane, Intelligence +2); HeadbandOfIntelligence2 22184af355826444087506d7f2f8f0b1 (Intelligence2
+// 0f157adfc02708441b02725a24e8eb71: AddStatBonusEquipment, Enhancement, Intelligence +2);
+// Kingmaker/Designers/Mechanics/EquipmentEnchants/AddStatBonusEquipment.cs OnTurnOn (AddItemModifierUnique: the item is
+// the modifier's source), Kingmaker/EntitySystem/Stats/ModifiableValue.cs Modifier.IsPermanent,
+// Kingmaker/EntitySystem/Stats/ModifiableValueAttributeStat.cs CalculatePermanentValue and
+// Kingmaker/Blueprints/Classes/Prerequisites/PrerequisiteStatValue.cs GetStatValue, WrathDecompiled 6ce4a6b
+#[test]
+fn dravens_hats_profane_intelligence_doesnt_meet_combat_expertise_and_an_enhancement_headband_does()
+{
+    let engine = engine();
+    let wearing = |item: &str| {
+        let mut build = expert_at_int_11();
+        build
+            .gear
+            .worn
+            .insert(GearPlace::Headwear, GearKey::new(item));
+        build
+    };
+
+    let hat = wearing("dravens-hat");
+    assert_eq!(at(&hat, 1).ability_scores.intelligence, 13);
+    let failures = engine.failures(&hat);
+    assert_eq!(failures.len(), 1, "{failures:?}");
+    assert_eq!(failures[0].choice, Choice::Slot(general_slot(1)));
+    assert_eq!(
+        engine.issue_text(&failures[0].issue).as_deref(),
+        Some("Needs Int 13 (have 11)")
+    );
+
+    assert!(engine.is_possible(&wearing("headband-of-vast-intelligence-2")));
+}

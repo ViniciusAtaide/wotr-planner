@@ -1183,11 +1183,12 @@ pub struct Feature {
     /// Abjurer's Resistance): it isn't part of a Build, so the sheet shows a note instead of a pick.
     #[serde(default)]
     pub daily_choice: bool,
-    /// For prerequisites, the base attack bonus is at least this while the feature is held (Perfect Mind: 15).
+    /// While the feature is held, the base attack bonus itself is at least this plus the Mythic rank (Perfect Mind:
+    /// 15): the sheet, the attack line and every prerequisite read it.
     #[serde(default)]
-    pub bab_floor: Option<u8>,
-    /// For prerequisites, the ranks in every skill are at least the Mythic rank while the feature is held (Perfect
-    /// Mind).
+    pub bab_at_least_mythic_rank_plus: Option<u8>,
+    /// While the feature is held, each skill's total counts at least the Mythic rank for its ranks (Perfect Mind). It
+    /// raises totals, not ranks: a skill-rank prerequisite still reads the ranks spent.
     #[serde(default)]
     pub skill_ranks_at_least_mythic_rank: bool,
     /// While the feature is held, the character is proficient with the favoured weapons of the Build's deity (Cleric

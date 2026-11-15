@@ -375,6 +375,14 @@ impl BonusType {
         Self::Untyped,
     ];
 
+    /// Whether an item's bonus of this type to an ability score counts toward ability prerequisites: a racial or an
+    /// enhancement bonus. The game's prerequisites read a score's permanent value, which keeps only those
+    /// (`Kingmaker/EntitySystem/Stats/ModifiableValue.cs` `Modifier.IsPermanent`, WrathDecompiled 6ce4a6b): a
+    /// manual's inherent bonus, Draven's Hat's profane one or an untyped penalty counts in every number but not there.
+    pub fn counts_toward_prerequisites(self) -> bool {
+        matches!(self, Self::Enhancement | Self::Racial)
+    }
+
     /// Lower case, as a summary prints it ("enhancement", "natural armour"); "" for [`Untyped`](Self::Untyped).
     pub fn name(self) -> &'static str {
         match self {

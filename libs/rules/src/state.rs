@@ -30,10 +30,15 @@ pub struct CharacterState {
     pub fort: u8,
     pub reflex: u8,
     pub will: u8,
-    /// The character's ability scores, as prerequisites and every derived number see them: the base scores, the
-    /// always-on bonuses and penalties of the gear the Build holds, stacked by type (ticket 166), then the ability
-    /// bonuses of the features held (Legend's +4). Only a level's skill points read the scores without the gear.
+    /// The character's ability scores, as every derived number sees them: the base scores, the always-on bonuses and
+    /// penalties of the gear the Build holds, stacked by type (ticket 166), then the ability bonuses of the features
+    /// held (Legend's +4). A level's skill points read the scores without the gear, and ability prerequisites read
+    /// [`permanent_ability_scores`](Self::permanent_ability_scores).
     pub ability_scores: AbilityScores,
+    /// The scores ability prerequisites read (ticket 252): as [`ability_scores`](Self::ability_scores), but of the
+    /// gear's bonuses only the [`counts_toward_prerequisites`](crate::BonusType::counts_toward_prerequisites) ones, an
+    /// item's Enhancement: the game's permanent value.
+    pub permanent_ability_scores: AbilityScores,
     /// Point buy, racial modifiers and the level increases so far, before any feature's bonus.
     pub base_ability_scores: AbilityScores,
     /// Spell-level access: the highest arcane spell level castable; 0 when none.
@@ -84,9 +89,11 @@ pub struct CharacterState {
     pub mythic_feats: BTreeSet<MythicFeatKey>,
     /// Each parameterised mythic feat held, with the values it's held for (Improved Critical (Mythic): Longsword).
     pub mythic_feat_values: BTreeMap<MythicFeatKey, BTreeSet<Parameter>>,
-    /// The base attack bonus prerequisites see at least (Perfect Mind: 15); 0 when no feature sets one.
-    pub bab_floor: u8,
-    /// Set while a feature makes every skill's ranks at least the Mythic rank for prerequisites (Perfect Mind).
+    /// While a feature held raises the BAB to at least this plus the Mythic rank (Perfect Mind: 15), this; `None`
+    /// otherwise. [`bab`](Self::bab) already counts it.
+    pub bab_at_least_mythic_rank_plus: Option<u8>,
+    /// Set while a feature makes every skill's total count at least the Mythic rank for its ranks (Perfect Mind).
+    /// Prerequisites still read the ranks spent.
     pub skill_ranks_at_least_mythic_rank: bool,
     /// The Mythic rank reached: 3 after a Legend switch, whatever the rank before.
     pub mythic_rank: u8,
@@ -131,19 +138,15 @@ impl CharacterState {
         self.skill_ranks.get(skill).copied().unwrap_or(0)
     }
 
-    /// The ranks in a skill that prerequisites see: the ranks, or the Mythic rank under Perfect Mind when higher.
-    pub fn prerequisite_skill_ranks(&self, skill: &SkillKey) -> u8 {
+    /// The ranks a skill's total counts: the ranks, or the Mythic rank under Perfect Mind when higher. A skill-rank
+    /// prerequisite reads [`skill_ranks`](Self::skill_ranks) instead.
+    pub fn skill_ranks_in_total(&self, skill: &SkillKey) -> u8 {
         let floor = if self.skill_ranks_at_least_mythic_rank {
             self.mythic_rank
         } else {
             0
         };
         self.skill_ranks(skill).max(floor)
-    }
-
-    /// The base attack bonus that prerequisites see: the BAB, or a feature's floor when higher (Perfect Mind).
-    pub fn prerequisite_bab(&self) -> u8 {
-        self.bab.max(self.bab_floor)
     }
 
     /// Whether a parameterised mythic feat is held for a value.
@@ -375,11 +378,11 @@ impl CharacterState {
                 flag(!self.holds_other_option_of(*group, picking.option))
             }
             P::PickedThrough(selection) => flag(picking.selection == Some(selection)),
-            P::SkillRanks { skill, ranks } => numeric(self.prerequisite_skill_ranks(skill), *ranks),
+            P::SkillRanks { skill, ranks } => numeric(self.skill_ranks(skill), *ranks),
             P::AbilityScore { ability, score } => {
-                numeric(self.ability_scores.get(*ability), *score)
+                numeric(self.permanent_ability_scores.get(*ability), *score)
             }
-            P::BaseAttackBonus(bab) => numeric(self.prerequisite_bab(), *bab),
+            P::BaseAttackBonus(bab) => numeric(self.bab, *bab),
             P::SpellLevel { spell_type, level } => numeric(self.spell_level(*spell_type), *level),
             P::SpontaneousSpellLevel { spell_type, level } => {
                 numeric(self.spontaneous_spell_level(*spell_type), *level)

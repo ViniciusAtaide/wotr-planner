@@ -46,11 +46,13 @@ pub(super) fn gear() -> Vec<GearItem> {
             GearSlot::Belt,
             vec![score(Constitution, 2, Enhancement)],
         ),
+        // Racial: with an enhancement, the one other type that counts toward ability prerequisites (ticket 252), so
+        // two items can add up for one.
         item(
             "bracers-of-agility",
             "Bracers of Agility",
             GearSlot::Bracers,
-            vec![score(Dexterity, 2, Untyped)],
+            vec![score(Dexterity, 2, Racial)],
         ),
         item(
             "gloves-of-dexterity-4",

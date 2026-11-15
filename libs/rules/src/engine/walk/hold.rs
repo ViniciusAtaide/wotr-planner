@@ -1,6 +1,7 @@
 //! Filling a slot, and holding or releasing what a pick or grant gives, with the ability scores and floors that
 //! follow from it.
 
+use super::gear::WornGear;
 use super::judge::check_pick;
 use super::{Checkpoint, GrantSource, Held, Pending, Probe, RankGrant, Walker};
 use crate::build::{AbilityScores, Pick, SlotId};
@@ -374,8 +375,8 @@ impl<'a> Walker<'a> {
     }
 
     /// The base attack bonus: the class tables', or the most the options held set by ranks spent (Athletics III: the
-    /// ranks, and 5 more while the class tables' bonus equals the character level). The sheet, the attack line and
-    /// every prerequisite read it.
+    /// ranks, and 5 more while the class tables' bonus equals the character level), or the most a feature held
+    /// raises it to (Perfect Mind: 15 + the Mythic rank). The sheet, the attack line and every prerequisite read it.
     pub(super) fn refresh_bab(&mut self) {
         let state = &self.state;
         let full = self.class_bab == state.character_level;
@@ -391,35 +392,50 @@ impl<'a> Walker<'a> {
             })
             .max()
             .unwrap_or(0);
-        self.state.bab = self.class_bab.max(raised);
+        let by_rank = state
+            .bab_at_least_mythic_rank_plus
+            .map_or(0, |plus| plus.saturating_add(state.mythic_rank));
+        self.state.bab = self.class_bab.max(raised).max(by_rank);
     }
 
-    /// The floors prerequisites see, from the features held (Perfect Mind: BAB 15, skill ranks at the Mythic rank).
+    /// The floors of the features held (Perfect Mind: BAB 15 + MR, skill totals at the Mythic rank), and the BAB they
+    /// raise.
     fn refresh_floors(&mut self) {
         let catalog = &self.engine.catalog;
-        let (mut bab, mut skills) = (0u8, false);
+        let (mut bab, mut skills) = (None, false);
         for key in self.state.features.keys() {
-            if let Some((floor, at_rank)) = catalog.floor(key) {
-                bab = bab.max(floor.unwrap_or(0));
+            if let Some((plus, at_rank)) = catalog.floor(key) {
+                bab = bab.max(plus);
                 skills |= at_rank;
             }
         }
-        self.state.bab_floor = bab;
+        self.state.bab_at_least_mythic_rank_plus = bab;
         self.state.skill_ranks_at_least_mythic_rank = skills;
+        self.refresh_bab();
     }
 
-    /// The character's scores, as every reader but a level's skill points sees them ([`own_scores`](Self::own_scores),
-    /// with the gear).
+    /// The character's scores: as every number reads them (with all the gear's bonuses), and as ability prerequisites
+    /// do (with the gear's bonuses that count there). Both from one base ([`own_base`](Self::own_base)).
     pub(super) fn refresh_ability_scores(&mut self) {
-        self.state.ability_scores = self.own_scores(true);
+        let (base, gear) = (self.own_base(), &self.gear);
+        self.state.ability_scores = self.with_feature_bonuses(WornGear::onto(gear.scores, base));
+        self.state.permanent_ability_scores = if gear.permanent == gear.scores {
+            self.state.ability_scores
+        } else {
+            self.with_feature_bonuses(WornGear::onto(gear.permanent, base))
+        };
     }
 
-    /// The character's scores: the base scores, without the race's penalties while a mythic feat removes them
-    /// (Destiny Beyond Birth); then, with `gear`, the gear's bonuses and penalties, stacked by type; then the bonuses
-    /// of every feature held, once per grant. Gear counts before the features (the user's choice, ticket 163), so a
-    /// belt that makes another score the highest moves a "highest score" bonus (Perfect Body) to it.
-    pub(super) fn own_scores(&self, gear: bool) -> AbilityScores {
-        let catalog = &self.engine.catalog;
+    /// The character's scores without gear: the base scores, without the race's penalties while a mythic feat removes
+    /// them (Destiny Beyond Birth), then the bonuses of every feature held ([`with_feature_bonuses`]).
+    ///
+    /// [`with_feature_bonuses`]: Self::with_feature_bonuses
+    pub(super) fn own_scores(&self) -> AbilityScores {
+        self.with_feature_bonuses(self.own_base())
+    }
+
+    /// The base scores, without the race's penalties while a mythic feat removes them (Destiny Beyond Birth).
+    fn own_base(&self) -> AbilityScores {
         let mut base = self.state.base_ability_scores;
         if self
             .state
@@ -432,9 +448,14 @@ impl<'a> Walker<'a> {
                 *score = score.saturating_add(*penalty);
             }
         }
-        if gear && self.gear.changes_scores() {
-            base = self.gear.onto(base);
-        }
+        base
+    }
+
+    /// `base` (with or without the gear's amounts, [`WornGear`]) with the bonuses of every feature held, once per grant.
+    /// Gear counts before the features (the user's choice, ticket 163), so a belt that makes another score the highest
+    /// moves a "highest score" bonus (Perfect Body) to it.
+    fn with_feature_bonuses(&self, base: AbilityScores) -> AbilityScores {
+        let catalog = &self.engine.catalog;
         let bonuses = self
             .state
             .features

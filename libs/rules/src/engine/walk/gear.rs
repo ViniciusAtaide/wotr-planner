@@ -2,15 +2,18 @@
 //! at every level, then added to the ability scores and to the bonuses in force.
 //!
 //! - **Scores:** the items' ability score bonuses and penalties, stacked by type ([`stacked`]), go onto the base
-//!   scores before the features' bonuses ([`Walker::own_scores`]), so a belt can move a "highest score" feature's
+//!   scores before the features' bonuses ([`Walker::refresh_ability_scores`]), so a belt can move a "highest score" feature's
 //!   bonus. Every reader of [`CharacterState::ability_scores`] then sees gear, but for a level's skill points, which
-//!   read the scores without it ([`Walker::skill_point_scores`]).
+//!   read the scores without it ([`Walker::skill_point_scores`]), and ability prerequisites, which read
+//!   [`CharacterState::permanent_ability_scores`]: the scores with only the items' enhancement (and racial) bonuses
+//!   (ticket 252).
 //! - **Other numbers:** the items' other bonuses join the bonuses in force at each level's end
 //!   (`Walker::record_bonuses`), each with its type and its item, after the Item bonuses.
 //!
 //! A Build without gear takes none of these paths: the walk asks [`Gear::is_empty`] first.
 //!
 //! [`CharacterState::ability_scores`]: crate::CharacterState::ability_scores
+//! [`CharacterState::permanent_ability_scores`]: crate::CharacterState::permanent_ability_scores
 //! [`Gear::is_empty`]: crate::Gear::is_empty
 
 use super::Walker;
@@ -23,7 +26,10 @@ use crate::gear::{GearItem, GearTarget};
 #[derive(Clone, Debug, Default)]
 pub(super) struct WornGear {
     /// What the items add to each ability score, in [`AbilityScores::ABILITIES`]' order, already stacked.
-    scores: [i16; 6],
+    pub(super) scores: [i16; 6],
+    /// What they add to the scores ability prerequisites read: the same, of only the bonuses that count there
+    /// ([`BonusType::counts_toward_prerequisites`]), stacked among themselves.
+    pub(super) permanent: [i16; 6],
     /// The items' other bonuses, in the order the Build holds its items, each item's in its own order: the tail of
     /// every level's bonuses in force. Only a walk that keeps the sheet has them.
     pub(super) bonuses: Vec<BonusInForce>,
@@ -35,9 +41,10 @@ impl WornGear {
         self.scores.iter().any(|amount| *amount != 0)
     }
 
-    /// The scores with the gear's bonuses and penalties: never below 0 nor above 255.
-    pub(super) fn onto(&self, mut scores: AbilityScores) -> AbilityScores {
-        for (ability, amount) in AbilityScores::ABILITIES.into_iter().zip(self.scores) {
+    /// The scores with `amounts` added (the gear's [`scores`](Self::scores) or [`permanent`](Self::permanent)):
+    /// never below 0 nor above 255.
+    pub(super) fn onto(amounts: [i16; 6], mut scores: AbilityScores) -> AbilityScores {
+        for (ability, amount) in AbilityScores::ABILITIES.into_iter().zip(amounts) {
             let score = scores.get_mut(ability);
             *score = u8::try_from((i16::from(*score) + amount).clamp(0, i16::from(u8::MAX)))
                 .unwrap_or(u8::MAX);
@@ -74,13 +81,15 @@ impl<'a> Walker<'a> {
         }
         let mut gear = WornGear::default();
         for (at, ability) in AbilityScores::ABILITIES.into_iter().enumerate() {
-            let bonuses: Vec<(BonusType, i16)> = held
+            let mut bonuses: Vec<(BonusType, i16)> = held
                 .iter()
                 .flat_map(|item| &item.bonuses)
                 .filter(|bonus| bonus.target == GearTarget::Ability(ability))
                 .map(|bonus| (bonus.kind, i16::from(bonus.amount)))
                 .collect();
             gear.scores[at] = stacked(&bonuses);
+            bonuses.retain(|(kind, _)| kind.counts_toward_prerequisites());
+            gear.permanent[at] = stacked(&bonuses);
         }
         if self.sheet {
             for item in &held {
@@ -111,7 +120,7 @@ impl<'a> Walker<'a> {
     /// ranks stay valid whatever is worn).
     pub(super) fn skill_point_scores(&self) -> AbilityScores {
         if self.gear.changes_scores() {
-            self.own_scores(false)
+            self.own_scores()
         } else {
             self.state.ability_scores
         }
