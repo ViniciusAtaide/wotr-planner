@@ -1943,7 +1943,7 @@ fn every_key_is_lowercase_slugs() {
     );
 }
 
-/// Ticket 187: the database's `feature_selection_pool_of_not_itself` (a filtered pool's since the splits ticket) and
+/// Ticket 187: the database's `feature_selection_pool_of_not_itself` (a filtered pool's since ticket 243) and
 /// `feature_selection_mythic_ranks_on_a_path`.
 #[test]
 fn a_selection_is_not_filtered_by_itself_and_only_a_paths_is_levelled_by_mythic_ranks() {

@@ -1,4 +1,4 @@
-//! The splits ticket's three shapes, as the game models them: a ranked feature (one feature granted again, its rank
+//! Ticket 243's three shapes, as the game models them: a ranked feature (one feature granted again, its rank
 //! the number of grants), a repeated selection (one selection named by several rows, each taking another option),
 //! and a filtered pool (one selection whose options its `filtered_by` selection's held option admits); with the
 //! option level that counts half the other classes (an oracle's curse) and an option's old keys in a link.

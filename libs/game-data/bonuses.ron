@@ -60,7 +60,7 @@
     (item: Subrace("halfling/hasty"), target: Initiative, amount: Flat(2)),
     (item: Feature("duelist/improved-reaction"), target: Initiative, amount: Flat(2), requires: Not(ClassLevel(class: "duelist", level: 8))),
     (item: Feature("duelist/improved-reaction"), target: Initiative, amount: Flat(4), requires: ClassLevel(class: "duelist", level: 8)),
-    // The curse stages that change initiative, at the curse level the game's progression reaches (the splits ticket).
+    // The curse stages that change initiative, at the curse level the game's progression reaches (ticket 243).
     (item: Feature("oracle/oracles-curse/powerless-prophecy/level-5"), target: Initiative, amount: Flat(4)),
     (item: Feature("oracle/oracles-curse/pranked/level-1"), target: Initiative, amount: Flat(-4)),
     // "Adds both Wisdom and Dexterity": Wisdom beside the Dexterity every initiative counts.

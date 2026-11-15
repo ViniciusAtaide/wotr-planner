@@ -1,8 +1,8 @@
 # Ranked features and prerequisite-filtered pools, as the game models them
 
 Type: design, then build
-Status: resolved (number to assign: the numbers from 243 on are another agent's until its difference tickets are filed)
-Blocked by: 237. Comes before [the game data laid out by blueprint](game-data-by-blueprint.md) (user, 2026-11-15).
+Status: resolved
+Blocked by: 237. Comes before [the game data laid out by blueprint](244-the-game-data-laid-out-by-blueprint.md) (user, 2026-11-15).
 Model: Opus to research and build: each split is read from the game and the engine learns two shapes it lacks.
 Map: [WotR Build Planner](../map.md)
 
@@ -48,7 +48,7 @@ Found while mapping each game-data entry to its blueprint ([237](237-a-blueprint
 
 ## Answer
 
-**Built** (2026-11-15). The research (the main session's scratch `splits/design.md`, from the game's blueprints and WrathDecompiled `6ce4a6b`) found the groups' game shapes; the main session's answers (`splits/decisions.md`) settled the model. Each group is now one entry with its blueprint, and the engine models the three shapes. Data note: `libs/game-data/notes/ranks-and-filtered-pools.md`.
+**Built** (2026-11-15). The research (the main session's scratch `splits/design.md`, from the game's blueprints and WrathDecompiled `6ce4a6b`) found the groups' game shapes; the main session's answers (`splits/decisions.md`) settled the model. Each group is now one entry with its blueprint, and the engine models the three shapes. Data note: `libs/game-data/notes/243-ranked-features-and-filtered-pools.md`.
 
 - **Ranked features.** A feature granted again gains a rank (`UnitLogic/FeatureCollection.cs` `PrepareFactForAttach`, `UnitLogic/Feature.cs` `AddRank`), up to the blueprint's `Ranks`, where `AddRank` stops. The engine's grant count already was the planner's feature rank, which it doesn't cap: within the cap it is the game's rank (the assassin's saves, `Ranks` 5: rank 2 at assassin 9), past it the planner counts on where the game stays (Fey Magic's selection has `Ranks` 1). Collapsed: `assassin/poison-use-saves-required` (`AssassinCreatePoisonIncreasedSavingThrows`, at 5 and 9), `druid/feyspeaker/fey-magic` ("Fey Magic (Feyspeaker)", `FeyspeakerMagicSelection`, at 4 to 18). Physical Enhancement's `-2` to `-4` went (its bonus scales by wizard level, uncomputed as before) and `-5` is `physical-enhancement-capstone` (`TransmutationPhysicalEnhancementCapstone`). The MCP sheet's gained features say `rank` from 2 on a level line, unless it equals `times` (`Gained::rank`).
 - **Repeated selections** already existed (one key named by several rows); a rules test pins them.
@@ -77,7 +77,7 @@ Found while mapping each game-data entry to its blueprint ([237](237-a-blueprint
 - **Beneficial Curse**, a known difference for a difference ticket (246 on): the game's `BeneficialCurse` `2dda67424ee8e0b4d83ef01a73ca6bff` offers the `<Curse>CurseNoPenaltyProgression`s; the planner's slot offers `oracle/oracles-curse`, the curses with their penalties and stages. Recorded in the note.
 - **The filter's safety.** `Catalog::admits` (`engine/slots.rs`) now hides an option only when its prerequisite can't be met without an unheld option of the filter selection (`needs_unheld`: needed under `All`, every way under `Any`, too many under `AtLeast`; a `Not` or another leaf never hides). Ours: this over a `GameData::check` rule, being one function and no new data error. Test `a_filtered_pool_leaves_out_only_what_needs_an_admitting_option` (an `Any` with another way in, a `Not` and an `AtLeast` are offered to a War cleric and `Ok`). The corpus agreement sweep for oracles (`AGREEMENT_ONLY=oracle cargo test --release -p corpus --test agreement -- --ignored`): 81 Builds, 823,463 options judged, no disagreement.
 - **Test docs:** `BLUEPRINTS` and `CHECKED` have their own doc comments; the stray paragraph left `stealth_aliases`; `a_link_naming_an_options_old_key_reads_as_the_option` also asserts an alias two options have (`DuplicateKey`).
-- **Nits:** the README credits the guide for its bullet and the game for the splits ticket's terms; the curse is called "the curse's own progression (the game's `BlueprintProgression`)" in the Answer, note and README.
+- **Nits:** the README credits the guide for its bullet and the game for ticket 243's terms; the curse is called "the curse's own progression (the game's `BlueprintProgression`)" in the Answer, note and README.
 
 ## Done when
 

@@ -112,7 +112,7 @@ fn entries_name_their_game_blueprint() {
             "3cf94df3f1cf9a443a880bc1ae9be3c6",
         ),
         // OracleRevelationSelection: the per-mystery pools merged into the game's one revelation selection, filtered
-        // by the mystery (the splits ticket)
+        // by the mystery (ticket 243)
         (
             DataAt::FeatureSelection(FeatureSelectionKey::new("oracle/revelations")),
             "60008a10ad7ad6543b1f63016741a5d2",
@@ -183,7 +183,7 @@ fn entries_name_their_game_blueprint() {
 
 /// The 175 entries left empty, by kind, as the ticket's Answer lists them: planner placeholders (the bloodline-spell
 /// features), a feature the game keeps as one blueprint per colour or element, an ability rather than a feature, a
-/// planner-made pool or list. A change here is a change to that list. The splits ticket removed the 27 curse-stage
+/// planner-made pool or list. A change here is a change to that list. Ticket 243 removed the 27 curse-stage
 /// placeholders and added the Possessed Oracle's curse selection, which the game doesn't have (149 left).
 #[test]
 fn the_entries_left_without_a_blueprint_are_the_answers() {

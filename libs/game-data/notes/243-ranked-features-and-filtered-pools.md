@@ -1,4 +1,4 @@
-# Ranked features and prerequisite-filtered pools (the splits ticket)
+# Ranked features and prerequisite-filtered pools (ticket 243)
 
 The planner had cut some of the game's objects into several entries: one feature per step of a feature the game grants again, a revelation pool per mystery. Each group is now one entry holding its blueprint. Game sources: BubblePrintsData `2.7.0x_0`, WrathDecompiled `6ce4a6b`.
 

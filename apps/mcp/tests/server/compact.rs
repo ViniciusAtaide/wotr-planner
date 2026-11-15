@@ -95,7 +95,7 @@ async fn real_data_options_of_one_name_are_told_apart() {
         "{whole}"
     );
     assert!(
-        // The oracle's revelations are one selection since the splits ticket, "Revelation".
+        // The oracle's revelations are one selection since ticket 243, "Revelation".
         whole.ends_with("Animal Companion (Nature Bond) or Animal Companion (Revelation)"),
         "{whole}"
     );

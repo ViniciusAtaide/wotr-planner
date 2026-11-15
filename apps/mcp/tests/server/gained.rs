@@ -1,5 +1,5 @@
 //! A feature gained more than once at a level says how many times (ticket 192, review): the Trickster's third Mythic
-//! rank gives Sneak Attack twice. A feature held more than once says its rank (the splits ticket). On the real data.
+//! rank gives Sneak Attack twice. A feature held more than once says its rank (ticket 243). On the real data.
 
 use rmcp::serde_json::{Map, Value, json};
 

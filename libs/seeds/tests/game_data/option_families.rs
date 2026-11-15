@@ -171,7 +171,7 @@ fn an_inquisitors_domain_runs_on_inquisitor_levels() {
 
 #[test]
 fn an_oracles_revelation_slot_offers_only_its_mysterys_revelations() {
-    // Besides the Dual-Cursed Oracle's Fortune and Misfortune, which no mystery admits (the splits ticket).
+    // Besides the Dual-Cursed Oracle's Fortune and Misfortune, which no mystery admits (ticket 243).
     let mystery_free = |key: &&String| !key.ends_with("/fortune") && !key.ends_with("/misfortune");
     let battle = offered_at(&oracle("battle", 1), &revelation_slot(1));
     assert!(battle.contains("oracle/revelations/battle/weapon-mastery"));

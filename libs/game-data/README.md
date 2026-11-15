@@ -206,7 +206,7 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   the row (Divine Herbalist) or a lists-only holding (Crossblooded's second bloodline) gives none. Its selection says
   which classes' levels make the option level, `option_levels: ["dragon-disciple", "sorcerer"]` (an option taken
   late gets every row up to its level at once), with the game's two more terms where the option is its own
-  progression (the game's `BlueprintProgression`, as an oracle's curse is; the splits ticket): `option_level_archetypes`
+  progression (the game's `BlueprintProgression`, as an oracle's curse is; ticket 243): `option_level_archetypes`
   (a class that has one of them counts only taken with it, as a Stigmatized Witch's levels count for an oracle's
   curse and a plain witch's don't) and `half_other_classes: true` (half the other classes' levels, the Mythic rank's
   among them, rounded down: `BlueprintProgression.CalcLevel`); an archetype that changes the grant has its own selection
@@ -226,15 +226,15 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   (Second Bloodline). A choice the game asks for every day is `daily_choice: true` on its feature (Mixed
   Bloodline). A class (or archetype, `spontaneous: Some(true)`) that casts spontaneously says `spontaneous: true`,
   which `SpontaneousSpellLevel(spell_type: Arcane, level: 1)` checks; `NoOptionFrom("sorcerer/bloodline")` needs
-  none of that selection's options held. A selection with `filtered_by` is a filtered pool (the splits ticket,
+  none of that selection's options held. A selection with `filtered_by` is a filtered pool (ticket 243,
   replacing ticket 30's `pool_of` and `pool`): an option whose prerequisite can't be met without an option of that
   selection is offered only while one of them is held (an oracle's revelations, `oracle/revelations`, `filtered_by: "oracle/mystery"`,
   each revelation's prerequisite naming its mystery), and the others as usual (the Dual-Cursed Oracle's Misfortune and
   Fortune); within a level its slot is checked after the other selections'. An option that merged with another or
   moved keeps its old keys in `aliases`, which only the link decoder reads (`aliases:
   ["oracle/revelations/life/combat-healer-life"]` on Combat Healer). This bullet was read from the guide, but for the
-  splits ticket's terms (`option_level_archetypes`, `half_other_classes`, `filtered_by`, `aliases`), read from the
-  game's blueprints and code (`notes/ranks-and-filtered-pools.md`).
+  ticket 243's terms (`option_level_archetypes`, `half_other_classes`, `filtered_by`, `aliases`), read from the
+  game's blueprints and code (`notes/243-ranked-features-and-filtered-pools.md`).
 - Ticket 33 (the user's decisions on tickets 30 and 31):
   - An option may belong to a group, `group: Draconic` (the sorcerer's ten dragons; `Elemental`, its four
     elements), and `NoOtherOptionOfGroup(Draconic)` in its prerequisite needs no option of the group held but the
@@ -281,7 +281,7 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
     `arcanist/magic-deceiver/domain` (two at 20), and the archetypes' limited ones. The War domain's bonus Combat
     feat is a slot on its row 8, `feat_slots: [CombatFeat]` (slot id `OptionFeat`).
   - **Mysteries**, `oracle/mystery`: class skills at 1 and the Final Revelation at 20; the oracle's revelation cells
-    are `oracle/revelations` slots, whose options need their mystery (the splits ticket; before it, each mystery
+    are `oracle/revelations` slots, whose options need their mystery (ticket 243; before it, each mystery
     opened a `pool` of its own). A revelation that grants later has rows: `chosen_feats: ["improved-critical"]` is
     held for the weapon the pick named for its `chosen_feat` (Weapon Mastery). "Prerequisites: Level 7" is
     oracle or arcanist (Living Deity) level 7.

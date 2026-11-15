@@ -251,7 +251,7 @@ fn a_dual_cursed_oracle_is_offered_misfortune_and_fortune() {
             assert_eq!(offered.get(key), Some(&Ok(())), "{level}: {key}");
         }
     }
-    // A plain oracle is offered them locked, as the game shows them (the splits ticket): FortuneRevelationFeature
+    // A plain oracle is offered them locked, as the game shows them (ticket 243): FortuneRevelationFeature
     // 16935c4660ee4c7da976b5f6cafb43dd and MisfortuneRevelationFeature 8121fe70a7974970a8a560bd2267cc24 are options of
     // OracleRevelationSelection 60008a10ad7ad6543b1f63016741a5d2 whose PrerequisiteArchetypeLevel names the
     // Dual-Cursed Oracle.

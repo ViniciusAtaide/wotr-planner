@@ -1,4 +1,4 @@
-//! The splits ticket (ranked features and prerequisite-filtered pools, as the game models them), on the real data.
+//! Ticket 243 (ranked features and prerequisite-filtered pools, as the game models them), on the real data.
 //! Each expected value comes from the game at 2.7.0x: a blueprint by name and GUID (BubblePrintsData `2.7.0x_0`), or
 //! the decompiled code by file and method (WrathDecompiled 6ce4a6b).
 //!
