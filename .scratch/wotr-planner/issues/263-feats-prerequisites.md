@@ -1,7 +1,7 @@
 # Feats' prerequisites
 
 Type: build (data)
-Status: open
+Status: superseded by 293 (the user, 2026-11-15): the importer writes its mechanical data; what it can't express becomes a gap ticket
 Blocked by: [247](247-a-selection-counts-from-the-level-that-grants-it.md) (Warrior Priest names selections), [256](256-the-game-checks-misses.md) (so the report shows only the data's differences)
 Model: Opus to build: each feat's prerequisites are read from its blueprint and judged against the planner's forms.
 Map: [WotR Build Planner](../map.md)

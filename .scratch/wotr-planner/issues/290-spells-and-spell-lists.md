@@ -1,7 +1,7 @@
 # Spells and spell lists
 
 Type: build (data)
-Status: open
+Status: superseded by 293 (the user, 2026-11-15): the importer writes its mechanical data; what it can't express becomes a gap ticket
 Blocked by: none
 Model: Sonnet to build: each list is compared with its blueprint's levels, spell by spell.
 Map: [WotR Build Planner](../map.md)

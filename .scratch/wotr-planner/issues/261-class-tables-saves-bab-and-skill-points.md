@@ -1,7 +1,7 @@
 # Class tables: saves, BAB and the Arcane Trickster's skill points
 
 Type: build (data)
-Status: open
+Status: superseded by 293 (the user, 2026-11-15): the importer writes its mechanical data; what it can't express becomes a gap ticket
 Blocked by: none
 Model: Sonnet to build: each value is read from the class's stat progression, per level.
 Map: [WotR Build Planner](../map.md)

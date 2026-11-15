@@ -1,7 +1,7 @@
 # Deities, domains and blessings
 
 Type: build (data, and the deity's domain model)
-Status: open
+Status: open for its model part only, after 293 (the user, 2026-11-15): its mechanical data is 293's, the importer's
 Blocked by: none
 Model: Opus to build: the deity's allowed domains change model, and each faith rule is read from its blueprint.
 Map: [WotR Build Planner](../map.md)

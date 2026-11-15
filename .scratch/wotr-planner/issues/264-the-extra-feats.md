@@ -1,7 +1,7 @@
 # The Extra feats' prerequisites and picks
 
 Type: build (data)
-Status: open
+Status: superseded by 293 (the user, 2026-11-15): the importer writes its mechanical data; what it can't express becomes a gap ticket
 Blocked by: [247](247-a-selection-counts-from-the-level-that-grants-it.md), [250](250-the-extra-feats-caps.md)
 Model: Opus to build: two feats split, lists change and each prerequisite is the game's.
 Map: [WotR Build Planner](../map.md)
