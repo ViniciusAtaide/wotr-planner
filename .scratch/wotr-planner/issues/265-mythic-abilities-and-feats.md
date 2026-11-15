@@ -1,7 +1,7 @@
 # Mythic abilities' and mythic feats' prerequisites and lists
 
 Type: build (data)
-Status: open
+Status: superseded by 293 (the user, 2026-11-15): the importer writes its mechanical data; what it can't express becomes a gap ticket
 Blocked by: [247](247-a-selection-counts-from-the-level-that-grants-it.md), [249](249-selections-and-parametrised-feats-are-taken-again.md), [256](256-the-game-checks-misses.md)
 Model: Opus to build: each prerequisite and list is read from its blueprint.
 Map: [WotR Build Planner](../map.md)

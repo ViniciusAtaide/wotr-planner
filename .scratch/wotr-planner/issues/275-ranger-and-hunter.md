@@ -1,7 +1,7 @@
 # Ranger and hunter rows and lists
 
 Type: build (data)
-Status: open
+Status: superseded by 293 (the user, 2026-11-15): the importer writes its mechanical data; what it can't express becomes a gap ticket
 Blocked by: [254](254-a-features-steps-follow-the-class-level.md), [253](253-a-progression-counts-its-class-levels-with-offsets.md) (the Divine Hunter's domains)
 Model: Opus to build: rows read from the progressions; lists from the selections.
 Map: [WotR Build Planner](../map.md)

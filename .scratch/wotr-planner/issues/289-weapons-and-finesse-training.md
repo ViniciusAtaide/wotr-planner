@@ -1,7 +1,7 @@
 # Weapons and Finesse Training
 
 Type: build (data)
-Status: open
+Status: open for its model part only, after 293 (the user, 2026-11-15): its mechanical data is 293's, the importer's
 Blocked by: [251](251-proficiency-holds-where-prerequisites-are-ignored.md) (the proficiency check per value)
 Model: Opus to build: the weapon table, categories and Finesse Training's options and gates.
 Map: [WotR Build Planner](../map.md)

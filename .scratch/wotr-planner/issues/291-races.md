@@ -1,7 +1,7 @@
 # Races
 
 Type: build (data)
-Status: open
+Status: superseded by 293 (the user, 2026-11-15): the importer writes its mechanical data; what it can't express becomes a gap ticket
 Blocked by: none
 Model: Sonnet to build: heritages and familiarities read from the race blueprints.
 Map: [WotR Build Planner](../map.md)
