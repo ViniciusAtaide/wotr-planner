@@ -163,3 +163,23 @@ async fn an_unknown_key_is_an_error_result() {
         .ok("describe", json!({ "kind": "path", "key": "lich" }))
         .await;
 }
+
+#[tokio::test]
+async fn describe_shows_no_blueprint_guids_or_code_citations() {
+    let client = Client::start().await;
+    for (kind, key) in [("class", "arcanist"), ("feat", "power-attack")] {
+        let shown = client
+            .ok("describe", json!({ "kind": kind, "key": key }))
+            .await
+            .to_string();
+        // A GUID is 32 hex digits, dashed 8-4-4-4-12.
+        let dashed = |at: usize| {
+            shown.get(at..at + 36).is_some_and(|s| {
+                s.split('-').map(str::len).eq([8, 4, 4, 4, 12])
+                    && s.replace('-', "").chars().all(|c| c.is_ascii_hexdigit())
+            })
+        };
+        assert!(!(0..shown.len()).any(dashed), "a GUID in {shown}");
+        assert!(!shown.contains(".cs"), "a code citation in {shown}");
+    }
+}

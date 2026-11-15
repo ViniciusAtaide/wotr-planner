@@ -126,7 +126,7 @@ Initiative, each save and each skill's total at a point of a Build, computed by 
 _Avoid_: Skill modifier, save bonus
 
 **Interactions note**:
-What the guide says about how an item combines with another, in the planner's own words, kept in the game data (`interactions.ron`) for the few items an agent run needed it for, saying "the guide doesn't say" where it doesn't. `describe` shows it.
+What the game does when an item combines with another, in the planner's own words (with the guide's words where they say more), kept in the game data (`interactions.ron`) for the few items an agent run needed it for, saying the planner's sources don't say where they don't. `describe` shows it.
 _Avoid_: Stacking rule
 
 ### Classes

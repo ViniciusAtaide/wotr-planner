@@ -289,7 +289,7 @@ async fn the_guide_makes_the_spell_catalogue_planner_data() {
         "saving throw",
         "spell resistance",
         "every spell list",
-        "planner's summary of the guide",
+        "planner's summary of the game",
         // What it doesn't hold stays the agent's own knowledge.
         "spells known or prepared",
         "spells per day",
