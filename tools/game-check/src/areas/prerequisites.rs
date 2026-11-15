@@ -8,10 +8,13 @@
 
 use std::cmp::Ordering;
 
-use rules::{Alignment, BlueprintGuid, DataAt, Parameter, Prerequisite, SpellType};
+use rules::{Alignment, BlueprintGuid, DataAt, FeatKey, Parameter, Prerequisite, SpellType};
 use serde_json::Value;
 
-use super::fixed::{ANIMAL_CLASS, guid};
+use super::fixed::{
+    ANIMAL_CLASS, ANIMAL_COMPANION_CLASS, BLIZZARD_SERVANT_LOCK, MONSTROUS_HUMANOID_CLASS,
+    SUBTYPE_ELEMENTAL, guid,
+};
 use super::{Ctx, ability_stat, is_ability_stat, skill_stat};
 use crate::dump::{component_kind, components, flag, int, reference, references};
 use crate::report::{Area, Out};
@@ -348,6 +351,7 @@ fn group(children: Vec<Node>, any: bool) -> Option<Node> {
 fn game_side(json: &Value, own: &BlueprintGuid, class: bool, out: &mut Out) -> Option<Node> {
     let mut all = Vec::new();
     let mut any = Vec::new();
+    let mut any_holds = false;
     for component in components(json) {
         let kind = component_kind(component);
         if !kind.starts_with("Prerequisite") {
@@ -377,6 +381,12 @@ fn game_side(json: &Value, own: &BlueprintGuid, class: bool, out: &mut Out) -> O
             out.skip(AREA, "a feature's own NoFeature, not compared");
             continue;
         }
+        // A leaf every Build meets holds on its own, so in an `Any` group it holds the whole group.
+        if holds_for_every_build(component, kind) {
+            out.skip(AREA, "not a pet, which always holds");
+            any_holds |= group != "All";
+            continue;
+        }
         if let Some(node) = game_component(component, kind, out) {
             if group == "All" {
                 all.push(node);
@@ -385,10 +395,34 @@ fn game_side(json: &Value, own: &BlueprintGuid, class: bool, out: &mut Out) -> O
             }
         }
     }
-    if !any.is_empty() {
+    if !any.is_empty() && !any_holds {
         all.push(Node::Any(any));
     }
     Some(Node::All(all))
+}
+
+/// Whether a prerequisite is one only a pet (or a creature no Build is) can fail: not a level of a pet's class, not a
+/// feature only a creature has. Every Build meets it, so the check leaves it out and counts it, as the other "not a
+/// pet" prerequisites (`PrerequisiteClassLevel.CheckInternal`, `PrerequisiteNoFeature`, `PrerequisiteNoClassLevel`:
+/// WrathDecompiled 6ce4a6b).
+fn holds_for_every_build(component: &Value, kind: &str) -> bool {
+    let pet_class = |field: &str| {
+        reference(&component[field]).is_some_and(|class| {
+            [ANIMAL_COMPANION_CLASS, MONSTROUS_HUMANOID_CLASS]
+                .map(guid)
+                .contains(&class)
+        })
+    };
+    match kind {
+        "PrerequisiteClassLevel" => flag(&component["Not"]) && pet_class("m_CharacterClass"),
+        "PrerequisiteNoClassLevel" => pet_class("m_CharacterClass"),
+        "PrerequisiteNoFeature" => reference(&component["m_Feature"]).is_some_and(|feature| {
+            [SUBTYPE_ELEMENTAL, BLIZZARD_SERVANT_LOCK]
+                .map(guid)
+                .contains(&feature)
+        }),
+        _ => false,
+    }
 }
 
 fn game_component(component: &Value, kind: &str, out: &mut Out) -> Option<Node> {
@@ -601,6 +635,7 @@ fn planner_side(ctx: &Ctx, prerequisite: &Prerequisite, out: &mut Out) -> Option
                 has(DataAt::Feat(feat.clone()), out)
             }
         },
+        Prerequisite::FeatForSameValue(feat) => same_value(ctx, feat, out),
         Prerequisite::MythicFeat(feat) => has(DataAt::MythicFeat(feat.clone()), out),
         Prerequisite::MythicAbility(ability) => has(DataAt::MythicAbility(ability.clone()), out),
         Prerequisite::SelectionOption(option) => has(DataAt::SelectionOption(option.clone()), out),
@@ -664,9 +699,36 @@ fn planner_side(ctx: &Ctx, prerequisite: &Prerequisite, out: &mut Out) -> Option
     }
 }
 
+/// `FeatForSameValue(feat)`: the game asks for the feature the value was taken in (`PrerequisiteFeature` or
+/// `PrerequisiteParametrizedFeature` on the feat's blueprint, compared as the feature); of a selection of per-value
+/// features (`m_AllFeatures`: Elemental Focus's four), any of them.
+fn same_value(ctx: &Ctx, feat: &FeatKey, out: &mut Out) -> Option<Node> {
+    let Some(guid) = ctx.planner.guid(DataAt::Feat(feat.clone())) else {
+        out.skip(AREA, "a planner prerequisite on an entry with no blueprint");
+        return None;
+    };
+    out.skip(
+        AREA,
+        "the value of a parametrized feature, compared as the feature",
+    );
+    let features = ctx
+        .dump
+        .json(guid)
+        .map(|json| references(json.get("m_AllFeatures")))
+        .unwrap_or_default();
+    if features.is_empty() {
+        return Some(Node::Leaf(Leaf::Has(guid.clone())));
+    }
+    Some(Node::Any(
+        features
+            .into_iter()
+            .map(|feature| Node::Leaf(Leaf::Has(feature)))
+            .collect(),
+    ))
+}
+
 fn planner_kind(prerequisite: &Prerequisite) -> &'static str {
     match prerequisite {
-        Prerequisite::FeatForSameValue(_) => "FeatForSameValue",
         Prerequisite::FeatIfValue { .. } => "FeatIfValue",
         Prerequisite::NoOptionFrom(_) => "NoOptionFrom",
         Prerequisite::NoOtherOptionOfGroup(_) => "NoOtherOptionOfGroup",

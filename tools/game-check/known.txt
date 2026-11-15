@@ -37,10 +37,6 @@ option lists / in game only / pool general feats / ExtraShamanHexSelection -> 24
 option lists / in game only / pool general feats / MagicalTail -> 244
 option lists / in planner only / pool general feats / magical-tail (MagicalTail1) -> 244
 option lists / in game only / pool mythic abilities / AbundantSmiteChaos -> 244
-# Skill Focus: one planner feat taken for a skill, where the game has a feature per skill. A prerequisite naming the
-# skill compares as that skill's feature; Mythic Skill Focus asks for the same skill as its own value, which the game
-# writes as any one of the eleven.
-prerequisites / missing in planner, a blueprint it doesn't map / mythic feat skill-focus-mythic -> 244
 
 # The difference tickets, 247–291 (filed 2026-11-15 from the first run's 3,908 findings not known before): each
 # section names the entries whose differences its ticket removes, one line per entry, or per kind or value where an
@@ -184,33 +180,6 @@ option lists / in planner only / feat list warpriest/disenchanter/bonus-feats-9 
 progression rows / * / archetype oracle/enlightened-philosopher -> 255
 progression rows / in game only / archetype alchemist/chirurgeon / SkillFocusLoreReligion at level 5 -> 255
 progression rows / in planner only / archetype alchemist/chirurgeon -> 255
-
-# 256, the game check's misses: leaves only a pet can fail, and the same-value feats.
-prerequisites / * / feat armor-proficiency-heavy-armor -> 256
-prerequisites / * / feat armor-proficiency-light-armor -> 256
-prerequisites / * / feat armor-proficiency-medium-armor -> 256
-prerequisites / * / feat exotic-weapon-proficiency -> 256
-prerequisites / * / feat focused-strike -> 256
-prerequisites / * / feat greater-elemental-focus -> 256
-prerequisites / * / feat greater-spell-focus -> 256
-prerequisites / * / feat greater-weapon-focus -> 256
-prerequisites / * / feat greater-weapon-specialization -> 256
-prerequisites / * / feat indomitable-mount -> 256
-prerequisites / * / feat martial-weapons-proficiency -> 256
-prerequisites / * / feat mounted-combat -> 256
-prerequisites / * / feat shield-proficiency -> 256
-prerequisites / * / feat simple-weapon-proficiency -> 256
-prerequisites / * / feat tower-shield-proficiency -> 256
-prerequisites / * / feat weapon-finesse -> 256
-prerequisites / * / feat weapon-specialization -> 256
-prerequisites / * / mythic feat improved-critical-mythic -> 256
-prerequisites / * / mythic feat spell-focus-mythic -> 256
-prerequisites / missing in planner / feat improved-improved-critical -> 256
-prerequisites / missing in planner / feat improved-improved-improved-critical / TricksterImprovedImprovedCritical -> 256
-prerequisites / missing in planner / feat improved-improved-improved-critical-improved / TricksterImprovedImprovedImprovedCritical -> 256
-prerequisites / missing in planner, a blueprint it doesn't map / feat armor-proficiency-heavy-barding / not SubtypeElemental -> 256
-prerequisites / missing in planner, a blueprint it doesn't map / feat armor-proficiency-light-barding / not SubtypeElemental -> 256
-prerequisites / missing in planner, a blueprint it doesn't map / feat armor-proficiency-medium-barding / not SubtypeElemental -> 256
 
 # 259, Witch Wandering Hex is a daily-use ability, not a pick.
 prerequisites / * / mythic ability witch-wandering-hex -> 259
