@@ -1,7 +1,7 @@
 # Class skills and the Defender of the Hearth's skill points (to the user)
 
 Type: question (the user's facts), then build (data)
-Status: open, waiting on the user
+Status: superseded by 293: the user, 2026-11-15, took the game's class skills and skill points ("Apply the game's"); the importer writes them
 Blocked by: the user's answer
 Model: Sonnet to build once answered: each value is copied from the game.
 Map: [WotR Build Planner](../map.md)
