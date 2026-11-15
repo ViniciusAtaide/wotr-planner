@@ -1165,5 +1165,136 @@
   "raw": {
    "Text": "invented"
   }
+ },
+ {
+  "guid": "00000000000000000000000000000301",
+  "name": "PetWiseFeat",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": [
+    {
+     "$type": "0, PrerequisiteFeature",
+     "Group": "All",
+     "m_Feature": "!bp_000000000000000000000000000000a1"
+    },
+    {
+     "$type": "0, PrerequisiteClassLevel",
+     "Group": "Any",
+     "m_CharacterClass": "!bp_26b10d4340839004f960f9816f6109fe",
+     "Level": 1,
+     "Not": true
+    },
+    {
+     "$type": "0, PrerequisiteNoClassLevel",
+     "Group": "All",
+     "m_CharacterClass": "!bp_26b10d4340839004f960f9816f6109fe"
+    },
+    {
+     "$type": "0, PrerequisiteNoClassLevel",
+     "Group": "All",
+     "m_CharacterClass": "!bp_8a3c86893f383214da070e9c84c1e95b"
+    },
+    {
+     "$type": "0, PrerequisiteNoFeature",
+     "Group": "All",
+     "m_Feature": "!bp_198fd8924dabcb5478d0f78bd453c586"
+    },
+    {
+     "$type": "0, PrerequisiteNoFeature",
+     "Group": "All",
+     "m_Feature": "!bp_daf893d14cc54e98a319fb121d7ac4d9"
+    }
+   ]
+  }
+ },
+ {
+  "guid": "00000000000000000000000000000302",
+  "name": "PlainBarFeat",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": [
+    {
+     "$type": "0, PrerequisiteNoFeature",
+     "Group": "All",
+     "m_Feature": "!bp_000000000000000000000000000000a2"
+    }
+   ]
+  }
+ },
+ {
+  "guid": "00000000000000000000000000000303",
+  "name": "FocusKindFeat",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": []
+  }
+ },
+ {
+  "guid": "00000000000000000000000000000304",
+  "name": "MasteryFeat",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": [
+    {
+     "$type": "0, PrerequisiteFeature",
+     "Group": "All",
+     "m_Feature": "!bp_00000000000000000000000000000303"
+    }
+   ]
+  }
+ },
+ {
+  "guid": "00000000000000000000000000000305",
+  "name": "ElementKindSelection",
+  "type": "Kingmaker.Blueprints.Classes.Selection.BlueprintFeatureSelection",
+  "raw": {
+   "Group": "None",
+   "m_AllFeatures": [
+    "!bp_00000000000000000000000000000307",
+    "!bp_00000000000000000000000000000308"
+   ]
+  }
+ },
+ {
+  "guid": "00000000000000000000000000000306",
+  "name": "ElementMasteryFeat",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": [
+    {
+     "$type": "0, PrerequisiteFeature",
+     "Group": "Any",
+     "m_Feature": "!bp_00000000000000000000000000000307"
+    },
+    {
+     "$type": "0, PrerequisiteFeature",
+     "Group": "Any",
+     "m_Feature": "!bp_00000000000000000000000000000308"
+    }
+   ]
+  }
+ },
+ {
+  "guid": "00000000000000000000000000000307",
+  "name": "ElementAshFeat",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": []
+  }
+ },
+ {
+  "guid": "00000000000000000000000000000308",
+  "name": "ElementFrostFeat",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": []
+  }
  }
 ]

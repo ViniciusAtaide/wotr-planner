@@ -64,6 +64,14 @@ pub mod fixed {
     pub const MYTHIC_STARTING_PROGRESSION: &str = "af4ee0acb9114e544bf02f39027966b0";
     /// `AnimalClass`: every class's prerequisite names it, to keep animal companions out.
     pub const ANIMAL_CLASS: &str = "4cd1757a0eea7694ba5c933729a53920";
+    /// `AnimalCompanionClass`: a pet's class, which no Build has.
+    pub const ANIMAL_COMPANION_CLASS: &str = "26b10d4340839004f960f9816f6109fe";
+    /// `MonstrousHumanoidClass`: a pet's class, which no Build has.
+    pub const MONSTROUS_HUMANOID_CLASS: &str = "8a3c86893f383214da070e9c84c1e95b";
+    /// `SubtypeElemental`: a creature's subtype, which no Build has.
+    pub const SUBTYPE_ELEMENTAL: &str = "198fd8924dabcb5478d0f78bd453c586";
+    /// `BlizzardServantLockEquipmentFeature`: the Winter Child's servant's lock on its equipment, which no Build has.
+    pub const BLIZZARD_SERVANT_LOCK: &str = "daf893d14cc54e98a319fb121d7ac4d9";
     /// Each path's rows before its class is taken (`<Path>FirstLevelsProgression`), by the path's class. The story
     /// grants them, so no blueprint leads from the class to them.
     pub const FIRST_LEVELS: [(&str, &str); 6] = [
