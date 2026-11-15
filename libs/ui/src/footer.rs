@@ -38,14 +38,19 @@ mod tests {
     }
 
     #[test]
-    fn the_footer_credits_paizo_and_owlcat_and_links_the_licence_relative_to_the_page() {
+    fn the_footer_links_the_file_the_site_build_writes_and_the_sheet_renders_it() {
+        // A project site lives under `/<repo>/`, so the link must be relative to the page.
+        let file = LICENCE_PATH.strip_prefix("./").expect("a relative link");
+        assert!(
+            root_file("scripts/build-site.sh").contains(&format!("\"$out/{file}\"")),
+            "build-site.sh doesn't write {file}"
+        );
         assert!(
             CREDIT.contains("Paizo") && CREDIT.contains("Owlcat"),
             "{CREDIT}"
         );
-        // A project site lives under `/<repo>/`, so the link must not start at the host's root.
-        assert!(LICENCE_PATH.starts_with("./"), "{LICENCE_PATH}");
         assert!(LICENCE_LINK.contains("Open Game License"), "{LICENCE_LINK}");
+        assert!(root_file("libs/ui/src/planner.rs").contains("<crate::footer::Footer/>"));
     }
 
     #[test]

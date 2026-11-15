@@ -36,6 +36,8 @@ Found in [234](234-game-blueprints-as-a-source.md) (2026-11-14), the user taking
 
 **Tests** (`cargo test -p ui footer`, in `libs/ui/src/footer.rs`; the first run failed to compile, the footer's items didn't exist): `the_footer_credits_paizo_and_owlcat_and_links_the_licence_relative_to_the_page`, `the_licence_file_holds_the_licence_and_section_15_with_owlcats_lines_and_ours`, `the_readme_and_the_site_build_carry_the_licence`. The ui crate has no render-to-HTML test harness (SSR is the backend's feature), so the footer's text is pinned through its constants.
 
+**Review fixes:** the footer link's height is now the stylesheet's `--tap` (44px, `inline-flex`, `min-height`), which the first build's padding missed (about 37px). The first test now pins the contract: `LICENCE_PATH` without its `./` is the file `scripts/build-site.sh` writes, and `planner.rs` renders `<crate::footer::Footer/>` (a source-text check, no render harness).
+
 **Snapshot message:** none; the snapshot check no longer exists (235) and no rule or data changed.
 
 **For the queue's checks:** `scripts/build-site.sh <dir>` was not run here (a release build, the main session's `--full`); its output should list `open-game-license.txt` and the page should name `./open-game-license.txt`.
