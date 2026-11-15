@@ -52,7 +52,7 @@ A ticket runs only what its diff can break, after its last edit, and fmt (`cargo
 
 | The diff touches | It runs |
 | --- | --- |
-| a crate's code or tests | `cargo test -p <crate>` for each crate touched (`ui`, `frontend`, `server`, `rules`, `seeds`, `corpus`, `mcp`) |
+| a crate's code or tests | `cargo test -p <crate>` for each crate touched (`ui`, `frontend`, `server`, `rules`, `seeds`, `corpus`, `mcp`, `game-check`) |
 | `libs/rules/` or `libs/game-data/` | also `cargo test -p seeds -p corpus`: the real-data tests, the gold builds and the self-checks' short runs live there |
 | `libs/game-data/` | also `cargo run -p seeds --bin check-data` |
 | `libs/rules/` | also `cargo build -p rules --target wasm32-unknown-unknown` |
@@ -68,7 +68,7 @@ The game is the source of truth for rules (map Notes; ticket 234). A change to `
 - **Each changed fact has a real-data test** in `libs/seeds/tests/game_data/` whose expected value comes from the game, cited beside the assertion by blueprint name and GUID, or by the decompiled code's file and method with the WrathDecompiled commit (see "Game sources").
 - **The engine's self-checks** check it against itself: every picker agrees with the walk (the agreement sweeps, ticket 150), each shortcut agrees with the full answer it stands for, and each option's status agrees with `allows` of its edit. Their short runs are in the `seeds` and `corpus` tests. The long ones, over the corpus's ~2,000 Builds (`tools/corpus`), run in release under `--ignored`, once per queue by the main session: `cargo test --release -p corpus -- --ignored` and `cargo test --release -p seeds --test game_data agreement -- --ignored`. A self-check never outranks the game: when one disagrees with it, the engine is fixed.
 - **The gold builds** (`libs/seeds/tests/game_data/gold.rs`) compare two real player builds with the engine. A known-gap entry is deleted by the ticket that fixes it, never added to get a test to pass. A gold build's gain that the game contradicts goes to the user.
-- **The game check** (ticket 238) runs by hand once it exists.
+- **The game check** (ticket 238) compares each entry that names a blueprint with the game: `cargo run -p game-check -- --binz <main checkout>/blueprints/blueprints_raw_2.7.0x_0.binz` (the path is the default in the main checkout). It reads only the pinned dump and prints the same report for the same dump and data. It exits 0 when every difference is listed in `tools/game-check/known.txt` under the ticket that will remove it, 1 when one isn't or a listed one is stale, 2 when the dump is refused. The main session runs it after merging any data ticket and once per queue. Each new difference gets a ticket and is applied without asking, unless it touches one of the user's facts, which go to the user first.
 
 ## Formatting
 
