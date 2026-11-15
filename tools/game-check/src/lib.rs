@@ -26,8 +26,9 @@ use areas::Ctx;
 use planner::Planner;
 use report::Out;
 
-/// Compares the data with the dump, area by area.
-pub fn check(pins: &Pins, dump: &Dump, data: &GameData, known: &Known) -> Report {
+/// Compares the data with the dump, area by area. A blueprint a comparison read whose JSON doesn't parse is an
+/// error, naming it: its entries would otherwise count as missing from the dump.
+pub fn check(pins: &Pins, dump: &Dump, data: &GameData, known: &Known) -> Result<Report, Error> {
     let planner = Planner::new(data);
     let ctx = Ctx {
         dump,
@@ -41,13 +42,20 @@ pub fn check(pins: &Pins, dump: &Dump, data: &GameData, known: &Known) -> Report
     areas::options::compare(&ctx, &mut out);
     areas::rows::compare_mythic(&ctx, &mut out);
     areas::items::compare(&ctx, &mut out);
-    Report::build(
+    let unparsed = dump.unparsed();
+    if !unparsed.is_empty() {
+        return Err(Error::Format(format!(
+            "JSON that doesn't parse: {}",
+            unparsed.join("; ")
+        )));
+    }
+    Ok(Report::build(
         pins,
         dump.len(),
         (planner.entries.len(), planner.with_blueprint()),
         out,
         known,
-    )
+    ))
 }
 
 #[derive(Debug)]

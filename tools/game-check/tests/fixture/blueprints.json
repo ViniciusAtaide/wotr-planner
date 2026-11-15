@@ -38,8 +38,14 @@
      "Group": "All",
      "Stat": "BaseAttackBonus",
      "Value": 3
+    },
+    {
+     "$type": "0, PrerequisiteNoFeature",
+     "Group": "All",
+     "m_Feature": "!bp_000000000000000000000000000000a2"
     }
-   ]
+   ],
+   "Ranks": 1
   }
  },
  {
@@ -163,7 +169,10 @@
     "!bp_000000000000000000000000000000a3",
     "!bp_000000000000000000000000000000a5",
     "!bp_000000000000000000000000000000a8",
-    "!bp_000000000000000000000000000000f0"
+    "!bp_000000000000000000000000000000f0",
+    "!bp_000000000000000000000000000000a6",
+    "!bp_000000000000000000000000000000a7",
+    "!bp_000000000000000000000000000000ab"
    ]
   }
  },
@@ -404,7 +413,8 @@
      "Level": 3,
      "m_Features": [
       "!bp_000000000000000000000000000000f2",
-      "!bp_000000000000000000000000000000f3"
+      "!bp_000000000000000000000000000000f3",
+      "!bp_000000000000000000000000000000ec"
      ]
     }
    ]
@@ -932,6 +942,220 @@
   "type": "Kingmaker.Blueprints.Items.Equipment.BlueprintItemEquipmentRing",
   "raw": {
    "m_Enchantments": []
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000a6",
+  "name": "FullGripFeat",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": [
+    {
+     "$type": "0, PrerequisiteFullStatValue",
+     "Group": "All",
+     "Stat": "Strength",
+     "Value": 13
+    },
+    {
+     "$type": "0, PrerequisiteFullStatValue",
+     "Group": "All",
+     "Stat": "BaseAttackBonus",
+     "Value": 4
+    },
+    {
+     "$type": "0, PrerequisiteFullStatValue",
+     "Group": "All",
+     "Stat": "SkillMobility",
+     "Value": 3
+    }
+   ]
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000a7",
+  "name": "TestSkillFocusSelection",
+  "type": "Kingmaker.Blueprints.Classes.Selection.BlueprintFeatureSelection",
+  "raw": {
+   "Group": "None",
+   "m_AllFeatures": [
+    "!bp_0000000000000000000000000000e7a1",
+    "!bp_0000000000000000000000000000e7a2"
+   ]
+  }
+ },
+ {
+  "guid": "0000000000000000000000000000e7a1",
+  "name": "TestSkillFocusAthletics",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": [
+    {
+     "$type": "0, AddContextStatBonus",
+     "Descriptor": "None",
+     "Stat": "SkillAthletics",
+     "Multiplier": 1,
+     "Value": {
+      "ValueType": "Rank",
+      "Value": 0
+     }
+    }
+   ]
+  }
+ },
+ {
+  "guid": "0000000000000000000000000000e7a2",
+  "name": "TestSkillFocusStealth",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": [
+    {
+     "$type": "0, AddContextStatBonus",
+     "Descriptor": "None",
+     "Stat": "SkillStealth",
+     "Multiplier": 1,
+     "Value": {
+      "ValueType": "Rank",
+      "Value": 0
+     }
+    }
+   ]
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000ab",
+  "name": "SneakyFeat",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": [
+    {
+     "$type": "0, PrerequisiteFeature",
+     "Group": "All",
+     "m_Feature": "!bp_0000000000000000000000000000e7a2"
+    }
+   ]
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000e2",
+  "name": "SeraphBoonSelection",
+  "type": "Kingmaker.Blueprints.Classes.Selection.BlueprintFeatureSelection",
+  "raw": {
+   "Group": "None",
+   "m_AllFeatures": [
+    "!bp_000000000000000000000000000000b1",
+    "!bp_000000000000000000000000000000b4"
+   ]
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000b4",
+  "name": "SeraphBoonLightFeature",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": []
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000d2",
+  "name": "SeraphFeatSelection",
+  "type": "Kingmaker.Blueprints.Classes.Selection.BlueprintFeatureSelection",
+  "raw": {
+   "Group": "None",
+   "IgnorePrerequisites": false,
+   "m_AllFeatures": [
+    "!bp_000000000000000000000000000000a1",
+    "!bp_000000000000000000000000000000a2"
+   ]
+  }
+ },
+ {
+  "guid": "00000000000000000000000000000106",
+  "name": "TestCirclet",
+  "type": "Kingmaker.Blueprints.Items.Equipment.BlueprintItemEquipmentHead",
+  "raw": {
+   "m_Enchantments": [
+    "!bp_00000000000000000000000000000e06",
+    "!bp_00000000000000000000000000000e07"
+   ]
+  }
+ },
+ {
+  "guid": "00000000000000000000000000000e06",
+  "name": "TestCharisma2",
+  "type": "Kingmaker.Blueprints.Items.Ecnchantments.BlueprintEquipmentEnchantment",
+  "raw": {
+   "Components": [
+    {
+     "$type": "0, AddStatBonusEquipment",
+     "Descriptor": "Enhancement",
+     "Stat": "Charisma",
+     "Value": 2
+    }
+   ]
+  }
+ },
+ {
+  "guid": "00000000000000000000000000000e07",
+  "name": "TestCircletEnchantment",
+  "type": "Kingmaker.Blueprints.Items.Ecnchantments.BlueprintEquipmentEnchantment",
+  "raw": {
+   "Components": [
+    {
+     "$type": "0, AddStatBonusEquipment",
+     "Descriptor": "Enhancement",
+     "Stat": "Charisma",
+     "Value": 2
+    },
+    {
+     "$type": "0, AddUnitFeatureEquipment",
+     "m_Feature": "!bp_00000000000000000000000000000f07"
+    },
+    {
+     "$type": "0, AddUnitFactEquipment",
+     "m_Blueprint": "!bp_00000000000000000000000000000b07"
+    }
+   ]
+  }
+ },
+ {
+  "guid": "00000000000000000000000000000f07",
+  "name": "TestCircletFeature",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": [
+    {
+     "$type": "0, AddStatBonus",
+     "Descriptor": "UntypedStackable",
+     "Stat": "BonusCasterLevel",
+     "Value": 2
+    },
+    {
+     "$type": "0, AddStatBonus",
+     "Descriptor": "None",
+     "Stat": "SkillStealth",
+     "Value": 1
+    },
+    {
+     "$type": "0, AddStatBonus",
+     "Descriptor": "UntypedStackable",
+     "Stat": "SkillStealth",
+     "Value": 1
+    }
+   ]
+  }
+ },
+ {
+  "guid": "00000000000000000000000000000b07",
+  "name": "TestCircletBuff",
+  "type": "Kingmaker.UnitLogic.Buffs.Blueprints.BlueprintBuff",
+  "raw": {
+   "Components": []
   }
  },
  {

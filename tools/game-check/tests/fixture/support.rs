@@ -114,6 +114,7 @@ pub fn dump(bytes: &[u8]) -> (Pins, Dump) {
 pub fn report_with(known: &str) -> Report {
     let (pins, dump) = dump(&binz(&records(), 2));
     check(&pins, &dump, &planner(), &Known::parse(known).unwrap())
+        .expect("the fixture's JSON parses")
 }
 
 pub fn report() -> Report {

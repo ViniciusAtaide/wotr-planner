@@ -13,8 +13,8 @@
 //!
 //! Then the two sides are paired: the same grant at the same level; the same grant at another level; a game selection
 //! and a planner selection of the same group at one level (the game's own copy of a selection the planner shares); a
-//! game selection and a planner feat slot at one level. What's left is in one side only, or a further rank of a grant
-//! the other side gives earlier.
+//! game selection and a planner feat slot at one level. What's left is in one side only, or a further rank of a
+//! feature the other side gives earlier (never of a selection or a pick: granted again, it is another pick).
 
 use rules::{BlueprintGuid, Class, DataAt, FeatCategory, FeatSlot, effective_row};
 use serde_json::Value;
@@ -57,6 +57,10 @@ struct Placed {
     /// A selection's `Group`, or a slot's.
     group: Option<String>,
     how: How,
+    /// A selection (the game's `BlueprintFeatureSelection`, or the planner's selection or feat list): granted
+    /// again, it is another pick, never a further rank (`BlueprintFeature.MeetsPrerequisites` lets an
+    /// `IFeatureSelection` through at any rank).
+    choice: bool,
 }
 
 impl Placed {
@@ -67,6 +71,7 @@ impl Placed {
             label,
             group: None,
             how: How::Grant,
+            choice: false,
         }
     }
 
@@ -75,7 +80,7 @@ impl Placed {
     }
 }
 
-/// A selection blueprint's `Group`.
+/// A selection blueprint's `Group`: `None` for any other blueprint.
 fn group_of(ctx: &Ctx, guid: &BlueprintGuid) -> Option<String> {
     (ctx.dump.kind(guid) == Some("BlueprintFeatureSelection"))
         .then(|| ctx.dump.json(guid))
@@ -286,8 +291,10 @@ impl Unfold<'_> {
         let ctx = self.ctx;
         let name = ctx.name(grant);
         let keep = |placed: &mut Vec<Placed>| {
+            let group = group_of(ctx, grant);
             placed.push(Placed {
-                group: group_of(ctx, grant),
+                choice: group.is_some(),
+                group,
                 how,
                 ..Placed::new(Item::Guid(grant.clone()), level, name.clone())
             })
@@ -446,14 +453,19 @@ impl Grants<'_> {
             .planner
             .guid(at.clone())
         {
-            Some(guid) => placed.push(Placed {
-                group: group_of(ctx, guid),
-                ..Placed::new(
-                    Item::Guid(guid.clone()),
-                    level,
-                    at.key().unwrap_or("").to_owned(),
-                )
-            }),
+            Some(guid) => {
+                let group = group_of(ctx, guid);
+                placed.push(Placed {
+                    choice: group.is_some()
+                        || matches!(at, DataAt::FeatureSelection(_) | DataAt::FeatList(_)),
+                    group,
+                    ..Placed::new(
+                        Item::Guid(guid.clone()),
+                        level,
+                        at.key().unwrap_or("").to_owned(),
+                    )
+                });
+            }
             None => out.skip(area, "a planner grant with no blueprint"),
         };
         for feature in self.features {
@@ -619,9 +631,12 @@ fn diff(
     }
 }
 
-/// Whether the other side grants this item at an earlier level: then this one is a further rank of it.
+/// Whether the other side grants this feature at an earlier level: then this one is a further rank of it. A pick
+/// or a selection granted again is another pick, so it never is.
 fn rank_of(other: &[Placed], placed: &Placed) -> bool {
-    other
-        .iter()
-        .any(|each| each.item == placed.item && each.level < placed.level)
+    !placed.is_pick()
+        && !placed.choice
+        && other
+            .iter()
+            .any(|each| each.item == placed.item && each.level < placed.level)
 }

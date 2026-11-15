@@ -57,7 +57,7 @@ A tool in `tools/`, a binary such as `cargo run -p game-check`:
     - Archetypes are applied as `ProgressionData.CalculateLevelEntries` does.
     - Unmapped game grants are unfolded: a fact wrapper into its features, a nested progression into its rows, a selection into a pick of its `Group`. A hidden one is dropped.
     - Then the rows are paired: same level, another level, the game's own copy of a selection the planner shares, or a bonus pick of another group.
-    - What is left is listed as "in one side only" or "a further rank".
+    - What is left is listed as "in one side only", or "a further rank" when the other side grants the same feature earlier. A selection or a pick is never a further rank: granted again, it is another pick (`BlueprintFeature.MeetsPrerequisites` lets an `IFeatureSelection` through at any rank).
   - **option lists:**
     - A selection's offered options, plus the pools of a `pool_of` selection, against `m_AllFeatures`. A feat list against its own `m_AllFeatures` and `IgnorePrerequisites`.
     - The general feat, mythic ability and mythic feat pools against `BasicFeatSelection`, `MythicAbilitySelection` and `MythicFeatSelection`.
@@ -68,14 +68,15 @@ A tool in `tools/`, a binary such as `cargo run -p game-check`:
     - The general picks are left out.
   - **items:**
     - The slot, by blueprint type.
-    - Flat always-on bonuses through enchantments and wearer facts: `AddStatBonusEquipment`, `AllSavesBonusEquipment`, `AddStatBonus`, simple `AddContextStatBonus`, and the spell DC, caster level, spell penetration and concentration components. Each is compared by target, type and amount.
+    - Flat always-on bonuses through enchantments and wearer facts: `AddStatBonusEquipment`, `AllSavesBonusEquipment`, `AddStatBonus`, simple `AddContextStatBonus`, and the spell DC, caster level, spell penetration and concentration components. The stat `BonusCasterLevel` is the planner's `CasterLevel`.
+    - The game's bonuses count as the game stacks them: of a type outside `ModifierDescriptorHelper.DefaultStackingDescriptors`, only the largest to each target (`ModifiableValue.ApplyModifiersFiltered`, WrathDecompiled 6ce4a6b). Each is then compared by target, type and amount.
 - **Report** (`src/report.rs`):
   - A header (the asset, the pinned hash, the counts), then each area's counts and what it left out.
   - The differences grouped by (area, kind, known ticket), largest group first, then by area, kind and ticket. Inside a group, sorted by entry key, GUID, game value, planner value.
   - Asset names and GUIDs only. No path, no time (the run's time goes to stderr). BTreeMaps throughout.
 - **Known list** (`tools/game-check/known.txt`, `src/known.rs`): `<area>[ / <kind>[ / <entry>[ / <value>]]] -> <ticket>`, `*` for any kind, the most specific line winning.
   - A known finding is grouped as `[known: <ticket>]`.
-  - The exit status is 1 when a difference isn't known or a known line matches nothing, 0 otherwise, and 2 on refusal.
+  - The exit status is 1 when a difference isn't known or a known line matches nothing, 0 otherwise, and 2 on refusal or when a blueprint a comparison read has JSON that doesn't parse (named with its GUID; never counted as missing).
 - **Workspace:** the member is added; `[profile.dev.package]` sets `opt-level = 3` for `sha2`, `lz4_flex` and `serde_json`.
 
 **Decisions:**
@@ -93,11 +94,15 @@ A tool in `tools/`, a binary such as `cargo run -p game-check`:
   - The planner's `Category(Magic)` slot is the game's `WizardFeat` group (`WizardFeatSelection`, `SkaldFeatSelection`, `SorcererBonusFeat`).
   - A penalty is untyped, as the planner's `GearBonus` says.
   - A planner `Any` naming every option a selection offers is the selection itself (`ExtraDiscoverySelection` asks for `DiscoverySelection`).
+  - `PrerequisiteFullStatValue` of an ability score or BAB is read as `PrerequisiteStatValue`: its full value adds the stat's `Feat`-descriptor modifiers (`PrerequisiteFullStatValue.GetFullStatValue`), which the check ignores. Of another stat it isn't compared.
+  - `FeatFor` of a feat whose blueprint is a selection, for a skill, is the selection's option that adds to that skill (`SkillFocusSelection` → `SkillFocusAcrobatics` for Mobility).
 - **Ours, normalisations:**
   - Prerequisites that hold for any Build or concern the story or pets are dropped and counted (not a pet, `MainCharacter`, `Etude`, `NoClassLevel(AnimalClass)`, a class's forced-true level in itself).
   - The planner's leaves with no game form are dropped and counted (`Story`, `PickedThrough`, `NoOtherOptionOfGroup`, …).
+  - A feature's `PrerequisiteNoFeature` of itself (group `All`, one rank) is dropped and counted: `BlueprintFeature.MeetsPrerequisites` already refuses a feature held at its `Ranks`.
+- **Left out, not compared:** the hit die (the planner has none); `PrerequisiteParametrizedWeaponSubcategory` (counted as not compared); a full-value prerequisite of a stat other than an ability score or BAB; the JSON of buffs, so a wearer's buff is counted as "whose JSON the check doesn't keep".
 
-**Tests:** `tools/game-check/tests/fixture/`, a hand-written dump in our own words (`blueprints.json`, invented names, 60 records) written as LZ4 chunks at test time, with its pins and `planner.ron`.
+**Tests:** `tools/game-check/tests/fixture/`, a hand-written dump in our own words (`blueprints.json`, invented names, 73 records) written as LZ4 chunks at test time, with its pins and `planner.ron`.
 - `areas::` has one test per area, each asserting every planted difference and the entries that agree:
   - `mapping_finds_a_missing_blueprint_a_wrong_type_a_prestige_flag_and_a_stray_archetype`
   - `prerequisites_find_a_value_a_missing_leaf_an_extra_one_a_grouping_and_an_unmapped_blueprint`
@@ -106,13 +111,15 @@ A tool in `tools/`, a binary such as `cargo run -p game-check`:
   - `option_lists_find_options_on_one_side_a_list_s_flag_a_choice_the_game_lacks_and_the_pools`
   - `mythic_ranks_find_a_grant_at_another_rank_after_the_starting_ranks_and_a_nested_progression`
   - `items_find_an_amount_a_type_a_slot_and_a_bonus_on_each_side`
+  - The review round's (below): `progression_rows_count_a_selection_or_a_pick_granted_again_as_another_pick_not_a_further_rank`, `prerequisites_read_full_stat_values_a_feature_s_own_no_feature_a_skill_s_feature_and_name_alignments`, `items_count_one_bonus_of_a_type_that_doesn_t_stack_and_the_caster_level_stat`.
 - `determinism::`:
-  - `a_shuffled_dump_and_data_give_a_byte_identical_report`: records reversed and rotated across three chunks, the planner's lists reversed.
+  - `a_shuffled_dump_and_data_give_a_byte_identical_report`: records reversed and rotated across three chunks; the planner's lists reversed, among them classes, prestige classes, archetypes, their features, selections, options and feat lists, each row's grants, and the mythic paths with their features, selections, feat lists, ranks and each rank's grants. A shared option is in a set, which has no order: reversing the selections moves the one that shares it (`seraph/boon`) to the other side of the one that owns it.
   - `the_report_holds_no_path_or_time`.
 - `refusal::`:
   - `a_dump_whose_hash_is_not_the_pin_is_refused_naming_both`
   - `a_truncated_dump_is_refused_on_its_size`
   - `the_pinned_dump_reads_every_record`
+  - `a_blueprint_whose_json_does_not_parse_is_an_error_naming_it` (the review round's)
 - `known::`:
   - `a_known_group_names_its_ticket_and_a_stale_line_fails`
   - `the_check_passes_when_every_difference_is_known`
@@ -122,34 +129,35 @@ A tool in `tools/`, a binary such as `cargo run -p game-check`:
   - `the_known_list_parses`
 - With every comparison switched off, the 7 area tests, 3 known tests and 2 determinism tests failed; the 5 others passed. `scripts/check.sh` runs them, since the crate is a workspace member. The real run is not in it: worktrees and CI have no dump.
 
-**First run** (the whole data, run twice: `cmp` identical; exit 1):
+**First run, after the review fixes** (the whole data, run twice: `cmp` identical; exit 1). The run before them is kept as `first-run.before-review.txt` beside the report:
 - **Areas:**
   - mapping: 4,309 compared, all agree. Left out: 175 entries with no blueprint.
-  - prerequisites: 1,393 compared, 821 agree.
+  - prerequisites: 1,393 compared, 835 agree.
   - class tables: 235 compared, 179 agree.
   - progression rows: 235 compared, 33 agree.
   - option lists: 202 compared, 93 agree.
   - mythic ranks: 10 compared, 3 agree.
-  - items: 82 compared, 74 agree.
-- **Differences:** 4,889 in 33 groups. 1,653 are known, in 8 groups; 3,236 are not, in 25 groups.
+  - items: 82 compared, 76 agree.
+- **Differences:** 4,826 in 34 groups. 1,606 are known, in 9 groups; 3,220 are not, in 25 groups.
 - **Known, ranks-and-filtered-pools:**
-  - progression rows / a further rank in planner only: 594
   - option lists / in game only (the per-mystery revelation pools and the Magic Deceiver's): 559
-  - progression rows / a further rank in game only: 180
-  - mythic ranks / a further rank in planner only: 8
+  - progression rows / a further rank in planner only: 557
+  - progression rows / a further rank in game only: 160
+  - mythic ranks / a further rank in planner only: 7
 - **Known, game-data-by-blueprint:**
   - progression rows / a selection the game keeps separate: 193 (bard, skald and slayer talents, skald rage powers, …)
   - option lists / in game only: 57; in planner only: 56 (domains, blessings, Enforcing Gaze, the kineticist element lists, the pool entries of Advanced Weapon Training, Extra Channel, Extra Hex, Magical Tail and Abundant Smite)
+  - prerequisites / missing in planner, a blueprint it doesn't map: 11 (Mythic Skill Focus asks for its own value, which the game writes as any one of the eleven per-skill features)
   - mythic ranks / a selection the game keeps separate: 6
 - **Not known, prerequisites:**
-  - missing in planner: 619
-  - missing in planner, a blueprint it doesn't map: 579
-  - not in game: 529
+  - missing in planner: 579
+  - missing in planner, a blueprint it doesn't map: 560
+  - not in game: 516
   - value differs: 9
   - grouping differs: 3
 - **Not known, progression rows:**
-  - in game only: 586
-  - in planner only: 136
+  - in game only: 606
+  - in planner only: 173
   - a bonus pick of another group: 56
   - at another level: 9
 - **Not known, option lists:**
@@ -164,16 +172,26 @@ A tool in `tools/`, a binary such as `cargo run -p game-check`:
   - Fortitude differs: 3
   - skill points differ (the user's facts): 2
   - BAB differs: 1
-- **Not known, mythic ranks:** in game only: 23; in planner only: 2.
+- **Not known, mythic ranks:** in game only: 23; in planner only: 3.
 - **Not known, items:**
-  - bonus not in game: 3
   - slot differs: 3
-  - bonus missing in planner: 2
+  - bonus not in game: 2
   - type differs: 2
+  - bonus missing in planner: 1
 - **237's three "differences for 238" all show:**
   - `archetype alchemist/incense-synthesizer` / progression rows / in planner only: `incense-fog at level 1`.
   - `selection shifter/dragonblood-shifter/greater-wyrmshifter` / option lists / a choice the game doesn't offer: `ShifterDragonFormFeatureFinal`, with 10 options in the planner.
   - `selection stalwart-defender/defensive-powers` / option lists / in planner only: `clear-mind (ClearMindFeature)`. `immobile` and `mighty-resilience` have no blueprint and are counted as such.
+
+**Review fixes** (2026-11-15, the ticket's review; each with a fixture test that failed first):
+- **A further rank applies to features only.** A selection, a planner selection or feat list, a game pick and a feat slot granted again are another pick. Moved from the known "a further rank" groups to the not-known ones: progression rows 37 to in planner only and 20 to in game only; mythic ranks 1 to in planner only (`gold-dragon/improved-gold-dragon-breath` at rank 10). Among them the alchemist's two `DiscoverySelection` at level 20, the Elemental Witch's `witch/hex` at 6, the Underground Chemist's discoveries and `RogueTalentSelection`s, the Sylvan Trickster's fey tricks, the Witch Doctor's `shaman/hex` at 12 and the Divine Hunter's `SelectionMercy` at 18.
+- **`PrerequisiteFullStatValue`** of an ability score or BAB is compared: 9 "not in game" findings go (Snap Shot, Improved and Greater Snap Shot, Perfect Strike, Vulpine Pounce, Natural Charmer). 3 of Sneak Attack stay not compared.
+- **A feature's own `PrerequisiteNoFeature`** is dropped and counted: 40 "missing in planner" findings go.
+- **Skill Focus for a skill** compares as the game's per-skill feature: 8 "missing in planner, a blueprint it doesn't map" and 4 "not in game" findings go (Loremaster, Student of War, Acrobatic Spellcaster, Slayer's Feint). Mythic Skill Focus's 11 are known under `game-data-by-blueprint`. The Skill Focus findings of option lists and progression rows (the per-skill features in bloodline and bonus feat lists, Adaptability, the Chirurgeon's and the Enlightened Philosopher's grant) are unchanged and not known.
+- **Items:** `BonusCasterLevel` is the caster level (Sin-mage's staff agrees), and a type that doesn't stack counts once per target (the Battlemage's headband's two Charisma +2 enhancement bonuses agree).
+- **`known.txt`:** the revelation pool lines name their kind, `in game only`, in place of `*`.
+- **Minor:** JSON that doesn't parse is an error naming the blueprint and its GUID (exit 2), never "not in the dump"; a wearer's fact whose JSON isn't kept (two `BlueprintBuff`s) is counted as such, not as missing from the dump; an alignment mask is joined with " or ", since the report's columns are split by `|`; the shuffle test reverses the mythic paths and ranks, feat lists, prestige classes and the selections around a shared option.
+- **Not done:** the `simplify` pass's suggestions to compare Mythic Skill Focus's same-value prerequisite as any of the per-skill features (the review asked for a known line) and to derive the items' counted stats from one table with `GearTarget` (a larger change than this round).
 
 The full report is kept outside the repo, since it holds names of the game's data in bulk. The not-known groups wait on difference tickets, the ones from `research/game-source-check-2026-11-14.md` (missing in the main checkout at 667164e) or new ones (the main session's, per the decisions). Groups of the user's facts (skill points, class skills) go to the user first.
 

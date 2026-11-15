@@ -3,8 +3,9 @@
 //! The game's: the item's enchantments (`m_Enchantments`) and their components, and the features an enchantment or
 //! the item gives its wearer, read for flat bonuses: `AddStatBonusEquipment`, `AllSavesBonusEquipment`,
 //! `AddStatBonus`, `AddContextStatBonus` of a simple value, and the spell DC, caster level, spell penetration and
-//! concentration bonuses. A bonus to a number the planner doesn't count (AC, speed) is left out, as are manuals and
-//! tomes, which give theirs through an ability (ticket 238's decisions: a later ticket).
+//! concentration bonuses. Of a type that doesn't stack, only the largest bonus to each target counts, as in the game.
+//! A bonus to a number the planner doesn't count (AC, speed) is left out, as are manuals and tomes, which give theirs
+//! through an ability (ticket 238's decisions: a later ticket).
 
 use rules::{BonusType, DataAt, GearSlot, GearTarget, Save, SpellScope};
 use serde_json::Value;
@@ -96,8 +97,16 @@ fn wearer_fact(ctx: &Ctx, out: &mut Out, part: &Value, game: &mut Vec<Bonus>) {
     let fact = ["m_Feature", "m_Blueprint", "m_Fact"]
         .iter()
         .find_map(|field| reference(&part[*field]));
-    let Some(feature) = fact.and_then(|fact| ctx.dump.json(&fact)) else {
-        out.skip(AREA, "a wearer's fact not in the dump");
+    let Some(fact) = fact else {
+        out.skip(AREA, "a wearer's fact with an empty reference");
+        return;
+    };
+    let Some(feature) = ctx.dump.json(&fact) else {
+        let reason = ctx.dump.kind(&fact).map_or_else(
+            || "a wearer's fact not in the dump".to_owned(),
+            |kind| format!("a wearer's {kind}, whose JSON the check doesn't keep"),
+        );
+        out.skip(AREA, reason);
         return;
     };
     for part in components(feature) {
@@ -142,11 +151,15 @@ fn context_bonus(
 }
 
 fn stat_bonus(out: &mut Out, part: &Value, value: i64, game: &mut Vec<Bonus>) {
-    let stat = part["Stat"].as_str().unwrap_or("");
+    let stat = match part["Stat"].as_str().unwrap_or("") {
+        // The stat `BonusCasterLevel` is the caster level an item adds: the planner's `CasterLevel`.
+        "BonusCasterLevel" => "CasterLevel",
+        stat => stat,
+    };
     let counted = is_ability_stat(stat)
         || matches!(
             stat,
-            "SaveFortitude" | "SaveReflex" | "SaveWill" | "Initiative"
+            "SaveFortitude" | "SaveReflex" | "SaveWill" | "Initiative" | "CasterLevel"
         )
         || stat.starts_with("Skill");
     if counted {
@@ -197,16 +210,54 @@ fn target(target: &GearTarget) -> String {
     }
 }
 
+/// The types whose bonuses to one stat all count, in the planner's words: `ModifierDescriptorHelper`'s
+/// `DefaultStackingDescriptors`, with `None` and `UntypedStackable` as `Untyped` (WrathDecompiled 6ce4a6b). The game's
+/// rule, not the planner's (`rules::BonusType::stacks`, where only untyped bonuses stack).
+const STACKING: [&str; 10] = [
+    "Untyped",
+    "Racial",
+    "Dodge",
+    "Feat",
+    "Penalty",
+    "ArmorFocus",
+    "Focus",
+    "NegativeEnergyPenalty",
+    "NaturalArmour",
+    "DLC3_Stackable",
+];
+
+/// The game's bonuses as they count: of a type that doesn't stack, only the largest to each target
+/// (`ModifiableValue.ApplyModifiersFiltered` adds the largest of each such type, and every stacking one).
+fn stacked(mut game: Vec<Bonus>) -> Vec<Bonus> {
+    game.sort();
+    let mut counted: Vec<Bonus> = Vec::new();
+    for bonus in game {
+        // Sorted, so a larger bonus of one target and type follows a smaller one.
+        match counted.last_mut() {
+            Some(last)
+                if last.0 == bonus.0
+                    && last.1 == bonus.1
+                    && bonus.2 > 0
+                    && !STACKING.contains(&bonus.1.as_str()) =>
+            {
+                *last = bonus
+            }
+            _ => counted.push(bonus),
+        }
+    }
+    counted
+}
+
 /// The two sides' bonuses: the same target with another amount or type is one difference.
 fn bonuses(
     out: &mut Out,
     at: &DataAt,
     guid: &rules::BlueprintGuid,
     name: &str,
-    mut game: Vec<Bonus>,
+    game: Vec<Bonus>,
     mut planner: Vec<Bonus>,
 ) {
-    game.sort();
+    let mut game = stacked(game);
     planner.sort();
     game.retain(
         |bonus| match planner.iter().position(|other| other == bonus) {

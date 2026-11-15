@@ -87,6 +87,40 @@ fn prerequisites_find_a_value_a_missing_leaf_an_extra_one_a_grouping_and_an_unma
 }
 
 #[test]
+fn prerequisites_read_full_stat_values_a_feature_s_own_no_feature_a_skill_s_feature_and_name_alignments()
+ {
+    let report = report();
+    // The game's full-value Strength and BAB are the planner's scores; its full-value Mobility isn't compared.
+    assert_agrees(&report, "prerequisites", "feat full-grip");
+    assert!(
+        report
+            .text()
+            .contains("1 a full SkillMobility prerequisite, not compared"),
+        "{}",
+        report.text()
+    );
+    // Keen Eye's NoFeature of itself says what its one rank does.
+    assert_agrees(&report, "prerequisites", "feat keen-eye");
+    assert!(
+        report
+            .text()
+            .contains("1 a feature's own NoFeature, not compared"),
+        "{}",
+        report.text()
+    );
+    // Skill Focus for Stealth is the game's Stealth feature.
+    assert_agrees(&report, "prerequisites", "feat sneaky");
+    // An alignment mask is named without the report's column separator.
+    assert_finding(
+        &report,
+        "prerequisites / not in game",
+        "feat old-habit",
+        "-",
+        "alignment LawfulGood or LawfulNeutral",
+    );
+}
+
+#[test]
 fn class_tables_find_skill_points_a_save_and_class_skills_for_a_class_and_an_archetype() {
     let report = report();
     let user = "(the user's facts)";
@@ -162,18 +196,43 @@ fn progression_rows_find_a_grant_at_another_level_in_one_side_only_and_an_archet
     );
     // The bundle of Steady Hand, the hidden feature and the combat feat selection against the slot all pass.
     for name in [
-        "SteadyHand",
         "WardenDrillsBundle",
         "WardenHiddenFeature",
-        "WardenCombatSelection",
+        "(WardenCombatSelection) at level 2",
     ] {
-        assert!(
-            !report.text().contains(name) || name == "SteadyHand",
-            "{name} reported"
-        );
+        assert!(!report.text().contains(name), "{name} reported");
     }
     assert!(!report.text().contains("steady-hand at level"));
     assert_agrees(&report, "progression rows", "class sentinel");
+}
+
+#[test]
+fn progression_rows_count_a_selection_or_a_pick_granted_again_as_another_pick_not_a_further_rank() {
+    let report = report();
+    // The planner's second Trick, a selection the game grants once.
+    assert_finding(
+        &report,
+        "progression rows / in planner only",
+        "class warden",
+        "-",
+        "warden/trick at level 3",
+    );
+    // The game's second combat feat selection, a pick of a group the planner's slot picks once.
+    assert_finding(
+        &report,
+        "progression rows / in game only",
+        "class warden",
+        "a CombatFeat selection (WardenCombatSelection) at level 3",
+        "-",
+    );
+    // A feature granted again is still a further rank.
+    assert_finding(
+        &report,
+        "progression rows / a further rank in planner only",
+        "class warden",
+        "-",
+        "warden/guard at level 3",
+    );
 }
 
 #[test]
@@ -317,5 +376,20 @@ fn items_find_an_amount_a_type_a_slot_and_a_bonus_on_each_side() {
         report
             .text()
             .contains("1 a bonus to AC, which the planner doesn't count")
+    );
+}
+
+#[test]
+fn items_count_one_bonus_of_a_type_that_doesn_t_stack_and_the_caster_level_stat() {
+    let report = report();
+    // Charisma +2 enhancement twice counts once, the two untyped Stealth bonuses both count, and `BonusCasterLevel`
+    // is the caster level.
+    assert_agrees(&report, "items", "gear item circlet-of-test");
+    assert!(
+        report
+            .text()
+            .contains("1 a wearer's BlueprintBuff, whose JSON the check doesn't keep"),
+        "{}",
+        report.text()
     );
 }

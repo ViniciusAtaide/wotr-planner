@@ -12,8 +12,8 @@
         (key: "keen-eye", blueprint: "000000000000000000000000000000a2", name: "Keen Eye", category: Weapon, guide: "feats#keen-eye", prerequisite: All([Feat("steady-hand"), BaseAttackBonus(3)])),
         // Both feats in the game; planted: either one.
         (key: "wide-stance", blueprint: "000000000000000000000000000000a3", name: "Wide Stance", category: Weapon, guide: "feats#wide-stance", prerequisite: Any([Feat("steady-hand"), Feat("keen-eye")])),
-        // No prerequisite in the game; planted: Keen Eye. Not in the general pool either.
-        (key: "old-habit", blueprint: "000000000000000000000000000000a4", name: "Old Habit", category: Weapon, guide: "feats#old-habit", prerequisite: Feat("keen-eye")),
+        // No prerequisite in the game; planted: Keen Eye and a lawful alignment. Not in the general pool either.
+        (key: "old-habit", blueprint: "000000000000000000000000000000a4", name: "Old Habit", category: Weapon, guide: "feats#old-habit", prerequisite: All([Feat("keen-eye"), Any([Alignment(LawfulGood), Alignment(LawfulNeutral)])])),
         // Agrees: any good alignment, the game's `Good`.
         (key: "faithful", blueprint: "000000000000000000000000000000a5", name: "Faithful", category: Miscellaneous, guide: "feats#faithful", prerequisite: Any([Alignment(LawfulGood), Alignment(NeutralGood), Alignment(ChaoticGood)])),
         // Planted: a blueprint the dump doesn't have.
@@ -22,6 +22,12 @@
         (key: "misnamed", blueprint: "000000000000000000000000000000c1", name: "Misnamed", category: Weapon, guide: "feats#misnamed"),
         // The game asks for a blueprint the planner doesn't map.
         (key: "stranger", blueprint: "000000000000000000000000000000a8", name: "Stranger", category: Weapon, guide: "feats#stranger"),
+        // Agrees: the game's full-value Strength and BAB; its full-value Mobility isn't compared.
+        (key: "full-grip", blueprint: "000000000000000000000000000000a6", name: "Full Grip", category: Weapon, guide: "feats#full-grip", prerequisite: All([AbilityScore(ability: Strength, score: 13), BaseAttackBonus(4)])),
+        // One feat taken for a skill, where the game has a feature per skill.
+        (key: "skill-focus", blueprint: "000000000000000000000000000000a7", name: "Skill Focus", category: Skill, guide: "feats#skill-focus", parameter: Skill, repeat: PerValue),
+        // Agrees: the game asks for its Stealth feature.
+        (key: "sneaky", blueprint: "000000000000000000000000000000ab", name: "Sneaky", category: Skill, guide: "feats#sneaky", prerequisite: FeatFor(feat: "skill-focus", value: Skill("stealth"))),
     ],
     classes: [
         (
@@ -77,8 +83,10 @@
                 (level: 1, features: ["warden/guard"], feats: ["steady-hand"]),
                 // Planted: Sense, which the game gives at 3.
                 (level: 2, features: ["warden/sense"], selections: ["warden/trick"], feat_slots: [CombatFeat]),
-                // Planted: Ghost, which the game doesn't give; the game's extra feature is missing.
-                (level: 3, features: ["warden/ghost"]),
+                // Planted: Ghost, which the game doesn't give; the game's extra feature is missing. Planted: a second
+                // Trick, which the game doesn't give (another pick, not a further rank), and a further rank of Guard.
+                // The game's second combat feat selection here is missing.
+                (level: 3, features: ["warden/ghost", "warden/guard"], selections: ["warden/trick"]),
             ],
             archetypes: [
                 (
@@ -136,6 +144,9 @@
         (key: "tome-of-test", blueprint: "00000000000000000000000000000104", name: "Tome of Test", slot: Usable, bonuses: [(target: Ability(Wisdom), amount: 2, kind: Inherent)]),
         // Planted: no such bonus in the game.
         (key: "ring-of-nothing", blueprint: "00000000000000000000000000000105", name: "Ring of Nothing", slot: Ring, bonuses: [(target: Concentration, amount: 1)]),
+        // Agrees: the game's two enhancement bonuses to Charisma count once; its two untyped ones to Stealth both
+        // count; its `BonusCasterLevel` is the caster level.
+        (key: "circlet-of-test", blueprint: "00000000000000000000000000000106", name: "Circlet of Test", slot: Headwear, bonuses: [(target: Ability(Charisma), amount: 2, kind: Enhancement), (target: CasterLevel, amount: 2), (target: Skill("stealth"), amount: 1), (target: Skill("stealth"), amount: 1)]),
     ],
     mythic_paths: [
         (
@@ -149,6 +160,21 @@
                 (key: "seraph/halo", blueprint: "00000000000000000000000000000202", name: "Halo", guide: "seraph#halo"),
                 (key: "seraph/wings", blueprint: "00000000000000000000000000000203", name: "Wings", guide: "seraph#wings"),
                 (key: "seraph/summon", blueprint: "00000000000000000000000000000204", name: "Summon", guide: "seraph#summon"),
+            ],
+            selections: [
+                // Agrees: its own option and the Warden's Trick A, which it shares.
+                (
+                    key: "seraph/boon",
+                    blueprint: "000000000000000000000000000000e2",
+                    name: "Boon",
+                    guide: "seraph#boon",
+                    options: [(key: "seraph/boon/light", blueprint: "000000000000000000000000000000b4", name: "Light", guide: "seraph#light")],
+                    shared_options: ["warden/trick/a"],
+                ),
+            ],
+            feat_lists: [
+                // Agrees.
+                (key: "seraph/feats", blueprint: "000000000000000000000000000000d2", name: "Seraph Feats", guide: "seraph#feats", feats: ["steady-hand", "keen-eye"]),
             ],
             ranks: [
                 (rank: 1, features: ["seraph/first-step"]),

@@ -15,16 +15,16 @@
 progression rows / a further rank in game only -> ranks-and-filtered-pools
 progression rows / a further rank in planner only -> ranks-and-filtered-pools
 mythic ranks / a further rank in planner only -> ranks-and-filtered-pools
-option lists / * / selection oracle/revelations/ancestor -> ranks-and-filtered-pools
-option lists / * / selection oracle/revelations/battle -> ranks-and-filtered-pools
-option lists / * / selection oracle/revelations/bones -> ranks-and-filtered-pools
-option lists / * / selection oracle/revelations/flame -> ranks-and-filtered-pools
-option lists / * / selection oracle/revelations/life -> ranks-and-filtered-pools
-option lists / * / selection oracle/revelations/nature -> ranks-and-filtered-pools
-option lists / * / selection oracle/revelations/stone -> ranks-and-filtered-pools
-option lists / * / selection oracle/revelations/waves -> ranks-and-filtered-pools
-option lists / * / selection oracle/revelations/wind -> ranks-and-filtered-pools
-option lists / * / selection arcanist/magic-deceiver/revelation -> ranks-and-filtered-pools
+option lists / in game only / selection oracle/revelations/ancestor -> ranks-and-filtered-pools
+option lists / in game only / selection oracle/revelations/battle -> ranks-and-filtered-pools
+option lists / in game only / selection oracle/revelations/bones -> ranks-and-filtered-pools
+option lists / in game only / selection oracle/revelations/flame -> ranks-and-filtered-pools
+option lists / in game only / selection oracle/revelations/life -> ranks-and-filtered-pools
+option lists / in game only / selection oracle/revelations/nature -> ranks-and-filtered-pools
+option lists / in game only / selection oracle/revelations/stone -> ranks-and-filtered-pools
+option lists / in game only / selection oracle/revelations/waves -> ranks-and-filtered-pools
+option lists / in game only / selection oracle/revelations/wind -> ranks-and-filtered-pools
+option lists / in game only / selection arcanist/magic-deceiver/revelation -> ranks-and-filtered-pools
 
 # Copies and entries holding one of several blueprints (237's Answer, group a and its list of entries with several):
 # a selection the planner shares where the game keeps one per class, and the blueprints an entry's primary leaves out.
@@ -49,3 +49,7 @@ option lists / in game only / pool general feats / ExtraShamanHexSelection -> ga
 option lists / in game only / pool general feats / MagicalTail -> game-data-by-blueprint
 option lists / in planner only / pool general feats / magical-tail (MagicalTail1) -> game-data-by-blueprint
 option lists / in game only / pool mythic abilities / AbundantSmiteChaos -> game-data-by-blueprint
+# Skill Focus: one planner feat taken for a skill, where the game has a feature per skill. A prerequisite naming the
+# skill compares as that skill's feature; Mythic Skill Focus asks for the same skill as its own value, which the game
+# writes as any one of the eleven.
+prerequisites / missing in planner, a blueprint it doesn't map / mythic feat skill-focus-mythic -> game-data-by-blueprint

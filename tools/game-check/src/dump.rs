@@ -17,7 +17,8 @@ pub struct Blueprint {
     pub kind: String,
     /// The JSON, kept only for the kinds the check reads ([`keeps_json`]); parsed on first use.
     raw: Option<Box<str>>,
-    json: OnceCell<Option<Value>>,
+    /// The parsed JSON, or the parser's message when it doesn't parse.
+    json: OnceCell<Result<Value, String>>,
 }
 
 /// Every blueprint of the dump, by GUID.
@@ -73,15 +74,24 @@ impl Dump {
     /// A blueprint's JSON, when the dump holds it and its kind is one the check reads.
     pub fn json(&self, guid: &BlueprintGuid) -> Option<&Value> {
         let blueprint = self.blueprints.get(guid)?;
+        let raw = blueprint.raw.as_deref()?;
         blueprint
             .json
-            .get_or_init(|| {
-                blueprint
-                    .raw
-                    .as_deref()
-                    .and_then(|raw| serde_json::from_str(raw).ok())
-            })
+            .get_or_init(|| serde_json::from_str(raw).map_err(|error| error.to_string()))
             .as_ref()
+            .ok()
+    }
+
+    /// The blueprints a comparison read whose JSON doesn't parse, each with the parser's message: the check fails
+    /// on them rather than count them as missing.
+    pub fn unparsed(&self) -> Vec<String> {
+        self.blueprints
+            .iter()
+            .filter_map(|(guid, blueprint)| match blueprint.json.get() {
+                Some(Err(error)) => Some(format!("{} {guid}: {error}", blueprint.name)),
+                _ => None,
+            })
+            .collect()
     }
 
     /// A blueprint's asset name, or its GUID when the dump lacks it.

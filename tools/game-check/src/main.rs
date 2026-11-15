@@ -5,7 +5,8 @@
 //! - `--data`: the game data; by default `seeds::game_data_dir()`.
 //!
 //! The report goes to stdout, the run's time to stderr. Exit status: 0 when every difference is known
-//! (`known.txt`), 1 when one isn't or a known line matches none, 2 when the dump is refused or nothing could be read.
+//! (`known.txt`), 1 when one isn't or a known line matches none, 2 when the dump is refused, a blueprint's JSON
+//! doesn't parse, or nothing could be read.
 
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
@@ -62,5 +63,5 @@ fn run() -> Result<Report, String> {
     let data_dir = data_dir.unwrap_or_else(seeds::game_data_dir);
     let data = seeds::check_game_data_files(&data_dir).map_err(|error| error.to_string())?;
     let dump = binz::read(&binz_path, &pins).map_err(|error| error.to_string())?;
-    Ok(check(&pins, &dump, &data, &known))
+    check(&pins, &dump, &data, &known).map_err(|error| error.to_string())
 }

@@ -1,6 +1,7 @@
 //! The same dump and data give the same bytes, whatever order the records and entries come in.
 
 use game_check::{Known, check};
+use rules::FeatureSelection;
 
 use crate::support::{binz, dump, planner, records, report};
 
@@ -17,17 +18,50 @@ fn a_shuffled_dump_and_data_give_a_byte_identical_report() {
     data.feats.reverse();
     data.gear.reverse();
     data.mythic_abilities.reverse();
-    for class in &mut data.classes {
+    data.mythic_feats.reverse();
+    for class in data.classes.iter_mut().chain(&mut data.prestige_classes) {
         class.archetypes.reverse();
         class.features.reverse();
-        for selection in &mut class.selections {
-            selection.options.reverse();
+        class.feat_lists.reverse();
+        // A selection's shared options are a set: reversing the selections moves an option's own selection to
+        // the other side of the one that shares it.
+        reverse_selections(&mut class.selections);
+        for row in &mut class.levels {
+            row.features.reverse();
+            row.feat_slots.reverse();
+            row.selections.reverse();
+        }
+        for archetype in &mut class.archetypes {
+            archetype.features.reverse();
+            reverse_selections(&mut archetype.selections);
+            archetype.feat_lists.reverse();
+            archetype.levels.reverse();
         }
     }
     data.classes.reverse();
-    let shuffled = check(&pins, &dump, &data, &Known::default());
+    data.prestige_classes.reverse();
+    for path in &mut data.mythic_paths {
+        path.features.reverse();
+        path.feat_lists.reverse();
+        reverse_selections(&mut path.selections);
+        path.ranks.reverse();
+        for row in &mut path.ranks {
+            row.features.reverse();
+            row.feat_slots.reverse();
+            row.selections.reverse();
+        }
+    }
+    data.mythic_paths.reverse();
+    let shuffled = check(&pins, &dump, &data, &Known::default()).unwrap();
     assert_eq!(shuffled.text(), expected.text());
     assert!(!expected.text().is_empty());
+}
+
+fn reverse_selections(selections: &mut [FeatureSelection]) {
+    selections.reverse();
+    for selection in selections {
+        selection.options.reverse();
+    }
 }
 
 #[test]

@@ -8,7 +8,7 @@
 
 use std::cmp::Ordering;
 
-use rules::{Alignment, BlueprintGuid, DataAt, Prerequisite, SpellType};
+use rules::{Alignment, BlueprintGuid, DataAt, Parameter, Prerequisite, SpellType};
 use serde_json::Value;
 
 use super::fixed::{ANIMAL_CLASS, guid};
@@ -367,6 +367,16 @@ fn game_side(json: &Value, own: &BlueprintGuid, class: bool, out: &mut Out) -> O
             );
             continue;
         }
+        // A feature's `PrerequisiteNoFeature` of itself: `BlueprintFeature.MeetsPrerequisites` already refuses a
+        // feature held at its `Ranks`, so with one rank it says nothing the feature doesn't.
+        if kind == "PrerequisiteNoFeature"
+            && group == "All"
+            && reference(&component["m_Feature"]).as_ref() == Some(own)
+            && json["Ranks"].as_i64().unwrap_or(1) <= 1
+        {
+            out.skip(AREA, "a feature's own NoFeature, not compared");
+            continue;
+        }
         if let Some(node) = game_component(component, kind, out) {
             if group == "All" {
                 all.push(node);
@@ -404,9 +414,13 @@ fn game_component(component: &Value, kind: &str, out: &mut Out) -> Option<Node> 
                 node
             })
         }
-        "PrerequisiteStatValue" => {
+        "PrerequisiteStatValue" | "PrerequisiteFullStatValue" => {
             let stat = component["Stat"].as_str().unwrap_or("");
             let value = int(&component["Value"]);
+            // Inference: the full value (`PrerequisiteFullStatValue.GetFullStatValue`) is the permanent value plus
+            // the stat's `Feat` modifiers, which the planner has none of for an ability score or BAB; read as
+            // `PrerequisiteStatValue`. Of another stat it isn't compared.
+            let full = kind == "PrerequisiteFullStatValue";
             if is_ability_stat(stat) {
                 if value <= LOWEST_SCORE {
                     out.skip(AREA, "an ability score no Build can fail");
@@ -415,6 +429,9 @@ fn game_component(component: &Value, kind: &str, out: &mut Out) -> Option<Node> 
                 Some(Node::Leaf(Leaf::Ability(stat.to_owned(), value)))
             } else if stat == "BaseAttackBonus" {
                 Some(Node::Leaf(Leaf::Bab(value)))
+            } else if full {
+                out.skip(AREA, format!("a full {stat} prerequisite, not compared"));
+                return None;
             } else if stat.starts_with("Skill") {
                 Some(Node::Leaf(Leaf::Ranks(stat.to_owned(), value)))
             } else {
@@ -574,13 +591,16 @@ fn planner_side(ctx: &Ctx, prerequisite: &Prerequisite, out: &mut Out) -> Option
             planner_side(ctx, inner, out).map(|node| Node::Not(Box::new(node)))
         }
         Prerequisite::Feat(feat) => has(DataAt::Feat(feat.clone()), out),
-        Prerequisite::FeatFor { feat, .. } => {
-            out.skip(
-                AREA,
-                "the value of a parametrized feature, compared as the feature",
-            );
-            has(DataAt::Feat(feat.clone()), out)
-        }
+        Prerequisite::FeatFor { feat, value } => match per_skill_feature(ctx, feat, value) {
+            Some(guid) => leaf(Leaf::Has(guid)),
+            None => {
+                out.skip(
+                    AREA,
+                    "the value of a parametrized feature, compared as the feature",
+                );
+                has(DataAt::Feat(feat.clone()), out)
+            }
+        },
         Prerequisite::MythicFeat(feat) => has(DataAt::MythicFeat(feat.clone()), out),
         Prerequisite::MythicAbility(ability) => has(DataAt::MythicAbility(ability.clone()), out),
         Prerequisite::SelectionOption(option) => has(DataAt::SelectionOption(option.clone()), out),
@@ -675,7 +695,7 @@ fn render_leaf(ctx: &Ctx, negated: bool, leaf: &Leaf) -> String {
                 .filter(|(index, _)| mask & (1 << index) != 0)
                 .map(|(_, alignment)| format!("{alignment:?}"))
                 .collect();
-            format!("alignment {}", names.join("|"))
+            format!("alignment {}", names.join(" or "))
         }
         Leaf::SpellLevel {
             arcane,
@@ -707,6 +727,26 @@ fn render(ctx: &Ctx, node: &Node) -> String {
         Node::Any(children) => format!("one of ({})", list(children)),
         Node::AtLeast(count, children) => format!("{count} of ({})", list(children)),
     }
+}
+
+/// The game's feature for a feat taken for one skill, where the game has one per skill: the option of the feat's
+/// selection that adds to that skill (`SkillFocusSelection`'s `SkillFocusStealth` adds to `SkillStealth`).
+fn per_skill_feature(ctx: &Ctx, feat: &rules::FeatKey, value: &Parameter) -> Option<BlueprintGuid> {
+    let Parameter::Skill(skill) = value else {
+        return None;
+    };
+    let stat = skill_stat(skill);
+    let selection = ctx.planner.guid(DataAt::Feat(feat.clone()))?;
+    references(ctx.dump.json(selection)?.get("m_AllFeatures"))
+        .into_iter()
+        .find(|option| {
+            ctx.dump.json(option).is_some_and(|json| {
+                components(json).iter().any(|part| {
+                    matches!(component_kind(part), "AddContextStatBonus" | "AddStatBonus")
+                        && part["Stat"].as_str() == Some(stat.as_str())
+                })
+            })
+        })
 }
 
 /// A selection all of whose options an `Any` names, when it has a blueprint: the game's prerequisite on such a
