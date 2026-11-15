@@ -53,7 +53,8 @@ Gear: a Build has no gear unless the user asks for it; never add an item yoursel
 its place: `gear.belt`, \
 `gear.headwear`, `gear.ring.0`, `gear.ring.1`, `gear.body` (robe or armour), … or `gear.usable.<key>` for a \
 manual or tome (`options` on a place lists its items; in `validate`'s map, the same addresses). An item's \
-always-on bonuses count at every level, for prerequisites and every number (never for skill points), so it can \
+always-on bonuses count at every level for every number (never for skill points); ability prerequisites count only \
+its enhancement (or racial) bonus, as the game does (not a tome's), so it can \
 open a feat or let a score be lowered (`choose` the item first): `options` marks such an option `{\"with_gear\": …}`, and \
 `sheet`'s `gear_dependent` lists each choice only gear allows with its item; a `choose` or `withdraw` step that \
 leaves one so names it in `leans_on_gear`. Report them, naming each pick and its item. An item a pick needs can't be withdrawn (`not_removable`), or replaced by one that doesn't keep the pick (`breaks_later`), until the pick is: one case, two tools. \

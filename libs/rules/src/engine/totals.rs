@@ -177,7 +177,7 @@ impl Engine {
             .iter()
             .map(|skill| {
                 let key = &skill.key;
-                let ranks = state.prerequisite_skill_ranks(key);
+                let ranks = state.skill_ranks_in_total(key);
                 let mut parts = vec![
                     TotalPart {
                         name: "Ranks".to_owned(),

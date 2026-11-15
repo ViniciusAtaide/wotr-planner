@@ -41,7 +41,7 @@ impl<'a> Walker<'a> {
         {
             self.state.mythic_path = Some(path.key.clone());
         }
-        self.state.mythic_rank = rank;
+        self.set_mythic_rank(rank);
         self.advance_by_mythic_rank();
 
         // The general pick first, then the slot its mythic feat gives (Extra Feat, Extra Mythic Ability): a mythic
@@ -230,11 +230,17 @@ impl<'a> Walker<'a> {
             self.level_cap = cap;
         }
         if switch.ends_ascensions_at().is_some_and(|end| rank >= end) {
-            self.state.mythic_rank = switch.rank_after_switch();
+            self.set_mythic_rank(switch.rank_after_switch());
             self.ascensions_over = true;
             true
         } else {
             false
         }
+    }
+
+    /// Sets the Mythic rank, and the BAB, which may follow it (Perfect Mind).
+    fn set_mythic_rank(&mut self, rank: u8) {
+        self.state.mythic_rank = rank;
+        self.refresh_bab();
     }
 }

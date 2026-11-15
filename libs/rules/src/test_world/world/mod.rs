@@ -139,7 +139,7 @@ fn plain_feature(key: &str, name: &str) -> Feature {
         ability_bonuses: vec![],
         option_row: None,
         daily_choice: false,
-        bab_floor: None,
+        bab_at_least_mythic_rank_plus: None,
         skill_ranks_at_least_mythic_rank: false,
         favoured_weapon_proficiency: false,
         weapons: std::collections::BTreeSet::new(),

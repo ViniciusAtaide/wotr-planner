@@ -670,8 +670,10 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
 - A feature that changes the character's own ability scores lists `ability_bonuses`: `Fixed(ability: Strength,
   amount: 4)`, `Every(amount: 4)` (Legend), `Highest(amount: 4)` (the highest score) and `AtLeast(score: 14)`
   (every score at least). They count toward ability-score prerequisites while the feature is held, after the
-  bonuses of the gear the Build holds (ticket 166). A feature can also set floors that prerequisites see while it's held: `bab_floor: Some(15)` and
-  `skill_ranks_at_least_mythic_rank: true` (Perfect Mind). An option that sets the BAB by a skill's ranks while held
+  bonuses of the gear the Build holds (ticket 166); of the gear's, prerequisites count only an item's enhancement
+  (ticket 252). A feature can also raise the BAB itself to a number plus the Mythic rank while it's held,
+  `bab_at_least_mythic_rank_plus: Some(15)`, and make each skill's total count at least the Mythic rank for its
+  ranks, `skill_ranks_at_least_mythic_rank: true` (Perfect Mind; skill-rank prerequisites still read the ranks). An option that sets the BAB by a skill's ranks while held
   lists `bab_from_ranks: Some((skill: "athletics", extra_at_full_bab: 5))` (Athletics III, ticket 212): the BAB itself
   rises, so the sheet and the attack line read it too.
 - Mythic abilities and feats name their group as the guide heads it: `group: Melee`, `ArmourAndShield`,

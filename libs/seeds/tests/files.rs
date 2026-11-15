@@ -1123,14 +1123,18 @@ fn reads_values_granted_asked_about_and_offered_and_defaults_them() {
         .find(|f| f.key.as_str() == "gold-dragon/dragon-might")
         .unwrap();
     assert_eq!(
-        (might.bab_floor, might.skill_ranks_at_least_mythic_rank),
+        (
+            might.bab_at_least_mythic_rank_plus,
+            might.skill_ranks_at_least_mythic_rank
+        ),
         (Some(15), true)
     );
     assert!(
         features
             .iter()
             .filter(|f| f.key != might.key)
-            .all(|f| f.bab_floor.is_none() && !f.skill_ranks_at_least_mythic_rank)
+            .all(|f| f.bab_at_least_mythic_rank_plus.is_none()
+                && !f.skill_ranks_at_least_mythic_rank)
     );
 }
 

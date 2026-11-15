@@ -1,7 +1,7 @@
 //! Gear in the engine (ticket 166): a Build holds items, their always-on bonuses change the ability scores (and so
-//! prerequisites and every derived number, but not a level's skill points) and the other numbers the engine
-//! computes, bonuses stack by type, the numbers without gear are one call away, and a choice allowed only because
-//! of gear says which items it needs.
+//! every derived number, but not a level's skill points) and the other numbers the engine computes, bonuses stack by
+//! type, the numbers without gear are one call away, and a choice allowed only because of gear says which items it
+//! needs. Ability prerequisites count an item's enhancement and racial bonuses only (ticket 252).
 
 use rules::{
     Ability, Address, BonusSource, Build, Choice, Edit, Engine, Failure, GearDependent, GearNeed,
@@ -12,30 +12,62 @@ use crate::support::*;
 
 const GTWF: &str = "greater-two-weapon-fighting";
 const SILVER_TONGUE: &str = "silver-tongue";
+const TWO_OF_THREE: &str = "two-of-three";
+const DEX_AND_INT: &str = "dex-and-int";
 
-/// The test world with a feat that needs Dexterity 19, as Greater Two-Weapon Fighting does, and one that needs
-/// Charisma 9.
+fn needs_score(ability: Ability, score: u8) -> Prerequisite {
+    Prerequisite::AbilityScore { ability, score }
+}
+
+/// The test world with a feat that needs Dexterity 19, as Greater Two-Weapon Fighting does, one that needs Charisma
+/// 9, one that needs two of Dexterity, Intelligence and Charisma 13, and one that needs Dexterity 15 and Intelligence
+/// 13.
 fn engine_with_gtwf() -> Engine {
     let mut data = world();
-    let mut gtwf = (data.feats.iter())
+    let dodge = (data.feats.iter())
         .find(|row| row.key == feat("dodge"))
         .expect("the test world has Dodge")
         .clone();
-    gtwf.key = feat(GTWF);
-    gtwf.name = "Greater Two-Weapon Fighting".into();
-    gtwf.prerequisite = Some(Prerequisite::AbilityScore {
-        ability: Ability::Dexterity,
-        score: 19,
-    });
-    let mut silver = gtwf.clone();
-    silver.key = feat(SILVER_TONGUE);
-    silver.name = "Silver Tongue".into();
-    silver.prerequisite = Some(Prerequisite::AbilityScore {
-        ability: Ability::Charisma,
-        score: 9,
-    });
-    data.feats.push(gtwf);
-    data.feats.push(silver);
+    let needing = |key: &str, name: &str, prerequisite: Prerequisite| {
+        let mut row = dodge.clone();
+        row.key = feat(key);
+        row.name = name.into();
+        row.prerequisite = Some(prerequisite);
+        row
+    };
+    let feats = [
+        needing(
+            GTWF,
+            "Greater Two-Weapon Fighting",
+            needs_score(Ability::Dexterity, 19),
+        ),
+        needing(
+            SILVER_TONGUE,
+            "Silver Tongue",
+            needs_score(Ability::Charisma, 9),
+        ),
+        needing(
+            TWO_OF_THREE,
+            "Two of Three",
+            Prerequisite::AtLeast(
+                2,
+                vec![
+                    needs_score(Ability::Dexterity, 13),
+                    needs_score(Ability::Intelligence, 13),
+                    needs_score(Ability::Charisma, 13),
+                ],
+            ),
+        ),
+        needing(
+            DEX_AND_INT,
+            "Dex and Int",
+            Prerequisite::All(vec![
+                needs_score(Ability::Dexterity, 15),
+                needs_score(Ability::Intelligence, 13),
+            ]),
+        ),
+    ];
+    data.feats.extend(feats);
     engine_on(data)
 }
 
@@ -46,11 +78,21 @@ fn character(scores: [u8; 6], classes: &[&str]) -> Build {
     build
 }
 
+/// A human fighter 1 with these scores (Str, Dex, Con, Int, Wis, Cha) and this feat in the general slot.
+fn needing(scores: [u8; 6], feat: &str) -> Build {
+    let mut build = character(scores, &["fighter"]);
+    build.picks.insert(general_slot(1), pick_feat(feat));
+    build
+}
+
+/// A fighter with this Dexterity and Greater Two-Weapon Fighting (Dexterity 19).
+fn needing_dex_19(dexterity: u8) -> Build {
+    needing([10, dexterity, 10, 10, 10, 10], GTWF)
+}
+
 /// A human fighter 1 with Dexterity 17 and Greater Two-Weapon Fighting in the general slot.
 fn two_weapon_fighter() -> Build {
-    let mut build = character([10, 17, 10, 10, 10, 10], &["fighter"]);
-    build.picks.insert(general_slot(1), pick_feat(GTWF));
-    build
+    needing_dex_19(17)
 }
 
 fn belt(build: Build) -> Build {
@@ -78,10 +120,7 @@ fn all_of(items: &[&str]) -> GearNeed {
 
 fn needs_dex_19() -> Issue {
     Issue::Unmet(Unmet::Condition {
-        needs: Prerequisite::AbilityScore {
-            ability: Ability::Dexterity,
-            score: 19,
-        },
+        needs: needs_score(Ability::Dexterity, 19),
         has: Some(17),
     })
 }
@@ -179,17 +218,16 @@ fn a_pickers_option_open_only_because_of_gear_carries_the_items_note() {
 #[test]
 fn a_choice_that_either_of_two_items_allows_names_both_as_alternatives() {
     let engine = engine();
-    // Dodge needs Dexterity 13; the belt and the manual each take 11 there.
-    let mut build = character([10, 11, 10, 10, 10, 10], &["fighter"]);
-    build.picks.insert(general_slot(1), pick_feat("dodge"));
+    // Dodge needs Dexterity 13; the belt and the gloves each take 11 there.
+    let build = needing([10, 11, 10, 10, 10, 10], "dodge");
     assert!(!engine.is_possible(&build));
-    let build = using(belt(build), "manual-of-dexterity-2");
+    let build = wearing(belt(build), GearPlace::Gloves, "gloves-of-dexterity-4");
     assert!(engine.is_possible(&build));
 
     let dependents = engine.gear_dependents(&build);
 
     let needs = GearNeed {
-        one_of: keys(&["belt-of-dexterity-2", "manual-of-dexterity-2"]),
+        one_of: keys(&["belt-of-dexterity-2", "gloves-of-dexterity-4"]),
         ..GearNeed::default()
     };
     assert_eq!(
@@ -201,15 +239,8 @@ fn a_choice_that_either_of_two_items_allows_names_both_as_alternatives() {
     );
     assert_eq!(
         engine.gear_note(&needs),
-        "With Belt of Dexterity +2 or Manual of Dexterity +2"
+        "With Belt of Dexterity +2 or Gloves of Dexterity +4"
     );
-}
-
-/// A fighter with this Dexterity and the feat needing 19.
-fn needing_dex_19(dexterity: u8) -> Build {
-    let mut build = character([10, dexterity, 10, 10, 10, 10], &["fighter"]);
-    build.picks.insert(general_slot(1), pick_feat(GTWF));
-    build
 }
 
 /// The one gear-dependent choice's need, and its note.
@@ -235,25 +266,46 @@ fn need_and_note(engine: &Engine, build: &Build) -> (GearNeed, String) {
 #[test]
 fn a_choice_that_needs_both_of_two_items_names_both() {
     let engine = engine_with_gtwf();
-    // 15 + 2 enhancement + 2 inherent; the cloak has nothing to do with it.
-    let mut build = using(belt(needing_dex_19(15)), "manual-of-dexterity-2");
+    // 15 + 2 enhancement + 2 racial; the cloak has nothing to do with it.
+    let mut build = wearing(
+        belt(needing_dex_19(15)),
+        GearPlace::Bracers,
+        "bracers-of-agility",
+    );
     build = wearing(build, GearPlace::Cloak, "cloak-of-resistance-3");
 
     let (needs, note) = need_and_note(&engine, &build);
 
     assert_eq!(
         needs,
-        all_of(&["belt-of-dexterity-2", "manual-of-dexterity-2"])
+        all_of(&["belt-of-dexterity-2", "bracers-of-agility"])
     );
-    assert_eq!(note, "With Belt of Dexterity +2 and Manual of Dexterity +2");
+    assert_eq!(note, "With Belt of Dexterity +2 and Bracers of Agility");
+}
+
+#[test]
+fn a_manuals_inherent_bonus_opens_no_ability_prerequisite() {
+    let engine = engine_with_gtwf();
+    // 17 + the manual's inherent 2 is 19 on the sheet, and 17 for the feat.
+    let build = using(needing_dex_19(17), "manual-of-dexterity-2");
+    assert_eq!(final_scores(&engine, &build)[1], 19);
+    assert_eq!(
+        engine.failures(&build),
+        [Failure {
+            choice: Choice::Slot(general_slot(1)),
+            issue: needs_dex_19(),
+        }]
+    );
 }
 
 #[test]
 fn a_choice_that_needs_any_two_of_three_items_names_one_set_that_is_enough_and_no_other_item() {
     let engine = engine_with_gtwf();
-    // 15 and any two of three +2s of different types (the bracers' is untyped); a cloak beside them.
-    let mut build = using(belt(needing_dex_19(15)), "manual-of-dexterity-2");
-    build = wearing(build, GearPlace::Bracers, "bracers-of-agility");
+    // Two of Dexterity, Intelligence and Charisma 13, each 11: any two of a belt, a headband and a robe, each +2
+    // enhancement to one of them; a cloak beside them.
+    let mut build = belt(needing([10, 11, 10, 11, 10, 11], TWO_OF_THREE));
+    build = wearing(build, GearPlace::Headwear, "scholars-headband");
+    build = wearing(build, GearPlace::Body, "robe-of-the-mage");
     build = wearing(build, GearPlace::Cloak, "cloak-of-resistance-3");
 
     let (needs, note) = need_and_note(&engine, &build);
@@ -261,42 +313,39 @@ fn a_choice_that_needs_any_two_of_three_items_names_one_set_that_is_enough_and_n
     assert_eq!(
         needs,
         GearNeed {
-            for_example: keys(&["bracers-of-agility", "manual-of-dexterity-2"]),
+            for_example: keys(&["scholars-headband", "robe-of-the-mage"]),
             ..GearNeed::default()
         }
     );
     assert_eq!(
         note,
-        "With gear such as Bracers of Agility and Manual of Dexterity +2"
+        "With gear such as Scholar's Headband and Robe of the Mage"
     );
 }
 
 #[test]
 fn a_choice_that_needs_one_item_and_either_of_two_others_says_so() {
     let engine = engine_with_gtwf();
-    // 13 + the gloves' 4, then 2 more from the bracers or the manual; a cloak beside them.
-    let mut build = wearing(
-        needing_dex_19(13),
-        GearPlace::Gloves,
-        "gloves-of-dexterity-4",
-    );
-    build = wearing(build, GearPlace::Bracers, "bracers-of-agility");
+    // Dexterity 15 and Intelligence 13 at 13 and 11: the headband's Intelligence, and the Dexterity of the belt or the
+    // gloves; a cloak beside them.
+    let mut build = belt(needing([10, 13, 10, 11, 10, 10], DEX_AND_INT));
+    build = wearing(build, GearPlace::Gloves, "gloves-of-dexterity-4");
+    build = wearing(build, GearPlace::Headwear, "scholars-headband");
     build = wearing(build, GearPlace::Cloak, "cloak-of-resistance-3");
-    build = using(build, "manual-of-dexterity-2");
 
     let (needs, note) = need_and_note(&engine, &build);
 
     assert_eq!(
         needs,
         GearNeed {
-            all_of: keys(&["gloves-of-dexterity-4"]),
-            one_of: keys(&["bracers-of-agility", "manual-of-dexterity-2"]),
+            all_of: keys(&["scholars-headband"]),
+            one_of: keys(&["belt-of-dexterity-2", "gloves-of-dexterity-4"]),
             ..GearNeed::default()
         }
     );
     assert_eq!(
         note,
-        "With Gloves of Dexterity +4 and one of Bracers of Agility or Manual of Dexterity +2"
+        "With Scholar's Headband and one of Belt of Dexterity +2 or Gloves of Dexterity +4"
     );
     // Three further items with none enough alone and one needed for sure.
     let example = GearNeed {
@@ -313,11 +362,13 @@ fn a_choice_that_needs_one_item_and_either_of_two_others_says_so() {
 #[test]
 fn a_choice_needing_a_gear_dependent_one_depends_on_the_same_item() {
     let engine = engine();
-    // Power Attack needs Strength 13 (the tome's +4 takes 10 there); Cleave needs Power Attack.
+    // Dodge needs Dexterity 13 (the gloves' +4 takes 10 there); Crane Style needs Dodge.
     let mut build = character([10, 10, 10, 10, 10, 10], &["fighter"]);
-    build.picks.insert(race_slot(0), pick_feat("power-attack"));
-    build.picks.insert(general_slot(1), pick_feat("cleave"));
-    let build = using(build, "tome-of-perfection-4");
+    build.picks.insert(race_slot(0), pick_feat("dodge"));
+    build
+        .picks
+        .insert(general_slot(1), pick_feat("crane-style"));
+    let build = wearing(build, GearPlace::Gloves, "gloves-of-dexterity-4");
     assert!(engine.is_possible(&build));
 
     let dependents = engine.gear_dependents(&build);
@@ -328,7 +379,7 @@ fn a_choice_needing_a_gear_dependent_one_depends_on_the_same_item() {
         [&Choice::Slot(race_slot(0)), &Choice::Slot(general_slot(1))]
     );
     for dependent in &dependents {
-        assert_eq!(dependent.needs, all_of(&["tome-of-perfection-4"]));
+        assert_eq!(dependent.needs, all_of(&["gloves-of-dexterity-4"]));
     }
 }
 
@@ -662,13 +713,10 @@ fn an_item_a_pick_needs_cant_be_removed_or_replaced_until_the_pick_is_cleared() 
 }
 
 #[test]
-fn an_item_whose_own_penalty_would_refuse_a_pick_is_locked_and_says_so() {
+fn an_items_untyped_penalty_lowers_the_score_but_refuses_no_ability_prerequisite() {
     let engine = engine_with_gtwf();
-    // Silver Tongue needs Charisma 9; the Scholar's Headband takes 10 to 8.
-    let mut build = character([10, 10, 10, 10, 10, 10], &["fighter"]);
-    build
-        .picks
-        .insert(general_slot(1), pick_feat(SILVER_TONGUE));
+    // Silver Tongue needs Charisma 9; the Scholar's Headband takes 10 to 8 on the sheet, not for prerequisites.
+    let build = needing([10, 10, 10, 10, 10, 10], SILVER_TONGUE);
     assert!(engine.is_possible(&build));
 
     let options = engine.gear_options(&build, GearPlace::Headwear);
@@ -676,16 +724,14 @@ fn an_item_whose_own_penalty_would_refuse_a_pick_is_locked_and_says_so() {
     let headband = (options.iter())
         .find(|option| option.item == Some(gear_item("scholars-headband")))
         .expect("the headband");
-    assert_eq!(headband.status, Err(Issue::BreaksLater));
-    assert_eq!(
-        headband.reason.as_deref(),
-        Some("Scholar's Headband would refuse Silver Tongue")
-    );
-    assert!(options[0].held && options[0].status.is_ok());
+    assert_eq!(headband.status, Ok(()));
+    let worn = wearing(build, GearPlace::Headwear, "scholars-headband");
+    assert_eq!(final_scores(&engine, &worn)[5], 8);
+    assert!(engine.is_possible(&worn));
 }
 
 #[test]
-fn usable_items_share_no_place_each_is_a_tick_and_a_needed_one_stays_ticked() {
+fn usable_items_share_no_place_and_each_is_a_tick() {
     let engine = engine();
     let mut build = build("human", &["fighter"]);
     let ticks = |build: &Build| -> Vec<(String, bool)> {
@@ -727,19 +773,6 @@ fn usable_items_share_no_place_each_is_a_tick_and_a_needed_one_stays_ticked() {
         engine.withdrawal(&build, &withdrawal),
         Some((manual.edit.clone(), true))
     );
-
-    // Dodge needs Dexterity 13: at 11, only the manual's +2 gives it, so its tick is locked.
-    let mut dodger = character([10, 11, 10, 10, 10, 10], &["fighter"]);
-    dodger.picks.insert(general_slot(1), pick_feat("dodge"));
-    let dodger = using(dodger, "manual-of-dexterity-2");
-    let manual = &engine.usable_options(&dodger)[0];
-    assert!(manual.held);
-    assert_eq!(manual.status, Err(Issue::BreaksLater));
-    assert_eq!(
-        manual.reason.as_deref(),
-        Some("dodge needs Manual of Dexterity +2")
-    );
-    assert!(!engine.allows(&dodger, &manual.edit));
 }
 
 #[test]

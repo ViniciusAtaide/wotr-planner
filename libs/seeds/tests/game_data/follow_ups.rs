@@ -415,43 +415,51 @@ fn gold_dragon_wizard_17() -> rules::Build {
     wizard
 }
 
+/// Perfect Mind raises the base attack bonus itself, for attacks and prerequisites alike, to 15 plus the Mythic rank:
+/// a wizard 17's 8 becomes 24 at MR 9.
+// Game: DragonLevel2BABOverride f4af14e9f4408d44c830d891fee8f4a5, given at GoldenDragonProgression
+// a6fbca43902c6194c947546e89af64bd's level 2: an UntypedStackable BaseAttackBonus modifier of -(BAB - 15 - rank), at
+// least 0, its rank the MythicLevel (ContextRankConfig), and RecalculateOnStatChange on BaseAttackBonus. The code:
+// Kingmaker/UnitLogic/FactLogic/AddContextStatBonus.cs OnTurnOn (Value × Multiplier, at least Minimal),
+// Kingmaker/EntitySystem/Properties/PropertyCalculatorComponentHelper.cs GetPropertyValue (the property's getters
+// read the fact's own context, so its rank), Kingmaker/EntitySystem/EntityFact.cs Reapply (the modifier comes off
+// before it is worked out again), Kingmaker/EntitySystem/Stats/ModifiableValue.cs CalculatePermanentValue (every
+// modifier counts toward BAB's permanent value) and Kingmaker/Blueprints/Classes/Prerequisites/PrerequisiteStatValue.cs
+// GetStatValue (a BAB prerequisite reads it), WrathDecompiled 6ce4a6b. The guide and the game's own text say "at
+// least 15": the code says 15 + MR.
 #[test]
-fn perfect_mind_gives_bab_15_and_skill_ranks_at_the_mythic_rank_for_prerequisites() {
+fn perfect_mind_raises_the_bab_itself_to_15_plus_the_mythic_rank() {
     let sheet = engine().evaluate(&gold_dragon_wizard_17());
-    let state = sheet.at(17).unwrap();
-    // Game: DragonLevel2BABOverride f4af14e9f4408d44c830d891fee8f4a5 (BAB raised to 15, given at GoldenDragonProgression
-    // a6fbca43902c6194c947546e89af64bd's level 2); the BAB itself and the skills:
-    // `perfect_mind_raises_the_bab_itself_to_15_and_meets_no_skill_rank_prerequisite`
-    assert_eq!(state.check(&Prerequisite::BaseAttackBonus(15)), Ok(()));
-    assert!(
-        sheet
-            .at(16)
-            .unwrap()
-            .check(&Prerequisite::BaseAttackBonus(15))
-            .is_err()
-    );
+    let (before, state) = (sheet.at(16).unwrap(), sheet.at(17).unwrap());
+    assert_eq!((before.mythic_rank, before.bab), (7, 8));
+    assert_eq!((state.mythic_rank, state.bab), (9, 24));
+    assert_eq!(state.check(&Prerequisite::BaseAttackBonus(24)), Ok(()));
+    assert!(before.check(&Prerequisite::BaseAttackBonus(15)).is_err());
 }
 
-/// Perfect Mind's BAB is a real base attack bonus of 15 (attacks too), and its skill floor raises each skill's total,
-/// not its ranks, so a skill-rank prerequisite doesn't see it.
-// Game: DragonLevel2BABOverride f4af14e9f4408d44c830d891fee8f4a5 (a BaseAttackBonus modifier); GoldenDragonSharedSkillUMD
-// 4e0b919e4fbd85142bce959fae129d1a; Kingmaker/UnitLogic/FactLogic/AddGoldenDragonSkillBonus.cs OnTurnOn and
-// Kingmaker/Blueprints/Classes/Prerequisites/PrerequisiteStatValue.cs GetStatValue (a skill's BaseValue: ranks),
+/// Perfect Mind's skill floor raises each skill's total to the Mythic rank, not its ranks, so a skill-rank
+/// prerequisite doesn't see it.
+// Game: GoldenDragonSharedSkillUMD 4e0b919e4fbd85142bce959fae129d1a (AddGoldenDragonSkillBonus on each skill);
+// Kingmaker/UnitLogic/FactLogic/AddGoldenDragonSkillBonus.cs OnTurnOn (a modifier of max(MR - BaseValue, 0)) and
+// Kingmaker/Blueprints/Classes/Prerequisites/PrerequisiteStatValue.cs GetStatValue (a skill's BaseValue: its ranks),
 // WrathDecompiled 6ce4a6b
 #[test]
-#[ignore = "waits on ticket 252: the game gives Perfect Mind a real BAB of 15 and no skill ranks"]
-fn perfect_mind_raises_the_bab_itself_to_15_and_meets_no_skill_rank_prerequisite() {
-    let sheet = engine().evaluate(&gold_dragon_wizard_17());
+fn perfect_minds_skill_floor_raises_totals_and_meets_no_skill_rank_prerequisite() {
+    let engine = engine();
+    let sheet = engine.evaluate(&gold_dragon_wizard_17());
     let state = sheet.at(17).unwrap();
-    assert_eq!(state.bab, 15);
+    let perception = SkillKey::new("perception");
+    assert_eq!(state.skill_ranks(&perception), 0);
     assert!(
         state
             .check(&Prerequisite::SkillRanks {
-                skill: SkillKey::new("perception"),
-                ranks: 9,
+                skill: perception.clone(),
+                ranks: 1,
             })
             .is_err()
     );
+    let totals = engine.totals(&sheet.levels[16]);
+    assert_eq!(totals.skill(&perception).unwrap().ranks, 9);
 }
 
 #[test]
