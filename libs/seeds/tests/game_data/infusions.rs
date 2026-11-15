@@ -208,7 +208,10 @@ fn infusions_are_a_selection_of_32_with_their_level_and_elements() {
     // The guide's "Dazziing Infusion" is named as the game names it; its link is the guide's anchor.
     let dazzling = selection_option(&infusion("dazzling-infusion"));
     assert_eq!(dazzling.name, "Dazzling Infusion");
-    assert_eq!(dazzling.guide.0, "kineticist#dazziing-infusion");
+    assert_eq!(
+        dazzling.guide.as_ref().unwrap().0,
+        "kineticist#dazziing-infusion"
+    );
 
     let levels: Vec<u8> = kineticist
         .levels

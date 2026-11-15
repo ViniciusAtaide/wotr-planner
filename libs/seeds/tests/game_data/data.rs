@@ -203,10 +203,18 @@ fn no_selection_option_is_a_copy_of_another() {
         // The ten dragons and four elements share their bloodline's heading, and name it ("Draconic (Black)"); the
         // Primalist's two choices are described under their selection's heading.
         for option in selection.options.iter().filter(|o| {
-            o.guide.0.contains('#') && !o.name.ends_with(')') && o.guide != selection.guide
+            o.guide.as_ref().unwrap().0.contains('#')
+                && !o.name.ends_with(')')
+                && o.guide != selection.guide
         }) {
-            if let Some(other) = anchors.insert(option.guide.0.clone(), option.key.clone()) {
-                panic!("{} and {other} are both {}", option.key, option.guide.0);
+            if let Some(other) =
+                anchors.insert(option.guide.as_ref().unwrap().0.clone(), option.key.clone())
+            {
+                panic!(
+                    "{} and {other} are both {}",
+                    option.key,
+                    option.guide.as_ref().unwrap().0
+                );
             }
         }
     }

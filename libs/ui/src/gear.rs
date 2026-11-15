@@ -297,3 +297,36 @@ pub fn TomesPicker() -> impl IntoView {
         {list}
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use rules::{GearItem, GearKey, GearSlot, GuideRef};
+
+    use super::item_info;
+
+    fn item(guide: Option<GuideRef>) -> GearItem {
+        GearItem {
+            key: GearKey::new("test"),
+            blueprint: None,
+            name: "Test".to_owned(),
+            slot: GearSlot::Belt,
+            guide,
+            bonuses: Vec::new(),
+            always_on: Vec::new(),
+            other_effects: vec!["On a critical hit: +1d6".to_owned()],
+        }
+    }
+
+    /// Ticket 239: an item with no guide entry has a detail with no link; one with an entry has its link.
+    #[test]
+    fn an_item_without_a_guide_entry_has_no_link() {
+        let bare = item_info(&item(None)).expect("its other effect is a detail");
+        assert_eq!(bare.guide, None);
+        assert!(super::plain_guide_link(&item(None)).is_none());
+        let linked = item_info(&item(Some(GuideRef::new("items#belts")))).expect("a detail");
+        assert_eq!(
+            linked.guide.as_deref(),
+            Some(&*GuideRef::new("items#belts").url())
+        );
+    }
+}

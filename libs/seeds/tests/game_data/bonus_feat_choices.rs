@@ -245,7 +245,7 @@ fn the_bonus_feat_lists_are_the_guides() {
         let list = any_feat_list(MASSIVE_ATTACKS[i]);
         assert_eq!(list_feats(MASSIVE_ATTACKS[i]), two_weapon[i], "{level}");
         assert_eq!(list.name, names[i]);
-        assert_eq!(list.guide.0, "fighter#massive-attacks");
+        assert_eq!(list.guide.as_ref().unwrap().0, "fighter#massive-attacks");
         assert!(list.ignores_prerequisites && !list.every_feat);
         let ranger = format!("ranger/combat-style-feat/two-weapon-combat-feats-{level}");
         assert_eq!(&list_feats(&ranger) - &extras, two_weapon[i], "{ranger}");

@@ -429,7 +429,8 @@ pub struct Race {
     pub name: String,
     #[serde(default)]
     pub summary: String,
-    pub guide: GuideRef,
+    #[serde(default)]
+    pub guide: Option<GuideRef>,
     #[serde(default)]
     pub ability_modifiers: Vec<AbilityModifier>,
     /// Extra Feat slots at character level 1 (a human's bonus feat is a `General` slot).
@@ -465,7 +466,8 @@ pub struct Subrace {
     pub name: String,
     #[serde(default)]
     pub summary: String,
-    pub guide: GuideRef,
+    #[serde(default)]
+    pub guide: Option<GuideRef>,
     #[serde(default)]
     pub ability_modifiers: Vec<AbilityModifier>,
     /// Its feat slots at character level 1, in place of the race's (a half-elf's Dual Heritage and Kindred Raised
@@ -598,7 +600,8 @@ pub struct Deity {
     #[serde(default, skip_serializing)]
     pub blueprint: Option<BlueprintGuid>,
     pub name: String,
-    pub guide: GuideRef,
+    #[serde(default)]
+    pub guide: Option<GuideRef>,
     /// The alignments a follower may have: the table's ticks, within one step of the deity's (Godclaw: LG, LN, LE).
     pub alignments: BTreeSet<Alignment>,
     /// Its favoured weapons (Lamashtu: falchion and kukri). A feature with
@@ -709,7 +712,8 @@ pub struct Feat {
     pub category: FeatCategory,
     #[serde(default)]
     pub summary: String,
-    pub guide: GuideRef,
+    #[serde(default)]
+    pub guide: Option<GuideRef>,
     /// What the feat is taken for, when the guide says to choose one (Weapon Focus: a weapon). Each pick of it then
     /// names a value of this kind.
     #[serde(default)]
@@ -782,7 +786,8 @@ pub struct FeatList {
     #[serde(default, skip_serializing)]
     pub blueprint: Option<BlueprintGuid>,
     pub name: String,
-    pub guide: GuideRef,
+    #[serde(default)]
+    pub guide: Option<GuideRef>,
     /// Set on a bonus list, the class's own bonus-feat list (a monk's bonus feats, a ranger's combat style): a
     /// pick from it ignores the feat's prerequisites. It still has to be on the list and not already held, and it
     /// counts as held afterwards. Unset, the prerequisites are checked.
@@ -814,7 +819,8 @@ pub struct Class {
     pub name: String,
     #[serde(default)]
     pub summary: String,
-    pub guide: GuideRef,
+    #[serde(default)]
+    pub guide: Option<GuideRef>,
     pub skill_points: u8,
     /// How the base attack bonus grows with class level. Archetypes never change it.
     pub bab: BabProgression,
@@ -904,7 +910,8 @@ pub struct Archetype {
     pub name: String,
     #[serde(default)]
     pub summary: String,
-    pub guide: GuideRef,
+    #[serde(default)]
+    pub guide: Option<GuideRef>,
     #[serde(default)]
     pub prerequisite: Option<Prerequisite>,
     /// `None`: same as the base class.
@@ -1160,7 +1167,8 @@ pub struct Feature {
     pub name: String,
     #[serde(default)]
     pub summary: String,
-    pub guide: GuideRef,
+    #[serde(default)]
+    pub guide: Option<GuideRef>,
     /// What the feature does to the character's own ability scores while it's held (Legend: +4 to every score).
     /// They count toward ability-score prerequisites like point buy and level increases do, after the gear's
     /// bonuses (ticket 166). A feature granted more than once adds them once per grant (Strength of the Abyss: +2 at 9, 13 and 17).
@@ -1225,7 +1233,8 @@ pub struct FeatureSelection {
     pub name: String,
     #[serde(default)]
     pub summary: String,
-    pub guide: GuideRef,
+    #[serde(default)]
+    pub guide: Option<GuideRef>,
     /// The options this selection defines, each keyed under it.
     pub options: Vec<SelectionOption>,
     /// Other selections' options this one offers too. A shared option keeps its one key, so holding it through
@@ -1379,7 +1388,8 @@ pub struct SelectionOption {
     pub name: String,
     #[serde(default)]
     pub summary: String,
-    pub guide: GuideRef,
+    #[serde(default)]
+    pub guide: Option<GuideRef>,
     /// The feats this option grants ("This is the feat of the same name"; All-skilled: every weapon, armour and
     /// shield proficiency). A parameterised one is held for every value (All-skilled: Exotic Weapon Proficiency in
     /// every exotic weapon).
@@ -1561,7 +1571,8 @@ pub struct MythicAbility {
     pub group: MythicAbilityGroup,
     #[serde(default)]
     pub summary: String,
-    pub guide: GuideRef,
+    #[serde(default)]
+    pub guide: Option<GuideRef>,
     #[serde(default)]
     pub prerequisite: Option<Prerequisite>,
     /// Features the ability grants while it's held (Bloodline Ascendance).
@@ -1589,7 +1600,8 @@ pub struct MythicFeat {
     pub group: MythicFeatGroup,
     #[serde(default)]
     pub summary: String,
-    pub guide: GuideRef,
+    #[serde(default)]
+    pub guide: Option<GuideRef>,
     /// What the mythic feat is taken for, as on a feat (Improved Critical (Mythic): a weapon).
     #[serde(default)]
     pub parameter: Option<ParameterKind>,
@@ -1627,7 +1639,8 @@ pub struct MythicPath {
     pub name: String,
     #[serde(default)]
     pub summary: String,
-    pub guide: GuideRef,
+    #[serde(default)]
+    pub guide: Option<GuideRef>,
     #[serde(default)]
     pub features: Vec<Feature>,
     /// The path's own picks.
