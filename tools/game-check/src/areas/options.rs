@@ -17,19 +17,11 @@ pub fn compare(ctx: &Ctx, out: &mut Out) {
     let data = ctx.planner.data;
     for selection in data.selections() {
         let at = DataAt::FeatureSelection(selection.key.clone());
-        // A selection that offers the pools of the options held of another offers all of them, as the game's one
-        // selection does before its options' prerequisites filter it (an oracle's revelations).
-        let pools = selection
-            .pool_of
-            .iter()
-            .flat_map(|of| data.selections().filter(move |each| each.key == *of))
-            .flat_map(|of| of.options.iter().filter_map(|option| option.pool.as_ref()))
-            .flat_map(|pool| data.selections().filter(move |each| each.key == *pool))
-            .flat_map(|pool| pool.offered());
+        // A filtered pool (`filtered_by`, ticket 243) offers all its options, as the game's one selection does
+        // before its options' prerequisites filter it (an oracle's revelations).
         let options = selection
             .offered()
             .into_iter()
-            .chain(pools)
             .map(|key| DataAt::SelectionOption(key.clone()));
         let planner = guids(ctx, out, options);
         list(ctx, out, &at, selection.blueprint.as_ref(), planner, None);

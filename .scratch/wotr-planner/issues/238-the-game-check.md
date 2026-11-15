@@ -59,7 +59,7 @@ A tool in `tools/`, a binary such as `cargo run -p game-check`:
     - Then the rows are paired: same level, another level, the game's own copy of a selection the planner shares, or a bonus pick of another group.
     - What is left is listed as "in one side only", or "a further rank" when the other side grants the same feature earlier. A selection or a pick is never a further rank: granted again, it is another pick (`BlueprintFeature.MeetsPrerequisites` lets an `IFeatureSelection` through at any rank).
   - **option lists:**
-    - A selection's offered options, plus the pools of a `pool_of` selection, against `m_AllFeatures`. A feat list against its own `m_AllFeatures` and `IgnorePrerequisites`.
+    - A selection's offered options against `m_AllFeatures`; a filtered pool (`filtered_by`, ticket 243) offers all of its own, as the game's one selection does before its options' prerequisites filter it. A feat list against its own `m_AllFeatures` and `IgnorePrerequisites`.
     - The general feat, mythic ability and mythic feat pools against `BasicFeatSelection`, `MythicAbilitySelection` and `MythicFeatSelection`.
     - "a choice the game doesn't offer": the planner's selection names a blueprint that isn't a selection.
   - **mythic ranks:**
@@ -82,7 +82,7 @@ A tool in `tools/`, a binary such as `cargo run -p game-check`:
 **Decisions:**
 - The main session, 2026-11-15:
   - The report names blueprints by asset name and GUID, never by display name, so the strings chunk is never read. The ticket's "the strings file for names" became asset names, since display names are game text.
-  - No machine-readable sharing or "also" list (the user rejected a sharings file). What copies, splits and multi-blueprint entries cause shows up as differences, grouped in `known.txt` under the ticket that removes them: `ranks-and-filtered-pools` and `game-data-by-blueprint`.
+  - No machine-readable sharing or "also" list (the user rejected a sharings file). What copies, splits and multi-blueprint entries cause shows up as differences, grouped in `known.txt` under the ticket that removes them, by number: 243 (ranked features and filtered pools) and 244 (the game data laid out by blueprint). Once 243 was resolved, what remains of its shape is not known (below).
   - Feat slots are matched by the game selection's `Group`. `OptionList` is counted, not compared.
   - `Feature{count>1}` is compared as Has(feature) and counted.
   - Manuals and tomes are deferred. Spells and spell lists get the mapping check only.
@@ -129,40 +129,37 @@ A tool in `tools/`, a binary such as `cargo run -p game-check`:
   - `the_known_list_parses`
 - With every comparison switched off, the 7 area tests, 3 known tests and 2 determinism tests failed; the 5 others passed. `scripts/check.sh` runs them, since the crate is a workspace member. The real run is not in it: worktrees and CI have no dump.
 
-**First run, after the review fixes** (the whole data, run twice: `cmp` identical; exit 1). The run before them is kept as `first-run.before-review.txt` beside the report:
+**First run, after the review fixes and ticket 243** (the whole data at main `a276b6d` merged, run twice: `cmp` identical; exit 1). The runs before are kept beside the report as `first-run.before-review.txt` and `first-run.before-243.txt`:
 - **Areas:**
-  - mapping: 4,309 compared, all agree. Left out: 175 entries with no blueprint.
-  - prerequisites: 1,393 compared, 835 agree.
+  - mapping: 4,327 compared, all agree. Left out: 149 entries with no blueprint.
+  - prerequisites: 1,392 compared, 837 agree.
   - class tables: 235 compared, 179 agree.
   - progression rows: 235 compared, 33 agree.
-  - option lists: 202 compared, 93 agree.
+  - option lists: 196 compared, 96 agree.
   - mythic ranks: 10 compared, 3 agree.
   - items: 82 compared, 76 agree.
-- **Differences:** 4,826 in 34 groups. 1,606 are known, in 9 groups; 3,220 are not, in 25 groups.
-- **Known, ranks-and-filtered-pools:**
-  - option lists / in game only (the per-mystery revelation pools and the Magic Deceiver's): 559
-  - progression rows / a further rank in planner only: 557
-  - progression rows / a further rank in game only: 160
-  - mythic ranks / a further rank in planner only: 7
-- **Known, game-data-by-blueprint:**
+- **Differences:** 4,231 in 33 groups. 323 are known, in 5 groups; 3,908 are not, in 28 groups.
+- **Known, 244:**
   - progression rows / a selection the game keeps separate: 193 (bard, skald and slayer talents, skald rage powers, …)
   - option lists / in game only: 57; in planner only: 56 (domains, blessings, Enforcing Gaze, the kineticist element lists, the pool entries of Advanced Weapon Training, Extra Channel, Extra Hex, Magical Tail and Abundant Smite)
   - prerequisites / missing in planner, a blueprint it doesn't map: 11 (Mythic Skill Focus asks for its own value, which the game writes as any one of the eleven per-skill features)
   - mythic ranks / a selection the game keeps separate: 6
 - **Not known, prerequisites:**
-  - missing in planner: 579
-  - missing in planner, a blueprint it doesn't map: 560
-  - not in game: 516
+  - missing in planner, a blueprint it doesn't map: 558
+  - not in game: 515
+  - missing in planner: 513
   - value differs: 9
   - grouping differs: 3
 - **Not known, progression rows:**
   - in game only: 606
-  - in planner only: 173
+  - a further rank in planner only: 557 (once known under 243; most are a planner feature granted again where the game grants an extra-use feature: the cavalier's challenge, tactician and banner, the warpriest's fervor, sacred weapon and armour, smite evil, …)
+  - in planner only: 172
+  - a further rank in game only: 160 (once known under 243: bombs, Infusion Specialization, Inspire Courage and Competence, Poison Resistance, …)
   - a bonus pick of another group: 56
   - at another level: 9
 - **Not known, option lists:**
-  - in game only: 401
-  - in planner only: 193
+  - in game only: 417
+  - in planner only: 211 (among them the Dual-Cursed Oracle's second curse and the Living Deity's curse, 9 each way: the planner shares the nine curses, the game offers the `NoProgression` copies)
   - a choice the game doesn't offer: 11
   - ignores prerequisites or not: 7
 - **Not known, class tables:**
@@ -172,7 +169,7 @@ A tool in `tools/`, a binary such as `cargo run -p game-check`:
   - Fortitude differs: 3
   - skill points differ (the user's facts): 2
   - BAB differs: 1
-- **Not known, mythic ranks:** in game only: 23; in planner only: 3.
+- **Not known, mythic ranks:** in game only: 23; a further rank in planner only: 7 (once known under 243); in planner only: 3.
 - **Not known, items:**
   - slot differs: 3
   - bonus not in game: 2
@@ -187,10 +184,11 @@ A tool in `tools/`, a binary such as `cargo run -p game-check`:
 - **A further rank applies to features only.** A selection, a planner selection or feat list, a game pick and a feat slot granted again are another pick. Moved from the known "a further rank" groups to the not-known ones: progression rows 37 to in planner only and 20 to in game only; mythic ranks 1 to in planner only (`gold-dragon/improved-gold-dragon-breath` at rank 10). Among them the alchemist's two `DiscoverySelection` at level 20, the Elemental Witch's `witch/hex` at 6, the Underground Chemist's discoveries and `RogueTalentSelection`s, the Sylvan Trickster's fey tricks, the Witch Doctor's `shaman/hex` at 12 and the Divine Hunter's `SelectionMercy` at 18.
 - **`PrerequisiteFullStatValue`** of an ability score or BAB is compared: 9 "not in game" findings go (Snap Shot, Improved and Greater Snap Shot, Perfect Strike, Vulpine Pounce, Natural Charmer). 3 of Sneak Attack stay not compared.
 - **A feature's own `PrerequisiteNoFeature`** is dropped and counted: 40 "missing in planner" findings go.
-- **Skill Focus for a skill** compares as the game's per-skill feature: 8 "missing in planner, a blueprint it doesn't map" and 4 "not in game" findings go (Loremaster, Student of War, Acrobatic Spellcaster, Slayer's Feint). Mythic Skill Focus's 11 are known under `game-data-by-blueprint`. The Skill Focus findings of option lists and progression rows (the per-skill features in bloodline and bonus feat lists, Adaptability, the Chirurgeon's and the Enlightened Philosopher's grant) are unchanged and not known.
+- **Skill Focus for a skill** compares as the game's per-skill feature: 8 "missing in planner, a blueprint it doesn't map" and 4 "not in game" findings go (Loremaster, Student of War, Acrobatic Spellcaster, Slayer's Feint). Mythic Skill Focus's 11 are known under 244. The Skill Focus findings of option lists and progression rows (the per-skill features in bloodline and bonus feat lists, Adaptability, the Chirurgeon's and the Enlightened Philosopher's grant) are unchanged and not known.
 - **Items:** `BonusCasterLevel` is the caster level (Sin-mage's staff agrees), and a type that doesn't stack counts once per target (the Battlemage's headband's two Charisma +2 enhancement bonuses agree).
 - **`known.txt`:** the revelation pool lines name their kind, `in game only`, in place of `*`.
 - **Minor:** JSON that doesn't parse is an error naming the blueprint and its GUID (exit 2), never "not in the dump"; a wearer's fact whose JSON isn't kept (two `BlueprintBuff`s) is counted as such, not as missing from the dump; an alignment mask is joined with " or ", since the report's columns are split by `|`; the shuffle test reverses the mythic paths and ranks, feat lists, prestige classes and the selections around a shared option.
+- **Merging 243** (main `a276b6d`): `pool_of` is gone, so the option lists compare a filtered pool's own options. The ten revelation-pool lines of `known.txt` matched nothing (the nine pools are one `oracle/revelations`, and the Magic Deceiver's agrees) and went. 243 is resolved, so its three "a further rank" lines went too: what remains of that shape is not known and waits on difference tickets (247 on). The known lines name tickets by number: 244 for the layout by blueprint. Option lists: in game only 401 → 417, in planner only 193 → 211, compared 202 → 196; prerequisites: missing in planner 579 → 513 (the revelations now name their mysteries, and Fortune its oracle level).
 - **Not done:** the `simplify` pass's suggestions to compare Mythic Skill Focus's same-value prerequisite as any of the per-skill features (the review asked for a known line) and to derive the items' counted stats from one table with `GearTarget` (a larger change than this round).
 
 The full report is kept outside the repo, since it holds names of the game's data in bulk. The not-known groups wait on difference tickets, the ones from `research/game-source-check-2026-11-14.md` (missing in the main checkout at 667164e) or new ones (the main session's, per the decisions). Groups of the user's facts (skill points, class skills) go to the user first.
@@ -198,7 +196,6 @@ The full report is kept outside the repo, since it holds names of the game's dat
 **Proposed for CLAUDE.md** (the main session writes it): "Run the game check after any data ticket and once per queue (main session, main checkout): `cargo run -p game-check`. It prints the differences between the data and the game's blueprints, grouped by area and kind, largest first. A difference is applied by its ticket without asking, unless it touches one of the user's facts (the skill tables, backgrounds, …), which goes to the user first. A difference to be fixed later goes in `tools/game-check/known.txt` under its ticket; the check fails on a difference not known and on a known line that matches none."
 
 **Suggestions for rules** (not this ticket's to edit):
-- A public `GameData` way to list the options a `pool_of` selection offers (the check rebuilds `Catalog::pool`).
 - A game group per `FeatSlot` category, so a slot pairs like any grant.
 - A `Prerequisite::CasterType`, to replace the spell-level-1 inference.
 
