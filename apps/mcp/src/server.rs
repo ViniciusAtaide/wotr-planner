@@ -75,7 +75,7 @@ for them as your own game knowledge.
 - When the planner ranks Builds or options by a number (`compare` or `improve` with `by`), that ranking is a fact. \
 Report `compare`'s other differences as facts, without ranking them by your own judgement, and label which choice \
 is better overall as your judgement.
-- Summaries and `interactions` (`describe`) are the planner's notes on the guide, not rules it enforces.
+- Summaries and `interactions` (`describe`) are the planner's notes on the game, not rules it enforces.
 - Guide links (`guide_url`) are for the user to read: never fetch them yourself.
 
 The resource `wotr://glossary` defines the planner's terms (Build start, Slot, Withdrawal, Path switch, …).";

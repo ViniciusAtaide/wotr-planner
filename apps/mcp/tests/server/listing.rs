@@ -266,3 +266,37 @@ async fn the_guides_point_buy_costs_are_the_engines() {
     let line = costs.join(", ");
     assert!(guide.contains(&line), "no {line} in the guide");
 }
+
+/// Phrases that name the guide as where a rule, a summary or a fact comes from. The game is the source of truth
+/// (ticket 234), so the planner's notes are notes on the game; `guide_url` stays a link for the user.
+const GUIDE_AS_SOURCE: [&str; 7] = [
+    "notes on the guide",
+    "note on the guide",
+    "summary of the guide",
+    "the guide says",
+    "the guide doesn't say",
+    "what the guide says",
+    "checked against the guide",
+];
+
+#[tokio::test]
+async fn no_text_served_to_agents_calls_the_guide_the_source() {
+    let client = Client::start().await;
+    let mut served = vec![("the instructions".to_owned(), client.instructions())];
+    for uri in ["wotr://glossary", "wotr://build-guide", "wotr://leaves-out"] {
+        let read = client.read_resource(uri).await.expect("the resource reads");
+        let [ResourceContents::TextResourceContents { text, .. }] = &read.contents[..] else {
+            panic!("one text: {read:?}");
+        };
+        served.push((uri.to_owned(), text.clone()));
+    }
+    for (name, text) in &served {
+        let lower = text.to_lowercase();
+        for phrase in GUIDE_AS_SOURCE {
+            assert!(!lower.contains(phrase), "{name} says \"{phrase}\"");
+        }
+    }
+    // The link stays one for the user.
+    assert!(client.instructions().contains("never fetch"));
+    assert!(served[0].1.contains("notes on the game"), "{}", served[0].1);
+}
