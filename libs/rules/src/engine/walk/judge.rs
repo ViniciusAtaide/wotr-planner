@@ -64,12 +64,13 @@ pub(super) fn check_pick_with(
             let SlotKind::Selection(selection) = kind else {
                 return Err(Issue::NotAllowed);
             };
-            // Its own option or one it shares (or one of a held option's pool); a shared option keeps its one key, so
-            // it's held once.
+            // Its own option or one it shares; a shared option keeps its one key, so it's held once. A filtered pool's
+            // option that nothing held admits is left out of the picker only: its prerequisite refuses it, with the
+            // reason.
             let Some(through) = catalog.selection(selection) else {
                 return Err(Issue::NotAllowed);
             };
-            if !catalog.offers_now(through, key, state) {
+            if !catalog.offers(through, key) {
                 return Err(Issue::NotAllowed);
             }
             let listed =

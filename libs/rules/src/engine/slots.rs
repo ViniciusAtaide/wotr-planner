@@ -1,64 +1,70 @@
-//! What a slot accepts: the options a selection offers (its own, shared and pooled) and the lists a feat slot picks
-//! from. Whether a pick fits its slot is the walk's one check, `walk::judge::check_pick`, which reads these.
+//! What a slot accepts: the options a selection offers (its own and shared; of a filtered pool, the picker lists those
+//! its held options admit) and the lists a feat slot picks from. Whether a pick fits its slot is the walk's one check,
+//! `walk::judge::check_pick`, which reads these.
 //!
 //! All of it reads only the game data and the character's state, so it's an `impl Catalog` block. The engine's
 //! public answer here delegates to it.
 
-use std::collections::BTreeSet;
-
 use super::{Catalog, Engine};
 use crate::game_data::{Feat, FeatList, FeatSlot, FeatureSelection};
 use crate::keys::{FeatListKey, FeatureSelectionKey, SelectionOptionKey};
+use crate::prerequisite::Prerequisite;
 use crate::state::CharacterState;
 
 impl Catalog {
-    /// Whether a selection's slot offers `option` to a character in `state`: its own and shared options, and for
-    /// a pool selection, the pools of the options held that it draws on.
-    pub(super) fn offers_now(
+    /// The options a selection's picker lists for a character in `state`, in key order: its own and shared ones,
+    /// those of a filtered pool its held options admit ([`admits`](Self::admits)). The walk takes any option the
+    /// selection offers, whose prerequisite then refuses one nothing admits, with the reason.
+    pub(super) fn offered_now<'s>(
         &self,
-        selection: &FeatureSelection,
-        option: &SelectionOptionKey,
+        selection: &'s FeatureSelection,
         state: &CharacterState,
-    ) -> bool {
-        self.offers(selection, option)
-            || self
-                .held_pools(selection, state)
-                .any(|pool| pool.contains(option))
-    }
-
-    /// The options a pool selection offers now: the pools of the options held that its `pool_of` selection
-    /// offers. Empty for any other selection.
-    pub(super) fn pools(
-        &self,
-        selection: &FeatureSelection,
-        state: &CharacterState,
-    ) -> BTreeSet<SelectionOptionKey> {
-        self.held_pools(selection, state)
-            .flatten()
-            .cloned()
+    ) -> Vec<&'s SelectionOptionKey> {
+        let by = selection
+            .filtered_by
+            .as_ref()
+            .and_then(|key| self.selection(key));
+        selection
+            .offered()
+            .into_iter()
+            .filter(|option| by.is_none_or(|by| self.admits(by, option, state)))
             .collect()
     }
 
-    /// The pool of each option held that a pool selection's `pool_of` selection offers ([`Catalog::pool`]). None
-    /// for any other selection.
-    fn held_pools<'s>(
-        &'s self,
-        selection: &FeatureSelection,
-        state: &'s CharacterState,
-    ) -> impl Iterator<Item = &'s BTreeSet<SelectionOptionKey>> {
-        let source = selection
-            .pool_of
-            .as_ref()
-            .and_then(|key| self.selection(key));
-        source
-            .into_iter()
-            .flat_map(move |source| {
-                state
-                    .selection_options
-                    .keys()
-                    .filter(move |held| self.offers(source, held))
-            })
-            .filter_map(|held| self.pool(held))
+    /// Whether the selection `by` that filters a pool admits `option` for a character in `state`: unless the option's
+    /// prerequisite can't be met without an option of `by` that isn't held (a revelation's mystery).
+    fn admits(
+        &self,
+        by: &FeatureSelection,
+        option: &SelectionOptionKey,
+        state: &CharacterState,
+    ) -> bool {
+        self.option(option)
+            .and_then(|o| o.prerequisite.as_ref())
+            .is_none_or(|prerequisite| !self.needs_unheld(by, prerequisite, state))
+    }
+
+    /// Whether `prerequisite` fails for want of an option of `by` that isn't held, whatever else is met: one it needs
+    /// (under `All`), or every way it has (under `Any`), or more than it can spare (under `AtLeast`). A condition
+    /// under a `Not`, or beside another way in, never makes it so, so the picker never leaves out what may be met.
+    fn needs_unheld(
+        &self,
+        by: &FeatureSelection,
+        prerequisite: &Prerequisite,
+        state: &CharacterState,
+    ) -> bool {
+        let fails = |child: &Prerequisite| self.needs_unheld(by, child, state);
+        match prerequisite {
+            Prerequisite::SelectionOption(key) => {
+                self.offers(by, key) && state.option_count(key) == 0
+            }
+            Prerequisite::All(children) => children.iter().any(fails),
+            Prerequisite::Any(children) => !children.is_empty() && children.iter().all(fails),
+            Prerequisite::AtLeast(needed, children) => {
+                children.iter().filter(|child| !fails(child)).count() < usize::from(*needed)
+            }
+            _ => false,
+        }
     }
 
     /// The lists a feat slot picks from for a character in `state`: a `OneOf`'s list, or the lists in force of
@@ -144,7 +150,8 @@ impl Catalog {
         selection: &FeatureSelectionKey,
     ) -> Option<SelectionOptionKey> {
         let selection = self.selection(selection)?;
-        if selection.pool_of.is_some() {
+        // A filtered pool's options depend on what's held.
+        if selection.filtered_by.is_some() {
             return None;
         }
         let offered = selection.offered();

@@ -1235,9 +1235,20 @@ pub struct FeatureSelection {
     pub shared_options: BTreeSet<SelectionOptionKey>,
     /// The classes whose levels add up to the option level of an option held through this selection (a
     /// sorcerer's bloodline: sorcerer and Dragon Disciple levels). An option's rows apply as its level reaches
-    /// them, and an option taken late gets every row up to its level at once.
+    /// them, and an option taken late gets every row up to its level at once. A class that has one of
+    /// `option_level_archetypes` among its archetypes counts only through them, as the game's progression level does
+    /// (`BlueprintProgression.CalcLevel`).
     #[serde(default)]
     pub option_levels: BTreeSet<ClassKey>,
+    /// Archetypes whose class levels add to the option level, where the class itself counts only taken with one
+    /// of them (an oracle's curse: a witch's levels as a Stigmatized Witch, not a plain witch's).
+    #[serde(default)]
+    pub option_level_archetypes: BTreeSet<ArchetypeKey>,
+    /// Set when half the levels of every other class add to the option level, rounded down: the classes neither in
+    /// `option_levels` nor taken with one of `option_level_archetypes`, and the Mythic rank, which the game counts as
+    /// the mythic classes' levels (an oracle's curse: `BlueprintProgression.CalcLevel` with `ForAllOtherClasses`).
+    #[serde(default)]
+    pub half_other_classes: bool,
     /// Option levels whose rows an option held through this selection doesn't get (Seeker: 3, 9 and 15); the
     /// archetype's own rows replace them.
     #[serde(default)]
@@ -1256,11 +1267,12 @@ pub struct FeatureSelection {
     /// Disciple: a sorcerer's Draconic bloodline continues, anyone else picks one).
     #[serde(default)]
     pub only_without_option: bool,
-    /// Set on a selection that offers the pools of the options held that this selection offers (an oracle's
-    /// revelations come from the mystery held), beside any options of its own or shared (the Dual-Cursed Oracle's
-    /// Misfortune and Fortune).
+    /// A filtered pool: the selection whose options admit this one's (an oracle's revelations, admitted by the
+    /// mystery held). An option whose prerequisite can't be met without one of that selection's options is offered
+    /// only while one of them is held; the others are offered as usual (an option naming one under a `Not`, or beside
+    /// another way in, among them). The game lists the rest greyed out; leaving them out is the planner's choice.
     #[serde(default)]
-    pub pool_of: Option<FeatureSelectionKey>,
+    pub filtered_by: Option<FeatureSelectionKey>,
     /// How many option levels an option held through it lags behind the levels of its classes (the Separatist's
     /// second domain: "Higher level abilities are delayed by two class levels").
     #[serde(default)]
@@ -1334,9 +1346,17 @@ impl OptionGroup {
 
 impl FeatureSelection {
     /// Whether a pick of `option` may fill this selection's slot: one of its own options, or one it shares. (A
-    /// pool selection's offer depends on what's held: see `Engine`.)
+    /// filtered pool's offer depends on what's held as well: see `Engine`.)
     pub fn offers(&self, option: &SelectionOptionKey) -> bool {
         self.shared_options.contains(option) || self.options.iter().any(|own| &own.key == option)
+    }
+
+    /// Whether class levels make the option level of an option held through it: classes or archetypes it names, or
+    /// half the other classes.
+    pub fn levels_by_class(&self) -> bool {
+        !self.option_levels.is_empty()
+            || !self.option_level_archetypes.is_empty()
+            || self.half_other_classes
     }
 
     /// Every option it offers, own and shared, in key order.
@@ -1388,9 +1408,10 @@ pub struct SelectionOption {
     /// once. The selection it's held through says which class levels make up its level.
     #[serde(default)]
     pub levels: Vec<OptionLevelRow>,
-    /// The selection whose options this option opens to a pool selection (a mystery's revelations).
+    /// Keys the option had before it merged with another or moved (Combat Healer (Life), now Combat Healer): read
+    /// only by the link decoder ([`LinkKeys`](crate::LinkKeys)), so a link naming an old key still opens.
     #[serde(default)]
-    pub pool: Option<FeatureSelectionKey>,
+    pub aliases: BTreeSet<SelectionOptionKey>,
     /// Picking this option skips the row, at the level reached, of the option held in that selection (a
     /// Primalist's two rage powers instead of the bloodline power).
     #[serde(default)]

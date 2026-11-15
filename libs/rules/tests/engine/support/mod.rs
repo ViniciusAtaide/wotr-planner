@@ -5,7 +5,7 @@
 
 pub use rules::test_world::*;
 
-use rules::{Build, Engine, LevelSheet, Prerequisite, Sheet, Unmet};
+use rules::{Build, Engine, GameData, LevelSheet, Prerequisite, Sheet, SlotId, Unmet};
 
 /// The sheet of a Build every choice of which holds up, so its states hold all the Build names.
 pub fn walked(engine: &Engine, build: &Build) -> Sheet {
@@ -30,4 +30,23 @@ pub fn conditions(unmet: &Unmet) -> Vec<(&Prerequisite, Option<u8>)> {
         Unmet::AtLeast { failed, .. } => failed.iter().flat_map(conditions).collect(),
         Unmet::MetLater { unmet, .. } => conditions(unmet),
     }
+}
+
+/// A class of the data, base or prestige, to change for a test.
+pub fn class_mut<'a>(data: &'a mut GameData, key: &str) -> &'a mut rules::Class {
+    data.all_classes_mut()
+        .find(|c| c.key.as_str() == key)
+        .unwrap()
+}
+
+/// The keys a slot offers on `engine`, each once (an option with a chosen feat is offered once per value).
+pub fn offered_on(engine: &Engine, build: &Build, slot: &SlotId) -> Vec<String> {
+    let mut keys: Vec<String> = engine
+        .options(build, slot)
+        .unwrap()
+        .into_iter()
+        .map(|option| option.pick.key().to_owned())
+        .collect();
+    keys.dedup();
+    keys
 }

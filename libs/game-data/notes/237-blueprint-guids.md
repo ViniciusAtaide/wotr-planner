@@ -13,7 +13,7 @@ The game's blueprints, BubblePrintsData `2.7.0x_0`. Each GUID was matched by a s
 ## Decisions
 
 - The main session, 2026-11-14: the field is `BlueprintGuid` beside the key newtypes, `Option`, after `key`, on the 18 kinds; `GameData::check` refuses anything but 32 lowercase hex digits (`MalformedBlueprint`).
-- The user's direction via the main session, 2026-11-15: any number of entries may hold one GUID for now. There is no sharing check and no list of allowed sharings; the planner's rank and context splits get their own ticket (`.scratch/wotr-planner/issues/ranks-and-filtered-pools.md`, number to come), and the copies of one game object feed a later design ticket on laying the data out by blueprint.
+- The user's direction via the main session, 2026-11-15: any number of entries may hold one GUID for now. There is no sharing check and no list of allowed sharings; the planner's rank and context splits get their own ticket (`.scratch/wotr-planner/issues/243-ranked-features-and-filtered-pools.md`), and the copies of one game object feed a later design ticket on laying the data out by blueprint.
 - The main session, 2026-11-14: an entry the game makes of several blueprints names one, the primary; the others are below for 238.
 - Ours (inference, each marked so in the Answer): a mythic summon tier is its rank (`AeonSummonFeatureTier7` is the gold golems); Intense Spells and Summoner's Charm are carried by the school's own feature; the nature mystery's companion revelation is `OracleRevelationBondedMount`.
 

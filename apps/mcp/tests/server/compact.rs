@@ -95,7 +95,8 @@ async fn real_data_options_of_one_name_are_told_apart() {
         "{whole}"
     );
     assert!(
-        whole.ends_with("Animal Companion (Nature Bond) or Animal Companion (Nature Revelations)"),
+        // The oracle's revelations are one selection since ticket 243, "Revelation".
+        whole.ends_with("Animal Companion (Nature Bond) or Animal Companion (Revelation)"),
         "{whole}"
     );
     // Two options of one name in selections of one name read with the selections' owners too.

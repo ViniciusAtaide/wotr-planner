@@ -17,7 +17,7 @@ use crate::engine::{BASE_LEVEL_CAP, PATH_CHOICE_RANK, PATH_SWITCH_RANK};
 use crate::game_data::{
     AbilityBonus, Advancement, Archetype, Class, ClassLevelRow, CountsToward, DOMAIN_SELECTION,
     Feat, FeatList, FeatSlot, FeatValue, Feature, FeatureSelection, GameData, LevelFrom,
-    MythicPath, Save, SelectionOption, SpellLevels, WeaponProficiency,
+    MythicPath, Save, SpellLevels, WeaponProficiency,
 };
 use crate::gear::GearTarget;
 use crate::keys::{
@@ -336,8 +336,8 @@ pub enum DataIssue {
     MalformedKey,
     /// A blueprint GUID that isn't 32 lowercase hex digits, the game's own spelling (ticket 237).
     MalformedBlueprint,
-    /// A selection that is a pool of itself.
-    PoolOfItself,
+    /// A filtered pool filtered by itself.
+    FilteredByItself,
     /// A selection levelled by the Mythic ranks reached ([`LevelFrom::MythicRanks`]) that isn't a path's.
     MythicRanksOffAPath,
     /// A feature with two ability bonuses of one kind (and, for a fixed one, one ability).
@@ -565,7 +565,7 @@ impl fmt::Display for DataProblem {
             DataIssue::MalformedKey => f.write_str(
                 "the key isn't lowercase slugs: a-z, 0-9, and single - or / between them",
             ),
-            DataIssue::PoolOfItself => f.write_str("the selection is a pool of itself"),
+            DataIssue::FilteredByItself => f.write_str("the selection is filtered by itself"),
             DataIssue::MythicRanksOffAPath => f.write_str(
                 "levelled by the Mythic ranks reached, but the selection isn't a path's",
             ),
@@ -788,8 +788,8 @@ impl GameData {
 }
 
 /// Game data that [`GameData::check`] found no problem in, the only data [`Engine::new`](crate::Engine::new) takes:
-/// the engine relies on the check's rules (every feat list or selection a slot names is one of the data's, every
-/// option's pool is a selection). Only [`GameData::checked`] makes one. Outside this crate it lends the data only for
+/// the engine relies on the check's rules (every feat list or selection a slot names is one of the data's, so is
+/// every selection a filtered pool is filtered by). Only [`GameData::checked`] makes one. Outside this crate it lends the data only for
 /// reading: it derefs to `&GameData`, with no `DerefMut` and no way to take the data back out. Inside it,
 /// [`Engine::new`](crate::Engine::new) takes the data owned (`into_data`) and puts it in canonical order, which only
 /// sorts it, so the check's rules still hold.
@@ -825,6 +825,8 @@ struct Checker {
     weapons: HashMap<WeaponKey, Option<WeaponProficiency>>,
     /// The domains: the options of the domain selection.
     domains: HashSet<SelectionOptionKey>,
+    /// The options' old keys, which only the link decoder reads: checked once the walk has seen every key.
+    aliases: Vec<SelectionOptionKey>,
     /// Every key an entity names, with the entity: checked against [`keys`](Self::keys) once the walk has seen them
     /// all.
     named: BTreeSet<(DataAt, DataAt)>,
@@ -940,6 +942,17 @@ impl Checker {
         for (at, named) in std::mem::take(&mut self.named) {
             if !self.keys.contains(&named) {
                 self.problem(&at, DataIssue::UnknownKey(named));
+            }
+        }
+        // An old key reads in a link as its option, so no option nor other alias may have it; nothing else names it.
+        let mut aliases = HashSet::new();
+        for alias in std::mem::take(&mut self.aliases) {
+            let at = DataAt::SelectionOption(alias);
+            if self.keys.contains(&at) || !aliases.insert(at.clone()) {
+                self.problem(&at, DataIssue::DuplicateKey);
+            }
+            if at.key().is_some_and(|key| !well_formed_key(key)) {
+                self.problem(&at, DataIssue::MalformedKey);
             }
         }
         let ranks: HashSet<u8> = data
@@ -1250,8 +1263,8 @@ impl Checker {
         for selection in selections {
             let selection_at = DataAt::FeatureSelection(selection.key.clone());
             self.key(&selection_at);
-            if selection.pool_of.as_ref() == Some(&selection.key) {
-                self.problem(&selection_at, DataIssue::PoolOfItself);
+            if selection.filtered_by.as_ref() == Some(&selection.key) {
+                self.problem(&selection_at, DataIssue::FilteredByItself);
             }
             if selection.level_from == Some(LevelFrom::MythicRanks) && !path {
                 self.problem(&selection_at, DataIssue::MythicRanksOffAPath);
@@ -1267,7 +1280,16 @@ impl Checker {
                 DataAt::SelectionOption,
             );
             self.names_each(&selection_at, &selection.option_levels, DataAt::Class);
-            self.names_each(&selection_at, &selection.pool_of, DataAt::FeatureSelection);
+            self.names_each(
+                &selection_at,
+                &selection.option_level_archetypes,
+                DataAt::Archetype,
+            );
+            self.names_each(
+                &selection_at,
+                &selection.filtered_by,
+                DataAt::FeatureSelection,
+            );
             self.names_each(
                 &selection_at,
                 &selection.level_also_from,
@@ -1276,6 +1298,7 @@ impl Checker {
             for option in &selection.options {
                 let at = DataAt::SelectionOption(option.key.clone());
                 self.key(&at);
+                self.aliases.extend(option.aliases.iter().cloned());
                 // `rogue/rogue-talents/fast-stealth` extends `rogue/rogue-talents`.
                 if !owned_by(option.key.as_str(), selection.key.as_str()) {
                     self.problem(&at, DataIssue::OptionOutsideItsSelection);
@@ -1285,7 +1308,6 @@ impl Checker {
                 for value in &option.values {
                     self.names_value(&at, value);
                 }
-                self.names_each(&at, &option.pool, DataAt::FeatureSelection);
                 self.names_each(&at, &option.replaces_row_of, DataAt::FeatureSelection);
                 self.names_each(&at, &option.arcana, DataAt::Feature);
                 self.names_each(
@@ -1369,7 +1391,7 @@ impl Checker {
                     );
                 }
             }
-            if selection.level_from.is_some() && !selection.option_levels.is_empty() {
+            if selection.level_from.is_some() && selection.levels_by_class() {
                 self.problem(&selection_at, DataIssue::LevelFromWithClasses);
             }
             if selection.level_also_from.is_some()
@@ -1381,48 +1403,19 @@ impl Checker {
     }
 
     /// A selection offering an option with rows names the classes whose levels make its option level.
-    fn option_levels<'a>(&mut self, data: &'a GameData) {
-        let selections: Vec<&'a FeatureSelection> = data.selections().collect();
-        let with_rows: HashSet<&SelectionOptionKey> = selections
-            .iter()
+    fn option_levels(&mut self, data: &GameData) {
+        let with_rows: HashSet<&SelectionOptionKey> = data
+            .selections()
             .flat_map(|selection| &selection.options)
             .filter(|option| !option.levels.is_empty())
             .map(|option| &option.key)
             .collect();
-        // A pool (a mystery's revelations) is offered only through a pool selection, which then names the levels.
-        let by_key: HashMap<&FeatureSelectionKey, &FeatureSelection> = selections
-            .iter()
-            .map(|selection| (&selection.key, *selection))
-            .collect();
-        let options: HashMap<&SelectionOptionKey, &SelectionOption> = selections
-            .iter()
-            .flat_map(|selection| &selection.options)
-            .map(|option| (&option.key, option))
-            .collect();
-        let pools: HashSet<&FeatureSelectionKey> = options
-            .values()
-            .filter_map(|option| option.pool.as_ref())
-            .collect();
-        // Its own and shared options, and a pool selection's pools.
-        let offered = |selection: &'a FeatureSelection| -> Vec<&'a SelectionOptionKey> {
-            let pooled = selection
-                .pool_of
-                .iter()
-                .filter_map(|of| by_key.get(of))
-                .flat_map(|of| of.offered())
-                .filter_map(|option| options.get(option)?.pool.as_ref())
-                .filter_map(|pool| by_key.get(pool))
-                .flat_map(|pool| pool.offered());
-            selection.offered().into_iter().chain(pooled).collect()
-        };
-        for selection in selections.iter().copied() {
-            if !selection.option_levels.is_empty()
-                || selection.level_from.is_some()
-                || pools.contains(&selection.key)
-            {
+        for selection in data.selections() {
+            if selection.levels_by_class() || selection.level_from.is_some() {
                 continue;
             }
-            if let Some(option) = offered(selection)
+            if let Some(option) = selection
+                .offered()
                 .into_iter()
                 .find(|option| with_rows.contains(option))
             {

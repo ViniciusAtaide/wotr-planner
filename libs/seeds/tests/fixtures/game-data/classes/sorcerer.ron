@@ -41,7 +41,8 @@ Class(
                     key: "sorcerer/bloodline/abyssal",
                     name: "Abyssal",
                     guide: "sorcerer#abyssal",
-                    pool: "sorcerer/abyssal-powers",
+                    // An old key a link may still name (ticket 243).
+                    aliases: ["sorcerer/bloodline/demonic"],
                     levels: [
                         (level: 1, features: ["sorcerer/bloodline/abyssal/claws"], feat_list: "sorcerer/bloodline/abyssal-feats", class_skills: ["athletics"]),
                         (level: 3, features: ["sorcerer/bloodline/abyssal/strength-of-the-abyss"], feats: ["toughness"], selections: ["sorcerer/school"]),
@@ -100,8 +101,11 @@ Class(
             key: "sorcerer/power",
             name: "Power",
             guide: "sorcerer",
-            pool_of: "sorcerer/bloodline",
+            // A filtered pool, levelled as an oracle's curse is (ticket 243).
+            filtered_by: "sorcerer/bloodline",
             option_levels: ["sorcerer"],
+            option_level_archetypes: ["sorcerer/seeker"],
+            half_other_classes: true,
             options: [(key: "sorcerer/power/surge", name: "Surge", guide: "sorcerer")],
         ),
     ],

@@ -491,6 +491,7 @@ mod tests {
             key: "trickster/sneak-attack".to_owned(),
             name: "Sneak Attack (Trickster)".to_owned(),
             times,
+            rank: None,
         }
     }
 

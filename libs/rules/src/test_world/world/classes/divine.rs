@@ -95,23 +95,20 @@ pub(in crate::test_world::world) fn cleric() -> Class {
             plain_feature("cleric/domain/war/battle-rage", "Battle Rage"),
             plain_feature("cleric/domain/fire/fire-bolt", "Fire Bolt"),
         ],
-        // An invented pool: a domain at 1, and at 3 a revelation from the held domain's own list. The War domain's
-        // row 8 is a bonus Combat feat slot; the Weapon Mastery revelation's row 8 grants Weapon Specialization for
-        // the weapon its pick named (its chosen feat, Weapon Focus). The Maneuver Mastery revelation picks a
-        // maneuver, whose Trip feat comes at the revelation's level 7. Impossible Domain (a mythic ability) picks a
-        // further domain, levelled like the domains held.
+        // An invented filtered pool: a domain at 1, and at 3 a revelation, each of which needs a domain, from the
+        // held domain's list only. The War domain's row 8 is a bonus Combat feat slot; the Weapon Mastery
+        // revelation's row 8 grants Weapon Specialization for the weapon its pick named (its chosen feat, Weapon
+        // Focus). The Maneuver Mastery revelation picks a maneuver, whose Trip feat comes at the revelation's level 7.
+        // Impossible Domain (a mythic ability) picks a further domain, levelled like the domains held.
         selections: vec![
             levelled_selection(
                 "cleric/domain",
                 &["cleric"],
                 vec![
-                    SelectionOption {
-                        pool: Some(FeatureSelectionKey::new("cleric/fire-revelations")),
-                        ..levelled_option(
-                            "cleric/domain/fire",
-                            vec![option_row(1, &["cleric/domain/fire/fire-bolt"])],
-                        )
-                    },
+                    levelled_option(
+                        "cleric/domain/fire",
+                        vec![option_row(1, &["cleric/domain/fire/fire-bolt"])],
+                    ),
                     SelectionOption {
                         levels: vec![
                             option_row(1, &["cleric/domain/war/battle-rage"]),
@@ -122,43 +119,49 @@ pub(in crate::test_world::world) fn cleric() -> Class {
                         ],
                         ..selection_option("cleric/domain/war", None, None)
                     },
-                    SelectionOption {
-                        pool: Some(FeatureSelectionKey::new("cleric/water-revelations")),
-                        ..selection_option("cleric/domain/water", None, None)
-                    },
+                    selection_option("cleric/domain/water", None, None),
                 ],
                 &[],
             ),
             FeatureSelection {
-                pool_of: Some(FeatureSelectionKey::new("cleric/domain")),
-                ..levelled_selection("cleric/revelation", &["cleric"], vec![], &[])
+                filtered_by: Some(FeatureSelectionKey::new("cleric/domain")),
+                ..levelled_selection("cleric/revelation", &["cleric"], vec![], &REVELATIONS)
             },
             FeatureSelection {
                 options: vec![
-                    selection_option("cleric/fire-revelations/burning-hands", None, None),
-                    selection_option("cleric/fire-revelations/fire-breath", None, None),
-                    levelled_option(
-                        "cleric/fire-revelations/maneuver-mastery",
-                        vec![OptionLevelRow {
+                    revelation(
+                        "cleric/fire-revelations/burning-hands",
+                        "cleric/domain/fire",
+                    ),
+                    revelation("cleric/fire-revelations/fire-breath", "cleric/domain/fire"),
+                    SelectionOption {
+                        levels: vec![OptionLevelRow {
                             selections: vec![FeatureSelectionKey::new("cleric/maneuver-mastery")],
                             ..option_row(1, &[])
                         }],
-                    ),
+                        ..revelation(
+                            "cleric/fire-revelations/maneuver-mastery",
+                            "cleric/domain/fire",
+                        )
+                    },
                     SelectionOption {
                         chosen_feat: Some(feat("weapon-focus")),
                         levels: vec![OptionLevelRow {
                             chosen_feats: BTreeSet::from([feat("weapon-specialization")]),
                             ..option_row(8, &[])
                         }],
-                        ..selection_option("cleric/fire-revelations/weapon-mastery", None, None)
+                        ..revelation(
+                            "cleric/fire-revelations/weapon-mastery",
+                            "cleric/domain/fire",
+                        )
                     },
                 ],
-                ..levelled_selection("cleric/fire-revelations", &[], vec![], &[])
+                ..levelled_selection("cleric/fire-revelations", &["cleric"], vec![], &[])
             },
             FeatureSelection {
                 options: vec![
-                    selection_option("cleric/water-revelations/icy-skin", None, None),
-                    selection_option("cleric/water-revelations/wave", None, None),
+                    revelation("cleric/water-revelations/icy-skin", "cleric/domain/water"),
+                    revelation("cleric/water-revelations/wave", "cleric/domain/water"),
                 ],
                 ..levelled_selection("cleric/water-revelations", &[], vec![], &[])
             },
@@ -199,6 +202,25 @@ pub(in crate::test_world::world) fn cleric() -> Class {
     }
 }
 
+/// A revelation, admitted by its domain.
+fn revelation(key: &str, domain: &str) -> SelectionOption {
+    selection_option(
+        key,
+        None,
+        Some(Prerequisite::SelectionOption(option(domain))),
+    )
+}
+
+/// The revelations a cleric's revelation slot offers: each domain's, admitted by it.
+const REVELATIONS: [&str; 6] = [
+    "cleric/fire-revelations/burning-hands",
+    "cleric/fire-revelations/fire-breath",
+    "cleric/fire-revelations/maneuver-mastery",
+    "cleric/fire-revelations/weapon-mastery",
+    "cleric/water-revelations/icy-skin",
+    "cleric/water-revelations/wave",
+];
+
 const CLERIC_DOMAINS: [&str; 3] = [
     "cleric/domain/fire",
     "cleric/domain/war",
@@ -228,13 +250,14 @@ fn separatist() -> Archetype {
     }
 }
 
-/// Accursed (the Dual-Cursed Oracle, on the cleric): its revelations at 1 and 3 offer the domain's pool and a
-/// revelation of its own. Its revelation's key sorts before `cleric/domain`, which it draws on at level 1.
+/// Accursed (the Dual-Cursed Oracle, on the cleric): its revelations at 1 and 3 offer the held domain's revelations
+/// and one of its own, which no domain admits. Its revelation's key sorts before `cleric/domain`, which admits its
+/// options at level 1.
 fn accursed() -> Archetype {
     let revelation = FeatureSelectionKey::new("cleric/accursed/revelation");
     Archetype {
         selections: vec![FeatureSelection {
-            pool_of: Some(FeatureSelectionKey::new("cleric/domain")),
+            filtered_by: Some(FeatureSelectionKey::new("cleric/domain")),
             ..levelled_selection(
                 revelation.as_str(),
                 &["cleric"],
@@ -243,7 +266,7 @@ fn accursed() -> Archetype {
                     None,
                     None,
                 )],
-                &[],
+                &REVELATIONS,
             )
         }],
         levels: vec![

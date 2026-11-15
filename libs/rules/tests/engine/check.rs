@@ -18,12 +18,6 @@ fn issues(data: &GameData) -> Vec<(DataAt, DataIssue)> {
         .collect()
 }
 
-fn class_mut<'a>(data: &'a mut GameData, key: &str) -> &'a mut rules::Class {
-    data.all_classes_mut()
-        .find(|c| c.key.as_str() == key)
-        .unwrap()
-}
-
 /// [`issues`] but the unknown keys: for a test that renames a key, which leaves its old key named elsewhere.
 fn issues_but_unknown_keys(data: &GameData) -> Vec<(DataAt, DataIssue)> {
     issues(data)
@@ -986,8 +980,8 @@ fn a_selection_offering_options_with_rows_names_the_classes_whose_levels_count()
 }
 
 #[test]
-fn a_pool_selection_may_offer_options_of_its_own() {
-    // The Dual-Cursed Oracle's revelations: the mystery's pool and two of its own.
+fn a_filtered_pool_may_offer_options_of_its_own_and_shared_ones() {
+    // The Dual-Cursed Oracle's revelations: the oracle's, shared, and two of its own.
     let mut data = world();
     let cleric = class_mut(&mut data, "cleric");
     let revelation = cleric
@@ -1606,7 +1600,8 @@ fn every_feature_selection_and_option_named_is_one_the_data_has() {
     class_mut(&mut data, "slayer").selections[0]
         .shared_options
         .insert(option());
-    rogue_talent_mut(&mut data, "rogue/rogue-talents/resiliency").pool = Some(selection());
+    rogue_talent_mut(&mut data, "rogue/rogue-talents/resiliency").replaces_row_of =
+        Some(selection());
     feat_mut(&mut data, "toughness")
         .extra_pick_of
         .insert(selection());
@@ -1948,13 +1943,14 @@ fn every_key_is_lowercase_slugs() {
     );
 }
 
-/// Ticket 187: the database's `feature_selection_pool_of_not_itself` and `feature_selection_mythic_ranks_on_a_path`.
+/// Ticket 187: the database's `feature_selection_pool_of_not_itself` (a filtered pool's since ticket 243) and
+/// `feature_selection_mythic_ranks_on_a_path`.
 #[test]
-fn a_selection_is_no_pool_of_itself_and_only_a_paths_is_levelled_by_mythic_ranks() {
+fn a_selection_is_not_filtered_by_itself_and_only_a_paths_is_levelled_by_mythic_ranks() {
     let mut data = world();
     let key = FeatureSelectionKey::new("cleric/impossible-domain");
     let selection = cleric_selection(&mut data, key.as_str());
-    selection.pool_of = Some(key.clone());
+    selection.filtered_by = Some(key.clone());
     selection.level_from = Some(rules::LevelFrom::MythicRanks);
     selection.level_also_from = None;
 
@@ -1963,7 +1959,7 @@ fn a_selection_is_no_pool_of_itself_and_only_a_paths_is_levelled_by_mythic_ranks
         [
             (
                 DataAt::FeatureSelection(key.clone()),
-                DataIssue::PoolOfItself
+                DataIssue::FilteredByItself
             ),
             (
                 DataAt::FeatureSelection(key),
