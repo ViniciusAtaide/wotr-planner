@@ -154,6 +154,22 @@ input[type="search"] {
   padding: 0 var(--gutter) 6rem;
 }
 
+/* The credit and the licence link at the foot of the page: small, wraps at phone width. */
+.site-footer {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.site-footer a {
+  color: var(--mythic);
+  display: inline-block;
+  padding: 0.6rem 0.25rem;
+}
+
 .top {
   display: flex;
   align-items: center;

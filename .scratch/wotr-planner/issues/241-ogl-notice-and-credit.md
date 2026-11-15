@@ -1,7 +1,7 @@
 # The Open Game License notice and credit
 
 Type: build
-Status: open
+Status: resolved
 Blocked by: none
 Model: Sonnet to build.
 Map: [WotR Build Planner](../map.md)
@@ -23,6 +23,22 @@ Found in [234](234-game-blueprints-as-a-source.md) (2026-11-14), the user taking
 - **The designation.** A short statement, in `README.md` and the licence file, that the game mechanics in `libs/game-data/` are Open Game Content. The planner's own text (summaries in our own words, code) is not.
 - **On the site:** a small footer or About line on the published page linking to the licence and crediting Paizo and Owlcat, without using their marks to market the planner.
 - **The game's names.** Names of feats, spells and items are Product Identity under the notice's "proper nouns". The planner names picks as the game does, as every fan tool does; this ticket notes that and changes nothing.
+
+## Answer
+
+**Decided** (user, 2026-11-14, in [234](234-game-blueprints-as-a-source.md): the notice and credit are owed whatever the source). The builder's decisions:
+
+1. **The licence text** is taken from Owlcat's own page (https://owlcat.games/OGLPFWotR, fetched as saved HTML and converted to text, not retyped): the OGL 1.0a and the whole Section 15 (Wizards of the Coast, Paizo, the Necromancer Games and other third-party entries, the Kingmaker and Wrath of the Righteous CRPG Reference Document lines), word for word, typos included. Only the layout changes: one paragraph per item, and a space after each licence item's heading colon (the page's markup hid it).
+2. **Our Section 15 line:** "WotR Planner, a build planner for Pathfinder: Wrath of the Righteous, (c) 2026, the WotR Planner authors; the game mechanics in libs/game-data/, derived from the works above." The owner's name is generic because no author name is recorded in the repo; the user may replace it.
+3. **The designation,** at the top of `OPEN-GAME-LICENSE.md` and in a README "Licence" section: the mechanics in `libs/game-data/` are Open Game Content; the planner's own text and code are not; Product Identity as Owlcat's notice states it, short and in our words; the game's names are used to refer to it (the ticket's "game's names" note, nothing changed).
+4. **On the site:** a `Footer` component (`libs/ui/src/footer.rs`, rendered at the end of the sheet page, `.site-footer`): a credit naming Owlcat and Paizo (no logos, marks or artwork) and a link to the licence. It wraps at phone width and the link has a thumb-sized tap target.
+5. **Serving the licence, not linking GitHub:** the licence must travel with the content it covers, and a link to GitHub would leave the published site without it. `scripts/build-site.sh` copies `OPEN-GAME-LICENSE.md` to `open-game-license.txt` in the site root (Pages would offer a `.md` as a download; `.txt` shows in the browser), and the script's existing "every file the page names is in the folder" check covers the footer's relative link (`./open-game-license.txt`, so it works under `/<repo>/`). That change is outside `libs/ui/`, so the full `scripts/check.sh` ran. The dev server (`cargo leptos watch`) does not serve that file, so the link 404s there; only the built site has it.
+
+**Tests** (`cargo test -p ui footer`, in `libs/ui/src/footer.rs`; the first run failed to compile, the footer's items didn't exist): `the_footer_credits_paizo_and_owlcat_and_links_the_licence_relative_to_the_page`, `the_licence_file_holds_the_licence_and_section_15_with_owlcats_lines_and_ours`, `the_readme_and_the_site_build_carry_the_licence`. The ui crate has no render-to-HTML test harness (SSR is the backend's feature), so the footer's text is pinned through its constants.
+
+**Snapshot message:** none; the snapshot check no longer exists (235) and no rule or data changed.
+
+**For the queue's checks:** `scripts/build-site.sh <dir>` was not run here (a release build, the main session's `--full`); its output should list `open-game-license.txt` and the page should name `./open-game-license.txt`.
 
 ## Done when
 
