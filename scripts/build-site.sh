@@ -8,6 +8,8 @@
 #   - its page at `/` as index.html, server-rendered, which the wasm hydrates as it does from the server;
 #   - pkg/: the wasm, JS and CSS from the site root, without .d.ts files, uncompressed (Pages compresses them);
 #   - game-data/<hash>.json, the game data the page names;
+#   - open-game-license.txt, the repo's OPEN-GAME-LICENSE.md, which the page's footer links (the licence travels with
+#     the mechanics it covers; GitHub Pages shows .txt, not .md, in the browser);
 #   - the files of apps/frontend/public/ (the link preview image, the font), cargo-leptos's assets-dir.
 # The page names those files relative to itself (./pkg/…, ./game-data/…) and the stylesheet relative to itself
 # (../fonts/…), so the folder works at `/` and under a path prefix such as a project site's `/<repo>/`. Only the
@@ -17,7 +19,7 @@
 set -euo pipefail
 
 if [[ $# -ne 1 ]]; then
-    sed -n '2,17p' "$0" | sed 's/^# \{0,1\}//' >&2
+    sed -n '2,18p' "$0" | sed 's/^# \{0,1\}//' >&2
     exit 2
 fi
 mkdir -p "$1"
@@ -93,6 +95,7 @@ cp -R target/site/pkg "$out/pkg"
 find "$out/pkg" -name '*.d.ts' -delete
 # The assets (apps/frontend/public/), which the server serves from the site root.
 cp -R apps/frontend/public/. "$out/"
+cp OPEN-GAME-LICENSE.md "$out/open-game-license.txt"
 
 # Every file the page names is in the folder.
 for file in $(grep -Eo '"\./[^"]+"' "$out/index.html" | tr -d '"' | sort -u); do

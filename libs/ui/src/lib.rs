@@ -4,6 +4,7 @@ use leptos_meta::{MetaTags, Stylesheet, Title, provide_meta_context};
 
 mod browser;
 mod export;
+mod footer;
 mod game_data;
 mod gear;
 mod grid;

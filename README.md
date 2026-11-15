@@ -39,6 +39,14 @@ problems. Restart the server after editing the files. `cargo run -p seeds --bin 
 its own. `libs/seeds/tests/fixtures/game-data` is a small hand-written example of the layout; to serve it instead,
 set `GAME_DATA_DIR` to its path.
 
+### Licence
+
+The game mechanics in `libs/game-data/` come from *Pathfinder: Wrath of the Righteous* and are Open Game Content under
+the Open Game License v1.0a, as Owlcat Games' notice designates them. The planner's own text (summaries and notes in
+its own words, this documentation) and its code are not. The licence, the designation and the Section 15 copyright
+notice are in [`OPEN-GAME-LICENSE.md`](OPEN-GAME-LICENSE.md); the site's footer links the same text. Names of feats,
+spells and items are the game's, used to refer to it.
+
 ### From a phone on the same network
 
 The dev server binds to `0.0.0.0:3900` (live reload on port 3901). Find the computer's LAN address

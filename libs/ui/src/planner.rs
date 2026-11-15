@@ -330,6 +330,7 @@ fn SheetView(engine: Arc<Engine>) -> impl IntoView {
             <BuildStartPanel/>
             <Tabs/>
             <Picker/>
+            <crate::footer::Footer/>
         </div>
     }
 }
