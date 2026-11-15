@@ -53,7 +53,7 @@ A ticket runs only what its diff can break, after its last edit, and fmt (`cargo
 | The diff touches | It runs |
 | --- | --- |
 | a crate's code or tests | `cargo test -p <crate>` for each crate touched (`ui`, `frontend`, `server`, `rules`, `seeds`, `corpus`, `mcp`) |
-| `libs/rules/` or `libs/game-data/` | also `cargo test -p seeds`: the real-data tests, the gold builds and the self-checks' short runs live there |
+| `libs/rules/` or `libs/game-data/` | also `cargo test -p seeds -p corpus`: the real-data tests, the gold builds and the self-checks' short runs live there |
 | `libs/game-data/` | also `cargo run -p seeds --bin check-data` |
 | `libs/rules/` | also `cargo build -p rules --target wasm32-unknown-unknown` |
 | `libs/ui/` or `apps/frontend/` | also `cargo clippy -p frontend --target wasm32-unknown-unknown -- -D warnings` and `scripts/css-classes.sh` |
