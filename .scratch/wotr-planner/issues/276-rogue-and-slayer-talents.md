@@ -1,7 +1,7 @@
 # Rogue and slayer talents and rows
 
 Type: build (data), with one item to the user
-Status: open; the Improved Uncanny Dodge item waits on the user
+Status: superseded by 293: the user, 2026-11-15, took the game's rule for Improved Uncanny Dodge (class level 12), reversing ticket 190's choice; the importer writes it
 Blocked by: [247](247-a-selection-counts-from-the-level-that-grants-it.md), [249](249-selections-and-parametrised-feats-are-taken-again.md), [254](254-a-features-steps-follow-the-class-level.md)
 Model: Opus to build: lists, prerequisites and rows read from the selections and progressions.
 Map: [WotR Build Planner](../map.md)
