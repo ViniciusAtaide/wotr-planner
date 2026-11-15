@@ -4,7 +4,7 @@ version.workspace = true
 edition.workspace = true
 
 # Native only: reads the game data files (`ron`). Never reachable from the wasm build (used by `server`, `mcp` and
-# `proof`).
+# `corpus`).
 [dependencies]
 ron.workspace = true
 rules.workspace = true

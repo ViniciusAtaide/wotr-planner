@@ -13,7 +13,7 @@ Read at review, by the reviewer (`.claude/agents/ticket-reviewer.md`). These are
 
 ## Behaviour
 
-- **A status is behaviour.** `Issue`, `Unmet` and `issue_text` are hashed by the proof (`tools/proof/src/fingerprint.rs`). A wording change lives in a picker entry's reason or in the MCP server's text, unless the ticket means to change the status.
+- **A status is behaviour.** `Issue` and `Unmet` decide what the pickers offer, and the self-checks hold each option's status against `allows` (`tools/corpus/tests/self_checks.rs`). A wording change lives in a picker entry's reason or in the MCP server's text, unless the ticket means to change the status.
 - **Walk per call, not per option.** Work that doesn't depend on the option (a rank's allowed levels, the Build's failing choices) is done once per call. A walk per listed option needs a stated reason and a measured cost.
 
 ## Game data

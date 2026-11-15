@@ -12,40 +12,40 @@ use crate::support::*;
 /// abilities and goes Azata at MR 3.
 const ENFORCER: &str = "AdVNPUhCYRT97veeqT1ToYiWSIogSKmkKOgPm7IgsBoqInHIoR-RighrkOBZ9DO4RAqtRVMUxOstIRlZg0sW4SCBk20NQTRI3ZdpSa-lTS7nfOfc795zt2C89sL_bNP5FntCex4xvd_0VCh6NmVBPTzDZexKzeD_Oqs6Ry4TddWSF2f8Z6d4a1vTmjSMvPcq8MthvI6Xc8qOnZPXqM0y4VI706PWgSOrRxvb3Gi40ZUkKiuWXWZTfXNkwSxWl3rb64LHTvdBKChcPvJ20enwJSddqsP1sKcrvIbrLQaBm766HzLx_Q_diVhbY-fYVFw4D_RFUgHj2657_oWfu4veUq2dAAEGQK_XFqs0ZQQlfBPk2z97VG5OIREQueczgwGSKSXhgBAUFJn-JirTwxPSCpfNoF-QislqyPdUDRTQINGcQmJZ9keCBAVIrGSkQyyiCKEGFf0A";
 
-/// Links the planner made before the first ascension existed (`proof export` at the commit before ticket 91), each
-/// with its Build's MR 3 path.
+/// Links the planner made before the first ascension existed (exported by the proof harness, `proof export`, at the
+/// commit before ticket 91), each with its Build's MR 3 path.
 const OLD_LINKS: [(&str, &str); 7] = [
-    // `bench fighter20` (the proof harness's Build of that name): aeon.
+    // `bench fighter20` (the corpus's Build of that name): aeon.
     (
         "aeon",
         "AdWPPUhCURSAz33P93hcCjMqKAhqzanh0dIQ0tDvUBANvQaHoILCWcFBQZxEwUlwUHER_EEUfxB8iII_CLqL8BAEcRBcHBTxPlFxchAXudzvfOdwOIfzrQ885_abJqVWI7pro-52CetRjHtwapfub3yEu0KGMPyXlmoXrPCSf0wdvtr-Ofa9whta2YbXHx1U3WWj5Cg-nPdwsC_wcTtTj2g_js24oLRovj75s0RXlypFOcLL9t2wo_5JnjhFUMfMIduTeGv9dV1d77w1VBIgQAwCFd7DGB8AhdD8oyVfN0dA5tNwRCLICgwAJZuspGOu1EJhM0Zhsp6GBWZE04KCo-WzV7wJ",
     ),
-    // `full arcanist arcanist/brown-fur-transmuter` (the proof harness's Build of that name): angel.
+    // `full arcanist arcanist/brown-fur-transmuter` (the corpus's Build of that name): angel.
     (
         "angel",
         "AXVOPUgCYRh-v--8RM2torIkaLBaStKWzKFJkn6IXCoEaYmICqlFhTLShBAxKIhoihxqkWsIoaGhIKmhoZ-loSIMvWipraLe87PjPOju3uee93ne9_m-ycB-v63u_dM_Gsh8I-k92Tmc8jCCIpJQ8zDiQDiMiJZZ0CEZmTYwggobwwGWcPUlsuGUNa_UcUWlyASjXowmdqgcIl-DWagw64a7LSw458nzj4tHq7LTHYxZBGv7o-0JebJ6KxVLRNctyB0H9rfcpdaxed1Y32b0woPHnxxs6IpsFMy7Qz1L3S2z8RnvXo1vnIhzGXvTUd9rx0Q8n02Lju2PbNBpzbki7ruVqOlYOF-0rbauhZbPLu5d9DRRm_aNAQHgAfTFpwooIX9FCAX8Sh2vcFCuULZYGlVPiwEYzoMBTwAOVcA9BFoOIIOqBaKTAjQgrbI_EMbLSk8o4TheQpChRDVaae2_V0f09Bc",
     ),
-    // `full alchemist alchemist/grenadier` (the proof harness's Build of that name): azata.
+    // `full alchemist alchemist/grenadier` (the corpus's Build of that name): azata.
     (
         "azata",
         "AY2OP0hCYRTFv-97r6hnJoFGYn8016CspSWNtiyDoiCkqSWQCJGWtMWCloSCBqciCiOaQumPEBiCQwUhNAU1VEKEg0M0WdDxXXiWOPjgnfd7h3PuvSvBE08x6h-53p0Ih4sBLzj7ne-MN77rLWCYCd8MwfSi7sjxAYajBWAGkz_4paI2BAMpRhkUV-1T5CNGXQQqfDKRpwBMmk8HECCmXUIt2oIiRmlF7XIEqNgSPH21zi7z3Gb2OPSW0s9dgeOO3i3bHaBpYOy-y9mmW4NjTNmh29H2xFOksLB3NmlqtqZbTbHAgXvnYt_GLe7-JddXzPX8cBNyjs93QzOGjbw_2ZPLmNeVwqUHTsf55-jw4WDf0Ish4vU9mm_TjDNWx5iiPkYmcc5JhOBy-U-T-mqe4OJvk4tqKQ4fyLFOh6VMkpnAR_wTiZdUqMg0LJPgisCIml4F-yRJVlUqM1ORS6IBg0uHyLJcUf0F",
     ),
-    // `full alchemist` (the proof harness's Build of that name): demon.
+    // `full alchemist` (the corpus's Build of that name): demon.
     (
         "demon",
         "AY2OPUhCURiGzzl6K3-iBm0oCPqZaghpK5d-oCKKjFwUWoMoUGmSBh0KqSChohArKSqMhtIirEVqCBLBppaGWjIxilokNOy999BVwqF7Oc95v_e-3_ddF3UeDmXXbYlcOuuwzDaNQo9NafYNKYhhtzs8aYYP3R3dhOA-hDPynays4xp53lUfUvEuPofHZBMBuYWbmCnPl4fzpXIAJQ9wwXchgBV8GhxsKe7lGqac8Xz58v0CHBBOKBOfb7R6hbuq8mTI0LbcENO2D-pn7kHfp87UNX4Zv4IeeT0zbYfc14nww1K1cXflPLC62JO98dbo994ntk48T_ZYsNVqtL9Np22RHZUPdDAHaAlugP6WDv_RcbS39qPT4bJoLzSBxwV16mUg48k35w6eb32uub5T8xqhhAiEqKVHRxSUUsIok4RSqmSLATikyIXzKwo2LQRkCNIHgm0C0eCGYAADSAmwUqBqJrX946gpowoiQiFIZBLLJZYptUqExJeI_8QooUX1Xy3eFVSA-gE",
     ),
-    // `full alchemist alchemist/chirurgeon` (the proof harness's Build of that name): lich.
+    // `full alchemist alchemist/chirurgeon` (the corpus's Build of that name): lich.
     (
         "lich",
         "AY2PTyiDYRzHn-fZFtuQZA5IyUFZmUWKduGysqgJxWurXRykpfdALWEHFlsSxUmp4bBardeEi9QOksvKykktF7M5SDntXfm-75NXamnP0-_b5_k-vz_Ps04DsdHi4eJYMHhmf2uTjOC0XOAwsWBe6RgHDN8enc9Pvta2gAHweQJ8FOIILoozSOY56ABTY60WHLgu8VqYGqMPv9KYJ2sNMQW3_DFgzefJvAl8APcxXWsOwNe4nw9LX0Jmc6_TFP-s6XX5jXPQZH9O0akTaG5NlOy2xwPJPeRdashCvfIyVE7VhaOZ_cvjYCp94bbUO6LFu11PfLXJcpoTBj8iIfElENnxP0eqEz5hw_Vk02-NvPdsl6bvEwWRiVbBIbd2Z-NXMWtz-0DfTejB6Uk6u_K-WUooIQZCTOpqJDpKKWEMQZlePfwVWsYzaEX_punUC2WggZgxFYspwZSoTAg1MdRXFCbKqI6UE32VTvm1-pTfgp9tpHr2DQ",
     ),
-    // `full alchemist alchemist/reanimator` (the proof harness's Build of that name): trickster.
+    // `full alchemist alchemist/reanimator` (the corpus's Build of that name): trickster.
     (
         "trickster",
         "AY2NO0hCYRTHv3OvRWlWg1RgBBnhkEHZakUFDb3A0qUXJEURIiJNaoOEFnEhIUKKtCGoaAm0By4RtRQ02GBTDUkRJZRIutjr5EfXBxV9l-9____z_c45DjBvdydcxh6bTaMXVXjz0bceudGb_W_oA69ha1XvvViaxWAdIz6hT5j6Keyb1CJAYRxCI_Ub9Q8URs_zOCG9jpH24vD0RTyMhgewkQK4BesYsxi6hdbpQOq5WMjIlLhP7UPKp1KPo6ChcyUqQV2tjk3BrbpleP9Fj9EyJ0d1uspRyx6lWF-Onu9ql3xXXISbLVatP497bCeBDqVBveatBKkpZB4ZhLDR3za2c2ZpCvbVXnN5Bs1EzYCqSyfDSrPuXX5piSjEB9JFaD8Oxq2jzro7heHicL5RFC_asy9syjwzW9M3HwQIySFEmDwSwgJASiAVGYaa3EziN0zwA5ZsRQ9EQES4Fg_zdb-F4YVlMnOagJDBAf-6QmCAZXNTSnhhWUEhuuRHAAhk-b_-nw",
     ),
-    // `bench legend40` (the proof harness's Build of that name): aeon.
+    // `bench legend40` (the corpus's Build of that name): aeon.
     (
         "aeon",
         "Ae2RS0hCQRSGz7l5VUbCipQUAttFbdq4aRXSxqzAQIS0hWBQQSItCwoVwpUZFK0sStxET1PKCLz0fhBY6whuEURCQkEulGi0kl5EQkKLZjj_fP8_szicecD-2ZbNsnOn1KLhfLF0_M9Cq8Ox0mP43qYm7O9sX_t_UqCETl44LbCmyx8TUOnltQ1-qsXmDaqLvet8rEZo1m_rIrI2j00sNB6pBy6jZzOBYPLYdzjIj-43VSXu0WpWh9NKa4XE2QVXp9JdMn83FK7zX4x42RNFUmTTRo0SnWMrFtbLUnveyZu5kGH82lQvlwX0U8Fb4Jbd_JLFpHCRHemwprNDrVqN2yMHQXH3mnKMg9qQa8HTzDW6AQFZhFJSQgipBgbxtfAN5-UFlF8Un5nFzwd-FRb-jgG6aF-gQsgiAAvAZEPIPM0hk0P4RWLyESRy2iDzkxLR8RdBTjIqYIsyv_thPwE",

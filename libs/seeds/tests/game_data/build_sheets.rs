@@ -1,4 +1,4 @@
-//! The build sheet (ticket 87) of the six bench Builds (`tools/proof/bench-links.tsv`): their second line reopens
+//! The build sheet (ticket 87) of the six bench Builds (`tools/corpus/bench-links.tsv`): their second line reopens
 //! them, each level and each pick has its line, and the parts that matter are pinned.
 
 use crate::support::*;

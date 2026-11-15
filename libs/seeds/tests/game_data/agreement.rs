@@ -1,6 +1,6 @@
 //! Ticket 150, step 1, on the real data: every picker agrees with the walk ([`rules::agreement`]) on ticket 48's
-//! bench Builds (`tools/proof/bench-links.tsv`). The suite judges their first ten levels; the whole Builds,
-//! and the proof's 2,000 Builds (`tools/proof`'s `agreement` test), are ignored for their time. Run them in release:
+//! bench Builds (`tools/corpus/bench-links.tsv`). The suite judges their first ten levels; the whole Builds, and the
+//! corpus's 2,000 Builds (`tools/corpus`'s `agreement` test), are ignored for their time. Run them in release:
 //!
 //! ```text
 //! cargo test --release -p seeds --test game_data agreement -- --ignored --nocapture

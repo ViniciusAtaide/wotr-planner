@@ -53,7 +53,8 @@ incoming connections for the `server` binary in the macOS firewall prompt or set
 | `frontend` | `apps/frontend/` | the wasm entry point (`hydrate` only) |
 | `server` | `apps/backend/` | the Axum entry point |
 | `rules` | `libs/rules/` | pure game rules, serde only, compiled for both browser and server |
-| `seeds` | `libs/seeds/` | reads and checks the game data files (`libs/game-data/`); native only, used by `server`, `mcp` and `proof` |
+| `seeds` | `libs/seeds/` | reads and checks the game data files (`libs/game-data/`); native only, used by `server`, `mcp` and `corpus` |
+| `corpus` | `tools/corpus/` | about 2,000 Builds of the real game data, and the engine's self-checks on them (`tests/`) |
 
 ## Tests
 
@@ -61,5 +62,5 @@ incoming connections for the `server` binary in the macOS firewall prompt or set
 cargo test --workspace
 ```
 
-The `seeds` tests read the real files in `libs/game-data/` (`tests/game_data/`, with the snapshot check and the gold
-builds) and the fixture in `tests/fixtures/game-data/` (`tests/files.rs`).
+The `seeds` tests read the real files in `libs/game-data/` (`tests/game_data/`, with the gold builds
+and the agreement sweep's short run) and the fixture in `tests/fixtures/game-data/` (`tests/files.rs`).

@@ -640,8 +640,8 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
     entry `only` for an archetype of no class on the list (or a story branch off a path's list) and a spell on no
     list. `tests/game_data/spells.rs` keeps the counts per page and list, Hold Monster's facts and levels, each
     spell's file against its list and level, and the hand-fixes.
-  - A data folder without `spells/` (data from before this ticket, which `scripts/proof.sh data` reads as its side
-    A) has no spells and no lists; once the folder exists, `spells/lists.ron` is required.
+  - A data folder without `spells/` (data from before this ticket) has no spells and no lists; once the folder
+    exists, `spells/lists.ron` is required.
   - The spells and lists stay out of the game data JSON the browser gets (`#[serde(skip_serializing)]` on
     `GameData`): the browser has no spell UI and its rules never read them, and the MCP server reads the data
     files.
@@ -803,56 +803,29 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
 - A `//` comment line is allowed anywhere and is kept for readers only: the Crusader's bonus lists carry one saying
   they skip every prerequisite though the guide skips only BAB and fighter level (the user's decision).
 
-## The snapshot check
+## Checking against the game
 
-The real-data test `snapshots` (`libs/seeds/tests/game_data/snapshots.rs`, ticket 159) is the cheap behaviour check
-that runs with every `cargo test`: it says nothing changed in a small corpus of Builds. It runs the current engine
-only; the other side is the snapshot files committed in `libs/seeds/tests/game_data/snapshots/`, one per Build, so an
-intended change shows up as a snapshot diff in its commit. It has no `allows` battery and no consistency checks:
-those stay in the behaviour proof (`scripts/proof.sh`).
+The game is the source of truth for rules (ticket 234). A data change is checked against it, never against the
+engine's earlier output:
 
-- **The corpus:** the six bench Builds (`bench-<name>`, from `tools/proof/bench-links.tsv`), the two gold Builds
-  (`gold-jack`, `gold-enforcer`; see "The gold standard" below), one Build per class of
-  `classes/` at level 20 with no picks (`class-<key>`), eight of them again taken with an archetype
-  (`class-<class>-<archetype>`, `ARCHETYPE_BUILDS` in the test: the Invulnerable Rager, Standard Bearer, Feyspeaker,
-  Two-Handed Fighter, Hospitaler, Eldritch Scoundrel, Battle Scion and Shieldbearer, ticket 204; each needs only its
-  class's alignment and faith, none has a condition of its own), 52 Builds with them, and one fighter 20 per mythic
-  path with no pick beyond the path (`path-<key>`; a path taken only by a switch is switched to from the first path, in
-  key order, it can be).
-  Classes and paths come from the data's own lists, so a new one fails the test until it has a snapshot. A
-  pick-less Build that's impossible as it is gets the first alignment (with a faith that fits) that makes it
-  possible: the paladin is lawful good. Prestige classes have no pick-less Build (their entry needs feats and
-  ranks), so none has a Build of its own (the bench's `multi_prestige20` takes the Assassin). Instead the test
-  holds the list of prestige classes known to be uncovered, `UNCOVERED_PRESTIGE_CLASSES` (all 13 today), and
-  `snapshots_list_every_uncovered_prestige_class` fails when `prestige/` has a class not on it or the list names one
-  that's gone: add a Build for the new class to the corpus, or add it to the list.
-- **The lines:** each file is `path = value` lines in tree order. The Build start (`start.*`, `mythic.*`); per level
-  its class, class level, BAB, saves, scores, skill points, the ranks it adds, each slot (`slot.feat.5.general.0 =
-  Feat: power-attack "Power Attack"`, `-` while empty), and the feats and features gained at that level
-  (`level.2.feature/fighter/bravery`, with `×2` when the level gives two copies, and again at a later level that
-  gives another); per Mythic rank the same (`rank.*`, its status one of `reached`, `partly-dropped`, `dropped`,
-  `not-reached`); then the last level's spellcasting,
-  totals (`totals.*`) and caster lines (`caster.*`: each school, Evocation for each energy and with metamagic,
-  Enchantment for charm and compulsion). The pick-less class and path Builds also list each slot's open options,
-  `slot.feat.1.general.0.open = alertness, …`, a parameterised one as `key(value)`.
-- **Reading a failure:** the message lists each changed line with the Builds it's in, most Builds first:
-  `level.5.saves.will: 4 → 5 in 12 Builds: …`, `+ level.3.feature/x = X`, `- …`. An `.open` list is compared one
-  option at a time, so a newly legal feat reads `+ slot.feat.5.general.0.open/power-attack in 36 Builds: …`. A
-  second grouping wildcards the level or rank (the path's first number), so one newly legal feat is one line:
-  `slot.feat.*.general.0.open/power-attack: + in 36 Builds, 357 slots`. A missing or extra snapshot file is named
-  as such, a file that doesn't parse (a merge conflict's markers) by its first bad line, and a file with the same
-  lines in another order or with a line twice as "same lines, different order or duplicates".
-- **Regenerating:** when every change is intended, `SNAPSHOTS=write cargo test -p seeds --test game_data snapshots`
-  rewrites the files (and deletes those of Builds no longer in the corpus) without reading them, so it also
-  repairs a file that doesn't parse; commit them with the change.
+- **A real-data test per changed fact** in `libs/seeds/tests/game_data/`, whose expected value comes from the game,
+  cited beside the assertion by blueprint name and GUID, or by the decompiled code's file and method with the
+  WrathDecompiled commit.
+- **The engine's self-checks** check it against itself, never against the game: every picker agrees with the walk
+  (`tests/game_data/agreement.rs`, ticket 150), and the withdrawals, the statuses against `allows` and ticket 48's
+  picker shortcut agree with their full answers (`tools/corpus/tests/self_checks.rs`). The suite runs them on a
+  sample; the corpus's ~2,000 Builds (`tools/corpus`: its own Builds with a full Build of each, and the six bench
+  Builds of `bench-links.tsv`) are ignored for their time. When one disagrees with the game, the engine is fixed.
+- **The gold standard** below compares the engine with two Builds known to work in the game.
+- **The game check** (ticket 238) runs by hand once it exists.
 
 ## The gold standard
 
 The real-data test `gold` (`libs/seeds/tests/game_data/gold.rs`, ticket 160) checks the engine against two real build
 write-ups the user knows work in the game: Jack-in-the-Green (a Halfling Sylvan Sorcerer 20) and the Enforcer (a
-Half-Elf Arcane Enforcer 15 / Sylvan Trickster 4 / Mutation Warrior 1), both Azata. Where the snapshot check says
-nothing changed, this says the engine matches the game. The write-ups are right (user, 2026-11-11): a disagreement
-is the engine's or the data's, never the write-up's.
+Half-Elf Arcane Enforcer 15 / Sylvan Trickster 4 / Mutation Warrior 1), both Azata. The write-ups are right (user,
+2026-11-11): a disagreement is the engine's or the data's, unless the game contradicts the write-up, which goes to
+the user (ticket 234: the game is the source of truth for rules).
 
 - **The files** (`libs/seeds/tests/game_data/gold/`): `source.txt` is the write-ups as written, prose, companion
   build and suggested spells included (nothing checks those). `jack-in-the-green.ron` and `enforcer.ron` are the
@@ -866,9 +839,9 @@ is the engine's or the data's, never the write-up's.
   Enforcer wears the Belt of Incredible Dexterity +2, the user's choice of the smallest assumption that makes its
   level-19 Greater Two-Weapon Fighting (Dex 19, the Build's own 17) legal (ticket 168). It takes MR 10 at level 20,
   after the rank table's 19, so its Mythic Shield Focus comes after Shield Focus at level 20 (ticket 171).
-- **What is compared:** everything a write-up lists at a level or rank is gained there on the engine's sheet, as the
-  snapshot check projects a level's or rank's gains (the slot picks, the ability increase, the feats, features and
-  options the level's state holds more of; a rank's picks and its path row's features). The engine may show more.
+- **What is compared:** everything a write-up lists at a level or rank is gained there on the engine's sheet: a
+  level's gains are its slot picks, its ability increase and the feats, features and options its state holds more of
+  than the level before's; a rank's are its picks and its path row's features. The engine may show more.
   A gold name is read as planner names through the test's `NAMES` table (the write-up's spelling beside the
   planner's: "Bypass Epic DR", "Bypass Epic Damage Reduction"), else "Name - Value" as "Name (Value)" (with
   `VALUES`: "Battleaxe", "Battle Axe"), else as itself; a name that resolves to no planner item is a disagreement.

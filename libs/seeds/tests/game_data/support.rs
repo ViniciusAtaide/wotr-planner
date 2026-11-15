@@ -730,10 +730,10 @@ pub fn mr_1_selection() -> SlotId {
 }
 
 /// The benchmark's Builds (ticket 48's), one `name<TAB>link` line each; an empty link is the blank Build.
-const BENCH: &str = include_str!("../../../../tools/proof/bench-links.tsv");
+const BENCH: &str = include_str!("../../../../tools/corpus/bench-links.tsv");
 
 /// The bench Builds by name, opened as the planner opens a link. Those made before deities (an alignment and no
-/// faith, a stale link since ticket 94) are atheists, as `proof`'s bench Builds are.
+/// faith, a stale link since ticket 94) are atheists, as the corpus's bench Builds are.
 pub fn bench() -> Vec<(String, Build)> {
     let engine = engine();
     let keys = rules::LinkKeys::new(&DATA);
