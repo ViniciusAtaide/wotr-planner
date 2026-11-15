@@ -29,6 +29,7 @@ mod feature_steps;
 mod first_ascension;
 mod gear;
 mod granted_feats;
+mod held_selections;
 mod indexed_lookups;
 mod labels;
 mod level_pickers;

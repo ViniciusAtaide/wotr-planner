@@ -72,6 +72,9 @@ pub struct CharacterState {
     /// The options held through each selection that gave them, with how many times (Expanded Element: the
     /// elements picked at 7 and 15). An option granted outside a selection's slot isn't here.
     pub options_through: BTreeMap<FeatureSelectionKey, BTreeMap<SelectionOptionKey, u8>>,
+    /// Each Feature selection a row has granted, with how many rows hold it, whatever their slots hold (ticket 247):
+    /// what [`Prerequisite::Selection`] reads. A feat's extra pick (Extra Rage Power's slot) isn't a row's grant.
+    pub selections: BTreeMap<FeatureSelectionKey, u8>,
     /// Each option held whose pick names a value of the option's own (not a chosen feat's, which `feat_values`
     /// holds), with the values and how many picks hold each (Finesse Training: Dagger 1, Light Shield Bash 1;
     /// ticket 172).
@@ -373,6 +376,7 @@ impl CharacterState {
             ),
             P::Feature { feature, count } => numeric(self.feature_count(feature), *count),
             P::SelectionOption(option) => flag(self.selection_options.contains_key(option)),
+            P::Selection(selection) => flag(self.selections.contains_key(selection)),
             P::NoOptionFrom(selection) => flag(!self.holds_option_of(selection)),
             P::NoOtherOptionOfGroup(group) => {
                 flag(!self.holds_other_option_of(*group, picking.option))

@@ -208,6 +208,10 @@ impl<'a> Walker<'a> {
                 *holds = holds.saturating_add(1);
                 state.class_skills.insert(key.clone());
             }
+            Held::Selection(key) => {
+                let holds = state.selections.entry(key.clone()).or_default();
+                *holds = holds.saturating_add(1);
+            }
         }
         match &item {
             Held::SelectionOption(key, _) if self.raises_bab(key) => self.refresh_bab(),
@@ -329,6 +333,14 @@ impl<'a> Walker<'a> {
                     if *holds == 0 {
                         self.class_skill_holds.remove(key);
                         state.class_skills.remove(key);
+                    }
+                }
+            }
+            Held::Selection(key) => {
+                if let Some(holds) = state.selections.get_mut(key) {
+                    *holds = holds.saturating_sub(1);
+                    if *holds == 0 {
+                        state.selections.remove(key);
                     }
                 }
             }

@@ -508,8 +508,8 @@ fn the_battle_scions_selection_shares_every_rage_power_and_adds_a_teamwork_feat(
 /// The game's Extra Rage Power needs a rage power selection held, which a skald holds from its slot at 3, picked or
 /// not.
 #[test]
-#[ignore = "waits on ticket 247: the game gives Extra Rage Power to a skald 3 with no rage \
-            power picked"]
+#[ignore = "waits on ticket 293: the importer writes Extra Rage Power's prerequisite as the game's \
+            selections, in ticket 247's form, so a skald 3 with no rage power picked meets it"]
 fn a_skald_takes_extra_rage_power_once_it_has_a_rage_power_slot() {
     // Game: ExtraRagePowerSelection 0c7f01fbbe687bb4baff8195cb02fe6a (PrerequisiteFeature SkaldRagePowerSelection
     // 2476514e31791394fa140f1a07941c96, Group Any);

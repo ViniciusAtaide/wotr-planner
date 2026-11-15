@@ -1607,6 +1607,8 @@ fn every_feature_selection_and_option_named_is_one_the_data_has() {
         .insert(selection());
     data.mythic_abilities[0].features.push(feature());
     feat_mut(&mut data, "dodge").prerequisite = Some(Prerequisite::SelectionOption(option()));
+    feat_mut(&mut data, "extra-rogue-talent").prerequisite =
+        Some(Prerequisite::Selection(selection()));
     path_mut(&mut data, "legend")
         .switch
         .as_mut()
@@ -1626,6 +1628,7 @@ fn every_feature_selection_and_option_named_is_one_the_data_has() {
             ),
             unknown(at_option("rogue/rogue-talents/resiliency"), selection()),
             unknown(at_feat("toughness"), selection()),
+            unknown(at_feat("extra-rogue-talent"), selection()),
             unknown(
                 DataAt::MythicAbility(rules::MythicAbilityKey::new("mythic-charge")),
                 feature()

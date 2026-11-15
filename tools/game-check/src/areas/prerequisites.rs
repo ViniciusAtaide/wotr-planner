@@ -639,6 +639,7 @@ fn planner_side(ctx: &Ctx, prerequisite: &Prerequisite, out: &mut Out) -> Option
         Prerequisite::MythicFeat(feat) => has(DataAt::MythicFeat(feat.clone()), out),
         Prerequisite::MythicAbility(ability) => has(DataAt::MythicAbility(ability.clone()), out),
         Prerequisite::SelectionOption(option) => has(DataAt::SelectionOption(option.clone()), out),
+        Prerequisite::Selection(selection) => has(DataAt::FeatureSelection(selection.clone()), out),
         Prerequisite::Race(race) => has(DataAt::Race(race.clone()), out),
         Prerequisite::Deity(deity) => has(DataAt::Deity(deity.clone()), out),
         Prerequisite::Feature { feature, count } => {

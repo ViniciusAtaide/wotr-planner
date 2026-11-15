@@ -147,6 +147,27 @@ fn prerequisites_read_a_same_value_feat_as_the_game_s_feature_or_any_of_a_select
     assert_agrees(&report, "prerequisites", "feat element-mastery");
 }
 
+/// Ticket 247: the planner's `Selection` is the game's `PrerequisiteFeature` of the selection's blueprint.
+#[test]
+fn prerequisites_read_a_held_selection_as_the_game_s_feature_of_the_selection() {
+    let report = report();
+    assert_agrees(&report, "prerequisites", "feat extra-trick");
+    assert_finding(
+        &report,
+        "prerequisites / missing in planner",
+        "feat extra-boon",
+        "WardenTrickSelection",
+        "-",
+    );
+    assert_finding(
+        &report,
+        "prerequisites / not in game",
+        "feat extra-boon",
+        "-",
+        "SeraphBoonSelection",
+    );
+}
+
 #[test]
 fn class_tables_find_skill_points_a_save_and_class_skills_for_a_class_and_an_archetype() {
     let report = report();

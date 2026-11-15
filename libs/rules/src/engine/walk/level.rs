@@ -166,6 +166,10 @@ impl<'a> Walker<'a> {
                     None,
                 );
             }
+            // Its selections are held from here, whatever their slots hold.
+            for selection in row.selections {
+                self.hold(Held::Selection(selection.clone()), None);
+            }
         }
         class_level
     }
