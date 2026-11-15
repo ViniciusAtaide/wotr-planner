@@ -1,7 +1,7 @@
 # The kineticist's blasts and infusions
 
 Type: build (data and model: the blast choice)
-Status: open
+Status: open for its model part only, after 293 (the user, 2026-11-15): its mechanical data is 293's, the importer's
 Blocked by: none
 Model: Opus to build: infusion prerequisites name blasts, which the planner doesn't model yet.
 Map: [WotR Build Planner](../map.md)

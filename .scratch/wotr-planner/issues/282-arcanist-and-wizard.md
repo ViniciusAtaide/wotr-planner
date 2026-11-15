@@ -1,7 +1,7 @@
 # Arcanist and wizard
 
 Type: build (data)
-Status: open
+Status: superseded by 293 (the user, 2026-11-15): the importer writes its mechanical data; what it can't express becomes a gap ticket
 Blocked by: [254](254-a-features-steps-follow-the-class-level.md), [260](260-greater-exploits-opens-the-exploit-picks.md) (it changes `arcanist.ron` and `wizard.ron` first)
 Model: Opus to build: the Magic Deceiver's ways and the wizard's schools read from their blueprints.
 Map: [WotR Build Planner](../map.md)

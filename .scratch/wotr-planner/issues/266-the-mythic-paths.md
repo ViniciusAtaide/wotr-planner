@@ -1,7 +1,7 @@
 # The mythic paths' ranks and options
 
 Type: build (data)
-Status: open
+Status: superseded by 293 (the user, 2026-11-15): the importer writes its mechanical data; what it can't express becomes a gap ticket
 Blocked by: [254](254-a-features-steps-follow-the-class-level.md) (the Aeon's repeated grants)
 Model: Opus to build: each path's rows are read from its progression.
 Map: [WotR Build Planner](../map.md)

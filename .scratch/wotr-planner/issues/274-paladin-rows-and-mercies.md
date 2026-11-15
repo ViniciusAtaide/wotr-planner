@@ -1,7 +1,7 @@
 # Paladin rows and mercies
 
 Type: build (data)
-Status: open
+Status: superseded by 293 (the user, 2026-11-15): the importer writes its mechanical data; what it can't express becomes a gap ticket
 Blocked by: [254](254-a-features-steps-follow-the-class-level.md)
 Model: Opus to build: steps become the game's extra-use features.
 Map: [WotR Build Planner](../map.md)

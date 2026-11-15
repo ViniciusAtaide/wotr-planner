@@ -1,7 +1,7 @@
 # Items
 
 Type: build (data, and a glasses slot)
-Status: open
+Status: open for its model part only, after 293 (the user, 2026-11-15): its mechanical data is 293's, the importer's
 Blocked by: [252](252-what-a-prerequisite-reads.md) (which bonuses count for prerequisites)
 Model: Sonnet to build: each value is read from the item's blueprint and enchantments.
 Map: [WotR Build Planner](../map.md)

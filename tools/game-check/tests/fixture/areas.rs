@@ -121,6 +121,33 @@ fn prerequisites_read_full_stat_values_a_feature_s_own_no_feature_a_skill_s_feat
 }
 
 #[test]
+fn prerequisites_drop_the_leaves_only_a_pet_can_fail_and_count_them() {
+    let report = report();
+    // A pet's class levels and features, which no Build has, are no prerequisite for a Build, in an `Any` group too.
+    assert_agrees(&report, "prerequisites", "feat pet-wise");
+    assert!(
+        report.text().contains("not a pet, which always holds"),
+        "{}",
+        report.text()
+    );
+    // Another NoFeature is the game's prerequisite.
+    assert_finding(
+        &report,
+        "prerequisites / missing in planner",
+        "feat plain-bar",
+        "not KeenEyeFeat",
+        "-",
+    );
+}
+
+#[test]
+fn prerequisites_read_a_same_value_feat_as_the_game_s_feature_or_any_of_a_selection_s_features() {
+    let report = report();
+    assert_agrees(&report, "prerequisites", "feat mastery");
+    assert_agrees(&report, "prerequisites", "feat element-mastery");
+}
+
+#[test]
 fn class_tables_find_skill_points_a_save_and_class_skills_for_a_class_and_an_archetype() {
     let report = report();
     let user = "(the user's facts)";

@@ -4,8 +4,8 @@
 use std::collections::BTreeSet;
 
 use rules::{
-    ArchetypeKey, Build, ClassKey, FeatCategory, FeatKey, FeatSlot, FeatureKey, Issue, Pick,
-    Prerequisite, SelectionOptionKey, SkillKey, SlotKind, Unmet,
+    ArchetypeKey, Build, ClassKey, FeatKey, FeatSlot, FeatureKey, Issue, Pick, Prerequisite,
+    SelectionOptionKey, SkillKey, SlotKind, Unmet,
 };
 
 use crate::support::*;
@@ -52,6 +52,10 @@ fn not_option(key: &str) -> Prerequisite {
 #[test]
 fn the_totem_rage_powers_are_exclusive_one_line_per_character() {
     // Each totem power rules out the other three lines' nine powers; no other rage power rules anything out.
+    // Game: each Lesser totem (BeastTotemLesserFeature d99dfc9238a8a6646b32be09057c1729, CelestialTotemLesserFeature
+    // aba61e0b0e66bf3439cc247ee89fddae, DaemonTotemLesserFeature 45102fd7aab96f94d81ec80768549e12,
+    // FiendTotemLesserFeature 76437492f801f054ba536473ad2fde79) rules out the other Lessers, and each line's plain and
+    // Greater power needs its own Lesser (equivalent model: the same legal picks).
     for line in TOTEM_LINES {
         let others: BTreeSet<String> = TOTEM_LINES
             .iter()
@@ -144,27 +148,25 @@ fn the_totem_rage_powers_are_exclusive_one_line_per_character() {
 
 /// "At 1st level, the Eldritch Scoundrel deals extra damage … She does an additional 1d6 damage at 3rd level,
 /// increasing by 1d6 every four additional class levels (7, 11, 15, 19)." (rogue#sneak-attack-eldritch-scoundrel)
+/// The game's Eldritch Scoundrel keeps the rogue's own Sneak Attack at those levels.
 #[test]
-fn an_eldritch_scoundrels_sneak_attack_dice_come_at_1_3_7_11_15_and_19() {
+#[ignore = "waits on ticket 276: the game gives the Eldritch Scoundrel the rogue's own Sneak Attack"]
+fn an_eldritch_scoundrel_holds_the_rogues_own_sneak_attack_at_1_3_7_11_15_and_19() {
+    // Game: EldritchScoundrelArchetype 57f93dd8423c97c49989501281296c4a removes SneakAttack
+    // 9b9eac6709e1c084cb18c3a366e0ec87 at 5, 9, 13 and 17 and keeps RogueProgression
+    // b57b2a75a5abcaf47a01cf84672b50e9's others (1, 3, 7, 11, 15, 19).
     let sheet = engine().evaluate(&archetype_build("rogue", "rogue/eldritch-scoundrel", 20));
     let dice: Vec<u8> = (1..=20)
         .map(|level| {
-            sheet.at(level).unwrap().feature_count(&FeatureKey::new(
-                "rogue/eldritch-scoundrel/sneak-attack-eldritch-scoundrel",
-            ))
+            sheet
+                .at(level)
+                .unwrap()
+                .feature_count(&FeatureKey::new("rogue/sneak-attack"))
         })
         .collect();
     assert_eq!(
         dice,
         [1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6]
-    );
-    // It is the archetype's only sneak attack.
-    assert_eq!(
-        sheet
-            .at(20)
-            .unwrap()
-            .feature_count(&FeatureKey::new("rogue/sneak-attack")),
-        0
     );
 }
 
@@ -173,6 +175,9 @@ fn an_eldritch_scoundrels_sneak_attack_dice_come_at_1_3_7_11_15_and_19() {
 /// it draws on.
 #[test]
 fn a_shamans_wandering_hex_is_a_daily_choice_from_6() {
+    // Game: ShamanProgression d04a543c82b45694c805301bce9dac24 gives ShamanWanderingHexFeature
+    // 2674f98616188814fbba9f8fccf43564 at 6 and ShamanWanderingHexFeature2 f15d95a394e950a42b1d6afbb9f781d9 at 14;
+    // PossessedShamanArchetype 7939ff57cc2ce104693ea2f5afa595b6 removes the 6th's.
     let wandering_hex = FeatureKey::new("shaman/wandering-hex");
     let daily = |build: &Build, level: u8| engine().daily_choices(&at(build, level));
     let shaman = build("shaman", 14);
@@ -220,20 +225,6 @@ fn class_slot_kind(build: &Build, level: u8) -> Option<SlotKind> {
         .evaluate(build)
         .slot(&class_slot(level))
         .map(|slot| slot.kind.clone())
-}
-
-/// The slot a sorcerer's level-1 bonus feat takes (ticket 92): any Magic feat.
-fn magic_feat_slot() -> SlotKind {
-    SlotKind::Feat(FeatSlot::Category(FeatCategory::Magic))
-}
-
-/// Every Magic feat, by key.
-fn magic_feats() -> BTreeSet<String> {
-    DATA.feats
-        .iter()
-        .filter(|feat| feat.category == FeatCategory::Magic)
-        .map(|feat| feat.key.to_string())
-        .collect()
 }
 
 /// Every sorcerer with a level-1 bonus feat, `levels` levels, holding a bloodline where it picks one, with the
@@ -299,20 +290,22 @@ fn sorcerers_with_a_bonus_feat(
 
 /// Ticket 92 (user, 2026-11-07): every sorcerer's level-1 "Bonus Feat" is a Magic feat, in place of ticket 44's
 /// bloodline list (the Jack-in-the-Green write-up takes Spell Penetration there, off the Fey list) and of the
-/// Geomancer's General slot. Dodge, Power Attack and Toughness, on some bloodline lists, aren't Magic feats.
+/// Geomancer's General slot. Dodge, Power Attack and Toughness, on some bloodline lists, aren't Magic feats. Which
+/// feats the slot offers waits in `every_sorcerers_level_1_bonus_feat_is_one_of_the_games_21`.
 #[test]
 fn every_sorcerers_level_1_bonus_feat_is_a_magic_feat() {
-    let magic = magic_feats();
-    assert!(magic.contains("spell-penetration") && magic.contains("spell-focus"));
+    // Game: SorcererProgression 997665565ca80a649aedd72455c4df1f gives SorcererBonusFeat
+    // d6dd06f454b34014ab0903cb1ed2ade3 at 1, which holds the 21 below (SpellPenetration
+    // ee7dc126939e4d9438357fbd5980d459 among them) and no Dodge, Power Attack, Toughness or Improved Initiative.
     for (name, build, _) in sorcerers_with_a_bonus_feat(1) {
         assert!(possible(&build), "{name}");
-        assert_eq!(
-            class_slot_kind(&build, 1),
-            Some(magic_feat_slot()),
+        let offered = feats_offered(&build, &class_slot(1));
+        assert!(
+            SORCERER_BONUS_FEATS
+                .iter()
+                .all(|feat| offered.contains(*feat)),
             "{name}"
         );
-        let offered = feats_offered(&build, &class_slot(1));
-        assert_eq!(offered, magic, "{name}");
         for feat in ["dodge", "power-attack", "toughness", "improved-initiative"] {
             assert!(!offered.contains(feat), "{name}: {feat}");
         }
@@ -329,10 +322,86 @@ fn every_sorcerers_level_1_bonus_feat_is_a_magic_feat() {
     }
 }
 
+/// The game's sorcerer bonus feat at 1 (the user approved the game's list over ticket 92's, 2026-11-15).
+/// Game: SorcererBonusFeat d6dd06f454b34014ab0903cb1ed2ade3's 21 feats.
+const SORCERER_BONUS_FEATS: [&str; 21] = [
+    "augment-summoning",
+    "combat-casting",
+    "elemental-focus",
+    "greater-elemental-focus",
+    "greater-spell-focus",
+    "greater-spell-penetration",
+    "metamagic-bolster-spell",
+    "metamagic-empower-spell",
+    "metamagic-extend-spell",
+    "metamagic-heighten-spell",
+    "metamagic-intensified-spell",
+    "metamagic-maximise-spell",
+    "metamagic-persistent-spell",
+    "metamagic-piercing-spell",
+    "metamagic-quicken-spell",
+    "metamagic-reach-spell",
+    "metamagic-selective-spell",
+    "spell-focus",
+    "spell-penetration",
+    "spell-specialization",
+    "superior-summoning",
+];
+
+/// The game's sorcerer level-1 bonus feat offers the 21 feats of its own selection, not every Magic feat.
+#[test]
+#[ignore = "waits on ticket 281: the game gives the sorcerer's level-1 bonus feat 21 feats"]
+fn every_sorcerers_level_1_bonus_feat_is_one_of_the_games_21() {
+    for (name, build, _) in sorcerers_with_a_bonus_feat(1) {
+        let offered = feats_offered(&build, &class_slot(1));
+        assert_eq!(
+            offered,
+            SORCERER_BONUS_FEATS.map(String::from).into(),
+            "{name}"
+        );
+    }
+}
+
+/// The game's Seeker picks its feats at 5, 10 and 15 from its own selection of 26.
+#[test]
+#[ignore = "waits on ticket 281: the game gives the Seeker's feats at 5, 10 and 15 a list of 26"]
+fn the_seekers_feats_at_5_10_and_15_are_its_own_26() {
+    // Game: SeekerArchetype 7229db6fc0b07af4180e783eed43c4d9 adds SeekerFeatSelection c6b609279cc3174478624182ac1ad812
+    // at 5, 10 and 15: the 21 above with Ambuscading Spells, Arcane Spirit, Dispel Focus, Greater Dispel Focus and
+    // Spell Chain.
+    let mut expected: BTreeSet<String> = SORCERER_BONUS_FEATS.map(String::from).into();
+    expected.extend(
+        [
+            "ambuscading-spells",
+            "arcane-spirit",
+            "dispel-focus",
+            "greater-dispel-focus",
+            "spell-chain",
+        ]
+        .map(String::from),
+    );
+    let seeker = with_option(
+        archetype_build("sorcerer", "sorcerer/seeker-sorcerer", 15),
+        1,
+        0,
+        ABYSSAL,
+    );
+    for level in [5, 10, 15] {
+        assert_eq!(
+            feats_offered(&seeker, &class_slot(level)),
+            expected,
+            "{level}"
+        );
+    }
+}
+
 /// The Jack-in-the-Green write-up's level 1 (ticket 92): "Bonus Feat - Spell Penetration; Mounted Combat", a Sylvan
 /// Sorcerer 1 with Spell Penetration in the bonus slot and Mounted Combat (Mobility 1 rank) in its general slot.
 #[test]
 fn a_sylvan_sorcerer_1_takes_spell_penetration_and_mounted_combat() {
+    // Game: SorcererBonusFeat d6dd06f454b34014ab0903cb1ed2ade3 holds SpellPenetration
+    // ee7dc126939e4d9438357fbd5980d459 (SylvanSorcererArchetype 711d5024ecc75f346b9cda609c3a1f83 keeps it);
+    // MountedCombat f308a03bea0d69843a8ed0af003d47a9 needs 1 rank of Mobility.
     let mut build = archetype_build("sorcerer", "sorcerer/sylvan-sorcerer", 1);
     build.levels[0]
         .skill_ranks
@@ -358,6 +427,8 @@ fn a_sylvan_sorcerer_1_takes_spell_penetration_and_mounted_combat() {
 /// slot, at 1 or later.
 #[test]
 fn an_overwhelming_mage_still_has_no_bonus_feat() {
+    // Game: OverwhelimgMageArchetype 734917ec8b8542378c1d35519439d67f removes SorcererBonusFeat and the feats at 7, 13
+    // and 19, and adds Overwhelming Penetration at 1.
     let mage = with_option(
         archetype_build("sorcerer", "sorcerer/overwhelming-mage", 20),
         1,
@@ -379,6 +450,9 @@ fn an_overwhelming_mage_still_has_no_bonus_feat() {
 /// feats" (sorcerer#geomancer); the Seeker's bonus magic feats stay at 5, 10 and 15.
 #[test]
 fn the_bloodline_feats_stay_at_7_13_and_19() {
+    // Game: SorcererProgression 997665565ca80a649aedd72455c4df1f gives SorcererFeatSelection
+    // 3a60f0c0442acfb419b0c03b584e1394 at 7, 13 and 19; GeomancerArchetype a0e56a59ad0b44b8add84185da6bb845 removes
+    // them. Each bloodline's list was not compared with the game here.
     for (name, build, lists) in sorcerers_with_a_bonus_feat(19) {
         for level in [7, 13, 19] {
             if lists.is_empty() {
@@ -403,12 +477,10 @@ fn the_bloodline_feats_stay_at_7_13_and_19() {
         0,
         ABYSSAL,
     );
+    // Game: SeekerArchetype 7229db6fc0b07af4180e783eed43c4d9 adds a feat at 5, 10 and 15; which feats waits in
+    // the_seekers_feats_at_5_10_and_15_are_its_own_26.
     for level in [5, 10, 15] {
-        assert_eq!(
-            class_slot_kind(&seeker, level),
-            Some(magic_feat_slot()),
-            "{level}"
-        );
+        assert!(class_slot_kind(&seeker, level).is_some(), "{level}");
     }
 }
 
@@ -440,6 +512,10 @@ fn the_sheet_labels_a_sorcerers_level_1_feat_magic_feat() {
 /// the Sanctified Slayer's own "Slayer Talents" from inquisitor 8 (ticket 60).
 #[test]
 fn extra_slayer_talent_needs_slayer_level_2() {
+    // Game: ExtraSlayerTalentSelection 53f7237f5b1447bb851ba68045a00e41 needs SlayerTalentSelection2
+    // 04430ad24988baa4daa0bcd4f1c7d118 (SlayerProgression 1f35d11937a06624b8a60db68c7869a1 at 2) or
+    // SanctifiedSlayerSlayerTalentFeature db3767ba22ce84942af56525cb9f9ce6 (SanctifiedSlayerArchetype
+    // 19b4a243d9a4bd34887d03c3dea03ced at inquisitor 8) (equivalent model: the levels that grant them).
     assert_eq!(
         feat("extra-slayer-talent").prerequisite,
         Some(Prerequisite::Any(vec![
@@ -501,12 +577,6 @@ fn the_dragon_disciples_no_bloodline_yet_reads_once() {
         .prerequisite
         .as_ref()
         .expect("a prerequisite");
-    // `search` shortens a group of more than three alternatives (`MOST_ALTERNATIVES` in the MCP server).
-    assert_eq!(
-        engine.short_prerequisite_text(prerequisite, 3),
-        "(one of 11 alternatives (no Bloodline yet, Draconic (Black), Draconic (Blue), …)), 5 ranks in Knowledge \
-         (Arcana), to cast 1st-level arcane spells spontaneously, character level 6"
-    );
     let whole = engine.prerequisite_text(prerequisite, None);
     assert!(
         whole.starts_with("(no Bloodline yet or Draconic (Black) or Draconic (Blue) or "),
@@ -529,4 +599,22 @@ fn the_dragon_disciples_no_bloodline_yet_reads_once() {
         "{reason}"
     );
     assert_eq!(reason.matches("no Bloodline yet").count(), 1, "{reason}");
+}
+
+/// The game's Dragon Disciple asks for no character level: its prerequisite reads without one.
+#[test]
+#[ignore = "waits on ticket 287: the game gives the Dragon Disciple no character-level prerequisite"]
+fn the_dragon_disciples_prerequisite_reads_without_a_character_level() {
+    let prerequisite = class("dragon-disciple")
+        .prerequisite
+        .as_ref()
+        .expect("a prerequisite");
+    // `search` shortens a group of more than three alternatives (`MOST_ALTERNATIVES` in the MCP server).
+    // Game: DragonDiscipleClass 72051275b1dbb2d42ba9118237794f7c: 5 ranks of Knowledge (Arcana) and 1st-level arcane
+    // spells cast spontaneously, no character level.
+    assert_eq!(
+        engine().short_prerequisite_text(prerequisite, 3),
+        "(one of 11 alternatives (no Bloodline yet, Draconic (Black), Draconic (Blue), …)), 5 ranks in Knowledge \
+         (Arcana), to cast 1st-level arcane spells spontaneously"
+    );
 }

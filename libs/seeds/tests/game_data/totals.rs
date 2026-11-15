@@ -47,6 +47,9 @@ fn the_max_dc_runs_initiative_will_and_persuasion_at_20() {
     let last = totals(&engine, &build).pop().expect("20 levels");
 
     // The run's question: Dex 16, Pickpocket, Improved Initiative and its mythic feat at MR 10.
+    // Game: BackgroundPickpocket 9da9faf5f0ef4904db4a59a22dafbb06 +2 initiative; "Improved Initiative"
+    // 797f25d709f559546b29e7bcb181cc74 +4; ImprovedInitiativeMythicFeat 25f4cb387ba4ab94d944fdef3da9ab97 adds the
+    // mythic rank.
     assert_eq!(
         parts(&last.initiative),
         [
@@ -57,17 +60,22 @@ fn the_max_dc_runs_initiative_will_and_persuasion_at_20() {
         ]
     );
     assert_eq!(last.initiative.total, 19);
+    // Game: IronWill 175d1577bb6c9a04baf88eec99c66334 +2 Will.
     assert_eq!(
         parts(&last.will),
         [("Base save", 12), ("Wisdom", 1), ("Iron Will", 2)]
     );
     // Arcane Spirit's check: 20 ranks, Charisma 25, a class skill.
+    // Game: EntitySystem/Stats/ModifiableValueSkill.ClassSkillBonus, WrathDecompiled 6ce4a6b: +3 to a trained class
+    // skill.
     assert_eq!(
         parts(skill_total(&last, "persuasion")),
         [("Ranks", 20), ("Charisma", 7), ("Class skill", 3)]
     );
     assert_eq!(skill_total(&last, "persuasion").total, 30);
     // The Kitsune's Agile and Keen Senses count untrained.
+    // Game: KitsuneRace fd188bb7bb0002e49863aec93bfb9d99 grants AgileKitsune 32944d9af38d25342ad32dc1f407c714 (+2
+    // Mobility) and KeenSenses 9c747d24f6321f744aa1bb4bd343880d (+2 Perception).
     assert_eq!(
         parts(skill_total(&last, "mobility")),
         [("Ranks", 0), ("Dexterity", 3), ("Kitsune", 2)]
@@ -92,6 +100,9 @@ fn a_halfling_paladins_saves_count_halfling_luck_the_background_great_fortitude_
     let constitution = (i16::from(state.ability_scores.constitution) - 10).div_euclid(2);
 
     // Divine Grace comes at paladin 2.
+    // Game: PaladinProgression fd325cbba872e5f40b618970678db002 gives DivineGrace 8a5b5e272e5c34e41aa8b4facbb746d3 at
+    // 2; HalflingLuck 84ffa66048d26b14c800a425199f9886 +1 to every save; BackgroundFarmhand
+    // 25b35e09665310d4faac3020f8198cfb +1 Fortitude; GreatFortitude 79042cb55f030614ea29956177977c52 +2.
     assert!(
         !parts(&levels[0].fortitude)
             .iter()
@@ -132,6 +143,8 @@ fn skill_focus_gives_3_and_6_from_10_ranks() {
             .map(|(_, value)| value)
     };
 
+    // Game: SkillFocusDiplomacy 1621be43793c5bb43be55493e9c45924: +3, or +6 from 10 ranks (a ContextRankConfig on the
+    // skill's base value).
     assert_eq!(focus(&levels[8]), Some(3));
     assert_eq!(focus(&levels[9]), Some(6));
 }
