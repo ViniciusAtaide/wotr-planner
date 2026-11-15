@@ -359,9 +359,10 @@ pub struct Gained {
     /// Left out for rank 1, when it equals `times`, and on a Mythic rank's line.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rank: Option<u8>,
-    /// Its step at a level's end, when the level it reads rose to one of its steps there: a feature granted once
-    /// whose numbers rise with a class level (Infernal Resistance: step 2 at bloodrager 8, with no grant). Each grant
-    /// counts as a step too. Left out at a level that reaches no step.
+    /// Its step at a level's end, set only when the feature was already held before the level and the level it reads
+    /// rose to one of its steps there: a rise without a grant (Infernal Resistance: step 2 at bloodrager 5, step 3 at
+    /// 8). Each grant counts as a step too. A feature granted at the level is gained, with no `step`, whatever steps
+    /// its level has already passed. Left out otherwise.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub step: Option<u8>,
 }

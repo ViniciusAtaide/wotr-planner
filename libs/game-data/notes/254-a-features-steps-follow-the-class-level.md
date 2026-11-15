@@ -8,10 +8,15 @@ sheet is its grants plus the step levels the level it reads has reached while it
 The worked example, in `classes/bloodrager.ron`:
 
 - `bloodrager/bloodline/infernal/infernal-resistance`: granted on the Infernal bloodline's row 4 only (the row at 8
-  no longer names it), `steps: (on: Classes(["bloodrager"]), at: [8])`. Game: `BloodragerInfernalBloodline`
+  no longer names it), `steps: (on: Classes(["bloodrager"]), at: [5, 8])`. Game: `BloodragerInfernalBloodline`
   9aef64b53406f114cb43f898a3aec01e grants `BloodragerInfernalResistance` ac77b22f74aed034ca2b16ba6a4bfde9 at 4;
-  `BloodragerInfernalResistanceBuff` 66c973ccad1293345ae6c5bfeced4a7b ranks it on `BloodragerClass` level, a custom
-  table rising at 8 (`ContextRankConfig.GetBaseValue` ClassLevel, `ApplyProgression` Custom, WrathDecompiled 6ce4a6b).
+  `BloodragerInfernalResistanceBuff` 66c973ccad1293345ae6c5bfeced4a7b has two `ContextRankConfig`s on
+  `BloodragerClass` level (`GetBaseValue` ClassLevel, `ApplyProgression` Custom, WrathDecompiled 6ce4a6b): the
+  resistance's table (fire resistance, 5 up to level 7, 10 from 8) rises at 8, and a second, `DamageDice`, feeding
+  `SavingThrowBonusAgainstDescriptor` (the poison-save bonus), with the custom table {4 -> 2, 8 -> 4}, where
+  `ApplyProgression` takes the first entry whose `BaseValue` is at least the level: 2 up to level 4, 4 from 5. So
+  one number rises at 5 and the other at 8, and the feature lists both. The summary's "+4 at 8th" is the guide's;
+  the game's save bonus rises at 5.
 - `bloodrager/bloodline/abyssal/abyssal-bloodrage`: granted on the Abyssal bloodline's row 12 only (rows 16 and 20 no
   longer name it), `steps: (on: Classes(["bloodrager"]), at: [16, 20])`. Game: `BloodragerAbyssalBloodline`
   55d5bbf4b5ae1744ab26c71be98067f9 grants `BloodragerAbyssalBloodrage` 29fc83f824111bb41829957486752c93 at 12;
@@ -21,10 +26,10 @@ The worked example, in `classes/bloodrager.ron`:
   `PropertySettings.ApplyProgression`).
 
 **What changes for a Build.** The Primalist (`PrimalistProgression` d8b8d1dd83393484cbacf6c8830080ae) who takes the
-rage powers at 4 never holds Infernal Resistance, so it gets no step at 8 (it did before); one who takes them at 8
-keeps the resistance from 4 and its step at 8 (it lost the step before). Likewise Abyssal Bloodrage: traded at 12,
+rage powers at 4 never holds Infernal Resistance, so it gets no step at 5 or 8 (it got the one at 8 before); one who
+takes them at 8 keeps the resistance from 4 and its steps at 5 and 8 (it lost the step at 8 before). Likewise Abyssal Bloodrage: traded at 12,
 never held and no steps; traded at 16 or 20, still rising there. Every other holder rises at the same levels as
-before (the bloodrager and its archetypes, the Reformed Fiend, the second bloodrager bloodline at MR 1).
+before, plus the new step at 5 (the bloodrager and its archetypes, the Reformed Fiend, the second bloodrager bloodline at MR 1).
 
 **Decisions.** The model is ticket 254's recommendation, taken by the main session under the user's instruction of
 2026-11-15 to build tickets 247–291 in order. Ours: the step is a field of the feature (so it moves with the feature

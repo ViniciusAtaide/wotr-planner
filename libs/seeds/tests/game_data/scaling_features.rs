@@ -995,7 +995,7 @@ fn every_sorcerer_archetype_holds_the_steps_of_the_bloodline_resistances() {
 
 #[test]
 fn the_bloodragers_infernal_resistance_and_abyssal_bloodrage_step() {
-    // Infernal Resistance 4 and 8; Abyssal Bloodrage 12, 16 and 20. The Hag-Riven and the Mixed Blood Rager are not
+    // Infernal Resistance 4, 5 and 8; Abyssal Bloodrage 12, 16 and 20. The Hag-Riven and the Mixed Blood Rager are not
     // offered either bloodline; the Primalist's rage-power choice is the known open question (ticket 177's Answer),
     // and a Primalist taking the bloodline's ability at every level holds them all.
     // Game: BloodragerAbyssalBloodline 55d5bbf4b5ae1744ab26c71be98067f9 and BloodragerInfernalBloodline
@@ -1004,12 +1004,13 @@ fn the_bloodragers_infernal_resistance_and_abyssal_bloodrage_step() {
     // BloodragerBloodlineSelection 62b33ac8ceb18dd47ad4c8f06849bc01 at 1.
     for (option, feature, levels) in [
         // Game: BloodragerInfernalBloodline 9aef64b53406f114cb43f898a3aec01e grants BloodragerInfernalResistance
-        // ac77b22f74aed034ca2b16ba6a4bfde9 at 4; BloodragerInfernalResistanceBuff 66c973ccad1293345ae6c5bfeced4a7b
-        // rises at 8 (equivalent model).
+        // ac77b22f74aed034ca2b16ba6a4bfde9 at 4; BloodragerInfernalResistanceBuff 66c973ccad1293345ae6c5bfeced4a7b has
+        // two ContextRankConfigs on BloodragerClass level: the resistance's table rises at 8, the poison-save bonus's
+        // (DamageDice, custom {4 -> 2, 8 -> 4}; ApplyProgression takes the first entry with value <= base) at 5.
         (
             "bloodrager/bloodline/infernal",
             "bloodrager/bloodline/infernal/infernal-resistance",
-            &[4u8, 8][..],
+            &[4u8, 5, 8][..],
         ),
         // BloodragerAbyssalBloodrage 29fc83f824111bb41829957486752c93 is granted once at 12; its steps at 16 and 20
         // are not found in the blueprints (unsettled).
@@ -1349,7 +1350,8 @@ fn the_selections_sharing_a_stepped_option_hold_the_steps_its_rows_give() {
         ),
         [6, 9]
     );
-    // The Second Bloodrager Bloodline: Infernal Resistance by bloodrager levels, 6 and then 8.
+    // The Second Bloodrager Bloodline: Infernal Resistance granted at 6, with the step at 5 already passed (the game
+    // reads bloodrager level whenever the feature is held: the grant and that step at 6), then the step at 8.
     let mut bloodrager = with_option(
         build("bloodrager", 20),
         1,
@@ -1370,7 +1372,7 @@ fn the_selections_sharing_a_stepped_option_hold_the_steps_its_rows_give() {
             &bloodrager,
             "bloodrager/bloodline/infernal/infernal-resistance"
         ),
-        [6, 8]
+        [6, 6, 8]
     );
     // The Second Spirit: a Battle spirit taken at MR 1 (level 6) after the Frost spirit holds Battle Spirit at 6, 8
     // and 16.
@@ -1424,10 +1426,11 @@ fn a_primalists_rage_powers_replace_the_row_and_its_step_with_it() {
     // Game: BloodragerInfernalResistance ac77b22f74aed034ca2b16ba6a4bfde9 has a PrerequisiteNoFeature of
     // PrimalistProgression d8b8d1dd83393484cbacf6c8830080ae; PrimalistTakeBloodlinePower4
     // 2140040bf367e8b4a9c6a632820becbe adds it; BloodragerInfernalResistanceBuff 66c973ccad1293345ae6c5bfeced4a7b's
-    // rank rises at 8 (equivalent model).
+    // resistance table rises at 8 and its second ContextRankConfig (DamageDice, the poison-save bonus: custom
+    // {4 -> 2, 8 -> 4}, ApplyProgression: first entry with value <= base) at 5.
     assert_eq!(
         gains(&primalist(PRIMALIST_INFERNAL, &[]), PRIMALIST_RESISTANCE),
-        [4, 8]
+        [4, 5, 8]
     );
     assert_eq!(
         gains(
@@ -1476,7 +1479,7 @@ fn a_primalists_traded_power_never_steps_and_a_kept_one_steps_with_the_class_lev
     );
     assert_eq!(
         gains(&primalist(PRIMALIST_INFERNAL, &[8]), PRIMALIST_RESISTANCE),
-        [4, 8]
+        [4, 5, 8]
     );
     // Game: PrimalistTakeBloodlinePower12 57bb4dc36611c7444817c13135ec58b4 is the Primalist's only way to
     // BloodragerAbyssalBloodrage 29fc83f824111bb41829957486752c93 (PrerequisiteNoFeature PrimalistProgression).
