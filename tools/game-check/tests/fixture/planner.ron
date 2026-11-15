@@ -1,0 +1,163 @@
+// The game check's fixture: a small invented game, in our own words, with a blueprint per entry. Each comparison
+// has an entry that agrees and one with a planted difference; `blueprints.json` beside it is the game's side.
+(
+    progression: (mythic_ascensions: []),
+    races: [],
+    skills: [],
+    weapons: [],
+    feats: [
+        // Strength 13 in the game; planted: 15, and no BAB 1.
+        (key: "steady-hand", blueprint: "000000000000000000000000000000a1", name: "Steady Hand", category: Weapon, guide: "feats#steady-hand", prerequisite: AbilityScore(ability: Strength, score: 15)),
+        // Agrees.
+        (key: "keen-eye", blueprint: "000000000000000000000000000000a2", name: "Keen Eye", category: Weapon, guide: "feats#keen-eye", prerequisite: All([Feat("steady-hand"), BaseAttackBonus(3)])),
+        // Both feats in the game; planted: either one.
+        (key: "wide-stance", blueprint: "000000000000000000000000000000a3", name: "Wide Stance", category: Weapon, guide: "feats#wide-stance", prerequisite: Any([Feat("steady-hand"), Feat("keen-eye")])),
+        // No prerequisite in the game; planted: Keen Eye. Not in the general pool either.
+        (key: "old-habit", blueprint: "000000000000000000000000000000a4", name: "Old Habit", category: Weapon, guide: "feats#old-habit", prerequisite: Feat("keen-eye")),
+        // Agrees: any good alignment, the game's `Good`.
+        (key: "faithful", blueprint: "000000000000000000000000000000a5", name: "Faithful", category: Miscellaneous, guide: "feats#faithful", prerequisite: Any([Alignment(LawfulGood), Alignment(NeutralGood), Alignment(ChaoticGood)])),
+        // Planted: a blueprint the dump doesn't have.
+        (key: "lost-feat", blueprint: "00000000000000000000000000000dea", name: "Lost Feat", category: Weapon, guide: "feats#lost-feat"),
+        // Planted: a class's blueprint.
+        (key: "misnamed", blueprint: "000000000000000000000000000000c1", name: "Misnamed", category: Weapon, guide: "feats#misnamed"),
+        // The game asks for a blueprint the planner doesn't map.
+        (key: "stranger", blueprint: "000000000000000000000000000000a8", name: "Stranger", category: Weapon, guide: "feats#stranger"),
+    ],
+    classes: [
+        (
+            key: "warden",
+            blueprint: "000000000000000000000000000000c1",
+            name: "Warden",
+            guide: "warden",
+            // Planted: 3 in the game.
+            skill_points: 4,
+            bab: Full,
+            fort: Good,
+            // Planted: good in the game.
+            reflex: Poor,
+            will: Poor,
+            // Planted: Stealth in the game, not Perception.
+            class_skills: ["athletics", "perception"],
+            // Agrees: not lawful.
+            prerequisite: Any([Alignment(NeutralGood), Alignment(ChaoticGood), Alignment(TrueNeutral), Alignment(ChaoticNeutral), Alignment(NeutralEvil), Alignment(ChaoticEvil)]),
+            features: [
+                (key: "warden/guard", blueprint: "000000000000000000000000000000f1", name: "Guard", guide: "warden#guard"),
+                (key: "warden/sense", blueprint: "000000000000000000000000000000f2", name: "Sense", guide: "warden#sense"),
+                (key: "warden/ghost", blueprint: "000000000000000000000000000000f4", name: "Ghost", guide: "warden#ghost"),
+            ],
+            selections: [
+                (
+                    key: "warden/trick",
+                    blueprint: "000000000000000000000000000000e1",
+                    name: "Trick",
+                    guide: "warden#trick",
+                    options: [
+                        // Agrees: Warden level 2.
+                        (key: "warden/trick/a", blueprint: "000000000000000000000000000000b1", name: "Trick A", guide: "warden#trick-a", prerequisite: ClassLevel(class: "warden", level: 2)),
+                        // Planted: not among the game's options.
+                        (key: "warden/trick/b", blueprint: "000000000000000000000000000000b2", name: "Trick B", guide: "warden#trick-b"),
+                        (key: "warden/trick/c", name: "Trick C", guide: "warden#trick-c"),
+                    ],
+                ),
+                // Planted: the game grants this blueprint, a feature, with no choice.
+                (
+                    key: "warden/knack",
+                    blueprint: "000000000000000000000000000000f3",
+                    name: "Knack",
+                    guide: "warden#knack",
+                    options: [(key: "warden/knack/a", blueprint: "000000000000000000000000000000b3", name: "Knack A", guide: "warden#knack-a")],
+                ),
+            ],
+            feat_lists: [
+                // Planted: the game's list ignores no prerequisites and holds Wide Stance, not Keen Eye.
+                (key: "warden/drills", blueprint: "000000000000000000000000000000d1", name: "Drills", guide: "warden#drills", ignores_prerequisites: true, feats: ["steady-hand", "keen-eye"]),
+            ],
+            levels: [
+                // Agrees: the game's bundle of Steady Hand.
+                (level: 1, features: ["warden/guard"], feats: ["steady-hand"]),
+                // Planted: Sense, which the game gives at 3.
+                (level: 2, features: ["warden/sense"], selections: ["warden/trick"], feat_slots: [CombatFeat]),
+                // Planted: Ghost, which the game doesn't give; the game's extra feature is missing.
+                (level: 3, features: ["warden/ghost"]),
+            ],
+            archetypes: [
+                (
+                    key: "warden/stoic",
+                    blueprint: "000000000000000000000000000000c3",
+                    name: "Stoic",
+                    guide: "warden#stoic",
+                    // Planted: 3 + 1 in the game.
+                    skill_points: 5,
+                    // Planted: the game keeps the class's poor Will.
+                    will: Good,
+                    features: [(key: "warden/stoic/calm", blueprint: "000000000000000000000000000000f6", name: "Calm", guide: "warden#calm")],
+                    // Level 2 keeps the base row: planted, the game removes the Trick there.
+                    levels: [(level: 1, features: ["warden/stoic/calm"], feats: ["steady-hand"])],
+                ),
+                (
+                    key: "warden/stray",
+                    blueprint: "000000000000000000000000000000c4",
+                    name: "Stray",
+                    guide: "warden#stray",
+                ),
+            ],
+        ),
+    ],
+    prestige_classes: [
+        (
+            key: "sentinel",
+            // Planted: a base class in the game.
+            blueprint: "000000000000000000000000000000c2",
+            name: "Sentinel",
+            guide: "sentinel",
+            skill_points: 2,
+            bab: Full,
+            fort: Good,
+            reflex: Poor,
+            will: Poor,
+            features: [(key: "sentinel/watch", blueprint: "000000000000000000000000000000f5", name: "Watch", guide: "sentinel#watch")],
+            levels: [(level: 1, features: ["sentinel/watch"])],
+        ),
+    ],
+    mythic_abilities: [
+        (key: "mythic-grit", blueprint: "000000000000000000000000000000a9", name: "Mythic Grit", group: Miscellaneous, guide: "mythic#grit"),
+        // Planted: not in the game's pool.
+        (key: "mythic-spare", blueprint: "000000000000000000000000000000aa", name: "Mythic Spare", group: Miscellaneous, guide: "mythic#spare"),
+    ],
+    mythic_feats: [],
+    gear: [
+        // Agrees.
+        (key: "belt-of-test-strength", blueprint: "00000000000000000000000000000101", name: "Belt of Test Strength", slot: Belt, bonuses: [(target: Ability(Strength), amount: 2, kind: Enhancement)]),
+        // Planted: +3 in the game.
+        (key: "cloak-of-test", blueprint: "00000000000000000000000000000102", name: "Cloak of Test", slot: Cloak, bonuses: [(target: AllSaves, amount: 2, kind: Resistance)]),
+        // Planted: a headband in the game; Perception's bonus is insight there; the game's initiative is missing.
+        (key: "headband-of-test", blueprint: "00000000000000000000000000000103", name: "Headband of Test", slot: Belt, bonuses: [(target: Ability(Intelligence), amount: 2, kind: Enhancement), (target: Skill("perception"), amount: 1, kind: Competence)]),
+        // A tome: deferred.
+        (key: "tome-of-test", blueprint: "00000000000000000000000000000104", name: "Tome of Test", slot: Usable, bonuses: [(target: Ability(Wisdom), amount: 2, kind: Inherent)]),
+        // Planted: no such bonus in the game.
+        (key: "ring-of-nothing", blueprint: "00000000000000000000000000000105", name: "Ring of Nothing", slot: Ring, bonuses: [(target: Concentration, amount: 1)]),
+    ],
+    mythic_paths: [
+        (
+            key: "seraph",
+            // The game's Angel class, so the check's table of first levels applies; the rest is invented.
+            blueprint: "a5a9fe8f663d701488bd1db8ea40484e",
+            name: "Seraph",
+            guide: "seraph",
+            features: [
+                (key: "seraph/first-step", blueprint: "00000000000000000000000000000201", name: "First Step", guide: "seraph#first-step"),
+                (key: "seraph/halo", blueprint: "00000000000000000000000000000202", name: "Halo", guide: "seraph#halo"),
+                (key: "seraph/wings", blueprint: "00000000000000000000000000000203", name: "Wings", guide: "seraph#wings"),
+                (key: "seraph/summon", blueprint: "00000000000000000000000000000204", name: "Summon", guide: "seraph#summon"),
+            ],
+            ranks: [
+                (rank: 1, features: ["seraph/first-step"]),
+                (rank: 3, features: ["seraph/halo"]),
+                // Planted: Wings, which the game gives at 4; Summon agrees (a nested progression's level 5).
+                (rank: 5, features: ["seraph/wings", "seraph/summon"]),
+            ],
+        ),
+    ],
+    backgrounds: [],
+    deities: [],
+)

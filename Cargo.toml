@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["libs/ui", "apps/frontend", "apps/backend", "libs/rules", "libs/seeds", "tools/corpus", "apps/mcp"]
+members = ["libs/ui", "apps/frontend", "apps/backend", "libs/rules", "libs/seeds", "tools/corpus", "apps/mcp", "tools/game-check"]
 
 [workspace.package]
 edition = "2024"
@@ -37,6 +37,17 @@ panic = "abort"
 # variables. Full debug info made each copy of the test binaries 1–2 GB, and cargo keeps a copy per build setup.
 [profile.dev]
 debug = "line-tables-only"
+
+# The game check (ticket 238) hashes, decompresses and parses a 137 MB dump: these three at full speed keep a debug
+# `cargo run -p game-check` to seconds.
+[profile.dev.package.sha2]
+opt-level = 3
+
+[profile.dev.package.lz4_flex]
+opt-level = 3
+
+[profile.dev.package.serde_json]
+opt-level = 3
 
 [[workspace.metadata.leptos]]
 name = "wotr-planner"

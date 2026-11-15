@@ -1,0 +1,51 @@
+# The game check's known differences (ticket 238): each a group, or one entry of a group, with the ticket that will
+# remove it. A finding takes the most specific line that matches it; known findings are reported in groups of their
+# own and don't fail the check, and a line that matches no finding does.
+#
+#   <area> -> <ticket>
+#   <area> / <kind> -> <ticket>
+#   <area> / <kind> / <entry> -> <ticket>
+#   <area> / <kind> / <entry> / <value> -> <ticket>
+#
+# A kind of `*` is any kind; a value is the finding's game or planner value, whole. The ticket is its number or,
+# before it has one, its file name in .scratch/wotr-planner/issues/ without `.md`.
+
+# The rank and context splits (237's Answer, groups b and c): the planner grants a feature once per rank, or the game
+# grants it again; and the planner's per-context pools of the game's one filtered selection.
+progression rows / a further rank in game only -> ranks-and-filtered-pools
+progression rows / a further rank in planner only -> ranks-and-filtered-pools
+mythic ranks / a further rank in planner only -> ranks-and-filtered-pools
+option lists / * / selection oracle/revelations/ancestor -> ranks-and-filtered-pools
+option lists / * / selection oracle/revelations/battle -> ranks-and-filtered-pools
+option lists / * / selection oracle/revelations/bones -> ranks-and-filtered-pools
+option lists / * / selection oracle/revelations/flame -> ranks-and-filtered-pools
+option lists / * / selection oracle/revelations/life -> ranks-and-filtered-pools
+option lists / * / selection oracle/revelations/nature -> ranks-and-filtered-pools
+option lists / * / selection oracle/revelations/stone -> ranks-and-filtered-pools
+option lists / * / selection oracle/revelations/waves -> ranks-and-filtered-pools
+option lists / * / selection oracle/revelations/wind -> ranks-and-filtered-pools
+option lists / * / selection arcanist/magic-deceiver/revelation -> ranks-and-filtered-pools
+
+# Copies and entries holding one of several blueprints (237's Answer, group a and its list of entries with several):
+# a selection the planner shares where the game keeps one per class, and the blueprints an entry's primary leaves out.
+progression rows / a selection the game keeps separate -> game-data-by-blueprint
+mythic ranks / a selection the game keeps separate -> game-data-by-blueprint
+option lists / * / selection cleric/separatist/domain -> game-data-by-blueprint
+option lists / * / selection warpriest/blessings -> game-data-by-blueprint
+option lists / * / selection aeon/enforcing-gaze -> game-data-by-blueprint
+option lists / * / feat list kineticist/element/air/wild-talent-feats -> game-data-by-blueprint
+option lists / * / feat list kineticist/element/earth/wild-talent-feats -> game-data-by-blueprint
+option lists / * / feat list kineticist/element/fire/wild-talent-feats -> game-data-by-blueprint
+option lists / * / feat list kineticist/element/water/wild-talent-feats -> game-data-by-blueprint
+option lists / in game only / pool general feats / AdvancedWeaponTraining2 -> game-data-by-blueprint
+option lists / in game only / pool general feats / AdvancedWeaponTraining3 -> game-data-by-blueprint
+option lists / in game only / pool general feats / AdvancedWeaponTraining4 -> game-data-by-blueprint
+option lists / in game only / pool general feats / ExtraChannelEmpyrealSorcerer -> game-data-by-blueprint
+option lists / in game only / pool general feats / ExtraChannelHexChanneler -> game-data-by-blueprint
+option lists / in game only / pool general feats / ExtraChannelHospitaler -> game-data-by-blueprint
+option lists / in game only / pool general feats / ExtraChannelOracle -> game-data-by-blueprint
+option lists / in game only / pool general feats / ExtraChannelShaman -> game-data-by-blueprint
+option lists / in game only / pool general feats / ExtraShamanHexSelection -> game-data-by-blueprint
+option lists / in game only / pool general feats / MagicalTail -> game-data-by-blueprint
+option lists / in planner only / pool general feats / magical-tail (MagicalTail1) -> game-data-by-blueprint
+option lists / in game only / pool mythic abilities / AbundantSmiteChaos -> game-data-by-blueprint

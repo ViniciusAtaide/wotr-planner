@@ -1,0 +1,92 @@
+//! The game check (ticket 238): each game-data entry that names a blueprint, compared with that blueprint in the
+//! game's pinned dump.
+//!
+//! [`binz::read`] refuses a dump that isn't the pinned one ([`Pins`], `scripts/game-sources.pins`) before reading
+//! it; [`check`] compares the areas of [`Area`] and builds the [`Report`]: plain text, the same bytes for the same
+//! dump and data, which names blueprints by asset name and GUID and never prints the game's text.
+
+use std::fmt;
+
+use rules::GameData;
+
+mod areas;
+pub mod binz;
+mod dump;
+pub mod known;
+mod pins;
+mod planner;
+mod report;
+
+pub use dump::Dump;
+pub use known::Known;
+pub use pins::Pins;
+pub use report::{Area, Report};
+
+use areas::Ctx;
+use planner::Planner;
+use report::Out;
+
+/// Compares the data with the dump, area by area.
+pub fn check(pins: &Pins, dump: &Dump, data: &GameData, known: &Known) -> Report {
+    let planner = Planner::new(data);
+    let ctx = Ctx {
+        dump,
+        planner: &planner,
+    };
+    let mut out = Out::default();
+    areas::mapping::compare(&ctx, &mut out);
+    areas::prerequisites::compare(&ctx, &mut out);
+    areas::class_tables::compare(&ctx, &mut out);
+    areas::rows::compare_classes(&ctx, &mut out);
+    areas::options::compare(&ctx, &mut out);
+    areas::rows::compare_mythic(&ctx, &mut out);
+    areas::items::compare(&ctx, &mut out);
+    Report::build(
+        pins,
+        dump.len(),
+        (planner.entries.len(), planner.with_blueprint()),
+        out,
+        known,
+    )
+}
+
+#[derive(Debug)]
+pub enum Error {
+    Io {
+        path: String,
+        error: std::io::Error,
+    },
+    /// The pins file can't be read as pins.
+    Pins(String),
+    /// The dump isn't the pinned one: nothing was compared.
+    Refused {
+        what: &'static str,
+        expected: String,
+        found: String,
+    },
+    /// The dump isn't a `.binz` the check can read.
+    Format(String),
+    /// `known.txt` can't be read.
+    Known(String),
+}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Error::Io { path, error } => write!(f, "{path}: {error}"),
+            Error::Pins(why) => write!(f, "the pins: {why}"),
+            Error::Refused {
+                what,
+                expected,
+                found,
+            } => write!(
+                f,
+                "refused: the dump's {what} is {found}, the pin's is {expected}; nothing was compared"
+            ),
+            Error::Format(why) => write!(f, "the dump: {why}"),
+            Error::Known(why) => write!(f, "known.txt: {why}"),
+        }
+    }
+}
+
+impl std::error::Error for Error {}

@@ -1,0 +1,945 @@
+[
+ {
+  "guid": "000000000000000000000000000000a1",
+  "name": "SteadyHandFeat",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": [
+    {
+     "$type": "0, PrerequisiteStatValue",
+     "Group": "All",
+     "Stat": "Strength",
+     "Value": 13
+    },
+    {
+     "$type": "0, PrerequisiteStatValue",
+     "Group": "All",
+     "Stat": "BaseAttackBonus",
+     "Value": 1
+    }
+   ]
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000a2",
+  "name": "KeenEyeFeat",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": [
+    {
+     "$type": "0, PrerequisiteFeature",
+     "Group": "All",
+     "m_Feature": "!bp_000000000000000000000000000000a1"
+    },
+    {
+     "$type": "0, PrerequisiteStatValue",
+     "Group": "All",
+     "Stat": "BaseAttackBonus",
+     "Value": 3
+    }
+   ]
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000a3",
+  "name": "WideStanceFeat",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": [
+    {
+     "$type": "0, PrerequisiteFeature",
+     "Group": "All",
+     "m_Feature": "!bp_000000000000000000000000000000a1"
+    },
+    {
+     "$type": "0, PrerequisiteFeature",
+     "Group": "All",
+     "m_Feature": "!bp_000000000000000000000000000000a2"
+    }
+   ]
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000a4",
+  "name": "OldHabitFeat",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": []
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000a5",
+  "name": "FaithfulFeat",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": [
+    {
+     "$type": "0, PrerequisiteAlignment",
+     "Group": "All",
+     "Alignment": "Good"
+    },
+    {
+     "$type": "0, PrerequisiteIsPet",
+     "Group": "All",
+     "Not": true
+    }
+   ]
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000a8",
+  "name": "StrangerFeat",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": [
+    {
+     "$type": "0, PrerequisiteFeature",
+     "Group": "All",
+     "m_Feature": "!bp_000000000000000000000000000000ff"
+    }
+   ]
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000ff",
+  "name": "UnmappedThing",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": []
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000f0",
+  "name": "UnpickedFeat",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": []
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000a9",
+  "name": "MythicGritFeature",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": []
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000aa",
+  "name": "MythicSpareFeature",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": []
+  }
+ },
+ {
+  "guid": "00000000000000000000000000000af1",
+  "name": "UnclaimedMythicFeat",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": []
+  }
+ },
+ {
+  "guid": "247a4068296e8be42890143f451b4b45",
+  "name": "BasicFeatSelection",
+  "type": "Kingmaker.Blueprints.Classes.Selection.BlueprintFeatureSelection",
+  "raw": {
+   "Group": "Feat",
+   "m_AllFeatures": [
+    "!bp_000000000000000000000000000000a1",
+    "!bp_000000000000000000000000000000a2",
+    "!bp_000000000000000000000000000000a3",
+    "!bp_000000000000000000000000000000a5",
+    "!bp_000000000000000000000000000000a8",
+    "!bp_000000000000000000000000000000f0"
+   ]
+  }
+ },
+ {
+  "guid": "ba0e5a900b775be4a99702f1ed08914d",
+  "name": "MythicAbilitySelection",
+  "type": "Kingmaker.Blueprints.Classes.Selection.BlueprintFeatureSelection",
+  "raw": {
+   "Group": "MythicAbility",
+   "m_AllFeatures": [
+    "!bp_000000000000000000000000000000a9"
+   ]
+  }
+ },
+ {
+  "guid": "9ee0f6745f555484299b0a1563b99d81",
+  "name": "MythicFeatSelection",
+  "type": "Kingmaker.Blueprints.Classes.Selection.BlueprintFeatureSelection",
+  "raw": {
+   "Group": "MythicFeat",
+   "m_AllFeatures": [
+    "!bp_00000000000000000000000000000af1"
+   ]
+  }
+ },
+ {
+  "guid": "00000000000000000000000000000051",
+  "name": "TestBabFull",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintStatProgression",
+  "raw": {
+   "Bonuses": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20
+   ]
+  }
+ },
+ {
+  "guid": "00000000000000000000000000000052",
+  "name": "TestSavesHigh",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintStatProgression",
+  "raw": {
+   "Bonuses": [
+    0,
+    2,
+    3,
+    3,
+    4,
+    4,
+    5,
+    5,
+    6,
+    6,
+    7,
+    7,
+    8,
+    8,
+    9,
+    9,
+    10,
+    10,
+    11,
+    11,
+    12
+   ]
+  }
+ },
+ {
+  "guid": "00000000000000000000000000000053",
+  "name": "TestSavesLow",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintStatProgression",
+  "raw": {
+   "Bonuses": [
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    2,
+    2,
+    2,
+    3,
+    3,
+    3,
+    4,
+    4,
+    4,
+    5,
+    5,
+    5,
+    6,
+    6,
+    6
+   ]
+  }
+ },
+ {
+  "guid": "00000000000000000000000000000054",
+  "name": "TestSavesPrestigeHigh",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintStatProgression",
+  "raw": {
+   "Bonuses": [
+    0,
+    1,
+    1,
+    2,
+    2,
+    3,
+    3,
+    4,
+    4,
+    5,
+    5,
+    6,
+    6,
+    7,
+    7,
+    8,
+    8,
+    9,
+    9,
+    10,
+    10
+   ]
+  }
+ },
+ {
+  "guid": "00000000000000000000000000000055",
+  "name": "TestSavesPrestigeLow",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintStatProgression",
+  "raw": {
+   "Bonuses": [
+    0,
+    0,
+    1,
+    1,
+    1,
+    2,
+    2,
+    2,
+    3,
+    3,
+    3,
+    4,
+    4,
+    4,
+    5,
+    5,
+    5,
+    6,
+    6,
+    6,
+    7
+   ]
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000c1",
+  "name": "WardenClass",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintCharacterClass",
+  "raw": {
+   "Components": [
+    {
+     "$type": "0, PrerequisiteNoClassLevel",
+     "Group": "All",
+     "m_CharacterClass": "!bp_4cd1757a0eea7694ba5c933729a53920"
+    },
+    {
+     "$type": "0, PrerequisiteAlignment",
+     "Group": "All",
+     "Alignment": "NeutralGood, TrueNeutral, NeutralEvil, Chaotic"
+    }
+   ],
+   "SkillPoints": 3,
+   "PrestigeClass": false,
+   "IsMythic": false,
+   "m_BaseAttackBonus": "!bp_00000000000000000000000000000051",
+   "m_FortitudeSave": "!bp_00000000000000000000000000000052",
+   "m_ReflexSave": "!bp_00000000000000000000000000000052",
+   "m_WillSave": "!bp_00000000000000000000000000000053",
+   "m_Progression": "!bp_000000000000000000000000000000p1",
+   "ClassSkills": [
+    "SkillAthletics",
+    "SkillStealth"
+   ],
+   "m_Archetypes": [
+    "!bp_000000000000000000000000000000c3"
+   ]
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000p1",
+  "name": "WardenProgression",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintProgression",
+  "raw": {
+   "m_Classes": [
+    {
+     "m_Class": "!bp_000000000000000000000000000000c1",
+     "AdditionalLevel": 0
+    }
+   ],
+   "LevelEntries": [
+    {
+     "Level": 1,
+     "m_Features": [
+      "!bp_000000000000000000000000000000f1",
+      "!bp_000000000000000000000000000000fb",
+      "!bp_000000000000000000000000000000fh"
+     ]
+    },
+    {
+     "Level": 2,
+     "m_Features": [
+      "!bp_000000000000000000000000000000e1",
+      "!bp_000000000000000000000000000000ec"
+     ]
+    },
+    {
+     "Level": 3,
+     "m_Features": [
+      "!bp_000000000000000000000000000000f2",
+      "!bp_000000000000000000000000000000f3"
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000f1",
+  "name": "WardenGuardFeature",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": []
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000fb",
+  "name": "WardenDrillsBundle",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": [
+    {
+     "$type": "0, AddFacts",
+     "m_Facts": [
+      "!bp_000000000000000000000000000000a1"
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000fh",
+  "name": "WardenHiddenFeature",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": [],
+   "HideInUI": true
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000e1",
+  "name": "WardenTrickSelection",
+  "type": "Kingmaker.Blueprints.Classes.Selection.BlueprintFeatureSelection",
+  "raw": {
+   "Group": "RogueTalent",
+   "m_AllFeatures": [
+    "!bp_000000000000000000000000000000b1",
+    "!bp_000000000000000000000000000000b3"
+   ]
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000ec",
+  "name": "WardenCombatSelection",
+  "type": "Kingmaker.Blueprints.Classes.Selection.BlueprintFeatureSelection",
+  "raw": {
+   "Group": "CombatFeat",
+   "m_AllFeatures": [
+    "!bp_000000000000000000000000000000a1"
+   ]
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000f2",
+  "name": "WardenSenseFeature",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": []
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000f3",
+  "name": "WardenExtraFeature",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": []
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000f4",
+  "name": "WardenGhostFeature",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": []
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000b1",
+  "name": "WardenTrickAFeature",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": [
+    {
+     "$type": "0, PrerequisiteClassLevel",
+     "Group": "All",
+     "m_CharacterClass": "!bp_000000000000000000000000000000c1",
+     "Level": 2,
+     "Not": false
+    }
+   ]
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000b2",
+  "name": "WardenTrickBFeature",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": []
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000b3",
+  "name": "WardenTrickCFeature",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": []
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000d1",
+  "name": "WardenDrillSelection",
+  "type": "Kingmaker.Blueprints.Classes.Selection.BlueprintFeatureSelection",
+  "raw": {
+   "Group": "CombatFeat",
+   "IgnorePrerequisites": false,
+   "m_AllFeatures": [
+    "!bp_000000000000000000000000000000a1",
+    "!bp_000000000000000000000000000000a3"
+   ]
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000c3",
+  "name": "StoicArchetype",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintArchetype",
+  "raw": {
+   "AddSkillPoints": 1,
+   "ReplaceClassSkills": false,
+   "m_WillSave": null,
+   "m_FortitudeSave": null,
+   "m_ReflexSave": null,
+   "m_BaseAttackBonus": null,
+   "AddFeatures": [
+    {
+     "Level": 1,
+     "m_Features": [
+      "!bp_000000000000000000000000000000f6"
+     ]
+    }
+   ],
+   "RemoveFeatures": [
+    {
+     "Level": 1,
+     "m_Features": [
+      "!bp_000000000000000000000000000000f1"
+     ]
+    },
+    {
+     "Level": 2,
+     "m_Features": [
+      "!bp_000000000000000000000000000000e1"
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000f6",
+  "name": "StoicCalmFeature",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": []
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000c4",
+  "name": "StrayArchetype",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintArchetype",
+  "raw": {
+   "AddSkillPoints": 0,
+   "AddFeatures": [],
+   "RemoveFeatures": []
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000c2",
+  "name": "SentinelClass",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintCharacterClass",
+  "raw": {
+   "SkillPoints": 2,
+   "PrestigeClass": false,
+   "m_BaseAttackBonus": "!bp_00000000000000000000000000000051",
+   "m_FortitudeSave": "!bp_00000000000000000000000000000054",
+   "m_ReflexSave": "!bp_00000000000000000000000000000055",
+   "m_WillSave": "!bp_00000000000000000000000000000055",
+   "m_Progression": "!bp_000000000000000000000000000000p2",
+   "ClassSkills": []
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000p2",
+  "name": "SentinelProgression",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintProgression",
+  "raw": {
+   "m_Classes": [
+    {
+     "m_Class": "!bp_000000000000000000000000000000c2"
+    }
+   ],
+   "LevelEntries": [
+    {
+     "Level": 1,
+     "m_Features": [
+      "!bp_000000000000000000000000000000f5"
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000f5",
+  "name": "SentinelWatchFeature",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": []
+  }
+ },
+ {
+  "guid": "a5a9fe8f663d701488bd1db8ea40484e",
+  "name": "SeraphMythicClass",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintCharacterClass",
+  "raw": {
+   "Components": [
+    {
+     "$type": "0, PrerequisiteClassLevel",
+     "Group": "All",
+     "m_CharacterClass": "!bp_247aa787806d5da4f89cfc3dff0b217f",
+     "Level": 2
+    }
+   ],
+   "IsMythic": true,
+   "m_Progression": "!bp_000000000000000000000000000000ps"
+  }
+ },
+ {
+  "guid": "247aa787806d5da4f89cfc3dff0b217f",
+  "name": "StartingMythicClass",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintCharacterClass",
+  "raw": {
+   "IsMythic": true
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000ps",
+  "name": "SeraphProgression",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintProgression",
+  "raw": {
+   "m_Classes": [
+    {
+     "m_Class": "!bp_a5a9fe8f663d701488bd1db8ea40484e"
+    }
+   ],
+   "LevelEntries": [
+    {
+     "Level": 1,
+     "m_Features": [
+      "!bp_ba0e5a900b775be4a99702f1ed08914d",
+      "!bp_00000000000000000000000000000202",
+      "!bp_000000000000000000000000000000np"
+     ]
+    },
+    {
+     "Level": 2,
+     "m_Features": [
+      "!bp_9ee0f6745f555484299b0a1563b99d81",
+      "!bp_00000000000000000000000000000203"
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000np",
+  "name": "SeraphSummonProgression",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintProgression",
+  "raw": {
+   "m_Classes": [
+    {
+     "m_Class": "!bp_247aa787806d5da4f89cfc3dff0b217f"
+    },
+    {
+     "m_Class": "!bp_a5a9fe8f663d701488bd1db8ea40484e"
+    }
+   ],
+   "LevelEntries": [
+    {
+     "Level": 5,
+     "m_Features": [
+      "!bp_00000000000000000000000000000204"
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "guid": "af4ee0acb9114e544bf02f39027966b0",
+  "name": "StartingMythicProgression",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintProgression",
+  "raw": {
+   "m_Classes": [
+    {
+     "m_Class": "!bp_247aa787806d5da4f89cfc3dff0b217f"
+    }
+   ],
+   "LevelEntries": [
+    {
+     "Level": 1,
+     "m_Features": [
+      "!bp_1421e0034a3afac458de08648d06faf0",
+      "!bp_ba0e5a900b775be4a99702f1ed08914d",
+      "!bp_0000000000000000000000000000002f"
+     ]
+    },
+    {
+     "Level": 2,
+     "m_Features": [
+      "!bp_9ee0f6745f555484299b0a1563b99d81"
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "guid": "0000000000000000000000000000002f",
+  "name": "StartingHiddenFeature",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": [],
+   "HideInUI": true
+  }
+ },
+ {
+  "guid": "b236003be2b9400498b9dd0f07b0c93c",
+  "name": "SeraphFirstLevelsProgression",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintProgression",
+  "raw": {
+   "m_Classes": [
+    {
+     "m_Class": "!bp_247aa787806d5da4f89cfc3dff0b217f"
+    }
+   ],
+   "LevelEntries": [
+    {
+     "Level": 1,
+     "m_Features": [
+      "!bp_00000000000000000000000000000201"
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "guid": "00000000000000000000000000000201",
+  "name": "SeraphFirstStepFeature",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": []
+  }
+ },
+ {
+  "guid": "00000000000000000000000000000202",
+  "name": "SeraphHaloFeature",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": []
+  }
+ },
+ {
+  "guid": "00000000000000000000000000000203",
+  "name": "SeraphWingsFeature",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": []
+  }
+ },
+ {
+  "guid": "00000000000000000000000000000204",
+  "name": "SeraphSummonFeature",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": []
+  }
+ },
+ {
+  "guid": "00000000000000000000000000000101",
+  "name": "TestBeltStrength",
+  "type": "Kingmaker.Blueprints.Items.Equipment.BlueprintItemEquipmentBelt",
+  "raw": {
+   "m_Enchantments": [
+    "!bp_00000000000000000000000000000e01"
+   ]
+  }
+ },
+ {
+  "guid": "00000000000000000000000000000e01",
+  "name": "TestStrength2",
+  "type": "Kingmaker.Blueprints.Items.Ecnchantments.BlueprintEquipmentEnchantment",
+  "raw": {
+   "Components": [
+    {
+     "$type": "0, AddStatBonusEquipment",
+     "Descriptor": "Enhancement",
+     "Stat": "Strength",
+     "Value": 2
+    }
+   ]
+  }
+ },
+ {
+  "guid": "00000000000000000000000000000102",
+  "name": "TestCloak",
+  "type": "Kingmaker.Blueprints.Items.Equipment.BlueprintItemEquipmentShoulders",
+  "raw": {
+   "m_Enchantments": [
+    "!bp_00000000000000000000000000000e02"
+   ]
+  }
+ },
+ {
+  "guid": "00000000000000000000000000000e02",
+  "name": "TestResistance3",
+  "type": "Kingmaker.Blueprints.Items.Ecnchantments.BlueprintEquipmentEnchantment",
+  "raw": {
+   "Components": [
+    {
+     "$type": "0, AllSavesBonusEquipment",
+     "Descriptor": "Resistance",
+     "Value": 3
+    }
+   ]
+  }
+ },
+ {
+  "guid": "00000000000000000000000000000103",
+  "name": "TestHeadband",
+  "type": "Kingmaker.Blueprints.Items.Equipment.BlueprintItemEquipmentHead",
+  "raw": {
+   "m_Enchantments": [
+    "!bp_00000000000000000000000000000e03"
+   ]
+  }
+ },
+ {
+  "guid": "00000000000000000000000000000e03",
+  "name": "TestHeadbandEnchantment",
+  "type": "Kingmaker.Blueprints.Items.Ecnchantments.BlueprintEquipmentEnchantment",
+  "raw": {
+   "Components": [
+    {
+     "$type": "0, AddStatBonusEquipment",
+     "Descriptor": "Enhancement",
+     "Stat": "Intelligence",
+     "Value": 2
+    },
+    {
+     "$type": "0, AddStatBonusEquipment",
+     "Descriptor": "Deflection",
+     "Stat": "AC",
+     "Value": 1
+    },
+    {
+     "$type": "0, AddStatBonusEquipment",
+     "Descriptor": "Morale",
+     "Stat": "Initiative",
+     "Value": 1
+    },
+    {
+     "$type": "0, AddUnitFeatureEquipment",
+     "m_Feature": "!bp_00000000000000000000000000000f03"
+    }
+   ]
+  }
+ },
+ {
+  "guid": "00000000000000000000000000000f03",
+  "name": "TestHeadbandFeature",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": [
+    {
+     "$type": "0, AddStatBonus",
+     "Descriptor": "Insight",
+     "Stat": "SkillPerception",
+     "Value": 1
+    }
+   ]
+  }
+ },
+ {
+  "guid": "00000000000000000000000000000104",
+  "name": "TestTome",
+  "type": "Kingmaker.Blueprints.Items.Equipment.BlueprintItemEquipmentUsable",
+  "raw": {
+   "m_Enchantments": []
+  }
+ },
+ {
+  "guid": "00000000000000000000000000000105",
+  "name": "TestRing",
+  "type": "Kingmaker.Blueprints.Items.Equipment.BlueprintItemEquipmentRing",
+  "raw": {
+   "m_Enchantments": []
+  }
+ },
+ {
+  "guid": "00000000000000000000000000000999",
+  "name": "SomeDialogueCue",
+  "type": "Kingmaker.DialogSystem.Blueprints.BlueprintCue",
+  "raw": {
+   "Text": "invented"
+  }
+ }
+]
