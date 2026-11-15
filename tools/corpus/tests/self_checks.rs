@@ -274,4 +274,15 @@ fn the_self_checks_hold_on_the_whole_corpus() {
     eprintln!("{} Builds in {:?}", all.len(), start.elapsed());
     let covered = check_all(&engine, &all, threads);
     eprintln!("{covered:?}, checked in {:?}", start.elapsed());
+    // Every check ran, and every prefix the shortcut check names still names a Build.
+    assert!(
+        covered.held.len() > 3 && covered.controls > 0,
+        "{covered:?}"
+    );
+    for prefix in SHORTCUT_CHECKED {
+        assert!(
+            all.iter().any(|(name, _)| name.starts_with(prefix)),
+            "no Build of the corpus is named {prefix:?}…"
+        );
+    }
 }

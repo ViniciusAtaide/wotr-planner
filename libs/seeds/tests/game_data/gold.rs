@@ -3,10 +3,10 @@
 //! the write-ups' own names; this file builds each character slot by slot and asserts that everything the write-up
 //! lists at a level or a Mythic rank is gained there on the engine's sheet (the engine may show more).
 //!
-//! The write-ups are right (user, 2026-11-11): a disagreement is the engine's or the data's, unless the game contradicts
-//! the write-up, which goes to the user (ticket 234: the game is the source of truth for rules). Those known today are
-//! [`KNOWN_GAPS`], each naming its ticket or the map decision behind it. The test fails on a disagreement that isn't
-//! listed, and on a listed one that now agrees, so a fix is proved by deleting its entry.
+//! The write-ups are right (user, 2026-11-11): a disagreement is the engine's or the data's, unless the game
+//! contradicts the write-up, which goes to the user (ticket 234: the game is the source of truth for rules). Those
+//! known today are [`KNOWN_GAPS`], each naming its ticket or the map decision behind it. The test fails on a
+//! disagreement that isn't listed, and on a listed one that now agrees, so a fix is proved by deleting its entry.
 //!
 //! What "gained there" means: a level's slot picks, ability increase and the feats, features and options its state
 //! holds more of than the level before's; a rank's slot picks and the features its path row gives

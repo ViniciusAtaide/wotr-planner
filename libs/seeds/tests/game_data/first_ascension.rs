@@ -12,8 +12,8 @@ use crate::support::*;
 /// abilities and goes Azata at MR 3.
 const ENFORCER: &str = "AdVNPUhCYRT97veeqT1ToYiWSIogSKmkKOgPm7IgsBoqInHIoR-RighrkOBZ9DO4RAqtRVMUxOstIRlZg0sW4SCBk20NQTRI3ZdpSa-lTS7nfOfc795zt2C89sL_bNP5FntCex4xvd_0VCh6NmVBPTzDZexKzeD_Oqs6Ry4TddWSF2f8Z6d4a1vTmjSMvPcq8MthvI6Xc8qOnZPXqM0y4VI706PWgSOrRxvb3Gi40ZUkKiuWXWZTfXNkwSxWl3rb64LHTvdBKChcPvJ20enwJSddqsP1sKcrvIbrLQaBm766HzLx_Q_diVhbY-fYVFw4D_RFUgHj2657_oWfu4veUq2dAAEGQK_XFqs0ZQQlfBPk2z97VG5OIREQueczgwGSKSXhgBAUFJn-JirTwxPSCpfNoF-QislqyPdUDRTQINGcQmJZ9keCBAVIrGSkQyyiCKEGFf0A";
 
-/// Links the planner made before the first ascension existed (exported from the corpus at the commit before ticket
-/// 91), each with its Build's MR 3 path.
+/// Links the planner made before the first ascension existed (exported by the proof harness, `proof export`, at the
+/// commit before ticket 91), each with its Build's MR 3 path.
 const OLD_LINKS: [(&str, &str); 7] = [
     // `bench fighter20` (the corpus's Build of that name): aeon.
     (

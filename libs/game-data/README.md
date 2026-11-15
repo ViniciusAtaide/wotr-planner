@@ -814,8 +814,8 @@ engine's earlier output:
 - **The engine's self-checks** check it against itself, never against the game: every picker agrees with the walk
   (`tests/game_data/agreement.rs`, ticket 150), and the withdrawals, the statuses against `allows` and ticket 48's
   picker shortcut agree with their full answers (`tools/corpus/tests/self_checks.rs`). The suite runs them on a
-  sample; the corpus's ~2,000 Builds (`tools/corpus`: its own Builds, the six bench Builds of `bench-links.tsv` and
-  their full Builds) are ignored for their time. When one disagrees with the game, the engine is fixed.
+  sample; the corpus's ~2,000 Builds (`tools/corpus`: its own Builds with a full Build of each, and the six bench
+  Builds of `bench-links.tsv`) are ignored for their time. When one disagrees with the game, the engine is fixed.
 - **The gold standard** below compares the engine with two Builds known to work in the game.
 - **The game check** (ticket 238) runs by hand once it exists.
 
