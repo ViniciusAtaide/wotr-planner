@@ -98,6 +98,9 @@ fn the_fighter_s_sheet_gives_the_path_and_each_level_s_picks_by_slot_label() {
     assert!(sheet.contains(
         "\nPoint buy: Str 17, Dex 10, Con 16, Int 10, Wis 10, Cha 10\nMythic path: Aeon\n\nLevel 1: Fighter\n"
     ));
+    // Game: FighterProgression b50e94b57be32f74892f381ae2a8905a (FighterFeatSelection at 1 and 4); SelectClass.Apply,
+    // WrathDecompiled 6ce4a6b (an ability point when the character level reaches a multiple of 4); the human's and
+    // level 1's feats. The picks themselves are the bench Build's input.
     assert_eq!(
         block(&sheet, "Level 1:"),
         [
@@ -118,6 +121,8 @@ fn the_fighter_s_sheet_gives_the_path_and_each_level_s_picks_by_slot_label() {
         ]
     );
     // The track's ranks follow one another without blank lines.
+    // Game: AeonProgression 34b9484b0d5ce9340ae51d2bf9518bbe (MythicAbilitySelection and AeonGazeSecondSelection at
+    // MR 3, MythicFeatSelection and AeonGazeSecondSelection at MR 4); a rank's level is the planner's model
     assert_eq!(
         block(&sheet, "MR 3 ")[..6],
         [
@@ -159,6 +164,10 @@ fn the_multiclass_sheet_names_each_level_s_class() {
 #[test]
 fn the_legend_sheet_runs_to_level_40_and_marks_the_picks_the_switch_takes_away() {
     let sheet = sheet_of("legend40");
+    // Game: AlchemistProgression efd55ff9be2fda34981f5b9c83afe4f1 (row 20: GrandDiscoverySelection, and two
+    // DiscoverySelection the data's row lacks, unfilled in this Build and so unprinted: the sheet prints picks);
+    // SelectClass.Apply, WrathDecompiled 6ce4a6b (the ability point at 40). The Legend switch is the planner's model
+    // of the story, not a game fact.
     assert!(sheet.contains("\nMythic path: Aeon\nPath switch: Legend\n\nLevel 1: Fighter\n"));
     assert!(sheet.contains("\nLevel 21: Alchemist\n"));
     assert_eq!(

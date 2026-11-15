@@ -351,6 +351,8 @@ fn jack() -> Build {
     start.background = Some(BackgroundKey::new("warrior-of-the-linnorm-kings"));
     start.deity = Some(Faith::Atheism);
     start.alignment = Some(Alignment::ChaoticGood);
+    // Game: HalflingRace b0c3ef2729c498f47970bb50fa1acd30 (+2 Dex, +2 Cha, -2 Str); HastyHalfling
+    // f2570b5becc54d659ca786488d107e69 (no score change)
     start.ability_scores = point_buy([12, 14, 14, 12, 8, 17]);
     build.class_choices.insert(
         ClassKey::new("sorcerer"),
@@ -364,33 +366,45 @@ fn jack() -> Build {
         let increase = increase(level, [Ability::Charisma; 5]);
         build.levels.push(level_up("sorcerer", &skills, increase));
     }
+    // Game: MythicStartingProgression af4ee0acb9114e544bf02f39027966b0; AzataFirstLevelsProgression
+    // 132afc1a28bd9d442821385f7cbf1c05; AzataProgression 9db53de4bf21b564ca1a90ff5bd16586 and AzataSummonProgression
+    // b172d5db251e3e0499671074ee15f7df (the write-up's rows from MR 3, row for row); SylvanBloodlineProgression
+    // a46d4bd93601427409d034a997673ece (Woodland Stride 3, Fleeting Glance 9, Fey Magic 15, Soul of the Fey 20)
     build.first_ascension = Some(MythicPathKey::new("azata"));
     build.mythic_path = Some(MythicPathKey::new("azata"));
     let evocation = || Parameter::SpellSchool(SpellSchool::Evocation);
+    // The write-up's picks, which the game allows (the write-up is the expected value, not the game):
     let picks = [
+        // Game: SorcererProgression 997665565ca80a649aedd72455c4df1f (SorcererBonusFeat d6dd06f454b34014ab0903cb1ed2ade3
+        // at 1, which lists SpellPenetration)
         (feat_slot(1, FeatSource::Class), feat("spell-penetration")),
-        (general(1), feat("mounted-combat")),
+        (general(1), feat("mounted-combat")), // Game: MountedCombat f308a03bea0d69843a8ed0af003d47a9 (Mobility 1, Int 3)
         (general(3), feat("metamagic-bolster-spell")),
         (general(5), feat_for("spell-focus", evocation())),
+        // Game: SorcererFeatSelection 3a60f0c0442acfb419b0c03b584e1394 at 7, 13 and 19; BloodlineDraconicFeatSelection
+        // f4b011d090e8ae543b1441bd594c7bf7 (Skill Focus (Mobility), Improved Initiative, Great Fortitude, through the
+        // second bloodline)
         (
             feat_slot(7, FeatSource::Class),
             feat_for("skill-focus", skill("mobility")),
         ),
         (general(7), feat("metamagic-heighten-spell")),
         (general(9), feat("outflank")),
-        (general(11), feat("spell-specialization")),
+        (general(11), feat("spell-specialization")), // Game: SpellSpecializationFirst f327a765a4353d04f872482ef3e48c35
         (
             feat_slot(13, FeatSource::Class),
             feat("improved-initiative"),
         ),
-        (general(13), feat("greater-spell-penetration")),
-        (general(15), feat_for("greater-spell-focus", evocation())),
-        (general(17), feat("indomitable-mount")),
+        (general(13), feat("greater-spell-penetration")), // Game: GreaterSpellPenetration 1978c3f91cfbbc24b9c9b0d017f4beec
+        (general(15), feat_for("greater-spell-focus", evocation())), // Game: SpellFocusGreater 5b04b45b228461c43bad768eb0f7c7bf
+        (general(17), feat("indomitable-mount")), // Game: IndomitableMount 68e814f1f3ce55942a52c1dd536eaa5b
         (feat_slot(19, FeatSource::Class), feat("great-fortitude")),
         (
             general(19),
             feat_for("elemental-focus", Parameter::Energy(Energy::Electricity)),
         ),
+        // Game: SecondBloodline 3cf2ab2c320b73347a7c21cf0d0995bd (open to SylvanBloodlineProgression
+        // a46d4bd93601427409d034a997673ece); BloodlineDraconicBronzeProgression 7e0f57d8d00464441974e303b84238ac
         (SlotId::Mythic { rank: 1 }, ability("second-bloodline")),
         (
             SlotId::MythicSelection { rank: 1, index: 0 },
@@ -401,6 +415,7 @@ fn jack() -> Build {
             mythic_feat("extra-mythic-ability"),
         ),
         (SlotId::MythicExtra { rank: 2 }, ability("abundant-casting")),
+        // Game: AscendantElementSelection 535d4e5d8a5664f4797560c280941782 (no prerequisite)
         (
             SlotId::Mythic { rank: 3 },
             Pick::mythic_ability_for(
@@ -408,11 +423,15 @@ fn jack() -> Build {
                 Parameter::Element(Element::Electricity),
             ),
         ),
+        // Game: SpellPenetrationMythicFeat 51b6b22ff184eef46a675449e837365d (needs Spell Penetration)
         (
             SlotId::Mythic { rank: 4 },
             mythic_feat("spell-penetration-mythic"),
         ),
+        // Game: AzataSuperpowersSelection 8a30e92cd04ff5b459ba7cb03584fda0, which lists Zippy Magic, Life-Bonding Friendship, Favorable Magic and
+        // Marvelous Endurance
         (path_selection(4), option("azata/superpowers/zippy-magic")),
+        // Game: AbundantCastingImproved 37046a54739ed4844b8e8307bbbeece2 and AbundantCastingGreater db5be78901afbfa4e8ea5b399a88b92d, each needing the one before
         (
             SlotId::Mythic { rank: 5 },
             ability("improved-abundant-casting"),
@@ -423,15 +442,18 @@ fn jack() -> Build {
                 "expanded-arsenal",
                 Parameter::SpellSchool(SpellSchool::Enchantment),
             ),
-        ),
+        ), // Game: ExpandedArsenalSchool f137089c48364014aa3ec3b92ccaf2e2 (no prerequisite)
+        // Game: LifeBondingFriendshipSelection cfad18f581584ac4ba066df067956477 (a teamwork feat);
+        // LifeBondingFriendshipSelection1 69a33d6ced23446e819667149d088898 (one more at the next rank)
         (path_selection(6), option(LIFE_BONDING_FRIENDSHIP)),
         (path_feat(6), feat("shake-it-off")),
+        // Game: MythicalBeastMaster 89096871a6fdadd43ad31f5046696727 (needs a pet: the Sylvan Sorcerer's companion, known gap 174)
         (SlotId::Mythic { rank: 7 }, ability("mythical-beast")),
         (path_feat(7), feat("allied-spellcaster")),
         (
             SlotId::Mythic { rank: 8 },
             mythic_feat_for("spell-focus-mythic", evocation()),
-        ),
+        ), // Game: SpellFocusMythicFeat 41fa2470ab50ff441b4cfbb2fc725109 (needs Spell Focus in the school)
         (
             path_selection(8),
             option("azata/superpowers/favorable-magic"),
@@ -501,11 +523,18 @@ fn enforcer() -> Build {
             _ => level_up("fighter", &skills, increase),
         });
     }
+    // Game: TricksterFirstLevelsProgression 11ba180ac736c894e937602e54f7320c; AzataProgression
+    // 9db53de4bf21b564ca1a90ff5bd16586 (whether the story lets a Trickster first ascension lead to the Azata isn't in
+    // the blueprints); ArcaneEnforcerArchetype 23a5d0ca607f6094097d509b2b1f4a10 and SlayerProgression
+    // 1f35d11937a06624b8a60db68c7869a1 (exploits 1, 4, 7, 10, 13; talents 2, 6, 8, 12, 14); RogueProgression
+    // b57b2a75a5abcaf47a01cf84672b50e9; SylvanTricksterArchetype 490394869f666c141bf8647b1a365220
     build.first_ascension = Some(MythicPathKey::new("trickster"));
     build.mythic_path = Some(MythicPathKey::new("azata"));
     // The write-up names no item. Greater Two-Weapon Fighting at level 19 needs Dex 19 and the Build's own is 17; in
     // the game a belt covers it. The user's choice (ticket 163) is the smallest assumption that makes level 19 legal:
     // a belt with a Dexterity +2 enhancement bonus, the real Belt of Incredible Dexterity +2.
+    // Game: BeltOfDexterity2 b6af4c1834999e74497b41588d1071cd; PrerequisiteStatValue.GetStatValue and
+    // ModifiableValueAttributeStat.CalculatePermanentValue (an item's Enhancement counts), WrathDecompiled 6ce4a6b
     build.gear.worn.insert(
         GearPlace::Belt,
         GearKey::new("belt-of-incredible-dexterity-2"),
@@ -516,11 +545,12 @@ fn enforcer() -> Build {
             selection(1, 0),
             option("arcanist/arcanist-exploits/wooden-flesh"),
         ),
+        // Game: HalfElfHeritageSelection 9df7b68d60544bcf8e5b56c0a4688e04 (Adaptability 26a668c5a8c22354bac67bcd42e09a3f)
         (
             feat_slot(1, FeatSource::Race),
             feat_for("skill-focus", skill("persuasion")),
         ),
-        (general(1), feat("two-weapon-fighting")),
+        (general(1), feat("two-weapon-fighting")), // Game: TwoWeaponFighting ac8aaf29054f5b74eb18f2af950e752d
         (
             selection(2, 0),
             option("slayer/slayer-talents/combat-style-feat-2"),
@@ -529,10 +559,15 @@ fn enforcer() -> Build {
             SlotId::OptionSelection { level: 2, index: 0 },
             option("ranger/combat-style-feat/menacing-feats"),
         ),
+        // Game: RangerStyleMenacingSelection2 1c5988e90e0657645972e7b28ba4ce8b, RangerStyleMenacingSelection6
+        // a9998f05a0472bb4f8950304fe26ec0c, RangerStyleMenacingSelection10 7d5bd07830a5e2c478852bf8b860db2c (each ignores
+        // prerequisites)
         (
             SlotId::OptionFeat { level: 2, index: 0 },
             feat("intimidating-prowess"),
         ),
+        // Game: ShieldBashFeature 121811173a614534e8720d7550aae253 (shield proficiency: SlayerProficiencies
+        // 41cd5ff7ad1bc5848906e050b06d02dc)
         (general(3), feat("shield-bash")),
         (
             selection(4, 0),
@@ -557,7 +592,7 @@ fn enforcer() -> Build {
             selection(10, 0),
             option("arcanist/arcanist-exploits/spell-resistance"),
         ),
-        (general(11), feat("shield-master")),
+        (general(11), feat("shield-master")), // Game: ShieldMaster dbec636d84482944f87435bd31522fcc
         (
             selection(12, 0),
             option("slayer/slayer-talents/combat-style-feat-10"),
@@ -569,19 +604,27 @@ fn enforcer() -> Build {
             },
             feat("dreadful-carnage"),
         ),
+        // Game: ArcanistExploitGreaterSpellResistanceFeature 1eba9b432ef464349befcc7f5c428849 (needs
+        // ArcanistGreaterExploitsFeature c7536b93f17c70d4fa3a8cf9aa76bfb7 and Spell Resistance). The game has one pick at
+        // 13 (ArcanistExploitSelection, the greater exploits among its options), not two: the slot count is the data's.
         (
             selection(13, 1),
             option("arcanist/greater-exploits/greater-spell-resistance"),
         ),
-        (general(13), feat("improved-two-weapon-fighting")),
+        (general(13), feat("improved-two-weapon-fighting")), // Game: TwoWeaponFightingImproved 9af88f3ed8a017b45a6837eab7437629
+        // Game: CripplingStrike b696bd7cb38da194fa3404032483d1db (Sneak Attack, Advance Talents at slayer 10)
         (
             selection(14, 0),
             option("rogue/rogue-talents/crippling-strike"),
         ),
         (general(15), feat("improved-initiative")),
+        // Game: SylvanTricksterTalentSelection 290bbcc3c3bb92144b853fd8fb8ff452 (WitchHexIceplantFeature
+        // 9af6dc2697c8ef24eab8ce1c697b05c4 and DoubleDebilitation dd699394df0ef8847abba26038333f02 among its options)
         (selection(17, 0), option("witch/hex/iceplant")),
-        (general(17), feat("bashing-finish")),
+        (general(17), feat("bashing-finish")), // Game: BashingFinish 0b442a7b4aa598d4e912a4ecee0500ff
         // Rogue level 3: Finesse Training in the light shield's bash (ticket 172).
+        // Game: FinesseTrainingSelection b78d146cea711a84598f0acef69462ea (FinesseTrainingLightShield; the slayer's
+        // shield proficiency meets its proficiency prerequisite)
         (
             selection(18, 0),
             option_for(
@@ -593,18 +636,20 @@ fn enforcer() -> Build {
             selection(19, 0),
             option("rogue/rogue-talents/double-debilitation"),
         ),
-        (general(19), feat("greater-two-weapon-fighting")),
+        (general(19), feat("greater-two-weapon-fighting")), // Game: TwoWeaponFightingGreater c126adbdf6ddd8245bda33694cd774e8
+        // Game: FighterProgression b50e94b57be32f74892f381ae2a8905a (FighterFeatSelection at 1); MutationWarriorArchetype
+        // 758e0061a077e54409a3bf0eb51511e5; ShieldFocus ac57069b6bf8c904086171683992a92a
         (feat_slot(20, FeatSource::Class), feat("shield-focus")),
-        (SlotId::Mythic { rank: 1 }, ability("defensive-study")),
+        (SlotId::Mythic { rank: 1 }, ability("defensive-study")), // Game: DefensiveStudy ec041312142ba1f48a0044521f68fc0a
         (
             SlotId::Mythic { rank: 2 },
             mythic_feat("two-weapon-fighting-mythic"),
-        ),
+        ), // Game: TwoWeaponFightingMythicFeat c6afbb8c1a36a704a8041f35498f41a4
         (SlotId::Mythic { rank: 3 }, ability("inspirational-leader")),
         (
             SlotId::Mythic { rank: 4 },
             mythic_feat_for("improved-critical-mythic", battle_axe()),
-        ),
+        ), // Game: ImprovedCriticalMythicFeat 8bc0190a4ec04bd489eec290aeaa6d07
         (
             path_selection(4),
             option("azata/superpowers/incredible-might"),
@@ -613,9 +658,11 @@ fn enforcer() -> Build {
         (
             SlotId::Mythic { rank: 6 },
             mythic_feat("improved-initiative-mythic"),
-        ),
+        ), // Game: ImprovedInitiativeMythicFeat 25f4cb387ba4ab94d944fdef3da9ab97
         (path_selection(6), option(LIFE_BONDING_FRIENDSHIP)),
-        (path_feat(6), feat("shield-wall")),
+        (path_feat(6), feat("shield-wall")), // Game: ShieldWall 8976de442862f82488a4b138a0a89907 (shield proficiency)
+        // Game: EnduringSpells 2f206e6d292bdfb4d981e99dcf08153f; EnduringSpellsGreater 13f9269b3b48ae94c896f0371ce5e23c
+        // (needs Enduring Spells; neither needs a spellbook)
         (SlotId::Mythic { rank: 7 }, ability("enduring-spells")),
         (path_feat(7), feat("shake-it-off")),
         (
@@ -634,7 +681,7 @@ fn enforcer() -> Build {
         (
             SlotId::Mythic { rank: 10 },
             mythic_feat("shield-focus-mythic"),
-        ),
+        ), // Game: ShieldFocusMythicFeat 502434c044c16304a92901a0b25d5216 (needs Shield Focus)
         (
             path_selection(10),
             option("azata/superpowers/supersonic-speed"),
@@ -686,6 +733,8 @@ fn gold_builds_are_possible() {
 #[test]
 fn the_enforcers_mythic_shield_focus_needs_mr_10_taken_at_level_20() {
     let engine = support::engine();
+    // Game: ShieldFocusMythicFeat 502434c044c16304a92901a0b25d5216 (needs ShieldFocus). The rank table's level 19 for
+    // MR 10 is the planner's: the game grants ranks by story, with no rank-to-level table in its blueprints.
     let gold = enforcer();
     let slot = SlotId::Mythic { rank: 10 };
     let pick = gold.picks[&slot].clone();
@@ -1514,6 +1563,9 @@ const fn gap(
 /// deletes its entry.
 const KNOWN_GAPS: &[Gap] = &[
     // ---- map decisions the user reopened ----
+    // Game: SylvanSorcererArchetype 711d5024ecc75f346b9cda609c3a1f83 (AnimalCompanionSelectionSylvanSorcerer
+    // a540d7dfe1e2a174a94198aba037274c at 1); AnimalCompanionFeatureElk aa92fea676be33d4dafd176d699d7996: the game sides
+    // with the write-up, the gap is the engine's (no companions), as the entry says.
     gap(
         "jack",
         Place::Level(1),
@@ -1522,6 +1574,11 @@ const KNOWN_GAPS: &[Gap] = &[
         Why::Reopened(174, "animal companions"),
     ),
     // ---- the write-up is mistaken (permanent) ----
+    // Game: SlayerTalentSelection6 43d1b15873e926848be2abf0ea3ad9a8 (as SlayerTalentSelection2
+    // 04430ad24988baa4daa0bcd4f1c7d118 and SlayerTalentSelection10 913b9cf25c9536949b43a2651b7ffb66) lists UncannyDodgeTalent
+    // ca5274d057152fa45b7527cad0927840, open from slayer 4: the game sides with the write-up, against this entry's reason.
+    // The user approved the game's value (2026-11-15); the entry goes with the ticket that brings the talent to the
+    // slayer (ticket 276).
     gap(
         "enforcer",
         Place::Level(8),
@@ -1647,6 +1704,7 @@ fn gold_names_tables_are_all_used() {
 /// A known gap covers its one failure, not its line: a Jack whose second bloodline is Elemental (Fire), not Draconic
 /// (Bronze), fails "(Dragon Resistances III; Wings)" on Draconic Resistances and on Wings; an entry on Draconic
 /// Resistances (made up here: the list holds none) doesn't hide Wings.
+// Game: BloodlineElementalFireProgression 17cc794d47408bc4986c55265475c06f (no wings or resistances at 15)
 #[test]
 fn a_known_gap_hides_no_other_failure_on_its_line() {
     let (_, mut jack) = builds().into_iter().next().unwrap();

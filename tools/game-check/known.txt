@@ -41,3 +41,1131 @@ option lists / in game only / pool mythic abilities / AbundantSmiteChaos -> 244
 # skill compares as that skill's feature; Mythic Skill Focus asks for the same skill as its own value, which the game
 # writes as any one of the eleven.
 prerequisites / missing in planner, a blueprint it doesn't map / mythic feat skill-focus-mythic -> 244
+
+# The difference tickets, 247–291 (filed 2026-11-15 from the first run's 3,908 findings not known before): each
+# section names the entries whose differences its ticket removes, one line per entry, or per kind or value where an
+# entry's findings belong to two tickets. A ticket that lands deletes its section: a line left behind matches nothing
+# and fails the check. Tickets 247–254, 257, 258 and 290 are engine rules or data the check doesn't read, with no line
+# here.
+
+# 244, the game data laid out by blueprint: options the game keeps per selection, the mysteries' and domains' copies.
+option lists / * / selection druid/blight-druid/domain -> 244
+option lists / * / selection druid/domain -> 244
+option lists / * / selection oracle/divine-herbalist/mystery -> 244
+option lists / * / selection oracle/enlightened-philosopher/mystery -> 244
+option lists / * / selection shaman/hex -> 244
+prerequisites / * / selection option oracle/revelations/ancestor/blood-of-heroes -> 244
+prerequisites / * / selection option oracle/revelations/ancestor/phantom-touch -> 244
+prerequisites / * / selection option oracle/revelations/ancestor/sacred-council -> 244
+prerequisites / * / selection option oracle/revelations/ancestor/spirit-shield -> 244
+prerequisites / * / selection option oracle/revelations/battle/battlecry -> 244
+prerequisites / * / selection option oracle/revelations/battle/battlefield-clarity -> 244
+prerequisites / * / selection option oracle/revelations/battle/maneuver-mastery -> 244
+prerequisites / * / selection option oracle/revelations/battle/skill-at-arms -> 244
+prerequisites / * / selection option oracle/revelations/battle/war-sight -> 244
+prerequisites / * / selection option oracle/revelations/battle/weapon-mastery -> 244
+prerequisites / * / selection option oracle/revelations/bones/armor-of-bones -> 244
+prerequisites / * / selection option oracle/revelations/bones/deaths-touch -> 244
+prerequisites / * / selection option oracle/revelations/bones/near-death -> 244
+prerequisites / * / selection option oracle/revelations/bones/resist-life -> 244
+prerequisites / * / selection option oracle/revelations/flame/burning-magic -> 244
+prerequisites / * / selection option oracle/revelations/flame/cinder-dance -> 244
+prerequisites / * / selection option oracle/revelations/flame/fire-breath -> 244
+prerequisites / * / selection option oracle/revelations/flame/heat-aura -> 244
+prerequisites / * / selection option oracle/revelations/flame/molten-skin -> 244
+prerequisites / * / selection option oracle/revelations/flame/touch-of-flame -> 244
+prerequisites / * / selection option oracle/revelations/life/channel -> 244
+prerequisites / * / selection option oracle/revelations/life/enhanced-cures -> 244
+prerequisites / * / selection option oracle/revelations/life/life-link -> 244
+prerequisites / * / selection option oracle/revelations/life/safe-cure -> 244
+prerequisites / * / selection option oracle/revelations/life/spirit-boost -> 244
+prerequisites / * / selection option oracle/revelations/nature/animal-companion -> 244
+prerequisites / * / selection option oracle/revelations/nature/erosion-touch -> 244
+prerequisites / * / selection option oracle/revelations/nature/friend-to-animals -> 244
+prerequisites / * / selection option oracle/revelations/nature/natures-whispers -> 244
+prerequisites / * / selection option oracle/revelations/nature/spirit-of-nature -> 244
+prerequisites / * / selection option oracle/revelations/stone/acid-skin -> 244
+prerequisites / * / selection option oracle/revelations/stone/clobbering-strike -> 244
+prerequisites / * / selection option oracle/revelations/stone/mighty-pebble -> 244
+prerequisites / * / selection option oracle/revelations/stone/shard-explosion -> 244
+prerequisites / * / selection option oracle/revelations/stone/stone-stability -> 244
+prerequisites / * / selection option oracle/revelations/stone/touch-of-acid -> 244
+prerequisites / * / selection option oracle/revelations/waves/fluid-nature -> 244
+prerequisites / * / selection option oracle/revelations/waves/freezing-spells -> 244
+prerequisites / * / selection option oracle/revelations/waves/ice-armor -> 244
+prerequisites / * / selection option oracle/revelations/waves/icy-skin -> 244
+prerequisites / * / selection option oracle/revelations/waves/wintry-touch -> 244
+prerequisites / * / selection option oracle/revelations/wind/air-barrier -> 244
+prerequisites / * / selection option oracle/revelations/wind/lightning-breath -> 244
+prerequisites / * / selection option oracle/revelations/wind/spark-skin -> 244
+prerequisites / * / selection option oracle/revelations/wind/touch-of-electricity -> 244
+prerequisites / * / selection option oracle/revelations/wind/vortex-spells -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/air -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/animal -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/artifice -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/chaos -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/charm -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/community -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/darkness -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/death -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/destruction -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/earth -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/evil -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/fire -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/glory -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/good -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/healing -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/ice -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/knowledge -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/law -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/liberation -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/luck -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/madness -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/magic -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/murder -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/nobility -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/plant -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/protection -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/repose -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/rune -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/scalykind -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/strength -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/sun -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/travel -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/trickery -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/undead -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/war -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/water -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/weather -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option oracle/revelations/ancestor/spirit-of-the-warrior -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option oracle/revelations/ancestor/storm-of-souls -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option oracle/revelations/battle/combat-healer -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option oracle/revelations/battle/iron-skin -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option oracle/revelations/bones/soul-siphon -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option oracle/revelations/bones/spirit-walk -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option oracle/revelations/flame/firestorm -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option oracle/revelations/flame/form-of-flame -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option oracle/revelations/life/lifesense -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option oracle/revelations/nature/life-leech -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option oracle/revelations/waves/blizzard -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option oracle/revelations/waves/punitive-transformation -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option oracle/revelations/wind/invisibility -> 244
+prerequisites / missing in planner, a blueprint it doesn't map / selection option oracle/revelations/wind/thunderburst -> 244
+progression rows / in game only / archetype cleric/angelfire-apostle / a ClericSecondaryDomain selection (SecondDomainsSelection) at level 1 -> 244
+progression rows / in game only / archetype cleric/ecclesitheurge / a ClericSecondaryDomain selection (SecondDomainsSelection) at level 1 -> 244
+progression rows / in game only / class cleric / a ClericSecondaryDomain selection (SecondDomainsSelection) at level 1 -> 244
+progression rows / in planner only / archetype cleric/angelfire-apostle / cleric/domain at level 1 -> 244
+progression rows / in planner only / archetype cleric/ecclesitheurge -> 244
+progression rows / in planner only / class cleric -> 244
+
+# 255, a parametrised feat at one value in a list or a grant.
+option lists / * / feat list ranger/combat-style-feat/archery-feats-10 -> 255
+option lists / * / feat list ranger/combat-style-feat/menacing-feats-10 -> 255
+option lists / * / feat list ranger/combat-style-feat/two-handed-weapon-feats-10 -> 255
+option lists / * / feat list ranger/combat-style-feat/two-weapon-combat-feats-10 -> 255
+option lists / * / feat list ranger/combat-style-feat/weapon-and-shield-feats-10 -> 255
+option lists / * / feat list sorcerer/bloodline/abyssal/feats -> 255
+option lists / * / feat list sorcerer/bloodline/arcane/feats -> 255
+option lists / * / feat list sorcerer/bloodline/celestial/feats -> 255
+option lists / * / feat list sorcerer/bloodline/draconic/feats -> 255
+option lists / * / feat list sorcerer/bloodline/elemental/feats -> 255
+option lists / * / feat list sorcerer/bloodline/fey/feats -> 255
+option lists / * / feat list sorcerer/bloodline/infernal/feats -> 255
+option lists / * / feat list sorcerer/bloodline/serpentine/feats -> 255
+option lists / * / feat list sorcerer/bloodline/undead/feats -> 255
+option lists / in game only / feat list half-elf/adaptability -> 255
+option lists / in game only / feat list warpriest/disenchanter/bonus-feats-12 -> 255
+option lists / in game only / feat list warpriest/disenchanter/bonus-feats-3 -> 255
+option lists / in game only / feat list warpriest/disenchanter/bonus-feats-9 -> 255
+option lists / in planner only / feat list half-elf/adaptability -> 255
+option lists / in planner only / feat list warpriest/disenchanter/bonus-feats-12 -> 255
+option lists / in planner only / feat list warpriest/disenchanter/bonus-feats-3 -> 255
+option lists / in planner only / feat list warpriest/disenchanter/bonus-feats-9 -> 255
+progression rows / * / archetype oracle/enlightened-philosopher -> 255
+progression rows / in game only / archetype alchemist/chirurgeon / SkillFocusLoreReligion at level 5 -> 255
+progression rows / in planner only / archetype alchemist/chirurgeon -> 255
+
+# 256, the game check's misses: leaves only a pet can fail, and the same-value feats.
+prerequisites / * / feat armor-proficiency-heavy-armor -> 256
+prerequisites / * / feat armor-proficiency-light-armor -> 256
+prerequisites / * / feat armor-proficiency-medium-armor -> 256
+prerequisites / * / feat exotic-weapon-proficiency -> 256
+prerequisites / * / feat focused-strike -> 256
+prerequisites / * / feat greater-elemental-focus -> 256
+prerequisites / * / feat greater-spell-focus -> 256
+prerequisites / * / feat greater-weapon-focus -> 256
+prerequisites / * / feat greater-weapon-specialization -> 256
+prerequisites / * / feat indomitable-mount -> 256
+prerequisites / * / feat martial-weapons-proficiency -> 256
+prerequisites / * / feat mounted-combat -> 256
+prerequisites / * / feat shield-proficiency -> 256
+prerequisites / * / feat simple-weapon-proficiency -> 256
+prerequisites / * / feat tower-shield-proficiency -> 256
+prerequisites / * / feat weapon-finesse -> 256
+prerequisites / * / feat weapon-specialization -> 256
+prerequisites / * / mythic feat improved-critical-mythic -> 256
+prerequisites / * / mythic feat spell-focus-mythic -> 256
+prerequisites / missing in planner / feat improved-improved-critical -> 256
+prerequisites / missing in planner / feat improved-improved-improved-critical / TricksterImprovedImprovedCritical -> 256
+prerequisites / missing in planner / feat improved-improved-improved-critical-improved / TricksterImprovedImprovedImprovedCritical -> 256
+prerequisites / missing in planner, a blueprint it doesn't map / feat armor-proficiency-heavy-barding / not SubtypeElemental -> 256
+prerequisites / missing in planner, a blueprint it doesn't map / feat armor-proficiency-light-barding / not SubtypeElemental -> 256
+prerequisites / missing in planner, a blueprint it doesn't map / feat armor-proficiency-medium-barding / not SubtypeElemental -> 256
+
+# 259, Witch Wandering Hex is a daily-use ability, not a pick.
+prerequisites / * / mythic ability witch-wandering-hex -> 259
+
+# 260, Greater Exploits opens the greater exploits in the exploit picks.
+option lists / * / selection arcanist/greater-exploits -> 260
+prerequisites / * / selection option arcanist/greater-exploits/burning-flame -> 260
+prerequisites / * / selection option arcanist/greater-exploits/dancing-electricity -> 260
+prerequisites / * / selection option arcanist/greater-exploits/greater-spell-resistance -> 260
+prerequisites / * / selection option arcanist/greater-exploits/hellfire-ray -> 260
+prerequisites / * / selection option arcanist/greater-exploits/icy-tomb -> 260
+prerequisites / * / selection option arcanist/greater-exploits/lingering-acid -> 260
+
+# 261, class tables: saves, BAB and the Arcane Trickster's skill points.
+class tables / * / archetype cleric/priest-of-balance -> 261
+class tables / * / archetype druid/feyspeaker -> 261
+class tables / * / archetype hunter/colluding-scoundrel -> 261
+class tables / * / archetype hunter/divine-hound -> 261
+class tables / * / archetype hunter/forester -> 261
+class tables / * / archetype hunter/tandem-executioner -> 261
+class tables / * / archetype hunter/urban-hunter -> 261
+class tables / * / archetype hunter/wandering-marksman -> 261
+class tables / * / archetype kineticist/dark-elementalist -> 261
+class tables / * / archetype monk/traditional-monk -> 261
+class tables / * / archetype paladin/divine-guardian -> 261
+class tables / * / archetype paladin/divine-hunter-paladin -> 261
+class tables / * / archetype paladin/divine-scion -> 261
+class tables / * / archetype paladin/hospitaler -> 261
+class tables / * / archetype paladin/martyr -> 261
+class tables / * / archetype paladin/stonelord -> 261
+class tables / * / archetype paladin/tortured-crusader -> 261
+class tables / * / archetype paladin/warrior-of-the-holy-light -> 261
+class tables / * / archetype shifter/child-of-the-manticore -> 261
+class tables / * / archetype shifter/dragonblood-shifter -> 261
+class tables / * / archetype shifter/feyform-shifter -> 261
+class tables / * / archetype shifter/fiendflesh-shifter -> 261
+class tables / * / archetype shifter/griffonheart-shifter -> 261
+class tables / * / archetype shifter/rageshaper -> 261
+class tables / * / archetype shifter/weretouched -> 261
+class tables / * / archetype shifter/wild-effigy -> 261
+class tables / * / archetype warpriest/champion-of-the-faith -> 261
+class tables / * / archetype warpriest/cult-leader -> 261
+class tables / * / archetype warpriest/disenchanter -> 261
+class tables / * / archetype warpriest/feral-champion -> 261
+class tables / * / archetype warpriest/mantis-zealot -> 261
+class tables / * / archetype warpriest/proclaimer -> 261
+class tables / * / archetype warpriest/shieldbearer -> 261
+class tables / * / class arcane-trickster -> 261
+class tables / * / class hunter -> 261
+class tables / * / class loremaster -> 261
+class tables / * / class mystic-theurge -> 261
+class tables / * / class paladin -> 261
+class tables / * / class shifter -> 261
+class tables / * / class student-of-war -> 261
+class tables / * / class warpriest -> 261
+class tables / * / class winter-witch -> 261
+class tables / Fortitude differs / class stalwart-defender -> 261
+class tables / Reflex differs / class stalwart-defender -> 261
+class tables / Will differs / archetype hunter/divine-hunter -> 261
+class tables / Will differs / class stalwart-defender -> 261
+
+# 262, class skills and the Defender of the Hearth's skill points (the user's facts, to the user).
+class tables / * / archetype alchemist/metamorph -> 262
+class tables / * / archetype arcanist/magic-deceiver -> 262
+class tables / * / archetype fighter/defender-of-the-hearth -> 262
+class tables / * / archetype magus/spell-dancer -> 262
+class tables / * / archetype monk/sohei -> 262
+class tables / * / archetype oracle/seeker -> 262
+class tables / * / archetype oracle/wind-whisperer -> 262
+class tables / * / archetype ranger/sable-company-marine -> 262
+class tables / * / archetype rogue/sylvan-trickster -> 262
+class tables / * / archetype sorcerer/empyreal-sorcerer -> 262
+class tables / * / archetype sorcerer/sylvan-sorcerer -> 262
+class tables / * / archetype witch/witch-of-the-veil -> 262
+class tables / class skills differ (the user's facts) / archetype hunter/divine-hunter -> 262
+class tables / class skills differ (the user's facts) / class stalwart-defender -> 262
+
+# 263, feats' prerequisites.
+option lists / in game only / pool general feats -> 263
+prerequisites / * / feat accomplished-sneak-attacker -> 263
+prerequisites / * / feat advanced-weapon-training -> 263
+prerequisites / * / feat agile-maneuvers -> 263
+prerequisites / * / feat bashing-finish -> 263
+prerequisites / * / feat blood-feaster -> 263
+prerequisites / * / feat boar-ferocity -> 263
+prerequisites / * / feat boar-shred -> 263
+prerequisites / * / feat boon-companion -> 263
+prerequisites / * / feat bull-rush -> 263
+prerequisites / * / feat cleave -> 263
+prerequisites / * / feat cleaving-finish -> 263
+prerequisites / * / feat combat-mobility -> 263
+prerequisites / * / feat crane-riposte -> 263
+prerequisites / * / feat crane-wing -> 263
+prerequisites / * / feat critical-mastery -> 263
+prerequisites / * / feat crushing-blow -> 263
+prerequisites / * / feat diehard -> 263
+prerequisites / * / feat dirty-trick -> 263
+prerequisites / * / feat disarm -> 263
+prerequisites / * / feat disarming-strike -> 263
+prerequisites / * / feat discordant-voice -> 263
+prerequisites / * / feat disruptive -> 263
+prerequisites / * / feat diva-advance -> 263
+prerequisites / * / feat diva-strike -> 263
+prerequisites / * / feat diva-style -> 263
+prerequisites / * / feat dragon-ferocity -> 263
+prerequisites / * / feat dragon-roar -> 263
+prerequisites / * / feat energized-wild-shape -> 263
+prerequisites / * / feat extended-aspects -> 263
+prerequisites / * / feat favored-enemy-spellcasting -> 263
+prerequisites / * / feat feint -> 263
+prerequisites / * / feat fencing-grace -> 263
+prerequisites / * / feat final-feint -> 263
+prerequisites / * / feat frightful-shape -> 263
+prerequisites / * / feat great-cleave -> 263
+prerequisites / * / feat greater-bull-rush -> 263
+prerequisites / * / feat greater-dirty-trick -> 263
+prerequisites / * / feat greater-disarm -> 263
+prerequisites / * / feat greater-penetrating-strike -> 263
+prerequisites / * / feat greater-shield-focus -> 263
+prerequisites / * / feat greater-snap-shot -> 263
+prerequisites / * / feat greater-sunder-armor -> 263
+prerequisites / * / feat greater-trip -> 263
+prerequisites / * / feat improved-cleaving-finish -> 263
+prerequisites / * / feat improved-elven-immunities -> 263
+prerequisites / * / feat improved-snap-shot -> 263
+prerequisites / * / feat ironguts -> 263
+prerequisites / * / feat lingering-performance -> 263
+prerequisites / * / feat manyshot -> 263
+prerequisites / * / feat metamagic-completely-normal-spell -> 263
+prerequisites / * / feat murmurs-of-earth -> 263
+prerequisites / * / feat natural-spell -> 263
+prerequisites / * / feat point-blank-master -> 263
+prerequisites / * / feat pummeling-bully -> 263
+prerequisites / * / feat pummeling-style -> 263
+prerequisites / * / feat raging-brutality -> 263
+prerequisites / * / feat raking-claws -> 263
+prerequisites / * / feat ranged-feint -> 263
+prerequisites / * / feat rapid-shot -> 263
+prerequisites / * / feat selective-channel -> 263
+prerequisites / * / feat shaitan-earthblast -> 263
+prerequisites / * / feat shaitan-skin -> 263
+prerequisites / * / feat shield-bash -> 263
+prerequisites / * / feat shield-focus -> 263
+prerequisites / * / feat shield-wall -> 263
+prerequisites / * / feat shifters-edge -> 263
+prerequisites / * / feat shifters-rush -> 263
+prerequisites / * / feat slashing-grace -> 263
+prerequisites / * / feat spell-chain -> 263
+prerequisites / * / feat spell-specialization -> 263
+prerequisites / * / feat stat-focus -> 263
+prerequisites / * / feat steel-soul -> 263
+prerequisites / * / feat sunder-armor -> 263
+prerequisites / * / feat trip -> 263
+prerequisites / * / feat two-weapon-feint -> 263
+prerequisites / * / feat warrior-priest -> 263
+prerequisites / * / feat wings -> 263
+prerequisites / missing in planner / feat improved-improved-improved-critical -> 263
+prerequisites / missing in planner / feat improved-improved-improved-critical-improved -> 263
+prerequisites / missing in planner, a blueprint it doesn't map / feat armor-proficiency-heavy-barding -> 263
+prerequisites / missing in planner, a blueprint it doesn't map / feat armor-proficiency-light-barding -> 263
+prerequisites / missing in planner, a blueprint it doesn't map / feat armor-proficiency-medium-barding -> 263
+prerequisites / not in game / feat improved-improved-critical -> 263
+prerequisites / not in game / feat improved-improved-improved-critical -> 263
+prerequisites / not in game / feat improved-improved-improved-critical-improved -> 263
+
+# 264, the Extra feats' prerequisites and picks.
+prerequisites / * / feat extra-arcana -> 264
+prerequisites / * / feat extra-arcanist-exploit -> 264
+prerequisites / * / feat extra-bombs -> 264
+prerequisites / * / feat extra-channel -> 264
+prerequisites / * / feat extra-discovery -> 264
+prerequisites / * / feat extra-hex -> 264
+prerequisites / * / feat extra-ki -> 264
+prerequisites / * / feat extra-lay-on-hands -> 264
+prerequisites / * / feat extra-performance -> 264
+prerequisites / * / feat extra-rage-power -> 264
+prerequisites / * / feat extra-rogue-talent -> 264
+prerequisites / * / feat extra-slayer-talent -> 264
+prerequisites / * / feat extra-wild-talent -> 264
+
+# 265, mythic abilities' and mythic feats' prerequisites and lists.
+option lists / * / pool mythic feats -> 265
+option lists / in game only / pool mythic abilities -> 265
+prerequisites / * / mythic ability abundant-bane -> 265
+prerequisites / * / mythic ability abundant-ki-pool -> 265
+prerequisites / * / mythic ability abundant-smite-smite-chaos -> 265
+prerequisites / * / mythic ability any-means-necessary -> 265
+prerequisites / * / mythic ability bloodline-ascendance -> 265
+prerequisites / * / mythic ability defensive-study -> 265
+prerequisites / * / mythic ability domain-zealot -> 265
+prerequisites / * / mythic ability everlasting-judgement -> 265
+prerequisites / * / mythic ability greater-enduring-spells -> 265
+prerequisites / * / mythic ability impossible-domain -> 265
+prerequisites / * / mythic ability kinetic-overcharge -> 265
+prerequisites / * / mythic ability limitless-rage -> 265
+prerequisites / * / mythic ability mythical-beast -> 265
+prerequisites / * / mythic ability over-infused-blasts -> 265
+prerequisites / * / mythic ability school-tolerance -> 265
+prerequisites / * / mythic ability second-bloodline -> 265
+prerequisites / * / mythic ability second-bloodrager-bloodline -> 265
+prerequisites / * / mythic ability second-mystery -> 265
+prerequisites / * / mythic ability second-spirit -> 265
+prerequisites / * / mythic feat destiny-beyond-birth -> 265
+prerequisites / * / mythic feat mythic-armor-focus-heavy-armor-assault -> 265
+prerequisites / * / mythic feat mythic-armor-focus-heavy-armor-avoidance -> 265
+prerequisites / * / mythic feat mythic-armor-focus-heavy-armor-endurance -> 265
+prerequisites / * / mythic feat mythic-armor-focus-light-armor-assault -> 265
+prerequisites / * / mythic feat mythic-armor-focus-light-armor-avoidance -> 265
+prerequisites / * / mythic feat mythic-armor-focus-light-armor-endurance -> 265
+prerequisites / * / mythic feat mythic-armor-focus-medium-armor-assault -> 265
+prerequisites / * / mythic feat mythic-armor-focus-medium-armor-avoidance -> 265
+prerequisites / * / mythic feat mythic-armor-focus-medium-armor-endurance -> 265
+prerequisites / * / mythic feat mythic-sneak-attack -> 265
+
+# 266, the mythic paths' ranks and options.
+mythic ranks / * / mythic path angel -> 266
+mythic ranks / * / mythic path azata -> 266
+mythic ranks / * / mythic path demon -> 266
+mythic ranks / * / mythic path gold-dragon -> 266
+mythic ranks / * / mythic path lich -> 266
+mythic ranks / * / mythic path swarm-that-walks -> 266
+mythic ranks / a further rank in planner only / mythic path aeon -> 266
+mythic ranks / in game only / mythic path aeon -> 266
+mythic ranks / in planner only / mythic path aeon -> 266
+option lists / * / selection angel/greater-sword-of-heaven -> 266
+option lists / * / selection devil/hells-decree -> 266
+option lists / * / selection devil/hells-seal -> 266
+option lists / * / selection lich/skeleton-upgrade -> 266
+prerequisites / * / selection option aeon/enforcing-gaze/enforcing-gaze-area-effects -> 266
+prerequisites / * / selection option aeon/enforcing-gaze/enforcing-gaze-concentration -> 266
+prerequisites / * / selection option aeon/enforcing-gaze/enforcing-gaze-hit-points -> 266
+prerequisites / * / selection option aeon/enforcing-gaze/enforcing-gaze-normalize-size -> 266
+prerequisites / * / selection option aeon/enforcing-gaze/enforcing-gaze-power-of-law -> 266
+prerequisites / * / selection option aeon/enforcing-gaze/enforcing-gaze-primordial-magic -> 266
+prerequisites / * / selection option aeon/enforcing-gaze/enforcing-gaze-relativity-of-space -> 266
+prerequisites / * / selection option aeon/enforcing-gaze/enforcing-gaze-summoners-gaze -> 266
+prerequisites / * / selection option aeon/enforcing-gaze/enforcing-gaze-temporal-jump -> 266
+prerequisites / * / selection option azata/superpowers/life-bonding-friendship -> 266
+prerequisites / * / selection option gold-dragon/improved-gold-dragon-breath/annihilating-breath -> 266
+prerequisites / * / selection option gold-dragon/improved-gold-dragon-breath/decaying-breath -> 266
+prerequisites / * / selection option gold-dragon/improved-gold-dragon-breath/enlightening-breath -> 266
+prerequisites / * / selection option gold-dragon/improved-gold-dragon-breath/rejuvenating-breath -> 266
+prerequisites / * / selection option lich/skeleton-upgrade/skeletal-barbarian-i -> 266
+prerequisites / * / selection option lich/skeleton-upgrade/skeletal-fighter-i -> 266
+
+# 267, deities, domains and blessings.
+option lists / * / feat list cleric/demonbane-priest/bonus-feats -> 267
+option lists / * / selection cleric/impossible-domain -> 267
+option lists / * / selection warpriest/champion-of-the-faith/chosen-alignment -> 267
+option lists / * / selection warpriest/feral-champion/blessing -> 267
+prerequisites / * / archetype cleric/angelfire-apostle -> 267
+prerequisites / * / archetype cleric/priest-of-balance -> 267
+prerequisites / * / archetype kineticist/dark-elementalist -> 267
+prerequisites / * / archetype shifter/rageshaper -> 267
+prerequisites / * / archetype warpriest/feral-champion -> 267
+prerequisites / * / archetype warpriest/mantis-zealot -> 267
+prerequisites / * / archetype witch/hag-of-gyronna -> 267
+prerequisites / * / class cleric -> 267
+prerequisites / * / class inquisitor -> 267
+prerequisites / * / class oracle -> 267
+prerequisites / * / class paladin -> 267
+prerequisites / * / class warpriest -> 267
+prerequisites / * / selection option warpriest/blessings/air-domain -> 267
+prerequisites / * / selection option warpriest/blessings/animal-domain -> 267
+prerequisites / * / selection option warpriest/blessings/chaos-domain -> 267
+prerequisites / * / selection option warpriest/blessings/darkness-domain -> 267
+prerequisites / * / selection option warpriest/blessings/death-domain -> 267
+prerequisites / * / selection option warpriest/blessings/destruction -> 267
+prerequisites / * / selection option warpriest/blessings/earth -> 267
+prerequisites / * / selection option warpriest/blessings/evil-domain -> 267
+prerequisites / * / selection option warpriest/blessings/fire -> 267
+prerequisites / * / selection option warpriest/blessings/good-domain -> 267
+prerequisites / * / selection option warpriest/blessings/healing-domain -> 267
+prerequisites / * / selection option warpriest/blessings/law-domain -> 267
+prerequisites / * / selection option warpriest/blessings/liberation -> 267
+prerequisites / * / selection option warpriest/blessings/luck -> 267
+prerequisites / * / selection option warpriest/blessings/madness -> 267
+prerequisites / * / selection option warpriest/blessings/magic -> 267
+prerequisites / * / selection option warpriest/blessings/nobility -> 267
+prerequisites / * / selection option warpriest/blessings/protection -> 267
+prerequisites / * / selection option warpriest/blessings/repose -> 267
+prerequisites / * / selection option warpriest/blessings/strength -> 267
+prerequisites / * / selection option warpriest/blessings/sun -> 267
+prerequisites / * / selection option warpriest/blessings/travel -> 267
+prerequisites / * / selection option warpriest/blessings/trickery -> 267
+prerequisites / * / selection option warpriest/blessings/water -> 267
+prerequisites / * / selection option warpriest/blessings/weather -> 267
+prerequisites / missing in planner / selection option cleric/domain/animal -> 267
+prerequisites / missing in planner / selection option cleric/domain/death -> 267
+prerequisites / missing in planner / selection option cleric/domain/murder -> 267
+prerequisites / missing in planner / selection option cleric/domain/scalykind -> 267
+prerequisites / missing in planner / selection option cleric/domain/undead -> 267
+prerequisites / missing in planner / selection option cleric/domain/water -> 267
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/air / AirDomainAllowed -> 267
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/animal / AnimalDomainAllowed -> 267
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/artifice / ArtificeDomainAllowed -> 267
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/chaos / ChaosDomainAllowed -> 267
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/charm / CharmDomainAllowed -> 267
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/community / CommunityDomainAllowed -> 267
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/darkness / DarknessDomainAllowed -> 267
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/death / DeathDomainAllowed -> 267
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/destruction / DestructionDomainAllowed -> 267
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/earth / EarthDomainAllowed -> 267
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/evil / EvilDomainAllowed -> 267
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/fire / FireDomainAllowed -> 267
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/glory / GloryDomainAllowed -> 267
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/good / GoodDomainAllowed -> 267
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/healing / HealingDomainAllowed -> 267
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/ice / IceSubdomainAllowed -> 267
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/ice / WaterDomainAllowed -> 267
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/knowledge / KnowledgeDomainAllowed -> 267
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/law / LawDomainAllowed -> 267
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/liberation / LiberationDomainAllowed -> 267
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/luck / LuckDomainAllowed -> 267
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/madness / MadnessDomainAllowed -> 267
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/magic / MagicDomainAllowed -> 267
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/murder / DeathDomainAllowed -> 267
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/murder / MurderSubdomainAllowed -> 267
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/nobility / NobilityDomainAllowed -> 267
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/plant / PlantDomainAllowed -> 267
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/protection / ProtectionDomainAllowed -> 267
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/repose / ReposeDomainAllowed -> 267
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/rune / RuneDomainAllowed -> 267
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/scalykind / ScalykindDomainAllowed -> 267
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/strength / StrengthDomainAllowed -> 267
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/sun / SunDomainAllowed -> 267
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/travel / TravelDomainAllowed -> 267
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/trickery / TrickeryDomainAllowed -> 267
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/undead / DeathDomainAllowed -> 267
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/undead / UndeadSubdomainAllowed -> 267
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/war / WarDomainAllowed -> 267
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/water / WaterDomainAllowed -> 267
+prerequisites / missing in planner, a blueprint it doesn't map / selection option cleric/domain/weather / WeatherDomainAllowed -> 267
+progression rows / * / archetype cleric/crusader -> 267
+progression rows / * / archetype cleric/demonbane-priest -> 267
+progression rows / * / archetype cleric/herald-caller -> 267
+progression rows / * / archetype cleric/priest-of-balance -> 267
+progression rows / * / archetype cleric/separatist -> 267
+progression rows / in game only / archetype cleric/angelfire-apostle -> 267
+progression rows / in game only / archetype cleric/ecclesitheurge -> 267
+progression rows / in game only / class cleric -> 267
+progression rows / in planner only / archetype cleric/angelfire-apostle -> 267
+
+# 268, warpriest rows.
+option lists / ignores prerequisites or not / feat list warpriest/disenchanter/bonus-feats-12 -> 268
+option lists / ignores prerequisites or not / feat list warpriest/disenchanter/bonus-feats-3 -> 268
+option lists / ignores prerequisites or not / feat list warpriest/disenchanter/bonus-feats-9 -> 268
+progression rows / * / archetype warpriest/champion-of-the-faith -> 268
+progression rows / * / archetype warpriest/feral-champion -> 268
+progression rows / * / archetype warpriest/mantis-zealot -> 268
+progression rows / a further rank in planner only / archetype warpriest/cult-leader -> 268
+progression rows / a further rank in planner only / archetype warpriest/disenchanter -> 268
+progression rows / a further rank in planner only / archetype warpriest/proclaimer -> 268
+progression rows / a further rank in planner only / archetype warpriest/shieldbearer -> 268
+progression rows / a further rank in planner only / class warpriest -> 268
+progression rows / at another level / archetype warpriest/shieldbearer -> 268
+progression rows / in game only / archetype warpriest/cult-leader -> 268
+progression rows / in game only / archetype warpriest/disenchanter -> 268
+progression rows / in game only / archetype warpriest/proclaimer -> 268
+progression rows / in game only / archetype warpriest/shieldbearer -> 268
+progression rows / in game only / class warpriest -> 268
+progression rows / in planner only / archetype warpriest/shieldbearer -> 268
+progression rows / in planner only / class warpriest -> 268
+
+# 269, barbarian rows and rage powers.
+option lists / * / feat list barbarian/pack-rager/bonus-feats -> 269
+option lists / * / selection barbarian/rage-power -> 269
+prerequisites / * / selection option barbarian/rage-power/beast-totem -> 269
+prerequisites / * / selection option barbarian/rage-power/beast-totem-greater -> 269
+prerequisites / * / selection option barbarian/rage-power/beast-totem-lesser -> 269
+prerequisites / * / selection option barbarian/rage-power/celestial-totem -> 269
+prerequisites / * / selection option barbarian/rage-power/celestial-totem-greater -> 269
+prerequisites / * / selection option barbarian/rage-power/celestial-totem-lesser -> 269
+prerequisites / * / selection option barbarian/rage-power/clear-mind -> 269
+prerequisites / * / selection option barbarian/rage-power/come-and-get-me -> 269
+prerequisites / * / selection option barbarian/rage-power/crippling-blows -> 269
+prerequisites / * / selection option barbarian/rage-power/daemon-totem -> 269
+prerequisites / * / selection option barbarian/rage-power/daemon-totem-greater -> 269
+prerequisites / * / selection option barbarian/rage-power/daemon-totem-lesser -> 269
+prerequisites / * / selection option barbarian/rage-power/deadly-accuracy -> 269
+prerequisites / * / selection option barbarian/rage-power/deflect-arrows-instinctual-warrior -> 269
+prerequisites / * / selection option barbarian/rage-power/diamond-soul-instinctual-warrior -> 269
+prerequisites / * / selection option barbarian/rage-power/fearless-rage -> 269
+prerequisites / * / selection option barbarian/rage-power/fiend-totem -> 269
+prerequisites / * / selection option barbarian/rage-power/fiend-totem-greater -> 269
+prerequisites / * / selection option barbarian/rage-power/fiend-totem-lesser -> 269
+prerequisites / * / selection option barbarian/rage-power/increased-damage-reduction -> 269
+prerequisites / * / selection option barbarian/rage-power/internal-fortitude -> 269
+prerequisites / * / selection option barbarian/rage-power/lethal-accuracy -> 269
+prerequisites / * / selection option barbarian/rage-power/protect-vitals -> 269
+prerequisites / * / selection option barbarian/rage-power/purity-of-body-instinctual-warrior -> 269
+prerequisites / * / selection option barbarian/rage-power/reflexive-dodge -> 269
+prerequisites / * / selection option barbarian/rage-power/renewed-vigor -> 269
+prerequisites / * / selection option barbarian/rage-power/rolling-dodge -> 269
+prerequisites / * / selection option barbarian/rage-power/wrecking-blows -> 269
+progression rows / * / archetype barbarian/flesheater -> 269
+progression rows / * / archetype barbarian/mad-dog -> 269
+progression rows / * / archetype barbarian/pack-rager -> 269
+progression rows / a further rank in planner only / archetype barbarian/instinctual-warrior -> 269
+
+# 270, the kineticist's blasts and infusions.
+option lists / * / selection kineticist/blood-kineticist/element -> 270
+option lists / * / selection kineticist/expanded-element -> 270
+option lists / * / selection kineticist/kinetic-knight/element -> 270
+prerequisites / * / selection option kineticist/element/air -> 270
+prerequisites / * / selection option kineticist/element/earth -> 270
+prerequisites / * / selection option kineticist/element/fire -> 270
+prerequisites / * / selection option kineticist/infusions/bowling-infusion -> 270
+prerequisites / * / selection option kineticist/infusions/burning-infusion -> 270
+prerequisites / * / selection option kineticist/infusions/chilling-infusion -> 270
+prerequisites / * / selection option kineticist/infusions/cloud -> 270
+prerequisites / * / selection option kineticist/infusions/cyclone -> 270
+prerequisites / * / selection option kineticist/infusions/dazzling-infusion -> 270
+prerequisites / * / selection option kineticist/infusions/deadly-earth -> 270
+prerequisites / * / selection option kineticist/infusions/detonation -> 270
+prerequisites / * / selection option kineticist/infusions/entangling-infusion -> 270
+prerequisites / * / selection option kineticist/infusions/eruption -> 270
+prerequisites / * / selection option kineticist/infusions/exploding-arrows -> 270
+prerequisites / * / selection option kineticist/infusions/extended-range -> 270
+prerequisites / * / selection option kineticist/infusions/fan-of-flames -> 270
+prerequisites / * / selection option kineticist/infusions/flash-infusion -> 270
+prerequisites / * / selection option kineticist/infusions/foxfire-infusion -> 270
+prerequisites / * / selection option kineticist/infusions/fragmentation -> 270
+prerequisites / * / selection option kineticist/infusions/kinetic-blade -> 270
+prerequisites / * / selection option kineticist/infusions/magnetic-infusion -> 270
+prerequisites / * / selection option kineticist/infusions/pure-flame-infusion -> 270
+prerequisites / * / selection option kineticist/infusions/pushing-infusion -> 270
+prerequisites / * / selection option kineticist/infusions/rare-metal-infusion -> 270
+prerequisites / * / selection option kineticist/infusions/rending-arrows -> 270
+prerequisites / * / selection option kineticist/infusions/spindle -> 270
+prerequisites / * / selection option kineticist/infusions/spray -> 270
+prerequisites / * / selection option kineticist/infusions/synaptic-infusion -> 270
+prerequisites / * / selection option kineticist/infusions/torrent -> 270
+prerequisites / * / selection option kineticist/infusions/unraveling-infusion -> 270
+prerequisites / * / selection option kineticist/infusions/wall -> 270
+
+# 271, the kineticist's wild talents and rows.
+option lists / * / selection kineticist/wild-talents -> 271
+prerequisites / * / selection option kineticist/wild-talents/aerial-adaptation -> 271
+prerequisites / * / selection option kineticist/wild-talents/aerial-evasion -> 271
+prerequisites / * / selection option kineticist/wild-talents/celerity -> 271
+prerequisites / * / selection option kineticist/wild-talents/cold-adaptation -> 271
+prerequisites / * / selection option kineticist/wild-talents/elemental-whispers -> 271
+prerequisites / * / selection option kineticist/wild-talents/enduring-earth -> 271
+prerequisites / * / selection option kineticist/wild-talents/fires-fury -> 271
+prerequisites / * / selection option kineticist/wild-talents/flame-shield -> 271
+prerequisites / * / selection option kineticist/wild-talents/foxfire -> 271
+prerequisites / * / selection option kineticist/wild-talents/healing-burst -> 271
+prerequisites / * / selection option kineticist/wild-talents/heat-adaptation -> 271
+prerequisites / * / selection option kineticist/wild-talents/jagged-flesh -> 271
+prerequisites / * / selection option kineticist/wild-talents/kinetic-healer -> 271
+prerequisites / * / selection option kineticist/wild-talents/kinetic-revivification -> 271
+prerequisites / * / selection option kineticist/wild-talents/skill-focus -> 271
+prerequisites / * / selection option kineticist/wild-talents/skilled-kineticist -> 271
+prerequisites / * / selection option kineticist/wild-talents/slick -> 271
+prerequisites / * / selection option kineticist/wild-talents/tidal-wave -> 271
+prerequisites / * / selection option kineticist/wild-talents/tremor-sense -> 271
+progression rows / a further rank in game only / archetype kineticist/blood-kineticist -> 271
+progression rows / a further rank in game only / archetype kineticist/dark-elementalist -> 271
+progression rows / a further rank in game only / archetype kineticist/elemental-engine -> 271
+progression rows / a further rank in game only / archetype kineticist/kinetic-knight -> 271
+progression rows / a further rank in game only / archetype kineticist/kinetic-sharpshooter -> 271
+progression rows / a further rank in game only / archetype kineticist/overwhelming-soul -> 271
+progression rows / a further rank in game only / archetype kineticist/psychokineticist -> 271
+progression rows / a further rank in game only / class kineticist -> 271
+progression rows / a further rank in planner only / archetype kineticist/kinetic-knight -> 271
+progression rows / a further rank in planner only / archetype kineticist/overwhelming-soul -> 271
+progression rows / in game only / archetype kineticist/blood-kineticist -> 271
+progression rows / in game only / archetype kineticist/kinetic-knight -> 271
+progression rows / in game only / archetype kineticist/kinetic-sharpshooter -> 271
+progression rows / in game only / archetype kineticist/overwhelming-soul -> 271
+progression rows / in game only / archetype kineticist/psychokineticist -> 271
+progression rows / in game only / class kineticist -> 271
+progression rows / in planner only / archetype kineticist/kinetic-knight -> 271
+
+# 272, oracle rows, curses and mysteries.
+option lists / * / selection oracle/lone-strider/mystery -> 272
+option lists / * / selection oracle/second-curse -> 272
+option lists / * / selection oracle/wind-whisperer/mystery -> 272
+prerequisites / * / selection option oracle/oracles-curse/blackened -> 272
+prerequisites / * / selection option oracle/oracles-curse/demonic -> 272
+prerequisites / * / selection option oracle/oracles-curse/hellbound -> 272
+prerequisites / * / selection option oracle/oracles-curse/lame -> 272
+prerequisites / * / selection option oracle/oracles-curse/plagued -> 272
+prerequisites / * / selection option oracle/oracles-curse/powerless-prophecy -> 272
+prerequisites / * / selection option oracle/oracles-curse/pranked -> 272
+prerequisites / * / selection option oracle/oracles-curse/wasting -> 272
+prerequisites / * / selection option oracle/oracles-curse/wolf-scarred-face -> 272
+prerequisites / missing in planner / selection option oracle/revelations/life/lifesense -> 272
+prerequisites / not in game / selection option oracle/revelations/ancestor/spirit-of-the-warrior -> 272
+prerequisites / not in game / selection option oracle/revelations/ancestor/storm-of-souls -> 272
+prerequisites / not in game / selection option oracle/revelations/battle/combat-healer -> 272
+prerequisites / not in game / selection option oracle/revelations/battle/iron-skin -> 272
+prerequisites / not in game / selection option oracle/revelations/bones/soul-siphon -> 272
+prerequisites / not in game / selection option oracle/revelations/bones/spirit-walk -> 272
+prerequisites / not in game / selection option oracle/revelations/flame/firestorm -> 272
+prerequisites / not in game / selection option oracle/revelations/flame/form-of-flame -> 272
+prerequisites / not in game / selection option oracle/revelations/nature/life-leech -> 272
+prerequisites / not in game / selection option oracle/revelations/waves/blizzard -> 272
+prerequisites / not in game / selection option oracle/revelations/waves/punitive-transformation -> 272
+prerequisites / not in game / selection option oracle/revelations/wind/invisibility -> 272
+prerequisites / not in game / selection option oracle/revelations/wind/thunderburst -> 272
+progression rows / * / archetype oracle/divine-herbalist -> 272
+progression rows / * / archetype oracle/dual-cursed-oracle -> 272
+progression rows / * / archetype oracle/lone-strider -> 272
+progression rows / * / archetype oracle/possessed-oracle -> 272
+progression rows / * / archetype oracle/purifier -> 272
+progression rows / * / archetype oracle/seeker -> 272
+progression rows / * / archetype oracle/wind-whisperer -> 272
+progression rows / * / class oracle -> 272
+
+# 273, cavalier rows.
+progression rows / * / archetype cavalier/beast-rider -> 273
+progression rows / * / archetype cavalier/disciple-of-the-pike -> 273
+progression rows / * / archetype cavalier/fearsome-leader -> 273
+progression rows / * / archetype cavalier/gendarme -> 273
+progression rows / * / archetype cavalier/ghost-rider -> 273
+progression rows / * / archetype cavalier/knight-of-the-wall -> 273
+progression rows / * / archetype cavalier/standard-bearer -> 273
+progression rows / * / class cavalier -> 273
+progression rows / a bonus pick of another group / archetype cavalier/cavalier-of-the-paw -> 273
+progression rows / a further rank in planner only / archetype cavalier/cavalier-of-the-paw -> 273
+progression rows / at another level / archetype cavalier/cavalier-of-the-paw -> 273
+progression rows / in game only / archetype cavalier/cavalier-of-the-paw -> 273
+progression rows / in planner only / archetype cavalier/cavalier-of-the-paw -> 273
+
+# 274, paladin rows and mercies.
+prerequisites / * / selection option paladin/mercy/fatigued -> 274
+prerequisites / * / selection option paladin/mercy/shaken -> 274
+prerequisites / * / selection option paladin/mercy/sickened -> 274
+progression rows / * / archetype paladin/divine-guardian -> 274
+progression rows / * / archetype paladin/divine-hunter-paladin -> 274
+progression rows / * / archetype paladin/hospitaler -> 274
+progression rows / * / archetype paladin/martyr -> 274
+progression rows / * / archetype paladin/stonelord -> 274
+progression rows / * / archetype paladin/tortured-crusader -> 274
+progression rows / * / archetype paladin/warrior-of-the-holy-light -> 274
+progression rows / * / class paladin -> 274
+
+# 275, ranger and hunter rows and lists.
+option lists / * / feat list hunter/bonus-feats-3 -> 275
+option lists / * / feat list ranger/bonus-feats-10b -> 275
+option lists / * / feat list ranger/bonus-feats-2b -> 275
+option lists / * / feat list ranger/bonus-feats-6b -> 275
+prerequisites / * / selection option hunter/divine-hunter/otherworldly-companion/otherworldly-companion-celestial -> 275
+prerequisites / * / selection option hunter/divine-hunter/otherworldly-companion/otherworldly-companion-fiendish -> 275
+progression rows / * / archetype hunter/colluding-scoundrel -> 275
+progression rows / * / archetype hunter/divine-hound -> 275
+progression rows / * / archetype hunter/divine-hunter -> 275
+progression rows / * / archetype hunter/forester -> 275
+progression rows / * / archetype hunter/tandem-executioner -> 275
+progression rows / * / archetype hunter/urban-hunter -> 275
+progression rows / * / archetype hunter/wandering-marksman -> 275
+progression rows / * / archetype ranger/demonslayer -> 275
+progression rows / * / archetype ranger/espionage-expert -> 275
+progression rows / * / archetype ranger/flamewarden -> 275
+progression rows / * / archetype ranger/freebooter -> 275
+progression rows / * / archetype ranger/nomad -> 275
+progression rows / * / archetype ranger/sable-company-marine -> 275
+progression rows / * / archetype ranger/stormwalker -> 275
+progression rows / * / class ranger -> 275
+
+# 276, rogue and slayer talents and rows.
+option lists / * / feat list rogue/master-of-all/skill-focus -> 276
+option lists / * / selection rogue/sylvan-trickster/fey-tricks -> 276
+option lists / * / selection rogue/underground-chemist/discovery -> 276
+option lists / * / selection slayer/imitator/imitation -> 276
+option lists / * / selection slayer/slayer-talents -> 276
+prerequisites / * / selection option rogue/rogue-talents/blinding-strike -> 276
+prerequisites / * / selection option rogue/rogue-talents/confounding-blades -> 276
+prerequisites / * / selection option rogue/rogue-talents/crippling-strike -> 276
+prerequisites / * / selection option rogue/rogue-talents/dispelling-attack -> 276
+prerequisites / * / selection option rogue/rogue-talents/emboldening-strike -> 276
+prerequisites / * / selection option rogue/rogue-talents/focusing-attack-confused -> 276
+prerequisites / * / selection option rogue/rogue-talents/focusing-attack-shaken -> 276
+prerequisites / * / selection option rogue/rogue-talents/focusing-attack-sickened -> 276
+prerequisites / * / selection option rogue/rogue-talents/improved-evasion -> 276
+prerequisites / * / selection option rogue/rogue-talents/improved-uncanny-dodge -> 276
+prerequisites / * / selection option rogue/rogue-talents/mystery-seeker -> 276
+prerequisites / * / selection option rogue/rogue-talents/petrifying-strike -> 276
+prerequisites / * / selection option rogue/rogue-talents/slow-reactions -> 276
+prerequisites / * / selection option rogue/rogue-talents/survivalist -> 276
+prerequisites / * / selection option rogue/rogue-talents/uncanny-dodge -> 276
+prerequisites / * / selection option rogue/rogue-talents/weakening-wound -> 276
+prerequisites / * / selection option rogue/rogue-talents/weapon-focus -> 276
+prerequisites / * / selection option rogue/rogue-talents/wearying-strike -> 276
+prerequisites / * / selection option slayer/bloodseeker/nocturnal-abilities/blasphemy -> 276
+prerequisites / * / selection option slayer/bloodseeker/nocturnal-abilities/enervation -> 276
+prerequisites / * / selection option slayer/bloodseeker/nocturnal-abilities/haste -> 276
+prerequisites / * / selection option slayer/bloodseeker/nocturnal-abilities/predatory-might -> 276
+prerequisites / * / selection option slayer/bloodseeker/nocturnal-abilities/predatory-prowess -> 276
+prerequisites / * / selection option slayer/bloodseeker/nocturnal-abilities/slow -> 276
+prerequisites / * / selection option slayer/bloodseeker/nocturnal-abilities/summon-bloody-bones-beast -> 276
+prerequisites / * / selection option slayer/bloodseeker/nocturnal-abilities/vampiric-shadow-shield -> 276
+prerequisites / * / selection option slayer/bloodseeker/nocturnal-abilities/vampiric-touch -> 276
+prerequisites / * / selection option slayer/bloodseeker/nocturnal-abilities/wracking-ray -> 276
+prerequisites / * / selection option slayer/slayer-talents/combat-style-feat-10 -> 276
+prerequisites / * / selection option slayer/slayer-talents/combat-style-feat-2 -> 276
+prerequisites / * / selection option slayer/slayer-talents/combat-style-feat-6 -> 276
+progression rows / * / archetype rogue/eldritch-scoundrel -> 276
+progression rows / * / archetype rogue/sylvan-trickster -> 276
+progression rows / * / archetype rogue/underground-chemist -> 276
+progression rows / * / archetype slayer/bloodseeker -> 276
+progression rows / a further rank in planner only / archetype slayer/executioner -> 276
+progression rows / a further rank in planner only / archetype slayer/spawn-slayer -> 276
+progression rows / a further rank in planner only / archetype slayer/stygian-slayer -> 276
+progression rows / in game only / archetype rogue/dark-lurker -> 276
+progression rows / in game only / archetype slayer/deliverer -> 276
+progression rows / in game only / archetype slayer/executioner -> 276
+progression rows / in game only / archetype slayer/imitator -> 276
+progression rows / in game only / archetype slayer/spawn-slayer -> 276
+progression rows / in game only / archetype slayer/stygian-slayer -> 276
+progression rows / in game only / archetype slayer/vanguard -> 276
+progression rows / in game only / class slayer -> 276
+progression rows / in planner only / archetype slayer/deliverer -> 276
+progression rows / in planner only / archetype slayer/imitator -> 276
+
+# 277, druid and shifter rows and options.
+option lists / * / selection druid/winter-child/domain -> 277
+option lists / * / selection shifter/dragonblood-shifter/greater-wyrmshifter -> 277
+option lists / * / selection shifter/feyform-shifter/rogue-talent -> 277
+progression rows / * / archetype druid/blight-druid -> 277
+progression rows / * / archetype druid/defender-of-the-true-world -> 277
+progression rows / * / archetype druid/drovier -> 277
+progression rows / * / archetype druid/elemental-rampager -> 277
+progression rows / * / archetype druid/feyspeaker -> 277
+progression rows / * / archetype druid/primal-druid -> 277
+progression rows / * / archetype druid/winter-child -> 277
+progression rows / * / archetype shifter/child-of-the-manticore -> 277
+progression rows / * / archetype shifter/fiendflesh-shifter -> 277
+progression rows / * / archetype shifter/griffonheart-shifter -> 277
+progression rows / * / archetype shifter/rageshaper -> 277
+progression rows / * / archetype shifter/weretouched -> 277
+progression rows / * / archetype shifter/wild-effigy -> 277
+progression rows / * / class druid -> 277
+
+# 278, witch and shaman hexes and rows.
+option lists / * / selection shaman/wildland-shaman/spirit -> 278
+option lists / * / selection witch/hex -> 278
+prerequisites / * / selection option shaman/hex/air-barrier -> 278
+prerequisites / * / selection option shaman/hex/battle-master -> 278
+prerequisites / * / selection option shaman/hex/battle-ward -> 278
+prerequisites / * / selection option shaman/hex/beckoning-chill -> 278
+prerequisites / * / selection option shaman/hex/bone-lock -> 278
+prerequisites / * / selection option shaman/hex/bone-ward -> 278
+prerequisites / * / selection option shaman/hex/entangling-curse -> 278
+prerequisites / * / selection option shaman/hex/fearful-gaze -> 278
+prerequisites / * / selection option shaman/hex/fire-nimbus -> 278
+prerequisites / * / selection option shaman/hex/flame-curse -> 278
+prerequisites / * / selection option shaman/hex/friend-to-animals -> 278
+prerequisites / * / selection option shaman/hex/hampering-hex -> 278
+prerequisites / * / selection option shaman/hex/hypothermia -> 278
+prerequisites / * / selection option shaman/hex/intimidating-display -> 278
+prerequisites / * / selection option shaman/hex/metal-curse -> 278
+prerequisites / * / selection option shaman/hex/stone-stability -> 278
+prerequisites / * / selection option shaman/hex/vortex-spells -> 278
+prerequisites / * / selection option shaman/hex/ward-of-flame -> 278
+prerequisites / * / selection option shaman/hex/wind-ward -> 278
+prerequisites / * / selection option shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-addle-mind -> 278
+prerequisites / * / selection option shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-contagiousness -> 278
+prerequisites / * / selection option shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-defenseless-host -> 278
+prerequisites / * / selection option shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-drain-body -> 278
+prerequisites / * / selection option shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-drain-mind -> 278
+prerequisites / * / selection option shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-dulled-reactions -> 278
+prerequisites / * / selection option shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-erode-body -> 278
+prerequisites / * / selection option shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-erode-mind -> 278
+prerequisites / * / selection option shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-muscle-atrophy -> 278
+prerequisites / * / selection option shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-muscle-feebleness -> 278
+prerequisites / * / selection option shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-new-strain -> 278
+prerequisites / * / selection option shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-staggered-body -> 278
+prerequisites / * / selection option shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-stiffened-limbs -> 278
+prerequisites / * / selection option shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-virulence -> 278
+prerequisites / * / selection option shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-vulnerable-host -> 278
+prerequisites / * / selection option shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-withering -> 278
+prerequisites / * / selection option witch/hex/agony -> 278
+prerequisites / * / selection option witch/hex/animal-servant -> 278
+prerequisites / * / selection option witch/hex/animal-skin -> 278
+prerequisites / * / selection option witch/hex/beasts-gift -> 278
+prerequisites / * / selection option witch/hex/death-curse -> 278
+prerequisites / * / selection option witch/hex/delicious-fright -> 278
+prerequisites / * / selection option witch/hex/hoarfrost -> 278
+prerequisites / * / selection option witch/hex/iceplant -> 278
+prerequisites / * / selection option witch/hex/lay-to-rest -> 278
+prerequisites / * / selection option witch/hex/life-giver -> 278
+prerequisites / * / selection option witch/hex/major-ameliorating -> 278
+prerequisites / * / selection option witch/hex/major-healing -> 278
+prerequisites / * / selection option witch/hex/regenerative-sinew -> 278
+prerequisites / * / selection option witch/hex/restless-slumber -> 278
+progression rows / * / archetype shaman/possessed-shaman -> 278
+progression rows / * / archetype shaman/prophet-of-pestilence -> 278
+progression rows / * / archetype shaman/shadow-shaman -> 278
+progression rows / * / archetype shaman/spirit-hunter -> 278
+progression rows / * / archetype shaman/spirit-warden -> 278
+progression rows / * / archetype shaman/unsworn-shaman -> 278
+progression rows / * / archetype shaman/wildland-shaman -> 278
+progression rows / * / archetype shaman/witch-doctor -> 278
+progression rows / * / archetype witch/hag-of-gyronna -> 278
+progression rows / * / archetype witch/keen-eyed-adventurer -> 278
+progression rows / * / archetype witch/ley-line-guardian -> 278
+progression rows / * / archetype witch/stigmatized-witch -> 278
+progression rows / * / class shaman -> 278
+progression rows / in planner only / archetype witch/elemental-witch -> 278
+
+# 279, monk rows and lists.
+option lists / * / feat list monk/scaled-fist/bonus-feats-1 -> 279
+option lists / * / feat list monk/scaled-fist/bonus-feats-10 -> 279
+option lists / * / feat list monk/scaled-fist/bonus-feats-6 -> 279
+option lists / * / feat list monk/student-of-stone/bonus-feats-6 -> 279
+option lists / * / feat list monk/zen-archer/bonus-feats-1 -> 279
+option lists / * / feat list monk/zen-archer/bonus-feats-10 -> 279
+option lists / * / feat list monk/zen-archer/bonus-feats-6 -> 279
+option lists / * / selection monk/zen-archer/way-of-the-bow -> 279
+prerequisites / * / selection option monk/ki-power/sudden-speed -> 279
+progression rows / * / archetype monk/drunken-master -> 279
+progression rows / * / archetype monk/quarterstaff-master -> 279
+progression rows / * / archetype monk/scaled-fist -> 279
+progression rows / * / archetype monk/sensei -> 279
+progression rows / * / archetype monk/sohei -> 279
+progression rows / * / archetype monk/student-of-stone -> 279
+progression rows / * / archetype monk/zen-archer -> 279
+
+# 280, alchemist rows and discoveries.
+prerequisites / * / selection option alchemist/discovery/acid-bomb -> 280
+prerequisites / * / selection option alchemist/discovery/blinding-bombs -> 280
+prerequisites / * / selection option alchemist/discovery/breath-weapon-bomb -> 280
+prerequisites / * / selection option alchemist/discovery/choking-bomb -> 280
+prerequisites / * / selection option alchemist/discovery/cognatogen -> 280
+prerequisites / * / selection option alchemist/discovery/cursed-bomb -> 280
+prerequisites / * / selection option alchemist/discovery/dispelling-bombs -> 280
+prerequisites / * / selection option alchemist/discovery/explosive-bombs -> 280
+prerequisites / * / selection option alchemist/discovery/fast-bombs -> 280
+prerequisites / * / selection option alchemist/discovery/feral-mutagen -> 280
+prerequisites / * / selection option alchemist/discovery/feral-wings -> 280
+prerequisites / * / selection option alchemist/discovery/force-bombs -> 280
+prerequisites / * / selection option alchemist/discovery/frost-bomb -> 280
+prerequisites / * / selection option alchemist/discovery/grand-mutagen -> 280
+prerequisites / * / selection option alchemist/discovery/greater-mutagen -> 280
+prerequisites / * / selection option alchemist/discovery/holy-bombs -> 280
+prerequisites / * / selection option alchemist/discovery/mummification -> 280
+prerequisites / * / selection option alchemist/discovery/nauseating-flesh -> 280
+prerequisites / * / selection option alchemist/discovery/precise-bomb -> 280
+prerequisites / * / selection option alchemist/discovery/preserve-organs -> 280
+prerequisites / * / selection option alchemist/discovery/shock-bomb -> 280
+prerequisites / * / selection option alchemist/discovery/tanglefoot-bombs -> 280
+progression rows / * / archetype alchemist/grenadier -> 280
+progression rows / * / archetype alchemist/incense-synthesizer -> 280
+progression rows / * / archetype alchemist/metamorph -> 280
+progression rows / * / archetype alchemist/preservationist -> 280
+progression rows / * / archetype alchemist/reanimator -> 280
+progression rows / * / archetype alchemist/vivisectionist -> 280
+progression rows / * / class alchemist -> 280
+progression rows / a further rank in game only / archetype alchemist/chirurgeon -> 280
+progression rows / in game only / archetype alchemist/chirurgeon -> 280
+
+# 281, sorcerer and bloodrager bloodlines and rows.
+option lists / * / feat list bloodrager/bloodline/arcane/feats -> 281
+option lists / * / feat list bloodrager/bloodline/elemental/feats -> 281
+option lists / * / selection bloodrager/hag-riven/bloodline -> 281
+option lists / * / selection sorcerer/crossblooded/second-bloodline -> 281
+option lists / * / selection sorcerer/empyreal-sorcerer/bloodline -> 281
+option lists / * / selection sorcerer/geomancer/geomancy -> 281
+option lists / * / selection sorcerer/sage-sorcerer/bloodline -> 281
+option lists / * / selection sorcerer/sylvan-sorcerer/bloodline -> 281
+prerequisites / * / selection option bloodrager/bloodline/abyssal -> 281
+prerequisites / * / selection option bloodrager/bloodline/celestial -> 281
+prerequisites / * / selection option bloodrager/bloodline/draconic-black -> 281
+prerequisites / * / selection option bloodrager/bloodline/draconic-blue -> 281
+prerequisites / * / selection option bloodrager/bloodline/draconic-brass -> 281
+prerequisites / * / selection option bloodrager/bloodline/draconic-bronze -> 281
+prerequisites / * / selection option bloodrager/bloodline/draconic-copper -> 281
+prerequisites / * / selection option bloodrager/bloodline/draconic-gold -> 281
+prerequisites / * / selection option bloodrager/bloodline/draconic-green -> 281
+prerequisites / * / selection option bloodrager/bloodline/draconic-red -> 281
+prerequisites / * / selection option bloodrager/bloodline/draconic-silver -> 281
+prerequisites / * / selection option bloodrager/bloodline/draconic-white -> 281
+prerequisites / * / selection option bloodrager/bloodline/infernal -> 281
+prerequisites / * / selection option bloodrager/bloodline/serpentine -> 281
+prerequisites / * / selection option bloodrager/bloodline/undead -> 281
+progression rows / * / archetype bloodrager/bloodrider -> 281
+progression rows / * / archetype bloodrager/greenrager -> 281
+progression rows / * / archetype bloodrager/hag-riven -> 281
+progression rows / * / archetype bloodrager/primalist -> 281
+progression rows / * / archetype bloodrager/reformed-fiend -> 281
+progression rows / * / archetype bloodrager/spelleater -> 281
+progression rows / * / archetype bloodrager/steelblood -> 281
+progression rows / * / archetype sorcerer/crossblooded -> 281
+progression rows / * / archetype sorcerer/empyreal-sorcerer -> 281
+progression rows / * / archetype sorcerer/geomancer -> 281
+progression rows / * / archetype sorcerer/overwhelming-mage -> 281
+progression rows / * / archetype sorcerer/sage-sorcerer -> 281
+progression rows / * / archetype sorcerer/seeker-sorcerer -> 281
+progression rows / * / archetype sorcerer/sylvan-sorcerer -> 281
+progression rows / * / class sorcerer -> 281
+progression rows / a further rank in planner only / archetype sorcerer/nine-tailed-heir -> 281
+progression rows / in game only / archetype sorcerer/nine-tailed-heir -> 281
+
+# 282, arcanist and wizard.
+option lists / * / selection arcanist/arcanist-exploits -> 282
+option lists / * / selection arcanist/magic-deceiver/ways-of-the-deceiver/living-deity/curse -> 282
+option lists / * / selection wizard/cruromancer/blood-infusion -> 282
+option lists / * / selection wizard/cruromancer/school -> 282
+option lists / * / selection wizard/elemental-specialist/school -> 282
+option lists / * / selection wizard/thassilonian-specialist/school -> 282
+prerequisites / * / archetype arcanist/magic-deceiver -> 282
+prerequisites / * / selection option arcanist/arcanist-exploits/holy-water-jet -> 282
+prerequisites / * / selection option arcanist/arcanist-exploits/potent-magic -> 282
+prerequisites / * / selection option arcanist/arcanist-exploits/swift-consume -> 282
+prerequisites / * / selection option arcanist/magic-deceiver/ways-of-the-deceiver/living-deity -> 282
+prerequisites / * / selection option arcanist/magic-deceiver/ways-of-the-deceiver/razmiri-infiltrator -> 282
+prerequisites / * / selection option wizard/school/abjurer -> 282
+prerequisites / * / selection option wizard/school/conjurer -> 282
+prerequisites / * / selection option wizard/school/diviner -> 282
+prerequisites / * / selection option wizard/school/enchanter -> 282
+prerequisites / * / selection option wizard/school/illusionist -> 282
+prerequisites / * / selection option wizard/school/invoker -> 282
+prerequisites / * / selection option wizard/school/necromancer -> 282
+prerequisites / * / selection option wizard/school/transmuter -> 282
+progression rows / * / archetype arcanist/white-mage -> 282
+progression rows / * / archetype wizard/arcane-bomber -> 282
+progression rows / * / archetype wizard/cruromancer -> 282
+progression rows / * / archetype wizard/elemental-specialist -> 282
+progression rows / * / archetype wizard/scroll-savant -> 282
+progression rows / * / archetype wizard/shadowcaster -> 282
+progression rows / * / archetype wizard/spell-master -> 282
+progression rows / * / archetype wizard/thassilonian-specialist -> 282
+progression rows / * / class wizard -> 282
+progression rows / in game only / archetype wizard/exploiter-wizard -> 282
+
+# 283, magus rows and arcana.
+option lists / * / feat list magus/sword-saint/chosen-weapon -> 283
+option lists / * / selection magus/hexcrafter/hex-arcana -> 283
+prerequisites / * / class magus -> 283
+prerequisites / * / selection option magus/magus-arcana/bane-blade-level-15 -> 283
+prerequisites / * / selection option magus/magus-arcana/devoted-blade-level-12 -> 283
+prerequisites / * / selection option magus/magus-arcana/dimension-strike-level-9 -> 283
+prerequisites / * / selection option magus/magus-arcana/empowered-magic-level-6 -> 283
+prerequisites / * / selection option magus/magus-arcana/enduring-blade-level-6 -> 283
+prerequisites / * / selection option magus/magus-arcana/ghost-blade-level-9 -> 283
+prerequisites / * / selection option magus/magus-arcana/hasted-assault-level-9 -> 283
+prerequisites / * / selection option magus/magus-arcana/maximized-magic-level-12 -> 283
+prerequisites / * / selection option magus/magus-arcana/prescient-attack-level-6 -> 283
+prerequisites / * / selection option magus/magus-arcana/quickened-magic-level-15 -> 283
+progression rows / * / archetype magus/arcane-rider -> 283
+progression rows / * / archetype magus/armored-battlemage -> 283
+progression rows / * / archetype magus/bladebound -> 283
+progression rows / * / archetype magus/eldritch-archer -> 283
+progression rows / * / archetype magus/eldritch-scion -> 283
+progression rows / * / archetype magus/spell-dancer -> 283
+progression rows / * / archetype magus/sword-saint -> 283
+progression rows / * / class magus -> 283
+progression rows / a bonus pick of another group / archetype magus/hexcrafter -> 283
+progression rows / in game only / archetype magus/hexcrafter -> 283
+
+# 284, inquisitor rows.
+option lists / * / selection inquisitor/judgment -> 284
+option lists / * / selection inquisitor/sacred-huntsmaster/domain -> 284
+progression rows / * / archetype inquisitor/faith-hunter -> 284
+progression rows / * / archetype inquisitor/judge -> 284
+progression rows / * / archetype inquisitor/living-grimoire -> 284
+progression rows / * / archetype inquisitor/monster-tactician -> 284
+progression rows / * / archetype inquisitor/sacred-huntsmaster -> 284
+progression rows / * / archetype inquisitor/tactical-leader -> 284
+progression rows / * / class inquisitor -> 284
+progression rows / a further rank in planner only / archetype inquisitor/sanctified-slayer -> 284
+progression rows / in game only / archetype inquisitor/sanctified-slayer -> 284
+
+# 285, fighter rows and lists.
+option lists / * / feat list fighter/titan-fighter/bonus-feats-10 -> 285
+option lists / * / feat list fighter/titan-fighter/bonus-feats-2 -> 285
+option lists / * / feat list fighter/titan-fighter/bonus-feats-6 -> 285
+option lists / * / selection fighter/dragonheir-scion/bloodline -> 285
+progression rows / * / archetype fighter/aldori-defender -> 285
+progression rows / * / archetype fighter/armiger -> 285
+progression rows / * / archetype fighter/defender-of-the-hearth -> 285
+progression rows / * / archetype fighter/dragonheir-scion -> 285
+progression rows / * / archetype fighter/mutation-warrior -> 285
+progression rows / * / archetype fighter/titan-fighter -> 285
+progression rows / * / archetype fighter/tower-shield-specialist -> 285
+progression rows / * / class fighter -> 285
+
+# 286, bard and skald rows.
+option lists / * / selection skald/battle-scion/rage-power-or-teamwork-feat -> 286
+progression rows / a further rank in game only / archetype bard/beast-tamer -> 286
+progression rows / a further rank in game only / archetype bard/chelaxian-diva -> 286
+progression rows / a further rank in game only / archetype bard/dirge-bard -> 286
+progression rows / a further rank in game only / archetype bard/flame-dancer -> 286
+progression rows / a further rank in game only / archetype bard/thundercaller -> 286
+progression rows / a further rank in game only / archetype skald/inciter -> 286
+progression rows / a further rank in game only / class bard -> 286
+progression rows / a further rank in planner only / archetype bard/chelaxian-diva -> 286
+progression rows / a further rank in planner only / archetype bard/dirge-bard -> 286
+progression rows / a further rank in planner only / archetype skald/battle-scion -> 286
+progression rows / a further rank in planner only / archetype skald/court-poet -> 286
+progression rows / a further rank in planner only / archetype skald/demon-dancer -> 286
+progression rows / a further rank in planner only / archetype skald/herald-of-the-horn -> 286
+progression rows / a further rank in planner only / archetype skald/inciter -> 286
+progression rows / at another level / archetype skald/demon-dancer -> 286
+progression rows / in game only / archetype bard/archaeologist -> 286
+progression rows / in game only / archetype bard/beast-tamer -> 286
+progression rows / in game only / archetype bard/chelaxian-diva -> 286
+progression rows / in game only / archetype bard/dirge-bard -> 286
+progression rows / in game only / archetype bard/flame-dancer -> 286
+progression rows / in game only / archetype bard/thundercaller -> 286
+progression rows / in game only / archetype bard/tranquil-whisperer -> 286
+progression rows / in game only / archetype skald/battle-scion -> 286
+progression rows / in game only / archetype skald/herald-of-the-horn -> 286
+progression rows / in game only / archetype skald/inciter -> 286
+progression rows / in game only / class bard -> 286
+progression rows / in planner only / archetype bard/archaeologist -> 286
+progression rows / in planner only / archetype bard/beast-tamer -> 286
+progression rows / in planner only / archetype bard/flame-dancer -> 286
+progression rows / in planner only / archetype bard/thundercaller -> 286
+
+# 287, prestige classes.
+option lists / * / selection loremaster/secret -> 287
+option lists / * / selection stalwart-defender/defensive-powers -> 287
+option lists / * / selection student-of-war/know-your-enemy -> 287
+prerequisites / * / class aldori-swordlord -> 287
+prerequisites / * / class arcane-trickster -> 287
+prerequisites / * / class assassin -> 287
+prerequisites / * / class dragon-disciple -> 287
+prerequisites / * / class duelist -> 287
+prerequisites / * / class eldritch-knight -> 287
+prerequisites / * / class hellknight -> 287
+prerequisites / * / class hellknight-signifer -> 287
+prerequisites / * / class loremaster -> 287
+prerequisites / * / class mystic-theurge -> 287
+prerequisites / * / class stalwart-defender -> 287
+prerequisites / * / class student-of-war -> 287
+prerequisites / * / class winter-witch -> 287
+prerequisites / * / selection option loremaster/secret/combat-feat -> 287
+prerequisites / * / selection option stalwart-defender/defensive-powers/clear-mind -> 287
+prerequisites / * / selection option stalwart-defender/defensive-powers/fearless-defense -> 287
+prerequisites / * / selection option stalwart-defender/defensive-powers/increased-damage-reduction -> 287
+progression rows / * / class aldori-swordlord -> 287
+progression rows / * / class arcane-trickster -> 287
+progression rows / * / class assassin -> 287
+progression rows / * / class dragon-disciple -> 287
+progression rows / * / class duelist -> 287
+progression rows / * / class hellknight -> 287
+progression rows / * / class hellknight-signifer -> 287
+progression rows / * / class stalwart-defender -> 287
+progression rows / * / class student-of-war -> 287
+progression rows / * / class winter-witch -> 287
+
+# 288, items.
+items / * / gear item belt-of-the-venerated-champion -> 288
+items / * / gear item broken-trickster -> 288
+items / * / gear item dirge-for-sarkoris -> 288
+items / * / gear item half-plate-of-vigor -> 288
+items / * / gear item razmirs-mask -> 288
+items / * / gear item trusted-friend -> 288
+
+# 289, weapons and Finesse Training.
+option lists / * / selection rogue/finesse-training -> 289
+
+# 291, races.
+option lists / ignores prerequisites or not / feat list half-elf/adaptability -> 291

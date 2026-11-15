@@ -6,26 +6,25 @@ use rules::{ArchetypeKey, Build, CharacterState, ClassKey, Issue, Prerequisite, 
 
 use crate::support::*;
 
-/// Every archetype with an alignment rule, with what the rule allows, and a race it needs besides (the Reformed
-/// Fiend's tiefling). The guide's; the Mantis Zealot's, the user's fact, became Achaekek in ticket 86.
-const ALIGNMENT_RULES: [(&str, &[rules::Alignment], Option<&str>); 6] = {
+/// Archetypes with an alignment rule, with what the rule allows, and a race it needs besides (the Reformed Fiend's
+/// tiefling). The guide's; the Mantis Zealot's, the user's fact, became Achaekek in ticket 86. The game's rules for
+/// these five agree; the game's set of archetypes with a rule differs (`the_archetypes_with_an_alignment_rule_are_the_games_eight`).
+const ALIGNMENT_RULES: [(&str, &[rules::Alignment], Option<&str>); 5] = {
     use rules::Alignment::*;
     [
+        // Game: ReformedFiendArchetype d55163eed9214367820654f0ebe0ff69 (Good; TieflingRace 5c4e42124dc2b4647af6e36cf2590500)
         (
             "bloodrager/reformed-fiend",
             &[LawfulGood, NeutralGood, ChaoticGood],
             Some("tiefling"),
         ),
-        (
-            "cleric/angelfire-apostle",
-            &[LawfulGood, NeutralGood, ChaoticGood],
-            None,
-        ),
+        // Game: PriestOfBalanceArchetype a4560e3fb5d247d68fb1a2738fcc0855
         (
             "cleric/priest-of-balance",
             &[LawfulNeutral, TrueNeutral, ChaoticNeutral],
             None,
         ),
+        // Game: DrunkenMasterArchetype a8532f88b704413ba68f62e4e7ff84c1 (ArchetypeAlignment)
         (
             "monk/drunken-master",
             &[
@@ -38,16 +37,45 @@ const ALIGNMENT_RULES: [(&str, &[rules::Alignment], Option<&str>); 6] = {
             ],
             None,
         ),
+        // Game: ProphetOfPestilenceArchetype bcd758a75fb54651a7f668fe2661a307 (ArchetypeAlignment)
         (
             "shaman/prophet-of-pestilence",
             &[TrueNeutral, NeutralEvil, ChaoticEvil],
             None,
         ),
+        // Game: BloodseekerArchetype 11e473bfb29c42f580b9a801b6771788 (Evil, ArchetypeAlignment)
         (
             "slayer/bloodseeker",
             &[LawfulEvil, NeutralEvil, ChaoticEvil],
             None,
         ),
+    ]
+};
+
+/// The archetypes the game gives an alignment rule (a `PrerequisiteAlignment`) that the data's don't have, with what
+/// the rule allows.
+const GAME_ONLY_ALIGNMENT_RULES: [(&str, &[rules::Alignment]); 3] = {
+    use rules::Alignment::*;
+    [
+        (
+            "kineticist/dark-elementalist",
+            &[LawfulEvil, NeutralEvil, ChaoticEvil],
+        ), // Game: DarkElementalistArchetype f12f18ae8842425489d29f302e69134c
+        (
+            "shifter/rageshaper",
+            &[
+                NeutralGood,
+                TrueNeutral,
+                NeutralEvil,
+                ChaoticGood,
+                ChaoticNeutral,
+                ChaoticEvil,
+            ],
+        ), // Game: RageshaperShifterArchetype 41d5b44e421048d09d32623689173e11
+        (
+            "witch/hag-of-gyronna",
+            &[ChaoticNeutral, NeutralEvil, ChaoticEvil],
+        ), // Game: DarkSisterArchetype 411fa458481e44f0855d47a19358874b
     ]
 };
 
@@ -106,6 +134,7 @@ fn none_of(alignments: &[rules::Alignment]) -> Issue {
 /// The ticket's: a Chaotic Neutral monk 1 can take Drunken Master, and so can a monk 20 of any non-lawful alignment.
 #[test]
 fn a_chaotic_neutral_monk_1_can_take_drunken_master() {
+    // Game: DrunkenMasterArchetype a8532f88b704413ba68f62e4e7ff84c1 (NeutralGood, TrueNeutral, NeutralEvil, Chaotic)
     let build = aligned("monk/drunken-master", rules::Alignment::ChaoticNeutral, 1);
     assert!(possible(&build));
     assert_eq!(entry_status(&build, "monk/drunken-master"), Ok(()));
@@ -123,6 +152,8 @@ fn a_lawful_neutral_drunken_master_is_locked_by_the_archetypes_alignment() {
     use rules::Alignment::*;
     let build = aligned("monk/drunken-master", LawfulNeutral, 1);
     assert!(!possible(&build));
+    // Game: PrerequisiteAlignment.RestrictInternal, WrathDecompiled 6ce4a6b (ArchetypeAlignment replaces the class's
+    // restriction); DrunkenMasterArchetype a8532f88b704413ba68f62e4e7ff84c1
     let status = entry_status(&build, "monk/drunken-master");
     let not_lawful = [
         NeutralGood,
@@ -144,6 +175,8 @@ fn a_lawful_neutral_drunken_master_is_locked_by_the_archetypes_alignment() {
 #[test]
 fn a_plain_monk_still_needs_a_lawful_alignment() {
     use rules::Alignment::*;
+    // Game: MonkClass e8f21e5b58e0569468e420ebea456124 (Lawful); ZenArcherArchetype 2b1a58a7917084f49b097e86271df21c
+    // has no alignment rule
     let lawful = [LawfulGood, LawfulNeutral, LawfulEvil];
     for alignment in rules::Alignment::ALL {
         let mut plain = monk(1);
@@ -164,6 +197,8 @@ fn a_plain_monk_still_needs_a_lawful_alignment() {
 #[test]
 fn a_bloodseeker_needs_an_evil_alignment() {
     use rules::Alignment::*;
+    // Game: BloodseekerArchetype 11e473bfb29c42f580b9a801b6771788 (Evil); SlayerClass c75e0971973957d4dbad24bc7957e4fb
+    // has no alignment rule
     let evil = [LawfulEvil, NeutralEvil, ChaoticEvil];
     for alignment in rules::Alignment::ALL {
         let bloodseeker = aligned("slayer/bloodseeker", alignment, 1);
@@ -189,6 +224,8 @@ fn a_bloodseeker_needs_an_evil_alignment() {
 #[test]
 fn a_mantis_zealot_is_open_at_le_ln_and_ne_and_locked_at_ce_and_lg() {
     use rules::Alignment::*;
+    // Game: MantisZealotArchetype fc403240fdca4a52a413578169ea7117 (needs AchaekekFeature); AchaekekFeature
+    // a3189d5b7c4d4d91beaa8bfffac3e38e (LawfulNeutral, LawfulEvil, NeutralEvil)
     let allowed = [LawfulNeutral, LawfulEvil, NeutralEvil];
     let zealot = class("warpriest")
         .archetypes
@@ -215,20 +252,29 @@ fn a_mantis_zealot_is_open_at_le_ln_and_ne_and_locked_at_ce_and_lg() {
     }
 }
 
-/// The ticket's: the archetypes with an alignment rule are these seven; only the Drunken Master's clashes with its
-/// class's (the monk's Lawful), and each, the Drunken Master too, is open exactly at the alignments its own rule
-/// allows and buildable to 20 there.
-#[test]
-fn every_archetype_with_an_alignment_rule_is_buildable_at_an_alignment_it_allows() {
-    let with_rule: BTreeSet<&str> = DATA
-        .classes
-        .iter()
-        .flat_map(|class| &class.archetypes)
+/// The archetypes whose own prerequisite names an alignment.
+fn archetypes_with_an_alignment_rule() -> BTreeSet<&'static str> {
+    DATA.archetypes()
         .filter(|archetype| archetype.prerequisite.as_ref().is_some_and(names_alignment))
         .map(|archetype| archetype.key.as_str())
+        .collect()
+}
+
+/// The ticket's: the archetypes with an alignment rule are these; only the Drunken Master's rule clashes with its class's (the monk's Lawful), and each archetype of
+/// `ALIGNMENT_RULES`, the Drunken Master too, is open exactly at the alignments its own rule allows and buildable to 20
+/// there.
+#[test]
+fn every_archetype_with_an_alignment_rule_is_buildable_at_an_alignment_it_allows() {
+    // Leaving out the four archetypes whose rule waits on a ticket (the Angelfire Apostle's, which the game doesn't
+    // have, and the three of GAME_ONLY_ALIGNMENT_RULES: `the_archetypes_with_an_alignment_rule_are_the_games_eight`),
+    // the archetypes with a rule are these five.
+    let waiting: BTreeSet<&str> = GAME_ONLY_ALIGNMENT_RULES
+        .iter()
+        .map(|(key, _)| *key)
+        .chain(["cleric/angelfire-apostle"])
         .collect();
     let expected: BTreeSet<&str> = ALIGNMENT_RULES.iter().map(|(key, ..)| *key).collect();
-    assert_eq!(with_rule, expected);
+    assert_eq!(&archetypes_with_an_alignment_rule() - &waiting, expected);
 
     let mut clashing = Vec::new();
     for (archetype, allowed, race) in ALIGNMENT_RULES {
@@ -271,5 +317,46 @@ fn every_archetype_with_an_alignment_rule_is_buildable_at_an_alignment_it_allows
             "{archetype} filled"
         );
     }
+    // Game: DrunkenMasterArchetype a8532f88b704413ba68f62e4e7ff84c1 against MonkClass e8f21e5b58e0569468e420ebea456124
+    // (Lawful): the only one of these five whose rule shares no alignment with its class's
     assert_eq!(clashing, ["monk/drunken-master"]);
+}
+
+/// The game gives eight archetypes an alignment rule: the five of `ALIGNMENT_RULES`, the Dark Elementalist, the
+/// Rageshaper and the Hag of Gyronna. The Angelfire Apostle has none (its deity decides). Each of the three is open
+/// exactly at the alignments its rule allows.
+// Game: GAME_ONLY_ALIGNMENT_RULES' rows; AngelfireApostleArchetype 857bc9fadf70f294795a9cba974a48b8 has no
+// PrerequisiteAlignment
+#[test]
+#[ignore = "waits on ticket 267: the game gives Dark Elementalist, Rageshaper and Hag of Gyronna an alignment rule and Angelfire Apostle none"]
+fn the_archetypes_with_an_alignment_rule_are_the_games_eight() {
+    let expected: BTreeSet<&str> = ALIGNMENT_RULES
+        .iter()
+        .map(|(key, ..)| *key)
+        .chain(GAME_ONLY_ALIGNMENT_RULES.iter().map(|(key, _)| *key))
+        .collect();
+    assert_eq!(archetypes_with_an_alignment_rule(), expected);
+    for (archetype, allowed) in GAME_ONLY_ALIGNMENT_RULES {
+        for alignment in rules::Alignment::ALL {
+            let build = aligned(archetype, alignment, 1);
+            assert_eq!(
+                entry_status(&build, archetype).is_ok(),
+                allowed.contains(&alignment),
+                "{archetype} {alignment:?}"
+            );
+        }
+    }
+}
+
+/// The Angelfire Apostle has no alignment rule of its own: Torag, who allows Lawful Neutral and doesn't exclude the
+/// archetype, makes a Lawful Neutral one possible.
+// Game: AngelfireApostleArchetype 857bc9fadf70f294795a9cba974a48b8 (no PrerequisiteAlignment); ToragFeature
+// d2d5c5a58885a6b489727467e13c3337 (no PrerequisiteNoArchetype for it)
+#[test]
+#[ignore = "waits on ticket 267: the game gives the Angelfire Apostle no alignment rule, so a Lawful Neutral one of Torag is possible"]
+fn a_lawful_neutral_angelfire_apostle_of_torag_is_possible() {
+    let mut build = archetype_build("cleric", "cleric/angelfire-apostle", 1);
+    build.start.alignment = Some(rules::Alignment::LawfulNeutral);
+    build.start.deity = Some(rules::Faith::Deity(rules::DeityKey::new("torag")));
+    assert!(possible(&build));
 }

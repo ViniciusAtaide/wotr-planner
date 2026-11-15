@@ -42,6 +42,7 @@ const WEAPONS: [&str; 21] = [
 ];
 
 /// The levels the guide gives a choice at.
+// Game: RogueProgression b57b2a75a5abcaf47a01cf84672b50e9 (FinesseTrainingSelection at 3, 11 and 19)
 const LEVELS: [u8; 3] = [3, 11, 19];
 
 fn trained(weapon: &str) -> Pick {
@@ -76,11 +77,15 @@ fn weapons_offered(build: &Build, level: u8) -> BTreeMap<String, bool> {
 fn finesse_trainings_weapons_are_the_guides_list() {
     let option = selection_option(OPTION);
     let values: Vec<Parameter> = option.values.iter().cloned().collect();
-    assert_eq!(values, WEAPONS.map(weapon_value));
+    // The game's list is longer: `finesse_training_offers_the_games_31_weapons`.
+    assert!(WEAPONS.map(weapon_value).iter().all(|w| values.contains(w)));
     assert_eq!(option.parameter, Some(rules::ParameterKind::Weapon));
+    // Game: FinesseTrainingSelection b78d146cea711a84598f0acef69462ea, one option per weapon, each Ranks 1
+    // (equivalent model: one option taking a weapon, once per weapon)
     assert_eq!(option.repeat, rules::Repeat::PerValue);
     assert_eq!(option.name, "Finesse Training");
     // The Light Shield is a weapon: the shield's bash, finessable as the guide's weapon table has it.
+    // Game: Kingmaker/Enums/WeaponCategoryExtension.cs (the WeaponLightShield entry: Light, Finessable), WrathDecompiled 6ce4a6b
     let shield = DATA
         .weapons
         .iter()
@@ -99,15 +104,10 @@ fn finesse_trainings_weapons_are_the_guides_list() {
 fn a_rogue_chooses_a_weapon_at_3_11_and_19() {
     let build = build("rogue", 20);
     assert!(possible(&build));
+    // Game: RogueProgression b57b2a75a5abcaf47a01cf84672b50e9 (FinesseTrainingSelection at 3, 11 and 19)
     assert_eq!(levels_with_slot_of(&build, SELECTION), LEVELS);
     for level in LEVELS {
-        let offered = weapons_offered(&build, level);
-        assert_eq!(
-            offered.keys().map(String::as_str).collect::<Vec<_>>(),
-            WEAPONS,
-            "{level}"
-        );
-        assert!(offered.values().all(|open| *open), "{level}");
+        // Which weapons are offered and open is the game's otherwise: `a_plain_rogue_trains_only_weapons_it_is_proficient_with`.
         assert_eq!(
             engine().slot_label(
                 engine()
@@ -117,7 +117,7 @@ fn a_rogue_chooses_a_weapon_at_3_11_and_19() {
             ),
             "Finesse Training"
         );
-        // The web app's picker: one entry, which opens the list of the 21 weapons.
+        // The web app's picker: one entry, which opens the list of the weapons.
         let entries = engine()
             .slot_entries(&build, &selection_slot(level))
             .unwrap();
@@ -126,13 +126,20 @@ fn a_rogue_chooses_a_weapon_at_3_11_and_19() {
         };
         assert_eq!(entry.name, "Finesse Training");
         assert_eq!(entry.noun, Some("a weapon"));
-        assert_eq!(entry.options.len(), WEAPONS.len());
+        assert_eq!(
+            entry.options.len(),
+            weapons_offered(&build, level).len(),
+            "{level}"
+        );
     }
-    // Filled, with three weapons, the Build is possible and holds the option for each.
+    // Filled, with three weapons, the Build is possible and holds the option for each. Three weapons a plain rogue is
+    // proficient with (the game asks for proficiency).
+    // Game: RogueProficiencies 33e2a7e4ad9daa54eaf808e1483bb43c (simple weapons, rapier, short sword); FinesseTrainingDagger
+    // 50c7baae70624e24089d32d090e9cdb6 (PrerequisiteProficiency)
     let filled = with_picks(
         build,
         &[
-            (3, trained("light-shield-bash")),
+            (3, trained("short-sword")),
             (11, trained("dagger")),
             (19, trained("rapier")),
         ],
@@ -145,7 +152,7 @@ fn a_rogue_chooses_a_weapon_at_3_11_and_19() {
             .keys()
             .cloned()
             .collect::<BTreeSet<_>>(),
-        ["dagger", "light-shield-bash", "rapier"]
+        ["dagger", "rapier", "short-sword"]
             .map(weapon_value)
             .into_iter()
             .collect()
@@ -156,6 +163,8 @@ fn a_rogue_chooses_a_weapon_at_3_11_and_19() {
     );
 }
 
+// Game: BlueprintFeatureSelection.CanSelect, WrathDecompiled 6ce4a6b (an option held at its Ranks, 1 here, can't be
+// taken again); FinesseTrainingSelection b78d146cea711a84598f0acef69462ea has no longsword
 #[test]
 fn a_weapon_trained_once_is_taken_and_a_weapon_off_the_list_is_refused() {
     let build = with_picks(build("rogue", 11), &[(3, trained("dagger"))]);
@@ -187,6 +196,8 @@ fn a_weapon_trained_once_is_taken_and_a_weapon_off_the_list_is_refused() {
 
 /// Every rogue archetype keeps Finesse Training at 3, 11 and 19 (the guide's tables), but the Rowdy, which "Loses
 /// finesse training"; no other class has it.
+// Game: RowdyArchetype 4dbc4b7f2d5149ce83854bffa72035ce (removes FinesseTrainingSelection at 3, 11 and 19);
+// RogueProgression b57b2a75a5abcaf47a01cf84672b50e9; no other progression or archetype names the selection
 #[test]
 fn every_rogue_archetype_but_the_rowdy_chooses_at_3_11_and_19() {
     let mut kept = Vec::new();
@@ -238,6 +249,58 @@ fn every_rogue_archetype_but_the_rowdy_chooses_at_3_11_and_19() {
     assert_eq!(naming, BTreeSet::from(["rogue"]));
 }
 
+/// The game's Finesse Training offers 31 weapons: the guide's 21 and Gore, Hoof, Slam, Spike, Spiked Light Shield,
+/// Tail, Talon, Tentacle, Wing and the Sawtooth Saber (Tentacle and Spiked Light Shield aren't the data's weapons yet).
+// Game: FinesseTrainingSelection b78d146cea711a84598f0acef69462ea (31 options); FinesseTrainingSawtoothSabre
+// 9143942781ef437a9ab0243d9b667aa1
+#[test]
+#[ignore = "waits on ticket 289: the game gives Finesse Training 31 weapons"]
+fn finesse_training_offers_the_games_31_weapons() {
+    let option = selection_option(OPTION);
+    let values: Vec<Parameter> = option.values.iter().cloned().collect();
+    assert_eq!(values.len(), 31);
+    let more = [
+        "gore",
+        "hoof",
+        "slam",
+        "spike",
+        "tail",
+        "talon",
+        "wing",
+        "sawtooth-saber",
+    ];
+    for weapon in WEAPONS.iter().chain(&more) {
+        assert!(values.contains(&weapon_value(weapon)), "{weapon}");
+    }
+}
+
+/// Each Finesse Training option needs proficiency in its weapon, so a plain rogue 20 (simple weapons, the rapier and
+/// the short sword) may train the dagger, the light mace, the punching dagger, the rapier, the short sword and the
+/// sickle, and not, for one, the light shield bash, the kukri or the estoc.
+// Game: FinesseTrainingDagger 50c7baae70624e24089d32d090e9cdb6 (PrerequisiteProficiency), as every option of
+// FinesseTrainingSelection b78d146cea711a84598f0acef69462ea; RogueProficiencies 33e2a7e4ad9daa54eaf808e1483bb43c
+#[test]
+#[ignore = "waits on ticket 289: the game gives each Finesse Training weapon a proficiency prerequisite"]
+fn a_plain_rogue_trains_only_weapons_it_is_proficient_with() {
+    let build = build("rogue", 20);
+    for level in LEVELS {
+        let offered = weapons_offered(&build, level);
+        for weapon in [
+            "dagger",
+            "light-mace",
+            "punching-dagger",
+            "rapier",
+            "short-sword",
+            "sickle",
+        ] {
+            assert_eq!(offered.get(weapon), Some(&true), "{weapon} at {level}");
+        }
+        for weapon in ["light-shield-bash", "kukri", "estoc"] {
+            assert_eq!(offered.get(weapon), Some(&false), "{weapon} at {level}");
+        }
+    }
+}
+
 /// A rogue 20 as every link before ticket 172 held it: Finesse Training had no weapon, so its slots are empty. Its
 /// link, written by the v1 layout this ticket leaves as it is (the same text on `main` at 9d89e35).
 const OLDER_ROGUE_20: &str = "AaXEsQkAAAgDwdha60AO5N6OIcQFhBzPZ08p4TgFnoxf";
@@ -259,7 +322,7 @@ fn an_older_link_opens_with_its_finesse_training_weapons_still_to_choose() {
     for level in LEVELS {
         let slot = sheet.slot(&selection_slot(level)).unwrap();
         assert_eq!(slot.pick, None, "{level}");
-        assert!(weapons_offered(&opened, level).values().all(|open| *open));
+        assert!(weapons_offered(&opened, level)["dagger"], "{level}");
     }
 
     let (_, assassin) = bench()
@@ -310,7 +373,7 @@ fn a_weapon_picked_later_breaks_it_earlier_and_one_picked_earlier_is_held_later(
     assert_eq!(status_of(&both, &at_11, "rapier"), Ok(()));
     assert_eq!(status_of(&both, &at_19, "dagger"), Err(AlreadyHeld));
     assert_eq!(status_of(&both, &at_19, "rapier"), Err(AlreadyHeld));
-    assert_eq!(status_of(&both, &at_19, "kukri"), Ok(()));
+    assert_eq!(status_of(&both, &at_19, "sickle"), Ok(()));
 
     let only_11 = with_picks(build("rogue", 20), &[(11, trained("dagger"))]);
     assert!(possible(&only_11));

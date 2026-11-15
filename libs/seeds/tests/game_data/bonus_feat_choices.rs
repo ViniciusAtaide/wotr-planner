@@ -104,6 +104,10 @@ fn holds_lists(class_key: &str, archetype: Option<&str>, lists: &[(u8, &str)]) {
 /// its class's (or archetype's) features and from every row. Nothing needed one.
 #[test]
 fn the_bonus_feat_choices_replace_their_features() {
+    // Game: each choice is a BlueprintFeatureSelection: TitanFighterStyleTwoWeaponSelection2
+    // 9c3e4b49b9f243f080c0432d2a1e5cbf, HunterPreciseCompanion 75e9a5179aeff4140a8235ebdeaf8df7,
+    // UrbanHunterCaptorSelection6 a27990877466ec04e80d7cfa967ed69b, RangerStyleArcherySelection2
+    // 3cf94df3f1cf9a443a880bc1ae9be3c6 (their keys and the absence of a feature are the data's shape)
     for (class_key, feature) in BONUS_FEAT_FEATURES {
         let class = class(class_key);
         let defined = class
@@ -133,6 +137,11 @@ fn the_bonus_feat_choices_replace_their_features() {
 /// Captor at 6 and every three levels, the Stormwalker's Archery at 2, 6, 10, 14 and 18.
 #[test]
 fn each_bonus_feat_choice_is_a_slot_at_its_tables_levels() {
+    // Game: TitanFighterArchetype 88a9dbb92a674ed995bae800896795f5 (2, 6, 10, 14, 18, in place of the fighter's feat);
+    // HunterProgression f4943530be50c3c4da841a7b96cfae98 (Precise Companion at 2), ForesterArchetype
+    // 74ee8172df6782f4792ea0f8647dea34 (removes it, adds a combat feat); UrbanHunterArchetype
+    // f1341c61c77092643ae63d7cb52f83f8 (Captor 6, 9, 12, 15, 18); StormwalkerArchetype a330c05e484d98748a462acd43654a3a
+    // (2, 6, 10, 14, 18)
     holds_lists(
         "fighter",
         Some(TITAN),
@@ -205,22 +214,22 @@ fn each_bonus_feat_choice_is_a_slot_at_its_tables_levels() {
     }
 }
 
-/// The lists are the guide's, each ignoring prerequisites. Massive Attacks: "a feat from the Ranger's Two-Weapon
-/// Combat Style feats" (Double Slice, Shield Bash and Two-Weapon Fighting; Improved Two-Weapon Fighting from 6;
-/// Greater Two-Weapon Fighting from 10), the style feats without the extras every ranger style offers, as the
-/// Stormwalker's archery lists are the archery style's. Precise Companion: Precise Shot or Outflank. Captor: four
-/// feats, six more from 12.
-#[test]
-fn the_bonus_feat_lists_are_the_guides() {
-    let extras = feat_set(&[
+/// The feats every ranger style list offers besides its own, as the data's style lists hold them.
+fn style_extras() -> BTreeSet<String> {
+    feat_set(&[
         "dodge",
         "great-fortitude",
         "iron-will",
         "lightning-reflexes",
         "skill-focus",
         "toughness",
-    ]);
-    let two_weapon = [
+    ])
+}
+
+/// Massive Attacks' core feats at 2, 6 and 10: Double Slice, Shield Bash and Two-Weapon Fighting; Improved Two-Weapon
+/// Fighting from 6; Greater Two-Weapon Fighting from 10.
+fn two_weapon_core() -> [BTreeSet<String>; 3] {
+    [
         feat_set(&["double-slice", "shield-bash", "two-weapon-fighting"]),
         feat_set(&[
             "double-slice",
@@ -235,7 +244,17 @@ fn the_bonus_feat_lists_are_the_guides() {
             "shield-bash",
             "two-weapon-fighting",
         ]),
-    ];
+    ]
+}
+
+/// The lists, each ignoring prerequisites. Massive Attacks' core: Double Slice, Shield Bash and Two-Weapon Fighting;
+/// Improved Two-Weapon Fighting from 6; Greater Two-Weapon Fighting from 10. Precise Companion: Precise Shot or
+/// Outflank. Captor: four feats, six more from 12. Which extras the Massive Attacks and Stormwalker lists hold is the
+/// game's (`the_titans_massive_attacks_lists_hold_the_style_extras` and `the_stormwalkers_lists_are_the_rangers_archery_lists`, waiting on tickets).
+#[test]
+fn the_bonus_feat_lists_are_the_guides() {
+    let extras = style_extras();
+    let two_weapon = two_weapon_core();
     let names = [
         "Massive Attacks",
         "Massive Attacks (from level 6)",
@@ -243,18 +262,17 @@ fn the_bonus_feat_lists_are_the_guides() {
     ];
     for (i, level) in [2, 6, 10].into_iter().enumerate() {
         let list = any_feat_list(MASSIVE_ATTACKS[i]);
-        assert_eq!(list_feats(MASSIVE_ATTACKS[i]), two_weapon[i], "{level}");
+        // Game: TitanFighterStyleTwoWeaponSelection2 9c3e4b49b9f243f080c0432d2a1e5cbf, …6
+        // 855b2b531df740cfa4536d0ba0729fd8, …10 0e41c3c5e88c42c3af31162743982c22 (IgnorePrerequisites)
+        assert!(list.ignores_prerequisites && !list.every_feat);
         assert_eq!(list.name, names[i]);
         assert_eq!(list.guide.as_ref().unwrap().0, "fighter#massive-attacks");
-        assert!(list.ignores_prerequisites && !list.every_feat);
+        // Game: RangerStyleTwoWeaponSelection2 019e68517c95c5447bff125b8a91c73f, …6 59d5445392ac62245a5ece9b01c05ee8,
+        // …10 ee907845112b8aa4e907cf326e6142a6 (the core feats above and the five extras)
         let ranger = format!("ranger/combat-style-feat/two-weapon-combat-feats-{level}");
         assert_eq!(&list_feats(&ranger) - &extras, two_weapon[i], "{ranger}");
-        let archery = format!("ranger/combat-style-feat/archery-feats-{level}");
-        assert_eq!(
-            &list_feats(&archery) - &extras,
-            list_feats(STORMWALKER_ARCHERY[i]),
-            "{archery}"
-        );
+        // Game: RangerStyleArcherySelection2 3cf94df3f1cf9a443a880bc1ae9be3c6, …6 6c799d09d5b93f344b9ade0e0c765c2d,
+        // …10 7ef950ca681955d47bc4efbe77073e2c (IgnorePrerequisites)
         assert!(any_feat_list(STORMWALKER_ARCHERY[i]).ignores_prerequisites);
     }
     assert_eq!(
@@ -262,6 +280,7 @@ fn the_bonus_feat_lists_are_the_guides() {
         feat_set(&MASSIVE_ATTACKS)
     );
 
+    // Game: HunterPreciseCompanion 75e9a5179aeff4140a8235ebdeaf8df7 (Outflank, Precise Shot; IgnorePrerequisites)
     let precise = any_feat_list(PRECISE_COMPANION);
     assert_eq!(
         list_feats(PRECISE_COMPANION),
@@ -280,6 +299,8 @@ fn the_bonus_feat_lists_are_the_guides() {
             "greater-trip",
             "lunge",
         ]);
+    // Game: UrbanHunterCaptorSelection6 a27990877466ec04e80d7cfa967ed69b; UrbanHunterCaptorSelection12
+    // 9839caff86642584bbf07699e8238c1b (IgnorePrerequisites; the Improved maneuver feats, as the data's keys)
     assert_eq!(list_feats(CAPTOR[0]), captor_6);
     assert_eq!(list_feats(CAPTOR[1]), captor_12);
     assert_eq!(any_feat_list(CAPTOR[0]).name, "Captor");
@@ -289,6 +310,40 @@ fn the_bonus_feat_lists_are_the_guides() {
             .iter()
             .all(|key| any_feat_list(key).ignores_prerequisites)
     );
+}
+
+/// The game's Massive Attacks lists are the ranger's two-weapon style selections, the five extras (Dodge, Great
+/// Fortitude, Iron Will, Lightning Reflexes, Toughness) included.
+// Game: TitanFighterStyleTwoWeaponSelection2 9c3e4b49b9f243f080c0432d2a1e5cbf, …6 855b2b531df740cfa4536d0ba0729fd8,
+// …10 0e41c3c5e88c42c3af31162743982c22 (the core feats and the five extras)
+#[test]
+#[ignore = "waits on ticket 285: the game gives Massive Attacks the five style extras"]
+fn the_titans_massive_attacks_lists_hold_the_style_extras() {
+    let extras = &style_extras() - &feat_set(&["skill-focus"]);
+    let two_weapon = two_weapon_core();
+    for (i, level) in [2, 6, 10].into_iter().enumerate() {
+        assert_eq!(
+            list_feats(MASSIVE_ATTACKS[i]),
+            &two_weapon[i] | &extras,
+            "{level}"
+        );
+    }
+}
+
+/// The game's Stormwalker slots are the ranger's archery style selections themselves, extras included.
+// Game: StormwalkerArchetype a330c05e484d98748a462acd43654a3a adds RangerStyleArcherySelection2
+// 3cf94df3f1cf9a443a880bc1ae9be3c6, …6 6c799d09d5b93f344b9ade0e0c765c2d, …10 7ef950ca681955d47bc4efbe77073e2c
+#[test]
+#[ignore = "waits on ticket 275: the game gives the Stormwalker the ranger's archery lists, extras included"]
+fn the_stormwalkers_lists_are_the_rangers_archery_lists() {
+    for (i, level) in [2, 6, 10].into_iter().enumerate() {
+        let archery = format!("ranger/combat-style-feat/archery-feats-{level}");
+        assert_eq!(
+            list_feats(STORMWALKER_ARCHERY[i]),
+            list_feats(&archery),
+            "{level}"
+        );
+    }
 }
 
 /// The keys of the feat lists `archetype` defines.
@@ -309,6 +364,9 @@ fn archetype_feat_lists(class_key: &str, archetype: &str) -> BTreeSet<String> {
 /// possible.
 #[test]
 fn a_titan_fighter_picks_massive_attacks_from_the_two_weapon_style_feats_ignoring_prerequisites() {
+    // Game: TitanFighterStyleTwoWeaponSelection2 9c3e4b49b9f243f080c0432d2a1e5cbf (IgnorePrerequisites; Greater
+    // Two-Weapon Fighting only in …10 0e41c3c5e88c42c3af31162743982c22); BlueprintFeatureSelection.CanSelect,
+    // WrathDecompiled 6ce4a6b. The offered set is the data's list (its extras wait on a ticket, see above).
     let titan = archetype_build("fighter", TITAN, 18);
     for (level, list) in [
         (2, MASSIVE_ATTACKS[0]),
@@ -353,10 +411,13 @@ fn a_titan_fighter_picks_massive_attacks_from_the_two_weapon_style_feats_ignorin
 }
 
 /// A feat held is not offered again unless it repeats: Two-Weapon Fighting taken at 2 is "Already taken" at 6, and
-/// Precise Shot taken through Precise Companion is in a hunter's teamwork slot at 3. Improved Critical repeats once
-/// per weapon, so a Stormwalker takes it at 10 and again for another weapon at 14.
+/// Outflank taken through Precise Companion is in a hunter's teamwork slot at 3. Improved Critical repeats once per
+/// weapon, so a Stormwalker takes it at 10 and again for another weapon at 14.
 #[test]
 fn a_bonus_feat_choice_offers_a_held_feat_again_only_when_it_repeats() {
+    // Game: BlueprintFeatureSelection.CanSelect, WrathDecompiled 6ce4a6b (a feature held at its Ranks isn't selected
+    // again, prerequisites ignored or not); ImprovedCritical f4201c85a991369408740c6888362e20 (one per weapon);
+    // HunterTeamworkFeatSelection 01046afc774beee48abde8e35da0f4ba (Outflank among its 13)
     let mut titan = archetype_build("fighter", TITAN, 6);
     titan
         .picks
@@ -374,10 +435,10 @@ fn a_bonus_feat_choice_offers_a_held_feat_again_only_when_it_repeats() {
     let mut hunter = build("hunter", 3);
     hunter
         .picks
-        .insert(class_slot(2), feat_pick_plain("precise-shot"));
+        .insert(class_slot(2), feat_pick_plain("outflank"));
     assert!(possible(&hunter));
     assert_eq!(
-        feat_status(&hunter, &class_slot(3), "precise-shot"),
+        feat_status(&hunter, &class_slot(3), "outflank"),
         Err(Issue::AlreadyHeld)
     );
 
@@ -401,11 +462,24 @@ fn a_bonus_feat_choice_offers_a_held_feat_again_only_when_it_repeats() {
     );
 }
 
+/// The game's hunter teamwork list at 3 has no Precise Shot.
+// Game: HunterTeamworkFeatSelection 01046afc774beee48abde8e35da0f4ba (13 teamwork feats, no PreciseShot)
+#[test]
+#[ignore = "waits on ticket 275: the game gives the hunter's level-3 teamwork list 13 feats and no Precise Shot"]
+fn a_hunters_teamwork_slot_at_3_offers_no_precise_shot() {
+    let hunter = build("hunter", 3);
+    assert!(!feats_offered(&hunter, &class_slot(3)).contains("precise-shot"));
+}
+
 /// The hunter's, the Urban Hunter's and the Stormwalker's slots offer exactly their lists, prerequisites ignored as
 /// their sections say ("She does not need to meet the prerequisites", "Neither she nor her companion need to meet the
 /// prerequisites", the ranger's style feats), and the Forester has no Precise Companion.
 #[test]
 fn the_hunters_and_the_stormwalkers_choices_offer_their_lists_ignoring_prerequisites() {
+    // Game: HunterPreciseCompanion 75e9a5179aeff4140a8235ebdeaf8df7, UrbanHunterCaptorSelection6
+    // a27990877466ec04e80d7cfa967ed69b, UrbanHunterCaptorSelection12 9839caff86642584bbf07699e8238c1b,
+    // RangerStyleArcherySelection2 3cf94df3f1cf9a443a880bc1ae9be3c6 (IgnorePrerequisites); ForesterArchetype
+    // 74ee8172df6782f4792ea0f8647dea34 (a combat feat at 2). The offered sets are the data's lists.
     let cases: [(Build, &[(u8, &str)]); 3] = [
         (build("hunter", 2), &[(2, PRECISE_COMPANION)]),
         (
