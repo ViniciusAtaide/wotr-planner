@@ -1069,79 +1069,55 @@
     (
         archetype: "oracle/divine-herbalist",
         loses: [
-            (item: Feature("oracle/curse-2"), replaced_by: [Feature("oracle/divine-herbalist/curse-2")]),
-            (item: Feature("oracle/curse-3"), replaced_by: [Feature("oracle/divine-herbalist/curse-3")]),
-            (item: Feature("oracle/curse-4"), replaced_by: [Feature("oracle/divine-herbalist/curse-4")]),
             (item: Selection("oracle/mystery"), replaced_by: [Selection("oracle/divine-herbalist/mystery")]),
-            (item: Selection("oracle/revelation"), at: [1, 7], why: "table has no Revelation at these levels; its rows there show 1: Oracle's Curse, Brew Potions, Healer's Way (level 0: Oracle Proficiencies, Mystery, Additional Spells, Master Herbalist); 7: Master Healing Technique"),
+            (item: Selection("oracle/revelations"), at: [1, 7], why: "table has no Revelation at these levels; its rows there show 1: Oracle's Curse, Brew Potions, Healer's Way (level 0: Oracle Proficiencies, Mystery, Additional Spells, Master Herbalist); 7: Master Healing Technique"),
         ],
     ),
     (
         archetype: "oracle/dual-cursed-oracle",
         loses: [
-            (item: Feature("oracle/curse-2"), replaced_by: [Feature("oracle/dual-cursed-oracle/curse-2")]),
-            (item: Feature("oracle/curse-3"), replaced_by: [Feature("oracle/dual-cursed-oracle/curse-3")]),
-            (item: Feature("oracle/curse-4"), replaced_by: [Feature("oracle/dual-cursed-oracle/curse-4")]),
-            (item: Selection("oracle/revelation"), replaced_by: [Selection("oracle/dual-cursed-oracle/revelation")]),
+            (item: Selection("oracle/revelations"), replaced_by: [Selection("oracle/dual-cursed-oracle/revelation")]),
         ],
     ),
     (
         archetype: "oracle/enlightened-philosopher",
         loses: [
-            (item: Feature("oracle/curse-2"), replaced_by: [Feature("oracle/enlightened-philosopher/curse-2")]),
-            (item: Feature("oracle/curse-3"), replaced_by: [Feature("oracle/enlightened-philosopher/curse-3")]),
-            (item: Feature("oracle/curse-4"), replaced_by: [Feature("oracle/enlightened-philosopher/curse-4")]),
             (item: Selection("oracle/mystery"), replaced_by: [Selection("oracle/enlightened-philosopher/mystery")]),
-            (item: Selection("oracle/revelation"), at: [7], why: "table has no Revelation at these levels; its rows there show 7: Mental Acuity"),
+            (item: Selection("oracle/revelations"), at: [7], why: "table has no Revelation at these levels; its rows there show 7: Mental Acuity"),
         ],
     ),
     (
         archetype: "oracle/lone-strider",
         loses: [
-            (item: Feature("oracle/curse-2"), replaced_by: [Feature("oracle/lone-strider/curse-2")]),
-            (item: Feature("oracle/curse-3"), replaced_by: [Feature("oracle/lone-strider/curse-3")]),
-            (item: Feature("oracle/curse-4"), replaced_by: [Feature("oracle/lone-strider/curse-4")]),
             (item: Selection("oracle/mystery"), replaced_by: [Selection("oracle/lone-strider/mystery")]),
-            (item: Selection("oracle/revelation"), at: [1, 7], why: "table has no Revelation at these levels; its rows there show 1: Oracle's Curse, Recluse's Stride (level 0: Oracle Proficiencies, Mystery, Additional Spells); 7: Fade from Memory"),
+            (item: Selection("oracle/revelations"), at: [1, 7], why: "table has no Revelation at these levels; its rows there show 1: Oracle's Curse, Recluse's Stride (level 0: Oracle Proficiencies, Mystery, Additional Spells); 7: Fade from Memory"),
         ],
     ),
     (
         archetype: "oracle/possessed-oracle",
         loses: [
-            (item: Feature("oracle/curse-2"), replaced_by: [Feature("oracle/possessed-oracle/curse-2")]),
-            (item: Feature("oracle/curse-3"), replaced_by: [Feature("oracle/possessed-oracle/curse-3")]),
-            (item: Feature("oracle/curse-4"), replaced_by: [Feature("oracle/possessed-oracle/curse-4")]),
-            (item: Selection("oracle/oracles-curse")),
-            (item: Selection("oracle/revelation"), at: [1], why: "table has no Revelation at these levels; its rows there show 1: Powerless Prophecy, Two Minds (level 0: Oracle Proficiencies, Mystery, Additional Spells)"),
+            (item: Selection("oracle/oracles-curse"), replaced_by: [Selection("oracle/possessed-oracle/curse")]),
+            (item: Selection("oracle/revelations"), at: [1], why: "table has no Revelation at these levels; its rows there show 1: Powerless Prophecy, Two Minds (level 0: Oracle Proficiencies, Mystery, Additional Spells)"),
         ],
     ),
     (
         archetype: "oracle/purifier",
         loses: [
             (item: Feature("oracle/additional-spells")),
-            (item: Feature("oracle/curse-2"), replaced_by: [Feature("oracle/purifier/curse-2")]),
-            (item: Feature("oracle/curse-3"), replaced_by: [Feature("oracle/purifier/curse-3")]),
-            (item: Feature("oracle/curse-4"), replaced_by: [Feature("oracle/purifier/curse-4")]),
-            (item: Selection("oracle/revelation"), at: [3, 7, 11], why: "table has no Revelation at these levels; its rows there show 3: nothing; 7: Celestial Armor; 11: Sin Eater"),
+            (item: Selection("oracle/revelations"), at: [3, 7, 11], why: "table has no Revelation at these levels; its rows there show 3: nothing; 7: Celestial Armor; 11: Sin Eater"),
         ],
     ),
     (
         archetype: "oracle/seeker",
         loses: [
-            (item: Feature("oracle/curse-2"), replaced_by: [Feature("oracle/seeker/curse-2")]),
-            (item: Feature("oracle/curse-3"), replaced_by: [Feature("oracle/seeker/curse-3")]),
-            (item: Feature("oracle/curse-4"), replaced_by: [Feature("oracle/seeker/curse-4")]),
-            (item: Selection("oracle/revelation"), at: [3, 15], why: "table has no Revelation at these levels; its rows there show 3: nothing; 15: Curse 4, Bonus Feat"),
+            (item: Selection("oracle/revelations"), at: [3, 15], why: "table has no Revelation at these levels; its rows there show 3: nothing; 15: Curse 4, Bonus Feat"),
         ],
     ),
     (
         archetype: "oracle/wind-whisperer",
         loses: [
-            (item: Feature("oracle/curse-2"), replaced_by: [Feature("oracle/wind-whisperer/curse-2")]),
-            (item: Feature("oracle/curse-3"), replaced_by: [Feature("oracle/wind-whisperer/curse-3")]),
-            (item: Feature("oracle/curse-4"), replaced_by: [Feature("oracle/wind-whisperer/curse-4")]),
             (item: Selection("oracle/mystery"), replaced_by: [Selection("oracle/wind-whisperer/mystery")]),
-            (item: Selection("oracle/revelation"), at: [7, 15], why: "table has no Revelation at these levels; its rows there show 7: Haste of the Wind; 15: Curse 4, Freedom of the Wind"),
+            (item: Selection("oracle/revelations"), at: [7, 15], why: "table has no Revelation at these levels; its rows there show 7: Haste of the Wind; 15: Curse 4, Freedom of the Wind"),
         ],
     ),
     (

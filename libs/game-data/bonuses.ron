@@ -60,9 +60,9 @@
     (item: Subrace("halfling/hasty"), target: Initiative, amount: Flat(2)),
     (item: Feature("duelist/improved-reaction"), target: Initiative, amount: Flat(2), requires: Not(ClassLevel(class: "duelist", level: 8))),
     (item: Feature("duelist/improved-reaction"), target: Initiative, amount: Flat(4), requires: ClassLevel(class: "duelist", level: 8)),
-    (item: SelectionOption("oracle/oracles-curse/powerless-prophecy"), target: Initiative, amount: Flat(4), requires: ClassLevel(class: "oracle", level: 5)),
-    (item: Feature("oracle/possessed-oracle/powerless-prophecy"), target: Initiative, amount: Flat(4), requires: ClassLevel(class: "oracle", level: 5)),
-    (item: SelectionOption("oracle/oracles-curse/pranked"), target: Initiative, amount: Flat(-4)),
+    // The curse stages that change initiative, at the curse level the game's progression reaches (ticket 243).
+    (item: Feature("oracle/oracles-curse/powerless-prophecy/level-5"), target: Initiative, amount: Flat(4)),
+    (item: Feature("oracle/oracles-curse/pranked/level-1"), target: Initiative, amount: Flat(-4)),
     // "Adds both Wisdom and Dexterity": Wisdom beside the Dexterity every initiative counts.
     (item: Feature("inquisitor/cunning-initiative"), target: Initiative, amount: AbilityModifier(Wisdom)),
     (item: Feature("barbarian/instinctual-warrior/fervent-reflexes"), target: Initiative, amount: AbilityModifier(Wisdom)),

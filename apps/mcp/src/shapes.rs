@@ -345,7 +345,7 @@ pub struct Named {
 }
 
 /// A feature a Build gains, by key and name, with how many times when that is more than once (the Trickster's third
-/// Mythic rank gives Sneak Attack twice).
+/// Mythic rank gives Sneak Attack twice), and its feature rank once it is held more than once.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, JsonSchema)]
 pub struct Gained {
     pub key: String,
@@ -353,6 +353,11 @@ pub struct Gained {
     /// How many times it is gained at once; left out for one.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub times: Option<u8>,
+    /// Its feature rank at a level's end: the times it has been granted so far. The game adds a rank for each grant up
+    /// to the blueprint's cap (the Assassin's poison saves: rank 2 at assassin 9, of 5); the planner doesn't cap it.
+    /// Left out for rank 1, when it equals `times`, and on a Mythic rank's line.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rank: Option<u8>,
 }
 
 /// A feature or selection option as `describe` lists it: by key and name, with its summary when the data has one.

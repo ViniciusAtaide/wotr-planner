@@ -211,7 +211,6 @@ fn every_item_whose_summary_chooses_has_its_pick_or_was_checked() {
     {
         let picks = option.parameter.is_some()
             || option.chosen_feat.is_some()
-            || option.pool.is_some()
             || option
                 .levels
                 .iter()

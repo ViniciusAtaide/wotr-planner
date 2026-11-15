@@ -291,6 +291,10 @@ fn options_class_skills_are_the_guides_on_their_first_row_and_the_animal_domains
             &["lore-religion"],
         );
     }
+    // Game: DemonicCurseFeatureLevel1 b256f446392d1bc489ed9c1bc79e89b7 and HellboundCurseFeatureLevel1
+    // 0ff5141fe79c43345a1c8ff72b75923d, each `AddClassSkill(SkillPersuasion)`, at the curse progression's level 1.
+    add("oracle/oracles-curse/demonic".into(), &["persuasion"]);
+    add("oracle/oracles-curse/hellbound".into(), &["persuasion"]);
     expected.sort();
     assert_eq!(rows, expected);
 }

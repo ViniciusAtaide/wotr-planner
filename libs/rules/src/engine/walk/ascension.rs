@@ -42,6 +42,7 @@ impl<'a> Walker<'a> {
             self.state.mythic_path = Some(path.key.clone());
         }
         self.state.mythic_rank = rank;
+        self.advance_by_mythic_rank();
 
         // The general pick first, then the slot its mythic feat gives (Extra Feat, Extra Mythic Ability): a mythic
         // ability either holds may grant selection slots (Second Bloodline).

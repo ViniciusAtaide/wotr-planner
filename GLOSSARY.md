@@ -201,9 +201,13 @@ _Avoid_: Bonus talent, extra slot feat
 A choice the game asks for again every day, so it isn't part of a Build and has no slot: a Mixed-Blood Rager's bloodline, a shaman's Wandering Spirit (an Unsworn Shaman's Minor Spirit and Wandering Spirit 2), an Abjurer's Resistance, a hunter's Animal Focus. The sheet shows it as a note.
 _Avoid_: Daily pick, rest choice
 
-**Pool selection**:
-A Feature selection that offers the **pools** of the options held in another: an oracle's revelation slot offers the revelations of the mysteries held (two with a mythic Second Mystery), and a Dual-Cursed Oracle's its own two besides. A pool is an ordinary selection that only a Pool selection offers. Within a level its slot is checked after the other selections'.
-_Avoid_: Dynamic selection, revelation list
+**Filtered pool**:
+A Feature selection whose options the option held in another selection admits, as the game filters one selection by its options' prerequisites: an oracle's revelations (`oracle/revelations`, the game's one revelation selection) each need their mystery, and the slot offers only those of the mysteries held (two with a mythic Second Mystery), with the options no mystery admits (the Dual-Cursed Oracle's Fortune and Misfortune) besides. The game lists the others greyed out; leaving them out is the planner's choice. Within a level its slot is checked after the other selections'.
+_Avoid_: Pool selection, dynamic selection, revelation list
+
+**Feature rank**:
+How many times a feature has been granted: the game adds a rank each time it grants a held feature again, up to the blueprint's `Ranks` (`Feature.AddRank`), and a prerequisite or a number reads it (the Assassin's poison saves: `Ranks` 5, rank 2 at assassin 9). The planner counts every grant and doesn't cap it, so a feature the game keeps at rank 1 and grants again counts on (Fey Magic, the Feyspeaker's repeated selection: rank 8 at druid 18). The sheet says it from rank 2.
+_Avoid_: Stage, step; "rank" alone, which means a Mythic rank
 
 **Option group**:
 A family of Selection options of which a character holds only one: the sorcerer's ten Draconic bloodlines ("You can only take a single draconic bloodline"), its four Elemental ones, and the bloodrager's dragons and elements, apart from the sorcerer's. The options' prerequisite says "no other option of this group", so a Crossblooded sorcerer or a Second Bloodline can't add a second dragon. (Expanded Element's "not the 7th-level element again" is not a group: the selection gives each option once.)

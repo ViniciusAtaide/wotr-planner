@@ -846,8 +846,12 @@ fn reads_options_with_rows_by_option_level_and_defaults_them() {
     );
     let abyssal = &bloodline.options[0];
     assert_eq!(
-        abyssal.pool.as_ref().map(FeatureSelectionKey::as_str),
-        Some("sorcerer/abyssal-powers")
+        abyssal
+            .aliases
+            .iter()
+            .map(SelectionOptionKey::as_str)
+            .collect::<Vec<_>>(),
+        ["sorcerer/bloodline/demonic"]
     );
     assert_eq!(
         abyssal.levels[0],
@@ -932,7 +936,7 @@ fn reads_options_with_rows_by_option_level_and_defaults_them() {
         .find(|s| s.key.as_str() == "sorcerer/power")
         .unwrap();
     assert_eq!(
-        power.pool_of.as_ref().map(FeatureSelectionKey::as_str),
+        power.filtered_by.as_ref().map(FeatureSelectionKey::as_str),
         Some("sorcerer/bloodline")
     );
 
@@ -990,12 +994,13 @@ fn reads_options_with_rows_by_option_level_and_defaults_them() {
         .unwrap();
     let talents = &rogue.selections[0];
     assert!(talents.option_levels.is_empty() && talents.skipped_levels.is_empty());
-    assert!(talents.pool_of.is_none() && !talents.feat_lists_only);
+    assert!(talents.filtered_by.is_none() && !talents.feat_lists_only);
+    assert!(talents.option_level_archetypes.is_empty() && !talents.half_other_classes);
     assert!(
         talents
             .options
             .iter()
-            .all(|o| o.levels.is_empty() && o.pool.is_none())
+            .all(|o| o.levels.is_empty() && o.aliases.is_empty())
     );
     assert!(
         rogue
@@ -1188,9 +1193,17 @@ fn reads_option_groups_arcanas_level_sources_and_picks_through_and_defaults_them
     // Once per option through a selection.
     assert!(selection("sorcerer/seeker/second-bloodline").once_per_option);
     assert!(!bloodline.once_per_option);
-    // A pool selection with an option of its own.
+    // A filtered pool with an option of its own, levelled by an archetype and half the other classes.
     let power = selection("sorcerer/power");
-    assert!(power.pool_of.is_some());
+    assert!(power.filtered_by.is_some() && power.half_other_classes);
+    assert_eq!(
+        power
+            .option_level_archetypes
+            .iter()
+            .map(ArchetypeKey::as_str)
+            .collect::<Vec<_>>(),
+        ["sorcerer/seeker"]
+    );
     assert_eq!(
         power
             .options

@@ -37,9 +37,6 @@ pub(super) struct Catalog {
     /// The one option each selection offering exactly one grants with no pick
     /// ([`find_single_option`](Self::find_single_option)).
     single_options: FxHashMap<FeatureSelectionKey, SelectionOptionKey>,
-    /// The members of each option's pool (a mystery's revelations): the options its pool selection offers that the
-    /// data has. Only options whose pool selection the data has.
-    pools: FxHashMap<SelectionOptionKey, BTreeSet<SelectionOptionKey>>,
     /// Whether each class, and each class taken with each of its archetypes, casts spells of each type.
     casting: Casting,
     /// The prerequisite of each class with an alignment requirement and archetypes, without that requirement:
@@ -109,7 +106,6 @@ impl Catalog {
             indexes: Indexes::new(&data),
             features: FeatureFacts::new(&data),
             single_options: FxHashMap::default(),
-            pools: FxHashMap::default(),
             casting: Casting::new(&data),
             without_alignment,
             bonus_rows: BonusRows::new(&data),
@@ -120,18 +116,6 @@ impl Catalog {
             .selections
             .keys()
             .filter_map(|key| Some((key.clone(), catalog.find_single_option(key)?)))
-            .collect();
-        catalog.pools = catalog
-            .indexes
-            .options
-            .keys()
-            .filter_map(|key| {
-                let pool = catalog
-                    .selection(catalog.option(key)?.pool.as_ref()?)
-                    .expect("an option's pool is a selection of the data (CheckedGameData)");
-                let members = pool.offered().into_iter().cloned().collect();
-                Some((key.clone(), members))
-            })
             .collect();
         catalog
     }
@@ -364,7 +348,7 @@ impl Catalog {
 
     /// Whether a selection's slot offers `option` by the game data alone: one of its own options (the one
     /// [`FeatureSelection::offers`] would find by a scan, the index saying which selection defines each option) or one
-    /// it shares. A pool selection may offer more: see `offers_now`.
+    /// it shares. A filtered pool's picker lists fewer, by what's held: see `offered_now`.
     pub(super) fn offers(&self, selection: &FeatureSelection, option: &SelectionOptionKey) -> bool {
         selection.shared_options.contains(option)
             || self
@@ -380,14 +364,6 @@ impl Catalog {
         selection: &FeatureSelectionKey,
     ) -> Option<&SelectionOptionKey> {
         self.single_options.get(selection)
-    }
-
-    /// The options of an option's pool, when it has one.
-    pub(super) fn pool(
-        &self,
-        option: &SelectionOptionKey,
-    ) -> Option<&BTreeSet<SelectionOptionKey>> {
-        self.pools.get(option)
     }
 
     /// The Feature selection that defines an option.

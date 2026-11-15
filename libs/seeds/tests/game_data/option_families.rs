@@ -4,8 +4,8 @@
 use std::collections::BTreeSet;
 
 use rules::{
-    Build, ClassChoice, ClassKey, FeatKey, FeatSlot, FeatureKey, Issue, LevelUp, Pick,
-    SelectionOptionKey, SlotId, SlotKind,
+    Build, ClassChoice, ClassKey, FeatKey, FeatSlot, Issue, LevelUp, Pick, SelectionOptionKey,
+    SlotId, SlotKind,
 };
 
 use crate::support::*;
@@ -171,11 +171,14 @@ fn an_inquisitors_domain_runs_on_inquisitor_levels() {
 
 #[test]
 fn an_oracles_revelation_slot_offers_only_its_mysterys_revelations() {
+    // Besides the Dual-Cursed Oracle's Fortune and Misfortune, which no mystery admits (ticket 243).
+    let mystery_free = |key: &&String| !key.ends_with("/fortune") && !key.ends_with("/misfortune");
     let battle = offered_at(&oracle("battle", 1), &revelation_slot(1));
     assert!(battle.contains("oracle/revelations/battle/weapon-mastery"));
     assert!(
         battle
             .iter()
+            .filter(mystery_free)
             .all(|key| key.starts_with("oracle/revelations/battle/")),
         "{battle:?}"
     );
@@ -183,6 +186,7 @@ fn an_oracles_revelation_slot_offers_only_its_mysterys_revelations() {
     assert!(
         flame
             .iter()
+            .filter(mystery_free)
             .all(|key| key.starts_with("oracle/revelations/flame/")),
         "{flame:?}"
     );
@@ -483,20 +487,23 @@ fn no_druid_can_take_impossible_domain_whatever_its_domain() {
 // ---- the Dual-Cursed Oracle's second curse (ticket 67) -----------------------------------------------------------
 
 const DUAL_CURSED: &str = "oracle/dual-cursed-oracle";
+const SECOND_CURSES: &str = "oracle/second-curse";
 
 /// The Dual-Cursed Oracle's level-1 slots in key order: its own revelation, the mystery, and the two curses.
 const FIRST_CURSE: SlotId = SlotId::Selection { level: 1, index: 2 };
 const SECOND_CURSE: SlotId = SlotId::Selection { level: 1, index: 3 };
 
-/// "The Oracle must choose a second curse" (oracle#second-curse): its table's "Second Curse" at 1 is a second slot of
-/// the oracle's curses in the rows in force, not a feature; the plain oracle and the other archetypes keep one.
+/// "The Oracle must choose a second curse" (oracle#second-curse): its table's "Second Curse" at 1 is a slot of its
+/// own, which offers the oracle's nine curses; the plain oracle and the other archetypes have none.
+/// Game: DualCursedOracleArchetype 4a6eb63858244f7ea4ed950a7e798a70 adds SecondCurseSelection
+/// cc6fda79e8c340b88c84689414a9abbe at 1, whose options are the nine `<Curse>CurseNoProgression`s.
 #[test]
-fn the_dual_cursed_oracles_second_curse_is_a_slot_of_the_oracles_curses() {
+fn the_dual_cursed_oracles_second_curse_is_a_slot_of_its_own() {
     let oracle = class("oracle");
-    let curses = rules::FeatureSelectionKey::new(CURSES);
-    let curse_slots = |archetype: Option<&rules::Archetype>, level| {
+    let count = |key: &str, archetype: Option<&rules::Archetype>, level| {
+        let key = rules::FeatureSelectionKey::new(key);
         rules::effective_row(oracle, archetype, level).map_or(0, |row| {
-            row.selections.iter().filter(|s| **s == curses).count()
+            row.selections.iter().filter(|s| **s == key).count()
         })
     };
     let dual = oracle
@@ -504,23 +511,24 @@ fn the_dual_cursed_oracles_second_curse_is_a_slot_of_the_oracles_curses() {
         .iter()
         .find(|a| a.key.as_str() == DUAL_CURSED)
         .expect("the Dual-Cursed Oracle");
-    assert_eq!(curse_slots(Some(dual), 1), 2);
-    assert!((2..=20).all(|level| curse_slots(Some(dual), level) == 0));
-    assert_eq!(curse_slots(None, 1), 1);
+    assert_eq!(count(CURSES, Some(dual), 1), 1);
+    assert_eq!(count(SECOND_CURSES, Some(dual), 1), 1);
+    assert!((2..=20).all(|level| count(CURSES, Some(dual), level)
+        + count(SECOND_CURSES, Some(dual), level)
+        == 0));
+    assert_eq!(count(SECOND_CURSES, None, 1), 0);
     for archetype in oracle
         .archetypes
         .iter()
         .filter(|a| a.key.as_str() != DUAL_CURSED)
     {
-        assert!(curse_slots(Some(archetype), 1) <= 1, "{}", archetype.key);
+        assert_eq!(
+            count(SECOND_CURSES, Some(archetype), 1),
+            0,
+            "{}",
+            archetype.key
+        );
     }
-    let second = FeatureKey::new("oracle/dual-cursed-oracle/second-curse");
-    assert!(dual.features.iter().all(|feature| feature.key != second));
-    assert!(
-        dual.levels
-            .iter()
-            .all(|row| !row.features.contains(&second))
-    );
 }
 
 #[test]
@@ -528,16 +536,21 @@ fn a_dual_cursed_oracle_1_picks_two_curses_the_second_not_offering_the_first() {
     let engine = engine();
     let build = archetype_build("oracle", DUAL_CURSED, 1);
     let sheet = engine.evaluate(&build);
-    for id in [&FIRST_CURSE, &SECOND_CURSE] {
+    for (id, key, label) in [
+        (&FIRST_CURSE, CURSES, "Oracle's Curse"),
+        (&SECOND_CURSE, SECOND_CURSES, "Second Curse"),
+    ] {
         let slot = sheet.slot(id).expect("a curse slot");
-        assert_eq!(slot.kind, selection_kind(CURSES), "{id:?}");
-        assert_eq!(engine.slot_label(slot), "Oracle's Curse");
+        assert_eq!(slot.kind, selection_kind(key), "{id:?}");
+        assert_eq!(engine.slot_label(slot), label);
     }
     let curse_slots = |build: &Build| {
         engine.evaluate(build).levels[0]
             .slots
             .iter()
-            .filter(|slot| slot.kind == selection_kind(CURSES))
+            .filter(|slot| {
+                [selection_kind(CURSES), selection_kind(SECOND_CURSES)].contains(&slot.kind)
+            })
             .count()
     };
     assert_eq!(curse_slots(&build), 2);
