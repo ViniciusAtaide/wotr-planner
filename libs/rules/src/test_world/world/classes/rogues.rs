@@ -51,6 +51,7 @@ pub(in crate::test_world::world) fn rogue() -> Class {
     Class {
         casting_ability: None,
         key: class("rogue"),
+        blueprint: None,
         name: "Rogue".into(),
         summary: String::new(),
         guide: guide("rogue"),
@@ -68,6 +69,7 @@ pub(in crate::test_world::world) fn rogue() -> Class {
         features: vec![plain_feature("rogue/sneak-attack", "Sneak Attack")],
         selections: vec![FeatureSelection {
             key: talents.clone(),
+            blueprint: None,
             name: "Rogue Talents".into(),
             summary: String::new(),
             guide: guide("rogue#rogue-talents"),
@@ -119,6 +121,7 @@ pub(in crate::test_world::world) fn rogue() -> Class {
         archetypes: vec![Archetype {
             casting_ability: Some(Ability::Intelligence),
             key: ArchetypeKey::new("rogue/eldritch-scoundrel"),
+            blueprint: None,
             name: "Eldritch Scoundrel".into(),
             summary: String::new(),
             guide: guide("rogue#eldritch-scoundrel"),
@@ -156,6 +159,7 @@ pub(in crate::test_world::world) fn slayer() -> Class {
     Class {
         casting_ability: None,
         key: class("slayer"),
+        blueprint: None,
         name: "Slayer".into(),
         summary: String::new(),
         guide: guide("slayer"),
@@ -174,6 +178,7 @@ pub(in crate::test_world::world) fn slayer() -> Class {
         selections: vec![
             FeatureSelection {
                 key: talents,
+                blueprint: None,
                 name: "Slayer Talents".into(),
                 summary: String::new(),
                 guide: guide("slayer#slayer-talents"),

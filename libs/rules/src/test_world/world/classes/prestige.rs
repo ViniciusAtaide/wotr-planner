@@ -22,6 +22,7 @@ pub(in crate::test_world::world) fn mystic_theurge() -> Class {
     Class {
         casting_ability: None,
         key: class("mystic-theurge"),
+        blueprint: None,
         name: "Mystic Theurge".into(),
         summary: String::new(),
         guide: guide("prestige-classes#mystic-theurge"),
@@ -68,6 +69,7 @@ pub(in crate::test_world::world) fn arcane_trickster() -> Class {
     Class {
         casting_ability: None,
         key: class("arcane-trickster"),
+        blueprint: None,
         name: "Arcane Trickster".into(),
         summary: String::new(),
         guide: guide("prestige-classes#arcane-trickster"),
@@ -119,6 +121,7 @@ pub(in crate::test_world::world) fn eldritch_knight() -> Class {
     Class {
         casting_ability: None,
         key: class("eldritch-knight"),
+        blueprint: None,
         name: "Eldritch Knight".into(),
         summary: String::new(),
         guide: guide("prestige-classes#eldritch-knight"),
@@ -165,6 +168,7 @@ pub(in crate::test_world::world) fn winter_witch() -> Class {
     Class {
         casting_ability: None,
         key: class("winter-witch"),
+        blueprint: None,
         name: "Winter Witch".into(),
         summary: String::new(),
         guide: guide("prestige-classes#winter-witch"),
@@ -220,6 +224,7 @@ pub(in crate::test_world::world) fn dragon_disciple() -> Class {
     Class {
         casting_ability: None,
         key: class("dragon-disciple"),
+        blueprint: None,
         name: "Dragon Disciple".into(),
         summary: String::new(),
         guide: guide("prestige-classes#dragon-disciple"),

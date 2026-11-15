@@ -3,6 +3,7 @@
 [
     (
         key: "arcana-theft",
+        blueprint: "b5f4ea77492d4f23ad3a6f429cbfa35e",
         name: "Arcana Theft",
         school: Abjuration,
         guide: "arcanist#arcana-theft-abjuration",
@@ -15,6 +16,7 @@
     ),
     (
         key: "peer-into-avoidance",
+        blueprint: "1d06e3306677431e846e6e6afdcc2138",
         name: "Peer Into Avoidance",
         school: Divination,
         guide: "arcanist#peer-into-avoidance-divination",

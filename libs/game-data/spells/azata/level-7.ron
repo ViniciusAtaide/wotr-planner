@@ -3,6 +3,7 @@
 [
     (
         key: "heroes-never-surrender",
+        blueprint: "a6a86db75c6af6d41aa480f05adae693",
         name: "Heroes Never Surrender",
         school: Enchantment,
         guide: "azata#heroes-never-surrender-enchantment",
@@ -15,6 +16,7 @@
     ),
     (
         key: "rainbow-arrows",
+        blueprint: "88bb6f877c8185543850656a5f14e802",
         name: "Rainbow Arrows",
         school: Evocation,
         guide: "azata#rainbow-arrows-evocation",
@@ -27,6 +29,7 @@
     ),
     (
         key: "revolt",
+        blueprint: "319c5a450b01f834599389853753d0f0",
         name: "Revolt",
         school: Enchantment,
         guide: "azata#revolt-enchantment",
@@ -39,6 +42,7 @@
     ),
     (
         key: "unbreakable-bond",
+        blueprint: "947a929f3347d3e458a524424fbceccb",
         name: "Unbreakable Bond",
         school: Abjuration,
         guide: "azata#unbreakable-bond-abjuration",
@@ -52,6 +56,7 @@
     ),
     (
         key: "water-torrent",
+        blueprint: "cd7b6981218a0274c916db0a2fc29855",
         name: "Water Torrent",
         school: Conjuration,
         guide: "azata#water-torrent-conjuration",

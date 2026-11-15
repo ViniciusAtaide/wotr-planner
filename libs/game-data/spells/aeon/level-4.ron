@@ -3,6 +3,7 @@
 [
     (
         key: "edict-of-predetermination",
+        blueprint: "3f205f55a6e7759449772feb34edc378",
         name: "Edict of Predetermination",
         school: Abjuration,
         guide: "aeon#edict-of-predetermination-abjuration",
@@ -16,6 +17,7 @@
     ),
     (
         key: "perfect-prediction",
+        blueprint: "45094504ee3041f98ebf97ab1791e3d9",
         name: "Perfect Prediction",
         school: Divination,
         guide: "aeon#perfect-prediction-divination",
@@ -29,6 +31,7 @@
     ),
     (
         key: "true-form",
+        blueprint: "be0537e563ad07241a15c25dba990bd1",
         name: "True Form",
         school: Transmutation,
         guide: "aeon#true-form-transmutation",
@@ -41,6 +44,7 @@
     ),
     (
         key: "uncertainty-principle",
+        blueprint: "4b7e6e992a4862a45bcfc9ba95bfc727",
         name: "Uncertainty Principle",
         school: Conjuration,
         guide: "aeon#uncertainty-principle-conjuration",

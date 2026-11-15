@@ -891,10 +891,7 @@ struct FeatureFacts {
 
 impl FeatureFacts {
     fn new(data: &GameData) -> Self {
-        let features: Vec<&crate::game_data::Feature> = data
-            .class_features()
-            .chain(data.mythic_paths.iter().flat_map(|path| &path.features))
-            .collect();
+        let features: Vec<&crate::game_data::Feature> = data.features().collect();
         let mut name_counts: FxHashMap<&str, usize> = FxHashMap::default();
         for feature in &features {
             *name_counts.entry(feature.name.as_str()).or_default() += 1;

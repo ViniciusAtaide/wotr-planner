@@ -1,5 +1,6 @@
 Class(
     key: "student-of-war",
+    blueprint: "46b1fe9759ea01f4d883b23d8f0aecbb",
     name: "Student of War",
     summary: "Ten-level tactician with full BAB, 6 HP and 4 skill points per level: Know Your Enemy stances, Int to AC, three bonus combat feats, DR-piercing attacks.",
     guide: "prestige-classes#student-of-war",
@@ -12,17 +13,18 @@ Class(
     class_skills: ["knowledge-arcana", "knowledge-world", "perception"],
     prerequisite: All([Any([FeatFor(feat: "skill-focus", value: Skill("knowledge-arcana")), FeatFor(feat: "skill-focus", value: Skill("knowledge-world")), FeatFor(feat: "skill-focus", value: Skill("lore-nature")), FeatFor(feat: "skill-focus", value: Skill("lore-religion"))]), Feat("combat-expertise"), Feat("dodge"), BaseAttackBonus(5), CharacterLevel(6)]),
     features: [
-        (key: "student-of-war/additional-class-skill", name: "Additional Class Skill", summary: "Every odd class level makes one more skill of your choice a class skill.", guide: "prestige-classes#additional-class-skill"),
-        (key: "student-of-war/anticipate", name: "Anticipate", summary: "When a passed Will save would halve an attack's damage, you take none instead.", guide: "prestige-classes#anticipate"),
-        (key: "student-of-war/deadly-blow", name: "Deadly Blow", summary: "Once Know Your Enemy is active, DR and crit immunity no longer protect foes from your attacks.", guide: "prestige-classes#deadly-blow"),
-        (key: "student-of-war/know-your-enemy-swift", name: "Know Your Enemy - Swift", summary: "Know Your Enemy becomes a swift action.", guide: "prestige-classes#know-your-enemy"),
-        (key: "student-of-war/mind-over-metal", name: "Mind Over Metal", summary: "AC uses your Intelligence modifier rather than Dexterity, though armour's max Dex cap still holds.", guide: "prestige-classes#mind-over-metal"),
-        (key: "student-of-war/nemesis", name: "Nemesis", summary: "A daily 1-minute Bane enchantment on your weapon.", guide: "prestige-classes#nemesis"),
-        (key: "student-of-war/telling-blow", name: "Telling Blow", summary: "Strips 5 points from typed damage reduction on your hits; untyped DR and crit-immune creatures are unaffected.", guide: "prestige-classes#telling-blow"),
+        (key: "student-of-war/additional-class-skill", blueprint: "922cb8ca89628e64f914f06dd4fc2a04", name: "Additional Class Skill", summary: "Every odd class level makes one more skill of your choice a class skill.", guide: "prestige-classes#additional-class-skill"),
+        (key: "student-of-war/anticipate", blueprint: "810d185f085e9c74087bd821cf3678ae", name: "Anticipate", summary: "When a passed Will save would halve an attack's damage, you take none instead.", guide: "prestige-classes#anticipate"),
+        (key: "student-of-war/deadly-blow", blueprint: "d71d6c64e0a174f4a99c1f115d630300", name: "Deadly Blow", summary: "Once Know Your Enemy is active, DR and crit immunity no longer protect foes from your attacks.", guide: "prestige-classes#deadly-blow"),
+        (key: "student-of-war/know-your-enemy-swift", blueprint: "846c2094392076a4f9f3c84f0ecfe180", name: "Know Your Enemy - Swift", summary: "Know Your Enemy becomes a swift action.", guide: "prestige-classes#know-your-enemy"),
+        (key: "student-of-war/mind-over-metal", blueprint: "708fe8142ac107345967de54fca15942", name: "Mind Over Metal", summary: "AC uses your Intelligence modifier rather than Dexterity, though armour's max Dex cap still holds.", guide: "prestige-classes#mind-over-metal"),
+        (key: "student-of-war/nemesis", blueprint: "ba3586b2bd61bc241972d6e6826a21cf", name: "Nemesis", summary: "A daily 1-minute Bane enchantment on your weapon.", guide: "prestige-classes#nemesis"),
+        (key: "student-of-war/telling-blow", blueprint: "1cd672da802093d47a1473ff985acc63", name: "Telling Blow", summary: "Strips 5 points from typed damage reduction on your hits; untyped DR and crit-immune creatures are unaffected.", guide: "prestige-classes#telling-blow"),
     ],
     selections: [
         (
             key: "student-of-war/know-your-enemy",
+            blueprint: "846c2094392076a4f9f3c84f0ecfe180",
             name: "Know Your Enemy",
             summary: "Move action: a Knowledge or Lore check on a foe gives a stance's insight bonus against it, +1, +2 at 4th and +3 at 7th; switch as a move action.",
             guide: "prestige-classes#know-your-enemy",

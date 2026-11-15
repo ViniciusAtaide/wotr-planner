@@ -3,6 +3,7 @@
 [
     (
         key: "bring-back",
+        blueprint: "eb0d3e22826725d4199a3aac0db0ad50",
         name: "Bring Back",
         school: Conjuration,
         guide: "angel#bring-back-conjuration",
@@ -15,6 +16,7 @@
     ),
     (
         key: "fortress-of-the-faithful",
+        blueprint: "102e38aec2c921745a9f5c5e049d6526",
         name: "Fortress of the Faithful",
         school: Abjuration,
         guide: "angel#fortress-of-the-faithful-abjuration",
@@ -28,6 +30,7 @@
     ),
     (
         key: "sun-form",
+        blueprint: "568084843e133374bb03fb5e6cb6f22f",
         name: "Sun Form",
         school: Abjuration,
         guide: "angel#sun-form-abjuration",
@@ -41,6 +44,7 @@
     ),
     (
         key: "wrath-of-the-righteous",
+        blueprint: "ae13b1831a5c79c468584e57ea94d07d",
         name: "Wrath of the Righteous",
         school: Conjuration,
         guide: "angel#wrath-of-the-righteous-conjuration",

@@ -3,6 +3,7 @@
 [
     (
         key: "breath-of-life",
+        blueprint: "d5847cad0b0e54c4d82d6c59a3cda6b0",
         name: "Breath of Life",
         school: Conjuration,
         guide: "cleric-spells#breath-of-life-conjuration",
@@ -15,6 +16,7 @@
     ),
     (
         key: "burst-of-glory",
+        blueprint: "1bc83efec9f8c4b42a46162d72cbf494",
         name: "Burst of Glory",
         school: Enchantment,
         guide: "cleric-spells#burst-of-glory-enchantment",
@@ -28,6 +30,7 @@
     ),
     (
         key: "cleanse",
+        blueprint: "be2062d6d85f4634ea4f26e9e858c3b8",
         name: "Cleanse",
         school: Evocation,
         guide: "cleric-spells#cleanse-evocation",
@@ -40,6 +43,7 @@
     ),
     (
         key: "cure-light-wounds-mass",
+        blueprint: "5d3d689392e4ff740a761ef346815074",
         name: "Cure Light Wounds, Mass",
         school: Conjuration,
         guide: "cleric-spells#cure-light-wounds-mass-conjuration",
@@ -52,6 +56,7 @@
     ),
     (
         key: "disrupting-weapon",
+        blueprint: "46c96cc3a3ef35243915ff3452dfacf5",
         name: "Disrupting Weapon",
         school: Transmutation,
         guide: "cleric-spells#disrupting-weapon-transmutation",
@@ -65,6 +70,7 @@
     ),
     (
         key: "flame-strike",
+        blueprint: "f9910c76efc34af41b6e43d5d8752f0f",
         name: "Flame Strike",
         school: Evocation,
         guide: "cleric-spells#flame-strike-evocation",
@@ -77,6 +83,7 @@
     ),
     (
         key: "greater-command",
+        blueprint: "cb15cc8d7a5480648855a23b3ba3f93d",
         name: "Greater Command",
         school: Enchantment,
         guide: "cleric-spells#greater-command-enchantment",
@@ -90,6 +97,7 @@
     ),
     (
         key: "inflict-light-wounds-mass",
+        blueprint: "9da37873d79ef0a468f969e4e5116ad2",
         name: "Inflict Light Wounds, Mass",
         school: Necromancy,
         guide: "cleric-spells#inflict-light-wounds-mass-necromancy",
@@ -102,6 +110,7 @@
     ),
     (
         key: "pillar-of-life",
+        blueprint: "aca83c764d751594287f18b817814bce",
         name: "Pillar of Life",
         school: Conjuration,
         guide: "cleric-spells#pillar-of-life-conjuration",
@@ -115,6 +124,7 @@
     ),
     (
         key: "profane-nimbus",
+        blueprint: "b56521d58f996cd4299dab3f38d5fe31",
         name: "Profane Nimbus",
         school: Evocation,
         guide: "cleric-spells#profane-nimbus-evocation",
@@ -128,6 +138,7 @@
     ),
     (
         key: "raise-dead",
+        blueprint: "a0fc99f0933d01643b2b8fe570caa4c5",
         name: "Raise Dead",
         school: Conjuration,
         guide: "cleric-spells#raise-dead-conjuration",
@@ -141,6 +152,7 @@
     ),
     (
         key: "righteous-might",
+        blueprint: "90810e5cf53bf854293cbd5ea1066252",
         name: "Righteous Might",
         school: Transmutation,
         guide: "cleric-spells#righteous-might-transmutation",
@@ -154,6 +166,7 @@
     ),
     (
         key: "sacred-nimbus",
+        blueprint: "bf74b3b54c21a9344afe9947546e036f",
         name: "Sacred Nimbus",
         school: Evocation,
         guide: "cleric-spells#sacred-nimbus-evocation",
@@ -167,6 +180,7 @@
     ),
     (
         key: "slay-living",
+        blueprint: "4fbd47525382517419c66fb548fe9a67",
         name: "Slay Living",
         school: Necromancy,
         guide: "cleric-spells#slay-living-necromancy",
@@ -179,6 +193,7 @@
     ),
     (
         key: "spell-resistance",
+        blueprint: "0a5ddfbcfb3989543ac7c936fc256889",
         name: "Spell Resistance",
         school: Abjuration,
         guide: "cleric-spells#spell-resistance-abjuration",
@@ -192,6 +207,7 @@
     ),
     (
         key: "vinetrap",
+        blueprint: "6d1d48a939ce475409f06e1b376bc386",
         name: "Vinetrap",
         school: Conjuration,
         guide: "cleric-spells#vinetrap-conjuration",

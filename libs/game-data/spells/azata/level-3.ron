@@ -3,6 +3,7 @@
 [
     (
         key: "believe-in-yourself",
+        blueprint: "3ed3cef7c267cb847bfd44ed4708b726",
         name: "Believe in Yourself",
         school: Enchantment,
         guide: "azata#believe-in-yourself-enchantment",
@@ -16,6 +17,7 @@
     ),
     (
         key: "natures-grasp",
+        blueprint: "2b9db9808a1aad74b94f651c5732fd3c",
         name: "Nature's Grasp",
         school: Conjuration,
         guide: "azata#natures-grasp-conjuration",
@@ -29,6 +31,7 @@
     ),
     (
         key: "optimistic-smile",
+        blueprint: "163c7697cf606334e9d7745c547d3b47",
         name: "Optimistic Smile",
         school: Enchantment,
         guide: "azata#optimistic-smile-enchantment",
@@ -41,6 +44,7 @@
     ),
     (
         key: "rainbow-dome",
+        blueprint: "1130f3e7d6a4bb444bbedc3e20dcd1dd",
         name: "Rainbow Dome",
         school: Enchantment,
         guide: "azata#rainbow-dome-enchantment",

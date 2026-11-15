@@ -9,6 +9,7 @@
     // Generic stat belts and headbands, from the user (no guide reference).
     (
         key: "belt-of-giant-strength-2",
+        blueprint: "c354de364a714ee4dbe2cfee628df267",
         name: "Belt of Giant Strength +2",
         slot: Belt,
         bonuses: [
@@ -17,6 +18,7 @@
     ),
     (
         key: "belt-of-giant-strength-4",
+        blueprint: "ede812de6b31b194686595fab33fc3ed",
         name: "Belt of Giant Strength +4",
         slot: Belt,
         bonuses: [
@@ -25,6 +27,7 @@
     ),
     (
         key: "belt-of-giant-strength-6",
+        blueprint: "d8062d43606e89e4bb3f0483ed3aba5d",
         name: "Belt of Giant Strength +6",
         slot: Belt,
         bonuses: [
@@ -33,6 +36,7 @@
     ),
     (
         key: "belt-of-incredible-dexterity-2",
+        blueprint: "b6af4c1834999e74497b41588d1071cd",
         name: "Belt of Incredible Dexterity +2",
         slot: Belt,
         bonuses: [
@@ -41,6 +45,7 @@
     ),
     (
         key: "belt-of-incredible-dexterity-4",
+        blueprint: "20539ffabe4365e419ca7413129ab78a",
         name: "Belt of Incredible Dexterity +4",
         slot: Belt,
         bonuses: [
@@ -49,6 +54,7 @@
     ),
     (
         key: "belt-of-incredible-dexterity-6",
+        blueprint: "a214f971f937c2c46805211dcb9c1576",
         name: "Belt of Incredible Dexterity +6",
         slot: Belt,
         bonuses: [
@@ -57,6 +63,7 @@
     ),
     (
         key: "belt-of-physical-perfection-2",
+        blueprint: "7abdce2cab3e3dd43b9e6c41c1b44525",
         name: "Belt of Physical Perfection +2",
         slot: Belt,
         bonuses: [
@@ -67,6 +74,7 @@
     ),
     (
         key: "belt-of-physical-perfection-4",
+        blueprint: "7cda6252ed289b74fb667b4e9f69fcbd",
         name: "Belt of Physical Perfection +4",
         slot: Belt,
         bonuses: [
@@ -77,6 +85,7 @@
     ),
     (
         key: "belt-of-the-mighty-constitution-2",
+        blueprint: "b9cc5d85d4a5032458ef4491f5fed251",
         name: "Belt of the Mighty Constitution +2",
         slot: Belt,
         bonuses: [
@@ -85,6 +94,7 @@
     ),
     (
         key: "belt-of-the-mighty-constitution-4",
+        blueprint: "dbeb5ba83e9fd2046a31590636b8b36d",
         name: "Belt of the Mighty Constitution +4",
         slot: Belt,
         bonuses: [
@@ -93,6 +103,7 @@
     ),
     (
         key: "belt-of-the-mighty-constitution-6",
+        blueprint: "f2c5555b4cce199488f9e6d3796a661f",
         name: "Belt of the Mighty Constitution +6",
         slot: Belt,
         bonuses: [
@@ -101,6 +112,7 @@
     ),
     (
         key: "headband-of-alluring-charisma-2",
+        blueprint: "a3e8e907908ca7a40ac6da78e70bf33d",
         name: "Headband of Alluring Charisma +2",
         slot: Headwear,
         bonuses: [
@@ -109,6 +121,7 @@
     ),
     (
         key: "headband-of-alluring-charisma-4",
+        blueprint: "71b4c3f8976784d4abf46976b15eba4a",
         name: "Headband of Alluring Charisma +4",
         slot: Headwear,
         bonuses: [
@@ -117,6 +130,7 @@
     ),
     (
         key: "headband-of-alluring-charisma-6",
+        blueprint: "66fa9c56ef410104a9a3d7fb3c78d140",
         name: "Headband of Alluring Charisma +6",
         slot: Headwear,
         bonuses: [
@@ -125,6 +139,7 @@
     ),
     (
         key: "headband-of-inspired-wisdom-2",
+        blueprint: "3d33605336c62274483f382f58908f5b",
         name: "Headband of Inspired Wisdom +2",
         slot: Headwear,
         bonuses: [
@@ -133,6 +148,7 @@
     ),
     (
         key: "headband-of-inspired-wisdom-4",
+        blueprint: "716bdfe5c57be9b43a958bb612c1ecd4",
         name: "Headband of Inspired Wisdom +4",
         slot: Headwear,
         bonuses: [
@@ -141,6 +157,7 @@
     ),
     (
         key: "headband-of-inspired-wisdom-6",
+        blueprint: "bc931a618226e044caaebdf4ace1188a",
         name: "Headband of Inspired Wisdom +6",
         slot: Headwear,
         bonuses: [
@@ -149,6 +166,7 @@
     ),
     (
         key: "headband-of-mental-perfection-2",
+        blueprint: "b9b49933be6ac7f4aa3c71c602227332",
         name: "Headband of Mental Perfection +2",
         slot: Headwear,
         bonuses: [
@@ -159,6 +177,7 @@
     ),
     (
         key: "headband-of-mental-perfection-4",
+        blueprint: "df2aa195ecce07c4c8dcabb5ea8c696e",
         name: "Headband of Mental Perfection +4",
         slot: Headwear,
         bonuses: [
@@ -169,6 +188,7 @@
     ),
     (
         key: "headband-of-vast-intelligence-2",
+        blueprint: "22184af355826444087506d7f2f8f0b1",
         name: "Headband of Vast Intelligence +2",
         slot: Headwear,
         bonuses: [
@@ -177,6 +197,7 @@
     ),
     (
         key: "headband-of-vast-intelligence-4",
+        blueprint: "ee15329357f8f974bacf02521d8d37fe",
         name: "Headband of Vast Intelligence +4",
         slot: Headwear,
         bonuses: [
@@ -185,6 +206,7 @@
     ),
     (
         key: "headband-of-vast-intelligence-6",
+        blueprint: "eee1c6ee3542ffd47a7804990da11c21",
         name: "Headband of Vast Intelligence +6",
         slot: Headwear,
         bonuses: [
@@ -194,6 +216,7 @@
     // Belt.
     (
         key: "assailants-belt",
+        blueprint: "8d48d164b7a729b459db96ab7d5cf55a",
         name: "Assailant's Belt",
         slot: Belt,
         guide: "items#belts",
@@ -206,6 +229,7 @@
     ),
     (
         key: "belt-of-alacrity",
+        blueprint: "4b0b9b95225d6034f84b75a6ad1e76c7",
         name: "Belt of Alacrity",
         slot: Belt,
         guide: "items-lord-of-nothing#belts",
@@ -216,6 +240,7 @@
     ),
     (
         key: "belt-of-bloodlust",
+        blueprint: "c63859f821f7b414492580b638b009fb",
         name: "Belt of Bloodlust",
         slot: Belt,
         guide: "items#belts",
@@ -229,6 +254,7 @@
     ),
     (
         key: "belt-of-lesser-shadowform",
+        blueprint: "2609206f8cd941f2af8901d609702393",
         name: "Belt of Lesser Shadowform",
         slot: Belt,
         guide: "items-lord-of-nothing#belts",
@@ -241,6 +267,7 @@
     ),
     (
         key: "belt-of-physical-form-6",
+        blueprint: "8cf20c1d0e9e0974e8f0c01bd2f80e3e",
         name: "Belt of Physical Form +6",
         slot: Belt,
         guide: "items#belts",
@@ -251,6 +278,7 @@
     ),
     (
         key: "belt-of-physical-perfection-6",
+        blueprint: "2b400628f960a8a43bc2f085d84788cf",
         name: "Belt of Physical Perfection +6",
         slot: Belt,
         guide: "items#belts",
@@ -262,6 +290,7 @@
     ),
     (
         key: "belt-of-physical-perfection-8",
+        blueprint: "dc2f2613634c2f947b306fa3379232c2",
         name: "Belt of Physical Perfection +8",
         slot: Belt,
         guide: "items-inevitable-excess#belts",
@@ -273,6 +302,7 @@
     ),
     (
         key: "belt-of-thunderous-charging",
+        blueprint: "b59c3948cc32e3c43b519ecd7e618155",
         name: "Belt of Thunderous Charging",
         slot: Belt,
         guide: "items#belts",
@@ -285,6 +315,7 @@
     ),
     (
         key: "belt-of-the-venerated-champion",
+        blueprint: "87c5f3e1b5a01d0448d550b727f45cb4",
         name: "Belt of the Venerated Champion",
         slot: Belt,
         guide: "items#belts",
@@ -297,6 +328,7 @@
     ),
     (
         key: "clutch-of-corruption",
+        blueprint: "637c4de135be4d59a84fba1da9135b9b",
         name: "Clutch of Corruption",
         slot: Belt,
         guide: "items#belts",
@@ -310,6 +342,7 @@
     ),
     (
         key: "display-of-power",
+        blueprint: "42831d8b78d38674e83b89657a3e5434",
         name: "Display of Power",
         slot: Belt,
         guide: "items#belts",
@@ -322,6 +355,7 @@
     ),
     (
         key: "flawless-belt-of-physical-perfection-8",
+        blueprint: "3c3a3a043b99422480b04940bc1edc73",
         name: "Flawless Belt of Physical Perfection +8",
         slot: Belt,
         guide: "items-inevitable-excess#belts",
@@ -336,6 +370,7 @@
     ),
     (
         key: "gorgon-belt",
+        blueprint: "a2206ab9a731411dbe5055ab48175a22",
         name: "Gorgon Belt",
         slot: Belt,
         guide: "items#belts",
@@ -351,6 +386,7 @@
     ),
     (
         key: "heart-of-ice",
+        blueprint: "a113c68406d74e37951717e417840bfa",
         name: "Heart of Ice",
         slot: Belt,
         guide: "items-lord-of-nothing#belts",
@@ -366,6 +402,7 @@
     ),
     (
         key: "mangling-frenzy",
+        blueprint: "5d855652aad04a9cad2fb1e70735ac7e",
         name: "Mangling Frenzy",
         slot: Belt,
         guide: "items#belts",
@@ -383,6 +420,7 @@
     ),
     (
         key: "timely-assistance",
+        blueprint: "b76383fb806d61b41bfe93f0651e3964",
         name: "Timely Assistance",
         slot: Belt,
         guide: "items#belts",
@@ -396,6 +434,7 @@
     ),
     (
         key: "unceasing-slaughter",
+        blueprint: "cd015f36cdccb134e86a0b4daa0283e8",
         name: "Unceasing Slaughter",
         slot: Belt,
         guide: "items#belts",
@@ -410,6 +449,7 @@
     // Boots.
     (
         key: "cats-boots",
+        blueprint: "c26c4b72544948318ec71348ab8931c0",
         name: "Cat's Boots",
         slot: Boots,
         guide: "items#boots",
@@ -425,6 +465,7 @@
     ),
     (
         key: "offroad-boots",
+        blueprint: "77e8e9ceb50447bfbae19f6c9a850d76",
         name: "Offroad Boots",
         slot: Boots,
         guide: "items#boots",
@@ -441,6 +482,7 @@
     // Bracers.
     (
         key: "bracers-of-mighty-boar",
+        blueprint: "6c7ca383c299404caa44841fe0aee062",
         name: "Bracers of Mighty Boar",
         slot: Bracers,
         guide: "items#bracers",
@@ -454,6 +496,7 @@
     // Cloak.
     (
         key: "grand-festival-cloak",
+        blueprint: "12836afa5ce54260895c4f54d8a3bb4d",
         name: "Grand Festival Cloak",
         slot: Cloak,
         guide: "items#cloaks",
@@ -468,6 +511,7 @@
     // Glasses.
     (
         key: "goggles-of-ferocious-pact",
+        blueprint: "76d219c4b02f2d64bbf15363565647c3",
         name: "Goggles of Ferocious Pact",
         slot: Glasses,
         guide: "items#glasses",
@@ -485,6 +529,7 @@
     // Gloves.
     (
         key: "gloves-of-the-ambassador",
+        blueprint: "beb4001a6c9da474da29a8c5ece30572",
         name: "Gloves of the Ambassador",
         slot: Gloves,
         guide: "items#gloves",
@@ -496,6 +541,7 @@
     ),
     (
         key: "hammer-fists",
+        blueprint: "0237641b0c2de344d85821840419b4d2",
         name: "Hammer Fists",
         slot: Gloves,
         guide: "items#gloves",
@@ -508,6 +554,7 @@
     ),
     (
         key: "soaring-fist",
+        blueprint: "e11d5d581d05d3348b1d50e55d355411",
         name: "Soaring Fist",
         slot: Gloves,
         guide: "items#gloves",
@@ -519,6 +566,7 @@
     // Headwear.
     (
         key: "battlemages-headband",
+        blueprint: "229111433080fe247800e95385c9af20",
         name: "Battlemage's Headband",
         slot: Headwear,
         guide: "items#headwear",
@@ -532,6 +580,7 @@
     ),
     (
         key: "blazing-crown",
+        blueprint: "c4ebdd7c0465d0441baa785d8ef9cb76",
         name: "Blazing Crown",
         slot: Headwear,
         guide: "items#headwear",
@@ -544,6 +593,7 @@
     ),
     (
         key: "bookworms-headband",
+        blueprint: "866f59db467f8414cbd909df9b10361f",
         name: "Bookworm's Headband",
         slot: Headwear,
         guide: "items#headwear",
@@ -558,6 +608,7 @@
     ),
     (
         key: "broken-trickster",
+        blueprint: "692b59ae0433471aa675b5b1b80db863",
         name: "Broken Trickster",
         slot: Headwear,
         guide: "items#headwear",
@@ -572,6 +623,7 @@
     ),
     (
         key: "crushing-presence",
+        blueprint: "835d2e861aef0dd4fb21df9700074edc",
         name: "Crushing Presence",
         slot: Headwear,
         guide: "items#headwear",
@@ -584,6 +636,7 @@
     ),
     (
         key: "darkness-caress",
+        blueprint: "39755fa97553462ca91a6109e5e1e393",
         name: "Darkness Caress",
         slot: Headwear,
         guide: "items#headwear",
@@ -598,6 +651,7 @@
     ),
     (
         key: "doubling-annoyance",
+        blueprint: "63c9d4fc0810432aa6d85111d345aa84",
         name: "Doubling Annoyance",
         slot: Headwear,
         guide: "items#headwear",
@@ -613,6 +667,7 @@
     ),
     (
         key: "dravens-hat",
+        blueprint: "0160c8eabe704db41b6309af0d26a8e0",
         name: "Draven's Hat",
         slot: Headwear,
         guide: "items#headwear",
@@ -629,6 +684,7 @@
     ),
     (
         key: "flamboyant-hat",
+        blueprint: "f33dadeeb51cdba45b23bb40a40e5fb3",
         name: "Flamboyant Hat",
         slot: Headwear,
         guide: "items-lord-of-nothing#headwear",
@@ -641,6 +697,7 @@
     ),
     (
         key: "flawless-headband-of-mental-perfection-8",
+        blueprint: "1c851e5a5b25428fa4eed948f982a44a",
         name: "Flawless Headband of Mental Perfection +8",
         slot: Headwear,
         guide: "items#headwear",
@@ -655,6 +712,7 @@
     ),
     (
         key: "gnawing-magic",
+        blueprint: "a86b5de9761e4b06bbd15516af2a255a",
         name: "Gnawing Magic",
         slot: Headwear,
         guide: "items#headwear",
@@ -667,6 +725,7 @@
     ),
     (
         key: "headband-of-confidence",
+        blueprint: "ee29287b36269ec468c2b38b1fde7551",
         name: "Headband of Confidence",
         slot: Headwear,
         guide: "items-inevitable-excess#headwear",
@@ -680,6 +739,7 @@
     ),
     (
         key: "headband-of-mental-perfection-6",
+        blueprint: "6d7992679c557c842887c8bba08a12c8",
         name: "Headband of Mental Perfection +6",
         slot: Headwear,
         guide: "items#headwear",
@@ -691,6 +751,7 @@
     ),
     (
         key: "headband-of-reshaping",
+        blueprint: "6bacb006d1dbe4e4c9f6b53663067472",
         name: "Headband of Reshaping",
         slot: Headwear,
         guide: "items#headwear",
@@ -703,6 +764,7 @@
     ),
     (
         key: "headband-of-rigorous-training",
+        blueprint: "05915da42bbfc384b830b14d7116cbc7",
         name: "Headband of Rigorous Training",
         slot: Headwear,
         guide: "items#headwear",
@@ -715,6 +777,7 @@
     ),
     (
         key: "headband-of-subjugator",
+        blueprint: "c1c47a8993bf0134bb2feac4ba0f03ea",
         name: "Headband of Subjugator",
         slot: Headwear,
         guide: "items#headwear",
@@ -727,6 +790,7 @@
     ),
     (
         key: "headband-of-the-wise-negotiator",
+        blueprint: "7c1eadbabbfb8fb4cb6578d44c109469",
         name: "Headband of the Wise Negotiator",
         slot: Headwear,
         guide: "items#headwear",
@@ -740,6 +804,7 @@
     ),
     (
         key: "jester-cap",
+        blueprint: "d3e3a641c5dd40dd971bd1c587d7f6a8",
         name: "Jester Cap",
         slot: Headwear,
         guide: "items#headwear",
@@ -755,6 +820,7 @@
     ),
     (
         key: "owls-cowl",
+        blueprint: "1d7c3e7ccf5d49d199a5667bacb84fb5",
         name: "Owl's Cowl",
         slot: Headwear,
         guide: "items#headwear",
@@ -768,6 +834,7 @@
     ),
     (
         key: "razmirs-mask",
+        blueprint: "9338510a8d5c4b43b1284470b706128d",
         name: "Razmir's Mask",
         slot: Headwear,
         guide: "items#headwear",
@@ -786,6 +853,7 @@
     ),
     (
         key: "wardens-circlet",
+        blueprint: "d3ea3ccf434d47998dcbf8c662a62e4c",
         name: "Warden's Circlet",
         slot: Headwear,
         guide: "items#headwear",
@@ -801,6 +869,7 @@
     // Necklace.
     (
         key: "amulet-of-alchemical-knowledge",
+        blueprint: "a6e396af75134189805e02f73c61b17b",
         name: "Amulet of Alchemical Knowledge",
         slot: Necklace,
         guide: "items-lord-of-nothing#necklaces",
@@ -816,6 +885,7 @@
     ),
     (
         key: "life-veil",
+        blueprint: "138f2b7ce23a4fa4fa3d633c1d3a0ae3",
         name: "Life Veil",
         slot: Necklace,
         guide: "items#necklaces",
@@ -828,6 +898,7 @@
     ),
     (
         key: "trusted-friend",
+        blueprint: "905ec00744cd4627b0e00f187e215d4b",
         name: "Trusted Friend",
         slot: Necklace,
         guide: "items#equipable-and-consumable",
@@ -842,6 +913,7 @@
     // Ring.
     (
         key: "colossus-ring",
+        blueprint: "6c7f785bab7bd1243a43e365dc2089bd",
         name: "Colossus Ring",
         slot: Ring,
         guide: "items#rings",
@@ -854,6 +926,7 @@
     ),
     (
         key: "midnight-hunters-ring",
+        blueprint: "eef9992a1dab45a29839cea9f85e1e06",
         name: "Midnight Hunter's Ring",
         slot: Ring,
         guide: "items#rings",
@@ -867,6 +940,7 @@
     ),
     (
         key: "razmirs-ring",
+        blueprint: "1ef783f955584050972c13f9399eb9d8",
         name: "Razmir's Ring",
         slot: Ring,
         guide: "items#rings",
@@ -883,6 +957,7 @@
     // Robe.
     (
         key: "earths-embrace",
+        blueprint: "bb2ded7279ea5e34fb8578b3d2eebffa",
         name: "Earth's Embrace",
         slot: Robe,
         guide: "items#robes",
@@ -909,6 +984,7 @@
     ),
     (
         key: "robe-of-unspeakable-truth",
+        blueprint: "9d7e7dbc35ea4298bd51790644caa8c6",
         name: "Robe of Unspeakable Truth",
         slot: Robe,
         guide: "items#robes",
@@ -922,6 +998,7 @@
     // Usable.
     (
         key: "elixir-of-inconceivable-transmutations-of-body-and-soul-and-also-mind",
+        blueprint: "5219d5846529ae949b88c87858c1bb9e",
         name: "Elixir of Inconceivable Transmutations of Body, and Soul, and Also Mind",
         slot: Usable,
         guide: "items#equipable-and-consumable",
@@ -936,6 +1013,7 @@
     ),
     (
         key: "manual-of-bodily-health-2",
+        blueprint: "2d4d510a69da09c48893f945ec197210",
         name: "Manual of Bodily Health +2",
         slot: Usable,
         guide: "items#equipable-and-consumable",
@@ -945,6 +1023,7 @@
     ),
     (
         key: "manual-of-gainful-exercise-2",
+        blueprint: "7a7b1dfa67aa4544aa468d0558b1f667",
         name: "Manual of Gainful Exercise +2",
         slot: Usable,
         guide: "items#equipable-and-consumable",
@@ -954,6 +1033,7 @@
     ),
     (
         key: "manual-of-quickness-of-action-2",
+        blueprint: "b8ea6d2f787c7004c9cab9f519f687f8",
         name: "Manual of Quickness of Action +2",
         slot: Usable,
         guide: "items#equipable-and-consumable",
@@ -963,6 +1043,7 @@
     ),
     (
         key: "potion-of-humanity",
+        blueprint: "d13cdbccd89d4e7c8396d076a73d731e",
         name: "Potion of Humanity",
         slot: Usable,
         guide: "items#equipable-and-consumable",
@@ -977,6 +1058,7 @@
     ),
     (
         key: "tome-of-ancient-perfection",
+        blueprint: "0574c938014f45cb82d43b90439e380f",
         name: "Tome of Ancient Perfection",
         slot: Usable,
         guide: "items#equipable-and-consumable",
@@ -991,6 +1073,7 @@
     ),
     (
         key: "tome-of-clear-thought-2",
+        blueprint: "3584c2a2f8b5b1b43ae11128f0ff1583",
         name: "Tome of Clear Thought +2",
         slot: Usable,
         guide: "items#equipable-and-consumable",
@@ -1000,6 +1083,7 @@
     ),
     (
         key: "tome-of-leadership-and-influence-2",
+        blueprint: "37e2f09923a96234ca486bc9db0b6ad6",
         name: "Tome of Leadership and Influence +2",
         slot: Usable,
         guide: "items#equipable-and-consumable",
@@ -1009,6 +1093,7 @@
     ),
     (
         key: "tome-of-understanding-2",
+        blueprint: "419a486154514594c99193da785d4302",
         name: "Tome of Understanding +2",
         slot: Usable,
         guide: "items#equipable-and-consumable",
@@ -1019,6 +1104,7 @@
     // Armour.
     (
         key: "half-plate-of-vigor",
+        blueprint: "053873b9eca18854696dfc0e49d260fe",
         name: "Half-Plate of Vigor",
         slot: Armour,
         guide: "items#unique-armour",
@@ -1031,6 +1117,7 @@
     ),
     (
         key: "life-infuser",
+        blueprint: "e5d3c2148c854b5ba5d56390f8fcc72c",
         name: "Life Infuser",
         slot: Armour,
         guide: "items#unique-armour",
@@ -1045,6 +1132,7 @@
     ),
     (
         key: "snakeskin",
+        blueprint: "f125e2f29ffd44e7acfb7619586a7e24",
         name: "Snakeskin",
         slot: Armour,
         guide: "items#unique-armour",
@@ -1059,6 +1147,7 @@
     ),
     (
         key: "ustlavic-pride",
+        blueprint: "59a33c8783ad4de8b547022ec274c930",
         name: "Ustlavic Pride",
         slot: Armour,
         guide: "items#unique-armour",
@@ -1076,6 +1165,7 @@
     // Weapon.
     (
         key: "dirge-for-sarkoris",
+        blueprint: "cffc4037c224475ca2a0c0b6bfda8688",
         name: "Dirge for Sarkoris",
         slot: Weapon,
         guide: "items-lord-of-nothing#weapons",
@@ -1091,6 +1181,7 @@
     ),
     (
         key: "sin-mages-staff",
+        blueprint: "19f9506b61ed4190bffc66eb0cad39de",
         name: "Sin Mage's Staff",
         slot: Weapon,
         guide: "items#weapon-properties",

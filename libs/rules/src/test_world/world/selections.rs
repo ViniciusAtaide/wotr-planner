@@ -14,6 +14,7 @@ pub(super) fn selection_option(
 ) -> SelectionOption {
     SelectionOption {
         key: option(key),
+        blueprint: None,
         name: key.rsplit('/').next().unwrap_or(key).into(),
         summary: String::new(),
         guide: guide(key),
@@ -65,6 +66,7 @@ pub(super) fn levelled_selection(
 ) -> FeatureSelection {
     FeatureSelection {
         key: FeatureSelectionKey::new(key),
+        blueprint: None,
         name: key.into(),
         summary: String::new(),
         guide: guide(key),

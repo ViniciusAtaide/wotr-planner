@@ -3,6 +3,7 @@
 [
     (
         key: "peer-into-reflexes",
+        blueprint: "768b18138fb44b70b686c23119e66e02",
         name: "Peer Into Reflexes",
         school: Divination,
         guide: "arcanist#peer-into-reflexes-divination",

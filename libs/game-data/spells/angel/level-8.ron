@@ -3,6 +3,7 @@
 [
     (
         key: "avengers-blessing",
+        blueprint: "b8d3dd15ce1232d499d7813f570eed56",
         name: "Avenger's Blessing",
         school: Enchantment,
         guide: "angel#avengers-blessing-enchantment",
@@ -16,6 +17,7 @@
     ),
     (
         key: "gale-of-life",
+        blueprint: "4de4a5f242ff5dd4eb5e351bebc4a1fa",
         name: "Gale of Life",
         school: Conjuration,
         guide: "angel#gale-of-life-conjuration",
@@ -28,6 +30,7 @@
     ),
     (
         key: "solar-chains",
+        blueprint: "52ddf5357c9c67a47b3f324bbb3a979d",
         name: "Solar Chains",
         school: Conjuration,
         guide: "angel#solar-chains-conjuration",
@@ -41,6 +44,7 @@
     ),
     (
         key: "storm-of-justice",
+        blueprint: "b118f142f9bc88a44acbba737a135382",
         name: "Storm of Justice",
         school: Conjuration,
         guide: "angel#storm-of-justice-conjuration",

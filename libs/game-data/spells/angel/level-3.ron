@@ -3,6 +3,7 @@
 [
     (
         key: "grant-repose",
+        blueprint: "b16d3d442bb3ed148a4a79a22ee7c880",
         name: "Grant Repose",
         school: Conjuration,
         guide: "angel#grant-repose-conjuration",
@@ -15,6 +16,7 @@
     ),
     (
         key: "shield-from-demonkind",
+        blueprint: "b75ff0546bf948948adb68336e2b475d",
         name: "Shield from Demonkind",
         school: Abjuration,
         guide: "angel#shield-from-demonkind-abjuration",
@@ -28,6 +30,7 @@
     ),
     (
         key: "ward-against-disease",
+        blueprint: "5f83b793960047e49af1a3551afa4d58",
         name: "Ward Against Disease",
         school: Abjuration,
         guide: "angel#ward-against-disease-abjuration",

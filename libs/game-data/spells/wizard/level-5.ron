@@ -3,6 +3,7 @@
 [
     (
         key: "acidic-spray",
+        blueprint: "c543eef6d725b184ea8669dd09b3894c",
         name: "Acidic Spray",
         school: Conjuration,
         guide: "wizard-spells#acidic-spray-conjuration",
@@ -15,6 +16,7 @@
     ),
     (
         key: "angelic-aspect",
+        blueprint: "75a10d5a635986641bfbcceceec87217",
         name: "Angelic Aspect",
         school: Transmutation,
         guide: "wizard-spells#angelic-aspect-transmutation",
@@ -28,6 +30,7 @@
     ),
     (
         key: "animal-growth",
+        blueprint: "56923211d2ac95e43b8ac5031bab74d8",
         name: "Animal Growth",
         school: Transmutation,
         guide: "wizard-spells#animal-growth-transmutation",
@@ -41,6 +44,7 @@
     ),
     (
         key: "baleful-polymorph",
+        blueprint: "3105d6e9febdc3f41a08d2b7dda1fe74",
         name: "Baleful Polymorph",
         school: Transmutation,
         guide: "wizard-spells#baleful-polymorph-transmutation",
@@ -54,6 +58,7 @@
     ),
     (
         key: "beast-shape-iii",
+        blueprint: "9b93040dad242eb43ac7de6bb6547030",
         name: "Beast Shape III",
         school: Transmutation,
         guide: "wizard-spells#beast-shape-iii-transmutation",
@@ -67,6 +72,7 @@
     ),
     (
         key: "break-enchantment",
+        blueprint: "7792da00c85b9e042a0fdfc2b66ec9a8",
         name: "Break Enchantment",
         school: Abjuration,
         guide: "wizard-spells#break-enchantment-abjuration",
@@ -79,6 +85,7 @@
     ),
     (
         key: "cloudkill",
+        blueprint: "548d339ba87ee56459c98e80167bdf10",
         name: "Cloudkill",
         school: Conjuration,
         guide: "wizard-spells#cloudkill-conjuration",
@@ -92,6 +99,7 @@
     ),
     (
         key: "cone-of-cold",
+        blueprint: "e7c530f8137630f4d9d7ee1aa7b1edc0",
         name: "Cone of Cold",
         school: Evocation,
         guide: "wizard-spells#cone-of-cold-evocation",
@@ -104,6 +112,7 @@
     ),
     (
         key: "constricting-coils",
+        blueprint: "3fce8e988a51a2a4ea366324d6153001",
         name: "Constricting Coils",
         school: Enchantment,
         guide: "wizard-spells#constricting-coils-enchantment",
@@ -117,6 +126,7 @@
     ),
     (
         key: "dismissal",
+        blueprint: "95f7cdcec94e293489a85afdf5af1fd7",
         name: "Dismissal",
         school: Abjuration,
         guide: "wizard-spells#dismissal-abjuration",
@@ -129,6 +139,7 @@
     ),
     (
         key: "dominate-person",
+        blueprint: "d7cbd2004ce66a042aeab2e95a3c5c61",
         name: "Dominate Person",
         school: Enchantment,
         guide: "wizard-spells#dominate-person-enchantment",
@@ -142,6 +153,7 @@
     ),
     (
         key: "echolocation",
+        blueprint: "20b548bf09bb3ea4bafea78dcb4f3db6",
         name: "Echolocation",
         school: Transmutation,
         guide: "wizard-spells#echolocation-transmutation",
@@ -155,6 +167,7 @@
     ),
     (
         key: "elemental-body-ii",
+        blueprint: "6d437be73b459594ab103acdcae5b9e2",
         name: "Elemental Body II",
         school: Transmutation,
         guide: "wizard-spells#elemental-body-ii-transmutation",
@@ -168,6 +181,7 @@
     ),
     (
         key: "feeblemind",
+        blueprint: "444eed6e26f773a40ab6e4d160c67faa",
         name: "Feeblemind",
         school: Enchantment,
         guide: "wizard-spells#feeblemind-enchantment",
@@ -181,6 +195,7 @@
     ),
     (
         key: "fire-snake",
+        blueprint: "ebade19998e1f8542a1b55bd4da766b3",
         name: "Fire Snake",
         school: Evocation,
         guide: "wizard-spells#fire-snake-evocation",
@@ -193,6 +208,7 @@
     ),
     (
         key: "geniekind",
+        blueprint: "07b608fab304f894880898dc0764e6e5",
         name: "Geniekind",
         school: Transmutation,
         guide: "wizard-spells#geniekind-transmutation",
@@ -206,6 +222,7 @@
     ),
     (
         key: "hold-monster",
+        blueprint: "41e8a952da7a5c247b3ec1c2dbb73018",
         name: "Hold Monster",
         school: Enchantment,
         guide: "wizard-spells#hold-monster-enchantment",
@@ -219,6 +236,7 @@
     ),
     (
         key: "hungry-pit",
+        blueprint: "f63f4d1806b78604a952b3958892ce1c",
         name: "Hungry Pit",
         school: Conjuration,
         guide: "wizard-spells#hungry-pit-conjuration",
@@ -232,6 +250,7 @@
     ),
     (
         key: "icy-prison",
+        blueprint: "65e8d23aef5e7784dbeb27b1fca40931",
         name: "Icy Prison",
         school: Evocation,
         guide: "wizard-spells#icy-prison-evocation",
@@ -245,6 +264,7 @@
     ),
     (
         key: "life-bubble",
+        blueprint: "265582bc494c4b12b5860b508a2f89a2",
         name: "Life Bubble",
         school: Abjuration,
         guide: "wizard-spells#life-bubble-abjuration",
@@ -258,6 +278,7 @@
     ),
     (
         key: "mind-fog",
+        blueprint: "eabf94e4edc6e714cabd96aa69f8b207",
         name: "Mind Fog",
         school: Enchantment,
         guide: "wizard-spells#mind-fog-enchantment",
@@ -271,6 +292,7 @@
     ),
     (
         key: "phantasmal-web",
+        blueprint: "12fb4a4c22549c74d949e2916a2f0b6a",
         name: "Phantasmal Web",
         school: Illusion,
         guide: "wizard-spells#phantasmal-web-illusion",
@@ -283,6 +305,7 @@
     ),
     (
         key: "polymorph",
+        blueprint: "93d9d74dac46b9b458d4d2ea7f4b1911",
         name: "Polymorph",
         school: Transmutation,
         guide: "wizard-spells#polymorph-transmutation",
@@ -296,6 +319,7 @@
     ),
     (
         key: "shadow-evocation",
+        blueprint: "237427308e48c3341b3d532b9d3a001f",
         name: "Shadow Evocation",
         school: Illusion,
         guide: "wizard-spells#shadow-evocation-illusion",
@@ -309,6 +333,7 @@
     ),
     (
         key: "stoneskin-communal",
+        blueprint: "7c5d556b9a5883048bf030e20daebe31",
         name: "Stoneskin, Communal",
         school: Abjuration,
         guide: "wizard-spells#stoneskin-communal-abjuration",
@@ -323,6 +348,7 @@
     ),
     (
         key: "summon-large-elemental",
+        blueprint: "89404dd71edc1aa42962824b44156fe5",
         name: "Summon Large Elemental",
         school: Conjuration,
         guide: "wizard-spells#summon-large-elemental-conjuration",
@@ -336,6 +362,7 @@
     ),
     (
         key: "summon-monster-v",
+        blueprint: "630c8b85d9f07a64f917d79cb5905741",
         name: "Summon Monster V",
         school: Conjuration,
         guide: "wizard-spells#summon-monster-v-conjuration",
@@ -349,6 +376,7 @@
     ),
     (
         key: "thoughtsense",
+        blueprint: "8fb1a1670b6e1f84b89ea846f589b627",
         name: "Thoughtsense",
         school: Divination,
         guide: "wizard-spells#thoughtsense-divination",
@@ -362,6 +390,7 @@
     ),
     (
         key: "vampiric-shadow-shield",
+        blueprint: "a34921035f2a6714e9be5ca76c5e34b5",
         name: "Vampiric Shadow Shield",
         school: Necromancy,
         guide: "wizard-spells#vampiric-shadow-shield-necromancy",
@@ -375,6 +404,7 @@
     ),
     (
         key: "waves-of-fatigue",
+        blueprint: "8878d0c46dfbd564e9d5756349d5e439",
         name: "Waves of Fatigue",
         school: Necromancy,
         guide: "wizard-spells#waves-of-fatigue-necromancy",
@@ -387,6 +417,7 @@
     ),
     (
         key: "wracking-ray",
+        blueprint: "1cde0691195feae45bab5b83ea3f221e",
         name: "Wracking Ray",
         school: Necromancy,
         guide: "wizard-spells#wracking-ray-necromancy",

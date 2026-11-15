@@ -3,6 +3,7 @@
 [
     (
         key: "cleansing-flames",
+        blueprint: "3c4c33f314a8bd64994d34ed5db2b96f",
         name: "Cleansing Flames",
         school: Abjuration,
         guide: "angel#cleansing-flames-abjuration",
@@ -15,6 +16,7 @@
     ),
     (
         key: "ward-against-harm",
+        blueprint: "6fcaa7eb895239e4397e8e0781347adf",
         name: "Ward Against Harm",
         school: Abjuration,
         guide: "angel#ward-against-harm-abjuration",
@@ -28,6 +30,7 @@
     ),
     (
         key: "ward-against-impurity-communal",
+        blueprint: "fcb5af4434f13b141986b4af2403704d",
         name: "Ward Against Impurity, Communal",
         school: Abjuration,
         guide: "angel#ward-against-impurity-communal-abjuration",

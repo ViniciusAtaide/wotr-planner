@@ -3,6 +3,7 @@
 [
     (
         key: "chaos-hammer",
+        blueprint: "c42ac3feb96d1e54e9bc77c84082f05f",
         name: "Chaos Hammer",
         school: Evocation,
         guide: "cleric-spells#chaos-hammer-evocation",
@@ -15,6 +16,7 @@
     ),
     (
         key: "crusaders-edge",
+        blueprint: "be5452c422a6ea744bf1037b0a443bb1",
         name: "Crusader's Edge",
         school: Transmutation,
         guide: "cleric-spells#crusaders-edge-transmutation",
@@ -28,6 +30,7 @@
     ),
     (
         key: "cure-critical-wounds",
+        blueprint: "41c9016596fe1de4faf67425ed691203",
         name: "Cure Critical Wounds",
         school: Conjuration,
         guide: "cleric-spells#cure-critical-wounds-conjuration",
@@ -40,6 +43,7 @@
     ),
     (
         key: "death-ward",
+        blueprint: "e9cc9378fd6841f48ad59384e79e9953",
         name: "Death Ward",
         school: Necromancy,
         guide: "cleric-spells#death-ward-necromancy",
@@ -53,6 +57,7 @@
     ),
     (
         key: "divine-power",
+        blueprint: "ef16771cb05d1344989519e87f25b3c5",
         name: "Divine Power",
         school: Evocation,
         guide: "cleric-spells#divine-power-evocation",
@@ -66,6 +71,7 @@
     ),
     (
         key: "freedom-of-movement",
+        blueprint: "0087fc2d64b6095478bc7b8d7d512caf",
         name: "Freedom of Movement",
         school: Abjuration,
         guide: "cleric-spells#freedom-of-movement-abjuration",
@@ -79,6 +85,7 @@
     ),
     (
         key: "holy-smite",
+        blueprint: "ad5ed5ea4ec52334a94e975a64dad336",
         name: "Holy Smite",
         school: Evocation,
         guide: "cleric-spells#holy-smite-evocation",
@@ -91,6 +98,7 @@
     ),
     (
         key: "inflict-critical-wounds",
+        blueprint: "651110ed4f117a948b41c05c5c7624c0",
         name: "Inflict Critical Wounds",
         school: Necromancy,
         guide: "cleric-spells#inflict-critical-wounds-necromancy",
@@ -103,6 +111,7 @@
     ),
     (
         key: "neutralize-poison",
+        blueprint: "e7240516af4241b42b2cd819929ea9da",
         name: "Neutralize Poison",
         school: Conjuration,
         guide: "cleric-spells#neutralize-poison-conjuration",
@@ -115,6 +124,7 @@
     ),
     (
         key: "orders-wrath",
+        blueprint: "1ec8f035d8329134d96cdc7b90fdc2e1",
         name: "Order's Wrath",
         school: Evocation,
         guide: "cleric-spells#orders-wrath-evocation",
@@ -127,6 +137,7 @@
     ),
     (
         key: "poison",
+        blueprint: "2a6eda8ef30379142a4b75448fb214a3",
         name: "Poison",
         school: Necromancy,
         guide: "cleric-spells#poison-necromancy",
@@ -140,6 +151,7 @@
     ),
     (
         key: "restoration",
+        blueprint: "f2115ac1148256b4ba20788f7e966830",
         name: "Restoration",
         school: Conjuration,
         guide: "cleric-spells#restoration-conjuration",
@@ -153,6 +165,7 @@
     ),
     (
         key: "shield-of-dawn",
+        blueprint: "62888999171921e4dafb46de83f4d67d",
         name: "Shield of Dawn",
         school: Evocation,
         guide: "cleric-spells#shield-of-dawn-evocation",
@@ -166,6 +179,7 @@
     ),
     (
         key: "spit-venom",
+        blueprint: "9779c8578acd919419f563c33d7b2af5",
         name: "Spit Venom",
         school: Transmutation,
         guide: "cleric-spells#spit-venom-transmutation",
@@ -179,6 +193,7 @@
     ),
     (
         key: "unholy-blight",
+        blueprint: "a02cf51787df937489ef5d4cf5970335",
         name: "Unholy Blight",
         school: Evocation,
         guide: "cleric-spells#unholy-blight-evocation",

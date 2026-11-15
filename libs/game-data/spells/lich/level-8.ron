@@ -3,6 +3,7 @@
 [
     (
         key: "domain-of-the-hungry-flesh",
+        blueprint: "0d820abda7693a9418546a47eea62ea2",
         name: "Domain of the Hungry Flesh",
         school: Conjuration,
         guide: "lich#domain-of-the-hungry-flesh-conjuration",
@@ -16,6 +17,7 @@
     ),
     (
         key: "embrace-of-death",
+        blueprint: "41e229444616fc045a9da02f19e47f76",
         name: "Embrace of Death",
         school: Necromancy,
         guide: "lich#embrace-of-death-necromancy",

@@ -3,6 +3,7 @@
 [
     (
         key: "peer-into-mind",
+        blueprint: "255ae2be713947ad9162fc207457035c",
         name: "Peer Into Mind",
         school: Divination,
         guide: "arcanist#peer-into-mind-divination",

@@ -3,6 +3,7 @@
 [
     (
         key: "heal-mass",
+        blueprint: "867524328b54f25488d371214eea0d90",
         name: "Heal, Mass",
         school: Conjuration,
         guide: "cleric-spells#heal-mass-conjuration",
@@ -15,6 +16,7 @@
     ),
     (
         key: "implosion",
+        blueprint: "78abd9a61abf4c80a8a8cf05ff55f033",
         name: "Implosion",
         school: Evocation,
         guide: "cleric-spells#implosion-evocation",
@@ -28,6 +30,7 @@
     ),
     (
         key: "polar-midnight",
+        blueprint: "ba48abb52b142164eba309fd09898856",
         name: "Polar Midnight",
         school: Transmutation,
         guide: "cleric-spells#polar-midnight-transmutation",

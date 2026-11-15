@@ -3,6 +3,7 @@
 [
     (
         key: "banishment",
+        blueprint: "d361391f645db984bbf58907711a146a",
         name: "Banishment",
         school: Abjuration,
         guide: "wizard-spells#banishment-abjuration",
@@ -15,6 +16,7 @@
     ),
     (
         key: "caustic-eruption",
+        blueprint: "8c29e953190cc67429dc9c701b16b7c2",
         name: "Caustic Eruption",
         school: Conjuration,
         guide: "wizard-spells#caustic-eruption-conjuration",
@@ -28,6 +30,7 @@
     ),
     (
         key: "circle-of-clarity",
+        blueprint: "f333185ae986b2a45823cce86535a122",
         name: "Circle of Clarity",
         school: Abjuration,
         guide: "wizard-spells#circle-of-clarity-abjuration",
@@ -41,6 +44,7 @@
     ),
     (
         key: "dragonkind-ii",
+        blueprint: "666556ded3a32f34885e8c318c3a0ced",
         name: "Dragonkind II",
         school: Transmutation,
         guide: "wizard-spells#dragonkind-ii-transmutation",
@@ -54,6 +58,7 @@
     ),
     (
         key: "elemental-body-iv",
+        blueprint: "376db0590f3ca4945a8b6dc16ed14975",
         name: "Elemental Body IV",
         school: Transmutation,
         guide: "wizard-spells#elemental-body-iv-transmutation",
@@ -67,6 +72,7 @@
     ),
     (
         key: "finger-of-death",
+        blueprint: "6f1dcf6cfa92d1948a740195707c0dbe",
         name: "Finger of Death",
         school: Necromancy,
         guide: "wizard-spells#finger-of-death-necromancy",
@@ -79,6 +85,7 @@
     ),
     (
         key: "firebrand",
+        blueprint: "98734a2665c18cd4db71878b0532024a",
         name: "Firebrand",
         school: Transmutation,
         guide: "wizard-spells#firebrand-transmutation",
@@ -92,6 +99,7 @@
     ),
     (
         key: "heavens-wing-strike",
+        blueprint: "c6c516e59ca34f34aefb82a850287b97",
         name: "Heaven's Wing Strike",
         school: Evocation,
         guide: "wizard-spells#heavens-wing-strike-evocation",
@@ -105,6 +113,7 @@
     ),
     (
         key: "hold-person-mass",
+        blueprint: "defbbeaef79eda64abc645036228a31b",
         name: "Hold Person, Mass",
         school: Enchantment,
         guide: "wizard-spells#hold-person-mass-enchantment",
@@ -118,6 +127,7 @@
     ),
     (
         key: "ice-body",
+        blueprint: "89778dc261fe6094bb2445cb389842d2",
         name: "Ice Body",
         school: Transmutation,
         guide: "wizard-spells#ice-body-transmutation",
@@ -131,6 +141,7 @@
     ),
     (
         key: "insanity",
+        blueprint: "2b044152b3620c841badb090e01ed9de",
         name: "Insanity",
         school: Enchantment,
         guide: "wizard-spells#insanity-enchantment",
@@ -144,6 +155,7 @@
     ),
     (
         key: "invisibility-mass",
+        blueprint: "98310a099009bbd4dbdf66bcef58b4cd",
         name: "Invisibility, Mass",
         school: Illusion,
         guide: "wizard-spells#invisibility-mass-illusion",
@@ -157,6 +169,7 @@
     ),
     (
         key: "joyful-rapture",
+        blueprint: "15a04c40f84545949abeedef7279751a",
         name: "Joyful Rapture",
         school: Conjuration,
         guide: "wizard-spells#joyful-rapture-conjuration",
@@ -169,6 +182,7 @@
     ),
     (
         key: "ki-shout",
+        blueprint: "5c8cde7f0dcec4e49bfa2632dfe2ecc0",
         name: "Ki Shout",
         school: Evocation,
         guide: "wizard-spells#ki-shout-evocation",
@@ -182,6 +196,7 @@
     ),
     (
         key: "legendary-proportions",
+        blueprint: "da1b292d91ba37948893cdbe9ea89e28",
         name: "Legendary Proportions",
         school: Transmutation,
         guide: "wizard-spells#legendary-proportions-transmutation",
@@ -196,6 +211,7 @@
     ),
     (
         key: "plague-storm",
+        blueprint: "82a5b848c05e3f342b893dedb1f9b446",
         name: "Plague Storm",
         school: Necromancy,
         guide: "wizard-spells#plague-storm-necromancy",
@@ -209,6 +225,7 @@
     ),
     (
         key: "polymorph-greater",
+        blueprint: "a9fc28e147dbb364ea4a3c1831e7e55f",
         name: "Polymorph, Greater",
         school: Transmutation,
         guide: "wizard-spells#polymorph-greater-transmutation",
@@ -222,6 +239,7 @@
     ),
     (
         key: "power-word-blind",
+        blueprint: "261e1788bfc5ac1419eec68b1d485dbc",
         name: "Power Word Blind",
         school: Enchantment,
         guide: "wizard-spells#power-word-blind-enchantment",
@@ -235,6 +253,7 @@
     ),
     (
         key: "prismatic-spray",
+        blueprint: "b22fd434bdb60fb4ba1068206402c4cf",
         name: "Prismatic Spray",
         school: Evocation,
         guide: "wizard-spells#prismatic-spray-evocation",
@@ -247,6 +266,7 @@
     ),
     (
         key: "resonating-word",
+        blueprint: "df7d13c967bce6a40bec3ba7c9f0e64c",
         name: "Resonating Word",
         school: Transmutation,
         guide: "wizard-spells#resonating-word-transmutation",
@@ -260,6 +280,7 @@
     ),
     (
         key: "shadow-conjuration-greater",
+        blueprint: "08255ea4cdd812341af93f9cd113acb9",
         name: "Shadow Conjuration, Greater",
         school: Illusion,
         guide: "wizard-spells#shadow-conjuration-greater-illusion",
@@ -273,6 +294,7 @@
     ),
     (
         key: "summon-greater-elemental",
+        blueprint: "8eb769e3b583f594faabe1cfdb0bb696",
         name: "Summon Greater Elemental",
         school: Conjuration,
         guide: "wizard-spells#summon-greater-elemental-conjuration",
@@ -286,6 +308,7 @@
     ),
     (
         key: "summon-monster-vii",
+        blueprint: "ab167fd8203c1314bac6568932f1752f",
         name: "Summon Monster VII",
         school: Conjuration,
         guide: "wizard-spells#summon-monster-vii-conjuration",
@@ -299,6 +322,7 @@
     ),
     (
         key: "symbol-of-weakness",
+        blueprint: "8b02310b46e54de1ae9ba7161831938d",
         name: "Symbol of Weakness",
         school: Necromancy,
         guide: "wizard-spells#symbol-of-weakness-necromancy",
@@ -312,6 +336,7 @@
     ),
     (
         key: "true-seeing-communal",
+        blueprint: "fa08cb49ade3eee42b5fd42bd33cb407",
         name: "True Seeing, Communal",
         school: Divination,
         guide: "wizard-spells#true-seeing-communal-divination",
@@ -326,6 +351,7 @@
     ),
     (
         key: "umbral-strike",
+        blueprint: "474ed0aa656cc38499cc9a073d113716",
         name: "Umbral Strike",
         school: Necromancy,
         guide: "wizard-spells#umbral-strike-necromancy",
@@ -339,6 +365,7 @@
     ),
     (
         key: "walk-through-space",
+        blueprint: "368d7cf2fb69d8a46be5a650f5a5a173",
         name: "Walk through Space",
         school: Conjuration,
         guide: "wizard-spells#walk-through-space-conjuration",
@@ -352,6 +379,7 @@
     ),
     (
         key: "waves-of-ecstasy",
+        blueprint: "1e2d1489781b10a45a3b70192bba9be3",
         name: "Waves of Ecstasy",
         school: Enchantment,
         guide: "wizard-spells#waves-of-ecstasy-enchantment",
@@ -365,6 +393,7 @@
     ),
     (
         key: "waves-of-exhaustion",
+        blueprint: "3e4d3b9a5bd03734d9b053b9067c2f38",
         name: "Waves of Exhaustion",
         school: Necromancy,
         guide: "wizard-spells#waves-of-exhaustion-necromancy",

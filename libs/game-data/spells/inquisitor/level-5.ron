@@ -3,6 +3,7 @@
 [
     (
         key: "castigate-mass",
+        blueprint: "41236cf0e476d7043bc16a33a9f449bd",
         name: "Castigate, Mass",
         school: Enchantment,
         guide: "inquisitor#castigate-mass-enchantment",
@@ -16,6 +17,7 @@
     ),
     (
         key: "resounding-blow",
+        blueprint: "9047cb1797639924487ec0ad566a3fea",
         name: "Resounding Blow",
         school: Evocation,
         guide: "inquisitor#resounding-blow-evocation",

@@ -3,6 +3,7 @@
 [
     (
         key: "aspect-of-the-stag",
+        blueprint: "6a0ecb1bae18e51458be036b34073da5",
         name: "Aspect of the Stag",
         school: Transmutation,
         guide: "druid-spells#aspect-of-the-stag-transmutation",
@@ -16,6 +17,7 @@
     ),
     (
         key: "cape-of-wasps",
+        blueprint: "e418c20c8ce362943a8025d82c865c1c",
         name: "Cape of Wasps",
         school: Conjuration,
         guide: "druid-spells#cape-of-wasps-conjuration",
@@ -29,6 +31,7 @@
     ),
     (
         key: "explosion-of-rot",
+        blueprint: "98544596a01d4f7bbf7cc3ff98a1fb69",
         name: "Explosion of Rot",
         school: Necromancy,
         guide: "druid-spells#explosion-of-rot-necromancy",
@@ -41,6 +44,7 @@
     ),
     (
         key: "life-blast",
+        blueprint: "a8666d26bbbd9b640958284e0eee3602",
         name: "Life Blast",
         school: Necromancy,
         guide: "druid-spells#life-blast-necromancy",
@@ -53,6 +57,7 @@
     ),
     (
         key: "slowing-mud",
+        blueprint: "6b30813c3709fc44b92dc8fd8191f345",
         name: "Slowing Mud",
         school: Conjuration,
         guide: "druid-spells#slowing-mud-conjuration",
@@ -66,6 +71,7 @@
     ),
     (
         key: "spike-stones",
+        blueprint: "d1afa8bc28c99104da7d784115552de5",
         name: "Spike Stones",
         school: Transmutation,
         guide: "druid-spells#spike-stones-transmutation",
@@ -79,6 +85,7 @@
     ),
     (
         key: "summon-natures-ally-iv",
+        blueprint: "c83db50513abdf74ca103651931fac4b",
         name: "Summon Nature's Ally IV",
         school: Conjuration,
         guide: "druid-spells#summon-natures-ally-iv-conjuration",
@@ -92,6 +99,7 @@
     ),
     (
         key: "thirsting-entanglement",
+        blueprint: "b844a29343974aeab1d37d38db2f530e",
         name: "Thirsting Entanglement",
         school: Transmutation,
         guide: "druid-spells#thirsting-entanglement-transmutation",
@@ -105,6 +113,7 @@
     ),
     (
         key: "thorn-body",
+        blueprint: "2daf9c5112f16d54ab3cd6904c705c59",
         name: "Thorn Body",
         school: Transmutation,
         guide: "druid-spells#thorn-body-transmutation",

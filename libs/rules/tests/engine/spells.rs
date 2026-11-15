@@ -21,6 +21,7 @@ fn issues(data: &GameData) -> Vec<(DataAt, DataIssue)> {
 fn spell(key: &str) -> Spell {
     Spell {
         key: SpellKey::new(key),
+        blueprint: None,
         name: key.to_owned(),
         school: Some(SpellSchool::Enchantment),
         guide: GuideRef::new(format!("wizard-spells#{key}")),
@@ -46,6 +47,7 @@ fn entry(level: u8, spell: &str) -> SpellListEntry {
 fn list(key: &str, owner: SpellCaster, entries: Vec<SpellListEntry>) -> SpellList {
     SpellList {
         key: SpellListKey::new(key),
+        blueprint: None,
         name: key.to_owned(),
         guide: GuideRef::new(key),
         owner,

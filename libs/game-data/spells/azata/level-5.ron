@@ -3,6 +3,7 @@
 [
     (
         key: "friendly-hug",
+        blueprint: "7a3b1ffd1712fab4ca73b1e31820347c",
         name: "Friendly Hug",
         school: Abjuration,
         guide: "azata#friendly-hug-abjuration",
@@ -16,6 +17,7 @@
     ),
     (
         key: "moral-support",
+        blueprint: "92ca26ebceec30a4babc1b0582e34ce6",
         name: "Moral Support",
         school: Abjuration,
         guide: "azata#moral-support-abjuration",
@@ -29,6 +31,7 @@
     ),
     (
         key: "second-breath",
+        blueprint: "d7e6f8a0369530341b50987d3ebdfe57",
         name: "Second Breath",
         school: Enchantment,
         guide: "azata#second-breath-enchantment",
@@ -41,6 +44,7 @@
     ),
     (
         key: "sudden-squall",
+        blueprint: "4e22d7cfda74b3644b31de8e7c044e21",
         name: "Sudden Squall",
         school: Evocation,
         guide: "azata#sudden-squall-evocation",

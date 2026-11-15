@@ -3,6 +3,7 @@
 [
     (
         key: "dragon-storm",
+        blueprint: "cff9e3bf5ccf40c489023bf368c2c802",
         name: "Dragon Storm",
         school: Evocation,
         guide: "gold-dragon#dragon-storm-evocation",
@@ -15,6 +16,7 @@
     ),
     (
         key: "summon-dragon-iii",
+        blueprint: "cb127670411c41298a4aa4d0a165a20b",
         name: "Summon Dragon III",
         school: Conjuration,
         guide: "gold-dragon#summon-dragon-iii-conjuration",

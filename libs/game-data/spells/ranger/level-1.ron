@@ -3,6 +3,7 @@
 [
     (
         key: "lead-blades",
+        blueprint: "779179912e6c6fe458fa4cfb90d96e10",
         name: "Lead Blades",
         school: Transmutation,
         guide: "ranger#lead-blades-transmutation",

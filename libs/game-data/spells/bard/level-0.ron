@@ -3,6 +3,7 @@
 [
     (
         key: "lullaby",
+        blueprint: "877297946a6b70744a188eb15dd2daab",
         name: "Lullaby",
         school: Enchantment,
         guide: "bard#lullaby-enchantment",

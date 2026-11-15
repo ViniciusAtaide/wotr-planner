@@ -18,6 +18,7 @@ pub(super) fn trickster() -> MythicPath {
     };
     MythicPath {
         key: path("trickster"),
+        blueprint: None,
         name: "Trickster".into(),
         summary: String::new(),
         guide: guide("trickster"),
@@ -32,6 +33,7 @@ pub(super) fn trickster() -> MythicPath {
         ],
         selections: vec![FeatureSelection {
             key: tricks.clone(),
+            blueprint: None,
             name: "Trickster Tricks".into(),
             summary: String::new(),
             guide: guide("trickster#tricks"),
@@ -163,6 +165,7 @@ fn rank_row(
 pub(super) fn legend() -> MythicPath {
     MythicPath {
         key: path("legend"),
+        blueprint: None,
         name: "Legend".into(),
         summary: String::new(),
         guide: guide("other-mythic-paths#legend"),
@@ -195,6 +198,7 @@ pub(super) fn gold_dragon() -> MythicPath {
     };
     MythicPath {
         key: path("gold-dragon"),
+        blueprint: None,
         name: "Gold Dragon".into(),
         summary: String::new(),
         guide: guide("gold-dragon"),
@@ -226,6 +230,7 @@ pub(super) fn gold_dragon() -> MythicPath {
         ],
         selections: vec![FeatureSelection {
             key: FeatureSelectionKey::new("gold-dragon/breaths"),
+            blueprint: None,
             name: "Breaths".into(),
             summary: String::new(),
             guide: guide("gold-dragon#breaths"),
@@ -290,6 +295,7 @@ pub(super) fn gold_dragon() -> MythicPath {
 pub(super) fn swarm_that_walks() -> MythicPath {
     MythicPath {
         key: path("swarm-that-walks"),
+        blueprint: None,
         name: "Swarm That Walks".into(),
         summary: String::new(),
         guide: guide("other-mythic-paths#swarm-that-walks"),
@@ -332,6 +338,7 @@ pub(super) fn swarm_that_walks() -> MythicPath {
 pub(super) fn aeon() -> MythicPath {
     MythicPath {
         key: path("aeon"),
+        blueprint: None,
         name: "Aeon".into(),
         summary: String::new(),
         guide: guide("aeon"),
@@ -347,6 +354,7 @@ pub(super) fn aeon() -> MythicPath {
         ],
         selections: vec![FeatureSelection {
             key: FeatureSelectionKey::new("aeon/enforcing-gaze"),
+            blueprint: None,
             name: "Enforcing Gaze".into(),
             summary: String::new(),
             guide: guide("aeon#enforcing-gaze"),
@@ -401,6 +409,7 @@ pub(super) fn aeon() -> MythicPath {
 pub(super) fn devil() -> MythicPath {
     MythicPath {
         key: path("devil"),
+        blueprint: None,
         name: "Devil".into(),
         summary: String::new(),
         guide: guide("other-mythic-paths#devil"),

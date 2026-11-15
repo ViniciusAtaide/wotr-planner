@@ -3,6 +3,7 @@
 [
     (
         key: "wand-of-summon-monster-zero",
+        blueprint: "c219641a29670d44db0b30470565dede",
         name: "Wand of Summon Monster Zero",
         school: Conjuration,
         guide: "trickster#wand-of-summon-monster-zero-conjuration",

@@ -3,6 +3,7 @@
 [
     (
         key: "radiant-ground",
+        blueprint: "87bcf706e376b80418903ae0d4303feb",
         name: "Radiant Ground",
         school: Abjuration,
         guide: "angel#radiant-ground-abjuration",
@@ -16,6 +17,7 @@
     ),
     (
         key: "sun-marked",
+        blueprint: "201c1235b0467f741b0c46e09c85d89b",
         name: "Sun Marked",
         school: Abjuration,
         guide: "angel#sun-marked-abjuration",
@@ -29,6 +31,7 @@
     ),
     (
         key: "wall-of-light",
+        blueprint: "edc7d27fb42b9a94bac0bee1f3286b49",
         name: "Wall of Light",
         school: Evocation,
         guide: "angel#wall-of-light-evocation",
@@ -42,6 +45,7 @@
     ),
     (
         key: "ward-against-weakness-communal",
+        blueprint: "19e5803dbaf54de4eb02c5f50655fba9",
         name: "Ward Against Weakness, Communal",
         school: Abjuration,
         guide: "angel#ward-against-weakness-communal-abjuration",

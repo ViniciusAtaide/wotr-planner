@@ -3,6 +3,7 @@
 [
     (
         key: "edict-of-nonresistance",
+        blueprint: "dfe3594aed8907248958a25614aa5281",
         name: "Edict of Nonresistance",
         school: Enchantment,
         guide: "aeon#edict-of-nonresistance-enchantment",
@@ -16,6 +17,7 @@
     ),
     (
         key: "relativity",
+        blueprint: "5d28f75db5d3cc141ba5783a1a139f66",
         name: "Relativity",
         school: Transmutation,
         guide: "aeon#relativity-transmutation",
@@ -29,6 +31,7 @@
     ),
     (
         key: "starlight",
+        blueprint: "99343a2490f699b4198868a58fa0416d",
         name: "Starlight",
         school: Abjuration,
         guide: "aeon#starlight-abjuration",

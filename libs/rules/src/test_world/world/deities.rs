@@ -19,6 +19,7 @@ pub(super) fn deities() -> Vec<Deity> {
     use Alignment::*;
     let deity = |key: &str, alignments: &[Alignment], weapons: &[&str], domains: &[&str]| Deity {
         key: DeityKey::new(key),
+        blueprint: None,
         name: capitalised(key),
         guide: guide("character-creation#deities"),
         alignments: alignments.iter().copied().collect(),
@@ -97,6 +98,7 @@ pub(in crate::test_world::world) fn priest() -> Class {
     Class {
         casting_ability: None,
         key: class("priest"),
+        blueprint: None,
         name: "Priest".into(),
         summary: String::new(),
         guide: guide("priest"),
@@ -163,6 +165,7 @@ pub(in crate::test_world::world) fn seeker() -> Class {
     Class {
         casting_ability: None,
         key: class("seeker"),
+        blueprint: None,
         name: "Seeker".into(),
         summary: String::new(),
         guide: guide("seeker"),

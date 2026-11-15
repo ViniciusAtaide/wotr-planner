@@ -3,6 +3,7 @@
 [
     (
         key: "absolute-order",
+        blueprint: "b1723a0239d428243a1be2299696eb85",
         name: "Absolute Order",
         school: Enchantment,
         guide: "aeon#absolute-order-enchantment",
@@ -16,6 +17,7 @@
     ),
     (
         key: "edict-of-perseverance",
+        blueprint: "b7bc99f6e3592a3499815387e1d721e2",
         name: "Edict of Perseverance",
         school: Abjuration,
         guide: "aeon#edict-of-perseverance-abjuration",
@@ -29,6 +31,7 @@
     ),
     (
         key: "supernova",
+        blueprint: "1325e698f4a3f224b880e3b83a551228",
         name: "Supernova",
         school: Evocation,
         guide: "aeon#supernova-evocation",
@@ -42,6 +45,7 @@
     ),
     (
         key: "zero-state",
+        blueprint: "c6195ff24255d3f46a26323de9f1187a",
         name: "Zero State",
         school: Abjuration,
         guide: "aeon#zero-state-abjuration",

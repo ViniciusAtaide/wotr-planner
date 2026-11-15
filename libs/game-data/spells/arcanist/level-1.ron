@@ -3,6 +3,7 @@
 [
     (
         key: "peer-into-energy-resistance",
+        blueprint: "9efb34c2990349c58e1f3b599c7c4d6b",
         name: "Peer Into Energy Resistance",
         school: Divination,
         guide: "arcanist#peer-into-energy-resistance-divination",

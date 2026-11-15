@@ -120,6 +120,7 @@ fn skill_row(key: &str, name: &str, ability: Ability) -> Skill {
 fn list(key: &str, ignores_prerequisites: bool, feats: &[&str]) -> FeatList {
     FeatList {
         key: feat_list(key),
+        blueprint: None,
         name: key.into(),
         guide: guide(key),
         ignores_prerequisites,
@@ -131,6 +132,7 @@ fn list(key: &str, ignores_prerequisites: bool, feats: &[&str]) -> FeatList {
 fn plain_feature(key: &str, name: &str) -> Feature {
     Feature {
         key: feature(key),
+        blueprint: None,
         name: name.into(),
         summary: String::new(),
         guide: guide(key),

@@ -268,6 +268,7 @@ pub(in crate::test_world::world) fn sorcerer() -> Class {
     Class {
         casting_ability: Some(Ability::Charisma),
         key: class("sorcerer"),
+        blueprint: None,
         name: "Sorcerer".into(),
         summary: String::new(),
         guide: guide("sorcerer"),

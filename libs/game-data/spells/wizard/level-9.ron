@@ -3,6 +3,7 @@
 [
     (
         key: "clashing-rocks",
+        blueprint: "01300baad090d634cb1a1b2defe068d6",
         name: "Clashing Rocks",
         school: Conjuration,
         guide: "wizard-spells#clashing-rocks-conjuration",
@@ -15,6 +16,7 @@
     ),
     (
         key: "dominate-monster",
+        blueprint: "3c17035ec4717674cae2e841a190e757",
         name: "Dominate Monster",
         school: Enchantment,
         guide: "wizard-spells#dominate-monster-enchantment",
@@ -28,6 +30,7 @@
     ),
     (
         key: "energy-drain",
+        blueprint: "37302f72b06ced1408bf5bb965766d46",
         name: "Energy Drain",
         school: Necromancy,
         guide: "wizard-spells#energy-drain-necromancy",
@@ -41,6 +44,7 @@
     ),
     (
         key: "fiery-body",
+        blueprint: "08ccad78cac525040919d51963f9ac39",
         name: "Fiery Body",
         school: Transmutation,
         guide: "wizard-spells#fiery-body-transmutation",
@@ -54,6 +58,7 @@
     ),
     (
         key: "foresight",
+        blueprint: "1f01a098d737ec6419aedc4e7ad61fdd",
         name: "Foresight",
         school: Divination,
         guide: "wizard-spells#foresight-divination",
@@ -67,6 +72,7 @@
     ),
     (
         key: "heroic-invocation",
+        blueprint: "43740dab07286fe4aa00a6ee104ce7c1",
         name: "Heroic Invocation",
         school: Enchantment,
         guide: "wizard-spells#heroic-invocation-enchantment",
@@ -80,6 +86,7 @@
     ),
     (
         key: "hold-monster-mass",
+        blueprint: "7f4b66a2b1fdab142904a263c7866d46",
         name: "Hold Monster, Mass",
         school: Enchantment,
         guide: "wizard-spells#hold-monster-mass-enchantment",
@@ -93,6 +100,7 @@
     ),
     (
         key: "icy-prison-mass",
+        blueprint: "1852a9393a23d5741b650a1ea7078abc",
         name: "Icy Prison, Mass",
         school: Evocation,
         guide: "wizard-spells#icy-prison-mass-evocation",
@@ -106,6 +114,7 @@
     ),
     (
         key: "meteor-swarm",
+        blueprint: "5e36df08c71748f7936bce310181fb71",
         name: "Meteor Swarm",
         school: Evocation,
         guide: "wizard-spells#meteor-swarm-evocation",
@@ -118,6 +127,7 @@
     ),
     (
         key: "mind-blank-communal",
+        blueprint: "87a29febd010993419f2a4a9bee11cfc",
         name: "Mind Blank, Communal",
         school: Abjuration,
         guide: "wizard-spells#mind-blank-communal-abjuration",
@@ -131,6 +141,7 @@
     ),
     (
         key: "overwhelming-presence",
+        blueprint: "41cf93453b027b94886901dbfc680cb9",
         name: "Overwhelming Presence",
         school: Enchantment,
         guide: "wizard-spells#overwhelming-presence-enchantment",
@@ -144,6 +155,7 @@
     ),
     (
         key: "power-word-kill",
+        blueprint: "2f8a67c483dfa0f439b293e094ca9e3c",
         name: "Power Word Kill",
         school: Enchantment,
         guide: "wizard-spells#power-word-kill-enchantment",
@@ -157,6 +169,7 @@
     ),
     (
         key: "shades",
+        blueprint: "70e12191790f69a439ea0132c75f83aa",
         name: "Shades",
         school: Illusion,
         guide: "wizard-spells#shades-illusion",
@@ -170,6 +183,7 @@
     ),
     (
         key: "shapechange",
+        blueprint: "22b9044aa229815429d57d0a30e4b739",
         name: "Shapechange",
         school: Transmutation,
         guide: "wizard-spells#shapechange-transmutation",
@@ -184,6 +198,7 @@
     ),
     (
         key: "summon-monster-ix",
+        blueprint: "52b5df2a97df18242aec67610616ded0",
         name: "Summon Monster IX",
         school: Conjuration,
         guide: "wizard-spells#summon-monster-ix-conjuration",
@@ -197,6 +212,7 @@
     ),
     (
         key: "symbol-of-vulnerability",
+        blueprint: "9cebb7c46c8d4c55a0e98da9b103fd37",
         name: "Symbol of Vulnerability",
         school: Abjuration,
         guide: "wizard-spells#symbol-of-vulnerability-abjuration",
@@ -210,6 +226,7 @@
     ),
     (
         key: "tsunami",
+        blueprint: "d8144161e352ca846a73cf90e85bf9ac",
         name: "Tsunami",
         school: Conjuration,
         guide: "wizard-spells#tsunami-conjuration",
@@ -223,6 +240,7 @@
     ),
     (
         key: "wail-of-the-banshee",
+        blueprint: "b24583190f36a8442b212e45226c54fc",
         name: "Wail of the Banshee",
         school: Necromancy,
         guide: "wizard-spells#wail-of-the-banshee-necromancy",
@@ -235,6 +253,7 @@
     ),
     (
         key: "weird",
+        blueprint: "870af83be6572594d84d276d7fc583e0",
         name: "Weird",
         school: Illusion,
         guide: "wizard-spells#weird-illusion",
@@ -247,6 +266,7 @@
     ),
     (
         key: "winds-of-vengeance",
+        blueprint: "5d8f1da2fdc0b9242af9f326f9e507be",
         name: "Winds of Vengeance",
         school: Evocation,
         guide: "wizard-spells#winds-of-vengeance-evocation",

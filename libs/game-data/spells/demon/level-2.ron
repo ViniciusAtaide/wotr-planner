@@ -3,6 +3,7 @@
 [
     (
         key: "blood-haze",
+        blueprint: "68f4129f658d02244ad57a4bfe3a5e61",
         name: "Blood Haze",
         school: Transmutation,
         guide: "demon#blood-haze-transmutation",
@@ -16,6 +17,7 @@
     ),
     (
         key: "consume-fear",
+        blueprint: "644d2c0d029e54d4188bc34216d9d8c0",
         name: "Consume Fear",
         school: Necromancy,
         guide: "demon#consume-fear-necromancy",
@@ -29,6 +31,7 @@
     ),
     (
         key: "demonic-form-i",
+        blueprint: "66fa2aab59294c44cad02c4dd60f986d",
         name: "Demonic Form I",
         school: Transmutation,
         guide: "demon#demonic-form-i-transmutation",
@@ -42,6 +45,7 @@
     ),
     (
         key: "flames-of-the-abyss",
+        blueprint: "d0ed16b4f939c274e86ceb95c5f680ae",
         name: "Flames of the Abyss",
         school: Evocation,
         guide: "demon#flames-of-the-abyss-evocation",

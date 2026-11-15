@@ -3,6 +3,7 @@
 [
     (
         key: "castigate",
+        blueprint: "ce4c4e52c53473549ae033e2bb44b51a",
         name: "Castigate",
         school: Enchantment,
         guide: "inquisitor#castigate-enchantment",

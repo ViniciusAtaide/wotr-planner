@@ -3,6 +3,7 @@
 [
     (
         key: "dragon-pride",
+        blueprint: "f7bc6e97e7d44ed8ba5c4d9f76a5a3d3",
         name: "Dragon Pride",
         school: Abjuration,
         guide: "gold-dragon#dragon-pride-abjuration",
@@ -16,6 +17,7 @@
     ),
     (
         key: "dragon-wrath",
+        blueprint: "59d08b909d684b91a137766ab22f4b1a",
         name: "Dragon Wrath",
         school: Evocation,
         guide: "gold-dragon#dragon-wrath-evocation",
@@ -28,6 +30,7 @@
     ),
     (
         key: "summon-dragon-ii",
+        blueprint: "51b498f1cacd42e08ed6852f53261f11",
         name: "Summon Dragon II",
         school: Conjuration,
         guide: "gold-dragon#summon-dragon-ii-conjuration",
@@ -41,6 +44,7 @@
     ),
     (
         key: "thousand-bites",
+        blueprint: "d35b16edbd5c436286e34cf7bcbdb645",
         name: "Thousand Bites",
         school: Transmutation,
         guide: "gold-dragon#thousand-bites-transmutation",

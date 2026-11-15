@@ -3,6 +3,7 @@
 [
     (
         key: "breath-of-money",
+        blueprint: "bc9f91f243634c04bcee43028362b5c3",
         name: "Breath of Money",
         school: Evocation,
         guide: "trickster#breath-of-money-evocation",
@@ -16,6 +17,7 @@
     ),
     (
         key: "glorious-beard",
+        blueprint: "30302d12c4aed124ba55857c7dfab114",
         name: "Glorious Beard",
         school: Transmutation,
         guide: "trickster#glorious-beard-transmutation",
@@ -29,6 +31,7 @@
     ),
     (
         key: "hallucinogenic-cloud",
+        blueprint: "a68fc6abb6cb03f46a658b734d476630",
         name: "Hallucinogenic Cloud",
         school: Illusion,
         guide: "trickster#hallucinogenic-cloud-illusion",
@@ -42,6 +45,7 @@
     ),
     (
         key: "invisibility-almost-greater",
+        blueprint: "8dcb9c02148a704489948eaf84ab04bf",
         name: "Invisibility, Almost Greater",
         school: Illusion,
         guide: "trickster#invisibility-almost-greater-illusion",

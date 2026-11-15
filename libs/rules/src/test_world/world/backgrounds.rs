@@ -12,6 +12,7 @@ use crate::test_world::builds::{feat, skill, weapon};
 pub(super) fn backgrounds() -> Vec<Background> {
     let background = |key: &str, group, skills: &[&str], feats: &[&str], note: &str| Background {
         key: BackgroundKey::new(key),
+        blueprint: None,
         name: key.into(),
         group,
         note: note.into(),

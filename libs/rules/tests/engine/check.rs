@@ -1145,6 +1145,7 @@ fn an_option_rows_bonus_slot_names_its_list() {
         .feat_lists
         .push(rules::FeatList {
             key: FeatListKey::new("cleric/war-feats"),
+            blueprint: None,
             name: "War feats".into(),
             guide: rules::GuideRef::new("cleric"),
             ignores_prerequisites: false,
@@ -1833,6 +1834,7 @@ fn a_weapons_stats_are_dice_a_threat_range_and_multiplier_a_weapon_can_have() {
 fn gear_item(key: &str, name: &str, bonuses: Vec<rules::GearBonus>) -> rules::GearItem {
     rules::GearItem {
         key: rules::GearKey::new(key),
+        blueprint: None,
         name: name.to_owned(),
         slot: rules::GearSlot::Belt,
         guide: None,
@@ -2046,5 +2048,44 @@ fn a_text_that_is_there_is_not_empty() {
         (gear, DataIssue::EmptyText("guide reference")),
     ] {
         assert!(found.contains(&problem), "{problem:?} in {found:?}");
+    }
+}
+
+/// Ticket 237: a blueprint GUID is the game's own spelling, 32 lowercase hex digits, on every kind that has one.
+#[test]
+fn a_blueprint_is_32_lowercase_hex_digits() {
+    let mut data = world();
+    let good = Some(rules::BlueprintGuid::new(
+        "b6798b29d36982b4786a32dfd81a914f",
+    ));
+    data.feats[0].blueprint = good.clone();
+    data.feats[1].blueprint = good.clone();
+    data.classes[0].features[0].blueprint = good;
+    assert_eq!(
+        issues(&data),
+        [],
+        "a well-formed GUID, held by several entries (sharing is allowed for now)"
+    );
+
+    for bad in [
+        "B6798B29D36982B4786A32DFD81A914F",
+        "b6798b29d36982b4786a32dfd81a914",
+        "b6798b29-d369-82b4-786a-32dfd81a914f",
+        "{b6798b29d36982b4786a32dfd81a914f}",
+        "g6798b29d36982b4786a32dfd81a914f",
+        "",
+    ] {
+        let mut data = world();
+        let guid = Some(rules::BlueprintGuid::new(bad));
+        data.feats[0].blueprint = guid.clone();
+        data.classes[0].features[0].blueprint = guid.clone();
+        data.gear[0].blueprint = guid;
+        let malformed = [
+            DataAt::Feat(data.feats[0].key.clone()),
+            DataAt::Feature(data.classes[0].features[0].key.clone()),
+            DataAt::Gear(data.gear[0].key.clone()),
+        ]
+        .map(|at| (at, DataIssue::MalformedBlueprint));
+        assert_eq!(sorted(issues(&data)), sorted(malformed.to_vec()), "{bad:?}");
     }
 }

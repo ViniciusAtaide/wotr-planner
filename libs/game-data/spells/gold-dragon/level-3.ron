@@ -3,6 +3,7 @@
 [
     (
         key: "daylight",
+        blueprint: "2b877386976817a429002e8bb10bb3fc",
         name: "Daylight",
         school: Evocation,
         guide: "gold-dragon#daylight-evocation",

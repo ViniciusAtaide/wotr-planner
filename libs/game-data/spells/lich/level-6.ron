@@ -3,6 +3,7 @@
 [
     (
         key: "bone-shield",
+        blueprint: "0093fc0098c984c43ac239d1211d1311",
         name: "Bone Shield",
         school: Abjuration,
         guide: "lich#bone-shield-abjuration",
@@ -16,6 +17,7 @@
     ),
     (
         key: "false-grace",
+        blueprint: "d6b8099f8c7be8f4492b14da84dc06d4",
         name: "False Grace",
         school: Necromancy,
         guide: "lich#false-grace-necromancy",
@@ -29,6 +31,7 @@
     ),
     (
         key: "siphon-life",
+        blueprint: "7bd52a86498c7854ebe99bc3cfb85bfe",
         name: "Siphon Life",
         school: Necromancy,
         guide: "lich#siphon-life-necromancy",
@@ -42,6 +45,7 @@
     ),
     (
         key: "siphon-time",
+        blueprint: "e346cc550c5bfdf428faa7cdb4849d8e",
         name: "Siphon Time",
         school: Transmutation,
         guide: "lich#siphon-time-transmutation",

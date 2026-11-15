@@ -26,6 +26,7 @@ pub(in crate::test_world::world) fn druid() -> Class {
     Class {
         casting_ability: None,
         key: class("druid"),
+        blueprint: None,
         name: "Druid".into(),
         summary: String::new(),
         guide: guide("druid"),
@@ -75,6 +76,7 @@ pub(in crate::test_world::world) fn cleric() -> Class {
     Class {
         casting_ability: Some(Ability::Wisdom),
         key: class("cleric"),
+        blueprint: None,
         name: "Cleric".into(),
         summary: String::new(),
         guide: guide("cleric"),

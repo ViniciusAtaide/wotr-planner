@@ -3,6 +3,7 @@
 [
     (
         key: "acid-pit",
+        blueprint: "1407fb5054d087d47a4c40134c809f12",
         name: "Acid Pit",
         school: Conjuration,
         guide: "wizard-spells#acid-pit-conjuration",
@@ -16,6 +17,7 @@
     ),
     (
         key: "animal-aspect-greater",
+        blueprint: "c9c56af3b25be3942aa0ffd12f11cf35",
         name: "Animal Aspect, Greater",
         school: Transmutation,
         guide: "wizard-spells#animal-aspect-greater-transmutation",
@@ -29,6 +31,7 @@
     ),
     (
         key: "animate-dead",
+        blueprint: "4b76d32feb089ad4499c3a1ce8e1ac27",
         name: "Animate Dead",
         school: Necromancy,
         guide: "wizard-spells#animate-dead-necromancy",
@@ -42,6 +45,7 @@
     ),
     (
         key: "beast-shape-ii",
+        blueprint: "5d4028eb28a106d4691ed1b92bbb1915",
         name: "Beast Shape II",
         school: Transmutation,
         guide: "wizard-spells#beast-shape-ii-transmutation",
@@ -55,6 +59,7 @@
     ),
     (
         key: "bestow-curse",
+        blueprint: "989ab5c44240907489aba0a8568d0603",
         name: "Bestow Curse",
         school: Necromancy,
         guide: "wizard-spells#bestow-curse-necromancy",
@@ -68,6 +73,7 @@
     ),
     (
         key: "boneshatter",
+        blueprint: "f2f1efac32ea2884e84ecaf14657298b",
         name: "Boneshatter",
         school: Necromancy,
         guide: "wizard-spells#boneshatter-necromancy",
@@ -81,6 +87,7 @@
     ),
     (
         key: "confusion",
+        blueprint: "cf6c901fb7acc904e85c63b342e9c949",
         name: "Confusion",
         school: Enchantment,
         guide: "wizard-spells#confusion-enchantment",
@@ -94,6 +101,7 @@
     ),
     (
         key: "contagion",
+        blueprint: "48e2744846ed04b4580be1a3343a5d3d",
         name: "Contagion",
         school: Necromancy,
         guide: "wizard-spells#contagion-necromancy",
@@ -106,6 +114,7 @@
     ),
     (
         key: "controlled-fireball",
+        blueprint: "f72f8f03bf0136c4180cd1d70eb773a5",
         name: "Controlled Fireball",
         school: Evocation,
         guide: "wizard-spells#controlled-fireball-evocation",
@@ -118,6 +127,7 @@
     ),
     (
         key: "crushing-despair",
+        blueprint: "4baf4109145de4345861fe0f2209d903",
         name: "Crushing Despair",
         school: Enchantment,
         guide: "wizard-spells#crushing-despair-enchantment",
@@ -131,6 +141,7 @@
     ),
     (
         key: "curse-of-magic-negation",
+        blueprint: "c0c2ef5955cb415ca482597f1bfc4eca",
         name: "Curse of Magic Negation",
         school: Abjuration,
         guide: "wizard-spells#curse-of-magic-negation-abjuration",
@@ -144,6 +155,7 @@
     ),
     (
         key: "dimension-door",
+        blueprint: "4a648b57935a59547b7a2ee86fb4f26a",
         name: "Dimension Door",
         school: Conjuration,
         guide: "wizard-spells#dimension-door-conjuration",
@@ -156,6 +168,7 @@
     ),
     (
         key: "dragons-breath",
+        blueprint: "5e826bcdfde7f82468776b55315b2403",
         name: "Dragon's Breath",
         school: Evocation,
         guide: "wizard-spells#dragons-breath-evocation",
@@ -168,6 +181,7 @@
     ),
     (
         key: "elemental-body-i",
+        blueprint: "690c90a82bf2e58449c6b541cb8ea004",
         name: "Elemental Body I",
         school: Transmutation,
         guide: "wizard-spells#elemental-body-i-transmutation",
@@ -181,6 +195,7 @@
     ),
     (
         key: "enervation",
+        blueprint: "f34fb78eaaec141469079af124bcfa0f",
         name: "Enervation",
         school: Necromancy,
         guide: "wizard-spells#enervation-necromancy",
@@ -194,6 +209,7 @@
     ),
     (
         key: "enlarge-person-mass",
+        blueprint: "66dc49bf154863148bd217287079245e",
         name: "Enlarge Person, Mass",
         school: Transmutation,
         guide: "wizard-spells#enlarge-person-mass-transmutation",
@@ -207,6 +223,7 @@
     ),
     (
         key: "false-life-greater",
+        blueprint: "dc6af3b4fd149f841912d8a3ce0983de",
         name: "False Life, Greater",
         school: Necromancy,
         guide: "wizard-spells#false-life-greater-necromancy",
@@ -220,6 +237,7 @@
     ),
     (
         key: "fear",
+        blueprint: "d2aeac47450c76347aebbc02e4f463e0",
         name: "Fear",
         school: Necromancy,
         guide: "wizard-spells#fear-necromancy",
@@ -233,6 +251,7 @@
     ),
     (
         key: "greater-invisibility",
+        blueprint: "ecaa0def35b38f949bd1976a6c9539e0",
         name: "Greater Invisibility",
         school: Illusion,
         guide: "wizard-spells#greater-invisibility-illusion",
@@ -246,6 +265,7 @@
     ),
     (
         key: "ice-storm",
+        blueprint: "fcb028205a71ee64d98175ff39a0abf9",
         name: "Ice Storm",
         school: Evocation,
         guide: "wizard-spells#ice-storm-evocation",
@@ -259,6 +279,7 @@
     ),
     (
         key: "obsidian-flow",
+        blueprint: "e48638596c955a74c8a32dbc90b518c1",
         name: "Obsidian Flow",
         school: Transmutation,
         guide: "wizard-spells#obsidian-flow-transmutation",
@@ -272,6 +293,7 @@
     ),
     (
         key: "overwhelming-grief",
+        blueprint: "dd2918e4a77c50044acba1ac93494c36",
         name: "Overwhelming Grief",
         school: Enchantment,
         guide: "wizard-spells#overwhelming-grief-enchantment",
@@ -285,6 +307,7 @@
     ),
     (
         key: "phantasmal-killer",
+        blueprint: "6717dbaef00c0eb4897a1c908a75dfe5",
         name: "Phantasmal Killer",
         school: Illusion,
         guide: "wizard-spells#phantasmal-killer-illusion",
@@ -297,6 +320,7 @@
     ),
     (
         key: "protection-from-energy-communal",
+        blueprint: "76a629d019275b94184a1a8733cac45e",
         name: "Protection from Energy, Communal",
         school: Abjuration,
         guide: "wizard-spells#protection-from-energy-communal-abjuration",
@@ -310,6 +334,7 @@
     ),
     (
         key: "rainbow-pattern",
+        blueprint: "4b8265132f9c8174f87ce7fa6d0fe47b",
         name: "Rainbow Pattern",
         school: Illusion,
         guide: "wizard-spells#rainbow-pattern-illusion",
@@ -323,6 +348,7 @@
     ),
     (
         key: "reduce-person-mass",
+        blueprint: "2427f2e3ca22ae54ea7337bbab555b16",
         name: "Reduce Person, Mass",
         school: Transmutation,
         guide: "wizard-spells#reduce-person-mass-transmutation",
@@ -336,6 +362,7 @@
     ),
     (
         key: "remove-curse",
+        blueprint: "b48674cef2bff5e478a007cf57d8345b",
         name: "Remove Curse",
         school: Abjuration,
         guide: "wizard-spells#remove-curse-abjuration",
@@ -348,6 +375,7 @@
     ),
     (
         key: "shadow-conjuration",
+        blueprint: "caac251ca7601324bbe000372a0a1005",
         name: "Shadow Conjuration",
         school: Illusion,
         guide: "wizard-spells#shadow-conjuration-illusion",
@@ -361,6 +389,7 @@
     ),
     (
         key: "shout",
+        blueprint: "f09453607e683784c8fca646eec49162",
         name: "Shout",
         school: Evocation,
         guide: "wizard-spells#shout-evocation",
@@ -374,6 +403,7 @@
     ),
     (
         key: "stoneskin",
+        blueprint: "c66e86905f7606c4eaa5c774f0357b2b",
         name: "Stoneskin",
         school: Abjuration,
         guide: "wizard-spells#stoneskin-abjuration",
@@ -388,6 +418,7 @@
     ),
     (
         key: "summon-medium-elemental",
+        blueprint: "e42b1dbff4262c6469a9ff0a6ce730e3",
         name: "Summon Medium Elemental",
         school: Conjuration,
         guide: "wizard-spells#summon-medium-elemental-conjuration",
@@ -401,6 +432,7 @@
     ),
     (
         key: "summon-monster-iv",
+        blueprint: "7ed74a3ec8c458d4fb50b192fd7be6ef",
         name: "Summon Monster IV",
         school: Conjuration,
         guide: "wizard-spells#summon-monster-iv-conjuration",
@@ -414,6 +446,7 @@
     ),
     (
         key: "symbol-of-revelation",
+        blueprint: "48a555180a109e545a6e367b1bd3f535",
         name: "Symbol of Revelation",
         school: Divination,
         guide: "wizard-spells#symbol-of-revelation-divination",
@@ -428,6 +461,7 @@
     ),
     (
         key: "touch-of-slime",
+        blueprint: "84ccca10da2a4484c89a837fbea2a829",
         name: "Touch of Slime",
         school: Conjuration,
         guide: "wizard-spells#touch-of-slime-conjuration",
@@ -440,6 +474,7 @@
     ),
     (
         key: "volcanic-storm",
+        blueprint: "16ce660837fb2544e96c3b7eaad73c63",
         name: "Volcanic Storm",
         school: Evocation,
         guide: "wizard-spells#volcanic-storm-evocation",

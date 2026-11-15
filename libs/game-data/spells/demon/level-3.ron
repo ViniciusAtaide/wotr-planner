@@ -3,6 +3,7 @@
 [
     (
         key: "channel-rage",
+        blueprint: "25f741db26e3e27428c4fcb5e60a4ab9",
         name: "Channel Rage",
         school: Transmutation,
         guide: "demon#channel-rage-transmutation",
@@ -16,6 +17,7 @@
     ),
     (
         key: "demonic-form-ii",
+        blueprint: "98f23614c5c91e14f89f63d438027d43",
         name: "Demonic Form II",
         school: Transmutation,
         guide: "demon#demonic-form-ii-transmutation",
@@ -29,6 +31,7 @@
     ),
     (
         key: "morbid-restoration",
+        blueprint: "8baeffb9caf081e449ce52bf7bdd6236",
         name: "Morbid Restoration",
         school: Transmutation,
         guide: "demon#morbid-restoration-transmutation",
@@ -41,6 +44,7 @@
     ),
     (
         key: "profane-hymn",
+        blueprint: "cab32c685bfb3fc4ebe042867af825d6",
         name: "Profane Hymn",
         school: Transmutation,
         guide: "demon#profane-hymn-transmutation",
@@ -54,6 +58,7 @@
     ),
     (
         key: "telekinetic-strike",
+        blueprint: "1a33199538c31a14db23318fdb6e10cb",
         name: "Telekinetic Strike",
         school: Transmutation,
         guide: "demon#telekinetic-strike-transmutation",

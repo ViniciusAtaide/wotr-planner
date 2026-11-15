@@ -3,6 +3,7 @@
 [
     (
         key: "abyssal-chains",
+        blueprint: "3b86de15c18e4b44bb7315fc6c116b4d",
         name: "Abyssal Chains",
         school: Evocation,
         guide: "demon#abyssal-chains-evocation",
@@ -16,6 +17,7 @@
     ),
     (
         key: "abyssal-skin",
+        blueprint: "3cefd45bcac368c4892d110d0b9ae891",
         name: "Abyssal Skin",
         school: Transmutation,
         guide: "demon#abyssal-skin-transmutation",
@@ -29,6 +31,7 @@
     ),
     (
         key: "channel-rage-communal",
+        blueprint: "ea373f990b4d8a947a4688e6cbcb1d5f",
         name: "Channel Rage, Communal",
         school: Transmutation,
         guide: "demon#channel-rage-communal-transmutation",
@@ -42,6 +45,7 @@
     ),
     (
         key: "demonic-form-iii",
+        blueprint: "42eef01ee83faaf4e9ad79f15bface6b",
         name: "Demonic Form III",
         school: Transmutation,
         guide: "demon#demonic-form-iii-transmutation",
@@ -55,6 +59,7 @@
     ),
     (
         key: "infectious-rage",
+        blueprint: "3bbb3398e37929343b236bba6b4008a8",
         name: "Infectious Rage",
         school: Transmutation,
         guide: "demon#infectious-rage-transmutation",
@@ -68,6 +73,7 @@
     ),
     (
         key: "teleport",
+        blueprint: "b3e8e307811b2a24387c2c9226fb4c10",
         name: "Teleport",
         school: Conjuration,
         guide: "demon#teleport-conjuration",

@@ -13,6 +13,7 @@ pub(super) fn races() -> Vec<Race> {
         // Adaptability: Skill Focus as a bonus feat at 1, from the race's own one-feat list.
         Race {
             key: RaceKey::new("half-elf"),
+            blueprint: None,
             name: "Half-Elf".into(),
             summary: String::new(),
             guide: guide("character-creation#half-elf"),
@@ -28,6 +29,7 @@ pub(super) fn races() -> Vec<Race> {
             subraces: vec![
                 Subrace {
                     key: SubraceKey::new("half-elf/dual-heritage"),
+                    blueprint: None,
                     name: "Dual Heritage".into(),
                     summary: String::new(),
                     guide: guide("character-creation#half-elf-dual-heritage"),
@@ -39,6 +41,7 @@ pub(super) fn races() -> Vec<Race> {
                 },
                 Subrace {
                     key: SubraceKey::new("half-elf/adaptable"),
+                    blueprint: None,
                     name: "Adaptable".into(),
                     summary: String::new(),
                     guide: guide("character-creation#half-elf-adaptable"),
@@ -55,6 +58,7 @@ pub(super) fn races() -> Vec<Race> {
         },
         Race {
             key: RaceKey::new("human"),
+            blueprint: None,
             name: "Human".into(),
             summary: String::new(),
             guide: guide("character-creation#human"),
@@ -68,6 +72,7 @@ pub(super) fn races() -> Vec<Race> {
         },
         Race {
             key: RaceKey::new("elf"),
+            blueprint: None,
             name: "Elf".into(),
             summary: String::new(),
             guide: guide("character-creation#elf"),
@@ -83,6 +88,7 @@ pub(super) fn races() -> Vec<Race> {
             weapons_as_martial: BTreeSet::new(),
             subraces: vec![Subrace {
                 key: SubraceKey::new("elf/blightborn"),
+                blueprint: None,
                 name: "Blightborn".into(),
                 summary: String::new(),
                 guide: guide("character-creation#elf-blightborn"),
@@ -99,6 +105,7 @@ pub(super) fn races() -> Vec<Race> {
         },
         Race {
             key: RaceKey::new("dwarf"),
+            blueprint: None,
             name: "Dwarf".into(),
             summary: String::new(),
             guide: guide("character-creation#dwarf"),

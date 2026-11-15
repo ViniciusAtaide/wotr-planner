@@ -3,6 +3,7 @@
 [
     (
         key: "burning-hands",
+        blueprint: "4783c3709a74a794dbe7c8e7e0b1b038",
         name: "Burning Hands",
         school: Evocation,
         guide: "wizard-spells#burning-hands-evocation",
@@ -15,6 +16,7 @@
     ),
     (
         key: "cause-fear",
+        blueprint: "bd81a3931aa285a4f9844585b5d97e51",
         name: "Cause Fear",
         school: Necromancy,
         guide: "wizard-spells#cause-fear-necromancy",
@@ -28,6 +30,7 @@
     ),
     (
         key: "color-spray",
+        blueprint: "91da41b9793a4624797921f221db653c",
         name: "Color Spray",
         school: Illusion,
         guide: "wizard-spells#color-spray-illusion",
@@ -41,6 +44,7 @@
     ),
     (
         key: "corrosive-touch",
+        blueprint: "95810d2829895724f950c8c4086056e7",
         name: "Corrosive Touch",
         school: Conjuration,
         guide: "wizard-spells#corrosive-touch-conjuration",
@@ -53,6 +57,7 @@
     ),
     (
         key: "ear-piercing-scream",
+        blueprint: "8e7cfa5f213a90549aadd18f8f6f4664",
         name: "Ear Piercing Scream",
         school: Evocation,
         guide: "wizard-spells#ear-piercing-scream-evocation",
@@ -66,6 +71,7 @@
     ),
     (
         key: "enlarge-person",
+        blueprint: "c60969e7f264e6d4b84a1499fdcf9039",
         name: "Enlarge Person",
         school: Transmutation,
         guide: "wizard-spells#enlarge-person-transmutation",
@@ -79,6 +85,7 @@
     ),
     (
         key: "expeditious-retreat",
+        blueprint: "4f8181e7a7f1d904fbaea64220e83379",
         name: "Expeditious Retreat",
         school: Transmutation,
         guide: "wizard-spells#expeditious-retreat-transmutation",
@@ -92,6 +99,7 @@
     ),
     (
         key: "flare-burst",
+        blueprint: "39a602aa80cc96f4597778b6d4d49c0a",
         name: "Flare Burst",
         school: Evocation,
         guide: "wizard-spells#flare-burst-evocation",
@@ -105,6 +113,7 @@
     ),
     (
         key: "grease",
+        blueprint: "95851f6e85fe87d4190675db0419d112",
         name: "Grease",
         school: Conjuration,
         guide: "wizard-spells#grease-conjuration",
@@ -118,6 +127,7 @@
     ),
     (
         key: "hurricane-bow",
+        blueprint: "3e9d1119d43d07c4c8ba9ebfd1671952",
         name: "Hurricane Bow",
         school: Transmutation,
         guide: "wizard-spells#hurricane-bow-transmutation",
@@ -131,6 +141,7 @@
     ),
     (
         key: "hypnotism",
+        blueprint: "88367310478c10b47903463c5d0152b0",
         name: "Hypnotism",
         school: Enchantment,
         guide: "wizard-spells#hypnotism-enchantment",
@@ -144,6 +155,7 @@
     ),
     (
         key: "incendiary-runes",
+        blueprint: "1626dbd11c4143b2a5641da8f227b78c",
         name: "Incendiary Runes",
         school: Abjuration,
         guide: "wizard-spells#incendiary-runes-abjuration",
@@ -156,6 +168,7 @@
     ),
     (
         key: "mage-armor",
+        blueprint: "9e1ad5d6f87d19e4d8883d63a6e35568",
         name: "Mage Armor",
         school: Conjuration,
         guide: "wizard-spells#mage-armor-conjuration",
@@ -169,6 +182,7 @@
     ),
     (
         key: "magic-missile",
+        blueprint: "4ac47ddb9fa1eaf43a1b6809980cfbd2",
         name: "Magic Missile",
         school: Evocation,
         guide: "wizard-spells#magic-missile-evocation",
@@ -181,6 +195,7 @@
     ),
     (
         key: "magic-weapon",
+        blueprint: "d7fdd79f0f6b6a2418298e936bb68e40",
         name: "Magic Weapon",
         school: Transmutation,
         guide: "wizard-spells#magic-weapon-transmutation",
@@ -194,6 +209,7 @@
     ),
     (
         key: "protection-from-alignment",
+        blueprint: "433b1faf4d02cc34abb0ade5ceda47c4",
         name: "Protection from Alignment",
         school: Abjuration,
         guide: "wizard-spells#protection-from-alignment-abjuration",
@@ -207,6 +223,7 @@
     ),
     (
         key: "ray-of-enfeeblement",
+        blueprint: "450af0402422b0b4980d9c2175869612",
         name: "Ray of Enfeeblement",
         school: Necromancy,
         guide: "wizard-spells#ray-of-enfeeblement-necromancy",
@@ -220,6 +237,7 @@
     ),
     (
         key: "ray-of-sickening",
+        blueprint: "fa3078b9976a5b24caf92e20ee9c0f54",
         name: "Ray of Sickening",
         school: Necromancy,
         guide: "wizard-spells#ray-of-sickening-necromancy",
@@ -233,6 +251,7 @@
     ),
     (
         key: "reduce-person",
+        blueprint: "4e0e9aba6447d514f88eff1464cc4763",
         name: "Reduce Person",
         school: Transmutation,
         guide: "wizard-spells#reduce-person-transmutation",
@@ -246,6 +265,7 @@
     ),
     (
         key: "shield",
+        blueprint: "ef768022b0785eb43a18969903c537c4",
         name: "Shield",
         school: Abjuration,
         guide: "wizard-spells#shield-abjuration",
@@ -259,6 +279,7 @@
     ),
     (
         key: "shocking-grasp",
+        blueprint: "ab395d2335d3f384e99dddee8562978f",
         name: "Shocking Grasp",
         school: Evocation,
         guide: "wizard-spells#shocking-grasp-evocation",
@@ -271,6 +292,7 @@
     ),
     (
         key: "sleep",
+        blueprint: "bb7ecad2d3d2c8247a38f44855c99061",
         name: "Sleep",
         school: Enchantment,
         guide: "wizard-spells#sleep-enchantment",
@@ -284,6 +306,7 @@
     ),
     (
         key: "snowball",
+        blueprint: "9f10909f0be1f5141bf1c102041f93d9",
         name: "Snowball",
         school: Conjuration,
         guide: "wizard-spells#snowball-conjuration",
@@ -297,6 +320,7 @@
     ),
     (
         key: "stone-fist",
+        blueprint: "85067a04a97416949b5d1dbf986d93f3",
         name: "Stone Fist",
         school: Transmutation,
         guide: "wizard-spells#stone-fist-transmutation",
@@ -310,6 +334,7 @@
     ),
     (
         key: "stunning-barrier",
+        blueprint: "a5ec7892fb1c2f74598b3a82f3fd679f",
         name: "Stunning Barrier",
         school: Abjuration,
         guide: "wizard-spells#stunning-barrier-abjuration",
@@ -323,6 +348,7 @@
     ),
     (
         key: "summon-monster-i",
+        blueprint: "8fd74eddd9b6c224693d9ab241f25e84",
         name: "Summon Monster I",
         school: Conjuration,
         guide: "wizard-spells#summon-monster-i-conjuration",
@@ -336,6 +362,7 @@
     ),
     (
         key: "touch-of-gracelessness",
+        blueprint: "ad10bfec6d7ae8b47870e3a545cc8900",
         name: "Touch of Gracelessness",
         school: Transmutation,
         guide: "wizard-spells#touch-of-gracelessness-transmutation",
@@ -349,6 +376,7 @@
     ),
     (
         key: "true-strike",
+        blueprint: "2c38da66e5a599347ac95b3294acbe00",
         name: "True Strike",
         school: Divination,
         guide: "wizard-spells#true-strike-divination",
@@ -362,6 +390,7 @@
     ),
     (
         key: "vanish",
+        blueprint: "f001c73999fb5a543a199f890108d936",
         name: "Vanish",
         school: Illusion,
         guide: "wizard-spells#vanish-illusion",

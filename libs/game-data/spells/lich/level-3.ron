@@ -3,6 +3,7 @@
 [
     (
         key: "corrupted-blood",
+        blueprint: "bbbcaa880ac0fa0479ce3ee8ac937d50",
         name: "Corrupted Blood",
         school: Necromancy,
         guide: "lich#corrupted-blood-necromancy",
@@ -16,6 +17,7 @@
     ),
     (
         key: "mastery-of-flesh",
+        blueprint: "921ed6a6751d71140b4e75ab7bcb9890",
         name: "Mastery of Flesh",
         school: Necromancy,
         guide: "lich#mastery-of-flesh-necromancy",
@@ -28,6 +30,7 @@
     ),
     (
         key: "power-from-death",
+        blueprint: "9c2c85a3782af804880c81c1712e3a7b",
         name: "Power from Death",
         school: Necromancy,
         guide: "lich#power-from-death-necromancy",

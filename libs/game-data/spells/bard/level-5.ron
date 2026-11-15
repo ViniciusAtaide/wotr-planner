@@ -3,6 +3,7 @@
 [
     (
         key: "cacophonous-call-mass",
+        blueprint: "1262284b6fa45b9458b8c3693edbd676",
         name: "Cacophonous Call, Mass",
         school: Enchantment,
         guide: "bard#cacophonous-call-mass-enchantment",
@@ -16,6 +17,7 @@
     ),
     (
         key: "song-of-discord",
+        blueprint: "d38aaf487e29c3d43a3bffa4a4a55f8f",
         name: "Song of Discord",
         school: Enchantment,
         guide: "bard#song-of-discord-enchantment",
