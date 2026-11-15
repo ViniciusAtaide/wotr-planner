@@ -56,7 +56,7 @@ Before reporting a change done, run `scripts/check.sh` (`--full`, the cargo-lept
 
 The game is the source of truth for rules (map Notes; ticket 234). A change to `rules` or `libs/game-data/` is checked against the game, never against the engine's earlier output.
 
-- **Each changed fact has a real-data test** in `libs/seeds/tests/game_data/` whose expected value comes from the game, cited beside the assertion by blueprint name and GUID, or by the decompiled code's file and method with the WrathDecompiled commit.
+- **Each changed fact has a real-data test** in `libs/seeds/tests/game_data/` whose expected value comes from the game, cited beside the assertion by blueprint name and GUID, or by the decompiled code's file and method with the WrathDecompiled commit (see "Game sources").
 - **The engine's self-checks** check it against itself: every picker agrees with the walk (the agreement sweeps, ticket 150), each shortcut agrees with the full answer it stands for, and each option's status agrees with `allows` of its edit. Their short runs are in `scripts/check.sh`. The long ones, over the corpus's ~2,000 Builds (`tools/corpus`), run in release under `--ignored`, once per queue by the main session: `cargo test --release -p corpus -- --ignored` and `cargo test --release -p seeds --test game_data agreement -- --ignored`. A self-check never outranks the game: when one disagrees with it, the engine is fixed.
 - **The gold builds** (`libs/seeds/tests/game_data/gold.rs`) compare two real player builds with the engine. A known-gap entry is deleted by the ticket that fixes it, never added to get a test to pass. A gold build's gain that the game contradicts goes to the user.
 - **The game check** (ticket 238) runs by hand once it exists.
