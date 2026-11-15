@@ -3,6 +3,7 @@
 [
     (
         key: "charm-whatever",
+        blueprint: "943328ac5bc8a734e85b5b2af3ae2bf7",
         name: "Charm Whatever",
         school: Enchantment,
         guide: "trickster#charm-whatever-enchantment",
@@ -16,6 +17,7 @@
     ),
     (
         key: "recreational-pit",
+        blueprint: "d7e6b7a26d2855f4cbf658122301abb7",
         name: "Recreational Pit",
         school: Conjuration,
         guide: "trickster#recreational-pit-conjuration",
@@ -29,6 +31,7 @@
     ),
     (
         key: "summon-perpetually-annoyed-wizard",
+        blueprint: "dd679ef3aa4a71a4da192aeb0040d84b",
         name: "Summon Perpetually Annoyed Wizard",
         school: Conjuration,
         guide: "trickster#summon-perpetually-annoyed-wizard-conjuration",

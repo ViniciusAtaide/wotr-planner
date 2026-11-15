@@ -1,5 +1,6 @@
 Class(
     key: "winter-witch",
+    blueprint: "eb24ca44debf6714aabe1af1fd905a07",
     name: "Winter Witch",
     summary: "Ten-level frost caster, half BAB, full casting, 4 HP a level: higher cold DCs and caster level, hex progression, half its cold damage past immunity.",
     guide: "prestige-classes#winter-witch",
@@ -14,11 +15,11 @@ Class(
     advances: Either,
     counts_as: [(class: "witch", toward: Feature("witch/grand-hexes")), (class: "witch", toward: Feature("witch/major-hexes"))],
     features: [
-        (key: "winter-witch/cold-specialization", name: "Cold Specialization", summary: "Cold spells +1 DC and fire spells -1 DC; both shift by another 1 at 5th and again at 10th level.", guide: "prestige-classes#cold-specialization"),
-        (key: "winter-witch/freezing-cold", name: "Freezing Cold", summary: "+1 caster level for cold spells, +2 at 6th level.", guide: "prestige-classes#freezing-cold"),
-        (key: "winter-witch/frost-power", name: "Frost Power", summary: "Counts toward your witch or shaman level for hexes (major and grand included), patron spells and Frost Spirit powers.", guide: "prestige-classes#frost-power"),
-        (key: "winter-witch/unearthly-cold", name: "Unearthly Cold", summary: "Half the cold damage of your spells ignores resistance and immunity.", guide: "prestige-classes#unearthly-cold"),
-        (key: "winter-witch/winter-witch-spellbook", name: "Winter Witch Spellbook", summary: "Each level adds spells as a level of your previous casting class.", guide: "prestige-classes#winter-witch-spellbook"),
+        (key: "winter-witch/cold-specialization", blueprint: "9b827777e51ec0540ba6a0cbea6ea84a", name: "Cold Specialization", summary: "Cold spells +1 DC and fire spells -1 DC; both shift by another 1 at 5th and again at 10th level.", guide: "prestige-classes#cold-specialization"),
+        (key: "winter-witch/freezing-cold", blueprint: "84e3920082103a34eb54dcca2e7904ae", name: "Freezing Cold", summary: "+1 caster level for cold spells, +2 at 6th level.", guide: "prestige-classes#freezing-cold"),
+        (key: "winter-witch/frost-power", blueprint: "a593f3f1f8137c74da7569dbdac62949", name: "Frost Power", summary: "Counts toward your witch or shaman level for hexes (major and grand included), patron spells and Frost Spirit powers.", guide: "prestige-classes#frost-power"),
+        (key: "winter-witch/unearthly-cold", blueprint: "d50282428eb0a9b489bff9f687dd208c", name: "Unearthly Cold", summary: "Half the cold damage of your spells ignores resistance and immunity.", guide: "prestige-classes#unearthly-cold"),
+        (key: "winter-witch/winter-witch-spellbook", blueprint: "ea20b26d9d0ede540af3c74246dade41", name: "Winter Witch Spellbook", summary: "Each level adds spells as a level of your previous casting class.", guide: "prestige-classes#winter-witch-spellbook"),
     ],
     levels: [
         (level: 1, advances_arcane: true, advances_divine: true, features: ["winter-witch/cold-specialization", "winter-witch/frost-power", "winter-witch/winter-witch-spellbook"]),

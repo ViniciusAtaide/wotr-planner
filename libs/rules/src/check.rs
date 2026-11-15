@@ -21,9 +21,9 @@ use crate::game_data::{
 };
 use crate::gear::GearTarget;
 use crate::keys::{
-    ArchetypeKey, BackgroundKey, ClassKey, DeityKey, FeatKey, FeatListKey, FeatureKey,
-    FeatureSelectionKey, GearKey, MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey,
-    SelectionOptionKey, SkillKey, SpellKey, SpellListKey, SubraceKey, WeaponKey,
+    ArchetypeKey, BackgroundKey, BlueprintGuid, ClassKey, DeityKey, FeatKey, FeatListKey,
+    FeatureKey, FeatureSelectionKey, GearKey, MythicAbilityKey, MythicFeatKey, MythicPathKey,
+    RaceKey, SelectionOptionKey, SkillKey, SpellKey, SpellListKey, SubraceKey, WeaponKey,
 };
 use crate::parameter::{Parameter, ParameterKind, Repeat};
 use crate::prerequisite::Prerequisite;
@@ -334,6 +334,8 @@ pub enum DataIssue {
     /// A key that isn't lowercase slugs: only `a-z`, `0-9`, `-` and `/`, never starting or ending with `-` or `/`,
     /// and no two of them in a row (`rogue/rogue-talents/fast-stealth`).
     MalformedKey,
+    /// A blueprint GUID that isn't 32 lowercase hex digits, the game's own spelling (ticket 237).
+    MalformedBlueprint,
     /// A selection that is a pool of itself.
     PoolOfItself,
     /// A selection levelled by the Mythic ranks reached ([`LevelFrom::MythicRanks`]) that isn't a path's.
@@ -557,6 +559,9 @@ impl fmt::Display for DataProblem {
                     "an always-on or other-effects line is empty, appears twice, or is in both lists",
                 )
             }
+            DataIssue::MalformedBlueprint => {
+                f.write_str("the blueprint isn't a GUID of 32 lowercase hex digits")
+            }
             DataIssue::MalformedKey => f.write_str(
                 "the key isn't lowercase slugs: a-z, 0-9, and single - or / between them",
             ),
@@ -715,6 +720,7 @@ impl GameData {
         check.counts_toward_features(self);
         check.option_levels(self);
         check.unknown_keys(self);
+        check.blueprints(self);
         for list in self.feat_lists() {
             if !check.named_lists.contains(&list.key) {
                 check.problem(
@@ -725,6 +731,49 @@ impl GameData {
         }
         check.problems.sort();
         check.problems
+    }
+
+    /// Every entry of a kind that can name a game blueprint, with the one it names (ticket 237). Skills have none: the
+    /// game's skills are a stat, not a blueprint.
+    pub fn blueprints(&self) -> Vec<(DataAt, Option<&BlueprintGuid>)> {
+        let mut out = Vec::new();
+        macro_rules! each {
+            ($entries:expr, $at:path) => {
+                out.extend(
+                    $entries
+                        .into_iter()
+                        .map(|entry| ($at(entry.key.clone()), entry.blueprint.as_ref())),
+                )
+            };
+        }
+        each!(&self.races, DataAt::Race);
+        each!(
+            self.races.iter().flat_map(|race| &race.subraces),
+            DataAt::Subrace
+        );
+        each!(&self.weapons, DataAt::Weapon);
+        each!(&self.feats, DataAt::Feat);
+        each!(self.all_classes(), DataAt::Class);
+        each!(
+            self.all_classes().flat_map(|class| &class.archetypes),
+            DataAt::Archetype
+        );
+        each!(self.features(), DataAt::Feature);
+        each!(self.selections(), DataAt::FeatureSelection);
+        each!(
+            self.selections().flat_map(|selection| &selection.options),
+            DataAt::SelectionOption
+        );
+        each!(self.feat_lists(), DataAt::FeatList);
+        each!(&self.mythic_abilities, DataAt::MythicAbility);
+        each!(&self.mythic_feats, DataAt::MythicFeat);
+        each!(&self.mythic_paths, DataAt::MythicPath);
+        each!(&self.backgrounds, DataAt::Background);
+        each!(&self.deities, DataAt::Deity);
+        each!(&self.spells, DataAt::Spell);
+        each!(&self.spell_lists, DataAt::SpellList);
+        each!(&self.gear, DataAt::Gear);
+        out
     }
 
     /// The data as [`CheckedGameData`] when [`check`](Self::check) finds no problem, otherwise every problem.
@@ -794,6 +843,14 @@ fn well_formed_key(key: &str) -> bool {
                     .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit())
         })
     })
+}
+
+/// Whether `guid` is spelled as the game spells a blueprint GUID: 32 lowercase hex digits, no dashes or braces.
+fn well_formed_blueprint(guid: &str) -> bool {
+    guid.len() == 32
+        && guid
+            .bytes()
+            .all(|byte| matches!(byte, b'0'..=b'9' | b'a'..=b'f'))
 }
 
 /// Whether `key` is `owner/…`.
@@ -867,6 +924,15 @@ impl Checker {
         self.names_each(at, features, DataAt::Feature);
         self.names_each(at, feats, DataAt::Feat);
         self.names_each(at, selections, DataAt::FeatureSelection);
+    }
+
+    /// The blueprint GUIDs that aren't spelled as the game spells them.
+    fn blueprints(&mut self, data: &GameData) {
+        for (at, blueprint) in data.blueprints() {
+            if blueprint.is_some_and(|guid| !well_formed_blueprint(guid.as_str())) {
+                self.problem(&at, DataIssue::MalformedBlueprint);
+            }
+        }
     }
 
     /// The keys named that no entity of their kind has, and the Mythic ranks named that the progression lacks.
@@ -1812,8 +1878,7 @@ impl Checker {
             })
             .collect();
         let favoured = data
-            .class_features()
-            .chain(data.mythic_paths.iter().flat_map(|path| &path.features))
+            .features()
             .filter(|feature| feature.favoured_weapon_proficiency);
         for feature in favoured {
             if !granted.contains(&feature.key) {

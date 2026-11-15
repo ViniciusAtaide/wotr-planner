@@ -3,6 +3,7 @@
 [
     (
         key: "chaotic-healing",
+        blueprint: "2c08fcbf3b796b3459aef2488b2cef01",
         name: "Chaotic Healing",
         school: Conjuration,
         guide: "azata#chaotic-healing-conjuration",
@@ -15,6 +16,7 @@
     ),
     (
         key: "deadly-beauty",
+        blueprint: "bf3b19ed9c919464aa2a741271718542",
         name: "Deadly Beauty",
         school: Transmutation,
         guide: "azata#deadly-beauty-transmutation",
@@ -28,6 +30,7 @@
     ),
     (
         key: "elusive-nature",
+        blueprint: "2acdc2aeba36d8e45871ec6105c16509",
         name: "Elusive Nature",
         school: Abjuration,
         guide: "azata#elusive-nature-abjuration",
@@ -41,6 +44,7 @@
     ),
     (
         key: "waterfall",
+        blueprint: "e05a95d3cf386844f98e4710d9a4730b",
         name: "Waterfall",
         school: Conjuration,
         guide: "azata#waterfall-conjuration",

@@ -3,6 +3,7 @@
 [
     (
         key: "abyssal-storm",
+        blueprint: "58e9e2883bca1574e9c932e72fd361f9",
         name: "Abyssal Storm",
         school: Evocation,
         guide: "demon#abyssal-storm-evocation",
@@ -15,6 +16,7 @@
     ),
     (
         key: "demonic-form-iv",
+        blueprint: "a8815c40e1e6d3a44b57ad7b3727eebb",
         name: "Demonic Form IV",
         school: Transmutation,
         guide: "demon#demonic-form-iv-transmutation",
@@ -28,6 +30,7 @@
     ),
     (
         key: "devour",
+        blueprint: "eacb5f788001ca84cb83c3091c1ced19",
         name: "Devour",
         school: Transmutation,
         guide: "demon#devour-transmutation",
@@ -40,6 +43,7 @@
     ),
     (
         key: "lifebane",
+        blueprint: "26aaee184eda5c545a0d353c5082cfd2",
         name: "Lifebane",
         school: Transmutation,
         guide: "demon#lifebane-transmutation",
@@ -53,6 +57,7 @@
     ),
     (
         key: "telekinetic-burst",
+        blueprint: "9ccd404771c25e24490e4f8838ea8ebb",
         name: "Telekinetic Burst",
         school: Transmutation,
         guide: "demon#telekinetic-burst-transmutation",

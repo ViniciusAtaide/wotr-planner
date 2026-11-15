@@ -52,6 +52,7 @@ pub(in crate::test_world::world) fn fighter() -> Class {
     Class {
         casting_ability: None,
         key: class("fighter"),
+        blueprint: None,
         name: "Fighter".into(),
         summary: String::new(),
         guide: guide("fighter"),
@@ -73,6 +74,7 @@ pub(in crate::test_world::world) fn fighter() -> Class {
         archetypes: vec![Archetype {
             casting_ability: None,
             key: ArchetypeKey::new("fighter/armiger"),
+            blueprint: None,
             name: "Armiger".into(),
             summary: String::new(),
             guide: guide("fighter#armiger"),
@@ -86,6 +88,7 @@ pub(in crate::test_world::world) fn fighter() -> Class {
             features: vec![],
             selections: vec![FeatureSelection {
                 key: FeatureSelectionKey::new("fighter/armiger/order"),
+                blueprint: None,
                 name: "Order".into(),
                 summary: String::new(),
                 guide: guide("fighter#order"),
@@ -136,6 +139,7 @@ pub(in crate::test_world::world) fn monk() -> Class {
     Class {
         casting_ability: None,
         key: class("monk"),
+        blueprint: None,
         name: "Monk".into(),
         summary: String::new(),
         guide: guide("monk"),
@@ -233,6 +237,7 @@ pub(in crate::test_world::world) fn warpriest() -> Class {
     Class {
         casting_ability: None,
         key: class("warpriest"),
+        blueprint: None,
         name: "Warpriest".into(),
         summary: String::new(),
         guide: guide("warpriest"),
@@ -305,6 +310,7 @@ pub(in crate::test_world::world) fn ranger() -> Class {
     Class {
         casting_ability: None,
         key: class("ranger"),
+        blueprint: None,
         name: "Ranger".into(),
         summary: String::new(),
         guide: guide("ranger"),

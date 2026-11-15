@@ -112,3 +112,10 @@ text_key!(
     /// `belt-of-physical-perfection-6`: a gear item (ticket 165).
     GearKey
 );
+text_key!(
+    /// `b6798b29d36982b4786a32dfd81a914f`: the GUID of the game blueprint an entry is (ticket 237), as the game spells
+    /// it, 32 lowercase hex digits: a citation, and the game check's key. Not a key of ours: links never hold it, and
+    /// any number of entries may name one blueprint. An entry names none when the planner made it up or the game has
+    /// no one blueprint for it (ticket 237's Answer lists why).
+    BlueprintGuid
+);

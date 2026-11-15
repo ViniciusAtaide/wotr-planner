@@ -3,6 +3,7 @@
 [
     (
         key: "holy-sword",
+        blueprint: "bea9deffd3ab6734c9534153ddc70bde",
         name: "Holy Sword",
         school: Evocation,
         guide: "paladin#holy-sword-evocation",
@@ -16,6 +17,7 @@
     ),
     (
         key: "oath-of-peace",
+        blueprint: "cb3d70cc98b5f1540bddfff6f9667f73",
         name: "Oath of Peace",
         school: Abjuration,
         guide: "paladin#oath-of-peace-abjuration",

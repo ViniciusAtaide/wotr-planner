@@ -8,6 +8,7 @@ use crate::test_world::builds::skill;
 fn item(key: &str, name: &str, slot: GearSlot, bonuses: Vec<GearBonus>) -> GearItem {
     GearItem {
         key: GearKey::new(key),
+        blueprint: None,
         name: name.into(),
         slot,
         guide: None,

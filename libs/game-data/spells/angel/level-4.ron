@@ -3,6 +3,7 @@
 [
     (
         key: "blade-of-the-sun",
+        blueprint: "cc8be337fff61284caabe3340fc48294",
         name: "Blade of the Sun",
         school: Evocation,
         guide: "angel#blade-of-the-sun-evocation",
@@ -15,6 +16,7 @@
     ),
     (
         key: "pure-form",
+        blueprint: "33e53b74891b4c34ba6ee3baa322beeb",
         name: "Pure Form",
         school: Conjuration,
         guide: "angel#pure-form-conjuration",
@@ -27,6 +29,7 @@
     ),
     (
         key: "repel-the-profane",
+        blueprint: "041581ac635afe24daa421de5d2c2ee1",
         name: "Repel the Profane",
         school: Necromancy,
         guide: "angel#repel-the-profane-necromancy",
@@ -39,6 +42,7 @@
     ),
     (
         key: "ward-against-disease-communal",
+        blueprint: "68a9e6cdab0a51d428816e17fb366778",
         name: "Ward Against Disease, Communal",
         school: Abjuration,
         guide: "angel#ward-against-disease-communal-abjuration",
@@ -52,6 +56,7 @@
     ),
     (
         key: "ward-against-impurity",
+        blueprint: "728071812567e814886ff1fc84fe066a",
         name: "Ward Against Impurity",
         school: Abjuration,
         guide: "angel#ward-against-impurity-abjuration",

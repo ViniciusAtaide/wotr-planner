@@ -3,6 +3,7 @@
 [
     (
         key: "blade-barrier",
+        blueprint: "36c8971e91f1745418cc3ffdfac17b74",
         name: "Blade Barrier",
         school: Evocation,
         guide: "cleric-spells#blade-barrier-evocation",
@@ -16,6 +17,7 @@
     ),
     (
         key: "blessing-of-luck-and-resolve-mass",
+        blueprint: "462c21cebf7820c40a87f5e4d03e17cf",
         name: "Blessing of Luck and Resolve, Mass",
         school: Enchantment,
         guide: "cleric-spells#blessing-of-luck-and-resolve-mass-enchantment",
@@ -29,6 +31,7 @@
     ),
     (
         key: "cure-moderate-wounds-mass",
+        blueprint: "571221cc141bc21449ae96b3944652aa",
         name: "Cure Moderate Wounds, Mass",
         school: Conjuration,
         guide: "cleric-spells#cure-moderate-wounds-mass-conjuration",
@@ -41,6 +44,7 @@
     ),
     (
         key: "eaglesoul",
+        blueprint: "332ad68273db9704ab0e92518f2efd1c",
         name: "Eaglesoul",
         school: Conjuration,
         guide: "cleric-spells#eaglesoul-conjuration",
@@ -54,6 +58,7 @@
     ),
     (
         key: "harm",
+        blueprint: "cc09224ecc9af79449816c45bc5be218",
         name: "Harm",
         school: Necromancy,
         guide: "cleric-spells#harm-necromancy",
@@ -66,6 +71,7 @@
     ),
     (
         key: "heal",
+        blueprint: "5da172c4c89f9eb4cbb614f3a67357d3",
         name: "Heal",
         school: Conjuration,
         guide: "cleric-spells#heal-conjuration",
@@ -78,6 +84,7 @@
     ),
     (
         key: "inflict-moderate-wounds-mass",
+        blueprint: "03944622fbe04824684ec29ff2cec6a7",
         name: "Inflict Moderate Wounds, Mass",
         school: Necromancy,
         guide: "cleric-spells#inflict-moderate-wounds-mass-necromancy",
@@ -90,6 +97,7 @@
     ),
     (
         key: "inspiring-recovery",
+        blueprint: "788d72e7713cf90418ee1f38449416dc",
         name: "Inspiring Recovery",
         school: Conjuration,
         guide: "cleric-spells#inspiring-recovery-conjuration",

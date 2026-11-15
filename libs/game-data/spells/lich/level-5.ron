@@ -3,6 +3,7 @@
 [
     (
         key: "bone-explosion",
+        blueprint: "cc51242ff01192b49a2e25adf096e2d0",
         name: "Bone Explosion",
         school: Necromancy,
         guide: "lich#bone-explosion-necromancy",
@@ -15,6 +16,7 @@
     ),
     (
         key: "deny-death",
+        blueprint: "1098095d7a88c6747aee67f8d449fa06",
         name: "Deny Death",
         school: Necromancy,
         guide: "lich#deny-death-necromancy",
@@ -28,6 +30,7 @@
     ),
     (
         key: "exsanguinate",
+        blueprint: "291524731e8b8f440b44915be833ae07",
         name: "Exsanguinate",
         school: Necromancy,
         guide: "lich#exsanguinate-necromancy",
@@ -40,6 +43,7 @@
     ),
     (
         key: "repurpose",
+        blueprint: "de5f875a5f98d99459e45e6af8ce5dcd",
         name: "Repurpose",
         school: Necromancy,
         guide: "lich#repurpose-necromancy",

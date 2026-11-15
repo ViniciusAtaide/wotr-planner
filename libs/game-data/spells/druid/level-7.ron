@@ -3,6 +3,7 @@
 [
     (
         key: "changestaff",
+        blueprint: "26be70c4664d07446bdfe83504c1d757",
         name: "Changestaff",
         school: Transmutation,
         guide: "druid-spells#changestaff-transmutation",
@@ -17,6 +18,7 @@
     ),
     (
         key: "creeping-doom",
+        blueprint: "b974af13e45639a41a04843ce1c9aa12",
         name: "Creeping Doom",
         school: Conjuration,
         guide: "druid-spells#creeping-doom-conjuration",
@@ -30,6 +32,7 @@
     ),
     (
         key: "summon-natures-ally-vii",
+        blueprint: "051b979e7d7f8ec41b9fa35d04746b33",
         name: "Summon Nature's Ally VII",
         school: Conjuration,
         guide: "druid-spells#summon-natures-ally-vii-conjuration",
@@ -43,6 +46,7 @@
     ),
     (
         key: "sunbeam",
+        blueprint: "1fca0ba2fdfe2994a8c8bc1f0f2fc5b1",
         name: "Sunbeam",
         school: Evocation,
         guide: "druid-spells#sunbeam-evocation",

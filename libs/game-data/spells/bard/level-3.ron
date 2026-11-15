@@ -3,6 +3,7 @@
 [
     (
         key: "good-hope",
+        blueprint: "a5e23522eda32dc45801e32c05dc9f96",
         name: "Good Hope",
         school: Enchantment,
         guide: "bard#good-hope-enchantment",
@@ -16,6 +17,7 @@
     ),
     (
         key: "purging-finale",
+        blueprint: "c411f9aa46b84efcbca1954c4cb16023",
         name: "Purging Finale",
         school: Conjuration,
         guide: "bard#purging-finale-conjuration",
@@ -28,6 +30,7 @@
     ),
     (
         key: "reviving-finale",
+        blueprint: "a896760c975d4f3b96f279aa3cdf2292",
         name: "Reviving Finale",
         school: Conjuration,
         guide: "bard#reviving-final-finale-conjuration",
@@ -40,6 +43,7 @@
     ),
     (
         key: "thundering-drums",
+        blueprint: "c26eeeeabf732914ba723f2b67fe9b9d",
         name: "Thundering Drums",
         school: Evocation,
         guide: "bard#thundering-drums-evocation",

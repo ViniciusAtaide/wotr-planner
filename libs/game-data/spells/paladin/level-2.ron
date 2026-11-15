@@ -3,6 +3,7 @@
 [
     (
         key: "aura-of-greater-courage",
+        blueprint: "acb787cf9f76e924a9a93bbd011af040",
         name: "Aura of Greater Courage",
         school: Abjuration,
         guide: "paladin#aura-of-greater-courage-abjuration",
@@ -16,6 +17,7 @@
     ),
     (
         key: "bestow-grace",
+        blueprint: "431f783e1a020cd46ab37b8666a92bd3",
         name: "Bestow Grace",
         school: Abjuration,
         guide: "paladin#bestow-grace-abjuration",

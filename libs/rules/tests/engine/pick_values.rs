@@ -22,6 +22,7 @@ fn world_with_pick_values() -> GameData {
     let mut data = world();
     let metamagic = |key: &str, name: &str| Feat {
         key: feat(key),
+        blueprint: None,
         name: name.into(),
         category: FeatCategory::Magic,
         summary: String::new(),
@@ -49,6 +50,7 @@ fn world_with_pick_values() -> GameData {
     stat_focus.prerequisite = None;
     let ability = |key: &str, name: &str, parameter| MythicAbility {
         key: MythicAbilityKey::new(key),
+        blueprint: None,
         name: name.into(),
         group: MythicAbilityGroup::Magic,
         summary: String::new(),

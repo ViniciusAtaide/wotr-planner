@@ -3,6 +3,7 @@
 [
     (
         key: "brilliant-inspiration",
+        blueprint: "a5c56f0f699daec44b7aedd8b273b08a",
         name: "Brilliant Inspiration",
         school: Evocation,
         guide: "bard#brilliant-inspiration-evocation",
@@ -16,6 +17,7 @@
     ),
     (
         key: "song-of-discord-greater",
+        blueprint: "2daf19a1e59545fba89b3d2a822c20b4",
         name: "Song of Discord, Greater",
         school: Enchantment,
         guide: "bard#song-of-discord-greater-enchantment",

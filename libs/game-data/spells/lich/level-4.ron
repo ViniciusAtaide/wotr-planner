@@ -3,6 +3,7 @@
 [
     (
         key: "consume-undead",
+        blueprint: "0e633cc133207a849915e4d15dec8410",
         name: "Consume Undead",
         school: Necromancy,
         guide: "lich#consume-undead-necromancy",
@@ -15,6 +16,7 @@
     ),
     (
         key: "eyes-of-the-bodak",
+        blueprint: "e9c9a61b81a297942a326c91da2af8ca",
         name: "Eyes of the Bodak",
         school: Necromancy,
         guide: "lich#eyes-of-the-bodak-necromancy",
@@ -28,6 +30,7 @@
     ),
     (
         key: "vampiric-blade",
+        blueprint: "81ac91fe92240a8478b5d2512c9fbec2",
         name: "Vampiric Blade",
         school: Necromancy,
         guide: "lich#vampiric-blade-necromancy",

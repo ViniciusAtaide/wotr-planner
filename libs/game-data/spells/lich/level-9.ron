@@ -3,6 +3,7 @@
 [
     (
         key: "corrupt-magic",
+        blueprint: "6fd7bdd6dfa9dd943b36d65faf97ac41",
         name: "Corrupt Magic",
         school: Abjuration,
         guide: "lich#corrupt-magic-abjuration",
@@ -15,6 +16,7 @@
     ),
     (
         key: "flay-for-purpose",
+        blueprint: "a5481866babd5214bb3ccf0710fe4d20",
         name: "Flay for Purpose",
         school: Necromancy,
         guide: "lich#flay-for-purpose-necromancy",
@@ -27,6 +29,7 @@
     ),
     (
         key: "negative-eruption",
+        blueprint: "5c377ad96e3fc4f4d9b74eba9d38f4f8",
         name: "Negative Eruption",
         school: Necromancy,
         guide: "lich#negative-eruption-necromancy",

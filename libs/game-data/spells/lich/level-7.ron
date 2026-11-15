@@ -3,6 +3,7 @@
 [
     (
         key: "blessing-of-unlife",
+        blueprint: "2abf1b69cec760d4ebc73d5ce8d79f0a",
         name: "Blessing of Unlife",
         school: Necromancy,
         guide: "lich#blessing-of-unlife-necromancy",
@@ -16,6 +17,7 @@
     ),
     (
         key: "feast-of-blood",
+        blueprint: "edf6e91ca5a468849b8326bcc9c569b2",
         name: "Feast of Blood",
         school: Necromancy,
         guide: "lich#feast-of-blood-necromancy",
@@ -28,6 +30,7 @@
     ),
     (
         key: "restore-undead",
+        blueprint: "a9dbff7a630003d4eafa6c9dd203cb7e",
         name: "Restore Undead",
         school: Necromancy,
         guide: "lich#restore-undead-necromancy",

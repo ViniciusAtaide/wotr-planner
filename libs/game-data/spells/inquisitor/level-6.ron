@@ -3,6 +3,7 @@
 [
     (
         key: "fester-mass",
+        blueprint: "52b8b14360a87104482b2735c7fc8606",
         name: "Fester, Mass",
         school: Necromancy,
         guide: "inquisitor#fester-mass-necromancy",
@@ -16,6 +17,7 @@
     ),
     (
         key: "litany-of-madness",
+        blueprint: "435e73bcff18f304293484f9511b4672",
         name: "Litany of Madness",
         school: Enchantment,
         guide: "inquisitor#litany-of-madness-enchantment",

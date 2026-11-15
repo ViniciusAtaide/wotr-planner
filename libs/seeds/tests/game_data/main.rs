@@ -10,6 +10,7 @@ mod archetype_saves;
 mod athletics_iii;
 mod backgrounds;
 mod bloodline_ascendance;
+mod blueprints;
 mod bonus_feat_choices;
 mod borrowed_selections;
 mod build_sheets;

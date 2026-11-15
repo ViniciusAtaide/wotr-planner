@@ -3,6 +3,7 @@
 [
     (
         key: "field-of-flowers",
+        blueprint: "b2d9ad1cc95d718459c09499a2e9dbf9",
         name: "Field of Flowers",
         school: Conjuration,
         guide: "azata#field-of-flowers-conjuration",
@@ -16,6 +17,7 @@
     ),
     (
         key: "ode-to-miraculous-magic",
+        blueprint: "f1a0dd9c0b6f9654fb025875dc4b905d",
         name: "Ode to Miraculous Magic",
         school: Enchantment,
         guide: "azata#ode-to-miraculous-magic-enchantment",
@@ -29,6 +31,7 @@
     ),
     (
         key: "rejuvenating-poem",
+        blueprint: "10f0308c40d647c42a6b4caaee7658a8",
         name: "Rejuvenating Poem",
         school: Conjuration,
         guide: "azata#rejuvenating-poem-conjuration",
@@ -41,6 +44,7 @@
     ),
     (
         key: "voice-of-renewal",
+        blueprint: "584a2f29a8f50044fa2b6d9c2a6fb82a",
         name: "Voice of Renewal",
         school: Conjuration,
         guide: "azata#voice-of-renewal-conjuration",

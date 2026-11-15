@@ -3,6 +3,7 @@
 [
     (
         key: "primal-regression",
+        blueprint: "07d577a74441a3a44890e3006efcf604",
         name: "Primal Regression",
         school: Enchantment,
         guide: "druid-spells#primal-regression-enchantment",
@@ -16,6 +17,7 @@
     ),
     (
         key: "summon-natures-ally-vi",
+        blueprint: "55bbce9b3e76d4a4a8c8e0698d29002c",
         name: "Summon Nature's Ally VI",
         school: Conjuration,
         guide: "druid-spells#summon-natures-ally-vi-conjuration",

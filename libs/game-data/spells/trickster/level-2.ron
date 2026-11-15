@@ -3,6 +3,7 @@
 [
     (
         key: "bears-grace",
+        blueprint: "770eef29433299e4f9d21142d0706cfb",
         name: "Bear's Grace",
         school: Transmutation,
         guide: "trickster#bears-grace-transmutation",
@@ -16,6 +17,7 @@
     ),
     (
         key: "fish-missile",
+        blueprint: "3d1c5aa69827faf419bb17b0a8cadf9b",
         name: "Fish Missile",
         school: Conjuration,
         guide: "trickster#fish-missile-conjuration",

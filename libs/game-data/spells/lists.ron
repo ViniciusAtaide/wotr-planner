@@ -5,6 +5,7 @@
 [
     (
         key: "aeon",
+        blueprint: "24b0c796f723a144e9891b6c4794c595",
         name: "Aeon Spells",
         guide: "aeon#aeon-spells",
         owner: Path("aeon"),
@@ -115,6 +116,7 @@
     ),
     (
         key: "alchemist",
+        blueprint: "f60d0cd93edc65c42ad31e34a905fb2f",
         name: "Alchemist Extracts",
         guide: "alchemist#alchemist-extracts",
         owner: Class("alchemist"),
@@ -201,6 +203,7 @@
     ),
     (
         key: "angel",
+        blueprint: "c074062863fbc1e4bab02f9e6e4eb78d",
         name: "Angel Spells (Unmerged)",
         guide: "angel#angel-spells-unmerged",
         owner: Path("angel"),
@@ -333,6 +336,7 @@
     ),
     (
         key: "arcanist/magic-deceiver",
+        blueprint: "cf20c10b131344c1a61b75e9cc4a4c13",
         name: "Magic Deceiver Spells",
         guide: "arcanist#magic-deceiver-spells",
         owner: Archetype("arcanist/magic-deceiver"),
@@ -401,6 +405,7 @@
     ),
     (
         key: "azata",
+        blueprint: "db216faa0ff2b984399e7495755c7111",
         name: "Azata Spells",
         guide: "azata#azata-spells",
         owner: Path("azata"),
@@ -490,6 +495,7 @@
     ),
     (
         key: "bard",
+        blueprint: "25a5013493bdcf74bb2424532214d0c8",
         name: "Bard Spells",
         guide: "bard#bard-spells",
         owner: Class("bard"),
@@ -620,6 +626,7 @@
     ),
     (
         key: "bloodrager",
+        blueprint: "98c05aeff6e3d384f8aec6d584973642",
         name: "Bloodrager Spells",
         guide: "bloodrager#bloodrager-spells",
         owner: Class("bloodrager"),
@@ -689,6 +696,7 @@
     ),
     (
         key: "cleric",
+        blueprint: "8443ce803d2d31347897a3d85cc32f53",
         name: "Cleric Spells",
         guide: "cleric-spells",
         owner: Class("cleric"),
@@ -889,6 +897,7 @@
     ),
     (
         key: "demon",
+        blueprint: "78721d556676f264da947bfe263b1da0",
         name: "Demon Spells",
         guide: "demon#demon-spells",
         owner: Path("demon"),
@@ -960,6 +969,7 @@
     ),
     (
         key: "druid",
+        blueprint: "bad8638d40639d04fa2f80a1cac67d6b",
         name: "Druid Spells",
         guide: "druid-spells",
         owner: Class("druid"),
@@ -1117,6 +1127,7 @@
     ),
     (
         key: "gold-dragon",
+        blueprint: "6b8d215a54cd49d88a6de62352e9cac2",
         name: "Gold Dragon Spells",
         guide: "gold-dragon#gold-dragon-spells",
         owner: Path("gold-dragon"),
@@ -1185,6 +1196,7 @@
     ),
     (
         key: "hunter",
+        blueprint: "d090b791bfe381740b98ed4ff909b1cf",
         name: "Hunter Spells",
         guide: "hunter#hunter-spells",
         owner: Class("hunter"),
@@ -1300,6 +1312,7 @@
     ),
     (
         key: "inquisitor",
+        blueprint: "57c894665b7895c499b3dce058c284b3",
         name: "Inquisitor Spells",
         guide: "inquisitor#inquisitor-spells",
         owner: Class("inquisitor"),
@@ -1426,6 +1439,7 @@
     ),
     (
         key: "lich",
+        blueprint: "7d5987082120bb943ac96cde7b2257ad",
         name: "Lich Spells (Unmerged)",
         guide: "lich#lich-spells-unmerged",
         owner: Path("lich"),
@@ -1593,6 +1607,7 @@
     ),
     (
         key: "magus",
+        blueprint: "4d72e1e7bd6bc4f4caaea7aa43a14639",
         name: "Magus Spells",
         guide: "magus#magus-spells",
         owner: Class("magus"),
@@ -1700,6 +1715,7 @@
     ),
     (
         key: "paladin",
+        blueprint: "9f5be2f7ea64fe04eb40878347b147bc",
         name: "Paladin Spells",
         guide: "paladin#paladin-spells",
         owner: Class("paladin"),
@@ -1771,6 +1787,7 @@
     ),
     (
         key: "ranger",
+        blueprint: "29f3c338532390546bc5347826a655c4",
         name: "Ranger Spells",
         guide: "ranger#ranger-spells",
         owner: Class("ranger"),
@@ -1839,6 +1856,7 @@
     ),
     (
         key: "shaman",
+        blueprint: "c0c40e42f07ff104fa85492da464ac69",
         name: "Shaman Spells",
         guide: "shaman#shaman-spells",
         owner: Class("shaman"),
@@ -2001,6 +2019,7 @@
     ),
     (
         key: "trickster",
+        blueprint: "40f8cfe98ca4ebd43894267dbd3fc3ae",
         name: "Trickster Spells",
         guide: "trickster#trickster-spells",
         owner: Path("trickster"),
@@ -2075,6 +2094,7 @@
     ),
     (
         key: "warpriest",
+        blueprint: "c5a1b8df32914d74c9b44052ba3e686a",
         name: "Warpriest Spells",
         guide: "warpriest#warpriest-spells",
         owner: Class("warpriest"),
@@ -2225,6 +2245,7 @@
     ),
     (
         key: "witch",
+        blueprint: "e17df9977b879b64e8a8cbb4b3569f19",
         name: "Witch Spells",
         guide: "witch#witch-spells",
         owner: Class("witch"),
@@ -2407,6 +2428,7 @@
     ),
     (
         key: "wizard",
+        blueprint: "ba0401fdeb4062f40a7aa95b6f07fe89",
         name: "Wizard Spells",
         guide: "wizard-spells",
         owner: Class("wizard"),

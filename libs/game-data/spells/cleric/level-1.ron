@@ -3,6 +3,7 @@
 [
     (
         key: "bane",
+        blueprint: "8bc64d869456b004b9db255cdd1ea734",
         name: "Bane",
         school: Enchantment,
         guide: "cleric-spells#bane-enchantment",
@@ -16,6 +17,7 @@
     ),
     (
         key: "bless",
+        blueprint: "90e59f4a4ada87243b7b3535a06d0638",
         name: "Bless",
         school: Enchantment,
         guide: "cleric-spells#bless-enchantment",
@@ -29,6 +31,7 @@
     ),
     (
         key: "command",
+        blueprint: "feb70aab86cc17f4bb64432c83737ac2",
         name: "Command",
         school: Enchantment,
         guide: "cleric-spells#command-enchantment",
@@ -42,6 +45,7 @@
     ),
     (
         key: "cure-light-wounds",
+        blueprint: "5590652e1c2225c4ca30c4a699ab3649",
         name: "Cure Light Wounds",
         school: Conjuration,
         guide: "cleric-spells#cure-light-wounds-conjuration",
@@ -54,6 +58,7 @@
     ),
     (
         key: "divine-favor",
+        blueprint: "9d5d2d3ffdd73c648af3eb3e585b1113",
         name: "Divine Favor",
         school: Evocation,
         guide: "cleric-spells#divine-favor-evocation",
@@ -67,6 +72,7 @@
     ),
     (
         key: "doom",
+        blueprint: "fbdd8c455ac4cde4a9a3e18c84af9485",
         name: "Doom",
         school: Necromancy,
         guide: "cleric-spells#doom-necromancy",
@@ -80,6 +86,7 @@
     ),
     (
         key: "firebelly",
+        blueprint: "b065231094a21d14dbf1c3832f776871",
         name: "Firebelly",
         school: Abjuration,
         guide: "cleric-spells#firebelly-abjuration",
@@ -93,6 +100,7 @@
     ),
     (
         key: "haze-of-dreams",
+        blueprint: "40ec382849b60504d88946df46a10f2d",
         name: "Haze of Dreams",
         school: Enchantment,
         guide: "cleric-spells#haze-of-dreams-enchantment",
@@ -106,6 +114,7 @@
     ),
     (
         key: "inflict-light-wounds",
+        blueprint: "e5af3674bb241f14b9a9f6b0c7dc3d27",
         name: "Inflict Light Wounds",
         school: Necromancy,
         guide: "cleric-spells#inflict-light-wounds-necromancy",
@@ -118,6 +127,7 @@
     ),
     (
         key: "remove-fear",
+        blueprint: "55a037e514c0ee14a8e3ed14b47061de",
         name: "Remove Fear",
         school: Abjuration,
         guide: "cleric-spells#remove-fear-abjuration",
@@ -131,6 +141,7 @@
     ),
     (
         key: "remove-sickness",
+        blueprint: "f6f95242abdfac346befd6f4f6222140",
         name: "Remove Sickness",
         school: Conjuration,
         guide: "cleric-spells#remove-sickness-conjuration",
@@ -144,6 +155,7 @@
     ),
     (
         key: "shield-of-faith",
+        blueprint: "183d5bb91dea3a1489a6db6c9cb64445",
         name: "Shield of Faith",
         school: Abjuration,
         guide: "cleric-spells#shield-of-faith-abjuration",
@@ -157,6 +169,7 @@
     ),
     (
         key: "strand-of-the-tangled-knot",
+        blueprint: "c9a44aa36957416db24aee8c4e3b6f59",
         name: "Strand of the Tangled Knot",
         school: Abjuration,
         guide: "cleric-spells#strand-of-the-tangled-knot-abjuration",
@@ -170,6 +183,7 @@
     ),
     (
         key: "unbreakable-heart",
+        blueprint: "dd38f33c56ad00a4da386c1afaa49967",
         name: "Unbreakable Heart",
         school: Enchantment,
         guide: "cleric-spells#unbreakable-heart-enchantment",

@@ -3,6 +3,7 @@
 [
     (
         key: "acid-fog",
+        blueprint: "dbf99b00cd35d0a4491c6cc9e771b487",
         name: "Acid Fog",
         school: Conjuration,
         guide: "wizard-spells#acid-fog-conjuration",
@@ -16,6 +17,7 @@
     ),
     (
         key: "banshee-blast",
+        blueprint: "d42c6d3f29e07b6409d670792d72bc82",
         name: "Banshee Blast",
         school: Necromancy,
         guide: "wizard-spells#banshee-blast-necromancy",
@@ -29,6 +31,7 @@
     ),
     (
         key: "bears-endurance-mass",
+        blueprint: "f6bcea6db14f0814d99b54856e918b92",
         name: "Bear's Endurance, Mass",
         school: Transmutation,
         guide: "wizard-spells#bears-endurance-mass-transmutation",
@@ -42,6 +45,7 @@
     ),
     (
         key: "beast-shape-iv",
+        blueprint: "940a545a665194b48b722c1f9dd78d53",
         name: "Beast Shape IV",
         school: Transmutation,
         guide: "wizard-spells#beast-shape-iv-transmutation",
@@ -55,6 +59,7 @@
     ),
     (
         key: "bulls-strength-mass",
+        blueprint: "6a234c6dcde7ae94e94e9c36fd1163a7",
         name: "Bull's Strength, Mass",
         school: Transmutation,
         guide: "wizard-spells#bulls-strength-mass-transmutation",
@@ -68,6 +73,7 @@
     ),
     (
         key: "cats-grace-mass",
+        blueprint: "1f6c94d56f178b84ead4c02f1b1e1c48",
         name: "Cat's Grace, Mass",
         school: Transmutation,
         guide: "wizard-spells#cats-grace-mass-transmutation",
@@ -81,6 +87,7 @@
     ),
     (
         key: "chain-lightning",
+        blueprint: "645558d63604747428d55f0dd3a4cb58",
         name: "Chain Lightning",
         school: Evocation,
         guide: "wizard-spells#chain-lightning-evocation",
@@ -93,6 +100,7 @@
     ),
     (
         key: "chains-of-light",
+        blueprint: "f8cea58227f59c64399044a82c9735c4",
         name: "Chains of Light",
         school: Conjuration,
         guide: "wizard-spells#chains-of-light-conjuration",
@@ -106,6 +114,7 @@
     ),
     (
         key: "circle-of-death",
+        blueprint: "a89dcbbab8f40e44e920cc60636097cf",
         name: "Circle of Death",
         school: Necromancy,
         guide: "wizard-spells#circle-of-death-necromancy",
@@ -119,6 +128,7 @@
     ),
     (
         key: "cloak-of-dreams",
+        blueprint: "7f71a70d822af94458dc1a235507e972",
         name: "Cloak of Dreams",
         school: Enchantment,
         guide: "wizard-spells#cloak-of-dreams-enchantment",
@@ -132,6 +142,7 @@
     ),
     (
         key: "cold-ice-strike",
+        blueprint: "5ef85d426783a5347b420546f91a677b",
         name: "Cold Ice Strike",
         school: Evocation,
         guide: "wizard-spells#cold-ice-strike-evocation",
@@ -144,6 +155,7 @@
     ),
     (
         key: "create-undead",
+        blueprint: "76a11b460be25e44ca85904d6806e5a3",
         name: "Create Undead",
         school: Necromancy,
         guide: "wizard-spells#create-undead-necromancy",
@@ -157,6 +169,7 @@
     ),
     (
         key: "disintegrate",
+        blueprint: "4aa7942c3e62a164387a73184bca3fc1",
         name: "Disintegrate",
         school: Transmutation,
         guide: "wizard-spells#disintegrate-transmutation",
@@ -169,6 +182,7 @@
     ),
     (
         key: "dispel-magic-greater",
+        blueprint: "f0f761b808dc4b149b08eaf44b99f633",
         name: "Dispel Magic, Greater",
         school: Abjuration,
         guide: "wizard-spells#dispel-magic-greater-abjuration",
@@ -181,6 +195,7 @@
     ),
     (
         key: "dragonkind-i",
+        blueprint: "f767399367df54645ac620ef7b2062bb",
         name: "Dragonkind I",
         school: Transmutation,
         guide: "wizard-spells#dragonkind-i-transmutation",
@@ -194,6 +209,7 @@
     ),
     (
         key: "eagles-splendor-mass",
+        blueprint: "2caa607eadda4ab44934c5c9875e01bc",
         name: "Eagle's Splendor, Mass",
         school: Transmutation,
         guide: "wizard-spells#eagles-splendor-mass-transmutation",
@@ -207,6 +223,7 @@
     ),
     (
         key: "elemental-assessor",
+        blueprint: "6303b404df12b0f4793fa0763b21dd2c",
         name: "Elemental Assessor",
         school: Evocation,
         guide: "wizard-spells#elemental-assessor-evocation",
@@ -220,6 +237,7 @@
     ),
     (
         key: "elemental-body-iii",
+        blueprint: "459e6d5aab080a14499e13b407eb3b85",
         name: "Elemental Body III",
         school: Transmutation,
         guide: "wizard-spells#elemental-body-iii-transmutation",
@@ -233,6 +251,7 @@
     ),
     (
         key: "eyebite",
+        blueprint: "3167d30dd3c622c46b0c0cb242061642",
         name: "Eyebite",
         school: Necromancy,
         guide: "wizard-spells#eyebite-necromancy",
@@ -246,6 +265,7 @@
     ),
     (
         key: "foxs-cunning-mass",
+        blueprint: "2b24159ad9907a8499c2313ba9c0f615",
         name: "Fox's Cunning, Mass",
         school: Transmutation,
         guide: "wizard-spells#foxs-cunning-mass-transmutation",
@@ -259,6 +279,7 @@
     ),
     (
         key: "hellfire-ray",
+        blueprint: "700cfcbd0cb2975419bcab7dbb8c6210",
         name: "Hellfire Ray",
         school: Evocation,
         guide: "wizard-spells#hellfire-ray-evocation",
@@ -271,6 +292,7 @@
     ),
     (
         key: "heroism-greater",
+        blueprint: "e15e5e7045fda2244b98c8f010adfe31",
         name: "Heroism, Greater",
         school: Enchantment,
         guide: "wizard-spells#heroism-greater-enchantment",
@@ -284,6 +306,7 @@
     ),
     (
         key: "owls-wisdom-mass",
+        blueprint: "9f5ada581af3db4419b54db77f44e430",
         name: "Owl's Wisdom, Mass",
         school: Transmutation,
         guide: "wizard-spells#owls-wisdom-mass-transmutation",
@@ -297,6 +320,7 @@
     ),
     (
         key: "phantasmal-putrefaction",
+        blueprint: "1f2e6019ece86d64baa5effa15e81ecc",
         name: "Phantasmal Putrefaction",
         school: Illusion,
         guide: "wizard-spells#phantasmal-putrefaction-illusion",
@@ -310,6 +334,7 @@
     ),
     (
         key: "repulsion",
+        blueprint: "cb55ae9517a444548d3457f91f829679",
         name: "Repulsion",
         school: Abjuration,
         guide: "wizard-spells#repulsion-abjuration",
@@ -323,6 +348,7 @@
     ),
     (
         key: "serenity",
+        blueprint: "d316d3d94d20c674db2c24d7de96f6a7",
         name: "Serenity",
         school: Enchantment,
         guide: "wizard-spells#serenity-enchantment",
@@ -336,6 +362,7 @@
     ),
     (
         key: "sirocco",
+        blueprint: "093ed1d67a539ad4c939d9d05cfe192c",
         name: "Sirocco",
         school: Evocation,
         guide: "wizard-spells#sirocco-evocation",
@@ -349,6 +376,7 @@
     ),
     (
         key: "stone-to-flesh",
+        blueprint: "e243740dfdb17a246b116b334ed0b165",
         name: "Stone to Flesh",
         school: Transmutation,
         guide: "wizard-spells#stone-to-flesh-transmutation",
@@ -361,6 +389,7 @@
     ),
     (
         key: "summon-huge-elemental",
+        blueprint: "766ec978fa993034f86a372c8eb1fc10",
         name: "Summon Huge Elemental",
         school: Conjuration,
         guide: "wizard-spells#summon-huge-elemental-conjuration",
@@ -374,6 +403,7 @@
     ),
     (
         key: "summon-monster-vi",
+        blueprint: "e740afbab0147944dab35d83faa0ae1c",
         name: "Summon Monster VI",
         school: Conjuration,
         guide: "wizard-spells#summon-monster-vi-conjuration",
@@ -387,6 +417,7 @@
     ),
     (
         key: "tar-pool",
+        blueprint: "7d700cdf260d36e48bb7af3a8ca5031f",
         name: "Tar Pool",
         school: Transmutation,
         guide: "wizard-spells#tar-pool-transmutation",
@@ -400,6 +431,7 @@
     ),
     (
         key: "transformation",
+        blueprint: "27203d62eb3d4184c9aced94f22e1806",
         name: "Transformation",
         school: Transmutation,
         guide: "wizard-spells#transformation-transmutation",
@@ -413,6 +445,7 @@
     ),
     (
         key: "true-seeing",
+        blueprint: "4cf3d0fae3239ec478f51e86f49161cb",
         name: "True Seeing",
         school: Divination,
         guide: "wizard-spells#true-seeing-divination",
@@ -426,6 +459,7 @@
     ),
     (
         key: "undeath-to-death",
+        blueprint: "a9a52760290591844a96d0109e30e04d",
         name: "Undeath to Death",
         school: Necromancy,
         guide: "wizard-spells#undeath-to-death-necromancy",

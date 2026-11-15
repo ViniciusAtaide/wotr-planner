@@ -3,6 +3,7 @@
 [
     (
         key: "aegis-of-the-faithful",
+        blueprint: "d7882fc74a30f5f43afb644045299b63",
         name: "Aegis of the Faithful",
         school: Abjuration,
         guide: "angel#aegis-of-the-faithful-abjuration",
@@ -16,6 +17,7 @@
     ),
     (
         key: "bolt-of-justice",
+        blueprint: "c82168800b665324f8b4807b531fea46",
         name: "Bolt of Justice",
         school: Conjuration,
         guide: "angel#bolt-of-justice-conjuration",
@@ -28,6 +30,7 @@
     ),
     (
         key: "holy-hymn",
+        blueprint: "de8a737580c4cb94f9b21c290d4af17d",
         name: "Holy Hymn",
         school: Abjuration,
         guide: "angel#holy-hymn-abjuration",
@@ -41,6 +44,7 @@
     ),
     (
         key: "ward-against-harm-communal",
+        blueprint: "ab43915fec9e61f4588447f01f2ff6e2",
         name: "Ward Against Harm, Communal",
         school: Abjuration,
         guide: "angel#ward-against-harm-communal-abjuration",
@@ -54,6 +58,7 @@
     ),
     (
         key: "ward-against-weakness",
+        blueprint: "b66eee357e8404d49b7d8ad58cbb7f15",
         name: "Ward Against Weakness",
         school: Abjuration,
         guide: "angel#ward-against-weakness-abjuration",

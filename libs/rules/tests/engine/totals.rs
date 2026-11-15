@@ -39,6 +39,7 @@ fn world_with_bonus_items() -> GameData {
     for key in ["improved-initiative", "iron-will"] {
         data.feats.push(Feat {
             key: feat(key),
+            blueprint: None,
             name: key.into(),
             category: FeatCategory::Miscellaneous,
             summary: String::new(),
@@ -55,6 +56,7 @@ fn world_with_bonus_items() -> GameData {
     stat_focus.prerequisite = None;
     data.mythic_feats.push(MythicFeat {
         key: MythicFeatKey::new("improved-initiative-mythic"),
+        blueprint: None,
         name: "improved-initiative-mythic".into(),
         group: MythicFeatGroup::Miscellaneous,
         summary: String::new(),
@@ -67,6 +69,7 @@ fn world_with_bonus_items() -> GameData {
     });
     data.mythic_abilities.push(MythicAbility {
         key: MythicAbilityKey::new("grace"),
+        blueprint: None,
         name: "grace".into(),
         group: MythicAbilityGroup::Miscellaneous,
         summary: String::new(),
@@ -78,6 +81,7 @@ fn world_with_bonus_items() -> GameData {
     });
     data.backgrounds.push(Background {
         key: BackgroundKey::new("pickpocket"),
+        blueprint: None,
         name: "pickpocket".into(),
         group: None,
         note: String::new(),
@@ -89,6 +93,7 @@ fn world_with_bonus_items() -> GameData {
     let half_elf = data.races.iter_mut().find(|r| r.key.as_str() == "half-elf");
     half_elf.unwrap().subraces.push(Subrace {
         key: SubraceKey::new("half-elf/kindred"),
+        blueprint: None,
         name: "half-elf/kindred".into(),
         summary: String::new(),
         guide: GuideRef::new("half-elf/kindred"),

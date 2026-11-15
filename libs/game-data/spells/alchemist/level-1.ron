@@ -3,6 +3,7 @@
 [
     (
         key: "bombers-eye",
+        blueprint: "9d504f8dff6e93b4ab6afc938ed6a23d",
         name: "Bomber's Eye",
         school: Transmutation,
         guide: "alchemist#bombers-eye-transmutation",
@@ -16,6 +17,7 @@
     ),
     (
         key: "targeted-bomb-admixture",
+        blueprint: "24afb2c948c731440a3aaf5411904c89",
         name: "Targeted Bomb Admixture",
         school: Transmutation,
         guide: "alchemist#targeted-bomb-admixture-transmutation",

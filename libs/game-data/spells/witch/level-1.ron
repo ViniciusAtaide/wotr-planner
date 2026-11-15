@@ -3,6 +3,7 @@
 [
     (
         key: "ill-omen",
+        blueprint: "ca577309cedc4f1daf6fe5795fb2619b",
         name: "Ill Omen",
         school: Enchantment,
         guide: "witch#ill-omen-enchantment",

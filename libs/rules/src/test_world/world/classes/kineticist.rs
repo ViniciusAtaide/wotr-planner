@@ -58,6 +58,7 @@ pub(in crate::test_world::world) fn kineticist() -> Class {
     Class {
         casting_ability: None,
         key: class("kineticist"),
+        blueprint: None,
         name: "Kineticist".into(),
         summary: String::new(),
         guide: guide("kineticist"),

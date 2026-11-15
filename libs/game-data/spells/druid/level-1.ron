@@ -3,6 +3,7 @@
 [
     (
         key: "acid-maw",
+        blueprint: "75de4ded3e731dc4f84d978fe947dc67",
         name: "Acid Maw",
         school: Transmutation,
         guide: "druid-spells#acid-maw-transmutation",
@@ -16,6 +17,7 @@
     ),
     (
         key: "aspect-of-the-falcon",
+        blueprint: "7bdb6a9fb6b37614e96f155748ae50c6",
         name: "Aspect of the Falcon",
         school: Transmutation,
         guide: "druid-spells#aspect-of-the-falcon-transmutation",
@@ -29,6 +31,7 @@
     ),
     (
         key: "entangle",
+        blueprint: "0fd00984a2c0e0a429cf1a911b4ec5ca",
         name: "Entangle",
         school: Transmutation,
         guide: "druid-spells#entangle-transmutation",
@@ -42,6 +45,7 @@
     ),
     (
         key: "faerie-fire",
+        blueprint: "4d9bf81b7939b304185d58a09960f589",
         name: "Faerie Fire",
         school: Transmutation,
         guide: "druid-spells#faerie-fire-transmutation",
@@ -55,6 +59,7 @@
     ),
     (
         key: "feather-step",
+        blueprint: "f3c0b267dd17a2a45a40805e31fe3cd1",
         name: "Feather Step",
         school: Transmutation,
         guide: "druid-spells#feather-step-transmutation",
@@ -68,6 +73,7 @@
     ),
     (
         key: "longstrider",
+        blueprint: "14c90900b690cac429b229efdf416127",
         name: "Longstrider",
         school: Transmutation,
         guide: "druid-spells#longstrider-transmutation",
@@ -81,6 +87,7 @@
     ),
     (
         key: "magic-fang",
+        blueprint: "403cf599412299a4f9d5d925c7b9fb33",
         name: "Magic Fang",
         school: Transmutation,
         guide: "druid-spells#magic-fang-transmutation",
@@ -94,6 +101,7 @@
     ),
     (
         key: "summon-natures-ally-i",
+        blueprint: "c6147854641924442a3bb736080cfeb6",
         name: "Summon Nature's Ally I",
         school: Conjuration,
         guide: "druid-spells#summon-natures-ally-i-conjuration",

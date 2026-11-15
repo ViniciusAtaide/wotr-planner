@@ -3,6 +3,7 @@
 [
     (
         key: "fester",
+        blueprint: "2dbe271c979d9104c8e2e6b42e208e32",
         name: "Fester",
         school: Necromancy,
         guide: "inquisitor#fester-necromancy",
@@ -16,6 +17,7 @@
     ),
     (
         key: "litany-of-eloquence",
+        blueprint: "c9198d9dfd2515d4ba98335b57bb66c7",
         name: "Litany of Eloquence",
         school: Enchantment,
         guide: "inquisitor#litany-of-eloquence-enchantment",
@@ -29,6 +31,7 @@
     ),
     (
         key: "litany-of-entanglement",
+        blueprint: "16f7754287811724abe1e0ead88f74ca",
         name: "Litany of Entanglement",
         school: Conjuration,
         guide: "inquisitor#litany-of-entanglement-conjuration",

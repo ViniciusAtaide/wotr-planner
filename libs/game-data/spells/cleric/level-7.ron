@@ -3,6 +3,7 @@
 [
     (
         key: "arbitrament",
+        blueprint: "0f5bd128c76dd374b8cb9111e3b5186b",
         name: "Arbitrament",
         school: Evocation,
         guide: "cleric-spells#arbitrament-evocation",
@@ -16,6 +17,7 @@
     ),
     (
         key: "bestow-grace-of-the-champion",
+        blueprint: "199d585bff173c74b86387856919242c",
         name: "Bestow Grace of the Champion",
         school: Transmutation,
         guide: "cleric-spells#bestow-grace-of-the-champion-transmutation",
@@ -29,6 +31,7 @@
     ),
     (
         key: "blasphemy",
+        blueprint: "bd10c534a09f44f4ea632c8b8ae97145",
         name: "Blasphemy",
         school: Evocation,
         guide: "cleric-spells#blasphemy-evocation",
@@ -42,6 +45,7 @@
     ),
     (
         key: "breath-of-nothingness",
+        blueprint: "4912cf545d1e48ba8f786dc67d5abb4b",
         name: "Breath of Nothingness",
         school: Conjuration,
         guide: "cleric-spells#breath-of-nothingness-conjuration",
@@ -54,6 +58,7 @@
     ),
     (
         key: "cure-serious-wounds-mass",
+        blueprint: "0cea35de4d553cc439ae80b3a8724397",
         name: "Cure Serious Wounds, Mass",
         school: Conjuration,
         guide: "cleric-spells#cure-serious-wounds-mass-conjuration",
@@ -66,6 +71,7 @@
     ),
     (
         key: "destruction",
+        blueprint: "3b646e1db3403b940bf620e01d2ce0c7",
         name: "Destruction",
         school: Necromancy,
         guide: "cleric-spells#destruction-necromancy",
@@ -78,6 +84,7 @@
     ),
     (
         key: "dictum",
+        blueprint: "302ab5e241931a94881d323a7844ae8f",
         name: "Dictum",
         school: Evocation,
         guide: "cleric-spells#dictum-evocation",
@@ -91,6 +98,7 @@
     ),
     (
         key: "holy-word",
+        blueprint: "4737294a66c91b844842caee8cf505c8",
         name: "Holy Word",
         school: Evocation,
         guide: "cleric-spells#holy-word-evocation",
@@ -104,6 +112,7 @@
     ),
     (
         key: "inflict-serious-wounds-mass",
+        blueprint: "820170444d4d2a14abc480fcbdb49535",
         name: "Inflict Serious Wounds, Mass",
         school: Necromancy,
         guide: "cleric-spells#inflict-serious-wounds-mass-necromancy",
@@ -116,6 +125,7 @@
     ),
     (
         key: "jolting-portent",
+        blueprint: "0dd638688edf68a4da865752d7b9ee82",
         name: "Jolting Portent",
         school: Evocation,
         guide: "cleric-spells#jolting-portent-evocation",
@@ -129,6 +139,7 @@
     ),
     (
         key: "poison-breath",
+        blueprint: "b5be90707c17a9643b90d90b7c4096e2",
         name: "Poison Breath",
         school: Evocation,
         guide: "cleric-spells#poison-breath-evocation",
@@ -142,6 +153,7 @@
     ),
     (
         key: "restoration-greater",
+        blueprint: "fafd77c6bfa85c04ba31fdc1c962c914",
         name: "Restoration, Greater",
         school: Conjuration,
         guide: "cleric-spells#restoration-greater-conjuration",
@@ -155,6 +167,7 @@
     ),
     (
         key: "resurrection",
+        blueprint: "80a1a388ee938aa4e90d427ce9a7a3e9",
         name: "Resurrection",
         school: Conjuration,
         guide: "cleric-spells#resurrection-conjuration",
@@ -168,6 +181,7 @@
     ),
     (
         key: "word-of-chaos",
+        blueprint: "69f2e7aff2d1cd148b8075ee476515b1",
         name: "Word of Chaos",
         school: Evocation,
         guide: "cleric-spells#word-of-chaos-evocation",

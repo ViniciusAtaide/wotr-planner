@@ -3,6 +3,7 @@
 [
     (
         key: "chameleon-stride-greater",
+        blueprint: "7ec0ffdd8779c344f85337109af0c6c5",
         name: "Chameleon Stride, Greater",
         school: Illusion,
         guide: "ranger#chameleon-stride-greater-illusion",
@@ -16,6 +17,7 @@
     ),
     (
         key: "instant-enemy",
+        blueprint: "42c78009dd5cb8e429b27c13d92152b7",
         name: "Instant Enemy",
         school: Enchantment,
         guide: "ranger#instant-enemy-enchantment",

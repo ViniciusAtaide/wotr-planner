@@ -3,6 +3,7 @@
 [
     (
         key: "acid-arrow",
+        blueprint: "9a46dfd390f943647ab4395fc997936d",
         name: "Acid Arrow",
         school: Conjuration,
         guide: "wizard-spells#acid-arrow-conjuration",
@@ -16,6 +17,7 @@
     ),
     (
         key: "animal-aspect",
+        blueprint: "d4b28341acdfa9443a3a779acb58be51",
         name: "Animal Aspect",
         school: Transmutation,
         guide: "wizard-spells#animal-aspect-transmutation",
@@ -29,6 +31,7 @@
     ),
     (
         key: "bears-endurance",
+        blueprint: "a900628aea19aa74aad0ece0e65d091a",
         name: "Bear's Endurance",
         school: Transmutation,
         guide: "wizard-spells#bears-endurance-transmutation",
@@ -42,6 +45,7 @@
     ),
     (
         key: "blindness",
+        blueprint: "46fd02ad56c35224c9c91c88cd457791",
         name: "Blindness",
         school: Necromancy,
         guide: "wizard-spells#blindness-necromancy",
@@ -55,6 +59,7 @@
     ),
     (
         key: "blur",
+        blueprint: "14ec7a4e52e90fa47a4c8d63c69fd5c1",
         name: "Blur",
         school: Illusion,
         guide: "wizard-spells#blur-illusion",
@@ -68,6 +73,7 @@
     ),
     (
         key: "bone-fists",
+        blueprint: "0da2046b4517427bb9b2e304ea6342bf",
         name: "Bone Fists",
         school: Necromancy,
         guide: "wizard-spells#bone-fists-necromancy",
@@ -81,6 +87,7 @@
     ),
     (
         key: "boneshaker",
+        blueprint: "b7731c2b4fa1c9844a092329177be4c3",
         name: "Boneshaker",
         school: Necromancy,
         guide: "wizard-spells#boneshaker-necromancy",
@@ -93,6 +100,7 @@
     ),
     (
         key: "bulls-strength",
+        blueprint: "4c3d08935262b6544ae97599b3a9556d",
         name: "Bull's Strength",
         school: Transmutation,
         guide: "wizard-spells#bulls-strength-transmutation",
@@ -106,6 +114,7 @@
     ),
     (
         key: "burning-arc",
+        blueprint: "eaac3d36e0336cb479209a6f65e25e7c",
         name: "Burning Arc",
         school: Evocation,
         guide: "wizard-spells#burning-arc-evocation",
@@ -118,6 +127,7 @@
     ),
     (
         key: "cats-grace",
+        blueprint: "de7a025d48ad5da4991e7d3c682cf69d",
         name: "Cat's Grace",
         school: Transmutation,
         guide: "wizard-spells#cats-grace-transmutation",
@@ -131,6 +141,7 @@
     ),
     (
         key: "command-undead",
+        blueprint: "0b101dd5618591e478f825f0eef155b4",
         name: "Command Undead",
         school: Necromancy,
         guide: "wizard-spells#command-undead-necromancy",
@@ -144,6 +155,7 @@
     ),
     (
         key: "create-pit",
+        blueprint: "29ccc62632178d344ad0be0865fd3113",
         name: "Create Pit",
         school: Conjuration,
         guide: "wizard-spells#create-pit-conjuration",
@@ -157,6 +169,7 @@
     ),
     (
         key: "eagles-splendor",
+        blueprint: "446f7bf201dc1934f96ac0a26e324803",
         name: "Eagle's Splendor",
         school: Transmutation,
         guide: "wizard-spells#eagles-splendor-transmutation",
@@ -170,6 +183,7 @@
     ),
     (
         key: "false-life",
+        blueprint: "7a5b5bf845779a941a67251539545762",
         name: "False Life",
         school: Necromancy,
         guide: "wizard-spells#false-life-necromancy",
@@ -183,6 +197,7 @@
     ),
     (
         key: "foxs-cunning",
+        blueprint: "ae4d3ad6a8fda1542acf2e9bbc13d113",
         name: "Fox's Cunning",
         school: Transmutation,
         guide: "wizard-spells#foxs-cunning-transmutation",
@@ -196,6 +211,7 @@
     ),
     (
         key: "frigid-touch",
+        blueprint: "b6010dda6333bcf4093ce20f0063cd41",
         name: "Frigid Touch",
         school: Evocation,
         guide: "wizard-spells#frigid-touch-evocation",
@@ -208,6 +224,7 @@
     ),
     (
         key: "ghoul-touch",
+        blueprint: "a2b05555c704458aaadc34be52a63633",
         name: "Ghoul Touch",
         school: Necromancy,
         guide: "wizard-spells#ghoul-touch-necromancy",
@@ -221,6 +238,7 @@
     ),
     (
         key: "glitterdust",
+        blueprint: "ce7dad2b25acf85429b6c9550787b2d9",
         name: "Glitterdust",
         school: Conjuration,
         guide: "wizard-spells#glitterdust-conjuration",
@@ -234,6 +252,7 @@
     ),
     (
         key: "haunting-mists",
+        blueprint: "ed22aa8751c049fa915dabfa29712c08",
         name: "Haunting Mists",
         school: Illusion,
         guide: "wizard-spells#haunting-mists-illusion",
@@ -247,6 +266,7 @@
     ),
     (
         key: "hideous-laughter",
+        blueprint: "fd4d9fd7f87575d47aafe2a64a6e2d8d",
         name: "Hideous Laughter",
         school: Enchantment,
         guide: "wizard-spells#hideous-laughter-enchantment",
@@ -260,6 +280,7 @@
     ),
     (
         key: "invisibility",
+        blueprint: "89940cde01689fb46946b2f8cd7b66b7",
         name: "Invisibility",
         school: Illusion,
         guide: "wizard-spells#invisibility-illusion",
@@ -273,6 +294,7 @@
     ),
     (
         key: "mirror-image",
+        blueprint: "3e4ab69ada402d145a5e0ad3ad4b8564",
         name: "Mirror Image",
         school: Illusion,
         guide: "wizard-spells#mirror-image-illusion",
@@ -286,6 +308,7 @@
     ),
     (
         key: "molten-orb",
+        blueprint: "42a65895ba0cb3a42b6019039dd2bff1",
         name: "Molten Orb",
         school: Evocation,
         guide: "wizard-spells#molten-orb-evocation",
@@ -298,6 +321,7 @@
     ),
     (
         key: "mortal-terror",
+        blueprint: "8bc127ed66044685957e54f19d8dbdb7",
         name: "Mortal Terror",
         school: Enchantment,
         guide: "wizard-spells#mortal-terror-enchantment",
@@ -311,6 +335,7 @@
     ),
     (
         key: "owls-wisdom",
+        blueprint: "f0455c9295b53904f9e02fc571dd2ce1",
         name: "Owl's Wisdom",
         school: Transmutation,
         guide: "wizard-spells#owls-wisdom-transmutation",
@@ -324,6 +349,7 @@
     ),
     (
         key: "pernicious-poison",
+        blueprint: "dee3074b2fbfb064b80b973f9b56319e",
         name: "Pernicious Poison",
         school: Necromancy,
         guide: "wizard-spells#pernicious-poison-necromancy",
@@ -337,6 +363,7 @@
     ),
     (
         key: "protection-from-alignment-communal",
+        blueprint: "2cadf6c6350e4684baa109d067277a45",
         name: "Protection from Alignment, Communal",
         school: Abjuration,
         guide: "wizard-spells#protection-from-alignment-communal-abjuration",
@@ -350,6 +377,7 @@
     ),
     (
         key: "protection-from-arrows",
+        blueprint: "c28de1f98a3f432448e52e5d47c73208",
         name: "Protection from Arrows",
         school: Abjuration,
         guide: "wizard-spells#protection-from-arrows-abjuration",
@@ -363,6 +391,7 @@
     ),
     (
         key: "resist-energy",
+        blueprint: "21ffef7791ce73f468b6fca4d9371e8b",
         name: "Resist Energy",
         school: Abjuration,
         guide: "wizard-spells#resist-energy-abjuration",
@@ -376,6 +405,7 @@
     ),
     (
         key: "scare",
+        blueprint: "08cb5f4c3b2695e44971bf5c45205df0",
         name: "Scare",
         school: Necromancy,
         guide: "wizard-spells#scare-necromancy",
@@ -389,6 +419,7 @@
     ),
     (
         key: "scorching-ray",
+        blueprint: "cdb106d53c65bbc4086183d54c3b97c7",
         name: "Scorching Ray",
         school: Evocation,
         guide: "wizard-spells#scorching-ray-evocation",
@@ -401,6 +432,7 @@
     ),
     (
         key: "see-invisibility",
+        blueprint: "30e5dc243f937fc4b95d2f8f4e1b7ff3",
         name: "See Invisibility",
         school: Divination,
         guide: "wizard-spells#see-invisibility-divination",
@@ -414,6 +446,7 @@
     ),
     (
         key: "sense-vitals",
+        blueprint: "82962a820ebc0e7408b8582fdc3f4c0c",
         name: "Sense Vitals",
         school: Divination,
         guide: "wizard-spells#sense-vitals-divination",
@@ -427,6 +460,7 @@
     ),
     (
         key: "stone-call",
+        blueprint: "5181c2ed0190fc34b8a1162783af5bf4",
         name: "Stone Call",
         school: Conjuration,
         guide: "wizard-spells#stone-call-conjuration",
@@ -440,6 +474,7 @@
     ),
     (
         key: "summon-monster-ii",
+        blueprint: "1724061e89c667045a6891179ee2e8e7",
         name: "Summon Monster II",
         school: Conjuration,
         guide: "wizard-spells#summon-monster-ii-conjuration",
@@ -453,6 +488,7 @@
     ),
     (
         key: "summon-small-elemental",
+        blueprint: "970c6db48ff0c6f43afc9dbb48780d03",
         name: "Summon Small Elemental",
         school: Conjuration,
         guide: "wizard-spells#summon-small-elemental-conjuration",
@@ -466,6 +502,7 @@
     ),
     (
         key: "web",
+        blueprint: "134cb6d492269aa4f8662700ef57449f",
         name: "Web",
         school: Transmutation,
         guide: "wizard-spells#web-transmutation",

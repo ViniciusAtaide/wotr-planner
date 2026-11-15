@@ -3,6 +3,7 @@
 [
     (
         key: "black-hole",
+        blueprint: "ea036c023f074c6c964d858607d123b3",
         name: "Black Hole",
         school: Conjuration,
         guide: "aeon#black-hole-conjuration",
@@ -16,6 +17,7 @@
     ),
     (
         key: "edict-of-invulnerability",
+        blueprint: "6d21deddd7712fd409c94d248b75643d",
         name: "Edict of Invulnerability",
         school: Abjuration,
         guide: "aeon#edict-of-invulnerability-abjuration",
@@ -29,6 +31,7 @@
     ),
     (
         key: "perfect-form",
+        blueprint: "91d04f9180e94065ac768959323d2002",
         name: "Perfect Form",
         school: Transmutation,
         guide: "aeon#perfect-form-transmutation",

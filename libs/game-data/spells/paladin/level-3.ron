@@ -3,6 +3,7 @@
 [
     (
         key: "holy-whisper",
+        blueprint: "5f1ca17be3ba44949be427f18e696d9b",
         name: "Holy Whisper",
         school: Evocation,
         guide: "paladin#holy-whisper-evocation",

@@ -3,6 +3,7 @@
 [
     (
         key: "natures-exile",
+        blueprint: "4fe69e00f43203e4fb4c5d128af18309",
         name: "Nature's Exile",
         school: Transmutation,
         guide: "witch#natures-exile-transmutation",

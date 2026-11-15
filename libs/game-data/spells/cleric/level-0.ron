@@ -3,6 +3,7 @@
 [
     (
         key: "divine-zap",
+        blueprint: "8a1992f59e06dd64ab9ba52337bf8cb5",
         name: "Divine Zap",
         school: Divination,
         guide: "cleric-spells#divine-zap-divination",
@@ -15,6 +16,7 @@
     ),
     (
         key: "guidance",
+        blueprint: "c3a8f31778c3980498d8f00c980be5f5",
         name: "Guidance",
         school: Divination,
         guide: "cleric-spells#guidance-divination",
@@ -28,6 +30,7 @@
     ),
     (
         key: "virtue",
+        blueprint: "d3a852385ba4cd740992d1970170301a",
         name: "Virtue",
         school: Transmutation,
         guide: "cleric-spells#virtue-transmutation",

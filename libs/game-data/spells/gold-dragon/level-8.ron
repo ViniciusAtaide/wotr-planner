@@ -3,6 +3,7 @@
 [
     (
         key: "dragon-demand",
+        blueprint: "8af93e330e1642298c88ec6080e5de12",
         name: "Dragon Demand",
         school: Enchantment,
         guide: "gold-dragon#dragon-demand-enchantment",
@@ -16,6 +17,7 @@
     ),
     (
         key: "dragon-might",
+        blueprint: "bfc6aa5be6bc41f68ca78aef37913e9f",
         name: "Dragon Might",
         school: Transmutation,
         guide: "gold-dragon#dragon-might-transmutation",
@@ -29,6 +31,7 @@
     ),
     (
         key: "dragon-smite",
+        blueprint: "a508fd48695440cd8216526a859ecb53",
         name: "Dragon Smite",
         school: Abjuration,
         guide: "gold-dragon#dragon-smite-abjuration",
@@ -42,6 +45,7 @@
     ),
     (
         key: "summon-dragon-i",
+        blueprint: "1e42ecaa79454e85b274edc73e130a03",
         name: "Summon Dragon I",
         school: Conjuration,
         guide: "gold-dragon#summon-dragon-i-conjuration",

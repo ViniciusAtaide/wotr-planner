@@ -14,8 +14,8 @@ use serde::{Deserialize, Serialize};
 use crate::bonus::{ItemBonus, ItemInteractions};
 use crate::gear::GearItem;
 use crate::keys::{
-    ArchetypeKey, BackgroundKey, ClassKey, DeityKey, FeatKey, FeatListKey, FeatureKey,
-    FeatureSelectionKey, MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey,
+    ArchetypeKey, BackgroundKey, BlueprintGuid, ClassKey, DeityKey, FeatKey, FeatListKey,
+    FeatureKey, FeatureSelectionKey, MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey,
     SelectionOptionKey, SkillKey, SubraceKey, WeaponKey,
 };
 use crate::parameter::{Parameter, ParameterKind, Repeat};
@@ -131,6 +131,12 @@ impl GameData {
                     .flat_map(|archetype| &archetype.features),
             )
         })
+    }
+
+    /// Every feature: the [`class_features`](Self::class_features), then each path's.
+    pub fn features(&self) -> impl Iterator<Item = &Feature> {
+        self.class_features()
+            .chain(self.mythic_paths.iter().flat_map(|path| &path.features))
     }
 
     /// A Selection option by key, from any selection's own options (the first, in
@@ -417,6 +423,9 @@ impl FeatCategory {
 #[serde(deny_unknown_fields)]
 pub struct Race {
     pub key: RaceKey,
+    /// The game blueprint behind it, if any ([`BlueprintGuid`]).
+    #[serde(default, skip_serializing)]
+    pub blueprint: Option<BlueprintGuid>,
     pub name: String,
     #[serde(default)]
     pub summary: String,
@@ -450,6 +459,9 @@ pub struct Race {
 #[serde(deny_unknown_fields)]
 pub struct Subrace {
     pub key: SubraceKey,
+    /// The game blueprint behind it, if any ([`BlueprintGuid`]).
+    #[serde(default, skip_serializing)]
+    pub blueprint: Option<BlueprintGuid>,
     pub name: String,
     #[serde(default)]
     pub summary: String,
@@ -498,6 +510,9 @@ pub struct Skill {
 #[serde(deny_unknown_fields)]
 pub struct Background {
     pub key: BackgroundKey,
+    /// The game blueprint behind it, if any ([`BlueprintGuid`]).
+    #[serde(default, skip_serializing)]
+    pub blueprint: Option<BlueprintGuid>,
     pub name: String,
     /// The group the game lists it under; `None` for the background "None".
     #[serde(default)]
@@ -579,6 +594,9 @@ pub const UNARMED_STRIKE: &str = "unarmed-strike";
 #[serde(deny_unknown_fields)]
 pub struct Deity {
     pub key: DeityKey,
+    /// The game blueprint behind it, if any ([`BlueprintGuid`]).
+    #[serde(default, skip_serializing)]
+    pub blueprint: Option<BlueprintGuid>,
     pub name: String,
     pub guide: GuideRef,
     /// The alignments a follower may have: the table's ticks, within one step of the deity's (Godclaw: LG, LN, LE).
@@ -606,6 +624,9 @@ pub enum DeityDomains {
 #[serde(deny_unknown_fields)]
 pub struct Weapon {
     pub key: WeaponKey,
+    /// The game blueprint behind it, if any ([`BlueprintGuid`]).
+    #[serde(default, skip_serializing)]
+    pub blueprint: Option<BlueprintGuid>,
     pub name: String,
     /// The proficiency feat whose list names it; `None` for what no proficiency list names (unarmed strike, rays).
     #[serde(default)]
@@ -681,6 +702,9 @@ pub enum WeaponProficiency {
 #[serde(deny_unknown_fields)]
 pub struct Feat {
     pub key: FeatKey,
+    /// The game blueprint behind it, if any ([`BlueprintGuid`]).
+    #[serde(default, skip_serializing)]
+    pub blueprint: Option<BlueprintGuid>,
     pub name: String,
     pub category: FeatCategory,
     #[serde(default)]
@@ -754,6 +778,9 @@ pub enum FeatSlot {
 #[serde(deny_unknown_fields)]
 pub struct FeatList {
     pub key: FeatListKey,
+    /// The game blueprint behind it, if any ([`BlueprintGuid`]).
+    #[serde(default, skip_serializing)]
+    pub blueprint: Option<BlueprintGuid>,
     pub name: String,
     pub guide: GuideRef,
     /// Set on a bonus list, the class's own bonus-feat list (a monk's bonus feats, a ranger's combat style): a
@@ -781,6 +808,9 @@ impl FeatList {
 #[serde(deny_unknown_fields)]
 pub struct Class {
     pub key: ClassKey,
+    /// The game blueprint behind it, if any ([`BlueprintGuid`]).
+    #[serde(default, skip_serializing)]
+    pub blueprint: Option<BlueprintGuid>,
     pub name: String,
     #[serde(default)]
     pub summary: String,
@@ -868,6 +898,9 @@ pub enum CountsToward {
 #[serde(deny_unknown_fields)]
 pub struct Archetype {
     pub key: ArchetypeKey,
+    /// The game blueprint behind it, if any ([`BlueprintGuid`]).
+    #[serde(default, skip_serializing)]
+    pub blueprint: Option<BlueprintGuid>,
     pub name: String,
     #[serde(default)]
     pub summary: String,
@@ -1121,6 +1154,9 @@ impl ClassLevelRow {
 #[serde(deny_unknown_fields)]
 pub struct Feature {
     pub key: FeatureKey,
+    /// The game blueprint behind it, if any ([`BlueprintGuid`]).
+    #[serde(default, skip_serializing)]
+    pub blueprint: Option<BlueprintGuid>,
     pub name: String,
     #[serde(default)]
     pub summary: String,
@@ -1183,6 +1219,9 @@ pub enum AbilityBonus {
 #[serde(deny_unknown_fields)]
 pub struct FeatureSelection {
     pub key: FeatureSelectionKey,
+    /// The game blueprint behind it, if any ([`BlueprintGuid`]).
+    #[serde(default, skip_serializing)]
+    pub blueprint: Option<BlueprintGuid>,
     pub name: String,
     #[serde(default)]
     pub summary: String,
@@ -1314,6 +1353,9 @@ impl FeatureSelection {
 #[serde(deny_unknown_fields)]
 pub struct SelectionOption {
     pub key: SelectionOptionKey,
+    /// The game blueprint behind it, if any ([`BlueprintGuid`]).
+    #[serde(default, skip_serializing)]
+    pub blueprint: Option<BlueprintGuid>,
     pub name: String,
     #[serde(default)]
     pub summary: String,
@@ -1490,6 +1532,9 @@ impl MythicFeatGroup {
 #[serde(deny_unknown_fields)]
 pub struct MythicAbility {
     pub key: MythicAbilityKey,
+    /// The game blueprint behind it, if any ([`BlueprintGuid`]).
+    #[serde(default, skip_serializing)]
+    pub blueprint: Option<BlueprintGuid>,
     pub name: String,
     /// The guide's group heading. Display only.
     pub group: MythicAbilityGroup,
@@ -1515,6 +1560,9 @@ pub struct MythicAbility {
 #[serde(deny_unknown_fields)]
 pub struct MythicFeat {
     pub key: MythicFeatKey,
+    /// The game blueprint behind it, if any ([`BlueprintGuid`]).
+    #[serde(default, skip_serializing)]
+    pub blueprint: Option<BlueprintGuid>,
     pub name: String,
     /// The guide's group heading. Display only.
     pub group: MythicFeatGroup,
@@ -1552,6 +1600,9 @@ pub enum MythicExtraPick {
 #[serde(deny_unknown_fields)]
 pub struct MythicPath {
     pub key: MythicPathKey,
+    /// The game blueprint behind it, if any ([`BlueprintGuid`]).
+    #[serde(default, skip_serializing)]
+    pub blueprint: Option<BlueprintGuid>,
     pub name: String,
     #[serde(default)]
     pub summary: String,

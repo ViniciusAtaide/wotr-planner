@@ -12,6 +12,7 @@ fn armoury() -> Engine {
     let mut data = world();
     let weapon = |key: &str, stats| Weapon {
         key: WeaponKey::new(key),
+        blueprint: None,
         name: key.into(),
         proficiency: None,
         stats,

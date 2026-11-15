@@ -1,19 +1,21 @@
 MythicPath(
     key: "devil",
+    blueprint: "211f49705f478b3468db6daa802452a2",
     name: "Devil",
     summary: "A path taken at mythic rank 8 after Aeon or Azata; Azatas lose their dragon and Aeons their gazes.",
     guide: "other-mythic-paths#devil",
     switch: (from: ["aeon", "azata"], kept_through_rank: 7, path_kept_through_rank: 7, dropped_features: ["aeon/enforcing-gaze-extra-gaze", "azata/dragon-companion"], dropped_selections: ["aeon/enforcing-gaze"], further_ascensions: true),
     features: [
-        (key: "devil/hells-authority", name: "Hell\'s Authority", summary: "Borrow other paths\' powers 3/day: 10 minutes of Demonic Rage with one aspect, or of Sword of Heaven with one improvement.", guide: "other-mythic-paths#hells-authority"),
-        (key: "devil/hells-dominance", name: "Hell\'s Dominance", summary: "At-will Dominate Monster (spell-like), plus fire resistance 20 and +4 on saves against poison.", guide: "other-mythic-paths#hells-dominance"),
-        (key: "devil/hells-rule", name: "Hell\'s Rule", summary: "Lets you cast Overwhelming Presence and Power Word: Kill at will.", guide: "other-mythic-paths#hells-rule"),
-        (key: "devil/hells-vengeance", name: "Hell\'s Vengeance", summary: "At-will Hellfire Ray and Power Word: Stun; immune to fire, resist acid and cold 10; weapons overcome DR as lawful and evil.", guide: "other-mythic-paths#hells-vengeance"),
-        (key: "devil/wings", name: "Wings", guide: "other-mythic-paths#devil"),
+        (key: "devil/hells-authority", blueprint: "77759cac4da9f2144b831cb8ad8a32de", name: "Hell\'s Authority", summary: "Borrow other paths\' powers 3/day: 10 minutes of Demonic Rage with one aspect, or of Sword of Heaven with one improvement.", guide: "other-mythic-paths#hells-authority"),
+        (key: "devil/hells-dominance", blueprint: "f05095ffce834514c8713e3a37dd2169", name: "Hell\'s Dominance", summary: "At-will Dominate Monster (spell-like), plus fire resistance 20 and +4 on saves against poison.", guide: "other-mythic-paths#hells-dominance"),
+        (key: "devil/hells-rule", blueprint: "4be1f1dd5c2a13b40be53f7281771ee2", name: "Hell\'s Rule", summary: "Lets you cast Overwhelming Presence and Power Word: Kill at will.", guide: "other-mythic-paths#hells-rule"),
+        (key: "devil/hells-vengeance", blueprint: "4d65cfe93295ab84e9df54ce83714020", name: "Hell\'s Vengeance", summary: "At-will Hellfire Ray and Power Word: Stun; immune to fire, resist acid and cold 10; weapons overcome DR as lawful and evil.", guide: "other-mythic-paths#hells-vengeance"),
+        (key: "devil/wings", blueprint: "85243106886a0384380d5b5f04046909", name: "Wings", guide: "other-mythic-paths#devil"),
     ],
     selections: [
         (
             key: "devil/hells-decree",
+            blueprint: "442e199eca0ab2f4dbdcf7147fa2c399",
             name: "Hell\'s Decree",
             summary: "Issue decrees MR times a day; any save is DC 10 + twice your mythic rank.",
             guide: "other-mythic-paths#hells-decree",
@@ -27,6 +29,7 @@ MythicPath(
         ),
         (
             key: "devil/hells-seal",
+            blueprint: "b6798b29d36982b4786a32dfd81a914f",
             name: "Hell\'s Seal",
             summary: "Place a seal on an ally MR times a day; each ally can hold only one seal at a time.",
             guide: "other-mythic-paths#hells-seal",

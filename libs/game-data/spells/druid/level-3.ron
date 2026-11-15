@@ -3,6 +3,7 @@
 [
     (
         key: "burning-entanglement",
+        blueprint: "8a76293f5ab8485da95ef6293a11358c",
         name: "Burning Entanglement",
         school: Evocation,
         guide: "druid-spells#burning-entanglement-evocation",
@@ -28,6 +29,7 @@
     ),
     (
         key: "call-lightning",
+        blueprint: "2a9ef0e0b5822a24d88b16673a267456",
         name: "Call Lightning",
         school: Conjuration,
         guide: "druid-spells#call-lightning-conjuration",
@@ -41,6 +43,7 @@
     ),
     (
         key: "dominate-animal",
+        blueprint: "754c478a2aa9bb54d809e648c3f7ac0e",
         name: "Dominate Animal",
         school: Enchantment,
         guide: "druid-spells#dominate-animal-enchantment",
@@ -54,6 +57,7 @@
     ),
     (
         key: "feather-step-mass",
+        blueprint: "d219494150ac1f24f9ce14a3d4f66d26",
         name: "Feather Step, Mass",
         school: Transmutation,
         guide: "druid-spells#feather-step-mass-transmutation",
@@ -67,6 +71,7 @@
     ),
     (
         key: "fungal-infestation",
+        blueprint: "73f8182ddd684a57a7f9678e516209a3",
         name: "Fungal Infestation",
         school: Necromancy,
         guide: "druid-spells#fungal-infestation-necromancy",
@@ -80,6 +85,7 @@
     ),
     (
         key: "longstrider-greater",
+        blueprint: "e80a4d6c0efa5774cbd515e3e37095b0",
         name: "Longstrider, Greater",
         school: Transmutation,
         guide: "druid-spells#longstrider-greater-transmutation",
@@ -93,6 +99,7 @@
     ),
     (
         key: "magic-fang-greater",
+        blueprint: "f1100650705a69c4384d3edd88ba0f52",
         name: "Magic Fang, Greater",
         school: Transmutation,
         guide: "druid-spells#magic-fang-greater-transmutation",
@@ -106,6 +113,7 @@
     ),
     (
         key: "soothing-mud",
+        blueprint: "1a36c8b9ed655c249a9f9e8d4731f001",
         name: "Soothing Mud",
         school: Conjuration,
         guide: "druid-spells#soothing-mud-conjuration",
@@ -119,6 +127,7 @@
     ),
     (
         key: "spike-growth",
+        blueprint: "29b0f9026ad05e14789d84e867cc6dff",
         name: "Spike Growth",
         school: Transmutation,
         guide: "druid-spells#spike-growth-transmutation",
@@ -132,6 +141,7 @@
     ),
     (
         key: "summon-natures-ally-iii",
+        blueprint: "fdcf7e57ec44f704591f11b45f4acf61",
         name: "Summon Nature's Ally III",
         school: Conjuration,
         guide: "druid-spells#summon-natures-ally-iii-conjuration",

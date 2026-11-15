@@ -3,6 +3,7 @@
 [
     (
         key: "aspect-of-the-bear",
+        blueprint: "a4ad1b8fa11e7c347a608c004efce9d5",
         name: "Aspect of the Bear",
         school: Transmutation,
         guide: "druid-spells#aspect-of-the-bear-transmutation",
@@ -16,6 +17,7 @@
     ),
     (
         key: "barkskin",
+        blueprint: "5b77d7cc65b8ab74688e74a37fc2f553",
         name: "Barkskin",
         school: Transmutation,
         guide: "druid-spells#barkskin-transmutation",
@@ -29,6 +31,7 @@
     ),
     (
         key: "hold-animal",
+        blueprint: "41bab342089c0254ca222eb918e98cd4",
         name: "Hold Animal",
         school: Enchantment,
         guide: "druid-spells#hold-animal-enchantment",
@@ -42,6 +45,7 @@
     ),
     (
         key: "natural-rhythm",
+        blueprint: "dde924776bd7ad247928b5efbfacfbdd",
         name: "Natural Rhythm",
         school: Transmutation,
         guide: "druid-spells#natural-rhythm-transmutation",
@@ -55,6 +59,7 @@
     ),
     (
         key: "pox-pustules",
+        blueprint: "bc153808ef4884a4594bc9bec2299b69",
         name: "Pox Pustules",
         school: Necromancy,
         guide: "druid-spells#pox-pustules-necromancy",
@@ -68,6 +73,7 @@
     ),
     (
         key: "sickening-entanglement",
+        blueprint: "6c7467f0344004d48848a43d8c078bf8",
         name: "Sickening Entanglement",
         school: Transmutation,
         guide: "druid-spells#sickening-entanglement-transmutation",
@@ -81,6 +87,7 @@
     ),
     (
         key: "summon-natures-ally-ii",
+        blueprint: "298148133cdc3fd42889b99c82711986",
         name: "Summon Nature's Ally II",
         school: Conjuration,
         guide: "druid-spells#summon-natures-ally-ii-conjuration",
@@ -94,6 +101,7 @@
     ),
     (
         key: "winters-grasp",
+        blueprint: "406c6e4a631b43ce8f7a77844b75bf75",
         name: "Winter's Grasp",
         school: Conjuration,
         guide: "druid-spells#winters-grasp-conjuration",

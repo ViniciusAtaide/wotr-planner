@@ -3,6 +3,7 @@
 [
     (
         key: "cacophonous-call",
+        blueprint: "e6048d85fc3294f4c92b21c8d7526b1f",
         name: "Cacophonous Call",
         school: Enchantment,
         guide: "bard#cacophonous-call-enchantment",

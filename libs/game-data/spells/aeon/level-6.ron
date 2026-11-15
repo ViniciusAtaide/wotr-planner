@@ -3,6 +3,7 @@
 [
     (
         key: "edict-of-impenetrable-fortress",
+        blueprint: "d7741c08ccf699e4a8a8f8ab2ed345f8",
         name: "Edict of Impenetrable Fortress",
         school: Abjuration,
         guide: "aeon#edict-of-impenetrable-fortress-abjuration",
@@ -16,6 +17,7 @@
     ),
     (
         key: "embodiment-of-order",
+        blueprint: "5ab2e32dd25724a488878c2a52c65ace",
         name: "Embodiment of Order",
         school: Abjuration,
         guide: "aeon#embodiment-of-law-abjuration",
@@ -29,6 +31,7 @@
     ),
     (
         key: "freezing-nothingness",
+        blueprint: "89bc94bd06dcf5847bb9e4d6ba1b9767",
         name: "Freezing Nothingness",
         school: Evocation,
         guide: "aeon#freezing-nothingness-evocation",
@@ -42,6 +45,7 @@
     ),
     (
         key: "zone-of-predetermination",
+        blueprint: "756f1d07f9ae29448888ecf016fa40a7",
         name: "Zone of Predetermination",
         school: Abjuration,
         guide: "aeon#zone-of-predetermination-abjuration",

@@ -3,6 +3,7 @@
 [
     (
         key: "aspect-of-the-wolf",
+        blueprint: "6126b36fe22291543ad72f8b9f0d53a7",
         name: "Aspect of the Wolf",
         school: Transmutation,
         guide: "druid-spells#aspect-of-the-wolf-transmutation",
@@ -16,6 +17,7 @@
     ),
     (
         key: "blessing-of-the-salamander",
+        blueprint: "9256a86aec14ad14e9497f6b60e26f3f",
         name: "Blessing of the Salamander",
         school: Transmutation,
         guide: "druid-spells#blessing-of-the-salamander-transmutation",
@@ -29,6 +31,7 @@
     ),
     (
         key: "call-lightning-storm",
+        blueprint: "d5a36a7ee8177be4f848b953d1c53c84",
         name: "Call Lightning Storm",
         school: Evocation,
         guide: "druid-spells#call-lightning-storm-evocation",
@@ -42,6 +45,7 @@
     ),
     (
         key: "cave-fangs",
+        blueprint: "bacba2ff48d498b46b86384053945e83",
         name: "Cave Fangs",
         school: Conjuration,
         guide: "druid-spells#cave-fangs-conjuration",
@@ -55,6 +59,7 @@
     ),
     (
         key: "summon-natures-ally-v",
+        blueprint: "8f98a22f35ca6684a983363d32e51bfe",
         name: "Summon Nature's Ally V",
         school: Conjuration,
         guide: "druid-spells#summon-natures-ally-v-conjuration",
@@ -68,6 +73,7 @@
     ),
     (
         key: "tidal-surge",
+        blueprint: "50bdf209dede4ce1acc722d5fdfcf53c",
         name: "Tidal Surge",
         school: Conjuration,
         guide: "druid-spells#tidal-surge-conjuration",

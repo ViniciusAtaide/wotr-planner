@@ -3,6 +3,7 @@
 [
     (
         key: "bless-weapon",
+        blueprint: "de954d4cbf995864ba8662e67a473f93",
         name: "Bless Weapon",
         school: Transmutation,
         guide: "paladin#bless-weapon-transmutation",
@@ -16,6 +17,7 @@
     ),
     (
         key: "challenge-evil",
+        blueprint: "57aae1aa36b8022479e1cd39f3a85ef9",
         name: "Challenge Evil",
         school: Enchantment,
         guide: "paladin#challenge-evil-enchantment",
@@ -29,6 +31,7 @@
     ),
     (
         key: "veil-of-heaven",
+        blueprint: "72d9f5adda6387a40a63c49d7781bbbf",
         name: "Veil of Heaven",
         school: Abjuration,
         guide: "paladin#veil-of-heaven-abjuration",
@@ -42,6 +45,7 @@
     ),
     (
         key: "veil-of-positive-energy",
+        blueprint: "6bb0533cd457d1f4eaccc73ab7680fb2",
         name: "Veil of Positive Energy",
         school: Abjuration,
         guide: "paladin#veil-of-positive-energy-abjuration",

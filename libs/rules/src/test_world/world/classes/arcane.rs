@@ -31,6 +31,7 @@ pub(in crate::test_world::world) fn wizard() -> Class {
     Class {
         casting_ability: Some(Ability::Intelligence),
         key: class("wizard"),
+        blueprint: None,
         name: "Wizard".into(),
         summary: String::new(),
         guide: guide("wizard"),
@@ -112,6 +113,7 @@ pub(in crate::test_world::world) fn witch() -> Class {
     Class {
         casting_ability: Some(Ability::Intelligence),
         key: class("witch"),
+        blueprint: None,
         name: "Witch".into(),
         summary: String::new(),
         guide: guide("witch"),
@@ -132,6 +134,7 @@ pub(in crate::test_world::world) fn witch() -> Class {
         ],
         selections: vec![FeatureSelection {
             key: hex,
+            blueprint: None,
             name: "Hex".into(),
             summary: String::new(),
             guide: guide("witch#hex"),
@@ -201,6 +204,7 @@ pub(in crate::test_world::world) fn bard() -> Class {
     Class {
         casting_ability: Some(Ability::Charisma),
         key: class("bard"),
+        blueprint: None,
         name: "Bard".into(),
         summary: String::new(),
         guide: guide("bard"),

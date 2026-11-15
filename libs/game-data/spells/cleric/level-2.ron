@@ -3,6 +3,7 @@
 [
     (
         key: "aid",
+        blueprint: "03a9630394d10164a9410882d31572f0",
         name: "Aid",
         school: Enchantment,
         guide: "cleric-spells#aid-enchantment",
@@ -16,6 +17,7 @@
     ),
     (
         key: "align-weapon",
+        blueprint: "d026d5c80dbb9224f9a97fec83f5644a",
         name: "Align Weapon",
         school: Transmutation,
         guide: "cleric-spells#align-weapon-transmutation",
@@ -29,6 +31,7 @@
     ),
     (
         key: "arrow-of-law",
+        blueprint: "dd2a5a6e76611c04e9eac6254fcf8c6b",
         name: "Arrow of Law",
         school: Evocation,
         guide: "cleric-spells#arrow-of-law-evocation",
@@ -41,6 +44,7 @@
     ),
     (
         key: "blessing-of-courage-and-life",
+        blueprint: "c36c1d11771b0584f8e100b92ee5475b",
         name: "Blessing of Courage and Life",
         school: Conjuration,
         guide: "cleric-spells#blessing-of-courage-and-life-conjuration",
@@ -54,6 +58,7 @@
     ),
     (
         key: "blessing-of-luck-and-resolve",
+        blueprint: "9a7e3cd1323dfe347a6dcce357844769",
         name: "Blessing of Luck and Resolve",
         school: Enchantment,
         guide: "cleric-spells#blessing-of-luck-and-resolve-enchantment",
@@ -67,6 +72,7 @@
     ),
     (
         key: "cure-moderate-wounds",
+        blueprint: "6b90c773a6543dc49b2505858ce33db5",
         name: "Cure Moderate Wounds",
         school: Conjuration,
         guide: "cleric-spells#cure-moderate-wounds-conjuration",
@@ -79,6 +85,7 @@
     ),
     (
         key: "delay-poison",
+        blueprint: "b48b4c5ffb4eab0469feba27fc86a023",
         name: "Delay Poison",
         school: Conjuration,
         guide: "cleric-spells#delay-poison-conjuration",
@@ -92,6 +99,7 @@
     ),
     (
         key: "effortless-armor",
+        blueprint: "e1291272c8f48c14ab212a599ad17aac",
         name: "Effortless Armor",
         school: Transmutation,
         guide: "cleric-spells#effortless-armor-transmutation",
@@ -105,6 +113,7 @@
     ),
     (
         key: "find-traps",
+        blueprint: "4709274b2080b6444a3c11c6ebbe2404",
         name: "Find Traps",
         school: Divination,
         guide: "cleric-spells#find-traps-divination",
@@ -118,6 +127,7 @@
     ),
     (
         key: "grace",
+        blueprint: "464a7193519429f48b4d190acb753cf0",
         name: "Grace",
         school: Abjuration,
         guide: "cleric-spells#grace-abjuration",
@@ -131,6 +141,7 @@
     ),
     (
         key: "inflict-moderate-wounds",
+        blueprint: "65f0b63c45ea82a4f8b8325768a3832d",
         name: "Inflict Moderate Wounds",
         school: Necromancy,
         guide: "cleric-spells#inflict-moderate-wounds-necromancy",
@@ -143,6 +154,7 @@
     ),
     (
         key: "oracles-burden",
+        blueprint: "039b8b8b6d5747e3a37c447a46a58761",
         name: "Oracle's Burden",
         school: Necromancy,
         guide: "cleric-spells#oracles-burden-necromancy",
@@ -155,6 +167,7 @@
     ),
     (
         key: "remove-paralysis",
+        blueprint: "f8bce986adfc88544a42bf4ab7ae75b2",
         name: "Remove Paralysis",
         school: Conjuration,
         guide: "cleric-spells#remove-paralysis-conjuration",
@@ -167,6 +180,7 @@
     ),
     (
         key: "restoration-lesser",
+        blueprint: "e84fc922ccf952943b5240293669b171",
         name: "Restoration, Lesser",
         school: Conjuration,
         guide: "cleric-spells#restoration-lesser-conjuration",
@@ -179,6 +193,7 @@
     ),
     (
         key: "sound-burst",
+        blueprint: "c3893092a333b93499fd0a21845aa265",
         name: "Sound Burst",
         school: Evocation,
         guide: "cleric-spells#sound-burst-evocation",

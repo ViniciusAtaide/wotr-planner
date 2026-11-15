@@ -1,5 +1,6 @@
 Class(
     key: "eldritch-knight",
+    blueprint: "de52b73972f0ed74c87f8f6a8e20b542",
     name: "Eldritch Knight",
     summary: "Ten-level gish with full BAB and 6 HP per level, advancing casting at 9 of 10 levels: counts as fighter for feats, three bonus combat feats, Spell Critical.",
     guide: "prestige-classes#eldritch-knight",
@@ -12,9 +13,9 @@ Class(
     prerequisite: All([Feat("martial-weapons-proficiency"), SpellLevel(spell_type: Arcane, level: 3), CharacterLevel(6)]),
     counts_as: [(class: "fighter", toward: FeatPrerequisites)],
     features: [
-        (key: "eldritch-knight/arcane-spellcasting", name: "Arcane Spellcasting", summary: "Levels 2-10 each count as a level of your earlier arcane class for spells per day.", guide: "prestige-classes#arcane-spellcasting-eldritch-knight"),
-        (key: "eldritch-knight/diverse-training", name: "Diverse Training", summary: "For feat prerequisites, Eldritch Knight levels add to both your fighter level and your casting class's level.", guide: "prestige-classes#diverse-training"),
-        (key: "eldritch-knight/spell-critical", name: "Spell Critical", summary: "Confirming a weapon crit makes a spell you cast in the following two rounds a swift action that provokes no attack of opportunity.", guide: "prestige-classes#spell-critical"),
+        (key: "eldritch-knight/arcane-spellcasting", blueprint: "dc3ab8d0484467a4787979d93114ebc3", name: "Arcane Spellcasting", summary: "Levels 2-10 each count as a level of your earlier arcane class for spells per day.", guide: "prestige-classes#arcane-spellcasting-eldritch-knight"),
+        (key: "eldritch-knight/diverse-training", blueprint: "983e8ad193160b44da80b38af4927e75", name: "Diverse Training", summary: "For feat prerequisites, Eldritch Knight levels add to both your fighter level and your casting class's level.", guide: "prestige-classes#diverse-training"),
+        (key: "eldritch-knight/spell-critical", blueprint: "5f044633fb279a34da7312fa3837b62b", name: "Spell Critical", summary: "Confirming a weapon crit makes a spell you cast in the following two rounds a swift action that provokes no attack of opportunity.", guide: "prestige-classes#spell-critical"),
     ],
     levels: [
         (level: 1, features: ["eldritch-knight/diverse-training"], feat_slots: [CombatFeat]),

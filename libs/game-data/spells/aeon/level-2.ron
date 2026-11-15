@@ -3,6 +3,7 @@
 [
     (
         key: "crystal-mind",
+        blueprint: "4733d8dd549ff544395f1684ec73c392",
         name: "Crystal Mind",
         school: Abjuration,
         guide: "aeon#crystal-mind-abjuration",
@@ -16,6 +17,7 @@
     ),
     (
         key: "edict-of-retaliation",
+        blueprint: "d57fcfdfcffa2d346985648cb77390fb",
         name: "Edict of Retaliation",
         school: Abjuration,
         guide: "aeon#edict-of-retaliation-abjuration",
@@ -29,6 +31,7 @@
     ),
     (
         key: "equal-force",
+        blueprint: "47c80ed8e725ede4d91f06eddcc3e75a",
         name: "Equal Force",
         school: Abjuration,
         guide: "aeon#equal-force-abjuration",

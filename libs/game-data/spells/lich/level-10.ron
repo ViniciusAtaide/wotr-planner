@@ -3,6 +3,7 @@
 [
     (
         key: "absolute-death",
+        blueprint: "7d721be6d74f07f4d952ee8d6f8f44a0",
         name: "Absolute Death",
         school: Necromancy,
         guide: "lich#absolute-death-necromancy",
@@ -15,6 +16,7 @@
     ),
     (
         key: "doom-to-servitude",
+        blueprint: "24067ba8e0e69a14e83ff397826f6c6d",
         name: "Doom to Servitude",
         school: Necromancy,
         guide: "lich#doom-to-servitude-necromancy",
@@ -27,6 +29,7 @@
     ),
     (
         key: "pit-of-despair",
+        blueprint: "cc74245ba989480488925214dd925100",
         name: "Pit of Despair",
         school: Conjuration,
         guide: "lich#pit-of-despair-conjuration",

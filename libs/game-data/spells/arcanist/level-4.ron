@@ -3,6 +3,7 @@
 [
     (
         key: "peer-into-endurance",
+        blueprint: "9f0f0233dc0d43239afa77dbb3f3b948",
         name: "Peer Into Endurance",
         school: Divination,
         guide: "arcanist#peer-into-endurance-divination",

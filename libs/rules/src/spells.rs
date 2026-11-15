@@ -9,7 +9,7 @@ use std::collections::BTreeSet;
 use serde::{Deserialize, Serialize};
 
 use crate::game_data::GuideRef;
-use crate::keys::{ArchetypeKey, ClassKey, MythicPathKey, SpellKey, SpellListKey};
+use crate::keys::{ArchetypeKey, BlueprintGuid, ClassKey, MythicPathKey, SpellKey, SpellListKey};
 use crate::parameter::SpellSchool;
 use crate::prerequisite::Story;
 
@@ -24,6 +24,9 @@ pub const MAX_MYTHIC_SPELL_LEVEL: u8 = 10;
 #[serde(deny_unknown_fields)]
 pub struct Spell {
     pub key: SpellKey,
+    /// The game blueprint behind it, if any ([`BlueprintGuid`]).
+    #[serde(default, skip_serializing)]
+    pub blueprint: Option<BlueprintGuid>,
     pub name: String,
     /// `None`: Universalist, the guide's school for a spell of no school (Dismiss Spell). Spell Focus and the
     /// wizard's specialist schools have no Universalist, so it isn't a [`SpellSchool`].
@@ -201,6 +204,9 @@ pub struct SpellList {
     /// The owner's key (`wizard`, `arcanist/magic-deceiver`, `azata`), or one under it for a second list of the
     /// same owner (`angel/merged`).
     pub key: SpellListKey,
+    /// The game blueprint behind it, if any ([`BlueprintGuid`]).
+    #[serde(default, skip_serializing)]
+    pub blueprint: Option<BlueprintGuid>,
     pub name: String,
     pub guide: GuideRef,
     /// The class, archetype or path whose list it is: the page it's on.

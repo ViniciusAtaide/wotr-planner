@@ -3,6 +3,7 @@
 [
     (
         key: "ray-of-halberds",
+        blueprint: "a4eeea42be61d0f469676371ee0a5aa7",
         name: "Ray of Halberds",
         school: Conjuration,
         guide: "trickster#ray-of-halberds-conjuration",
@@ -15,6 +16,7 @@
     ),
     (
         key: "summon-hog-of-desolation",
+        blueprint: "4bd71b7351aea8047b74ec77c7689237",
         name: "Summon Hog of Desolation",
         school: Conjuration,
         guide: "trickster#summon-hog-of-desolation-conjuration",
@@ -28,6 +30,7 @@
     ),
     (
         key: "trick-fate",
+        blueprint: "6e109d21da9e1c44fb772a9eca2cafdd",
         name: "Trick Fate",
         school: Divination,
         guide: "trickster#trick-fate-divination",

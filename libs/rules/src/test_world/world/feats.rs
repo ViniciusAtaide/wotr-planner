@@ -12,6 +12,7 @@ use crate::test_world::world::guide;
 pub(super) fn weapons() -> Vec<Weapon> {
     let weapon = |key: &str, proficiency, stats| Weapon {
         key: WeaponKey::new(key),
+        blueprint: None,
         name: key.into(),
         proficiency,
         stats: Some(stats),
@@ -53,6 +54,7 @@ pub(super) fn weapons() -> Vec<Weapon> {
 fn feat_row(key: &str, category: FeatCategory, prerequisite: Option<Prerequisite>) -> Feat {
     Feat {
         key: feat(key),
+        blueprint: None,
         name: key.into(),
         category,
         summary: String::new(),

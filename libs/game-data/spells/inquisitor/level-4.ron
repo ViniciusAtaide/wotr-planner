@@ -3,6 +3,7 @@
 [
     (
         key: "forced-repentance",
+        blueprint: "cc0aeb74b35cb7147bff6c53538bbc76",
         name: "Forced Repentance",
         school: Enchantment,
         guide: "inquisitor#forced-repentance-enchantment",

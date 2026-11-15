@@ -3,6 +3,7 @@
 [
     (
         key: "microscopic-proportions",
+        blueprint: "d6042abe75df262498b6021eb8cc07a5",
         name: "Microscopic Proportions",
         school: Transmutation,
         guide: "trickster#microscopic-proportions-transmutation",
@@ -16,6 +17,7 @@
     ),
     (
         key: "phantasmal-healer",
+        blueprint: "0a3cd675bbee86a45a22b8bc63b5ec29",
         name: "Phantasmal Healer",
         school: Transmutation,
         guide: "trickster#phantasmal-healer-transmutation",
@@ -29,6 +31,7 @@
     ),
     (
         key: "rain-of-halberds",
+        blueprint: "a759d339d98572a42a0c6e1dcc33453d",
         name: "Rain of Halberds",
         school: Conjuration,
         guide: "trickster#rain-of-halberds-conjuration",

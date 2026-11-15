@@ -9,6 +9,7 @@ use crate::test_world::world::guide;
 pub(super) fn mythic_abilities() -> Vec<MythicAbility> {
     let ability = |key: &str, prerequisite| MythicAbility {
         key: MythicAbilityKey::new(key),
+        blueprint: None,
         name: key.into(),
         group: MythicAbilityGroup::Melee,
         summary: String::new(),
@@ -73,6 +74,7 @@ pub(super) fn mythic_abilities() -> Vec<MythicAbility> {
 pub(super) fn mythic_feats() -> Vec<MythicFeat> {
     let mythic_feat = |key: &str, prerequisite| MythicFeat {
         key: MythicFeatKey::new(key),
+        blueprint: None,
         name: key.into(),
         group: MythicFeatGroup::Melee,
         summary: String::new(),

@@ -3,6 +3,7 @@
 [
     (
         key: "elemental-swarm",
+        blueprint: "0340fe43f35e7a448981b646c638c83d",
         name: "Elemental Swarm",
         school: Conjuration,
         guide: "druid-spells#elemental-swarm-conjuration",
@@ -16,6 +17,7 @@
     ),
     (
         key: "summon-elder-worm",
+        blueprint: "954f1469ed62843409783c9fa7472998",
         name: "Summon Elder Worm",
         school: Conjuration,
         guide: "druid-spells#summon-elder-worm-conjuration",
@@ -29,6 +31,7 @@
     ),
     (
         key: "summon-natures-ally-ix",
+        blueprint: "a7469ef84ba50ac4cbf3d145e3173f8e",
         name: "Summon Nature's Ally IX",
         school: Conjuration,
         guide: "druid-spells#summon-natures-ally-ix-conjuration",

@@ -3,6 +3,7 @@
 [
     (
         key: "chameleon-stride",
+        blueprint: "27bf851c585817c4fbd079c970a162fa",
         name: "Chameleon Stride",
         school: Illusion,
         guide: "ranger#chameleon-stride-illusion",

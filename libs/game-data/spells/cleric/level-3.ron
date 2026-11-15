@@ -3,6 +3,7 @@
 [
     (
         key: "archons-aura",
+        blueprint: "e67efd8c84f69d24ab472c9f546fff7e",
         name: "Archon's Aura",
         school: Evocation,
         guide: "cleric-spells#archons-aura-evocation",
@@ -16,6 +17,7 @@
     ),
     (
         key: "cure-serious-wounds",
+        blueprint: "3361c5df793b4c8448756146a88026ad",
         name: "Cure Serious Wounds",
         school: Conjuration,
         guide: "cleric-spells#cure-serious-wounds-conjuration",
@@ -28,6 +30,7 @@
     ),
     (
         key: "delay-poison-communal",
+        blueprint: "04e820e1ce3a66f47a50ad5074d3ae40",
         name: "Delay Poison, Communal",
         school: Conjuration,
         guide: "cleric-spells#delay-poison-communal-conjuration",
@@ -41,6 +44,7 @@
     ),
     (
         key: "inflict-serious-wounds",
+        blueprint: "bd5da98859cf2b3418f6d68ea66cabbe",
         name: "Inflict Serious Wounds",
         school: Necromancy,
         guide: "cleric-spells#inflict-serious-wounds-necromancy",
@@ -53,6 +57,7 @@
     ),
     (
         key: "magical-vestment",
+        blueprint: "2d4263d80f5136b4296d6eb43a221d7d",
         name: "Magical Vestment",
         school: Transmutation,
         guide: "cleric-spells#magical-vestment-transmutation",
@@ -66,6 +71,7 @@
     ),
     (
         key: "prayer",
+        blueprint: "faabd2cc67efa4646ac58c7bb3e40fcc",
         name: "Prayer",
         school: Enchantment,
         guide: "cleric-spells#prayer-enchantment",
@@ -79,6 +85,7 @@
     ),
     (
         key: "remove-blindness",
+        blueprint: "c927a8b0cd3f5174f8c0b67cdbfde539",
         name: "Remove Blindness",
         school: Conjuration,
         guide: "cleric-spells#remove-blindness-conjuration",
@@ -91,6 +98,7 @@
     ),
     (
         key: "remove-disease",
+        blueprint: "4093d5a0eb5cae94e909eb1e0e1a6b36",
         name: "Remove Disease",
         school: Conjuration,
         guide: "cleric-spells#remove-disease-conjuration",
@@ -103,6 +111,7 @@
     ),
     (
         key: "searing-light",
+        blueprint: "bf0accce250381a44b857d4af6c8e10d",
         name: "Searing Light",
         school: Evocation,
         guide: "cleric-spells#searing-light-evocation",

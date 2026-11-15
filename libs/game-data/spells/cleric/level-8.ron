@@ -3,6 +3,7 @@
 [
     (
         key: "cloak-of-chaos",
+        blueprint: "9155dbc8268da1c49a7fc4834fa1a4b1",
         name: "Cloak of Chaos",
         school: Abjuration,
         guide: "cleric-spells#cloak-of-chaos-abjuration",
@@ -16,6 +17,7 @@
     ),
     (
         key: "cure-critical-wounds-mass",
+        blueprint: "1f173a16120359e41a20fc75bb53d449",
         name: "Cure Critical Wounds, Mass",
         school: Conjuration,
         guide: "cleric-spells#cure-critical-wounds-mass-conjuration",
@@ -28,6 +30,7 @@
     ),
     (
         key: "fire-storm",
+        blueprint: "e3d0dfe1c8527934294f241e0ae96a8d",
         name: "Fire Storm",
         school: Evocation,
         guide: "cleric-spells#fire-storm-evocation",
@@ -41,6 +44,7 @@
     ),
     (
         key: "holy-aura",
+        blueprint: "808ab74c12df8784ab4eeaf6a107dbea",
         name: "Holy Aura",
         school: Abjuration,
         guide: "cleric-spells#holy-aura-abjuration",
@@ -54,6 +58,7 @@
     ),
     (
         key: "inflict-critical-wounds-mass",
+        blueprint: "5ee395a2423808c4baf342a4f8395b19",
         name: "Inflict Critical Wounds, Mass",
         school: Necromancy,
         guide: "cleric-spells#inflict-critical-wounds-mass-necromancy",
@@ -66,6 +71,7 @@
     ),
     (
         key: "shield-of-law",
+        blueprint: "73e7728808865094b8892613ddfaf7f5",
         name: "Shield of Law",
         school: Abjuration,
         guide: "cleric-spells#shield-of-law-abjuration",
@@ -79,6 +85,7 @@
     ),
     (
         key: "unholy-aura",
+        blueprint: "47f9cb1c367a5e4489cfa32fce290f86",
         name: "Unholy Aura",
         school: Abjuration,
         guide: "cleric-spells#unholy-aura-abjuration",

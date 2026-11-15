@@ -57,6 +57,7 @@ pub(in crate::test_world::world) fn archetype(key: &str) -> Archetype {
     Archetype {
         casting_ability: None,
         key: ArchetypeKey::new(key),
+        blueprint: None,
         name: key.into(),
         summary: String::new(),
         guide: guide(key),

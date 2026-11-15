@@ -3,6 +3,7 @@
 [
     (
         key: "animal-shapes",
+        blueprint: "cf689244b2c7e904eb85f26fd6e81552",
         name: "Animal Shapes",
         school: Transmutation,
         guide: "druid-spells#animal-shapes-transmutation",
@@ -16,6 +17,7 @@
     ),
     (
         key: "summon-natures-ally-viii",
+        blueprint: "ea78c04f0bd13d049a1cce5daf8d83e0",
         name: "Summon Nature's Ally VIII",
         school: Conjuration,
         guide: "druid-spells#summon-natures-ally-viii-conjuration",

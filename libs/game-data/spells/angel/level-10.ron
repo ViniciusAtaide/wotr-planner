@@ -3,6 +3,7 @@
 [
     (
         key: "army-of-heaven",
+        blueprint: "483157d358afd1a498c2a4762f4057ba",
         name: "Army of Heaven",
         school: Enchantment,
         guide: "angel#army-of-heaven-enchantment",
@@ -16,6 +17,7 @@
     ),
     (
         key: "eye-of-the-sun",
+        blueprint: "a948e10ecf1fa674dbae5eaae7f25a7f",
         name: "Eye of the Sun",
         school: Conjuration,
         guide: "angel#eye-of-the-sun-conjuration",
@@ -28,6 +30,7 @@
     ),
     (
         key: "phoenix-gift",
+        blueprint: "af92783492851f445abb2c01d346c376",
         name: "Phoenix Gift",
         school: Abjuration,
         guide: "angel#phoenix-gift-abjuration",
@@ -41,6 +44,7 @@
     ),
     (
         key: "rekindle",
+        blueprint: "1b76573f991543145897702b7edc4d7a",
         name: "Rekindle",
         school: Conjuration,
         guide: "angel#rekindle-conjuration",

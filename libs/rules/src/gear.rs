@@ -13,13 +13,16 @@ use serde::{Deserialize, Serialize};
 
 use crate::bonus::{BonusTarget, BonusType, SpellScope};
 use crate::game_data::{Ability, GuideRef, Save, Skill};
-use crate::keys::{GearKey, SkillKey};
+use crate::keys::{BlueprintGuid, GearKey, SkillKey};
 
 /// A named item: where it is worn, what it always gives, and what else it does.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct GearItem {
     pub key: GearKey,
+    /// The game blueprint behind it, if any ([`BlueprintGuid`]).
+    #[serde(default, skip_serializing)]
+    pub blueprint: Option<BlueprintGuid>,
     pub name: String,
     /// The guide section it is listed in.
     pub slot: GearSlot,
@@ -244,6 +247,7 @@ mod tests {
     fn item(bonuses: Vec<GearBonus>) -> GearItem {
         GearItem {
             key: GearKey::new("test"),
+            blueprint: None,
             name: "Test".to_owned(),
             slot: GearSlot::Belt,
             guide: None,

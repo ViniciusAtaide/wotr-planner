@@ -3,6 +3,7 @@
 [
     (
         key: "peer-into-spell-resistance",
+        blueprint: "249c0abba99e4d6f82437b83db57f52c",
         name: "Peer Into Spell Resistance",
         school: Divination,
         guide: "arcanist#peer-into-spell-resistance-divination",

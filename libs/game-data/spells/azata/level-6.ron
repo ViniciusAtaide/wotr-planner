@@ -3,6 +3,7 @@
 [
     (
         key: "joy-of-life",
+        blueprint: "50497d3b8d0b40e4682fd643f5080f45",
         name: "Joy of Life",
         school: Abjuration,
         guide: "azata#joy-of-life-abjuration",
@@ -16,6 +17,7 @@
     ),
     (
         key: "protection-of-nature",
+        blueprint: "76a031aeeb69f51409c6f9dbaa7cb989",
         name: "Protection of Nature",
         school: Abjuration,
         guide: "azata#protection-of-nature-abjuration",
@@ -29,6 +31,7 @@
     ),
     (
         key: "rainbow-starfall",
+        blueprint: "0ad356eaf621d9a469e7da0acc552383",
         name: "Rainbow Starfall",
         school: Evocation,
         guide: "azata#rainbow-starfall-evocation",
@@ -42,6 +45,7 @@
     ),
     (
         key: "songs-of-steel",
+        blueprint: "f7b476555f96afe4b9ba6e7d56d3272a",
         name: "Songs of Steel",
         school: Abjuration,
         guide: "azata#songs-of-steel-abjuration",
@@ -55,6 +59,7 @@
     ),
     (
         key: "winds-of-the-fall",
+        blueprint: "af2ed41c7894b934c9a9ca5048af3f58",
         name: "Winds of the Fall",
         school: Conjuration,
         guide: "azata#winds-of-the-fall-conjuration",
