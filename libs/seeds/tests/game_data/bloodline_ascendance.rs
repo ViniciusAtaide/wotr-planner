@@ -3,6 +3,11 @@
 //! bloodline gets nothing from it, since its table gives Might of Wyrms at 20 instead. Where the selection says what
 //! it gives in place of the skipped row (`replaced_by`: the Empyreal Sorcerer's Apotheosis, ticket 181), the ability
 //! grants that, early, and it is held once.
+//!
+//! The game's Bloodline Ascendance (BloodlineAscendance ce85aee1726900641ab53ede61ac5c19) is a selection of one power:
+//! one held bloodline's 20th-level power, each option gated by its bloodline's requisite feature. Where a Build holds
+//! one bloodline, the data's grant of every row agrees; where it holds two, the game gives one
+//! (`…_grants_one_power_of_the_two`, waiting on a ticket).
 
 use rules::{Build, Pick, SlotId};
 
@@ -48,6 +53,10 @@ fn a_dragonheir_scions_bloodline_gets_nothing_from_bloodline_ascendance() {
         DRACONIC_RED,
     ));
     assert!(engine().is_possible(&build));
+    // Game: DragonheirDragonSelection 729411185291d704696e58316420fe38 (the Dragonheir's dragon progressions, e.g.
+    // DragonheirRedProgression 267dbd4789fa4b75a44294c7d1625bba, grant no Draconic requisite feature, so Power of Wyrms
+    // isn't an option of BloodlineAscendance ce85aee1726900641ab53ede61ac5c19); BloodlineAbyssalDemonicMight
+    // 5c1c2ed7fe5f99649ab00605610b775b is
     for level in [5, 6, 7, 20] {
         let state = at(&build, level);
         assert!(!holds(&state, POWER_OF_WYRMS), "level {level}");
@@ -60,6 +69,9 @@ fn a_dragonheir_scions_bloodline_gets_nothing_from_bloodline_ascendance() {
 fn a_sorcerers_bloodline_ascendance_grants_its_20th_level_power() {
     let build = ascending(with_option(build("sorcerer", 20), 1, 0, ABYSSAL));
     assert!(engine().is_possible(&build));
+    // Game: BloodlineAscendance ce85aee1726900641ab53ede61ac5c19 (its one open option here is
+    // BloodlineAbyssalDemonicMight 5c1c2ed7fe5f99649ab00605610b775b); BloodlineAbyssalProgression
+    // d3a4cb7be97a6694290f0dcfbd147113 (the same feature at 20, held once)
     assert!(!holds(&at(&build, 5), DEMONIC_MIGHT));
     assert!(holds(&at(&build, 6), DEMONIC_MIGHT));
     assert_eq!(
@@ -68,9 +80,8 @@ fn a_sorcerers_bloodline_ascendance_grants_its_20th_level_power() {
     );
 }
 
-/// With the Mythic Second Bloodline too, both bloodlines' 20th-level powers come at the rank that takes Ascendance.
-#[test]
-fn a_second_bloodline_gets_its_20th_level_power_too() {
+/// A sorcerer 20 (Abyssal) with the Mythic Second Bloodline (Draconic Red) at MR 1 and Bloodline Ascendance at MR 2.
+fn two_bloodlines_ascending() -> Build {
     let mut build = with_option(build("sorcerer", 20), 1, 0, ABYSSAL);
     build.picks.insert(
         SlotId::Mythic { rank: 1 },
@@ -89,29 +100,75 @@ fn a_second_bloodline_gets_its_20th_level_power_too() {
         SlotId::MythicExtra { rank: 2 },
         Pick::mythic_ability(rules::MythicAbilityKey::new("bloodline-ascendance")),
     );
+    build
+}
+
+/// How many of `powers` `state` holds.
+fn held(state: &rules::CharacterState, powers: &[&str]) -> usize {
+    powers.iter().filter(|power| holds(state, power)).count()
+}
+
+/// With the Mythic Second Bloodline too, neither bloodline's 20th-level power comes before the rank that takes
+/// Ascendance, and one at least comes at it.
+#[test]
+fn with_a_second_bloodline_a_20th_level_power_comes_at_ascendance() {
+    let build = two_bloodlines_ascending();
     assert!(engine().is_possible(&build));
     let rank_2 = engine().rank_level(&build, 2).expect("MR 2 has a level");
     let before = at(&build, rank_2 - 1);
-    assert!(!holds(&before, DEMONIC_MIGHT));
-    assert!(!holds(&before, POWER_OF_WYRMS));
-    let after = at(&build, rank_2);
-    assert!(holds(&after, DEMONIC_MIGHT));
-    assert!(holds(&after, POWER_OF_WYRMS));
+    // Game: BloodlineAscendance ce85aee1726900641ab53ede61ac5c19 (taken at MR 2); SecondBloodline
+    // 3cf2ab2c320b73347a7c21cf0d0995bd
+    assert_eq!(held(&before, &[DEMONIC_MIGHT, POWER_OF_WYRMS]), 0);
+    assert!(held(&at(&build, rank_2), &[DEMONIC_MIGHT, POWER_OF_WYRMS]) >= 1);
 }
 
-/// An Eldritch Scion's selection skips no row, so its bloodline still gets its 20th-level power.
+/// The game's Ascendance is a pick of one: with the Abyssal and the Draconic Red bloodlines, one of Demonic Might and
+/// Power of Wyrms, not both.
+// Game: BloodlineAscendance ce85aee1726900641ab53ede61ac5c19 (a BlueprintFeatureSelection, one pick, options
+// BloodlineAbyssalDemonicMight 5c1c2ed7fe5f99649ab00605610b775b and BloodlineDraconicRedPowerOfWyrms
+// a18ab74c10933e84daf76afdaabc28dd both open)
 #[test]
-fn an_eldritch_scions_bloodline_still_gets_its_20th_level_power() {
-    let build = ascending(sorcerer_then(
+#[ignore = "waits on ticket 257: the game gives one 20th-level power of the two bloodlines held"]
+fn a_second_bloodlines_ascendance_grants_one_power_of_the_two() {
+    let build = two_bloodlines_ascending();
+    let rank_2 = engine().rank_level(&build, 2).expect("MR 2 has a level");
+    assert_eq!(
+        held(&at(&build, rank_2), &[DEMONIC_MIGHT, POWER_OF_WYRMS]),
+        1
+    );
+}
+
+/// A sorcerer 1 (Abyssal) / Eldritch Scion 19 (Arcane) with Bloodline Ascendance.
+fn abyssal_sorcerer_arcane_scion() -> Build {
+    ascending(sorcerer_then(
         "magus",
         "magus/eldritch-scion",
         19,
         "sorcerer/bloodline/arcane",
-    ));
+    ))
+}
+
+/// An Eldritch Scion's selection skips no row, so its bloodline's 20th-level power is an option of Ascendance: none
+/// comes before the ability's rank, and one at least at it.
+#[test]
+fn an_eldritch_scions_bloodline_still_gets_its_20th_level_power() {
+    let build = abyssal_sorcerer_arcane_scion();
     assert!(engine().is_possible(&build));
-    assert!(!holds(&at(&build, 5), ARCANE_APOTHEOSIS));
-    assert!(holds(&at(&build, 6), ARCANE_APOTHEOSIS));
-    assert!(holds(&at(&build, 6), DEMONIC_MIGHT));
+    // Game: BloodlineAscendance ce85aee1726900641ab53ede61ac5c19 (open to an Eldritch Scion's bloodline);
+    // BloodlineArcaneArcaneApotheosisFeature 2086d8c0d40e35b40b86d47e47fb17e4
+    assert_eq!(held(&at(&build, 5), &[ARCANE_APOTHEOSIS, DEMONIC_MIGHT]), 0);
+    assert!(held(&at(&build, 6), &[ARCANE_APOTHEOSIS, DEMONIC_MIGHT]) >= 1);
+}
+
+/// With the sorcerer's Abyssal and the Eldritch Scion's Arcane bloodline, Ascendance gives one of Arcane Apotheosis
+/// and Demonic Might.
+// Game: BloodlineAscendance ce85aee1726900641ab53ede61ac5c19 (one pick; BloodlineArcaneArcaneApotheosisFeature
+// 2086d8c0d40e35b40b86d47e47fb17e4 and BloodlineAbyssalDemonicMight 5c1c2ed7fe5f99649ab00605610b775b both open)
+#[test]
+#[ignore = "waits on ticket 257: the game gives an Abyssal sorcerer / Arcane Eldritch Scion one of Arcane Apotheosis and Demonic Might"]
+fn an_eldritch_scions_ascendance_grants_one_power_of_the_two() {
+    let build = abyssal_sorcerer_arcane_scion();
+    assert_eq!(held(&at(&build, 6), &[ARCANE_APOTHEOSIS, DEMONIC_MIGHT]), 1);
 }
 
 /// A Seeker's selection skips levels 3, 9, 13, 15 and 17 but not 20, so Ascendance grants its bloodline's 20th-level
@@ -125,6 +182,8 @@ fn a_seekers_bloodline_still_gets_its_20th_level_power() {
         ABYSSAL,
     ));
     assert!(engine().is_possible(&build));
+    // Game: BloodlineAscendance ce85aee1726900641ab53ede61ac5c19 (SeekerBloodlineSelection
+    // 7bda7cdb0ccda664c9eb8978cf512dbc qualifies; the Abyssal requisite is held)
     assert!(!holds(&at(&build, 5), DEMONIC_MIGHT));
     assert!(holds(&at(&build, 6), DEMONIC_MIGHT));
 }
@@ -139,6 +198,9 @@ fn an_empyreal_sorcerers_bloodline_gets_nothing_from_bloodline_ascendance() {
         20,
     ));
     assert!(engine().is_possible(&build));
+    // Game: EmpyrealBloodlineProgression 8a95d80a3162d274896d50c2f18bb6b1 (row 20: BloodlineCelestialAscensionAbility
+    // d85e0396d8f68e047b7b67a1290f8dbc, the blueprint of both the data's Apotheosis and the Celestial's Ascension, held
+    // once: equivalent model)
     assert!(!holds(
         &at(&build, 20),
         "sorcerer/bloodline/celestial/ascension"
@@ -165,6 +227,8 @@ fn count(state: &rules::CharacterState, feature: &str) -> u32 {
 fn an_empyreal_sorcerer_gains_apotheosis_at_20_without_the_ability() {
     let build = empyreal(20);
     assert!(engine().is_possible(&build));
+    // Game: EmpyrealBloodlineProgression 8a95d80a3162d274896d50c2f18bb6b1 (BloodlineCelestialAscensionAbility
+    // d85e0396d8f68e047b7b67a1290f8dbc at sorcerer 20, once; the data's two keys for it: equivalent model)
     for level in 1..=20 {
         let state = at(&build, level);
         assert_eq!(count(&state, APOTHEOSIS), u32::from(level == 20), "{level}");
@@ -178,6 +242,9 @@ fn an_empyreal_sorcerer_gains_apotheosis_at_20_without_the_ability() {
 fn an_empyreal_sorcerer_holds_apotheosis_early_through_the_ability_once() {
     let build = ascending(empyreal(20));
     assert!(engine().is_possible(&build));
+    // Game: BloodlineAscendance ce85aee1726900641ab53ede61ac5c19 (its option for the Empyreal is
+    // BloodlineCelestialAscensionAbility d85e0396d8f68e047b7b67a1290f8dbc, the same feature as row 20, held once:
+    // equivalent model)
     for level in 1..=20 {
         let state = at(&build, level);
         assert_eq!(count(&state, APOTHEOSIS), u32::from(level >= 6), "{level}");
@@ -200,6 +267,9 @@ fn apotheosis_is_held_once_when_the_ability_comes_at_level_20() {
         engine().failures(&build)
     );
     assert_eq!(engine().rank_level(&build, 1), Some(20));
+    // Game: BloodlineCelestialAscensionAbility d85e0396d8f68e047b7b67a1290f8dbc, granted by both and held once (a
+    // feature granted again gains a rank: Feature.AddRank, WrathDecompiled 6ce4a6b); the order of a class row and a
+    // rank in one level is the planner's model
     for level in 1..=20 {
         assert_eq!(
             count(&at(&build, level), APOTHEOSIS),
@@ -232,6 +302,7 @@ fn the_dragonheir_scion_gets_no_replacement_from_the_ability() {
         DRACONIC_RED,
     ));
     let state = at(&build, 20);
+    // Game: BloodlineAscendance ce85aee1726900641ab53ede61ac5c19 (no option for the Dragonheir's dragon)
     assert!(!holds(&state, APOTHEOSIS));
     assert!(!holds(&state, "fighter/dragonheir-scion/might-of-wyrms"));
 }
@@ -287,6 +358,8 @@ fn assert_legend_counts(
 fn a_legend_empyreal_sorcerer_gets_apotheosis_at_20_whatever_happens_to_the_rank() {
     for rank in [1, 3, 5, 7] {
         let drops = rank >= 3;
+        // Game: EmpyrealBloodlineProgression 8a95d80a3162d274896d50c2f18bb6b1 (row 20 at sorcerer 20); the Legend
+        // switch's dropped ranks are the planner's model of the story, not a game fact
         let build = legend_ascending(
             &[
                 ("sorcerer", Some("sorcerer/empyreal-sorcerer"), 20),
@@ -313,17 +386,19 @@ fn a_legend_sorcerer_gets_its_20th_level_power_at_20_whatever_happens_to_the_ran
     for rank in [1, 3, 5, 7] {
         let build = legend_ascending(&[("sorcerer", None, 20), ("fighter", None, 5)], rank);
         let build = with_option(build, 1, 0, ABYSSAL);
+        // Game: BloodlineAbyssalProgression d3a4cb7be97a6694290f0dcfbd147113 (Demonic Might at sorcerer 20)
         assert_legend_counts(&build, rank, DEMONIC_MIGHT, 0, rank >= 3);
     }
 }
 
-/// Pins what the data does today, which is a question for the user (ticket 181's Answer): the Empyreal bloodline's
-/// option level counts Dragon Disciple levels (`option_levels: ["dragon-disciple", "sorcerer"]`), so an Empyreal
+/// The game answers ticket 181's question: the Empyreal bloodline counts sorcerer levels only, so an Empyreal
 /// Sorcerer 6 / Dragon Disciple 10 / Empyreal Sorcerer 4 (the Dragon Disciple reached through the Mythic Second
-/// Bloodline, Draconic) gains Apotheosis at character level 20 with only 10 sorcerer levels. The Empyreal table puts
-/// it at sorcerer level 20.
+/// Bloodline, Draconic) has 10 sorcerer levels and no Apotheosis by character level 20.
+// Game: EmpyrealBloodlineProgression 8a95d80a3162d274896d50c2f18bb6b1 (classes: SorcererClass alone; the Draconic
+// ones, e.g. BloodlineDraconicRedProgression 8c6e5b3cf12f71e43949f52c41ae70a8, also list DragonDiscipleClass)
 #[test]
-fn dragon_disciple_levels_count_towards_an_empyreal_sorcerers_apotheosis() {
+#[ignore = "waits on ticket 257: the game counts no Dragon Disciple level towards the Empyreal's 20th-level row"]
+fn dragon_disciple_levels_dont_count_towards_an_empyreal_sorcerers_apotheosis() {
     let mut build = multiclass(&[
         ("sorcerer", Some("sorcerer/empyreal-sorcerer"), 6),
         ("dragon-disciple", None, 10),
@@ -350,10 +425,6 @@ fn dragon_disciple_levels_count_towards_an_empyreal_sorcerers_apotheosis() {
         engine().failures(&build)
     );
     for level in 1..=20 {
-        assert_eq!(
-            count(&at(&build, level), APOTHEOSIS),
-            u32::from(level == 20),
-            "level {level}"
-        );
+        assert_eq!(count(&at(&build, level), APOTHEOSIS), 0, "level {level}");
     }
 }

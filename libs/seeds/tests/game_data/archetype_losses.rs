@@ -24,6 +24,13 @@
 //! place. An archetype's own `why` is optional: it says only what the list can't (a decision of the user's, a guide
 //! table that shows more than its overview).
 //!
+//! The game is the source of the lists (ticket 242): each archetype's list follows its blueprint's `RemoveFeatures`
+//! and `AddFeatures`, cited above it. An entry with `waits_on` is the game's value where the data's rows differ: it
+//! names the ticket that brings the rows to it. The running tests leave those entries and their items out, and
+//! `each_archetype_row_loses_what_the_games_archetype_removes` (ignored until the tickets land) checks the rows
+//! against them. A waiting entry with `count: 0` says the game keeps the item that the rows drop. An entry's own copy
+//! of a base feature (`replaced_by`) where the game keeps the base feature is an equivalent model.
+//!
 //! Not here, because other tests own them: an archetype's replaced class skills (`class_skills.rs`), its replaced
 //! saves (`archetype_saves.rs`), and the option rows a selection skips with `skipped_levels` (`scaling_features.rs`,
 //! which checks the skipped rows of every selection against every option it offers).
@@ -69,9 +76,19 @@ struct Loss {
     /// What the archetype's rows grant in its place: each is held by a row at or after the first lost level.
     #[serde(default)]
     replaced_by: Vec<Item>,
-    /// Required with `at`: what the guide's table shows at those levels.
+    /// Required with `at`: what the guide's table shows at those levels (the game's reason, on a waiting entry).
     #[serde(default)]
     why: String,
+    /// The ticket that brings the data's rows to this entry, the game's value; empty: the rows bear it out now.
+    #[serde(default)]
+    waits_on: String,
+}
+
+impl Loss {
+    /// Whether the entry is the game's value, waiting on a ticket.
+    fn waits(&self) -> bool {
+        !self.waits_on.is_empty()
+    }
 }
 
 fn one() -> u8 {
@@ -289,7 +306,7 @@ fn entry_text(item: &Item, at: &[u8], count: u8, existing: Option<&Loss>) -> Str
     text
 }
 
-/// Checks one archetype's rows against its list.
+/// Checks one archetype's rows against its list, read as `view` says.
 fn check(
     class_key: &str,
     archetype: &ArchetypeKey,
@@ -297,7 +314,16 @@ fn check(
     rows: &[ArchetypeLevelRow],
     names: &BTreeMap<String, String>,
     listed: &[Loss],
+    view: View,
 ) -> Findings {
+    // The data's view says nothing of an item whose entry waits on a ticket; the game's reads every entry, one with
+    // `count: 0` (the game keeps the item) as no entry.
+    let skipped =
+        |item: &Item| view == View::Data && listed.iter().any(|l| l.waits() && &l.item == item);
+    let read = |loss: &&Loss| match view {
+        View::Data => !loss.waits(),
+        View::Game => loss.count > 0,
+    };
     let class_file = format!("libs/game-data/classes/{class_key}.ron");
     let base_gives = gives(base);
     let own = rows_grant(rows);
@@ -306,7 +332,10 @@ fn check(
     let who = format!("{class_key} / {archetype}");
 
     for (item, levels) in &shortfalls {
-        let entry = listed.iter().find(|loss| &loss.item == item);
+        if skipped(item) {
+            continue;
+        }
+        let entry = listed.iter().filter(read).find(|loss| &loss.item == item);
         let expected: BTreeMap<u8, u8> = match entry {
             None => BTreeMap::new(),
             Some(loss) if loss.at.is_empty() => base_gives
@@ -368,7 +397,11 @@ fn check(
         });
     }
 
-    for loss in listed {
+    for loss in listed
+        .iter()
+        .filter(read)
+        .filter(|loss| !skipped(&loss.item))
+    {
         let made = shortfalls.get(&loss.item);
         let base_levels = base_gives.get(&loss.item);
         let named = described(&loss.item, names);
@@ -454,19 +487,32 @@ fn archetypes_with_lists(
     })
 }
 
-/// The findings of every archetype that has a list, in class order.
-fn all_findings() -> Vec<(String, Findings)> {
+/// Which entries a check reads.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum View {
+    /// What the data's rows make now: the entries waiting on a ticket are left out, and their items skipped.
+    Data,
+    /// The game's: every entry, a waiting one too (one with `count: 0` as no entry), of the archetypes with a waiting
+    /// entry.
+    Game,
+}
+
+/// The findings of every archetype that has a list, in class order, read as `view` says.
+fn all_findings(view: View) -> Vec<(String, Findings)> {
     let lists = lists();
     archetypes_with_lists(&lists)
+        .filter(|(.., list)| {
+            view == View::Data || list.is_some_and(|l| l.loses.iter().any(Loss::waits))
+        })
         .map(|(class, archetype, list)| {
-            let listed = list.map_or(&[][..], |l| &l.loses[..]);
             let found = check(
                 class.key.as_str(),
                 &archetype.key,
                 &class.levels,
                 &archetype.levels,
                 &names(class, archetype),
-                listed,
+                list.map_or(&[][..], |l| &l.loses[..]),
+                view,
             );
             (archetype.key.to_string(), found)
         })
@@ -486,7 +532,7 @@ fn report(findings: &[(String, Findings)], pick: impl Fn(&Findings) -> &String) 
 /// lost.
 #[test]
 fn an_archetype_row_keeps_what_the_base_row_gives_unless_the_list_says_it_is_lost() {
-    let findings = all_findings();
+    let findings = all_findings(View::Data);
     let message = report(&findings, |found| &found.unlisted);
     if message.is_empty() {
         return;
@@ -511,9 +557,27 @@ fn an_archetype_row_keeps_what_the_base_row_gives_unless_the_list_says_it_is_los
 /// A listed loss that the rows don't make is as wrong as an unlisted one they do: the list must say what the rows do.
 #[test]
 fn a_listed_loss_the_rows_do_not_make_fails() {
-    let findings = all_findings();
+    let findings = all_findings(View::Data);
     let stale: Vec<&String> = findings.iter().flat_map(|(_, f)| &f.stale).collect();
     assert!(stale.is_empty(), "stale entries:\n{}", join(&stale));
+}
+
+/// The rows of each archetype with an entry waiting on a ticket lose what the game's archetype removes: every entry of
+/// its list, the waiting ones as the game has them, is borne out, and nothing else is lost.
+// Game: each list's archetype blueprint (cited above it in archetype_losses.ron), its RemoveFeatures and AddFeatures
+// by level; ProgressionData.CalculateLevelEntries, WrathDecompiled 6ce4a6b (a RemoveFeatures entry removes one
+// instance per listed feature, then AddFeatures are appended)
+#[test]
+#[ignore = "waits on tickets 268, 269, 273 to 279 and 281 to 286: the game's archetypes lose what the waiting entries of archetype_losses.ron say, each entry naming its ticket"]
+fn each_archetype_row_loses_what_the_games_archetype_removes() {
+    let findings = all_findings(View::Game);
+    let unlisted = report(&findings, |found| &found.unlisted);
+    let stale: Vec<&String> = findings.iter().flat_map(|(_, f)| &f.stale).collect();
+    assert!(
+        unlisted.is_empty() && stale.is_empty(),
+        "the rows lose other than the game:\n{unlisted}\nentries the rows don't bear out:\n{}",
+        join(&stale)
+    );
 }
 
 fn join(lines: &[&String]) -> String {
@@ -555,9 +619,9 @@ fn every_archetype_has_one_list_and_every_list_names_an_archetype() {
                     written(&loss.item)
                 ));
             }
-            if loss.count == 0 {
+            if loss.count == 0 && !loss.waits() {
                 problems.push(format!(
-                    "{}: {} has count 0",
+                    "{}: {} has count 0 (only a waiting entry may: the game keeps it)",
                     list.archetype,
                     written(&loss.item)
                 ));
@@ -623,7 +687,7 @@ fn the_check_names_the_class_the_archetype_the_level_and_the_item() {
     );
 
     // Unlisted: the message names everything and offers both ways out.
-    let found = check("rage", &key, &base, &rows, &names, &[]);
+    let found = check("rage", &key, &base, &rows, &names, &[], View::Data);
     for text in [
         "rage / rage/flesh, level 2",
         "selection rage/rage-power (\"Rage Power\")",
@@ -641,21 +705,21 @@ fn the_check_names_the_class_the_archetype_the_level_and_the_item() {
 
     // Listed: nothing to report.
     let listed = entries(r#"[(item: Selection("rage/rage-power"))]"#);
-    let found = check("rage", &key, &base, &rows, &names, &listed);
+    let found = check("rage", &key, &base, &rows, &names, &listed, View::Data);
     assert!(found.unlisted.is_empty() && found.stale.is_empty());
 
     // A listed loss the rows don't make is stale, at the level the entry names.
     let listed = entries(
         r#"[(item: Selection("rage/rage-power")), (item: Feature("rage/rage"), at: [2], why: "x")]"#,
     );
-    let found = check("rage", &key, &base, &rows, &names, &listed);
+    let found = check("rage", &key, &base, &rows, &names, &listed, View::Data);
     assert!(found.unlisted.is_empty());
     assert_eq!(found.stale.len(), 1, "{:?}", found.stale);
     assert!(found.stale[0].contains("level 2") && found.stale[0].contains("rage/rage"));
 
     // The base class gains a feature at 3, where the archetype has no row: "lost everywhere" no longer holds.
     let listed = entries(r#"[(item: Feature("rage/sense"))]"#);
-    let found = check("rage", &key, &base, &rows, &names, &listed);
+    let found = check("rage", &key, &base, &rows, &names, &listed, View::Data);
     assert_eq!(found.stale.len(), 1, "{:?}", found.stale);
     assert!(found.stale[0].contains("level 3") && found.stale[0].contains("keeps it"));
 }
@@ -669,7 +733,7 @@ fn a_count_of_two_is_exact_and_the_suggestion_replaces_the_existing_entry() {
     let rows = archetype_rows("[(level: 1)]");
 
     let one = entries(r#"[(item: Selection("rage/blessing"), why: "kept")]"#);
-    let found = check("rage", &key, &base, &rows, &names, &one);
+    let found = check("rage", &key, &base, &rows, &names, &one, View::Data);
     assert!(
         found
             .unlisted
@@ -685,12 +749,12 @@ fn a_count_of_two_is_exact_and_the_suggestion_replaces_the_existing_entry() {
     );
 
     let two = entries(r#"[(item: Selection("rage/blessing"), count: 2)]"#);
-    let found = check("rage", &key, &base, &rows, &names, &two);
+    let found = check("rage", &key, &base, &rows, &names, &two, View::Data);
     assert!(found.unlisted.is_empty() && found.stale.is_empty());
 
     // A count the rows don't make is stale.
     let three = entries(r#"[(item: Selection("rage/blessing"), count: 3)]"#);
-    let found = check("rage", &key, &base, &rows, &names, &three);
+    let found = check("rage", &key, &base, &rows, &names, &three, View::Data);
     assert!(
         found.stale[0].contains("(3), but its row there loses 2"),
         "{:?}",
@@ -711,7 +775,7 @@ fn lowered_spell_levels_are_a_loss_and_a_bare_entry_covers_every_casting_level()
         "[(level: 5, spell_levels: Some((arcane: 0, divine: 0))), (level: 6, spell_levels: Some((arcane: 0, divine: 0)))]",
     );
 
-    let found = check("paladin", &key, &base, &rows, &names, &[]);
+    let found = check("paladin", &key, &base, &rows, &names, &[], View::Data);
     assert!(found.unlisted.contains("level 5") && found.unlisted.contains("spell levels"));
     assert_eq!(
         found.paste,
@@ -720,12 +784,12 @@ fn lowered_spell_levels_are_a_loss_and_a_bare_entry_covers_every_casting_level()
 
     // Bare: the base row casts from 4, where the archetype has no row, so it keeps the casting.
     let bare = entries("[(item: SpellLevels)]");
-    let found = check("paladin", &key, &base, &rows, &names, &bare);
+    let found = check("paladin", &key, &base, &rows, &names, &bare, View::Data);
     assert_eq!(found.stale.len(), 1, "{:?}", found.stale);
     assert!(found.stale[0].contains("level 4") && found.stale[0].contains("copies the base row"));
 
     let at = entries(r#"[(item: SpellLevels, at: [5, 6], why: "no spells")]"#);
-    let found = check("paladin", &key, &base, &rows, &names, &at);
+    let found = check("paladin", &key, &base, &rows, &names, &at, View::Data);
     assert!(
         found.unlisted.is_empty() && found.stale.is_empty(),
         "{found:?}"
@@ -733,7 +797,7 @@ fn lowered_spell_levels_are_a_loss_and_a_bare_entry_covers_every_casting_level()
 
     // `at` naming a level where the base row sets no spell levels points at the entry.
     let wrong = entries(r#"[(item: SpellLevels, at: [3, 5, 6], why: "x")]"#);
-    let found = check("paladin", &key, &base, &rows, &names, &wrong);
+    let found = check("paladin", &key, &base, &rows, &names, &wrong, View::Data);
     assert_eq!(found.stale.len(), 1, "{:?}", found.stale);
     assert!(found.stale[0].contains("level 3") && found.stale[0].contains("Fix `at`"));
 }
@@ -756,7 +820,7 @@ fn replaced_by_names_what_the_rows_grant_in_the_items_place() {
         r#"[(item: Slot(CombatFeat), replaced_by: [Slot(OneOf(list: "w/dis/bonus-3"))]),
             (item: Feature("w/channel"), replaced_by: [Feature("w/dis/channel")])]"#,
     );
-    let found = check("w", &key, &base, &rows, &names, &right);
+    let found = check("w", &key, &base, &rows, &names, &right, View::Data);
     assert!(
         found.unlisted.is_empty() && found.stale.is_empty(),
         "{found:?}"
@@ -767,7 +831,7 @@ fn replaced_by_names_what_the_rows_grant_in_the_items_place() {
         r#"[(item: Slot(CombatFeat), replaced_by: [Slot(OneOf(list: "w/dis/elsewhere"))]),
             (item: Feature("w/channel"))]"#,
     );
-    let found = check("w", &key, &base, &rows, &names, &wrong);
+    let found = check("w", &key, &base, &rows, &names, &wrong, View::Data);
     assert_eq!(found.stale.len(), 1, "{:?}", found.stale);
     assert!(
         found.stale[0].contains("w/dis/elsewhere")
@@ -782,7 +846,15 @@ fn replaced_by_names_what_the_rows_grant_in_the_items_place() {
     );
     let delayed =
         entries(r#"[(item: Feature("w/channel"), replaced_by: [Feature("w/dis/channel")])]"#);
-    let found = check("w", &key, &base, &delayed_rows, &names, &delayed);
+    let found = check(
+        "w",
+        &key,
+        &base,
+        &delayed_rows,
+        &names,
+        &delayed,
+        View::Data,
+    );
     assert!(
         found.unlisted.is_empty() && found.stale.is_empty(),
         "{found:?}"

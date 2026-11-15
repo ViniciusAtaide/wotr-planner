@@ -81,15 +81,16 @@ fn the_first_ascension_offers_the_six_paths_path_linked_abilities() {
             )
         })
         .collect();
+    // Game: FirstAscensionSelection 1421e0034a3afac458de08648d06faf0, six progressions with no prerequisite
     assert_eq!(
         named,
         [
-            ("aeon", "Force Reality".to_owned()),
-            ("angel", "Close to the Heavens".to_owned()),
-            ("azata", "Instrument of Freedom".to_owned()),
-            ("demon", "Close to the Abyss".to_owned()),
-            ("lich", "Danse Macabre".to_owned()),
-            ("trickster", "Bit of Fun".to_owned()),
+            ("aeon", "Force Reality".to_owned()), // Game: AeonFirstAscension 11744000c915c6144ac6be7ceca03521
+            ("angel", "Close to the Heavens".to_owned()), // Game: AngelFirstAscension 58abcd052187a264aba9b0ce285c49f4
+            ("azata", "Instrument of Freedom".to_owned()), // Game: AzataFirstAscension d2cfbbb941e07b04299b617017e369f1
+            ("demon", "Close to the Abyss".to_owned()), // Game: DemonFirstAscension ac8e25586edaf6348a7cbc35d3aa21f2
+            ("lich", "Danse Macabre".to_owned()), // Game: LichFirstAscension 4457101b8eca5a546a5a0bdb651bd003
+            ("trickster", "Bit of Fun".to_owned()), // Game: TricksterFirstAscension 2df27c2ac48abd949bdf891c6adb625e
         ]
     );
     assert!(options.iter().all(|option| option.status.is_ok()));
@@ -98,6 +99,9 @@ fn the_first_ascension_offers_the_six_paths_path_linked_abilities() {
 #[test]
 fn every_first_ascension_gives_bypass_epic_damage_reduction_at_mr_1_and_hard_to_kill_at_mr_2() {
     // The guide's two fixed abilities: Bypass Epic Damage Reduction "At 1st mythic rank", Hard to Kill "At 2nd".
+    // Game: MythicStartingProgression af4ee0acb9114e544bf02f39027966b0 (MythicBypassEpicDR
+    // c60933cc085132b49970cbc4a4b8338f at 1, MythicStartingClassFinished bef12729fa3f9b34488634f61751e295 at 2), the
+    // same for every path (equivalent model: the data holds a key per path)
     for path in ["aeon", "angel", "azata", "demon", "lich", "trickster"] {
         let mut build = build("fighter", 7);
         build.first_ascension = Some(MythicPathKey::new(path));
@@ -141,6 +145,8 @@ fn the_enforcer_takes_bit_of_fun_at_mr_1_and_goes_azata_at_mr_3() {
     assert_eq!(build.mythic_path, Some(MythicPathKey::new("azata")));
 
     // The Mythic track: Bit of Fun at MR 1; Creative Approach, Summon Will-o'-Wisp and Hard to Kill at MR 2.
+    // Game: TricksterFirstLevelsProgression 11ba180ac736c894e937602e54f7320c (TricksterResistances
+    // 4cd530e060eccbc4b99f232abbf9c3f1 and TricksterSummonBaseFeature 8963c914c07ccd0489d1d34a8d1a5865 at 2)
     assert!(names_has(&names(&build, 1), "Bit of Fun"));
     let mr_2 = names(&build, 2);
     for name in ["Creative Approach", "Summon Will-o'-Wisp", "Hard to Kill"] {
@@ -152,6 +158,9 @@ fn the_enforcer_takes_bit_of_fun_at_mr_1_and_goes_azata_at_mr_3() {
     assert_eq!(sheet.ranks[2].path, Some(MythicPathKey::new("azata")));
 
     // Held from their ranks; the Azata gives none of its MR 1 and 2 rows, and its own from MR 3 on.
+    // Game: AzataFirstLevelsProgression 132afc1a28bd9d442821385f7cbf1c05 (its MR 1 and 2 features come only with the
+    // Azata's first ascension); AzataProgression 9db53de4bf21b564ca1a90ff5bd16586 (DragonAzataCompanionFeature
+    // cf36f23d60987224696f03be70351928 at its level 1, MR 3)
     assert!(holds(&at(&build, 6), "trickster/bit-of-fun"));
     assert!(holds(&at(&build, 7), "trickster/creative-approach"));
     let last = at(&build, u8::try_from(build.levels.len()).unwrap());

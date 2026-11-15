@@ -96,6 +96,8 @@ fn a_full_build_of_every_base_class_opens_from_a_short_link() {
 #[test]
 fn a_fighter_can_take_shield_focus() {
     // The fighter's first level grants Shield Proficiency, which Shield Focus needs.
+    // Game: FighterProficiencies a23591cc77086494ba20880f87e73970 (ShieldsProficiency); ShieldFocus
+    // ac57069b6bf8c904086171683992a92a (a shield proficiency; in FighterFeatSelection)
     let mut fighter = build("fighter", 1);
     let bonus = SlotId::Feat {
         level: 1,
@@ -117,6 +119,7 @@ fn a_fighter_can_take_shield_focus() {
 #[test]
 fn a_wizards_scribe_scrolls_is_held_with_no_pick() {
     let sheet = engine().evaluate(&build("wizard", 1));
+    // Game: WizardProgression 02f3049806dbf62459259ea8cae8f715 (ScribingScrolls a8a385bf53ee3454593ce9054375a2ec at 1)
     assert!(
         sheet
             .at(1)
@@ -124,7 +127,8 @@ fn a_wizards_scribe_scrolls_is_held_with_no_pick() {
             .feats
             .contains_key(&FeatKey::new("scribe-scrolls"))
     );
-    // No slot at level 1 is a list to pick it from.
+    // No slot at level 1 is a list to pick it from. (The data's slot shape, not a game fact: the game's level-1 bonus
+    // feat is WizardFeatSelection 8c3102c2ff3b69444b139a98521a4899, a fixed list the data holds as a category.)
     assert!(
         sheet.levels[0]
             .slots
@@ -155,6 +159,8 @@ fn every_feat_list_holds_two_feats_or_more_or_every_feat() {
             )
         })
         .collect();
+    // Game: DragonLevel2FeatSelection a21acdafc0169f5488a9bd3256e2e65b (IgnorePrerequisites; its list, which the data
+    // holds as every feat, is the game check's)
     assert_eq!(every, [("gold-dragon/dragon-feats", true, 0)]);
     let one_choice: Vec<_> = DATA
         .feat_lists()
@@ -170,21 +176,28 @@ fn every_feat_list_holds_two_feats_or_more_or_every_feat() {
     assert_eq!(
         one_choice,
         [
+            // Game: Adaptability 26a668c5a8c22354bac67bcd42e09a3f (the 11 Skill Focus feats; it doesn't ignore
+            // prerequisites, but Skill Focus has none: equivalent model)
             (
                 "half-elf/adaptability",
                 true,
                 BTreeSet::from([FeatKey::new("skill-focus")])
             ),
+            // Game: SwordSaintChosenWeaponSelection 3130e3083845b7b4fa2ac5b6f1a1ae6e (SwordSaintChosenWeaponFeature
+            // c0b4ec0175e3ff940a45fc21f318a39a gives Weapon Focus in the chosen weapon, unchecked: equivalent model)
             (
                 "magus/sword-saint/chosen-weapon",
                 true,
                 BTreeSet::from([FeatKey::new("weapon-focus")])
             ),
+            // Game: MasterOfAllSkillFocus f2d2c1702d8a4cc6adfcbd4ebff8eee4 (SkillFocusSelection
+            // c9629ef9eebb88b479b2fbc5e836656a)
             (
                 "rogue/master-of-all/skill-focus",
                 true,
                 BTreeSet::from([FeatKey::new("skill-focus")])
             ),
+            // Game: WarpriestWeaponFocusSelection ac384183dbfbbd7499410a21d749bef1 (Weapon Focus, IgnorePrerequisites)
             (
                 "warpriest/weapon-focus",
                 true,
@@ -229,6 +242,8 @@ fn a_rogue_slayer_cannot_take_one_talent_twice() {
     build.levels.push(LevelUp::new(ClassKey::new("slayer")));
     build.levels.push(LevelUp::new(ClassKey::new("slayer")));
     // Not Combat Trick, which repeats (ticket 47).
+    // Game: FastStealth 97a6aa2b64dd21a4fac67658a91067d7 (Ranks 1); BlueprintFeatureSelection.CanSelect, WrathDecompiled
+    // 6ce4a6b
     let talent = pick("rogue/rogue-talents/fast-stealth");
     build.picks.insert(selection_slot(2), talent.clone());
     assert_eq!(
@@ -246,12 +261,24 @@ fn a_rogue_slayer_cannot_take_one_talent_twice() {
 fn a_slayer_takes_rogue_talents_and_advanced_ones_from_slayer_10() {
     let slayer = build("slayer", 10);
     let at_10 = offered(&slayer, 10);
+    // Game: CripplingStrike b696bd7cb38da194fa3404032483d1db (Sneak Attack and AdvanceTalents, slayer 10:
+    // SlayerProgression 1f35d11937a06624b8a60db68c7869a1); SlayerCamouflage fd374a48fd0f5e94a841cc3bf408c432
+    // (TerrainMastery and AdvanceTalents)
     assert_eq!(at_10["rogue/rogue-talents/crippling-strike"], Ok(()));
     // Slayer Camouflage needs Terrain Mastery, now the rogue's talent.
     assert!(at_10["slayer/slayer-talents/slayer-camouflage"].is_err());
     assert!(offered(&slayer, 8)["rogue/rogue-talents/crippling-strike"].is_err());
-    // The slayer's talents are the 36 rogue talents plus its own two and the three combat style feats (ticket 32).
-    assert_eq!(at_10.len(), 41);
+}
+
+/// The slayer's talent list at 10 is the game's 39: three combat styles, Slayer Camouflage, Slayer Trapfinding, 32 of
+/// the rogue's talents and two archetypes' talents.
+// Game: SlayerTalentSelection10 913b9cf25c9536949b43a2651b7ffb66 (39 entries; not the rogue's Intimidating Prowess,
+// Weapon Snatcher, Skill Focus, Weapon Focus, Emboldening Strike or Petrifying Strike; ExecutionerPainfulStrike and
+// VanguardTacticianExtraUseTalent in)
+#[test]
+#[ignore = "waits on ticket 276: the game gives the slayer's talent list at 10 39 options"]
+fn a_slayers_talent_list_at_10_is_the_games_39() {
+    assert_eq!(offered(&build("slayer", 10), 10).len(), 39);
 }
 
 #[test]
@@ -263,6 +290,10 @@ fn a_shaman_shares_eleven_witch_hexes() {
         .filter(|key| key.starts_with("witch/hex/"))
         .cloned()
         .collect();
+    // Game: ShamanHexSelection 4223fe18c75d4d14787af196a04e14e7 (the shaman's own hex blueprints, 11 sharing a witch
+    // hex's name: Healing among them); ShamanHexEvilEyeFeature 890cd9309dc515c4199d811c36760d17 (no prerequisite).
+    // That the data shares the witch's keys is its shape (equivalent model, but for a shaman-witch who could hold
+    // both copies in the game).
     assert_eq!(shared.len(), 11);
     assert!(shared.contains("witch/hex/healing-hex"));
     assert_eq!(hexes["witch/hex/evil-eye"], Ok(()));
@@ -275,35 +306,52 @@ fn a_sylvan_trickster_picks_a_rogue_talent_or_a_witch_hex() {
     assert_eq!(at_2["rogue/rogue-talents/combat-trick"], Ok(()));
     assert_eq!(at_2["witch/hex/evil-eye"], Ok(()));
     // Major hexes from 10th level, grand hexes from 18th.
+    // Game: SylvanTricksterArchetype 490394869f666c141bf8647b1a365220 (SylvanTricksterTalentSelection
+    // 290bbcc3c3bb92144b853fd8fb8ff452 at every even level); WitchHexAgonyFeature de5f107ec5a340d4dbc333fd86a3cc06
+    // (WitchMajorHex, at 10); WitchHexDeathCurseFeature b7cd7ba71151e354d9c8a1bff959d789 (WitchGrandHex, at 18)
     assert!(at_2["witch/hex/agony"].is_err());
     let at_10 = offered(&trickster, 10);
     assert_eq!(at_10["witch/hex/agony"], Ok(()));
     assert!(at_10["witch/hex/death-curse"].is_err());
     let at_18 = offered(&archetype_build("rogue", "rogue/sylvan-trickster", 18), 18);
     assert_eq!(at_18["witch/hex/death-curse"], Ok(()));
-    // Every even level is a Fey Tricks pick: 36 rogue talents and 26 witch hexes.
-    assert_eq!(at_2.len(), 62);
+}
+
+/// The game's Fey Tricks list has 64 options: 37 rogue talents (the rogue's 38 less Weapon Snatcher) and 27 hexes
+/// (the witch's 26 and the Hex Channeler's channel).
+// Game: SylvanTricksterTalentSelection 290bbcc3c3bb92144b853fd8fb8ff452
+#[test]
+#[ignore = "waits on ticket 276: the game gives the Sylvan Trickster's Fey Tricks 64 options"]
+fn a_sylvan_tricksters_fey_tricks_are_the_games_64() {
+    let trickster = archetype_build("rogue", "rogue/sylvan-trickster", 2);
+    assert_eq!(offered(&trickster, 2).len(), 64);
 }
 
 #[test]
 fn an_underground_chemist_may_take_discoveries_in_place_of_rogue_talents_from_level_10() {
     let chemist = archetype_build("rogue", "rogue/underground-chemist", 12);
+    // Game: UndergroundChemistArchetype b4f5741d42c4cb04abf5ab3fe33f6fc5 (UndergroundChemistSelection
+    // c3d08fdb481aa2e4a9f71c4349141826 at 10 only: EnhancePotion and CripplingStrike among its options)
     assert!(!offered(&chemist, 8).contains_key("alchemist/discovery/enhance-potion"));
-    for level in [10, 12] {
-        let offered = offered(&chemist, level);
-        assert_eq!(offered["alchemist/discovery/enhance-potion"], Ok(()));
-        assert_eq!(offered["rogue/rogue-talents/crippling-strike"], Ok(()));
-        // 36 rogue talents and 6 discoveries.
-        assert_eq!(offered.len(), 42);
-    }
-    // Mummification needs Preserve Organs, and the chemist's Discovery stands in for alchemist level 10.
-    let mut chemist = chemist;
+    let offered = offered(&chemist, 10);
+    assert_eq!(offered["alchemist/discovery/enhance-potion"], Ok(()));
+    assert_eq!(offered["rogue/rogue-talents/crippling-strike"], Ok(()));
+}
+
+/// The game gives the Underground Chemist its discovery choice at 10 only, of 29 options (6 discoveries and 23 rogue
+/// talents); at 12 the rogue's own talents, no discovery, so no Mummification there after Preserve Organs at 10
+/// (Mummification's own prerequisite, Preserve Organs and alchemist 10 or Underground Chemist rogue 10, agrees).
+// Game: UndergroundChemistSelection c3d08fdb481aa2e4a9f71c4349141826 (29 options); UndergroundChemistArchetype
+// b4f5741d42c4cb04abf5ab3fe33f6fc5 (adds it at 10 only); Mummification daf854d84d442e941aa3a2fdc041b37c
+#[test]
+#[ignore = "waits on ticket 276: the game gives the Underground Chemist 29 options at 10 and no discovery at 12"]
+fn an_underground_chemist_takes_a_discovery_at_10_only() {
+    let mut chemist = archetype_build("rogue", "rogue/underground-chemist", 12);
+    assert_eq!(offered(&chemist, 10).len(), 29);
+    assert!(!offered(&chemist, 12).contains_key("alchemist/discovery/enhance-potion"));
     chemist.picks.insert(
         selection_slot(10),
         pick("alchemist/discovery/preserve-organs"),
     );
-    assert_eq!(
-        offered(&chemist, 12)["alchemist/discovery/mummification"],
-        Ok(())
-    );
+    assert!(!offered(&chemist, 12).contains_key("alchemist/discovery/mummification"));
 }

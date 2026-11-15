@@ -37,6 +37,8 @@ fn greater_two_weapon_fighting_at_dex_17_needs_the_belt_of_incredible_dexterity_
     let slot = Choice::Slot(general_slot(13));
 
     // Without the belt only the last feat fails, on its Dexterity.
+    // Game: TwoWeaponFightingGreater c126adbdf6ddd8245bda33694cd774e8 (Dex 19, BAB 11); TwoWeaponFightingImproved
+    // 9af88f3ed8a017b45a6837eab7437629 (Dex 17, BAB 6); TwoWeaponFighting ac8aaf29054f5b74eb18f2af950e752d (Dex 15)
     let failures = engine.failures(&naked);
     assert_eq!(failures.len(), 1, "{failures:?}");
     assert_eq!(failures[0].choice, slot);
@@ -46,6 +48,10 @@ fn greater_two_weapon_fighting_at_dex_17_needs_the_belt_of_incredible_dexterity_
     );
 
     // With it the Build is possible, and the feat is reported as needing the belt.
+    // Game: BeltOfDexterity2 b6af4c1834999e74497b41588d1071cd (Dex +2 Enhancement);
+    // Kingmaker/Blueprints/Classes/Prerequisites/PrerequisiteStatValue.cs GetStatValue (PermanentValue) and
+    // Kingmaker/EntitySystem/Stats/ModifiableValueAttributeStat.cs CalculatePermanentValue (an item's Enhancement counts),
+    // WrathDecompiled 6ce4a6b
     let mut geared = naked.clone();
     geared.gear.worn.insert(GearPlace::Belt, GearKey::new(BELT));
     assert!(engine.is_possible(&geared));
@@ -83,6 +89,8 @@ fn greater_two_weapon_fighting_at_dex_17_needs_the_belt_of_incredible_dexterity_
         Some("Greater Two-Weapon Fighting needs Belt of Incredible Dexterity +2")
     );
     // A belt that gives the Dexterity too is open; one that doesn't is locked.
+    // Game: BeltOfDexterity4 20539ffabe4365e419ca7413129ab78a (Dex +4); BeltOfStrength2 c354de364a714ee4dbe2cfee628df267
+    // (Str +2 only)
     let status = |key: &str| {
         (options.iter())
             .find(|option| {

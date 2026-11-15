@@ -37,6 +37,9 @@ fn general_feat_status(build: &Build, feat: &str) -> Result<(), Issue> {
 #[test]
 fn the_users_38_backgrounds_are_there_in_their_groups() {
     use rules::BackgroundGroup::*;
+    // Game: BackgroundsBaseSelection f926dabeee7f8a54db8f2010b323383c; its eight group selections hold 4, 3, 3, 15, 3,
+    // 3, 3, 4 (BackgroundsRegionalSelection fa621a249cc836f4382ca413b976e65e among them). Its BackgroundNone and the
+    // two companion-only backgrounds aren't a player's.
     assert_eq!(DATA.backgrounds.len(), 38);
     let in_group = |group| {
         DATA.backgrounds
@@ -82,6 +85,13 @@ fn only_the_decided_backgrounds_grant_feats() {
             (b.key.to_string(), feats.collect())
         })
         .collect();
+    // Game: BackgroundAldoriSwordsman ce0ea6b388ac467408d6da224fab403d (DuelingSwordProficiency
+    // 9c37279588fd9e34e9c4cb234857492c); BackgroundScholarArcane 9dae3842d599b7c4389dc8df22f66a80 (ScribingScrolls
+    // a8a385bf53ee3454593ce9054375a2ec); BackgroundScholarDivine e8aeb919dd831c243855a285e1f87755 (BrewPotions
+    // c0f8c4e513eb493408b8070a1de93fc0); BackgroundMartialDisciple 46d69a77c26701a459607c3f42e3664a (ImprovedUnarmedStrike
+    // 7812ad3672a4b9a4fb894ea402095167); LightArmorProficiency 6d3728d4e9c9898458fe5e9532951132 from BackgroundBountyHunter
+    // 15a072cca47e2444ebfd178b71f4e797, BackgroundGladiator 1ea754d5573a0ed4e9fca4c30519f247, BackgroundGuard
+    // 3a793809b0f11b74f8b79c252067bfe0 and BackgroundMercenary 43b7315eb58242943848750af3671a25; no other grants a feat
     let light = || vec!["armor-proficiency-light-armor".to_owned()];
     assert_eq!(
         granted,
@@ -113,6 +123,7 @@ fn a_shackles_corsair_holds_athletics_and_mobility_as_class_skills() {
     let mobility = SkillKey::new("mobility");
     let plain = skills(&wizard_with(None));
     assert!(!plain.contains(&athletics) && !plain.contains(&mobility));
+    // Game: BackgroundShacklesCorsair 25fa74e08bcc43c47816fa364f1d48b6 (AddClassSkill Athletics and Mobility)
     let corsair = skills(&wizard_with(Some("shackles-corsair")));
     assert!(corsair.contains(&athletics) && corsair.contains(&mobility));
     assert_eq!(
@@ -127,6 +138,8 @@ fn an_aldori_swordsman_holds_exotic_weapon_proficiency_in_the_dueling_sword() {
     let state = sheet.at(1).unwrap();
     let proficiency = FeatKey::new("exotic-weapon-proficiency");
     let weapon = |key: &str| Parameter::Weapon(WeaponKey::new(key));
+    // Game: BackgroundAldoriSwordsman ce0ea6b388ac467408d6da224fab403d (DuelingSwordProficiency
+    // 9c37279588fd9e34e9c4cb234857492c only)
     assert!(state.has_feat_for(&proficiency, &weapon("dueling-sword")));
     assert!(!state.has_feat_for(&proficiency, &weapon("bastard-sword")));
     assert!(engine().is_possible(&wizard_with(Some("aldori-swordsman"))));
@@ -134,6 +147,8 @@ fn an_aldori_swordsman_holds_exotic_weapon_proficiency_in_the_dueling_sword() {
 
 #[test]
 fn a_guard_can_take_armor_proficiency_medium_armor_at_level_1() {
+    // Game: MediumArmorProficiency 46f4fb320f35704488ba3d513397789d (needs LightArmorProficiency); BackgroundGuard
+    // 3a793809b0f11b74f8b79c252067bfe0
     let medium = "armor-proficiency-medium-armor";
     assert!(general_feat_status(&wizard_with(None), medium).is_err());
     let mut guard = wizard_with(Some("guard"));
@@ -146,6 +161,8 @@ fn a_guard_can_take_armor_proficiency_medium_armor_at_level_1() {
 
 #[test]
 fn a_martial_disciples_improved_unarmed_strike_meets_stunning_fists_prerequisite() {
+    // Game: StunningFist a29a582c3daa4c24bb0e991c596ccb28 (ImprovedUnarmedStrike); BackgroundMartialDisciple
+    // 46d69a77c26701a459607c3f42e3664a
     let iua = Prerequisite::Feat(FeatKey::new("improved-unarmed-strike"));
     let unmet = general_feat_status(&wizard_with(None), "stunning-fist").unwrap_err();
     let Issue::Unmet(unmet) = unmet else {

@@ -20,6 +20,7 @@ fn a_human_warpriest_takes_dazzling_display_at_1_on_the_class_slots_weapon_focus
     build
         .picks
         .insert(race_slot(), Pick::feat(FeatKey::new("dazzling-display")));
+    // Game: DazzlingDisplayFeature bcbd674ec70ff6f4894bb5f07b6f4095 (PrerequisiteFeature WeaponFocus)
     assert!(possible(&build));
 }
 
@@ -35,6 +36,7 @@ fn a_human_druid_with_a_companion_takes_boon_companion_at_1() {
     build
         .picks
         .insert(race_slot(), Pick::feat(FeatKey::new("boon-companion")));
+    // Game: CompanionBoon 8fc01f06eab4dd946baa5bc658cac556 (needs AnimalCompanionRank)
     assert!(possible(&build));
 }
 
@@ -46,6 +48,7 @@ fn every_parameterised_feat_repeats_once_per_value() {
         .filter(|f| f.parameter.is_some())
         .collect();
     assert_eq!(parameterised.len(), 16);
+    // Game: WeaponFocus 1e1f627d26ad36f43bbd26cc2bf8ac7e, a parametrized feature: one rank per value
     for feat in parameterised {
         assert_eq!(feat.repeat, Repeat::PerValue, "{}", feat.key);
     }
@@ -62,6 +65,7 @@ fn weapon_focus_and_greater_weapon_focus_each_in_two_weapons() {
     ] {
         fighter.picks.insert(slot, feat_pick(key, weapon(value)));
     }
+    // Game: WeaponFocusGreater 09c9e82965fb4334b984a1e9df3bd088 (parametrized; needs WeaponFocus in the same weapon)
     assert!(possible(&fighter));
     assert_eq!(
         values_at(&fighter, 10, "greater-weapon-focus"),
@@ -78,6 +82,8 @@ fn weapon_focus_and_greater_weapon_focus_each_in_two_weapons() {
 #[test]
 fn exotic_weapon_proficiency_can_take_the_sawtooth_saber() {
     // Exotic Weapon Proficiency can take the Sawtooth Saber.
+    // Game: ExoticWeaponProficiencySelection 9a01b6815d6c3684cb25f30b8bf20932 (SawtoothSabreProficiency
+    // 5829f3b193704b8096820875f2eb2368, BAB 1)
     let mut fighter = build("fighter", 1);
     fighter.picks.insert(
         general_slot(1),
@@ -90,6 +96,8 @@ fn exotic_weapon_proficiency_can_take_the_sawtooth_saber() {
 fn armor_focus_heavy_needs_heavy_armour_proficiency() {
     use rules::ArmourType as A;
     let focus = |armour| feat_pick("armor-focus", Parameter::ArmourType(armour));
+    // Game: ArmorFocusHeavy c27e6d2b0d33d42439f512c6d9a6a601 (heavy armour proficiency, BAB 1); ClericProficiencies
+    // 8c971173613282844888dc20d572cfc9 (light, medium, shields)
     // A fighter has every armour proficiency.
     let mut fighter = build("fighter", 1);
     fighter.picks.insert(class_slot(1), focus(A::Heavy));
@@ -126,6 +134,7 @@ fn improved_critical_mythic_in_a_longsword_needs_improved_critical_in_a_longswor
             weapon("longsword"),
         ),
     );
+    // Game: ImprovedCriticalMythicFeat 8bc0190a4ec04bd489eec290aeaa6d07 (needs ImprovedCritical in the same weapon)
     assert!(possible(&fighter));
     fighter.picks.insert(
         mythic.clone(),
@@ -151,11 +160,11 @@ fn the_mythic_feats_that_pick_a_value_take_one_once_per_value() {
             "improved-critical-mythic",
             K::Weapon,
             Some("improved-critical"),
-        ),
-        ("spell-focus-mythic", K::SpellSchool, Some("spell-focus")),
-        ("skill-focus-mythic", K::Skill, Some("skill-focus")),
-        ("expanded-arsenal", K::SpellSchool, None),
-        ("school-mastery", K::SpellSchool, None),
+        ), // Game: ImprovedCriticalMythicFeat 8bc0190a4ec04bd489eec290aeaa6d07
+        ("spell-focus-mythic", K::SpellSchool, Some("spell-focus")), // Game: SpellFocusMythicFeat 41fa2470ab50ff441b4cfbb2fc725109
+        ("skill-focus-mythic", K::Skill, Some("skill-focus")), // Game: SkillFocusMythicFeatSelection a224819b9492019428c220754208ba3a, a feature per skill needing its Skill Focus (equivalent model)
+        ("expanded-arsenal", K::SpellSchool, None), // Game: ExpandedArsenalSchool f137089c48364014aa3ec3b92ccaf2e2
+        ("school-mastery", K::SpellSchool, None), // Game: SchoolMasteryMythicFeat ac830015569352b458efcdfae00a948c
     ] {
         let feat = mythic_feat(key);
         assert_eq!(
@@ -171,11 +180,11 @@ fn the_mythic_feats_that_pick_a_value_take_one_once_per_value() {
     }
     // The Trickster's chain: each needs the one before in the same weapon.
     for (key, base) in [
-        ("improved-improved-critical", "improved-critical"),
+        ("improved-improved-critical", "improved-critical"), // Game: TricksterImprovedImprovedCritical 56f94badbba018b4b8277ce6e2e79e72
         (
             "improved-improved-improved-critical",
             "improved-improved-critical",
-        ),
+        ), // Game: TricksterImprovedImprovedImprovedCritical 006a966007802a0478c9e21007207aac
     ] {
         let Some(Prerequisite::All(children)) = &feat(key).prerequisite else {
             panic!("{key}");
@@ -192,6 +201,8 @@ fn a_mantis_zealot_holds_its_sawtooth_saber_feats_at_1_4_8_and_12() {
     align(&mut zealot, rules::Alignment::LawfulNeutral);
     assert!(possible(&zealot));
     let saber = || BTreeSet::from([weapon("sawtooth-saber")]);
+    // Game: MantisZealotArchetype fc403240fdca4a52a413578169ea7117 (proficiency and Weapon Focus at 1, Weapon
+    // Specialization at 4, Greater Weapon Focus at 8, Greater Weapon Specialization at 12, in the sawtooth sabre)
     for (level, key) in [
         (1, "weapon-focus"),
         (1, "exotic-weapon-proficiency"),
@@ -212,6 +223,8 @@ fn a_mantis_zealot_holds_its_sawtooth_saber_feats_at_1_4_8_and_12() {
 
 #[test]
 fn the_chirurgeon_and_the_enlightened_philosopher_hold_skill_focus_in_their_skill() {
+    // Game: ChirurgeonArchetype 063440d550b25524abcb8dc2590d0168 (SkillFocusLoreReligion at 5);
+    // EnlightenedPhilosopherArchetype 4f2698f04fa63e34b8153fa3a9795649 (SkillFocusKnowledgeWorld at 1)
     let chirurgeon = archetype_build("alchemist", "alchemist/chirurgeon", 5);
     assert_eq!(values_at(&chirurgeon, 4, "skill-focus"), BTreeSet::new());
     assert_eq!(
@@ -227,6 +240,8 @@ fn the_chirurgeon_and_the_enlightened_philosopher_hold_skill_focus_in_their_skil
 
 #[test]
 fn a_zen_archers_way_of_the_bow_is_weapon_focus_in_a_bow_and_specialization_in_it_at_6() {
+    // Game: ZenArcherArchetype 2b1a58a7917084f49b097e86271df21c (ZenArcherWayOfTheBowSelection at 2, two bows; the
+    // specialization at monk 6, as ZenArcherWayOfTheBowShortbowFocus 10e90309eb10d1a4b8c730554aa590a6 adds it)
     let way = "monk/zen-archer/way-of-the-bow/bow";
     let mut archer = archetype_build("monk", "monk/zen-archer", 6);
     align(&mut archer, rules::Alignment::LawfulNeutral);
@@ -262,8 +277,12 @@ fn a_zen_archers_way_of_the_bow_is_weapon_focus_in_a_bow_and_specialization_in_i
     );
 }
 
+/// The levels agree with the game; the one weapon named with the hex doesn't
+/// (`a_battle_master_hex_names_no_weapon_and_8_and_16_each_choose_one`).
+// Game: ShamanHexBattleMasterProgression 840651aac9b854a4980ec19e2fced74f (a Weapon Specialization pick at shaman 8, a
+// Greater Weapon Focus pick at 16)
 #[test]
-fn a_battle_master_shaman_specialises_at_8_and_greater_focuses_at_16_in_one_weapon() {
+fn a_battle_master_shaman_specialises_at_8_and_greater_focuses_at_16() {
     let mut shaman = build("shaman", 16);
     shaman
         .picks
@@ -280,21 +299,27 @@ fn a_battle_master_shaman_specialises_at_8_and_greater_focuses_at_16_in_one_weap
         values_at(&shaman, 7, "weapon-specialization"),
         BTreeSet::new()
     );
-    assert_eq!(
-        values_at(&shaman, 8, "weapon-specialization"),
-        BTreeSet::from([weapon("spear")])
-    );
-    assert_eq!(
-        values_at(&shaman, 16, "greater-weapon-focus"),
-        BTreeSet::from([weapon("spear")])
-    );
+    assert_eq!(values_at(&shaman, 8, "weapon-specialization").len(), 1);
+    assert_eq!(values_at(&shaman, 16, "greater-weapon-focus").len(), 1);
+}
+
+/// The Battle Master hex names no weapon: its Weapon Specialization at shaman 8 and its Greater Weapon Focus at 16 are
+/// each a choice of weapon of their own.
+// Game: ShamanHexBattleMasterProgression 840651aac9b854a4980ec19e2fced74f; ShamanHexBattleMasterSelection8
+// f18fea9a4f78fc94e842c02e24b1dad3 (the pick at 8, prerequisites ignored)
+#[test]
+#[ignore = "waits on ticket 278: the game gives the Battle Master hex no weapon, and a weapon choice at shaman 8 and at 16"]
+fn a_battle_master_hex_names_no_weapon_and_8_and_16_each_choose_one() {
+    assert_eq!(selection_option("shaman/hex/battle-master").parameter, None);
 }
 
 #[test]
 fn a_sword_saint_takes_weapon_focus_in_a_weapon_of_his_choosing_at_1() {
     let saint = archetype_build("magus", "magus/sword-saint", 1);
     let options = engine().options(&saint, &class_slot(1)).unwrap();
-    assert_eq!(options.len(), DATA.weapons.len());
+    // Which weapons: `a_sword_saint_chooses_a_melee_weapon`.
+    // Game: SwordSaintChosenWeaponFeature c0b4ec0175e3ff940a45fc21f318a39a (Weapon Focus in the chosen weapon, its
+    // prerequisites not checked)
     assert!(
         options
             .iter()
@@ -302,11 +327,35 @@ fn a_sword_saint_takes_weapon_focus_in_a_weapon_of_his_choosing_at_1() {
     );
 }
 
+/// The Sword Saint's chosen weapon is a melee weapon: no bow, crossbow, ray, bomb or kinetic blast is offered.
+// Game: SwordSaintChosenWeaponFeature c0b4ec0175e3ff940a45fc21f318a39a (a weapon category filtered to Melee);
+// Kingmaker/Blueprints/Classes/Selection/BlueprintParametrizedFeature.cs ExtractItemsWeaponCategory, WrathDecompiled 6ce4a6b
+#[test]
+#[ignore = "waits on ticket 283: the game gives the Sword Saint a melee weapon only"]
+fn a_sword_saint_chooses_a_melee_weapon() {
+    let saint = archetype_build("magus", "magus/sword-saint", 1);
+    let options = engine().options(&saint, &class_slot(1)).unwrap();
+    for ranged in [
+        "long-bow",
+        "short-bow",
+        "light-crossbow",
+        "heavy-crossbow",
+        "rays",
+        "bomb",
+        "kinetic-blast",
+    ] {
+        let pick = feat_pick("weapon-focus", weapon(ranged));
+        assert!(options.iter().all(|option| option.pick != pick), "{ranged}");
+    }
+}
+
 #[test]
 fn a_half_elfs_race_slot_is_skill_focus_in_a_skill_of_choice() {
     let mut half_elf = build("fighter", 1);
     half_elf.start.race = Some(rules::RaceKey::new("half-elf"));
     let options = engine().options(&half_elf, &race_slot()).unwrap();
+    // Game: Adaptability 26a668c5a8c22354bac67bcd42e09a3f (the 11 Skill Focus feats), the default of
+    // HalfElfHeritageSelection 9df7b68d60544bcf8e5b56c0a4688e04
     assert_eq!(options.len(), DATA.skills.len());
     assert!(
         options
@@ -326,57 +375,81 @@ fn a_slayer_takes_three_combat_style_feats_and_not_a_fourth() {
             .picks
             .insert(option_feat(level), Pick::feat(FeatKey::new(feat_)));
     }
+    // Game: RangerStyleSelection2 c6d0da9124735a44f93ac31df803b9a9, RangerStyleSelection6
+    // 61f82ba786fe05643beb3cd3910233a8, RangerStyleSelection10 78177315fc63b474ea3cbb8df38fafcd (6 needs 2 and slayer 6,
+    // 10 needs 6 and slayer 10)
     // The style with the first (ticket 33).
     slayer.picks.insert(
         SlotId::OptionSelection { level: 4, index: 0 },
         pick("ranger/combat-style-feat/archery-feats"),
     );
     assert!(possible(&slayer));
-    // A fourth: each window's talent is taken once, and the first window is past.
+    // A fourth: each window's talent is taken once.
+    // Game: RangerStyleSelection10 78177315fc63b474ea3cbb8df38fafcd (PrerequisiteNoFeature itself)
     slayer.picks.insert(selection_slot(12), style(10));
     assert_eq!(
         why_not(&slayer, &selection_slot(12)),
         Some(Issue::AlreadyHeld)
     );
-    // And the first window is past at 6.
-    let mut late = build("slayer", 6);
-    late.picks.insert(selection_slot(6), style(2));
-    assert_eq!(
-        why_not(&late, &selection_slot(6)),
-        unmet(
-            Prerequisite::Not(Box::new(Prerequisite::ClassLevel {
-                class: ClassKey::new("slayer"),
-                level: 6,
-            })),
-            None
-        )
-    );
 }
 
+/// The first combat style feat has no upper level: a slayer 6 may take it at 6.
+// Game: RangerStyleSelection2 c6d0da9124735a44f93ac31df803b9a9 (no class-level prerequisite, only not held)
 #[test]
-fn perfect_mind_gives_bab_15_and_skill_ranks_at_the_mythic_rank_for_prerequisites() {
+#[ignore = "waits on ticket 276: the game gives the first combat style feat no upper level, so a slayer takes it at 6"]
+fn a_slayer_may_take_the_first_combat_style_feat_at_6() {
+    let style = |level: u8| pick(&format!("slayer/slayer-talents/combat-style-feat-{level}"));
+    let mut late = build("slayer", 6);
+    late.picks.insert(selection_slot(6), style(2));
+    assert!(possible(&late));
+}
+
+/// A wizard 17 on the Trickster path that switched to the Gold Dragon.
+fn gold_dragon_wizard_17() -> rules::Build {
     let mut wizard = mythic("trickster", 17);
     wizard.levels = (0..17)
         .map(|_| LevelUp::new(ClassKey::new("wizard")))
         .collect();
     wizard.class_choices.clear();
     wizard.path_switch = Some(MythicPathKey::new("gold-dragon"));
-    let sheet = engine().evaluate(&wizard);
+    wizard
+}
+
+#[test]
+fn perfect_mind_gives_bab_15_and_skill_ranks_at_the_mythic_rank_for_prerequisites() {
+    let sheet = engine().evaluate(&gold_dragon_wizard_17());
     let state = sheet.at(17).unwrap();
-    assert_eq!(state.bab, 8);
+    // Game: DragonLevel2BABOverride f4af14e9f4408d44c830d891fee8f4a5 (BAB raised to 15, given at GoldenDragonProgression
+    // a6fbca43902c6194c947546e89af64bd's level 2); the BAB itself and the skills:
+    // `perfect_mind_raises_the_bab_itself_to_15_and_meets_no_skill_rank_prerequisite`
     assert_eq!(state.check(&Prerequisite::BaseAttackBonus(15)), Ok(()));
-    assert_eq!(
-        state.check(&Prerequisite::SkillRanks {
-            skill: SkillKey::new("perception"),
-            ranks: 9,
-        }),
-        Ok(())
-    );
     assert!(
         sheet
             .at(16)
             .unwrap()
             .check(&Prerequisite::BaseAttackBonus(15))
+            .is_err()
+    );
+}
+
+/// Perfect Mind's BAB is a real base attack bonus of 15 (attacks too), and its skill floor raises each skill's total,
+/// not its ranks, so a skill-rank prerequisite doesn't see it.
+// Game: DragonLevel2BABOverride f4af14e9f4408d44c830d891fee8f4a5 (a BaseAttackBonus modifier); GoldenDragonSharedSkillUMD
+// 4e0b919e4fbd85142bce959fae129d1a; Kingmaker/UnitLogic/FactLogic/AddGoldenDragonSkillBonus.cs OnTurnOn and
+// Kingmaker/Blueprints/Classes/Prerequisites/PrerequisiteStatValue.cs GetStatValue (a skill's BaseValue: ranks),
+// WrathDecompiled 6ce4a6b
+#[test]
+#[ignore = "waits on ticket 252: the game gives Perfect Mind a real BAB of 15 and no skill ranks"]
+fn perfect_mind_raises_the_bab_itself_to_15_and_meets_no_skill_rank_prerequisite() {
+    let sheet = engine().evaluate(&gold_dragon_wizard_17());
+    let state = sheet.at(17).unwrap();
+    assert_eq!(state.bab, 15);
+    assert!(
+        state
+            .check(&Prerequisite::SkillRanks {
+                skill: SkillKey::new("perception"),
+                ranks: 9,
+            })
             .is_err()
     );
 }
@@ -389,6 +462,8 @@ fn destiny_beyond_birth_removes_a_dwarfs_charisma_penalty() {
         SlotId::Mythic { rank: 2 },
         Pick::mythic_feat(rules::MythicFeatKey::new("destiny-beyond-birth")),
     );
+    // Game: DwarfRace c4faf439f0e70bd40b5e36ee80d06be7 (the -2 Charisma unless DestinyBeyondBirthMythicFeat
+    // 325f078c584318849bfe3da9ea245b9d is held)
     assert!(possible(&dwarf));
     let sheet = engine().evaluate(&dwarf);
     assert_eq!(sheet.at(6).unwrap().ability_scores.charisma, 8);
@@ -396,8 +471,11 @@ fn destiny_beyond_birth_removes_a_dwarfs_charisma_penalty() {
     assert!(mythic_feat("destiny-beyond-birth").removes_racial_penalty);
 }
 
+/// The Razmiri Infiltrator is any alignment but a good one (it also needs a deity, not asserted here).
+// Game: MagicDeceiverWayOfRazmiriInfiltratorProgression cd96109ca30b45dcb6d7390945c8487d (LN, TN, CN, LE, NE, CE)
 #[test]
-fn the_razmiri_infiltrator_is_true_neutral_or_evil() {
+#[ignore = "waits on ticket 282: the game gives the Razmiri Infiltrator LN, TN, CN, LE, NE and CE"]
+fn the_razmiri_infiltrator_is_any_alignment_but_good() {
     let way = DATA
         .classes
         .iter()
@@ -408,26 +486,29 @@ fn the_razmiri_infiltrator_is_true_neutral_or_evil() {
             o.key.as_str() == "arcanist/magic-deceiver/ways-of-the-deceiver/razmiri-infiltrator"
         })
         .unwrap();
-    let Some(Prerequisite::Any(alignments)) = &way.prerequisite else {
-        panic!("{:?}", way.prerequisite);
-    };
+    let alignments: BTreeSet<&Prerequisite> = way
+        .prerequisite
+        .iter()
+        .flat_map(|prerequisite| prerequisite.leaves())
+        .filter(|leaf| matches!(leaf, Prerequisite::Alignment(_)))
+        .collect();
     use rules::Alignment as A;
-    assert_eq!(
-        alignments.iter().cloned().collect::<BTreeSet<_>>(),
-        [
-            A::TrueNeutral,
-            A::LawfulEvil,
-            A::NeutralEvil,
-            A::ChaoticEvil
-        ]
-        .into_iter()
-        .map(Prerequisite::Alignment)
-        .collect()
-    );
+    let non_good = [
+        A::LawfulNeutral,
+        A::TrueNeutral,
+        A::ChaoticNeutral,
+        A::LawfulEvil,
+        A::NeutralEvil,
+        A::ChaoticEvil,
+    ]
+    .map(Prerequisite::Alignment);
+    assert_eq!(alignments, non_good.iter().collect());
 }
 
 #[test]
 fn the_tortured_crusader_gets_3_skill_points_and_its_own_class_skills() {
+    // Game: TorturedCrusader f91ea9596e6f42f8a23803c1b3e976b4 (AddSkillPoints 1 on PaladinClass
+    // bfa11238e7ae3544bbeb4d0b92e897ec's 2; ReplaceClassSkills with these seven): the user's fact, which the game bears out
     let crusader = archetype_build("paladin", "paladin/tortured-crusader", 1);
     let sheet = engine().evaluate(&crusader);
     // Intelligence 10: no modifier.
@@ -458,6 +539,7 @@ fn the_tortured_crusader_gets_3_skill_points_and_its_own_class_skills() {
 
 #[test]
 fn the_arcane_trickster_lacks_use_magic_device_and_the_dragon_disciple_has_knowledge_world() {
+    // Game: ArcaneTricksterClass 9c935a076d4fe4d4999fd48d853e3cf3; DragonDiscipleClass 72051275b1dbb2d42ba9118237794f7c
     assert!(
         !class("arcane-trickster")
             .class_skills
