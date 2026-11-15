@@ -4,6 +4,10 @@ The planner's game data, as RON files that deserialise straight into the `rules`
 (`libs/rules/src/game_data.rs`). These files are the source of truth (ticket 75), and the only copy: the servers read
 them at startup (ticket 187). Fix data by editing them, then restart a running server.
 
+The game itself is the source of truth for rules (ticket 234): its blueprints and code sit in the git-ignored
+`blueprints/` and `decompiled/` of the main checkout, fetched at pinned versions by `scripts/game-sources.sh`
+(`CLAUDE.md`, "Game sources", says how to cite them; the repo never holds the game's text or dump).
+
 The files were extracted once from the guide pages saved in `guide-cache/` and have been corrected by hand since;
 the extractor is gone (ticket 82). A data change edits the `.ron` files by hand, writes a note in its own file under
 `notes/` (`notes/README.md` has the form: the ticket, the decision behind it and what the data now says) and adds a
