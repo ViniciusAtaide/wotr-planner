@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Pre-commit: the fast half of scripts/check.sh (fmt and clippy), only when the commit touches Rust or its build
+# Pre-commit: fmt and clippy, only when the commit touches Rust or its build
 # files. It checks the working tree, not just what's staged. Enabled per clone with
 # `git config core.hooksPath .githooks`; `git commit --no-verify` skips it.
 set -euo pipefail

@@ -9,7 +9,7 @@
 # background when nothing listens on 3902.
 # Without WOTR_MCP_PORT it serves stdio, for a client that starts it. Rebuild after a change to apps/mcp, libs/rules
 # or libs/seeds; until then it serves the old code and logs a warning naming the newer file. Game data is read at
-# start, so a data change needs no rebuild. `scripts/check.sh --full` runs it too.
+# start, so a data change needs no rebuild. `scripts/queue-checks.sh` runs it too.
 set -euo pipefail
 
 cd "$(git -C "$(dirname "$0")" rev-parse --show-toplevel)"
