@@ -1,0 +1,43 @@
+# The game check's known differences (ticket 238): each a group, or one entry of a group, with the ticket that will
+# remove it. A finding takes the most specific line that matches it; known findings are reported in groups of their
+# own and don't fail the check, and a line that matches no finding does.
+#
+#   <area> -> <ticket>
+#   <area> / <kind> -> <ticket>
+#   <area> / <kind> / <entry> -> <ticket>
+#   <area> / <kind> / <entry> / <value> -> <ticket>
+#
+# A kind of `*` is any kind; a value is the finding's game or planner value, whole. The ticket is its number or,
+# before it has one, its file name in .scratch/wotr-planner/issues/ without `.md`.
+
+# Ticket 243 (ranked features and filtered pools) is resolved: the differences of its shape it left are not known,
+# and wait on difference tickets.
+
+# Ticket 244, the game data laid out by blueprint. Copies and entries holding one of several blueprints (237's
+# Answer, group a and its list of entries with several): a selection the planner shares where the game keeps one per
+# class, and the blueprints an entry's primary leaves out.
+progression rows / a selection the game keeps separate -> 244
+mythic ranks / a selection the game keeps separate -> 244
+option lists / * / selection cleric/separatist/domain -> 244
+option lists / * / selection warpriest/blessings -> 244
+option lists / * / selection aeon/enforcing-gaze -> 244
+option lists / * / feat list kineticist/element/air/wild-talent-feats -> 244
+option lists / * / feat list kineticist/element/earth/wild-talent-feats -> 244
+option lists / * / feat list kineticist/element/fire/wild-talent-feats -> 244
+option lists / * / feat list kineticist/element/water/wild-talent-feats -> 244
+option lists / in game only / pool general feats / AdvancedWeaponTraining2 -> 244
+option lists / in game only / pool general feats / AdvancedWeaponTraining3 -> 244
+option lists / in game only / pool general feats / AdvancedWeaponTraining4 -> 244
+option lists / in game only / pool general feats / ExtraChannelEmpyrealSorcerer -> 244
+option lists / in game only / pool general feats / ExtraChannelHexChanneler -> 244
+option lists / in game only / pool general feats / ExtraChannelHospitaler -> 244
+option lists / in game only / pool general feats / ExtraChannelOracle -> 244
+option lists / in game only / pool general feats / ExtraChannelShaman -> 244
+option lists / in game only / pool general feats / ExtraShamanHexSelection -> 244
+option lists / in game only / pool general feats / MagicalTail -> 244
+option lists / in planner only / pool general feats / magical-tail (MagicalTail1) -> 244
+option lists / in game only / pool mythic abilities / AbundantSmiteChaos -> 244
+# Skill Focus: one planner feat taken for a skill, where the game has a feature per skill. A prerequisite naming the
+# skill compares as that skill's feature; Mythic Skill Focus asks for the same skill as its own value, which the game
+# writes as any one of the eleven.
+prerequisites / missing in planner, a blueprint it doesn't map / mythic feat skill-focus-mythic -> 244

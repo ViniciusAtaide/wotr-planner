@@ -1,0 +1,25 @@
+[package]
+name = "game-check"
+version.workspace = true
+edition.workspace = true
+
+# The game check (ticket 238): compares each game-data entry that names a blueprint with that blueprint in the game's
+# pinned dump (`blueprints/`, ticket 236), and prints the differences. Run by hand (`cargo run -p game-check`), since
+# worktrees and CI have no dump; its fixture tests run with the workspace's.
+[[bin]]
+name = "game-check"
+path = "src/main.rs"
+
+[dependencies]
+# The dump's chunks are LZ4 blocks; only decoding is needed.
+lz4_flex = { version = "0.14.2", default-features = false, features = ["std", "safe-decode"] }
+rules.workspace = true
+seeds.workspace = true
+serde_json = "1.0.154"
+sha2.workspace = true
+
+[dev-dependencies]
+# The fixture tests write their own small dump.
+lz4_flex = { version = "0.14.2", default-features = false, features = ["std", "safe-encode", "safe-decode"] }
+ron.workspace = true
+tempfile = "3.27.0"
