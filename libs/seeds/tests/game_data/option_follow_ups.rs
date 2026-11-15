@@ -241,11 +241,11 @@ fn a_dual_cursed_oracle_is_offered_misfortune_and_fortune() {
         1,
         "oracle/mystery/battle",
     );
+    // Fortune from oracle 5: `a_dual_cursed_oracle_takes_fortune_from_oracle_5_and_misfortune_from_1`.
     for level in [1, 3, 5, 7, 11, 13] {
         let offered = offered_in(&build, &selection_slot(level));
         for key in [
             "oracle/revelations/misfortune",
-            "oracle/revelations/fortune",
             "oracle/revelations/battle/weapon-mastery",
         ] {
             assert_eq!(offered.get(key), Some(&Ok(())), "{level}: {key}");

@@ -205,9 +205,9 @@ _Avoid_: Daily pick, rest choice
 A Feature selection whose options the option held in another selection admits, as the game filters one selection by its options' prerequisites: an oracle's revelations (`oracle/revelations`, the game's one revelation selection) each need their mystery, and the slot offers only those of the mysteries held (two with a mythic Second Mystery), with the options no mystery admits (the Dual-Cursed Oracle's Fortune and Misfortune) besides. The game lists the others greyed out; leaving them out is the planner's choice. Within a level its slot is checked after the other selections'.
 _Avoid_: Pool selection, dynamic selection, revelation list
 
-**Rank**:
-How many times a feature is held: the game adds a rank each time it grants a held feature again (Fey Magic at a Feyspeaker's 4th to 18th levels, rank 8 at 18th), and a prerequisite or a number reads it. The sheet says it from rank 2.
-_Avoid_: Stage, step
+**Feature rank**:
+How many times a feature has been granted: the game adds a rank each time it grants a held feature again, up to the blueprint's `Ranks` (`Feature.AddRank`), and a prerequisite or a number reads it (the Assassin's poison saves: `Ranks` 5, rank 2 at assassin 9). The planner counts every grant and doesn't cap it, so a feature the game keeps at rank 1 and grants again counts on (Fey Magic, the Feyspeaker's repeated selection: rank 8 at druid 18). The sheet says it from rank 2.
+_Avoid_: Stage, step; "rank" alone, which means a Mythic rank
 
 **Option group**:
 A family of Selection options of which a character holds only one: the sorcerer's ten Draconic bloodlines ("You can only take a single draconic bloodline"), its four Elemental ones, and the bloodrager's dragons and elements, apart from the sorcerer's. The options' prerequisite says "no other option of this group", so a Crossblooded sorcerer or a Second Bloodline can't add a second dragon. (Expanded Element's "not the 7th-level element again" is not a group: the selection gives each option once.)

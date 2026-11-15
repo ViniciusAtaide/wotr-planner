@@ -40,11 +40,12 @@ async fn real_data_the_sheet_says_a_feature_gained_twice_at_a_level_twice() {
     let client = Client::start().await;
     let build = fighter_9(&client, true).await;
     let sheet = client.ok("sheet", json!({ "build": build })).await;
-    // Level 9 gains Sneak Attack twice, and each of the others once (no `times`).
+    // Level 9 gains Sneak Attack twice, and each of the others once (no `times`). Its rank, 2, is the times it is
+    // gained, so the line leaves it out.
     let level = &sheet["levels"][8]["features"];
     assert_eq!(
         feature(level, "trickster/sneak-attack"),
-        &json!({ "key": "trickster/sneak-attack", "name": "Sneak Attack (Trickster)", "times": 2, "rank": 2 })
+        &json!({ "key": "trickster/sneak-attack", "name": "Sneak Attack (Trickster)", "times": 2 })
     );
     assert_eq!(
         feature(level, "trickster/sneaky-quack"),
@@ -80,7 +81,8 @@ async fn real_data_compare_sees_a_feature_gained_twice_against_none() {
 
 /// Fey Magic is one feature the Feyspeaker gains again every two levels from 4: the level that grants it a second time
 /// says rank 2, the first says none. Game: FeyspeakerArchetype da69747aa3dd0044ebff5f3d701cdde3 adds
-/// FeyspeakerMagicSelection 237efc6a131c8174bbd466ed239f21fc at 4, 6, 8, …, 18.
+/// FeyspeakerMagicSelection 237efc6a131c8174bbd466ed239f21fc at 4, 6, 8, …, 18. The rank is the planner's count of
+/// grants: the game's stops at the blueprint's `Ranks` (`Feature.AddRank`), which is 1 here, so its own stays 1.
 #[tokio::test]
 async fn real_data_the_sheet_says_the_rank_of_a_feature_gained_again() {
     let client = Client::start().await;

@@ -577,7 +577,7 @@ fn new_feats(engine: &Engine, before: &CharacterState, after: &CharacterState) -
 }
 
 /// The features granted at a level: each held more times at its end than before it, with how many more when that is
-/// more than one, and its rank when that is more than one.
+/// more than one, and its rank when that is more than one and more than it gained there.
 fn new_features(engine: &Engine, before: &CharacterState, after: &CharacterState) -> Vec<Gained> {
     after
         .features
@@ -596,13 +596,14 @@ fn new_features(engine: &Engine, before: &CharacterState, after: &CharacterState
         .collect()
 }
 
-/// A feature gained `times` times at once, its rank after `rank` when known.
+/// A feature gained `times` times at once, its rank after `rank` when known: left out for 1, and when it is `times`
+/// (all its grants come at once, which `times` says).
 fn gained(key: &impl std::fmt::Display, name: &str, times: usize, rank: Option<u8>) -> Gained {
     Gained {
         key: key.to_string(),
         name: name.to_owned(),
         times: u8::try_from(times).ok().filter(|times| *times > 1),
-        rank: rank.filter(|rank| *rank > 1),
+        rank: rank.filter(|rank| *rank > 1 && usize::from(*rank) != times),
     }
 }
 

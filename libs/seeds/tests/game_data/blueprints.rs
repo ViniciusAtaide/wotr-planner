@@ -184,7 +184,7 @@ fn entries_name_their_game_blueprint() {
 /// The 175 entries left empty, by kind, as the ticket's Answer lists them: planner placeholders (the bloodline-spell
 /// features), a feature the game keeps as one blueprint per colour or element, an ability rather than a feature, a
 /// planner-made pool or list. A change here is a change to that list. The splits ticket removed the 27 curse-stage
-/// placeholders (148 left).
+/// placeholders and added the Possessed Oracle's curse selection, which the game doesn't have (149 left).
 #[test]
 fn the_entries_left_without_a_blueprint_are_the_answers() {
     let mut empty: BTreeMap<&str, usize> = BTreeMap::new();
@@ -198,7 +198,7 @@ fn the_entries_left_without_a_blueprint_are_the_answers() {
         BTreeMap::from([
             ("feature", 102),
             ("gear item", 1),
-            ("selection", 2),
+            ("selection", 3),
             ("selection option", 39),
             ("spell", 1),
             ("spell list", 2),

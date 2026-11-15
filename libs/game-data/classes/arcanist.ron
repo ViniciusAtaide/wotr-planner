@@ -313,7 +313,7 @@ Class(
                     key: "arcanist/magic-deceiver/ways-of-the-deceiver/living-deity/curse",
                     blueprint: "4e7265c0ae1345db90d3375f4ced94cc",
                     name: "Curse (Living Deity)",
-                    summary: "A Living Deity\'s oracle curse: it gives its 1st-level stage and never advances.",
+                    summary: "A Living Deity\'s oracle curse: it gives its 1st-level stage and never advances, so Blackened\'s attack penalty stays -4 and Wolf-Scarred Face\'s bite 1d4.",
                     guide: "arcanist#living-deity",
                     option_levels: ["arcanist"],
                     skipped_levels: [5, 10, 15],

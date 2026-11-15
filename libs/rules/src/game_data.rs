@@ -1245,7 +1245,8 @@ pub struct FeatureSelection {
     #[serde(default)]
     pub option_level_archetypes: BTreeSet<ArchetypeKey>,
     /// Set when half the levels of every other class add to the option level, rounded down: the classes neither in
-    /// `option_levels` nor taken with one of `option_level_archetypes` (an oracle's curse: "half of other classes").
+    /// `option_levels` nor taken with one of `option_level_archetypes`, and the Mythic rank, which the game counts as
+    /// the mythic classes' levels (an oracle's curse: `BlueprintProgression.CalcLevel` with `ForAllOtherClasses`).
     #[serde(default)]
     pub half_other_classes: bool,
     /// Option levels whose rows an option held through this selection doesn't get (Seeker: 3, 9 and 15); the
@@ -1267,9 +1268,9 @@ pub struct FeatureSelection {
     #[serde(default)]
     pub only_without_option: bool,
     /// A filtered pool: the selection whose options admit this one's (an oracle's revelations, admitted by the
-    /// mystery held). An option whose prerequisite names options of that selection is offered only while one of
-    /// them is held; the others are offered as usual. The game lists the rest greyed out; leaving them out is the
-    /// planner's choice.
+    /// mystery held). An option whose prerequisite can't be met without one of that selection's options is offered
+    /// only while one of them is held; the others are offered as usual (an option naming one under a `Not`, or beside
+    /// another way in, among them). The game lists the rest greyed out; leaving them out is the planner's choice.
     #[serde(default)]
     pub filtered_by: Option<FeatureSelectionKey>,
     /// How many option levels an option held through it lags behind the levels of its classes (the Separatist's

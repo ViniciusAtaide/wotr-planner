@@ -6,8 +6,8 @@
 //!   `Feature.AddRank`): the Assassin's poison saves, the Feyspeaker's Fey Magic; Physical Enhancement is granted
 //!   once, its bonus a number of wizard levels, its 20th-level step a feature of its own.
 //! - **The oracle's curse is a progression:** each curse's stages come at curse levels 1, 5, 10 and 15, the curse
-//!   level counting oracle levels, a Stigmatized Witch's levels and half the other classes'
-//!   (`BlueprintProgression.CalcLevel`); the Dual-Cursed Oracle's second curse and the Living Deity's never advance.
+//!   level counting oracle levels, a Stigmatized Witch's levels and half the other classes', the Mythic rank among
+//!   them (`BlueprintProgression.CalcLevel`); the Dual-Cursed Oracle's second curse and the Living Deity's never advance.
 //! - **One revelation selection, filtered by the mystery:** its options carry the mystery that admits them
 //!   (`BlueprintFeatureSelection.CanSelect`, `BlueprintFeature.MeetsPrerequisites`).
 //! - **Links made before keep opening** with the same picks, an old key read as the option it became.
@@ -21,8 +21,10 @@ use rules::{
 
 use crate::support::*;
 
-/// The links of the fixture: Builds of the corpus (`tools/corpus`) recorded at the commit before the splits, and one
-/// made there with Combat Healer (Life)'s old key; each line `name<TAB>link<TAB>picks`, the picks as they read now.
+/// The links of the fixture: Builds of the corpus (`tools/corpus`) recorded at the commit before the splits, and two
+/// made from them with old keys as that commit wrote them: one with Combat Healer (Life), and the Dual-Cursed Oracle's
+/// with Fortune moved from oracle 1 to 5, where the game allows it (`a_dual_cursed_oracle_takes_fortune_from_oracle_5_and_misfortune_from_1`).
+/// Each line `name<TAB>link<TAB>picks`, the picks as they read now.
 const LINKS: &str = include_str!("links-before-the-splits.tsv");
 
 /// A feature's rank, the times it is held, at each level of a Build's sheet.
@@ -151,13 +153,22 @@ fn stage(curse: &str, stage: &str) -> String {
     format!("oracle/oracles-curse/{curse}/{stage}")
 }
 
+/// The Build with its Mythic ranks taken at its last level, after that level's class level, so a curse's level
+/// counts its classes alone until then (the Mythic rank counts as another class's level:
+/// `a_curses_level_adds_half_the_mythic_rank_as_another_class`).
+fn unascended(mut build: Build) -> Build {
+    let last = u8::try_from(build.levels.len()).unwrap();
+    build.rank_levels.insert(1, last);
+    build
+}
+
 #[test]
 fn an_oracles_curse_reaches_its_stages_at_curse_levels_1_5_10_and_15() {
     // Game: BlackenedCurseProgression ca1e4627a1ad8fc4f83158f6497d5c54, LevelEntries 1 (BlackenedCurseAttackRollFeature
     // 5edc2d4ed4b7c4b499e635fda70adadb, BlackenedCurseFeatureLevel1 0b6eeed955daedd4896ef104cfc2afb9), 5
     // (BlackenedCurseFeatureLevel5 f85139824ffa90a448dc579097ab988c), 10 (BlackenedCurseFeatureLevel10
     // 510d3d8e625df844496173fef12ff326) and 15 (BlackenedCurseFeatureLevel15 4e05304fd4c1aae45a24d73976225697).
-    let oracle = cursed(&["oracle"; 15], "blackened");
+    let oracle = unascended(cursed(&["oracle"; 15], "blackened"));
     assert!(possible(&oracle));
     assert_stages(
         &engine().evaluate(&oracle),
@@ -245,6 +256,30 @@ fn a_curses_level_adds_half_the_other_classes_but_not_a_plain_witchs() {
 }
 
 #[test]
+fn a_curses_level_adds_half_the_mythic_rank_as_another_class() {
+    // Game: BlueprintProgression.cs `CalcLevel` (WrathDecompiled 6ce4a6b) adds, for ForAllOtherClasses, every entry of
+    // `unit.Progression.Classes` the progression doesn't list, and that list holds the mythic classes too
+    // (UnitLogic/UnitProgressionData.cs `SetupLevelsIfNecessary` sums its mythic entries into the Mythic level).
+    // Every level-up, a mythic one included, recomputes each progression's level
+    // (UnitLogic/Class/LevelUp/Actions/ApplyClassMechanics.cs `ApplyProgressions`). BlackenedCurseProgression
+    // ca1e4627a1ad8fc4f83158f6497d5c54 names BlackenedCurseFeatureLevel10 510d3d8e625df844496173fef12ff326 at 10.
+    let mut oracle = cursed(&["oracle"; 9], "blackened");
+    oracle.mythic_path = Some(rules::MythicPathKey::new("angel"));
+    assert!(possible(&oracle));
+    let sheet = engine().evaluate(&oracle);
+    // Mythic ranks 1, 2 and 3 come at levels 6, 7 and 9: oracle 7 at MR 2 is curse level 8, oracle 9 at MR 3 is 10.
+    let curse = SelectionOptionKey::new("oracle/oracles-curse/blackened");
+    let levels: Vec<u8> = (sheet.levels.iter())
+        .map(|level| level.state.option_level(&curse))
+        .collect();
+    assert_eq!(levels, [1, 2, 3, 4, 5, 6, 8, 9, 10]);
+    assert_eq!(
+        ranks(&sheet, &stage("blackened", "level-10")),
+        ranked_at(&[9], 9)
+    );
+}
+
+#[test]
 fn a_stigmatized_witchs_curse_advances_with_her_witch_levels() {
     // Game: AccursedWitchArchetype c5f6e53e71059fb4d802ce81a277a12d adds OracleCurseSelection
     // b0a5118b4fb793241bc7042464b23fab at 1; LameCurseProgression 3d319da9614c76a41a095a4467c3233f lists
@@ -273,7 +308,7 @@ fn the_dual_cursed_oracles_second_curse_and_the_living_deitys_never_advance() {
     // 4e7265c0ae1345db90d3375f4ced94cc offer the `<Curse>CurseNoProgression`s, each with a level-1 entry only
     // (LameCurseNoProgression 857c97115ec745d58cc8fa7bdedc794f, PlaguedCurseNoProgression
     // b1f3b639d54540e59eb0643d77f3736c); the Dual-Cursed Oracle's first curse is the class's OracleCurseSelection.
-    let dual = archetype_build("oracle", "oracle/dual-cursed-oracle", 15);
+    let dual = unascended(archetype_build("oracle", "oracle/dual-cursed-oracle", 15));
     let dual = with_option(dual, 1, 1, "oracle/mystery/battle");
     let dual = with_option(dual, 1, 2, "oracle/oracles-curse/plagued");
     let dual = with_option(dual, 1, 3, "oracle/oracles-curse/lame");
@@ -325,9 +360,28 @@ fn a_possessed_oracle_holds_powerless_prophecy_as_its_advancing_curse_with_no_pi
     // UncannyDodgeChecker 8f800ed6ce8c42e8a01fd8f3e990c459 and PowerlessProphecyCurseFeatureLevel1
     // e567696843b0da74b8d7e1e7f0649b9e at 1, PowerlessProphecyCurseFeatureLevel5 abfd1deaddbf58140b8ba0e0bbb51e46 at
     // 5, ImprovedUncannyDodge 485a18c05792521459c7d06c63128c79 at 10, PowerlessProphecyCurseFeatureLevel15
-    // afa1f5b0540be6543ae1605da6a1a429 at 15.
+    // afa1f5b0540be6543ae1605da6a1a429 at 15. The game has no selection there, so the planner's curse selection names no
+    // blueprint; the archetype and the option name theirs.
+    assert_eq!(
+        blueprint(DataAt::FeatureSelection(FeatureSelectionKey::new(
+            "oracle/possessed-oracle/curse"
+        ))),
+        None
+    );
+    assert_eq!(
+        blueprint(DataAt::SelectionOption(SelectionOptionKey::new(
+            "oracle/oracles-curse/powerless-prophecy"
+        ))),
+        Some("88c89ab44a36a67438347e257f70c8fe")
+    );
+    assert_eq!(
+        blueprint(DataAt::Archetype(rules::ArchetypeKey::new(
+            "oracle/possessed-oracle"
+        ))),
+        Some("09035bb5dbb714645bb08ea7db47884c")
+    );
     let possessed = with_option(
-        archetype_build("oracle", "oracle/possessed-oracle", 15),
+        unascended(archetype_build("oracle", "oracle/possessed-oracle", 15)),
         1,
         0,
         "oracle/mystery/battle",
@@ -470,6 +524,30 @@ fn the_revelation_slot_offers_the_held_mysterys_revelations_and_those_no_mystery
     assert!(possible(&dual));
 }
 
+#[test]
+fn a_dual_cursed_oracle_takes_fortune_from_oracle_5_and_misfortune_from_1() {
+    // Game: FortuneRevelationFeature 16935c4660ee4c7da976b5f6cafb43dd's PrerequisiteArchetypeLevel asks for
+    // DualCursedOracleArchetype at OracleClass level 5, MisfortuneRevelationFeature 8121fe70a7974970a8a560bd2267cc24's
+    // at level 1. The Dual-Cursed Oracle's revelation slots are at 1, 3 and 5 (its own selection, the first of each
+    // row's).
+    let dual = with_option(
+        archetype_build("oracle", "oracle/dual-cursed-oracle", 5),
+        1,
+        1,
+        "oracle/mystery/battle",
+    );
+    for level in [1, 3, 5] {
+        let offered = offered_in(&dual, &selection_slot(level));
+        let fortune = &offered["oracle/revelations/fortune"];
+        if level < 5 {
+            assert!(matches!(fortune, Err(Issue::Unmet(_))), "{level}");
+        } else {
+            assert_eq!(fortune, &Ok(()), "{level}");
+        }
+        assert_eq!(offered["oracle/revelations/misfortune"], Ok(()), "{level}");
+    }
+}
+
 // ---- links made before -----------------------------------------------------------------------------------------
 
 /// The picks of a Build as the fixture writes them: `address=key`, in slot order.
@@ -512,4 +590,12 @@ fn links_made_before_the_splits_open_with_the_same_picks() {
         .find(|line| line.starts_with("life oracle with combat healer"))
         .unwrap();
     assert!(life.ends_with("slot.selection.7.0=oracle/revelations/battle/combat-healer"));
+    // And the Dual-Cursed Oracle's Misfortune and Fortune theirs.
+    let dual = LINKS
+        .lines()
+        .find(|line| line.starts_with("full oracle oracle/dual-cursed-oracle, fortune at 5"))
+        .unwrap();
+    assert!(dual.contains(
+        "slot.selection.3.0=oracle/revelations/misfortune slot.selection.5.0=oracle/revelations/fortune "
+    ));
 }

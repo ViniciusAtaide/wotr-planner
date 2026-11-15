@@ -31,25 +31,40 @@ impl Catalog {
             .collect()
     }
 
-    /// Whether the selection `by` that filters a pool admits `option` for a character in `state`: the options of `by`
-    /// that the option's prerequisite names (a revelation's mystery), when it names any, include one held.
+    /// Whether the selection `by` that filters a pool admits `option` for a character in `state`: unless the option's
+    /// prerequisite can't be met without an option of `by` that isn't held (a revelation's mystery).
     fn admits(
         &self,
         by: &FeatureSelection,
         option: &SelectionOptionKey,
         state: &CharacterState,
     ) -> bool {
-        let Some(prerequisite) = self.option(option).and_then(|o| o.prerequisite.as_ref()) else {
-            return true;
-        };
-        let mut admitting = prerequisite
-            .leaves()
-            .filter_map(|leaf| match leaf {
-                Prerequisite::SelectionOption(key) if self.offers(by, key) => Some(key),
-                _ => None,
-            })
-            .peekable();
-        admitting.peek().is_none() || admitting.any(|key| state.option_count(key) > 0)
+        self.option(option)
+            .and_then(|o| o.prerequisite.as_ref())
+            .is_none_or(|prerequisite| !self.needs_unheld(by, prerequisite, state))
+    }
+
+    /// Whether `prerequisite` fails for want of an option of `by` that isn't held, whatever else is met: one it needs
+    /// (under `All`), or every way it has (under `Any`), or more than it can spare (under `AtLeast`). A condition
+    /// under a `Not`, or beside another way in, never makes it so, so the picker never leaves out what may be met.
+    fn needs_unheld(
+        &self,
+        by: &FeatureSelection,
+        prerequisite: &Prerequisite,
+        state: &CharacterState,
+    ) -> bool {
+        let fails = |child: &Prerequisite| self.needs_unheld(by, child, state);
+        match prerequisite {
+            Prerequisite::SelectionOption(key) => {
+                self.offers(by, key) && state.option_count(key) == 0
+            }
+            Prerequisite::All(children) => children.iter().any(fails),
+            Prerequisite::Any(children) => !children.is_empty() && children.iter().all(fails),
+            Prerequisite::AtLeast(needed, children) => {
+                children.iter().filter(|child| !fails(child)).count() < usize::from(*needed)
+            }
+            _ => false,
+        }
     }
 
     /// The lists a feat slot picks from for a character in `state`: a `OneOf`'s list, or the lists in force of

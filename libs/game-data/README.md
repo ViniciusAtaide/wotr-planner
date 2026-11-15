@@ -205,10 +205,11 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   ranger style); its `class_skills` are class skills while the row is held (ticket 37), so an archetype that skips
   the row (Divine Herbalist) or a lists-only holding (Crossblooded's second bloodline) gives none. Its selection says
   which classes' levels make the option level, `option_levels: ["dragon-disciple", "sorcerer"]` (an option taken
-  late gets every row up to its level at once), with the game's two more terms where its progression has them (the
-  splits ticket): `option_level_archetypes` (a class that has one of them counts only taken with it, as a Stigmatized
-  Witch's levels count for an oracle's curse and a plain witch's don't) and `half_other_classes: true` (half the
-  other classes' levels, rounded down); an archetype that changes the grant has its own selection
+  late gets every row up to its level at once), with the game's two more terms where the option is its own
+  progression (the game's `BlueprintProgression`, as an oracle's curse is; the splits ticket): `option_level_archetypes`
+  (a class that has one of them counts only taken with it, as a Stigmatized Witch's levels count for an oracle's
+  curse and a plain witch's don't) and `half_other_classes: true` (half the other classes' levels, the Mythic rank's
+  among them, rounded down: `BlueprintProgression.CalcLevel`); an archetype that changes the grant has its own selection
   that shares the options it allows: `skipped_levels: [3, 9, 15]` (Seeker; its own rows replace them),
   `feat_lists_only: true` (Crossblooded's second bloodline: its lists and its `arcana`, the option's named
   first-row feature, `arcana: "sorcerer/bloodline/abyssal/demonic-arcana"`), `levels_behind: 2` (the Separatist's
@@ -226,12 +227,14 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   Bloodline). A class (or archetype, `spontaneous: Some(true)`) that casts spontaneously says `spontaneous: true`,
   which `SpontaneousSpellLevel(spell_type: Arcane, level: 1)` checks; `NoOptionFrom("sorcerer/bloodline")` needs
   none of that selection's options held. A selection with `filtered_by` is a filtered pool (the splits ticket,
-  replacing ticket 30's `pool_of` and `pool`): an option whose prerequisite names options of that selection is offered
-  only while one of them is held (an oracle's revelations, `oracle/revelations`, `filtered_by: "oracle/mystery"`,
+  replacing ticket 30's `pool_of` and `pool`): an option whose prerequisite can't be met without an option of that
+  selection is offered only while one of them is held (an oracle's revelations, `oracle/revelations`, `filtered_by: "oracle/mystery"`,
   each revelation's prerequisite naming its mystery), and the others as usual (the Dual-Cursed Oracle's Misfortune and
   Fortune); within a level its slot is checked after the other selections'. An option that merged with another or
   moved keeps its old keys in `aliases`, which only the link decoder reads (`aliases:
-  ["oracle/revelations/life/combat-healer-life"]` on Combat Healer). All this was read from the guide.
+  ["oracle/revelations/life/combat-healer-life"]` on Combat Healer). This bullet was read from the guide, but for the
+  splits ticket's terms (`option_level_archetypes`, `half_other_classes`, `filtered_by`, `aliases`), read from the
+  game's blueprints and code (`notes/ranks-and-filtered-pools.md`).
 - Ticket 33 (the user's decisions on tickets 30 and 31):
   - An option may belong to a group, `group: Draconic` (the sorcerer's ten dragons; `Elemental`, its four
     elements), and `NoOtherOptionOfGroup(Draconic)` in its prerequisite needs no option of the group held but the

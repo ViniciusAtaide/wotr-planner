@@ -154,6 +154,51 @@ fn a_filtered_pool_offers_what_the_held_option_admits_and_checks_the_rest() {
     assert!(matches!(failures[0].issue, Issue::Unmet(_)));
 }
 
+/// The picker leaves out only an option its prerequisite can't take without an admitting option: one that names the
+/// fire domain beside another way in (`Any`), or as a domain not to hold (`Not`), or among fewer than it needs
+/// (`AtLeast`), is offered to a War cleric and its prerequisite decides.
+#[test]
+fn a_filtered_pool_leaves_out_only_what_needs_an_admitting_option() {
+    let mut data = world();
+    let fire = || Prerequisite::SelectionOption(option("cleric/domain/fire"));
+    let revelations = &mut class_mut(&mut data, "cleric")
+        .selections
+        .iter_mut()
+        .find(|selection| selection.key.as_str() == "cleric/fire-revelations")
+        .unwrap()
+        .options;
+    // Burning Hands: fire or level 1. Fire Breath: not fire. Maneuver Mastery: one of fire and level 1.
+    revelations[0].prerequisite = Some(Prerequisite::Any(vec![
+        fire(),
+        Prerequisite::CharacterLevel(1),
+    ]));
+    revelations[1].prerequisite = Some(Prerequisite::Not(Box::new(fire())));
+    revelations[2].prerequisite = Some(Prerequisite::AtLeast(
+        1,
+        vec![fire(), Prerequisite::CharacterLevel(1)],
+    ));
+    let engine = engine_on(data);
+    let mut war = build("elf", &times("cleric", 3));
+    war.picks
+        .insert(selection_slot(1, 0), pick_option("cleric/domain/war"));
+    let slot = selection_slot(3, 0);
+    assert_eq!(
+        offered_on(&engine, &war, &slot),
+        [
+            "cleric/fire-revelations/burning-hands",
+            "cleric/fire-revelations/fire-breath",
+            "cleric/fire-revelations/maneuver-mastery",
+        ]
+    );
+    for key in [
+        "cleric/fire-revelations/burning-hands",
+        "cleric/fire-revelations/fire-breath",
+        "cleric/fire-revelations/maneuver-mastery",
+    ] {
+        assert_eq!(status(&engine, &war, &slot, key), Ok(()), "{key}");
+    }
+}
+
 // ---- an option level from half the other classes ---------------------------------------------------------------
 
 const CURSE: &str = "cleric/oracles-curse";
@@ -220,15 +265,19 @@ fn curse_level(then: &[&'static str], archetype: Option<(&str, &str)>) -> (u8, b
 }
 
 /// `BlueprintProgression.CalcLevel` (WrathDecompiled 6ce4a6b): the classes named, but one that has a named archetype
-/// counts only taken with it; each class taken with a named archetype; and half the other classes' levels.
+/// counts only taken with it; each class taken with a named archetype; and half the other classes' levels, the mythic
+/// classes' among them (`UnitProgressionData.SetupLevelsIfNecessary`: their levels are the Mythic rank). The test
+/// world's ranks come at levels 6 and 7.
 #[test]
 fn an_option_level_counts_half_the_other_classes_and_a_class_only_through_its_named_archetype() {
-    // Cleric 2 and fighter 6: 2 + 6 / 2.
-    assert_eq!(curse_level(&times("fighter", 6), None), (5, true));
-    // Cleric 2 and fighter 5: 2 + 5 / 2, rounded down.
-    assert_eq!(curse_level(&times("fighter", 5), None), (4, false));
-    // A plain witch's levels count neither in full nor by half.
-    assert_eq!(curse_level(&times("witch", 6), None), (2, false));
+    // Cleric 2 and fighter 3: 2 + 3 / 2, rounded down.
+    assert_eq!(curse_level(&times("fighter", 3), None), (3, false));
+    // Cleric 2, fighter 4 and MR 1: 2 + (4 + 1) / 2.
+    assert_eq!(curse_level(&times("fighter", 4), None), (4, false));
+    // Cleric 2, fighter 6 and MR 2: 2 + (6 + 2) / 2.
+    assert_eq!(curse_level(&times("fighter", 6), None), (6, true));
+    // A plain witch's levels count neither in full nor by half; MR 2 by half.
+    assert_eq!(curse_level(&times("witch", 6), None), (3, false));
     // A False God's count in full.
     assert_eq!(
         curse_level(&times("witch", 3), Some(("witch", "witch/false-god"))),
@@ -238,8 +287,6 @@ fn an_option_level_counts_half_the_other_classes_and_a_class_only_through_its_na
 
 // ---- an option's old keys -------------------------------------------------------------------------------------
 
-/// A link naming an option's old key opens on the option, and an old key is a key of its kind: no option nor other
-/// alias may have it.
 /// The old keys of the rogue talent Fast Stealth.
 fn stealth_aliases(data: &mut GameData) -> &mut BTreeSet<SelectionOptionKey> {
     &mut class_mut(data, "rogue").selections[0]
@@ -270,9 +317,16 @@ fn a_link_naming_an_options_old_key_reads_as_the_option() {
     assert_eq!(decode_build(&encode_build(&old), &keys), Ok(new));
     assert_eq!(data.check(), []);
 
-    // An alias that is another option's key, and a prerequisite naming an old key.
+    // An alias that is another option's key, an alias two options have, and a prerequisite naming an old key.
     let trick = SelectionOptionKey::new("rogue/rogue-talents/combat-trick");
     stealth_aliases(&mut data).insert(trick.clone());
+    class_mut(&mut data, "rogue").selections[0]
+        .options
+        .iter_mut()
+        .find(|o| o.key == trick)
+        .unwrap()
+        .aliases
+        .insert(old_key.clone());
     let dodge = data
         .feats
         .iter_mut()
@@ -289,9 +343,10 @@ fn a_link_naming_an_options_old_key_reads_as_the_option() {
         [
             (
                 DataAt::Feat(rules::FeatKey::new("dodge")),
-                DataIssue::UnknownKey(DataAt::SelectionOption(old_key))
+                DataIssue::UnknownKey(DataAt::SelectionOption(old_key.clone()))
             ),
             (DataAt::SelectionOption(trick), DataIssue::DuplicateKey),
+            (DataAt::SelectionOption(old_key), DataIssue::DuplicateKey),
         ]
     );
 }

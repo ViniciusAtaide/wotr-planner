@@ -13,7 +13,6 @@ pub static DATA: LazyLock<GameData> = LazyLock::new(|| {
     seeds::read_game_data_files(&seeds::game_data_dir()).expect("game-data reads")
 });
 
-/// [`DATA`], checked once for every engine the tests build.
 /// Every entry's blueprint, by where it is (ticket 237).
 pub static BLUEPRINTS: LazyLock<std::collections::BTreeMap<rules::DataAt, Option<&'static str>>> =
     LazyLock::new(|| {
@@ -23,6 +22,7 @@ pub static BLUEPRINTS: LazyLock<std::collections::BTreeMap<rules::DataAt, Option
             .collect()
     });
 
+/// [`DATA`], checked once for every engine the tests build.
 static CHECKED: LazyLock<CheckedGameData> =
     LazyLock::new(|| DATA.clone().checked().expect("game-data checks"));
 

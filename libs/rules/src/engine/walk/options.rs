@@ -117,7 +117,8 @@ impl<'a> Walker<'a> {
     /// The class levels that make the option level of an option held through `selection`, as the game's
     /// `BlueprintProgression.CalcLevel` adds them (WrathDecompiled 6ce4a6b): each class it names, unless that class has
     /// one of its archetypes; each class taken with one of its archetypes; and half the other classes' levels, when it
-    /// counts them, rounded down.
+    /// counts them, rounded down. The other classes include the mythic ones, whose levels are the Mythic rank
+    /// (`UnitProgressionData.SetupLevelsIfNecessary`).
     fn class_levels_of(&self, selection: &FeatureSelection) -> u8 {
         let catalog = &self.engine.catalog;
         let by_archetype = |taken: &ClassLevels| {
@@ -133,7 +134,7 @@ impl<'a> Walker<'a> {
                         .any(|archetype| selection.option_level_archetypes.contains(&archetype.key))
                 })
         };
-        let (mut own, mut others) = (0u8, 0u8);
+        let (mut own, mut others) = (0u8, self.state.mythic_rank);
         for taken in &self.state.classes {
             let named = selection.option_levels.contains(&taken.class);
             if by_archetype(taken) || (named && !has_listed_archetype(&taken.class)) {
@@ -206,8 +207,26 @@ impl<'a> Walker<'a> {
     }
 
     pub(super) fn advance_holdings(&mut self) {
+        self.advance_where(|_| true);
+    }
+
+    /// At a Mythic rank, before its slots: the holdings whose option level counts half the other classes, the mythic
+    /// ones among them, as every level-up recomputes each progression's level (the game's
+    /// `ApplyClassMechanics.ApplyProgressions`).
+    pub(super) fn advance_by_mythic_rank(&mut self) {
+        self.advance_where(|selection| selection.half_other_classes);
+    }
+
+    /// Advances each holding whose selection `through` keeps.
+    fn advance_where(&mut self, through: impl Fn(&FeatureSelection) -> bool) {
         for index in 0..self.holdings.len() {
-            self.advance(index);
+            let selection = self
+                .engine
+                .catalog
+                .selection(&self.holdings[index].selection);
+            if selection.is_some_and(&through) {
+                self.advance(index);
+            }
         }
     }
 
