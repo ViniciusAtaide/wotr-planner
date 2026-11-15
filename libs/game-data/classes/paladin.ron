@@ -205,8 +205,8 @@ Class(
                 (key: "paladin/martyr/martyrs-mercy", blueprint: "09b9de15bc9a7844f8a55eee4a81ddaf", name: "Martyr\'s Mercy", summary: "From 3rd level, you can remove any condition you have the level for; without the matching mercy, you take it on yourself.", guide: "paladin#martyrs-mercy"),
                 (key: "paladin/martyr/see-no-evil-hear-no-evil", blueprint: "366332e03c0fe1d4f8726a94e71014ea", name: "See No Evil, Hear No Evil", summary: "From 2nd level, you and allies within 20 feet get +4 morale to saves against gaze attacks and sonic effects.", guide: "paladin#see-no-evil-hear-no-evil"),
                 (key: "paladin/martyr/stigmata", blueprint: "d87665d2bff740d4daf07ddd36759b34", name: "Stigmata", summary: "Standard action devotional chant for 4 + Cha rounds a day, +1 per level after 1st; you take 1 bleed damage each round.", guide: "paladin#stigmata"),
-                (key: "paladin/martyr/stigmata-move-action", blueprint: "d87665d2bff740d4daf07ddd36759b34", name: "Stigmata - Move Action", summary: "From 7th level, Stigmata starts as a move action.", guide: "paladin#martyr"),
-                (key: "paladin/martyr/stigmata-swift-action", blueprint: "d87665d2bff740d4daf07ddd36759b34", name: "Stigmata - Swift Action", summary: "From 13th level, Stigmata starts as a swift action.", guide: "paladin#martyr"),
+                (key: "paladin/martyr/stigmata-move-action", blueprint: "36931765983e96d4bb07ce7844cd897e", name: "Stigmata - Move Action", summary: "From 7th level, Stigmata starts as a move action.", guide: "paladin#martyr"),
+                (key: "paladin/martyr/stigmata-swift-action", blueprint: "fd4ec50bc895a614194df6b9232004b9", name: "Stigmata - Swift Action", summary: "From 13th level, Stigmata starts as a swift action.", guide: "paladin#martyr"),
             ],
             levels: [
                 (level: 1, features: ["paladin/alignment-restriction", "paladin/martyr/inspire-courage", "paladin/martyr/stigmata"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),

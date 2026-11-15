@@ -141,6 +141,46 @@ fn entries_name_their_game_blueprint() {
             DataAt::SelectionOption(SelectionOptionKey::new("kineticist/element/air")),
             "2bd0d44953a536f489082534c48f8e31",
         ),
+        // IncenseSynthesizerIncenseFogSelection: its m_AllFeatures are the entry's ten incenses (it named
+        // IncenseFogFeature, the fog IncenseSynthesizerArchetype adds at 1)
+        (
+            DataAt::FeatureSelection(FeatureSelectionKey::new(
+                "alchemist/incense-synthesizer/incense-fog",
+            )),
+            "73d5950937bf0aa428e82c54c968f7e6",
+        ),
+        // DragonbloodShifterBlueBreathWeaponFeature: DragonbloodShifterBlueBuff grants it by
+        // AddFeatureOnClassLevel(ShifterClass, 10) (it was left empty)
+        (
+            DataAt::SelectionOption(SelectionOptionKey::new(
+                "shifter/dragonblood-shifter/greater-wyrmshifter/breath-weapon-buse-dragon",
+            )),
+            "0a75184855e94ca98cd16b0e898605b3",
+        ),
+        // TransmutationSchoolChangeShapeFeature: TransmutationSchoolChangeShapeFeatureAdd grants it by
+        // AddFeatureOnClassLevel(WizardClass, 12) (it named the level-8 feature)
+        (
+            DataAt::Feature(FeatureKey::new("wizard/school/transmuter/change-shape-ii")),
+            "b699aa5a98519ee469afddb71b9a8fd0",
+        ),
+        // BardMovePerformance and BardSwiftPerformance: MartyrArchetype adds them at 7 and 13 (they named
+        // MartyrStigmataFeature, which it adds at 1 only)
+        (
+            DataAt::Feature(FeatureKey::new("paladin/martyr/stigmata-move-action")),
+            "36931765983e96d4bb07ce7844cd897e",
+        ),
+        (
+            DataAt::Feature(FeatureKey::new("paladin/martyr/stigmata-swift-action")),
+            "fd4ec50bc895a614194df6b9232004b9",
+        ),
+        // RazmiryInfiltratorMaskFeature9: RazmiryInfiltratorMaskFeature grants it by
+        // AddFeatureOnClassLevel(ArcanistClass, 8)
+        (
+            DataAt::Feature(FeatureKey::new(
+                "arcanist/magic-deceiver/ways-of-the-deceiver/razmiri-infiltrator/herald-of-the-eighth-step",
+            )),
+            "621aaa4baad04705a975f6023a1205d0",
+        ),
     ];
     let blueprints = blueprints();
     for (at, guid) in spots {
@@ -148,7 +188,7 @@ fn entries_name_their_game_blueprint() {
     }
 }
 
-/// The entries left empty, by kind, as the ticket's Answer lists them: planner placeholders (the bloodline-spell
+/// The 175 entries left empty, by kind, as the ticket's Answer lists them: planner placeholders (the bloodline-spell
 /// features), a feature the game keeps as one blueprint per colour or element, an ability rather than a feature, a
 /// planner-made pool or list. A change here is a change to that list.
 #[test]
@@ -165,7 +205,7 @@ fn the_entries_left_without_a_blueprint_are_the_answers() {
             ("feature", 129),
             ("gear item", 1),
             ("selection", 2),
-            ("selection option", 49),
+            ("selection option", 39),
             ("spell", 1),
             ("spell list", 2),
             ("weapon", 1),

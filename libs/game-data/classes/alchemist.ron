@@ -140,7 +140,7 @@ Class(
             selections: [
                 (
                     key: "alchemist/incense-synthesizer/incense-fog",
-                    blueprint: "7614401346b64a8409f7b8c367db488f",
+                    blueprint: "73d5950937bf0aa428e82c54c968f7e6",
                     name: "Incense Fog",
                     summary: "15-foot fog giving allies +1 attack and weapon damage for 3 + half level + Int rounds a day; a new incense at 3rd and every 3 levels.",
                     guide: "alchemist#incense-fog",

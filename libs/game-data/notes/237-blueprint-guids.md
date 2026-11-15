@@ -2,23 +2,24 @@
 
 ## What the data says now
 
-Every entry of the 18 kinds that can have a game blueprint (races, subraces, weapons, feats, feat lists, classes and prestige classes, archetypes, features, selections, selection options, mythic abilities, feats and paths, backgrounds, deities, gear, spells, spell lists) holds a `blueprint: "<32 hex digits>"` right after its `key` when the game has one blueprint for it: 4,299 entries. Skills hold none (the game's skills are a stat, not a blueprint). 196 entries are left empty, listed with their reasons in ticket 237's Answer; `GameData::blueprints` walks them all.
+Every entry of the 18 kinds that can have a game blueprint (races, subraces, weapons, feats, feat lists, classes and prestige classes, archetypes, features, selections, selection options, mythic abilities, feats and paths, backgrounds, deities, gear, spells, spell lists) holds a `blueprint: "<32 hex digits>"` right after its `key` when the game has one blueprint for it: 4,309 entries. Skills hold none (the game's skills are a stat, not a blueprint). 175 entries of the 18 kinds are left empty (the 11 skills have no field), listed with their reasons in ticket 237's Answer; `GameData::blueprints` walks them all.
 
 The field is a citation and the key of the game check (ticket 238). It is never serialised to the browser, and no rule reads it.
 
 ## What it rests on
 
-The game's blueprints, BubblePrintsData `2.7.0x_0`. Each GUID was matched by a script kept outside the repo, then reviewed by hand: an entry granted at a level is confirmed by the same level of its granter's `LevelEntries` or `AddFeatures`; an option by its selection's `m_AllFeatures`; a feat, spell, item and the like by a unique name in its kind. Where names matched but structure did not, the structure won.
+The game's blueprints, BubblePrintsData `2.7.0x_0`. Each GUID was matched by a script kept outside the repo, then reviewed by hand: an entry granted at a level is confirmed by the same level of its granter's `LevelEntries` or `AddFeatures`; an option by its selection's `m_AllFeatures`; a feat, spell, item and the like by a unique name in its kind. Where names matched but structure did not, the structure won. A grant through a component counts as a granter too: the Razmiri mask's eighth step is `RazmiryInfiltratorMaskFeature9`, which `RazmiryInfiltratorMaskFeature` grants by `AddFeatureOnClassLevel(ArcanistClass, 8)`; each Dragonblood colour's breath is `DragonbloodShifter<Colour>BreathWeaponFeature`, which `DragonbloodShifter<Colour>Buff` grants by `AddFeatureOnClassLevel(ShifterClass, 10)`; Change Shape II is `TransmutationSchoolChangeShapeFeature`, which `TransmutationSchoolChangeShapeFeatureAdd` grants by `AddFeatureOnClassLevel(WizardClass, 12)`.
 
 ## Decisions
 
 - The main session, 2026-11-14: the field is `BlueprintGuid` beside the key newtypes, `Option`, after `key`, on the 18 kinds; `GameData::check` refuses anything but 32 lowercase hex digits (`MalformedBlueprint`).
 - The user's direction via the main session, 2026-11-15: any number of entries may hold one GUID for now. There is no sharing check and no list of allowed sharings; the planner's rank and context splits get their own ticket (`.scratch/wotr-planner/issues/ranks-and-filtered-pools.md`, number to come), and the copies of one game object feed a later design ticket on laying the data out by blueprint.
 - The main session, 2026-11-14: an entry the game makes of several blueprints names one, the primary; the others are below for 238.
-- Ours (inference, each marked so in the Answer): a mythic summon tier is its rank (`AeonSummonFeatureTier7` is the gold golems); the Razmiri mask's eighth step is `RazmiryInfiltratorMaskFeature9`; Intense Spells and Summoner's Charm are carried by the school's own feature; the nature mystery's companion revelation is `OracleRevelationBondedMount`.
+- Ours (inference, each marked so in the Answer): a mythic summon tier is its rank (`AeonSummonFeatureTier7` is the gold golems); Intense Spells and Summoner's Charm are carried by the school's own feature; the nature mystery's companion revelation is `OracleRevelationBondedMount`.
 
 ## One entry, several blueprints (the primary first)
 
+- `alchemist/incense-synthesizer/incense-fog` (a selection): `IncenseSynthesizerIncenseFogSelection`, whose options are the ten incenses; `IncenseFogFeature`, the fog itself, which `IncenseSynthesizerArchetype` adds at 1.
 - `cleric/domain`: `DomainsSelection`; the game's second pick is `SecondDomainsSelection`, the separatist's `SecondDomainsSeparatistSelection`.
 - `warpriest/blessings`: `BlessingSelection`; the second pick is `SecondBlessingSelection`.
 - `aeon/enforcing-gaze`: `AeonGazeFirstSelection`; then `AeonGazeSecondSelection` and `AeonGazeThirdSelection`.
@@ -40,6 +41,12 @@ The game's blueprints, BubblePrintsData `2.7.0x_0`. Each GUID was matched by a s
 - The kineticist's element feat lists: the unnumbered `WildTalentBonusFeat<Element>`; the numbered copies.
 - Weapons: `dwarven-urgrosh` is `DwarvenUrgrosh` (and `DwarvenUrgroshSpearHead`), `gnome-hooked-hammer` `GnomeHookedHammerHead` (and `…Hook`); a natural weapon is its category's base type (`BiteType`), which the per-weapon feats name.
 - Spells: `crusaders-edge` is `CrusadersEdgeCast` (on the lists; `CrusadersEdge` is its effect); `dragon-storm` `DragonUltimateApsu` (the corrupted list's is `DragonUltimateDahak`).
+
+## Differences for 238
+
+- `alchemist/incense-synthesizer/incense-fog`: the planner offers a pick at 1; the game adds the selection first at 3 (then 6, 9, 12, 15, 18).
+- The Dragonblood breath: the game grants it at shifter 10 under the colour's form (`DragonbloodShifter<Colour>Buff`); the planner offers it as a Greater Wyrmshifter option at 20.
+- `stalwart-defender/defensive-powers/clear-mind`, `immobile` and `mighty-resilience` are not among `StalwartDefenderDefensivePowerSelection`'s options (`clear-mind` names `ClearMindFeature`, the barbarian's rage power; the other two are empty).
 
 ## Not modelled
 
