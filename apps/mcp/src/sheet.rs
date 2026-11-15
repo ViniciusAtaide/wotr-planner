@@ -577,15 +577,19 @@ fn new_feats(engine: &Engine, before: &CharacterState, after: &CharacterState) -
 }
 
 /// The features granted at a level: each held more times at its end than before it, with how many more when that is
-/// more than one, and its rank when that is more than one and more than it gained there.
+/// more than one, and its rank when that is more than one and more than it gained there; and each whose level reached
+/// one of its steps there, with its step (`times` left out when it gained no grant).
 fn new_features(engine: &Engine, before: &CharacterState, after: &CharacterState) -> Vec<Gained> {
     after
         .features
         .iter()
         .filter_map(|(feature, times)| {
-            let more = times.checked_sub(before.feature_count(feature))?;
-            (more > 0).then(|| {
-                gained(
+            let more = times.saturating_sub(before.feature_count(feature));
+            let stepped =
+                engine.steps_reached(after, feature) > engine.steps_reached(before, feature);
+            (more > 0 || stepped).then(|| Gained {
+                step: stepped.then(|| engine.feature_step(after, feature)),
+                ..gained(
                     feature,
                     &engine.feature_name_apart(feature),
                     more.into(),
@@ -604,6 +608,7 @@ fn gained(key: &impl std::fmt::Display, name: &str, times: usize, rank: Option<u
         name: name.to_owned(),
         times: u8::try_from(times).ok().filter(|times| *times > 1),
         rank: rank.filter(|rank| *rank > 1 && usize::from(*rank) != times),
+        step: None,
     }
 }
 

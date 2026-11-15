@@ -536,15 +536,15 @@ const ALIGNMENTS: [rules::Alignment; 9] = [
     rules::Alignment::ChaoticEvil,
 ];
 
-/// The levels at which `build`'s count of `feature` rises, a level once for each rise: the steps the sheet gains it
-/// at.
+/// The levels at which `build`'s step of `feature` rises (a grant, or a step its level reaches: ticket 254), a level
+/// once for each rise: the steps the sheet gains it at.
 fn gains(build: &Build, feature: &str) -> Vec<u8> {
     let key = FeatureKey::new(feature);
     let sheet = engine().evaluate(build);
     let mut previous = 0;
     let mut gained = Vec::new();
     for level in 1..=build.levels.len() as u8 {
-        let count = sheet.at(level).unwrap().feature_count(&key);
+        let count = engine().feature_step(sheet.at(level).unwrap(), &key);
         gained.extend((previous..count).map(|_| level));
         previous = count;
     }
@@ -1182,11 +1182,9 @@ fn the_selections_sharing_a_stepped_option_hold_the_steps_its_rows_give() {
     );
 }
 
-/// The Primalist (ticket 177): "Two Rage Powers" replaces the bloodline's whole row at 4, 8, 12, 16 or 20, so the
-/// bloodrager's steps on those rows go with it. The guide says nothing of what the game does with a step after the
-/// first grant is traded away (the open question in the ticket's Answer), so this records what the data does: a
-/// Primalist taking the rage powers at 4 and the bloodline at 8 gains Infernal Resistance at 8 (a step of a feature it
-/// traded away), and one taking them at 8 loses the step.
+/// The Primalist (ticket 177): "Two Rage Powers" replaces the bloodline's whole row at 4, 8, 12, 16 or 20. A power
+/// traded away is never held, so none of its steps come; a power kept rises with the bloodrager level whatever is
+/// traded later, since its steps are its rank on the class level, not rows (ticket 254).
 #[test]
 fn a_primalists_rage_powers_replace_the_row_and_its_step_with_it() {
     let primalist = |option: &str, rage_powers_at: &[u8]| {
@@ -1207,27 +1205,42 @@ fn a_primalists_rage_powers_replace_the_row_and_its_step_with_it() {
         assert!(engine().is_possible(&build), "{rage_powers_at:?}");
         build
     };
+    // Game: PrimalistTakeBloodlinePower4 2140040bf367e8b4a9c6a632820becbe adds BloodragerInfernalResistance
+    // ac77b22f74aed034ca2b16ba6a4bfde9, which the Infernal bloodline grants at 4 only (BloodragerInfernalBloodline
+    // 9aef64b53406f114cb43f898a3aec01e); its rise at 8 is BloodragerInfernalResistanceBuff
+    // 66c973ccad1293345ae6c5bfeced4a7b's rank on BloodragerClass level (Custom: 5 to 7, 10 from 8), read whenever the
+    // feature is held (`ContextRankConfig.GetBaseValue` ClassLevel and `ApplyProgression` Custom, WrathDecompiled
+    // 6ce4a6b).
     const INFERNAL: &str = "bloodrager/bloodline/infernal";
     const RESISTANCE: &str = "bloodrager/bloodline/infernal/infernal-resistance";
     assert_eq!(gains(&primalist(INFERNAL, &[]), RESISTANCE), [4, 8]);
-    assert_eq!(gains(&primalist(INFERNAL, &[4]), RESISTANCE), [8]);
-    assert_eq!(gains(&primalist(INFERNAL, &[8]), RESISTANCE), [4]);
+    assert_eq!(
+        gains(&primalist(INFERNAL, &[4]), RESISTANCE),
+        Vec::<u8>::new()
+    );
+    assert_eq!(gains(&primalist(INFERNAL, &[8]), RESISTANCE), [4, 8]);
     assert_eq!(
         gains(&primalist(INFERNAL, &[4, 8]), RESISTANCE),
         Vec::<u8>::new()
     );
-    // The Abyssal bloodline's Abyssal Bloodrage (first at 12, steps at 16 and 20) leaks the same way: trading the
-    // row at 12 never grants it, yet the steps still come; trading a later row drops that step.
+    // Game: BloodragerAbyssalBloodrage 29fc83f824111bb41829957486752c93 is granted at 12 only
+    // (BloodragerAbyssalBloodline 55d5bbf4b5ae1744ab26c71be98067f9; for a Primalist, PrimalistTakeBloodlinePower12
+    // 57bb4dc36611c7444817c13135ec58b4); BloodragerAbyssalBloodrageBonusProperty 415f71e5a47f4cccb3dbd10bd7a0f8f8
+    // multiplies a ClassLevelGetter on BloodragerClass (1 at 12-15, 2 at 16-19, 3 at 20) by the feature's rank
+    // (`ClassLevelGetter`, `FactRankGetter`, `PropertySettings.ApplyProgression`, WrathDecompiled 6ce4a6b).
     const ABYSSAL: &str = "bloodrager/bloodline/abyssal";
     const BLOODRAGE: &str = "bloodrager/bloodline/abyssal/abyssal-bloodrage";
     assert_eq!(gains(&primalist(ABYSSAL, &[]), BLOODRAGE), [12, 16, 20]);
-    assert_eq!(gains(&primalist(ABYSSAL, &[12]), BLOODRAGE), [16, 20]);
-    assert_eq!(gains(&primalist(ABYSSAL, &[16]), BLOODRAGE), [12, 20]);
-    assert_eq!(gains(&primalist(ABYSSAL, &[20]), BLOODRAGE), [12, 16]);
     assert_eq!(
-        at(&primalist(ABYSSAL, &[12]), 20).feature_count(&FeatureKey::new(BLOODRAGE)),
-        2
+        gains(&primalist(ABYSSAL, &[12]), BLOODRAGE),
+        Vec::<u8>::new()
     );
+    assert_eq!(gains(&primalist(ABYSSAL, &[16]), BLOODRAGE), [12, 16, 20]);
+    assert_eq!(gains(&primalist(ABYSSAL, &[20]), BLOODRAGE), [12, 16, 20]);
+    // Granted once: its feature rank stays 1 while its step reaches 3.
+    let kept = at(&primalist(ABYSSAL, &[16]), 20);
+    assert_eq!(kept.feature_count(&FeatureKey::new(BLOODRAGE)), 1);
+    assert_eq!(engine().feature_step(&kept, &FeatureKey::new(BLOODRAGE)), 3);
 }
 
 /// The levels at which the sheet has a bloodline feat slot (a Feat slot listing the held bloodline's options).

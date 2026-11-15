@@ -17,7 +17,7 @@ use crate::engine::{BASE_LEVEL_CAP, PATH_CHOICE_RANK, PATH_SWITCH_RANK};
 use crate::game_data::{
     AbilityBonus, Advancement, Archetype, Class, ClassLevelRow, CountsToward, DOMAIN_SELECTION,
     Feat, FeatList, FeatSlot, FeatValue, Feature, FeatureSelection, GameData, LevelFrom,
-    MythicPath, Save, SpellLevels, WeaponProficiency,
+    MythicPath, Save, SpellLevels, StepLevel, WeaponProficiency,
 };
 use crate::gear::GearTarget;
 use crate::keys::{
@@ -342,6 +342,8 @@ pub enum DataIssue {
     MythicRanksOffAPath,
     /// A feature with two ability bonuses of one kind (and, for a fixed one, one ability).
     AbilityBonusTwice,
+    /// A feature's steps with no level to rise at, or on no class.
+    StepsWithoutLevels,
     /// A text that is there but empty: what it is (`slot label`, `interactions note`, `name`, `guide reference`).
     EmptyText(&'static str),
 }
@@ -571,6 +573,9 @@ impl fmt::Display for DataProblem {
             ),
             DataIssue::AbilityBonusTwice => {
                 f.write_str("two ability bonuses of one kind, for one ability")
+            }
+            DataIssue::StepsWithoutLevels => {
+                f.write_str("its steps name no level to rise at, or no class to read")
             }
             DataIssue::EmptyText(what) => write!(f, "the {what} is empty"),
             DataIssue::SharesOwnOption(option) => {
@@ -1025,6 +1030,21 @@ impl Checker {
             if let Some(row) = &feature.option_row {
                 self.level(&at, row.level);
                 self.names(&at, DataAt::FeatureSelection(row.selection.clone()));
+            }
+            if let Some(steps) = &feature.steps {
+                let no_class = match &steps.on {
+                    StepLevel::Classes(classes) => {
+                        self.names_each(&at, classes, DataAt::Class);
+                        classes.is_empty()
+                    }
+                    StepLevel::CharacterLevel => false,
+                };
+                if no_class || steps.at.is_empty() {
+                    self.problem(&at, DataIssue::StepsWithoutLevels);
+                }
+                for &level in &steps.at {
+                    self.level(&at, level);
+                }
             }
             let mut bonuses = HashSet::new();
             for bonus in &feature.ability_bonuses {
