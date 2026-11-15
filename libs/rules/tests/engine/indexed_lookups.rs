@@ -1,20 +1,14 @@
 //! The lookups the engine reads from indexes built once with it (ticket 83): a class level's row, whether a class
-//! casts, which options a selection offers, the one option a selection grants, a pool's options and an
+//! casts, which options a selection offers, the one option a selection grants, a filtered pool's options and an
 //! option-list slot's lists. Each test pins an answer an index could get wrong where a scan of the game data
 //! wouldn't.
 
 use rules::{
-    Ability, ArchetypeKey, Build, ClassChoice, Engine, FeatSlot, FeatureSelectionKey, GameData,
-    SlotId, SlotKind, SpellLevels, effective_row,
+    Ability, ArchetypeKey, Build, ClassChoice, Engine, FeatSlot, FeatureSelectionKey, SlotId,
+    SlotKind, SpellLevels, effective_row,
 };
 
 use crate::support::*;
-
-fn class_mut<'a>(data: &'a mut GameData, key: &str) -> &'a mut rules::Class {
-    data.all_classes_mut()
-        .find(|c| c.key.as_str() == key)
-        .unwrap()
-}
 
 fn with_archetype(mut build: Build, of: &str, archetype: &str) -> Build {
     build.class_choices.insert(
@@ -33,18 +27,6 @@ fn slot_ids(engine: &Engine, build: &Build, level: usize) -> Vec<SlotId> {
         .iter()
         .map(|slot| slot.id.clone())
         .collect()
-}
-
-/// The keys offered, each once (an option with a chosen feat is offered once per value).
-fn offered(engine: &Engine, build: &Build, slot: &SlotId) -> Vec<String> {
-    let mut keys: Vec<String> = engine
-        .options(build, slot)
-        .unwrap()
-        .into_iter()
-        .map(|option| option.pick.key().to_owned())
-        .collect();
-    keys.dedup();
-    keys
 }
 
 // ---- class rows -----------------------------------------------------------------------------------------------
@@ -146,12 +128,12 @@ fn an_option_list_slot_reads_only_the_lists_of_the_options_its_selection_offers(
     assert!(engine.is_possible(&build));
     // The sorcerer's 7th-level bloodline slot: the Draconic list, not the Archery style's.
     assert_eq!(
-        offered(&engine, &build, &class_slot(9, 0)),
+        offered_on(&engine, &build, &class_slot(9, 0)),
         ["power-attack", "toughness"]
     );
     // The ranger's style slot: the Archery list, not the bloodline's.
     assert_eq!(
-        offered(&engine, &build, &class_slot(2, 0)),
+        offered_on(&engine, &build, &class_slot(2, 0)),
         ["dodge", "toughness"]
     );
 }
@@ -228,11 +210,11 @@ fn a_selection_sharing_exactly_one_option_grants_it_with_no_pick() {
     );
 }
 
-// ---- pools ----------------------------------------------------------------------------------------------------
+// ---- filtered pools -------------------------------------------------------------------------------------------
 
 #[test]
-fn a_pool_offers_the_options_of_its_selection() {
-    // A shared key no selection defines would be a data problem (`GameData::check`, ticket 98), so the pool no
+fn a_filtered_pool_offers_the_options_the_held_option_admits() {
+    // A shared key no selection defines would be a data problem (`GameData::check`, ticket 98), so the filter no
     // longer looks for one.
     let engine = engine_on(world());
     let mut build = build("elf", &times("cleric", 3));
@@ -241,7 +223,7 @@ fn a_pool_offers_the_options_of_its_selection() {
         .insert(selection_slot(1, 0), pick_option("cleric/domain/fire"));
 
     assert_eq!(
-        offered(&engine, &build, &selection_slot(3, 0)),
+        offered_on(&engine, &build, &selection_slot(3, 0)),
         [
             "cleric/fire-revelations/burning-hands",
             "cleric/fire-revelations/fire-breath",

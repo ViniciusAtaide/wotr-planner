@@ -17,7 +17,7 @@ use super::{
 use crate::build::{Build, ClassChoice, Edit, Pick, SlotId};
 use crate::choice::Issue;
 use crate::game_data::Archetype;
-use crate::keys::{ClassKey, SelectionOptionKey};
+use crate::keys::ClassKey;
 use crate::parameter::{ParameterKind, Repeat};
 use crate::prerequisite::Prerequisite;
 
@@ -63,18 +63,11 @@ impl Engine {
                     .catalog
                     .selection(key)
                     .expect("a slot names a selection of the data (CheckedGameData)");
-                // Own options and shared ones (a pool selection's: the held options' pools), in key order.
-                let pools = self.catalog.pools(selection, state);
-                let mut keys: Vec<&SelectionOptionKey> = selection
-                    .options
-                    .iter()
-                    .map(|option| &option.key)
-                    .chain(&selection.shared_options)
-                    .chain(&pools)
-                    .collect();
-                keys.sort();
-                // An option with a chosen feat once per value.
-                keys.into_iter()
+                // Own options and shared ones (those a filtered pool admits), in key order; an option with a chosen
+                // feat once per value.
+                self.catalog
+                    .offered_now(selection, state)
+                    .into_iter()
                     .flat_map(|key| match self.catalog.option(key) {
                         Some(option) if self.catalog.option_parameter(option).is_some() => self
                             .catalog

@@ -224,10 +224,33 @@ Class(
             spontaneous: Some(true),
             features: [
                 (key: "witch/stigmatized-witch/cantrips", blueprint: "c213af60aba83ed4993948dce6b947b8", name: "Cantrips", guide: "witch#stigmatized-witch"),
-                (key: "witch/stigmatized-witch/curse", blueprint: "b0a5118b4fb793241bc7042464b23fab", name: "Curse", summary: "Must take a curse from the Oracle list.", guide: "witch#curse"),
+            ],
+            selections: [
+                (
+                    key: "witch/stigmatized-witch/curse",
+                    blueprint: "b0a5118b4fb793241bc7042464b23fab",
+                    name: "Curse",
+                    summary: "An oracle\'s curse in place of a patron, advancing as an oracle\'s does: Stigmatized Witch levels count in full.",
+                    guide: "witch#curse",
+                    option_levels: ["oracle", "witch"],
+                    option_level_archetypes: ["witch/stigmatized-witch"],
+                    half_other_classes: true,
+                    options: [],
+                    shared_options: [
+                        "oracle/oracles-curse/blackened",
+                        "oracle/oracles-curse/demonic",
+                        "oracle/oracles-curse/hellbound",
+                        "oracle/oracles-curse/lame",
+                        "oracle/oracles-curse/plagued",
+                        "oracle/oracles-curse/powerless-prophecy",
+                        "oracle/oracles-curse/pranked",
+                        "oracle/oracles-curse/wasting",
+                        "oracle/oracles-curse/wolf-scarred-face",
+                    ],
+                ),
             ],
             levels: [
-                (level: 1, features: ["witch/familiar", "witch/stigmatized-witch/cantrips", "witch/stigmatized-witch/curse"], feats: ["simple-weapon-proficiency"], selections: ["witch/hex"]),
+                (level: 1, features: ["witch/familiar", "witch/stigmatized-witch/cantrips"], feats: ["simple-weapon-proficiency"], selections: ["witch/hex", "witch/stigmatized-witch/curse"]),
             ],
         ),
         (

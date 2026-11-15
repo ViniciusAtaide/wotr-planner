@@ -8,14 +8,6 @@ use rules::*;
 
 use crate::support::*;
 
-/// Every entry's blueprint, by where it is.
-fn blueprints() -> BTreeMap<DataAt, Option<&'static str>> {
-    DATA.blueprints()
-        .into_iter()
-        .map(|(at, guid)| (at, guid.map(BlueprintGuid::as_str)))
-        .collect()
-}
-
 #[test]
 fn entries_name_their_game_blueprint() {
     let spots = [
@@ -119,9 +111,10 @@ fn entries_name_their_game_blueprint() {
             DataAt::FeatList(FeatListKey::new("ranger/bonus-feats-2b")),
             "3cf94df3f1cf9a443a880bc1ae9be3c6",
         ),
-        // OracleRevelationSelection: a per-mystery pool is the game's one revelation selection, filtered
+        // OracleRevelationSelection: the per-mystery pools merged into the game's one revelation selection, filtered
+        // by the mystery (the splits ticket)
         (
-            DataAt::FeatureSelection(FeatureSelectionKey::new("oracle/revelations/flame")),
+            DataAt::FeatureSelection(FeatureSelectionKey::new("oracle/revelations")),
             "60008a10ad7ad6543b1f63016741a5d2",
         ),
         // ShifterAspectBear: the research's elimination pairing had ShifterAspectSpider
@@ -182,7 +175,7 @@ fn entries_name_their_game_blueprint() {
             "621aaa4baad04705a975f6023a1205d0",
         ),
     ];
-    let blueprints = blueprints();
+    let blueprints = &*BLUEPRINTS;
     for (at, guid) in spots {
         assert_eq!(blueprints.get(&at), Some(&Some(guid)), "{at}");
     }
@@ -190,11 +183,12 @@ fn entries_name_their_game_blueprint() {
 
 /// The 175 entries left empty, by kind, as the ticket's Answer lists them: planner placeholders (the bloodline-spell
 /// features), a feature the game keeps as one blueprint per colour or element, an ability rather than a feature, a
-/// planner-made pool or list. A change here is a change to that list.
+/// planner-made pool or list. A change here is a change to that list. The splits ticket removed the 27 curse-stage
+/// placeholders (148 left).
 #[test]
 fn the_entries_left_without_a_blueprint_are_the_answers() {
     let mut empty: BTreeMap<&str, usize> = BTreeMap::new();
-    for (at, blueprint) in blueprints() {
+    for (at, blueprint) in BLUEPRINTS.iter() {
         if blueprint.is_none() {
             *empty.entry(at.kind()).or_default() += 1;
         }
@@ -202,7 +196,7 @@ fn the_entries_left_without_a_blueprint_are_the_answers() {
     assert_eq!(
         empty,
         BTreeMap::from([
-            ("feature", 129),
+            ("feature", 102),
             ("gear item", 1),
             ("selection", 2),
             ("selection option", 39),
@@ -211,15 +205,4 @@ fn the_entries_left_without_a_blueprint_are_the_answers() {
             ("weapon", 1),
         ])
     );
-}
-
-/// The research left oracle/curse-2 to -4 on `OracleCurse` (403766e65e2d4f06b185443c4bb65700), which OracleClass
-/// only shows as a signature ability; OracleProgression grants nothing at 5, 10 and 15, so they stay empty.
-#[test]
-fn the_curse_stages_name_no_blueprint() {
-    let blueprints = blueprints();
-    for stage in ["oracle/curse-2", "oracle/curse-3", "oracle/curse-4"] {
-        let at = DataAt::Feature(FeatureKey::new(stage));
-        assert_eq!(blueprints.get(&at), Some(&None), "{stage}");
-    }
 }

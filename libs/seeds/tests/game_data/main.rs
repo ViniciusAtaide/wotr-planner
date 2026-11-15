@@ -42,6 +42,7 @@ mod pick_order;
 mod pick_values;
 mod proficiency;
 mod races;
+mod ranks_and_pools;
 mod repeating_talents;
 mod report_gaps;
 mod scaling_features;

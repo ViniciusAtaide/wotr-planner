@@ -345,7 +345,7 @@ pub struct Named {
 }
 
 /// A feature a Build gains, by key and name, with how many times when that is more than once (the Trickster's third
-/// Mythic rank gives Sneak Attack twice).
+/// Mythic rank gives Sneak Attack twice), and its rank once it is held more than once.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, JsonSchema)]
 pub struct Gained {
     pub key: String,
@@ -353,6 +353,10 @@ pub struct Gained {
     /// How many times it is gained at once; left out for one.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub times: Option<u8>,
+    /// Its rank at a level's end, the times it has been granted so far, as the game counts a feature granted again
+    /// (Fey Magic's rank 2 at druid 6); left out for rank 1, and on a Mythic rank's line.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rank: Option<u8>,
 }
 
 /// A feature or selection option as `describe` lists it: by key and name, with its summary when the data has one.

@@ -1949,7 +1949,7 @@ type GrantedOnce = (
 /// Stepping the feature as well would count every step twice.
 #[test]
 fn features_whose_steps_are_features_of_their_own_are_granted_once() {
-    let cases: [GrantedOnce; 9] = [
+    let cases: [GrantedOnce; 8] = [
         (
             "arcanist",
             "arcanist/phantasmal-mage/arcane-metamagic",
@@ -2016,16 +2016,6 @@ fn features_whose_steps_are_features_of_their_own_are_granted_once() {
                 ("magus/spell-dancer/spell-dance-ii", &[5]),
                 ("magus/spell-dancer/spell-dance-iii", &[9]),
                 ("magus/spell-dancer/spell-dance-iv", &[13]),
-            ],
-        ),
-        (
-            "oracle",
-            "oracle/possessed-oracle/powerless-prophecy",
-            1,
-            &[
-                ("oracle/possessed-oracle/curse-2", &[5]),
-                ("oracle/possessed-oracle/curse-3", &[10]),
-                ("oracle/possessed-oracle/curse-4", &[15]),
             ],
         ),
         ("oracle", "oracle/purifier/celestial-armor", 7, &[]),

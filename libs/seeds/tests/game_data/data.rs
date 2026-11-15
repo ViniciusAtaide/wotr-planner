@@ -17,7 +17,9 @@ fn the_game_data_passes_the_data_check() {
 
 /// A link holds a 24-bit hash of each key, looked up among the keys of its kind (ticket 46). Two keys of one kind
 /// with one hash would make every link naming either unreadable: if a data change ever makes two collide, widen the
-/// hash or change its offset basis (`rules`' codec docs) and regenerate `V1_LINK`.
+/// hash or change its offset basis (`rules`' codec docs) and regenerate `V1_LINK`. An option's old keys
+/// ([`aliases`](rules::SelectionOption::aliases), the splits ticket) count too: one sharing a hash with another key of
+/// its kind would make the link naming it unreadable.
 #[test]
 fn no_two_keys_of_one_kind_share_a_link_hash() {
     assert_eq!(rules::LinkKeys::new(&DATA).collisions(), []);

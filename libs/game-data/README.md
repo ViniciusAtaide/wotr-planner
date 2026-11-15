@@ -205,7 +205,10 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   ranger style); its `class_skills` are class skills while the row is held (ticket 37), so an archetype that skips
   the row (Divine Herbalist) or a lists-only holding (Crossblooded's second bloodline) gives none. Its selection says
   which classes' levels make the option level, `option_levels: ["dragon-disciple", "sorcerer"]` (an option taken
-  late gets every row up to its level at once), and an archetype that changes the grant has its own selection
+  late gets every row up to its level at once), with the game's two more terms where its progression has them (the
+  splits ticket): `option_level_archetypes` (a class that has one of them counts only taken with it, as a Stigmatized
+  Witch's levels count for an oracle's curse and a plain witch's don't) and `half_other_classes: true` (half the
+  other classes' levels, rounded down); an archetype that changes the grant has its own selection
   that shares the options it allows: `skipped_levels: [3, 9, 15]` (Seeker; its own rows replace them),
   `feat_lists_only: true` (Crossblooded's second bloodline: its lists and its `arcana`, the option's named
   first-row feature, `arcana: "sorcerer/bloodline/abyssal/demonic-arcana"`), `levels_behind: 2` (the Separatist's
@@ -222,10 +225,13 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   (Second Bloodline). A choice the game asks for every day is `daily_choice: true` on its feature (Mixed
   Bloodline). A class (or archetype, `spontaneous: Some(true)`) that casts spontaneously says `spontaneous: true`,
   which `SpontaneousSpellLevel(spell_type: Arcane, level: 1)` checks; `NoOptionFrom("sorcerer/bloodline")` needs
-  none of that selection's options held. A selection with `pool_of` offers the pools (`pool`) of the options held
-  in another (an oracle's revelations, `oracle/revelation`, from the mysteries held), beside any options of its own
-  (the Dual-Cursed Oracle's `oracle/dual-cursed-oracle/revelation`: Misfortune and Fortune); within a level its
-  slot is checked after the other selections'. All this was read from the guide.
+  none of that selection's options held. A selection with `filtered_by` is a filtered pool (the splits ticket,
+  replacing ticket 30's `pool_of` and `pool`): an option whose prerequisite names options of that selection is offered
+  only while one of them is held (an oracle's revelations, `oracle/revelations`, `filtered_by: "oracle/mystery"`,
+  each revelation's prerequisite naming its mystery), and the others as usual (the Dual-Cursed Oracle's Misfortune and
+  Fortune); within a level its slot is checked after the other selections'. An option that merged with another or
+  moved keeps its old keys in `aliases`, which only the link decoder reads (`aliases:
+  ["oracle/revelations/life/combat-healer-life"]` on Combat Healer). All this was read from the guide.
 - Ticket 33 (the user's decisions on tickets 30 and 31):
   - An option may belong to a group, `group: Draconic` (the sorcerer's ten dragons; `Elemental`, its four
     elements), and `NoOtherOptionOfGroup(Draconic)` in its prerequisite needs no option of the group held but the
@@ -271,9 +277,9 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
     `hellknight/pentamic-faith` (through the Pentamic Faith discipline's row), the Living Deity's
     `arcanist/magic-deceiver/domain` (two at 20), and the archetypes' limited ones. The War domain's bonus Combat
     feat is a slot on its row 8, `feat_slots: [CombatFeat]` (slot id `OptionFeat`).
-  - **Mysteries**, `oracle/mystery`: class skills at 1, the Final Revelation at 20, and `pool:
-    "oracle/revelations/battle"`, whose options are the revelations; the oracle's revelation cells are
-    `oracle/revelation` slots. A revelation that grants later has rows: `chosen_feats: ["improved-critical"]` is
+  - **Mysteries**, `oracle/mystery`: class skills at 1 and the Final Revelation at 20; the oracle's revelation cells
+    are `oracle/revelations` slots, whose options need their mystery (the splits ticket; before it, each mystery
+    opened a `pool` of its own). A revelation that grants later has rows: `chosen_feats: ["improved-critical"]` is
     held for the weapon the pick named for its `chosen_feat` (Weapon Mastery). "Prerequisites: Level 7" is
     oracle or arcanist (Living Deity) level 7.
   - **Blessings**, `warpriest/blessings`: the minor power at 1, the major at 10.
@@ -701,7 +707,7 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   `parameter: Stat, repeat: PerValue` (every parameterised feat, by the user's decision). A pick of these three kinds
   may leave its value open, so a link made before they took one still opens, with the value to choose.
 - Ticket 125's audit: every feat, mythic ability, mythic feat and option whose summary says "chosen", "choose",
-  "choice" or "pick" has its pick (a parameter, a selection, a chosen feat, a pool, rows with slots or selections, an
+  "choice" or "pick" has its pick (a parameter, a selection, a chosen feat, rows with slots or selections, an
   extra pick), or is one the ticket checked and left without: Advanced Weapon Training, Energized Wild Shape,
   Metamagic (Selective Spell), Spell Specialization, Rogue Secret, Increased Damage Reduction and Lore (Religion) II
   and III (the real-data test `pick_values` pins the list; the ticket says why each).

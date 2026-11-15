@@ -1,7 +1,8 @@
 //! Options with rows by option level (ticket 30): a bloodline, school or combat style gives features, feats, feat
 //! lists and selections as the levels of the classes its selection names reach each row. A selection can lag
 //! behind its classes, take its option level from the options held elsewhere or from the option that granted its
-//! slot, and draw on a pool beside options of its own.
+//! slot, and be a filtered pool, whose options the option held in another selection admits, beside options of its
+//! own.
 
 use rules::{
     Build, CharacterState, ClassChoice, FeatSlot, FeatureKey, FeatureSelectionKey, Issue,
@@ -671,7 +672,7 @@ fn a_primalist_takes_the_bloodline_row_or_two_talents_instead() {
     ));
 }
 
-// ---- lists that grow; pools; daily choices ----------------------------------------------------------------
+// ---- lists that grow; filtered pools; daily choices ----------------------------------------------------------------
 
 #[test]
 fn a_style_slot_follows_the_style_picked_at_the_same_level_and_grows_with_it() {
@@ -707,7 +708,7 @@ fn a_style_slot_follows_the_style_picked_at_the_same_level_and_grows_with_it() {
 }
 
 #[test]
-fn a_pool_selection_offers_the_held_options_pool() {
+fn a_filtered_pool_offers_what_the_held_option_admits() {
     let fire = with(
         &times("cleric", 3),
         None,
@@ -1012,10 +1013,10 @@ fn a_maneuver_comes_at_its_revelations_option_level() {
     );
 }
 
-// ---- a pool selection with options of its own -----------------------------------------------------------------
+// ---- a filtered pool with options of its own ------------------------------------------------------------------
 
 #[test]
-fn a_pool_selection_also_offers_its_own_options() {
+fn a_filtered_pool_also_offers_an_option_no_option_admits() {
     // The Accursed's level-1 slots in key order: its revelation, then the domain.
     let build = with(
         &times("cleric", 3),
@@ -1040,7 +1041,7 @@ fn a_pool_selection_also_offers_its_own_options() {
 }
 
 #[test]
-fn a_pool_selection_is_checked_after_the_selection_it_draws_on() {
+fn a_filtered_pool_is_checked_after_the_selection_that_admits_its_options() {
     // At level 1 the revelation's slot comes first by key, but it's filled after the domain's.
     let mut build = with(
         &["cleric"],
@@ -1058,7 +1059,7 @@ fn a_pool_selection_is_checked_after_the_selection_it_draws_on() {
     assert_eq!(
         why_not(&build, &selection_slot(1, 0)),
         None,
-        "no domain, no pool"
+        "no domain, no revelation it admits"
     );
 }
 

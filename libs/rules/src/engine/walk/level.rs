@@ -270,8 +270,8 @@ impl<'a> Walker<'a> {
         SkillPoints { available, spent }
     }
 
-    /// The slots of a Level-up, in checking order: the class row's Feature selections (pool selections last, since
-    /// they draw on the others), its feat slots (option-list ones last, since they depend on the selections), the
+    /// The slots of a Level-up, in checking order: the class row's Feature selections (filtered pools last, since
+    /// the others admit their options), its feat slots (option-list ones last, since they depend on the selections), the
     /// race's (level 1), then the general slot (odd levels).
     /// So a race or general pick can rely on what the class grants at the same level (a human warpriest's Dazzling
     /// Display on the class's Weapon Focus).
@@ -312,12 +312,12 @@ impl<'a> Walker<'a> {
                 ));
             }
         }
-        // A pool selection after the others, so the option whose pool it offers is held first (the Dual-Cursed
+        // A filtered pool after the others, so the option that admits its options is held first (the Dual-Cursed
         // Oracle's revelation, keyed before the mystery, at level 1).
         let (pools, selections): (Vec<_>, Vec<_>) =
             selections.into_iter().partition(|(kind, _)| {
                 matches!(kind, SlotKind::Selection(key)
-                    if catalog.selection(key).is_some_and(|s| s.pool_of.is_some()))
+                    if catalog.selection(key).is_some_and(|s| s.filtered_by.is_some()))
             });
         slots.extend(selections);
         slots.extend(pools);

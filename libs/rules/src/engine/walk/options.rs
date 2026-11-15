@@ -6,9 +6,10 @@ use std::collections::{BTreeMap, BTreeSet};
 use super::{GrantSource, Held, Holding, Pending, Walker};
 use crate::build::SlotId;
 use crate::engine::{Slot, SlotKind};
-use crate::game_data::{LevelFrom, MythicRankRow, OptionRow};
-use crate::keys::{FeatureKey, FeatureSelectionKey, SelectionOptionKey};
+use crate::game_data::{FeatureSelection, LevelFrom, MythicRankRow, OptionRow};
+use crate::keys::{ClassKey, FeatureKey, FeatureSelectionKey, SelectionOptionKey};
 use crate::parameter::Parameter;
+use crate::state::ClassLevels;
 
 impl<'a> Walker<'a> {
     // ---- Options with rows --------------------------------------------------------------------------------
@@ -49,7 +50,7 @@ impl<'a> Walker<'a> {
             (None, None) => {}
         }
         if let Some(through) = catalog.selection(selection)
-            && (!through.option_levels.is_empty() || through.level_from.is_some())
+            && (through.levels_by_class() || through.level_from.is_some())
         {
             self.holdings.push(Holding {
                 selection: selection.clone(),
@@ -79,9 +80,7 @@ impl<'a> Walker<'a> {
             return 0;
         };
         let level = match selection.level_from {
-            None => selection.option_levels.iter().fold(0u8, |sum, class| {
-                sum.saturating_add(self.state.class_level(class))
-            }),
+            None => self.class_levels_of(selection),
             // The highest level of the other options held that it offers (themselves levelled by their classes),
             // and of the option that counts beside them (a Living Deity's way).
             Some(LevelFrom::OtherOptions) => self
@@ -113,6 +112,41 @@ impl<'a> Walker<'a> {
             }),
         };
         level.saturating_sub(selection.levels_behind)
+    }
+
+    /// The class levels that make the option level of an option held through `selection`, as the game's
+    /// `BlueprintProgression.CalcLevel` adds them (WrathDecompiled 6ce4a6b): each class it names, unless that class has
+    /// one of its archetypes; each class taken with one of its archetypes; and half the other classes' levels, when it
+    /// counts them, rounded down.
+    fn class_levels_of(&self, selection: &FeatureSelection) -> u8 {
+        let catalog = &self.engine.catalog;
+        let by_archetype = |taken: &ClassLevels| {
+            taken
+                .archetype
+                .as_ref()
+                .is_some_and(|archetype| selection.option_level_archetypes.contains(archetype))
+        };
+        let has_listed_archetype = |class: &ClassKey| {
+            !selection.option_level_archetypes.is_empty()
+                && catalog.class(class).is_some_and(|(class, _)| {
+                    (class.archetypes.iter())
+                        .any(|archetype| selection.option_level_archetypes.contains(&archetype.key))
+                })
+        };
+        let (mut own, mut others) = (0u8, 0u8);
+        for taken in &self.state.classes {
+            let named = selection.option_levels.contains(&taken.class);
+            if by_archetype(taken) || (named && !has_listed_archetype(&taken.class)) {
+                own = own.saturating_add(taken.level);
+            } else if !named {
+                others = others.saturating_add(taken.level);
+            }
+        }
+        if selection.half_other_classes {
+            own.saturating_add(others / 2)
+        } else {
+            own
+        }
     }
 
     /// Whether `option` is held through a selection levelled by Mythic rank.

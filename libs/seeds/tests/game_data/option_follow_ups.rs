@@ -242,19 +242,23 @@ fn a_dual_cursed_oracle_is_offered_misfortune_and_fortune() {
         "oracle/mystery/battle",
     );
     for level in [1, 3, 5, 7, 11, 13] {
-        let offered = offered_at(&build, &selection_slot(level));
-        assert!(
-            offered.contains("oracle/dual-cursed-oracle/revelation/misfortune")
-                && offered.contains("oracle/dual-cursed-oracle/revelation/fortune")
-                && offered.contains("oracle/revelations/battle/weapon-mastery"),
-            "{level}: {offered:?}"
-        );
+        let offered = offered_in(&build, &selection_slot(level));
+        for key in [
+            "oracle/revelations/misfortune",
+            "oracle/revelations/fortune",
+            "oracle/revelations/battle/weapon-mastery",
+        ] {
+            assert_eq!(offered.get(key), Some(&Ok(())), "{level}: {key}");
+        }
     }
-    // A plain oracle isn't.
-    assert!(
-        !offered_at(&oracle("battle", 1), &revelation_slot(1))
-            .contains("oracle/dual-cursed-oracle/revelation/misfortune")
-    );
+    // A plain oracle is offered them locked, as the game shows them (the splits ticket): FortuneRevelationFeature
+    // 16935c4660ee4c7da976b5f6cafb43dd and MisfortuneRevelationFeature 8121fe70a7974970a8a560bd2267cc24 are options of
+    // OracleRevelationSelection 60008a10ad7ad6543b1f63016741a5d2 whose PrerequisiteArchetypeLevel names the
+    // Dual-Cursed Oracle.
+    assert!(matches!(
+        offered_in(&oracle("battle", 1), &revelation_slot(1))["oracle/revelations/misfortune"],
+        Err(Issue::Unmet(_))
+    ));
 }
 
 #[test]

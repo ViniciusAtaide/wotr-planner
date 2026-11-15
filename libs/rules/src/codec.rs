@@ -24,7 +24,9 @@
 //! `no_two_keys_of_one_kind_share_a_link_hash` fails if a game-data change ever makes two collide; then the hash
 //! gets wider or another offset basis, which is a new format. A hash no key of its kind has (a key the game data no
 //! longer has), or one that two keys of its kind share, is [`DecodeError::UnknownKey`]. So a link survives every
-//! game-data change that keeps the keys it names.
+//! game-data change that keeps the keys it names. An option that merged with another or moved keeps its old keys as
+//! [`aliases`](crate::SelectionOption::aliases), whose hashes read as the option's key (and count in the collision
+//! test), so a link naming one opens on the option it became.
 //!
 //! **Structure.** Bytes in this order. `varint` is unsigned LEB128 in the fewest bytes (one byte below 128).
 //! `opt(x)` is `0` for none, or `1` then `x`. `key(kind)` writes nothing here: it takes the next hash from the list,
@@ -235,10 +237,12 @@ pub struct LinkKeys {
     collisions: Vec<KeyCollision>,
 }
 
-/// The first key of a kind with a hash, and whether another key of the kind has it too.
+/// The first key of a kind with a hash, the text hashed (the key, or an old key it reads as), and whether another
+/// key of the kind has the hash too.
 #[derive(Clone, Debug)]
 struct HashedKey {
     key: String,
+    named: String,
     shared: bool,
 }
 
@@ -278,6 +282,14 @@ impl LinkKeys {
         }
         for option in data.selections().flat_map(|selection| &selection.options) {
             keys.insert(KeyKind::SelectionOption, option.key.as_str());
+            // An option's old keys read as the option (Combat Healer (Life) as Combat Healer).
+            for alias in &option.aliases {
+                keys.insert_as(
+                    KeyKind::SelectionOption,
+                    alias.as_str(),
+                    option.key.as_str(),
+                );
+            }
         }
         for ability in &data.mythic_abilities {
             keys.insert(KeyKind::MythicAbility, ability.key.as_str());
@@ -307,16 +319,22 @@ impl LinkKeys {
     }
 
     fn insert(&mut self, kind: KeyKind, key: &str) {
+        self.insert_as(kind, key, key);
+    }
+
+    /// Reads `named`'s hash as `key`: the key itself, or an old key of it.
+    fn insert_as(&mut self, kind: KeyKind, named: &str, key: &str) {
         let held = self
             .keys
-            .entry((kind, key_hash(key)))
+            .entry((kind, key_hash(named)))
             .or_insert_with(|| HashedKey {
                 key: key.to_owned(),
+                named: named.to_owned(),
                 shared: false,
             });
         if held.key != key {
             held.shared = true;
-            let mut keys = [held.key.clone(), key.to_owned()];
+            let mut keys = [held.named.clone(), named.to_owned()];
             keys.sort();
             let collision = KeyCollision { kind, keys };
             if !self.collisions.contains(&collision) {
