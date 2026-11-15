@@ -209,6 +209,10 @@ _Avoid_: Pool selection, dynamic selection, revelation list
 How many times a feature has been granted: the game adds a rank each time it grants a held feature again, up to the blueprint's `Ranks` (`Feature.AddRank`), and a prerequisite or a number reads it (the Assassin's poison saves: `Ranks` 5, rank 2 at assassin 9). The planner counts every grant and doesn't cap it, so a feature the game keeps at rank 1 and grants again counts on (Fey Magic, the Feyspeaker's repeated selection: rank 8 at druid 18). The sheet says it from rank 2.
 _Avoid_: Stage, step; "rank" alone, which means a Mythic rank
 
+**Feature step**:
+How far a feature has risen: one step for each grant (its Feature rank) and one for each step level its feature reaches while held. A feature the game grants once and scales by a level (its rank on a class level, `ContextRankConfig`) carries its steps: the levels it rises at and the level it reads, a class's levels, several classes' summed or the character level (Infernal Resistance: granted at bloodrager 4, step 2 at bloodrager 8). The step follows that level whatever rows are traded away after the grant, and none comes without the grant. The sheet says it where a level raises it without a grant.
+_Avoid_: Stage; rank, for a rise with no grant
+
 **Option group**:
 A family of Selection options of which a character holds only one: the sorcerer's ten Draconic bloodlines ("You can only take a single draconic bloodline"), its four Elemental ones, and the bloodrager's dragons and elements, apart from the sorcerer's. The options' prerequisite says "no other option of this group", so a Crossblooded sorcerer or a Second Bloodline can't add a second dragon. (Expanded Element's "not the 7th-level element again" is not a group: the selection gives each option once.)
 _Avoid_: Bloodline family, exclusive set

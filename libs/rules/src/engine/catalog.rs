@@ -12,8 +12,8 @@ use crate::build::{BuildStart, Pick};
 use crate::check::CheckedGameData;
 use crate::game_data::{
     AbilityBonus, AbilityModifier, Archetype, BabFromRanks, Background, Class, Deity,
-    EXOTIC_WEAPON_PROFICIENCY, Feat, FeatCategory, FeatList, FeatureSelection, GameData,
-    IMPROVED_UNARMED_STRIKE, MythicAbility, MythicFeat, MythicPath, OptionRow, Race,
+    EXOTIC_WEAPON_PROFICIENCY, Feat, FeatCategory, FeatList, FeatureSelection, FeatureSteps,
+    GameData, IMPROVED_UNARMED_STRIKE, MythicAbility, MythicFeat, MythicPath, OptionRow, Race,
     SelectionOption, Skill, Subrace, UNARMED_STRIKE, Weapon, WeaponProficiency,
 };
 use crate::gear::GearItem;
@@ -588,6 +588,11 @@ impl Catalog {
         self.features.favoured_weapons.contains(feature)
     }
 
+    /// The steps of a feature that rises with a level after its one grant (Infernal Resistance at bloodrager 8).
+    pub(super) fn steps(&self, feature: &FeatureKey) -> Option<&FeatureSteps> {
+        self.features.steps.get(feature)
+    }
+
     /// The weapons a feature makes the character proficient with while it's held; none for most.
     pub(super) fn feature_weapons(&self, feature: &FeatureKey) -> Option<&BTreeSet<WeaponKey>> {
         self.features.weapons.get(feature)
@@ -858,6 +863,8 @@ struct FeatureFacts {
     /// The features that set a floor for prerequisites (Perfect Mind): a BAB floor, and whether every skill's ranks
     /// are at least the Mythic rank.
     floors: FxHashMap<FeatureKey, (Option<u8>, bool)>,
+    /// The steps of every feature that rises with a level after its one grant.
+    steps: FxHashMap<FeatureKey, FeatureSteps>,
     /// The name of every feature a class, archetype or path defines, for the sheet's labels.
     names: FxHashMap<FeatureKey, String>,
     /// The features whose name another feature shares (the Fighter's and the Sohei's Weapon Training), so a reason
@@ -921,6 +928,10 @@ impl FeatureFacts {
             .filter(|feature| !feature.weapons.is_empty())
             .map(|feature| (feature.key.clone(), feature.weapons.clone()))
             .collect();
+        let steps = features
+            .iter()
+            .filter_map(|feature| Some((feature.key.clone(), feature.steps.clone()?)))
+            .collect();
         Self {
             bonuses,
             rows,
@@ -928,6 +939,7 @@ impl FeatureFacts {
             favoured_weapons,
             weapons,
             floors,
+            steps,
             names,
             shared_names,
         }

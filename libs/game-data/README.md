@@ -118,6 +118,13 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   ten grants, read from the guide's table and the overview's 10/-, since the guide has no sentence for it. Its
   rows at 10 and 16 are its own: with none, those levels fall back to the base rows and grant the barbarian's
   Damage Reduction (ticket 193).
+- A feature the game grants once and scales by a level carries `steps: (on: Classes(["bloodrager"]), at: [8])`
+  (or `on: CharacterLevel`) and is granted on one row only (ticket 254): the levels where its numbers rise, on the
+  level the game reads (its rank on a class level, `ContextRankConfig`; a class-level getter; `AddFeatureOnClassLevel`).
+  Its step is its grants plus the step levels that level has reached while it is held, so a row traded away after the
+  grant takes no step with it, and a grant traded away gives none. A row grants a feature again only where the game
+  does (a feature rank). The bullets above and below grant steps as repeated rows; the class tickets move them to
+  `steps` (`notes/254-a-features-steps-follow-the-class-level.md`).
 - Ticket 188 (the user, 2026-11-13, took the recommendation on every question): the base classes' stepped features
   are granted again at each step the guide's sentence names, as the archetypes' were: the barbarian's and the
   rogue's Danger Sense at 3, 6, 9, 12, 15 and 18; the fighter's Bravery at 2, 6, 10, 14 and 18, Armor Training at 3,

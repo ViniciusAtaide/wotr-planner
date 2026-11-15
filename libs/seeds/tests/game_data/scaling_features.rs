@@ -655,15 +655,15 @@ const ALIGNMENTS: [rules::Alignment; 9] = [
     rules::Alignment::ChaoticEvil,
 ];
 
-/// The levels at which `build`'s count of `feature` rises, a level once for each rise: the steps the sheet gains it
-/// at.
+/// The levels at which `build`'s step of `feature` rises (a grant, or a step its level reaches: ticket 254), a level
+/// once for each rise: the steps the sheet gains it at.
 fn gains(build: &Build, feature: &str) -> Vec<u8> {
     let key = FeatureKey::new(feature);
     let sheet = engine().evaluate(build);
     let mut previous = 0;
     let mut gained = Vec::new();
     for level in 1..=build.levels.len() as u8 {
-        let count = sheet.at(level).unwrap().feature_count(&key);
+        let count = engine().feature_step(sheet.at(level).unwrap(), &key);
         gained.extend((previous..count).map(|_| level));
         previous = count;
     }
@@ -995,7 +995,7 @@ fn every_sorcerer_archetype_holds_the_steps_of_the_bloodline_resistances() {
 
 #[test]
 fn the_bloodragers_infernal_resistance_and_abyssal_bloodrage_step() {
-    // Infernal Resistance 4 and 8; Abyssal Bloodrage 12, 16 and 20. The Hag-Riven and the Mixed Blood Rager are not
+    // Infernal Resistance 4, 5 and 8; Abyssal Bloodrage 12, 16 and 20. The Hag-Riven and the Mixed Blood Rager are not
     // offered either bloodline; the Primalist's rage-power choice is the known open question (ticket 177's Answer),
     // and a Primalist taking the bloodline's ability at every level holds them all.
     // Game: BloodragerAbyssalBloodline 55d5bbf4b5ae1744ab26c71be98067f9 and BloodragerInfernalBloodline
@@ -1004,12 +1004,13 @@ fn the_bloodragers_infernal_resistance_and_abyssal_bloodrage_step() {
     // BloodragerBloodlineSelection 62b33ac8ceb18dd47ad4c8f06849bc01 at 1.
     for (option, feature, levels) in [
         // Game: BloodragerInfernalBloodline 9aef64b53406f114cb43f898a3aec01e grants BloodragerInfernalResistance
-        // ac77b22f74aed034ca2b16ba6a4bfde9 at 4; BloodragerInfernalResistanceBuff 66c973ccad1293345ae6c5bfeced4a7b
-        // rises at 8 (equivalent model).
+        // ac77b22f74aed034ca2b16ba6a4bfde9 at 4; BloodragerInfernalResistanceBuff 66c973ccad1293345ae6c5bfeced4a7b has
+        // two ContextRankConfigs on BloodragerClass level: the resistance's table rises at 8, the poison-save bonus's
+        // (DamageDice, custom {4 -> 2, 8 -> 4}; ApplyProgression takes the first entry with value <= base) at 5.
         (
             "bloodrager/bloodline/infernal",
             "bloodrager/bloodline/infernal/infernal-resistance",
-            &[4u8, 8][..],
+            &[4u8, 5, 8][..],
         ),
         // BloodragerAbyssalBloodrage 29fc83f824111bb41829957486752c93 is granted once at 12; its steps at 16 and 20
         // are not found in the blueprints (unsettled).
@@ -1349,7 +1350,8 @@ fn the_selections_sharing_a_stepped_option_hold_the_steps_its_rows_give() {
         ),
         [6, 9]
     );
-    // The Second Bloodrager Bloodline: Infernal Resistance by bloodrager levels, 6 and then 8.
+    // The Second Bloodrager Bloodline: Infernal Resistance granted at 6, with the step at 5 already passed (the game
+    // reads bloodrager level whenever the feature is held: the grant and that step at 6), then the step at 8.
     let mut bloodrager = with_option(
         build("bloodrager", 20),
         1,
@@ -1370,7 +1372,7 @@ fn the_selections_sharing_a_stepped_option_hold_the_steps_its_rows_give() {
             &bloodrager,
             "bloodrager/bloodline/infernal/infernal-resistance"
         ),
-        [6, 8]
+        [6, 6, 8]
     );
     // The Second Spirit: a Battle spirit taken at MR 1 (level 6) after the Frost spirit holds Battle Spirit at 6, 8
     // and 16.
@@ -1415,18 +1417,20 @@ const PRIMALIST_RESISTANCE: &str = "bloodrager/bloodline/infernal/infernal-resis
 const PRIMALIST_ABYSSAL: &str = "bloodrager/bloodline/abyssal";
 const PRIMALIST_BLOODRAGE: &str = "bloodrager/bloodline/abyssal/abyssal-bloodrage";
 
-/// The Primalist (ticket 177): "Two Rage Powers" replaces the bloodline's whole row at 4, 8, 12, 16 or 20, so the
-/// bloodrager's steps on those rows go with it. What the game does with a step after the first grant is traded away
-/// is `a_primalists_traded_power_never_steps_and_a_kept_one_steps_with_the_class_level`.
+/// The Primalist (ticket 177): "Two Rage Powers" replaces the bloodline's whole row at 4, 8, 12, 16 or 20. A power
+/// kept rises with the bloodrager level whatever is traded later, since its steps are its rank on the class level, not
+/// rows (ticket 254). What a traded power does is
+/// `a_primalists_traded_power_never_steps_and_a_kept_one_steps_with_the_class_level`.
 #[test]
 fn a_primalists_rage_powers_replace_the_row_and_its_step_with_it() {
     // Game: BloodragerInfernalResistance ac77b22f74aed034ca2b16ba6a4bfde9 has a PrerequisiteNoFeature of
     // PrimalistProgression d8b8d1dd83393484cbacf6c8830080ae; PrimalistTakeBloodlinePower4
     // 2140040bf367e8b4a9c6a632820becbe adds it; BloodragerInfernalResistanceBuff 66c973ccad1293345ae6c5bfeced4a7b's
-    // rank rises at 8 (equivalent model).
+    // resistance table rises at 8 and its second ContextRankConfig (DamageDice, the poison-save bonus: custom
+    // {4 -> 2, 8 -> 4}, ApplyProgression: first entry with value <= base) at 5.
     assert_eq!(
         gains(&primalist(PRIMALIST_INFERNAL, &[]), PRIMALIST_RESISTANCE),
-        [4, 8]
+        [4, 5, 8]
     );
     assert_eq!(
         gains(
@@ -1435,27 +1439,35 @@ fn a_primalists_rage_powers_replace_the_row_and_its_step_with_it() {
         ),
         Vec::<u8>::new()
     );
-    // The Abyssal bloodline's Abyssal Bloodrage (first at 12, steps at 16 and 20): its steps are not found in the
-    // blueprints (unsettled).
+    // Game: BloodragerAbyssalBloodrage 29fc83f824111bb41829957486752c93 is granted at 12 only
+    // (BloodragerAbyssalBloodline 55d5bbf4b5ae1744ab26c71be98067f9); BloodragerAbyssalBloodrageBonusProperty
+    // 415f71e5a47f4cccb3dbd10bd7a0f8f8 multiplies a ClassLevelGetter on BloodragerClass (1 at 12-15, 2 at 16-19, 3 at
+    // 20) by the feature's rank (`ClassLevelGetter`, `FactRankGetter`, `PropertySettings.ApplyProgression`,
+    // WrathDecompiled 6ce4a6b), so trading the row at 16 or 20 takes no step with it.
     assert_eq!(
         gains(&primalist(PRIMALIST_ABYSSAL, &[]), PRIMALIST_BLOODRAGE),
         [12, 16, 20]
     );
     assert_eq!(
         gains(&primalist(PRIMALIST_ABYSSAL, &[16]), PRIMALIST_BLOODRAGE),
-        [12, 20]
+        [12, 16, 20]
     );
     assert_eq!(
         gains(&primalist(PRIMALIST_ABYSSAL, &[20]), PRIMALIST_BLOODRAGE),
-        [12, 16]
+        [12, 16, 20]
+    );
+    // Granted once: its feature rank stays 1 while its step reaches 3.
+    let kept = at(&primalist(PRIMALIST_ABYSSAL, &[16]), 20);
+    assert_eq!(kept.feature_count(&FeatureKey::new(PRIMALIST_BLOODRAGE)), 1);
+    assert_eq!(
+        engine().feature_step(&kept, &FeatureKey::new(PRIMALIST_BLOODRAGE)),
+        3
     );
 }
 
 /// A Primalist's bloodline power is granted only by the level's choice: one traded for rage powers is never held, so
 /// none of its steps come, and one kept steps with the bloodrager level whatever is traded later.
 #[test]
-#[ignore = "waits on ticket 254: the game gives Infernal Resistance none when traded at 4 and 4, 8 when \
-            traded at 8, and no Abyssal Bloodrage when traded at 12"]
 fn a_primalists_traded_power_never_steps_and_a_kept_one_steps_with_the_class_level() {
     // Game: PrimalistTakeBloodlinePower4 2140040bf367e8b4a9c6a632820becbe adds BloodragerInfernalResistance
     // ac77b22f74aed034ca2b16ba6a4bfde9 (which a Primalist holds no other way: PrerequisiteNoFeature
@@ -1467,14 +1479,13 @@ fn a_primalists_traded_power_never_steps_and_a_kept_one_steps_with_the_class_lev
     );
     assert_eq!(
         gains(&primalist(PRIMALIST_INFERNAL, &[8]), PRIMALIST_RESISTANCE),
-        [4, 8]
+        [4, 5, 8]
     );
     // Game: PrimalistTakeBloodlinePower12 57bb4dc36611c7444817c13135ec58b4 is the Primalist's only way to
     // BloodragerAbyssalBloodrage 29fc83f824111bb41829957486752c93 (PrerequisiteNoFeature PrimalistProgression).
     assert_eq!(
-        at(&primalist(PRIMALIST_ABYSSAL, &[12]), 20)
-            .feature_count(&FeatureKey::new(PRIMALIST_BLOODRAGE)),
-        0
+        gains(&primalist(PRIMALIST_ABYSSAL, &[12]), PRIMALIST_BLOODRAGE),
+        Vec::<u8>::new()
     );
 }
 

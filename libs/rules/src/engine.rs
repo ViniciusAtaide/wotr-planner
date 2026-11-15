@@ -21,7 +21,7 @@ use crate::codec::LinkKeys;
 use crate::game_data::{
     Ability, AbilityBonus, AbilityModifier, Advancement, Archetype, ArchetypeLevelRow, Background,
     Class, ClassLevelRow, Deity, FeatCategory, FeatList, FeatSlot, FeatValue, Race, Skill,
-    SpellLevels,
+    SpellLevels, StepLevel,
 };
 use crate::keys::{
     ArchetypeKey, ClassKey, FeatKey, FeatListKey, FeatureKey, FeatureSelectionKey, MythicPathKey,
@@ -182,6 +182,36 @@ impl Engine {
             .filter(|feature| self.catalog.is_daily_choice(feature))
             .cloned()
             .collect()
+    }
+
+    /// How far a feature has risen in `state`: one step for each grant (its feature rank, `feature_count`) and one
+    /// for each of its step levels reached ([`FeatureSteps`](crate::FeatureSteps)); 0 when not held. Sneak Attack
+    /// granted three times is at step 3; Infernal Resistance, granted once at bloodrager 4, at step 2 from bloodrager 8.
+    pub fn feature_step(&self, state: &CharacterState, feature: &FeatureKey) -> u8 {
+        state
+            .feature_count(feature)
+            .saturating_add(self.steps_reached(state, feature))
+    }
+
+    /// How many of a held feature's step levels the level it reads has reached in `state`: the sum of its classes'
+    /// levels, or the character level. The game reads that level whenever the feature is held
+    /// (`ContextRankConfig.GetBaseValue`, WrathDecompiled 6ce4a6b), so a row traded away after the grant takes no step
+    /// with it, and a grant traded away gives none. 0 for a feature not held or without steps.
+    pub fn steps_reached(&self, state: &CharacterState, feature: &FeatureKey) -> u8 {
+        let Some(steps) = self.catalog.steps(feature) else {
+            return 0;
+        };
+        if state.feature_count(feature) == 0 {
+            return 0;
+        }
+        let level = match &steps.on {
+            StepLevel::Classes(classes) => classes
+                .iter()
+                .map(|class| state.class_level(class))
+                .fold(0, u8::saturating_add),
+            StepLevel::CharacterLevel => state.character_level,
+        };
+        u8::try_from(steps.at.range(..=level).count()).unwrap_or(u8::MAX)
     }
 
     /// The modifier a Build start's race (or its subrace, whose modifiers replace the race's) gives an ability:

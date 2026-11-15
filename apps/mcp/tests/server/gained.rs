@@ -1,5 +1,6 @@
 //! A feature gained more than once at a level says how many times (ticket 192, review): the Trickster's third Mythic
-//! rank gives Sneak Attack twice. A feature held more than once says its rank (ticket 243). On the real data.
+//! rank gives Sneak Attack twice. A feature held more than once says its rank (ticket 243), and one a level raises
+//! without a grant says its step (ticket 254). On the real data.
 
 use rmcp::serde_json::{Map, Value, json};
 
@@ -116,5 +117,99 @@ async fn real_data_the_sheet_says_the_rank_of_a_feature_gained_again() {
     assert_eq!(
         fey_magic(6),
         json!({ "key": "druid/feyspeaker/fey-magic", "name": "Fey Magic (Feyspeaker)", "rank": 2 })
+    );
+}
+
+/// Infernal Resistance is granted once, at bloodrager 4, and rises at bloodrager 5 and 8 with no grant (ticket 254):
+/// levels 5 and 8 list it with their step and no `times`. Game: BloodragerInfernalBloodline 9aef64b53406f114cb43f898a3aec01e grants
+/// BloodragerInfernalResistance ac77b22f74aed034ca2b16ba6a4bfde9 at 4 only; BloodragerInfernalResistanceBuff
+/// 66c973ccad1293345ae6c5bfeced4a7b has two ContextRankConfigs on BloodragerClass level: the resistance's table, 5 to
+/// 7 and 10 from 8, and the poison-save bonus's (DamageDice, custom {4 -> 2, 8 -> 4}), 2 to 4 and 4 from 5
+/// (`ContextRankConfig.ApplyProgression` Custom: the first entry with value <= base, WrathDecompiled 6ce4a6b).
+#[tokio::test]
+async fn real_data_the_sheet_says_the_step_a_level_raises_a_feature_to() {
+    let client = Client::start().await;
+    let mut choices = Map::new();
+    for (address, value) in [
+        ("start.race", json!("human")),
+        ("start.faith", json!("atheism")),
+        ("start.alignment", json!("chaotic-neutral")),
+        ("slot.selection.1.0", json!("bloodrager/bloodline/infernal")),
+    ] {
+        choices.insert(address.to_owned(), value);
+    }
+    for level in 1..=8 {
+        choices.insert(
+            format!("level.{level}.class"),
+            json!({ "class": "bloodrager" }),
+        );
+    }
+    let build = client.ok("validate", json!({ "choices": choices })).await["build"].clone();
+    let sheet = client.ok("sheet", json!({ "build": build })).await;
+    const KEY: &str = "bloodrager/bloodline/infernal/infernal-resistance";
+    let resistance = |level: usize| feature(&sheet["levels"][level - 1]["features"], KEY).clone();
+    let name = "Infernal Resistance";
+    assert_eq!(resistance(4), json!({ "key": KEY, "name": name }));
+    assert_eq!(
+        resistance(5),
+        json!({ "key": KEY, "name": name, "step": 2 })
+    );
+    assert_eq!(
+        resistance(8),
+        json!({ "key": KEY, "name": name, "step": 3 })
+    );
+}
+
+/// A feature granted after its step level is gained, with no `step`: the Second Bloodrager Bloodline (MR 1, after
+/// bloodrager 6) grants Infernal Resistance when bloodrager 5 has passed, and the sheet lists it as gained there, its
+/// step 2 reached at 8 only when it is already held before. Game: as above, on BloodragerClass level.
+#[tokio::test]
+async fn real_data_a_feature_granted_after_its_step_level_is_gained_with_no_step() {
+    let client = Client::start().await;
+    let mut choices = Map::new();
+    for (address, value) in [
+        ("start.race", json!("human")),
+        ("start.faith", json!("atheism")),
+        ("start.alignment", json!("chaotic-neutral")),
+        ("slot.selection.1.0", json!("bloodrager/bloodline/abyssal")),
+        ("slot.mythic.1", json!("second-bloodrager-bloodline")),
+        (
+            "slot.mythic-selection.1.0",
+            json!("bloodrager/bloodline/infernal"),
+        ),
+    ] {
+        choices.insert(address.to_owned(), value);
+    }
+    for level in 1..=8 {
+        choices.insert(
+            format!("level.{level}.class"),
+            json!({ "class": "bloodrager" }),
+        );
+    }
+    let validated = client.ok("validate", json!({ "choices": choices })).await;
+    let sheet = client
+        .ok("sheet", json!({ "build": validated["build"].clone() }))
+        .await;
+    const KEY: &str = "bloodrager/bloodline/infernal/infernal-resistance";
+    let levels = sheet["levels"].as_array().unwrap();
+    let steps: Vec<(usize, Value)> = levels
+        .iter()
+        .enumerate()
+        .filter_map(|(index, level)| {
+            level["features"]
+                .as_array()?
+                .iter()
+                .find(|feature| feature["key"] == KEY)
+                .map(|feature| (index + 1, feature.clone()))
+        })
+        .collect();
+    let name = "Infernal Resistance";
+    assert_eq!(
+        steps,
+        [
+            (6, json!({ "key": KEY, "name": name })),
+            (8, json!({ "key": KEY, "name": name, "step": 3 })),
+        ],
+        "{validated}"
     );
 }
