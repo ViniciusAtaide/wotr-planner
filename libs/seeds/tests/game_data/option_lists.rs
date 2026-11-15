@@ -256,6 +256,9 @@ fn the_sneak_attack_feats_name_every_sneak_attack_feature() {
         .filter(|key| is_sneak_attack(key))
         .collect();
     assert_eq!(features.len(), 14, "{features:?}");
+    // Game: AccomplishedSneakAttacker 9f0187869dc23744292c0e5bb364464e and SneakAttackerMythicFeat
+    // d0a53bf03b978634890e5ebab4a90ecb need the SneakAttack stat at 1 or more (equivalent model: any of the
+    // features that raise it).
     for (name, prerequisite) in [
         (
             "accomplished-sneak-attacker",

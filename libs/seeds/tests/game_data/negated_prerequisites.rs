@@ -17,6 +17,9 @@ fn a_kinetic_sharpshooters_closed_infusion_reads_not_for_its_archetype() {
         0,
         "kineticist/element/fire",
     );
+    // Game: ExtendedRangeInfusion cb2d9e6355dd33940b2bef49e544b0bf and KineticBladeInfusion
+    // 9ff81732daddb174aa8138ad1297c787 have PrerequisiteNoArchetype KineticSharpshooterArchetype
+    // e0684d0a6ef44cae9d095f5318618a85 (the reason's wording is the planner's).
     for name in ["extended-range", "kinetic-blade"] {
         assert_eq!(
             infusion_reason(&sharpshooter, 3, name),
@@ -24,10 +27,14 @@ fn a_kinetic_sharpshooters_closed_infusion_reads_not_for_its_archetype() {
             "{name}"
         );
     }
+    // Game: EruptionInfusion 00f8e4b846c367141afcd133f4a1c816 needs kineticist 6 and Extended Range, which no
+    // Sharpshooter holds (equivalent model: no archetype bar of its own).
     assert_eq!(
         infusion_reason(&sharpshooter, 3, "eruption"),
         "Not for the Kinetic Sharpshooter archetype; needs Kineticist level 6 (have 3), Extended Range"
     );
+    // Game: ExplodingArrowsInfusion 7c8ded7015114e4086b3dbdd16388b29's PrerequisiteArchetypeLevel names
+    // KineticSharpshooterArchetype e0684d0a6ef44cae9d095f5318618a85 at 3.
     assert_eq!(
         infusion_reason(&kineticist("fire", 3), 3, "exploding-arrows"),
         "Needs the Kinetic Sharpshooter archetype"
@@ -86,15 +93,8 @@ fn every_negated_prerequisite_in_the_data_reads_as_what_rules_the_option_out() {
         ])
     );
 
-    // A slayer's 2nd-level combat style talent at slayer 6.
-    assert_eq!(
-        lock_reason(
-            &build("slayer", 6),
-            6,
-            "slayer/slayer-talents/combat-style-feat-2"
-        ),
-        "Only below Slayer level 6"
-    );
+    // A slayer's 2nd-level combat style talent at slayer 6:
+    // `a_slayer_6_who_skipped_it_takes_the_2nd_level_combat_style`.
     // A second totem line, ahead of what else it needs: Beast Totem for a barbarian of the Celestial line.
     let mut totems = barbarian(6);
     totems.picks.insert(
@@ -106,6 +106,9 @@ fn every_negated_prerequisite_in_the_data_reads_as_what_rules_the_option_out() {
         pick("barbarian/rage-power/celestial-totem"),
     );
     assert!(possible(&totems));
+    // Game: BeastTotemFeature c085888db293f2741b881cc989a2ab14 needs BeastTotemLesserFeature
+    // d99dfc9238a8a6646b32be09057c1729, which CelestialTotemLesserFeature aba61e0b0e66bf3439cc247ee89fddae shuts
+    // out (equivalent model: the game's only reason is the missing Lesser).
     assert_eq!(
         lock_reason(&totems, 6, "barbarian/rage-power/beast-totem"),
         "Not with Celestial Totem or Celestial Totem, Lesser; needs Beast Totem, Lesser"
@@ -113,14 +116,18 @@ fn every_negated_prerequisite_in_the_data_reads_as_what_rules_the_option_out() {
     // Cinder Dance with the Lame curse.
     let lame = with_option(oracle("flame", 1), 1, 1, "oracle/oracles-curse/lame");
     let lame = with_option(lame, 1, 2, "oracle/revelations/flame/cinder-dance");
+    // Game: OracleRevelationCinderDance 6e67eae3081853544b191943f5ed4534's PrerequisiteNoFeature
+    // LameCurseProgression 3d319da9614c76a41a095a4467c3233f.
     assert_eq!(
         why_not(&lame, &SlotId::Selection { level: 1, index: 2 })
             .and_then(|issue| engine.issue_text(&issue))
             .as_deref(),
         Some("Not with Lame")
     );
-    // A Lawful Good Champion of the Faith's evil blessing as his chosen alignment, and a Lawful Good Separatist's
-    // Chaos Domain as his own: the alignments that case allows.
+    // A Lawful Good Champion of the Faith's evil blessing as his chosen alignment, and a Lawful Good Separatist's Chaos
+    // Domain as his own: both refused. What each needs:
+    // `a_champion_of_the_faiths_evil_alignment_needs_only_a_non_good_one` here, and
+    // `a_true_neutral_separatist_takes_no_alignment_domain` (option_follow_ups.rs).
     let mut champion = archetype_build("warpriest", "warpriest/champion-of-the-faith", 1);
     align(&mut champion, rules::Alignment::LawfulGood);
     let chosen = slot_of(
@@ -131,28 +138,50 @@ fn every_negated_prerequisite_in_the_data_reads_as_what_rules_the_option_out() {
     champion
         .picks
         .insert(chosen.clone(), pick("warpriest/blessings/evil-domain"));
-    assert_eq!(
-        why_not(&champion, &chosen)
-            .and_then(|issue| engine.issue_text(&issue))
-            .as_deref(),
-        Some(
-            "As Chosen Alignment Blessing, needs Lawful Evil alignment or Neutral Evil alignment or Chaotic Evil \
-             alignment, and a deity offering the Evil Domain"
-        )
-    );
+    // Game: ChampionOfTheFaithEvilFeature cf6e5f8927653434eab6179cbc76eb04's PrerequisiteAlignment admits no good
+    // alignment (Blueprints/Classes/Prerequisites/PrerequisiteAlignment.CheckInternal, WrathDecompiled 6ce4a6b).
+    assert!(why_not(&champion, &chosen).is_some());
     // Sarenrae's: Fire is hers, Luck isn't (ticket 86).
     let mut separatist = realigned(separatist(3), rules::Alignment::LawfulGood);
     let own = slot_of(&separatist, 1, "cleric/separatist/domain");
     separatist
         .picks
         .insert(own.clone(), pick("cleric/domain/chaos"));
+    // Game: ChaosDomainProgressionSeparatist 714706ca6958440cbbb217c2d167e6ec needs a chaotic alignment.
+    assert!(why_not(&separatist, &own).is_some());
+}
+
+/// The slayer's 2nd-level combat style talent needs only that it isn't held: a slayer who skipped it at 2 and 4
+/// takes it at 6.
+#[test]
+#[ignore = "waits on ticket 276: the game gives the 2nd-level combat style talent no upper slayer level"]
+fn a_slayer_6_who_skipped_it_takes_the_2nd_level_combat_style() {
+    // Game: RangerStyleSelection2 c6d0da9124735a44f93ac31df803b9a9 needs only that it isn't held, and
+    // SlayerTalentSelection6 43d1b15873e926848be2abf0ea3ad9a8 offers it.
     assert_eq!(
-        why_not(&separatist, &own)
-            .and_then(|issue| engine.issue_text(&issue))
-            .as_deref(),
-        Some(
-            "As Domain (Separatist), needs Neutral Good alignment or Chaotic Good alignment or True Neutral \
-             alignment or Chaotic Neutral alignment or Neutral Evil alignment or Chaotic Evil alignment"
-        )
+        offered(&build("slayer", 6), 6)["slayer/slayer-talents/combat-style-feat-2"],
+        Ok(())
     );
+}
+
+/// A Champion of the Faith's Evil chosen alignment needs only an alignment that isn't good, and no deity: a lawful
+/// neutral one takes it.
+#[test]
+#[ignore = "waits on ticket 267: the game gives the Evil chosen alignment to any non-good alignment, no deity"]
+fn a_champion_of_the_faiths_evil_alignment_needs_only_a_non_good_one() {
+    let mut champion = realigned(
+        archetype_build("warpriest", "warpriest/champion-of-the-faith", 1),
+        rules::Alignment::LawfulNeutral,
+    );
+    let chosen = slot_of(
+        &champion,
+        1,
+        "warpriest/champion-of-the-faith/chosen-alignment",
+    );
+    champion
+        .picks
+        .insert(chosen, pick("warpriest/blessings/evil-domain"));
+    // Game: ChampionOfTheFaithEvilFeature cf6e5f8927653434eab6179cbc76eb04's PrerequisiteAlignment admits LN, TN, CN
+    // and the evil ones; it names no deity and grants EvilBlessingFeature f38f3abf6ca3a07499a61f96e342bb16.
+    assert!(possible(&champion));
 }
