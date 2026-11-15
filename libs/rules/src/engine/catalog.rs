@@ -572,8 +572,8 @@ impl Catalog {
             .map(|(feature, _)| feature)
     }
 
-    /// The floor a feature sets for prerequisites (Perfect Mind): a BAB floor, and whether every skill's ranks are
-    /// at least the Mythic rank. `None` for a feature that sets none.
+    /// The floors a feature sets (Perfect Mind): what the BAB is at least, over the Mythic rank, and whether every
+    /// skill's total counts at least the Mythic rank for its ranks. `None` for a feature that sets none.
     pub(super) fn floor(&self, feature: &FeatureKey) -> Option<(Option<u8>, bool)> {
         self.features.floors.get(feature).copied()
     }
@@ -894,12 +894,16 @@ impl FeatureFacts {
         let floors = features
             .iter()
             .filter(|feature| {
-                feature.bab_floor.is_some() || feature.skill_ranks_at_least_mythic_rank
+                feature.bab_at_least_mythic_rank_plus.is_some()
+                    || feature.skill_ranks_at_least_mythic_rank
             })
             .map(|feature| {
                 (
                     feature.key.clone(),
-                    (feature.bab_floor, feature.skill_ranks_at_least_mythic_rank),
+                    (
+                        feature.bab_at_least_mythic_rank_plus,
+                        feature.skill_ranks_at_least_mythic_rank,
+                    ),
                 )
             })
             .collect();

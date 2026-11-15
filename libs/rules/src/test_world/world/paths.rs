@@ -213,9 +213,10 @@ pub(super) fn gold_dragon() -> MythicPath {
                     AbilityBonus::Highest { amount: 4 },
                 ],
             ),
-            // Also "your base attack bonus is at least 15" and "your rank in any skill is at least your mythic rank".
+            // Also "your base attack bonus is at least 15 + your mythic rank" and "skill totals count ranks of at least
+            // your mythic rank".
             Feature {
-                bab_floor: Some(15),
+                bab_at_least_mythic_rank_plus: Some(15),
                 skill_ranks_at_least_mythic_rank: true,
                 ..bonus_feature(
                     "gold-dragon/perfect-mind",

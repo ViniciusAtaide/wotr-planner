@@ -867,7 +867,7 @@ fn a_switch_dropping_an_option_drops_its_feats_but_not_the_same_feats_held_other
 // ---- Perfect Mind's floors ------------------------------------------------------------------------------------
 
 #[test]
-fn perfect_mind_raises_bab_and_every_skills_ranks_for_prerequisites() {
+fn perfect_mind_raises_the_bab_by_the_mythic_rank_and_no_skills_ranks() {
     let mut build = build("human", &times("wizard", 17));
     build.mythic_path = Some(path("trickster"));
     build.path_switch = Some(path("gold-dragon"));
@@ -880,20 +880,12 @@ fn perfect_mind_raises_bab_and_every_skills_ranks_for_prerequisites() {
     let at_16 = sheet.at(16).unwrap();
     assert!(at_16.check(&bab_15).is_err());
     assert!(at_16.check(&mobility_9).is_err());
-    // MR 9 at 17: Perfect Mind.
+    // MR 9 at 17: Perfect Mind raises the BAB itself to 15 + 9; the skills' totals, not their ranks.
     let at_17 = sheet.at(17).unwrap();
-    assert_eq!(at_17.bab, 8);
-    assert_eq!(at_17.prerequisite_bab(), 15);
+    assert_eq!(at_17.bab, 24);
     assert_eq!(at_17.check(&bab_15), Ok(()));
-    assert_eq!(at_17.check(&mobility_9), Ok(()));
-    assert!(
-        at_17
-            .check(&Prerequisite::SkillRanks {
-                skill: SkillKey::new("mobility"),
-                ranks: 10,
-            })
-            .is_err()
-    );
+    assert!(at_17.check(&mobility_9).is_err());
+    assert_eq!(at_17.skill_ranks_in_total(&SkillKey::new("mobility")), 9);
 }
 
 // ---- Athletics III's base attack bonus (ticket 212) -----------------------------------------------------------
@@ -935,7 +927,7 @@ fn athletics_iii_raises_bab_to_the_ranks_and_five_more_at_full_bab_from_its_leve
     assert_eq!([bab(14), bab(15)], [14, 15]);
     assert_eq!([bab(16), bab(17), bab(20)], [21, 22, 25]);
     // It is a raise of the BAB itself, not a floor for prerequisites alone.
-    assert_eq!(sheet.at(20).unwrap().prerequisite_bab(), 25);
+    assert_eq!(sheet.at(20).unwrap().bab, 25);
 
     // Without the trick the table's BAB stands.
     let plain = engine.evaluate(&athletics_build("fighter", false));

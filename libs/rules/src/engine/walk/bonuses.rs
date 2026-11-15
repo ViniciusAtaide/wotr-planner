@@ -203,7 +203,7 @@ impl Walker<'_> {
                     | (BonusTarget::Held, Some(Parameter::Skill(skill))) => Some(skill),
                     _ => None,
                 };
-                let ranks = skill.map_or(0, |skill| state.prerequisite_skill_ranks(skill));
+                let ranks = skill.map_or(0, |skill| state.skill_ranks_in_total(skill));
                 i16::from(if ranks >= 10 { with_ten_ranks } else { amount })
             }
             BonusAmount::AbilityModifier(ability) => {
