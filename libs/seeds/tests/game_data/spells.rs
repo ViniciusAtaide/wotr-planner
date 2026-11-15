@@ -55,7 +55,10 @@ fn hold_monster_is_a_will_negates_compulsion_on_the_wizard_and_sorcerer_list_at_
     assert_eq!(hold.target, "One enemy creature within medium range");
     assert_eq!(hold.duration.as_deref(), Some("1 round / level"));
     assert_eq!(hold.casting_time, CastingTime::Standard);
-    assert_eq!(hold.guide.0, "wizard-spells#hold-monster-enchantment");
+    assert_eq!(
+        hold.guide.as_ref().unwrap().0,
+        "wizard-spells#hold-monster-enchantment"
+    );
     assert_eq!(
         hold.summary,
         "A living creature that fails is paralysed, with a new save each round to end it."
@@ -125,7 +128,14 @@ fn the_max_dc_runs_spells_are_on_the_wizard_list() {
 fn every_block_on_the_saved_pages_is_a_spell() {
     let mut per_page: BTreeMap<&str, usize> = BTreeMap::new();
     for spell in &DATA.spells {
-        let page = spell.guide.0.split_once('#').expect("an anchor").0;
+        let page = spell
+            .guide
+            .as_ref()
+            .unwrap()
+            .0
+            .split_once('#')
+            .expect("an anchor")
+            .0;
         *per_page.entry(page).or_default() += 1;
     }
     let expected = BTreeMap::from([
@@ -234,11 +244,16 @@ fn each_spell_is_in_the_file_of_its_blocks_page_and_level() {
             files += 1;
             for spell in read_spells(&file) {
                 assert!(
-                    spell.guide.0.starts_with(&format!("{page}#")),
+                    spell
+                        .guide
+                        .as_ref()
+                        .unwrap()
+                        .0
+                        .starts_with(&format!("{page}#")),
                     "{}: {} links to {}",
                     file.display(),
                     spell.key,
-                    spell.guide.0
+                    spell.guide.as_ref().unwrap().0
                 );
                 assert!(
                     levels(folder_list(&name), spell.key.as_str())
@@ -340,7 +355,10 @@ fn footnoted_entries_are_only_for_their_archetype_or_story_branch() {
 fn the_universalist_spell_has_no_school() {
     let dismiss = spell("dismiss-spell");
     assert_eq!(dismiss.school, None);
-    assert_eq!(dismiss.guide.0, "wizard-spells#dismiss-spell-universalist");
+    assert_eq!(
+        dismiss.guide.as_ref().unwrap().0,
+        "wizard-spells#dismiss-spell-universalist"
+    );
     let universalist: Vec<&str> = DATA
         .spells
         .iter()
@@ -368,12 +386,12 @@ fn the_hand_fixes_hold() {
     assert_eq!(spell("soothing-mud").school, Some(SpellSchool::Conjuration));
     assert_eq!(spell("shades").school, Some(SpellSchool::Illusion));
     assert_eq!(
-        spell("reviving-finale").guide.0,
+        spell("reviving-finale").guide.as_ref().unwrap().0,
         "bard#reviving-final-finale-conjuration"
     );
     assert_eq!(levels("bard", "reviving-finale"), [(3, None)]);
     assert_eq!(
-        spell("embodiment-of-order").guide.0,
+        spell("embodiment-of-order").guide.as_ref().unwrap().0,
         "aeon#embodiment-of-law-abjuration"
     );
     assert_eq!(levels("aeon", "embodiment-of-order"), [(6, None)]);
@@ -389,7 +407,7 @@ fn the_hand_fixes_hold() {
     );
     // One spell for the two Heaven's Wing Strike blocks.
     assert_eq!(
-        spell("heavens-wing-strike").guide.0,
+        spell("heavens-wing-strike").guide.as_ref().unwrap().0,
         "wizard-spells#heavens-wing-strike-evocation"
     );
     assert_eq!(levels("bard", "heavens-wing-strike"), [(5, None)]);

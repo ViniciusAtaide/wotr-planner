@@ -87,7 +87,7 @@ impl SearchIndex {
                     .map(|prerequisite| engine.prerequisite_text(prerequisite, None)),
             )
         };
-        let guide = |guide: &GuideRef| Some(guide.url());
+        let guide = |guide: &Option<GuideRef>| guide.as_ref().map(GuideRef::url);
         let summary = |text: &str| (!text.is_empty()).then(|| text.to_owned());
 
         for (classes, category) in [
@@ -352,7 +352,7 @@ impl SearchIndex {
                     // Nothing to meet: an item is worn whatever the character.
                     prerequisite: Some(None),
                     // The generic stat belts and headbands, from the user, have no guide entry.
-                    guide_url: item.guide.as_ref().and_then(guide),
+                    guide_url: guide(&item.guide),
                     matched: None,
                     other_effects: (!item.other_effects.is_empty())
                         .then(|| item.other_effects.clone()),

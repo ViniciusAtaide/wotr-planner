@@ -71,7 +71,10 @@ fn the_instinctual_warriors_monk_powers_are_rage_power_options_for_it_alone() {
     for (key, name, level) in MONK_RAGE_POWERS {
         let option = selection_option(key);
         assert_eq!(option.name, name);
-        assert_eq!(option.guide.0, "barbarian#rage-power-instinctual-warrior");
+        assert_eq!(
+            option.guide.as_ref().unwrap().0,
+            "barbarian#rage-power-instinctual-warrior"
+        );
         assert_eq!(option.repeat, Repeat::Once, "{name}");
         let needs = match level {
             Some(level) => Prerequisite::ClassLevel {

@@ -31,7 +31,8 @@ pub struct Spell {
     /// `None`: Universalist, the guide's school for a spell of no school (Dismiss Spell). Spell Focus and the
     /// wizard's specialist schools have no Universalist, so it isn't a [`SpellSchool`].
     pub school: Option<SpellSchool>,
-    pub guide: GuideRef,
+    #[serde(default)]
+    pub guide: Option<GuideRef>,
     /// What the spell does, in one sentence in our own words.
     #[serde(default)]
     pub summary: String,
@@ -208,7 +209,8 @@ pub struct SpellList {
     #[serde(default, skip_serializing)]
     pub blueprint: Option<BlueprintGuid>,
     pub name: String,
-    pub guide: GuideRef,
+    #[serde(default)]
+    pub guide: Option<GuideRef>,
     /// The class, archetype or path whose list it is: the page it's on.
     pub owner: SpellCaster,
     /// Other classes and archetypes that cast from it, where the guide says so: the sorcerer and the arcanist from

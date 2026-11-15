@@ -58,7 +58,7 @@ fn archetype(key: &str, prerequisite: Prerequisite) -> Archetype {
         blueprint: None,
         name: key.into(),
         summary: String::new(),
-        guide: GuideRef::new(format!("monk#{key}")),
+        guide: Some(GuideRef::new(format!("monk#{key}"))),
         prerequisite: Some(prerequisite),
         skill_points: None,
         class_skills: None,

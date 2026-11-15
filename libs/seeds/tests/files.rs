@@ -1317,3 +1317,19 @@ fn reads_backgrounds_and_defaults_them() {
     assert_eq!(none.note, "");
     assert!(none.class_skills.is_empty() && none.feats.is_empty() && none.feats_for.is_empty());
 }
+
+/// Ticket 239: an entry with no `guide` line loads and checks.
+#[test]
+fn reads_an_entry_without_a_guide_link() {
+    let dir = copy_fixture();
+    let deities = dir.path().join("deities.ron");
+    let text = fs::read_to_string(&deities).unwrap();
+    let without = text.replacen(r#"guide: "character-creation#deities", "#, "", 1);
+    assert_ne!(without, text, "the fixture's first deity had a guide link");
+    fs::write(&deities, without).unwrap();
+
+    let data = seeds::read_game_data_files(dir.path()).unwrap();
+    let guides: Vec<_> = data.deities.iter().map(|d| d.guide.is_some()).collect();
+    assert_eq!(guides.iter().filter(|g| !**g).count(), 1, "{guides:?}");
+    assert_eq!(data.check(), []);
+}

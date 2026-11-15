@@ -74,7 +74,7 @@ pub struct ItemInfo {
     /// One short line each, never none.
     lines: Vec<String>,
     /// The guide's page for it, shown inside the detail.
-    guide: Option<String>,
+    pub(crate) guide: Option<String>,
 }
 
 impl ItemInfo {

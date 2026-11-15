@@ -105,8 +105,8 @@ fn progression() -> Progression {
     }
 }
 
-fn guide(anchor: &str) -> GuideRef {
-    GuideRef::new(anchor)
+fn guide(anchor: &str) -> Option<GuideRef> {
+    Some(GuideRef::new(anchor))
 }
 
 fn skill_row(key: &str, name: &str, ability: Ability) -> Skill {

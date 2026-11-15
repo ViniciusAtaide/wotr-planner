@@ -1141,7 +1141,7 @@ fn an_option_rows_bonus_slot_names_its_list() {
             key: FeatListKey::new("cleric/war-feats"),
             blueprint: None,
             name: "War feats".into(),
-            guide: rules::GuideRef::new("cleric"),
+            guide: Some(rules::GuideRef::new("cleric")),
             ignores_prerequisites: false,
             every_feat: false,
             feats: BTreeSet::from([FeatKey::new("toughness"), FeatKey::new("dodge")]),
@@ -2084,4 +2084,24 @@ fn a_blueprint_is_32_lowercase_hex_digits() {
         .map(|at| (at, DataIssue::MalformedBlueprint));
         assert_eq!(sorted(issues(&data)), sorted(malformed.to_vec()), "{bad:?}");
     }
+}
+
+/// Ticket 239: the guide link is optional, so an entry the guide doesn't list passes the check.
+#[test]
+fn an_entry_without_a_guide_link_passes_the_check() {
+    let mut data = rules::test_world::world();
+    assert_eq!(data.check(), [], "the world checks with its links");
+    for feat in &mut data.feats {
+        feat.guide = None;
+    }
+    for class in &mut data.classes {
+        class.guide = None;
+    }
+    for deity in &mut data.deities {
+        deity.guide = None;
+    }
+    for spell in &mut data.spells {
+        spell.guide = None;
+    }
+    assert_eq!(data.check(), []);
 }
