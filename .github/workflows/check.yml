@@ -1,6 +1,6 @@
-# Runs the per-change check (scripts/check.sh: fmt, clippy on both targets, the workspace tests, the rules wasm build
-# and the data check) on every push to main and every pull request, and by hand. The cargo-leptos builds of
-# `--full` are left to the Pages workflow, which builds the site.
+# Runs the full set of checks (CLAUDE.md "Checks": fmt, css-classes, clippy on both targets, the workspace tests, the
+# rules wasm build and the data check) on every push to main and every pull request, and by hand. The cargo-leptos
+# builds are left to the Pages workflow, which builds the site.
 name: Check
 
 on:
@@ -37,5 +37,17 @@ jobs:
         with:
           shared-key: check
 
-      - name: Check
-        run: scripts/check.sh
+      - name: fmt
+        run: cargo fmt --all --check
+      - name: css-classes
+        run: scripts/css-classes.sh
+      - name: clippy
+        run: cargo clippy -q --workspace --all-targets -- -D warnings
+      - name: clippy, frontend wasm
+        run: cargo clippy -q -p frontend --target wasm32-unknown-unknown -- -D warnings
+      - name: test
+        run: cargo test -q --workspace
+      - name: rules wasm build
+        run: cargo build -q -p rules --target wasm32-unknown-unknown
+      - name: check-data
+        run: cargo run -q -p seeds --bin check-data

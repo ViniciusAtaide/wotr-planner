@@ -48,16 +48,25 @@ A new test is done when its name shows up in `cargo test -p <crate> -- --list`.
 
 ## Checks
 
-Before reporting a change done, run `scripts/check.sh` (`--full`, the cargo-leptos builds, only at the end of a queue of tickets). Its tests include the self-checks' short runs and the gold builds (see "Behaviour checks"). A pre-commit hook in `.githooks/` runs its fmt and clippy steps; enable it in a new clone with `git config core.hooksPath .githooks`.
+A ticket runs only what its diff can break, after its last edit, and fmt (`cargo fmt --all --check`). A pre-commit hook in `.githooks/` runs fmt and clippy on every commit that touches Rust; enable it in a new clone with `git config core.hooksPath .githooks`. Each row adds to the others for a diff that touches several.
 
-- **A change only to `libs/ui/` and `apps/frontend/`:** `scripts/check.sh --ui` is enough: fmt, clippy and the tests of those two crates. It refuses when the branch or the working tree changes any other path (but `.scratch/` and `*.md`).
+| The diff touches | It runs |
+| --- | --- |
+| a crate's code or tests | `cargo test -p <crate>` for each crate touched (`ui`, `frontend`, `server`, `rules`, `seeds`, `corpus`, `mcp`) |
+| `libs/rules/` or `libs/game-data/` | also `cargo test -p seeds`: the real-data tests, the gold builds and the self-checks' short runs live there |
+| `libs/game-data/` | also `cargo run -p seeds --bin check-data` |
+| `libs/rules/` | also `cargo build -p rules --target wasm32-unknown-unknown` |
+| `libs/ui/` or `apps/frontend/` | also `cargo clippy -p frontend --target wasm32-unknown-unknown -- -D warnings` and `scripts/css-classes.sh` |
+| only `*.md`, `.scratch/` or scripts | `bash -n` on a changed script; nothing else |
+
+**Once per queue,** after the last merge, the main session runs `scripts/queue-checks.sh`: fmt, `scripts/css-classes.sh`, clippy on the workspace and on the frontend's wasm target, `cargo test --workspace`, the rules wasm build, `check-data`, the cargo-leptos dev and release builds, and `scripts/build-mcp.sh`. It is one script so a person runs the list by hand in order, with each step's time and a stop at the first failure; CI (`.github/workflows/check.yml`) runs the same steps but the two builds, which the Pages workflow covers. Beside it, the self-checks' long runs (see "Behaviour checks").
 
 ## Behaviour checks
 
 The game is the source of truth for rules (map Notes; ticket 234). A change to `rules` or `libs/game-data/` is checked against the game, never against the engine's earlier output.
 
 - **Each changed fact has a real-data test** in `libs/seeds/tests/game_data/` whose expected value comes from the game, cited beside the assertion by blueprint name and GUID, or by the decompiled code's file and method with the WrathDecompiled commit (see "Game sources").
-- **The engine's self-checks** check it against itself: every picker agrees with the walk (the agreement sweeps, ticket 150), each shortcut agrees with the full answer it stands for, and each option's status agrees with `allows` of its edit. Their short runs are in `scripts/check.sh`. The long ones, over the corpus's ~2,000 Builds (`tools/corpus`), run in release under `--ignored`, once per queue by the main session: `cargo test --release -p corpus -- --ignored` and `cargo test --release -p seeds --test game_data agreement -- --ignored`. A self-check never outranks the game: when one disagrees with it, the engine is fixed.
+- **The engine's self-checks** check it against itself: every picker agrees with the walk (the agreement sweeps, ticket 150), each shortcut agrees with the full answer it stands for, and each option's status agrees with `allows` of its edit. Their short runs are in the `seeds` and `corpus` tests. The long ones, over the corpus's ~2,000 Builds (`tools/corpus`), run in release under `--ignored`, once per queue by the main session: `cargo test --release -p corpus -- --ignored` and `cargo test --release -p seeds --test game_data agreement -- --ignored`. A self-check never outranks the game: when one disagrees with it, the engine is fixed.
 - **The gold builds** (`libs/seeds/tests/game_data/gold.rs`) compare two real player builds with the engine. A known-gap entry is deleted by the ticket that fixes it, never added to get a test to pass. A gold build's gain that the game contradicts goes to the user.
 - **The game check** (ticket 238) runs by hand once it exists.
 
