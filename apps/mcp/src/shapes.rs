@@ -345,7 +345,8 @@ pub struct Named {
 }
 
 /// A feature a Build gains, by key and name, with how many times when that is more than once (the Trickster's third
-/// Mythic rank gives Sneak Attack twice), and its feature rank once it is held more than once.
+/// Mythic rank gives Sneak Attack twice), its feature rank once it is held more than once, and its step where a level
+/// raises it without a grant.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, JsonSchema)]
 pub struct Gained {
     pub key: String,
@@ -358,6 +359,12 @@ pub struct Gained {
     /// Left out for rank 1, when it equals `times`, and on a Mythic rank's line.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rank: Option<u8>,
+    /// Its step at a level's end, set only when the feature was already held before the level and the level it reads
+    /// rose to one of its steps there: a rise without a grant (Infernal Resistance: step 2 at bloodrager 5, step 3 at
+    /// 8). Each grant counts as a step too. A feature granted at the level is gained, with no `step`, whatever steps
+    /// its level has already passed. Left out otherwise.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub step: Option<u8>,
 }
 
 /// A feature or selection option as `describe` lists it: by key and name, with its summary when the data has one.

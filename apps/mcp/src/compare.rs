@@ -492,6 +492,7 @@ mod tests {
             name: "Sneak Attack (Trickster)".to_owned(),
             times,
             rank: None,
+            step: None,
         }
     }
 

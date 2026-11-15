@@ -894,7 +894,8 @@ pub enum CountsToward {
     FeatPrerequisites,
     /// The class's rows that grant this feature are reached at the two classes' levels together (Frost Power:
     /// Winter Witch levels stack with witch levels for access to major and grand hexes). Only while the class is
-    /// held.
+    /// held. A feature with [`FeatureSteps`] rises on the classes its steps name instead: rows it no longer has
+    /// can't be reached early.
     Feature(FeatureKey),
 }
 
@@ -1198,6 +1199,32 @@ pub struct Feature {
     /// feat on the level row instead.
     #[serde(default)]
     pub weapons: BTreeSet<WeaponKey>,
+    /// The levels where the feature's numbers rise after its one grant, read from the game's rank on a level
+    /// (`ContextRankConfig`, a class-level getter, `AddFeatureOnClassLevel`) rather than from rows (ticket 254:
+    /// Infernal Resistance rises at bloodrager 8). A row grants the feature again only where the game does (a feature
+    /// rank). See [`Engine::feature_step`](crate::Engine::feature_step).
+    #[serde(default)]
+    pub steps: Option<FeatureSteps>,
+}
+
+/// Where a feature granted once rises: the levels its step reaches, on the level the game reads. The step follows
+/// that level while the feature is held, whatever rows an archetype or a pick trades away.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct FeatureSteps {
+    pub on: StepLevel,
+    /// The levels of `on` at which it rises, each one step.
+    pub at: BTreeSet<u8>,
+}
+
+/// The level a feature's steps read.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub enum StepLevel {
+    /// These classes' levels added up (`ContextRankConfig.GetBaseValue`'s `ClassLevel` over its classes).
+    Classes(BTreeSet<ClassKey>),
+    /// The character level (a class feature's ability, whose caster level is the character level, or the unit
+    /// property `Level`).
+    CharacterLevel,
 }
 
 /// One option level's row of whatever option a selection holds.

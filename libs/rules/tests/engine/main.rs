@@ -25,6 +25,7 @@ mod extra_picks;
 mod facts;
 mod failures;
 mod feat_lists;
+mod feature_steps;
 mod first_ascension;
 mod gear;
 mod granted_feats;
