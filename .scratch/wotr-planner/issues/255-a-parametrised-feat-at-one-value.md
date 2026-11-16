@@ -1,7 +1,7 @@
 # A parametrised feat at one value, in a feat list or a grant
 
 Type: build (engine and data)
-Status: open
+Status: superseded (user, 2026-11-15, the component vocabulary): its feature is built from generic components the importer (293) writes; any engine part left is in 295–298
 Blocked by: none
 Model: Opus to build: a new shape in the data and its readers.
 Map: [WotR Build Planner](../map.md)

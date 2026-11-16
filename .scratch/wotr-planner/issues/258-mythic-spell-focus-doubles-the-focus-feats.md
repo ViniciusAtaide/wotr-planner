@@ -1,7 +1,7 @@
 # Mythic Spell Focus doubles the school's focus feats
 
 Type: build (engine rule)
-Status: open
+Status: superseded (user, 2026-11-15, the component vocabulary): Mythic Spell Focus is the generic Spell Focus kind and Expanded Arsenal a kind of its own, in 297; 242 found Expanded Arsenal adds once per fact (+8 for two)
 Blocked by: none
 Model: Opus to build: the caster line's DC parts.
 Map: [WotR Build Planner](../map.md)

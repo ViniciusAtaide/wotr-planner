@@ -2,7 +2,7 @@
 
 Type: design, then build
 Status: open
-Blocked by: 244 (it writes the per-blueprint files); the engine-rule tickets 247–254 and 256 (the importer writes data in the shapes they settle)
+Blocked by: 244 (it writes the per-blueprint files); 295–298 (the component vocabulary and the data forms it writes, user 2026-11-15); the engine-rule tickets 247–254 and 256 (the importer writes data in the shapes they settle)
 Model: Opus to build: one bug touches thousands of entries, so it is built and reviewed with care.
 Map: [WotR Build Planner](../map.md)
 

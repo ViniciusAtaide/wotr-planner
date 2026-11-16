@@ -1,7 +1,7 @@
 # The game data laid out by blueprint
 
 Type: design (decided), then build
-Status: built in part (2026-11-15): stages 1, 2 and 4 and stage 3's feature collapses; the rest of stage 3 is open (see "Built in part")
+Status: resolved (2026-11-15): the layout, the flat model, the readers and the feature collapses are built; the rest of its stage 3 (per-selection copies, entries holding several blueprints, the differing selection groups) moved to 298, selections as the game has them, and the domains to 294 (main session, under the user's staged component plan of 2026-11-15)
 Blocked by: 237, [243, the rank and context splits](243-ranked-features-and-filtered-pools.md)
 Model: Opus to build.
 Map: [WotR Build Planner](../map.md)

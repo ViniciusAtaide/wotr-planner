@@ -1,7 +1,7 @@
 # Witch Wandering Hex is a daily-use ability, not a pick
 
 Type: build (engine and data)
-Status: open
+Status: superseded (user, 2026-11-15, the component vocabulary): its feature is built from generic components the importer (293) writes; any engine part left is in 295–298
 Blocked by: none
 Model: Opus to build: a mythic ability's slot goes and its tests are rewritten.
 Map: [WotR Build Planner](../map.md)
