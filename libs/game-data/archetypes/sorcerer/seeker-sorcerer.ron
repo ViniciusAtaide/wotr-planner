@@ -6,7 +6,7 @@
     summary: "Keeps a bloodline's arcana, spells and feats but few of its powers; gains Trickery bonuses and bonus magic feats at 5th, 10th and 15th.",
     guide: "sorcerer#seeker-sorcerer",
     levels: [
-        (level: 1, features: ["sorcerer/seeker-sorcerer/cantrips", "sorcerer/seeker-sorcerer/seekers-trapfinding", "sorcerer/seeker-sorcerer/sorcerer-proficiencies"], feats: ["simple-weapon-proficiency"], feat_slots: [Category(Magic)], selections: ["sorcerer/seeker-sorcerer/bloodline"]),
+        (level: 1, features: ["sorcerer-cantrips", "sorcerer/seeker-sorcerer/seekers-trapfinding", "sorcerer-proficiencies"], feats: ["simple-weapon-proficiency"], feat_slots: [Category(Magic)], selections: ["sorcerer/seeker-sorcerer/bloodline"]),
         (level: 3, features: ["sorcerer/seeker-sorcerer/bloodline-spell-lvl-1"]),
         (level: 5, features: ["sorcerer/seeker-sorcerer/bloodline-spell-lvl-2"], feat_slots: [Category(Magic)]),
         (level: 7, features: ["sorcerer/seeker-sorcerer/bloodline-spell-lvl-3"], feat_slots: [OptionList(selection: "sorcerer/bloodline")]),

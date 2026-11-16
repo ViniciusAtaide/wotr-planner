@@ -7,7 +7,7 @@
     guide: "sorcerer#sylvan-sorcerer",
     class_skills: ["knowledge-arcana", "lore-nature", "persuasion", "use-magic-device"],
     levels: [
-        (level: 1, features: ["sorcerer/sylvan-sorcerer/animal-companion", "sorcerer/sylvan-sorcerer/cantrips", "sorcerer/sylvan-sorcerer/sorcerer-proficiencies"], feats: ["simple-weapon-proficiency"], feat_slots: [Category(Magic)], selections: ["sorcerer/sylvan-sorcerer/bloodline"]),
+        (level: 1, features: ["sorcerer/sylvan-sorcerer/animal-companion", "sorcerer-cantrips", "sorcerer-proficiencies"], feats: ["simple-weapon-proficiency"], feat_slots: [Category(Magic)], selections: ["sorcerer/sylvan-sorcerer/bloodline"]),
         (level: 3, features: ["sorcerer/sylvan-sorcerer/bloodline-spell-entangle"]),
         (level: 5, features: ["sorcerer/sylvan-sorcerer/bloodline-spell-hideous-laughter"]),
         (level: 7, features: ["sorcerer/sylvan-sorcerer/bloodline-spell-deep-slumber"], feat_slots: [OptionList(selection: "sorcerer/bloodline")]),

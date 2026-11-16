@@ -8,11 +8,11 @@
     skill_points: 3,
     class_skills: ["athletics", "mobility", "perception", "persuasion", "trickery"],
     levels: [
-        (level: 1, features: ["rogue/rogue-proficiencies", "rogue/rowdy/vital-force", "rogue/sneak-attack", "rogue/trapfinding"], feats: ["armor-proficiency-light-armor", "martial-weapons-proficiency", "simple-weapon-proficiency", "vital-strike"]),
+        (level: 1, features: ["rogue/rogue-proficiencies", "rogue/rowdy/vital-force", "sneak-attack", "rogue/trapfinding"], feats: ["armor-proficiency-light-armor", "martial-weapons-proficiency", "simple-weapon-proficiency", "vital-strike"]),
         (level: 2, selections: ["rogue/rogue-talents"]),
-        (level: 3, features: ["rogue/danger-sense", "rogue/sneak-attack"]),
+        (level: 3, features: ["rogue/danger-sense", "sneak-attack"]),
         (level: 6, features: ["rogue/danger-sense"], feats: ["improved-vital-strike"], selections: ["rogue/rogue-talents"]),
-        (level: 11, features: ["rogue/sneak-attack"], feats: ["greater-vital-strike"]),
-        (level: 19, features: ["rogue/sneak-attack"]),
+        (level: 11, features: ["sneak-attack"], feats: ["greater-vital-strike"]),
+        (level: 19, features: ["sneak-attack"]),
     ],
 )

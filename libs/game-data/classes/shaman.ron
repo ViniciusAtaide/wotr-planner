@@ -12,7 +12,7 @@ Class(
     will: Good,
     class_skills: ["knowledge-arcana", "knowledge-world", "lore-nature", "lore-religion", "persuasion"],
     levels: [
-        (level: 1, divine_spell_level: 1, features: ["shaman/orisons", "shaman/spirit-animal"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "simple-weapon-proficiency"], selections: ["shaman/spirit"]),
+        (level: 1, divine_spell_level: 1, features: ["shaman-orisons", "shaman/spirit-animal"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "simple-weapon-proficiency"], selections: ["shaman/spirit"]),
         (level: 2, divine_spell_level: 1, selections: ["shaman/hex"]),
         (level: 3, divine_spell_level: 2),
         (level: 4, divine_spell_level: 2, features: ["shaman/wandering-spirit"], selections: ["shaman/hex"]),

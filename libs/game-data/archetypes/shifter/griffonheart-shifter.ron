@@ -7,18 +7,12 @@
     guide: "shifter#griffonheart-shifter",
     levels: [
         (level: 1, features: ["shifter/griffonheart-shifter/griffon-aspect", "shifter/shifter-claws"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"]),
-        (level: 3, features: ["shifter/griffonheart-shifter/shifter-claws-cold-iron-magic-and-silver", "shifter/woodland-grace"]),
         (level: 4, features: ["shifter/griffonheart-shifter/griffon-form"], feat_slots: [CombatFeat]),
         (level: 5, features: ["shifter/griffonheart-shifter/griffon-aspect"]),
-        (level: 7, features: ["shifter/griffonheart-shifter/shifter-claws-1d6"]),
         (level: 9, features: ["shifter/griffonheart-shifter/griffon-form"], feat_slots: [CombatFeat]),
         (level: 10, features: ["shifter/griffonheart-shifter/griffon-aspect"]),
-        (level: 11, features: ["shifter/griffonheart-shifter/shifter-claws-1d8"]),
-        (level: 13, features: ["shifter/griffonheart-shifter/shifter-claws-1d10"]),
         (level: 14, features: ["shifter/griffonheart-shifter/griffon-form"], feat_slots: [CombatFeat]),
         (level: 15, features: ["shifter/griffonheart-shifter/griffon-aspect"]),
-        (level: 17, features: ["shifter/griffonheart-shifter/shifter-claws-1-crit-multiplier"]),
-        (level: 19, features: ["shifter/griffonheart-shifter/shifter-claws-adamantine-and-universal"]),
         (level: 20, features: ["shifter/final-aspect", "shifter/griffonheart-shifter/griffon-aspect"]),
     ],
 )

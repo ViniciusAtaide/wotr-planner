@@ -8,15 +8,9 @@
     prerequisite: Race("half-elf"),
     class_skills: ["athletics", "knowledge-arcana", "knowledge-world", "lore-nature", "lore-religion", "mobility", "perception", "persuasion", "stealth", "trickery", "use-magic-device"],
     levels: [
-        (level: 1, features: ["rogue/master-of-all/bardic-knowledge", "rogue/master-of-all/sneak-attack-master-of-all", "rogue/rogue-proficiencies", "rogue/trapfinding"], feats: ["armor-proficiency-light-armor", "simple-weapon-proficiency", "weapon-finesse"]),
+        (level: 1, features: ["bardic-knowledge", "sneak-attack", "rogue/rogue-proficiencies", "rogue/trapfinding"], feats: ["armor-proficiency-light-armor", "simple-weapon-proficiency", "weapon-finesse"]),
         (level: 3, features: ["rogue/danger-sense"], feat_slots: [OneOf(list: "rogue/master-of-all/skill-focus")], selections: ["rogue/finesse-training"]),
-        (level: 5, features: ["rogue/master-of-all/sneak-attack-master-of-all"]),
-        (level: 7, features: ["rogue/master-of-all/sneak-attack-master-of-all"]),
         (level: 9, features: ["rogue/danger-sense"], feat_slots: [OneOf(list: "rogue/master-of-all/skill-focus")]),
-        (level: 11, features: ["rogue/master-of-all/sneak-attack-master-of-all"], selections: ["rogue/finesse-training"]),
-        (level: 13, features: ["rogue/master-of-all/sneak-attack-master-of-all"]),
         (level: 15, features: ["rogue/danger-sense"], feat_slots: [OneOf(list: "rogue/master-of-all/skill-focus")]),
-        (level: 17, features: ["rogue/master-of-all/sneak-attack-master-of-all"]),
-        (level: 19, features: ["rogue/master-of-all/sneak-attack-master-of-all"], selections: ["rogue/finesse-training"]),
     ],
 )

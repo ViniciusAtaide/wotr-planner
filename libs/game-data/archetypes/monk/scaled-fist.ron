@@ -7,7 +7,7 @@
     guide: "monk#scaled-fist",
     levels: [
         (level: 1, features: ["monk/ac-bonus", "monk/flurry-of-blows", "monk/monk-proficiencies", "monk/stunning-fist", "monk/unarmed-strike"], feats: ["improved-unarmed-strike"], feat_slots: [OneOf(list: "monk/scaled-fist/bonus-feats-1")]),
-        (level: 2, features: ["monk/evasion"], feat_slots: [OneOf(list: "monk/scaled-fist/bonus-feats-1")]),
+        (level: 2, features: ["evasion"], feat_slots: [OneOf(list: "monk/scaled-fist/bonus-feats-1")]),
         (level: 3, features: ["monk/fast-movement", "monk/ki-pool", "monk/ki-power-extra-attack", "monk/ki-strike-magic", "monk/scaled-fist/draconic-heritage", "monk/scaled-fist/draconic-mettle"]),
         (level: 4, features: ["monk/stunning-fist-fatigue"], selections: ["monk/ki-power"]),
         (level: 6, feat_slots: [OneOf(list: "monk/scaled-fist/bonus-feats-6")], selections: ["monk/ki-power"]),

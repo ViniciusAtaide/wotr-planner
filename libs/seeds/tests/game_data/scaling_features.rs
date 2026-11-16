@@ -20,7 +20,7 @@ const COLOURS: [&str; 10] = [
     "black", "blue", "brass", "bronze", "copper", "gold", "green", "red", "silver", "white",
 ];
 
-const STUDIED_TARGET: &str = "slayer/studied-target";
+const STUDIED_TARGET: &str = "studied-target";
 
 /// The levels before and at each of the slayer's steps, and the count a keeping slayer holds at each.
 const STEP_LEVELS: [u8; 9] = [1, 4, 5, 9, 10, 14, 15, 19, 20];
@@ -93,10 +93,7 @@ fn a_human_imitator_never_holds_studied_target() {
     // 09bdd9445ac38044389476689ae8d5a1 at 1, 5, 10, 15 and 20 and SlayerSwiftStudyTargetFeature
     // 40d4f55a5ac0e4f469d67d36c0dfc40b at 7.
     assert_eq!(counts(&build, STUDIED_TARGET, &STEP_LEVELS), [0; 9]);
-    assert_eq!(
-        counts(&build, "slayer/studied-target-swift", &[7, 20]),
-        [0, 0]
-    );
+    assert_eq!(counts(&build, "studied-target-swift", &[7, 20]), [0, 0]);
     // Game: DefensiveStudy ec041312142ba1f48a0044521f68fc0a has PrerequisiteFeature SlayerStudyTargetFeature
     // 09bdd9445ac38044389476689ae8d5a1.
     let defensive_study = DATA
@@ -146,11 +143,7 @@ fn the_other_classes_copies_step_at_the_same_levels() {
             "hunter/tandem-executioner",
             "hunter/tandem-executioner/studied-target",
         ),
-        (
-            "paladin",
-            "paladin/divine-scion",
-            "paladin/divine-scion/studied-target",
-        ),
+        ("paladin", "paladin/divine-scion", "studied-target"),
     ] {
         let build = realigned(
             archetype_build(class_key, archetype, 20),
@@ -2772,8 +2765,8 @@ fn the_rogues_danger_sense_steps_every_three_levels() {
     let (thug, rogue) = (archetype_20("rogue", "rogue/thug"), build("rogue", 20));
     let levels = [6, 9, 12, 15, 18];
     assert_eq!(
-        counts(&thug, "rogue/sneak-attack", &levels),
-        counts(&rogue, "rogue/sneak-attack", &levels)
+        counts(&thug, "sneak-attack", &levels),
+        counts(&rogue, "sneak-attack", &levels)
     );
     assert_eq!(
         levels_with_slot_of(&thug, "rogue/rogue-talents"),
@@ -2812,7 +2805,7 @@ fn the_fighters_bravery_armor_training_and_weapon_training_step() {
     );
     assert_gains(
         "fighter",
-        "fighter/armor-training",
+        "armor-training",
         &|_, build| build,
         &[3, 7, 11, 15],
         &[
@@ -2877,7 +2870,7 @@ fn the_cavaliers_banner_tactician_and_challenge_step() {
     // Disciple of the Pike and the Ghost Rider remove it.
     assert_gains(
         "cavalier",
-        "cavalier/banner",
+        "banner",
         &|_, build| build,
         &[5, 10, 15, 20],
         &[
@@ -2939,7 +2932,7 @@ fn the_standard_bearer_holds_the_cavaliers_own_banner_from_1() {
     // 2d957edad0adb3d49991cfcd3ac4cbf8 at 5 and adds it at 1; CavalierBannerBuff 4d3b79e464282af4897c1d860bf9e9b3's
     // damage dice are 1 + level / 5 and its bonus level / 5 (equivalent model: the planner counts the rises as grants).
     let bearer = archetype_20("cavalier", "cavalier/standard-bearer");
-    assert_eq!(gains(&bearer, "cavalier/banner"), [1, 5, 10, 15, 20]);
+    assert_eq!(gains(&bearer, "banner"), [1, 5, 10, 15, 20]);
 }
 
 /// Ticket 188: the paladin's Smite Evil (the guide: one a day, another at 4 and every three levels after, 7 at 19)
@@ -2955,7 +2948,7 @@ fn the_paladins_smite_evil_steps_every_three_levels_after_4() {
     // f91ea9596e6f42f8a23803c1b3e976b4 remove them all.
     assert_gains(
         "paladin",
-        "paladin/smite-evil",
+        "smite-evil",
         &|_, build| build,
         &[1, 4, 7, 10, 13, 16, 19],
         &[
@@ -2989,7 +2982,7 @@ fn the_hospitaler_holds_the_paladins_own_smite_evil_at_1_7_13_and_19() {
     // fd325cbba872e5f40b618970678db002's SmiteEvilFeature 3a6db57fce75b0244a6a5819528ddf26 at 1 and its uses at 7, 13
     // and 19.
     let hospitaler = archetype_20("paladin", "paladin/hospitaler");
-    assert_eq!(gains(&hospitaler, "paladin/smite-evil"), [1, 7, 13, 19]);
+    assert_eq!(gains(&hospitaler, "smite-evil"), [1, 7, 13, 19]);
 }
 
 /// Ticket 188: the druid's Wild Shape (Wolf) (the guide: once a day, one more use every two levels above 4th, 8 at
@@ -3011,7 +3004,7 @@ fn the_druids_wild_shape_wolf_steps_every_two_levels() {
     ];
     assert_gains(
         "druid",
-        "druid/wild-shape-wolf",
+        "wild-shape-wolf",
         &|_, build| build,
         &[4, 6, 8, 10, 12, 14, 16, 18],
         &DATA
@@ -3056,7 +3049,7 @@ fn the_five_druid_archetypes_with_wild_shape_hold_the_classs_own_wolf() {
         ("druid/primal-druid", &[4, 6, 8, 10, 12, 14, 16, 18][..]),
     ] {
         assert_eq!(
-            gains(&archetype_20("druid", archetype), "druid/wild-shape-wolf"),
+            gains(&archetype_20("druid", archetype), "wild-shape-wolf"),
             levels,
             "{archetype}"
         );

@@ -6,7 +6,7 @@
     summary: "Lord of Nothing DLC: draws on terrain with Geomancy and favored terrains at 7th, 13th and 19th, but no bloodline spells or feats.",
     guide: "sorcerer#geomancer",
     levels: [
-        (level: 1, features: ["sorcerer/geomancer/cantrips", "sorcerer/geomancer/sorcerer-proficiencies"], feats: ["simple-weapon-proficiency"], feat_slots: [Category(Magic)], selections: ["sorcerer/bloodline", "sorcerer/geomancer/geomancy"]),
+        (level: 1, features: ["sorcerer-cantrips", "sorcerer-proficiencies"], feats: ["simple-weapon-proficiency"], feat_slots: [Category(Magic)], selections: ["sorcerer/bloodline", "sorcerer/geomancer/geomancy"]),
         (level: 7, features: ["sorcerer/geomancer/favored-terrain"]),
         (level: 13, features: ["sorcerer/geomancer/favored-terrain"]),
         (level: 19, features: ["sorcerer/geomancer/favored-terrain"]),

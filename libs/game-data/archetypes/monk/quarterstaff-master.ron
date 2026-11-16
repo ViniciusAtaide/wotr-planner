@@ -12,7 +12,7 @@
         (level: 5, features: ["monk/purity-of-body", "monk/quarterstaff-master/style-strike-trip"]),
         (level: 7),
         (level: 8, selections: ["monk/ki-power"]),
-        (level: 9, features: ["monk/improved-evasion", "monk/quarterstaff-master/style-strike-sunder"]),
+        (level: 9, features: ["improved-evasion", "monk/quarterstaff-master/style-strike-sunder"]),
         (level: 10, feat_slots: [OneOf(list: "monk/bonus-feats-10")], selections: ["monk/ki-power"]),
         (level: 12, features: ["monk/quarterstaff-master/quarterstaff-damage"], selections: ["monk/ki-power"]),
         (level: 13, features: ["monk/quarterstaff-master/style-strike-disarm"]),

@@ -8,7 +8,7 @@
     casting_ability: Wisdom,
     class_skills: ["knowledge-arcana", "lore-religion", "persuasion", "use-magic-device"],
     levels: [
-        (level: 1, features: ["sorcerer/empyreal-sorcerer/cantrips", "sorcerer/empyreal-sorcerer/empyreal-arcana", "sorcerer/empyreal-sorcerer/heavenly-fire", "sorcerer/empyreal-sorcerer/sorcerer-proficiencies"], feats: ["simple-weapon-proficiency"], feat_slots: [Category(Magic)], selections: ["sorcerer/empyreal-sorcerer/bloodline"]),
+        (level: 1, features: ["sorcerer/empyreal-sorcerer/cantrips", "sorcerer/empyreal-sorcerer/empyreal-arcana", "heavenly-fire", "sorcerer-proficiencies"], feats: ["simple-weapon-proficiency"], feat_slots: [Category(Magic)], selections: ["sorcerer/empyreal-sorcerer/bloodline"]),
         (level: 3, features: ["sorcerer/empyreal-sorcerer/bloodline-spell-bless"]),
         (level: 5, features: ["sorcerer/empyreal-sorcerer/bloodline-spell-resist-energy"]),
         (level: 7, features: ["sorcerer/empyreal-sorcerer/bloodline-spell-protection-from-energy"], feat_slots: [OptionList(selection: "sorcerer/bloodline")]),

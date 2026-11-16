@@ -5,9 +5,9 @@
     summary: "Staggered in the first round of combat but gain Uncanny Dodge; +4 initiative at 5th, Improved Uncanny Dodge at 10th, +4 first-round AC and saves at 15th.",
     guide: "oracle#powerless-prophecy",
     levels: [
-        (level: 1, features: ["oracle/oracles-curse/powerless-prophecy/level-1", "oracle/oracles-curse/powerless-prophecy/uncanny-dodge"]),
+        (level: 1, features: ["oracle/oracles-curse/powerless-prophecy/level-1", "uncanny-dodge"]),
         (level: 5, features: ["oracle/oracles-curse/powerless-prophecy/level-5"]),
-        (level: 10, features: ["oracle/oracles-curse/powerless-prophecy/improved-uncanny-dodge"]),
+        (level: 10, features: ["improved-uncanny-dodge"]),
         (level: 15, features: ["oracle/oracles-curse/powerless-prophecy/level-15"]),
     ],
 )

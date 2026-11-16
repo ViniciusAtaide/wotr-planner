@@ -7,9 +7,9 @@
     guide: "ranger#flamewarden",
     levels: [
         (level: 4, features: ["ranger/flamewarden/spellcasting", "ranger/flamewarden/touch-of-flame"]),
-        (level: 9, features: ["ranger/evasion", "ranger/flamewarden/stoking-the-embers"]),
+        (level: 9, features: ["evasion", "ranger/flamewarden/stoking-the-embers"]),
         (level: 12, features: ["ranger/flamewarden/burning-renewal", "ranger/flamewarden/touch-of-flame"]),
-        (level: 16, features: ["ranger/flamewarden/phoenix-blast", "ranger/improved-evasion"]),
+        (level: 16, features: ["ranger/flamewarden/phoenix-blast", "improved-evasion"]),
         (level: 20, features: ["ranger/favored-enemy", "ranger/flamewarden/phoenix-rising"]),
     ],
 )

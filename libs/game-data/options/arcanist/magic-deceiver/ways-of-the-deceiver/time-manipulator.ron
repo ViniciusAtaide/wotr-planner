@@ -6,7 +6,7 @@
     guide: "arcanist#time-manipulator",
     levels: [
         (level: 1, features: ["arcanist/magic-deceiver/ways-of-the-deceiver/time-manipulator/advance-time"]),
-        (level: 2, features: ["arcanist/magic-deceiver/ways-of-the-deceiver/time-manipulator/trick-magic"]),
+        (level: 2, features: ["trick-magic"]),
         (level: 4, features: ["arcanist/magic-deceiver/ways-of-the-deceiver/time-manipulator/chronomancy"]),
         (level: 12, features: ["arcanist/magic-deceiver/ways-of-the-deceiver/time-manipulator/split-second"]),
         (level: 20, features: ["arcanist/magic-deceiver/ways-of-the-deceiver/time-manipulator/split-timeline"]),

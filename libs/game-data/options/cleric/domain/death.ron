@@ -6,6 +6,6 @@
     guide: "character-creation#death-domain",
     levels: [
         (level: 1, features: ["cleric/domain/death/bleeding-touch"]),
-        (level: 8, features: ["cleric/domain/death/deaths-embrace"]),
+        (level: 8, features: ["deaths-embrace"]),
     ],
 )

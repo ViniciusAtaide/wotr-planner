@@ -7,7 +7,7 @@
     guide: "sorcerer#nine-tailed-heir",
     prerequisite: Race("kitsune"),
     levels: [
-        (level: 1, features: ["sorcerer/nine-tailed-heir/cantrips", "sorcerer/nine-tailed-heir/sorcerer-proficiencies"], feats: ["simple-weapon-proficiency"], feat_slots: [Category(Magic)], selections: ["sorcerer/bloodline"]),
+        (level: 1, features: ["sorcerer-cantrips", "sorcerer-proficiencies"], feats: ["simple-weapon-proficiency"], feat_slots: [Category(Magic)], selections: ["sorcerer/bloodline"]),
         (level: 3, features: ["sorcerer/nine-tailed-heir/magical-tail"]),
         (level: 5, features: ["sorcerer/nine-tailed-heir/magical-tail"]),
         (level: 7, features: ["sorcerer/nine-tailed-heir/magical-tail"], feat_slots: [OptionList(selection: "sorcerer/bloodline")]),

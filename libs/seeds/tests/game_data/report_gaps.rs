@@ -155,7 +155,7 @@ fn an_eldritch_scoundrel_holds_the_rogues_own_sneak_attack_at_1_3_7_11_15_and_19
             sheet
                 .at(level)
                 .unwrap()
-                .feature_count(&FeatureKey::new("rogue/sneak-attack"))
+                .feature_count(&FeatureKey::new("sneak-attack"))
         })
         .collect();
     assert_eq!(

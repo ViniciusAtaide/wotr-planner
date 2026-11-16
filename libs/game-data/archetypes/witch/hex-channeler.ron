@@ -6,7 +6,6 @@
     summary: "Witch who channels positive or negative energy and can grow it instead of taking hexes.",
     guide: "witch#hex-channeler",
     levels: [
-        (level: 1, features: ["witch/familiar", "witch/hex-channeler/cantrips"], feats: ["simple-weapon-proficiency"], selections: ["witch/hex", "witch/patron"]),
         (level: 2, features: ["witch/hex-channeler/channel-energy"]),
     ],
 )

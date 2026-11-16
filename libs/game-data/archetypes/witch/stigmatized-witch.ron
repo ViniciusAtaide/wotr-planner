@@ -9,6 +9,6 @@
     skill_points: 3,
     spontaneous: Some(true),
     levels: [
-        (level: 1, features: ["witch/familiar", "witch/stigmatized-witch/cantrips"], feats: ["simple-weapon-proficiency"], selections: ["witch/hex", "witch/stigmatized-witch/curse"]),
+        (level: 1, features: ["witch/familiar", "witch-cantrips"], feats: ["simple-weapon-proficiency"], selections: ["witch/hex", "witch/stigmatized-witch/curse"]),
     ],
 )

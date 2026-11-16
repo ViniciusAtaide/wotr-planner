@@ -6,7 +6,7 @@
     summary: "Arcanist with more spell slots but fewer prepared spells, able to surge spells, with fewer exploits.",
     guide: "arcanist#eldritch-font",
     levels: [
-        (level: 1, features: ["arcanist/arcane-reservoir", "arcanist/consume-spells", "arcanist/eldritch-font/cantrips", "arcanist/eldritch-font/font-of-power"], feats: ["simple-weapon-proficiency"], selections: ["arcanist/arcanist-exploits"]),
+        (level: 1, features: ["arcane-reservoir", "arcanist/consume-spells", "arcanist-cantrips", "arcanist/eldritch-font/font-of-power"], feats: ["simple-weapon-proficiency"], selections: ["arcanist/arcanist-exploits"]),
         (level: 3, features: ["arcanist/eldritch-font/eldritch-surge"]),
         (level: 7, features: ["arcanist/eldritch-font/improved-surge"]),
         (level: 13, features: ["arcanist/eldritch-font/greater-surge"]),

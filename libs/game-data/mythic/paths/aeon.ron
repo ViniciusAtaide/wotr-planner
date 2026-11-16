@@ -4,8 +4,8 @@ MythicPath(
     name: "Aeon",
     guide: "aeon",
     ranks: [
-        (rank: 1, features: ["aeon/bypass-epic-damage-reduction", "aeon/force-reality"]),
-        (rank: 2, features: ["aeon/force-reality", "aeon/summon-wood-golem", "aeon/hard-to-kill"]),
+        (rank: 1, features: ["bypass-epic-damage-reduction", "aeon/force-reality"]),
+        (rank: 2, features: ["aeon/force-reality", "aeon/summon-wood-golem", "hard-to-kill"]),
         (rank: 3, features: ["aeon/aeon-immunities", "aeon/summon-axiomite"], selections: ["aeon/enforcing-gaze"]),
         (rank: 4, features: ["aeon/aeon-bane", "aeon/summon-stone-golem"], selections: ["aeon/enforcing-gaze"]),
         (rank: 5, features: ["aeon/aeon-immunities", "aeon/mythic-suppression", "aeon/summon-iron-golem"], selections: ["aeon/enforcing-gaze"]),

@@ -45,8 +45,8 @@ async fn real_data_the_sheet_says_a_feature_gained_twice_at_a_level_twice() {
     // gained, so the line leaves it out.
     let level = &sheet["levels"][8]["features"];
     assert_eq!(
-        feature(level, "trickster/sneak-attack"),
-        &json!({ "key": "trickster/sneak-attack", "name": "Sneak Attack (Trickster)", "times": 2 })
+        feature(level, "sneak-attack"),
+        &json!({ "key": "sneak-attack", "name": "Sneak Attack", "times": 2 })
     );
     assert_eq!(
         feature(level, "trickster/sneaky-quack"),
@@ -55,7 +55,7 @@ async fn real_data_the_sheet_says_a_feature_gained_twice_at_a_level_twice() {
     // So does MR 3's own row: one entry, not the same entry twice.
     let rank = &sheet["ranks"][2]["features"];
     assert_eq!(rank.as_array().unwrap().len(), 3, "{rank}");
-    assert_eq!(feature(rank, "trickster/sneak-attack")["times"], 2);
+    assert_eq!(feature(rank, "sneak-attack")["times"], 2);
 }
 
 #[tokio::test]
@@ -73,10 +73,7 @@ async fn real_data_compare_sees_a_feature_gained_twice_against_none() {
         .find(|diff| diff["rank"] == 3)
         .unwrap_or_else(|| panic!("no rank 3 in {compared}"));
     // The Trickster's list carries the count; the other Build has none of them.
-    assert_eq!(
-        feature(&rank["only"][0], "trickster/sneak-attack")["times"],
-        2
-    );
+    assert_eq!(feature(&rank["only"][0], "sneak-attack")["times"], 2);
     assert_eq!(rank["only"][1], json!([]));
 }
 

@@ -7,7 +7,7 @@
     guide: "barbarian#instinctual-warrior",
     levels: [
         (level: 1, features: ["barbarian/fast-movement", "barbarian/instinctual-warrior/fervent-reflexes", "barbarian/instinctual-warrior/focused-rage"], feats: ["martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
-        (level: 2, features: ["barbarian/instinctual-warrior/cunning-elusion", "barbarian/uncanny-dodge"]),
+        (level: 2, features: ["barbarian/instinctual-warrior/cunning-elusion", "uncanny-dodge"]),
         (level: 4, features: ["barbarian/instinctual-warrior/cunning-elusion"], selections: ["barbarian/rage-power"]),
         (level: 6, features: ["barbarian/danger-sense"], feats: ["blind-fight"]),
         (level: 7),

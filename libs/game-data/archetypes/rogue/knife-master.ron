@@ -6,12 +6,12 @@
     summary: "Rogue specialised in light blades, with bigger sneak attack dice.",
     guide: "rogue#knife-master",
     levels: [
-        (level: 1, features: ["rogue/knife-master/sneak-stab", "rogue/rogue-proficiencies", "rogue/sneak-attack"], feats: ["armor-proficiency-light-armor", "simple-weapon-proficiency", "weapon-finesse"]),
-        (level: 3, features: ["rogue/knife-master/blade-sense", "rogue/sneak-attack"], selections: ["rogue/finesse-training"]),
+        (level: 1, features: ["rogue/knife-master/sneak-stab", "rogue/rogue-proficiencies", "sneak-attack"], feats: ["armor-proficiency-light-armor", "simple-weapon-proficiency", "weapon-finesse"]),
+        (level: 3, features: ["rogue/knife-master/blade-sense", "sneak-attack"], selections: ["rogue/finesse-training"]),
         (level: 6, features: ["rogue/knife-master/blade-sense"], selections: ["rogue/rogue-talents"]),
-        (level: 9, features: ["rogue/knife-master/blade-sense", "rogue/sneak-attack"]),
+        (level: 9, features: ["rogue/knife-master/blade-sense", "sneak-attack"]),
         (level: 12, features: ["rogue/knife-master/blade-sense"], selections: ["rogue/rogue-talents"]),
-        (level: 15, features: ["rogue/knife-master/blade-sense", "rogue/sneak-attack"]),
+        (level: 15, features: ["rogue/knife-master/blade-sense", "sneak-attack"]),
         (level: 18, features: ["rogue/knife-master/blade-sense"], selections: ["rogue/rogue-talents"]),
     ],
 )

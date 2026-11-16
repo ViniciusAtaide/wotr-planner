@@ -13,7 +13,6 @@
         (level: 9, features: ["bloodrager/hag-riven/claws-of-the-hag-rend"], feat_slots: [OptionList(selection: "bloodrager/bloodline")]),
         (level: 10, features: ["bloodrager/hag-riven/hexing-claws", "bloodrager/hag-riven/scarred-hide"]),
         (level: 13, features: ["bloodrager/hag-riven/claws-of-the-hag-critical", "bloodrager/hag-riven/scarred-hide"]),
-        (level: 14, features: ["bloodrager/hag-riven/indomitable-will"]),
         (level: 16, features: ["bloodrager/hag-riven/scarred-hide"]),
         (level: 17, features: ["bloodrager/hag-riven/claws-of-the-hag-weakness", "bloodrager/tireless-bloodrage"]),
         (level: 19, features: ["bloodrager/hag-riven/scarred-hide"]),

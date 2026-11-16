@@ -11,7 +11,7 @@ Class(
     will: Poor,
     class_skills: ["knowledge-arcana", "knowledge-world", "lore-nature", "perception", "trickery", "use-magic-device"],
     levels: [
-        (level: 1, features: ["alchemist/alchemist-proficiencies", "alchemist/bomb", "alchemist/mutagen"], feats: ["armor-proficiency-light-armor", "brew-potions", "simple-weapon-proficiency", "throw-anything"]),
+        (level: 1, features: ["alchemist/alchemist-proficiencies", "bomb", "alchemist/mutagen"], feats: ["armor-proficiency-light-armor", "brew-potions", "simple-weapon-proficiency", "throw-anything"]),
         (level: 2, features: ["alchemist/poison-resistance"], selections: ["alchemist/discovery"]),
         (level: 3),
         (level: 4, selections: ["alchemist/discovery"]),

@@ -128,10 +128,11 @@ fn counts() -> BTreeMap<&'static str, (usize, usize)> {
 
 /// Each kind's count of items without a summary, as of ticket 112. Filling one in lowers its count here; a data
 /// change that adds an item without a summary raises it, and must write one or say here why the guide has none.
+/// Ticket 244 lowered the class features' 104 to 28: copies without a summary became one entry with one.
 const EMPTY: [(&str, usize); 14] = [
     ("archetype", 0),
     ("class", 0),
-    ("class feature", 104),
+    ("class feature", 28),
     ("class selection", 0),
     ("class selection option", 6),
     ("feat", 0),

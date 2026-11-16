@@ -6,10 +6,10 @@
     guide: "sorcerer#celestial",
     arcana: "sorcerer/bloodline/celestial/angelic-arcana",
     levels: [
-        (level: 1, features: ["sorcerer/bloodline/celestial/angelic-arcana", "sorcerer/bloodline/celestial/heavenly-fire"], feat_list: "sorcerer/bloodline/celestial/feats", class_skills: ["lore-religion"]),
+        (level: 1, features: ["sorcerer/bloodline/celestial/angelic-arcana", "heavenly-fire"], feat_list: "sorcerer/bloodline/celestial/feats", class_skills: ["lore-religion"]),
         (level: 3, features: ["sorcerer/bloodline/celestial/celestial-resistances"]),
         (level: 9, features: ["sorcerer/bloodline/celestial/aura-of-heaven", "sorcerer/bloodline/celestial/celestial-resistances"]),
         (level: 15, features: ["sorcerer/bloodline/celestial/conviction"], feats: ["wings"]),
-        (level: 20, features: ["sorcerer/bloodline/celestial/ascension"]),
+        (level: 20, features: ["celestial-ascension"]),
     ],
 )

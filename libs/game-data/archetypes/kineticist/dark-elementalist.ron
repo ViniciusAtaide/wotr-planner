@@ -8,8 +8,5 @@
     class_skills: ["knowledge-arcana", "knowledge-world", "lore-nature", "lore-religion", "mobility", "perception", "persuasion", "stealth", "use-magic-device"],
     levels: [
         (level: 1, features: ["kineticist/dark-elementalist/dark-studies", "kineticist/dark-elementalist/soul-power", "kineticist/gather-power", "kineticist/infusion", "kineticist/kinetic-blast"], feats: ["armor-proficiency-light-armor", "simple-weapon-proficiency"], selections: ["kineticist/element"]),
-        (level: 5, features: ["kineticist/dark-elementalist/metakinesis-empowered", "kineticist/infusion-specialization"], selections: ["kineticist/infusions"]),
-        (level: 9, features: ["kineticist/dark-elementalist/metakinesis-maximized"], selections: ["kineticist/infusions"]),
-        (level: 13, features: ["kineticist/dark-elementalist/metakinesis-quicken"], selections: ["kineticist/infusions"]),
     ],
 )

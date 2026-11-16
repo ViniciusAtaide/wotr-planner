@@ -7,8 +7,8 @@
     summary: "You serve a deity and are strongest against foes two alignment steps from your own.",
     guide: "slayer#deliverer",
     levels: [
-        (level: 1, features: ["slayer/deliverer/deity", "slayer/slayer-proficiencies", "slayer/studied-target"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
+        (level: 1, features: ["slayer/deliverer/deity", "slayer/slayer-proficiencies", "studied-target"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
         (level: 2, features: ["slayer/deliverer/determined-zeal"]),
-        (level: 10, features: ["slayer/studied-target", "slayer/advanced-talents", "slayer/deliverer/divine-anathema"]),
+        (level: 10, features: ["studied-target", "advanced-talents", "slayer/deliverer/divine-anathema"]),
     ],
 )

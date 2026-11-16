@@ -4,8 +4,8 @@ MythicPath(
     name: "Lich",
     guide: "lich",
     ranks: [
-        (rank: 1, features: ["lich/bypass-epic-damage-reduction", "lich/danse-macabre"]),
-        (rank: 2, features: ["lich/negative-energy-insight", "lich/summon-spectre", "lich/hard-to-kill"]),
+        (rank: 1, features: ["bypass-epic-damage-reduction", "lich/danse-macabre"]),
+        (rank: 2, features: ["lich/negative-energy-insight", "lich/summon-spectre", "hard-to-kill"]),
         (rank: 3, features: ["lich/summon-fallen"], selections: ["lich/lich-powers", "lich/skeletal-champion"]),
         (rank: 4, features: ["lich/lord-beyond-the-grave", "lich/summon-plague-beast-mastodon"], selections: ["lich/skeleton-upgrade"]),
         (rank: 5, features: ["lich/dark-rites", "lich/summon-plague-beast-mastodons"]),

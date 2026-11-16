@@ -6,7 +6,7 @@
     summary: "Inquisitor who shares teamwork feats and judgment bonuses with allies, with fewer teamwork feats.",
     guide: "inquisitor#tactical-leader",
     levels: [
-        (level: 1, features: ["inquisitor/inquisitor-proficiencies", "inquisitor/tactical-leader/leaders-words", "inquisitor/tactical-leader/orisons"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"], selections: ["inquisitor/domain", "inquisitor/judgment"]),
+        (level: 1, features: ["inquisitor/inquisitor-proficiencies", "inquisitor/tactical-leader/leaders-words", "inquisitor-orisons"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"], selections: ["inquisitor/domain", "inquisitor/judgment"]),
         (level: 3, features: ["inquisitor/tactical-leader/swift-tactician"], feat_slots: [Category(Teamwork)]),
         (level: 6, features: ["inquisitor/tactical-leader/swift-tactician"]),
         (level: 9, features: ["inquisitor/tactical-leader/swift-tactician"], feat_slots: [Category(Teamwork)]),

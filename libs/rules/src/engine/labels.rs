@@ -9,6 +9,7 @@
 
 use std::collections::BTreeSet;
 
+use super::catalog::GrantedBy;
 use super::{Engine, SlotKind};
 use crate::build::{Faith, FeatSource, Pick, SlotId};
 use crate::choice::{Issue, LaterPick, Unmet};
@@ -32,6 +33,16 @@ enum Holder<'a> {
     Archetype(&'a Archetype),
     Class(&'a Class),
     Path(&'a MythicPath),
+}
+
+/// A holder's name.
+fn holder_name(holder: Holder<'_>) -> Option<&str> {
+    Some(match holder {
+        Holder::Option(option) => &option.name,
+        Holder::Archetype(archetype) => &archetype.name,
+        Holder::Class(class) => &class.name,
+        Holder::Path(path) => &path.name,
+    })
 }
 
 /// How a negated condition's held side reads: "for the X archetype", "with Power Attack", "as Domain (Separatist)",
@@ -197,45 +208,35 @@ impl Engine {
         }
     }
 
-    /// The name of what a feature belongs to (`cleric/domain/animal/animal-companion` is the Animal Domain's).
+    /// The name of what grants a feature by its rows, the first of its holders (`cleric/domain/animal/animal-companion`
+    /// is the Animal Domain's): a class before an archetype, a path and an option (ticket 244: the holder comes from
+    /// the granting row, not the key).
     fn feature_owner(&self, key: &FeatureKey) -> Option<&str> {
-        self.owner(key.as_str())
+        holder_name(self.holders(self.catalog.feature_holders(key)).next()?)
     }
 
-    /// The name of the nearest option, archetype, class or path a key sits under.
-    fn owner(&self, key: &str) -> Option<&str> {
-        Some(match self.holder(key)? {
-            Holder::Option(option) => &option.name,
-            Holder::Archetype(archetype) => &archetype.name,
-            Holder::Class(class) => &class.name,
-            Holder::Path(path) => &path.name,
+    /// The name of what names a Feature selection in its rows, as [`feature_owner`](Self::feature_owner).
+    fn selection_owner(&self, key: &FeatureSelectionKey) -> Option<&str> {
+        holder_name(self.holders(self.catalog.selection_holders(key)).next()?)
+    }
+
+    /// The classes, archetypes, paths and options whose rows grant a feature, in that order.
+    fn feature_holders(&self, key: &FeatureKey) -> impl Iterator<Item = Holder<'_>> {
+        self.holders(self.catalog.feature_holders(key))
+    }
+
+    fn holders<'a>(&'a self, by: &'a [GrantedBy]) -> impl Iterator<Item = Holder<'a>> {
+        by.iter().filter_map(|by| match by {
+            GrantedBy::Class(class) => self
+                .catalog
+                .class(class)
+                .map(|(class, _)| Holder::Class(class)),
+            GrantedBy::Archetype(archetype) => {
+                self.catalog.archetype(archetype).map(Holder::Archetype)
+            }
+            GrantedBy::Path(path) => self.catalog.path(path).map(Holder::Path),
+            GrantedBy::Option(option) => self.catalog.option(option).map(Holder::Option),
         })
-    }
-
-    /// The nearest option, archetype, class or path a feature's key sits under.
-    fn feature_holder(&self, key: &FeatureKey) -> Option<Holder<'_>> {
-        self.holder(key.as_str())
-    }
-
-    /// The nearest option, archetype, class or path a key sits under.
-    fn holder(&self, key: &str) -> Option<Holder<'_>> {
-        let mut prefix = key;
-        while let Some((owner, _)) = prefix.rsplit_once('/') {
-            prefix = owner;
-            if let Some(option) = self.catalog.option(&SelectionOptionKey::new(prefix)) {
-                return Some(Holder::Option(option));
-            }
-            if let Some(archetype) = self.catalog.archetype(&ArchetypeKey::new(prefix)) {
-                return Some(Holder::Archetype(archetype));
-            }
-            if let Some((class, _)) = self.catalog.class(&ClassKey::new(prefix)) {
-                return Some(Holder::Class(class));
-            }
-            if let Some(path) = self.catalog.path(&MythicPathKey::new(prefix)) {
-                return Some(Holder::Path(path));
-            }
-        }
-        None
     }
 
     /// A picker's reason for this character: of each "or", only the alternatives the character's classes give
@@ -304,12 +305,18 @@ impl Engine {
             Unmet::Condition { needs, .. } => match needs {
                 Prerequisite::ClassLevel { class, .. } => has(class),
                 Prerequisite::Archetype(archetype) => has_archetype(archetype),
-                Prerequisite::Feature { feature, .. } => match self.feature_holder(feature) {
-                    Some(Holder::Class(class)) => has(&class.key),
-                    Some(Holder::Archetype(archetype)) => has_archetype(&archetype.key),
-                    // An option's features (a domain's) come with options several classes share.
-                    _ => true,
-                },
+                // A class's or an archetype's feature is within reach for a character with one of the classes or
+                // archetypes whose rows grant it; a path's or an option's (a domain's, which options several classes
+                // share), or one no row grants, always is.
+                Prerequisite::Feature { feature, .. } => {
+                    let mut holders = self.feature_holders(feature).peekable();
+                    holders.peek().is_none()
+                        || holders.any(|holder| match holder {
+                            Holder::Class(class) => has(&class.key),
+                            Holder::Archetype(archetype) => has_archetype(&archetype.key),
+                            Holder::Path(_) | Holder::Option(_) => true,
+                        })
+                }
                 _ => true,
             },
             Unmet::All(children) => children.iter().all(|child| self.within_reach(child, state)),
@@ -1043,7 +1050,7 @@ impl Engine {
             let selection = self.catalog.selection_of(option)?;
             let owner = match with_owner {
                 true => self
-                    .owner(selection.key.as_str())
+                    .selection_owner(&selection.key)
                     .map(|owner| format!("{owner} ")),
                 false => None,
             };

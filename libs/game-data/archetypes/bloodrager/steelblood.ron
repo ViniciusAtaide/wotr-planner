@@ -13,7 +13,6 @@
         (level: 9, features: ["bloodrager/steelblood/armor-training"], feat_slots: [OptionList(selection: "bloodrager/bloodline")]),
         (level: 10, features: ["bloodrager/steelblood/bloodline-spell-2nd"]),
         (level: 13, features: ["bloodrager/steelblood/armor-training", "bloodrager/steelblood/bloodline-spell-3rd"]),
-        (level: 14, features: ["bloodrager/steelblood/indomitable-will"]),
         (level: 16, features: ["bloodrager/steelblood/bloodline-spell-4th"]),
         (level: 17, features: ["bloodrager/steelblood/armor-training", "bloodrager/tireless-bloodrage"]),
         (level: 19),

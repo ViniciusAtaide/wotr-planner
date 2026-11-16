@@ -6,7 +6,7 @@
     summary: "Arcanist who can cast healing spells spontaneously.",
     guide: "arcanist#white-mage",
     levels: [
-        (level: 1, features: ["arcanist/arcane-reservoir", "arcanist/consume-spells", "arcanist/white-mage/cantrips", "arcanist/white-mage/spontaneous-healing"], feats: ["simple-weapon-proficiency"], selections: ["arcanist/arcanist-exploits"]),
+        (level: 1, features: ["arcane-reservoir", "arcanist/consume-spells", "arcanist-cantrips", "arcanist/white-mage/spontaneous-healing"], feats: ["simple-weapon-proficiency"], selections: ["arcanist/arcanist-exploits"]),
         (level: 9),
         (level: 10, features: ["arcanist/white-mage/spontaneous-healing-ii"]),
     ],

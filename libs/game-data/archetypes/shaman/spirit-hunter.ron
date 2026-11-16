@@ -6,7 +6,7 @@
     summary: "Enchants its weapon and has an object bond instead of a familiar, losing the wandering spirit.",
     guide: "shaman#spirit-hunter",
     levels: [
-        (level: 1, features: ["shaman/spirit-hunter/object-bond", "shaman/spirit-hunter/orisons", "shaman/spirit-hunter/spirit-weapon-enchantment"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "simple-weapon-proficiency"], selections: ["shaman/spirit"]),
+        (level: 1, features: ["shaman/spirit-hunter/object-bond", "shaman-orisons", "shaman/spirit-hunter/spirit-weapon-enchantment"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "simple-weapon-proficiency"], selections: ["shaman/spirit"]),
         (level: 4, selections: ["shaman/hex"]),
         (level: 5, features: ["shaman/spirit-hunter/spirit-weapon-enchantment"]),
         (level: 6),

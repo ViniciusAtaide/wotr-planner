@@ -1,0 +1,1 @@
+(key: "studied-target", blueprint: "09bdd9445ac38044389476689ae8d5a1", name: "Studied Target", summary: "Move action: +1 to weapon attack, damage and slayer ability DCs against the studied foe, +1 more at 5th, 10th, 15th and 20th.", guide: "slayer#studied-target")

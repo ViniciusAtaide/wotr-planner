@@ -7,7 +7,7 @@
     guide: "arcanist#phantasmal-mage",
     prerequisite: Race("gnome"),
     levels: [
-        (level: 1, features: ["arcanist/arcane-reservoir", "arcanist/consume-spells", "arcanist/phantasmal-mage/arcane-metamagic", "arcanist/phantasmal-mage/cantrips"], feats: ["simple-weapon-proficiency"], selections: ["arcanist/arcanist-exploits"]),
+        (level: 1, features: ["arcane-reservoir", "arcanist/consume-spells", "arcanist/phantasmal-mage/arcane-metamagic", "arcanist-cantrips"], feats: ["simple-weapon-proficiency"], selections: ["arcanist/arcanist-exploits"]),
         (level: 5, features: ["arcanist/phantasmal-mage/arcane-metamagic-i"]),
         (level: 11, features: ["arcanist/phantasmal-mage/arcane-metamagic-ii"], selections: ["arcanist/greater-exploits"]),
         (level: 17, features: ["arcanist/phantasmal-mage/arcane-metamagic-iii"]),

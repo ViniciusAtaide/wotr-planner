@@ -13,7 +13,7 @@
         (level: 6, features: ["monk/drunken-master/drunken-technique-caydens-trick"], feat_slots: [OneOf(list: "monk/bonus-feats-6")], selections: ["monk/ki-power"]),
         (level: 7, features: ["monk/drunken-master/drunken-courage", "monk/drunken-master/drunken-ki", "monk/ki-strike-cold-iron-and-silver"]),
         (level: 8, features: ["monk/drunken-master/drunken-ki", "monk/stunning-fist-sicken"], selections: ["monk/ki-power"]),
-        (level: 9, features: ["monk/drunken-master/drunken-ki", "monk/drunken-master/drunken-resilience", "monk/improved-evasion", "monk/style-strike"]),
+        (level: 9, features: ["monk/drunken-master/drunken-ki", "monk/drunken-master/drunken-resilience", "improved-evasion", "monk/style-strike"]),
         (level: 11, features: ["monk/drunken-master/drunken-courage", "monk/drunken-master/drunken-ki"]),
         (level: 13, features: ["monk/drunken-master/drunken-ki", "monk/style-strike"]),
         (level: 15, features: ["monk/drunken-master/drunken-ki", "monk/drunken-master/drunken-resilience"]),

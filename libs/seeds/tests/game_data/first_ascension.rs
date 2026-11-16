@@ -111,18 +111,9 @@ fn every_first_ascension_gives_bypass_epic_damage_reduction_at_mr_1_and_hard_to_
             "{path}"
         );
         assert!(names_has(&names(&build, 2), "Hard to Kill"), "{path}");
-        assert!(holds(
-            &at(&build, 6),
-            &format!("{path}/bypass-epic-damage-reduction")
-        ));
-        assert!(
-            !holds(&at(&build, 6), &format!("{path}/hard-to-kill")),
-            "{path}"
-        );
-        assert!(
-            holds(&at(&build, 7), &format!("{path}/hard-to-kill")),
-            "{path}"
-        );
+        assert!(holds(&at(&build, 6), "bypass-epic-damage-reduction"));
+        assert!(!holds(&at(&build, 6), "hard-to-kill"), "{path}");
+        assert!(holds(&at(&build, 7), "hard-to-kill"), "{path}");
     }
 }
 
@@ -168,7 +159,7 @@ fn the_enforcer_takes_bit_of_fun_at_mr_1_and_goes_azata_at_mr_3() {
         "trickster/bit-of-fun",
         "trickster/creative-approach",
         "trickster/summon-will-o-wisp",
-        "trickster/hard-to-kill",
+        "hard-to-kill",
     ] {
         assert!(holds(&last, key), "{key}");
     }
@@ -211,16 +202,10 @@ fn every_older_link_decodes_to_the_same_build_and_takes_its_mr_3_paths_first_asc
         assert_eq!(sheet.ranks[0].path, Some(MythicPathKey::new(path)));
         assert_eq!(sheet.ranks[1].path, Some(MythicPathKey::new(path)));
         assert!(
-            holds(
-                &at(&build, 6),
-                &format!("{path}/bypass-epic-damage-reduction")
-            ),
+            holds(&at(&build, 6), "bypass-epic-damage-reduction"),
             "{path}"
         );
-        assert!(
-            holds(&at(&build, 7), &format!("{path}/hard-to-kill")),
-            "{path}"
-        );
+        assert!(holds(&at(&build, 7), "hard-to-kill"), "{path}");
         // Taking that path's first ascension changes no answer.
         let mut chosen = build.clone();
         chosen.first_ascension = Some(MythicPathKey::new(path));

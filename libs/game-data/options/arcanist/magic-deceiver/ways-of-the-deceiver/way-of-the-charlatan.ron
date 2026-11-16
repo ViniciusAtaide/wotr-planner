@@ -6,9 +6,9 @@
     guide: "arcanist#way-of-the-charlatan",
     levels: [
         (level: 1, features: ["arcanist/magic-deceiver/ways-of-the-deceiver/way-of-the-charlatan/fool-magic"]),
-        (level: 2, features: ["arcanist/magic-deceiver/ways-of-the-deceiver/way-of-the-charlatan/trick-magic"]),
-        (level: 4, features: ["arcanist/magic-deceiver/ways-of-the-deceiver/way-of-the-charlatan/spell-fabrication"]),
-        (level: 12, features: ["arcanist/magic-deceiver/ways-of-the-deceiver/way-of-the-charlatan/fool-resistance"]),
+        (level: 2, features: ["trick-magic"]),
+        (level: 4, features: ["spell-fabrication"]),
+        (level: 12, features: ["fool-resistance"]),
         (level: 20, features: ["arcanist/magic-deceiver/ways-of-the-deceiver/way-of-the-charlatan/supreme-hoax"]),
     ],
 )

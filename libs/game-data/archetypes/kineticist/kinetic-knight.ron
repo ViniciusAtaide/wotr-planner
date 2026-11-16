@@ -8,7 +8,7 @@
     class_skills: ["perception", "persuasion", "use-magic-device"],
     levels: [
         (level: 1, features: ["kineticist/burn", "kineticist/gather-power", "kineticist/kinetic-blast", "kineticist/kinetic-knight/elemental-bastion", "kineticist/kinetic-knight/elemental-blade", "kineticist/kinetic-knight/kinetic-warrior"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"], selections: ["kineticist/kinetic-knight/element"]),
-        (level: 3, features: ["kineticist/elemental-overflow", "kineticist/kinetic-knight/knights-resolve"]),
+        (level: 3, features: ["elemental-overflow", "kineticist/kinetic-knight/knights-resolve"]),
         (level: 4, features: ["kineticist/kinetic-knight/defensive-wild-talent"], selections: ["kineticist/wild-talents"]),
         (level: 5, features: ["kineticist/infusion-specialization", "kineticist/kinetic-knight/knights-resolve"], selections: ["kineticist/infusions"]),
         (level: 7, features: ["kineticist/kinetic-knight/knights-resolve"], selections: ["kineticist/expanded-element"]),

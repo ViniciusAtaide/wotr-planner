@@ -6,7 +6,7 @@
     summary: "Bonds only with wandering spirits (two from 6th level) and daily minor spirits for hexes, with no permanent hexes.",
     guide: "shaman#unsworn-shaman",
     levels: [
-        (level: 1, features: ["shaman/spirit-animal", "shaman/unsworn-shaman/minor-spirit", "shaman/unsworn-shaman/orisons"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "simple-weapon-proficiency"]),
+        (level: 1, features: ["shaman/spirit-animal", "shaman/unsworn-shaman/minor-spirit", "shaman-orisons"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "simple-weapon-proficiency"]),
         (level: 2, features: ["shaman/wandering-spirit"]),
         (level: 4, features: ["shaman/unsworn-shaman/minor-spirit"]),
         (level: 6, features: ["shaman/unsworn-shaman/wandering-spirit-2"]),

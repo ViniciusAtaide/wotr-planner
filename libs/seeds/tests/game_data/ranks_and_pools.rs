@@ -152,7 +152,12 @@ fn cursed(classes: &[&str], curse: &str) -> Build {
     with_option(build, 1, 1, &format!("oracle/oracles-curse/{curse}"))
 }
 
+/// A curse stage's key: the curse's own, or the feature's own key when the curse grants a feature others share (Powerless
+/// Prophecy's Uncanny Dodge, one entry since ticket 244).
 fn stage(curse: &str, stage: &str) -> String {
+    if feature_blueprint(stage).is_some() {
+        return stage.to_owned();
+    }
     format!("oracle/oracles-curse/{curse}/{stage}")
 }
 

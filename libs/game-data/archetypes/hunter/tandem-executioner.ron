@@ -12,7 +12,7 @@
         (level: 4, spell_levels: (arcane: 0, divine: 0), selections: ["hunter/tandem-executioner/tandem-executioner-techniques"]),
         (level: 5, spell_levels: (arcane: 0, divine: 0), features: ["hunter/woodland-stride", "hunter/tandem-executioner/studied-target"]),
         (level: 6, spell_levels: (arcane: 0, divine: 0), feat_slots: [OneOf(list: "hunter/bonus-feats-3")]),
-        (level: 7, spell_levels: (arcane: 0, divine: 0), features: ["hunter/tandem-executioner/studied-target-swift"], selections: ["hunter/tandem-executioner/tandem-executioner-techniques"]),
+        (level: 7, spell_levels: (arcane: 0, divine: 0), features: ["studied-target-swift"], selections: ["hunter/tandem-executioner/tandem-executioner-techniques"]),
         (level: 8, spell_levels: (arcane: 0, divine: 0), features: ["hunter/second-animal-focus"]),
         (level: 9, spell_levels: (arcane: 0, divine: 0), feat_slots: [OneOf(list: "hunter/bonus-feats-3")]),
         (level: 10, spell_levels: (arcane: 0, divine: 0), features: ["hunter/tandem-executioner/studied-target"], selections: ["hunter/tandem-executioner/tandem-executioner-techniques"]),

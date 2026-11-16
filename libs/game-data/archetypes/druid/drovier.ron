@@ -7,7 +7,7 @@
     guide: "druid#drovier",
     levels: [
         (level: 1, features: ["druid/drovier/animal-companion", "druid/druid-proficiencies", "druid/nature-sense", "druid/spontaneous-summoning"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency"]),
-        (level: 4, features: ["druid/drovier/communal-aspect", "druid/resist-natures-lure"]),
+        (level: 4, features: ["druid/drovier/communal-aspect", "resist-natures-lure"]),
         (level: 6, features: ["druid/drovier/communal-aspect-greater"]),
         (level: 8, features: ["druid/drovier/communal-aspect-aspect-of-the-falcon"]),
         (level: 10, features: ["druid/drovier/communal-aspect-aspect-of-the-bear"]),

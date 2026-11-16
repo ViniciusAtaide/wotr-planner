@@ -6,7 +6,7 @@
     summary: "Bard whose performance calms and protects allies.",
     guide: "bard#tranquil-whisperer",
     levels: [
-        (level: 1, features: ["bard/bard-proficiencies", "bard/bardic-knowledge", "bard/tranquil-whisperer/inspire-tranquility"], feats: ["armor-proficiency-light-armor", "shield-proficiency", "simple-weapon-proficiency"]),
+        (level: 1, features: ["bard/bard-proficiencies", "bardic-knowledge", "bard/tranquil-whisperer/inspire-tranquility"], feats: ["armor-proficiency-light-armor", "shield-proficiency", "simple-weapon-proficiency"]),
         (level: 2, selections: ["rogue/rogue-talents"]),
         (level: 3),
         (level: 5, features: ["bard/lore-master", "bard/tranquil-whisperer/inspire-tranquility"]),

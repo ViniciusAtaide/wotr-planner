@@ -13,10 +13,10 @@ Class(
     prerequisite: Any([Alignment(NeutralGood), Alignment(ChaoticGood), Alignment(TrueNeutral), Alignment(ChaoticNeutral), Alignment(NeutralEvil), Alignment(ChaoticEvil)]),
     levels: [
         (level: 1, features: ["barbarian/fast-movement", "barbarian/rage"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
-        (level: 2, features: ["barbarian/uncanny-dodge"], selections: ["barbarian/rage-power"]),
+        (level: 2, features: ["uncanny-dodge"], selections: ["barbarian/rage-power"]),
         (level: 3, features: ["barbarian/danger-sense"]),
         (level: 4, selections: ["barbarian/rage-power"]),
-        (level: 5, features: ["barbarian/improved-uncanny-dodge"]),
+        (level: 5, features: ["improved-uncanny-dodge"]),
         (level: 6, features: ["barbarian/danger-sense"], selections: ["barbarian/rage-power"]),
         (level: 7, features: ["barbarian/damage-reduction"]),
         (level: 8, selections: ["barbarian/rage-power"]),

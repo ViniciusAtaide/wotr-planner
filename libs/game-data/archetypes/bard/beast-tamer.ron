@@ -6,7 +6,7 @@
     summary: "Bard who summons nature's allies and inspires animals, with fewer party buffs.",
     guide: "bard#beast-tamer",
     levels: [
-        (level: 1, features: ["bard/bard-proficiencies", "bard/bardic-knowledge", "bard/beast-tamer/beast-call", "bard/beast-tamer/inspire-ferocity", "bard/beast-tamer/spontaneous-summoning", "bard/beast-tamer/summon-natures-ally-i"], feats: ["armor-proficiency-light-armor", "shield-proficiency", "simple-weapon-proficiency"]),
+        (level: 1, features: ["bard/bard-proficiencies", "bardic-knowledge", "bard/beast-tamer/beast-call", "bard/beast-tamer/inspire-ferocity", "bard/beast-tamer/spontaneous-summoning", "bard/beast-tamer/summon-natures-ally-i"], feats: ["armor-proficiency-light-armor", "shield-proficiency", "simple-weapon-proficiency"]),
         (level: 2, features: ["bard/well-versed"], feats: ["augment-summoning"]),
         (level: 3, features: ["bard/beast-tamer/summon-natures-ally-ii"]),
         (level: 5, features: ["bard/beast-tamer/summon-natures-ally-iii", "bard/lore-master"]),

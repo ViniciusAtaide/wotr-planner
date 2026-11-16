@@ -6,6 +6,6 @@
     summary: "Wizard-alchemist hybrid who throws bombs; no arcane bond and four opposition schools.",
     guide: "wizard#arcane-bomber",
     levels: [
-        (level: 1, features: ["wizard/arcane-bomber/arcane-bombs", "wizard/arcane-bomber/cantrips", "wizard/arcane-bomber/spellblast", "wizard/wizard-proficiencies"], feats: ["scribe-scrolls"], feat_slots: [Category(Magic)]),
+        (level: 1, features: ["wizard/arcane-bomber/arcane-bombs", "wizard-cantrips", "wizard/arcane-bomber/spellblast", "wizard/wizard-proficiencies"], feats: ["scribe-scrolls"], feat_slots: [Category(Magic)]),
     ],
 )

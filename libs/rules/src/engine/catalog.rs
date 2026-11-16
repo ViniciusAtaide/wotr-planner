@@ -645,6 +645,23 @@ impl Catalog {
     pub(super) fn shares_name(&self, feature: &FeatureKey) -> bool {
         self.features.shared_names.contains(feature)
     }
+
+    /// What grants a feature by its rows (ticket 244): the classes, then the archetypes, the paths and the options,
+    /// each in key order. Empty for a feature only a mythic ability, a path switch or a selection gives.
+    pub(super) fn feature_holders(&self, feature: &FeatureKey) -> &[GrantedBy] {
+        self.features
+            .holders
+            .get(feature)
+            .map_or(&[], Vec::as_slice)
+    }
+
+    /// What names a Feature selection in its rows, as [`feature_holders`](Self::feature_holders) for a feature.
+    pub(super) fn selection_holders(&self, selection: &FeatureSelectionKey) -> &[GrantedBy] {
+        self.features
+            .selection_holders
+            .get(selection)
+            .map_or(&[], Vec::as_slice)
+    }
 }
 
 /// The game data's positions by key, built once by [`Catalog::new`].
@@ -843,6 +860,10 @@ struct FeatureFacts {
     steps: FxHashMap<FeatureKey, FeatureSteps>,
     /// The name of every feature a class, archetype or path defines, for the sheet's labels.
     names: FxHashMap<FeatureKey, String>,
+    /// What grants each feature by its rows ([`Catalog::feature_holders`]).
+    holders: FxHashMap<FeatureKey, Vec<GrantedBy>>,
+    /// What names each selection in its rows ([`Catalog::selection_holders`]).
+    selection_holders: FxHashMap<FeatureSelectionKey, Vec<GrantedBy>>,
     /// The features whose name another feature shares (the Fighter's and the Sohei's Weapon Training), so a reason
     /// can tell them apart.
     shared_names: FxHashSet<FeatureKey>,
@@ -851,6 +872,7 @@ struct FeatureFacts {
 impl FeatureFacts {
     fn new(data: &GameData) -> Self {
         let features: Vec<&crate::game_data::Feature> = data.features.iter().collect();
+        let (holders, selection_holders) = holders(data);
         let mut name_counts: FxHashMap<&str, usize> = FxHashMap::default();
         for feature in &features {
             *name_counts.entry(feature.name.as_str()).or_default() += 1;
@@ -918,8 +940,93 @@ impl FeatureFacts {
             steps,
             names,
             shared_names,
+            holders,
+            selection_holders,
         }
     }
+}
+
+/// What grants a feature by its rows: the sheet's holder of the feature (ticket 244, decision 7).
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub(super) enum GrantedBy {
+    Class(ClassKey),
+    Archetype(ArchetypeKey),
+    Path(MythicPathKey),
+    Option(SelectionOptionKey),
+}
+
+/// The holders of the features and of the selections rows name, each in [`GrantedBy`]'s order and once.
+type Holders = (
+    FxHashMap<FeatureKey, Vec<GrantedBy>>,
+    FxHashMap<FeatureSelectionKey, Vec<GrantedBy>>,
+);
+
+/// What grants each feature and names each selection by its rows: classes', archetypes', paths' and options'.
+fn holders(data: &GameData) -> Holders {
+    let mut features: FxHashMap<FeatureKey, BTreeSet<GrantedBy>> = FxHashMap::default();
+    let mut selections: FxHashMap<FeatureSelectionKey, BTreeSet<GrantedBy>> = FxHashMap::default();
+    let mut add =
+        |by: GrantedBy, row_features: &[FeatureKey], row_selections: &[FeatureSelectionKey]| {
+            for feature in row_features {
+                features
+                    .entry(feature.clone())
+                    .or_default()
+                    .insert(by.clone());
+            }
+            for selection in row_selections {
+                selections
+                    .entry(selection.clone())
+                    .or_default()
+                    .insert(by.clone());
+            }
+        };
+    for class in data.all_classes() {
+        for row in &class.levels {
+            add(
+                GrantedBy::Class(class.key.clone()),
+                &row.features,
+                &row.selections,
+            );
+        }
+    }
+    for archetype in &data.archetypes {
+        for row in &archetype.levels {
+            add(
+                GrantedBy::Archetype(archetype.key.clone()),
+                &row.features,
+                &row.selections,
+            );
+        }
+    }
+    for path in &data.mythic_paths {
+        for row in &path.ranks {
+            add(
+                GrantedBy::Path(path.key.clone()),
+                &row.features,
+                &row.selections,
+            );
+        }
+    }
+    for option in &data.options {
+        for row in &option.levels {
+            add(
+                GrantedBy::Option(option.key.clone()),
+                &row.features,
+                &row.selections,
+            );
+        }
+    }
+    let ordered = |by: BTreeSet<GrantedBy>| by.into_iter().collect();
+    (
+        features
+            .into_iter()
+            .map(|(k, by)| (k, ordered(by)))
+            .collect(),
+        selections
+            .into_iter()
+            .map(|(k, by)| (k, ordered(by)))
+            .collect(),
+    )
 }
 
 /// Where a class is: an index into the base or the prestige classes.

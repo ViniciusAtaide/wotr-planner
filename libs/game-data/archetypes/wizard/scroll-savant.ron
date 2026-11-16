@@ -7,7 +7,7 @@
     guide: "wizard#scroll-savant",
     class_skills: ["knowledge-arcana", "knowledge-world", "lore-nature", "lore-religion", "use-magic-device"],
     levels: [
-        (level: 1, features: ["wizard/scroll-savant/arcane-bond", "wizard/scroll-savant/cantrips", "wizard/scroll-savant/scroll-focus", "wizard/wizard-proficiencies"], feats: ["scribe-scrolls"], selections: ["wizard/school"]),
+        (level: 1, features: ["arcane-bond", "wizard-cantrips", "wizard/scroll-savant/scroll-focus", "wizard/wizard-proficiencies"], feats: ["scribe-scrolls"], selections: ["wizard/school"]),
         (level: 5, features: ["wizard/scroll-savant/scroll-specialization"]),
         (level: 10, features: ["wizard/scroll-savant/scroll-mastery"]),
     ],

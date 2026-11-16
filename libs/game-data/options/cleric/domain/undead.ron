@@ -6,6 +6,6 @@
     guide: "character-creation#undead-subdomain",
     levels: [
         (level: 1, features: ["cleric/domain/undead/deaths-kiss"]),
-        (level: 8, features: ["cleric/domain/undead/deaths-embrace"]),
+        (level: 8, features: ["deaths-embrace"]),
     ],
 )

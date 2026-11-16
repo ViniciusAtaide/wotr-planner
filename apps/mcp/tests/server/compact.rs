@@ -116,7 +116,8 @@ async fn real_data_options_of_one_name_are_told_apart() {
         .await;
     assert_eq!(
         found["matches"][0]["prerequisite"],
-        "one of 17 animal companions (Animal Companion (Mad Dog), Animal Companion (Cavalier), Animal Companion \
+        // 16 since ticket 244: the Cavalier's and the Standard Bearer's mounts are the game's one CavalierMountSelection.
+        "one of 16 animal companions (Animal Companion (Mad Dog), Animal Companion (Cavalier), Animal Companion \
          (Beast Rider), …)"
     );
 }

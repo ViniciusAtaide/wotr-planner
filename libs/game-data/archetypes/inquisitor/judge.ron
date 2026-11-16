@@ -6,7 +6,6 @@
     summary: "Inquisitor who shares judgments and a damage-boosting sentence with the party, losing teamwork feats and Bane.",
     guide: "inquisitor#judge",
     levels: [
-        (level: 1, features: ["inquisitor/inquisitor-proficiencies", "inquisitor/judge/orisons", "inquisitor/stern-gaze"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"], selections: ["inquisitor/domain", "inquisitor/judgment"]),
         (level: 3, features: ["inquisitor/judge/judgment-aura"]),
         (level: 5, features: ["inquisitor/judge/sentence"]),
         (level: 6),

@@ -188,8 +188,9 @@ fn a_seekers_bloodline_still_gets_its_20th_level_power() {
     assert!(holds(&at(&build, 6), DEMONIC_MIGHT));
 }
 
-/// An Empyreal Sorcerer's selection skips level 20 (its table gives Apotheosis there), so Ascendance adds nothing
-/// to its Celestial bloodline: before ticket 180 it held the Celestial's Ascension from MR 1.
+/// An Empyreal Sorcerer's selection skips level 20 (its table gives Apotheosis there, the game's Celestial Ascension:
+/// one entry since ticket 244), so Ascendance adds nothing to its Celestial bloodline but that one feature: before
+/// ticket 180 it held the Celestial's row 20 from MR 1 besides.
 #[test]
 fn an_empyreal_sorcerers_bloodline_gets_nothing_from_bloodline_ascendance() {
     let build = ascending(archetype_build(
@@ -199,20 +200,12 @@ fn an_empyreal_sorcerers_bloodline_gets_nothing_from_bloodline_ascendance() {
     ));
     assert!(engine().is_possible(&build));
     // Game: EmpyrealBloodlineProgression 8a95d80a3162d274896d50c2f18bb6b1 (row 20: BloodlineCelestialAscensionAbility
-    // d85e0396d8f68e047b7b67a1290f8dbc, the blueprint of both the data's Apotheosis and the Celestial's Ascension, held
-    // once: equivalent model)
-    assert!(!holds(
-        &at(&build, 20),
-        "sorcerer/bloodline/celestial/ascension"
-    ));
-    assert!(holds(
-        &at(&build, 20),
-        "sorcerer/empyreal-sorcerer/apotheosis"
-    ));
+    // d85e0396d8f68e047b7b67a1290f8dbc, the Empyreal's Apotheosis and the Celestial's Ascension, held once)
+    assert_eq!(count(&at(&build, 20), APOTHEOSIS), 1);
 }
 
-const APOTHEOSIS: &str = "sorcerer/empyreal-sorcerer/apotheosis";
-const ASCENSION: &str = "sorcerer/bloodline/celestial/ascension";
+/// The Empyreal's Apotheosis: the game's Celestial Ascension, one entry since ticket 244.
+const APOTHEOSIS: &str = "celestial-ascension";
 
 fn empyreal(levels: usize) -> Build {
     archetype_build("sorcerer", "sorcerer/empyreal-sorcerer", levels)
@@ -222,33 +215,31 @@ fn count(state: &rules::CharacterState, feature: &str) -> u32 {
     u32::from(state.feature_count(&rules::FeatureKey::new(feature)))
 }
 
-/// Without the ability an Empyreal Sorcerer gains Apotheosis at 20, once, and never the Celestial's Ascension.
+/// Without the ability an Empyreal Sorcerer gains Apotheosis at 20, once.
 #[test]
 fn an_empyreal_sorcerer_gains_apotheosis_at_20_without_the_ability() {
     let build = empyreal(20);
     assert!(engine().is_possible(&build));
     // Game: EmpyrealBloodlineProgression 8a95d80a3162d274896d50c2f18bb6b1 (BloodlineCelestialAscensionAbility
-    // d85e0396d8f68e047b7b67a1290f8dbc at sorcerer 20, once; the data's two keys for it: equivalent model)
+    // d85e0396d8f68e047b7b67a1290f8dbc at sorcerer 20, once)
     for level in 1..=20 {
         let state = at(&build, level);
         assert_eq!(count(&state, APOTHEOSIS), u32::from(level == 20), "{level}");
-        assert_eq!(count(&state, ASCENSION), 0, "{level}");
     }
 }
 
 /// With the ability (MR 1, level 6) it holds Apotheosis from the rank's level, once at every level up to 20 (the
-/// class's 20th level does not give it again), and never the Celestial's Ascension.
+/// class's 20th level does not give it again).
 #[test]
 fn an_empyreal_sorcerer_holds_apotheosis_early_through_the_ability_once() {
     let build = ascending(empyreal(20));
     assert!(engine().is_possible(&build));
     // Game: BloodlineAscendance ce85aee1726900641ab53ede61ac5c19 (its option for the Empyreal is
     // BloodlineCelestialAscensionAbility d85e0396d8f68e047b7b67a1290f8dbc, the same feature as row 20, held once:
-    // equivalent model)
+    // one entry)
     for level in 1..=20 {
         let state = at(&build, level);
         assert_eq!(count(&state, APOTHEOSIS), u32::from(level >= 6), "{level}");
-        assert_eq!(count(&state, ASCENSION), 0, "{level}");
     }
 }
 

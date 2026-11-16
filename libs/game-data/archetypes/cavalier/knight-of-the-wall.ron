@@ -6,13 +6,13 @@
     summary: "Shield-focused cavalier without teamwork abilities.",
     guide: "cavalier#knight-of-the-wall",
     levels: [
-        (level: 1, features: ["cavalier/animal-companion", "cavalier/challenge"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-focus", "shield-proficiency", "simple-weapon-proficiency"], selections: ["cavalier/order"]),
+        (level: 1, features: ["cavalier-mount", "cavalier/challenge"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-focus", "shield-proficiency", "simple-weapon-proficiency"], selections: ["cavalier/order"]),
         (level: 4, features: ["cavalier/challenge", "cavalier/knight-of-the-wall/deflective-shield"]),
-        (level: 5, features: ["cavalier/banner"]),
+        (level: 5, features: ["banner"]),
         (level: 9, features: ["cavalier/knight-of-the-wall/soul-shield"]),
-        (level: 10, features: ["cavalier/banner", "cavalier/challenge"]),
-        (level: 15, features: ["cavalier/banner"]),
+        (level: 10, features: ["banner", "cavalier/challenge"]),
+        (level: 15, features: ["banner"]),
         (level: 17),
-        (level: 20, features: ["cavalier/banner", "cavalier/supreme-charge"]),
+        (level: 20, features: ["banner", "cavalier/supreme-charge"]),
     ],
 )

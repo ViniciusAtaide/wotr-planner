@@ -13,7 +13,7 @@ Class(
     class_skills: ["athletics", "knowledge-arcana", "knowledge-world", "lore-nature", "lore-religion", "mobility", "perception", "persuasion", "stealth", "trickery", "use-magic-device"],
     spontaneous: true,
     levels: [
-        (level: 1, arcane_spell_level: 1, features: ["bard/bard-proficiencies", "bard/bardic-knowledge", "bard/inspire-courage"], feats: ["armor-proficiency-light-armor", "shield-proficiency", "simple-weapon-proficiency"]),
+        (level: 1, arcane_spell_level: 1, features: ["bard/bard-proficiencies", "bardic-knowledge", "bard/inspire-courage"], feats: ["armor-proficiency-light-armor", "shield-proficiency", "simple-weapon-proficiency"]),
         (level: 2, arcane_spell_level: 1, features: ["bard/well-versed"], selections: ["rogue/rogue-talents"]),
         (level: 3, arcane_spell_level: 1, features: ["bard/inspire-competence"]),
         (level: 4, arcane_spell_level: 2),

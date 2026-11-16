@@ -128,12 +128,8 @@ fn the_borrowed_picks_replace_their_features() {
     // Game: ArchaeologistArchetype 38384e0c1e99c2e42ac6ed70a04aca46 and VivisectionistArchetype
     // 68cbcd9fbf1fb1d489562f829bb97e38 add AdvanceTalents a33b99f95322d6741af83e9381b2391c at 10
     for (class_key, archetype, feature) in [
-        ("bard", ARCHAEOLOGIST, "bard/archaeologist/advanced-talents"),
-        (
-            "alchemist",
-            VIVISECTIONIST,
-            "alchemist/vivisectionist/advanced-talents",
-        ),
+        ("bard", ARCHAEOLOGIST, "advanced-talents"),
+        ("alchemist", VIVISECTIONIST, "advanced-talents"),
     ] {
         assert!(
             archetype_features(class_key, archetype).contains(feature),
@@ -211,10 +207,7 @@ fn the_borrowed_selections_offer_the_guides_lists() {
     // at 10, which each advanced talent needs (equivalent model: the planner names the archetype's own feature)
     for talent in &advanced {
         let prerequisite = option_prerequisite(talent);
-        assert!(
-            names_feature(prerequisite, "bard/archaeologist/advanced-talents"),
-            "{talent}"
-        );
+        assert!(names_feature(prerequisite, "advanced-talents"), "{talent}");
     }
 }
 
@@ -241,10 +234,7 @@ fn a_feyform_shifters_rogue_talent_is_the_rogues_selection() {
 fn the_vivisectionists_advanced_talents_meet_every_advanced_talent() {
     for talent in ADVANCED_TALENTS.map(rogue_talent) {
         assert!(
-            names_feature(
-                option_prerequisite(&talent),
-                "alchemist/vivisectionist/advanced-talents"
-            ),
+            names_feature(option_prerequisite(&talent), "advanced-talents"),
             "{talent}"
         );
     }
@@ -258,10 +248,7 @@ fn the_vivisectionists_advanced_talents_meet_every_advanced_talent() {
 #[ignore = "waits on ticket 276: the game gives Emboldening Strike the Advanced Talents and Sneak Attack prerequisites"]
 fn emboldening_strike_is_an_advanced_talent() {
     let prerequisite = option_prerequisite(&rogue_talent("emboldening-strike"));
-    assert!(names_feature(
-        prerequisite,
-        "bard/archaeologist/advanced-talents"
-    ));
+    assert!(names_feature(prerequisite, "advanced-talents"));
 }
 
 /// Six advanced talents need Sneak Attack besides Advanced Talents in the game.
@@ -477,7 +464,7 @@ fn a_bard_takes_rogue_talents_and_an_archaeologist_advanced_ones_from_10() {
     // a33b99f95322d6741af83e9381b2391c only at 10
     assert_eq!(
         lock_reason(&borrower("bard", Some(ARCHAEOLOGIST), 6), 6, &crippling),
-        "Needs Advanced Talents (Archaeologist)"
+        "Needs Advanced Talents"
     );
     // Game: Opportunist 5bb6dc5ce00550441880a6ff8ad4c968 needs AdvanceTalents alone
     let archaeologist = borrower("bard", Some(ARCHAEOLOGIST), 10);
@@ -547,10 +534,7 @@ fn a_vivisectionist_picks_its_discoveries_and_talents_and_advanced_ones_from_10(
         assert_eq!(offered_2[open], Ok(()), "{open}");
     }
     let crippling = rogue_talent("crippling-strike");
-    assert_eq!(
-        lock_reason(&at_2, 2, &crippling),
-        "Needs Advanced Talents (Vivisectionist)"
-    );
+    assert_eq!(lock_reason(&at_2, 2, &crippling), "Needs Advanced Talents");
     assert!(offered_2["alchemist/discovery/greater-mutagen"].is_err());
     let at_10 = borrower("alchemist", Some(VIVISECTIONIST), 10);
     assert_eq!(offered(&at_10, 10)[&crippling], Ok(()));
@@ -787,8 +771,8 @@ fn an_eldritch_scoundrel_is_offered_uncanny_dodge_at_each_talent_level() {
     // The archetype has neither feature of its own.
     // Game: EldritchScoundrelArchetype 57f93dd8423c97c49989501281296c4a removes UncannyDodgeChecker
     // 8f800ed6ce8c42e8a01fd8f3e990c459 at 4 and ImprovedUncannyDodge 485a18c05792521459c7d06c63128c79 at 8
-    assert!(!holds(&at(&build, 20), "rogue/uncanny-dodge"));
-    assert!(!holds(&at(&build, 20), "rogue/improved-uncanny-dodge"));
+    assert!(!holds(&at(&build, 20), "uncanny-dodge"));
+    assert!(!holds(&at(&build, 20), "improved-uncanny-dodge"));
 }
 
 /// The Uncanny Dodge talent needs Eldritch Scoundrel level 4: not offered at its talent slot of 2.
@@ -852,10 +836,10 @@ fn the_scoundrels_talents_grant_the_rogues_features_once() {
     let count = |level: u8, feature: &str| {
         at(&build, level).feature_count(&rules::FeatureKey::new(feature))
     };
-    assert_eq!(count(8, "rogue/uncanny-dodge"), 1);
-    assert_eq!(count(8, "rogue/improved-uncanny-dodge"), 0);
-    assert_eq!(count(12, "rogue/uncanny-dodge"), 1);
-    assert_eq!(count(12, "rogue/improved-uncanny-dodge"), 1);
+    assert_eq!(count(8, "uncanny-dodge"), 1);
+    assert_eq!(count(8, "improved-uncanny-dodge"), 0);
+    assert_eq!(count(12, "uncanny-dodge"), 1);
+    assert_eq!(count(12, "improved-uncanny-dodge"), 1);
     // Once each.
     let taken = with_picks(scoundrel(12), &[(8, pick(&uncanny_dodge))]);
     assert_eq!(

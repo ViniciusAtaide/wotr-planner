@@ -4,8 +4,8 @@ MythicPath(
     name: "Azata",
     guide: "azata",
     ranks: [
-        (rank: 1, features: ["azata/bypass-epic-damage-reduction", "azata/instrument-of-freedom"]),
-        (rank: 2, features: ["azata/freedoms-child", "azata/summon-azata-bralani", "azata/hard-to-kill"]),
+        (rank: 1, features: ["bypass-epic-damage-reduction", "azata/instrument-of-freedom"]),
+        (rank: 2, features: ["azata/freedoms-child", "azata/summon-azata-bralani", "hard-to-kill"]),
         (rank: 3, features: ["azata/dragon-companion", "azata/song-of-heroic-resolve", "azata/summon-mastodon"]),
         (rank: 4, features: ["azata/summon-movanic-deva"], selections: ["azata/superpowers"]),
         (rank: 5, features: ["azata/song-of-broken-chains", "azata/summon-azata-ghael"]),

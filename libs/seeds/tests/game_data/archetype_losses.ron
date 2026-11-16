@@ -27,7 +27,7 @@
     (
         archetype: "alchemist/metamorph",
         loses: [
-            (item: Feature("alchemist/bomb")),
+            (item: Feature("bomb")),
             (item: Feat("throw-anything")),
         ],
     ),
@@ -45,14 +45,13 @@
     (
         archetype: "alchemist/reanimator",
         loses: [
-            (item: Feature("alchemist/bomb"), replaced_by: [Feature("alchemist/reanimator/bomb-reanimator")]),
         ],
     ),
     // Game: VivisectionistArchetype 68cbcd9fbf1fb1d489562f829bb97e38: the game removes one of the two discoveries the base row 20 gives, which the data lacks (class tables)
     (
         archetype: "alchemist/vivisectionist",
         loses: [
-            (item: Feature("alchemist/bomb")),
+            (item: Feature("bomb")),
             (item: Selection("alchemist/discovery")),
         ],
     ),
@@ -60,7 +59,6 @@
     (
         archetype: "arcanist/brown-fur-transmuter",
         loses: [
-            (item: Feature("arcanist/cantrips"), replaced_by: [Feature("arcanist/brown-fur-transmuter/cantrips")]),
             (item: Feature("arcanist/magical-supremacy")),
             (item: Selection("arcanist/arcanist-exploits"), at: [3, 9], why: "table has no Arcanist Exploits at these levels; its rows there show 3: Powerful Change; 9: Shared Transmutation"),
         ],
@@ -69,7 +67,6 @@
     (
         archetype: "arcanist/eldritch-font",
         loses: [
-            (item: Feature("arcanist/cantrips"), replaced_by: [Feature("arcanist/eldritch-font/cantrips")]),
             (item: Feature("arcanist/magical-supremacy")),
             (item: Selection("arcanist/arcanist-exploits"), at: [3, 7, 13], why: "table has no Arcanist Exploits at these levels; its rows there show 3: Eldritch Surge; 7: Improved Surge; 13: Greater Surge"),
         ],
@@ -78,8 +75,7 @@
     (
         archetype: "arcanist/magic-deceiver",
         loses: [
-            (item: Feature("arcanist/arcane-reservoir")),
-            (item: Feature("arcanist/cantrips"), replaced_by: [Feature("arcanist/magic-deceiver/cantrips")]),
+            (item: Feature("arcane-reservoir")),
             (item: Feature("arcanist/consume-spells")),
             (item: Feature("arcanist/magical-supremacy")),
             (item: Selection("arcanist/arcanist-exploits")),
@@ -90,14 +86,12 @@
     (
         archetype: "arcanist/nature-mage",
         loses: [
-            (item: Feature("arcanist/cantrips"), replaced_by: [Feature("arcanist/nature-mage/cantrips")]),
         ],
     ),
     // Game: PhantasmalMageArchetype e9d0ee69305049fe8400a066010dbcd1: own copies stand for the base features the game keeps (equivalent model)
     (
         archetype: "arcanist/phantasmal-mage",
         loses: [
-            (item: Feature("arcanist/cantrips"), replaced_by: [Feature("arcanist/phantasmal-mage/cantrips")]),
             (item: Feature("arcanist/magical-supremacy")),
             (item: Selection("arcanist/arcanist-exploits"), at: [5, 11, 17], why: "table has no Arcanist Exploits at these levels; its rows there show 5: Arcane Metamagic I; 11: Greater Exploits, Arcane Metamagic II; 17: Arcane Metamagic III"),
         ],
@@ -106,14 +100,12 @@
     (
         archetype: "arcanist/unlettered-arcanist",
         loses: [
-            (item: Feature("arcanist/cantrips"), replaced_by: [Feature("arcanist/unlettered-arcanist/cantrips")]),
         ],
     ),
     // Game: WhiteMageArchetype 5f2fa2e0d1cf1ca428af7e24c443d868: own copies stand for the base features the game keeps (equivalent model); the entries waiting on a ticket are the game's
     (
         archetype: "arcanist/white-mage",
         loses: [
-            (item: Feature("arcanist/cantrips"), replaced_by: [Feature("arcanist/white-mage/cantrips")]),
             (item: Selection("arcanist/arcanist-exploits"), at: [1, 9], waits_on: "ticket 282", why: "the game removes the exploit at 1 (for Spontaneous Healing) and at 9"),
         ],
     ),
@@ -123,8 +115,8 @@
         loses: [
             (item: Feature("barbarian/danger-sense")),
             (item: Feature("barbarian/fast-movement")),
-            (item: Feature("barbarian/improved-uncanny-dodge")),
-            (item: Feature("barbarian/uncanny-dodge")),
+            (item: Feature("improved-uncanny-dodge")),
+            (item: Feature("uncanny-dodge")),
         ],
     ),
     // Game: BeastkinBerserkerArchetype e791f31b7fd225645ae709958afe2e91
@@ -143,9 +135,9 @@
             (item: Feature("barbarian/damage-reduction")),
             (item: Feature("barbarian/danger-sense")),
             (item: Feature("barbarian/greater-rage")),
-            (item: Feature("barbarian/improved-uncanny-dodge")),
+            (item: Feature("improved-uncanny-dodge")),
             (item: Feature("barbarian/mighty-rage")),
-            (item: Feature("barbarian/uncanny-dodge")),
+            (item: Feature("uncanny-dodge")),
             (item: Selection("barbarian/rage-power"), at: [2, 6, 8, 14], why: "table has no Rage Power at these levels; its rows there show 2: Power from Flesh, Devour Essence; 6: nothing; 8: nothing; 14: Indomitable Will, You Are What You Eat"),
         ],
     ),
@@ -169,8 +161,8 @@
         loses: [
             (item: Feature("barbarian/damage-reduction"), replaced_by: [Feature("barbarian/invulnerable-rager/damage-reduction-invulnerable-rager")]),
             (item: Feature("barbarian/danger-sense")),
-            (item: Feature("barbarian/improved-uncanny-dodge")),
-            (item: Feature("barbarian/uncanny-dodge")),
+            (item: Feature("improved-uncanny-dodge")),
+            (item: Feature("uncanny-dodge")),
         ],
     ),
     // Game: MadDogArchetype 063da4c77fa59454a9828c9ece407ea1: the entries waiting on a ticket are the game's
@@ -178,10 +170,10 @@
         archetype: "barbarian/mad-dog",
         loses: [
             (item: Feature("barbarian/damage-reduction"), waits_on: "ticket 269", why: "the game removes Damage Reduction at 7, 10, 13, 16 and 19"),
-            (item: Feature("barbarian/improved-uncanny-dodge")),
+            (item: Feature("improved-uncanny-dodge")),
             (item: Feature("barbarian/indomitable-will")),
             (item: Feature("barbarian/rage")),
-            (item: Feature("barbarian/uncanny-dodge")),
+            (item: Feature("uncanny-dodge")),
             (item: Selection("barbarian/rage-power"), at: [2, 6, 10, 14, 18], why: "table has no Rage Power at these levels; its rows there show 2: Pack Tactics; 6: nothing; 10: Damage Reduction; 14: Throat Cutter; 18: nothing"),
         ],
     ),
@@ -227,7 +219,7 @@
     (
         archetype: "bard/chelaxian-diva",
         loses: [
-            (item: Feature("bard/bardic-knowledge")),
+            (item: Feature("bardic-knowledge")),
             (item: Feature("bard/fascinate")),
             (item: Feature("bard/inspire-competence")),
             (item: Feature("bard/inspire-greatness")),
@@ -259,7 +251,7 @@
     (
         archetype: "bard/thundercaller",
         loses: [
-            (item: Feature("bard/bardic-knowledge")),
+            (item: Feature("bardic-knowledge")),
             (item: Feature("bard/dirge-of-doom")),
             (item: Feature("bard/inspire-competence")),
             (item: Feature("bard/frightening-tune"), waits_on: "ticket 286", why: "the game removes Frightening Tune at 14"),
@@ -283,11 +275,9 @@
             (item: Feature("bloodrager/bloodline-spell-2nd"), replaced_by: [Feature("bloodrager/bloodrider/bloodline-spell-2nd")]),
             (item: Feature("bloodrager/bloodline-spell-3rd"), replaced_by: [Feature("bloodrager/bloodrider/bloodline-spell-3rd")]),
             (item: Feature("bloodrager/bloodline-spell-4th"), replaced_by: [Feature("bloodrager/bloodrider/bloodline-spell-4th")]),
-            (item: Feature("bloodrager/damage-reduction"), replaced_by: [Feature("bloodrager/bloodrider/damage-reduction")]),
-            (item: Feature("bloodrager/fast-movement")),
-            (item: Feature("bloodrager/improved-uncanny-dodge")),
-            (item: Feature("bloodrager/indomitable-will"), replaced_by: [Feature("bloodrager/bloodrider/indomitable-will")]),
-            (item: Feature("bloodrager/uncanny-dodge")),
+            (item: Feature("fast-movement")),
+            (item: Feature("improved-uncanny-dodge")),
+            (item: Feature("uncanny-dodge")),
         ],
     ),
     // Game: GreenragerArchetype 5648585af75596f4a9fa3ae385127f57: own copies stand for the base features the game keeps (equivalent model)
@@ -299,11 +289,6 @@
             (item: Feature("bloodrager/bloodline-spell-2nd"), replaced_by: [Feature("bloodrager/greenrager/bloodline-spell-2nd")]),
             (item: Feature("bloodrager/bloodline-spell-3rd"), replaced_by: [Feature("bloodrager/greenrager/bloodline-spell-3rd")]),
             (item: Feature("bloodrager/bloodline-spell-4th"), replaced_by: [Feature("bloodrager/greenrager/bloodline-spell-4th")]),
-            (item: Feature("bloodrager/damage-reduction"), replaced_by: [Feature("bloodrager/greenrager/damage-reduction")]),
-            (item: Feature("bloodrager/fast-movement"), replaced_by: [Feature("bloodrager/greenrager/fast-movement")]),
-            (item: Feature("bloodrager/improved-uncanny-dodge"), replaced_by: [Feature("bloodrager/greenrager/improved-uncanny-dodge")]),
-            (item: Feature("bloodrager/indomitable-will"), replaced_by: [Feature("bloodrager/greenrager/indomitable-will")]),
-            (item: Feature("bloodrager/uncanny-dodge"), replaced_by: [Feature("bloodrager/greenrager/uncanny-dodge")]),
         ],
     ),
     // Game: HagRivenArchetype 61edfe08d9e04a11844e5fcc01da3602: own copies stand for the base features the game keeps (equivalent model); the entries waiting on a ticket are the game's
@@ -314,11 +299,10 @@
             (item: Feature("bloodrager/bloodline-spell-2nd"), count: 0, waits_on: "ticket 281", why: "the game keeps the bloodline, whose progression gives its spells"),
             (item: Feature("bloodrager/bloodline-spell-3rd"), count: 0, waits_on: "ticket 281", why: "the game keeps the bloodline, whose progression gives its spells"),
             (item: Feature("bloodrager/bloodline-spell-4th"), count: 0, waits_on: "ticket 281", why: "the game keeps the bloodline, whose progression gives its spells"),
-            (item: Feature("bloodrager/damage-reduction")),
-            (item: Feature("bloodrager/fast-movement")),
-            (item: Feature("bloodrager/improved-uncanny-dodge")),
-            (item: Feature("bloodrager/indomitable-will"), replaced_by: [Feature("bloodrager/hag-riven/indomitable-will")]),
-            (item: Feature("bloodrager/uncanny-dodge")),
+            (item: Feature("damage-reduction")),
+            (item: Feature("fast-movement")),
+            (item: Feature("improved-uncanny-dodge")),
+            (item: Feature("uncanny-dodge")),
             (item: Selection("bloodrager/bloodline"), replaced_by: [Selection("bloodrager/hag-riven/bloodline")]),
         ],
     ),
@@ -330,11 +314,6 @@
             (item: Feature("bloodrager/bloodline-spell-2nd")),
             (item: Feature("bloodrager/bloodline-spell-3rd")),
             (item: Feature("bloodrager/bloodline-spell-4th")),
-            (item: Feature("bloodrager/damage-reduction"), replaced_by: [Feature("bloodrager/mixed-blood-rager/damage-reduction")]),
-            (item: Feature("bloodrager/fast-movement"), replaced_by: [Feature("bloodrager/mixed-blood-rager/fast-movement")]),
-            (item: Feature("bloodrager/improved-uncanny-dodge"), replaced_by: [Feature("bloodrager/mixed-blood-rager/improved-uncanny-dodge")]),
-            (item: Feature("bloodrager/indomitable-will"), replaced_by: [Feature("bloodrager/mixed-blood-rager/indomitable-will")]),
-            (item: Feature("bloodrager/uncanny-dodge"), replaced_by: [Feature("bloodrager/mixed-blood-rager/uncanny-dodge")]),
             (item: Slot(OptionList(selection: "bloodrager/bloodline"))),
             (item: Selection("bloodrager/bloodline")),
             (item: SpellLevels, waits_on: "ticket 281", why: "the game removes the spellbook (RemoveSpellbook)"),
@@ -348,11 +327,6 @@
             (item: Feature("bloodrager/bloodline-spell-2nd"), replaced_by: [Feature("bloodrager/primalist/bloodline-spell-2nd")]),
             (item: Feature("bloodrager/bloodline-spell-3rd"), replaced_by: [Feature("bloodrager/primalist/bloodline-spell-3rd")]),
             (item: Feature("bloodrager/bloodline-spell-4th"), replaced_by: [Feature("bloodrager/primalist/bloodline-spell-4th")]),
-            (item: Feature("bloodrager/damage-reduction"), replaced_by: [Feature("bloodrager/primalist/damage-reduction")]),
-            (item: Feature("bloodrager/fast-movement"), replaced_by: [Feature("bloodrager/primalist/fast-movement")]),
-            (item: Feature("bloodrager/improved-uncanny-dodge"), replaced_by: [Feature("bloodrager/primalist/improved-uncanny-dodge")]),
-            (item: Feature("bloodrager/indomitable-will"), replaced_by: [Feature("bloodrager/primalist/indomitable-will")]),
-            (item: Feature("bloodrager/uncanny-dodge"), replaced_by: [Feature("bloodrager/primalist/uncanny-dodge")]),
         ],
     ),
     // Game: ReformedFiendArchetype d55163eed9214367820654f0ebe0ff69: own copies stand for the base features the game keeps (equivalent model)
@@ -363,11 +337,7 @@
             (item: Feature("bloodrager/bloodline-spell-2nd"), replaced_by: [Feature("bloodrager/reformed-fiend/bloodline-spell-2nd")]),
             (item: Feature("bloodrager/bloodline-spell-3rd"), replaced_by: [Feature("bloodrager/reformed-fiend/bloodline-spell-3rd")]),
             (item: Feature("bloodrager/bloodline-spell-4th"), replaced_by: [Feature("bloodrager/reformed-fiend/bloodline-spell-4th")]),
-            (item: Feature("bloodrager/damage-reduction"), replaced_by: [Feature("bloodrager/reformed-fiend/damage-reduction-reformed-fiend")]),
-            (item: Feature("bloodrager/fast-movement"), replaced_by: [Feature("bloodrager/reformed-fiend/fast-movement")]),
-            (item: Feature("bloodrager/improved-uncanny-dodge"), replaced_by: [Feature("bloodrager/reformed-fiend/improved-uncanny-dodge")]),
-            (item: Feature("bloodrager/indomitable-will"), replaced_by: [Feature("bloodrager/reformed-fiend/indomitable-will")]),
-            (item: Feature("bloodrager/uncanny-dodge"), replaced_by: [Feature("bloodrager/reformed-fiend/uncanny-dodge")]),
+            (item: Feature("damage-reduction"), replaced_by: [Feature("bloodrager/reformed-fiend/damage-reduction-reformed-fiend")]),
             (item: Selection("bloodrager/bloodline"), replaced_by: [Selection("bloodrager/reformed-fiend/bloodline")]),
         ],
     ),
@@ -379,11 +349,9 @@
             (item: Feature("bloodrager/bloodline-spell-2nd"), replaced_by: [Feature("bloodrager/spelleater/bloodline-spell-2nd")]),
             (item: Feature("bloodrager/bloodline-spell-3rd"), replaced_by: [Feature("bloodrager/spelleater/bloodline-spell-3rd")]),
             (item: Feature("bloodrager/bloodline-spell-4th"), replaced_by: [Feature("bloodrager/spelleater/bloodline-spell-4th")]),
-            (item: Feature("bloodrager/damage-reduction")),
-            (item: Feature("bloodrager/fast-movement"), replaced_by: [Feature("bloodrager/spelleater/fast-movement")]),
-            (item: Feature("bloodrager/improved-uncanny-dodge")),
-            (item: Feature("bloodrager/indomitable-will"), replaced_by: [Feature("bloodrager/spelleater/indomitable-will")]),
-            (item: Feature("bloodrager/uncanny-dodge")),
+            (item: Feature("damage-reduction")),
+            (item: Feature("improved-uncanny-dodge")),
+            (item: Feature("uncanny-dodge")),
         ],
     ),
     // Game: SteelbloodArchetype 32a5dff92373a9641b43e97d453b9369: own copies stand for the base features the game keeps (equivalent model)
@@ -394,18 +362,17 @@
             (item: Feature("bloodrager/bloodline-spell-2nd"), replaced_by: [Feature("bloodrager/steelblood/bloodline-spell-2nd")]),
             (item: Feature("bloodrager/bloodline-spell-3rd"), replaced_by: [Feature("bloodrager/steelblood/bloodline-spell-3rd")]),
             (item: Feature("bloodrager/bloodline-spell-4th"), replaced_by: [Feature("bloodrager/steelblood/bloodline-spell-4th")]),
-            (item: Feature("bloodrager/damage-reduction")),
-            (item: Feature("bloodrager/fast-movement")),
-            (item: Feature("bloodrager/improved-uncanny-dodge")),
-            (item: Feature("bloodrager/indomitable-will"), replaced_by: [Feature("bloodrager/steelblood/indomitable-will")]),
-            (item: Feature("bloodrager/uncanny-dodge")),
+            (item: Feature("damage-reduction")),
+            (item: Feature("fast-movement")),
+            (item: Feature("improved-uncanny-dodge")),
+            (item: Feature("uncanny-dodge")),
         ],
     ),
     // Game: BeastRiderArchetype d287fbf2495ff2e4d88d5c49217bf173: own copies stand for the base features the game keeps (equivalent model)
     (
         archetype: "cavalier/beast-rider",
         loses: [
-            (item: Feature("cavalier/animal-companion"), replaced_by: [Feature("cavalier/beast-rider/animal-companion-beast-rider")]),
+            (item: Feature("cavalier-mount"), replaced_by: [Feature("cavalier/beast-rider/animal-companion-beast-rider")]),
             (item: Feat("armor-proficiency-heavy-armor")),
         ],
     ),
@@ -420,8 +387,8 @@
     (
         archetype: "cavalier/disciple-of-the-pike",
         loses: [
-            (item: Feature("cavalier/animal-companion")),
-            (item: Feature("cavalier/banner")),
+            (item: Feature("cavalier-mount")),
+            (item: Feature("banner")),
             (item: Feature("cavalier/cavaliers-charge")),
             (item: Feature("cavalier/greater-banner")),
             (item: Feature("cavalier/mighty-charge")),
@@ -451,8 +418,8 @@
     (
         archetype: "cavalier/ghost-rider",
         loses: [
-            (item: Feature("cavalier/animal-companion")),
-            (item: Feature("cavalier/banner")),
+            (item: Feature("cavalier-mount")),
+            (item: Feature("banner")),
             (item: Feature("cavalier/cavaliers-charge")),
             (item: Feature("cavalier/greater-banner")),
             (item: Feature("cavalier/greater-tactician")),
@@ -475,8 +442,8 @@
     (
         archetype: "cavalier/standard-bearer",
         loses: [
-            (item: Feature("cavalier/animal-companion"), replaced_by: [Feature("cavalier/standard-bearer/animal-companion-standard-bearer")]),
-            (item: Feature("cavalier/banner"), replaced_by: [Feature("cavalier/standard-bearer/banner-standard-bearer")]),
+            (item: Feature("cavalier-mount"), at: [1], why: "The archetype's rows grant this game feature at other levels than the class's (one entry since ticket 244)."),
+            (item: Feature("banner"), at: [5], why: "The archetype's rows grant this game feature at other levels than the class's (one entry since ticket 244)."),
             (item: Feature("cavalier/supreme-charge")),
             (item: Feature("cavalier/mighty-charge"), waits_on: "ticket 273", why: "the game removes Mighty Charge at 11"),
         ],
@@ -544,13 +511,11 @@
     (
         archetype: "druid/blight-druid",
         loses: [
-            (item: Feature("druid/resist-natures-lure")),
+            (item: Feature("resist-natures-lure")),
             (item: Feature("druid/venom-immunity")),
             (item: Feature("druid/wild-shape-bear-medium-elemental"), replaced_by: [Feature("druid/blight-druid/wild-shape-bear-medium-elemental")]),
-            (item: Feature("druid/wild-shape-huge-elemental"), replaced_by: [Feature("druid/blight-druid/wild-shape-huge-elemental")]),
             (item: Feature("druid/wild-shape-leopard-small-elemental"), replaced_by: [Feature("druid/blight-druid/wild-shape-leopard-small-elemental")]),
             (item: Feature("druid/wild-shape-smilodon-large-elemental-shambling-mound"), replaced_by: [Feature("druid/blight-druid/wild-shape-smilodon-large-elemental-shambling-mound")]),
-            (item: Feature("druid/wild-shape-wolf"), replaced_by: [Feature("druid/blight-druid/wild-shape-wolf")]),
             (item: Selection("druid/nature-bond")),
         ],
     ),
@@ -558,14 +523,12 @@
     (
         archetype: "druid/defender-of-the-true-world",
         loses: [
-            (item: Feature("druid/resist-natures-lure")),
+            (item: Feature("resist-natures-lure")),
             (item: Feature("druid/spontaneous-summoning")),
             (item: Feature("druid/venom-immunity")),
             (item: Feature("druid/wild-shape-bear-medium-elemental"), replaced_by: [Feature("druid/defender-of-the-true-world/wild-shape-bear-medium-elemental")]),
-            (item: Feature("druid/wild-shape-huge-elemental"), replaced_by: [Feature("druid/defender-of-the-true-world/wild-shape-huge-elemental")]),
             (item: Feature("druid/wild-shape-leopard-small-elemental"), replaced_by: [Feature("druid/defender-of-the-true-world/wild-shape-leopard-small-elemental")]),
             (item: Feature("druid/wild-shape-smilodon-large-elemental-shambling-mound"), replaced_by: [Feature("druid/defender-of-the-true-world/wild-shape-smilodon-large-elemental-shambling-mound")]),
-            (item: Feature("druid/wild-shape-wolf"), replaced_by: [Feature("druid/defender-of-the-true-world/wild-shape-wolf")]),
         ],
     ),
     // Game: DrovierArchetype a6bf603aa4d666f4f86dab0289e2048c
@@ -573,10 +536,10 @@
         archetype: "druid/drovier",
         loses: [
             (item: Feature("druid/wild-shape-bear-medium-elemental")),
-            (item: Feature("druid/wild-shape-huge-elemental")),
+            (item: Feature("wild-shape-huge-elemental")),
             (item: Feature("druid/wild-shape-leopard-small-elemental")),
             (item: Feature("druid/wild-shape-smilodon-large-elemental-shambling-mound")),
-            (item: Feature("druid/wild-shape-wolf")),
+            (item: Feature("wild-shape-wolf")),
             (item: Selection("druid/nature-bond")),
         ],
     ),
@@ -584,13 +547,11 @@
     (
         archetype: "druid/elemental-rampager",
         loses: [
-            (item: Feature("druid/resist-natures-lure")),
+            (item: Feature("resist-natures-lure")),
             (item: Feature("druid/venom-immunity")),
             (item: Feature("druid/wild-shape-bear-medium-elemental"), replaced_by: [Feature("druid/elemental-rampager/wild-shape-bear-medium-elemental")]),
-            (item: Feature("druid/wild-shape-huge-elemental"), replaced_by: [Feature("druid/elemental-rampager/wild-shape-huge-elemental")]),
             (item: Feature("druid/wild-shape-leopard-small-elemental"), replaced_by: [Feature("druid/elemental-rampager/wild-shape-leopard-small-elemental")]),
             (item: Feature("druid/wild-shape-smilodon-large-elemental-shambling-mound"), replaced_by: [Feature("druid/elemental-rampager/wild-shape-smilodon-large-elemental-shambling-mound")]),
-            (item: Feature("druid/wild-shape-wolf"), replaced_by: [Feature("druid/elemental-rampager/wild-shape-wolf")]),
             (item: Selection("druid/nature-bond")),
         ],
     ),
@@ -600,10 +561,10 @@
         loses: [
             (item: Feature("druid/spontaneous-summoning")),
             (item: Feature("druid/wild-shape-bear-medium-elemental")),
-            (item: Feature("druid/wild-shape-huge-elemental"), count: 0, waits_on: "ticket 277", why: "the game removes the small, medium and large elemental shapes but not the huge one at 12"),
+            (item: Feature("wild-shape-huge-elemental"), count: 0, waits_on: "ticket 277", why: "the game removes the small, medium and large elemental shapes but not the huge one at 12"),
             (item: Feature("druid/wild-shape-leopard-small-elemental")),
             (item: Feature("druid/wild-shape-smilodon-large-elemental-shambling-mound")),
-            (item: Feature("druid/wild-shape-wolf"), replaced_by: [Feature("druid/feyspeaker/wild-shape-wolf")]),
+            (item: Feature("wild-shape-wolf"), at: [4], why: "The archetype's rows grant this game feature at other levels than the class's (one entry since ticket 244)."),
         ],
     ),
     // Game: PrimalDruidArchetype c1c86e2997fd4257a13ef5601b5dc6dd: own copies stand for the base features the game keeps (equivalent model); the entries waiting on a ticket are the game's
@@ -612,26 +573,24 @@
         loses: [
             (item: Feature("druid/nature-sense")),
             (item: Feature("druid/wild-shape-bear-medium-elemental"), replaced_by: [Feature("druid/primal-druid/wild-shape-bear-medium-elemental")]),
-            (item: Feature("druid/wild-shape-huge-elemental"), replaced_by: [Feature("druid/primal-druid/wild-shape-huge-elemental")]),
             (item: Feature("druid/wild-shape-leopard-small-elemental"), replaced_by: [Feature("druid/primal-druid/wild-shape-leopard-small-elemental")]),
             (item: Feature("druid/wild-shape-smilodon-large-elemental-shambling-mound"), replaced_by: [Feature("druid/primal-druid/wild-shape-smilodon-large-elemental-shambling-mound")]),
-            (item: Feature("druid/wild-shape-wolf"), replaced_by: [Feature("druid/primal-druid/wild-shape-wolf")]),
             (item: Selection("druid/nature-bond")),
-            (item: Feature("druid/resist-natures-lure"), waits_on: "ticket 277", why: "the game removes Resist Nature's Lure at 4"),
+            (item: Feature("resist-natures-lure"), waits_on: "ticket 277", why: "the game removes Resist Nature's Lure at 4"),
         ],
     ),
     // Game: WinterChildArchetype 9f835c539f6e4a96a7b64461f4267d06
     (
         archetype: "druid/winter-child",
         loses: [
-            (item: Feature("druid/resist-natures-lure")),
+            (item: Feature("resist-natures-lure")),
             (item: Feature("druid/spontaneous-summoning")),
             (item: Feature("druid/venom-immunity")),
             (item: Feature("druid/wild-shape-bear-medium-elemental")),
-            (item: Feature("druid/wild-shape-huge-elemental")),
+            (item: Feature("wild-shape-huge-elemental")),
             (item: Feature("druid/wild-shape-leopard-small-elemental")),
             (item: Feature("druid/wild-shape-smilodon-large-elemental-shambling-mound")),
-            (item: Feature("druid/wild-shape-wolf")),
+            (item: Feature("wild-shape-wolf")),
             (item: Selection("druid/nature-bond")),
         ],
     ),
@@ -639,7 +598,7 @@
     (
         archetype: "fighter/aldori-defender",
         loses: [
-            (item: Feature("fighter/armor-training")),
+            (item: Feature("armor-training")),
             (item: Slot(CombatFeat), at: [6, 8, 10], why: "table has no combat bonus feats at these levels; its rows there show 6: Disarming Strike; 8: Steel Net; 10: Counterattack"),
         ],
     ),
@@ -665,7 +624,7 @@
         archetype: "fighter/dragonheir-scion",
         loses: [
             (item: Feature("fighter/armor-mastery")),
-            (item: Feature("fighter/armor-training")),
+            (item: Feature("armor-training")),
             (item: Feature("fighter/bravery")),
             (item: Feature("fighter/weapon-mastery")),
             (item: Slot(CombatFeat), at: [1, 4, 6], why: "table has no combat bonus feats at these levels; its rows there show 1: Arcane Strike (level 0: Fighter Proficiencies, Draconic Bloodline); 4: Draconic Strike; 6: Draconic Presence"),
@@ -676,7 +635,7 @@
         archetype: "fighter/mutation-warrior",
         loses: [
             (item: Feature("fighter/armor-mastery")),
-            (item: Feature("fighter/armor-training")),
+            (item: Feature("armor-training")),
         ],
     ),
     // Game: TitanFighterArchetype 88a9dbb92a674ed995bae800896795f5: the entries waiting on a ticket are the game's
@@ -685,7 +644,7 @@
         why: "The Titan Fighter gives up Armor Training and Weapon Training (the overview says it has neither). The table still prints Weapon Training at level 5; it is listed lost anyway, on the user's ticket 131 decision that Incredible Heft is not Weapon Training. It also has fewer bonus combat feats (its Massive Attacks picks take their place) and keeps Bravery.",
         loses: [
             (item: Feature("fighter/armor-mastery"), count: 0, waits_on: "ticket 285", why: "the game removes nothing at 19 and keeps Armor Mastery"),
-            (item: Feature("fighter/armor-training")),
+            (item: Feature("armor-training")),
             (item: Feature("fighter/weapon-training")),
             (item: Slot(CombatFeat), at: [2, 6, 10, 14, 18], why: "table has no combat bonus feats at these levels; its rows there show 2: Massive Attacks, Bravery; 6: Massive Attacks; 10: Massive Attacks; 14: Massive Attacks; 18: Massive Attacks"),
         ],
@@ -704,7 +663,7 @@
         archetype: "fighter/two-handed-fighter",
         loses: [
             (item: Feature("fighter/armor-mastery")),
-            (item: Feature("fighter/armor-training")),
+            (item: Feature("armor-training")),
             (item: Feature("fighter/bravery")),
             (item: Feature("fighter/weapon-training")),
         ],
@@ -777,7 +736,6 @@
     (
         archetype: "inquisitor/faith-hunter",
         loses: [
-            (item: Feature("inquisitor/orisons"), replaced_by: [Feature("inquisitor/faith-hunter/orisons")]),
             (item: Selection("inquisitor/domain")),
         ],
     ),
@@ -787,7 +745,6 @@
         loses: [
             (item: Feature("inquisitor/bane")),
             (item: Feature("inquisitor/greater-bane")),
-            (item: Feature("inquisitor/orisons"), replaced_by: [Feature("inquisitor/judge/orisons")]),
             (item: Feature("inquisitor/solo-tactics")),
             (item: Slot(Category(Teamwork))),
         ],
@@ -798,9 +755,8 @@
         loses: [
             (item: Feature("inquisitor/bane")),
             (item: Feature("inquisitor/greater-bane")),
-            (item: Feature("inquisitor/orisons"), replaced_by: [Feature("inquisitor/living-grimoire/orisons")]),
-            (item: Feature("inquisitor/second-judgment")),
-            (item: Feature("inquisitor/third-judgment")),
+            (item: Feature("second-judgment")),
+            (item: Feature("third-judgment")),
             (item: Feature("inquisitor/true-judgment")),
             (item: Selection("inquisitor/judgment")),
             (item: Feature("inquisitor/cunning-initiative"), waits_on: "ticket 284", why: "the game removes Cunning Initiative at 2"),
@@ -810,9 +766,8 @@
     (
         archetype: "inquisitor/monster-tactician",
         loses: [
-            (item: Feature("inquisitor/orisons"), replaced_by: [Feature("inquisitor/monster-tactician/orisons")]),
-            (item: Feature("inquisitor/second-judgment")),
-            (item: Feature("inquisitor/third-judgment")),
+            (item: Feature("second-judgment")),
+            (item: Feature("third-judgment")),
             (item: Feature("inquisitor/true-judgment")),
             (item: Selection("inquisitor/judgment")),
         ],
@@ -821,10 +776,9 @@
     (
         archetype: "inquisitor/sacred-huntsmaster",
         loses: [
-            (item: Feature("inquisitor/orisons"), replaced_by: [Feature("inquisitor/sacred-huntsmaster/orisons")]),
-            (item: Feature("inquisitor/second-judgment")),
+            (item: Feature("second-judgment")),
             (item: Feature("inquisitor/solo-tactics")),
-            (item: Feature("inquisitor/third-judgment")),
+            (item: Feature("third-judgment")),
             (item: Feature("inquisitor/true-judgment")),
             (item: Selection("inquisitor/domain"), replaced_by: [Selection("inquisitor/sacred-huntsmaster/domain")]),
             (item: Selection("inquisitor/judgment")),
@@ -834,9 +788,8 @@
     (
         archetype: "inquisitor/sanctified-slayer",
         loses: [
-            (item: Feature("inquisitor/orisons"), replaced_by: [Feature("inquisitor/sanctified-slayer/orisons")]),
-            (item: Feature("inquisitor/second-judgment")),
-            (item: Feature("inquisitor/third-judgment")),
+            (item: Feature("second-judgment")),
+            (item: Feature("third-judgment")),
             (item: Feature("inquisitor/true-judgment")),
             (item: Selection("inquisitor/judgment")),
         ],
@@ -846,7 +799,6 @@
         archetype: "inquisitor/tactical-leader",
         loses: [
             (item: Feature("inquisitor/exploit-weakness"), count: 0, waits_on: "ticket 284", why: "the game removes nothing at 14 and keeps Exploit Weakness"),
-            (item: Feature("inquisitor/orisons"), replaced_by: [Feature("inquisitor/tactical-leader/orisons")]),
             (item: Feature("inquisitor/solo-tactics")),
             (item: Feature("inquisitor/stern-gaze")),
             (item: Slot(Category(Teamwork)), at: [6, 12, 15], why: "table has no teamwork bonus feats at these levels; its rows there show 6: Domain Ability^2; 12: Greater Bane; 15: nothing"),
@@ -857,9 +809,6 @@
         archetype: "kineticist/blood-kineticist",
         loses: [
             (item: Feature("kineticist/infusion")),
-            (item: Feature("kineticist/metakinesis-empowered"), replaced_by: [Feature("kineticist/blood-kineticist/metakinesis-empowered")]),
-            (item: Feature("kineticist/metakinesis-maximized"), replaced_by: [Feature("kineticist/blood-kineticist/metakinesis-maximized")]),
-            (item: Feature("kineticist/metakinesis-quicken"), replaced_by: [Feature("kineticist/blood-kineticist/metakinesis-quicken")]),
             (item: Selection("kineticist/element"), replaced_by: [Selection("kineticist/blood-kineticist/element")]),
             (item: Selection("kineticist/expanded-element"), at: [7], why: "table has no Expanded Element at these levels; its rows there show 7: Blood Blast"),
             (item: Selection("kineticist/infusions"), at: [5, 9, 11], why: "table has no Infusion at these levels; its rows there show 5: Bleeding Infusion, Metakinesis - Empowered, Infusion Specialization; 9: Gut-Wrenching Infusion, Metakinesis - Maximized; 11: Vampiric Infusion, Supercharge"),
@@ -870,18 +819,12 @@
         archetype: "kineticist/dark-elementalist",
         loses: [
             (item: Feature("kineticist/burn")),
-            (item: Feature("kineticist/metakinesis-empowered"), replaced_by: [Feature("kineticist/dark-elementalist/metakinesis-empowered")]),
-            (item: Feature("kineticist/metakinesis-maximized"), replaced_by: [Feature("kineticist/dark-elementalist/metakinesis-maximized")]),
-            (item: Feature("kineticist/metakinesis-quicken"), replaced_by: [Feature("kineticist/dark-elementalist/metakinesis-quicken")]),
         ],
     ),
     // Game: ElementalEngineArchetype 4a8324d676d642c99edcdda6988ca3b1: own copies stand for the base features the game keeps (equivalent model)
     (
         archetype: "kineticist/elemental-engine",
         loses: [
-            (item: Feature("kineticist/metakinesis-empowered"), replaced_by: [Feature("kineticist/elemental-engine/metakinesis-empowered")]),
-            (item: Feature("kineticist/metakinesis-maximized"), replaced_by: [Feature("kineticist/elemental-engine/metakinesis-maximized")]),
-            (item: Feature("kineticist/metakinesis-quicken"), replaced_by: [Feature("kineticist/elemental-engine/metakinesis-quicken")]),
             (item: Feature("kineticist/supercharge")),
         ],
     ),
@@ -890,9 +833,9 @@
         archetype: "kineticist/kinetic-knight",
         loses: [
             (item: Feature("kineticist/infusion")),
-            (item: Feature("kineticist/metakinesis-empowered")),
-            (item: Feature("kineticist/metakinesis-maximized")),
-            (item: Feature("kineticist/metakinesis-quicken")),
+            (item: Feature("metakinesis-empowered")),
+            (item: Feature("metakinesis-maximized")),
+            (item: Feature("metakinesis-quicken")),
             (item: Feature("kineticist/metakinetic-master")),
             (item: Feature("kineticist/supercharge")),
             (item: Selection("kineticist/element"), replaced_by: [Selection("kineticist/kinetic-knight/element")]),
@@ -905,9 +848,6 @@
         loses: [
             (item: Feature("kineticist/gather-power")),
             (item: Feature("kineticist/infusion")),
-            (item: Feature("kineticist/metakinesis-empowered"), replaced_by: [Feature("kineticist/kinetic-sharpshooter/metakinesis-empowered")]),
-            (item: Feature("kineticist/metakinesis-maximized"), replaced_by: [Feature("kineticist/kinetic-sharpshooter/metakinesis-maximized")]),
-            (item: Feature("kineticist/metakinesis-quicken"), replaced_by: [Feature("kineticist/kinetic-sharpshooter/metakinesis-quicken")]),
             (item: Feature("kineticist/supercharge")),
         ],
     ),
@@ -916,10 +856,7 @@
         archetype: "kineticist/overwhelming-soul",
         loses: [
             (item: Feature("kineticist/burn")),
-            (item: Feature("kineticist/elemental-overflow")),
-            (item: Feature("kineticist/metakinesis-empowered"), replaced_by: [Feature("kineticist/overwhelming-soul/metakinesis-empowered")]),
-            (item: Feature("kineticist/metakinesis-maximized"), replaced_by: [Feature("kineticist/overwhelming-soul/metakinesis-maximized")]),
-            (item: Feature("kineticist/metakinesis-quicken"), replaced_by: [Feature("kineticist/overwhelming-soul/metakinesis-quicken")]),
+            (item: Feature("elemental-overflow")),
         ],
     ),
     // Game: PsychokineticistArchetype f2847dd4b12fffd41beaa3d7120d27ad: own copies stand for the base features the game keeps (equivalent model)
@@ -927,22 +864,14 @@
         archetype: "kineticist/psychokineticist",
         loses: [
             (item: Feature("kineticist/burn")),
-            (item: Feature("kineticist/elemental-overflow")),
-            (item: Feature("kineticist/metakinesis-empowered"), replaced_by: [Feature("kineticist/psychokineticist/metakinesis-empowered")]),
-            (item: Feature("kineticist/metakinesis-maximized"), replaced_by: [Feature("kineticist/psychokineticist/metakinesis-maximized")]),
-            (item: Feature("kineticist/metakinesis-quicken"), replaced_by: [Feature("kineticist/psychokineticist/metakinesis-quicken")]),
         ],
     ),
     // Game: ArcaneRiderArchetype 2dff80a045794cb9b5452fe7b66b79d7: own copies stand for the base features the game keeps (equivalent model)
     (
         archetype: "magus/arcane-rider",
         loses: [
-            (item: Feature("magus/arcane-heavy-armor")),
-            (item: Feature("magus/arcane-medium-armor")),
-            (item: Feature("magus/arcane-weapon-2"), replaced_by: [Feature("magus/arcane-rider/arcane-weapon-2")]),
-            (item: Feature("magus/arcane-weapon-3"), replaced_by: [Feature("magus/arcane-rider/arcane-weapon-3")]),
-            (item: Feature("magus/arcane-weapon-4"), replaced_by: [Feature("magus/arcane-rider/arcane-weapon-4")]),
-            (item: Feature("magus/arcane-weapon-5"), replaced_by: [Feature("magus/arcane-rider/arcane-weapon-5")]),
+            (item: Feature("arcane-heavy-armor")),
+            (item: Feature("arcane-medium-armor")),
             (item: Feature("magus/improved-spell-recall")),
             (item: Feature("magus/spell-recall")),
             (item: Feat("armor-proficiency-heavy-armor")),
@@ -953,13 +882,13 @@
     (
         archetype: "magus/armored-battlemage",
         loses: [
-            (item: Feature("magus/arcane-heavy-armor")),
-            (item: Feature("magus/arcane-medium-armor")),
+            (item: Feature("arcane-heavy-armor")),
+            (item: Feature("arcane-medium-armor")),
             (item: Feature("magus/arcane-pool"), replaced_by: [Feature("magus/armored-battlemage/arcane-pool-armored-battlemage")]),
-            (item: Feature("magus/arcane-weapon-2")),
-            (item: Feature("magus/arcane-weapon-3")),
-            (item: Feature("magus/arcane-weapon-4")),
-            (item: Feature("magus/arcane-weapon-5")),
+            (item: Feature("arcane-weapon-2")),
+            (item: Feature("arcane-weapon-3")),
+            (item: Feature("arcane-weapon-4")),
+            (item: Feature("arcane-weapon-5")),
             (item: Feature("magus/improved-spell-combat")),
             (item: Feature("magus/magus-proficiencies")),
             (item: Feature("magus/spell-combat")),
@@ -973,12 +902,6 @@
     (
         archetype: "magus/bladebound",
         loses: [
-            (item: Feature("magus/arcane-heavy-armor"), replaced_by: [Feature("magus/bladebound/arcane-heavy-armor")]),
-            (item: Feature("magus/arcane-medium-armor"), replaced_by: [Feature("magus/bladebound/arcane-medium-armor")]),
-            (item: Feature("magus/arcane-weapon-2"), replaced_by: [Feature("magus/bladebound/arcane-weapon-2")]),
-            (item: Feature("magus/arcane-weapon-3"), replaced_by: [Feature("magus/bladebound/arcane-weapon-3")]),
-            (item: Feature("magus/arcane-weapon-4"), replaced_by: [Feature("magus/bladebound/arcane-weapon-4")]),
-            (item: Feature("magus/arcane-weapon-5"), replaced_by: [Feature("magus/bladebound/arcane-weapon-5")]),
             (item: Slot(General), at: [5], why: "table has no bonus magus feat at 5 (its row shows Arcane Weapon +2, Changeable Gist) and has one at 11 and 17 only; the overview says it gains fewer magus arcana and bonus feats"),
             (item: Selection("magus/magus-arcana"), at: [3, 9, 12], waits_on: "ticket 283", why: "the game removes Magus Arcana at 3, 9 and 12"),
             (item: Feature("magus/true-magus"), waits_on: "ticket 283", why: "the game removes True Magus at 20"),
@@ -988,12 +911,6 @@
     (
         archetype: "magus/eldritch-archer",
         loses: [
-            (item: Feature("magus/arcane-heavy-armor"), replaced_by: [Feature("magus/eldritch-archer/arcane-heavy-armor")]),
-            (item: Feature("magus/arcane-medium-armor"), replaced_by: [Feature("magus/eldritch-archer/arcane-medium-armor")]),
-            (item: Feature("magus/arcane-weapon-2"), replaced_by: [Feature("magus/eldritch-archer/arcane-weapon-2")]),
-            (item: Feature("magus/arcane-weapon-3"), replaced_by: [Feature("magus/eldritch-archer/arcane-weapon-3")]),
-            (item: Feature("magus/arcane-weapon-4"), replaced_by: [Feature("magus/eldritch-archer/arcane-weapon-4")]),
-            (item: Feature("magus/arcane-weapon-5"), replaced_by: [Feature("magus/eldritch-archer/arcane-weapon-5")]),
             (item: Feature("magus/counterstrike")),
             (item: Feature("magus/spell-combat")),
             (item: Feature("magus/spellstrike")),
@@ -1003,13 +920,7 @@
     (
         archetype: "magus/eldritch-scion",
         loses: [
-            (item: Feature("magus/arcane-heavy-armor"), replaced_by: [Feature("magus/eldritch-scion/arcane-heavy-armor")]),
-            (item: Feature("magus/arcane-medium-armor"), replaced_by: [Feature("magus/eldritch-scion/arcane-medium-armor")]),
             (item: Feature("magus/arcane-pool")),
-            (item: Feature("magus/arcane-weapon-2"), replaced_by: [Feature("magus/eldritch-scion/arcane-weapon-2")]),
-            (item: Feature("magus/arcane-weapon-3"), replaced_by: [Feature("magus/eldritch-scion/arcane-weapon-3")]),
-            (item: Feature("magus/arcane-weapon-4"), replaced_by: [Feature("magus/eldritch-scion/arcane-weapon-4")]),
-            (item: Feature("magus/arcane-weapon-5"), replaced_by: [Feature("magus/eldritch-scion/arcane-weapon-5")]),
             (item: Feature("magus/greater-spell-combat")),
             (item: Feature("magus/improved-spell-combat")),
             (item: Feature("magus/improved-spell-recall")),
@@ -1020,12 +931,6 @@
     (
         archetype: "magus/hexcrafter",
         loses: [
-            (item: Feature("magus/arcane-heavy-armor"), replaced_by: [Feature("magus/hexcrafter/arcane-heavy-armor")]),
-            (item: Feature("magus/arcane-medium-armor"), replaced_by: [Feature("magus/hexcrafter/arcane-medium-armor")]),
-            (item: Feature("magus/arcane-weapon-2"), replaced_by: [Feature("magus/hexcrafter/arcane-weapon-2")]),
-            (item: Feature("magus/arcane-weapon-3"), replaced_by: [Feature("magus/hexcrafter/arcane-weapon-3")]),
-            (item: Feature("magus/arcane-weapon-4"), replaced_by: [Feature("magus/hexcrafter/arcane-weapon-4")]),
-            (item: Feature("magus/arcane-weapon-5"), replaced_by: [Feature("magus/hexcrafter/arcane-weapon-5")]),
             (item: Feature("magus/improved-spell-recall")),
             (item: Feature("magus/spell-recall")),
             (item: Selection("magus/magus-arcana"), at: [6, 9, 12, 15, 18], waits_on: "ticket 283", why: "the game removes Magus Arcana from 6 on and keeps the one at 3"),
@@ -1035,13 +940,13 @@
     (
         archetype: "magus/spell-dancer",
         loses: [
-            (item: Feature("magus/arcane-heavy-armor")),
-            (item: Feature("magus/arcane-medium-armor")),
+            (item: Feature("arcane-heavy-armor")),
+            (item: Feature("arcane-medium-armor")),
             (item: Feature("magus/arcane-pool")),
-            (item: Feature("magus/arcane-weapon-2")),
-            (item: Feature("magus/arcane-weapon-3")),
-            (item: Feature("magus/arcane-weapon-4")),
-            (item: Feature("magus/arcane-weapon-5")),
+            (item: Feature("arcane-weapon-2")),
+            (item: Feature("arcane-weapon-3")),
+            (item: Feature("arcane-weapon-4")),
+            (item: Feature("arcane-weapon-5")),
             (item: Feat("armor-proficiency-heavy-armor")),
             (item: Feat("armor-proficiency-medium-armor")),
             (item: Slot(General), at: [5], why: "table has no bonus magus feat at 5 (its row shows Arcane Movement, Spell Dance (II)) and has one at 11 and 17 only; the overview is silent on it, the table settles it"),
@@ -1051,12 +956,8 @@
     (
         archetype: "magus/sword-saint",
         loses: [
-            (item: Feature("magus/arcane-heavy-armor")),
-            (item: Feature("magus/arcane-medium-armor")),
-            (item: Feature("magus/arcane-weapon-2"), replaced_by: [Feature("magus/sword-saint/arcane-weapon-2")]),
-            (item: Feature("magus/arcane-weapon-3"), replaced_by: [Feature("magus/sword-saint/arcane-weapon-3")]),
-            (item: Feature("magus/arcane-weapon-4"), replaced_by: [Feature("magus/sword-saint/arcane-weapon-4")]),
-            (item: Feature("magus/arcane-weapon-5"), replaced_by: [Feature("magus/sword-saint/arcane-weapon-5")]),
+            (item: Feature("arcane-heavy-armor")),
+            (item: Feature("arcane-medium-armor")),
             (item: Feature("magus/fighter-training")),
             (item: Feature("magus/greater-spell-access")),
             (item: Feature("magus/improved-spell-recall")),
@@ -1111,10 +1012,10 @@
     (
         archetype: "monk/sensei",
         loses: [
-            (item: Feature("monk/evasion")),
+            (item: Feature("evasion")),
             (item: Feature("monk/fast-movement")),
             (item: Feature("monk/flurry-of-blows")),
-            (item: Feature("monk/improved-evasion")),
+            (item: Feature("improved-evasion")),
             (item: Feature("monk/ki-power-extra-attack"), count: 0, waits_on: "ticket 279", why: "the game keeps the level-3 ki power feature"),
             (item: Slot(OneOf(list: "monk/bonus-feats-1")), at: [2], why: "table has no bonus feats from list monk/bonus-feats-1 at these levels; its rows there show 2: Insightful Strike"),
             (item: Slot(OneOf(list: "monk/bonus-feats-10")), at: [10, 14], why: "table has no bonus feats from list monk/bonus-feats-10 at these levels; its rows there show 10: Ki Power, Ki Strike - Lawful, Mystic Wisdom; 14: Ki Power"),
@@ -1142,9 +1043,9 @@
     (
         archetype: "monk/student-of-stone",
         loses: [
-            (item: Feature("monk/evasion")),
+            (item: Feature("evasion")),
             (item: Feature("monk/fast-movement")),
-            (item: Feature("monk/improved-evasion")),
+            (item: Feature("improved-evasion")),
             (item: Feature("monk/ki-power-extra-attack"), count: 0, waits_on: "ticket 279", why: "the game keeps the level-3 ki power feature"),
             (item: Slot(OneOf(list: "monk/bonus-feats-10")), replaced_by: [Slot(OneOf(list: "monk/student-of-stone/bonus-feats-10"))]),
             (item: Slot(OneOf(list: "monk/bonus-feats-6")), replaced_by: [Slot(OneOf(list: "monk/student-of-stone/bonus-feats-6"))]),
@@ -1162,9 +1063,9 @@
     (
         archetype: "monk/zen-archer",
         loses: [
-            (item: Feature("monk/evasion")),
+            (item: Feature("evasion")),
             (item: Feature("monk/flurry-of-blows"), replaced_by: [Feature("monk/zen-archer/flurry-of-blows-zen-archer")]),
-            (item: Feature("monk/improved-evasion")),
+            (item: Feature("improved-evasion")),
             (item: Feature("monk/ki-power-extra-attack"), count: 0, waits_on: "ticket 279", why: "the game keeps the level-3 ki power feature"),
             (item: Feature("monk/monk-proficiencies"), count: 0, waits_on: "ticket 279", why: "the game keeps the monk's weapon proficiencies and adds the bows"),
             (item: Feature("monk/purity-of-body")),
@@ -1269,7 +1170,7 @@
         loses: [
             (item: Feature("paladin/divine-bond")),
             (item: Feature("paladin/mark-of-justice")),
-            (item: Feature("paladin/smite-evil")),
+            (item: Feature("smite-evil")),
         ],
     ),
     // Game: HospitalerArchetype fcdb27e1a6cef834ea1d7fab7c6e2b61: own copies stand for the base features the game keeps (equivalent model); the entries waiting on a ticket are the game's
@@ -1279,7 +1180,7 @@
             (item: Feature("paladin/channel-positive-energy"), replaced_by: [Feature("paladin/hospitaler/channel-positive-energy-hospitaler")]),
             (item: Feature("paladin/divine-bond"), count: 0, waits_on: "ticket 274", why: "the game keeps Divine Bond"),
             (item: Feature("paladin/mark-of-justice")),
-            (item: Feature("paladin/smite-evil"), replaced_by: [Feature("paladin/hospitaler/smite-evil-hospitaler")]),
+            (item: Feature("smite-evil"), at: [4, 10, 16], why: "The archetype's rows grant this game feature at other levels than the class's (one entry since ticket 244)."),
         ],
     ),
     // Game: MartyrArchetype 4d9a864eae278744aafa7ff23f2a6466: the game swaps in its own auras (equivalent model; its option list is the game check's); own copies stand for the base features the game keeps (equivalent model)
@@ -1290,7 +1191,7 @@
             (item: Feature("paladin/divine-grace")),
             (item: Feature("paladin/divine-health")),
             (item: Feature("paladin/mark-of-justice")),
-            (item: Feature("paladin/smite-evil")),
+            (item: Feature("smite-evil")),
         ],
     ),
     // Game: StonelordArchetype cf0f99b3cd7444a48681b1c1c4aa2a41
@@ -1301,7 +1202,7 @@
             (item: Feature("paladin/divine-health")),
             (item: Feature("paladin/holy-champion")),
             (item: Feature("paladin/mark-of-justice")),
-            (item: Feature("paladin/smite-evil")),
+            (item: Feature("smite-evil")),
             (item: Selection("paladin/mercy"), at: [3, 9, 15], why: "table has no Mercy at these levels; its rows there show 3: Stoneblood, Aura of Courage; 9: nothing; 15: nothing"),
         ],
     ),
@@ -1315,7 +1216,7 @@
             (item: Feature("paladin/holy-champion")),
             (item: Feature("paladin/lay-on-hands")),
             (item: Feature("paladin/mark-of-justice")),
-            (item: Feature("paladin/smite-evil")),
+            (item: Feature("smite-evil")),
         ],
     ),
     // Game: WarriorOfTheHolyLightArchetype cc70a9fdcd8781a4ca2f0e594f066964
@@ -1331,8 +1232,8 @@
         archetype: "ranger/demonslayer",
         loses: [
             (item: Feature("ranger/favored-enemy")),
-            (item: Feature("ranger/improved-quarry"), count: 0, waits_on: "ticket 275", why: "the game keeps Improved Quarry and adds its own at 19"),
-            (item: Feature("ranger/quarry"), count: 0, waits_on: "ticket 275", why: "the game keeps Quarry and adds its own at 11"),
+            (item: Feature("improved-quarry"), count: 0, waits_on: "ticket 275", why: "the game keeps Improved Quarry and adds its own at 19"),
+            (item: Feature("quarry"), count: 0, waits_on: "ticket 275", why: "the game keeps Quarry and adds its own at 11"),
             (item: Feat("endurance")),
         ],
     ),
@@ -1354,8 +1255,8 @@
             (item: Feature("ranger/camouflage")),
             (item: Feature("ranger/hunters-bond")),
             (item: Feature("ranger/master-hunter")),
-            (item: Feature("ranger/evasion"), waits_on: "ticket 275", why: "the game removes Evasion at 9"),
-            (item: Feature("ranger/improved-evasion"), waits_on: "ticket 275", why: "the game removes Improved Evasion at 16"),
+            (item: Feature("evasion"), waits_on: "ticket 275", why: "the game removes Evasion at 9"),
+            (item: Feature("improved-evasion"), waits_on: "ticket 275", why: "the game removes Improved Evasion at 16"),
         ],
     ),
     // Game: FreebooterArchetype 4fd9705f1aebf614f9500bb0e7341179: the game swaps in its own Master Hunter (equivalent model; its option list is the game check's)
@@ -1392,9 +1293,9 @@
         archetype: "ranger/stormwalker",
         loses: [
             (item: Feature("ranger/hunters-bond")),
-            (item: Feature("ranger/improved-evasion")),
-            (item: Feature("ranger/improved-quarry")),
-            (item: Feature("ranger/quarry")),
+            (item: Feature("improved-evasion")),
+            (item: Feature("improved-quarry")),
+            (item: Feature("quarry")),
             (item: Slot(OptionList(selection: "ranger/combat-style-feat"))),
             (item: Selection("ranger/combat-style-feat")),
         ],
@@ -1403,7 +1304,7 @@
     (
         archetype: "rogue/dark-lurker",
         loses: [
-            (item: Feature("rogue/evasion")),
+            (item: Feature("evasion")),
             (item: Selection("rogue/rogue-talents"), at: [2, 8, 14], waits_on: "ticket 276", why: "the game removes the talent at every even level and gives its own talent selection at the others, 20 included (equivalent model)"),
         ],
     ),
@@ -1411,9 +1312,9 @@
     (
         archetype: "rogue/eldritch-scoundrel",
         loses: [
-            (item: Feature("rogue/improved-uncanny-dodge")),
-            (item: Feature("rogue/sneak-attack"), replaced_by: [Feature("rogue/eldritch-scoundrel/sneak-attack-eldritch-scoundrel")]),
-            (item: Feature("rogue/uncanny-dodge")),
+            (item: Feature("improved-uncanny-dodge")),
+            (item: Feature("sneak-attack"), at: [5, 9, 13, 17], why: "The archetype's rows grant this game feature at other levels than the class's (one entry since ticket 244)."),
+            (item: Feature("uncanny-dodge")),
             (item: Feat("armor-proficiency-light-armor")),
             (item: Selection("rogue/rogue-talents"), at: [4, 6, 10, 14, 18], why: "table has no Rogue Talents at these levels; its rows there show 4: Debilitating Injury; 6: nothing; 10: Advanced Talents; 14: nothing; 18: nothing"),
         ],
@@ -1430,14 +1331,14 @@
     (
         archetype: "rogue/master-of-all",
         loses: [
-            (item: Feature("rogue/sneak-attack"), replaced_by: [Feature("rogue/master-of-all/sneak-attack-master-of-all")]),
+            (item: Feature("sneak-attack"), at: [3, 9, 15], why: "The archetype's rows grant this game feature at other levels than the class's (one entry since ticket 244)."),
         ],
     ),
     // Game: RowdyArchetype 4dbc4b7f2d5149ce83854bffa72035ce
     (
         archetype: "rogue/rowdy",
         loses: [
-            (item: Feature("rogue/evasion")),
+            (item: Feature("evasion")),
             (item: Feat("weapon-finesse")),
             (item: Selection("rogue/finesse-training")),
         ],
@@ -1446,8 +1347,8 @@
     (
         archetype: "rogue/sylvan-trickster",
         loses: [
-            (item: Feature("rogue/improved-uncanny-dodge")),
-            (item: Feature("rogue/uncanny-dodge")),
+            (item: Feature("improved-uncanny-dodge")),
+            (item: Feature("uncanny-dodge")),
             (item: Selection("rogue/rogue-talents")),
         ],
     ),
@@ -1464,7 +1365,7 @@
         archetype: "rogue/underground-chemist",
         why: "The Underground Chemist loses Evasion and the base rogue-talent picks: it has none at 4 (the table shows Precise Splash Weapons there) and takes its picks from 10 on through its own Discovery selection, which offers the rogue talents as well as the alchemist discoveries, so no pick is lost; the table prints Rogue Talent at 12 to 20 and Discovery at 10.",
         loses: [
-            (item: Feature("rogue/evasion")),
+            (item: Feature("evasion")),
             (item: Selection("rogue/rogue-talents"), at: [4, 10], waits_on: "ticket 276", why: "the game removes the talent at 4 and 10 only and keeps the rogue's talents from 12"),
         ],
     ),
@@ -1472,7 +1373,6 @@
     (
         archetype: "shaman/possessed-shaman",
         loses: [
-            (item: Feature("shaman/orisons"), replaced_by: [Feature("shaman/possessed-shaman/orisons")]),
             (item: Feature("shaman/wandering-hex"), at: [6], why: "table has no Wandering Hex at these levels; its rows there show 6: Wandering Skills"),
             (item: Feature("shaman/wandering-spirit-greater-ability"), replaced_by: [Feature("shaman/possessed-shaman/wandering-spirit-greater-ability")]),
             (item: Feature("shaman/wandering-spirit-true-ability"), replaced_by: [Feature("shaman/possessed-shaman/wandering-spirit-true-ability")]),
@@ -1483,7 +1383,6 @@
     (
         archetype: "shaman/prophet-of-pestilence",
         loses: [
-            (item: Feature("shaman/orisons"), replaced_by: [Feature("shaman/prophet-of-pestilence/orisons")]),
             (item: Feature("shaman/spirit-animal")),
             (item: Feature("shaman/wandering-hex")),
             (item: Feature("shaman/wandering-spirit")),
@@ -1497,7 +1396,6 @@
     (
         archetype: "shaman/shadow-shaman",
         loses: [
-            (item: Feature("shaman/orisons"), replaced_by: [Feature("shaman/shadow-shaman/orisons")]),
             (item: Feature("shaman/wandering-hex")),
             (item: Feature("shaman/wandering-spirit")),
             (item: Feature("shaman/wandering-spirit-greater-ability")),
@@ -1509,7 +1407,6 @@
     (
         archetype: "shaman/spirit-hunter",
         loses: [
-            (item: Feature("shaman/orisons"), replaced_by: [Feature("shaman/spirit-hunter/orisons")]),
             (item: Feature("shaman/spirit-animal")),
             (item: Feature("shaman/wandering-hex")),
             (item: Feature("shaman/wandering-spirit")),
@@ -1521,7 +1418,6 @@
     (
         archetype: "shaman/spirit-warden",
         loses: [
-            (item: Feature("shaman/orisons"), replaced_by: [Feature("shaman/spirit-warden/orisons")]),
             (item: Feature("shaman/wandering-spirit-greater-ability"), replaced_by: [Feature("shaman/spirit-warden/wandering-spirit-greater-ability")]),
             (item: Feature("shaman/wandering-spirit-true-ability"), replaced_by: [Feature("shaman/spirit-warden/wandering-spirit-true-ability")]),
             (item: Selection("shaman/hex"), at: [2, 10], why: "table has no Hex at these levels; its rows there show 2: Rebuke Spirits; 10: Laugh at Death"),
@@ -1531,7 +1427,6 @@
     (
         archetype: "shaman/unsworn-shaman",
         loses: [
-            (item: Feature("shaman/orisons"), replaced_by: [Feature("shaman/unsworn-shaman/orisons")]),
             (item: Feature("shaman/wandering-hex")),
             (item: Feature("shaman/wandering-spirit")),
             (item: Feature("shaman/wandering-spirit-greater-ability")),
@@ -1544,7 +1439,6 @@
     (
         archetype: "shaman/wildland-shaman",
         loses: [
-            (item: Feature("shaman/orisons"), replaced_by: [Feature("shaman/wildland-shaman/orisons")]),
             (item: Feature("shaman/spirit-animal")),
             (item: Feature("shaman/wandering-hex"), count: 0, waits_on: "ticket 278", why: "the game keeps Wandering Hex"),
             (item: Feature("shaman/wandering-spirit")),
@@ -1557,7 +1451,6 @@
     (
         archetype: "shaman/witch-doctor",
         loses: [
-            (item: Feature("shaman/orisons"), replaced_by: [Feature("shaman/witch-doctor/orisons")]),
             (item: Feature("shaman/wandering-spirit-greater-ability"), replaced_by: [Feature("shaman/witch-doctor/wandering-spirit-greater-ability")]),
             (item: Feature("shaman/wandering-spirit-true-ability"), replaced_by: [Feature("shaman/witch-doctor/wandering-spirit-true-ability")]),
             (item: Selection("shaman/hex"), at: [4, 8, 12], waits_on: "ticket 278", why: "the game removes the hex at 4, 8 and 12"),
@@ -1570,14 +1463,14 @@
             (item: Feature("shifter/chimeric-aspect")),
             (item: Feature("shifter/final-aspect")),
             (item: Feature("shifter/greater-chimeric-aspect")),
-            (item: Feature("shifter/major-form")),
+            (item: Feature("major-form")),
             (item: Feature("shifter/shifter-claws")),
-            (item: Feature("shifter/shifter-claws-1-crit-multiplier")),
-            (item: Feature("shifter/shifter-claws-1d10")),
-            (item: Feature("shifter/shifter-claws-1d6")),
-            (item: Feature("shifter/shifter-claws-1d8")),
-            (item: Feature("shifter/shifter-claws-adamantine-and-universal")),
-            (item: Feature("shifter/shifter-claws-cold-iron-magic-and-silver")),
+            (item: Feature("shifter-claws-1-crit-multiplier")),
+            (item: Feature("shifter-claws-1d10")),
+            (item: Feature("shifter-claws-1d6")),
+            (item: Feature("shifter-claws-1d8")),
+            (item: Feature("shifter-claws-adamantine-and-universal")),
+            (item: Feature("shifter-claws-cold-iron-magic-and-silver")),
             (item: Selection("shifter/shifter-aspect")),
         ],
     ),
@@ -1588,13 +1481,7 @@
             (item: Feature("shifter/chimeric-aspect")),
             (item: Feature("shifter/final-aspect")),
             (item: Feature("shifter/greater-chimeric-aspect")),
-            (item: Feature("shifter/major-form")),
-            (item: Feature("shifter/shifter-claws-1-crit-multiplier"), replaced_by: [Feature("shifter/dragonblood-shifter/shifter-claws-1-crit-multiplier")]),
-            (item: Feature("shifter/shifter-claws-1d10"), replaced_by: [Feature("shifter/dragonblood-shifter/shifter-claws-1d10")]),
-            (item: Feature("shifter/shifter-claws-1d6"), replaced_by: [Feature("shifter/dragonblood-shifter/shifter-claws-1d6")]),
-            (item: Feature("shifter/shifter-claws-1d8"), replaced_by: [Feature("shifter/dragonblood-shifter/shifter-claws-1d8")]),
-            (item: Feature("shifter/shifter-claws-adamantine-and-universal"), replaced_by: [Feature("shifter/dragonblood-shifter/shifter-claws-adamantine-and-universal")]),
-            (item: Feature("shifter/shifter-claws-cold-iron-magic-and-silver"), replaced_by: [Feature("shifter/dragonblood-shifter/shifter-claws-cold-iron-magic-and-silver")]),
+            (item: Feature("major-form")),
             (item: Selection("shifter/shifter-aspect")),
         ],
     ),
@@ -1605,13 +1492,7 @@
             (item: Feature("shifter/chimeric-aspect")),
             (item: Feature("shifter/final-aspect")),
             (item: Feature("shifter/greater-chimeric-aspect")),
-            (item: Feature("shifter/major-form")),
-            (item: Feature("shifter/shifter-claws-1-crit-multiplier"), replaced_by: [Feature("shifter/feyform-shifter/shifter-claws-1-crit-multiplier")]),
-            (item: Feature("shifter/shifter-claws-1d10"), replaced_by: [Feature("shifter/feyform-shifter/shifter-claws-1d10")]),
-            (item: Feature("shifter/shifter-claws-1d6"), replaced_by: [Feature("shifter/feyform-shifter/shifter-claws-1d6")]),
-            (item: Feature("shifter/shifter-claws-1d8"), replaced_by: [Feature("shifter/feyform-shifter/shifter-claws-1d8")]),
-            (item: Feature("shifter/shifter-claws-adamantine-and-universal"), replaced_by: [Feature("shifter/feyform-shifter/shifter-claws-adamantine-and-universal")]),
-            (item: Feature("shifter/shifter-claws-cold-iron-magic-and-silver"), replaced_by: [Feature("shifter/feyform-shifter/shifter-claws-cold-iron-magic-and-silver")]),
+            (item: Feature("major-form")),
             (item: Selection("shifter/shifter-aspect")),
         ],
     ),
@@ -1622,13 +1503,7 @@
             (item: Feature("shifter/chimeric-aspect")),
             (item: Feature("shifter/defensive-instinct")),
             (item: Feature("shifter/greater-chimeric-aspect")),
-            (item: Feature("shifter/major-form")),
-            (item: Feature("shifter/shifter-claws-1-crit-multiplier"), replaced_by: [Feature("shifter/fiendflesh-shifter/shifter-claws-1-crit-multiplier")]),
-            (item: Feature("shifter/shifter-claws-1d10"), replaced_by: [Feature("shifter/fiendflesh-shifter/shifter-claws-1d10")]),
-            (item: Feature("shifter/shifter-claws-1d6"), replaced_by: [Feature("shifter/fiendflesh-shifter/shifter-claws-1d6")]),
-            (item: Feature("shifter/shifter-claws-1d8"), replaced_by: [Feature("shifter/fiendflesh-shifter/shifter-claws-1d8")]),
-            (item: Feature("shifter/shifter-claws-adamantine-and-universal"), replaced_by: [Feature("shifter/fiendflesh-shifter/shifter-claws-adamantine-and-universal")]),
-            (item: Feature("shifter/shifter-claws-cold-iron-magic-and-silver"), replaced_by: [Feature("shifter/fiendflesh-shifter/shifter-claws-cold-iron-magic-and-silver")]),
+            (item: Feature("major-form")),
             (item: Selection("shifter/shifter-aspect")),
         ],
     ),
@@ -1638,13 +1513,7 @@
         loses: [
             (item: Feature("shifter/chimeric-aspect")),
             (item: Feature("shifter/greater-chimeric-aspect")),
-            (item: Feature("shifter/major-form")),
-            (item: Feature("shifter/shifter-claws-1-crit-multiplier"), replaced_by: [Feature("shifter/griffonheart-shifter/shifter-claws-1-crit-multiplier")]),
-            (item: Feature("shifter/shifter-claws-1d10"), replaced_by: [Feature("shifter/griffonheart-shifter/shifter-claws-1d10")]),
-            (item: Feature("shifter/shifter-claws-1d6"), replaced_by: [Feature("shifter/griffonheart-shifter/shifter-claws-1d6")]),
-            (item: Feature("shifter/shifter-claws-1d8"), replaced_by: [Feature("shifter/griffonheart-shifter/shifter-claws-1d8")]),
-            (item: Feature("shifter/shifter-claws-adamantine-and-universal"), replaced_by: [Feature("shifter/griffonheart-shifter/shifter-claws-adamantine-and-universal")]),
-            (item: Feature("shifter/shifter-claws-cold-iron-magic-and-silver"), replaced_by: [Feature("shifter/griffonheart-shifter/shifter-claws-cold-iron-magic-and-silver")]),
+            (item: Feature("major-form")),
             (item: Selection("shifter/shifter-aspect")),
         ],
     ),
@@ -1656,14 +1525,14 @@
             (item: Feature("shifter/defensive-instinct")),
             (item: Feature("shifter/final-aspect")),
             (item: Feature("shifter/greater-chimeric-aspect")),
-            (item: Feature("shifter/major-form")),
+            (item: Feature("major-form")),
             (item: Feature("shifter/shifter-claws")),
-            (item: Feature("shifter/shifter-claws-1-crit-multiplier")),
-            (item: Feature("shifter/shifter-claws-1d10")),
-            (item: Feature("shifter/shifter-claws-1d6")),
-            (item: Feature("shifter/shifter-claws-1d8")),
-            (item: Feature("shifter/shifter-claws-adamantine-and-universal")),
-            (item: Feature("shifter/shifter-claws-cold-iron-magic-and-silver")),
+            (item: Feature("shifter-claws-1-crit-multiplier")),
+            (item: Feature("shifter-claws-1d10")),
+            (item: Feature("shifter-claws-1d6")),
+            (item: Feature("shifter-claws-1d8")),
+            (item: Feature("shifter-claws-adamantine-and-universal")),
+            (item: Feature("shifter-claws-cold-iron-magic-and-silver")),
             (item: Selection("shifter/shifter-aspect")),
         ],
     ),
@@ -1674,13 +1543,7 @@
             (item: Feature("shifter/chimeric-aspect")),
             (item: Feature("shifter/final-aspect")),
             (item: Feature("shifter/greater-chimeric-aspect")),
-            (item: Feature("shifter/major-form")),
-            (item: Feature("shifter/shifter-claws-1-crit-multiplier"), replaced_by: [Feature("shifter/weretouched/shifter-claws-1-crit-multiplier")]),
-            (item: Feature("shifter/shifter-claws-1d10"), replaced_by: [Feature("shifter/weretouched/shifter-claws-1d10")]),
-            (item: Feature("shifter/shifter-claws-1d6"), replaced_by: [Feature("shifter/weretouched/shifter-claws-1d6")]),
-            (item: Feature("shifter/shifter-claws-1d8"), replaced_by: [Feature("shifter/weretouched/shifter-claws-1d8")]),
-            (item: Feature("shifter/shifter-claws-adamantine-and-universal"), replaced_by: [Feature("shifter/weretouched/shifter-claws-adamantine-and-universal")]),
-            (item: Feature("shifter/shifter-claws-cold-iron-magic-and-silver"), replaced_by: [Feature("shifter/weretouched/shifter-claws-cold-iron-magic-and-silver")]),
+            (item: Feature("major-form")),
             (item: Feature("shifter/track")),
             (item: Feature("shifter/woodland-grace")),
             (item: Selection("shifter/shifter-aspect")),
@@ -1691,13 +1554,6 @@
         archetype: "shifter/wild-effigy",
         loses: [
             (item: Feature("shifter/defensive-instinct")),
-            (item: Feature("shifter/major-form"), replaced_by: [Feature("shifter/wild-effigy/major-form")]),
-            (item: Feature("shifter/shifter-claws-1-crit-multiplier"), replaced_by: [Feature("shifter/wild-effigy/shifter-claws-1-crit-multiplier")]),
-            (item: Feature("shifter/shifter-claws-1d10"), replaced_by: [Feature("shifter/wild-effigy/shifter-claws-1d10")]),
-            (item: Feature("shifter/shifter-claws-1d6"), replaced_by: [Feature("shifter/wild-effigy/shifter-claws-1d6")]),
-            (item: Feature("shifter/shifter-claws-1d8"), replaced_by: [Feature("shifter/wild-effigy/shifter-claws-1d8")]),
-            (item: Feature("shifter/shifter-claws-adamantine-and-universal"), replaced_by: [Feature("shifter/wild-effigy/shifter-claws-adamantine-and-universal")]),
-            (item: Feature("shifter/shifter-claws-cold-iron-magic-and-silver"), replaced_by: [Feature("shifter/wild-effigy/shifter-claws-cold-iron-magic-and-silver")]),
             (item: Feature("shifter/track")),
         ],
     ),
@@ -1705,13 +1561,8 @@
     (
         archetype: "skald/battle-scion",
         loses: [
-            (item: Feature("skald/bardic-knowledge"), replaced_by: [Feature("skald/battle-scion/bardic-knowledge-battle-scion")]),
-            (item: Feature("skald/dirge-of-doom"), replaced_by: [Feature("skald/battle-scion/dirge-of-doom")]),
-            (item: Feature("skald/improved-uncanny-dodge"), replaced_by: [Feature("skald/battle-scion/improved-uncanny-dodge")]),
-            (item: Feature("skald/lore-master"), replaced_by: [Feature("skald/battle-scion/lore-master")]),
+            (item: Feature("skald-bardic-knowledge"), replaced_by: [Feature("skald/battle-scion/bardic-knowledge-battle-scion")]),
             (item: Feature("skald/raging-song"), count: 0, waits_on: "ticket 286", why: "the game keeps Raging Song"),
-            (item: Feature("skald/uncanny-dodge"), replaced_by: [Feature("skald/battle-scion/uncanny-dodge")]),
-            (item: Feature("skald/well-versed"), replaced_by: [Feature("skald/battle-scion/well-versed")]),
             (item: Selection("barbarian/rage-power")),
         ],
     ),
@@ -1719,12 +1570,6 @@
     (
         archetype: "skald/battle-singer",
         loses: [
-            (item: Feature("skald/bardic-knowledge"), replaced_by: [Feature("skald/battle-singer/bardic-knowledge")]),
-            (item: Feature("skald/dirge-of-doom"), replaced_by: [Feature("skald/battle-singer/dirge-of-doom")]),
-            (item: Feature("skald/improved-uncanny-dodge"), replaced_by: [Feature("skald/battle-singer/improved-uncanny-dodge")]),
-            (item: Feature("skald/lore-master"), replaced_by: [Feature("skald/battle-singer/lore-master")]),
-            (item: Feature("skald/uncanny-dodge"), replaced_by: [Feature("skald/battle-singer/uncanny-dodge")]),
-            (item: Feature("skald/well-versed"), replaced_by: [Feature("skald/battle-singer/well-versed")]),
             (item: Selection("barbarian/rage-power"), at: [3, 9, 15], why: "table has no Rage Power at these levels; its rows there show 3: Battle Song - First Verse; 9: Battle Song - Second Verse, Damage Reduction; 15: Battle Song - Final Verse"),
         ],
     ),
@@ -1732,14 +1577,9 @@
     (
         archetype: "skald/court-poet",
         loses: [
-            (item: Feature("skald/bardic-knowledge"), replaced_by: [Feature("skald/court-poet/bardic-knowledge")]),
-            (item: Feature("skald/dirge-of-doom"), replaced_by: [Feature("skald/court-poet/dirge-of-doom")]),
-            (item: Feature("skald/improved-uncanny-dodge"), replaced_by: [Feature("skald/court-poet/improved-uncanny-dodge")]),
             (item: Feature("skald/inspired-rage")),
-            (item: Feature("skald/lore-master"), replaced_by: [Feature("skald/court-poet/lore-master")]),
             (item: Feature("skald/song-of-strength")),
-            (item: Feature("skald/uncanny-dodge"), replaced_by: [Feature("skald/court-poet/uncanny-dodge")]),
-            (item: Feature("skald/well-versed")),
+            (item: Feature("well-versed")),
             (item: Selection("barbarian/rage-power")),
         ],
     ),
@@ -1747,12 +1587,6 @@
     (
         archetype: "skald/demon-dancer",
         loses: [
-            (item: Feature("skald/bardic-knowledge"), replaced_by: [Feature("skald/demon-dancer/bardic-knowledge")]),
-            (item: Feature("skald/dirge-of-doom"), replaced_by: [Feature("skald/demon-dancer/dirge-of-doom")]),
-            (item: Feature("skald/improved-uncanny-dodge"), replaced_by: [Feature("skald/demon-dancer/improved-uncanny-dodge")]),
-            (item: Feature("skald/lore-master"), replaced_by: [Feature("skald/demon-dancer/lore-master")]),
-            (item: Feature("skald/uncanny-dodge"), replaced_by: [Feature("skald/demon-dancer/uncanny-dodge")]),
-            (item: Feature("skald/well-versed"), replaced_by: [Feature("skald/demon-dancer/well-versed")]),
             (item: Selection("barbarian/rage-power"), at: [3, 6, 9], why: "table has no Rage Power at these levels; its rows there show 3: Fiendish Maw; 6: Song of Strength, Fiend Totem; 9: Damage Reduction"),
         ],
     ),
@@ -1760,27 +1594,17 @@
     (
         archetype: "skald/herald-of-the-horn",
         loses: [
-            (item: Feature("skald/bardic-knowledge"), replaced_by: [Feature("skald/herald-of-the-horn/bardic-knowledge")]),
-            (item: Feature("skald/dirge-of-doom"), replaced_by: [Feature("skald/herald-of-the-horn/dirge-of-doom")]),
-            (item: Feature("skald/improved-uncanny-dodge"), replaced_by: [Feature("skald/herald-of-the-horn/improved-uncanny-dodge")]),
-            (item: Feature("skald/lore-master")),
+            (item: Feature("lore-master")),
             (item: Feature("skald/raging-song"), count: 0, waits_on: "ticket 286", why: "the game keeps Raging Song"),
-            (item: Feature("skald/uncanny-dodge"), replaced_by: [Feature("skald/herald-of-the-horn/uncanny-dodge")]),
-            (item: Feature("skald/well-versed"), replaced_by: [Feature("skald/herald-of-the-horn/well-versed")]),
         ],
     ),
     // Game: HuntCallerArchetype 67daa4f4f2b62f54cb3ec56bdc85dea6: own copies stand for the base features the game keeps (equivalent model)
     (
         archetype: "skald/hunt-caller",
         loses: [
-            (item: Feature("skald/bardic-knowledge"), replaced_by: [Feature("skald/hunt-caller/bardic-knowledge")]),
-            (item: Feature("skald/dirge-of-doom"), replaced_by: [Feature("skald/hunt-caller/dirge-of-doom")]),
-            (item: Feature("skald/improved-uncanny-dodge"), replaced_by: [Feature("skald/hunt-caller/improved-uncanny-dodge")]),
-            (item: Feature("skald/lore-master"), replaced_by: [Feature("skald/hunt-caller/lore-master")]),
             (item: Feature("skald/song-of-strength")),
             (item: Feature("skald/song-of-the-fallen")),
-            (item: Feature("skald/uncanny-dodge"), replaced_by: [Feature("skald/hunt-caller/uncanny-dodge")]),
-            (item: Feature("skald/well-versed")),
+            (item: Feature("well-versed")),
             (item: Selection("barbarian/rage-power"), at: [6, 18], why: "table has no Rage Power at these levels; its rows there show 6: Inspire Scent, Scent; 18: Call of the Wild III"),
         ],
     ),
@@ -1788,17 +1612,15 @@
     (
         archetype: "skald/inciter",
         loses: [
-            (item: Feature("skald/bardic-knowledge")),
+            (item: Feature("skald-bardic-knowledge")),
             (item: Feature("skald/damage-reduction")),
-            (item: Feature("skald/dirge-of-doom")),
-            (item: Feature("skald/improved-uncanny-dodge"), replaced_by: [Feature("skald/inciter/improved-uncanny-dodge")]),
-            (item: Feature("skald/lore-master")),
+            (item: Feature("dirge-of-doom")),
+            (item: Feature("lore-master")),
             (item: Feature("skald/master-skald")),
             (item: Feature("skald/raging-song"), count: 0, waits_on: "ticket 286", why: "the game keeps Raging Song"),
             (item: Feature("skald/song-of-strength")),
             (item: Feature("skald/song-of-the-fallen")),
-            (item: Feature("skald/uncanny-dodge"), replaced_by: [Feature("skald/inciter/uncanny-dodge")]),
-            (item: Feature("skald/well-versed")),
+            (item: Feature("well-versed")),
             (item: Feat("scribe-scrolls")),
             (item: Selection("barbarian/rage-power"), at: [9, 15], why: "table has no Rage Power at these levels; its rows there show 9: Skald Talent; 15: nothing"),
             (item: Selection("rogue/rogue-talents")),
@@ -1808,8 +1630,8 @@
     (
         archetype: "slayer/arcane-enforcer",
         loses: [
-            (item: Feature("slayer/improved-quarry")),
-            (item: Feature("slayer/quarry")),
+            (item: Feature("improved-quarry")),
+            (item: Feature("quarry")),
             (item: Feature("slayer/slayers-advance")),
             (item: Selection("slayer/slayer-talents"), at: [4, 10, 16], why: "table has no Slayer Talents at these levels; its rows there show 4: Arcanist Exploit; 10: Arcanist Exploit, Advanced Talents; 16: Arcanist Exploit"),
         ],
@@ -1818,7 +1640,7 @@
     (
         archetype: "slayer/bloodseeker",
         loses: [
-            (item: Feature("slayer/advanced-talents")),
+            (item: Feature("advanced-talents")),
             (item: Feature("slayer/master-slayer")),
             (item: Selection("slayer/slayer-talents")),
         ],
@@ -1834,8 +1656,8 @@
     (
         archetype: "slayer/executioner",
         loses: [
-            (item: Feature("slayer/improved-quarry")),
-            (item: Feature("slayer/quarry")),
+            (item: Feature("improved-quarry")),
+            (item: Feature("quarry")),
             (item: Selection("slayer/slayer-talents"), at: [4], why: "table has no Slayer Talents at these levels; its rows there show 4: Painful Strike"),
         ],
     ),
@@ -1844,9 +1666,9 @@
         archetype: "slayer/imitator",
         loses: [
             (item: Feature("slayer/slayers-advance")),
-            (item: Feature("slayer/sneak-attack"), replaced_by: [Feature("slayer/imitator/sneak-attack-imitator")]),
-            (item: Feature("slayer/studied-target")),
-            (item: Feature("slayer/studied-target-swift")),
+            (item: Feature("sneak-attack"), at: [6, 12, 18], why: "The archetype's rows grant this game feature at other levels than the class's (one entry since ticket 244)."),
+            (item: Feature("studied-target")),
+            (item: Feature("studied-target-swift")),
             (item: Selection("slayer/slayer-talents"), at: [4, 10, 16], why: "table has no Slayer Talents at these levels; its rows there show 4: nothing; 10: Advanced Talents; 16: nothing"),
         ],
     ),
@@ -1854,7 +1676,7 @@
     (
         archetype: "slayer/spawn-slayer",
         loses: [
-            (item: Feature("slayer/studied-target-swift")),
+            (item: Feature("studied-target-swift")),
         ],
     ),
     // Game: StygianSlayerArchetype 598f461cd7885304e8bae040122cb249
@@ -2002,7 +1824,6 @@
     (
         archetype: "witch/elemental-witch",
         loses: [
-            (item: Feature("witch/cantrips"), replaced_by: [Feature("witch/elemental-witch/cantrips")]),
             (item: Selection("witch/hex"), at: [1, 6, 10, 14, 18], waits_on: "ticket 278", why: "the game removes the hex at 1, 6, 10, 14 and 18"),
             (item: Selection("witch/patron")),
         ],
@@ -2011,7 +1832,6 @@
     (
         archetype: "witch/hag-of-gyronna",
         loses: [
-            (item: Feature("witch/cantrips"), replaced_by: [Feature("witch/hag-of-gyronna/cantrips")]),
             (item: Selection("witch/hex"), at: [2, 8, 12], why: "table has no Hex at these levels; its rows there show 2: Curdle Thoughts; 8: Sunder Hope; 12: Hag Crony"),
             (item: Selection("witch/patron")),
         ],
@@ -2020,7 +1840,6 @@
     (
         archetype: "witch/hagbound",
         loses: [
-            (item: Feature("witch/cantrips"), replaced_by: [Feature("witch/hagbound/cantrips")]),
             (item: Selection("witch/hex"), at: [1, 2, 8, 10, 14, 20], why: "table has no Hex at these levels; its rows there show 1: Hag's Claws, Hagbound Patron (level 0: Witch Proficiencies, Cantrips, Familiar); 2: Hunched Muscle; 8: nothing; 10: Major Hex, Vile Curse; 14: nothing; 20: Hag Transformation"),
             (item: Selection("witch/patron")),
         ],
@@ -2029,7 +1848,6 @@
     (
         archetype: "witch/hex-channeler",
         loses: [
-            (item: Feature("witch/cantrips"), replaced_by: [Feature("witch/hex-channeler/cantrips")]),
             (item: Selection("witch/hex"), at: [2], why: "table has no Hex at these levels; its rows there show 2: Channel Energy"),
         ],
     ),
@@ -2037,7 +1855,7 @@
     (
         archetype: "witch/keen-eyed-adventurer",
         loses: [
-            (item: Feature("witch/cantrips"), count: 0, waits_on: "ticket 278", why: "the game keeps the cantrips and adds Improved Cantrips"),
+            (item: Feature("witch-cantrips"), count: 0, waits_on: "ticket 278", why: "the game keeps the cantrips and adds Improved Cantrips"),
             (item: Selection("witch/hex"), at: [1, 6, 20], why: "table has no Hex at these levels; its rows there show 1: Patron (level 0: Witch Proficiencies, Improved Cantrips, Familiar); 6: Elemental Vortex; 20: Cantrip Mastery"),
         ],
     ),
@@ -2045,7 +1863,6 @@
     (
         archetype: "witch/ley-line-guardian",
         loses: [
-            (item: Feature("witch/cantrips"), replaced_by: [Feature("witch/ley-line-guardian/cantrips")]),
             (item: Feature("witch/familiar")),
             (item: Selection("witch/hex"), at: [1, 8], why: "table has no Hex at these levels; its rows there show 1: Conduit Surge, Patron (level 0: Witch Proficiencies, Cantrips, Ley Line Powered); 8: nothing"),
         ],
@@ -2054,7 +1871,6 @@
     (
         archetype: "witch/stigmatized-witch",
         loses: [
-            (item: Feature("witch/cantrips"), replaced_by: [Feature("witch/stigmatized-witch/cantrips")]),
             (item: Selection("witch/patron")),
         ],
     ),
@@ -2062,7 +1878,6 @@
     (
         archetype: "witch/witch-of-the-veil",
         loses: [
-            (item: Feature("witch/cantrips"), replaced_by: [Feature("witch/witch-of-the-veil/cantrips")]),
             (item: Selection("witch/hex"), at: [2, 8, 16], why: "table has no Hex at these levels; its rows there show 2: Shrouded Step; 8: nothing; 16: nothing"),
             (item: Selection("witch/patron")),
         ],

@@ -7,7 +7,7 @@
     guide: "cleric#angelfire-apostle",
     prerequisite: All([Any([Alignment(LawfulGood), Alignment(NeutralGood), Alignment(ChaoticGood)]), DeityOffers("cleric/domain/good")]),
     levels: [
-        (level: 1, features: ["cleric/angelfire-apostle/channel-positive-energy", "cleric/diminished-spellcasting"], feats: ["armor-proficiency-light-armor", "extra-channel", "shield-proficiency", "simple-weapon-proficiency"], selections: ["cleric/domain", "cleric/domain"]),
+        (level: 1, features: ["channel-positive-energy", "cleric/diminished-spellcasting"], feats: ["armor-proficiency-light-armor", "extra-channel", "shield-proficiency", "simple-weapon-proficiency"], selections: ["cleric/domain", "cleric/domain"]),
         (level: 5, features: ["cleric/angelfire-apostle/versatile-healing-channel"]),
         (level: 9, features: ["cleric/angelfire-apostle/cleansing-flames"]),
     ],

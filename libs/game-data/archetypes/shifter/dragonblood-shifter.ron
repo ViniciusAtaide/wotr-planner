@@ -7,18 +7,12 @@
     guide: "shifter#dragonblood-shifter",
     levels: [
         (level: 1, features: ["shifter/dragonblood-shifter/draconic-aspect-selection", "shifter/shifter-claws"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"]),
-        (level: 3, features: ["shifter/dragonblood-shifter/shifter-claws-cold-iron-magic-and-silver", "shifter/woodland-grace"]),
         (level: 4),
         (level: 5),
-        (level: 7, features: ["shifter/dragonblood-shifter/shifter-claws-1d6"]),
         (level: 9, features: ["shifter/dragonblood-shifter/wyrmshifter"]),
         (level: 10),
-        (level: 11, features: ["shifter/dragonblood-shifter/shifter-claws-1d8"]),
-        (level: 13, features: ["shifter/dragonblood-shifter/shifter-claws-1d10"]),
         (level: 14, features: ["shifter/dragonblood-shifter/improved-wyrmshifter"]),
         (level: 15),
-        (level: 17, features: ["shifter/dragonblood-shifter/shifter-claws-1-crit-multiplier"]),
-        (level: 19, features: ["shifter/dragonblood-shifter/shifter-claws-adamantine-and-universal"]),
         (level: 20, selections: ["shifter/dragonblood-shifter/greater-wyrmshifter"]),
     ],
 )

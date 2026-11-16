@@ -14,11 +14,11 @@ Class(
     levels: [
         (level: 1, features: ["stalwart-defender/ac-bonus", "stalwart-defender/defensive-stance"]),
         (level: 2, selections: ["stalwart-defender/defensive-powers"]),
-        (level: 3, features: ["stalwart-defender/uncanny-dodge"]),
+        (level: 3, features: ["uncanny-dodge"]),
         (level: 4, selections: ["stalwart-defender/defensive-powers"]),
         (level: 5, features: ["stalwart-defender/damage-reduction"]),
         (level: 6, selections: ["stalwart-defender/defensive-powers"]),
-        (level: 7, features: ["stalwart-defender/improved-uncanny-dodge"]),
+        (level: 7, features: ["improved-uncanny-dodge"]),
         (level: 8, selections: ["stalwart-defender/defensive-powers"]),
         (level: 9),
         (level: 10, selections: ["stalwart-defender/defensive-powers"]),

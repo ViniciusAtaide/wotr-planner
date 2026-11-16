@@ -4,8 +4,8 @@ MythicPath(
     name: "Angel",
     guide: "angel",
     ranks: [
-        (rank: 1, features: ["angel/bypass-epic-damage-reduction", "angel/close-to-the-heavens"]),
-        (rank: 2, features: ["angel/heavens-breath", "angel/summon-spirit-paladin", "angel/hard-to-kill"]),
+        (rank: 1, features: ["bypass-epic-damage-reduction", "angel/close-to-the-heavens"]),
+        (rank: 2, features: ["angel/heavens-breath", "angel/summon-spirit-paladin", "hard-to-kill"]),
         (rank: 3, features: ["angel/angelic-halo", "angel/summon-spirit-paladins", "angel/sword-of-heaven"]),
         (rank: 4, features: ["angel/summon-movanic-deva"], selections: ["angel/improved-sword-of-heaven"]),
         (rank: 5, features: ["angel/summon-movanic-devas"], selections: ["angel/improved-angelic-halo"]),

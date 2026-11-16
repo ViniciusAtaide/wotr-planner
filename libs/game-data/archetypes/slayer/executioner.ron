@@ -6,9 +6,9 @@
     summary: "Slayer specialised in killing humanoids and assassinating unaware targets.",
     guide: "slayer#executioner",
     levels: [
-        (level: 1, features: ["slayer/executioner/focused-killer", "slayer/slayer-proficiencies", "slayer/studied-target"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
+        (level: 1, features: ["slayer/executioner/focused-killer", "slayer/slayer-proficiencies", "studied-target"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
         (level: 4, features: ["slayer/executioner/painful-strike"]),
-        (level: 10, features: ["slayer/studied-target", "slayer/advanced-talents", "slayer/executioner/assassinate"], selections: ["slayer/slayer-talents"]),
+        (level: 10, features: ["studied-target", "advanced-talents", "slayer/executioner/assassinate"], selections: ["slayer/slayer-talents"]),
         (level: 14, features: ["slayer/executioner/assassinate"], selections: ["slayer/slayer-talents"]),
         (level: 19, features: ["slayer/executioner/assassinate"]),
     ],

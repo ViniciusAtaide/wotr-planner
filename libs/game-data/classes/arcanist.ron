@@ -12,7 +12,7 @@ Class(
     will: Good,
     class_skills: ["knowledge-arcana", "knowledge-world", "lore-nature", "lore-religion", "use-magic-device"],
     levels: [
-        (level: 1, arcane_spell_level: 1, features: ["arcanist/arcane-reservoir", "arcanist/cantrips", "arcanist/consume-spells"], feats: ["simple-weapon-proficiency"], selections: ["arcanist/arcanist-exploits"]),
+        (level: 1, arcane_spell_level: 1, features: ["arcane-reservoir", "arcanist-cantrips", "arcanist/consume-spells"], feats: ["simple-weapon-proficiency"], selections: ["arcanist/arcanist-exploits"]),
         (level: 2, arcane_spell_level: 1),
         (level: 3, arcane_spell_level: 1, selections: ["arcanist/arcanist-exploits"]),
         (level: 4, arcane_spell_level: 2),

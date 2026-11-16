@@ -4,8 +4,8 @@ MythicPath(
     name: "Demon",
     guide: "demon",
     ranks: [
-        (rank: 1, features: ["demon/bypass-epic-damage-reduction", "demon/close-to-the-abyss"]),
-        (rank: 2, features: ["demon/demonkind", "demon/summon-babau", "demon/hard-to-kill"]),
+        (rank: 1, features: ["bypass-epic-damage-reduction", "demon/close-to-the-abyss"]),
+        (rank: 2, features: ["demon/demonkind", "demon/summon-babau", "hard-to-kill"]),
         (rank: 3, features: ["demon/demonic-charge", "demon/demonic-claws", "demon/demonic-rage", "demon/summon-vrock"]),
         (rank: 4, features: ["demon/summon-gibrileth"], selections: ["demon/demonic-aspect"]),
         (rank: 5, features: ["demon/extra-minor-aspect", "demon/oolooddroo", "demon/true-demonkind"], selections: ["demon/demonic-aspect", "demon/major-demonic-aspect", "demon/major-demonic-aspect"]),

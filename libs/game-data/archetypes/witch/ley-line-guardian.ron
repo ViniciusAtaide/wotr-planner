@@ -7,7 +7,7 @@
     guide: "witch#ley-line-guardian",
     casting_ability: Charisma,
     levels: [
-        (level: 1, features: ["witch/ley-line-guardian/cantrips", "witch/ley-line-guardian/conduit-surge", "witch/ley-line-guardian/ley-line-powered"], feats: ["simple-weapon-proficiency"], selections: ["witch/patron"]),
+        (level: 1, features: ["witch-cantrips", "witch/ley-line-guardian/conduit-surge", "witch/ley-line-guardian/ley-line-powered"], feats: ["simple-weapon-proficiency"], selections: ["witch/patron"]),
         (level: 8),
     ],
 )

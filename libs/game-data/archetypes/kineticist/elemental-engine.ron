@@ -6,11 +6,9 @@
     summary: "Kineticist who gains large bonuses while at maximum Burn, but loses Supercharge.",
     guide: "kineticist#elemental-engine",
     levels: [
-        (level: 3, features: ["kineticist/elemental-engine/burnout", "kineticist/elemental-overflow"], selections: ["kineticist/infusions"]),
-        (level: 5, features: ["kineticist/elemental-engine/metakinesis-empowered", "kineticist/infusion-specialization"], selections: ["kineticist/infusions"]),
+        (level: 3, features: ["kineticist/elemental-engine/burnout", "elemental-overflow"], selections: ["kineticist/infusions"]),
         (level: 7, features: ["kineticist/elemental-engine/elemental-burnout"], selections: ["kineticist/expanded-element"]),
-        (level: 9, features: ["kineticist/elemental-engine/metakinesis-maximized"], selections: ["kineticist/infusions"]),
         (level: 11, selections: ["kineticist/infusions"]),
-        (level: 13, features: ["kineticist/elemental-engine/greater-elemental-burnout", "kineticist/elemental-engine/metakinesis-quicken"], selections: ["kineticist/infusions"]),
+        (level: 13, features: ["kineticist/elemental-engine/greater-elemental-burnout", "metakinesis-quicken"], selections: ["kineticist/infusions"]),
     ],
 )

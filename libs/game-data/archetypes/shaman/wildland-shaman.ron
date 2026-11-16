@@ -7,7 +7,7 @@
     guide: "shaman#wildland-shaman",
     prerequisite: Race("half-orc"),
     levels: [
-        (level: 1, features: ["shaman/wildland-shaman/animal-companion", "shaman/wildland-shaman/orisons"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "simple-weapon-proficiency"], selections: ["shaman/wildland-shaman/spirit"]),
+        (level: 1, features: ["shaman/wildland-shaman/animal-companion", "shaman-orisons"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "simple-weapon-proficiency"], selections: ["shaman/wildland-shaman/spirit"]),
         (level: 4, selections: ["shaman/hex"]),
         (level: 6, features: ["shaman/wildland-shaman/battle-hex"]),
         (level: 12, selections: ["shaman/hex"]),

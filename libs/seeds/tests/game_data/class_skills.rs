@@ -337,13 +337,7 @@ fn no_feature_stands_for_a_fixed_class_skill() {
     // Game: BloodlineArcaneClassSkillSelection 19ab16dba857d1a4ba617074f203f975 (Lore (Religion), Knowledge (World) or
     // Lore (Nature)), which SageBloodlineProgression 7d990675841a7354c957689a6707c6c2 holds too; that the data keeps
     // them as features is its shape, not a game fact
-    assert_eq!(
-        features,
-        [
-            ("sorcerer/bloodline/arcane/class-skill", "Class Skill"),
-            ("sorcerer/sage-sorcerer/class-skill", "Class Skill"),
-        ]
-    );
+    assert_eq!(features, [("arcane-bloodline-class-skill", "Class Skill")]);
     // The archetypes whose feature went hold the skill through their own list.
     // Game: SoheiArchetype fad7c56737ed12e42aacc330acc86428 (SoheiLoreNatureFeature d59fe46a1aa1ace4e987d843c8e309ff);
     // EmpyrealBloodlineProgression 8a95d80a3162d274896d50c2f18bb6b1 (BloodlineCelestialClassSkill);

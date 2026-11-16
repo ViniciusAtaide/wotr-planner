@@ -6,7 +6,6 @@
     summary: "Arcanist who boosts transmutation spells and shares self-buffs, with fewer exploits.",
     guide: "arcanist#brown-fur-transmuter",
     levels: [
-        (level: 1, features: ["arcanist/arcane-reservoir", "arcanist/brown-fur-transmuter/cantrips", "arcanist/consume-spells"], feats: ["simple-weapon-proficiency"], selections: ["arcanist/arcanist-exploits"]),
         (level: 3, features: ["arcanist/brown-fur-transmuter/powerful-change"]),
         (level: 9, features: ["arcanist/brown-fur-transmuter/shared-transmutation"]),
         (level: 20, features: ["arcanist/brown-fur-transmuter/transmutation-supremacy"]),

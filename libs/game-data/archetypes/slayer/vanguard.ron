@@ -8,6 +8,6 @@
     levels: [
         (level: 2, features: ["slayer/vanguard/vanguard-tactician"], feat_slots: [Category(Teamwork)]),
         (level: 4, features: ["slayer/vanguard/vanguards-bond"]),
-        (level: 7, features: ["slayer/studied-target-swift", "slayer/vanguard/uncanny-dodge"]),
+        (level: 7, features: ["studied-target-swift", "uncanny-dodge-talent"]),
     ],
 )

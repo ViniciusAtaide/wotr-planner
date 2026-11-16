@@ -7,9 +7,9 @@
     guide: "cavalier#cavalier-of-the-paw",
     prerequisite: Race("halfling"),
     levels: [
-        (level: 1, features: ["cavalier/animal-companion", "cavalier/challenge", "cavalier/tactician"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], feat_slots: [Category(Teamwork)]),
+        (level: 1, features: ["cavalier-mount", "cavalier/challenge", "cavalier/tactician"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], feat_slots: [Category(Teamwork)]),
         (level: 2, features: ["cavalier/cavalier-of-the-paw/danger-ward"]),
         (level: 8, features: ["cavalier/cavalier-of-the-paw/canine-ferocity"], feat_slots: [Category(MountedCombat)]),
-        (level: 15, features: ["cavalier/banner", "cavalier/cavalier-of-the-paw/giant-slayer", "cavalier/tactician"]),
+        (level: 15, features: ["banner", "cavalier/cavalier-of-the-paw/giant-slayer", "cavalier/tactician"]),
     ],
 )

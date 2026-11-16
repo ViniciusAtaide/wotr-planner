@@ -6,7 +6,7 @@
     guide: "sorcerer#arcane",
     arcana: "sorcerer/bloodline/arcane/arcane-arcana",
     levels: [
-        (level: 1, features: ["sorcerer/bloodline/arcane/arcane-arcana", "sorcerer/bloodline/arcane/arcane-bond", "sorcerer/bloodline/arcane/class-skill"], feat_list: "sorcerer/bloodline/arcane/feats"),
+        (level: 1, features: ["sorcerer/bloodline/arcane/arcane-arcana", "sorcerer/bloodline/arcane/arcane-bond", "arcane-bloodline-class-skill"], feat_list: "sorcerer/bloodline/arcane/feats"),
         (level: 3, features: ["sorcerer/bloodline/arcane/combat-casting-adept"]),
         (level: 15, selections: ["sorcerer/bloodline/arcane/school-power"]),
         (level: 20, features: ["sorcerer/bloodline/arcane/arcane-apotheosis"]),

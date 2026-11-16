@@ -9,10 +9,10 @@
     fort: Some(Poor),
     will: Some(Good),
     levels: [
-        (level: 1, features: ["slayer/arcane-enforcer/arcane-reservoir", "slayer/slayer-proficiencies", "slayer/studied-target"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], selections: ["arcanist/arcanist-exploits"]),
+        (level: 1, features: ["slayer/arcane-enforcer/arcane-reservoir", "slayer/slayer-proficiencies", "studied-target"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], selections: ["arcanist/arcanist-exploits"]),
         (level: 4, selections: ["arcanist/arcanist-exploits"]),
-        (level: 7, features: ["slayer/studied-target-swift"], selections: ["arcanist/arcanist-exploits"]),
-        (level: 10, features: ["slayer/studied-target", "slayer/advanced-talents"], selections: ["arcanist/arcanist-exploits"]),
+        (level: 7, features: ["studied-target-swift"], selections: ["arcanist/arcanist-exploits"]),
+        (level: 10, features: ["studied-target", "advanced-talents"], selections: ["arcanist/arcanist-exploits"]),
         (level: 13, selections: ["arcanist/arcanist-exploits", "arcanist/greater-exploits"]),
         (level: 14, selections: ["slayer/slayer-talents"]),
         (level: 16, selections: ["arcanist/arcanist-exploits"]),

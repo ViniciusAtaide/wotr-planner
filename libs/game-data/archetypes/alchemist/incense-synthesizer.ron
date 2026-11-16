@@ -6,7 +6,7 @@
     summary: "Alchemist whose incense fog buffs allies; no mutagen and fewer bomb dice increases.",
     guide: "alchemist#incense-synthesizer",
     levels: [
-        (level: 1, features: ["alchemist/alchemist-proficiencies", "alchemist/bomb"], feats: ["armor-proficiency-light-armor", "brew-potions", "simple-weapon-proficiency", "throw-anything"], selections: ["alchemist/incense-synthesizer/incense-fog"]),
+        (level: 1, features: ["alchemist/alchemist-proficiencies", "bomb"], feats: ["armor-proficiency-light-armor", "brew-potions", "simple-weapon-proficiency", "throw-anything"], selections: ["alchemist/incense-synthesizer/incense-fog"]),
         (level: 3, selections: ["alchemist/incense-synthesizer/incense-fog"]),
         (level: 6, selections: ["alchemist/discovery", "alchemist/incense-synthesizer/incense-fog"]),
         (level: 9, selections: ["alchemist/incense-synthesizer/incense-fog"]),

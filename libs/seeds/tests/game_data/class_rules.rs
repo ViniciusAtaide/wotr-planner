@@ -122,12 +122,12 @@ fn winter_witch_levels_stack_with_witch_levels_for_major_and_grand_hexes() {
     };
     assert_eq!(
         class("winter-witch").counts_as,
-        BTreeSet::from([toward("witch/major-hexes"), toward("witch/grand-hexes")])
+        BTreeSet::from([toward("major-hexes"), toward("grand-hexes")])
     );
     let mut keys = vec!["witch"; 9];
     keys.push("winter-witch");
     let sheet = engine().evaluate(&classes(&keys));
-    let major = FeatureKey::new("witch/major-hexes");
+    let major = FeatureKey::new("major-hexes");
     assert_eq!(sheet.at(9).unwrap().feature_count(&major), 0);
     assert_eq!(sheet.at(10).unwrap().feature_count(&major), 1);
 }

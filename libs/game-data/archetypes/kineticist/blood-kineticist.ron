@@ -7,11 +7,10 @@
     guide: "kineticist#blood-kineticist",
     levels: [
         (level: 1, features: ["kineticist/blood-kineticist/wrack", "kineticist/burn", "kineticist/gather-power", "kineticist/kinetic-blast"], feats: ["armor-proficiency-light-armor", "simple-weapon-proficiency"], selections: ["kineticist/blood-kineticist/element"]),
-        (level: 5, features: ["kineticist/blood-kineticist/bleeding-infusion", "kineticist/blood-kineticist/metakinesis-empowered", "kineticist/infusion-specialization"]),
+        (level: 5, features: ["kineticist/blood-kineticist/bleeding-infusion", "metakinesis-empowered", "kineticist/infusion-specialization"]),
         (level: 7, features: ["kineticist/blood-kineticist/blood-blast"]),
-        (level: 9, features: ["kineticist/blood-kineticist/gut-wrenching-infusion", "kineticist/blood-kineticist/metakinesis-maximized"]),
+        (level: 9, features: ["kineticist/blood-kineticist/gut-wrenching-infusion", "metakinesis-maximized"]),
         (level: 11, features: ["kineticist/blood-kineticist/vampiric-infusion", "kineticist/supercharge"]),
-        (level: 13, features: ["kineticist/blood-kineticist/metakinesis-quicken"], selections: ["kineticist/infusions"]),
         (level: 20, features: ["kineticist/blood-kineticist/blood-mastery"], selections: ["kineticist/wild-talents"]),
     ],
 )

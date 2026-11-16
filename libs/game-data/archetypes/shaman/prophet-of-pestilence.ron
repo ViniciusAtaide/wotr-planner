@@ -7,7 +7,7 @@
     guide: "shaman#prophet-of-pestilence",
     prerequisite: Any([Alignment(TrueNeutral), Alignment(NeutralEvil), Alignment(ChaoticEvil)]),
     levels: [
-        (level: 1, features: ["shaman/prophet-of-pestilence/orisons", "shaman/prophet-of-pestilence/pestilence-spirit", "shaman/prophet-of-pestilence/plagues-caress"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "simple-weapon-proficiency"]),
+        (level: 1, features: ["shaman-orisons", "shaman/prophet-of-pestilence/pestilence-spirit", "shaman/prophet-of-pestilence/plagues-caress"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "simple-weapon-proficiency"]),
         (level: 2, features: ["shaman/prophet-of-pestilence/plague-of-abaddon"], selections: ["shaman/prophet-of-pestilence/carrier-of-disease"]),
         (level: 4, features: ["shaman/prophet-of-pestilence/mutating-spirit"], selections: ["shaman/hex"]),
         (level: 6, selections: ["shaman/prophet-of-pestilence/carrier-of-disease"]),
