@@ -15,7 +15,7 @@ use crate::codec::{StaleLink, decode_build};
 use crate::game_data::Ability;
 use crate::keys::{
     ClassKey, FeatKey, FeatureKey, FeatureSelectionKey, MythicAbilityKey, MythicFeatKey,
-    SelectionOptionKey, SkillKey,
+    SelectionOptionKey, SkillKey, WeaponKey,
 };
 use crate::parameter::Parameter;
 use crate::state::CharacterState;
@@ -106,6 +106,9 @@ enum Held {
     MythicFeat(MythicFeatKey, Option<Parameter>),
     /// A class skill, from a class, the background or an option row.
     ClassSkill(SkillKey),
+    /// Proficiency with a weapon, from a pick whose list skips the proficiency check (the Sword Saint's chosen
+    /// weapon).
+    Proficiency(WeaponKey),
     /// A Feature selection a row granted, whatever its slot holds ([`Prerequisite::Selection`]).
     ///
     /// [`Prerequisite::Selection`]: crate::Prerequisite::Selection

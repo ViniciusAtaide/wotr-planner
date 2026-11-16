@@ -804,9 +804,10 @@ pub struct FeatList {
     pub ignores_prerequisites: bool,
     /// Set where the game's pick through the list is a feature of its own that grants the feat and proficiency with
     /// its weapon, so a feat that requires proficiency ([`Feat::requires_proficiency`]) skips that check and is taken
-    /// for any weapon (the Sword Saint's chosen weapon: `SwordSaintChosenWeaponFeature`
-    /// c0b4ec0175e3ff940a45fc21f318a39a, whose `KensaiChosenWeapon` gives Weapon Focus, has no `RequireProficiency`).
-    /// The proficiency the game grants with it isn't held on the sheet.
+    /// for any weapon, and the pick makes the character proficient with that weapon
+    /// ([`CharacterState::weapon_proficiencies`](crate::CharacterState::weapon_proficiencies)). The Sword Saint's
+    /// chosen weapon: `SwordSaintChosenWeaponFeature` c0b4ec0175e3ff940a45fc21f318a39a has no `RequireProficiency`,
+    /// and its `KensaiChosenWeapon.OnActivate` adds the weapon to the unit's proficiencies and gives Weapon Focus.
     #[serde(default)]
     pub skips_proficiency: bool,
     /// Set on a list of every feat in the data (Gold Dragon's Dragon Feats: "any three feats"), which then names

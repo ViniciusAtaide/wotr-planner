@@ -100,16 +100,27 @@ fn proficiency_taken_at_the_same_level_opens_the_weapon() {
 }
 
 #[test]
-fn a_list_whose_pick_skips_proficiency_takes_any_weapon() {
-    // As the Sword Saint's chosen weapon: the game's pick there is a feature that gives Weapon Focus and proficiency.
+fn a_list_whose_pick_skips_proficiency_takes_any_weapon_and_makes_the_character_proficient_with_it()
+{
+    // As the Sword Saint's chosen weapon: the game's pick there is a feature that gives Weapon Focus and proficiency
+    // (`KensaiChosenWeapon.OnActivate`).
     let mut data: GameData = world();
     feat_mut(&mut data, "weapon-focus").requires_proficiency = true;
     class_mut(&mut data, "warpriest").feat_lists[0].skips_proficiency = true;
     let engine = engine_on(data);
     let mut build = build("human", &["warpriest"]);
+    let longsword = WeaponKey::new("longsword");
+    let proficient = |build: &rules::Build| {
+        let sheet = engine.evaluate(build);
+        engine
+            .proficient_weapons(&build.start, sheet.at(1).expect("level 1"))
+            .contains(&longsword)
+    };
+    assert!(!proficient(&build));
     build.picks.insert(
         class_slot(1, 0),
         pick_feat_for("weapon-focus", weapon("longsword")),
     );
     assert!(engine.is_possible(&build));
+    assert!(proficient(&build));
 }

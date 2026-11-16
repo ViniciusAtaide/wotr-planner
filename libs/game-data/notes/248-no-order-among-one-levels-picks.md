@@ -32,8 +32,15 @@ band; inside a band a pick refused for an unmet prerequisite at its turn is trie
 until no more holds. A Mythic rank's slots keep the planner's order (its picks come after the level's, and its general
 pick before its path's slots).
 
-**Not modelled.** Trying every order: a pick refused for what another pick of its band holds (a `Not`, a
-`NoOtherOptionOfGroup`) is refused when that pick's slot comes first, though the game's player could take it first.
+**Not modelled.** Trying every order. Only a pick refused for an unmet prerequisite or a weapon it isn't yet
+proficient with (`judge::deferrable`) is tried again after its band's other picks; any other refusal at its turn is
+final, though the game's player could take the picks in another order:
+
+- refused for what another pick of its band holds (a `Not`, a `NoOtherOptionOfGroup`) when that pick's slot comes
+  first;
+- `AlreadyHeld` (or `MaxTimes`) for what another pick of its band holds when that pick's slot comes first;
+- `NotAllowed` from a list that depends on the state (`Catalog::slot_lists(slot, state)`: an `OptionList` slot's
+  lists come from the options held) when the option that gives the list is held by a later pick of the band.
 
 **Test.** `libs/seeds/tests/game_data/pick_order.rs`: `the_selections_outside_the_features_band_are_the_games` and
 `greater_spell_focus_in_the_sorcerers_magic_slot_leans_on_spell_focus_in_the_same_levels_general_slot`.

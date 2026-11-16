@@ -621,8 +621,9 @@ impl Catalog {
     /// Whether a character is proficient with a weapon (ticket 198): one on no proficiency list (the unarmed strike,
     /// rays, natural attacks) always; a simple or martial one while holding that list's feat; an exotic one while
     /// holding Exotic Weapon Proficiency for it, or Martial Weapons Proficiency when the race treats it as martial;
-    /// and any a held feature, the race's weapon familiarity (the subrace's in its place) or the background names,
-    /// with the deity's favoured weapons while a held feature grants them. `start` is the Build's and `state` a point
+    /// and any a held feature, the race's weapon familiarity (the subrace's in its place), the background or a pick
+    /// ([`CharacterState::weapon_proficiencies`]: the Sword Saint's chosen weapon) names, with the deity's favoured
+    /// weapons while a held feature grants them. `start` is the Build's and `state` a point
     /// of it.
     pub(super) fn proficient(
         &self,
@@ -649,6 +650,7 @@ impl Catalog {
             }
         };
         listed
+            || state.weapon_proficiencies.contains_key(key)
             || (self.racial_weapons(start)).is_some_and(|(weapons, _)| weapons.contains(key))
             || (start.background.as_ref())
                 .and_then(|background| self.background(background))

@@ -255,6 +255,13 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
     pick: the Azata's superpowers).
   - `once_per_option: true`: an option the selection gave once can't be picked through it again
     (`kineticist/expanded-element`: the 15th-level element isn't the 7th-level one).
+  - `band`: where the selection's picks come among a level-up's (ticket 248), the game's band for its blueprint's
+    group (`SelectFeature.CalculatePriority`): `Spellbook`, `MythicAbility`, `Path`, `Features`, in the order the
+    game applies them. `Features`, the default, is left out (talents, rage powers, bonus feat lists, and every feat
+    slot); `band: Path` is on the domains, bloodlines, mysteries, curses, spirits, blessings, schools, the druid's
+    Nature Bond and the Lich's skeletal upgrade, `band: Spellbook` on the Thassilonian school. A level's picks are
+    checked band by band, and a pick of one band refused for a prerequisite or a weapon proficiency is tried again
+    after its band's other picks (`notes/248-no-order-among-one-levels-picks.md`).
   - `PickedThrough("warpriest/champion-of-the-faith/chosen-alignment")` in an option's prerequisite holds when the
     pick fills that selection's slot: the four alignment blessings are `Any([Not(PickedThrough(...)),
     Alignment(...), ...])`, the Champion's own alignment only when he picks them as his chosen alignment.
@@ -691,7 +698,11 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   it's every feat, or its one feat takes a value) and one no slot names. A bonus feat of the player's choosing
   (the warpriest's "Weapon Focus as a bonus feat in a weapon of his choosing", the Master of All's Skill Focus at
   3, 9 and 15, the Sword Saint's Chosen Weapon) is a bonus list of that one parameterised feat: the pick names the
-  value. A race may own lists too, in a `feat_lists` block before its subraces, and its slots may name only its
+  value. A list whose game pick is a feature of its own that gives the feat and proficiency with the weapon sets
+  `skips_proficiency: true` (ticket 251; the Sword Saint's Chosen Weapon, `SwordSaintChosenWeaponFeature`, whose
+  `KensaiChosenWeapon` adds the weapon to the unit's proficiencies): its feat is taken for any weapon the list
+  offers, `requires_proficiency` unchecked, and the pick makes the character proficient with that weapon. A race
+  may own lists too, in a `feat_lists` block before its subraces, and its slots may name only its
   own (the half-elf's Adaptability: Skill Focus as a bonus feat).
 - A feat the class gives outright is a granted feat, not a slot: `feats: ["scribe-scrolls"]` on the level row
   (class or archetype). It's held with no pick, whatever its prerequisites, and it's in no Build or link. A
@@ -704,8 +715,12 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
 - A feat the guide says to take for something names what: `parameter: Weapon` (also `ExoticWeapon`, `Skill`,
   `SpellSchool`, `Energy`, `ArmourType`), and each pick of it names a value. How often a feat can be taken is
   `repeat:`, left out for once: `PerValue` (once per value: every parameterised feat, by the user's decision),
-  `Times(3)` ("up to 3 times"), `Unlimited` ("may be taken multiple times"). A mythic feat takes `parameter` and
-  `repeat` the same way (Improved Critical (Mythic): a weapon, once per weapon), and `removes_racial_penalty: true`
+  `Times(3)` ("up to 3 times"), `Unlimited` ("may be taken multiple times"). A feat whose blueprint sets
+  `RequireProficiency` says `requires_proficiency: true` (ticket 251: Weapon Focus, Weapon Specialization, Improved
+  Critical, their greater and the Trickster's forms): it's taken only for a weapon the character is proficient with,
+  in every slot, whatever the slot's list ignores (`BlueprintParametrizedFeature.CanSelect`). A mythic feat takes
+  `parameter`, `repeat` and `requires_proficiency` the same way (Improved Critical (Mythic): a weapon the character
+  is proficient with, once per weapon), and `removes_racial_penalty: true`
   (Destiny Beyond Birth) gives back the race's ability penalties while it's held. A selection option may repeat too
   (`repeat: Times(3)`; `PerValue` only when it takes a value, of its chosen feat or its own), and one that is a
   parameterised feat of the player's choosing names it as `chosen_feat: "weapon-focus"` (its pick names the

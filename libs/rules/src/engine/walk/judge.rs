@@ -53,9 +53,7 @@ pub(super) fn check_pick_with(
                 return Err(Issue::NotAllowed);
             }
             check_repeat(state, key, feat.repeat, value)?;
-            if feat.requires_proficiency
-                && !(lists.iter()).any(|list| list.skips_proficiency && list.contains(&feat.key))
-            {
+            if feat.requires_proficiency && !skips_proficiency(lists, key) {
                 check_proficiency(catalog, start, state, value)?;
             }
             // A bonus list the slot offers it from that ignores them.
@@ -204,6 +202,13 @@ fn check_deity_domain(
 /// unmet prerequisite, or a weapon the character isn't proficient with yet (ticket 248).
 pub(super) fn deferrable(issue: &Issue) -> bool {
     matches!(issue, Issue::Unmet(_) | Issue::NotProficient { .. })
+}
+
+/// Whether a slot offers `feat` from a list whose pick skips the proficiency check
+/// ([`FeatList::skips_proficiency`]): the game's pick there is a feature that makes the character proficient with the
+/// weapon (the Sword Saint's chosen weapon), which the walk holds with it.
+pub(super) fn skips_proficiency(lists: &[&FeatList], feat: &FeatKey) -> bool {
+    (lists.iter()).any(|list| list.skips_proficiency && list.contains(feat))
 }
 
 /// Whether a feat that requires proficiency may be taken for `value`: a weapon the character is proficient with

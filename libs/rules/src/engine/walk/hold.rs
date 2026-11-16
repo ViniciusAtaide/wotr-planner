@@ -2,7 +2,7 @@
 //! follow from it.
 
 use super::gear::WornGear;
-use super::judge::{check_pick, deferrable};
+use super::judge::{check_pick, deferrable, skips_proficiency};
 use super::{Checkpoint, Deferred, GrantSource, Held, Pending, Probe, RankGrant, Walker};
 use crate::build::{AbilityScores, Pick, SlotId};
 use crate::choice::{Choice, Issue};
@@ -134,6 +134,17 @@ impl<'a> Walker<'a> {
                 feat: key,
                 parameter,
             } => {
+                // A list whose pick skips the proficiency check makes the character proficient with its weapon
+                // (the Sword Saint's chosen weapon). Only a feat that requires proficiency can skip it.
+                let catalog = &self.engine.catalog;
+                if let (SlotKind::Feat(slot), Some(Parameter::Weapon(weapon))) = (kind, parameter)
+                    && catalog
+                        .feat(key)
+                        .is_some_and(|feat| feat.requires_proficiency)
+                    && skips_proficiency(&catalog.slot_lists(slot, &self.state), key)
+                {
+                    self.hold(Held::Proficiency(weapon.clone()), source.cloned());
+                }
                 self.hold(
                     Held::Feat(key.clone(), parameter.iter().cloned().collect()),
                     source.cloned(),
@@ -271,6 +282,10 @@ impl<'a> Walker<'a> {
             }
             Held::Selection(key) => {
                 let holds = state.selections.entry(key.clone()).or_default();
+                *holds = holds.saturating_add(1);
+            }
+            Held::Proficiency(key) => {
+                let holds = state.weapon_proficiencies.entry(key.clone()).or_default();
                 *holds = holds.saturating_add(1);
             }
         }
@@ -425,6 +440,14 @@ impl<'a> Walker<'a> {
                     *holds = holds.saturating_sub(1);
                     if *holds == 0 {
                         state.selections.remove(key);
+                    }
+                }
+            }
+            Held::Proficiency(key) => {
+                if let Some(holds) = state.weapon_proficiencies.get_mut(key) {
+                    *holds = holds.saturating_sub(1);
+                    if *holds == 0 {
+                        state.weapon_proficiencies.remove(key);
                     }
                 }
             }

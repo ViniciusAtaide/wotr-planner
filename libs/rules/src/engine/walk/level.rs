@@ -417,9 +417,12 @@ impl<'a> Walker<'a> {
     /// slots they grant, until no more holds: so it holds when some order of the band's picks holds it, each checked
     /// with the ones before it, as the game applies the picks of one band in the order the player makes them
     /// (`LevelUpController.AddAction`, WrathDecompiled 6ce4a6b). Never with itself, nor with a later band's pick, a
-    /// Mythic rank's or a later level's. A pick refused for what another pick of its band holds (a `Not`) is still
-    /// refused when that pick's slot comes first, though the game's player could take it first: trying every order
-    /// is left out. The slots come back in the level's slot order, then the granted ones in the order granted.
+    /// Mythic rank's or a later level's. Any other refusal at its turn is final, though the game's player could take
+    /// the band's picks in another order: trying every order is left out. So a pick is still refused when another
+    /// pick of its band whose slot comes first holds what it refuses (a `Not`, a `NoOtherOptionOfGroup`, an
+    /// `AlreadyHeld` or `MaxTimes`), or when its slot's list depends on the state (an `OptionList` slot's,
+    /// [`Catalog::slot_lists`]) and the option that gives it is a later pick of the band (`NotAllowed`). The slots
+    /// come back in the level's slot order, then the granted ones in the order granted.
     pub(super) fn fill_bands(
         &mut self,
         level: u8,

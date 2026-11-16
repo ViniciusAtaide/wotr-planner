@@ -694,3 +694,38 @@ fn a_sword_saint_chooses_a_weapon_he_isnt_proficient_with_yet() {
     );
     assert!(possible(&build));
 }
+
+/// The Sword Saint's chosen weapon is one he's proficient with from then on: the feats that require proficiency
+/// (Improved Critical at magus 11) take it, and the sheet lists it among his weapons.
+#[test]
+fn a_sword_saint_is_proficient_with_his_chosen_weapon() {
+    // Game: SwordSaintChosenWeaponFeature c0b4ec0175e3ff940a45fc21f318a39a carries KensaiChosenWeapon, whose
+    // OnActivate adds the chosen weapon's category to the unit's proficiencies (`Owner.Proficiencies.Add`) and gives
+    // Weapon Focus in it (Designers/Mechanics/Facts/KensaiChosenWeapon.cs, WrathDecompiled 6ce4a6b). ImprovedCritical
+    // f4201c85a991369408740c6888362e20 requires proficiency and a base attack bonus of 8, the magus's at 11.
+    let longsword = rules::WeaponKey::new("longsword");
+    let mut saint = archetype_build("magus", "magus/sword-saint", 11);
+    saint.picks.insert(
+        general_slot(11),
+        feat_pick("improved-critical", weapon("longsword")),
+    );
+    assert_eq!(
+        why_not(&saint, &general_slot(11)),
+        Some(Issue::NotProficient {
+            weapon: longsword.clone()
+        })
+    );
+    saint.picks.insert(
+        class_slot(1),
+        feat_pick("weapon-focus", weapon("longsword")),
+    );
+    assert!(possible(&saint));
+    for level in [1, 11] {
+        assert!(
+            engine()
+                .proficient_weapons(&saint.start, &at(&saint, level))
+                .contains(&longsword),
+            "at magus {level}"
+        );
+    }
+}
