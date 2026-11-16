@@ -4,19 +4,56 @@
 //! corpus, so a change to one changes the Builds the self-checks run on. The quirks are documented where they live.
 
 use rules::{
-    AbilityScores, Build, Edit, Engine, Faith, GameData, Issue, SkillKey, SlotId, SlotKind,
+    AbilityScores, Build, Edit, Engine, Faith, GameData, Issue, Pick, SkillKey, SlotId, SlotKind,
 };
 
 use crate::Named;
 
-/// The FNV-1a hash of a text: a full Build's seed is its name's.
-fn fnv(text: &str) -> u64 {
-    let mut hash: u64 = 0xcbf2_9ce4_8422_2325;
-    for byte in text.bytes() {
+const FNV_OFFSET: u64 = 0xcbf2_9ce4_8422_2325;
+
+/// `hash` after FNV-1a over `bytes`.
+fn fnv_extend(mut hash: u64, bytes: impl IntoIterator<Item = u8>) -> u64 {
+    for byte in bytes {
         hash ^= u64::from(byte);
         hash = hash.wrapping_mul(0x0100_0000_01b3);
     }
     hash
+}
+
+/// The FNV-1a hash of a text: a full Build's seed is its name's.
+fn fnv(text: &str) -> u64 {
+    fnv_extend(FNV_OFFSET, text.bytes())
+}
+
+/// The FNV-1a hash of the parts' bytes, a 0xff byte (never in UTF-8) after each, so no two splits of one text agree.
+fn fnv_parts(parts: &[&str]) -> u64 {
+    parts.iter().fold(FNV_OFFSET, |hash, part| {
+        fnv_extend(hash, part.bytes().chain([0xff]))
+    })
+}
+
+/// The candidate with the highest hash of (the Build's name, the slot's stable text, its own key): rendezvous
+/// hashing (ticket 310). A slot's draw moves only when its own candidates change, and then only if the winner left or
+/// a new candidate outranks it, so a change to one slot's offers re-draws no other slot. The hash is FNV-1a over the
+/// bytes, finished by a mixer (FNV's last bytes barely reach its high bits), the same on every toolchain.
+fn draw_for<'a, T>(
+    name: &str,
+    slot: &str,
+    candidates: &'a [T],
+    key: impl Fn(&T) -> String,
+) -> Option<&'a T> {
+    candidates.iter().max_by_key(|candidate| {
+        let key = key(candidate);
+        let mut hash = fnv_parts(&[name, slot, &key]);
+        hash ^= hash >> 32;
+        hash = hash.wrapping_mul(0xd6e8_feb8_6659_fd93);
+        hash ^ (hash >> 32)
+    })
+}
+
+/// A pick's text: its key, and what it's taken for.
+fn pick_text(pick: &Pick) -> String {
+    format!("{}/{:?}", pick.key(), pick.parameter())
 }
 
 /// The Build following `faith` (ticket 86).
@@ -60,13 +97,16 @@ impl Rng {
 
 /// Fills every empty slot, ability increase and skill point with a choice the sheet offers, and the path.
 ///
+/// Each slot's pick, and the path's, is drawn on its own by [`draw_for`] from the Build's `name`, so a change to one
+/// slot's offers moves no other pick (ticket 310). The ability increases and skill points are drawn from `rng`.
+///
 /// Quirks kept:
 /// - three rounds of slot filling, each over the slots empty at its start, in sheet order;
 /// - Witch Wandering Hex counts among a slot's choices when its only issue is an unmet prerequisite (ticket 62 gave it
 ///   one), and the slot stays empty when it's drawn then;
 /// - the path is drawn only for a Build of 9 levels or more (one that reaches MR 3), in any round where it has none;
 /// - at most 40 draws of a skill per level, each kept only when it changes the Build and `allows` keeps it.
-pub fn fill_full(engine: &Engine, data: &GameData, build: &mut Build, rng: &mut Rng) {
+pub fn fill_full(engine: &Engine, data: &GameData, build: &mut Build, name: &str, rng: &mut Rng) {
     for _ in 0..3 {
         let sheet = engine.evaluate(build);
         let slots: Vec<SlotId> = sheet
@@ -89,7 +129,10 @@ pub fn fill_full(engine: &Engine, data: &GameData, build: &mut Build, rng: &mut 
                 })
                 .collect();
             if !open.is_empty() {
-                let option = open[rng.below(open.len())].clone();
+                let slot_text = format!("{slot:?}");
+                let option = draw_for(name, &slot_text, &open, |option| pick_text(&option.pick))
+                    .expect("open isn't empty")
+                    .clone();
                 if option.status.is_ok() {
                     engine.apply(
                         build,
@@ -107,9 +150,11 @@ pub fn fill_full(engine: &Engine, data: &GameData, build: &mut Build, rng: &mut 
                 .into_iter()
                 .filter(|option| option.status.is_ok())
                 .collect();
-            if !open.is_empty() && build.levels.len() >= 9 {
-                let path = open[rng.below(open.len())].path.clone();
-                engine.apply(build, &Edit::MythicPath(Some(path)));
+            if build.levels.len() >= 9
+                && let Some(option) =
+                    draw_for(name, "mythic-path", &open, |option| option.path.to_string())
+            {
+                engine.apply(build, &Edit::MythicPath(Some(option.path.clone())));
             }
         }
     }
@@ -165,7 +210,7 @@ pub fn full_builds(engine: &Engine, data: &GameData, base: &[Named], threads: us
             return out;
         }
         let mut full = build.clone();
-        fill_full(engine, data, &mut full, &mut Rng(fnv(name) | 1));
+        fill_full(engine, data, &mut full, name, &mut Rng(fnv(name) | 1));
         out.push((format!("full {name}"), full.clone()));
         for switch in engine.switch_options(&full) {
             if switch.status.is_ok() {
@@ -291,4 +336,70 @@ fn first_choice_selection(selection: &str) -> bool {
                 | "monk/zen-archer/way-of-the-bow"
                 | "hellknight-signifer/order"
         )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Twelve slots of twenty options each: the slot's offered keys.
+    fn offers() -> Vec<(String, Vec<String>)> {
+        (0..12)
+            .map(|slot| {
+                let keys = (0..20).map(|option| format!("option-{option}")).collect();
+                (format!("slot-{slot}"), keys)
+            })
+            .collect()
+    }
+
+    /// The new rule's pick of each slot, none for a slot with no offers.
+    fn per_slot(name: &str, offers: &[(String, Vec<String>)]) -> Vec<Option<String>> {
+        (offers.iter())
+            .map(|(slot, keys)| draw_for(name, slot, keys, |key| key.clone()).cloned())
+            .collect()
+    }
+
+    /// The old rule's pick of each slot: one stream, one draw per slot that has offers.
+    fn stream(name: &str, offers: &[(String, Vec<String>)]) -> Vec<Option<String>> {
+        let mut rng = Rng(fnv(name) | 1);
+        (offers.iter())
+            .map(|(_, keys)| (!keys.is_empty()).then(|| keys[rng.below(keys.len())].clone()))
+            .collect()
+    }
+
+    /// Ticket 310: closing one option of one slot's offers, or all of them, moves that slot's pick or none, and no
+    /// other; the old stream rule re-drew the later slots when a slot went empty.
+    #[test]
+    fn a_change_to_one_slots_offers_moves_only_its_own_pick() {
+        let mut stream_moved_later = 0;
+        for name in (0..30).map(|n| format!("full t{n} build")) {
+            let before = offers();
+            let picks = per_slot(&name, &before);
+            let old = stream(&name, &before);
+            for changed in 0..before.len() {
+                let own = picks[changed].clone().unwrap();
+                // The winner closed, another option closed, every option closed.
+                for closed in [
+                    vec![own.clone()],
+                    vec!["option-3".to_string()],
+                    before[changed].1.clone(),
+                ] {
+                    let mut after = before.clone();
+                    after[changed].1.retain(|key| !closed.contains(key));
+                    let now = per_slot(&name, &after);
+                    for slot in (0..before.len()).filter(|&slot| slot != changed) {
+                        assert_eq!(now[slot], picks[slot], "{name}: slot {slot} moved");
+                    }
+                    if !closed.contains(&own) {
+                        assert_eq!(now[changed], picks[changed], "{name}: the winner stayed");
+                    }
+                    let again = stream(&name, &after);
+                    stream_moved_later += (changed + 1..before.len())
+                        .filter(|&slot| again[slot] != old[slot])
+                        .count();
+                }
+            }
+        }
+        assert!(stream_moved_later > 0, "the old rule re-drew later slots");
+    }
 }

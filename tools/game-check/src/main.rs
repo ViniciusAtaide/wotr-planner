@@ -15,6 +15,11 @@
 //!   resolved to `<name> <guid>`.
 //! - `game-check grep <regex>`: `guid name type` of each blueprint whose name or JSON matches.
 //! - `game-check refs <name|guid>`: `guid name type` of each blueprint that references it.
+//! - `game-check granted-by <name|guid>`: the chains of referrers from it up to the first progression, archetype,
+//!   class, race or unit (ticket 311).
+//!
+//! `show`, `refs` and `granted-by` begin with a banner when the name is shared by several blueprints (each GUID,
+//! with what grants it): pick the blueprint by what grants it, never the first one printed.
 //!
 //! A lookup exits 0, or 2 when the dump is refused, the name is unknown or the pattern doesn't parse.
 
@@ -52,7 +57,7 @@ enum Outcome {
     Lookup(String),
 }
 
-const USAGE: &str = "usage: game-check [--binz <file>] [--data <dir>]\n       game-check [--binz <file>] show <name|guid>... | grep <regex> | refs <name|guid>";
+const USAGE: &str = "usage: game-check [--binz <file>] [--data <dir>]\n       game-check [--binz <file>] show <name|guid>... | grep <regex> | refs <name|guid> | granted-by <name|guid>";
 
 fn run() -> Result<Outcome, String> {
     let mut binz_path = None;
@@ -91,7 +96,7 @@ fn run() -> Result<Outcome, String> {
         .map_err(|error| error.to_string())
 }
 
-/// `show`, `grep` or `refs`, over the pinned dump's every blueprint.
+/// `show`, `grep`, `refs` or `granted-by`, over the pinned dump's every blueprint.
 fn lookup(words: &[String], binz_path: &Path, pins: &Pins) -> Result<String, String> {
     let (command, rest) = words.split_first().ok_or(USAGE)?;
     let one = |what: &str| match rest {
@@ -105,7 +110,7 @@ fn lookup(words: &[String], binz_path: &Path, pins: &Pins) -> Result<String, Str
         "grep" => {
             one("pattern")?;
         }
-        "refs" => {
+        "refs" | "granted-by" => {
             one("name or GUID")?;
         }
         _ => return Err(format!("{USAGE}; not {command}")),
@@ -115,6 +120,7 @@ fn lookup(words: &[String], binz_path: &Path, pins: &Pins) -> Result<String, Str
     match command.as_str() {
         "show" => library.show(rest),
         "grep" => library.grep(&rest[0]),
-        _ => library.refs(&rest[0]),
+        "refs" => library.refs(&rest[0]),
+        _ => library.granted_by(&rest[0]),
     }
 }

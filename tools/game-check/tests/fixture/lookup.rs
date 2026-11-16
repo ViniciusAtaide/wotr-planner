@@ -11,6 +11,12 @@ use crate::support::{Record, binz};
 const FEATURE: &str = "000000000000000000000000000000f1";
 const PREREQUISITE: &str = "000000000000000000000000000000f2";
 const GRANTER: &str = "000000000000000000000000000000f3";
+/// Two blueprints that share a name: the first only a unit's feature list holds, the second a progression's chain.
+const UNIT_SELECTION: &str = "000000000000000000000000000000e1";
+const CLASS_SELECTION: &str = "000000000000000000000000000000e2";
+const SELECTION_GROUP: &str = "000000000000000000000000000000e3";
+const CLASS_PROGRESSION: &str = "000000000000000000000000000000e4";
+const UNIT: &str = "000000000000000000000000000000e5";
 
 fn record(guid: &str, name: &str, type_name: &str, raw: &str) -> Record {
     Record {
@@ -49,6 +55,40 @@ fn library() -> Library {
             &format!(
                 r#"{{"$type": "0, BlueprintProgression", "LevelEntries": [{{"Level": 1, "m_Features": ["!bp_{FEATURE}"]}}]}}"#
             ),
+        ),
+        record(
+            UNIT_SELECTION,
+            "SharedSelection",
+            "Kingmaker.Blueprints.Classes.Selection.BlueprintFeatureSelection",
+            r#"{"$type": "0, BlueprintFeatureSelection"}"#,
+        ),
+        record(
+            CLASS_SELECTION,
+            "SharedSelection",
+            "Kingmaker.Blueprints.Classes.Selection.BlueprintFeatureSelection",
+            r#"{"$type": "0, BlueprintFeatureSelection"}"#,
+        ),
+        record(
+            SELECTION_GROUP,
+            "SharedGroup",
+            "Kingmaker.Blueprints.Classes.BlueprintFeature",
+            &format!(
+                r#"{{"$type": "0, BlueprintFeature", "m_Features": ["!bp_{CLASS_SELECTION}"]}}"#
+            ),
+        ),
+        record(
+            CLASS_PROGRESSION,
+            "SharedProgression",
+            "Kingmaker.Blueprints.Classes.BlueprintProgression",
+            &format!(
+                r#"{{"$type": "0, BlueprintProgression", "m_Features": ["!bp_{SELECTION_GROUP}"]}}"#
+            ),
+        ),
+        record(
+            UNIT,
+            "SharedUnit",
+            "Kingmaker.Blueprints.BlueprintUnit",
+            &format!(r#"{{"$type": "0, BlueprintUnit", "m_Features": ["!bp_{UNIT_SELECTION}"]}}"#),
         ),
     ];
     Library::parse(&binz(&records, 2)).unwrap()
@@ -126,6 +166,97 @@ fn refs_finds_the_blueprints_that_grant_or_refer_to_one() {
         format!("{FEATURE} LookupFeature BlueprintFeature\n")
     );
     assert_eq!(library.refs(GRANTER).unwrap(), "");
+}
+
+#[test]
+fn a_shared_name_gets_a_banner_naming_each_guid_and_what_grants_it() {
+    let library = library();
+    for text in [
+        library.show(&["SharedSelection".to_owned()]).unwrap(),
+        library.refs("SharedSelection").unwrap(),
+    ] {
+        let banner = text.split("\n\n").next().unwrap();
+        assert!(
+            banner.starts_with("shared name: SharedSelection is 2 blueprints"),
+            "{text}"
+        );
+        assert!(
+            banner.contains(&format!(
+                "{UNIT_SELECTION} BlueprintFeatureSelection: granted by SharedUnit (BlueprintUnit)"
+            )),
+            "{banner}"
+        );
+        assert!(
+            banner.contains(&format!(
+                "{CLASS_SELECTION} BlueprintFeatureSelection: granted by SharedProgression (BlueprintProgression)"
+            )),
+            "{banner}"
+        );
+    }
+}
+
+#[test]
+fn a_name_one_blueprint_holds_gets_no_banner() {
+    let library = library();
+    assert!(
+        !library
+            .show(&["LookupFeature".to_owned()])
+            .unwrap()
+            .contains("shared name")
+    );
+    assert!(
+        !library
+            .refs("LookupFeature")
+            .unwrap()
+            .contains("shared name")
+    );
+    // Nor does a GUID, even of a shared name: it names one blueprint.
+    assert!(
+        !library
+            .show(&[UNIT_SELECTION.to_owned()])
+            .unwrap()
+            .contains("shared name")
+    );
+}
+
+#[test]
+fn granted_by_follows_referrers_up_to_the_first_granting_blueprint() {
+    let text = library().granted_by(CLASS_SELECTION).unwrap();
+    assert_eq!(
+        text,
+        format!(
+            "SharedSelection {CLASS_SELECTION} BlueprintFeatureSelection\n  \
+             SharedSelection {CLASS_SELECTION} <- SharedGroup {SELECTION_GROUP} <- SharedProgression {CLASS_PROGRESSION} [BlueprintProgression]\n"
+        )
+    );
+    let unit = library().granted_by(UNIT_SELECTION).unwrap();
+    assert!(
+        unit.ends_with(&format!(
+            "  SharedSelection {UNIT_SELECTION} <- SharedUnit {UNIT} [BlueprintUnit]\n"
+        )),
+        "{unit}"
+    );
+}
+
+#[test]
+fn granted_by_of_a_name_prints_a_block_per_guid_and_says_when_nothing_grants() {
+    let library = library();
+    let text = library.granted_by("SharedSelection").unwrap();
+    assert!(text.contains(&format!(
+        "SharedSelection {UNIT_SELECTION} BlueprintFeatureSelection\n  SharedSelection"
+    )));
+    assert!(text.contains(&format!(
+        "SharedSelection {CLASS_SELECTION} BlueprintFeatureSelection\n  SharedSelection"
+    )));
+    let none = library.granted_by(PREREQUISITE).unwrap();
+    // Reached through LookupFeature, then the progression.
+    assert!(none.contains("[BlueprintProgression]"), "{none}");
+    let lone = library.granted_by("SharedUnit").unwrap();
+    assert!(
+        lone.ends_with(&format!("  SharedUnit {UNIT} [BlueprintUnit]\n")),
+        "{lone}"
+    );
+    assert!(library.granted_by("Nope").is_err());
 }
 
 /// Runs git in `dir`, with an identity so the commit works anywhere.

@@ -23,12 +23,12 @@ The game is the source of truth for rules (map Notes, ticket 234), at patch 2.7.
 - **`decompiled/`:** xADDBx/WrathDecompiled, shallow, at the pinned commit: the game's code.
 - **Citing:** a fact or a rule cites a blueprint by name and GUID, or the code by file and method with the WrathDecompiled commit.
 - **Worktrees:** both folders live only in the main checkout; an agent in a worktree reads them there by absolute path and does not run the script.
-- **Reading a blueprint:** `cargo run -p game-check -- show <name|guid>…` prints one, references resolved and no game text; `grep <regex>` lists the blueprints whose name or JSON match; `refs <name|guid>` lists those that reference one. They find the dump from a worktree on their own.
+- **Reading a blueprint:** `cargo run -p game-check -- show <name|guid>…` prints one, references resolved and no game text; `grep <regex>` lists the blueprints whose name or JSON match; `refs <name|guid>` lists those that reference one; `granted-by <name|guid>` follows `refs` up to the first progression, archetype, class, race or unit. A name several blueprints share prints a banner: pick the blueprint by what grants it, never the first printed. They find the dump from a worktree on their own.
 - **Never in the repo:** the game's text strings, the dump and its code, not even quoted in a ticket.
 
 ## One-off tools
 
-A tool written for a ticket or a check (a data rewrite, a dump comparison, a census classifier, a lookup) is a Rust crate written with the `rust-skills` skill, never a Python script (user, 2026-11-16).
+A tool written for a ticket or a check (a data rewrite, a dump comparison, a census classifier, a lookup) is a Rust crate written with the `rust-skills` skill. No Python in any form, one-liners and inline edits included: edits go through the Edit tool (user, 2026-11-16).
 - **Lean:** std-only where it can be, and streaming any large input a record or a Build at a time rather than loading it whole (the machine has 24 GB; a Python diff of two 5 GB dumps took tens of GB, its Rust replacement 17 MB and 20 s).
 - **Where:** the session's scratchpad, with its own `target/`, unless it's committed under `tools/`. The shell scripts in `scripts/` stay shell.
 
@@ -46,12 +46,7 @@ The machine has 8 cores and 24 GB of RAM. Builds, tests, the long self-check run
 
 ## Rust tests
 
-Cargo compiles only the test modules that are declared:
-
-- **Folder test crates** (`<crate>/tests/<name>/`) compile as one crate rooted at `main.rs`. Each new file in the folder gets a `mod <file>;` line in that `main.rs`, and shared helpers get `mod support;`.
-- **Top-level test files** (`<crate>/tests/*.rs`) are each their own crate. Each one that uses the shared helpers in `tests/common/mod.rs` declares `mod common;`.
-
-A new test is done when its name shows up in `cargo test -p <crate> -- --list`.
+Cargo compiles only the declared test modules: a folder test crate (`<crate>/tests/<name>/`) needs a `mod <file>;` in its `main.rs` for each file (`scripts/test-modules.sh` checks it, in the pre-commit hook and `queue-checks.sh`), and a top-level test file that uses `tests/common/mod.rs` declares `mod common;`. A new test is done when its name shows up in `cargo test -p <crate> -- --list`.
 
 ## Checks
 
@@ -74,24 +69,14 @@ The game is the source of truth for rules (map Notes; ticket 234). A change to `
 
 - **Each changed fact has a real-data test** in `libs/seeds/tests/game_data/` whose expected value comes from the game, cited beside the assertion by blueprint name and GUID, or by the decompiled code's file and method with the WrathDecompiled commit (see "Game sources").
 - **The engine's self-checks** check it against itself: every picker agrees with the walk (the agreement sweeps, ticket 150), each shortcut agrees with the full answer it stands for, and each option's status agrees with `allows` of its edit. Their short runs are in the `seeds` and `corpus` tests. The long ones, over the corpus's ~2,000 Builds (`tools/corpus`), run in release under `--ignored`, once per queue by the main session: `cargo test --release -p corpus -- --ignored` and `cargo test --release -p seeds --test game_data agreement -- --ignored`. A self-check never outranks the game: when one disagrees with it, the engine is fixed.
-- **A ticket that changes only the data's or the model's form** proves nothing moved: `FORM_PROOF_OUT=<dir> cargo test --release -p corpus --test form_proof record -- --ignored --nocapture` on its base, in its own lane before its first edit (the lane's `target/` is warm; a temporary worktree of the base compiles the workspace from cold), then `FORM_PROOF_BEFORE=<dir> ... compare` on its tip (ticket 300; usage in the test's header). It puts the counts `compare` prints in its Answer. It replaces the snapshot check and a per-ticket proof, and runs only for such a ticket.
+- **A ticket that changes only the data's or the model's form** proves nothing moved: `FORM_PROOF_OUT=<dir> cargo test --release -p corpus --test form_proof record -- --ignored --nocapture` on its base, in its own lane before its first edit (the lane's `target/` is warm; a temporary worktree of the base compiles the workspace from cold), then `FORM_PROOF_BEFORE=<dir> ... compare` on its tip (ticket 300; usage in the test's header). A ticket that changes offers or repeats (303) adds `FORM_PROOF_OFFERS=1` to `record`, which then records every option's status (about 160 MB, 40 s more, streamed), and `compare` reports each changed option; a ticket that renames a slot kind passes `FORM_PROOF_KIND_MAP=<file>` (old and new kind per line). It puts the counts `compare` prints in its Answer. It replaces the snapshot check and a per-ticket proof, and runs only for such a ticket.
 - **The gold builds** (`libs/seeds/tests/game_data/gold.rs`) compare two real player builds with the engine. A known-gap entry is deleted by the ticket that fixes it, never added to get a test to pass. A gold build's gain that the game contradicts goes to the user.
 - **The game check** (ticket 238) compares each entry that names a blueprint with the game: `cargo run -p game-check -- --binz <main checkout>/blueprints/blueprints_raw_2.7.0x_0.binz` (the path is the default in the main checkout). It reads only the pinned dump and prints the same report for the same dump and data. It exits 0 when every difference is listed in `tools/game-check/known.txt` under the ticket that will remove it, 1 when one isn't or a listed one is stale, 2 when the dump is refused. The main session runs it after merging any data ticket and once per queue. Each new difference gets a ticket and is applied without asking, unless it touches one of the user's facts, which go to the user first.
 
 ## Formatting
 
-Rust is formatted with rustfmt, the official formatter, through `cargo fmt`. Its style is pinned in `rustfmt.toml` (`style_edition = "2024"`), so `cargo fmt`, the rustfmt hook and RustRover's Reformat Code all produce the same output.
-
-- **After an edit:** a hook runs rustfmt on every `.rs` file an agent writes.
-- **Before you finish:** `cargo fmt --all --check` passes.
-- **RustRover's `reformat_file` tool** uses the IDE's built-in formatter rather than rustfmt, so Rust formatting goes through `cargo fmt`.
+A hook runs rustfmt (style pinned in `rustfmt.toml`) on every `.rs` file an agent writes. Before you finish, `cargo fmt --all --check` passes. RustRover's `reformat_file` uses the IDE's formatter, not rustfmt: use `cargo fmt`.
 
 ## Dev server
 
-Start the web app with RustRover's **Leptos** run configuration (`cargo leptos watch`), not with Bash: `get_run_configurations`, then `execute_run_configuration` with `configurationName: "Leptos"` and `waitForExit: false`. Its log is at the `fullOutputPath` the call returns.
-
-- **It allows multiple instances** (`singleton="false"`), so each agent starts its own and leaves the others alone. Port 3900 (reload 3901) belongs to the user's server in the main checkout. Any other instance passes `envs` with its own ports, for example `{"LEPTOS_SITE_ADDR": "127.0.0.1:3950", "LEPTOS_RELOAD_PORT": "3951", "WOTR_MCP_PORT": "0"}` (`0` gives its built-in MCP server a free port instead of the sessions' 3902).
-- **In a worktree,** also pass `workingDirectory` with the worktree's absolute path: the configuration runs in the main checkout by default, the only one RustRover has open.
-- **It counts as a build** (see "Parallel agents"): starting it, and every save it rebuilds on, compiles.
-- **The server reads the game data once, at startup.** `cargo leptos watch` restarts it when a file under `libs/game-data/` changes (`watch-additional-files` in `Cargo.toml`). An instance started before that setting was added needs one restart by hand: stop it, then start it again.
-- **Stop your own instance when you're done:** kill the `cargo-leptos` process whose working directory is your checkout (`lsof -a -d cwd -p <pid>`), then the server still listening on your port (`lsof -tiTCP:<port> -sTCP:LISTEN`).
+Start it with RustRover's **Leptos** run configuration, not Bash, each agent on its own ports and in its own worktree: `docs/dev-server.md`.
