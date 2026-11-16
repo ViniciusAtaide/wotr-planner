@@ -396,12 +396,11 @@ impl Engine {
         let kind = &sheet.slot(slot)?.kind;
         let mut later = (sheet.levels.iter())
             .filter(|level| level.character_level > held)
-            .filter(|level| pick_fits(self, &level.state, kind, pick))
+            .filter(|level| pick_fits(self, &build.start, &level.state, kind, pick))
             .peekable();
         // Only a pick the slot refuses where the rank is now.
         later.peek()?;
-        let (state, _) = before_slot(self, build, slot)?;
-        if pick_fits(self, &state, kind, pick) {
+        if before_slot(self, build.clone(), slot)?.fits(self, pick) {
             return None;
         }
         for level in later {

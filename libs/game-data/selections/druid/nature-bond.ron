@@ -2,6 +2,7 @@
     key: "druid/nature-bond",
     blueprint: "3830f3630a33eba49b60f511b4c8f2a8",
     name: "Nature Bond",
+    band: Path,
     summary: "Choose an animal companion or a domain.",
     guide: "druid",
     option_levels: ["druid"],

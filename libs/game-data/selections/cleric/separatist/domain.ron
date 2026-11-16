@@ -2,11 +2,11 @@
     key: "cleric/separatist/domain",
     blueprint: "42b781e4375d499383b2602d90661283",
     name: "Domain (Separatist)",
-    summary: "The Separatist's second domain, from outside the deity's list, with powers two levels behind.",
+    summary: "The Separatist's second domain, from outside the deity's list: its 1st-level power at once, its later powers two levels late, and its numbers as if two levels lower.",
     deity_domains: NotOffered,
     guide: "cleric#forbidden-rites",
     option_levels: ["cleric"],
-    levels_behind: 2,
+    later_rows_behind: 2,
     options: [],
     shared_options: [
         "cleric/domain/air",

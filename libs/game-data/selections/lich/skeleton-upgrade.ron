@@ -2,6 +2,7 @@
     key: "lich/skeleton-upgrade",
     blueprint: "a434dddab8026e947bc16eb36d18a783",
     name: "Skeleton Upgrade",
+    band: Path,
     summary: "At ranks 4, 8 and 10, upgrade your skeletal champion with a class\'s abilities.",
     guide: "lich#skeleton-upgrade",
     options: [

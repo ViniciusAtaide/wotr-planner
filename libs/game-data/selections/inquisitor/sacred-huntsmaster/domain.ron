@@ -2,6 +2,7 @@
     key: "inquisitor/sacred-huntsmaster/domain",
     blueprint: "48525e5da45c9c243a343fc6545dbdb9",
     name: "Domain (Sacred Huntsmaster)",
+    band: Path,
     summary: "Chooses a domain other than Animal, without its bonus domain spells.",
     deity_domains: Offered,
     guide: "inquisitor#sacred-huntsmaster",

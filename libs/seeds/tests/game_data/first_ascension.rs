@@ -196,6 +196,8 @@ fn every_older_link_decodes_to_the_same_build_and_takes_its_mr_3_paths_first_asc
         } else {
             build
         };
+        // Its weapon feats in weapons the character isn't proficient with fail since ticket 251.
+        let build = without_unproficient_picks(build);
         assert!(possible(&build), "{path}");
         // MR 1 and 2 give the MR 3 path's rows, from their own ranks.
         let sheet = engine.evaluate(&build);

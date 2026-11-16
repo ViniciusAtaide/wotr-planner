@@ -573,7 +573,7 @@ fn picks(build: &Build) -> String {
 fn links_made_before_the_splits_open_with_the_same_picks() {
     let engine = engine();
     let keys = rules::LinkKeys::new(&DATA);
-    let mut count = 0;
+    let (mut count, mut stripped) = (0, 0);
     for line in LINKS.lines().filter(|line| !line.is_empty()) {
         let mut fields = line.split('\t');
         let (name, link, expected) = (
@@ -581,18 +581,24 @@ fn links_made_before_the_splits_open_with_the_same_picks() {
             fields.next().unwrap(),
             fields.next().unwrap(),
         );
-        let build = engine
-            .open_link(link)
-            .unwrap_or_else(|_| panic!("{name}: opens"));
-        assert_eq!(
-            rules::decode_build(link, &keys).as_ref(),
-            Ok(&build),
-            "{name}"
-        );
+        let build = rules::decode_build(link, &keys).unwrap_or_else(|_| panic!("{name}: decodes"));
+        // It opens as the same Build, unless it holds weapon feats in weapons the character isn't proficient with,
+        // which fail since ticket 251: then it opens without them.
+        let kept = without_unproficient_picks(build.clone());
+        match engine.open_link(link) {
+            Ok(opened) => assert_eq!(opened, build, "{name}"),
+            Err(_) => {
+                assert_ne!(kept, build, "{name}: stale for another reason");
+                stripped += 1;
+            }
+        }
+        assert!(engine.is_possible(&kept), "{name}");
         assert_eq!(picks(&build), expected, "{name}");
         count += 1;
     }
-    assert_eq!(count, 8);
+    // Four open unchanged; the Dual-Cursed and Possessed Oracles', the Stigmatized Witch's and the Feyspeaker's
+    // hold such feats.
+    assert_eq!((count, stripped), (8, 4));
     // Combat Healer (Life)'s old key reads as Combat Healer.
     let life = LINKS
         .lines()

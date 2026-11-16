@@ -88,7 +88,8 @@ Data note: `libs/game-data/notes/244-the-game-data-laid-out-by-blueprint.md`.
 - **The move script** is `move.py` and `ronspan.py`, kept outside the repo.
   - It keeps every entry's text and comments.
   - The files' header comments moved to the README.
-  - It was re-run over main's files when 247, 249 and 250 merged.
+  - It was re-run over main's files when 247, 249 and 250 merged, and again when 248, 251 and 253 merged (main at 5c582c1c). The second time, the move, the collapse and the dropped rows run over main's old-layout files gave the branch's data exactly, but for the review's 15 summaries, which were carried over.
+  - Proof of the second merge, against main at 5c582c1c (251 makes some corpus Builds impossible there already): the same 2,162 Builds, names `d274d2ffadbf08c6`, `Debug` `5c8dabc9d025d9f0` and sheets `f225211fc7e29159`. Main's links decode to the same Builds and open the same.
 - **`GameData::check`:**
   - **Gone:** `KeyOutsideItsOwner` and `OptionOutsideItsSelection`.
   - **New:** `OptionNotDefinedOnce`, for an option no selection or two define.

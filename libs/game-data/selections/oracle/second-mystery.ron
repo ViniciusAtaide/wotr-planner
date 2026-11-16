@@ -2,6 +2,7 @@
     key: "oracle/second-mystery",
     blueprint: "277b0164740b97945a3f8022bd572f48",
     name: "Second Mystery",
+    band: Path,
     summary: "Gives you a second oracle mystery.",
     guide: "mythic-paths#second-mystery",
     level_from: OtherOptions,

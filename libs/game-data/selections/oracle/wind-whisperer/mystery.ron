@@ -2,6 +2,7 @@
     key: "oracle/wind-whisperer/mystery",
     blueprint: "5531b975dcdf0e24c98f1ff7e017e741",
     name: "Mystery (Wind Whisperer)",
+    band: Path,
     summary: "The Wind Whisperer's mystery: Wind only.",
     guide: "oracle#wind-whisperer",
     option_levels: ["oracle"],

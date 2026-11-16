@@ -71,6 +71,14 @@ pub fn feature_mut<'a>(data: &'a mut GameData, key: &str) -> &'a mut rules::Feat
         .unwrap()
 }
 
+/// A feat of the data, to change for a test.
+pub fn feat_mut<'a>(data: &'a mut GameData, key: &str) -> &'a mut rules::Feat {
+    data.feats
+        .iter_mut()
+        .find(|f| f.key.as_str() == key)
+        .unwrap()
+}
+
 /// A Feature selection's own options, in the data's order (the test world's, before it is put in canonical order),
 /// to change for a test.
 pub fn own_options_mut<'a>(
@@ -113,6 +121,24 @@ pub fn option_mut<'a>(data: &'a mut GameData, key: &str) -> &'a mut rules::Selec
         .iter_mut()
         .find(|o| o.key.as_str() == key)
         .unwrap()
+}
+
+/// A selection of the sorcerer or one of its archetypes, to change for a test.
+pub fn sorcerer_selection<'a>(
+    data: &'a mut GameData,
+    key: &str,
+) -> &'a mut rules::FeatureSelection {
+    selection_mut(data, key)
+}
+
+/// A selection of a class or one of its archetypes, to change for a test: in the flat model, the selection by its
+/// key (ticket 244).
+pub fn class_selection<'a>(
+    data: &'a mut GameData,
+    _class: &str,
+    key: &str,
+) -> &'a mut rules::FeatureSelection {
+    selection_mut(data, key)
 }
 
 /// The keys a slot offers on `engine`, each once (an option with a chosen feat is offered once per value).

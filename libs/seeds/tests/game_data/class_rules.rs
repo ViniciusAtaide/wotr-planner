@@ -170,8 +170,11 @@ fn a_crusaders_bonus_feats_still_skip_every_prerequisite_and_the_data_says_so() 
     // Game: CrusaderArchetype 6bfb7e74b530f3749b590286dd2b9b30 adds CrusaderBonusFeat1 c5357c05cf4f8414ebd0a33e534aec50
     // at 1 (IgnorePrerequisites, Weapon Focus listed); BlueprintFeatureSelection.IsIgnorePrerequisites, WrathDecompiled
     // 6ce4a6b. The note in the Crusader's feat-list files is not a game fact.
+    // A weapon he is proficient with (ticket 251): the cleric's simple weapons.
+    // Game: ClericProficiencies 8c971173613282844888dc20d572cfc9; WeaponFocus 1e1f627d26ad36f43bbd26cc2bf8ac7e
+    // (RequireProficiency).
     let crusader = archetype_build("cleric", "cleric/crusader", 1);
-    let focus = Pick::feat_for(FeatKey::new("weapon-focus"), weapon("longsword"));
+    let focus = Pick::feat_for(FeatKey::new("weapon-focus"), weapon("heavy-mace"));
     let status = engine()
         .options(&crusader, &class_slot(1))
         .unwrap()

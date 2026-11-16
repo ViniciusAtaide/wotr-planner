@@ -232,7 +232,7 @@ const CLERIC_DOMAINS: [&str; 3] = [
 fn separatist() -> Archetype {
     Archetype {
         selections: vec![FeatureSelection {
-            levels_behind: 2,
+            later_rows_behind: 2,
             ..levelled_selection(
                 "cleric/separatist/domain",
                 &["cleric"],

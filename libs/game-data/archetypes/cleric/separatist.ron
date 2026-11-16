@@ -3,7 +3,7 @@
     class: "cleric",
     blueprint: "67401c74ee094e82a2afd645a847f5cc",
     name: "Separatist",
-    summary: "Lord of Nothing DLC: takes a second domain from outside the deity's list, working two levels behind.",
+    summary: "Lord of Nothing DLC: takes a second domain from outside the deity's list; its later powers come two levels late and its numbers count two levels lower.",
     guide: "cleric#separatist",
     levels: [
         (level: 1, features: ["cleric/channel-energy", "cleric/cleric-proficiencies", "cleric/separatist/forbidden-rites"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"], selections: ["cleric/domain", "cleric/separatist/domain"]),

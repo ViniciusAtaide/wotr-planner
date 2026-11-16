@@ -62,6 +62,7 @@ fn feat_row(key: &str, category: FeatCategory, prerequisite: Option<Prerequisite
         parameter: None,
         repeat: Repeat::Once,
         extra_pick_of: BTreeSet::new(),
+        requires_proficiency: false,
         prerequisite,
     }
 }

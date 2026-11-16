@@ -2,6 +2,7 @@
     key: "oracle/lone-strider/mystery",
     blueprint: "5531b975dcdf0e24c98f1ff7e017e741",
     name: "Mystery (Lone Strider)",
+    band: Path,
     summary: "The Lone Strider's mystery: Ancestor, Life, Nature, Stone or Waves.",
     guide: "oracle#lone-strider",
     option_levels: ["oracle"],

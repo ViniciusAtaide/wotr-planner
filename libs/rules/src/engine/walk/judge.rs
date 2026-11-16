@@ -2,7 +2,7 @@
 //! a class's first level ([`class_entry`]). The walk asks them as it goes, and the cursor asks the same ones of a
 //! candidate at the paused walk, so a picker and the walk can't judge a choice two ways.
 
-use crate::build::Pick;
+use crate::build::{BuildStart, Pick};
 use crate::choice::{Issue, Unmet};
 use crate::engine::SlotKind;
 use crate::engine::catalog::Catalog;
@@ -12,11 +12,13 @@ use crate::parameter::{Parameter, Repeat};
 use crate::prerequisite::Prerequisite;
 use crate::state::CharacterState;
 
-/// Whether `pick` may fill a slot of `kind` for a character in `state`: a known key, accepted by the slot, a value
-/// that fits what it takes, not already held (as often as it repeats), prerequisites met for the pick's value
-/// (unless the slot is a bonus-list slot). Checked in that order.
+/// Whether `pick` may fill a slot of `kind` for a character in `state` of a Build starting with `start`: a known key,
+/// accepted by the slot, a value that fits what it takes, not already held (as often as it repeats), a weapon the
+/// character is proficient with where the feat requires it (whatever the slot ignores), prerequisites met for the
+/// pick's value (unless the slot is a bonus-list slot). Checked in that order.
 pub(super) fn check_pick(
     catalog: &Catalog,
+    start: &BuildStart,
     state: &CharacterState,
     kind: &SlotKind,
     pick: &Pick,
@@ -25,13 +27,14 @@ pub(super) fn check_pick(
         (SlotKind::Feat(slot), Pick::Feat { .. }) => catalog.slot_lists(slot, state),
         _ => Vec::new(),
     };
-    check_pick_with(catalog, state, kind, &lists, pick)
+    check_pick_with(catalog, start, state, kind, &lists, pick)
 }
 
 /// [`check_pick`] with the slot's lists for `state` worked out already ([`Catalog::slot_lists`]; read only for a
 /// feat pick in a feat slot), as a picker does once for all its feats.
 pub(super) fn check_pick_with(
     catalog: &Catalog,
+    start: &BuildStart,
     state: &CharacterState,
     kind: &SlotKind,
     lists: &[&FeatList],
@@ -50,6 +53,9 @@ pub(super) fn check_pick_with(
                 return Err(Issue::NotAllowed);
             }
             check_repeat(state, key, feat.repeat, value)?;
+            if feat.requires_proficiency && !skips_proficiency(lists, key) {
+                check_proficiency(catalog, start, state, value)?;
+            }
             // A bonus list the slot offers it from that ignores them.
             if lists
                 .iter()
@@ -109,6 +115,9 @@ pub(super) fn check_pick_with(
                 && let Some(chosen) = catalog.feat(feat)
             {
                 check_repeat(state, feat, chosen.repeat, value)?;
+                if chosen.requires_proficiency {
+                    check_proficiency(catalog, start, state, value)?;
+                }
             }
             if let Some(limit) = through.deity_domains {
                 check_deity_domain(state, limit, option)?;
@@ -140,6 +149,9 @@ pub(super) fn check_pick_with(
             };
             if held {
                 return Err(Issue::AlreadyHeld);
+            }
+            if feat.requires_proficiency {
+                check_proficiency(catalog, start, state, value)?;
             }
             feat.prerequisite.as_ref()
         }
@@ -184,6 +196,38 @@ fn check_deity_domain(
             limit,
         })
     }
+}
+
+/// Whether a pick refused at its turn for `issue` may hold once its band's later picks at its level are held: an
+/// unmet prerequisite, or a weapon the character isn't proficient with yet (ticket 248).
+pub(super) fn deferrable(issue: &Issue) -> bool {
+    matches!(issue, Issue::Unmet(_) | Issue::NotProficient { .. })
+}
+
+/// Whether a slot offers `feat` from a list whose pick skips the proficiency check
+/// ([`FeatList::skips_proficiency`]): the game's pick there is a feature that makes the character proficient with the
+/// weapon (the Sword Saint's chosen weapon), which the walk holds with it.
+pub(super) fn skips_proficiency(lists: &[&FeatList], feat: &FeatKey) -> bool {
+    (lists.iter()).any(|list| list.skips_proficiency && list.contains(feat))
+}
+
+/// Whether a feat that requires proficiency may be taken for `value`: a weapon the character is proficient with
+/// ([`Catalog::proficient`]), or any other value.
+fn check_proficiency(
+    catalog: &Catalog,
+    start: &BuildStart,
+    state: &CharacterState,
+    value: Option<&Parameter>,
+) -> Result<(), Issue> {
+    if let Some(Parameter::Weapon(key)) = value
+        && let Some(weapon) = catalog.weapon(key)
+        && !catalog.proficient(start, state, weapon)
+    {
+        return Err(Issue::NotProficient {
+            weapon: key.clone(),
+        });
+    }
+    Ok(())
 }
 
 /// Whether a feat can be held once more, for `value`: once at all, once per value, or up to its number of times.

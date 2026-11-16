@@ -1,6 +1,6 @@
 //! Option follow-ups (ticket 33) and the second follow-ups (ticket 35).
 
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 
 use rules::{
     Build, ClassKey, FeatKey, FeatSource, FeatureKey, Issue, LevelUp, Pick, Prerequisite,
@@ -181,7 +181,6 @@ fn a_separatists_second_domain_comes_two_levels_late() {
 
 /// The Separatist's second domain gives its 1st-level power from cleric 1; only its numbers count two levels lower.
 #[test]
-#[ignore = "waits on ticket 253: the game gives the Separatist's second domain power from cleric 1"]
 fn a_separatists_second_domain_gives_its_1st_level_power_from_cleric_1() {
     // Game: LuckDomainProgressionSeparatist 1f26551e7e61436c8ee188064038a896 grants its base power at its level 1
     // (cleric 1); SeparatistCasterLevelPropery 93d211bd5f4946f3bbed1b651d107377 lowers its numbers by two.
@@ -193,7 +192,6 @@ fn a_separatists_second_domain_gives_its_1st_level_power_from_cleric_1() {
 
 /// A Divine Hunter's domain counts the hunter's level less two: Nobility's 8th-level power at hunter 10.
 #[test]
-#[ignore = "waits on ticket 253: the game gives the Divine Hunter's domain hunter level - 2"]
 fn a_divine_hunters_domain_runs_two_levels_behind_its_hunter_level() {
     let build = with_option(
         archetype_build("hunter", "hunter/divine-hunter", 10),
@@ -206,6 +204,19 @@ fn a_divine_hunters_domain_runs_two_levels_behind_its_hunter_level() {
     // f996f0a18e5d945459e710ee3a6dd485 with AdditionalLevel -2 (Blueprints/Classes/BlueprintProgression.CalcLevel,
     // WrathDecompiled 6ce4a6b).
     from_level(&build, 10, "cleric/domain/nobility/inspiring-command");
+    // And its 1st-level power at hunter 3, when hunter level - 2 reaches 1 (the level is at least 0).
+    // Game: NobilityDomainProgression 8480f2d1ca764774895ee6fd610a568e: NobilityDomainBaseFeature (Inspiring Word) at
+    // its level 1.
+    from_level(&build, 3, "cleric/domain/nobility/inspiring-word");
+    // The data names the offset. Game: every domain progression (NobilityDomainProgression and the 36 others) lists
+    // DivineHunterArchetype f996f0a18e5d945459e710ee3a6dd485 with AdditionalLevel -2.
+    let domain = (DATA.selections.iter())
+        .find(|selection| selection.key.as_str() == "hunter/divine-hunter/domain")
+        .unwrap();
+    assert_eq!(
+        domain.option_level_archetypes,
+        BTreeMap::from([(rules::ArchetypeKey::new("hunter/divine-hunter"), -2)])
+    );
 }
 
 /// A Living Deity with the Battle mystery and the Plagued curse, arcanist `levels`, its two domains at 20.

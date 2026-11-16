@@ -21,13 +21,12 @@
 use std::cell::{OnceCell, RefCell};
 use std::collections::{BTreeSet, HashMap};
 
-use super::walk::{Cursor, before_slot, pick_fits};
-use super::{Address, Engine, Sheet, SlotKind};
+use super::walk::{Cursor, SlotTurn, before_slot};
+use super::{Address, Engine, Sheet};
 use crate::build::{Build, Edit, Gear, GearPlace, GearSpot, Pick, SlotId};
 use crate::choice::{Choice, Failure, Issue};
 use crate::gear::{GearItem, GearSlot};
 use crate::keys::GearKey;
-use crate::state::CharacterState;
 
 /// One option of a gear picker ([`Engine::gear_options`], [`Engine::usable_options`]).
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -642,9 +641,6 @@ impl GearViews {
     }
 }
 
-/// The state just before a slot is filled, and what the slot accepts.
-type BeforeSlot = (CharacterState, SlotKind);
-
 /// A slot just before it's filled, in the Build with any set of its items: which of the slot's open options are
 /// open only because of gear, and of which items. Each set's state is walked once, when an option first asks.
 pub(super) struct GearAtSlot<'a> {
@@ -652,7 +648,7 @@ pub(super) struct GearAtSlot<'a> {
     slot: SlotId,
     views: GearViews,
     /// The slot with each set of the items asked about so far; `None` where that Build has no such slot.
-    slots: RefCell<HashMap<Vec<bool>, Option<BeforeSlot>>>,
+    slots: RefCell<HashMap<Vec<bool>, Option<SlotTurn>>>,
 }
 
 impl GearAtSlot<'_> {
@@ -662,8 +658,8 @@ impl GearAtSlot<'_> {
         let mut slots = self.slots.borrow_mut();
         let at = slots
             .entry(kept.to_vec())
-            .or_insert_with(|| before_slot(engine, &self.views.with(kept), &self.slot));
-        (at.as_ref()).is_some_and(|(state, kind)| pick_fits(engine, state, kind, pick))
+            .or_insert_with(|| before_slot(engine, self.views.with(kept), &self.slot));
+        (at.as_ref()).is_some_and(|turn| turn.fits(engine, pick))
     }
 
     /// The items a pick open in the slot needs; `None` for one the Build without gear takes there too.

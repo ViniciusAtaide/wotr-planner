@@ -2,6 +2,7 @@
     key: "oracle/mystery",
     blueprint: "5531b975dcdf0e24c98f1ff7e017e741",
     name: "Mystery",
+    band: Path,
     summary: "Your mystery adds spells known at even levels, may add class skills, and sets your revelations and your 20th-level Final Revelation.",
     guide: "oracle#mystery",
     option_levels: ["oracle"],

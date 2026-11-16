@@ -661,6 +661,9 @@ impl Engine {
                 DeityDomains::Offered => format!("Not a domain of {}", self.deity_name(deity)),
                 DeityDomains::NotOffered => format!("A domain of {}", self.deity_name(deity)),
             },
+            Issue::NotProficient { weapon } => {
+                format!("Not proficient with {}", self.weapon_name(weapon))
+            }
             Issue::BreaksLater => return None,
         })
     }

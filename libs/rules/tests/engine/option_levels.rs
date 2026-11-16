@@ -4,9 +4,11 @@
 //! slot, and be a filtered pool, whose options the option held in another selection admits, beside options of its
 //! own.
 
+use std::collections::BTreeMap;
+
 use rules::{
-    Build, CharacterState, ClassChoice, FeatSlot, FeatureKey, FeatureSelectionKey, Issue,
-    Prerequisite, SlotId, SlotKind, SpellType, Unmet,
+    ArchetypeKey, Build, CharacterState, ClassChoice, FeatSlot, FeatureKey, FeatureSelectionKey,
+    Issue, Prerequisite, SlotId, SlotKind, SpellType, Unmet,
 };
 
 use crate::support::*;
@@ -907,8 +909,11 @@ fn crossblooded_second_bloodline_gives_its_arcana_too() {
 const FIRE_DOMAIN: &str = "cleric/domain/fire";
 const WAR_DOMAIN: &str = "cleric/domain/war";
 
+/// The Separatist's second domain: its first row at cleric 1, the later ones two levels late (ticket 253: the game's
+/// `LuckDomainProgressionSeparatist` and the others grant the 1st-level power at 1 and every later row two levels
+/// after the domain's).
 #[test]
-fn a_separatists_second_domain_lags_two_levels_behind() {
+fn a_separatists_second_domain_gives_its_first_row_at_once_and_the_later_ones_two_levels_late() {
     let build = with(
         &times("cleric", 10),
         Some(("cleric", "cleric/separatist")),
@@ -920,18 +925,48 @@ fn a_separatists_second_domain_lags_two_levels_behind() {
     assert!(engine().is_possible(&build));
     let at_1 = at(&build, 1);
     assert!(holds(&at_1, "cleric/domain/fire/fire-bolt"));
-    assert!(!holds(&at_1, "cleric/domain/war/battle-rage"));
-    assert_eq!(at_1.option_level(&option(WAR_DOMAIN)), 0);
-    assert!(!holds(&at(&build, 2), "cleric/domain/war/battle-rage"));
+    assert!(holds(&at_1, "cleric/domain/war/battle-rage"));
+    assert_eq!(at_1.option_level(&option(WAR_DOMAIN)), 1);
     let at_3 = at(&build, 3);
-    assert!(holds(&at_3, "cleric/domain/war/battle-rage"));
     assert_eq!(at_3.option_level(&option(WAR_DOMAIN)), 1);
     assert_eq!(at_3.option_level(&option(FIRE_DOMAIN)), 3);
+    assert_eq!(at(&build, 4).option_level(&option(WAR_DOMAIN)), 2);
     // War's bonus Combat feat (its row 8) at cleric 10.
     let sheet = engine().evaluate(&build);
     let war_slot = |level| SlotId::OptionFeat { level, index: 0 };
     assert!(sheet.slot(&war_slot(8)).is_none());
     assert!(sheet.slot(&war_slot(10)).is_some());
+}
+
+/// An archetype listed with an offset adds its class's levels plus the offset, never below 0, every row lagging
+/// (ticket 253: the game's `BlueprintProgression.CalcLevel` with `ArchetypeWithLevel.AdditionalLevel`, a Divine
+/// Hunter's domain at hunter level - 2).
+#[test]
+fn an_archetypes_offset_moves_every_row_and_never_goes_below_0() {
+    let mut data = world();
+    let domain = class_selection(&mut data, "cleric", "cleric/separatist/domain");
+    domain.later_rows_behind = 0;
+    domain.option_level_archetypes = BTreeMap::from([(ArchetypeKey::new("cleric/separatist"), -2)]);
+    let engine = engine_on(data);
+    let build = with(
+        &times("cleric", 10),
+        Some(("cleric", "cleric/separatist")),
+        &[
+            (selection_slot(1, 0), FIRE_DOMAIN),
+            (selection_slot(1, 1), WAR_DOMAIN),
+        ],
+    );
+    assert!(engine.is_possible(&build));
+    let sheet = engine.evaluate(&build);
+    let state = |level: u8| sheet.at(level).unwrap();
+    assert_eq!(state(2).option_level(&option(WAR_DOMAIN)), 0);
+    assert!(!holds(state(2), "cleric/domain/war/battle-rage"));
+    assert_eq!(state(3).option_level(&option(WAR_DOMAIN)), 1);
+    assert!(holds(state(3), "cleric/domain/war/battle-rage"));
+    assert_eq!(state(10).option_level(&option(WAR_DOMAIN)), 8);
+    // The cleric's own domain counts the cleric's levels: the cleric has a listed archetype only for the Separatist's
+    // selection.
+    assert_eq!(state(3).option_level(&option(FIRE_DOMAIN)), 3);
 }
 
 // ---- option levels from elsewhere -----------------------------------------------------------------------------

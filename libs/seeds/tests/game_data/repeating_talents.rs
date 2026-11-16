@@ -117,8 +117,8 @@ fn a_rogue_and_a_slayer_take_the_skill_focus_talent_for_two_skills_but_not_one_t
 }
 
 /// The game's rogue talent Weapon Focus is the feat itself, a parametrised feature the game repeats once per weapon:
-/// Longsword and then Dagger through the talent hold, Longsword twice doesn't (the user's "once" of 2026-11-02 gave way
-/// to the game's value, user, 2026-11-15).
+/// Short Sword and then Dagger through the talent hold, Short Sword twice doesn't (the user's "once" of 2026-11-02 gave
+/// way to the game's value, user, 2026-11-15). Both are weapons a rogue is proficient with (ticket 251).
 #[test]
 fn the_rogue_weapon_focus_talent_is_taken_once_per_weapon() {
     // Game: WeaponFocus 1e1f627d26ad36f43bbd26cc2bf8ac7e;
@@ -133,7 +133,7 @@ fn the_rogue_weapon_focus_talent_is_taken_once_per_weapon() {
     let two = with_picks(
         build("rogue", 4),
         &[
-            (2, pick_for(&focus, weapon("longsword"))),
+            (2, pick_for(&focus, weapon("short-sword"))),
             (4, pick_for(&focus, weapon("dagger"))),
         ],
     );
@@ -141,8 +141,8 @@ fn the_rogue_weapon_focus_talent_is_taken_once_per_weapon() {
     let twice = with_picks(
         build("rogue", 4),
         &[
-            (2, pick_for(&focus, weapon("longsword"))),
-            (4, pick_for(&focus, weapon("longsword"))),
+            (2, pick_for(&focus, weapon("short-sword"))),
+            (4, pick_for(&focus, weapon("short-sword"))),
         ],
     );
     assert_eq!(
@@ -198,8 +198,8 @@ fn combat_trick_repeats_and_grants_a_combat_feat_slot_each_time() {
     );
 }
 
-/// A rogue takes Combat Trick twice and Weapon Focus (Longsword) in one slot, Weapon Focus (Dagger) in the other;
-/// Weapon Focus (Longsword) twice is refused (the feat's own once per weapon). The link holds it all.
+/// A rogue takes Combat Trick twice and Weapon Focus (Short Sword) in one slot, Weapon Focus (Dagger) in the other;
+/// Weapon Focus (Short Sword) twice is refused (the feat's own once per weapon). The link holds it all.
 #[test]
 fn a_rogue_takes_weapon_focus_in_two_weapons_through_two_combat_tricks() {
     let engine = engine();
@@ -211,13 +211,15 @@ fn a_rogue_takes_weapon_focus_in_two_weapons_through_two_combat_tricks() {
             (4, pick(&rogue_talent("combat-trick"))),
         ],
     );
-    build.picks.insert(option_feat_slot(2), focus("longsword"));
+    build
+        .picks
+        .insert(option_feat_slot(2), focus("short-sword"));
     build.picks.insert(option_feat_slot(4), focus("dagger"));
     // Game: Blueprints/Classes/Selection/BlueprintParametrizedFeature.CanSelect, WrathDecompiled 6ce4a6b: one Weapon
     // Focus per weapon.
     assert!(possible(&build));
     let state = at(&build, 4);
-    for value in ["longsword", "dagger"] {
+    for value in ["short-sword", "dagger"] {
         assert!(state.has_feat_for(&FeatKey::new("weapon-focus"), &weapon(value)));
     }
     assert_eq!(
@@ -225,16 +227,18 @@ fn a_rogue_takes_weapon_focus_in_two_weapons_through_two_combat_tricks() {
         Ok(build.clone())
     );
     assert_eq!(
-        statuses(&build, &option_feat_slot(4))[&focus("longsword")],
+        statuses(&build, &option_feat_slot(4))[&focus("short-sword")],
         Err(Issue::AlreadyHeld)
     );
     let mut twice = build.clone();
-    twice.picks.insert(option_feat_slot(4), focus("longsword"));
+    twice
+        .picks
+        .insert(option_feat_slot(4), focus("short-sword"));
     assert_eq!(
         why_not(&twice, &option_feat_slot(4)),
         Some(Issue::AlreadyHeld)
     );
-    // The rogue talent Weapon Focus beside them: another weapon is open, Longsword isn't. Game:
+    // The rogue talent Weapon Focus beside them: another weapon is open, Short Sword isn't. Game:
     // BlueprintParametrizedFeature.CanSelect, WrathDecompiled 6ce4a6b.
     let mut rogue_6 = build.clone();
     rogue_6.levels.extend([
@@ -243,7 +247,7 @@ fn a_rogue_takes_weapon_focus_in_two_weapons_through_two_combat_tricks() {
     ]);
     let at_6 = statuses(&rogue_6, &selection_slot(6));
     assert_eq!(
-        at_6[&pick_for(&rogue_talent("weapon-focus"), weapon("longsword"))],
+        at_6[&pick_for(&rogue_talent("weapon-focus"), weapon("short-sword"))],
         Err(Issue::AlreadyHeld)
     );
     assert_eq!(

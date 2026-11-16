@@ -7,7 +7,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use crate::{
-    Ability, AbilityModifier, Advancement, ArchetypeKey, ArchetypeLevelRow, BabProgression,
+    Ability, AbilityModifier, Advancement, ArchetypeKey, ArchetypeLevelRow, BabProgression, Band,
     BlueprintGuid, ClassKey, ClassLevelRow, CountsAs, DeityDomains, FeatList, FeatSlot, Feature,
     FeatureKey, FeatureSelectionKey, GameData, GuideRef, LevelFrom, MythicPathKey, MythicRankRow,
     PathSwitch, Prerequisite, RaceKey, SaveException, SaveProgression, SelectionOption,
@@ -96,18 +96,19 @@ pub struct FeatureSelection {
     pub options: Vec<SelectionOption>,
     pub shared_options: BTreeSet<SelectionOptionKey>,
     pub option_levels: BTreeSet<ClassKey>,
-    pub option_level_archetypes: BTreeSet<ArchetypeKey>,
+    pub option_level_archetypes: BTreeMap<ArchetypeKey, i8>,
     pub half_other_classes: bool,
     pub skipped_levels: BTreeSet<u8>,
     pub replaced_by: BTreeMap<u8, FeatureKey>,
     pub feat_lists_only: bool,
     pub only_without_option: bool,
     pub filtered_by: Option<FeatureSelectionKey>,
-    pub levels_behind: u8,
+    pub later_rows_behind: u8,
     pub level_from: Option<LevelFrom>,
     pub level_also_from: Option<SelectionOptionKey>,
     pub once_per_option: bool,
     pub deity_domains: Option<DeityDomains>,
+    pub band: Band,
 }
 
 pub struct MythicPath {
@@ -265,11 +266,12 @@ fn selections_into(selections: Vec<FeatureSelection>, data: &mut GameData) {
             feat_lists_only: selection.feat_lists_only,
             only_without_option: selection.only_without_option,
             filtered_by: selection.filtered_by,
-            levels_behind: selection.levels_behind,
+            later_rows_behind: selection.later_rows_behind,
             level_from: selection.level_from,
             level_also_from: selection.level_also_from,
             once_per_option: selection.once_per_option,
             deity_domains: selection.deity_domains,
+            band: selection.band,
         });
         data.options.extend(selection.options);
     }

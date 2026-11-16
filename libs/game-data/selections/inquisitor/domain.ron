@@ -2,6 +2,7 @@
     key: "inquisitor/domain",
     blueprint: "48525e5da45c9c243a343fc6545dbdb9",
     name: "Domain",
+    band: Path,
     summary: "Chooses a domain, without its bonus domain spells.",
     deity_domains: Offered,
     guide: "inquisitor",

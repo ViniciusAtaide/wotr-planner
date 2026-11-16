@@ -1294,7 +1294,7 @@ impl Checker {
             self.names_each(&selection_at, &selection.option_levels, DataAt::Class);
             self.names_each(
                 &selection_at,
-                &selection.option_level_archetypes,
+                selection.option_level_archetypes.keys(),
                 DataAt::Archetype,
             );
             self.names_each(

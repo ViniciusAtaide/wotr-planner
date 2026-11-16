@@ -2,6 +2,7 @@
     key: "sorcerer/seeker-sorcerer/bloodline",
     blueprint: "24bef8d1bee12274686f6da6ccbc8914",
     name: "Bloodline (Seeker (Sorcerer))",
+    band: Path,
     summary: "The Seeker's bloodline: only its arcana, bonus spells, bonus feats and 20th-level power.",
     guide: "sorcerer#seeker-sorcerer",
     option_levels: ["dragon-disciple", "sorcerer"],
