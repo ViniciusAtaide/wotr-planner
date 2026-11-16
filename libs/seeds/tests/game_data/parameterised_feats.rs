@@ -133,7 +133,6 @@ fn feats_repeat_and_take_values_as_the_guide_says() {
 /// The game caps the Extra feats that are plain features at their blueprint's ranks: Extra Ki and Extra Reservoir
 /// at 20, the other seven at 10.
 #[test]
-#[ignore = "waits on ticket 250: the game gives Extra Ki 20 ranks, and Extra Rage and six others 10"]
 fn the_extra_feats_repeat_up_to_their_blueprints_ranks() {
     let repeat = |key| feat(key).repeat;
     // Game: ExtraKi 231a2a603d0b437e939553e6da3e7247, Ranks 20.
@@ -155,6 +154,54 @@ fn the_extra_feats_repeat_up_to_their_blueprints_ranks() {
     ] {
         assert_eq!(repeat(key), Repeat::Times(10), "{key}");
     }
+}
+
+/// The game caps the Extra feats that are selections at 3 each, by a `PrerequisiteCondition` on their own rank, and
+/// leaves Extra Rage Power uncapped (ticket 250).
+#[test]
+fn the_extra_talent_feats_stop_at_3_and_extra_rage_power_doesnt() {
+    // Game: each blueprint's PrerequisiteCondition is Not(ContextConditionBuffRank of itself, rank at least 3)
+    // (Blueprints/Classes/Prerequisites/PrerequisiteCondition.cs; UnitLogic/Mechanics/Conditions/
+    // ContextConditionBuffRank.CheckCondition, WrathDecompiled 6ce4a6b), so a fourth is refused.
+    // ExtraArcanaSelection 00727883edf145e2a6bce9ad176ecfd8, ExtraArcanistExploitSelection
+    // 0a7065e13f4449fa81bfb33199bf7f6a, ExtraDiscoverySelection 537965879fc24ad3948aaffa7a1a3a66, ExtraWitchHexSelection
+    // b6054088b4ab4be286724127cbf48b35, ExtraMercySelection 8a49abed5be9473da1e1fd1e2457562e, ExtraRogueTalentSelection
+    // 14d9089df87a43b696fa9451ca2f0a12, ExtraSlayerTalentSelection 53f7237f5b1447bb851ba68045a00e41 and
+    // ExtraWildTalentSelection 0f73730cf1b44ee882671e55d5f6e471.
+    for key in [
+        "extra-arcana",
+        "extra-arcanist-exploit",
+        "extra-discovery",
+        "extra-hex",
+        "extra-mercy",
+        "extra-rogue-talent",
+        "extra-slayer-talent",
+        "extra-wild-talent",
+    ] {
+        assert_eq!(feat(key).repeat, Repeat::Times(3), "{key}");
+    }
+    // Game: ExtraRagePowerSelection 0c7f01fbbe687bb4baff8195cb02fe6a has no PrerequisiteCondition, and a selection
+    // skips the rank check (BlueprintFeatureSelection.CanSelect). ExtraBane 756dc2f7340b0b34285a1dc367ff7359 has
+    // Ranks 1.
+    assert_eq!(feat("extra-rage-power").repeat, Repeat::Unlimited);
+    assert_eq!(feat("extra-bane-weapon").repeat, Repeat::Once);
+
+    // A witch 7 with Extra Hex at 1, 3 and 5 is refused a fourth at 7.
+    let mut witch = classes_build(&["witch"; 7]);
+    for level in [1, 3, 5] {
+        witch
+            .picks
+            .insert(general_slot(level), feat_pick_plain("extra-hex"));
+    }
+    let mut witch = with_selections_filled(witch);
+    assert!(possible(&witch));
+    witch
+        .picks
+        .insert(general_slot(7), feat_pick_plain("extra-hex"));
+    assert_eq!(
+        why_not(&witch, &general_slot(7)),
+        Some(Issue::MaxTimes { times: 3 })
+    );
 }
 
 #[test]
