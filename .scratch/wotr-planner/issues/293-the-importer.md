@@ -2,7 +2,7 @@
 
 Type: design, then build
 Status: open
-Blocked by: 244 (it writes the per-blueprint files); 295–298 (the component vocabulary and the data forms it writes, user 2026-11-15); the engine-rule tickets 247–254 and 256 (the importer writes data in the shapes they settle)
+Blocked by: 244 (it writes the per-blueprint files); 295–298 and 301–305 (the component vocabulary, the data forms it writes and the link migration; user 2026-11-15 and 2026-11-16); the engine-rule tickets 247–254 and 256 (the importer writes data in the shapes they settle)
 Model: Opus to build: one bug touches thousands of entries, so it is built and reviewed with care.
 Map: [WotR Build Planner](../map.md)
 
@@ -37,6 +37,11 @@ The user, 2026-11-15, agreed to replace the hand edits with an importer. The ord
 - **After a run, the game check reports only the gaps.** `known.txt` loses each section of 261–291 whose findings are gone.
 - **The tests waiting on 261–291** come off `#[ignore]` where the data now holds the game's value. Each one still waiting names its gap ticket.
 - **The user's facts.** The seven decided on 2026-11-15, 262's class skills and 276's Improved Uncanny Dodge are applied by the run like any value. The importer never overwrites another of the user's facts: those differences go to the user.
+
+- **The per-class selection splits and remaps** (user, 2026-11-16, "B: forms now, splits in 293"; from [298](298-selections-as-the-game-has-them.md)): `known.txt` section 293 holds them, 244's leftovers. The run writes each per-class selection as the game has it, read from its blueprint, with the game's own option list. An option key a link names that a split changes gets an alias, so 298's migration opens the old link. Research to start from: 298's build notes and `game/298/research/selections-spec.md` in the main session's scratchpad.
+  - **Identify each selection through what grants it,** never by name: `game-check refs` on the progression or archetype. Two blueprints are named `BardTalentSelection`, and only 94e2cd84bf3a8e04f8609fe502892f4f is the bard's (298's correction).
+  - **A list the game makes shorter removes offers** (the rogue-talent copies, the slayer's lists, the Instinctual Warrior's rage powers). That is applied as the game has it (234); a link whose pick the game no longer offers opens with that pick refused, as 251's game-correct changes did. The Answer counts the corpus Builds this touches.
+- **Gap tickets** are numbered from 306 on.
 
 ## To decide (recommendations; the user's "build them all, in order" applies)
 

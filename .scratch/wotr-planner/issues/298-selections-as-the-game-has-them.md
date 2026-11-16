@@ -1,10 +1,31 @@
-# Selections as the game has them
+# Selections as the game has them: the link migration
 
-Type: build (data form and engine)
+Type: build (engine)
 Status: open
 Blocked by: 297
-Model: Opus to build: slots, lists and repeats change shape, and every link must keep opening.
+Model: Opus to build: every link must keep opening.
 Map: [WotR Build Planner](../map.md)
+
+## Rescoped (user, 2026-11-16)
+
+The first build (Build notes below) found this ticket is about six tickets of 297's size. The user chose to split it ("B: forms now, splits in 293"):
+- **This ticket** keeps the data check's three fixes already built, and builds the **link migration**: an old option or feat key keeps opening after a later ticket renames or splits it.
+- **The five form steps** become [301](301-feat-slots-and-lists-as-selections.md), [302](302-nested-selections.md), [303](303-repeat-from-the-header.md), [304](304-the-progression-header.md) and [305](305-one-held-facts-map.md), in that order.
+- **The per-class selection splits and remaps** (244's leftovers, `known.txt` section 298) move to the importer, [293](293-the-importer.md), which writes each selection from its blueprint. Their lines move to `known.txt` section 293 in this ticket.
+
+### Change (as rescoped)
+
+- **A slot-aware link migration** in `Engine::open_link`. An option's or feat's `aliases` may name a key that is no longer live. When a link's pick no longer holds at its slot, the decoder replaces it with the one live entry whose alias names it there. When none or several do, the pick is refused as today. This is the shape 243's and 244's aliases began; 294 and 293 use it.
+- **A test over every corpus link and every bench link:** each opens with the same picks. A planted rename with an alias still opens, and one without fails the test.
+- **`known.txt`:** section 298's lines move to section 293, unchanged.
+
+### Done when (as rescoped)
+
+- The link test passes over the corpus and the bench, and a planted rename with an alias passes it.
+- The form proof (`compare` against the record at `7a793c6a`) shows 0 differences.
+- The game check exits 0 with the moved section. The scoped checks pass.
+
+The sections below are the ticket as first written, kept for its history.
 
 ## Problem
 
@@ -78,3 +99,5 @@ The real data passes all three (`check-data` exit 0). No data, no link and no en
 Research for the split: `<scratchpad>/game/298/research/selections-spec.md` (the main session's scratchpad), with the
 proposed keys and every place that names a shared selection. The form proof's record at `7a793c6a` is in
 `<scratchpad>/game/298/proof-before/`.
+
+**A correction to the research above** (main session, 2026-11-16): two blueprints are named `BardTalentSelection`. The research read 40f85fbe8cc35ef4fa96c66e06eeafe8, which only units reference. `BardProgression` 8127f5ff40f5b484b8be98609358b9d2 grants 94e2cd84bf3a8e04f8609fe502892f4f, whose list holds EmboldeningStrike, TerrainMastery, BlindingStrike, Familiar and PetrifyingStrike. The bard counts above are wrong, and the other selections' counts are unchecked. 293 identifies each selection through the progression or archetype that grants it (`game-check refs`), never by name.
