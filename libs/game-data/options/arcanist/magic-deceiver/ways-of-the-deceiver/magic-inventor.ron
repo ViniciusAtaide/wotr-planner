@@ -4,6 +4,7 @@
     name: "Magic Inventor",
     summary: "Deceiver path built on Use Magic Device and stronger item enhancements.",
     guide: "arcanist#magic-inventor",
+    header: (classes: {"arcanist": 0}, archetypes: {"arcanist/magic-deceiver": 0}),
     levels: [
         (level: 1, features: ["arcanist/magic-deceiver/ways-of-the-deceiver/magic-inventor/magic-inventions"]),
         (level: 2, features: ["arcanist/magic-deceiver/ways-of-the-deceiver/magic-inventor/fake-enhancement"]),

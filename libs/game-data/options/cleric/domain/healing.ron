@@ -4,6 +4,7 @@
     name: "Healing Domain",
     summary: "Rebuke Death and empowered cure spells from 6th level; healing spells up to Mass Heal.",
     guide: "character-creation#healing-domain",
+    header: (classes: {"arcanist": 0, "cleric": 0, "hunter": 0, "inquisitor": 0}, archetypes: {"arcanist/magic-deceiver": 0, "hunter/divine-hunter": -2}, previous_levels: true),
     levels: [
         (level: 1, features: ["cleric/domain/healing/rebuke-death"]),
         (level: 6, features: ["cleric/domain/healing/healers-blessing"]),

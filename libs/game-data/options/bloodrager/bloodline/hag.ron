@@ -4,8 +4,9 @@
     name: "Hag",
     summary: "Lord of Nothing DLC hag bloodline: Wicked Gaze, disease and poison immunity, a hag form in rage at 12th, Bestow Curse at 16th.",
     guide: "bloodrager#hag-bloodrager",
+    header: (classes: {"bloodrager": 0}),
     levels: [
-        (level: 1, features: ["bloodrager/bloodline/hag/wicked-gaze"], feat_list: "bloodrager/bloodline/hag/feats"),
+        (level: 1, features: ["bloodrager/bloodline/hag/wicked-gaze"]),
         (level: 4, features: ["bloodrager/bloodline/hag/hag-fortitude"]),
         (level: 12, features: ["bloodrager/bloodline/hag/hag-transformation"]),
         (level: 16, features: ["bloodrager/bloodline/hag/covenguard"]),

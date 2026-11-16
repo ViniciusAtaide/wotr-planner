@@ -1,0 +1,13 @@
+(
+    key: "sorcerer/bloodline-feats/draconic",
+    blueprint: "f4b011d090e8ae543b1441bd594c7bf7",
+    name: "Draconic Bloodline Feats",
+    guide: "character-creation#draconic-bloodline",
+    is_selection: true,
+    components: [
+        Requires(condition: Any([Has(Option("sorcerer/bloodline/draconic-black")), Has(Option("sorcerer/bloodline/draconic-blue")), Has(Option("sorcerer/bloodline/draconic-brass")), Has(Option("sorcerer/bloodline/draconic-bronze")), Has(Option("sorcerer/bloodline/draconic-copper")), Has(Option("sorcerer/bloodline/draconic-gold")), Has(Option("sorcerer/bloodline/draconic-green")), Has(Option("sorcerer/bloodline/draconic-red")), Has(Option("sorcerer/bloodline/draconic-silver")), Has(Option("sorcerer/bloodline/draconic-white"))])),
+    ],
+    levels: [
+        (level: 1, selections: ["sorcerer/bloodline/draconic/feats"]),
+    ],
+)

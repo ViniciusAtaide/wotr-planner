@@ -4,6 +4,7 @@
     name: "Order of the Shroud",
     summary: "Undead-hunting order: +1 morale to attack (+1 per 4 levels) against your challenged foe; Lore (Religion) becomes a class skill.",
     guide: "cavalier#order-of-the-shroud",
+    header: (classes: {"cavalier": 0}),
     levels: [
         (level: 1, class_skills: ["lore-religion"]),
         (level: 2, features: ["cavalier/order/order-of-the-shroud/spiritual-shield"]),

@@ -4,6 +4,7 @@
     name: "Fire Domain",
     summary: "Fire Bolt, fire resistance from 6th level and immunity at 20th; spells from Burning Hands to Fiery Body.",
     guide: "character-creation#fire-domain",
+    header: (classes: {"arcanist": 0, "cleric": 0, "hunter": 0, "inquisitor": 0}, archetypes: {"arcanist/magic-deceiver": 0, "hunter/divine-hunter": -2}, previous_levels: true),
     levels: [
         (level: 1, features: ["cleric/domain/fire/fire-bolt"]),
         (level: 6, features: ["cleric/domain/fire/fire-resistance"]),

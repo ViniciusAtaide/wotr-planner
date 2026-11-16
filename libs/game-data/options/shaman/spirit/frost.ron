@@ -4,6 +4,7 @@
     name: "Frost",
     summary: "Frost: Ice Splinter, cold resistance and a burst at 8th, smilodon form at 16th, cold immunity at 20th; needed for Winter Witch.",
     guide: "shaman#frost",
+    header: (classes: {"shaman": 0, "winter-witch": 0}, previous_levels: true),
     levels: [
         (level: 1, features: ["shaman/spirit/frost/ice-splinter"]),
         (level: 8, features: ["shaman/spirit/frost/frigid-blast"]),

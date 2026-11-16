@@ -1,0 +1,10 @@
+(
+    key: "sorcerer/bloodline-feats/abyssal",
+    name: "Abyssal Bloodline Feats",
+    guide: "sorcerer#abyssal",
+    is_selection: true,
+    prerequisite: SelectionOption("sorcerer/bloodline/abyssal"),
+    levels: [
+        (level: 1, selections: ["sorcerer/bloodline/abyssal-feats"]),
+    ],
+)

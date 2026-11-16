@@ -5,8 +5,9 @@
     ranks: 2,
     summary: "Water: Athletics and Lore (Nature) as class skills, blind-fight and bull rush bonus feats, and the Shroud of Water defense.",
     guide: "kineticist#elemental-focus-water",
+    header: (classes: {"kineticist": 0}),
     levels: [
-        (level: 1, feat_list: "kineticist/element/water/wild-talent-feats", class_skills: ["athletics", "lore-nature"]),
+        (level: 1, class_skills: ["athletics", "lore-nature"]),
         (level: 2, features: ["kineticist/element/water/shroud-of-water"]),
     ],
 )

@@ -1,0 +1,13 @@
+(
+    key: "sorcerer/bloodline-feats/celestial",
+    blueprint: "101a87c6744a3f242836e657cd7f643e",
+    name: "Celestial Bloodline Feats",
+    guide: "character-creation#celestial-bloodline",
+    is_selection: true,
+    components: [
+        Requires(condition: Has(Option("sorcerer/bloodline/celestial"))),
+    ],
+    levels: [
+        (level: 1, selections: ["sorcerer/bloodline/celestial/feats"]),
+    ],
+)

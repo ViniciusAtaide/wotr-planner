@@ -4,6 +4,7 @@
     name: "Trickery Domain",
     summary: "Copycat mirror image, Master's Illusion from 8th, Stealth and Trickery as class skills; spells from Sleep to Weird.",
     guide: "character-creation#trickery-domain",
+    header: (classes: {"arcanist": 0, "cleric": 0, "hunter": 0, "inquisitor": 0}, archetypes: {"arcanist/magic-deceiver": 0, "hunter/divine-hunter": -2}, previous_levels: true),
     levels: [
         (level: 1, features: ["cleric/domain/trickery/copycat"], class_skills: ["stealth", "trickery"]),
         (level: 8, features: ["cleric/domain/trickery/masters-illusion"]),

@@ -5,8 +5,9 @@
     ranks: 2,
     summary: "Earth: Athletics and Knowledge (World) as class skills, toughness and trip bonus feats, and the Flesh of Stone defense.",
     guide: "kineticist#elemental-focus-earth",
+    header: (classes: {"kineticist": 0}),
     levels: [
-        (level: 1, feat_list: "kineticist/element/earth/wild-talent-feats", class_skills: ["athletics", "knowledge-world"]),
+        (level: 1, class_skills: ["athletics", "knowledge-world"]),
         (level: 2, features: ["kineticist/element/earth/flesh-of-stone"]),
     ],
 )

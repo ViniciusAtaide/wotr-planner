@@ -4,8 +4,9 @@
     name: "Abyssal",
     summary: "Demonic bloodline: claws, size increase in rage at 4th, resistances at 8th, stronger rage at 12th, a fire aura at 16th.",
     guide: "bloodrager#abyssal-bloodrager",
+    header: (classes: {"bloodrager": 0}, previous_levels: true),
     levels: [
-        (level: 1, features: ["bloodrager/bloodline/abyssal/claws"], feat_list: "bloodrager/bloodline/abyssal/feats"),
+        (level: 1, features: ["bloodrager/bloodline/abyssal/claws"]),
         (level: 4, features: ["bloodrager/bloodline/abyssal/demonic-bulk"]),
         (level: 8, features: ["bloodrager/bloodline/abyssal/demon-resistances"]),
         (level: 12, features: ["bloodrager/bloodline/abyssal/abyssal-bloodrage"]),

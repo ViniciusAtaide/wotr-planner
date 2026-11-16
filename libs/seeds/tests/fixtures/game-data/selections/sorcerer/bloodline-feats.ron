@@ -2,5 +2,6 @@
     key: "sorcerer/bloodline-feats",
     blueprint: "3a60f0c0442acfb419b0c03b584e1394",
     name: "Bloodline feat",
-    option_lists: (selection: "sorcerer/bloodline"),
+    // Each bloodline's list nested as an option the bloodline opens (ticket 304).
+    options: ["sorcerer/bloodline-feats/abyssal"],
 )

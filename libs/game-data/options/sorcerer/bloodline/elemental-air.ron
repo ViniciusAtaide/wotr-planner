@@ -7,8 +7,9 @@
     prerequisite: NoOtherOptionOfGroup(Elemental),
     group: Elemental,
     arcana: "sorcerer/bloodline/elemental/elemental-arcana",
+    header: (classes: {"magus": 0, "sorcerer": 0}, archetypes: {"magus/eldritch-scion": 0}, previous_levels: true),
     levels: [
-        (level: 1, features: ["sorcerer/bloodline/elemental/elemental-arcana", "sorcerer/bloodline/elemental/elemental-ray"], feat_list: "sorcerer/bloodline/elemental/feats", class_skills: ["mobility"]),
+        (level: 1, features: ["sorcerer/bloodline/elemental/elemental-arcana", "sorcerer/bloodline/elemental/elemental-ray"], class_skills: ["mobility"]),
         (level: 3, features: ["sorcerer/bloodline/elemental/elemental-resistances"]),
         (level: 9, features: ["sorcerer/bloodline/elemental/elemental-blast", "sorcerer/bloodline/elemental/elemental-resistances"]),
         (level: 15, features: ["sorcerer/bloodline/elemental/elemental-movement-air"]),

@@ -4,8 +4,9 @@
     name: "Fey",
     summary: "Fey bloodline: confusing criticals, ignore difficult terrain at 4th, Blur at 8th, haste in rage at 12th, Bane attacks at 20th.",
     guide: "bloodrager#fey-bloodrager",
+    header: (classes: {"bloodrager": 0}, previous_levels: true),
     levels: [
-        (level: 1, features: ["bloodrager/bloodline/fey/confusing-critical"], feat_list: "bloodrager/bloodline/fey/feats"),
+        (level: 1, features: ["bloodrager/bloodline/fey/confusing-critical"]),
         (level: 4, features: ["bloodrager/bloodline/fey/leaping-charger"]),
         (level: 8, features: ["bloodrager/bloodline/fey/blurring-movement"]),
         (level: 12, features: ["bloodrager/bloodline/fey/quickling-bloodrage"]),

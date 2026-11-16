@@ -216,25 +216,39 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   a pick.
 - An option that grants over class levels (a bloodline, school, order, spirit, way or combat style) is a block
   with `levels: [...]`, one row per line, by **option level**: `(level: 9, features: [...], feats: ["wings"],
-  selections: ["sorcerer/bloodline/arcane/school-power"], feat_list: "sorcerer/bloodline/abyssal/feats",
-  class_skills: ["athletics"])`. A row's `feat_list` is the option's list from that level on (one per stage for a
-  ranger style); its `class_skills` are class skills while the row is held (ticket 37), so an archetype that skips
-  the row (Divine Herbalist) or a lists-only holding (Crossblooded's second bloodline) gives none. Its selection says
-  which classes' levels make the option level, `option_levels: ["dragon-disciple", "sorcerer"]` (an option taken
-  late gets every row up to its level at once), with the game's two more terms where the option is its own
-  progression (the game's `BlueprintProgression`, as an oracle's curse is; ticket 243): `option_level_archetypes`, each
-  archetype with the levels it adds (`{"witch/stigmatized-witch": 0}`; a class that has one of them counts only taken
-  with it, as a Stigmatized Witch's levels count for an oracle's curse and a plain witch's don't; a Divine Hunter's
-  domain is `{"hunter/divine-hunter": -2}`, ticket 253) and `half_other_classes: true` (half the other classes' levels, the Mythic rank's
-  among them, rounded down: `BlueprintProgression.CalcLevel`); an archetype that changes the grant has its own selection
-  that shares the options it allows: `skipped_levels: [3, 9, 15]` (Seeker; its own rows replace them),
+  selections: ["sorcerer/bloodline/arcane/school-power"], class_skills: ["athletics"])`. A row's `class_skills` are
+  class skills while the row is held (ticket 37), so an archetype that skips the row (Divine Herbalist) or a
+  lists-only holding (Crossblooded's second bloodline) gives none. Which classes' levels make the option level is the
+  option's own `header` (ticket 304), its blueprint's `BlueprintProgression` fields as `BlueprintProgression.CalcLevel`
+  reads them: `header: (classes: {"magus": 0, "sorcerer": 0}, archetypes: {"magus/eldritch-scion": 0},
+  previous_levels: true)`. `classes` are each class with the levels it adds (`ClassWithLevel.AdditionalLevel`),
+  `archetypes` each archetype likewise (a class that has one of them counts only taken with it, as a Stigmatized
+  Witch's levels count for an oracle's curse and a plain witch's don't; a Divine Hunter's domain is
+  `{"hunter/divine-hunter": -2}`, ticket 253); a sum below 0 adds 0, and with neither the option level is the
+  character level. `half_other_classes: true` adds half the other classes' levels, the Mythic rank's among them,
+  rounded down (`ForAllOtherClasses` with `Div2`: an oracle's curse); `previous_levels: true`
+  (`GiveFeaturesForPreviousLevels`) gives an option taken late every row up to its level at once, and without it
+  only the row of each level it reaches (`LevelUpHelper.UpdateProgression`: a wizard's school, a kineticist's
+  element). Until 293 and 294 a selection may name the classes itself, `option_levels: ["cleric"]` (every row up to
+  the level), which then gives the level of every option it offers, a header or not (the domains, which selections
+  the game keeps apart share; an oracle's revelations, whose options have none), unless it sets
+  `option_headers_first: true` (an oracle's revelations: Weapon Mastery's own header counts a Magic Deceiver's
+  levels); `option_level_archetypes` goes with it (the Divine Hunter's domain). An archetype that changes the grant
+  has its own selection that shares the options it allows: `skipped_levels: [3, 9, 15]` (Seeker; its own rows
+  replace them),
   `feat_lists_only: true` (Crossblooded's second bloodline: its lists and its `arcana`, the option's named
   first-row feature, `arcana: "sorcerer/bloodline/abyssal/demonic-arcana"`), `later_rows_behind: 2` (the Separatist's
   second domain, `cleric/separatist/domain`: its first row at once, the later ones two levels late; ticket 253), only some options (Hag-Riven), or one option, which
   is then granted with no pick (a Sage Sorcerer's Arcane bloodline). `only_without_option: true` grants the
   selection only to a character holding none of its options (Dragon Disciple's Blood of Dragons). A bonus slot
-  that picks from the held option's list is a selection of feats with `option_lists: (selection:
-  "sorcerer/bloodline")` (`sorcerer/bloodline-feats`, ticket 301; an `OptionList` slot before). The option features
+  that picks from the held options' lists is a selection of feats that nests them (ticket 304), as the game's
+  `SorcererFeatSelection` lists the bloodlines' feat selections: each of its options is a list
+  (`sorcerer/bloodline-feats/abyssal`, `is_selection: true`, its one level-1 row granting
+  `sorcerer/bloodline/abyssal/feats`) that the option gating it opens (`Requires(condition:
+  Has(Option("sorcerer/bloodline/abyssal")))`), and its slot offers the feats of every list open. The ranger's style
+  feat is a selection per stage (`ranger/combat-style-feats-2`, `-6`, `-10`, as RangerStyleSelection2, 6 and 10); the
+  bloodrager's bloodline feat and the kineticist's wild talent feat are the planner's nests (`planner/`). The option
+  features
   are the class's (`sorcerer/bloodline/abyssal/grow-claws`; the ten dragons share `sorcerer/bloodline/draconic/...`).
   Spells stay out. A Primalist's choice replaces the bloodline's row with `replaces_row_of:
   "bloodrager/bloodline"`; a feature can grant one row of a held option, `option_row: (selection:
@@ -255,7 +269,7 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   or its slot no longer takes, opens as the one entry naming its key that holds there (`Engine::open_link`'s
   migration), and is refused when none or several do. A pick its slot still offers is never replaced: one that fails
   there (a prerequisite unmet) is refused as before. This bullet was read from the guide, but for the
-  ticket 243's terms (`option_level_archetypes`, `half_other_classes`, `filtered_by`, `aliases`), read from the
+  ticket 243's terms (`option_level_archetypes`, `filtered_by`, `aliases`) and ticket 304's `header`, read from the
   game's blueprints and code (`notes/243-ranked-features-and-filtered-pools.md`).
 - Ticket 33 (the user's decisions on tickets 30 and 31):
   - An option may belong to a group, `group: Draconic` (the sorcerer's ten dragons; `Elemental`, its four
@@ -330,10 +344,11 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
 - The slayer's talents (`slayer/slayer-talents`, levelled by slayer) include three combat style feats, one per
   window the guide gives ("2 or 4, 6 or 8 and 10 or greater"): each is taken once and its row 1 grants
   `slayer/combat-style` (one of the ranger's five styles, levelled by slayer, `only_without_option`: the first
-  talent picks the style) and an `OptionList(selection: "slayer/combat-style", at_level: 2)` slot (6, 10), so
+  talent picks the style) and the window's stage selection, `slayer/combat-style-feats-2` (6, 10), so
   each window's feat comes from the style's list of its stage, whoever levels the style (the user's decisions: one
-  style, as a ranger picks, shared with a ranger's; the window's stage, not the ranger's levels). `at_level` left
-  out: the list in force at the option's own level.
+  style, as a ranger picks, shared with a ranger's; the window's stage, not the ranger's levels). Since ticket 304
+  each stage selection shares the options of the ranger's of its stage (`ranger/combat-style-feats-6`), as the game's
+  slayer talent grants RangerStyleSelection2, 6 or 10 itself.
 - Ticket 43 (the report items the saved pages settle): the totem rage powers are exclusive
   ('Selecting one "Totem" power closes off the other categories'), so each of the twelve (Beast, Celestial, Daemon,
   Fiend: Lesser, plain, Greater) has a `Not(SelectionOption(...))` for each of the other lines' nine in its `All`, one
@@ -733,8 +748,8 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   may own lists too, and its `selections`, all of feats, may name only its own bonus lists (the half-elf's
   Adaptability: Skill Focus as a bonus feat). The ticket entries above that name `feat_slots`, `OneOf`, `General`,
   `CombatFeat`, `Category(…)` or an `OptionList` slot read as the selection ticket 301 made of each: the general or
-  category selection, the named list, or the selection of feats with that `option_lists` (the label an `OptionList`
-  slot carried is its selection's name, "Wild talent feat" for `kineticist/wild-talent-feats`).
+  category selection, the named list, or the selection of feats that nests the options' lists (ticket 304; the label
+  an `OptionList` slot carried is its selection's name, "Wild talent feat" for `kineticist/wild-talent-feats`).
 - A feat the class gives outright is a granted feat, not a slot: `feats: ["scribe-scrolls"]` on the level row
   (class or archetype). It's held with no pick, whatever its prerequisites, and it's in no Build or link. A
   parameterised one granted for one value is `feats_for: [(feat: "weapon-focus", value: Weapon("sawtooth-saber"))]`

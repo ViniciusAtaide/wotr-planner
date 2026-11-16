@@ -1,0 +1,12 @@
+(
+    key: "ranger/combat-style-feats-10",
+    blueprint: "78177315fc63b474ea3cbb8df38fafcd",
+    name: "Combat Style feat",
+    options: [
+        "ranger/combat-style-feats-10/archery",
+        "ranger/combat-style-feats-10/menacing",
+        "ranger/combat-style-feats-10/two-handed-weapon",
+        "ranger/combat-style-feats-10/two-weapon-combat",
+        "ranger/combat-style-feats-10/weapon-and-shield",
+    ],
+)

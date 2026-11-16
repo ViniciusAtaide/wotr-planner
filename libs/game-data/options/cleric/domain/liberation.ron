@@ -4,6 +4,7 @@
     name: "Liberation Domain",
     summary: "Freedom of Movement rounds and Freedom's Call aura from 8th level; spells up to Communal Mind Blank.",
     guide: "character-creation#liberation-domain",
+    header: (classes: {"arcanist": 0, "cleric": 0, "hunter": 0, "inquisitor": 0}, archetypes: {"arcanist/magic-deceiver": 0, "hunter/divine-hunter": -2}, previous_levels: true),
     levels: [
         (level: 1, features: ["cleric/domain/liberation/freedom-of-movement"]),
         (level: 8, features: ["cleric/domain/liberation/freedoms-call"]),

@@ -4,6 +4,7 @@
     name: "Blackened",
     summary: "-4 on weapon attacks (-2 from 10th) for fire spells known: Burning Hands, then Burning Arc, Scorching Ray, Fire Snake and Hellfire Ray.",
     guide: "oracle#blackened",
+    header: (classes: {"oracle": 0, "witch": 0}, archetypes: {"witch/stigmatized-witch": 0}, half_other_classes: true, previous_levels: true),
     levels: [
         (level: 1, features: ["oracle/oracles-curse/blackened/level-1", "oracle/oracles-curse/blackened/weapon-penalty"]),
         (level: 5, features: ["oracle/oracles-curse/blackened/level-5"]),

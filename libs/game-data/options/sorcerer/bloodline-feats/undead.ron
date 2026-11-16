@@ -1,0 +1,13 @@
+(
+    key: "sorcerer/bloodline-feats/undead",
+    blueprint: "a29b72a804f7cb243b01e99c42452636",
+    name: "Undead Bloodline Feats",
+    guide: "character-creation#undead-bloodline",
+    is_selection: true,
+    components: [
+        Requires(condition: Has(Option("sorcerer/bloodline/undead"))),
+    ],
+    levels: [
+        (level: 1, selections: ["sorcerer/bloodline/undead/feats"]),
+    ],
+)

@@ -4,7 +4,6 @@
     name: "Bloodline (Reformed Fiend)",
     summary: "The Reformed Fiend's bloodline: Abyssal or Infernal only.",
     guide: "bloodrager#reformed-fiend",
-    option_levels: ["bloodrager"],
     options: [],
     shared_options: [
         "bloodrager/bloodline/abyssal",

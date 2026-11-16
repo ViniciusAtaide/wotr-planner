@@ -4,6 +4,7 @@
     name: "Fake Celebrity",
     summary: "Deceiver path whose performances weaken enemies.",
     guide: "arcanist#fake-celebrity",
+    header: (classes: {"arcanist": 0}, archetypes: {"arcanist/magic-deceiver": 0}),
     levels: [
         (level: 1, features: ["arcanist/magic-deceiver/ways-of-the-deceiver/fake-celebrity/inhibit-courage"]),
         (level: 2, features: ["trick-magic"]),

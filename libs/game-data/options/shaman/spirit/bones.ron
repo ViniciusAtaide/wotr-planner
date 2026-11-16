@@ -4,6 +4,7 @@
     name: "Bones",
     summary: "Bones: Touch of the Grave, Shard Soul DR and burst at 8th, incorporeal Shedding Form at 16th, Power Word Kill at 20th.",
     guide: "shaman#bones",
+    header: (classes: {"shaman": 0}, previous_levels: true),
     levels: [
         (level: 1, features: ["shaman/spirit/bones/touch-of-the-grave"]),
         (level: 8, features: ["shaman/spirit/bones/shard-soul"]),

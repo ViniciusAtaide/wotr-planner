@@ -4,9 +4,4 @@
     name: "Weapon and Shield Feats",
     summary: "Shield Bash, Shield Focus, Two-Weapon Fighting; from 6th Improved TWF, Shield Master; from 10th Bashing Finish, Greater TWF.",
     guide: "ranger#weapon-and-shield-feats",
-    levels: [
-        (level: 2, feat_list: "ranger/combat-style-feat/weapon-and-shield-feats-2"),
-        (level: 6, feat_list: "ranger/combat-style-feat/weapon-and-shield-feats-6"),
-        (level: 10, feat_list: "ranger/combat-style-feat/weapon-and-shield-feats-10"),
-    ],
 )

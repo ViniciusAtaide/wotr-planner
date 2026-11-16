@@ -9,7 +9,8 @@ use rules::{
 use crate::support::*;
 
 /// A row's selections of feats and its other selections are numbered apart, each in row order: the ranger's combat
-/// style at 2 is the level's selection 0 and its style feat the level's class feat slot 0, as before.
+/// style at 2 is the level's selection 0 and its style feat (the stage-2 selection, ticket 304) the level's class feat
+/// slot 0, as before.
 #[test]
 fn a_row_numbers_feat_and_option_selections_apart() {
     let engine = engine();
@@ -32,7 +33,7 @@ fn a_row_numbers_feat_and_option_selections_apart() {
                     source: FeatSource::Class,
                     index: 0
                 },
-                SlotKind::Feat(feat_list("ranger/combat-style-feats"))
+                SlotKind::Feat(feat_list("ranger/combat-style-feats-2"))
             ),
         ]
     );

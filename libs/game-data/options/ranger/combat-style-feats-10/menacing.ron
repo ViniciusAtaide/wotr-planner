@@ -1,0 +1,13 @@
+(
+    key: "ranger/combat-style-feats-10/menacing",
+    blueprint: "7d5bd07830a5e2c478852bf8b860db2c",
+    name: "Menacing Feats (from level 10)",
+    guide: "ranger#menacing-feats",
+    is_selection: true,
+    components: [
+        Requires(condition: Has(Option("ranger/combat-style-feat/menacing-feats"))),
+    ],
+    levels: [
+        (level: 1, selections: ["ranger/combat-style-feat/menacing-feats-10"]),
+    ],
+)

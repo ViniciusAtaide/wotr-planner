@@ -2,7 +2,6 @@
     key: "bloodrager/second-bloodline",
     blueprint: "b7f62628915bdb14d8888c25da3fac56",
     name: "Bloodline",
-    option_levels: ["bloodrager"],
     summary: "Take a second bloodrager bloodline with all its benefits.",
     guide: "mythic-paths#second-bloodrager-bloodline",
     options: [],

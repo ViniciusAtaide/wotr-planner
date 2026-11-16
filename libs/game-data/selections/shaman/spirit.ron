@@ -5,7 +5,6 @@
     band: Path,
     summary: "Your guiding spirit gives abilities at 1st, 8th and 16th level, a Manifestation at 20th, and bonus spells.",
     guide: "shaman#spirit",
-    option_levels: ["shaman"],
     options: [
         "shaman/spirit/battle",
         "shaman/spirit/bones",

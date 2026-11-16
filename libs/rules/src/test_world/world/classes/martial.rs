@@ -8,9 +8,9 @@ use crate::*;
 use crate::test_world::builds::{class, feat, feat_list, feature, skill, weapon};
 use crate::test_world::world::classes::{archetype, archetype_row, row};
 use crate::test_world::world::selections::{
-    levelled_option, levelled_selection, option_row, selection_option,
+    levelled_option, levelled_selection, nest, option_row, selection_option,
 };
-use crate::test_world::world::{guide, list, option_list, plain_feature};
+use crate::test_world::world::{guide, list, plain_feature};
 
 /// Fighter: full BAB, good Fortitude, Shield and Tower Shield Proficiency granted at 1, a Combat feat bonus slot
 /// at 1 and every even level.
@@ -94,7 +94,6 @@ pub(in crate::test_world::world) fn fighter() -> Class {
                 shared_options: BTreeSet::new(),
                 option_levels: BTreeSet::new(),
                 option_level_archetypes: BTreeMap::new(),
-                half_other_classes: false,
                 skipped_levels: BTreeSet::new(),
                 replaced_by: BTreeMap::new(),
                 feat_lists_only: false,
@@ -279,8 +278,10 @@ pub(in crate::test_world::world) fn warpriest() -> Class {
     }
 }
 
-/// Ranger: full BAB, a combat style at 2 whose list grows at 6 (option levels are ranger levels), and a style
-/// bonus slot at 2, 6 and 10 that picks from it, ignoring prerequisites.
+/// Ranger: full BAB, a combat style at 2 (Archery or Crane), and a style bonus slot at 2, 6 and 10 that picks from the
+/// held style's list for its stage, ignoring prerequisites: a selection per stage nesting each style's list, as the
+/// game's RangerStyleSelection2, 6 and 10 do (ticket 304). Archery's list grows at 6; Crane's doesn't, and the 10th
+/// level's slot is the 6th's (invented: the real game has a 10th-level list).
 pub(in crate::test_world::world) fn ranger() -> Class {
     let style = FeatureSelectionKey::new("ranger/combat-style");
     let levels = (1..=20)
@@ -288,17 +289,16 @@ pub(in crate::test_world::world) fn ranger() -> Class {
             let mut r = row(l);
             if l == 2 {
                 r.selections.push(style.clone());
+                r.selections.push(feat_list("ranger/combat-style-feats-2"));
             }
-            if [2, 6, 10].contains(&l) {
-                r.selections.push(feat_list("ranger/combat-style-feats"));
+            if [6, 10].contains(&l) {
+                r.selections.push(feat_list("ranger/combat-style-feats-6"));
             }
             r
         })
         .collect();
-    let stage = |level, list: &str| OptionLevelRow {
-        feat_list: Some(feat_list(list)),
-        ..option_row(level, &[])
-    };
+    let archery = "ranger/combat-style/archery";
+    let crane = "ranger/combat-style/crane";
     Class {
         casting_ability: None,
         key: class("ranger"),
@@ -318,26 +318,50 @@ pub(in crate::test_world::world) fn ranger() -> Class {
         class_skills: BTreeSet::from([skill("athletics")]),
         prerequisite: None,
         features: vec![],
-        selections: vec![levelled_selection(
-            "ranger/combat-style",
-            &["ranger"],
-            vec![
-                levelled_option(
-                    "ranger/combat-style/archery",
-                    vec![
-                        stage(2, "ranger/combat-style/archery-2"),
-                        stage(6, "ranger/combat-style/archery-6"),
-                    ],
-                ),
-                levelled_option(
-                    "ranger/combat-style/crane",
-                    vec![stage(2, "ranger/combat-style/crane-2")],
-                ),
-            ],
-            &[],
-        )],
+        selections: vec![
+            levelled_selection(
+                "ranger/combat-style",
+                &["ranger"],
+                vec![
+                    selection_option(archery, None, None),
+                    selection_option(crane, None, None),
+                ],
+                &[],
+            ),
+            nest(
+                "ranger/combat-style-feats-2",
+                "ranger/combat-style feat",
+                &[
+                    (
+                        "ranger/combat-style-feats-2/archery",
+                        "ranger/combat-style/archery-2",
+                        &[archery],
+                    ),
+                    (
+                        "ranger/combat-style-feats-2/crane",
+                        "ranger/combat-style/crane-2",
+                        &[crane],
+                    ),
+                ],
+            ),
+            nest(
+                "ranger/combat-style-feats-6",
+                "ranger/combat-style feat",
+                &[
+                    (
+                        "ranger/combat-style-feats-6/archery",
+                        "ranger/combat-style/archery-6",
+                        &[archery],
+                    ),
+                    (
+                        "ranger/combat-style-feats-6/crane",
+                        "ranger/combat-style/crane-2",
+                        &[crane],
+                    ),
+                ],
+            ),
+        ],
         feat_lists: vec![
-            option_list("ranger/combat-style-feats", "ranger/combat-style", None),
             list(
                 "ranger/combat-style/archery-2",
                 true,

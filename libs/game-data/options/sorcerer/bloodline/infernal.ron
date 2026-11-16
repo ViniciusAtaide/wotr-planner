@@ -5,8 +5,9 @@
     summary: "Devil-pact bloodline: +2 charm DCs, Corrupting Touch, fire resistance, Hellfire at 9th, wings at 15th; Knowledge (World) is a class skill.",
     guide: "sorcerer#infernal",
     arcana: "sorcerer/bloodline/infernal/infernal-arcana",
+    header: (classes: {"magus": 0, "sorcerer": 0}, archetypes: {"magus/eldritch-scion": 0}, previous_levels: true),
     levels: [
-        (level: 1, features: ["sorcerer/bloodline/infernal/corrupting-touch", "sorcerer/bloodline/infernal/infernal-arcana"], feat_list: "sorcerer/bloodline/infernal/feats", class_skills: ["knowledge-world"]),
+        (level: 1, features: ["sorcerer/bloodline/infernal/corrupting-touch", "sorcerer/bloodline/infernal/infernal-arcana"], class_skills: ["knowledge-world"]),
         (level: 3, features: ["sorcerer/bloodline/infernal/infernal-resistances"]),
         (level: 9, features: ["sorcerer/bloodline/infernal/hellfire", "sorcerer/bloodline/infernal/infernal-resistances"]),
         (level: 15, feats: ["wings"]),

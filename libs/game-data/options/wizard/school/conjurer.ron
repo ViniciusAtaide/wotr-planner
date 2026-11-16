@@ -4,6 +4,7 @@
     name: "Conjurer",
     summary: "Conjuration specialist: Summoner's Charm, Acid Dart and Dimensional Steps.",
     guide: "wizard#conjurer",
+    header: (classes: {"wizard": 0}),
     levels: [
         (level: 1, features: ["wizard/school/conjurer/acid-dart", "wizard/school/conjurer/summoners-charm"]),
         (level: 8, features: ["wizard/school/conjurer/dimensional-steps"]),

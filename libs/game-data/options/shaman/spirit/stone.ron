@@ -4,6 +4,7 @@
     name: "Stone",
     summary: "Stone: Touch of Acid, DR/adamantine and a burst at 8th, earth elemental form at 16th, free acid metamagic at 20th.",
     guide: "shaman#stone",
+    header: (classes: {"shaman": 0}, previous_levels: true),
     levels: [
         (level: 1, features: ["shaman/spirit/stone/touch-of-acid"]),
         (level: 8, features: ["shaman/spirit/stone/body-of-earth"]),

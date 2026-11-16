@@ -4,6 +4,7 @@
     name: "Abjurer",
     summary: "Abjuration specialist: Resistance, Protective Ward and Energy Absorption.",
     guide: "wizard#abjurer",
+    header: (classes: {"wizard": 0}),
     levels: [
         (level: 1, features: ["wizard/school/abjurer/protective-ward", "wizard/school/abjurer/resistance"]),
         (level: 6, features: ["wizard/school/abjurer/energy-absorption"]),

@@ -34,6 +34,7 @@ pub(super) fn selection_option(
         arcana: None,
         domain: None,
         bab_from_ranks: None,
+        header: None,
     }
 }
 
@@ -46,7 +47,6 @@ pub(super) fn option_row(level: u8, features: &[&str]) -> OptionLevelRow {
         feats: BTreeSet::new(),
         chosen_feats: BTreeSet::new(),
         selections: vec![],
-        feat_list: None,
         class_skills: BTreeSet::new(),
     }
 }
@@ -76,7 +76,6 @@ pub(super) fn levelled_selection(
         shared_options: shared.iter().map(|key| option(key)).collect(),
         option_levels: levels.iter().map(|key| class(key)).collect(),
         option_level_archetypes: BTreeMap::new(),
-        half_other_classes: false,
         skipped_levels: BTreeSet::new(),
         replaced_by: BTreeMap::new(),
         feat_lists_only: false,
@@ -88,6 +87,38 @@ pub(super) fn levelled_selection(
         level_also_from: None,
         deity_domains: None,
         band: Band::Features,
+    }
+}
+
+/// A selection of feats that nests lists (ticket 304), named as the option-list slots were (`name`): each of `lists`
+/// is `(option, list, opened by)`, an option whose pick is the list `list`, offered while one of the options
+/// `opened by` is held (a sorcerer's bloodline feat: each bloodline's list, opened by the bloodline).
+pub(super) fn nest(key: &str, name: &str, lists: &[(&str, &str, &[&str])]) -> FeatureSelection {
+    let options = lists
+        .iter()
+        .map(|&(key, list, opened_by)| {
+            let mut opened_by: Vec<Prerequisite> = opened_by
+                .iter()
+                .map(|key| Prerequisite::SelectionOption(option(key)))
+                .collect();
+            let prerequisite = if opened_by.len() == 1 {
+                opened_by.remove(0)
+            } else {
+                Prerequisite::Any(opened_by)
+            };
+            SelectionOption {
+                is_selection: true,
+                levels: vec![OptionLevelRow {
+                    selections: vec![FeatureSelectionKey::new(list)],
+                    ..option_row(1, &[])
+                }],
+                ..selection_option(key, None, Some(prerequisite))
+            }
+        })
+        .collect();
+    FeatureSelection {
+        name: name.into(),
+        ..levelled_selection(key, &[], options, &[])
     }
 }
 

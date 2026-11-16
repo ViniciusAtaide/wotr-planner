@@ -8,6 +8,7 @@
     ],
     guide: "oracle#weapon-mastery",
     chosen_feat: "weapon-focus",
+    header: (classes: {"arcanist": 0, "oracle": 0}, archetypes: {"arcanist/magic-deceiver": 0}, previous_levels: true),
     levels: [
         (level: 8, chosen_feats: ["improved-critical"]),
         (level: 12, chosen_feats: ["greater-weapon-focus"]),

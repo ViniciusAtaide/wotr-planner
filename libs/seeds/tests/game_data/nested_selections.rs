@@ -281,10 +281,6 @@ fn the_mythic_abilities_that_grant_a_pick_name_their_selection() {
             nested.option_level_archetypes, base.option_level_archetypes,
             "{selection}"
         );
-        assert_eq!(
-            nested.half_other_classes, base.half_other_classes,
-            "{selection}"
-        );
     }
     let granting: BTreeSet<&str> = DATA
         .mythic_abilities

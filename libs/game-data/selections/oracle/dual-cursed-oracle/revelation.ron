@@ -5,6 +5,7 @@
     summary: "Extra revelations at 5th and 13th level, which can also be Fortune or Misfortune.",
     guide: "oracle#additional-revelations",
     option_levels: ["oracle"],
+    option_headers_first: true,
     filtered_by: "oracle/mystery",
     options: [],
     shared_options: [

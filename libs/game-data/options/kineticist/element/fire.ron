@@ -5,8 +5,9 @@
     ranks: 2,
     summary: "Fire: Lore (Nature) as a class skill, intimidation and will bonus feats, and the Searing Flesh defense.",
     guide: "kineticist#elemental-focus-fire",
+    header: (classes: {"kineticist": 0}),
     levels: [
-        (level: 1, feat_list: "kineticist/element/fire/wild-talent-feats", class_skills: ["lore-nature"]),
+        (level: 1, class_skills: ["lore-nature"]),
         (level: 2, features: ["kineticist/element/fire/searing-flesh"]),
     ],
 )

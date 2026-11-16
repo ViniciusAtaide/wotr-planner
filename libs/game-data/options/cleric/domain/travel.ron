@@ -4,6 +4,7 @@
     name: "Travel Domain",
     summary: "+10 feet speed, Agile Feet and Dimensional Hop from 8th level; spells from Longstrider to Elemental Swarm.",
     guide: "character-creation#travel-domain",
+    header: (classes: {"arcanist": 0, "cleric": 0, "hunter": 0, "inquisitor": 0}, archetypes: {"arcanist/magic-deceiver": 0, "hunter/divine-hunter": -2}, previous_levels: true),
     levels: [
         (level: 1, features: ["cleric/domain/travel/agile-feet"]),
         (level: 8, features: ["cleric/domain/travel/dimensional-hop"]),

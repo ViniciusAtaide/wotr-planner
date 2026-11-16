@@ -319,12 +319,19 @@ fn a_kineticist_holds_the_elements_class_skills_list_and_defensive_talent() {
     let one = at(&build, 1);
     assert!(has_class_skill(&one, "athletics"));
     assert!(has_class_skill(&one, "knowledge-world"));
+    // Its bonus feat list is the one the wild talent feat slot nests for earth (ticket 304).
     assert_eq!(
-        one.option_feat_lists
-            .get(&SelectionOptionKey::new("kineticist/element/earth")),
+        DATA.selection_option(&SelectionOptionKey::new(
+            "kineticist/wild-talent-feats/earth"
+        ))
+        .and_then(|option| option.nested_selection()),
         Some(&rules::FeatureSelectionKey::new(
             "kineticist/element/earth/wild-talent-feats"
         ))
+    );
+    assert!(
+        one.selection_options
+            .contains_key(&SelectionOptionKey::new("kineticist/element/earth"))
     );
     from_level(&build, 2, "kineticist/element/earth/flesh-of-stone");
     // The Kinetic Knight's comes at 4.

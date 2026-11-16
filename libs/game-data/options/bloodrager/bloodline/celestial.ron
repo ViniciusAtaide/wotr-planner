@@ -4,8 +4,9 @@
     name: "Celestial",
     summary: "Angelic bloodline: good-aligned attacks, acid and cold resistance, a reroll at 8th, wings at 12th, protection from evil at 16th.",
     guide: "bloodrager#celestial-bloodrager",
+    header: (classes: {"bloodrager": 0}, previous_levels: true),
     levels: [
-        (level: 1, features: ["bloodrager/bloodline/celestial/angelic-attacks"], feat_list: "bloodrager/bloodline/celestial/feats"),
+        (level: 1, features: ["bloodrager/bloodline/celestial/angelic-attacks"]),
         (level: 4, features: ["bloodrager/bloodline/celestial/celestial-resistances"]),
         (level: 8, features: ["bloodrager/bloodline/celestial/conviction"]),
         (level: 12, features: ["bloodrager/bloodline/celestial/wings-of-heaven", "bloodrager/bloodline/celestial/celestial-resistances"]),

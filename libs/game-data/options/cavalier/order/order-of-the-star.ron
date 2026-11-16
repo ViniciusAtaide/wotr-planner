@@ -4,6 +4,7 @@
     name: "Order of the Star",
     summary: "Order protecting a faith: +1 morale to saves (+1 per 4 levels) while threatening your challenged foe; Lore (Religion) a class skill.",
     guide: "cavalier#order-of-the-star",
+    header: (classes: {"cavalier": 0}),
     levels: [
         (level: 1, class_skills: ["lore-religion"]),
         (level: 2, features: ["cavalier/order/order-of-the-star/calling"]),

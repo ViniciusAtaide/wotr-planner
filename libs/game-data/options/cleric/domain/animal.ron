@@ -4,6 +4,7 @@
     name: "Animal Domain",
     summary: "An animal companion at 4th level and Lore (Nature) as a class skill; spells like Magic Fang and Summon Nature's Ally.",
     guide: "character-creation#animal-domain",
+    header: (classes: {"arcanist": 0, "cleric": 0, "hunter": 0, "inquisitor": 0}, archetypes: {"arcanist/magic-deceiver": 0, "hunter/divine-hunter": -2}, previous_levels: true),
     levels: [
         (level: 4, features: ["cleric/domain/animal/animal-companion"], class_skills: ["lore-nature"]),
     ],

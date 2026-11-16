@@ -1,1 +1,1 @@
-(key: "witch/patron/elements", blueprint: "67e85f52b1f020847aaa738d8999d4cd", name: "Elements", summary: "Bonus spells: Shocking Grasp, Acid Arrow, Fireball, Dragon's Breath, Flame Strike, Acid Fog, Caustic Eruption, Polar Ray, Mass Icy Prison.", guide: "witch#elements")
+(key: "witch/patron/elements", blueprint: "67e85f52b1f020847aaa738d8999d4cd", name: "Elements", summary: "Bonus spells: Shocking Grasp, Acid Arrow, Fireball, Dragon's Breath, Flame Strike, Acid Fog, Caustic Eruption, Polar Ray, Mass Icy Prison.", guide: "witch#elements", header: (classes: {"witch": 0}))

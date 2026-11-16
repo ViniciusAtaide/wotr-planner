@@ -4,6 +4,7 @@
     name: "Madness Domain",
     summary: "Vision of Madness and a confusion aura from 8th level; spells from Cause Fear to Weird.",
     guide: "character-creation#madness-domain",
+    header: (classes: {"arcanist": 0, "cleric": 0, "hunter": 0, "inquisitor": 0}, archetypes: {"arcanist/magic-deceiver": 0, "hunter/divine-hunter": -2}, previous_levels: true),
     levels: [
         (level: 1, features: ["cleric/domain/madness/vision-of-madness"]),
         (level: 8, features: ["cleric/domain/madness/aura-of-madness"]),

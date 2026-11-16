@@ -4,7 +4,6 @@
     name: "Blood of Dragons",
     summary: "For a character without a bloodline: pick one of the ten Draconic bloodlines, levelled by Dragon Disciple levels.",
     guide: "prestige-classes#blood-of-dragons",
-    option_levels: ["dragon-disciple"],
     only_without_option: true,
     options: [],
     shared_options: [

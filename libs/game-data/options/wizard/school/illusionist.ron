@@ -4,6 +4,7 @@
     name: "Illusionist",
     summary: "Illusion specialist: Blinding Ray and Invisibility Field.",
     guide: "wizard#illusionist",
+    header: (classes: {"wizard": 0}),
     levels: [
         (level: 1, features: ["wizard/school/illusionist/blinding-ray"]),
         (level: 8, features: ["wizard/school/illusionist/invisibility-field"]),

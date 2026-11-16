@@ -5,6 +5,7 @@
     summary: "A revelation from the Living Deity's mystery, gained at 1st, 4th, 12th and 20th level.",
     guide: "arcanist#mysterious-gift-mystery",
     option_levels: ["arcanist"],
+    option_headers_first: true,
     filtered_by: "arcanist/magic-deceiver/mystery",
     options: [],
     shared_options: [

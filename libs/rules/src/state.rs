@@ -97,11 +97,6 @@ pub struct CharacterState {
     /// The option level of each option held through a selection with option levels (a sorcerer 5 / Dragon
     /// Disciple 5's bloodline: 10).
     pub option_levels: BTreeMap<SelectionOptionKey, u8>,
-    /// The feat list in force of each option held that has one ([`OptionLevelRow::feat_list`]): what a selection of
-    /// feats whose [`option_lists`](crate::FeatureSelection::option_lists) names its selection offers.
-    ///
-    /// [`OptionLevelRow::feat_list`]: crate::OptionLevelRow::feat_list
-    pub option_feat_lists: BTreeMap<SelectionOptionKey, FeatureSelectionKey>,
     pub mythic_abilities: BTreeSet<MythicAbilityKey>,
     /// Each mythic ability that takes a value, with the values it's held for (Favorite Metamagic: Persistent Spell
     /// and Quicken Spell; ticket 249).

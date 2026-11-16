@@ -4,6 +4,7 @@
     name: "Diviner",
     summary: "Divination specialist: Forewarned, Diviner's Fortune and Foretell.",
     guide: "wizard#diviner",
+    header: (classes: {"wizard": 0}),
     levels: [
         (level: 1, features: ["wizard/school/diviner/diviners-fortune", "wizard/school/diviner/forewarned"]),
         (level: 8, features: ["wizard/school/diviner/foretell"]),

@@ -5,8 +5,9 @@
     summary: "Serpent bloodline: Serpent's Fang, Snakeskin at 9th, Den of Vermin at 15th and Scaled Soul at 20th; Stealth is a class skill.",
     guide: "sorcerer#serpentine",
     arcana: "sorcerer/bloodline/serpentine/serpentine-arcana",
+    header: (classes: {"magus": 0, "sorcerer": 0}, archetypes: {"magus/eldritch-scion": 0}, previous_levels: true),
     levels: [
-        (level: 1, features: ["sorcerer/bloodline/serpentine/serpentine-arcana", "sorcerer/bloodline/serpentine/serpents-fang"], feat_list: "sorcerer/bloodline/serpentine/feats", class_skills: ["stealth"]),
+        (level: 1, features: ["sorcerer/bloodline/serpentine/serpentine-arcana", "sorcerer/bloodline/serpentine/serpents-fang"], class_skills: ["stealth"]),
         (level: 9, features: ["sorcerer/bloodline/serpentine/snakeskin"]),
         (level: 13, features: ["sorcerer/bloodline/serpentine/snakeskin"]),
         (level: 15, features: ["sorcerer/bloodline/serpentine/den-of-vermin"]),

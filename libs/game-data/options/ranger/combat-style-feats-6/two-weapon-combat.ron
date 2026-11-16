@@ -1,0 +1,13 @@
+(
+    key: "ranger/combat-style-feats-6/two-weapon-combat",
+    blueprint: "59d5445392ac62245a5ece9b01c05ee8",
+    name: "Two-Weapon Combat Feats (from level 6)",
+    guide: "ranger#two-weapon-combat-feats",
+    is_selection: true,
+    components: [
+        Requires(condition: Has(Option("ranger/combat-style-feat/two-weapon-combat-feats"))),
+    ],
+    levels: [
+        (level: 1, selections: ["ranger/combat-style-feat/two-weapon-combat-feats-6"]),
+    ],
+)

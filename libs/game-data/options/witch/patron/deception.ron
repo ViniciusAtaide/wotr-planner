@@ -1,1 +1,1 @@
-(key: "witch/patron/deception", blueprint: "3a4214e3c2eab3c40bc491d7abea7045", name: "Deception", summary: "Bonus spells: Vanish, Invisibility, Displacement, Confusion, Phantasmal Web, Serenity, Mass Invisibility, Greater Angelic Aspect, Weird.", guide: "witch#deception")
+(key: "witch/patron/deception", blueprint: "3a4214e3c2eab3c40bc491d7abea7045", name: "Deception", summary: "Bonus spells: Vanish, Invisibility, Displacement, Confusion, Phantasmal Web, Serenity, Mass Invisibility, Greater Angelic Aspect, Weird.", guide: "witch#deception", header: (classes: {"witch": 0}))

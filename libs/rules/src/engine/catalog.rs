@@ -20,8 +20,8 @@ use crate::game_data::{
     AbilityModifier, Archetype, BabFromRanks, Background, Band, Class, Deity,
     EXOTIC_WEAPON_PROFICIENCY, Feat, FeatCategory, FeatureSelection, GameData,
     IMPROVED_UNARMED_STRIKE, MARTIAL_WEAPONS_PROFICIENCY, MythicAbility, MythicFeat, MythicPath,
-    OptionRow, Race, SIMPLE_WEAPON_PROFICIENCY, SelectionOption, Skill, Subrace, UNARMED_STRIKE,
-    Weapon, WeaponProficiency,
+    OptionRow, ProgressionHeader, Race, SIMPLE_WEAPON_PROFICIENCY, SelectionOption, Skill, Subrace,
+    UNARMED_STRIKE, Weapon, WeaponProficiency,
 };
 use crate::gear::GearItem;
 use crate::keys::{
@@ -52,6 +52,11 @@ pub(super) struct Catalog {
     without_alignment: FxHashMap<ClassKey, Option<Prerequisite>>,
     /// The entries' components the walk evaluates (ticket 295).
     components: Components,
+    /// The selections that nest lists of feats ([`GameData::nests_feat_lists`]), whose slot is a Feat slot.
+    nests: FxHashSet<FeatureSelectionKey>,
+    /// The header each selection naming classes makes ([`ProgressionHeader::of_selection`]), the planner's form until
+    /// 293 and 294.
+    own_headers: FxHashMap<FeatureSelectionKey, ProgressionHeader>,
 }
 
 /// What a pick takes, read once ([`Catalog::pick_item`]): its name, picker chip, summary, prerequisite, the kind
@@ -95,8 +100,23 @@ impl Catalog {
             casting: Casting::new(&data),
             without_alignment,
             components,
+            nests: FxHashSet::default(),
+            own_headers: data
+                .selections
+                .iter()
+                .filter_map(|selection| {
+                    Some((
+                        selection.key.clone(),
+                        ProgressionHeader::of_selection(selection)?,
+                    ))
+                })
+                .collect(),
             data,
         };
+        catalog.nests = (catalog.data.selections.iter())
+            .filter(|selection| catalog.find_nest(selection))
+            .map(|selection| selection.key.clone())
+            .collect();
         catalog.single_options = catalog
             .indexes
             .selections
@@ -341,11 +361,11 @@ impl Catalog {
         Some(&self.data.selections[*self.indexes.selections.get(key)?])
     }
 
-    /// The kind of slot a selection makes: a Feat slot for a selection of feats ([`FeatureSelection::offers_feats`]),
+    /// The kind of slot a selection makes: a Feat slot for a selection of feats ([`GameData::offers_feats`]),
     /// a mythic ability slot for one of mythic abilities, a Feature selection slot for any other (ticket 302).
-    pub(super) fn slot_kind(selection: &FeatureSelection) -> SlotKind {
+    pub(super) fn slot_kind(&self, selection: &FeatureSelection) -> SlotKind {
         let key = selection.key.clone();
-        if selection.offers_feats() {
+        if self.nests.contains(&key) || !selection.feats.is_empty() {
             SlotKind::Feat(key)
         } else if selection.offers_mythic_abilities() {
             SlotKind::MythicAbilities(key)
@@ -356,19 +376,47 @@ impl Catalog {
 
     /// The band of the slot a selection makes, as [`band`](Self::band) gives it for its [`slot_kind`](Self::slot_kind)
     /// without building one.
-    pub(super) fn slot_band(selection: &FeatureSelection) -> Band {
-        if selection.offers_feats() {
+    pub(super) fn slot_band(&self, selection: &FeatureSelection) -> Band {
+        if self.offers_feats(&selection.key) {
             Band::Features
         } else {
             selection.band
         }
     }
 
-    /// Whether a row's selection is one of feats, whose slot is a Feat slot ([`FeatureSelection::offers_feats`]);
+    /// Whether a row's selection is one of feats, whose slot is a Feat slot ([`GameData::offers_feats`]);
     /// `false` for one the data lacks.
     pub(super) fn offers_feats(&self, key: &FeatureSelectionKey) -> bool {
-        self.selection(key)
-            .is_some_and(FeatureSelection::offers_feats)
+        self.nests.contains(key)
+            || self
+                .selection(key)
+                .is_some_and(|selection| !selection.feats.is_empty())
+    }
+
+    /// Whether a selection nests lists of feats ([`GameData::nests_feat_lists`]), found once by [`Catalog::new`].
+    fn find_nest(&self, selection: &FeatureSelection) -> bool {
+        selection.nests_feat_lists_in(|key| self.option(key), |key| self.selection(key))
+    }
+
+    /// Whether a selection nests lists of feats ([`GameData::nests_feat_lists`]): its slot offers the feats of the
+    /// nested lists whose options' prerequisites hold.
+    pub(super) fn nests(&self, key: &FeatureSelectionKey) -> bool {
+        self.nests.contains(key)
+    }
+
+    /// The header that makes the level of `option` held through `selection` (ticket 304): the option's own, where the
+    /// selection takes it ([`FeatureSelection::takes_header_of`]), else the one the selection's
+    /// [`option_levels`](FeatureSelection::option_levels) make. `None`: neither, and class levels make no option level.
+    pub(super) fn level_header<'s>(
+        &'s self,
+        selection: &FeatureSelection,
+        option: &'s SelectionOption,
+    ) -> Option<&'s ProgressionHeader> {
+        if selection.takes_header_of(option) {
+            option.header.as_ref()
+        } else {
+            self.own_headers.get(&selection.key)
+        }
     }
 
     /// A row's selections split by the slot each makes, each part in row order: the selections of feats (Feat slots),

@@ -190,11 +190,10 @@ fn feat_selection(key: &str, name: &str) -> FeatureSelection {
         needs_slot_of: BTreeSet::new(),
         ignores_prerequisites: false,
         skips_proficiency: false,
-        option_lists: None,
         shared_options: BTreeSet::new(),
+        option_headers_first: false,
         option_levels: BTreeSet::new(),
         option_level_archetypes: std::collections::BTreeMap::new(),
-        half_other_classes: false,
         skipped_levels: BTreeSet::new(),
         replaced_by: std::collections::BTreeMap::new(),
         feat_lists_only: false,
@@ -206,18 +205,6 @@ fn feat_selection(key: &str, name: &str) -> FeatureSelection {
         once_per_option: false,
         deity_domains: None,
         band: Band::Features,
-    }
-}
-
-/// A selection of feats whose lists are those of the options held that `of` offers ([`FeatureSelection::option_lists`]),
-/// at `at_level` or the option's own level, named as the option-list slots were: `of`'s name and "feat".
-fn option_list(key: &str, of: &str, at_level: Option<u8>) -> FeatureSelection {
-    FeatureSelection {
-        option_lists: Some(OptionLists {
-            selection: FeatureSelectionKey::new(of),
-            at_level,
-        }),
-        ..feat_selection(key, &format!("{of} feat"))
     }
 }
 

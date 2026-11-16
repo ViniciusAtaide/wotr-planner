@@ -21,18 +21,21 @@ pub enum Area {
     ProgressionRows,
     /// A selection's options or feats, and the general and mythic pools.
     OptionLists,
+    /// Each option's progression header (ticket 304).
+    ProgressionHeaders,
     MythicRanks,
     /// Gear's always-on bonuses and slot.
     Items,
 }
 
 impl Area {
-    pub const ALL: [Area; 7] = [
+    pub const ALL: [Area; 8] = [
         Area::Mapping,
         Area::Prerequisites,
         Area::ClassTables,
         Area::ProgressionRows,
         Area::OptionLists,
+        Area::ProgressionHeaders,
         Area::MythicRanks,
         Area::Items,
     ];
@@ -44,6 +47,7 @@ impl Area {
             Area::ClassTables => "class tables",
             Area::ProgressionRows => "progression rows",
             Area::OptionLists => "option lists",
+            Area::ProgressionHeaders => "progression headers",
             Area::MythicRanks => "mythic ranks",
             Area::Items => "items",
         }

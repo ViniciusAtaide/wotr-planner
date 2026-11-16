@@ -6,8 +6,9 @@
     guide: "bloodrager#draconic-bloodrager",
     prerequisite: NoOtherOptionOfGroup(BloodragerDraconic),
     group: BloodragerDraconic,
+    header: (classes: {"bloodrager": 0, "dragon-disciple": 0}, previous_levels: true),
     levels: [
-        (level: 1, features: ["bloodrager/bloodline/draconic/claws"], feat_list: "bloodrager/bloodline/draconic/feats"),
+        (level: 1, features: ["bloodrager/bloodline/draconic/claws"]),
         (level: 4, features: ["bloodrager/bloodline/draconic/draconic-resistance"]),
         (level: 8, features: ["bloodrager/bloodline/draconic/breath-weapon", "bloodrager/bloodline/draconic/draconic-resistance"]),
         (level: 12, features: ["bloodrager/bloodline/draconic/dragon-wings"]),

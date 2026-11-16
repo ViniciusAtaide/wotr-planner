@@ -4,6 +4,7 @@
     name: "Sun Domain",
     summary: "Stronger channel against undead and a blinding Nimbus of Light from 8th level; spells from Faerie Fire to Elemental Swarm.",
     guide: "character-creation#sun-domain",
+    header: (classes: {"arcanist": 0, "cleric": 0, "hunter": 0, "inquisitor": 0}, archetypes: {"arcanist/magic-deceiver": 0, "hunter/divine-hunter": -2}, previous_levels: true),
     levels: [
         (level: 1, features: ["cleric/domain/sun/suns-blessing"]),
         (level: 8, features: ["cleric/domain/sun/nimbus-of-light"]),

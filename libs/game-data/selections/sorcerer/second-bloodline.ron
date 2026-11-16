@@ -2,7 +2,6 @@
     key: "sorcerer/second-bloodline",
     blueprint: "3cf2ab2c320b73347a7c21cf0d0995bd",
     name: "Bloodline",
-    option_levels: ["dragon-disciple", "sorcerer"],
     summary: "Take a second sorcerer bloodline with all its benefits; not a second Draconic one.",
     guide: "mythic-paths#second-bloodline",
     options: [],

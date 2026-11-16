@@ -65,7 +65,7 @@ pub struct GameData {
     /// The features that classes, archetypes, options and paths grant.
     pub features: Vec<Feature>,
     /// The Feature selections: races', classes', archetypes', options' and paths' picks, of options or of feats
-    /// ([`FeatureSelection::offers_feats`], ticket 301).
+    /// ([`GameData::offers_feats`], ticket 301).
     pub selections: Vec<FeatureSelection>,
     /// The Selection options the selections offer ([`FeatureSelection::options`] and
     /// [`shared_options`](FeatureSelection::shared_options)).
@@ -152,6 +152,20 @@ impl GameData {
             .options
             .iter()
             .filter_map(|key| self.selection_option(key))
+    }
+
+    /// Whether a selection is one of feats, whose slot is a Feat slot: it lists feats (ticket 301), or nests lists of
+    /// them ([`nests_feat_lists`](Self::nests_feat_lists), ticket 304).
+    pub fn offers_feats(&self, selection: &FeatureSelection) -> bool {
+        !selection.feats.is_empty() || self.nests_feat_lists(selection)
+    }
+
+    /// Whether a selection's options are each a selection of feats it nests (ticket 304), as the game's
+    /// `SorcererFeatSelection` 3a60f0c0442acfb419b0c03b584e1394 lists the bloodlines' feat selections: every option it
+    /// offers is a [`nested_selection`](SelectionOption::nested_selection) of a list of feats. Its slot is one Feat slot
+    /// over the feats of the nested lists whose options' prerequisites hold, and a pick names only the feat.
+    pub fn nests_feat_lists(&self, selection: &FeatureSelection) -> bool {
+        selection.nests_feat_lists_in(|key| self.selection_option(key), |key| self.selection(key))
     }
 
     /// How much of each kind of thing the data holds, labelled, as a quick check that reading the files worked.
@@ -373,7 +387,7 @@ pub struct Race {
     #[serde(default)]
     pub ability_modifiers: Vec<AbilityModifier>,
     /// The selections of feats it gives a pick of at character level 1 (a human's bonus feat is
-    /// [`BASIC_FEAT_SELECTION`]'s), each one Feat slot ([`FeatureSelection::offers_feats`]).
+    /// [`BASIC_FEAT_SELECTION`]'s), each one Feat slot ([`GameData::offers_feats`]).
     #[serde(default)]
     pub selections: Vec<FeatureSelectionKey>,
     /// Skill points it adds at every level, on top of the class's and Intelligence's (a human's Skilled: 1).
@@ -888,7 +902,7 @@ pub struct ArchetypeLevelRow {
     /// Feats granted for one value: see [`ClassLevelRow::feats_for`].
     #[serde(default)]
     pub feats_for: BTreeSet<FeatValue>,
-    /// One slot per entry: a Feat slot for a selection of feats ([`FeatureSelection::offers_feats`]), a Feature
+    /// One slot per entry: a Feat slot for a selection of feats ([`GameData::offers_feats`]), a Feature
     /// selection slot for any other.
     #[serde(default)]
     pub selections: Vec<FeatureSelectionKey>,
@@ -1052,7 +1066,7 @@ pub struct ClassLevelRow {
     /// (Sawtooth Saber)).
     #[serde(default)]
     pub feats_for: BTreeSet<FeatValue>,
-    /// One slot per entry: a Feat slot for a selection of feats ([`FeatureSelection::offers_feats`]), a Feature
+    /// One slot per entry: a Feat slot for a selection of feats ([`GameData::offers_feats`]), a Feature
     /// selection slot for any other.
     #[serde(default)]
     pub selections: Vec<FeatureSelectionKey>,
@@ -1122,7 +1136,7 @@ pub struct OptionRow {
 /// The fixed list a Feature selection picks from, as the game's `BlueprintFeatureSelection` lists its
 /// `m_AllFeatures`: options, such as rogue talents or a path's picks (its own plus the ones it shares from other
 /// selections: a slayer's talents include the rogue's), or feats (ticket 301), such as the general feats
-/// ([`BASIC_FEAT_SELECTION`]) or a monk's bonus feats. A selection of feats ([`offers_feats`](Self::offers_feats))
+/// ([`BASIC_FEAT_SELECTION`]) or a monk's bonus feats. A selection of feats ([`GameData::offers_feats`])
 /// makes a Feat slot where a row, a race or a path rank names it; any other, a Feature selection slot.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -1170,34 +1184,29 @@ pub struct FeatureSelection {
     /// and its `KensaiChosenWeapon.OnActivate` adds the weapon to the unit's proficiencies and gives Weapon Focus.
     #[serde(default)]
     pub skips_proficiency: bool,
-    /// A selection of feats whose list comes from a held option, in place of `feats` (a sorcerer's bloodline feat; a
-    /// Crossblooded sorcerer's slot offers both bloodlines' lists): the planner's form until nested selections
-    /// (ticket 302). `None` for any other selection.
-    #[serde(default)]
-    pub option_lists: Option<OptionLists>,
     /// Other selections' options this one offers too. A shared option keeps its one key, so holding it through
     /// either selection holds it once, and its prerequisite is the same in both (where a class's own feature
     /// gates it, the data accepts each sharing class's with an `Any`).
     #[serde(default)]
     pub shared_options: BTreeSet<SelectionOptionKey>,
-    /// The classes whose levels add up to the option level of an option held through this selection (a
-    /// sorcerer's bloodline: sorcerer and Dragon Disciple levels). An option's rows apply as its level reaches
-    /// them, and an option taken late gets every row up to its level at once. A class that has one of
-    /// `option_level_archetypes` among its archetypes counts only through them, as the game's progression level does
-    /// (`BlueprintProgression.CalcLevel`).
+    /// The planner's form until 293 and 294 (ticket 304): the classes whose levels make the option level of an option
+    /// held through this selection, in place of the option's own [`header`](SelectionOption::header). Set where the
+    /// option is shared with selections the game keeps apart (the domains, 294; an archetype's copy of a class's
+    /// list, 293) or has no header (an oracle's revelations, a rogue's talents). Empty: the option's header gives its
+    /// level. An option's rows apply as its level reaches them, and an option taken late gets every row up to its
+    /// level at once.
     #[serde(default)]
     pub option_levels: BTreeSet<ClassKey>,
-    /// Archetypes whose class levels add to the option level, each with the levels it adds to them (the game's
-    /// `ArchetypeWithLevel.AdditionalLevel`; a sum below 0 adds 0), where the class itself counts only taken with one
-    /// of them (an oracle's curse: a witch's levels as a Stigmatized Witch, not a plain witch's; a Divine Hunter's
-    /// domain: the hunter's levels less 2).
+    /// With `option_levels`, archetypes whose class levels add to the option level, each with the levels it adds to
+    /// them, as a header's [`archetypes`](ProgressionHeader::archetypes) (a Divine Hunter's domain: the hunter's levels
+    /// less 2, until 294).
     #[serde(default)]
     pub option_level_archetypes: BTreeMap<ArchetypeKey, i8>,
-    /// Set when half the levels of every other class add to the option level, rounded down: the classes neither in
-    /// `option_levels` nor taken with one of `option_level_archetypes`, and the Mythic rank, which the game counts as
-    /// the mythic classes' levels (an oracle's curse: `BlueprintProgression.CalcLevel` with `ForAllOtherClasses`).
-    #[serde(default)]
-    pub half_other_classes: bool,
+    /// Set where `option_levels` gives the level only of the options with no header, and an option's own header gives
+    /// its (an oracle's revelations: Weapon Mastery counts oracle and Magic Deceiver levels, as `WeaponMasteryProgression`
+    /// does). Unset, and left out when written: `option_levels` gives every option's level.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub option_headers_first: bool,
     /// Option levels whose rows an option held through this selection doesn't get (Seeker: 3, 9 and 15); the
     /// archetype's own rows replace them.
     #[serde(default)]
@@ -1333,27 +1342,55 @@ impl OptionGroup {
     }
 }
 
-/// Where a selection of feats finds its lists ([`FeatureSelection::option_lists`]): the list in force of each option
-/// held that `selection` offers ([`OptionLevelRow::feat_list`]). Checked after the level's Feature selections, since
-/// it depends on them.
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+/// How an option's level is made, as its blueprint's `BlueprintProgression` holds it (ticket 304) and
+/// `BlueprintProgression.CalcLevel` reads it (WrathDecompiled 6ce4a6b): the classes and archetypes whose levels count,
+/// half the other classes' levels, and whether an option taken late gets the rows of the levels before
+/// (`GiveFeaturesForPreviousLevels`, which `LevelUpHelper.UpdateProgression` reads). With no classes and no
+/// archetypes, the option level is the character level. Its `m_FeaturesRankIncrease` (the domains', which keep their
+/// selections' levels until 294) isn't written.
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
-pub struct OptionLists {
-    pub selection: FeatureSelectionKey,
-    /// The option level whose list it offers, whatever level the option has reached (a slayer's combat style feat at
-    /// 2 or 4: the style's 2nd-level list, even when a ranger's levels have taken the style further). `None`: the list
-    /// in force at the option's level, and left out when written.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub at_level: Option<u8>,
+pub struct ProgressionHeader {
+    /// Each class whose levels count, plus its offset (`m_Classes`, `ClassWithLevel.AdditionalLevel`), unless the
+    /// class has one of `archetypes` among its archetypes: then it counts only through them. A sum below 0 adds 0.
+    /// Empty, and left out when written: none.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub classes: BTreeMap<ClassKey, i8>,
+    /// Each archetype whose class's levels count when taken with it, plus its offset (`m_Archetypes`,
+    /// `ArchetypeWithLevel.AdditionalLevel`; a Divine Hunter's domain: the hunter's levels less 2). A sum below 0 adds 0.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub archetypes: BTreeMap<ArchetypeKey, i8>,
+    /// Set when half the levels of every other class add to it, rounded down: the classes neither in `classes` nor
+    /// taken with one of `archetypes`, and the Mythic rank, which the game counts as the mythic classes' levels
+    /// (`ForAllOtherClasses` with `AlternateProgressionType` `Div2`: an oracle's curse).
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub half_other_classes: bool,
+    /// Set when an option taken late gets every row up to its level at once (`GiveFeaturesForPreviousLevels`: a
+    /// bloodline taken at a Dragon Disciple's first level); unset, only the row of the level it has reached, and of
+    /// each level it reaches after (a wizard's school, a kineticist's element).
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub previous_levels: bool,
+}
+
+impl ProgressionHeader {
+    /// The header a selection's own [`option_levels`](FeatureSelection::option_levels) and
+    /// [`option_level_archetypes`](FeatureSelection::option_level_archetypes) make, the planner's form until 293 and
+    /// 294: those classes and archetypes, every row up to the level. `None` for a selection with neither.
+    pub fn of_selection(selection: &FeatureSelection) -> Option<Self> {
+        (!selection.option_levels.is_empty() || !selection.option_level_archetypes.is_empty()).then(
+            || Self {
+                classes: (selection.option_levels.iter())
+                    .map(|class| (class.clone(), 0))
+                    .collect(),
+                archetypes: selection.option_level_archetypes.clone(),
+                half_other_classes: false,
+                previous_levels: true,
+            },
+        )
+    }
 }
 
 impl FeatureSelection {
-    /// Whether it's a selection of feats, whose slot is a Feat slot: it lists feats, or takes them from an option's
-    /// lists (ticket 301).
-    pub fn offers_feats(&self) -> bool {
-        !self.feats.is_empty() || self.option_lists.is_some()
-    }
-
     /// Whether it's a selection of mythic abilities, whose slot is a mythic ability slot (Extra Mythic Ability's,
     /// ticket 302).
     pub fn offers_mythic_abilities(&self) -> bool {
@@ -1363,7 +1400,7 @@ impl FeatureSelection {
     /// Whether it lists anything of its own to pick: options, feats or mythic abilities. One that doesn't stands for
     /// the first selection had of its [`needs_slot_of`](Self::needs_slot_of) (ticket 302).
     pub fn has_list(&self) -> bool {
-        self.offers_feats()
+        !self.feats.is_empty()
             || self.offers_mythic_abilities()
             || !self.options.is_empty()
             || !self.shared_options.is_empty()
@@ -1375,12 +1412,29 @@ impl FeatureSelection {
         self.shared_options.contains(option) || self.options.contains(option)
     }
 
-    /// Whether class levels make the option level of an option held through it: classes or archetypes it names, or
-    /// half the other classes.
-    pub fn levels_by_class(&self) -> bool {
-        !self.option_levels.is_empty()
-            || !self.option_level_archetypes.is_empty()
-            || self.half_other_classes
+    /// [`GameData::nests_feat_lists`] with the data's lookups by key: `option` finds an option, `list` a selection.
+    pub fn nests_feat_lists_in<'a>(
+        &self,
+        option: impl Fn(&SelectionOptionKey) -> Option<&'a SelectionOption>,
+        list: impl Fn(&FeatureSelectionKey) -> Option<&'a FeatureSelection>,
+    ) -> bool {
+        let offered = self.offered();
+        !offered.is_empty()
+            && offered.into_iter().all(|key| {
+                option(key)
+                    .and_then(SelectionOption::nested_selection)
+                    .and_then(&list)
+                    .is_some_and(|nested| !nested.feats.is_empty())
+            })
+    }
+
+    /// Whether an option held through it takes its level from its own [`header`](SelectionOption::header) rather
+    /// than from the selection's [`option_levels`](Self::option_levels): it has one, and the selection names no
+    /// classes or lets an option's header go first ([`option_headers_first`](Self::option_headers_first)).
+    pub fn takes_header_of(&self, option: &SelectionOption) -> bool {
+        option.header.is_some()
+            && (self.option_headers_first
+                || (self.option_levels.is_empty() && self.option_level_archetypes.is_empty()))
     }
 
     /// Every option it offers, own and shared, in key order.
@@ -1434,9 +1488,15 @@ pub struct SelectionOption {
     #[serde(default)]
     pub prerequisite: Option<Prerequisite>,
     /// What the option gives by option level (a bloodline's powers at 1, 3, 9, 15 and 20), each level at most
-    /// once. The selection it's held through says which class levels make up its level.
+    /// once. Its [`header`](Self::header) says which class levels make up its level, or the selection it's held
+    /// through ([`FeatureSelection::option_levels`], [`FeatureSelection::level_from`]).
     #[serde(default)]
     pub levels: Vec<OptionLevelRow>,
+    /// How its level is made, from its blueprint's progression header (ticket 304): the option of a
+    /// `BlueprintProgression` (a bloodline, a domain, a curse, a school). `None` for any other, and left out when
+    /// written.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub header: Option<ProgressionHeader>,
     /// Keys the option had before it merged with another, moved or was split (Combat Healer (Life), now Combat
     /// Healer): read only by the link decoder ([`LinkKeys`](crate::LinkKeys)) and [`Engine::open_link`]'s migration,
     /// so a link naming an old key still opens. An alias may be a key still live (a split that keeps it in one slot)
@@ -1549,11 +1609,6 @@ pub struct OptionLevelRow {
     /// Combat feat at 8).
     #[serde(default)]
     pub selections: Vec<FeatureSelectionKey>,
-    /// The option's feat list from this level on: a selection of feats, which a selection whose
-    /// [`option_lists`](FeatureSelection::option_lists) names the option's selection offers (a bloodline's feats; a
-    /// ranger style's list per stage).
-    #[serde(default)]
-    pub feat_list: Option<FeatureSelectionKey>,
     /// Skills that are class skills while the row is held (an oracle's Flame mystery: Athletics and Mobility).
     #[serde(default)]
     pub class_skills: BTreeSet<SkillKey>,

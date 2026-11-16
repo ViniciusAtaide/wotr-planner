@@ -87,8 +87,8 @@ fn the_general_slot_is_basic_feat_selection() {
     }
 }
 
-/// The sorcerer's bloodline feat at 7, 13 and 19 is the game's `SorcererFeatSelection`, offering the held bloodline's
-/// list.
+/// The sorcerer's bloodline feat at 7, 13 and 19 is the game's `SorcererFeatSelection`, offering the held bloodlines'
+/// lists, nested as the game nests them (ticket 304).
 #[test]
 fn the_bloodline_feat_slot_is_sorcerer_feat_selection() {
     // Game: SorcererProgression grants SorcererFeatSelection 3a60f0c0442acfb419b0c03b584e1394 at levels 7, 13 and 19.
@@ -107,14 +107,42 @@ fn the_bloodline_feat_slot_is_sorcerer_feat_selection() {
         .map(|row| row.level)
         .collect();
     assert_eq!(granting, [7, 13, 19]);
+    // Ticket 304: it nests the bloodlines' feat selections as the game's `m_AllFeatures` lists them, each an option
+    // whose pick is the list's feat.
     let bloodline_feats = any_selection("sorcerer/bloodline-feats");
-    let lists = bloodline_feats.option_lists.as_ref().expect("option lists");
+    assert!(DATA.nests_feat_lists(bloodline_feats) && bloodline_feats.feats.is_empty());
+    let nested: Vec<&str> = DATA
+        .options_of(bloodline_feats)
+        .map(|option| {
+            option
+                .blueprint
+                .as_ref()
+                .expect("a nested list's blueprint")
+                .as_str()
+        })
+        .collect();
+    // Game: SorcererFeatSelection 3a60f0c0442acfb419b0c03b584e1394 `m_AllFeatures`: BloodlineAbyssalFeatSelection
+    // 7781831170d794a4d8f147a1326c35fd, BloodlineArcaneFeatSelection ff4fd877b4c801342ab8e880b734a6b9,
+    // BloodlineCelestialFeatSelection 101a87c6744a3f242836e657cd7f643e, BloodlineDraconicFeatSelection
+    // f4b011d090e8ae543b1441bd594c7bf7, BloodlineElementalFeatSelection d2a4b74ee7e43a648b51d0f36db2aa34,
+    // BloodlineFeyFeatSelection d7f233e417c490545b00f49c3940638c, BloodlineInfernalFeatSelection
+    // f19d9bfcbc1e3ea42bda754a03c40843, BloodlineSerpentineFeatSelection 76be9555a33d58a4bb419154540595df,
+    // BloodlineUndeadFeatSelection a29b72a804f7cb243b01e99c42452636.
     assert_eq!(
-        lists.selection,
-        FeatureSelectionKey::new("sorcerer/bloodline")
+        nested.iter().copied().collect::<BTreeSet<_>>(),
+        BTreeSet::from([
+            "7781831170d794a4d8f147a1326c35fd",
+            "ff4fd877b4c801342ab8e880b734a6b9",
+            "101a87c6744a3f242836e657cd7f643e",
+            "f4b011d090e8ae543b1441bd594c7bf7",
+            "d2a4b74ee7e43a648b51d0f36db2aa34",
+            "d7f233e417c490545b00f49c3940638c",
+            "f19d9bfcbc1e3ea42bda754a03c40843",
+            "76be9555a33d58a4bb419154540595df",
+            "a29b72a804f7cb243b01e99c42452636",
+        ])
     );
-    assert_eq!(lists.at_level, None);
-    assert!(bloodline_feats.feats.is_empty());
+    assert_eq!(nested.len(), 9);
 }
 
 /// The monk's 1st-level bonus feats keep their list, which is the game's.
@@ -139,7 +167,7 @@ fn monk_bonus_feats_keep_their_list() {
             "improved-initiative",
         ])
     );
-    assert!(list.options.is_empty() && list.option_lists.is_none());
+    assert!(list.options.is_empty() && !DATA.nests_feat_lists(list));
     assert!(
         class("monk").levels[0]
             .selections

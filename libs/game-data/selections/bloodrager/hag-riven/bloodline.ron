@@ -4,7 +4,6 @@
     name: "Bloodline (Hag-Riven)",
     summary: "The Hag-Riven's bloodline: Arcane, Elemental, Fey or Hag only.",
     guide: "bloodrager#hag-riven",
-    option_levels: ["bloodrager"],
     options: [],
     shared_options: [
         "bloodrager/bloodline/arcane",

@@ -4,6 +4,7 @@
     name: "Demonic",
     summary: "-3 Persuasion for diplomacy, +2 Bluff and Intimidate; +4 vs fear at 5th, poison immunity at 10th, chaotic evil weapons at 15th.",
     guide: "oracle#demonic",
+    header: (classes: {"oracle": 0, "witch": 0}, archetypes: {"witch/stigmatized-witch": 0}, half_other_classes: true, previous_levels: true),
     levels: [
         (level: 1, features: ["oracle/oracles-curse/demonic/level-1"], class_skills: ["persuasion"]),
         (level: 5, features: ["oracle/oracles-curse/demonic/level-5"]),

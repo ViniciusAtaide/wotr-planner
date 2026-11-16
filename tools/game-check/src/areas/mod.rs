@@ -10,6 +10,7 @@ use crate::planner::Planner;
 use crate::report::{Area, Out};
 
 pub mod class_tables;
+pub mod headers;
 pub mod items;
 pub mod mapping;
 pub mod options;

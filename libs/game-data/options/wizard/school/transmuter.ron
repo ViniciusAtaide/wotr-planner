@@ -4,6 +4,7 @@
     name: "Transmuter",
     summary: "Transmutation specialist: Physical Enhancement, Telekinetic Fist and Change Shape.",
     guide: "wizard#transmuter",
+    header: (classes: {"wizard": 0}),
     levels: [
         (level: 1, features: ["wizard/school/transmuter/physical-enhancement", "wizard/school/transmuter/telekinetic-fist"]),
         (level: 8, features: ["wizard/school/transmuter/change-shape-i"]),

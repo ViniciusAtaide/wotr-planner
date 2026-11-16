@@ -4,8 +4,9 @@
     name: "Infernal",
     summary: "Devil bloodline: Hellfire Strike, fire resistance, +4 vs enchantment and fear at 8th, wings at 12th, Hellfire Charge at 16th.",
     guide: "bloodrager#infernal-bloodrager",
+    header: (classes: {"bloodrager": 0}, previous_levels: true),
     levels: [
-        (level: 1, features: ["bloodrager/bloodline/infernal/hellfire-strike"], feat_list: "bloodrager/bloodline/infernal/feats"),
+        (level: 1, features: ["bloodrager/bloodline/infernal/hellfire-strike"]),
         (level: 4, features: ["bloodrager/bloodline/infernal/infernal-resistance"]),
         (level: 8, features: ["bloodrager/bloodline/infernal/diabolical-arrogance"]),
         (level: 12, features: ["bloodrager/bloodline/infernal/dark-wings"]),

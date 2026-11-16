@@ -1,0 +1,13 @@
+(
+    why: "A bloodline's feat list as an option of the planner's bloodline feat selection (ticket 304): the game grants the list from the bloodline's progression, with no selection over the lists.",
+    entry: (
+        key: "bloodrager/bloodline-feats/fey",
+        name: "Fey Bloodline Feats",
+        guide: "bloodrager#bonus-feats-fey",
+        is_selection: true,
+        prerequisite: SelectionOption("bloodrager/bloodline/fey"),
+        levels: [
+            (level: 1, selections: ["bloodrager/bloodline/fey/feats"]),
+        ],
+    ),
+)

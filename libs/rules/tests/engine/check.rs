@@ -597,12 +597,13 @@ fn a_path_rank_may_name_its_own_bonus_list_only() {
 }
 
 #[test]
-fn a_selection_of_feats_lists_them_or_takes_an_options_lists_not_both() {
+fn a_selection_of_feats_lists_them_or_nests_lists_not_both() {
     let mut data = world();
-    feat_list_mut(&mut data, "gold-dragon/dragon-feats").option_lists = Some(rules::OptionLists {
-        selection: FeatureSelectionKey::new("sorcerer/bloodline"),
-        at_level: None,
-    });
+    feat_list_mut(&mut data, "gold-dragon/dragon-feats")
+        .shared_options
+        .insert(rules::SelectionOptionKey::new(
+            "sorcerer/bloodline-feats/abyssal",
+        ));
     let at = DataAt::FeatureSelection(FeatureSelectionKey::new("gold-dragon/dragon-feats"));
     assert_eq!(issues(&data), [(at.clone(), DataIssue::FeatsAndOptions)]);
     assert_eq!(
@@ -1597,21 +1598,13 @@ fn every_feat_list_and_slot_selection_named_is_one_the_data_has() {
     let list = || FeatureSelectionKey::new("sorcerer/bloodline-feets");
     let fighter = class_mut(&mut data, "fighter");
     fighter.levels[0].selections.push(list());
-    feat_list_mut(&mut data, "sorcerer/bloodline-feats").option_lists = Some(rules::OptionLists {
-        selection: FeatureSelectionKey::new("sorcerer/bloodlin"),
-        at_level: None,
-    });
-    let bloodline = own_options_mut(&mut data, "sorcerer/bloodline")
+    // A nested list (ticket 304) naming a selection the data lacks.
+    let nested = own_options_mut(&mut data, "sorcerer/bloodline-feats")
         .into_iter()
-        .find(|option| option.levels.iter().any(|row| row.feat_list.is_some()))
+        .next()
         .unwrap();
-    let row = bloodline
-        .levels
-        .iter_mut()
-        .find(|row| row.feat_list.is_some())
-        .unwrap();
-    row.feat_list = Some(list());
-    let bloodline = DataAt::SelectionOption(bloodline.key.clone());
+    nested.levels[0].selections = vec![list()];
+    let nested = DataAt::SelectionOption(nested.key.clone());
     let issues = issues(&data);
     assert_eq!(
         issues
@@ -1620,11 +1613,14 @@ fn every_feat_list_and_slot_selection_named_is_one_the_data_has() {
             .collect::<Vec<_>>(),
         sorted(vec![
             unknown(at_class("fighter"), DataAt::FeatureSelection(list())),
-            unknown(
+            unknown(nested.clone(), DataAt::FeatureSelection(list())),
+            // Nesting a list the data lacks, the selection nests no lists, so its option's row needs a level.
+            (
                 DataAt::FeatureSelection(FeatureSelectionKey::new("sorcerer/bloodline-feats")),
-                DataAt::FeatureSelection(FeatureSelectionKey::new("sorcerer/bloodlin"))
+                DataIssue::OptionRowsWithoutLevels(rules::SelectionOptionKey::new(
+                    "sorcerer/bloodline-feats/abyssal"
+                ))
             ),
-            unknown(bloodline, DataAt::FeatureSelection(list())),
         ])
     );
 }

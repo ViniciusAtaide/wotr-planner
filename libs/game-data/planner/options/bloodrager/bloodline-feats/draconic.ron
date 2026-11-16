@@ -1,0 +1,13 @@
+(
+    why: "A bloodline's feat list as an option of the planner's bloodline feat selection (ticket 304): the game grants the list from the bloodline's progression, with no selection over the lists.",
+    entry: (
+        key: "bloodrager/bloodline-feats/draconic",
+        name: "Draconic Bloodline Feats",
+        guide: "bloodrager#bonus-feats-draconic",
+        is_selection: true,
+        prerequisite: Any([SelectionOption("bloodrager/bloodline/draconic-black"), SelectionOption("bloodrager/bloodline/draconic-blue"), SelectionOption("bloodrager/bloodline/draconic-brass"), SelectionOption("bloodrager/bloodline/draconic-bronze"), SelectionOption("bloodrager/bloodline/draconic-copper"), SelectionOption("bloodrager/bloodline/draconic-gold"), SelectionOption("bloodrager/bloodline/draconic-green"), SelectionOption("bloodrager/bloodline/draconic-red"), SelectionOption("bloodrager/bloodline/draconic-silver"), SelectionOption("bloodrager/bloodline/draconic-white")]),
+        levels: [
+            (level: 1, selections: ["bloodrager/bloodline/draconic/feats"]),
+        ],
+    ),
+)

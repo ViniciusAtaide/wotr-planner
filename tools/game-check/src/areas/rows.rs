@@ -45,7 +45,7 @@ enum How {
     Grant,
     /// A fact a mapped feature adds: it matches a planner grant at its level or goes.
     Optional,
-    /// A planner selection of feats whose list comes from a held option: it pairs with any game pick at its level.
+    /// A planner selection of feats nesting lists, with no blueprint: it pairs with any game pick at its level.
     AnyPick,
 }
 
@@ -477,8 +477,11 @@ impl Grants<'_> {
         }
         for key in self.selections {
             let selection = ctx.planner.data.selection(key);
-            // A selection of feats whose list is a held option's (ticket 301: the option-list feat slot).
-            if selection.is_some_and(|selection| selection.option_lists.is_some()) {
+            // The planner's own selection of feats nesting lists the game grants from an option's progression (ticket 304:
+            // a bloodrager's bloodline feat, a kineticist's wild talent feat).
+            if selection.is_some_and(|selection| {
+                selection.blueprint.is_none() && ctx.planner.data.nests_feat_lists(selection)
+            }) {
                 placed.push(Placed {
                     how: How::AnyPick,
                     ..Placed::new(
