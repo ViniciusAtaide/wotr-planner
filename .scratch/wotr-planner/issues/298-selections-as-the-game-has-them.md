@@ -111,7 +111,9 @@ No data and no game fact changed, so there is no data note; the precedent is 243
 possible, while the first failure is a pick at a slot whose key an option's or feat's `aliases` name
 (`LinkKeys::heirs`), each such entry is tried in the pick's place with the same value, and the one whose slot then
 fails nothing replaces it. None or several: the link is stale. Each slot migrates once. A possible Build is never
-touched, so its cost stays one walk.
+touched, so its cost stays one walk. Only a pick whose key the data lacks or its slot doesn't take migrates
+(`Issue::UnknownKey` or `NotAllowed`): one its slot still offers that fails there stays refused (main session, from
+298's review; `a_pick_its_slot_offers_that_fails_its_prerequisite_is_refused_not_migrated`).
 
 **The decoder** (`LinkKeys`, `libs/rules/src/codec.rs`) keeps, per kind and hash, the text hashed, whether it's a live
 key and the live keys naming it as an alias. A live key reads as itself (even when aliases name it: 294's shape); an old

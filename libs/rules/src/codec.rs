@@ -28,8 +28,8 @@
 //! as [`aliases`](crate::SelectionOption::aliases) (a feat's [`aliases`](crate::Feat::aliases) since ticket 298), whose
 //! hashes count in the collision test. An old key no entry has any more reads as the one entry naming it; one that is
 //! still live reads as itself, and one several entries name reads as itself too, a key no entry has. Either way
-//! [`Engine::open_link`](crate::Engine::open_link) then migrates a pick that no longer holds at its slot to the one
-//! entry naming its key that holds there, so a link naming an old key opens on the entry it became.
+//! [`Engine::open_link`](crate::Engine::open_link) then migrates a pick whose key is gone or its slot no longer takes
+//! to the one entry naming its key that holds there, so a link naming an old key opens on the entry it became.
 //!
 //! **Structure.** Bytes in this order. `varint` is unsigned LEB128 in the fewest bytes (one byte below 128).
 //! `opt(x)` is `0` for none, or `1` then `x`. `key(kind)` writes nothing here: it takes the next hash from the list,

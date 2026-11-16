@@ -77,10 +77,11 @@ impl Engine {
     /// otherwise the one generic error, whatever the reason (the game data changed since the link was made, a key
     /// included, or the link is damaged or hand-edited). The sheet then shows a blank Build.
     ///
-    /// The link migration (ticket 298): while the first choice that fails is a pick whose key an option's or feat's
-    /// `aliases` name (a key renamed or split since the link was made, live or not), the pick is read as the one of
-    /// those entries that holds at its slot, with the same value. When none or several hold there, the link is
-    /// stale. A Build that is possible is never migrated, so a link that opened before opens the same.
+    /// The link migration (ticket 298): while the first choice that fails is a pick whose key the game data lacks or
+    /// its slot doesn't take ([`Issue::UnknownKey`] or [`Issue::NotAllowed`]) and an option's or feat's `aliases` name
+    /// it (a key renamed or split since the link was made, live or not), the pick is read as the one of those entries
+    /// that holds at its slot, with the same value. When none or several hold there, the link is stale, and so is one
+    /// whose pick its slot still offers but fails there (a prerequisite unmet): that pick is never replaced. A Build that is possible is never migrated, so a link that opened before opens the same.
     ///
     /// Costs one walk when the Build is possible; a link that isn't costs one more, and each migrated pick one per entry
     /// naming its key.
@@ -92,7 +93,11 @@ impl Engine {
         let mut failures = self.failures(&build);
         let mut migrated = FxHashSet::default();
         while let Some(first) = failures.first() {
-            let Choice::Slot(slot) = &first.choice else {
+            // Only a pick whose key the data lacks or its slot doesn't take migrates: one its slot still offers that
+            // fails a prerequisite or another rule stays a failure.
+            let (Choice::Slot(slot), Issue::UnknownKey | Issue::NotAllowed) =
+                (&first.choice, &first.issue)
+            else {
                 return Err(StaleLink);
             };
             // Each slot migrates once, so this ends.

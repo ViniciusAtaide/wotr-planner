@@ -180,6 +180,30 @@ fn a_pick_two_live_aliases_hold_at_is_refused() {
     );
 }
 
+/// A pick its slot still offers is never migrated: only a key the data lacks, or one its slot doesn't offer, is. Fast
+/// Stealth stays live in the rogue's talents beside a new talent naming it as an alias; a link whose Fast Stealth
+/// fails its own prerequisite is refused, not read as the new talent.
+#[test]
+fn a_pick_its_slot_offers_that_fails_its_prerequisite_is_refused_not_migrated() {
+    let mut data = world();
+    let mut heir = option_mut(&mut data, FAST_STEALTH).clone();
+    heir.key = option(ROGUE_STEALTH);
+    heir.aliases.insert(option(FAST_STEALTH));
+    data.options.push(heir);
+    selection_mut(&mut data, "rogue/rogue-talents")
+        .options
+        .insert(option(ROGUE_STEALTH));
+    option_mut(&mut data, FAST_STEALTH).prerequisite = Some(Prerequisite::ClassLevel {
+        class: class("rogue"),
+        level: 10,
+    });
+    let engine = engine_on(data);
+    let heirs = with(&rogue(), selection_slot(2, 0), pick_option(ROGUE_STEALTH));
+    assert!(engine.is_possible(&heirs));
+    assert!(!engine.is_possible(&rogue()));
+    assert_eq!(open(&engine, &rogue()), Err(StaleLink));
+}
+
 #[test]
 fn a_pick_no_alias_holds_at_is_refused() {
     let mut data = world();
